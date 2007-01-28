@@ -2,6 +2,7 @@
 -- GPLv3, (c) Simon Michael & contributors, 
 -- ledger is at http://newartisans.com/ledger.html
 
+import Debug.Trace
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import Control.Exception (assert)
@@ -25,6 +26,20 @@ sample_entry2 = "\
 \  assets:checking\n\
 \\n" --"
 
+sample_entry3 = "\
+\2007/01/01 * opening balance\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
+\\n\
+\2007/01/01 * opening balance\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
+\\n\
+\2007/01/28 coopportunity\n\
+\  expenses:food:groceries                 $47.18\n\
+\  assets:checking\n\
+\\n" --"
+
 sample_periodic_entry = "\
 \~ monthly from 2007/2/2\n\
 \  assets:saving            $200.00\n\
@@ -35,6 +50,16 @@ sample_periodic_entry2 = "\
 \~ monthly from 2007/2/2\n\
 \  assets:saving            $200.00         ;auto savings\n\
 \  assets:checking\n\
+\\n" --"
+
+sample_periodic_entry3 = "\
+\~ monthly from 2007/01/01\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
+\\n\
+\~ monthly from 2007/01/01\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
 \\n" --"
 
 sample_transaction  = "  expenses:food:dining  $10.00\n"
@@ -238,8 +263,10 @@ main = do
   showParseResult (parse ledgertransaction "" sample_transaction2)
   showParseResult (parse ledgerentry "" sample_entry)
   showParseResult (parse ledgerentry "" sample_entry2)
+  showParseResult (parse ledgerentry "" sample_entry3)
   showParseResult (parse ledgerperiodicentry "" sample_periodic_entry)
   showParseResult (parse ledgerperiodicentry "" sample_periodic_entry2)
+  showParseResult (parse ledgerperiodicentry "" sample_periodic_entry3)
   showParseResult (parse ledger "" sample_ledger)
   showParseResult (parse ledger "" sample_ledger2)
   showParseResult (parse ledger "" sample_ledger3)
