@@ -99,14 +99,14 @@ i, o, b, h
            timelog ﬁles."
 -}
 
-import Debug.Trace
+--import Debug.Trace
+--import TildeExpand -- confuses my ghc 6.7
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import Control.Exception (assert)
 import Text.ParserCombinators.Parsec
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language
---import TildeExpand -- confuses my ghc 6.7
 
 -- sample data
 
@@ -254,7 +254,7 @@ ledgerLanguageDef = LanguageDef {
    , identStart     = letter <|> char '_'
    , identLetter    = alphaNum <|> oneOf "_':"
    , opStart        = opLetter emptyDef
-   , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
+   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
    , reservedOpNames= []
    , reservedNames  = []
    , caseSensitive  = False
@@ -284,54 +284,55 @@ ledger = do
   eof
   return (Ledger modifier_entries periodic_entries entries)
 
-ledgernondatalines = many (ledgercomment <|> ledgerdirective <|> do {space; return []})
---ledgernondatalines = many (ledgerdirective <|> do {whiteSpace; return []})
+whiteSpace1 = do space; whiteSpace
 
-ledgercomment = char ';' >> anyChar `manyTill` newline <?> "comment"
+ledgernondatalines = many (ledgerdirective <|> ledgercomment <|> do {whiteSpace1; return []})
 
-ledgerdirective = char '!' >> anyChar `manyTill` newline <?> "directive"
+restofline = anyChar `manyTill` newline
+
+ledgercomment = char ';' >> restofline <?> "comment"
+
+ledgerdirective = char '!' >> restofline <?> "directive"
+
+ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
+                     -- => unlike ledger, we need to end the file with a blank line
 
 ledgermodifierentry = do
-  ledgernondatalines
   char '=' <?> "entry"
-  valueexpr <- anyChar `manyTill` newline
-  transactions <- (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
-  spaces
+  valueexpr <- restofline
+  transactions <- ledgertransactions
+  ledgernondatalines
   return (ModifierEntry valueexpr transactions)
 
 ledgerperiodicentry = do
-  ledgernondatalines
   char '~' <?> "entry"
-  periodexpr <- anyChar `manyTill` newline
-  transactions <- (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
-  spaces
+  periodexpr <- restofline
+  transactions <- ledgertransactions
+  ledgernondatalines
   return (PeriodicEntry periodexpr transactions)
 
 ledgerentry = do
-  ledgernondatalines
   date <- ledgerdate
-  many1 spacenonewline
   status <- ledgerstatus
   code <- ledgercode
   description <- anyChar `manyTill` ledgereol
-  transactions <- (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
-                  -- unlike ledger, we need the file to end with a blank line
-  spaces
+  transactions <- ledgertransactions
+  ledgernondatalines
   return (Entry date status code description transactions)
 
-ledgerdate = many1 (digit <|> char '/')
+ledgerdate = do date <- many1 (digit <|> char '/'); many1 spacenonewline; return date
 
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False
 
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 ledgertransaction = do
-  many (ledgercomment <|> ledgerdirective)
   many1 spacenonewline
   account <- ledgeraccount <?> "account"
   amount <- ledgeramount <?> "amount"
   many spacenonewline
   ledgereol
+  many ledgercomment
   return (Transaction account amount)
 
 --ledgeraccount = many1 (alphaNum <|> char ':')
@@ -353,6 +354,27 @@ spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 
 -- run tests
 
+main = do
+  parseTest ledgertransaction sample_transaction
+  parseTest ledgertransaction sample_transaction2
+  parseTest ledgerentry sample_entry
+  parseTest ledgerentry sample_entry2
+  parseTest ledgerentry sample_entry3
+  parseTest ledgerperiodicentry sample_periodic_entry
+  parseTest ledgerperiodicentry sample_periodic_entry2
+  parseTest ledgerperiodicentry sample_periodic_entry3
+  parseTest ledger sample_ledger
+  parseTest ledger sample_ledger2
+  parseTest ledger sample_ledger3
+  parseTest ledger sample_ledger4
+  parseTest ledger sample_ledger5
+  parseTest ledger sample_ledger6
+  parseTest ledger sample_periodic_entry
+  parseTest ledger sample_periodic_entry2
+  parseMyLedgerFile >>= showParseResult
+  return ()
+
+      
 parseMyLedgerFile = do
   fname <- ledgerFilePath
   parsed <- parseFromFile ledger fname
@@ -365,31 +387,12 @@ parseMyLedgerFile = do
                       let ledger_file = filepath
                       return ledger_file
 
-main = do
-  showParseResult (parse ledgertransaction "" sample_transaction)
-  showParseResult (parse ledgertransaction "" sample_transaction2)
-  showParseResult (parse ledgerentry "" sample_entry)
-  showParseResult (parse ledgerentry "" sample_entry2)
-  showParseResult (parse ledgerentry "" sample_entry3)
-  showParseResult (parse ledgerperiodicentry "" sample_periodic_entry)
-  showParseResult (parse ledgerperiodicentry "" sample_periodic_entry2)
-  showParseResult (parse ledgerperiodicentry "" sample_periodic_entry3)
-  showParseResult (parse ledger "" sample_ledger)
-  showParseResult (parse ledger "" sample_ledger2)
-  showParseResult (parse ledger "" sample_ledger3)
-  showParseResult (parse ledger "" sample_ledger4)
-  showParseResult (parse ledger "" sample_ledger5)
-  showParseResult (parse ledger "" sample_ledger6)
-  showParseResult (parse ledger "" sample_periodic_entry)
-  showParseResult (parse ledger "" sample_periodic_entry2)
-  parseMyLedgerFile >>= showParseResult 
-    where
-      showParseResult r =
+showParseResult r =
           case r of
             Left err -> do putStr "ledger parse error at "; print err
-            Right x  -> print x
-
-      
+            Right x  -> do 
+                   print x
+                   putStr $ show $ length $ entries x; putStr " entries\n"
 
 --   assert_ $ amount t1 == 8.50
 --   putStrLn "ok"
