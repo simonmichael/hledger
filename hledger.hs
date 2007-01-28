@@ -297,6 +297,7 @@ ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (newline <
 -- "automated entry"
 ledgermodifierentry = do
   char '=' <?> "entry"
+  many spacenonewline
   valueexpr <- restofline
   transactions <- ledgertransactions
   ledgernondatalines
@@ -304,6 +305,7 @@ ledgermodifierentry = do
 
 ledgerperiodicentry = do
   char '~' <?> "entry"
+  many spacenonewline
   periodexpr <- restofline
   transactions <- ledgertransactions
   ledgernondatalines
@@ -350,7 +352,7 @@ spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 
 -- run tests
 
-main = do
+test = do
   parseTest ledgertransaction sample_transaction
   parseTest ledgertransaction sample_transaction2
   parseTest ledgerentry sample_entry
@@ -369,6 +371,9 @@ main = do
   parseTest ledger sample_periodic_entry2
   parseMyLedgerFile >>= showParseResult
   return ()
+--   assert_ $ amount t1 == 8.50
+--   putStrLn "ok"
+--     where assert_ e = assert e return ()             
       
 parseMyLedgerFile = do
   fname <- ledgerFilePath
@@ -389,6 +394,3 @@ showParseResult r =
                    print x
                    putStr $ show $ length $ entries x; putStr " entries\n"
 
---   assert_ $ amount t1 == 8.50
---   putStrLn "ok"
---     where assert_ e = assert e return ()             
