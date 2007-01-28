@@ -1,156 +1,20 @@
 -- hledger - ledger-like money management utilities
 -- GPLv3, (c) Simon Michael & contributors, 
 -- ledger is at http://newartisans.com/ledger.html
-
-import Debug.Trace
-import System.Directory (getHomeDirectory)
-import System.Environment (getEnv)
-import Control.Exception (assert)
-import Text.ParserCombinators.Parsec
-import qualified Text.ParserCombinators.Parsec.Token as P
-import Text.ParserCombinators.Parsec.Language
---import TildeExpand -- confuses my ghc 6.7
-
--- sample data
-
-sample_entry = "\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  expenses:gifts                          $10.00\n\
-\  assets:checking                        $-20.00\n\
-\\n\" --"
-
-sample_entry2 = "\
-\2007/01/28 coopportunity\n\
-\  expenses:food:groceries                 $47.18\n\
-\  assets:checking\n\
-\\n" --"
-
-sample_entry3 = "\
-\2007/01/01 * opening balance\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n\
-\2007/01/01 * opening balance\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n\
-\2007/01/28 coopportunity\n\
-\  expenses:food:groceries                 $47.18\n\
-\  assets:checking\n\
-\\n" --"
-
-sample_periodic_entry = "\
-\~ monthly from 2007/2/2\n\
-\  assets:saving            $200.00\n\
-\  assets:checking\n\
-\\n" --"
-
-sample_periodic_entry2 = "\
-\~ monthly from 2007/2/2\n\
-\  assets:saving            $200.00         ;auto savings\n\
-\  assets:checking\n\
-\\n" --"
-
-sample_periodic_entry3 = "\
-\~ monthly from 2007/01/01\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n\
-\~ monthly from 2007/01/01\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n" --"
-
-sample_transaction  = "  expenses:food:dining  $10.00\n"
-
-sample_transaction2 = "  assets:checking\n"
-
-sample_ledger = "\
-\\n\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  expenses:gifts                          $10.00\n\
-\  assets:checking                        $-20.00\n\
-\\n\
-\\n\
-\2007/01/28 coopportunity\n\
-\  expenses:food:groceries                 $47.18\n\
-\  assets:checking                        $-47.18\n\
-\\n\
-\" --"
-
-sample_ledger2 = "\
-\;comment\n\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  assets:checking                        $-47.18\n\
-\\n" --"
-
-sample_ledger3 = "\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\;intra-entry comment\n\
-\  assets:checking                        $-47.18\n\
-\\n" --"
-
-sample_ledger4 = "\
-\!include \"somefile\"\n\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  assets:checking                        $-47.18\n\
-\\n" --"
-
-sample_ledger5 = ""
-
--- a data model
-
-data Ledger = Ledger {
-                      modifier_entries :: [ModifierEntry],
-                      periodic_entries :: [PeriodicEntry],
-                      entries :: [Entry]
-                     } deriving (Show, Eq)
-data Entry = Entry {
-                    date :: Date,
-                    status :: Bool,
-                    code :: String,
-                    description :: String,
-                    transactions :: [Transaction]
-                   } deriving (Show, Eq)
-data ModifierEntry = ModifierEntry {
-                    valueexpr :: String,
-                    m_transactions :: [Transaction]
-                   } deriving (Show, Eq)
-data PeriodicEntry = PeriodicEntry {
-                    periodexpr :: String,
-                    p_transactions :: [Transaction]
-                   } deriving (Show, Eq)
-data Transaction = Transaction {
-                                account :: Account,
-                                amount :: Amount
-                               } deriving (Show, Eq)
-data Amount = Amount {
-                      currency :: String,
-                      quantity :: Float
-                     } deriving (Read, Show, Eq)
-type Date = String
-type Account = String
-
--- ledger file parsing
--- struggling.. easier with a token parser ?
 -- here's the ledger 2.5 grammar:
 {-
-"The ledger ﬁle format is quite simple, but also very ﬂexible. It supports many options,
-though typically the user can ignore most of them. They are summarized below.
-
-   The initial character of each line determines what the line means, and how it should be
-interpreted. Allowable initial characters are:
+"The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
+many options, though typically the user can ignore most of them. They are
+summarized below.  The initial character of each line determines what the
+line means, and how it should be interpreted. Allowable initial characters
+are:
 
 NUMBER      A line beginning with a number denotes an entry. It may be followed by any
             number of lines, each beginning with whitespace, to denote the entry’s account
             transactions. The format of the ﬁrst line is:
 
                     DATE[=EDATE] [*|!] [(CODE)] DESC
+
             If ‘*’ appears after the date (with optional eﬀective date), it indicates the entry
             is “cleared”, which can mean whatever the user wants it t omean. If ‘!’ appears
             after the date, it indicates d the entry is “pending”; i.e., tentatively cleared from
@@ -235,7 +99,153 @@ i, o, b, h
            timelog ﬁles."
 -}
 
+import Debug.Trace
+import System.Directory (getHomeDirectory)
+import System.Environment (getEnv)
+import Control.Exception (assert)
+import Text.ParserCombinators.Parsec
+import qualified Text.ParserCombinators.Parsec.Token as P
+import Text.ParserCombinators.Parsec.Language
+--import TildeExpand -- confuses my ghc 6.7
 
+-- sample data
+
+sample_entry = "\
+\2007/01/27 * joes diner\n\
+\  expenses:food:dining                    $10.00\n\
+\  expenses:gifts                          $10.00\n\
+\  assets:checking                        $-20.00\n\
+\\n" --"
+
+sample_entry2 = "\
+\2007/01/28 coopportunity\n\
+\  expenses:food:groceries                 $47.18\n\
+\  assets:checking\n\
+\\n" --"
+
+sample_entry3 = "\
+\2007/01/01 * opening balance\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
+\\n\
+\2007/01/01 * opening balance\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
+\\n\
+\2007/01/28 coopportunity\n\
+\  expenses:food:groceries                 $47.18\n\
+\  assets:checking\n\
+\\n" --"
+
+sample_periodic_entry = "\
+\~ monthly from 2007/2/2\n\
+\  assets:saving            $200.00\n\
+\  assets:checking\n\
+\\n" --"
+
+sample_periodic_entry2 = "\
+\~ monthly from 2007/2/2\n\
+\  assets:saving            $200.00         ;auto savings\n\
+\  assets:checking\n\
+\\n" --"
+
+sample_periodic_entry3 = "\
+\~ monthly from 2007/01/01\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
+\\n\
+\~ monthly from 2007/01/01\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances\n\
+\\n" --"
+
+sample_transaction  = "  expenses:food:dining  $10.00\n"
+
+sample_transaction2 = "  assets:checking\n"
+
+sample_ledger = "\
+\\n\
+\2007/01/27 * joes diner\n\
+\  expenses:food:dining                    $10.00\n\
+\  expenses:gifts                          $10.00\n\
+\  assets:checking                        $-20.00\n\
+\\n\
+\\n\
+\2007/01/28 coopportunity\n\
+\  expenses:food:groceries                 $47.18\n\
+\  assets:checking                        $-47.18\n\
+\\n\
+\" --"
+
+sample_ledger2 = "\
+\;comment\n\
+\2007/01/27 * joes diner\n\
+\  expenses:food:dining                    $10.00\n\
+\  assets:checking                        $-47.18\n\
+\\n" --"
+
+sample_ledger3 = "\
+\2007/01/27 * joes diner\n\
+\  expenses:food:dining                    $10.00\n\
+\;intra-entry comment\n\
+\  assets:checking                        $-47.18\n\
+\\n" --"
+
+sample_ledger4 = "\
+\!include \"somefile\"\n\
+\2007/01/27 * joes diner\n\
+\  expenses:food:dining                    $10.00\n\
+\  assets:checking                        $-47.18\n\
+\\n" --"
+
+sample_ledger5 = ""
+
+sample_ledger6 = "\
+\~ monthly from 2007/1/21\n\
+\    expenses:entertainment  $16.23        ;netflix\n\
+\    assets:checking\n\
+\\n\
+\; 2007/01/01 * opening balance\n\
+\;     assets:saving                            $200.04\n\
+\;     equity:opening balances                         \n\
+\\n" --"
+
+-- a data model
+
+data Ledger = Ledger {
+                      modifier_entries :: [ModifierEntry],
+                      periodic_entries :: [PeriodicEntry],
+                      entries :: [Entry]
+                     } deriving (Show, Eq)
+data ModifierEntry = ModifierEntry {
+                    valueexpr :: String,
+                    m_transactions :: [Transaction]
+                   } deriving (Show, Eq)
+data PeriodicEntry = PeriodicEntry {
+                    periodexpr :: String,
+                    p_transactions :: [Transaction]
+                   } deriving (Show, Eq)
+data Entry = Entry {
+                    date :: Date,
+                    status :: Bool,
+                    code :: String,
+                    description :: String,
+                    transactions :: [Transaction]
+                   } deriving (Show, Eq)
+data Transaction = Transaction {
+                                account :: Account,
+                                amount :: Amount
+                               } deriving (Show, Eq)
+data Amount = Amount {
+                      currency :: String,
+                      quantity :: Float
+                     } deriving (Read, Show, Eq)
+type Date = String
+type Account = String
+
+-- ledger file parsing
+
+-- struggling.. easier with a token parser ?
 ledgerLanguageDef = LanguageDef {
    commentStart   = ""
    , commentEnd     = ""
@@ -369,6 +379,7 @@ main = do
   showParseResult (parse ledger "" sample_ledger3)
   showParseResult (parse ledger "" sample_ledger4)
   showParseResult (parse ledger "" sample_ledger5)
+  showParseResult (parse ledger "" sample_ledger6)
   showParseResult (parse ledger "" sample_periodic_entry)
   showParseResult (parse ledger "" sample_periodic_entry2)
   parseMyLedgerFile >>= showParseResult 
