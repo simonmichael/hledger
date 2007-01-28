@@ -322,7 +322,7 @@ ledgerdate = do date <- many1 (digit <|> char '/'); many1 spacenonewline; return
 
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False
 
-ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
+ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
 ledgertransaction = do
   many1 spacenonewline
