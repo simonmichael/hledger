@@ -7,7 +7,7 @@ import System.Environment (getEnv)
 import Control.Exception (assert)
 import Text.ParserCombinators.Parsec
 import qualified Text.ParserCombinators.Parsec.Token as P
-import Text.ParserCombinators.Parsec.Language (haskellDef)
+import Text.ParserCombinators.Parsec.Language
 --import TildeExpand -- confuses my ghc 6.7
 
 -- sample data
@@ -37,7 +37,7 @@ sample_periodic_entry2 = "\
 \  assets:checking\n\
 \\n" --"
 
-sample_transaction  = "  expenses:food:dining $10.00\n"
+sample_transaction  = "  expenses:food:dining  $10.00\n"
 
 sample_transaction2 = "  assets:checking\n"
 
@@ -112,6 +112,35 @@ type Date = String
 type Account = String
 
 -- ledger file parsing
+-- struggling.. easier with a token parser ?
+
+ledgerLanguageDef = LanguageDef {
+   commentStart   = ""
+   , commentEnd     = ""
+   , commentLine    = ";"
+   , nestedComments = False
+   , identStart     = letter <|> char '_'
+   , identLetter    = alphaNum <|> oneOf "_':"
+   , opStart        = opLetter emptyDef
+   , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
+   , reservedOpNames= []
+   , reservedNames  = []
+   , caseSensitive  = False
+   }
+
+lexer  = P.makeTokenParser ledgerLanguageDef
+whiteSpace = P.whiteSpace lexer
+lexeme     = P.lexeme lexer
+symbol     = P.symbol lexer
+natural    = P.natural lexer
+parens     = P.parens lexer
+semi       = P.semi lexer
+identifier = P.identifier lexer
+reserved   = P.reserved lexer
+reservedOp = P.reservedOp lexer
+
+
+
 
 ledger = do
   ledgernondatalines
@@ -124,6 +153,7 @@ ledger = do
   return (Ledger modifier_entries periodic_entries entries)
 
 ledgernondatalines = many (ledgercomment <|> ledgerdirective <|> do {space; return []})
+--ledgernondatalines = many (ledgerdirective <|> do {whiteSpace; return []})
 
 ledgercomment = char ';' >> anyChar `manyTill` newline <?> "comment"
 
@@ -168,23 +198,24 @@ ledgertransaction = do
   many1 spacenonewline
   account <- ledgeraccount <?> "account"
   amount <- ledgeramount <?> "amount"
+  many spacenonewline
+  ledgereol
   return (Transaction account amount)
 
---ledgeraccount = do {alphaNum; many (alphaNum <|> char ':' <|> try (do {spacenonewline; notFollowedBy spacenonewline; return ' '}))}
+--ledgeraccount = many1 (alphaNum <|> char ':')
 ledgeraccount = many1 (alphaNum <|> char ':' <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}}))
 
-twoormorespaces = do spacenonewline; many1 spacenonewline
+--twoormorespaces = do spacenonewline; many1 spacenonewline
 
 ledgeramount = try (do
                       many1 spacenonewline --twoormorespaces
                       currency <- many (noneOf "-.0123456789\n") <?> "currency"
-                      quantity <- (oneOf "-.0123456789") `manyTill` ledgereol <?> "quantity"
+                      quantity <- many1 (oneOf "-.0123456789") <?> "quantity"
                       return (Amount currency (read quantity))
-                   ) <|> do
-                      ledgereol
-                      return (Amount "" 0) -- change later to balance entry
+                   ) <|> 
+                    return (Amount "" 0) -- change later to balance the entry
 
-ledgereol = do {newline; return []} <|> ledgercomment
+ledgereol = ledgercomment <|> do {newline; return []}
 
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 
