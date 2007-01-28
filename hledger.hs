@@ -1,7 +1,7 @@
--- hledger - ledger-like money management utilities
+-- hledger - ledger-compatible money management utilities
 -- GPLv3, (c) Simon Michael & contributors, 
 -- ledger is at http://newartisans.com/ledger.html
--- here's the ledger 2.5 grammar:
+-- here's the v2.5 grammar:
 {-
 "The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
 many options, though typically the user can ignore most of them. They are
@@ -245,7 +245,7 @@ type Account = String
 
 -- ledger file parsing
 
--- struggling.. easier with a token parser ?
+-- set up token parsing, though we're not using it heavily yet
 ledgerLanguageDef = LanguageDef {
    commentStart   = ""
    , commentEnd     = ""
@@ -259,8 +259,7 @@ ledgerLanguageDef = LanguageDef {
    , reservedNames  = []
    , caseSensitive  = False
    }
-
-lexer  = P.makeTokenParser ledgerLanguageDef
+lexer      = P.makeTokenParser ledgerLanguageDef
 whiteSpace = P.whiteSpace lexer
 lexeme     = P.lexeme lexer
 symbol     = P.symbol lexer
@@ -271,12 +270,10 @@ identifier = P.identifier lexer
 reserved   = P.reserved lexer
 reservedOp = P.reservedOp lexer
 
-
-
-
+-- parsers
 ledger = do
   ledgernondatalines
-  -- unlike ledger these must be first for now
+  -- for now these must come first, unlike ledger
   modifier_entries <- many ledgermodifierentry
   periodic_entries <- many ledgerperiodicentry
   --
@@ -284,9 +281,9 @@ ledger = do
   eof
   return (Ledger modifier_entries periodic_entries entries)
 
-whiteSpace1 = do space; whiteSpace
-
 ledgernondatalines = many (ledgerdirective <|> ledgercomment <|> do {whiteSpace1; return []})
+
+whiteSpace1 = do space; whiteSpace
 
 restofline = anyChar `manyTill` newline
 
@@ -297,6 +294,7 @@ ledgerdirective = char '!' >> restofline <?> "directive"
 ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
                      -- => unlike ledger, we need to end the file with a blank line
 
+-- "automated entry"
 ledgermodifierentry = do
   char '=' <?> "entry"
   valueexpr <- restofline
@@ -335,18 +333,16 @@ ledgertransaction = do
   many ledgercomment
   return (Transaction account amount)
 
---ledgeraccount = many1 (alphaNum <|> char ':')
+-- account names may have single spaces in them, and are terminated by two or more spaces
 ledgeraccount = many1 (alphaNum <|> char ':' <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}}))
 
---twoormorespaces = do spacenonewline; many1 spacenonewline
-
 ledgeramount = try (do
-                      many1 spacenonewline --twoormorespaces
+                      many1 spacenonewline
                       currency <- many (noneOf "-.0123456789\n") <?> "currency"
                       quantity <- many1 (oneOf "-.0123456789") <?> "quantity"
                       return (Amount currency (read quantity))
                    ) <|> 
-                    return (Amount "" 0) -- change later to balance the entry
+                    return (Amount "" 0)
 
 ledgereol = ledgercomment <|> do {newline; return []}
 
@@ -373,7 +369,6 @@ main = do
   parseTest ledger sample_periodic_entry2
   parseMyLedgerFile >>= showParseResult
   return ()
-
       
 parseMyLedgerFile = do
   fname <- ledgerFilePath
