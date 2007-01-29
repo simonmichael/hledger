@@ -107,6 +107,7 @@ import Control.Exception (assert)
 import Text.ParserCombinators.Parsec
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language
+import Text.Printf
 
 -- sample data
 
@@ -220,26 +221,26 @@ data Ledger = Ledger {
 data ModifierEntry = ModifierEntry {
                     valueexpr :: String,
                     m_transactions :: [Transaction]
-                   } deriving (Show, Eq)
+                   } deriving (Eq)
 data PeriodicEntry = PeriodicEntry {
                     periodexpr :: String,
                     p_transactions :: [Transaction]
-                   } deriving (Show, Eq)
+                   } deriving (Eq)
 data Entry = Entry {
                     date :: Date,
                     status :: Bool,
                     code :: String,
                     description :: String,
                     transactions :: [Transaction]
-                   } deriving (Show, Eq)
+                   } deriving (Eq)
 data Transaction = Transaction {
                                 account :: Account,
                                 amount :: Amount
-                               } deriving (Show, Eq)
+                               } deriving (Eq)
 data Amount = Amount {
                       currency :: String,
                       quantity :: Float
-                     } deriving (Read, Show, Eq)
+                     } deriving (Read, Eq)
 type Date = String
 type Account = String
 
@@ -369,12 +370,19 @@ test = do
   parseTest ledger sample_ledger6
   parseTest ledger sample_periodic_entry
   parseTest ledger sample_periodic_entry2
-  parseMyLedgerFile >>= showParseResult
+  parseMyLedgerFile >>= printParseResult
   return ()
 --   assert_ $ amount t1 == 8.50
 --   putStrLn "ok"
 --     where assert_ e = assert e return ()             
+
+-- utils
       
+printParseResult r =
+    case r of
+      Left err -> do putStr "ledger parse error at "; print err
+      Right x  -> do print x
+
 parseMyLedgerFile = do
   fname <- ledgerFilePath
   parsed <- parseFromFile ledger fname
@@ -387,10 +395,55 @@ parseMyLedgerFile = do
                       let ledger_file = filepath
                       return ledger_file
 
-showParseResult r =
-          case r of
-            Left err -> do putStr "ledger parse error at "; print err
-            Right x  -> do 
-                   print x
-                   putStr $ show $ length $ entries x; putStr " entries\n"
+-- ok, what can we do with it ?
 
+showLedger l = "Ledger has\n"
+               ++ (showModifierEntries $ modifier_entries l)
+               ++ (showPeriodicEntries $ periodic_entries l)
+               ++ (showEntries $ entries l)
+
+showModifierEntries [] = ""
+showModifierEntries es =
+    (show n) ++ " modifier " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
+            where n = length es
+
+showPeriodicEntries [] = ""
+showPeriodicEntries es =
+    (show n) ++ " periodic " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
+            where n = length es
+
+showEntries [] = ""
+showEntries es =
+    (show n) ++ " " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
+            where n = length es
+
+inflectEntries 1 = "entry"
+inflectEntries _ = "entries"
+
+instance Show ModifierEntry where 
+    show e = "= " ++ (valueexpr e) ++ "\n" ++ unlines (map show (m_transactions e))
+
+instance Show PeriodicEntry where 
+    show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
+
+instance Show Entry where 
+    show e = date e ++ " " ++ s ++ c ++ d ++ "\n" ++ unlines (map show (transactions e))
+                    where 
+                      d = description e
+                      s = case (status e) of {True -> "* "; False -> ""}
+                      c = case (length(code e) > 0) of {True -> (code e ++ " "); False -> ""}
+
+instance Show Transaction where 
+    show t = printf "    %-40s  %20.2s" (take 40 $ account t) (show $ amount t)
+
+instance Show Amount where show a = (currency a) ++ (show $ quantity a)
+
+r = reg
+reg = register
+register = do 
+  p <- parseMyLedgerFile
+  case p of
+    Left err -> do putStr "ledger parse error at "; print err
+    Right l  -> putStr $ showLedger l
+
+main = do register
