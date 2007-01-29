@@ -218,7 +218,7 @@ data Ledger = Ledger {
                       periodic_entries :: [PeriodicEntry],
                       entries :: [Entry]
                      } deriving (Show, Eq)
-data ModifierEntry = ModifierEntry {
+data ModifierEntry = ModifierEntry { -- aka automated entry
                     valueexpr :: String,
                     m_transactions :: [Transaction]
                    } deriving (Eq)
@@ -295,7 +295,6 @@ ledgerdirective = char '!' >> restofline <?> "directive"
 ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
                      -- => unlike ledger, we need to end the file with a blank line
 
--- "automated entry"
 ledgermodifierentry = do
   char '=' <?> "entry"
   many spacenonewline
@@ -351,8 +350,8 @@ ledgereol = ledgercomment <|> do {newline; return []}
 
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 
--- run tests
-
+-- utils
+      
 test = do
   parseTest ledgertransaction sample_transaction
   parseTest ledgertransaction sample_transaction2
@@ -376,26 +375,22 @@ test = do
 --   putStrLn "ok"
 --     where assert_ e = assert e return ()             
 
--- utils
-      
 printParseResult r =
     case r of
       Left err -> do putStr "ledger parse error at "; print err
       Right x  -> do print x
 
-parseMyLedgerFile = do
-  fname <- ledgerFilePath
-  parsed <- parseFromFile ledger fname
-  return parsed
-    where
-      ledgerFilePath = do
-                      filepath <- getEnv "LEDGER" `catch` \_ -> return "ledger.dat"
-                      -- don't know how to accomplish this great feat
-                      --ledger_file <- tildeExpand filepath
-                      let ledger_file = filepath
-                      return ledger_file
-
 -- ok, what can we do with it ?
+
+parseMyLedgerFile = do
+  ledgerFile >>= parseFromFile ledger >>= return
+    where 
+      ledgerFile = do
+        filepath <- getEnv "LEDGER" `catch` \_ -> return "ledger.dat"
+        -- don't know how to accomplish this great feat
+        --ledger_file <- tildeExpand filepath
+        let ledger_file = filepath
+        return ledger_file
 
 showLedger l = "Ledger has\n"
                ++ (showModifierEntries $ modifier_entries l)
@@ -428,18 +423,17 @@ instance Show PeriodicEntry where
 
 instance Show Entry where 
     show e = date e ++ " " ++ s ++ c ++ d ++ "\n" ++ unlines (map show (transactions e))
-                    where 
-                      d = description e
-                      s = case (status e) of {True -> "* "; False -> ""}
-                      c = case (length(code e) > 0) of {True -> (code e ++ " "); False -> ""}
+        where 
+          d = description e
+          s = case (status e) of {True -> "* "; False -> ""}
+          c = case (length(code e) > 0) of {True -> (code e ++ " "); False -> ""}
 
 instance Show Transaction where 
     show t = printf "    %-40s  %20.2s" (take 40 $ account t) (show $ amount t)
 
 instance Show Amount where show a = (currency a) ++ (show $ quantity a)
 
-r = reg
-reg = register
+r = register
 register = do 
   p <- parseMyLedgerFile
   case p of
