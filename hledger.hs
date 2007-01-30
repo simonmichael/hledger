@@ -99,7 +99,10 @@ i, o, b, h
            timelog ﬁles."
 -}
 
---import Debug.Trace
+import Debug.Trace
+import Test.QuickCheck
+import Test.HUnit
+
 --import TildeExpand -- confuses my ghc 6.7
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
@@ -350,7 +353,18 @@ ledgereol = ledgercomment <|> do {newline; return []}
 
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 
--- utils
+-- tests
+
+test1 = TestCase (assertEqual "1==1" 1 1)
+sometests = TestList [TestLabel "test1" test1]
+
+tests = Test.HUnit.test [
+              "test1" ~: "1==1" ~: 1 ~=? 1,
+              "test2" ~: assertEqual "2==2" 2 2
+             ]
+
+prop_test1 = 1 == 1
+prop2 = 1 == 1
       
 test = do
   parseTest ledgertransaction sample_transaction
