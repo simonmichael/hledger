@@ -1,3 +1,4 @@
+#!/usr/bin/runhaskell
 -- hledger - ledger-compatible money management utilities
 -- GPLv3, (c) Simon Michael & contributors, 
 -- ledger is at http://newartisans.com/ledger.html
@@ -104,6 +105,7 @@ import Test.QuickCheck
 import Test.HUnit
 
 --import TildeExpand -- confuses my ghc 6.7
+import System (getArgs)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import Control.Exception (assert)
@@ -111,6 +113,8 @@ import Text.ParserCombinators.Parsec
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language
 import Text.Printf
+
+import Options
 
 -- sample data
 
@@ -454,4 +458,10 @@ register = do
     Left err -> do putStr "ledger parse error at "; print err
     Right l  -> putStr $ showLedger l
 
-main = do register
+main = do
+  (opts, args) <- getArgs >>= getOptions
+  putStr "options: "; print opts
+  putStr "arguments: "; print args
+  if "reg" `elem` args
+     then register
+     else return ()
