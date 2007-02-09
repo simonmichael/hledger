@@ -1,0 +1,32 @@
+testing
+ use quickcheck, hunit
+ regression/compatibility test framework
+
+features
+ auto transaction amounts
+ , thousand separator
+ most useful commands
+  register
+   entry selection
+    matching by account/description regexp
+   show running total
+  balance
+   show balances, summarized or in depth
+   matching by account regexp
+  print
+  -j and -J graph data output
+  auto entry generation
+  directives, especially include
+  read gnucash files
+
+environment
+ getopt processing
+ smart ledger file finding
+
+documentation
+ literate docs
+ haddock
+
+marketing
+ set up as a cabal/hackage project following wiki howto ?
+ announce on haskell list, wiki
