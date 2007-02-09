@@ -1,8 +1,9 @@
 #!/usr/bin/runhaskell
--- hledger - ledger-compatible money management utilities
+-- hledger - ledger-compatible money management utilities (& haskell study)
 -- GPLv3, (c) Simon Michael & contributors, 
--- ledger is at http://newartisans.com/ledger.html
--- here's the v2.5 grammar:
+--
+-- John Wiegley's ledger is at http://newartisans.com/ledger.html .
+-- Here's the v2.5 grammar:
 {-
 "The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
 many options, though typically the user can ignore most of them. They are
@@ -99,6 +100,7 @@ i, o, b, h
            ﬁles. See the timeclock’s documentation for more info on the syntax of its
            timelog ﬁles."
 -}
+-- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
 
 import Debug.Trace
 import Test.QuickCheck
@@ -279,6 +281,8 @@ reserved   = P.reserved lexer
 reservedOp = P.reservedOp lexer
 
 -- parsers
+
+ledger :: Parser Ledger
 ledger = do
   ledgernondatalines
   -- for now these must come first, unlike ledger
@@ -289,19 +293,16 @@ ledger = do
   eof
   return (Ledger modifier_entries periodic_entries entries)
 
+ledgernondatalines :: Parser [String]
 ledgernondatalines = many (ledgerdirective <|> ledgercomment <|> do {whiteSpace1; return []})
 
-whiteSpace1 = do space; whiteSpace
-
-restofline = anyChar `manyTill` newline
-
+ledgercomment :: Parser String
 ledgercomment = char ';' >> restofline <?> "comment"
 
+ledgerdirective :: Parser String
 ledgerdirective = char '!' >> restofline <?> "directive"
 
-ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
-                     -- => unlike ledger, we need to end the file with a blank line
-
+ledgermodifierentry :: Parser ModifierEntry
 ledgermodifierentry = do
   char '=' <?> "entry"
   many spacenonewline
@@ -310,6 +311,7 @@ ledgermodifierentry = do
   ledgernondatalines
   return (ModifierEntry valueexpr transactions)
 
+ledgerperiodicentry :: Parser PeriodicEntry
 ledgerperiodicentry = do
   char '~' <?> "entry"
   many spacenonewline
@@ -318,6 +320,7 @@ ledgerperiodicentry = do
   ledgernondatalines
   return (PeriodicEntry periodexpr transactions)
 
+ledgerentry :: Parser Entry
 ledgerentry = do
   date <- ledgerdate
   status <- ledgerstatus
@@ -327,12 +330,20 @@ ledgerentry = do
   ledgernondatalines
   return (Entry date status code description transactions)
 
+ledgerdate :: Parser String
 ledgerdate = do date <- many1 (digit <|> char '/'); many1 spacenonewline; return date
 
+ledgerstatus :: Parser Bool
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False
 
+ledgercode :: Parser String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
+ledgertransactions :: Parser [Transaction]
+ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
+                     -- => unlike ledger, we need to end the file with a blank line
+
+ledgertransaction :: Parser Transaction
 ledgertransaction = do
   many1 spacenonewline
   account <- ledgeraccount <?> "account"
@@ -343,8 +354,10 @@ ledgertransaction = do
   return (Transaction account amount)
 
 -- account names may have single spaces in them, and are terminated by two or more spaces
+ledgeraccount :: Parser String
 ledgeraccount = many1 (alphaNum <|> char ':' <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}}))
 
+ledgeramount :: Parser Amount
 ledgeramount = try (do
                       many1 spacenonewline
                       currency <- many (noneOf "-.0123456789\n") <?> "currency"
@@ -353,9 +366,17 @@ ledgeramount = try (do
                    ) <|> 
                     return (Amount "" 0)
 
+ledgereol :: Parser String
 ledgereol = ledgercomment <|> do {newline; return []}
 
+spacenonewline :: Parser Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
+
+restofline :: Parser String
+restofline = anyChar `manyTill` newline
+
+whiteSpace1 :: Parser ()
+whiteSpace1 = do space; whiteSpace
 
 -- tests
 
@@ -369,7 +390,8 @@ tests = Test.HUnit.test [
 
 prop_test1 = 1 == 1
 prop2 = 1 == 1
-      
+
+test :: IO ()      
 test = do
   parseTest ledgertransaction sample_transaction
   parseTest ledgertransaction sample_transaction2
@@ -400,31 +422,25 @@ printParseResult r =
 
 -- ok, what can we do with it ?
 
-parseMyLedgerFile = do
-  ledgerFile >>= parseFromFile ledger >>= return
-    where 
-      ledgerFile = do
-        filepath <- getEnv "LEDGER" `catch` \_ -> return "ledger.dat"
-        -- don't know how to accomplish this great feat
-        --ledger_file <- tildeExpand filepath
-        let ledger_file = filepath
-        return ledger_file
-
+showLedger :: Ledger -> String
 showLedger l = "Ledger has\n"
                ++ (showModifierEntries $ modifier_entries l)
                ++ (showPeriodicEntries $ periodic_entries l)
                ++ (showEntries $ entries l)
 
+showModifierEntries :: [ModifierEntry] -> String
 showModifierEntries [] = ""
 showModifierEntries es =
     (show n) ++ " modifier " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
             where n = length es
 
+showPeriodicEntries :: [PeriodicEntry] -> String
 showPeriodicEntries [] = ""
 showPeriodicEntries es =
     (show n) ++ " periodic " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
             where n = length es
 
+showEntries :: [Entry] -> String
 showEntries [] = ""
 showEntries es =
     (show n) ++ " " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
@@ -451,13 +467,27 @@ instance Show Transaction where
 
 instance Show Amount where show a = (currency a) ++ (show $ quantity a)
 
-r = register
+parseMyLedgerFile :: IO (Either ParseError Ledger)
+parseMyLedgerFile = do
+  ledgerFile >>= parseFromFile ledger >>= return
+    where 
+      ledgerFile = do
+        filepath <- getEnv "LEDGER" `catch` \_ -> return "ledger.dat"
+        -- don't know how to accomplish this great feat
+        --ledger_file <- tildeExpand filepath
+        let ledger_file = filepath
+        return ledger_file
+
+-- commands
+
+register :: IO ()
 register = do 
   p <- parseMyLedgerFile
   case p of
     Left err -> do putStr "ledger parse error at "; print err
     Right l  -> putStr $ showLedger l
 
+main :: IO ()
 main = do
   (opts, args) <- getArgs >>= getOptions
   putStr "options: "; print opts
