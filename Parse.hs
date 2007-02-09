@@ -96,18 +96,17 @@ i, o, b, h
            timelog ﬁles."
 -}
 -- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
+-- sample data in Tests.hs 
 
 module Parse where
 
 import Text.ParserCombinators.Parsec
-import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language
+import qualified Text.ParserCombinators.Parsec.Token as P
 
 import Types
 
--- see sample data in Tests.hs 
-
--- set up token parsers, though we're not using these heavily yet
+-- set up token parsing, though we're not yet using these much
 ledgerLanguageDef = LanguageDef {
    commentStart   = ""
    , commentEnd     = ""
@@ -233,13 +232,11 @@ whiteSpace1 = do space; whiteSpace
 
 -- ok, what can we do with it ?
 
-printParseResult r =
-    case r of
-      Left err -> do putStr "ledger parse error at "; print err
-      Right x  -> do print x
+printParseResult r = case r of
+                       Left e -> parseError e
+                       Right v  -> print v
+
+parseError e = do putStr "ledger parse error at "; print e
 
 parseLedgerFile :: IO String -> IO (Either ParseError Ledger)
-parseLedgerFile filepath = do
-  f <- filepath
-  parseFromFile ledger f >>= return
-
+parseLedgerFile f = f >>= parseFromFile ledger

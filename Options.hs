@@ -29,6 +29,6 @@ get_content (File s) = Just s
 --defaultLedgerFile = tildeExpand "~/ledger.dat"
 defaultLedgerFile = "ledger.dat"
 
-ledgerFile :: IO String
-ledgerFile = do
+ledgerFilePath :: IO String
+ledgerFilePath = do
   getEnv "LEDGER" `catch` \_ -> return defaultLedgerFile >>= return

@@ -1,12 +1,12 @@
 module Tests where
 
+import Text.ParserCombinators.Parsec
 import Test.QuickCheck
 import Test.HUnit
-import Text.ParserCombinators.Parsec
---import Control.Exception (assert)
 
-import Parse
 import Options
+import Types
+import Parse
 
 -- sample data
 
@@ -110,44 +110,57 @@ sample_ledger6 = "\
 \;     equity:opening balances                         \n\
 \\n" --"
 
+-- utils
+
+assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
+assertParseEqual expected parsed =
+    case parsed of
+      Left e -> parseError e
+      Right v  -> assertEqual " " expected v
+
+parse' p ts = parse p "" ts
+    
 -- hunit tests
 
-test1 = TestCase (assertEqual "1==1" 1 1)
-sometests = TestList [TestLabel "test1" test1]
+test_parse_ledgertransaction = TestCase (
+  assertParseEqual
+    (Transaction "expenses:food:dining" (Amount "$" 10))
+    (parse' ledgertransaction sample_transaction))
 
-tests = Test.HUnit.test [
-              "test1" ~: "1==1" ~: 1 ~=? 1,
-              "test2" ~: assertEqual "2==2" 2 2
+--   parseTest ledgertransaction sample_transaction2
+--   parseTest ledgerentry sample_entry
+--   parseTest ledgerentry sample_entry2
+--   parseTest ledgerentry sample_entry3
+--   parseTest ledgerperiodicentry sample_periodic_entry
+--   parseTest ledgerperiodicentry sample_periodic_entry2
+--   parseTest ledgerperiodicentry sample_periodic_entry3
+--   parseTest ledger sample_ledger
+--   parseTest ledger sample_ledger2
+--   parseTest ledger sample_ledger3
+--   parseTest ledger sample_ledger4
+--   parseTest ledger sample_ledger5
+--   parseTest ledger sample_ledger6
+--   parseTest ledger sample_periodic_entry
+--   parseTest ledger sample_periodic_entry2
+--   parseLedgerFile ledgerFile >>= printParseResult
+
+hunittests = TestList [
+                       TestLabel "test_parse_ledgertransaction" test_parse_ledgertransaction
+                      ]
+
+hunittests2 = Test.HUnit.test [
+              "test1" ~: assertEqual "2 equals 2" 2 2
              ]
 
 -- quickcheck tests
 
-prop_test1 = 1 == 1
-prop2 = 1 == 1
+prop1 = 1 == 1
+
+--prop_test_parse_ledgertransaction = ?
 
 -- commands
 
 test :: IO ()      
 test = do
-  parseTest ledgertransaction sample_transaction
-  parseTest ledgertransaction sample_transaction2
-  parseTest ledgerentry sample_entry
-  parseTest ledgerentry sample_entry2
-  parseTest ledgerentry sample_entry3
-  parseTest ledgerperiodicentry sample_periodic_entry
-  parseTest ledgerperiodicentry sample_periodic_entry2
-  parseTest ledgerperiodicentry sample_periodic_entry3
-  parseTest ledger sample_ledger
-  parseTest ledger sample_ledger2
-  parseTest ledger sample_ledger3
-  parseTest ledger sample_ledger4
-  parseTest ledger sample_ledger5
-  parseTest ledger sample_ledger6
-  parseTest ledger sample_periodic_entry
-  parseTest ledger sample_periodic_entry2
-  parseLedgerFile ledgerFile >>= printParseResult
-  return ()
---   assert_ $ amount t1 == 8.50
---   putStrLn "ok"
---     where assert_ e = assert e return ()             
-
+  putStrLn "hunit: "; runTestTT hunittests; runTestTT hunittests2
+  putStrLn "quickcheck: "; quickCheck prop1
