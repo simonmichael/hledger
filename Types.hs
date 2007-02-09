@@ -45,21 +45,22 @@ showLedger l = "Ledger has\n"
 showModifierEntries :: [ModifierEntry] -> String
 showModifierEntries [] = ""
 showModifierEntries es =
-    (show n) ++ " modifier " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
+    (show n) ++ " modifier " ++ (inflectEntries n) ++ ":\n" ++ concat (map show es)
             where n = length es
 
 showPeriodicEntries :: [PeriodicEntry] -> String
 showPeriodicEntries [] = ""
 showPeriodicEntries es =
-    (show n) ++ " periodic " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
+    (show n) ++ " periodic " ++ (inflectEntries n) ++ ":\n" ++ concat (map show es)
             where n = length es
 
 showEntries :: [Entry] -> String
 showEntries [] = ""
 showEntries es =
-    (show n) ++ " " ++ (inflectEntries n) ++ ":\n" ++ unlines (map show es)
+    (show n) ++ " " ++ (inflectEntries n) ++ ":\n" ++ concat (map show es)
             where n = length es
 
+inflectEntries :: Int -> String
 inflectEntries 1 = "entry"
 inflectEntries _ = "entries"
 
