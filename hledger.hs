@@ -26,5 +26,5 @@ register = do
   p <- parseLedgerFile ledgerFilePath
   case p of
     Left e -> do putStr "ledger parse error at "; print e
-    Right l  -> putStr $ showLedger l
+    Right l  -> printRegister l
 

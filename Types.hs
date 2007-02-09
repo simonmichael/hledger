@@ -7,7 +7,7 @@ data Ledger = Ledger {
                       modifier_entries :: [ModifierEntry],
                       periodic_entries :: [PeriodicEntry],
                       entries :: [Entry]
-                     } deriving (Show, Eq)
+                     } deriving (Eq)
 data ModifierEntry = ModifierEntry { -- aka automated entry
                     valueexpr :: String,
                     m_transactions :: [Transaction]
@@ -30,39 +30,21 @@ data Transaction = Transaction {
 data Amount = Amount {
                       currency :: String,
                       quantity :: Float
-                     } deriving (Read, Eq)
+                     } deriving (Eq)
 type Date = String
 type Account = String
 
 -- show methods
 
-showLedger :: Ledger -> String
-showLedger l = "Ledger has\n"
-               ++ (showModifierEntries $ modifier_entries l)
-               ++ (showPeriodicEntries $ periodic_entries l)
-               ++ (showEntries $ entries l)
-
-showModifierEntries :: [ModifierEntry] -> String
-showModifierEntries [] = ""
-showModifierEntries es =
-    (show n) ++ " modifier " ++ (inflectEntries n) ++ ":\n" ++ concat (map show es)
-            where n = length es
-
-showPeriodicEntries :: [PeriodicEntry] -> String
-showPeriodicEntries [] = ""
-showPeriodicEntries es =
-    (show n) ++ " periodic " ++ (inflectEntries n) ++ ":\n" ++ concat (map show es)
-            where n = length es
-
-showEntries :: [Entry] -> String
-showEntries [] = ""
-showEntries es =
-    (show n) ++ " " ++ (inflectEntries n) ++ ":\n" ++ concat (map show es)
-            where n = length es
-
-inflectEntries :: Int -> String
-inflectEntries 1 = "entry"
-inflectEntries _ = "entries"
+instance Show Ledger where
+    show l = "Ledger with " ++ m ++ " modifier, " ++ p ++ " periodic, " ++ e ++ " normal entries:\n"
+                     ++ (concat $ map show (modifier_entries l))
+                     ++ (concat $ map show (periodic_entries l))
+                     ++ (concat $ map show (entries l))
+                     where 
+                       m = show $ length $ modifier_entries l
+                       p = show $ length $ periodic_entries l
+                       e = show $ length $ entries l
 
 instance Show ModifierEntry where 
     show e = "= " ++ (valueexpr e) ++ "\n" ++ unlines (map show (m_transactions e))
@@ -70,15 +52,32 @@ instance Show ModifierEntry where
 instance Show PeriodicEntry where 
     show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
 
-instance Show Entry where 
-    show e = date e ++ " " ++ s ++ c ++ d ++ "\n" ++ unlines (map show (transactions e))
+instance Show Entry where show = showEntry2
+
+showEntry1 e = date e ++ " " ++ s ++ c ++ d ++ "\n" ++ unlines (map show (transactions e))
         where 
           d = description e
           s = case (status e) of {True -> "* "; False -> ""}
           c = case (length(code e) > 0) of {True -> (code e ++ " "); False -> ""}
 
+dateWidth = 10
+descWidth = 20
+acctWidth = 25
+amtWidth = 11
+
+showEntry2 e = 
+    unlines (
+             [printf "%-10s %-20s " (date e) (take 20 $ description e)
+                         ++ (show $ head $ transactions e)]
+             ++ map ((printf (take 32 (repeat ' ')) ++) . show) (tail $ transactions e))
+
 instance Show Transaction where 
-    show t = printf "    %-40s  %20.2s" (take 40 $ account t) (show $ amount t)
+    show t = printf "%-25s  %8.2s %8.2s" (take 25 $ account t) (show $ amount t) (show 0)
 
 instance Show Amount where show a = (currency a) ++ (show $ quantity a)
 
+-- more display methods
+
+printRegister :: Ledger -> IO ()
+printRegister l = do
+    putStr $ concat $ map show $ entries l

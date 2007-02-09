@@ -1,26 +1,27 @@
 testing
- use quickcheck, hunit
- regression/compatibility test framework
+ more, easy tests
+ get quickcheck working
+ consider hunit dsl
+ ledger regression/compatibility tests
 
 features
  auto transaction amounts
- , thousand separator
- most useful commands
-  register
-   entry selection
-    matching by account/description regexp
-   show running total
-  balance
-   show balances, summarized or in depth
-   matching by account regexp
-  print
-  -j and -J graph data output
-  auto entry generation
-  directives, especially include
-  read gnucash files
+ parse , thousand separator
+ register
+  show running total
+ balance
+  show balances, summarized or in depth
+ print
+ more directives, especially include
+ matching by account/description regexp
+ -p period expressions
+ -d display expressions
+ -j and -J graph data output
+ auto entry generation
+ read gnucash files
 
 environment
- getopt processing
+ cleaner option processing
  smart ledger file finding
 
 documentation

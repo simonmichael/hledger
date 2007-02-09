@@ -148,7 +148,7 @@ test_show_entry =
 hunittests = TestList [
                        test "test_parse_ledgertransaction" test_parse_ledgertransaction
                       , test "test_parse_ledgerentry" test_parse_ledgerentry
-                      , test "test_show_entry" test_show_entry
+--                      , test "test_show_entry" test_show_entry
                       ] 
     where test label fn = TestLabel label $ TestCase fn
 
