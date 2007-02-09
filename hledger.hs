@@ -13,10 +13,11 @@ import Tests
 main :: IO ()
 main = do
   (opts, args) <- getArgs >>= getOptions
+  test
   if "reg" `elem` args
     then register
-    else if "test" `elem` args 
-         then test
+--     else if "test" `elem` args 
+--          then test
          else return ()
 
 -- commands

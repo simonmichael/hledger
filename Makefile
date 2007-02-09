@@ -1,5 +1,5 @@
 build:
-	ghc --make hledger.hs
+	ghc --make -O2 hledger.hs
 
 Tags:
 	hasktags *hs

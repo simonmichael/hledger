@@ -179,7 +179,8 @@ ledgerentry = do
   description <- anyChar `manyTill` ledgereol
   transactions <- ledgertransactions
   ledgernondatalines
-  return (Entry date status code description transactions)
+  let entry = Entry date status code description transactions
+  return $ autofill entry
 
 ledgerdate :: Parser String
 ledgerdate = do date <- many1 (digit <|> char '/'); many1 spacenonewline; return date
@@ -212,10 +213,12 @@ ledgeramount :: Parser Amount
 ledgeramount = try (do
                       many1 spacenonewline
                       currency <- many (noneOf "-.0123456789\n") <?> "currency"
-                      quantity <- many1 (oneOf "-.0123456789") <?> "quantity"
-                      return (Amount currency (read quantity))
+                      quantity <- many1 (oneOf "-.,0123456789") <?> "quantity"
+                      return (Amount currency (read $ stripcommas quantity))
                    ) <|> 
-                    return (Amount "" 0)
+                    return (Amount "AUTO" 0)
+
+stripcommas = filter (',' /=)
 
 ledgereol :: Parser String
 ledgereol = ledgercomment <|> do {newline; return []}

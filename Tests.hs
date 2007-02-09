@@ -125,6 +125,22 @@ parse' p ts = parse p "" ts
     
 -- hunit tests
 
+--   parseTest ledgertransaction sample_transaction2
+--   parseTest ledgerentry sample_entry2
+--   parseTest ledgerentry sample_entry3
+--   parseTest ledgerperiodicentry sample_periodic_entry
+--   parseTest ledgerperiodicentry sample_periodic_entry2
+--   parseTest ledgerperiodicentry sample_periodic_entry3
+--   parseTest ledger sample_ledger
+--   parseTest ledger sample_ledger2
+--   parseTest ledger sample_ledger3
+--   parseTest ledger sample_ledger4
+--   parseTest ledger sample_ledger5
+--   parseTest ledger sample_ledger6
+--   parseTest ledger sample_periodic_entry
+--   parseTest ledger sample_periodic_entry2
+--   parseLedgerFile ledgerFilePath >>= printParseResult
+
 test_parse_ledgertransaction :: Assertion
 test_parse_ledgertransaction =
     assertParseEqual
@@ -134,21 +150,20 @@ test_parse_ledgertransaction =
 entry2 =
     (Entry "2007/01/28" False "" "coopportunity" 
                [Transaction "expenses:food:groceries" (Amount "$" 47.18), 
-                Transaction "assets:checking" (Amount "" 0)])
+                Transaction "assets:checking" (Amount "$" (-47.18))])
 
 test_parse_ledgerentry =
-  assertParseEqual entry2 (parse' ledgerentry sample_entry2)
+    assertParseEqual entry2 (parse' ledgerentry sample_entry2)
 
-test_show_entry =
-  assertEqual'
-    "2007/01/28 coopportunity\n    expenses:food:groceries                                 $47.18\n    assets:checking                                            0.0\n"
-    (show entry2)
-
+test_autofill_entry = 
+    assertEqual'
+      (Amount "$" (-47.18))
+      (amount $ last $ transactions $ autofill entry2)
 
 hunittests = TestList [
                        test "test_parse_ledgertransaction" test_parse_ledgertransaction
                       , test "test_parse_ledgerentry" test_parse_ledgerentry
---                      , test "test_show_entry" test_show_entry
+                      , test "test_autofill_entry" test_autofill_entry
                       ] 
     where test label fn = TestLabel label $ TestCase fn
 
@@ -170,20 +185,6 @@ prop1 = 1 == 1
 test :: IO ()      
 test = do
   runTestTT hunittests
-  runTestTT hunittests2
-  quickCheck prop1
-  parseTest ledgertransaction sample_transaction2
-  parseTest ledgerentry sample_entry2
---   parseTest ledgerentry sample_entry3
---   parseTest ledgerperiodicentry sample_periodic_entry
---   parseTest ledgerperiodicentry sample_periodic_entry2
---   parseTest ledgerperiodicentry sample_periodic_entry3
---   parseTest ledger sample_ledger
---   parseTest ledger sample_ledger2
---   parseTest ledger sample_ledger3
---   parseTest ledger sample_ledger4
---   parseTest ledger sample_ledger5
---   parseTest ledger sample_ledger6
---   parseTest ledger sample_periodic_entry
---   parseTest ledger sample_periodic_entry2
---   parseLedgerFile ledgerFilePath >>= printParseResult
+--  runTestTT hunittests2
+--  quickCheck prop1
+  return ()
