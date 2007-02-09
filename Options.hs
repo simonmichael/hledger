@@ -2,6 +2,8 @@ module Options where
     
 import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
+import System.Environment (getEnv)
+--import TildeExpand -- confuses my ghc 6.7
     
 data Flag = File String | Version deriving Show
     
@@ -23,3 +25,10 @@ getOptions argv =
 
 get_content :: Flag -> Maybe String
 get_content (File s) = Just s
+
+--defaultLedgerFile = tildeExpand "~/ledger.dat"
+defaultLedgerFile = "ledger.dat"
+
+ledgerFile :: IO String
+ledgerFile = do
+  getEnv "LEDGER" `catch` \_ -> return defaultLedgerFile >>= return
