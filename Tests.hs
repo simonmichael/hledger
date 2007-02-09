@@ -149,18 +149,22 @@ hunittests = TestList [
                       ]
 
 hunittests2 = Test.HUnit.test [
-              "test1" ~: assertEqual "2 equals 2" 2 2
-             ]
+                               "test1" ~: assertEqual "2 equals 2" 2 2
+                              ]
 
--- quickcheck tests
+-- quickcheck properties
 
 prop1 = 1 == 1
 
---prop_test_parse_ledgertransaction = ?
+--prop_test_parse_ledgertransaction =
+--     (Transaction "expenses:food:dining" (Amount "$" 10)) == 
+--     (parse' ledgertransaction sample_transaction))
+-- how ?
 
 -- commands
 
 test :: IO ()      
 test = do
-  putStrLn "hunit: "; runTestTT hunittests; runTestTT hunittests2
-  putStrLn "quickcheck: "; quickCheck prop1
+  runTestTT hunittests
+  runTestTT hunittests2
+  quickCheck prop1
