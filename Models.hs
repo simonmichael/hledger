@@ -1,5 +1,5 @@
 
-module Types  -- data model & methods
+module Models  -- data types & behaviours
 where
 
 import Text.Printf

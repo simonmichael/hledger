@@ -13,7 +13,7 @@ import Test.QuickCheck (quickCheck)
 import Text.ParserCombinators.Parsec (parseFromFile, ParseError)
 
 import Options
-import Types
+import Models
 import Parse
 import Tests
 

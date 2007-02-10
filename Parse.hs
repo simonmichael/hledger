@@ -6,7 +6,7 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
 
-import Types
+import Models
 
 {-
 Here's the ledger 2.5 grammar:

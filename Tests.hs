@@ -10,7 +10,7 @@ import Test.HUnit
 --import qualified Test.HUnit (Test.HUnit.test)
 
 import Options
-import Types
+import Models
 import Parse
 
 -- sample data
