@@ -3,7 +3,9 @@ module Models  -- data types & behaviours
 where
 
 import Text.Printf
-import List
+import Data.List
+
+-- types
 
 data Ledger = Ledger {
                       modifier_entries :: [ModifierEntry],
@@ -36,8 +38,8 @@ data Amount = Amount {
 type Date = String
 type Account = String
 
--- Amount arithmetic
--- ignores currency conversion
+-- Amount arithmetic - ignores currency conversion
+
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
     signum (Amount c q) = Amount c (signum q)
@@ -69,16 +71,8 @@ instance Show PeriodicEntry where
 
 instance Show Entry where show = showEntry
 
-showEntryOld :: Entry -> String
-showEntryOld e = date e ++ " " ++ s ++ c ++ d ++ "\n" ++ unlines (map show (transactions e))
-        where 
-          d = description e
-          s = case (status e) of {True -> "* "; False -> ""}
-          c = case (length(code e) > 0) of {True -> (code e ++ " "); False -> ""}
-
 -- a register entry is displayed as two or more lines like this:
 -- date       description          account                    amount     balance
-
 -- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAA AAAAAAAAAA
 --                                 aaaaaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAA AAAAAAAAAA
 --                                 ...                        ...        ...
@@ -88,18 +82,22 @@ showEntryOld e = date e ++ " " ++ s ++ c ++ d ++ "\n" ++ unlines (map show (tran
 -- amtWidth  = 10
 -- balWidth  = 10
 
+showEntry :: Entry -> String
+showEntry e = unlines $ map fst (entryLines e)
+
 -- convert an Entry to entry lines (string, amount pairs)
 entryLines :: Entry -> [(String,Amount)]
 entryLines e =
-    [(entrydesc ++ (show t), amount t)]
-    ++ map (\t -> (prependSpace $ show t, amount t)) ts
+    [firstline] ++ otherlines
         where 
           t:ts = transactions e
           entrydesc = printf "%-10s %-20s " (date e) (take 20 $ description e)
-          prependSpace = (printf (take 32 (repeat ' ')) ++)
+          firstline = (entrydesc ++ (show t), amount t)
+          otherlines = map (\t -> (prependSpace $ show t, amount t)) ts
+          prependSpace = (replicate 32 ' ' ++)
 
 instance Show Transaction where 
-    show t = printf "%-25s  %10s " (take 25 $ account t) (show $ amount t)
+    show t = printf "%-25s  %10s" (take 25 $ account t) (show $ amount t)
 
 instance Show Amount where
     show (Amount cur qty) = 
@@ -108,58 +106,87 @@ instance Show Amount where
           "0.00" -> "0"
           otherwise -> cur ++ roundedqty
 
-showEntry :: Entry -> String
-showEntry e = unlines $ map fst (entryLines e)
+-- in the register report we show entries plus a running balance
 
--- add balances to entry lines, given a starting balance
+showEntriesWithBalances :: [Entry] -> Amount -> String
+showEntriesWithBalances [] _ = ""
+showEntriesWithBalances (e:es) b =
+    showEntryWithBalances e b ++ (showEntriesWithBalances es b')
+        where b' = b + (entryBalance e)
+
+entryBalance :: Entry -> Amount
+entryBalance = sumTransactions . transactions
+
+showEntryWithBalances :: Entry -> Amount -> String
+showEntryWithBalances e b =
+    unlines [s | (s,a,b) <- entryLinesWithBalances (entryLines e) b]
+
 entryLinesWithBalances :: [(String,Amount)] -> Amount -> [(String,Amount,Amount)]
 entryLinesWithBalances [] _ = []
 entryLinesWithBalances ((str,amt):els) bal = 
     [(str',amt,bal')] ++ entryLinesWithBalances els bal'
         where
           bal' = bal + amt
-          str' = str ++ (printf "%10.2s" (show bal'))
-
-showEntryWithBalances :: Entry -> Amount -> String
-showEntryWithBalances e b = unlines $ 
-  [s | (s,a,b) <- entryLinesWithBalances (entryLines e) b]
-
--- show register entries, keeping a running balance
-showRegisterEntries :: [Entry] -> Amount -> String
-showRegisterEntries [] _ = ""
-showRegisterEntries (e:es) b =
-    showEntryWithBalances e b ++ (showRegisterEntries es b')
-        where b' = b + (sumTransactions (transactions e))
+          str' = str ++ (printf " %10.2s" (show bal'))
 
 -- misc
 
--- fill in missing amounts etc., as far as possible
-autofill :: Entry -> Entry
-autofill e = Entry (date e) (status e) (code e) (description e)
-             (autofillTransactions (transactions e))
+autofillEntry :: Entry -> Entry
+autofillEntry e = 
+    Entry (date e) (status e) (code e) (description e)
+              (autofillTransactions (transactions e))
 
 autofillTransactions :: [Transaction] -> [Transaction]
 autofillTransactions ts =
-    let (ns,as) = normalAndAutoTransactions ts in
+    let (ns, as) = normalAndAutoTransactions ts in
     case (length as) of
       0 -> ns
-      1 -> ns ++ [Transaction (account (head as)) (-(sumTransactions ns))]
+      1 -> ns ++ [balanceTransaction $ head as]
+          where balanceTransaction t = t{amount = -(sumTransactions ns)}
       otherwise -> error "too many blank transactions in this entry"
 
 normalAndAutoTransactions :: [Transaction] -> ([Transaction], [Transaction])
-normalAndAutoTransactions ts =
-    ([t | t <- ts, (currency $ amount t) /= "AUTO"],
-     [t | t <- ts, (currency $ amount t) == "AUTO"])
+normalAndAutoTransactions ts = 
+    partition isNormal ts
+        where isNormal t = (currency $ amount t) /= "AUTO"
 
 sumTransactions :: [Transaction] -> Amount
 sumTransactions ts = sum [amount t | t <- ts]
 
-transactionsFrom :: [Entry] -> [Transaction]
-transactionsFrom es = concat $ map transactions es
+transactionsFromEntries :: [Entry] -> [Transaction]
+transactionsFromEntries es = concat $ map transactions es
 
-accountsFrom :: [Transaction] -> [Account]
-accountsFrom ts = nub $ map account ts
+accountsFromTransactions :: [Transaction] -> [Account]
+accountsFromTransactions ts = nub $ map account ts
 
 accountsUsed :: Ledger -> [Account]
-accountsUsed l = accountsFrom $ transactionsFrom $ entries l
+accountsUsed l = accountsFromTransactions $ transactionsFromEntries $ entries l
 
+-- ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
+expandAccounts :: [Account] -> [Account]
+expandAccounts l = nub $ concat $ map expand l
+                where
+                  expand l' = map (concat . intersperse ":") (tail $ inits $ splitAtElement ':' l')
+
+splitAtElement :: Eq a => a -> [a] -> [[a]]
+splitAtElement e l = 
+    case dropWhile (e==) l of
+      [] -> []
+      l' -> first : splitAtElement e rest
+        where
+          (first,rest) = break (e==) l'
+
+accountTree :: Ledger -> [Account]
+accountTree = sort . expandAccounts . accountsUsed
+
+entriesMatching :: String -> Ledger -> [Entry]
+entriesMatching s l = filterEntriesByAccount s (entries l)
+
+filterEntriesByAccount :: String -> [Entry] -> [Entry]
+filterEntriesByAccount s es = filter (matchEntryAccount s) es
+
+matchEntryAccount :: String -> Entry -> Bool
+matchEntryAccount s e = any (matchTransactionAccount s) (transactions e)
+
+matchTransactionAccount :: String -> Transaction -> Bool
+matchTransactionAccount s t = s `isInfixOf` (account t)

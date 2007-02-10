@@ -6,8 +6,8 @@
 module Main -- almost all IO is handled here
 where
 
-import System (getArgs)
-import Data.List (isPrefixOf)
+import System
+import Data.List
 import Test.HUnit (runTestTT)
 import Test.QuickCheck (quickCheck)
 import Text.ParserCombinators.Parsec (parseFromFile, ParseError)
@@ -33,32 +33,32 @@ main = do
 
 test :: IO ()      
 test = do
-  putStrLn "hunit "
-  runTestTT tests
-  putStr "quickcheck "
-  mapM quickCheck props
+  hcounts <- runTestTT tests
+  qcounts <- mapM quickCheck props
+  --print $ "hunit: " ++ (showHunitCounts hcounts)
+  --print $ "quickcheck: " ++ (concat $ intersperse " " $ map show qcounts)
   return ()
+    where showHunitCounts c =
+              reverse $ tail $ reverse ("passed " ++ (unwords $ drop 5 $ words (show c)))
 
 register :: [String] -> IO ()
 register args = do 
-  p <- parseLedgerFile ledgerFilePath
-  case p of Left e -> parseError e
-            Right l -> printRegister l
+  getLedgerFilePath >>= parseLedgerFile >>= doWithParsed (printRegister args)
 
 balance :: [String] -> IO ()
-balance args = do 
-  p <- parseLedgerFile ledgerFilePath
-  case p of Left e -> parseError e
-            Right l -> printBalances l
+balance args = 
+    return ()
 
 -- utils
 
-parseLedgerFile :: IO String -> IO (Either ParseError Ledger)
-parseLedgerFile f = f >>= parseFromFile ledger
+-- doWithLedgerFile =
+--     getLedgerFilePath >>= parseLedgerFile >>= doWithParsed
 
-printRegister :: Ledger -> IO ()
-printRegister l = putStr $ showRegisterEntries (entries l) 0
+doWithParsed :: (a -> IO ()) -> (Either ParseError a) -> IO ()
+doWithParsed a p = 
+  case p of Left e -> parseError e
+            Right v -> a v
 
-printBalances :: Ledger -> IO ()
-printBalances l = putStr $ showRegisterEntries (entries l) 0
-
+printRegister :: [String] -> Ledger -> IO ()
+printRegister args ledger =
+    putStr $ showEntriesWithBalances (entriesMatching (head (args ++ [""])) ledger) 0

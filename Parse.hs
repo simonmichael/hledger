@@ -182,7 +182,7 @@ ledgerentry = do
   transactions <- ledgertransactions
   ledgernondatalines
   let entry = Entry date status code description transactions
-  return $ autofill entry
+  return $ autofillEntry entry
 
 ledgerdate :: Parser String
 ledgerdate = do date <- many1 (digit <|> char '/'); many1 spacenonewline; return date
@@ -235,11 +235,15 @@ whiteSpace1 :: Parser ()
 whiteSpace1 = do space; whiteSpace
 
 
--- ok, what can we do with it ?
+-- utils
 
-printParseResult r = case r of
-                       Left e -> parseError e
-                       Right v  -> print v
-
+parseError :: (Show a) => a -> IO ()
 parseError e = do putStr "ledger parse error at "; print e
+
+printParseResult :: Show v => Either ParseError v -> IO ()
+printParseResult r = case r of Left e -> parseError e
+                               Right v -> print v
+
+parseLedgerFile :: String -> IO (Either ParseError Ledger)
+parseLedgerFile f = parseFromFile ledger f
 

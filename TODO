@@ -1,9 +1,24 @@
 features
+ register
+  account matching
+   match transactions, not entries
+
+$ ledger reg equi
+2007/01/01 opening balance      equity:opening balan..       $-4.82       $-4.82
+2007/01/25 balance adjustment   equity                       $91.15       $86.33
+$ hledger reg equi
+2007/01/01 opening balance      assets:cash                     $4.82      $4.82
+                                equity:opening balances        $-4.82          0
+2007/01/25 balance adjustment   equity                         $91.15     $91.15
+                                assets:cash                   $-91.15          0
+  description matching
+  regexp matching
+
  balance
-  show top-level acct balance
-  show per-account balances
+  show top-level acct balances
+  show all account balances
+
  print
- matching by account/description regexp
  more directives, eg include
  read timelog files
  -p period expressions
@@ -14,13 +29,11 @@ features
  read gnucash files
 
 testing
- get quickcheck working
- consider hunit dsl
  ledger regression/compatibility tests
 
 environment
  cleaner option processing
- smart ledger file finding
+ robust ledger file finding
 
 documentation
  literate docs
