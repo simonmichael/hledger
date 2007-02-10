@@ -73,7 +73,7 @@ periodic_entry3_str = "\
 \    equity:opening balances\n\
 \\n" --"
 
-ledger_str = "\
+ledger1_str = "\
 \\n\
 \2007/01/27 * joes diner\n\
 \  expenses:food:dining                    $10.00\n\
@@ -225,7 +225,7 @@ parseEquals parsed other =
 --   parseTest ledgerperiodicentry periodic_entry1_str
 --   parseTest ledgerperiodicentry periodic_entry2_str
 --   parseTest ledgerperiodicentry periodic_entry3_str
---   parseTest ledger ledger_str
+--   parseTest ledger ledger1_str
 --   parseTest ledger ledger2_str
 --   parseTest ledger ledger3_str
 --   parseTest ledger ledger4_str
