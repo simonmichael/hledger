@@ -3,7 +3,7 @@
 -- GPLv3, (c) Simon Michael & contributors, 
 -- John Wiegley's ledger is at http://newartisans.com/ledger.html .
 
-module Main -- almost all IO is handled here
+module Main -- application logic & most IO
 where
 
 import System

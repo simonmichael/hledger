@@ -1,5 +1,5 @@
 
-module Models  -- data types & behaviours
+module Models -- data types & behaviours
 where
 
 import Text.Printf
@@ -12,7 +12,7 @@ data Ledger = Ledger {
                       periodic_entries :: [PeriodicEntry],
                       entries :: [Entry]
                      } deriving (Eq)
-data ModifierEntry = ModifierEntry { -- aka automated entry
+data ModifierEntry = ModifierEntry { -- aka "automated entry"
                     valueexpr :: String,
                     m_transactions :: [Transaction]
                    } deriving (Eq)
@@ -22,7 +22,7 @@ data PeriodicEntry = PeriodicEntry {
                    } deriving (Eq)
 data Entry = Entry {
                     date :: Date,
-                    status :: Bool,
+                    status :: Status,
                     code :: String,
                     description :: String,
                     transactions :: [Transaction]
@@ -36,6 +36,7 @@ data Amount = Amount {
                       quantity :: Double
                      } deriving (Eq)
 type Date = String
+type Status = Bool
 type Account = String
 
 -- Amount arithmetic - ignores currency conversion
