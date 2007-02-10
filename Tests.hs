@@ -110,6 +110,88 @@ sample_ledger6 = "\
 \;     equity:opening balances                         \n\
 \\n" --"
 
+sample_ledger7 = "\
+\2007/01/01 * opening balance\n\
+\    assets:cash                                $4.82\n\
+\    equity:opening balances                         \n\
+\\n\
+\2007/01/02 * ayres suites\n\
+\    expenses:vacation                        $179.92\n\
+\    assets:checking                                 \n\
+\\n\
+\2007/01/02 * auto transfer to savings\n\
+\    assets:saving                            $200.00\n\
+\    assets:checking                                 \n\
+\\n\
+\2007/01/03 * poquito mas\n\
+\    expenses:food:dining                       $4.82\n\
+\    assets:cash                                     \n\
+\\n\
+\2007/01/03 * verizon\n\
+\    expenses:phone                            $95.11\n\
+\    assets:checking                                 \n\
+\\n\
+\2007/01/03 * discover\n\
+\    liabilities:credit cards:discover         $80.00\n\
+\    assets:checking                                 \n\
+\\n\
+\2007/01/04 * blue cross\n\
+\    expenses:health:insurance                 $90.00\n\
+\    assets:checking                                 \n\
+\\n\
+\2007/01/05 * village market liquor\n\
+\    expenses:food:dining                       $6.48\n\
+\    assets:checking                                 \n\
+\\n" --"
+
+ledger7 = Ledger [] [] 
+          [
+           Entry {
+                  date="2007/01/01", status=False, code="*", description="opening balance",
+                  transactions=[
+                                Transaction {account="assets:cash", 
+                                             amount=Amount {currency="$", quantity=4.82}},
+                                Transaction {account="equity:opening balances", 
+                                             amount=Amount {currency="$", quantity=(-4.82)}}
+                               ]
+                 },
+           Entry {
+                  date="2007/02/01", status=False, code="*", description="ayres suites",
+                  transactions=[
+                                Transaction {account="expenses:vacation", 
+                                             amount=Amount {currency="$", quantity=179.92}},
+                                Transaction {account="assets:checking", 
+                                             amount=Amount {currency="$", quantity=(-179.92)}}
+                               ]
+                 }
+          ]
+
+-- 2007/01/02 * auto transfer to savings
+--     assets:saving                            $200.00
+--     assets:checking
+
+-- 2007/01/03 * poquito mas
+--     expenses:food:dining                       $4.82
+--     assets:cash
+
+-- 2007/01/03 * verizon
+--     expenses:phone                            $95.11
+--     assets:checking
+
+-- 2007/01/03 * discover
+--     liabilities:credit cards:discover         $80.00
+--     assets:checking
+
+-- 2007/01/04 * blue cross
+--     expenses:health:insurance                 $90.00
+--     assets:checking
+
+-- 2007/01/05 * village market liquor
+--     expenses:food:dining                       $6.48
+--     assets:checking
+
+
+
 -- utils
 
 assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion

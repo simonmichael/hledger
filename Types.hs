@@ -2,6 +2,7 @@
 module Types where
 
 import Text.Printf
+import List
 
 data Ledger = Ledger {
                       modifier_entries :: [ModifierEntry],
@@ -134,9 +135,6 @@ printRegister l = putStr $ showRegisterEntries (entries l) 0
 
 -- misc
 
-transactionsFrom :: [Entry] -> [Transaction]
-transactionsFrom es = concat $ map transactions es
-
 -- fill in missing amounts etc., as far as possible
 autofill :: Entry -> Entry
 autofill e = Entry (date e) (status e) (code e) (description e)
@@ -147,10 +145,7 @@ autofillTransactions ts =
     let (ns,as) = normalAndAutoTransactions ts in
     case (length as) of
       0 -> ns
-      1 -> let t = head as 
-               newamt = -(sumTransactions ns)
-           in 
-             ns ++ [Transaction (account t) newamt]
+      1 -> ns ++ [Transaction (account (head as)) (-(sumTransactions ns))]
       otherwise -> error "too many blank transactions in this entry"
 
 normalAndAutoTransactions :: [Transaction] -> ([Transaction], [Transaction])
@@ -160,3 +155,13 @@ normalAndAutoTransactions ts =
 
 sumTransactions :: [Transaction] -> Amount
 sumTransactions ts = sum [amount t | t <- ts]
+
+
+transactionsFrom :: [Entry] -> [Transaction]
+transactionsFrom es = concat $ map transactions es
+
+accountsFrom :: [Transaction] -> [Account]
+accountsFrom ts = nub $ map account ts
+
+accountList :: Ledger -> [Account]
+accountList l = accountsFrom $ transactionsFrom $ entries l
