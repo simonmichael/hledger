@@ -154,7 +154,9 @@ ledger7_str = "\
 \    assets:checking                                 \n\
 \\n" --"
 
-ledger7 = Ledger [] [] 
+ledger7 = Ledger
+          [] 
+          [] 
           [
            Entry {
                   date="2007/01/01", status=False, code="*", description="opening balance",
@@ -200,6 +202,21 @@ ledger7 = Ledger [] []
 --     expenses:food:dining                       $6.48
 --     assets:checking
 
+--   parseTest ledgerentry entry2_str
+--   parseTest ledgerentry entry3_str
+--   parseTest ledgerperiodicentry periodic_entry1_str
+--   parseTest ledgerperiodicentry periodic_entry2_str
+--   parseTest ledgerperiodicentry periodic_entry3_str
+--   parseTest ledger ledger1_str
+--   parseTest ledger ledger2_str
+--   parseTest ledger ledger3_str
+--   parseTest ledger ledger4_str
+--   parseTest ledger ledger5_str
+--   parseTest ledger ledger6_str
+--   parseTest ledger periodic_entry1_str
+--   parseTest ledger periodic_entry2_str
+--   parseLedgerFile ledgerFilePath >>= printParseResult
+
 -- utils
 
 assertEqual' e a = assertEqual "" e a
@@ -220,20 +237,19 @@ parseEquals parsed other =
 
 -- hunit tests
 
---   parseTest ledgerentry entry2_str
---   parseTest ledgerentry entry3_str
---   parseTest ledgerperiodicentry periodic_entry1_str
---   parseTest ledgerperiodicentry periodic_entry2_str
---   parseTest ledgerperiodicentry periodic_entry3_str
---   parseTest ledger ledger1_str
---   parseTest ledger ledger2_str
---   parseTest ledger ledger3_str
---   parseTest ledger ledger4_str
---   parseTest ledger ledger5_str
---   parseTest ledger ledger6_str
---   parseTest ledger periodic_entry1_str
---   parseTest ledger periodic_entry2_str
---   parseLedgerFile ledgerFilePath >>= printParseResult
+tests = let t l f = TestLabel l $ TestCase f in TestList
+        [
+          t "test_ledgertransaction" test_ledgertransaction
+        , t "test_ledgerentry" test_ledgerentry
+        , t "test_autofillEntry" test_autofillEntry
+        , t "test_expandAccounts" test_expandAccounts
+        , t "test_accountTree" test_accountTree
+        ]
+
+tests2 = Test.HUnit.test 
+         [
+          "test1" ~: assertEqual "2 equals 2" 2 2
+         ]
 
 test_ledgertransaction :: Assertion
 test_ledgertransaction =
@@ -257,27 +273,13 @@ test_accountTree =
     ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
     (accountTree ledger7)
 
-tests = let t l f = TestLabel l $ TestCase f in TestList
-        [
-          t "test_ledgertransaction" test_ledgertransaction
-        , t "test_ledgerentry" test_ledgerentry
-        , t "test_autofillEntry" test_autofillEntry
-        , t "test_expandAccounts" test_expandAccounts
-        , t "test_accountTree" test_accountTree
-        ]
-
-tests2 = Test.HUnit.test 
-         [
-          "test1" ~: assertEqual "2 equals 2" 2 2
-         ]
-
 -- quickcheck properties
 
 props =
     [
-     (parse' ledgertransaction transaction1_str) `parseEquals`
+     parse' ledgertransaction transaction1_str `parseEquals`
      (Transaction "expenses:food:dining" (Amount "$" 10))
     ,
-     (accountTree ledger7) == 
+     accountTree ledger7 == 
      ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
     ]
