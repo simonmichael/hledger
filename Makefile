@@ -1,4 +1,4 @@
-build:
+build: Tags
 	ghc --make -O2 hledger.hs
 
 Tags:
