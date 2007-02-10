@@ -2,9 +2,12 @@
 module Tests
 where
 
-import Test.HUnit
-import Test.QuickCheck
 import Text.ParserCombinators.Parsec
+import Test.QuickCheck
+import Test.HUnit
+-- trying to make "*Tests> test" work
+-- hiding (test)
+--import qualified Test.HUnit (Test.HUnit.test)
 
 import Options
 import Types
@@ -12,20 +15,29 @@ import Parse
 
 -- sample data
 
-sample_entry = "\
+transaction1_str  = "  expenses:food:dining  $10.00\n"
+
+transaction1 = Transaction "expenses:food:dining" (Amount "$" 10)
+
+entry1_str = "\
+\2007/01/28 coopportunity\n\
+\  expenses:food:groceries                 $47.18\n\
+\  assets:checking\n\
+\\n" --"
+
+entry1 =
+    (Entry "2007/01/28" False "" "coopportunity" 
+               [Transaction "expenses:food:groceries" (Amount "$" 47.18), 
+                Transaction "assets:checking" (Amount "$" (-47.18))])
+
+entry2_str = "\
 \2007/01/27 * joes diner\n\
 \  expenses:food:dining                    $10.00\n\
 \  expenses:gifts                          $10.00\n\
 \  assets:checking                        $-20.00\n\
 \\n" --"
 
-sample_entry2 = "\
-\2007/01/28 coopportunity\n\
-\  expenses:food:groceries                 $47.18\n\
-\  assets:checking\n\
-\\n" --"
-
-sample_entry3 = "\
+entry3_str = "\
 \2007/01/01 * opening balance\n\
 \    assets:cash                                $4.82\n\
 \    equity:opening balances\n\
@@ -39,19 +51,19 @@ sample_entry3 = "\
 \  assets:checking\n\
 \\n" --"
 
-sample_periodic_entry = "\
+periodic_entry1_str = "\
 \~ monthly from 2007/2/2\n\
 \  assets:saving            $200.00\n\
 \  assets:checking\n\
 \\n" --"
 
-sample_periodic_entry2 = "\
+periodic_entry2_str = "\
 \~ monthly from 2007/2/2\n\
 \  assets:saving            $200.00         ;auto savings\n\
 \  assets:checking\n\
 \\n" --"
 
-sample_periodic_entry3 = "\
+periodic_entry3_str = "\
 \~ monthly from 2007/01/01\n\
 \    assets:cash                                $4.82\n\
 \    equity:opening balances\n\
@@ -61,11 +73,7 @@ sample_periodic_entry3 = "\
 \    equity:opening balances\n\
 \\n" --"
 
-sample_transaction  = "  expenses:food:dining  $10.00\n"
-
-sample_transaction2 = "  assets:checking\n"
-
-sample_ledger = "\
+ledger_str = "\
 \\n\
 \2007/01/27 * joes diner\n\
 \  expenses:food:dining                    $10.00\n\
@@ -79,30 +87,30 @@ sample_ledger = "\
 \\n\
 \" --"
 
-sample_ledger2 = "\
+ledger2_str = "\
 \;comment\n\
 \2007/01/27 * joes diner\n\
 \  expenses:food:dining                    $10.00\n\
 \  assets:checking                        $-47.18\n\
 \\n" --"
 
-sample_ledger3 = "\
+ledger3_str = "\
 \2007/01/27 * joes diner\n\
 \  expenses:food:dining                    $10.00\n\
 \;intra-entry comment\n\
 \  assets:checking                        $-47.18\n\
 \\n" --"
 
-sample_ledger4 = "\
+ledger4_str = "\
 \!include \"somefile\"\n\
 \2007/01/27 * joes diner\n\
 \  expenses:food:dining                    $10.00\n\
 \  assets:checking                        $-47.18\n\
 \\n" --"
 
-sample_ledger5 = ""
+ledger5_str = ""
 
-sample_ledger6 = "\
+ledger6_str = "\
 \~ monthly from 2007/1/21\n\
 \    expenses:entertainment  $16.23        ;netflix\n\
 \    assets:checking\n\
@@ -112,7 +120,7 @@ sample_ledger6 = "\
 \;     equity:opening balances                         \n\
 \\n" --"
 
-sample_ledger7 = "\
+ledger7_str = "\
 \2007/01/01 * opening balance\n\
 \    assets:cash                                $4.82\n\
 \    equity:opening balances                         \n\
@@ -192,8 +200,6 @@ ledger7 = Ledger [] []
 --     expenses:food:dining                       $6.48
 --     assets:checking
 
-
-
 -- utils
 
 assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
@@ -206,61 +212,53 @@ assertEqual' e a = assertEqual "" e a
 
 parse' p ts = parse p "" ts
 
-    
 -- hunit tests
 
---   parseTest ledgertransaction sample_transaction2
---   parseTest ledgerentry sample_entry2
---   parseTest ledgerentry sample_entry3
---   parseTest ledgerperiodicentry sample_periodic_entry
---   parseTest ledgerperiodicentry sample_periodic_entry2
---   parseTest ledgerperiodicentry sample_periodic_entry3
---   parseTest ledger sample_ledger
---   parseTest ledger sample_ledger2
---   parseTest ledger sample_ledger3
---   parseTest ledger sample_ledger4
---   parseTest ledger sample_ledger5
---   parseTest ledger sample_ledger6
---   parseTest ledger sample_periodic_entry
---   parseTest ledger sample_periodic_entry2
+--   parseTest ledgerentry entry2_str
+--   parseTest ledgerentry entry3_str
+--   parseTest ledgerperiodicentry periodic_entry1_str
+--   parseTest ledgerperiodicentry periodic_entry2_str
+--   parseTest ledgerperiodicentry periodic_entry3_str
+--   parseTest ledger ledger_str
+--   parseTest ledger ledger2_str
+--   parseTest ledger ledger3_str
+--   parseTest ledger ledger4_str
+--   parseTest ledger ledger5_str
+--   parseTest ledger ledger6_str
+--   parseTest ledger periodic_entry1_str
+--   parseTest ledger periodic_entry2_str
 --   parseLedgerFile ledgerFilePath >>= printParseResult
 
 test_parse_ledgertransaction :: Assertion
 test_parse_ledgertransaction =
-    assertParseEqual
-      (Transaction "expenses:food:dining" (Amount "$" 10))
-      (parse' ledgertransaction sample_transaction)
-
-entry2 =
-    (Entry "2007/01/28" False "" "coopportunity" 
-               [Transaction "expenses:food:groceries" (Amount "$" 47.18), 
-                Transaction "assets:checking" (Amount "$" (-47.18))])
+    assertParseEqual transaction1 (parse' ledgertransaction transaction1_str)      
 
 test_parse_ledgerentry =
-    assertParseEqual entry2 (parse' ledgerentry sample_entry2)
+    assertParseEqual entry1 (parse' ledgerentry entry1_str)
 
 test_autofill_entry = 
     assertEqual'
       (Amount "$" (-47.18))
-      (amount $ last $ transactions $ autofill entry2)
+      (amount $ last $ transactions $ autofill entry1)
 
-hunittests = TestList [
-                       test "test_parse_ledgertransaction" test_parse_ledgertransaction
-                      , test "test_parse_ledgerentry" test_parse_ledgerentry
-                      , test "test_autofill_entry" test_autofill_entry
-                      ] 
-    where test label fn = TestLabel label $ TestCase fn
+tests = TestList [
+                   t "test_parse_ledgertransaction" test_parse_ledgertransaction
+                 , t "test_parse_ledgerentry" test_parse_ledgerentry
+                 , t "test_autofill_entry" test_autofill_entry
+                 ] 
+    where t label fn = TestLabel label $ TestCase fn
 
-hunittests2 = Test.HUnit.test [
-                               "test1" ~: assertEqual "2 equals 2" 2 2
+tests2 = Test.HUnit.test [
+                          "test1" ~: assertEqual "2 equals 2" 2 2
                               ]
 
 -- quickcheck properties
 
 prop1 = 1 == 1
-
 --prop_test_parse_ledgertransaction =
 --     (Transaction "expenses:food:dining" (Amount "$" 10)) == 
---     (parse' ledgertransaction sample_transaction))
--- how ?
+--     (parse' ledgertransaction transaction_str))
 
+props = [
+         prop1
+        ]

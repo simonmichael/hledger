@@ -1,13 +1,15 @@
-#!/usr/bin/runhaskell
+#!/usr/bin/env runhaskell
 -- hledger - ledger-compatible money management utilities (& haskell study)
 -- GPLv3, (c) Simon Michael & contributors, 
 -- John Wiegley's ledger is at http://newartisans.com/ledger.html .
 
-module Main where
+module Main -- almost all IO is handled here
+where
 
 import System (getArgs)
 import Data.List (isPrefixOf)
 import Test.HUnit (runTestTT)
+import Test.QuickCheck (quickCheck)
 import Text.ParserCombinators.Parsec (parseFromFile, ParseError)
 
 import Options
@@ -18,21 +20,23 @@ import Tests
 main :: IO ()
 main = do
   (opts, args) <- (getArgs >>= getOptions)
-  test
   if args == []
     then register []
     else
-      let (command, args) = (head args, tail args) in
-      if "reg" `isPrefixOf` command then register args
-      else if "bal" `isPrefixOf` command then balance args
-           else error "could not recognise your command"
+      let (command, args') = (head args, tail args) in
+      if "reg" `isPrefixOf` command then (register args')
+      else if "bal" `isPrefixOf` command then balance args'
+           else if "test" `isPrefixOf` command then test
+                else error "could not recognise your command"
 
 -- commands
 
 test :: IO ()      
 test = do
-  runTestTT hunittests
---  quickCheck prop1
+  putStrLn "hunit "
+  runTestTT tests
+  putStr "quickcheck "
+  mapM quickCheck props
   return ()
 
 register :: [String] -> IO ()
