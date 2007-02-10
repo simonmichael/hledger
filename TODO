@@ -1,11 +1,6 @@
-testing
- get quickcheck working
- consider hunit dsl
- ledger regression/compatibility tests
-
 features
  balance
-  show final balance
+  show top-level acct balance
   show per-account balances
  print
  matching by account/description regexp
@@ -17,6 +12,11 @@ features
  graph automation
  auto entry generation
  read gnucash files
+
+testing
+ get quickcheck working
+ consider hunit dsl
+ ledger regression/compatibility tests
 
 environment
  cleaner option processing

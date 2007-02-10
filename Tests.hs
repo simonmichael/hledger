@@ -1,8 +1,10 @@
-module Tests where
 
-import Text.ParserCombinators.Parsec
-import Test.QuickCheck
+module Tests
+where
+
 import Test.HUnit
+import Test.QuickCheck
+import Text.ParserCombinators.Parsec
 
 import Options
 import Types
@@ -262,11 +264,3 @@ prop1 = 1 == 1
 --     (parse' ledgertransaction sample_transaction))
 -- how ?
 
--- commands
-
-test :: IO ()      
-test = do
-  runTestTT hunittests
---  runTestTT hunittests2
---  quickCheck prop1
-  return ()

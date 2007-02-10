@@ -1,5 +1,6 @@
--- a data model
-module Types where
+
+module Types  -- data model & methods
+where
 
 import Text.Printf
 import List
@@ -130,9 +131,6 @@ showRegisterEntries (e:es) b =
     showEntryWithBalances e b ++ (showRegisterEntries es b')
         where b' = b + (sumTransactions (transactions e))
 
-printRegister :: Ledger -> IO ()
-printRegister l = putStr $ showRegisterEntries (entries l) 0
-
 -- misc
 
 -- fill in missing amounts etc., as far as possible
@@ -156,12 +154,12 @@ normalAndAutoTransactions ts =
 sumTransactions :: [Transaction] -> Amount
 sumTransactions ts = sum [amount t | t <- ts]
 
-
 transactionsFrom :: [Entry] -> [Transaction]
 transactionsFrom es = concat $ map transactions es
 
 accountsFrom :: [Transaction] -> [Account]
 accountsFrom ts = nub $ map account ts
 
-accountList :: Ledger -> [Account]
-accountList l = accountsFrom $ transactionsFrom $ entries l
+accountsUsed :: Ledger -> [Account]
+accountsUsed l = accountsFrom $ transactionsFrom $ entries l
+

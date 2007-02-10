@@ -1,3 +1,13 @@
+
+module Parse
+where
+
+import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Language
+import qualified Text.ParserCombinators.Parsec.Token as P
+
+import Types
+
 {-
 Here's the ledger 2.5 grammar:
 "The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
@@ -97,14 +107,6 @@ i, o, b, h
 -}
 -- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
 -- sample data in Tests.hs 
-
-module Parse where
-
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Language
-import qualified Text.ParserCombinators.Parsec.Token as P
-
-import Types
 
 -- set up token parsing, though we're not yet using these much
 ledgerLanguageDef = LanguageDef {
@@ -241,5 +243,3 @@ printParseResult r = case r of
 
 parseError e = do putStr "ledger parse error at "; print e
 
-parseLedgerFile :: IO String -> IO (Either ParseError Ledger)
-parseLedgerFile f = f >>= parseFromFile ledger

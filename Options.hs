@@ -1,4 +1,6 @@
-module Options where
+
+module Options
+where
     
 import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
