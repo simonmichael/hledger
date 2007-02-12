@@ -92,10 +92,12 @@ entryLines e =
     [firstline] ++ otherlines
         where 
           t:ts = transactions e
-          entrydesc = printf "%-10s %-20s " (date e) (take 20 $ description e)
-          firstline = (entrydesc ++ (show t), amount t)
+          firstline = (entrydesc e ++ (show t), amount t)
           otherlines = map (\t -> (prependSpace $ show t, amount t)) ts
           prependSpace = (replicate 32 ' ' ++)
+
+entrydesc e = printf "%-10s %-20s " (date e) (take 20 $ description e)
+
 
 instance Show Transaction where 
     show t = printf "%-25s  %10s" (take 25 $ account t) (show $ amount t)
@@ -128,7 +130,9 @@ entryLinesWithBalances ((str,amt):els) bal =
     [(str',amt,bal')] ++ entryLinesWithBalances els bal'
         where
           bal' = bal + amt
-          str' = str ++ (printf " %10.2s" (show bal'))
+          str' = str ++ (showBalance bal')
+
+showBalance b = printf " %10.2s" (show b)
 
 -- misc
 
@@ -151,11 +155,49 @@ normalAndAutoTransactions ts =
     partition isNormal ts
         where isNormal t = (currency $ amount t) /= "AUTO"
 
+-- transactions
+
 sumTransactions :: [Transaction] -> Amount
 sumTransactions ts = sum [amount t | t <- ts]
 
 transactionsFromEntries :: [Entry] -> [Transaction]
 transactionsFromEntries es = concat $ map transactions es
+
+matchTransactionAccount :: String -> Transaction -> Bool
+matchTransactionAccount s t = s `isInfixOf` (account t)
+
+transactionsWithEntries :: [Entry] -> [(Transaction,Entry)]
+transactionsWithEntries es = [(t,e) | e <- es, t <- transactions e]
+
+showTransactionsWithBalances :: [(Transaction,Entry)] -> Amount -> String
+showTransactionsWithBalances [] _ = []
+showTransactionsWithBalances tes b =
+    unlines $ showTransactionsWithBalances' tes b
+        where
+          showTransactionsWithBalances' [] _ = []
+          showTransactionsWithBalances' ((t,e):rest) b =
+              [showTransactionWithBalance t e b'] ++ (showTransactionsWithBalances' rest b')
+                  where b' = b + (amount t)
+
+showTransactionWithBalance :: Transaction -> Entry -> Amount -> String
+showTransactionWithBalance t e b =
+    (entrydesc e) ++ (show t) ++ (showBalance b)
+
+transactionsMatching :: String -> Ledger -> [(Transaction,Entry)]
+transactionsMatching s l = filter (\(t,e) -> matchTransactionAccount s t) (transactionsWithEntries $ entries l)
+
+-- entries
+
+entriesMatching :: String -> Ledger -> [Entry]
+entriesMatching s l = filterEntriesByAccount s (entries l)
+
+filterEntriesByAccount :: String -> [Entry] -> [Entry]
+filterEntriesByAccount s es = filter (matchEntryAccount s) es
+
+matchEntryAccount :: String -> Entry -> Bool
+matchEntryAccount s e = any (matchTransactionAccount s) (transactions e)
+
+-- accounts
 
 accountsFromTransactions :: [Transaction] -> [Account]
 accountsFromTransactions ts = nub $ map account ts
@@ -180,14 +222,3 @@ splitAtElement e l =
 accountTree :: Ledger -> [Account]
 accountTree = sort . expandAccounts . accountsUsed
 
-entriesMatching :: String -> Ledger -> [Entry]
-entriesMatching s l = filterEntriesByAccount s (entries l)
-
-filterEntriesByAccount :: String -> [Entry] -> [Entry]
-filterEntriesByAccount s es = filter (matchEntryAccount s) es
-
-matchEntryAccount :: String -> Entry -> Bool
-matchEntryAccount s e = any (matchTransactionAccount s) (transactions e)
-
-matchTransactionAccount :: String -> Transaction -> Bool
-matchTransactionAccount s t = s `isInfixOf` (account t)
