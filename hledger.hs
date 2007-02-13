@@ -61,5 +61,7 @@ doWithParsed a p =
 
 printRegister :: [String] -> Ledger -> IO ()
 printRegister args ledger =
-    putStr $ showTransactionsWithBalances (ledgerTransactionsMatching (head (args ++ [""])) ledger) 0
-
+    putStr $ showTransactionsWithBalances 
+               (ledgerTransactionsMatching (acctpats,descpats) ledger)
+               0
+        where (acctpats,descpats) = ledgerPatternArgs args

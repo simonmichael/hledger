@@ -7,12 +7,14 @@ import Data.Maybe ( fromMaybe )
 import System.Environment (getEnv)
 --import TildeExpand -- confuses my ghc 6.7
     
+import Utils
+
 data Flag = File String | Version deriving Show
     
 options :: [OptDescr Flag]
 options = [
-           Option ['f']     ["file"] (OptArg inp "FILE") "ledger file, or - to read stdin"
-          , Option ['v'] ["version"] (NoArg Version) "show version number"
+            Option ['f'] ["file"]    (OptArg inp "FILE") "ledger file, or - to read stdin"
+          , Option ['v'] ["version"] (NoArg Version)     "show version number"
           ]
 
 inp :: Maybe String -> Flag
@@ -20,7 +22,7 @@ inp  = File . fromMaybe "stdin"
     
 getOptions :: [String] -> IO ([Flag], [String])
 getOptions argv =
-    case getOpt Permute options argv of
+    case getOpt RequireOrder options argv of
       (o,n,[]  ) -> return (o,n)
       (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
         where header = "Usage: hledger [OPTIONS]"
@@ -34,3 +36,11 @@ defaultLedgerFile = "ledger.dat"
 getLedgerFilePath :: IO String
 getLedgerFilePath = do
   getEnv "LEDGER" `catch` \_ -> return defaultLedgerFile >>= return
+
+-- ledger pattern args are a list of account patterns optionally followed
+-- by -- and a list of description patterns
+ledgerPatternArgs :: [String] -> ([String],[String])
+ledgerPatternArgs args = 
+    case "--" `elem` args of
+      True -> ((takeWhile (/= "--") args), tail $ (dropWhile (/= "--") args))
+      False -> (args,[])

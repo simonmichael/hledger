@@ -282,4 +282,13 @@ props =
     ,
      ledgerAccountTree ledger7 == 
      ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
+    ,
+     ledgerPatternArgs [] == ([],[])
+    ,ledgerPatternArgs ["a"] == (["a"],[])
+    ,ledgerPatternArgs ["a","b"] == (["a","b"],[])
+    ,ledgerPatternArgs ["a","b","--"] == (["a","b"],[])
+    ,ledgerPatternArgs ["a","b","--","c","b"] == (["a","b"],["c","b"])
+    ,ledgerPatternArgs ["--","c"] == ([],["c"])
+    ,ledgerPatternArgs ["--"] == ([],[])
     ]
+

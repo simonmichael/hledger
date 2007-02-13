@@ -25,6 +25,7 @@ environment
  robust ledger file finding
 
 documentation
+ --help
  literate docs
  haddock
 

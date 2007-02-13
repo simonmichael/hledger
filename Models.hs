@@ -3,7 +3,10 @@ module Models -- data types & behaviours
 where
 
 import Text.Printf
+import Text.Regex
 import Data.List
+
+import Utils
 
 -- basic types
 
@@ -17,7 +20,7 @@ type Account = String
 data Amount = Amount {
                       currency :: String,
                       quantity :: Double
-                     } deriving (Eq)
+                     } deriving (Eq,Ord)
 
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
@@ -57,15 +60,15 @@ instance Show PeriodicEntry where
 
 -- entries
 -- a register entry is displayed as two or more lines like this:
--- date       description          account                    amount     balance
--- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAA AAAAAAAAAA
---                                 aaaaaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAA AAAAAAAAAA
---                                 ...                        ...        ...
+-- date       description          account                amount       balance
+-- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA AAAAAAAAAAAA
+--                                 aaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA AAAAAAAAAAAA
+--                                 ...                    ...          ...
 -- dateWidth = 10
 -- descWidth = 20
--- acctWidth = 25
--- amtWidth  = 10
--- balWidth  = 10
+-- acctWidth = 21
+-- amtWidth  = 12
+-- balWidth  = 12
 
 data Entry = Entry {
                     edate :: Date,
@@ -73,7 +76,7 @@ data Entry = Entry {
                     ecode :: String,
                     edescription :: String,
                     etransactions :: [Transaction]
-                   } deriving (Eq)
+                   } deriving (Eq,Ord)
 
 instance Show Entry where show = showEntry
 
@@ -92,11 +95,11 @@ autofillEntry e =
 data Transaction = Transaction {
                                 taccount :: Account,
                                 tamount :: Amount
-                               } deriving (Eq)
+                               } deriving (Eq,Ord)
 
 instance Show Transaction where show = showTransaction
 
-showTransaction t = printf "%-25s  %10s" (take 25 $ taccount t) (show $ tamount t)
+showTransaction t = printf "%-21s  %12.2s" (take 21 $ taccount t) (show $ tamount t)
 
 autofillTransactions :: [Transaction] -> [Transaction]
 autofillTransactions ts =
@@ -135,10 +138,16 @@ entryTransactionsFrom :: [Entry] -> [EntryTransaction]
 entryTransactionsFrom es = concat $ map flattenEntry es
 
 matchTransactionAccount :: String -> EntryTransaction -> Bool
-matchTransactionAccount s t = s `isInfixOf` (account t)
+matchTransactionAccount s t =
+    case matchRegex (mkRegex s) (account t) of
+      Nothing -> False
+      otherwise -> True
 
 matchTransactionDescription :: String -> EntryTransaction -> Bool
-matchTransactionDescription s t = s `isInfixOf` (description t)
+matchTransactionDescription s t =
+    case matchRegex (mkRegex s) (description t) of
+      Nothing -> False
+      otherwise -> True
 
 showTransactionsWithBalances :: [EntryTransaction] -> Amount -> String
 showTransactionsWithBalances [] _ = []
@@ -162,7 +171,7 @@ showTransactionAndBalance :: EntryTransaction -> Amount -> String
 showTransactionAndBalance t b =
     (replicate 32 ' ') ++ (showTransaction $ transaction t) ++ (showBalance b)
 
-showBalance b = printf " %10.2s" (show b)
+showBalance b = printf " %12.2s" (show b)
 
 -- accounts
 
@@ -174,14 +183,6 @@ expandAccounts :: [Account] -> [Account]
 expandAccounts l = nub $ concat $ map expand l
                 where
                   expand l' = map (concat . intersperse ":") (tail $ inits $ splitAtElement ':' l')
-
-splitAtElement :: Eq a => a -> [a] -> [[a]]
-splitAtElement e l = 
-    case dropWhile (e==) l of
-      [] -> []
-      l' -> first : splitAtElement e rest
-        where
-          (first,rest) = break (e==) l'
 
 -- ledger
 
@@ -210,6 +211,12 @@ ledgerAccountTree = sort . expandAccounts . ledgerAccountsUsed
 ledgerTransactions :: Ledger -> [EntryTransaction]
 ledgerTransactions l = entryTransactionsFrom $ entries l
 
-ledgerTransactionsMatching :: String -> Ledger -> [EntryTransaction]
-ledgerTransactionsMatching s l = filter (\t -> matchTransactionAccount s t) (ledgerTransactions l)
-
+ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
+ledgerTransactionsMatching ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) l
+ledgerTransactionsMatching (rs,[]) l = ledgerTransactionsMatching (rs,[".*"]) l
+ledgerTransactionsMatching ([],rs) l = ledgerTransactionsMatching ([".*"],rs) l
+ledgerTransactionsMatching (acctregexps,descregexps) l =
+    intersect 
+    (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
+    (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
+    where ts = ledgerTransactions l
