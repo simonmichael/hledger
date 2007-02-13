@@ -1,6 +1,3 @@
-environment
- robust ledger file finding
-
 features
  register
   svn-style truncation

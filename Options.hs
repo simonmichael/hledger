@@ -29,12 +29,12 @@ getOptions argv =
 get_content :: Flag -> Maybe String
 get_content (File s) = Just s
 
---defaultLedgerFile = expand "~/ledger.dat"
-defaultLedgerFile = "ledger.dat"
+defaultLedgerFile = "~/ledger.dat"
 
 getLedgerFilePath :: IO String
 getLedgerFilePath = do
-  getEnv "LEDGER" `catch` \_ -> return defaultLedgerFile >>= return
+  defaultpath <- tildeExpand defaultLedgerFile
+  getEnv "LEDGER" `catch` \_ -> return defaultpath >>= return
 
 -- ledger pattern args are a list of account patterns optionally followed
 -- by -- and a list of description patterns
