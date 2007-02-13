@@ -11,12 +11,14 @@ type Date = String
 type Status = Bool
 type Account = String
 
+-- amounts
+-- amount arithmetic currently ignores currency conversion
+
 data Amount = Amount {
                       currency :: String,
                       quantity :: Double
                      } deriving (Eq)
 
--- amount arithmetic, ignores currency conversion
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
     signum (Amount c q) = Amount c (signum q)
@@ -73,9 +75,9 @@ data Entry = Entry {
                     etransactions :: [Transaction]
                    } deriving (Eq)
 
-instance Show Entry where show = showEntryDetails
+instance Show Entry where show = showEntry
 
-showEntryDetails e = printf "%-10s %-20s " (edate e) (take 20 $ edescription e)
+showEntry e = printf "%-10s %-20s " (edate e) (take 20 $ edescription e)
 
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced e = (sumTransactions . etransactions) e == 0
@@ -92,31 +94,28 @@ data Transaction = Transaction {
                                 tamount :: Amount
                                } deriving (Eq)
 
-instance Show Transaction where 
-    show t = printf "%-25s  %10s" (take 25 $ taccount t) (show $ tamount t)
+instance Show Transaction where show = showTransaction
+
+showTransaction t = printf "%-25s  %10s" (take 25 $ taccount t) (show $ tamount t)
 
 autofillTransactions :: [Transaction] -> [Transaction]
 autofillTransactions ts =
-    let (ns, as) = normalAndAutoTransactions ts in
+    let (ns, as) = partition isNormal ts
+            where isNormal t = (currency $ tamount t) /= "AUTO" in
     case (length as) of
       0 -> ns
       1 -> ns ++ [balanceTransaction $ head as]
           where balanceTransaction t = t{tamount = -(sumTransactions ns)}
       otherwise -> error "too many blank transactions in this entry"
 
-normalAndAutoTransactions :: [Transaction] -> ([Transaction], [Transaction])
-normalAndAutoTransactions ts = 
-    partition isNormal ts
-        where isNormal t = (currency $ tamount t) /= "AUTO"
-
 sumTransactions :: [Transaction] -> Amount
 sumTransactions ts = sum [tamount t | t <- ts]
 
 -- entrytransactions
--- the entry/transaction types used in app-level functions have morphed
--- through E->T; (T,E); ET; E<->T; (E,T). Currently, we parse Entries
--- containing Transactions and flatten them into (Entry,Transaction) pairs
--- (hereafter referred to as "transactions") for processing
+-- We parse Entries containing Transactions and flatten them into
+-- (entry,transaction) pairs (entrytransactions, hereafter referred to as
+-- "transactions") for easier processing. (So far, these types have
+-- morphed through E->T; (T,E); ET; E<->T; (E,T)).
 
 type EntryTransaction = (Entry,Transaction)
 
@@ -157,16 +156,11 @@ showTransactionsWithBalances ts b =
 
 showTransactionDescriptionAndBalance :: EntryTransaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =
-    (showTransactionEntryDetails t) ++ (showTransactionDetails t) ++ (showBalance b)
+    (showEntry $ entry t) ++ (showTransaction $ transaction t) ++ (showBalance b)
 
 showTransactionAndBalance :: EntryTransaction -> Amount -> String
 showTransactionAndBalance t b =
-    (replicate 32 ' ') ++ (showTransactionDetails t) ++ (showBalance b)
-
--- like showEntryDetails
-showTransactionEntryDetails t = printf "%-10s %-20s " (date t) (take 20 $ description t)
-
-showTransactionDetails t = printf "%-25s  %10s" (take 25 $ account t) (show $ amount t)
+    (replicate 32 ' ') ++ (showTransaction $ transaction t) ++ (showBalance b)
 
 showBalance b = printf " %10.2s" (show b)
 
