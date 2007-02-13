@@ -159,21 +159,21 @@ ledger7 = Ledger
           [] 
           [
            Entry {
-                  date="2007/01/01", status=False, code="*", description="opening balance",
-                  transactions=[
-                                Transaction {account="assets:cash", 
-                                             amount=Amount {currency="$", quantity=4.82}},
-                                Transaction {account="equity:opening balances", 
-                                             amount=Amount {currency="$", quantity=(-4.82)}}
+                  edate="2007/01/01", estatus=False, ecode="*", edescription="opening balance",
+                  etransactions=[
+                                Transaction {taccount="assets:cash", 
+                                             tamount=Amount {currency="$", quantity=4.82}},
+                                Transaction {taccount="equity:opening balances", 
+                                             tamount=Amount {currency="$", quantity=(-4.82)}}
                                ]
                  },
            Entry {
-                  date="2007/02/01", status=False, code="*", description="ayres suites",
-                  transactions=[
-                                Transaction {account="expenses:vacation", 
-                                             amount=Amount {currency="$", quantity=179.92}},
-                                Transaction {account="assets:checking", 
-                                             amount=Amount {currency="$", quantity=(-179.92)}}
+                  edate="2007/02/01", estatus=False, ecode="*", edescription="ayres suites",
+                  etransactions=[
+                                Transaction {taccount="expenses:vacation", 
+                                             tamount=Amount {currency="$", quantity=179.92}},
+                                Transaction {taccount="assets:checking", 
+                                             tamount=Amount {currency="$", quantity=(-179.92)}}
                                ]
                  }
           ]
@@ -261,7 +261,7 @@ test_ledgerentry =
 test_autofillEntry = 
     assertEqual'
     (Amount "$" (-47.18))
-    (amount $ last $ transactions $ autofillEntry entry1)
+    (tamount $ last $ etransactions $ autofillEntry entry1)
 
 test_expandAccounts =
     assertEqual'
@@ -271,7 +271,7 @@ test_expandAccounts =
 test_accountTree =
     assertEqual'
     ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
-    (accountTree ledger7)
+    (ledgerAccountTree ledger7)
 
 -- quickcheck properties
 
@@ -280,6 +280,6 @@ props =
      parse' ledgertransaction transaction1_str `parseEquals`
      (Transaction "expenses:food:dining" (Amount "$" 10))
     ,
-     accountTree ledger7 == 
+     ledgerAccountTree ledger7 == 
      ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
     ]

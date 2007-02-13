@@ -182,6 +182,8 @@ ledgerentry = do
   transactions <- ledgertransactions
   ledgernondatalines
   let entry = Entry date status code description transactions
+  --let entry = Entry date status code description (map (\t -> t{tentry=entry}) transactions)
+              
   return $ autofillEntry entry
 
 ledgerdate :: Parser String

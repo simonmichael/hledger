@@ -1,8 +1,5 @@
 features
  register
-  account matching
-   don't show duplicate transaction descriptions
-   better transaction/entry data structure
   description matching
   regexp matching
 

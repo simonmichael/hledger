@@ -5,42 +5,18 @@ where
 import Text.Printf
 import Data.List
 
--- types
+-- basic types
 
-data Ledger = Ledger {
-                      modifier_entries :: [ModifierEntry],
-                      periodic_entries :: [PeriodicEntry],
-                      entries :: [Entry]
-                     } deriving (Eq)
-data ModifierEntry = ModifierEntry { -- aka "automated entry"
-                    valueexpr :: String,
-                    m_transactions :: [Transaction]
-                   } deriving (Eq)
-data PeriodicEntry = PeriodicEntry {
-                    periodexpr :: String,
-                    p_transactions :: [Transaction]
-                   } deriving (Eq)
-data Entry = Entry {
-                    date :: Date,
-                    status :: Status,
-                    code :: String,
-                    description :: String,
-                    transactions :: [Transaction]
-                   } deriving (Eq)
-data Transaction = Transaction {
-                                account :: Account,
-                                amount :: Amount
-                               } deriving (Eq)
-data Amount = Amount {
-                      currency :: String,
-                      quantity :: Double
-                     } deriving (Eq)
 type Date = String
 type Status = Bool
 type Account = String
 
--- Amount arithmetic - ignores currency conversion
+data Amount = Amount {
+                      currency :: String,
+                      quantity :: Double
+                     } deriving (Eq)
 
+-- amount arithmetic, ignores currency conversion
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
     signum (Amount c q) = Amount c (signum q)
@@ -52,26 +28,32 @@ Amount ca qa `amountAdd` Amount cb qb = Amount ca (qa + qb)
 Amount ca qa `amountSub` Amount cb qb = Amount ca (qa - qb)
 Amount ca qa `amountMult` Amount cb qb = Amount ca (qa * qb)
 
--- show & display methods
+instance Show Amount where
+    show (Amount cur qty) = 
+        let roundedqty = printf "%.2f" qty in
+        case roundedqty of
+          "0.00" -> "0"
+          otherwise -> cur ++ roundedqty
 
-instance Show Ledger where
-    show l = "Ledger with " ++ m ++ " modifier, " ++ p ++ " periodic, " ++ e ++ " normal entries:\n"
-                     ++ (concat $ map show (modifier_entries l))
-                     ++ (concat $ map show (periodic_entries l))
-                     ++ (concat $ map show (entries l))
-                     where 
-                       m = show $ length $ modifier_entries l
-                       p = show $ length $ periodic_entries l
-                       e = show $ length $ entries l
+-- modifier & periodic entries
+
+data ModifierEntry = ModifierEntry { -- aka "automated entry"
+                    valueexpr :: String,
+                    m_transactions :: [Transaction]
+                   } deriving (Eq)
 
 instance Show ModifierEntry where 
     show e = "= " ++ (valueexpr e) ++ "\n" ++ unlines (map show (m_transactions e))
 
+data PeriodicEntry = PeriodicEntry {
+                    periodexpr :: String,
+                    p_transactions :: [Transaction]
+                   } deriving (Eq)
+
 instance Show PeriodicEntry where 
     show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
 
-instance Show Entry where show = showEntry
-
+-- entries
 -- a register entry is displayed as two or more lines like this:
 -- date       description          account                    amount     balance
 -- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAA AAAAAAAAAA
@@ -83,63 +65,35 @@ instance Show Entry where show = showEntry
 -- amtWidth  = 10
 -- balWidth  = 10
 
-showEntry :: Entry -> String
-showEntry e = unlines $ map fst (entryLines e)
+data Entry = Entry {
+                    edate :: Date,
+                    estatus :: Status,
+                    ecode :: String,
+                    edescription :: String,
+                    etransactions :: [Transaction]
+                   } deriving (Eq)
 
--- convert an Entry to entry lines (string, amount pairs)
-entryLines :: Entry -> [(String,Amount)]
-entryLines e =
-    [firstline] ++ otherlines
-        where 
-          t:ts = transactions e
-          firstline = (entrydesc e ++ (show t), amount t)
-          otherlines = map (\t -> (prependSpace $ show t, amount t)) ts
-          prependSpace = (replicate 32 ' ' ++)
+instance Show Entry where show = showEntryDetails
 
-entrydesc e = printf "%-10s %-20s " (date e) (take 20 $ description e)
+showEntryDetails e = printf "%-10s %-20s " (edate e) (take 20 $ edescription e)
 
-
-instance Show Transaction where 
-    show t = printf "%-25s  %10s" (take 25 $ account t) (show $ amount t)
-
-instance Show Amount where
-    show (Amount cur qty) = 
-        let roundedqty = printf "%.2f" qty in
-        case roundedqty of
-          "0.00" -> "0"
-          otherwise -> cur ++ roundedqty
-
--- in the register report we show entries plus a running balance
-
-showEntriesWithBalances :: [Entry] -> Amount -> String
-showEntriesWithBalances [] _ = ""
-showEntriesWithBalances (e:es) b =
-    showEntryWithBalances e b ++ (showEntriesWithBalances es b')
-        where b' = b + (entryBalance e)
-
-entryBalance :: Entry -> Amount
-entryBalance = sumTransactions . transactions
-
-showEntryWithBalances :: Entry -> Amount -> String
-showEntryWithBalances e b =
-    unlines [s | (s,a,b) <- entryLinesWithBalances (entryLines e) b]
-
-entryLinesWithBalances :: [(String,Amount)] -> Amount -> [(String,Amount,Amount)]
-entryLinesWithBalances [] _ = []
-entryLinesWithBalances ((str,amt):els) bal = 
-    [(str',amt,bal')] ++ entryLinesWithBalances els bal'
-        where
-          bal' = bal + amt
-          str' = str ++ (showBalance bal')
-
-showBalance b = printf " %10.2s" (show b)
-
--- misc
+isEntryBalanced :: Entry -> Bool
+isEntryBalanced e = (sumTransactions . etransactions) e == 0
 
 autofillEntry :: Entry -> Entry
 autofillEntry e = 
-    Entry (date e) (status e) (code e) (description e)
-              (autofillTransactions (transactions e))
+    Entry (edate e) (estatus e) (ecode e) (edescription e)
+              (autofillTransactions (etransactions e))
+
+-- transactions
+
+data Transaction = Transaction {
+                                taccount :: Account,
+                                tamount :: Amount
+                               } deriving (Eq)
+
+instance Show Transaction where 
+    show t = printf "%-25s  %10s" (take 25 $ taccount t) (show $ tamount t)
 
 autofillTransactions :: [Transaction] -> [Transaction]
 autofillTransactions ts =
@@ -147,63 +101,79 @@ autofillTransactions ts =
     case (length as) of
       0 -> ns
       1 -> ns ++ [balanceTransaction $ head as]
-          where balanceTransaction t = t{amount = -(sumTransactions ns)}
+          where balanceTransaction t = t{tamount = -(sumTransactions ns)}
       otherwise -> error "too many blank transactions in this entry"
 
 normalAndAutoTransactions :: [Transaction] -> ([Transaction], [Transaction])
 normalAndAutoTransactions ts = 
     partition isNormal ts
-        where isNormal t = (currency $ amount t) /= "AUTO"
-
--- transactions
+        where isNormal t = (currency $ tamount t) /= "AUTO"
 
 sumTransactions :: [Transaction] -> Amount
-sumTransactions ts = sum [amount t | t <- ts]
+sumTransactions ts = sum [tamount t | t <- ts]
 
-transactionsFromEntries :: [Entry] -> [Transaction]
-transactionsFromEntries es = concat $ map transactions es
+-- entrytransactions
+-- the entry/transaction types used in app-level functions have morphed
+-- through E->T; (T,E); ET; E<->T; (E,T). Currently, we parse Entries
+-- containing Transactions and flatten them into (Entry,Transaction) pairs
+-- (hereafter referred to as "transactions") for processing
 
-matchTransactionAccount :: String -> Transaction -> Bool
+type EntryTransaction = (Entry,Transaction)
+
+entry       (e,t) = e
+transaction (e,t) = t
+date        (e,t) = edate e
+status      (e,t) = estatus e
+code        (e,t) = ecode e
+description (e,t) = edescription e
+account     (e,t) = taccount t
+amount      (e,t) = tamount t
+                                         
+flattenEntry :: Entry -> [EntryTransaction]
+flattenEntry e = [(e,t) | t <- etransactions e]
+
+entryTransactionsFrom :: [Entry] -> [EntryTransaction]
+entryTransactionsFrom es = concat $ map flattenEntry es
+
+matchTransactionAccount :: String -> EntryTransaction -> Bool
 matchTransactionAccount s t = s `isInfixOf` (account t)
 
-transactionsWithEntries :: [Entry] -> [(Transaction,Entry)]
-transactionsWithEntries es = [(t,e) | e <- es, t <- transactions e]
+matchTransactionDescription :: String -> EntryTransaction -> Bool
+matchTransactionDescription s t = s `isInfixOf` (description t)
 
-showTransactionsWithBalances :: [(Transaction,Entry)] -> Amount -> String
+showTransactionsWithBalances :: [EntryTransaction] -> Amount -> String
 showTransactionsWithBalances [] _ = []
-showTransactionsWithBalances tes b =
-    unlines $ showTransactionsWithBalances' tes b
+showTransactionsWithBalances ts b =
+    unlines $ showTransactionsWithBalances' ts dummyt b
         where
-          showTransactionsWithBalances' [] _ = []
-          showTransactionsWithBalances' ((t,e):rest) b =
-              [showTransactionWithBalance t e b'] ++ (showTransactionsWithBalances' rest b')
+          dummyt = (Entry "" False "" "" [], Transaction "" (Amount "" 0))
+          showTransactionsWithBalances' [] _ _ = []
+          showTransactionsWithBalances' (t:ts) tprev b =
+              (if (entry t /= (entry tprev))
+               then [showTransactionDescriptionAndBalance t b']
+               else [showTransactionAndBalance t b'])
+              ++ (showTransactionsWithBalances' ts t b')
                   where b' = b + (amount t)
 
-showTransactionWithBalance :: Transaction -> Entry -> Amount -> String
-showTransactionWithBalance t e b =
-    (entrydesc e) ++ (show t) ++ (showBalance b)
+showTransactionDescriptionAndBalance :: EntryTransaction -> Amount -> String
+showTransactionDescriptionAndBalance t b =
+    (showTransactionEntryDetails t) ++ (showTransactionDetails t) ++ (showBalance b)
 
-transactionsMatching :: String -> Ledger -> [(Transaction,Entry)]
-transactionsMatching s l = filter (\(t,e) -> matchTransactionAccount s t) (transactionsWithEntries $ entries l)
+showTransactionAndBalance :: EntryTransaction -> Amount -> String
+showTransactionAndBalance t b =
+    (replicate 32 ' ') ++ (showTransactionDetails t) ++ (showBalance b)
 
--- entries
+-- like showEntryDetails
+showTransactionEntryDetails t = printf "%-10s %-20s " (date t) (take 20 $ description t)
 
-entriesMatching :: String -> Ledger -> [Entry]
-entriesMatching s l = filterEntriesByAccount s (entries l)
+showTransactionDetails t = printf "%-25s  %10s" (take 25 $ account t) (show $ amount t)
 
-filterEntriesByAccount :: String -> [Entry] -> [Entry]
-filterEntriesByAccount s es = filter (matchEntryAccount s) es
-
-matchEntryAccount :: String -> Entry -> Bool
-matchEntryAccount s e = any (matchTransactionAccount s) (transactions e)
+showBalance b = printf " %10.2s" (show b)
 
 -- accounts
 
-accountsFromTransactions :: [Transaction] -> [Account]
+accountsFromTransactions :: [EntryTransaction] -> [Account]
 accountsFromTransactions ts = nub $ map account ts
-
-accountsUsed :: Ledger -> [Account]
-accountsUsed l = accountsFromTransactions $ transactionsFromEntries $ entries l
 
 -- ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccounts :: [Account] -> [Account]
@@ -219,6 +189,33 @@ splitAtElement e l =
         where
           (first,rest) = break (e==) l'
 
-accountTree :: Ledger -> [Account]
-accountTree = sort . expandAccounts . accountsUsed
+-- ledger
+
+data Ledger = Ledger {
+                      modifier_entries :: [ModifierEntry],
+                      periodic_entries :: [PeriodicEntry],
+                      entries :: [Entry]
+                     } deriving (Eq)
+
+instance Show Ledger where
+    show l = "Ledger with " ++ m ++ " modifier, " ++ p ++ " periodic, " ++ e ++ " normal entries:\n"
+                     ++ (concat $ map show (modifier_entries l))
+                     ++ (concat $ map show (periodic_entries l))
+                     ++ (concat $ map show (entries l))
+                     where 
+                       m = show $ length $ modifier_entries l
+                       p = show $ length $ periodic_entries l
+                       e = show $ length $ entries l
+
+ledgerAccountsUsed :: Ledger -> [Account]
+ledgerAccountsUsed l = accountsFromTransactions $ entryTransactionsFrom $ entries l
+
+ledgerAccountTree :: Ledger -> [Account]
+ledgerAccountTree = sort . expandAccounts . ledgerAccountsUsed
+
+ledgerTransactions :: Ledger -> [EntryTransaction]
+ledgerTransactions l = entryTransactionsFrom $ entries l
+
+ledgerTransactionsMatching :: String -> Ledger -> [EntryTransaction]
+ledgerTransactionsMatching s l = filter (\t -> matchTransactionAccount s t) (ledgerTransactions l)
 
