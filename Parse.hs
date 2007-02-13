@@ -5,6 +5,7 @@ where
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
+import Text.Printf
 
 import Models
 
@@ -187,7 +188,14 @@ ledgerentry = do
   return $ autofillEntry entry
 
 ledgerdate :: Parser String
-ledgerdate = do date <- many1 (digit <|> char '/'); many1 spacenonewline; return date
+ledgerdate = do 
+  y <- many1 digit
+  char '/'
+  m <- many1 digit
+  char '/'
+  d <- many1 digit
+  many1 spacenonewline
+  return $ printf "%04s/%02s/%02s" y m d
 
 ledgerstatus :: Parser Bool
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False
