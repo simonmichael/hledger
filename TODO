@@ -1,12 +1,11 @@
 features
- register
-  svn-style truncation
  balance
   show top-level acct balances
   show all account balances
  print
  entry
  -j and -J graph data output
+ svn-style elision
  !include
  read timelog files
  -p period expressions

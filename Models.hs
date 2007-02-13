@@ -33,12 +33,15 @@ Amount ca qa `amountAdd` Amount cb qb = Amount ca (qa + qb)
 Amount ca qa `amountSub` Amount cb qb = Amount ca (qa - qb)
 Amount ca qa `amountMult` Amount cb qb = Amount ca (qa * qb)
 
-instance Show Amount where
-    show (Amount cur qty) = 
-        let roundedqty = printf "%.2f" qty in
-        case roundedqty of
-          "0.00" -> "0"
-          otherwise -> cur ++ roundedqty
+instance Show Amount where show = amountRoundedOrZero
+
+amountRoundedOrZero :: Amount -> String
+amountRoundedOrZero (Amount cur qty) =
+    let rounded = printf "%.2f" qty in
+    case rounded of
+      "0.00"    -> "0"
+      "-0.00"   -> "0"
+      otherwise -> cur ++ rounded
 
 -- modifier & periodic entries
 
@@ -60,14 +63,14 @@ instance Show PeriodicEntry where
 
 -- entries
 -- a register entry is displayed as two or more lines like this:
--- date       description          account                amount       balance
--- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA AAAAAAAAAAAA
---                                 aaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA AAAAAAAAAAAA
---                                 ...                    ...          ...
+-- date       description          account                 amount       balance
+-- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+--                                 aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+--                                 ...                     ...         ...
 -- dateWidth = 10
 -- descWidth = 20
--- acctWidth = 21
--- amtWidth  = 12
+-- acctWidth = 22
+-- amtWidth  = 11
 -- balWidth  = 12
 
 data Entry = Entry {
@@ -80,7 +83,9 @@ data Entry = Entry {
 
 instance Show Entry where show = showEntry
 
-showEntry e = printf "%-10s %-20s " (edate e) (take 20 $ edescription e)
+showEntry e = (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
+showDate d = printf "%-10s" d
+showDescription s = printf "%-20s" (elideRight 20 s)
 
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced e = (sumTransactions . etransactions) e == 0
@@ -99,8 +104,24 @@ data Transaction = Transaction {
 
 instance Show Transaction where show = showTransaction
 
-showTransaction t = printf "%-21s  %12.2s" (take 21 $ taccount t) (show $ tamount t)
+showTransaction t = (showAccount $ taccount t) ++ "  " ++ (showAmount $ tamount t) 
+showAmount amt = printf "%11s" (show amt)
+showAccount s = printf "%-22s" (elideRight 22 s)
 
+elideRight width s =
+    case length s > width of
+      True -> take (width - 2) s ++ ".."
+      False -> s
+
+-- elideAccountRight width abbrevlen a = 
+--     case length a > width of
+--       False -> a
+--       True -> abbreviateAccountComponent abbrevlen a 
+        
+-- abbreviateAccountComponent abbrevlen a =
+--     let components = splitAtElement ':' a in
+--     case 
+    
 autofillTransactions :: [Transaction] -> [Transaction]
 autofillTransactions ts =
     let (ns, as) = partition isNormal ts
@@ -171,7 +192,7 @@ showTransactionAndBalance :: EntryTransaction -> Amount -> String
 showTransactionAndBalance t b =
     (replicate 32 ' ') ++ (showTransaction $ transaction t) ++ (showBalance b)
 
-showBalance b = printf " %12.2s" (show b)
+showBalance b = printf " %12s" (amountRoundedOrZero b)
 
 -- accounts
 
