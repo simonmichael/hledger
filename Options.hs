@@ -5,7 +5,6 @@ where
 import System.Console.GetOpt
 import Data.Maybe ( fromMaybe )
 import System.Environment (getEnv)
---import TildeExpand -- confuses my ghc 6.7
     
 import Utils
 
@@ -30,7 +29,7 @@ getOptions argv =
 get_content :: Flag -> Maybe String
 get_content (File s) = Just s
 
---defaultLedgerFile = tildeExpand "~/ledger.dat"
+--defaultLedgerFile = expand "~/ledger.dat"
 defaultLedgerFile = "ledger.dat"
 
 getLedgerFilePath :: IO String

@@ -1,31 +1,31 @@
+environment
+ robust ledger file finding
+
 features
  register
-  description matching
-  regexp matching
-
+  svn-style truncation
  balance
   show top-level acct balances
   show all account balances
-
  print
- more directives, eg include
+ entry
+ -j and -J graph data output
+ !include
  read timelog files
  -p period expressions
  -d display expressions
- -j and -J graph data output
- graph automation
- auto entry generation
  read gnucash files
+ other args, directives
 
-testing
- ledger regression/compatibility tests
+new features
+ graph automation
+ smart data entry
 
-environment
- cleaner option processing
- robust ledger file finding
+tests
+ better use of quickcheck
+ ledger compatibility tests
 
-documentation
- --help
+docs
  literate docs
  haddock
 

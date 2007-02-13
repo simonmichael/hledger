@@ -178,45 +178,6 @@ ledger7 = Ledger
                  }
           ]
 
--- 2007/01/02 * auto transfer to savings
---     assets:saving                            $200.00
---     assets:checking
-
--- 2007/01/03 * poquito mas
---     expenses:food:dining                       $4.82
---     assets:cash
-
--- 2007/01/03 * verizon
---     expenses:phone                            $95.11
---     assets:checking
-
--- 2007/01/03 * discover
---     liabilities:credit cards:discover         $80.00
---     assets:checking
-
--- 2007/01/04 * blue cross
---     expenses:health:insurance                 $90.00
---     assets:checking
-
--- 2007/01/05 * village market liquor
---     expenses:food:dining                       $6.48
---     assets:checking
-
---   parseTest ledgerentry entry2_str
---   parseTest ledgerentry entry3_str
---   parseTest ledgerperiodicentry periodic_entry1_str
---   parseTest ledgerperiodicentry periodic_entry2_str
---   parseTest ledgerperiodicentry periodic_entry3_str
---   parseTest ledger ledger1_str
---   parseTest ledger ledger2_str
---   parseTest ledger ledger3_str
---   parseTest ledger ledger4_str
---   parseTest ledger ledger5_str
---   parseTest ledger ledger6_str
---   parseTest ledger periodic_entry1_str
---   parseTest ledger periodic_entry2_str
---   parseLedgerFile ledgerFilePath >>= printParseResult
-
 -- utils
 
 assertEqual' e a = assertEqual "" e a
