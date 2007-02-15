@@ -11,6 +11,7 @@ import Test.HUnit
 
 import Options
 import Models
+import Account
 import Parse
 
 -- sample data
@@ -203,8 +204,8 @@ tests = let t l f = TestLabel l $ TestCase f in TestList
           t "test_ledgertransaction" test_ledgertransaction
         , t "test_ledgerentry" test_ledgerentry
         , t "test_autofillEntry" test_autofillEntry
-        , t "test_expandAccounts" test_expandAccounts
-        , t "test_accountTree" test_accountTree
+        , t "test_expandAccountNames" test_expandAccountNames
+        , t "test_ledgerAccountNames" test_ledgerAccountNames
         ]
 
 tests2 = Test.HUnit.test 
@@ -224,15 +225,15 @@ test_autofillEntry =
     (Amount "$" (-47.18))
     (tamount $ last $ etransactions $ autofillEntry entry1)
 
-test_expandAccounts =
+test_expandAccountNames =
     assertEqual'
     ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-    (expandAccounts ["assets:cash","assets:checking","expenses:vacation"])
+    (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
 
-test_accountTree =
+test_ledgerAccountNames =
     assertEqual'
     ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
-    (ledgerAccountTree ledger7)
+    (ledgerAccountNames ledger7)
 
 -- quickcheck properties
 
@@ -241,7 +242,7 @@ props =
      parse' ledgertransaction transaction1_str `parseEquals`
      (Transaction "expenses:food:dining" (Amount "$" 10))
     ,
-     ledgerAccountTree ledger7 == 
+     ledgerAccountNames ledger7 == 
      ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
     ,
      ledgerPatternArgs [] == ([],[])

@@ -2,17 +2,18 @@
 module Models -- data types & behaviours
 where
 
+import Debug.Trace
 import Text.Printf
 import Text.Regex
 import Data.List
 
 import Utils
+import Account
 
 -- basic types
 
 type Date = String
 type Status = Bool
-type Account = String
 
 -- amounts
 -- amount arithmetic currently ignores currency conversion
@@ -98,15 +99,15 @@ autofillEntry e =
 -- transactions
 
 data Transaction = Transaction {
-                                taccount :: Account,
+                                taccount :: AccountName,
                                 tamount :: Amount
                                } deriving (Eq,Ord)
 
 instance Show Transaction where show = showTransaction
 
-showTransaction t = (showAccount $ taccount t) ++ "  " ++ (showAmount $ tamount t) 
+showTransaction t = (showAccountName $ taccount t) ++ "  " ++ (showAmount $ tamount t) 
 showAmount amt = printf "%11s" (show amt)
-showAccount s = printf "%-22s" (elideRight 22 s)
+showAccountName s = printf "%-22s" (elideRight 22 s)
 
 elideRight width s =
     case length s > width of
@@ -158,6 +159,10 @@ flattenEntry e = [(e,t) | t <- etransactions e]
 entryTransactionsFrom :: [Entry] -> [EntryTransaction]
 entryTransactionsFrom es = concat $ map flattenEntry es
 
+sumEntryTransactions :: [EntryTransaction] -> Amount
+sumEntryTransactions ets = 
+    sumTransactions $ map transaction ets
+
 matchTransactionAccount :: String -> EntryTransaction -> Bool
 matchTransactionAccount s t =
     case matchRegex (mkRegex s) (account t) of
@@ -192,18 +197,127 @@ showTransactionAndBalance :: EntryTransaction -> Amount -> String
 showTransactionAndBalance t b =
     (replicate 32 ' ') ++ (showTransaction $ transaction t) ++ (showBalance b)
 
+showBalance :: Amount -> String
 showBalance b = printf " %12s" (amountRoundedOrZero b)
 
--- accounts
+-- more account functions
 
-accountsFromTransactions :: [EntryTransaction] -> [Account]
-accountsFromTransactions ts = nub $ map account ts
+accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
+accountNamesFromTransactions ts = nub $ map account ts
 
--- ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
-expandAccounts :: [Account] -> [Account]
-expandAccounts l = nub $ concat $ map expand l
-                where
-                  expand l' = map (concat . intersperse ":") (tail $ inits $ splitAtElement ':' l')
+-- like expandAccountNames, but goes from the top down and elides accountNames
+-- with only one child and no transactions. Returns accountNames paired with
+-- the appropriate indented name. Eg
+-- [("assets","assets"),("assets:cash:gifts","  cash:gifts"),("assets:checking","  checking")]
+expandAccountNamesMostly :: Ledger -> [AccountName] -> [(AccountName, String)]
+expandAccountNamesMostly l as = concat $ map (expandAccountNameMostly l) as
+    where 
+      expandAccountNameMostly :: Ledger -> AccountName -> [(AccountName, String)]
+      expandAccountNameMostly l a =
+          [(acct, acctname)] ++ (concat $ map (expandAccountNameMostly l) subs)
+              where 
+                subs = subAccountNames l a
+                txns = accountTransactionsNoSubs l a
+                (acct, acctname) = 
+                    case (length subs == 1) && (length txns == 0) of
+                      False -> (a, indentAccountName a)
+                      True -> (a, indentAccountName a ++ ":" ++ subname)
+                        where 
+                          sub = head subs
+                          subname = (reverse . takeWhile (/= ':') . reverse) sub
+
+subAccountNames :: Ledger -> AccountName -> [AccountName]
+subAccountNames l a = [a' | a' <- ledgerAccountNames l, a `isSubAccountNameOf` a']
+
+showAccountNamesWithBalances :: [(AccountName,String)] -> Ledger -> String
+showAccountNamesWithBalances as l =
+    unlines $ map (showAccountNameAndBalance l) as
+
+showAccountNameAndBalance :: Ledger -> (AccountName, String) -> String
+showAccountNameAndBalance l (a, adisplay) =
+    printf "%20s  %s" (showBalance $ accountBalance l a) adisplay
+
+accountBalance :: Ledger -> AccountName -> Amount
+accountBalance l a =
+    sumEntryTransactions (accountTransactions l a)
+
+accountTransactions :: Ledger -> AccountName -> [EntryTransaction]
+accountTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
+
+accountBalanceNoSubs :: Ledger -> AccountName -> Amount
+accountBalanceNoSubs l a =
+    sumEntryTransactions (accountTransactionsNoSubs l a)
+
+accountTransactionsNoSubs :: Ledger -> AccountName -> [EntryTransaction]
+accountTransactionsNoSubs l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
+
+addDataToAccounts :: Ledger -> (Tree AccountName) -> (Tree AccountData)
+addDataToAccounts l acct = 
+    Tree (acctdata, map (addDataToAccounts l) (atsubs acct))
+        where 
+          aname = atacct acct
+          atxns = accountTransactionsNoSubs l aname
+          abal = accountBalance l aname
+          acctdata = (aname, atxns, abal)
+
+-- an AccountData tree adds some other things we want to cache for
+-- convenience, like the account's balance and transactions.
+type AccountData = (AccountName,[EntryTransaction],Amount)
+type AccountDataTree = Tree AccountData
+adtdata = fst . unTree
+adtsubs = snd . unTree
+nullad = Tree (("", [], 0), [])
+adname (a,_,_) = a
+adtxns (_,ts,_) = ts
+adamt (_,_,amt) = amt
+
+-- a (2 txns)
+--   b (boring acct - 0 txns, exactly 1 sub)
+--     c (5 txns)
+--       d
+-- to:
+-- a (2 txns)
+--   b:c (5 txns)
+--     d
+
+-- elideAccount adt = adt
+
+-- elideAccount :: Tree AccountData -> Tree AccountData
+-- elideAccount adt = adt
+    
+
+-- a
+--   b
+--     c
+-- d
+-- to:
+-- $7  a
+-- $5    b
+-- $5      c
+-- $0  d
+showAccountWithBalances :: Ledger -> (Tree AccountData) -> String
+showAccountWithBalances l adt = (showAccountsWithBalance l) (adtsubs adt)
+
+showAccountsWithBalance :: Ledger -> [Tree AccountData] -> String
+showAccountsWithBalance l adts =
+    concatMap showAccountDataBranch adts
+        where
+          showAccountDataBranch :: Tree AccountData -> String
+          showAccountDataBranch adt = 
+              case boring of
+                True  -> 
+                False -> topacct ++ "\n" ++ subs
+              where
+                topacct = (showAmount abal) ++ "  " ++ (indentAccountName aname)
+                showAmount amt = printf "%11s" (show amt)
+                aname = adname $ adtdata adt
+                atxns = adtxns $ adtdata adt
+                abal = adamt $ adtdata adt
+                subs = (showAccountsWithBalance l) $ adtsubs adt
+                boring = (length atxns == 0) && ((length subs) == 1)
+
+    
+
 
 -- ledger
 
@@ -223,12 +337,6 @@ instance Show Ledger where
                        p = show $ length $ periodic_entries l
                        e = show $ length $ entries l
 
-ledgerAccountsUsed :: Ledger -> [Account]
-ledgerAccountsUsed l = accountsFromTransactions $ entryTransactionsFrom $ entries l
-
-ledgerAccountTree :: Ledger -> [Account]
-ledgerAccountTree = sort . expandAccounts . ledgerAccountsUsed
-
 ledgerTransactions :: Ledger -> [EntryTransaction]
 ledgerTransactions l = entryTransactionsFrom $ entries l
 
@@ -241,3 +349,28 @@ ledgerTransactionsMatching (acctregexps,descregexps) l =
     (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
     (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
     where ts = ledgerTransactions l
+
+ledgerAccountNamesUsed :: Ledger -> [AccountName]
+ledgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
+
+ledgerAccountNames :: Ledger -> [AccountName]
+ledgerAccountNames = sort . expandAccountNames . ledgerAccountNamesUsed
+
+ledgerTopAccountNames :: Ledger -> [AccountName]
+ledgerTopAccountNames l = filter (notElem ':') (ledgerAccountNames l)
+
+ledgerAccountNamesMatching :: [String] -> Ledger -> [AccountName]
+ledgerAccountNamesMatching [] l = ledgerAccountNamesMatching [".*"] l
+ledgerAccountNamesMatching acctregexps l =
+    concat [filter (matchAccountName r) accountNames | r <- acctregexps]
+        where accountNames = ledgerTopAccountNames l
+
+ledgerAccounts :: Ledger -> Tree AccountName
+ledgerAccounts l = accountFrom $ ledgerAccountNames l
+
+ledgerAccountsData :: Ledger -> Tree AccountData
+ledgerAccountsData l = addDataToAccounts l (ledgerAccounts l)
+
+showLedgerAccountsWithBalances :: Ledger -> String
+showLedgerAccountsWithBalances l =
+    showAccountWithBalances l (ledgerAccountsData l)

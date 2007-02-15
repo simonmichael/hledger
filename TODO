@@ -1,13 +1,18 @@
-features
+basic features
  balance
-  show top-level acct balances
-  show all account balances
+  show balances with new tree structures
+  elide empty accounts
  print
  entry
  -j and -J graph data output
- svn-style elision
  !include
  read timelog files
+
+make it fast
+ profile
+
+more features
+ svn-style elision
  -p period expressions
  -d display expressions
  read gnucash files
@@ -18,7 +23,7 @@ new features
  smart data entry
 
 tests
- better use of quickcheck
+ better use of quickcheck/smallcheck
  ledger compatibility tests
 
 docs

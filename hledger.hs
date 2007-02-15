@@ -14,6 +14,7 @@ import Text.ParserCombinators.Parsec (parseFromFile, ParseError)
 
 import Options
 import Models
+import Account
 import Parse
 import Tests
 
@@ -21,11 +22,11 @@ main :: IO ()
 main = do
   (opts, args) <- (getArgs >>= getOptions)
   if args == []
-    then register []
+    then register [] []
     else
       let (command, args') = (head args, tail args) in
-      if "reg" `isPrefixOf` command then (register args')
-      else if "bal" `isPrefixOf` command then balance args'
+      if "reg" `isPrefixOf` command then (register opts args')
+      else if "bal" `isPrefixOf` command then balance opts args'
            else if "test" `isPrefixOf` command then test
                 else error "could not recognise your command"
 
@@ -35,19 +36,17 @@ test :: IO ()
 test = do
   hcounts <- runTestTT tests
   qcounts <- mapM quickCheck props
-  --print $ "hunit: " ++ (showHunitCounts hcounts)
-  --print $ "quickcheck: " ++ (concat $ intersperse " " $ map show qcounts)
   return ()
     where showHunitCounts c =
               reverse $ tail $ reverse ("passed " ++ (unwords $ drop 5 $ words (show c)))
 
-register :: [String] -> IO ()
-register args = do 
-  getLedgerFilePath >>= parseLedgerFile >>= doWithParsed (printRegister args)
+register :: [Flag] -> [String] -> IO ()
+register opts args = do 
+  getLedgerFilePath >>= parseLedgerFile >>= doWithParsed (printRegister opts args)
 
-balance :: [String] -> IO ()
-balance args = 
-    return ()
+balance :: [Flag] -> [String] -> IO ()
+balance opts args = do
+  getLedgerFilePath >>= parseLedgerFile >>= doWithParsed (printBalance opts args)
 
 -- utils
 
@@ -55,13 +54,23 @@ balance args =
 --     getLedgerFilePath >>= parseLedgerFile >>= doWithParsed
 
 doWithParsed :: (a -> IO ()) -> (Either ParseError a) -> IO ()
-doWithParsed a p = 
+doWithParsed a p = do
   case p of Left e -> parseError e
             Right v -> a v
 
-printRegister :: [String] -> Ledger -> IO ()
-printRegister args ledger =
-    putStr $ showTransactionsWithBalances 
-               (ledgerTransactionsMatching (acctpats,descpats) ledger)
-               0
-        where (acctpats,descpats) = ledgerPatternArgs args
+printRegister :: [Flag] -> [String] -> Ledger -> IO ()
+printRegister opts args ledger = do
+  putStr $ showTransactionsWithBalances 
+             (ledgerTransactionsMatching (acctpats,descpats) ledger)
+             0
+      where (acctpats,descpats) = ledgerPatternArgs args
+
+printBalance :: [Flag] -> [String] -> Ledger -> IO ()
+printBalance opts args ledger = do
+  putStr $ showLedgerAccountsWithBalances ledger
+      where 
+        (acctpats,_) = ledgerPatternArgs args
+        showsubs = (ShowSubs `elem` opts)
+        accounts = case showsubs of
+                     True -> expandAccountNamesMostly ledger (ledgerTopAccountNames ledger)
+                     False -> [(a,indentAccountName a) | a <- ledgerAccountNamesMatching acctpats ledger]

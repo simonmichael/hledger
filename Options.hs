@@ -8,12 +8,14 @@ import System.Environment (getEnv)
     
 import Utils
 
-data Flag = File String | Version deriving Show
+data Flag = Version | File String | ShowSubs 
+            deriving (Show,Eq)
     
 options :: [OptDescr Flag]
 options = [
-            Option ['f'] ["file"]    (OptArg inp "FILE") "ledger file, or - to read stdin"
-          , Option ['v'] ["version"] (NoArg Version)     "show version number"
+            Option ['v'] ["version"] (NoArg Version)     "show version number"
+          , Option ['f'] ["file"]    (OptArg inp "FILE") "ledger file, or - to read stdin"
+          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts; other: show subtotals"
           ]
 
 inp :: Maybe String -> Flag
