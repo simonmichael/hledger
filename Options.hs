@@ -8,36 +8,35 @@ import Data.Maybe (fromMaybe)
 import Utils
 
 
-data Flag = Version | File String | ShowSubs
-            deriving (Show,Eq)
-    
-options :: [OptDescr Flag]
-options = [
-            Option ['v'] ["version"] (NoArg Version)     "show version number"
-          , Option ['f'] ["file"]    (OptArg inp "FILE") "ledger file, or - to read stdin"
-          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts" --; register: show subtotals"
-          ]
+usageHeader = "Usage: hledger [OPTIONS] register|balance [MATCHARGS]"
 
-inp :: Maybe String -> Flag
-inp  = File . fromMaybe "stdin"
-    
 getOptions :: [String] -> IO ([Flag], [String])
 getOptions argv =
     case getOpt RequireOrder options argv of
       (o,n,[]  ) -> return (o,n)
       (_,_,errs) -> ioError (userError (concat errs ++ usageInfo usageHeader options))
 
-usageHeader = "Usage: hledger [OPTIONS] register|balance [MATCHARGS]"
+options :: [OptDescr Flag]
+options = [
+            Option ['v'] ["version"] (NoArg Version)     "show version number"
+          , Option ['f'] ["file"]    (OptArg readFileOpt "FILE") "ledger file, or - to read stdin"
+          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts" --; register: show subtotals"
+          ]
 
-get_content :: Flag -> Maybe String
-get_content (File s) = Just s
+data Flag = Version | File String | ShowSubs deriving (Show,Eq)
+    
+readFileOpt :: Maybe String -> Flag
+readFileOpt  = File . fromMaybe "stdin"
+    
+getFile :: Flag -> String
+getFile (File s) = s
+getFile _ = []
 
-defaultLedgerFile = "~/ledger.dat"
-
-getLedgerFilePath :: IO String
-getLedgerFilePath = do
-  defaultpath <- tildeExpand defaultLedgerFile
-  getEnv "LEDGER" `catch` \_ -> return defaultpath >>= return
+getLedgerFilePath :: [Flag] -> IO String
+getLedgerFilePath opts = do
+  defaultpath <- tildeExpand "~/ledger.dat"
+  envordefault <- getEnv "LEDGER" `catch` \_ -> return defaultpath
+  return $ last $ [envordefault] ++ (filter (/= "") (map getFile opts))
 
 -- ledger pattern args are a list of account patterns optionally followed
 -- by -- and a list of description patterns

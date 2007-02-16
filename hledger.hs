@@ -42,11 +42,11 @@ test = do
 
 register :: [Flag] -> [String] -> IO ()
 register opts args = do 
-  getLedgerFilePath >>= parseLedgerFile >>= doWithParsed (printRegister opts args)
+  getLedgerFilePath opts >>= parseLedgerFile >>= doWithParsed (printRegister opts args)
 
 balance :: [Flag] -> [String] -> IO ()
 balance opts args = do
-  getLedgerFilePath >>= parseLedgerFile >>= doWithParsed (printBalance opts args)
+  getLedgerFilePath opts >>= parseLedgerFile >>= doWithParsed (printBalance opts args)
 
 -- utils
 
