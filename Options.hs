@@ -1,5 +1,5 @@
 
-module Options
+module Options (module Options, usageInfo)
 where
     
 import System.Console.GetOpt
@@ -15,7 +15,7 @@ options :: [OptDescr Flag]
 options = [
             Option ['v'] ["version"] (NoArg Version)     "show version number"
           , Option ['f'] ["file"]    (OptArg inp "FILE") "ledger file, or - to read stdin"
-          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts; other: show subtotals"
+--          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts; register: show subtotals"
           ]
 
 inp :: Maybe String -> Flag
@@ -25,8 +25,9 @@ getOptions :: [String] -> IO ([Flag], [String])
 getOptions argv =
     case getOpt RequireOrder options argv of
       (o,n,[]  ) -> return (o,n)
-      (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
-        where header = "Usage: hledger [OPTIONS]"
+      (_,_,errs) -> ioError (userError (concat errs ++ usageInfo usageHeader options))
+
+usageHeader = "Usage: hledger [OPTIONS] register|balance [MATCHARGS]"
 
 get_content :: Flag -> Maybe String
 get_content (File s) = Just s
@@ -45,3 +46,6 @@ ledgerPatternArgs args =
     case "--" `elem` args of
       True -> ((takeWhile (/= "--") args), tail $ (dropWhile (/= "--") args))
       False -> (args,[])
+
+depthOption :: [Flag] -> Int
+depthOption opts = 1

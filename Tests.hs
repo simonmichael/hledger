@@ -11,7 +11,6 @@ import Test.HUnit
 
 import Options
 import Models
-import Account
 import Parse
 
 -- sample data
@@ -155,6 +154,7 @@ ledger7_str = "\
 \    assets:checking                                 \n\
 \\n" --"
 
+l = ledger7
 ledger7 = Ledger
           [] 
           [] 
@@ -167,7 +167,8 @@ ledger7 = Ledger
                                 Transaction {taccount="equity:opening balances", 
                                              tamount=Amount {currency="$", quantity=(-4.82)}}
                                ]
-                 },
+                 }
+          ,
            Entry {
                   edate="2007/02/01", estatus=False, ecode="*", edescription="ayres suites",
                   etransactions=[
@@ -175,6 +176,46 @@ ledger7 = Ledger
                                              tamount=Amount {currency="$", quantity=179.92}},
                                 Transaction {taccount="assets:checking", 
                                              tamount=Amount {currency="$", quantity=(-179.92)}}
+                               ]
+                 }
+          ,
+           Entry {
+                  edate="2007/01/02", estatus=False, ecode="*", edescription="auto transfer to savings",
+                  etransactions=[
+                                Transaction {taccount="assets:saving", 
+                                             tamount=Amount {currency="$", quantity=200}},
+                                Transaction {taccount="assets:checking", 
+                                             tamount=Amount {currency="$", quantity=(-200)}}
+                               ]
+                 }
+          ,
+           Entry {
+                  edate="2007/01/03", estatus=False, ecode="*", edescription="poquito mas",
+                  etransactions=[
+                                Transaction {taccount="expenses:food:dining", 
+                                             tamount=Amount {currency="$", quantity=4.82}},
+                                Transaction {taccount="assets:cash", 
+                                             tamount=Amount {currency="$", quantity=(-4.82)}}
+                               ]
+                 }
+          ,
+           Entry {
+                  edate="2007/01/03", estatus=False, ecode="*", edescription="verizon",
+                  etransactions=[
+                                Transaction {taccount="expenses:phone", 
+                                             tamount=Amount {currency="$", quantity=95.11}},
+                                Transaction {taccount="assets:checking", 
+                                             tamount=Amount {currency="$", quantity=(-95.11)}}
+                               ]
+                 }
+          ,
+           Entry {
+                  edate="2007/01/03", estatus=False, ecode="*", edescription="discover",
+                  etransactions=[
+                                Transaction {taccount="liabilities:credit cards:discover", 
+                                             tamount=Amount {currency="$", quantity=80}},
+                                Transaction {taccount="assets:checking", 
+                                             tamount=Amount {currency="$", quantity=(-80)}}
                                ]
                  }
           ]

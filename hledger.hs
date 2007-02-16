@@ -6,6 +6,7 @@
 module Main -- application logic & most IO
 where
 
+import System.Environment (withArgs) -- for testing in old hugs
 import System
 import Data.List
 import Test.HUnit (runTestTT)
@@ -14,7 +15,6 @@ import Text.ParserCombinators.Parsec (parseFromFile, ParseError)
 
 import Options
 import Models
-import Account
 import Parse
 import Tests
 
@@ -28,7 +28,7 @@ main = do
       if "reg" `isPrefixOf` command then (register opts args')
       else if "bal" `isPrefixOf` command then balance opts args'
            else if "test" `isPrefixOf` command then test
-                else error "could not recognise your command"
+                else putStr $ usageInfo usageHeader options
 
 -- commands
 
@@ -67,10 +67,13 @@ printRegister opts args ledger = do
 
 printBalance :: [Flag] -> [String] -> Ledger -> IO ()
 printBalance opts args ledger = do
-  putStr $ showLedgerAccountsWithBalances ledger
+--   putStr $ showAccountWithBalances ledger (ledgerAccountsData l)
+  putStr $ showLedgerAccounts ledger acctpats depth
       where 
         (acctpats,_) = ledgerPatternArgs args
-        showsubs = (ShowSubs `elem` opts)
-        accounts = case showsubs of
-                     True -> expandAccountNamesMostly ledger (ledgerTopAccountNames ledger)
-                     False -> [(a,indentAccountName a) | a <- ledgerAccountNamesMatching acctpats ledger]
+        depth = depthOption opts
+
+--         showsubs = (ShowSubs `elem` opts)
+--         accounts = case showsubs of
+--                      True -> expandAccountNamesMostly ledger (ledgerTopAccountNames ledger)
+--                      False -> [(a,indentAccountName a) | a <- ledgerAccountNamesMatching acctpats ledger]

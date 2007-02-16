@@ -1,3 +1,17 @@
+cleanup/reorganize
+hledger
+ Options
+ Tests
+  Parse
+   Models
+    Ledger
+     EntryTransaction
+      Entry
+       Transaction
+        Account
+        BasicTypes
+         Utils
+
 basic features
  balance
   show balances with new tree structures
@@ -21,6 +35,8 @@ more features
 new features
  graph automation
  smart data entry
+ incorporate timeclock features
+ timelog simple amount entries
 
 tests
  better use of quickcheck/smallcheck
