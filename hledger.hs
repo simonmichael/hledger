@@ -1,22 +1,22 @@
 #!/usr/bin/env runhaskell
 -- hledger - ledger-compatible money management utilities (& haskell study)
 -- GPLv3, (c) Simon Michael & contributors, 
--- John Wiegley's ledger is at http://newartisans.com/ledger.html .
+-- John Wiegley's ledger is at http://newartisans.com/ledger.html
 
-module Main -- application logic & most IO
+-- application logic & most IO
+module Main
 where
-
-import System.Environment (withArgs) -- for testing in old hugs
 import System
-import Data.List
+import System.Environment (withArgs) -- for testing in old hugs
 import Test.HUnit (runTestTT)
 import Test.QuickCheck (quickCheck)
-import Text.ParserCombinators.Parsec (parseFromFile, ParseError)
+import Text.ParserCombinators.Parsec (ParseError)
 
 import Options
 import Models
 import Parse
 import Tests
+import Utils
 
 main :: IO ()
 main = do
@@ -67,13 +67,16 @@ printRegister opts args ledger = do
 
 printBalance :: [Flag] -> [String] -> Ledger -> IO ()
 printBalance opts args ledger = do
---   putStr $ showAccountWithBalances ledger (ledgerAccountsData l)
-  putStr $ showLedgerAccounts ledger acctpats depth
-      where 
-        (acctpats,_) = ledgerPatternArgs args
-        depth = depthOption opts
-
+--   putStr $ showLedgerAccounts ledger acctpats depth
+--       where 
+--         (acctpats,_) = ledgerPatternArgs args
 --         showsubs = (ShowSubs `elem` opts)
---         accounts = case showsubs of
---                      True -> expandAccountNamesMostly ledger (ledgerTopAccountNames ledger)
---                      False -> [(a,indentAccountName a) | a <- ledgerAccountNamesMatching acctpats ledger]
+--         depth = case showsubs of
+--                   True -> 999
+--                   False -> depthOption opts
+  putStr $ case showsubs of
+             True -> showLedgerAccounts ledger 999
+             False -> showLedgerAccounts ledger (getDepth opts)
+      where 
+        showsubs = (ShowSubs `elem` opts)
+        (acctpats,_) = ledgerPatternArgs args

@@ -1,12 +1,11 @@
 
 module Parse
 where
-
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
-import Text.Printf
 
+import Utils
 import Models
 
 {-

@@ -1,12 +1,6 @@
 
 module Entry
 where
-
-import Debug.Trace
-import Text.Printf
-import Text.Regex
-import Data.List
-
 import Utils
 import BasicTypes
 import Transaction

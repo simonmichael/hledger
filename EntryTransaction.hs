@@ -1,15 +1,8 @@
 
 module EntryTransaction
 where
-
-import Debug.Trace
-import Text.Printf
-import Text.Regex
-import Data.List
-
 import Utils
 import BasicTypes
-import Account
 import Entry
 import Transaction
 
@@ -39,9 +32,6 @@ entryTransactionsFrom es = concat $ map flattenEntry es
 sumEntryTransactions :: [EntryTransaction] -> Amount
 sumEntryTransactions ets = 
     sumTransactions $ map transaction ets
-
-accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
-accountNamesFromTransactions ts = nub $ map account ts
 
 matchTransactionAccount :: String -> EntryTransaction -> Bool
 matchTransactionAccount s t =

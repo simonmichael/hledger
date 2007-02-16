@@ -1,4 +1,6 @@
 cleanup/reorganize
+ Entry/Transaction/EntryTransaction
+
 hledger
  Options
  Tests
@@ -14,8 +16,8 @@ hledger
 
 basic features
  balance
-  show balances with new tree structures
-  elide empty accounts
+  elide boring accounts
+ handle mixed amounts and currencies
  print
  entry
  -j and -J graph data output
@@ -26,7 +28,7 @@ make it fast
  profile
 
 more features
- svn-style elision
+ 3.0-style elision
  -p period expressions
  -d display expressions
  read gnucash files
@@ -37,6 +39,7 @@ new features
  smart data entry
  incorporate timeclock features
  timelog simple amount entries
+ better layout
 
 tests
  better use of quickcheck/smallcheck

@@ -1,17 +1,11 @@
 
 module Account
 where
-
-import Debug.Trace
-import Text.Printf
-import Text.Regex
-import Data.List
-
 import Utils
+import BasicTypes
 
 -- AccountNames are strings like "assets:cash:petty"; from these we build
--- the chart of accounts, which should be a simple hierarchy. We could
--- almost get by with just these, but see below.
+-- the chart of accounts, which should be a simple hierarchy. 
 type AccountName = String
 
 accountNameComponents :: AccountName -> [String]
@@ -53,50 +47,43 @@ matchAccountName s a =
       Nothing -> False
       otherwise -> True
 
--- We need structures smart enough to eg display the account tree with
--- boring accounts elided.
+indentAccountName :: AccountName -> String
+indentAccountName a = replicate (((accountNameLevel a) - 1) * 2) ' ' ++ (accountLeafName a)
 
--- simple polymorphic tree. each node is a tuple of the node type and a
--- list of subtrees
-newtype Tree a = Tree { unTree :: (a, [Tree a]) } deriving (Show,Eq)
 
--- an Account has a name and a list of sub-accounts - ie a tree of
--- AccountNames.
-type Account = Tree AccountName
-atacct = fst . unTree
-atsubs = snd . unTree
-nullacct = Tree ("", [])
+-- We could almost get by with just the above, but we need smarter
+-- structures to eg display the account tree with boring accounts elided.
+-- first, here is a tree of AccountNames; Account and Account tree are
+-- defined later.
 
-accountFrom :: [AccountName] -> Account
-accountFrom_props =
+antacctname = fst . node
+antsubs = snd . node
+
+accountNameTreeFrom_props =
     [
-     accountFrom [] == nullacct,
-     accountFrom ["a"] == Tree ("", [Tree ("a",[])]),
-     accountFrom ["a","b"] == Tree ("", [Tree ("a", []), Tree ("b", [])]),
-     accountFrom ["a","a:b"] == Tree ("", [Tree ("a", [Tree ("a:b", [])])]),
-     accountFrom ["a:b"] == Tree ("", [Tree ("a", [Tree ("a:b", [])])])
+     accountNameTreeFrom ["a"] == Tree ("top", [Tree ("a",[])]),
+     accountNameTreeFrom ["a","b"] == Tree ("top", [Tree ("a", []), Tree ("b", [])]),
+     accountNameTreeFrom ["a","a:b"] == Tree ("top", [Tree ("a", [Tree ("a:b", [])])]),
+     accountNameTreeFrom ["a:b"] == Tree ("top", [Tree ("a", [Tree ("a:b", [])])])
     ]
-accountFrom accts = 
+accountNameTreeFrom :: [AccountName] -> Tree AccountName
+accountNameTreeFrom accts = 
     Tree ("top", accountsFrom (topAccountNames accts))
         where
-          accountsFrom :: [AccountName] -> [Account]
+          accountsFrom :: [AccountName] -> [Tree AccountName]
           accountsFrom [] = []
           accountsFrom as = [Tree (a, accountsFrom $ subs a) | a <- as]
           subs = (subAccountNamesFrom accts)
 
-showAccount :: Account -> String
-showAccount at = showAccounts $ atsubs at
+showAccountNameTree :: Tree AccountName -> String
+showAccountNameTree at = showAccountNameTrees $ antsubs at
 
-showAccounts :: [Account] -> String
-showAccounts ats =
-    concatMap showAccountBranch ats
+showAccountNameTrees :: [Tree AccountName] -> String
+showAccountNameTrees ats =
+    concatMap showAccountNameBranch ats
         where
-          showAccountBranch at = topacct ++ "\n" ++ subs
+          showAccountNameBranch at = topacct ++ "\n" ++ subs
               where
-                topacct = indentAccountName $ atacct at
-                subs = showAccounts $ atsubs at
-
-indentAccountName :: AccountName -> String
-indentAccountName a = replicate (((accountNameLevel a) - 1) * 2) ' ' ++ (accountLeafName a)
-
+                topacct = indentAccountName $ antacctname at
+                subs = showAccountNameTrees $ antsubs at
 

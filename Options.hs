@@ -1,21 +1,21 @@
 
 module Options (module Options, usageInfo)
 where
-    
 import System.Console.GetOpt
-import Data.Maybe ( fromMaybe )
 import System.Environment (getEnv)
+import Data.Maybe (fromMaybe)
     
 import Utils
 
-data Flag = Version | File String | ShowSubs 
+
+data Flag = Version | File String | ShowSubs
             deriving (Show,Eq)
     
 options :: [OptDescr Flag]
 options = [
             Option ['v'] ["version"] (NoArg Version)     "show version number"
           , Option ['f'] ["file"]    (OptArg inp "FILE") "ledger file, or - to read stdin"
---          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts; register: show subtotals"
+          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts" --; register: show subtotals"
           ]
 
 inp :: Maybe String -> Flag
@@ -47,5 +47,8 @@ ledgerPatternArgs args =
       True -> ((takeWhile (/= "--") args), tail $ (dropWhile (/= "--") args))
       False -> (args,[])
 
-depthOption :: [Flag] -> Int
-depthOption opts = 1
+getDepth :: [Flag] -> Int
+getDepth opts = 
+    maximum $ [1] ++ map depthval opts where
+        depthval (ShowSubs) = 9999
+        depthval _ = 1

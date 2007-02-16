@@ -1,13 +1,8 @@
 module Ledger
 where
-
-import Debug.Trace
-import Text.Printf
-import Text.Regex
-import Data.List
-
 import Utils
 import Account
+import BasicTypes
 import Entry
 import EntryTransaction
 
@@ -37,6 +32,9 @@ ledgerTransactionsMatching (acctregexps,descregexps) l =
     (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
     where ts = ledgerTransactions l
 
+accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
+accountNamesFromTransactions ts = nub $ map account ts
+
 ledgerAccountNamesUsed :: Ledger -> [AccountName]
 ledgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
 
@@ -52,18 +50,8 @@ ledgerAccountNamesMatching acctregexps l =
     concat [filter (matchAccountName r) accountNames | r <- acctregexps]
         where accountNames = ledgerTopAccountNames l
 
-ledgerAccounts :: Ledger -> Tree AccountName
-ledgerAccounts l = accountFrom $ ledgerAccountNames l
+ledgerAccountNameTree :: Ledger -> Tree AccountName
+ledgerAccountNameTree l = accountNameTreeFrom $ ledgerAccountNames l
 
-showLedgerAccounts :: Ledger -> [String] -> Int -> String
-showLedgerAccounts l acctpats depth = 
-    showAccountsWithBalances l accounts depth
-        where
-          accounts = ledgerAccountsMatching l acctpats
 
-showAccountsWithBalances :: Ledger -> [Account] -> Int -> String
-showAccountsWithBalances l accts depth =
-    ""
 
-ledgerAccountsMatching :: Ledger -> [String] -> [Account]
-ledgerAccountsMatching l acctpats = []

@@ -1,12 +1,6 @@
 
 module BasicTypes
 where
-
-import Debug.Trace
-import Text.Printf
-import Text.Regex
-import Data.List
-
 import Utils
 
 
@@ -41,4 +35,9 @@ amountRoundedOrZero (Amount cur qty) =
       "0.00"    -> "0"
       "-0.00"   -> "0"
       otherwise -> cur ++ rounded
+
+-- generic tree. each node is a tuple of the node type and a
+-- list of subtrees
+newtype Tree a = Tree { node :: (a, [Tree a]) } deriving (Show,Eq)
+branches = snd . node
 

@@ -1,7 +1,6 @@
 
 module Tests
 where
-
 import Text.ParserCombinators.Parsec
 import Test.QuickCheck
 import Test.HUnit
@@ -273,7 +272,9 @@ test_expandAccountNames =
 
 test_ledgerAccountNames =
     assertEqual'
-    ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
+    ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
+    "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
+     "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
     (ledgerAccountNames ledger7)
 
 -- quickcheck properties
@@ -284,7 +285,10 @@ props =
      (Transaction "expenses:food:dining" (Amount "$" 10))
     ,
      ledgerAccountNames ledger7 == 
-     ["assets","assets:cash","assets:checking","equity","equity:opening balances","expenses","expenses:vacation"]
+     ["assets","assets:cash","assets:checking","assets:saving","equity",
+      "equity:opening balances","expenses","expenses:food","expenses:food:dining",
+      "expenses:phone","expenses:vacation","liabilities","liabilities:credit cards",
+      "liabilities:credit cards:discover"]
     ,
      ledgerPatternArgs [] == ([],[])
     ,ledgerPatternArgs ["a"] == (["a"],[])

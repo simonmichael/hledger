@@ -9,12 +9,6 @@ module Models (
                module BasicTypes,
               )
 where
-
-import Debug.Trace
-import Text.Printf
-import Text.Regex
-import Data.List
-
 import Utils
 import BasicTypes
 import Account
@@ -24,8 +18,29 @@ import EntryTransaction
 import Ledger
 
 
--- any top-level stuff that mixed up the other types
+-- top-level stuff that mixes types
 
+
+-- an Account caches an account's name, balance and transactions for convenience
+type Account = (AccountName,[EntryTransaction],Amount)
+aname (a,_,_) = a
+atxns (_,ts,_) = ts
+abal (_,_,b) = b
+
+mkAccount :: Ledger -> AccountName -> Account
+mkAccount l a = (a, accountNameTransactionsNoSubs l a, accountNameBalance l a)
+
+accountNameBalance :: Ledger -> AccountName -> Amount
+accountNameBalance l a = sumEntryTransactions (accountNameTransactions l a)
+
+accountNameTransactions :: Ledger -> AccountName -> [EntryTransaction]
+accountNameTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
+
+accountNameBalanceNoSubs :: Ledger -> AccountName -> Amount
+accountNameBalanceNoSubs l a = sumEntryTransactions (accountNameTransactionsNoSubs l a)
+
+accountNameTransactionsNoSubs :: Ledger -> AccountName -> [EntryTransaction]
+accountNameTransactionsNoSubs l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
 
 -- showAccountNamesWithBalances :: [(AccountName,String)] -> Ledger -> String
 -- showAccountNamesWithBalances as l =
@@ -35,40 +50,42 @@ import Ledger
 -- showAccountNameAndBalance l (a, adisplay) =
 --     printf "%20s  %s" (showBalance $ accountBalance l a) adisplay
 
-accountBalance :: Ledger -> AccountName -> Amount
-accountBalance l a =
-    sumEntryTransactions (accountTransactions l a)
 
-accountTransactions :: Ledger -> AccountName -> [EntryTransaction]
-accountTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
+-- a tree of Accounts
 
-accountBalanceNoSubs :: Ledger -> AccountName -> Amount
-accountBalanceNoSubs l a =
-    sumEntryTransactions (accountTransactionsNoSubs l a)
+atacct = fst . node
 
-accountTransactionsNoSubs :: Ledger -> AccountName -> [EntryTransaction]
-accountTransactionsNoSubs l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
-
-addDataToAccounts :: Ledger -> (Tree AccountName) -> (Tree AccountData)
-addDataToAccounts l acct = 
-    Tree (acctdata, map (addDataToAccounts l) (atsubs acct))
+addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
+addDataToAccountNameTree l ant = 
+    Tree (mkAccount l aname, map (addDataToAccountNameTree l) (antsubs ant))
         where 
-          acctdata = (aname, atxns, abal)
-          aname = atacct acct
-          atxns = accountTransactionsNoSubs l aname
-          abal = accountBalance l aname
+          aname = antacctname ant
 
--- an AccountData tree adds some other things we want to cache for
--- convenience, like the account's balance and transactions.
-type AccountData = (AccountName,[EntryTransaction],Amount)
-type AccountDataTree = Tree AccountData
-adtdata = fst . unTree
-adtsubs = snd . unTree
-nullad = Tree (("", [], 0), [])
-adname (a,_,_) = a
-adtxns (_,ts,_) = ts
-adamt (_,_,amt) = amt
+showAccountTreeWithBalances :: Ledger -> Int -> Tree Account -> String
+showAccountTreeWithBalances l depth at = (showAccountTreesWithBalances l depth) (branches at)
 
+showAccountTreesWithBalances :: Ledger -> Int -> [Tree Account] -> String
+showAccountTreesWithBalances _ 0 _ = ""
+showAccountTreesWithBalances l depth ats =
+    concatMap showAccountBranch ats
+        where
+          showAccountBranch :: Tree Account -> String
+          showAccountBranch at = 
+              topacct ++ "\n" ++ subaccts
+--               case boring of
+--                 True  -> 
+--                 False -> 
+              where
+                topacct = (showAmount bal) ++ "  " ++ (indentAccountName name)
+                showAmount amt = printf "%20s" (show amt)
+                name = aname $ atacct at
+                txns = atxns $ atacct at
+                bal = abal $ atacct at
+                subaccts = (showAccountTreesWithBalances l (depth - 1)) $ branches at
+                boring = (length txns == 0) && ((length subaccts) == 1)
+
+-- we want to elide boring accounts in the account tree
+--
 -- a (2 txns)
 --   b (boring acct - 0 txns, exactly 1 sub)
 --     c (5 txns)
@@ -78,46 +95,18 @@ adamt (_,_,amt) = amt
 --   b:c (5 txns)
 --     d
 
--- elideAccount adt = adt
+-- elideAccountTree at = at
 
--- elideAccount :: Tree AccountData -> Tree AccountData
--- elideAccount adt = adt
-    
+elideAccountTree :: Tree Account -> Tree Account
+elideAccountTree = id
 
--- a
---   b
---     c
--- d
--- to:
--- $7  a
--- $5    b
--- $5      c
--- $0  d
-showAccountWithBalances :: Ledger -> Tree AccountData -> String
-showAccountWithBalances l adt = (showAccountsWithBalance l) (adtsubs adt)
+ledgerAccountTree :: Ledger -> Tree Account
+ledgerAccountTree l = elideAccountTree $ addDataToAccountNameTree l (ledgerAccountNameTree l)
 
-showAccountsWithBalance :: Ledger -> [Tree AccountData] -> String
-showAccountsWithBalance l adts =
-    concatMap showAccountDataBranch adts
-        where
-          showAccountDataBranch :: Tree AccountData -> String
-          showAccountDataBranch adt = 
-              topacct ++ "\n" ++ subs
---               case boring of
---                 True  -> 
---                 False -> 
-              where
-                topacct = (showAmount abal) ++ "  " ++ (indentAccountName aname)
-                showAmount amt = printf "%11s" (show amt)
-                aname = adname $ adtdata adt
-                atxns = adtxns $ adtdata adt
-                abal = adamt $ adtdata adt
-                subs = (showAccountsWithBalance l) $ adtsubs adt
-                boring = (length atxns == 0) && ((length subs) == 1)
+ledgerAccountsMatching :: Ledger -> [String] -> [Account]
+ledgerAccountsMatching l acctpats = undefined
 
-ledgerAccountsData :: Ledger -> Tree AccountData
-ledgerAccountsData l = addDataToAccounts l (ledgerAccounts l)
+showLedgerAccounts :: Ledger -> Int -> String
+showLedgerAccounts l depth = 
+    showAccountTreeWithBalances l depth (ledgerAccountTree l)
 
-showLedgerAccountsWithBalances :: Ledger -> Tree AccountData -> String
-showLedgerAccountsWithBalances l adt =
-    showAccountWithBalances l adt

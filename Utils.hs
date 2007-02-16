@@ -1,9 +1,19 @@
-
-module Utils
+module Utils (
+              module Utils,
+              module Data.List,
+              module Debug.Trace,
+              module Text.Printf,
+              module Text.Regex,
+              quickCheck,
+             )
 where
-
-import Data.List
 import System.Directory
+import Data.List
+import Debug.Trace
+import Test.QuickCheck (quickCheck)
+import Text.Printf
+import Text.Regex
+
 
 rhead = head . reverse 
 rtail = reverse . tail . reverse 
