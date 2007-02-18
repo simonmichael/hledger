@@ -1,7 +1,7 @@
 module Ledger
 where
 import Utils
-import Account
+import AccountName
 import BasicTypes
 import Entry
 import EntryTransaction

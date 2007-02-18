@@ -3,7 +3,7 @@ module Transaction
 where
 import Utils
 import BasicTypes
-import Account
+import AccountName
 
 
 data Transaction = Transaction {
@@ -22,15 +22,6 @@ elideRight width s =
       True -> take (width - 2) s ++ ".."
       False -> s
 
--- elideAccountRight width abbrevlen a = 
---     case length a > width of
---       False -> a
---       True -> abbreviateAccountComponent abbrevlen a 
-        
--- abbreviateAccountComponent abbrevlen a =
---     let components = splitAtElement ':' a in
---     case 
-    
 autofillTransactions :: [Transaction] -> [Transaction]
 autofillTransactions ts =
     let (ns, as) = partition isNormal ts

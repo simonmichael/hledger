@@ -7,10 +7,10 @@ import Entry
 import Transaction
 
 
--- We parse Entries containing Transactions and flatten them into
--- (entry,transaction) pairs (entrytransactions, hereafter referred to as
--- "transactions") for easier processing. (So far, these types have
--- morphed through E->T; (T,E); ET; E<->T; (E,T)).
+-- We convert Transactions into EntryTransactions, which are (entry,
+-- transaction) pairs, since I couldn't easily just have transactions
+-- reference their entry like in OO.  These are referred to as just
+-- "transactions" hereafter.
 
 type EntryTransaction = (Entry,Transaction)
 

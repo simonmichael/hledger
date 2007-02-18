@@ -1,89 +1,101 @@
-
 module Account
 where
 import Utils
 import BasicTypes
-
--- AccountNames are strings like "assets:cash:petty"; from these we build
--- the chart of accounts, which should be a simple hierarchy. 
-type AccountName = String
-
-accountNameComponents :: AccountName -> [String]
-accountNameComponents = splitAtElement ':'
-
-accountNameFromComponents :: [String] -> AccountName
-accountNameFromComponents = concat . intersperse ":"
-
-accountLeafName :: AccountName -> String
-accountLeafName = rhead . accountNameComponents
-
-accountNameLevel :: AccountName -> Int
-accountNameLevel = length . accountNameComponents
-
--- ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
-expandAccountNames :: [AccountName] -> [AccountName]
-expandAccountNames as = nub $ concat $ map expand as
-    where expand as = map accountNameFromComponents (tail $ inits $ accountNameComponents as)
-
--- ["a:b:c","d:e"] -> ["a","d"]
-topAccountNames :: [AccountName] -> [AccountName]
-topAccountNames as = [a | a <- expandAccountNames as, accountNameLevel a == 1]
-
-parentAccountName :: AccountName -> Maybe AccountName
-parentAccountName a = 
-    case accountNameLevel a > 1 of
-      True -> Just $ accountNameFromComponents $ rtail $ accountNameComponents a
-      False -> Nothing
-
-s `isSubAccountNameOf` p = 
-    ((p ++ ":") `isPrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
-
-subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
-subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
-
-matchAccountName :: String -> AccountName -> Bool
-matchAccountName s a =
-    case matchRegex (mkRegex s) a of
-      Nothing -> False
-      otherwise -> True
-
-indentAccountName :: AccountName -> String
-indentAccountName a = replicate (((accountNameLevel a) - 1) * 2) ' ' ++ (accountLeafName a)
+import AccountName
+import Entry
+import Transaction
+import EntryTransaction
+import Ledger
 
 
--- We could almost get by with just the above, but we need smarter
--- structures to eg display the account tree with boring accounts elided.
--- first, here is a tree of AccountNames; Account and Account tree are
--- defined later.
+-- an Account caches an account's name, balance and transactions for convenience
+type Account = (AccountName,[EntryTransaction],Amount)
 
-antacctname = fst . node
-antsubs = snd . node
+aname (a,_,_) = a
+atransactions (_,ts,_) = ts
+abalance (_,_,b) = b
 
-accountNameTreeFrom_props =
-    [
-     accountNameTreeFrom ["a"] == Tree ("top", [Tree ("a",[])]),
-     accountNameTreeFrom ["a","b"] == Tree ("top", [Tree ("a", []), Tree ("b", [])]),
-     accountNameTreeFrom ["a","a:b"] == Tree ("top", [Tree ("a", [Tree ("a:b", [])])]),
-     accountNameTreeFrom ["a:b"] == Tree ("top", [Tree ("a", [Tree ("a:b", [])])])
-    ]
-accountNameTreeFrom :: [AccountName] -> Tree AccountName
-accountNameTreeFrom accts = 
-    Tree ("top", accountsFrom (topAccountNames accts))
+mkAccount :: Ledger -> AccountName -> Account
+mkAccount l a = (a, accountNameTransactionsNoSubs l a, accountNameBalance l a)
+
+accountNameBalance :: Ledger -> AccountName -> Amount
+accountNameBalance l a = sumEntryTransactions (accountNameTransactions l a)
+
+accountNameTransactions :: Ledger -> AccountName -> [EntryTransaction]
+accountNameTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
+
+accountNameBalanceNoSubs :: Ledger -> AccountName -> Amount
+accountNameBalanceNoSubs l a = sumEntryTransactions (accountNameTransactionsNoSubs l a)
+
+accountNameTransactionsNoSubs :: Ledger -> AccountName -> [EntryTransaction]
+accountNameTransactionsNoSubs l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
+
+-- showAccountNamesWithBalances :: [(AccountName,String)] -> Ledger -> String
+-- showAccountNamesWithBalances as l =
+--     unlines $ map (showAccountNameAndBalance l) as
+
+-- showAccountNameAndBalance :: Ledger -> (AccountName, String) -> String
+-- showAccountNameAndBalance l (a, adisplay) =
+--     printf "%20s  %s" (showBalance $ accountBalance l a) adisplay
+
+
+-- a tree of Accounts
+
+atacct = fst . node
+
+addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
+addDataToAccountNameTree l ant = 
+    Tree (mkAccount l aname, map (addDataToAccountNameTree l) (branches ant))
+        where 
+          aname = antacctname ant
+
+showAccountTreeWithBalances :: Ledger -> Int -> Tree Account -> String
+showAccountTreeWithBalances l depth at = (showAccountTreesWithBalances l depth) (branches at)
+
+showAccountTreesWithBalances :: Ledger -> Int -> [Tree Account] -> String
+showAccountTreesWithBalances _ 0 _ = ""
+showAccountTreesWithBalances l depth ats =
+    concatMap showAccountBranch ats
         where
-          accountsFrom :: [AccountName] -> [Tree AccountName]
-          accountsFrom [] = []
-          accountsFrom as = [Tree (a, accountsFrom $ subs a) | a <- as]
-          subs = (subAccountNamesFrom accts)
-
-showAccountNameTree :: Tree AccountName -> String
-showAccountNameTree at = showAccountNameTrees $ antsubs at
-
-showAccountNameTrees :: [Tree AccountName] -> String
-showAccountNameTrees ats =
-    concatMap showAccountNameBranch ats
-        where
-          showAccountNameBranch at = topacct ++ "\n" ++ subs
+          showAccountBranch :: Tree Account -> String
+          showAccountBranch at = 
+              topacct ++ "\n" ++ subaccts
+--               case boring of
+--                 True  -> 
+--                 False -> 
               where
-                topacct = indentAccountName $ antacctname at
-                subs = showAccountNameTrees $ antsubs at
+                topacct = (showAmount bal) ++ "  " ++ (indentAccountName name)
+                showAmount amt = printf "%20s" (show amt)
+                name = aname $ atacct at
+                txns = atransactions $ atacct at
+                bal = abalance $ atacct at
+                subaccts = (showAccountTreesWithBalances l (depth - 1)) $ branches at
+                boring = (length txns == 0) && ((length subaccts) == 1)
+
+-- we want to elide boring accounts in the account tree
+--
+-- a (2 txns)
+--   b (boring acct - 0 txns, exactly 1 sub)
+--     c (5 txns)
+--       d
+-- to:
+-- a (2 txns)
+--   b:c (5 txns)
+--     d
+
+-- elideAccountTree at = at
+
+elideAccountTree :: Tree Account -> Tree Account
+elideAccountTree = id
+
+ledgerAccountTree :: Ledger -> Tree Account
+ledgerAccountTree l = elideAccountTree $ addDataToAccountNameTree l (ledgerAccountNameTree l)
+
+ledgerAccountsMatching :: Ledger -> [String] -> [Account]
+ledgerAccountsMatching l acctpats = undefined
+
+showLedgerAccounts :: Ledger -> Int -> String
+showLedgerAccounts l depth = 
+    showAccountTreeWithBalances l depth (ledgerAccountTree l)
 

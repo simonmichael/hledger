@@ -1,7 +1,26 @@
 #!/usr/bin/env runhaskell
--- hledger - ledger-compatible money management utilities (& haskell study)
--- GPLv3, (c) Simon Michael & contributors, 
--- John Wiegley's ledger is at http://newartisans.com/ledger.html
+{-
+hledger - ledger-compatible money management utilities (& haskell study)
+GPLv3, (c) Simon Michael & contributors, 
+John Wiegley's ledger is at http://newartisans.com/ledger.html
+
+The model/type/class hierarchy is roughly like this:
+
+hledger
+ Options
+ Tests
+  Parse
+   Models
+    Account
+     Ledger
+      EntryTransaction
+       Entry
+        Transaction
+         AccountName
+         BasicTypes
+          Utils
+
+-}
 
 -- application logic & most IO
 module Main
