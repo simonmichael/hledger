@@ -1,16 +1,14 @@
 -- data types & behaviours
 module Models (
-               module Models,
-               module Account,
-               module Ledger,
-               module EntryTransaction,
-               module Transaction,
-               module Entry,
-               module AccountName,
                module BasicTypes,
+               module AccountName,
+               module Entry,
+               module Transaction,
+               module EntryTransaction,
+               module Ledger,
+               module Account
               )
 where
-import Utils
 import BasicTypes
 import AccountName
 import Entry

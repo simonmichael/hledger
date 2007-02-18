@@ -9,7 +9,8 @@ import EntryTransaction
 import Ledger
 
 
--- an Account caches an account's name, balance and transactions for convenience
+-- an Account caches an account's name, balance (including sub-accounts)
+-- and transactions (not including sub-accounts)
 type Account = (AccountName,[EntryTransaction],Amount)
 
 aname (a,_,_) = a
@@ -17,28 +18,24 @@ atransactions (_,ts,_) = ts
 abalance (_,_,b) = b
 
 mkAccount :: Ledger -> AccountName -> Account
-mkAccount l a = (a, accountNameTransactionsNoSubs l a, accountNameBalance l a)
+mkAccount l a = 
+    (a, transactionsInAccountNamed l a, aggregateBalanceInAccountNamed l a)
 
-accountNameBalance :: Ledger -> AccountName -> Amount
-accountNameBalance l a = sumEntryTransactions (accountNameTransactions l a)
+balanceInAccountNamed :: Ledger -> AccountName -> Amount
+balanceInAccountNamed l a = 
+    sumEntryTransactions (transactionsInAccountNamed l a)
 
-accountNameTransactions :: Ledger -> AccountName -> [EntryTransaction]
-accountNameTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
+aggregateBalanceInAccountNamed :: Ledger -> AccountName -> Amount
+aggregateBalanceInAccountNamed l a = 
+    sumEntryTransactions (aggregateTransactionsInAccountNamed l a)
 
-accountNameBalanceNoSubs :: Ledger -> AccountName -> Amount
-accountNameBalanceNoSubs l a = sumEntryTransactions (accountNameTransactionsNoSubs l a)
+transactionsInAccountNamed :: Ledger -> AccountName -> [EntryTransaction]
+transactionsInAccountNamed l a = 
+    ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
 
-accountNameTransactionsNoSubs :: Ledger -> AccountName -> [EntryTransaction]
-accountNameTransactionsNoSubs l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
-
--- showAccountNamesWithBalances :: [(AccountName,String)] -> Ledger -> String
--- showAccountNamesWithBalances as l =
---     unlines $ map (showAccountNameAndBalance l) as
-
--- showAccountNameAndBalance :: Ledger -> (AccountName, String) -> String
--- showAccountNameAndBalance l (a, adisplay) =
---     printf "%20s  %s" (showBalance $ accountBalance l a) adisplay
-
+aggregateTransactionsInAccountNamed :: Ledger -> AccountName -> [EntryTransaction]
+aggregateTransactionsInAccountNamed l a = 
+    ledgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
 
 -- a tree of Accounts
 

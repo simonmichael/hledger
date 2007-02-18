@@ -1,10 +1,7 @@
-cleanup/reorganize
- Entry/Transaction/EntryTransaction
-
 basic features
- handle mixed amounts and currencies
  balance
   elide boring accounts
+ handle mixed amounts and currencies
  print
  entry
  -j and -J graph data output
