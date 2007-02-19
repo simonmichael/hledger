@@ -29,11 +29,15 @@ expandAccountNames as = nub $ concat $ map expand as
 topAccountNames :: [AccountName] -> [AccountName]
 topAccountNames as = [a | a <- expandAccountNames as, accountNameLevel a == 1]
 
-parentAccountName :: AccountName -> Maybe AccountName
+parentAccountName :: AccountName -> AccountName
 parentAccountName a = 
-    case accountNameLevel a > 1 of
-      True -> Just $ accountNameFromComponents $ rtail $ accountNameComponents a
-      False -> Nothing
+    accountNameFromComponents $ rtail $ accountNameComponents a
+
+parentAccountNames :: AccountName -> [AccountName]
+parentAccountNames a = parentAccountNames' $ parentAccountName a
+    where
+      parentAccountNames' "" = []
+      parentAccountNames' a = [a] ++ (parentAccountNames' $ parentAccountName a)
 
 s `isSubAccountNameOf` p = 
     ((p ++ ":") `isPrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
@@ -47,8 +51,10 @@ matchAccountName s a =
       Nothing -> False
       otherwise -> True
 
-indentAccountName :: AccountName -> String
-indentAccountName a = replicate (((accountNameLevel a) - 1) * 2) ' ' ++ (accountLeafName a)
+indentAccountName ::  Int -> AccountName -> String
+indentAccountName indentcorrection a = 
+    replicate (indentlevel * 2) ' ' ++ (accountLeafName a)
+    where indentlevel = ((accountNameLevel a) - 1) + indentcorrection
 
 
 -- We could almost get by with just the above, but we need smarter
@@ -75,14 +81,8 @@ accountNameTreeFrom accts =
           subs = (subAccountNamesFrom accts)
 
 showAccountNameTree :: Tree AccountName -> String
-showAccountNameTree at = showAccountNameTrees $ branches at
-
-showAccountNameTrees :: [Tree AccountName] -> String
-showAccountNameTrees ats =
-    concatMap showAccountNameBranch ats
+showAccountNameTree t =
+    topacct  ++ "\n" ++ concatMap showAccountNameTree (branches t)
         where
-          showAccountNameBranch at = topacct ++ "\n" ++ subaccts
-              where
-                topacct = indentAccountName $ antacctname at
-                subaccts = showAccountNameTrees $ branches at
+          topacct = indentAccountName 0 $ antacctname t
 

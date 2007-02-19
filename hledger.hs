@@ -4,7 +4,7 @@ hledger - ledger-compatible money management utilities (& haskell study)
 GPLv3, (c) Simon Michael & contributors, 
 John Wiegley's ledger is at http://newartisans.com/ledger.html
 
-The model/type/class hierarchy is roughly like this:
+modules/models are organized roughly like this:
 
 hledger
  Options
@@ -95,7 +95,7 @@ printBalance opts args ledger = do
 --                   False -> depthOption opts
   putStr $ case showsubs of
              True -> showLedgerAccounts ledger 999
-             False -> showLedgerAccounts ledger (getDepth opts)
+             False -> showLedgerAccounts ledger 1
       where 
         showsubs = (ShowSubs `elem` opts)
         (acctpats,_) = ledgerPatternArgs args

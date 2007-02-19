@@ -47,52 +47,66 @@ addDataToAccountNameTree l ant =
         where 
           aname = antacctname ant
 
-showAccountTreeWithBalances :: Ledger -> Int -> Tree Account -> String
-showAccountTreeWithBalances l depth at = (showAccountTreesWithBalances l depth) (branches at)
-
-showAccountTreesWithBalances :: Ledger -> Int -> [Tree Account] -> String
-showAccountTreesWithBalances _ 0 _ = ""
-showAccountTreesWithBalances l depth ats =
-    concatMap showAccountBranch ats
-        where
-          showAccountBranch :: Tree Account -> String
-          showAccountBranch at = 
-              topacct ++ "\n" ++ subaccts
---               case boring of
---                 True  -> 
---                 False -> 
-              where
-                topacct = (showAmount bal) ++ "  " ++ (indentAccountName name)
-                showAmount amt = printf "%20s" (show amt)
-                name = aname $ atacct at
-                txns = atransactions $ atacct at
-                bal = abalance $ atacct at
-                subaccts = (showAccountTreesWithBalances l (depth - 1)) $ branches at
-                boring = (length txns == 0) && ((length subaccts) == 1)
-
--- we want to elide boring accounts in the account tree
---
--- a (2 txns)
---   b (boring acct - 0 txns, exactly 1 sub)
---     c (5 txns)
+-- would be straightforward except we want to elide boring accounts when
+-- displaying account trees:
+-- a (0 txns, only 1 subacct)
+--   b (another boring acct.)
+--     c
 --       d
--- to:
--- a (2 txns)
---   b:c (5 txns)
---     d
+-- becomes:
+-- a:b:c
+--   d
+showAccountTree :: Ledger -> Int -> Int -> Tree Account -> String
+showAccountTree _ 0 _ _ = ""
+showAccountTree l maxdepth indentlevel t
+    -- if this acct is boring, don't show it (unless this is as deep as we're going)
+    | (boringacct && (maxdepth > 1)) = subacctsindented 0
 
--- elideAccountTree at = at
+    -- otherwise show normal indented account name with balance
+    -- if this acct has one or more boring parents, prepend their names
+    | otherwise = 
+        bal ++ "  " ++ indent ++ parentnames ++ leafname ++ "\n" ++ (subacctsindented 1)
 
-elideAccountTree :: Tree Account -> Tree Account
-elideAccountTree = id
+    where
+      boringacct = isBoringAccount2 l name
+      boringparents = takeWhile (isBoringAccount2 l) $ parentAccountNames name
+      bal = printf "%20s" $ show $ abalance $ atacct t
+      indent = replicate (indentlevel * 2) ' '
+      parentnames = concatMap (++ ":") $ map accountLeafName boringparents
+      leafname = accountLeafName name
+      name = aname $ atacct t
+      subacctsindented i = 
+          case maxdepth > 1 of
+            True -> concatMap (showAccountTree l (maxdepth-1) (indentlevel+i)) $ branches t
+            False -> ""
+
+isBoringAccount :: Tree Account -> Bool
+isBoringAccount at = 
+    (length txns == 0) && ((length subaccts) == 1) && (not $ name == "top")
+        where
+          a = atacct at
+          name = aname a
+          txns = atransactions a
+          subaccts = branches at
+
+isBoringAccount2 :: Ledger -> AccountName -> Bool
+isBoringAccount2 l a
+    | a == "top" = False
+    | (length txns == 0) && ((length subs) == 1) = True
+    | otherwise = False
+    where
+      txns = transactionsInAccountNamed l a
+      subs = subAccountNamesFrom (ledgerAccountNames l) a
 
 ledgerAccountTree :: Ledger -> Tree Account
-ledgerAccountTree l = elideAccountTree $ addDataToAccountNameTree l (ledgerAccountNameTree l)
+ledgerAccountTree l = addDataToAccountNameTree l (ledgerAccountNameTree l)
+
+-- ledgerAccountTreeForAccount :: Ledger -> AccountName -> Tree Account
+-- ledgerAccountTreeForAccount l a = addDataToAccountNameTree l (ledgerAccountNameTree l)
 
 ledgerAccountsMatching :: Ledger -> [String] -> [Account]
 ledgerAccountsMatching l acctpats = undefined
 
 showLedgerAccounts :: Ledger -> Int -> String
-showLedgerAccounts l depth = 
-    showAccountTreeWithBalances l depth (ledgerAccountTree l)
-
+showLedgerAccounts l maxdepth = 
+    concatMap (showAccountTree l maxdepth 0) (branches (ledgerAccountTree l))
