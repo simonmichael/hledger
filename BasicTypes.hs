@@ -4,16 +4,55 @@ where
 import Utils
 
 
-type Date = String
-type Status = Bool
+type Date     = String
+
+-- generic tree. each node is a tuple of the node type and a
+-- list of subtrees
+newtype Tree a = Tree { node :: (a, [Tree a]) } deriving (Show,Eq)
+branches = snd . node
 
 -- amounts
--- amount arithmetic currently ignores currency conversion
+{- a simple amount is a currency, quantity pair:
+   0 
+   $1 
+   £-50
+   EUR 3.44 
+   HRS 1.5
+   DAYS 3
+   GOOG 500
+
+   a mixed amount is one or more simple amounts:
+   $50, EUR 3, APPL 500
+   HRS 16, $13.55, oranges 6
+
+   arithmetic:
+   $1 - $5 = $-4
+   $1 + EUR 0.76 = $2
+   EUR0.76 + $1 = EUR 1.52
+   EUR0.76 - $1 = 0
+   ($5, HRS 2) + $1 = ($6, HRS 2)
+   ($50, EUR 3, APPL 500) + ($13.55, oranges 6) = $67.51, APPL 500, oranges 6
+   ($50, EUR 3) * $-1 = $-53.96
+   ($50, APPL 500) * $-1 = error
+   
+-}
+
+type Currency = String
 
 data Amount = Amount {
-                      currency :: String,
+                      currency :: Currency,
                       quantity :: Double
                      } deriving (Eq,Ord)
+
+instance Show Amount where show = showAmountRoundedOrZero
+
+showAmountRoundedOrZero :: Amount -> String
+showAmountRoundedOrZero (Amount cur qty) =
+    let rounded = printf "%.2f" qty in
+    case rounded of
+      "0.00"    -> "0"
+      "-0.00"   -> "0"
+      otherwise -> cur ++ rounded
 
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
@@ -21,23 +60,24 @@ instance Num Amount where
     fromInteger i = Amount "$" (fromInteger i)
     (+) = amountAdd
     (-) = amountSub
-    (*) = amountMult
-Amount ca qa `amountAdd` Amount cb qb = Amount ca (qa + qb)
-Amount ca qa `amountSub` Amount cb qb = Amount ca (qa - qb)
-Amount ca qa `amountMult` Amount cb qb = Amount ca (qa * qb)
+    (*) = amountMul
+Amount ac aq `amountAdd` b = Amount ac (aq + (quantity $ toCurrency ac b))
+Amount ac aq `amountSub` b = Amount ac (aq - (quantity $ toCurrency ac b))
+Amount ac aq `amountMul` b = Amount ac (aq * (quantity $ toCurrency ac b))
 
-instance Show Amount where show = amountRoundedOrZero
+toCurrency :: Currency -> Amount -> Amount
+toCurrency newc (Amount oldc q) =
+    Amount newc (q * (conversionRate oldc newc))
 
-amountRoundedOrZero :: Amount -> String
-amountRoundedOrZero (Amount cur qty) =
-    let rounded = printf "%.2f" qty in
-    case rounded of
-      "0.00"    -> "0"
-      "-0.00"   -> "0"
-      otherwise -> cur ++ rounded
+conversionRate :: Currency -> Currency -> Double
+conversionRate oldc newc = (rate newc) / (rate oldc)
 
--- generic tree. each node is a tuple of the node type and a
--- list of subtrees
-newtype Tree a = Tree { node :: (a, [Tree a]) } deriving (Show,Eq)
-branches = snd . node
+rate :: Currency -> Double
+rate "$"   = 1.0
+rate "EUR" = 0.760383
+rate "£"   = 0.512527
+rate _     = 1
+
+
+data MixedAmount = MixedAmount [Amount] deriving (Eq,Ord)
 

@@ -86,13 +86,6 @@ printRegister opts args ledger = do
 
 printBalance :: [Flag] -> [String] -> Ledger -> IO ()
 printBalance opts args ledger = do
---   putStr $ showLedgerAccounts ledger acctpats depth
---       where 
---         (acctpats,_) = ledgerPatternArgs args
---         showsubs = (ShowSubs `elem` opts)
---         depth = case showsubs of
---                   True -> 999
---                   False -> depthOption opts
   putStr $ case showsubs of
              True -> showLedgerAccounts ledger 999
              False -> showLedgerAccounts ledger 1

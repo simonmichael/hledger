@@ -6,6 +6,8 @@ import BasicTypes
 import Transaction
 
 
+type EntryStatus   = Bool
+
 -- a register entry is displayed as two or more lines like this:
 -- date       description          account                 amount       balance
 -- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
@@ -19,7 +21,7 @@ import Transaction
 
 data Entry = Entry {
                     edate :: Date,
-                    estatus :: Status,
+                    estatus :: EntryStatus,
                     ecode :: String,
                     edescription :: String,
                     etransactions :: [Transaction]

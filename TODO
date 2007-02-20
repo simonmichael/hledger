@@ -1,15 +1,17 @@
+make it fast
+ profile
+
 basic features
- handle mixed amounts and currencies
+ balance report account matching
+ -f -
  print
  entry
  -j and -J graph data output
  !include
  read timelog files
 
-make it fast
- profile
-
 more features
+ handle mixed amounts
  3.0-style elision
  -p period expressions
  -d display expressions
