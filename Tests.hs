@@ -1,6 +1,7 @@
 
 module Tests
 where
+import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 import Test.QuickCheck
 import Test.HUnit
@@ -218,6 +219,7 @@ ledger7 = Ledger
                                ]
                  }
           ]
+
 
 -- utils
 
