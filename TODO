@@ -1,11 +1,14 @@
 make it fast
- profile
+ profile, refactor
+  CookedLedger
+   refactor apis, OVERVIEW
+
+auto-generate OVERVIEW    
 
 basic features
  balance report account matching
  -f -
  print
- entry
  -j and -J graph data output
  !include
  read timelog files
@@ -20,13 +23,14 @@ more features
 
 new features
  graph automation
- smart data entry
+ entry and smart data entry
  incorporate timeclock features
  timelog simple amount entries
  better layout
 
 tests
  better use of quickcheck/smallcheck
+  http://blog.codersbase.com/2006/09/01/simple-unit-testing-in-haskell/
  ledger compatibility tests
 
 docs
