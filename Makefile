@@ -19,8 +19,10 @@ haddock:
 	haddock -h -o doc *.hs
 
 update-overview:
-	runhaskell ./overview.hs >.ov; mv .ov OVERVIEW
-#	./overview >.ov; mv .ov OVERVIEW
+	runhaskell ./overview.hs >.ovtmp; mv .ovtmp OVERVIEW
+
+loc:
+	@darcs trackdown 'find . -name "*hs" |xargs wc -l |echo OUTPUT `tail -1`; false' |ruby -nae'puts $$F[1] if /^OUTPUT/'
 
 Tags:
 	hasktags *hs
@@ -29,4 +31,4 @@ clean:
 	rm -f *.o *.hi *~
 
 Clean: clean
-	rm -f hledger TAGS
+	rm -f hledger overview TAGS tags
