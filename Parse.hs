@@ -1,6 +1,7 @@
 
 module Parse
 where
+import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
@@ -144,7 +145,7 @@ ledger = do
   --
   entries <- (many ledgerentry) <?> "entry"
   eof
-  return (Ledger modifier_entries periodic_entries entries)
+  return $ Ledger modifier_entries periodic_entries entries
 
 ledgernondatalines :: Parser [String]
 ledgernondatalines = many (ledgerdirective <|> ledgercomment <|> do {whiteSpace1; return []})
