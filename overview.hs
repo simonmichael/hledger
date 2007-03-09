@@ -1,8 +1,8 @@
 -- overview.hs - update an OVERVIEW file
 --
--- OVERVIEW begins with a manually updated list of modules; below that we
--- generate a list of filename, function, type entries. Useful for getting
--- the big picture and refactoring.
+-- OVERVIEW should begin with a list of module names (updated manually);
+-- below that we generate a list of filename, function, type entries.
+-- Useful for getting the big picture and refactoring.
 
 import System
 import System.Process
