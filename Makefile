@@ -18,7 +18,7 @@ xprof:
 haddock:
 	haddock -h -o doc *.hs
 
-update-overview:
+overview:
 	runhaskell ./overview.hs >.ovtmp; mv .ovtmp OVERVIEW
 
 loc:
