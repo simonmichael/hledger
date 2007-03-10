@@ -36,6 +36,7 @@ getLedgerFilePath :: [Flag] -> IO String
 getLedgerFilePath opts = do
   defaultpath <- tildeExpand "~/ledger.dat"
   envordefault <- getEnv "LEDGER" `catch` \_ -> return defaultpath
+  path <- tildeExpand envordefault
   return $ last $ [envordefault] ++ (filter (/= "") (map getFile opts))
 
 -- ledger pattern args are a list of account patterns optionally followed
