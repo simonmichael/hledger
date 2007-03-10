@@ -1,10 +1,10 @@
-#!/usr/bin/env runhaskell
 {-
-hledger - ledger-compatible money management utilities (& haskell study)
-GPLv3, (c) Simon Michael & contributors, 
-John Wiegley's ledger is at http://newartisans.com/ledger.html
+hledger - ledger-compatible money management tool (& haskell study)
+GPLv3, (c) Simon Michael & contributors
+inspired by John Wiegley's ledger at http://newartisans.com/ledger.html
 
-modules/models are organized roughly like this:
+modules/models are organized roughly like this; each layer can only
+reference things below it:
 
 hledger
  Options

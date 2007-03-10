@@ -1,5 +1,7 @@
 module Account
 where
+import qualified Data.Map as Map
+
 import Utils
 import BasicTypes
 import AccountName
@@ -12,6 +14,8 @@ import Ledger
 -- an Account caches an account's name, balance (including sub-accounts)
 -- and transactions (not including sub-accounts)
 type Account = (AccountName,[EntryTransaction],Amount)
+
+nullacct = ("",[],nullamt)
 
 aname (a,_,_) = a
 atransactions (_,ts,_) = ts
@@ -30,7 +34,7 @@ aggregateBalanceInAccountNamed l a =
     sumEntryTransactions (aggregateTransactionsInAccountNamed l a)
 
 transactionsInAccountNamed :: Ledger -> AccountName -> [EntryTransaction]
-transactionsInAccountNamed l a = 
+transactionsInAccountNamed l a =
     ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
 
 aggregateTransactionsInAccountNamed :: Ledger -> AccountName -> [EntryTransaction]

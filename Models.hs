@@ -9,6 +9,8 @@ module Models (
                module Account
               )
 where
+import qualified Data.Map as Map
+
 import BasicTypes
 import AccountName
 import Entry

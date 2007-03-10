@@ -22,7 +22,7 @@ branches = snd . node
    GOOG 500
 
    a mixed amount is one or more simple amounts:
-   $50, EUR 3, APPL 500
+   $50, EUR 3, AAPL 500
    HRS 16, $13.55, oranges 6
 
    arithmetic:
@@ -31,9 +31,9 @@ branches = snd . node
    EUR0.76 + $1 = EUR 1.52
    EUR0.76 - $1 = 0
    ($5, HRS 2) + $1 = ($6, HRS 2)
-   ($50, EUR 3, APPL 500) + ($13.55, oranges 6) = $67.51, APPL 500, oranges 6
+   ($50, EUR 3, AAPL 500) + ($13.55, oranges 6) = $67.51, AAPL 500, oranges 6
    ($50, EUR 3) * $-1 = $-53.96
-   ($50, APPL 500) * $-1 = error
+   ($50, AAPL 500) * $-1 = error
    
 -}
 
@@ -45,6 +45,8 @@ data Amount = Amount {
                      } deriving (Eq,Ord)
 
 instance Show Amount where show = showAmountRoundedOrZero
+
+nullamt = Amount "" 0
 
 showAmountRoundedOrZero :: Amount -> String
 showAmountRoundedOrZero (Amount cur qty) =
