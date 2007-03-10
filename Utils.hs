@@ -17,9 +17,6 @@ import Text.Printf
 import Text.Regex
 
 
-rhead = head . reverse 
-rtail = reverse . tail . reverse 
-
 splitAtElement :: Eq a => a -> [a] -> [[a]]
 splitAtElement e l = 
     case dropWhile (e==) l of
@@ -38,4 +35,27 @@ tildeExpand ('~':'/':xs) =  getHomeDirectory >>= return . (++ ('/':xs))
 --                                pw <- getUserEntryForName user
 --                                return (homeDirectory pw ++ path)
 tildeExpand xs           =  return xs
+
+
+-- tree tools
+
+root = rootLabel
+branches = subForest
+
+-- apply f to all tree nodes
+treemap :: (a -> b) -> Tree a -> Tree b
+treemap f t = Node (f $ root t) (map (treemap f) $ branches t)
+
+-- remove all subtrees whose nodes do not fulfill predicate
+treefilter :: (a -> Bool) -> Tree a -> Tree a
+treefilter f t = Node 
+                 (root t) 
+                 (map (treefilter f) $ filter (treeany f) $ branches t)
+    
+-- is predicate true in any node of tree ?
+treeany :: (a -> Bool) -> Tree a -> Bool
+treeany f t = (f $ root t) || (any (treeany f) $ branches t)
+    
+-- treedrop -- remove the leaves which do fulfill predicate. 
+-- treedropall -- do this repeatedly.
 

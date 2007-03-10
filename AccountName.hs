@@ -14,7 +14,7 @@ accountNameFromComponents :: [String] -> AccountName
 accountNameFromComponents = concat . intersperse ":"
 
 accountLeafName :: AccountName -> String
-accountLeafName = rhead . accountNameComponents
+accountLeafName = last . accountNameComponents
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel = length . accountNameComponents
@@ -29,8 +29,7 @@ topAccountNames :: [AccountName] -> [AccountName]
 topAccountNames as = [a | a <- expandAccountNames as, accountNameLevel a == 1]
 
 parentAccountName :: AccountName -> AccountName
-parentAccountName a = 
-    accountNameFromComponents $ rtail $ accountNameComponents a
+parentAccountName a = accountNameFromComponents $ init $ accountNameComponents a
 
 parentAccountNames :: AccountName -> [AccountName]
 parentAccountNames a = parentAccountNames' $ parentAccountName a
@@ -79,7 +78,11 @@ accountNameTreeFrom accts =
 
 showAccountNameTree :: Tree AccountName -> String
 showAccountNameTree t =
-    topacct  ++ "\n" ++ concatMap showAccountNameTree (subForest t)
+    topacct  ++ "\n" ++ concatMap showAccountNameTree (branches t)
         where
-          topacct = indentAccountName 0 $ rootLabel t
+          topacct = indentAccountName 0 $ root t
+
+filterAccountNameTree :: String -> Tree AccountName -> Tree AccountName
+filterAccountNameTree s =  treefilter ((matchAccountName s) . accountLeafName)
+--any (flip matchAccountName . accountLeafName) acctpats
 

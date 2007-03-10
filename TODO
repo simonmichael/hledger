@@ -1,17 +1,111 @@
-make it fast
- profile, refactor
-  * CookedLedger caching acct txns, boring status etc.
-   refactor apis
+* feature: balance report account matching
+
+sample account tree:
+
+assets
+ cash
+ checking
+ saving
+equity
+expenses
+ food
+ shelter
+income
+ salary
+liabilities
+ debts
+
+standard balance command shows all top-level accounts:
+
+> ledger bal
+$ assets      
+$ equity
+$ expenses    
+$ income      
+$ liabilities 
+
+with an account pattern, show only the ones with matching names:
+
+> ledger bal asset
+$ assets      
+
+with -s, show all subaccounts of matched accounts:
+
+> ledger -s bal asset
+$ assets      
+$  cash       
+$  checking   
+$  saving
+
+again:
+
+> ledger bal a
+$ assets      
+$  cash       
+$  saving
+$ income      
+$  salary     
+$ liabilities 
+
+and including subaccounts:
+
+> ledger -s bal a
+$ assets      
+$  cash       
+$  checking   
+$  saving
+$ income      
+$  salary     
+$ liabilities 
+$  debts
+
+but also, elide boring accounts whenever possible, so if savings is 0 and
+income/liabilities have no transactions the above would be displayed as:
+
+> ledger -s bal a
+$ assets      
+$  cash       
+$  checking   
+$ income:salary
+$ liabilities:debts
+
+algorithm:
+
+1 filter account tree by name, keeping any necessary parents
+2 add subaccounts if -s
+3 display account tree, eliding boring accounts
+
+* include subaccounts
+elide boring accounts
+handle multiple patterns
+
+
+
+
+
+
+
+
+
+
+
+
+optimization: add CookedLedger caching acct txns, boring status etc.
+ refactor apis
+
+
+
+speed
+ profile, refactor, optimize
 
 basic features
- * balance report account matching
  -f -
  print
  -j and -J graph data output
  !include
  read timelog files
 
-more features
+advanced features
  handle mixed amounts
  3.0-style elision
  -p period expressions
@@ -26,15 +120,16 @@ new features
  timelog simple amount entries
  better layout
 
-tests
+testing
  better use of quickcheck/smallcheck
   http://blog.codersbase.com/2006/09/01/simple-unit-testing-in-haskell/
  ledger compatibility tests
 
-docs
+documentation
  literate docs
  better use of haddock
 
 marketing
  set up as a cabal/hackage project following wiki howto ?
+  http://en.wikibooks.org/wiki/Haskell/Packaging
  announce on haskell list, wiki

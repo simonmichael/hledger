@@ -30,6 +30,7 @@ import System.Environment (withArgs) -- for testing in old hugs
 import Test.HUnit (runTestTT)
 import Test.QuickCheck (quickCheck)
 import Text.ParserCombinators.Parsec (ParseError)
+import Debug.Trace
 
 import Options
 import Models
@@ -72,7 +73,7 @@ balance opts args = do
 -- doWithLedgerFile =
 --     getLedgerFilePath >>= parseLedgerFile >>= doWithParsed
 
-doWithParsed :: (a -> IO ()) -> (Either ParseError a) -> IO ()
+doWithParsed :: Show a => (a -> IO ()) -> (Either ParseError a) -> IO ()
 doWithParsed a p = do
   case p of Left e -> parseError e
             Right v -> a v
@@ -86,9 +87,9 @@ printRegister opts args ledger = do
 
 printBalance :: [Flag] -> [String] -> Ledger -> IO ()
 printBalance opts args ledger = do
-  putStr $ case showsubs of
-             True -> showLedgerAccounts ledger 999
-             False -> showLedgerAccounts ledger 1
-      where 
-        showsubs = (ShowSubs `elem` opts)
-        (acctpats,_) = ledgerPatternArgs args
+  putStr $ showLedgerAccounts ledger showsubs acctpats
+    where 
+      showsubs = (ShowSubs `elem` opts)
+      (acctpats,_) = ledgerPatternArgs args
+
+

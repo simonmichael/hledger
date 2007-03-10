@@ -49,8 +49,8 @@ aggregateTransactionsInAccountNamed l a =
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree l ant = 
     Node 
-    (mkAccount l $ rootLabel ant) 
-    (map (addDataToAccountNameTree l) $ subForest ant)
+    (mkAccount l $ root ant) 
+    (map (addDataToAccountNameTree l) $ branches ant)
 
 -- would be straightforward except we want to elide boring accounts when
 -- displaying account trees:
@@ -65,7 +65,7 @@ showAccountTree :: Ledger -> Int -> Int -> Tree Account -> String
 showAccountTree _ 0 _ _ = ""
 showAccountTree l maxdepth indentlevel t
     -- if this acct is boring, don't show it (unless this is as deep as we're going)
-    | (boringacct && (maxdepth > 1)) = subacctsindented 0
+--     | (boringacct && (maxdepth > 1)) = subacctsindented 0
 
     -- otherwise show normal indented account name with balance
     -- if this acct has one or more boring parents, prepend their names
@@ -75,24 +75,24 @@ showAccountTree l maxdepth indentlevel t
     where
       boringacct = isBoringAccount2 l name
       boringparents = takeWhile (isBoringAccount2 l) $ parentAccountNames name
-      bal = printf "%20s" $ show $ abalance $ rootLabel t
+      bal = printf "%20s" $ show $ abalance $ root t
       indent = replicate (indentlevel * 2) ' '
       parentnames = concatMap (++ ":") $ map accountLeafName boringparents
       leafname = accountLeafName name
-      name = aname $ rootLabel t
+      name = aname $ root t
       subacctsindented i = 
           case maxdepth > 1 of
-            True -> concatMap (showAccountTree l (maxdepth-1) (indentlevel+i)) $ subForest t
+            True -> concatMap (showAccountTree l (maxdepth-1) (indentlevel+i)) $ branches t
             False -> ""
 
 isBoringAccount :: Tree Account -> Bool
 isBoringAccount at = 
     (length txns == 0) && ((length subaccts) == 1) && (not $ name == "top")
         where
-          a = rootLabel at
+          a = root at
           name = aname a
           txns = atransactions a
-          subaccts = subForest at
+          subaccts = branches at
 
 isBoringAccount2 :: Ledger -> AccountName -> Bool
 isBoringAccount2 l a
@@ -103,15 +103,17 @@ isBoringAccount2 l a
       txns = transactionsInAccountNamed l a
       subs = subAccountNamesFrom (ledgerAccountNames l) a
 
-ledgerAccountTree :: Ledger -> Tree Account
-ledgerAccountTree l = addDataToAccountNameTree l (ledgerAccountNameTree l)
+ledgerAccountTreeMatching :: Ledger -> Bool -> [String] -> Tree Account
+ledgerAccountTreeMatching l showsubs [] = 
+    ledgerAccountTreeMatching l showsubs [".*"]
+ledgerAccountTreeMatching l showsubs acctpats = 
+    addDataToAccountNameTree l $ 
+    filterAccountNameTree acctpat $ 
+    ledgerAccountNameTree l
+        where acctpat = head acctpats
 
--- ledgerAccountTreeForAccount :: Ledger -> AccountName -> Tree Account
--- ledgerAccountTreeForAccount l a = addDataToAccountNameTree l (ledgerAccountNameTree l)
-
-ledgerAccountsMatching :: Ledger -> [String] -> [Account]
-ledgerAccountsMatching l acctpats = undefined
-
-showLedgerAccounts :: Ledger -> Int -> String
-showLedgerAccounts l maxdepth = 
-    concatMap (showAccountTree l maxdepth 0) (subForest (ledgerAccountTree l))
+showLedgerAccounts :: Ledger -> Bool -> [String] -> String
+showLedgerAccounts l showsubs acctpats = 
+    concatMap 
+    (showAccountTree l 999 0) 
+    (branches (ledgerAccountTreeMatching l showsubs acctpats))

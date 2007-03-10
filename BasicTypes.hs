@@ -1,4 +1,4 @@
-module BasicTypes 
+module BasicTypes
 where
 import Utils
 
