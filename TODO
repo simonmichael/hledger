@@ -1,12 +1,10 @@
 make it fast
  profile, refactor
-  CookedLedger
-   refactor apis, OVERVIEW
-
-auto-generate OVERVIEW    
+  * CookedLedger caching acct txns, boring status etc.
+   refactor apis
 
 basic features
- balance report account matching
+ * balance report account matching
  -f -
  print
  -j and -J graph data output
@@ -35,7 +33,7 @@ tests
 
 docs
  literate docs
- haddock
+ better use of haddock
 
 marketing
  set up as a cabal/hackage project following wiki howto ?
