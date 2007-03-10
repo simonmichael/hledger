@@ -1,5 +1,5 @@
 build: Tags
-	ghc --make hledger.hs -o `basename $$PWD`
+	ghc --make hledger.hs
 
 profile:
 	ghc --make -prof -auto-all hledger.hs
