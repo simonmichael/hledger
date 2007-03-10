@@ -82,9 +82,10 @@ showAccountNameTree t =
         where
           topacct = indentAccountName 0 $ root t
 
-filterAccountNameTree :: [String] -> Bool -> Tree AccountName -> Tree AccountName
-filterAccountNameTree pats keepsubs =
-    treefilter $ \a -> matchpats a || (keepsubs && issubofmatch a)
+filterAccountNameTree :: [String] -> Bool -> Int -> Tree AccountName -> Tree AccountName
+filterAccountNameTree pats keepsubs maxdepth =
+    treefilter (\a -> matchpats a || (keepsubs && issubofmatch a)) .
+    treeprune maxdepth
     where
       matchpats a = any (match a) pats
       match a pat = matchAccountName pat $ accountLeafName a

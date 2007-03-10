@@ -106,16 +106,16 @@ isBoringAccount2 l a
       txns = transactionsInAccountNamed l a
       subs = subAccountNamesFrom (ledgerAccountNames l) a
 
-ledgerAccountTreeMatching :: Ledger -> Bool -> [String] -> Tree Account
-ledgerAccountTreeMatching l showsubs [] = 
-    ledgerAccountTreeMatching l showsubs [".*"]
-ledgerAccountTreeMatching l showsubs acctpats = 
+ledgerAccountTreeMatching :: Ledger -> [String] -> Bool -> Int -> Tree Account
+ledgerAccountTreeMatching l [] showsubs maxdepth = 
+    ledgerAccountTreeMatching l [".*"] showsubs maxdepth
+ledgerAccountTreeMatching l acctpats showsubs maxdepth = 
     addDataToAccountNameTree l $ 
-    filterAccountNameTree acctpats showsubs $ 
+    filterAccountNameTree acctpats showsubs maxdepth $ 
     ledgerAccountNameTree l
 
-showLedgerAccounts :: Ledger -> Bool -> [String] -> String
-showLedgerAccounts l showsubs acctpats = 
+showLedgerAccounts :: Ledger -> [String] -> Bool -> Int -> String
+showLedgerAccounts l acctpats showsubs maxdepth = 
     concatMap 
     (showAccountTree l 999 0) 
-    (branches (ledgerAccountTreeMatching l showsubs acctpats))
+    (branches (ledgerAccountTreeMatching l acctpats showsubs maxdepth))

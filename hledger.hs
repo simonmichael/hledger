@@ -87,9 +87,12 @@ printRegister opts args ledger = do
 
 printBalance :: [Flag] -> [String] -> Ledger -> IO ()
 printBalance opts args ledger = do
-  putStr $ showLedgerAccounts ledger showsubs acctpats
+  putStr $ showLedgerAccounts ledger acctpats showsubs maxdepth
     where 
-      showsubs = (ShowSubs `elem` opts)
       (acctpats,_) = ledgerPatternArgs args
+      showsubs = (ShowSubs `elem` opts)
+      maxdepth = case (acctpats, showsubs) of
+                   ([],False) -> 1
+                   otherwise  -> 9999
 
 

@@ -42,6 +42,12 @@ tildeExpand xs           =  return xs
 root = rootLabel
 branches = subForest
 
+-- remove all nodes past a certain depth
+treeprune :: Int -> Tree a -> Tree a
+treeprune 0 t = Node (root t) []
+treeprune d t = 
+    Node (root t) (map (treeprune $ d-1) $ branches t)
+
 -- apply f to all tree nodes
 treemap :: (a -> b) -> Tree a -> Tree b
 treemap f t = Node (f $ root t) (map (treemap f) $ branches t)
