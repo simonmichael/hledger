@@ -13,17 +13,20 @@ import Ledger
 
 -- an Account caches an account's name, balance (including sub-accounts)
 -- and transactions (not including sub-accounts)
-type Account = (AccountName,[EntryTransaction],Amount)
+data Account = Account {
+      aname :: AccountName, 
+      atransactions :: [EntryTransaction],
+      abalance :: Amount
+}
 
-nullacct = ("",[],nullamt)
-
-aname (a,_,_) = a
-atransactions (_,ts,_) = ts
-abalance (_,_,b) = b
+nullacct = Account "" [] nullamt
 
 mkAccount :: Ledger -> AccountName -> Account
 mkAccount l a = 
-    (a, transactionsInAccountNamed l a, aggregateBalanceInAccountNamed l a)
+    Account 
+    a 
+    (transactionsInAccountNamed l a) 
+    (aggregateBalanceInAccountNamed l a)
 
 balanceInAccountNamed :: Ledger -> AccountName -> Amount
 balanceInAccountNamed l a = 
