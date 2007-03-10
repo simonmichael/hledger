@@ -82,10 +82,11 @@ showAccountNameTree t =
         where
           topacct = indentAccountName 0 $ root t
 
-filterAccountNameTree :: [String] -> Tree AccountName -> Tree AccountName
-filterAccountNameTree pats =
-    treefilter matchany
+filterAccountNameTree :: [String] -> Bool -> Tree AccountName -> Tree AccountName
+filterAccountNameTree pats keepsubs =
+    treefilter $ \a -> matchpats a || (keepsubs && issubofmatch a)
     where
-      matchany a = any (match a) pats
+      matchpats a = any (match a) pats
       match a pat = matchAccountName pat $ accountLeafName a
+      issubofmatch a = any matchpats $ parentAccountNames a
 

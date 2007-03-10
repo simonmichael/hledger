@@ -19,6 +19,9 @@ data Account = Account {
       abalance :: Amount
 }
 
+instance Show Account where
+    show (Account a ts b) = printf "Account %s with %d transactions" a $ length ts
+
 nullacct = Account "" [] nullamt
 
 mkAccount :: Ledger -> AccountName -> Account
@@ -108,7 +111,7 @@ ledgerAccountTreeMatching l showsubs [] =
     ledgerAccountTreeMatching l showsubs [".*"]
 ledgerAccountTreeMatching l showsubs acctpats = 
     addDataToAccountNameTree l $ 
-    filterAccountNameTree acctpats $ 
+    filterAccountNameTree acctpats showsubs $ 
     ledgerAccountNameTree l
 
 showLedgerAccounts :: Ledger -> Bool -> [String] -> String
