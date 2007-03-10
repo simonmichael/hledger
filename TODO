@@ -75,9 +75,8 @@ algorithm:
 2 add subaccounts if -s
 3 display account tree, eliding boring accounts
 
-* include subaccounts
+include subaccounts
 elide boring accounts
-handle multiple patterns
 
 
 

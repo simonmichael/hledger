@@ -108,9 +108,8 @@ ledgerAccountTreeMatching l showsubs [] =
     ledgerAccountTreeMatching l showsubs [".*"]
 ledgerAccountTreeMatching l showsubs acctpats = 
     addDataToAccountNameTree l $ 
-    filterAccountNameTree acctpat $ 
+    filterAccountNameTree acctpats $ 
     ledgerAccountNameTree l
-        where acctpat = head acctpats
 
 showLedgerAccounts :: Ledger -> Bool -> [String] -> String
 showLedgerAccounts l showsubs acctpats = 
