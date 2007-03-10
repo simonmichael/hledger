@@ -1,4 +1,3 @@
-
 module AccountName
 where
 import Utils
@@ -62,27 +61,25 @@ indentAccountName indentcorrection a =
 -- first, here is a tree of AccountNames; Account and Account tree are
 -- defined later.
 
-antacctname = fst . node
-
 accountNameTreeFrom_props =
     [
-     accountNameTreeFrom ["a"] == Tree ("top", [Tree ("a",[])]),
-     accountNameTreeFrom ["a","b"] == Tree ("top", [Tree ("a", []), Tree ("b", [])]),
-     accountNameTreeFrom ["a","a:b"] == Tree ("top", [Tree ("a", [Tree ("a:b", [])])]),
-     accountNameTreeFrom ["a:b"] == Tree ("top", [Tree ("a", [Tree ("a:b", [])])])
+     accountNameTreeFrom ["a"]       == Node "top" [Node "a" []],
+     accountNameTreeFrom ["a","b"]   == Node "top" [Node "a" [], Node "b" []],
+     accountNameTreeFrom ["a","a:b"] == Node "top" [Node "a" [Node "a:b" []]],
+     accountNameTreeFrom ["a:b"]     == Node "top" [Node "a" [Node "a:b" []]]
     ]
 accountNameTreeFrom :: [AccountName] -> Tree AccountName
 accountNameTreeFrom accts = 
-    Tree ("top", accountsFrom (topAccountNames accts))
+    Node "top" (accountsFrom (topAccountNames accts))
         where
           accountsFrom :: [AccountName] -> [Tree AccountName]
           accountsFrom [] = []
-          accountsFrom as = [Tree (a, accountsFrom $ subs a) | a <- as]
+          accountsFrom as = [Node a (accountsFrom $ subs a) | a <- as]
           subs = (subAccountNamesFrom accts)
 
 showAccountNameTree :: Tree AccountName -> String
 showAccountNameTree t =
-    topacct  ++ "\n" ++ concatMap showAccountNameTree (branches t)
+    topacct  ++ "\n" ++ concatMap showAccountNameTree (subForest t)
         where
-          topacct = indentAccountName 0 $ antacctname t
+          topacct = indentAccountName 0 $ rootLabel t
 

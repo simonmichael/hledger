@@ -1,15 +1,9 @@
-
-module BasicTypes
+module BasicTypes 
 where
 import Utils
 
 
 type Date     = String
-
--- generic tree. each node is a tuple of the node type and a
--- list of subtrees
-newtype Tree a = Tree { node :: (a, [Tree a]) } deriving (Show,Eq)
-branches = snd . node
 
 -- amounts
 {- a simple amount is a currency, quantity pair:

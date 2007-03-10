@@ -1,6 +1,7 @@
 module Utils (
               module Utils,
               module Data.List,
+              module Data.Tree,
               module Debug.Trace,
               module Text.Printf,
               module Text.Regex,
@@ -9,6 +10,7 @@ module Utils (
 where
 import System.Directory
 import Data.List
+import Data.Tree
 import Debug.Trace
 import Test.QuickCheck (quickCheck)
 import Text.Printf

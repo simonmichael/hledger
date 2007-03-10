@@ -43,13 +43,11 @@ aggregateTransactionsInAccountNamed l a =
 
 -- a tree of Accounts
 
-atacct = fst . node
-
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree l ant = 
-    Tree (mkAccount l aname, map (addDataToAccountNameTree l) (branches ant))
-        where 
-          aname = antacctname ant
+    Node 
+    (mkAccount l $ rootLabel ant) 
+    (map (addDataToAccountNameTree l) $ subForest ant)
 
 -- would be straightforward except we want to elide boring accounts when
 -- displaying account trees:
@@ -74,24 +72,24 @@ showAccountTree l maxdepth indentlevel t
     where
       boringacct = isBoringAccount2 l name
       boringparents = takeWhile (isBoringAccount2 l) $ parentAccountNames name
-      bal = printf "%20s" $ show $ abalance $ atacct t
+      bal = printf "%20s" $ show $ abalance $ rootLabel t
       indent = replicate (indentlevel * 2) ' '
       parentnames = concatMap (++ ":") $ map accountLeafName boringparents
       leafname = accountLeafName name
-      name = aname $ atacct t
+      name = aname $ rootLabel t
       subacctsindented i = 
           case maxdepth > 1 of
-            True -> concatMap (showAccountTree l (maxdepth-1) (indentlevel+i)) $ branches t
+            True -> concatMap (showAccountTree l (maxdepth-1) (indentlevel+i)) $ subForest t
             False -> ""
 
 isBoringAccount :: Tree Account -> Bool
 isBoringAccount at = 
     (length txns == 0) && ((length subaccts) == 1) && (not $ name == "top")
         where
-          a = atacct at
+          a = rootLabel at
           name = aname a
           txns = atransactions a
-          subaccts = branches at
+          subaccts = subForest at
 
 isBoringAccount2 :: Ledger -> AccountName -> Bool
 isBoringAccount2 l a
@@ -113,4 +111,4 @@ ledgerAccountsMatching l acctpats = undefined
 
 showLedgerAccounts :: Ledger -> Int -> String
 showLedgerAccounts l maxdepth = 
-    concatMap (showAccountTree l maxdepth 0) (branches (ledgerAccountTree l))
+    concatMap (showAccountTree l maxdepth 0) (subForest (ledgerAccountTree l))
