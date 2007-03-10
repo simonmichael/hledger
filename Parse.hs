@@ -219,7 +219,7 @@ ledgertransaction = do
 
 -- account names may have single spaces in them, and are terminated by two or more spaces
 ledgeraccount :: Parser String
-ledgeraccount = many1 (alphaNum <|> char ':' <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}}))
+ledgeraccount = many1 (alphaNum <|> char ':' <|> char '/' <|> char '_' <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}}))
 
 ledgeramount :: Parser Amount
 ledgeramount = try (do
