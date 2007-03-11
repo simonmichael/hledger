@@ -76,12 +76,6 @@ accountNameTreeFrom accts =
           accountsFrom as = [Node a (accountsFrom $ subs a) | a <- as]
           subs = (subAccountNamesFrom accts)
 
-showAccountNameTree :: Tree AccountName -> String
-showAccountNameTree t =
-    topacct  ++ "\n" ++ concatMap showAccountNameTree (branches t)
-        where
-          topacct = indentAccountName 0 $ root t
-
 filterAccountNameTree :: [String] -> Bool -> Int -> Tree AccountName -> Tree AccountName
 filterAccountNameTree pats keepsubs maxdepth =
     treefilter (\a -> matchpats a || (keepsubs && issubofmatch a)) .

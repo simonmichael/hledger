@@ -125,6 +125,10 @@ ledger7_str = "\
 \    assets:cash                                $4.82\n\
 \    equity:opening balances                         \n\
 \\n\
+\2007/01/01 * opening balance\n\
+\    income:interest                                $-4.82\n\
+\    equity:opening balances                         \n\
+\\n\
 \2007/01/02 * ayres suites\n\
 \    expenses:vacation                        $179.92\n\
 \    assets:checking                                 \n\
