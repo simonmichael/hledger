@@ -1,8 +1,7 @@
-optimization: add CookedLedger caching acct txns, boring status etc.
- refactor apis
-
 speed
  profile, refactor, optimize
+  optimization: add CookedLedger caching acct txns etc.
+   refactor apis
 
 basic features
  , in thousands
