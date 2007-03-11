@@ -1,15 +1,18 @@
+optimization: add CookedLedger caching txns etc.
+ profile again
+
+feature: read timelog files
+ timelog parser
+
 speed
  profile, refactor, optimize
-  optimization: add CookedLedger caching acct txns etc.
-   refactor apis
 
 basic features
- , in thousands
  -f -
  print
- -j and -J graph data output
  !include
- read timelog files
+ , in thousands
+ -j and -J graph data output
 
 advanced features
  handle mixed amounts
