@@ -96,3 +96,10 @@ printBalance opts args ledger = do
                    otherwise  -> 9999
 
 
+-- interactive testing:
+--
+-- p <- getLedgerFilePath [] >>= parseLedgerFile
+-- let l = either (\_ -> Ledger [] [] []) id p
+-- let ant = ledgerAccountNameTree l
+-- let at = ledgerAccountTreeMatching l [] True 999
+-- putStr $ drawTree $ treemap show $ ledgerAccountTreeMatching l ["a"] False 999
