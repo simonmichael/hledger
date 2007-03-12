@@ -13,7 +13,7 @@ import Utils
 
 transaction1_str  = "  expenses:food:dining  $10.00\n"
 
-transaction1 = Transaction "expenses:food:dining" (Amount "$" 10)
+transaction1 = Transaction "expenses:food:dining" (dollars 10)
 
 entry1_str = "\
 \2007/01/28 coopportunity\n\
@@ -23,8 +23,8 @@ entry1_str = "\
 
 entry1 =
     (Entry "2007/01/28" False "" "coopportunity" 
-               [Transaction "expenses:food:groceries" (Amount "$" 47.18), 
-                Transaction "assets:checking" (Amount "$" (-47.18))])
+               [Transaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18), 
+                Transaction "assets:checking" (Amount (getcurrency "$") (-47.18))])
 
 entry2_str = "\
 \2007/01/27 * joes diner\n\
@@ -163,9 +163,9 @@ ledger7 = Ledger
                   edate="2007/01/01", estatus=False, ecode="*", edescription="opening balance",
                   etransactions=[
                                 Transaction {taccount="assets:cash", 
-                                             tamount=Amount {currency="$", quantity=4.82}},
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=4.82}},
                                 Transaction {taccount="equity:opening balances", 
-                                             tamount=Amount {currency="$", quantity=(-4.82)}}
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82)}}
                                ]
                  }
           ,
@@ -173,9 +173,9 @@ ledger7 = Ledger
                   edate="2007/02/01", estatus=False, ecode="*", edescription="ayres suites",
                   etransactions=[
                                 Transaction {taccount="expenses:vacation", 
-                                             tamount=Amount {currency="$", quantity=179.92}},
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=179.92}},
                                 Transaction {taccount="assets:checking", 
-                                             tamount=Amount {currency="$", quantity=(-179.92)}}
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=(-179.92)}}
                                ]
                  }
           ,
@@ -183,9 +183,9 @@ ledger7 = Ledger
                   edate="2007/01/02", estatus=False, ecode="*", edescription="auto transfer to savings",
                   etransactions=[
                                 Transaction {taccount="assets:saving", 
-                                             tamount=Amount {currency="$", quantity=200}},
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=200}},
                                 Transaction {taccount="assets:checking", 
-                                             tamount=Amount {currency="$", quantity=(-200)}}
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=(-200)}}
                                ]
                  }
           ,
@@ -193,9 +193,9 @@ ledger7 = Ledger
                   edate="2007/01/03", estatus=False, ecode="*", edescription="poquito mas",
                   etransactions=[
                                 Transaction {taccount="expenses:food:dining", 
-                                             tamount=Amount {currency="$", quantity=4.82}},
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=4.82}},
                                 Transaction {taccount="assets:cash", 
-                                             tamount=Amount {currency="$", quantity=(-4.82)}}
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82)}}
                                ]
                  }
           ,
@@ -203,9 +203,9 @@ ledger7 = Ledger
                   edate="2007/01/03", estatus=False, ecode="*", edescription="verizon",
                   etransactions=[
                                 Transaction {taccount="expenses:phone", 
-                                             tamount=Amount {currency="$", quantity=95.11}},
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=95.11}},
                                 Transaction {taccount="assets:checking", 
-                                             tamount=Amount {currency="$", quantity=(-95.11)}}
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=(-95.11)}}
                                ]
                  }
           ,
@@ -213,9 +213,9 @@ ledger7 = Ledger
                   edate="2007/01/03", estatus=False, ecode="*", edescription="discover",
                   etransactions=[
                                 Transaction {taccount="liabilities:credit cards:discover", 
-                                             tamount=Amount {currency="$", quantity=80}},
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=80}},
                                 Transaction {taccount="assets:checking", 
-                                             tamount=Amount {currency="$", quantity=(-80)}}
+                                             tamount=Amount {currency=(getcurrency "$"), quantity=(-80)}}
                                ]
                  }
           ]
@@ -274,7 +274,7 @@ test_ledgerentry =
 
 test_autofillEntry = 
     assertEqual'
-    (Amount "$" (-47.18))
+    (Amount (getcurrency "$") (-47.18))
     (tamount $ last $ etransactions $ autofillEntry entry1)
 
 test_expandAccountNames =
@@ -294,7 +294,7 @@ test_ledgerAccountNames =
 props = mapM quickCheck
     [
      parse' ledgertransaction transaction1_str `parseEquals`
-     (Transaction "expenses:food:dining" (Amount "$" 10))
+     (Transaction "expenses:food:dining" (Amount (getcurrency "$") 10))
     ,
      ledgerAccountNames ledger7 == 
      ["assets","assets:cash","assets:checking","assets:saving","equity",

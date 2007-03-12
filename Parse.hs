@@ -231,9 +231,9 @@ ledgeramount = try (do
                       many1 spacenonewline
                       currency <- many (noneOf "-.0123456789\n") <?> "currency"
                       quantity <- many1 (oneOf "-.,0123456789") <?> "quantity"
-                      return (Amount currency (read $ stripcommas quantity))
+                      return (Amount (getcurrency currency) (read $ stripcommas quantity))
                    ) <|> 
-                    return (Amount "AUTO" 0)
+                    return (Amount (Currency "AUTO" 0) 0)
 
 stripcommas = filter (',' /=)
 

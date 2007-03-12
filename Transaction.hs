@@ -10,7 +10,7 @@ import Amount
 data Transaction = Transaction {
                                 taccount :: AccountName,
                                 tamount :: Amount
-                               } deriving (Eq,Ord)
+                               } deriving (Eq)
 
 instance Show Transaction where show = showTransaction
 
@@ -26,7 +26,7 @@ elideRight width s =
 autofillTransactions :: [Transaction] -> [Transaction]
 autofillTransactions ts =
     let (ns, as) = partition isNormal ts
-            where isNormal t = (currency $ tamount t) /= "AUTO" in
+            where isNormal t = (symbol $ currency $ tamount t) /= "AUTO" in
     case (length as) of
       0 -> ns
       1 -> ns ++ [balanceTransaction $ head as]

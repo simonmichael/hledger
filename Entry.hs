@@ -25,7 +25,7 @@ data Entry = Entry {
                     ecode :: String,
                     edescription :: String,
                     etransactions :: [Transaction]
-                   } deriving (Eq,Ord)
+                   } deriving (Eq)
 
 instance Show Entry where show = showEntry
 

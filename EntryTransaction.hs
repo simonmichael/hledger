@@ -51,7 +51,7 @@ showTransactionsWithBalances [] _ = []
 showTransactionsWithBalances ts b =
     unlines $ showTransactionsWithBalances' ts dummyt b
         where
-          dummyt = (Entry "" False "" "" [], Transaction "" (Amount "" 0))
+          dummyt = (Entry "" False "" "" [], Transaction "" (dollars 0))
           showTransactionsWithBalances' [] _ _ = []
           showTransactionsWithBalances' (t:ts) tprev b =
               (if (entry t /= (entry tprev))

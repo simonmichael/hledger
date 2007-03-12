@@ -49,12 +49,11 @@ entriesFromTimeLogEntries [clockin,clockout] =
       intime      = tdatetime clockin
       indate      = dateFrom $ tdatetime clockin
       outtime     = tdatetime clockout
-      amount      = timeAmount $ 0 -- read $ outtime - intime
+      amount      = hours 0 -- read $ outtime - intime
 
 entriesFromTimeLogEntries many =
     (entriesFromTimeLogEntries $ take 2 many) ++
     (entriesFromTimeLogEntries $ drop 2 many)
 
 clockoutNowEntry = TimeLogEntry ' ' "" ""
-timeAmount = Amount "h"
 dateFrom = id

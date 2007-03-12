@@ -1,7 +1,11 @@
+fix up Amounts
+ allow flexible display by currency
+ allow parsing by currency
+ fix arithmetic
+
 feature: read timelog files
  timelog parser
   handle time amounts
-   fix arithmetic
   calculate time intervals
    find datetime type
   auto-generate missing clock-out
