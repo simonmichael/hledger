@@ -8,7 +8,7 @@ import Data.Maybe (fromMaybe)
 import Utils
 
 
-usage          = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
+usagehdr       = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
 commands       = "register|balance"
 defaultcmd     = "register"
 ledgerFilePath = findFileFromOpts "~/ledger.dat" "LEDGER"
@@ -31,7 +31,7 @@ parseOptions argv =
     case getOpt RequireOrder options argv of
       (opts,[],[])   -> return (opts, [defaultcmd])
       (opts,args,[]) -> return (opts, args)
-      (_,_,errs)     -> ioError (userError (concat errs ++ showusage))
+      (_,_,errs)     -> ioError (userError (concat errs ++ usage))
 
 -- testoptions RequireOrder ["foo","-v"]
 -- testoptions Permute ["foo","-v"]
@@ -42,9 +42,9 @@ parseOptions argv =
 testoptions order cmdline = putStr $ 
     case getOpt order options cmdline of
       (o,n,[]  ) -> "options=" ++ show o ++ "  args=" ++ show n
-      (_,_,errs) -> concat errs ++ showusage
+      (_,_,errs) -> concat errs ++ usage
 
-showusage = usageInfo usage options
+usage = usageInfo usagehdr options
 
 -- find a file path from options, an env var or a default value
 findFileFromOpts :: FilePath -> String -> [Flag] -> IO String

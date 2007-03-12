@@ -19,6 +19,7 @@ hledger
        Entry
         Transaction
          AccountName
+         Amount
          BasicTypes
           Utils
 
@@ -48,7 +49,7 @@ main = do
             | cmd `isPrefixOf` "register" = register opts args
             | cmd `isPrefixOf` "balance"  = balance opts args
             | cmd `isPrefixOf` "test"     = test
-            | otherwise                   = putStr showusage
+            | otherwise                   = putStr usage
 
 -- commands
 
