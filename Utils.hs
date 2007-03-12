@@ -2,18 +2,20 @@ module Utils (
               module Utils,
               module Data.List,
               module Data.Tree,
-              module Debug.Trace,
               module Text.Printf,
               module Text.Regex,
-              quickCheck,
+              module Debug.Trace,
+              module Test.QuickCheck,
+              module Test.HUnit
              )
 where
 import Data.List
 import Data.Tree
-import Debug.Trace
-import Test.QuickCheck (quickCheck)
 import Text.Printf
 import Text.Regex
+import Debug.Trace
+import Test.QuickCheck hiding (test, Testable)
+import Test.HUnit
 
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
@@ -23,6 +25,8 @@ splitAtElement e l =
       l' -> first : splitAtElement e rest
         where
           (first,rest) = break (e==) l'
+
+-- testing support
 
 
 -- tree tools

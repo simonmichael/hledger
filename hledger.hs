@@ -28,11 +28,7 @@ hledger
 module Main
 where
 import System
-import System.Environment (withArgs) -- for testing in old hugs
-import Test.HUnit (runTestTT)
-import Test.QuickCheck (quickCheck)
 import Text.ParserCombinators.Parsec (ParseError)
-import Debug.Trace
 
 import Options
 import Models
@@ -49,7 +45,7 @@ main = do
   where run cmd opts acctpats descpats
             | cmd `isPrefixOf` "register" = register opts acctpats descpats
             | cmd `isPrefixOf` "balance"  = balance opts acctpats descpats
-            | cmd `isPrefixOf` "test"     = test
+            | cmd `isPrefixOf` "test"     = selftest
             | otherwise                   = putStr usage
 
 -- commands
@@ -75,13 +71,12 @@ balance opts acctpats _ = do
                              ([],False) -> 1
                              otherwise  -> 9999
 
-test :: IO ()
-test = do
-  hcounts <- runTestTT tests
-  qcounts <- mapM quickCheck props
+selftest :: IO ()
+selftest = do
+  Tests.tests
+  Tests.props
+  -- Amount.tests
   return ()
-    where showHunitCounts c =
-              reverse $ tail $ reverse ("passed " ++ (unwords $ drop 5 $ words (show c)))
 
 -- utils
 

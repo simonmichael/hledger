@@ -3,15 +3,11 @@ module Tests
 where
 import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
-import Test.QuickCheck
-import Test.HUnit
--- trying to make "*Tests> test" work
--- hiding (test)
---import qualified Test.HUnit (Test.HUnit.test)
 
 import Options
 import Models
 import Parse
+import Utils
 
 -- sample data
 
@@ -260,19 +256,14 @@ parseEquals parsed other =
 
 -- hunit tests
 
-tests = let t l f = TestLabel l $ TestCase f in TestList
-        [
-          t "test_ledgertransaction" test_ledgertransaction
-        , t "test_ledgerentry" test_ledgerentry
-        , t "test_autofillEntry" test_autofillEntry
-        , t "test_expandAccountNames" test_expandAccountNames
-        , t "test_ledgerAccountNames" test_ledgerAccountNames
+tests = runTestTT $ test [
+         test_ledgertransaction
+        , test_ledgerentry
+        , test_autofillEntry
+        , test_expandAccountNames
+        , test_ledgerAccountNames
+        , 2 @=? 2
         ]
-
-tests2 = Test.HUnit.test 
-         [
-          "test1" ~: assertEqual "2 equals 2" 2 2
-         ]
 
 test_ledgertransaction :: Assertion
 test_ledgertransaction =
@@ -300,7 +291,7 @@ test_ledgerAccountNames =
 
 -- quickcheck properties
 
-props =
+props = mapM quickCheck
     [
      parse' ledgertransaction transaction1_str `parseEquals`
      (Transaction "expenses:food:dining" (Amount "$" 10))
