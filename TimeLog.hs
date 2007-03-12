@@ -2,6 +2,7 @@ module TimeLog
 where
 import Utils
 import BasicTypes
+import Amount
 import Transaction
 import Entry
 import Ledger
@@ -44,11 +45,11 @@ entriesFromTimeLogEntries [clockin,clockout] =
        ]}
     ]
     where
-      accountname = (tcomment clockin)
-      intime = tdatetime clockin
-      indate = dateFrom $ tdatetime clockin
-      outtime = tdatetime clockout
-      amount = timeAmount $ 0 -- read $ outtime - intime
+      accountname = tcomment clockin
+      intime      = tdatetime clockin
+      indate      = dateFrom $ tdatetime clockin
+      outtime     = tdatetime clockout
+      amount      = timeAmount $ 0 -- read $ outtime - intime
 
 entriesFromTimeLogEntries many =
     (entriesFromTimeLogEntries $ take 2 many) ++

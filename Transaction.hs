@@ -4,6 +4,7 @@ where
 import Utils
 import BasicTypes
 import AccountName
+import Amount
 
 
 data Transaction = Transaction {

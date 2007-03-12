@@ -5,6 +5,7 @@ import Utils
 import BasicTypes
 import Entry
 import Transaction
+import Amount
 
 
 -- We convert Transactions into EntryTransactions, which are (entry,

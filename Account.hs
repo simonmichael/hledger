@@ -5,6 +5,7 @@ import qualified Data.Map as Map
 import Utils
 import BasicTypes
 import AccountName
+import Amount
 import Entry
 import Transaction
 import EntryTransaction

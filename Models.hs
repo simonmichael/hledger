@@ -1,6 +1,7 @@
 -- data types & behaviours
 module Models (
                module BasicTypes,
+               module Amount,
                module AccountName,
                module Transaction,
                module Entry,
@@ -13,6 +14,7 @@ where
 import qualified Data.Map as Map
 
 import BasicTypes
+import Amount
 import AccountName
 import Transaction
 import Entry
