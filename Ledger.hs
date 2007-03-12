@@ -16,10 +16,10 @@ data Ledger = Ledger {
                      } deriving (Eq)
 
 instance Show Ledger where
-    show l = printf "Ledger with %d normal, %d modifier, %d periodic entries"
-             (length $ entries l)
-             (length $ modifier_entries l)
-             (length $ periodic_entries l)
+    show l = printf "Ledger with %d entries"
+             ((length $ entries l) +
+              (length $ modifier_entries l) +
+              (length $ periodic_entries l))
 
 ledgerTransactions :: Ledger -> [EntryTransaction]
 ledgerTransactions l = entryTransactionsFrom $ entries l
