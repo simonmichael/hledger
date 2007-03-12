@@ -8,7 +8,6 @@ module Utils (
               quickCheck,
              )
 where
-import System.Directory
 import Data.List
 import Data.Tree
 import Debug.Trace
@@ -24,17 +23,6 @@ splitAtElement e l =
       l' -> first : splitAtElement e rest
         where
           (first,rest) = break (e==) l'
-
--- courtesy of allberry_b
-tildeExpand              :: FilePath -> IO FilePath
-tildeExpand ('~':[])     =  getHomeDirectory
-tildeExpand ('~':'/':xs) =  getHomeDirectory >>= return . (++ ('/':xs))
--- ~name, requires -fvia-C or ghc 6.8
---import System.Posix.User
--- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
---                                pw <- getUserEntryForName user
---                                return (homeDirectory pw ++ path)
-tildeExpand xs           =  return xs
 
 
 -- tree tools

@@ -1,14 +1,46 @@
-
 module Parse
 where
 import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
+import System.IO
 
 import Utils
 import Models
 
+
+-- set up token parsing, though we're not yet using these much
+ledgerLanguageDef = LanguageDef {
+   commentStart   = ""
+   , commentEnd     = ""
+   , commentLine    = ";"
+   , nestedComments = False
+   , identStart     = letter <|> char '_'
+   , identLetter    = alphaNum <|> oneOf "_':"
+   , opStart        = opLetter emptyDef
+   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
+   , reservedOpNames= []
+   , reservedNames  = []
+   , caseSensitive  = False
+   }
+lexer      = P.makeTokenParser ledgerLanguageDef
+whiteSpace = P.whiteSpace lexer
+lexeme     = P.lexeme lexer
+symbol     = P.symbol lexer
+natural    = P.natural lexer
+parens     = P.parens lexer
+semi       = P.semi lexer
+identifier = P.identifier lexer
+reserved   = P.reserved lexer
+reservedOp = P.reservedOp lexer
+
+
+ledgerfile :: Parser Ledger
+ledgerfile = ledger <|> ledgerfromtimelog
+
+
+-- standard ledger file parser
 {-
 Here's the ledger 2.5 grammar:
 "The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
@@ -108,33 +140,6 @@ i, o, b, h
 -}
 -- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
 -- sample data in Tests.hs 
-
--- set up token parsing, though we're not yet using these much
-ledgerLanguageDef = LanguageDef {
-   commentStart   = ""
-   , commentEnd     = ""
-   , commentLine    = ";"
-   , nestedComments = False
-   , identStart     = letter <|> char '_'
-   , identLetter    = alphaNum <|> oneOf "_':"
-   , opStart        = opLetter emptyDef
-   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
-   , reservedOpNames= []
-   , reservedNames  = []
-   , caseSensitive  = False
-   }
-lexer      = P.makeTokenParser ledgerLanguageDef
-whiteSpace = P.whiteSpace lexer
-lexeme     = P.lexeme lexer
-symbol     = P.symbol lexer
-natural    = P.natural lexer
-parens     = P.parens lexer
-semi       = P.semi lexer
-identifier = P.identifier lexer
-reserved   = P.reserved lexer
-reservedOp = P.reservedOp lexer
-
--- ledger file parsers
 
 ledger :: Parser Ledger
 ledger = do
@@ -245,6 +250,7 @@ whiteSpace1 :: Parser ()
 whiteSpace1 = do space; whiteSpace
 
 
+-- timelog file parser
 {- 
 timelog grammar, from timeclock.el 2.6
 
@@ -281,7 +287,16 @@ o 2007/03/10 17:26:02
 
 -}
 
--- timelog file parsers
+ledgerfromtimelog :: Parser Ledger
+ledgerfromtimelog = do 
+  tl <- timelog
+  return $ ledgerFromTimeLog tl
+
+timelog :: Parser TimeLog
+timelog = do
+  entries <- many timelogentry
+  eof
+  return $ TimeLog entries
 
 timelogentry :: Parser TimeLogEntry
 timelogentry = do
@@ -306,5 +321,6 @@ printParseResult r = case r of Left e -> parseError e
                                Right v -> print v
 
 parseLedgerFile :: String -> IO (Either ParseError Ledger)
-parseLedgerFile f = parseFromFile ledger f
-
+parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
+parseLedgerFile f   = parseFromFile ledgerfile f
+    

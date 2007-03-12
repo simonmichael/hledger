@@ -1,86 +1,76 @@
-
-module Options (module Options, usageInfo)
+module Options
 where
 import System.Console.GetOpt
+import System.Directory
 import System.Environment (getEnv)
 import Data.Maybe (fromMaybe)
     
 import Utils
 
 
-usageHeader = "Usage: hledger [OPTIONS] register|balance [MATCHARGS]"
-
-getOptions :: [String] -> IO ([Flag], [String])
-getOptions argv =
-    case getOpt RequireOrder options argv of
-      (o,n,[]  ) -> return (o,n)
-      (_,_,errs) -> ioError (userError (concat errs ++ usageInfo usageHeader options))
+usage          = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
+commands       = "register|balance"
+defaultcmd     = "register"
+ledgerFilePath = findFileFromOpts "~/ledger.dat" "LEDGER"
 
 options :: [OptDescr Flag]
 options = [
-            Option ['v'] ["version"] (NoArg Version)     "show version number"
-          , Option ['f'] ["file"]    (OptArg readFileOpt "FILE") "ledger file, or - to read stdin"
-          , Option ['s'] ["subtotal"] (NoArg ShowSubs)     "balance: show sub-accounts" --; register: show subtotals"
-          ]
+ Option ['f'] ["file"]     (ReqArg File "FILE") "ledger file; - means use standard input",
+ Option ['s'] ["showsubs"] (NoArg ShowSubs)     "balance report: show subaccounts" -- register: show subtotals
+ --Option ['V'] ["version"]  (NoArg Version)      "show version"
+ ]
 
-data Flag = Version | File String | ShowSubs deriving (Show,Eq)
-    
-readFileOpt :: Maybe String -> Flag
-readFileOpt  = File . fromMaybe "stdin"
-    
-getFile :: Flag -> String
-getFile (File s) = s
-getFile _ = []
+data Flag = 
+    File String | 
+    ShowSubs |
+    Version
+    deriving (Show,Eq)
 
-getLedgerFilePath :: [Flag] -> IO String
-getLedgerFilePath opts = do
-  defaultpath <- tildeExpand "~/ledger.dat"
-  envordefault <- getEnv "LEDGER" `catch` \_ -> return defaultpath
-  path <- tildeExpand envordefault
-  return $ last $ [envordefault] ++ (filter (/= "") (map getFile opts))
+parseOptions :: [String] -> IO ([Flag], [String])
+parseOptions argv =
+    case getOpt RequireOrder options argv of
+      (opts,[],[])   -> return (opts, [defaultcmd])
+      (opts,args,[]) -> return (opts, args)
+      (_,_,errs)     -> ioError (userError (concat errs ++ showusage))
 
--- ledger pattern args are a list of account patterns optionally followed
--- by -- and a list of description patterns
-ledgerPatternArgs :: [String] -> ([String],[String])
-ledgerPatternArgs args = 
+-- testoptions RequireOrder ["foo","-v"]
+-- testoptions Permute ["foo","-v"]
+-- testoptions (ReturnInOrder Arg) ["foo","-v"]
+-- testoptions Permute ["foo","--","-v"]
+-- testoptions Permute ["-?o","--name","bar","--na=baz"]
+-- testoptions Permute ["--ver","foo"]
+testoptions order cmdline = putStr $ 
+    case getOpt order options cmdline of
+      (o,n,[]  ) -> "options=" ++ show o ++ "  args=" ++ show n
+      (_,_,errs) -> concat errs ++ showusage
+
+showusage = usageInfo usage options
+
+-- find a file path from options, an env var or a default value
+findFileFromOpts :: FilePath -> String -> [Flag] -> IO String
+findFileFromOpts defaultpath envvar opts = do
+  envordefault <- getEnv envvar `catch` \_ -> return defaultpath
+  paths <- mapM tildeExpand $ [envordefault] ++ (concatMap getfile opts)
+  return $ last paths
+    where
+      getfile (File s) = [s]
+      getfile _ = []
+
+tildeExpand              :: FilePath -> IO FilePath
+tildeExpand ('~':[])     =  getHomeDirectory
+tildeExpand ('~':'/':xs) =  getHomeDirectory >>= return . (++ ('/':xs))
+-- -- ~name, requires -fvia-C or ghc 6.8
+-- --import System.Posix.User
+-- -- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
+-- --                                pw <- getUserEntryForName user
+-- --                                return (homeDirectory pw ++ path)
+tildeExpand xs           =  return xs
+-- -- courtesy of allberry_b
+
+-- ledger pattern args are 0 or more account patterns optionally followed
+-- by -- and 0 or more description patterns
+parseLedgerPatternArgs :: [String] -> ([String],[String])
+parseLedgerPatternArgs args = 
     case "--" `elem` args of
       True -> ((takeWhile (/= "--") args), tail $ (dropWhile (/= "--") args))
       False -> (args,[])
-
-getDepth :: [Flag] -> Int
-getDepth opts = 
-    maximum $ [1] ++ map depthval opts where
-        depthval (ShowSubs) = 9999
-        depthval _ = 1
-
-
--- example:
---     module Opts where
-    
---     import System.Console.GetOpt
---     import Data.Maybe ( fromMaybe )
-    
---     data Flag 
---      = Verbose  | Version 
---      | Input String | Output String | LibDir String
---        deriving Show
-    
---     options :: [OptDescr Flag]
---     options =
---      [ Option ['v']     ["verbose"] (NoArg Verbose)       "chatty output on stderr"
---      , Option ['V','?'] ["version"] (NoArg Version)       "show version number"
---      , Option ['o']     ["output"]  (OptArg outp "FILE")  "output FILE"
---      , Option ['c']     []          (OptArg inp  "FILE")  "input FILE"
---      , Option ['L']     ["libdir"]  (ReqArg LibDir "DIR") "library directory"
---      ]
-    
---     inp,outp :: Maybe String -> Flag
---     outp = Output . fromMaybe "stdout"
---     inp  = Input  . fromMaybe "stdin"
-    
---     compilerOpts :: [String] -> IO ([Flag], [String])
---     compilerOpts argv = 
---        case getOpt Permute options argv of
---           (o,n,[]  ) -> return (o,n)
---           (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
---       where header = "Usage: ic [OPTION...] files..."

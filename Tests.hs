@@ -225,12 +225,19 @@ ledger7 = Ledger
           ]
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
-timelogentry2_str  = "o 2007/03/11 16:30:00\n"
-
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
+
+timelogentry2_str  = "o 2007/03/11 16:30:00\n"
 timelogentry2 = TimeLogEntry 'o' "2007/03/11 16:30:00" ""
 
-
+timelog1_str = concat [
+                timelogentry1_str,
+                timelogentry2_str
+               ]
+timelog1 = TimeLog [
+            timelogentry1,
+            timelogentry2
+           ]
 
 
 -- utils
@@ -304,14 +311,16 @@ props =
       "expenses:phone","expenses:vacation","liabilities","liabilities:credit cards",
       "liabilities:credit cards:discover"]
     ,
-     ledgerPatternArgs [] == ([],[])
-    ,ledgerPatternArgs ["a"] == (["a"],[])
-    ,ledgerPatternArgs ["a","b"] == (["a","b"],[])
-    ,ledgerPatternArgs ["a","b","--"] == (["a","b"],[])
-    ,ledgerPatternArgs ["a","b","--","c","b"] == (["a","b"],["c","b"])
-    ,ledgerPatternArgs ["--","c"] == ([],["c"])
-    ,ledgerPatternArgs ["--"] == ([],[])
+     parseLedgerPatternArgs [] == ([],[])
+    ,parseLedgerPatternArgs ["a"] == (["a"],[])
+    ,parseLedgerPatternArgs ["a","b"] == (["a","b"],[])
+    ,parseLedgerPatternArgs ["a","b","--"] == (["a","b"],[])
+    ,parseLedgerPatternArgs ["a","b","--","c","b"] == (["a","b"],["c","b"])
+    ,parseLedgerPatternArgs ["--","c"] == ([],["c"])
+    ,parseLedgerPatternArgs ["--"] == ([],[])
     ,parse' timelogentry timelogentry1_str `parseEquals` timelogentry1
     ,parse' timelogentry timelogentry2_str `parseEquals` timelogentry2
+    ,parse' timelog timelog1_str `parseEquals` timelog1
     ]
+
 

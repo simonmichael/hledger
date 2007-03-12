@@ -4,7 +4,7 @@ module Models (
                module AccountName,
                module Transaction,
                module Entry,
-               module TimeLogEntry,
+               module TimeLog,
                module EntryTransaction,
                module Ledger,
                module Account
@@ -16,7 +16,7 @@ import BasicTypes
 import AccountName
 import Transaction
 import Entry
-import TimeLogEntry
+import TimeLog
 import EntryTransaction
 import Ledger
 import Account

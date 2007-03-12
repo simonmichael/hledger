@@ -1,7 +1,10 @@
 feature: read timelog files
  timelog parser
-  convert timelog entries to ledger entries
-  read whole file
+  handle time amounts
+   fix arithmetic
+  calculate time intervals
+   find datetime type
+  auto-generate missing clock-out
 
 optimization: add CookedLedger caching txns etc.
  profile again
