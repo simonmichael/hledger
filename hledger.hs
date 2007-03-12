@@ -44,33 +44,32 @@ import Utils
 main :: IO ()
 main = do
   (opts, (cmd:args)) <- getArgs >>= parseOptions
-  run cmd opts args
-  where run cmd opts args 
-            | cmd `isPrefixOf` "register" = register opts args
-            | cmd `isPrefixOf` "balance"  = balance opts args
+  let (acctpats, descpats) = parseLedgerPatternArgs args
+  run cmd opts acctpats descpats
+  where run cmd opts acctpats descpats
+            | cmd `isPrefixOf` "register" = register opts acctpats descpats
+            | cmd `isPrefixOf` "balance"  = balance opts acctpats descpats
             | cmd `isPrefixOf` "test"     = test
             | otherwise                   = putStr usage
 
 -- commands
 
-register :: [Flag] -> [String] -> IO ()
-register opts args = do 
-  doWithLedger opts $ printRegister
+register :: [Flag] -> [String] -> [String] -> IO ()
+register opts acctpats descpats = do 
+  doWithLedger opts printRegister
     where 
       printRegister ledger = 
           putStr $ showTransactionsWithBalances 
                      (ledgerTransactionsMatching (acctpats,descpats) ledger)
                      0
-              where (acctpats,descpats) = parseLedgerPatternArgs args
 
-balance :: [Flag] -> [String] -> IO ()
-balance opts args = do
-  doWithLedger opts $ printBalance
+balance :: [Flag] -> [String] -> [String] -> IO ()
+balance opts acctpats _ = do 
+  doWithLedger opts printBalance
     where
       printBalance ledger =
           putStr $ showLedgerAccounts ledger acctpats showsubs maxdepth
               where 
-                (acctpats,_) = parseLedgerPatternArgs args
                 showsubs = (ShowSubs `elem` opts)
                 maxdepth = case (acctpats, showsubs) of
                              ([],False) -> 1
