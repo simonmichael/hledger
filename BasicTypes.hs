@@ -3,7 +3,8 @@ where
 import Utils
 
 
-type Date     = String
+type Date = String
+type DateTime = String
 
 -- amounts
 {- a simple amount is a currency, quantity pair:

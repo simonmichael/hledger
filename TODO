@@ -1,8 +1,10 @@
-optimization: add CookedLedger caching txns etc.
- profile again
-
 feature: read timelog files
  timelog parser
+  convert timelog entries to ledger entries
+  read whole file
+
+optimization: add CookedLedger caching txns etc.
+ profile again
 
 speed
  profile, refactor, optimize

@@ -224,6 +224,14 @@ ledger7 = Ledger
                  }
           ]
 
+timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
+timelogentry2_str  = "o 2007/03/11 16:30:00\n"
+
+timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
+timelogentry2 = TimeLogEntry 'o' "2007/03/11 16:30:00" ""
+
+
+
 
 -- utils
 
@@ -303,5 +311,7 @@ props =
     ,ledgerPatternArgs ["a","b","--","c","b"] == (["a","b"],["c","b"])
     ,ledgerPatternArgs ["--","c"] == ([],["c"])
     ,ledgerPatternArgs ["--"] == ([],[])
+    ,parse' timelogentry timelogentry1_str `parseEquals` timelogentry1
+    ,parse' timelogentry timelogentry2_str `parseEquals` timelogentry2
     ]
 

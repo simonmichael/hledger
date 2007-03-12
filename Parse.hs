@@ -245,6 +245,57 @@ whiteSpace1 :: Parser ()
 whiteSpace1 = do space; whiteSpace
 
 
+{- 
+timelog grammar, from timeclock.el 2.6
+
+A timelog contains data in the form of a single entry per line.
+Each entry has the form:
+
+  CODE YYYY/MM/DD HH:MM:SS [COMMENT]
+
+CODE is one of: b, h, i, o or O.  COMMENT is optional when the code is
+i, o or O.  The meanings of the codes are:
+
+  b  Set the current time balance, or \"time debt\".  Useful when
+     archiving old log data, when a debt must be carried forward.
+     The COMMENT here is the number of seconds of debt.
+
+  h  Set the required working time for the given day.  This must
+     be the first entry for that day.  The COMMENT in this case is
+     the number of hours in this workday.  Floating point amounts
+     are allowed.
+
+  i  Clock in.  The COMMENT in this case should be the name of the
+     project worked on.
+
+  o  Clock out.  COMMENT is unnecessary, but can be used to provide
+     a description of how the period went, for example.
+
+  O  Final clock out.  Whatever project was being worked on, it is
+     now finished.  Useful for creating summary reports.
+
+example:
+
+i 2007/03/10 12:26:00 hledger
+o 2007/03/10 17:26:02
+
+-}
+
+-- timelog file parsers
+
+timelogentry :: Parser TimeLogEntry
+timelogentry = do
+  code <- oneOf "bhioO"
+  many1 spacenonewline
+  date <- ledgerdate
+  time <- many $ oneOf "0123456789:"
+  let datetime = date ++ " " ++ time
+  many spacenonewline
+  comment <- restofline
+  return $ TimeLogEntry code datetime comment
+
+
+
 -- utils
 
 parseError :: (Show a) => a -> IO ()
