@@ -137,39 +137,47 @@ ledgerAccountTreeMatching l acctpats showsubs maxdepth =
 --   g
 showAccountTree :: Ledger -> Tree Account -> String
 showAccountTree l = showAccountTree' l 0 . interestingAccountsFrom
-    
+
+showAccountTree' l indentlevel t
+    -- if this acct is boring, don't show it
+    | isBoringInnerAccount l acct = subacctsindented 0
+    -- otherwise show normal indented account name with balance, 
+    -- prefixing the names of any boring parents
+    | otherwise = 
+        bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n" ++ (subacctsindented 1)
+    where
+      acct = root t
+      subacctsindented i = concatMap (showAccountTree' l (indentlevel+i)) $ branches t
+      bal = printf "%20s" $ show $ abalance $ acct
+      indent = replicate (indentlevel * 2) ' '
+      prefix = concatMap (++ ":") $ map accountLeafName boringparents
+      boringparents = takeWhile (isBoringInnerAccountName l) $ parentAccountNames $ aname acct
+      leafname = accountLeafName $ aname acct
+
+isBoringInnerAccount :: Ledger -> Account -> Bool
+isBoringInnerAccount l a
+    | name == "top" = False
+    | (length txns == 0) && ((length subs) == 1) = True
+    | otherwise = False
+    where
+      name = aname a
+      txns = atransactions a
+      subs = subAccountNamesFrom (ledgerAccountNames l) name
+
+-- darnit, still need this
+isBoringInnerAccountName :: Ledger -> AccountName -> Bool
+isBoringInnerAccountName l name
+    | name == "top" = False
+    | (length txns == 0) && ((length subs) == 1) = True
+    | otherwise = False
+    where
+      txns = transactionsInAccountNamed l name
+      subs = subAccountNamesFrom (ledgerAccountNames l) name
+
 interestingAccountsFrom :: Tree Account -> Tree Account
 interestingAccountsFrom =
     treefilter hastxns . treefilter hasbalance
     where 
       hasbalance = (/= 0) . abalance
       hastxns = (> 0) . length . atransactions
-
-showAccountTree' l indentlevel t
-    -- if this acct is boring, don't show it (unless this is as deep as we're going)
-    | isBoringAccount l name = subacctsindented 0
-
-    -- otherwise show normal indented account name with balance
-    -- if this acct has one or more boring parents, prepend their names
-    | otherwise = 
-        bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n" ++ (subacctsindented 1)
-
-    where
-      subacctsindented i = 
-          concatMap (showAccountTree' l (indentlevel+i)) $ branches t
-      bal = printf "%20s" $ show $ abalance $ root t
-      indent = replicate (indentlevel * 2) ' '
-      prefix = concatMap (++ ":") $ map accountLeafName boringparents
-      boringparents = takeWhile (isBoringAccount l) $ parentAccountNames name
-      leafname = accountLeafName name
-      name = aname $ root t
-
-isBoringAccount :: Ledger -> AccountName -> Bool
-isBoringAccount l a
-    | a == "top" = False
-    | (length txns == 0) && ((length subs) == 1) = True
-    | otherwise = False
-    where
-      txns = transactionsInAccountNamed l a
-      subs = subAccountNamesFrom (ledgerAccountNames l) a
 
