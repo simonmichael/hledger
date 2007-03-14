@@ -7,10 +7,12 @@
       - read seconds to pico
       try System.Time ?
 
-** fix up Amounts
-*** allow flexible display by currency
-*** allow parsing by currency
-*** fix arithmetic
+feature: read timelog files
+ timelog parser
+  handle time amounts
+  calculate time intervals
+   find datetime type
+  auto-generate missing clock-out
 
 ** optimization: add CookedLedger caching txns etc.
 *** profile again
