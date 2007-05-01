@@ -17,6 +17,8 @@
 
 ** speed
 *** profile, refactor, optimize
+   CookedLedger caching acct txns, boring status etc.
+   refactor apis
 
 ** basic features
 *** print
@@ -74,3 +76,39 @@ what does my balance history look like ?
 what does my balance future look like ?
 are there any cashflow, tax, budgetary problems looming ?
 
+* misc
+** testing support
+
+-- {- | looks in Tests.hs for functions like prop_foo and returns
+--   the list.  Requires that Tests.hs be valid Haskell98. -}
+-- tests :: [String]
+-- tests = unsafePerformIO $
+--   do h <- openFile "src/Tests.hs" ReadMode
+--      s <- hGetContents h
+--      case parseModule s of
+--        (ParseOk (HsModule _ _ _ _ ds)) -> return (map declName (filter isProp ds))
+--        (ParseFailed loc s’)            -> error (s’ ++ ” ” ++ show loc)
+
+-- {- | checks if function binding name starts with @prop_@ indicating
+--  that it is a quickcheck property -}
+-- isProp :: HsDecl -> Bool
+-- isProp d@(HsFunBind _) = “prop_” `isPrefixOf` (declName d)
+-- isProp _ = False
+
+-- {- | takes an HsDecl and returns the name of the declaration -}
+-- declName :: HsDecl -> String
+-- declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
+-- declName _                                              = undefined
+
+-- mkCheck name = [| putStr (name ++ ": ")
+--                >> quickCheck $(varE (mkName name)) |]
+
+-- mkChecks []        = undefined -- if we don't have any tests, then the test suite is undefined right?
+-- mkChecks [name]    = mkCheck name
+-- mkChecks (name:ns) = [| $(mkCheck name) >> $(mkChecks ns) |]
+
+-- {-# OPTIONS_GHC -fno-warn-unused-imports -no-recomp -fth #-}
+-- runTests :: IO ()
+-- runTests = $(mkChecks tests)
+
+-- ghc --make Unit.hs -main-is Unit.runTests -o unit
