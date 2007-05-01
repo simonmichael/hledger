@@ -17,6 +17,7 @@ main = do
   let modules = concat $ map ((++ ".hs ") . dropWhile (== ' ')) preamble
   let grep = "grep -H '^\\w[^=]*::' " ++ modules
   (inp, out, err, pid) <- runInteractiveCommand grep
+  waitForProcess pid
   grepoutput <- hGetContents out
   let groups = groupBy (\a b -> samefile a b) $ lines grepoutput
   sequence $ map printgroup groups
