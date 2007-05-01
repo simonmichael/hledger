@@ -1,0 +1,76 @@
+* TO DO
+** feature: read timelog files
+*** timelog parser
+   handle time amounts
+    switch to Data.Time.*
+     fix errors
+      - read seconds to pico
+      try System.Time ?
+
+** fix up Amounts
+*** allow flexible display by currency
+*** allow parsing by currency
+*** fix arithmetic
+
+** optimization: add CookedLedger caching txns etc.
+*** profile again
+
+** speed
+*** profile, refactor, optimize
+
+** basic features
+*** print
+*** !include
+*** , in thousands
+*** -j and -J graph data output
+
+** advanced features
+*** handle mixed amounts
+*** 3.0-style elision
+*** -p period expressions
+*** -d display expressions
+*** read gnucash files
+*** other args, directives
+
+** new features
+*** timelog simple format
+*** auto-generate missing clock-out
+*** graph automation
+*** entry and smart data entry
+*** incorporate timeclock features
+*** better layout
+
+** testing
+*** better use of quickcheck/smallcheck
+     http://blog.codersbase.com/2006/09/01/simple-unit-testing-in-haskell/
+*** ledger compatibility tests
+
+** documentation
+*** literate docs
+*** better use of haddock
+
+** marketing
+*** set up as a cabal/hackage project following wiki howto ?
+     http://en.wikibooks.org/wiki/Haskell/Packaging
+*** announce on haskell list, wiki
+
+
+* things I want to know
+
+** time
+
+where have I been spending my time in recent weeks ?
+where have I spent my time today ?
+what is my status wrt spending plan for this week/month/year ?
+what is my current status wrt time spending goals ?
+
+** money
+
+where have I been spending my money ?
+what is my status wrt spending plan for this week/month/year ?
+what is my current status wrt spending/savings goals ?
+what are all my current balances ?
+what does my balance history look like ?
+what does my balance future look like ?
+are there any cashflow, tax, budgetary problems looming ?
+
