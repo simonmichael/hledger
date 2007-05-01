@@ -59,7 +59,7 @@ addDataToAccountNameTree l ant =
 
 -- balance report support
 --
--- some examples, ignoring the issue of eliding boring accounts
+-- examples, ignoring the issue of eliding boring accounts:
 -- here is a sample account tree:
 --
 -- assets
@@ -116,7 +116,7 @@ ledgerAccountTreeMatching l acctpats showsubs maxdepth =
 -- 2. inner accounts with 0 transactions and 1 subaccount are displayed as
 --    a prefix of the sub
 --
--- so, for example:
+-- example:
 --
 -- a (0 txns)
 --   b (0 txns)

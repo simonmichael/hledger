@@ -1,9 +1,9 @@
 {-
 hledger - ledger-compatible money management tool (& haskell study)
 GPLv3, (c) Simon Michael & contributors
-inspired by John Wiegley's ledger at http://newartisans.com/ledger.html
+A port of John Wiegley's ledger at http://newartisans.com/ledger.html
 
-modules/models are organized roughly like this; each layer can only
+The module/model hierarchy is roughly like this; each layer can only
 reference things below it:
 
 hledger

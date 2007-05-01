@@ -1,25 +1,7 @@
 * TO DO
-** feature: read timelog files
-*** timelog parser
-   handle time amounts
-    switch to Data.Time.*
-     fix errors
-      - read seconds to pico
-      try System.Time ?
-
-*** fix up Amounts
-**** allow flexible display by currency
-**** allow parsing by currency
-**** fix arithmetic
-
-** optimization: add CookedLedger caching txns etc.
-*** profile again
-
-** speed
-*** profile, refactor, optimize
-   CookedLedger caching acct txns, boring status etc.
-   refactor apis
-
+** make balance fast
+*** TODO profile again
+*** TODO add CookedLedger caching txns etc.
 ** basic features
 *** print
 *** !include
@@ -35,6 +17,19 @@
 *** other args, directives
 
 ** new features
+*** feature: read timelog files
+**** fix up Amounts
+***** allow flexible display by currency
+***** allow parsing by currency
+***** fix arithmetic
+
+**** timelog parser
+    handle time amounts
+     switch to Data.Time.*
+      fix errors
+       - read seconds to pico
+       try System.Time ?
+
 *** timelog simple format
 *** auto-generate missing clock-out
 *** graph automation
