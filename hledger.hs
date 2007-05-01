@@ -43,6 +43,7 @@ main = do
   let (acctpats, descpats) = parseLedgerPatternArgs args
   run cmd opts acctpats descpats
   where run cmd opts acctpats descpats
+            | Help `elem` opts            = putStr usage
             | cmd `isPrefixOf` "register" = register opts acctpats descpats
             | cmd `isPrefixOf` "balance"  = balance opts acctpats descpats
             | cmd `isPrefixOf` "test"     = selftest

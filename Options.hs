@@ -16,13 +16,15 @@ ledgerFilePath = findFileFromOpts "~/ledger.dat" "LEDGER"
 options :: [OptDescr Flag]
 options = [
  Option ['f'] ["file"]     (ReqArg File "FILE") "ledger file; - means use standard input",
- Option ['s'] ["showsubs"] (NoArg ShowSubs)     "balance report: show subaccounts" -- register: show subtotals
+ Option ['s'] ["showsubs"] (NoArg ShowSubs)     "balance report: show subaccounts", -- register: show subtotals
+ Option ['h'] ["help"]     (NoArg Help)         "show this help"
  --Option ['V'] ["version"]  (NoArg Version)      "show version"
  ]
 
 data Flag = 
     File String | 
     ShowSubs |
+    Help |
     Version
     deriving (Show,Eq)
 
