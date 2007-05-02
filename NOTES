@@ -1,7 +1,12 @@
 * TO DO
 ** make balance fast
-*** TODO profile again
-*** TODO add CookedLedger caching txns etc.
+*** TODO understand flow, slowdown, solution
+*** TODO get CookedLedger code merged and working
+*** make it fast
+** make some decent tests
+** bugs
+*** space after account makes it a new account
+*** extra blank line required at end of file
 ** basic features
 *** print
 *** !include
