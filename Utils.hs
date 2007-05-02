@@ -57,3 +57,4 @@ treeany f t = (f $ root t) || (any (treeany f) $ branches t)
 -- treedrop -- remove the leaves which do fulfill predicate. 
 -- treedropall -- do this repeatedly.
 
+strace a = trace (show a) a

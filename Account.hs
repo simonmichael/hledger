@@ -181,3 +181,5 @@ interestingAccountsFrom =
       hasbalance = (/= 0) . abalance
       hastxns = (> 0) . length . atransactions
 
+ledgerAccountTree :: Ledger -> Tree Account
+ledgerAccountTree l = addDataToAccountNameTree l (ledgerAccountNameTree l)

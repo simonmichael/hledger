@@ -34,8 +34,8 @@ ledgerTransactionsMatching (acctregexps,descregexps) l =
     (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
     where ts = ledgerTransactions l
 
-ledgerTransactionsInAccount :: Ledger -> AccountName -> [EntryTransaction]
-ledgerTransactionsInAccount l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
+ledgerAccountTransactions :: Ledger -> AccountName -> [EntryTransaction]
+ledgerAccountTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
            
 accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
