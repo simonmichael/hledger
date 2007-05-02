@@ -1,19 +1,21 @@
+BUILD=ghc --make hledger.hs -o hledger
+TOPROFILE=hledger -s balance
+TIME=`date +"%Y%m%d%H%M"`
+
 build: Tags
-	ghc --make hledger.hs -o hledger
+	$(BUILD)
 
-profile:
-	ghc --make -prof -auto-all hledger.hs
-	hledger -s bal +RTS -p
-	T=`date +"%Y%m%d%H%M"`
-	echo $(T)
-	mv hledger.prof `date +"%Y%m%d%H%M"`.prof
-	hledger -s bal +RTS -px
-	mv hledger.prof `date +"%Y%m%d%H%M"`.xprof
-	echo $(T)
-	make xprof
+profile prof:
+	$(BUILD) -prof -auto-all
+	$(TOPROFILE) +RTS -p
+	mv hledger.prof $(TIME).prof
+	cat $(TIME).prof
 
-xprof:
-	ghcprof `ls -t1 *.xprof | head -1`
+xprofile xprof:
+	$(BUILD) -prof -auto-all
+	$(TOPROFILE) +RTS -px
+	mv hledger.prof $(TIME).prof
+	ghcprof $(TIME).prof
 
 haddock:
 	haddock -h -o doc *.hs
