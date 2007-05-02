@@ -1,8 +1,18 @@
--- overview.hs - update an OVERVIEW file
---
--- OVERVIEW should begin with a list of module names (updated manually);
--- below that we generate a list of filename, function, type entries.
--- Useful for getting the big picture and refactoring.
+#!/usr/bin/env runhaskell
+{-
+overview.hs - print an overview of functions from a given list of modules
+
+Usage: ./overview.hs somefile
+
+where somefile, typically your main module, contains the word "overview"
+followed by a blank-line-delimited list of module names, like so:
+
+firstmodule
+anothermodule
+ submodule
+
+Useful for getting the big picture and refactoring.  
+-}
 
 import System
 import System.Process
@@ -11,11 +21,16 @@ import Data.List
 import Text.Printf
 
 main = do
-  old <- readFile "OVERVIEW"
-  let preamble = takeWhile ((> 0) . length) $ lines old
-  putStr $ unlines preamble
-  let modules = concat $ map ((++ ".hs ") . dropWhile (== ' ')) preamble
-  let grep = "grep -H '^\\w[^=]*::' " ++ modules
+  args <- getArgs
+  file <- readFile $ head args
+  let mods = takeWhile ((> 0) . length) $ 
+             dropWhile ((== 0) . length) $ 
+             dropWhile ((> 0) . length) $ 
+             dropWhile (notElem "overview:" . words) $ 
+             lines file
+  putStr $ unlines mods
+  let files = concat $ map ((++ ".hs ") . dropWhile (== ' ')) mods
+  let grep = "grep -H '^\\w[^=]*::' " ++ files
   (inp, out, err, pid) <- runInteractiveCommand grep
   waitForProcess pid
   grepoutput <- hGetContents out

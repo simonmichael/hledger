@@ -19,7 +19,7 @@ haddock:
 	haddock -h -o doc *.hs
 
 overview:
-	runhaskell ./overview.hs >.ovtmp; mv .ovtmp OVERVIEW
+	./overview.hs hledger.hs
 
 loc:
 	@darcs trackdown 'find . -name "*hs" |xargs wc -l |echo OUTPUT `tail -1`; false' |ruby -nae'puts $$F[1] if /^OUTPUT/'
