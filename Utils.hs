@@ -1,3 +1,4 @@
+-- standard imports and utilities
 module Utils (
               module Utils,
               module Data.List,
@@ -18,6 +19,8 @@ import Test.QuickCheck hiding (test, Testable)
 import Test.HUnit
 
 
+-- lists
+
 splitAtElement :: Eq a => a -> [a] -> [[a]]
 splitAtElement e l = 
     case dropWhile (e==) l of
@@ -26,7 +29,7 @@ splitAtElement e l =
         where
           (first,rest) = break (e==) l'
 
--- tree tools
+-- trees
 
 -- aliases
 root = rootLabel
@@ -56,7 +59,5 @@ treeany f t = (f $ root t) || (any (treeany f) $ branches t)
 
 -- debugging
 
-strace a = trace (show a) a
-
--- testing
+strace a = trace (show a) a -- trace a showable expression
 
