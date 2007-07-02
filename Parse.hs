@@ -238,7 +238,7 @@ ledgeramount = try (do
 stripcommas = filter (',' /=)
 
 ledgereol :: Parser String
-ledgereol = ledgercomment <|> do {newline; return []}
+ledgereol = ledgercomment <|> do {newline; return []}  -- XXX problem, a transaction comment containing a digit fails
 
 spacenonewline :: Parser Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
