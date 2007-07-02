@@ -26,7 +26,7 @@ main = do
   let mods = takeWhile ((> 0) . length) $ 
              dropWhile ((== 0) . length) $ 
              dropWhile ((> 0) . length) $ 
-             dropWhile (notElem "overview:" . words) $ 
+             dropWhile (notElem "overview" . words) $ 
              lines file
   putStr $ unlines mods
   let files = concat $ map ((++ ".hs ") . dropWhile (== ' ')) mods
