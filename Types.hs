@@ -5,9 +5,9 @@ import Utils
 {-
 
 First, here is the module hierarchy. The initial implementation defined
-types in each module and so was strictly layered. Now, all types have been
+types in each module and was strictly layered. Now, all types have been
 moved to the bottom, with modules still used to group related functions
-(aka methods - "make overview" to list these).
+(aka methods - make overview to list those).
 
 hledger
  Options
@@ -26,16 +26,6 @@ hledger
           Currency
            Types
             Utils
-
-(Will this allow a more muddled design ?  Possibly, though starting out
-layered probably helped, but note previous comment:
-
-  Each layer can only reference things below it.  A seeming problem:
-  CookedLedger must be at the top so it can cache any of the others. Code
-  below it can not use its fast functions, and code above it should use
-  only its functions for good performance. Upper-level code loses the
-  benefit of many lower-level functions and has to reimplement them as
-  fast versions.)
 
 -}
 
