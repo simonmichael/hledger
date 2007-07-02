@@ -9,9 +9,9 @@ import Amount
 
 
 -- We convert Transactions into EntryTransactions, which are (entry,
--- transaction) pairs, since I couldn't see how to easily have
--- transactions reference their entry like in OO.  These are referred to
--- as just "transactions" hereafter.
+-- transaction) pairs, since I couldn't see how to have transactions
+-- reference their entry like in OO.  These are referred to as just
+-- "transactions" in code above.
 
 type EntryTransaction = (Entry,Transaction)
 
