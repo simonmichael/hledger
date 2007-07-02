@@ -6,7 +6,7 @@ import Currency
 import Amount
 import Transaction
 import Entry
-import Ledger
+import RawLedger
 
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tcode t) (tdatetime t) (tcomment t)
@@ -14,9 +14,9 @@ instance Show TimeLogEntry where
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
 
-ledgerFromTimeLog :: TimeLog -> Ledger
+ledgerFromTimeLog :: TimeLog -> RawLedger
 ledgerFromTimeLog tl = 
-    Ledger [] [] (entriesFromTimeLogEntries $ timelog_entries tl)
+    RawLedger [] [] (entriesFromTimeLogEntries $ timelog_entries tl)
 
 entriesFromTimeLogEntries :: [TimeLogEntry] -> [Entry]
 

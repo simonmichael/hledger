@@ -36,7 +36,7 @@ reserved   = P.reserved lexer
 reservedOp = P.reservedOp lexer
 
 
-ledgerfile :: Parser Ledger
+ledgerfile :: Parser RawLedger
 ledgerfile = ledger <|> ledgerfromtimelog
 
 
@@ -141,7 +141,7 @@ i, o, b, h
 -- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
 -- sample data in Tests.hs 
 
-ledger :: Parser Ledger
+ledger :: Parser RawLedger
 ledger = do
   ledgernondatalines
   -- for now these must come first, unlike ledger
@@ -150,7 +150,7 @@ ledger = do
   --
   entries <- (many ledgerentry) <?> "entry"
   eof
-  return $ Ledger modifier_entries periodic_entries entries
+  return $ RawLedger modifier_entries periodic_entries entries
 
 ledgernondatalines :: Parser [String]
 ledgernondatalines = many (ledgerdirective <|> ledgercomment <|> do {whiteSpace1; return []})
@@ -287,7 +287,7 @@ o 2007/03/10 17:26:02
 
 -}
 
-ledgerfromtimelog :: Parser Ledger
+ledgerfromtimelog :: Parser RawLedger
 ledgerfromtimelog = do 
   tl <- timelog
   return $ ledgerFromTimeLog tl
@@ -320,7 +320,7 @@ printParseResult :: Show v => Either ParseError v -> IO ()
 printParseResult r = case r of Left e -> parseError e
                                Right v -> print v
 
-parseLedgerFile :: String -> IO (Either ParseError Ledger)
+parseLedgerFile :: String -> IO (Either ParseError RawLedger)
 parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
 parseLedgerFile f   = parseFromFile ledgerfile f
     

@@ -17,9 +17,9 @@ hledger
    Models
     TimeLog
      TimeLogEntry
-    CachedLedger
+    Ledger
      Account
-      Ledger
+      RawLedger
        EntryTransaction
         Entry
          Transaction
@@ -92,7 +92,7 @@ data TimeLog = TimeLog {
     } deriving (Eq)
 
 -- a parsed ledger file
-data Ledger = Ledger {
+data RawLedger = RawLedger {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
       entries :: [Entry]
@@ -104,7 +104,7 @@ data Ledger = Ledger {
 -- "transactions" in modules above EntryTransaction.
 type EntryTransaction = (Entry,Transaction)
 
--- all information for a particular account, derived from a Ledger
+-- all information for a particular account, derived from a RawLedger
 data Account = Account {
       aname :: AccountName, 
       atransactions :: [EntryTransaction], -- excludes sub-accounts
@@ -112,8 +112,8 @@ data Account = Account {
     }
 
 -- a ledger with account info cached for faster queries
-data CachedLedger = CachedLedger {
-      uncached_ledger :: Ledger, 
+data Ledger = Ledger {
+      rawledger :: RawLedger, 
       accountnames :: Tree AccountName,
       accounts :: Map.Map AccountName Account
     }

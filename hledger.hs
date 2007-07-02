@@ -63,11 +63,11 @@ selftest = do
 
 -- utils
 
-doWithLedger :: [Flag] -> (CachedLedger -> IO ()) -> IO ()
+doWithLedger :: [Flag] -> (Ledger -> IO ()) -> IO ()
 doWithLedger opts cmd = do
     ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed cmd
 
-doWithParsed :: (CachedLedger -> IO ()) -> (Either ParseError Ledger) -> IO ()
+doWithParsed :: (Ledger -> IO ()) -> (Either ParseError RawLedger) -> IO ()
 doWithParsed cmd parsed = do
   case parsed of Left e -> parseError e
                  Right l -> cmd $ cacheLedger l
@@ -75,7 +75,7 @@ doWithParsed cmd parsed = do
 -- interactive testing:
 --
 -- p <- ledgerFilePath [] >>= parseLedgerFile
--- let l = either (\_ -> Ledger [] [] []) id p
+-- let l = either (\_ -> RawLedger [] [] []) id p
 -- let ant = ledgerAccountNameTree l
 -- let at = ledgerAccountTreeMatching l [] True 999
 -- putStr $ drawTree $ treemap show $ ledgerAccountTreeMatching l ["a"] False 999

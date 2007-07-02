@@ -8,9 +8,9 @@ module Models (
                module Entry,
                module TimeLog,
                module EntryTransaction,
-               module Ledger,
+               module RawLedger,
                module Account,
-               module CachedLedger,
+               module Ledger,
               )
 where
 import qualified Data.Map as Map
@@ -23,7 +23,7 @@ import Transaction
 import Entry
 import TimeLog
 import EntryTransaction
-import Ledger
+import RawLedger
 import Account
-import CachedLedger
+import Ledger
 

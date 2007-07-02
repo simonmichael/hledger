@@ -155,7 +155,7 @@ ledger7_str = "\
 \\n" --"
 
 l = ledger7
-ledger7 = Ledger
+ledger7 = RawLedger
           [] 
           [] 
           [

@@ -3,54 +3,47 @@ where
 import qualified Data.Map as Map
 
 import Utils
-import AccountName
 import Types
-import Entry
+import Account
+import AccountName
 import EntryTransaction
+import RawLedger
 
 
-instance Show Ledger where
-    show l = printf "Ledger with %d entries"
-             ((length $ entries l) +
-              (length $ modifier_entries l) +
-              (length $ periodic_entries l))
+cacheLedger :: RawLedger -> Ledger
+cacheLedger l = 
+    Ledger 
+    l
+    (ledgerAccountNameTree l)
+    (Map.fromList [(a, ledgerAccount l a) | a <- ledgerAccountNames l])
 
-ledgerTransactions :: Ledger -> [EntryTransaction]
-ledgerTransactions l = entryTransactionsFrom $ entries l
+cLedgerTransactions :: Ledger -> [EntryTransaction]
+cLedgerTransactions l = concatMap atransactions $ Map.elems $ accounts l
 
-ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
-ledgerTransactionsMatching ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) l
-ledgerTransactionsMatching (rs,[]) l = ledgerTransactionsMatching (rs,[".*"]) l
-ledgerTransactionsMatching ([],rs) l = ledgerTransactionsMatching ([".*"],rs) l
-ledgerTransactionsMatching (acctregexps,descregexps) l =
+-- unoptimised
+cLedgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
+cLedgerTransactionsMatching pats l = ledgerTransactionsMatching pats $ rawledger l
+
+-- XXX optimise
+cLedgerTransactionsMatching1 :: ([String],[String]) -> Ledger -> [EntryTransaction]
+cLedgerTransactionsMatching1 ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) (rawledger l)
+cLedgerTransactionsMatching1 (rs,[]) l = ledgerTransactionsMatching (rs,[".*"]) (rawledger l)
+cLedgerTransactionsMatching1 ([],rs) l = ledgerTransactionsMatching ([".*"],rs) (rawledger l)
+cLedgerTransactionsMatching1 (acctregexps,descregexps) l =
     intersect 
     (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
     (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
-    where ts = ledgerTransactions l
+    where ts = cLedgerTransactions l
 
-ledgerAccountTransactions :: Ledger -> AccountName -> [EntryTransaction]
-ledgerAccountTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
-           
-accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
-accountNamesFromTransactions ts = nub $ map account ts
+-- unoptimised
+showCLedgerAccounts :: Ledger -> [String] -> Bool -> Int -> String
+showCLedgerAccounts l acctpats showsubs maxdepth = 
+    showLedgerAccounts (rawledger l) acctpats showsubs maxdepth
 
-ledgerAccountNamesUsed :: Ledger -> [AccountName]
-ledgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
-
-ledgerAccountNames :: Ledger -> [AccountName]
-ledgerAccountNames = sort . expandAccountNames . ledgerAccountNamesUsed
-
-ledgerTopAccountNames :: Ledger -> [AccountName]
-ledgerTopAccountNames l = filter (notElem ':') (ledgerAccountNames l)
-
-ledgerAccountNamesMatching :: [String] -> Ledger -> [AccountName]
-ledgerAccountNamesMatching [] l = ledgerAccountNamesMatching [".*"] l
-ledgerAccountNamesMatching acctregexps l =
-    concat [filter (matchAccountName r) accountNames | r <- acctregexps]
-        where accountNames = ledgerTopAccountNames l
-
-ledgerAccountNameTree :: Ledger -> Tree AccountName
-ledgerAccountNameTree l = accountNameTreeFrom $ ledgerAccountNames l
-
-
+-- XXX optimise
+showCLedgerAccounts1 :: Ledger -> [String] -> Bool -> Int -> String
+showCLedgerAccounts1 l acctpats showsubs maxdepth = 
+    concatMap 
+    (showAccountTree (rawledger l)) 
+    (branches (ledgerAccountTreeMatching (rawledger l) acctpats showsubs maxdepth))
 
