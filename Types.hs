@@ -1,6 +1,7 @@
-module Types
+module Types 
 where
 import Utils
+import qualified Data.Map as Map
 
 {-
 
@@ -16,16 +17,17 @@ hledger
    Models
     TimeLog
      TimeLogEntry
-    Account
-     Ledger
-      EntryTransaction
-       Entry
-        Transaction
-         AccountName
-         Amount
-          Currency
-           Types
-            Utils
+    CachedLedger
+     Account
+      Ledger
+       EntryTransaction
+        Entry
+         Transaction
+          AccountName
+          Amount
+           Currency
+            Types
+             Utils
 
 -}
 
@@ -78,14 +80,7 @@ data PeriodicEntry = PeriodicEntry {
       p_transactions :: [Transaction]
     } deriving (Eq)
 
--- a parsed ledger file
-data Ledger = Ledger {
-      modifier_entries :: [ModifierEntry],
-      periodic_entries :: [PeriodicEntry],
-      entries :: [Entry]
-    } deriving (Eq)
-
--- we also process timeclock.el's timelogs
+-- we also parse timeclock.el's timelogs (as a ledger)
 data TimeLogEntry = TimeLogEntry {
       tcode :: Char,
       tdatetime :: DateTime,
@@ -96,17 +91,30 @@ data TimeLog = TimeLog {
       timelog_entries :: [TimeLogEntry]
     } deriving (Eq)
 
+-- a parsed ledger file
+data Ledger = Ledger {
+      modifier_entries :: [ModifierEntry],
+      periodic_entries :: [PeriodicEntry],
+      entries :: [Entry]
+    } deriving (Eq)
+
 -- We convert Transactions into EntryTransactions, which are (entry,
 -- transaction) pairs, since I couldn't see how to have transactions
 -- reference their entry like in OO.  These are referred to as just
 -- "transactions" in modules above EntryTransaction.
 type EntryTransaction = (Entry,Transaction)
 
--- an Account caches a particular account's name, balance and transactions
--- from a Ledger
+-- all information for a particular account, derived from a Ledger
 data Account = Account {
       aname :: AccountName, 
       atransactions :: [EntryTransaction], -- excludes sub-accounts
       abalance :: Amount                   -- includes sub-accounts
+    }
+
+-- a ledger with account info cached for faster queries
+data CachedLedger = CachedLedger {
+      uncached_ledger :: Ledger, 
+      accountnames :: Tree AccountName,
+      accounts :: Map.Map AccountName Account
     }
 

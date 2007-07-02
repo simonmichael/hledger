@@ -262,6 +262,7 @@ tests = runTestTT $ test [
         , test_autofillEntry
         , test_expandAccountNames
         , test_ledgerAccountNames
+        , test_cacheLedger
         , 2 @=? 2
         ]
 
@@ -288,6 +289,10 @@ test_ledgerAccountNames =
     "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
      "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
     (ledgerAccountNames ledger7)
+
+test_cacheLedger =
+    assertEqual' 14 (length $ Map.keys $ accounts $ cacheLedger ledger7)
+    
 
 -- quickcheck properties
 

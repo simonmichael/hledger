@@ -37,17 +37,17 @@ register :: [Flag] -> [String] -> [String] -> IO ()
 register opts acctpats descpats = do 
   doWithLedger opts printRegister
     where 
-      printRegister ledger = 
+      printRegister l = 
           putStr $ showTransactionsWithBalances 
-                     (ledgerTransactionsMatching (acctpats,descpats) ledger)
+                     (cLedgerTransactionsMatching (acctpats,descpats) l)
                      0
 
 balance :: [Flag] -> [String] -> [String] -> IO ()
 balance opts acctpats _ = do 
   doWithLedger opts printBalance
     where
-      printBalance ledger =
-          putStr $ showLedgerAccounts ledger acctpats showsubs maxdepth
+      printBalance l =
+          putStr $ showCLedgerAccounts l acctpats showsubs maxdepth
               where 
                 showsubs = (ShowSubs `elem` opts)
                 maxdepth = case (acctpats, showsubs) of
@@ -63,14 +63,14 @@ selftest = do
 
 -- utils
 
-doWithLedger :: [Flag] -> (Ledger -> IO ()) -> IO ()
+doWithLedger :: [Flag] -> (CachedLedger -> IO ()) -> IO ()
 doWithLedger opts cmd = do
     ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed cmd
 
-doWithParsed :: Show a => (a -> IO ()) -> (Either ParseError a) -> IO ()
-doWithParsed action parsed = do
+doWithParsed :: (CachedLedger -> IO ()) -> (Either ParseError Ledger) -> IO ()
+doWithParsed cmd parsed = do
   case parsed of Left e -> parseError e
-                 Right l -> action l
+                 Right l -> cmd $ cacheLedger l
 
 -- interactive testing:
 --

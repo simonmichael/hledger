@@ -2,7 +2,8 @@ hledger project notes
 
 * TO DO
 ** make balance fast
-*** understand balance report execution, slowness, solution
+*** TODO optimise with CachedLedger
+**** original
 ******** transactionsInAccountNamed                Account                             12   0.0    0.1    66.7   18.7
 ********* ledgerTransactionsMatching               Ledger                              24   0.0    8.4    66.7   18.6
 ********** matchTransactionDescription             EntryTransaction                    48   0.0    0.7     0.0    0.7
@@ -10,9 +11,10 @@ hledger project notes
 ********** matchTransactionAccount                 EntryTransaction                    864  66.7    7.3    66.7    7.3
 *********** account                                EntryTransaction                    864   0.0    0.0     0.0    0.0
     
-*** make it fast
-**** TODO reorganize Ledger/Account
-**** substitute CookedLedger
+**** with cachedledger, unoptimised
+      matchTransactionAccount EntryTransaction           619       86602  13.4    2.4    13.5    2.4
+      matchTransactionAccount EntryTransaction           558       91637  22.8    2.8    22.9    2.8
+      matchTransactionAccount EntryTransaction           520       91637  16.8    2.6    16.9    2.6
 ** make some decent tests
 ** bugs
 *** space after account makes it a new account
