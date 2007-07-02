@@ -2,8 +2,9 @@ module Amount
 where
 import Utils
 import Types
+import Currency
 
-{- 
+{-
 a simple amount is a currency, quantity pair:
 
   $1 
@@ -40,43 +41,6 @@ tests = runTestTT $ test [
          parseAmount "$1"   ~?= dollars 1 -- currently 0
         ]
 
--- currency
-
-data Currency = Currency {
-      symbol :: String,
-      rate :: Double -- relative to the dollar
-    } deriving (Eq,Show)
-
-currencies = 
-    [
-     Currency "$"   1        
-    ,Currency "EUR" 0.760383 
-    ,Currency "£"   0.512527 
-    ,Currency "h"   60         -- hours
-    ,Currency "m"   1          -- minutes
-    ]
-
-getcurrency :: String -> Currency
-getcurrency s = head $ [(Currency symbol rate) | (Currency symbol rate) <- currencies, symbol==s]
-
--- convenience
-dollars = Amount $ getcurrency "$"
-euro    = Amount $ getcurrency "EUR"
-pounds  = Amount $ getcurrency "£"
-hours   = Amount $ getcurrency "h"
-minutes = Amount $ getcurrency "m"
-
-conversionRate :: Currency -> Currency -> Double
-conversionRate oldc newc = (rate newc) / (rate oldc)
-
-
--- amount    
-
-data Amount = Amount {
-                      currency :: Currency,
-                      quantity :: Double
-                     } deriving (Eq)
-
 instance Show Amount where show = showAmountRoundedOrZero
 
 nullamt = dollars 0
@@ -106,9 +70,4 @@ Amount ac aq `amountMul` b = Amount ac (aq * (quantity $ toCurrency ac b))
 toCurrency :: Currency -> Amount -> Amount
 toCurrency newc (Amount oldc q) =
     Amount newc (q * (conversionRate oldc newc))
-
-
--- mixed amounts
-
---data MixedAmount = MixedAmount [Amount] deriving (Eq,Ord)
 

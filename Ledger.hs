@@ -9,12 +9,6 @@ import Entry
 import EntryTransaction
 
 
-data Ledger = Ledger {
-                      modifier_entries :: [ModifierEntry],
-                      periodic_entries :: [PeriodicEntry],
-                      entries :: [Entry]
-                     } deriving (Eq)
-
 instance Show Ledger where
     show l = printf "Ledger with %d entries"
              ((length $ entries l) +

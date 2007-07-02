@@ -26,9 +26,6 @@ splitAtElement e l =
         where
           (first,rest) = break (e==) l'
 
--- testing support
-
-
 -- tree tools
 
 root = rootLabel
@@ -37,8 +34,7 @@ branches = subForest
 -- remove all nodes past a certain depth
 treeprune :: Int -> Tree a -> Tree a
 treeprune 0 t = Node (root t) []
-treeprune d t = 
-    Node (root t) (map (treeprune $ d-1) $ branches t)
+treeprune d t = Node (root t) (map (treeprune $ d-1) $ branches t)
 
 -- apply f to all tree nodes
 treemap :: (a -> b) -> Tree a -> Tree b
@@ -57,4 +53,9 @@ treeany f t = (f $ root t) || (any (treeany f) $ branches t)
 -- treedrop -- remove the leaves which do fulfill predicate. 
 -- treedropall -- do this repeatedly.
 
+-- debugging
+
 strace a = trace (show a) a
+
+-- testing
+

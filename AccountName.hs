@@ -5,7 +5,6 @@ import Types
 
 -- AccountNames are strings like "assets:cash:petty"; from these we build
 -- the chart of accounts, which should be a simple hierarchy. 
-type AccountName = String
 
 accountNameComponents :: AccountName -> [String]
 accountNameComponents = splitAtElement ':'

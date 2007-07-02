@@ -4,25 +4,7 @@ hledger - ledger-compatible money management tool (& haskell study)
 GPLv3, (c) Simon Michael & contributors
 A port of John Wiegley's ledger at http://newartisans.com/ledger.html
 
-Here is a rough overview of the module/model hierarchy:
-
-hledger
- Options
- Tests
-  Parse
-   Models
-    TimeLog
-     TimeLogEntry
-    Account
-     Ledger
-      EntryTransaction
-       Entry
-        Transaction
-         AccountName
-         Amount
-         Types
-          Utils
-
+See Types.hs for a code overview.
 -}
 
 module Main

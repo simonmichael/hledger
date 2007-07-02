@@ -7,11 +7,6 @@ import AccountName
 import Amount
 
 
-data Transaction = Transaction {
-                                taccount :: AccountName,
-                                tamount :: Amount
-                               } deriving (Eq)
-
 instance Show Transaction where show = showTransaction
 
 showTransaction t = (showAccountName $ taccount t) ++ "  " ++ (showAmount $ tamount t) 

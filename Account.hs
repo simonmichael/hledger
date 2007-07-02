@@ -14,11 +14,6 @@ import Ledger
 
 -- an Account caches an account's name, balance (including sub-accounts)
 -- and transactions (excluding sub-accounts)
-data Account = Account {
-      aname :: AccountName, 
-      atransactions :: [EntryTransaction],
-      abalance :: Amount
-}
 
 instance Show Account where
     show (Account a ts b) = printf "Account %s with %d transactions" a $ length ts

@@ -2,23 +2,14 @@ module TimeLog
 where
 import Utils
 import Types
+import Currency
 import Amount
 import Transaction
 import Entry
 import Ledger
 
-data TimeLogEntry = TimeLogEntry {
-                    tcode :: Char,
-                    tdatetime :: DateTime,
-                    tcomment :: String
-                   } deriving (Eq,Ord)
-
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tcode t) (tdatetime t) (tcomment t)
-
-data TimeLog = TimeLog {
-      timelog_entries :: [TimeLogEntry]
-    } deriving (Eq)
 
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl

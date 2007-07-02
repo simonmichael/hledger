@@ -6,14 +6,13 @@ import Types
 import Entry
 import Transaction
 import Amount
+import Currency
 
 
 -- We convert Transactions into EntryTransactions, which are (entry,
 -- transaction) pairs, since I couldn't see how to have transactions
 -- reference their entry like in OO.  These are referred to as just
 -- "transactions" in code above.
-
-type EntryTransaction = (Entry,Transaction)
 
 entry       (e,t) = e
 transaction (e,t) = t
