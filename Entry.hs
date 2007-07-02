@@ -6,6 +6,8 @@ import Types
 import Transaction
 
 
+instance Show Entry where show = showEntry
+
 -- a register entry is displayed as two or more lines like this:
 -- date       description          account                 amount       balance
 -- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
@@ -16,8 +18,6 @@ import Transaction
 -- acctWidth = 22
 -- amtWidth  = 11
 -- balWidth  = 12
-
-instance Show Entry where show = showEntry
 
 showEntry e = (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
 showDate d = printf "%-10s" d

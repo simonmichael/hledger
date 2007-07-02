@@ -114,7 +114,7 @@ data Account = Account {
 -- a ledger with account info cached for faster queries
 data Ledger = Ledger {
       rawledger :: RawLedger, 
-      accountnames :: Tree AccountName,
+      accountnametree :: Tree AccountName,
       accounts :: Map.Map AccountName Account
     }
 

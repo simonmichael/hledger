@@ -12,14 +12,12 @@ import EntryTransaction
 import RawLedger
 
 
--- an Account caches an account's name, balance (including sub-accounts)
--- and transactions (excluding sub-accounts)
-
 instance Show Account where
     show (Account a ts b) = printf "Account %s with %d transactions" a $ length ts
 
 nullacct = Account "" [] nullamt
 
+-- XXX SLOW
 rawLedgerAccount :: RawLedger -> AccountName -> Account
 rawLedgerAccount l a = 
     Account 
@@ -133,6 +131,7 @@ rawLedgerAccountTreeMatching l acctpats showsubs maxdepth =
 showAccountTree :: RawLedger -> Tree Account -> String
 showAccountTree l = showAccountTree' l 0 . interestingAccountsFrom
 
+showAccountTree' :: RawLedger -> Int -> Tree Account -> String
 showAccountTree' l indentlevel t
     -- if this acct is boring, don't show it
     | isBoringInnerAccount l acct = subacctsindented 0

@@ -3,16 +3,12 @@ module EntryTransaction
 where
 import Utils
 import Types
+import AccountName
 import Entry
 import Transaction
 import Amount
 import Currency
 
-
--- We convert Transactions into EntryTransactions, which are (entry,
--- transaction) pairs, since I couldn't see how to have transactions
--- reference their entry like in OO.  These are referred to as just
--- "transactions" in code above.
 
 entry       (e,t) = e
 transaction (e,t) = t
@@ -25,6 +21,9 @@ amount      (e,t) = tamount t
                                          
 flattenEntry :: Entry -> [EntryTransaction]
 flattenEntry e = [(e,t) | t <- etransactions e]
+
+accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
+accountNamesFromTransactions ts = nub $ map account ts
 
 entryTransactionsFrom :: [Entry] -> [EntryTransaction]
 entryTransactionsFrom es = concat $ map flattenEntry es
@@ -70,3 +69,19 @@ showTransactionAndBalance t b =
 showBalance :: Amount -> String
 showBalance b = printf " %12s" (showAmountRoundedOrZero b)
 
+transactionsMatching :: ([String],[String]) -> [EntryTransaction] -> [EntryTransaction]
+transactionsMatching ([],[]) ts = transactionsMatching ([".*"],[".*"]) ts
+transactionsMatching (rs,[]) ts = transactionsMatching (rs,[".*"]) ts
+transactionsMatching ([],rs) ts = transactionsMatching ([".*"],rs) ts
+transactionsMatching (acctregexps,descregexps) ts =
+    intersect 
+    (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
+    (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
+
+transactionsWithAccountName :: AccountName -> [EntryTransaction] -> [EntryTransaction]
+transactionsWithAccountName a ts = [t | t <- ts, account t == a]
+    
+transactionsWithOrBelowAccountName :: AccountName -> [EntryTransaction] -> [EntryTransaction]
+transactionsWithOrBelowAccountName a ts = 
+    [t | t <- ts, account t == a || a `isAccountNamePrefixOf` (account t)]
+    

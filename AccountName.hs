@@ -3,9 +3,6 @@ where
 import Utils
 import Types
 
--- AccountNames are strings like "assets:cash:petty"; from these we build
--- the chart of accounts, which should be a simple hierarchy. 
-
 accountNameComponents :: AccountName -> [String]
 accountNameComponents = splitAtElement ':'
 
@@ -36,8 +33,10 @@ parentAccountNames a = parentAccountNames' $ parentAccountName a
       parentAccountNames' "" = []
       parentAccountNames' a = [a] ++ (parentAccountNames' $ parentAccountName a)
 
+p `isAccountNamePrefixOf` s = ((p ++ ":") `isPrefixOf` s)
+    
 s `isSubAccountNameOf` p = 
-    ((p ++ ":") `isPrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
+    (p `isAccountNamePrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
 
 subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
 subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts

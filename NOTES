@@ -10,11 +10,79 @@ hledger project notes
 *********** description                            EntryTransaction                    48   0.0    0.0     0.0    0.0
 ********** matchTransactionAccount                 EntryTransaction                    864  66.7    7.3    66.7    7.3
 *********** account                                EntryTransaction                    864   0.0    0.0     0.0    0.0
-    
-**** with cachedledger, unoptimised
+**** cachedledger added
       matchTransactionAccount EntryTransaction           619       86602  13.4    2.4    13.5    2.4
       matchTransactionAccount EntryTransaction           558       91637  22.8    2.8    22.9    2.8
       matchTransactionAccount EntryTransaction           520       91637  16.8    2.6    16.9    2.6
+**** functions renamed
+   balance               Main                                                 334           1   0.0    0.0    99.6   97.4
+    showLedgerAccounts   Ledger                                               460           1   0.0    0.0    99.6   97.3
+     showRawLedgerAccounts Account                                              461           1   0.1    0.0    99.6   97.3
+      showAccountTree    Account                                              505           1   0.0    0.0    31.6   37.3
+       showAccountTree'  Account                                              506          91   0.0    0.0    31.6   37.3
+        isBoringInnerAccountName Account                                              613          86   0.1    0.0    29.4   31.1
+         transactionsInAccountNamed Account                                              614          86   0.0    0.0    17.3    4.3
+          rawLedgerTransactionsMatching RawLedger                                            615         172   0.7    0.7    17.3    4.3
+           matchTransactionAccount EntryTransaction                                     619       86602  14.8    2.4    14.9    2.4
+>     rawLedgerAccountTreeMatching Account                                              463           2   0.0    0.0    67.9   60.0
+>      addDataToAccountNameTree Account                                              465          93   0.0    0.0    67.7   59.8
+>       rawLedgerAccount Account                                              512          92   0.0    0.0    67.7   59.8
+>        transactionsInAccountNamed Account                                              515          91   0.0    0.0    29.0   20.0
+>         rawLedgerTransactionsMatching RawLedger                                            516         182   3.6   13.9    29.0   20.0
+>          matchTransactionAccount EntryTransaction                                     520       91637  17.1    2.6    17.2    2.6
+         aggregateBalanceInAccountNamed Account                                              550          91   0.0    0.0    38.7   39.8
+          aggregateTransactionsInAccountNamed Account                                              553          91   0.0    0.0    38.7   39.8
+           rawLedgerTransactionsMatching RawLedger                                            554         182   7.3   32.8    38.7   39.7
+            matchTransactionAccount EntryTransaction                                     558       91637  22.6    2.8    22.8    2.8
+
+1
+showRawLedgerAccounts l acctpats showsubs maxdepth = 
+    concatMap 
+    (showAccountTree l) 
+    (branches (rawLedgerAccountTreeMatching l acctpats showsubs maxdepth))
+
+2
+rawLedgerAccountTreeMatching l [] showsubs maxdepth = 
+    rawLedgerAccountTreeMatching l [".*"] showsubs maxdepth
+rawLedgerAccountTreeMatching l acctpats showsubs maxdepth = 
+    addDataToAccountNameTree l $ 
+    filterAccountNameTree acctpats showsubs maxdepth $ 
+    rawLedgerAccountNameTree l
+
+93
+addDataToAccountNameTree l ant = 
+    Node 
+    (rawLedgerAccount l $ root ant) 
+    (map (addDataToAccountNameTree l) $ branches ant)
+
+92
+rawLedgerAccount l a = 
+    Account 
+    a 
+    (transactionsInAccountNamed l a) 
+    (aggregateBalanceInAccountNamed l a)
+
+91
+transactionsInAccountNamed l a =
+    rawLedgerTransactionsMatching (["^" ++ a ++ "$"], []) l
+
+182
+rawLedgerTransactionsMatching ([],[]) l = rawLedgerTransactionsMatching ([".*"],[".*"]) l
+rawLedgerTransactionsMatching (rs,[]) l = rawLedgerTransactionsMatching (rs,[".*"]) l
+rawLedgerTransactionsMatching ([],rs) l = rawLedgerTransactionsMatching ([".*"],rs) l
+rawLedgerTransactionsMatching (acctregexps,descregexps) l =
+    intersect 
+    (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
+    (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
+    where ts = rawLedgerTransactions l
+
+91637
+matchTransactionAccount s t =
+    case matchRegex (mkRegex s) (account t) of
+      Nothing -> False
+      otherwise -> True
+
+**** begin optimisation
 ** make some decent tests
 ** bugs
 *** space after account makes it a new account

@@ -3,8 +3,8 @@ where
 import qualified Data.Map as Map
 
 import Utils
-import AccountName
 import Types
+import AccountName
 import Entry
 import EntryTransaction
 
@@ -31,9 +31,6 @@ rawLedgerTransactionsMatching (acctregexps,descregexps) l =
 rawLedgerAccountTransactions :: RawLedger -> AccountName -> [EntryTransaction]
 rawLedgerAccountTransactions l a = rawLedgerTransactionsMatching (["^" ++ a ++ "$"], []) l
            
-accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
-accountNamesFromTransactions ts = nub $ map account ts
-
 rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
 rawLedgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
 

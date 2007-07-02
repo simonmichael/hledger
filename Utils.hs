@@ -28,6 +28,7 @@ splitAtElement e l =
 
 -- tree tools
 
+-- aliases
 root = rootLabel
 branches = subForest
 
