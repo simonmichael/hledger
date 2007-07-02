@@ -1,7 +1,7 @@
 module Amount
 where
 import Utils
-import BasicTypes
+import Types
 
 {- 
 a simple amount is a currency, quantity pair:

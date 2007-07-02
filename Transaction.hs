@@ -2,7 +2,7 @@
 module Transaction
 where
 import Utils
-import BasicTypes
+import Types
 import AccountName
 import Amount
 

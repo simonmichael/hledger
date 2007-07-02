@@ -1,7 +1,7 @@
 module TimeLog
 where
 import Utils
-import BasicTypes
+import Types
 import Amount
 import Transaction
 import Entry

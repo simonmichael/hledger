@@ -2,7 +2,7 @@
 module Entry
 where
 import Utils
-import BasicTypes
+import Types
 import Transaction
 
 

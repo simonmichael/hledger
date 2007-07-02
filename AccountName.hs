@@ -1,7 +1,7 @@
 module AccountName
 where
 import Utils
-import BasicTypes
+import Types
 
 -- AccountNames are strings like "assets:cash:petty"; from these we build
 -- the chart of accounts, which should be a simple hierarchy. 

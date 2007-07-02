@@ -20,7 +20,7 @@ hledger
         Transaction
          AccountName
          Amount
-         BasicTypes
+         Types
           Utils
 
 -}

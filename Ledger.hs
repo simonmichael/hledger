@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 
 import Utils
 import AccountName
-import BasicTypes
+import Types
 import Entry
 import EntryTransaction
 
