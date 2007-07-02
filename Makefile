@@ -1,9 +1,10 @@
-BUILD=ghc --make hledger.hs -o hledger
+BUILD=ghc --make hledger.hs -o hledger -prof -auto-all # -O2
 TOPROFILE=hledger -s balance
 TIME=`date +"%Y%m%d%H%M"`
 
 build: Tags
 	$(BUILD)
+
 
 profile prof:
 	$(BUILD) -prof -auto-all
