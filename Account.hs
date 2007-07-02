@@ -20,8 +20,8 @@ instance Show Account where
 
 nullacct = Account "" [] nullamt
 
-ledgerAccount :: RawLedger -> AccountName -> Account
-ledgerAccount l a = 
+rawLedgerAccount :: RawLedger -> AccountName -> Account
+rawLedgerAccount l a = 
     Account 
     a 
     (transactionsInAccountNamed l a) 
@@ -39,17 +39,17 @@ aggregateBalanceInAccountNamed l a =
 
 transactionsInAccountNamed :: RawLedger -> AccountName -> [EntryTransaction]
 transactionsInAccountNamed l a =
-    ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
+    rawLedgerTransactionsMatching (["^" ++ a ++ "$"], []) l
 
 aggregateTransactionsInAccountNamed :: RawLedger -> AccountName -> [EntryTransaction]
 aggregateTransactionsInAccountNamed l a = 
-    ledgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
+    rawLedgerTransactionsMatching (["^" ++ a ++ "(:.+)?$"], []) l
 
 -- build a tree of Accounts
 addDataToAccountNameTree :: RawLedger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree l ant = 
     Node 
-    (ledgerAccount l $ root ant) 
+    (rawLedgerAccount l $ root ant) 
     (map (addDataToAccountNameTree l) $ branches ant)
 
 -- balance report support
@@ -92,19 +92,19 @@ addDataToAccountNameTree l ant =
 -- $  checking   
 -- $  saving
 
-showLedgerAccounts :: RawLedger -> [String] -> Bool -> Int -> String
-showLedgerAccounts l acctpats showsubs maxdepth = 
+showRawLedgerAccounts :: RawLedger -> [String] -> Bool -> Int -> String
+showRawLedgerAccounts l acctpats showsubs maxdepth = 
     concatMap 
     (showAccountTree l) 
-    (branches (ledgerAccountTreeMatching l acctpats showsubs maxdepth))
+    (branches (rawLedgerAccountTreeMatching l acctpats showsubs maxdepth))
 
-ledgerAccountTreeMatching :: RawLedger -> [String] -> Bool -> Int -> Tree Account
-ledgerAccountTreeMatching l [] showsubs maxdepth = 
-    ledgerAccountTreeMatching l [".*"] showsubs maxdepth
-ledgerAccountTreeMatching l acctpats showsubs maxdepth = 
+rawLedgerAccountTreeMatching :: RawLedger -> [String] -> Bool -> Int -> Tree Account
+rawLedgerAccountTreeMatching l [] showsubs maxdepth = 
+    rawLedgerAccountTreeMatching l [".*"] showsubs maxdepth
+rawLedgerAccountTreeMatching l acctpats showsubs maxdepth = 
     addDataToAccountNameTree l $ 
     filterAccountNameTree acctpats showsubs maxdepth $ 
-    ledgerAccountNameTree l
+    rawLedgerAccountNameTree l
 
 -- when displaying an account tree, we elide boring accounts.
 -- 1. leaf accounts and branches with 0 balance or 0 transactions are omitted
@@ -157,7 +157,7 @@ isBoringInnerAccount l a
     where
       name = aname a
       txns = atransactions a
-      subs = subAccountNamesFrom (ledgerAccountNames l) name
+      subs = subAccountNamesFrom (rawLedgerAccountNames l) name
 
 -- darnit, still need this
 isBoringInnerAccountName :: RawLedger -> AccountName -> Bool
@@ -167,7 +167,7 @@ isBoringInnerAccountName l name
     | otherwise = False
     where
       txns = transactionsInAccountNamed l name
-      subs = subAccountNamesFrom (ledgerAccountNames l) name
+      subs = subAccountNamesFrom (rawLedgerAccountNames l) name
 
 interestingAccountsFrom :: Tree Account -> Tree Account
 interestingAccountsFrom =
@@ -176,5 +176,5 @@ interestingAccountsFrom =
       hasbalance = (/= 0) . abalance
       hastxns = (> 0) . length . atransactions
 
-ledgerAccountTree :: RawLedger -> Tree Account
-ledgerAccountTree l = addDataToAccountNameTree l (ledgerAccountNameTree l)
+rawLedgerAccountTree :: RawLedger -> Tree Account
+rawLedgerAccountTree l = addDataToAccountNameTree l (rawLedgerAccountNameTree l)

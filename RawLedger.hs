@@ -15,42 +15,42 @@ instance Show RawLedger where
               (length $ modifier_entries l) +
               (length $ periodic_entries l))
 
-ledgerTransactions :: RawLedger -> [EntryTransaction]
-ledgerTransactions l = entryTransactionsFrom $ entries l
+rawLedgerTransactions :: RawLedger -> [EntryTransaction]
+rawLedgerTransactions l = entryTransactionsFrom $ entries l
 
-ledgerTransactionsMatching :: ([String],[String]) -> RawLedger -> [EntryTransaction]
-ledgerTransactionsMatching ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) l
-ledgerTransactionsMatching (rs,[]) l = ledgerTransactionsMatching (rs,[".*"]) l
-ledgerTransactionsMatching ([],rs) l = ledgerTransactionsMatching ([".*"],rs) l
-ledgerTransactionsMatching (acctregexps,descregexps) l =
+rawLedgerTransactionsMatching :: ([String],[String]) -> RawLedger -> [EntryTransaction]
+rawLedgerTransactionsMatching ([],[]) l = rawLedgerTransactionsMatching ([".*"],[".*"]) l
+rawLedgerTransactionsMatching (rs,[]) l = rawLedgerTransactionsMatching (rs,[".*"]) l
+rawLedgerTransactionsMatching ([],rs) l = rawLedgerTransactionsMatching ([".*"],rs) l
+rawLedgerTransactionsMatching (acctregexps,descregexps) l =
     intersect 
     (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
     (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
-    where ts = ledgerTransactions l
+    where ts = rawLedgerTransactions l
 
-ledgerAccountTransactions :: RawLedger -> AccountName -> [EntryTransaction]
-ledgerAccountTransactions l a = ledgerTransactionsMatching (["^" ++ a ++ "$"], []) l
+rawLedgerAccountTransactions :: RawLedger -> AccountName -> [EntryTransaction]
+rawLedgerAccountTransactions l a = rawLedgerTransactionsMatching (["^" ++ a ++ "$"], []) l
            
 accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
 
-ledgerAccountNamesUsed :: RawLedger -> [AccountName]
-ledgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
+rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
+rawLedgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
 
-ledgerAccountNames :: RawLedger -> [AccountName]
-ledgerAccountNames = sort . expandAccountNames . ledgerAccountNamesUsed
+rawLedgerAccountNames :: RawLedger -> [AccountName]
+rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
 
-ledgerTopAccountNames :: RawLedger -> [AccountName]
-ledgerTopAccountNames l = filter (notElem ':') (ledgerAccountNames l)
+rawLedgerTopAccountNames :: RawLedger -> [AccountName]
+rawLedgerTopAccountNames l = filter (notElem ':') (rawLedgerAccountNames l)
 
-ledgerAccountNamesMatching :: [String] -> RawLedger -> [AccountName]
-ledgerAccountNamesMatching [] l = ledgerAccountNamesMatching [".*"] l
-ledgerAccountNamesMatching acctregexps l =
+rawLedgerAccountNamesMatching :: [String] -> RawLedger -> [AccountName]
+rawLedgerAccountNamesMatching [] l = rawLedgerAccountNamesMatching [".*"] l
+rawLedgerAccountNamesMatching acctregexps l =
     concat [filter (matchAccountName r) accountNames | r <- acctregexps]
-        where accountNames = ledgerTopAccountNames l
+        where accountNames = rawLedgerTopAccountNames l
 
-ledgerAccountNameTree :: RawLedger -> Tree AccountName
-ledgerAccountNameTree l = accountNameTreeFrom $ ledgerAccountNames l
+rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
+rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 
 
 

@@ -14,36 +14,36 @@ cacheLedger :: RawLedger -> Ledger
 cacheLedger l = 
     Ledger 
     l
-    (ledgerAccountNameTree l)
-    (Map.fromList [(a, ledgerAccount l a) | a <- ledgerAccountNames l])
+    (rawLedgerAccountNameTree l)
+    (Map.fromList [(a, rawLedgerAccount l a) | a <- rawLedgerAccountNames l])
 
-cLedgerTransactions :: Ledger -> [EntryTransaction]
-cLedgerTransactions l = concatMap atransactions $ Map.elems $ accounts l
+ledgerTransactions :: Ledger -> [EntryTransaction]
+ledgerTransactions l = concatMap atransactions $ Map.elems $ accounts l
 
 -- unoptimised
-cLedgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
-cLedgerTransactionsMatching pats l = ledgerTransactionsMatching pats $ rawledger l
+ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
+ledgerTransactionsMatching pats l = rawLedgerTransactionsMatching pats $ rawledger l
 
 -- XXX optimise
-cLedgerTransactionsMatching1 :: ([String],[String]) -> Ledger -> [EntryTransaction]
-cLedgerTransactionsMatching1 ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) (rawledger l)
-cLedgerTransactionsMatching1 (rs,[]) l = ledgerTransactionsMatching (rs,[".*"]) (rawledger l)
-cLedgerTransactionsMatching1 ([],rs) l = ledgerTransactionsMatching ([".*"],rs) (rawledger l)
-cLedgerTransactionsMatching1 (acctregexps,descregexps) l =
+ledgerTransactionsMatching1 :: ([String],[String]) -> Ledger -> [EntryTransaction]
+ledgerTransactionsMatching1 ([],[]) l = rawLedgerTransactionsMatching ([".*"],[".*"]) (rawledger l)
+ledgerTransactionsMatching1 (rs,[]) l = rawLedgerTransactionsMatching (rs,[".*"]) (rawledger l)
+ledgerTransactionsMatching1 ([],rs) l = rawLedgerTransactionsMatching ([".*"],rs) (rawledger l)
+ledgerTransactionsMatching1 (acctregexps,descregexps) l =
     intersect 
     (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
     (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
-    where ts = cLedgerTransactions l
+    where ts = ledgerTransactions l
 
 -- unoptimised
-showCLedgerAccounts :: Ledger -> [String] -> Bool -> Int -> String
-showCLedgerAccounts l acctpats showsubs maxdepth = 
-    showLedgerAccounts (rawledger l) acctpats showsubs maxdepth
+showLedgerAccounts :: Ledger -> [String] -> Bool -> Int -> String
+showLedgerAccounts l acctpats showsubs maxdepth = 
+    showRawLedgerAccounts (rawledger l) acctpats showsubs maxdepth
 
 -- XXX optimise
-showCLedgerAccounts1 :: Ledger -> [String] -> Bool -> Int -> String
-showCLedgerAccounts1 l acctpats showsubs maxdepth = 
+showLedgerAccounts1 :: Ledger -> [String] -> Bool -> Int -> String
+showLedgerAccounts1 l acctpats showsubs maxdepth = 
     concatMap 
     (showAccountTree (rawledger l)) 
-    (branches (ledgerAccountTreeMatching (rawledger l) acctpats showsubs maxdepth))
+    (branches (rawLedgerAccountTreeMatching (rawledger l) acctpats showsubs maxdepth))
 

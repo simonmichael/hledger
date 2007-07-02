@@ -288,7 +288,7 @@ test_ledgerAccountNames =
     ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
     "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
      "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
-    (ledgerAccountNames ledger7)
+    (rawLedgerAccountNames ledger7)
 
 test_cacheLedger =
     assertEqual' 14 (length $ Map.keys $ accounts $ cacheLedger ledger7)
@@ -301,7 +301,7 @@ props = mapM quickCheck
      parse' ledgertransaction transaction1_str `parseEquals`
      (Transaction "expenses:food:dining" (Amount (getcurrency "$") 10))
     ,
-     ledgerAccountNames ledger7 == 
+     rawLedgerAccountNames ledger7 == 
      ["assets","assets:cash","assets:checking","assets:saving","equity",
       "equity:opening balances","expenses","expenses:food","expenses:food:dining",
       "expenses:phone","expenses:vacation","liabilities","liabilities:credit cards",

@@ -39,7 +39,7 @@ register opts acctpats descpats = do
     where 
       printRegister l = 
           putStr $ showTransactionsWithBalances 
-                     (cLedgerTransactionsMatching (acctpats,descpats) l)
+                     (ledgerTransactionsMatching (acctpats,descpats) l)
                      0
 
 balance :: [Flag] -> [String] -> [String] -> IO ()
@@ -47,7 +47,7 @@ balance opts acctpats _ = do
   doWithLedger opts printBalance
     where
       printBalance l =
-          putStr $ showCLedgerAccounts l acctpats showsubs maxdepth
+          putStr $ showLedgerAccounts l acctpats showsubs maxdepth
               where 
                 showsubs = (ShowSubs `elem` opts)
                 maxdepth = case (acctpats, showsubs) of
@@ -76,6 +76,6 @@ doWithParsed cmd parsed = do
 --
 -- p <- ledgerFilePath [] >>= parseLedgerFile
 -- let l = either (\_ -> RawLedger [] [] []) id p
--- let ant = ledgerAccountNameTree l
--- let at = ledgerAccountTreeMatching l [] True 999
--- putStr $ drawTree $ treemap show $ ledgerAccountTreeMatching l ["a"] False 999
+-- let ant = rawLedgerAccountNameTree l
+-- let at = rawLedgerAccountTreeMatching l [] True 999
+-- putStr $ drawTree $ treemap show $ rawLedgerAccountTreeMatching l ["a"] False 999
