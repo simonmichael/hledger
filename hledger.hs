@@ -65,7 +65,7 @@ selftest = do
 
 doWithLedger :: [Flag] -> (Ledger -> IO ()) -> IO ()
 doWithLedger opts cmd = do
-    ledgerFilePath opts >>= (trace "parsing" $ parseLedgerFile) >>= doWithParsed cmd
+    ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed cmd
 
 doWithParsed :: (Ledger -> IO ()) -> (Either ParseError RawLedger) -> IO ()
 doWithParsed cmd parsed = do

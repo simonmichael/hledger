@@ -16,7 +16,7 @@ import RawLedger
 cacheLedger :: RawLedger -> Ledger
 cacheLedger l = 
     let 
-        ant = trace "caching" $ rawLedgerAccountNameTree l
+        ant = rawLedgerAccountNameTree l
         ans = flatten ant
         ts = rawLedgerTransactions l
         sortedts = sortBy (comparing account) ts
@@ -24,8 +24,11 @@ cacheLedger l =
         tmap = Map.union 
                (Map.fromList [(account $ head g, g) | g <- groupedts])
                (Map.fromList [(a,[]) | a <- ans])
+        txns a = tmap ! a
+        subaccts a = filter (isAccountNamePrefixOf a) ans
+        subtxns a = concat [txns a | a <- [a] ++ subaccts a]
         bmap = Map.union 
-               (Map.fromList [(a, sumEntryTransactions $ transactionsWithOrBelowAccountName a ts) | a <- ans]) 
+               (Map.fromList [(a, sumEntryTransactions $ subtxns a) | a <- ans])
                (Map.fromList [(a,nullamt) | a <- ans])
         amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
     in
