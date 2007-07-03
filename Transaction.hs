@@ -29,5 +29,5 @@ autofillTransactions ts =
       otherwise -> error "too many blank transactions in this entry"
 
 sumTransactions :: [Transaction] -> Amount
-sumTransactions ts = sum [tamount t | t <- ts]
+sumTransactions = sum . map tamount
 

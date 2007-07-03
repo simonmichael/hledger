@@ -32,15 +32,15 @@ sumEntryTransactions :: [EntryTransaction] -> Amount
 sumEntryTransactions ets = 
     sumTransactions $ map transaction ets
 
-matchTransactionAccount :: String -> EntryTransaction -> Bool
-matchTransactionAccount s t =
-    case matchRegex (mkRegex s) (account t) of
+matchTransactionAccount :: Regex -> EntryTransaction -> Bool
+matchTransactionAccount r t =
+    case matchRegex r (account t) of
       Nothing -> False
       otherwise -> True
 
-matchTransactionDescription :: String -> EntryTransaction -> Bool
-matchTransactionDescription s t =
-    case matchRegex (mkRegex s) (description t) of
+matchTransactionDescription :: Regex -> EntryTransaction -> Bool
+matchTransactionDescription r t =
+    case matchRegex r (description t) of
       Nothing -> False
       otherwise -> True
 
@@ -68,15 +68,6 @@ showTransactionAndBalance t b =
 
 showBalance :: Amount -> String
 showBalance b = printf " %12s" (showAmountRoundedOrZero b)
-
-transactionsMatching :: ([String],[String]) -> [EntryTransaction] -> [EntryTransaction]
-transactionsMatching ([],[]) ts = transactionsMatching ([".*"],[".*"]) ts
-transactionsMatching (rs,[]) ts = transactionsMatching (rs,[".*"]) ts
-transactionsMatching ([],rs) ts = transactionsMatching ([".*"],rs) ts
-transactionsMatching (acctregexps,descregexps) ts =
-    intersect 
-    (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
-    (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
 
 transactionsWithAccountName :: AccountName -> [EntryTransaction] -> [EntryTransaction]
 transactionsWithAccountName a ts = [t | t <- ts, account t == a]

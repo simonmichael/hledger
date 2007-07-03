@@ -3,17 +3,20 @@ where
 import Utils
 import Types
 
+sepchar = ':'
+
 accountNameComponents :: AccountName -> [String]
-accountNameComponents = splitAtElement ':'
+accountNameComponents = splitAtElement sepchar
 
 accountNameFromComponents :: [String] -> AccountName
-accountNameFromComponents = concat . intersperse ":"
+accountNameFromComponents = concat . intersperse [sepchar]
 
 accountLeafName :: AccountName -> String
 accountLeafName = last . accountNameComponents
 
 accountNameLevel :: AccountName -> Int
-accountNameLevel = length . accountNameComponents
+accountNameLevel "" = 0
+accountNameLevel a = (length $ filter (==sepchar) a) + 1
 
 -- ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
@@ -33,17 +36,19 @@ parentAccountNames a = parentAccountNames' $ parentAccountName a
       parentAccountNames' "" = []
       parentAccountNames' a = [a] ++ (parentAccountNames' $ parentAccountName a)
 
-p `isAccountNamePrefixOf` s = ((p ++ ":") `isPrefixOf` s)
-    
+isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
+p `isAccountNamePrefixOf` s = ((p ++ [sepchar]) `isPrefixOf` s)
+
+isSubAccountNameOf :: AccountName -> AccountName -> Bool
 s `isSubAccountNameOf` p = 
     (p `isAccountNamePrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
 
 subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
 subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 
-matchAccountName :: String -> AccountName -> Bool
-matchAccountName s a =
-    case matchRegex (mkRegex s) a of
+matchAccountName :: Regex -> AccountName -> Bool
+matchAccountName r a =
+    case matchRegex r a of
       Nothing -> False
       otherwise -> True
 
@@ -76,10 +81,10 @@ accountNameTreeFrom accts =
 
 filterAccountNameTree :: [String] -> Bool -> Int -> Tree AccountName -> Tree AccountName
 filterAccountNameTree pats keepsubs maxdepth =
-    treefilter (\a -> matchpats a || (keepsubs && issubofmatch a)) .
-    treeprune maxdepth
+    treefilter (\a -> matchany a || (keepsubs && issubofmatch a)) . treeprune maxdepth
     where
-      matchpats a = any (match a) pats
-      match a pat = matchAccountName pat $ accountLeafName a
-      issubofmatch a = any matchpats $ parentAccountNames a
+      regexes = map mkRegex pats
+      matchany a = any (match a) regexes
+      match a r = matchAccountName r $ accountLeafName a
+      issubofmatch a = any matchany $ parentAccountNames a
 

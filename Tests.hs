@@ -291,7 +291,7 @@ test_ledgerAccountNames =
     (rawLedgerAccountNames ledger7)
 
 test_cacheLedger =
-    assertEqual' 14 (length $ Map.keys $ accounts $ cacheLedger ledger7)
+    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger ledger7)
     
 
 -- quickcheck properties
