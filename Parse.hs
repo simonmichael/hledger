@@ -36,10 +36,6 @@ reserved   = P.reserved lexer
 reservedOp = P.reservedOp lexer
 
 
-ledgerfile :: Parser RawLedger
-ledgerfile = ledger <|> ledgerfromtimelog
-
-
 -- standard ledger file parser
 {-
 Here's the ledger 2.5 grammar:
@@ -141,6 +137,9 @@ i, o, b, h
 -- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
 -- sample data in Tests.hs 
 
+ledgerfile :: Parser RawLedger
+ledgerfile = ledger <|> ledgerfromtimelog
+
 ledger :: Parser RawLedger
 ledger = do
   ledgernondatalines
@@ -187,10 +186,7 @@ ledgerentry = do
   description <- anyChar `manyTill` ledgereol
   transactions <- ledgertransactions
   ledgernondatalines
-  let entry = Entry date status code description transactions
-  --let entry = Entry date status code description (map (\t -> t{tentry=entry}) transactions)
-              
-  return $ autofillEntry entry
+  return $ autofillEntry $ Entry date status code description transactions
 
 ledgerdate :: Parser String
 ledgerdate = do 
@@ -209,8 +205,7 @@ ledgercode :: Parser String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
 ledgertransactions :: Parser [Transaction]
-ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (newline <?> "blank line")
-                     -- => unlike ledger, we need to end the file with a blank line
+ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (do {newline <?> "blank line"; return ()} <|> eof)
 
 ledgertransaction :: Parser Transaction
 ledgertransaction = do

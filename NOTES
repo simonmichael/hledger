@@ -1,92 +1,9 @@
 hledger project notes
 
 * TO DO
-** make balance fast
-*** TODO optimise with CachedLedger
-**** original
-******** transactionsInAccountNamed                Account                             12   0.0    0.1    66.7   18.7
-********* ledgerTransactionsMatching               Ledger                              24   0.0    8.4    66.7   18.6
-********** matchTransactionDescription             EntryTransaction                    48   0.0    0.7     0.0    0.7
-*********** description                            EntryTransaction                    48   0.0    0.0     0.0    0.0
-********** matchTransactionAccount                 EntryTransaction                    864  66.7    7.3    66.7    7.3
-*********** account                                EntryTransaction                    864   0.0    0.0     0.0    0.0
-**** cachedledger added
-      matchTransactionAccount EntryTransaction           619       86602  13.4    2.4    13.5    2.4
-      matchTransactionAccount EntryTransaction           558       91637  22.8    2.8    22.9    2.8
-      matchTransactionAccount EntryTransaction           520       91637  16.8    2.6    16.9    2.6
-**** functions renamed
-   balance               Main                                                 334           1   0.0    0.0    99.6   97.4
-    showLedgerAccounts   Ledger                                               460           1   0.0    0.0    99.6   97.3
-     showRawLedgerAccounts Account                                              461           1   0.1    0.0    99.6   97.3
-      showAccountTree    Account                                              505           1   0.0    0.0    31.6   37.3
-       showAccountTree'  Account                                              506          91   0.0    0.0    31.6   37.3
-        isBoringInnerAccountName Account                                              613          86   0.1    0.0    29.4   31.1
-         transactionsInAccountNamed Account                                              614          86   0.0    0.0    17.3    4.3
-          rawLedgerTransactionsMatching RawLedger                                            615         172   0.7    0.7    17.3    4.3
-           matchTransactionAccount EntryTransaction                                     619       86602  14.8    2.4    14.9    2.4
->     rawLedgerAccountTreeMatching Account                                              463           2   0.0    0.0    67.9   60.0
->      addDataToAccountNameTree Account                                              465          93   0.0    0.0    67.7   59.8
->       rawLedgerAccount Account                                              512          92   0.0    0.0    67.7   59.8
->        transactionsInAccountNamed Account                                              515          91   0.0    0.0    29.0   20.0
->         rawLedgerTransactionsMatching RawLedger                                            516         182   3.6   13.9    29.0   20.0
->          matchTransactionAccount EntryTransaction                                     520       91637  17.1    2.6    17.2    2.6
-         aggregateBalanceInAccountNamed Account                                              550          91   0.0    0.0    38.7   39.8
-          aggregateTransactionsInAccountNamed Account                                              553          91   0.0    0.0    38.7   39.8
-           rawLedgerTransactionsMatching RawLedger                                            554         182   7.3   32.8    38.7   39.7
-            matchTransactionAccount EntryTransaction                                     558       91637  22.6    2.8    22.8    2.8
-
-1
-showRawLedgerAccounts l acctpats showsubs maxdepth = 
-    concatMap 
-    (showAccountTree l) 
-    (branches (rawLedgerAccountTreeMatching l acctpats showsubs maxdepth))
-
-2
-rawLedgerAccountTreeMatching l [] showsubs maxdepth = 
-    rawLedgerAccountTreeMatching l [".*"] showsubs maxdepth
-rawLedgerAccountTreeMatching l acctpats showsubs maxdepth = 
-    addDataToAccountNameTree l $ 
-    filterAccountNameTree acctpats showsubs maxdepth $ 
-    rawLedgerAccountNameTree l
-
-93
-addDataToAccountNameTree l ant = 
-    Node 
-    (rawLedgerAccount l $ root ant) 
-    (map (addDataToAccountNameTree l) $ branches ant)
-
-92
-rawLedgerAccount l a = 
-    Account 
-    a 
-    (transactionsInAccountNamed l a) 
-    (aggregateBalanceInAccountNamed l a)
-
-91
-transactionsInAccountNamed l a =
-    rawLedgerTransactionsMatching (["^" ++ a ++ "$"], []) l
-
-182
-rawLedgerTransactionsMatching ([],[]) l = rawLedgerTransactionsMatching ([".*"],[".*"]) l
-rawLedgerTransactionsMatching (rs,[]) l = rawLedgerTransactionsMatching (rs,[".*"]) l
-rawLedgerTransactionsMatching ([],rs) l = rawLedgerTransactionsMatching ([".*"],rs) l
-rawLedgerTransactionsMatching (acctregexps,descregexps) l =
-    intersect 
-    (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
-    (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
-    where ts = rawLedgerTransactions l
-
-91637
-matchTransactionAccount s t =
-    case matchRegex (mkRegex s) (account t) of
-      Nothing -> False
-      otherwise -> True
-
-**** begin optimisation
-** make some decent tests
 ** bugs
 *** space after account makes it a new account
-*** extra blank line required at end of file
+*** comments with numbers after transactions don't work
 ** basic features
 *** print
 *** !include
@@ -101,6 +18,7 @@ matchTransactionAccount s t =
 *** read gnucash files
 *** other args, directives
 
+*** more speed
 ** new features
 *** feature: read timelog files
 **** fix up Amounts
@@ -126,28 +44,22 @@ matchTransactionAccount s t =
 *** better use of quickcheck/smallcheck
      http://blog.codersbase.com/2006/09/01/simple-unit-testing-in-haskell/
 *** ledger compatibility tests
-
 ** documentation
 *** literate docs
 *** better use of haddock
-
 ** marketing
-*** set up as a cabal/hackage project following wiki howto ?
+*** set up as a cabal/hackage project following wiki howto 
      http://en.wikibooks.org/wiki/Haskell/Packaging
 *** announce on haskell list, wiki
 
 
 * things I want to know
-
 ** time
-
 where have I been spending my time in recent weeks ?
 where have I spent my time today ?
 what is my status wrt spending plan for this week/month/year ?
 what is my current status wrt time spending goals ?
-
 ** money
-
 where have I been spending my money ?
 what is my status wrt spending plan for this week/month/year ?
 what is my current status wrt spending/savings goals ?
