@@ -224,7 +224,7 @@ ledgeraccount = many1 (alphaNum <|> char ':' <|> char '/' <|> char '_' <|> try (
 ledgeramount :: Parser Amount
 ledgeramount = try (do
                       many1 spacenonewline
-                      currency <- many (noneOf "-.0123456789\n") <?> "currency"
+                      currency <- many (noneOf "-.0123456789;\n") <?> "currency"
                       quantity <- many1 (oneOf "-.,0123456789") <?> "quantity"
                       return (Amount (getcurrency currency) (read $ stripcommas quantity))
                    ) <|> 
