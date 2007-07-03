@@ -3,7 +3,6 @@ hledger project notes
 * TO DO
 ** bugs
 ** compatibility
-*** , in thousands
 *** use greatest precision in register
 *** abbreviate 0
 *** don't combine entries so much in register

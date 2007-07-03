@@ -1,6 +1,7 @@
 -- standard imports and utilities
 module Utils (
               module Utils,
+              module Char,
               module Data.List,
               module Data.Tree,
               module Text.Printf,
@@ -10,6 +11,7 @@ module Utils (
               module Test.HUnit
              )
 where
+import Char
 import Data.List
 import Data.Tree
 import Text.Printf

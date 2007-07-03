@@ -50,11 +50,21 @@ parseAmount s = nullamt
 
 showAmountRoundedOrZero :: Amount -> String
 showAmountRoundedOrZero (Amount cur qty) =
-    let rounded = printf "%.2f" qty in
+    let rounded = punctuatethousands $ printf "%.2f" qty in
     case rounded of
       "0.00"    -> "0"
       "-0.00"   -> "0"
       otherwise -> (symbol cur) ++ rounded
+
+punctuatethousands :: String -> String
+punctuatethousands s =
+    sign ++ (punctuate int) ++ frac
+    where 
+      (sign,num) = break isDigit s
+      (int,frac) = break (=='.') num
+      punctuate = reverse . concat . intersperse "," . triples . reverse
+      triples "" = []
+      triples s = [take 3 s] ++ (triples $ drop 3 s)
 
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)

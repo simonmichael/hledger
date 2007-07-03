@@ -294,13 +294,16 @@ quickcheck = mapM quickCheck ([
         ] :: [Bool])
 
 hunit = runTestTT $ "hunit" ~: test ([
-         "" ~: parseLedgerPatternArgs []                     @=? ([],[])
-        ,"" ~: parseLedgerPatternArgs ["a"]                  @=? (["a"],[])
-        ,"" ~: parseLedgerPatternArgs ["a","b"]              @=? (["a","b"],[])
-        ,"" ~: parseLedgerPatternArgs ["a","b","--"]         @=? (["a","b"],[])
-        ,"" ~: parseLedgerPatternArgs ["a","b","--","c","b"] @=? (["a","b"],["c","b"])
-        ,"" ~: parseLedgerPatternArgs ["--","c"]             @=? ([],["c"])
-        ,"" ~: parseLedgerPatternArgs ["--"]                 @=? ([],[])
+         "" ~: parseLedgerPatternArgs []                     @?= ([],[])
+        ,"" ~: parseLedgerPatternArgs ["a"]                  @?= (["a"],[])
+        ,"" ~: parseLedgerPatternArgs ["a","b"]              @?= (["a","b"],[])
+        ,"" ~: parseLedgerPatternArgs ["a","b","--"]         @?= (["a","b"],[])
+        ,"" ~: parseLedgerPatternArgs ["a","b","--","c","b"] @?= (["a","b"],["c","b"])
+        ,"" ~: parseLedgerPatternArgs ["--","c"]             @?= ([],["c"])
+        ,"" ~: parseLedgerPatternArgs ["--"]                 @?= ([],[])
+        ,"" ~: punctuatethousands "" @?= ""
+        ,"" ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
+        ,"" ~: punctuatethousands "-100" @?= "-100"
         ,"" ~: test_ledgertransaction
         ,"" ~: test_ledgerentry
         ,"" ~: test_autofillEntry
