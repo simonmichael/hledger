@@ -6,13 +6,16 @@ build: Tags
 	$(BUILD)
 
 
-profile prof:
+profile:
 	$(BUILD) -prof -auto-all
 	$(TOPROFILE) +RTS -p
 	mv hledger.prof $(TIME).prof
 	cat $(TIME).prof
+	rm -f last.prof
+	ln -s $(TIME).prof last.prof
+	./simplifyprof.hs <last.prof
 
-xprofile xprof:
+xprofile:
 	$(BUILD) -prof -auto-all
 	$(TOPROFILE) +RTS -px
 	mv hledger.prof $(TIME).prof
