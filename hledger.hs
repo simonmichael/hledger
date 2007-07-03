@@ -33,6 +33,12 @@ main = do
 
 -- commands
 
+selftest :: IO () -- "hledger test"
+selftest = do
+  Tests.hunit
+  Tests.quickcheck
+  return ()
+
 register :: [Flag] -> [String] -> [String] -> IO ()
 register opts acctpats descpats = do 
   doWithLedger opts printRegister
@@ -53,13 +59,6 @@ balance opts acctpats _ = do
                 maxdepth = case (acctpats, showsubs) of
                              ([],False) -> 1
                              otherwise  -> 9999
-
-selftest :: IO ()
-selftest = do
-  Tests.tests
-  Tests.props
-  -- Amount.tests
-  return ()
 
 -- utils
 

@@ -1,4 +1,3 @@
-
 module Tests
 where
 import qualified Data.Map as Map
@@ -9,7 +8,60 @@ import Models
 import Parse
 import Utils
 
--- sample data
+-- utils
+
+assertEqual' e a = assertEqual "" e a
+
+parse' p ts = parse p "" ts
+
+assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
+assertParseEqual expected parsed =
+    case parsed of
+      Left e -> parseError e
+      Right v -> assertEqual " " expected v
+
+parseEqual :: Eq a => (Either ParseError a) -> a -> Bool
+parseEqual parsed other =
+    case parsed of
+      Left e -> False
+      Right v -> v == other
+
+-- find tests with template haskell
+--
+-- {-# OPTIONS_GHC -fno-warn-unused-imports -no-recomp -fth #-}
+-- {- ghc --make Unit.hs -main-is Unit.runTests -o unit -}
+-- runTests :: IO ()
+-- runTests = $(mkChecks props)
+
+-- mkChecks []        = undefined
+-- mkChecks [name]    = mkCheck name
+-- mkChecks (name:ns) = [| $(mkCheck name) >> $(mkChecks ns) |]
+
+-- mkCheck name = [| putStr (name ++ ": ") >> quickCheck $(varE (mkName name)) |]
+
+-- {- | looks in Tests.hs for functions like prop_foo and returns
+--   the list.  Requires that Tests.hs be valid Haskell98. -}
+-- props :: [String]
+-- props = unsafePerformIO $
+--   do h <- openFile "Tests.hs" ReadMode
+--      s <- hGetContents h
+--      case parseModule s of
+--        (ParseOk (HsModule _ _ _ _ ds)) -> return (map declName (filter isProp ds))
+--        (ParseFailed loc s')            -> error (s' ++ " " ++ show loc)
+
+-- {- | checks if function binding name starts with @prop_@ indicating
+--  that it is a quickcheck property -}
+-- isProp :: HsDecl -> Bool
+-- isProp d@(HsFunBind _) = "prop_" `isPrefixOf` (declName d)
+-- isProp _ = False
+
+-- {- | takes an HsDecl and returns the name of the declaration -}
+-- declName :: HsDecl -> String
+-- declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
+-- declName _                                              = undefined
+
+
+-- test data
 
 transaction1_str  = "  expenses:food:dining  $10.00\n"
 
@@ -236,37 +288,29 @@ timelog1 = TimeLog [
             timelogentry2
            ]
 
+-- tests
 
--- utils
+quickcheck = mapM quickCheck ([
+        ] :: [Bool])
 
-assertEqual' e a = assertEqual "" e a
-
-parse' p ts = parse p "" ts
-
-assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
-assertParseEqual expected parsed =
-    case parsed of
-      Left e -> parseError e
-      Right v -> assertEqual " " expected v
-
-parseEquals :: Eq a => (Either ParseError a) -> a -> Bool
-parseEquals parsed other =
-    case parsed of
-      Left e -> False
-      Right v -> v == other
-
--- hunit tests
-
-tests = runTestTT $ test [
-         2 @=? 2
-        , test_ledgertransaction
-        , test_ledgerentry
-        , test_autofillEntry
-        , test_expandAccountNames
-        , test_ledgerAccountNames
-        , test_cacheLedger
-        , test_showLedgerAccounts
-        ]
+hunit = runTestTT $ "hunit" ~: test ([
+         "" ~: parseLedgerPatternArgs []                     @=? ([],[])
+        ,"" ~: parseLedgerPatternArgs ["a"]                  @=? (["a"],[])
+        ,"" ~: parseLedgerPatternArgs ["a","b"]              @=? (["a","b"],[])
+        ,"" ~: parseLedgerPatternArgs ["a","b","--"]         @=? (["a","b"],[])
+        ,"" ~: parseLedgerPatternArgs ["a","b","--","c","b"] @=? (["a","b"],["c","b"])
+        ,"" ~: parseLedgerPatternArgs ["--","c"]             @=? ([],["c"])
+        ,"" ~: parseLedgerPatternArgs ["--"]                 @=? ([],[])
+        ,"" ~: test_ledgertransaction
+        ,"" ~: test_ledgerentry
+        ,"" ~: test_autofillEntry
+        ,"" ~: test_timelogentry
+        ,"" ~: test_timelog
+        ,"" ~: test_expandAccountNames
+        ,"" ~: test_ledgerAccountNames
+        ,"" ~: test_cacheLedger
+        ,"" ~: test_showLedgerAccounts
+        ] :: [Test])
 
 test_ledgertransaction :: Assertion
 test_ledgertransaction =
@@ -279,6 +323,13 @@ test_autofillEntry =
     assertEqual'
     (Amount (getcurrency "$") (-47.18))
     (tamount $ last $ etransactions $ autofillEntry entry1)
+
+test_timelogentry = do
+    assertParseEqual timelogentry1 (parse' timelogentry timelogentry1_str)
+    assertParseEqual timelogentry2 (parse' timelogentry timelogentry2_str)
+
+test_timelog =
+    assertParseEqual timelog1 (parse' timelog timelog1_str)
 
 test_expandAccountNames =
     assertEqual'
@@ -297,30 +348,4 @@ test_cacheLedger =
 
 test_showLedgerAccounts = 
     assertEqual' 4 (length $ lines $ showLedgerAccounts l7 [] False 1)
-
--- quickcheck properties
-
-props = mapM quickCheck
-    [
-     parse' ledgertransaction transaction1_str `parseEquals`
-     (Transaction "expenses:food:dining" (Amount (getcurrency "$") 10))
-    ,
-     rawLedgerAccountNames ledger7 == 
-     ["assets","assets:cash","assets:checking","assets:saving","equity",
-      "equity:opening balances","expenses","expenses:food","expenses:food:dining",
-      "expenses:phone","expenses:vacation","liabilities","liabilities:credit cards",
-      "liabilities:credit cards:discover"]
-    ,
-     parseLedgerPatternArgs [] == ([],[])
-    ,parseLedgerPatternArgs ["a"] == (["a"],[])
-    ,parseLedgerPatternArgs ["a","b"] == (["a","b"],[])
-    ,parseLedgerPatternArgs ["a","b","--"] == (["a","b"],[])
-    ,parseLedgerPatternArgs ["a","b","--","c","b"] == (["a","b"],["c","b"])
-    ,parseLedgerPatternArgs ["--","c"] == ([],["c"])
-    ,parseLedgerPatternArgs ["--"] == ([],[])
-    ,parse' timelogentry timelogentry1_str `parseEquals` timelogentry1
-    ,parse' timelogentry timelogentry2_str `parseEquals` timelogentry2
-    ,parse' timelog timelog1_str `parseEquals` timelog1
-    ]
-
 
