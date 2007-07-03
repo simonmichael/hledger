@@ -4,6 +4,7 @@ module Utils (
               module Char,
               module Data.List,
               module Data.Tree,
+              module Data.Ord,
               module Text.Printf,
               module Text.Regex,
               module Debug.Trace,
@@ -14,6 +15,7 @@ where
 import Char
 import Data.List
 import Data.Tree
+import Data.Ord
 import Text.Printf
 import Text.Regex
 import Debug.Trace

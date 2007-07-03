@@ -2,7 +2,6 @@ module Ledger
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
-import Data.Ord (comparing)
 
 import Utils
 import Types

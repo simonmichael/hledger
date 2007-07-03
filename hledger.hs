@@ -45,7 +45,7 @@ register opts acctpats descpats = do
     where 
       printRegister l = 
           putStr $ showTransactionsWithBalances 
-                     (ledgerTransactionsMatching (acctpats,descpats) l)
+                     (sortBy (comparing date) (ledgerTransactionsMatching (acctpats,descpats) l))
                      0
 
 balance :: [Flag] -> [String] -> [String] -> IO ()
