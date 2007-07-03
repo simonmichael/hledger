@@ -2,9 +2,11 @@ module Ledger
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
+import Data.Ord (comparing)
 
 import Utils
 import Types
+import Amount
 import Account
 import AccountName
 import EntryTransaction
@@ -14,17 +16,20 @@ import RawLedger
 cacheLedger :: RawLedger -> Ledger
 cacheLedger l = 
     let 
-        ant = rawLedgerAccountNameTree l
+        ant = trace "caching" $ rawLedgerAccountNameTree l
         ans = flatten ant
         ts = rawLedgerTransactions l
-        amap = Map.fromList [
-                (a,
-                 Account a
-                         (transactionsWithAccountName a ts)
-                         (sumEntryTransactions $ transactionsWithOrBelowAccountName a ts)
-                ) | a <- ans]
+        sortedts = sortBy (comparing account) ts
+        groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
+        tmap = Map.union 
+               (Map.fromList [(account $ head g, g) | g <- groupedts])
+               (Map.fromList [(a,[]) | a <- ans])
+        bmap = Map.union 
+               (Map.fromList [(a, sumEntryTransactions $ transactionsWithOrBelowAccountName a ts) | a <- ans]) 
+               (Map.fromList [(a,nullamt) | a <- ans])
+        amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
     in
-          Ledger l ant amap
+      Ledger l ant amap
 
 ledgerAccount :: Ledger -> AccountName -> Account
 -- wtf  ledgerAccount l = ((accounts l) (!))
@@ -33,11 +38,9 @@ ledgerAccount l aname = head [a | (n,a) <- Map.toList $ accounts l, n == aname]
 ledgerTransactions :: Ledger -> [EntryTransaction]
 ledgerTransactions l = concatMap atransactions $ Map.elems $ accounts l
 
--- XXX optimise
 ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
 ledgerTransactionsMatching pats l = rawLedgerTransactionsMatching pats $ rawledger l
 
--- XXX optimise (in progress)
 showLedgerAccounts :: Ledger -> [String] -> Bool -> Int -> String
 showLedgerAccounts l acctpats showsubs maxdepth = 
     concatMap 
@@ -83,8 +86,8 @@ isBoringInnerAccountName2 l name
     | (length txns == 0) && ((length subs) == 1) = True
     | otherwise = False
     where
-      txns = transactionsInAccountNamed2 l name
-      subs = subAccountNamesFrom (rawLedgerAccountNames (rawledger l)) name
+      txns = atransactions $ ledgerAccount l name
+      subs = subAccountNamesFrom (accountnames l) name
 
 transactionsInAccountNamed2 :: Ledger -> AccountName -> [EntryTransaction]
 transactionsInAccountNamed2 l a = atransactions $ ledgerAccount l a
