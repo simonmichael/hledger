@@ -71,3 +71,19 @@ doWithParsed :: (Ledger -> IO ()) -> (Either ParseError RawLedger) -> IO ()
 doWithParsed cmd parsed = do
   case parsed of Left e -> parseError e
                  Right l -> cmd $ cacheLedger l
+
+
+{-
+interactive testing:
+
+*Main> p <- ledgerFilePath [File "./test.dat"] >>= parseLedgerFile
+*Main> let r = either (\_ -> RawLedger [] [] []) id p
+*Main> let l = cacheLedger r
+*Main> let ant = accountnametree l
+*Main> let at = accounts l
+*Main> putStr $ drawTree $ treemap show $ ant
+*Main> putStr $ showLedgerAccounts l [] False 1
+*Main> :m +Tests
+*Main Tests> l7
+
+-}

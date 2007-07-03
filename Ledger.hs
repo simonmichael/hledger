@@ -13,6 +13,13 @@ import EntryTransaction
 import RawLedger
 
 
+instance Show Ledger where
+    show l = printf "Ledger with %d entries, %d accounts"
+             ((length $ entries $ rawledger l) +
+              (length $ modifier_entries $ rawledger l) +
+              (length $ periodic_entries $ rawledger l))
+             (length $ accountnames l)
+
 cacheLedger :: RawLedger -> Ledger
 cacheLedger l = 
     let 
@@ -136,19 +143,20 @@ showLedgerAccounts l acctpats showsubs maxdepth =
     (branches (ledgerAccountTreeMatching l acctpats showsubs maxdepth))
 
 showAccountTree :: Ledger -> Tree Account -> String
-showAccountTree l = showAccountTree' l 0 . interestingAccountsFrom
+showAccountTree l = showAccountTree' l 0 . pruneBoringBranches
 
 showAccountTree' :: Ledger -> Int -> Tree Account -> String
 showAccountTree' l indentlevel t
-    -- if this acct is boring, don't show it
-    | isBoringAccount l acct = subacctsindented 0
+    -- skip a boring inner account
+    | length subs > 0 && isBoringAccount l acct = subsindented 0
     -- otherwise show normal indented account name with balance, 
     -- prefixing the names of any boring parents
     | otherwise = 
-        bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n" ++ (subacctsindented 1)
+        bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n" ++ (subsindented 1)
     where
       acct = root t
-      subacctsindented i = concatMap (showAccountTree' l (indentlevel+i)) $ branches t
+      subs = branches t
+      subsindented i = concatMap (showAccountTree' l (indentlevel+i)) subs
       bal = printf "%20s" $ show $ abalance $ acct
       indent = replicate (indentlevel * 2) ' '
       prefix = concatMap (++ ":") $ map accountLeafName boringparents
@@ -168,9 +176,10 @@ isBoringAccount l a
 isBoringAccountName :: Ledger -> AccountName -> Bool
 isBoringAccountName l = isBoringAccount l . ledgerAccount l
 
-interestingAccountsFrom :: Tree Account -> Tree Account
-interestingAccountsFrom =
+pruneBoringBranches :: Tree Account -> Tree Account
+pruneBoringBranches =
     treefilter hastxns . treefilter hasbalance
     where 
       hasbalance = (/= 0) . abalance
       hastxns = (> 0) . length . atransactions
+

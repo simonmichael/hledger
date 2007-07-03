@@ -11,7 +11,6 @@ import Utils
 usagehdr       = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
 commands       = "register|balance"
 defaultcmd     = "register"
-ledgerFilePath = findFileFromOpts "~/ledger.dat" "LEDGER"
 
 options :: [OptDescr Flag]
 options = [
@@ -47,6 +46,9 @@ testoptions order cmdline = putStr $
       (_,_,errs) -> concat errs ++ usage
 
 usage = usageInfo usagehdr options
+
+ledgerFilePath :: [Flag] -> IO String
+ledgerFilePath = findFileFromOpts "~/ledger.dat" "LEDGER"
 
 -- find a file path from options, an env var or a default value
 findFileFromOpts :: FilePath -> String -> [Flag] -> IO String

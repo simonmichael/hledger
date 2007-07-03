@@ -2,8 +2,6 @@ hledger project notes
 
 * TO DO
 ** bugs
-*** space after account makes it a new account
-*** comments with numbers after transactions don't work
 ** basic features
 *** print
 *** !include

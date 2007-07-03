@@ -154,7 +154,6 @@ ledger7_str = "\
 \    assets:checking                                 \n\
 \\n" --"
 
-l = ledger7
 ledger7 = RawLedger
           [] 
           [] 
@@ -220,6 +219,8 @@ ledger7 = RawLedger
                  }
           ]
 
+l7 = cacheLedger ledger7
+
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
 
@@ -257,13 +258,14 @@ parseEquals parsed other =
 -- hunit tests
 
 tests = runTestTT $ test [
-         test_ledgertransaction
+         2 @=? 2
+        , test_ledgertransaction
         , test_ledgerentry
         , test_autofillEntry
         , test_expandAccountNames
         , test_ledgerAccountNames
         , test_cacheLedger
-        , 2 @=? 2
+        , test_showLedgerAccounts
         ]
 
 test_ledgertransaction :: Assertion
@@ -292,7 +294,9 @@ test_ledgerAccountNames =
 
 test_cacheLedger =
     assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger ledger7)
-    
+
+test_showLedgerAccounts = 
+    assertEqual' 4 (length $ lines $ showLedgerAccounts l7 [] False 1)
 
 -- quickcheck properties
 
