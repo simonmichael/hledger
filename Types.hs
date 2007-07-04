@@ -7,7 +7,7 @@ import qualified Data.Map as Map
 Here is the approximate module hierarchy. The early code defined types in
 each module and so was strictly layered. Now, all data types have been
 moved to the bottom. The modules are still used to group related
-functions/methods ("make overview" to list those).
+functions/methods (" make overview " to list those).
 
 hledger
  Options
@@ -18,15 +18,16 @@ hledger
      TimeLogEntry
     Ledger
      Account
-      RawLedger
-       EntryTransaction
-        Entry
-         Transaction
-          AccountName
-          Amount
-           Currency
-            Types
-             Utils
+      EntryTransaction
+     RawLedger
+      Entry
+       Transaction
+        AccountName
+        Amount
+         Currency
+          Types
+           Utils
+
 -}
 
 type Date = String
