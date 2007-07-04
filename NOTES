@@ -1,7 +1,8 @@
 hledger project notes
 
 * TO DO
-** bugs
+** bugs/cleanup
+*** rename EntryTransaction/Transaction
 ** ledger features
 *** print command
 *** handle mixed amounts, non-money currencies

@@ -1,26 +1,27 @@
-BUILD=ghc --make hledger.hs -o hledger -prof -auto-all #-O2
-TOPROFILE=hledger -s balance
+BUILD=ghc --make hledger.hs -o hledger -prof -auto-all
+BUILDOPT=ghc --make hledger.hs -o hledgeropt -O2
+PROFILE=./hledger -s balance +RTS -p
 TIME=`date +"%Y%m%d%H%M"`
 
 build: Tags
 	$(BUILD)
 
+buildopt: clean
+	$(BUILDOPT)
 
-profile:
-	$(BUILD) -prof -auto-all
-	$(TOPROFILE) +RTS -p
-	mv hledger.prof $(TIME).prof
+profile: build
+	$(PROFILE)
+	mv hledger.prof profs/$(TIME).prof
 	rm -f last.prof
-	ln -s $(TIME).prof last.prof
-	head -20 $(TIME).prof >simple.prof
+	ln -s profs/$(TIME).prof last.prof
+	head -20 profs/$(TIME).prof >simple.prof
 	cat simple.prof
 	./simplifyprof.hs <last.prof >>simple.prof
 
-xprofile:
-	$(BUILD) -prof -auto-all
-	$(TOPROFILE) +RTS -px
-	mv hledger.prof $(TIME).prof
-	ghcprof $(TIME).prof
+xprofile: build
+	$(PROFILE) -x
+	mv hledger.prof profs/$(TIME).xprof
+	ghcprof profs/$(TIME).xprof
 
 #LEDGER=test.dat
 compare:
@@ -44,7 +45,7 @@ Tags:
 	hasktags *hs
 
 clean:
-	rm -f *.o *.hi *~
+	rm -f *.o *.hi *~ 1 2
 
 Clean: clean
-	rm -f hledger overview TAGS tags
+	rm -f hledger hledgeropt overview TAGS tags
