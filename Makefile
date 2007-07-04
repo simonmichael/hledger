@@ -22,6 +22,15 @@ xprofile:
 	mv hledger.prof $(TIME).prof
 	ghcprof $(TIME).prof
 
+#LEDGER=test.dat
+compare:
+	rm -f 1 2
+	ledger -s balance >1
+	ledger register >>1
+	./hledger.hs -s balance >2
+	./hledger.hs register >>2
+	diff 1 2
+
 haddock:
 	haddock -h -o doc *.hs
 
