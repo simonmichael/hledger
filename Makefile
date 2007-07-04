@@ -6,7 +6,7 @@ TIME=`date +"%Y%m%d%H%M"`
 build: Tags
 	$(BUILD)
 
-buildopt: clean
+buildopt opt: clean
 	$(BUILDOPT)
 
 profile: build
@@ -28,8 +28,10 @@ compare:
 	rm -f 1 2
 	ledger -s balance >1
 	ledger register >>1
+	ledger print >>1
 	./hledger.hs -s balance >2
 	./hledger.hs register >>2
+	./hledger.hs print >>2
 	diff 1 2
 
 haddock:

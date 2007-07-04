@@ -5,6 +5,7 @@ hledger project notes
 *** rename EntryTransaction/Transaction
 ** ledger features
 *** print command
+**** need to save & print comments
 *** handle mixed amounts, non-money currencies
 **** handle precision per currency
 *** handle time logs
@@ -23,8 +24,8 @@ hledger project notes
 *** read gnucash files
 *** other ledger args, directives
 ** new features
-*** simpler timelog format
-*** auto-generate missing clock-out
+*** alternate timelog format
+*** infer clock-out
 *** graph automation
 *** entry and smart data entry
 *** incorporate timeclock features
@@ -40,6 +41,7 @@ hledger project notes
 *** differences
 **** ledger shows comments after descriptions as part of description
 **** ledger does not sort register by date
+**** ledger does not support -f- (no space)
 ** marketing
 *** set up as a cabal/hackage project following wiki howto 
      http://en.wikibooks.org/wiki/Haskell/Packaging

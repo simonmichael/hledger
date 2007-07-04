@@ -9,7 +9,7 @@ import Utils
 
 
 usagehdr       = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
-commands       = "register|balance"
+commands       = "register|balance|print"
 defaultcmd     = "register"
 
 options :: [OptDescr Flag]

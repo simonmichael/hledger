@@ -33,3 +33,5 @@ autofillTransactions ts =
 sumTransactions :: [Transaction] -> Amount
 sumTransactions = sum . map tamount
 
+transactionSetPrecision :: Int -> Transaction -> Transaction
+transactionSetPrecision p (Transaction a amt) = Transaction a amt{precision=p}

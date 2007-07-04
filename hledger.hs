@@ -28,6 +28,7 @@ main = do
             | Help `elem` opts            = putStr usage
             | cmd `isPrefixOf` "register" = register opts acctpats descpats
             | cmd `isPrefixOf` "balance"  = balance opts acctpats descpats
+            | cmd `isPrefixOf` "print"    = printcmd opts
             | cmd `isPrefixOf` "test"     = test
             | otherwise                   = putStr usage
 
@@ -41,18 +42,26 @@ test = do
 
 register :: [Flag] -> [String] -> [String] -> IO ()
 register opts acctpats descpats = do 
-  doWithLedger opts printRegister
+  doWithLedger opts printregister
     where 
-      printRegister l = 
+      printregister l = 
           putStr $ showTransactionsWithBalances 
                      (sortBy (comparing date) (ledgerTransactionsMatching (acctpats,descpats) l))
                      nullamt{precision=lprecision l}
 
+printcmd :: [Flag] -> IO ()
+printcmd opts = do 
+  doWithLedger opts printentries
+    where
+      printentries l = putStr $ showEntries $ setprecision $ entries $ rawledger l
+          where
+            setprecision = map (entrySetPrecision (lprecision l))
+
 balance :: [Flag] -> [String] -> [String] -> IO ()
 balance opts acctpats _ = do 
-  doWithLedger opts printBalance
+  doWithLedger opts printbalance
     where
-      printBalance l =
+      printbalance l =
           putStr $ showLedgerAccounts l acctpats showsubs maxdepth
               where 
                 showsubs = (ShowSubs `elem` opts)

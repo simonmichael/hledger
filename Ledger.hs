@@ -11,6 +11,19 @@ import EntryTransaction
 import RawLedger
 
 
+rawLedgerTransactions :: RawLedger -> [EntryTransaction]
+rawLedgerTransactions l = entryTransactionsFrom $ entries l
+
+rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
+rawLedgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
+
+rawLedgerAccountNames :: RawLedger -> [AccountName]
+rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
+
+rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
+rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
+
+
 instance Show Ledger where
     show l = printf "Ledger with %d entries, %d accounts"
              ((length $ entries $ rawledger l) +
@@ -18,6 +31,8 @@ instance Show Ledger where
               (length $ periodic_entries $ rawledger l))
              (length $ accountnames l)
 
+-- at startup, we augment the parsed ledger entries with an account map
+-- and other things useful for performance
 cacheLedger :: RawLedger -> Ledger
 cacheLedger l = 
     let 

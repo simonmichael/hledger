@@ -4,22 +4,25 @@ where
 import Utils
 import Types
 import Transaction
+import Amount
 
 
-instance Show Entry where show = showEntry
+instance Show Entry where show = showEntryDescription
 
+-- for register report
+--
 -- a register entry is displayed as two or more lines like this:
 -- date       description          account                 amount       balance
 -- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
 --                                 aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
 --                                 ...                     ...         ...
--- dateWidth = 10
--- descWidth = 20
--- acctWidth = 22
--- amtWidth  = 11
--- balWidth  = 12
+-- datewidth = 10
+-- descwidth = 20
+-- acctwidth = 22
+-- amtwidth  = 11
+-- balwidth  = 12
 
-showEntry e = (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
+showEntryDescription e = (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
 showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
@@ -30,6 +33,43 @@ autofillEntry :: Entry -> Entry
 autofillEntry e = 
     Entry (edate e) (estatus e) (ecode e) (edescription e)
               (autofillTransactions (etransactions e))
+
+-- the print command shows cleaned up ledger file entries, something like:
+--
+-- yyyy/mm/dd[ *][ CODE] description.........          [  ; comment.............]
+--     account name 1.....................  ...$amount1[  ; comment.............]
+--     account name 2.....................  ..$-amount1[  ; comment.............]
+--
+-- codewidth    = 10
+-- descwidth    = 20
+-- acctwidth    = 35
+-- amtwidth     = 11
+-- commentwidth = 20
+
+showEntry :: Entry -> String
+showEntry e = 
+    unlines $ ["", description] ++ (showtxns $ etransactions e)
+    where
+      description = concat [date, status, code, desc]
+      date = showDate $ edate e
+      status = if estatus e then " *" else ""
+      code = if (length $ ecode e) > 0 then " "++(printf "%-10s" $ ecode e) else ""
+      desc = " " ++ (elideRight 20 $ edescription e)
+      showtxns (t1:t2:[]) = [showtxn t1, showtxnnoamt t2]
+      showtxns ts = map showtxn ts
+      showtxn t = showacct t ++ "  " ++ (showamount $ tamount t)
+      showtxnnoamt t = showacct t ++ "             "
+      showacct t = "    " ++ (showaccountname $ taccount t)
+      showamount = printf "%11s" . showAmountRounded
+      showaccountname = printf "%-35s" . elideRight 35
+
+showEntries :: [Entry] -> String
+showEntries = concatMap showEntry
+
+entrySetPrecision :: Int -> Entry -> Entry
+entrySetPrecision p (Entry d s c desc ts) = 
+    Entry d s c desc $ map (transactionSetPrecision p) ts
+                
 
 -- modifier & periodic entries
 

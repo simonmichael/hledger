@@ -46,6 +46,8 @@ matchTransactionDescription r t =
       Nothing -> False
       otherwise -> True
 
+-- for register command 
+
 showTransactionsWithBalances :: [EntryTransaction] -> Amount -> String
 showTransactionsWithBalances [] _ = []
 showTransactionsWithBalances ts b =
@@ -62,7 +64,7 @@ showTransactionsWithBalances ts b =
 
 showTransactionDescriptionAndBalance :: EntryTransaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =
-    (showEntry $ entry t) ++ (showTransaction $ transaction t) ++ (showBalance b)
+    (showEntryDescription $ entry t) ++ (showTransaction $ transaction t) ++ (showBalance b)
 
 showTransactionAndBalance :: EntryTransaction -> Amount -> String
 showTransactionAndBalance t b =
@@ -77,4 +79,3 @@ transactionsWithAccountName a ts = [t | t <- ts, account t == a]
 transactionsWithOrBelowAccountName :: AccountName -> [EntryTransaction] -> [EntryTransaction]
 transactionsWithOrBelowAccountName a ts = 
     [t | t <- ts, account t == a || a `isAccountNamePrefixOf` (account t)]
-    
