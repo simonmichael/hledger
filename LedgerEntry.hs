@@ -30,7 +30,7 @@ isEntryBalanced e = (sumLedgerTransactions . etransactions) e == 0
 
 autofillEntry :: LedgerEntry -> LedgerEntry
 autofillEntry e = 
-    LedgerEntry (edate e) (estatus e) (ecode e) (edescription e)
+    LedgerEntry (edate e) (estatus e) (ecode e) (edescription e) (ecomment e)
               (autofillTransactions (etransactions e))
 
 -- the print command shows cleaned up ledger file entries, something like:
@@ -49,25 +49,27 @@ showEntry :: LedgerEntry -> String
 showEntry e = 
     unlines $ ["", description] ++ (showtxns $ etransactions e)
     where
-      description = concat [date, status, code, desc]
+      description = concat [date, status, code, desc, comment]
       date = showDate $ edate e
       status = if estatus e then " *" else ""
       code = if (length $ ecode e) > 0 then " "++(printf "%-10s" $ ecode e) else ""
       desc = " " ++ (elideRight 20 $ edescription e)
+      comment = if (length $ ecomment e) > 0 then "  ; "++(printf "%-20s" $ ecomment e) else ""
       showtxns (t1:t2:[]) = [showtxn t1, showtxnnoamt t2]
       showtxns ts = map showtxn ts
-      showtxn t = showacct t ++ "  " ++ (showamount $ tamount t)
-      showtxnnoamt t = showacct t ++ "             "
+      showtxn t = showacct t ++ "  " ++ (showamount $ tamount t) ++ (showcomment $ tcomment t)
+      showtxnnoamt t = showacct t ++ "             " ++ (showcomment $ tcomment t)
       showacct t = "    " ++ (showaccountname $ taccount t)
       showamount = printf "%11s" . showAmountRounded
       showaccountname = printf "%-35s" . elideRight 35
+      showcomment s = if (length s) > 0 then "  ; "++(printf "%-20s" $ elideRight 20 s) else ""
 
 showEntries :: [LedgerEntry] -> String
 showEntries = concatMap showEntry
 
 entrySetPrecision :: Int -> LedgerEntry -> LedgerEntry
-entrySetPrecision p (LedgerEntry d s c desc ts) = 
-    LedgerEntry d s c desc $ map (ledgerTransactionSetPrecision p) ts
+entrySetPrecision p (LedgerEntry d s c desc comm ts) = 
+    LedgerEntry d s c desc comm $ map (ledgerTransactionSetPrecision p) ts
                 
 
 -- modifier & periodic entries

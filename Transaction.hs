@@ -10,7 +10,7 @@ import Currency
 
 
 flattenEntry :: LedgerEntry -> [Transaction]
-flattenEntry (LedgerEntry d _ _ desc ts) = [Transaction d desc (taccount t) (tamount t) | t <- ts]
+flattenEntry (LedgerEntry d _ _ desc _ ts) = [Transaction d desc (taccount t) (tamount t) | t <- ts]
 
 transactionSetPrecision :: Int -> Transaction -> Transaction
 transactionSetPrecision p (Transaction d desc a amt) = Transaction d desc a amt{precision=p}
@@ -55,12 +55,12 @@ showTransactionsWithBalances ts b =
 
 showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =
-    (showEntryDescription $ LedgerEntry (date t) False "" (description t) []) 
-    ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t)) ++ (showBalance b)
+    (showEntryDescription $ LedgerEntry (date t) False "" (description t) "" []) 
+    ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t) "") ++ (showBalance b)
 
 showTransactionAndBalance :: Transaction -> Amount -> String
 showTransactionAndBalance t b =
-    (replicate 32 ' ') ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t)) ++ (showBalance b)
+    (replicate 32 ' ') ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t) "") ++ (showBalance b)
 
 showBalance :: Amount -> String
 showBalance b = printf " %12s" (showAmountRoundedOrZero b)

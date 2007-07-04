@@ -152,10 +152,22 @@ ledger = do
   return $ LedgerFile modifier_entries periodic_entries entries
 
 ledgernondatalines :: Parser [String]
-ledgernondatalines = many (ledgerdirective <|> ledgercomment <|> do {whiteSpace1; return []})
+ledgernondatalines = many (ledgerdirective <|> ledgercommentline <|> do {whiteSpace1; return []})
+
+ledgercommentline :: Parser String
+ledgercommentline = do
+  char ';'
+  many spacenonewline
+  restofline <?> "comment line"
 
 ledgercomment :: Parser String
-ledgercomment = char ';' >> restofline <?> "comment"
+ledgercomment = 
+    try (do
+          char ';'
+          many spacenonewline
+          many (noneOf "\n")
+        ) 
+    <|> return "" <?> "comment"
 
 ledgerdirective :: Parser String
 ledgerdirective = char '!' >> restofline <?> "directive"
@@ -183,10 +195,12 @@ ledgerentry = do
   date <- ledgerdate
   status <- ledgerstatus
   code <- ledgercode
-  description <- anyChar `manyTill` ledgereol
+  description <- many (noneOf ";\n") <?> "description"
+  comment <- ledgercomment
+  restofline
   transactions <- ledgertransactions
   ledgernondatalines
-  return $ autofillEntry $ LedgerEntry date status code description transactions
+  return $ autofillEntry $ LedgerEntry date status code description comment transactions
 
 ledgerdate :: Parser String
 ledgerdate = do 
@@ -213,9 +227,10 @@ ledgertransaction = do
   account <- ledgeraccount
   amount <- ledgeramount
   many spacenonewline
-  ledgereol
-  many ledgercomment
-  return (LedgerTransaction account amount)
+  comment <- ledgercomment
+  restofline
+  many ledgercommentline
+  return (LedgerTransaction account amount comment)
 
 -- account names may have single spaces in them, and are terminated by two or more spaces
 ledgeraccount :: Parser String
@@ -240,7 +255,7 @@ ledgeramount =
       striptrailingpoint = reverse . dropWhile (=='.') . reverse
 
 ledgereol :: Parser String
-ledgereol = ledgercomment <|> do {newline; return []}
+ledgereol = do {newline; return []}
 
 spacenonewline :: Parser Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")

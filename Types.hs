@@ -53,7 +53,8 @@ type AccountName = String
 -- a line item in a ledger entry
 data LedgerTransaction = LedgerTransaction {
       taccount :: AccountName,
-      tamount :: Amount
+      tamount :: Amount,
+      tcomment :: String
     } deriving (Eq)
 
 -- a ledger entry, with two or more balanced transactions
@@ -62,6 +63,7 @@ data LedgerEntry = LedgerEntry {
       estatus :: Bool,
       ecode :: String,
       edescription :: String,
+      ecomment :: String,
       etransactions :: [LedgerTransaction]
     } deriving (Eq)
 
@@ -79,9 +81,9 @@ data PeriodicEntry = PeriodicEntry {
 
 -- we also parse timeclock.el timelogs
 data TimeLogEntry = TimeLogEntry {
-      tcode :: Char,
-      tdatetime :: DateTime,
-      tcomment :: String
+      tlcode :: Char,
+      tldatetime :: DateTime,
+      tlcomment :: String
     } deriving (Eq,Ord)
 
 data TimeLog = TimeLog {

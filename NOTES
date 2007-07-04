@@ -3,8 +3,6 @@ hledger project notes
 * TO DO
 ** bugs/cleanup
 ** ledger features
-*** print command
-**** need to save & print comments
 *** handle mixed amounts, non-money currencies
 **** handle precision per currency
 *** handle time logs

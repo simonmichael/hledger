@@ -33,4 +33,4 @@ sumLedgerTransactions :: [LedgerTransaction] -> Amount
 sumLedgerTransactions = sum . map tamount
 
 ledgerTransactionSetPrecision :: Int -> LedgerTransaction -> LedgerTransaction
-ledgerTransactionSetPrecision p (LedgerTransaction a amt) = LedgerTransaction a amt{precision=p}
+ledgerTransactionSetPrecision p (LedgerTransaction a amt c) = LedgerTransaction a amt{precision=p} c

@@ -9,7 +9,7 @@ import LedgerEntry
 import LedgerFile
 
 instance Show TimeLogEntry where 
-    show t = printf "%s %s %s" (show $ tcode t) (tdatetime t) (tcomment t)
+    show t = printf "%s %s %s" (show $ tlcode t) (tldatetime t) (tlcomment t)
 
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
@@ -30,16 +30,17 @@ entriesFromTimeLogEntries [clockin,clockout] =
        estatus       = True,
        ecode         = "",
        edescription  = accountname,
+       ecomment      = "",
        etransactions = [
-        LedgerTransaction accountname amount,
-        LedgerTransaction "TIME" (-amount)
+        LedgerTransaction accountname amount "",
+        LedgerTransaction "TIME" (-amount) ""
        ]}
     ]
     where
-      accountname = tcomment clockin
-      intime      = tdatetime clockin
-      indate      = dateFrom $ tdatetime clockin
-      outtime     = tdatetime clockout
+      accountname = tlcomment clockin
+      intime      = tldatetime clockin
+      indate      = dateFrom $ tldatetime clockin
+      outtime     = tldatetime clockout
       amount      = hours 0 -- read $ outtime - intime
 
 entriesFromTimeLogEntries many =
