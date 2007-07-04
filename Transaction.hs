@@ -9,11 +9,13 @@ import Amount
 import Currency
 
 
-flattenEntry :: LedgerEntry -> [Transaction]
-flattenEntry (LedgerEntry d _ _ desc _ ts) = [Transaction d desc (taccount t) (tamount t) | t <- ts]
+-- we use the entry number e to remember the grouping of txns
+flattenEntry :: (LedgerEntry, Int) -> [Transaction]
+flattenEntry (LedgerEntry d _ _ desc _ ts, e) = 
+    [Transaction e d desc (taccount t) (tamount t) | t <- ts]
 
 transactionSetPrecision :: Int -> Transaction -> Transaction
-transactionSetPrecision p (Transaction d desc a amt) = Transaction d desc a amt{precision=p}
+transactionSetPrecision p (Transaction e d desc a amt) = Transaction e d desc a amt{precision=p}
 
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
@@ -40,18 +42,16 @@ showTransactionsWithBalances [] _ = []
 showTransactionsWithBalances ts b =
     unlines $ showTransactionsWithBalances' ts dummyt b
         where
-          dummyt = Transaction "" "" "" (dollars 0)
+          dummyt = Transaction 0 "" "" "" (dollars 0)
           showTransactionsWithBalances' [] _ _ = []
           showTransactionsWithBalances' (t:ts) tprev b =
               (if sameentry t tprev
-               then [showTransactionDescriptionAndBalance t b']
-               else [showTransactionAndBalance t b'])
+               then [showTransactionAndBalance t b']
+               else [showTransactionDescriptionAndBalance t b'])
               ++ (showTransactionsWithBalances' ts t b')
                   where 
                     b' = b + (amount t)
-                    sameentry (Transaction d1 desc1 _ _) (Transaction d2 desc2 _ _) = 
-                        d1 == d2 && desc1 == desc2
-                        -- we forgot the entry-txn relationships.. good enough ?
+                    sameentry (Transaction e1 _ _ _ _) (Transaction e2 _ _ _ _) = e1 == e2
 
 showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =

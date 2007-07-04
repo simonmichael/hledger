@@ -35,15 +35,15 @@ autofillEntry e =
 
 -- the print command shows cleaned up ledger file entries, something like:
 --
--- yyyy/mm/dd[ *][ CODE] description.........          [  ; comment.............]
---     account name 1.....................  ...$amount1[  ; comment.............]
---     account name 2.....................  ..$-amount1[  ; comment.............]
+-- yyyy/mm/dd[ *][ CODE] description.........          [  ; comment...............]
+--     account name 1.....................  ...$amount1[  ; comment...............]
+--     account name 2.....................  ..$-amount1[  ; comment...............]
 --
 -- codewidth    = 10
 -- descwidth    = 20
 -- acctwidth    = 35
 -- amtwidth     = 11
--- commentwidth = 20
+-- commentwidth = 22
 
 showEntry :: LedgerEntry -> String
 showEntry e = 
@@ -52,9 +52,9 @@ showEntry e =
       description = concat [date, status, code, desc, comment]
       date = showDate $ edate e
       status = if estatus e then " *" else ""
-      code = if (length $ ecode e) > 0 then " "++(printf "%-10s" $ ecode e) else ""
+      code = if (length $ ecode e) > 0 then (printf " (%s)" $ ecode e) else ""
       desc = " " ++ (elideRight 20 $ edescription e)
-      comment = if (length $ ecomment e) > 0 then "  ; "++(printf "%-20s" $ ecomment e) else ""
+      comment = if (length $ ecomment e) > 0 then "  ; "++(ecomment e) else ""
       showtxns (t1:t2:[]) = [showtxn t1, showtxnnoamt t2]
       showtxns ts = map showtxn ts
       showtxn t = showacct t ++ "  " ++ (showamount $ tamount t) ++ (showcomment $ tcomment t)
@@ -62,7 +62,7 @@ showEntry e =
       showacct t = "    " ++ (showaccountname $ taccount t)
       showamount = printf "%11s" . showAmountRounded
       showaccountname = printf "%-35s" . elideRight 35
-      showcomment s = if (length s) > 0 then "  ; "++(printf "%-20s" $ elideRight 20 s) else ""
+      showcomment s = if (length s) > 0 then "  ; "++s else ""
 
 showEntries :: [LedgerEntry] -> String
 showEntries = concatMap showEntry

@@ -100,6 +100,7 @@ data LedgerFile = LedgerFile {
 -- we flatten LedgerEntries and LedgerTransactions into Transactions,
 -- which are simpler to query at the cost of some data duplication
 data Transaction = Transaction {
+      entryno :: Int,
       date :: Date,
       description :: String,
       account :: AccountName,

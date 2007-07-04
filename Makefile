@@ -24,14 +24,14 @@ xprofile: build
 	ghcprof profs/$(TIME).xprof
 
 #LEDGER=test.dat
-compare:
+compare: build
 	rm -f 1 2
 	ledger -s balance >1
 	ledger register >>1
 	ledger print >>1
-	./hledger.hs -s balance >2
-	./hledger.hs register >>2
-	./hledger.hs print >>2
+	./hledger -s balance >2
+	./hledger register >>2
+	./hledger print >>2
 	diff 1 2
 
 haddock:

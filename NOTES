@@ -2,6 +2,7 @@ hledger project notes
 
 * TO DO
 ** bugs/cleanup
+*** resolve output differences
 ** ledger features
 *** handle mixed amounts, non-money currencies
 **** handle precision per currency
@@ -15,11 +16,11 @@ hledger project notes
 *** !include
 *** -j and -J graph data output
 *** more speed
-*** ledger 3.0-style elision
+*** ledger 3-style elision
 *** -p period expressions
 *** -d display expressions
 *** read gnucash files
-*** other ledger args, directives
+*** other ledger 3 features
 ** new features
 *** alternate timelog format
 *** infer clock-out
@@ -36,9 +37,10 @@ hledger project notes
 *** literate docs
 *** better use of haddock
 *** differences
-**** ledger shows comments after descriptions as part of description
+**** ledger shows comments after descriptions as part of description in register
 **** ledger does not sort register by date
-**** ledger does not support -f- (no space)
+**** ledger does not support -f- (without space)
+**** hledger does not parse automated/periodic entries except at start of file
 ** marketing
 *** set up as a cabal/hackage project following wiki howto 
      http://en.wikibooks.org/wiki/Haskell/Packaging

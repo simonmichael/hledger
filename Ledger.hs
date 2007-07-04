@@ -15,7 +15,7 @@ rawLedgerTransactions :: LedgerFile -> [Transaction]
 rawLedgerTransactions = txns . entries
     where
       txns :: [LedgerEntry] -> [Transaction]
-      txns es = concat $ map flattenEntry es
+      txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
 
 rawLedgerAccountNamesUsed :: LedgerFile -> [AccountName]
 rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
