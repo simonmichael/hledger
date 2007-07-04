@@ -1,4 +1,3 @@
-
 module LedgerEntry
 where
 import Utils
@@ -27,7 +26,7 @@ showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
 isEntryBalanced :: LedgerEntry -> Bool
-isEntryBalanced e = (sumTransactions . etransactions) e == 0
+isEntryBalanced e = (sumLedgerTransactions . etransactions) e == 0
 
 autofillEntry :: LedgerEntry -> LedgerEntry
 autofillEntry e = 
@@ -68,7 +67,7 @@ showEntries = concatMap showEntry
 
 entrySetPrecision :: Int -> LedgerEntry -> LedgerEntry
 entrySetPrecision p (LedgerEntry d s c desc ts) = 
-    LedgerEntry d s c desc $ map (transactionSetPrecision p) ts
+    LedgerEntry d s c desc $ map (ledgerTransactionSetPrecision p) ts
                 
 
 -- modifier & periodic entries

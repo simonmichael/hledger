@@ -9,30 +9,17 @@ import Amount
 import Currency
 
 
-entry       (e,t) = e
-transaction (e,t) = t
-date        (e,t) = edate e
-status      (e,t) = estatus e
-code        (e,t) = ecode e
-description (e,t) = edescription e
-account     (e,t) = taccount t
-amount      (e,t) = tamount t
-                                         
 flattenEntry :: LedgerEntry -> [Transaction]
-flattenEntry e = [(e,t) | t <- etransactions e]
+flattenEntry (LedgerEntry d _ _ desc ts) = [Transaction d desc (taccount t) (tamount t) | t <- ts]
 
-entryTransactionSetPrecision :: Int -> Transaction -> Transaction
-entryTransactionSetPrecision p (e, LedgerTransaction a amt) = (e, LedgerTransaction a amt{precision=p})
+transactionSetPrecision :: Int -> Transaction -> Transaction
+transactionSetPrecision p (Transaction d desc a amt) = Transaction d desc a amt{precision=p}
 
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
 
-entryTransactionsFrom :: [LedgerEntry] -> [Transaction]
-entryTransactionsFrom es = concat $ map flattenEntry es
-
-sumEntryTransactions :: [Transaction] -> Amount
-sumEntryTransactions ets = 
-    sumTransactions $ map transaction ets
+sumTransactions :: [Transaction] -> Amount
+sumTransactions = sum . map amount
 
 matchTransactionAccount :: Regex -> Transaction -> Bool
 matchTransactionAccount r t =
@@ -53,22 +40,27 @@ showTransactionsWithBalances [] _ = []
 showTransactionsWithBalances ts b =
     unlines $ showTransactionsWithBalances' ts dummyt b
         where
-          dummyt = (LedgerEntry "" False "" "" [], LedgerTransaction "" (dollars 0))
+          dummyt = Transaction "" "" "" (dollars 0)
           showTransactionsWithBalances' [] _ _ = []
           showTransactionsWithBalances' (t:ts) tprev b =
-              (if (entry t /= (entry tprev))
+              (if sameentry t tprev
                then [showTransactionDescriptionAndBalance t b']
                else [showTransactionAndBalance t b'])
               ++ (showTransactionsWithBalances' ts t b')
-                  where b' = b + (amount t)
+                  where 
+                    b' = b + (amount t)
+                    sameentry (Transaction d1 desc1 _ _) (Transaction d2 desc2 _ _) = 
+                        d1 == d2 && desc1 == desc2
+                        -- we forgot the entry-txn relationships.. good enough ?
 
 showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =
-    (showEntryDescription $ entry t) ++ (showTransaction $ transaction t) ++ (showBalance b)
+    (showEntryDescription $ LedgerEntry (date t) False "" (description t) []) 
+    ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t)) ++ (showBalance b)
 
 showTransactionAndBalance :: Transaction -> Amount -> String
 showTransactionAndBalance t b =
-    (replicate 32 ' ') ++ (showTransaction $ transaction t) ++ (showBalance b)
+    (replicate 32 ' ') ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t)) ++ (showBalance b)
 
 showBalance :: Amount -> String
 showBalance b = printf " %12s" (showAmountRoundedOrZero b)

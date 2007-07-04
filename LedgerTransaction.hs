@@ -1,4 +1,3 @@
-
 module LedgerTransaction
 where
 import Utils
@@ -7,10 +6,10 @@ import AccountName
 import Amount
 
 
-instance Show LedgerTransaction where show = showTransaction
+instance Show LedgerTransaction where show = showLedgerTransaction
 
-showTransaction :: LedgerTransaction -> String
-showTransaction t = (showaccountname $ taccount t) ++ "  " ++ (showamount $ tamount t) 
+showLedgerTransaction :: LedgerTransaction -> String
+showLedgerTransaction t = (showaccountname $ taccount t) ++ "  " ++ (showamount $ tamount t) 
     where
       showaccountname = printf "%-22s" . elideRight 22
       showamount = printf "%11s" . showAmountRoundedOrZero
@@ -27,11 +26,11 @@ autofillTransactions ts =
     case (length as) of
       0 -> ns
       1 -> ns ++ [balanceTransaction $ head as]
-          where balanceTransaction t = t{tamount = -(sumTransactions ns)}
+          where balanceTransaction t = t{tamount = -(sumLedgerTransactions ns)}
       otherwise -> error "too many blank transactions in this entry"
 
-sumTransactions :: [LedgerTransaction] -> Amount
-sumTransactions = sum . map tamount
+sumLedgerTransactions :: [LedgerTransaction] -> Amount
+sumLedgerTransactions = sum . map tamount
 
-transactionSetPrecision :: Int -> LedgerTransaction -> LedgerTransaction
-transactionSetPrecision p (LedgerTransaction a amt) = LedgerTransaction a amt{precision=p}
+ledgerTransactionSetPrecision :: Int -> LedgerTransaction -> LedgerTransaction
+ledgerTransactionSetPrecision p (LedgerTransaction a amt) = LedgerTransaction a amt{precision=p}

@@ -46,11 +46,11 @@ data Amount = Amount {
       precision :: Int -- number of significant decimal places
     } deriving (Eq)
 
--- AccountNames are strings like "assets:cash:petty"; from these we figure
--- out the chart of accounts
+-- AccountNames are strings like "assets:cash:petty", from which we derive
+-- the chart of accounts
 type AccountName = String
 
--- a flow of some amount to some account (see also Transaction)
+-- a line item in a ledger entry
 data LedgerTransaction = LedgerTransaction {
       taccount :: AccountName,
       tamount :: Amount
@@ -59,21 +59,19 @@ data LedgerTransaction = LedgerTransaction {
 -- a ledger entry, with two or more balanced transactions
 data LedgerEntry = LedgerEntry {
       edate :: Date,
-      estatus :: EntryStatus,
+      estatus :: Bool,
       ecode :: String,
       edescription :: String,
       etransactions :: [LedgerTransaction]
     } deriving (Eq)
 
-type EntryStatus = Bool
-
--- an "=" automated entry (ignored)
+-- an automated ledger entry
 data ModifierEntry = ModifierEntry {
       valueexpr :: String,
       m_transactions :: [LedgerTransaction]
     } deriving (Eq)
 
--- a "~" periodic entry (ignored)
+-- a periodic ledger entry
 data PeriodicEntry = PeriodicEntry {
       periodexpr :: String,
       p_transactions :: [LedgerTransaction]
@@ -97,20 +95,23 @@ data LedgerFile = LedgerFile {
       entries :: [LedgerEntry]
     } deriving (Eq)
 
--- We convert Transactions into EntryTransactions, which are (entry,
--- transaction) pairs, since I couldn't see how to have transactions
--- reference their entry like in OO.  These are referred to as just
--- "transactions" in modules above Transaction.
-type Transaction = (LedgerEntry,LedgerTransaction)
+-- we flatten LedgerEntries and LedgerTransactions into Transactions,
+-- which are simpler to query at the cost of some data duplication
+data Transaction = Transaction {
+      date :: Date,
+      description :: String,
+      account :: AccountName,
+      amount :: Amount
+    } deriving (Eq)
 
--- all information for a particular account, derived from a LedgerFile
+-- cached information for a particular account
 data Account = Account {
       aname :: AccountName, 
       atransactions :: [Transaction], -- excludes sub-accounts
-      abalance :: Amount                   -- includes sub-accounts
+      abalance :: Amount              -- includes sub-accounts
     }
 
--- a ledger with account info cached for faster queries
+-- a ledger with account information cached for faster queries
 data Ledger = Ledger {
       rawledger :: LedgerFile, 
       accountnametree :: Tree AccountName,

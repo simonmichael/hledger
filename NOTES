@@ -2,7 +2,6 @@ hledger project notes
 
 * TO DO
 ** bugs/cleanup
-*** rename EntryTransaction/Transaction
 ** ledger features
 *** print command
 **** need to save & print comments

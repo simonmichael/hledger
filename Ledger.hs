@@ -12,10 +12,13 @@ import LedgerFile
 
 
 rawLedgerTransactions :: LedgerFile -> [Transaction]
-rawLedgerTransactions l = entryTransactionsFrom $ entries l
+rawLedgerTransactions = txns . entries
+    where
+      txns :: [LedgerEntry] -> [Transaction]
+      txns es = concat $ map flattenEntry es
 
 rawLedgerAccountNamesUsed :: LedgerFile -> [AccountName]
-rawLedgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
+rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
 
 rawLedgerAccountNames :: LedgerFile -> [AccountName]
 rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
@@ -44,12 +47,12 @@ cacheLedger l =
         tmap = Map.union 
                (Map.fromList [(account $ head g, g) | g <- groupedts])
                (Map.fromList [(a,[]) | a <- ans])
-        txns a = tmap ! a
+        txns = (tmap !)
         subaccts a = filter (isAccountNamePrefixOf a) ans
         subtxns a = concat [txns a | a <- [a] ++ subaccts a]
-        lprecision = maximum $ map (precision . tamount . transaction) ts
+        lprecision = maximum $ map (precision . amount) ts
         bmap = Map.union 
-               (Map.fromList [(a, (sumEntryTransactions $ subtxns a){precision=lprecision}) | a <- ans])
+               (Map.fromList [(a, (sumTransactions $ subtxns a){precision=lprecision}) | a <- ans])
                (Map.fromList [(a,nullamt) | a <- ans])
         amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
     in
@@ -69,7 +72,7 @@ ledgerTransactions :: Ledger -> [Transaction]
 ledgerTransactions l = 
     setprecisions $ rawLedgerTransactions $ rawledger l
     where
-      setprecisions = map (entryTransactionSetPrecision (lprecision l))
+      setprecisions = map (transactionSetPrecision (lprecision l))
 
 ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [Transaction]
 ledgerTransactionsMatching ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) l
