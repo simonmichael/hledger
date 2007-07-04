@@ -65,7 +65,7 @@ parseEqual parsed other =
 
 transaction1_str  = "  expenses:food:dining  $10.00\n"
 
-transaction1 = Transaction "expenses:food:dining" (dollars 10)
+transaction1 = LedgerTransaction "expenses:food:dining" (dollars 10)
 
 entry1_str = "\
 \2007/01/28 coopportunity\n\
@@ -74,9 +74,9 @@ entry1_str = "\
 \\n" --"
 
 entry1 =
-    (Entry "2007/01/28" False "" "coopportunity" 
-               [Transaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2), 
-                Transaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2)])
+    (LedgerEntry "2007/01/28" False "" "coopportunity" 
+               [LedgerTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2), 
+                LedgerTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2)])
 
 entry2_str = "\
 \2007/01/27 * joes diner\n\
@@ -206,66 +206,66 @@ ledger7_str = "\
 \    assets:checking                                 \n\
 \\n" --"
 
-ledger7 = RawLedger
+ledger7 = LedgerFile
           [] 
           [] 
           [
-           Entry {
+           LedgerEntry {
                   edate="2007/01/01", estatus=False, ecode="*", edescription="opening balance",
                   etransactions=[
-                                Transaction {taccount="assets:cash", 
+                                LedgerTransaction {taccount="assets:cash", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2}},
-                                Transaction {taccount="equity:opening balances", 
+                                LedgerTransaction {taccount="equity:opening balances", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2}}
                                ]
                  }
           ,
-           Entry {
+           LedgerEntry {
                   edate="2007/02/01", estatus=False, ecode="*", edescription="ayres suites",
                   etransactions=[
-                                Transaction {taccount="expenses:vacation", 
+                                LedgerTransaction {taccount="expenses:vacation", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=179.92, precision=2}},
-                                Transaction {taccount="assets:checking", 
+                                LedgerTransaction {taccount="assets:checking", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=(-179.92), precision=2}}
                                ]
                  }
           ,
-           Entry {
+           LedgerEntry {
                   edate="2007/01/02", estatus=False, ecode="*", edescription="auto transfer to savings",
                   etransactions=[
-                                Transaction {taccount="assets:saving", 
+                                LedgerTransaction {taccount="assets:saving", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=200, precision=2}},
-                                Transaction {taccount="assets:checking", 
+                                LedgerTransaction {taccount="assets:checking", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=(-200), precision=2}}
                                ]
                  }
           ,
-           Entry {
+           LedgerEntry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="poquito mas",
                   etransactions=[
-                                Transaction {taccount="expenses:food:dining", 
+                                LedgerTransaction {taccount="expenses:food:dining", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2}},
-                                Transaction {taccount="assets:cash", 
+                                LedgerTransaction {taccount="assets:cash", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2}}
                                ]
                  }
           ,
-           Entry {
+           LedgerEntry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="verizon",
                   etransactions=[
-                                Transaction {taccount="expenses:phone", 
+                                LedgerTransaction {taccount="expenses:phone", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=95.11, precision=2}},
-                                Transaction {taccount="assets:checking", 
+                                LedgerTransaction {taccount="assets:checking", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=(-95.11), precision=2}}
                                ]
                  }
           ,
-           Entry {
+           LedgerEntry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="discover",
                   etransactions=[
-                                Transaction {taccount="liabilities:credit cards:discover", 
+                                LedgerTransaction {taccount="liabilities:credit cards:discover", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=80, precision=2}},
-                                Transaction {taccount="assets:checking", 
+                                LedgerTransaction {taccount="assets:checking", 
                                              tamount=Amount {currency=(getcurrency "$"), quantity=(-80), precision=2}}
                                ]
                  }

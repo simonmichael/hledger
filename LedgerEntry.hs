@@ -1,13 +1,13 @@
 
-module Entry
+module LedgerEntry
 where
 import Utils
 import Types
-import Transaction
+import LedgerTransaction
 import Amount
 
 
-instance Show Entry where show = showEntryDescription
+instance Show LedgerEntry where show = showEntryDescription
 
 -- for register report
 --
@@ -26,12 +26,12 @@ showEntryDescription e = (showDate $ edate e) ++ " " ++ (showDescription $ edesc
 showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
-isEntryBalanced :: Entry -> Bool
+isEntryBalanced :: LedgerEntry -> Bool
 isEntryBalanced e = (sumTransactions . etransactions) e == 0
 
-autofillEntry :: Entry -> Entry
+autofillEntry :: LedgerEntry -> LedgerEntry
 autofillEntry e = 
-    Entry (edate e) (estatus e) (ecode e) (edescription e)
+    LedgerEntry (edate e) (estatus e) (ecode e) (edescription e)
               (autofillTransactions (etransactions e))
 
 -- the print command shows cleaned up ledger file entries, something like:
@@ -46,7 +46,7 @@ autofillEntry e =
 -- amtwidth     = 11
 -- commentwidth = 20
 
-showEntry :: Entry -> String
+showEntry :: LedgerEntry -> String
 showEntry e = 
     unlines $ ["", description] ++ (showtxns $ etransactions e)
     where
@@ -63,12 +63,12 @@ showEntry e =
       showamount = printf "%11s" . showAmountRounded
       showaccountname = printf "%-35s" . elideRight 35
 
-showEntries :: [Entry] -> String
+showEntries :: [LedgerEntry] -> String
 showEntries = concatMap showEntry
 
-entrySetPrecision :: Int -> Entry -> Entry
-entrySetPrecision p (Entry d s c desc ts) = 
-    Entry d s c desc $ map (transactionSetPrecision p) ts
+entrySetPrecision :: Int -> LedgerEntry -> LedgerEntry
+entrySetPrecision p (LedgerEntry d s c desc ts) = 
+    LedgerEntry d s c desc $ map (transactionSetPrecision p) ts
                 
 
 -- modifier & periodic entries

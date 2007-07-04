@@ -18,10 +18,10 @@ hledger
      TimeLogEntry
     Ledger
      Account
-      EntryTransaction
-     RawLedger
-      Entry
-       Transaction
+      Transaction
+     LedgerFile
+      LedgerEntry
+       LedgerTransaction
         AccountName
         Amount
          Currency
@@ -50,19 +50,19 @@ data Amount = Amount {
 -- out the chart of accounts
 type AccountName = String
 
--- a flow of some amount to some account (see also EntryTransaction)
-data Transaction = Transaction {
+-- a flow of some amount to some account (see also Transaction)
+data LedgerTransaction = LedgerTransaction {
       taccount :: AccountName,
       tamount :: Amount
     } deriving (Eq)
 
 -- a ledger entry, with two or more balanced transactions
-data Entry = Entry {
+data LedgerEntry = LedgerEntry {
       edate :: Date,
       estatus :: EntryStatus,
       ecode :: String,
       edescription :: String,
-      etransactions :: [Transaction]
+      etransactions :: [LedgerTransaction]
     } deriving (Eq)
 
 type EntryStatus = Bool
@@ -70,13 +70,13 @@ type EntryStatus = Bool
 -- an "=" automated entry (ignored)
 data ModifierEntry = ModifierEntry {
       valueexpr :: String,
-      m_transactions :: [Transaction]
+      m_transactions :: [LedgerTransaction]
     } deriving (Eq)
 
 -- a "~" periodic entry (ignored)
 data PeriodicEntry = PeriodicEntry {
       periodexpr :: String,
-      p_transactions :: [Transaction]
+      p_transactions :: [LedgerTransaction]
     } deriving (Eq)
 
 -- we also parse timeclock.el timelogs
@@ -91,28 +91,28 @@ data TimeLog = TimeLog {
     } deriving (Eq)
 
 -- a parsed ledger file
-data RawLedger = RawLedger {
+data LedgerFile = LedgerFile {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
-      entries :: [Entry]
+      entries :: [LedgerEntry]
     } deriving (Eq)
 
 -- We convert Transactions into EntryTransactions, which are (entry,
 -- transaction) pairs, since I couldn't see how to have transactions
 -- reference their entry like in OO.  These are referred to as just
--- "transactions" in modules above EntryTransaction.
-type EntryTransaction = (Entry,Transaction)
+-- "transactions" in modules above Transaction.
+type Transaction = (LedgerEntry,LedgerTransaction)
 
--- all information for a particular account, derived from a RawLedger
+-- all information for a particular account, derived from a LedgerFile
 data Account = Account {
       aname :: AccountName, 
-      atransactions :: [EntryTransaction], -- excludes sub-accounts
+      atransactions :: [Transaction], -- excludes sub-accounts
       abalance :: Amount                   -- includes sub-accounts
     }
 
 -- a ledger with account info cached for faster queries
 data Ledger = Ledger {
-      rawledger :: RawLedger, 
+      rawledger :: LedgerFile, 
       accountnametree :: Tree AccountName,
       accounts :: Map.Map AccountName Account,
       lprecision :: Int

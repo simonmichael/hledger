@@ -137,10 +137,10 @@ i, o, b, h
 -- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
 -- sample data in Tests.hs 
 
-ledgerfile :: Parser RawLedger
+ledgerfile :: Parser LedgerFile
 ledgerfile = ledger <|> ledgerfromtimelog
 
-ledger :: Parser RawLedger
+ledger :: Parser LedgerFile
 ledger = do
   ledgernondatalines
   -- for now these must come first, unlike ledger
@@ -149,7 +149,7 @@ ledger = do
   --
   entries <- (many ledgerentry) <?> "entry"
   eof
-  return $ RawLedger modifier_entries periodic_entries entries
+  return $ LedgerFile modifier_entries periodic_entries entries
 
 ledgernondatalines :: Parser [String]
 ledgernondatalines = many (ledgerdirective <|> ledgercomment <|> do {whiteSpace1; return []})
@@ -178,7 +178,7 @@ ledgerperiodicentry = do
   ledgernondatalines
   return (PeriodicEntry periodexpr transactions)
 
-ledgerentry :: Parser Entry
+ledgerentry :: Parser LedgerEntry
 ledgerentry = do
   date <- ledgerdate
   status <- ledgerstatus
@@ -186,7 +186,7 @@ ledgerentry = do
   description <- anyChar `manyTill` ledgereol
   transactions <- ledgertransactions
   ledgernondatalines
-  return $ autofillEntry $ Entry date status code description transactions
+  return $ autofillEntry $ LedgerEntry date status code description transactions
 
 ledgerdate :: Parser String
 ledgerdate = do 
@@ -204,10 +204,10 @@ ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> ret
 ledgercode :: Parser String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
-ledgertransactions :: Parser [Transaction]
+ledgertransactions :: Parser [LedgerTransaction]
 ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (do {newline <?> "blank line"; return ()} <|> eof)
 
-ledgertransaction :: Parser Transaction
+ledgertransaction :: Parser LedgerTransaction
 ledgertransaction = do
   many1 spacenonewline
   account <- ledgeraccount
@@ -215,7 +215,7 @@ ledgertransaction = do
   many spacenonewline
   ledgereol
   many ledgercomment
-  return (Transaction account amount)
+  return (LedgerTransaction account amount)
 
 -- account names may have single spaces in them, and are terminated by two or more spaces
 ledgeraccount :: Parser String
@@ -289,7 +289,7 @@ o 2007/03/10 17:26:02
 
 -}
 
-ledgerfromtimelog :: Parser RawLedger
+ledgerfromtimelog :: Parser LedgerFile
 ledgerfromtimelog = do 
   tl <- timelog
   return $ ledgerFromTimeLog tl
@@ -322,7 +322,7 @@ printParseResult :: Show v => Either ParseError v -> IO ()
 printParseResult r = case r of Left e -> parseError e
                                Right v -> print v
 
-parseLedgerFile :: String -> IO (Either ParseError RawLedger)
+parseLedgerFile :: String -> IO (Either ParseError LedgerFile)
 parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
 parseLedgerFile f   = parseFromFile ledgerfile f
     

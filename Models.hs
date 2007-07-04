@@ -4,11 +4,11 @@ module Models (
                module Currency,
                module Amount,
                module AccountName,
-               module Transaction,
-               module Entry,
+               module LedgerTransaction,
+               module LedgerEntry,
                module TimeLog,
-               module EntryTransaction,
-               module RawLedger,
+               module Transaction,
+               module LedgerFile,
                module Account,
                module Ledger,
               )
@@ -19,11 +19,11 @@ import Types
 import Currency
 import Amount
 import AccountName
-import Transaction
-import Entry
+import LedgerTransaction
+import LedgerEntry
 import TimeLog
-import EntryTransaction
-import RawLedger
+import Transaction
+import LedgerFile
 import Account
 import Ledger
 

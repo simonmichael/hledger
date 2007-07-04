@@ -4,9 +4,9 @@ import Utils
 import Types
 import AccountName
 import Amount
-import Entry
+import LedgerEntry
+import LedgerTransaction
 import Transaction
-import EntryTransaction
 
 
 instance Show Account where

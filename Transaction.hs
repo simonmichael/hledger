@@ -1,37 +1,81 @@
-
 module Transaction
 where
 import Utils
 import Types
 import AccountName
+import LedgerEntry
+import LedgerTransaction
 import Amount
+import Currency
 
 
-instance Show Transaction where show = showTransaction
+entry       (e,t) = e
+transaction (e,t) = t
+date        (e,t) = edate e
+status      (e,t) = estatus e
+code        (e,t) = ecode e
+description (e,t) = edescription e
+account     (e,t) = taccount t
+amount      (e,t) = tamount t
+                                         
+flattenEntry :: LedgerEntry -> [Transaction]
+flattenEntry e = [(e,t) | t <- etransactions e]
 
-showTransaction :: Transaction -> String
-showTransaction t = (showaccountname $ taccount t) ++ "  " ++ (showamount $ tamount t) 
-    where
-      showaccountname = printf "%-22s" . elideRight 22
-      showamount = printf "%11s" . showAmountRoundedOrZero
+entryTransactionSetPrecision :: Int -> Transaction -> Transaction
+entryTransactionSetPrecision p (e, LedgerTransaction a amt) = (e, LedgerTransaction a amt{precision=p})
 
-elideRight width s =
-    case length s > width of
-      True -> take (width - 2) s ++ ".."
-      False -> s
+accountNamesFromTransactions :: [Transaction] -> [AccountName]
+accountNamesFromTransactions ts = nub $ map account ts
 
-autofillTransactions :: [Transaction] -> [Transaction]
-autofillTransactions ts =
-    let (ns, as) = partition isNormal ts
-            where isNormal t = (symbol $ currency $ tamount t) /= "AUTO" in
-    case (length as) of
-      0 -> ns
-      1 -> ns ++ [balanceTransaction $ head as]
-          where balanceTransaction t = t{tamount = -(sumTransactions ns)}
-      otherwise -> error "too many blank transactions in this entry"
+entryTransactionsFrom :: [LedgerEntry] -> [Transaction]
+entryTransactionsFrom es = concat $ map flattenEntry es
 
-sumTransactions :: [Transaction] -> Amount
-sumTransactions = sum . map tamount
+sumEntryTransactions :: [Transaction] -> Amount
+sumEntryTransactions ets = 
+    sumTransactions $ map transaction ets
 
-transactionSetPrecision :: Int -> Transaction -> Transaction
-transactionSetPrecision p (Transaction a amt) = Transaction a amt{precision=p}
+matchTransactionAccount :: Regex -> Transaction -> Bool
+matchTransactionAccount r t =
+    case matchRegex r (account t) of
+      Nothing -> False
+      otherwise -> True
+
+matchTransactionDescription :: Regex -> Transaction -> Bool
+matchTransactionDescription r t =
+    case matchRegex r (description t) of
+      Nothing -> False
+      otherwise -> True
+
+-- for register command 
+
+showTransactionsWithBalances :: [Transaction] -> Amount -> String
+showTransactionsWithBalances [] _ = []
+showTransactionsWithBalances ts b =
+    unlines $ showTransactionsWithBalances' ts dummyt b
+        where
+          dummyt = (LedgerEntry "" False "" "" [], LedgerTransaction "" (dollars 0))
+          showTransactionsWithBalances' [] _ _ = []
+          showTransactionsWithBalances' (t:ts) tprev b =
+              (if (entry t /= (entry tprev))
+               then [showTransactionDescriptionAndBalance t b']
+               else [showTransactionAndBalance t b'])
+              ++ (showTransactionsWithBalances' ts t b')
+                  where b' = b + (amount t)
+
+showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
+showTransactionDescriptionAndBalance t b =
+    (showEntryDescription $ entry t) ++ (showTransaction $ transaction t) ++ (showBalance b)
+
+showTransactionAndBalance :: Transaction -> Amount -> String
+showTransactionAndBalance t b =
+    (replicate 32 ' ') ++ (showTransaction $ transaction t) ++ (showBalance b)
+
+showBalance :: Amount -> String
+showBalance b = printf " %12s" (showAmountRoundedOrZero b)
+
+transactionsWithAccountName :: AccountName -> [Transaction] -> [Transaction]
+transactionsWithAccountName a ts = [t | t <- ts, account t == a]
+    
+transactionsWithOrBelowAccountName :: AccountName -> [Transaction] -> [Transaction]
+transactionsWithOrBelowAccountName a ts = 
+    [t | t <- ts, account t == a || a `isAccountNamePrefixOf` (account t)]

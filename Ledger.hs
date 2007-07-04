@@ -7,20 +7,20 @@ import Types
 import Amount
 import Account
 import AccountName
-import EntryTransaction
-import RawLedger
+import Transaction
+import LedgerFile
 
 
-rawLedgerTransactions :: RawLedger -> [EntryTransaction]
+rawLedgerTransactions :: LedgerFile -> [Transaction]
 rawLedgerTransactions l = entryTransactionsFrom $ entries l
 
-rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
+rawLedgerAccountNamesUsed :: LedgerFile -> [AccountName]
 rawLedgerAccountNamesUsed l = accountNamesFromTransactions $ entryTransactionsFrom $ entries l
 
-rawLedgerAccountNames :: RawLedger -> [AccountName]
+rawLedgerAccountNames :: LedgerFile -> [AccountName]
 rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
 
-rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
+rawLedgerAccountNameTree :: LedgerFile -> Tree AccountName
 rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 
 
@@ -33,7 +33,7 @@ instance Show Ledger where
 
 -- at startup, we augment the parsed ledger entries with an account map
 -- and other things useful for performance
-cacheLedger :: RawLedger -> Ledger
+cacheLedger :: LedgerFile -> Ledger
 cacheLedger l = 
     let 
         ant = rawLedgerAccountNameTree l
@@ -65,13 +65,13 @@ ledgerAccount l a = (accounts l) ! a
 -- amount, to help with report output. It should perhaps be done in the
 -- display functions, but those are far removed from the ledger. Keep in
 -- mind if doing more arithmetic with these.
-ledgerTransactions :: Ledger -> [EntryTransaction]
+ledgerTransactions :: Ledger -> [Transaction]
 ledgerTransactions l = 
     setprecisions $ rawLedgerTransactions $ rawledger l
     where
       setprecisions = map (entryTransactionSetPrecision (lprecision l))
 
-ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
+ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [Transaction]
 ledgerTransactionsMatching ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) l
 ledgerTransactionsMatching (rs,[]) l = ledgerTransactionsMatching (rs,[".*"]) l
 ledgerTransactionsMatching ([],rs) l = ledgerTransactionsMatching ([".*"],rs) l
