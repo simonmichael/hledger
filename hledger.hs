@@ -16,7 +16,7 @@ import Options
 import Models
 import Parse
 import Tests
-import Utils
+import Utils hiding (test)
 
 
 main :: IO ()
@@ -28,13 +28,13 @@ main = do
             | Help `elem` opts            = putStr usage
             | cmd `isPrefixOf` "register" = register opts acctpats descpats
             | cmd `isPrefixOf` "balance"  = balance opts acctpats descpats
-            | cmd `isPrefixOf` "test"     = selftest
+            | cmd `isPrefixOf` "test"     = test
             | otherwise                   = putStr usage
 
 -- commands
 
-selftest :: IO () -- "hledger test"
-selftest = do
+test :: IO ()
+test = do
   Tests.hunit
   Tests.quickcheck
   return ()
