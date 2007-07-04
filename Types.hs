@@ -4,11 +4,10 @@ import Utils
 import qualified Data.Map as Map
 
 {-
-
-First, here is the module hierarchy. The initial implementation defined
-types in each module and was strictly layered. Now, all types have been
-moved to the bottom, with modules still used to group related functions
-(aka methods - make overview to list those).
+Here is the approximate module hierarchy. The early code defined types in
+each module and so was strictly layered. Now, all data types have been
+moved to the bottom. The modules are still used to group related
+functions/methods ("make overview" to list those).
 
 hledger
  Options
@@ -28,7 +27,6 @@ hledger
            Currency
             Types
              Utils
-
 -}
 
 type Date = String
@@ -37,7 +35,7 @@ type DateTime = String
 
 data Currency = Currency {
       symbol :: String,
-      rate :: Double -- relative to the dollar
+      rate :: Double -- relative to the dollar.. 0 rates not supported yet
     } deriving (Eq,Show)
 
 -- some amount of money, time, stock, oranges, etc.
@@ -47,18 +45,15 @@ data Amount = Amount {
       precision :: Int -- number of significant decimal places
     } deriving (Eq)
 
--- AccountNames are strings like "assets:cash:petty"; from these we build
--- the chart of accounts, which should be a simple hierarchy. 
+-- AccountNames are strings like "assets:cash:petty"; from these we figure
+-- out the chart of accounts
 type AccountName = String
 
--- a flow of an amount to an account
+-- a flow of some amount to some account (see also EntryTransaction)
 data Transaction = Transaction {
       taccount :: AccountName,
       tamount :: Amount
     } deriving (Eq)
-
--- cleared ?
-type EntryStatus = Bool
 
 -- a ledger entry, with two or more balanced transactions
 data Entry = Entry {
@@ -69,19 +64,21 @@ data Entry = Entry {
       etransactions :: [Transaction]
     } deriving (Eq)
 
--- an "automated" entry (see = in ledger manual) 
+type EntryStatus = Bool
+
+-- an "=" automated entry (ignored)
 data ModifierEntry = ModifierEntry {
       valueexpr :: String,
       m_transactions :: [Transaction]
     } deriving (Eq)
 
--- a periodic entry (see ~ in ledger manual)
+-- a "~" periodic entry (ignored)
 data PeriodicEntry = PeriodicEntry {
       periodexpr :: String,
       p_transactions :: [Transaction]
     } deriving (Eq)
 
--- we also parse timeclock.el's timelogs (as a ledger)
+-- we also parse timeclock.el timelogs
 data TimeLogEntry = TimeLogEntry {
       tcode :: Char,
       tdatetime :: DateTime,
