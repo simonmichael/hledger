@@ -33,12 +33,13 @@ cacheLedger l =
         txns a = tmap ! a
         subaccts a = filter (isAccountNamePrefixOf a) ans
         subtxns a = concat [txns a | a <- [a] ++ subaccts a]
+        lprecision = maximum $ map (precision . tamount . transaction) ts
         bmap = Map.union 
-               (Map.fromList [(a, sumEntryTransactions $ subtxns a) | a <- ans])
+               (Map.fromList [(a, (sumEntryTransactions $ subtxns a){precision=lprecision}) | a <- ans])
                (Map.fromList [(a,nullamt) | a <- ans])
         amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
     in
-      Ledger l ant amap
+      Ledger l ant amap lprecision
 
 accountnames :: Ledger -> [AccountName]
 accountnames l = flatten $ accountnametree l
@@ -46,8 +47,15 @@ accountnames l = flatten $ accountnametree l
 ledgerAccount :: Ledger -> AccountName -> Account
 ledgerAccount l a = (accounts l) ! a
 
+-- This sets all amount precisions to that of the highest-precision
+-- amount, to help with report output. It should perhaps be done in the
+-- display functions, but those are far removed from the ledger. Keep in
+-- mind if doing more arithmetic with these.
 ledgerTransactions :: Ledger -> [EntryTransaction]
-ledgerTransactions l = concatMap atransactions $ Map.elems $ accounts l
+ledgerTransactions l = 
+    setprecisions $ rawLedgerTransactions $ rawledger l
+    where
+      setprecisions = map (entryTransactionSetPrecision (lprecision l))
 
 ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [EntryTransaction]
 ledgerTransactionsMatching ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) l

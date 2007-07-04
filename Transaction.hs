@@ -9,9 +9,11 @@ import Amount
 
 instance Show Transaction where show = showTransaction
 
-showTransaction t = (showAccountName $ taccount t) ++ "  " ++ (showAmount $ tamount t) 
-showAmount amt = printf "%11s" (show amt)
-showAccountName s = printf "%-22s" (elideRight 22 s)
+showTransaction :: Transaction -> String
+showTransaction t = (showaccountname $ taccount t) ++ "  " ++ (showamount $ tamount t) 
+    where
+      showaccountname = printf "%-22s" . elideRight 22
+      showamount = printf "%11s" . showAmountRoundedOrZero
 
 elideRight width s =
     case length s > width of

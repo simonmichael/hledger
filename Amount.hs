@@ -35,26 +35,28 @@ arithmetic:
 
 tests = runTestTT $ test [
          show (dollars 1)   ~?= "$1.00"
-        ,
-         show (hours 1)     ~?= "1h"      -- currently h1.00
-        ,
-         parseAmount "$1"   ~?= dollars 1 -- currently 0
+        ,show (hours 1)     ~?= "1h"      -- currently h1.00
+        ,parseAmount "$1"   ~?= dollars 1 -- currently 0
         ]
-
-instance Show Amount where show = showAmountRoundedOrZero
 
 nullamt = dollars 0
 
 parseAmount :: String -> Amount
 parseAmount s = nullamt
 
+instance Show Amount where show = showAmountRounded
+
+showAmountRounded :: Amount -> String
+showAmountRounded (Amount c q p) =
+    (symbol c) ++ (punctuatethousands $ printf ("%."++show p++"f") q)
+
 showAmountRoundedOrZero :: Amount -> String
-showAmountRoundedOrZero (Amount cur qty) =
-    let rounded = punctuatethousands $ printf "%.2f" qty in
-    case rounded of
-      "0.00"    -> "0"
-      "-0.00"   -> "0"
-      otherwise -> (symbol cur) ++ rounded
+showAmountRoundedOrZero a@(Amount c _ _) =
+    let s = showAmountRounded a
+        noncurrency = drop (length $ symbol c)
+        nonnulls = filter (flip notElem "-+,.0")
+        iszero = (nonnulls $ noncurrency s) == ""
+    in if iszero then "0" else s
 
 punctuatethousands :: String -> String
 punctuatethousands s =
@@ -67,17 +69,26 @@ punctuatethousands s =
       triples s = [take 3 s] ++ (triples $ drop 3 s)
 
 instance Num Amount where
-    abs (Amount c q) = Amount c (abs q)
-    signum (Amount c q) = Amount c (signum q)
-    fromInteger i = Amount (getcurrency "$") (fromInteger i)
-    (+) = amountAdd
-    (-) = amountSub
-    (*) = amountMul
-Amount ac aq `amountAdd` b = Amount ac (aq + (quantity $ toCurrency ac b))
-Amount ac aq `amountSub` b = Amount ac (aq - (quantity $ toCurrency ac b))
-Amount ac aq `amountMul` b = Amount ac (aq * (quantity $ toCurrency ac b))
+    abs (Amount c q p) = Amount c (abs q) p
+    signum (Amount c q p) = Amount c (signum q) p
+    fromInteger i = Amount (getcurrency "$") (fromInteger i) amtintprecision
+    (+) = amountop (+)
+    (-) = amountop (-)
+    (*) = amountop (*)
+
+-- problem: when an integer is converted to an amount it must pick a
+-- precision, which we specify here (should be infinite ?). This can
+-- affect amount arithmetic, in particular the sum of a list of amounts.
+-- So, we may need to adjust the precision after summing amounts.
+amtintprecision = 2
+
+-- apply op to two amounts, adopting a's currency and lowest precision
+amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
+amountop op (Amount ac aq ap) b@(Amount _ _ bp) = 
+    Amount ac (aq `op` (quantity $ toCurrency ac b)) (min ap bp)
 
 toCurrency :: Currency -> Amount -> Amount
-toCurrency newc (Amount oldc q) =
-    Amount newc (q * (conversionRate oldc newc))
+toCurrency newc (Amount oldc q p) =
+    Amount newc (q * (conversionRate oldc newc)) p
+
 

@@ -2,10 +2,11 @@ hledger project notes
 
 * TO DO
 ** bugs
+*** unclear parse error when only one space before amount
+    unexpected "$"
+    expecting letter or digit, ":", "/", "_", amount, comment or new-line
+*** handle unknown currencies
 ** compatibility
-*** use greatest precision in register
-*** abbreviate 0
-*** don't combine entries so much in register
 ** basic features
 *** print
 *** !include
@@ -13,7 +14,7 @@ hledger project notes
 
 ** advanced features
 *** handle mixed amounts
-*** 3.0-style elision
+*** ledger 3.0-style elision
 *** -p period expressions
 *** -d display expressions
 *** read gnucash files
@@ -48,6 +49,9 @@ hledger project notes
 ** documentation
 *** literate docs
 *** better use of haddock
+*** differences
+**** ledger shows comments after descriptions as part of description
+**** ledger does not sort register by date
 ** marketing
 *** set up as a cabal/hackage project following wiki howto 
      http://en.wikibooks.org/wiki/Haskell/Packaging

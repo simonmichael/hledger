@@ -1,4 +1,3 @@
-
 module EntryTransaction
 where
 import Utils
@@ -21,6 +20,9 @@ amount      (e,t) = tamount t
                                          
 flattenEntry :: Entry -> [EntryTransaction]
 flattenEntry e = [(e,t) | t <- etransactions e]
+
+entryTransactionSetPrecision :: Int -> EntryTransaction -> EntryTransaction
+entryTransactionSetPrecision p (e, Transaction a amt) = (e, Transaction a amt{precision=p})
 
 accountNamesFromTransactions :: [EntryTransaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts

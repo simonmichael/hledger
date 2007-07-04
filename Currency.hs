@@ -19,9 +19,9 @@ conversionRate :: Currency -> Currency -> Double
 conversionRate oldc newc = (rate newc) / (rate oldc)
 
 -- convenient amount constructors
-dollars = Amount $ getcurrency "$"
-euro    = Amount $ getcurrency "EUR"
-pounds  = Amount $ getcurrency "£"
-hours   = Amount $ getcurrency "h"
-minutes = Amount $ getcurrency "m"
+dollars n = Amount (getcurrency "$") n 2
+euro    n = Amount (getcurrency "EUR") n 2
+pounds  n = Amount (getcurrency "£") n 2
+hours   n = Amount (getcurrency "h") n 2
+minutes n = Amount (getcurrency "m") n 2
 

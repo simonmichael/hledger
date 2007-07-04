@@ -43,7 +43,8 @@ data Currency = Currency {
 -- some amount of money, time, stock, oranges, etc.
 data Amount = Amount {
       currency :: Currency,
-      quantity :: Double
+      quantity :: Double,
+      precision :: Int -- number of significant decimal places
     } deriving (Eq)
 
 -- AccountNames are strings like "assets:cash:petty"; from these we build
@@ -115,6 +116,7 @@ data Account = Account {
 data Ledger = Ledger {
       rawledger :: RawLedger, 
       accountnametree :: Tree AccountName,
-      accounts :: Map.Map AccountName Account
+      accounts :: Map.Map AccountName Account,
+      lprecision :: Int
     }
 

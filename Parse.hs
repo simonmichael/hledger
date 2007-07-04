@@ -222,18 +222,23 @@ ledgeraccount :: Parser String
 ledgeraccount = many1 (alphaNum <|> char ':' <|> char '/' <|> char '_' <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}}))
 
 ledgeramount :: Parser Amount
-ledgeramount = try (do
-                      many1 spacenonewline
-                      currency <- many (noneOf "-.0123456789;\n") <?> "currency"
-                      quantity <- many1 (oneOf "-.,0123456789") <?> "quantity"
-                      return (Amount (getcurrency currency) (read $ stripcommas quantity))
-                   ) <|> 
-                    return (Amount (Currency "AUTO" 0) 0)
-
-stripcommas = filter (',' /=)
+ledgeramount = 
+    try (do
+          many1 spacenonewline
+          c <- many (noneOf "-.0123456789;\n") <?> "currency"
+          q <- many1 (oneOf "-.,0123456789") <?> "quantity"
+          let q' = stripcommas $ striptrailingpoint q
+          let (int,frac) = break (=='.') q'
+          let precision = length $ dropWhile (=='.') frac
+          return (Amount (getcurrency c) (read q') precision)
+        ) 
+    <|> return (Amount (Currency "AUTO" 0) 0 0)
+    where 
+      stripcommas = filter (',' /=)
+      striptrailingpoint = reverse . dropWhile (=='.') . reverse
 
 ledgereol :: Parser String
-ledgereol = ledgercomment <|> do {newline; return []}  -- XXX problem, a transaction comment containing a digit fails
+ledgereol = ledgercomment <|> do {newline; return []}
 
 spacenonewline :: Parser Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
