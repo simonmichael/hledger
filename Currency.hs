@@ -1,5 +1,7 @@
 module Currency
 where
+import qualified Data.Map as Map
+import Data.Map ((!))
 import Utils
 import Types
 
@@ -12,8 +14,10 @@ currencies =
     ,Currency "m"   1          -- minutes
     ]
 
+currencymap = Map.fromList [(sym, c) | c@(Currency sym rate) <- currencies]
+
 getcurrency :: String -> Currency
-getcurrency s = head $ [(Currency symbol rate) | (Currency symbol rate) <- currencies, symbol==s]
+getcurrency s = Map.findWithDefault (Currency s 1) s currencymap
 
 conversionRate :: Currency -> Currency -> Double
 conversionRate oldc newc = (rate newc) / (rate oldc)

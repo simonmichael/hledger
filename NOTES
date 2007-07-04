@@ -2,37 +2,27 @@ hledger project notes
 
 * TO DO
 ** bugs
-*** handle unknown currencies
-** compatibility
-** basic features
-*** print
-*** !include
-*** -j and -J graph data output
-
-** advanced features
-*** handle mixed amounts
-*** ledger 3.0-style elision
-*** -p period expressions
-*** -d display expressions
-*** read gnucash files
-*** other args, directives
-
-*** more speed
-** new features
-*** feature: read timelog files
-**** fix up Amounts
-***** allow flexible display by currency
-***** allow parsing by currency
-***** fix arithmetic
-
-**** timelog parser
-    handle time amounts
+** ledger features
+*** print command
+*** handle mixed amounts, non-money currencies
+**** handle precision per currency
+*** handle time logs
+**** fix timelog parser
+**** handle time amounts
      switch to Data.Time.*
       fix errors
        - read seconds to pico
        try System.Time ?
-
-*** timelog simple format
+*** !include
+*** -j and -J graph data output
+*** more speed
+*** ledger 3.0-style elision
+*** -p period expressions
+*** -d display expressions
+*** read gnucash files
+*** other ledger args, directives
+** new features
+*** simpler timelog format
 *** auto-generate missing clock-out
 *** graph automation
 *** entry and smart data entry
