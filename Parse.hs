@@ -210,8 +210,8 @@ ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (do {newli
 ledgertransaction :: Parser Transaction
 ledgertransaction = do
   many1 spacenonewline
-  account <- ledgeraccount <?> "account"
-  amount <- ledgeramount <?> "amount"
+  account <- ledgeraccount
+  amount <- ledgeramount
   many spacenonewline
   ledgereol
   many ledgercomment
@@ -219,7 +219,9 @@ ledgertransaction = do
 
 -- account names may have single spaces in them, and are terminated by two or more spaces
 ledgeraccount :: Parser String
-ledgeraccount = many1 (alphaNum <|> char ':' <|> char '/' <|> char '_' <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}}))
+ledgeraccount = 
+    many1 ((alphaNum <|> char ':' <|> char '/' <|> char '_' <?> "account name") 
+           <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}} <?> "double space"))
 
 ledgeramount :: Parser Amount
 ledgeramount = 

@@ -2,9 +2,6 @@ hledger project notes
 
 * TO DO
 ** bugs
-*** unclear parse error when only one space before amount
-    unexpected "$"
-    expecting letter or digit, ":", "/", "_", amount, comment or new-line
 *** handle unknown currencies
 ** compatibility
 ** basic features
