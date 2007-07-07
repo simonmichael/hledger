@@ -9,10 +9,10 @@ import Amount
 instance Show LedgerTransaction where show = showLedgerTransaction
 
 showLedgerTransaction :: LedgerTransaction -> String
-showLedgerTransaction t = (showaccountname $ taccount t) ++ "  " ++ (showamount $ tamount t) 
+showLedgerTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ tamount t) 
     where
       showaccountname = printf "%-22s" . elideRight 22
-      showamount = printf "%11s" . showAmountRoundedOrZero
+      showamount = printf "%12s" . showAmountRoundedOrZero
 
 elideRight width s =
     case length s > width of

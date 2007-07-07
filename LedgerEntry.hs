@@ -39,29 +39,29 @@ autofillEntry e =
 --     account name 1.....................  ...$amount1[  ; comment...............]
 --     account name 2.....................  ..$-amount1[  ; comment...............]
 --
--- codewidth    = 10
--- descwidth    = 20
--- acctwidth    = 35
--- amtwidth     = 11
--- commentwidth = 22
+-- pcodewidth    = no limit -- 10
+-- pdescwidth    = no limit -- 20
+-- pacctwidth    = 35 minimum, no maximum
+-- pamtwidth     = 11
+-- pcommentwidth = no limit -- 22
 
 showEntry :: LedgerEntry -> String
 showEntry e = 
     unlines $ ["", description] ++ (showtxns $ etransactions e)
     where
-      description = concat [date, status, code, desc, comment]
+      description = concat [date, status, code, desc] -- , comment]
       date = showDate $ edate e
       status = if estatus e then " *" else ""
       code = if (length $ ecode e) > 0 then (printf " (%s)" $ ecode e) else ""
-      desc = " " ++ (elideRight 20 $ edescription e)
+      desc = " " ++ edescription e
       comment = if (length $ ecomment e) > 0 then "  ; "++(ecomment e) else ""
       showtxns (t1:t2:[]) = [showtxn t1, showtxnnoamt t2]
       showtxns ts = map showtxn ts
       showtxn t = showacct t ++ "  " ++ (showamount $ tamount t) ++ (showcomment $ tcomment t)
-      showtxnnoamt t = showacct t ++ "             " ++ (showcomment $ tcomment t)
+      showtxnnoamt t = showacct t ++ "              " ++ (showcomment $ tcomment t)
       showacct t = "    " ++ (showaccountname $ taccount t)
-      showamount = printf "%11s" . showAmountRounded
-      showaccountname = printf "%-35s" . elideRight 35
+      showamount = printf "%12s" . showAmountRounded
+      showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
 
 showEntries :: [LedgerEntry] -> String
