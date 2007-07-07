@@ -42,24 +42,24 @@ test = do
 
 register :: [Flag] -> [String] -> [String] -> IO ()
 register opts acctpats descpats = do 
-  doWithLedger opts printregister
+  doWithLedger opts acctpats descpats printregister
     where 
       printregister l = 
           putStr $ showTransactionsWithBalances 
-                     (sortBy (comparing date) (ledgerTransactionsMatching (acctpats,descpats) l))
+                     (sortBy (comparing date) (ledgerTransactionsMatching (acctpats, descpats) l))
                      nullamt{precision=lprecision l}
 
-printcmd :: [Flag] -> IO ()
+printcmd :: [Flag] -> IO () -- XXX acctpats descpats ?
 printcmd opts = do 
-  doWithLedger opts printentries
+  doWithLedger opts [] [] printentries
     where
       printentries l = putStr $ showEntries $ setprecision $ entries $ rawledger l
           where
             setprecision = map (entrySetPrecision (lprecision l))
 
 balance :: [Flag] -> [String] -> [String] -> IO ()
-balance opts acctpats _ = do 
-  doWithLedger opts printbalance
+balance opts acctpats _ = do  -- XXX descpats
+  doWithLedger opts acctpats [] printbalance
     where
       printbalance l =
           putStr $ showLedgerAccounts l acctpats showsubs maxdepth
@@ -71,14 +71,14 @@ balance opts acctpats _ = do
 
 -- utils
 
-doWithLedger :: [Flag] -> (Ledger -> IO ()) -> IO ()
-doWithLedger opts cmd = do
-    ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed cmd
+doWithLedger :: [Flag] -> [String] -> [String] -> (Ledger -> IO ()) -> IO ()
+doWithLedger opts acctpats descpats cmd = do
+    ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed acctpats descpats cmd
 
-doWithParsed :: (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
-doWithParsed cmd parsed = do
+doWithParsed :: [String] -> [String] -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
+doWithParsed acctpats descpats cmd parsed = do
   case parsed of Left e -> parseError e
-                 Right l -> cmd $ cacheLedger l
+                 Right l -> cmd $ cacheLedger acctpats descpats l 
 
 
 {-

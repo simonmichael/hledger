@@ -9,6 +9,10 @@ import Amount
 import Currency
 
 
+instance Show Transaction where 
+    show (Transaction eno d desc a amt) = 
+        unwords [d,desc,a,show amt]
+
 -- we use the entry number e to remember the grouping of txns
 flattenEntry :: (LedgerEntry, Int) -> [Transaction]
 flattenEntry (LedgerEntry d _ _ desc _ ts, e) = 

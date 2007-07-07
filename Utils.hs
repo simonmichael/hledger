@@ -25,6 +25,9 @@ import Test.QuickCheck hiding (test, Testable)
 import Test.HUnit
 
 
+wilddefault [] = [".*"]
+wilddefault a = a
+
 -- lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]

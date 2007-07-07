@@ -34,14 +34,19 @@ instance Show Ledger where
               (length $ periodic_entries $ rawledger l))
              (length $ accountnames l)
 
--- at startup, we augment the parsed ledger entries with an account map
--- and other things useful for performance
-cacheLedger :: LedgerFile -> Ledger
-cacheLedger l = 
+-- at startup, to improve performance, we refine the parsed ledger entries:
+-- 1. filter based on account/description patterns, if any
+-- 2. cache per-account info
+-- also, figure out the precision(s) to use
+cacheLedger :: [String] -> [String] -> LedgerFile -> Ledger
+cacheLedger acctpats descpats l = 
     let 
-        ant = rawLedgerAccountNameTree l
+        (acctpats', descpats') = (wilddefault acctpats, wilddefault descpats)
+        ant = filterAccountNameTree acctpats' True 9999 $ rawLedgerAccountNameTree l
         ans = flatten ant
-        ts = rawLedgerTransactions l
+        filterTxnsByAcctpats ts = concat [filter (matchTransactionAccount $ mkRegex r) ts | r <- acctpats']
+        allts = rawLedgerTransactions l
+        ts = filterTxnsByAcctpats allts
         sortedts = sortBy (comparing account) ts
         groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
         tmap = Map.union 
@@ -50,7 +55,7 @@ cacheLedger l =
         txns = (tmap !)
         subaccts a = filter (isAccountNamePrefixOf a) ans
         subtxns a = concat [txns a | a <- [a] ++ subaccts a]
-        lprecision = maximum $ map (precision . amount) ts
+        lprecision = maximum $ map (precision . amount) allts
         bmap = Map.union 
                (Map.fromList [(a, (sumTransactions $ subtxns a){precision=lprecision}) | a <- ans])
                (Map.fromList [(a,nullamt) | a <- ans])
@@ -75,17 +80,14 @@ ledgerTransactions l =
       setprecisions = map (transactionSetPrecision (lprecision l))
 
 ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [Transaction]
-ledgerTransactionsMatching ([],[]) l = ledgerTransactionsMatching ([".*"],[".*"]) l
-ledgerTransactionsMatching (rs,[]) l = ledgerTransactionsMatching (rs,[".*"]) l
-ledgerTransactionsMatching ([],rs) l = ledgerTransactionsMatching ([".*"],rs) l
 ledgerTransactionsMatching (acctpats,descpats) l =
     intersect 
     (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
     (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
     where 
       ts = ledgerTransactions l
-      acctregexps = map mkRegex acctpats
-      descregexps = map mkRegex descpats
+      acctregexps = map mkRegex $ wilddefault acctpats
+      descregexps = map mkRegex $ wilddefault descpats
 
 ledgerAccountTreeMatching :: Ledger -> [String] -> Bool -> Int -> Tree Account
 ledgerAccountTreeMatching l [] showsubs maxdepth = 
@@ -164,7 +166,7 @@ showLedgerAccounts :: Ledger -> [String] -> Bool -> Int -> String
 showLedgerAccounts l acctpats showsubs maxdepth = 
     concatMap 
     (showAccountTree l) 
-    (branches (ledgerAccountTreeMatching l acctpats showsubs maxdepth))
+    (branches $ ledgerAccountTreeMatching l acctpats showsubs maxdepth)
 
 showAccountTree :: Ledger -> Tree Account -> String
 showAccountTree l = showAccountTree' l 0 . pruneBoringBranches
@@ -183,7 +185,7 @@ showAccountTree' l indentlevel t
       subsindented i = concatMap (showAccountTree' l (indentlevel+i)) subs
       bal = printf "%20s" $ show $ abalance $ acct
       indent = replicate (indentlevel * 2) ' '
-      prefix = concatMap (++ ":") $ map accountLeafName boringparents
+      prefix = concatMap (++ ":") $ map accountLeafName $ reverse boringparents
       boringparents = takeWhile (isBoringAccountName l) $ parentAccountNames $ aname acct
       leafname = accountLeafName $ aname acct
 
