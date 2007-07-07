@@ -48,7 +48,7 @@ instance Show Amount where show = showAmountRounded
 
 showAmountRounded :: Amount -> String
 showAmountRounded (Amount c q p) =
-    (symbol c) ++ (punctuatethousands $ printf ("%."++show p++"f") q)
+    (symbol c) ++ ({-punctuatethousands $ -}printf ("%."++show p++"f") q)
 
 showAmountRoundedOrZero :: Amount -> String
 showAmountRoundedOrZero a@(Amount c _ _) =
