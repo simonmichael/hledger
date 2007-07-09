@@ -21,13 +21,14 @@ elideRight width s =
 
 autofillTransactions :: [LedgerTransaction] -> [LedgerTransaction]
 autofillTransactions ts =
-    let (ns, as) = partition isNormal ts
-            where isNormal t = (symbol $ currency $ tamount t) /= "AUTO" in
-    case (length as) of
-      0 -> ns
-      1 -> ns ++ [balanceTransaction $ head as]
-          where balanceTransaction t = t{tamount = -(sumLedgerTransactions ns)}
+    case (length blanks) of
+      0 -> ts
+      1 -> map balance ts
       otherwise -> error "too many blank transactions in this entry"
+    where 
+      (normals, blanks) = partition isnormal ts
+      balance t = if isnormal t then t else t{tamount = -(sumLedgerTransactions normals)}
+      isnormal t = (symbol $ currency $ tamount t) /= "AUTO"
 
 sumLedgerTransactions :: [LedgerTransaction] -> Amount
 sumLedgerTransactions = sum . map tamount
