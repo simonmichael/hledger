@@ -79,12 +79,3 @@ accountNameTreeFrom accts =
           accountsFrom as = [Node a (accountsFrom $ subs a) | a <- as]
           subs = (subAccountNamesFrom accts)
 
-filterAccountNameTree :: [String] -> Bool -> Int -> Tree AccountName -> Tree AccountName
-filterAccountNameTree pats keepsubs maxdepth =
-    treefilter (\a -> matchany a || (keepsubs && issubofmatch a)) . treeprune maxdepth
-    where
-      regexes = map mkRegex pats
-      matchany a = any (match a) regexes
-      match a r = matchAccountName r $ accountLeafName a
-      issubofmatch a = any matchany $ parentAccountNames a
-

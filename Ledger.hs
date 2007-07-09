@@ -43,11 +43,11 @@ cacheLedger acctpats descpats l =
     let 
         (acctpats', descpats') = (wilddefault acctpats, wilddefault descpats)
         l' = filterLedgerEntries acctpats descpats l
-        ant = filterAccountNameTree acctpats' True 9999 $ rawLedgerAccountNameTree l'
+        ant = rawLedgerAccountNameTree l'
         ans = flatten ant
         filterTxnsByAcctpats ts = concat [filter (matchTransactionAccount $ mkRegex r) ts | r <- acctpats']
-        allts = rawLedgerTransactions l'
-        ts = filterTxnsByAcctpats allts
+        allts = rawLedgerTransactions l
+        ts = rawLedgerTransactions l'
         sortedts = sortBy (comparing account) ts
         groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
         tmap = Map.union 
@@ -64,8 +64,9 @@ cacheLedger acctpats descpats l =
     in
       Ledger l' ant amap lprecision
 
-filterLedgerEntries :: [String] -> [String] -> LedgerFile -> LedgerFile
-filterLedgerEntries acctpats descpats (LedgerFile ms ps es) = 
+-- filter entries by descpats and by whether any transactions contain any acctpats
+filterLedgerEntries1 :: [String] -> [String] -> LedgerFile -> LedgerFile
+filterLedgerEntries1 acctpats descpats (LedgerFile ms ps es) = 
     LedgerFile ms ps es'
     where
       es' = intersect
@@ -81,6 +82,29 @@ filterLedgerEntries acctpats descpats (LedgerFile ms ps es) =
                        otherwise -> True
       matchdesc :: Regex -> LedgerEntry -> Bool
       matchdesc r e = case matchRegex r (edescription e) of
+                        Nothing -> False
+                        otherwise -> True
+
+-- filter txns in each entry by acctpats, then filter the modified entries by descpats
+filterLedgerEntries :: [String] -> [String] -> LedgerFile -> LedgerFile
+filterLedgerEntries acctpats descpats (LedgerFile ms ps es) = 
+    LedgerFile ms ps es'
+    where
+      es' = filter matchanydesc $ map filtertxns es
+      acctregexps = map mkRegex $ wilddefault acctpats
+      descregexps = map mkRegex $ wilddefault descpats
+      filtertxns :: LedgerEntry -> LedgerEntry
+      filtertxns (LedgerEntry d s cod desc com ts) = LedgerEntry d s cod desc com $ filter matchanyacct ts
+      matchanyacct :: LedgerTransaction -> Bool
+      matchanyacct t = any (matchtxn t) acctregexps
+      matchtxn :: LedgerTransaction -> Regex -> Bool
+      matchtxn t r = case matchRegex r (taccount t) of
+                       Nothing -> False
+                       otherwise -> True
+      matchanydesc :: LedgerEntry -> Bool
+      matchanydesc e = any (matchdesc e) descregexps
+      matchdesc :: LedgerEntry -> Regex -> Bool
+      matchdesc e r = case matchRegex r (edescription e) of
                         Nothing -> False
                         otherwise -> True
 
@@ -100,21 +124,9 @@ ledgerTransactions l =
     where
       setprecisions = map (transactionSetPrecision (lprecision l))
 
-ledgerTransactionsMatching :: ([String],[String]) -> Ledger -> [Transaction]
-ledgerTransactionsMatching (acctpats,descpats) l =
-    intersect 
-    (concat [filter (matchTransactionAccount r) ts | r <- acctregexps])
-    (concat [filter (matchTransactionDescription r) ts | r <- descregexps])
-    where 
-      ts = ledgerTransactions l
-      acctregexps = map mkRegex $ wilddefault acctpats
-      descregexps = map mkRegex $ wilddefault descpats
-
-ledgerAccountTreeMatching :: Ledger -> [String] -> Bool -> Int -> Tree Account
-ledgerAccountTreeMatching l acctpats showsubs maxdepth = 
-    addDataToAccountNameTree l $ 
-    filterAccountNameTree (wilddefault acctpats) showsubs maxdepth $ 
-    accountnametree l
+ledgerAccountTree :: Ledger -> Int -> Tree Account
+ledgerAccountTree l depth = 
+    addDataToAccountNameTree l $ treeprune depth $ accountnametree l
 
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree = treemap . ledgerAccount
@@ -181,11 +193,11 @@ addDataToAccountNameTree = treemap . ledgerAccount
 --   f
 --   g
 
-showLedgerAccounts :: Ledger -> [String] -> Bool -> Int -> String
-showLedgerAccounts l acctpats showsubs maxdepth = 
+showLedgerAccounts :: Ledger -> Int -> String
+showLedgerAccounts l maxdepth = 
     concatMap 
     (showAccountTree l) 
-    (branches $ ledgerAccountTreeMatching l acctpats showsubs maxdepth)
+    (branches $ ledgerAccountTree l maxdepth)
 
 showAccountTree :: Ledger -> Tree Account -> String
 showAccountTree l = showAccountTree' l 0 . pruneBoringBranches
