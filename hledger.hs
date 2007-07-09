@@ -28,7 +28,7 @@ main = do
             | Help `elem` opts            = putStr usage
             | cmd `isPrefixOf` "register" = register opts acctpats descpats
             | cmd `isPrefixOf` "balance"  = balance opts acctpats descpats
-            | cmd `isPrefixOf` "print"    = printcmd opts
+            | cmd `isPrefixOf` "print"    = printcmd opts acctpats descpats
             | cmd `isPrefixOf` "test"     = test
             | otherwise                   = putStr usage
 
@@ -40,6 +40,14 @@ test = do
   Tests.quickcheck
   return ()
 
+printcmd :: [Flag] -> [String] -> [String] -> IO ()
+printcmd opts acctpats descpats = do 
+  doWithLedger opts acctpats descpats printentries
+    where
+      printentries l = putStr $ showEntries $ setprecision $ entries $ rawledger l
+          where
+            setprecision = map (entrySetPrecision (lprecision l))
+
 register :: [Flag] -> [String] -> [String] -> IO ()
 register opts acctpats descpats = do 
   doWithLedger opts acctpats descpats printregister
@@ -49,17 +57,9 @@ register opts acctpats descpats = do
                      (sortBy (comparing date) (ledgerTransactionsMatching (acctpats, descpats) l))
                      nullamt{precision=lprecision l}
 
-printcmd :: [Flag] -> IO () -- XXX acctpats descpats ?
-printcmd opts = do 
-  doWithLedger opts [] [] printentries
-    where
-      printentries l = putStr $ showEntries $ setprecision $ entries $ rawledger l
-          where
-            setprecision = map (entrySetPrecision (lprecision l))
-
 balance :: [Flag] -> [String] -> [String] -> IO ()
-balance opts acctpats _ = do  -- XXX descpats
-  doWithLedger opts acctpats [] printbalance
+balance opts acctpats descpats = do
+  doWithLedger opts acctpats descpats printbalance
     where
       printbalance l =
           putStr $ showLedgerAccounts l acctpats showsubs maxdepth

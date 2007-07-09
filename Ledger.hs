@@ -42,10 +42,11 @@ cacheLedger :: [String] -> [String] -> LedgerFile -> Ledger
 cacheLedger acctpats descpats l = 
     let 
         (acctpats', descpats') = (wilddefault acctpats, wilddefault descpats)
-        ant = filterAccountNameTree acctpats' True 9999 $ rawLedgerAccountNameTree l
+        l' = filterLedgerEntries acctpats descpats l
+        ant = filterAccountNameTree acctpats' True 9999 $ rawLedgerAccountNameTree l'
         ans = flatten ant
         filterTxnsByAcctpats ts = concat [filter (matchTransactionAccount $ mkRegex r) ts | r <- acctpats']
-        allts = rawLedgerTransactions l
+        allts = rawLedgerTransactions l'
         ts = filterTxnsByAcctpats allts
         sortedts = sortBy (comparing account) ts
         groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
@@ -61,7 +62,27 @@ cacheLedger acctpats descpats l =
                (Map.fromList [(a,nullamt) | a <- ans])
         amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
     in
-      Ledger l ant amap lprecision
+      Ledger l' ant amap lprecision
+
+filterLedgerEntries :: [String] -> [String] -> LedgerFile -> LedgerFile
+filterLedgerEntries acctpats descpats (LedgerFile ms ps es) = 
+    LedgerFile ms ps es'
+    where
+      es' = intersect
+            (concat [filter (matchacct r) es | r <- acctregexps])
+            (concat [filter (matchdesc r) es | r <- descregexps])
+      acctregexps = map mkRegex $ wilddefault acctpats
+      descregexps = map mkRegex $ wilddefault descpats
+      matchacct :: Regex -> LedgerEntry -> Bool
+      matchacct r e = any (matchtxn r) (etransactions e)
+      matchtxn :: Regex -> LedgerTransaction -> Bool
+      matchtxn r t = case matchRegex r (taccount t) of
+                       Nothing -> False
+                       otherwise -> True
+      matchdesc :: Regex -> LedgerEntry -> Bool
+      matchdesc r e = case matchRegex r (edescription e) of
+                        Nothing -> False
+                        otherwise -> True
 
 accountnames :: Ledger -> [AccountName]
 accountnames l = flatten $ accountnametree l
@@ -90,11 +111,9 @@ ledgerTransactionsMatching (acctpats,descpats) l =
       descregexps = map mkRegex $ wilddefault descpats
 
 ledgerAccountTreeMatching :: Ledger -> [String] -> Bool -> Int -> Tree Account
-ledgerAccountTreeMatching l [] showsubs maxdepth = 
-    ledgerAccountTreeMatching l [".*"] showsubs maxdepth
 ledgerAccountTreeMatching l acctpats showsubs maxdepth = 
     addDataToAccountNameTree l $ 
-    filterAccountNameTree acctpats showsubs maxdepth $ 
+    filterAccountNameTree (wilddefault acctpats) showsubs maxdepth $ 
     accountnametree l
 
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
