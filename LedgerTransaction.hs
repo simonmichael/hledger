@@ -27,8 +27,8 @@ autofillTransactions ts =
       otherwise -> error "too many blank transactions in this entry"
     where 
       (normals, blanks) = partition isnormal ts
-      balance t = if isnormal t then t else t{tamount = -(sumLedgerTransactions normals)}
       isnormal t = (symbol $ currency $ tamount t) /= "AUTO"
+      balance t = if isnormal t then t else t{tamount = -(sumLedgerTransactions normals)}
 
 sumLedgerTransactions :: [LedgerTransaction] -> Amount
 sumLedgerTransactions = sum . map tamount

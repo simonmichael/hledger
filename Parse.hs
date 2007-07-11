@@ -195,7 +195,7 @@ ledgerentry = do
   date <- ledgerdate
   status <- ledgerstatus
   code <- ledgercode
--- ledger treats entry comments as part of the description, we too for now
+-- ledger treats entry comments as part of the description, we will too
 --   desc <- many (noneOf ";\n") <?> "description"
 --   let description = reverse $ dropWhile (==' ') $ reverse desc
   description <- many (noneOf "\n") <?> "description"

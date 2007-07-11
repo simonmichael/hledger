@@ -26,12 +26,14 @@ showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
 isEntryBalanced :: LedgerEntry -> Bool
-isEntryBalanced e = (sumLedgerTransactions . etransactions) e == 0
+isEntryBalanced = (0==) . quantity . sumLedgerTransactions . etransactions
 
 autofillEntry :: LedgerEntry -> LedgerEntry
-autofillEntry e = 
-    LedgerEntry (edate e) (estatus e) (ecode e) (edescription e) (ecomment e)
-              (autofillTransactions (etransactions e))
+autofillEntry e@(LedgerEntry _ _ _ _ _ ts) =
+    let e' = e{etransactions=autofillTransactions ts} in
+    case (isEntryBalanced e') of
+      True -> e'
+      False -> (error $ "transactions don't balance in " ++ show e)
 
 -- the print command shows cleaned up ledger file entries, something like:
 --
