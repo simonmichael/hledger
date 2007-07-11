@@ -23,22 +23,15 @@ xprofile: build
 	mv hledger.prof profs/$(TIME).xprof
 	ghcprof profs/$(TIME).xprof
 
-#LEDGER=test.dat
-compare: build
-	rm -f 1 2
-	ledger -s balance >1
-	ledger register >>1
-	ledger print >>1
-	./hledger -s balance >2
-	./hledger register >>2
-	./hledger print >>2
-	diff 1 2
+test:
+	@./hledger.hs test
+	@./regtest.py
 
 haddock:
 	haddock -h -o doc *.hs
 
 overview:
-	@./overview.hs Types.hs | tee OVERVIEW
+	@./overview.hs Types.hs >OVERVIEW
 
 loc:
 	@darcs trackdown 'find . -name "*hs" |xargs wc -l |echo OUTPUT `tail -1`; false' |ruby -nae'puts $$F[1] if /^OUTPUT/'
