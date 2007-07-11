@@ -25,8 +25,9 @@ showEntryDescription e = (showDate $ edate e) ++ " " ++ (showDescription $ edesc
 showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
+-- quick & dirty: checks entry's 0 balance only to 8 places
 isEntryBalanced :: LedgerEntry -> Bool
-isEntryBalanced = (0==) . quantity . sumLedgerTransactions . etransactions
+isEntryBalanced = ((0::Double)==) . read . printf "%0.8f" . quantity . sumLedgerTransactions . etransactions
 
 autofillEntry :: LedgerEntry -> LedgerEntry
 autofillEntry e@(LedgerEntry _ _ _ _ _ ts) =
