@@ -257,9 +257,6 @@ ledgeramount =
       stripcommas = filter (',' /=)
       striptrailingpoint = reverse . dropWhile (=='.') . reverse
 
-ledgereol :: Parser String
-ledgereol = do {newline; return []}
-
 spacenonewline :: Parser Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 
@@ -335,10 +332,6 @@ timelogentry = do
 
 parseError :: (Show a) => a -> IO ()
 parseError e = do putStr "ledger parse error at "; print e
-
-printParseResult :: Show v => Either ParseError v -> IO ()
-printParseResult r = case r of Left e -> parseError e
-                               Right v -> print v
 
 parseLedgerFile :: String -> IO (Either ParseError LedgerFile)
 parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin

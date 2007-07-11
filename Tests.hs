@@ -20,12 +20,6 @@ assertParseEqual expected parsed =
       Left e -> parseError e
       Right v -> assertEqual " " expected v
 
-parseEqual :: Eq a => (Either ParseError a) -> a -> Bool
-parseEqual parsed other =
-    case parsed of
-      Left e -> False
-      Right v -> v == other
-
 -- find tests with template haskell
 --
 -- {-# OPTIONS_GHC -fno-warn-unused-imports -no-recomp -fth #-}
@@ -319,6 +313,7 @@ hunit = runTestTT $ "hunit" ~: test ([
         ,"" ~: test_cacheLedger
         ,"" ~: test_showLedgerAccounts
         ,"" ~: test_Amount
+        ,"" ~: test_ledgeramount
         ] :: [Test])
 
 test_ledgeramount :: Assertion

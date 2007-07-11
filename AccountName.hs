@@ -46,18 +46,6 @@ s `isSubAccountNameOf` p =
 subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
 subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 
-matchAccountName :: Regex -> AccountName -> Bool
-matchAccountName r a =
-    case matchRegex r a of
-      Nothing -> False
-      otherwise -> True
-
-indentAccountName ::  Int -> AccountName -> String
-indentAccountName indentcorrection a = 
-    replicate (indentlevel * 2) ' ' ++ (accountLeafName a)
-    where indentlevel = ((accountNameLevel a) - 1) + indentcorrection
-
-
 -- We could almost get by with just the above, but we need smarter
 -- structures to eg display the account tree with boring accounts elided.
 -- first, here is a tree of AccountNames; Account and Account tree are

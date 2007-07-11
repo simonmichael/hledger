@@ -27,18 +27,6 @@ accountNamesFromTransactions ts = nub $ map account ts
 sumTransactions :: [Transaction] -> Amount
 sumTransactions = sum . map amount
 
-matchTransactionAccount :: Regex -> Transaction -> Bool
-matchTransactionAccount r t =
-    case matchRegex r (account t) of
-      Nothing -> False
-      otherwise -> True
-
-matchTransactionDescription :: Regex -> Transaction -> Bool
-matchTransactionDescription r t =
-    case matchRegex r (description t) of
-      Nothing -> False
-      otherwise -> True
-
 -- for register command 
 
 showTransactionsWithBalances :: [Transaction] -> Amount -> String
@@ -69,9 +57,3 @@ showTransactionAndBalance t b =
 showBalance :: Amount -> String
 showBalance b = printf " %12s" (showAmountRoundedOrZero b)
 
-transactionsWithAccountName :: AccountName -> [Transaction] -> [Transaction]
-transactionsWithAccountName a ts = [t | t <- ts, account t == a]
-    
-transactionsWithOrBelowAccountName :: AccountName -> [Transaction] -> [Transaction]
-transactionsWithOrBelowAccountName a ts = 
-    [t | t <- ts, account t == a || a `isAccountNamePrefixOf` (account t)]
