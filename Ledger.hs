@@ -38,15 +38,13 @@ instance Show Ledger where
 -- 1. filter based on account/description patterns, if any
 -- 2. cache per-account info
 -- also, figure out the precision(s) to use
-cacheLedger :: [String] -> [String] -> LedgerFile -> Ledger
-cacheLedger acctpats descpats l = 
+cacheLedger :: ([Regex],[Regex]) -> LedgerFile -> Ledger
+cacheLedger pats l = 
     let 
-        (acctpats', descpats') = (wilddefault acctpats, wilddefault descpats)
-        l' = filterLedgerEntries acctpats descpats l
+        lprecision = maximum $ map (precision . amount) $ rawLedgerTransactions l
+        l' = filterLedgerEntries pats l
         ant = rawLedgerAccountNameTree l'
         ans = flatten ant
-        filterTxnsByAcctpats ts = concat [filter (matchTransactionAccount $ mkRegex r) ts | r <- acctpats']
-        allts = rawLedgerTransactions l
         ts = rawLedgerTransactions l'
         sortedts = sortBy (comparing account) ts
         groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
@@ -56,7 +54,6 @@ cacheLedger acctpats descpats l =
         txns = (tmap !)
         subaccts a = filter (isAccountNamePrefixOf a) ans
         subtxns a = concat [txns a | a <- [a] ++ subaccts a]
-        lprecision = maximum $ map (precision . amount) allts
         bmap = Map.union 
                (Map.fromList [(a, (sumTransactions $ subtxns a){precision=lprecision}) | a <- ans])
                (Map.fromList [(a,nullamt) | a <- ans])
@@ -65,15 +62,13 @@ cacheLedger acctpats descpats l =
       Ledger l' ant amap lprecision
 
 -- filter entries by descpats and by whether any transactions contain any acctpats
-filterLedgerEntries1 :: [String] -> [String] -> LedgerFile -> LedgerFile
-filterLedgerEntries1 acctpats descpats (LedgerFile ms ps es) = 
+filterLedgerEntries1 :: ([Regex],[Regex]) -> LedgerFile -> LedgerFile
+filterLedgerEntries1 (acctpats,descpats) (LedgerFile ms ps es) = 
     LedgerFile ms ps es'
     where
       es' = intersect
-            (concat [filter (matchacct r) es | r <- acctregexps])
-            (concat [filter (matchdesc r) es | r <- descregexps])
-      acctregexps = map mkRegex $ wilddefault acctpats
-      descregexps = map mkRegex $ wilddefault descpats
+            (concat [filter (matchacct r) es | r <- acctpats])
+            (concat [filter (matchdesc r) es | r <- descpats])
       matchacct :: Regex -> LedgerEntry -> Bool
       matchacct r e = any (matchtxn r) (etransactions e)
       matchtxn :: Regex -> LedgerTransaction -> Bool
@@ -86,23 +81,22 @@ filterLedgerEntries1 acctpats descpats (LedgerFile ms ps es) =
                         otherwise -> True
 
 -- filter txns in each entry by acctpats, then filter the modified entries by descpats
-filterLedgerEntries :: [String] -> [String] -> LedgerFile -> LedgerFile
-filterLedgerEntries acctpats descpats (LedgerFile ms ps es) = 
+-- this seems aggressive, unbalancing entries, but so far so goo-
+filterLedgerEntries :: ([Regex],[Regex]) -> LedgerFile -> LedgerFile
+filterLedgerEntries (acctpats,descpats) (LedgerFile ms ps es) = 
     LedgerFile ms ps es'
     where
       es' = filter matchanydesc $ map filtertxns es
-      acctregexps = map mkRegex $ wilddefault acctpats
-      descregexps = map mkRegex $ wilddefault descpats
       filtertxns :: LedgerEntry -> LedgerEntry
       filtertxns (LedgerEntry d s cod desc com ts) = LedgerEntry d s cod desc com $ filter matchanyacct ts
       matchanyacct :: LedgerTransaction -> Bool
-      matchanyacct t = any (matchtxn t) acctregexps
+      matchanyacct t = any (matchtxn t) acctpats
       matchtxn :: LedgerTransaction -> Regex -> Bool
       matchtxn t r = case matchRegex r (taccount t) of
                        Nothing -> False
                        otherwise -> True
       matchanydesc :: LedgerEntry -> Bool
-      matchanydesc e = any (matchdesc e) descregexps
+      matchanydesc e = any (matchdesc e) descpats
       matchdesc :: LedgerEntry -> Regex -> Bool
       matchdesc e r = case matchRegex r (edescription e) of
                         Nothing -> False

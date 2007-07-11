@@ -283,7 +283,7 @@ ledger7 = LedgerFile
                  }
           ]
 
-l7 = cacheLedger [] [] ledger7
+l7 = cacheLedger (argregexes [] []) ledger7
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
@@ -306,14 +306,7 @@ quickcheck = mapM quickCheck ([
         ] :: [Bool])
 
 hunit = runTestTT $ "hunit" ~: test ([
-         "" ~: parseLedgerPatternArgs []                     @?= ([],[])
-        ,"" ~: parseLedgerPatternArgs ["a"]                  @?= (["a"],[])
-        ,"" ~: parseLedgerPatternArgs ["a","b"]              @?= (["a","b"],[])
-        ,"" ~: parseLedgerPatternArgs ["a","b","--"]         @?= (["a","b"],[])
-        ,"" ~: parseLedgerPatternArgs ["a","b","--","c","b"] @?= (["a","b"],["c","b"])
-        ,"" ~: parseLedgerPatternArgs ["--","c"]             @?= ([],["c"])
-        ,"" ~: parseLedgerPatternArgs ["--"]                 @?= ([],[])
-        ,"" ~: punctuatethousands "" @?= ""
+        "" ~: punctuatethousands "" @?= ""
         ,"" ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
         ,"" ~: punctuatethousands "-100" @?= "-100"
         ,"" ~: test_ledgertransaction
@@ -380,7 +373,7 @@ test_ledgerAccountNames =
     (rawLedgerAccountNames ledger7)
 
 test_cacheLedger =
-    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger [] [] ledger7)
+    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger (argregexes [] []) ledger7)
 
 test_showLedgerAccounts = 
     assertEqual' 4 (length $ lines $ showLedgerAccounts l7 1)

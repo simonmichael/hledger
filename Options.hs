@@ -73,8 +73,14 @@ tildeExpand xs           =  return xs
 
 -- ledger pattern args are 0 or more account patterns optionally followed
 -- by -- and 0 or more description patterns
-parseLedgerPatternArgs :: [String] -> ([String],[String])
-parseLedgerPatternArgs args = 
-    case "--" `elem` args of
-      True -> ((takeWhile (/= "--") args), tail $ (dropWhile (/= "--") args))
-      False -> (args,[])
+parsePatternArgs :: [String] -> ([Regex],[Regex])
+parsePatternArgs args = argregexes acctpats descpats
+    where (acctpats, _:descpats) = break (=="--") args
+
+argregexes :: [String] -> [String] -> ([Regex],[Regex])
+argregexes as ds = (regexify as, regexify ds)
+    where
+      regexify = map mkRegex . wilddefault
+      wilddefault [] = [".*"]
+      wilddefault a = a
+
