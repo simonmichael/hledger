@@ -38,14 +38,15 @@ instance Show Ledger where
 -- 1. filter based on account/description patterns, if any
 -- 2. cache per-account info
 -- also, figure out the precision(s) to use
-cacheLedger :: ([Regex],[Regex]) -> LedgerFile -> Ledger
+cacheLedger :: FilterPatterns -> LedgerFile -> Ledger
 cacheLedger pats l = 
     let 
         lprecision = maximum $ map (precision . amount) $ rawLedgerTransactions l
         l' = filterLedgerEntries pats l
-        ant = rawLedgerAccountNameTree l'
+        l'' = filterLedgerTransactions pats l'
+        ant = rawLedgerAccountNameTree l''
         ans = flatten ant
-        ts = rawLedgerTransactions l'
+        ts = rawLedgerTransactions l''
         sortedts = sortBy (comparing account) ts
         groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
         tmap = Map.union 
@@ -61,46 +62,30 @@ cacheLedger pats l =
     in
       Ledger l' ant amap lprecision
 
--- filter entries by descpats and by whether any transactions contain any acctpats
-filterLedgerEntries1 :: ([Regex],[Regex]) -> LedgerFile -> LedgerFile
-filterLedgerEntries1 (acctpats,descpats) (LedgerFile ms ps es) = 
-    LedgerFile ms ps es'
+-- filter entries by description and whether any transactions match account patterns
+filterLedgerEntries :: FilterPatterns -> LedgerFile -> LedgerFile
+filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es) = 
+    LedgerFile ms ps (filter matchdesc $ filter (any matchtxn . etransactions) es)
     where
-      es' = intersect
-            (concat [filter (matchacct r) es | r <- acctpats])
-            (concat [filter (matchdesc r) es | r <- descpats])
-      matchacct :: Regex -> LedgerEntry -> Bool
-      matchacct r e = any (matchtxn r) (etransactions e)
-      matchtxn :: Regex -> LedgerTransaction -> Bool
-      matchtxn r t = case matchRegex r (taccount t) of
-                       Nothing -> False
-                       otherwise -> True
-      matchdesc :: Regex -> LedgerEntry -> Bool
-      matchdesc r e = case matchRegex r (edescription e) of
-                        Nothing -> False
-                        otherwise -> True
+      matchtxn t = case matchRegex (wilddefault acctpat) (taccount t) of
+                     Nothing -> False
+                     otherwise -> True
+      matchdesc e = case matchRegex (wilddefault descpat) (edescription e) of
+                      Nothing -> False
+                      otherwise -> True
 
--- filter txns in each entry by acctpats, then filter the modified entries by descpats
--- this seems aggressive, unbalancing entries, but so far so goo-
-filterLedgerEntries :: ([Regex],[Regex]) -> LedgerFile -> LedgerFile
-filterLedgerEntries (acctpats,descpats) (LedgerFile ms ps es) = 
-    LedgerFile ms ps es'
+-- filter transactions in each ledger entry by account patterns
+-- this may unbalance entries
+filterLedgerTransactions :: FilterPatterns -> LedgerFile -> LedgerFile
+filterLedgerTransactions (acctpat,descpat) (LedgerFile ms ps es) = 
+    LedgerFile ms ps (map filterentrytxns es)
     where
-      es' = filter matchanydesc $ map filtertxns es
-      filtertxns :: LedgerEntry -> LedgerEntry
-      filtertxns (LedgerEntry d s cod desc com ts) = LedgerEntry d s cod desc com $ filter matchanyacct ts
-      matchanyacct :: LedgerTransaction -> Bool
-      matchanyacct t = any (matchtxn t) acctpats
-      matchtxn :: LedgerTransaction -> Regex -> Bool
-      matchtxn t r = case matchRegex r (taccount t) of
-                       Nothing -> False
-                       otherwise -> True
-      matchanydesc :: LedgerEntry -> Bool
-      matchanydesc e = any (matchdesc e) descpats
-      matchdesc :: LedgerEntry -> Regex -> Bool
-      matchdesc e r = case matchRegex r (edescription e) of
-                        Nothing -> False
-                        otherwise -> True
+      filterentrytxns l@(LedgerEntry _ _ _ _ _ ts) = l{etransactions=filter matchtxn ts}
+      matchtxn t = case matchRegex (wilddefault acctpat) (taccount t) of
+                     Nothing -> False
+                     otherwise -> True
+
+wilddefault = fromMaybe (mkRegex ".*")
 
 accountnames :: Ledger -> [AccountName]
 accountnames l = flatten $ accountnametree l

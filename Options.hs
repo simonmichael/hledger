@@ -6,6 +6,7 @@ import System.Environment (getEnv)
 import Data.Maybe (fromMaybe)
     
 import Utils
+import Types
 
 
 usagehdr       = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
@@ -73,14 +74,15 @@ tildeExpand xs           =  return xs
 
 -- ledger pattern args are 0 or more account patterns optionally followed
 -- by -- and 0 or more description patterns
-parsePatternArgs :: [String] -> ([Regex],[Regex])
-parsePatternArgs args = argregexes acctpats descpats
-    where (acctpats, _:descpats) = break (=="--") args
+parsePatternArgs :: [String] -> FilterPatterns
+parsePatternArgs args = argpats as ds' 
+    where (as, ds) = break (=="--") args
+          ds' = dropWhile (=="--") ds
 
-argregexes :: [String] -> [String] -> ([Regex],[Regex])
-argregexes as ds = (regexify as, regexify ds)
+argpats :: [String] -> [String] -> FilterPatterns
+argpats as ds = (regexify as, regexify ds)
     where
-      regexify = map mkRegex . wilddefault
-      wilddefault [] = [".*"]
-      wilddefault a = a
+      regexify :: [String] -> Maybe Regex
+      regexify [] = Nothing
+      regexify ss = Just $ mkRegex $ "(" ++ (unwords $ intersperse "|" ss) ++ ")"
 

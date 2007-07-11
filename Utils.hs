@@ -6,6 +6,7 @@ module Utils (
               module Data.Tree,
               module Data.Map,
               module Data.Ord,
+              module Data.Maybe,
               module Text.Printf,
               module Text.Regex,
               module Debug.Trace,
@@ -18,6 +19,7 @@ import Data.List
 import Data.Tree
 import qualified Data.Map
 import Data.Ord
+import Data.Maybe
 import Text.Printf
 import Text.Regex
 import Debug.Trace

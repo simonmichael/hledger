@@ -32,16 +32,16 @@ main = do
             | cmd `isPrefixOf` "balance"  = balance  opts pats
             | otherwise                   = putStr usage
 
-doWithFilteredLedger :: [Flag] -> ([Regex],[Regex]) -> (Ledger -> IO ()) -> IO ()
+doWithFilteredLedger :: [Flag] -> FilterPatterns -> (Ledger -> IO ()) -> IO ()
 doWithFilteredLedger opts pats cmd = do
     ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed pats cmd
 
-doWithParsed :: ([Regex],[Regex]) -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
+doWithParsed :: FilterPatterns -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
 doWithParsed pats cmd parsed = do
   case parsed of Left e -> parseError e
                  Right l -> cmd $ cacheLedger pats l 
 
-type Command = [Flag] -> ([Regex],[Regex]) -> IO ()
+type Command = [Flag] -> FilterPatterns -> IO ()
 
 test :: Command
 test opts pats = do 
@@ -74,9 +74,8 @@ balance opts pats = do
           putStr $ showLedgerAccounts l depth
               where 
                 showsubs = (ShowSubs `elem` opts)
-                (acctpats,_) = pats
-                depth = case (acctpats, showsubs) of
-                          ([],False) -> 1
+                depth = case (pats, showsubs) of
+                          ((Nothing,_), False) -> 1
                           otherwise  -> 9999
 
 {-

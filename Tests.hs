@@ -283,7 +283,7 @@ ledger7 = LedgerFile
                  }
           ]
 
-l7 = cacheLedger (argregexes [] []) ledger7
+l7 = cacheLedger (argpats [] []) ledger7
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
@@ -373,7 +373,7 @@ test_ledgerAccountNames =
     (rawLedgerAccountNames ledger7)
 
 test_cacheLedger =
-    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger (argregexes [] []) ledger7)
+    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger (argpats [] []) ledger7)
 
 test_showLedgerAccounts = 
     assertEqual' 4 (length $ lines $ showLedgerAccounts l7 1)

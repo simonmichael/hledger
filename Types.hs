@@ -30,6 +30,9 @@ hledger
 
 -}
 
+-- account and description-matching patterns
+type FilterPatterns = (Maybe Regex, Maybe Regex)
+                       
 type Date = String
 
 type DateTime = String
@@ -116,7 +119,7 @@ data Account = Account {
 
 -- a ledger with account information cached for faster queries
 data Ledger = Ledger {
-      rawledger :: LedgerFile, 
+      rawledger :: LedgerFile,
       accountnametree :: Tree AccountName,
       accounts :: Map.Map AccountName Account,
       lprecision :: Int
