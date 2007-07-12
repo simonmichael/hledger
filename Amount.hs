@@ -20,6 +20,10 @@ a mixed amount is one or more simple amounts:
   $50, EUR 3, AAPL 500
   16h, $13.55, oranges 6
 
+currencies may be convertible or not (eg, currencies representing
+non-money commodities). A mixed amount containing only convertible
+currencies can be converted to a simple amount.
+
 arithmetic:
 
   $1 - $5 = $-4
