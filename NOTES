@@ -1,11 +1,19 @@
-hledger project notes
+hledger project notes & ideas
 
-* TO DO
-** bugs/cleanup
-*** resolve output differences
+"...simplicity of design was the most essential, guiding principle.
+Clarity of concepts, economy of features, efficiency and reliability of
+implementations were its consequences." --Niklaus Wirth
+
+* to do
+** TODO bugs/cleanup
+*** no total in filtered balance report
+*** register pat doesn't filter transactions
+*** two acct patterns broken
+*** better encapsulation/layering
+**** above/below cacheLedger ?
 ** ledger features
-*** handle mixed amounts, non-money currencies
-**** handle precision per currency
+*** handle arbitrary precision accurately
+*** handle non-convertible currencies
 *** handle time logs
 **** fix timelog parser
 **** handle time amounts
@@ -13,14 +21,17 @@ hledger project notes
       fix errors
        - read seconds to pico
        try System.Time ?
+*** - account/description patterns
+*** -p period expressions
 *** !include
 *** -j and -J graph data output
 *** more speed
+*** full per-currency precision & thousands separator handling
 *** ledger 3-style elision
-*** -p period expressions
 *** -d display expressions
 *** read gnucash files
 *** other ledger 3 features
+*** single space before currency can parse as an auto transaction
 ** new features
 *** alternate timelog format
 *** infer clock-out
@@ -28,25 +39,22 @@ hledger project notes
 *** entry and smart data entry
 *** incorporate timeclock features
 *** better layout
-
 ** testing
 *** better use of quickcheck/smallcheck
      http://blog.codersbase.com/2006/09/01/simple-unit-testing-in-haskell/
 *** ledger compatibility tests
 ** documentation
-*** literate docs
+*** literate manual
 *** better use of haddock
-*** differences
-**** ledger shows comments after descriptions as part of description in register
-**** ledger does not sort register by date
+*** differences/issues
 **** ledger does not support -f- (without space)
+**** ledger shows description comments as part of description, we do the same
+**** ledger does not sort register by date
+**** ledger can show wrong output due to thousands separators
+**** ledger balance with an account pattern shows a redundant total
+**** hledger does not choose symbol separation, thousands separators, and precision based on first entry of each currency
+     (currently: chooses precision for all currencies based on first entry)
 **** hledger does not parse automated/periodic entries except at start of file
-** marketing
-*** set up as a cabal/hackage project following wiki howto 
-     http://en.wikibooks.org/wiki/Haskell/Packaging
-*** announce on haskell list, wiki
-
-
 * things I want to know
 ** time
 where have I been spending my time in recent weeks ?
@@ -63,3 +71,14 @@ what does my balance future look like ?
 are there any cashflow, tax, budgetary problems looming ?
 
 * misc
+** compare other languages! a parser generator and decent speed is required
+*** python: http://cheeseshop.python.org/pypi/ZestyParser
+*** squeak: LanguageGame, T-Gen, SmaCC
+*** lisp: ?
+*** ruby: too slow (?)
+
+** data representation
+*** http://www.python.org/dev/peps/pep-0327/
+*** http://www.n-heptane.com/nhlab/repos/Decimal/
+*** http://www.n-heptane.com/nhlab/repos/Decimal/Money.hs
+*** http://www2.hursley.ibm.com/decimal/
