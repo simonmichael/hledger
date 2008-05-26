@@ -1,6 +1,7 @@
 #!/usr/bin/env runhaskell
 {-
 overview.hs - print an overview of functions from a given list of modules
+Simon Michael 2007
 
 Usage: ./overview.hs somefile
 

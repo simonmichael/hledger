@@ -1,0 +1,8 @@
+2007/01/21 * test
+  expenses:shelter  $1
+  assets:cash
+
+2007/01/22 * test xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx 
+  assets:checking  $10  ; xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx 
+  expenses:food xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx  $1234567890
+  income:salary

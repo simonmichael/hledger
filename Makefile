@@ -27,7 +27,7 @@ test:
 	@./hledger.hs test
 	@./regtest.py
 
-haddock:
+docs haddock:
 	haddock -h -o doc *.hs
 
 overview:

@@ -1,0 +1,54 @@
+; test ledger
+; set up this account tree:
+;
+; assets
+;   cash
+;   checking
+;   saving
+; equity
+; expenses
+;   food
+;   shelter
+; income
+;   salary
+; liabilities
+;   debts
+
+2007/01/01 * save
+  assets:saving  $1000
+  equity
+
+2007/01/01 * eat
+  assets:cash
+  expenses:food  $1
+
+2007/01/01 * hide
+  expenses:shelter  $1
+  assets:cash
+
+2007/01/20 * test
+  expenses:food  $1
+  assets:cash:petty
+
+2007/01/21 * atm
+    assets:cash                               $40.00
+    expenses:banking                           $2.00
+    expenses:banking                           $2.00
+    assets:checking                          $-44.00
+
+2007/01/22 * test xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx 
+  assets:checking  $10  ; xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx 
+  expenses:food xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx xxxx  $1234567890
+  income:salary
+
+; 2007/01/23 * test
+;   assets:fruit  APPLES1
+;   assets:cash
+
+2007/01/24 * test
+  liabilities:debts  $1.
+  assets:checking
+
+2007/01/25 * test
+  liabilities:debts  $2.00
+  assets:checking   ;test 3

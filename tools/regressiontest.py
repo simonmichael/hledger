@@ -1,12 +1,13 @@
 #!/usr/bin/python
 # test whether hledger output matches ledger's
+# Simon Michael 2007
 
 from os import *
 from posix import *
 
 files = [
-    'test.dat',
-    'test1.dat',
+    'data/test.dat',
+    'data/test1.dat',
 #    getenv('LEDGER'),
     ]
 
