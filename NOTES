@@ -70,6 +70,31 @@ what does my balance history look like ?
 what does my balance future look like ?
 are there any cashflow, tax, budgetary problems looming ?
 
+** charts
+[1:27pm] <sm> I have decided I am not getting enough visible day-to-day value out of my ledger, I need more of that to stay motivated
+[1:27pm] <Nafai> What do you think will help in that?
+[1:27pm] <sm> I think some simple self-updating charts, or even good reports in a visible place
+[1:28pm] <sm> something I don't have to spend an hour fiddling with to get answers
+[1:38pm] <sm> Nafai: identifying/designing some useful reports/charts seems to be blocking me
+[1:39pm] <sm> there are probably some standard ones I should use
+[1:40pm] <sm> a graph of daily net worth is probably one of the simplest
+[1:58pm] <sm> what else.. a chart of weekly expenses in key categories
+[1:58pm] <sm> ditto, monthly
+[1:58pm] <sm> a chart of monthly income
+[1:59pm] <sm> those three should help me be more clear about cashflow status
+[2:00pm] <sm> also I'd like something that shows me how much I am on top of financial tracking - how current my numbers are, when last reconciled etc - at a glance
+[2:01pm] <sm> another simple one: current balances in all accounts
+[2:01pm] <sm> those would be a great start
+[2:04pm] <sm> daily net worth, weekly expense, monthly expense, monthly income, confidence/currentness report, and balance report
+[2:05pm] <sm> let's see, which of those 6 would give most payoff right now
+[2:05pm] <sm> probably 5
+[2:06pm] <sm> how could I measure that ?
+[2:06pm] <sm> number of days since last ledger entry..
+[2:06pm] <sm> number of ledger entries in last 30 days (compared to average)
+[2:07pm] <sm> number of days since last cleared checking entry (indicating an online reconcile)
+[2:08pm] <sm> those would be a good start. How do I make those visual
+[2:09pm] <sm> well I guess the first step is a script to print them
+
 * misc
 ** compare other languages! a parser generator and decent speed is required
 *** python: http://cheeseshop.python.org/pypi/ZestyParser, pysec, pyparsing
