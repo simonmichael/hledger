@@ -72,7 +72,7 @@ are there any cashflow, tax, budgetary problems looming ?
 
 * misc
 ** compare other languages! a parser generator and decent speed is required
-*** python: http://cheeseshop.python.org/pypi/ZestyParser
+*** python: http://cheeseshop.python.org/pypi/ZestyParser, pysec, pyparsing
 *** squeak: LanguageGame, T-Gen, SmaCC
 *** lisp: ?
 *** ruby: too slow (?)
