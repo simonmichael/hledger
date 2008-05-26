@@ -27,8 +27,8 @@ main = do
   where run cmd opts pats
             | Help `elem` opts            = putStr usage
             | cmd `isPrefixOf` "test"     = test     opts pats
-            | cmd `isPrefixOf` "print"    = printcmd opts pats
-            | cmd `isPrefixOf` "register" = register opts pats
+            | cmd `isPrefixOf` "print"    = doWithFilteredLedger opts pats printentries
+            | cmd `isPrefixOf` "register" = doWithFilteredLedger opts pats printregister
             | cmd `isPrefixOf` "balance"  = balance  opts pats
             | otherwise                   = putStr usage
 
@@ -49,22 +49,12 @@ test opts pats = do
   Tests.quickcheck
   return ()
 
-printcmd :: Command
-printcmd opts pats = do 
-  doWithFilteredLedger opts pats printentries
-    where
-      printentries l = putStr $ showEntries $ setprecision $ entries $ rawledger l
-          where
-            setprecision = map (entrySetPrecision (lprecision l))
-
-register :: Command
-register opts pats = do 
-  doWithFilteredLedger opts pats printregister
-    where 
-      printregister l = 
-          putStr $ showTransactionsWithBalances 
-                     (sortBy (comparing date) $ ledgerTransactions l)
-                     nullamt{precision=lprecision l}
+printentries l = putStr $ showEntries $ setprecisions $ entries $ rawledger l
+    where setprecisions = map (entrySetPrecision (lprecision l))
+      
+printregister l = putStr $ showTransactionsWithBalances 
+                  (sortBy (comparing date) $ ledgerTransactions l)
+                  nullamt{precision=lprecision l}
 
 balance :: Command
 balance opts pats = do
