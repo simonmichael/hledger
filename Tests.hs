@@ -70,7 +70,7 @@ entry1_str = "\
 entry1 =
     (LedgerEntry "2007/01/28" False "" "coopportunity" ""
                [LedgerTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
-                LedgerTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""])
+                LedgerTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
 
 entry2_str = "\
 \2007/01/27 * joes diner\n\
@@ -213,7 +213,8 @@ ledger7 = LedgerFile
                                 LedgerTransaction {taccount="equity:opening balances", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
                                                    tcomment=""}
-                               ]
+                               ],
+                  epreceding_comment_lines=""
                  }
           ,
            LedgerEntry {
@@ -225,7 +226,8 @@ ledger7 = LedgerFile
                                 LedgerTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-179.92), precision=2},
                                                    tcomment=""}
-                               ]
+                               ],
+                  epreceding_comment_lines=""
                  }
           ,
            LedgerEntry {
@@ -237,7 +239,8 @@ ledger7 = LedgerFile
                                 LedgerTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-200), precision=2},
                                                    tcomment=""}
-                               ]
+                               ],
+                  epreceding_comment_lines=""
                  }
           ,
            LedgerEntry {
@@ -249,7 +252,8 @@ ledger7 = LedgerFile
                                 LedgerTransaction {taccount="assets:cash", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
                                                    tcomment=""}
-                               ]
+                               ],
+                  epreceding_comment_lines=""
                  }
           ,
            LedgerEntry {
@@ -261,7 +265,8 @@ ledger7 = LedgerFile
                                 LedgerTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-95.11), precision=2},
                                                    tcomment=""}
-                               ]
+                               ],
+                  epreceding_comment_lines=""
                  }
           ,
            LedgerEntry {
@@ -273,9 +278,11 @@ ledger7 = LedgerFile
                                 LedgerTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-80), precision=2},
                                                    tcomment=""}
-                               ]
+                               ],
+                  epreceding_comment_lines=""
                  }
           ]
+          ""
 
 l7 = cacheLedger (argpats [] []) ledger7
 

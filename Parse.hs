@@ -142,14 +142,14 @@ ledgerfile = ledger <|> ledgerfromtimelog
 
 ledger :: Parser LedgerFile
 ledger = do
-  ledgernondatalines
   -- for now these must come first, unlike ledger
   modifier_entries <- many ledgermodifierentry
   periodic_entries <- many ledgerperiodicentry
   --
   entries <- (many ledgerentry) <?> "entry"
+  final_comment_lines <- ledgernondatalines
   eof
-  return $ LedgerFile modifier_entries periodic_entries entries
+  return $ LedgerFile modifier_entries periodic_entries entries (unlines final_comment_lines)
 
 ledgernondatalines :: Parser [String]
 ledgernondatalines = many (ledgerdirective <|> ledgercommentline <|> do {whiteSpace1; return []})
@@ -157,8 +157,8 @@ ledgernondatalines = many (ledgerdirective <|> ledgercommentline <|> do {whiteSp
 ledgercommentline :: Parser String
 ledgercommentline = do
   char ';'
-  many spacenonewline
-  restofline <?> "comment line"
+  l <- restofline <?> "comment line"
+  return $ ";" ++ l
 
 ledgercomment :: Parser String
 ledgercomment = 
@@ -178,7 +178,6 @@ ledgermodifierentry = do
   many spacenonewline
   valueexpr <- restofline
   transactions <- ledgertransactions
-  ledgernondatalines
   return (ModifierEntry valueexpr transactions)
 
 ledgerperiodicentry :: Parser PeriodicEntry
@@ -187,11 +186,11 @@ ledgerperiodicentry = do
   many spacenonewline
   periodexpr <- restofline
   transactions <- ledgertransactions
-  ledgernondatalines
   return (PeriodicEntry periodexpr transactions)
 
 ledgerentry :: Parser LedgerEntry
 ledgerentry = do
+  preceding <- ledgernondatalines
   date <- ledgerdate
   status <- ledgerstatus
   code <- ledgercode
@@ -202,8 +201,7 @@ ledgerentry = do
   comment <- ledgercomment
   restofline
   transactions <- ledgertransactions
-  ledgernondatalines
-  return $ autofillEntry $ LedgerEntry date status code description comment transactions
+  return $ autofillEntry $ LedgerEntry date status code description comment transactions (unlines preceding)
 
 ledgerdate :: Parser String
 ledgerdate = do 
@@ -232,7 +230,6 @@ ledgertransaction = do
   many spacenonewline
   comment <- ledgercomment
   restofline
-  many ledgercommentline
   return (LedgerTransaction account amount comment)
 
 -- account names may have single spaces in them, and are terminated by two or more spaces

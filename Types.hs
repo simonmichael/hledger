@@ -67,7 +67,8 @@ data LedgerEntry = LedgerEntry {
       ecode :: String,
       edescription :: String,
       ecomment :: String,
-      etransactions :: [LedgerTransaction]
+      etransactions :: [LedgerTransaction],
+      epreceding_comment_lines :: String
     } deriving (Eq)
 
 -- an automated ledger entry
@@ -97,7 +98,8 @@ data TimeLog = TimeLog {
 data LedgerFile = LedgerFile {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
-      entries :: [LedgerEntry]
+      entries :: [LedgerEntry],
+      final_comment_lines :: String
     } deriving (Eq)
 
 -- we flatten LedgerEntries and LedgerTransactions into Transactions,

@@ -16,7 +16,7 @@ instance Show TimeLog where
 
 ledgerFromTimeLog :: TimeLog -> LedgerFile
 ledgerFromTimeLog tl = 
-    LedgerFile [] [] (entriesFromTimeLogEntries $ timelog_entries tl)
+    LedgerFile [] [] (entriesFromTimeLogEntries $ timelog_entries tl) ""
 
 entriesFromTimeLogEntries :: [TimeLogEntry] -> [LedgerEntry]
 
@@ -34,7 +34,8 @@ entriesFromTimeLogEntries [clockin,clockout] =
        etransactions = [
         LedgerTransaction accountname amount "",
         LedgerTransaction "TIME" (-amount) ""
-       ]}
+       ],
+       epreceding_comment_lines=""}
     ]
     where
       accountname = tlcomment clockin

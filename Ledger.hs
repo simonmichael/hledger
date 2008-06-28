@@ -64,8 +64,8 @@ cacheLedger pats l =
 
 -- filter entries by description and whether any transactions match account patterns
 filterLedgerEntries :: FilterPatterns -> LedgerFile -> LedgerFile
-filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es) = 
-    LedgerFile ms ps (filter matchdesc $ filter (any matchtxn . etransactions) es)
+filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) = 
+    LedgerFile ms ps (filter matchdesc $ filter (any matchtxn . etransactions) es) f
     where
       matchtxn t = case matchRegex (wilddefault acctpat) (taccount t) of
                      Nothing -> False
@@ -77,10 +77,10 @@ filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es) =
 -- filter transactions in each ledger entry by account patterns
 -- this may unbalance entries
 filterLedgerTransactions :: FilterPatterns -> LedgerFile -> LedgerFile
-filterLedgerTransactions (acctpat,descpat) (LedgerFile ms ps es) = 
-    LedgerFile ms ps (map filterentrytxns es)
+filterLedgerTransactions (acctpat,descpat) (LedgerFile ms ps es f) = 
+    LedgerFile ms ps (map filterentrytxns es) f
     where
-      filterentrytxns l@(LedgerEntry _ _ _ _ _ ts) = l{etransactions=filter matchtxn ts}
+      filterentrytxns l@(LedgerEntry _ _ _ _ _ ts _) = l{etransactions=filter matchtxn ts}
       matchtxn t = case matchRegex (wilddefault acctpat) (taccount t) of
                      Nothing -> False
                      otherwise -> True

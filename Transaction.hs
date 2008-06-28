@@ -15,7 +15,7 @@ instance Show Transaction where
 
 -- we use the entry number e to remember the grouping of txns
 flattenEntry :: (LedgerEntry, Int) -> [Transaction]
-flattenEntry (LedgerEntry d _ _ desc _ ts, e) = 
+flattenEntry (LedgerEntry d _ _ desc _ ts _, e) = 
     [Transaction e d desc (taccount t) (tamount t) | t <- ts]
 
 transactionSetPrecision :: Int -> Transaction -> Transaction
@@ -47,7 +47,7 @@ showTransactionsWithBalances ts b =
 
 showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =
-    (showEntryDescription $ LedgerEntry (date t) False "" (description t) "" []) 
+    (showEntryDescription $ LedgerEntry (date t) False "" (description t) "" [] "") 
     ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t) "") ++ (showBalance b)
 
 showTransactionAndBalance :: Transaction -> Amount -> String

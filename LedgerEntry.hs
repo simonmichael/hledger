@@ -30,7 +30,7 @@ isEntryBalanced :: LedgerEntry -> Bool
 isEntryBalanced = ((0::Double)==) . read . printf "%0.8f" . quantity . sumLedgerTransactions . etransactions
 
 autofillEntry :: LedgerEntry -> LedgerEntry
-autofillEntry e@(LedgerEntry _ _ _ _ _ ts) =
+autofillEntry e@(LedgerEntry _ _ _ _ _ ts _) =
     let e' = e{etransactions=autofillTransactions ts} in
     case (isEntryBalanced e') of
       True -> e'
@@ -50,8 +50,9 @@ autofillEntry e@(LedgerEntry _ _ _ _ _ ts) =
 
 showEntry :: LedgerEntry -> String
 showEntry e = 
-    unlines $ ["", description] ++ (showtxns $ etransactions e)
+    "\n" ++ precedingcomment ++ description ++ unlines (showtxns $ etransactions e)
     where
+      precedingcomment = epreceding_comment_lines e
       description = concat [date, status, code, desc] -- , comment]
       date = showDate $ edate e
       status = if estatus e then " *" else ""
@@ -71,8 +72,8 @@ showEntries :: [LedgerEntry] -> String
 showEntries = concatMap showEntry
 
 entrySetPrecision :: Int -> LedgerEntry -> LedgerEntry
-entrySetPrecision p (LedgerEntry d s c desc comm ts) = 
-    LedgerEntry d s c desc comm $ map (ledgerTransactionSetPrecision p) ts
+entrySetPrecision p (LedgerEntry d s c desc comm ts prec) = 
+    LedgerEntry d s c desc comm (map (ledgerTransactionSetPrecision p) ts) prec
                 
 
 -- modifier & periodic entries
