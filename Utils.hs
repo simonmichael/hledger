@@ -4,7 +4,7 @@ module Utils (
               module Char,
               module Data.List,
               module Data.Tree,
-              module Data.Map,
+              -- module Data.Map,
               module Data.Ord,
               module Data.Maybe,
               module Text.Printf,
