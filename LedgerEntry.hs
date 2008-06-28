@@ -50,7 +50,7 @@ autofillEntry e@(LedgerEntry _ _ _ _ _ ts _) =
 
 showEntry :: LedgerEntry -> String
 showEntry e = 
-    "\n" ++ precedingcomment ++ description ++ unlines (showtxns $ etransactions e)
+    unlines $ [precedingcomment ++ description] ++ (showtxns $ etransactions e) ++ [""]
     where
       precedingcomment = epreceding_comment_lines e
       description = concat [date, status, code, desc] -- , comment]
