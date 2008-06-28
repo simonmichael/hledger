@@ -152,12 +152,22 @@ ledger = do
   return $ LedgerFile modifier_entries periodic_entries entries (unlines final_comment_lines)
 
 ledgernondatalines :: Parser [String]
-ledgernondatalines = many (ledgerdirective <|> ledgercommentline <|> do {whiteSpace1; return []})
+ledgernondatalines = many (ledgerdirective <|> -- treat as comments
+                           commentline <|> 
+                           blankline)
 
-ledgercommentline :: Parser String
-ledgercommentline = do
-  char ';'
-  l <- restofline <?> "comment line"
+ledgerdirective :: Parser String
+ledgerdirective = char '!' >> restofline <?> "directive"
+
+blankline :: Parser String
+blankline =
+  do {s <- many1 spacenonewline; newline; return s} <|> 
+  do {newline; return ""} <?> "blank line"
+
+commentline :: Parser String
+commentline = do
+  char ';' <?> "comment line"
+  l <- restofline
   return $ ";" ++ l
 
 ledgercomment :: Parser String
@@ -168,9 +178,6 @@ ledgercomment =
           many (noneOf "\n")
         ) 
     <|> return "" <?> "comment"
-
-ledgerdirective :: Parser String
-ledgerdirective = char '!' >> restofline <?> "directive"
 
 ledgermodifierentry :: Parser ModifierEntry
 ledgermodifierentry = do
@@ -191,7 +198,7 @@ ledgerperiodicentry = do
 ledgerentry :: Parser LedgerEntry
 ledgerentry = do
   preceding <- ledgernondatalines
-  date <- ledgerdate
+  date <- ledgerdate <?> "entry"
   status <- ledgerstatus
   code <- ledgercode
 -- ledger treats entry comments as part of the description, we will too
