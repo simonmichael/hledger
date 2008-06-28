@@ -69,16 +69,16 @@ balance opts pats = do
                           otherwise  -> 9999
 
 {-
-interactive testing:
+interactive testing in ghci:
 
-*Main> p <- ledgerFilePath [File "./test.dat"] >>= parseLedgerFile
-*Main> let r = either (\_ -> LedgerFile [] [] []) id p
-*Main> let l = cacheLedger r
-*Main> let ant = accountnametree l
-*Main> let at = accounts l
-*Main> putStr $ drawTree $ treemap show $ ant
-*Main> putStr $ showLedgerAccounts l [] False 1
-*Main> :m +Tests
-*Main Tests> l7
+p <- ledgerFilePath [File "./test.ledger"] >>= parseLedgerFile
+let r = either (\_ -> LedgerFile [] [] [] "") id p
+let l = cacheLedger (argpats [] []) r
+let ant = accountnametree l
+let at = accounts l
+putStr $ drawTree $ treemap show $ ant
+putStr $ showLedgerAccounts l 1
+:m +Tests
+l7
 
 -}
