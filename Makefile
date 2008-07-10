@@ -31,7 +31,7 @@ docs haddock:
 	haddock -h -o doc *.hs
 
 overview:
-	@./overview.hs Types.hs >OVERVIEW
+	@./tools/overview.hs Types.hs >OVERVIEW
 
 loc:
 	@darcs trackdown 'find . -name "*hs" |xargs wc -l |echo OUTPUT `tail -1`; false' |ruby -nae'puts $$F[1] if /^OUTPUT/'
