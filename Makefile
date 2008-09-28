@@ -1,5 +1,6 @@
-BUILD=ghc --make hledger.hs -o hledger -prof -auto-all
-BUILDOPT=ghc --make hledger.hs -o hledgeropt -O2
+BUILD=ghc --make hledger.hs -o hledger
+BUILDOPT=$(BUILD)opt -O2
+BUILDPROF=$(BUILD) -prof -auto-all
 PROFILE=./hledger -s balance +RTS -p
 TIME=`date +"%Y%m%d%H%M"`
 
@@ -44,3 +45,4 @@ clean:
 
 Clean: clean
 	rm -f hledger hledgeropt overview TAGS tags
+
