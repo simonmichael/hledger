@@ -11,6 +11,7 @@ module Main
 where
 import System
 import Text.ParserCombinators.Parsec (ParseError)
+import qualified Data.Map as Map (lookup)
 
 import Options
 import Models
@@ -68,17 +69,49 @@ balance opts pats = do
                           ((Nothing,_), False) -> 1
                           otherwise  -> 9999
 
-{-
-interactive testing in ghci:
+-- helpers for interacting in ghci
 
-p <- ledgerFilePath [File "./test.ledger"] >>= parseLedgerFile
-let r = either (\_ -> LedgerFile [] [] [] "") id p
-let l = cacheLedger (argpats [] []) r
-let ant = accountnametree l
-let at = accounts l
-putStr $ drawTree $ treemap show $ ant
-putStr $ showLedgerAccounts l 1
-:m +Tests
-l7
+-- returns a Ledger parsed from the file your LEDGER environment variable
+-- points to or (WARNING:) an empty one if there was a problem.
+myledger :: IO Ledger
+myledger = do
+  parsed <- ledgerFilePath [] >>= parseLedgerFile
+  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
+  return $ cacheLedger (argpats [] []) ledgerfile
+
+-- similar, but accepts a file path
+ledgerfromfile :: String -> IO Ledger
+ledgerfromfile f = do
+  parsed <- ledgerFilePath [File f] >>= parseLedgerFile
+  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
+  return $ cacheLedger (argpats [] []) ledgerfile
+
+accountnamed :: AccountName -> IO Account
+accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
+  
+
+--clearedBalanceToDate :: String -> Amount
+
+{-
+ghci examples:
+
+$ ghci hledger.hs
+GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
+Loading package base ... linking ... done.
+Ok, modules loaded: Utils, Main, Tests, Parse, Models, Ledger, LedgerFile, LedgerEntry, Amount, Currency, Types, LedgerTransaction, AccountName, Transaction, Account, TimeLog, Options.
+Prelude Main> l <- myledger
+<..snip..>
+Ledger with 628 entries, 128 accounts
+Prelude Main> 
+
+$ ghci hledger.hs
+> l <- myledger
+> putStr $ drawTree $ treemap show $ accountnametree l
+> putStr $ showLedgerAccounts l 1
+> printregister l
+> import Types
+> accounts l
+> accountnamed "assets"
+
 
 -}
