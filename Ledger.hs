@@ -130,24 +130,24 @@ addDataToAccountNameTree = treemap . ledgerAccount
 -- standard balance command shows all top-level accounts:
 --
 -- > ledger bal
--- $ assets      
--- $ equity
--- $ expenses    
--- $ income      
--- $ liabilities 
+--  $ assets      
+--  $ equity
+--  $ expenses    
+--  $ income      
+--  $ liabilities 
 --
 -- with an account pattern, show only the ones with matching names:
 --
 -- > ledger bal asset
--- $ assets      
+--  $ assets      
 --
 -- with -s, show all subaccounts of matched accounts:
 --
 -- > ledger -s bal asset
--- $ assets      
--- $  cash       
--- $  checking   
--- $  saving
+--  $ assets      
+--  $  cash       
+--  $  checking   
+--  $  saving
 --
 -- we elide boring accounts in two ways:
 -- - leaf accounts and branches with 0 balance or 0 transactions are omitted
