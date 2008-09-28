@@ -31,9 +31,6 @@ test:
 docs haddock:
 	haddock -h -o doc *.hs
 
-overview:
-	@./tools/overview.hs Types.hs >OVERVIEW
-
 loc:
 	@darcs trackdown 'find . -name "*hs" |xargs wc -l |echo OUTPUT `tail -1`; false' |ruby -nae'puts $$F[1] if /^OUTPUT/'
 
@@ -44,5 +41,5 @@ clean:
 	rm -f *.o *.hi *~ 1 2
 
 Clean: clean
-	rm -f hledger hledgeropt overview TAGS tags
+	rm -f hledger hledgeropt TAGS tags
 
