@@ -52,22 +52,23 @@ docs: haddock-with-source hoogleweb api-doc-frames
 api-doc-dir:
 	mkdir -p api-doc
 
-haddock: api-doc-dir $(MAIN)
+api-doc: api-doc-dir $(MAIN)
 	echo "Generating haddock api docs" ; \
 	haddock --no-warnings --ignore-all-exports -B `ghc --print-libdir` -o api-doc -h $(filter-out %api-doc-dir,$^) ; \
 	cp api-doc/index.html api-doc/modules-index.html
 
-haddock-with-source: api-doc-dir colourised-source $(MAIN)
+api-doc-with-source: api-doc-dir colourised-source $(MAIN)
 	echo "Generating haddock api docs" ; \
 	haddock --no-warnings --ignore-all-exports -B `ghc --print-libdir` -o api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir colourised-source,$^) ; \
 	cp api-doc/index.html api-doc/modules-index.html
 
-# convert haddock output to a rough but useful frame layout. Run after haddock.
-# if frames.html includes a hoogle pane, ensure the hoogle cgi is built with base target "main"
-api-doc-frames:
+# munge haddock and hoogle into a rough but useful framed layout
+# ensure that the hoogle cgi is built with base target "main"
+api-doc-frames: api-doc-with-source hoogleweb
 	echo "Converting api docs to frames" ; \
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
-	cp data/frames.html api-doc/index.html
+	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
+	cp doc/misc/hoogle-small.html hoogle
 
 colourised-source: api-doc-dir
 	echo "Generating colourised source" ; \
