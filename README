@@ -17,10 +17,12 @@ sudo runhaskell Setup.hs install
 
 Examples:
 
-hledger -f sample.ledger  register
+hledger -f sample.ledger balance
 export LEDGER=sample.ledger
-hledger balance
 hledger -s balance
+hledger register
+hledger reg cash
+hledger reg -- shop
 
 This version of hledger was intended to mimic ledger 2.5 as closely as
 possible, see the ledger manual for more info:
