@@ -1,8 +1,8 @@
 {-|
-standard ledger file parser
+A parser for standard ledger files.  Here's the ledger grammar from
+the ledger 2.5 manual:
 
-Here's the ledger grammar from the ledger 2.5 manual:
-
+@
 The ledger file format is quite simple, but also very flexible. It supports
 many options, though typically the user can ignore most of them. They are
 summarized below.  The initial character of each line determines what the
@@ -96,10 +96,9 @@ i, o, b, h
            These four relate to timeclock support, which permits ledger to read timelog
            files. See the timeclock’s documentation for more info on the syntax of its
            timelog files.
+@
 
-parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
-
-sample data in Tests.hs 
+See Tests.hs for sample data.
 -}
 
 module Parse
