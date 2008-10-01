@@ -1,0 +1,27 @@
+hledger - a ledger-compatible text-based accounting tool.
+
+Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>
+Released under GPL version 3 or later.
+
+This is a minimal haskell clone of John Wiegley's ledger
+<http://newartisans.com/software/ledger.html>.  hledger does basic
+register & balance reports, and demonstrates a (naive) purely
+functional implementation of ledger.
+
+Installation:
+
+runhaskell Setup.hs configure
+runhaskell Setup.hs build
+sudo runhaskell Setup.hs install 
+ (or symlink dist/build/hledger/hledger into your path)
+
+Examples:
+
+./hledger -f sample.ledger  register
+export LEDGER=sample.ledger
+./hledger balance
+./hledger -s balance
+
+This version of hledger was intended to mimic ledger 2.5 as closely as
+possible, see the ledger manual for more info:
+<http://joyful.com/repos/hledger/doc/ledger.html>.

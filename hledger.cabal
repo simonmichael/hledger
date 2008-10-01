@@ -14,7 +14,7 @@ Homepage:       http://joyful.com/Ledger#hledger
 Tested-With:    GHC
 Build-Type:     Simple
 License-File:   LICENSE
-Extra-Source-Files: sample.ledger
+Extra-Source-Files: README sample.ledger
 Extra-Tmp-Files: 
 Cabal-Version:  >= 1.2
 
