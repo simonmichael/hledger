@@ -1,0 +1,35 @@
+; A sample ledger file.
+;
+; Sets up this account tree:
+; assets
+;   cash
+;   checking
+;   saving
+; expenses
+;   banking
+;   food
+;   supplies
+; income
+;   salary
+; liabilities
+;   debts
+
+2007/01/01 save
+    assets:saving  $1000
+    income:salary
+
+2007/01/01 * eat & shop
+    expenses:food      $1
+    expenses:supplies  $1
+    assets:cash
+
+2008/1/1 * pay off
+    liabilities:debts  $0.99
+    assets:checking
+
+2008/01/21 atm
+    assets:cash                               $40.00
+    expenses:banking                           $2.00
+    expenses:banking                           $2.00
+    assets:checking                          $-44.00
+
