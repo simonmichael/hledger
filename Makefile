@@ -75,6 +75,7 @@ colourised-source: api-doc-dir
 	for f in *hs; do \
 		HsColour -css -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
+	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
 	HsColour -print-css >api-doc/hscolour.css
 
 #generate a hoogle index
