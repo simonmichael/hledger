@@ -3,7 +3,7 @@ standard ledger file parser
 
 Here's the ledger grammar from the ledger 2.5 manual:
 
-The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
+The ledger file format is quite simple, but also very flexible. It supports
 many options, though typically the user can ignore most of them. They are
 summarized below.  The initial character of each line determines what the
 line means, and how it should be interpreted. Allowable initial characters
@@ -11,7 +11,7 @@ are:
 
 NUMBER      A line beginning with a number denotes an entry. It may be followed by any
             number of lines, each beginning with whitespace, to denote the entry’s account
-            transactions. The format of the ﬁrst line is:
+            transactions. The format of the first line is:
 
                     DATE[=EDATE] [*|!] [(CODE)] DESC
 
@@ -36,7 +36,7 @@ NUMBER      A line beginning with a number denotes an entry. It may be followed 
 =           An automated entry. A value expression must appear after the equal sign.
             After this initial line there should be a set of one or more transactions, just as
             if it were normal entry. If the amounts of the transactions have no commodity,
-            they will be applied as modiﬁers to whichever real transaction is matched by
+            they will be applied as modifiers to whichever real transaction is matched by
             the value expression.
  
 ~           A period entry. A period expression must appear after the tilde.
@@ -48,7 +48,7 @@ NUMBER      A line beginning with a number denotes an entry. It may be followed 
             are:
 
            ‘!include’
-                        Include the stated ledger ﬁle.
+                        Include the stated ledger file.
            ‘!account’
                         The account name is given is taken to be the parent of all transac-
                         tions that follow, until ‘!end’ is seen.
@@ -58,44 +58,44 @@ NUMBER      A line beginning with a number denotes an entry. It may be followed 
  
 Y          If a line begins with a capital Y, it denotes the year used for all subsequent
            entries that give a date without a year. The year should appear immediately
-           after the Y, for example: ‘Y2004’. This is useful at the beginning of a ﬁle, to
-           specify the year for that ﬁle. If all entries specify a year, however, this command
+           after the Y, for example: ‘Y2004’. This is useful at the beginning of a file, to
+           specify the year for that file. If all entries specify a year, however, this command
            has no eﬀect.
            
  
-P          Speciﬁes a historical price for a commodity. These are usually found in a pricing
-           history ﬁle (see the ‘-Q’ option). The syntax is:
+P          Specifies a historical price for a commodity. These are usually found in a pricing
+           history file (see the ‘-Q’ option). The syntax is:
 
                   P DATE SYMBOL PRICE
 
 N SYMBOL   Indicates that pricing information is to be ignored for a given symbol, nor will
            quotes ever be downloaded for that symbol. Useful with a home currency, such
            as the dollar ($). It is recommended that these pricing options be set in the price
-           database ﬁle, which defaults to ‘~/.pricedb’. The syntax for this command is:
+           database file, which defaults to ‘~/.pricedb’. The syntax for this command is:
 
                   N SYMBOL
 
         
-D AMOUNT   Speciﬁes the default commodity to use, by specifying an amount in the expected
+D AMOUNT   Specifies the default commodity to use, by specifying an amount in the expected
            format. The entry command will use this commodity as the default when none
            other can be determined. This command may be used multiple times, to set
-           the default ﬂags for diﬀerent commodities; whichever is seen last is used as the
+           the default flags for diﬀerent commodities; whichever is seen last is used as the
            default commodity. For example, to set US dollars as the default commodity,
-           while also setting the thousands ﬂag and decimal ﬂag for that commodity, use:
+           while also setting the thousands flag and decimal flag for that commodity, use:
 
                   D $1,000.00
 
 C AMOUNT1 = AMOUNT2
-           Speciﬁes a commodity conversion, where the ﬁrst amount is given to be equiv-
-           alent to the second amount. The ﬁrst amount should use the decimal precision
+           Specifies a commodity conversion, where the first amount is given to be equiv-
+           alent to the second amount. The first amount should use the decimal precision
            desired during reporting:
 
                   C 1.00 Kb = 1024 bytes
 
 i, o, b, h
            These four relate to timeclock support, which permits ledger to read timelog
-           ﬁles. See the timeclock’s documentation for more info on the syntax of its
-           timelog ﬁles.
+           files. See the timeclock’s documentation for more info on the syntax of its
+           timelog files.
 
 parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
 
