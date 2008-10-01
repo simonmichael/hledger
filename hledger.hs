@@ -6,11 +6,37 @@ Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 This is a minimal haskell clone of John Wiegley's ledger
-<http://newartisans.com/software/ledger.html>.  hledger does basic
-register & balance reports, and demonstrates a (naive) purely
-functional implementation of ledger.
+<http://newartisans.com/software/ledger.html>.  hledger generates
+simple ledger-compatible register & balance reports from a standard
+ledger file, and demonstrates a (naive) purely functional
+implementation of ledger.
 
-See the "Types" module for a code overview.
+Code overview: 
+
+The early code defined types in each module and so was very strictly
+layered. Since then, all data types have been moved to "Types" at the
+bottom, but the original modules are still used to group related
+functions/methods. Here is the approximate module hierarchy:
+
+@
+hledger ("Main")
+ "Options"
+ "Tests"
+  "Parse"
+   "Models"
+    "TimeLog"
+    "Ledger"
+     "Account"
+      "Transaction"
+     "LedgerFile"
+      "LedgerEntry"
+       "LedgerTransaction"
+        "AccountName"
+        "Amount"
+         "Currency"
+          "Types"
+           "Utils"
+@
 -}
 
 module Main

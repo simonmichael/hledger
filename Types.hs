@@ -1,34 +1,10 @@
+{-| 
+All the basic data types, defined here for easy re-use. See "Main".
+-}
 module Types 
 where
 import Utils
 import qualified Data.Map as Map
-
-{-
-Here is the approximate module hierarchy. The early code defined types in
-each module and so was strictly layered. Now, all data types have been
-moved to the bottom. The modules are still used to group related
-functions/methods (" make overview " to list those).
-
-hledger
- Options
- Tests
-  Parse
-   Models
-    TimeLog
-     TimeLogEntry
-    Ledger
-     Account
-      Transaction
-     LedgerFile
-      LedgerEntry
-       LedgerTransaction
-        AccountName
-        Amount
-         Currency
-          Types
-           Utils
-
--}
 
 -- | account and description-matching patterns
 type FilterPatterns = (Maybe Regex, Maybe Regex)
@@ -42,14 +18,14 @@ data Currency = Currency {
       rate :: Double -- relative to the dollar.. 0 rates not supported yet
     } deriving (Eq,Show)
 
--- | some amount of money, time, stock, oranges, etc.
+-- | some amount of money, time, stock, oranges, or whatever.
 data Amount = Amount {
       currency :: Currency,
       quantity :: Double,
-      precision :: Int -- ^ number of significant decimal places
+      precision :: Int -- number of significant decimal places
     } deriving (Eq)
 
--- AccountNames are strings like "assets:cash:petty", from which we derive
+-- | AccountNames are strings like assets:cash:petty, from which we derive
 -- the chart of accounts
 type AccountName = String
 
@@ -60,7 +36,7 @@ data LedgerTransaction = LedgerTransaction {
       tcomment :: String
     } deriving (Eq)
 
--- | a ledger entry, with two or more balanced transactions
+-- | a ledger entry, containing two or more balanced transactions
 data LedgerEntry = LedgerEntry {
       edate :: Date,
       estatus :: Bool,
@@ -83,13 +59,14 @@ data PeriodicEntry = PeriodicEntry {
       p_transactions :: [LedgerTransaction]
     } deriving (Eq)
 
--- | we also parse timeclock.el timelogs
+-- | a timelog entry (we also parse timeclock.el timelogs)
 data TimeLogEntry = TimeLogEntry {
       tlcode :: Char,
       tldatetime :: DateTime,
       tlcomment :: String
     } deriving (Eq,Ord)
 
+-- | a parsed timelog file
 data TimeLog = TimeLog {
       timelog_entries :: [TimeLogEntry]
     } deriving (Eq)
@@ -114,9 +91,9 @@ data Transaction = Transaction {
 
 -- | cached information for a particular account
 data Account = Account {
-      aname :: AccountName, 
-      atransactions :: [Transaction], -- ^ excludes sub-accounts
-      abalance :: Amount              -- ^ includes sub-accounts
+      aname :: AccountName,           -- ^ the account name
+      atransactions :: [Transaction], -- ^ the transactions, excluding sub-accounts
+      abalance :: Amount              -- ^ the total balance, including sub-accounts
     }
 
 -- | a ledger with account information cached for faster queries

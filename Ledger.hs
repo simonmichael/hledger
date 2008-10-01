@@ -110,74 +110,86 @@ ledgerAccountTree l depth =
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree = treemap . ledgerAccount
 
--- | balance report support
---
--- examples: here is a sample account tree:
---
--- assets
---  cash
---  checking
---  saving
--- equity
--- expenses
---  food
---  shelter
--- income
---  salary
--- liabilities
---  debts
---
--- standard balance command shows all top-level accounts:
---
--- > ledger bal
---
---  $ assets      
---  $ equity
---  $ expenses    
---  $ income      
---  $ liabilities 
---
--- with an account pattern, show only the ones with matching names:
---
--- > ledger bal asset
---
---  $ assets      
---
--- with -s, show all subaccounts of matched accounts:
---
--- > ledger -s bal asset
---
---  $ assets      
---  $  cash       
---  $  checking   
---  $  saving
---
--- we elide boring accounts in two ways:
---
--- - leaf accounts and branches with 0 balance or 0 transactions are omitted
---
--- - inner accounts with 0 transactions and 1 subaccount are displayed inline
---
--- so this:
---
--- a (0 txns)
---   b (0 txns)
---     c
---       d
--- e (0 txns)
---   f
---   g
--- h (0 txns)
---   i (0 balance)
---
--- is displayed like:
---
--- a:b:c
---   d
--- e
---   f
---   g
 
+{-| 
+This and the functions below help generate ledger-compatible balance
+reports. Here's how it should work:
+
+a sample account tree:
+
+@
+assets
+ cash
+ checking
+ saving
+equity
+expenses
+ food
+ shelter
+income
+ salary
+liabilities
+ debts
+@
+
+the standard balance command shows all top-level accounts:
+
+@
+\> ledger balance
+$ assets      
+$ equity
+$ expenses    
+$ income      
+$ liabilities 
+@
+
+with an account pattern, show only the ones with matching names:
+
+@
+\> ledger balance asset
+$ assets      
+@
+
+with -s, show all subaccounts of matched accounts:
+
+@
+\> ledger -s balance asset
+$ assets      
+$  cash       
+$  checking   
+$  saving
+@
+
+we elide boring accounts in two ways:
+
+- leaf accounts and branches with 0 balance or 0 transactions are omitted
+
+- inner accounts with 0 transactions and 1 subaccount are displayed inline
+
+so this:
+
+@
+a (0 txns)
+  b (0 txns)
+    c
+      d
+e (0 txns)
+  f
+  g
+h (0 txns)
+  i (0 balance)
+@
+
+is displayed like:
+
+@
+a:b:c
+  d
+e
+  f
+  g
+@
+-}
 showLedgerAccounts :: Ledger -> Int -> String
 showLedgerAccounts l maxdepth = 
     concatMap 

@@ -1,6 +1,7 @@
 {-|
-a simple amount is a currency, quantity pair:
+A simple amount is a currency, quantity pair:
 
+@
   $1 
   £-50
   EUR 3.44 
@@ -8,18 +9,20 @@ a simple amount is a currency, quantity pair:
   1.5h
   90m
   0 
+@
 
-a mixed amount is one or more simple amounts:
+A mixed amount is one or more simple amounts:
 
+@
   $50, EUR 3, AAPL 500
   16h, $13.55, oranges 6
+@
 
-currencies may be convertible or not (eg, currencies representing
+Currencies may be convertible or not (eg, currencies representing
 non-money commodities). A mixed amount containing only convertible
-currencies can be converted to a simple amount.
+currencies can be converted to a simple amount. Arithmetic examples:
 
-arithmetic:
-
+@
   $1 - $5 = $-4
   $1 + EUR 0.76 = $2
   EUR0.76 + $1 = EUR 1.52
@@ -28,7 +31,7 @@ arithmetic:
   ($50, EUR 3, AAPL 500) + ($13.55, oranges 6) = $67.51, AAPL 500, oranges 6
   ($50, EUR 3) * $-1 = $-53.96
   ($50, AAPL 500) * $-1 = error
-   
+@   
 -}
 
 module Amount
@@ -80,7 +83,7 @@ instance Num Amount where
     (-) = amountop (-)
     (*) = amountop (*)
 
--- | problem: when an integer is converted to an amount it must pick a
+-- problem: when an integer is converted to an amount it must pick a
 -- precision, which we specify here (should be infinite ?). This can
 -- affect amount arithmetic, in particular the sum of a list of amounts.
 -- So, we may need to adjust the precision after summing amounts.

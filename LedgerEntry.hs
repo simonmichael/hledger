@@ -8,18 +8,23 @@ import Amount
 
 instance Show LedgerEntry where show = showEntryDescription
 
--- | for register report
---
--- a register entry is displayed as two or more lines like this:
--- date       description          account                 amount       balance
--- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
---                                 aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
---                                 ...                     ...         ...
--- datewidth = 10
--- descwidth = 20
--- acctwidth = 22
--- amtwidth  = 11
--- balwidth  = 12
+{-
+Helpers for the register report. A register entry is displayed as two
+or more lines like this:
+
+@
+date       description          account                 amount       balance
+DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+                                aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+                                ...                     ...         ...
+
+datewidth = 10
+descwidth = 20
+acctwidth = 22
+amtwidth  = 11
+balwidth  = 12
+@
+-}
 
 showEntryDescription e = (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
 showDate d = printf "%-10s" d
@@ -36,18 +41,22 @@ autofillEntry e@(LedgerEntry _ _ _ _ _ ts _) =
       True -> e'
       False -> (error $ "transactions don't balance in " ++ show e)
 
--- | the print command shows cleaned up ledger file entries, something like:
---
--- yyyy/mm/dd[ *][ CODE] description.........          [  ; comment...............]
---     account name 1.....................  ...$amount1[  ; comment...............]
---     account name 2.....................  ..$-amount1[  ; comment...............]
---
--- pcodewidth    = no limit -- 10
--- pdescwidth    = no limit -- 20
--- pacctwidth    = 35 minimum, no maximum
--- pamtwidth     = 11
--- pcommentwidth = no limit -- 22
+{-|
+Helper for the print command which shows cleaned up ledger file
+entries, something like:
 
+@
+yyyy/mm/dd[ *][ CODE] description.........          [  ; comment...............]
+    account name 1.....................  ...$amount1[  ; comment...............]
+    account name 2.....................  ..$-amount1[  ; comment...............]
+
+pcodewidth    = no limit -- 10
+pdescwidth    = no limit -- 20
+pacctwidth    = 35 minimum, no maximum
+pamtwidth     = 11
+pcommentwidth = no limit -- 22
+@
+-}
 showEntry :: LedgerEntry -> String
 showEntry e = 
     unlines $ [precedingcomment ++ description] ++ (showtxns $ etransactions e) ++ [""]

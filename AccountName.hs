@@ -46,11 +46,11 @@ s `isSubAccountNameOf` p =
 subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
 subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 
--- | We could almost get by with just the above, but we need smarter
--- structures to eg display the account tree with boring accounts elided.
--- first, here is a tree of AccountNames; Account and Account tree are
--- defined later.
-
+-- | We could almost get by with just the AccountName manipulations
+-- above, but we need smarter structures to eg display the account
+-- tree with boring accounts elided.  This converts a list of
+-- AccountNames to a tree (later we will convert that to a tree of
+-- Accounts.)
 accountNameTreeFrom_props =
     [
      accountNameTreeFrom ["a"]       == Node "top" [Node "a" []],
