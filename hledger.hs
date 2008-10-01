@@ -57,50 +57,62 @@ main = do
   (opts, (cmd:args)) <- getArgs >>= parseOptions
   let pats = parsePatternArgs args
   run cmd opts pats
-  where run cmd opts pats
-            | Help `elem` opts            = putStr usage
-            | cmd `isPrefixOf` "test"     = test     opts pats
-            | cmd `isPrefixOf` "print"    = doWithFilteredLedger opts pats printentries
-            | cmd `isPrefixOf` "register" = doWithFilteredLedger opts pats printregister
-            | cmd `isPrefixOf` "balance"  = balance  opts pats
-            | otherwise                   = putStr usage
+    where run cmd opts pats
+              | Help `elem` opts            = putStr usage
+              | cmd `isPrefixOf` "selftest" = selftest opts pats
+              | cmd `isPrefixOf` "print"    = print_   opts pats
+              | cmd `isPrefixOf` "register" = register opts pats
+              | cmd `isPrefixOf` "balance"  = balance  opts pats
+              | otherwise                   = putStr usage
 
-doWithFilteredLedger :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-doWithFilteredLedger opts pats cmd = do
-    ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed pats cmd
+parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
+parseLedgerAndDo opts pats cmd = do
+    path <- ledgerFilePath opts
+    parsed <- parseLedgerFile path
+    doWithParsedLedger pats cmd parsed
 
-doWithParsed :: (Regex,Regex) -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
-doWithParsed pats cmd parsed = do
+doWithParsedLedger :: (Regex,Regex) -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
+doWithParsedLedger pats cmd parsed = do
   case parsed of Left e -> parseError e
-                 Right l -> cmd $ cacheLedger pats l 
+                 Right l -> cacheLedgerAndDo pats l cmd
+
+cacheLedgerAndDo :: (Regex,Regex) -> LedgerFile -> (Ledger -> IO ()) -> IO ()
+cacheLedgerAndDo pats  l cmd = do cmd $ cacheLedger pats l
 
 type Command = [Flag] -> (Regex,Regex) -> IO ()
 
-test :: Command
-test opts pats = do 
+selftest :: Command
+selftest opts pats = do 
   Tests.hunit
   Tests.quickcheck
   return ()
 
+print_ :: Command
+print_ opts pats = parseLedgerAndDo opts pats printentries
+
+printentries :: Ledger -> IO ()
 printentries l = putStr $ showEntries $ setprecisions $ entries $ rawledger l
     where setprecisions = map (entrySetPrecision (lprecision l))
       
+register :: Command
+register opts pats = parseLedgerAndDo opts pats printregister
+
+printregister :: Ledger -> IO ()
 printregister l = putStr $ showTransactionsWithBalances 
                   (sortBy (comparing date) $ ledgerTransactions l)
                   nullamt{precision=lprecision l}
 
 balance :: Command
 balance opts pats = do
-  doWithFilteredLedger opts pats printbalance
+  parseLedgerAndDo opts pats printbalance
     where
       printbalance l =
           putStr $ showLedgerAccounts l depth
               where 
                 showsubs = (ShowSubs `elem` opts)
                 depth = case (pats, showsubs) of
-                          -- when there are no account patterns and no -s,
-                          -- show only to depth 1. (This was clearer and more
-                          -- correct when we used maybe.)
+                          -- when there are no account patterns and no -s, show
+                          -- only to depth 1. (This was clearer when we used maybe.)
                           ((wildcard,_), False) -> 1
                           otherwise  -> 9999
 
@@ -112,14 +124,14 @@ myledger :: IO Ledger
 myledger = do
   parsed <- ledgerFilePath [] >>= parseLedgerFile
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger (parsePatternArgs []) ledgerfile
+  return $ cacheLedger (wildcard,wildcard) ledgerfile
 
 -- | return a Ledger parsed from the given file path
 ledgerfromfile :: String -> IO Ledger
 ledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger (parsePatternArgs []) ledgerfile
+  return $ cacheLedger (wildcard,wildcard) ledgerfile
 
 accountnamed :: AccountName -> IO Account
 accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
