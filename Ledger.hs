@@ -63,9 +63,9 @@ cacheLedger pats l =
       Ledger l' ant amap lprecision
 
 -- | keep only entries whose description matches one of the
--- | description patterns, if any, and which have at least one
--- | transaction matching one of the account patterns, if any.
--- | No description or account patterns implies match all.
+-- description patterns, if any, and which have at least one
+-- transaction matching one of the account patterns, if any.
+-- No description or account patterns implies match all.
 filterLedgerEntries :: (Regex,Regex) -> LedgerFile -> LedgerFile
 filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) = 
     LedgerFile ms ps filteredentries f
@@ -82,8 +82,8 @@ filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) =
                       otherwise -> True
 
 -- | in each ledger entry, filter out transactions which do not match
--- | the account patterns, if any.  (Entries are no longer balanced
--- | after this.)
+-- the account patterns, if any.  (Entries are no longer balanced
+-- after this.)
 filterLedgerTransactions :: (Regex,Regex) -> LedgerFile -> LedgerFile
 filterLedgerTransactions (acctpat,descpat) (LedgerFile ms ps es f) = 
     LedgerFile ms ps (map filterentrytxns es) f

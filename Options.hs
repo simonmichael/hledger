@@ -73,16 +73,16 @@ tildeExpand xs           =  return xs
 -- -- courtesy of allberry_b
 
 -- | ledger pattern arguments are: 0 or more account patterns
--- | optionally followed by -- and 0 or more description patterns.
--- | No arguments implies match all. We convert the arguments to
--- | a pair of regexps.
+-- optionally followed by -- and 0 or more description patterns.
+-- No arguments implies match all. We convert the arguments to
+-- a pair of regexps.
 parsePatternArgs :: [String] -> (Regex,Regex)
 parsePatternArgs args = (regexFor as, regexFor ds')
     where (as, ds) = break (=="--") args
           ds' = dropWhile (=="--") ds
 
 -- | convert a list of strings to a regular expression matching any of them,
--- | or a wildcard if there are none.
+-- or a wildcard if there are none.
 regexFor :: [String] -> Regex
 regexFor [] = wildcard
 regexFor ss = mkRegex $ "(" ++ (unwords $ intersperse "|" ss) ++ ")"
