@@ -2,10 +2,10 @@
 {-|
 hledger - a ledger-compatible text-based accounting tool.
 
-Copyright 2007-, Simon Michael & contributors, released under GPLv3 or
-later.
+Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>
+Released under GPL version 3 or later.
 
-This is a basic haskell clone of John Wiegley's ledger
+This is a minimal haskell clone of John Wiegley's ledger
 <http://newartisans.com/software/ledger.html>.  hledger does basic
 register & balance reports, and demonstrates a (naive) purely
 functional implementation of ledger.
