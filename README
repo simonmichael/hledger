@@ -27,3 +27,9 @@ hledger reg -- shop
 This version of hledger was intended to mimic ledger 2.5 as closely as
 possible, see the ledger manual for more info:
 <http://joyful.com/repos/hledger/doc/ledger.html>.
+
+Bugs:
+
+* there should be a total in filtered balance reports
+* register transactions should be filtered when account patterns are provided
+* filtered balance reports don't show the full account names
