@@ -13,7 +13,7 @@ implementation of ledger.
 
 Code overview: 
 
-The early code defined types in each module and so was very strictly
+The early code defined types in each module and was (too) strictly
 layered. Since then, all data types have been moved to "Types" at the
 bottom, but the original modules are still used to group related
 functions/methods. Here is the approximate module hierarchy:
