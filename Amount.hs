@@ -1,10 +1,4 @@
-module Amount
-where
-import Utils
-import Types
-import Currency
-
-{-
+{-|
 a simple amount is a currency, quantity pair:
 
   $1 
@@ -36,6 +30,12 @@ arithmetic:
   ($50, AAPL 500) * $-1 = error
    
 -}
+
+module Amount
+where
+import Utils
+import Types
+import Currency
 
 tests = runTestTT $ test [
          show (dollars 1)   ~?= "$1.00"
@@ -80,13 +80,13 @@ instance Num Amount where
     (-) = amountop (-)
     (*) = amountop (*)
 
--- problem: when an integer is converted to an amount it must pick a
+-- | problem: when an integer is converted to an amount it must pick a
 -- precision, which we specify here (should be infinite ?). This can
 -- affect amount arithmetic, in particular the sum of a list of amounts.
 -- So, we may need to adjust the precision after summing amounts.
 amtintprecision = 2
 
--- apply op to two amounts, adopting a's currency and lowest precision
+-- | apply op to two amounts, adopting a's currency and lowest precision
 amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
 amountop op (Amount ac aq ap) b@(Amount _ _ bp) = 
     Amount ac (aq `op` (quantity $ toCurrency ac b)) (min ap bp)

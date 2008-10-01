@@ -34,7 +34,7 @@ instance Show Ledger where
               (length $ periodic_entries $ rawledger l))
              (length $ accountnames l)
 
--- at startup, to improve performance, we refine the parsed ledger entries:
+-- | at startup, to improve performance, we refine the parsed ledger entries:
 -- 1. filter based on account/description patterns, if any
 -- 2. cache per-account info
 -- also, figure out the precision(s) to use
@@ -62,7 +62,7 @@ cacheLedger pats l =
     in
       Ledger l' ant amap lprecision
 
--- filter entries by description and whether any transactions match account patterns
+-- | filter entries by description and whether any transactions match account patterns
 filterLedgerEntries :: FilterPatterns -> LedgerFile -> LedgerFile
 filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) = 
     LedgerFile ms ps (filter matchdesc $ filter (any matchtxn . etransactions) es) f
@@ -74,7 +74,7 @@ filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) =
                       Nothing -> False
                       otherwise -> True
 
--- filter transactions in each ledger entry by account patterns
+-- | filter transactions in each ledger entry by account patterns
 -- this may unbalance entries
 filterLedgerTransactions :: FilterPatterns -> LedgerFile -> LedgerFile
 filterLedgerTransactions (acctpat,descpat) (LedgerFile ms ps es f) = 
@@ -93,7 +93,7 @@ accountnames l = flatten $ accountnametree l
 ledgerAccount :: Ledger -> AccountName -> Account
 ledgerAccount l a = (accounts l) ! a
 
--- This sets all amount precisions to that of the highest-precision
+-- | This sets all amount precisions to that of the highest-precision
 -- amount, to help with report output. It should perhaps be done in the
 -- display functions, but those are far removed from the ledger. Keep in
 -- mind if doing more arithmetic with these.
@@ -110,7 +110,7 @@ ledgerAccountTree l depth =
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree = treemap . ledgerAccount
 
--- balance report support
+-- | balance report support
 --
 -- examples: here is a sample account tree:
 --
@@ -130,6 +130,7 @@ addDataToAccountNameTree = treemap . ledgerAccount
 -- standard balance command shows all top-level accounts:
 --
 -- > ledger bal
+--
 --  $ assets      
 --  $ equity
 --  $ expenses    
@@ -139,19 +140,24 @@ addDataToAccountNameTree = treemap . ledgerAccount
 -- with an account pattern, show only the ones with matching names:
 --
 -- > ledger bal asset
+--
 --  $ assets      
 --
 -- with -s, show all subaccounts of matched accounts:
 --
 -- > ledger -s bal asset
+--
 --  $ assets      
 --  $  cash       
 --  $  checking   
 --  $  saving
 --
 -- we elide boring accounts in two ways:
+--
 -- - leaf accounts and branches with 0 balance or 0 transactions are omitted
+--
 -- - inner accounts with 0 transactions and 1 subaccount are displayed inline
+--
 -- so this:
 --
 -- a (0 txns)

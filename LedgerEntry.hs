@@ -8,7 +8,7 @@ import Amount
 
 instance Show LedgerEntry where show = showEntryDescription
 
--- for register report
+-- | for register report
 --
 -- a register entry is displayed as two or more lines like this:
 -- date       description          account                 amount       balance
@@ -25,7 +25,7 @@ showEntryDescription e = (showDate $ edate e) ++ " " ++ (showDescription $ edesc
 showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
--- quick & dirty: checks entry's 0 balance only to 8 places
+-- | quick & dirty: checks entry's 0 balance only to 8 places
 isEntryBalanced :: LedgerEntry -> Bool
 isEntryBalanced = ((0::Double)==) . read . printf "%0.8f" . quantity . sumLedgerTransactions . etransactions
 
@@ -36,7 +36,7 @@ autofillEntry e@(LedgerEntry _ _ _ _ _ ts _) =
       True -> e'
       False -> (error $ "transactions don't balance in " ++ show e)
 
--- the print command shows cleaned up ledger file entries, something like:
+-- | the print command shows cleaned up ledger file entries, something like:
 --
 -- yyyy/mm/dd[ *][ CODE] description.........          [  ; comment...............]
 --     account name 1.....................  ...$amount1[  ; comment...............]

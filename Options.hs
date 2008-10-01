@@ -51,7 +51,7 @@ usage = usageInfo usagehdr options
 ledgerFilePath :: [Flag] -> IO String
 ledgerFilePath = findFileFromOpts "~/ledger.dat" "LEDGER"
 
--- find a file path from options, an env var or a default value
+-- | find a file path from options, an env var or a default value
 findFileFromOpts :: FilePath -> String -> [Flag] -> IO String
 findFileFromOpts defaultpath envvar opts = do
   envordefault <- getEnv envvar `catch` \_ -> return defaultpath
@@ -72,7 +72,7 @@ tildeExpand ('~':'/':xs) =  getHomeDirectory >>= return . (++ ('/':xs))
 tildeExpand xs           =  return xs
 -- -- courtesy of allberry_b
 
--- ledger pattern args are 0 or more account patterns optionally followed
+-- | ledger pattern args are 0 or more account patterns optionally followed
 -- by -- and 0 or more description patterns
 parsePatternArgs :: [String] -> FilterPatterns
 parsePatternArgs args = argpats as ds' 

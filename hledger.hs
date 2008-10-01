@@ -71,7 +71,7 @@ balance opts pats = do
 
 -- helpers for interacting in ghci
 
--- returns a Ledger parsed from the file your LEDGER environment variable
+-- | returns a Ledger parsed from the file your LEDGER environment variable
 -- points to or (WARNING:) an empty one if there was a problem.
 myledger :: IO Ledger
 myledger = do
@@ -79,7 +79,7 @@ myledger = do
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
   return $ cacheLedger (argpats [] []) ledgerfile
 
--- similar, but accepts a file path
+-- | similar, but accepts a file path
 ledgerfromfile :: String -> IO Ledger
 ledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
@@ -88,7 +88,7 @@ ledgerfromfile f = do
 
 accountnamed :: AccountName -> IO Account
 accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
-  
+
 
 --clearedBalanceToDate :: String -> Amount
 

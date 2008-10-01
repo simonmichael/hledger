@@ -18,12 +18,12 @@ accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
 accountNameLevel a = (length $ filter (==sepchar) a) + 1
 
--- ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
+-- | ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
 expandAccountNames as = nub $ concat $ map expand as
     where expand as = map accountNameFromComponents (tail $ inits $ accountNameComponents as)
 
--- ["a:b:c","d:e"] -> ["a","d"]
+-- | ["a:b:c","d:e"] -> ["a","d"]
 topAccountNames :: [AccountName] -> [AccountName]
 topAccountNames as = [a | a <- expandAccountNames as, accountNameLevel a == 1]
 
@@ -46,7 +46,7 @@ s `isSubAccountNameOf` p =
 subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
 subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 
--- We could almost get by with just the above, but we need smarter
+-- | We could almost get by with just the above, but we need smarter
 -- structures to eg display the account tree with boring accounts elided.
 -- first, here is a tree of AccountNames; Account and Account tree are
 -- defined later.

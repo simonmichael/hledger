@@ -13,7 +13,7 @@ instance Show Transaction where
     show (Transaction eno d desc a amt) = 
         unwords [d,desc,a,show amt]
 
--- we use the entry number e to remember the grouping of txns
+-- | we use the entry number e to remember the grouping of txns
 flattenEntry :: (LedgerEntry, Int) -> [Transaction]
 flattenEntry (LedgerEntry d _ _ desc _ ts _, e) = 
     [Transaction e d desc (taccount t) (tamount t) | t <- ts]
@@ -27,7 +27,7 @@ accountNamesFromTransactions ts = nub $ map account ts
 sumTransactions :: [Transaction] -> Amount
 sumTransactions = sum . map amount
 
--- for register command 
+-- | for register command 
 
 showTransactionsWithBalances :: [Transaction] -> Amount -> String
 showTransactionsWithBalances [] _ = []

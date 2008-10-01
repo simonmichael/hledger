@@ -22,7 +22,7 @@ getcurrency s = Map.findWithDefault (Currency s 1) s currencymap
 conversionRate :: Currency -> Currency -> Double
 conversionRate oldc newc = (rate newc) / (rate oldc)
 
--- convenient amount constructors
+-- | convenient amount constructors
 dollars n = Amount (getcurrency "$") n 2
 euro    n = Amount (getcurrency "EUR") n 2
 pounds  n = Amount (getcurrency "£") n 2

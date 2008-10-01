@@ -1,4 +1,4 @@
--- all data types & behaviours
+{-| all data types & behaviours -}
 module Models (
                module Types,
                module Currency,

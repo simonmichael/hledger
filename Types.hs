@@ -30,7 +30,7 @@ hledger
 
 -}
 
--- account and description-matching patterns
+-- | account and description-matching patterns
 type FilterPatterns = (Maybe Regex, Maybe Regex)
                        
 type Date = String
@@ -42,25 +42,25 @@ data Currency = Currency {
       rate :: Double -- relative to the dollar.. 0 rates not supported yet
     } deriving (Eq,Show)
 
--- some amount of money, time, stock, oranges, etc.
+-- | some amount of money, time, stock, oranges, etc.
 data Amount = Amount {
       currency :: Currency,
       quantity :: Double,
-      precision :: Int -- number of significant decimal places
+      precision :: Int -- ^ number of significant decimal places
     } deriving (Eq)
 
 -- AccountNames are strings like "assets:cash:petty", from which we derive
 -- the chart of accounts
 type AccountName = String
 
--- a line item in a ledger entry
+-- | a line item in a ledger entry
 data LedgerTransaction = LedgerTransaction {
       taccount :: AccountName,
       tamount :: Amount,
       tcomment :: String
     } deriving (Eq)
 
--- a ledger entry, with two or more balanced transactions
+-- | a ledger entry, with two or more balanced transactions
 data LedgerEntry = LedgerEntry {
       edate :: Date,
       estatus :: Bool,
@@ -71,19 +71,19 @@ data LedgerEntry = LedgerEntry {
       epreceding_comment_lines :: String
     } deriving (Eq)
 
--- an automated ledger entry
+-- | an automated ledger entry
 data ModifierEntry = ModifierEntry {
       valueexpr :: String,
       m_transactions :: [LedgerTransaction]
     } deriving (Eq)
 
--- a periodic ledger entry
+-- | a periodic ledger entry
 data PeriodicEntry = PeriodicEntry {
       periodexpr :: String,
       p_transactions :: [LedgerTransaction]
     } deriving (Eq)
 
--- we also parse timeclock.el timelogs
+-- | we also parse timeclock.el timelogs
 data TimeLogEntry = TimeLogEntry {
       tlcode :: Char,
       tldatetime :: DateTime,
@@ -94,7 +94,7 @@ data TimeLog = TimeLog {
       timelog_entries :: [TimeLogEntry]
     } deriving (Eq)
 
--- a parsed ledger file
+-- | a parsed ledger file
 data LedgerFile = LedgerFile {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
@@ -102,7 +102,7 @@ data LedgerFile = LedgerFile {
       final_comment_lines :: String
     } deriving (Eq)
 
--- we flatten LedgerEntries and LedgerTransactions into Transactions,
+-- | we flatten LedgerEntries and LedgerTransactions into Transactions,
 -- which are simpler to query at the cost of some data duplication
 data Transaction = Transaction {
       entryno :: Int,
@@ -112,14 +112,14 @@ data Transaction = Transaction {
       amount :: Amount
     } deriving (Eq)
 
--- cached information for a particular account
+-- | cached information for a particular account
 data Account = Account {
       aname :: AccountName, 
-      atransactions :: [Transaction], -- excludes sub-accounts
-      abalance :: Amount              -- includes sub-accounts
+      atransactions :: [Transaction], -- ^ excludes sub-accounts
+      abalance :: Amount              -- ^ includes sub-accounts
     }
 
--- a ledger with account information cached for faster queries
+-- | a ledger with account information cached for faster queries
 data Ledger = Ledger {
       rawledger :: LedgerFile,
       accountnametree :: Tree AccountName,

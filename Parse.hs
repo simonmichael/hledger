@@ -1,45 +1,9 @@
-module Parse
-where
-import qualified Data.Map as Map
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Language
-import qualified Text.ParserCombinators.Parsec.Token as P
-import System.IO
+{-|
+standard ledger file parser
 
-import Utils
-import Models
+Here's the ledger grammar from the ledger 2.5 manual:
 
-
--- set up token parsing, though we're not yet using these much
-ledgerLanguageDef = LanguageDef {
-   commentStart   = ""
-   , commentEnd     = ""
-   , commentLine    = ";"
-   , nestedComments = False
-   , identStart     = letter <|> char '_'
-   , identLetter    = alphaNum <|> oneOf "_':"
-   , opStart        = opLetter emptyDef
-   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
-   , reservedOpNames= []
-   , reservedNames  = []
-   , caseSensitive  = False
-   }
-lexer      = P.makeTokenParser ledgerLanguageDef
-whiteSpace = P.whiteSpace lexer
-lexeme     = P.lexeme lexer
-symbol     = P.symbol lexer
-natural    = P.natural lexer
-parens     = P.parens lexer
-semi       = P.semi lexer
-identifier = P.identifier lexer
-reserved   = P.reserved lexer
-reservedOp = P.reservedOp lexer
-
-
--- standard ledger file parser
-{-
-Here's the ledger 2.5 grammar:
-"The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
+The ledger ﬁle format is quite simple, but also very ﬂexible. It supports
 many options, though typically the user can ignore most of them. They are
 summarized below.  The initial character of each line determines what the
 line means, and how it should be interpreted. Allowable initial characters
@@ -64,7 +28,7 @@ NUMBER      A line beginning with a number denotes an entry. It may be followed 
             The ‘ACCOUNT’ may be surrounded by parentheses if it is a virtual
             transactions, or square brackets if it is a virtual transactions that must
             balance. The ‘AMOUNT’ can be followed by a per-unit transaction cost,
-            by specifying ‘ AMOUNT’, or a complete transaction cost with ‘@ AMOUNT’.
+            by specifying ‘ AMOUNT’, or a complete transaction cost with ‘\@ AMOUNT’.
             Lastly, the ‘NOTE’ may specify an actual and/or eﬀective date for the
             transaction by using the syntax ‘[ACTUAL_DATE]’ or ‘[=EFFECTIVE_DATE]’ or
             ‘[ACTUAL_DATE=EFFECtIVE_DATE]’.
@@ -78,7 +42,6 @@ NUMBER      A line beginning with a number denotes an entry. It may be followed 
 ~           A period entry. A period expression must appear after the tilde.
             After this initial line there should be a set of one or more transactions, just as
             if it were normal entry.
-
 
 !           A line beginning with an exclamation mark denotes a command directive. It
             must be immediately followed by the command word. The supported commands
@@ -132,10 +95,51 @@ C AMOUNT1 = AMOUNT2
 i, o, b, h
            These four relate to timeclock support, which permits ledger to read timelog
            ﬁles. See the timeclock’s documentation for more info on the syntax of its
-           timelog ﬁles."
+           timelog ﬁles.
+
+parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
+
+sample data in Tests.hs 
 -}
--- parsec example: http://pandoc.googlecode.com/svn/trunk/src/Text/Pandoc/Readers/RST.hs
--- sample data in Tests.hs 
+
+module Parse
+where
+import qualified Data.Map as Map
+import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Language
+import qualified Text.ParserCombinators.Parsec.Token as P
+import System.IO
+
+import Utils
+import Models
+
+
+-- set up token parsing, though we're not yet using these much
+ledgerLanguageDef = LanguageDef {
+   commentStart   = ""
+   , commentEnd     = ""
+   , commentLine    = ";"
+   , nestedComments = False
+   , identStart     = letter <|> char '_'
+   , identLetter    = alphaNum <|> oneOf "_':"
+   , opStart        = opLetter emptyDef
+   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
+   , reservedOpNames= []
+   , reservedNames  = []
+   , caseSensitive  = False
+   }
+lexer      = P.makeTokenParser ledgerLanguageDef
+whiteSpace = P.whiteSpace lexer
+lexeme     = P.lexeme lexer
+symbol     = P.symbol lexer
+natural    = P.natural lexer
+parens     = P.parens lexer
+semi       = P.semi lexer
+identifier = P.identifier lexer
+reserved   = P.reserved lexer
+reservedOp = P.reservedOp lexer
+
+
 
 ledgerfile :: Parser LedgerFile
 ledgerfile = ledger <|> ledgerfromtimelog
@@ -239,7 +243,7 @@ ledgertransaction = do
   restofline
   return (LedgerTransaction account amount comment)
 
--- account names may have single spaces in them, and are terminated by two or more spaces
+-- | account names may have single spaces in them, and are terminated by two or more spaces
 ledgeraccount :: Parser String
 ledgeraccount = 
     many1 ((alphaNum <|> char ':' <|> char '/' <|> char '_' <?> "account name") 
@@ -271,7 +275,7 @@ whiteSpace1 :: Parser ()
 whiteSpace1 = do space; whiteSpace
 
 
--- timelog file parser
+-- | timelog file parser
 {- 
 timelog grammar, from timeclock.el 2.6
 
