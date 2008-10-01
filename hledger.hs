@@ -20,23 +20,23 @@ functions/methods. Here is the approximate module hierarchy:
 
 @
 hledger ("Main")
- "Options"
  "Tests"
-  "Parse"
-   "Models"
-    "TimeLog"
-    "Ledger"
-     "Account"
-      "Transaction"
-     "LedgerFile"
-      "LedgerEntry"
-       "LedgerTransaction"
-        "AccountName"
-        "Amount"
-         "Currency"
-          "Types"
-           "Utils"
-@
+ "Parse"
+  "Options"
+  "Models"
+   "TimeLog"
+   "Ledger"
+    "Account"
+     "Transaction"
+    "LedgerFile"
+     "LedgerEntry"
+      "LedgerTransaction"
+       "AccountName"
+       "Amount"
+        "Currency"
+         "Types"
+          "Utils"
+
 -}
 
 module Main
@@ -64,20 +64,6 @@ main = do
               | cmd `isPrefixOf` "register" = register opts pats
               | cmd `isPrefixOf` "balance"  = balance  opts pats
               | otherwise                   = putStr usage
-
-parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-parseLedgerAndDo opts pats cmd = do
-    path <- ledgerFilePath opts
-    parsed <- parseLedgerFile path
-    withParsedLedgerOrErrorDo parsed pats cmd
-
-withParsedLedgerOrErrorDo :: (Either ParseError LedgerFile) -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-withParsedLedgerOrErrorDo parsed pats cmd = do
-  case parsed of Left err -> parseError err
-                 Right l -> cacheLedgerAndDo l pats cmd
-
-cacheLedgerAndDo :: LedgerFile -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-cacheLedgerAndDo l pats cmd = do cmd $ cacheLedger l pats
 
 type Command = [Flag] -> (Regex,Regex) -> IO ()
 
@@ -116,31 +102,7 @@ balance opts pats = do
                           ((wildcard,_), False) -> 1
                           otherwise  -> 9999
 
--- helpers for interacting in ghci
-
--- | return a Ledger parsed from the file your LEDGER environment variable
--- points to or (WARNING) an empty one if there was a problem.
-myledger :: IO Ledger
-myledger = do
-  parsed <- ledgerFilePath [] >>= parseLedgerFile
-  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger ledgerfile (wildcard,wildcard)
-
--- | return a Ledger parsed from the given file path
-ledgerfromfile :: String -> IO Ledger
-ledgerfromfile f = do
-  parsed <- ledgerFilePath [File f] >>= parseLedgerFile
-  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger ledgerfile (wildcard,wildcard)
-
-accountnamed :: AccountName -> IO Account
-accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
-
-
---clearedBalanceToDate :: String -> Amount
-
-{-
-ghci examples:
+{- helpers for interacting in ghci. Examples:
 
 $ ghci hledger.hs
 GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
@@ -160,5 +122,22 @@ $ ghci hledger.hs
 > accounts l
 > accountnamed "assets"
 
-
 -}
+
+-- | return a Ledger parsed from the file your LEDGER environment variable
+-- points to or (WARNING) an empty one if there was a problem.
+myledger :: IO Ledger
+myledger = do
+  parsed <- ledgerFilePath [] >>= parseLedgerFile
+  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
+  return $ cacheLedger ledgerfile (wildcard,wildcard)
+
+-- | return a Ledger parsed from the given file path
+ledgerfromfile :: String -> IO Ledger
+ledgerfromfile f = do
+  parsed <- ledgerFilePath [File f] >>= parseLedgerFile
+  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
+  return $ cacheLedger ledgerfile (wildcard,wildcard)
+
+accountnamed :: AccountName -> IO Account
+accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)

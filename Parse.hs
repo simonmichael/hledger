@@ -111,7 +111,32 @@ import System.IO
 
 import Utils
 import Models
+import Options
 
+
+-- utils
+
+-- | parse the user's specified ledger file and do some action with it
+-- (or report a parse error)
+parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
+parseLedgerAndDo opts pats cmd = do
+    path <- ledgerFilePath opts
+    parsed <- parseLedgerFile path
+    case parsed of Left err -> parseError err
+                   Right l -> cacheLedgerAndDo l pats cmd
+
+-- do some action with the ledger parse result, or report a parse error
+-- withParsedLedgerOrErrorDo :: (Either ParseError LedgerFile) -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
+-- withParsedLedgerOrErrorDo parsed pats cmd = do
+--   case parsed of Left err -> parseError err
+--                  Right l -> cacheLedgerAndDo l pats cmd
+
+parseLedgerFile :: String -> IO (Either ParseError LedgerFile)
+parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
+parseLedgerFile f   = parseFromFile ledgerfile f
+    
+parseError :: (Show a) => a -> IO ()
+parseError e = do putStr "ledger parse error at "; print e
 
 -- set up token parsing, though we're not yet using these much
 ledgerLanguageDef = LanguageDef {
@@ -138,7 +163,7 @@ identifier = P.identifier lexer
 reserved   = P.reserved lexer
 reservedOp = P.reservedOp lexer
 
-
+-- parsers
 
 ledgerfile :: Parser LedgerFile
 ledgerfile = ledger <|> ledgerfromtimelog
@@ -274,10 +299,11 @@ whiteSpace1 :: Parser ()
 whiteSpace1 = do space; whiteSpace
 
 
--- | timelog file parser
-{- 
-timelog grammar, from timeclock.el 2.6
+{-| timelog file parser 
 
+Here is the timelog grammar, from timeclock.el 2.6:
+
+@
 A timelog contains data in the form of a single entry per line.
 Each entry has the form:
 
@@ -308,7 +334,7 @@ example:
 
 i 2007/03/10 12:26:00 hledger
 o 2007/03/10 17:26:02
-
+@
 -}
 
 ledgerfromtimelog :: Parser LedgerFile
@@ -333,14 +359,3 @@ timelogentry = do
   comment <- restofline
   return $ TimeLogEntry code datetime comment
 
-
-
--- utils
-
-parseError :: (Show a) => a -> IO ()
-parseError e = do putStr "ledger parse error at "; print e
-
-parseLedgerFile :: String -> IO (Either ParseError LedgerFile)
-parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
-parseLedgerFile f   = parseFromFile ledgerfile f
-    
