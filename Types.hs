@@ -6,9 +6,6 @@ where
 import Utils
 import qualified Data.Map as Map
 
--- | account and description-matching patterns, see 'Options.parsePatternArgs'.
-type FilterPatterns = (Regex, Regex)
-                       
 type Date = String
 
 type DateTime = String

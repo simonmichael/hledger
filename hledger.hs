@@ -65,16 +65,16 @@ main = do
             | cmd `isPrefixOf` "balance"  = balance  opts pats
             | otherwise                   = putStr usage
 
-doWithFilteredLedger :: [Flag] -> FilterPatterns -> (Ledger -> IO ()) -> IO ()
+doWithFilteredLedger :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
 doWithFilteredLedger opts pats cmd = do
     ledgerFilePath opts >>= parseLedgerFile >>= doWithParsed pats cmd
 
-doWithParsed :: FilterPatterns -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
+doWithParsed :: (Regex,Regex) -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
 doWithParsed pats cmd parsed = do
   case parsed of Left e -> parseError e
                  Right l -> cmd $ cacheLedger pats l 
 
-type Command = [Flag] -> FilterPatterns -> IO ()
+type Command = [Flag] -> (Regex,Regex) -> IO ()
 
 test :: Command
 test opts pats = do 
@@ -100,7 +100,7 @@ balance opts pats = do
                 depth = case (pats, showsubs) of
                           -- when there are no account patterns and no -s,
                           -- show only to depth 1. (This was clearer and more
-                          -- correct when FilterPatterns used maybe.)
+                          -- correct when we used maybe.)
                           ((wildcard,_), False) -> 1
                           otherwise  -> 9999
 

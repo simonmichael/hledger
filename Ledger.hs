@@ -38,7 +38,7 @@ instance Show Ledger where
 -- 1. filter based on account/description patterns, if any
 -- 2. cache per-account info
 -- also, figure out the precision(s) to use
-cacheLedger :: FilterPatterns -> LedgerFile -> Ledger
+cacheLedger :: (Regex,Regex) -> LedgerFile -> Ledger
 cacheLedger pats l = 
     let 
         lprecision = maximum $ map (precision . amount) $ rawLedgerTransactions l
@@ -66,7 +66,7 @@ cacheLedger pats l =
 -- | description patterns, if any, and which have at least one
 -- | transaction matching one of the account patterns, if any.
 -- | No description or account patterns implies match all.
-filterLedgerEntries :: FilterPatterns -> LedgerFile -> LedgerFile
+filterLedgerEntries :: (Regex,Regex) -> LedgerFile -> LedgerFile
 filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) = 
     LedgerFile ms ps filteredentries f
     where
@@ -84,7 +84,7 @@ filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) =
 -- | in each ledger entry, filter out transactions which do not match
 -- | the account patterns, if any.  (Entries are no longer balanced
 -- | after this.)
-filterLedgerTransactions :: FilterPatterns -> LedgerFile -> LedgerFile
+filterLedgerTransactions :: (Regex,Regex) -> LedgerFile -> LedgerFile
 filterLedgerTransactions (acctpat,descpat) (LedgerFile ms ps es f) = 
     LedgerFile ms ps (map filterentrytxns es) f
     where
