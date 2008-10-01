@@ -69,15 +69,15 @@ parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts pats cmd = do
     path <- ledgerFilePath opts
     parsed <- parseLedgerFile path
-    doWithParsedLedger pats cmd parsed
+    withParsedLedgerOrErrorDo parsed pats cmd
 
-doWithParsedLedger :: (Regex,Regex) -> (Ledger -> IO ()) -> (Either ParseError LedgerFile) -> IO ()
-doWithParsedLedger pats cmd parsed = do
-  case parsed of Left e -> parseError e
-                 Right l -> cacheLedgerAndDo pats l cmd
+withParsedLedgerOrErrorDo :: (Either ParseError LedgerFile) -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
+withParsedLedgerOrErrorDo parsed pats cmd = do
+  case parsed of Left err -> parseError err
+                 Right l -> cacheLedgerAndDo l pats cmd
 
-cacheLedgerAndDo :: (Regex,Regex) -> LedgerFile -> (Ledger -> IO ()) -> IO ()
-cacheLedgerAndDo pats  l cmd = do cmd $ cacheLedger pats l
+cacheLedgerAndDo :: LedgerFile -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
+cacheLedgerAndDo l pats cmd = do cmd $ cacheLedger l pats
 
 type Command = [Flag] -> (Regex,Regex) -> IO ()
 
@@ -124,14 +124,14 @@ myledger :: IO Ledger
 myledger = do
   parsed <- ledgerFilePath [] >>= parseLedgerFile
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger (wildcard,wildcard) ledgerfile
+  return $ cacheLedger ledgerfile (wildcard,wildcard)
 
 -- | return a Ledger parsed from the given file path
 ledgerfromfile :: String -> IO Ledger
 ledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger (wildcard,wildcard) ledgerfile
+  return $ cacheLedger ledgerfile (wildcard,wildcard)
 
 accountnamed :: AccountName -> IO Account
 accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)

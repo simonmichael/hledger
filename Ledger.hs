@@ -38,8 +38,8 @@ instance Show Ledger where
 -- 1. filter based on account/description patterns, if any
 -- 2. cache per-account info
 -- also, figure out the precision(s) to use
-cacheLedger :: (Regex,Regex) -> LedgerFile -> Ledger
-cacheLedger pats l = 
+cacheLedger :: LedgerFile -> (Regex,Regex) -> Ledger
+cacheLedger l pats = 
     let 
         lprecision = maximum $ map (precision . amount) $ rawLedgerTransactions l
         l' = filterLedgerEntries pats l
