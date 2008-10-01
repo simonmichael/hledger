@@ -1,10 +1,16 @@
 #!/usr/bin/env runhaskell
-{-
-hledger - ledger-compatible money management tool (& haskell study)
-GPLv3, (c) Simon Michael & contributors
-A port of John Wiegley's ledger at http://newartisans.com/ledger.html
+{-|
+hledger - a ledger-compatible text-based accounting tool.
 
-See Types.hs for a code overview.
+Copyright 2007-, Simon Michael & contributors, released under GPLv3 or
+later.
+
+This is a basic haskell clone of John Wiegley's ledger
+<http://newartisans.com/software/ledger.html>.  hledger does basic
+register & balance reports, and demonstrates a (naive) purely
+functional implementation of ledger.
+
+See the "Types" module for a code overview.
 -}
 
 module Main
@@ -71,7 +77,7 @@ balance opts pats = do
 
 -- helpers for interacting in ghci
 
--- | returns a Ledger parsed from the file your LEDGER environment variable
+-- | return a Ledger parsed from the file your LEDGER environment variable
 -- points to or (WARNING:) an empty one if there was a problem.
 myledger :: IO Ledger
 myledger = do
@@ -79,7 +85,7 @@ myledger = do
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
   return $ cacheLedger (argpats [] []) ledgerfile
 
--- | similar, but accepts a file path
+-- | return a Ledger parsed from the given file path
 ledgerfromfile :: String -> IO Ledger
 ledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
