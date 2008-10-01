@@ -98,25 +98,28 @@ balance opts pats = do
               where 
                 showsubs = (ShowSubs `elem` opts)
                 depth = case (pats, showsubs) of
-                          ((Nothing,_), False) -> 1
+                          -- when there are no account patterns and no -s,
+                          -- show only to depth 1. (This was clearer and more
+                          -- correct when FilterPatterns used maybe.)
+                          ((wildcard,_), False) -> 1
                           otherwise  -> 9999
 
 -- helpers for interacting in ghci
 
 -- | return a Ledger parsed from the file your LEDGER environment variable
--- points to or (WARNING:) an empty one if there was a problem.
+-- points to or (WARNING) an empty one if there was a problem.
 myledger :: IO Ledger
 myledger = do
   parsed <- ledgerFilePath [] >>= parseLedgerFile
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger (argpats [] []) ledgerfile
+  return $ cacheLedger (parsePatternArgs []) ledgerfile
 
 -- | return a Ledger parsed from the given file path
 ledgerfromfile :: String -> IO Ledger
 ledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
   let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
-  return $ cacheLedger (argpats [] []) ledgerfile
+  return $ cacheLedger (parsePatternArgs []) ledgerfile
 
 accountnamed :: AccountName -> IO Account
 accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)

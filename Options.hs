@@ -72,17 +72,20 @@ tildeExpand ('~':'/':xs) =  getHomeDirectory >>= return . (++ ('/':xs))
 tildeExpand xs           =  return xs
 -- -- courtesy of allberry_b
 
--- | ledger pattern args are 0 or more account patterns optionally followed
--- by -- and 0 or more description patterns
+-- | ledger pattern arguments are: 0 or more account patterns
+-- | optionally followed by -- and 0 or more description patterns.
+-- | Here we convert the arguments, if any, to FilterPatterns,
+-- | which is a pair of maybe regexps.
 parsePatternArgs :: [String] -> FilterPatterns
-parsePatternArgs args = argpats as ds' 
+parsePatternArgs args = (regexFor as, regexFor ds')
     where (as, ds) = break (=="--") args
           ds' = dropWhile (=="--") ds
 
-argpats :: [String] -> [String] -> FilterPatterns
-argpats as ds = (regexify as, regexify ds)
-    where
-      regexify :: [String] -> Maybe Regex
-      regexify [] = Nothing
-      regexify ss = Just $ mkRegex $ "(" ++ (unwords $ intersperse "|" ss) ++ ")"
+-- | convert a list of strings to a regular expression matching any of them,
+-- | or a wildcard if there are none.
+regexFor :: [String] -> Regex
+regexFor [] = wildcard
+regexFor ss = mkRegex $ "(" ++ (unwords $ intersperse "|" ss) ++ ")"
 
+wildcard :: Regex
+wildcard = mkRegex ".*"
