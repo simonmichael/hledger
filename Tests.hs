@@ -200,7 +200,7 @@ ledger7_str = "\
 \    assets:checking                                 \n\
 \\n" --"
 
-ledger7 = LedgerFile
+ledger7 = RawLedger
           [] 
           [] 
           [

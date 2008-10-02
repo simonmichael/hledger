@@ -28,7 +28,7 @@ hledger ("Main")
    "Ledger"
     "Account"
      "Transaction"
-    "LedgerFile"
+    "RawLedger"
      "LedgerEntry"
       "LedgerTransaction"
        "AccountName"
@@ -107,7 +107,7 @@ balance opts pats = do
 $ ghci hledger.hs
 GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
 Loading package base ... linking ... done.
-Ok, modules loaded: Utils, Main, Tests, Parse, Models, Ledger, LedgerFile, LedgerEntry, Amount, Currency, Types, LedgerTransaction, AccountName, Transaction, Account, TimeLog, Options.
+Ok, modules loaded: Utils, Main, Tests, Parse, Models, Ledger, RawLedger, LedgerEntry, Amount, Currency, Types, LedgerTransaction, AccountName, Transaction, Account, TimeLog, Options.
 Prelude Main> l <- myledger
 <..snip..>
 Ledger with 628 entries, 128 accounts
@@ -129,14 +129,14 @@ $ ghci hledger.hs
 myledger :: IO Ledger
 myledger = do
   parsed <- ledgerFilePath [] >>= parseLedgerFile
-  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
+  let ledgerfile = either (\_ -> RawLedger [] [] [] "") id parsed
   return $ cacheLedger ledgerfile (wildcard,wildcard)
 
 -- | return a Ledger parsed from the given file path
 ledgerfromfile :: String -> IO Ledger
 ledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
-  let ledgerfile = either (\_ -> LedgerFile [] [] [] "") id parsed
+  let ledgerfile = either (\_ -> RawLedger [] [] [] "") id parsed
   return $ cacheLedger ledgerfile (wildcard,wildcard)
 
 accountnamed :: AccountName -> IO Account

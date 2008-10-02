@@ -125,7 +125,7 @@ parseLedgerAndDo opts pats cmd = do
     case parsed of Left err -> parseError err
                    Right l -> cmd $ cacheLedger l pats
 
-parseLedgerFile :: String -> IO (Either ParseError LedgerFile)
+parseLedgerFile :: String -> IO (Either ParseError RawLedger)
 parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
 parseLedgerFile f   = parseFromFile ledgerfile f
     
@@ -159,10 +159,10 @@ reservedOp = P.reservedOp lexer
 
 -- parsers
 
-ledgerfile :: Parser LedgerFile
+ledgerfile :: Parser RawLedger
 ledgerfile = ledger <|> ledgerfromtimelog
 
-ledger :: Parser LedgerFile
+ledger :: Parser RawLedger
 ledger = do
   -- for now these must come first, unlike ledger
   modifier_entries <- many ledgermodifierentry
@@ -171,7 +171,7 @@ ledger = do
   entries <- (many ledgerentry) <?> "entry"
   final_comment_lines <- ledgernondatalines
   eof
-  return $ LedgerFile modifier_entries periodic_entries entries (unlines final_comment_lines)
+  return $ RawLedger modifier_entries periodic_entries entries (unlines final_comment_lines)
 
 ledgernondatalines :: Parser [String]
 ledgernondatalines = many (ledgerdirective <|> -- treat as comments
@@ -331,7 +331,7 @@ o 2007/03/10 17:26:02
 @
 -}
 
-ledgerfromtimelog :: Parser LedgerFile
+ledgerfromtimelog :: Parser RawLedger
 ledgerfromtimelog = do 
   tl <- timelog
   return $ ledgerFromTimeLog tl

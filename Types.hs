@@ -69,7 +69,7 @@ data TimeLog = TimeLog {
     } deriving (Eq)
 
 -- | a parsed ledger file
-data LedgerFile = LedgerFile {
+data RawLedger = RawLedger {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
       entries :: [LedgerEntry],
@@ -95,7 +95,7 @@ data Account = Account {
 
 -- | a ledger with account information cached for faster queries
 data Ledger = Ledger {
-      rawledger :: LedgerFile,
+      rawledger :: RawLedger,
       accountnametree :: Tree AccountName,
       accounts :: Map.Map AccountName Account,
       lprecision :: Int

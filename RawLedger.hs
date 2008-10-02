@@ -1,4 +1,4 @@
-module LedgerFile
+module RawLedger
 where
 import qualified Data.Map as Map
 
@@ -8,8 +8,8 @@ import AccountName
 import LedgerEntry
 
 
-instance Show LedgerFile where
-    show l = printf "LedgerFile with %d entries"
+instance Show RawLedger where
+    show l = printf "RawLedger with %d entries"
              ((length $ entries l) +
               (length $ modifier_entries l) +
               (length $ periodic_entries l))

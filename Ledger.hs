@@ -8,22 +8,22 @@ import Amount
 import Account
 import AccountName
 import Transaction
-import LedgerFile
+import RawLedger
 
 
-rawLedgerTransactions :: LedgerFile -> [Transaction]
+rawLedgerTransactions :: RawLedger -> [Transaction]
 rawLedgerTransactions = txns . entries
     where
       txns :: [LedgerEntry] -> [Transaction]
       txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
 
-rawLedgerAccountNamesUsed :: LedgerFile -> [AccountName]
+rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
 rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
 
-rawLedgerAccountNames :: LedgerFile -> [AccountName]
+rawLedgerAccountNames :: RawLedger -> [AccountName]
 rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
 
-rawLedgerAccountNameTree :: LedgerFile -> Tree AccountName
+rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
 rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 
 
@@ -38,7 +38,7 @@ instance Show Ledger where
 -- 1. filter based on account/description patterns, if any
 -- 2. cache per-account info
 -- 3. figure out the precision(s) to use
-cacheLedger :: LedgerFile -> (Regex,Regex) -> Ledger
+cacheLedger :: RawLedger -> (Regex,Regex) -> Ledger
 cacheLedger l pats = 
     let 
         lprecision = maximum $ map (precision . amount) $ rawLedgerTransactions l
@@ -66,9 +66,9 @@ cacheLedger l pats =
 -- description patterns, if any, and which have at least one
 -- transaction matching one of the account patterns, if any.
 -- No description or account patterns implies match all.
-filterLedgerEntries :: (Regex,Regex) -> LedgerFile -> LedgerFile
-filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) = 
-    LedgerFile ms ps filteredentries f
+filterLedgerEntries :: (Regex,Regex) -> RawLedger -> RawLedger
+filterLedgerEntries (acctpat,descpat) (RawLedger ms ps es f) = 
+    RawLedger ms ps filteredentries f
     where
       filteredentries :: [LedgerEntry]
       filteredentries = (filter matchdesc $ filter (any matchtxn . etransactions) es)
@@ -84,9 +84,9 @@ filterLedgerEntries (acctpat,descpat) (LedgerFile ms ps es f) =
 -- | in each ledger entry, filter out transactions which do not match
 -- the account patterns, if any.  (Entries are no longer balanced
 -- after this.)
-filterLedgerTransactions :: (Regex,Regex) -> LedgerFile -> LedgerFile
-filterLedgerTransactions (acctpat,descpat) (LedgerFile ms ps es f) = 
-    LedgerFile ms ps (map filterentrytxns es) f
+filterLedgerTransactions :: (Regex,Regex) -> RawLedger -> RawLedger
+filterLedgerTransactions (acctpat,descpat) (RawLedger ms ps es f) = 
+    RawLedger ms ps (map filterentrytxns es) f
     where
       filterentrytxns l@(LedgerEntry _ _ _ _ _ ts _) = l{etransactions=filter matchtxn ts}
       matchtxn t = case matchRegex acctpat (taccount t) of

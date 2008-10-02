@@ -8,7 +8,7 @@ module Models (
                module LedgerEntry,
                module TimeLog,
                module Transaction,
-               -- module LedgerFile,
+               -- module RawLedger,
                module Account,
                module Ledger,
               )
@@ -23,7 +23,7 @@ import LedgerTransaction
 import LedgerEntry
 import TimeLog
 import Transaction
-import LedgerFile
+import RawLedger
 import Account
 import Ledger
 
