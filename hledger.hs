@@ -76,17 +76,8 @@ selftest opts pats = do
 print_ :: Command
 print_ opts pats = parseLedgerAndDo opts pats printentries
 
-printentries :: Ledger -> IO ()
-printentries l = putStr $ showEntries $ setprecisions $ entries $ rawledger l
-    where setprecisions = map (entrySetPrecision (lprecision l))
-      
 register :: Command
 register opts pats = parseLedgerAndDo opts pats printregister
-
-printregister :: Ledger -> IO ()
-printregister l = putStr $ showTransactionsWithBalances 
-                  (sortBy (comparing date) $ ledgerTransactions l)
-                  nullamt{precision=lprecision l}
 
 balance :: Command
 balance opts pats = do

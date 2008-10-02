@@ -9,6 +9,7 @@ import Account
 import AccountName
 import Transaction
 import RawLedger
+import LedgerEntry
 
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
@@ -116,6 +117,16 @@ ledgerAccountTree l depth =
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree = treemap . ledgerAccount
 
+-- | for the print command
+printentries :: Ledger -> IO ()
+printentries l = putStr $ showEntries $ setprecisions $ entries $ rawledger l
+    where setprecisions = map (entrySetPrecision (lprecision l))
+      
+-- | for the register command
+printregister :: Ledger -> IO ()
+printregister l = putStr $ showTransactionsWithBalances 
+                  (sortBy (comparing date) $ ledgerTransactions l)
+                  nullamt{precision=lprecision l}
 
 {-| 
 This and the functions below help generate ledger-compatible balance
