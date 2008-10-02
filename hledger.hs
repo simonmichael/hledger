@@ -47,8 +47,8 @@ import qualified Data.Map as Map (lookup)
 
 import Options
 import Models
-import Parse
-import Tests
+import Parse (parseLedgerAndDo, parseLedgerFile)
+import Tests (hunit, quickcheck)
 import Utils hiding (test)
 
 
@@ -69,8 +69,8 @@ type Command = [Flag] -> (Regex,Regex) -> IO ()
 
 selftest :: Command
 selftest opts pats = do 
-  Tests.hunit
-  Tests.quickcheck
+  hunit
+  quickcheck
   return ()
 
 print_ :: Command

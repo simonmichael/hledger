@@ -1,4 +1,4 @@
-module Options
+module Options (parseOptions, parsePatternArgs, wildcard, Flag(..), usage, ledgerFilePath)
 where
 import System.Console.GetOpt
 import System.Directory
