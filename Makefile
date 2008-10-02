@@ -70,6 +70,10 @@ api-doc-frames: api-doc-with-source hoogleweb
 	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
 	cp doc/misc/hoogle-small.html hoogle
 
+BROWSER=open
+test-docs: api-doc-frames
+	$(BROWSER) api-doc/index.html
+
 colourised-source: api-doc-dir
 	echo "Generating colourised source" ; \
 	for f in *hs; do \
