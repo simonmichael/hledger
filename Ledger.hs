@@ -73,7 +73,7 @@ filterLedgerEntries (acctpat,descpat) (RawLedger ms ps es f) =
     where
       filteredentries :: [LedgerEntry]
       filteredentries = (filter matchdesc $ filter (any matchtxn . etransactions) es)
-      matchtxn :: LedgerTransaction -> Bool
+      matchtxn :: RawTransaction -> Bool
       matchtxn t = case matchRegex acctpat (taccount t) of
                      Nothing -> False
                      otherwise -> True

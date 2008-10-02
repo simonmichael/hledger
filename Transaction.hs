@@ -4,7 +4,7 @@ import Utils
 import Types
 import AccountName
 import LedgerEntry
-import LedgerTransaction
+import RawTransaction
 import Amount
 import Currency
 
@@ -48,11 +48,11 @@ showTransactionsWithBalances ts b =
 showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =
     (showEntryDescription $ LedgerEntry (date t) False "" (description t) "" [] "") 
-    ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t) "") ++ (showBalance b)
+    ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
 
 showTransactionAndBalance :: Transaction -> Amount -> String
 showTransactionAndBalance t b =
-    (replicate 32 ' ') ++ (showLedgerTransaction $ LedgerTransaction (account t) (amount t) "") ++ (showBalance b)
+    (replicate 32 ' ') ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
 
 showBalance :: Amount -> String
 showBalance b = printf " %12s" (showAmountRoundedOrZero b)

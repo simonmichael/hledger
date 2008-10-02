@@ -59,7 +59,7 @@ assertParseEqual expected parsed =
 
 transaction1_str  = "  expenses:food:dining  $10.00\n"
 
-transaction1 = LedgerTransaction "expenses:food:dining" (dollars 10) ""
+transaction1 = RawTransaction "expenses:food:dining" (dollars 10) ""
 
 entry1_str = "\
 \2007/01/28 coopportunity\n\
@@ -69,8 +69,8 @@ entry1_str = "\
 
 entry1 =
     (LedgerEntry "2007/01/28" False "" "coopportunity" ""
-               [LedgerTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
-                LedgerTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
+               [RawTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
+                RawTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
 
 entry2_str = "\
 \2007/01/27 * joes diner\n\
@@ -207,10 +207,10 @@ ledger7 = RawLedger
            LedgerEntry {
                   edate="2007/01/01", estatus=False, ecode="*", edescription="opening balance", ecomment="",
                   etransactions=[
-                                LedgerTransaction {taccount="assets:cash", 
+                                RawTransaction {taccount="assets:cash", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
                                                    tcomment=""},
-                                LedgerTransaction {taccount="equity:opening balances", 
+                                RawTransaction {taccount="equity:opening balances", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
                                                    tcomment=""}
                                ],
@@ -220,10 +220,10 @@ ledger7 = RawLedger
            LedgerEntry {
                   edate="2007/02/01", estatus=False, ecode="*", edescription="ayres suites", ecomment="",
                   etransactions=[
-                                LedgerTransaction {taccount="expenses:vacation", 
+                                RawTransaction {taccount="expenses:vacation", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=179.92, precision=2},
                                                    tcomment=""},
-                                LedgerTransaction {taccount="assets:checking", 
+                                RawTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-179.92), precision=2},
                                                    tcomment=""}
                                ],
@@ -233,10 +233,10 @@ ledger7 = RawLedger
            LedgerEntry {
                   edate="2007/01/02", estatus=False, ecode="*", edescription="auto transfer to savings", ecomment="",
                   etransactions=[
-                                LedgerTransaction {taccount="assets:saving", 
+                                RawTransaction {taccount="assets:saving", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=200, precision=2},
                                                    tcomment=""},
-                                LedgerTransaction {taccount="assets:checking", 
+                                RawTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-200), precision=2},
                                                    tcomment=""}
                                ],
@@ -246,10 +246,10 @@ ledger7 = RawLedger
            LedgerEntry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="poquito mas", ecomment="",
                   etransactions=[
-                                LedgerTransaction {taccount="expenses:food:dining", 
+                                RawTransaction {taccount="expenses:food:dining", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
                                                    tcomment=""},
-                                LedgerTransaction {taccount="assets:cash", 
+                                RawTransaction {taccount="assets:cash", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
                                                    tcomment=""}
                                ],
@@ -259,10 +259,10 @@ ledger7 = RawLedger
            LedgerEntry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="verizon", ecomment="",
                   etransactions=[
-                                LedgerTransaction {taccount="expenses:phone", 
+                                RawTransaction {taccount="expenses:phone", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=95.11, precision=2},
                                                    tcomment=""},
-                                LedgerTransaction {taccount="assets:checking", 
+                                RawTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-95.11), precision=2},
                                                    tcomment=""}
                                ],
@@ -272,10 +272,10 @@ ledger7 = RawLedger
            LedgerEntry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="discover", ecomment="",
                   etransactions=[
-                                LedgerTransaction {taccount="liabilities:credit cards:discover", 
+                                RawTransaction {taccount="liabilities:credit cards:discover", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=80, precision=2},
                                                    tcomment=""},
-                                LedgerTransaction {taccount="assets:checking", 
+                                RawTransaction {taccount="assets:checking", 
                                                    tamount=Amount {currency=(getcurrency "$"), quantity=(-80), precision=2},
                                                    tcomment=""}
                                ],

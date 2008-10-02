@@ -1,4 +1,4 @@
-module LedgerTransaction
+module RawTransaction
 where
 import Utils
 import Types
@@ -6,9 +6,9 @@ import AccountName
 import Amount
 
 
-instance Show LedgerTransaction where show = showLedgerTransaction
+instance Show RawTransaction where show = showLedgerTransaction
 
-showLedgerTransaction :: LedgerTransaction -> String
+showLedgerTransaction :: RawTransaction -> String
 showLedgerTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ tamount t) 
     where
       showaccountname = printf "%-22s" . elideRight 22
@@ -19,7 +19,7 @@ elideRight width s =
       True -> take (width - 2) s ++ ".."
       False -> s
 
-autofillTransactions :: [LedgerTransaction] -> [LedgerTransaction]
+autofillTransactions :: [RawTransaction] -> [RawTransaction]
 autofillTransactions ts =
     case (length blanks) of
       0 -> ts
@@ -30,8 +30,8 @@ autofillTransactions ts =
       isnormal t = (symbol $ currency $ tamount t) /= "AUTO"
       balance t = if isnormal t then t else t{tamount = -(sumLedgerTransactions normals)}
 
-sumLedgerTransactions :: [LedgerTransaction] -> Amount
+sumLedgerTransactions :: [RawTransaction] -> Amount
 sumLedgerTransactions = sum . map tamount
 
-ledgerTransactionSetPrecision :: Int -> LedgerTransaction -> LedgerTransaction
-ledgerTransactionSetPrecision p (LedgerTransaction a amt c) = LedgerTransaction a amt{precision=p} c
+ledgerTransactionSetPrecision :: Int -> RawTransaction -> RawTransaction
+ledgerTransactionSetPrecision p (RawTransaction a amt c) = RawTransaction a amt{precision=p} c

@@ -29,8 +29,9 @@ data Amount = Amount {
 -- the chart of accounts
 type AccountName = String
 
--- | a transaction line within a ledger entry.
-data LedgerTransaction = LedgerTransaction {
+-- | a single transaction line within a ledger entry. We call it raw to
+-- distinguish from the cached 'Transaction'.
+data RawTransaction = RawTransaction {
       taccount :: AccountName,
       tamount :: Amount,
       tcomment :: String
@@ -39,13 +40,13 @@ data LedgerTransaction = LedgerTransaction {
 -- | a ledger "modifier" entry. Currently ignored.
 data ModifierEntry = ModifierEntry {
       valueexpr :: String,
-      m_transactions :: [LedgerTransaction]
+      m_transactions :: [RawTransaction]
     } deriving (Eq)
 
 -- | a ledger "periodic" entry. Currently ignored.
 data PeriodicEntry = PeriodicEntry {
       periodexpr :: String,
-      p_transactions :: [LedgerTransaction]
+      p_transactions :: [RawTransaction]
     } deriving (Eq)
 
 -- | a regular ledger entry, containing two or more transactions which balance
@@ -55,12 +56,12 @@ data LedgerEntry = LedgerEntry {
       ecode :: String,
       edescription :: String,
       ecomment :: String,
-      etransactions :: [LedgerTransaction],
+      etransactions :: [RawTransaction],
       epreceding_comment_lines :: String
     } deriving (Eq)
 
 -- | a parsed ledger file. We call it raw to distinguish from the cached
--- version below.
+-- 'Ledger'.
 data RawLedger = RawLedger {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
@@ -81,7 +82,8 @@ data TimeLog = TimeLog {
     } deriving (Eq)
 
 -- | optimisations: these types provide some caching and are easier to work with.
--- A Transaction is a LedgerTransaction with some of its parent
+-- 
+-- A Transaction is a RawTransaction with some of its parent
 -- LedgerEntry's data attached.
 data Transaction = Transaction {
       entryno :: Int,

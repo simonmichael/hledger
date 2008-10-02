@@ -1,10 +1,13 @@
-{-| all data types & behaviours -}
+{-| 
+This module makes it easier to import all the hledger "models",
+the main data types and their "methods".
+-}
 module Models (
                module Types,
                module Currency,
                module Amount,
                module AccountName,
-               module LedgerTransaction,
+               module RawTransaction,
                module LedgerEntry,
                module TimeLog,
                module Transaction,
@@ -19,7 +22,7 @@ import Types
 import Currency
 import Amount
 import AccountName
-import LedgerTransaction
+import RawTransaction
 import LedgerEntry
 import TimeLog
 import Transaction

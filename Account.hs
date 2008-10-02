@@ -5,7 +5,7 @@ import Types
 import AccountName
 import Amount
 import LedgerEntry
-import LedgerTransaction
+import RawTransaction
 import Transaction
 
 

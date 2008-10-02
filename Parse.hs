@@ -248,10 +248,10 @@ ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> ret
 ledgercode :: Parser String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
-ledgertransactions :: Parser [LedgerTransaction]
+ledgertransactions :: Parser [RawTransaction]
 ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (do {newline <?> "blank line"; return ()} <|> eof)
 
-ledgertransaction :: Parser LedgerTransaction
+ledgertransaction :: Parser RawTransaction
 ledgertransaction = do
   many1 spacenonewline
   account <- ledgeraccount
@@ -259,7 +259,7 @@ ledgertransaction = do
   many spacenonewline
   comment <- ledgercomment
   restofline
-  return (LedgerTransaction account amount comment)
+  return (RawTransaction account amount comment)
 
 -- | account names may have single spaces in them, and are terminated by two or more spaces
 ledgeraccount :: Parser String

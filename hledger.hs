@@ -28,7 +28,7 @@ hledger ("Main")
      "Transaction"
     "RawLedger"
      "LedgerEntry"
-      "LedgerTransaction"
+      "RawTransaction"
        "AccountName"
        "Amount"
         "Currency"

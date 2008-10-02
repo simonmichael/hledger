@@ -2,7 +2,7 @@ module LedgerEntry
 where
 import Utils
 import Types
-import LedgerTransaction
+import RawTransaction
 import Amount
 
 

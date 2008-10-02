@@ -4,7 +4,7 @@ import Utils
 import Types
 import Currency
 import Amount
-import LedgerTransaction
+import RawTransaction
 import LedgerEntry
 import RawLedger
 
@@ -32,8 +32,8 @@ entriesFromTimeLogEntries [clockin,clockout] =
        edescription  = accountname,
        ecomment      = "",
        etransactions = [
-        LedgerTransaction accountname amount "",
-        LedgerTransaction "TIME" (-amount) ""
+        RawTransaction accountname amount "",
+        RawTransaction "TIME" (-amount) ""
        ],
        epreceding_comment_lines=""}
     ]
