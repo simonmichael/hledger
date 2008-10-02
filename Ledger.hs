@@ -37,10 +37,7 @@ instance Show Ledger where
 -- | at startup, to improve performance, we refine the parsed ledger entries:
 -- 1. filter based on account/description patterns, if any
 -- 2. cache per-account info
--- also, figure out the precision(s) to use
-cacheLedgerAndDo :: LedgerFile -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-cacheLedgerAndDo l pats cmd = do cmd $ cacheLedger l pats
-
+-- 3. figure out the precision(s) to use
 cacheLedger :: LedgerFile -> (Regex,Regex) -> Ledger
 cacheLedger l pats = 
     let 

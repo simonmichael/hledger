@@ -123,13 +123,7 @@ parseLedgerAndDo opts pats cmd = do
     path <- ledgerFilePath opts
     parsed <- parseLedgerFile path
     case parsed of Left err -> parseError err
-                   Right l -> cacheLedgerAndDo l pats cmd
-
--- do some action with the ledger parse result, or report a parse error
--- withParsedLedgerOrErrorDo :: (Either ParseError LedgerFile) -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
--- withParsedLedgerOrErrorDo parsed pats cmd = do
---   case parsed of Left err -> parseError err
---                  Right l -> cacheLedgerAndDo l pats cmd
+                   Right l -> cmd $ cacheLedger l pats
 
 parseLedgerFile :: String -> IO (Either ParseError LedgerFile)
 parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
