@@ -12,10 +12,10 @@ type Date = String
 -- | a date and time
 type DateTime = String
 
--- | the currency of an Amount. Rates are currently hardcoded.
+-- | the currency of an Amount.
 data Currency = Currency {
       symbol :: String,
-      rate :: Double -- ^ relative to the dollar.. 0 rates not supported yet
+      rate :: Double  -- ^ relative to the dollar (rates are currently hardcoded)
     } deriving (Eq,Show)
 
 -- | some amount of money, shares, or anything else.
@@ -25,7 +25,7 @@ data Amount = Amount {
       precision :: Int           -- ^ number of significant decimal places
     } deriving (Eq)
 
--- | AccountNames are strings like assets:cash:petty, from which we derive
+-- | AccountNames are strings like @assets:cash:petty@, from which we derive
 -- the chart of accounts
 type AccountName = String
 
