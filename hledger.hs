@@ -35,6 +35,24 @@ hledger ("Main")
          "Types"
           "Utils"
 @
+
+This module includes some helpers for querying your ledger in ghci. Examples:
+
+> $ rm -f hledger.o
+> $ ghci hledger.hs
+> *Main> l <- myledger
+> Ledger with 696 entries, 132 accounts
+> *Main> putStr $ drawTree $ treemap show $ accountnametree l
+> ...
+> *Main> putStr $ showLedgerAccounts l 1
+> ...
+> *Main> printregister l
+> ...
+> *Main> accounts l
+> ...
+> *Main> accountnamed "expenses:food:groceries"
+> Account expenses:food:groceries with 60 transactions
+
 -}
 
 module Main
@@ -91,42 +109,24 @@ balance opts pats = do
                           ((wildcard,_), False) -> 1
                           otherwise  -> 9999
 
-{- helpers for interacting in ghci. Examples:
+-- ghci helpers
 
-$ ghci hledger.hs
-GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
-Loading package base ... linking ... done.
-Ok, modules loaded: Utils, Main, Tests, Parse, Models, Ledger, RawLedger, LedgerEntry, Amount, Currency, Types, LedgerTransaction, AccountName, Transaction, Account, TimeLog, Options.
-Prelude Main> l <- myledger
-<..snip..>
-Ledger with 628 entries, 128 accounts
-Prelude Main> 
-
-$ ghci hledger.hs
-> l <- myledger
-> putStr $ drawTree $ treemap show $ accountnametree l
-> putStr $ showLedgerAccounts l 1
-> printregister l
-> import Types
-> accounts l
-> accountnamed "assets"
-
--}
-
--- | return a Ledger parsed from the file your LEDGER environment variable
--- points to or (WARNING) an empty one if there was a problem.
+-- | get a Ledger from the file your LEDGER environment variable points to
+-- or (WARNING) an empty one if there was a problem.
 myledger :: IO Ledger
 myledger = do
   parsed <- ledgerFilePath [] >>= parseLedgerFile
   let ledgerfile = either (\_ -> RawLedger [] [] [] "") id parsed
   return $ cacheLedger ledgerfile (wildcard,wildcard)
 
--- | return a Ledger parsed from the given file path
+-- | get a Ledger from the given file path
 ledgerfromfile :: String -> IO Ledger
 ledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
   let ledgerfile = either (\_ -> RawLedger [] [] [] "") id parsed
   return $ cacheLedger ledgerfile (wildcard,wildcard)
 
+-- | get a named account from your ledger file
 accountnamed :: AccountName -> IO Account
 accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
+
