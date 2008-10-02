@@ -30,6 +30,7 @@ possible, see the ledger manual for more info:
 
 Bugs:
 
-* there should be a total in filtered balance reports
 * register transactions should be filtered when account patterns are provided
-* filtered balance reports don't show the full account names
+* register shows $ when it's not in ledger
+* filtered balance reports should show a total
+* filtered balance reports should show the full account names
