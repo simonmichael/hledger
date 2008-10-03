@@ -19,7 +19,7 @@ This module includes some helpers for working with your ledger in ghci. Examples
 > Ledger with 696 entries, 132 accounts
 > *Main> putStr $ drawTree $ treemap show $ accountnametree l
 > ...
-> *Main> putStr $ showLedgerAccounts l 1
+> *Main> putStr $ showLedgerAccountBalances l 1
 > ...
 > *Main> printregister l
 > ...
@@ -73,7 +73,7 @@ balance :: Command
 balance opts pats = parseLedgerAndDo opts pats printbalance
     where
       printbalance :: Ledger -> IO ()
-      printbalance l = putStr $ showLedgerAccounts l depth
+      printbalance l = putStr $ showLedgerAccountBalances l depth
           where 
             showsubs = (ShowSubs `elem` opts)
             depth = case (pats, showsubs) of

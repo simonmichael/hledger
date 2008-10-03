@@ -378,5 +378,5 @@ test_cacheLedger =
     assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger ledger7 nullpats)
 
 test_showLedgerAccounts = 
-    assertEqual' 4 (length $ lines $ showLedgerAccounts l7 1)
+    assertEqual' 4 (length $ lines $ showLedgerAccountBalances l7 1)
 

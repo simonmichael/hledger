@@ -18,7 +18,7 @@ ledgerAccountTree,
 addDataToAccountNameTree,
 printentries,
 printregister,
-showLedgerAccounts,
+showLedgerAccountBalances,
 showAccountTree,
 isBoringInnerAccount,
 isBoringInnerAccountName,
@@ -218,8 +218,8 @@ e
   g
 @
 -}
-showLedgerAccounts :: Ledger -> Int -> String
-showLedgerAccounts l maxdepth = 
+showLedgerAccountBalances :: Ledger -> Int -> String
+showLedgerAccountBalances l maxdepth = 
     concatMap 
     (showAccountTree l) 
     (branches $ ledgerAccountTree l maxdepth)
