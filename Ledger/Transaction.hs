@@ -1,7 +1,7 @@
 {-|
 
-A 'Transaction' is a 'RawTransaction' with its parent 'Entry' \'s
-date and description attached, for easier querying.
+A 'Transaction' is a 'RawTransaction' with its parent 'Entry' \'s date and
+description attached. These are what we actually query when doing reports.
 
 -}
 

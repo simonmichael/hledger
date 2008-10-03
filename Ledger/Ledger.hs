@@ -2,6 +2,8 @@
 
 A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
 names, a map from account names to 'Account's, and the display precision.
+Also, the Account 'Transaction's are filtered according to the provided
+account name/description patterns.
 
 -}
 
@@ -42,10 +44,7 @@ instance Show Ledger where
               (length $ periodic_entries $ rawledger l))
              (length $ accountnames l)
 
--- | at startup, to improve performance, we refine the parsed ledger entries:
--- 1. filter based on account/description patterns, if any
--- 2. cache per-account info
--- 3. figure out the precision(s) to use
+-- | Convert a raw ledger to a more efficient filtered and cached type, described above.
 cacheLedger :: RawLedger -> (Regex,Regex) -> Ledger
 cacheLedger l pats = 
     let 
@@ -89,7 +88,7 @@ filterLedgerEntries (acctpat,descpat) (RawLedger ms ps es f) =
                       otherwise -> True
 
 -- | in each ledger entry, filter out transactions which do not match the
--- account patterns.  (Entries are no longer balanced after this.)
+-- filter patterns.  (The entries are no longer balanced after this.)
 filterLedgerTransactions :: (Regex,Regex) -> RawLedger -> RawLedger
 filterLedgerTransactions (acctpat,descpat) (RawLedger ms ps es f) = 
     RawLedger ms ps (map filterentrytxns es) f
@@ -99,13 +98,17 @@ filterLedgerTransactions (acctpat,descpat) (RawLedger ms ps es f) =
                      Nothing -> False
                      otherwise -> True
 
+-- | List a 'Ledger' 's account names.
 accountnames :: Ledger -> [AccountName]
 accountnames l = flatten $ accountnametree l
 
+-- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
 ledgerAccount l a = (accounts l) ! a
 
--- | This sets all amount precisions to that of the highest-precision
+-- | List a ledger's transactions.
+--
+-- NB this sets the amount precisions to that of the highest-precision
 -- amount, to help with report output. It should perhaps be done in the
 -- display functions, but those are far removed from the ledger. Keep in
 -- mind if doing more arithmetic with these.
@@ -115,27 +118,30 @@ ledgerTransactions l =
     where
       setprecisions = map (transactionSetPrecision (lprecision l))
 
+-- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Ledger -> Int -> Tree Account
 ledgerAccountTree l depth = 
     addDataToAccountNameTree l $ treeprune depth $ accountnametree l
 
+-- | Convert a tree of account names into a tree of accounts, using their
+-- parent ledger.
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree = treemap . ledgerAccount
 
--- | for the print command
+-- | Print a print report.
 printentries :: Ledger -> IO ()
 printentries l = putStr $ showEntries $ setprecisions $ entries $ rawledger l
     where setprecisions = map (entrySetPrecision (lprecision l))
       
--- | for the register command
+-- | Print a register report.
 printregister :: Ledger -> IO ()
 printregister l = putStr $ showTransactionsWithBalances 
                   (sortBy (comparing date) $ ledgerTransactions l)
                   nullamt{precision=lprecision l}
 
 {-| 
-This and the functions below generate ledger-compatible balance report
-output. Here's how it should work:
+This and the helper functions below generate ledger-compatible balance
+report output. Here's how it should work:
 
 a sample account tree:
 
@@ -219,6 +225,9 @@ showLedgerAccounts l maxdepth =
     (branches $ ledgerAccountTree l maxdepth)
 -- XXX need to add up and show balances too
 
+-- | Get the string representation of a tree of accounts.
+-- The ledger from which the accounts come is also required, so that
+-- we can check for boring accounts.
 showAccountTree :: Ledger -> Tree Account -> String
 showAccountTree l = showAccountTree' l 0 . pruneBoringBranches
 
