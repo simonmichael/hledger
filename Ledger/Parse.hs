@@ -153,7 +153,7 @@ reservedOp = P.reservedOp lexer
 -- parsers
 
 ledgerfile :: Parser RawLedger
-ledgerfile = ledger <|> ledgerfromtimelog
+ledgerfile = try (ledger) <|> ledgerfromtimelog
 
 ledger :: Parser RawLedger
 ledger = do
@@ -330,12 +330,13 @@ o 2007/03/10 17:26:02
 -}
 timelog :: Parser TimeLog
 timelog = do
-  entries <- many timelogentry
+  entries <- many timelogentry <?> "timelog entry"
   eof
   return $ TimeLog entries
 
 timelogentry :: Parser TimeLogEntry
 timelogentry = do
+  many (commentline <|> blankline)
   code <- oneOf "bhioO"
   many1 spacenonewline
   date <- ledgerdate

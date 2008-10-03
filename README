@@ -30,4 +30,5 @@ possible, see the ledger manual for more info:
 
 Bugs:
 
-* timelog parser doesn't work
+* timelog balance report shows all accounts when it shouldn't
+* timelog balance total is a little off compared to ledger
