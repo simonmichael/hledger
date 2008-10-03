@@ -1,6 +1,7 @@
 {-|
-A parser for standard ledger files.  Here's the ledger grammar from
-the ledger 2.5 manual:
+
+A parser for standard ledger files.  Here's the grammar from the
+ledger 2.5 manual:
 
 @
 The ledger file format is quite simple, but also very flexible. It supports
@@ -322,12 +323,6 @@ i 2007/03/10 12:26:00 hledger
 o 2007/03/10 17:26:02
 @
 -}
-
-ledgerfromtimelog :: Parser RawLedger
-ledgerfromtimelog = do 
-  tl <- timelog
-  return $ ledgerFromTimeLog tl
-
 timelog :: Parser TimeLog
 timelog = do
   entries <- many timelogentry
@@ -344,4 +339,9 @@ timelogentry = do
   many spacenonewline
   comment <- restofline
   return $ TimeLogEntry code datetime comment
+
+ledgerfromtimelog :: Parser RawLedger
+ledgerfromtimelog = do 
+  tl <- timelog
+  return $ ledgerFromTimeLog tl
 
