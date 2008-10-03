@@ -1,4 +1,4 @@
-module Options (parseOptions, parsePatternArgs, wildcard, Flag(..), usage, ledgerFilePath, parseLedgerAndDo)
+module Options (parseOptions, parsePatternArgs, wildcard, Flag(..), usage, ledgerFilePath)
 where
 import System.Console.GetOpt
 import System.Directory
@@ -91,13 +91,4 @@ regexFor ss = mkRegex $ "(" ++ (unwords $ intersperse "|" ss) ++ ")"
 
 wildcard :: Regex
 wildcard = mkRegex ".*"
-
--- | parse the user's specified ledger file and do some action with it
--- (or report a parse error). This function makes the whole thing go.
-parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-parseLedgerAndDo opts pats cmd = do
-    path <- ledgerFilePath opts
-    parsed <- parseLedgerFile path
-    case parsed of Left err -> parseError err
-                   Right l -> cmd $ cacheLedger l pats
 

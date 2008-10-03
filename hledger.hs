@@ -7,11 +7,11 @@ Released under GPL version 3 or later.
 
 This is a minimal haskell clone of John Wiegley's ledger
 <http://newartisans.com/software/ledger.html>.  hledger generates
-simple ledger-compatible register & balance reports from a standard
+simple ledger-compatible register & balance reports from a plain text
 ledger file, and demonstrates a (naive) purely functional
 implementation of ledger.
 
-This module includes some helpers for querying your ledger in ghci. Examples:
+This module includes some helpers for working with your ledger in ghci. Examples:
 
 > $ rm -f hledger.o
 > $ ghci hledger.hs
@@ -38,7 +38,7 @@ import qualified Data.Map as Map (lookup)
 import Options
 import Tests (hunit, quickcheck)
 import Ledger
-import Ledger.Parse (parseLedgerFile)
+import Ledger.Parse (parseLedgerFile, parseError)
 import Ledger.Utils hiding (test)
 
 
@@ -70,18 +70,26 @@ register :: Command
 register opts pats = parseLedgerAndDo opts pats printregister
 
 balance :: Command
-balance opts pats = do
-  parseLedgerAndDo opts pats printbalance
+balance opts pats = parseLedgerAndDo opts pats printbalance
     where
-      printbalance l =
-          putStr $ showLedgerAccounts l depth
-              where 
-                showsubs = (ShowSubs `elem` opts)
-                depth = case (pats, showsubs) of
-                          -- when there are no account patterns and no -s, show
-                          -- only to depth 1. (This was clearer when we used maybe.)
-                          ((wildcard,_), False) -> 1
-                          otherwise  -> 9999
+      printbalance :: Ledger -> IO ()
+      printbalance l = putStr $ showLedgerAccounts l depth
+          where 
+            showsubs = (ShowSubs `elem` opts)
+            depth = case (pats, showsubs) of
+                      -- when there are no account patterns and no -s, show
+                      -- only to depth 1. (This was clearer when we used maybe.)
+                      ((wildcard,_), False) -> 1
+                      otherwise  -> 9999
+
+-- | parse the user's specified ledger file and do some action with it
+-- (or report a parse error). This function makes the whole thing go.
+parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
+parseLedgerAndDo opts pats cmd = do
+    path <- ledgerFilePath opts
+    parsed <- parseLedgerFile path
+    case parsed of Left err -> parseError err
+                   Right l -> cmd $ cacheLedger l pats
 
 -- ghci helpers
 

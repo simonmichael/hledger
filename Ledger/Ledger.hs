@@ -136,8 +136,8 @@ printregister l = putStr $ showTransactionsWithBalances
                   nullamt{precision=lprecision l}
 
 {-| 
-This and the functions below help generate ledger-compatible balance
-reports. Here's how it should work:
+This and the functions below generate ledger-compatible balance report
+output. Here's how it should work:
 
 a sample account tree:
 
