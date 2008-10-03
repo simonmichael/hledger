@@ -1,7 +1,7 @@
 module LedgerEntry
 where
 import Ledger.Utils
-import Types
+import Ledger.Types
 import RawTransaction
 import Amount
 

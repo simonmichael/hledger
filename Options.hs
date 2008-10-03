@@ -6,7 +6,7 @@ import System.Environment (getEnv)
 import Data.Maybe (fromMaybe)
     
 import Ledger.Utils
-import Types
+import Ledger.Types
 
 
 usagehdr       = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"

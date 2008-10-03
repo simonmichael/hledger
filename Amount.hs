@@ -37,7 +37,7 @@ currencies can be converted to a simple amount. Arithmetic examples:
 module Amount
 where
 import Ledger.Utils
-import Types
+import Ledger.Types
 import Currency
 
 tests = runTestTT $ test [

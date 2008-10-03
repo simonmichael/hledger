@@ -3,7 +3,7 @@ where
 import qualified Data.Map as Map
 
 import Ledger.Utils
-import Types
+import Ledger.Types
 import AccountName
 import LedgerEntry
 

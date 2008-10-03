@@ -13,7 +13,7 @@ implementation of ledger.
 
 Code organization: the early code defined each major type and their
 associated functions in a module. This was too restrictive, so now most
-types are defined in "Types" at the bottom. The original modules are still
+types are defined in "Ledger.Types" at the bottom. The original modules are still
 used to group functions related to each type.  Here is the approximate
 import hierarchy:
 
@@ -33,7 +33,7 @@ hledger ("Main")
        "AccountName"
        "Amount"
         "Currency"
-         "Types"
+         "Ledger.Types"
           "Ledger.Utils"
 @
 

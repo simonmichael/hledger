@@ -3,7 +3,7 @@ This module makes it easier to import all the hledger "models",
 the main data types and their "methods".
 -}
 module Models (
-               module Types,
+               module Ledger.Types,
                module Currency,
                module Amount,
                module AccountName,
@@ -18,7 +18,7 @@ module Models (
 where
 import qualified Data.Map as Map
 
-import Types
+import Ledger.Types
 import Currency
 import Amount
 import AccountName

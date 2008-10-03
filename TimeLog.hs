@@ -1,7 +1,7 @@
 module TimeLog
 where
 import Ledger.Utils
-import Types
+import Ledger.Types
 import Currency
 import Amount
 import RawTransaction
