@@ -100,7 +100,7 @@ filterLedgerTransactions (acctpat,descpat) (RawLedger ms ps es f) =
 
 -- | List a 'Ledger' 's account names.
 accountnames :: Ledger -> [AccountName]
-accountnames l = flatten $ accountnametree l
+accountnames l = drop 1 $ flatten $ accountnametree l
 
 -- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
