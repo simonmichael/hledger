@@ -83,21 +83,22 @@ punctuatethousands s =
 instance Num Amount where
     abs (Amount c q p) = Amount c (abs q) p
     signum (Amount c q p) = Amount c (signum q) p
-    fromInteger i = Amount (getcurrency "") (fromInteger i) amtintprecision
+    fromInteger i = Amount (getcurrency "") (fromInteger i) defaultprecision
     (+) = amountop (+)
     (-) = amountop (-)
     (*) = amountop (*)
 
--- problem: when an integer is converted to an amount it must pick a
--- precision, which we specify here (should be infinite ?). This can
--- affect amount arithmetic, in particular the sum of a list of amounts.
--- So, we may need to adjust the precision after summing amounts.
-amtintprecision = 2
+-- amounts converted from integers will have a default precision, and the
+-- null currency. 
+defaultprecision = 2
 
--- | apply op to two amounts, adopting a's currency and lowest precision
+-- | Apply a binary arithmetic operator to two amounts, converting to the
+-- second one's currency and adopting the lowest precision. (Using the
+-- second currency means that folds (like sum [Amount]) will preserve the
+-- currency.)
 amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
-amountop op (Amount ac aq ap) b@(Amount _ _ bp) = 
-    Amount ac (aq `op` (quantity $ toCurrency ac b)) (min ap bp)
+amountop op a@(Amount ac aq ap) b@(Amount bc bq bp) = 
+    Amount bc ((quantity $ toCurrency bc a) `op` bq) (min ap bp)
 
 toCurrency :: Currency -> Amount -> Amount
 toCurrency newc (Amount oldc q p) =
