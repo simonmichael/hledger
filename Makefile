@@ -59,8 +59,9 @@ api-doc: api-doc-dir $(MAIN)
 
 api-doc-with-source: api-doc-dir colourised-source $(MAIN)
 	echo "Generating haddock api docs" ; \
-	haddock --no-warnings --ignore-all-exports -B `ghc --print-libdir` -o api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir colourised-source,$^) ; \
+	haddock --no-warnings --ignore-all-exports -B `ghc --print-libdir` -o api-doc -h --source-module=src-%{MODULE/./-}.html $(filter-out %api-doc-dir colourised-source,$^) ; \
 	cp api-doc/index.html api-doc/modules-index.html
+#--source-entity=src-%{MODULE/./-}.html#%N 
 
 # munge haddock and hoogle into a rough but useful framed layout
 # ensure that the hoogle cgi is built with base target "main"
