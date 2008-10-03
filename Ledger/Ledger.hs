@@ -225,7 +225,7 @@ showAccountTree l = showAccountTree' l 0 . pruneBoringBranches
 showAccountTree' :: Ledger -> Int -> Tree Account -> String
 showAccountTree' l indentlevel t
     -- skip a boring inner account
-    | length subs > 0 && isBoringAccount l acct = subsindented 0
+    | length subs > 0 && isBoringInnerAccount l acct = subsindented 0
     -- otherwise show normal indented account name with balance, 
     -- prefixing the names of any boring parents
     | otherwise = 
@@ -237,11 +237,13 @@ showAccountTree' l indentlevel t
       bal = printf "%20s" $ show $ abalance $ acct
       indent = replicate (indentlevel * 2) ' '
       prefix = concatMap (++ ":") $ map accountLeafName $ reverse boringparents
-      boringparents = takeWhile (isBoringAccountName l) $ parentAccountNames $ aname acct
+      boringparents = takeWhile (isBoringInnerAccountName l) $ parentAccountNames $ aname acct
       leafname = accountLeafName $ aname acct
 
-isBoringAccount :: Ledger -> Account -> Bool
-isBoringAccount l a
+-- | Is this account a boring inner account in this ledger ? 
+-- Boring inner accounts have no transactions and one subaccount.
+isBoringInnerAccount :: Ledger -> Account -> Bool
+isBoringInnerAccount l a
     | name == "top" = False
     | (length txns == 0) && ((length subs) == 1) = True
     | otherwise = False
@@ -250,9 +252,13 @@ isBoringAccount l a
       txns = atransactions a
       subs = subAccountNamesFrom (accountnames l) name
 
-isBoringAccountName :: Ledger -> AccountName -> Bool
-isBoringAccountName l = isBoringAccount l . ledgerAccount l
+-- | Is the named account a boring inner account in this ledger ?
+isBoringInnerAccountName :: Ledger -> AccountName -> Bool
+isBoringInnerAccountName l = isBoringInnerAccount l . ledgerAccount l
 
+-- | Remove boring branches (and leaves) from a tree of accounts.
+-- A boring branch contains only accounts which have a 0 balance or no
+-- transactions.
 pruneBoringBranches :: Tree Account -> Tree Account
 pruneBoringBranches =
     treefilter hastxns . treefilter hasbalance
