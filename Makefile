@@ -32,10 +32,10 @@ loc:
 	@darcs trackdown 'find . -name "*hs" |xargs wc -l |echo OUTPUT `tail -1`; false' |ruby -nae'puts $$F[1] if /^OUTPUT/'
 
 Tags:
-	hasktags *hs
+	rm -f TAGS; hasktags -e *hs Ledger/*hs
 
 clean:
-	rm -f *.o *.hi *~ 1 2
+	rm -f {,Ledger/}*{.o,.hi,~}
 
 clean-docs:
 	rm -rf api-doc hoogle
