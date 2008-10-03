@@ -254,11 +254,16 @@ ledgertransaction = do
   restofline
   return (RawTransaction account amount comment)
 
--- | account names may have single spaces in them, and are terminated by two or more spaces
+-- | account names may have single spaces inside them, and are terminated by two or more spaces
 ledgeraccount :: Parser String
-ledgeraccount = 
-    many1 ((alphaNum <|> char ':' <|> char '/' <|> char '_' <?> "account name") 
-           <|> try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}} <?> "double space"))
+ledgeraccount = do
+    accountname <- many1 (accountnamechar <|> singlespace)
+    return $ striptrailingspace accountname
+    where 
+      accountnamechar = alphaNum <|> oneOf ":/_" <?> "account name character"
+      singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
+      -- couldn't avoid consuming a final space sometimes, harmless
+      striptrailingspace s = if last s == ' ' then take (length s - 1) s else s
 
 ledgeramount :: Parser Amount
 ledgeramount = 
