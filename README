@@ -30,7 +30,5 @@ possible, see the ledger manual for more info:
 
 Bugs:
 
-* register transactions should be filtered when account patterns are provided
-* register shows $ when it's not in ledger
 * filtered balance reports should show a total
-* filtered balance reports should show the full account names
+* register uses $ when no currency is specified

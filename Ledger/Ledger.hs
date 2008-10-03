@@ -68,7 +68,7 @@ cacheLedger l pats =
                (Map.fromList [(a,nullamt) | a <- ans])
         amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
     in
-      Ledger l' ant amap lprecision
+      Ledger l'' ant amap lprecision
 
 -- | keep only entries whose description matches one of the
 -- description patterns, if any, and which have at least one
