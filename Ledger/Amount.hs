@@ -45,20 +45,18 @@ import Ledger.Currency
 tests = runTestTT $ test [
          show (dollars 1)   ~?= "$1.00"
         ,show (hours 1)     ~?= "1h"      -- currently h1.00
-        ,parseAmount "$1"   ~?= dollars 1 -- currently 0
         ]
-
-nullamt = dollars 0
-
-parseAmount :: String -> Amount
-parseAmount s = nullamt
 
 instance Show Amount where show = showAmountRounded
 
+-- | Get the string representation of an amount, rounded to its native precision.
+-- Unlike ledger, we show the decimal digits even if they are all 0, and
+-- we always show currency symbols on the left.
 showAmountRounded :: Amount -> String
 showAmountRounded (Amount c q p) =
     (symbol c) ++ ({-punctuatethousands $ -}printf ("%."++show p++"f") q)
 
+-- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
 showAmountRoundedOrZero :: Amount -> String
 showAmountRoundedOrZero a
     | isZeroAmount a = "0"
@@ -85,7 +83,7 @@ punctuatethousands s =
 instance Num Amount where
     abs (Amount c q p) = Amount c (abs q) p
     signum (Amount c q p) = Amount c (signum q) p
-    fromInteger i = Amount (getcurrency "$") (fromInteger i) amtintprecision
+    fromInteger i = Amount (getcurrency "") (fromInteger i) amtintprecision
     (+) = amountop (+)
     (-) = amountop (-)
     (*) = amountop (*)
@@ -105,4 +103,4 @@ toCurrency :: Currency -> Amount -> Amount
 toCurrency newc (Amount oldc q p) =
     Amount newc (q * (conversionRate oldc newc)) p
 
-
+nullamt = Amount (getcurrency "") 0 2

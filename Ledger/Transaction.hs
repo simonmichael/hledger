@@ -43,7 +43,7 @@ showTransactionsWithBalances [] _ = []
 showTransactionsWithBalances ts b =
     unlines $ showTransactionsWithBalances' ts dummyt b
         where
-          dummyt = Transaction 0 "" "" "" (dollars 0)
+          dummyt = Transaction 0 "" "" "" nullamt
           showTransactionsWithBalances' [] _ _ = []
           showTransactionsWithBalances' (t:ts) tprev b =
               (if sameentry t tprev

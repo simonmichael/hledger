@@ -30,5 +30,4 @@ possible, see the ledger manual for more info:
 
 Bugs:
 
-* register report adds $ when no currency is specified
 * timelog parser doesn't work
