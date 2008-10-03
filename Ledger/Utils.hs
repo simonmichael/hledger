@@ -1,6 +1,6 @@
 -- standard imports and utilities
-module Utils (
-              module Utils,
+module Ledger.Utils (
+              module Ledger.Utils,
               module Char,
               module Data.List,
               module Data.Tree,

@@ -34,7 +34,7 @@ hledger ("Main")
        "Amount"
         "Currency"
          "Types"
-          "Utils"
+          "Ledger.Utils"
 @
 
 This module includes some helpers for querying your ledger in ghci. Examples:
@@ -66,7 +66,7 @@ import Options
 import Models
 import Parse (parseLedgerAndDo, parseLedgerFile)
 import Tests (hunit, quickcheck)
-import Utils hiding (test)
+import Ledger.Utils hiding (test)
 
 
 main :: IO ()

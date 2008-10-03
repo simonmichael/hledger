@@ -1,6 +1,6 @@
 module TimeLog
 where
-import Utils
+import Ledger.Utils
 import Types
 import Currency
 import Amount

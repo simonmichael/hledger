@@ -36,7 +36,7 @@ currencies can be converted to a simple amount. Arithmetic examples:
 
 module Amount
 where
-import Utils
+import Ledger.Utils
 import Types
 import Currency
 

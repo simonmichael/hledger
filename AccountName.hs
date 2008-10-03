@@ -1,6 +1,6 @@
 module AccountName
 where
-import Utils
+import Ledger.Utils
 import Types
 
 sepchar = ':'

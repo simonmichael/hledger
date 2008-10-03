@@ -1,6 +1,6 @@
 module Account
 where
-import Utils
+import Ledger.Utils
 import Types
 import AccountName
 import Amount

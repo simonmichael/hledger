@@ -2,7 +2,7 @@ module Ledger
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
-import Utils
+import Ledger.Utils
 import Types
 import Amount
 import Account

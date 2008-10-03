@@ -109,7 +109,7 @@ import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
 import System.IO
 
-import Utils
+import Ledger.Utils
 import Models
 import Options
 

@@ -2,7 +2,7 @@ module RawLedger
 where
 import qualified Data.Map as Map
 
-import Utils
+import Ledger.Utils
 import Types
 import AccountName
 import LedgerEntry

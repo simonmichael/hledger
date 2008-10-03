@@ -3,7 +3,7 @@ All the basic data types, defined here for easy re-use. See "Main".
 -}
 module Types 
 where
-import Utils
+import Ledger.Utils
 import qualified Data.Map as Map
 
 -- | a date
