@@ -60,12 +60,17 @@ showAmountRounded (Amount c q p) =
     (symbol c) ++ ({-punctuatethousands $ -}printf ("%."++show p++"f") q)
 
 showAmountRoundedOrZero :: Amount -> String
-showAmountRoundedOrZero a@(Amount c _ _) =
-    let s = showAmountRounded a
-        noncurrency = drop (length $ symbol c)
-        nonnulls = filter (flip notElem "-+,.0")
-        iszero = (nonnulls $ noncurrency s) == ""
-    in if iszero then "0" else s
+showAmountRoundedOrZero a
+    | isZeroAmount a = "0"
+    | otherwise = showAmountRounded a
+
+-- | is this amount zero, when displayed with its given precision ?
+isZeroAmount :: Amount -> Bool
+isZeroAmount a@(Amount c _ _) = nonzerodigits == ""
+    where
+      nonzerodigits = filter (flip notElem "-+,.0") quantitystr
+      quantitystr = withoutcurrency $ showAmountRounded a
+      withoutcurrency = drop (length $ symbol c)
 
 punctuatethousands :: String -> String
 punctuatethousands s =
