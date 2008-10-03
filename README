@@ -31,4 +31,5 @@ possible, see the ledger manual for more info:
 Bugs:
 
 * filtered balance reports should show a total
-* register uses $ when no currency is specified
+* register report adds $ when no currency is specified
+* timelog parser doesn't work
