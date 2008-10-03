@@ -307,20 +307,20 @@ quickcheck = mapM quickCheck ([
         ] :: [Bool])
 
 hunit = runTestTT $ "hunit" ~: test ([
-        "" ~: punctuatethousands "" @?= ""
-        ,"" ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
-        ,"" ~: punctuatethousands "-100" @?= "-100"
-        ,"" ~: test_ledgertransaction
-        ,"" ~: test_ledgerentry
-        ,"" ~: test_autofillEntry
-        ,"" ~: test_timelogentry
-        ,"" ~: test_timelog
-        ,"" ~: test_expandAccountNames
-        ,"" ~: test_ledgerAccountNames
-        ,"" ~: test_cacheLedger
-        ,"" ~: test_showLedgerAccounts
-        ,"" ~: test_Amount
-        ,"" ~: test_ledgeramount
+        "punctuatethousands" ~: punctuatethousands "" @?= ""
+        ,"punctuatethousands" ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
+        ,"punctuatethousands" ~: punctuatethousands "-100" @?= "-100"
+        ,"test_ledgertransaction" ~: test_ledgertransaction
+        ,"test_ledgerentry" ~: test_ledgerentry
+        ,"test_autofillEntry" ~: test_autofillEntry
+        ,"test_timelogentry" ~: test_timelogentry
+        ,"test_timelog" ~: test_timelog
+        ,"test_expandAccountNames" ~: test_expandAccountNames
+        ,"test_ledgerAccountNames" ~: test_ledgerAccountNames
+        ,"test_cacheLedger" ~: test_cacheLedger
+        ,"test_showLedgerAccounts" ~: test_showLedgerAccounts
+        ,"test_Amount" ~: test_Amount
+        ,"test_ledgeramount" ~: test_ledgeramount
         ] :: [Test])
 
 test_ledgeramount :: Assertion
