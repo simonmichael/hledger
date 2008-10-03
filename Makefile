@@ -28,60 +28,29 @@ test:
 	@./hledger.hs test
 	@./regtest.py
 
-loc:
-	@darcs trackdown 'find . -name "*hs" |xargs wc -l |echo OUTPUT `tail -1`; false' |ruby -nae'puts $$F[1] if /^OUTPUT/'
-
-Tags:
-	rm -f TAGS; hasktags -e *hs Ledger/*hs
-
-clean:
-	rm -f {,Ledger/}*{.o,.hi,~}
-
-clean-docs:
-	rm -rf api-doc hoogle
-
-Clean: clean clean-docs
-	rm -f hledger hledgeropt TAGS tags
-
 # docs
 
 MAIN=hledger.hs
 
-docs: haddock-with-source hoogleweb api-doc-frames
-
 api-doc-dir:
 	mkdir -p api-doc
 
-api-doc: api-doc-dir $(MAIN)
-	echo "Generating haddock api docs" ; \
-	haddock --no-warnings --ignore-all-exports -B `ghc --print-libdir` -o api-doc -h $(filter-out %api-doc-dir,$^) ; \
-	cp api-doc/index.html api-doc/modules-index.html
-
-api-doc-with-source: api-doc-dir colourised-source $(MAIN)
-	echo "Generating haddock api docs" ; \
-	haddock --no-warnings --ignore-all-exports -B `ghc --print-libdir` -o api-doc -h --source-module=src-%{MODULE/./-}.html $(filter-out %api-doc-dir colourised-source,$^) ; \
-	cp api-doc/index.html api-doc/modules-index.html
-#--source-entity=src-%{MODULE/./-}.html#%N 
-
-# munge haddock and hoogle into a rough but useful framed layout
-# ensure that the hoogle cgi is built with base target "main"
-api-doc-frames: api-doc-with-source hoogleweb
-	echo "Converting api docs to frames" ; \
-	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
-	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
-	cp doc/misc/hoogle-small.html hoogle
-
-BROWSER=open
-test-docs: api-doc-frames
-	$(BROWSER) api-doc/index.html
-
-colourised-source: api-doc-dir
+HSCOLOUR=HsColour -css 
+colourised-source hscolour: api-doc-dir
 	echo "Generating colourised source" ; \
 	for f in *hs Ledger/*hs; do \
-		HsColour -css -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+		$(HSCOLOUR) -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
 	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
 	HsColour -print-css >api-doc/hscolour.css
+
+# nb --ignore-all-exports means these are actually implementation docs
+HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports
+api-doc-with-source haddock: api-doc-dir colourised-source $(MAIN)
+	echo "Generating haddock api docs" ; \
+	$(HADDOCK) -o api-doc -h --source-module=src-%{MODULE/./-}.html $(filter-out %api-doc-dir colourised-source,$^) ; \
+	cp api-doc/index.html api-doc/modules-index.html
+#--source-entity=src-%{MODULE/./-}.html#%N 
 
 #generate a hoogle index
 #uses system hoogle, works around http://code.google.com/p/ndmitchell/issues/detail?id=93
@@ -89,7 +58,7 @@ colourised-source: api-doc-dir
 hoogleindex: $(MAIN)
 	echo "Generating hoogle index" ; \
 	mkdir -p hoogle && \
-	haddock --no-warnings --ignore-all-exports -B `ghc --print-libdir` -o hoogle --hoogle $^ && \
+	$(HADDOCK) -o hoogle --hoogle $^ && \
 	cd hoogle && \
 	sed -i -e 's/^(_/-- (_/' main.txt && \
 	hoogle --convert=main.txt --output=default.hoo
@@ -112,3 +81,30 @@ hoogleweb: hoogleindex
 	else \
 		echo "Could not find $(HOOGLE) in the hoogle source tree" ; \
 	fi
+
+# munge haddock and hoogle into a rough but useful framed layout
+# ensure that the hoogle cgi is built with base target "main"
+api-doc-frames docs: api-doc-with-source hoogleweb
+	echo "Converting api docs to frames" ; \
+	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
+	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
+	cp doc/misc/hoogle-small.html hoogle
+
+BROWSER=open
+test-docs: api-doc-frames
+	$(BROWSER) api-doc/index.html
+
+clean-docs:
+	rm -rf api-doc hoogle
+
+# misc
+
+Tags:
+	rm -f TAGS; hasktags -e *hs Ledger/*hs
+
+clean:
+	rm -f {,Ledger/}*{.o,.hi,~}
+
+Clean: clean clean-docs
+	rm -f hledger hledgeropt TAGS tags
+
