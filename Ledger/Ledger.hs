@@ -16,13 +16,13 @@ import Ledger.Account
 import Ledger.AccountName
 import Ledger.Transaction
 import Ledger.RawLedger
-import Ledger.LedgerEntry
+import Ledger.Entry
 
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
 rawLedgerTransactions = txns . entries
     where
-      txns :: [LedgerEntry] -> [Transaction]
+      txns :: [Entry] -> [Transaction]
       txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
 
 rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
@@ -78,13 +78,13 @@ filterLedgerEntries :: (Regex,Regex) -> RawLedger -> RawLedger
 filterLedgerEntries (acctpat,descpat) (RawLedger ms ps es f) = 
     RawLedger ms ps filteredentries f
     where
-      filteredentries :: [LedgerEntry]
+      filteredentries :: [Entry]
       filteredentries = (filter matchdesc $ filter (any matchtxn . etransactions) es)
       matchtxn :: RawTransaction -> Bool
       matchtxn t = case matchRegex acctpat (taccount t) of
                      Nothing -> False
                      otherwise -> True
-      matchdesc :: LedgerEntry -> Bool
+      matchdesc :: Entry -> Bool
       matchdesc e = case matchRegex descpat (edescription e) of
                       Nothing -> False
                       otherwise -> True
@@ -96,7 +96,7 @@ filterLedgerTransactions :: (Regex,Regex) -> RawLedger -> RawLedger
 filterLedgerTransactions (acctpat,descpat) (RawLedger ms ps es f) = 
     RawLedger ms ps (map filterentrytxns es) f
     where
-      filterentrytxns l@(LedgerEntry _ _ _ _ _ ts _) = l{etransactions=filter matchtxn ts}
+      filterentrytxns l@(Entry _ _ _ _ _ ts _) = l{etransactions=filter matchtxn ts}
       matchtxn t = case matchRegex acctpat (taccount t) of
                      Nothing -> False
                      otherwise -> True

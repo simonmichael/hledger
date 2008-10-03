@@ -68,7 +68,7 @@ entry1_str = "\
 \\n" --"
 
 entry1 =
-    (LedgerEntry "2007/01/28" False "" "coopportunity" ""
+    (Entry "2007/01/28" False "" "coopportunity" ""
                [RawTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
                 RawTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
 
@@ -204,7 +204,7 @@ ledger7 = RawLedger
           [] 
           [] 
           [
-           LedgerEntry {
+           Entry {
                   edate="2007/01/01", estatus=False, ecode="*", edescription="opening balance", ecomment="",
                   etransactions=[
                                 RawTransaction {taccount="assets:cash", 
@@ -217,7 +217,7 @@ ledger7 = RawLedger
                   epreceding_comment_lines=""
                  }
           ,
-           LedgerEntry {
+           Entry {
                   edate="2007/02/01", estatus=False, ecode="*", edescription="ayres suites", ecomment="",
                   etransactions=[
                                 RawTransaction {taccount="expenses:vacation", 
@@ -230,7 +230,7 @@ ledger7 = RawLedger
                   epreceding_comment_lines=""
                  }
           ,
-           LedgerEntry {
+           Entry {
                   edate="2007/01/02", estatus=False, ecode="*", edescription="auto transfer to savings", ecomment="",
                   etransactions=[
                                 RawTransaction {taccount="assets:saving", 
@@ -243,7 +243,7 @@ ledger7 = RawLedger
                   epreceding_comment_lines=""
                  }
           ,
-           LedgerEntry {
+           Entry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="poquito mas", ecomment="",
                   etransactions=[
                                 RawTransaction {taccount="expenses:food:dining", 
@@ -256,7 +256,7 @@ ledger7 = RawLedger
                   epreceding_comment_lines=""
                  }
           ,
-           LedgerEntry {
+           Entry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="verizon", ecomment="",
                   etransactions=[
                                 RawTransaction {taccount="expenses:phone", 
@@ -269,7 +269,7 @@ ledger7 = RawLedger
                   epreceding_comment_lines=""
                  }
           ,
-           LedgerEntry {
+           Entry {
                   edate="2007/01/03", estatus=False, ecode="*", edescription="discover", ecomment="",
                   etransactions=[
                                 RawTransaction {taccount="liabilities:credit cards:discover", 

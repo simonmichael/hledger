@@ -11,7 +11,7 @@ module Ledger (
                module Ledger.Amount,
                module Ledger.AccountName,
                module Ledger.RawTransaction,
-               module Ledger.LedgerEntry,
+               module Ledger.Entry,
                module Ledger.TimeLog,
                module Ledger.Transaction,
                -- module Ledger.RawLedger,
@@ -26,7 +26,7 @@ import Ledger.Currency
 import Ledger.Amount
 import Ledger.AccountName
 import Ledger.RawTransaction
-import Ledger.LedgerEntry
+import Ledger.Entry
 import Ledger.TimeLog
 import Ledger.Transaction
 import Ledger.RawLedger

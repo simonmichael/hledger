@@ -112,7 +112,7 @@ import System.IO
 
 import Ledger.Utils
 import Ledger.Types
-import Ledger.LedgerEntry (autofillEntry)
+import Ledger.Entry (autofillEntry)
 import Ledger.Currency (getcurrency)
 import Ledger.TimeLog (ledgerFromTimeLog)
 
@@ -210,7 +210,7 @@ ledgerperiodicentry = do
   transactions <- ledgertransactions
   return (PeriodicEntry periodexpr transactions)
 
-ledgerentry :: Parser LedgerEntry
+ledgerentry :: Parser Entry
 ledgerentry = do
   preceding <- ledgernondatalines
   date <- ledgerdate <?> "entry"
@@ -223,7 +223,7 @@ ledgerentry = do
   comment <- ledgercomment
   restofline
   transactions <- ledgertransactions
-  return $ autofillEntry $ LedgerEntry date status code description comment transactions (unlines preceding)
+  return $ autofillEntry $ Entry date status code description comment transactions (unlines preceding)
 
 ledgerdate :: Parser String
 ledgerdate = do 

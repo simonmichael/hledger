@@ -1,6 +1,6 @@
 {-|
 
-A 'Transaction' is a 'RawTransaction' with its parent 'LedgerEntry' \'s
+A 'Transaction' is a 'RawTransaction' with its parent 'Entry' \'s
 date and description attached, for easier querying.
 
 -}
@@ -10,7 +10,7 @@ where
 import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
-import Ledger.LedgerEntry
+import Ledger.Entry
 import Ledger.RawTransaction
 import Ledger.Amount
 import Ledger.Currency
@@ -20,11 +20,11 @@ instance Show Transaction where
     show (Transaction eno d desc a amt) = 
         unwords [d,desc,a,show amt]
 
--- | Convert a 'LedgerEntry' to two or more 'Transaction's. An id number
+-- | Convert a 'Entry' to two or more 'Transaction's. An id number
 -- is attached to the transactions to preserve their grouping - it should
 -- be unique per entry.
-flattenEntry :: (LedgerEntry, Int) -> [Transaction]
-flattenEntry (LedgerEntry d _ _ desc _ ts _, e) = 
+flattenEntry :: (Entry, Int) -> [Transaction]
+flattenEntry (Entry d _ _ desc _ ts _, e) = 
     [Transaction e d desc (taccount t) (tamount t) | t <- ts]
 
 transactionSetPrecision :: Int -> Transaction -> Transaction
@@ -56,7 +56,7 @@ showTransactionsWithBalances ts b =
 
 showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
 showTransactionDescriptionAndBalance t b =
-    (showEntryDescription $ LedgerEntry (date t) False "" (description t) "" [] "") 
+    (showEntryDescription $ Entry (date t) False "" (description t) "" [] "") 
     ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
 
 showTransactionAndBalance :: Transaction -> Amount -> String

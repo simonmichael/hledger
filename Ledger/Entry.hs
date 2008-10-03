@@ -1,11 +1,11 @@
 {-|
 
-A 'LedgerEntry' represents a normal entry in the ledger file. It contains
+An 'Entry' represents a normal entry in the ledger file. It contains
 two or more 'RawTransaction's which balance.
 
 -}
 
-module Ledger.LedgerEntry
+module Ledger.Entry
 where
 import Ledger.Utils
 import Ledger.Types
@@ -13,7 +13,7 @@ import Ledger.RawTransaction
 import Ledger.Amount
 
 
-instance Show LedgerEntry where show = showEntryDescription
+instance Show Entry where show = showEntryDescription
 
 {-
 Helpers for the register report. A register entry is displayed as two
@@ -38,11 +38,11 @@ showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
 -- | quick & dirty: checks entry's 0 balance only to 8 places
-isEntryBalanced :: LedgerEntry -> Bool
+isEntryBalanced :: Entry -> Bool
 isEntryBalanced = ((0::Double)==) . read . printf "%0.8f" . quantity . sumLedgerTransactions . etransactions
 
-autofillEntry :: LedgerEntry -> LedgerEntry
-autofillEntry e@(LedgerEntry _ _ _ _ _ ts _) =
+autofillEntry :: Entry -> Entry
+autofillEntry e@(Entry _ _ _ _ _ ts _) =
     let e' = e{etransactions=autofillTransactions ts} in
     case (isEntryBalanced e') of
       True -> e'
@@ -64,7 +64,7 @@ pamtwidth     = 11
 pcommentwidth = no limit -- 22
 @
 -}
-showEntry :: LedgerEntry -> String
+showEntry :: Entry -> String
 showEntry e = 
     unlines $ [precedingcomment ++ description] ++ (showtxns $ etransactions e) ++ [""]
     where
@@ -84,12 +84,12 @@ showEntry e =
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
 
-showEntries :: [LedgerEntry] -> String
+showEntries :: [Entry] -> String
 showEntries = concatMap showEntry
 
-entrySetPrecision :: Int -> LedgerEntry -> LedgerEntry
-entrySetPrecision p (LedgerEntry d s c desc comm ts prec) = 
-    LedgerEntry d s c desc comm (map (ledgerTransactionSetPrecision p) ts) prec
+entrySetPrecision :: Int -> Entry -> Entry
+entrySetPrecision p (Entry d s c desc comm ts prec) = 
+    Entry d s c desc comm (map (ledgerTransactionSetPrecision p) ts) prec
                 
 
 -- modifier & periodic entries

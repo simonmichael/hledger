@@ -12,7 +12,7 @@ import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
-import Ledger.LedgerEntry
+import Ledger.Entry
 
 
 instance Show RawLedger where

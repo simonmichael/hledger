@@ -12,7 +12,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
 import Ledger.Amount
-import Ledger.LedgerEntry
+import Ledger.Entry
 import Ledger.RawTransaction
 import Ledger.Transaction
 

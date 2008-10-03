@@ -45,7 +45,7 @@ data PeriodicEntry = PeriodicEntry {
       p_transactions :: [RawTransaction]
     } deriving (Eq)
 
-data LedgerEntry = LedgerEntry {
+data Entry = Entry {
       edate :: Date,
       estatus :: Bool,
       ecode :: String,
@@ -58,7 +58,7 @@ data LedgerEntry = LedgerEntry {
 data RawLedger = RawLedger {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
-      entries :: [LedgerEntry],
+      entries :: [Entry],
       final_comment_lines :: String
     } deriving (Eq)
 

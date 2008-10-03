@@ -12,7 +12,7 @@ import Ledger.Types
 import Ledger.Currency
 import Ledger.Amount
 import Ledger.RawTransaction
-import Ledger.LedgerEntry
+import Ledger.Entry
 import Ledger.RawLedger
 
 instance Show TimeLogEntry where 
@@ -25,14 +25,14 @@ ledgerFromTimeLog :: TimeLog -> RawLedger
 ledgerFromTimeLog tl = 
     RawLedger [] [] (entriesFromTimeLogEntries $ timelog_entries tl) ""
 
-entriesFromTimeLogEntries :: [TimeLogEntry] -> [LedgerEntry]
+entriesFromTimeLogEntries :: [TimeLogEntry] -> [Entry]
 
 entriesFromTimeLogEntries [clockin] = 
     entriesFromTimeLogEntries [clockin, clockoutNowEntry]
 
 entriesFromTimeLogEntries [clockin,clockout] =
     [
-     LedgerEntry {
+     Entry {
        edate         = indate,
        estatus       = True,
        ecode         = "",
