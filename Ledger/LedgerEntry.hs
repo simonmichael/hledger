@@ -1,9 +1,9 @@
-module LedgerEntry
+module Ledger.LedgerEntry
 where
 import Ledger.Utils
 import Ledger.Types
-import RawTransaction
-import Amount
+import Ledger.RawTransaction
+import Ledger.Amount
 
 
 instance Show LedgerEntry where show = showEntryDescription

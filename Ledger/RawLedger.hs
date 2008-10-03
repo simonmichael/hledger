@@ -1,11 +1,11 @@
-module RawLedger
+module Ledger.RawLedger
 where
 import qualified Data.Map as Map
 
 import Ledger.Utils
 import Ledger.Types
-import AccountName
-import LedgerEntry
+import Ledger.AccountName
+import Ledger.LedgerEntry
 
 
 instance Show RawLedger where

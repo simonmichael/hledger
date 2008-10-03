@@ -1,12 +1,12 @@
-module Account
+module Ledger.Account
 where
 import Ledger.Utils
 import Ledger.Types
-import AccountName
-import Amount
-import LedgerEntry
-import RawTransaction
-import Transaction
+import Ledger.AccountName
+import Ledger.Amount
+import Ledger.LedgerEntry
+import Ledger.RawTransaction
+import Ledger.Transaction
 
 
 instance Show Account where

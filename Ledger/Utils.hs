@@ -1,4 +1,4 @@
--- standard imports and utilities
+-- standard always-available imports and utilities
 module Ledger.Utils (
               module Ledger.Utils,
               module Char,

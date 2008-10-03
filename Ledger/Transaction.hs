@@ -1,12 +1,12 @@
-module Transaction
+module Ledger.Transaction
 where
 import Ledger.Utils
 import Ledger.Types
-import AccountName
-import LedgerEntry
-import RawTransaction
-import Amount
-import Currency
+import Ledger.AccountName
+import Ledger.LedgerEntry
+import Ledger.RawTransaction
+import Ledger.Amount
+import Ledger.Currency
 
 
 instance Show Transaction where 

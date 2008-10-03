@@ -1,12 +1,12 @@
-module TimeLog
+module Ledger.TimeLog
 where
 import Ledger.Utils
 import Ledger.Types
-import Currency
-import Amount
-import RawTransaction
-import LedgerEntry
-import RawLedger
+import Ledger.Currency
+import Ledger.Amount
+import Ledger.RawTransaction
+import Ledger.LedgerEntry
+import Ledger.RawLedger
 
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (tldatetime t) (tlcomment t)

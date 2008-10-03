@@ -1,4 +1,4 @@
-module Options (parseOptions, parsePatternArgs, wildcard, Flag(..), usage, ledgerFilePath)
+module Options (parseOptions, parsePatternArgs, wildcard, Flag(..), usage, ledgerFilePath, parseLedgerAndDo)
 where
 import System.Console.GetOpt
 import System.Directory
@@ -7,6 +7,8 @@ import Data.Maybe (fromMaybe)
     
 import Ledger.Utils
 import Ledger.Types
+import Ledger.Parse (parseLedgerFile, parseError)
+import Ledger.Ledger (cacheLedger)
 
 
 usagehdr       = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
@@ -89,3 +91,13 @@ regexFor ss = mkRegex $ "(" ++ (unwords $ intersperse "|" ss) ++ ")"
 
 wildcard :: Regex
 wildcard = mkRegex ".*"
+
+-- | parse the user's specified ledger file and do some action with it
+-- (or report a parse error)
+parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
+parseLedgerAndDo opts pats cmd = do
+    path <- ledgerFilePath opts
+    parsed <- parseLedgerFile path
+    case parsed of Left err -> parseError err
+                   Right l -> cmd $ cacheLedger l pats
+

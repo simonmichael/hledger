@@ -101,7 +101,7 @@ i, o, b, h
 See Tests.hs for sample data.
 -}
 
-module Parse
+module Ledger.Parse
 where
 import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
@@ -110,20 +110,9 @@ import qualified Text.ParserCombinators.Parsec.Token as P
 import System.IO
 
 import Ledger.Utils
-import Models
-import Options
-
+import Ledger.Models
 
 -- utils
-
--- | parse the user's specified ledger file and do some action with it
--- (or report a parse error)
-parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-parseLedgerAndDo opts pats cmd = do
-    path <- ledgerFilePath opts
-    parsed <- parseLedgerFile path
-    case parsed of Left err -> parseError err
-                   Right l -> cmd $ cacheLedger l pats
 
 parseLedgerFile :: String -> IO (Either ParseError RawLedger)
 parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin

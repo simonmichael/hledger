@@ -59,13 +59,12 @@ This module includes some helpers for querying your ledger in ghci. Examples:
 module Main
 where
 import System
-import Text.ParserCombinators.Parsec (ParseError)
 import qualified Data.Map as Map (lookup)
 
 import Options
-import Models
-import Parse (parseLedgerAndDo, parseLedgerFile)
 import Tests (hunit, quickcheck)
+import Ledger.Models
+import Ledger.Parse (parseLedgerFile)
 import Ledger.Utils hiding (test)
 
 

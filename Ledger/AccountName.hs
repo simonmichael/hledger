@@ -1,4 +1,4 @@
-module AccountName
+module Ledger.AccountName
 where
 import Ledger.Utils
 import Ledger.Types

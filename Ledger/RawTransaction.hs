@@ -1,9 +1,9 @@
-module RawTransaction
+module Ledger.RawTransaction
 where
 import Ledger.Utils
 import Ledger.Types
-import AccountName
-import Amount
+import Ledger.AccountName
+import Ledger.Amount
 
 
 instance Show RawTransaction where show = showLedgerTransaction

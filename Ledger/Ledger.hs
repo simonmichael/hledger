@@ -1,15 +1,15 @@
-module Ledger
+module Ledger.Ledger
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
 import Ledger.Utils
 import Ledger.Types
-import Amount
-import Account
-import AccountName
-import Transaction
-import RawLedger
-import LedgerEntry
+import Ledger.Amount
+import Ledger.Account
+import Ledger.AccountName
+import Ledger.Transaction
+import Ledger.RawLedger
+import Ledger.LedgerEntry
 
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
