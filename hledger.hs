@@ -22,7 +22,6 @@ hledger ("Main")
  "Tests"
  "Parse"
   "Options"
-  "Models"
    "TimeLog"
    "Ledger"
     "Account"
@@ -63,7 +62,7 @@ import qualified Data.Map as Map (lookup)
 
 import Options
 import Tests (hunit, quickcheck)
-import Ledger.Models
+import Ledger
 import Ledger.Parse (parseLedgerFile)
 import Ledger.Utils hiding (test)
 

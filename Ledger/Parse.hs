@@ -110,7 +110,10 @@ import qualified Text.ParserCombinators.Parsec.Token as P
 import System.IO
 
 import Ledger.Utils
-import Ledger.Models
+import Ledger.Types
+import Ledger.LedgerEntry (autofillEntry)
+import Ledger.Currency (getcurrency)
+import Ledger.TimeLog (ledgerFromTimeLog)
 
 -- utils
 

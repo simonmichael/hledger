@@ -1,7 +1,6 @@
 {-| 
-Import this module to get all the hledger \"models\" and their \"methods\".
 -}
-module Ledger.Models (
+module Ledger (
                module Ledger.Types,
                module Ledger.Currency,
                module Ledger.Amount,

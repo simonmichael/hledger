@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 
 import Options
-import Ledger.Models
+import Ledger
 import Ledger.Parse
 import Ledger.Utils
 
