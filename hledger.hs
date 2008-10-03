@@ -15,7 +15,7 @@ This module includes some helpers for working with your ledger in ghci. Examples
 
 > $ rm -f hledger.o
 > $ ghci hledger.hs
-> *Main> l <- myledger
+> *Main> l <- ledger
 > Ledger with 696 entries, 132 accounts
 > *Main> putStr $ drawTree $ treemap show $ accountnametree l
 > ...
@@ -37,9 +37,9 @@ import qualified Data.Map as Map (lookup)
 
 import Options
 import Tests (hunit, quickcheck)
-import Ledger
 import Ledger.Parse (parseLedgerFile, parseError)
 import Ledger.Utils hiding (test)
+import Ledger hiding (rawledger)
 
 
 main :: IO ()
@@ -93,22 +93,26 @@ parseLedgerAndDo opts pats cmd = do
 
 -- ghci helpers
 
--- | get a Ledger from the file your LEDGER environment variable points to
+-- | get a RawLedger from the file your LEDGER environment variable points to
 -- or (WARNING) an empty one if there was a problem.
-myledger :: IO Ledger
-myledger = do
+rawledger :: IO RawLedger
+rawledger = do
   parsed <- ledgerFilePath [] >>= parseLedgerFile
-  let ledgerfile = either (\_ -> RawLedger [] [] [] "") id parsed
-  return $ cacheLedger ledgerfile (wildcard,wildcard)
+  return $ either (\_ -> RawLedger [] [] [] "") id parsed
+
+-- | as above, and convert it to a cached Ledger
+ledger :: IO Ledger
+ledger = do
+  l <- rawledger
+  return $ cacheLedger l (wildcard,wildcard)
 
 -- | get a Ledger from the given file path
-ledgerfromfile :: String -> IO Ledger
-ledgerfromfile f = do
+rawledgerfromfile :: String -> IO RawLedger
+rawledgerfromfile f = do
   parsed <- ledgerFilePath [File f] >>= parseLedgerFile
-  let ledgerfile = either (\_ -> RawLedger [] [] [] "") id parsed
-  return $ cacheLedger ledgerfile (wildcard,wildcard)
+  return $ either (\_ -> RawLedger [] [] [] "") id parsed
 
 -- | get a named account from your ledger file
 accountnamed :: AccountName -> IO Account
-accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
+accountnamed a = ledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
 
