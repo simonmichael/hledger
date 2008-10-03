@@ -13,6 +13,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
 import Ledger.Entry
+import Ledger.Transaction
 
 
 instance Show RawLedger where
@@ -20,3 +21,18 @@ instance Show RawLedger where
              ((length $ entries l) +
               (length $ modifier_entries l) +
               (length $ periodic_entries l))
+
+rawLedgerTransactions :: RawLedger -> [Transaction]
+rawLedgerTransactions = txns . entries
+    where
+      txns :: [Entry] -> [Transaction]
+      txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
+
+rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
+rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
+
+rawLedgerAccountNames :: RawLedger -> [AccountName]
+rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
+
+rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
+rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l

@@ -287,21 +287,3 @@ pruneBoringBranches =
       hasbalance = (/= 0) . abalance
       hastxns = (> 0) . length . atransactions
 
--- helpers
-
-rawLedgerTransactions :: RawLedger -> [Transaction]
-rawLedgerTransactions = txns . entries
-    where
-      txns :: [Entry] -> [Transaction]
-      txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
-
-rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
-rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
-
-rawLedgerAccountNames :: RawLedger -> [AccountName]
-rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
-
-rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
-rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
-
-
