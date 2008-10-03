@@ -38,7 +38,7 @@ module Amount
 where
 import Ledger.Utils
 import Ledger.Types
-import Currency
+import Ledger.Currency
 
 tests = runTestTT $ test [
          show (dollars 1)   ~?= "$1.00"

@@ -1,4 +1,4 @@
-module Currency
+module Ledger.Currency
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
