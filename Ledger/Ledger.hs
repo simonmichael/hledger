@@ -160,7 +160,7 @@ liabilities
  debts
 @
 
-the standard balance command shows all top-level accounts:
+The standard balance command shows all top-level accounts:
 
 @
 \> ledger balance
@@ -171,14 +171,14 @@ $ income
 $ liabilities 
 @
 
-with an account pattern, show only the ones with matching names:
+With an account pattern, show only the ones with matching names:
 
 @
 \> ledger balance asset
 $ assets      
 @
 
-with -s, show all subaccounts of matched accounts:
+With -s, show all subaccounts of matched accounts:
 
 @
 \> ledger -s balance asset
@@ -188,7 +188,7 @@ $  checking
 $  saving
 @
 
-we elide boring accounts in two ways:
+Elide boring accounts in two ways:
 
 - leaf accounts and branches with 0 balance or 0 transactions are omitted
 
@@ -217,13 +217,25 @@ e
   f
   g
 @
+
+If the overall balance of accounts shown is non-zero (eg when using filter
+patterns), display it:
+
+@
+--------------------
+                   $
+@
 -}
 showLedgerAccountBalances :: Ledger -> Int -> String
 showLedgerAccountBalances l maxdepth = 
-    concatMap 
-    (showAccountTree l) 
-    (branches $ ledgerAccountTree l maxdepth)
--- XXX need to add up and show balances too
+    concatMap (showAccountTree l) bs
+    ++
+    if isZeroAmount total 
+    then ""
+    else printf "--------------------\n%20s\n" $ showAmountRounded total
+    where 
+      bs = branches $ ledgerAccountTree l maxdepth
+      total = sum $ map (abalance . root) bs
 
 -- | Get the string representation of a tree of accounts.
 -- The ledger from which the accounts come is also required, so that
