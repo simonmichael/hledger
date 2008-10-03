@@ -1,6 +1,5 @@
 {-| 
-This module makes it easier to import all the hledger "models",
-the main data types and their "methods".
+Import this module to get all the hledger \"models\" and their \"methods\".
 -}
 module Ledger.Models (
                module Ledger.Types,

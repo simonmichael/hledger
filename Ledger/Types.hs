@@ -1,5 +1,5 @@
 {-| 
-All the basic data types, defined here for easy re-use. See "Main".
+All the main data types, defined here to avoid import cycles.
 -}
 module Ledger.Types 
 where
