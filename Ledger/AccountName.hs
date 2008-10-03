@@ -1,3 +1,10 @@
+{-|
+
+'AccountName's are strings like @assets:cash:petty@.
+From a set of these we derive the account hierarchy.
+
+-}
+
 module Ledger.AccountName
 where
 import Ledger.Utils
@@ -49,8 +56,8 @@ subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 -- | We could almost get by with just the AccountName manipulations
 -- above, but we need smarter structures to eg display the account
 -- tree with boring accounts elided.  This converts a list of
--- AccountNames to a tree (later we will convert that to a tree of
--- Accounts.)
+-- AccountName to a tree (later we will convert that to a tree of
+-- 'Account'.)
 accountNameTreeFrom_props =
     [
      accountNameTreeFrom ["a"]       == Node "top" [Node "a" []],

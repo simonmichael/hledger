@@ -1,3 +1,10 @@
+{-|
+
+A 'Transaction' is a 'RawTransaction' with its parent 'LedgerEntry' \'s
+date and description attached, for easier querying.
+
+-}
+
 module Ledger.Transaction
 where
 import Ledger.Utils
@@ -13,7 +20,9 @@ instance Show Transaction where
     show (Transaction eno d desc a amt) = 
         unwords [d,desc,a,show amt]
 
--- | we use the entry number e to remember the grouping of txns
+-- | Convert a 'LedgerEntry' to two or more 'Transaction's. An id number
+-- is attached to the transactions to preserve their grouping - it should
+-- be unique per entry.
 flattenEntry :: (LedgerEntry, Int) -> [Transaction]
 flattenEntry (LedgerEntry d _ _ desc _ ts _, e) = 
     [Transaction e d desc (taccount t) (tamount t) | t <- ts]

@@ -1,3 +1,10 @@
+{-|
+
+A 'RawTransaction' represents a single transaction line within a ledger
+entry. We call it raw to distinguish from the cached 'Transaction'.
+
+-}
+
 module Ledger.RawTransaction
 where
 import Ledger.Utils

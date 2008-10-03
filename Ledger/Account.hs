@@ -1,3 +1,11 @@
+{-|
+
+An 'Account' stores an account name, all transactions in the account
+(excluding any subaccounts), and the total balance (including any
+subaccounts).
+
+-}
+
 module Ledger.Account
 where
 import Ledger.Utils

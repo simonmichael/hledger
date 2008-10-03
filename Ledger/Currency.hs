@@ -1,3 +1,10 @@
+{-|
+
+A 'Currency' is a symbol and a conversion rate relative to the
+dollar. Currency symbols are parsed from the ledger file, rates are
+currently hard-coded.
+
+-}
 module Ledger.Currency
 where
 import qualified Data.Map as Map

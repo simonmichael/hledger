@@ -1,5 +1,10 @@
 {-| 
+
+The Ledger package allows parsing and querying of ledger files.
+It generally provides a compatible subset of C++ ledger's functionality.
+
 -}
+
 module Ledger (
                module Ledger.Types,
                module Ledger.Currency,

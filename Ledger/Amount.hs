@@ -1,5 +1,7 @@
 {-|
-A simple amount is a currency, quantity pair:
+An 'Amount' is some quantity of money, shares, or anything else.
+
+A simple amount is a currency, quantity pair (where currency can be anything):
 
 @
   $1 
@@ -7,11 +9,11 @@ A simple amount is a currency, quantity pair:
   EUR 3.44 
   GOOG 500
   1.5h
-  90m
+  90apples
   0 
 @
 
-A mixed amount is one or more simple amounts:
+A mixed amount (not yet implemented) is one or more simple amounts:
 
 @
   $50, EUR 3, AAPL 500

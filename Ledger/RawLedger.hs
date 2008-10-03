@@ -1,3 +1,10 @@
+{-|
+
+A 'RawLedger' is a parsed ledger file. We call it raw to distinguish from
+the cached 'Ledger'.
+
+-}
+
 module Ledger.RawLedger
 where
 import qualified Data.Map as Map

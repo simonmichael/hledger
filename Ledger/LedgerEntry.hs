@@ -1,3 +1,10 @@
+{-|
+
+A 'LedgerEntry' represents a normal entry in the ledger file. It contains
+two or more 'RawTransaction's which balance.
+
+-}
+
 module Ledger.LedgerEntry
 where
 import Ledger.Utils

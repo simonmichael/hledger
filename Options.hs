@@ -93,7 +93,7 @@ wildcard :: Regex
 wildcard = mkRegex ".*"
 
 -- | parse the user's specified ledger file and do some action with it
--- (or report a parse error)
+-- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts pats cmd = do
     path <- ledgerFilePath opts

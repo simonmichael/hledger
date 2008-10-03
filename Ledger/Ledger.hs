@@ -1,3 +1,10 @@
+{-|
+
+A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
+names, a map from account names to 'Account's, and the display precision.
+
+-}
+
 module Ledger.Ledger
 where
 import qualified Data.Map as Map
