@@ -55,7 +55,7 @@ main = do
               | cmd `isPrefixOf` "balance"  = balance  opts pats
               | otherwise                   = putStr usage
 
-type Command = [Flag] -> (Regex,Regex) -> IO ()
+type Command = [Flag] -> ([String],[String]) -> IO ()
 
 selftest :: Command
 selftest opts pats = do 
@@ -77,19 +77,18 @@ balance opts pats = parseLedgerAndDo opts pats printbalance
           where 
             showsubs = (ShowSubs `elem` opts)
             depth = case (pats, showsubs) of
-                      -- when there are no filter patterns and no -s, show
-                      -- only to depth 1. (This was clearer when we used maybe.)
-                      (nullpats, False) -> 1
+                      -- when there is no -s or pattern args, show with depth 1
+                      (([],[]), False) -> 1
                       otherwise  -> 9999
 
 -- | parse the user's specified ledger file and do some action with it
 -- (or report a parse error). This function makes the whole thing go.
-parseLedgerAndDo :: [Flag] -> (Regex,Regex) -> (Ledger -> IO ()) -> IO ()
-parseLedgerAndDo opts pats cmd = do
+parseLedgerAndDo :: [Flag] -> ([String],[String]) -> (Ledger -> IO ()) -> IO ()
+parseLedgerAndDo opts (apats,dpats) cmd = do
     path <- ledgerFilePath opts
     parsed <- parseLedgerFile path
     case parsed of Left err -> parseError err
-                   Right l -> cmd $ cacheLedger l pats
+                   Right l -> cmd $ cacheLedger l (regexFor apats, regexFor dpats)
 
 -- ghci helpers
 
