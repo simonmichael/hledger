@@ -77,7 +77,7 @@ test-docs: api-doc-frames
 
 colourised-source: api-doc-dir
 	echo "Generating colourised source" ; \
-	for f in *hs; do \
+	for f in *hs Ledger/*hs; do \
 		HsColour -css -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
 	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
