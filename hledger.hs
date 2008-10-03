@@ -77,9 +77,9 @@ balance opts pats = parseLedgerAndDo opts pats printbalance
           where 
             showsubs = (ShowSubs `elem` opts)
             depth = case (pats, showsubs) of
-                      -- when there are no account patterns and no -s, show
+                      -- when there are no filter patterns and no -s, show
                       -- only to depth 1. (This was clearer when we used maybe.)
-                      ((wildcard,_), False) -> 1
+                      (nullpats, False) -> 1
                       otherwise  -> 9999
 
 -- | parse the user's specified ledger file and do some action with it
@@ -104,7 +104,7 @@ rawledger = do
 ledger :: IO Ledger
 ledger = do
   l <- rawledger
-  return $ cacheLedger l (wildcard,wildcard)
+  return $ cacheLedger l nullpats
 
 -- | get a Ledger from the given file path
 rawledgerfromfile :: String -> IO RawLedger

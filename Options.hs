@@ -1,4 +1,4 @@
-module Options (parseOptions, parsePatternArgs, wildcard, Flag(..), usage, ledgerFilePath)
+module Options (parseOptions, parsePatternArgs, nullpats, wildcard, Flag(..), usage, ledgerFilePath)
 where
 import System.Console.GetOpt
 import System.Directory
@@ -92,3 +92,4 @@ regexFor ss = mkRegex $ "(" ++ (unwords $ intersperse "|" ss) ++ ")"
 wildcard :: Regex
 wildcard = mkRegex ".*"
 
+nullpats = (wildcard,wildcard)

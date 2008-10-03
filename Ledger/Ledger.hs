@@ -70,10 +70,9 @@ cacheLedger l pats =
     in
       Ledger l'' ant amap lprecision
 
--- | keep only entries whose description matches one of the
--- description patterns, if any, and which have at least one
--- transaction matching one of the account patterns, if any.
--- No description or account patterns implies match all.
+-- | keep only entries whose description matches one of the description
+-- patterns, and which have at least one transaction matching one of the
+-- account patterns. (One or both patterns may be the wildcard.)
 filterLedgerEntries :: (Regex,Regex) -> RawLedger -> RawLedger
 filterLedgerEntries (acctpat,descpat) (RawLedger ms ps es f) = 
     RawLedger ms ps filteredentries f
@@ -89,9 +88,8 @@ filterLedgerEntries (acctpat,descpat) (RawLedger ms ps es f) =
                       Nothing -> False
                       otherwise -> True
 
--- | in each ledger entry, filter out transactions which do not match
--- the account patterns, if any.  (Entries are no longer balanced
--- after this.)
+-- | in each ledger entry, filter out transactions which do not match the
+-- account patterns.  (Entries are no longer balanced after this.)
 filterLedgerTransactions :: (Regex,Regex) -> RawLedger -> RawLedger
 filterLedgerTransactions (acctpat,descpat) (RawLedger ms ps es f) = 
     RawLedger ms ps (map filterentrytxns es) f
@@ -219,6 +217,7 @@ showLedgerAccounts l maxdepth =
     concatMap 
     (showAccountTree l) 
     (branches $ ledgerAccountTree l maxdepth)
+-- XXX need to add up and show balances too
 
 showAccountTree :: Ledger -> Tree Account -> String
 showAccountTree l = showAccountTree' l 0 . pruneBoringBranches
