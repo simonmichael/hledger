@@ -5,7 +5,23 @@ names, a map from account names to 'Account's, and the display precision.
 
 -}
 
-module Ledger.Ledger
+module Ledger.Ledger (
+cacheLedger,
+filterLedgerEntries,
+filterLedgerTransactions,
+accountnames,
+ledgerAccount,
+ledgerTransactions,
+ledgerAccountTree,
+addDataToAccountNameTree,
+printentries,
+printregister,
+showLedgerAccounts,
+showAccountTree,
+isBoringInnerAccount,
+isBoringInnerAccountName,
+pruneBoringBranches,
+)
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
@@ -17,22 +33,6 @@ import Ledger.AccountName
 import Ledger.Transaction
 import Ledger.RawLedger
 import Ledger.Entry
-
-
-rawLedgerTransactions :: RawLedger -> [Transaction]
-rawLedgerTransactions = txns . entries
-    where
-      txns :: [Entry] -> [Transaction]
-      txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
-
-rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
-rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
-
-rawLedgerAccountNames :: RawLedger -> [AccountName]
-rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
-
-rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
-rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 
 
 instance Show Ledger where
@@ -265,4 +265,22 @@ pruneBoringBranches =
     where 
       hasbalance = (/= 0) . abalance
       hastxns = (> 0) . length . atransactions
+
+-- helpers
+
+rawLedgerTransactions :: RawLedger -> [Transaction]
+rawLedgerTransactions = txns . entries
+    where
+      txns :: [Entry] -> [Transaction]
+      txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
+
+rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
+rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
+
+rawLedgerAccountNames :: RawLedger -> [AccountName]
+rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
+
+rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
+rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
+
 

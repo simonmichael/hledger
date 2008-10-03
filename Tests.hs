@@ -372,7 +372,7 @@ test_ledgerAccountNames =
     ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
     "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
      "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
-    (rawLedgerAccountNames ledger7)
+    (accountnames l7)
 
 test_cacheLedger =
     assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger ledger7 nullpats)
