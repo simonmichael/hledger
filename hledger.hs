@@ -11,31 +11,6 @@ simple ledger-compatible register & balance reports from a standard
 ledger file, and demonstrates a (naive) purely functional
 implementation of ledger.
 
-Code organization: the early code defined each major type and their
-associated functions in a module. This was too restrictive, so now most
-types are defined in "Ledger.Types" at the bottom. The original modules are still
-used to group functions related to each type.  Here is the approximate
-import hierarchy:
-
-@
-hledger ("Main")
- "Tests"
- "Parse"
-  "Options"
-   "TimeLog"
-   "Ledger"
-    "Account"
-     "Transaction"
-    "RawLedger"
-     "LedgerEntry"
-      "RawTransaction"
-       "AccountName"
-       "Amount"
-        "Currency"
-         "Ledger.Types"
-          "Ledger.Utils"
-@
-
 This module includes some helpers for querying your ledger in ghci. Examples:
 
 > $ rm -f hledger.o
