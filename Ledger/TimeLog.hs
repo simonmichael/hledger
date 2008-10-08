@@ -8,9 +8,6 @@ containing zero or more 'TimeLogEntry's. It can be converted to a
 
 module Ledger.TimeLog
 where
-import System.Locale (defaultTimeLocale)
-import Data.Time.Clock (UTCTime, diffUTCTime)
-import Data.Time.Format (parseTime, formatTime)
 
 import Ledger.Utils
 import Ledger.Types
@@ -26,14 +23,19 @@ instance Show TimeLogEntry where
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
 
+-- | Convert a time log to a ledger.
 ledgerFromTimeLog :: TimeLog -> RawLedger
 ledgerFromTimeLog tl = 
     RawLedger [] [] (entriesFromTimeLogEntries $ timelog_entries tl) ""
 
+-- | Convert time log entries to ledger entries.
 entriesFromTimeLogEntries :: [TimeLogEntry] -> [Entry]
 
-entriesFromTimeLogEntries [clockin] = 
-    entriesFromTimeLogEntries [clockin, clockoutNowEntry]
+-- | When there is a trailing clockin entry, provide the missing clockout.
+-- "Now" would be ideal but requires IO, for now we make it the same as
+-- clockin time.
+entriesFromTimeLogEntries [clockin@(TimeLogEntry _ t _)] = 
+    entriesFromTimeLogEntries [clockin, (TimeLogEntry 'o' t "")]
 
 entriesFromTimeLogEntries [clockin,clockout] =
     [
@@ -52,22 +54,14 @@ entriesFromTimeLogEntries [clockin,clockout] =
     where
       accountname = tlcomment clockin
       indate      = showDateFrom intime
-      intime      = parseDateTime $ tldatetime clockin
-      outtime     = parseDateTime $ tldatetime clockout
+      intime      = parsedatetime $ tldatetime clockin
+      outtime     = parsedatetime $ tldatetime clockout
       hours       = fromRational (toRational (diffUTCTime outtime intime) / 3600) -- whatever
       amount      = Amount (getcurrency "h") hours 1
 
 entriesFromTimeLogEntries many =
     (entriesFromTimeLogEntries $ take 2 many) ++
     (entriesFromTimeLogEntries $ drop 2 many)
-
-clockoutNowEntry = TimeLogEntry ' ' "" ""
-
-parseDateTime :: String -> UTCTime
-parseDateTime s = fromMaybe err parsed
-    where
-      err    = error $ printf "could not parse timestamp \"%s\"" s
-      parsed = parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s
 
 showDateFrom :: UTCTime -> String
 showDateFrom = formatTime defaultTimeLocale "%Y/%m/%d"

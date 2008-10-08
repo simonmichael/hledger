@@ -284,7 +284,7 @@ ledger7 = RawLedger
           ]
           ""
 
-l7 = cacheLedger ledger7 nullpats
+l7 = cacheLedger ledger7
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
@@ -375,7 +375,7 @@ test_ledgerAccountNames =
     (accountnames l7)
 
 test_cacheLedger =
-    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger ledger7 nullpats)
+    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger ledger7)
 
 test_showLedgerAccounts = 
     assertEqual' 4 (length $ lines $ showLedgerAccountBalances l7 1)

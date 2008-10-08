@@ -5,19 +5,19 @@ Standard always-available imports and utilities.
 -}
 
 module Ledger.Utils (
-              module Ledger.Utils,
-              module Char,
-              module Data.List,
-              module Data.Tree,
-              -- module Data.Map,
-              module Data.Ord,
-              module Data.Maybe,
-              module Text.Printf,
-              module Text.Regex,
-              module Debug.Trace,
-              module Test.QuickCheck,
-              module Test.HUnit
-             )
+module Ledger.Utils,
+module Char,
+module Data.List,
+module Data.Tree,
+module Data.Ord,
+module Data.Maybe,
+module Text.Printf,
+module Text.Regex,
+module Debug.Trace,
+module Test.QuickCheck,
+module Test.HUnit,
+defaultTimeLocale, UTCTime, diffUTCTime, parseTime, formatTime,
+)
 where
 import Char
 import Data.List
@@ -30,7 +30,29 @@ import Text.Regex
 import Debug.Trace
 import Test.QuickCheck hiding (test, Testable)
 import Test.HUnit
+import System.Locale (defaultTimeLocale)
+import Data.Time.Clock (UTCTime, diffUTCTime)
+import Data.Time.Format (ParseTime, parseTime, formatTime)
 
+
+-- time
+
+-- | Parse a date-time string to a time type, or raise an error.
+parsedatetime :: ParseTime t => String -> t
+parsedatetime s =
+    parsetimewith "%Y/%m/%d %H:%M:%S" s $
+    error $ printf "could not parse timestamp \"%s\"" s
+
+-- | Parse a date string to a time type, or raise an error.
+parsedate :: ParseTime t => String -> t
+parsedate s = 
+    parsetimewith "%Y/%m/%d" s $
+    error $ printf "could not parse date \"%s\"" s
+
+-- | Parse a time string to a time type using the provided pattern, or
+-- return the default.
+parsetimewith :: ParseTime t => String -> String -> t -> t
+parsetimewith pat s def = fromMaybe def $ parseTime defaultTimeLocale pat s
 
 -- lists
 

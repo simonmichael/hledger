@@ -1,5 +1,17 @@
-module Options (parseOptions, parsePatternArgs, regexFor, nullpats, wildcard, Flag(..), usage, ledgerFilePath)
+module Options (
+Flag(..), 
+usage, 
+parseArguments, 
+ledgerFilePathFromOpts,
+beginDateFromOpts,
+endDateFromOpts,
+parsePatternArgs, 
+regexFor, 
+nullpats, 
+wildcard, 
+)
 where
+import System
 import System.Console.GetOpt
 import System.Directory
 import System.Environment (getEnv)
@@ -11,68 +23,87 @@ import Ledger.Parse (parseLedgerFile, parseError)
 import Ledger.Ledger (cacheLedger)
 
 
-usagehdr       = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
-commands       = "register|balance|print"
-defaultcmd     = "register"
+usagehdr    = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
+commands    = "register|balance|print"
+defaultcmd  = "register"
+defaultfile = "~/.ledger"
+fileenvvar  = "LEDGER"
 
-options :: [OptDescr Flag]
-options = [
- Option ['f'] ["file"]     (ReqArg File "FILE") "ledger file; - means use standard input",
- Option ['s'] ["showsubs"] (NoArg ShowSubs)     "balance report: show subaccounts", -- register: show subtotals
- Option ['h'] ["help"]     (NoArg Help)         "show this help"
- --Option ['V'] ["version"]  (NoArg Version)      "show version"
- ]
+usage = usageInfo usagehdr options
 
 data Flag = 
     File String | 
+    Begin String | 
+    End String | 
     ShowSubs |
     Help |
     Version
     deriving (Show,Eq)
 
-parseOptions :: [String] -> IO ([Flag], [String])
-parseOptions argv =
-    case getOpt RequireOrder options argv of
-      (opts,[],[])   -> return (opts, [defaultcmd])
-      (opts,args,[]) -> return (opts, args)
-      (_,_,errs)     -> ioError (userError (concat errs ++ usage))
+options :: [OptDescr Flag]
+options = [
+ Option ['f'] ["file"]      (ReqArg File "FILE")       "ledger file; - means use standard input",
+ Option ['b'] []            (ReqArg Begin "BEGINDATE") "begin reports from this date (inclusive)",
+ Option ['e'] []            (ReqArg End "ENDDATE")     "end reports on this date (exclusive)",
+ Option ['s'] ["showsubs"]  (NoArg ShowSubs)           "balance report: show subaccounts",
+ Option ['h'] ["help"]      (NoArg Help)               "show this help"
+ --Option ['V'] ["version"] (NoArg Version)            "show version"
+ ]
 
--- testoptions RequireOrder ["foo","-v"]
--- testoptions Permute ["foo","-v"]
--- testoptions (ReturnInOrder Arg) ["foo","-v"]
--- testoptions Permute ["foo","--","-v"]
--- testoptions Permute ["-?o","--name","bar","--na=baz"]
--- testoptions Permute ["--ver","foo"]
-testoptions order cmdline = putStr $ 
-    case getOpt order options cmdline of
-      (o,n,[]  ) -> "options=" ++ show o ++ "  args=" ++ show n
-      (_,_,errs) -> concat errs ++ usage
+-- | Parse the command-line arguments into ledger options, ledger command
+-- name, and ledger command arguments
+parseArguments :: IO ([Flag], String, [String])
+parseArguments = do
+  args <- getArgs
+  case (getOpt RequireOrder options args) of
+    (opts,[],[])       -> return (opts, defaultcmd, [])
+    (opts,cmd:args,[]) -> return (opts, cmd, args)
+    (_,_,errs)         -> ioError (userError (concat errs ++ usage))
 
-usage = usageInfo usagehdr options
-
-ledgerFilePath :: [Flag] -> IO String
-ledgerFilePath = findFileFromOpts "~/ledger.dat" "LEDGER"
-
--- | find a file path from options, an env var or a default value
-findFileFromOpts :: FilePath -> String -> [Flag] -> IO String
-findFileFromOpts defaultpath envvar opts = do
-  envordefault <- getEnv envvar `catch` \_ -> return defaultpath
+-- | Get the ledger file path from options, an environment variable, or a default
+ledgerFilePathFromOpts :: [Flag] -> IO String
+ledgerFilePathFromOpts opts = do
+  envordefault <- getEnv fileenvvar `catch` \_ -> return defaultfile
   paths <- mapM tildeExpand $ [envordefault] ++ (concatMap getfile opts)
   return $ last paths
     where
       getfile (File s) = [s]
       getfile _ = []
 
-tildeExpand              :: FilePath -> IO FilePath
-tildeExpand ('~':[])     =  getHomeDirectory
-tildeExpand ('~':'/':xs) =  getHomeDirectory >>= return . (++ ('/':xs))
--- -- ~name, requires -fvia-C or ghc 6.8
--- --import System.Posix.User
--- -- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
--- --                                pw <- getUserEntryForName user
--- --                                return (homeDirectory pw ++ path)
+-- | Expand ~ in a file path (does not handle ~name).
+tildeExpand :: FilePath -> IO FilePath
+tildeExpand ('~':[])     = getHomeDirectory
+tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
+--handle ~name, requires -fvia-C or ghc 6.8:
+--import System.Posix.User
+-- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
+--                                pw <- getUserEntryForName user
+--                                return (homeDirectory pw ++ path)
 tildeExpand xs           =  return xs
--- -- courtesy of allberry_b
+
+-- | get the value of the begin date option, or a default
+beginDateFromOpts :: [Flag] -> String
+beginDateFromOpts opts = 
+    case beginopts of
+      (x:_) -> last beginopts
+      _      -> defaultdate
+    where
+      beginopts = concatMap getbegindate opts
+      getbegindate (Begin s) = [s]
+      getbegindate _ = []
+      defaultdate = ""
+
+-- | get the value of the end date option, or a default
+endDateFromOpts :: [Flag] -> String
+endDateFromOpts opts = 
+    case endopts of
+      (x:_) -> last endopts
+      _      -> defaultdate
+    where
+      endopts = concatMap getenddate opts
+      getenddate (End s) = [s]
+      getenddate _ = []
+      defaultdate = ""
 
 -- | ledger pattern arguments are: 0 or more account patterns
 -- optionally followed by -- and 0 or more description patterns.
@@ -93,3 +124,15 @@ wildcard :: Regex
 wildcard = mkRegex ".*"
 
 nullpats = (wildcard,wildcard)
+
+-- testoptions RequireOrder ["foo","-v"]
+-- testoptions Permute ["foo","-v"]
+-- testoptions (ReturnInOrder Arg) ["foo","-v"]
+-- testoptions Permute ["foo","--","-v"]
+-- testoptions Permute ["-?o","--name","bar","--na=baz"]
+-- testoptions Permute ["--ver","foo"]
+testoptions order cmdline = putStr $ 
+    case getOpt order options cmdline of
+      (o,n,[]  ) -> "options=" ++ show o ++ "  args=" ++ show n
+      (_,_,errs) -> concat errs ++ usage
+

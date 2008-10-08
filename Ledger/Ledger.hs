@@ -2,15 +2,14 @@
 
 A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
 names, a map from account names to 'Account's, and the display precision.
-Also, the Account 'Transaction's are filtered according to the provided
-account name/description patterns.
+Typically it has also has had the uninteresting 'Entry's and
+'Transaction's filtered out.
 
 -}
 
 module Ledger.Ledger (
 cacheLedger,
-filterLedgerEntries,
-filterLedgerTransactions,
+filterLedger,
 accountnames,
 ledgerAccount,
 ledgerTransactions,
@@ -44,16 +43,14 @@ instance Show Ledger where
               (length $ periodic_entries $ rawledger l))
              (length $ accountnames l)
 
--- | Convert a raw ledger to a more efficient filtered and cached type, described above.
-cacheLedger :: RawLedger -> (Regex,Regex) -> Ledger
-cacheLedger l pats = 
+-- | Convert a raw ledger to a more efficient cached type, described above.  
+cacheLedger :: RawLedger -> Ledger
+cacheLedger l = 
     let 
         lprecision = maximum $ map (precision . amount) $ rawLedgerTransactions l
-        l' = filterLedgerEntries pats l
-        l'' = filterLedgerTransactions pats l'
-        ant = rawLedgerAccountNameTree l''
+        ant = rawLedgerAccountNameTree l
         ans = flatten ant
-        ts = rawLedgerTransactions l''
+        ts = rawLedgerTransactions l
         sortedts = sortBy (comparing account) ts
         groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
         tmap = Map.union 
@@ -67,30 +64,52 @@ cacheLedger l pats =
                (Map.fromList [(a,nullamt) | a <- ans])
         amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
     in
-      Ledger l'' ant amap lprecision
+      Ledger l ant amap lprecision
 
--- | keep only entries whose description matches one of the description
--- patterns, and which have at least one transaction matching one of the
--- account patterns. (One or both patterns may be the wildcard.)
-filterLedgerEntries :: (Regex,Regex) -> RawLedger -> RawLedger
-filterLedgerEntries (acctpat,descpat) (RawLedger ms ps es f) = 
-    RawLedger ms ps filteredentries f
+-- | Remove ledger entries and transactions we are not interested in - 
+-- keep only those which fall between the begin and end dates and match the
+-- account and description patterns.
+filterLedger :: String -> String -> Regex -> Regex -> RawLedger -> RawLedger
+filterLedger begin end acctpat descpat = 
+    filterEmptyLedgerEntries .
+    filterLedgerTransactions acctpat .
+    filterLedgerEntriesByDate begin end .
+    filterLedgerEntriesByDescription descpat
+
+-- | Keep only entries whose description matches the description pattern.
+filterLedgerEntriesByDescription :: Regex -> RawLedger -> RawLedger
+filterLedgerEntriesByDescription descpat (RawLedger ms ps es f) = 
+    RawLedger ms ps (filter matchdesc es) f
     where
-      filteredentries :: [Entry]
-      filteredentries = (filter matchdesc $ filter (any matchtxn . etransactions) es)
-      matchtxn :: RawTransaction -> Bool
-      matchtxn t = case matchRegex acctpat (taccount t) of
-                     Nothing -> False
-                     otherwise -> True
       matchdesc :: Entry -> Bool
       matchdesc e = case matchRegex descpat (edescription e) of
                       Nothing -> False
                       otherwise -> True
 
--- | in each ledger entry, filter out transactions which do not match the
--- filter patterns.  (The entries are no longer balanced after this.)
-filterLedgerTransactions :: (Regex,Regex) -> RawLedger -> RawLedger
-filterLedgerTransactions (acctpat,descpat) (RawLedger ms ps es f) = 
+-- | Keep only entries which fall between begin and end dates. 
+-- We include entries on the begin date and exclude entries on the end
+-- date, like ledger.  An empty date string means no restriction.
+filterLedgerEntriesByDate :: String -> String -> RawLedger -> RawLedger
+filterLedgerEntriesByDate begin end (RawLedger ms ps es f) = 
+    RawLedger ms ps (filter matchdate es) f
+    where
+      matchdate :: Entry -> Bool
+      matchdate e = (begin == "" || entrydate >= begindate) && 
+                    (end == "" || entrydate < enddate)
+                    where 
+                      begindate = parsedate begin :: UTCTime
+                      enddate   = parsedate end
+                      entrydate = parsedate $ edate e
+
+-- | Remove entries which have no transactions.
+filterEmptyLedgerEntries :: RawLedger -> RawLedger
+filterEmptyLedgerEntries (RawLedger ms ps es f) =
+    RawLedger ms ps (filter ((> 0) . length . etransactions) es) f
+
+-- | In each ledger entry, filter out transactions which do not match the
+-- account pattern. Entries are no longer balanced after this.
+filterLedgerTransactions :: Regex -> RawLedger -> RawLedger
+filterLedgerTransactions acctpat (RawLedger ms ps es f) = 
     RawLedger ms ps (map filterentrytxns es) f
     where
       filterentrytxns l@(Entry _ _ _ _ _ ts _) = l{etransactions=filter matchtxn ts}
