@@ -25,43 +25,40 @@ instance Show TimeLog where
 
 -- | Convert a time log to a ledger.
 ledgerFromTimeLog :: TimeLog -> RawLedger
-ledgerFromTimeLog tl = 
-    RawLedger [] [] (entriesFromTimeLogEntries $ timelog_entries tl) ""
+ledgerFromTimeLog tl = RawLedger [] [] (entriesFromTimeLogEntries $ timelog_entries tl) ""
 
 -- | Convert time log entries to ledger entries.
 entriesFromTimeLogEntries :: [TimeLogEntry] -> [Entry]
+entriesFromTimeLogEntries [] = []
+entriesFromTimeLogEntries [i] = entriesFromTimeLogEntries [i, clockoutFor i]
+entriesFromTimeLogEntries (i:o:rest) = [entryFromTimeLogInOut i o] ++ entriesFromTimeLogEntries rest
 
 -- | When there is a trailing clockin entry, provide the missing clockout.
--- "Now" would be ideal but requires IO, for now we make it the same as
--- clockin time.
-entriesFromTimeLogEntries [clockin@(TimeLogEntry _ t _)] = 
-    entriesFromTimeLogEntries [clockin, (TimeLogEntry 'o' t "")]
+-- "Now" would be preferable but requires IO, for now use the clockin time.
+clockoutFor (TimeLogEntry _ t _) = TimeLogEntry 'o' t ""
 
-entriesFromTimeLogEntries [clockin,clockout] =
-    [
-     Entry {
-       edate         = indate,
-       estatus       = True,
-       ecode         = "",
-       edescription  = accountname,
-       ecomment      = "",
-       etransactions = [
-        RawTransaction accountname amount "",
-        RawTransaction "assets:TIME" (-amount) ""
-       ],
-       epreceding_comment_lines=""}
-    ]
+-- | Convert a timelog clockin and clockout entry to an equivalent ledger
+-- entry, representing the time expenditure.
+entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Entry
+entryFromTimeLogInOut i o =
+    Entry {
+      edate         = indate, -- ledger uses outdate
+      estatus       = True,
+      ecode         = "",
+      edescription  = acctname,
+      ecomment      = "",
+      etransactions = txns,
+      epreceding_comment_lines=""
+    }
     where
-      accountname = tlcomment clockin
-      indate      = showDateFrom intime
-      intime      = parsedatetime $ tldatetime clockin
-      outtime     = parsedatetime $ tldatetime clockout
-      hours       = fromRational (toRational (diffUTCTime outtime intime) / 3600) -- whatever
-      amount      = Amount (getcurrency "h") hours 1
-
-entriesFromTimeLogEntries many =
-    (entriesFromTimeLogEntries $ take 2 many) ++
-    (entriesFromTimeLogEntries $ drop 2 many)
+      acctname = tlcomment i
+      indate   = showDateFrom intime
+      outdate  = showDateFrom outtime
+      intime   = parsedatetime $ tldatetime i
+      outtime  = parsedatetime $ tldatetime o
+      hours    = fromRational (toRational (diffUTCTime outtime intime) / 3600) -- whatever..
+      amount   = Amount (getcurrency "h") hours 1
+      txns     = [RawTransaction acctname amount "", RawTransaction "assets:TIME" (-amount) ""]
 
 showDateFrom :: UTCTime -> String
 showDateFrom = formatTime defaultTimeLocale "%Y/%m/%d"
