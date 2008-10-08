@@ -1,7 +1,66 @@
 {-|
 
-A parser for standard ledger files.  Here's the grammar from the
-ledger 2.5 manual:
+Parsers for standard ledger and timelog files.
+
+-}
+
+module Ledger.Parse
+where
+import qualified Data.Map as Map
+import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Language
+import qualified Text.ParserCombinators.Parsec.Token as P
+import System.IO
+
+import Ledger.Utils
+import Ledger.Types
+import Ledger.Entry (autofillEntry)
+import Ledger.Currency (getcurrency)
+import Ledger.TimeLog (ledgerFromTimeLog)
+
+-- utils
+
+parseLedgerFile :: String -> IO (Either ParseError RawLedger)
+parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
+parseLedgerFile f   = parseFromFile ledgerfile f
+    
+printParseError :: (Show a) => a -> IO ()
+printParseError e = do putStr "ledger parse error at "; print e
+
+-- set up token parsing, though we're not yet using these much
+ledgerLanguageDef = LanguageDef {
+   commentStart   = ""
+   , commentEnd     = ""
+   , commentLine    = ";"
+   , nestedComments = False
+   , identStart     = letter <|> char '_'
+   , identLetter    = alphaNum <|> oneOf "_':"
+   , opStart        = opLetter emptyDef
+   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
+   , reservedOpNames= []
+   , reservedNames  = []
+   , caseSensitive  = False
+   }
+lexer      = P.makeTokenParser ledgerLanguageDef
+whiteSpace = P.whiteSpace lexer
+lexeme     = P.lexeme lexer
+symbol     = P.symbol lexer
+natural    = P.natural lexer
+parens     = P.parens lexer
+semi       = P.semi lexer
+identifier = P.identifier lexer
+reserved   = P.reserved lexer
+reservedOp = P.reservedOp lexer
+
+-- parsers
+
+-- | Parse a RawLedger from either a ledger file or a timelog file.
+-- It tries first the timelog parser then the ledger parser; this means
+-- parse errors for ledgers are useful while those for timelogs are not.
+ledgerfile :: Parser RawLedger
+ledgerfile = try ledgerfromtimelog <|> ledger
+
+{-| Parse a ledger file. Here is the ledger grammar from the ledger 2.5 manual:
 
 @
 The ledger file format is quite simple, but also very flexible. It supports
@@ -99,71 +158,14 @@ i, o, b, h
            timelog files.
 @
 
-See Tests.hs for sample data.
+See "Tests" for sample data.
 -}
-
-module Ledger.Parse
-where
-import qualified Data.Map as Map
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Language
-import qualified Text.ParserCombinators.Parsec.Token as P
-import System.IO
-
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Entry (autofillEntry)
-import Ledger.Currency (getcurrency)
-import Ledger.TimeLog (ledgerFromTimeLog)
-
--- utils
-
-parseLedgerFile :: String -> IO (Either ParseError RawLedger)
-parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
-parseLedgerFile f   = parseFromFile ledgerfile f
-    
-printParseError :: (Show a) => a -> IO ()
-printParseError e = do putStr "ledger parse error at "; print e
-
--- set up token parsing, though we're not yet using these much
-ledgerLanguageDef = LanguageDef {
-   commentStart   = ""
-   , commentEnd     = ""
-   , commentLine    = ";"
-   , nestedComments = False
-   , identStart     = letter <|> char '_'
-   , identLetter    = alphaNum <|> oneOf "_':"
-   , opStart        = opLetter emptyDef
-   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
-   , reservedOpNames= []
-   , reservedNames  = []
-   , caseSensitive  = False
-   }
-lexer      = P.makeTokenParser ledgerLanguageDef
-whiteSpace = P.whiteSpace lexer
-lexeme     = P.lexeme lexer
-symbol     = P.symbol lexer
-natural    = P.natural lexer
-parens     = P.parens lexer
-semi       = P.semi lexer
-identifier = P.identifier lexer
-reserved   = P.reserved lexer
-reservedOp = P.reservedOp lexer
-
--- parsers
-
--- | Parse a RawLedger from either a ledger file or a timelog file.
--- It tries first the ledger parser then the timelog parser, unfortunately
--- this obscures ledger file parse errors.
-ledgerfile :: Parser RawLedger
-ledgerfile = try (ledger) <|> ledgerfromtimelog
-
 ledger :: Parser RawLedger
 ledger = do
-  -- for now these must come first, unlike ledger
+  -- we expect these to come first, unlike ledger
   modifier_entries <- many ledgermodifierentry
   periodic_entries <- many ledgerperiodicentry
-  --
+
   entries <- (many ledgerentry) <?> "entry"
   final_comment_lines <- ledgernondatalines
   eof
@@ -250,7 +252,7 @@ ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (do {newli
 ledgertransaction :: Parser RawTransaction
 ledgertransaction = do
   many1 spacenonewline
-  account <- ledgeraccount
+  account <- ledgeraccountname
   amount <- ledgeramount
   many spacenonewline
   comment <- ledgercomment
@@ -258,8 +260,8 @@ ledgertransaction = do
   return (RawTransaction account amount comment)
 
 -- | account names may have single spaces inside them, and are terminated by two or more spaces
-ledgeraccount :: Parser String
-ledgeraccount = do
+ledgeraccountname :: Parser String
+ledgeraccountname = do
     accountname <- many1 (accountnamechar <|> singlespace)
     return $ striptrailingspace accountname
     where 
@@ -294,9 +296,7 @@ whiteSpace1 :: Parser ()
 whiteSpace1 = do space; whiteSpace
 
 
-{-| timelog file parser 
-
-Here is the timelog grammar, from timeclock.el 2.6:
+{-| Parse a timelog file. Here is the timelog grammar, from timeclock.el 2.6:
 
 @
 A timelog contains data in the form of a single entry per line.
@@ -324,12 +324,13 @@ i, o or O.  The meanings of the codes are:
 
   O  Final clock out.  Whatever project was being worked on, it is
      now finished.  Useful for creating summary reports.
+@
 
-example:
+Example:
 
 i 2007/03/10 12:26:00 hledger
 o 2007/03/10 17:26:02
-@
+
 -}
 timelog :: Parser TimeLog
 timelog = do
