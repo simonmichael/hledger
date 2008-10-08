@@ -24,8 +24,8 @@ hledger register
 hledger reg cash
 hledger reg -- shop
 
-This version of hledger was intended to mimic ledger 2.5 as closely as
-possible, see the ledger manual for more info:
+This version of hledger mimics ledger 2.5 closely, 
+see the ledger manual for more info:
 <http://joyful.com/repos/hledger/doc/ledger.html>.
 
 Bugs:
