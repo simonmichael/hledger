@@ -84,16 +84,15 @@ balance opts args = parseLedgerAndDo opts args printbalance
 -- | parse the user's specified ledger file and do some action with it
 -- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Opt] -> [String] -> (Ledger -> IO ()) -> IO ()
-parseLedgerAndDo opts args cmd = do
-  parsed <- ledgerFilePathFromOpts opts >>= parseLedgerFile
-  case parsed of Left err -> parseError err
-                 Right l -> cmd $ cacheLedger $ filterLedger begin end aregex dregex l
-  where
-    (apats,dpats) = parsePatternArgs args
-    aregex = regexFor apats
-    dregex = regexFor dpats
-    begin = beginDateFromOpts opts
-    end = endDateFromOpts opts
+parseLedgerAndDo opts args cmd = 
+    ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either parseError runthecommand
+    where
+      runthecommand = cmd . cacheLedger . filterLedger begin end aregex dregex
+      begin = beginDateFromOpts opts
+      end = endDateFromOpts opts
+      aregex = regexFor apats
+      dregex = regexFor dpats
+      (acctpats,descpats) = parsePatternArgs args
 
 -- ghci helpers
 
