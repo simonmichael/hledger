@@ -152,6 +152,9 @@ reservedOp = P.reservedOp lexer
 
 -- parsers
 
+-- | Parse a RawLedger from either a ledger file or a timelog file.
+-- It tries first the ledger parser then the timelog parser, unfortunately
+-- this obscures ledger file parse errors.
 ledgerfile :: Parser RawLedger
 ledgerfile = try (ledger) <|> ledgerfromtimelog
 
