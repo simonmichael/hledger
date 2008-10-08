@@ -1,5 +1,5 @@
 module Options (
-Flag(..), 
+Opt(..), 
 usage, 
 parseArguments, 
 ledgerFilePathFromOpts,
@@ -29,9 +29,19 @@ defaultcmd  = "register"
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
 
-usage = usageInfo usagehdr options
+-- | Command-line options we accept.
+options :: [OptDescr Opt]
+options = [
+ Option ['f'] ["file"]         (ReqArg File "FILE")        "ledger file; - means use standard input",
+ Option ['b'] ["begin"]        (ReqArg Begin "yyyy/mm/dd") "report on entries from this date (inclusive)",
+ Option ['e'] ["end"]          (ReqArg End "yyyy/mm/dd")   "report on entries to this date (exclusive)",
+ Option ['s'] ["showsubs"]     (NoArg  ShowSubs)           "balance report: show subaccounts",
+ Option ['h'] ["help","usage"] (NoArg  Help)               "show this help"
+ --Option ['V'] ["version"]      (NoArg  Version)            "show version"
+ ]
 
-data Flag = 
+-- | An option value from a command-line flag.
+data Opt = 
     File String | 
     Begin String | 
     End String | 
@@ -40,19 +50,11 @@ data Flag =
     Version
     deriving (Show,Eq)
 
-options :: [OptDescr Flag]
-options = [
- Option ['f'] ["file"]      (ReqArg File "FILE")       "ledger file; - means use standard input",
- Option ['b'] []            (ReqArg Begin "BEGINDATE") "begin reports from this date (inclusive)",
- Option ['e'] []            (ReqArg End "ENDDATE")     "end reports on this date (exclusive)",
- Option ['s'] ["showsubs"]  (NoArg ShowSubs)           "balance report: show subaccounts",
- Option ['h'] ["help"]      (NoArg Help)               "show this help"
- --Option ['V'] ["version"] (NoArg Version)            "show version"
- ]
+usage = usageInfo usagehdr options
 
 -- | Parse the command-line arguments into ledger options, ledger command
 -- name, and ledger command arguments
-parseArguments :: IO ([Flag], String, [String])
+parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- getArgs
   case (getOpt RequireOrder options args) of
@@ -61,7 +63,7 @@ parseArguments = do
     (_,_,errs)         -> ioError (userError (concat errs ++ usage))
 
 -- | Get the ledger file path from options, an environment variable, or a default
-ledgerFilePathFromOpts :: [Flag] -> IO String
+ledgerFilePathFromOpts :: [Opt] -> IO String
 ledgerFilePathFromOpts opts = do
   envordefault <- getEnv fileenvvar `catch` \_ -> return defaultfile
   paths <- mapM tildeExpand $ [envordefault] ++ (concatMap getfile opts)
@@ -82,7 +84,7 @@ tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
 tildeExpand xs           =  return xs
 
 -- | get the value of the begin date option, or a default
-beginDateFromOpts :: [Flag] -> String
+beginDateFromOpts :: [Opt] -> String
 beginDateFromOpts opts = 
     case beginopts of
       (x:_) -> last beginopts
@@ -94,7 +96,7 @@ beginDateFromOpts opts =
       defaultdate = ""
 
 -- | get the value of the end date option, or a default
-endDateFromOpts :: [Flag] -> String
+endDateFromOpts :: [Opt] -> String
 endDateFromOpts opts = 
     case endopts of
       (x:_) -> last endopts

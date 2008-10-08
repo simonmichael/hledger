@@ -54,7 +54,7 @@ main = do
               | cmd `isPrefixOf` "balance"  = balance  opts args
               | otherwise                   = putStr usage
 
-type Command = [Flag] -> [String] -> IO ()
+type Command = [Opt] -> [String] -> IO ()
 
 selftest :: Command
 selftest _ _ = do 
@@ -83,7 +83,7 @@ balance opts args = parseLedgerAndDo opts args printbalance
 
 -- | parse the user's specified ledger file and do some action with it
 -- (or report a parse error). This function makes the whole thing go.
-parseLedgerAndDo :: [Flag] -> [String] -> (Ledger -> IO ()) -> IO ()
+parseLedgerAndDo :: [Opt] -> [String] -> (Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = do
   parsed <- ledgerFilePathFromOpts opts >>= parseLedgerFile
   case parsed of Left err -> parseError err
