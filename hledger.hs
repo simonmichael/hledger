@@ -37,7 +37,7 @@ import qualified Data.Map as Map (lookup)
 
 import Options
 import Tests (hunit, quickcheck)
-import Ledger.Parse (parseLedgerFile, parseError)
+import Ledger.Parse (parseLedgerFile, printParseError)
 import Ledger.Utils hiding (test)
 import Ledger hiding (rawledger)
 
@@ -75,7 +75,7 @@ balance opts args = parseLedgerAndDo opts args printbalance
       printbalance l = putStr $ showLedgerAccountBalances l depth
           where 
             showsubs = (ShowSubs `elem` opts)
-            pats = parsePatternArgs args
+            pats = parseAccountDescriptionArgs args
             depth = case (pats, showsubs) of
                       -- when there is no -s or pattern args, show with depth 1
                       (([],[]), False) -> 1
@@ -85,14 +85,14 @@ balance opts args = parseLedgerAndDo opts args printbalance
 -- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Opt] -> [String] -> (Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = 
-    ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either parseError runthecommand
+    ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runthecommand
     where
       runthecommand = cmd . cacheLedger . filterLedger begin end aregex dregex
       begin = beginDateFromOpts opts
       end = endDateFromOpts opts
-      aregex = regexFor apats
-      dregex = regexFor dpats
-      (acctpats,descpats) = parsePatternArgs args
+      aregex = regexFor acctpats
+      dregex = regexFor descpats
+      (acctpats,descpats) = parseAccountDescriptionArgs args
 
 -- ghci helpers
 

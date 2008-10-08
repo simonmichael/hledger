@@ -122,8 +122,8 @@ parseLedgerFile :: String -> IO (Either ParseError RawLedger)
 parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
 parseLedgerFile f   = parseFromFile ledgerfile f
     
-parseError :: (Show a) => a -> IO ()
-parseError e = do putStr "ledger parse error at "; print e
+printParseError :: (Show a) => a -> IO ()
+printParseError e = do putStr "ledger parse error at "; print e
 
 -- set up token parsing, though we're not yet using these much
 ledgerLanguageDef = LanguageDef {

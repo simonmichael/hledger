@@ -14,11 +14,9 @@ assertEqual' e a = assertEqual "" e a
 
 parse' p ts = parse p "" ts
 
+-- | Assert a parsed thing equals some expected thing, or print a parse error.
 assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
-assertParseEqual expected parsed =
-    case parsed of
-      Left e -> parseError e
-      Right v -> assertEqual " " expected v
+assertParseEqual expected parsed = either printParseError (assertEqual " " expected) parsed
 
 -- find tests with template haskell
 --

@@ -5,7 +5,7 @@ parseArguments,
 ledgerFilePathFromOpts,
 beginDateFromOpts,
 endDateFromOpts,
-parsePatternArgs, 
+parseAccountDescriptionArgs,
 regexFor, 
 nullpats, 
 wildcard, 
@@ -19,8 +19,6 @@ import Data.Maybe (fromMaybe)
     
 import Ledger.Utils
 import Ledger.Types
-import Ledger.Parse (parseLedgerFile, parseError)
-import Ledger.Ledger (cacheLedger)
 
 
 usagehdr    = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
@@ -107,12 +105,11 @@ endDateFromOpts opts =
       getenddate _ = []
       defaultdate = ""
 
--- | ledger pattern arguments are: 0 or more account patterns
--- optionally followed by -- and 0 or more description patterns.
--- No arguments implies match all. Here we gather these into two lists.
--- parsePatternArgs :: [String] -> (Regex,Regex)
-parsePatternArgs :: [String] -> ([String],[String])
-parsePatternArgs args = (as, ds')
+-- | Gather any ledger-style account/description pattern arguments into
+-- two lists.  These are 0 or more account patterns optionally followed by
+-- 0 or more description patterns.
+parseAccountDescriptionArgs :: [String] -> ([String],[String])
+parseAccountDescriptionArgs args = (as, ds')
     where (as, ds) = break (=="--") args
           ds' = dropWhile (=="--") ds
 
