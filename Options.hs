@@ -107,7 +107,7 @@ endDateFromOpts opts =
 
 -- | Gather any ledger-style account/description pattern arguments into
 -- two lists.  These are 0 or more account patterns optionally followed by
--- 0 or more description patterns.
+-- -- and 0 or more description patterns.
 parseAccountDescriptionArgs :: [String] -> ([String],[String])
 parseAccountDescriptionArgs args = (as, ds')
     where (as, ds) = break (=="--") args

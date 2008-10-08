@@ -104,7 +104,7 @@ filterLedgerEntriesByDate begin end (RawLedger ms ps es f) =
 -- | Remove entries which have no transactions.
 filterEmptyLedgerEntries :: RawLedger -> RawLedger
 filterEmptyLedgerEntries (RawLedger ms ps es f) =
-    RawLedger ms ps (filter ((> 0) . length . etransactions) es) f
+    RawLedger ms ps (filter (not . null . etransactions) es) f
 
 -- | In each ledger entry, filter out transactions which do not match the
 -- account pattern. Entries are no longer balanced after this.

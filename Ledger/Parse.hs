@@ -268,7 +268,7 @@ ledgeraccountname = do
       accountnamechar = alphaNum <|> oneOf ":/_" <?> "account name character"
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
       -- couldn't avoid consuming a final space sometimes, harmless
-      striptrailingspace s = if last s == ' ' then take (length s - 1) s else s
+      striptrailingspace s = if last s == ' ' then init s else s
 
 ledgeramount :: Parser Amount
 ledgeramount = 
