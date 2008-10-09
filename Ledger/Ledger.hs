@@ -2,10 +2,9 @@
 
 A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
 names, a map from account names to 'Account's, and the display precision.
-Typically it has also has had the uninteresting 'Entry's and
-'Transaction's filtered out.
-
-Also, the account filter pattern is stored.
+Typically it has also has had the uninteresting 'Entry's filtered out.
+In addition, it stores the account filter pattern and a second set of fields
+providing the filtered entries & transactions.
 
 -}
 
@@ -97,8 +96,6 @@ cacheLedger acctpat l =
 -- patterns.
 filterLedgerEntries :: String -> String -> Regex -> Regex -> RawLedger -> RawLedger
 filterLedgerEntries begin end acctpat descpat = 
---    strace .
---    filterLedgerEntriesByTransactionAccount acctpat .
     filterLedgerEntriesByDate begin end .
     filterLedgerEntriesByDescription descpat
 
@@ -126,38 +123,6 @@ filterLedgerEntriesByDate begin end (RawLedger ms ps es f) =
                       begindate = parsedate begin :: UTCTime
                       enddate   = parsedate end
                       entrydate = parsedate $ edate e
-
--- | Keep only entries which have at least one transaction with an account
--- whose (leaf) name matches the pattern.
-filterLedgerEntriesByTransactionAccount :: Regex -> RawLedger -> RawLedger
-filterLedgerEntriesByTransactionAccount acctpat l@(RawLedger _ _ es _) = 
-    l{entries=filter matchentry es}
-    where
-      matchentry = any matchtxn . etransactions
-      matchtxn = containsRegex acctpat . accountLeafName . taccount
-
--- -- | Remove entries which have no transactions.
--- filterEmptyLedgerEntries :: RawLedger -> RawLedger
--- filterEmptyLedgerEntries (RawLedger ms ps es f) =
---     RawLedger ms ps (filter (not . null . etransactions) es) f
-
--- -- | In each ledger entry, filter out transactions which do not match the
--- -- matcher. Entries are no longer balanced after this.
--- filterLedgerTransactionsBy :: (RawTransaction -> Bool) -> RawLedger -> RawLedger
--- filterLedgerTransactionsBy matcher (RawLedger ms ps es f) = 
---     RawLedger ms ps (map filterentrytxns es) f
---     where
---       filterentrytxns e@(Entry _ _ _ _ _ ts _) = e{etransactions=filter matcher ts}
-
-matchtxnacctname :: Regex -> RawTransaction -> Bool
-matchtxnacctname acctpat t = case matchRegex acctpat (taccount t) of
-                       Nothing -> False
-                       otherwise -> True
-
-matchtxnleafname :: Regex -> RawTransaction -> Bool
-matchtxnleafname acctpat t = case matchRegex acctpat (accountLeafName $ taccount t) of
-                       Nothing -> False
-                       otherwise -> True
 
 -- | List a 'Ledger' 's account names.
 accountnames :: Ledger -> [AccountName]
@@ -340,7 +305,7 @@ showAccountTree l maxdepth = showAccountTree' l maxdepth 0 ""
 
 showAccountTree' :: Ledger -> Int -> Int -> String -> Tree Account -> String
 showAccountTree' l maxdepth indentlevel prefix t
-    -- prefix boring inner account names to the next line
+    -- merge boring inner account names with the next line
     | isBoringInnerAccount l maxdepth acct = subsindented 0 (fullname++":")
     -- ditto with unmatched parent accounts when filtering by account
     |  filtering && doesnotmatch = subsindented 0 (fullname++":")
@@ -376,14 +341,4 @@ isBoringInnerAccount l maxdepth a
 -- | Is the named account a boring inner account in this ledger ?
 isBoringInnerAccountName :: Ledger -> Int -> AccountName -> Bool
 isBoringInnerAccountName l maxdepth = isBoringInnerAccount l maxdepth . ledgerAccount l
-
--- | Remove boring branches (and leaves) from a tree of accounts.
--- A boring branch contains only accounts which have a 0 balance or no
--- transactions.
--- pruneBoringBranches :: Tree Account -> Tree Account
--- pruneBoringBranches =
---     treefilter hastxns . treefilter hasbalance
---     where 
---       hasbalance = (/= 0) . abalance
---       hastxns = (> 0) . length . atransactions
 
