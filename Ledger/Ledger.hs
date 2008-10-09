@@ -162,88 +162,99 @@ printregister l = putStr $ showTransactionsWithBalances
 This and the helper functions below generate ledger-compatible balance
 report output. Here's how it should work:
 
-a sample account tree:
+A sample account tree (as in the sample.ledger file):
 
 @
-assets
- cash
- checking
- saving
-equity
-expenses
- food
- shelter
-income
- salary
-liabilities
- debts
+ assets
+  cash
+  checking
+  saving
+ expenses
+  food
+  supplies
+ income
+  gifts
+  salary
+ liabilities
+  debts
 @
 
-The standard balance command shows all top-level accounts:
+The balance command shows top-level accounts by default:
 
 @
-\> ledger balance
-$ assets      
-$ equity
-$ expenses    
-$ income      
-$ liabilities 
+ \> ledger balance
+ $-1  assets
+  $2  expenses
+ $-2  income
+  $1  liabilities
 @
 
-With an account pattern, show only the ones with matching names:
+With -s (--showsubs), also show the subaccounts:
 
 @
-\> ledger balance asset
-$ assets      
+ $-1  assets
+ $-2    cash
+  $1    saving
+  $2  expenses
+  $1    food
+  $1    supplies
+ $-2  income
+ $-1    gifts
+ $-1    salary
+  $1  liabilities:debts
 @
 
-With -s, show all subaccounts of matched accounts:
+- @checking@ is not shown because it has a zero balance and no interesting
+  subaccounts.  
+
+- @liabilities@ is displayed only as a prefix because it has no transactions
+  of its own and only one subaccount.
+
+With an account pattern, show only the accounts with matching names:
 
 @
-\> ledger -s balance asset
-$ assets      
-$  cash       
-$  checking   
-$  saving
+ \> ledger balance o
+  $1  expenses:food
+ $-2  income
+--------------------
+ $-1  
 @
 
-Elide boring accounts in two ways:
+- The o matched @food@ and @income@, so they are shown.
+
+- Parents of matched accounts are also shown for context (@expenses@).
+
+- This time the grand total is also shown, because it is not zero.
+
+Again, -s adds the subaccounts:
+
+@
+\> ledger -s balance o
+  $1  expenses:food
+ $-2  income
+ $-1    gifts
+ $-1    salary
+--------------------
+ $-1  
+@
+
+- @food@ has no subaccounts. @income@ has two, so they are shown. 
+
+- We do not add the subaccounts of parents included for context (@expenses@).
+
+Here are some rules for account balance display, as seen above:
+
+- grand total is omitted if it is 0
 
 - leaf accounts and branches with 0 balance or 0 transactions are omitted
 
 - inner accounts with 0 transactions and 1 subaccount are displayed inline
 
-so this:
+- in a filtered report, matched accounts are displayed with their parents
+  inline (a consequence of the above)
 
-@
-a (0 txns)
-  b (0 txns)
-    c
-      d
-e (0 txns)
-  f
-  g
-h (0 txns)
-  i (0 balance)
-@
+- in a showsubs report, all subaccounts of matched accounts are displayed
 
-is displayed like:
-
-@
-a:b:c
-  d
-e
-  f
-  g
-@
-
-If the overall balance of accounts shown is non-zero (eg when using filter
-patterns), display it:
-
-@
---------------------
-                   $
-@
 -}
 showLedgerAccountBalances :: Ledger -> Int -> String
 showLedgerAccountBalances l maxdepth = 

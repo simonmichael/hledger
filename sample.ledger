@@ -6,17 +6,25 @@
 ;   checking
 ;   saving
 ; expenses
-;   banking
 ;   food
 ;   supplies
 ; income
+;   gifts
 ;   salary
 ; liabilities
 ;   debts
 
-2007/01/01 save
-    assets:saving  $1000
+2007/01/01 income
+    assets:checking  $1
     income:salary
+
+2007/01/01 gift
+    assets:checking  $1
+    income:gifts
+
+2007/01/01 save
+    assets:saving  $1
+    assets:checking
 
 2007/01/01 * eat & shop
     expenses:food      $1
@@ -24,12 +32,5 @@
     assets:cash
 
 2008/1/1 * pay off
-    liabilities:debts  $0.99
+    liabilities:debts  $1
     assets:checking
-
-2008/01/21 atm
-    assets:cash                               $40.00
-    expenses:banking                           $2.00
-    expenses:banking                           $2.00
-    assets:checking                          $-44.00
-
