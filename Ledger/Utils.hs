@@ -35,6 +35,24 @@ import Data.Time.Clock (UTCTime, diffUTCTime)
 import Data.Time.Format (ParseTime, parseTime, formatTime)
 
 
+-- regexps
+
+instance Show Regex where show r = "a Regex"
+
+-- | convert a list of strings to a regular expression matching any of them,
+-- or a wildcard if there are none.
+regexFor :: [String] -> Regex
+regexFor [] = wildcard
+regexFor ss = mkRegex $ concat $ ["("] ++ (intersperse "|" ss) ++ [")"]
+
+wildcard :: Regex
+wildcard = mkRegex ".*"
+
+containsRegex :: Regex -> String -> Bool
+containsRegex r s = case matchRegex r s of
+                      Just _ -> True
+                      otherwise -> False
+
 -- time
 
 -- | Parse a date-time string to a time type, or raise an error.
@@ -66,7 +84,6 @@ splitAtElement e l =
 
 -- trees
 
--- aliases
 root = rootLabel
 branches = subForest
 

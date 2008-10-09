@@ -6,9 +6,6 @@ ledgerFilePathFromOpts,
 beginDateFromOpts,
 endDateFromOpts,
 parseAccountDescriptionArgs,
-regexFor, 
-nullpats, 
-wildcard, 
 )
 where
 import System
@@ -112,17 +109,6 @@ parseAccountDescriptionArgs :: [String] -> ([String],[String])
 parseAccountDescriptionArgs args = (as, ds')
     where (as, ds) = break (=="--") args
           ds' = dropWhile (=="--") ds
-
--- | convert a list of strings to a regular expression matching any of them,
--- or a wildcard if there are none.
-regexFor :: [String] -> Regex
-regexFor [] = wildcard
-regexFor ss = mkRegex $ concat $ ["("] ++ (intersperse "|" ss) ++ [")"]
-
-wildcard :: Regex
-wildcard = mkRegex ".*"
-
-nullpats = (wildcard,wildcard)
 
 -- testoptions RequireOrder ["foo","-v"]
 -- testoptions Permute ["foo","-v"]
