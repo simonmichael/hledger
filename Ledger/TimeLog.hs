@@ -56,7 +56,7 @@ entryFromTimeLogInOut i o =
       outdate  = showDateFrom outtime
       intime   = parsedatetime $ tldatetime i
       outtime  = parsedatetime $ tldatetime o
-      hours    = fromRational (toRational (diffUTCTime outtime intime) / 3600) -- whatever..
+      hours    = realToFrac (diffUTCTime outtime intime) / 3600
       amount   = Amount (getcurrency "h") hours 1
       txns     = [RawTransaction acctname amount "", RawTransaction "assets:TIME" (-amount) ""]
 
