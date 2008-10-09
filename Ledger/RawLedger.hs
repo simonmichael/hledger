@@ -17,10 +17,13 @@ import Ledger.Transaction
 
 
 instance Show RawLedger where
-    show l = printf "RawLedger with %d entries"
+    show l = printf "RawLedger with %d entries, %d accounts: %s"
              ((length $ entries l) +
               (length $ modifier_entries l) +
               (length $ periodic_entries l))
+             (length accounts)
+             (show accounts)
+             where accounts = flatten $ rawLedgerAccountNameTree l
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
 rawLedgerTransactions = txns . entries
