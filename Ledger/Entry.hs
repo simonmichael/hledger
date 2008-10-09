@@ -33,7 +33,8 @@ balwidth  = 12
 @
 -}
 
-showEntryDescription e = (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
+showEntryDescription e = 
+    (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
 showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
