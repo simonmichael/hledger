@@ -37,11 +37,14 @@ import Ledger.Entry
 
 
 instance Show Ledger where
-    show l = printf "Ledger with %d entries, %d accounts"
+    show l = printf "Ledger with %d entries, %d accounts: %s"
              ((length $ entries $ rawledger l) +
               (length $ modifier_entries $ rawledger l) +
               (length $ periodic_entries $ rawledger l))
              (length $ accountnames l)
+             (show $ accountnames l)
+             ++ "\n" ++ (showtree $ accountnametree l)
+             ++ "\n" ++ (showtree $ filteredaccountnametree l)
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
 cacheLedger :: RawLedger -> Ledger
