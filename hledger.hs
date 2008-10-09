@@ -75,7 +75,7 @@ balance opts args = parseLedgerAndDo opts args printbalance
       printbalance l = putStr $ showLedgerAccountBalances l depth
           where 
             showsubs = (ShowSubs `elem` opts)
-            pats = parseAccountDescriptionArgs args
+            pats@(acctpats,descpats) = parseAccountDescriptionArgs args
             depth = case (pats, showsubs) of
                       -- when there is no -s or pattern args, show with depth 1
                       (([],[]), False) -> 1
@@ -87,7 +87,7 @@ parseLedgerAndDo :: [Opt] -> [String] -> (Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = 
     ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runthecommand
     where
-      runthecommand = cmd . cacheLedger . filterLedger begin end aregex dregex
+      runthecommand = cmd . cacheLedger aregex . filterLedgerEntries begin end aregex dregex
       begin = beginDateFromOpts opts
       end = endDateFromOpts opts
       aregex = regexFor acctpats
@@ -107,7 +107,7 @@ rawledger = do
 ledger :: IO Ledger
 ledger = do
   l <- rawledger
-  return $ cacheLedger $ filterLedger "" "" wildcard wildcard l
+  return $ cacheLedger wildcard $ filterLedgerEntries "" "" wildcard wildcard l
 
 -- | get a Ledger from the given file path
 rawledgerfromfile :: String -> IO RawLedger

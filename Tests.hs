@@ -19,7 +19,8 @@ assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
 assertParseEqual expected parsed = either printParseError (assertEqual " " expected) parsed
 
 -- find tests with template haskell
---
+-- import Language.Haskell.Parser
+-- 
 -- {-# OPTIONS_GHC -fno-warn-unused-imports -no-recomp -fth #-}
 -- {- ghc --make Unit.hs -main-is Unit.runTests -o unit -}
 -- runTests :: IO ()
@@ -282,7 +283,7 @@ ledger7 = RawLedger
           ]
           ""
 
-l7 = cacheLedger ledger7
+l7 = cacheLedger wildcard ledger7 
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
@@ -373,7 +374,7 @@ test_ledgerAccountNames =
     (accountnames l7)
 
 test_cacheLedger =
-    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger ledger7)
+    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger wildcard ledger7 )
 
 test_showLedgerAccounts = 
     assertEqual' 4 (length $ lines $ showLedgerAccountBalances l7 1)

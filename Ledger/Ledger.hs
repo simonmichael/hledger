@@ -5,11 +5,13 @@ names, a map from account names to 'Account's, and the display precision.
 Typically it has also has had the uninteresting 'Entry's and
 'Transaction's filtered out.
 
+Also, the account filter pattern is stored.
+
 -}
 
 module Ledger.Ledger (
 cacheLedger,
-filterLedger,
+filterLedgerEntries,
 accountnames,
 ledgerAccount,
 ledgerTransactions,
@@ -21,7 +23,7 @@ showLedgerAccountBalances,
 showAccountTree,
 isBoringInnerAccount,
 isBoringInnerAccountName,
-pruneBoringBranches,
+-- pruneBoringBranches,
 )
 where
 import qualified Data.Map as Map
@@ -47,35 +49,56 @@ instance Show Ledger where
              ++ "\n" ++ (showtree $ filteredaccountnametree l)
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
-cacheLedger :: RawLedger -> Ledger
-cacheLedger l = 
+cacheLedger :: Regex -> RawLedger -> Ledger
+cacheLedger acctpat l = 
     let 
-        lprecision = maximum $ map (precision . amount) $ rawLedgerTransactions l
         ant = rawLedgerAccountNameTree l
-        ans = flatten ant
+        anames = flatten ant
         ts = rawLedgerTransactions l
         sortedts = sortBy (comparing account) ts
         groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
-        tmap = Map.union 
+        txnmap = Map.union 
                (Map.fromList [(account $ head g, g) | g <- groupedts])
-               (Map.fromList [(a,[]) | a <- ans])
-        txns = (tmap !)
-        subaccts a = filter (isAccountNamePrefixOf a) ans
-        subtxns a = concat [txns a | a <- [a] ++ subaccts a]
-        bmap = Map.union 
-               (Map.fromList [(a, (sumTransactions $ subtxns a){precision=lprecision}) | a <- ans])
-               (Map.fromList [(a,nullamt) | a <- ans])
-        amap = Map.fromList [(a, Account a (tmap ! a) (bmap ! a)) | a <- ans]
-    in
-      Ledger l ant amap lprecision
+               (Map.fromList [(a,[]) | a <- anames])
+        txnsof = (txnmap !)
+        subacctsof a = filter (isAccountNamePrefixOf a) anames
+        subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a]
+        balmap = Map.union 
+               (Map.fromList [(a, (sumTransactions $ subtxnsof a){precision=maxprecision}) | a <- anames])
+               (Map.fromList [(a,nullamt) | a <- anames])
+        amap = Map.fromList [(a, Account a (txnmap ! a) (balmap ! a)) | a <- anames]
+        -- the same again, considering only accounts and transactions matching the account pattern
+        matchacct :: AccountName -> Bool
+        matchacct = containsRegex acctpat . accountLeafName
+        filteredant = treefilter matchacct ant
+        -- rebuild the tree after filtering to include all parents
+        filteredanames = flatten $ accountNameTreeFrom $ filter matchacct anames
+        filteredts = filter (matchacct . account) ts
+        filteredsortedts = sortBy (comparing account) filteredts
+        filteredgroupedts = groupBy (\t1 t2 -> account t1 == account t2) filteredsortedts
+        filteredtxnmap = Map.union 
+               (Map.fromList [(account $ head g, g) | g <- filteredgroupedts])
+               (Map.fromList [(a,[]) | a <- filteredanames])
+        filteredtxnsof = (filteredtxnmap !)
+        filteredsubacctsof a = filter (isAccountNamePrefixOf a) filteredanames
+        filteredsubtxnsof a = concat [filteredtxnsof a | a <- [a] ++ filteredsubacctsof a]
+        filteredbalmap = Map.union 
+               (Map.fromList [(a, (sumTransactions $ filteredsubtxnsof a){precision=maxprecision}) | a <- filteredanames])
+               (Map.fromList [(a,nullamt) | a <- filteredanames])
+        filteredamap = Map.fromList [(a, Account a (filteredtxnmap ! a) (filteredbalmap ! a)) | a <- filteredanames]
 
--- | Remove ledger entries and transactions we are not interested in - 
--- keep only those which fall between the begin and end dates and match the
--- account and description patterns.
-filterLedger :: String -> String -> Regex -> Regex -> RawLedger -> RawLedger
-filterLedger begin end acctpat descpat = 
-    filterEmptyLedgerEntries .
-    filterLedgerTransactions acctpat .
+        maxprecision = maximum $ map (precision . amount) ts
+    in
+      Ledger l ant amap maxprecision acctpat filteredant filteredamap
+
+-- | Remove ledger entries we are not interested in.
+-- Keep only those which fall between the begin and end dates, match the
+-- description patterns, or transact with an account matching the account
+-- patterns.
+filterLedgerEntries :: String -> String -> Regex -> Regex -> RawLedger -> RawLedger
+filterLedgerEntries begin end acctpat descpat = 
+--    strace .
+--    filterLedgerEntriesByTransactionAccount acctpat .
     filterLedgerEntriesByDate begin end .
     filterLedgerEntriesByDescription descpat
 
@@ -104,29 +127,53 @@ filterLedgerEntriesByDate begin end (RawLedger ms ps es f) =
                       enddate   = parsedate end
                       entrydate = parsedate $ edate e
 
--- | Remove entries which have no transactions.
-filterEmptyLedgerEntries :: RawLedger -> RawLedger
-filterEmptyLedgerEntries (RawLedger ms ps es f) =
-    RawLedger ms ps (filter (not . null . etransactions) es) f
-
--- | In each ledger entry, filter out transactions which do not match the
--- account pattern. Entries are no longer balanced after this.
-filterLedgerTransactions :: Regex -> RawLedger -> RawLedger
-filterLedgerTransactions acctpat (RawLedger ms ps es f) = 
-    RawLedger ms ps (map filterentrytxns es) f
+-- | Keep only entries which have at least one transaction with an account
+-- whose (leaf) name matches the pattern.
+filterLedgerEntriesByTransactionAccount :: Regex -> RawLedger -> RawLedger
+filterLedgerEntriesByTransactionAccount acctpat l@(RawLedger _ _ es _) = 
+    l{entries=filter matchentry es}
     where
-      filterentrytxns l@(Entry _ _ _ _ _ ts _) = l{etransactions=filter matchtxn ts}
-      matchtxn t = case matchRegex acctpat (taccount t) of
-                     Nothing -> False
-                     otherwise -> True
+      matchentry = any matchtxn . etransactions
+      matchtxn = containsRegex acctpat . accountLeafName . taccount
+
+-- -- | Remove entries which have no transactions.
+-- filterEmptyLedgerEntries :: RawLedger -> RawLedger
+-- filterEmptyLedgerEntries (RawLedger ms ps es f) =
+--     RawLedger ms ps (filter (not . null . etransactions) es) f
+
+-- -- | In each ledger entry, filter out transactions which do not match the
+-- -- matcher. Entries are no longer balanced after this.
+-- filterLedgerTransactionsBy :: (RawTransaction -> Bool) -> RawLedger -> RawLedger
+-- filterLedgerTransactionsBy matcher (RawLedger ms ps es f) = 
+--     RawLedger ms ps (map filterentrytxns es) f
+--     where
+--       filterentrytxns e@(Entry _ _ _ _ _ ts _) = e{etransactions=filter matcher ts}
+
+matchtxnacctname :: Regex -> RawTransaction -> Bool
+matchtxnacctname acctpat t = case matchRegex acctpat (taccount t) of
+                       Nothing -> False
+                       otherwise -> True
+
+matchtxnleafname :: Regex -> RawTransaction -> Bool
+matchtxnleafname acctpat t = case matchRegex acctpat (accountLeafName $ taccount t) of
+                       Nothing -> False
+                       otherwise -> True
 
 -- | List a 'Ledger' 's account names.
 accountnames :: Ledger -> [AccountName]
 accountnames l = drop 1 $ flatten $ accountnametree l
 
+-- | List a 'Ledger' 's account names filtered by the account match pattern.
+filteredaccountnames :: Ledger -> [AccountName]
+filteredaccountnames l = filter (containsRegex (acctpat l) . accountLeafName) $ accountnames l
+
 -- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
 ledgerAccount l a = (accounts l) ! a
+
+-- | Get the named filtered account from a ledger.
+ledgerFilteredAccount :: Ledger -> AccountName -> Account
+ledgerFilteredAccount l a = (filteredaccounts l) ! a
 
 -- | List a ledger's transactions.
 --
@@ -141,14 +188,28 @@ ledgerTransactions l =
       setprecisions = map (transactionSetPrecision (lprecision l))
 
 -- | Get a ledger's tree of accounts to the specified depth.
-ledgerAccountTree :: Ledger -> Int -> Tree Account
-ledgerAccountTree l depth = 
-    addDataToAccountNameTree l $ treeprune depth $ accountnametree l
+ledgerAccountTree :: Int -> Ledger -> Tree Account
+ledgerAccountTree depth l = 
+    addDataToAccountNameTree l depthpruned
+    where
+      nametree = filteredaccountnametree l --
+      depthpruned = treeprune depth nametree
+
+-- | Get a ledger's tree of accounts to the specified depth, filtered by
+-- the account pattern.
+ledgerFilteredAccountTree :: Int -> Regex -> Ledger -> Tree Account
+ledgerFilteredAccountTree depth acctpat l = 
+    addFilteredDataToAccountNameTree l $ treeprune depth $ filteredaccountnametree l
 
 -- | Convert a tree of account names into a tree of accounts, using their
 -- parent ledger.
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree = treemap . ledgerAccount
+
+-- | Convert a tree of account names into a tree of accounts, using their
+-- parent ledger's filtered account data.
+addFilteredDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
+addFilteredDataToAccountNameTree l = treemap (ledgerFilteredAccount l)
 
 -- | Print a print report.
 printentries :: Ledger -> IO ()
@@ -261,62 +322,68 @@ Here are some rules for account balance display, as seen above:
 -}
 showLedgerAccountBalances :: Ledger -> Int -> String
 showLedgerAccountBalances l maxdepth = 
-    concatMap (showAccountTree l) bs
+    concatMap (showAccountTree l maxdepth) acctbranches
     ++
     if isZeroAmount total 
     then ""
     else printf "--------------------\n%20s\n" $ showAmountRounded total
     where 
-      bs = branches $ ledgerAccountTree l maxdepth
-      total = sum $ map (abalance . root) bs
+      acctbranches = branches $ ledgerAccountTree maxdepth l
+      filteredacctbranches = branches $ ledgerFilteredAccountTree maxdepth (acctpat l) l
+      total = sum $ map (abalance . root) filteredacctbranches
 
 -- | Get the string representation of a tree of accounts.
 -- The ledger from which the accounts come is also required, so that
 -- we can check for boring accounts.
-showAccountTree :: Ledger -> Tree Account -> String
-showAccountTree l = showAccountTree' l 0 . pruneBoringBranches
+showAccountTree :: Ledger -> Int -> Tree Account -> String
+showAccountTree l maxdepth = showAccountTree' l maxdepth 0 ""
 
-showAccountTree' :: Ledger -> Int -> Tree Account -> String
-showAccountTree' l indentlevel t
-    -- skip a boring inner account
-    | length subs > 0 && isBoringInnerAccount l acct = subsindented 0
-    -- otherwise show normal indented account name with balance, 
-    -- prefixing the names of any boring parents
-    | otherwise = 
-        bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n" ++ (subsindented 1)
+showAccountTree' :: Ledger -> Int -> Int -> String -> Tree Account -> String
+showAccountTree' l maxdepth indentlevel prefix t
+    -- prefix boring inner account names to the next line
+    | isBoringInnerAccount l maxdepth acct = subsindented 0 (fullname++":")
+    -- ditto with unmatched parent accounts when filtering by account
+    |  filtering && doesnotmatch = subsindented 0 (fullname++":")
+    -- otherwise show this account's name & balance
+    | otherwise = bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n" ++ (subsindented 1 "")
     where
       acct = root t
       subs = branches t
-      subsindented i = concatMap (showAccountTree' l (indentlevel+i)) subs
+      subsindented i p = concatMap (showAccountTree' l maxdepth (indentlevel+i) p) subs
       bal = printf "%20s" $ show $ abalance $ acct
       indent = replicate (indentlevel * 2) ' '
-      prefix = concatMap (++ ":") $ map accountLeafName $ reverse boringparents
-      boringparents = takeWhile (isBoringInnerAccountName l) $ parentAccountNames $ aname acct
-      leafname = accountLeafName $ aname acct
+      fullname = aname acct
+      leafname = accountLeafName fullname
+      filtering = filteredaccountnames l /= (accountnames l)
+      doesnotmatch = not (containsRegex (acctpat l) leafname)
 
 -- | Is this account a boring inner account in this ledger ? 
--- Boring inner accounts have no transactions and one subaccount.
-isBoringInnerAccount :: Ledger -> Account -> Bool
-isBoringInnerAccount l a
+-- Boring inner accounts have no transactions, one subaccount,
+-- and depth less than the maximum display depth.
+-- Also, they are unmatched parent accounts when account matching is in effect.
+isBoringInnerAccount :: Ledger -> Int -> Account -> Bool
+isBoringInnerAccount l maxdepth a
     | name == "top" = False
-    | (length txns == 0) && ((length subs) == 1) = True
+    | depth < maxdepth && numtxns == 0 && numsubs == 1 = True
     | otherwise = False
     where      
       name = aname a
-      txns = atransactions a
-      subs = subAccountNamesFrom (accountnames l) name
+      depth = accountNameLevel name
+      numtxns = length $ atransactions a
+      -- how many (filter-matching) subaccounts has this account ?
+      numsubs = length $ subAccountNamesFrom (filteredaccountnames l) name
 
 -- | Is the named account a boring inner account in this ledger ?
-isBoringInnerAccountName :: Ledger -> AccountName -> Bool
-isBoringInnerAccountName l = isBoringInnerAccount l . ledgerAccount l
+isBoringInnerAccountName :: Ledger -> Int -> AccountName -> Bool
+isBoringInnerAccountName l maxdepth = isBoringInnerAccount l maxdepth . ledgerAccount l
 
 -- | Remove boring branches (and leaves) from a tree of accounts.
 -- A boring branch contains only accounts which have a 0 balance or no
 -- transactions.
-pruneBoringBranches :: Tree Account -> Tree Account
-pruneBoringBranches =
-    treefilter hastxns . treefilter hasbalance
-    where 
-      hasbalance = (/= 0) . abalance
-      hastxns = (> 0) . length . atransactions
+-- pruneBoringBranches :: Tree Account -> Tree Account
+-- pruneBoringBranches =
+--     treefilter hastxns . treefilter hasbalance
+--     where 
+--       hasbalance = (/= 0) . abalance
+--       hastxns = (> 0) . length . atransactions
 
