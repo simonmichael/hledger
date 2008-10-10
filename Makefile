@@ -4,7 +4,7 @@ BUILDPROF=$(BUILD) -prof -auto-all
 PROFILE=./hledger -s balance +RTS -p
 TIME=`date +"%Y%m%d%H%M"`
 
-build: Tags
+build: tag
 	$(BUILD)
 
 buildopt opt: clean
@@ -99,7 +99,7 @@ clean-docs:
 
 # misc
 
-Tags:
+tag:
 	rm -f TAGS; hasktags -e *hs Ledger/*hs
 
 clean:
