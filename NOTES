@@ -5,39 +5,34 @@ Clarity of concepts, economy of features, efficiency and reliability of
 implementations were its consequences." --Niklaus Wirth
 
 * to do
-** TODO bugs/cleanup
-*** no total in filtered balance report
-*** register pat doesn't filter transactions
-*** two acct patterns broken
-*** better encapsulation/layering
-**** above/below cacheLedger ?
+** bugs
+*** balance reports & filtering are quirky/broken/different from ledger
+*** register doesn't filter
+** release 0.1
+*** cabal upload
+*** haskell-cafe/ledger announce
 ** ledger features
-*** handle arbitrary precision accurately
-*** handle non-convertible currencies
-*** handle time logs
-**** fix timelog parser
-**** handle time amounts
-     switch to Data.Time.*
-      fix errors
-       - read seconds to pico
-       try System.Time ?
-*** - account/description patterns
-*** -p period expressions
-*** !include
-*** -j and -J graph data output
-*** more speed
+*** handle right-hand currency symbols
+*** -C
+*** negative patterns
+*** darcs-style--version
+*** ledger 2.6-style elision
 *** full per-currency precision & thousands separator handling
-*** ledger 3-style elision
-*** -d display expressions
-*** read gnucash files
-*** other ledger 3 features
-*** single space before currency can parse as an auto transaction
+*** handle mixed-currency amounts
+*** more speed
+*** other ledger 2.6 features
+**** !include
+**** -d display expressions
+**** -j and -J graph data output
+**** read gnucash files
 ** new features
+*** multiple -f
+*** alternate easier command-line ui
 *** alternate timelog format
-*** infer clock-out
-*** graph automation
-*** entry and smart data entry
-*** incorporate timeclock features
+*** show in/out times in timelog entry descriptions
+*** graphs
+*** smart data entry
+*** timeclock.el features
 *** better layout
 ** testing
 *** better use of quickcheck/smallcheck
@@ -45,7 +40,6 @@ implementations were its consequences." --Niklaus Wirth
 *** ledger compatibility tests
 ** documentation
 *** literate manual
-*** better use of haddock
 *** differences/issues
 **** ledger does not support -f- (without space)
 **** ledger shows description comments as part of description, we do the same
@@ -54,7 +48,9 @@ implementations were its consequences." --Niklaus Wirth
 **** ledger balance with an account pattern shows a redundant total
 **** hledger does not choose symbol separation, thousands separators, and precision based on first entry of each currency
      (currently: chooses precision for all currencies based on first entry)
-**** hledger does not parse automated/periodic entries except at start of file
+**** hledger does not track currency/precision in as much detail
+**** hledger ignores automated/periodic entries
+**** hledger shows .00
 * things I want to know
 ** time
 where have I been spending my time in recent weeks ?

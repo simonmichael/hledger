@@ -27,8 +27,3 @@ hledger reg -- shop
 This version of hledger mimics ledger 2.5 closely, 
 see the ledger manual for more info:
 <http://joyful.com/repos/hledger/doc/ledger.html>.
-
-Bugs:
-
-* timelog balance report shows all accounts when it shouldn't
-* timelog balance total is a little off compared to ledger
