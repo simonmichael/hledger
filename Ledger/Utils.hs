@@ -5,36 +5,37 @@ Standard always-available imports and utilities.
 -}
 
 module Ledger.Utils (
-module Ledger.Utils,
 module Char,
 module Data.List,
-module Data.Tree,
-module Data.Ord,
+--module Data.Map,
 module Data.Maybe,
+module Data.Ord,
+module Data.Time.Clock,
+module Data.Time.Format,
+module Data.Tree,
+module Debug.Trace,
+module Ledger.Utils,
+module System.Locale,
+module Test.HUnit,
+module Test.QuickCheck,
 module Text.Printf,
 module Text.Regex,
-module Debug.Trace,
-module Test.QuickCheck,
-module Test.HUnit,
-module System.Locale,
-module Data.Time.Clock,
-module Data.Time.Format
 )
 where
 import Char
 import Data.List
-import Data.Tree
-import qualified Data.Map
-import Data.Ord
+--import qualified Data.Map as Map
 import Data.Maybe
-import Text.Printf
-import Text.Regex
-import Debug.Trace
-import Test.QuickCheck hiding (test, Testable)
-import Test.HUnit
-import System.Locale (defaultTimeLocale)
+import Data.Ord
 import Data.Time.Clock (UTCTime, diffUTCTime)
 import Data.Time.Format (ParseTime, parseTime, formatTime)
+import Data.Tree
+import Debug.Trace
+import System.Locale (defaultTimeLocale)
+import Test.HUnit
+import Test.QuickCheck hiding (test, Testable)
+import Text.Printf
+import Text.Regex
 
 
 -- regexps

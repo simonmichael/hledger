@@ -32,13 +32,10 @@ This module includes some helpers for working with your ledger in ghci. Examples
 
 module Main
 where
-import System
 import qualified Data.Map as Map (lookup)
+import Ledger
 import Options
 import Tests
-import Ledger.Parse
-import Ledger.Utils
-import Ledger
 
 
 main :: IO ()

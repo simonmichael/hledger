@@ -9,7 +9,6 @@ module Ledger.RawTransaction
 where
 import Ledger.Utils
 import Ledger.Types
-import Ledger.AccountName
 import Ledger.Amount
 
 

@@ -7,7 +7,6 @@ the cached 'Ledger'.
 
 module Ledger.RawLedger
 where
-import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName

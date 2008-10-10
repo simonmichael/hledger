@@ -8,9 +8,9 @@ currently hard-coded.
 module Ledger.Currency
 where
 import qualified Data.Map as Map
-import Data.Map ((!))
 import Ledger.Utils
 import Ledger.Types
+
 
 currencies = 
     [

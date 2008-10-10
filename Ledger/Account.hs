@@ -10,11 +10,7 @@ module Ledger.Account
 where
 import Ledger.Utils
 import Ledger.Types
-import Ledger.AccountName
 import Ledger.Amount
-import Ledger.Entry
-import Ledger.RawTransaction
-import Ledger.Transaction
 
 
 instance Show Account where

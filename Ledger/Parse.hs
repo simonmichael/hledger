@@ -6,7 +6,6 @@ Parsers for standard ledger and timelog files.
 
 module Ledger.Parse
 where
-import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
@@ -44,7 +43,7 @@ ledgerLanguageDef = LanguageDef {
 lexer      = P.makeTokenParser ledgerLanguageDef
 whiteSpace = P.whiteSpace lexer
 lexeme     = P.lexeme lexer
-symbol     = P.symbol lexer
+--symbol     = P.symbol lexer
 natural    = P.natural lexer
 parens     = P.parens lexer
 semi       = P.semi lexer

@@ -9,11 +9,9 @@ module Ledger.Transaction
 where
 import Ledger.Utils
 import Ledger.Types
-import Ledger.AccountName
 import Ledger.Entry
 import Ledger.RawTransaction
 import Ledger.Amount
-import Ledger.Currency
 
 
 instance Show Transaction where 
