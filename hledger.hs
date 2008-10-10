@@ -11,23 +11,6 @@ simple ledger-compatible register & balance reports from a plain text
 ledger file, and demonstrates a (naive) purely functional
 implementation of ledger.
 
-This module includes some helpers for working with your ledger in ghci. Examples:
-
-> $ rm -f hledger.o
-> $ ghci hledger.hs
-> *Main> l <- ledger
-> Ledger with 696 entries, 132 accounts
-> *Main> putStr $ drawTree $ treemap show $ accountnametree l
-> ...
-> *Main> putStr $ showLedgerAccountBalances l 1
-> ...
-> *Main> printregister l
-> ...
-> *Main> accounts l
-> ...
-> *Main> accountnamed "expenses:food:groceries"
-> Account expenses:food:groceries with 60 transactions
-
 -}
 
 module Main
@@ -49,7 +32,7 @@ main = do
       run cmd opts args
        | Help `elem` opts            = putStr usage
        | Version `elem` opts         = putStr version
-       | cmd `isPrefixOf` "selftest" = hunit >> quickcheck >> return ()
+       | cmd `isPrefixOf` "selftest" = hunit >> return ()
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args printentries
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args printregister
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args printbalance
@@ -68,10 +51,8 @@ parseLedgerAndDo opts args cmd =
       descpat = regexFor descpats
       (acctpats,descpats) = parseAccountDescriptionArgs args
 
--- ghci helpers
-
--- | get a RawLedger from the file your LEDGER environment variable points to
--- or (WARNING) an empty one if there was a problem.
+-- | get a RawLedger from the file your LEDGER environment
+-- variable points to or (WARNING) an empty one if there was a problem.
 myrawledger :: IO RawLedger
 myrawledger = do
   parsed <- ledgerFilePathFromOpts [] >>= parseLedgerFile
@@ -90,6 +71,25 @@ rawledgerfromfile f = do
   return $ either (\_ -> RawLedger [] [] [] "") id parsed
 
 -- | get a named account from your ledger file
+{-|
+The above are helpers for working with your ledger in ghci. Examples:
+
+> $ rm -f hledger.o
+> $ ghci hledger.hs
+> *Main> l <- myledger
+> Ledger with 696 entries, 132 accounts
+> *Main> putStr $ drawTree $ treemap show $ accountnametree l
+> ...
+> *Main> putStr $ showLedgerAccountBalances l 1
+> ...
+> *Main> printregister l
+> ...
+> *Main> accounts l
+> ...
+> *Main> accountnamed "expenses:food:groceries"
+> Account expenses:food:groceries with 60 transactions
+
+-}
 accountnamed :: AccountName -> IO Account
 accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
 
