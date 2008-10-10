@@ -5,8 +5,8 @@ Released under GPL version 3 or later.
 
 This is a minimal haskell clone of John Wiegley's ledger
 <http://newartisans.com/software/ledger.html>.  hledger does basic
-register & balance reports, and demonstrates a (naive) purely
-functional implementation of ledger.
+register & balance reports, and demonstrates a functional implementation
+of ledger.
 
 Installation:
 
