@@ -1,6 +1,6 @@
 module Options (
 Opt(..), 
-usage, 
+usage, version,
 parseArguments, 
 ledgerFilePathFromOpts,
 beginDateFromOpts,
@@ -31,8 +31,8 @@ options = [
  Option ['b'] ["begin"]        (ReqArg Begin "yyyy/mm/dd") "report on entries from this date (inclusive)",
  Option ['e'] ["end"]          (ReqArg End "yyyy/mm/dd")   "report on entries to this date (exclusive)",
  Option ['s'] ["showsubs"]     (NoArg  ShowSubs)           "balance report: show subaccounts",
- Option ['h'] ["help","usage"] (NoArg  Help)               "show this help"
- --Option ['V'] ["version"]      (NoArg  Version)            "show version"
+ Option ['h'] ["help","usage"] (NoArg  Help)               "show this help",
+ Option ['V'] ["version"]      (NoArg  Version)            "show version"
  ]
 
 -- | An option value from a command-line flag.
@@ -46,6 +46,8 @@ data Opt =
     deriving (Show,Eq)
 
 usage = usageInfo usagehdr options
+
+version = "hledger version 0.1 alpha\n"
 
 -- | Parse the command-line arguments into ledger options, ledger command
 -- name, and ledger command arguments

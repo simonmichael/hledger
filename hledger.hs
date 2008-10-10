@@ -48,6 +48,7 @@ main = do
   run cmd opts args
     where run cmd opts args
               | Help `elem` opts            = putStr usage
+              | Version `elem` opts         = putStr version
               | cmd `isPrefixOf` "selftest" = selftest opts args
               | cmd `isPrefixOf` "print"    = print_   opts args
               | cmd `isPrefixOf` "register" = register opts args
