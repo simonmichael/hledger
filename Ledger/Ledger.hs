@@ -74,39 +74,6 @@ cacheLedger acctpat l =
     in
       Ledger l ant amap maxprecision acctpat filteredant filteredamap
 
--- | Remove ledger entries we are not interested in.
--- Keep only those which fall between the begin and end dates, and match
--- the description patterns.
-filterLedgerEntries :: String -> String -> Regex -> RawLedger -> RawLedger
-filterLedgerEntries begin end descpat = 
-    filterLedgerEntriesByDate begin end .
-    filterLedgerEntriesByDescription descpat
-
--- | Keep only entries whose description matches the description pattern.
-filterLedgerEntriesByDescription :: Regex -> RawLedger -> RawLedger
-filterLedgerEntriesByDescription descpat (RawLedger ms ps es f) = 
-    RawLedger ms ps (filter matchdesc es) f
-    where
-      matchdesc :: Entry -> Bool
-      matchdesc e = case matchRegex descpat (edescription e) of
-                      Nothing -> False
-                      otherwise -> True
-
--- | Keep only entries which fall between begin and end dates. 
--- We include entries on the begin date and exclude entries on the end
--- date, like ledger.  An empty date string means no restriction.
-filterLedgerEntriesByDate :: String -> String -> RawLedger -> RawLedger
-filterLedgerEntriesByDate begin end (RawLedger ms ps es f) = 
-    RawLedger ms ps (filter matchdate es) f
-    where
-      matchdate :: Entry -> Bool
-      matchdate e = (begin == "" || entrydate >= begindate) && 
-                    (end == "" || entrydate < enddate)
-                    where 
-                      begindate = parsedate begin :: UTCTime
-                      enddate   = parsedate end
-                      entrydate = parsedate $ edate e
-
 -- | List a 'Ledger' 's account names.
 accountnames :: Ledger -> [AccountName]
 accountnames l = drop 1 $ flatten $ accountnametree l

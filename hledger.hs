@@ -61,7 +61,7 @@ parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) 
 parseLedgerAndDo opts args cmd = 
     ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runthecommand
     where
-      runthecommand = cmd opts args . cacheLedger acctpat . filterLedgerEntries begin end descpat
+      runthecommand = cmd opts args . cacheLedger acctpat . filterRawLedgerEntries begin end descpat
       begin = beginDateFromOpts opts
       end = endDateFromOpts opts
       acctpat = regexFor acctpats
@@ -81,7 +81,7 @@ myrawledger = do
 myledger :: IO Ledger
 myledger = do
   l <- myrawledger
-  return $ cacheLedger wildcard $ filterLedgerEntries "" "" wildcard l
+  return $ cacheLedger wildcard $ filterRawLedgerEntries "" "" wildcard l
 
 -- | get a Ledger from the given file path
 rawledgerfromfile :: String -> IO RawLedger
