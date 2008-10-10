@@ -131,19 +131,13 @@ showLedgerAccountBalances l maxdepth =
     then ""
     else printf "--------------------\n%20s\n" $ showAmountRounded total
     where 
-      acctbranches = branches $ pruneBoringBranches $ ledgerAccountTree maxdepth l
+      acctbranches = branches $ pruneZeroBalanceBranches $ ledgerAccountTree maxdepth l
       filteredacctbranches = branches $ ledgerFilteredAccountTree maxdepth (acctpat l) l
       total = sum $ map (abalance . root) filteredacctbranches
 
--- | Remove boring branches and leaves from a tree of accounts.
--- A boring branch contains only accounts which have a 0 balance.
-pruneBoringBranches :: Tree Account -> Tree Account
-pruneBoringBranches =
---    treefilter hastxns . 
-    treefilter hasbalance
-    where 
-      hasbalance = not . isZeroAmount . abalance
-      hastxns = (> 0) . length . atransactions
+-- | Remove all-zero-balance branches and leaves from a tree of accounts.
+pruneZeroBalanceBranches :: Tree Account -> Tree Account
+pruneZeroBalanceBranches = treefilter (not . isZeroAmount . abalance)
 
 -- | Get the string representation of a tree of accounts.
 -- The ledger from which the accounts come is required so that

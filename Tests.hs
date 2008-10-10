@@ -93,10 +93,10 @@ tests =
         assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
         assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
 
-        ,"pruneBoringBranches" ~: do
+        ,"pruneZeroBalanceBranches" ~: do
            atree <- liftM (ledgerAccountTree 99) $ ledgerfromfile "sample.ledger"
            assertequal 13 (length $ flatten $ atree)
-           assertequal 12 (length $ flatten $ pruneBoringBranches $ atree)
+           assertequal 12 (length $ flatten $ pruneZeroBalanceBranches $ atree)
  ]
 
 balancecommandtests = 
