@@ -22,6 +22,7 @@ import BalanceCommand
 import PrintCommand
 import RegisterCommand
 import Tests
+import Utils
 
 
 main :: IO ()
@@ -50,46 +51,4 @@ parseLedgerAndDo opts args cmd =
       acctpat = regexFor acctpats
       descpat = regexFor descpats
       (acctpats,descpats) = parseAccountDescriptionArgs args
-
--- | get a RawLedger from the file your LEDGER environment
--- variable points to or (WARNING) an empty one if there was a problem.
-myrawledger :: IO RawLedger
-myrawledger = do
-  parsed <- ledgerFilePathFromOpts [] >>= parseLedgerFile
-  return $ either (\_ -> RawLedger [] [] [] "") id parsed
-
--- | as above, and convert it to a cached Ledger
-myledger :: IO Ledger
-myledger = do
-  l <- myrawledger
-  return $ cacheLedger wildcard $ filterRawLedgerEntries "" "" wildcard l
-
--- | get a Ledger from the given file path
-rawledgerfromfile :: String -> IO RawLedger
-rawledgerfromfile f = do
-  parsed <- ledgerFilePathFromOpts [File f] >>= parseLedgerFile
-  return $ either (\_ -> RawLedger [] [] [] "") id parsed
-
--- | get a named account from your ledger file
-{-|
-The above are helpers for working with your ledger in ghci. Examples:
-
-> $ rm -f hledger.o
-> $ ghci hledger.hs
-> *Main> l <- myledger
-> Ledger with 696 entries, 132 accounts
-> *Main> putStr $ drawTree $ treemap show $ accountnametree l
-> ...
-> *Main> putStr $ showLedgerAccountBalances l 1
-> ...
-> *Main> printregister l
-> ...
-> *Main> accounts l
-> ...
-> *Main> accountnamed "expenses:food:groceries"
-> Account expenses:food:groceries with 60 transactions
-
--}
-accountnamed :: AccountName -> IO Account
-accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
 
