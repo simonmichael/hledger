@@ -105,14 +105,15 @@ import Ledger.Amount
 import Ledger.AccountName
 import Ledger.Ledger
 import Options
+import Utils
 
-
-balancecommandtests = TestList [
-                      ]
 
 -- | Print a balance report.
 printbalance :: [Opt] -> [String] -> Ledger -> IO ()
-printbalance opts args l = putStr $ showLedgerAccountBalances l depth
+printbalance opts args l = putStr $ balancereport opts args l
+
+balancereport :: [Opt] -> [String] -> Ledger -> String
+balancereport opts args l = showLedgerAccountBalances l depth
     where 
       showsubs = (ShowSubs `elem` opts)
       pats = parseAccountDescriptionArgs args

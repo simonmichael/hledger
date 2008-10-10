@@ -4,6 +4,8 @@ import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 import Test.HUnit
 import Ledger
+import Utils
+import Options
 import BalanceCommand
 import PrintCommand
 import RegisterCommand
@@ -34,12 +36,13 @@ alltests = concattests [
     where
       concattests = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
 
-tests = TestList [
-
+tests = 
+ TestList
+ [
          show (dollars 1)   ~?= "$1.00"
         ,show (hours 1)     ~?= "h1.00"      -- should be 1.0h
 
-        ,"precision subtleties"             ~: do
+        ,"amount precision"   ~: do
            let a1 = Amount (getcurrency "$") 1.23 1
            let a2 = Amount (getcurrency "$") (-1.23) 2
            let a3 = Amount (getcurrency "$") (-1.23) 3
@@ -89,7 +92,64 @@ tests = TestList [
         assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
         assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
 
-        ]
+ ]
+
+balancecommandtests = 
+ TestList 
+ [
+  "simple balance report" ~: do
+    l <- ledgerfromfile "sample.ledger"
+    assertequal
+     "                 $-1  assets\n\
+     \                  $2  expenses\n\
+     \                 $-2  income\n\
+     \                  $1  liabilities\n\
+     \" --"
+     (balancereport [] [] l)
+  ,
+
+  "balance report with showsubs" ~: do
+    l <- ledgerfromfile "sample.ledger"
+    assertequal
+     "                 $-1  assets\n\
+     \                 $-2    cash\n\
+     \                  $1    saving\n\
+     \                  $2  expenses\n\
+     \                  $1    food\n\
+     \                  $1    supplies\n\
+     \                 $-2  income\n\
+     \                 $-1    gifts\n\
+     \                 $-1    salary\n\
+     \                  $1  liabilities:debts\n\
+     \" --"
+     (balancereport [ShowSubs] [] l)
+  ,
+
+  "balance report with account pattern" ~: do
+    rl <- rawledgerfromfile "sample.ledger"
+    let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
+    assertequal
+     "                  $1  expenses:food\n\
+     \                 $-2  income\n\
+     \--------------------\n\
+     \                 $-1\n\
+     \" --"
+     (balancereport [] ["o"] l)
+  ,
+
+  "balance report with account pattern and showsubs" ~: do
+    rl <- rawledgerfromfile "sample.ledger"
+    let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
+    assertequal
+     "                  $1  expenses:food\n\
+     \                 $-2  income\n\
+     \                 $-1    gifts\n\
+     \                 $-1    salary\n\
+     \--------------------\n\
+     \                 $-1\n\
+     \" --"
+     (balancereport [ShowSubs] ["o"] l)
+ ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
 assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
