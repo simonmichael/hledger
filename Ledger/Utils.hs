@@ -121,7 +121,7 @@ treeany f t = (f $ root t) || (any (treeany f) $ branches t)
 -- treedropall -- do this repeatedly.
 
 showtree :: Show a => Tree a -> String
-showtree = drawTree . treemap show
+showtree = unlines . filter (containsRegex (mkRegex "[^ |]")) . lines . drawTree . treemap show
 
 -- debugging
 
