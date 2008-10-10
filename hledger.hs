@@ -33,8 +33,11 @@ This module includes some helpers for working with your ledger in ghci. Examples
 module Main
 where
 import qualified Data.Map as Map (lookup)
-import Ledger
 import Options
+import Ledger
+import BalanceCommand
+import PrintCommand
+import RegisterCommand
 import Tests
 
 
@@ -42,53 +45,27 @@ main :: IO ()
 main = do
   (opts, cmd, args) <- parseArguments
   run cmd opts args
-    where run cmd opts args
-              | Help `elem` opts            = putStr usage
-              | Version `elem` opts         = putStr version
-              | cmd `isPrefixOf` "selftest" = selftest opts args
-              | cmd `isPrefixOf` "print"    = print_   opts args
-              | cmd `isPrefixOf` "register" = register opts args
-              | cmd `isPrefixOf` "balance"  = balance  opts args
-              | otherwise                   = putStr usage
-
-type Command = [Opt] -> [String] -> IO ()
-
-selftest :: Command
-selftest _ _ = do 
-  hunit
-  quickcheck
-  return ()
-
-print_ :: Command
-print_ opts args = parseLedgerAndDo opts args printentries
-
-register :: Command
-register opts args = parseLedgerAndDo opts args printregister
-
-balance :: Command
-balance opts args = parseLedgerAndDo opts args printbalance
-    where
-      printbalance :: Ledger -> IO ()
-      printbalance l = putStr $ showLedgerAccountBalances l depth
-          where 
-            showsubs = (ShowSubs `elem` opts)
-            pats@(acctpats,descpats) = parseAccountDescriptionArgs args
-            depth = case (pats, showsubs) of
-                      -- when there is no -s or pattern args, show with depth 1
-                      (([],[]), False) -> 1
-                      otherwise  -> 9999
+    where 
+      run cmd opts args
+       | Help `elem` opts            = putStr usage
+       | Version `elem` opts         = putStr version
+       | cmd `isPrefixOf` "selftest" = hunit >> quickcheck >> return ()
+       | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args printentries
+       | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args printregister
+       | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args printbalance
+       | otherwise                   = putStr usage
 
 -- | parse the user's specified ledger file and do some action with it
 -- (or report a parse error). This function makes the whole thing go.
-parseLedgerAndDo :: [Opt] -> [String] -> (Ledger -> IO ()) -> IO ()
+parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = 
     ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runthecommand
     where
-      runthecommand = cmd . cacheLedger aregex . filterLedgerEntries begin end aregex dregex
+      runthecommand = cmd opts args . cacheLedger acctpat . filterLedgerEntries begin end descpat
       begin = beginDateFromOpts opts
       end = endDateFromOpts opts
-      aregex = regexFor acctpats
-      dregex = regexFor descpats
+      acctpat = regexFor acctpats
+      descpat = regexFor descpats
       (acctpats,descpats) = parseAccountDescriptionArgs args
 
 -- ghci helpers
@@ -104,7 +81,7 @@ myrawledger = do
 myledger :: IO Ledger
 myledger = do
   l <- myrawledger
-  return $ cacheLedger wildcard $ filterLedgerEntries "" "" wildcard wildcard l
+  return $ cacheLedger wildcard $ filterLedgerEntries "" "" wildcard l
 
 -- | get a Ledger from the given file path
 rawledgerfromfile :: String -> IO RawLedger

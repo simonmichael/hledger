@@ -3,7 +3,7 @@ where
 import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 import Ledger
-
+import BalanceCommand
 
 -- utils
 
