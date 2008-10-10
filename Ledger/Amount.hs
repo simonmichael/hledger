@@ -42,6 +42,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Currency
 
+
 tests = runTestTT $ test [
          show (dollars 1)   ~?= "$1.00"
         ,show (hours 1)     ~?= "1h"      -- currently h1.00

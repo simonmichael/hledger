@@ -20,7 +20,6 @@ module Ledger (
               )
 where
 import qualified Data.Map as Map
-
 import Ledger.Types
 import Ledger.Currency
 import Ledger.Amount

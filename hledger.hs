@@ -34,12 +34,11 @@ module Main
 where
 import System
 import qualified Data.Map as Map (lookup)
-
 import Options
-import Tests (hunit, quickcheck)
-import Ledger.Parse (parseLedgerFile, printParseError)
-import Ledger.Utils hiding (test)
-import Ledger hiding (rawledger)
+import Tests
+import Ledger.Parse
+import Ledger.Utils
+import Ledger
 
 
 main :: IO ()
@@ -99,15 +98,15 @@ parseLedgerAndDo opts args cmd =
 
 -- | get a RawLedger from the file your LEDGER environment variable points to
 -- or (WARNING) an empty one if there was a problem.
-rawledger :: IO RawLedger
-rawledger = do
+myrawledger :: IO RawLedger
+myrawledger = do
   parsed <- ledgerFilePathFromOpts [] >>= parseLedgerFile
   return $ either (\_ -> RawLedger [] [] [] "") id parsed
 
 -- | as above, and convert it to a cached Ledger
-ledger :: IO Ledger
-ledger = do
-  l <- rawledger
+myledger :: IO Ledger
+myledger = do
+  l <- myrawledger
   return $ cacheLedger wildcard $ filterLedgerEntries "" "" wildcard wildcard l
 
 -- | get a Ledger from the given file path
@@ -118,5 +117,5 @@ rawledgerfromfile f = do
 
 -- | get a named account from your ledger file
 accountnamed :: AccountName -> IO Account
-accountnamed a = ledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
+accountnamed a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
 

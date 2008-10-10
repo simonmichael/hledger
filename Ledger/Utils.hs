@@ -16,7 +16,9 @@ module Text.Regex,
 module Debug.Trace,
 module Test.QuickCheck,
 module Test.HUnit,
-defaultTimeLocale, UTCTime, diffUTCTime, parseTime, formatTime,
+module System.Locale,
+module Data.Time.Clock,
+module Data.Time.Format
 )
 where
 import Char

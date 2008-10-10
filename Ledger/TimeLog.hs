@@ -8,7 +8,6 @@ containing zero or more 'TimeLogEntry's. It can be converted to a
 
 module Ledger.TimeLog
 where
-
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Currency
@@ -16,6 +15,7 @@ import Ledger.Amount
 import Ledger.RawTransaction
 import Ledger.Entry
 import Ledger.RawLedger
+
 
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (tldatetime t) (tlcomment t)
