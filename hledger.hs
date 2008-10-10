@@ -32,7 +32,7 @@ main = do
       run cmd opts args
        | Help `elem` opts            = putStr usage
        | Version `elem` opts         = putStr version
-       | cmd `isPrefixOf` "selftest" = hunit >> return ()
+       | cmd `isPrefixOf` "selftest" = runhunit >> return ()
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args printentries
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args printregister
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args printbalance

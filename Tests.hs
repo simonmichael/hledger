@@ -5,63 +5,87 @@ import Text.ParserCombinators.Parsec
 import Test.HUnit
 import Ledger
 import BalanceCommand
+import PrintCommand
+import RegisterCommand
 
 
 -- import Test.QuickCheck
 -- quickcheck = mapM quickCheck ([
 --         ] :: [Bool])
 
-hunit = runTestTT $ concattests [
-         tests
-        ,amounttests
-        ]
+runhunit = runTestTT alltests
+
+alltests = concattests [
+            tests
+           ,accounttests
+           ,accountnametests
+           ,amounttests
+           ,balancecommandtests
+           ,currencytests
+           ,entrytests
+           ,ledgertests
+           ,parsertests
+           ,printcommandtests
+           ,rawledgertests
+           ,rawtransactiontests
+           ,registercommandtests
+           ,timelogtests
+           ]
     where
-      concattests = foldr addtests (TestList []) 
-      addtests (TestList as) (TestList bs) = TestList (as ++ bs)
+      concattests = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
 
 tests = TestList [
 
-         "punctuatethousands"      ~: punctuatethousands "" @?= ""
+         show (dollars 1)   ~?= "$1.00"
+        ,show (hours 1)     ~?= "h1.00"      -- should be 1.0h
+
+        ,"precision subtleties"             ~: do
+           let a1 = Amount (getcurrency "$") 1.23 1
+           let a2 = Amount (getcurrency "$") (-1.23) 2
+           let a3 = Amount (getcurrency "$") (-1.23) 3
+           assertequal (Amount (getcurrency "$") 0 1) (a1 + a2)
+           assertequal (Amount (getcurrency "$") 0 1) (a1 + a3)
+           assertequal (Amount (getcurrency "$") (-2.46) 2) (a2 + a3)
+           assertequal (Amount (getcurrency "$") (-2.46) 3) (a3 + a3)
+           -- sum adds 0, with Amount fromIntegral's default precision of 2
+           assertequal (Amount (getcurrency "$") 0 1) (sum [a1,a2])
+           assertequal (Amount (getcurrency "$") (-2.46) 2) (sum [a2,a3])
+           assertequal (Amount (getcurrency "$") (-2.46) 2) (sum [a3,a3])
+
+        ,"ledgertransaction"  ~: do
+           assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)
+
+        ,"ledgerentry"        ~: do
+           assertparseequal entry1 (parsewith ledgerentry entry1_str)
+                            
+        ,"autofillEntry"      ~: do
+           assertequal
+            (Amount (getcurrency "$") (-47.18) 2)
+            (tamount $ last $ etransactions $ autofillEntry entry1)
+
+        ,"punctuatethousands"      ~: punctuatethousands "" @?= ""
         ,"punctuatethousands"      ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
         ,"punctuatethousands"      ~: punctuatethousands "-100" @?= "-100"
 
-        ,"test_ledgertransaction"  ~: do
-        assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)      
-
-        ,"test_ledgerentry"        ~: do
-        assertparseequal entry1 (parsewith ledgerentry entry1_str)
-
-        ,"test_autofillEntry"      ~: do
-        assertequal
-         (Amount (getcurrency "$") (-47.18) 2)
-         (tamount $ last $ etransactions $ autofillEntry entry1)
-
-        ,"test_timelogentry"       ~: do
-        assertparseequal timelogentry1 (parsewith timelogentry timelogentry1_str)
-        assertparseequal timelogentry2 (parsewith timelogentry timelogentry2_str)
-
-        ,"test_timelog"            ~: 
-        assertparseequal timelog1 (parsewith timelog timelog1_str)
-
-        ,"test_expandAccountNames" ~: do
+        ,"expandAccountNames" ~: do
         assertequal
          ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
          (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
 
-        ,"test_ledgerAccountNames" ~: do
+        ,"ledgerAccountNames" ~: do
         assertequal
          ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
           "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
           "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
          (accountnames ledger7)
 
-        ,"test_cacheLedger"        ~: do
+        ,"cacheLedger"        ~: do
         assertequal 15 (length $ Map.keys $ accounts $ cacheLedger wildcard rawledger7 )
 
-        ,"test_showLedgerAccounts" ~: do
+        ,"showLedgerAccounts" ~: do
         assertequal 4 (length $ lines $ showLedgerAccountBalances ledger7 1)
 
-        ,"test_ledgeramount"       ~: do
+        ,"ledgeramount"       ~: do
         assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
         assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
 
@@ -70,7 +94,6 @@ tests = TestList [
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
 assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
 assertparseequal expected parsed = either printParseError (assertequal expected) parsed
-
 
 -- test data
 
@@ -88,6 +111,7 @@ entry1 =
     (Entry "2007/01/28" False "" "coopportunity" ""
      [RawTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
       RawTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
+
 
 entry2_str = "\
 \2007/01/27 * joes diner\n\

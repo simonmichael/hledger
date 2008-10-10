@@ -12,10 +12,13 @@ import qualified Text.ParserCombinators.Parsec.Token as P
 import System.IO
 import Ledger.Utils
 import Ledger.Types
-import Ledger.Entry (autofillEntry)
-import Ledger.Currency (getcurrency)
-import Ledger.TimeLog (ledgerFromTimeLog)
+import Ledger.Entry
+import Ledger.Currency
+import Ledger.TimeLog
 
+
+parsertests = TestList [
+              ]
 
 -- utils
 

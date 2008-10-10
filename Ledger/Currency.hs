@@ -12,6 +12,9 @@ import Ledger.Utils
 import Ledger.Types
 
 
+currencytests = TestList [
+                ]
+
 currencies = 
     [
      Currency "$"   1        

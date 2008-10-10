@@ -1,4 +1,4 @@
-hledger project notes & ideas
+hledger project notes
 
 "...simplicity of design was the most essential, guiding principle.
 Clarity of concepts, economy of features, efficiency and reliability of
@@ -8,17 +8,22 @@ implementations were its consequences." --Niklaus Wirth
 ** bugs
 *** balance reports & filtering are quirky/broken/different from ledger
 *** register doesn't filter
+** testing
+*** balance report regression tests
+**** find out how http://hunit.sourceforge.net/HUnit-1.0/Guide.html
+*** ledger compatibility tests
+*** speed tests
 ** release 0.1
 *** cabal upload
-*** haskell-cafe/ledger announce
+*** haskell-cafe/ledger-cli announce
 ** ledger features
 *** handle right-hand currency symbols
 *** -C
 *** negative patterns
-*** darcs-style--version
-*** ledger 2.6-style elision
-*** full per-currency precision & thousands separator handling
-*** handle mixed-currency amounts
+*** darcs-style --version
+*** ledger 2.6-style eliding
+*** per-currency precision/thousands separator/symbol layout
+*** mixed-currency amounts
 *** more speed
 *** other ledger 2.6 features
 **** !include
@@ -34,30 +39,28 @@ implementations were its consequences." --Niklaus Wirth
 *** smart data entry
 *** timeclock.el features
 *** better layout
-** testing
-*** better use of quickcheck/smallcheck
-     http://blog.codersbase.com/2006/09/01/simple-unit-testing-in-haskell/
-*** ledger compatibility tests
 ** documentation
-*** literate manual
+*** implementation docs
+*** api docs
+*** user manual
 *** differences/issues
 **** ledger does not support -f- (without space)
 **** ledger shows description comments as part of description, we do the same
 **** ledger does not sort register by date
 **** ledger can show wrong output due to thousands separators
 **** ledger balance with an account pattern shows a redundant total
-**** hledger does not choose symbol separation, thousands separators, and precision based on first entry of each currency
-     (currently: chooses precision for all currencies based on first entry)
+**** hledger does not detect symbol layout/thousands separators/precision based on first entry of each currency
 **** hledger does not track currency/precision in as much detail
 **** hledger ignores automated/periodic entries
-**** hledger shows .00
-* things I want to know
-** time
+**** hledger does not elide .00
+* misc
+** things I want to know
+*** time
 where have I been spending my time in recent weeks ?
 where have I spent my time today ?
 what is my status wrt spending plan for this week/month/year ?
 what is my current status wrt time spending goals ?
-** money
+*** money
 where have I been spending my money ?
 what is my status wrt spending plan for this week/month/year ?
 what is my current status wrt spending/savings goals ?
@@ -65,8 +68,7 @@ what are all my current balances ?
 what does my balance history look like ?
 what does my balance future look like ?
 are there any cashflow, tax, budgetary problems looming ?
-
-** charts
+*** charts
 [1:27pm] <sm> I have decided I am not getting enough visible day-to-day value out of my ledger, I need more of that to stay motivated
 [1:27pm] <Nafai> What do you think will help in that?
 [1:27pm] <sm> I think some simple self-updating charts, or even good reports in a visible place
@@ -91,7 +93,6 @@ are there any cashflow, tax, budgetary problems looming ?
 [2:08pm] <sm> those would be a good start. How do I make those visual
 [2:09pm] <sm> well I guess the first step is a script to print them
 
-* misc
 ** compare other languages! a parser generator and decent speed is required
 *** python: http://cheeseshop.python.org/pypi/ZestyParser, pysec, pyparsing
 *** squeak: LanguageGame, T-Gen, SmaCC
@@ -103,7 +104,43 @@ are there any cashflow, tax, budgetary problems looming ?
 *** http://www.n-heptane.com/nhlab/repos/Decimal/
 *** http://www.n-heptane.com/nhlab/repos/Decimal/Money.hs
 *** http://www2.hursley.ibm.com/decimal/
-*** import hierarchy
+
+** lispy's template haskell for quickcheck
+-- find tests with template haskell
+import Language.Haskell.Parser
+
+{-# OPTIONS_GHC -fno-warn-unused-imports -no-recomp -fth #-}
+{- ghc --make Unit.hs -main-is Unit.runTests -o unit -}
+runTests :: IO ()
+runTests = $(mkChecks props)
+
+mkChecks []        = undefined
+mkChecks [name]    = mkCheck name
+mkChecks (name:ns) = [| $(mkCheck name) >> $(mkChecks ns) |]
+
+mkCheck name = [| putStr (name ++ ": ") >> quickCheck $(varE (mkName name)) |]
+
+{- | looks in Tests.hs for functions like prop_foo and returns
+  the list.  Requires that Tests.hs be valid Haskell98. -}
+props :: [String]
+props = unsafePerformIO $
+  do h <- openFile "Tests.hs" ReadMode
+     s <- hGetContents h
+     case parseModule s of
+       (ParseOk (HsModule _ _ _ _ ds)) -> return (map declName (filter isProp ds))
+       (ParseFailed loc s')            -> error (s' ++ " " ++ show loc)
+
+{- | checks if function binding name starts with @prop_@ indicating
+ that it is a quickcheck property -}
+isProp :: HsDecl -> Bool
+isProp d@(HsFunBind _) = "prop_" `isPrefixOf` (declName d)
+isProp _ = False
+
+{- | takes an HsDecl and returns the name of the declaration -}
+declName :: HsDecl -> String
+declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
+declName _                                              = undefined
+** old import hierarchy
    "Parse"
    "TimeLog"
    "Ledger"

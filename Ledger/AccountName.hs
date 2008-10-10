@@ -10,6 +10,10 @@ where
 import Ledger.Utils
 import Ledger.Types
 
+
+accountnametests = TestList [
+                   ]
+
 sepchar = ':'
 
 accountNameComponents :: AccountName -> [String]

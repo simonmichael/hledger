@@ -14,6 +14,9 @@ import Ledger.RawTransaction
 import Ledger.Amount
 
 
+transactiontests = TestList [
+                   ]
+
 instance Show Transaction where 
     show (Transaction eno d desc a amt) = 
         unwords [d,desc,a,show amt]

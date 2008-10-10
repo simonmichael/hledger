@@ -14,6 +14,9 @@ import Ledger.Entry
 import Ledger.Transaction
 
 
+rawledgertests = TestList [
+                 ]
+
 instance Show RawLedger where
     show l = printf "RawLedger with %d entries, %d accounts: %s"
              ((length $ entries l) +

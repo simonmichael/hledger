@@ -107,6 +107,9 @@ import Ledger.Ledger
 import Options
 
 
+balancecommandtests = TestList [
+                      ]
+
 -- | Print a balance report.
 printbalance :: [Opt] -> [String] -> Ledger -> IO ()
 printbalance opts args l = putStr $ showLedgerAccountBalances l depth

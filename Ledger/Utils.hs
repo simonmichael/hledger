@@ -18,6 +18,7 @@ module Ledger.Utils,
 module System.Locale,
 module Text.Printf,
 module Text.Regex,
+module Test.HUnit,
 )
 where
 import Char
@@ -30,7 +31,7 @@ import Data.Time.Format (ParseTime, parseTime, formatTime)
 import Data.Tree
 import Debug.Trace
 import System.Locale (defaultTimeLocale)
-import Test.HUnit (assertEqual)
+import Test.HUnit
 import Test.QuickCheck hiding (test, Testable)
 import Text.Printf
 import Text.Regex

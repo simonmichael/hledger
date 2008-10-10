@@ -13,6 +13,9 @@ import Ledger.RawTransaction
 import Ledger.Amount
 
 
+entrytests = TestList [
+             ]
+
 instance Show Entry where show = showEntryDescription
 
 {-
