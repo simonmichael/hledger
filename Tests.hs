@@ -39,8 +39,9 @@ alltests = concattests [
 tests = 
  TestList
  [
-         show (dollars 1)   ~?= "$1.00"
-        ,show (hours 1)     ~?= "h1.00"      -- should be 1.0h
+         "display dollar amount" ~: show (dollars 1) ~?= "$1.00"
+         
+        ,"display time amount" ~: show (hours 1) ~?= "1.0h"
 
         ,"amount precision"   ~: do
            let a1 = Amount (getcurrency "$") 1.23 1
