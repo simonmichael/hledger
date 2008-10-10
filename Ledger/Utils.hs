@@ -41,6 +41,7 @@ import Text.ParserCombinators.Parsec (parse)
 -- testing
 
 assertequal e a = assertEqual "" e a
+assertnotequal e a = assertBool "expected inequality, got equality" (e /= a)
 
 parsewith p ts = parse p "" ts
 
