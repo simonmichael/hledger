@@ -84,7 +84,7 @@ tests =
          (accountnames ledger7)
 
         ,"cacheLedger"        ~: do
-        assertequal 15 (length $ Map.keys $ accounts $ cacheLedger wildcard rawledger7 )
+        assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger wildcard rawledger7 )
 
         ,"showLedgerAccounts" ~: do
         assertequal 4 (length $ lines $ showLedgerAccountBalances ledger7 1)

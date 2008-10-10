@@ -55,5 +55,5 @@ myledger = do
 
 -- | get a named account from your ledger file
 myaccount :: AccountName -> IO Account
-myaccount a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accounts)
+myaccount a = myledger >>= (return . fromMaybe nullacct . Map.lookup a . accountmap)
 

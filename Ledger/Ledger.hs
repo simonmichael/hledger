@@ -87,11 +87,11 @@ filteredaccountnames l = filter (containsRegex (acctpat l) . accountLeafName) $ 
 
 -- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
-ledgerAccount l a = (accounts l) ! a
+ledgerAccount l a = (accountmap l) ! a
 
 -- | Get the named filtered account from a ledger.
 ledgerFilteredAccount :: Ledger -> AccountName -> Account
-ledgerFilteredAccount l a = (filteredaccounts l) ! a
+ledgerFilteredAccount l a = (filteredaccountmap l) ! a
 
 -- | List a ledger's transactions.
 --
