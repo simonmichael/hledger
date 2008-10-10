@@ -20,7 +20,7 @@ Cabal-Version:  >= 1.2
 
 Executable hledger
   Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,
-                  old-locale, time, HUnit, QuickCheck >= 1 && < 2
+                  old-locale, time, HUnit #, QuickCheck >= 1 && < 2
   Main-Is:        hledger.hs
   Other-Modules:  
                   BalanceCommand

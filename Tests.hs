@@ -2,60 +2,81 @@ module Tests
 where
 import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
+import Test.HUnit
 import Ledger
 import BalanceCommand
 
--- utils
 
-assertEqual' e a = assertEqual "" e a
+-- import Test.QuickCheck
+-- quickcheck = mapM quickCheck ([
+--         ] :: [Bool])
 
-parse' p ts = parse p "" ts
+hunit = runTestTT $ concattests [
+         tests
+        ,amounttests
+        ]
+    where
+      concattests = foldr addtests (TestList []) 
+      addtests (TestList as) (TestList bs) = TestList (as ++ bs)
+
+tests = TestList [
+
+         "punctuatethousands"      ~: punctuatethousands "" @?= ""
+        ,"punctuatethousands"      ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
+        ,"punctuatethousands"      ~: punctuatethousands "-100" @?= "-100"
+
+        ,"test_ledgertransaction"  ~: do
+        assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)      
+
+        ,"test_ledgerentry"        ~: do
+        assertparseequal entry1 (parsewith ledgerentry entry1_str)
+
+        ,"test_autofillEntry"      ~: do
+        assertequal
+         (Amount (getcurrency "$") (-47.18) 2)
+         (tamount $ last $ etransactions $ autofillEntry entry1)
+
+        ,"test_timelogentry"       ~: do
+        assertparseequal timelogentry1 (parsewith timelogentry timelogentry1_str)
+        assertparseequal timelogentry2 (parsewith timelogentry timelogentry2_str)
+
+        ,"test_timelog"            ~: 
+        assertparseequal timelog1 (parsewith timelog timelog1_str)
+
+        ,"test_expandAccountNames" ~: do
+        assertequal
+         ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
+         (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
+
+        ,"test_ledgerAccountNames" ~: do
+        assertequal
+         ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
+          "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
+          "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
+         (accountnames ledger7)
+
+        ,"test_cacheLedger"        ~: do
+        assertequal 15 (length $ Map.keys $ accounts $ cacheLedger wildcard rawledger7 )
+
+        ,"test_showLedgerAccounts" ~: do
+        assertequal 4 (length $ lines $ showLedgerAccountBalances ledger7 1)
+
+        ,"test_ledgeramount"       ~: do
+        assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
+        assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
+
+        ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
-assertParseEqual :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
-assertParseEqual expected parsed = either printParseError (assertEqual " " expected) parsed
-
--- find tests with template haskell
--- import Language.Haskell.Parser
--- 
--- {-# OPTIONS_GHC -fno-warn-unused-imports -no-recomp -fth #-}
--- {- ghc --make Unit.hs -main-is Unit.runTests -o unit -}
--- runTests :: IO ()
--- runTests = $(mkChecks props)
-
--- mkChecks []        = undefined
--- mkChecks [name]    = mkCheck name
--- mkChecks (name:ns) = [| $(mkCheck name) >> $(mkChecks ns) |]
-
--- mkCheck name = [| putStr (name ++ ": ") >> quickCheck $(varE (mkName name)) |]
-
--- {- | looks in Tests.hs for functions like prop_foo and returns
---   the list.  Requires that Tests.hs be valid Haskell98. -}
--- props :: [String]
--- props = unsafePerformIO $
---   do h <- openFile "Tests.hs" ReadMode
---      s <- hGetContents h
---      case parseModule s of
---        (ParseOk (HsModule _ _ _ _ ds)) -> return (map declName (filter isProp ds))
---        (ParseFailed loc s')            -> error (s' ++ " " ++ show loc)
-
--- {- | checks if function binding name starts with @prop_@ indicating
---  that it is a quickcheck property -}
--- isProp :: HsDecl -> Bool
--- isProp d@(HsFunBind _) = "prop_" `isPrefixOf` (declName d)
--- isProp _ = False
-
--- {- | takes an HsDecl and returns the name of the declaration -}
--- declName :: HsDecl -> String
--- declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
--- declName _                                              = undefined
+assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
+assertparseequal expected parsed = either printParseError (assertequal expected) parsed
 
 
 -- test data
 
-transaction1_str  = "  expenses:food:dining  $10.00\n"
+rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
-transaction1 = RawTransaction "expenses:food:dining" (dollars 10) ""
+rawtransaction1 = RawTransaction "expenses:food:dining" (dollars 10) ""
 
 entry1_str = "\
 \2007/01/28 coopportunity\n\
@@ -65,8 +86,8 @@ entry1_str = "\
 
 entry1 =
     (Entry "2007/01/28" False "" "coopportunity" ""
-               [RawTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
-                RawTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
+     [RawTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
+      RawTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
 
 entry2_str = "\
 \2007/01/27 * joes diner\n\
@@ -196,91 +217,139 @@ ledger7_str = "\
 \    assets:checking                                 \n\
 \\n" --"
 
-ledger7 = RawLedger
+rawledger7 = RawLedger
           [] 
           [] 
           [
            Entry {
-                  edate="2007/01/01", estatus=False, ecode="*", edescription="opening balance", ecomment="",
-                  etransactions=[
-                                RawTransaction {taccount="assets:cash", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
-                                                   tcomment=""},
-                                RawTransaction {taccount="equity:opening balances", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
-                                                   tcomment=""}
-                               ],
-                  epreceding_comment_lines=""
-                 }
+             edate="2007/01/01", 
+             estatus=False, 
+             ecode="*", 
+             edescription="opening balance", 
+             ecomment="",
+             etransactions=[
+              RawTransaction {
+                taccount="assets:cash", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
+                tcomment=""
+              },
+              RawTransaction {
+                taccount="equity:opening balances", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
+                tcomment=""
+              }
+             ],
+             epreceding_comment_lines=""
+           }
           ,
            Entry {
-                  edate="2007/02/01", estatus=False, ecode="*", edescription="ayres suites", ecomment="",
-                  etransactions=[
-                                RawTransaction {taccount="expenses:vacation", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=179.92, precision=2},
-                                                   tcomment=""},
-                                RawTransaction {taccount="assets:checking", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=(-179.92), precision=2},
-                                                   tcomment=""}
-                               ],
-                  epreceding_comment_lines=""
-                 }
+             edate="2007/02/01", 
+             estatus=False, 
+             ecode="*", 
+             edescription="ayres suites", 
+             ecomment="",
+             etransactions=[
+              RawTransaction {
+                taccount="expenses:vacation", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=179.92, precision=2},
+                tcomment=""
+              },
+              RawTransaction {
+                taccount="assets:checking", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=(-179.92), precision=2},
+                tcomment=""
+              }
+             ],
+             epreceding_comment_lines=""
+           }
           ,
            Entry {
-                  edate="2007/01/02", estatus=False, ecode="*", edescription="auto transfer to savings", ecomment="",
-                  etransactions=[
-                                RawTransaction {taccount="assets:saving", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=200, precision=2},
-                                                   tcomment=""},
-                                RawTransaction {taccount="assets:checking", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=(-200), precision=2},
-                                                   tcomment=""}
-                               ],
-                  epreceding_comment_lines=""
-                 }
+             edate="2007/01/02", 
+             estatus=False, 
+             ecode="*", 
+             edescription="auto transfer to savings", 
+             ecomment="",
+             etransactions=[
+              RawTransaction {
+                taccount="assets:saving", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=200, precision=2},
+                tcomment=""
+              },
+              RawTransaction {
+                taccount="assets:checking", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=(-200), precision=2},
+                tcomment=""
+              }
+             ],
+             epreceding_comment_lines=""
+           }
           ,
            Entry {
-                  edate="2007/01/03", estatus=False, ecode="*", edescription="poquito mas", ecomment="",
-                  etransactions=[
-                                RawTransaction {taccount="expenses:food:dining", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
-                                                   tcomment=""},
-                                RawTransaction {taccount="assets:cash", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
-                                                   tcomment=""}
-                               ],
-                  epreceding_comment_lines=""
-                 }
+             edate="2007/01/03", 
+             estatus=False, 
+             ecode="*", 
+             edescription="poquito mas", 
+             ecomment="",
+             etransactions=[
+              RawTransaction {
+                taccount="expenses:food:dining", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
+                tcomment=""
+              },
+              RawTransaction {
+                taccount="assets:cash", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
+                tcomment=""
+              }
+             ],
+             epreceding_comment_lines=""
+           }
           ,
            Entry {
-                  edate="2007/01/03", estatus=False, ecode="*", edescription="verizon", ecomment="",
-                  etransactions=[
-                                RawTransaction {taccount="expenses:phone", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=95.11, precision=2},
-                                                   tcomment=""},
-                                RawTransaction {taccount="assets:checking", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=(-95.11), precision=2},
-                                                   tcomment=""}
-                               ],
-                  epreceding_comment_lines=""
-                 }
+             edate="2007/01/03", 
+             estatus=False, 
+             ecode="*", 
+             edescription="verizon", 
+             ecomment="",
+             etransactions=[
+              RawTransaction {
+                taccount="expenses:phone", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=95.11, precision=2},
+                tcomment=""
+              },
+              RawTransaction {
+                taccount="assets:checking", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=(-95.11), precision=2},
+                tcomment=""
+              }
+             ],
+             epreceding_comment_lines=""
+           }
           ,
            Entry {
-                  edate="2007/01/03", estatus=False, ecode="*", edescription="discover", ecomment="",
-                  etransactions=[
-                                RawTransaction {taccount="liabilities:credit cards:discover", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=80, precision=2},
-                                                   tcomment=""},
-                                RawTransaction {taccount="assets:checking", 
-                                                   tamount=Amount {currency=(getcurrency "$"), quantity=(-80), precision=2},
-                                                   tcomment=""}
-                               ],
-                  epreceding_comment_lines=""
-                 }
+             edate="2007/01/03", 
+             estatus=False, 
+             ecode="*", 
+             edescription="discover", 
+             ecomment="",
+             etransactions=[
+              RawTransaction {
+                taccount="liabilities:credit cards:discover", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=80, precision=2},
+                tcomment=""
+              },
+              RawTransaction {
+                taccount="assets:checking", 
+                tamount=Amount {currency=(getcurrency "$"), quantity=(-80), precision=2},
+                tcomment=""
+              }
+             ],
+             epreceding_comment_lines=""
+           }
           ]
           ""
 
-l7 = cacheLedger wildcard ledger7 
+ledger7 = cacheLedger wildcard rawledger7 
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
@@ -296,83 +365,4 @@ timelog1 = TimeLog [
             timelogentry1,
             timelogentry2
            ]
-
--- tests
-
-quickcheck = mapM quickCheck ([
-        ] :: [Bool])
-
-hunit = runTestTT $ "hunit" ~: test ([
-        "punctuatethousands" ~: punctuatethousands "" @?= ""
-        ,"punctuatethousands" ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
-        ,"punctuatethousands" ~: punctuatethousands "-100" @?= "-100"
-        ,"test_ledgertransaction" ~: test_ledgertransaction
-        ,"test_ledgerentry" ~: test_ledgerentry
-        ,"test_autofillEntry" ~: test_autofillEntry
-        ,"test_timelogentry" ~: test_timelogentry
-        ,"test_timelog" ~: test_timelog
-        ,"test_expandAccountNames" ~: test_expandAccountNames
-        ,"test_ledgerAccountNames" ~: test_ledgerAccountNames
-        ,"test_cacheLedger" ~: test_cacheLedger
-        ,"test_showLedgerAccounts" ~: test_showLedgerAccounts
-        ,"test_Amount" ~: test_Amount
-        ,"test_ledgeramount" ~: test_ledgeramount
-        ] :: [Test])
-
-test_ledgeramount :: Assertion
-test_ledgeramount = do
-  assertParseEqual (Amount (getcurrency "$") 47.18 2)
-                   (parse' ledgeramount " $47.18")
-  assertParseEqual (Amount (getcurrency "$") 1 0) 
-                   (parse' ledgeramount " $1.")
-
-test_Amount = do
-  -- precision subtleties
-  let a1 = Amount (getcurrency "$") 1.23 1
-  let a2 = Amount (getcurrency "$") (-1.23) 2
-  let a3 = Amount (getcurrency "$") (-1.23) 3
-  assertEqual "1" (Amount (getcurrency "$") 0 1) (a1 + a2)
-  assertEqual "2" (Amount (getcurrency "$") 0 1) (a1 + a3)
-  assertEqual "3" (Amount (getcurrency "$") (-2.46) 2) (a2 + a3)
-  assertEqual "4" (Amount (getcurrency "$") (-2.46) 3) (a3 + a3)
-  -- sum adds 0, with Amount fromIntegral's default precision of 2
-  assertEqual "5" (Amount (getcurrency "$") 0 1) (sum [a1,a2])
-  assertEqual "6" (Amount (getcurrency "$") (-2.46) 2) (sum [a2,a3])
-  assertEqual "7" (Amount (getcurrency "$") (-2.46) 2) (sum [a3,a3])
-               
-test_ledgertransaction =
-    assertParseEqual transaction1 (parse' ledgertransaction transaction1_str)      
-
-test_ledgerentry =
-    assertParseEqual entry1 (parse' ledgerentry entry1_str)
-
-test_autofillEntry = 
-    assertEqual'
-    (Amount (getcurrency "$") (-47.18) 2)
-    (tamount $ last $ etransactions $ autofillEntry entry1)
-
-test_timelogentry = do
-    assertParseEqual timelogentry1 (parse' timelogentry timelogentry1_str)
-    assertParseEqual timelogentry2 (parse' timelogentry timelogentry2_str)
-
-test_timelog =
-    assertParseEqual timelog1 (parse' timelog timelog1_str)
-
-test_expandAccountNames =
-    assertEqual'
-    ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-    (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
-
-test_ledgerAccountNames =
-    assertEqual'
-    ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
-    "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
-     "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
-    (accountnames l7)
-
-test_cacheLedger =
-    assertEqual' 15 (length $ Map.keys $ accounts $ cacheLedger wildcard ledger7 )
-
-test_showLedgerAccounts = 
-    assertEqual' 4 (length $ lines $ showLedgerAccountBalances l7 1)
 

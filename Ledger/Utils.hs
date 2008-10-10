@@ -16,8 +16,6 @@ module Data.Tree,
 module Debug.Trace,
 module Ledger.Utils,
 module System.Locale,
-module Test.HUnit,
-module Test.QuickCheck,
 module Text.Printf,
 module Text.Regex,
 )
@@ -32,10 +30,18 @@ import Data.Time.Format (ParseTime, parseTime, formatTime)
 import Data.Tree
 import Debug.Trace
 import System.Locale (defaultTimeLocale)
-import Test.HUnit
+import Test.HUnit (assertEqual)
 import Test.QuickCheck hiding (test, Testable)
 import Text.Printf
 import Text.Regex
+import Text.ParserCombinators.Parsec (parse)
+
+
+-- testing
+
+assertequal e a = assertEqual "" e a
+
+parsewith p ts = parse p "" ts
 
 
 -- regexps

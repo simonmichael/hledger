@@ -38,15 +38,28 @@ currencies can be converted to a simple amount. Arithmetic examples:
 
 module Ledger.Amount
 where
+import Test.HUnit
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Currency
 
 
-tests = runTestTT $ test [
-         show (dollars 1)   ~?= "$1.00"
-        ,show (hours 1)     ~?= "1h"      -- currently h1.00
-        ]
+amounttests = TestList [
+               show (dollars 1)   ~?= "$1.00"
+              ,show (hours 1)     ~?= "h1.00"      -- should be 1.0h
+              ,"precision subtleties"             ~: do
+                 let a1 = Amount (getcurrency "$") 1.23 1
+                 let a2 = Amount (getcurrency "$") (-1.23) 2
+                 let a3 = Amount (getcurrency "$") (-1.23) 3
+                 assertequal (Amount (getcurrency "$") 0 1) (a1 + a2)
+                 assertequal (Amount (getcurrency "$") 0 1) (a1 + a3)
+                 assertequal (Amount (getcurrency "$") (-2.46) 2) (a2 + a3)
+                 assertequal (Amount (getcurrency "$") (-2.46) 3) (a3 + a3)
+                 -- sum adds 0, with Amount fromIntegral's default precision of 2
+                 assertequal (Amount (getcurrency "$") 0 1) (sum [a1,a2])
+                 assertequal (Amount (getcurrency "$") (-2.46) 2) (sum [a2,a3])
+                 assertequal (Amount (getcurrency "$") (-2.46) 2) (sum [a3,a3])
+              ]
 
 instance Show Amount where show = showAmountRounded
 
