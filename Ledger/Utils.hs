@@ -6,6 +6,7 @@ Standard always-available imports and utilities.
 
 module Ledger.Utils (
 module Char,
+module Control.Monad,
 module Data.List,
 --module Data.Map,
 module Data.Maybe,
@@ -22,6 +23,7 @@ module Test.HUnit,
 )
 where
 import Char
+import Control.Monad
 import Data.List
 --import qualified Data.Map as Map
 import Data.Maybe
@@ -96,6 +98,7 @@ splitAtElement e l =
 -- trees
 
 root = rootLabel
+subs = subForest
 branches = subForest
 
 -- remove all nodes past a certain depth
@@ -126,4 +129,4 @@ showtree = unlines . filter (containsRegex (mkRegex "[^ |]")) . lines . drawTree
 -- debugging
 
 strace a = trace (show a) a -- trace a showable expression
-
+p = putStr
