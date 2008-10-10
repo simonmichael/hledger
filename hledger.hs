@@ -8,8 +8,7 @@ Released under GPL version 3 or later.
 This is a minimal haskell clone of John Wiegley's ledger
 <http://newartisans.com/software/ledger.html>.  hledger generates
 simple ledger-compatible register & balance reports from a plain text
-ledger file, and demonstrates a (naive) purely functional
-implementation of ledger.
+ledger file, and demonstrates a functional implementation of ledger.
 
 -}
 
@@ -33,10 +32,10 @@ main = do
       run cmd opts args
        | Help `elem` opts            = putStr usage
        | Version `elem` opts         = putStr version
-       | cmd `isPrefixOf` "selftest" = runhunit >> return ()
+       | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args printbalance
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args printentries
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args printregister
-       | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args printbalance
+       | cmd `isPrefixOf` "test"     = runtests >> return ()
        | otherwise                   = putStr usage
 
 -- | parse the user's specified ledger file and do some action with it

@@ -15,7 +15,7 @@ import RegisterCommand
 -- quickcheck = mapM quickCheck ([
 --         ] :: [Bool])
 
-runhunit = runTestTT alltests
+runtests = runTestTT alltests
 
 alltests = concattests [
             tests
@@ -93,6 +93,10 @@ tests =
         assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
         assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
 
+        ,"pruneBoringBranches" ~: do
+           atree <- liftM (ledgerAccountTree 99) $ ledgerfromfile "sample.ledger"
+           assertequal 13 (length $ flatten $ atree)
+           assertequal 12 (length $ flatten $ pruneBoringBranches $ atree)
  ]
 
 balancecommandtests = 
@@ -155,6 +159,7 @@ balancecommandtests =
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
 assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
 assertparseequal expected parsed = either printParseError (assertequal expected) parsed
+
 
 -- test data
 
