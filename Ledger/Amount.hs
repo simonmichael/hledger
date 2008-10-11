@@ -99,6 +99,11 @@ amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
 amountop op a@(Amount ac aq ap) b@(Amount bc bq bp) = 
     Amount bc ((quantity $ toCurrency bc a) `op` bq) (min ap bp)
 
+-- | Sum a list of amounts. This is still needed because a final zero
+-- amount will discard the sum's currency.
+sumAmounts :: [Amount] -> Amount
+sumAmounts = sum . filter (not . isZeroAmount)
+
 toCurrency :: Currency -> Amount -> Amount
 toCurrency newc (Amount oldc q p) =
     Amount newc (q * (conversionRate oldc newc)) p

@@ -40,14 +40,6 @@ import Text.Regex
 import Text.ParserCombinators.Parsec (parse)
 
 
--- testing
-
-assertequal e a = assertEqual "" e a
-assertnotequal e a = assertBool "expected inequality, got equality" (e /= a)
-
-parsewith p ts = parse p "" ts
-
-
 -- regexps
 
 instance Show Regex where show r = "a Regex"
@@ -101,32 +93,63 @@ root = rootLabel
 subs = subForest
 branches = subForest
 
--- remove all nodes past a certain depth
+-- | get the sub-tree rooted at the first (left-most, depth-first) occurrence
+-- of the specified node value
+subtreeat :: Eq a => a -> Tree a -> Maybe (Tree a)
+subtreeat v t
+    | root t == v = Just t
+    | otherwise = subtreeinforest v $ subs t
+
+-- | get the sub-tree for the specified node value in the first tree in
+-- forest in which it occurs.
+subtreeinforest :: Eq a => a -> [Tree a] -> Maybe (Tree a)
+subtreeinforest v [] = Nothing
+subtreeinforest v (t:ts) = case (subtreeat v t) of
+                             Just t' -> Just t'
+                             Nothing -> subtreeinforest v ts
+          
+-- | remove all nodes past a certain depth
 treeprune :: Int -> Tree a -> Tree a
 treeprune 0 t = Node (root t) []
 treeprune d t = Node (root t) (map (treeprune $ d-1) $ branches t)
 
--- apply f to all tree nodes
+-- | apply f to all tree nodes
 treemap :: (a -> b) -> Tree a -> Tree b
 treemap f t = Node (f $ root t) (map (treemap f) $ branches t)
 
--- remove all subtrees whose nodes do not fulfill predicate
+-- | remove all subtrees whose nodes do not fulfill predicate
 treefilter :: (a -> Bool) -> Tree a -> Tree a
 treefilter f t = Node 
                  (root t) 
                  (map (treefilter f) $ filter (treeany f) $ branches t)
     
--- is predicate true in any node of tree ?
+-- | is predicate true in any node of tree ?
 treeany :: (a -> Bool) -> Tree a -> Bool
 treeany f t = (f $ root t) || (any (treeany f) $ branches t)
     
 -- treedrop -- remove the leaves which do fulfill predicate. 
 -- treedropall -- do this repeatedly.
 
+-- | show a compact ascii representation of a tree
 showtree :: Show a => Tree a -> String
 showtree = unlines . filter (containsRegex (mkRegex "[^ |]")) . lines . drawTree . treemap show
 
+-- | show a compact ascii representation of a forest
+showforest :: Show a => Forest a -> String
+showforest = concatMap showtree
+
 -- debugging
 
-strace a = trace (show a) a -- trace a showable expression
+-- | trace a showable expression
+strace a = trace (show a) a
+
 p = putStr
+
+-- testing
+
+assertequal e a = assertEqual "" e a
+assertnotequal e a = assertBool "expected inequality, got equality" (e /= a)
+
+parsewith p ts = parse p "" ts
+
+
