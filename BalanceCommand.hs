@@ -96,6 +96,27 @@ Here are some rules for account balance display, as seen above:
 - in a showsubs report, all subaccounts of matched accounts are displayed
 
 -}
+{-
+let's start over:
+
+a simple balance report lists top-level non-boring accounts, with their aggregated balances, followed by the total
+
+a balance report with showsubs lists all non-boring accounts, with their aggregated balances, followed by the total
+
+a filtered balance report lists non-boring accounts whose leafname matches the filter, with their aggregated balances, followed by the total
+
+a filtered balance report with showsubs lists non-boring accounts whose leafname matches the filter, plus their subaccounts, with their aggregated balances, followed by the total
+
+the total is the sum of the aggregated balances shown, excluding subaccounts whose parent's balance is shown. If the total is zero it is not shown.
+
+boring accounts are 
+- leaf accounts with zero balance; these are never shown
+- non-matched parent accounts of matched accounts, when filtering; these are shown inline
+- parent accounts with no transactions of their own and a single subaccount; these are shown inline
+
+maxdepth may affect this further
+
+-}
 
 module BalanceCommand
 where
@@ -112,74 +133,119 @@ import Utils
 printbalance :: [Opt] -> [String] -> Ledger -> IO ()
 printbalance opts args l = putStr $ balancereport opts args l
 
-balancereport :: [Opt] -> [String] -> Ledger -> String
-balancereport opts args l = showLedgerAccountBalances l depth
+balancereport = balancereport1
+
+-- | List the accounts for which we should show balances in the balance
+-- report, based on the options.
+balancereportaccts :: Bool -> [String] -> Ledger -> [Account]
+balancereportaccts False [] l = topAccounts l
+balancereportaccts False pats l = accountsMatching (regexFor pats) l
+balancereportaccts True pats l = addsubaccts l $ balancereportaccts False pats l
+
+-- | Add (in tree order) any missing subacccounts to a list of accounts.
+addsubaccts l as = concatMap addsubs as where addsubs = maybe [] flatten . ledgerAccountTreeAt l
+
+balancereport2 :: [Opt] -> [String] -> Ledger -> String
+balancereport2 opts args l = acctsstr ++ totalstr
+    where
+      accts = balancereportaccts (ShowSubs `elem` opts) args l
+      showacct a =
+          bal ++ "  " ++ indent ++ prefix ++ fullname ++ "\n"
+          where
+            bal = printf "%20s" $ show $ abalance a
+            indentlevel = 0
+            prefix = ""
+            indent = replicate (indentlevel * 2) ' '
+            fullname = aname a
+            leafname = accountLeafName fullname
+      acctsstr = concatMap showacct accts
+      total = sumAmounts $ map abalance $ removeduplicatebalances accts
+      removeduplicatebalances as = filter (not . hasparentshowing) as
+          where 
+            hasparentshowing a = (parentAccountName $ aname a) `elem` names
+            names = map aname as
+      totalstr
+          | isZeroAmount total = ""
+          | otherwise = printf "--------------------\n%20s\n" $ showAmountRounded total
+
+-- | Generate balance report output for a ledger.
+balancereport1 :: [Opt] -> [String] -> Ledger -> String
+balancereport1 opts args l = acctsstr ++ totalstr
     where 
       showsubs = (ShowSubs `elem` opts)
-      pats = parseAccountDescriptionArgs args
-      -- when there is no -s or pattern args, show with depth 1
-      depth = case (pats, showsubs) of
-                (([],[]), False) -> 1
-                otherwise  -> 9999
+      pats@(apats,dpats) = parseAccountDescriptionArgs args
+      maxdepth = case (pats, showsubs) of
+                   (([],[]), False) -> 1 -- with no -s or pattern, show with depth 1
+                   otherwise  -> 9999
 
--- | Generate balance report output for a ledger, to the specified depth.
-showLedgerAccountBalances :: Ledger -> Int -> String
-showLedgerAccountBalances l maxdepth = 
-    concatMap (showAccountTree l maxdepth) acctbranches
-    ++
-    if isZeroAmount total 
-    then ""
-    else printf "--------------------\n%20s\n" $ showAmountRounded total
-    where 
-      acctbranches = branches $ pruneZeroBalanceBranches $ ledgerAccountTree maxdepth l
-      filteredacctbranches = branches $ ledgerFilteredAccountTree maxdepth (acctpat l) l
-      total = sum $ map (abalance . root) filteredacctbranches
+      acctstoshow = balancereportaccts showsubs apats l
+      acctnames = map aname acctstoshow
+      treetoshow = pruneZeroBalanceLeaves $ pruneUnmatchedAccounts $ treeprune maxdepth $ ledgerAccountTree 9999 l
+      acctforest = subs treetoshow
 
--- | Remove all-zero-balance branches and leaves from a tree of accounts.
-pruneZeroBalanceBranches :: Tree Account -> Tree Account
-pruneZeroBalanceBranches = treefilter (not . isZeroAmount . abalance)
+      acctsstr = concatMap (showAccountTree l maxdepth) acctforest
+
+      totalstr
+          | isZeroAmount total = ""
+          | otherwise = printf "--------------------\n%20s\n" $ showAmountRounded total
+      total = sumAmounts $ map abalance $ nonredundantaccts
+      nonredundantaccts = filter (not . hasparentshowing) acctstoshow
+      hasparentshowing a = (parentAccountName $ aname a) `elem` acctnames
+
+      -- remove any accounts from the tree which are not one of the acctstoshow, 
+      -- or one of their parents, or one of their subaccounts when doing showsubs
+      pruneUnmatchedAccounts :: Tree Account -> Tree Account
+      pruneUnmatchedAccounts = treefilter matched
+          where 
+            matched :: Account -> Bool
+            matched (Account name _ _)
+                | name `elem` acctnames = True
+                | any (name `isAccountNamePrefixOf`) acctnames = True
+                | showsubs && any (`isAccountNamePrefixOf` name) acctnames = True
+                | otherwise = False
+
+      -- remove all zero-balance leaf accounts (recursively)
+      pruneZeroBalanceLeaves :: Tree Account -> Tree Account
+      pruneZeroBalanceLeaves = treefilter (not . isZeroAmount . abalance)
 
 -- | Get the string representation of a tree of accounts.
 -- The ledger from which the accounts come is required so that
 -- we can check for boring accounts.
 showAccountTree :: Ledger -> Int -> Tree Account -> String
 showAccountTree l maxdepth = showAccountTree' l maxdepth 0 ""
-
-showAccountTree' :: Ledger -> Int -> Int -> String -> Tree Account -> String
-showAccountTree' l maxdepth indentlevel prefix t
-    -- merge boring inner account names with the next line
-    | isBoringInnerAccount l maxdepth acct = subsindented 0 (fullname++":")
-    -- ditto with unmatched parent accounts when filtering by account
-    |  filtering && doesnotmatch = subsindented 0 (fullname++":")
-    -- otherwise show this account's name & balance
-    | otherwise = bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n" ++ (subsindented 1 "")
     where
-      acct = root t
-      subs = branches t
-      subsindented i p = concatMap (showAccountTree' l maxdepth (indentlevel+i) p) subs
-      bal = printf "%20s" $ show $ abalance $ acct
-      indent = replicate (indentlevel * 2) ' '
-      fullname = aname acct
-      leafname = accountLeafName fullname
-      filtering = filteredaccountnames l /= (accountnames l)
-      doesnotmatch = not (containsRegex (acctpat l) leafname)
+      showAccountTree' :: Ledger -> Int -> Int -> String -> Tree Account -> String
+      showAccountTree' l maxdepth indentlevel prefix t
 
--- | Is this account a boring inner account in this ledger ? 
--- Boring inner accounts have no transactions, one subaccount,
--- and depth less than the maximum display depth.
--- Also, they are unmatched parent accounts when account matching is in effect.
-isBoringInnerAccount :: Ledger -> Int -> Account -> Bool
-isBoringInnerAccount l maxdepth a
-    | name == "top" = False
-    | depth < maxdepth && numtxns == 0 && numsubs == 1 = True
-    | otherwise = False
-    where      
-      name = aname a
-      depth = accountNameLevel name
-      numtxns = length $ atransactions a
-      -- how many (filter-matching) subaccounts has this account ?
-      numsubs = length $ subAccountNamesFrom (filteredaccountnames l) name
+          | isBoringParentAccount (length subaccts) (length $ subAccounts l a) maxdepth a = nextwithprefix
+          | otherwise = thisline ++ nextwithindent
 
--- | Is the named account a boring inner account in this ledger ?
-isBoringInnerAccountName :: Ledger -> Int -> AccountName -> Bool
-isBoringInnerAccountName l maxdepth = isBoringInnerAccount l maxdepth . ledgerAccount l
+          where
+            a = root t
+            subaccts = subs t
+            nextwithprefix = showsubs 0 (fullname++":")
+            nextwithindent = showsubs 1 ""
+            showsubs i p = concatMap (showAccountTree' l maxdepth (indentlevel+i) p) subaccts
+            thisline = bal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n"
+
+            bal = printf "%20s" $ show $ abalance $ a
+            indent = replicate (indentlevel * 2) ' '
+            leafname = accountLeafName fullname
+            fullname = aname a
+            filtering = filteredaccountnames l /= (accountnames l)
+            doesnotmatch = not (containsRegex (acctpat l) leafname)
+
+            -- Boring parent accounts have the same balance as their
+            -- single child. In other words they have exactly one child
+            -- (which we may not be showing) and no transactions.  Also
+            -- their depth is less than the maximum display depth.
+            -- ..or some such thing..
+            --isBoringParentAccount :: Int -> Int -> Account -> Bool
+            isBoringParentAccount numsubs realnumsubs maxdepth a
+                | name == "top" = False
+                | depth < maxdepth && numtxns == 0 && numsubs == 1 = True
+                | otherwise = False
+                where      
+                  name = aname a
+                  depth = accountNameLevel name
+                  numtxns = length $ atransactions a

@@ -36,12 +36,12 @@ alltests = concattests [
     where
       concattests = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
 
-tests = 
+tests =
  TestList
  [
          "display dollar amount" ~: show (dollars 1) ~?= "$1.00"
          
-        ,"display time amount" ~: show (hours 1) ~?= "1.0h"
+--         ,"display time amount" ~: show (hours 1) ~?= "1.0h"
 
         ,"amount precision"   ~: do
            let a1 = Amount (getcurrency "$") 1.23 1
@@ -86,20 +86,20 @@ tests =
         ,"cacheLedger"        ~: do
         assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger wildcard rawledger7 )
 
-        ,"showLedgerAccounts" ~: do
-        assertequal 4 (length $ lines $ showLedgerAccountBalances ledger7 1)
+--         ,"showLedgerAccounts" ~: do
+--         assertequal 4 (length $ lines $ showLedgerAccountBalances ledger7 1)
 
         ,"ledgeramount"       ~: do
         assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
         assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
 
-        ,"pruneZeroBalanceBranches" ~: do
-           atree <- liftM (ledgerAccountTree 99) $ ledgerfromfile "sample.ledger"
-           assertequal 13 (length $ flatten $ atree)
-           assertequal 12 (length $ flatten $ pruneZeroBalanceBranches $ atree)
+--         ,"pruneZeroBalanceLeaves" ~: do
+--            atree <- liftM (ledgerAccountTree 99) $ ledgerfromfile "sample.ledger"
+--            assertequal 13 (length $ flatten $ atree)
+--            assertequal 12 (length $ flatten $ pruneZeroBalanceLeaves $ atree)
  ]
 
-balancecommandtests = 
+balancecommandtests =
  TestList 
  [
   "simple balance report" ~: do
@@ -130,7 +130,7 @@ balancecommandtests =
      (balancereport [ShowSubs] [] l)
   ,
 
-  "balance report with account pattern" ~: do
+  "balance report with account pattern o" ~: do
     rl <- rawledgerfromfile "sample.ledger"
     let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
     assertequal
@@ -142,7 +142,7 @@ balancecommandtests =
      (balancereport [] ["o"] l)
   ,
 
-  "balance report with account pattern and showsubs" ~: do
+  "balance report with account pattern o and showsubs" ~: do
     rl <- rawledgerfromfile "sample.ledger"
     let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
     assertequal
@@ -154,6 +154,32 @@ balancecommandtests =
      \                 $-1\n\
      \" --"
      (balancereport [ShowSubs] ["o"] l)
+  ,
+
+  "balance report with account pattern e" ~: do
+    rl <- rawledgerfromfile "sample.ledger"
+    let l = cacheLedger (mkRegex "e") $ filterRawLedgerEntries "" "" wildcard rl
+    assertequal
+     "                 $-1  assets\n\
+     \                  $2  expenses\n\
+     \                  $1    supplies\n\
+     \                 $-2  income\n\
+     \                  $1  liabilities:debts\n\
+     \" --"
+     (balancereport [] ["e"] l)
+
+--   "balance report with account pattern e and showsubs" ~: do
+--     rl <- rawledgerfromfile "sample.ledger"
+--     let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
+--     assertequal
+--      "                  $1  expenses:food\n\
+--      \                 $-2  income\n\
+--      \                 $-1    gifts\n\
+--      \                 $-1    salary\n\
+--      \--------------------\n\
+--      \                 $-1\n\
+--      \" --"
+--      (balancereport [ShowSubs] ["o"] l)
  ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
