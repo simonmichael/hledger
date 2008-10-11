@@ -93,6 +93,23 @@ ledgerAccount l a = (accountmap l) ! a
 ledgerFilteredAccount :: Ledger -> AccountName -> Account
 ledgerFilteredAccount l a = (filteredaccountmap l) ! a
 
+-- | List a ledger's accounts, in tree order
+accounts l = drop 1 $ flatten $ ledgerAccountTree 9999 l
+
+-- | List a ledger's top-level accounts, in tree order
+topAccounts l = map root $ branches $ ledgerAccountTree 9999 l
+
+-- | Accounts in ledger whose leafname matches the pattern, in tree order
+accountsMatching pat l = filter (containsRegex pat . accountLeafName . aname) $ accounts l
+
+-- | List a ledger account's immediate subaccounts
+subAccounts :: Ledger -> Account -> [Account]
+subAccounts l a = map (ledgerAccount l) subacctnames
+    where
+      allnames = accountnames l
+      name = aname a
+      subacctnames = filter (name `isAccountNamePrefixOf`) allnames
+
 -- | List a ledger's transactions.
 --
 -- NB this sets the amount precisions to that of the highest-precision
@@ -110,8 +127,16 @@ ledgerAccountTree :: Int -> Ledger -> Tree Account
 ledgerAccountTree depth l = 
     addDataToAccountNameTree l depthpruned
     where
-      nametree = filteredaccountnametree l --
+      nametree = accountnametree l
       depthpruned = treeprune depth nametree
+
+-- that's weird.. why can't this be in Account.hs ?
+instance Eq Account where
+    (==) (Account n1 t1 b1) (Account n2 t2 b2) = n1 == n2 && t1 == t2 && b1 == b2
+
+-- | Get a ledger's tree of accounts rooted at the specified account.
+ledgerAccountTreeAt :: Ledger -> Account -> Maybe (Tree Account)
+ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 
 -- | Get a ledger's tree of accounts to the specified depth, filtered by
 -- the account pattern.
