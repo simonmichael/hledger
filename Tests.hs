@@ -156,6 +156,21 @@ balancecommandtests =
      (balancereport [ShowSubs] ["o"] l)
   ,
 
+  "balance report with account pattern a" ~: do
+    rl <- rawledgerfromfile "sample.ledger"
+    let l = cacheLedger (mkRegex "a") $ filterRawLedgerEntries "" "" wildcard rl
+    assertequal
+     "                 $-1  assets\n\
+     \                 $-2    cash\n\
+     \                  $1    saving\n\
+     \                 $-1  income:salary\n\
+     \                  $1  liabilities\n\
+     \--------------------\n\
+     \                 $-1\n\
+     \" --"
+     (balancereport [] ["a"] l)
+  ,
+
   "balance report with account pattern e" ~: do
     rl <- rawledgerfromfile "sample.ledger"
     let l = cacheLedger (mkRegex "e") $ filterRawLedgerEntries "" "" wildcard rl
@@ -167,19 +182,6 @@ balancecommandtests =
      \                  $1  liabilities:debts\n\
      \" --"
      (balancereport [] ["e"] l)
-
---   "balance report with account pattern e and showsubs" ~: do
---     rl <- rawledgerfromfile "sample.ledger"
---     let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
---     assertequal
---      "                  $1  expenses:food\n\
---      \                 $-2  income\n\
---      \                 $-1    gifts\n\
---      \                 $-1    salary\n\
---      \--------------------\n\
---      \                 $-1\n\
---      \" --"
---      (balancereport [ShowSubs] ["o"] l)
  ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
