@@ -94,12 +94,15 @@ ledgerFilteredAccount :: Ledger -> AccountName -> Account
 ledgerFilteredAccount l a = (filteredaccountmap l) ! a
 
 -- | List a ledger's accounts, in tree order
+accounts :: Ledger -> [Account]
 accounts l = drop 1 $ flatten $ ledgerAccountTree 9999 l
 
 -- | List a ledger's top-level accounts, in tree order
+topAccounts :: Ledger -> [Account]
 topAccounts l = map root $ branches $ ledgerAccountTree 9999 l
 
 -- | Accounts in ledger whose leafname matches the pattern, in tree order
+accountsMatching :: Regex -> Ledger -> [Account]
 accountsMatching pat l = filter (containsRegex pat . accountLeafName . aname) $ accounts l
 
 -- | List a ledger account's immediate subaccounts
