@@ -1,22 +1,6 @@
 {-|
 
-Utilities for top-level modules. See also "Ledger.Utils".
-
-There are some helpers here for working with your ledger in ghci. Examples:
-
-> $ rm -f *.o Ledger/*.o
-> $ ghci hledger.hs
-> *Main> l <- myledger
-> Ledger with 696 entries, 132 accounts:
-> ...
-> *Main> printbalance [] [] l
-> ...
-> *Main> printregister [] [] l
-> ...
-> *Main> accounts l
-> ...
-> *Main> myaccount "expenses:food:groceries"
-> Account expenses:food:groceries with 60 transactions
+Utilities for top-level modules and/or ghci. See also "Ledger.Utils".
 
 -}
 

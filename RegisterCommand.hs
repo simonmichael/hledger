@@ -14,8 +14,8 @@ registercommandtests = TestList [
                        ]
 
 -- | Print a register report.
-printregister :: [Opt] -> [String] -> Ledger -> IO ()
-printregister opts args l = putStr $ showTransactionsWithBalances opts args l
+register :: [Opt] -> [String] -> Ledger -> IO ()
+register opts args l = putStr $ showTransactionsWithBalances opts args l
 
 showTransactionsWithBalances :: [Opt] -> [String] -> Ledger -> String
 showTransactionsWithBalances opts args l =

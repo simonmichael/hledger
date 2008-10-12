@@ -102,7 +102,7 @@ balancecommandtests =
      \                 $-2  income\n\
      \                  $1  liabilities\n\
      \" --"
-     (balancereport [] [] l)
+     (showBalanceReport [] [] l)
   ,
 
   "balance report with showsubs" ~: do
@@ -119,7 +119,7 @@ balancecommandtests =
      \                 $-1    salary\n\
      \                  $1  liabilities:debts\n\
      \" --"
-     (balancereport [ShowSubs] [] l)
+     (showBalanceReport [ShowSubs] [] l)
   ,
 
   "balance report with account pattern o" ~: do
@@ -130,7 +130,7 @@ balancecommandtests =
      \--------------------\n\
      \                 $-1\n\
      \" --"
-     (balancereport [] ["o"] l)
+     (showBalanceReport [] ["o"] l)
   ,
 
   "balance report with account pattern o and showsubs" ~: do
@@ -143,7 +143,7 @@ balancecommandtests =
      \--------------------\n\
      \                 $-1\n\
      \" --"
-     (balancereport [ShowSubs] ["o"] l)
+     (showBalanceReport [ShowSubs] ["o"] l)
   ,
 
   "balance report with account pattern a" ~: do
@@ -157,7 +157,7 @@ balancecommandtests =
      \--------------------\n\
      \                 $-1\n\
      \" --"
-     (balancereport [] ["a"] l)
+     (showBalanceReport [] ["a"] l)
   ,
 
   "balance report with account pattern e" ~: do
@@ -169,7 +169,7 @@ balancecommandtests =
      \                 $-2  income\n\
      \                  $1  liabilities:debts\n\
      \" --"
-     (balancereport [] ["e"] l)
+     (showBalanceReport [] ["e"] l)
   ,
 
   "balance report with unmatched parent of two matched subaccounts" ~: do
@@ -180,7 +180,7 @@ balancecommandtests =
      \--------------------\n\
      \                 $-1\n\
      \" --"
-     (balancereport [] ["cash","saving"] l)
+     (showBalanceReport [] ["cash","saving"] l)
  ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.

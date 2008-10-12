@@ -10,18 +10,43 @@ This is a minimal haskell clone of John Wiegley's ledger
 simple ledger-compatible register & balance reports from a plain text
 ledger file, and demonstrates a functional implementation of ledger.
 
+You can use the command line:
+
+> $ hledger --help
+
+or ghci:
+
+> $ ghci hledger
+> > l <- ledgerfromfile "sample.ledger"
+> > balance [] [] l
+>                  $-1  assets
+>                   $2  expenses
+>                  $-2  income
+>                   $1  liabilities:debts
+> > register [] ["income","expenses"] l
+> 2007/01/01 income               income:salary                   $-1          $-1
+> 2007/01/01 gift                 income:gifts                    $-1          $-2
+> 2007/01/01 eat & shop           expenses:food                    $1          $-1
+>                                 expenses:supplies                $1            0
+
 -}
 
-module Main
+module Main (
+             module Utils,
+             module Options,
+             module BalanceCommand,
+             module PrintCommand,
+             module RegisterCommand,
+)
 where
 import qualified Data.Map as Map (lookup)
-import Options
 import Ledger
+import Utils
+import Options
 import BalanceCommand
 import PrintCommand
 import RegisterCommand
 import Tests
-import Utils
 
 
 main :: IO ()
@@ -32,9 +57,9 @@ main = do
       run cmd opts args
        | Help `elem` opts            = putStr usage
        | Version `elem` opts         = putStr version
-       | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args printbalance
-       | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args printentries
-       | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args printregister
+       | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
+       | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
+       | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
        | cmd `isPrefixOf` "test"     = runtests >> return ()
        | otherwise                   = putStr usage
 

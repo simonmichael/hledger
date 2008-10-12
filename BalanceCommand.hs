@@ -114,12 +114,12 @@ import Utils
 
 
 -- | Print a balance report.
-printbalance :: [Opt] -> [String] -> Ledger -> IO ()
-printbalance opts args l = putStr $ balancereport opts args l
+balance :: [Opt] -> [String] -> Ledger -> IO ()
+balance opts args l = putStr $ showBalanceReport opts args l
 
 -- | Generate balance report output for a ledger, based on options.
-balancereport :: [Opt] -> [String] -> Ledger -> String
-balancereport opts args l = acctsstr ++ totalstr
+showBalanceReport :: [Opt] -> [String] -> Ledger -> String
+showBalanceReport opts args l = acctsstr ++ totalstr
     where 
       acctsstr = concatMap (showAccountTreeWithBalances acctnamestoshow) $ subs treetoshow
       totalstr = if isZeroAmount total 
