@@ -87,11 +87,6 @@ showEntry e =
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
 
-entrySetPrecision :: Int -> Entry -> Entry
-entrySetPrecision p (Entry d s c desc comm ts prec) = 
-    Entry d s c desc comm (map (ledgerTransactionSetPrecision p) ts) prec
-                
-
 -- modifier & periodic entries
 
 instance Show ModifierEntry where 

@@ -10,7 +10,7 @@ module Ledger.TimeLog
 where
 import Ledger.Utils
 import Ledger.Types
-import Ledger.Currency
+import Ledger.Commodity
 import Ledger.Amount
 
 
@@ -56,8 +56,7 @@ entryFromTimeLogInOut i o =
       outdate  = showDateFrom outtime
       intime   = parsedatetime $ tldatetime i
       outtime  = parsedatetime $ tldatetime o
-      hours    = realToFrac (diffUTCTime outtime intime) / 3600
-      amount   = Amount (getcurrency "h") hours 1
+      amount   = hours $ realToFrac (diffUTCTime outtime intime) / 3600
       txns     = [RawTransaction acctname amount "", RawTransaction "assets:TIME" (-amount) ""]
 
 showDateFrom :: UTCTime -> String

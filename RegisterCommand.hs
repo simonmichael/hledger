@@ -24,7 +24,7 @@ showTransactionsWithBalances opts args l =
           ts = filter matchtxn $ ledgerTransactions l
           matchtxn (Transaction _ _ desc acct _) = (containsRegex (regexFor apats) acct)
           pats@(apats,dpats) = parseAccountDescriptionArgs args
-          startingbalance = nullamt{precision=lprecision l}
+          startingbalance = nullamt
           showTransactionsWithBalances' :: [Transaction] -> Transaction -> Amount -> [String]
           showTransactionsWithBalances' [] _ _ = []
           showTransactionsWithBalances' (t:ts) tprev b =

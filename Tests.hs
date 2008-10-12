@@ -23,7 +23,7 @@ alltests = concattests [
            ,accountnametests
            ,amounttests
            ,balancecommandtests
-           ,currencytests
+           ,commoditytests
            ,entrytests
            ,ledgertests
            ,parsertests
@@ -41,20 +41,20 @@ tests =
  [
          "display dollar amount" ~: show (dollars 1) ~?= "$1.00"
          
---         ,"display time amount" ~: show (hours 1) ~?= "1.0h"
+        ,"display time amount" ~: show (hours 1) ~?= "1.0h"
 
-        ,"amount precision"   ~: do
-           let a1 = Amount (getcurrency "$") 1.23 1
-           let a2 = Amount (getcurrency "$") (-1.23) 2
-           let a3 = Amount (getcurrency "$") (-1.23) 3
-           assertequal (Amount (getcurrency "$") 0 1) (a1 + a2)
-           assertequal (Amount (getcurrency "$") 0 1) (a1 + a3)
-           assertequal (Amount (getcurrency "$") (-2.46) 2) (a2 + a3)
-           assertequal (Amount (getcurrency "$") (-2.46) 3) (a3 + a3)
-           -- sum adds 0, with Amount fromIntegral's default precision of 2
-           assertequal (Amount (getcurrency "$") 0 1) (sum [a1,a2])
-           assertequal (Amount (getcurrency "$") (-2.46) 2) (sum [a2,a3])
-           assertequal (Amount (getcurrency "$") (-2.46) 2) (sum [a3,a3])
+--         ,"amount precision"   ~: do
+--            let a1 = dollars 1.23
+--            let a2 = Amount (comm "$") (-1.23) 2
+--            let a3 = Amount (comm "$") (-1.23) 3
+--            assertequal (Amount (comm "$") 0 1) (a1 + a2)
+--            assertequal (Amount (comm "$") 0 1) (a1 + a3)
+--            assertequal (Amount (comm "$") (-2.46) 2) (a2 + a3)
+--            assertequal (Amount (comm "$") (-2.46) 3) (a3 + a3)
+--            -- sum adds 0, with Amount fromIntegral's default precision of 2
+--            assertequal (Amount (comm "$") 0 1) (sum [a1,a2])
+--            assertequal (Amount (comm "$") (-2.46) 2) (sum [a2,a3])
+--            assertequal (Amount (comm "$") (-2.46) 2) (sum [a3,a3])
 
         ,"ledgertransaction"  ~: do
            assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)
@@ -64,7 +64,7 @@ tests =
                             
         ,"autofillEntry"      ~: do
            assertequal
-            (Amount (getcurrency "$") (-47.18) 2)
+            (dollars (-47.18))
             (tamount $ last $ etransactions $ autofillEntry entry1)
 
         ,"punctuatethousands"      ~: punctuatethousands "" @?= ""
@@ -86,9 +86,9 @@ tests =
         ,"cacheLedger"        ~: do
         assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7 )
 
-        ,"ledgeramount"       ~: do
-        assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
-        assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
+        ,"transactionamount"       ~: do
+        assertparseequal (dollars 47.18) (parsewith transactionamount " $47.18")
+        assertparseequal (Amount (Commodity {symbol="$",rate=1,side=L,spaced=False,precision=0}) 1) (parsewith transactionamount " $1.")
  ]
 
 balancecommandtests =
@@ -202,8 +202,8 @@ entry1_str = "\
 
 entry1 =
     (Entry "2007/01/28" False "" "coopportunity" ""
-     [RawTransaction "expenses:food:groceries" (Amount (getcurrency "$") 47.18 2) "", 
-      RawTransaction "assets:checking" (Amount (getcurrency "$") (-47.18) 2) ""] "")
+     [RawTransaction "expenses:food:groceries" (dollars 47.18) "", 
+      RawTransaction "assets:checking" (dollars (-47.18)) ""] "")
 
 
 entry2_str = "\
@@ -347,12 +347,12 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="assets:cash", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
+                tamount=dollars 4.82,
                 tcomment=""
               },
               RawTransaction {
                 taccount="equity:opening balances", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
+                tamount=dollars (-4.82),
                 tcomment=""
               }
              ],
@@ -368,12 +368,12 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="expenses:vacation", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=179.92, precision=2},
+                tamount=dollars 179.92,
                 tcomment=""
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=(-179.92), precision=2},
+                tamount=dollars (-179.92),
                 tcomment=""
               }
              ],
@@ -389,12 +389,12 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="assets:saving", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=200, precision=2},
+                tamount=dollars 200,
                 tcomment=""
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=(-200), precision=2},
+                tamount=dollars (-200),
                 tcomment=""
               }
              ],
@@ -410,12 +410,12 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="expenses:food:dining", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=4.82, precision=2},
+                tamount=dollars 4.82,
                 tcomment=""
               },
               RawTransaction {
                 taccount="assets:cash", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=(-4.82), precision=2},
+                tamount=dollars (-4.82),
                 tcomment=""
               }
              ],
@@ -431,12 +431,12 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="expenses:phone", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=95.11, precision=2},
+                tamount=dollars 95.11,
                 tcomment=""
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=(-95.11), precision=2},
+                tamount=dollars (-95.11),
                 tcomment=""
               }
              ],
@@ -452,12 +452,12 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="liabilities:credit cards:discover", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=80, precision=2},
+                tamount=dollars 80,
                 tcomment=""
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=Amount {currency=(getcurrency "$"), quantity=(-80), precision=2},
+                tamount=dollars (-80),
                 tcomment=""
               }
              ],

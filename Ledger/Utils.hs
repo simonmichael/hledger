@@ -150,6 +150,8 @@ p = putStr
 assertequal e a = assertEqual "" e a
 assertnotequal e a = assertBool "expected inequality, got equality" (e /= a)
 
+-- parsewith :: Parser a
 parsewith p ts = parse p "" ts
+fromparse = either (\_ -> error "parse error") id
 
 

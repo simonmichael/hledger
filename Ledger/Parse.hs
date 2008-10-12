@@ -10,10 +10,12 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as P
 import System.IO
+import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
+import Ledger.Amount
 import Ledger.Entry
-import Ledger.Currency
+import Ledger.Commodity
 import Ledger.TimeLog
 
 
@@ -255,7 +257,7 @@ ledgertransaction :: Parser RawTransaction
 ledgertransaction = do
   many1 spacenonewline
   account <- ledgeraccountname
-  amount <- ledgeramount
+  amount <- transactionamount
   many spacenonewline
   comment <- ledgercomment
   restofline
@@ -272,22 +274,55 @@ ledgeraccountname = do
       -- couldn't avoid consuming a final space sometimes, harmless
       striptrailingspace s = if last s == ' ' then init s else s
 
-ledgeramount :: Parser Amount
-ledgeramount = 
-    try (do
-          many1 spacenonewline
-          c <- many (noneOf "-.0123456789;\n") <?> "currency"
-          q <- many1 (oneOf "-.,0123456789") <?> "quantity"
-          let q' = stripcommas $ striptrailingpoint q
-          let (int,frac) = break (=='.') q'
-          let precision = length $ dropWhile (=='.') frac
-          return (Amount (getcurrency c) (read q') precision)
-        ) 
-    <|> return (Amount (Currency "AUTO" 0) 0 0)
-    where 
+transactionamount :: Parser Amount
+transactionamount =
+  try (do
+        many1 spacenonewline
+        a <- try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount <|> return autoamt
+        return a
+      ) <|> return autoamt
+
+leftsymbolamount :: Parser Amount
+leftsymbolamount = do
+  sym <- commoditysymbol 
+  sp <- many spacenonewline
+  q <- commodityquantity
+  let newcommodity = Commodity {symbol=sym,rate=1,side=L,spaced=not $ null sp,precision=1}
+  let c = Map.findWithDefault newcommodity sym defaultcommoditiesmap
+  return $ Amount c q
+  <?> "left-symbol amount"
+
+rightsymbolamount :: Parser Amount
+rightsymbolamount = do
+  q <- commodityquantity
+  sp <- many spacenonewline
+  sym <- commoditysymbol
+  let newcommodity = Commodity {symbol=sym,rate=1,side=R,spaced=not $ null sp,precision=1}
+  let c = Map.findWithDefault newcommodity sym defaultcommoditiesmap
+  return $ Amount c q
+  <?> "right-symbol amount"
+
+nosymbolamount :: Parser Amount
+nosymbolamount = do
+  q <- commodityquantity
+  return $ unknowns q
+  <?> "no-symbol amount"
+
+commoditysymbol :: Parser String
+commoditysymbol = many1 (noneOf "-.0123456789;\n ") <?> "commodity symbol"
+   
+commodityquantity :: Parser Double
+commodityquantity = do
+  q <- many1 (oneOf "-.,0123456789")
+  let q' = stripcommas $ striptrailingpoint q
+  let (int,frac) = break (=='.') q'
+  return $ read q'
+  <?> "commodity quantity"
+    where
       stripcommas = filter (',' /=)
       striptrailingpoint = reverse . dropWhile (=='.') . reverse
-
+      -- precision = length $ dropWhile (=='.') frac -- XXX
+                                         
 spacenonewline :: Parser Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 

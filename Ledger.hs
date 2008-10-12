@@ -9,7 +9,7 @@ module Ledger (
                module Ledger.Account,
                module Ledger.AccountName,
                module Ledger.Amount,
-               module Ledger.Currency,
+               module Ledger.Commodity,
                module Ledger.Entry,
                module Ledger.Ledger,
                module Ledger.Parse,
@@ -24,7 +24,7 @@ where
 import Ledger.Account
 import Ledger.AccountName
 import Ledger.Amount
-import Ledger.Currency
+import Ledger.Commodity
 import Ledger.Entry
 import Ledger.Ledger
 import Ledger.Parse

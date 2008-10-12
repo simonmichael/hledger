@@ -48,12 +48,11 @@ cacheLedger l =
         subacctsof a = filter (isAccountNamePrefixOf a) anames
         subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a]
         balmap = Map.union 
-               (Map.fromList [(a, (sumTransactions $ subtxnsof a){precision=maxprecision}) | a <- anames])
+               (Map.fromList [(a, (sumTransactions $ subtxnsof a)) | a <- anames])
                (Map.fromList [(a,nullamt) | a <- anames])
         amap = Map.fromList [(a, Account a (txnmap ! a) (balmap ! a)) | a <- anames]
-        maxprecision = maximum $ map (precision . amount) ts
     in
-      Ledger l ant amap maxprecision
+      Ledger l ant amap
 
 -- | List a 'Ledger' 's account names.
 accountnames :: Ledger -> [AccountName]
@@ -90,10 +89,7 @@ subAccounts l a = map (ledgerAccount l) subacctnames
 -- display functions, but those are far removed from the ledger. Keep in
 -- mind if doing more arithmetic with these.
 ledgerTransactions :: Ledger -> [Transaction]
-ledgerTransactions l = 
-    setprecisions $ rawLedgerTransactions $ rawledger l
-    where
-      setprecisions = map (transactionSetPrecision (lprecision l))
+ledgerTransactions l = rawLedgerTransactions $ rawledger l
 
 -- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Int -> Ledger -> Tree Account

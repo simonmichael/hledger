@@ -28,9 +28,6 @@ flattenEntry :: (Entry, Int) -> [Transaction]
 flattenEntry (Entry d _ _ desc _ ts _, e) = 
     [Transaction e d desc (taccount t) (tamount t) | t <- ts]
 
-transactionSetPrecision :: Int -> Transaction -> Transaction
-transactionSetPrecision p (Transaction e d desc a amt) = Transaction e d desc a amt{precision=p}
-
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
 

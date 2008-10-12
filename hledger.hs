@@ -32,6 +32,7 @@ or ghci:
 -}
 
 module Main (
+             module Main,
              module Utils,
              module Options,
              module BalanceCommand,

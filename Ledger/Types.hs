@@ -15,15 +15,19 @@ type Date = String
 
 type DateTime = String
 
-data Currency = Currency {
-      symbol :: String,
-      rate :: Double
+data Side = L | R deriving (Eq,Show) 
+
+data Commodity = Commodity {
+      symbol :: String,       -- ^ the commodity's symbol
+      side :: Side,           -- ^ should the symbol appear on the left or the right
+      spaced :: Bool,         -- ^ should there be a space between symbol and quantity
+      precision :: Int,       -- ^ number of decimal places to display
+      rate :: Double          -- ^ the current (hard-coded) conversion rate against the dollar
     } deriving (Eq,Show)
 
 data Amount = Amount {
-      currency :: Currency,
-      quantity :: Double,
-      precision :: Int           -- ^ number of significant decimal places
+      commodity :: Commodity,
+      quantity :: Double
     } deriving (Eq)
 
 type AccountName = String
@@ -90,7 +94,6 @@ data Account = Account {
 data Ledger = Ledger {
       rawledger :: RawLedger,
       accountnametree :: Tree AccountName,
-      accountmap :: Map.Map AccountName Account,
-      lprecision :: Int -- the preferred display precision
+      accountmap :: Map.Map AccountName Account
     }
 

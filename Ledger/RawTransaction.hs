@@ -36,11 +36,8 @@ autofillTransactions ts =
       otherwise -> error "too many blank transactions in this entry"
     where 
       (normals, blanks) = partition isnormal ts
-      isnormal t = (symbol $ currency $ tamount t) /= "AUTO"
+      isnormal t = (symbol $ commodity $ tamount t) /= "AUTO"
       balance t = if isnormal t then t else t{tamount = -(sumLedgerTransactions normals)}
 
 sumLedgerTransactions :: [RawTransaction] -> Amount
 sumLedgerTransactions = sum . map tamount
-
-ledgerTransactionSetPrecision :: Int -> RawTransaction -> RawTransaction
-ledgerTransactionSetPrecision p (RawTransaction a amt c) = RawTransaction a amt{precision=p} c

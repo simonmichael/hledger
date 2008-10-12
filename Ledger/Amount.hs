@@ -1,7 +1,7 @@
 {-|
 An 'Amount' is some quantity of money, shares, or anything else.
 
-A simple amount is a currency, quantity pair (where currency can be anything):
+A simple amount is a commodity, quantity pair (where commodity can be anything):
 
 @
   $1 
@@ -20,9 +20,9 @@ A mixed amount (not yet implemented) is one or more simple amounts:
   16h, $13.55, oranges 6
 @
 
-Currencies may be convertible or not (eg, currencies representing
-non-money commodities). A mixed amount containing only convertible
-currencies can be converted to a simple amount. Arithmetic examples:
+Commodities may be convertible or not. A mixed amount containing only
+convertible commodities can be converted to a simple amount. Arithmetic
+examples:
 
 @
   $1 - $5 = $-4
@@ -40,7 +40,7 @@ module Ledger.Amount
 where
 import Ledger.Utils
 import Ledger.Types
-import Ledger.Currency
+import Ledger.Commodity
 
 
 amounttests = TestList [
@@ -48,12 +48,16 @@ amounttests = TestList [
 
 instance Show Amount where show = showAmountRounded
 
--- | Get the string representation of an amount, rounded to its native precision.
--- Unlike ledger, we show the decimal digits even if they are all 0, and
--- we always show currency symbols on the left.
+-- | Get the string representation of an amount, based on its commodity's
+-- display settings.
 showAmountRounded :: Amount -> String
-showAmountRounded (Amount c q p) =
-    (symbol c) ++ ({-punctuatethousands $ -}printf ("%."++show p++"f") q)
+showAmountRounded (Amount (Commodity {symbol=sym,side=side,spaced=spaced,precision=p}) q)
+    | side==L = printf "%s%s%s" sym space quantity
+    | side==R = printf "%s%s%s" quantity space sym
+    where 
+      space = if spaced then " " else ""
+      quantity = punctuatethousands $ printf ("%."++show p++"f") q :: String
+      punctuatethousands = id
 
 -- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
 showAmountRoundedOrZero :: Amount -> String
@@ -63,11 +67,11 @@ showAmountRoundedOrZero a
 
 -- | is this amount zero, when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
-isZeroAmount a@(Amount c _ _) = nonzerodigits == ""
+isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
     where
       nonzerodigits = filter (flip notElem "-+,.0") quantitystr
-      quantitystr = withoutcurrency $ showAmountRounded a
-      withoutcurrency = drop (length $ symbol c)
+      quantitystr = withoutsymbol $ showAmountRounded a
+      withoutsymbol = drop (length $ symbol c) -- XXX
 
 punctuatethousands :: String -> String
 punctuatethousands s =
@@ -80,32 +84,30 @@ punctuatethousands s =
       triples s = [take 3 s] ++ (triples $ drop 3 s)
 
 instance Num Amount where
-    abs (Amount c q p) = Amount c (abs q) p
-    signum (Amount c q p) = Amount c (signum q) p
-    fromInteger i = Amount (getcurrency "") (fromInteger i) defaultprecision
+    abs (Amount c q) = Amount c (abs q)
+    signum (Amount c q) = Amount c (signum q)
+    fromInteger i = Amount (comm "") (fromInteger i)
     (+) = amountop (+)
     (-) = amountop (-)
     (*) = amountop (*)
 
--- amounts converted from integers will have a default precision, and the
--- null currency. 
-defaultprecision = 2
-
 -- | Apply a binary arithmetic operator to two amounts, converting to the
--- second one's currency and adopting the lowest precision. (Using the
--- second currency means that folds (like sum [Amount]) will preserve the
--- currency.)
+-- second one's commodity and adopting the lowest precision. (Using the
+-- second commodity means that folds (like sum [Amount]) will preserve the
+-- commodity.)
 amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
-amountop op a@(Amount ac aq ap) b@(Amount bc bq bp) = 
-    Amount bc ((quantity $ toCurrency bc a) `op` bq) (min ap bp)
+amountop op a@(Amount ac aq) b@(Amount bc bq) = 
+    Amount bc ((quantity $ toCommodity bc a) `op` bq)
 
 -- | Sum a list of amounts. This is still needed because a final zero
--- amount will discard the sum's currency.
+-- amount will discard the sum's commodity.
 sumAmounts :: [Amount] -> Amount
 sumAmounts = sum . filter (not . isZeroAmount)
 
-toCurrency :: Currency -> Amount -> Amount
-toCurrency newc (Amount oldc q p) =
-    Amount newc (q * (conversionRate oldc newc)) p
+toCommodity :: Commodity -> Amount -> Amount
+toCommodity newc (Amount oldc q) =
+    Amount newc (q * (conversionRate oldc newc))
 
-nullamt = Amount (getcurrency "") 0 2
+nullamt = Amount (comm "") 0
+-- temporary value for partial entries
+autoamt = Amount (Commodity {symbol="AUTO",rate=1,side=L,spaced=False,precision=0}) 0
