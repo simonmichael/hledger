@@ -25,13 +25,12 @@ ledgertests = TestList [
               ]
 
 instance Show Ledger where
-    show l = printf "Ledger with %d entries, %d accounts: %s"
+    show l = printf "Ledger with %d entries, %d accounts\n%s"
              ((length $ entries $ rawledger l) +
               (length $ modifier_entries $ rawledger l) +
               (length $ periodic_entries $ rawledger l))
              (length $ accountnames l)
-             (show $ accountnames l)
-             ++ "\n" ++ (showtree $ accountnametree l)
+             (showtree $ accountnametree l)
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
 cacheLedger :: RawLedger -> Ledger
