@@ -17,7 +17,7 @@ accounttests = TestList [
                ]
 
 instance Show Account where
-    show (Account a ts b) = printf "Account %s with %d transactions" a $ length ts
+    show (Account a ts b) = printf "Account %s with %d txns and %s balance" a (length ts) (show b)
 
 nullacct = Account "" [] nullamt
 
