@@ -182,6 +182,18 @@ balancecommandtests =
      \                  $1  liabilities:debts\n\
      \" --"
      (balancereport [] ["e"] l)
+  ,
+
+  "balance report with unmatched parent of two matched subaccounts" ~: do
+    rl <- rawledgerfromfile "sample.ledger"
+    let l = cacheLedger (regexFor ["cash","saving"]) $ filterRawLedgerEntries "" "" wildcard rl
+    assertequal
+     "                 $-2  assets:cash\n\
+     \                  $1  assets:saving\n\
+     \--------------------\n\
+     \                 $-1\n\
+     \" --"
+     (balancereport [] ["cash","saving"] l)
  ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.

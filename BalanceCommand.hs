@@ -93,9 +93,10 @@ Some notes for the implementation:
 - zero-balance leaf accounts are removed
 
 - the resulting account tree is displayed with each account's aggregated
-  balance, with boring parents prefixed to the next line. A boring parent
-  has the same balance as its single child and is not explicitly matched
-  by the display options.
+  balance, with boring parents prefixed to the next line
+
+- a boring parent has the same balance as its child and is not explicitly
+  matched by the display options.
 
 - the sum of the balances shown is displayed at the end, if it is non-zero
 
@@ -177,7 +178,7 @@ showAccountTreeWithBalances matchedacctnames =
             showbal = printf "%20s" $ show bal
             indent = replicate (indentlevel * 2) ' '
             leafname = accountLeafName fullname
-            isboringparent = numsubs == 1 && (bal == subbal || not matched)
             numsubs = length subs
             subbal = abalance $ root $ head subs
             matched = fullname `elem` matchedacctnames
+            isboringparent = numsubs >= 1 && (bal == subbal || not matched)
