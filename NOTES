@@ -6,39 +6,31 @@ implementations were its consequences." --Niklaus Wirth
 
 * to do
 ** bugs
-*** balance reports & filtering are quirky/broken/different from ledger
-*** register doesn't filter
-** testing
-*** balance report regression tests
-**** find out how http://hunit.sourceforge.net/HUnit-1.0/Guide.html
-*** ledger compatibility tests
-*** speed tests
 ** release 0.1
+*** handle right-hand currency symbols
+*** ledger 2.6-style account name eliding
 *** cabal upload
+*** #ledger test
 *** haskell-cafe/ledger-cli announce
 ** ledger features
-*** handle right-hand currency symbols
-*** -C
-*** negative patterns
 *** darcs-style --version
-*** ledger 2.6-style eliding
+*** -C
+*** negative account/description patterns
 *** per-currency precision/thousands separator/symbol layout
 *** mixed-currency amounts
+*** ledger 2.6-style date matching
 *** more speed
-*** other ledger 2.6 features
-**** !include
-**** -d display expressions
-**** -j and -J graph data output
-**** read gnucash files
+*** more ledger features
 ** new features
-*** multiple -f
-*** alternate easier command-line ui
-*** alternate timelog format
 *** show in/out times in timelog entry descriptions
 *** graphs
 *** smart data entry
-*** timeclock.el features
-*** better layout
+*** easier ui
+** testing
+*** run individual tests
+*** reliable maintainable tests
+*** easy ledger compatibility tests
+*** speed tests
 ** documentation
 *** implementation docs
 *** api docs
@@ -154,3 +146,4 @@ declName _                                              = undefined
         "Currency"
          "Types"
           "Utils"
+
