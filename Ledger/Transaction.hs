@@ -37,33 +37,4 @@ accountNamesFromTransactions ts = nub $ map account ts
 sumTransactions :: [Transaction] -> Amount
 sumTransactions = sum . map amount
 
--- | for register command 
-
-showTransactionsWithBalances :: [Transaction] -> Amount -> String
-showTransactionsWithBalances [] _ = []
-showTransactionsWithBalances ts b =
-    unlines $ showTransactionsWithBalances' ts dummyt b
-        where
-          dummyt = Transaction 0 "" "" "" nullamt
-          showTransactionsWithBalances' [] _ _ = []
-          showTransactionsWithBalances' (t:ts) tprev b =
-              (if sameentry t tprev
-               then [showTransactionAndBalance t b']
-               else [showTransactionDescriptionAndBalance t b'])
-              ++ (showTransactionsWithBalances' ts t b')
-                  where 
-                    b' = b + (amount t)
-                    sameentry (Transaction e1 _ _ _ _) (Transaction e2 _ _ _ _) = e1 == e2
-
-showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
-showTransactionDescriptionAndBalance t b =
-    (showEntryDescription $ Entry (date t) False "" (description t) "" [] "") 
-    ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
-
-showTransactionAndBalance :: Transaction -> Amount -> String
-showTransactionAndBalance t b =
-    (replicate 32 ' ') ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
-
-showBalance :: Amount -> String
-showBalance b = printf " %12s" (showAmountRoundedOrZero b)
-
+nulltxn = Transaction 0 "" "" "" nullamt
