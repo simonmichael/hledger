@@ -32,11 +32,10 @@ instance Show Ledger where
              (length $ accountnames l)
              (show $ accountnames l)
              ++ "\n" ++ (showtree $ accountnametree l)
-             ++ "\n" ++ (showtree $ filteredaccountnametree l)
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
-cacheLedger :: Regex -> RawLedger -> Ledger
-cacheLedger acctpat l = 
+cacheLedger :: RawLedger -> Ledger
+cacheLedger l = 
     let 
         ant = rawLedgerAccountNameTree l
         anames = flatten ant
@@ -53,45 +52,17 @@ cacheLedger acctpat l =
                (Map.fromList [(a, (sumTransactions $ subtxnsof a){precision=maxprecision}) | a <- anames])
                (Map.fromList [(a,nullamt) | a <- anames])
         amap = Map.fromList [(a, Account a (txnmap ! a) (balmap ! a)) | a <- anames]
-        -- the same again, considering only accounts and transactions matching the account pattern
-        matchacct :: AccountName -> Bool
-        matchacct = containsRegex acctpat . accountLeafName
-        filteredant = treefilter matchacct ant
-        -- rebuild the tree after filtering to include all parents
-        filteredanames = flatten $ accountNameTreeFrom $ filter matchacct anames
-        filteredts = filter (matchacct . account) ts
-        filteredsortedts = sortBy (comparing account) filteredts
-        filteredgroupedts = groupBy (\t1 t2 -> account t1 == account t2) filteredsortedts
-        filteredtxnmap = Map.union 
-               (Map.fromList [(account $ head g, g) | g <- filteredgroupedts])
-               (Map.fromList [(a,[]) | a <- filteredanames])
-        filteredtxnsof = (filteredtxnmap !)
-        filteredsubacctsof a = filter (isAccountNamePrefixOf a) filteredanames
-        filteredsubtxnsof a = concat [filteredtxnsof a | a <- [a] ++ filteredsubacctsof a]
-        filteredbalmap = Map.union 
-               (Map.fromList [(a, (sumTransactions $ filteredsubtxnsof a){precision=maxprecision}) | a <- filteredanames])
-               (Map.fromList [(a,nullamt) | a <- filteredanames])
-        filteredamap = Map.fromList [(a, Account a (filteredtxnmap ! a) (filteredbalmap ! a)) | a <- filteredanames]
-
         maxprecision = maximum $ map (precision . amount) ts
     in
-      Ledger l ant amap maxprecision acctpat filteredant filteredamap
+      Ledger l ant amap maxprecision
 
 -- | List a 'Ledger' 's account names.
 accountnames :: Ledger -> [AccountName]
 accountnames l = drop 1 $ flatten $ accountnametree l
 
--- | List a 'Ledger' 's account names filtered by the account match pattern.
-filteredaccountnames :: Ledger -> [AccountName]
-filteredaccountnames l = filter (containsRegex (acctpat l) . accountLeafName) $ accountnames l
-
 -- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
 ledgerAccount l a = (accountmap l) ! a
-
--- | Get the named filtered account from a ledger.
-ledgerFilteredAccount :: Ledger -> AccountName -> Account
-ledgerFilteredAccount l a = (filteredaccountmap l) ! a
 
 -- | List a ledger's accounts, in tree order
 accounts :: Ledger -> [Account]
@@ -141,19 +112,8 @@ instance Eq Account where
 ledgerAccountTreeAt :: Ledger -> Account -> Maybe (Tree Account)
 ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 
--- | Get a ledger's tree of accounts to the specified depth, filtered by
--- the account pattern.
-ledgerFilteredAccountTree :: Int -> Regex -> Ledger -> Tree Account
-ledgerFilteredAccountTree depth acctpat l = 
-    addFilteredDataToAccountNameTree l $ treeprune depth $ filteredaccountnametree l
-
 -- | Convert a tree of account names into a tree of accounts, using their
 -- parent ledger.
 addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
 addDataToAccountNameTree = treemap . ledgerAccount
-
--- | Convert a tree of account names into a tree of accounts, using their
--- parent ledger's filtered account data.
-addFilteredDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
-addFilteredDataToAccountNameTree l = treemap (ledgerFilteredAccount l)
 

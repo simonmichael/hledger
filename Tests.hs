@@ -84,19 +84,11 @@ tests =
          (accountnames ledger7)
 
         ,"cacheLedger"        ~: do
-        assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger wildcard rawledger7 )
-
---         ,"showLedgerAccounts" ~: do
---         assertequal 4 (length $ lines $ showLedgerAccountBalances ledger7 1)
+        assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7 )
 
         ,"ledgeramount"       ~: do
         assertparseequal (Amount (getcurrency "$") 47.18 2) (parsewith ledgeramount " $47.18")
         assertparseequal (Amount (getcurrency "$") 1 0) (parsewith ledgeramount " $1.")
-
---         ,"pruneZeroBalanceLeaves" ~: do
---            atree <- liftM (ledgerAccountTree 99) $ ledgerfromfile "sample.ledger"
---            assertequal 13 (length $ flatten $ atree)
---            assertequal 12 (length $ flatten $ pruneZeroBalanceLeaves $ atree)
  ]
 
 balancecommandtests =
@@ -131,8 +123,7 @@ balancecommandtests =
   ,
 
   "balance report with account pattern o" ~: do
-    rl <- rawledgerfromfile "sample.ledger"
-    let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
+    l <- ledgerfromfile "sample.ledger"
     assertequal
      "                  $1  expenses:food\n\
      \                 $-2  income\n\
@@ -143,8 +134,7 @@ balancecommandtests =
   ,
 
   "balance report with account pattern o and showsubs" ~: do
-    rl <- rawledgerfromfile "sample.ledger"
-    let l = cacheLedger (mkRegex "o") $ filterRawLedgerEntries "" "" wildcard rl
+    l <- ledgerfromfile "sample.ledger"
     assertequal
      "                  $1  expenses:food\n\
      \                 $-2  income\n\
@@ -157,8 +147,7 @@ balancecommandtests =
   ,
 
   "balance report with account pattern a" ~: do
-    rl <- rawledgerfromfile "sample.ledger"
-    let l = cacheLedger (mkRegex "a") $ filterRawLedgerEntries "" "" wildcard rl
+    l <- ledgerfromfile "sample.ledger"
     assertequal
      "                 $-1  assets\n\
      \                 $-2    cash\n\
@@ -172,8 +161,7 @@ balancecommandtests =
   ,
 
   "balance report with account pattern e" ~: do
-    rl <- rawledgerfromfile "sample.ledger"
-    let l = cacheLedger (mkRegex "e") $ filterRawLedgerEntries "" "" wildcard rl
+    l <- ledgerfromfile "sample.ledger"
     assertequal
      "                 $-1  assets\n\
      \                  $2  expenses\n\
@@ -185,8 +173,7 @@ balancecommandtests =
   ,
 
   "balance report with unmatched parent of two matched subaccounts" ~: do
-    rl <- rawledgerfromfile "sample.ledger"
-    let l = cacheLedger (regexFor ["cash","saving"]) $ filterRawLedgerEntries "" "" wildcard rl
+    l <- ledgerfromfile "sample.ledger"
     assertequal
      "                 $-2  assets:cash\n\
      \                  $1  assets:saving\n\
@@ -479,7 +466,7 @@ rawledger7 = RawLedger
           ]
           ""
 
-ledger7 = cacheLedger wildcard rawledger7 
+ledger7 = cacheLedger rawledger7 
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"

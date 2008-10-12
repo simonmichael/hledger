@@ -91,9 +91,6 @@ data Ledger = Ledger {
       rawledger :: RawLedger,
       accountnametree :: Tree AccountName,
       accountmap :: Map.Map AccountName Account,
-      lprecision :: Int, -- the preferred display precision
-      acctpat :: Regex,  -- the account patterns used to filter this ledger
-      filteredaccountnametree :: Tree AccountName, -- account name tree filtered by acctpat
-      filteredaccountmap :: Map.Map AccountName Account -- accounts filtered by acctpat
+      lprecision :: Int -- the preferred display precision
     }
 

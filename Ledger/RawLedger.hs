@@ -44,8 +44,8 @@ rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 -- | Remove ledger entries we are not interested in.
 -- Keep only those which fall between the begin and end dates, and match
 -- the description pattern.
-filterRawLedgerEntries :: String -> String -> Regex -> RawLedger -> RawLedger
-filterRawLedgerEntries begin end descpat = 
+filterRawLedger :: String -> String -> Regex -> RawLedger -> RawLedger
+filterRawLedger begin end descpat = 
     filterRawLedgerEntriesByDate begin end .
     filterRawLedgerEntriesByDescription descpat
 
