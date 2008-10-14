@@ -18,11 +18,15 @@ type DateTime = String
 data Side = L | R deriving (Eq,Show) 
 
 data Commodity = Commodity {
-      symbol :: String,       -- ^ the commodity's symbol
-      side :: Side,           -- ^ should the symbol appear on the left or the right
-      spaced :: Bool,         -- ^ should there be a space between symbol and quantity
-      precision :: Int,       -- ^ number of decimal places to display
-      rate :: Double          -- ^ the current (hard-coded) conversion rate against the dollar
+      symbol :: String,  -- ^ the commodity's symbol
+
+      -- display preferences for amounts of this commodity
+      side :: Side,      -- ^ should the symbol appear on the left or the right
+      spaced :: Bool,    -- ^ should there be a space between symbol and quantity
+      comma :: Bool,     -- ^ should thousands be comma-separated
+      precision :: Int,  -- ^ number of decimal places to display
+
+      rate :: Double     -- ^ the current (hard-coded) conversion rate against the dollar
     } deriving (Eq,Show)
 
 data Amount = Amount {

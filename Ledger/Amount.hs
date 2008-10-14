@@ -110,4 +110,4 @@ toCommodity newc (Amount oldc q) =
 
 nullamt = Amount (comm "") 0
 -- temporary value for partial entries
-autoamt = Amount (Commodity {symbol="AUTO",rate=1,side=L,spaced=False,precision=0}) 0
+autoamt = Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0,rate=1}) 0

@@ -7,7 +7,9 @@ Parsers for standard ledger and timelog files.
 module Ledger.Parse
 where
 import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Language
+import Text.ParserCombinators.Parsec.Combinator
 import qualified Text.ParserCombinators.Parsec.Token as P
 import System.IO
 import qualified Data.Map as Map
@@ -286,43 +288,70 @@ leftsymbolamount :: Parser Amount
 leftsymbolamount = do
   sym <- commoditysymbol 
   sp <- many spacenonewline
-  q <- commodityquantity
-  let newcommodity = Commodity {symbol=sym,rate=1,side=L,spaced=not $ null sp,precision=1}
-  let c = Map.findWithDefault newcommodity sym defaultcommoditiesmap
+  (q,p,comma) <- amountquantity
+  let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,comma=comma,precision=p,rate=1}
   return $ Amount c q
   <?> "left-symbol amount"
 
 rightsymbolamount :: Parser Amount
 rightsymbolamount = do
-  q <- commodityquantity
+  (q,p,comma) <- amountquantity
   sp <- many spacenonewline
   sym <- commoditysymbol
-  let newcommodity = Commodity {symbol=sym,rate=1,side=R,spaced=not $ null sp,precision=1}
-  let c = Map.findWithDefault newcommodity sym defaultcommoditiesmap
+  let c = Commodity {symbol=sym,side=R,spaced=not $ null sp,comma=comma,precision=p,rate=1}
   return $ Amount c q
   <?> "right-symbol amount"
 
 nosymbolamount :: Parser Amount
 nosymbolamount = do
-  q <- commodityquantity
-  return $ unknowns q
+  (q,p,comma) <- amountquantity
+  let c = Commodity {symbol="",side=L,spaced=False,comma=comma,precision=p,rate=1}
+  return $ Amount c q
   <?> "no-symbol amount"
 
 commoditysymbol :: Parser String
 commoditysymbol = many1 (noneOf "-.0123456789;\n ") <?> "commodity symbol"
-   
-commodityquantity :: Parser Double
-commodityquantity = do
-  q <- many1 (oneOf "-.,0123456789")
-  let q' = stripcommas $ striptrailingpoint q
-  let (int,frac) = break (=='.') q'
-  return $ read q'
+
+-- gawd.. trying to parse a ledger number without error:
+
+-- | parse a numeric quantity and also return the number of digits to the
+-- right of the decimal point and whether thousands are separated by comma
+amountquantity :: Parser (Double, Int, Bool)
+amountquantity = do
+  sign <- optionMaybe $ string "-"
+  (intwithcommas,frac) <- numberparts
+  let comma = ',' `elem` intwithcommas
+  let precision = length frac
+  -- read the actual value. We expect this read to never fail.
+  let int = filter (/= ',') intwithcommas
+  let int' = if null int then "0" else int
+  let frac' = if null frac then "0" else frac
+  let sign' = fromMaybe "" sign
+  let quantity = read $ sign'++int'++"."++frac'
+  return (quantity, precision, comma)
   <?> "commodity quantity"
-    where
-      stripcommas = filter (',' /=)
-      striptrailingpoint = reverse . dropWhile (=='.') . reverse
-      -- precision = length $ dropWhile (=='.') frac -- XXX
-                                         
+
+-- | parse the two strings of digits before and after a decimal point, if
+-- any.  The integer part may contain commas, or either part may be empty,
+-- or there may be no point.
+numberparts :: Parser (String,String)
+numberparts = numberpartsstartingwithdigit <|> numberpartsstartingwithpoint
+
+numberpartsstartingwithdigit :: Parser (String,String)
+numberpartsstartingwithdigit = do
+  let digitorcomma = digit <|> char ','
+  first <- digit
+  rest <- many digitorcomma
+  frac <- try (do {char '.'; many digit >>= return}) <|> return ""
+  return (first:rest,frac)
+                     
+numberpartsstartingwithpoint :: Parser (String,String)
+numberpartsstartingwithpoint = do
+  char '.'
+  frac <- many1 digit
+  return ("",frac)
+                     
+
 spacenonewline :: Parser Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 

@@ -88,7 +88,7 @@ tests =
 
         ,"transactionamount"       ~: do
         assertparseequal (dollars 47.18) (parsewith transactionamount " $47.18")
-        assertparseequal (Amount (Commodity {symbol="$",rate=1,side=L,spaced=False,precision=0}) 1) (parsewith transactionamount " $1.")
+        assertparseequal (Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0,rate=1}) 1) (parsewith transactionamount " $1.")
  ]
 
 balancecommandtests =

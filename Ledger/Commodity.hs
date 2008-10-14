@@ -14,21 +14,21 @@ import Ledger.Types
 
 commoditytests = TestList [
                 ]
+-- for nullamt, autoamt, etc.
+unknown = Commodity {symbol="",side=L,spaced=False,comma=False,precision=0,rate=1}
 
-unknown = Commodity {symbol="",rate=1,side=L,spaced=False,precision=0}
-dollar  = Commodity {symbol="$",rate=1,side=L,spaced=False,precision=2}
-euro    = Commodity {symbol="EUR",rate=0.760383,side=L,spaced=False,precision=2}
-pound   = Commodity {symbol="£",rate=0.512527,side=L,spaced=False,precision=2}
-hour    = Commodity {symbol="h",rate=100,side=R,spaced=False,precision=1}
+dollar  = Commodity {symbol="$",side=L,spaced=False,comma=False,precision=2,rate=1}
+euro    = Commodity {symbol="EUR",side=L,spaced=False,comma=False,precision=2,rate=0.760383}
+pound   = Commodity {symbol="£",side=L,spaced=False,comma=False,precision=2,rate=0.512527}
+hour    = Commodity {symbol="h",side=R,spaced=False,comma=False,precision=1,rate=100}
 
 -- | convenient amount constructors
-unknowns = Amount unknown
 dollars  = Amount dollar
 euros    = Amount euro
 pounds   = Amount pound
 hours    = Amount hour
 
-defaultcommodities = [unknown, dollar,  euro,  pound, hour]
+defaultcommodities = [dollar,  euro,  pound, hour, unknown]
 
 defaultcommoditiesmap :: Map.Map String Commodity
 defaultcommoditiesmap = Map.fromList [(symbol c :: String, c :: Commodity) | c <- defaultcommodities]
