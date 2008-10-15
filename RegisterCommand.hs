@@ -20,7 +20,7 @@ showTransactionsWithBalances opts args l =
         where
           ts = filter matchtxn $ ledgerTransactions l
           matchtxn (Transaction _ _ desc acct _) = matchLedgerPatterns False apats acct
-          pats@(apats,dpats) = parseAccountDescriptionArgs args
+          apats = fst $ parseAccountDescriptionArgs args
           startingbalance = nullamt
           showTransactionsWithBalances' :: [Transaction] -> Transaction -> Amount -> [String]
           showTransactionsWithBalances' [] _ _ = []
