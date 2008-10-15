@@ -138,7 +138,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
       -- select accounts for which we should show balances, based on the options
       balancereportaccts :: Bool -> [String] -> Ledger -> [Account]
       balancereportaccts False [] l = topAccounts l
-      balancereportaccts False pats l = accountsMatching (regexFor pats) l
+      balancereportaccts False pats l = accountsMatching pats l
       balancereportaccts True pats l = addsubaccts l $ balancereportaccts False pats l
 
       -- add (in tree order) any missing subacccounts to a list of accounts

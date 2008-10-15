@@ -181,6 +181,16 @@ balancecommandtests =
      \                 $-1\n\
      \" --"
      (showBalanceReport [] ["cash","saving"] l)
+ ,
+  "balance report with multi-part account name" ~: 
+  do 
+    l <- ledgerfromfile "sample.ledger"
+    assertequal
+     "                  $1  expenses:food\n\
+     \--------------------\n\
+     \                  $1\n\
+     \" --"
+     $ showBalanceReport [] ["expenses:food"] l
  ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
