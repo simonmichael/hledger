@@ -13,7 +13,7 @@ import Ledger.RawTransaction
 import Ledger.Amount
 
 
-instance Show Entry where show = showEntryDescription
+instance Show Entry where show = showEntry
 
 {-
 Helpers for the register report. A register entry is displayed as two
