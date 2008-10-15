@@ -7,21 +7,16 @@ implementations were its consequences." --Niklaus Wirth
 * to do
 ** bugs
 ** release 0.1
-*** handle right-hand currency symbols
-*** ledger 2.6-style account name eliding
 *** cabal upload
-*** #ledger test
 *** haskell-cafe/ledger-cli announce
 ** ledger features
-*** darcs-style --version
 *** -C
-*** negative account/description patterns
-*** per-currency precision/thousands separator/symbol layout
-*** mixed-currency amounts
 *** ledger 2.6-style date matching
+*** mixed amounts
 *** more speed
 *** more ledger features
 ** new features
+*** darcs-style --version
 *** show in/out times in timelog entry descriptions
 *** graphs
 *** smart data entry
@@ -35,16 +30,12 @@ implementations were its consequences." --Niklaus Wirth
 *** implementation docs
 *** api docs
 *** user manual
-*** differences/issues
-**** ledger does not support -f- (without space)
-**** ledger shows description comments as part of description, we do the same
-**** ledger does not sort register by date
-**** ledger can show wrong output due to thousands separators
-**** ledger balance with an account pattern shows a redundant total
-**** hledger does not detect symbol layout/thousands separators/precision based on first entry of each currency
-**** hledger does not track currency/precision in as much detail
-**** hledger ignores automated/periodic entries
-**** hledger does not elide .00
+*** differences/issues in implemented functionality
+**** ledger needs a space after -f
+**** ledger shows description comments as part of description
+**** ledger shows small time amounts in minutes
+**** ledger can get timelog entry balance wrong, cf list mail
+
 * misc
 ** things I want to know
 *** time
@@ -132,18 +123,3 @@ isProp _ = False
 declName :: HsDecl -> String
 declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
 declName _                                              = undefined
-** old import hierarchy
-   "Parse"
-   "TimeLog"
-   "Ledger"
-    "Account"
-     "Transaction"
-    "RawLedger"
-     "LedgerEntry"
-      "RawTransaction"
-       "AccountName"
-       "Amount"
-        "Currency"
-         "Types"
-          "Utils"
-
