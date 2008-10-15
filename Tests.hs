@@ -15,7 +15,7 @@ import RegisterCommand
 -- quickcheck = mapM quickCheck ([
 --         ] :: [Bool])
 
-runtests = runTestTT $ tconcat [unittests, functests]
+runtests = do {putStrLn "Running tests.."; runTestTT $ tconcat [unittests, functests]}
 
 tconcat :: [Test] -> Test
 tconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
