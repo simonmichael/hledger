@@ -42,11 +42,12 @@ isEntryBalanced :: Entry -> Bool
 isEntryBalanced = isZeroAmount . sumLedgerTransactions . etransactions
 
 autofillEntry :: Entry -> Entry
-autofillEntry e@(Entry _ _ _ _ _ ts _) =
-    let e' = e{etransactions=autofillTransactions ts} in
-    case (isEntryBalanced e') of
-      True -> e'
-      False -> (error $ "transactions don't balance in " ++ show e)
+autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=autofillTransactions ts}
+
+assertBalancedEntry :: Entry -> Entry
+assertBalancedEntry e
+    | isEntryBalanced e = e
+    | otherwise = error $ "transactions don't balance in:\n" ++ show e
 
 {-|
 Helper for the print command which shows cleaned up ledger file
