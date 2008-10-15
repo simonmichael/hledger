@@ -48,12 +48,13 @@ instance Show Amount where show = showAmount
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
 showAmount :: Amount -> String
-showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,precision=p}) q)
+showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,comma=comma,precision=p}) q)
     | side==L = printf "%s%s%s" sym space quantity
     | side==R = printf "%s%s%s" quantity space sym
     where 
       space = if spaced then " " else ""
-      quantity = punctuatethousands $ printf ("%."++show p++"f") q
+      quantity = commad $ printf ("%."++show p++"f") q
+      commad = if comma then punctuatethousands else id
 
 -- | Add thousands-separating commas to a decimal number string
 punctuatethousands :: String -> String
