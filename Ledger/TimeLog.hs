@@ -37,7 +37,8 @@ clockoutFor :: TimeLogEntry -> TimeLogEntry
 clockoutFor (TimeLogEntry _ t _) = TimeLogEntry 'o' t ""
 
 -- | Convert a timelog clockin and clockout entry to an equivalent ledger
--- entry, representing the time expenditure.
+-- entry, representing the time expenditure. Note this entry is  not balanced,
+-- since we omit the \"assets:time\" transaction for simpler output.
 entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Entry
 entryFromTimeLogInOut i o =
     Entry {
@@ -57,4 +58,6 @@ entryFromTimeLogInOut i o =
       intime   = parsedatetime $ tldatetime i
       outtime  = parsedatetime $ tldatetime o
       amount   = hours $ realToFrac (diffUTCTime outtime intime) / 3600
-      txns     = [RawTransaction acctname amount "", RawTransaction "assets:TIME" (-amount) ""]
+      txns     = [RawTransaction acctname amount ""
+                 --,RawTransaction "assets:time" (-amount) ""
+                 ]
