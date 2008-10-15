@@ -5,8 +5,16 @@ import System.Console.GetOpt
 import System.Directory
 import Ledger.RawLedger (negativepatternchar)
 
-usagehdr    = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
-commands    = "register|balance|print"
+usagehdr    = "Usage: hledger [OPTS] balance|print|register [ACCTPATS] [-- DESCPATS]\n\nOptions"++warning++":"
+warning     = if negativepatternchar=='-' then " (must appear before command)" else " (can appear anywhere)"
+usageftr    = "\n\
+              \Commands (may be abbreviated):\n\
+              \balance  - show account balances\n\
+              \print    - show parsed and reformatted ledger entries\n\
+              \register - show register transactions\n\
+              \\n\
+              \Account and description patterns are regular expressions, optionally prefixed\n\
+              \with " ++ [negativepatternchar] ++ " to make them negative.\n"
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
 optionorder = if negativepatternchar=='-' then RequireOrder else Permute
@@ -15,9 +23,9 @@ optionorder = if negativepatternchar=='-' then RequireOrder else Permute
 options :: [OptDescr Opt]
 options = [
  Option ['f'] ["file"]         (ReqArg File "FILE")        "ledger file; - means use standard input",
- Option ['b'] ["begin"]        (ReqArg Begin "yyyy/mm/dd") "report on entries from this date (inclusive)",
- Option ['e'] ["end"]          (ReqArg End "yyyy/mm/dd")   "report on entries to this date (exclusive)",
- Option ['s'] ["showsubs"]     (NoArg  ShowSubs)           "balance report: show subaccounts",
+ Option ['b'] ["begin"]        (ReqArg Begin "YYYY/MM/DD") "report on entries on or after this date",
+ Option ['e'] ["end"]          (ReqArg End "YYYY/MM/DD")   "report on entries prior to this date",
+ Option ['s'] ["showsubs"]     (NoArg  ShowSubs)           "in the balance report, include subaccounts",
  Option ['h'] ["help","usage"] (NoArg  Help)               "show this help",
  Option ['V'] ["version"]      (NoArg  Version)            "show version"
  ]
@@ -32,7 +40,7 @@ data Opt =
     Version
     deriving (Show,Eq)
 
-usage = usageInfo usagehdr options
+usage = usageInfo usagehdr options ++ usageftr
 
 version = "hledger version 0.1 alpha\n"
 
