@@ -105,8 +105,10 @@ normaliseRawLedgerAmounts l@(RawLedger ms ps es f) = RawLedger ms ps es' f
       normaliseRawTransactionAmounts (RawTransaction acct a c) = RawTransaction acct a' c
           where a' = normaliseAmount a
       normaliseAmount (Amount c q) = Amount (firstoccurrenceof c) q
+      firstcommodities = nubBy samesymbol $ allcommodities
+      allcommodities = map (commodity . amount) $ rawLedgerTransactions l
+      samesymbol (Commodity {symbol=s1}) (Commodity {symbol=s2}) = s1==s2
       firstoccurrenceof c@(Commodity {symbol=s}) = 
           fromMaybe
           (error "failed to normalise commodity") -- shouldn't happen
           (find (\(Commodity {symbol=sym}) -> sym==s) firstcommodities)
-      firstcommodities = nub $ map (commodity . amount) $ rawLedgerTransactions l
