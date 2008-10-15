@@ -59,14 +59,6 @@ containsRegex r s = case matchRegex r s of
                       Just _ -> True
                       otherwise -> False
 
--- | Convert a list of strings (possibly with regular expression syntax)
--- to a regular expression matching any of them, or a wildcard if there
--- are none.
-combinedRegex :: [String] -> Regex
-combinedRegex [] = mkRegex ".*"
-combinedRegex args = mkRegex $ concat $ ["("] ++ intersperse "|" args ++ [")"]
-
-
 -- time
 
 -- | Parse a date-time string to a time type, or raise an error.
