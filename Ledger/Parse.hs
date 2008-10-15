@@ -314,8 +314,9 @@ commoditysymbol = many1 (noneOf "-.0123456789;\n ") <?> "commodity symbol"
 
 -- gawd.. trying to parse a ledger number without error:
 
--- | parse a numeric quantity and also return the number of digits to the
--- right of the decimal point and whether thousands are separated by comma
+-- | parse a ledger-style numeric quantity and also return the number of
+-- digits to the right of the decimal point and whether thousands are
+-- separated by comma.
 amountquantity :: Parser (Double, Int, Bool)
 amountquantity = do
   sign <- optionMaybe $ string "-"

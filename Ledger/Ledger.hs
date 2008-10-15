@@ -3,8 +3,6 @@
 A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
 names, a map from account names to 'Account's, and the display precision.
 Typically it has also has had the uninteresting 'Entry's filtered out.
-In addition, it stores the account filter pattern and a second set of fields
-providing the filtered entries & transactions.
 
 -}
 
