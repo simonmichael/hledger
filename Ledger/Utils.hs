@@ -44,19 +44,18 @@ import Text.ParserCombinators.Parsec (parse)
 
 instance Show Regex where show r = "a Regex"
 
--- | convert a list of strings to a regular expression matching any of them,
--- or a wildcard if there are none.
-regexFor :: [String] -> Regex
-regexFor [] = wildcard
-regexFor ss = mkRegex $ concat $ ["("] ++ (intersperse "|" ss) ++ [")"]
-
-wildcard :: Regex
-wildcard = mkRegex ".*"
-
 containsRegex :: Regex -> String -> Bool
 containsRegex r s = case matchRegex r s of
                       Just _ -> True
                       otherwise -> False
+
+-- | Convert a list of strings (possibly with regular expression syntax)
+-- to a regular expression matching any of them, or a wildcard if there
+-- are none.
+combinedRegex :: [String] -> Regex
+combinedRegex [] = mkRegex ".*"
+combinedRegex args = mkRegex $ concat $ ["("] ++ intersperse "|" args ++ [")"]
+
 
 -- time
 

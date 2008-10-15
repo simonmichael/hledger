@@ -66,13 +66,10 @@ topAccounts :: Ledger -> [Account]
 topAccounts l = map root $ branches $ ledgerAccountTree 9999 l
 
 -- | Accounts in ledger whose name matches the pattern, in tree order.
--- Like ledger (I think), if the pattern contains : we match the full
--- name, otherwise just the leaf name.
+-- We apply ledger's special rules for balance report account matching
+-- (see 'matchLedgerPatterns').
 accountsMatching :: [String] -> Ledger -> [Account]
-accountsMatching pats l = filter (containsRegex (regexFor pats) . name) $ accounts l
-    where name = if any (elem ':') pats 
-                 then aname
-                 else accountLeafName . aname
+accountsMatching pats l = filter (matchLedgerPatterns True pats . aname) $ accounts l
 
 -- | List a ledger account's immediate subaccounts
 subAccounts :: Ledger -> Account -> [Account]

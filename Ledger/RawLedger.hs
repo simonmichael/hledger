@@ -15,6 +15,8 @@ import Ledger.Entry
 import Ledger.Transaction
 
 
+negativepatternchar = '-'
+
 instance Show RawLedger where
     show l = printf "RawLedger with %d entries, %d accounts: %s"
              ((length $ entries l) +
@@ -42,20 +44,18 @@ rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 -- | Remove ledger entries we are not interested in.
 -- Keep only those which fall between the begin and end dates, and match
 -- the description pattern.
-filterRawLedger :: String -> String -> Regex -> RawLedger -> RawLedger
-filterRawLedger begin end descpat = 
+filterRawLedger :: String -> String -> [String] -> RawLedger -> RawLedger
+filterRawLedger begin end pats = 
     filterRawLedgerEntriesByDate begin end .
-    filterRawLedgerEntriesByDescription descpat
+    filterRawLedgerEntriesByDescription pats
 
 -- | Keep only entries whose description matches the description pattern.
-filterRawLedgerEntriesByDescription :: Regex -> RawLedger -> RawLedger
-filterRawLedgerEntriesByDescription descpat (RawLedger ms ps es f) = 
+filterRawLedgerEntriesByDescription :: [String] -> RawLedger -> RawLedger
+filterRawLedgerEntriesByDescription pats (RawLedger ms ps es f) = 
     RawLedger ms ps (filter matchdesc es) f
     where
       matchdesc :: Entry -> Bool
-      matchdesc e = case matchRegex descpat (edescription e) of
-                      Nothing -> False
-                      otherwise -> True
+      matchdesc = matchLedgerPatterns False pats . edescription
 
 -- | Keep only entries which fall between begin and end dates. 
 -- We include entries on the begin date and exclude entries on the end
@@ -72,6 +72,28 @@ filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) =
                       enddate   = parsedate end
                       entrydate = parsedate $ edate e
 
+
+-- | Check if a set of ledger account/description patterns matches the
+-- given account name or entry description, applying ledger's special
+-- cases.  
+-- 
+-- Patterns are regular expression strings, and those beginning with - are
+-- negative patterns.  The special case is that account patterns match the
+-- full account name except in balance reports when the pattern does not
+-- contain : and is a positive pattern, where it matches only the leaf
+-- name.
+matchLedgerPatterns :: Bool -> [String] -> String -> Bool
+matchLedgerPatterns forbalancereport pats str =
+    (null positives || any ismatch positives) && (null negatives || (not $ any ismatch negatives))
+    where 
+      isnegative = (== negativepatternchar) . head
+      (negatives,positives) = partition isnegative pats
+      ismatch pat = containsRegex (mkRegex pat') matchee
+          where 
+            pat' = if isnegative pat then drop 1 pat else pat
+            matchee = if forbalancereport && (not $ ':' `elem` pat) && (not $ isnegative pat)
+                      then accountLeafName str
+                      else str
 
 -- | Give amounts the display settings of the first one detected in each commodity.
 normaliseRawLedgerAmounts :: RawLedger -> RawLedger

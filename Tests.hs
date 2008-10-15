@@ -177,6 +177,11 @@ balancecommandtests =
      \                  $1\n\
      \" --"
      $ showBalanceReport [] ["expenses:food"] l
+ ,
+  "balance report negative account pattern always matches full name" ~: 
+  do 
+    l <- ledgerfromfile "sample.ledger"
+    assertequal "" $ showBalanceReport [] ["-e"] l
  ]
 
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
