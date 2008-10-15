@@ -11,10 +11,6 @@ import PrintCommand
 import RegisterCommand
 
 
--- import Test.QuickCheck
--- quickcheck = mapM quickCheck ([
---         ] :: [Bool])
-
 runtests = do {putStrLn "Running tests.."; runTestTT $ tconcat [unittests, functests]}
 
 tconcat :: [Test] -> Test
