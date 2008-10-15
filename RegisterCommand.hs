@@ -10,9 +10,6 @@ import Ledger
 import Options
 
 
-registercommandtests = TestList [
-                       ]
-
 -- | Print a register report.
 register :: [Opt] -> [String] -> Ledger -> IO ()
 register opts args l = putStr $ showTransactionsWithBalances opts args l

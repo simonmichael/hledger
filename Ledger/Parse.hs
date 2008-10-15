@@ -21,9 +21,6 @@ import Ledger.Commodity
 import Ledger.TimeLog
 
 
-parsertests = TestList [
-              ]
-
 -- utils
 
 parseLedgerFile :: String -> IO (Either ParseError RawLedger)

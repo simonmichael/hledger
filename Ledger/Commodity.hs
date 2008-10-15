@@ -13,9 +13,6 @@ import Ledger.Utils
 import Ledger.Types
 
 
-commoditytests = TestList [
-                ]
-
 -- for nullamt, autoamt, etc.
 unknown = Commodity {symbol="",side=L,spaced=False,comma=False,precision=0,rate=1}
 

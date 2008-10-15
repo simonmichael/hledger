@@ -43,9 +43,6 @@ import Ledger.Types
 import Ledger.Commodity
 
 
-amounttests = TestList [
-              ]
-
 instance Show Amount where show = showAmount
 
 -- | Get the string representation of an amount, based on its commodity's

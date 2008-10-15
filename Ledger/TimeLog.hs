@@ -14,9 +14,6 @@ import Ledger.Commodity
 import Ledger.Amount
 
 
-timelogtests = TestList [
-               ]
-
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (tldatetime t) (tlcomment t)
 

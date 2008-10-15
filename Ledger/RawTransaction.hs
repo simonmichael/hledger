@@ -12,9 +12,6 @@ import Ledger.Types
 import Ledger.Amount
 
 
-rawtransactiontests = TestList [
-                      ]
-
 instance Show RawTransaction where show = showLedgerTransaction
 
 showLedgerTransaction :: RawTransaction -> String

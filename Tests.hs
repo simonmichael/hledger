@@ -15,80 +15,71 @@ import RegisterCommand
 -- quickcheck = mapM quickCheck ([
 --         ] :: [Bool])
 
-runtests = runTestTT alltests
+runtests = runTestTT $ tconcat [unittests, functests]
 
-alltests = concattests [
-            tests
-           ,accounttests
-           ,accountnametests
-           ,amounttests
-           ,balancecommandtests
-           ,commoditytests
-           ,entrytests
-           ,ledgertests
-           ,parsertests
-           ,printcommandtests
-           ,rawledgertests
-           ,rawtransactiontests
-           ,registercommandtests
-           ,timelogtests
-           ]
-    where
-      concattests = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
+tconcat :: [Test] -> Test
+tconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
 
-tests =
- TestList
+------------------------------------------------------------------------------
+unittests = TestList
+-- NB assertequal arguments on a new line have to be indented at least
+-- one space, contrary to haskell-mode's auto indent
  [
-         "display dollar amount" ~: show (dollars 1) ~?= "$1.00"
+  "show dollars" ~: show (dollars 1) ~?= "$1.00"
          
-        ,"display time amount" ~: show (hours 1) ~?= "1.0h"
+ ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
---         ,"amount precision"   ~: do
---            let a1 = dollars 1.23
---            let a2 = Amount (comm "$") (-1.23) 2
---            let a3 = Amount (comm "$") (-1.23) 3
---            assertequal (Amount (comm "$") 0 1) (a1 + a2)
---            assertequal (Amount (comm "$") 0 1) (a1 + a3)
---            assertequal (Amount (comm "$") (-2.46) 2) (a2 + a3)
---            assertequal (Amount (comm "$") (-2.46) 3) (a3 + a3)
---            -- sum adds 0, with Amount fromIntegral's default precision of 2
---            assertequal (Amount (comm "$") 0 1) (sum [a1,a2])
---            assertequal (Amount (comm "$") (-2.46) 2) (sum [a2,a3])
---            assertequal (Amount (comm "$") (-2.46) 2) (sum [a3,a3])
+ ,"amount arithmetic"   ~: do
+    let a1 = dollars 1.23
+    let a2 = Amount (comm "$") (-1.23)
+    let a3 = Amount (comm "$") (-1.23)
+    assertequal (Amount (comm "$") 0) (a1 + a2)
+    assertequal (Amount (comm "$") 0) (a1 + a3)
+    assertequal (Amount (comm "$") (-2.46)) (a2 + a3)
+    assertequal (Amount (comm "$") (-2.46)) (a3 + a3)
+    assertequal (Amount (comm "$") (-2.46)) (sum [a2,a3])
+    assertequal (Amount (comm "$") (-2.46)) (sum [a3,a3])
+    assertequal (Amount (comm "$") 0) (sum [a1,a2,a3,-a3])
 
-        ,"ledgertransaction"  ~: do
-           assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)
+ ,"ledgertransaction"  ~: do
+    assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)
+                      
+ ,"ledgerentry"        ~: do
+    assertparseequal entry1 (parsewith ledgerentry entry1_str)
 
-        ,"ledgerentry"        ~: do
-           assertparseequal entry1 (parsewith ledgerentry entry1_str)
+ ,"autofillEntry"      ~: do
+    assertequal
+     (dollars (-47.18))
+     (tamount $ last $ etransactions $ autofillEntry entry1)
+     
+ ,"punctuatethousands"      ~: punctuatethousands "" @?= ""
+ ,"punctuatethousands"      ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
+ ,"punctuatethousands"      ~: punctuatethousands "-100" @?= "-100"
                             
-        ,"autofillEntry"      ~: do
-           assertequal
-            (dollars (-47.18))
-            (tamount $ last $ etransactions $ autofillEntry entry1)
+ ,"expandAccountNames" ~: do
+    assertequal
+     ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
+     (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
 
-        ,"punctuatethousands"      ~: punctuatethousands "" @?= ""
-        ,"punctuatethousands"      ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
-        ,"punctuatethousands"      ~: punctuatethousands "-100" @?= "-100"
+ ,"ledgerAccountNames" ~: do
+    assertequal
+     ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
+      "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
+      "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
+     (accountnames ledger7)
 
-        ,"expandAccountNames" ~: do
-        assertequal
-         ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-         (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
+ ,"cacheLedger"        ~: do
+    assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7 )
 
-        ,"ledgerAccountNames" ~: do
-        assertequal
-         ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
-          "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
-          "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
-         (accountnames ledger7)
+ ,"transactionamount"       ~: do
+    assertparseequal (dollars 47.18) (parsewith transactionamount " $47.18")
+    assertparseequal (Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0,rate=1}) 1) (parsewith transactionamount " $1.")
+ ]
 
-        ,"cacheLedger"        ~: do
-        assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7 )
-
-        ,"transactionamount"       ~: do
-        assertparseequal (dollars 47.18) (parsewith transactionamount " $47.18")
-        assertparseequal (Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0,rate=1}) 1) (parsewith transactionamount " $1.")
+------------------------------------------------------------------------------
+functests = TestList
+ [
+  balancecommandtests
  ]
 
 balancecommandtests =
@@ -103,8 +94,7 @@ balancecommandtests =
      \                  $1  liabilities\n\
      \" --"
      (showBalanceReport [] [] l)
-  ,
-
+ ,
   "balance report with showsubs" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
@@ -120,8 +110,7 @@ balancecommandtests =
      \                  $1  liabilities:debts\n\
      \" --"
      (showBalanceReport [ShowSubs] [] l)
-  ,
-
+ ,
   "balance report with account pattern o" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
@@ -131,8 +120,7 @@ balancecommandtests =
      \                 $-1\n\
      \" --"
      (showBalanceReport [] ["o"] l)
-  ,
-
+ ,
   "balance report with account pattern o and showsubs" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
@@ -144,8 +132,7 @@ balancecommandtests =
      \                 $-1\n\
      \" --"
      (showBalanceReport [ShowSubs] ["o"] l)
-  ,
-
+ ,
   "balance report with account pattern a" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
@@ -158,8 +145,7 @@ balancecommandtests =
      \                 $-1\n\
      \" --"
      (showBalanceReport [] ["a"] l)
-  ,
-
+ ,
   "balance report with account pattern e" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
@@ -170,9 +156,9 @@ balancecommandtests =
      \                  $1  liabilities:debts\n\
      \" --"
      (showBalanceReport [] ["e"] l)
-  ,
-
-  "balance report with unmatched parent of two matched subaccounts" ~: do
+ ,
+  "balance report with unmatched parent of two matched subaccounts" ~: 
+  do
     l <- ledgerfromfile "sample.ledger"
     assertequal
      "                 $-2  assets:cash\n\
@@ -197,8 +183,8 @@ balancecommandtests =
 assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
 assertparseequal expected parsed = either printParseError (assertequal expected) parsed
 
-
--- test data
+------------------------------------------------------------------------------
+-- data
 
 rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
