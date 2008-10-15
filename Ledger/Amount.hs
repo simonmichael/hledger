@@ -56,8 +56,18 @@ showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,precision=p}) 
     | side==R = printf "%s%s%s" quantity space sym
     where 
       space = if spaced then " " else ""
-      quantity = punctuatethousands $ printf ("%."++show p++"f") q :: String
-      punctuatethousands = id
+      quantity = punctuatethousands $ printf ("%."++show p++"f") q
+
+-- | Add thousands-separating commas to a decimal number string
+punctuatethousands :: String -> String
+punctuatethousands s =
+    sign ++ (addcommas int) ++ frac
+    where 
+      (sign,num) = break isDigit s
+      (int,frac) = break (=='.') num
+      addcommas = reverse . concat . intersperse "," . triples . reverse
+      triples [] = []
+      triples l  = [take 3 l] ++ (triples $ drop 3 l)
 
 -- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
 showAmountOrZero :: Amount -> String
@@ -72,16 +82,6 @@ isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
       nonzerodigits = filter (flip notElem "-+,.0") quantitystr
       quantitystr = withoutsymbol $ showAmount a
       withoutsymbol = drop (length $ symbol c) -- XXX
-
-punctuatethousands :: String -> String
-punctuatethousands s =
-    sign ++ (punctuate int) ++ frac
-    where 
-      (sign,num) = break isDigit s
-      (int,frac) = break (=='.') num
-      punctuate = reverse . concat . intersperse "," . triples . reverse
-      triples "" = []
-      triples s = [take 3 s] ++ (triples $ drop 3 s)
 
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
