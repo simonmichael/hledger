@@ -37,4 +37,4 @@ autofillTransactions ts =
       balance t = if isnormal t then t else t{tamount = -(sumLedgerTransactions normals)}
 
 sumLedgerTransactions :: [RawTransaction] -> Amount
-sumLedgerTransactions = sum . map tamount
+sumLedgerTransactions = sumAmounts . map tamount

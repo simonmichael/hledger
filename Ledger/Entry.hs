@@ -39,7 +39,10 @@ showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
 isEntryBalanced :: Entry -> Bool
-isEntryBalanced = isZeroAmount . sumLedgerTransactions . etransactions
+isEntryBalanced (Entry {etransactions=ts}) = isZeroAmount sum && numcommodities==1
+    where
+      sum = sumLedgerTransactions ts
+      numcommodities = length $ nub $ map (commodity . tamount) ts
 
 autofillEntry :: Entry -> Entry
 autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=autofillTransactions ts}
