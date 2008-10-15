@@ -97,17 +97,19 @@ instance Num Amount where
 -- commodity.)
 amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
 amountop op a@(Amount ac aq) b@(Amount bc bq) = 
-    Amount bc ((quantity $ toCommodity bc a) `op` bq)
+    Amount bc ((quantity $ convertAmountTo bc a) `op` bq)
+
+-- | Convert an amount to the specified commodity using the appropriate
+-- exchange rate.
+convertAmountTo :: Commodity -> Amount -> Amount
+convertAmountTo c2 (Amount c1 q) = Amount c2 (q * conversionRate c1 c2)
 
 -- | Sum a list of amounts. This is still needed because a final zero
 -- amount will discard the sum's commodity.
 sumAmounts :: [Amount] -> Amount
 sumAmounts = sum . filter (not . isZeroAmount)
 
-toCommodity :: Commodity -> Amount -> Amount
-toCommodity newc (Amount oldc q) =
-    Amount newc (q * (conversionRate oldc newc))
-
 nullamt = Amount (comm "") 0
+
 -- temporary value for partial entries
 autoamt = Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0,rate=1}) 0

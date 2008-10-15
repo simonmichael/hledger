@@ -1,8 +1,9 @@
 {-|
 
-A 'Commodity' is a symbol and a conversion rate relative to the
-dollar. Commodity symbols are parsed from the ledger file, rates are
-currently hard-coded.
+A 'Commodity' is a symbol representing a currency or some other kind of
+thing we are tracking, and some settings that tell how to display amounts
+of the commodity.  For the moment, commodities also include a hard-coded
+conversion rate relative to the dollar.
 
 -}
 module Ledger.Commodity
@@ -36,6 +37,7 @@ defaultcommoditiesmap = Map.fromList [(symbol c :: String, c :: Commodity) | c <
 comm :: String -> Commodity
 comm symbol = Map.findWithDefault (error "commodity lookup failed") symbol defaultcommoditiesmap
 
+-- | Find the conversion rate between two commodities.
 conversionRate :: Commodity -> Commodity -> Double
 conversionRate oldc newc = (rate newc) / (rate oldc)
 
