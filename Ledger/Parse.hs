@@ -332,9 +332,9 @@ amountquantity = do
   return (quantity, precision, comma)
   <?> "commodity quantity"
 
--- | parse the two strings of digits before and after a decimal point, if
--- any.  The integer part may contain commas, or either part may be empty,
--- or there may be no point.
+-- | parse the two strings of digits before and after a possible decimal
+-- point.  The integer part may contain commas, or either part may be
+-- empty, or there may be no point.
 numberparts :: Parser (String,String)
 numberparts = numberpartsstartingwithdigit <|> numberpartsstartingwithpoint
 

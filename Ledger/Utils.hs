@@ -1,6 +1,6 @@
 {-|
 
-Standard always-available imports and utilities.
+Provide a number of standard modules and utilities.
 
 -}
 
