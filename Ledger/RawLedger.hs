@@ -78,18 +78,18 @@ filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) =
 -- given account name or entry description, applying ledger's special
 -- cases.  
 -- 
--- Patterns are regular expression strings, and those beginning with - are
--- negative patterns.  The special case is that account patterns match the
--- full account name except in balance reports when the pattern does not
--- contain : and is a positive pattern, where it matches only the leaf
--- name.
+-- Patterns are case-insensitive regular expression strings, and those
+-- beginning with - are negative patterns.  The special case is that
+-- account patterns match the full account name except in balance reports
+-- when the pattern does not contain : and is a positive pattern, where it
+-- matches only the leaf name.
 matchLedgerPatterns :: Bool -> [String] -> String -> Bool
 matchLedgerPatterns forbalancereport pats str =
     (null positives || any ismatch positives) && (null negatives || (not $ any ismatch negatives))
     where 
       isnegative = (== negativepatternchar) . head
       (negatives,positives) = partition isnegative pats
-      ismatch pat = containsRegex (mkRegex pat') matchee
+      ismatch pat = containsRegex (mkRegexWithOpts pat' True True) matchee
           where 
             pat' = if isnegative pat then drop 1 pat else pat
             matchee = if forbalancereport && (not $ ':' `elem` pat) && (not $ isnegative pat)
