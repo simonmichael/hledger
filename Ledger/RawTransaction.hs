@@ -10,6 +10,7 @@ where
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
+import Ledger.AccountName
 
 
 instance Show RawTransaction where show = showLedgerTransaction
@@ -17,13 +18,8 @@ instance Show RawTransaction where show = showLedgerTransaction
 showLedgerTransaction :: RawTransaction -> String
 showLedgerTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ tamount t) 
     where
-      showaccountname = printf "%-22s" . elideRight 22
+      showaccountname = printf "%-22s" . elideAccountName 22
       showamount = printf "%12s" . showAmountOrZero
-
-elideRight width s =
-    case length s > width of
-      True -> take (width - 2) s ++ ".."
-      False -> s
 
 autofillTransactions :: [RawTransaction] -> [RawTransaction]
 autofillTransactions ts =

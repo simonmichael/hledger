@@ -75,3 +75,27 @@ accountNameTreeFrom accts =
           accountsFrom as = [Node a (accountsFrom $ subs a) | a <- as]
           subs = (subAccountNamesFrom accts)
 
+-- | Elide an account name to fit in the specified width.
+-- From the ledger 2.6 news:
+-- 
+-- @
+--   What Ledger now does is that if an account name is too long, it will
+--   start abbreviating the first parts of the account name down to two
+--   letters in length.  If this results in a string that is still too
+--   long, the front will be elided -- not the end.  For example:
+--
+--     Expenses:Cash           ; OK, not too long
+--     Ex:Wednesday:Cash       ; "Expenses" was abbreviated to fit
+--     Ex:We:Afternoon:Cash    ; "Expenses" and "Wednesday" abbreviated
+--     ; Expenses:Wednesday:Afternoon:Lunch:Snack:Candy:Chocolate:Cash
+--     ..:Af:Lu:Sn:Ca:Ch:Cash  ; Abbreviated and elided!
+-- @
+elideAccountName :: Int -> AccountName -> AccountName
+elideAccountName width s = 
+    elideLeft width $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
+      where
+        elideparts :: Int -> [String] -> [String] -> [String]
+        elideparts width done ss
+          | (length $ accountNameFromComponents $ done++ss) <= width = done++ss
+          | length ss > 1 = elideparts width (done++[take 2 $ head ss]) (tail ss)
+          | otherwise = done++ss

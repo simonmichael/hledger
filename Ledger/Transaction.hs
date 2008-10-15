@@ -15,8 +15,7 @@ import Ledger.Amount
 
 
 instance Show Transaction where 
-    show (Transaction eno d desc a amt) = 
-        unwords [d,desc,a,show amt]
+    show (Transaction eno d desc a amt) = unwords [d,desc,a,show amt]
 
 -- | Convert a 'Entry' to two or more 'Transaction's. An id number
 -- is attached to the transactions to preserve their grouping - it should

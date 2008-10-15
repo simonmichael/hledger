@@ -40,6 +40,16 @@ import Text.Regex
 import Text.ParserCombinators.Parsec (parse)
 
 
+elideLeft width s =
+    case length s > width of
+      True -> ".." ++ (reverse $ take (width - 2) $ reverse s)
+      False -> s
+
+elideRight width s =
+    case length s > width of
+      True -> take (width - 2) s ++ ".."
+      False -> s
+
 -- regexps
 
 instance Show Regex where show r = "a Regex"
