@@ -83,7 +83,7 @@ showEntry e =
       showtxn t = showacct t ++ "  " ++ (showamount $ tamount t) ++ (showcomment $ tcomment t)
       showtxnnoamt t = showacct t ++ "              " ++ (showcomment $ tcomment t)
       showacct t = "    " ++ (showaccountname $ taccount t)
-      showamount = printf "%12s" . showAmountRounded
+      showamount = printf "%12s" . showAmount
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
 

@@ -46,5 +46,5 @@ showTransactionAndBalance t b =
     (replicate 32 ' ') ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
 
 showBalance :: Amount -> String
-showBalance b = printf " %12s" (showAmountRoundedOrZero b)
+showBalance b = printf " %12s" (showAmountOrZero b)
 

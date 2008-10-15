@@ -21,7 +21,7 @@ showLedgerTransaction :: RawTransaction -> String
 showLedgerTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ tamount t) 
     where
       showaccountname = printf "%-22s" . elideRight 22
-      showamount = printf "%12s" . showAmountRoundedOrZero
+      showamount = printf "%12s" . showAmountOrZero
 
 elideRight width s =
     case length s > width of

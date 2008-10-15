@@ -46,12 +46,12 @@ import Ledger.Commodity
 amounttests = TestList [
               ]
 
-instance Show Amount where show = showAmountRounded
+instance Show Amount where show = showAmount
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
-showAmountRounded :: Amount -> String
-showAmountRounded (Amount (Commodity {symbol=sym,side=side,spaced=spaced,precision=p}) q)
+showAmount :: Amount -> String
+showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,precision=p}) q)
     | side==L = printf "%s%s%s" sym space quantity
     | side==R = printf "%s%s%s" quantity space sym
     where 
@@ -60,17 +60,17 @@ showAmountRounded (Amount (Commodity {symbol=sym,side=side,spaced=spaced,precisi
       punctuatethousands = id
 
 -- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
-showAmountRoundedOrZero :: Amount -> String
-showAmountRoundedOrZero a
+showAmountOrZero :: Amount -> String
+showAmountOrZero a
     | isZeroAmount a = "0"
-    | otherwise = showAmountRounded a
+    | otherwise = showAmount a
 
 -- | is this amount zero, when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
 isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
     where
       nonzerodigits = filter (flip notElem "-+,.0") quantitystr
-      quantitystr = withoutsymbol $ showAmountRounded a
+      quantitystr = withoutsymbol $ showAmount a
       withoutsymbol = drop (length $ symbol c) -- XXX
 
 punctuatethousands :: String -> String

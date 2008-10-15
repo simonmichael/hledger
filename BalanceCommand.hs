@@ -124,7 +124,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
       acctsstr = concatMap (showAccountTreeWithBalances acctnamestoshow) $ subs treetoshow
       totalstr = if isZeroAmount total 
                  then "" 
-                 else printf "--------------------\n%20s\n" $ showAmountRounded total
+                 else printf "--------------------\n%20s\n" $ showAmount total
       showingsubs = ShowSubs `elem` opts
       pats@(apats,dpats) = parseAccountDescriptionArgs args
       maxdepth = if null args && not showingsubs then 1 else 9999
