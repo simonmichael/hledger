@@ -7,6 +7,7 @@ the cached 'Ledger'.
 
 module Ledger.RawLedger
 where
+import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
@@ -74,3 +75,19 @@ filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) =
                       enddate   = parsedate end
                       entrydate = parsedate $ edate e
 
+
+-- | Give amounts the display settings of the first one detected in each commodity.
+normaliseRawLedgerAmounts :: RawLedger -> RawLedger
+normaliseRawLedgerAmounts l@(RawLedger ms ps es f) = RawLedger ms ps es' f
+    where 
+      es' = map normaliseEntryAmounts es
+      normaliseEntryAmounts (Entry d s c desc comm ts pre) = Entry d s c desc comm ts' pre
+          where ts' = map normaliseRawTransactionAmounts ts
+      normaliseRawTransactionAmounts (RawTransaction acct a c) = RawTransaction acct a' c
+          where a' = normaliseAmount a
+      normaliseAmount (Amount c q) = Amount (firstoccurrenceof c) q
+      firstoccurrenceof c@(Commodity {symbol=s}) = 
+          fromMaybe
+          (error "failed to normalise commodity") -- shouldn't happen
+          (find (\(Commodity {symbol=sym}) -> sym==s) firstcommodities)
+      firstcommodities = nub $ map (commodity . amount) $ rawLedgerTransactions l
