@@ -42,7 +42,7 @@ isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = isZeroAmount sum && numcommodities==1
     where
       sum = sumLedgerTransactions ts
-      numcommodities = length $ nub $ map (commodity . tamount) ts
+      numcommodities = length $ nub $ map (symbol . commodity . tamount) ts
 
 autofillEntry :: Entry -> Entry
 autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=autofillTransactions ts}
