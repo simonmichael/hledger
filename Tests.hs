@@ -77,6 +77,7 @@ unittests = TestList [
 
 functests = TestList [
   balancecommandtests
+  ,registercommandtests
   ]
 
 balancecommandtests = TestList [
@@ -179,6 +180,13 @@ balancecommandtests = TestList [
     assertequal "" $ showBalanceReport [] ["-e"] l
  ]
 
+registercommandtests = TestList [
+  "register does something" ~:
+  do 
+    l <- ledgerfromfile "sample.ledger"
+    assertnotequal "" $ showTransactionsWithBalances [] [] l
+  ]
+  
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
 assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
 assertparseequal expected parsed = either printParseError (assertequal expected) parsed
