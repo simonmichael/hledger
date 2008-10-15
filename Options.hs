@@ -51,7 +51,7 @@ parseArguments = do
   args <- getArgs
   case (getOpt optionorder options args) of
     (opts,cmd:args,[]) -> return (opts, cmd, args)
-    (opts,[],[])       -> return ([Help], [], [])
+    (opts,[],[])       -> return (opts, [], [])
     (_,_,errs)         -> ioError (userError (concat errs ++ usage))
 
 -- | Get the ledger file path from options, an environment variable, or a default
