@@ -17,15 +17,14 @@ tconcat :: [Test] -> Test
 tconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
 
 ------------------------------------------------------------------------------
-unittests = TestList
--- NB assertequal arguments on a new line have to be indented at least
--- one space, contrary to haskell-mode's auto indent
- [
-  "show dollars" ~: show (dollars 1) ~?= "$1.00"
-         
- ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
- ,"amount arithmetic"   ~: do
+unittests = TestList [
+  -- remember to indent assertequal arguments, contrary to haskell-mode auto-indent
+  "show dollars" ~: show (dollars 1) ~?= "$1.00"
+  ,
+  "show hours" ~: show (hours 1) ~?= "1.0h"
+  ,
+  "amount arithmetic"   ~: do
     let a1 = dollars 1.23
     let a2 = Amount (comm "$") (-1.23)
     let a3 = Amount (comm "$") (-1.23)
@@ -36,51 +35,51 @@ unittests = TestList
     assertequal (Amount (comm "$") (-2.46)) (sum [a2,a3])
     assertequal (Amount (comm "$") (-2.46)) (sum [a3,a3])
     assertequal (Amount (comm "$") 0) (sum [a1,a2,a3,-a3])
-
- ,"ledgertransaction"  ~: do
+  ,
+  "ledgertransaction"  ~: do
     assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)
-                      
- ,"ledgerentry"        ~: do
+  ,                  
+  "ledgerentry"        ~: do
     assertparseequal entry1 (parsewith ledgerentry entry1_str)
-
- ,"autofillEntry"      ~: do
+  ,
+  "autofillEntry"      ~: do
     assertequal
-     (dollars (-47.18))
-     (tamount $ last $ etransactions $ autofillEntry entry1)
-     
- ,"punctuatethousands"      ~: punctuatethousands "" @?= ""
- ,"punctuatethousands"      ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
- ,"punctuatethousands"      ~: punctuatethousands "-100" @?= "-100"
-                            
- ,"expandAccountNames" ~: do
+      (dollars (-47.18))
+      (tamount $ last $ etransactions $ autofillEntry entry1)
+  ,
+  "punctuatethousands"      ~: punctuatethousands "" @?= ""
+  ,
+  "punctuatethousands"      ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
+  ,
+  "punctuatethousands"      ~: punctuatethousands "-100" @?= "-100"
+  ,
+  "expandAccountNames" ~: do
     assertequal
-     ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-     (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
-
- ,"ledgerAccountNames" ~: do
+      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
+      (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
+  ,
+  "ledgerAccountNames" ~: do
     assertequal
-     ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
-      "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
-      "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
-     (accountnames ledger7)
-
- ,"cacheLedger"        ~: do
-    assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7 )
-
- ,"transactionamount"       ~: do
+      ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
+       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
+       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
+      (accountnames ledger7)
+  ,
+  "cacheLedger"        ~: do
+    assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7)
+  ,
+  "transactionamount"       ~: do
     assertparseequal (dollars 47.18) (parsewith transactionamount " $47.18")
     assertparseequal (Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0,rate=1}) 1) (parsewith transactionamount " $1.")
- ]
+  ]
 
 ------------------------------------------------------------------------------
-functests = TestList
- [
-  balancecommandtests
- ]
 
-balancecommandtests =
- TestList 
- [
+functests = TestList [
+  balancecommandtests
+  ]
+
+balancecommandtests = TestList [
   "simple balance report" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
