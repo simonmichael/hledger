@@ -75,10 +75,7 @@ showAmountOrZero a
 -- | is this amount zero, when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
 isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
-    where
-      nonzerodigits = filter (flip notElem "-+,.0") quantitystr
-      quantitystr = withoutsymbol $ showAmount a
-      withoutsymbol = drop (length $ symbol c) -- XXX
+    where nonzerodigits = filter (`elem` "123456789") $ showAmount a
 
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
