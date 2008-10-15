@@ -24,6 +24,7 @@ instance Show RawLedger where
               (length $ periodic_entries l))
              (length accounts)
              (show accounts)
+             -- ++ (show $ rawLedgerTransactions l)
              where accounts = flatten $ rawLedgerAccountNameTree l
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
