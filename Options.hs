@@ -7,7 +7,6 @@ import System.Directory
 
 usagehdr    = "Usage: hledger [OPTIONS] "++commands++" [ACCTPATTERNS] [-- DESCPATTERNS]\nOptions:"
 commands    = "register|balance|print"
-defaultcmd  = "register"
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
 
@@ -42,8 +41,8 @@ parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- getArgs
   case (getOpt RequireOrder options args) of
-    (opts,[],[])       -> return (opts, defaultcmd, [])
     (opts,cmd:args,[]) -> return (opts, cmd, args)
+    (opts,[],[])       -> return ([Help], [], [])
     (_,_,errs)         -> ioError (userError (concat errs ++ usage))
 
 -- | Get the ledger file path from options, an environment variable, or a default
