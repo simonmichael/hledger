@@ -171,7 +171,7 @@ showAccountTreeWithBalances matchedacctnames =
       showAccountTreeWithBalances' matchedacctnames indentlevel prefix (Node (Account fullname _ bal) subs) =
           if isboringparent then showsubswithprefix else showacct ++ showsubswithindent
           where
-            showsubswithprefix = showsubs indentlevel (fullname++":")
+            showsubswithprefix = showsubs indentlevel (prefix++leafname++":")
             showsubswithindent = showsubs (indentlevel+1) ""
             showsubs i p = concatMap (showAccountTreeWithBalances' matchedacctnames i p) subs
             showacct = showbal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n"
