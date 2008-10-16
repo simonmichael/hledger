@@ -84,6 +84,7 @@ groupAmountsByCommodity as = grouped
 -- display settings.
 showAmount :: Amount -> String
 showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,comma=comma,precision=p}) q)
+    | sym=="AUTO" = ""
     | side==L = printf "%s%s%s" sym space quantity
     | side==R = printf "%s%s%s" quantity space sym
     where 
