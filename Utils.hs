@@ -21,7 +21,7 @@ rawledgerfromfile f = do
 ledgerfromfile :: FilePath -> IO Ledger
 ledgerfromfile f = do
   l  <- rawledgerfromfile f
-  return $ cacheLedger $ filterRawLedger "" "" [] False l
+  return $ cacheLedger $ filterRawLedger "" "" [] False False l
 
 -- | get a RawLedger from the file your LEDGER environment variable
 -- variable points to or (WARNING) an empty one if there was a problem.
@@ -35,7 +35,7 @@ myrawledger = do
 myledger :: IO Ledger
 myledger = do
   l <- myrawledger
-  return $ cacheLedger $ filterRawLedger "" "" [] False l
+  return $ cacheLedger $ filterRawLedger "" "" [] False False l
 
 -- | get a named account from your ledger file
 myaccount :: AccountName -> IO Account

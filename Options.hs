@@ -25,7 +25,8 @@ options = [
  Option ['f'] ["file"]         (ReqArg File "FILE")        "ledger file; - means use standard input",
  Option ['b'] ["begin"]        (ReqArg Begin "YYYY/MM/DD") "report on entries on or after this date",
  Option ['e'] ["end"]          (ReqArg End "YYYY/MM/DD")   "report on entries prior to this date",
- Option ['C'] ["cleared"]        (NoArg  Cleared)          "report only on cleared transactions",
+ Option ['C'] ["cleared"]      (NoArg  Cleared)            "report only on cleared entries",
+ Option ['R'] ["real"]         (NoArg  Real)               "report only on real (non-virtual) transactions",
  Option ['s'] ["showsubs"]     (NoArg  ShowSubs)           "in the balance report, include subaccounts",
  Option ['h'] ["help","usage"] (NoArg  Help)               "show this help",
  Option ['V'] ["version"]      (NoArg  Version)            "show version"
@@ -37,6 +38,7 @@ data Opt =
     Begin String | 
     End String | 
     Cleared | 
+    Real | 
     ShowSubs |
     Help |
     Version
