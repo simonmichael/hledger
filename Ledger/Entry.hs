@@ -24,7 +24,7 @@ isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = isZeroAmount sum && numcommodities==1
     where
       realts = filter isReal ts
-      sum = sumLedgerTransactions realts
+      sum = sumRawTransactions realts
       numcommodities = length $ nub $ map (symbol . commodity . tamount) realts
 
 -- | Fill in a missing balance in this entry, if there is one, 
