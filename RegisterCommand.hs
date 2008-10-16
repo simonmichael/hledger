@@ -24,7 +24,8 @@ showTransactionsWithBalances opts args l =
           startingbalance = nullamt
           showTransactionsWithBalances' :: [Transaction] -> Transaction -> Amount -> [String]
           showTransactionsWithBalances' [] _ _ = []
-          showTransactionsWithBalances' (t:ts) tprev b = this ++ rest
+          showTransactionsWithBalances' (t@Transaction{amount=a}:ts) tprev b = 
+              (if isZeroAmount a then [] else this) ++ rest
               where
                 b' = b + (amount t)
                 sameentry (Transaction {entryno=e1}) (Transaction {entryno=e2}) = e1 == e2
