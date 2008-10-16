@@ -230,7 +230,7 @@ assertparseequal expected parsed = either printParseError (assertequal expected)
 
 rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
-rawtransaction1 = RawTransaction "expenses:food:dining" (dollars 10) ""
+rawtransaction1 = RawTransaction "expenses:food:dining" (dollars 10) "" RegularTransaction
 
 entry1_str = "\
 \2007/01/28 coopportunity\n\
@@ -240,8 +240,8 @@ entry1_str = "\
 
 entry1 =
     (Entry "2007/01/28" False "" "coopportunity" ""
-     [RawTransaction "expenses:food:groceries" (dollars 47.18) "", 
-      RawTransaction "assets:checking" (dollars (-47.18)) ""] "")
+     [RawTransaction "expenses:food:groceries" (dollars 47.18) "" RegularTransaction, 
+      RawTransaction "assets:checking" (dollars (-47.18)) "" RegularTransaction] "")
 
 
 entry2_str = "\
@@ -386,12 +386,14 @@ rawledger7 = RawLedger
               RawTransaction {
                 taccount="assets:cash", 
                 tamount=dollars 4.82,
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="equity:opening balances", 
                 tamount=dollars (-4.82),
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               }
              ],
              epreceding_comment_lines=""
@@ -407,12 +409,14 @@ rawledger7 = RawLedger
               RawTransaction {
                 taccount="expenses:vacation", 
                 tamount=dollars 179.92,
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
                 tamount=dollars (-179.92),
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               }
              ],
              epreceding_comment_lines=""
@@ -428,12 +432,14 @@ rawledger7 = RawLedger
               RawTransaction {
                 taccount="assets:saving", 
                 tamount=dollars 200,
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
                 tamount=dollars (-200),
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               }
              ],
              epreceding_comment_lines=""
@@ -449,12 +455,14 @@ rawledger7 = RawLedger
               RawTransaction {
                 taccount="expenses:food:dining", 
                 tamount=dollars 4.82,
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:cash", 
                 tamount=dollars (-4.82),
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               }
              ],
              epreceding_comment_lines=""
@@ -470,12 +478,14 @@ rawledger7 = RawLedger
               RawTransaction {
                 taccount="expenses:phone", 
                 tamount=dollars 95.11,
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
                 tamount=dollars (-95.11),
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               }
              ],
              epreceding_comment_lines=""
@@ -491,12 +501,14 @@ rawledger7 = RawLedger
               RawTransaction {
                 taccount="liabilities:credit cards:discover", 
                 tamount=dollars 80,
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
                 tamount=dollars (-80),
-                tcomment=""
+                tcomment="",
+                rttype=RegularTransaction
               }
              ],
              epreceding_comment_lines=""

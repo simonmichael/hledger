@@ -58,6 +58,6 @@ entryFromTimeLogInOut i o =
       intime   = parsedatetime $ tldatetime i
       outtime  = parsedatetime $ tldatetime o
       amount   = hours $ realToFrac (diffUTCTime outtime intime) / 3600
-      txns     = [RawTransaction acctname amount ""
-                 --,RawTransaction "assets:time" (-amount) ""
+      txns     = [RawTransaction acctname amount "" RegularTransaction
+                 --,RawTransaction "assets:time" (-amount) "" RegularTransaction
                  ]

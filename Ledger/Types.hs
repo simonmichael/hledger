@@ -36,10 +36,14 @@ data Amount = Amount {
 
 type AccountName = String
 
+data TransactionType = RegularTransaction | VirtualTransaction | BalancedVirtualTransaction
+                       deriving (Eq,Show)
+
 data RawTransaction = RawTransaction {
       taccount :: AccountName,
       tamount :: Amount,
-      tcomment :: String
+      tcomment :: String,
+      rttype :: TransactionType
     } deriving (Eq)
 
 -- | a ledger "modifier" entry. Currently ignored.
@@ -86,7 +90,8 @@ data Transaction = Transaction {
       date :: Date,
       description :: String,
       account :: AccountName,
-      amount :: Amount
+      amount :: Amount,
+      ttype :: TransactionType
     } deriving (Eq)
 
 data Account = Account {

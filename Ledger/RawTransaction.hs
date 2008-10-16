@@ -13,10 +13,10 @@ import Ledger.Amount
 import Ledger.AccountName
 
 
-instance Show RawTransaction where show = showLedgerTransaction
+instance Show RawTransaction where show = showRawTransaction
 
-showLedgerTransaction :: RawTransaction -> String
-showLedgerTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ tamount t) 
+showRawTransaction :: RawTransaction -> String
+showRawTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ tamount t) 
     where
       showaccountname = printf "%-22s" . elideAccountName 22
       showamount = printf "%12s" . showAmountOrZero

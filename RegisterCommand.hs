@@ -19,28 +19,35 @@ showTransactionsWithBalances opts args l =
     unlines $ showTransactionsWithBalances' ts nulltxn startingbalance
         where
           ts = filter matchtxn $ ledgerTransactions l
-          matchtxn (Transaction _ _ desc acct _) = matchLedgerPatterns False apats acct
+          matchtxn (Transaction _ _ desc acct _ _) = matchLedgerPatterns False apats acct
           apats = fst $ parseAccountDescriptionArgs args
           startingbalance = nullamt
           showTransactionsWithBalances' :: [Transaction] -> Transaction -> Amount -> [String]
           showTransactionsWithBalances' [] _ _ = []
-          showTransactionsWithBalances' (t:ts) tprev b =
-              (if sameentry t tprev
-               then [showTransactionAndBalance t b']
-               else [showTransactionDescriptionAndBalance t b'])
-              ++ (showTransactionsWithBalances' ts t b')
-                  where 
-                    b' = b + (amount t)
-                    sameentry (Transaction e1 _ _ _ _) (Transaction e2 _ _ _ _) = e1 == e2
+          showTransactionsWithBalances' (t:ts) tprev b = this ++ rest
+              where
+                b' = b + (amount t)
+                sameentry (Transaction {entryno=e1}) (Transaction {entryno=e2}) = e1 == e2
+                this = if sameentry t tprev
+                       then [showTransactionWithoutDescription t b']
+                       else [showTransactionWithDescription t b']
+                rest = showTransactionsWithBalances' ts t b'
 
-showTransactionDescriptionAndBalance :: Transaction -> Amount -> String
-showTransactionDescriptionAndBalance t b =
+showTransactionWithDescription :: Transaction -> Amount -> String
+showTransactionWithDescription t b =
     (showEntryDescription $ Entry (date t) False "" (description t) "" [] "") 
-    ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
+    ++ (showTransactionFormatted t)
+    ++ (showBalance b)
 
-showTransactionAndBalance :: Transaction -> Amount -> String
-showTransactionAndBalance t b =
-    (replicate 32 ' ') ++ (showLedgerTransaction $ RawTransaction (account t) (amount t) "") ++ (showBalance b)
+showTransactionWithoutDescription :: Transaction -> Amount -> String
+showTransactionWithoutDescription t b = 
+    (replicate 32 ' ') 
+    ++ (showTransactionFormatted t) 
+    ++ (showBalance b)
+
+showTransactionFormatted :: Transaction -> String
+showTransactionFormatted (Transaction eno d desc a amt ttype) = 
+    showRawTransaction $ RawTransaction a amt "" ttype
 
 showBalance :: Amount -> String
 showBalance b = printf " %12s" (showAmountOrZero b)

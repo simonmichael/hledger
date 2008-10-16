@@ -250,7 +250,9 @@ ledgercode :: Parser String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
 ledgertransactions :: Parser [RawTransaction]
-ledgertransactions = (ledgertransaction <?> "transaction") `manyTill` (do {newline <?> "blank line"; return ()} <|> eof)
+ledgertransactions = 
+    ((try virtualtransaction <|> try balancedvirtualtransaction <|> ledgertransaction) <?> "transaction") 
+    `manyTill` (do {newline <?> "blank line"; return ()} <|> eof)
 
 ledgertransaction :: Parser RawTransaction
 ledgertransaction = do
@@ -260,7 +262,31 @@ ledgertransaction = do
   many spacenonewline
   comment <- ledgercomment
   restofline
-  return (RawTransaction account amount comment)
+  return (RawTransaction account amount comment RegularTransaction)
+
+virtualtransaction :: Parser RawTransaction
+virtualtransaction = do
+  many1 spacenonewline
+  char '('
+  account <- ledgeraccountname
+  char ')'
+  amount <- transactionamount
+  many spacenonewline
+  comment <- ledgercomment
+  restofline
+  return (RawTransaction account amount comment VirtualTransaction)
+
+balancedvirtualtransaction :: Parser RawTransaction
+balancedvirtualtransaction = do
+  many1 spacenonewline
+  char '['
+  account <- ledgeraccountname
+  char ']'
+  amount <- transactionamount
+  many spacenonewline
+  comment <- ledgercomment
+  restofline
+  return (RawTransaction account amount comment BalancedVirtualTransaction)
 
 -- | account names may have single spaces inside them, and are terminated by two or more spaces
 ledgeraccountname :: Parser String
@@ -268,10 +294,12 @@ ledgeraccountname = do
     accountname <- many1 (accountnamechar <|> singlespace)
     return $ striptrailingspace accountname
     where 
-      accountnamechar = nonspace <?> "account name character"
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
       -- couldn't avoid consuming a final space sometimes, harmless
       striptrailingspace s = if last s == ' ' then init s else s
+
+accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
+    <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
 transactionamount :: Parser Amount
 transactionamount =
