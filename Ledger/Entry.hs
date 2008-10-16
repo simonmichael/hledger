@@ -23,8 +23,9 @@ showDescription s = printf "%-20s" (elideRight 20 s)
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = isZeroAmount sum && numcommodities==1
     where
-      sum = sumLedgerTransactions ts
-      numcommodities = length $ nub $ map (symbol . commodity . tamount) ts
+      realts = filter isReal ts
+      sum = sumLedgerTransactions realts
+      numcommodities = length $ nub $ map (symbol . commodity . tamount) realts
 
 -- | Fill in a missing balance in this entry, if there is one, 
 -- or raise an error if there is more than one.

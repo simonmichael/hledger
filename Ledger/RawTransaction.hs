@@ -21,18 +21,27 @@ showRawTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ ta
       showaccountname = printf "%-22s" . elideAccountName 22
       showamount = printf "%12s" . showAmountOrZero
 
--- | Fill in the missing balance in an entry's transactions. There can be
--- at most one missing balance, otherwise we'll return Nothing.
+-- | Fill in the missing balance in an entry's transactions. Excluding
+-- virtual transactions, there should be at most one missing balance,
+-- otherwise return Nothing.
 autofillTransactions :: [RawTransaction] -> Maybe [RawTransaction]
 autofillTransactions ts =
-    case (length blanks) of
+    case (length missingamounts) of
       0 -> Just ts
       1 -> Just $ map balance ts
       otherwise -> Nothing
     where 
-      (normals, blanks) = partition isnormal ts
-      isnormal t = (symbol $ commodity $ tamount t) /= "AUTO"
-      balance t = if isnormal t then t else t{tamount = -(sumLedgerTransactions normals)}
+      (reals, _) = partition isReal ts
+      (realamounts, missingamounts) = partition hasAmount reals
+      balance t = if (isReal t) && (not $ hasAmount t) 
+                  then t{tamount = -(sumLedgerTransactions realamounts)}
+                  else t
+
+isReal :: RawTransaction -> Bool
+isReal t = rttype t == RegularTransaction
+
+hasAmount :: RawTransaction -> Bool
+hasAmount = ("AUTO" /=) . symbol . commodity . tamount
 
 sumLedgerTransactions :: [RawTransaction] -> Amount
 sumLedgerTransactions = sumAmounts . map tamount
