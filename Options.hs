@@ -42,7 +42,7 @@ data Opt =
 
 usage = usageInfo usagehdr options ++ usageftr
 
-version = "hledger version 0.1 alpha\n"
+version = "hledger version 0.2pre \n"
 
 -- | Parse the command-line arguments into ledger options, ledger command
 -- name, and ledger command arguments
