@@ -268,7 +268,7 @@ ledgeraccountname = do
     accountname <- many1 (accountnamechar <|> singlespace)
     return $ striptrailingspace accountname
     where 
-      accountnamechar = alphaNum <|> oneOf ":/_" <?> "account name character"
+      accountnamechar = nonspace <?> "account name character"
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
       -- couldn't avoid consuming a final space sometimes, harmless
       striptrailingspace s = if last s == ' ' then init s else s
@@ -358,6 +358,8 @@ restofline = anyChar `manyTill` newline
 
 whiteSpace1 :: Parser ()
 whiteSpace1 = do space; whiteSpace
+
+nonspace = satisfy (not . isSpace)
 
 
 {-| Parse a timelog file. Here is the timelog grammar, from timeclock.el 2.6:
