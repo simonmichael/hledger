@@ -6,15 +6,12 @@ implementations were its consequences." --Niklaus Wirth
 
 * to do
 ** bugs
-** release 0.1
-*** cabal upload
-*** haskell-cafe/ledger-cli announce
 ** ledger features
-*** -C
 *** ledger 2.6-style date matching
+*** display control
 *** mixed amounts
-*** more speed
 *** more ledger features
+*** more speed
 ** new features
 *** darcs-style --version
 *** show in/out times in timelog entry descriptions
