@@ -43,9 +43,10 @@ rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 
 -- | Remove ledger entries we are not interested in.
 -- Keep only those which fall between the begin and end dates, and match
--- the description pattern.
-filterRawLedger :: String -> String -> [String] -> RawLedger -> RawLedger
-filterRawLedger begin end pats = 
+-- the description pattern, and match the cleared flag.
+filterRawLedger :: String -> String -> [String] -> Bool -> RawLedger -> RawLedger
+filterRawLedger begin end pats clearedonly = 
+    filterRawLedgerEntriesByClearedStatus clearedonly .
     filterRawLedgerEntriesByDate begin end .
     filterRawLedgerEntriesByDescription pats
 
@@ -67,6 +68,12 @@ filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) =
       matchdate e = (null begin || d >= d1) && (null end || d < d2)
                     where d = parsedate $ edate e
 
+-- | Keep only entries with cleared status, if the flag is true, otherwise
+-- do no filtering.
+filterRawLedgerEntriesByClearedStatus :: Bool -> RawLedger -> RawLedger
+filterRawLedgerEntriesByClearedStatus False l = l
+filterRawLedgerEntriesByClearedStatus True  (RawLedger ms ps es f) =
+    RawLedger ms ps (filter estatus es) f
 
 -- | Check if a set of ledger account/description patterns matches the
 -- given account name or entry description, applying ledger's special
