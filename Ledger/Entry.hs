@@ -1,7 +1,7 @@
 {-|
 
-An 'Entry' represents a regular entry in the ledger file. It contains two
-or more 'RawTransaction's whose sum must be zero.
+An 'Entry' represents a regular entry in the ledger file. It normally
+contains two or more balanced 'RawTransaction's.
 
 -}
 
