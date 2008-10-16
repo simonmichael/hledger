@@ -1,8 +1,8 @@
 {-|
 
-A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
-names, a map from account names to 'Account's, and the display precision.
-Typically it has also has had the uninteresting 'Entry's filtered out.
+A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of
+account names, a map from account names to 'Account's. Typically it
+also has had uninteresting 'Entry's filtered out.
 
 -}
 
@@ -80,11 +80,6 @@ subAccounts l a = map (ledgerAccount l) subacctnames
       subacctnames = filter (name `isAccountNamePrefixOf`) allnames
 
 -- | List a ledger's transactions.
---
--- NB this sets the amount precisions to that of the highest-precision
--- amount, to help with report output. It should perhaps be done in the
--- display functions, but those are far removed from the ledger. Keep in
--- mind if doing more arithmetic with these.
 ledgerTransactions :: Ledger -> [Transaction]
 ledgerTransactions l = rawLedgerTransactions $ rawledger l
 
