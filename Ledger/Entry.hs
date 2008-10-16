@@ -26,8 +26,13 @@ isEntryBalanced (Entry {etransactions=ts}) = isZeroAmount sum && numcommodities=
       sum = sumLedgerTransactions ts
       numcommodities = length $ nub $ map (symbol . commodity . tamount) ts
 
+-- | Fill in a missing balance in this entry, if there is one, 
+-- or raise an error if there is more than one.
 autofillEntry :: Entry -> Entry
-autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=autofillTransactions ts}
+autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=ts'}
+    where ts' = fromMaybe 
+                (error $ "too many blank transactions in this entry:\n" ++ show e)
+                (autofillTransactions ts)
 
 assertBalancedEntry :: Entry -> Entry
 assertBalancedEntry e
