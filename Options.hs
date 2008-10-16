@@ -37,7 +37,7 @@ options = [
  Option ['R'] ["real"]         (NoArg  Real)               "report only on real (non-virtual) transactions",
  Option ['n'] ["collapse"]     (NoArg  Collapse)           "balance report: no grand total",
  Option ['s'] ["subtotal"]     (NoArg  SubTotal)           "balance report: show subaccounts",
- Option ['h'] ["help","usage"] (NoArg  Help)               "show this help",
+ Option ['h'] ["help"] (NoArg  Help)                       "show this help",
  Option ['V'] ["version"]      (NoArg  Version)            "show version"
  ]
 
