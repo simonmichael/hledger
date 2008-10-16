@@ -31,7 +31,7 @@ isEntryBalanced (Entry {etransactions=ts}) = isZeroMixedAmount sum
 autofillEntry :: Entry -> Entry
 autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=ts'}
     where ts' = fromMaybe 
-                (error $ "too many blank transactions in this entry:\n" ++ show e)
+                (error $ "too many missing amounts in this entry, could not auto-balance:\n" ++ show e)
                 (autofillTransactions ts)
 
 assertBalancedEntry :: Entry -> Entry
