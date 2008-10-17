@@ -13,7 +13,7 @@ warning     = if negativepatternchar=='-' then " (must appear before command)" e
 usageftr    = "\n" ++
               "Commands (may be abbreviated):\n" ++
               "balance  - show account balances\n" ++
-              "print    - show parsed and reformatted ledger entries\n" ++
+              "print    - show formatted ledger entries\n" ++
               "register - show register transactions\n" ++
               "\n" ++
               "Account and description patterns are regular expressions, optionally prefixed\n" ++
