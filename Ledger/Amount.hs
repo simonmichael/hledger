@@ -1,7 +1,7 @@
 {-|
 An 'Amount' is some quantity of money, shares, or anything else.
 
-A simple amount is a commodity, quantity pair (where commodity can be anything):
+A simple amount is a commodity, quantity pair:
 
 @
   $1 

@@ -72,8 +72,8 @@ filterRawLedgerEntriesByClearedStatus False l = l
 filterRawLedgerEntriesByClearedStatus True  (RawLedger ms ps es f) =
     RawLedger ms ps (filter estatus es) f
 
--- | Strip out any (virtual transactions), if the flag is true, otherwise
--- do no filtering.
+-- | Strip out any virtual transactions, if the flag is true, otherwise do
+-- no filtering.
 filterRawLedgerTransactionsByRealness :: Bool -> RawLedger -> RawLedger
 filterRawLedgerTransactionsByRealness False l = l
 filterRawLedgerTransactionsByRealness True (RawLedger ms ps es f) =
