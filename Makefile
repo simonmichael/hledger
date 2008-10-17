@@ -97,6 +97,11 @@ test-docs: api-doc-frames
 clean-docs:
 	rm -rf api-doc hoogle
 
+show-changes:
+	@echo Changes since last release:
+	@echo
+	@darcs changes --from-tag . | grep '*'
+
 # misc
 
 tag:
