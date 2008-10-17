@@ -5,33 +5,51 @@ Clarity of concepts, economy of features, efficiency and reliability of
 implementations were its consequences." --Niklaus Wirth
 
 * to do
-** bugs
-** ledger features
-*** ledger 2.6-style date matching
-*** display control
-*** mixed amounts
-*** more ledger features
-*** more speed
-** new features
-*** darcs-style --version
-*** show in/out times in timelog entry descriptions
-*** graphs
-*** smart data entry
-*** easier ui
-** testing
-*** run individual tests
-*** reliable maintainable tests
-*** easy ledger compatibility tests
-*** speed tests
-** documentation
+** bugfixes
+*** vertical display of commodities
+** features
+*** full -b/e date expressions
+*** more ledger features from README
+*** new features
+**** automated --version
+**** option for strict ledger-compatible output (or, compare xml ?)
+**** --compare to compare ledger with same args
+**** tidy horizontal commodities format
+**** in/out times in timelog entry descriptions
+**** graphs
+**** easier data entry
+**** flexible option ordering
+**** parse more file formats
+**** easy conversion from cabal-installed to darcs repo
+**** i18n
+*** speed
+**** cache file
+** tests
+*** individual test running
+*** figure out reliable maintainable appropriate tests
+*** easy ledger compatibility testing
+*** speed testing
+** docs
+*** readme
+**** refine
+*** similar blurbs
+**** automate
+***** hledger.hs module description
+***** cabal file description
+***** web page description
+***** darcsweb description
+*** announcements
+**** archive
+*** release notes
+**** keep it simple
 *** implementation docs
 *** api docs
 *** user manual
-*** differences/issues in implemented functionality
+*** differences noted
 **** ledger needs a space after -f
 **** ledger shows description comments as part of description
 **** ledger shows small time amounts in minutes
-**** ledger can get timelog entry balance wrong, cf list mail
+**** ledger can get timelog entry balance wrong, see mail list
 
 * misc
 ** things I want to know
