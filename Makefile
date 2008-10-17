@@ -103,7 +103,7 @@ tag:
 	rm -f TAGS; hasktags -e *hs Ledger/*hs
 
 clean:
-	rm -f {,Ledger/}*{.o,.hi,~}
+	rm -f {,Ledger/}*{.o,.hi,~} darcs-amend-record*
 
 Clean: clean clean-docs
 	rm -f hledger hledgeropt TAGS tags
