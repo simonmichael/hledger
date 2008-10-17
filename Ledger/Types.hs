@@ -34,6 +34,8 @@ data Amount = Amount {
       quantity :: Double
     } deriving (Eq)
 
+type MixedAmount = [Amount]
+
 type AccountName = String
 
 data TransactionType = RegularTransaction | VirtualTransaction | BalancedVirtualTransaction
