@@ -8,14 +8,14 @@ import Ledger.AccountName (negativepatternchar)
 
 usagehdr    = "Usage: hledger [OPTS] balance|print|register [ACCTPATS] [-- DESCPATS]\n\nOptions"++warning++":"
 warning     = if negativepatternchar=='-' then " (must appear before command)" else " (can appear anywhere)"
-usageftr    = "\n\
-              \Commands (may be abbreviated):\n\
-              \balance  - show account balances\n\
-              \print    - show parsed and reformatted ledger entries\n\
-              \register - show register transactions\n\
-              \\n\
-              \Account and description patterns are regular expressions, optionally prefixed\n\
-              \with " ++ [negativepatternchar] ++ " to make them negative.\n"
+usageftr    = "\n" ++
+              "Commands (may be abbreviated):\n" ++
+              "balance  - show account balances\n" ++
+              "print    - show parsed and reformatted ledger entries\n" ++
+              "register - show register transactions\n" ++
+              "\n" ++
+              "Account and description patterns are regular expressions, optionally prefixed\n" ++
+              "with " ++ [negativepatternchar] ++ " to make them negative.\n"
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
 optionorder = if negativepatternchar=='-' then RequireOrder else Permute

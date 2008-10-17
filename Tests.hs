@@ -122,96 +122,96 @@ balancereportacctnames_tests = TestList
 balancecommand_tests = TestList [
   "simple balance report" ~: do
     l <- ledgerfromfile [] "sample.ledger"
-    assertequal
-     "                 $-1  assets\n\
-     \                  $2  expenses\n\
-     \                 $-2  income\n\
-     \                  $1  liabilities\n\
-     \" --"
+    assertequal (
+     "                 $-1  assets\n" ++
+     "                  $2  expenses\n" ++
+     "                 $-2  income\n" ++
+     "                  $1  liabilities\n" ++
+     "")
      (showBalanceReport [] [] l)
  ,
   "balance report with --subtotal" ~: do
     l <- ledgerfromfile [] "sample.ledger"
-    assertequal
-     "                 $-1  assets\n\
-     \                 $-2    cash\n\
-     \                  $1    saving\n\
-     \                  $2  expenses\n\
-     \                  $1    food\n\
-     \                  $1    supplies\n\
-     \                 $-2  income\n\
-     \                 $-1    gifts\n\
-     \                 $-1    salary\n\
-     \                  $1  liabilities:debts\n\
-     \" --"
+    assertequal (
+     "                 $-1  assets\n" ++
+     "                 $-2    cash\n" ++
+     "                  $1    saving\n" ++
+     "                  $2  expenses\n" ++
+     "                  $1    food\n" ++
+     "                  $1    supplies\n" ++
+     "                 $-2  income\n" ++
+     "                 $-1    gifts\n" ++
+     "                 $-1    salary\n" ++
+     "                  $1  liabilities:debts\n" ++
+     "")
      (showBalanceReport [SubTotal] [] l)
  ,
   "balance report with account pattern o" ~: do
     l <- ledgerfromfile ["o"] "sample.ledger"
-    assertequal
-     "                  $1  expenses:food\n\
-     \                 $-2  income\n\
-     \--------------------\n\
-     \                 $-1\n\
-     \" --"
+    assertequal (
+     "                  $1  expenses:food\n" ++
+     "                 $-2  income\n" ++
+     "--------------------\n" ++
+     "                 $-1\n" ++
+     "")
      (showBalanceReport [] ["o"] l)
  ,
   "balance report with account pattern o and --subtotal" ~: do
     l <- ledgerfromfile ["o"] "sample.ledger"
-    assertequal
-     "                  $1  expenses:food\n\
-     \                 $-2  income\n\
-     \                 $-1    gifts\n\
-     \                 $-1    salary\n\
-     \--------------------\n\
-     \                 $-1\n\
-     \" --"
+    assertequal (
+     "                  $1  expenses:food\n" ++
+     "                 $-2  income\n" ++
+     "                 $-1    gifts\n" ++
+     "                 $-1    salary\n" ++
+     "--------------------\n" ++
+     "                 $-1\n" ++
+     "")
      (showBalanceReport [SubTotal] ["o"] l)
  ,
   "balance report with account pattern a" ~: do
     l <- ledgerfromfile ["a"] "sample.ledger"
-    assertequal
-     "                 $-1  assets\n\
-     \                 $-2    cash\n\
-     \                  $1    saving\n\
-     \                 $-1  income:salary\n\
-     \                  $1  liabilities\n\
-     \--------------------\n\
-     \                 $-1\n\
-     \" --"
+    assertequal (
+     "                 $-1  assets\n" ++
+     "                 $-2    cash\n" ++
+     "                  $1    saving\n" ++
+     "                 $-1  income:salary\n" ++
+     "                  $1  liabilities\n" ++
+     "--------------------\n" ++
+     "                 $-1\n" ++
+     "")
      (showBalanceReport [] ["a"] l)
  ,
   "balance report with account pattern e" ~: do
     l <- ledgerfromfile ["e"] "sample.ledger"
-    assertequal
-     "                 $-1  assets\n\
-     \                  $2  expenses\n\
-     \                  $1    supplies\n\
-     \                 $-2  income\n\
-     \                  $1  liabilities:debts\n\
-     \" --"
+    assertequal (
+     "                 $-1  assets\n" ++
+     "                  $2  expenses\n" ++
+     "                  $1    supplies\n" ++
+     "                 $-2  income\n" ++
+     "                  $1  liabilities:debts\n" ++
+     "")
      (showBalanceReport [] ["e"] l)
  ,
   "balance report with unmatched parent of two matched subaccounts" ~: 
   do
     l <- ledgerfromfile ["cash","saving"] "sample.ledger"
-    assertequal
-     "                 $-2  assets:cash\n\
-     \                  $1  assets:saving\n\
-     \--------------------\n\
-     \                 $-1\n\
-     \" --"
+    assertequal (
+     "                 $-2  assets:cash\n" ++
+     "                  $1  assets:saving\n" ++
+     "--------------------\n" ++
+     "                 $-1\n" ++
+     "")
      (showBalanceReport [] ["cash","saving"] l)
  ,
   "balance report with multi-part account name" ~: 
   do 
     let pats = ["expenses:food"]
     l <- ledgerfromfile pats "sample.ledger"
-    assertequal
-     "                  $1  expenses:food\n\
-     \--------------------\n\
-     \                  $1\n\
-     \" --"
+    assertequal (
+     "                  $1  expenses:food\n" ++
+     "--------------------\n" ++
+     "                  $1\n" ++
+     "")
      $ showBalanceReport [] pats l
  ,
   "balance report with negative account pattern" ~: do
@@ -269,11 +269,11 @@ rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
 rawtransaction1 = RawTransaction "expenses:food:dining"(Mixed  [dollars 10]) "" RegularTransaction
 
-entry1_str = "\
-\2007/01/28 coopportunity\n\
-\  expenses:food:groceries                 $47.18\n\
-\  assets:checking\n\
-\\n" --"
+entry1_str = "" ++
+ "2007/01/28 coopportunity\n" ++
+ "  expenses:food:groceries                 $47.18\n" ++
+ "  assets:checking\n" ++
+ "\n"
 
 entry1 =
     (Entry (parsedate "2007/01/28") False "" "coopportunity" ""
@@ -281,133 +281,133 @@ entry1 =
       RawTransaction "assets:checking" (Mixed [dollars (-47.18)]) "" RegularTransaction] "")
 
 
-entry2_str = "\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  expenses:gifts                          $10.00\n\
-\  assets:checking                        $-20.00\n\
-\\n" --"
+entry2_str = "" ++
+ "2007/01/27 * joes diner\n" ++
+ "  expenses:food:dining                    $10.00\n" ++
+ "  expenses:gifts                          $10.00\n" ++
+ "  assets:checking                        $-20.00\n" ++
+ "\n"
 
-entry3_str = "\
-\2007/01/01 * opening balance\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n\
-\2007/01/01 * opening balance\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n\
-\2007/01/28 coopportunity\n\
-\  expenses:food:groceries                 $47.18\n\
-\  assets:checking\n\
-\\n" --"
+entry3_str = "" ++
+ "2007/01/01 * opening balance\n" ++
+ "    assets:cash                                $4.82\n" ++
+ "    equity:opening balances\n" ++
+ "\n" ++
+ "2007/01/01 * opening balance\n" ++
+ "    assets:cash                                $4.82\n" ++
+ "    equity:opening balances\n" ++
+ "\n" ++
+ "2007/01/28 coopportunity\n" ++
+ "  expenses:food:groceries                 $47.18\n" ++
+ "  assets:checking\n" ++
+ "\n"
 
-periodic_entry1_str = "\
-\~ monthly from 2007/2/2\n\
-\  assets:saving            $200.00\n\
-\  assets:checking\n\
-\\n" --"
+periodic_entry1_str = "" ++
+ "~ monthly from 2007/2/2\n" ++
+ "  assets:saving            $200.00\n" ++
+ "  assets:checking\n" ++
+ "\n"
 
-periodic_entry2_str = "\
-\~ monthly from 2007/2/2\n\
-\  assets:saving            $200.00         ;auto savings\n\
-\  assets:checking\n\
-\\n" --"
+periodic_entry2_str = "" ++
+ "~ monthly from 2007/2/2\n" ++
+ "  assets:saving            $200.00         ;auto savings\n" ++
+ "  assets:checking\n" ++
+ "\n"
 
-periodic_entry3_str = "\
-\~ monthly from 2007/01/01\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n\
-\~ monthly from 2007/01/01\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances\n\
-\\n" --"
+periodic_entry3_str = "" ++
+ "~ monthly from 2007/01/01\n" ++
+ "    assets:cash                                $4.82\n" ++
+ "    equity:opening balances\n" ++
+ "\n" ++
+ "~ monthly from 2007/01/01\n" ++
+ "    assets:cash                                $4.82\n" ++
+ "    equity:opening balances\n" ++
+ "\n"
 
-ledger1_str = "\
-\\n\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  expenses:gifts                          $10.00\n\
-\  assets:checking                        $-20.00\n\
-\\n\
-\\n\
-\2007/01/28 coopportunity\n\
-\  expenses:food:groceries                 $47.18\n\
-\  assets:checking                        $-47.18\n\
-\\n\
-\" --"
+ledger1_str = "" ++
+ "\n" ++
+ "2007/01/27 * joes diner\n" ++
+ "  expenses:food:dining                    $10.00\n" ++
+ "  expenses:gifts                          $10.00\n" ++
+ "  assets:checking                        $-20.00\n" ++
+ "\n" ++
+ "\n" ++
+ "2007/01/28 coopportunity\n" ++
+ "  expenses:food:groceries                 $47.18\n" ++
+ "  assets:checking                        $-47.18\n" ++
+ "\n" ++
+ ""
 
-ledger2_str = "\
-\;comment\n\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  assets:checking                        $-47.18\n\
-\\n" --"
+ledger2_str = "" ++
+ ";comment\n" ++
+ "2007/01/27 * joes diner\n" ++
+ "  expenses:food:dining                    $10.00\n" ++
+ "  assets:checking                        $-47.18\n" ++
+ "\n"
 
-ledger3_str = "\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\;intra-entry comment\n\
-\  assets:checking                        $-47.18\n\
-\\n" --"
+ledger3_str = "" ++
+ "2007/01/27 * joes diner\n" ++
+ "  expenses:food:dining                    $10.00\n" ++
+ ";intra-entry comment\n" ++
+ "  assets:checking                        $-47.18\n" ++
+ "\n"
 
-ledger4_str = "\
-\!include \"somefile\"\n\
-\2007/01/27 * joes diner\n\
-\  expenses:food:dining                    $10.00\n\
-\  assets:checking                        $-47.18\n\
-\\n" --"
+ledger4_str = "" ++
+ "!include \"somefile\"\n" ++
+ "2007/01/27 * joes diner\n" ++
+ "  expenses:food:dining                    $10.00\n" ++
+ "  assets:checking                        $-47.18\n" ++
+ "\n"
 
 ledger5_str = ""
 
-ledger6_str = "\
-\~ monthly from 2007/1/21\n\
-\    expenses:entertainment  $16.23        ;netflix\n\
-\    assets:checking\n\
-\\n\
-\; 2007/01/01 * opening balance\n\
-\;     assets:saving                            $200.04\n\
-\;     equity:opening balances                         \n\
-\\n" --"
+ledger6_str = "" ++
+ "~ monthly from 2007/1/21\n" ++
+ "    expenses:entertainment  $16.23        ;netflix\n" ++
+ "    assets:checking\n" ++
+ "\n" ++
+ "; 2007/01/01 * opening balance\n" ++
+ ";     assets:saving                            $200.04\n" ++
+ ";     equity:opening balances                         \n" ++
+ "\n"
 
-ledger7_str = "\
-\2007/01/01 * opening balance\n\
-\    assets:cash                                $4.82\n\
-\    equity:opening balances                         \n\
-\\n\
-\2007/01/01 * opening balance\n\
-\    income:interest                                $-4.82\n\
-\    equity:opening balances                         \n\
-\\n\
-\2007/01/02 * ayres suites\n\
-\    expenses:vacation                        $179.92\n\
-\    assets:checking                                 \n\
-\\n\
-\2007/01/02 * auto transfer to savings\n\
-\    assets:saving                            $200.00\n\
-\    assets:checking                                 \n\
-\\n\
-\2007/01/03 * poquito mas\n\
-\    expenses:food:dining                       $4.82\n\
-\    assets:cash                                     \n\
-\\n\
-\2007/01/03 * verizon\n\
-\    expenses:phone                            $95.11\n\
-\    assets:checking                                 \n\
-\\n\
-\2007/01/03 * discover\n\
-\    liabilities:credit cards:discover         $80.00\n\
-\    assets:checking                                 \n\
-\\n\
-\2007/01/04 * blue cross\n\
-\    expenses:health:insurance                 $90.00\n\
-\    assets:checking                                 \n\
-\\n\
-\2007/01/05 * village market liquor\n\
-\    expenses:food:dining                       $6.48\n\
-\    assets:checking                                 \n\
-\\n" --"
+ledger7_str = "" ++
+ "2007/01/01 * opening balance\n" ++
+ "    assets:cash                                $4.82\n" ++
+ "    equity:opening balances                         \n" ++
+ "\n" ++
+ "2007/01/01 * opening balance\n" ++
+ "    income:interest                                $-4.82\n" ++
+ "    equity:opening balances                         \n" ++
+ "\n" ++
+ "2007/01/02 * ayres suites\n" ++
+ "    expenses:vacation                        $179.92\n" ++
+ "    assets:checking                                 \n" ++
+ "\n" ++
+ "2007/01/02 * auto transfer to savings\n" ++
+ "    assets:saving                            $200.00\n" ++
+ "    assets:checking                                 \n" ++
+ "\n" ++
+ "2007/01/03 * poquito mas\n" ++
+ "    expenses:food:dining                       $4.82\n" ++
+ "    assets:cash                                     \n" ++
+ "\n" ++
+ "2007/01/03 * verizon\n" ++
+ "    expenses:phone                            $95.11\n" ++
+ "    assets:checking                                 \n" ++
+ "\n" ++
+ "2007/01/03 * discover\n" ++
+ "    liabilities:credit cards:discover         $80.00\n" ++
+ "    assets:checking                                 \n" ++
+ "\n" ++
+ "2007/01/04 * blue cross\n" ++
+ "    expenses:health:insurance                 $90.00\n" ++
+ "    assets:checking                                 \n" ++
+ "\n" ++
+ "2007/01/05 * village market liquor\n" ++
+ "    expenses:food:dining                       $6.48\n" ++
+ "    assets:checking                                 \n" ++
+ "\n"
 
 rawledger7 = RawLedger
           [] 
