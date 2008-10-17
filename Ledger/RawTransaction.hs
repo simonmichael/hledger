@@ -26,16 +26,20 @@ showRawTransaction t = (showaccountname $ taccount t) ++ " " ++ (showamount $ ta
 -- otherwise return Nothing.
 autofillTransactions :: [RawTransaction] -> Maybe [RawTransaction]
 autofillTransactions ts =
-    case (length missingamounts) of
+    case (length withmissingamounts) of
       0 -> Just ts
       1 -> Just $ map balance ts
       otherwise -> Nothing
     where 
       (reals, _) = partition isReal ts
-      (realamounts, missingamounts) = partition hasAmount reals
+      (withrealamounts, withmissingamounts) = partition hasAmount reals
       balance t = if (isReal t) && (not $ hasAmount t) 
-                  then t{tamount = -(sumRawTransactions realamounts)}
+                  then t{tamount = -otherssimpletotal}
                   else t
+      otherstotal = sumRawTransactions withrealamounts
+      otherssimpletotal
+          | length otherstotal == 1 = head otherstotal
+          | otherwise = error "sorry, can't balance a mixed-commodity entry yet"
 
 isReal :: RawTransaction -> Bool
 isReal t = rttype t == RegularTransaction
@@ -43,5 +47,5 @@ isReal t = rttype t == RegularTransaction
 hasAmount :: RawTransaction -> Bool
 hasAmount = ("AUTO" /=) . symbol . commodity . tamount
 
-sumRawTransactions :: [RawTransaction] -> Amount
-sumRawTransactions = sumAmounts . map tamount
+sumRawTransactions :: [RawTransaction] -> MixedAmount
+sumRawTransactions = normaliseMixedAmount . map tamount

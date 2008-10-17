@@ -40,7 +40,7 @@ cacheLedger l =
                (Map.fromList [(account $ head g, g) | g <- groupedts])
                (Map.fromList [(a,[]) | a <- anames])
         txnsof = (txnmap !)
-        subacctsof a = filter (isAccountNamePrefixOf a) anames
+        subacctsof a = filter (a `isAccountNamePrefixOf`) anames
         subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a]
         balmap = Map.union 
                (Map.fromList [(a, (sumTransactions $ subtxnsof a)) | a <- anames])

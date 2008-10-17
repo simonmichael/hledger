@@ -21,11 +21,10 @@ showDate d = printf "%-10s" d
 showDescription s = printf "%-20s" (elideRight 20 s)
 
 isEntryBalanced :: Entry -> Bool
-isEntryBalanced (Entry {etransactions=ts}) = isZeroAmount sum && numcommodities==1
+isEntryBalanced (Entry {etransactions=ts}) = isZeroMixedAmount sum
     where
-      realts = filter isReal ts
       sum = sumRawTransactions realts
-      numcommodities = length $ nub $ map (symbol . commodity . tamount) realts
+      realts = filter isReal ts
 
 -- | Fill in a missing balance in this entry, if there is one, 
 -- or raise an error if there is more than one.
