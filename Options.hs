@@ -28,7 +28,7 @@ options = [
  Option ['e'] ["end"]          (ReqArg End "YYYY/MM/DD")   "report on entries prior to this date",
  Option ['C'] ["cleared"]      (NoArg  Cleared)            "report only on cleared entries",
  Option ['R'] ["real"]         (NoArg  Real)               "report only on real (non-virtual) transactions",
- Option ['s'] ["showsubs"]     (NoArg  ShowSubs)           "in the balance report, include subaccounts",
+ Option ['s'] ["subtotal"]     (NoArg  SubTotal)           "in the balance report, include subaccounts",
  Option ['h'] ["help","usage"] (NoArg  Help)               "show this help",
  Option ['V'] ["version"]      (NoArg  Version)            "show version"
  ]
@@ -40,7 +40,7 @@ data Opt =
     End String | 
     Cleared | 
     Real | 
-    ShowSubs |
+    SubTotal |
     Help |
     Version
     deriving (Show,Eq)

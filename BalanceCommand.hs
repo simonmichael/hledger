@@ -29,7 +29,7 @@ The balance command shows top-level accounts by default:
   $1  liabilities
 @
 
-With -s (--showsubs), also show the subaccounts:
+With -s (--subtotal), also show the subaccounts:
 
 @
  $-1  assets
@@ -88,7 +88,7 @@ Some notes for the implementation:
 
 - with an account pattern, it shows accounts whose leafname matches, plus their parents
 
-- with the showsubs option, it also shows all subaccounts of the above
+- with the subtotal option, it also shows all subaccounts of the above
 
 - zero-balance leaf accounts are removed
 
@@ -125,7 +125,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
       totalstr = if isZeroMixedAmount total 
                  then "" 
                  else printf "--------------------\n%20s\n" $ showMixedAmount total
-      showingsubs = ShowSubs `elem` opts
+      showingsubs = SubTotal `elem` opts
       pats@(apats,dpats) = parseAccountDescriptionArgs args
       maxdepth = if null args && not showingsubs then 1 else 9999
       acctstoshow = balancereportaccts showingsubs apats l
@@ -146,7 +146,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
       addsubaccts l as = concatMap addsubs as where addsubs = maybe [] flatten . ledgerAccountTreeAt l
 
       -- remove any accounts from the tree which are not one of the acctstoshow, 
-      -- or one of their parents, or one of their subaccounts when doing --showsubs
+      -- or one of their parents, or one of their subaccounts when doing --subtotal
       pruneUnmatchedAccounts :: Tree Account -> Tree Account
       pruneUnmatchedAccounts = treefilter matched
           where 
