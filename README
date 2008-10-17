@@ -7,13 +7,13 @@ Released under GPL version 3 or later.
 Welcome to hledger! 
 
 This is a minimal haskell clone of John Wiegley's ledger
-(<http://newartisans.com/software/ledger.html>).  hledger does basic
+(http://newartisans.com/software/ledger.html).  hledger does basic
 register & balance reports, and demonstrates a functional implementation
 of ledger.
 
 For more information, see the hledger home page
-(<http://joyful.com/hledger>) and ledger manual
-(<http://joyful.com/repos/ledger/doc/ledger.html>).
+(http://joyful.com/hledger) and ledger manual
+(http://joyful.com/repos/ledger/doc/ledger.html).
 
 NEWS
 ----
