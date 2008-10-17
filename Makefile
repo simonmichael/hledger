@@ -10,6 +10,10 @@ build: tag
 buildopt opt: clean
 	$(BUILDOPT)
 
+# build and run whenever a module changes, see http://searchpath.org
+continuous:
+	sp -o hledger ghc --make hledger.hs --run
+
 profile: build
 	$(PROFILE)
 	mv hledger.prof profs/$(TIME).prof
