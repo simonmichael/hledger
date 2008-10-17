@@ -1,14 +1,10 @@
-BUILD=ghc --make hledger.hs -o hledger
-BUILDOPT=$(BUILD)opt -O2
+BUILD=ghc --make hledger.hs -o hledger -O2
 BUILDPROF=$(BUILD) -prof -auto-all
 PROFILE=./hledger -s balance +RTS -p
 TIME=`date +"%Y%m%d%H%M"`
 
 build: tag
 	$(BUILD)
-
-buildopt opt: clean
-	$(BUILDOPT)
 
 # build and run whenever a module changes, see http://searchpath.org
 continuous:
@@ -115,5 +111,5 @@ clean:
 	rm -f {,Ledger/}*{.o,.hi,~} darcs-amend-record*
 
 Clean: clean clean-docs
-	rm -f hledger hledgeropt TAGS tags
+	rm -f hledger TAGS tags
 
