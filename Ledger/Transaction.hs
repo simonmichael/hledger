@@ -29,7 +29,8 @@ flattenEntry (Entry d _ _ desc _ ts _, e) =
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
 
-sumTransactions :: [Transaction] -> Amount
-sumTransactions = sum . map amount
+sumTransactions :: [Transaction] -> MixedAmount
+-- sumTransactions = sum . map amount
+sumTransactions = map amount
 
 nulltxn = Transaction 0 "" "" "" nullamt RegularTransaction

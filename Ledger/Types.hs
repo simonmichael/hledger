@@ -97,7 +97,7 @@ data Transaction = Transaction {
 data Account = Account {
       aname :: AccountName,
       atransactions :: [Transaction],
-      abalance :: Amount
+      abalance :: MixedAmount
     }
 
 data Ledger = Ledger {

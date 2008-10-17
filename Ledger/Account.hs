@@ -14,7 +14,7 @@ import Ledger.Amount
 
 
 instance Show Account where
-    show (Account a ts b) = printf "Account %s with %d txns and %s balance" a (length ts) (show b)
+    show (Account a ts b) = printf "Account %s with %d txns and %s balance" a (length ts) (showMixedAmount b)
 
-nullacct = Account "" [] nullamt
+nullacct = Account "" [] []
 

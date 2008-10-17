@@ -38,13 +38,31 @@ examples:
 
 module Ledger.Amount
 where
+import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Commodity
 
 
 instance Show Amount where show = showAmount
+-- instance Show MixedAmount where show = showMixedAmount
 
+showMixedAmount :: MixedAmount -> String
+showMixedAmount as = concat $ intersperse ", " $ map show $ normaliseMixedAmount as
+
+normaliseMixedAmount :: MixedAmount -> MixedAmount
+normaliseMixedAmount as = map sumAmounts $ groupAmountsByCommodity as
+
+groupAmountsByCommodity :: [Amount] -> [[Amount]]
+groupAmountsByCommodity as = grouped
+    where
+      grouped = [filter (hassymbol s) as | s <- symbols]
+      hassymbol s a = s == (symbol $ commodity a)
+      symbols = sort $ nub $ map (symbol . commodity) as
+
+-- samecommoditysymbol Amount{commodity=c1} Amount{commodity=c2} = samesymbol c1 c2
+-- samesymbol Commodity{symbol=s1} Commodity{symbol=s2} = s1==s2
+      
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
 showAmount :: Amount -> String
@@ -78,6 +96,9 @@ isZeroAmount :: Amount -> Bool
 isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
     where nonzerodigits = filter (`elem` "123456789") $ showAmount a
 
+isZeroMixedAmount :: MixedAmount -> Bool
+isZeroMixedAmount = all isZeroAmount . normaliseMixedAmount
+
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
     signum (Amount c q) = Amount c (signum q)
@@ -103,6 +124,9 @@ convertAmountTo c2 (Amount c1 q) = Amount c2 (q * conversionRate c1 c2)
 -- amount will discard the sum's commodity.
 sumAmounts :: [Amount] -> Amount
 sumAmounts = sum . filter (not . isZeroAmount)
+
+sumMixedAmounts :: [MixedAmount] -> MixedAmount
+sumMixedAmounts = concat
 
 nullamt = Amount (comm "") 0
 

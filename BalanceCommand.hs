@@ -122,16 +122,16 @@ showBalanceReport :: [Opt] -> [String] -> Ledger -> String
 showBalanceReport opts args l = acctsstr ++ totalstr
     where 
       acctsstr = concatMap (showAccountTreeWithBalances acctnamestoshow) $ subs treetoshow
-      totalstr = if isZeroAmount total 
+      totalstr = if isZeroMixedAmount total 
                  then "" 
-                 else printf "--------------------\n%20s\n" $ showAmount total
+                 else printf "--------------------\n%20s\n" $ showMixedAmount total
       showingsubs = ShowSubs `elem` opts
       pats@(apats,dpats) = parseAccountDescriptionArgs args
       maxdepth = if null args && not showingsubs then 1 else 9999
       acctstoshow = balancereportaccts showingsubs apats l
       acctnamestoshow = map aname acctstoshow
       treetoshow = pruneZeroBalanceLeaves $ pruneUnmatchedAccounts $ treeprune maxdepth $ ledgerAccountTree 9999 l
-      total = sumAmounts $ map abalance $ nonredundantaccts
+      total = sumMixedAmounts $ map abalance $ nonredundantaccts
       nonredundantaccts = filter (not . hasparentshowing) acctstoshow
       hasparentshowing a = (parentAccountName $ aname a) `elem` acctnamestoshow
 
@@ -158,7 +158,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
 
       -- remove zero-balance leaf accounts (recursively)
       pruneZeroBalanceLeaves :: Tree Account -> Tree Account
-      pruneZeroBalanceLeaves = treefilter (not . isZeroAmount . abalance)
+      pruneZeroBalanceLeaves = treefilter (not . isZeroMixedAmount . abalance)
 
 -- | Show a tree of accounts with balances, for the balance report,
 -- eliding boring parent accounts. Requires a list of the account names we
@@ -176,7 +176,7 @@ showAccountTreeWithBalances matchednames =
             subswithprefix = showsubs indent (prefix++leafname++":")
             showsubs i p = concatMap (showAccountTreeWithBalances' matchednames i p) subs
             this = showbal ++ spaces ++ prefix ++ leafname ++ "\n"
-            showbal = printf "%20s" $ show bal
+            showbal = printf "%20s" $ showMixedAmount bal
             spaces = "  " ++ replicate (indent * 2) ' '
             leafname = accountLeafName fullname
             isboringparent = numsubs >= 1 && (bal == subbal || not matched)
