@@ -8,7 +8,7 @@ build: tag
 
 # build and run whenever a module changes, see http://searchpath.org
 continuous:
-	sp -o hledger ghc --make hledger.hs --run
+	sp -o hledger ghc --make hledger.hs --run test
 
 profile: build
 	$(PROFILE)
