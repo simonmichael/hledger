@@ -29,10 +29,8 @@ instance Show RawLedger where
              where accounts = flatten $ rawLedgerAccountNameTree l
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
-rawLedgerTransactions = txns . entries
-    where
-      txns :: [Entry] -> [Transaction]
-      txns es = concat $ map flattenEntry $ zip es (iterate (+1) 1)
+rawLedgerTransactions = txnsof . entries
+    where txnsof es = concat $ map flattenEntry $ zip es [1..]
 
 rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
 rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions
@@ -55,9 +53,7 @@ filterRawLedger begin end pats =
 filterRawLedgerEntriesByDescription :: [String] -> RawLedger -> RawLedger
 filterRawLedgerEntriesByDescription pats (RawLedger ms ps es f) = 
     RawLedger ms ps (filter matchdesc es) f
-    where
-      matchdesc :: Entry -> Bool
-      matchdesc = matchLedgerPatterns False pats . edescription
+    where matchdesc = matchLedgerPatterns False pats . edescription
 
 -- | Keep only entries which fall between begin and end dates. 
 -- We include entries on the begin date and exclude entries on the end
@@ -65,14 +61,11 @@ filterRawLedgerEntriesByDescription pats (RawLedger ms ps es f) =
 filterRawLedgerEntriesByDate :: String -> String -> RawLedger -> RawLedger
 filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) = 
     RawLedger ms ps (filter matchdate es) f
-    where
-      matchdate :: Entry -> Bool
-      matchdate e = (begin == "" || entrydate >= begindate) && 
-                    (end == "" || entrydate < enddate)
-                    where 
-                      begindate = parsedate begin :: UTCTime
-                      enddate   = parsedate end
-                      entrydate = parsedate $ edate e
+    where 
+      d1 = parsedate begin :: UTCTime
+      d2 = parsedate end
+      matchdate e = (null begin || d >= d1) && (null end || d < d2)
+                    where d = parsedate $ edate e
 
 
 -- | Check if a set of ledger account/description patterns matches the
@@ -86,14 +79,14 @@ filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) =
 -- matches only the leaf name.
 matchLedgerPatterns :: Bool -> [String] -> String -> Bool
 matchLedgerPatterns forbalancereport pats str =
-    (null positives || any ismatch positives) && (null negatives || (not $ any ismatch negatives))
+    (null positives || any ismatch positives) && (null negatives || not (any ismatch negatives))
     where 
       isnegative = (== negativepatternchar) . head
       (negatives,positives) = partition isnegative pats
       ismatch pat = containsRegex (mkRegexWithOpts pat' True True) matchee
           where 
             pat' = if isnegative pat then drop 1 pat else pat
-            matchee = if forbalancereport && (not $ ':' `elem` pat) && (not $ isnegative pat)
+            matchee = if forbalancereport && not (':' `elem` pat) && not (isnegative pat)
                       then accountLeafName str
                       else str
 

@@ -1,8 +1,8 @@
 {-|
 
-A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of
-account names, a map from account names to 'Account's. Typically it
-also has had uninteresting 'Entry's filtered out.
+A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
+names, and a map from account names to 'Account's. Typically it also has
+had uninteresting 'Entry's filtered out.
 
 -}
 
@@ -14,6 +14,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
 import Ledger.AccountName
+import Ledger.Account
 import Ledger.Transaction
 import Ledger.RawLedger
 import Ledger.Entry
@@ -29,27 +30,25 @@ instance Show Ledger where
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
 cacheLedger :: RawLedger -> Ledger
-cacheLedger l = 
-    let 
-        ant = rawLedgerAccountNameTree l
-        anames = flatten ant
-        ts = rawLedgerTransactions l
-        sortedts = sortBy (comparing account) ts
-        groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
-        txnmap = Map.union 
+cacheLedger l = Ledger l ant amap
+    where
+      ant = rawLedgerAccountNameTree l
+      anames = flatten ant
+      ts = rawLedgerTransactions l
+      sortedts = sortBy (comparing account) ts
+      groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
+      txnmap = Map.union 
                (Map.fromList [(account $ head g, g) | g <- groupedts])
                (Map.fromList [(a,[]) | a <- anames])
-        txnsof = (txnmap !)
-        subacctsof a = filter (a `isAccountNamePrefixOf`) anames
-        subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a]
-        balmap = Map.union 
+      txnsof = (txnmap !)
+      subacctsof a = filter (a `isAccountNamePrefixOf`) anames
+      subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a]
+      balmap = Map.union 
                (Map.fromList [(a,(sumTransactions $ subtxnsof a)) | a <- anames])
                (Map.fromList [(a,[]) | a <- anames])
-        amap = Map.fromList [(a, Account a (txnmap ! a) (balmap ! a)) | a <- anames]
-    in
-      Ledger l ant amap
+      amap = Map.fromList [(a, Account a (txnmap ! a) (balmap ! a)) | a <- anames]
 
--- | List a 'Ledger' 's account names.
+-- | List a ledger's account names.
 accountnames :: Ledger -> [AccountName]
 accountnames l = drop 1 $ flatten $ accountnametree l
 
@@ -73,11 +72,8 @@ accountsMatching pats l = filter (matchLedgerPatterns True pats . aname) $ accou
 
 -- | List a ledger account's immediate subaccounts
 subAccounts :: Ledger -> Account -> [Account]
-subAccounts l a = map (ledgerAccount l) subacctnames
-    where
-      allnames = accountnames l
-      name = aname a
-      subacctnames = filter (name `isAccountNamePrefixOf`) allnames
+subAccounts l Account{aname=a} = 
+    map (ledgerAccount l) $ filter (a `isAccountNamePrefixOf`) $ accountnames l
 
 -- | List a ledger's transactions.
 ledgerTransactions :: Ledger -> [Transaction]
@@ -85,22 +81,8 @@ ledgerTransactions l = rawLedgerTransactions $ rawledger l
 
 -- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Int -> Ledger -> Tree Account
-ledgerAccountTree depth l = 
-    addDataToAccountNameTree l depthpruned
-    where
-      nametree = accountnametree l
-      depthpruned = treeprune depth nametree
-
--- that's weird.. why can't this be in Account.hs ?
-instance Eq Account where
-    (==) (Account n1 t1 b1) (Account n2 t2 b2) = n1 == n2 && t1 == t2 && b1 == b2
+ledgerAccountTree depth l = treemap (ledgerAccount l) $ treeprune depth $ accountnametree l
 
 -- | Get a ledger's tree of accounts rooted at the specified account.
 ledgerAccountTreeAt :: Ledger -> Account -> Maybe (Tree Account)
 ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
-
--- | Convert a tree of account names into a tree of accounts, using their
--- parent ledger.
-addDataToAccountNameTree :: Ledger -> Tree AccountName -> Tree Account
-addDataToAccountNameTree = treemap . ledgerAccount
-
