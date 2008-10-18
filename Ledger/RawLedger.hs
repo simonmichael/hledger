@@ -107,19 +107,19 @@ matchLedgerPatterns forbalancereport pats str =
                       then accountLeafName str
                       else str
 
--- | Give amounts the display settings of the first one detected in each commodity.
-normaliseRawLedgerAmounts :: RawLedger -> RawLedger
-normaliseRawLedgerAmounts l@(RawLedger ms ps es f) = RawLedger ms ps es' f
+-- | Give all amounts the display settings of the first one detected in each commodity.
+setAmountDisplayPrefs :: RawLedger -> RawLedger
+setAmountDisplayPrefs l@(RawLedger ms ps es f) = RawLedger ms ps (map fixEntryAmounts es) f
     where 
-      es' = map normaliseEntryAmounts es
-      normaliseEntryAmounts (Entry d s c desc comm ts pre) = Entry d s c desc comm ts' pre
-          where ts' = map normaliseRawTransactionAmounts ts
-      normaliseRawTransactionAmounts (RawTransaction acct a c t) = RawTransaction acct a' c t
-          where a' = normaliseMixedAmount a
-      firstcommodities = nubBy samesymbol $ allcommodities
+      fixEntryAmounts (Entry d s c de co ts pr) = Entry d s c de co (map fixRawTransactionAmounts ts) pr
+      fixRawTransactionAmounts (RawTransaction ac a c t) = RawTransaction ac (fixMixedAmount a) c t
+      fixMixedAmount (Mixed as) = Mixed $ map fixAmount as
+      fixAmount (Amount c q) = Amount (firstoccurrenceof c) q
       allcommodities = map commodity $ concat $ map (amounts . amount) $ rawLedgerTransactions l
+      firstcommodities = nubBy samesymbol $ allcommodities
       samesymbol (Commodity {symbol=s1}) (Commodity {symbol=s2}) = s1==s2
       firstoccurrenceof c@(Commodity {symbol=s}) = 
           fromMaybe
-          (error "failed to normalise commodity") -- shouldn't happen
+          (error $ "failed to find commodity "++s) -- shouldn't happen
           (find (\(Commodity {symbol=sym}) -> sym==s) firstcommodities)
+      -- XXX actually ledger uses the greatest precision found

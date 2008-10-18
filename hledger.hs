@@ -68,12 +68,12 @@ main = do
 -- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = 
-    ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runthecommand
+    ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runcmd
     where
-      runthecommand = cmd opts args . cacheLedger . normaliseRawLedgerAmounts . filterRawLedger begin end descpats cleared real
-      begin = beginDateFromOpts opts
-      end = endDateFromOpts opts
-      cleared = Cleared `elem` opts
-      real = Real `elem` opts
-      descpats = snd $ parseAccountDescriptionArgs args
+      runcmd = cmd opts args . cacheLedger . setAmountDisplayPrefs . filterRawLedger b e dpats c r
+      b = beginDateFromOpts opts
+      e = endDateFromOpts opts
+      dpats = snd $ parseAccountDescriptionArgs args
+      c = Cleared `elem` opts
+      r = Real `elem` opts
 
