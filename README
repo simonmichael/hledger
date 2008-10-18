@@ -15,42 +15,41 @@ For more information, see the hledger home page
 (<http://joyful.com/Ledger#hledger>) and ledger manual
 (<http://joyful.com/repos/hledger/doc/ledger.html>).
 
+NEWS
+----
 
-INSTALLATION:
--------------
 
+INSTALLATION
+------------
 In the hledger directory, do:
 
-cabal install
+ cabal install
 
 or:
 
-runhaskell Setup.hs configure
-runhaskell Setup.hs build
-sudo runhaskell Setup.hs install 
+ runhaskell Setup.hs configure
+ runhaskell Setup.hs build
+ sudo runhaskell Setup.hs install 
 
 
-EXAMPLES:
----------
-
+EXAMPLES
+--------
 Here are some commands to try:
 
-$ hledger --help
-$ hledger -f sample.ledger balance
-$ export LEDGER=sample.ledger
-$ hledger -s balance
-$ hledger register
-$ hledger reg cash
-$ hledger r -- shop
+ hledger --help
+ hledger -f sample.ledger balance
+ export LEDGER=sample.ledger
+ hledger -s balance
+ hledger register
+ hledger reg cash
+ hledger r -- shop
 
 
 FEATURES
 --------
-
 This version of hledger mimics ledger 2.6.1.
 
-LEDGER FEATURES SUPPORTED:
-..........................
+ledger features supported:
 
 - regular ledger entries
 - multiple commodities
@@ -79,8 +78,7 @@ LEDGER FEATURES SUPPORTED:
   register [REGEXP]...   show register of matching transactions
   print    [REGEXP]...   print all matching entries
 
-NOT SUPPORTED:
-..............
+*Not* supported:
 
 - !include
 - modifier entries
@@ -161,3 +159,7 @@ NOT SUPPORTED:
   prices   [REGEXP]...   display price history for matching commodities
   entry DATE PAYEE AMT   output a derived entry, based on the arguments
 
+Some other differences:
+
+- hledger talks about entry and transaction "description", which ledger calls "note"
+- hledger always shows timelog balances in hours
