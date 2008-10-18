@@ -45,7 +45,6 @@ import Ledger.Commodity
 
 
 instance Show Amount where show = showAmount
--- instance Show MixedAmount where show = showMixedAmount
 
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
@@ -98,11 +97,11 @@ punctuatethousands s =
       triples [] = []
       triples l  = [take 3 l] ++ (triples $ drop 3 l)
 
--- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
-showAmountOrZero :: Amount -> String
-showAmountOrZero a
-    | isZeroAmount a = "0"
-    | otherwise = showAmount a
+-- -- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
+-- showAmountOrZero :: Amount -> String
+-- showAmountOrZero a
+--     | isZeroAmount a = "0"
+--     | otherwise = showAmount a
 
 -- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
 showMixedAmountOrZero :: MixedAmount -> String

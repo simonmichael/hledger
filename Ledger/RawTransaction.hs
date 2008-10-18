@@ -31,6 +31,3 @@ isReal t = rttype t == RegularTransaction
 
 hasAmount :: RawTransaction -> Bool
 hasAmount = (/= autoamt) . tamount
-
-sumRawTransactions :: [RawTransaction] -> MixedAmount
-sumRawTransactions = normaliseMixedAmount . sumMixedAmounts . map tamount
