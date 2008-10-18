@@ -28,6 +28,15 @@ test:
 	@./hledger.hs test
 	@./regtest.py
 
+tag:
+	rm -f TAGS; hasktags -e *hs Ledger/*hs
+
+clean:
+	rm -f {,Ledger/}*{.o,.hi,~} darcs-amend-record*
+
+Clean: clean clean-docs
+	rm -f hledger TAGS tags
+
 # docs
 
 MAIN=hledger.hs
@@ -97,19 +106,15 @@ test-docs: api-doc-frames
 clean-docs:
 	rm -rf api-doc hoogle
 
+# misc
+
 show-changes:
 	@echo Changes since last release:
 	@echo
 	@darcs changes --from-tag . | grep '*'
 
-# misc
-
-tag:
-	rm -f TAGS; hasktags -e *hs Ledger/*hs
-
-clean:
-	rm -f {,Ledger/}*{.o,.hi,~} darcs-amend-record*
-
-Clean: clean clean-docs
-	rm -f hledger TAGS tags
+sloc:
+	@echo "lines of test and app code:"
+	@sloccount Tests.hs | grep haskell:
+	@sloccount `ls {,Ledger/}*.hs |grep -v Tests.hs` | grep haskell:
 
