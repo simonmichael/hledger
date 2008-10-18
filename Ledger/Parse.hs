@@ -231,7 +231,7 @@ ledgerentry = do
   comment <- ledgercomment
   restofline
   transactions <- ledgertransactions
-  return $ assertBalancedEntry $ autofillEntry $ Entry date status code description comment transactions (unlines preceding)
+  return $ balanceEntry $ Entry date status code description comment transactions (unlines preceding)
 
 ledgerdate :: Parser String
 ledgerdate = do 

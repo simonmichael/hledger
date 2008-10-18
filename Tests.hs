@@ -76,10 +76,10 @@ unittests = TestList [
   "ledgerentry"        ~: do
     assertparseequal entry1 (parsewith ledgerentry entry1_str)
   ,
-  "autofillEntry"      ~: do
+  "balanceEntry"      ~: do
     assertequal
       (dollars (-47.18))
-      (tamount $ last $ etransactions $ autofillEntry entry1)
+      (tamount $ last $ etransactions $ balanceEntry entry1)
   ,
   "punctuatethousands"      ~: punctuatethousands "" @?= ""
   ,

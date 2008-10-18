@@ -15,6 +15,12 @@ import Ledger.Amount
 
 instance Show Entry where show = showEntry
 
+instance Show ModifierEntry where 
+    show e = "= " ++ (valueexpr e) ++ "\n" ++ unlines (map show (m_transactions e))
+
+instance Show PeriodicEntry where 
+    show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
+
 {-|
 Show a ledger entry, formatted for the print command. ledger 2.x's
 standard format looks like this:
@@ -53,31 +59,27 @@ showEntry e =
 
 showDate = printf "%-10s"
 
--- | Raise an error if this entry is not balanced.
-assertBalancedEntry :: Entry -> Entry
-assertBalancedEntry e
-    | isEntryBalanced e = e
-    | otherwise = error $ "transactions don't balance in:\n" ++ show e
-
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = isZeroMixedAmount sum
     where
       sum = sumRawTransactions realts
       realts = filter isReal ts
 
--- | Fill in a missing balance in this entry, if there is one, 
--- or raise an error if there is more than one.
-autofillEntry :: Entry -> Entry
-autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=ts'}
-    where ts' = fromMaybe 
-                (error $ "too many missing amounts in this entry, could not auto-balance:\n" ++ show e)
-                (autofillTransactions ts)
-
--- modifier & periodic entries
-
-instance Show ModifierEntry where 
-    show e = "= " ++ (valueexpr e) ++ "\n" ++ unlines (map show (m_transactions e))
-
-instance Show PeriodicEntry where 
-    show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
-
+-- | Fill in a missing balance in this entry, if we have enough
+-- information to do that. Excluding virtual transactions, there should be
+-- at most one missing balance. Otherwise, raise an error.
+balanceEntry :: Entry -> Entry
+balanceEntry e@(Entry{etransactions=ts}) = e{etransactions=ts'}
+    where 
+      (withamounts, missingamounts) = partition hasAmount $ filter isReal ts
+      ts' = case (length missingamounts) of
+              0 -> ts
+              1 -> map balance ts
+              otherwise -> error $ "could not balance this entry, too many missing amounts:\n" ++ show e
+      otherstotal = sumRawTransactions withamounts
+      simpleotherstotal
+          | length otherstotal == 1 = head otherstotal
+          | otherwise = error $ "sorry, can't balance a mixed-commodity entry yet:\n" ++ show e
+      balance t
+          | isReal t && not (hasAmount t) = t{tamount = -simpleotherstotal}
+          | otherwise = t
