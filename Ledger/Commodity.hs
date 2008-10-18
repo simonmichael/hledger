@@ -14,14 +14,14 @@ import Ledger.Types
 
 
 -- for nullamt, autoamt, etc.
-unknown = Commodity {symbol="",side=L,spaced=False,comma=False,precision=0,rate=1}
+unknown = Commodity {symbol="",side=L,spaced=False,comma=False,precision=0}
 
 -- convenient amount and commodity constructors, for tests etc.
 
-dollar  = Commodity {symbol="$",side=L,spaced=False,comma=False,precision=2,rate=1}
-euro    = Commodity {symbol="EUR",side=L,spaced=False,comma=False,precision=2,rate=0.760383}
-pound   = Commodity {symbol="£",side=L,spaced=False,comma=False,precision=2,rate=0.512527}
-hour    = Commodity {symbol="h",side=R,spaced=False,comma=False,precision=1,rate=100}
+dollar  = Commodity {symbol="$",side=L,spaced=False,comma=False,precision=2}
+euro    = Commodity {symbol="EUR",side=L,spaced=False,comma=False,precision=2}
+pound   = Commodity {symbol="£",side=L,spaced=False,comma=False,precision=2}
+hour    = Commodity {symbol="h",side=R,spaced=False,comma=False,precision=1}
 
 dollars  = Amount dollar
 euros    = Amount euro
@@ -38,5 +38,5 @@ comm symbol = Map.findWithDefault (error "commodity lookup failed") symbol defau
 
 -- | Find the conversion rate between two commodities.
 conversionRate :: Commodity -> Commodity -> Double
-conversionRate oldc newc = (rate newc) / (rate oldc)
+conversionRate oldc newc = 1
 

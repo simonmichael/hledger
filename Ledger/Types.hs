@@ -26,9 +26,7 @@ data Commodity = Commodity {
       side :: Side,      -- ^ should the symbol appear on the left or the right
       spaced :: Bool,    -- ^ should there be a space between symbol and quantity
       comma :: Bool,     -- ^ should thousands be comma-separated
-      precision :: Int,  -- ^ number of decimal places to display
-
-      rate :: Double     -- ^ the current (hard-coded) conversion rate against the dollar
+      precision :: Int   -- ^ number of decimal places to display
     } deriving (Eq,Show)
 
 data Amount = Amount {

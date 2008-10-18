@@ -104,7 +104,7 @@ unittests = TestList [
   ,
   "transactionamount"       ~: do
     assertparseequal (Mixed [dollars 47.18]) (parsewith transactionamount " $47.18")
-    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0,rate=1}) 1]) (parsewith transactionamount " $1.")
+    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1]) (parsewith transactionamount " $1.")
   ]
 
 ------------------------------------------------------------------------------

@@ -140,4 +140,4 @@ nullamt = Mixed []
 
 -- temporary value for partial entries
 autoamt :: MixedAmount
-autoamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0,rate=1}) 0]
+autoamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0}) 0]
