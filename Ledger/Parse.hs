@@ -191,6 +191,7 @@ blankline =
 
 commentline :: Parser String
 commentline = do
+  many spacenonewline
   char ';' <?> "comment line"
   l <- restofline
   return $ ";" ++ l
