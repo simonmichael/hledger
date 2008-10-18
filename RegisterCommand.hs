@@ -32,35 +32,22 @@ showRegisterReport opts args l = showtxns ts nulltxn nullamt
       matchtxn Transaction{account=a} = matchLedgerPatterns False apats a
       apats = fst $ parseAccountDescriptionArgs args
 
-      -- show transactions, one per line, keeping a running balance
+      -- show transactions, one per line, with a running balance
       showtxns [] _ _ = ""
       showtxns (t@Transaction{amount=a}:ts) tprev bal =
           (if isZeroAmount a then "" else this) ++ showtxns ts t bal'
           where
-            this = if t `issame` tprev
-                   then showTransactionWithoutDescription t bal'
-                   else showTransactionWithDescription t bal'
+            this = showtxn (t `issame` tprev) t bal'
             issame t1 t2 = entryno t1 == entryno t2
             bal' = bal + amount t
 
-showTransactionWithDescription :: Transaction -> Amount -> String
-showTransactionWithDescription t b =
-    (showEntryDescription $ Entry (date t) False "" (description t) "" [] "") 
-    ++ (showTransactionFormatted t)
-    ++ (showBalance b)
-    ++ "\n"
-
-showTransactionWithoutDescription :: Transaction -> Amount -> String
-showTransactionWithoutDescription t b = 
-    (replicate 32 ' ') 
-    ++ (showTransactionFormatted t) 
-    ++ (showBalance b)
-    ++ "\n"
-
-showTransactionFormatted :: Transaction -> String
-showTransactionFormatted (Transaction eno d desc a amt ttype) = 
-    showRawTransaction $ RawTransaction a amt "" ttype
-
-showBalance :: Amount -> String
-showBalance b = printf " %12s" (showAmountOrZero b)
-
+      -- show one transaction line, with or without the entry details
+      showtxn :: Bool -> Transaction -> Amount -> String
+      showtxn omitdesc t b = entrydesc ++ txn ++ bal ++ "\n"
+          where
+            entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
+            date = showDate $ da
+            desc = printf "%-20s" $ elideRight 20 de :: String
+            txn = showRawTransaction $ RawTransaction a amt "" tt
+            bal = printf " %12s" (showAmountOrZero b)
+            Transaction{date=da,description=de,account=a,amount=amt,ttype=tt} = t

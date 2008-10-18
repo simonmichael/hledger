@@ -15,33 +15,9 @@ import Ledger.Amount
 
 instance Show Entry where show = showEntry
 
-showEntryDescription e = 
-    (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
-showDate d = printf "%-10s" d
-showDescription s = printf "%-20s" (elideRight 20 s)
-
-isEntryBalanced :: Entry -> Bool
-isEntryBalanced (Entry {etransactions=ts}) = isZeroMixedAmount sum
-    where
-      sum = sumRawTransactions realts
-      realts = filter isReal ts
-
--- | Fill in a missing balance in this entry, if there is one, 
--- or raise an error if there is more than one.
-autofillEntry :: Entry -> Entry
-autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=ts'}
-    where ts' = fromMaybe 
-                (error $ "too many missing amounts in this entry, could not auto-balance:\n" ++ show e)
-                (autofillTransactions ts)
-
-assertBalancedEntry :: Entry -> Entry
-assertBalancedEntry e
-    | isEntryBalanced e = e
-    | otherwise = error $ "transactions don't balance in:\n" ++ show e
-
 {-|
-Helper for the print command which shows cleaned up ledger file
-entries, something like:
+Show a ledger entry, formatted for the print command. ledger 2.x's
+standard format looks like this:
 
 @
 yyyy/mm/dd[ *][ CODE] description.........          [  ; comment...............]
@@ -74,6 +50,28 @@ showEntry e =
       showamount = printf "%12s" . showAmount
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
+
+showDate = printf "%-10s"
+
+-- | Raise an error if this entry is not balanced.
+assertBalancedEntry :: Entry -> Entry
+assertBalancedEntry e
+    | isEntryBalanced e = e
+    | otherwise = error $ "transactions don't balance in:\n" ++ show e
+
+isEntryBalanced :: Entry -> Bool
+isEntryBalanced (Entry {etransactions=ts}) = isZeroMixedAmount sum
+    where
+      sum = sumRawTransactions realts
+      realts = filter isReal ts
+
+-- | Fill in a missing balance in this entry, if there is one, 
+-- or raise an error if there is more than one.
+autofillEntry :: Entry -> Entry
+autofillEntry e@(Entry {etransactions=ts}) = e{etransactions=ts'}
+    where ts' = fromMaybe 
+                (error $ "too many missing amounts in this entry, could not auto-balance:\n" ++ show e)
+                (autofillTransactions ts)
 
 -- modifier & periodic entries
 
