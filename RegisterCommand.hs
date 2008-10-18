@@ -12,27 +12,36 @@ import Options
 
 -- | Print a register report.
 register :: [Opt] -> [String] -> Ledger -> IO ()
-register opts args l = putStr $ showTransactionsWithBalances opts args l
+register opts args l = putStr $ showRegisterReport opts args l
 
-showTransactionsWithBalances :: [Opt] -> [String] -> Ledger -> String
-showTransactionsWithBalances opts args l =
-    unlines $ showTransactionsWithBalances' ts nulltxn startingbalance
-        where
-          ts = filter matchtxn $ ledgerTransactions l
-          matchtxn (Transaction _ _ desc acct _ _) = matchLedgerPatterns False apats acct
-          apats = fst $ parseAccountDescriptionArgs args
-          startingbalance = nullamt
-          showTransactionsWithBalances' :: [Transaction] -> Transaction -> Amount -> [String]
-          showTransactionsWithBalances' [] _ _ = []
-          showTransactionsWithBalances' (t@Transaction{amount=a}:ts) tprev b = 
-              (if isZeroAmount a then [] else this) ++ rest
-              where
-                b' = b + (amount t)
-                sameentry (Transaction {entryno=e1}) (Transaction {entryno=e2}) = e1 == e2
-                this = if sameentry t tprev
-                       then [showTransactionWithoutDescription t b']
-                       else [showTransactionWithDescription t b']
-                rest = showTransactionsWithBalances' ts t b'
+{- |
+Generate the register report. Each ledger entry is displayed as two or
+more lines like this:
+
+@
+date (10)  description (20)     account (22)            amount (11)  balance (12)
+DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+                                aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+                                ...                     ...         ...
+@
+-}
+showRegisterReport :: [Opt] -> [String] -> Ledger -> String
+showRegisterReport opts args l = showtxns ts nulltxn nullamt
+    where
+      ts = filter matchtxn $ ledgerTransactions l
+      matchtxn Transaction{account=a} = matchLedgerPatterns False apats a
+      apats = fst $ parseAccountDescriptionArgs args
+
+      -- show transactions, one per line, keeping a running balance
+      showtxns [] _ _ = ""
+      showtxns (t@Transaction{amount=a}:ts) tprev bal =
+          (if isZeroAmount a then "" else this) ++ showtxns ts t bal'
+          where
+            this = if t `issame` tprev
+                   then showTransactionWithoutDescription t bal'
+                   else showTransactionWithDescription t bal'
+            issame t1 t2 = entryno t1 == entryno t2
+            bal' = bal + amount t
 
 showTransactionWithDescription :: Transaction -> Amount -> String
 showTransactionWithDescription t b =

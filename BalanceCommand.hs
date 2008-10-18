@@ -164,21 +164,22 @@ showBalanceReport opts args l = acctsstr ++ totalstr
 -- eliding boring parent accounts. Requires a list of the account names we
 -- are interested in to help with that.
 showAccountTreeWithBalances :: [AccountName] -> Tree Account -> String
-showAccountTreeWithBalances matchedacctnames = 
-    showAccountTreeWithBalances' matchedacctnames 0 ""
+showAccountTreeWithBalances matchednames = 
+    showAccountTreeWithBalances' matchednames 0 ""
     where
       showAccountTreeWithBalances' :: [AccountName] -> Int -> String -> Tree Account -> String
-      showAccountTreeWithBalances' matchedacctnames indentlevel prefix (Node (Account fullname _ bal) subs) =
-          if isboringparent then showsubswithprefix else showacct ++ showsubswithindent
+      showAccountTreeWithBalances' matchednames indent prefix (Node (Account fullname _ bal) subs)
+          | not isboringparent = this ++ subswithindent
+          | otherwise = subswithprefix
           where
-            showsubswithprefix = showsubs indentlevel (prefix++leafname++":")
-            showsubswithindent = showsubs (indentlevel+1) ""
-            showsubs i p = concatMap (showAccountTreeWithBalances' matchedacctnames i p) subs
-            showacct = showbal ++ "  " ++ indent ++ prefix ++ leafname ++ "\n"
+            subswithindent = showsubs (indent+1) ""
+            subswithprefix = showsubs indent (prefix++leafname++":")
+            showsubs i p = concatMap (showAccountTreeWithBalances' matchednames i p) subs
+            this = showbal ++ spaces ++ prefix ++ leafname ++ "\n"
             showbal = printf "%20s" $ show bal
-            indent = replicate (indentlevel * 2) ' '
+            spaces = "  " ++ replicate (indent * 2) ' '
             leafname = accountLeafName fullname
+            isboringparent = numsubs >= 1 && (bal == subbal || not matched)
             numsubs = length subs
             subbal = abalance $ root $ head subs
-            matched = fullname `elem` matchedacctnames
-            isboringparent = numsubs >= 1 && (bal == subbal || not matched)
+            matched = fullname `elem` matchednames

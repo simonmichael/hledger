@@ -15,24 +15,6 @@ import Ledger.Amount
 
 instance Show Entry where show = showEntry
 
-{-
-Helpers for the register report. A register entry is displayed as two
-or more lines like this:
-
-@
-date       description          account                 amount       balance
-DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
-                                aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
-                                ...                     ...         ...
-
-datewidth = 10
-descwidth = 20
-acctwidth = 22
-amtwidth  = 11
-balwidth  = 12
-@
--}
-
 showEntryDescription e = 
     (showDate $ edate e) ++ " " ++ (showDescription $ edescription e) ++ " "
 showDate d = printf "%-10s" d
