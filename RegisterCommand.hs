@@ -48,12 +48,14 @@ showTransactionWithDescription t b =
     (showEntryDescription $ Entry (date t) False "" (description t) "" [] "") 
     ++ (showTransactionFormatted t)
     ++ (showBalance b)
+    ++ "\n"
 
 showTransactionWithoutDescription :: Transaction -> Amount -> String
 showTransactionWithoutDescription t b = 
     (replicate 32 ' ') 
     ++ (showTransactionFormatted t) 
     ++ (showBalance b)
+    ++ "\n"
 
 showTransactionFormatted :: Transaction -> String
 showTransactionFormatted (Transaction eno d desc a amt ttype) = 

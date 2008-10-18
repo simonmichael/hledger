@@ -218,7 +218,20 @@ registercommandtests = TestList [
   "register does something" ~:
   do 
     l <- ledgerfromfile "sample.ledger"
-    assertnotequal "" $ showRegisterReport [] [] l
+    assertequal (
+     "2007/01/01 income               assets:checking                  $1           $1\n" ++
+     "                                income:salary                   $-1            0\n" ++
+     "2007/01/01 gift                 assets:checking                  $1           $1\n" ++
+     "                                income:gifts                    $-1            0\n" ++
+     "2007/01/01 save                 assets:saving                    $1           $1\n" ++
+     "                                assets:checking                 $-1            0\n" ++
+     "2007/01/01 eat & shop           expenses:food                    $1           $1\n" ++
+     "                                expenses:supplies                $1           $2\n" ++
+     "                                assets:cash                     $-2            0\n" ++
+     "2008/01/01 pay off              liabilities:debts                $1           $1\n" ++
+     "                                assets:checking                 $-1            0\n" ++
+     "")
+     $ showRegisterReport [] [] l
   ]
   
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
