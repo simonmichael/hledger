@@ -63,28 +63,24 @@ instance Num MixedAmount where
     abs    = error "programming error, mixed amounts do not support abs"
     signum = error "programming error, mixed amounts do not support signum"
 
-amounts :: MixedAmount -> [Amount]
-amounts (Mixed as) = as
+-- | Apply a binary arithmetic operator to two amounts, converting
+-- to the second one's commodity and adopting the lowest
+-- precision. (Using the second commodity is best since sum and
+-- other folds start with a no-commodity amount.)
+amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
+amountop op a@(Amount ac aq) b@(Amount bc bq) = 
+    Amount bc ((quantity $ convertAmountTo bc a) `op` bq)
 
-showMixedAmount :: MixedAmount -> String
-showMixedAmount m = concat $ intersperse ", " $ map show as
-    where (Mixed as) = normaliseMixedAmount m
-
-normaliseMixedAmount :: MixedAmount -> MixedAmount
-normaliseMixedAmount (Mixed as) = Mixed $ map sum $ groupAmountsByCommodity as
-
-groupAmountsByCommodity :: [Amount] -> [[Amount]]
-groupAmountsByCommodity as = grouped
-    where
-      grouped = [filter (hassymbol s) as | s <- symbols]
-      hassymbol s a = s == (symbol $ commodity a)
-      symbols = sort $ nub $ map (symbol . commodity) as
+-- | Convert an amount to the specified commodity using the appropriate
+-- exchange rate (which is currently always 1).
+convertAmountTo :: Commodity -> Amount -> Amount
+convertAmountTo c2 (Amount c1 q) = Amount c2 (q * conversionRate c1 c2)
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
 showAmount :: Amount -> String
 showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,comma=comma,precision=p}) q)
-    | sym=="AUTO" = ""
+    | sym=="AUTO" = "" -- can display one of these in an error message
     | side==L = printf "%s%s%s" sym space quantity
     | side==R = printf "%s%s%s" quantity space sym
     where 
@@ -103,42 +99,48 @@ punctuatethousands s =
       triples [] = []
       triples l  = [take 3 l] ++ (triples $ drop 3 l)
 
--- -- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
--- showAmountOrZero :: Amount -> String
--- showAmountOrZero a
---     | isZeroAmount a = "0"
---     | otherwise = showAmount a
+-- | Does this amount appear to be zero when displayed with its given precision ?
+isZeroAmount :: Amount -> Bool
+isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
+    where nonzerodigits = filter (`elem` "123456789") $ showAmount a
 
--- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
+-- | Access a mixed amount's components.
+amounts :: MixedAmount -> [Amount]
+amounts (Mixed as) = as
+
+-- | Does this mixed amount appear to be zero - empty, or
+-- containing only simple amounts which appear to be zero ?
+isZeroMixedAmount :: MixedAmount -> Bool
+isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
+
+-- | Get the string representation of a mixed amount, showing each of
+-- its component amounts. We currently display them on one line but
+-- will need to change to ledger's vertical layout.
+showMixedAmount :: MixedAmount -> String
+showMixedAmount m = concat $ intersperse ", " $ map show as
+    where (Mixed as) = normaliseMixedAmount m
+
+-- | Get the string representation of a mixed amount, and if it
+-- appears to be all zero just show a bare 0, ledger-style.
 showMixedAmountOrZero :: MixedAmount -> String
 showMixedAmountOrZero a
     | isZeroMixedAmount a = "0"
     | otherwise = showMixedAmount a
 
--- | is this amount zero, when displayed with its given precision ?
-isZeroAmount :: Amount -> Bool
-isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
-    where nonzerodigits = filter (`elem` "123456789") $ showAmount a
+-- | Simplify a mixed amount by combining any of its component amounts
+-- which have the same commodity.
+normaliseMixedAmount :: MixedAmount -> MixedAmount
+normaliseMixedAmount (Mixed as) = Mixed $ map sum $ grouped
+    where 
+      grouped = [filter (hassymbol s) as | s <- symbols]
+      symbols = sort $ nub $ map (symbol . commodity) as
+      hassymbol s a = s == (symbol $ commodity a)
 
-isZeroMixedAmount :: MixedAmount -> Bool
-isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
-
--- | Apply a binary arithmetic operator to two amounts, converting to the
--- second one's commodity and adopting the lowest precision. (Using the
--- second commodity means that folds (like sum [Amount]) will preserve the
--- commodity.)
-amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
-amountop op a@(Amount ac aq) b@(Amount bc bq) = 
-    Amount bc ((quantity $ convertAmountTo bc a) `op` bq)
-
--- | Convert an amount to the specified commodity using the appropriate
--- exchange rate.
-convertAmountTo :: Commodity -> Amount -> Amount
-convertAmountTo c2 (Amount c1 q) = Amount c2 (q * conversionRate c1 c2)
-
+-- | The empty mixed amount.
 nullamt :: MixedAmount
 nullamt = Mixed []
 
--- temporary value for partial entries
+-- | A temporary value for parsed transactions which had no amount specified.
 autoamt :: MixedAmount
 autoamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0}) 0]
+
