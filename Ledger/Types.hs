@@ -15,6 +15,8 @@ type Date = String
 
 type DateTime = String
 
+type AccountName = String
+
 data Side = L | R deriving (Eq,Show) 
 
 data Commodity = Commodity {
@@ -34,9 +36,7 @@ data Amount = Amount {
       quantity :: Double
     } deriving (Eq)
 
-type MixedAmount = [Amount]
-
-type AccountName = String
+newtype MixedAmount = Mixed [Amount] deriving (Eq)
 
 data TransactionType = RegularTransaction | VirtualTransaction | BalancedVirtualTransaction
                        deriving (Eq,Show)

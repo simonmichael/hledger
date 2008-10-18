@@ -100,7 +100,7 @@ normaliseRawLedgerAmounts l@(RawLedger ms ps es f) = RawLedger ms ps es' f
       normaliseRawTransactionAmounts (RawTransaction acct a c t) = RawTransaction acct a' c t
           where a' = normaliseMixedAmount a
       firstcommodities = nubBy samesymbol $ allcommodities
-      allcommodities = map commodity $ concat $ map amount $ rawLedgerTransactions l
+      allcommodities = map commodity $ concat $ map (amounts . amount) $ rawLedgerTransactions l
       samesymbol (Commodity {symbol=s1}) (Commodity {symbol=s2}) = s1==s2
       firstoccurrenceof c@(Commodity {symbol=s}) = 
           fromMaybe

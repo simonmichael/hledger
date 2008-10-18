@@ -315,7 +315,7 @@ leftsymbolamount = do
   sp <- many spacenonewline
   (q,p,comma) <- amountquantity
   let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,comma=comma,precision=p,rate=1}
-  return [Amount c q]
+  return $ Mixed [Amount c q]
   <?> "left-symbol amount"
 
 rightsymbolamount :: Parser MixedAmount
@@ -324,14 +324,14 @@ rightsymbolamount = do
   sp <- many spacenonewline
   sym <- commoditysymbol
   let c = Commodity {symbol=sym,side=R,spaced=not $ null sp,comma=comma,precision=p,rate=1}
-  return [Amount c q]
+  return $ Mixed [Amount c q]
   <?> "right-symbol amount"
 
 nosymbolamount :: Parser MixedAmount
 nosymbolamount = do
   (q,p,comma) <- amountquantity
   let c = Commodity {symbol="",side=L,spaced=False,comma=comma,precision=p,rate=1}
-  return [Amount c q]
+  return $ Mixed [Amount c q]
   <?> "no-symbol amount"
 
 commoditysymbol :: Parser String

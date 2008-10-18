@@ -45,6 +45,7 @@ import Ledger.Commodity
 
 
 instance Show Amount where show = showAmount
+instance Show MixedAmount where show = showMixedAmount
 
 instance Num Amount where
     abs (Amount c q) = Amount c (abs q)
@@ -55,18 +56,22 @@ instance Num Amount where
     (*) = amountop (*)
 
 instance Num MixedAmount where
-    abs = error "programming error, mixed amounts do not support abs"
+    fromInteger i = Mixed [Amount (comm "") (fromInteger i)]
+    negate (Mixed as) = Mixed $ map negate as
+    (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ filter (not . isZeroAmount) $ as ++ bs
+    (*)    = error "programming error, mixed amounts do not support multiplication"
+    abs    = error "programming error, mixed amounts do not support abs"
     signum = error "programming error, mixed amounts do not support signum"
-    fromInteger i = [Amount (comm "") (fromInteger i)]
-    negate = map negate
-    (+) = (++)
-    (*) = error "programming error, mixed amounts do not support multiplication"
+
+amounts :: MixedAmount -> [Amount]
+amounts (Mixed as) = as
 
 showMixedAmount :: MixedAmount -> String
-showMixedAmount as = concat $ intersperse ", " $ map show $ normaliseMixedAmount as
+showMixedAmount m = concat $ intersperse ", " $ map show as
+    where (Mixed as) = normaliseMixedAmount m
 
 normaliseMixedAmount :: MixedAmount -> MixedAmount
-normaliseMixedAmount as = map sumAmounts $ groupAmountsByCommodity as
+normaliseMixedAmount (Mixed as) = Mixed $ map sum $ groupAmountsByCommodity as
 
 groupAmountsByCommodity :: [Amount] -> [[Amount]]
 groupAmountsByCommodity as = grouped
@@ -115,7 +120,7 @@ isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
     where nonzerodigits = filter (`elem` "123456789") $ showAmount a
 
 isZeroMixedAmount :: MixedAmount -> Bool
-isZeroMixedAmount = all isZeroAmount . normaliseMixedAmount
+isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
 
 -- | Apply a binary arithmetic operator to two amounts, converting to the
 -- second one's commodity and adopting the lowest precision. (Using the
@@ -130,15 +135,9 @@ amountop op a@(Amount ac aq) b@(Amount bc bq) =
 convertAmountTo :: Commodity -> Amount -> Amount
 convertAmountTo c2 (Amount c1 q) = Amount c2 (q * conversionRate c1 c2)
 
--- | Sum a list of amounts. This is still needed because a final zero
--- amount will discard the sum's commodity.
-sumAmounts :: [Amount] -> Amount
-sumAmounts = sum . filter (not . isZeroAmount)
-
-sumMixedAmounts :: [MixedAmount] -> MixedAmount
-sumMixedAmounts = normaliseMixedAmount . concat
-
-nullamt = []
+nullamt :: MixedAmount
+nullamt = Mixed []
 
 -- temporary value for partial entries
-autoamt = [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0,rate=1}) 0]
+autoamt :: MixedAmount
+autoamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0,rate=1}) 0]

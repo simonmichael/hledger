@@ -61,7 +61,7 @@ showDate = printf "%-10s"
 
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = 
-    isZeroMixedAmount $ sumMixedAmounts $ map tamount $ filter isReal ts
+    isZeroMixedAmount $ sum $ map tamount $ filter isReal ts
 
 -- | Fill in a missing balance in this entry, if we have enough
 -- information to do that. Excluding virtual transactions, there should be
@@ -74,7 +74,7 @@ balanceEntry e@(Entry{etransactions=ts}) = e{etransactions=ts'}
               0 -> ts
               1 -> map balance ts
               otherwise -> error $ "could not balance this entry, too many missing amounts:\n" ++ show e
-      otherstotal = sumMixedAmounts $ map tamount withamounts
+      otherstotal = sum $ map tamount withamounts
       balance t
           | isReal t && not (hasAmount t) = t{tamount = -otherstotal}
           | otherwise = t

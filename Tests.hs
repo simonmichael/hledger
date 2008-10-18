@@ -78,7 +78,7 @@ unittests = TestList [
   ,
   "balanceEntry"      ~: do
     assertequal
-      [dollars (-47.18)]
+      (Mixed [dollars (-47.18)])
       (tamount $ last $ etransactions $ balanceEntry entry1)
   ,
   "punctuatethousands"      ~: punctuatethousands "" @?= ""
@@ -103,8 +103,8 @@ unittests = TestList [
     assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7)
   ,
   "transactionamount"       ~: do
-    assertparseequal [dollars 47.18] (parsewith transactionamount " $47.18")
-    assertparseequal [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0,rate=1}) 1] (parsewith transactionamount " $1.")
+    assertparseequal (Mixed [dollars 47.18]) (parsewith transactionamount " $47.18")
+    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0,rate=1}) 1]) (parsewith transactionamount " $1.")
   ]
 
 ------------------------------------------------------------------------------
@@ -243,7 +243,7 @@ assertparseequal expected parsed = either printParseError (assertequal expected)
 
 rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
-rawtransaction1 = RawTransaction "expenses:food:dining" [dollars 10] "" RegularTransaction
+rawtransaction1 = RawTransaction "expenses:food:dining"(Mixed  [dollars 10]) "" RegularTransaction
 
 entry1_str = "\
 \2007/01/28 coopportunity\n\
@@ -253,8 +253,8 @@ entry1_str = "\
 
 entry1 =
     (Entry "2007/01/28" False "" "coopportunity" ""
-     [RawTransaction "expenses:food:groceries" [dollars 47.18] "" RegularTransaction, 
-      RawTransaction "assets:checking" [dollars (-47.18)] "" RegularTransaction] "")
+     [RawTransaction "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularTransaction, 
+      RawTransaction "assets:checking" (Mixed [dollars (-47.18)]) "" RegularTransaction] "")
 
 
 entry2_str = "\
@@ -398,13 +398,13 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="assets:cash", 
-                tamount=[dollars 4.82],
+                tamount=(Mixed [dollars 4.82]),
                 tcomment="",
                 rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="equity:opening balances", 
-                tamount=[dollars (-4.82)],
+                tamount=(Mixed [dollars (-4.82)]),
                 tcomment="",
                 rttype=RegularTransaction
               }
@@ -421,13 +421,13 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="expenses:vacation", 
-                tamount=[dollars 179.92],
+                tamount=(Mixed [dollars 179.92]),
                 tcomment="",
                 rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=[dollars (-179.92)],
+                tamount=(Mixed [dollars (-179.92)]),
                 tcomment="",
                 rttype=RegularTransaction
               }
@@ -444,13 +444,13 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="assets:saving", 
-                tamount=[dollars 200],
+                tamount=(Mixed [dollars 200]),
                 tcomment="",
                 rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=[dollars (-200)],
+                tamount=(Mixed [dollars (-200)]),
                 tcomment="",
                 rttype=RegularTransaction
               }
@@ -467,13 +467,13 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="expenses:food:dining", 
-                tamount=[dollars 4.82],
+                tamount=(Mixed [dollars 4.82]),
                 tcomment="",
                 rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:cash", 
-                tamount=[dollars (-4.82)],
+                tamount=(Mixed [dollars (-4.82)]),
                 tcomment="",
                 rttype=RegularTransaction
               }
@@ -490,13 +490,13 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="expenses:phone", 
-                tamount=[dollars 95.11],
+                tamount=(Mixed [dollars 95.11]),
                 tcomment="",
                 rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=[dollars (-95.11)],
+                tamount=(Mixed [dollars (-95.11)]),
                 tcomment="",
                 rttype=RegularTransaction
               }
@@ -513,13 +513,13 @@ rawledger7 = RawLedger
              etransactions=[
               RawTransaction {
                 taccount="liabilities:credit cards:discover", 
-                tamount=[dollars 80],
+                tamount=(Mixed [dollars 80]),
                 tcomment="",
                 rttype=RegularTransaction
               },
               RawTransaction {
                 taccount="assets:checking", 
-                tamount=[dollars (-80)],
+                tamount=(Mixed [dollars (-80)]),
                 tcomment="",
                 rttype=RegularTransaction
               }

@@ -131,7 +131,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
       acctstoshow = balancereportaccts showingsubs apats l
       acctnamestoshow = map aname acctstoshow
       treetoshow = pruneZeroBalanceLeaves $ pruneUnmatchedAccounts $ treeprune maxdepth $ ledgerAccountTree 9999 l
-      total = sumMixedAmounts $ map abalance $ nonredundantaccts
+      total = sum $ map abalance $ nonredundantaccts
       nonredundantaccts = filter (not . hasparentshowing) acctstoshow
       hasparentshowing a = (parentAccountName $ aname a) `elem` acctnamestoshow
 

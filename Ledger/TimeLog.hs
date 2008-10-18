@@ -57,7 +57,7 @@ entryFromTimeLogInOut i o =
       showdate = formatTime defaultTimeLocale "%Y/%m/%d"
       intime   = parsedatetime $ tldatetime i
       outtime  = parsedatetime $ tldatetime o
-      amount   = [hours $ realToFrac (diffUTCTime outtime intime) / 3600]
+      amount   = Mixed [hours $ realToFrac (diffUTCTime outtime intime) / 3600]
       txns     = [RawTransaction acctname amount "" RegularTransaction
                  --,RawTransaction "assets:time" (-amount) "" RegularTransaction
                  ]

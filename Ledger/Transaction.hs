@@ -30,6 +30,6 @@ accountNamesFromTransactions :: [Transaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
 
 sumTransactions :: [Transaction] -> MixedAmount
-sumTransactions = sumMixedAmounts . map amount
+sumTransactions = sum . map amount
 
 nulltxn = Transaction 0 "" "" "" nullamt RegularTransaction
