@@ -305,9 +305,9 @@ transactionamount :: Parser MixedAmount
 transactionamount =
   try (do
         many1 spacenonewline
-        a <- try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount <|> return autoamt
+        a <- try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount <|> return missingamt
         return a
-      ) <|> return autoamt
+      ) <|> return missingamt
 
 leftsymbolamount :: Parser MixedAmount
 leftsymbolamount = do

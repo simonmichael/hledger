@@ -141,6 +141,6 @@ nullamt :: MixedAmount
 nullamt = Mixed []
 
 -- | A temporary value for parsed transactions which had no amount specified.
-autoamt :: MixedAmount
-autoamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0}) 0]
+missingamt :: MixedAmount
+missingamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0}) 0]
 

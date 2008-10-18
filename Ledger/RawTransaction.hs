@@ -30,4 +30,4 @@ isReal :: RawTransaction -> Bool
 isReal t = rttype t == RegularTransaction
 
 hasAmount :: RawTransaction -> Bool
-hasAmount = (/= autoamt) . tamount
+hasAmount = (/= missingamt) . tamount
