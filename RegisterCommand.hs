@@ -35,19 +35,19 @@ showRegisterReport opts args l = showtxns ts nulltxn nullamt
       -- show transactions, one per line, with a running balance
       showtxns [] _ _ = ""
       showtxns (t@Transaction{amount=a}:ts) tprev bal =
-          (if isZeroAmount a then "" else this) ++ showtxns ts t bal'
+          (if isZeroMixedAmount a then "" else this) ++ showtxns ts t bal'
           where
             this = showtxn (t `issame` tprev) t bal'
             issame t1 t2 = entryno t1 == entryno t2
             bal' = bal + amount t
 
       -- show one transaction line, with or without the entry details
-      showtxn :: Bool -> Transaction -> Amount -> String
+      showtxn :: Bool -> Transaction -> MixedAmount -> String
       showtxn omitdesc t b = entrydesc ++ txn ++ bal ++ "\n"
           where
             entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
             date = showDate $ da
             desc = printf "%-20s" $ elideRight 20 de :: String
             txn = showRawTransaction $ RawTransaction a amt "" tt
-            bal = printf " %12s" (showAmountOrZero b)
+            bal = printf " %12s" (showMixedAmountOrZero b)
             Transaction{date=da,description=de,account=a,amount=amt,ttype=tt} = t

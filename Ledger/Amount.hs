@@ -47,6 +47,22 @@ import Ledger.Commodity
 instance Show Amount where show = showAmount
 -- instance Show MixedAmount where show = showMixedAmount
 
+instance Num Amount where
+    abs (Amount c q) = Amount c (abs q)
+    signum (Amount c q) = Amount c (signum q)
+    fromInteger i = Amount (comm "") (fromInteger i)
+    (+) = amountop (+)
+    (-) = amountop (-)
+    (*) = amountop (*)
+
+instance Num MixedAmount where
+    abs = error "programming error, mixed amounts do not support abs"
+    signum = error "programming error, mixed amounts do not support signum"
+    fromInteger i = [Amount (comm "") (fromInteger i)]
+    negate = map negate
+    (+) = (++)
+    (*) = error "programming error, mixed amounts do not support multiplication"
+
 showMixedAmount :: MixedAmount -> String
 showMixedAmount as = concat $ intersperse ", " $ map show $ normaliseMixedAmount as
 
@@ -60,9 +76,6 @@ groupAmountsByCommodity as = grouped
       hassymbol s a = s == (symbol $ commodity a)
       symbols = sort $ nub $ map (symbol . commodity) as
 
--- samecommoditysymbol Amount{commodity=c1} Amount{commodity=c2} = samesymbol c1 c2
--- samesymbol Commodity{symbol=s1} Commodity{symbol=s2} = s1==s2
-      
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
 showAmount :: Amount -> String
@@ -91,6 +104,12 @@ showAmountOrZero a
     | isZeroAmount a = "0"
     | otherwise = showAmount a
 
+-- | Get the string representation of an amount, rounded, or showing just "0" if it's zero.
+showMixedAmountOrZero :: MixedAmount -> String
+showMixedAmountOrZero a
+    | isZeroMixedAmount a = "0"
+    | otherwise = showMixedAmount a
+
 -- | is this amount zero, when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
 isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
@@ -98,14 +117,6 @@ isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
 
 isZeroMixedAmount :: MixedAmount -> Bool
 isZeroMixedAmount = all isZeroAmount . normaliseMixedAmount
-
-instance Num Amount where
-    abs (Amount c q) = Amount c (abs q)
-    signum (Amount c q) = Amount c (signum q)
-    fromInteger i = Amount (comm "") (fromInteger i)
-    (+) = amountop (+)
-    (-) = amountop (-)
-    (*) = amountop (*)
 
 -- | Apply a binary arithmetic operator to two amounts, converting to the
 -- second one's commodity and adopting the lowest precision. (Using the
@@ -128,7 +139,7 @@ sumAmounts = sum . filter (not . isZeroAmount)
 sumMixedAmounts :: [MixedAmount] -> MixedAmount
 sumMixedAmounts = concat
 
-nullamt = Amount (comm "") 0
+nullamt = []
 
 -- temporary value for partial entries
-autoamt = Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0,rate=1}) 0
+autoamt = [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0,rate=1}) 0]

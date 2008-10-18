@@ -301,7 +301,7 @@ ledgeraccountname = do
 accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
-transactionamount :: Parser Amount
+transactionamount :: Parser MixedAmount
 transactionamount =
   try (do
         many1 spacenonewline
@@ -309,29 +309,29 @@ transactionamount =
         return a
       ) <|> return autoamt
 
-leftsymbolamount :: Parser Amount
+leftsymbolamount :: Parser MixedAmount
 leftsymbolamount = do
   sym <- commoditysymbol 
   sp <- many spacenonewline
   (q,p,comma) <- amountquantity
   let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,comma=comma,precision=p,rate=1}
-  return $ Amount c q
+  return [Amount c q]
   <?> "left-symbol amount"
 
-rightsymbolamount :: Parser Amount
+rightsymbolamount :: Parser MixedAmount
 rightsymbolamount = do
   (q,p,comma) <- amountquantity
   sp <- many spacenonewline
   sym <- commoditysymbol
   let c = Commodity {symbol=sym,side=R,spaced=not $ null sp,comma=comma,precision=p,rate=1}
-  return $ Amount c q
+  return [Amount c q]
   <?> "right-symbol amount"
 
-nosymbolamount :: Parser Amount
+nosymbolamount :: Parser MixedAmount
 nosymbolamount = do
   (q,p,comma) <- amountquantity
   let c = Commodity {symbol="",side=L,spaced=False,comma=comma,precision=p,rate=1}
-  return $ Amount c q
+  return [Amount c q]
   <?> "no-symbol amount"
 
 commoditysymbol :: Parser String

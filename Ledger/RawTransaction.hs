@@ -20,7 +20,7 @@ showRawTransaction (RawTransaction a amt _ ttype) =
     showaccountname a ++ " " ++ (showamount amt) 
     where
       showaccountname = printf "%-22s" . bracket . elideAccountName width
-      showamount = printf "%12s" . showAmountOrZero
+      showamount = printf "%12s" . showMixedAmountOrZero
       (bracket,width) = case ttype of
                       BalancedVirtualTransaction -> (\s -> "["++s++"]", 20)
                       VirtualTransaction -> (\s -> "("++s++")", 20)
@@ -30,7 +30,7 @@ isReal :: RawTransaction -> Bool
 isReal t = rttype t == RegularTransaction
 
 hasAmount :: RawTransaction -> Bool
-hasAmount = ("AUTO" /=) . symbol . commodity . tamount
+hasAmount = (/= autoamt) . tamount
 
 sumRawTransactions :: [RawTransaction] -> MixedAmount
-sumRawTransactions = normaliseMixedAmount . map tamount
+sumRawTransactions = normaliseMixedAmount . sumMixedAmounts . map tamount

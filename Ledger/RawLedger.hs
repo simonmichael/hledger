@@ -11,6 +11,7 @@ import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
+import Ledger.Amount
 import Ledger.Entry
 import Ledger.Transaction
 
@@ -104,10 +105,9 @@ normaliseRawLedgerAmounts l@(RawLedger ms ps es f) = RawLedger ms ps es' f
       normaliseEntryAmounts (Entry d s c desc comm ts pre) = Entry d s c desc comm ts' pre
           where ts' = map normaliseRawTransactionAmounts ts
       normaliseRawTransactionAmounts (RawTransaction acct a c t) = RawTransaction acct a' c t
-          where a' = normaliseAmount a
-      normaliseAmount (Amount c q) = Amount (firstoccurrenceof c) q
+          where a' = normaliseMixedAmount a
       firstcommodities = nubBy samesymbol $ allcommodities
-      allcommodities = map (commodity . amount) $ rawLedgerTransactions l
+      allcommodities = map commodity $ concat $ map amount $ rawLedgerTransactions l
       samesymbol (Commodity {symbol=s1}) (Commodity {symbol=s2}) = s1==s2
       firstoccurrenceof c@(Commodity {symbol=s}) = 
           fromMaybe

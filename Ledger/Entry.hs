@@ -53,7 +53,7 @@ showEntry e =
       showtxn t = showacct t ++ "  " ++ (showamount $ tamount t) ++ (showcomment $ tcomment t)
       showtxnnoamt t = showacct t ++ "              " ++ (showcomment $ tcomment t)
       showacct t = "    " ++ (showaccountname $ taccount t)
-      showamount = printf "%12s" . showAmount
+      showamount = printf "%12s" . showMixedAmount
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
 
@@ -77,9 +77,9 @@ balanceEntry e@(Entry{etransactions=ts}) = e{etransactions=ts'}
               1 -> map balance ts
               otherwise -> error $ "could not balance this entry, too many missing amounts:\n" ++ show e
       otherstotal = sumRawTransactions withamounts
-      simpleotherstotal
-          | length otherstotal == 1 = head otherstotal
-          | otherwise = error $ "sorry, can't balance a mixed-commodity entry yet:\n" ++ show e
+--       simpleotherstotal
+--           | length otherstotal == 1 = head otherstotal
+--           | otherwise = error $ "sorry, can't balance a mixed-commodity entry yet:\n" ++ show e
       balance t
-          | isReal t && not (hasAmount t) = t{tamount = -simpleotherstotal}
+          | isReal t && not (hasAmount t) = t{tamount = -otherstotal}
           | otherwise = t
