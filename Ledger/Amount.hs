@@ -1,7 +1,7 @@
 {-|
 An 'Amount' is some quantity of money, shares, or anything else.
 
-A simple amount is a commodity, quantity pair:
+A simple amount is a 'Commodity', quantity pair:
 
 @
   $1 
@@ -13,14 +13,14 @@ A simple amount is a commodity, quantity pair:
   0 
 @
 
-A mixed amount is zero or more simple amounts:
+A 'MixedAmount' is zero or more simple amounts:
 
 @
   $50, EUR 3, AAPL 500
   16h, $13.55, oranges 6
 @
 
-Not fully implemented:
+Not implemented:
 Commodities may be convertible or not. A mixed amount containing only
 convertible commodities can be converted to a simple amount. Arithmetic
 examples:
