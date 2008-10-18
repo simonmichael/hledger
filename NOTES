@@ -6,12 +6,17 @@ implementations were its consequences." --Niklaus Wirth
 
 * to do
 ** bugfixes
-*** vertical display of commodities
+*** balance mixed-commodity entries when possible
+*** display commodities vertically
+** cleanups
+*** use one kind of amount
+*** split commodity symbol and display settings types
 ** features
 *** full -b/e date expressions
+*** test on more ledger files
+*** improve/reduce error messages, reduce failures
 *** more ledger features from README
 *** new features
-**** automated --version
 **** option for strict ledger-compatible output (or, compare xml ?)
 **** --compare to compare ledger with same args
 **** tidy horizontal commodities format
@@ -31,27 +36,34 @@ implementations were its consequences." --Niklaus Wirth
 *** speed testing
 ** docs
 *** readme
-**** refine
-*** similar blurbs
-**** automate
-***** hledger.hs module description
-***** cabal file description
-***** web page description
-***** darcsweb description
+*** related blurbs - automate
+**** --version
+**** --help
+**** hledger.hs module description
+**** cabal file description
+**** darcsweb description
+**** home page description
+**** mail list description
+**** gmane description
+**** announcements description
 *** announcements
 **** archive
 *** release notes
 **** keep it simple
 *** implementation docs
 *** api docs
+*** developer intro
 *** user manual
-*** differences noted
-**** ledger needs a space after -f
-**** ledger shows description comments as part of description
-**** ledger shows small time amounts in minutes
-**** ledger can get timelog entry balance wrong, see mail list
-
+** web presence
+*** clarify bugtracking process
+*** refine home page
+**** separate page, separate wiki, home page in darcs ?
 * misc
+** differences noted
+*** ledger needs a space after -f
+*** ledger shows description comments as part of description
+*** ledger shows small time amounts in minutes
+*** ledger can get timelog entry balance wrong, see mail list
 ** things I want to know
 *** time
 where have I been spending my time in recent weeks ?
