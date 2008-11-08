@@ -47,9 +47,7 @@ Here are some commands to try:
 
 FEATURES
 --------
-This version of hledger mimics ledger 2.6.1.
-
-ledger features supported:
+This version of hledger mimics a subset of ledger 2.6.1:
 
 - regular ledger entries
 - multiple commodities
@@ -78,7 +76,11 @@ ledger features supported:
   register [REGEXP]...   show register of matching transactions
   print    [REGEXP]...   print all matching entries
 
-*Not* supported:
+hledger-only features:
+
+- ...
+
+ledger features not supported:
 
 - !include
 - modifier entries
@@ -90,10 +92,6 @@ ledger features supported:
 - and:
 
   Basic options:
-  -H, --full-help        display this help text
-  -h, --help             display summarized help text
-  -v, --version          show version information
-  -f, --file FILE        read ledger data from FILE
   -o, --output FILE      write output to FILE
   -i, --init-file FILE   initialize ledger using FILE (default: ~/.ledgerrc)
       --cache FILE       use FILE as a binary cache when --file is not used
@@ -161,5 +159,6 @@ ledger features supported:
 
 Some other differences:
 
-- hledger talks about entry and transaction "description", which ledger calls "note"
+- hledger talks about the entry and transaction "description", which ledger calls "note"
 - hledger always shows timelog balances in hours
+- hledger doesn't require a space after flags like -f
