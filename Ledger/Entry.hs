@@ -21,6 +21,16 @@ instance Show ModifierEntry where
 instance Show PeriodicEntry where 
     show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
 
+nullentry = Entry {
+              edate="", 
+              estatus=False, 
+              ecode="", 
+              edescription="", 
+              ecomment="",
+              etransactions=[],
+              epreceding_comment_lines=""
+            }
+
 {-|
 Show a ledger entry, formatted for the print command. ledger 2.x's
 standard format looks like this:

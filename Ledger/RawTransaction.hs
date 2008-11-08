@@ -15,6 +15,8 @@ import Ledger.AccountName
 
 instance Show RawTransaction where show = showRawTransaction
 
+nullrawtxn = RawTransaction "" nullamt "" RegularTransaction
+
 showRawTransaction :: RawTransaction -> String
 showRawTransaction (RawTransaction a amt _ ttype) = 
     showaccountname a ++ " " ++ (showamount amt) 
