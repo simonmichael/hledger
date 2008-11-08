@@ -21,11 +21,11 @@ NEWS
 
 INSTALLATION
 ------------
-In the hledger directory, do:
+In the hledger directory, do::
 
  cabal install
 
-or:
+or::
 
  runhaskell Setup.hs configure
  runhaskell Setup.hs build
@@ -34,7 +34,7 @@ or:
 
 EXAMPLES
 --------
-Here are some commands to try:
+Here are some commands to try::
 
  hledger --help
  hledger -f sample.ledger balance
@@ -55,26 +55,26 @@ This version of hledger mimics a subset of ledger 2.6.1:
 - balance, print, register commands
 - positive and negative account & description filter patterns
 - LEDGER environment variable
-- and:
+- and::
 
-  Basic options:
-  -h, --help             display summarized help text
-  -v, --version          show version information
-  -f, --file FILE        read ledger data from FILE
-
-  Report filtering:
-  -b, --begin DATE       set report begin date (YYYY/MM/DD syntax)
-  -e, --end DATE         set report end date (YYYY/MM/DD syntax)
-  -C, --cleared          consider only cleared transactions
-  -R, --real             consider only real (non-virtual) transactions
-
-  Output customization:
-  -s, --subtotal         balance: show sub-accounts
-
-  Commands:
-  balance  [REGEXP]...   show balance totals for matching accounts
-  register [REGEXP]...   show register of matching transactions
-  print    [REGEXP]...   print all matching entries
+   Basic options:
+   -h, --help             display summarized help text
+   -v, --version          show version information
+   -f, --file FILE        read ledger data from FILE
+ 
+   Report filtering:
+   -b, --begin DATE       set report begin date (YYYY/MM/DD syntax)
+   -e, --end DATE         set report end date (YYYY/MM/DD syntax)
+   -C, --cleared          consider only cleared transactions
+   -R, --real             consider only real (non-virtual) transactions
+ 
+   Output customization:
+   -s, --subtotal         balance: show sub-accounts
+ 
+   Commands:
+   balance  [REGEXP]...   show balance totals for matching accounts
+   register [REGEXP]...   show register of matching transactions
+   print    [REGEXP]...   print all matching entries
 
 hledger-only features:
 
@@ -89,73 +89,73 @@ ledger features not supported:
 - flexible date syntax for --begin/--end
 - counting an unfinished timelog session
 - parsing gnucash files
-- and:
+- and::
 
-  Basic options:
-  -o, --output FILE      write output to FILE
-  -i, --init-file FILE   initialize ledger using FILE (default: ~/.ledgerrc)
-      --cache FILE       use FILE as a binary cache when --file is not used
-      --no-cache         don't use a cache, even if it would be appropriate
-  -a, --account NAME     use NAME for the default account (useful with QIF)
-
-  Report filtering:
-  -c, --current          show only current and past entries (not future)
-  -p, --period STR       report using the given period
-      --period-sort EXPR sort each report period's entries by EXPR
-  -U, --uncleared        consider only uncleared transactions
-  -L, --actual           consider only actual (non-automated) transactions
-  -r, --related          calculate report using related transactions
-      --budget           generate budget entries based on periodic entries
-      --add-budget       show all transactions plus the budget
-      --unbudgeted       show only unbudgeted transactions
-      --forecast EXPR    generate forecast entries while EXPR is true
-  -l, --limit EXPR       calculate only transactions matching EXPR
-  -t, --amount EXPR      use EXPR to calculate the displayed amount
-  -T, --total EXPR       use EXPR to calculate the displayed total
-
-  Output customization:
-  -n, --collapse         register: collapse entries; balance: no grand total
-  -s, --subtotal         ... other: show subtotals
-  -P, --by-payee         show summarized totals by payee
-  -x, --comm-as-payee    set commodity name as the payee, for reporting
-  -E, --empty            balance: show accounts with zero balance
-  -W, --weekly           show weekly sub-totals
-  -M, --monthly          show monthly sub-totals
-  -Y, --yearly           show yearly sub-totals
-      --dow              show a days-of-the-week report
-  -S, --sort EXPR        sort report according to the value expression EXPR
-  -w, --wide             for the default register report, use 132 columns
-      --head COUNT       show only the first COUNT entries (negative inverts)
-      --tail COUNT       show only the last COUNT entries (negative inverts)
-      --pager PAGER      send all output through the given PAGER program
-  -A, --average          report average transaction amount
-  -D, --deviation        report deviation from the average
-  -%, --percentage       report balance totals as a percentile of the parent
-      --totals           in the "xml" report, include running total
-  -j, --amount-data      print only raw amount data (useful for scripting)
-  -J, --total-data       print only raw total data
-  -d, --display EXPR     display only transactions matching EXPR
-  -y, --date-format STR  use STR as the date format (default: %Y/%m/%d)
-  -F, --format STR       use STR as the format; for each report type, use:
-      --balance-format      --register-format       --print-format
-      --plot-amount-format  --plot-total-format     --equity-format
-      --prices-format       --wide-register-format
-
-  Commodity reporting:
-      --price-db FILE    sets the price database to FILE (def: ~/.pricedb)
-  -L, --price-exp MINS   download quotes only if newer than MINS (def: 1440)
-  -Q, --download         download price information when needed
-  -O, --quantity         report commodity totals (this is the default)
-  -B, --basis            report cost basis of commodities
-  -V, --market           report last known market value
-  -g, --performance      report gain/loss for each displayed transaction
-  -G, --gain             report net gain/loss
-
-  Commands:
-  xml      [REGEXP]...   print matching entries in XML format
-  equity   [REGEXP]...   output equity entries for matching accounts
-  prices   [REGEXP]...   display price history for matching commodities
-  entry DATE PAYEE AMT   output a derived entry, based on the arguments
+   Basic options:
+   -o, --output FILE      write output to FILE
+   -i, --init-file FILE   initialize ledger using FILE (default: ~/.ledgerrc)
+       --cache FILE       use FILE as a binary cache when --file is not used
+       --no-cache         don't use a cache, even if it would be appropriate
+   -a, --account NAME     use NAME for the default account (useful with QIF)
+ 
+   Report filtering:
+   -c, --current          show only current and past entries (not future)
+   -p, --period STR       report using the given period
+       --period-sort EXPR sort each report period's entries by EXPR
+   -U, --uncleared        consider only uncleared transactions
+   -L, --actual           consider only actual (non-automated) transactions
+   -r, --related          calculate report using related transactions
+       --budget           generate budget entries based on periodic entries
+       --add-budget       show all transactions plus the budget
+       --unbudgeted       show only unbudgeted transactions
+       --forecast EXPR    generate forecast entries while EXPR is true
+   -l, --limit EXPR       calculate only transactions matching EXPR
+   -t, --amount EXPR      use EXPR to calculate the displayed amount
+   -T, --total EXPR       use EXPR to calculate the displayed total
+ 
+   Output customization:
+   -n, --collapse         register: collapse entries; balance: no grand total
+   -s, --subtotal         ... other: show subtotals
+   -P, --by-payee         show summarized totals by payee
+   -x, --comm-as-payee    set commodity name as the payee, for reporting
+   -E, --empty            balance: show accounts with zero balance
+   -W, --weekly           show weekly sub-totals
+   -M, --monthly          show monthly sub-totals
+   -Y, --yearly           show yearly sub-totals
+       --dow              show a days-of-the-week report
+   -S, --sort EXPR        sort report according to the value expression EXPR
+   -w, --wide             for the default register report, use 132 columns
+       --head COUNT       show only the first COUNT entries (negative inverts)
+       --tail COUNT       show only the last COUNT entries (negative inverts)
+       --pager PAGER      send all output through the given PAGER program
+   -A, --average          report average transaction amount
+   -D, --deviation        report deviation from the average
+   -%, --percentage       report balance totals as a percentile of the parent
+       --totals           in the "xml" report, include running total
+   -j, --amount-data      print only raw amount data (useful for scripting)
+   -J, --total-data       print only raw total data
+   -d, --display EXPR     display only transactions matching EXPR
+   -y, --date-format STR  use STR as the date format (default: %Y/%m/%d)
+   -F, --format STR       use STR as the format; for each report type, use:
+       --balance-format      --register-format       --print-format
+       --plot-amount-format  --plot-total-format     --equity-format
+       --prices-format       --wide-register-format
+ 
+   Commodity reporting:
+       --price-db FILE    sets the price database to FILE (def: ~/.pricedb)
+   -L, --price-exp MINS   download quotes only if newer than MINS (def: 1440)
+   -Q, --download         download price information when needed
+   -O, --quantity         report commodity totals (this is the default)
+   -B, --basis            report cost basis of commodities
+   -V, --market           report last known market value
+   -g, --performance      report gain/loss for each displayed transaction
+   -G, --gain             report net gain/loss
+ 
+   Commands:
+   xml      [REGEXP]...   print matching entries in XML format
+   equity   [REGEXP]...   output equity entries for matching accounts
+   prices   [REGEXP]...   display price history for matching commodities
+   entry DATE PAYEE AMT   output a derived entry, based on the arguments
 
 Some other differences:
 
