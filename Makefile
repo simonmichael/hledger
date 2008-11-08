@@ -7,8 +7,9 @@ build: tag
 	$(BUILD)
 
 # build and run whenever a module changes, see http://searchpath.org
-continuous:
-	sp -o hledger ghc --make hledger.hs --run test
+# or the patched http://joyful.com/repos/searchpath
+continuous ci:
+	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs --run test
 
 profile: build
 	$(PROFILE)
