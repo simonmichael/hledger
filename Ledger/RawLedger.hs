@@ -100,10 +100,9 @@ canonicaliseAmounts l@(RawLedger ms ps es f) = RawLedger ms ps (map fixEntryAmou
       commoditieswithsymbol s = fromMaybe (error $ "no such commodity "++s) (Map.lookup s commoditiesmap)
           where
             commoditiesmap :: Map.Map String [Commodity]
-            commoditiesmap = Map.fromList [(symbol $ head cs,cs) | 
+            commoditiesmap = Map.fromList [(symbol $ head cs,cs) |
                                            cs <- groupBy samesymbol $ rawLedgerCommodities l]
-            samesymbol :: Commodity -> Commodity -> Bool
-            samesymbol (Commodity{symbol=s1}) (Commodity{symbol=s2}) = s1==s2
+            samesymbol c1 c2 = symbol c1 == symbol c2
 
 rawLedgerAmounts :: RawLedger -> [MixedAmount]
 rawLedgerAmounts = map amount . rawLedgerTransactions
