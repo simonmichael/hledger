@@ -43,6 +43,14 @@ Clean: clean clean-docs
 
 # docs
 
+docs: html pdf api-doc-frames
+
+html:
+	rst2html README >doc/index.html
+
+pdf:
+	rst2pdf README -o doc/README.pdf
+
 MAIN=hledger.hs
 
 api-doc-dir:
@@ -97,7 +105,7 @@ hoogleweb: hoogleindex
 
 # munge haddock and hoogle into a rough but useful framed layout
 # ensure that the hoogle cgi is built with base target "main"
-api-doc-frames docs: api-doc-with-source hoogleweb
+api-doc-frames: api-doc-with-source hoogleweb
 	echo "Converting api docs to frames" ; \
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
 	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
