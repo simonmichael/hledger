@@ -113,8 +113,6 @@ unittests = TestList [
 
   ]
 
-rawLedgerPrecisions = map precision . rawLedgerCommodities
-rawLedgerCommodities rl = concatMap (\(Mixed as) -> map commodity as) $ map amount $ rawLedgerTransactions rl
 rawLedgerWithAmounts as = 
     RawLedger 
       [] 

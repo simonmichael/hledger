@@ -107,19 +107,37 @@ matchLedgerPatterns forbalancereport pats str =
                       then accountLeafName str
                       else str
 
--- | Give all amounts the display settings of the first one detected in each commodity.
+-- | Give all a ledger's amounts their canonical display settings.  That
+-- is, in each commodity all amounts will use the display settings of the
+-- first amount detected, and the greatest precision of all amounts
+-- detected.
 setAmountDisplayPrefs :: RawLedger -> RawLedger
 setAmountDisplayPrefs l@(RawLedger ms ps es f) = RawLedger ms ps (map fixEntryAmounts es) f
     where 
       fixEntryAmounts (Entry d s c de co ts pr) = Entry d s c de co (map fixRawTransactionAmounts ts) pr
       fixRawTransactionAmounts (RawTransaction ac a c t) = RawTransaction ac (fixMixedAmount a) c t
       fixMixedAmount (Mixed as) = Mixed $ map fixAmount as
-      fixAmount (Amount c q) = Amount (firstoccurrenceof c) q
-      allcommodities = map commodity $ concat $ map (amounts . amount) $ rawLedgerTransactions l
-      firstcommodities = nubBy samesymbol $ allcommodities
-      samesymbol (Commodity {symbol=s1}) (Commodity {symbol=s2}) = s1==s2
-      firstoccurrenceof c@(Commodity {symbol=s}) = 
-          fromMaybe
-          (error $ "failed to find commodity "++s) -- shouldn't happen
-          (find (\(Commodity {symbol=sym}) -> sym==s) firstcommodities)
-      -- XXX actually ledger uses the greatest precision found
+      fixAmount (Amount c q) = Amount (canonicalcommodity c) q
+      canonicalcommodity c@(Commodity {symbol=s}) =
+          (firstoccurrenceof c){precision=maximum $ map precision $ commoditieswithsymbol s}
+      firstoccurrenceof Commodity{symbol=s} = head $ commoditieswithsymbol s
+      -- Get ledger's amounts' commodities with a given symbol, in the order parsed.
+      -- Call with a good symbol or it will fail.
+      commoditieswithsymbol :: String -> [Commodity]
+      commoditieswithsymbol s = fromMaybe (error $ "no such commodity "++s) (Map.lookup s commoditiesmap)
+          where
+            commoditiesmap :: Map.Map String [Commodity]
+            commoditiesmap = Map.fromList [(symbol $ head cs,cs) | 
+                                           cs <- groupBy samesymbol $ rawLedgerCommodities l]
+            samesymbol :: Commodity -> Commodity -> Bool
+            samesymbol (Commodity{symbol=s1}) (Commodity{symbol=s2}) = s1==s2
+
+rawLedgerAmounts :: RawLedger -> [MixedAmount]
+rawLedgerAmounts = map amount . rawLedgerTransactions
+
+rawLedgerCommodities :: RawLedger -> [Commodity]
+rawLedgerCommodities = map commodity . concatMap amounts . rawLedgerAmounts
+
+rawLedgerPrecisions :: RawLedger -> [Int]
+rawLedgerPrecisions = map precision . rawLedgerCommodities
+
