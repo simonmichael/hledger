@@ -4,6 +4,10 @@ hledger project notes
 Clarity of concepts, economy of features, efficiency and reliability of
 implementations were its consequences." --Niklaus Wirth
 
+"The competent programmer is fully aware of the limited size of his own
+skull. He therefore approaches his task with full humility, and avoids
+clever tricks like the plague." --Edsger Dijkstra
+
 * to do
 ** errors
 ** features
