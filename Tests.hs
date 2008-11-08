@@ -87,8 +87,8 @@ misc_tests = TestList [
     assertparseequal (Mixed [dollars 47.18]) (parsewith transactionamount " $47.18")
     assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]) (parsewith transactionamount " $1.")
   ,
-  "setAmountDisplayPrefs" ~: do
-    let l = setAmountDisplayPrefs $ rawLedgerWithAmounts ["1","2.00"]
+  "canonicaliseAmounts" ~: do
+    let l = canonicaliseAmounts $ rawLedgerWithAmounts ["1","2.00"]
     assertequal [2,2] (rawLedgerPrecisions l) -- use greatest precision everywhere
 
   ] where

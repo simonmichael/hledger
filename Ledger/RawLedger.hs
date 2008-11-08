@@ -81,11 +81,11 @@ filterRawLedgerTransactionsByRealness True (RawLedger ms ps es f) =
     where filtertxns e@Entry{etransactions=ts} = e{etransactions=filter isReal ts}
 
 -- | Give all a ledger's amounts their canonical display settings.  That
--- is, in each commodity all amounts will use the display settings of the
--- first amount detected, and the greatest precision of all amounts
+-- is, in each commodity, amounts will use the display settings of the
+-- first amount detected, and the greatest precision of the amounts
 -- detected.
-setAmountDisplayPrefs :: RawLedger -> RawLedger
-setAmountDisplayPrefs l@(RawLedger ms ps es f) = RawLedger ms ps (map fixEntryAmounts es) f
+canonicaliseAmounts :: RawLedger -> RawLedger
+canonicaliseAmounts l@(RawLedger ms ps es f) = RawLedger ms ps (map fixEntryAmounts es) f
     where 
       fixEntryAmounts (Entry d s c de co ts pr) = Entry d s c de co (map fixRawTransactionAmounts ts) pr
       fixRawTransactionAmounts (RawTransaction ac a c t) = RawTransaction ac (fixMixedAmount a) c t
