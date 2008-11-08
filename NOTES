@@ -5,21 +5,18 @@ Clarity of concepts, economy of features, efficiency and reliability of
 implementations were its consequences." --Niklaus Wirth
 
 * to do
-** bugfixes
-*** balance mixed-commodity entries when possible
-*** display commodities vertically
-** cleanups
-*** use one kind of amount
-*** split commodity symbol and display settings types
+** errors
+*** display mixed amounts vertically, not horizontally
 ** features
-*** full -b/e date expressions
-*** test on more ledger files
-*** improve/reduce error messages, reduce failures
+*** flexible date expressions, for easier time reports
+*** commodity @ rate, for tracking client hours in main ledger
+*** actual/effective entry & txn dates, for ...
+*** --display, for reconciling recent transactions with real balance
 *** more ledger features from README
 *** new features
 **** option for strict ledger-compatible output (or, compare xml ?)
 **** --compare to compare ledger with same args
-**** tidy horizontal commodities format
+**** workable horizontal commodities display
 **** in/out times in timelog entry descriptions
 **** graphs
 **** easier data entry
@@ -28,12 +25,16 @@ implementations were its consequences." --Niklaus Wirth
 **** easy conversion from cabal-installed to darcs repo
 **** i18n
 *** speed
+**** profile
 **** cache file
+** cleanups
 ** tests
+*** test on more ledger files
+*** speed regression tests
+*** more modular/scalable approach to test data ?
 *** individual test running
 *** figure out reliable maintainable appropriate tests
 *** easy ledger compatibility testing
-*** speed testing
 ** docs
 *** readme
 *** related blurbs - automate
@@ -56,8 +57,6 @@ implementations were its consequences." --Niklaus Wirth
 *** user manual
 ** web presence
 *** clarify bugtracking process
-*** refine home page
-**** separate page, separate wiki, home page in darcs ?
 * misc
 ** differences noted
 *** ledger needs a space after -f
@@ -150,3 +149,18 @@ isProp _ = False
 declName :: HsDecl -> String
 declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
 declName _                                              = undefined
+
+** separate commodity display settings
+type CommoditySymbol = String
+
+data CommodityDisplayPrefs = CommodityDisplayPrefs {
+      side :: Side,      -- ^ should the symbol appear on the left or the right
+      spaced :: Bool,    -- ^ should there be a space between symbol and quantity
+      comma :: Bool,     -- ^ should thousands be comma-separated
+      precision :: Int,  -- ^ number of decimal places to display
+    } deriving (Eq,Show)
+
+data Amount = Amount {
+      commodity :: CommoditySymbol,
+      quantity :: Double
+    } deriving (Eq)
