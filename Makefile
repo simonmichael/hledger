@@ -77,14 +77,11 @@ api-doc-with-source haddock: api-doc-dir colourised-source $(MAIN)
 #--source-entity=src-%{MODULE/./-}.html#%N 
 
 #generate a hoogle index
-#uses system hoogle, works around http://code.google.com/p/ndmitchell/issues/detail?id=93
-#to use: hoogle --data=hoogle/default ...
 hoogleindex: $(MAIN)
 	echo "Generating hoogle index" ; \
 	mkdir -p hoogle && \
 	$(HADDOCK) -o hoogle --hoogle $^ && \
 	cd hoogle && \
-	sed -i -e 's/^(_/-- (_/' main.txt && \
 	hoogle --convert=main.txt --output=default.hoo
 
 #set up the hoogle web interface
