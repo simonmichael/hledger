@@ -105,7 +105,23 @@ unittests = TestList [
   "transactionamount"       ~: do
     assertparseequal (Mixed [dollars 47.18]) (parsewith transactionamount " $47.18")
     assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1]) (parsewith transactionamount " $1.")
+  ,
+  "setAmountDisplayPrefs" ~: do
+    let l = setAmountDisplayPrefs $ rawLedgerWithAmounts ["1","2.00"]
+    -- should be using the greatest precision everywhere
+    assertequal [2,2] (rawLedgerPrecisions l)
+
   ]
+
+rawLedgerPrecisions = map precision . rawLedgerCommodities
+rawLedgerCommodities rl = concatMap (\(Mixed as) -> map commodity as) $ map amount $ rawLedgerTransactions rl
+rawLedgerWithAmounts as = 
+    RawLedger 
+      [] 
+      [] 
+      [nullentry{etransactions=[nullrawtxn{tamount=parse a}]} | a <- as]
+      ""
+    where parse = fromparse . parsewith transactionamount . (" "++)
 
 ------------------------------------------------------------------------------
 
