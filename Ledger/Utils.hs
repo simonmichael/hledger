@@ -33,7 +33,7 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Debug.Trace
 import Test.HUnit
-import Test.QuickCheck hiding (test, Testable)
+-- import Test.QuickCheck hiding (test, Testable)
 import Text.Printf
 import Text.Regex
 import Text.ParserCombinators.Parsec (parse)
