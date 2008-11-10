@@ -45,3 +45,22 @@ Executable hledger
                   Ledger.Types
                   Ledger.Utils
 
+library
+  Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,
+                  old-locale, time, HUnit
+  Exposed-modules:
+                  Ledger
+                  Ledger.Account
+                  Ledger.AccountName
+                  Ledger.Amount
+                  Ledger.Commodity
+                  Ledger.Entry
+                  Ledger.RawLedger
+                  Ledger.Ledger
+                  Ledger.RawTransaction
+                  Ledger.Parse
+                  Ledger.TimeLog
+                  Ledger.Transaction
+                  Ledger.Types
+                  Ledger.Utils
+                
