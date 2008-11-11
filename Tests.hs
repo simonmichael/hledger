@@ -274,7 +274,7 @@ entry1_str = "\
 \\n" --"
 
 entry1 =
-    (Entry "2007/01/28" False "" "coopportunity" ""
+    (Entry (parsedate "2007/01/28") False "" "coopportunity" ""
      [RawTransaction "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularTransaction, 
       RawTransaction "assets:checking" (Mixed [dollars (-47.18)]) "" RegularTransaction] "")
 
@@ -412,7 +412,7 @@ rawledger7 = RawLedger
           [] 
           [
            Entry {
-             edate="2007/01/01", 
+             edate= parsedate "2007/01/01", 
              estatus=False, 
              ecode="*", 
              edescription="opening balance", 
@@ -435,7 +435,7 @@ rawledger7 = RawLedger
            }
           ,
            Entry {
-             edate="2007/02/01", 
+             edate= parsedate "2007/02/01", 
              estatus=False, 
              ecode="*", 
              edescription="ayres suites", 
@@ -458,7 +458,7 @@ rawledger7 = RawLedger
            }
           ,
            Entry {
-             edate="2007/01/02", 
+             edate=parsedate "2007/01/02", 
              estatus=False, 
              ecode="*", 
              edescription="auto transfer to savings", 
@@ -481,7 +481,7 @@ rawledger7 = RawLedger
            }
           ,
            Entry {
-             edate="2007/01/03", 
+             edate=parsedate "2007/01/03", 
              estatus=False, 
              ecode="*", 
              edescription="poquito mas", 
@@ -504,7 +504,7 @@ rawledger7 = RawLedger
            }
           ,
            Entry {
-             edate="2007/01/03", 
+             edate=parsedate "2007/01/03", 
              estatus=False, 
              ecode="*", 
              edescription="verizon", 
@@ -527,7 +527,7 @@ rawledger7 = RawLedger
            }
           ,
            Entry {
-             edate="2007/01/03", 
+             edate=parsedate "2007/01/03", 
              estatus=False, 
              ecode="*", 
              edescription="discover", 
@@ -554,10 +554,10 @@ rawledger7 = RawLedger
 ledger7 = cacheLedger rawledger7 
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
-timelogentry1 = TimeLogEntry 'i' "2007/03/11 16:19:00" "hledger"
+timelogentry1 = TimeLogEntry 'i' (parsedatetime "2007/03/11 16:19:00") "hledger"
 
 timelogentry2_str  = "o 2007/03/11 16:30:00\n"
-timelogentry2 = TimeLogEntry 'o' "2007/03/11 16:30:00" ""
+timelogentry2 = TimeLogEntry 'o' (parsedatetime "2007/03/11 16:30:00") ""
 
 timelog1_str = concat [
                 timelogentry1_str,

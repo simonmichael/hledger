@@ -19,6 +19,8 @@ import Ledger.Amount
 import Ledger.Entry
 import Ledger.Commodity
 import Ledger.TimeLog
+import Data.Time.LocalTime
+import Data.Time.Calendar
 
 
 -- utils
@@ -233,15 +235,28 @@ ledgerentry = do
   transactions <- ledgertransactions
   return $ balanceEntry $ Entry date status code description comment transactions (unlines preceding)
 
-ledgerdate :: Parser String
-ledgerdate = do 
+ledgerday :: Parser Day
+ledgerday = do 
   y <- many1 digit
   char '/'
   m <- many1 digit
   char '/'
   d <- many1 digit
   many1 spacenonewline
-  return $ printf "%04s/%02s/%02s" y m d
+  return (fromGregorian (read y) (read m) (read d))
+
+ledgerdate :: Parser Date
+ledgerdate = fmap mkDate ledgerday
+
+ledgerdatetime :: Parser DateTime
+ledgerdatetime = do 
+  day <- ledgerday
+  h <- many1 digit
+  char ':'
+  m <- many1 digit
+  many1 spacenonewline
+  return (mkDateTime day (TimeOfDay (read h) (read m) 0))
+
 
 ledgerstatus :: Parser Bool
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False
@@ -452,9 +467,7 @@ timelogentry = do
   many (commentline <|> blankline)
   code <- oneOf "bhioO"
   many1 spacenonewline
-  date <- ledgerdate
-  time <- many $ oneOf "0123456789:"
-  let datetime = date ++ " " ++ time
+  datetime <- ledgerdatetime
   many spacenonewline
   comment <- restofline
   return $ TimeLogEntry code datetime comment

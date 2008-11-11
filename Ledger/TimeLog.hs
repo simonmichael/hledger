@@ -15,7 +15,7 @@ import Ledger.Amount
 
 
 instance Show TimeLogEntry where 
-    show t = printf "%s %s %s" (show $ tlcode t) (tldatetime t) (tlcomment t)
+    show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
 
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
@@ -52,12 +52,11 @@ entryFromTimeLogInOut i o =
     }
     where
       acctname = tlcomment i
-      indate   = showdate intime
-      outdate  = showdate outtime
-      showdate = formatTime defaultTimeLocale "%Y/%m/%d"
-      intime   = parsedatetime $ tldatetime i
-      outtime  = parsedatetime $ tldatetime o
-      amount   = Mixed [hours $ realToFrac (diffUTCTime outtime intime) / 3600]
+      indate   = datetimeToDate intime
+      outdate  = datetimeToDate outtime
+      intime   = tldatetime i
+      outtime  = tldatetime o
+      amount   = Mixed [hours $ elapsedSeconds outtime intime / 3600]
       txns     = [RawTransaction acctname amount "" RegularTransaction
                  --,RawTransaction "assets:time" (-amount) "" RegularTransaction
                  ]

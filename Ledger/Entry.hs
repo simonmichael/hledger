@@ -22,7 +22,7 @@ instance Show PeriodicEntry where
     show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
 
 nullentry = Entry {
-              edate="", 
+              edate=parsedate "1900/1/1", 
               estatus=False, 
               ecode="", 
               edescription="", 
@@ -67,7 +67,7 @@ showEntry e =
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
 
-showDate = printf "%-10s"
+showDate d = printf "%-10s" (show d)
 
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = 

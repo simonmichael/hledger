@@ -64,6 +64,9 @@ main = do
        | cmd `isPrefixOf` "test"     = runtests args >> return ()
        | otherwise                   = putStr usage
 
+parsemaybedate "" = Nothing
+parsemaybedate s = Just (parsedate s)
+
 -- | parse the user's specified ledger file and do some action with it
 -- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
@@ -71,8 +74,8 @@ parseLedgerAndDo opts args cmd =
     ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runcmd
     where
       runcmd = cmd opts args . cacheLedger . setAmountDisplayPrefs . filterRawLedger b e dpats c r
-      b = beginDateFromOpts opts
-      e = endDateFromOpts opts
+      b = parsemaybedate (beginDateFromOpts opts)
+      e = parsemaybedate (endDateFromOpts opts)
       dpats = snd $ parseAccountDescriptionArgs args
       c = Cleared `elem` opts
       r = Real `elem` opts

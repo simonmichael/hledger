@@ -17,7 +17,7 @@ import Ledger.Amount
 instance Show Transaction where show=showTransaction
 
 showTransaction :: Transaction -> String
-showTransaction (Transaction eno d desc a amt ttype) = unwords [d,desc,a,show amt,show ttype]
+showTransaction (Transaction eno d desc a amt ttype) = unwords [show d,desc,a,show amt,show ttype]
 
 -- | Convert a 'Entry' to two or more 'Transaction's. An id number
 -- is attached to the transactions to preserve their grouping - it should
@@ -32,4 +32,4 @@ accountNamesFromTransactions ts = nub $ map account ts
 sumTransactions :: [Transaction] -> MixedAmount
 sumTransactions = sum . map amount
 
-nulltxn = Transaction 0 "" "" "" nullamt RegularTransaction
+nulltxn = Transaction 0  (parsedate "1900/1/1") "" "" nullamt RegularTransaction

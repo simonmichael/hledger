@@ -11,15 +11,13 @@ module Data.List,
 --module Data.Map,
 module Data.Maybe,
 module Data.Ord,
-module Data.Time.Clock,
-module Data.Time.Format,
 module Data.Tree,
 module Debug.Trace,
 module Ledger.Utils,
-module System.Locale,
 module Text.Printf,
 module Text.Regex,
 module Test.HUnit,
+module Ledger.Dates,
 )
 where
 import Char
@@ -28,16 +26,14 @@ import Data.List
 --import qualified Data.Map as Map
 import Data.Maybe
 import Data.Ord
-import Data.Time.Clock (UTCTime, diffUTCTime)
-import Data.Time.Format (ParseTime, parseTime, formatTime)
 import Data.Tree
 import Debug.Trace
-import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Test.QuickCheck hiding (test, Testable)
 import Text.Printf
 import Text.Regex
 import Text.ParserCombinators.Parsec (parse)
+import Ledger.Dates
 
 
 elideLeft width s =
@@ -58,25 +54,6 @@ containsRegex :: Regex -> String -> Bool
 containsRegex r s = case matchRegex r s of
                       Just _ -> True
                       otherwise -> False
-
--- time
-
--- | Parse a date-time string to a time type, or raise an error.
-parsedatetime :: ParseTime t => String -> t
-parsedatetime s =
-    parsetimewith "%Y/%m/%d %H:%M:%S" s $
-    error $ printf "could not parse timestamp \"%s\"" s
-
--- | Parse a date string to a time type, or raise an error.
-parsedate :: ParseTime t => String -> t
-parsedate s = 
-    parsetimewith "%Y/%m/%d" s $
-    error $ printf "could not parse date \"%s\"" s
-
--- | Parse a time string to a time type using the provided pattern, or
--- return the default.
-parsetimewith :: ParseTime t => String -> String -> t -> t
-parsetimewith pat s def = fromMaybe def $ parseTime defaultTimeLocale pat s
 
 -- lists
 

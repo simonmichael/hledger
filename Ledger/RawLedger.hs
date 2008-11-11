@@ -43,7 +43,7 @@ rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 -- | Remove ledger entries we are not interested in.
 -- Keep only those which fall between the begin and end dates, and match
 -- the description pattern, and are cleared or real if those options are active.
-filterRawLedger :: Date -> Date -> [String] -> Bool -> Bool -> RawLedger -> RawLedger
+filterRawLedger :: Maybe Date -> Maybe Date -> [String] -> Bool -> Bool -> RawLedger -> RawLedger
 filterRawLedger begin end pats clearedonly realonly = 
     filterRawLedgerTransactionsByRealness realonly .
     filterRawLedgerEntriesByClearedStatus clearedonly .
@@ -59,14 +59,11 @@ filterRawLedgerEntriesByDescription pats (RawLedger ms ps es f) =
 -- | Keep only entries which fall between begin and end dates. 
 -- We include entries on the begin date and exclude entries on the end
 -- date, like ledger.  An empty date string means no restriction.
-filterRawLedgerEntriesByDate :: Date -> Date -> RawLedger -> RawLedger
+filterRawLedgerEntriesByDate :: Maybe Date -> Maybe Date -> RawLedger -> RawLedger
 filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) = 
     RawLedger ms ps (filter matchdate es) f
     where 
-      d1 = parsedate begin :: UTCTime
-      d2 = parsedate end
-      matchdate e = (null begin || d >= d1) && (null end || d < d2)
-                    where d = parsedate $ edate e
+      matchdate e = (maybe True (edate e>=) begin) && (maybe True (edate e<) end)
 
 -- | Keep only entries with cleared status, if the flag is true, otherwise
 -- do no filtering.
