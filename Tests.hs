@@ -89,7 +89,9 @@ misc_tests = TestList [
   "canonicaliseAmounts" ~: do
     -- all amounts use the greatest precision
     assertequal [2,2] (rawLedgerPrecisions $ canonicaliseAmounts $ rawLedgerWithAmounts ["1","2.00"])
-
+  ,
+  "timeLog" ~: do
+    assertparseequal timelog1 (parsewith timelog timelog1_str)
   ]
 
 balancereportacctnames_tests = TestList 
