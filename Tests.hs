@@ -11,10 +11,44 @@ import PrintCommand
 import RegisterCommand
 
 
-runtests = do {putStrLn "Running tests.."; runTestTT $ tconcat [unittests, functests]}
+runtests args = do
+  putStrLn $ printf "Running %d tests%s ..\n" n s
+  runTestTT flattests
+      where
+        tests = [unittests, functests]
+        deeptests = tfilter matchname $ TestList tests
+        flattests = TestList $ filter matchname $ concatMap tflatten tests
+        matchname = Tests.matchpats args . tname
+        n = length ts where (TestList ts) = flattests
+        s | null args = ""
+          | otherwise = printf " matching %s" 
+                        (intercalate ", " $ map (printf "\"%s\"") args)
 
-tconcat :: [Test] -> Test
-tconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
+matchpats pats str = (null positives || any match positives) && (null negatives || not (any match negatives))
+    where
+      (negatives,positives) = partition isnegative pats
+      isnegative = (== [Ledger.negativepatternchar]) . take 1
+      match "" = True
+      match pat = containsRegex (mkRegexWithOpts pat' True True) str
+          where 
+            pat' = if isnegative pat then drop 1 pat else pat
+
+-- | Get a Test's label, or the empty string.
+tname :: Test -> String
+tname (TestLabel n _) = n
+tname _ = ""
+
+-- | Flatten a Test containing TestLists into a list of single tests.
+tflatten :: Test -> [Test]
+tflatten (TestLabel _ t@(TestList _)) = tflatten t
+tflatten (TestList ts) = concatMap tflatten ts
+tflatten t = [t]
+
+-- | Filter any TestLists in a Test, recursively, preserving the structure.
+tfilter :: (Test -> Bool) -> Test -> Test
+tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
+tfilter p (TestLabel l t) = TestLabel l (tfilter p t)
+tfilter _ t = t
 
 ------------------------------------------------------------------------------
 

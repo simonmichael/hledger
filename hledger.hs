@@ -61,7 +61,7 @@ main = do
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
-       | cmd `isPrefixOf` "test"     = runtests >> return ()
+       | cmd `isPrefixOf` "test"     = runtests args >> return ()
        | otherwise                   = putStr usage
 
 -- | parse the user's specified ledger file and do some action with it
