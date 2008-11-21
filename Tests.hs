@@ -127,6 +127,14 @@ balancecommandtests = TestList [
      \" --"
      (showBalanceReport [SubTotal] [] l)
  ,
+  "balance report with negative account patterns" ~: do
+    l <- ledgerfromfile "sample.ledger"
+    assertequal (
+     "                  $2  expenses\n" ++
+     "                 $-2  income\n" ++
+     "")
+     (showBalanceReport [] ["-assets","-abiliti"] l)
+ ,
   "balance report with account pattern o" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
