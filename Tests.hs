@@ -15,7 +15,6 @@ runtests args = do
   putStrLn $ printf "Running %d tests%s ..\n" n s
   runTestTT flattests
       where
-        tests = [unittests, functests]
         deeptests = tfilter matchname $ TestList tests
         flattests = TestList $ filter matchname $ concatMap tflatten tests
         matchname = matchpats args . tname
@@ -25,9 +24,17 @@ runtests args = do
                         (intercalate ", " $ map (printf "\"%s\"") args)
 
 ------------------------------------------------------------------------------
+-- tests
 
-unittests = TestList [
-  -- remember to indent assertequal arguments, contrary to haskell-mode auto-indent
+tests =
+  [TestList []
+  ,misc_tests
+  ,balancereportacctnames_tests
+  ,balancecommand_tests
+  ,registercommand_tests
+  ]
+
+misc_tests = TestList [
   "show dollars" ~: show (dollars 1) ~?= "$1.00"
   ,
   "show hours" ~: show (hours 1) ~?= "1.0h"
@@ -93,14 +100,26 @@ unittests = TestList [
         ""
             where parse = fromparse . parsewith transactionamount . (" "++)
 
-------------------------------------------------------------------------------
+balancereportacctnames_tests = TestList 
+  [
+   "balancereportacctnames0" ~: ("-s",[])              `gives` ["assets","assets:cash","assets:checking","assets:saving",
+                                                                "expenses","expenses:food","expenses:supplies","income",
+                                                                "income:gifts","income:salary","liabilities","liabilities:debts"]
+  ,"balancereportacctnames1" ~: ("",  [])              `gives` ["assets","expenses","income","liabilities"]
+  ,"balancereportacctnames2" ~: ("",  ["assets"])      `gives` ["assets"]
+  ,"balancereportacctnames3" ~: ("",  ["as"])          `gives` ["assets","assets:cash"]
+  ,"balancereportacctnames4" ~: ("",  ["assets:cash"]) `gives` ["assets:cash"]
+  ,"balancereportacctnames5" ~: ("",  ["-assets"])     `gives` ["expenses","income","liabilities"]
+  ,"balancereportacctnames6" ~: ("",  ["-e"])          `gives` []
+  ,"balancereportacctnames7" ~: ("-s",["assets"])      `gives` ["assets","assets:cash","assets:checking","assets:saving"]
+  ,"balancereportacctnames8" ~: ("-s",["-e"])          `gives` []
+  ] where
+    gives (opt,pats) e = do 
+      l <- ledgerfromfile "sample.ledger"
+      let t = pruneZeroBalanceLeaves $ ledgerAccountTree 999 l
+      assertequal e (balancereportacctnames l (opt=="-s") pats t)
 
-functests = TestList [
-  balancecommandtests
-  ,registercommandtests
-  ]
-
-balancecommandtests = TestList [
+balancecommand_tests = TestList [
   "simple balance report" ~: do
     l <- ledgerfromfile "sample.ledger"
     assertequal
@@ -221,7 +240,7 @@ balancecommandtests = TestList [
      $ showBalanceReport [] ["expenses","-food"] l
  ]
 
-registercommandtests = TestList [
+registercommand_tests = TestList [
   "register report" ~:
   do 
     l <- ledgerfromfile "sample.ledger"
