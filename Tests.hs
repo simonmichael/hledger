@@ -26,13 +26,12 @@ runtests args = do
 ------------------------------------------------------------------------------
 -- tests
 
-tests =
-  [TestList []
-  ,misc_tests
-  ,balancereportacctnames_tests
-  ,balancecommand_tests
-  ,registercommand_tests
-  ]
+tests = [TestList []
+        ,misc_tests
+        ,balancereportacctnames_tests
+        ,balancecommand_tests
+        ,registercommand_tests
+        ]
 
 misc_tests = TestList [
   "show dollars" ~: show (dollars 1) ~?= "$1.00"
@@ -120,127 +119,103 @@ balancereportacctnames_tests = TestList
       assertequal e (balancereportacctnames l (opt=="-s") pats t)
 
 balancecommand_tests = TestList [
-  "simple balance report" ~: do
-    l <- ledgerfromfile [] "sample.ledger"
-    assertequal (
-     "                 $-1  assets\n" ++
-     "                  $2  expenses\n" ++
-     "                 $-2  income\n" ++
-     "                  $1  liabilities\n" ++
-     "")
-     (showBalanceReport [] [] l)
+  "simple balance report" ~:
+  ([], []) `gives`
+  ("                 $-1  assets\n" ++
+   "                  $2  expenses\n" ++
+   "                 $-2  income\n" ++
+   "                  $1  liabilities\n" ++
+   "")
  ,
-  "balance report with --subtotal" ~: do
-    l <- ledgerfromfile [] "sample.ledger"
-    assertequal (
-     "                 $-1  assets\n" ++
-     "                 $-2    cash\n" ++
-     "                  $1    saving\n" ++
-     "                  $2  expenses\n" ++
-     "                  $1    food\n" ++
-     "                  $1    supplies\n" ++
-     "                 $-2  income\n" ++
-     "                 $-1    gifts\n" ++
-     "                 $-1    salary\n" ++
-     "                  $1  liabilities:debts\n" ++
-     "")
-     (showBalanceReport [SubTotal] [] l)
+  "balance report with --subtotal" ~:
+  ([SubTotal], []) `gives`
+  ("                 $-1  assets\n" ++
+   "                 $-2    cash\n" ++
+   "                  $1    saving\n" ++
+   "                  $2  expenses\n" ++
+   "                  $1    food\n" ++
+   "                  $1    supplies\n" ++
+   "                 $-2  income\n" ++
+   "                 $-1    gifts\n" ++
+   "                 $-1    salary\n" ++
+   "                  $1  liabilities:debts\n" ++
+   "")
  ,
-  "balance report with account pattern o" ~: do
-    l <- ledgerfromfile ["o"] "sample.ledger"
-    assertequal (
-     "                  $1  expenses:food\n" ++
-     "                 $-2  income\n" ++
-     "--------------------\n" ++
-     "                 $-1\n" ++
-     "")
-     (showBalanceReport [] ["o"] l)
+  "balance report with account pattern o" ~:
+  ([], ["o"]) `gives`
+  ("                  $1  expenses:food\n" ++
+   "                 $-2  income\n" ++
+   "--------------------\n" ++
+   "                 $-1\n" ++
+   "")
  ,
-  "balance report with account pattern o and --subtotal" ~: do
-    l <- ledgerfromfile ["o"] "sample.ledger"
-    assertequal (
-     "                  $1  expenses:food\n" ++
-     "                 $-2  income\n" ++
-     "                 $-1    gifts\n" ++
-     "                 $-1    salary\n" ++
-     "--------------------\n" ++
-     "                 $-1\n" ++
-     "")
-     (showBalanceReport [SubTotal] ["o"] l)
+  "balance report with account pattern o and --subtotal" ~:
+  ([SubTotal], ["o"]) `gives`
+  ("                  $1  expenses:food\n" ++
+   "                 $-2  income\n" ++
+   "                 $-1    gifts\n" ++
+   "                 $-1    salary\n" ++
+   "--------------------\n" ++
+   "                 $-1\n" ++
+   "")
  ,
-  "balance report with account pattern a" ~: do
-    l <- ledgerfromfile ["a"] "sample.ledger"
-    assertequal (
-     "                 $-1  assets\n" ++
-     "                 $-2    cash\n" ++
-     "                  $1    saving\n" ++
-     "                 $-1  income:salary\n" ++
-     "                  $1  liabilities\n" ++
-     "--------------------\n" ++
-     "                 $-1\n" ++
-     "")
-     (showBalanceReport [] ["a"] l)
+  "balance report with account pattern a" ~:
+  ([], ["a"]) `gives`
+  ("                 $-1  assets\n" ++
+   "                 $-2    cash\n" ++
+   "                  $1    saving\n" ++
+   "                 $-1  income:salary\n" ++
+   "                  $1  liabilities\n" ++
+   "--------------------\n" ++
+   "                 $-1\n" ++
+   "")
  ,
-  "balance report with account pattern e" ~: do
-    l <- ledgerfromfile ["e"] "sample.ledger"
-    assertequal (
-     "                 $-1  assets\n" ++
-     "                  $2  expenses\n" ++
-     "                  $1    supplies\n" ++
-     "                 $-2  income\n" ++
-     "                  $1  liabilities:debts\n" ++
-     "")
-     (showBalanceReport [] ["e"] l)
+  "balance report with account pattern e" ~:
+  ([], ["e"]) `gives`
+  ("                 $-1  assets\n" ++
+   "                  $2  expenses\n" ++
+   "                  $1    supplies\n" ++
+   "                 $-2  income\n" ++
+   "                  $1  liabilities:debts\n" ++
+   "")
  ,
   "balance report with unmatched parent of two matched subaccounts" ~: 
-  do
-    l <- ledgerfromfile ["cash","saving"] "sample.ledger"
-    assertequal (
-     "                 $-2  assets:cash\n" ++
-     "                  $1  assets:saving\n" ++
-     "--------------------\n" ++
-     "                 $-1\n" ++
-     "")
-     (showBalanceReport [] ["cash","saving"] l)
+  ([], ["cash","saving"]) `gives`
+  ("                 $-2  assets:cash\n" ++
+   "                  $1  assets:saving\n" ++
+   "--------------------\n" ++
+   "                 $-1\n" ++
+   "")
  ,
   "balance report with multi-part account name" ~: 
-  do 
-    let pats = ["expenses:food"]
-    l <- ledgerfromfile pats "sample.ledger"
-    assertequal (
-     "                  $1  expenses:food\n" ++
-     "--------------------\n" ++
-     "                  $1\n" ++
-     "")
-     $ showBalanceReport [] pats l
+  ([], ["expenses:food"]) `gives`
+  ("                  $1  expenses:food\n" ++
+   "--------------------\n" ++
+   "                  $1\n" ++
+   "")
  ,
-  "balance report with negative account pattern" ~: do
-    l <- ledgerfromfile ["-assets"] "sample.ledger"
-    assertequal (
-     "                  $2  expenses\n" ++
-     "                 $-2  income\n" ++
-     "                  $1  liabilities\n" ++
-     "--------------------\n" ++
-     "                  $1\n" ++
-     "")
-     (showBalanceReport [] ["-assets"] l)
+  "balance report with negative account pattern" ~:
+  ([], ["-assets"]) `gives`
+  ("                  $2  expenses\n" ++
+   "                 $-2  income\n" ++
+   "                  $1  liabilities\n" ++
+   "--------------------\n" ++
+   "                  $1\n" ++
+   "")
  ,
   "balance report negative account pattern always matches full name" ~: 
-  do 
-    l <- ledgerfromfile ["-e"] "sample.ledger"
-    assertequal "" $ showBalanceReport [] ["-e"] l
+  ([], ["-e"]) `gives` ""
  ,
   "balance report negative patterns affect totals" ~: 
-  do 
-    let pats = ["expenses","-food"]
-    l <- ledgerfromfile pats "sample.ledger"
-    assertequal (
-     "                  $1  expenses\n" ++
-     "--------------------\n" ++
-     "                  $1\n" ++
-     "")
-     $ showBalanceReport [] pats l
- ]
+  ([], ["expenses","-food"]) `gives`
+  ("                  $1  expenses\n" ++
+   "--------------------\n" ++
+   "                  $1\n" ++
+   "")
+ ] where
+    gives (opts,pats) e = do 
+      l <- ledgerfromfile pats "sample.ledger"
+      assertequal e (showBalanceReport opts pats l)
 
 registercommand_tests = TestList [
   "register report" ~:
