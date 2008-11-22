@@ -479,3 +479,61 @@ ledgerfromtimelog = do
   tl <- timelog
   return $ ledgerFromTimeLog tl
 
+
+-- misc parsing
+{-| 
+Parse a date in any of the formats allowed in ledger's period expressions:
+
+> 2004
+> 2004/10
+> 2004/10/1
+> 10/1
+> october
+> oct
+> this week  # or day, month, quarter, year
+> next week
+> last week
+-}
+smartdate :: Parser (String,String,String)
+smartdate = do
+  (y,m,d) <- (
+             try ymd 
+             <|> try ym 
+             <|> try y
+--              <|> try md
+--              <|> try month
+--              <|> try mon
+--              <|> try thiswhatever
+--              <|> try nextwhatever
+--              <|> try lastwhatever
+            )
+  return $ (y,m,d)
+
+datesep = oneOf "/-."
+
+ymd :: Parser (String,String,String)
+ymd = do
+  y <- many digit
+  datesep
+  m <- many digit
+  datesep
+  d <- many digit
+  return (y,m,d)
+
+ym :: Parser (String,String,String)
+ym = do
+  y <- many digit
+  datesep
+  m <- many digit
+  return (y,m,"1")
+
+y :: Parser (String,String,String)
+y = do
+  y <- many digit
+  return (y,"1","1")
+
+-- | Parse a flexible date string, with awareness of the current time,
+-- | and return a Date or raise an error.
+smartparsedate :: String -> Date
+smartparsedate s = parsedate $ printf "%04s/%02s/%02s" y m d
+    where (y,m,d) = fromparse $ parsewith smartdate s

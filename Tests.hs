@@ -92,6 +92,11 @@ misc_tests = TestList [
   ,
   "timeLog" ~: do
     assertparseequal timelog1 (parsewith timelog timelog1_str)
+  ,                  
+  "smartparsedate"     ~: do
+    assertequal (1999,12,13) (dateComponents $ smartparsedate "1999/12/13")
+    assertequal (2008,2,1)   (dateComponents $ smartparsedate "2008-2")
+    assertequal (2008,1,1)   (dateComponents $ smartparsedate "2008")
   ]
 
 balancereportacctnames_tests = TestList 

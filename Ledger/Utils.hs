@@ -12,6 +12,8 @@ module Data.List,
 module Data.Maybe,
 module Data.Ord,
 module Data.Tree,
+module Data.Time.Clock,
+module Data.Time.Calendar,
 module Debug.Trace,
 module Ledger.Utils,
 module Text.Printf,
@@ -27,6 +29,8 @@ import Data.List
 import Data.Maybe
 import Data.Ord
 import Data.Tree
+import Data.Time.Clock
+import Data.Time.Calendar
 import Debug.Trace
 import Test.HUnit
 import Test.QuickCheck hiding (test, Testable)

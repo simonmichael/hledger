@@ -4,16 +4,19 @@ Types for Dates and DateTimes, implemented in terms of UTCTime
 
 -}
 
-module Ledger.Dates(
-    Date,                    
-    DateTime,
-    mkDate,
-    mkDateTime,
-    parsedatetime,
-    parsedate,
-    datetimeToDate,
-    elapsedSeconds
-    ) where
+module Ledger.Dates
+--(
+--     Date,                    
+--     DateTime,
+--     mkDate,
+--     mkDateTime,
+--     parsedatetime,
+--     parsedate,
+--     datetimeToDate,
+--     elapsedSeconds,
+--     today
+--    ) 
+where
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -64,3 +67,17 @@ datetimeToDate (DateTime (UTCTime{utctDay=day})) = Date (UTCTime day 0)
 elapsedSeconds :: Fractional a => DateTime -> DateTime -> a
 elapsedSeconds (DateTime dt1) (DateTime dt2) = realToFrac $ diffUTCTime dt1 dt2
 
+today :: IO Date
+today = getCurrentTime >>= return . Date
+
+dateToUTC :: Date -> UTCTime
+dateToUTC (Date u) = u
+
+dateComponents :: Date -> (Integer,Int,Int)
+dateComponents = toGregorian . utctDay . dateToUTC
+
+-- dateDay :: Date -> Day
+dateDay date = d where (_,_,d) = dateComponents date
+
+-- dateMonth :: Date -> Day
+dateMonth date = m where (_,m,_) = dateComponents date
