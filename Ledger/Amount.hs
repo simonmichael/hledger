@@ -55,13 +55,21 @@ instance Num Amount where
     (-) = amountop (-)
     (*) = amountop (*)
 
+instance Ord Amount where
+    compare (Amount ac aq ap) (Amount bc bq bp) = compare (ac,aq,ap) (bc,bq,bp)
+
 instance Num MixedAmount where
     fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
-    negate (Mixed as) = Mixed $ map negate as
+    negate (Mixed as) = Mixed $ map negateAmountPreservingPrice as
     (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ filter (not . isZeroAmount) $ as ++ bs
     (*)    = error "programming error, mixed amounts do not support multiplication"
     abs    = error "programming error, mixed amounts do not support abs"
     signum = error "programming error, mixed amounts do not support signum"
+
+instance Ord MixedAmount where
+    compare (Mixed as) (Mixed bs) = compare as bs
+
+negateAmountPreservingPrice a = (-a){price=price a}
 
 -- | Apply a binary arithmetic operator to two amounts - converting to the
 -- second one's commodity, adopting the lowest precision, and discarding
@@ -136,14 +144,20 @@ showMixedAmountOrZero a
     | isZeroMixedAmount a = "0"
     | otherwise = showMixedAmount a
 
--- | Simplify a mixed amount by combining any of its component amounts
--- which have the same commodity.
+-- | Simplify a mixed amount by combining any component amounts which have
+-- the same commodity and the same price.
 normaliseMixedAmount :: MixedAmount -> MixedAmount
-normaliseMixedAmount (Mixed as) = Mixed $ map sum $ grouped
+normaliseMixedAmount (Mixed as) = Mixed as'
     where 
-      grouped = [filter (hassymbol s) as | s <- symbols]
-      symbols = sort $ nub $ map (symbol . commodity) as
-      hassymbol s a = s == (symbol $ commodity a)
+      as' = map sumAmountsPreservingPrice $ group $ sort as
+      sort = sortBy cmpsymbolandprice
+      cmpsymbolandprice a1 a2 = compare (sym a1,price a1) (sym a2,price a2)
+      group = groupBy samesymbolandprice 
+      samesymbolandprice a1 a2 = (sym a1 == sym a2) && (price a1 == price a2)
+      sym = symbol . commodity
+
+sumAmountsPreservingPrice [] = nullamt
+sumAmountsPreservingPrice as = (sum as){price=price $ head as}
 
 -- | Convert a mixed amount's component amounts to the commodity of their
 -- saved price, if any.
