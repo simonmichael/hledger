@@ -30,6 +30,7 @@ tests = [TestList []
         ,misc_tests
         ,balancereportacctnames_tests
         ,balancecommand_tests
+        ,printcommand_tests
         ,registercommand_tests
         ]
 
@@ -270,6 +271,20 @@ balancecommand_tests = TestList [
     gives (opts,pats) e = do 
       l <- ledgerfromfile pats "sample.ledger"
       assertequal e (showBalanceReport opts pats l)
+
+printcommand_tests = TestList [
+  "print with account patterns" ~:
+  do 
+    let pats = ["expenses"]
+    l <- ledgerfromfile pats "sample.ledger"
+    assertequal (
+     "2007/01/01 * eat & shop\n" ++
+     "    expenses:food                                 $1\n" ++
+     "    expenses:supplies                             $1\n" ++
+     "    assets:cash                                  $-2\n" ++
+     "\n")
+     $ showEntries [] pats l
+  ]
 
 registercommand_tests = TestList [
   "register report" ~:

@@ -49,7 +49,7 @@ pcommentwidth = no limit -- 22
 -}
 showEntry :: Entry -> String
 showEntry e = 
-    unlines $ [precedingcomment ++ description] ++ (showtxns $ etransactions e) ++ [""]
+    unlines $ [{-precedingcomment ++ -}description] ++ (showtxns $ etransactions e) ++ [""]
     where
       precedingcomment = epreceding_comment_lines e
       description = concat [date, status, code, desc] -- , comment]

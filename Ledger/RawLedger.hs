@@ -50,7 +50,7 @@ filterRawLedger begin end pats clearedonly realonly =
     filterRawLedgerEntriesByDate begin end .
     filterRawLedgerEntriesByDescription pats
 
--- | Keep only entries whose description matches the description pattern.
+-- | Keep only entries whose description matches the description patterns.
 filterRawLedgerEntriesByDescription :: [String] -> RawLedger -> RawLedger
 filterRawLedgerEntriesByDescription pats (RawLedger ms ps es f) = 
     RawLedger ms ps (filter matchdesc es) f
@@ -79,6 +79,11 @@ filterRawLedgerTransactionsByRealness False l = l
 filterRawLedgerTransactionsByRealness True (RawLedger ms ps es f) =
     RawLedger ms ps (map filtertxns es) f
     where filtertxns e@Entry{etransactions=ts} = e{etransactions=filter isReal ts}
+
+-- | Keep only entries which affect accounts matched by the account patterns.
+filterRawLedgerEntriesByAccount :: [String] -> RawLedger -> RawLedger
+filterRawLedgerEntriesByAccount apats (RawLedger ms ps es f) =
+    RawLedger ms ps (filter (any (matchpats apats . taccount) . etransactions) es) f
 
 -- | Give all a ledger's amounts their canonical display settings.  That
 -- is, in each commodity, amounts will use the display settings of the
