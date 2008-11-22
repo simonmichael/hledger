@@ -76,8 +76,9 @@ isEntryBalanced (Entry {etransactions=ts}) =
 -- | Fill in a missing balance in this entry, if we have enough
 -- information to do that. Excluding virtual transactions, there should be
 -- at most one missing balance. Otherwise, raise an error.
+-- The new balance will be converted to cost basis if possible.
 balanceEntry :: Entry -> Entry
-balanceEntry e@(Entry{etransactions=ts}) = e{etransactions=ts'}
+balanceEntry e@Entry{etransactions=ts} = e{etransactions=ts'}
     where 
       (withamounts, missingamounts) = partition hasAmount $ filter isReal ts
       ts' = case (length missingamounts) of
@@ -86,5 +87,5 @@ balanceEntry e@(Entry{etransactions=ts}) = e{etransactions=ts'}
               otherwise -> error $ "could not balance this entry, too many missing amounts:\n" ++ show e
       otherstotal = sum $ map tamount withamounts
       balance t
-          | isReal t && not (hasAmount t) = t{tamount = -otherstotal}
+          | isReal t && not (hasAmount t) = t{tamount = costOfMixedAmount (-otherstotal)}
           | otherwise = t
