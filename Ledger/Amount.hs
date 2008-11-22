@@ -48,45 +48,47 @@ instance Show Amount where show = showAmount
 instance Show MixedAmount where show = showMixedAmount
 
 instance Num Amount where
-    abs (Amount c q) = Amount c (abs q)
-    signum (Amount c q) = Amount c (signum q)
-    fromInteger i = Amount (comm "") (fromInteger i)
+    abs (Amount c q p) = Amount c (abs q) p
+    signum (Amount c q p) = Amount c (signum q) p
+    fromInteger i = Amount (comm "") (fromInteger i) Nothing
     (+) = amountop (+)
     (-) = amountop (-)
     (*) = amountop (*)
 
 instance Num MixedAmount where
-    fromInteger i = Mixed [Amount (comm "") (fromInteger i)]
+    fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
     negate (Mixed as) = Mixed $ map negate as
     (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ filter (not . isZeroAmount) $ as ++ bs
     (*)    = error "programming error, mixed amounts do not support multiplication"
     abs    = error "programming error, mixed amounts do not support abs"
     signum = error "programming error, mixed amounts do not support signum"
 
--- | Apply a binary arithmetic operator to two amounts, converting
--- to the second one's commodity and adopting the lowest
--- precision. (Using the second commodity is best since sum and
--- other folds start with a no-commodity amount.)
+-- | Apply a binary arithmetic operator to two amounts - converting to the
+-- second one's commodity, adopting the lowest precision, and discarding
+-- any price information. (Using the second commodity is best since sum
+-- and other folds start with a no-commodity amount.)
 amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
-amountop op a@(Amount ac aq) b@(Amount bc bq) = 
-    Amount bc ((quantity $ convertAmountTo bc a) `op` bq)
+amountop op a@(Amount ac aq ap) b@(Amount bc bq bp) = 
+    Amount bc ((quantity $ convertAmountTo bc a) `op` bq) Nothing
 
 -- | Convert an amount to the specified commodity using the appropriate
 -- exchange rate (which is currently always 1).
 convertAmountTo :: Commodity -> Amount -> Amount
-convertAmountTo c2 (Amount c1 q) = Amount c2 (q * conversionRate c1 c2)
+convertAmountTo c2 (Amount c1 q p) = Amount c2 (q * conversionRate c1 c2) Nothing
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
 showAmount :: Amount -> String
-showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,comma=comma,precision=p}) q)
+showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,comma=comma,precision=p}) q pri)
     | sym=="AUTO" = "" -- can display one of these in an error message
-    | side==L = printf "%s%s%s" sym space quantity
-    | side==R = printf "%s%s%s" quantity space sym
+    | side==L = printf "%s%s%s%s" sym space quantity price
+    | side==R = printf "%s%s%s%s" quantity space sym price
     where 
       space = if spaced then " " else ""
       quantity = commad $ printf ("%."++show p++"f") q
       commad = if comma then punctuatethousands else id
+      price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
+                          Nothing -> ""
 
 -- | Add thousands-separating commas to a decimal number string
 punctuatethousands :: String -> String
@@ -101,7 +103,7 @@ punctuatethousands s =
 
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
-isZeroAmount a@(Amount c _ ) = nonzerodigits == ""
+isZeroAmount a = nonzerodigits == ""
     where nonzerodigits = filter (`elem` "123456789") $ showAmount a
 
 -- | Access a mixed amount's components.
@@ -114,8 +116,7 @@ isZeroMixedAmount :: MixedAmount -> Bool
 isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
 
 -- | Get the string representation of a mixed amount, showing each of
--- its component amounts. We currently display them on one line but
--- will need to change to ledger's vertical layout.
+-- its component amounts.
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = concat $ intersperse ", " $ map show as
     where (Mixed as) = normaliseMixedAmount m
@@ -142,5 +143,5 @@ nullamt = Mixed []
 
 -- | A temporary value for parsed transactions which had no amount specified.
 missingamt :: MixedAmount
-missingamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0}) 0]
+missingamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0}) 0 Nothing]
 

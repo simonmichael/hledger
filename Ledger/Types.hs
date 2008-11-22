@@ -31,7 +31,8 @@ data Commodity = Commodity {
 
 data Amount = Amount {
       commodity :: Commodity,
-      quantity :: Double
+      quantity :: Double,
+      price :: Maybe MixedAmount  -- ^ optional per-unit price for this amount at the time of entry
     } deriving (Eq)
 
 newtype MixedAmount = Mixed [Amount] deriving (Eq)

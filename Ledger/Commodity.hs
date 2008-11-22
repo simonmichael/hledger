@@ -23,10 +23,10 @@ euro    = Commodity {symbol="EUR",side=L,spaced=False,comma=False,precision=2}
 pound   = Commodity {symbol="£",side=L,spaced=False,comma=False,precision=2}
 hour    = Commodity {symbol="h",side=R,spaced=False,comma=False,precision=1}
 
-dollars  = Amount dollar
-euros    = Amount euro
-pounds   = Amount pound
-hours    = Amount hour
+dollars n = Amount dollar n Nothing
+euros n   = Amount euro n Nothing
+pounds n  = Amount pound n Nothing
+hours n   = Amount hour n Nothing
 
 defaultcommodities = [dollar,  euro,  pound, hour, unknown]
 

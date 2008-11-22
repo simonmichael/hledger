@@ -34,15 +34,15 @@ unittests = TestList [
   ,
   "amount arithmetic"   ~: do
     let a1 = dollars 1.23
-    let a2 = Amount (comm "$") (-1.23)
-    let a3 = Amount (comm "$") (-1.23)
-    assertequal (Amount (comm "$") 0) (a1 + a2)
-    assertequal (Amount (comm "$") 0) (a1 + a3)
-    assertequal (Amount (comm "$") (-2.46)) (a2 + a3)
-    assertequal (Amount (comm "$") (-2.46)) (a3 + a3)
-    assertequal (Amount (comm "$") (-2.46)) (sum [a2,a3])
-    assertequal (Amount (comm "$") (-2.46)) (sum [a3,a3])
-    assertequal (Amount (comm "$") 0) (sum [a1,a2,a3,-a3])
+    let a2 = Amount (comm "$") (-1.23) Nothing
+    let a3 = Amount (comm "$") (-1.23) Nothing
+    assertequal (Amount (comm "$") 0 Nothing) (a1 + a2)
+    assertequal (Amount (comm "$") 0 Nothing) (a1 + a3)
+    assertequal (Amount (comm "$") (-2.46) Nothing) (a2 + a3)
+    assertequal (Amount (comm "$") (-2.46) Nothing) (a3 + a3)
+    assertequal (Amount (comm "$") (-2.46) Nothing) (sum [a2,a3])
+    assertequal (Amount (comm "$") (-2.46) Nothing) (sum [a3,a3])
+    assertequal (Amount (comm "$") 0 Nothing) (sum [a1,a2,a3,-a3])
   ,
   "ledgertransaction"  ~: do
     assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)
@@ -78,7 +78,7 @@ unittests = TestList [
   ,
   "transactionamount"       ~: do
     assertparseequal (Mixed [dollars 47.18]) (parsewith transactionamount " $47.18")
-    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1]) (parsewith transactionamount " $1.")
+    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]) (parsewith transactionamount " $1.")
   ,
   "setAmountDisplayPrefs" ~: do
     let l = setAmountDisplayPrefs $ rawLedgerWithAmounts ["1","2.00"]

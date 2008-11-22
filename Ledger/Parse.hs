@@ -305,17 +305,20 @@ transactionamount :: Parser MixedAmount
 transactionamount =
   try (do
         many1 spacenonewline
-        a <- try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount <|> return missingamt
+        a <- someamount <|> return missingamt
         return a
       ) <|> return missingamt
+
+someamount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount 
 
 leftsymbolamount :: Parser MixedAmount
 leftsymbolamount = do
   sym <- commoditysymbol 
   sp <- many spacenonewline
   (q,p,comma) <- amountquantity
+  pri <- priceamount
   let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,comma=comma,precision=p}
-  return $ Mixed [Amount c q]
+  return $ Mixed [Amount c q pri]
   <?> "left-symbol amount"
 
 rightsymbolamount :: Parser MixedAmount
@@ -323,19 +326,31 @@ rightsymbolamount = do
   (q,p,comma) <- amountquantity
   sp <- many spacenonewline
   sym <- commoditysymbol
+  pri <- priceamount
   let c = Commodity {symbol=sym,side=R,spaced=not $ null sp,comma=comma,precision=p}
-  return $ Mixed [Amount c q]
+  return $ Mixed [Amount c q pri]
   <?> "right-symbol amount"
 
 nosymbolamount :: Parser MixedAmount
 nosymbolamount = do
   (q,p,comma) <- amountquantity
+  pri <- priceamount
   let c = Commodity {symbol="",side=L,spaced=False,comma=comma,precision=p}
-  return $ Mixed [Amount c q]
+  return $ Mixed [Amount c q pri]
   <?> "no-symbol amount"
 
 commoditysymbol :: Parser String
 commoditysymbol = many1 (noneOf "-.0123456789;\n ") <?> "commodity symbol"
+
+priceamount :: Parser (Maybe MixedAmount)
+priceamount =
+    try (do
+          many spacenonewline
+          char '@'
+          many spacenonewline
+          a <- someamount
+          return $ Just a
+          ) <|> return Nothing
 
 -- gawd.. trying to parse a ledger number without error:
 

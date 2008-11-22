@@ -93,7 +93,7 @@ setAmountDisplayPrefs l@(RawLedger ms ps es f) = RawLedger ms ps (map fixEntryAm
       fixEntryAmounts (Entry d s c de co ts pr) = Entry d s c de co (map fixRawTransactionAmounts ts) pr
       fixRawTransactionAmounts (RawTransaction ac a c t) = RawTransaction ac (fixMixedAmount a) c t
       fixMixedAmount (Mixed as) = Mixed $ map fixAmount as
-      fixAmount (Amount c q) = Amount (canonicalcommodity c) q
+      fixAmount (Amount c q pri) = Amount (canonicalcommodity c) q pri
       canonicalcommodity c@(Commodity {symbol=s}) =
           (firstoccurrenceof c){precision=maximum $ map precision $ commoditieswithsymbol s}
       firstoccurrenceof Commodity{symbol=s} = head $ commoditieswithsymbol s
