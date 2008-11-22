@@ -212,6 +212,16 @@ balancecommand_tests = TestList [
    "--------------------\n" ++
    "                  $1\n" ++
    "")
+ ,
+  "balance report with -E shows zero-balance accounts" ~:
+  ([SubTotal,Empty], ["assets"]) `gives`
+  ("                 $-1  assets\n" ++
+   "                 $-2    cash\n" ++
+   "                  $0    checking\n" ++
+   "                  $1    saving\n" ++
+   "--------------------\n" ++
+   "                 $-1\n" ++
+   "")
  ] where
     gives (opts,pats) e = do 
       l <- ledgerfromfile pats "sample.ledger"

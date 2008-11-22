@@ -124,9 +124,10 @@ showBalanceReport opts args l = acctsstr ++ totalstr
       acctsstr = concatMap showatree $ subs t
       showatree t = showAccountTreeWithBalances matchedacctnames t
       matchedacctnames = balancereportacctnames l sub apats t
-      t = pruneZeroBalanceLeaves $ ledgerAccountTree maxdepth l
+      t = (if empty then id else pruneZeroBalanceLeaves) $ ledgerAccountTree maxdepth l
       apats = fst $ parseAccountDescriptionArgs args
       sub = SubTotal `elem` opts
+      empty = Empty `elem` opts
       maxdepth = 9999
       totalstr = if isZeroMixedAmount total 
                  then "" 
