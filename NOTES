@@ -6,12 +6,19 @@ implementations were its consequences." --Niklaus Wirth
 
 * to do
 ** errors
+*** make account balances reflect account filtering
+*** print command doesn't filter by account ?
+*** ? in description or amount gives "too many blank transactions"
+*** parse commented lines at end of file 
 *** display mixed amounts vertically, not horizontally
 ** features
+*** -E to show zero amounts, for reports and showing informational timelog entries
+*** -n to skip total, for compound reports
 *** flexible date expressions, for easier time reports
 *** commodity @ rate, for tracking client hours in main ledger
 *** actual/effective entry & txn dates, for ...
 *** --display, for reconciling recent transactions with real balance
+*** depth control
 *** more ledger features from README
 *** new features
 **** option for strict ledger-compatible output (or, compare xml ?)
