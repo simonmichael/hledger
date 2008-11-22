@@ -88,7 +88,7 @@ misc_tests = TestList [
   ,
   "canonicaliseAmounts" ~: do
     -- all amounts use the greatest precision
-    assertequal [2,2] (rawLedgerPrecisions $ canonicaliseAmounts $ rawLedgerWithAmounts ["1","2.00"])
+    assertequal [2,2] (rawLedgerPrecisions $ canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"])
   ,
   "timeLog" ~: do
     assertparseequal timelog1 (parsewith timelog timelog1_str)
@@ -239,6 +239,23 @@ balancecommand_tests = TestList [
    "                 $-2    cash\n" ++
    "                  $1    saving\n" ++
    "")
+ ,
+  "balance report with cost basis" ~: do
+    let l = cacheLedger [] $ 
+            filterRawLedger Nothing Nothing [] False False $ 
+            canonicaliseAmounts True $ -- enable cost basis adjustment
+            rawledgerfromstring
+             ("" ++
+              "2008/1/1 test           \n" ++
+              "  a:b          10h @ $50\n" ++
+              "  c:d                   \n" ++
+              "\n")
+    assertequal 
+             ("                $500  a\n" ++
+              "               $-500  c\n" ++
+              ""
+             )
+             (showBalanceReport [] [] l)
  ] where
     gives (opts,pats) e = do 
       l <- ledgerfromfile pats "sample.ledger"

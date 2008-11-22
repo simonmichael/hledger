@@ -73,14 +73,18 @@ This version of hledger mimics a subset of ledger 2.6.1:
    -E, --empty            balance report: show accounts with zero balance
    -n, --collapse         balance report: no grand total
  
+   Commodity reporting:
+   -B, --basis, --cost    report cost basis of commodities
+
    Commands:
    balance  [REGEXP]...   show balance totals for matching accounts
    register [REGEXP]...   show register of matching transactions
    print    [REGEXP]...   print all matching entries
 
-hledger-only features:
+hledger-specific features:
 
--  --depth=N              balance report: maximum account depth to show
+   --depth=N              balance report: maximum account depth to show
+   --cost                 alias for basis
 
 ledger features not supported:
 
@@ -146,7 +150,6 @@ ledger features not supported:
    -L, --price-exp MINS   download quotes only if newer than MINS (def: 1440)
    -Q, --download         download price information when needed
    -O, --quantity         report commodity totals (this is the default)
-   -B, --basis            report cost basis of commodities
    -V, --market           report last known market value
    -g, --performance      report gain/loss for each displayed transaction
    -G, --gain             report net gain/loss
@@ -162,3 +165,4 @@ Some other differences:
 - hledger talks about the entry and transaction "description", which ledger calls "note"
 - hledger always shows timelog balances in hours
 - hledger doesn't require a space after flags like -f
+- hledger keeps differently-priced amounts of the same commodity separate

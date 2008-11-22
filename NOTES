@@ -15,7 +15,6 @@ implementations were its consequences." --Niklaus Wirth
 *** flexible date expressions, for easier time reports
 **** more formats
 **** periods
-*** commodity @ rate, for tracking client hours in main ledger
 *** actual/effective entry & txn dates, for ?
 *** --display, for reconciling recent transactions with real balance
 *** more ledger features from README

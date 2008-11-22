@@ -29,6 +29,7 @@ options = [
  Option ['b'] ["begin"]        (ReqArg Begin "YYYY/MM/DD") "report on entries on or after this date",
  Option ['e'] ["end"]          (ReqArg End "YYYY/MM/DD")   "report on entries prior to this date",
  Option ['C'] ["cleared"]      (NoArg  Cleared)            "report only on cleared entries",
+ Option ['B'] ["cost","basis"] (NoArg  CostBasis)          "report cost basis of commodities",
  Option []    ["depth"]        (ReqArg Depth "N")          "balance report: maximum account depth to show",
  Option ['E'] ["empty"]        (NoArg  Empty)              "balance report: show accounts with zero balance",
  Option ['R'] ["real"]         (NoArg  Real)               "report only on real (non-virtual) transactions",
@@ -44,6 +45,7 @@ data Opt =
     Begin String | 
     End String | 
     Cleared | 
+    CostBasis | 
     Depth String | 
     Empty | 
     Real | 
