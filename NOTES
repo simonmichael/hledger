@@ -12,7 +12,6 @@ implementations were its consequences." --Niklaus Wirth
 *** parse commented lines at end of file 
 *** display mixed amounts vertically, not horizontally
 ** features
-*** -n to skip total, for compound reports
 *** flexible date expressions, for easier time reports
 *** commodity @ rate, for tracking client hours in main ledger
 *** actual/effective entry & txn dates, for ...

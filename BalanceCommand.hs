@@ -119,7 +119,7 @@ balance opts args l = putStr $ showBalanceReport opts args l
 
 -- | Generate balance report output for a ledger, based on options.
 showBalanceReport :: [Opt] -> [String] -> Ledger -> String
-showBalanceReport opts args l = acctsstr ++ totalstr
+showBalanceReport opts args l = acctsstr ++ (if collapse then "" else totalstr)
     where 
       acctsstr = concatMap showatree $ subs t
       showatree t = showAccountTreeWithBalances matchedacctnames t
@@ -128,6 +128,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
       apats = fst $ parseAccountDescriptionArgs args
       sub = SubTotal `elem` opts
       empty = Empty `elem` opts
+      collapse = Collapse `elem` opts
       maxdepth = 9999
       totalstr = if isZeroMixedAmount total 
                  then "" 

@@ -222,6 +222,11 @@ balancecommand_tests = TestList [
    "--------------------\n" ++
    "                 $-1\n" ++
    "")
+ ,
+  "balance report with -n omits the total" ~:
+  ([Collapse], ["cash"]) `gives`
+  ("                 $-2  assets:cash\n" ++
+   "")
  ] where
     gives (opts,pats) e = do 
       l <- ledgerfromfile pats "sample.ledger"
