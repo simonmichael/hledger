@@ -6,8 +6,6 @@ implementations were its consequences." --Niklaus Wirth
 
 * to do
 ** errors
-*** ? in description or amount gives "too many blank transactions"
-*** parse commented lines at end of file 
 *** display mixed amounts vertically, not horizontally
 ** features
 *** flexible date expressions, for easier time reports

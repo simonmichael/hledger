@@ -171,14 +171,14 @@ ledger = do
   modifier_entries <- many ledgermodifierentry
   periodic_entries <- many ledgerperiodicentry
 
-  entries <- (many ledgerentry) <?> "entry"
+  entries <- (many $ try ledgerentry) <?> "entry"
   final_comment_lines <- ledgernondatalines
   eof
   return $ RawLedger modifier_entries periodic_entries entries (unlines final_comment_lines)
 
 ledgernondatalines :: Parser [String]
-ledgernondatalines = many (ledgerdirective <|> -- treat as comments
-                           commentline <|> 
+ledgernondatalines = many (try ledgerdirective <|> -- treat as comments
+                           try commentline <|> 
                            blankline)
 
 ledgerdirective :: Parser String
