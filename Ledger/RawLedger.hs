@@ -17,8 +17,6 @@ import Ledger.Transaction
 import Ledger.RawTransaction
 
 
-negativepatternchar = '-'
-
 instance Show RawLedger where
     show l = printf "RawLedger with %d entries, %d accounts: %s"
              ((length $ entries l) +
@@ -56,7 +54,7 @@ filterRawLedger begin end pats clearedonly realonly =
 filterRawLedgerEntriesByDescription :: [String] -> RawLedger -> RawLedger
 filterRawLedgerEntriesByDescription pats (RawLedger ms ps es f) = 
     RawLedger ms ps (filter matchdesc es) f
-    where matchdesc = matchLedgerPatterns False pats . edescription
+    where matchdesc = matchpats pats . edescription
 
 -- | Keep only entries which fall between begin and end dates. 
 -- We include entries on the begin date and exclude entries on the end
@@ -84,27 +82,6 @@ filterRawLedgerTransactionsByRealness False l = l
 filterRawLedgerTransactionsByRealness True (RawLedger ms ps es f) =
     RawLedger ms ps (map filtertxns es) f
     where filtertxns e@Entry{etransactions=ts} = e{etransactions=filter isReal ts}
-
--- | Check if a set of ledger account/description patterns matches the
--- given account name or entry description.  Patterns are case-insensitive
--- regular expression strings; those beginning with - are anti-patterns.
--- 
--- Call with forbalancereport=True to mimic ledger's balance report
--- matching. Account patterns usually match the full account name, but in
--- balance reports when the pattern does not contain : and is not an
--- anti-pattern, it matches only the leaf name.
-matchLedgerPatterns :: Bool -> [String] -> String -> Bool
-matchLedgerPatterns forbalancereport pats str =
-    (null positives || any ismatch positives) && (null negatives || not (any ismatch negatives))
-    where 
-      isnegative = (== negativepatternchar) . head
-      (negatives,positives) = partition isnegative pats
-      ismatch pat = containsRegex (mkRegexWithOpts pat' True True) matchee
-          where 
-            pat' = if isnegative pat then drop 1 pat else pat
-            matchee = if forbalancereport && not (':' `elem` pat) && not (isnegative pat)
-                      then accountLeafName str
-                      else str
 
 -- | Give all a ledger's amounts their canonical display settings.  That
 -- is, in each commodity all amounts will use the display settings of the

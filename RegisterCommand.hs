@@ -29,7 +29,7 @@ showRegisterReport :: [Opt] -> [String] -> Ledger -> String
 showRegisterReport opts args l = showtxns ts nulltxn nullamt
     where
       ts = filter matchtxn $ ledgerTransactions l
-      matchtxn Transaction{account=a} = matchLedgerPatterns False apats a
+      matchtxn Transaction{account=a} = matchpats apats a
       apats = fst $ parseAccountDescriptionArgs args
 
       -- show transactions, one per line, with a running balance

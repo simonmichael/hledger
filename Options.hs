@@ -3,7 +3,7 @@ where
 import System
 import System.Console.GetOpt
 import System.Directory
-import Ledger.RawLedger (negativepatternchar)
+import Ledger.AccountName (negativepatternchar)
 
 usagehdr    = "Usage: hledger [OPTS] balance|print|register [ACCTPATS] [-- DESCPATS]\n\nOptions"++warning++":"
 warning     = if negativepatternchar=='-' then " (must appear before command)" else " (can appear anywhere)"
