@@ -117,7 +117,7 @@ import Utils
 balance :: [Opt] -> [String] -> Ledger -> IO ()
 balance opts args l = putStr $ showBalanceReport opts args l
 
--- | Generate balance report output for a ledger, based on options.
+-- | Generate balance report output for a ledger.
 showBalanceReport :: [Opt] -> [String] -> Ledger -> String
 showBalanceReport opts args l = acctsstr ++ (if collapse then "" else totalstr)
     where 
@@ -138,7 +138,7 @@ showBalanceReport opts args l = acctsstr ++ (if collapse then "" else totalstr)
       hasparentshowing aname = (parentAccountName $ aname) `elem` matchedacctnames
 
 -- | Identify the accounts we are interested in seeing balances for in the
--- balance report, based on the -s flag and account patterns.
+-- balance report, based on the -s flag and account patterns. See Tests.hs.
 balancereportacctnames :: Ledger -> Bool -> [String] -> Tree Account -> [AccountName]
 balancereportacctnames l False [] t   = filter (/= "top") $ map aname $ flatten $ treeprune 1 t
 balancereportacctnames l False pats t = filter (/= "top") $ ns
@@ -158,9 +158,9 @@ balancereportacctnames l True pats t  = nub $ map aname $ addsubaccts l $ as
 pruneZeroBalanceLeaves :: Tree Account -> Tree Account
 pruneZeroBalanceLeaves = treefilter (not . isZeroMixedAmount . abalance)
 
--- | Show a tree of accounts with balances, eliding boring parent accounts
--- and omitting uninteresting subaccounts, using the provided list of
--- account names we want to see balances for.
+-- | Show this tree of accounts with balances, eliding boring parent
+-- accounts and omitting uninteresting subaccounts based on the provided
+-- list of account names we want to see balances for.
 showAccountTreeWithBalances :: [AccountName] -> Tree Account -> String
 showAccountTreeWithBalances matchednames t = showAccountTreeWithBalances' matchednames 0 "" t
     where
@@ -174,7 +174,7 @@ showAccountTreeWithBalances matchednames t = showAccountTreeWithBalances' matche
             subsnoindent = showsubs indent ""
             subsindented = showsubs (indent+1) ""
             showsubs i p = concatMap (showAccountTreeWithBalances' matchednames i p) subs
-            hasmatchedsubs = not $ null $ filter ((`elem` matchednames) . aname) $ concatMap flatten subs
+            hasmatchedsubs = any ((`elem` matchednames) . aname) $ concatMap flatten subs
             amt = padleft 20 $ showMixedAmount bal
             this = concatTopPadded [amt, spaces ++ prefix ++ leafname] ++ "\n"
             spaces = "  " ++ replicate (indent * 2) ' '
