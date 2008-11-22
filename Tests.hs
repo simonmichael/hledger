@@ -87,17 +87,10 @@ misc_tests = TestList [
     assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]) (parsewith transactionamount " $1.")
   ,
   "canonicaliseAmounts" ~: do
-    let l = canonicaliseAmounts $ rawLedgerWithAmounts ["1","2.00"]
-    assertequal [2,2] (rawLedgerPrecisions l) -- use greatest precision everywhere
+    -- all amounts use the greatest precision
+    assertequal [2,2] (rawLedgerPrecisions $ canonicaliseAmounts $ rawLedgerWithAmounts ["1","2.00"])
 
-  ] where
-    rawLedgerWithAmounts as = 
-        RawLedger 
-        [] 
-        [] 
-        [nullentry{etransactions=[nullrawtxn{tamount=parse a}]} | a <- as]
-        ""
-            where parse = fromparse . parsewith transactionamount . (" "++)
+  ]
 
 balancereportacctnames_tests = TestList 
   [
@@ -599,4 +592,12 @@ tlistconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestL
 -- | Assert a parsed thing equals some expected thing, or print a parse error.
 assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
 assertparseequal expected parsed = either printParseError (assertequal expected) parsed
+
+rawLedgerWithAmounts as = 
+        RawLedger 
+        [] 
+        [] 
+        [nullentry{edescription=a,etransactions=[nullrawtxn{tamount=parse a}]} | a <- as]
+        ""
+            where parse = fromparse . parsewith transactionamount . (" "++)
 
