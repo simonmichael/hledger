@@ -198,6 +198,16 @@ balancecommandtests = TestList [
   do 
     l <- ledgerfromfile "sample.ledger"
     assertequal "" $ showBalanceReport [] ["-e"] l
+ ,
+  "balance report negative patterns affect totals" ~: 
+  do 
+    l <- ledgerfromfile "sample.ledger"
+    assertequal (
+     "                  $1  expenses\n" ++
+     "--------------------\n" ++
+     "                  $1\n" ++
+     "")
+     $ showBalanceReport [] ["expenses","-food"] l
  ]
 
 registercommandtests = TestList [
