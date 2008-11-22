@@ -53,7 +53,7 @@ This version of hledger mimics a subset of ledger 2.6.1:
 - multiple commodities
 - virtual transactions
 - balance, print, register commands
-- positive and negative account & description filter patterns
+- positive and negative account & description patterns
 - LEDGER environment variable
 - and::
 
@@ -63,13 +63,15 @@ This version of hledger mimics a subset of ledger 2.6.1:
    -f, --file FILE        read ledger data from FILE
  
    Report filtering:
-   -b, --begin DATE       set report begin date (YYYY/MM/DD syntax)
-   -e, --end DATE         set report end date (YYYY/MM/DD syntax)
+   -b, --begin DATE       set report begin date
+   -e, --end DATE         set report end date
    -C, --cleared          consider only cleared transactions
    -R, --real             consider only real (non-virtual) transactions
  
    Output customization:
-   -s, --subtotal         balance: show sub-accounts
+   -s, --subtotal         balance report: show sub-accounts
+   -E, --empty            balance report: show accounts with zero balance
+   -n, --collapse         balance report: no grand total
  
    Commands:
    balance  [REGEXP]...   show balance totals for matching accounts
@@ -78,7 +80,7 @@ This version of hledger mimics a subset of ledger 2.6.1:
 
 hledger-only features:
 
-- ...
+-  --depth=N              balance report: maximum account depth to show
 
 ledger features not supported:
 
@@ -86,7 +88,6 @@ ledger features not supported:
 - modifier entries
 - periodic entries
 - commodity pricing
-- flexible date syntax for --begin/--end
 - counting an unfinished timelog session
 - parsing gnucash files
 - and::
@@ -114,11 +115,10 @@ ledger features not supported:
    -T, --total EXPR       use EXPR to calculate the displayed total
  
    Output customization:
-   -n, --collapse         register: collapse entries; balance: no grand total
-   -s, --subtotal         ... other: show subtotals
+   -n, --collapse         register: collapse entries
+   -s, --subtotal         other: show subtotals
    -P, --by-payee         show summarized totals by payee
    -x, --comm-as-payee    set commodity name as the payee, for reporting
-   -E, --empty            balance: show accounts with zero balance
    -W, --weekly           show weekly sub-totals
    -M, --monthly          show monthly sub-totals
    -Y, --yearly           show yearly sub-totals
