@@ -17,7 +17,9 @@ usageftr    = "\n" ++
               "register - show register transactions\n" ++
               "\n" ++
               "Account and description patterns are regular expressions, optionally prefixed\n" ++
-              "with " ++ [negativepatternchar] ++ " to make them negative.\n"
+              "with " ++ [negativepatternchar] ++ " to make them negative.\n" ++
+              "\n" ++
+              "Also: hledger [-v] test [TESTPATS] to run some or all self-tests.\n"
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
 optionorder = if negativepatternchar=='-' then RequireOrder else Permute
