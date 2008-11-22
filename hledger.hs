@@ -17,7 +17,7 @@ You can use the command line:
 or ghci:
 
 > $ ghci hledger
-> > l <- ledgerfromfile "sample.ledger"
+> > l <- ledgerfromfile [] "sample.ledger"
 > > balance [] [] l
 >                  $-1  assets
 >                   $2  expenses
@@ -73,10 +73,10 @@ parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) 
 parseLedgerAndDo opts args cmd = 
     ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runcmd
     where
-      runcmd = cmd opts args . cacheLedger . canonicaliseAmounts . filterRawLedger b e dpats c r
+      runcmd = cmd opts args . cacheLedger apats . canonicaliseAmounts . filterRawLedger b e dpats c r
       b = parsemaybedate (beginDateFromOpts opts)
       e = parsemaybedate (endDateFromOpts opts)
-      dpats = snd $ parseAccountDescriptionArgs args
+      (apats,dpats) = parseAccountDescriptionArgs args
       c = Cleared `elem` opts
       r = Real `elem` opts
 

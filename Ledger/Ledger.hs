@@ -1,8 +1,8 @@
 {-|
 
 A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
-names, and a map from account names to 'Account's. Typically it also has
-had uninteresting 'Entry's filtered out.
+names, and a map from account names to 'Account's. It may also have had
+uninteresting 'Entry's and 'Transaction's filtered out.
 
 -}
 
@@ -29,12 +29,12 @@ instance Show Ledger where
              (showtree $ accountnametree l)
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
-cacheLedger :: RawLedger -> Ledger
-cacheLedger l = Ledger l ant amap
+cacheLedger :: [String] -> RawLedger -> Ledger
+cacheLedger apats l = Ledger l ant amap
     where
       ant = rawLedgerAccountNameTree l
       anames = flatten ant
-      ts = rawLedgerTransactions l
+      ts = filtertxns apats $ rawLedgerTransactions l
       sortedts = sortBy (comparing account) ts
       groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
       txnmap = Map.union 
@@ -47,6 +47,9 @@ cacheLedger l = Ledger l ant amap
                (Map.fromList [(a,(sumTransactions $ subtxnsof a)) | a <- anames])
                (Map.fromList [(a,Mixed []) | a <- anames])
       amap = Map.fromList [(a, Account a (txnmap ! a) (balmap ! a)) | a <- anames]
+
+filtertxns :: [String] -> [Transaction] -> [Transaction]
+filtertxns apats ts = filter (matchpats apats . account) ts
 
 -- | List a ledger's account names.
 accountnames :: Ledger -> [AccountName]

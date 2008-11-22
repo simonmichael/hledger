@@ -81,7 +81,7 @@ misc_tests = TestList [
       (accountnames ledger7)
   ,
   "cacheLedger"        ~: do
-    assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger rawledger7)
+    assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger [] rawledger7)
   ,
   "transactionamount"       ~: do
     assertparseequal (Mixed [dollars 47.18]) (parsewith transactionamount " $47.18")
@@ -115,13 +115,13 @@ balancereportacctnames_tests = TestList
   ,"balancereportacctnames8" ~: ("-s",["-e"])          `gives` []
   ] where
     gives (opt,pats) e = do 
-      l <- ledgerfromfile "sample.ledger"
+      l <- ledgerfromfile pats "sample.ledger"
       let t = pruneZeroBalanceLeaves $ ledgerAccountTree 999 l
       assertequal e (balancereportacctnames l (opt=="-s") pats t)
 
 balancecommand_tests = TestList [
   "simple balance report" ~: do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile [] "sample.ledger"
     assertequal
      "                 $-1  assets\n\
      \                  $2  expenses\n\
@@ -131,7 +131,7 @@ balancecommand_tests = TestList [
      (showBalanceReport [] [] l)
  ,
   "balance report with --subtotal" ~: do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile [] "sample.ledger"
     assertequal
      "                 $-1  assets\n\
      \                 $-2    cash\n\
@@ -147,7 +147,7 @@ balancecommand_tests = TestList [
      (showBalanceReport [SubTotal] [] l)
  ,
   "balance report with account pattern o" ~: do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile ["o"] "sample.ledger"
     assertequal
      "                  $1  expenses:food\n\
      \                 $-2  income\n\
@@ -157,7 +157,7 @@ balancecommand_tests = TestList [
      (showBalanceReport [] ["o"] l)
  ,
   "balance report with account pattern o and --subtotal" ~: do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile ["o"] "sample.ledger"
     assertequal
      "                  $1  expenses:food\n\
      \                 $-2  income\n\
@@ -169,7 +169,7 @@ balancecommand_tests = TestList [
      (showBalanceReport [SubTotal] ["o"] l)
  ,
   "balance report with account pattern a" ~: do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile ["a"] "sample.ledger"
     assertequal
      "                 $-1  assets\n\
      \                 $-2    cash\n\
@@ -182,7 +182,7 @@ balancecommand_tests = TestList [
      (showBalanceReport [] ["a"] l)
  ,
   "balance report with account pattern e" ~: do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile ["e"] "sample.ledger"
     assertequal
      "                 $-1  assets\n\
      \                  $2  expenses\n\
@@ -194,7 +194,7 @@ balancecommand_tests = TestList [
  ,
   "balance report with unmatched parent of two matched subaccounts" ~: 
   do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile ["cash","saving"] "sample.ledger"
     assertequal
      "                 $-2  assets:cash\n\
      \                  $1  assets:saving\n\
@@ -205,16 +205,17 @@ balancecommand_tests = TestList [
  ,
   "balance report with multi-part account name" ~: 
   do 
-    l <- ledgerfromfile "sample.ledger"
+    let pats = ["expenses:food"]
+    l <- ledgerfromfile pats "sample.ledger"
     assertequal
      "                  $1  expenses:food\n\
      \--------------------\n\
      \                  $1\n\
      \" --"
-     $ showBalanceReport [] ["expenses:food"] l
+     $ showBalanceReport [] pats l
  ,
   "balance report with negative account pattern" ~: do
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile ["-assets"] "sample.ledger"
     assertequal (
      "                  $2  expenses\n" ++
      "                 $-2  income\n" ++
@@ -226,24 +227,25 @@ balancecommand_tests = TestList [
  ,
   "balance report negative account pattern always matches full name" ~: 
   do 
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile ["-e"] "sample.ledger"
     assertequal "" $ showBalanceReport [] ["-e"] l
  ,
   "balance report negative patterns affect totals" ~: 
   do 
-    l <- ledgerfromfile "sample.ledger"
+    let pats = ["expenses","-food"]
+    l <- ledgerfromfile pats "sample.ledger"
     assertequal (
      "                  $1  expenses\n" ++
      "--------------------\n" ++
      "                  $1\n" ++
      "")
-     $ showBalanceReport [] ["expenses","-food"] l
+     $ showBalanceReport [] pats l
  ]
 
 registercommand_tests = TestList [
   "register report" ~:
   do 
-    l <- ledgerfromfile "sample.ledger"
+    l <- ledgerfromfile [] "sample.ledger"
     assertequal (
      "2007/01/01 income               assets:checking                  $1           $1\n" ++
      "                                income:salary                   $-1            0\n" ++
@@ -551,7 +553,7 @@ rawledger7 = RawLedger
           ]
           ""
 
-ledger7 = cacheLedger rawledger7 
+ledger7 = cacheLedger [] rawledger7 
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' (parsedatetime "2007/03/11 16:19:00") "hledger"

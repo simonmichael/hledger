@@ -17,12 +17,14 @@ rawledgerfromfile f = do
   parsed <- parseLedgerFile f
   return $ either (\_ -> RawLedger [] [] [] "") id parsed
 
--- | get a cached Ledger from the given file path
-ledgerfromfile :: FilePath -> IO Ledger
-ledgerfromfile f = do
+-- | get a cached Ledger from the given file path, filtered by the patterns.
+ledgerfromfile :: [String] -> FilePath -> IO Ledger
+ledgerfromfile args f = do
   l  <- rawledgerfromfile f
-  return $ cacheLedger $ filterRawLedger Nothing Nothing [] False False l
-
+  return $ cacheLedger apats $ filterRawLedger Nothing Nothing dpats False False l
+      where
+        (apats,dpats) = parseAccountDescriptionArgs args
+           
 -- | get a RawLedger from the file your LEDGER environment variable
 -- variable points to or (WARNING) an empty one if there was a problem.
 myrawledger :: IO RawLedger
@@ -35,7 +37,7 @@ myrawledger = do
 myledger :: IO Ledger
 myledger = do
   l <- myrawledger
-  return $ cacheLedger $ filterRawLedger Nothing Nothing [] False False l
+  return $ cacheLedger [] $ filterRawLedger Nothing Nothing [] False False l
 
 -- | get a named account from your ledger file
 myaccount :: AccountName -> IO Account
