@@ -129,7 +129,7 @@ showBalanceReport opts args l = acctsstr ++ (if collapse then "" else totalstr)
       sub = SubTotal `elem` opts
       empty = Empty `elem` opts
       collapse = Collapse `elem` opts
-      maxdepth = 9999
+      maxdepth = fromMaybe 9999 $ depthFromOpts opts
       totalstr = if isZeroMixedAmount total 
                  then "" 
                  else printf "--------------------\n%20s\n" $ showMixedAmount total

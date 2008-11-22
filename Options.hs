@@ -27,6 +27,7 @@ options = [
  Option ['b'] ["begin"]        (ReqArg Begin "YYYY/MM/DD") "report on entries on or after this date",
  Option ['e'] ["end"]          (ReqArg End "YYYY/MM/DD")   "report on entries prior to this date",
  Option ['C'] ["cleared"]      (NoArg  Cleared)            "report only on cleared entries",
+ Option []    ["depth"]        (ReqArg Depth "N")          "balance report: maximum account depth to show",
  Option ['E'] ["empty"]        (NoArg  Empty)              "balance report: show accounts with zero balance",
  Option ['R'] ["real"]         (NoArg  Real)               "report only on real (non-virtual) transactions",
  Option ['n'] ["collapse"]     (NoArg  Collapse)           "balance report: no grand total",
@@ -41,6 +42,7 @@ data Opt =
     Begin String | 
     End String | 
     Cleared | 
+    Depth String | 
     Empty | 
     Real | 
     Collapse |
@@ -108,6 +110,17 @@ endDateFromOpts opts =
       getenddate (End s) = [s]
       getenddate _ = []
       defaultdate = ""
+
+-- | Get the value of the depth option, if any.
+depthFromOpts :: [Opt] -> Maybe Int
+depthFromOpts opts = 
+    case depthopts of
+      (x:_) -> Just $ read x
+      _     -> Nothing
+    where
+      depthopts = concatMap getdepth opts
+      getdepth (Depth s) = [s]
+      getdepth _ = []
 
 -- | Gather any ledger-style account/description pattern arguments into
 -- two lists.  These are 0 or more account patterns optionally followed by

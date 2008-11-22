@@ -227,6 +227,18 @@ balancecommand_tests = TestList [
   ([Collapse], ["cash"]) `gives`
   ("                 $-2  assets:cash\n" ++
    "")
+ ,
+  "balance report with --depth 1" ~:
+  ([SubTotal,Collapse,Depth "1"], ["assets"]) `gives`
+  ("                 $-1  assets\n" ++
+   "")
+ ,
+  "balance report with --depth 2" ~:
+  ([SubTotal,Collapse,Depth "2"], ["assets"]) `gives`
+  ("                 $-1  assets\n" ++
+   "                 $-2    cash\n" ++
+   "                  $1    saving\n" ++
+   "")
  ] where
     gives (opts,pats) e = do 
       l <- ledgerfromfile pats "sample.ledger"

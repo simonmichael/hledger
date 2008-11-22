@@ -16,7 +16,6 @@ implementations were its consequences." --Niklaus Wirth
 *** commodity @ rate, for tracking client hours in main ledger
 *** actual/effective entry & txn dates, for ...
 *** --display, for reconciling recent transactions with real balance
-*** depth control
 *** more ledger features from README
 *** new features
 **** option for strict ledger-compatible output (or, compare xml ?)
