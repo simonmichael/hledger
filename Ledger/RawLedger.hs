@@ -86,14 +86,13 @@ filterRawLedgerTransactionsByRealness True (RawLedger ms ps es f) =
     where filtertxns e@Entry{etransactions=ts} = e{etransactions=filter isReal ts}
 
 -- | Check if a set of ledger account/description patterns matches the
--- given account name or entry description, applying ledger's special
--- cases.  
+-- given account name or entry description.  Patterns are case-insensitive
+-- regular expression strings; those beginning with - are anti-patterns.
 -- 
--- Patterns are case-insensitive regular expression strings, and those
--- beginning with - are negative patterns.  The special case is that
--- account patterns match the full account name except in balance reports
--- when the pattern does not contain : and is a positive pattern, where it
--- matches only the leaf name.
+-- Call with forbalancereport=True to mimic ledger's balance report
+-- matching. Account patterns usually match the full account name, but in
+-- balance reports when the pattern does not contain : and is not an
+-- anti-pattern, it matches only the leaf name.
 matchLedgerPatterns :: Bool -> [String] -> String -> Bool
 matchLedgerPatterns forbalancereport pats str =
     (null positives || any ismatch positives) && (null negatives || not (any ismatch negatives))

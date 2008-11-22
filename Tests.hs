@@ -18,37 +18,11 @@ runtests args = do
         tests = [unittests, functests]
         deeptests = tfilter matchname $ TestList tests
         flattests = TestList $ filter matchname $ concatMap tflatten tests
-        matchname = Tests.matchpats args . tname
+        matchname = matchpats args . tname
         n = length ts where (TestList ts) = flattests
         s | null args = ""
           | otherwise = printf " matching %s" 
                         (intercalate ", " $ map (printf "\"%s\"") args)
-
-matchpats pats str = (null positives || any match positives) && (null negatives || not (any match negatives))
-    where
-      (negatives,positives) = partition isnegative pats
-      isnegative = (== [Ledger.negativepatternchar]) . take 1
-      match "" = True
-      match pat = containsRegex (mkRegexWithOpts pat' True True) str
-          where 
-            pat' = if isnegative pat then drop 1 pat else pat
-
--- | Get a Test's label, or the empty string.
-tname :: Test -> String
-tname (TestLabel n _) = n
-tname _ = ""
-
--- | Flatten a Test containing TestLists into a list of single tests.
-tflatten :: Test -> [Test]
-tflatten (TestLabel _ t@(TestList _)) = tflatten t
-tflatten (TestList ts) = concatMap tflatten ts
-tflatten t = [t]
-
--- | Filter any TestLists in a Test, recursively, preserving the structure.
-tfilter :: (Test -> Bool) -> Test -> Test
-tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
-tfilter p (TestLabel l t) = TestLabel l (tfilter p t)
-tfilter _ t = t
 
 ------------------------------------------------------------------------------
 
@@ -108,18 +82,16 @@ unittests = TestList [
   ,
   "setAmountDisplayPrefs" ~: do
     let l = setAmountDisplayPrefs $ rawLedgerWithAmounts ["1","2.00"]
-    -- should be using the greatest precision everywhere
-    assertequal [2,2] (rawLedgerPrecisions l)
+    assertequal [2,2] (rawLedgerPrecisions l) -- use greatest precision everywhere
 
-  ]
-
-rawLedgerWithAmounts as = 
-    RawLedger 
-      [] 
-      [] 
-      [nullentry{etransactions=[nullrawtxn{tamount=parse a}]} | a <- as]
-      ""
-    where parse = fromparse . parsewith transactionamount . (" "++)
+  ] where
+    rawLedgerWithAmounts as = 
+        RawLedger 
+        [] 
+        [] 
+        [nullentry{etransactions=[nullrawtxn{tamount=parse a}]} | a <- as]
+        ""
+            where parse = fromparse . parsewith transactionamount . (" "++)
 
 ------------------------------------------------------------------------------
 
@@ -248,12 +220,8 @@ registercommandtests = TestList [
      $ showRegisterReport [] [] l
   ]
   
--- | Assert a parsed thing equals some expected thing, or print a parse error.
-assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
-assertparseequal expected parsed = either printParseError (assertequal expected) parsed
-
 ------------------------------------------------------------------------------
--- data
+-- test data
 
 rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
@@ -559,4 +527,32 @@ timelog1 = TimeLog [
             timelogentry1,
             timelogentry2
            ]
+
+------------------------------------------------------------------------------
+-- test utils
+
+-- | Get a Test's label, or the empty string.
+tname :: Test -> String
+tname (TestLabel n _) = n
+tname _ = ""
+
+-- | Flatten a Test containing TestLists into a list of single tests.
+tflatten :: Test -> [Test]
+tflatten (TestLabel _ t@(TestList _)) = tflatten t
+tflatten (TestList ts) = concatMap tflatten ts
+tflatten t = [t]
+
+-- | Filter TestLists in a Test, recursively, preserving the structure.
+tfilter :: (Test -> Bool) -> Test -> Test
+tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
+tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
+tfilter _ t = t
+
+-- | Combine a list of TestLists into one.
+tlistconcat :: [Test] -> Test
+tlistconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
+
+-- | Assert a parsed thing equals some expected thing, or print a parse error.
+assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
+assertparseequal expected parsed = either printParseError (assertequal expected) parsed
 
