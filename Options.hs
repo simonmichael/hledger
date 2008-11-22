@@ -38,6 +38,7 @@ options = [
  Option ['n'] ["collapse"]     (NoArg  Collapse)           "balance report: no grand total",
  Option ['s'] ["subtotal"]     (NoArg  SubTotal)           "balance report: show subaccounts",
  Option ['h'] ["help"] (NoArg  Help)                       "show this help",
+ Option ['v'] ["verbose"]      (NoArg  Verbose)            "verbose test output",
  Option ['V'] ["version"]      (NoArg  Version)            "show version"
  ]
 
@@ -54,6 +55,7 @@ data Opt =
     Collapse |
     SubTotal |
     Help |
+    Verbose |
     Version
     deriving (Show,Eq)
 

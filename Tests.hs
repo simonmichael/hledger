@@ -11,8 +11,11 @@ import PrintCommand
 import RegisterCommand
 
 
-runtests args = do
-  putStrLn $ printf "Running %d tests%s ..\n" n s
+runtests opts args = do
+  when (Verbose `elem` opts)
+       (do
+         putStrLn $ printf "Running %d tests%s:" n s
+         sequence $ map (putStrLn . tname) $ tflatten flattests; putStrLn "Results:")
   runTestTT flattests
       where
         deeptests = tfilter matchname $ TestList tests
@@ -20,7 +23,7 @@ runtests args = do
         matchname = matchpats args . tname
         n = length ts where (TestList ts) = flattests
         s | null args = ""
-          | otherwise = printf " matching %s" 
+          | otherwise = printf " matching %s " 
                         (intercalate ", " $ map (printf "\"%s\"") args)
 
 ------------------------------------------------------------------------------
