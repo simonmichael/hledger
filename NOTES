@@ -61,8 +61,10 @@ implementations were its consequences." --Niklaus Wirth
 ** differences noted
 *** ledger needs a space after -f
 *** ledger shows description comments as part of description
+*** ledger seems to get amounts' x-position wrong more than hledger
 *** ledger shows small time amounts in minutes
 *** ledger can get timelog entry balance wrong, see mail list
+*** hledger shows 0 amounts with their currency symbol
 *** hledger print puts a blank line after the entry, not before it
 ** things I want to know
 *** time
