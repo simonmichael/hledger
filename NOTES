@@ -6,7 +6,6 @@ implementations were its consequences." --Niklaus Wirth
 
 * to do
 ** errors
-*** display mixed amounts vertically, not horizontally
 ** features
 *** flexible date expressions, for easier time reports
 **** more formats

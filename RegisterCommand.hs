@@ -43,11 +43,11 @@ showRegisterReport opts args l = showtxns ts nulltxn nullmixedamt
 
       -- show one transaction line, with or without the entry details
       showtxn :: Bool -> Transaction -> MixedAmount -> String
-      showtxn omitdesc t b = entrydesc ++ txn ++ bal ++ "\n"
+      showtxn omitdesc t b = concatBottomPadded [entrydesc ++ txn ++ " ", bal] ++ "\n"
           where
             entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
             date = show $ da
             desc = printf "%-20s" $ elideRight 20 de :: String
             txn = showRawTransaction $ RawTransaction a amt "" tt
-            bal = printf " %12s" (showMixedAmountOrZero b)
+            bal = padleft 12 (showMixedAmountOrZero b)
             Transaction{date=da,description=de,account=a,amount=amt,ttype=tt} = t

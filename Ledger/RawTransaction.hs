@@ -19,14 +19,14 @@ nullrawtxn = RawTransaction "" nullmixedamt "" RegularTransaction
 
 showRawTransaction :: RawTransaction -> String
 showRawTransaction (RawTransaction a amt _ ttype) = 
-    showaccountname a ++ " " ++ (showamount amt) 
+    concatTopPadded [showaccountname a ++ " ", showamount amt]
     where
       showaccountname = printf "%-22s" . bracket . elideAccountName width
-      showamount = printf "%12s" . showMixedAmountOrZero
       (bracket,width) = case ttype of
                       BalancedVirtualTransaction -> (\s -> "["++s++"]", 20)
                       VirtualTransaction -> (\s -> "("++s++")", 20)
                       otherwise -> (id,22)
+      showamount = padleft 12 . showMixedAmountOrZero
 
 isReal :: RawTransaction -> Bool
 isReal t = rttype t == RegularTransaction
