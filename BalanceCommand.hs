@@ -121,64 +121,63 @@ balance opts args l = putStr $ showBalanceReport opts args l
 showBalanceReport :: [Opt] -> [String] -> Ledger -> String
 showBalanceReport opts args l = acctsstr ++ totalstr
     where 
-      acctsstr = concatMap (showAccountTreeWithBalances acctnamestoshow) $ subs treetoshow
+      acctsstr = concatMap showatree $ subs t
+      showatree t = showAccountTreeWithBalances matchedacctnames t
+      matchedacctnames = balancereportacctnames l sub apats t
+      t = pruneZeroBalanceLeaves $ ledgerAccountTree maxdepth l
+      apats = fst $ parseAccountDescriptionArgs args
+      sub = SubTotal `elem` opts
+      maxdepth = 9999
       totalstr = if isZeroMixedAmount total 
                  then "" 
                  else printf "--------------------\n%20s\n" $ showMixedAmount total
-      showingsubs = SubTotal `elem` opts
-      pats@(apats,dpats) = parseAccountDescriptionArgs args
-      maxdepth = if null args && not showingsubs then 1 else 9999
-      acctstoshow = balancereportaccts showingsubs apats l
-      acctnamestoshow = map aname acctstoshow
-      treetoshow = pruneZeroBalanceLeaves $ pruneUnmatchedAccounts $ treeprune maxdepth $ ledgerAccountTree 9999 l
-      total = sum $ map abalance $ nonredundantaccts
-      nonredundantaccts = filter (not . hasparentshowing) acctstoshow
-      hasparentshowing a = (parentAccountName $ aname a) `elem` acctnamestoshow
+      total = sum $ map (abalance . ledgerAccount l) $ nonredundantaccts
+      nonredundantaccts = filter (not . hasparentshowing) matchedacctnames
+      hasparentshowing aname = (parentAccountName $ aname) `elem` matchedacctnames
 
-      -- select accounts for which we should show balances, based on the options
-      balancereportaccts :: Bool -> [String] -> Ledger -> [Account]
-      balancereportaccts False [] l = topAccounts l
-      balancereportaccts False pats l = accountsMatching pats l
-      balancereportaccts True pats l = addsubaccts l $ balancereportaccts False pats l
-
-      -- add (in tree order) any missing subacccounts to a list of accounts
+-- | Identify the accounts we are interested in seeing balances for in the
+-- balance report, based on the -s flag and account patterns.
+balancereportacctnames :: Ledger -> Bool -> [String] -> Tree Account -> [AccountName]
+balancereportacctnames l False [] t   = filter (/= "top") $ map aname $ flatten $ treeprune 1 t
+balancereportacctnames l False pats t = filter (/= "top") $ ns
+    where 
+      ns = filter (matchpats_balance pats) $ map aname $ flatten t'
+      t' | null $ positivepats pats = treeprune 1 t
+         | otherwise = t
+balancereportacctnames l True pats t  = nub $ map aname $ addsubaccts l $ as
+    where 
+      as = map (ledgerAccount l) ns
+      ns = balancereportacctnames l False pats t
+      -- add (in tree order) any missing subaccounts to a list of accounts
       addsubaccts :: Ledger -> [Account] -> [Account]
       addsubaccts l as = concatMap addsubs as where addsubs = maybe [] flatten . ledgerAccountTreeAt l
 
-      -- remove any accounts from the tree which are not one of the acctstoshow, 
-      -- or one of their parents, or one of their subaccounts when doing --subtotal
-      pruneUnmatchedAccounts :: Tree Account -> Tree Account
-      pruneUnmatchedAccounts = treefilter matched
-          where 
-            matched (Account name _ _)
-                | name `elem` acctnamestoshow = True
-                | any (name `isAccountNamePrefixOf`) acctnamestoshow = True
-                | showingsubs && any (`isAccountNamePrefixOf` name) acctnamestoshow = True
-                | otherwise = False
+-- | Remove all sub-trees whose accounts have a zero balance.
+pruneZeroBalanceLeaves :: Tree Account -> Tree Account
+pruneZeroBalanceLeaves = treefilter (not . isZeroMixedAmount . abalance)
 
-      -- remove zero-balance leaf accounts (recursively)
-      pruneZeroBalanceLeaves :: Tree Account -> Tree Account
-      pruneZeroBalanceLeaves = treefilter (not . isZeroMixedAmount . abalance)
-
--- | Show a tree of accounts with balances, for the balance report,
--- eliding boring parent accounts. Requires a list of the account names we
--- are interested in to help with that.
+-- | Show a tree of accounts with balances, eliding boring parent accounts
+-- and omitting uninteresting subaccounts, using the provided list of
+-- account names we want to see balances for.
 showAccountTreeWithBalances :: [AccountName] -> Tree Account -> String
-showAccountTreeWithBalances matchednames = 
-    showAccountTreeWithBalances' matchednames 0 ""
+showAccountTreeWithBalances matchednames t = showAccountTreeWithBalances' matchednames 0 "" t
     where
       showAccountTreeWithBalances' :: [AccountName] -> Int -> String -> Tree Account -> String
       showAccountTreeWithBalances' matchednames indent prefix (Node (Account fullname _ bal) subs)
-          | not isboringparent = this ++ subswithindent
-          | otherwise = subswithprefix
+          | isboringparent && hasmatchedsubs = subsprefixed
+          | ismatched = this ++ subsindented
+          | otherwise = subsnoindent
           where
-            subswithindent = showsubs (indent+1) ""
-            subswithprefix = showsubs indent (prefix++leafname++":")
+            subsprefixed = showsubs indent (prefix++leafname++":")
+            subsnoindent = showsubs indent ""
+            subsindented = showsubs (indent+1) ""
             showsubs i p = concatMap (showAccountTreeWithBalances' matchednames i p) subs
+            hasmatchedsubs = not $ null $ filter ((`elem` matchednames) . aname) $ concatMap flatten subs
             this = showbal ++ spaces ++ prefix ++ leafname ++ "\n"
             showbal = printf "%20s" $ showMixedAmount bal
             spaces = "  " ++ replicate (indent * 2) ' '
             leafname = accountLeafName fullname
+            ismatched = fullname `elem` matchednames
             isboringparent = numsubs >= 1 && (bal == subbal || not matched)
             numsubs = length subs
             subbal = abalance $ root $ head subs
