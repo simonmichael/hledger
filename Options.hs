@@ -5,6 +5,8 @@ import System.Console.GetOpt
 import System.Directory
 import Text.Printf
 import Ledger.AccountName (negativepatternchar)
+import Ledger.Parse (smartparsedate)
+import Ledger.Dates
 
 usagehdr    = "Usage: hledger [OPTS] balance|print|register [ACCTPATS] [-- DESCPATS]\n\nOptions"++warning++":"
 warning     = if negativepatternchar=='-' then " (must appear before command)" else " (can appear anywhere)"
@@ -87,24 +89,24 @@ tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
 --                                return (homeDirectory pw ++ path)
 tildeExpand xs           =  return xs
 
--- | get the value of the begin date option, or a default
-beginDateFromOpts :: [Opt] -> String
+-- | Get the value of the begin date option, if any.
+beginDateFromOpts :: [Opt] -> Maybe Date
 beginDateFromOpts opts = 
     case beginopts of
-      (x:_) -> last beginopts
-      _      -> defaultdate
+      (x:_) -> Just $ smartparsedate $ last beginopts
+      _     -> Nothing
     where
       beginopts = concatMap getbegindate opts
       getbegindate (Begin s) = [s]
       getbegindate _ = []
       defaultdate = ""
 
--- | get the value of the end date option, or a default
-endDateFromOpts :: [Opt] -> String
+-- | Get the value of the end date option, if any.
+endDateFromOpts :: [Opt] -> Maybe Date
 endDateFromOpts opts = 
     case endopts of
-      (x:_) -> last endopts
-      _      -> defaultdate
+      (x:_) -> Just $ smartparsedate $ last endopts
+      _      -> Nothing
     where
       endopts = concatMap getenddate opts
       getenddate (End s) = [s]

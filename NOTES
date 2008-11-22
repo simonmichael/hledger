@@ -13,7 +13,8 @@ implementations were its consequences." --Niklaus Wirth
 *** display mixed amounts vertically, not horizontally
 ** features
 *** flexible date expressions, for easier time reports
-**** use Dates for -b/-e
+**** more formats
+**** periods
 *** commodity @ rate, for tracking client hours in main ledger
 *** actual/effective entry & txn dates, for ?
 *** --display, for reconciling recent transactions with real balance
