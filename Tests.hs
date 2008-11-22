@@ -584,6 +584,58 @@ rawledger7 = RawLedger
 
 ledger7 = cacheLedger [] rawledger7 
 
+ledger8_str = "" ++
+ "2008/1/1 test           \n" ++
+ "  a:b          10h @ $40\n" ++
+ "  c:d                   \n" ++
+ "\n"
+
+sample_ledger_str = (
+ "; A sample ledger file.\n" ++
+ ";\n" ++
+ "; Sets up this account tree:\n" ++
+ "; assets\n" ++
+ ";   cash\n" ++
+ ";   checking\n" ++
+ ";   saving\n" ++
+ "; expenses\n" ++
+ ";   food\n" ++
+ ";   supplies\n" ++
+ "; income\n" ++
+ ";   gifts\n" ++
+ ";   salary\n" ++
+ "; liabilities\n" ++
+ ";   debts\n" ++
+ "\n" ++
+ "2007/01/01 income\n" ++
+ "    assets:checking  $1\n" ++
+ "    income:salary\n" ++
+ "\n" ++
+ "2007/01/01 gift\n" ++
+ "    assets:checking  $1\n" ++
+ "    income:gifts\n" ++
+ "\n" ++
+ "2007/01/01 save\n" ++
+ "    assets:saving  $1\n" ++
+ "    assets:checking\n" ++
+ "\n" ++
+ "2007/01/01 * eat & shop\n" ++
+ "    expenses:food      $1\n" ++
+ "    expenses:supplies  $1\n" ++
+ "    assets:cash\n" ++
+ "\n" ++
+ "2008/1/1 * pay off\n" ++
+ "    liabilities:debts  $1\n" ++
+ "    assets:checking\n" ++
+ "\n" ++
+ "\n" ++
+ ";final comment\n" ++
+ "")
+
+write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
+
+read_sample_ledger = readFile "sample.ledger"
+
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' (parsedatetime "2007/03/11 16:19:00") "hledger"
 
@@ -598,6 +650,10 @@ timelog1 = TimeLog [
             timelogentry1,
             timelogentry2
            ]
+
+a1 = Mixed [(hours 1){price=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
+a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
+a3 = Mixed $ (amounts a1) ++ (amounts a2)
 
 ------------------------------------------------------------------------------
 -- test utils
