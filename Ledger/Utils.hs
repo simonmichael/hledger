@@ -40,6 +40,8 @@ import Text.ParserCombinators.Parsec (parse)
 import Ledger.Dates
 
 
+-- strings
+
 elideLeft width s =
     case length s > width of
       True -> ".." ++ (reverse $ take (width - 2) $ reverse s)
@@ -49,6 +51,65 @@ elideRight width s =
     case length s > width of
       True -> take (width - 2) s ++ ".."
       False -> s
+
+-- | Join multi-line strings as side-by-side rectangular strings of the same height, top-padded.
+concatTopPadded :: [String] -> String
+concatTopPadded strs = intercalate "\n" $ map concat $ transpose padded
+    where
+      lss = map lines strs
+      h = maximum $ map length lss
+      ypad ls = replicate (difforzero h (length ls)) "" ++ ls
+      xpad ls = map (padleft w) ls where w | null ls = 0
+                                           | otherwise = maximum $ map length ls
+      padded = map (xpad . ypad) lss
+
+-- | Join multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
+concatBottomPadded :: [String] -> String
+concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
+    where
+      lss = map lines strs
+      h = maximum $ map length lss
+      ypad ls = ls ++ replicate (difforzero h (length ls)) ""
+      xpad ls = map (padleft w) ls where w | null ls = 0
+                                           | otherwise = maximum $ map length ls
+      padded = map (xpad . ypad) lss
+
+-- | Convert a multi-line string to a rectangular string top-padded to the specified height.
+padtop :: Int -> String -> String
+padtop h s = intercalate "\n" xpadded
+    where
+      ls = lines s
+      sh = length ls
+      sw | null ls = 0
+         | otherwise = maximum $ map length ls
+      ypadded = replicate (difforzero h sh) "" ++ ls
+      xpadded = map (padleft sw) ypadded
+
+-- | Convert a multi-line string to a rectangular string bottom-padded to the specified height.
+padbottom :: Int -> String -> String
+padbottom h s = intercalate "\n" xpadded
+    where
+      ls = lines s
+      sh = length ls
+      sw | null ls = 0
+         | otherwise = maximum $ map length ls
+      ypadded = ls ++ replicate (difforzero h sh) ""
+      xpadded = map (padleft sw) ypadded
+
+-- | Convert a multi-line string to a rectangular string left-padded to the specified width.
+padleft :: Int -> String -> String
+padleft w "" = concat $ replicate w " "
+padleft w s = intercalate "\n" $ map (printf (printf "%%%ds" w)) $ lines s
+
+-- | Convert a multi-line string to a rectangular string right-padded to the specified width.
+padright :: Int -> String -> String
+padright w "" = concat $ replicate w " "
+padright w s = intercalate "\n" $ map (printf (printf "%%-%ds" w)) $ lines s
+
+-- math
+
+difforzero :: (Num a, Ord a) => a -> a -> a
+difforzero a b = maximum [(a - b), 0]
 
 -- regexps
 
