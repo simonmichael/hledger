@@ -19,5 +19,5 @@ instance Show Account where
 instance Eq Account where
     (==) (Account n1 t1 b1) (Account n2 t2 b2) = n1 == n2 && t1 == t2 && b1 == b2
 
-nullacct = Account "" [] nullamt
+nullacct = Account "" [] nullmixedamt
 

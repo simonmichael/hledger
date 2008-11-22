@@ -137,9 +137,14 @@ normaliseMixedAmount (Mixed as) = Mixed $ map sum $ grouped
       symbols = sort $ nub $ map (symbol . commodity) as
       hassymbol s a = s == (symbol $ commodity a)
 
+
+-- | The empty simple amount.
+nullamt :: Amount
+nullamt = Amount unknown 0 Nothing
+
 -- | The empty mixed amount.
-nullamt :: MixedAmount
-nullamt = Mixed []
+nullmixedamt :: MixedAmount
+nullmixedamt = Mixed []
 
 -- | A temporary value for parsed transactions which had no amount specified.
 missingamt :: MixedAmount

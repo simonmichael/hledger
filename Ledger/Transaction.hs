@@ -32,4 +32,4 @@ accountNamesFromTransactions ts = nub $ map account ts
 sumTransactions :: [Transaction] -> MixedAmount
 sumTransactions = sum . map amount
 
-nulltxn = Transaction 0  (parsedate "1900/1/1") "" "" nullamt RegularTransaction
+nulltxn = Transaction 0  (parsedate "1900/1/1") "" "" nullmixedamt RegularTransaction

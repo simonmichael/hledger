@@ -26,7 +26,7 @@ DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
 @
 -}
 showRegisterReport :: [Opt] -> [String] -> Ledger -> String
-showRegisterReport opts args l = showtxns ts nulltxn nullamt
+showRegisterReport opts args l = showtxns ts nulltxn nullmixedamt
     where
       ts = filter matchtxn $ ledgerTransactions l
       matchtxn Transaction{account=a} = matchpats apats a
