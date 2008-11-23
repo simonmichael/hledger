@@ -71,7 +71,7 @@ data Opt =
 
 usage = usageInfo usagehdr options ++ usageftr
 
-versionno = "0.2"
+versionno = "0.3pre"
 version = printf "hledger version %s \n" versionno :: String
 
 -- | Parse the command-line arguments into ledger options, ledger command
