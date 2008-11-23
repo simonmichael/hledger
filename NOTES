@@ -35,21 +35,21 @@ implementations were its consequences." --Niklaus Wirth
 *** figure out reliable maintainable appropriate tests
 *** easy ledger compatibility testing
 ** docs
+*** --version
+*** --help
 *** readme
-*** related blurbs - automate
-**** --version
-**** --help
-**** hledger.hs module description
-**** cabal file description
-**** darcsweb description
-**** home page description
-**** mail list description
-**** gmane description
-**** announcements description
+**** keep in sync (automate)
+***** README file
+***** hledger.hs module description
+***** hledger.cabal description field (exclude home page link)
+***** home page description (http://joyful.com/Hledger/editform)
+***** mail list description (http://google.com/groups/hledger)
+***** gmane description
+***** darcsweb description
 *** announcements
-**** archive
+**** generate from README and NEWS
 *** release notes
-**** keep it simple
+**** NEWS
 *** implementation docs
 *** api docs
 *** developer intro
