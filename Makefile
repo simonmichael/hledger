@@ -28,6 +28,10 @@ test:
 	@./hledger.hs test
 	@./regtest.py
 
+VERSION=`grep 'versionno =' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
+release:
+	cabal sdist && darcs tag $(VERSION) && cabal upload dist/hledger-$(VERSION).tar.gz
+
 tag:
 	rm -f TAGS; hasktags -e *hs Ledger/*hs
 
