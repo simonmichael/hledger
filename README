@@ -1,22 +1,16 @@
-hledger - a ledger-compatible text-based accounting tool.
-=========================================================
-
-Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>.
-Released under GPL version 3 or later.
+hledger - a ledger-compatible text-based accounting tool
+========================================================
 
 Welcome to hledger! 
 
-This is a minimal haskell clone of John Wiegley's ledger
-(http://newartisans.com/software/ledger.html).  hledger does basic
-register & balance reports, and demonstrates a functional implementation
-of ledger.
+hledger is a minimal haskell clone of John Wiegley's ledger
+(http://newartisans.com/software/ledger.html).  hledger generates
+ledger-compatible register & balance reports from a plain text ledger
+file, and demonstrates a functional implementation of ledger.  For more
+information, see the hledger home page: http://joyful.com/hledger
 
-For more information, see the hledger home page
-(http://joyful.com/hledger) and ledger manual
-(http://joyful.com/repos/ledger/doc/ledger.html).
-
-NEWS
-----
+Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>
+Released under GPL version 3 or later.
 
 
 INSTALLATION
@@ -42,7 +36,7 @@ Here are some commands to try::
  hledger -s balance
  hledger register
  hledger reg cash
- hledger r -- shop
+ hledger reg -- shop
 
 
 FEATURES

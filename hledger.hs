@@ -6,9 +6,10 @@ Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 This is a minimal haskell clone of John Wiegley's ledger
-<http://newartisans.com/software/ledger.html>.  hledger generates
-simple ledger-compatible register & balance reports from a plain text
-ledger file, and demonstrates a functional implementation of ledger.
+(http://newartisans.com/software/ledger.html).  hledger generates
+ledger-compatible register & balance reports from a plain text ledger
+file, and demonstrates a functional implementation of ledger.  For more
+information, see the hledger home page: http://joyful.com/hledger
 
 You can use the command line:
 
