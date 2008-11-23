@@ -154,17 +154,3 @@ declName :: HsDecl -> String
 declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
 declName _                                              = undefined
 
-** separate commodity display settings
-type CommoditySymbol = String
-
-data CommodityDisplayPrefs = CommodityDisplayPrefs {
-      side :: Side,      -- ^ should the symbol appear on the left or the right
-      spaced :: Bool,    -- ^ should there be a space between symbol and quantity
-      comma :: Bool,     -- ^ should thousands be comma-separated
-      precision :: Int,  -- ^ number of decimal places to display
-    } deriving (Eq,Show)
-
-data Amount = Amount {
-      commodity :: CommoditySymbol,
-      quantity :: Double
-    } deriving (Eq)
