@@ -35,6 +35,7 @@ Executable hledger
                   Ledger.AccountName
                   Ledger.Amount
                   Ledger.Commodity
+                  Ledger.Dates
                   Ledger.Entry
                   Ledger.RawLedger
                   Ledger.Ledger
@@ -54,6 +55,7 @@ library
                   Ledger.AccountName
                   Ledger.Amount
                   Ledger.Commodity
+                  Ledger.Dates
                   Ledger.Entry
                   Ledger.RawLedger
                   Ledger.Ledger
