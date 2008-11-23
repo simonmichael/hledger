@@ -51,6 +51,7 @@ Stats:
 Summarised changes:
 
 * fixes
+
   * fix balance report totals when filtering by account
   * fix balance report selection of accounts when filtering by account
   * fix a bug with account name eliding in balance report
@@ -63,6 +64,7 @@ Summarised changes:
   * don't require quickcheck
 
 * features
+
   * priced amounts (eg "10h @ $50") and --basis/--cost/-B flag to show them with cost basis
   * easy --depth option, equivalent to c++ ledger's -d 'l<=N'
   * smarter y/m/d date parsing for -b and -e
