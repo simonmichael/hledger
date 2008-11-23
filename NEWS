@@ -1,6 +1,52 @@
 NEWS
 ----
 
+2008/11/23 hledger 0.2 released
+...............................
+
+Summarised changes:
+
+* fixes
+  * fix balance report totals when filtering by account
+  * fix balance report selection of accounts when filtering by account
+  * fix a bug with account name eliding in balance report
+  * if we happen to be showing a not-yet-auto-balanced entry, hide the AUTO marker
+  * fix print command filtering by account
+  * omit transactions with zero amount from register report
+  * Fix bug in parsing of timelogs
+  * rename --showsubs to --subtotal, like ledger
+  * drop --usage flag
+  * don't require quickcheck
+
+* features
+  * priced amounts (eg "10h @ $50") and --basis/--cost/-B flag to show them with cost basis
+  * easy --depth option, equivalent to c++ ledger's -d 'l<=N'
+  * smarter y/m/d date parsing for -b and -e
+    (any number of digits, month and day default to 1, separator can be / - or .)
+  * -n flag for balance command
+  * --empty/-E flag
+  * build a library, as well as the exe
+  * new home page url (http://joyful.com/hledger)
+  * publish html and pdf versions of README
+  * detect display preferences for each commodity like c++ ledger
+  * support amounts with multiple currencies/commodities
+  * support --real/-R flag
+  * support -C/--cleared flag to filter by entry status (not transaction status)
+  * support virtual and balanced virtual transactions
+  * parse comment lines beginning with a space, as from M-; in emacs ledger-mode
+  * allow any non-whitespace in account names, perhaps avoiding misleading missing amounts errors
+  * clearer error message when we can't balance an entry
+  * when we fail because of more than one missing amount in an entry, show the full entry
+  * document the built-in test runner in --help
+  * add a --verbose/-v flag, use it to show more test-running detail
+  * includes 43 tests 
+
+Contributors:
+
+  * Simon Michael
+  * Tim Docker
+
+
 2008/10/15 hledger 0.1 released
 ...............................
 
