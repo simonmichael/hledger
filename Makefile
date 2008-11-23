@@ -69,7 +69,7 @@ docs: html pdf api-doc-frames
 
 html:
 	for d in $(DOCS); do rst2html $$d >doc/$$d.html; done
-	cd doc; ln -s README.html index.html
+	cd doc; ln -f -s README.html index.html
 
 pdf:
 	for d in $(DOCS); do rst2pdf $$d -o doc/$$d.pdf; done
