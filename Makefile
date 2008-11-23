@@ -43,13 +43,16 @@ Clean: clean clean-docs
 
 # docs
 
+DOCS=README NEWS
+
 docs: html pdf api-doc-frames
 
 html:
-	rst2html README >doc/index.html
+	for d in $(DOCS); do rst2html $$d >doc/$$d.html; done
+	cd doc; ln -s README.html index.html
 
 pdf:
-	rst2pdf README -o doc/README.pdf
+	for d in $(DOCS); do rst2pdf $$d -o doc/$$d.pdf; done
 
 MAIN=hledger.hs
 
