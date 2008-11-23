@@ -77,7 +77,7 @@ This version of hledger mimics a subset of ledger 2.6.1. Supported features:
    register [REGEXP]...   show register of matching transactions
    print    [REGEXP]...   print all matching entries
 
-hledger-specific features:
+hledger-specific features::
 
    --depth=N              balance report: maximum account depth to show
    --cost                 alias for basis
