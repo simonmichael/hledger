@@ -15,15 +15,18 @@ Released under GPL version 3 or later.
 
 INSTALLATION
 ------------
-In the hledger directory, do::
+If you have cabal-install, in this directory do::
 
  cabal install
 
-or::
+otherwise, unpack the latest tarball from
+http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger and do::
 
  runhaskell Setup.hs configure
  runhaskell Setup.hs build
  sudo runhaskell Setup.hs install 
+
+(or for the latest code, darcs get http://joyful.com/repos/hledger)
 
 
 EXAMPLES
