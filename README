@@ -165,4 +165,4 @@ Some other differences:
 - hledger talks about the entry and transaction "description", which ledger calls "note"
 - hledger always shows timelog balances in hours
 - hledger doesn't require a space after flags like -f
-- hledger keeps differently-priced amounts of the same commodity separate
+- hledger keeps differently-priced amounts of the same commodity separate, at the moment
