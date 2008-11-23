@@ -7,7 +7,7 @@ Description:    hledger is a haskell clone of John Wiegley's "ledger" text-based
                 It generates ledger-compatible register & balance reports from a plain
                 text ledger file, and demonstrates a functional implementation of ledger.
 License:        GPL
-Stability:      alpha
+Stability:      beta
 Author:         Simon Michael <simon@joyful.com>
 Maintainer:     Simon Michael <simon@joyful.com>
 Homepage:       http://joyful.com/hledger
