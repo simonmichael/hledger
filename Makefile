@@ -117,6 +117,11 @@ show-changes:
 	@echo
 	@darcs changes --from-tag . | grep '*'
 
+show-authors:
+	@echo Patch authors since last release:
+	@echo
+	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
+
 sloc:
 	@echo "test code:"
 	@sloccount Tests.hs | grep haskell:
