@@ -117,7 +117,7 @@ endDateFromOpts opts =
 
 -- | Get the value of the depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int
-depthFromOpts opts = 
+depthFromOpts opts =
     case depthopts of
       (x:_) -> Just $ read x
       _     -> Nothing

@@ -127,8 +127,30 @@ balancecommand_tests = TestList [
    "                  $1  liabilities\n" ++
    "")
  ,
-  "balance report with --subtotal" ~:
+  "balance report with -s" ~:
   ([SubTotal], []) `gives`
+  ("                 $-1  assets\n" ++
+   "                 $-2    cash\n" ++
+   "                  $1    saving\n" ++
+   "                  $2  expenses\n" ++
+   "                  $1    food\n" ++
+   "                  $1    supplies\n" ++
+   "                 $-2  income\n" ++
+   "                 $-1    gifts\n" ++
+   "                 $-1    salary\n" ++
+   "                  $1  liabilities:debts\n" ++
+   "")
+ ,
+  "balance report --depth limits -s" ~:
+  ([SubTotal,Depth "1"], []) `gives`
+  ("                 $-1  assets\n" ++
+   "                  $2  expenses\n" ++
+   "                 $-2  income\n" ++
+   "                  $1  liabilities\n" ++
+   "")
+ ,
+  "balance report --depth activates -s" ~:
+  ([Depth "2"], []) `gives`
   ("                 $-1  assets\n" ++
    "                 $-2    cash\n" ++
    "                  $1    saving\n" ++
@@ -149,7 +171,7 @@ balancecommand_tests = TestList [
    "                 $-1\n" ++
    "")
  ,
-  "balance report with account pattern o and --subtotal" ~:
+  "balance report with account pattern o and -s" ~:
   ([SubTotal], ["o"]) `gives`
   ("                  $1  expenses:food\n" ++
    "                 $-2  income\n" ++
@@ -226,18 +248,6 @@ balancecommand_tests = TestList [
   "balance report with -n omits the total" ~:
   ([Collapse], ["cash"]) `gives`
   ("                 $-2  assets:cash\n" ++
-   "")
- ,
-  "balance report with --depth 1" ~:
-  ([SubTotal,Collapse,Depth "1"], ["assets"]) `gives`
-  ("                 $-1  assets\n" ++
-   "")
- ,
-  "balance report with --depth 2" ~:
-  ([SubTotal,Collapse,Depth "2"], ["assets"]) `gives`
-  ("                 $-1  assets\n" ++
-   "                 $-2    cash\n" ++
-   "                  $1    saving\n" ++
    "")
  ,
   "balance report with cost basis" ~: do

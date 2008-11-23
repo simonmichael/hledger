@@ -126,10 +126,10 @@ showBalanceReport opts args l = acctsstr ++ (if collapse then "" else totalstr)
       matchedacctnames = balancereportacctnames l sub apats t
       t = (if empty then id else pruneZeroBalanceLeaves) $ ledgerAccountTree maxdepth l
       apats = fst $ parseAccountDescriptionArgs args
-      sub = SubTotal `elem` opts
+      maxdepth = fromMaybe 9999 $ depthFromOpts opts
+      sub = SubTotal `elem` opts || (isJust $ depthFromOpts opts)
       empty = Empty `elem` opts
       collapse = Collapse `elem` opts
-      maxdepth = fromMaybe 9999 $ depthFromOpts opts
       totalstr = if isZeroMixedAmount total 
                  then "" 
                  else printf "--------------------\n%20s\n" $ showMixedAmount total
