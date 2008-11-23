@@ -96,16 +96,22 @@ convertAmountTo c2 (Amount c1 q p) = Amount c2 (q * conversionRate c1 c2) Nothin
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
 showAmount :: Amount -> String
-showAmount (Amount (Commodity {symbol=sym,side=side,spaced=spaced,comma=comma,precision=p}) q pri)
+showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) q pri)
     | sym=="AUTO" = "" -- can display one of these in an error message
     | side==L = printf "%s%s%s%s" sym space quantity price
     | side==R = printf "%s%s%s%s" quantity space sym price
     where 
       space = if spaced then " " else ""
-      quantity = commad $ printf ("%."++show p++"f") q
-      commad = if comma then punctuatethousands else id
+      quantity = showAmount' a
       price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
                           Nothing -> ""
+
+-- | Get the string representation (of the number part of) of an amount
+showAmount' :: Amount -> String
+showAmount' (Amount (Commodity {comma=comma,precision=p}) q _) = quantity
+  where
+    quantity = commad $ printf ("%."++show p++"f") q
+    commad = if comma then punctuatethousands else id
 
 -- | Add thousands-separating commas to a decimal number string
 punctuatethousands :: String -> String
