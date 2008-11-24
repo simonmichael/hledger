@@ -11,22 +11,20 @@ clever tricks like the plague." --Edsger Dijkstra
 * to do
 ** errors
 ** features
+*** --display, for showing recent txns with real balance when reconciling
 *** flexible date expressions, for easier time reports
 **** more formats
 **** periods
 *** actual/effective entry & txn dates, for ?
-*** --display, for reconciling recent transactions with real balance
+*** ~/.hledgerrc
 *** more ledger features from README
 *** new features
-**** option for strict ledger-compatible output (or, compare xml ?)
-**** --compare to compare ledger with same args
-**** workable horizontal commodities display
+**** --compare to compare (xml?) output with ledger with same args
 **** in/out times in timelog entry descriptions
-**** graphs
+**** charts
 **** easier data entry
-**** flexible option ordering
-**** parse more file formats
-**** easy conversion from cabal-installed to darcs repo
+**** options to control negation and separator chars
+**** parse more file formats - gnucash, qif, ofx, csv..
 **** i18n
 *** speed
 **** profile
@@ -69,6 +67,7 @@ clever tricks like the plague." --Edsger Dijkstra
 *** ledger can get timelog entry balance wrong, see mail list
 *** hledger shows 0 amounts with their currency symbol
 *** hledger print puts a blank line after the entry, not before it
+*** hledger doesn't parse all ledger file constructs (and may choke ?)
 ** things I want to know
 *** time
 where have I been spending my time in recent weeks ?
