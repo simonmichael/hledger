@@ -11,20 +11,24 @@ import Ledger.Utils
 import Ledger.Types
 
 
-sepchar = ':'
+-- change to permit options anywhere on the command line. ^ is a good choice
+negativepatternchar = '-'
+
+-- change to use a different separator for nested accounts
+acctsepchar = ':'
 
 accountNameComponents :: AccountName -> [String]
-accountNameComponents = splitAtElement sepchar
+accountNameComponents = splitAtElement acctsepchar
 
 accountNameFromComponents :: [String] -> AccountName
-accountNameFromComponents = concat . intersperse [sepchar]
+accountNameFromComponents = concat . intersperse [acctsepchar]
 
 accountLeafName :: AccountName -> String
 accountLeafName = last . accountNameComponents
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
-accountNameLevel a = (length $ filter (==sepchar) a) + 1
+accountNameLevel a = (length $ filter (==acctsepchar) a) + 1
 
 -- | ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
@@ -45,7 +49,7 @@ parentAccountNames a = parentAccountNames' $ parentAccountName a
       parentAccountNames' a = [a] ++ (parentAccountNames' $ parentAccountName a)
 
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
-p `isAccountNamePrefixOf` s = ((p ++ [sepchar]) `isPrefixOf` s)
+p `isAccountNamePrefixOf` s = ((p ++ [acctsepchar]) `isPrefixOf` s)
 
 isSubAccountNameOf :: AccountName -> AccountName -> Bool
 s `isSubAccountNameOf` p = 
@@ -167,7 +171,6 @@ match_negative_pats pats str = (not $ null ns) && (any match ns)
       match "" = True
       match p = matchregex (abspat p) str
 
-negativepatternchar = '-'
 isnegativepat pat = (== [negativepatternchar]) $ take 1 pat
 abspat pat = if isnegativepat pat then drop 1 pat else pat
 positivepats = filter (not . isnegativepat)
