@@ -43,13 +43,13 @@ FEATURES
 --------
 This version of hledger mimics a subset of ledger 2.6.1:
 
-- regular ledger entries
-- multiple commodities
-- virtual transactions
-- balance, print, register commands
-- positive and negative account & description patterns
-- LEDGER environment variable
-- and::
+* regular ledger entries
+* multiple commodities
+* virtual transactions
+* balance, print, register commands
+* positive and negative account & description patterns
+* LEDGER environment variable
+* and::
 
    Basic options:
    -h, --help             display summarized help text
@@ -84,13 +84,13 @@ hledger-specific features:
 
 ledger features not supported:
 
-- !include
-- modifier entries
-- periodic entries
-- commodity pricing
-- counting an unfinished timelog session
-- parsing gnucash files
-- and::
+* !include
+* modifier entries
+* periodic entries
+* commodity pricing
+* counting an unfinished timelog session
+* parsing gnucash files
+* and::
 
    Basic options:
    -o, --output FILE      write output to FILE
@@ -157,7 +157,8 @@ ledger features not supported:
 
 Some other differences:
 
-- hledger talks about the entry and transaction "description", which ledger calls "note"
-- hledger always shows timelog balances in hours
-- hledger doesn't require a space after flags like -f
-- hledger keeps differently-priced amounts of the same commodity separate, at the moment
+* hledger talks about the entry and transaction "description", which ledger calls "note"
+* hledger always shows timelog balances in hours
+* hledger doesn't require a space after flags like -f
+* hledger keeps differently-priced amounts of the same commodity separate, at the moment
+* hledger doesn't parse all ledger file constructs (and may choke ? please report)
