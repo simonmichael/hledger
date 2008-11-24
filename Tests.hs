@@ -307,6 +307,14 @@ registercommand_tests = TestList [
      "                                assets:checking                 $-1            0\n" ++
      "")
      $ showRegisterReport [] [] l
+  ,
+  "register report with account pattern" ~:
+  do 
+    l <- ledgerfromfile [] "sample.ledger"
+    assertequal (
+     "2007/01/01 eat & shop           assets:cash                     $-2          $-2\n" ++
+     "")
+     $ showRegisterReport [] ["cash"] l
   ]
   
 ------------------------------------------------------------------------------
