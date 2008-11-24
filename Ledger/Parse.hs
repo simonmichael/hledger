@@ -534,7 +534,7 @@ y = do
   return (y,"1","1")
 
 -- | Parse a flexible date string, with awareness of the current time,
--- | and return a Date or raise an error.
+-- and return a Date or raise an error.
 smartparsedate :: String -> Date
 smartparsedate s = parsedate $ printf "%04s/%02s/%02s" y m d
     where (y,m,d) = fromparse $ parsewith smartdate s
