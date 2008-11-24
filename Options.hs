@@ -8,18 +8,20 @@ import Ledger.AccountName (negativepatternchar)
 import Ledger.Parse (smartparsedate)
 import Ledger.Dates
 
-usagehdr    = "Usage: hledger [OPTS] balance|print|register [ACCTPATS] [-- DESCPATS]\n\nOptions"++warning++":"
+usagehdr    = "Usage: hledger [OPTS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n\nOptions"++warning++":"
 warning     = if negativepatternchar=='-' then " (must appear before command)" else " (can appear anywhere)"
 usageftr    = "\n" ++
               "Commands (may be abbreviated):\n" ++
-              "balance  - show account balances\n" ++
-              "print    - show formatted ledger entries\n" ++
-              "register - show register transactions\n" ++
+              "  balance  - show account balances\n" ++
+              "  print    - show formatted ledger entries\n" ++
+              "  register - show register transactions\n" ++
               "\n" ++
-              "Account and description patterns are regular expressions, optionally prefixed\n" ++
+              "Account and description patterns can be used to filter by account name\n" ++
+              "and entry description. They are regular expressions, optionally prefixed\n" ++
               "with " ++ [negativepatternchar] ++ " to make them negative.\n" ++
               "\n" ++
-              "Also: hledger [-v] test [TESTPATS] to run some or all self-tests.\n"
+              "Also: hledger [-v] test [TESTPATTERNS] to run self-tests.\n" ++
+              "\n"
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
 optionorder = if negativepatternchar=='-' then RequireOrder else Permute
@@ -27,20 +29,23 @@ optionorder = if negativepatternchar=='-' then RequireOrder else Permute
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
 options = [
- Option ['f'] ["file"]         (ReqArg File "FILE")        "ledger file; - means use standard input",
- Option ['b'] ["begin"]        (ReqArg Begin "YYYY/MM/DD") "report on entries on or after this date",
- Option ['e'] ["end"]          (ReqArg End "YYYY/MM/DD")   "report on entries prior to this date",
- Option ['C'] ["cleared"]      (NoArg  Cleared)            "report only on cleared entries",
- Option ['B'] ["cost","basis"] (NoArg  CostBasis)          "report cost basis of commodities",
- Option []    ["depth"]        (ReqArg Depth "N")          "balance report: maximum account depth to show",
- Option ['E'] ["empty"]        (NoArg  Empty)              "balance report: show accounts with zero balance",
- Option ['R'] ["real"]         (NoArg  Real)               "report only on real (non-virtual) transactions",
- Option ['n'] ["collapse"]     (NoArg  Collapse)           "balance report: no grand total",
- Option ['s'] ["subtotal"]     (NoArg  SubTotal)           "balance report: show subaccounts",
- Option ['h'] ["help"] (NoArg  Help)                       "show this help",
- Option ['v'] ["verbose"]      (NoArg  Verbose)            "verbose test output",
- Option ['V'] ["version"]      (NoArg  Version)            "show version"
+ Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp,
+ Option ['b'] ["begin"]        (ReqArg Begin "Y/M/D") "report on entries on or after this date",
+ Option ['e'] ["end"]          (ReqArg End "Y/M/D")   "report on entries prior to this date",
+ Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
+ Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
+ Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",
+ Option ['E'] ["empty"]        (NoArg  Empty)         "balance report: show accounts with zero balance",
+ Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions",
+ Option ['n'] ["collapse"]     (NoArg  Collapse)      "balance report: no grand total",
+ Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts",
+ Option ['h'] ["help"] (NoArg  Help)                  "show this help",
+ Option ['v'] ["verbose"]      (NoArg  Verbose)       "verbose test output",
+ Option ['V'] ["version"]      (NoArg  Version)       "show version"
  ]
+    where 
+      filehelp = printf "ledger file; - means use standard input. Defaults\nto the %s environment variable or %s"
+                 fileenvvar defaultfile
 
 -- | An option value from a command-line flag.
 data Opt = 
