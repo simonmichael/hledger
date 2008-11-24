@@ -315,6 +315,15 @@ registercommand_tests = TestList [
      "2007/01/01 eat & shop           assets:cash                     $-2          $-2\n" ++
      "")
      $ showRegisterReport [] ["cash"] l
+  ,
+  "register report with display expression" ~:
+  do 
+    l <- ledgerfromfile [] "sample.ledger"
+    assertequal (
+     "2008/01/01 pay off              liabilities:debts                $1           $1\n" ++
+     "                                assets:checking                 $-1            0\n" ++
+     "")
+     $ showRegisterReport [Display "d>2007/12"] [] l
   ]
   
 ------------------------------------------------------------------------------

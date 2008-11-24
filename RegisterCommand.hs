@@ -28,14 +28,17 @@ DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
 showRegisterReport :: [Opt] -> [String] -> Ledger -> String
 showRegisterReport opts args l = showtxns ts nulltxn nullmixedamt
     where
-      ts = filter matchtxn $ ledgerTransactions l
-      matchtxn Transaction{account=a} = matchpats apats a
+      ts = filter matchapats $ ledgerTransactions l
+      matchapats t = matchpats apats $ account t
       apats = fst $ parseAccountDescriptionArgs args
+      matchdisplayopt Nothing t = True
+      matchdisplayopt (Just e) t = (fromparse $ parsewith datedisplayexpr e) t
+      dopt = displayFromOpts opts
 
-      -- show transactions, one per line, with a running balance
+      -- show display-filtered transactions, one per line, with a running balance
       showtxns [] _ _ = ""
       showtxns (t@Transaction{amount=a}:ts) tprev bal =
-          (if isZeroMixedAmount a then "" else this) ++ showtxns ts t bal'
+          (if (isZeroMixedAmount a || (not $ matchdisplayopt dopt t)) then "" else this) ++ showtxns ts t bal'
           where
             this = showtxn (t `issame` tprev) t bal'
             issame t1 t2 = entryno t1 == entryno t2
@@ -51,3 +54,4 @@ showRegisterReport opts args l = showtxns ts nulltxn nullmixedamt
             txn = showRawTransaction $ RawTransaction a amt "" tt
             bal = padleft 12 (showMixedAmountOrZero b)
             Transaction{date=da,description=de,account=a,amount=amt,ttype=tt} = t
+

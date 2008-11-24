@@ -7,6 +7,8 @@ import Text.Printf
 import Ledger.AccountName (negativepatternchar)
 import Ledger.Parse (smartparsedate)
 import Ledger.Dates
+import Ledger.Utils
+
 
 usagehdr    = "Usage: hledger [OPTS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n\nOptions"++warning++":"
 warning     = if negativepatternchar=='-' then " (must appear before command)" else " (can appear anywhere)"
@@ -35,6 +37,7 @@ options = [
  Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
  Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
  Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",
+ Option ['d'] ["display"]      (ReqArg Display "EXPR") "display only transactions matching EXPR\n(where EXPR is 'd>Y/M/D')",
  Option ['E'] ["empty"]        (NoArg  Empty)         "balance report: show accounts with zero balance",
  Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions",
  Option ['n'] ["collapse"]     (NoArg  Collapse)      "balance report: no grand total",
@@ -55,6 +58,7 @@ data Opt =
     Cleared | 
     CostBasis | 
     Depth String | 
+    Display String | 
     Empty | 
     Real | 
     Collapse |
@@ -134,6 +138,17 @@ depthFromOpts opts =
       depthopts = concatMap getdepth opts
       getdepth (Depth s) = [s]
       getdepth _ = []
+
+-- | Get the value of the display option, if any.
+displayFromOpts :: [Opt] -> Maybe String
+displayFromOpts opts =
+    case displayopts of
+      (s:_) -> Just s
+      _     -> Nothing
+    where
+      displayopts = concatMap getdisplay opts
+      getdisplay (Display s) = [s]
+      getdisplay _ = []
 
 -- | Gather any ledger-style account/description pattern arguments into
 -- two lists.  These are 0 or more account patterns optionally followed by

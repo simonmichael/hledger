@@ -538,3 +538,16 @@ y = do
 smartparsedate :: String -> Date
 smartparsedate s = parsedate $ printf "%04s/%02s/%02s" y m d
     where (y,m,d) = fromparse $ parsewith smartdate s
+
+-- | Parse a --display expression of the form "d>DATE"
+
+type TransactionMatcher = Transaction -> Bool
+
+datedisplayexpr :: Parser TransactionMatcher
+datedisplayexpr = do
+  char 'd'
+  char '>'
+  (y,m,d) <- smartdate
+  let edate = parsedate $ printf "%04s/%02s/%02s" y m d
+  return $ \(Transaction{date=tdate}) -> tdate > edate
+
