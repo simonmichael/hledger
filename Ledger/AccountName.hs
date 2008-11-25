@@ -102,27 +102,6 @@ elideAccountName width s =
           | otherwise = done++ss
 
 
--- -- | Check if a set of ledger account/description patterns matches the
--- -- given account name or entry description.  Patterns are case-insensitive
--- -- regular expression strings; those beginning with - are anti-patterns.
--- -- 
--- -- Call with forbalancereport=True to mimic ledger's balance report
--- -- matching. Account patterns usually match the full account name, but in
--- -- balance reports when the pattern does not contain : and is not an
--- -- anti-pattern, it matches only the leaf name.
--- matchpats :: Bool -> [String] -> String -> Bool
--- matchpats forbalancereport pats str =
---     (null positives || any ismatch positives) && (null negatives || not (any ismatch negatives))
---     where 
---       isnegative = (== negativepatternchar) . head
---       (negatives,positives) = partition isnegative pats
---       ismatch pat = containsRegex (mkRegexWithOpts pat' True True) matchee
---           where 
---             pat' = if isnegative pat then drop 1 pat else pat
---             matchee = if forbalancereport && not (':' `elem` pat) && not (isnegative pat)
---                       then accountLeafName str
---                       else str
-
 -- | Check if a set of ledger account/description patterns matches the
 -- given account name or entry description.  Patterns are case-insensitive
 -- regular expression strings; those beginning with - are anti-patterns.
