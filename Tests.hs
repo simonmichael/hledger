@@ -98,9 +98,15 @@ misc_tests = TestList [
     assertparseequal timelog1 (parsewith timelog timelog1_str)
   ,                  
   "smartparsedate"     ~: do
-    assertequal (1999,12,13) (dateComponents $ smartparsedate "1999/12/13")
-    assertequal (2008,2,1)   (dateComponents $ smartparsedate "2008-2")
-    assertequal (2008,1,1)   (dateComponents $ smartparsedate "2008")
+    (thisyear,thismonth,thisday) <- today >>= return . dateComponents
+    d <- smartparsedate "1999-12-02"; assertequal (1999,12,2) (dateComponents d)
+    d <- smartparsedate "1999.12.02"; assertequal (1999,12,2) (dateComponents d)
+    d <- smartparsedate "1999/3/2"; assertequal (1999,3,2) (dateComponents d)
+    d <- smartparsedate "2008/2"; assertequal (2008,2,1) (dateComponents d)
+    d <- smartparsedate "20/2"; assertequal (20,2,1) (dateComponents d)
+    d <- smartparsedate "4/2"; assertequal (thisyear,4,2) (dateComponents d)
+    d <- smartparsedate "1000"; assertequal (1000,1,1) (dateComponents d)
+    d <- smartparsedate "2"; assertequal (thisyear,thismonth,2) (dateComponents d)
   ]
 
 balancereportacctnames_tests = TestList 

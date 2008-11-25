@@ -113,11 +113,11 @@ tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
 tildeExpand xs           =  return xs
 
 -- | Get the value of the begin date option, if any.
-beginDateFromOpts :: [Opt] -> Maybe Date
-beginDateFromOpts opts = 
+beginDateFromOpts :: [Opt] -> IO (Maybe Date)
+beginDateFromOpts opts =
     case beginopts of
-      (x:_) -> Just $ smartparsedate $ last beginopts
-      _     -> Nothing
+      (x:_) -> smartparsedate (last beginopts) >>= return . Just
+      _ -> return Nothing
     where
       beginopts = concatMap getbegindate opts
       getbegindate (Begin s) = [s]
@@ -125,11 +125,11 @@ beginDateFromOpts opts =
       defaultdate = ""
 
 -- | Get the value of the end date option, if any.
-endDateFromOpts :: [Opt] -> Maybe Date
-endDateFromOpts opts = 
+endDateFromOpts :: [Opt] -> IO (Maybe Date)
+endDateFromOpts opts = do
     case endopts of
-      (x:_) -> Just $ smartparsedate $ last endopts
-      _      -> Nothing
+      (x:_) -> smartparsedate (last endopts) >>= return . Just
+      _ -> return Nothing
     where
       endopts = concatMap getenddate opts
       getenddate (End s) = [s]
