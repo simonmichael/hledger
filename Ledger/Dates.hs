@@ -50,6 +50,14 @@ mkDate day = Date (localTimeToUTC utc (LocalTime day midnight))
 mkDateTime :: Day -> TimeOfDay -> DateTime
 mkDateTime day tod = DateTime (localTimeToUTC utc (LocalTime day tod))
 
+today :: IO Date
+today = do
+    t <- getZonedTime
+    return (mkDate (localDay (zonedTimeToLocalTime t)))
+
+now :: IO DateTime
+now = fmap DateTime getCurrentTime 
+
 -- | Parse a date-time string to a time type, or raise an error.
 parsedatetime :: String -> DateTime
 parsedatetime s = DateTime $
@@ -72,9 +80,6 @@ datetimeToDate (DateTime (UTCTime{utctDay=day})) = Date (UTCTime day 0)
 
 elapsedSeconds :: Fractional a => DateTime -> DateTime -> a
 elapsedSeconds (DateTime dt1) (DateTime dt2) = realToFrac $ diffUTCTime dt1 dt2
-
-today :: IO Date
-today = getCurrentTime >>= return . Date
 
 dateToUTC :: Date -> UTCTime
 dateToUTC (Date u) = u
