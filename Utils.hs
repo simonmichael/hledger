@@ -21,7 +21,7 @@ ledgerfromstring :: [String] -> String -> Ledger
 ledgerfromstring args s =
   cacheLedger apats $ filterRawLedger Nothing Nothing dpats False False l
       where
-        (apats,dpats) = parseAccountDescriptionArgs args
+        (apats,dpats) = parseAccountDescriptionArgs [] args
         l = rawledgerfromstring s
            
 -- | Get a RawLedger from the given file path, or a dummy one if there was an error.
@@ -37,7 +37,7 @@ ledgerfromfile args f = do
   l  <- rawledgerfromfile f
   return $ cacheLedger apats $ filterRawLedger Nothing Nothing dpats False False l
       where
-        (apats,dpats) = parseAccountDescriptionArgs args
+        (apats,dpats) = parseAccountDescriptionArgs [] args
            
 -- | Get a RawLedger from the file your LEDGER environment variable
 -- variable points to, or a dummy one if there was a problem.

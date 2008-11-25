@@ -80,6 +80,7 @@ hledger-specific features:
 
    --depth=N              balance report: maximum account depth to show
    --cost                 alias for basis
+   --options-anywhere     allow options anywhere, use ^ for negative patterns
 
 ledger features not supported:
 

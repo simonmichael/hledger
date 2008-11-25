@@ -30,7 +30,7 @@ showRegisterReport opts args l = showtxns ts nulltxn nullmixedamt
     where
       ts = filter matchapats $ ledgerTransactions l
       matchapats t = matchpats apats $ account t
-      apats = fst $ parseAccountDescriptionArgs args
+      apats = fst $ parseAccountDescriptionArgs opts args
       matchdisplayopt Nothing t = True
       matchdisplayopt (Just e) t = (fromparse $ parsewith datedisplayexpr e) t
       dopt = displayFromOpts opts

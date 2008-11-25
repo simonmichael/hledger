@@ -18,4 +18,4 @@ showEntries :: [Opt] -> [String] -> Ledger -> String
 showEntries opts args l = concatMap showEntry $ filteredentries
     where 
       filteredentries = entries $ filterRawLedgerEntriesByAccount apats $ rawledger l
-      (apats,_) = parseAccountDescriptionArgs args
+      (apats,_) = parseAccountDescriptionArgs opts args

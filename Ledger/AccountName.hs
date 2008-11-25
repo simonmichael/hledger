@@ -11,9 +11,6 @@ import Ledger.Utils
 import Ledger.Types
 
 
--- change to permit options anywhere on the command line. ^ is a good choice
-negativepatternchar = '-'
-
 -- change to use a different separator for nested accounts
 acctsepchar = ':'
 
@@ -171,9 +168,8 @@ match_negative_pats pats str = (not $ null ns) && (any match ns)
       match "" = True
       match p = matchregex (abspat p) str
 
-isnegativepat pat = (== [negativepatternchar]) $ take 1 pat
+isnegativepat pat = take 1 pat `elem` ["-","^"]
 abspat pat = if isnegativepat pat then drop 1 pat else pat
 positivepats = filter (not . isnegativepat)
 negativepats = filter isnegativepat
 matchregex pat str = containsRegex (mkRegexWithOpts pat True True) str
-
