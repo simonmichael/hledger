@@ -63,9 +63,10 @@ This version of hledger mimics a subset of ledger 2.6.1:
    -R, --real             consider only real (non-virtual) transactions
  
    Output customization:
-   -s, --subtotal         balance report: show sub-accounts
-   -E, --empty            balance report: show accounts with zero balance
    -n, --collapse         balance report: no grand total
+   -d, --display EXPR     display only transactions matching EXPR (limited support)
+   -E, --empty            balance report: show accounts with zero balance
+   -s, --subtotal         balance report: show sub-accounts
  
    Commodity reporting:
    -B, --basis, --cost    report cost basis of commodities
@@ -132,7 +133,6 @@ ledger features not supported:
        --totals           in the "xml" report, include running total
    -j, --amount-data      print only raw amount data (useful for scripting)
    -J, --total-data       print only raw total data
-   -d, --display EXPR     display only transactions matching EXPR
    -y, --date-format STR  use STR as the date format (default: %Y/%m/%d)
    -F, --format STR       use STR as the format; for each report type, use:
        --balance-format      --register-format       --print-format

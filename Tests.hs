@@ -323,7 +323,7 @@ registercommand_tests = TestList [
      "2008/01/01 pay off              liabilities:debts                $1           $1\n" ++
      "                                assets:checking                 $-1            0\n" ++
      "")
-     $ showRegisterReport [Display "d>2007/12"] [] l
+     $ showRegisterReport [Display "d>[2007/12]"] [] l
   ]
   
 ------------------------------------------------------------------------------

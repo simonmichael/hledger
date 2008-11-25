@@ -37,7 +37,7 @@ options = [
  Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
  Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
  Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",
- Option ['d'] ["display"]      (ReqArg Display "EXPR") "display only transactions matching EXPR\n(where EXPR is 'd>Y/M/D')",
+ Option ['d'] ["display"]      (ReqArg Display "EXPR") "display only transactions matching EXPR\n(where EXPR is 'd>[Y/M/D]')",
  Option ['E'] ["empty"]        (NoArg  Empty)         "balance report: show accounts with zero balance",
  Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions",
  Option ['n'] ["collapse"]     (NoArg  Collapse)      "balance report: no grand total",
