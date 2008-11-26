@@ -541,13 +541,24 @@ smartparsedate s = parsedate $ printf "%04s/%02s/%02s" y m d
 
 type TransactionMatcher = Transaction -> Bool
 
--- | Parse a --display expression of the form "d>[DATE]"
+-- | Parse a --display expression which is a simple date predicate,
+-- like "d>[DATE]" or "d<=[DATE]".
 datedisplayexpr :: Parser TransactionMatcher
 datedisplayexpr = do
   char 'd'
-  char '>'
+  op <- compareop
   char '['
   (y,m,d) <- smartdate
   char ']'
   let edate = parsedate $ printf "%04s/%02s/%02s" y m d
-  return $ \(Transaction{date=tdate}) -> tdate > edate
+  let matcher = \(Transaction{date=tdate}) -> 
+                  case op of
+                    "<"  -> tdate <  edate
+                    "<=" -> tdate <= edate
+                    "="  -> tdate == edate
+                    "==" -> tdate == edate -- just in case
+                    ">=" -> tdate >= edate
+                    ">"  -> tdate >  edate
+  return matcher              
+
+compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
