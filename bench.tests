@@ -1,0 +1,6 @@
+# see tools/bench.hs
+
+-f sample.ledger register
+-f sample.ledger -s balance
+-f ~/.ledger register
+-f ~/.ledger -s balance

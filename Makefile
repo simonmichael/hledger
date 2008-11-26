@@ -29,6 +29,10 @@ test:
 	@./hledger.hs test
 	@./regtest.py
 
+# run performance benchmarks and save results in profs
+bench:
+	tools/bench.hs bench.tests 2 hledger ledger "ledger --no-cache" | tee profs/`date +%Y%m%d%H%M%S`.bench
+
 VERSION=`grep 'versionno =' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
 release:
 	cabal sdist && darcs tag $(VERSION) && cabal upload dist/hledger-$(VERSION).tar.gz

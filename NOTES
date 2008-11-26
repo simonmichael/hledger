@@ -18,7 +18,6 @@ clever tricks like the plague." --Edsger Dijkstra
 *** ~/.hledgerrc, for setting defaults
 *** more ledger features from README (?)
 *** speed
-**** easy benchmarking
 **** speed regression tests
 **** easy profiling
 **** cache file ?
