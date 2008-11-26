@@ -29,8 +29,8 @@ xprofile: build
 	ghcprof profs/$(TIME).xprof
 
 test:
-	@./hledger.hs test
-	@./regtest.py
+	./hledger.hs test
+#	tools/regressiontest.py
 
 # run performance benchmarks and save results in profs
 BENCHEXES=hledger ledger
