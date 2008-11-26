@@ -493,27 +493,16 @@ and maybe some others:
 > 21
 > october, oct
 > yesterday, today, tomorrow
-> this/next/last week/day/month/quarter/year
+> (not yet) this/next/last week/day/month/quarter/year
 
+Returns a triple of possibly empty strings for year, month and day
+(defaults are supplied later in the IO layer.)
 Note: only recognises month names in lowercase.
 -}
 smartdate :: Parser (String,String,String)
 smartdate = do
-  (y,m,d) <- choice [
-              try ymd 
-             ,try ym 
-             ,try md
-             ,try y
-             ,try d
-             ,try month
-             ,try mon
-             ,try today'
-             ,try yesterday
-             ,try tomorrow
---              ,try thiswhatever
---              ,try nextwhatever
---              ,try lastwhatever
-            ]
+  let dateparsers = [ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow]
+  (y,m,d) <- choice $ map try dateparsers
   return $ (y,m,d)
 
 datesepchar = oneOf "/-."
@@ -550,7 +539,6 @@ d = do
   guard (read d <= 31)
   return ("","",d)
 
--- | Parse a M/D string as ("",M,D), year will be filled in later
 md :: Parser (String,String,String)
 md = do
   m <- many1 digit
@@ -584,8 +572,8 @@ tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
 
 type TransactionMatcher = Transaction -> Bool
 
--- | Parse a --display expression which is a simple date predicate,
--- like "d>[DATE]" or "d<=[DATE]".
+-- | Parse a --display expression which is a simple date predicate, like
+-- "d>[DATE]" or "d<=[DATE]", and return a transaction-matching predicate.
 datedisplayexpr :: Parser TransactionMatcher
 datedisplayexpr = do
   char 'd'
