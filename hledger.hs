@@ -57,24 +57,24 @@ main = do
   run cmd opts args
     where 
       run cmd opts args
-       | Help `elem` opts            = putStr $ usage opts
+       | Help `elem` opts            = putStr $ usage
        | Version `elem` opts         = putStr version
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
-       | otherwise                   = putStr $ usage opts
+       | otherwise                   = putStr $ usage
 
 -- | parse the user's specified ledger file and do some action with it
 -- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = do
-  b <- beginDateFromOpts opts
-  e <- endDateFromOpts opts
-  let runcmd = cmd opts args . cacheLedger apats . filterRawLedger b e dpats c r . canonicaliseAmounts costbasis
   ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runcmd
     where
+      runcmd = cmd opts args . cacheLedger apats . filterRawLedger b e dpats c r . canonicaliseAmounts costbasis
       (apats,dpats) = parseAccountDescriptionArgs opts args
+      b = beginDateFromOpts opts
+      e = endDateFromOpts opts
       c = Cleared `elem` opts
       r = Real `elem` opts
       costbasis = CostBasis `elem` opts

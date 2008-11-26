@@ -483,92 +483,99 @@ ledgerfromtimelog = do
 
 -- misc parsing
 {-| 
-Parse a date in any of the formats allowed in ledger's period expressions:
+Parse a date in any of the formats allowed in ledger's period expressions,
+and maybe some others:
 
 > 2004
 > 2004/10
 > 2004/10/1
 > 10/1
-> october
-> oct
-> this week  # or day, month, quarter, year
-> next week
-> last week
+> 21
+> october, oct
+> this/next/last week/day/month/quarter/year
+> yesterday, today, tomorrow
+
+Note: only recognises month names in lowercase.
 -}
 smartdate :: Parser (String,String,String)
 smartdate = do
-  (y,m,d) <- (
-             try ymd 
-             <|> try ym 
-             <|> try md
-             <|> try y
-             <|> try d
---              <|> try month
---              <|> try mon
---              <|> try today
---              <|> try yesterday
---              <|> try tomorrow
---              <|> try thiswhatever
---              <|> try nextwhatever
---              <|> try lastwhatever
-            )
+  (y,m,d) <- choice [
+              try ymd 
+             ,try ym 
+             ,try md
+             ,try y
+             ,try d
+             ,try month
+             ,try mon
+--              ,try today
+--              ,try yesterday
+--              ,try tomorrow
+--              ,try thiswhatever
+--              ,try nextwhatever
+--              ,try lastwhatever
+            ]
   return $ (y,m,d)
 
 datesep = oneOf "/-."
 
 ymd :: Parser (String,String,String)
 ymd = do
-  y <- many digit
+  y <- many1 digit
   datesep
-  m <- many digit
+  m <- many1 digit
   guard (read m <= 12)
   datesep
-  d <- many digit
+  d <- many1 digit
   guard (read d <= 31)
   return (y,m,d)
 
 ym :: Parser (String,String,String)
 ym = do
-  y <- many digit
+  y <- many1 digit
   guard (read y > 12)
   datesep
-  m <- many digit
+  m <- many1 digit
   guard (read m <= 12)
   return (y,m,"1")
 
 y :: Parser (String,String,String)
 y = do
-  y <- many digit
+  y <- many1 digit
   guard (read y >= 1000)
   return (y,"1","1")
 
 d :: Parser (String,String,String)
 d = do
-  d <- many digit
+  d <- many1 digit
   guard (read d <= 31)
   return ("","",d)
 
 -- | Parse a M/D string as ("",M,D), year will be filled in later
 md :: Parser (String,String,String)
 md = do
-  m <- many digit
+  m <- many1 digit
   guard (read m <= 12)
   datesep
-  d <- many digit
+  d <- many1 digit
   guard (read d <= 31)
   return ("",m,d)
 
--- | Parse a flexible date string to a Date with awareness of the current
--- time, or raise an error.
-smartparsedate :: String -> IO Date
-smartparsedate s = do
-  let (y,m,d) = fromparse $ parsewith smartdate s
-  (thisy,thism,_) <- today >>= return . dateComponents
-  let (y',m',d') = case (y,m,d) of
-                     ("","",d) -> (show thisy,show thism,d)
-                     ("",m,d)  -> (show thisy,m,d)
-                     otherwise -> (y,m,d)
-  return $ parsedate $ printf "%04s/%02s/%02s" y' m' d'
+months = ["january","february","march","april","may","june",
+          "july","august","september","october","november","december"]
+
+mons = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+
+month :: Parser (String,String,String)
+month = do
+  m <- choice $ map string months
+  let i = maybe 0 (+1) $ (map toLower m) `elemIndex` months
+  return ("",show i,"1")
+
+mon :: Parser (String,String,String)
+mon = do
+  m <- choice $ map string mons
+  let i = maybe 0 (+1) $ (map toLower m) `elemIndex` mons
+  return ("",show i,"1")
 
 type TransactionMatcher = Transaction -> Bool
 

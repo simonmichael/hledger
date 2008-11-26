@@ -4,12 +4,12 @@ import System
 import System.Console.GetOpt
 import System.Directory
 import Text.Printf
-import Ledger.Parse (smartparsedate)
+import Ledger.Parse
 import Ledger.Dates
 import Ledger.Utils
 
 
-usage opts = usageInfo usagehdr options ++ usageftr
+usage = usageInfo usagehdr options ++ usageftr
 
 negativePatternChar opts
     | OptionsAnywhere `elem` opts = '^'
@@ -81,15 +81,42 @@ versionno = "0.3pre"
 version = printf "hledger version %s \n" versionno :: String
 
 -- | Parse the command-line arguments into ledger options, ledger command
--- name, and ledger command arguments
+-- name, and ledger command arguments. Also any dates in the options are
+-- converted to full YYYY/MM/DD format, while we are in the IO monad
+-- and can get the current time.
 parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- getArgs
   let order = if "--options-anywhere" `elem` args then Permute else RequireOrder
   case (getOpt order options args) of
-    (opts,cmd:args,[]) -> return (opts, cmd, args)
-    (opts,[],[])       -> return (opts, [], [])
-    (opts,_,errs)         -> ioError (userError (concat errs ++ usage opts))
+    (opts,cmd:args,[]) -> do {opts' <- fixDates opts; return (opts',cmd,args)}
+    (opts,[],[])       -> do {opts' <- fixDates opts; return (opts',[],[])}
+    (opts,_,errs)      -> ioError (userError (concat errs ++ usage))
+
+-- | Convert any fuzzy/relative dates within these option values to
+-- explicit ones, based on today's date.
+fixDates :: [Opt] -> IO [Opt]
+fixDates opts = do
+  ds <- today >>= return . dateComponents
+  return $ map (fixopt ds) opts
+  where
+    fixopt ds (Begin s)   = Begin $ fixdate ds s
+    fixopt ds (End s)     = End $ fixdate ds s
+    fixopt ds (Display s) = -- hacky
+        Display $ gsubRegexPRBy "\\[.+?\\]" fixbracketeddate s
+        where fixbracketeddate s = "[" ++ (fixdate ds $ init $ tail s) ++ "]"
+    fixopt _ o            = o
+
+-- | Convert a fuzzy date string to an explicit yyyy/mm/dd date, using the
+-- provided today's date for defaults.
+fixdate :: (Integer,Int,Int) -> String -> String
+fixdate (thisy,thism,thisd) s = printf "%04s/%02s/%02s" y' m' d'
+    where 
+      (y,m,d) = fromparse $ parsewith smartdate $ map toLower s
+      (y',m',d') = case (y,m,d) of 
+                     ("","",d) -> (show thisy,show thism,d)
+                     ("",m,d)  -> (show thisy,m,d)
+                     otherwise -> (y,m,d)
 
 -- | Get the ledger file path from options, an environment variable, or a default
 ledgerFilePathFromOpts :: [Opt] -> IO String
@@ -113,28 +140,30 @@ tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
 tildeExpand xs           =  return xs
 
 -- | Get the value of the begin date option, if any.
-beginDateFromOpts :: [Opt] -> IO (Maybe Date)
+beginDateFromOpts :: [Opt] -> Maybe Date
 beginDateFromOpts opts =
-    case beginopts of
-      (x:_) -> smartparsedate (last beginopts) >>= return . Just
-      _ -> return Nothing
+    if null beginopts 
+    then Nothing
+    else Just $ parsedate $ printf "%04s/%02s/%02s" y m d
     where
       beginopts = concatMap getbegindate opts
       getbegindate (Begin s) = [s]
       getbegindate _ = []
       defaultdate = ""
+      (y,m,d) = fromparse $ parsewith smartdate $ last beginopts
 
 -- | Get the value of the end date option, if any.
-endDateFromOpts :: [Opt] -> IO (Maybe Date)
-endDateFromOpts opts = do
-    case endopts of
-      (x:_) -> smartparsedate (last endopts) >>= return . Just
-      _ -> return Nothing
+endDateFromOpts :: [Opt] -> Maybe Date
+endDateFromOpts opts =
+    if null endopts 
+    then Nothing
+    else Just $ parsedate $ printf "%04s/%02s/%02s" y m d
     where
       endopts = concatMap getenddate opts
       getenddate (End s) = [s]
       getenddate _ = []
       defaultdate = ""
+      (y,m,d) = fromparse $ parsewith smartdate $ last endopts
 
 -- | Get the value of the depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int
@@ -179,5 +208,5 @@ parseAccountDescriptionArgs opts args = (as, ds')
 testoptions order cmdline = putStr $ 
     case getOpt order options cmdline of
       (o,n,[]  ) -> "options=" ++ show o ++ "  args=" ++ show n
-      (o,_,errs) -> concat errs ++ usage o
+      (o,_,errs) -> concat errs ++ usage
 
