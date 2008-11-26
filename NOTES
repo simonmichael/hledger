@@ -11,31 +11,30 @@ clever tricks like the plague." --Edsger Dijkstra
 * to do
 ** errors
 ** features
-*** --display, for showing recent txns with real balance when reconciling
-*** flexible date expressions, for easier time reports
-**** more formats
-**** periods
+*** this/last day/week/month/year, for ease of use
+*** period expressions, for easier reporting
+*** more kinds of display expression (all of them ?)
 *** actual/effective entry & txn dates, for ?
-*** ~/.hledgerrc
-*** more ledger features from README
+*** ~/.hledgerrc, for setting defaults
+*** more ledger features from README (?)
+*** speed
+**** easy benchmarking
+**** speed regression tests
+**** easy profiling
+**** cache file ?
 *** new features
-**** --compare to compare (xml?) output with ledger with same args
-**** in/out times in timelog entry descriptions
+**** curses gui
+**** web gui
 **** charts
 **** easier data entry
-**** options to control negation and separator chars
 **** parse more file formats - gnucash, qif, ofx, csv..
+**** in/out times in timelog entry descriptions
 **** i18n
-*** speed
-**** profile
-**** cache file
-** cleanups
 ** tests
 *** test on more ledger files
-*** speed regression tests
-*** more modular/scalable approach to test data ?
-*** figure out reliable maintainable appropriate tests
+*** more modular/scalable approach to test data
 *** easy ledger compatibility testing
+**** --compare to compare (xml?) output with ledger with same args
 ** docs
 *** --version
 *** --help
