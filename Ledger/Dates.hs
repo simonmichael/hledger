@@ -38,6 +38,12 @@ instance Show Date where
 instance Show DateTime where 
    show (DateTime t) = formatTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" t
 
+-- | A fuzzy date is either a partially-specified or a relative date.
+-- We represent it as a triple of strings such as
+-- ("2008","01","01") or ("2008","","") or ("","","tomorrow") or 
+-- ("","last|this|next","day|week|month|quarter|year").
+type FuzzyDate = (String,String,String)
+
 mkDate :: Day -> Date
 mkDate day = Date (localTimeToUTC utc (LocalTime day midnight))
 

@@ -482,6 +482,7 @@ ledgerfromtimelog = do
 
 
 -- misc parsing
+
 {-| 
 Parse a date in any of the formats allowed in ledger's period expressions,
 and maybe some others:
@@ -495,11 +496,10 @@ and maybe some others:
 > yesterday, today, tomorrow
 > (not yet) this/next/last week/day/month/quarter/year
 
-Returns a triple of possibly empty strings for year, month and day
-(defaults are supplied later in the IO layer.)
-Note: only recognises month names in lowercase.
+Returns a FuzzyDate, to be converted to a full date later, in the IO
+layer.  Note: assumes any text in the parse stream has been lowercased.
 -}
-smartdate :: Parser (String,String,String)
+smartdate :: Parser FuzzyDate
 smartdate = do
   let dateparsers = [ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow]
   (y,m,d) <- choice $ map try dateparsers
@@ -507,7 +507,7 @@ smartdate = do
 
 datesepchar = oneOf "/-."
 
-ymd :: Parser (String,String,String)
+ymd :: Parser FuzzyDate
 ymd = do
   y <- many1 digit
   datesepchar
@@ -518,7 +518,7 @@ ymd = do
   guard (read d <= 31)
   return (y,m,d)
 
-ym :: Parser (String,String,String)
+ym :: Parser FuzzyDate
 ym = do
   y <- many1 digit
   guard (read y > 12)
@@ -527,19 +527,19 @@ ym = do
   guard (read m <= 12)
   return (y,m,"1")
 
-y :: Parser (String,String,String)
+y :: Parser FuzzyDate
 y = do
   y <- many1 digit
   guard (read y >= 1000)
   return (y,"1","1")
 
-d :: Parser (String,String,String)
+d :: Parser FuzzyDate
 d = do
   d <- many1 digit
   guard (read d <= 31)
   return ("","",d)
 
-md :: Parser (String,String,String)
+md :: Parser FuzzyDate
 md = do
   m <- many1 digit
   guard (read m <= 12)
@@ -553,21 +553,39 @@ months = ["january","february","march","april","may","june",
 
 mons = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
 
-month :: Parser (String,String,String)
+month :: Parser FuzzyDate
 month = do
   m <- choice $ map string months
   let i = maybe 0 (+1) $ (map toLower m) `elemIndex` months
   return ("",show i,"1")
 
-mon :: Parser (String,String,String)
+mon :: Parser FuzzyDate
 mon = do
   m <- choice $ map string mons
   let i = maybe 0 (+1) $ (map toLower m) `elemIndex` mons
   return ("",show i,"1")
 
+today',yesterday,tomorrow :: Parser FuzzyDate
 today'    = string "today"     >> return ("","","today")
 yesterday = string "yesterday" >> return ("","","yesterday")
 tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
+
+lastthisnextthing :: Parser FuzzyDate
+lastthisnextthing = do
+  r <- choice [
+        string "last"
+       ,string "this"
+       ,string "next"
+      ]
+  many1 spacenonewline
+  p <- choice [
+        string "day"
+       ,string "week"
+       ,string "month"
+       ,string "quarter"
+       ,string "year"
+      ]
+  return ("",r,p)
 
 
 type TransactionMatcher = Transaction -> Bool

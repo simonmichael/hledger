@@ -100,7 +100,7 @@ misc_tests = TestList [
   "smartparsedate"     ~: do
     t <- today
     let (ty,tm,td) = dateComponents t
-    let str `gives` datestr = assertequal datestr (fixdate t str)
+    let str `gives` datestr = assertequal datestr (fixdatestr t str)
     "1999-12-02" `gives` "1999/12/02"
     "1999.12.02" `gives` "1999/12/02"
     "1999/3/2"   `gives` "1999/03/02"
