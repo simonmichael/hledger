@@ -18,6 +18,7 @@ module Debug.Trace,
 module Ledger.Utils,
 module Text.Printf,
 module Text.Regex,
+module Text.RegexPR,
 module Test.HUnit,
 module Ledger.Dates,
 )
@@ -36,6 +37,7 @@ import Test.HUnit
 -- import Test.QuickCheck hiding (test, Testable)
 import Text.Printf
 import Text.Regex
+import Text.RegexPR
 import Text.ParserCombinators.Parsec (parse)
 import Ledger.Dates
 
@@ -119,6 +121,14 @@ containsRegex :: Regex -> String -> Bool
 containsRegex r s = case matchRegex r s of
                       Just _ -> True
                       otherwise -> False
+
+-- | Replace all occurrences of a regexp in string using the given replacement function
+gsubRegexPRBy :: String -> (String -> String) -> String -> String
+gsubRegexPRBy pat f str = 
+    case (matchRegexPR pat str) of 
+      Just ((match, (before,after)), _) -> before ++ f match ++ gsubRegexPRBy pat f after
+      Nothing -> str
+    
 
 -- lists
 
