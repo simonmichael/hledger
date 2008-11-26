@@ -507,7 +507,7 @@ smartdate = do
              ,try d
              ,try month
              ,try mon
-             ,try parsetoday
+             ,try today'
              ,try yesterday
              ,try tomorrow
 --              ,try thiswhatever
@@ -516,15 +516,15 @@ smartdate = do
             ]
   return $ (y,m,d)
 
-datesep = oneOf "/-."
+datesepchar = oneOf "/-."
 
 ymd :: Parser (String,String,String)
 ymd = do
   y <- many1 digit
-  datesep
+  datesepchar
   m <- many1 digit
   guard (read m <= 12)
-  datesep
+  datesepchar
   d <- many1 digit
   guard (read d <= 31)
   return (y,m,d)
@@ -533,7 +533,7 @@ ym :: Parser (String,String,String)
 ym = do
   y <- many1 digit
   guard (read y > 12)
-  datesep
+  datesepchar
   m <- many1 digit
   guard (read m <= 12)
   return (y,m,"1")
@@ -555,7 +555,7 @@ md :: Parser (String,String,String)
 md = do
   m <- many1 digit
   guard (read m <= 12)
-  datesep
+  datesepchar
   d <- many1 digit
   guard (read d <= 31)
   return ("",m,d)
@@ -577,10 +577,9 @@ mon = do
   let i = maybe 0 (+1) $ (map toLower m) `elemIndex` mons
   return ("",show i,"1")
 
-parsetoday = string "today" >> return ("","","today")
+today'    = string "today"     >> return ("","","today")
 yesterday = string "yesterday" >> return ("","","yesterday")
-tomorrow = string "tomorrow" >> return ("","","tomorrow")
-
+tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
 
 
 type TransactionMatcher = Transaction -> Bool

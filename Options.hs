@@ -9,12 +9,8 @@ import Ledger.Dates
 import Ledger.Utils
 
 
-usage = usageInfo usagehdr options ++ usageftr
-
-negativePatternChar opts
-    | OptionsAnywhere `elem` opts = '^'
-    | otherwise = '-'
-
+defaultfile = "~/.ledger"
+fileenvvar  = "LEDGER"
 usagehdr    = "Usage: hledger [OPTS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
               "\n" ++
               "Options (before command, unless using --options-anywhere):"
@@ -31,8 +27,7 @@ usageftr    = "\n" ++
               "\n" ++
               "Also: hledger [-v] test [TESTPATTERNS] to run self-tests.\n" ++
               "\n"
-defaultfile = "~/.ledger"
-fileenvvar  = "LEDGER"
+usage = usageInfo usagehdr options ++ usageftr
 
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
@@ -203,14 +198,10 @@ parseAccountDescriptionArgs opts args = (as, ds')
     where (as, ds) = break (==patseparator) args
           ds' = dropWhile (==patseparator) ds
           patseparator = replicate 2 negchar
-          negchar = negativePatternChar opts
+          negchar
+              | OptionsAnywhere `elem` opts = '^'
+              | otherwise = '-'
 
--- testoptions RequireOrder ["foo","-v"]
--- testoptions Permute ["foo","-v"]
--- testoptions (ReturnInOrder Arg) ["foo","-v"]
--- testoptions Permute ["foo","--","-v"]
--- testoptions Permute ["-?o","--name","bar","--na=baz"]
--- testoptions Permute ["--ver","foo"]
 testoptions order cmdline = putStr $ 
     case getOpt order options cmdline of
       (o,n,[]  ) -> "options=" ++ show o ++ "  args=" ++ show n
