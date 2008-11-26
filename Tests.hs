@@ -401,7 +401,7 @@ printcommand_tests = TestList [
     let pats = ["expenses"]
     l <- ledgerfromfile pats "sample.ledger"
     assertequal (
-     "2007/01/01 * eat & shop\n" ++
+     "2008/06/03 * eat & shop\n" ++
      "    expenses:food                                 $1\n" ++
      "    expenses:supplies                             $1\n" ++
      "    assets:cash                                  $-2\n" ++
@@ -414,16 +414,16 @@ registercommand_tests = TestList [
   do 
     l <- ledgerfromfile [] "sample.ledger"
     assertequal (
-     "2007/01/01 income               assets:checking                  $1           $1\n" ++
+     "2008/01/01 income               assets:checking                  $1           $1\n" ++
      "                                income:salary                   $-1            0\n" ++
-     "2007/01/01 gift                 assets:checking                  $1           $1\n" ++
+     "2008/06/01 gift                 assets:checking                  $1           $1\n" ++
      "                                income:gifts                    $-1            0\n" ++
-     "2007/01/01 save                 assets:saving                    $1           $1\n" ++
+     "2008/06/02 save                 assets:saving                    $1           $1\n" ++
      "                                assets:checking                 $-1            0\n" ++
-     "2007/01/01 eat & shop           expenses:food                    $1           $1\n" ++
+     "2008/06/03 eat & shop           expenses:food                    $1           $1\n" ++
      "                                expenses:supplies                $1           $2\n" ++
      "                                assets:cash                     $-2            0\n" ++
-     "2008/01/01 pay off              liabilities:debts                $1           $1\n" ++
+     "2008/12/31 pay off              liabilities:debts                $1           $1\n" ++
      "                                assets:checking                 $-1            0\n" ++
      "")
      $ showRegisterReport [] [] l
@@ -432,7 +432,7 @@ registercommand_tests = TestList [
   do 
     l <- ledgerfromfile [] "sample.ledger"
     assertequal (
-     "2007/01/01 eat & shop           assets:cash                     $-2          $-2\n" ++
+     "2008/06/03 eat & shop           assets:cash                     $-2          $-2\n" ++
      "")
      $ showRegisterReport [] ["cash"] l
   ,
@@ -799,24 +799,24 @@ sample_ledger_str = (
  "; liabilities\n" ++
  ";   debts\n" ++
  "\n" ++
- "2007/01/01 income\n" ++
+ "2008/01/01 income\n" ++
  "    assets:checking  $1\n" ++
  "    income:salary\n" ++
  "\n" ++
- "2007/01/01 gift\n" ++
+ "2008/06/01 gift\n" ++
  "    assets:checking  $1\n" ++
  "    income:gifts\n" ++
  "\n" ++
- "2007/01/01 save\n" ++
+ "2008/06/02 save\n" ++
  "    assets:saving  $1\n" ++
  "    assets:checking\n" ++
  "\n" ++
- "2007/01/01 * eat & shop\n" ++
+ "2008/06/03 * eat & shop\n" ++
  "    expenses:food      $1\n" ++
  "    expenses:supplies  $1\n" ++
  "    assets:cash\n" ++
  "\n" ++
- "2008/1/1 * pay off\n" ++
+ "2008/12/31 * pay off\n" ++
  "    liabilities:debts  $1\n" ++
  "    assets:checking\n" ++
  "\n" ++

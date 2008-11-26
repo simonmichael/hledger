@@ -14,24 +14,24 @@
 ; liabilities
 ;   debts
 
-2007/01/01 income
+2008/01/01 income
     assets:checking  $1
     income:salary
 
-2007/01/01 gift
+2008/06/01 gift
     assets:checking  $1
     income:gifts
 
-2007/01/01 save
+2008/06/02 save
     assets:saving  $1
     assets:checking
 
-2007/01/01 * eat & shop
+2008/06/03 * eat & shop
     expenses:food      $1
     expenses:supplies  $1
     assets:cash
 
-2008/1/1 * pay off
+2008/12/31 * pay off
     liabilities:debts  $1
     assets:checking
 
