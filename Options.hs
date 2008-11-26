@@ -97,26 +97,32 @@ parseArguments = do
 -- explicit ones, based on today's date.
 fixDates :: [Opt] -> IO [Opt]
 fixDates opts = do
-  ds <- today >>= return . dateComponents
-  return $ map (fixopt ds) opts
+  t <- today
+  return $ map (fixopt t) opts
   where
-    fixopt ds (Begin s)   = Begin $ fixdate ds s
-    fixopt ds (End s)     = End $ fixdate ds s
-    fixopt ds (Display s) = -- hacky
+    fixopt t (Begin s)   = Begin $ fixdate t s
+    fixopt t (End s)     = End $ fixdate t s
+    fixopt t (Display s) = -- hacky
         Display $ gsubRegexPRBy "\\[.+?\\]" fixbracketeddate s
-        where fixbracketeddate s = "[" ++ (fixdate ds $ init $ tail s) ++ "]"
+        where fixbracketeddate s = "[" ++ (fixdate t $ init $ tail s) ++ "]"
     fixopt _ o            = o
 
 -- | Convert a fuzzy date string to an explicit yyyy/mm/dd date, using the
 -- provided today's date for defaults.
-fixdate :: (Integer,Int,Int) -> String -> String
-fixdate (thisy,thism,thisd) s = printf "%04s/%02s/%02s" y' m' d'
-    where 
+fixdate :: Date -> String -> String
+fixdate t s = printf "%04s/%02s/%02s" y' m' d'
+    where
+      (ty,tm,td) = dateComponents t
       (y,m,d) = fromparse $ parsewith smartdate $ map toLower s
       (y',m',d') = case (y,m,d) of 
-                     ("","",d) -> (show thisy,show thism,d)
-                     ("",m,d)  -> (show thisy,m,d)
-                     otherwise -> (y,m,d)
+                     ("","","today") -> (show ty,show tm,show td)
+                     ("","","yesterday") -> (show y, show m, show d) 
+                         where (y,m,d) = toGregorian $ addDays (-1) $ fromGregorian ty tm td
+                     ("","","tomorrow") -> (show y, show m, show d) 
+                         where (y,m,d) = toGregorian $ addDays 1 $ fromGregorian ty tm td
+                     ("","",d)       -> (show ty,show tm,d)
+                     ("",m,d)        -> (show ty,m,d)
+                     otherwise       -> (y,m,d)
 
 -- | Get the ledger file path from options, an environment variable, or a default
 ledgerFilePathFromOpts :: [Opt] -> IO String

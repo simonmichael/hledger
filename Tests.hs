@@ -98,18 +98,24 @@ misc_tests = TestList [
     assertparseequal timelog1 (parsewith timelog timelog1_str)
   ,                  
   "smartparsedate"     ~: do
-    ds@(y,m,d) <- today >>= return . dateComponents
-    let str `gives` datestr = assertequal datestr (fixdate ds str)
+    t <- today
+    let (ty,tm,td) = dateComponents t
+    let str `gives` datestr = assertequal datestr (fixdate t str)
     "1999-12-02" `gives` "1999/12/02"
     "1999.12.02" `gives` "1999/12/02"
     "1999/3/2"   `gives` "1999/03/02"
     "2008/2"     `gives` "2008/02/01"
     "20/2"       `gives` "0020/02/01"
     "1000"       `gives` "1000/01/01"
-    "4/2"        `gives` (printf "%04d/04/02" y)
-    "2"          `gives` (printf "%04d/%02d/02" y m)
-    "January"    `gives` (printf "%04d/01/01" y)
-    "feb"        `gives` (printf "%04d/02/01" y)
+    "4/2"        `gives` (printf "%04d/04/02" ty)
+    "2"          `gives` (printf "%04d/%02d/02" ty tm)
+    "January"    `gives` (printf "%04d/01/01" ty)
+    "feb"        `gives` (printf "%04d/02/01" ty)
+    "today"      `gives` (printf "%04d/%02d/%02d" ty tm td)
+    let (y,m,d) = toGregorian $ addDays (-1) $ fromGregorian ty tm td
+    "yesterday"  `gives` (printf "%04d/%02d/%02d" y m d)
+    let (y,m,d) = toGregorian $ addDays 1 $ fromGregorian ty tm td
+    "tomorrow"   `gives` (printf "%04d/%02d/%02d" y m d)
   ]
 
 balancereportacctnames_tests = TestList 

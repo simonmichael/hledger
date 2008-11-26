@@ -492,8 +492,8 @@ and maybe some others:
 > 10/1
 > 21
 > october, oct
-> this/next/last week/day/month/quarter/year
 > yesterday, today, tomorrow
+> this/next/last week/day/month/quarter/year
 
 Note: only recognises month names in lowercase.
 -}
@@ -507,9 +507,9 @@ smartdate = do
              ,try d
              ,try month
              ,try mon
---              ,try today
---              ,try yesterday
---              ,try tomorrow
+             ,try parsetoday
+             ,try yesterday
+             ,try tomorrow
 --              ,try thiswhatever
 --              ,try nextwhatever
 --              ,try lastwhatever
@@ -576,6 +576,12 @@ mon = do
   m <- choice $ map string mons
   let i = maybe 0 (+1) $ (map toLower m) `elemIndex` mons
   return ("",show i,"1")
+
+parsetoday = string "today" >> return ("","","today")
+yesterday = string "yesterday" >> return ("","","yesterday")
+tomorrow = string "tomorrow" >> return ("","","tomorrow")
+
+
 
 type TransactionMatcher = Transaction -> Bool
 
