@@ -54,13 +54,17 @@ dayToUTC :: Day -> UTCTime
 dayToUTC d = localTimeToUTC utc (LocalTime d midnight)
 
 -- | Convert a period expression to a date span using the provided reference date.
-spanFromPeriodExpr refdate = spanFromSmartDateString refdate
-
+spanFromPeriodExpr refdate = fromparse . parsewith (periodexpr refdate) 
+    
 -- | Convert a smart date string to a date span using the provided reference date.
 spanFromSmartDateString :: Day -> String -> DateSpan
-spanFromSmartDateString refdate s = DateSpan (Just b) (Just e)
+spanFromSmartDateString refdate s = spanFromSmartDate refdate sdate
     where
       sdate = fromparse $ parsewith smartdate s
+
+spanFromSmartDate :: Day -> SmartDate -> DateSpan
+spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
+    where
       (ry,rm,rd) = toGregorian refdate
       (b,e) = span sdate
       span :: SmartDate -> (Day,Day)
@@ -287,4 +291,22 @@ lastthisnextthing = do
        ,string "year"
       ]
   return ("",r,p)
+
+periodexpr :: Day -> Parser DateSpan
+periodexpr rdate = try (doubledateperiod rdate) <|> (singledateperiod rdate)
+
+doubledateperiod :: Day -> Parser DateSpan
+doubledateperiod rdate = do
+  string "from"
+  many spacenonewline
+  b <- smartdate
+  many spacenonewline
+  string "to"
+  many spacenonewline
+  e <- smartdate
+  let span = DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
+  return span
+
+singledateperiod :: Day -> Parser DateSpan
+singledateperiod rdate = smartdate >>= return . spanFromSmartDate rdate
 

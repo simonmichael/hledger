@@ -20,7 +20,7 @@ instance Show ModifierEntry where
     show e = "= " ++ (valueexpr e) ++ "\n" ++ unlines (map show (m_transactions e))
 
 instance Show PeriodicEntry where 
-    show e = "~ " ++ (periodexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
+    show e = "~ " ++ (periodicexpr e) ++ "\n" ++ unlines (map show (p_transactions e))
 
 nullentry = Entry {
               edate=parsedate "1900/1/1", 

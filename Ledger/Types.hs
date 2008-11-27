@@ -56,7 +56,7 @@ data ModifierEntry = ModifierEntry {
 
 -- | a ledger "periodic" entry. Currently ignored.
 data PeriodicEntry = PeriodicEntry {
-      periodexpr :: String,
+      periodicexpr :: String,
       p_transactions :: [RawTransaction]
     } deriving (Eq)
 
