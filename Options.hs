@@ -10,6 +10,8 @@ import Ledger.Types
 import Ledger.Dates
 
 
+versionno   = "0.3pre"
+version     = printf "hledger version %s \n" versionno :: String
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
 usagehdr    = "Usage: hledger [OPTS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
@@ -37,6 +39,7 @@ options = [
  Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp,
  Option ['b'] ["begin"]        (ReqArg Begin "DATE") "report on entries on or after this date",
  Option ['e'] ["end"]          (ReqArg End "DATE")   "report on entries prior to this date",
+ Option ['p'] ["period"]       (ReqArg Period "EXPR") "report on entries during this calendar period",
  Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
  Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
  Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",
@@ -57,13 +60,14 @@ options = [
 
 -- | An option value from a command-line flag.
 data Opt = 
-    File String | 
-    Begin String | 
-    End String | 
+    File    {value::String} | 
+    Begin   {value::String} | 
+    End     {value::String} | 
+    Period  {value::String} | 
     Cleared | 
     CostBasis | 
-    Depth String | 
-    Display String | 
+    Depth   {value::String} | 
+    Display {value::String} | 
     Empty | 
     Real | 
     OptionsAnywhere | 
@@ -74,8 +78,9 @@ data Opt =
     Version
     deriving (Show,Eq)
 
-versionno = "0.3pre"
-version = printf "hledger version %s \n" versionno :: String
+-- yow..
+optValuesForConstructor f opts = concatMap get opts
+    where get o = if f v == o then [v] else [] where v = value o
 
 -- | Parse the command-line arguments into ledger options, ledger command
 -- name, and ledger command arguments. Also any dates in the options are
@@ -104,28 +109,24 @@ fixOptDates opts = do
         where fixbracketeddatestr s = "[" ++ (fixSmartDateStr t $ init $ tail s) ++ "]"
     fixopt _ o            = o
 
--- | Get the ledger file path from options, an environment variable, or a default
-ledgerFilePathFromOpts :: [Opt] -> IO String
-ledgerFilePathFromOpts opts = do
-  envordefault <- getEnv fileenvvar `catch` \_ -> return defaultfile
-  paths <- mapM tildeExpand $ [envordefault] ++ (concatMap getfile opts)
-  return $ last paths
+-- | Figure out the date span we should report on, based on any
+-- begin/end/period options provided. This could be really smart but I'm
+-- just going to look for 1. the first Period or 2. the first Begin and
+-- first End.
+dateSpanFromOpts :: Day -> [Opt] -> DateSpan
+dateSpanFromOpts refdate opts 
+    | not $ null ps = spanFromPeriodExpr refdate $ head ps
+    | otherwise = DateSpan firstb firste
     where
-      getfile (File s) = [s]
-      getfile _ = []
+      ps = optValuesForConstructor Period opts
+      firstb = listtomaybeday $ optValuesForConstructor Begin opts
+      firste = listtomaybeday $ optValuesForConstructor End opts
+      listtomaybeday [] = Nothing
+      listtomaybeday vs = Just $ parse $ head vs
+      parse s = parsedate $ printf "%04s/%02s/%02s" y m d
+          where (y,m,d) = fromparse $ parsewith smartdate $ s
 
--- | Expand ~ in a file path (does not handle ~name).
-tildeExpand :: FilePath -> IO FilePath
-tildeExpand ('~':[])     = getHomeDirectory
-tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
---handle ~name, requires -fvia-C or ghc 6.8:
---import System.Posix.User
--- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
---                                pw <- getUserEntryForName user
---                                return (homeDirectory pw ++ path)
-tildeExpand xs           =  return xs
-
-dateSpanFromOpts opts = DateSpan (beginDateFromOpts opts) (endDateFromOpts opts)
+spanFromPeriodExpr refdate = spanFromSmartDateString refdate
 
 -- | Get the value of the begin date option, if any.
 beginDateFromOpts :: [Opt] -> Maybe Day
@@ -153,6 +154,17 @@ endDateFromOpts opts =
       defaultdate = ""
       (y,m,d) = fromparse $ parsewith smartdate $ last endopts
 
+-- | Get the value of the period option, if any.
+periodFromOpts :: [Opt] -> Maybe String
+periodFromOpts opts =
+    if null periodopts 
+    then Nothing
+    else Just $ head periodopts
+    where
+      periodopts = concatMap getperiod opts
+      getperiod (Period s) = [s]
+      getperiod _ = []
+
 -- | Get the value of the depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int
 depthFromOpts opts =
@@ -174,6 +186,27 @@ displayFromOpts opts =
       displayopts = concatMap getdisplay opts
       getdisplay (Display s) = [s]
       getdisplay _ = []
+
+-- | Get the ledger file path from options, an environment variable, or a default
+ledgerFilePathFromOpts :: [Opt] -> IO String
+ledgerFilePathFromOpts opts = do
+  envordefault <- getEnv fileenvvar `catch` \_ -> return defaultfile
+  paths <- mapM tildeExpand $ [envordefault] ++ (concatMap getfile opts)
+  return $ last paths
+    where
+      getfile (File s) = [s]
+      getfile _ = []
+
+-- | Expand ~ in a file path (does not handle ~name).
+tildeExpand :: FilePath -> IO FilePath
+tildeExpand ('~':[])     = getHomeDirectory
+tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
+--handle ~name, requires -fvia-C or ghc 6.8:
+--import System.Posix.User
+-- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
+--                                pw <- getUserEntryForName user
+--                                return (homeDirectory pw ++ path)
+tildeExpand xs           =  return xs
 
 -- | Gather any ledger-style account/description pattern arguments into
 -- two lists.  These are 0 or more account patterns optionally followed by

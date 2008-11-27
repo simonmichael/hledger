@@ -53,7 +53,41 @@ elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
 dayToUTC :: Day -> UTCTime
 dayToUTC d = localTimeToUTC utc (LocalTime d midnight)
 
--- | Convert a fuzzy date string to an explicit yyyy/mm/dd string using
+-- | Convert a smart date string to a date span using the provided date as
+-- reference point.
+spanFromSmartDateString :: Day -> String -> DateSpan
+spanFromSmartDateString refdate s = DateSpan (Just b) (Just e)
+    where
+      sdate = fromparse $ parsewith smartdate s
+      (ry,rm,rd) = toGregorian refdate
+      (b,e) = span sdate
+      span :: SmartDate -> (Day,Day)
+      span ("","","today")       = (refdate, nextday refdate)
+      span ("","this","day")     = (refdate, nextday refdate)
+      span ("","","yesterday")   = (prevday refdate, refdate)
+      span ("","last","day")     = (prevday refdate, refdate)
+      span ("","","tomorrow")    = (nextday refdate, addDays 2 refdate)
+      span ("","next","day")     = (nextday refdate, addDays 2 refdate)
+      span ("","last","week")    = (prevweek refdate, thisweek refdate)
+      span ("","this","week")    = (thisweek refdate, nextweek refdate)
+      span ("","next","week")    = (nextweek refdate, startofweek $ addDays 14 refdate)
+      span ("","last","month")   = (prevmonth refdate, thismonth refdate)
+      span ("","this","month")   = (thismonth refdate, nextmonth refdate)
+      span ("","next","month")   = (nextmonth refdate, startofmonth $ addGregorianMonthsClip 2 refdate)
+      span ("","last","quarter") = (prevquarter refdate, thisquarter refdate)
+      span ("","this","quarter") = (thisquarter refdate, nextquarter refdate)
+      span ("","next","quarter") = (nextquarter refdate, startofquarter $ addGregorianMonthsClip 6 refdate)
+      span ("","last","year")    = (prevyear refdate, thisyear refdate)
+      span ("","this","year")    = (thisyear refdate, nextyear refdate)
+      span ("","next","year")    = (nextyear refdate, startofyear $ addGregorianYearsClip 2 refdate)
+      span ("","",d)             = (day, nextday day) where day = fromGregorian ry rm (read d)
+      span ("",m,"")             = (startofmonth day, nextmonth day) where day = fromGregorian ry (read m) 1
+      span ("",m,d)              = (day, nextday day) where day = fromGregorian ry (read m) (read d)
+      span (y,"","")             = (startofyear day, nextyear day) where day = fromGregorian (read y) 1 1
+      span (y,m,"")              = (startofmonth day, nextmonth day) where day = fromGregorian (read y) (read m) 1
+      span (y,m,d)               = (day, nextday day) where day = fromGregorian (read y) (read m) (read d)
+
+-- | Convert a smart date string to an explicit yyyy/mm/dd string using
 -- the provided date as reference point.
 fixSmartDateStr :: Day -> String -> String
 fixSmartDateStr t s = printf "%04d/%02d/%02d" y m d
@@ -86,7 +120,10 @@ fixSmartDate refdate sdate = fix sdate
       fix ("","this","year")    = thisyear refdate
       fix ("","next","year")    = nextyear refdate
       fix ("","",d)             = fromGregorian ry rm (read d)
+      fix ("",m,"")             = fromGregorian ry (read m) 1
       fix ("",m,d)              = fromGregorian ry (read m) (read d)
+      fix (y,"","")             = fromGregorian (read y) 1 1
+      fix (y,m,"")              = fromGregorian (read y) (read m) 1
       fix (y,m,d)               = fromGregorian (read y) (read m) (read d)
       (ry,rm,rd) = toGregorian refdate
 
@@ -184,13 +221,13 @@ ym = do
   datesepchar
   m <- many1 digit
   guard (read m <= 12)
-  return (y,m,"1")
+  return (y,m,"")
 
 y :: Parser SmartDate
 y = do
   y <- many1 digit
   guard (read y >= 1000)
-  return (y,"1","1")
+  return (y,"","")
 
 d :: Parser SmartDate
 d = do
@@ -210,19 +247,22 @@ md = do
 months = ["january","february","march","april","may","june",
           "july","august","september","october","november","december"]
 
-mons = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+mons   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+
+monthIndex s = maybe 0 (+1) $ (map toLower s) `elemIndex` months
+monIndex s   = maybe 0 (+1) $ (map toLower s) `elemIndex` mons
 
 month :: Parser SmartDate
 month = do
-  m <- choice $ map string months
-  let i = maybe 0 (+1) $ (map toLower m) `elemIndex` months
-  return ("",show i,"1")
+  m <- choice $ map (try . string) months
+  let i = monthIndex m
+  return $ ("",show i,"")
 
 mon :: Parser SmartDate
 mon = do
-  m <- choice $ map string mons
-  let i = maybe 0 (+1) $ (map toLower m) `elemIndex` mons
-  return ("",show i,"1")
+  m <- choice $ map (try . string) mons
+  let i = monIndex m
+  return ("",show i,"")
 
 today',yesterday,tomorrow :: Parser SmartDate
 today'    = string "today"     >> return ("","","today")

@@ -346,17 +346,29 @@ registercommand_tests = TestList [
   ,
   "register report with display expression" ~:
   do 
-    "d<[2008/6/2]"  `displayexprgivestxns` ["2008/01/01","2008/06/01"]
-    "d<=[2008/6/2]" `displayexprgivestxns` ["2008/01/01","2008/06/01","2008/06/02"]
-    "d=[2008/6/2]"  `displayexprgivestxns` ["2008/06/02"]
-    "d>=[2008/6/2]" `displayexprgivestxns` ["2008/06/02","2008/06/03","2008/12/31"]
-    "d>[2008/6/2]"  `displayexprgivestxns` ["2008/06/03","2008/12/31"]
-  ]
+    "d<[2008/6/2]"  `displayexprgives` ["2008/01/01","2008/06/01"]
+    "d<=[2008/6/2]" `displayexprgives` ["2008/01/01","2008/06/01","2008/06/02"]
+    "d=[2008/6/2]"  `displayexprgives` ["2008/06/02"]
+    "d>=[2008/6/2]" `displayexprgives` ["2008/06/02","2008/06/03","2008/12/31"]
+    "d>[2008/6/2]"  `displayexprgives` ["2008/06/03","2008/12/31"]
+  ,
+  "register report with period expression" ~:
+  do 
+    ""  `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
+    "2008" `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
+-- need to get datespan into ledgerFromString, or preconvert period expressions
+--    "2007" `periodexprgives` []
+ ]
   where
-    expr `displayexprgivestxns` dates = 
+    expr `displayexprgives` dates = 
         assertequal dates (datesfromregister r)
         where
           r = showRegisterReport [Display expr] [] l
+          l = ledgerfromstring [] sample_ledger_str
+    expr `periodexprgives` dates = 
+        assertequal dates (datesfromregister r)
+        where
+          r = showRegisterReport [Period expr] [] l
           l = ledgerfromstring [] sample_ledger_str
           
 datesfromregister = filter (not . null) .  map (strip . take 10) . lines
