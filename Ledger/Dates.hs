@@ -127,7 +127,7 @@ fixSmartDateStr :: Day -> String -> String
 fixSmartDateStr t s = printf "%04d/%02d/%02d" y m d
     where
       (y,m,d) = toGregorian $ fixSmartDate t sdate
-      sdate = fromparse $ parsewith smartdate $ map toLower s
+      sdate = fromparse $ parsewith smartdate $ lowercase s
 
 -- | Convert a SmartDate to an absolute date using the provided reference date.
 fixSmartDate :: Day -> SmartDate -> Day
@@ -283,8 +283,8 @@ months = ["january","february","march","april","may","june",
 
 mons   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
 
-monthIndex s = maybe 0 (+1) $ (map toLower s) `elemIndex` months
-monIndex s   = maybe 0 (+1) $ (map toLower s) `elemIndex` mons
+monthIndex s = maybe 0 (+1) $ (lowercase s) `elemIndex` months
+monIndex s   = maybe 0 (+1) $ (lowercase s) `elemIndex` mons
 
 month :: Parser SmartDate
 month = do

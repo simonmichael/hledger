@@ -42,6 +42,9 @@ import Text.ParserCombinators.Parsec
 
 -- strings
 
+lowercase = map toLower
+uppercase = map toUpper
+
 strip = dropspaces . reverse . dropspaces . reverse
     where dropspaces = dropWhile (`elem` " \t")
 
