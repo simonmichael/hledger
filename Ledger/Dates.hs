@@ -53,8 +53,10 @@ elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
 dayToUTC :: Day -> UTCTime
 dayToUTC d = localTimeToUTC utc (LocalTime d midnight)
 
--- | Convert a smart date string to a date span using the provided date as
--- reference point.
+-- | Convert a period expression to a date span using the provided reference date.
+spanFromPeriodExpr refdate = spanFromSmartDateString refdate
+
+-- | Convert a smart date string to a date span using the provided reference date.
 spanFromSmartDateString :: Day -> String -> DateSpan
 spanFromSmartDateString refdate s = DateSpan (Just b) (Just e)
     where
@@ -88,15 +90,14 @@ spanFromSmartDateString refdate s = DateSpan (Just b) (Just e)
       span (y,m,d)               = (day, nextday day) where day = fromGregorian (read y) (read m) (read d)
 
 -- | Convert a smart date string to an explicit yyyy/mm/dd string using
--- the provided date as reference point.
+-- the provided reference date.
 fixSmartDateStr :: Day -> String -> String
 fixSmartDateStr t s = printf "%04d/%02d/%02d" y m d
     where
       (y,m,d) = toGregorian $ fixSmartDate t sdate
       sdate = fromparse $ parsewith smartdate $ map toLower s
 
--- | Convert a SmartDate to an absolute date using the provided date as
--- reference point.
+-- | Convert a SmartDate to an absolute date using the provided reference date.
 fixSmartDate :: Day -> SmartDate -> Day
 fixSmartDate refdate sdate = fix sdate
     where

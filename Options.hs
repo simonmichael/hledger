@@ -126,76 +126,26 @@ dateSpanFromOpts refdate opts
       parse s = parsedate $ printf "%04s/%02s/%02s" y m d
           where (y,m,d) = fromparse $ parsewith smartdate $ s
 
-spanFromPeriodExpr refdate = spanFromSmartDateString refdate
-
--- | Get the value of the begin date option, if any.
-beginDateFromOpts :: [Opt] -> Maybe Day
-beginDateFromOpts opts =
-    if null beginopts 
-    then Nothing
-    else Just $ parsedate $ printf "%04s/%02s/%02s" y m d
-    where
-      beginopts = concatMap getbegindate opts
-      getbegindate (Begin s) = [s]
-      getbegindate _ = []
-      defaultdate = ""
-      (y,m,d) = fromparse $ parsewith smartdate $ last beginopts
-
--- | Get the value of the end date option, if any.
-endDateFromOpts :: [Opt] -> Maybe Day
-endDateFromOpts opts =
-    if null endopts 
-    then Nothing
-    else Just $ parsedate $ printf "%04s/%02s/%02s" y m d
-    where
-      endopts = concatMap getenddate opts
-      getenddate (End s) = [s]
-      getenddate _ = []
-      defaultdate = ""
-      (y,m,d) = fromparse $ parsewith smartdate $ last endopts
-
--- | Get the value of the period option, if any.
-periodFromOpts :: [Opt] -> Maybe String
-periodFromOpts opts =
-    if null periodopts 
-    then Nothing
-    else Just $ head periodopts
-    where
-      periodopts = concatMap getperiod opts
-      getperiod (Period s) = [s]
-      getperiod _ = []
-
--- | Get the value of the depth option, if any.
+-- | Get the value of the (first) depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int
-depthFromOpts opts =
-    case depthopts of
-      (x:_) -> Just $ read x
-      _     -> Nothing
+depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
     where
-      depthopts = concatMap getdepth opts
-      getdepth (Depth s) = [s]
-      getdepth _ = []
+      listtomaybeint [] = Nothing
+      listtomaybeint vs = Just $ read $ head vs
 
--- | Get the value of the display option, if any.
+-- | Get the value of the (first) display option, if any.
 displayFromOpts :: [Opt] -> Maybe String
-displayFromOpts opts =
-    case displayopts of
-      (s:_) -> Just s
-      _     -> Nothing
+displayFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
     where
-      displayopts = concatMap getdisplay opts
-      getdisplay (Display s) = [s]
-      getdisplay _ = []
+      listtomaybe [] = Nothing
+      listtomaybe vs = Just $ head vs
 
 -- | Get the ledger file path from options, an environment variable, or a default
 ledgerFilePathFromOpts :: [Opt] -> IO String
 ledgerFilePathFromOpts opts = do
   envordefault <- getEnv fileenvvar `catch` \_ -> return defaultfile
-  paths <- mapM tildeExpand $ [envordefault] ++ (concatMap getfile opts)
+  paths <- mapM tildeExpand $ [envordefault] ++ optValuesForConstructor File opts
   return $ last paths
-    where
-      getfile (File s) = [s]
-      getfile _ = []
 
 -- | Expand ~ in a file path (does not handle ~name).
 tildeExpand :: FilePath -> IO FilePath
@@ -221,9 +171,3 @@ parseAccountDescriptionArgs opts args = (as, ds')
           negchar
               | OptionsAnywhere `elem` opts = '^'
               | otherwise = '-'
-
-testoptions order cmdline = putStr $ 
-    case getOpt order options cmdline of
-      (o,n,[]  ) -> "options=" ++ show o ++ "  args=" ++ show n
-      (o,_,errs) -> concat errs ++ usage
-
