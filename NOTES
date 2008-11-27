@@ -11,17 +11,39 @@ clever tricks like the plague." --Edsger Dijkstra
 * to do
 ** errors
 ** features
-*** this/last day/week/month/year, for ease of use
-*** period expressions, for easier reporting
-*** more kinds of display expression (all of them ?)
-*** actual/effective entry & txn dates, for ?
+*** period expressions, for ease of use
+**** from and/or to
+**** reporting intervals
+***** design types
+***** parse intervals
+     every day
+     every week
+     every monthly
+     every quarter
+     every year
+     every N days     # N is any integer
+     every N weeks
+     every N months
+     every N quarters
+     every N years
+     daily
+     weekly
+     biweekly
+     monthly
+     bimonthly
+     quarterly
+     yearly
+***** implement in register report
+***** -W/-M/-Y
+*** actual/effective entry & txn dates, for completeness
+*** speed
+**** easy profiling
+**** speed regression tests
+**** cache file ?
 *** ~/.hledgerrc, for setting defaults
 *** more ledger features from README (?)
-*** speed
-**** speed regression tests
-**** easy profiling
-**** cache file ?
 *** new features
+**** easy timelog queries when called as hours
 **** curses gui
 **** web gui
 **** charts
