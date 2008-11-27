@@ -16,6 +16,9 @@ where
 import Data.Time.Clock
 import Data.Time.Format
 import Data.Time.Calendar
+import Data.Time.Calendar.MonthDay
+import Data.Time.Calendar.OrdinalDate
+import Data.Time.Calendar.WeekDate
 import Data.Time.LocalTime
 import System.Locale (defaultTimeLocale)
 import Text.Printf
@@ -82,11 +85,11 @@ fixSmartDate refdate sdate = mkDate $ fromGregorian y m d
       fix :: SmartDate -> (Integer,Int,Int)
       fix ("","","today")     = (ry, rm, rd)
       fix ("","this","day")   = (ry, rm, rd)
-      fix ("","","yesterday") = dateComponents $ lastday refdate
-      fix ("","last","day")   = dateComponents $ lastday refdate
+      fix ("","","yesterday") = dateComponents $ prevday refdate
+      fix ("","last","day")   = dateComponents $ prevday refdate
       fix ("","","tomorrow")  = dateComponents $ nextday refdate
       fix ("","next","day")   = dateComponents $ nextday refdate
-      fix ("","last","week")  = dateComponents $ lastweek refdate
+      fix ("","last","week")  = dateComponents $ prevweek refdate
       fix ("","this","week")  = dateComponents $ thisweek refdate
       fix ("","next","week")  = dateComponents $ nextweek refdate
       fix ("","",d)           = (ry, rm, read d)
@@ -94,12 +97,20 @@ fixSmartDate refdate sdate = mkDate $ fromGregorian y m d
       fix (y,m,d)             = (read y, read m, read d)
       (ry,rm,rd) = dateComponents refdate
 
-lastday, nextday :: Date -> Date
-lastday = mkDate . (addDays (-1)) . utctDay . dateToUTC
+prevday, nextday :: Date -> Date
+prevday = mkDate . (addDays (-1)) . utctDay . dateToUTC
 nextday = mkDate . (addDays 1) . utctDay . dateToUTC
-lastweek = mkDate . (addDays (-7)) . utctDay . dateToUTC
-thisweek = mkDate . (addDays 0) . utctDay . dateToUTC
-nextweek = mkDate . (addDays 7) . utctDay . dateToUTC
+thisweek date = mkDate $ mondayofweekcontaining $ utctDay $ dateToUTC date
+prevweek date = mkDate $ mondayofweekbefore $ utctDay $ dateToUTC date
+nextweek date = mkDate $ mondayafter $ utctDay $ dateToUTC date
+
+mondayafter day = mondayofweekcontaining $ addDays 7 day
+mondayofweekbefore day = mondayofweekcontaining $ addDays (-7) day
+mondayofweekcontaining day = fromMondayStartWeek y w 1
+    where
+      (y,m,d) = toGregorian day
+      (w,_) = mondayStartWeek day
+
 
 ----------------------------------------------------------------------
 -- parsing
@@ -139,8 +150,8 @@ Assumes any text in the parse stream has been lowercased.
 -}
 smartdate :: Parser SmartDate
 smartdate = do
-  let dateparsers = [ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow
-                     -- lastthisnextthing
+  let dateparsers = [ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow,
+                     lastthisnextthing
                     ]
   (y,m,d) <- choice $ map try dateparsers
   return $ (y,m,d)
@@ -217,7 +228,8 @@ lastthisnextthing = do
        ,string "this"
        ,string "next"
       ]
-  many1 spacenonewline
+  --many1 spacenonewline
+  many spacenonewline  -- allow lastweek for easier shell scripting
   p <- choice [
         string "day"
        ,string "week"
