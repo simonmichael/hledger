@@ -16,11 +16,12 @@ usagehdr    = "Usage: hledger [OPTS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n"
               "\n" ++
               "Options (before command, unless using --options-anywhere):"
 usageftr    = "\n" ++
-              "Commands (may be abbreviated):\n" ++
+              "Commands (can be abbreviated):\n" ++
               "  balance  - show account balances\n" ++
               "  print    - show formatted ledger entries\n" ++
               "  register - show register transactions\n" ++
               "\n" ++
+              "Dates can be y/m/d or ledger-style smart dates like november or last week.\n" ++
               "Account and description patterns are regular expressions which filter by\n" ++
               "account name and entry description. Prefix a pattern with - to negate it,\n" ++
               "and separate account and description patterns with --.\n" ++
@@ -34,13 +35,13 @@ usage = usageInfo usagehdr options ++ usageftr
 options :: [OptDescr Opt]
 options = [
  Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp,
- Option ['b'] ["begin"]        (ReqArg Begin "Y/M/D") "report on entries on or after this date",
- Option ['e'] ["end"]          (ReqArg End "Y/M/D")   "report on entries prior to this date",
+ Option ['b'] ["begin"]        (ReqArg Begin "DATE") "report on entries on or after this date",
+ Option ['e'] ["end"]          (ReqArg End "DATE")   "report on entries prior to this date",
  Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
  Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
  Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",
  Option ['d'] ["display"]      (ReqArg Display "EXPR") ("display only transactions matching simple EXPR\n" ++
-                                                        "(where EXPR is 'dOP[Y/M/D]', OP is <, <=, =, >=, >)"),
+                                                        "(where EXPR is 'dOP[DATE]', OP is <, <=, =, >=, >)"),
  Option ['E'] ["empty"]        (NoArg  Empty)         "balance report: show accounts with zero balance",
  Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions",
  Option []    ["options-anywhere"] (NoArg OptionsAnywhere) "allow options anywhere, use ^ to negate patterns",
