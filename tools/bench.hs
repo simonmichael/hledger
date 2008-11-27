@@ -115,9 +115,11 @@ summarise tests exes results = do
 maketable :: [String] -> [String] -> [[[Float]]] -> Table String
 maketable rownames colnames results = Table rowhdrs colhdrs rows
  where
-  rowhdrs = Group NoLine $ map Header rownames
+  rowhdrs = Group NoLine $ map Header $ padright rownames
   colhdrs = Group SingleLine $ map Header colnames
   rows = map (map (showtime . minimum)) results
+  padright ss = map (printf (printf "%%-%ds" w)) ss
+      where w = maximum $ map length ss
 
 showtime = printf $ "%."++(show precision)++"f"
 
