@@ -10,6 +10,7 @@ module Ledger.TimeLog
 where
 import Ledger.Utils
 import Ledger.Types
+import Ledger.Dates
 import Ledger.Commodity
 import Ledger.Amount
 

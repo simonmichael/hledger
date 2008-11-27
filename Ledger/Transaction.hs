@@ -9,6 +9,7 @@ module Ledger.Transaction
 where
 import Ledger.Utils
 import Ledger.Types
+import Ledger.Dates
 import Ledger.Entry
 import Ledger.RawTransaction
 import Ledger.Amount

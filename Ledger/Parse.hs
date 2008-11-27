@@ -15,6 +15,7 @@ import System.IO
 import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
+import Ledger.Dates
 import Ledger.Amount
 import Ledger.Entry
 import Ledger.Commodity
@@ -412,18 +413,6 @@ numberpartsstartingwithpoint = do
   return ("",frac)
                      
 
-spacenonewline :: Parser Char
-spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
-
-restofline :: Parser String
-restofline = anyChar `manyTill` newline
-
-whiteSpace1 :: Parser ()
-whiteSpace1 = do space; whiteSpace
-
-nonspace = satisfy (not . isSpace)
-
-
 {-| Parse a timelog file. Here is the timelog grammar, from timeclock.el 2.6:
 
 @
@@ -483,111 +472,6 @@ ledgerfromtimelog = do
 
 -- misc parsing
 
-{-| 
-Parse a date in any of the formats allowed in ledger's period expressions,
-and maybe some others:
-
-> 2004
-> 2004/10
-> 2004/10/1
-> 10/1
-> 21
-> october, oct
-> yesterday, today, tomorrow
-> (not yet) this/next/last week/day/month/quarter/year
-
-Returns a FuzzyDate, to be converted to a full date later, in the IO
-layer.  Note: assumes any text in the parse stream has been lowercased.
--}
-smartdate :: Parser FuzzyDate
-smartdate = do
-  let dateparsers = [ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow]
-  (y,m,d) <- choice $ map try dateparsers
-  return $ (y,m,d)
-
-datesepchar = oneOf "/-."
-
-ymd :: Parser FuzzyDate
-ymd = do
-  y <- many1 digit
-  datesepchar
-  m <- many1 digit
-  guard (read m <= 12)
-  datesepchar
-  d <- many1 digit
-  guard (read d <= 31)
-  return (y,m,d)
-
-ym :: Parser FuzzyDate
-ym = do
-  y <- many1 digit
-  guard (read y > 12)
-  datesepchar
-  m <- many1 digit
-  guard (read m <= 12)
-  return (y,m,"1")
-
-y :: Parser FuzzyDate
-y = do
-  y <- many1 digit
-  guard (read y >= 1000)
-  return (y,"1","1")
-
-d :: Parser FuzzyDate
-d = do
-  d <- many1 digit
-  guard (read d <= 31)
-  return ("","",d)
-
-md :: Parser FuzzyDate
-md = do
-  m <- many1 digit
-  guard (read m <= 12)
-  datesepchar
-  d <- many1 digit
-  guard (read d <= 31)
-  return ("",m,d)
-
-months = ["january","february","march","april","may","june",
-          "july","august","september","october","november","december"]
-
-mons = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
-
-month :: Parser FuzzyDate
-month = do
-  m <- choice $ map string months
-  let i = maybe 0 (+1) $ (map toLower m) `elemIndex` months
-  return ("",show i,"1")
-
-mon :: Parser FuzzyDate
-mon = do
-  m <- choice $ map string mons
-  let i = maybe 0 (+1) $ (map toLower m) `elemIndex` mons
-  return ("",show i,"1")
-
-today',yesterday,tomorrow :: Parser FuzzyDate
-today'    = string "today"     >> return ("","","today")
-yesterday = string "yesterday" >> return ("","","yesterday")
-tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
-
-lastthisnextthing :: Parser FuzzyDate
-lastthisnextthing = do
-  r <- choice [
-        string "last"
-       ,string "this"
-       ,string "next"
-      ]
-  many1 spacenonewline
-  p <- choice [
-        string "day"
-       ,string "week"
-       ,string "month"
-       ,string "quarter"
-       ,string "year"
-      ]
-  return ("",r,p)
-
-
 -- | Parse a --display expression which is a simple date predicate, like
 -- "d>[DATE]" or "d<=[DATE]", and return a transaction-matching predicate.
 datedisplayexpr :: Parser (Transaction -> Bool)
@@ -609,3 +493,4 @@ datedisplayexpr = do
   return matcher              
 
 compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
+

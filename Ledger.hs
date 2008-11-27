@@ -10,6 +10,7 @@ module Ledger (
                module Ledger.AccountName,
                module Ledger.Amount,
                module Ledger.Commodity,
+               module Ledger.Dates,
                module Ledger.Entry,
                module Ledger.Ledger,
                module Ledger.Parse,
@@ -25,6 +26,7 @@ import Ledger.Account
 import Ledger.AccountName
 import Ledger.Amount
 import Ledger.Commodity
+import Ledger.Dates
 import Ledger.Entry
 import Ledger.Ledger
 import Ledger.Parse

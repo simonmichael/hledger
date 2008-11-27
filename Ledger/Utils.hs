@@ -1,6 +1,7 @@
 {-|
 
-Provide a number of standard modules and utilities.
+Provide a number of standard modules and utilities needed everywhere (or
+somewhere low in the module tree). The "hledger prelude".
 
 -}
 
@@ -20,7 +21,6 @@ module Text.Printf,
 module Text.Regex,
 module Text.RegexPR,
 module Test.HUnit,
-module Ledger.Dates,
 )
 where
 import Char
@@ -34,12 +34,10 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Debug.Trace
 import Test.HUnit
--- import Test.QuickCheck hiding (test, Testable)
 import Text.Printf
 import Text.Regex
 import Text.RegexPR
-import Text.ParserCombinators.Parsec (parse)
-import Ledger.Dates
+import Text.ParserCombinators.Parsec
 
 
 -- strings
@@ -203,8 +201,20 @@ p = putStr
 assertequal e a = assertEqual "" e a
 assertnotequal e a = assertBool "expected inequality, got equality" (e /= a)
 
--- parsewith :: Parser a
+-- parsing
+
+parsewith :: Parser a -> String -> Either ParseError a
 parsewith p ts = parse p "" ts
+
+fromparse :: Either ParseError a -> a
 fromparse = either (\_ -> error "parse error") id
 
+nonspace :: Parser Char
+nonspace = satisfy (not . isSpace)
+
+spacenonewline :: Parser Char
+spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
+
+restofline :: Parser String
+restofline = anyChar `manyTill` newline
 

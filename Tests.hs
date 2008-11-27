@@ -100,7 +100,7 @@ misc_tests = TestList [
   "smartparsedate"     ~: do
     t <- today
     let (ty,tm,td) = dateComponents t
-    let str `gives` datestr = assertequal datestr (fixdatestr t str)
+    let str `gives` datestr = assertequal datestr (fixSmartDateStr t str)
     "1999-12-02" `gives` "1999/12/02"
     "1999.12.02" `gives` "1999/12/02"
     "1999/3/2"   `gives` "1999/03/02"
@@ -112,10 +112,13 @@ misc_tests = TestList [
     "January"    `gives` (printf "%04d/01/01" ty)
     "feb"        `gives` (printf "%04d/02/01" ty)
     "today"      `gives` (printf "%04d/%02d/%02d" ty tm td)
+--     "this day"   `gives` (printf "%04d/%02d/%02d" ty tm td)
     let (y,m,d) = toGregorian $ addDays (-1) $ fromGregorian ty tm td
     "yesterday"  `gives` (printf "%04d/%02d/%02d" y m d)
+--     "last day"   `gives` (printf "%04d/%02d/%02d" y m d)
     let (y,m,d) = toGregorian $ addDays 1 $ fromGregorian ty tm td
     "tomorrow"   `gives` (printf "%04d/%02d/%02d" y m d)
+--     "next day"   `gives` (printf "%04d/%02d/%02d" y m d)
   ]
 
 balancereportacctnames_tests = TestList 

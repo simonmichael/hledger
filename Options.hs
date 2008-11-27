@@ -5,8 +5,9 @@ import System.Console.GetOpt
 import System.Directory
 import Text.Printf
 import Ledger.Parse
-import Ledger.Dates
 import Ledger.Utils
+import Ledger.Types
+import Ledger.Dates
 
 
 defaultfile = "~/.ledger"
@@ -84,50 +85,23 @@ parseArguments = do
   args <- getArgs
   let order = if "--options-anywhere" `elem` args then Permute else RequireOrder
   case (getOpt order options args) of
-    (opts,cmd:args,[]) -> do {opts' <- fixDates opts; return (opts',cmd,args)}
-    (opts,[],[])       -> do {opts' <- fixDates opts; return (opts',[],[])}
+    (opts,cmd:args,[]) -> do {opts' <- fixOptDates opts; return (opts',cmd,args)}
+    (opts,[],[])       -> do {opts' <- fixOptDates opts; return (opts',[],[])}
     (opts,_,errs)      -> ioError (userError (concat errs ++ usage))
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.
-fixDates :: [Opt] -> IO [Opt]
-fixDates opts = do
+fixOptDates :: [Opt] -> IO [Opt]
+fixOptDates opts = do
   t <- today
   return $ map (fixopt t) opts
   where
-    fixopt t (Begin s)   = Begin $ fixdatestr t s
-    fixopt t (End s)     = End $ fixdatestr t s
+    fixopt t (Begin s)   = Begin $ fixSmartDateStr t s
+    fixopt t (End s)     = End $ fixSmartDateStr t s
     fixopt t (Display s) = -- hacky
         Display $ gsubRegexPRBy "\\[.+?\\]" fixbracketeddatestr s
-        where fixbracketeddatestr s = "[" ++ (fixdatestr t $ init $ tail s) ++ "]"
+        where fixbracketeddatestr s = "[" ++ (fixSmartDateStr t $ init $ tail s) ++ "]"
     fixopt _ o            = o
-
--- | Convert a fuzzy date string to an explicit yyyy/mm/dd string using
--- the provided date as reference point.
-fixdatestr :: Date -> String -> String
-fixdatestr t s = printf "%04d/%02d/%02d" y m d
-    where
-      pdate = fromparse $ parsewith smartdate $ map toLower s
-      (y,m,d) = dateComponents $ fixFuzzyDate t pdate
-
--- | Convert a FuzzyDate to an absolute date using the provided date as
--- reference point.
-fixFuzzyDate :: Date -> FuzzyDate -> Date
-fixFuzzyDate refdate pdate = mkDate $ fromGregorian y m d
-    where
-      (y,m,d) = fix pdate
-      fix :: FuzzyDate -> (Integer,Int,Int)
-      fix ("","","today")     = (ry, rm, rd)
-      fix ("","","yesterday") = dateComponents $ lastday refdate
-      fix ("","","tomorrow")  = dateComponents $ nextday refdate
-      fix ("","",d)           = (ry, rm, read d)
-      fix ("",m,d)            = (ry, read m, read d)
-      fix (y,m,d)             = (read y, read m, read d)
-      (ry,rm,rd) = dateComponents refdate
-
-lastday, nextday :: Date -> Date
-lastday = mkDate . (addDays (-1)) . utctDay . dateToUTC
-nextday = mkDate . (addDays 1) . utctDay . dateToUTC
 
 -- | Get the ledger file path from options, an environment variable, or a default
 ledgerFilePathFromOpts :: [Opt] -> IO String

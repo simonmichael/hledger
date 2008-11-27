@@ -1,7 +1,8 @@
 {-|
 
-All the main data types, defined here to avoid import cycles.
-See the corresponding modules for documentation.
+This is the next layer up from Ledger.Utils. All main data types are
+defined here to avoid import cycles; see the corresponding modules for
+documentation.
 
 -}
 
@@ -10,6 +11,10 @@ where
 import Ledger.Utils
 import qualified Data.Map as Map
 
+
+newtype Date = Date UTCTime deriving (Ord, Eq)
+newtype DateTime = DateTime UTCTime deriving (Ord, Eq)
+type SmartDate = (String,String,String)
 
 type AccountName = String
 
