@@ -124,6 +124,8 @@ tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
 --                                return (homeDirectory pw ++ path)
 tildeExpand xs           =  return xs
 
+dateSpanFromOpts opts = DateSpan (beginDateFromOpts opts) (endDateFromOpts opts)
+
 -- | Get the value of the begin date option, if any.
 beginDateFromOpts :: [Opt] -> Maybe Day
 beginDateFromOpts opts =

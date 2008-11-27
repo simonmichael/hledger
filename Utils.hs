@@ -19,7 +19,7 @@ rawledgerfromstring = fromparse . parsewith ledgerfile
 -- | Get a filtered and cached Ledger from the given string, or raise an error.
 ledgerfromstring :: [String] -> String -> Ledger
 ledgerfromstring args s =
-  cacheLedger apats $ filterRawLedger Nothing Nothing dpats False False l
+  cacheLedger apats $ filterRawLedger (DateSpan Nothing Nothing) dpats False False l
       where
         (apats,dpats) = parseAccountDescriptionArgs [] args
         l = rawledgerfromstring s
@@ -35,7 +35,7 @@ rawledgerfromfile f = do
 ledgerfromfile :: [String] -> FilePath -> IO Ledger
 ledgerfromfile args f = do
   l  <- rawledgerfromfile f
-  return $ cacheLedger apats $ filterRawLedger Nothing Nothing dpats False False l
+  return $ cacheLedger apats $ filterRawLedger (DateSpan Nothing Nothing) dpats False False l
       where
         (apats,dpats) = parseAccountDescriptionArgs [] args
            
@@ -51,7 +51,7 @@ myrawledger = do
 myledger :: IO Ledger
 myledger = do
   l <- myrawledger
-  return $ cacheLedger [] $ filterRawLedger Nothing Nothing [] False False l
+  return $ cacheLedger [] $ filterRawLedger (DateSpan Nothing Nothing) [] False False l
 
 -- | Get a named account from your ledger file.
 myaccount :: AccountName -> IO Account

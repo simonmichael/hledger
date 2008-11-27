@@ -14,6 +14,8 @@ import qualified Data.Map as Map
 
 type SmartDate = (String,String,String)
 
+data DateSpan = DateSpan (Maybe Day) (Maybe Day)
+
 type AccountName = String
 
 data Side = L | R deriving (Eq,Show,Ord) 

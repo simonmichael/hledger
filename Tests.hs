@@ -284,7 +284,7 @@ balancecommand_tests = TestList [
  ,
   "balance report with cost basis" ~: do
     let l = cacheLedger [] $ 
-            filterRawLedger Nothing Nothing [] False False $ 
+            filterRawLedger (DateSpan Nothing Nothing) [] False False $ 
             canonicaliseAmounts True $ -- enable cost basis adjustment
             rawledgerfromstring
              ("" ++

@@ -1,9 +1,15 @@
 {-|
 
+For date and time values, we use the standard Day and UTCTime types.
+
 A 'SmartDate' is a date which may be partially-specified or relative.
 Eg 2008/12/31, but also 2008/12, 12/31, tomorrow, last week, next year.
 We represent these as a triple of strings like ("2008","12",""),
 ("","","tomorrow"), ("","last","week").
+
+A 'DateSpan' is the span of time between two specific calendar dates, or
+possibly an open-ended span where one or both dates are missing. We use
+this term since "period" and "interval" are ambiguous.
 
 -}
 
