@@ -18,7 +18,7 @@ import Ledger.Amount
 instance Show Transaction where show=showTransaction
 
 showTransaction :: Transaction -> String
-showTransaction (Transaction eno d desc a amt ttype) = unwords [show d,desc,a,show amt,show ttype]
+showTransaction (Transaction eno d desc a amt ttype) = unwords [showDate d,desc,a,show amt,show ttype]
 
 -- | Convert a 'Entry' to two or more 'Transaction's. An id number
 -- is attached to the transactions to preserve their grouping - it should
