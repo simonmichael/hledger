@@ -1,8 +1,5 @@
 {-|
 
-'Date' and 'DateTime' are a helper layer on top of the standard UTCTime,
-Day etc.
-
 A 'SmartDate' is a date which may be partially-specified or relative.
 Eg 2008/12/31, but also 2008/12, 12/31, tomorrow, last week, next year.
 We represent these as a triple of strings like ("2008","12",""),
@@ -30,82 +27,62 @@ import Ledger.Types
 import Ledger.Utils
 
 
-instance Show Date where
-   show (Date t) = formatTime defaultTimeLocale "%Y/%m/%d" t
+showDate :: Day -> String
+showDate d = formatTime defaultTimeLocale "%Y/%m/%d" d
 
-instance Show DateTime where 
-   show (DateTime t) = formatTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" t
+mkUTCTime :: Day -> TimeOfDay -> UTCTime
+mkUTCTime day tod = localTimeToUTC utc (LocalTime day tod)
 
-mkDate :: Day -> Date
-mkDate day = Date (localTimeToUTC utc (LocalTime day midnight))
-
-mkDateTime :: Day -> TimeOfDay -> DateTime
-mkDateTime day tod = DateTime (localTimeToUTC utc (LocalTime day tod))
-
-today :: IO Date
+today :: IO Day
 today = do
     t <- getZonedTime
-    return (mkDate (localDay (zonedTimeToLocalTime t)))
+    return $ localDay (zonedTimeToLocalTime t)
 
-now :: IO DateTime
-now = fmap DateTime getCurrentTime 
+now :: IO UTCTime
+now = getCurrentTime 
 
-datetimeToDate :: DateTime -> Date
-datetimeToDate (DateTime (UTCTime{utctDay=day})) = Date (UTCTime day 0)
+elapsedSeconds :: Fractional a => UTCTime -> UTCTime -> a
+elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
 
-elapsedSeconds :: Fractional a => DateTime -> DateTime -> a
-elapsedSeconds (DateTime dt1) (DateTime dt2) = realToFrac $ diffUTCTime dt1 dt2
-
-dateToUTC :: Date -> UTCTime
-dateToUTC (Date u) = u
-
-dateComponents :: Date -> (Integer,Int,Int)
-dateComponents = toGregorian . utctDay . dateToUTC
-
--- dateDay :: Date -> Day
-dateDay date = d where (_,_,d) = dateComponents date
-
--- dateMonth :: Date -> Day
-dateMonth date = m where (_,m,_) = dateComponents date
+dayToUTC :: Day -> UTCTime
+dayToUTC d = localTimeToUTC utc (LocalTime d midnight)
 
 -- | Convert a fuzzy date string to an explicit yyyy/mm/dd string using
 -- the provided date as reference point.
-fixSmartDateStr :: Date -> String -> String
+fixSmartDateStr :: Day -> String -> String
 fixSmartDateStr t s = printf "%04d/%02d/%02d" y m d
     where
-      pdate = fromparse $ parsewith smartdate $ map toLower s
-      (y,m,d) = dateComponents $ fixSmartDate t pdate
+      (y,m,d) = toGregorian $ fixSmartDate t sdate
+      sdate = fromparse $ parsewith smartdate $ map toLower s
 
 -- | Convert a SmartDate to an absolute date using the provided date as
 -- reference point.
-fixSmartDate :: Date -> SmartDate -> Date
-fixSmartDate refdate sdate = mkDate $ fromGregorian y m d
+fixSmartDate :: Day -> SmartDate -> Day
+fixSmartDate refdate sdate = fix sdate
     where
-      (y,m,d) = fix sdate
-      callondate f d = dateComponents $ mkDate $ f $ utctDay $ dateToUTC d
-      fix :: SmartDate -> (Integer,Int,Int)
-      fix ("","","today")       = (ry, rm, rd)
-      fix ("","this","day")     = (ry, rm, rd)
-      fix ("","","yesterday")   = callondate prevday refdate
-      fix ("","last","day")     = callondate prevday refdate
-      fix ("","","tomorrow")    = callondate nextday refdate
-      fix ("","next","day")     = callondate nextday refdate
-      fix ("","last","week")    = callondate prevweek refdate
-      fix ("","this","week")    = callondate thisweek refdate
-      fix ("","next","week")    = callondate nextweek refdate
-      fix ("","last","month")   = callondate prevmonth refdate
-      fix ("","this","month")   = callondate thismonth refdate
-      fix ("","next","month")   = callondate nextmonth refdate
-      fix ("","last","quarter") = callondate prevquarter refdate
-      fix ("","this","quarter") = callondate thisquarter refdate
-      fix ("","next","quarter") = callondate nextquarter refdate
-      fix ("","last","year")    = callondate prevyear refdate
-      fix ("","this","year")    = callondate thisyear refdate
-      fix ("","next","year")    = callondate nextyear refdate
-      fix ("","",d)             = (ry, rm, read d)
-      fix ("",m,d)              = (ry, read m, read d)
-      fix (y,m,d)               = (read y, read m, read d)
-      (ry,rm,rd) = dateComponents refdate
+      fix :: SmartDate -> Day
+      fix ("","","today")       = fromGregorian ry rm rd
+      fix ("","this","day")     = fromGregorian ry rm rd
+      fix ("","","yesterday")   = prevday refdate
+      fix ("","last","day")     = prevday refdate
+      fix ("","","tomorrow")    = nextday refdate
+      fix ("","next","day")     = nextday refdate
+      fix ("","last","week")    = prevweek refdate
+      fix ("","this","week")    = thisweek refdate
+      fix ("","next","week")    = nextweek refdate
+      fix ("","last","month")   = prevmonth refdate
+      fix ("","this","month")   = thismonth refdate
+      fix ("","next","month")   = nextmonth refdate
+      fix ("","last","quarter") = prevquarter refdate
+      fix ("","this","quarter") = thisquarter refdate
+      fix ("","next","quarter") = nextquarter refdate
+      fix ("","last","year")    = prevyear refdate
+      fix ("","this","year")    = thisyear refdate
+      fix ("","next","year")    = nextyear refdate
+      fix ("","",d)             = fromGregorian ry rm (read d)
+      fix ("",m,d)              = fromGregorian ry (read m) (read d)
+      fix (y,m,d)               = fromGregorian (read y) (read m) (read d)
+      (ry,rm,rd) = toGregorian refdate
 
 prevday :: Day -> Day
 prevday = addDays (-1)
@@ -141,14 +118,14 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 -- parsing
 
 -- | Parse a date-time string to a time type, or raise an error.
-parsedatetime :: String -> DateTime
-parsedatetime s = DateTime $
+parsedatetime :: String -> UTCTime
+parsedatetime s = 
     parsetimewith "%Y/%m/%d %H:%M:%S" s $
     error $ printf "could not parse timestamp \"%s\"" s
 
 -- | Parse a date string to a time type, or raise an error.
-parsedate :: String -> Date
-parsedate s =  Date $
+parsedate :: String -> Day
+parsedate s =  
     parsetimewith "%Y/%m/%d" s $
     error $ printf "could not parse date \"%s\"" s
 

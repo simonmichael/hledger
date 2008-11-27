@@ -43,7 +43,7 @@ rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 -- | Remove ledger entries we are not interested in.
 -- Keep only those which fall between the begin and end dates, and match
 -- the description pattern, and are cleared or real if those options are active.
-filterRawLedger :: Maybe Date -> Maybe Date -> [String] -> Bool -> Bool -> RawLedger -> RawLedger
+filterRawLedger :: Maybe Day -> Maybe Day -> [String] -> Bool -> Bool -> RawLedger -> RawLedger
 filterRawLedger begin end pats clearedonly realonly = 
     filterRawLedgerTransactionsByRealness realonly .
     filterRawLedgerEntriesByClearedStatus clearedonly .
@@ -59,7 +59,7 @@ filterRawLedgerEntriesByDescription pats (RawLedger ms ps es f) =
 -- | Keep only entries which fall between begin and end dates. 
 -- We include entries on the begin date and exclude entries on the end
 -- date, like ledger.  An empty date string means no restriction.
-filterRawLedgerEntriesByDate :: Maybe Date -> Maybe Date -> RawLedger -> RawLedger
+filterRawLedgerEntriesByDate :: Maybe Day -> Maybe Day -> RawLedger -> RawLedger
 filterRawLedgerEntriesByDate begin end (RawLedger ms ps es f) = 
     RawLedger ms ps (filter matchdate es) f
     where 

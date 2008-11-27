@@ -12,8 +12,6 @@ import Ledger.Utils
 import qualified Data.Map as Map
 
 
-newtype Date = Date UTCTime deriving (Ord, Eq)
-newtype DateTime = DateTime UTCTime deriving (Ord, Eq)
 type SmartDate = (String,String,String)
 
 type AccountName = String
@@ -61,7 +59,7 @@ data PeriodicEntry = PeriodicEntry {
     } deriving (Eq)
 
 data Entry = Entry {
-      edate :: Date,
+      edate :: Day,
       estatus :: Bool,
       ecode :: String,
       edescription :: String,
@@ -79,7 +77,7 @@ data RawLedger = RawLedger {
 
 data TimeLogEntry = TimeLogEntry {
       tlcode :: Char,
-      tldatetime :: DateTime,
+      tldatetime :: UTCTime,
       tlcomment :: String
     } deriving (Eq,Ord)
 
@@ -89,7 +87,7 @@ data TimeLog = TimeLog {
 
 data Transaction = Transaction {
       entryno :: Int,
-      date :: Date,
+      date :: Day,
       description :: String,
       account :: AccountName,
       amount :: MixedAmount,

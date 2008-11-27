@@ -237,8 +237,8 @@ ledgerentry = do
   transactions <- ledgertransactions
   return $ balanceEntry $ Entry date status code description comment transactions (unlines preceding)
 
-ledgerday :: Parser Day
-ledgerday = do 
+ledgerdate :: Parser Day
+ledgerdate = do 
   y <- many1 digit
   char '/'
   m <- many1 digit
@@ -247,12 +247,9 @@ ledgerday = do
   many spacenonewline
   return (fromGregorian (read y) (read m) (read d))
 
-ledgerdate :: Parser Date
-ledgerdate = fmap mkDate ledgerday
-
-ledgerdatetime :: Parser DateTime
+ledgerdatetime :: Parser UTCTime
 ledgerdatetime = do 
-  day <- ledgerday
+  day <- ledgerdate
   h <- many1 digit
   char ':'
   m <- many1 digit
@@ -260,7 +257,7 @@ ledgerdatetime = do
       char ':'
       many1 digit
   many spacenonewline
-  return (mkDateTime day (TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s)))
+  return $ mkUTCTime day (TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s))
 
 
 ledgerstatus :: Parser Bool

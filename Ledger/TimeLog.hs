@@ -53,8 +53,8 @@ entryFromTimeLogInOut i o =
     }
     where
       acctname = tlcomment i
-      indate   = datetimeToDate intime
-      outdate  = datetimeToDate outtime
+      indate   = utctDay intime
+      outdate  = utctDay outtime
       intime   = tldatetime i
       outtime  = tldatetime o
       amount   = Mixed [hours $ elapsedSeconds outtime intime / 3600]

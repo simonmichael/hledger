@@ -125,7 +125,7 @@ tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
 tildeExpand xs           =  return xs
 
 -- | Get the value of the begin date option, if any.
-beginDateFromOpts :: [Opt] -> Maybe Date
+beginDateFromOpts :: [Opt] -> Maybe Day
 beginDateFromOpts opts =
     if null beginopts 
     then Nothing
@@ -138,7 +138,7 @@ beginDateFromOpts opts =
       (y,m,d) = fromparse $ parsewith smartdate $ last beginopts
 
 -- | Get the value of the end date option, if any.
-endDateFromOpts :: [Opt] -> Maybe Date
+endDateFromOpts :: [Opt] -> Maybe Day
 endDateFromOpts opts =
     if null endopts 
     then Nothing

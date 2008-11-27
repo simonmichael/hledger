@@ -54,7 +54,7 @@ showEntry e =
     where
       precedingcomment = epreceding_comment_lines e
       description = concat [date, status, code, desc] -- , comment]
-      date = showDate $ edate e
+      date = showdate $ edate e
       status = if estatus e then " *" else ""
       code = if (length $ ecode e) > 0 then (printf " (%s)" $ ecode e) else ""
       desc = " " ++ edescription e
@@ -67,8 +67,7 @@ showEntry e =
       showamount = printf "%12s" . showMixedAmount
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
-
-showDate d = printf "%-10s" (show d)
+      showdate d = printf "%-10s" (showDate d)
 
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = 

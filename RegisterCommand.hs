@@ -49,7 +49,7 @@ showRegisterReport opts args l = showtxns ts nulltxn nullmixedamt
       showtxn omitdesc t b = concatBottomPadded [entrydesc ++ txn ++ " ", bal] ++ "\n"
           where
             entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
-            date = show $ da
+            date = showDate $ da
             desc = printf "%-20s" $ elideRight 20 de :: String
             txn = showRawTransaction $ RawTransaction a amt "" tt
             bal = padleft 12 (showMixedAmountOrZero b)
