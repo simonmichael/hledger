@@ -41,13 +41,13 @@ Here are some commands to try::
 
 FEATURES
 --------
-This version of hledger mimics a subset of ledger 2.6.1:
+This version of hledger mimics a subset of ledger 2.6.1. Supported features:
 
 * regular ledger entries
 * multiple commodities
 * virtual transactions
 * balance, print, register commands
-* positive and negative account & description patterns
+* account and description patterns
 * LEDGER environment variable
 * and::
 
@@ -59,6 +59,7 @@ This version of hledger mimics a subset of ledger 2.6.1:
    Report filtering:
    -b, --begin DATE       set report begin date
    -e, --end DATE         set report end date
+   -p, --period STR       report using the given period (limited support)
    -C, --cleared          consider only cleared transactions
    -R, --real             consider only real (non-virtual) transactions
  
@@ -87,7 +88,7 @@ ledger features not supported:
 * !include
 * modifier entries
 * periodic entries
-* commodity pricing
+* pricing history
 * counting an unfinished timelog session
 * parsing gnucash files
 * and::
@@ -101,7 +102,6 @@ ledger features not supported:
  
    Report filtering:
    -c, --current          show only current and past entries (not future)
-   -p, --period STR       report using the given period
        --period-sort EXPR sort each report period's entries by EXPR
    -U, --uncleared        consider only uncleared transactions
    -L, --actual           consider only actual (non-automated) transactions
@@ -162,3 +162,5 @@ Some other differences:
 * hledger doesn't require a space after flags like -f
 * hledger keeps differently-priced amounts of the same commodity separate, at the moment
 * hledger doesn't parse all ledger file constructs (and may choke ? please report)
+* hledger handles only simple display expressions consisting of a date predicate
+* hledger handles only simple period expressions consisting of a single smart date
