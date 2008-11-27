@@ -82,35 +82,60 @@ fixSmartDate :: Date -> SmartDate -> Date
 fixSmartDate refdate sdate = mkDate $ fromGregorian y m d
     where
       (y,m,d) = fix sdate
+      callondate f d = dateComponents $ mkDate $ f $ utctDay $ dateToUTC d
       fix :: SmartDate -> (Integer,Int,Int)
-      fix ("","","today")     = (ry, rm, rd)
-      fix ("","this","day")   = (ry, rm, rd)
-      fix ("","","yesterday") = dateComponents $ prevday refdate
-      fix ("","last","day")   = dateComponents $ prevday refdate
-      fix ("","","tomorrow")  = dateComponents $ nextday refdate
-      fix ("","next","day")   = dateComponents $ nextday refdate
-      fix ("","last","week")  = dateComponents $ prevweek refdate
-      fix ("","this","week")  = dateComponents $ thisweek refdate
-      fix ("","next","week")  = dateComponents $ nextweek refdate
-      fix ("","",d)           = (ry, rm, read d)
-      fix ("",m,d)            = (ry, read m, read d)
-      fix (y,m,d)             = (read y, read m, read d)
+      fix ("","","today")       = (ry, rm, rd)
+      fix ("","this","day")     = (ry, rm, rd)
+      fix ("","","yesterday")   = callondate prevday refdate
+      fix ("","last","day")     = callondate prevday refdate
+      fix ("","","tomorrow")    = callondate nextday refdate
+      fix ("","next","day")     = callondate nextday refdate
+      fix ("","last","week")    = callondate prevweek refdate
+      fix ("","this","week")    = callondate thisweek refdate
+      fix ("","next","week")    = callondate nextweek refdate
+      fix ("","last","month")   = callondate prevmonth refdate
+      fix ("","this","month")   = callondate thismonth refdate
+      fix ("","next","month")   = callondate nextmonth refdate
+      fix ("","last","quarter") = callondate prevquarter refdate
+      fix ("","this","quarter") = callondate thisquarter refdate
+      fix ("","next","quarter") = callondate nextquarter refdate
+      fix ("","last","year")    = callondate prevyear refdate
+      fix ("","this","year")    = callondate thisyear refdate
+      fix ("","next","year")    = callondate nextyear refdate
+      fix ("","",d)             = (ry, rm, read d)
+      fix ("",m,d)              = (ry, read m, read d)
+      fix (y,m,d)               = (read y, read m, read d)
       (ry,rm,rd) = dateComponents refdate
 
-prevday, nextday :: Date -> Date
-prevday = mkDate . (addDays (-1)) . utctDay . dateToUTC
-nextday = mkDate . (addDays 1) . utctDay . dateToUTC
-thisweek date = mkDate $ mondayofweekcontaining $ utctDay $ dateToUTC date
-prevweek date = mkDate $ mondayofweekbefore $ utctDay $ dateToUTC date
-nextweek date = mkDate $ mondayafter $ utctDay $ dateToUTC date
+prevday :: Day -> Day
+prevday = addDays (-1)
+nextday = addDays 1
 
-mondayafter day = mondayofweekcontaining $ addDays 7 day
-mondayofweekbefore day = mondayofweekcontaining $ addDays (-7) day
-mondayofweekcontaining day = fromMondayStartWeek y w 1
+thisweek = startofweek
+prevweek = startofweek . addDays (-7)
+nextweek = startofweek . addDays 7
+startofweek day = fromMondayStartWeek y w 1
     where
-      (y,m,d) = toGregorian day
+      (y,_,_) = toGregorian day
       (w,_) = mondayStartWeek day
 
+thismonth = startofmonth
+prevmonth = startofmonth . addGregorianMonthsClip (-1)
+nextmonth = startofmonth . addGregorianMonthsClip 1
+startofmonth day = fromGregorian y m 1 where (y,m,_) = toGregorian day
+
+thisquarter = startofquarter
+prevquarter = startofquarter . addGregorianMonthsClip (-3)
+nextquarter = startofquarter . addGregorianMonthsClip 3
+startofquarter day = fromGregorian y (firstmonthofquarter m) 1
+    where
+      (y,m,_) = toGregorian day
+      firstmonthofquarter m = ((m-1) `div` 3) * 3 + 1
+
+thisyear = startofyear
+prevyear = startofyear . addGregorianYearsClip (-1)
+nextyear = startofyear . addGregorianYearsClip 1
+startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 
 ----------------------------------------------------------------------
 -- parsing
@@ -229,7 +254,7 @@ lastthisnextthing = do
        ,string "next"
       ]
   --many1 spacenonewline
-  many spacenonewline  -- allow lastweek for easier shell scripting
+  many spacenonewline  -- allow the space to be omitted for easier scripting
   p <- choice [
         string "day"
        ,string "week"
