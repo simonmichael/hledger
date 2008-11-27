@@ -39,7 +39,8 @@ options = [
  Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp,
  Option ['b'] ["begin"]        (ReqArg Begin "DATE") "report on entries on or after this date",
  Option ['e'] ["end"]          (ReqArg End "DATE")   "report on entries prior to this date",
- Option ['p'] ["period"]       (ReqArg Period "EXPR") "report on entries during this calendar period",
+ Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on entries during this calendar period\n" ++
+                                                       "(where EXPR is a single smart DATE)\n"),
  Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
  Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
  Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",
