@@ -13,7 +13,7 @@ Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 
-INSTALLATION
+Installation
 ------------
 If you have cabal-install, in this directory do::
 
@@ -26,10 +26,10 @@ http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger and do::
  runhaskell Setup.hs build
  sudo runhaskell Setup.hs install 
 
-(or for the latest code, darcs get http://joyful.com/repos/hledger)
+or for the latest development code: darcs get http://joyful.com/repos/hledger
 
 
-EXAMPLES
+Examples
 --------
 Here are some commands to try::
 
@@ -42,17 +42,13 @@ Here are some commands to try::
  hledger reg -- shop
 
 
-FEATURES
+Features
 --------
-This version of hledger mimics a subset of ledger 2.6.1. Supported features:
 
-* regular ledger entries
-* multiple commodities
-* virtual transactions
-* balance, print, register commands
-* account and description patterns
-* LEDGER environment variable
-* and::
+This version of hledger mimics a subset of ledger 2.6.1. We currently
+support: the balance, print, and register commands, regular ledger
+entries, multiple commodities, virtual transactions, account and
+description patterns, the LEDGER environment variable, and these options::
 
    Basic options:
    -h, --help             display summarized help text
@@ -62,7 +58,7 @@ This version of hledger mimics a subset of ledger 2.6.1. Supported features:
    Report filtering:
    -b, --begin DATE       set report begin date
    -e, --end DATE         set report end date
-   -p, --period STR       report using the given period (limited support)
+   -p, --period EXPR      report using the given period (limited support)
    -C, --cleared          consider only cleared transactions
    -R, --real             consider only real (non-virtual) transactions
  
@@ -80,21 +76,19 @@ This version of hledger mimics a subset of ledger 2.6.1. Supported features:
    register [REGEXP]...   show register of matching transactions
    print    [REGEXP]...   print all matching entries
 
-hledger-specific features::
+We handle simple display expressions consisting of a date predicate,
+and simple period expressions consisting of a single smart date.
+Also the following hledger-specific features are supported::
 
    --depth=N              balance report: maximum account depth to show
-   --cost                 alias for basis
    --options-anywhere     allow options anywhere, use ^ for negative patterns
 
-ledger features not supported:
+ledger features not supported
+.............................
 
-* !include
-* modifier entries
-* periodic entries
-* pricing history
-* counting an unfinished timelog session
-* parsing gnucash files
-* and::
+ledger features not yet supported include: modifier and periodic entries,
+!include and other special directives, price history entries, parsing
+gnucash files, and the following options::
 
    Basic options:
    -o, --output FILE      write output to FILE
@@ -158,12 +152,14 @@ ledger features not supported:
    prices   [REGEXP]...   display price history for matching commodities
    entry DATE PAYEE AMT   output a derived entry, based on the arguments
 
-Some other differences:
+Other differences
+.................
 
-* hledger talks about the entry and transaction "description", which ledger calls "note"
-* hledger always shows timelog balances in hours
-* hledger doesn't require a space after flags like -f
 * hledger keeps differently-priced amounts of the same commodity separate, at the moment
+* hledger refers to the entry and transaction "description", ledger calls it "note"
+* hledger doesn't require a space after flags like -f
+* hledger always shows timelog balances in hours
 * hledger doesn't parse all ledger file constructs (and may choke ? please report)
-* hledger handles only simple display expressions consisting of a date predicate
-* hledger handles only simple period expressions consisting of a single smart date
+* hledger doesn't count an unfinished timelog session
+* hledger interprets "last/this/next week" as weeks beginning on monday
+* hledger provides "--cost" as a synonym for "--basis"
