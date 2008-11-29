@@ -72,13 +72,7 @@ main = do
 -- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = do
-  day <- today
-  let span = dateSpanFromOpts day opts
-  let runcmd = cmd opts args . cacheLedger apats . filterRawLedger span dpats c r . canonicaliseAmounts costbasis
+  refdate <- today
+  let runcmd = cmd opts args . prepareLedger opts args refdate
   ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runcmd
-    where
-      (apats,dpats) = parseAccountDescriptionArgs opts args
-      c = Cleared `elem` opts
-      r = Real `elem` opts
-      costbasis = CostBasis `elem` opts
 
