@@ -16,6 +16,9 @@ type SmartDate = (String,String,String)
 
 data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord)
 
+data Interval = NoInterval | Daily | Weekly | Monthly | Quarterly | Yearly 
+                deriving (Eq,Show,Ord)
+
 type AccountName = String
 
 data Side = L | R deriving (Eq,Show,Ord) 

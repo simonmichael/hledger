@@ -11,30 +11,7 @@ clever tricks like the plague." --Edsger Dijkstra
 * to do
 ** errors
 ** features
-*** period expressions, for ease of use
-**** from and/or to
-**** reporting intervals
-***** design types
-***** parse intervals
-     every day
-     every week
-     every monthly
-     every quarter
-     every year
-     every N days     # N is any integer
-     every N weeks
-     every N months
-     every N quarters
-     every N years
-     daily
-     weekly
-     biweekly
-     monthly
-     bimonthly
-     quarterly
-     yearly
-***** implement in register report
-***** -W/-M/-Y
+*** show empty reporting intervals with the -E option, for clarity/consistency/graphing
 *** actual/effective entry & txn dates, for completeness
 *** speed
 **** easy profiling
@@ -43,6 +20,15 @@ clever tricks like the plague." --Edsger Dijkstra
 *** ~/.hledgerrc, for setting defaults
 *** more ledger features from README (?)
 *** new features
+**** support complete period syntax ?
+    every N days     # N is any integer
+    every N weeks
+    every N months
+    every N quarters
+    every N years
+    biweekly
+    bimonthly
+**** -Q quarterly interval option, for consistency/convenience ?
 **** easy timelog queries when called as hours
 **** curses gui
 **** web gui

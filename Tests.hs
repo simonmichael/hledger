@@ -129,6 +129,33 @@ misc_tests = TestList [
     "this year"    `gives` "2008/01/01"
     "last year"    `gives` "2007/01/01"
     "next year"    `gives` "2009/01/01"
+  ,
+  "dateSpanFromOpts"     ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let opts `gives` spans = assertequal spans (show $ dateSpanFromOpts todaysdate opts)
+    [] `gives` "DateSpan Nothing Nothing"
+    [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+  ,
+  "intervalFromOpts"     ~: do
+    let opts `gives` interval = assertequal interval (intervalFromOpts opts)
+    [] `gives` NoInterval
+    [WeeklyOpt] `gives` Weekly
+    [MonthlyOpt] `gives` Monthly
+    [YearlyOpt] `gives` Yearly
+    [Period "weekly"] `gives` Weekly
+    [Period "monthly"] `gives` Monthly
+    [WeeklyOpt, Period "yearly"] `gives` Yearly
+  ,                  
+  "period expressions"     ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let str `gives` result = assertequal ("Right "++result) (show $ parsewith (periodexpr todaysdate) str)
+    "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
+    "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
   ]
 
 balancereportacctnames_tests = TestList 
@@ -354,10 +381,26 @@ registercommand_tests = TestList [
   ,
   "register report with period expression" ~:
   do 
-    ""  `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
+    ""     `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2008" `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
--- need to get datespan into ledgerFromString, or preconvert period expressions
---    "2007" `periodexprgives` []
+    "2007" `periodexprgives` []
+    "june" `periodexprgives` ["2008/06/01","2008/06/02","2008/06/03"]
+
+    let l = ledgerfromstring [] sample_ledger_str
+    assertequal (
+     "2008/01/01 - 2008/12/31         assets:cash                     $-2          $-2\n" ++
+     "                                assets:saving                    $1          $-1\n" ++
+     "                                expenses:food                    $1            0\n" ++
+     "                                expenses:supplies                $1           $1\n" ++
+     "                                income:gifts                    $-1            0\n" ++
+     "                                income:salary                   $-1          $-1\n" ++
+     "                                liabilities:debts                $1            0\n" ++
+     "")
+     (showRegisterReport [Period "yearly"] [] l)
+
+    assertequal ["2008/01/01","2008/04/01","2008/10/01"] (datesfromregister $ showRegisterReport [Period "quarterly"] [] l)
+--    assertequal ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"] (datesfromregister $ showRegisterReport [Period "quarterly"] [] l)
+
  ]
   where
     expr `displayexprgives` dates = 
@@ -369,9 +412,9 @@ registercommand_tests = TestList [
         assertequal dates (datesfromregister r)
         where
           r = showRegisterReport [Period expr] [] l
-          l = ledgerfromstring [] sample_ledger_str
-          
-datesfromregister = filter (not . null) .  map (strip . take 10) . lines
+          l = ledgerfromstringwithopts [Period expr] [] refdate sample_ledger_str
+          refdate = parsedate "2008/11/26"
+    datesfromregister = filter (not . null) .  map (strip . take 10) . lines
 
   
 ------------------------------------------------------------------------------

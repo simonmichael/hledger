@@ -50,6 +50,9 @@ options = [
  Option []    ["options-anywhere"] (NoArg OptionsAnywhere) "allow options anywhere, use ^ to negate patterns",
  Option ['n'] ["collapse"]     (NoArg  Collapse)      "balance report: no grand total",
  Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts",
+ Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)        "register report: show weekly summary",
+ Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)       "register report: show monthly summary",
+ Option ['Y'] ["yearly"]       (NoArg  YearlyOpt)        "register report: show yearly summary",
  Option ['h'] ["help"] (NoArg  Help)                  "show this help",
  Option ['v'] ["verbose"]      (NoArg  Verbose)       "verbose test output",
  Option ['V'] ["version"]      (NoArg  Version)       "show version"
@@ -73,14 +76,23 @@ data Opt =
     OptionsAnywhere | 
     Collapse |
     SubTotal |
+    WeeklyOpt |
+    MonthlyOpt |
+    YearlyOpt |
     Help |
     Verbose |
     Version
     deriving (Show,Eq)
 
 -- yow..
+optsWithConstructor f opts = concatMap get opts
+    where get o = if f v == o then [o] else [] where v = value o
+
 optValuesForConstructor f opts = concatMap get opts
     where get o = if f v == o then [v] else [] where v = value o
+
+optValuesForConstructors fs opts = concatMap get opts
+    where get o = if any (\f -> f v == o) fs then [v] else [] where v = value o
 
 -- | Parse the command-line arguments into ledger options, ledger command
 -- name, and ledger command arguments. Also any dates in the options are
@@ -109,22 +121,37 @@ fixOptDates opts = do
         where fixbracketeddatestr s = "[" ++ (fixSmartDateStr t $ init $ tail s) ++ "]"
     fixopt _ o            = o
 
--- | Figure out the date span we should report on, based on any
--- begin/end/period options provided. This could be really smart but I'm
--- just going to look for 1. the first Period or 2. the first Begin and
--- first End.
+-- | Figure out the overall date span we should report on, based on any
+-- begin/end/period options provided. If there is a period option, the
+-- others are ignored.
 dateSpanFromOpts :: Day -> [Opt] -> DateSpan
-dateSpanFromOpts refdate opts 
-    | not $ null ps = spanFromPeriodExpr refdate $ head ps
+dateSpanFromOpts refdate opts
+    | not $ null popts = snd $ parsePeriodExpr refdate $ head popts
     | otherwise = DateSpan firstb firste
     where
-      ps = optValuesForConstructor Period opts
-      firstb = listtomaybeday $ optValuesForConstructor Begin opts
-      firste = listtomaybeday $ optValuesForConstructor End opts
-      listtomaybeday [] = Nothing
-      listtomaybeday vs = Just $ parse $ head vs
-      parse s = parsedate $ printf "%04s/%02s/%02s" y m d
-          where (y,m,d) = fromparse $ parsewith smartdate $ s
+      popts = optValuesForConstructor Period opts
+      bopts = optValuesForConstructor Begin opts
+      eopts = optValuesForConstructor End opts
+      firstb = listtomaybeday bopts
+      firste = listtomaybeday eopts
+      listtomaybeday vs = if null vs then Nothing else Just $ parse $ head vs
+          where parse = parsedate . fixSmartDateStr refdate
+
+-- | Figure out the reporting interval, if any, specified by the options.
+-- If there is a period option, the others are ignored.
+intervalFromOpts :: [Opt] -> Interval
+intervalFromOpts opts
+    | not $ null popts = fst $ parsePeriodExpr refdate $ head popts
+    | otherwise = case otheropts of
+                    []             -> NoInterval
+                    (WeeklyOpt:_)  -> Weekly
+                    (MonthlyOpt:_) -> Monthly
+                    (YearlyOpt:_)  -> Yearly
+    where
+      popts = optValuesForConstructor Period opts
+      otheropts = filter (`elem` [WeeklyOpt,MonthlyOpt,YearlyOpt]) opts 
+      -- doesn't affect the interval, but parsePeriodExpr needs something
+      refdate = parsedate "0001/01/01"
 
 -- | Get the value of the (first) depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int

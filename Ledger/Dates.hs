@@ -8,8 +8,11 @@ We represent these as a triple of strings like ("2008","12",""),
 ("","","tomorrow"), ("","last","week").
 
 A 'DateSpan' is the span of time between two specific calendar dates, or
-possibly an open-ended span where one or both dates are missing. We use
-this term since "period" and "interval" are ambiguous.
+an open-ended span where one or both dates are unspecified. (A date span
+with both ends unspecified matches all dates.)
+
+An 'Interval' is ledger's "reporting interval" - weekly, monthly,
+quarterly, etc.
 
 -}
 
@@ -53,10 +56,32 @@ elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
 dayToUTC :: Day -> UTCTime
 dayToUTC d = localTimeToUTC utc (LocalTime d midnight)
 
--- | Convert a period expression to a date span using the provided reference date.
-spanFromPeriodExpr refdate = fromparse . parsewith (periodexpr refdate) 
+-- | Split a DateSpan into one or more consecutive spans at the specified interval.
+splitSpan :: Interval -> DateSpan -> [DateSpan]
+splitSpan i (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
+splitSpan NoInterval s = [s]
+splitSpan Daily s      = splitspan start next s where (start,next) = (startofday,nextday)
+splitSpan Weekly s     = splitspan start next s where (start,next) = (startofweek,nextweek)
+splitSpan Monthly s    = splitspan start next s where (start,next) = (startofmonth,nextmonth)
+splitSpan Quarterly s  = splitspan start next s where (start,next) = (startofquarter,nextquarter)
+splitSpan Yearly s     = splitspan start next s where (start,next) = (startofyear,nextyear)
+
+splitspan _ _ (DateSpan Nothing Nothing) = []
+splitspan startof next (DateSpan Nothing (Just e)) = [DateSpan (Just $ startof e) (Just $ next $ startof e)]
+splitspan startof next (DateSpan (Just b) Nothing) = [DateSpan (Just $ startof b) (Just $ next $ startof b)]
+splitspan startof next (DateSpan (Just b) (Just e))
+    | b >= e = []
+    | otherwise = [DateSpan (Just $ startof b) (Just $ next $ startof b)] 
+                  ++ splitspan startof next (DateSpan (Just $ next $ startof b) (Just e))
     
--- | Convert a smart date string to a date span using the provided reference date.
+-- | Parse a period expression to an Interval and overall DateSpan using
+-- the provided reference date.
+parsePeriodExpr :: Day -> String -> (Interval, DateSpan)
+parsePeriodExpr refdate expr = (interval,span)
+    where (interval,span) = fromparse $ parsewith (periodexpr refdate) expr
+    
+-- | Convert a single smart date string to a date span using the provided
+-- reference date.
 spanFromSmartDateString :: Day -> String -> DateSpan
 spanFromSmartDateString refdate s = spanFromSmartDate refdate sdate
     where
@@ -135,6 +160,7 @@ fixSmartDate refdate sdate = fix sdate
 prevday :: Day -> Day
 prevday = addDays (-1)
 nextday = addDays 1
+startofday = id
 
 thisweek = startofweek
 prevweek = startofweek . addDays (-7)
@@ -292,21 +318,78 @@ lastthisnextthing = do
       ]
   return ("",r,p)
 
-periodexpr :: Day -> Parser DateSpan
-periodexpr rdate = try (doubledateperiod rdate) <|> (singledateperiod rdate)
+periodexpr :: Day -> Parser (Interval, DateSpan)
+periodexpr rdate = choice $ map try [
+                    intervalanddateperiodexpr rdate,
+                    intervalperiodexpr,
+                    dateperiodexpr rdate,
+                    (return $ (NoInterval,DateSpan Nothing Nothing))
+                   ]
 
-doubledateperiod :: Day -> Parser DateSpan
-doubledateperiod rdate = do
-  string "from"
+intervalanddateperiodexpr :: Day -> Parser (Interval, DateSpan)
+intervalanddateperiodexpr rdate = do
   many spacenonewline
+  i <- periodexprinterval
+  many spacenonewline
+  s <- periodexprdatespan rdate
+  return (i,s)
+
+intervalperiodexpr :: Parser (Interval, DateSpan)
+intervalperiodexpr = do
+  many spacenonewline
+  i <- periodexprinterval
+  return (i, DateSpan Nothing Nothing)
+
+dateperiodexpr :: Day -> Parser (Interval, DateSpan)
+dateperiodexpr rdate = do
+  many spacenonewline
+  s <- periodexprdatespan rdate
+  return (NoInterval, s)
+
+periodexprinterval :: Parser Interval
+periodexprinterval = 
+    choice $ map try [
+                tryinterval "day" "daily" Daily,
+                tryinterval "week" "weekly" Weekly,
+                tryinterval "month" "monthly" Monthly,
+                tryinterval "quarter" "quarterly" Quarterly,
+                tryinterval "year" "yearly" Yearly
+               ]
+    where
+      tryinterval s1 s2 v = 
+          choice [try (string $ "every "++s1), try (string s2)] >> return v
+
+periodexprdatespan :: Day -> Parser DateSpan
+periodexprdatespan rdate = choice $ map try [
+                            doubledatespan rdate,
+                            fromdatespan rdate,
+                            todatespan rdate,
+                            justdatespan rdate
+                           ]
+
+doubledatespan :: Day -> Parser DateSpan
+doubledatespan rdate = do
+  optional (string "from" >> many spacenonewline)
   b <- smartdate
   many spacenonewline
-  string "to"
-  many spacenonewline
+  optional (string "to" >> many spacenonewline)
   e <- smartdate
-  let span = DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
-  return span
+  return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
-singledateperiod :: Day -> Parser DateSpan
-singledateperiod rdate = smartdate >>= return . spanFromSmartDate rdate
+fromdatespan :: Day -> Parser DateSpan
+fromdatespan rdate = do
+  string "from" >> many spacenonewline
+  b <- smartdate
+  return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
+todatespan :: Day -> Parser DateSpan
+todatespan rdate = do
+  string "to" >> many spacenonewline
+  e <- smartdate
+  return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
+
+justdatespan :: Day -> Parser DateSpan
+justdatespan rdate = do
+  optional (string "in" >> many spacenonewline)
+  d <- smartdate
+  return $ spanFromSmartDate rdate d
