@@ -129,46 +129,46 @@ fixOptDates opts = do
 -- others are ignored.
 dateSpanFromOpts :: Day -> [Opt] -> DateSpan
 dateSpanFromOpts refdate opts
-    | not $ null popts = snd $ parsePeriodExpr refdate $ head popts
-    | otherwise = DateSpan firstb firste
+    | not $ null popts = snd $ parsePeriodExpr refdate $ last popts
+    | otherwise = DateSpan lastb laste
     where
       popts = optValuesForConstructor Period opts
       bopts = optValuesForConstructor Begin opts
       eopts = optValuesForConstructor End opts
-      firstb = listtomaybeday bopts
-      firste = listtomaybeday eopts
-      listtomaybeday vs = if null vs then Nothing else Just $ parse $ head vs
+      lastb = listtomaybeday bopts
+      laste = listtomaybeday eopts
+      listtomaybeday vs = if null vs then Nothing else Just $ parse $ last vs
           where parse = parsedate . fixSmartDateStr refdate
 
 -- | Figure out the reporting interval, if any, specified by the options.
 -- If there is a period option, the others are ignored.
 intervalFromOpts :: [Opt] -> Interval
 intervalFromOpts opts
-    | not $ null popts = fst $ parsePeriodExpr refdate $ head popts
-    | otherwise = case otheropts of
-                    []             -> NoInterval
-                    (WeeklyOpt:_)  -> Weekly
-                    (MonthlyOpt:_) -> Monthly
-                    (YearlyOpt:_)  -> Yearly
+    | not $ null popts = fst $ parsePeriodExpr refdate $ last popts
+    | null otheropts = NoInterval
+    | otherwise = case last otheropts of
+                    WeeklyOpt  -> Weekly
+                    MonthlyOpt -> Monthly
+                    YearlyOpt  -> Yearly
     where
       popts = optValuesForConstructor Period opts
       otheropts = filter (`elem` [WeeklyOpt,MonthlyOpt,YearlyOpt]) opts 
       -- doesn't affect the interval, but parsePeriodExpr needs something
       refdate = parsedate "0001/01/01"
 
--- | Get the value of the (first) depth option, if any.
+-- | Get the value of the (last) depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int
 depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
     where
       listtomaybeint [] = Nothing
-      listtomaybeint vs = Just $ read $ head vs
+      listtomaybeint vs = Just $ read $ last vs
 
--- | Get the value of the (first) display option, if any.
+-- | Get the value of the (last) display option, if any.
 displayFromOpts :: [Opt] -> Maybe String
 displayFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
     where
       listtomaybe [] = Nothing
-      listtomaybe vs = Just $ head vs
+      listtomaybe vs = Just $ last vs
 
 -- | Get the ledger file path from options, an environment variable, or a default
 ledgerFilePathFromOpts :: [Opt] -> IO String
