@@ -1,4 +1,4 @@
-BUILD=ghc --make hledger.hs -o hledger -O2
+BUILD=ghc --make hledger.hs -o hledger -O3
 BUILDPROF=$(BUILD) -prof -auto-all
 PROFILE=./hledger -s balance +RTS -p
 TIME=`date +"%Y%m%d%H%M"`
