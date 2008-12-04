@@ -1,7 +1,8 @@
 {-|
 
-Provide a number of standard modules and utilities needed everywhere (or
-somewhere low in the module tree). The "hledger prelude".
+This is the bottom of the module hierarchy. It provides a number of
+standard modules and utilities which are useful everywhere (or, are needed
+low in the hierarchy). The "hledger prelude".
 
 -}
 
