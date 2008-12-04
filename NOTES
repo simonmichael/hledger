@@ -68,15 +68,13 @@ clever tricks like the plague." --Edsger Dijkstra
 ** web presence
 *** clarify bugtracking process
 * misc
-** differences noted
-*** ledger needs a space after -f
+** other differences not noted in README
 *** ledger shows description comments as part of description
 *** ledger seems to get amounts' x-position wrong more than hledger
-*** ledger shows small time amounts in minutes
-*** ledger can get timelog entry balance wrong, see mail list
-*** hledger shows 0 amounts with their currency symbol
+*** ledger can't parse full smart dates in display expressions
 *** hledger print puts a blank line after the entry, not before it
-*** hledger doesn't parse all ledger file constructs (and may choke ?)
+*** ledger can get timelog entry balance wrong, see mail list
+*** ledger reports timelog sessions as virtual transactions
 ** things I want to know
 *** time
 where have I been spending my time in recent weeks ?
