@@ -69,10 +69,13 @@ splitSpan Yearly s     = splitspan start next s where (start,next) = (startofyea
 splitspan _ _ (DateSpan Nothing Nothing) = []
 splitspan startof next (DateSpan Nothing (Just e)) = [DateSpan (Just $ startof e) (Just $ next $ startof e)]
 splitspan startof next (DateSpan (Just b) Nothing) = [DateSpan (Just $ startof b) (Just $ next $ startof b)]
-splitspan startof next (DateSpan (Just b) (Just e))
-    | b >= e = []
-    | otherwise = [DateSpan (Just $ startof b) (Just $ next $ startof b)] 
-                  ++ splitspan startof next (DateSpan (Just $ next $ startof b) (Just e))
+splitspan startof next s@(DateSpan (Just b) (Just e))
+    | b == e = [s]
+    | otherwise = splitspan' startof next s
+    where splitspan' startof next (DateSpan (Just b) (Just e))
+              | b >= e = []
+              | otherwise = [DateSpan (Just $ startof b) (Just $ next $ startof b)] 
+                            ++ splitspan' startof next (DateSpan (Just $ next $ startof b) (Just e))
     
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date.
@@ -393,3 +396,7 @@ justdatespan rdate = do
   optional (string "in" >> many spacenonewline)
   d <- smartdate
   return $ spanFromSmartDate rdate d
+
+nulldatespan = DateSpan Nothing Nothing
+
+mkdatespan b e = DateSpan (Just $ parsedate b) (Just $ parsedate e)

@@ -14,7 +14,6 @@ clever tricks like the plague." --Edsger Dijkstra
 *** should accept - before currency symbol ?
 *** can't parse comment line immediately after or within an entry
 ** features
-*** show empty reporting intervals with the -E option, for clarity/consistency/graphing
 *** actual/effective entry & txn dates, for completeness
 *** speed
 **** easy profiling

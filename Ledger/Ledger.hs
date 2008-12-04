@@ -30,23 +30,27 @@ instance Show Ledger where
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
 cacheLedger :: [String] -> RawLedger -> Ledger
-cacheLedger apats l = Ledger l ant amap
+cacheLedger apats l = Ledger l ant acctmap
     where
+      ts = filtertxns apats $ rawLedgerTransactions l
       ant = rawLedgerAccountNameTree l
       anames = flatten ant
-      ts = filtertxns apats $ rawLedgerTransactions l
+      txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- anames])
+      subacctsof a = filter (a `isAccountNamePrefixOf`) anames
+      subtxnsof a = concat [txnmap ! a | a <- [a] ++ subacctsof a]
+      balmap = Map.union 
+               (Map.fromList [(a,sumTransactions $ subtxnsof a) | a <- anames]) 
+               (Map.fromList [(a,Mixed []) | a <- anames])
+      acctmap = Map.fromList [(a, mkacct a) | a <- anames]
+      mkacct a = Account a (txnmap ! a) (balmap ! a)
+
+-- | Convert a list of transactions to a map from account name to the list
+-- of all transactions in that account.
+transactionsByAccount :: [Transaction] -> Map.Map AccountName [Transaction]
+transactionsByAccount ts = Map.fromList [(account $ head g, g) | g <- groupedts]
+    where
       sortedts = sortBy (comparing account) ts
       groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
-      txnmap = Map.union 
-               (Map.fromList [(account $ head g, g) | g <- groupedts])
-               (Map.fromList [(a,[]) | a <- anames])
-      txnsof = (txnmap !)
-      subacctsof a = filter (a `isAccountNamePrefixOf`) anames
-      subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a]
-      balmap = Map.union 
-               (Map.fromList [(a,(sumTransactions $ subtxnsof a)) | a <- anames])
-               (Map.fromList [(a,Mixed []) | a <- anames])
-      amap = Map.fromList [(a, Account a (txnmap ! a) (balmap ! a)) | a <- anames]
 
 filtertxns :: [String] -> [Transaction] -> [Transaction]
 filtertxns apats ts = filter (matchpats apats . account) ts
@@ -92,6 +96,6 @@ ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 -- or DateSpan Nothing Nothing if there are no transactions.
 ledgerDateSpan l
     | null ts = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just $ date $ head ts) (Just $ date $ last ts)
+    | otherwise = DateSpan (Just $ date $ head ts) (Just $ addDays 1 $ date $ last ts)
     where
       ts = sortBy (comparing date) $ ledgerTransactions l

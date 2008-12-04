@@ -156,6 +156,67 @@ misc_tests = TestList [
     "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
     "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
     "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
+  ,                  
+  "splitSpan"     ~: do
+    let (interval,span) `gives` spans = assertequal spans (splitSpan interval span)
+    (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
+     [mkdatespan "2008/01/01" "2009/01/01"]
+    (Quarterly,mkdatespan "2008/01/01" "2009/01/01") `gives`
+     [mkdatespan "2008/01/01" "2008/04/01"
+     ,mkdatespan "2008/04/01" "2008/07/01"
+     ,mkdatespan "2008/07/01" "2008/10/01"
+     ,mkdatespan "2008/10/01" "2009/01/01"
+     ]
+    (Quarterly,nulldatespan) `gives`
+     [nulldatespan]
+    (Daily,mkdatespan "2008/01/01" "2008/01/01") `gives`
+     [mkdatespan "2008/01/01" "2008/01/01"]
+    (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
+     [mkdatespan "2008/01/01" "2008/01/01"]
+  ,                  
+  "summariseTransactionsInDateSpan"     ~: do
+    let (b,e,entryno,depth,showempty,ts) `gives` summaryts = assertequal (summaryts) (summariseTransactionsInDateSpan (mkdatespan b e) entryno depth showempty ts)
+
+    ("2008/01/01","2009/01/01",0,Nothing,False,[]) `gives` 
+     []
+
+    ("2008/01/01","2009/01/01",0,Nothing,True,[]) `gives` 
+     [
+      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31"}
+     ]
+
+    ("2008/01/01","2009/01/01",0,Nothing,False,[
+      nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
+     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
+     ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
+     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
+     ]) `gives` 
+     [
+      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",          amount=Mixed [dollars 4]}
+     ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:dining",   amount=Mixed [dollars 10]}
+     ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:groceries",amount=Mixed [dollars 1]}
+     ]
+
+    ("2008/01/01","2009/01/01",0,Just 2,False,[
+      nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
+     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
+     ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
+     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
+     ]) `gives` 
+     [
+      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",          amount=Mixed [dollars 15]}
+     ]
+
+    ("2008/01/01","2009/01/01",0,Just 1,False,[
+      nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
+     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
+     ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
+     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
+     ]) `gives` 
+     [
+      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses",          amount=Mixed [dollars 15]}
+     ]
+
   ]
 
 balancereportacctnames_tests = TestList 

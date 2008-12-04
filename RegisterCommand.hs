@@ -40,15 +40,66 @@ showRegisterReport opts args l
       matchdisplayopt (Just e) t = (fromparse $ parsewith datedisplayexpr e) t
       dopt = displayFromOpts opts
       empty = Empty `elem` opts
-      summaryts = concat $ map (\(n,s) -> summarise n s (filter (isTransactionInDateSpan s) ts)) $ zip [1..] spans
+      depth = depthFromOpts opts
+      summaryts = concatMap summarisespan (zip spans [1..])
+      summarisespan (s,n) = summariseTransactionsInDateSpan s n depth empty (transactionsinspan s)
+      transactionsinspan s = filter (isTransactionInDateSpan s) ts
       spans = splitSpan interval (ledgerDateSpan l)
-      -- generate a grouped set of summary transactions for this date span
-      summarise :: Int -> DateSpan -> [Transaction] -> [Transaction]
-      summarise _ _ [] = []
-      summarise n (DateSpan b e) ts = summarytxns (b',e') n empty ts
-          where
-            b' = fromMaybe (date $ head ts) b
-            e' = fromMaybe (date $ last ts) e
+                        
+-- | Convert a date span (representing a reporting interval) and a list of
+-- transactions within it to a new list of transactions aggregated by
+-- account, which showtxns will render as a summary for this interval.
+-- 
+-- As usual with date spans the end date is exclusive, but for display
+-- purposes we show the previous day as end date, like ledger.
+-- 
+-- A unique entryno value is provided to that the new transactions will be
+-- grouped as one entry.
+-- 
+-- When a depth argument is present, transactions to accounts of greater
+-- depth are aggregated where possible.
+-- 
+-- The showempty flag forces the display of a zero-transaction span
+-- and also zero-transaction accounts within the span.
+summariseTransactionsInDateSpan :: DateSpan -> Int -> Maybe Int -> Bool -> [Transaction] -> [Transaction]
+summariseTransactionsInDateSpan (DateSpan b e) entryno depth showempty ts
+    | null ts && showempty = [txn]
+    | null ts = []
+    | otherwise = summaryts'
+    where
+      txn = nulltxn{entryno=entryno, date=b', description="- "++(showDate $ addDays (-1) e')}
+      b' = fromMaybe (date $ head ts) b
+      e' = fromMaybe (date $ last ts) e
+      summaryts'
+          | showempty = summaryts
+          | otherwise = filter (not . isZeroMixedAmount . amount) summaryts
+      -- aggregate balances by account, like cacheLedger:
+      anames = sort $ nub $ map account ts
+      allnames = expandAccountNames anames
+      -- from cacheLedger:
+      txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allnames])
+      txnsof = (txnmap !)  -- a's txns
+      subacctsof a = filter (a `isAccountNamePrefixOf`) anames -- a plus any subaccounts
+      subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a] -- a's and subaccounts' txns
+      inclusivebalmap = Map.union  -- subaccount-including balances for all accounts
+               (Map.fromList [(a,(sumTransactions $ subtxnsof a)) | a <- allnames])
+               (Map.fromList [(a,Mixed []) | a <- anames])
+      --
+      -- then do depth-clipping
+      exclusivebalmap = Map.union  -- subaccount-excluding balances for all accounts
+               (Map.fromList [(a,(sumTransactions $ txnsof a)) | a <- allnames])
+               (Map.fromList [(a,Mixed []) | a <- anames])
+      inclusivebalanceof = (inclusivebalmap !)
+      exclusivebalanceof = (exclusivebalmap !)
+      clippedanames = clipAccountNames depth anames
+      isclipped a = accountNameLevel a >= fromMaybe 9999 depth
+      balancetoshowfor a = (if isclipped a then inclusivebalanceof else exclusivebalanceof) a
+      summaryts = [txn{account=a,amount=balancetoshowfor a} | a <- clippedanames]
+
+clipAccountNames :: Maybe Int -> [AccountName] -> [AccountName]
+clipAccountNames Nothing as = as
+clipAccountNames (Just d) as = nub $ map (clip d) as 
+    where clip d = accountNameFromComponents . take d . accountNameComponents
 
 -- | Does the given transaction fall within the given date span ?
 isTransactionInDateSpan :: DateSpan -> Transaction -> Bool
@@ -56,39 +107,6 @@ isTransactionInDateSpan (DateSpan Nothing Nothing)   _ = True
 isTransactionInDateSpan (DateSpan Nothing (Just e))  (Transaction{date=d}) = d<e
 isTransactionInDateSpan (DateSpan (Just b) Nothing)  (Transaction{date=d}) = d>=b
 isTransactionInDateSpan (DateSpan (Just b) (Just e)) (Transaction{date=d}) = d>=b && d<e
-
--- | Convert a date span and a list of transactions within that date span
--- to a new list of transactions aggregated by account, which when
--- rendered by showtxns will display a summary for the date span.  Both
--- ends of the date span must be specified so we pass a tuple of dates.
--- As usual with date spans the second date is exclusive, but when
--- rendering we will show the previous (inclusive) date.  
--- A unique entryno value is provided so that these dummy transactions
--- will be rendered as one entry. Also the showempty flag is provided to
--- control display of zero-balance accounts.
-summarytxns :: (Day,Day) -> Int -> Bool -> [Transaction] -> [Transaction]
-summarytxns (b,e) entryno showempty ts = summaryts'
-    where
-      summaryts'
-          | showempty = summaryts
-          | otherwise = filter (not . isZeroMixedAmount . amount) summaryts
-      summaryts = [templtxn{account=a,amount=balmap ! a} | a <- anames]
-      templtxn = nulltxn{entryno=entryno,date=b,description="- "++(showDate eprev)}
-      eprev = addDays (-1) e
-      anames = sort $ nub $ map account ts
-      -- from cacheLedger:
-      sortedts = sortBy (comparing account) ts
-      groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
-      txnmap = Map.union 
-               (Map.fromList [(account $ head g, g) | g <- groupedts])
-               (Map.fromList [(a,[]) | a <- anames])
-      txnsof = (txnmap !)
-      subacctsof a = filter (a `isAccountNamePrefixOf`) anames
-      subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a]
-      balmap = Map.union 
-               (Map.fromList [(a,(sumTransactions $ subtxnsof a)) | a <- anames])
-               (Map.fromList [(a,Mixed []) | a <- anames])
-      --
 
 -- | Show transactions one per line, with each date/description appearing
 -- only once, and a running balance.
