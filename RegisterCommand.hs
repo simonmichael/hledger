@@ -78,11 +78,12 @@ summariseTransactionsInDateSpan (DateSpan b e) entryno depth showempty ts
           | otherwise = filter (not . isZeroMixedAmount . amount) summaryts
       -- aggregate balances by account, like cacheLedger:
       anames = sort $ nub $ map account ts
-      allnames = expandAccountNames anames
+      allnames = expandAccountNames anames ++ [""]
       -- from cacheLedger:
       txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allnames])
       txnsof = (txnmap !)  -- a's txns
-      subacctsof a = filter (a `isAccountNamePrefixOf`) anames -- a plus any subaccounts
+      isunder a b = null a || a `isAccountNamePrefixOf` b
+      subacctsof a = filter (isunder a) anames -- a plus any subaccounts
       subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a] -- a's and subaccounts' txns
       inclusivebalmap = Map.union  -- subaccount-including balances for all accounts
                (Map.fromList [(a,(sumTransactions $ subtxnsof a)) | a <- allnames])

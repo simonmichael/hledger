@@ -194,36 +194,31 @@ misc_tests = TestList [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31"}
      ]
 
-    ("2008/01/01","2009/01/01",0,Nothing,False,[
-      nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
-     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
-     ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
-     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
-     ]) `gives` 
+    let ts = [nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
+             ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
+             ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
+             ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
+             ]
+    ("2008/01/01","2009/01/01",0,Nothing,False,ts) `gives` 
      [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",          amount=Mixed [dollars 4]}
      ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:dining",   amount=Mixed [dollars 10]}
      ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:groceries",amount=Mixed [dollars 1]}
      ]
 
-    ("2008/01/01","2009/01/01",0,Just 2,False,[
-      nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
-     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
-     ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
-     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
-     ]) `gives` 
+    ("2008/01/01","2009/01/01",0,Just 2,False,ts) `gives` 
      [
-      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",          amount=Mixed [dollars 15]}
+      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",amount=Mixed [dollars 15]}
      ]
 
-    ("2008/01/01","2009/01/01",0,Just 1,False,[
-      nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
-     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
-     ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
-     ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
-     ]) `gives` 
+    ("2008/01/01","2009/01/01",0,Just 1,False,ts) `gives` 
      [
-      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses",          amount=Mixed [dollars 15]}
+      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses",amount=Mixed [dollars 15]}
+     ]
+
+    ("2008/01/01","2009/01/01",0,Just 0,False,ts) `gives` 
+     [
+      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="",amount=Mixed [dollars 15]}
      ]
   ,
   "ledgerentry"        ~: do
