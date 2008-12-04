@@ -157,6 +157,11 @@ root = rootLabel
 subs = subForest
 branches = subForest
 
+-- | List just the leaf nodes of a tree
+leaves :: Tree a -> [a]
+leaves (Node v []) = [v]
+leaves (Node _ branches) = concatMap leaves branches
+
 -- | get the sub-tree rooted at the first (left-most, depth-first) occurrence
 -- of the specified node value
 subtreeat :: Eq a => a -> Tree a -> Maybe (Tree a)
