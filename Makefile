@@ -1,20 +1,27 @@
-BUILD=ghc --make hledger.hs -O3 -o hledger
+BUILD=ghc --make hledger.hs -o hledger -O
+build: tag
+	$(BUILD)
+
+BUILDO2=ghc --make hledger.hs -o hledgero2 -O2 -fvia-C
+buildo2:
+	$(BUILDO2)
+
+rebuild: clean build
+
+# recompile and run tests whenever a module changes
+# see http://searchpath.org , you may need the patched version from
+# http://joyful.com/repos/searchpath
+continuous ci:
+	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs --run test
+
+test:
+	./hledger.hs test
+
 PROFBIN=hledgerp
 BUILDPROF=ghc --make hledger.hs -prof -auto-all -o $(PROFBIN)
 RUNPROF=./$(PROFBIN) +RTS -p -RTS
 PROFCMD=-s balance
 TIME=`date +"%Y%m%d%H%M"`
-
-build: tag
-	$(BUILD)
-
-rebuild: clean build
-
-# build and run whenever a module changes, see http://searchpath.org
-# or the patched http://joyful.com/repos/searchpath
-continuous ci:
-	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs --run test
-
 profile:
 	@echo "Profiling $(PROFCMD)"
 	$(BUILDPROF)
@@ -23,17 +30,9 @@ profile:
 	cp simple.prof profs/$(TIME).prof
 	cat simple.prof
 
-xprofile: build
-	$(PROFILE) -x
-	mv hledger.prof profs/$(TIME).xprof
-	ghcprof profs/$(TIME).xprof
-
-test:
-	./hledger.hs test
-#	tools/regressiontest.py
-
 # run performance benchmarks and save results in profs
-BENCHEXES=hledger ledger
+# prepend ./ to executables if not in $PATH
+BENCHEXES=./hledgero2 ledger
 BENCHITERATIONS=2
 bench:
 	tools/bench.hs bench.tests $(BENCHITERATIONS) $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
