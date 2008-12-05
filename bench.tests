@@ -1,6 +1,8 @@
 # see tools/bench.hs
 
--f sample.ledger register
+-f sample.ledger -p weekly register
+-f ~/.ledger     -p weekly register
+-f ~/.timelog    -p weekly register
 -f sample.ledger -s balance
--f ~/.ledger register
--f ~/.ledger -s balance
+-f ~/.ledger     -s balance
+-f ~/.timelog    -s balance
