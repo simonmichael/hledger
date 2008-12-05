@@ -80,13 +80,14 @@ main = do
 --       parseargs (t:n:d:[]) = parseargs (t:n:d:["darcs"])
       parseargs (t:n:es) = (t,read n,".",es)
       parseargs _ = error $ "\n" ++ usage
-      testlines s = filter istest $ map clean $ lines s
-      istest s = not (null s || ("#" `isPrefixOf` s))
-      clean = unwords . words
+      testlines s = filter istest $ lines s
+      istest s = not (null s' || ("#" `isPrefixOf` s')) where s' = clean s
+
+clean = unwords . words
 
 doiteration :: String -> String -> String -> Int -> IO Float
 doiteration test exe dir iteration = do
-  let cmd = unwords [exe,test]
+  let cmd = unwords [exe,clean test]
   putStr $ show iteration ++ ": " ++ cmd
   hFlush stdout
   t <- time cmd
