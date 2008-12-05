@@ -2,9 +2,10 @@
 ;
 ; Sets up this account tree:
 ; assets
+;   bank
+;     checking
+;     saving
 ;   cash
-;   checking
-;   saving
 ; expenses
 ;   food
 ;   supplies
@@ -15,16 +16,16 @@
 ;   debts
 
 2008/01/01 income
-    assets:checking  $1
+    assets:bank:checking  $1
     income:salary
 
 2008/06/01 gift
-    assets:checking  $1
+    assets:bank:checking  $1
     income:gifts
 
 2008/06/02 save
-    assets:saving  $1
-    assets:checking
+    assets:bank:saving  $1
+    assets:bank:checking
 
 2008/06/03 * eat & shop
     expenses:food      $1
@@ -33,7 +34,7 @@
 
 2008/12/31 * pay off
     liabilities:debts  $1
-    assets:checking
+    assets:bank:checking
 
 
 ;final comment
