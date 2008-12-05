@@ -8,6 +8,7 @@ the cached 'Ledger'.
 module Ledger.RawLedger
 where
 import qualified Data.Map as Map
+import Data.Map ((!))
 import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
@@ -92,35 +93,31 @@ filterRawLedgerEntriesByAccount apats (RawLedger ms ps es f) =
 -- detected. Also, amounts are converted to cost basis if that flag is
 -- active.
 canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
-canonicaliseAmounts costbasis l@(RawLedger ms ps es f) = RawLedger ms ps (map fixEntryAmounts es) f
+canonicaliseAmounts costbasis l@(RawLedger ms ps es f) = RawLedger ms ps (map fixentry es) f
     where 
-      fixEntryAmounts (Entry d s c de co ts pr) = Entry d s c de co (map fixRawTransactionAmounts ts) pr
-      fixRawTransactionAmounts (RawTransaction ac a c t) = RawTransaction ac (fixMixedAmount a) c t
-      fixMixedAmount (Mixed as) = Mixed $ map fixAmount as
-      fixAmount | costbasis = fixcommodity . costOfAmount
-                | otherwise = fixcommodity
-      fixcommodity a = a{commodity=canonicalcommodity $ commodity a}
-      canonicalcommodity c = (firstoccurrenceof c){precision=maxprecision c}
-          where
-            firstoccurrenceof c = head $ rawLedgerCommoditiesWithSymbol l (symbol c)
-            maxprecision c = maximum $ map precision $ rawLedgerCommoditiesWithSymbol l (symbol c)
-
--- | Get all amount commodities with a given symbol, in the order parsed.
--- Must be called with a good symbol or it will fail.
-rawLedgerCommoditiesWithSymbol :: RawLedger -> String -> [Commodity]
-rawLedgerCommoditiesWithSymbol l s = 
-    fromMaybe (error $ "no such commodity "++s) (Map.lookup s map)
-    where
-      map = Map.fromList [(symbol $ head cs,cs) | cs <- groupBy same $ rawLedgerCommodities l]
-      same c1 c2 = symbol c1 == symbol c2
-
--- | Get just the ammount commodities from a ledger, in the order parsed.
-rawLedgerCommodities :: RawLedger -> [Commodity]
-rawLedgerCommodities = map commodity . concatMap amounts . rawLedgerAmounts
+      fixentry (Entry d s c de co ts pr) = Entry d s c de co (map fixrawtransaction ts) pr
+      fixrawtransaction (RawTransaction ac a c t) = RawTransaction ac (fixmixedamount a) c t
+      fixmixedamount (Mixed as) = Mixed $ map fixamount as
+      fixamount = fixcommodity . (if costbasis then costOfAmount else id)
+      fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! (symbol $ commodity a)
+      canonicalcommoditymap = 
+          Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
+                        let cs = commoditymap ! s,
+                        let firstc = head cs,
+                        let maxp = maximum $ map precision cs
+                       ]
+      commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
+      commoditieswithsymbol s = filter ((s==) . symbol) commodities
+      commoditysymbols = nub $ map symbol commodities
+      commodities = map commodity $ concatMap (amounts . amount) $ rawLedgerTransactions l
 
 -- | Get just the amounts from a ledger, in the order parsed.
 rawLedgerAmounts :: RawLedger -> [MixedAmount]
 rawLedgerAmounts = map amount . rawLedgerTransactions
+
+-- | Get just the ammount commodities from a ledger, in the order parsed.
+rawLedgerCommodities :: RawLedger -> [Commodity]
+rawLedgerCommodities = map commodity . concatMap amounts . rawLedgerAmounts
 
 -- | Get just the amount precisions from a ledger, in the order parsed.
 rawLedgerPrecisions :: RawLedger -> [Int]
