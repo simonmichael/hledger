@@ -450,6 +450,7 @@ registercommand_tests = TestList [
     "2008" `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2007" `periodexprgives` []
     "june" `periodexprgives` ["2008/06/01","2008/06/02","2008/06/03"]
+    "monthly" `periodexprgives` ["2008/01/01","2008/06/01","2008/12/01"]
 
     let l = ledgerfromstring [] sample_ledger_str
     assertequal (
