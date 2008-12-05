@@ -23,7 +23,7 @@ usageftr    = "\n" ++
               "  print    - show formatted ledger entries\n" ++
               "  register - show register transactions\n" ++
               "\n" ++
-              "Dates can be y/m/d or ledger-style smart dates like november or last week.\n" ++
+              "All dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
               "Account and description patterns are regular expressions which filter by\n" ++
               "account name and entry description. Prefix a pattern with - to negate it,\n" ++
               "and separate account and description patterns with --.\n" ++
@@ -39,8 +39,8 @@ options = [
  Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp,
  Option ['b'] ["begin"]        (ReqArg Begin "DATE") "report on entries on or after this date",
  Option ['e'] ["end"]          (ReqArg End "DATE")   "report on entries prior to this date",
- Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on entries during this calendar period\n" ++
-                                                       "(where EXPR is a single smart DATE)\n"),
+ Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on entries during the specified period\n" ++
+                                                       "and/or with the specified reporting interval\n"),
  Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
  Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
  Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",

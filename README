@@ -58,7 +58,7 @@ description patterns, the LEDGER environment variable, and these options::
    Report filtering:
    -b, --begin DATE       set report begin date
    -e, --end DATE         set report end date
-   -p, --period EXPR      report using the given period (limited support)
+   -p, --period EXPR      report using the given period
    -C, --cleared          consider only cleared transactions
    -R, --real             consider only real (non-virtual) transactions
  
@@ -76,9 +76,9 @@ description patterns, the LEDGER environment variable, and these options::
    register [REGEXP]...   show register of matching transactions
    print    [REGEXP]...   print all matching entries
 
-We handle simple display expressions consisting of a date predicate,
-and simple period expressions consisting of a single smart date.
-Also the following hledger-specific features are supported::
+We handle (almost) the full period expression syntax, and simple display
+expressions consisting of a date predicate.  Also the following
+hledger-specific features are supported::
 
    --depth=N              balance report: maximum account depth to show
    --options-anywhere     allow options anywhere, use ^ for negative patterns
@@ -155,11 +155,10 @@ gnucash files, and the following options::
 Other differences
 .................
 
-* hledger keeps differently-priced amounts of the same commodity separate, at the moment
-* hledger refers to the entry and transaction "description", ledger calls it "note"
-* hledger doesn't require a space after flags like -f
+* hledger keeps differently-priced amounts of the same commodity separate at the moment
+* hledger refers to the entry's and transaction's "description", ledger calls it "note"
+* hledger doesn't require a space before command-line option values
 * hledger doesn't parse all ledger file constructs (and may choke ? please report)
-* hledger interprets "last/this/next week" as weeks beginning on monday
 * hledger provides "--cost" as a synonym for "--basis"
 * hledger's "weekly" reporting intervals always start on mondays
 * hledger shows start and end dates of full intervals, not just the span containing data
