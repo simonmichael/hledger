@@ -76,28 +76,36 @@ summariseTransactionsInDateSpan (DateSpan b e) entryno depth showempty ts
       summaryts'
           | showempty = summaryts
           | otherwise = filter (not . isZeroMixedAmount . amount) summaryts
-      -- aggregate balances by account, like cacheLedger:
-      anames = sort $ nub $ map account ts
-      allnames = expandAccountNames anames ++ [""]
-      -- from cacheLedger:
-      txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allnames])
-      txnsof = (txnmap !)  -- a's txns
-      isunder a b = null a || a `isAccountNamePrefixOf` b
-      subacctsof a = filter (isunder a) anames -- a plus any subaccounts
-      subtxnsof a = concat [txnsof a | a <- [a] ++ subacctsof a] -- a's and subaccounts' txns
-      inclusivebalmap = Map.union  -- subaccount-including balances for all accounts
-               (Map.fromList [(a,(sumTransactions $ subtxnsof a)) | a <- allnames])
-               (Map.fromList [(a,Mixed []) | a <- anames])
-      --
-      -- then do depth-clipping
-      exclusivebalmap = Map.union  -- subaccount-excluding balances for all accounts
-               (Map.fromList [(a,(sumTransactions $ txnsof a)) | a <- allnames])
-               (Map.fromList [(a,Mixed []) | a <- anames])
-      inclusivebalanceof = (inclusivebalmap !)
-      exclusivebalanceof = (exclusivebalmap !)
-      clippedanames = clipAccountNames depth anames
+      txnanames = sort $ nub $ map account ts
+
+      -- aggregate balances by account like cacheLedger
+      ant = accountNameTreeFrom txnanames
+      anames = flatten ant
+      txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- anames])
+      txnsof = (txnmap !)
+      addbalances :: Tree AccountName -> Tree (AccountName, MixedAmount)
+      addbalances (Node a []) = Node (a,sumTransactions $ txnsof a) []
+      addbalances (Node a subs) = Node (a,sumtxns + sumsubaccts) subbals
+          where
+            sumtxns = sumTransactions $ txnsof a
+            sumsubaccts = sum $ map (snd . root) subbals
+            subbals = map addbalances subs
+      inclbalmap = Map.fromList $ flatten $ addbalances ant
+      inclbalof = (inclbalmap !)
+
+      -- and do depth-clipping
+      addexclbalances :: Tree AccountName -> Tree (AccountName, MixedAmount)
+      addexclbalances (Node a subs) = Node (a,sumtxns) subbals
+          where
+            sumtxns = sumTransactions $ txnsof a
+            subbals = map addexclbalances subs
+      exclbalmap = Map.fromList $ flatten $ addexclbalances ant
+      exclbalof = (exclbalmap !)
+
+      clippedanames = clipAccountNames depth txnanames
       isclipped a = accountNameLevel a >= fromMaybe 9999 depth
-      balancetoshowfor a = (if isclipped a then inclusivebalanceof else exclusivebalanceof) a
+      balancetoshowfor a =
+          (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
       summaryts = [txn{account=a,amount=balancetoshowfor a} | a <- clippedanames]
 
 clipAccountNames :: Maybe Int -> [AccountName] -> [AccountName]
