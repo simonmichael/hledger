@@ -62,7 +62,7 @@ instance Ord Amount where
 instance Num MixedAmount where
     fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
     negate (Mixed as) = Mixed $ map negateAmountPreservingPrice as
-    (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ filter (not . isZeroAmount) $ as ++ bs
+    (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ as ++ bs
     (*)    = error "programming error, mixed amounts do not support multiplication"
     abs    = error "programming error, mixed amounts do not support abs"
     signum = error "programming error, mixed amounts do not support signum"
@@ -142,7 +142,8 @@ mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZ
           b' = normaliseMixedAmount b
 
 -- | Get the string representation of a mixed amount, showing each of
--- its component amounts.
+-- its component amounts. NB a mixed amount can have an empty amounts
+-- list in which case it shows as "".
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = concat $ intersperse "\n" $ map showfixedwidth as
     where 
@@ -158,16 +159,20 @@ showMixedAmountOrZero a
     | otherwise = showMixedAmount a
 
 -- | Simplify a mixed amount by combining any component amounts which have
--- the same commodity and the same price.
+-- the same commodity and the same price. Also removes redundant zero amounts
+-- and adds a single zero amount if there are no amounts at all.
 normaliseMixedAmount :: MixedAmount -> MixedAmount
-normaliseMixedAmount (Mixed as) = Mixed as'
+normaliseMixedAmount (Mixed as) = Mixed as''
     where 
-      as' = map sumAmountsPreservingPrice $ group $ sort as
+      as'' = map sumAmountsPreservingPrice $ group $ sort as'
       sort = sortBy cmpsymbolandprice
       cmpsymbolandprice a1 a2 = compare (sym a1,price a1) (sym a2,price a2)
       group = groupBy samesymbolandprice 
       samesymbolandprice a1 a2 = (sym a1 == sym a2) && (price a1 == price a2)
       sym = symbol . commodity
+      as' | null nonzeros = [head $ zeros ++ [nullamt]]
+          | otherwise = nonzeros
+      (zeros,nonzeros) = partition isZeroAmount as
 
 sumAmountsPreservingPrice [] = nullamt
 sumAmountsPreservingPrice as = (sum as){price=price $ head as}
