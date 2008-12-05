@@ -35,15 +35,26 @@ cacheLedger apats l = Ledger{rawledgertext="",rawledger=l,accountnametree=ant,ac
     where
       ts = filtertxns apats $ rawLedgerTransactions l
       ant = rawLedgerAccountNameTree l
+
       anames = flatten ant
       txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- anames])
-      subacctsof a = filter (a `isAccountNamePrefixOf`) anames
-      subtxnsof a = concat [txnmap ! a | a <- [a] ++ subacctsof a]
-      balmap = Map.union 
-               (Map.fromList [(a,sumTransactions $ subtxnsof a) | a <- anames]) 
-               (Map.fromList [(a,Mixed []) | a <- anames])
+      txnsof = (txnmap !)
+
+      -- add subaccount-including balances to a tree of account names
+      -- somewhat efficiently
+      addbalances :: Tree AccountName -> Tree (AccountName, MixedAmount)
+      addbalances (Node a []) = Node (a,sumTransactions $ txnsof a) []
+      addbalances (Node a subs) = Node (a,sumtxns + sumsubaccts) subbals
+          where
+            sumtxns = sumTransactions $ txnsof a
+            sumsubaccts = sum $ map (snd . root) subbals
+            subbals = map addbalances subs
+      balmap = Map.fromList $ flatten $ addbalances ant
+      balof = (balmap !)
+
+      mkacct a = Account a (txnsof a) (balof a)
       acctmap = Map.fromList [(a, mkacct a) | a <- anames]
-      mkacct a = Account a (txnmap ! a) (balmap ! a)
+
 
 -- | Convert a list of transactions to a map from account name to the list
 -- of all transactions in that account.
