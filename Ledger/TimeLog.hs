@@ -38,7 +38,7 @@ clockoutFor (TimeLogEntry _ t _) = TimeLogEntry 'o' t ""
 entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Entry
 entryFromTimeLogInOut i o =
     Entry {
-      edate         = indate, -- ledger uses outdate
+      edate         = outdate, -- like ledger
       estatus       = True,
       ecode         = "",
       edescription  = "",

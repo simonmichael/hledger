@@ -178,4 +178,3 @@ Other differences
 * hledger period expressions don't support "biweekly", "bimonthly", or "every N days/weeks/..." 
 * hledger always shows timelog balances in hours
 * hledger doesn't count an unfinished timelog session
-* (disabled for now: hledger counts timelog sessions on the day they end, ledger on the day they start)
