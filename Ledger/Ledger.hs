@@ -33,28 +33,37 @@ instance Show Ledger where
 cacheLedger :: [String] -> RawLedger -> Ledger
 cacheLedger apats l = Ledger{rawledgertext="",rawledger=l,accountnametree=ant,accountmap=acctmap}
     where
+      acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
+      mkacct a = Account a (txnsof a) (inclbalof a)
+      (ant,txnsof,_,inclbalof) = groupTransactions ts
       ts = filtertxns apats $ rawLedgerTransactions l
-      ant = rawLedgerAccountNameTree l
 
+-- | Given a list of transactions, return an account name tree and three
+-- query functions that fetch transactions, balance, and
+-- subaccount-including balance by account name. This is to factor out
+-- common logic from cacheLedger and summariseTransactionsInDateSpan.
+groupTransactions :: [Transaction] -> (Tree AccountName, (AccountName -> [Transaction]), (AccountName -> MixedAmount), (AccountName -> MixedAmount))
+groupTransactions ts = (ant,txnsof,exclbalof,inclbalof)
+    where
+      ant = accountNameTreeFrom $ expandAccountNames $ sort $ nub $ map account ts
       anames = flatten ant
       txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- anames])
       txnsof = (txnmap !)
+      balmap = Map.fromList $ flatten $ calculateBalances ant txnsof
+      exclbalof = fst . (balmap !)
+      inclbalof = snd . (balmap !)
 
-      -- add subaccount-including balances to a tree of account names
-      -- somewhat efficiently
-      addbalances :: Tree AccountName -> Tree (AccountName, MixedAmount)
-      addbalances (Node a []) = Node (a,sumTransactions $ txnsof a) []
-      addbalances (Node a subs) = Node (a,sumtxns + sumsubaccts) subbals
+-- | Add subaccount-excluding and subaccount-including balances to a tree
+-- of account names somewhat efficiently, given a function that looks up
+-- transactions by account name.
+calculateBalances :: Tree AccountName -> (AccountName -> [Transaction]) -> Tree (AccountName, (MixedAmount, MixedAmount))
+calculateBalances ant txnsof = addbalances ant
+    where 
+      addbalances (Node a subs) = Node (a,(bal,bal+subsbal)) subs'
           where
-            sumtxns = sumTransactions $ txnsof a
-            sumsubaccts = sum $ map (snd . root) subbals
-            subbals = map addbalances subs
-      balmap = Map.fromList $ flatten $ addbalances ant
-      balof = (balmap !)
-
-      mkacct a = Account a (txnsof a) (balof a)
-      acctmap = Map.fromList [(a, mkacct a) | a <- anames]
-
+            bal         = sumTransactions $ txnsof a
+            subsbal     = sum $ map (snd . snd . root) subs'
+            subs'       = map addbalances subs
 
 -- | Convert a list of transactions to a map from account name to the list
 -- of all transactions in that account.
