@@ -580,7 +580,7 @@ sample_ledger_str = (
 
 rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
-rawtransaction1 = RawTransaction "expenses:food:dining"(Mixed  [dollars 10]) "" RegularTransaction
+rawtransaction1 = RawTransaction "expenses:food:dining" (Mixed [dollars 10]) "" RegularTransaction
 
 entry1_str = "" ++
  "2007/01/28 coopportunity\n" ++
