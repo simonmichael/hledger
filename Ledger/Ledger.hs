@@ -35,23 +35,32 @@ cacheLedger apats l = Ledger{rawledgertext="",rawledger=l,accountnametree=ant,ac
     where
       acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
       mkacct a = Account a (txnsof a) (inclbalof a)
-      (ant,txnsof,_,inclbalof) = groupTransactions ts
       ts = filtertxns apats $ rawLedgerTransactions l
+      (ant,txnsof,_,inclbalof) = groupTransactions ts
 
 -- | Given a list of transactions, return an account name tree and three
 -- query functions that fetch transactions, balance, and
--- subaccount-including balance by account name. This is to factor out
--- common logic from cacheLedger and summariseTransactionsInDateSpan.
-groupTransactions :: [Transaction] -> (Tree AccountName, (AccountName -> [Transaction]), (AccountName -> MixedAmount), (AccountName -> MixedAmount))
+-- subaccount-including balance by account name. 
+-- This is to factor out common logic from cacheLedger and
+-- summariseTransactionsInDateSpan.
+groupTransactions :: [Transaction] -> (Tree AccountName,
+                                     (AccountName -> [Transaction]), 
+                                     (AccountName -> MixedAmount), 
+                                     (AccountName -> MixedAmount))
 groupTransactions ts = (ant,txnsof,exclbalof,inclbalof)
     where
-      ant = accountNameTreeFrom $ expandAccountNames $ sort $ nub $ map account ts
-      anames = flatten ant
-      txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- anames])
-      txnsof = (txnmap !)
+      txnanames = sort $ nub $ map account ts
+      ant = accountNameTreeFrom $ expandAccountNames $ txnanames
+      allanames = flatten ant
+      txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allanames])
       balmap = Map.fromList $ flatten $ calculateBalances ant txnsof
+      txnsof = (txnmap !) 
       exclbalof = fst . (balmap !)
       inclbalof = snd . (balmap !)
+-- debug
+--       txnsof a = (txnmap ! (trace ("ts "++a) a))
+--       exclbalof a = fst $ (balmap ! (trace ("eb "++a) a))
+--       inclbalof a = snd $ (balmap ! (trace ("ib "++a) a))
 
 -- | Add subaccount-excluding and subaccount-including balances to a tree
 -- of account names somewhat efficiently, given a function that looks up
@@ -66,12 +75,15 @@ calculateBalances ant txnsof = addbalances ant
             subs'       = map addbalances subs
 
 -- | Convert a list of transactions to a map from account name to the list
--- of all transactions in that account.
+-- of all transactions in that account. 
 transactionsByAccount :: [Transaction] -> Map.Map AccountName [Transaction]
-transactionsByAccount ts = Map.fromList [(account $ head g, g) | g <- groupedts]
+transactionsByAccount ts = m'
     where
       sortedts = sortBy (comparing account) ts
       groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
+      m' = Map.fromList [(account $ head g, g) | g <- groupedts]
+-- The special account name "top" can be used to look up all transactions. ?
+--      m' = Map.insert "top" sortedts m
 
 filtertxns :: [String] -> [Transaction] -> [Transaction]
 filtertxns apats ts = filter (matchpats apats . account) ts

@@ -77,7 +77,7 @@ misc_tests = TestList [
       ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
       (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
   ,
-  "ledgerAccountNames" ~: do
+  "accountnames" ~: do
     assertequal
       ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
        "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",

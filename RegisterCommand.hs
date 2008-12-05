@@ -76,13 +76,14 @@ summariseTransactionsInDateSpan (DateSpan b e) entryno depth showempty ts
       summaryts'
           | showempty = summaryts
           | otherwise = filter (not . isZeroMixedAmount . amount) summaryts
-      summaryts = [txn{account=a,amount=balancetoshowfor a} | a <- clippedanames]
+      txnanames = sort $ nub $ map account ts
+      -- aggregate balances by account, like cacheLedger, then do depth-clipping
+      (_,_,exclbalof,inclbalof) = groupTransactions ts
+      clippedanames = clipAccountNames depth txnanames
+      isclipped a = accountNameLevel a >= fromMaybe 9999 depth
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
-      (_,_,exclbalof,inclbalof) = groupTransactions ts
-      isclipped a = accountNameLevel a >= fromMaybe 9999 depth
-      clippedanames = clipAccountNames depth txnanames
-      txnanames = sort $ nub $ map account ts
+      summaryts = [txn{account=a,amount=balancetoshowfor a} | a <- clippedanames]
 
 clipAccountNames :: Maybe Int -> [AccountName] -> [AccountName]
 clipAccountNames Nothing as = as
