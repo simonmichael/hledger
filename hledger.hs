@@ -18,16 +18,16 @@ You can use the command line:
 or ghci:
 
 > $ ghci hledger
-> > l <- ledgerfromfile [] "sample.ledger"
+> > l <- ledgerfromfilewithopts [] [] "sample.ledger"
 > > balance [] [] l
 >                  $-1  assets
 >                   $2  expenses
 >                  $-2  income
->                   $1  liabilities:debts
+>                   $1  liabilities
 > > register [] ["income","expenses"] l
-> 2007/01/01 income               income:salary                   $-1          $-1
-> 2007/01/01 gift                 income:gifts                    $-1          $-2
-> 2007/01/01 eat & shop           expenses:food                    $1          $-1
+> 2008/01/01 income               income:salary                   $-1          $-1
+> 2008/06/01 gift                 income:gifts                    $-1          $-2
+> 2008/06/03 eat & shop           expenses:food                    $1          $-1
 >                                 expenses:supplies                $1            0
 
 -}
