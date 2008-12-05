@@ -238,7 +238,7 @@ balancereportacctnames_tests = TestList
   ,"balancereportacctnames8" ~: ("-s",["-e"])          `gives` []
   ] where
     gives (opt,pats) e = do 
-      l <- ledgerfromfile pats "sample.ledger"
+      let l = sampleledger
       let t = pruneZeroBalanceLeaves $ ledgerAccountTree 999 l
       assertequal e (balancereportacctnames l (opt=="-s") pats t)
 
@@ -391,28 +391,27 @@ balancecommand_tests = TestList [
              )
              (showBalanceReport [] [] l)
  ] where
-    gives (opts,pats) e = do 
-      l <- ledgerfromfile pats "sample.ledger"
-      assertequal e (showBalanceReport opts pats l)
+    gives (opts,args) e = do 
+      let l = sampleledgerwithopts [] args
+      assertequal e (showBalanceReport opts args l)
 
 printcommand_tests = TestList [
   "print with account patterns" ~:
   do 
-    let pats = ["expenses"]
-    l <- ledgerfromfile pats "sample.ledger"
+    let args = ["expenses"]
+    let l = sampleledgerwithopts [] args
     assertequal (
      "2008/06/03 * eat & shop\n" ++
      "    expenses:food                                 $1\n" ++
      "    expenses:supplies                             $1\n" ++
      "    assets:cash                                  $-2\n" ++
      "\n")
-     $ showEntries [] pats l
+     $ showEntries [] args l
   ]
 
 registercommand_tests = TestList [
   "register report" ~:
   do 
-    l <- ledgerfromfile [] "sample.ledger"
     assertequal (
      "2008/01/01 income               assets:checking                  $1           $1\n" ++
      "                                income:salary                   $-1            0\n" ++
@@ -426,15 +425,14 @@ registercommand_tests = TestList [
      "2008/12/31 pay off              liabilities:debts                $1           $1\n" ++
      "                                assets:checking                 $-1            0\n" ++
      "")
-     $ showRegisterReport [] [] l
+     $ showRegisterReport [] [] sampleledger
   ,
   "register report with account pattern" ~:
   do 
-    l <- ledgerfromfile [] "sample.ledger"
     assertequal (
      "2008/06/03 eat & shop           assets:cash                     $-2          $-2\n" ++
      "")
-     $ showRegisterReport [] ["cash"] l
+     $ showRegisterReport [] ["cash"] sampleledger
   ,
   "register report with display expression" ~:
   do 
@@ -452,7 +450,6 @@ registercommand_tests = TestList [
     "june" `periodexprgives` ["2008/06/01","2008/06/02","2008/06/03"]
     "monthly" `periodexprgives` ["2008/01/01","2008/06/01","2008/12/01"]
 
-    let l = ledgerfromstring [] sample_ledger_str
     assertequal (
      "2008/01/01 - 2008/12/31         assets:cash                     $-2          $-2\n" ++
      "                                assets:saving                    $1          $-1\n" ++
@@ -462,29 +459,76 @@ registercommand_tests = TestList [
      "                                income:salary                   $-1          $-1\n" ++
      "                                liabilities:debts                $1            0\n" ++
      "")
-     (showRegisterReport [Period "yearly"] [] l)
+     (showRegisterReport [Period "yearly"] [] sampleledger)
 
-    assertequal ["2008/01/01","2008/04/01","2008/10/01"] (datesfromregister $ showRegisterReport [Period "quarterly"] [] l)
---    assertequal ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"] (datesfromregister $ showRegisterReport [Period "quarterly"] [] l)
+    assertequal ["2008/01/01","2008/04/01","2008/10/01"] 
+                    (datesfromregister $ showRegisterReport [Period "quarterly"] [] sampleledger)
+    assertequal ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
+                    (datesfromregister $ showRegisterReport [Period "quarterly",Empty] [] sampleledger)
 
  ]
   where
     expr `displayexprgives` dates = 
         assertequal dates (datesfromregister r)
         where
-          r = showRegisterReport [Display expr] [] l
-          l = ledgerfromstring [] sample_ledger_str
+          r = showRegisterReport [Display expr] [] sampleledger
     expr `periodexprgives` dates = 
         assertequal dates (datesfromregister r)
         where
           r = showRegisterReport [Period expr] [] l
-          l = ledgerfromstringwithopts [Period expr] [] refdate sample_ledger_str
-          refdate = parsedate "2008/11/26"
+          l = sampleledgerwithopts [Period expr] []
     datesfromregister = filter (not . null) .  map (strip . take 10) . lines
 
   
 ------------------------------------------------------------------------------
 -- test data
+
+refdate = parsedate "2008/11/26"
+sampleledger = ledgerfromstringwithopts [] [] refdate sample_ledger_str
+sampleledgerwithopts opts args = ledgerfromstringwithopts opts args refdate sample_ledger_str
+sampleledgerwithoptsanddate opts args date = ledgerfromstringwithopts opts args date sample_ledger_str
+
+sample_ledger_str = (
+ "; A sample ledger file.\n" ++
+ ";\n" ++
+ "; Sets up this account tree:\n" ++
+ "; assets\n" ++
+ ";   cash\n" ++
+ ";   checking\n" ++
+ ";   saving\n" ++
+ "; expenses\n" ++
+ ";   food\n" ++
+ ";   supplies\n" ++
+ "; income\n" ++
+ ";   gifts\n" ++
+ ";   salary\n" ++
+ "; liabilities\n" ++
+ ";   debts\n" ++
+ "\n" ++
+ "2008/01/01 income\n" ++
+ "    assets:checking  $1\n" ++
+ "    income:salary\n" ++
+ "\n" ++
+ "2008/06/01 gift\n" ++
+ "    assets:checking  $1\n" ++
+ "    income:gifts\n" ++
+ "\n" ++
+ "2008/06/02 save\n" ++
+ "    assets:saving  $1\n" ++
+ "    assets:checking\n" ++
+ "\n" ++
+ "2008/06/03 * eat & shop\n" ++
+ "    expenses:food      $1\n" ++
+ "    expenses:supplies  $1\n" ++
+ "    assets:cash\n" ++
+ "\n" ++
+ "2008/12/31 * pay off\n" ++
+ "    liabilities:debts  $1\n" ++
+ "    assets:checking\n" ++
+ "\n" ++
+ "\n" ++
+ ";final comment\n" ++
+ "")
 
 rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
@@ -781,52 +825,6 @@ ledger8_str = "" ++
  "  a:b          10h @ $40\n" ++
  "  c:d                   \n" ++
  "\n"
-
-sample_ledger_str = (
- "; A sample ledger file.\n" ++
- ";\n" ++
- "; Sets up this account tree:\n" ++
- "; assets\n" ++
- ";   cash\n" ++
- ";   checking\n" ++
- ";   saving\n" ++
- "; expenses\n" ++
- ";   food\n" ++
- ";   supplies\n" ++
- "; income\n" ++
- ";   gifts\n" ++
- ";   salary\n" ++
- "; liabilities\n" ++
- ";   debts\n" ++
- "\n" ++
- "2008/01/01 income\n" ++
- "    assets:checking  $1\n" ++
- "    income:salary\n" ++
- "\n" ++
- "2008/06/01 gift\n" ++
- "    assets:checking  $1\n" ++
- "    income:gifts\n" ++
- "\n" ++
- "2008/06/02 save\n" ++
- "    assets:saving  $1\n" ++
- "    assets:checking\n" ++
- "\n" ++
- "2008/06/03 * eat & shop\n" ++
- "    expenses:food      $1\n" ++
- "    expenses:supplies  $1\n" ++
- "    assets:cash\n" ++
- "\n" ++
- "2008/12/31 * pay off\n" ++
- "    liabilities:debts  $1\n" ++
- "    assets:checking\n" ++
- "\n" ++
- "\n" ++
- ";final comment\n" ++
- "")
-
-write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
-
-read_sample_ledger = readFile "sample.ledger"
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' (parsedatetime "2007/03/11 16:19:00") "hledger"
