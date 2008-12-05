@@ -1,14 +1,33 @@
 #!/usr/bin/env runhaskell
--- filters uninteresting fields from profile data lines
--- Simon Michael 2007
+-- simplifyprof.hs somefile.prof
+-- filter uninteresting fields from GHC profile output
+-- tested with GHC 6.8
+-- Simon Michael 2007,2008
+
 import Data.List
-main = interact $ unlines . map print . filter (/=[]) . 
-       (["cost-centre - - entries %time %mem %t-inh %m-inh"]++) . tail . 
-       dropWhile (notElem "entries" . words) . lines
+import System.Environment
+import Text.Printf
+
+main = do
+  args <- getArgs 
+  let f = head args
+  s <- readFile f
+  let ls = lines s
+  let (firstpart, secondpart) = break ("individual    inherited" `isInfixOf`) ls
+  putStr $ unlines firstpart
+  let fields = map getfields $ filter (not . null) $ drop 2 $ secondpart
+  let maxnamelen = maximum $ map (length . head) fields
+  let fmt = "%-"++(show maxnamelen)++"s %10s %5s %6s %9s %10s"
+  putStrLn $ showheading fmt
+  putStr $ unlines $ map (format fmt) fields
+
+getfields s = name:rest
     where
-      print line = tabcat [paddedfirst, field 3, field 4, field 5, field 6, field 7]
-          where
-            tabcat = concat . intersperse "\t"
-            first = takeWhile (==' ') line ++ (takeWhile (/=' ') $ dropWhile (==' ') line)
-            paddedfirst = first ++ (take (60 - (length first)) $ repeat ' ')
-            field n = words line !! n
+      space = takeWhile (==' ') s
+      fields = words s
+      name = space ++ head fields
+      rest = drop 3 fields
+
+showheading fmt = format fmt ["cost centre","entries","%time","%alloc","%time-inh","%alloc-inh"]
+
+format fmt (s1:s2:s3:s4:s5:s6:[]) = printf fmt s1 s2 s3 s4 s5 s6
