@@ -1,6 +1,8 @@
-BUILD=ghc --make hledger.hs -o hledger -O3
-BUILDPROF=$(BUILD) -prof -auto-all
-PROFILE=./hledger -s balance +RTS -p
+BUILD=ghc --make hledger.hs -O3 -o hledger
+PROFBIN=hledgerp
+BUILDPROF=ghc --make hledger.hs -prof -auto-all -o $(PROFBIN)
+RUNPROF=./$(PROFBIN) +RTS -p -RTS
+PROFCMD=-s balance
 TIME=`date +"%Y%m%d%H%M"`
 
 build: tag
@@ -13,14 +15,13 @@ rebuild: clean build
 continuous ci:
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs --run test
 
-profile: build
-	$(PROFILE)
-	mv hledger.prof profs/$(TIME).prof
-	rm -f last.prof
-	ln -s profs/$(TIME).prof last.prof
-	head -20 profs/$(TIME).prof >simple.prof
+profile:
+	@echo "Profiling $(PROFCMD)"
+	$(BUILDPROF)
+	$(RUNPROF) $(PROFCMD) >/dev/null
+	tools/simplifyprof.hs $(PROFBIN).prof >simple.prof
+	cp simple.prof profs/$(TIME).prof
 	cat simple.prof
-	./simplifyprof.hs <last.prof >>simple.prof
 
 xprofile: build
 	$(PROFILE) -x
