@@ -10,7 +10,6 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** does not catch an unbalanced entry
 *** can't parse comment line immediately after or within an entry
 *** depth-limited balance report may not show final total
 *** print does not always give tidy layout

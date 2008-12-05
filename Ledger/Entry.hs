@@ -71,15 +71,19 @@ showEntry e =
 
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = 
-    isZeroMixedAmount $ sum $ map tamount $ filter isReal ts
+    isZeroMixedAmount $ costOfMixedAmount $ sum $ map tamount $ filter isReal ts
 
--- | Fill in a missing balance in this entry, if we have enough
--- information to do that. Excluding virtual transactions, there should be
--- at most one missing balance. Otherwise, raise an error.
--- The new balance will be converted to cost basis if possible.
+-- | Ensure that this entry is balanced, possibly auto-filling a missing
+-- amount first. We can auto-fill if there is just one non-virtual
+-- transaction without an amount. The auto-filled balance will be
+-- converted to cost basis if possible. If the entry can not be balanced,
+-- raise an error.
 balanceEntry :: Entry -> Entry
-balanceEntry e@Entry{etransactions=ts} = e{etransactions=ts'}
-    where 
+balanceEntry e@Entry{etransactions=ts} = (e{etransactions=ts'})
+    where
+      check e
+          | isEntryBalanced e = e
+          | otherwise = error $ "could not balance this entry:\n" ++ show e
       (withamounts, missingamounts) = partition hasAmount $ filter isReal ts
       ts' = case (length missingamounts) of
               0 -> ts
