@@ -6,6 +6,8 @@ TIME=`date +"%Y%m%d%H%M"`
 build: tag
 	$(BUILD)
 
+rebuild: clean build
+
 # build and run whenever a module changes, see http://searchpath.org
 # or the patched http://joyful.com/repos/searchpath
 continuous ci:
