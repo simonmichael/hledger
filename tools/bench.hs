@@ -104,12 +104,10 @@ time cmd = do
   return $ realToFrac $ diffUTCTime t2 t1
 
 summarise tests exes results = do
-  -- putStrLn ""; print results
   putStrLn "\nSummary (best iteration):\n"
   let t = maketable tests exes results
   putStrLn $ TA.render id t
-  -- putStrLn $ "See " ++ prefix ++ "summary.*"
-  let outname = "summary"
+  let outname = "benchresults"
   writeFile (outname <.> "txt") $ TA.render id t
   writeFile (outname <.> "html") $ renderHtml $ TH.css TH.defaultCss +++ TH.render id t
 
