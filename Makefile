@@ -30,8 +30,10 @@ test:
 	@./regtest.py
 
 # run performance benchmarks and save results in profs
+BENCHEXES=hledger ledger
+BENCHITERATIONS=2
 bench:
-	tools/bench.hs bench.tests 2 hledger ledger "ledger --no-cache" | tee profs/`date +%Y%m%d%H%M%S`.bench
+	tools/bench.hs bench.tests $(BENCHITERATIONS) $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
 
 VERSION=`grep 'versionno =' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
 release:
