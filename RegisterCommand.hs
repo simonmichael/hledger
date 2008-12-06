@@ -56,7 +56,7 @@ showRegisterReport opts args l
 -- As usual with date spans the end date is exclusive, but for display
 -- purposes we show the previous day as end date, like ledger.
 -- 
--- A unique entryno value is provided to that the new transactions will be
+-- A unique entryno value is provided so that the new transactions will be
 -- grouped as one entry.
 -- 
 -- When a depth argument is present, transactions to accounts of greater
