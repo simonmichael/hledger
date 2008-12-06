@@ -114,6 +114,18 @@ padright :: Int -> String -> String
 padright w "" = concat $ replicate w " "
 padright w s = intercalate "\n" $ map (printf (printf "%%-%ds" w)) $ lines s
 
+-- | Clip a multi-line string to the specified width and height from the top left.
+cliptopleft :: Int -> Int -> String -> String
+cliptopleft w h s = intercalate "\n" $ take h $ map (take w) $ lines s
+
+-- | Clip and pad a multi-line string to fill the specified width and height.
+fitto :: Int -> Int -> String -> String
+fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
+    where
+      rows = map (fit w) $ lines s
+      fit w s = take w $ s ++ repeat ' '
+      blankline = replicate w ' '
+
 -- math
 
 difforzero :: (Num a, Ord a) => a -> a -> a
