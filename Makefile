@@ -32,7 +32,7 @@ profile:
 
 # run performance benchmarks and save results in profs
 # prepend ./ to executables if not in $PATH
-BENCHEXES=./hledgero2 ledger
+BENCHEXES=./hledger ledger
 BENCHITERATIONS=2
 bench:
 	tools/bench.hs bench.tests $(BENCHITERATIONS) $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
