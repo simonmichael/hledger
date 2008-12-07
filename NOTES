@@ -10,10 +10,6 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** can't parse comment line immediately after or within an entry
-*** depth-limited balance report may not show final total
-*** print does not always give tidy layout
-*** should accept - before currency symbol ?
 ** features
 *** speed
 **** optimise
@@ -23,6 +19,7 @@ clever tricks like the plague." --Edsger Dijkstra
 *** actual/effective entry & txn dates, for completeness
 *** ~/.hledgerrc, for setting defaults
 *** more ledger features
+**** allow - before currency symbol ?
 **** support complete period syntax ?
     every N days     # N is any integer
     every N weeks
@@ -32,6 +29,8 @@ clever tricks like the plague." --Edsger Dijkstra
     biweekly
     bimonthly
 *** new features
+**** allow comment lines immediately after or within an entry
+**** more reliable tidy layout from print
 **** -Q quarterly interval option, for consistency/convenience ?
 **** easy timelog queries when called as "hours"
 **** curses gui
