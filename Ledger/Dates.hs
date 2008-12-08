@@ -227,7 +227,7 @@ and maybe some others:
 Returns a SmartDate, to be converted to a full date later (see fixSmartDate).
 Assumes any text in the parse stream has been lowercased.
 -}
-smartdate :: Parser SmartDate
+smartdate :: GenParser Char st SmartDate
 smartdate = do
   let dateparsers = [ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow,
                      lastthisnextthing
@@ -237,7 +237,7 @@ smartdate = do
 
 datesepchar = oneOf "/-."
 
-ymd :: Parser SmartDate
+ymd :: GenParser Char st SmartDate
 ymd = do
   y <- many1 digit
   datesepchar
@@ -248,7 +248,7 @@ ymd = do
   guard (read d <= 31)
   return (y,m,d)
 
-ym :: Parser SmartDate
+ym :: GenParser Char st SmartDate
 ym = do
   y <- many1 digit
   guard (read y > 12)
@@ -257,19 +257,19 @@ ym = do
   guard (read m <= 12)
   return (y,m,"")
 
-y :: Parser SmartDate
+y :: GenParser Char st SmartDate
 y = do
   y <- many1 digit
   guard (read y >= 1000)
   return (y,"","")
 
-d :: Parser SmartDate
+d :: GenParser Char st SmartDate
 d = do
   d <- many1 digit
   guard (read d <= 31)
   return ("","",d)
 
-md :: Parser SmartDate
+md :: GenParser Char st SmartDate
 md = do
   m <- many1 digit
   guard (read m <= 12)
@@ -287,24 +287,24 @@ weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 monthIndex s = maybe 0 (+1) $ (lowercase s) `elemIndex` months
 monIndex s   = maybe 0 (+1) $ (lowercase s) `elemIndex` monthabbrevs
 
-month :: Parser SmartDate
+month :: GenParser Char st SmartDate
 month = do
   m <- choice $ map (try . string) months
   let i = monthIndex m
   return $ ("",show i,"")
 
-mon :: Parser SmartDate
+mon :: GenParser Char st SmartDate
 mon = do
   m <- choice $ map (try . string) monthabbrevs
   let i = monIndex m
   return ("",show i,"")
 
-today',yesterday,tomorrow :: Parser SmartDate
+today',yesterday,tomorrow :: GenParser Char st SmartDate
 today'    = string "today"     >> return ("","","today")
 yesterday = string "yesterday" >> return ("","","yesterday")
 tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
 
-lastthisnextthing :: Parser SmartDate
+lastthisnextthing :: GenParser Char st SmartDate
 lastthisnextthing = do
   r <- choice [
         string "last"
@@ -324,7 +324,7 @@ lastthisnextthing = do
             
   return ("",r,p)
 
-periodexpr :: Day -> Parser (Interval, DateSpan)
+periodexpr :: Day -> GenParser Char st (Interval, DateSpan)
 periodexpr rdate = choice $ map try [
                     intervalanddateperiodexpr rdate,
                     intervalperiodexpr,
@@ -332,7 +332,7 @@ periodexpr rdate = choice $ map try [
                     (return $ (NoInterval,DateSpan Nothing Nothing))
                    ]
 
-intervalanddateperiodexpr :: Day -> Parser (Interval, DateSpan)
+intervalanddateperiodexpr :: Day -> GenParser Char st (Interval, DateSpan)
 intervalanddateperiodexpr rdate = do
   many spacenonewline
   i <- periodexprinterval
@@ -340,19 +340,19 @@ intervalanddateperiodexpr rdate = do
   s <- periodexprdatespan rdate
   return (i,s)
 
-intervalperiodexpr :: Parser (Interval, DateSpan)
+intervalperiodexpr :: GenParser Char st (Interval, DateSpan)
 intervalperiodexpr = do
   many spacenonewline
   i <- periodexprinterval
   return (i, DateSpan Nothing Nothing)
 
-dateperiodexpr :: Day -> Parser (Interval, DateSpan)
+dateperiodexpr :: Day -> GenParser Char st (Interval, DateSpan)
 dateperiodexpr rdate = do
   many spacenonewline
   s <- periodexprdatespan rdate
   return (NoInterval, s)
 
-periodexprinterval :: Parser Interval
+periodexprinterval :: GenParser Char st Interval
 periodexprinterval = 
     choice $ map try [
                 tryinterval "day" "daily" Daily,
@@ -365,7 +365,7 @@ periodexprinterval =
       tryinterval s1 s2 v = 
           choice [try (string $ "every "++s1), try (string s2)] >> return v
 
-periodexprdatespan :: Day -> Parser DateSpan
+periodexprdatespan :: Day -> GenParser Char st DateSpan
 periodexprdatespan rdate = choice $ map try [
                             doubledatespan rdate,
                             fromdatespan rdate,
@@ -373,7 +373,7 @@ periodexprdatespan rdate = choice $ map try [
                             justdatespan rdate
                            ]
 
-doubledatespan :: Day -> Parser DateSpan
+doubledatespan :: Day -> GenParser Char st DateSpan
 doubledatespan rdate = do
   optional (string "from" >> many spacenonewline)
   b <- smartdate
@@ -382,19 +382,19 @@ doubledatespan rdate = do
   e <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
-fromdatespan :: Day -> Parser DateSpan
+fromdatespan :: Day -> GenParser Char st DateSpan
 fromdatespan rdate = do
   string "from" >> many spacenonewline
   b <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
-todatespan :: Day -> Parser DateSpan
+todatespan :: Day -> GenParser Char st DateSpan
 todatespan rdate = do
   string "to" >> many spacenonewline
   e <- smartdate
   return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
 
-justdatespan :: Day -> Parser DateSpan
+justdatespan :: Day -> GenParser Char st DateSpan
 justdatespan rdate = do
   optional (string "in" >> many spacenonewline)
   d <- smartdate

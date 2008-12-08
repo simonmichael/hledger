@@ -208,12 +208,12 @@ parsewith p ts = parse p "" ts
 fromparse :: Either ParseError a -> a
 fromparse = either (\_ -> error "parse error") id
 
-nonspace :: Parser Char
+nonspace :: GenParser Char st Char
 nonspace = satisfy (not . isSpace)
 
-spacenonewline :: Parser Char
+spacenonewline :: GenParser Char st Char
 spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 
-restofline :: Parser String
+restofline :: GenParser Char st String
 restofline = anyChar `manyTill` newline
 
