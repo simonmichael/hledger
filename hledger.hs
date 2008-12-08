@@ -39,6 +39,7 @@ module Main (
              module BalanceCommand,
              module PrintCommand,
              module RegisterCommand,
+             module UICommand,
 )
 where
 import qualified Data.Map as Map (lookup)
@@ -48,6 +49,7 @@ import Options
 import BalanceCommand
 import PrintCommand
 import RegisterCommand
+import UICommand
 import Tests
 
 
@@ -62,6 +64,7 @@ main = do
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
+       | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args ui
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage
 

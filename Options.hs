@@ -36,27 +36,28 @@ usage = usageInfo usagehdr options ++ usageftr
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
 options = [
- Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp,
- Option ['b'] ["begin"]        (ReqArg Begin "DATE") "report on entries on or after this date",
- Option ['e'] ["end"]          (ReqArg End "DATE")   "report on entries prior to this date",
- Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on entries during the specified period\n" ++
-                                                       "and/or with the specified reporting interval\n"),
- Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries",
- Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities",
- Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show",
- Option ['d'] ["display"]      (ReqArg Display "EXPR") ("display only transactions matching simple EXPR\n" ++
-                                                        "(where EXPR is 'dOP[DATE]', OP is <, <=, =, >=, >)"),
- Option ['E'] ["empty"]        (NoArg  Empty)         "balance report: show accounts with zero balance",
- Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions",
- Option []    ["options-anywhere"] (NoArg OptionsAnywhere) "allow options anywhere, use ^ to negate patterns",
- Option ['n'] ["collapse"]     (NoArg  Collapse)      "balance report: no grand total",
- Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts",
- Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)        "register report: show weekly summary",
- Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)       "register report: show monthly summary",
- Option ['Y'] ["yearly"]       (NoArg  YearlyOpt)        "register report: show yearly summary",
- Option ['h'] ["help"] (NoArg  Help)                  "show this help",
- Option ['v'] ["verbose"]      (NoArg  Verbose)       "verbose test output",
- Option ['V'] ["version"]      (NoArg  Version)       "show version"
+  Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp
+ ,Option ['b'] ["begin"]        (ReqArg Begin "DATE")  "report on entries on or after this date"
+ ,Option ['e'] ["end"]          (ReqArg End "DATE")    "report on entries prior to this date"
+ ,Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on entries during the specified period\n" ++
+                                                       "and/or with the specified reporting interval\n")
+ ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries"
+ ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities"
+ ,Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show"
+ ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("display only transactions matching simple EXPR\n" ++
+                                                        "(where EXPR is 'dOP[DATE]', OP is <, <=, =, >=, >)")
+ ,Option ['E'] ["empty"]        (NoArg  Empty)         "balance report: show accounts with zero balance"
+ ,Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
+ ,Option []    ["options-anywhere"] (NoArg OptionsAnywhere) "allow options anywhere, use ^ to negate patterns"
+ ,Option ['n'] ["collapse"]     (NoArg  Collapse)      "balance report: no grand total"
+ ,Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
+ ,Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
+ ,Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
+ ,Option ['Y'] ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
+ ,Option ['h'] ["help"] (NoArg  Help)                  "show this help"
+ ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "verbose test output"
+ ,Option ['V'] ["version"]      (NoArg  Version)       "show version"
+ ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "when running in ui mode, don't display anything (mostly)"
  ]
     where 
       filehelp = printf "ledger file; - means use standard input. Defaults\nto the %s environment variable or %s"
@@ -83,6 +84,7 @@ data Opt =
     Help |
     Verbose |
     Version
+    | DebugNoUI
     deriving (Show,Eq)
 
 -- yow..
