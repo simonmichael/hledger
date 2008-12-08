@@ -230,7 +230,7 @@ See "Tests" for sample data.
 
 emptyLine :: GenParser Char st ()
 emptyLine = do many spacenonewline
-               optional $ char ';' >> spacenonewline >> many (noneOf "\n")
+               optional $ char ';' >> many (noneOf "\n")
                newline
                return ()
 
