@@ -208,7 +208,7 @@ parsewith :: Parser a -> String -> Either ParseError a
 parsewith p ts = parse p "" ts
 
 fromparse :: Either ParseError a -> a
-fromparse = either (\_ -> error "parse error") id
+fromparse = either (\e -> error $ "ledger parse error at "++(show e)) id
 
 nonspace :: GenParser Char st Char
 nonspace = satisfy (not . isSpace)
