@@ -55,10 +55,10 @@ misc_tests = TestList [
     assertequal (Amount (comm "$") 0 Nothing) (sum [a1,a2,a3,-a3])
   ,
   "ledgertransaction"  ~: do
-    assertparseequal rawtransaction1 (parsewith ledgertransaction rawtransaction1_str)
+    assertparseequal rawtransaction1 (parseWithCtx ledgertransaction rawtransaction1_str)
   ,                  
   "ledgerentry"        ~: do
-    assertparseequal entry1 (parsewith ledgerentry entry1_str)
+    assertparseequal entry1 (parseWithCtx ledgerEntry entry1_str)
   ,
   "balanceEntry"      ~: do
     assertequal
@@ -87,15 +87,15 @@ misc_tests = TestList [
     assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger [] rawledger7)
   ,
   "transactionamount"       ~: do
-    assertparseequal (Mixed [dollars 47.18]) (parsewith transactionamount " $47.18")
-    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]) (parsewith transactionamount " $1.")
+    assertparseequal (Mixed [dollars 47.18]) (parseWithCtx transactionamount " $47.18")
+    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]) (parseWithCtx transactionamount " $1.")
   ,
   "canonicaliseAmounts" ~: do
     -- all amounts use the greatest precision
     assertequal [2,2] (rawLedgerPrecisions $ canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"])
   ,
   "timeLog" ~: do
-    assertparseequal timelog1 (parsewith timelog timelog1_str)
+    assertparseequal timelog1 (parseWithCtx timelog timelog1_str)
   ,                  
   "smart dates"     ~: do
     let todaysdate = parsedate "2008/11/26" -- wednesday
@@ -238,7 +238,7 @@ balancereportacctnames_tests = TestList
   ,"balancereportacctnames8" ~: ("-s",["-e"])          `gives` []
   ] where
     gives (opt,pats) e = do 
-      let l = sampleledger
+      l <- sampleledger
       let t = pruneZeroBalanceLeaves $ ledgerAccountTree 999 l
       assertequal e (balancereportacctnames l (opt=="-s") pats t)
 
@@ -375,15 +375,15 @@ balancecommand_tests = TestList [
    "")
  ,
   "balance report with cost basis" ~: do
-    let l = cacheLedger [] $ 
-            filterRawLedger (DateSpan Nothing Nothing) [] False False $ 
-            canonicaliseAmounts True $ -- enable cost basis adjustment
-            rawledgerfromstring
+    rawl <- rawledgerfromstring
              ("" ++
               "2008/1/1 test           \n" ++
               "  a:b          10h @ $50\n" ++
               "  c:d                   \n" ++
               "\n")
+    let l = cacheLedger [] $ 
+            filterRawLedger (DateSpan Nothing Nothing) [] False False $ 
+            canonicaliseAmounts True rawl -- enable cost basis adjustment            
     assertequal 
              ("                $500  a\n" ++
               "               $-500  c\n" ++
@@ -392,14 +392,14 @@ balancecommand_tests = TestList [
              (showBalanceReport [] [] l)
  ] where
     gives (opts,args) e = do 
-      let l = sampleledgerwithopts [] args
+      l <- sampleledgerwithopts [] args
       assertequal e (showBalanceReport opts args l)
 
 printcommand_tests = TestList [
   "print with account patterns" ~:
   do 
     let args = ["expenses"]
-    let l = sampleledgerwithopts [] args
+    l <- sampleledgerwithopts [] args
     assertequal (
      "2008/06/03 * eat & shop\n" ++
      "    expenses:food                                 $1\n" ++
@@ -412,6 +412,7 @@ printcommand_tests = TestList [
 registercommand_tests = TestList [
   "register report" ~:
   do 
+    l <- sampleledger
     assertequal (
      "2008/01/01 income               assets:checking                  $1           $1\n" ++
      "                                income:salary                   $-1            0\n" ++
@@ -425,17 +426,21 @@ registercommand_tests = TestList [
      "2008/12/31 pay off              liabilities:debts                $1           $1\n" ++
      "                                assets:checking                 $-1            0\n" ++
      "")
-     $ showRegisterReport [] [] sampleledger
+     $ showRegisterReport [] [] l
   ,
   "register report with account pattern" ~:
   do 
+    l <- sampleledger
     assertequal (
      "2008/06/03 eat & shop           assets:cash                     $-2          $-2\n" ++
      "")
-     $ showRegisterReport [] ["cash"] sampleledger
+     $ showRegisterReport [] ["cash"] l
   ,
   "register report with display expression" ~:
   do 
+    l <- sampleledger
+    let expr `displayexprgives` dates = assertequal dates (datesfromregister r)
+            where r = showRegisterReport [Display expr] [] l
     "d<[2008/6/2]"  `displayexprgives` ["2008/01/01","2008/06/01"]
     "d<=[2008/6/2]" `displayexprgives` ["2008/01/01","2008/06/01","2008/06/02"]
     "d=[2008/6/2]"  `displayexprgives` ["2008/06/02"]
@@ -444,12 +449,14 @@ registercommand_tests = TestList [
   ,
   "register report with period expression" ~:
   do 
+    l <- sampleledger    
+    let expr `displayexprgives` dates = assertequal dates (datesfromregister r)
+            where r = showRegisterReport [Display expr] [] l
     ""     `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2008" `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2007" `periodexprgives` []
     "june" `periodexprgives` ["2008/06/01","2008/06/02","2008/06/03"]
     "monthly" `periodexprgives` ["2008/01/01","2008/06/01","2008/12/01"]
-
     assertequal (
      "2008/01/01 - 2008/12/31         assets:cash                     $-2          $-2\n" ++
      "                                assets:saving                    $1          $-1\n" ++
@@ -459,25 +466,18 @@ registercommand_tests = TestList [
      "                                income:salary                   $-1          $-1\n" ++
      "                                liabilities:debts                $1            0\n" ++
      "")
-     (showRegisterReport [Period "yearly"] [] sampleledger)
-
+     (showRegisterReport [Period "yearly"] [] l)
     assertequal ["2008/01/01","2008/04/01","2008/10/01"] 
-                    (datesfromregister $ showRegisterReport [Period "quarterly"] [] sampleledger)
+                    (datesfromregister $ showRegisterReport [Period "quarterly"] [] l)
     assertequal ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
-                    (datesfromregister $ showRegisterReport [Period "quarterly",Empty] [] sampleledger)
+                    (datesfromregister $ showRegisterReport [Period "quarterly",Empty] [] l)
 
  ]
-  where
-    expr `displayexprgives` dates = 
-        assertequal dates (datesfromregister r)
-        where
-          r = showRegisterReport [Display expr] [] sampleledger
-    expr `periodexprgives` dates = 
-        assertequal dates (datesfromregister r)
-        where
-          r = showRegisterReport [Period expr] [] l
-          l = sampleledgerwithopts [Period expr] []
-    datesfromregister = filter (not . null) .  map (strip . take 10) . lines
+  where datesfromregister = filter (not . null) .  map (strip . take 10) . lines
+        expr `periodexprgives` dates = do lopts <- sampleledgerwithopts [Period expr] []
+                                          let r = showRegisterReport [Period expr] [] lopts
+                                          assertequal dates (datesfromregister r)
+
 
   
 ------------------------------------------------------------------------------
@@ -486,7 +486,7 @@ registercommand_tests = TestList [
 refdate = parsedate "2008/11/26"
 sampleledger = ledgerfromstringwithopts [] [] refdate sample_ledger_str
 sampleledgerwithopts opts args = ledgerfromstringwithopts opts args refdate sample_ledger_str
-sampleledgerwithoptsanddate opts args date = ledgerfromstringwithopts opts args date sample_ledger_str
+--sampleledgerwithoptsanddate opts args date = unsafePerformIO $ ledgerfromstringwithopts opts args date sample_ledger_str
 
 sample_ledger_str = (
  "; A sample ledger file.\n" ++
@@ -816,6 +816,7 @@ rawledger7 = RawLedger
              epreceding_comment_lines=""
            }
           ]
+          []
           ""
 
 ledger7 = cacheLedger [] rawledger7 
@@ -878,6 +879,7 @@ rawLedgerWithAmounts as =
         [] 
         [] 
         [nullentry{edescription=a,etransactions=[nullrawtxn{tamount=parse a}]} | a <- as]
+        []
         ""
-            where parse = fromparse . parsewith transactionamount . (" "++)
+            where parse = fromparse . parseWithCtx transactionamount . (" "++)
 

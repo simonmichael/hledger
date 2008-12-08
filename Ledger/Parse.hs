@@ -6,6 +6,8 @@ Parsers for standard ledger and timelog files.
 
 module Ledger.Parse
 where
+import Control.Monad
+import Control.Monad.Error
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Language
@@ -20,51 +22,71 @@ import Ledger.Amount
 import Ledger.Entry
 import Ledger.Commodity
 import Ledger.TimeLog
+import Ledger.RawLedger
 import Data.Time.LocalTime
 import Data.Time.Calendar
 
 
 -- utils
 
-parseLedgerFile :: String -> IO (Either ParseError RawLedger)
-parseLedgerFile "-" = fmap (parse ledgerfile "-") $ hGetContents stdin
-parseLedgerFile f   = parseFromFile ledgerfile f
+parseLedgerFile :: FilePath -> ErrorT String IO RawLedger
+parseLedgerFile "-" = liftIO (hGetContents stdin) >>= parseLedger "-"
+parseLedgerFile f   = liftIO (readFile f)         >>= parseLedger f
     
 printParseError :: (Show a) => a -> IO ()
 printParseError e = do putStr "ledger parse error at "; print e
 
--- set up token parsing, though we're not yet using these much
-ledgerLanguageDef = LanguageDef {
-   commentStart   = ""
-   , commentEnd     = ""
-   , commentLine    = ";"
-   , nestedComments = False
-   , identStart     = letter <|> char '_'
-   , identLetter    = alphaNum <|> oneOf "_':"
-   , opStart        = opLetter emptyDef
-   , opLetter       = oneOf "!#$%&*+./<=>?@\\^|-~"
-   , reservedOpNames= []
-   , reservedNames  = []
-   , caseSensitive  = False
-   }
-lexer      = P.makeTokenParser ledgerLanguageDef
-whiteSpace = P.whiteSpace lexer
-lexeme     = P.lexeme lexer
---symbol     = P.symbol lexer
-natural    = P.natural lexer
-parens     = P.parens lexer
-semi       = P.semi lexer
-identifier = P.identifier lexer
-reserved   = P.reserved lexer
-reservedOp = P.reservedOp lexer
+-- Default accounts "nest" hierarchically
+
+data LedgerFileCtx = Ctx { ctxYear    :: !(Maybe Integer)
+                         , ctxCommod  :: !(Maybe String)
+                         , ctxAccount :: ![String]
+                         } deriving (Read, Show)
+
+emptyCtx :: LedgerFileCtx
+emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
+
+parseLedger :: FilePath -> String -> ErrorT String IO RawLedger
+parseLedger inname intxt = case runParser ledgerFile emptyCtx inname intxt of
+                             Right m  -> m `ap` (return rawLedgerEmpty)
+                             Left err -> throwError $ show err
+
+ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerFile = do entries <- many1 ledgerAnyEntry 
+                eof
+                return $ liftM (foldr1 (.)) $ sequence entries
+    where ledgerAnyEntry = choice [ ledgerInclude
+                                  , liftM (return . addEntry)         ledgerEntry
+                                  , liftM (return . addModifierEntry) ledgerModifierEntry
+                                  , liftM (return . addPeriodicEntry) ledgerPeriodicEntry
+                                  , blankline   >> return (return id)
+                                  , commentline >> return (return id)
+                                  ]
+
+ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerInclude = do string "!include"
+                   many1 spacenonewline
+                   filename <- restofline
+                   outerState <- getState
+                   outerPos <- getPosition
+                   let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
+                   return $ do contents <- readFileE outerPos filename
+                               case runParser ledgerFile outerState filename contents of
+                                 Right l   -> l `catchError` (\err -> throwError $ inIncluded ++ err)
+                                 Left perr -> throwError $ inIncluded ++ show perr
+    where readFileE outerPos filename = ErrorT $ do (liftM Right $ readFile filename) `catch` leftError
+              where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
+                    currentPos = show outerPos
+                    whileReading = " reading " ++ show filename ++ ":\n"
+
+
+--ledgerEntry = return $ throwError "unimplemented"
 
 -- parsers
 
 -- | Parse a RawLedger from either a ledger file or a timelog file.
 -- It tries first the timelog parser then the ledger parser; this means
 -- parse errors for ledgers are useful while those for timelogs are not.
-ledgerfile :: Parser RawLedger
-ledgerfile = try ledgerfromtimelog <|> ledger
 
 {-| Parse a ledger file. Here is the ledger grammar from the ledger 2.5 manual:
 
@@ -166,38 +188,18 @@ i, o, b, h
 
 See "Tests" for sample data.
 -}
-ledger :: Parser RawLedger
-ledger = do
-  -- we expect these to come first, unlike ledger
-  modifier_entries <- many ledgermodifierentry
-  periodic_entries <- many ledgerperiodicentry
 
-  entries <- (many $ try ledgerentry) <?> "entry"
-  final_comment_lines <- ledgernondatalines
-  eof
-  return $ RawLedger modifier_entries periodic_entries entries (unlines final_comment_lines)
+blankline :: GenParser Char st String
+blankline = (do { s <- many spacenonewline; newline; return s }) <?> "blank line"
 
-ledgernondatalines :: Parser [String]
-ledgernondatalines = many (try ledgerdirective <|> -- treat as comments
-                           try commentline <|> 
-                           blankline)
-
-ledgerdirective :: Parser String
-ledgerdirective = char '!' >> restofline <?> "directive"
-
-blankline :: Parser String
-blankline =
-  do {s <- many1 spacenonewline; newline; return s} <|> 
-  do {newline; return ""} <?> "blank line"
-
-commentline :: Parser String
+commentline :: GenParser Char st String
 commentline = do
   many spacenonewline
   char ';' <?> "comment line"
   l <- restofline
   return $ ";" ++ l
 
-ledgercomment :: Parser String
+ledgercomment :: GenParser Char st String
 ledgercomment = 
     try (do
           char ';'
@@ -206,25 +208,24 @@ ledgercomment =
         ) 
     <|> return "" <?> "comment"
 
-ledgermodifierentry :: Parser ModifierEntry
-ledgermodifierentry = do
-  char '=' <?> "entry"
+ledgerModifierEntry :: GenParser Char LedgerFileCtx ModifierEntry
+ledgerModifierEntry = do
+  char '=' <?> "modifier entry"
   many spacenonewline
   valueexpr <- restofline
   transactions <- ledgertransactions
-  return (ModifierEntry valueexpr transactions)
+  return $ ModifierEntry valueexpr transactions
 
-ledgerperiodicentry :: Parser PeriodicEntry
-ledgerperiodicentry = do
+ledgerPeriodicEntry :: GenParser Char LedgerFileCtx PeriodicEntry
+ledgerPeriodicEntry = do
   char '~' <?> "entry"
   many spacenonewline
   periodexpr <- restofline
   transactions <- ledgertransactions
-  return (PeriodicEntry periodexpr transactions)
+  return $ PeriodicEntry periodexpr transactions
 
-ledgerentry :: Parser Entry
-ledgerentry = do
-  preceding <- ledgernondatalines
+ledgerEntry :: GenParser Char LedgerFileCtx Entry
+ledgerEntry = do
   date <- ledgerdate <?> "entry"
   status <- ledgerstatus
   code <- ledgercode
@@ -235,9 +236,9 @@ ledgerentry = do
   comment <- ledgercomment
   restofline
   transactions <- ledgertransactions
-  return $ balanceEntry $ Entry date status code description comment transactions (unlines preceding)
+  return $ balanceEntry $ Entry date status code description comment transactions ""
 
-ledgerdate :: Parser Day
+ledgerdate :: GenParser Char st Day
 ledgerdate = do 
   y <- many1 digit
   char '/'
@@ -247,7 +248,7 @@ ledgerdate = do
   many spacenonewline
   return (fromGregorian (read y) (read m) (read d))
 
-ledgerdatetime :: Parser UTCTime
+ledgerdatetime :: GenParser Char st UTCTime
 ledgerdatetime = do 
   day <- ledgerdate
   h <- many1 digit
@@ -260,20 +261,20 @@ ledgerdatetime = do
   return $ mkUTCTime day (TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s))
 
 
-ledgerstatus :: Parser Bool
+ledgerstatus :: GenParser Char st Bool
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False
 
-ledgercode :: Parser String
+ledgercode :: GenParser Char st String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
-ledgertransactions :: Parser [RawTransaction]
-ledgertransactions = 
-    ((try virtualtransaction <|> try balancedvirtualtransaction <|> ledgertransaction) <?> "transaction") 
-    `manyTill` (do {newline <?> "blank line"; return ()} <|> eof)
+ledgertransactions :: GenParser Char st [RawTransaction]
+ledgertransactions = many $ try ledgertransaction
 
-ledgertransaction :: Parser RawTransaction
-ledgertransaction = do
-  many1 spacenonewline
+ledgertransaction :: GenParser Char st RawTransaction
+ledgertransaction = many1 spacenonewline >> choice [ normaltransaction, virtualtransaction, balancedvirtualtransaction ]
+
+normaltransaction :: GenParser Char st RawTransaction
+normaltransaction = do
   account <- ledgeraccountname
   amount <- transactionamount
   many spacenonewline
@@ -281,9 +282,8 @@ ledgertransaction = do
   restofline
   return (RawTransaction account amount comment RegularTransaction)
 
-virtualtransaction :: Parser RawTransaction
+virtualtransaction :: GenParser Char st RawTransaction
 virtualtransaction = do
-  many1 spacenonewline
   char '('
   account <- ledgeraccountname
   char ')'
@@ -293,9 +293,8 @@ virtualtransaction = do
   restofline
   return (RawTransaction account amount comment VirtualTransaction)
 
-balancedvirtualtransaction :: Parser RawTransaction
+balancedvirtualtransaction :: GenParser Char st RawTransaction
 balancedvirtualtransaction = do
-  many1 spacenonewline
   char '['
   account <- ledgeraccountname
   char ']'
@@ -306,7 +305,7 @@ balancedvirtualtransaction = do
   return (RawTransaction account amount comment BalancedVirtualTransaction)
 
 -- | account names may have single spaces inside them, and are terminated by two or more spaces
-ledgeraccountname :: Parser String
+ledgeraccountname :: GenParser Char st String
 ledgeraccountname = do
     accountname <- many1 (accountnamechar <|> singlespace)
     return $ striptrailingspace accountname
@@ -318,7 +317,7 @@ ledgeraccountname = do
 accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
-transactionamount :: Parser MixedAmount
+transactionamount :: GenParser Char st MixedAmount
 transactionamount =
   try (do
         many1 spacenonewline
@@ -328,7 +327,7 @@ transactionamount =
 
 someamount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount 
 
-leftsymbolamount :: Parser MixedAmount
+leftsymbolamount :: GenParser Char st MixedAmount
 leftsymbolamount = do
   sym <- commoditysymbol 
   sp <- many spacenonewline
@@ -338,7 +337,7 @@ leftsymbolamount = do
   return $ Mixed [Amount c q pri]
   <?> "left-symbol amount"
 
-rightsymbolamount :: Parser MixedAmount
+rightsymbolamount :: GenParser Char st MixedAmount
 rightsymbolamount = do
   (q,p,comma) <- amountquantity
   sp <- many spacenonewline
@@ -348,7 +347,7 @@ rightsymbolamount = do
   return $ Mixed [Amount c q pri]
   <?> "right-symbol amount"
 
-nosymbolamount :: Parser MixedAmount
+nosymbolamount :: GenParser Char st MixedAmount
 nosymbolamount = do
   (q,p,comma) <- amountquantity
   pri <- priceamount
@@ -356,10 +355,10 @@ nosymbolamount = do
   return $ Mixed [Amount c q pri]
   <?> "no-symbol amount"
 
-commoditysymbol :: Parser String
+commoditysymbol :: GenParser Char st String
 commoditysymbol = many1 (noneOf "-.0123456789;\n ") <?> "commodity symbol"
 
-priceamount :: Parser (Maybe MixedAmount)
+priceamount :: GenParser Char st (Maybe MixedAmount)
 priceamount =
     try (do
           many spacenonewline
@@ -374,7 +373,7 @@ priceamount =
 -- | parse a ledger-style numeric quantity and also return the number of
 -- digits to the right of the decimal point and whether thousands are
 -- separated by comma.
-amountquantity :: Parser (Double, Int, Bool)
+amountquantity :: GenParser Char st (Double, Int, Bool)
 amountquantity = do
   sign <- optionMaybe $ string "-"
   (intwithcommas,frac) <- numberparts
@@ -392,10 +391,10 @@ amountquantity = do
 -- | parse the two strings of digits before and after a possible decimal
 -- point.  The integer part may contain commas, or either part may be
 -- empty, or there may be no point.
-numberparts :: Parser (String,String)
+numberparts :: GenParser Char st (String,String)
 numberparts = numberpartsstartingwithdigit <|> numberpartsstartingwithpoint
 
-numberpartsstartingwithdigit :: Parser (String,String)
+numberpartsstartingwithdigit :: GenParser Char st (String,String)
 numberpartsstartingwithdigit = do
   let digitorcomma = digit <|> char ','
   first <- digit
@@ -403,7 +402,7 @@ numberpartsstartingwithdigit = do
   frac <- try (do {char '.'; many digit >>= return}) <|> return ""
   return (first:rest,frac)
                      
-numberpartsstartingwithpoint :: Parser (String,String)
+numberpartsstartingwithpoint :: GenParser Char st (String,String)
 numberpartsstartingwithpoint = do
   char '.'
   frac <- many1 digit
@@ -446,13 +445,13 @@ i 2007/03/10 12:26:00 hledger
 o 2007/03/10 17:26:02
 
 -}
-timelog :: Parser TimeLog
+timelog :: GenParser Char st TimeLog
 timelog = do
   entries <- many timelogentry <?> "timelog entry"
   eof
   return $ TimeLog entries
 
-timelogentry :: Parser TimeLogEntry
+timelogentry :: GenParser Char st TimeLogEntry
 timelogentry = do
   many (commentline <|> blankline)
   code <- oneOf "bhioO"
@@ -461,17 +460,17 @@ timelogentry = do
   comment <- restofline
   return $ TimeLogEntry code datetime comment
 
-ledgerfromtimelog :: Parser RawLedger
-ledgerfromtimelog = do 
-  tl <- timelog
-  return $ ledgerFromTimeLog tl
+--ledgerfromtimelog :: GenParser Char st RawLedger
+--ledgerfromtimelog = do 
+--  tl <- timelog
+--  return $ ledgerFromTimeLog tl
 
 
 -- misc parsing
 
 -- | Parse a --display expression which is a simple date predicate, like
 -- "d>[DATE]" or "d<=[DATE]", and return a transaction-matching predicate.
-datedisplayexpr :: Parser (Transaction -> Bool)
+datedisplayexpr :: GenParser Char st (Transaction -> Bool)
 datedisplayexpr = do
   char 'd'
   op <- compareop

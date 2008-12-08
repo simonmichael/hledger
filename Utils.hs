@@ -6,6 +6,7 @@ Utilities for top-level modules and/or ghci. See also "Ledger.Utils".
 
 module Utils
 where
+import Control.Monad.Error
 import qualified Data.Map as Map (lookup)
 import Text.ParserCombinators.Parsec
 import System.IO
@@ -26,18 +27,18 @@ prepareLedger opts args refdate rl =
       cb = CostBasis `elem` opts
 
 -- | Get a RawLedger from the given string, or raise an error.
-rawledgerfromstring :: String -> RawLedger
-rawledgerfromstring = fromparse . parsewith ledgerfile
+rawledgerfromstring :: String -> IO RawLedger
+rawledgerfromstring = liftM (either error id) . runErrorT . parseLedger "(string)"
 
 -- | Get a Ledger from the given string and options, or raise an error.
-ledgerfromstringwithopts :: [Opt] -> [String] -> Day -> String -> Ledger
+ledgerfromstringwithopts :: [Opt] -> [String] -> Day -> String -> IO Ledger
 ledgerfromstringwithopts opts args refdate s =
-    prepareLedger opts args refdate $ rawledgerfromstring s
+    liftM (prepareLedger opts args refdate) $ rawledgerfromstring s
 
 -- | Get a Ledger from the given file path and options, or raise an error.
 ledgerfromfilewithopts :: [Opt] -> [String] -> FilePath -> IO Ledger
 ledgerfromfilewithopts opts args f = do
-    rl <- readFile f >>= return . rawledgerfromstring
+    rl <- readFile f >>= rawledgerfromstring
     refdate <- today
     return $ prepareLedger opts args refdate rl
            
@@ -45,3 +46,6 @@ ledgerfromfilewithopts opts args f = do
 -- Assumes no options.
 myledger :: IO Ledger
 myledger = ledgerFilePathFromOpts [] >>= ledgerfromfilewithopts [] []
+
+parseWithCtx :: GenParser Char LedgerFileCtx a -> String -> Either ParseError a
+parseWithCtx p ts = runParser p emptyCtx "" ts
