@@ -31,6 +31,7 @@ runtests opts args = do
 
 tests = [TestList []
         ,misc_tests
+        ,newparse_tests
         ,balancereportacctnames_tests
         ,balancecommand_tests
         ,printcommand_tests
@@ -228,6 +229,33 @@ misc_tests = TestList [
   "ledgerentry"        ~: do
     assertparseequal price1 (parseWithCtx ledgerHistoricalPrice price1_str)
   ]
+
+newparse_tests = TestList [ sameParseTests ]
+    where sameParseTests = TestList $ map sameParse [ account1, account2, account3, account4 ]
+          sameParse (str1, str2) 
+              = TestCase $ do l1 <- rawledgerfromstring str1                         
+                              l2 <- rawledgerfromstring str2
+                              (l1 @=? l2)
+          account1 = ( "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
+                     , "!account test\n2008/12/07 One\n  from  $-1\n  to  $1\n"
+                     )
+          account2 = ( "2008/12/07 One\n  test:foo:from  $-1\n  test:foo:to  $1\n"
+                     , "!account test\n!account foo\n2008/12/07 One\n  from  $-1\n  to  $1\n"
+                     )
+          account3 = ( "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
+                     , "!account test\n!account foo\n!end\n2008/12/07 One\n  from  $-1\n  to  $1\n"
+                     )
+          account4 = ( "2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
+                       "!account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" ++
+                       "!account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" ++
+                       "!end\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" ++
+                       "!end\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+                     , "2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
+                       "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" ++
+                       "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" ++
+                       "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" ++
+                       "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+                     )
 
 balancereportacctnames_tests = TestList 
   [

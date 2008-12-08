@@ -46,16 +46,34 @@ data LedgerFileCtx = Ctx { ctxYear    :: !(Maybe Integer)
 emptyCtx :: LedgerFileCtx
 emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
 
+pushParentAccount :: String -> GenParser tok LedgerFileCtx ()
+pushParentAccount parent = updateState addParentAccount
+    where addParentAccount ctx0 = ctx0 { ctxAccount = normalize parent : ctxAccount ctx0 }
+          normalize = (++ ":") 
+
+popParentAccount :: GenParser tok LedgerFileCtx ()
+popParentAccount = do ctx0 <- getState
+                      case ctxAccount ctx0 of
+                        [] -> unexpected "End of account block with no beginning"
+                        (_:rest) -> setState $ ctx0 { ctxAccount = rest }
+
+getParentAccount :: GenParser tok LedgerFileCtx String
+getParentAccount = liftM (concat . reverse . ctxAccount) getState
+
 parseLedger :: FilePath -> String -> ErrorT String IO RawLedger
 parseLedger inname intxt = case runParser ledgerFile emptyCtx inname intxt of
                              Right m  -> liftM rawLedgerConvertTimeLog $ m `ap` (return rawLedgerEmpty)
                              Left err -> throwError $ show err
 
+-- As all ledger line types can be distinguished by the first
+-- character, excepting transactions versus empty (blank or
+-- comment-only) lines, can use choice w/o try
+
 ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
 ledgerFile = do entries <- many1 ledgerAnyEntry 
                 eof
                 return $ liftM (foldr1 (.)) $ sequence entries
-    where ledgerAnyEntry = choice [ ledgerInclude
+    where ledgerAnyEntry = choice [ ledgerDirective
                                   , liftM (return . addEntry)         ledgerEntry
                                   , liftM (return . addModifierEntry) ledgerModifierEntry
                                   , liftM (return . addPeriodicEntry) ledgerPeriodicEntry
@@ -64,9 +82,16 @@ ledgerFile = do entries <- many1 ledgerAnyEntry
                                   , liftM (return . addTimeLogEntry)  timelogentry
                                   ]
 
+ledgerDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerDirective = do char '!'
+                     directive <- many nonspace
+                     case directive of
+                       "include" -> ledgerInclude
+                       "account" -> ledgerAccountBegin
+                       "end"     -> ledgerAccountEnd
+
 ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
-ledgerInclude = do string "!include"
-                   many1 spacenonewline
+ledgerInclude = do many1 spacenonewline
                    filename <- restofline
                    outerState <- getState
                    outerPos <- getPosition
@@ -80,8 +105,15 @@ ledgerInclude = do string "!include"
                     currentPos = show outerPos
                     whileReading = " reading " ++ show filename ++ ":\n"
 
+ledgerAccountBegin :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerAccountBegin = do many1 spacenonewline
+                        parent <- ledgeraccountname
+                        newline
+                        pushParentAccount parent
+                        return $ return id
 
---ledgerEntry = return $ throwError "unimplemented"
+ledgerAccountEnd :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerAccountEnd = popParentAccount >> return (return id)
 
 -- parsers
 
@@ -276,42 +308,48 @@ ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> ret
 ledgercode :: GenParser Char st String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
-ledgertransactions :: GenParser Char st [RawTransaction]
+ledgertransactions :: GenParser Char LedgerFileCtx [RawTransaction]
 ledgertransactions = many $ try ledgertransaction
 
-ledgertransaction :: GenParser Char st RawTransaction
+ledgertransaction :: GenParser Char LedgerFileCtx RawTransaction
 ledgertransaction = many1 spacenonewline >> choice [ normaltransaction, virtualtransaction, balancedvirtualtransaction ]
 
-normaltransaction :: GenParser Char st RawTransaction
+normaltransaction :: GenParser Char LedgerFileCtx RawTransaction
 normaltransaction = do
-  account <- ledgeraccountname
+  account <- transactionaccountname
   amount <- transactionamount
   many spacenonewline
   comment <- ledgercomment
   restofline
+  parent <- getParentAccount
   return (RawTransaction account amount comment RegularTransaction)
 
-virtualtransaction :: GenParser Char st RawTransaction
+virtualtransaction :: GenParser Char LedgerFileCtx RawTransaction
 virtualtransaction = do
   char '('
-  account <- ledgeraccountname
+  account <- transactionaccountname
   char ')'
   amount <- transactionamount
   many spacenonewline
   comment <- ledgercomment
   restofline
+  parent <- getParentAccount
   return (RawTransaction account amount comment VirtualTransaction)
 
-balancedvirtualtransaction :: GenParser Char st RawTransaction
+balancedvirtualtransaction :: GenParser Char LedgerFileCtx RawTransaction
 balancedvirtualtransaction = do
   char '['
-  account <- ledgeraccountname
+  account <- transactionaccountname
   char ']'
   amount <- transactionamount
   many spacenonewline
   comment <- ledgercomment
   restofline
   return (RawTransaction account amount comment BalancedVirtualTransaction)
+
+-- Qualify with the parent account from parsing context
+transactionaccountname :: GenParser Char LedgerFileCtx AccountName
+transactionaccountname = liftM2 (++) getParentAccount ledgeraccountname
 
 -- | account names may have single spaces inside them, and are terminated by two or more spaces
 ledgeraccountname :: GenParser Char st String
