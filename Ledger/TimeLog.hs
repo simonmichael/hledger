@@ -14,16 +14,11 @@ import Ledger.Dates
 import Ledger.Commodity
 import Ledger.Amount
 
-
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
 
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
-
--- | Convert a time log to a ledger.
-ledgerFromTimeLog :: TimeLog -> RawLedger
-ledgerFromTimeLog tl = RawLedger [] [] (entriesFromTimeLogEntries $ timelog_entries tl) ""
 
 -- | Convert time log entries to ledger entries.
 entriesFromTimeLogEntries :: [TimeLogEntry] -> [Entry]

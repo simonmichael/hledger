@@ -15,6 +15,7 @@ import Ledger.Amount
 import Ledger.Entry
 import Ledger.Transaction
 import Ledger.RawTransaction
+import Ledger.TimeLog
 
 
 instance Show RawLedger where
@@ -124,4 +125,10 @@ rawLedgerAmounts = map amount . rawLedgerTransactions
 -- | Get just the amount precisions from a ledger, in the order parsed.
 rawLedgerPrecisions :: RawLedger -> [Int]
 rawLedgerPrecisions = map precision . rawLedgerCommodities
+
+rawLedgerConvertTimeLog :: RawLedger -> RawLedger
+rawLedgerConvertTimeLog l0 = l0 { entries = convertedTimeLog ++ entries l0
+                                , open_timelog_entries = []
+                                }
+    where convertedTimeLog = entriesFromTimeLogEntries $ open_timelog_entries l0
 

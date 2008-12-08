@@ -48,7 +48,7 @@ emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
 
 parseLedger :: FilePath -> String -> ErrorT String IO RawLedger
 parseLedger inname intxt = case runParser ledgerFile emptyCtx inname intxt of
-                             Right m  -> m `ap` (return rawLedgerEmpty)
+                             Right m  -> liftM rawLedgerConvertTimeLog $ m `ap` (return rawLedgerEmpty)
                              Left err -> throwError $ show err
 
 ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
@@ -59,8 +59,8 @@ ledgerFile = do entries <- many1 ledgerAnyEntry
                                   , liftM (return . addEntry)         ledgerEntry
                                   , liftM (return . addModifierEntry) ledgerModifierEntry
                                   , liftM (return . addPeriodicEntry) ledgerPeriodicEntry
-                                  , blankline   >> return (return id)
-                                  , commentline >> return (return id)
+                                  , emptyLine >> return (return id)
+                                  , liftM (return . addTimeLogEntry)  timelogentry
                                   ]
 
 ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
@@ -189,15 +189,11 @@ i, o, b, h
 See "Tests" for sample data.
 -}
 
-blankline :: GenParser Char st String
-blankline = (do { s <- many spacenonewline; newline; return s }) <?> "blank line"
-
-commentline :: GenParser Char st String
-commentline = do
-  many spacenonewline
-  char ';' <?> "comment line"
-  l <- restofline
-  return $ ";" ++ l
+emptyLine :: GenParser Char st ()
+emptyLine = do many spacenonewline
+               optional $ char ';' >> spacenonewline >> many (noneOf "\n")
+               newline
+               return ()
 
 ledgercomment :: GenParser Char st String
 ledgercomment = 
@@ -453,7 +449,6 @@ timelog = do
 
 timelogentry :: GenParser Char st TimeLogEntry
 timelogentry = do
-  many (commentline <|> blankline)
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- ledgerdatetime
