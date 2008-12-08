@@ -77,6 +77,7 @@ data RawLedger = RawLedger {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
       entries :: [Entry],
+      open_timelog_entries :: [TimeLogEntry],
       final_comment_lines :: String
     } deriving (Eq)
 
