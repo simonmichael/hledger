@@ -42,7 +42,10 @@ module Main (
              module UICommand,
 )
 where
+import Control.Monad.Error
 import qualified Data.Map as Map (lookup)
+import System.IO
+
 import Ledger
 import Utils
 import Options
@@ -74,5 +77,4 @@ parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) 
 parseLedgerAndDo opts args cmd = do
   refdate <- today
   let runcmd = cmd opts args . prepareLedger opts args refdate
-  ledgerFilePathFromOpts opts >>= parseLedgerFile >>= either printParseError runcmd
-
+  ledgerFilePathFromOpts opts >>= runErrorT . parseLedgerFile >>= either (hPutStrLn stderr) runcmd
