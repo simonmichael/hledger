@@ -198,12 +198,14 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 parsedatetime :: String -> UTCTime
 parsedatetime s = 
     parsetimewith "%Y/%m/%d %H:%M:%S" s $
+    parsetimewith "%Y-%m-%d %H:%M:%S" s $
     error $ printf "could not parse timestamp \"%s\"" s
 
 -- | Parse a date string to a time type, or raise an error.
 parsedate :: String -> Day
 parsedate s =  
     parsetimewith "%Y/%m/%d" s $
+    parsetimewith "%Y-%m-%d" s $
     error $ printf "could not parse date \"%s\"" s
 
 -- | Parse a time string to a time type using the provided pattern, or
