@@ -13,6 +13,7 @@ import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Combinator
 import qualified Text.ParserCombinators.Parsec.Token as P
+import System.Directory
 import System.IO
 import qualified Data.Map as Map
 import Ledger.Utils
@@ -96,7 +97,7 @@ ledgerInclude = do many1 spacenonewline
                    outerState <- getState
                    outerPos <- getPosition
                    let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-                   return $ do contents <- readFileE outerPos filename
+                   return $ do contents <- expandPath filename >>= readFileE outerPos
                                case runParser ledgerFile outerState filename contents of
                                  Right l   -> l `catchError` (\err -> throwError $ inIncluded ++ err)
                                  Left perr -> throwError $ inIncluded ++ show perr
@@ -104,6 +105,11 @@ ledgerInclude = do many1 spacenonewline
               where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
                     currentPos = show outerPos
                     whileReading = " reading " ++ show filename ++ ":\n"
+
+expandPath :: (MonadIO m) => FilePath -> m FilePath
+expandPath inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
+                                                  return $ homedir ++ drop 1 inname
+                  | otherwise                = return inname
 
 ledgerAccountBegin :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
 ledgerAccountBegin = do many1 spacenonewline
