@@ -192,7 +192,9 @@ showforest = concatMap showtree
 
 -- debugging
 
--- | trace a showable expression
+-- | trace (print on stdout at runtime) a showable expression
+-- (for easily tracing in the middle of a complex expression)
+strace :: Show a => a -> a
 strace a = trace (show a) a
 
 p = putStr
@@ -208,7 +210,7 @@ parsewith :: Parser a -> String -> Either ParseError a
 parsewith p ts = parse p "" ts
 
 fromparse :: Either ParseError a -> a
-fromparse = either (\e -> error $ "ledger parse error at "++(show e)) id
+fromparse = either (\e -> error $ "parse error at "++(show e)) id
 
 nonspace :: GenParser Char st Char
 nonspace = satisfy (not . isSpace)
