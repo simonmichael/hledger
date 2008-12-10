@@ -2,13 +2,16 @@
 {- 
 bench.hs (see usage string below). 
 
-For simple benchmarking. Similar to my darcs-benchmark/bench.hs script.
+For simple benchmarking. Based on my darcs-benchmark/bench.hs script.
+Simon Michael 2008
+
 Example:
 
 $ cat - >bench.tests
 -f sample.ledger -s balance
 -f ~/.ledger -s balance
-$ bench.hs bench.tests 2 hledger "ledger --no-cache" ledger
+$ bench.hs -v hledger "ledger --no-cache" ledger
+Using bench.tests
 Running 2 tests 2 times in . with 3 executables at 2008-11-26 18:52:15.776357 UTC:
 1: hledger -f sample.ledger -s balance	[0.02s]
 2: hledger -f sample.ledger -s balance	[0.01s]
@@ -52,46 +55,95 @@ import Data.Time.Format
 import System.Locale
 import Control.Monad
 import Debug.Trace
+import System.Console.GetOpt
 
+usagehdr = "bench [-f testsfile] [-n iterations] [-p precision] executable1 [executable2 ...]\n" ++
+           "\n" ++
+           "Run some functional tests with each of the specified executables,\n" ++
+           "where a test is \"zero or more arguments supported by all executables\",\n" ++
+           "and report the best execution times.\n"
 
+options = [
+  Option ['f'] ["testsfile"] (ReqArg File "testsfile") "file containing tests, one per line, default: bench.tests"
+ ,Option ['n'] ["iterations"] (ReqArg Num "iterations") "number of test iterations to run, default: 2"
+ ,Option ['p'] ["precision"] (ReqArg Prec "precision") "show times with this precision, default: 2"
+ ,Option ['v'] ["verbose"] (NoArg Verbose) "show intermediate results"
+ ,Option ['h'] ["help"] (NoArg Help) "show this help"
+ ]             
 
-usage = "bench.hs <testsfile> <num> [<executable> ...]\n" ++
-        "\n" ++
-        "Run some functional tests, defined as lines of arguments in\n" ++
-        "testsfile, num times with each of the specified executables,\n" ++
-        "printing the execution times and a summary.\n" ++
-        "Tips:\n" ++
-        "- comment out tests with #\n"
+usageftr = "\n" ++
+           "Tips:\n" ++
+           "- executables may have arguments if enclosed in quotes\n" ++
+           "- tests can be commented out with #\n" ++
+           "- results are saved in benchresults.{html,txt}\n"
 
-precision = 2
+usage = usageInfo usagehdr options ++ usageftr
+
+-- an option value
+data Opt = File {value::String} 
+         | Num  {value::String} 
+         | Prec {value::String} 
+-- I don't know how optValuesForConstructor etc. can have that 
+-- type signature with these, but it works..
+--       | Some Int
+         | Verbose
+         | Help
+           deriving (Eq,Show)
+
+-- option value getters.
+fileopt :: [Opt] -> String
+fileopt opts = optValueWithDefault File "bench.tests" opts
+
+precisionopt :: [Opt] -> Int
+precisionopt opts = read $ optValueWithDefault Prec "2" opts
+
+numopt :: [Opt] -> Int
+numopt opts = read $ optValueWithDefault Num "2" opts
+
+verboseopt :: [Opt] -> Bool
+verboseopt opts = Verbose `elem` opts
+
+-- options utilities
+parseargs :: [String] -> ([Opt],[String])
+parseargs as =
+  case (getOpt Permute options as) of
+    (opts,args,[]) -> (opts,args)
+    (_,_,errs)     -> error (concat errs ++ usage)
+
+optValueWithDefault :: (String -> Opt) -> String -> [Opt] -> String
+optValueWithDefault optcons def opts = 
+    last $ [def] ++ optValuesForConstructor optcons opts
+
+optValuesForConstructor :: (String -> Opt) -> [Opt] -> [String]
+optValuesForConstructor optcons opts = concatMap get opts
+    where get o = if optcons v == o then [v] else [] where v = value o
 
 main = do
-  (testsfile,iterations,dir,exes) <- getArgs >>= return . parseargs
-  tests <- readFile testsfile >>= return . testlines
+  args <- getArgs
+  let (opts,exes) = parseargs args
+  when (null exes) $ error $ "at least one executable needed\n" ++ usage
+  let (file, num) = (fileopt opts, numopt opts)
+  tests <- readFile file >>= return . filter istest . lines
   now <- getCurrentTime
-  putStrLn $ printf "Running %d tests %d times in %s with %d executables at %s:\n" 
-               (length tests) (iterations) dir (length exes) (show now)
-  let doexe t e = sequence $ map (doiteration t e dir) [1..iterations]
+  putStrLn $ printf "Using %s" file
+  putStrLn $ printf "Running %d tests %d times with %d executables at %s:" 
+               (length tests) num (length exes) (show now)
+  let doexe t e = sequence $ map (doiteration opts t e) [1..num]
   let dotest t = sequence $ map (doexe t) exes
   hSetBuffering stdout NoBuffering
   results <- mapM dotest tests
-  summarise tests exes results 
-    where 
---       parseargs (t:n:d:[]) = parseargs (t:n:d:["darcs"])
-      parseargs (t:n:es) = (t,read n,".",es)
-      parseargs _ = error $ "\n" ++ usage
-      testlines s = filter istest $ lines s
-      istest s = not (null s' || ("#" `isPrefixOf` s')) where s' = clean s
+  summarise opts tests exes results 
 
+istest s = not (null s' || ("#" `isPrefixOf` s')) where s' = clean s
 clean = unwords . words
 
-doiteration :: String -> String -> String -> Int -> IO Float
-doiteration test exe dir iteration = do
+doiteration :: [Opt] -> String -> String -> Int -> IO Float
+doiteration opts test exe iteration = do
   let cmd = unwords [exe,clean test]
-  putStr $ show iteration ++ ": " ++ cmd
+  when (verboseopt opts) $ putStr $ show iteration ++ ": " ++ cmd
   hFlush stdout
   t <- time cmd
-  printf "\t[%ss]\n" (showtime t)
+  when (verboseopt opts) $ printf "\t[%ss]\n" (showtime opts t)
   return t
 
 time :: String -> IO Float
@@ -104,23 +156,25 @@ time cmd = do
   t2 <- getCurrentTime
   return $ realToFrac $ diffUTCTime t2 t1
 
-summarise tests exes results = do
+summarise :: [Opt] -> [String] -> [String] -> [[[Float]]] -> IO ()
+summarise opts tests exes results = do
   putStrLn "\nSummary (best iteration):\n"
-  let t = maketable tests exes results
+  let t = maketable opts tests exes results
   putStrLn $ TA.render id t
   let outname = "benchresults"
   writeFile (outname <.> "txt") $ TA.render id t
   writeFile (outname <.> "html") $ renderHtml $ TH.css TH.defaultCss +++ TH.render id t
 
-maketable :: [String] -> [String] -> [[[Float]]] -> Table String
-maketable rownames colnames results = Table rowhdrs colhdrs rows
+maketable :: [Opt] -> [String] -> [String] -> [[[Float]]] -> Table String
+maketable opts rownames colnames results = Table rowhdrs colhdrs rows
  where
   rowhdrs = Group NoLine $ map Header $ padright rownames
   colhdrs = Group SingleLine $ map Header colnames
-  rows = map (map (showtime . minimum)) results
+  rows = map (map ((showtime opts) . minimum)) results
   padright ss = map (printf (printf "%%-%ds" w)) ss
       where w = maximum $ map length ss
 
-showtime = printf $ "%."++(show precision)++"f"
+showtime :: [Opt] -> (Float -> String)
+showtime opts = printf $ "%."++(show $ precisionopt opts)++"f"
 
 strace a = trace (show a) a
