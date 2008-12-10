@@ -106,6 +106,7 @@ data Account = Account {
     }
 
 data Ledger = Ledger {
+      rawledgertext :: String,
       rawledger :: RawLedger,
       accountnametree :: Tree AccountName,
       accountmap :: Map.Map AccountName Account

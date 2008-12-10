@@ -2,7 +2,8 @@
 
 A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
 names, and a map from account names to 'Account's. It may also have had
-uninteresting 'Entry's and 'Transaction's filtered out.
+uninteresting 'Entry's and 'Transaction's filtered out. It also stores
+the complete ledger file text for the ui command.
 
 -}
 
@@ -30,7 +31,7 @@ instance Show Ledger where
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
 cacheLedger :: [String] -> RawLedger -> Ledger
-cacheLedger apats l = Ledger l ant acctmap
+cacheLedger apats l = Ledger{rawledgertext="",rawledger=l,accountnametree=ant,accountmap=acctmap}
     where
       ts = filtertxns apats $ rawLedgerTransactions l
       ant = rawLedgerAccountNameTree l

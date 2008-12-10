@@ -16,10 +16,10 @@ import Ledger
 
 -- | Convert a RawLedger to a canonicalised, cached and filtered Ledger
 -- based on the command-line options/arguments and today's date.
-prepareLedger ::  [Opt] -> [String] -> Day -> RawLedger -> Ledger
-prepareLedger opts args refdate rl =
-    cacheLedger apats $ filterRawLedger span dpats c r $ canonicaliseAmounts cb rl
+prepareLedger ::  [Opt] -> [String] -> Day -> String -> RawLedger -> Ledger
+prepareLedger opts args refdate rawtext rl = l{rawledgertext=rawtext}
     where
+      l = cacheLedger apats $ filterRawLedger span dpats c r $ canonicaliseAmounts cb rl
       (apats,dpats) = parseAccountDescriptionArgs [] args
       span = dateSpanFromOpts refdate opts
       c = Cleared `elem` opts
@@ -33,14 +33,15 @@ rawledgerfromstring = liftM (either error id) . runErrorT . parseLedger "(string
 -- | Get a Ledger from the given string and options, or raise an error.
 ledgerfromstringwithopts :: [Opt] -> [String] -> Day -> String -> IO Ledger
 ledgerfromstringwithopts opts args refdate s =
-    liftM (prepareLedger opts args refdate) $ rawledgerfromstring s
+    liftM (prepareLedger opts args refdate s) $ rawledgerfromstring s
 
 -- | Get a Ledger from the given file path and options, or raise an error.
 ledgerfromfilewithopts :: [Opt] -> [String] -> FilePath -> IO Ledger
 ledgerfromfilewithopts opts args f = do
-    rl <- readFile f >>= rawledgerfromstring
-    refdate <- today
-    return $ prepareLedger opts args refdate rl
+  refdate <- today
+  s <- readFile f 
+  rl <- rawledgerfromstring s
+  return $ prepareLedger opts args refdate s rl
            
 -- | Get a Ledger from your default ledger file, or raise an error.
 -- Assumes no options.

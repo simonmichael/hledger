@@ -76,5 +76,8 @@ main = do
 parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = do
   refdate <- today
-  let runcmd = cmd opts args . prepareLedger opts args refdate
-  ledgerFilePathFromOpts opts >>= runErrorT . parseLedgerFile >>= either (hPutStrLn stderr) runcmd
+  -- ack, we're reading the file twice in order to save the text
+  f <- ledgerFilePathFromOpts opts
+  rawtext <- readFile f
+  let runcmd = cmd opts args . prepareLedger opts args refdate rawtext
+  return f >>= runErrorT . parseLedgerFile >>= either (hPutStrLn stderr) runcmd
