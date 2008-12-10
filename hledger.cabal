@@ -19,8 +19,8 @@ Extra-Tmp-Files:
 Cabal-Version:  >= 1.2
 
 Executable hledger
-  Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat, regexpr
-                  old-locale, time, HUnit, vty
+  Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat, regexpr,
+                  old-locale, time, HUnit, vty, mtl, bytestring
   Main-Is:        hledger.hs
   Other-Modules:  
                   BalanceCommand
