@@ -143,7 +143,7 @@ mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZ
 
 -- | Get the string representation of a mixed amount, showing each of
 -- its component amounts. NB a mixed amount can have an empty amounts
--- list in which case it shows as "".
+-- list in which case it shows as \"\".
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = concat $ intersperse "\n" $ map showfixedwidth as
     where 
