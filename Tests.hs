@@ -96,6 +96,10 @@ misc_tests = TestList [
   ,
   "timeLog" ~: do
     assertparseequal timelog1 (parseWithCtx timelog timelog1_str)
+  ,
+  "parsedate" ~: do
+    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" refdate) (parsedate "2008/02/03")
+    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" refdate) (parsedate "2008-02-03")
   ,                  
   "smart dates"     ~: do
     let todaysdate = parsedate "2008/11/26" -- wednesday
