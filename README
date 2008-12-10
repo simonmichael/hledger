@@ -15,18 +15,32 @@ Released under GPL version 3 or later.
 
 Installation
 ------------
+hledger requires GHC. It is known to build with 6.8.
+
+With cabal-install
+..................
 If you have cabal-install, in this directory do::
 
  cabal install
 
-otherwise, unpack the latest tarball from
+Manually
+........
+Otherwise, unpack the latest tarball from
 http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger and do::
 
  runhaskell Setup.hs configure
  runhaskell Setup.hs build
  sudo runhaskell Setup.hs install 
 
-or for the latest development code: darcs get http://joyful.com/repos/hledger
+This will complain about any missing libraries, which you can download and
+install manually from hackage.haskell.org. (The Build-Depends: in
+hledger.cabal has the full package list.)
+
+Latest development code
+.......................
+Or, to get the latest development code do::
+
+ darcs get http://joyful.com/repos/hledger
 
 
 Examples
@@ -40,15 +54,17 @@ Here are some commands to try::
  hledger register
  hledger reg cash
  hledger reg -- shop
+ hledger ui
 
 
 Features
 --------
 
-This version of hledger mimics a subset of ledger 2.6.1. We currently
-support: the balance, print, and register commands, regular ledger
-entries, multiple commodities, virtual transactions, account and
-description patterns, the LEDGER environment variable, and these options::
+This version of hledger mimics a subset of ledger 2.6.1, and adds some
+features of its own. We currently support: the balance, print, and
+register commands, regular ledger entries, multiple commodities, virtual
+transactions, account and description patterns, the LEDGER environment
+variable, and these options::
 
    Basic options:
    -h, --help             display summarized help text
@@ -80,6 +96,7 @@ We handle (almost) the full period expression syntax, and simple display
 expressions consisting of a date predicate.  Also the following
 hledger-specific features are supported::
 
+   ui                     interactive text ui
    --depth=N              balance report: maximum account depth to show
    --options-anywhere     allow options anywhere, use ^ for negative patterns
 
@@ -158,7 +175,6 @@ Other differences
 * hledger keeps differently-priced amounts of the same commodity separate at the moment
 * hledger refers to the entry's and transaction's "description", ledger calls it "note"
 * hledger doesn't require a space before command-line option values
-* hledger doesn't parse all ledger file constructs (and may choke ? please report)
 * hledger provides "--cost" as a synonym for "--basis"
 * hledger's "weekly" reporting intervals always start on mondays
 * hledger shows start and end dates of full intervals, not just the span containing data
