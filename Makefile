@@ -1,3 +1,5 @@
+BENCHEXES=hledger ledger
+
 BUILD=ghc --make hledger.hs -o hledger -O
 build: tag
 	$(BUILD)
@@ -6,6 +8,7 @@ BUILDO2=ghc --make hledger.hs -o hledgero2 -O2 -fvia-C
 buildo2:
 	$(BUILDO2)
 
+# rebuild all with normal optimisation
 rebuild: clean build
 
 # recompile and run tests whenever a module changes
@@ -14,6 +17,7 @@ rebuild: clean build
 continuous ci:
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs --run test
 
+# run code tests
 test:
 	./hledger.hs test
 
@@ -30,10 +34,9 @@ profile:
 	cp simple.prof profs/$(TIME).prof
 	cat simple.prof
 
+BENCHITERATIONS=2
 # run performance benchmarks and save results in profs
 # prepend ./ to executables if not in $PATH
-BENCHEXES=./hledger ledger
-BENCHITERATIONS=2
 bench:
 	tools/bench.hs bench.tests $(BENCHITERATIONS) $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
 
@@ -121,8 +124,9 @@ api-doc-frames: api-doc-with-source hoogleweb
 	cp doc/misc/hoogle-small.html hoogle
 
 BROWSER=open
-test-docs: api-doc-frames
+test-docs: docs
 	$(BROWSER) api-doc/index.html
+#	$(BROWSER) doc/README.html
 
 clean-docs:
 	rm -rf api-doc hoogle
