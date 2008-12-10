@@ -1,3 +1,4 @@
+# executables for "make bench". prepend ./ to these if not in $PATH
 BENCHEXES=hledger ledger
 
 BUILD=ghc --make hledger.hs -o hledger -O
@@ -34,11 +35,13 @@ profile:
 	cp simple.prof profs/$(TIME).prof
 	cat simple.prof
 
-BENCHITERATIONS=2
 # run performance benchmarks and save results in profs
-# prepend ./ to executables if not in $PATH
-bench:
-	tools/bench.hs bench.tests $(BENCHITERATIONS) $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
+bench: buildbench
+	./bench $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
+
+buildbench:
+	ghc --make tools/bench.hs
+	rm -f bench; ln -s tools/bench
 
 VERSION=`grep 'versionno =' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
 release:
