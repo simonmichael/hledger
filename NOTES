@@ -10,14 +10,18 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
+*** !account's account does not elide normally in balance report
+*** !account does not affect timelog entries
+*** !include does not support ~
+*** does not report clockout < clockin
 ** features
+*** actual/effective entry & txn dates, for completeness
+*** ~/.hledgerrc, for setting defaults
 *** speed
-**** optimise
+**** more optimisation
 **** generate big test files
 **** speed regression tests
 **** cache file ?
-*** actual/effective entry & txn dates, for completeness
-*** ~/.hledgerrc, for setting defaults
 *** more ledger features
 **** allow - before currency symbol ?
 **** support complete period syntax ?
@@ -32,8 +36,8 @@ clever tricks like the plague." --Edsger Dijkstra
 **** allow comment lines immediately after or within an entry
 **** more reliable tidy layout from print
 **** -Q quarterly interval option, for consistency/convenience ?
+**** can report more than 24 hours in a day.. split day-spanning timelog sessions when reporting
 **** easy timelog queries when called as "hours"
-**** curses gui
 **** web gui
 **** charts
 **** easier data entry
@@ -65,6 +69,12 @@ clever tricks like the plague." --Edsger Dijkstra
 *** implementation docs
 *** api docs
 *** developer intro
+**** style tips
+***** we aim to make reliable software:
+****** fixes come before features
+****** "bugs" get called "errors", as in "the programmer messed up"
+****** we test continuously and thoroughly (code, doc & speed tests on each checkin)
+****** less is more
 *** user manual
 *** differences not noted in README
 **** ledger shows description comments as part of description
