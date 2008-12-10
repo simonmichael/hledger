@@ -454,24 +454,19 @@ i 2007/03/10 12:26:00 hledger
 o 2007/03/10 17:26:02
 
 -}
-timelog :: GenParser Char st TimeLog
+timelog :: GenParser Char LedgerFileCtx TimeLog
 timelog = do
   entries <- many timelogentry <?> "timelog entry"
   eof
   return $ TimeLog entries
 
-timelogentry :: GenParser Char st TimeLogEntry
+timelogentry :: GenParser Char LedgerFileCtx TimeLogEntry
 timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- ledgerdatetime
-  comment <- restofline
+  comment <- liftM2 (++) getParentAccount restofline
   return $ TimeLogEntry code datetime comment
-
---ledgerfromtimelog :: GenParser Char st RawLedger
---ledgerfromtimelog = do 
---  tl <- timelog
---  return $ ledgerFromTimeLog tl
 
 
 -- misc parsing
