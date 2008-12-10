@@ -21,29 +21,32 @@ helpmsg = "Welcome to hledger. (b)alances, (r)egister, (p)rint entries, (l)edger
 
 instance Show Vty where show v = "a Vty"
 
+-- | The application state when running the ui command.
 data AppState = AppState {
-     av :: Vty                   -- the vty context
-    ,aw :: Int                   -- window width
-    ,ah :: Int                   -- window height
-    ,amsg :: String              -- status message
-    ,aopts :: [Opt]              -- command-line opts
-    ,aargs :: [String]           -- command-line args
-    ,aledger :: Ledger           -- parsed ledger
-    ,abuf :: [String]            -- lines of the current buffered view
-    ,alocs :: [Loc]              -- user's navigation trail within the UI
-                                -- never null, head is current location
+     av :: Vty                   -- ^ the vty context
+    ,aw :: Int                   -- ^ window width
+    ,ah :: Int                   -- ^ window height
+    ,amsg :: String              -- ^ status message
+    ,aopts :: [Opt]              -- ^ command-line opts
+    ,aargs :: [String]           -- ^ command-line args
+    ,aledger :: Ledger           -- ^ parsed ledger
+    ,abuf :: [String]            -- ^ lines of the current buffered view
+    ,alocs :: [Loc]              -- ^ user's navigation trail within the UI
+                                -- ^ never null, head is current location
     } deriving (Show)
 
+-- | A location within the user interface.
 data Loc = Loc {
-     scr :: Screen               -- ui screen
-    ,sy :: Int                   -- viewport y scroll position
-    ,cy :: Int                   -- cursor y position
+     scr :: Screen               -- ^ one of the available screens
+    ,sy :: Int                   -- ^ viewport y scroll position
+    ,cy :: Int                   -- ^ cursor y position
     } deriving (Show)
 
-data Screen = BalanceScreen     -- like "hledger balance".. shows accounts
-            | RegisterScreen    -- like "hledger register".. shows transactions
-            | PrintScreen       -- like "hledger print".. shows entries
-            | LedgerScreen      -- shows the raw ledger
+-- | The screens available within the user interface.
+data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
+            | RegisterScreen    -- ^ like hledger register, shows transactions
+            | PrintScreen       -- ^ like hledger print, shows entries
+            | LedgerScreen      -- ^ shows the raw ledger
               deriving (Eq,Show)
 
 -- | Run the interactive text ui.
@@ -131,20 +134,25 @@ updateCursorY f a = setCursorY (f $ cursorY a) a
 updateScrollY f a = setScrollY (f $ scrollY a) a
 updatePosY f a = setPosY (f $ posY a) a
 
+resize :: Int -> Int -> AppState -> AppState
 resize x y a = setCursorY cy' a{aw=x,ah=y}
     where
       cy = cursorY a
       cy' = min cy (y-2)
 
+moveToTop :: AppState -> AppState
 moveToTop a = setPosY 0 a
 
+moveToBottom :: AppState -> AppState
 moveToBottom a = setPosY (length $ abuf a) a
 
+moveUpAndPushEdge :: AppState -> AppState
 moveUpAndPushEdge a@AppState{alocs=(Loc{sy=sy,cy=cy}:_)}
     | cy > 0 = updateCursorY (subtract 1) a
     | sy > 0 = updateScrollY (subtract 1) a
     | otherwise = a
 
+moveDownAndPushEdge :: AppState -> AppState
 moveDownAndPushEdge a@AppState{alocs=(Loc{sy=sy,cy=cy}:_)}
     | sy+cy >= bh = a
     | cy < ph-1 = updateCursorY (+1) a
@@ -156,6 +164,7 @@ moveDownAndPushEdge a@AppState{alocs=(Loc{sy=sy,cy=cy}:_)}
 -- | Scroll down by page height or until we can just see the last line,
 -- without moving the cursor, or if we are already scrolled as far as
 -- possible then move the cursor to the last line.
+nextpage :: AppState -> AppState
 nextpage (a@AppState{abuf=b})
     | sy < bh-jump = setScrollY sy' a
     | otherwise    = setCursorY (bh-sy) a
@@ -168,6 +177,7 @@ nextpage (a@AppState{abuf=b})
 -- | Scroll up by page height or until we can just see the first line,
 -- without moving the cursor, or if we are scrolled as far as possible
 -- then move the cursor to the first line.
+prevpage :: AppState -> AppState
 prevpage (a@AppState{abuf=b})
     | sy > 0    = setScrollY sy' a
     | otherwise = setCursorY 0 a
@@ -206,7 +216,7 @@ enter scr@LedgerScreen a   = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 
 resetTrailAndEnter scr a = enter scr $ clearLocs a
 
--- | Regenerate the display data based on current UI location.
+-- | Regenerate the display data appropriate for the current screen.
 updateData :: AppState -> AppState
 updateData a@AppState{aopts=opts,aargs=args,aledger=l}
     | scr == BalanceScreen  = a{abuf=lines $ showBalanceReport opts [] l, aargs=[]}
@@ -252,9 +262,8 @@ accountNameAt buf lineno = accountNameFromComponents anamecomponents
             myindent = indentof x
             indentof = length . takeWhile (==' ')
 
--- currentEntry/scrollToEntry doesn't work
 -- | If on the print screen, move the cursor to highlight the specified entry
--- (or a reasonable guess).
+-- (or a reasonable guess). Doesn't work.
 scrollToEntry :: Entry -> AppState -> AppState
 scrollToEntry e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
     where
@@ -266,7 +275,7 @@ scrollToEntry e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
 
 -- | Get the entry containing the transaction currently highlighted by the
 -- cursor on the register screen (or best guess). Results undefined while
--- on other screens.
+-- on other screens. Doesn't work.
 currentEntry :: AppState -> Entry
 currentEntry a@AppState{aledger=l,abuf=buf} = entryContainingTransaction a t
     where
