@@ -375,7 +375,7 @@ balancecommand_tests = TestList [
    "")
  ,
   "balance report with cost basis" ~: do
-    rawl <- rawledgerfromstring
+    rl <- rawledgerfromstring
              ("" ++
               "2008/1/1 test           \n" ++
               "  a:b          10h @ $50\n" ++
@@ -383,13 +383,28 @@ balancecommand_tests = TestList [
               "\n")
     let l = cacheLedger [] $ 
             filterRawLedger (DateSpan Nothing Nothing) [] False False $ 
-            canonicaliseAmounts True rawl -- enable cost basis adjustment            
+            canonicaliseAmounts True rl -- enable cost basis adjustment            
     assertequal 
              ("                $500  a\n" ++
               "               $-500  c\n" ++
               ""
              )
              (showBalanceReport [] [] l)
+ ,
+  "balance report with !account" ~: do
+    l <- ledgerfromstringwithopts [] [] refdate
+             ("!account TEST\n" ++
+              "2008/1/1 test\n" ++
+              "  a  1\n" ++
+              "  b\n"
+             )
+    assertequal "" (showBalanceReport [] [] l)
+    assertequal 
+             ("                1  TEST:a\n" ++
+              "               -1  TEST:b\n" ++
+              ""
+             )
+             (showBalanceReport [SubTotal] [] l)
  ] where
     gives (opts,args) e = do 
       l <- sampleledgerwithopts [] args
