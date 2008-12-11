@@ -13,6 +13,7 @@ import Ledger.Types
 import Ledger.Dates
 import Ledger.Commodity
 import Ledger.Amount
+import Ledger.Entry
 
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
@@ -36,17 +37,21 @@ clockoutFor (TimeLogEntry _ t _) = TimeLogEntry 'o' t ""
 -- entry, representing the time expenditure. Note this entry is  not balanced,
 -- since we omit the \"assets:time\" transaction for simpler output.
 entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Entry
-entryFromTimeLogInOut i o =
-    Entry {
-      edate         = outdate, -- like ledger
-      estatus       = True,
-      ecode         = "",
-      edescription  = "",
-      ecomment      = "",
-      etransactions = txns,
-      epreceding_comment_lines=""
-    }
+entryFromTimeLogInOut i o
+    | outtime >= intime = e
+    | otherwise = 
+        error $ "clock-out time less than clock-in time in:\n" ++ showEntry e
     where
+      e = Entry {
+            edate         = outdate, -- like ledger
+            estatus       = True,
+            ecode         = "",
+            edescription  = showtime intime ++ " - " ++ showtime outtime,
+            ecomment      = "",
+            etransactions = txns,
+            epreceding_comment_lines=""
+          }
+      showtime = show . timeToTimeOfDay . utctDayTime
       acctname = tlcomment i
       indate   = utctDay intime
       outdate  = utctDay outtime
