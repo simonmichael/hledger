@@ -36,7 +36,7 @@ import Debug.Trace
 import Test.HUnit
 import Text.Printf
 import Text.Regex
-import Text.RegexPR
+import Text.RegexPR hiding (gsubRegexPRBy)
 import Text.ParserCombinators.Parsec
 
 
@@ -120,6 +120,7 @@ containsRegex r s = case matchRegex r s of
                       Just _ -> True
                       otherwise -> False
 
+-- regexpr-0.5.1 includes this now, keep a little longer to minimise installation pain
 -- | Replace all occurrences of a regexp in string using the given replacement function
 gsubRegexPRBy :: String -> (String -> String) -> String -> String
 gsubRegexPRBy pat f str = 
