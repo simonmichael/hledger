@@ -34,6 +34,7 @@ rawLedgerEmpty = RawLedger { modifier_entries = []
                            , periodic_entries = []
                            , entries = []
                            , open_timelog_entries = []
+                           , historical_prices = []
                            , final_comment_lines = []
                            }
 
@@ -45,6 +46,9 @@ addModifierEntry me l0 = l0 { modifier_entries = me : (modifier_entries l0) }
 
 addPeriodicEntry :: PeriodicEntry -> RawLedger -> RawLedger
 addPeriodicEntry pe l0 = l0 { periodic_entries = pe : (periodic_entries l0) }
+
+addHistoricalPrice :: HistoricalPrice -> RawLedger -> RawLedger
+addHistoricalPrice h l0 = l0 { historical_prices = h : (historical_prices l0) }
 
 addTimeLogEntry :: TimeLogEntry -> RawLedger -> RawLedger
 addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : (open_timelog_entries l0) }
@@ -74,16 +78,16 @@ filterRawLedger span pats clearedonly realonly =
 
 -- | Keep only entries whose description matches the description patterns.
 filterRawLedgerEntriesByDescription :: [String] -> RawLedger -> RawLedger
-filterRawLedgerEntriesByDescription pats (RawLedger ms ps es tls f) = 
-    RawLedger ms ps (filter matchdesc es) tls f
+filterRawLedgerEntriesByDescription pats (RawLedger ms ps es tls hs f) = 
+    RawLedger ms ps (filter matchdesc es) tls hs f
     where matchdesc = matchpats pats . edescription
 
 -- | Keep only entries which fall between begin and end dates. 
 -- We include entries on the begin date and exclude entries on the end
 -- date, like ledger.  An empty date string means no restriction.
 filterRawLedgerEntriesByDate :: DateSpan -> RawLedger -> RawLedger
-filterRawLedgerEntriesByDate (DateSpan begin end) (RawLedger ms ps es tls f) = 
-    RawLedger ms ps (filter matchdate es) tls f
+filterRawLedgerEntriesByDate (DateSpan begin end) (RawLedger ms ps es tls hs f) = 
+    RawLedger ms ps (filter matchdate es) tls hs f
     where 
       matchdate e = (maybe True (edate e>=) begin) && (maybe True (edate e<) end)
 
@@ -91,21 +95,21 @@ filterRawLedgerEntriesByDate (DateSpan begin end) (RawLedger ms ps es tls f) =
 -- do no filtering.
 filterRawLedgerEntriesByClearedStatus :: Bool -> RawLedger -> RawLedger
 filterRawLedgerEntriesByClearedStatus False l = l
-filterRawLedgerEntriesByClearedStatus True  (RawLedger ms ps es tls f) =
-    RawLedger ms ps (filter estatus es) tls f
+filterRawLedgerEntriesByClearedStatus True  (RawLedger ms ps es tls hs f) =
+    RawLedger ms ps (filter estatus es) tls hs f
 
 -- | Strip out any virtual transactions, if the flag is true, otherwise do
 -- no filtering.
 filterRawLedgerTransactionsByRealness :: Bool -> RawLedger -> RawLedger
 filterRawLedgerTransactionsByRealness False l = l
-filterRawLedgerTransactionsByRealness True (RawLedger ms ps es tls f) =
-    RawLedger ms ps (map filtertxns es) tls f
+filterRawLedgerTransactionsByRealness True (RawLedger ms ps es tls hs f) =
+    RawLedger ms ps (map filtertxns es) tls hs f
     where filtertxns e@Entry{etransactions=ts} = e{etransactions=filter isReal ts}
 
 -- | Keep only entries which affect accounts matched by the account patterns.
 filterRawLedgerEntriesByAccount :: [String] -> RawLedger -> RawLedger
-filterRawLedgerEntriesByAccount apats (RawLedger ms ps es tls f) =
-    RawLedger ms ps (filter (any (matchpats apats . taccount) . etransactions) es) tls f
+filterRawLedgerEntriesByAccount apats (RawLedger ms ps es tls hs f) =
+    RawLedger ms ps (filter (any (matchpats apats . taccount) . etransactions) es) tls hs f
 
 -- | Give all a ledger's amounts their canonical display settings.  That
 -- is, in each commodity, amounts will use the display settings of the
@@ -113,7 +117,7 @@ filterRawLedgerEntriesByAccount apats (RawLedger ms ps es tls f) =
 -- detected. Also, amounts are converted to cost basis if that flag is
 -- active.
 canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
-canonicaliseAmounts costbasis l@(RawLedger ms ps es tls f) = RawLedger ms ps (map fixentry es) tls f
+canonicaliseAmounts costbasis l@(RawLedger ms ps es tls hs f) = RawLedger ms ps (map fixentry es) tls hs f
     where 
       fixentry (Entry d s c de co ts pr) = Entry d s c de co (map fixrawtransaction ts) pr
       fixrawtransaction (RawTransaction ac a c t) = RawTransaction ac (fixmixedamount a) c t

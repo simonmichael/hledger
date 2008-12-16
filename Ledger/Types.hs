@@ -73,11 +73,19 @@ data Entry = Entry {
       epreceding_comment_lines :: String
     } deriving (Eq)
 
+data HistoricalPrice = HistoricalPrice {
+     hdate :: Day,
+     hsymbol1 :: String,
+     hsymbol2 :: String,
+     hprice :: Double
+} deriving (Eq,Show)
+
 data RawLedger = RawLedger {
       modifier_entries :: [ModifierEntry],
       periodic_entries :: [PeriodicEntry],
       entries :: [Entry],
       open_timelog_entries :: [TimeLogEntry],
+      historical_prices :: [HistoricalPrice],
       final_comment_lines :: String
     } deriving (Eq)
 

@@ -59,6 +59,7 @@ ledgerFile = do entries <- many1 ledgerAnyEntry
                                   , liftM (return . addEntry)         ledgerEntry
                                   , liftM (return . addModifierEntry) ledgerModifierEntry
                                   , liftM (return . addPeriodicEntry) ledgerPeriodicEntry
+                                  , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
                                   , emptyLine >> return (return id)
                                   , liftM (return . addTimeLogEntry)  timelogentry
                                   ]
@@ -219,6 +220,18 @@ ledgerPeriodicEntry = do
   periodexpr <- restofline
   transactions <- ledgertransactions
   return $ PeriodicEntry periodexpr transactions
+
+ledgerHistoricalPrice :: GenParser Char LedgerFileCtx HistoricalPrice
+ledgerHistoricalPrice = do
+  char 'P' <?> "hprice"
+  many spacenonewline
+  date <- ledgerdate
+  many spacenonewline
+  symbol1 <- commoditysymbol
+  many spacenonewline
+  (Mixed [Amount c price pri]) <- someamount
+  restofline
+  return $ HistoricalPrice date symbol1 (symbol c) price
 
 ledgerEntry :: GenParser Char LedgerFileCtx Entry
 ledgerEntry = do
