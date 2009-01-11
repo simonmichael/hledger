@@ -188,19 +188,32 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 ----------------------------------------------------------------------
 -- parsing
 
+firstJust ms = case dropWhile (==Nothing) ms of
+    [] -> Nothing
+    (md:_) -> md
+
+parsedatetimeM :: String -> Maybe UTCTime
+parsedatetimeM s = firstJust [
+    parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
+    parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
+    ]
+
 -- | Parse a date-time string to a time type, or raise an error.
 parsedatetime :: String -> UTCTime
-parsedatetime s = 
-    parsetimewith "%Y/%m/%d %H:%M:%S" s $
-    parsetimewith "%Y-%m-%d %H:%M:%S" s $
-    error $ printf "could not parse timestamp \"%s\"" s
+parsedatetime s = fromMaybe (error $ "could not parse timestamp \"" ++ s ++ "\"")
+                            (parsedatetimeM s)
+
+-- | Parse a date string to a time type, or raise an error.
+parsedateM :: String -> Maybe Day
+parsedateM s = firstJust [ 
+     parseTime defaultTimeLocale "%Y/%m/%d" s,
+     parseTime defaultTimeLocale "%Y-%m-%d" s 
+     ]
 
 -- | Parse a date string to a time type, or raise an error.
 parsedate :: String -> Day
-parsedate s =  
-    parsetimewith "%Y/%m/%d" s $
-    parsetimewith "%Y-%m-%d" s $
-    error $ printf "could not parse date \"%s\"" s
+parsedate s =  fromMaybe (error $ "could not parse date \"" ++ s ++ "\"")
+                         (parsedateM s)
 
 -- | Parse a time string to a time type using the provided pattern, or
 -- return the default.
