@@ -133,8 +133,7 @@ ledger features not supported
 .............................
 
 ledger features not yet supported include: modifier and periodic entries,
-!include and other special directives, price history entries, parsing
-gnucash files, and the following options::
+parsing gnucash files, and the following options::
 
    Basic options:
    -o, --output FILE      write output to FILE
