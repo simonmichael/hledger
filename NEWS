@@ -1,6 +1,52 @@
 NEWS
 ----
 
+2009/01/17 hledger 0.3 released
+...............................
+
+Summarised changes:
+
+* fixes
+
+  * count timelog sessions on the day they end, like ledger, for now
+  * when options are repeated, use the last instead of the first
+  * builds with ghc 6.10 as well as 6.8
+  * runs ~10x faster than 0.2:
+
+    $ bench hledger-0.2 hledger ledger
+
+                                    || hledger-0.2 | hledger | ledger
+    ================================++=============+=========+=======
+    -f 2008.ledger -s balance       ||        2.59 |    0.26 |   0.11
+
+* features
+
+  * accept smart dates everywhere (YYYYMMDD, Y/M/D, Y, M/D, D, jan, today, last week etc.)
+  * --period/-p flag accepting period expressions like "in 2008", "weekly from last month"..
+  * -W/-M/-Y convenience flags to summarise register weekly, monthly, yearly
+  * --depth and -E flags also affect summarised register reports (including depth=0)
+  * --display/-d flag supporting date predicates (like "d<[DATE]", "d>=[DATE]")
+  * !include directive to include additional ledger files
+  * !account directive to set a default parent account
+  * Added support for reading historical prices from files
+  * timelog and ledger entries can be intermixed in one file
+  * modifier and periodic entries can appear anywhere (but are still ignored)
+  * help and readme improvements
+  * a simple ui for interactive report browsing: hledger ui
+
+Contributors:
+
+  * Simon Michael
+  * Nick Ingolia
+  * Tim Docker
+
+Stats:
+
+  * Known errors: 0
+  * Tests: 
+  * Lines of non-test code: 
+
+
 2008/11/23 hledger 0.2 released
 ...............................
 
@@ -39,12 +85,17 @@ Summarised changes:
   * when we fail because of more than one missing amount in an entry, show the full entry
   * document the built-in test runner in --help
   * add a --verbose/-v flag, use it to show more test-running detail
-  * includes 43 tests 
 
 Contributors:
 
   * Simon Michael
   * Tim Docker
+
+Stats:
+
+  * Known errors: 0
+  * Tests: 43
+  * Lines of non-test code: 1350
 
 
 2008/10/15 hledger 0.1 released
