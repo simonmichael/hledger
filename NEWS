@@ -9,13 +9,13 @@ Fixes:
   * count timelog sessions on the day they end, like ledger, for now
   * when options are repeated, use the last instead of the first
   * builds with ghc 6.10 as well as 6.8
-  * runs ~10x faster than 0.2:
+  * runs much faster than 0.2:
 
     $ bench hledger-0.2 hledger ledger
-
-                                    || hledger-0.2 | hledger | ledger
-    ================================++=============+=========+=======
-    -f 2008.ledger -s balance       ||        2.59 |    0.26 |   0.11
+                                      || hledger-0.2 | hledger | ledger
+    ==================================++=============+=========+=======
+    -f 2008.ledger -s balance         ||        2.59 |    0.26 |   0.11
+    -f 10000entries.ledger -s balance ||      566.68 |    2.72 |   0.96
 
 Features:
 
