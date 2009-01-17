@@ -19,6 +19,7 @@ Fixes:
 
 Features:
 
+  * a simple ui for interactive report browsing: hledger ui
   * accept smart dates everywhere (YYYYMMDD, Y/M/D, Y, M/D, D, jan, today, last week etc.)
   * --period/-p flag accepting period expressions like "in 2008", "weekly from last month"..
   * -W/-M/-Y convenience flags to summarise register weekly, monthly, yearly
@@ -30,7 +31,6 @@ Features:
   * timelog and ledger entries can be intermixed in one file
   * modifier and periodic entries can appear anywhere (but are still ignored)
   * help and readme improvements
-  * a simple ui for interactive report browsing: hledger ui
 
 Contributors:
 
