@@ -129,6 +129,9 @@ misc_tests = TestList [
     "this year"    `gives` "2008/01/01"
     "last year"    `gives` "2007/01/01"
     "next year"    `gives` "2009/01/01"
+--     "last wed"     `gives` "2008/11/19"
+--     "next friday"  `gives` "2008/11/28"
+--     "next january" `gives` "2009/01/01"
   ,
   "dateSpanFromOpts"     ~: do
     let todaysdate = parsedate "2008/11/26"

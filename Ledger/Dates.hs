@@ -278,13 +278,14 @@ md = do
   guard (read d <= 31)
   return ("",m,d)
 
-months = ["january","february","march","april","may","june",
-          "july","august","september","october","november","december"]
-
-mons   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+months         = ["january","february","march","april","may","june",
+                  "july","august","september","october","november","december"]
+monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
 monthIndex s = maybe 0 (+1) $ (lowercase s) `elemIndex` months
-monIndex s   = maybe 0 (+1) $ (lowercase s) `elemIndex` mons
+monIndex s   = maybe 0 (+1) $ (lowercase s) `elemIndex` monthabbrevs
 
 month :: Parser SmartDate
 month = do
@@ -294,7 +295,7 @@ month = do
 
 mon :: Parser SmartDate
 mon = do
-  m <- choice $ map (try . string) mons
+  m <- choice $ map (try . string) monthabbrevs
   let i = monIndex m
   return ("",show i,"")
 
@@ -310,15 +311,17 @@ lastthisnextthing = do
        ,string "this"
        ,string "next"
       ]
-  --many1 spacenonewline
-  many spacenonewline  -- allow the space to be omitted for easier scripting
-  p <- choice [
+  many spacenonewline  -- make the space optional for easier scripting
+  p <- choice $ [
         string "day"
        ,string "week"
        ,string "month"
        ,string "quarter"
        ,string "year"
       ]
+-- XXX support these in fixSmartDate
+--       ++ (map string $ months ++ monthabbrevs ++ weekdays ++ weekdayabbrevs)
+            
   return ("",r,p)
 
 periodexpr :: Day -> Parser (Interval, DateSpan)
