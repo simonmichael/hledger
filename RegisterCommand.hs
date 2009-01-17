@@ -29,11 +29,14 @@ DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
 -}
 showRegisterReport :: [Opt] -> [String] -> Ledger -> String
 showRegisterReport opts args l
-    | interval == NoInterval = showtxns ts nulltxn nullmixedamt
-    | otherwise = showtxns summaryts nulltxn nullmixedamt
+    | interval == NoInterval = showtxns displayedts nulltxn startbal
+    | otherwise = showtxns summaryts nulltxn startbal
     where
       interval = intervalFromOpts opts
-      ts = filter (not . isZeroMixedAmount . amount) $ filter (matchdisplayopt dopt) $ filter matchapats $ ledgerTransactions l
+      ts = filter (not . isZeroMixedAmount . amount) $ filter matchapats $ ledgerTransactions l
+      (precedingts, ts') = break (matchdisplayopt dopt) ts
+      (displayedts, _) = span (matchdisplayopt dopt) ts'
+      startbal = sumTransactions precedingts
       matchapats t = matchpats apats $ account t
       apats = fst $ parseAccountDescriptionArgs opts args
       matchdisplayopt Nothing t = True
@@ -43,7 +46,7 @@ showRegisterReport opts args l
       depth = depthFromOpts opts
       summaryts = concatMap summarisespan (zip spans [1..])
       summarisespan (s,n) = summariseTransactionsInDateSpan s n depth empty (transactionsinspan s)
-      transactionsinspan s = filter (isTransactionInDateSpan s) ts
+      transactionsinspan s = filter (isTransactionInDateSpan s) displayedts
       spans = splitSpan interval (ledgerDateSpan l)
                         
 -- | Convert a date span (representing a reporting interval) and a list of
