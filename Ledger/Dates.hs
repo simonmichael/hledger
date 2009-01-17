@@ -229,13 +229,22 @@ Assumes any text in the parse stream has been lowercased.
 -}
 smartdate :: GenParser Char st SmartDate
 smartdate = do
-  let dateparsers = [ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow,
+  let dateparsers = [yyyymmdd, ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow,
                      lastthisnextthing
                     ]
   (y,m,d) <- choice $ map try dateparsers
   return $ (y,m,d)
 
 datesepchar = oneOf "/-."
+
+yyyymmdd :: GenParser Char st SmartDate
+yyyymmdd = do
+  y <- count 4 digit
+  m <- count 2 digit
+  guard (read m <= 12)
+  d <- count 2 digit
+  guard (read d <= 31)
+  return (y,m,d)
 
 ymd :: GenParser Char st SmartDate
 ymd = do
