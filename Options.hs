@@ -10,7 +10,7 @@ import Ledger.Types
 import Ledger.Dates
 
 
-versionno   = "0.3pre"
+versionno   = "0.3"
 version     = printf "hledger version %s \n" versionno :: String
 defaultfile = "~/.ledger"
 fileenvvar  = "LEDGER"
