@@ -76,8 +76,10 @@ main = do
 parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = do
   refdate <- today
-  -- ack, we're reading the file twice in order to save the text
   f <- ledgerFilePathFromOpts opts
-  rawtext <- readFile f
+  -- XXX we read the file twice - inelegant
+  -- and, doesn't work with stdin. kludge it, stdin won't work with ui command
+  let f' = if f == "-" then "/dev/null" else f
+  rawtext <- readFile f'
   let runcmd = cmd opts args . prepareLedger opts args refdate rawtext
   return f >>= runErrorT . parseLedgerFile >>= either (hPutStrLn stderr) runcmd
