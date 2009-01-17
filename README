@@ -36,6 +36,11 @@ This will complain about any missing libraries, which you can download and
 install manually from hackage.haskell.org. (The Build-Depends: in
 hledger.cabal has the full package list.)
 
+Caveat
+......
+The current vty library requires ghc 6.10 to build, so if you are using
+ghc 6.8 you will need to use vty 3.1.2.
+
 Latest development code
 .......................
 Or, to get the latest development code do::

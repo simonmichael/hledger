@@ -19,9 +19,22 @@ Extra-Tmp-Files:
 Cabal-Version:  >= 1.2
 
 Executable hledger
-  Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat, regexpr>=0.5.1,
-                  old-locale, time, HUnit, vty==3.1.2, mtl, bytestring
   Main-Is:        hledger.hs
+  Build-Depends:  
+                  base,
+                  containers, 
+                  haskell98, 
+                  directory, 
+                  parsec, 
+                  regex-compat, 
+                  regexpr>=0.5.1,
+                  old-locale, 
+                  time, 
+                  HUnit, 
+                  mtl, 
+                  bytestring,
+                  -- if you have ghc <6.10 you'll need vty 3.1.2
+                  vty>=3.1.2
   Other-Modules:  
                   BalanceCommand
                   Options
