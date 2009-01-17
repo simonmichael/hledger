@@ -3,28 +3,28 @@ hledger - a ledger-compatible text-based accounting tool
 
 Welcome to hledger! 
 
-hledger is a minimal haskell clone of John Wiegley's "ledger" text-based
-accounting tool (http://newartisans.com/software/ledger.html).  hledger
-generates ledger-compatible register & balance reports from a plain text
-ledger file, and demonstrates a functional implementation of ledger.  For
-more information, see the hledger home page: http://joyful.com/hledger
+hledger is a haskell clone of John Wiegley's "ledger" text-based
+accounting tool (http://newartisans.com/software/ledger.html).  
+It generates ledger-compatible register & balance reports from a plain
+text ledger file, and demonstrates a functional implementation of ledger.
+For more information, see hledger's home page: http://joyful.com/hledger
 
-Copyright (c) 2007-2008 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 
 Installation
 ------------
-hledger requires GHC. It is known to build with 6.8.
+hledger requires GHC. It is known to build with 6.8 and 6.10.
 
-With cabal-install
-..................
+Installing with cabal
+.....................
 If you have cabal-install, in this directory do::
 
  cabal install
 
-Manually
-........
+Installing manually
+...................
 Otherwise, unpack the latest tarball from
 http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger and do::
 
@@ -55,6 +55,9 @@ Here are some commands to try::
  hledger reg cash
  hledger reg -- shop
  hledger ui
+
+hledger looks for your ledger file at ~/.ledger by default. To use a different file,
+specify it with -f or the LEDGER environment variable.
 
 
 Features
