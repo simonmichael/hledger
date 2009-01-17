@@ -4,9 +4,7 @@ NEWS
 2009/01/17 hledger 0.3 released
 ...............................
 
-Summarised changes:
-
-* fixes
+Fixes:
 
   * count timelog sessions on the day they end, like ledger, for now
   * when options are repeated, use the last instead of the first
@@ -19,7 +17,7 @@ Summarised changes:
     ================================++=============+=========+=======
     -f 2008.ledger -s balance       ||        2.59 |    0.26 |   0.11
 
-* features
+Features:
 
   * accept smart dates everywhere (YYYYMMDD, Y/M/D, Y, M/D, D, jan, today, last week etc.)
   * --period/-p flag accepting period expressions like "in 2008", "weekly from last month"..
@@ -42,9 +40,9 @@ Contributors:
 
 Stats:
 
-  * Known errors: 0
-  * Tests: 
-  * Lines of non-test code: 
+  * Known errors: 1
+  * Tests: 58
+  * Lines of non-test code: 2123
 
 
 2008/11/23 hledger 0.2 released
