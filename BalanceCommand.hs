@@ -180,8 +180,71 @@ showAccountTreeWithBalances matchednames t = showAccountTreeWithBalances' matche
             spaces = "  " ++ replicate (indent * 2) ' '
             leafname = accountLeafName fullname
             ismatched = fullname `elem` matchednames
-            isboringparent = numsubs >= 1 && (bal == subbal || not matched)
-            numsubs = length subs
-            subbal = abalance $ root $ head subs
-            matched = fullname `elem` matchednames
 
+            -- XXX 
+            isboringparent = numsubs >= 1 && (bal == subbal || not ismatched)
+            subbal = abalance $ root $ head subs
+            numsubs = length subs
+            {- gives:
+### Failure in: 52:balance report elides zero-balance root account(s)
+expected: ""
+ but got: "                   0  test\n"
+Cases: 58  Tried: 58  Errors: 0  Failures: 1
+Eg:
+~/src/hledger$ hledger -f sample2.ledger  -s bal
+                   0  test
+                  $2    a:aa
+                 $-2    b
+~/src/hledger$ ledger -f sample2.ledger  -s bal
+                  $2  test:a:aa
+                 $-2  test:b
+-}
+
+
+--          isboringparent = hassubs && (not ismatched || (bal `mixedAmountEquals` subsbal))
+--          hassubs = not $ null subs
+--          subsbal = sum $ map (abalance . root) subs
+            {- gives:
+### Failure in: 37:balance report with -s
+expected: "                 $-1  assets\n                  $1    bank:saving\n                 $-2    cash\n                  $2  expenses\n                  $1    food\n                  $1    supplies\n                 $-2  income\n                 $-1    gifts\n                 $-1    salary\n                  $1  liabilities:debts\n"
+ but got: "                  $1  assets:bank:saving\n                 $-2  assets:cash\n                  $1  expenses:food\n                  $1  expenses:supplies\n                 $-1  income:gifts\n                 $-1  income:salary\n                  $1  liabilities:debts\n"
+### Failure in: 39:balance report --depth activates -s
+expected: "                 $-1  assets\n                  $1    bank\n                 $-2    cash\n                  $2  expenses\n                  $1    food\n                  $1    supplies\n                 $-2  income\n                 $-1    gifts\n                 $-1    salary\n                  $1  liabilities:debts\n"
+ but got: "                  $1  assets:bank\n                 $-2  assets:cash\n                  $1  expenses:food\n                  $1  expenses:supplies\n                 $-1  income:gifts\n                 $-1  income:salary\n                  $1  liabilities:debts\n"
+### Failure in: 41:balance report with account pattern o and -s
+expected: "                  $1  expenses:food\n                 $-2  income\n                 $-1    gifts\n                 $-1    salary\n--------------------\n                 $-1\n"
+ but got: "                  $1  expenses:food\n                 $-1  income:gifts\n                 $-1  income:salary\n--------------------\n                 $-1\n"
+### Failure in: 42:balance report with account pattern a
+expected: "                 $-1  assets\n                  $1    bank:saving\n                 $-2    cash\n                 $-1  income:salary\n                  $1  liabilities\n--------------------\n                 $-1\n"
+ but got: "                  $1  assets:bank:saving\n                 $-2  assets:cash\n                 $-1  income:salary\n                  $1  liabilities\n--------------------\n                 $-1\n"
+### Failure in: 43:balance report with account pattern e
+expected: "                 $-1  assets\n                  $2  expenses\n                  $1    supplies\n                 $-2  income\n                  $1  liabilities:debts\n"
+ but got: "                 $-1  assets\n                  $1  expenses:supplies\n                 $-2  income\n                  $1  liabilities:debts\n"
+### Failure in: 49:balance report with -E shows zero-balance accounts
+expected: "                 $-1  assets\n                  $1    bank\n                  $0      checking\n                  $1      saving\n                 $-2    cash\n--------------------\n                 $-1\n"
+ but got: "                  $0  assets:bank:checking\n                  $1  assets:bank:saving\n                 $-2  assets:cash\n--------------------\n                 $-1\n"
+### Failure in: 52:balance report elides zero-balance root account(s)
+expected: ""
+ but got: "                   0  test\n"
+Cases: 58  Tried: 58  Errors: 0  Failures: 7
+Eg:
+~/src/hledger$ hledger -f sample.ledger  -s bal
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+~/src/hledger$ ledger -f sample.ledger  -s bal
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+                  $1  liabilities:debts
+-}
