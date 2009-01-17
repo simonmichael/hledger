@@ -36,12 +36,17 @@ profile:
 	cat simple.prof
 
 # run performance benchmarks and save results in profs
-bench: buildbench
+bench: buildbench sampleledgers
 	./bench $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
 
 buildbench:
 	ghc --make tools/bench.hs
 	rm -f bench; ln -s tools/bench
+
+sampleledgers:
+	ghc -e 'putStr $$ unlines $$ replicate 1000 "!include sample.ledger"' >sample1000.ledger
+#	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >sample10000.ledger
+#	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >sample10000.ledger
 
 VERSION=`grep 'versionno =' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
 release:

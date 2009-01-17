@@ -1,8 +1,12 @@
-# see tools/bench.hs
+# speed tests for tools/bench.hs and "make bench"
 
--f sample.ledger -p weekly register
--f ~/.ledger     -p weekly register
--f ~/.timelog    -p weekly register
+# the small sample ledger
 -f sample.ledger -s balance
--f ~/.ledger     -s balance
--f ~/.timelog    -s balance
+
+# sample.ledger's entries replicated n times
+-f sample1000.ledger -s balance
+#-f sample10000.ledger -s balance
+#-f sample100000.ledger -s balance
+
+# the user's ledger, if any
+#-s balance
