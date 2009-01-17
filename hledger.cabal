@@ -41,6 +41,7 @@ Executable hledger
                   RegisterCommand
                   Setup
                   Tests
+                  UICommand
                   Utils
                   Ledger
                   Ledger.Account
