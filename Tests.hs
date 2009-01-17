@@ -391,17 +391,16 @@ balancecommand_tests = TestList [
              )
              (showBalanceReport [] [] l)
  ,
-  "balance report with !account" ~: do
+  "balance report elides zero-balance root account(s)" ~: do
     l <- ledgerfromstringwithopts [] [] refdate
-             ("!account TEST\n" ++
-              "2008/1/1 test\n" ++
-              "  a  1\n" ++
-              "  b\n"
+             ("2008/1/1 one\n" ++
+              "  test:a  1\n" ++
+              "  test:b\n"
              )
     assertequal "" (showBalanceReport [] [] l)
     assertequal 
-             ("                1  TEST:a\n" ++
-              "               -1  TEST:b\n" ++
+             ("                1  test:a\n" ++
+              "               -1  test:b\n" ++
               ""
              )
              (showBalanceReport [SubTotal] [] l)
