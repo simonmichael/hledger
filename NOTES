@@ -10,16 +10,13 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** !account's account does not elide normally in balance report
-*** !account does not affect timelog entries
-*** !include does not support ~
-*** does not report clockout < clockin
+*** balance report: zero-balance root accounts do not elide properly
 ** features
 *** actual/effective entry & txn dates, for completeness
 *** ~/.hledgerrc, for setting defaults
+*** more date syntax: last nov, next friday
 *** speed
 **** more optimisation
-**** generate big test files
 **** speed regression tests
 **** cache file ?
 *** more ledger features
@@ -34,20 +31,20 @@ clever tricks like the plague." --Edsger Dijkstra
     bimonthly
 *** new features
 **** allow comment lines immediately after or within an entry
+**** accept multiple -f files
 **** more reliable tidy layout from print
 **** -Q quarterly interval option, for consistency/convenience ?
-**** can report more than 24 hours in a day.. split day-spanning timelog sessions when reporting
-**** easy timelog queries when called as "hours"
 **** web gui
 **** charts
 **** easier data entry
 **** parse more file formats - gnucash, qif, ofx, csv..
-**** in/out times in timelog entry descriptions
 **** parse in-progress timelog entries
+**** split day-spanning timelog sessions, don't report more than 24 hours in a day
+**** easy timelog queries when called as "hours"
 **** i18n
 ** tests
+*** wanted: a test for reading a ledger from stdin
 *** test on more ledger files
-*** more modular/scalable approach to test data
 *** easy ledger compatibility testing
 **** --compare to compare (xml?) output with ledger with same args
 ** docs
@@ -59,7 +56,7 @@ clever tricks like the plague." --Edsger Dijkstra
 ***** hledger.hs module description
 ***** hledger.cabal description field (exclude home page link)
 ***** home page description (http://joyful.com/Hledger/editform)
-***** mail list description (http://google.com/groups/hledger)
+***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
 ***** gmane description
 ***** darcsweb description
 *** announcements
@@ -170,4 +167,13 @@ isProp _ = False
 declName :: HsDecl -> String
 declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
 declName _                                              = undefined
+
+** snippets
+-- trace a MixedAmount
+matrace :: MixedAmount -> MixedAmount
+matrace a@(Mixed as) = trace (show as) a
+
+-- normalise and trace a MixedAmount
+nmatrace :: MixedAmount -> MixedAmount
+nmatrace a = trace (show as) a where (Mixed as) = normaliseMixedAmount a
 
