@@ -1,4 +1,5 @@
-#!/usr/bin/env runhaskell
+-- #!/usr/bin/env runhaskell
+{-# OPTIONS_GHC -cpp #-}
 {-|
 hledger - a ledger-compatible text-based accounting tool.
 
@@ -39,7 +40,10 @@ module Main (
              module BalanceCommand,
              module PrintCommand,
              module RegisterCommand,
+#ifndef mingw32_HOST_OS
+-- the ui command requires vty which is not available on windows
              module UICommand,
+#endif
 )
 where
 import Control.Monad.Error
@@ -52,7 +56,9 @@ import Options
 import BalanceCommand
 import PrintCommand
 import RegisterCommand
+#ifndef mingw32_HOST_OS
 import UICommand
+#endif
 import Tests
 
 
@@ -67,7 +73,9 @@ main = do
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
+#ifndef mingw32_HOST_OS
        | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args ui
+#endif
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage
 
