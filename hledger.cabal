@@ -20,6 +20,11 @@ Cabal-Version:  >= 1.2
 
 Executable hledger
   Main-Is:        hledger.hs
+
+  if !os(windows)
+    Build-Depends:vty>=3.1.8.2
+    Other-Modules:UICommand
+
   Build-Depends:  
                   base,
                   containers, 
@@ -32,8 +37,7 @@ Executable hledger
                   time, 
                   HUnit, 
                   mtl, 
-                  bytestring,
-                  vty>=3.1.8.2
+                  bytestring
   Other-Modules:  
                   BalanceCommand
                   Options
@@ -41,7 +45,6 @@ Executable hledger
                   RegisterCommand
                   Setup
                   Tests
-                  UICommand
                   Utils
                   Ledger
                   Ledger.Account
