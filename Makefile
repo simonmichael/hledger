@@ -1,5 +1,3 @@
-# executables for "make bench". prepend ./ to these if not in $PATH
-BENCHEXES=hledger ledger
 
 BUILD=ghc --make hledger.hs -o hledger -O
 BUILDFLAGS=-DVTY
@@ -38,6 +36,8 @@ profile:
 	cat simple.prof
 
 # run performance benchmarks and save results in profs
+# prepend ./ to these if not in $PATH
+BENCHEXES=hledger ledger
 bench: buildbench sampleledgers
 	./bench $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
 
