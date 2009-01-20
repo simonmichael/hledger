@@ -63,7 +63,7 @@ main = do
     where 
       run cmd opts args
        | Help `elem` opts            = putStr $ usage
-       | Version `elem` opts         = putStr version
+       | Version `elem` opts         = putStr versionmsg
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
