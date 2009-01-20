@@ -49,8 +49,14 @@ clever tricks like the plague." --Edsger Dijkstra
 *** easy ledger compatibility testing
 **** --compare to compare (xml?) output with ledger with same args
 ** docs
-*** funding
-**** vision
+*** funding document
+=======
+funding
+=======
+
+vision
+======
+
      How to grow the hledger project ?
 
      I'm looking for ways to fund active and sustainable hledger
@@ -69,125 +75,171 @@ clever tricks like the plague." --Edsger Dijkstra
      while serving the cause of Financial Solvency!
 
      So I'm beginning by posting these notes and inviting your thoughts -
-     as much or as little as folks want to give. How could we do this so
-     that all benefit ?
-
-**** funding models
+     as much or as little as folks want to give. How could we do this 
+     so that all benefit ?
+     
+funding models
+==============
      Brainstorming some possible funding models & processes.
 
-***** grants
+     * grants
+
       How to find possible grant sources ?
-****** con
-******* getting grant funding is a whole new field to study
-******* slow and time intensive, I imagine
 
-***** donations
+      * con
+
+       * getting grant funding is a whole new field to study
+       * slow and time intensive, I imagine
+
+     * donations
+
       Solicit donations.
-****** pro
-******* simple
-****** con
-******* often difficult
-******* donators do not feel a direct benefit
 
-***** shareware
+      * pro
+
+       * simple
+
+      * con
+
+       * often difficult
+       * donators do not feel a direct benefit
+
+     * shareware
+
       Release the project under a non-free license, requiring commercial
       users to pay the fee on an honour basis (eg).
-****** pro
-******* flexible, low administration, encourages trust
-****** con
-******* effectively closed-source ? would inhibit collaboration
-******* benefit is still indirect, only a proportion will pay
-******* enforcement/guilt may come into play
 
-***** limited-time premium branch
+      * pro
+
+       * flexible, low administration, encourages trust
+
+      * con
+
+       * effectively closed-source ? would inhibit collaboration
+       * benefit is still indirect, only a proportion will pay
+       * enforcement/guilt may come into play
+
+     * limited-time premium branch
+
       The funded version of hledger gets some desirable premium features
       before the free version and is closed-source.  Funders/customers pay
       a fixed price for immediate access to the funded version.  Yearly, a
       new funded version is released and the old funded version is merged
       into the free version.  (To gain experience it could be done on a
       smaller scale, eg monthly/quarterly.)
-****** pro
-******* all features reach community, predictably
-******* customers are also community funders
-******* customers receive direct benefit from paying
-****** con
-******* free sw developers compete/outshine the premium branch
 
-***** bounties
+      * pro
+
+       * all features reach community, predictably
+       * customers are also community funders
+       * customers receive direct benefit from paying
+
+      * con
+
+       * free sw developers compete/outshine the premium branch
+
+     * bounties
+
       Some (or all) feature, bugfix, project management or other tasks are
       published with a bounty attached.  When the bounty is paid by one or
       more funders, the task is performed and delivered. Or, bounty is paid
       on completion of task (honour system).
-****** pro
-******* funders receive direct benefit
 
-***** bounties using fundable.org (eg)
+      * pro
+
+       * funders receive direct benefit
+
+     * bounties using fundable.org (eg)
+
       A more organised form of the above, perhaps facilitating trust,
       co-funding and larger bounties.
-****** pro
-******* proven process developed by others
-****** con
-******* fundable takes a cut
 
-***** hosted service
+      * pro
+
+       * proven process developed by others
+
+      * con
+
+       * fundable takes a cut
+
+     * hosted service
+
       Offer hosted and managed ledgers, perhaps with premium features, for
       a monthly fee
-****** pro
-******* proven model
-******* clear benefit to customers, especially non-technies
-****** con
-******* success of free/self-installed version competes with hosting service
-******* some will avoid web-hosting their financial data
 
-***** customisation
+      * pro
+
+       * proven model
+       * clear benefit to customers, especially non-technies
+
+      * con
+ 
+       * success of free/self-installed version competes with hosting service
+       * some will avoid web-hosting their financial data
+
+     * customisation
+
       Offer per-user customisations, possibly to be merged in the trunk,
       for a fee
 
-***** support
+     * support
+
       Offer user/developer support for a fee
 
-***** training
+     * training
+
       Offer application and/or financial training for a fee
 
-***** profit sharing/tithing
+     * profit sharing/tithing
+
       Each period (quarter, half-year, year), donate 10% (eg) to project
       contributors and/or supporting projects
 
-***** transparent funding
+     * transparent funding
+
       Funding and usage of funds is published on the web as a ledger
 
-***** opaque funding
+     * opaque funding
+
       All funding and spending need not be made public
 
-**** strengths
+strengths
+=========
      hledger has some aptitudes in this area:
-***** hledger deals with money => hledger users will tend to have some money
-***** hledger's purpose is to increase financial success => users will feel its value to their bottom line
-***** hledger is a tool that can support project funding, eg by publishing community funding data
 
-**** weaknesses
-***** hledger doesn't have a nice ui yet
-***** hledger has a limited featureset
-***** hledger requires work, eg data entry and chart of accounts maintenance
-***** hledger is geeky
-***** there is competition
-***** hledger has no compelling market niche (aside from payment-averse free software users)
+    * hledger deals with money => hledger users will tend to have some money
+    * hledger's purpose is to increase financial success => users will feel its value to their bottom line
+    * hledger is a tool that can support project funding, eg by publishing community funding data
 
-**** competitors/fellow niche inhabitants
-***** web apps
-****** netsuite
-****** sql-ledger, ledgersmb
-****** wesabe
-****** ...
-***** desktop apps
-****** quickbooks
-****** quicken
-****** ms money
-****** grisbi
-****** gnucash
-****** excel
-****** ledger!
-****** ...
+weaknesses
+==========
+    * hledger doesn't have a nice ui yet
+    * hledger has a limited featureset
+    * hledger requires work, eg data entry and chart of accounts maintenance
+    * hledger is geeky
+    * there is competition
+    * hledger has no compelling market niche (aside from payment-averse free software users)
+
+competitors/fellow niche inhabitants
+====================================
+
+    * web apps
+
+     * netsuite
+     * sql-ledger, ledgersmb
+     * wesabe
+     * ...
+
+    * desktop apps
+
+     * quickbooks
+     * quicken
+     * ms money
+     * grisbi
+     * gnucash
+     * excel
+     * ledger!
+     * ...
 
 *** --version
 *** --help
