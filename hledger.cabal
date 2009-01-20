@@ -24,6 +24,9 @@ Flag vty
 Flag ansi
   description: Build ansi-based text ui (requires ansi-terminal)
   default:     False
+Flag happs
+  description: Build happs-based web ui (requires HApps-Server)
+  default:     False
 
 Executable hledger
   Main-Is:        hledger.hs
@@ -69,6 +72,10 @@ Executable hledger
     Build-Depends:ansi-terminal
     Other-Modules:ANSICommand
     cpp-options: -DANSI
+  if flag(happs)
+    Build-Depends:HAppS-Server>=0.9.3.1
+    Other-Modules:HappsCommand
+    cpp-options: -DHAPPS
 
 Library
   Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,

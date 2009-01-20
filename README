@@ -37,10 +37,11 @@ features. These are::
 
   -f vty   - Build vty-based text ui (requires vty, not available on windows)
   -f ansi  - Build ansi-based text ui (requires ansi-terminal)
+  -f happs - Build happs-based web ui (requires HApps-Server)
 
 Eg::
 
- cabal install -f "vty ansi" hledger (or runhaskell Setup.hs configure -f "vty ansi")
+ cabal install -f "vty ansi happs" hledger (or runhaskell Setup.hs configure -f "vty ansi happs")
 
 To get the latest development code do::
 

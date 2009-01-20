@@ -58,6 +58,9 @@ import qualified UICommand
 #ifdef ANSI
 import qualified ANSICommand
 #endif
+#ifdef HAPPS
+import qualified HappsCommand
+#endif
 import Tests
 
 
@@ -77,6 +80,9 @@ main = do
 #endif
 #ifdef ANSI
        | cmd `isPrefixOf` "ansi"     = parseLedgerAndDo opts args ANSICommand.ansi
+#endif
+#ifdef HAPPS
+       | cmd `isPrefixOf` "happs"    = parseLedgerAndDo opts args HappsCommand.happs
 #endif
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage
