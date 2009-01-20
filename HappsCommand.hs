@@ -32,7 +32,7 @@ tcpport = 5000
 
 happs :: [Opt] -> [String] -> Ledger -> IO ()
 happs opts args l = do
-  putStrLn $ printf "hledger server running on port %d" tcpport
+  putStrLn $ printf "starting hledger server on port %d" tcpport
   simpleHTTP nullConf{port=tcpport} [
                      method GET $ ok $ toResponse $ output
                     ]
