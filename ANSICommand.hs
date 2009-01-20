@@ -10,7 +10,6 @@ where
 import qualified Data.Map as Map
 import Data.Map ((!))
 import qualified Data.ByteString.Char8 as B
-import Graphics.Vty
 import System.Console.ANSI
 import System.IO
 import Ledger
@@ -339,39 +338,6 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) = maintext ++ renderStatu
 
 renderStatus :: Int -> String -> String
 renderStatus w s = {- statusattr -} take w (s ++ repeat ' ')
-
-
--- the all-important theming engine
-
-theme = 1
-
-(defaultattr, 
- currentlineattr, 
- statusattr
- ) = 
-    case theme of
-      1 -> ( -- restrained
-           attr
-          ,setBold attr
-          ,setRV attr
-          )
-      2 -> ( -- colorful
-           setRV attr
-          ,setFG white $ setBG red $ attr
-          ,setFG black $ setBG green $ attr
-          )
-      3 -> ( -- 
-           setRV attr
-          ,setFG white $ setBG red $ attr
-          ,setRV attr
-          )
-
-halfbrightattr = setHalfBright attr
-reverseattr = setRV attr
-redattr = setFG red attr
-greenattr = setFG green attr
-reverseredattr = setRV $ setFG red attr
-reversegreenattr= setRV $ setFG green attr
 
 
 -- ansi output
