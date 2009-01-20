@@ -13,32 +13,18 @@ import Ledger.Dates
 
 
 configflags = [
-         ("vty",
 #ifdef VTY
-          True
-#else
-          False
+  "vty"
 #endif
-         )
-        ,("ansi",
 #ifdef ANSI
-          True
-#else
-          False
+ ,"ansi"
 #endif
-         )
-         ]
+ ]
 versionmsg  = "hledger " ++ version ++ configmsg ++ "\n"
 version     = "0.3.x"
-configmsg
-    | null with && null without = ""
-    | (not $ null with) && (not $ null without) = " configured" ++ with ++ " and" ++ without
-    | otherwise = " configured" ++ with ++ without
-    where
-      with = punc "with" [f | (f,v) <- configflags, v]
-      without = punc "without" [f | (f,v) <- configflags, not v]
-      punc _ [] = ""
-      punc prefix ws = printf " %s %s" prefix (intercalate ", " ws)
+configmsg = if null configflags
+            then ""
+            else " with " ++ intercalate ", " configflags
 ledgerdefault  = "~/.ledger"
 ledgerenvvar   = "LEDGER"
 timelogdefault = "~/.timelog"
