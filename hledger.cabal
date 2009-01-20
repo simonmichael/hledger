@@ -17,16 +17,13 @@ License-File:   LICENSE
 Extra-Source-Files: README sample.ledger
 Extra-Tmp-Files: 
 Cabal-Version:  >= 1.2
+Flag vty
+  description: Build vty-based text ui (requires vty, not available on windows)
+  default:     False
 
 Executable hledger
   Main-Is:        hledger.hs
-
-  if !os(windows)
-    Build-Depends:vty>=3.1.8.2
-    Other-Modules:UICommand
-
-  Build-Depends:  
-                  base,
+  Build-Depends:  base,
                   containers, 
                   haskell98, 
                   directory, 
@@ -38,8 +35,7 @@ Executable hledger
                   HUnit, 
                   mtl, 
                   bytestring
-  Other-Modules:  
-                  BalanceCommand
+  Other-Modules:  BalanceCommand
                   Options
                   PrintCommand
                   RegisterCommand
@@ -61,12 +57,15 @@ Executable hledger
                   Ledger.Transaction
                   Ledger.Types
                   Ledger.Utils
+  if flag(vty)
+    Build-Depends:vty>=3.1.8.2
+    Other-Modules:UICommand
+    cpp-options: -DVTY
 
-library
+Library
   Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,
                   old-locale, time, HUnit
-  Exposed-modules:
-                  Ledger
+  Exposed-modules:Ledger
                   Ledger.Account
                   Ledger.AccountName
                   Ledger.Amount

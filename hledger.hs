@@ -40,10 +40,6 @@ module Main (
              module BalanceCommand,
              module PrintCommand,
              module RegisterCommand,
-#ifndef mingw32_HOST_OS
--- the ui command requires vty which is not available on windows
-             module UICommand,
-#endif
 )
 where
 import Control.Monad.Error
@@ -56,8 +52,8 @@ import Options
 import BalanceCommand
 import PrintCommand
 import RegisterCommand
-#ifndef mingw32_HOST_OS
-import UICommand
+#ifdef VTY
+import qualified UICommand
 #endif
 import Tests
 
@@ -73,8 +69,8 @@ main = do
        | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
-#ifndef mingw32_HOST_OS
-       | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args ui
+#ifdef VTY
+       | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args UICommand.ui
 #endif
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage

@@ -2,8 +2,9 @@
 BENCHEXES=hledger ledger
 
 BUILD=ghc --make hledger.hs -o hledger -O
+BUILDFLAGS=-DVTY
 build: tag
-	$(BUILD)
+	$(BUILD) $(BUILDFLAGS)
 
 BUILDO2=ghc --make hledger.hs -o hledgero2 -O2 -fvia-C
 buildo2:
@@ -15,8 +16,9 @@ rebuild: clean build
 # recompile and run tests whenever a module changes
 # see http://searchpath.org , you may need the patched version from
 # http://joyful.com/repos/searchpath
+CICMD=test
 continuous ci:
-	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs --run test
+	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
 # run code tests
 test:
