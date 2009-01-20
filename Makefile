@@ -2,7 +2,7 @@
 
 # build the normal hledger binary
 BUILD=ghc --make hledger.hs -o hledger -O
-BUILDFLAGS=-DVTY
+BUILDFLAGS=-DVTY -DANSI
 build: setbuildversion tag
 	$(BUILD) $(BUILDFLAGS)
 

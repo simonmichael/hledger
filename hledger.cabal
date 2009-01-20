@@ -21,6 +21,9 @@ Cabal-Version:  >= 1.2
 Flag vty
   description: Build vty-based text ui (requires vty, not available on windows)
   default:     False
+Flag ansi
+  description: Build ansi-based text ui (requires ansi-terminal)
+  default:     False
 
 Executable hledger
   Main-Is:        hledger.hs
@@ -62,6 +65,10 @@ Executable hledger
     Build-Depends:vty>=3.1.8.2
     Other-Modules:UICommand
     cpp-options: -DVTY
+  if flag(ansi)
+    Build-Depends:ansi-terminal
+    Other-Modules:ANSICommand
+    cpp-options: -DANSI
 
 Library
   Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,

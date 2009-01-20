@@ -55,6 +55,9 @@ import RegisterCommand
 #ifdef VTY
 import qualified UICommand
 #endif
+#ifdef ANSI
+import qualified ANSICommand
+#endif
 import Tests
 
 
@@ -71,6 +74,9 @@ main = do
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
 #ifdef VTY
        | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args UICommand.ui
+#endif
+#ifdef ANSI
+       | cmd `isPrefixOf` "ansi"     = parseLedgerAndDo opts args ANSICommand.ansi
 #endif
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage
