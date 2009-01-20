@@ -47,6 +47,9 @@ usagehdr    = "Usage: hledger [OPTION] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\
 #ifdef ANSI
               "  ansi     - run a simple ansi-based text ui\n" ++
 #endif
+#ifdef HAPPS
+              "  happs    - run a web server providing a minimal web ui\n" ++
+#endif
               "\n" ++
               "Options (before command, unless using --options-anywhere):"
 usageftr    = "\n" ++
