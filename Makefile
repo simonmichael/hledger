@@ -226,6 +226,12 @@ show-changes:
 	@echo
 	@darcs changes --from-tag . | grep '*'
 
+
+show-unpushed:
+	@echo Changes not yet in the main hledger repo:
+	@echo
+	@darcs push joyful.com:/repos/hledger --dry-run
+
 show-authors:
 	@echo Patch authors since last release:
 	@echo
