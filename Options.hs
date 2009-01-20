@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -cpp #-}
 module Options 
 where
 import System
@@ -40,6 +41,12 @@ usagehdr    = "Usage: hledger [OPTION] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\
               "  balance  - show account balances\n" ++
               "  print    - show formatted ledger entries\n" ++
               "  register - show register transactions\n" ++
+#ifdef VTY
+              "  ui       - run a simple vty-based text ui\n" ++
+#endif
+#ifdef ANSI
+              "  ansi     - run a simple ansi-based text ui\n" ++
+#endif
               "\n" ++
               "Options (before command, unless using --options-anywhere):"
 usageftr    = "\n" ++
