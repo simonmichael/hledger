@@ -61,6 +61,12 @@ popParentAccount = do ctx0 <- getState
 getParentAccount :: GenParser tok LedgerFileCtx String
 getParentAccount = liftM (concat . reverse . ctxAccount) getState
 
+setYear :: Integer -> GenParser tok LedgerFileCtx ()
+setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
+
+getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
+getYear = liftM ctxYear getState
+
 parseLedger :: FilePath -> String -> ErrorT String IO RawLedger
 parseLedger inname intxt = case runParser ledgerFile emptyCtx inname intxt of
                              Right m  -> liftM rawLedgerConvertTimeLog $ m `ap` (return rawLedgerEmpty)
@@ -79,6 +85,7 @@ ledgerFile = do entries <- many1 ledgerAnyEntry
                                   , liftM (return . addModifierEntry) ledgerModifierEntry
                                   , liftM (return . addPeriodicEntry) ledgerPeriodicEntry
                                   , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
+                                  , ledgerDefaultYear
                                   , emptyLine >> return (return id)
                                   , liftM (return . addTimeLogEntry)  timelogentry
                                   ]
@@ -270,6 +277,17 @@ ledgerHistoricalPrice = do
   (Mixed [Amount c price pri]) <- someamount
   restofline
   return $ HistoricalPrice date symbol1 (symbol c) price
+
+-- like ledgerAccountBegin, updates the LedgerFileCtx
+ledgerDefaultYear :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerDefaultYear = do
+  char 'Y' <?> "default year"
+  many spacenonewline
+  y <- many1 digit
+  let y' = read y
+  guard (y' >= 1000)
+  setYear y'
+  return $ return id
 
 ledgerEntry :: GenParser Char LedgerFileCtx Entry
 ledgerEntry = do

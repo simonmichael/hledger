@@ -227,6 +227,11 @@ misc_tests = TestList [
   ,
   "ledgerentry"        ~: do
     assertparseequal price1 (parseWithCtx ledgerHistoricalPrice price1_str)
+  ,
+  "ledgerDefaultYear" ~: do
+    -- something to check default year parsing doesn't blow up
+    rl <- rawledgerfromstring "Y2009\n"
+
   ]
 
 newparse_tests = TestList [ sameParseTests ]
