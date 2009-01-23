@@ -37,9 +37,12 @@ To get the latest development code do::
  darcs get http://joyful.com/repos/hledger
 
 
-Examples
---------
-Here are some commands to try::
+Usage
+-----
+hledger looks for your ledger file at ~/.ledger by default. To use a
+different file, specify it with the LEDGER environment variable or -f
+option (which may be - for standard input). Here are some commands to
+try::
 
  hledger --help
  hledger -f sample.ledger balance
@@ -50,9 +53,27 @@ Here are some commands to try::
  hledger reg -- shop
  hledger ui
 
-hledger looks for your ledger file at ~/.ledger by default. To use a different file,
-specify it with -f or the LEDGER environment variable.
 
+Time reporting
+--------------
+hledger can parse a timelog file in timeclock.el's format, treating time
+categories as accounts. If hledger is invoked by the "hours" alias it
+looks for your timelog, and parses arguments slightly differently for
+convenient querying:
+
+ hours [OPTIONS] [PERIOD [COMMAND]]
+
+PERIOD and COMMAND default to "today" and "balance --subtotal"
+respectively, and --options-anywhere is assumed.  The timelog is found in
+the same way as your ledger: ~/.timelog or the file specified by $TIMELOG
+or an -f option.  Examples:
+
+ hours                                 # today's balances
+ hours today                           # the same
+ hours 'this week'                     # so far this week
+ hours week                            # the same
+ hours lastmonth                       # last month, the space is optional
+ hours 'monthly in 2008' reg --depth 1 # monthly register, top-level only
 
 Features
 --------

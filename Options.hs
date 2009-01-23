@@ -3,7 +3,9 @@ where
 import System
 import System.Console.GetOpt
 import System.Directory
+import System.Environment
 import Text.Printf
+import Data.Char (toLower)
 import Ledger.Parse
 import Ledger.Utils
 import Ledger.Types
@@ -12,9 +14,13 @@ import Ledger.Dates
 
 versionno   = "0.3"
 version     = printf "hledger version %s \n" versionno :: String
-defaultfile = "~/.ledger"
-fileenvvar  = "LEDGER"
-usagehdr    = "Usage: hledger [OPTS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
+ledgerdefault  = "~/.ledger"
+ledgerenvvar   = "LEDGER"
+timelogdefault = "~/.timelog"
+timelogenvvar  = "TIMELOG"
+timeprogname   = "hours"
+usagehdr    = "Usage: hledger [OPTION] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
+              "or:    hours [OPTIONS] [PERIOD [COMMAND]]\n" ++
               "\n" ++
               "Options (before command, unless using --options-anywhere):"
 usageftr    = "\n" ++
@@ -27,7 +33,7 @@ usageftr    = "\n" ++
               "Account and description patterns are regular expressions which filter by\n" ++
               "account name and entry description. Prefix a pattern with - to negate it,\n" ++
               "and separate account and description patterns with --.\n" ++
-              "(With --options-anywhere, use ^ and ^^.)\n" ++
+              "(With --options-anywhere, use ^ and ^^. \"hours\" implies --options-anywhere.)\n" ++
               "\n" ++
               "Also: hledger [-v] test [TESTPATTERNS] to run self-tests.\n" ++
               "\n"
@@ -61,7 +67,7 @@ options = [
  ]
     where 
       filehelp = printf "ledger file; - means use standard input. Defaults\nto the %s environment variable or %s"
-                 fileenvvar defaultfile
+                 ledgerenvvar ledgerdefault
 
 -- | An option value from a command-line flag.
 data Opt = 
@@ -97,18 +103,33 @@ optValuesForConstructor f opts = concatMap get opts
 optValuesForConstructors fs opts = concatMap get opts
     where get o = if any (\f -> f v == o) fs then [v] else [] where v = value o
 
--- | Parse the command-line arguments into ledger options, ledger command
--- name, and ledger command arguments. Also any dates in the options are
--- converted to full YYYY/MM/DD format, while we are in the IO monad
--- and can get the current time.
+-- | Parse the command-line arguments into options, command name, and
+-- command arguments. Any dates in the options are converted to full
+-- YYYY/MM/DD format, while we are in the IO monad and can get the current
+-- time. Arguments are parsed differently if the program was invoked as
+-- "hours".
 parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- getArgs
-  let order = if "--options-anywhere" `elem` args then Permute else RequireOrder
-  case (getOpt order options args) of
-    (opts,cmd:args,[]) -> do {opts' <- fixOptDates opts; return (opts',cmd,args)}
-    (opts,[],[])       -> do {opts' <- fixOptDates opts; return (opts',[],[])}
-    (opts,_,errs)      -> ioError (userError (concat errs ++ usage))
+  istimequery <- usingTimeProgramName
+  let order = if "--options-anywhere" `elem` args || istimequery
+              then Permute 
+              else RequireOrder
+  let (os,as,es) = getOpt order options args
+  os' <- fixOptDates os
+  case istimequery of
+    False ->
+        case (os,as,es) of
+          (opts,cmd:args,[])   -> return (os',cmd,args)
+          (opts,[],[])         -> return (os',"",[])
+          (opts,_,errs)        -> ioError (userError (concat errs ++ usage))
+    True -> 
+        case (os,as,es) of
+          (opts,p:cmd:args,[]) -> return (os' ++ [Period p],cmd,args)
+          (opts,p:args,[])     -> return ([Period p,SubTotal] ++ os',"balance",args)
+          (opts,[],[])         -> return ([Period "today",SubTotal] ++ os',"balance",[])
+          (opts,_,errs)        -> ioError (userError (concat errs ++ usage))
+      
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.
@@ -170,10 +191,20 @@ displayFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
       listtomaybe [] = Nothing
       listtomaybe vs = Just $ last vs
 
+-- | Was the program invoked via the \"hours\" alias ?
+usingTimeProgramName :: IO Bool
+usingTimeProgramName = do
+  progname <- getProgName
+  return $ map toLower progname == timeprogname
+
 -- | Get the ledger file path from options, an environment variable, or a default
 ledgerFilePathFromOpts :: [Opt] -> IO String
 ledgerFilePathFromOpts opts = do
-  envordefault <- getEnv fileenvvar `catch` \_ -> return defaultfile
+  istimequery <- usingTimeProgramName
+  let (e,d) = if istimequery
+              then (timelogenvvar,timelogdefault)
+              else (ledgerenvvar,ledgerdefault)
+  envordefault <- getEnv e `catch` \_ -> return d
   paths <- mapM tildeExpand $ [envordefault] ++ optValuesForConstructor File opts
   return $ last paths
 
