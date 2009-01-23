@@ -61,7 +61,7 @@ categories as accounts. If hledger is invoked by the "hours" alias it
 looks for your timelog, and parses arguments slightly differently for
 convenient querying:
 
- hours [OPTIONS] [PERIOD [COMMAND]]
+ hours [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]
 
 PERIOD and COMMAND default to "today" and "balance --subtotal"
 respectively, and --options-anywhere is assumed.  The timelog is found in

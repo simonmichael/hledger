@@ -20,7 +20,7 @@ timelogdefault = "~/.timelog"
 timelogenvvar  = "TIMELOG"
 timeprogname   = "hours"
 usagehdr    = "Usage: hledger [OPTION] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
-              "or:    hours [OPTIONS] [PERIOD [COMMAND]]\n" ++
+              "or:    hours [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
               "\n" ++
               "Options (before command, unless using --options-anywhere):"
 usageftr    = "\n" ++
