@@ -45,6 +45,7 @@ data TransactionType = RegularTransaction | VirtualTransaction | BalancedVirtual
                        deriving (Eq,Show)
 
 data RawTransaction = RawTransaction {
+      tstatus :: Bool,
       taccount :: AccountName,
       tamount :: MixedAmount,
       tcomment :: String,
@@ -101,6 +102,7 @@ data TimeLog = TimeLog {
 
 data Transaction = Transaction {
       entryno :: Int,
+      status :: Bool,
       date :: Day,
       description :: String,
       account :: AccountName,

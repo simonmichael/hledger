@@ -15,10 +15,10 @@ import Ledger.AccountName
 
 instance Show RawTransaction where show = showRawTransaction
 
-nullrawtxn = RawTransaction "" nullmixedamt "" RegularTransaction
+nullrawtxn = RawTransaction False "" nullmixedamt "" RegularTransaction
 
 showRawTransaction :: RawTransaction -> String
-showRawTransaction (RawTransaction a amt _ ttype) = 
+showRawTransaction (RawTransaction s a amt _ ttype) = 
     concatTopPadded [showaccountname a ++ " ", showamount amt]
     where
       showaccountname = printf "%-22s" . bracket . elideAccountName width

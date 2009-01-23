@@ -128,7 +128,7 @@ canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
 canonicaliseAmounts costbasis l@(RawLedger ms ps es tls hs f) = RawLedger ms ps (map fixentry es) tls hs f
     where 
       fixentry (Entry d s c de co ts pr) = Entry d s c de co (map fixrawtransaction ts) pr
-      fixrawtransaction (RawTransaction ac a c t) = RawTransaction ac (fixmixedamount a) c t
+      fixrawtransaction (RawTransaction s ac a c t) = RawTransaction s ac (fixmixedamount a) c t
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount = fixcommodity . (if costbasis then costOfAmount else id)
       fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! (symbol $ commodity a)

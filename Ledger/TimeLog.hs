@@ -73,6 +73,6 @@ entryFromTimeLogInOut i o
       odate    = localDay otime
       hrs      = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       amount   = Mixed [hours hrs]
-      txns     = [RawTransaction acctname amount "" RegularTransaction
+      txns     = [RawTransaction False acctname amount "" RegularTransaction
                  --,RawTransaction "assets:time" (-amount) "" RegularTransaction
                  ]

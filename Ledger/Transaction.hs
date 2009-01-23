@@ -18,14 +18,16 @@ import Ledger.Amount
 instance Show Transaction where show=showTransaction
 
 showTransaction :: Transaction -> String
-showTransaction (Transaction eno d desc a amt ttype) = unwords [showDate d,desc,a,show amt,show ttype]
+showTransaction (Transaction eno stat d desc a amt ttype) = 
+    s ++ unwords [showDate d,desc,a,show amt,show ttype]
+    where s = if stat then " *" else ""
 
 -- | Convert a 'Entry' to two or more 'Transaction's. An id number
 -- is attached to the transactions to preserve their grouping - it should
 -- be unique per entry.
 flattenEntry :: (Entry, Int) -> [Transaction]
-flattenEntry (Entry d _ _ desc _ ts _, e) = 
-    [Transaction e d desc (taccount t) (tamount t) (rttype t) | t <- ts]
+flattenEntry (Entry d s _ desc _ ts _, e) = 
+    [Transaction e s d desc (taccount t) (tamount t) (rttype t) | t <- ts]
 
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
@@ -33,4 +35,4 @@ accountNamesFromTransactions ts = nub $ map account ts
 sumTransactions :: [Transaction] -> MixedAmount
 sumTransactions = sum . map amount
 
-nulltxn = Transaction 0  (parsedate "1900/1/1") "" "" nullmixedamt RegularTransaction
+nulltxn = Transaction 0 False (parsedate "1900/1/1") "" "" nullmixedamt RegularTransaction

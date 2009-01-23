@@ -70,11 +70,14 @@ showEntry' elide e =
           | otherwise = map showtxn ts
       showtxn t = showacct t ++ "  " ++ (showamount $ tamount t) ++ (showcomment $ tcomment t)
       showtxnnoamt t = showacct t ++ "              " ++ (showcomment $ tcomment t)
-      showacct t = "    " ++ (showaccountname $ taccount t)
+      showacct t = "    " ++ showstatus t ++ (showaccountname $ taccount t)
       showamount = printf "%12s" . showMixedAmount
       showaccountname s = printf "%-34s" s
       showcomment s = if (length s) > 0 then "  ; "++s else ""
       showdate d = printf "%-10s" (showDate d)
+      showstatus t = case tstatus t of
+                       True -> "* "
+                       False -> ""
 
 isEntryBalanced :: Entry -> Bool
 isEntryBalanced (Entry {etransactions=ts}) = 
