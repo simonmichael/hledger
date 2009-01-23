@@ -231,6 +231,7 @@ misc_tests = TestList [
   "ledgerDefaultYear" ~: do
     -- something to check default year parsing doesn't blow up
     rl <- rawledgerfromstring "Y2009\n"
+    return ()
 
   ]
 
