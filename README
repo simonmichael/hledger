@@ -125,9 +125,11 @@ We handle (almost) the full period expression syntax, and simple display
 expressions consisting of a date predicate.  Also the following
 hledger-specific features are supported::
 
-   ui                     interactive text ui
+   ui,ansi                interactive curses and ansi-based text uis
+   happs                  rudimentary web interface on port 5000
    --depth=N              balance report: maximum account depth to show
    --options-anywhere     allow options anywhere, use ^ for negative patterns
+                          easier time reporting with "hours" alias
 
 ledger features not supported
 .............................
