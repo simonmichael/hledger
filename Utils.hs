@@ -41,7 +41,7 @@ ledgerfromfilewithopts :: [Opt] -> [String] -> FilePath -> IO Ledger
 ledgerfromfilewithopts opts args f = do
   s <- readFile f 
   rl <- rawledgerfromstring s
-  reftime <- now
+  reftime <- getCurrentTime
   return $ prepareLedger opts args reftime s rl
            
 -- | Get a Ledger from your default ledger file, or raise an error.

@@ -147,14 +147,14 @@ parseArguments = do
 -- based on today's date.
 fixOptDates :: [Opt] -> IO [Opt]
 fixOptDates opts = do
-  t <- today
-  return $ map (fixopt t) opts
+  d <- getCurrentDay
+  return $ map (fixopt d) opts
   where
-    fixopt t (Begin s)   = Begin $ fixSmartDateStr t s
-    fixopt t (End s)     = End $ fixSmartDateStr t s
-    fixopt t (Display s) = -- hacky
+    fixopt d (Begin s)   = Begin $ fixSmartDateStr d s
+    fixopt d (End s)     = End $ fixSmartDateStr d s
+    fixopt d (Display s) = -- hacky
         Display $ gsubRegexPRBy "\\[.+?\\]" fixbracketeddatestr s
-        where fixbracketeddatestr s = "[" ++ (fixSmartDateStr t $ init $ tail s) ++ "]"
+        where fixbracketeddatestr s = "[" ++ (fixSmartDateStr d $ init $ tail s) ++ "]"
     fixopt _ o            = o
 
 -- | Figure out the overall date span we should report on, based on any

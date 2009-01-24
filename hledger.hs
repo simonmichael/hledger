@@ -97,6 +97,6 @@ parseLedgerAndDo opts args cmd = do
   -- and, doesn't work with stdin. kludge it, stdin won't work with ui command
   let f' = if f == "-" then "/dev/null" else f
   rawtext <- readFile f'
-  reftime <- now
+  reftime <- getCurrentTime
   let runcmd = cmd opts args . prepareLedger opts args reftime rawtext
   return f >>= runErrorT . parseLedgerFile >>= either (hPutStrLn stderr) runcmd

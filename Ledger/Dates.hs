@@ -42,13 +42,10 @@ showDate d = formatTime defaultTimeLocale "%Y/%m/%d" d
 mkUTCTime :: Day -> TimeOfDay -> UTCTime
 mkUTCTime day tod = localTimeToUTC utc (LocalTime day tod)
 
-today :: IO Day
-today = do
+getCurrentDay :: IO Day
+getCurrentDay = do
     t <- getZonedTime
     return $ localDay (zonedTimeToLocalTime t)
-
-now :: IO UTCTime
-now = getCurrentTime 
 
 elapsedSeconds :: Fractional a => UTCTime -> UTCTime -> a
 elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
@@ -231,7 +228,7 @@ Assumes any text in the parse stream has been lowercased.
 -}
 smartdate :: GenParser Char st SmartDate
 smartdate = do
-  let dateparsers = [yyyymmdd, ymd, ym, md, y, d, month, mon, today', yesterday, tomorrow,
+  let dateparsers = [yyyymmdd, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow,
                      lastthisnextthing
                     ]
   (y,m,d) <- choice $ map try dateparsers
@@ -310,8 +307,8 @@ mon = do
   let i = monIndex m
   return ("",show i,"")
 
-today',yesterday,tomorrow :: GenParser Char st SmartDate
-today'    = string "today"     >> return ("","","today")
+today,yesterday,tomorrow :: GenParser Char st SmartDate
+today     = string "today"     >> return ("","","today")
 yesterday = string "yesterday" >> return ("","","yesterday")
 tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
 
