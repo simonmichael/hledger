@@ -458,7 +458,7 @@ balancecommand_tests = TestList [
              (showBalanceReport [] [] l)
  ,
   "balance report elides zero-balance root account(s)" ~: do
-    l <- ledgerfromstringwithopts [] [] refdate
+    l <- ledgerfromstringwithopts [] [] reftime
              ("2008/1/1 one\n" ++
               "  test:a  1\n" ++
               "  test:b\n"
@@ -564,8 +564,9 @@ registercommand_tests = TestList [
 -- test data
 
 refdate = parsedate "2008/11/26"
-sampleledger = ledgerfromstringwithopts [] [] refdate sample_ledger_str
-sampleledgerwithopts opts args = ledgerfromstringwithopts opts args refdate sample_ledger_str
+reftime = dayToUTC refdate
+sampleledger = ledgerfromstringwithopts [] [] reftime sample_ledger_str
+sampleledgerwithopts opts args = ledgerfromstringwithopts opts args reftime sample_ledger_str
 --sampleledgerwithoptsanddate opts args date = unsafePerformIO $ ledgerfromstringwithopts opts args date sample_ledger_str
 
 sample_ledger_str = (

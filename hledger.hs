@@ -92,11 +92,11 @@ main = do
 -- (or report a parse error). This function makes the whole thing go.
 parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 parseLedgerAndDo opts args cmd = do
-  refdate <- today
   f <- ledgerFilePathFromOpts opts
   -- XXX we read the file twice - inelegant
   -- and, doesn't work with stdin. kludge it, stdin won't work with ui command
   let f' = if f == "-" then "/dev/null" else f
   rawtext <- readFile f'
-  let runcmd = cmd opts args . prepareLedger opts args refdate rawtext
+  reftime <- now
+  let runcmd = cmd opts args . prepareLedger opts args reftime rawtext
   return f >>= runErrorT . parseLedgerFile >>= either (hPutStrLn stderr) runcmd
