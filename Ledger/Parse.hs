@@ -16,6 +16,8 @@ import qualified Text.ParserCombinators.Parsec.Token as P
 import System.Directory
 import System.IO
 import qualified Data.Map as Map
+import Data.Time.LocalTime
+import Data.Time.Calendar
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
@@ -24,21 +26,20 @@ import Ledger.Entry
 import Ledger.Commodity
 import Ledger.TimeLog
 import Ledger.RawLedger
-import Data.Time.LocalTime
-import Data.Time.Calendar
 
 
 -- utils
 
 -- | Some context kept during parsing.
 data LedgerFileCtx = Ctx {
-      ctxYear    :: !(Maybe Integer)  -- ^ the current default year specified with Y, if any
-    , ctxCommod  :: !(Maybe String)   -- ^ I don't know
-    , ctxAccount :: ![String]         -- ^ the current "container" account specified with !account, if any
+      ctxTimeZone :: !TimeZone         -- ^ the user's timezone
+    , ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
+    , ctxCommod   :: !(Maybe String)   -- ^ I don't know
+    , ctxAccount  :: ![String]         -- ^ the current stack of "container" accounts specified by !account
     } deriving (Read, Show)
 
 emptyCtx :: LedgerFileCtx
-emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
+emptyCtx = Ctx { ctxTimeZone=utc, ctxYear=Nothing, ctxCommod=Nothing, ctxAccount=[] }
 
 -- containing accounts "nest" hierarchically
 
@@ -61,6 +62,12 @@ setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 
 getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
 getYear = liftM ctxYear getState
+
+setTimeZone :: TimeZone -> GenParser tok LedgerFileCtx ()
+setTimeZone tz = updateState (\ctx -> ctx{ctxTimeZone=tz})
+
+getCtxTimeZone :: GenParser tok LedgerFileCtx TimeZone
+getCtxTimeZone = liftM ctxTimeZone getState
 
 -- let's get to it
 
@@ -326,7 +333,7 @@ ledgerpartialdate = do
   when (y==Nothing) $ error "partial date found, but no default year specified"
   return $ fromGregorian (fromJust y) (read m) (read d)
 
-ledgerdatetime :: GenParser Char st UTCTime
+ledgerdatetime :: GenParser Char LedgerFileCtx UTCTime
 ledgerdatetime = do 
   day <- ledgerdate
   h <- many1 digit
@@ -336,8 +343,9 @@ ledgerdatetime = do
       char ':'
       many1 digit
   many spacenonewline
-  return $ mkUTCTime day (TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s))
-
+  let tod = TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s)
+  tz <- getCtxTimeZone
+  return $ localTimeToUTC tz (LocalTime day tod)
 
 ledgerstatus :: GenParser Char st Bool
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False

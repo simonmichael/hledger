@@ -39,9 +39,6 @@ import Ledger.Utils
 showDate :: Day -> String
 showDate d = formatTime defaultTimeLocale "%Y/%m/%d" d
 
-mkUTCTime :: Day -> TimeOfDay -> UTCTime
-mkUTCTime day tod = localTimeToUTC utc (LocalTime day tod)
-
 getCurrentDay :: IO Day
 getCurrentDay = do
     t <- getZonedTime
