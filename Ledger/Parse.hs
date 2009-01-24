@@ -30,22 +30,17 @@ import Data.Time.Calendar
 
 -- utils
 
-parseLedgerFile :: FilePath -> ErrorT String IO RawLedger
-parseLedgerFile "-" = liftIO (hGetContents stdin) >>= parseLedger "-"
-parseLedgerFile f   = liftIO (readFile f)         >>= parseLedger f
-    
-printParseError :: (Show a) => a -> IO ()
-printParseError e = do putStr "ledger parse error at "; print e
-
--- Default accounts "nest" hierarchically
-
-data LedgerFileCtx = Ctx { ctxYear    :: !(Maybe Integer)
-                         , ctxCommod  :: !(Maybe String)
-                         , ctxAccount :: ![String]
-                         } deriving (Read, Show)
+-- | Some context kept during parsing.
+data LedgerFileCtx = Ctx {
+      ctxYear    :: !(Maybe Integer)  -- ^ the current default year specified with Y, if any
+    , ctxCommod  :: !(Maybe String)   -- ^ I don't know
+    , ctxAccount :: ![String]         -- ^ the current "container" account specified with !account, if any
+    } deriving (Read, Show)
 
 emptyCtx :: LedgerFileCtx
 emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
+
+-- containing accounts "nest" hierarchically
 
 pushParentAccount :: String -> GenParser tok LedgerFileCtx ()
 pushParentAccount parent = updateState addParentAccount
@@ -66,6 +61,15 @@ setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 
 getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
 getYear = liftM ctxYear getState
+
+-- let's get to it
+
+parseLedgerFile :: FilePath -> ErrorT String IO RawLedger
+parseLedgerFile "-" = liftIO (hGetContents stdin) >>= parseLedger "-"
+parseLedgerFile f   = liftIO (readFile f)         >>= parseLedger f
+
+printParseError :: (Show a) => a -> IO ()
+printParseError e = do putStr "ledger parse error at "; print e
 
 parseLedger :: FilePath -> String -> ErrorT String IO RawLedger
 parseLedger inname intxt = case runParser ledgerFile emptyCtx inname intxt of
