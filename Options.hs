@@ -19,9 +19,10 @@ timeprogname  = "hours"
 timelogpath   = "~/.timelog"
 timelogenvvar = "TIMELOG"
 
-usagehdr = 
-  "Usage: "++progname++" [OPTION] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
-  "or:    "++timeprogname++" [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
+usagehdr = printf (
+  "Usage: one of\n" ++
+  "  %s [OPTIONS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
+  "  %s [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
   "\n" ++
   "Commands (can be abbreviated):\n" ++
   "  balance  - show account balances\n" ++
@@ -38,19 +39,21 @@ usagehdr =
 #endif
   "\n" ++
   "Options (before command, unless using --options-anywhere):"
+  ) progname timeprogname
   
 
-usageftr =
+usageftr = printf (
   "\n" ++
   "All dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
   "\n" ++
   "Account and description patterns are regular expressions which filter by\n" ++
   "account name and entry description. Prefix a pattern with - to negate it,\n" ++
   "and separate account and description patterns with --.\n" ++
-  "(With --options-anywhere, use ^ and ^^. \""++timeprogname++"\" implies --options-anywhere.)\n" ++
+  "(With --options-anywhere, use ^ and ^^. \"%s\" implies --options-anywhere.)\n" ++
   "\n" ++
-  "Also: "++progname++" [-v] test [TESTPATTERNS] to run self-tests.\n" ++
+  "Also: %s [-v] test [TESTPATTERNS] to run self-tests.\n" ++
   "\n"
+  ) timeprogname progname
 
 usage = usageInfo usagehdr options ++ usageftr
 
