@@ -233,6 +233,13 @@ spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 restofline :: GenParser Char st String
 restofline = anyChar `manyTill` newline
 
+-- time
+
+getCurrentLocalTime :: IO LocalTime
+getCurrentLocalTime = do
+  t <- getCurrentTime
+  tz <- getCurrentTimeZone
+  return $ utcToLocalTime tz t
 
 
 
