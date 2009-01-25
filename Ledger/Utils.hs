@@ -215,8 +215,6 @@ showforest = concatMap showtree
 strace :: Show a => a -> a
 strace a = trace (show a) a
 
-p = putStr
-
 -- testing
 
 assertequal e a = assertEqual "" e a
