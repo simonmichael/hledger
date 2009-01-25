@@ -1,17 +1,20 @@
+# hledger project makefile
 
+# build the normal hledger binary
 BUILD=ghc --make hledger.hs -o hledger -O
 BUILDFLAGS=-DVTY
 build: setbuildversion tag
 	$(BUILD) $(BUILDFLAGS)
 
-BUILDO2=ghc --make hledger.hs -o hledgero2 -O2 -fvia-C
-buildo2:
-	$(BUILDO2)
-
-# rebuild all with normal optimisation
+# force a full rebuild with normal optimisation
 rebuild: clean build
 
-# recompile and run tests whenever a module changes
+# build the fastest binary we can, as hledgeropt
+BUILDOPT=ghc --make hledger.hs -o hledgeropt -O2 -fvia-C
+buildopt:
+	$(BUILDOPT)
+
+# recompile and run tests (or another command) whenever a module changes
 # see http://searchpath.org , you may need the patched version from
 # http://joyful.com/repos/searchpath
 CICMD=test
@@ -41,10 +44,12 @@ BENCHEXES=hledger ledger
 bench: buildbench sampleledgers
 	./bench $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
 
+# build the benchmarking tool
 buildbench:
 	ghc --make tools/bench.hs
 	rm -f bench; ln -s tools/bench
 
+# generate sample ledgers
 sampleledgers:
 	ghc -e 'putStr $$ unlines $$ replicate 1000 "!include sample.ledger"' >sample1000.ledger
 #	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >sample10000.ledger
@@ -132,6 +137,7 @@ upload:
 
 
 
+# update emacs TAGS file
 tag:
 	rm -f TAGS; hasktags -e *hs Ledger/*hs
 
@@ -145,16 +151,20 @@ Clean: clean clean-docs
 
 DOCS=README NEWS
 
+# rebuild all docs
 docs: html pdf api-doc-frames
 
+# rebuild html docs
 html:
 	for d in $(DOCS); do rst2html $$d >doc/$$d.html; done
 	cd doc; ln -f -s README.html index.html
 
+# rebuild pdf docs
 pdf:
 	for d in $(DOCS); do rst2pdf $$d -o doc/$$d.pdf; done
 
-MAIN=hledger.hs
+# rebuild api docs (haddock & hoogle) 
+api-docs: api-doc-frames
 
 api-doc-dir:
 	mkdir -p api-doc
@@ -168,9 +178,11 @@ colourised-source hscolour: api-doc-dir
 	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
 	HsColour -print-css >api-doc/hscolour.css
 
+MAIN=hledger.hs
+
 # nb --ignore-all-exports means these are actually implementation docs
 HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports
-api-doc-with-source haddock: api-doc-dir colourised-source $(MAIN)
+api-doc-with-source: api-doc-dir colourised-source $(MAIN)
 	echo "Generating haddock api docs" ; \
 	$(HADDOCK) -o api-doc -h --source-module=src-%{MODULE/./-}.html $(filter-out %api-doc-dir colourised-source,$^) ; \
 	cp api-doc/index.html api-doc/modules-index.html
@@ -211,8 +223,9 @@ api-doc-frames: api-doc-with-source hoogleweb
 	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
 	cp doc/misc/hoogle-small.html hoogle
 
+# build api docs and open them in a web browser, adjust to taste
 BROWSER=open
-test-docs: docs
+test-docs: api-docs
 	$(BROWSER) api-doc/index.html
 #	$(BROWSER) doc/README.html
 
@@ -226,7 +239,6 @@ show-changes:
 	@echo
 	@darcs changes --from-tag . | grep '*'
 
-
 show-unpushed:
 	@echo Changes not yet in the main hledger repo:
 	@echo
@@ -237,6 +249,7 @@ show-authors:
 	@echo
 	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
 
+# count lines of code
 sloc:
 	@echo "test code:"
 	@sloccount Tests.hs | grep haskell:
