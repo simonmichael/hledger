@@ -48,9 +48,15 @@ sampleledgers:
 #	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >sample10000.ledger
 #	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >sample10000.ledger
 
+# send unpushed patches to the mail list
 send:
 	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
 
+# push patches to the main repo with ssh
+push:
+	darcs push joyful.com:/repos/hledger
+
+# build a cabal release, tag the repo and upload to hackage
 VERSION=`egrep 'version *=' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
 release:
 	cabal sdist && darcs tag $(VERSION) && cabal upload dist/hledger-$(VERSION).tar.gz
