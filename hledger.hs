@@ -34,12 +34,16 @@ or ghci:
 -}
 
 module Main (
+             -- for easy ghci access
              module Main,
              module Utils,
              module Options,
              module BalanceCommand,
              module PrintCommand,
              module RegisterCommand,
+#ifdef HAPPS
+             module WebCommand,
+#endif
 )
 where
 import Control.Monad.Error
@@ -55,13 +59,13 @@ import BalanceCommand
 import PrintCommand
 import RegisterCommand
 #ifdef VTY
-import qualified UICommand
+import UICommand
 #endif
 #ifdef ANSI
-import qualified ANSICommand
+import ANSICommand
 #endif
 #ifdef HAPPS
-import qualified WebCommand
+import WebCommand
 #endif
 
 
@@ -77,13 +81,13 @@ main = do
        | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
 #ifdef VTY
-       | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args UICommand.ui
+       | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args ui
 #endif
 #ifdef ANSI
-       | cmd `isPrefixOf` "ansi"     = parseLedgerAndDo opts args ANSICommand.ansi
+       | cmd `isPrefixOf` "ansi"     = parseLedgerAndDo opts args ansi
 #endif
 #ifdef HAPPS
-       | cmd `isPrefixOf` "web"      = parseLedgerAndDo opts args WebCommand.web
+       | cmd `isPrefixOf` "web"      = parseLedgerAndDo opts args web
 #endif
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage
