@@ -48,6 +48,9 @@ sampleledgers:
 #	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >sample10000.ledger
 #	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >sample10000.ledger
 
+send:
+	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
+
 VERSION=`egrep 'version *=' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
 release:
 	cabal sdist && darcs tag $(VERSION) && cabal upload dist/hledger-$(VERSION).tar.gz
