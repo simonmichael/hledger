@@ -212,4 +212,3 @@ Other differences
 * hledger shows start and end dates of the intervals requested, not just the span containing data
 * hledger period expressions don't support "biweekly", "bimonthly", or "every N days/weeks/..." 
 * hledger always shows timelog balances in hours
-* hledger doesn't count an unfinished timelog session
