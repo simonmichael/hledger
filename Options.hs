@@ -12,56 +12,63 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
 
-
-configflags = [
+configflags   = [
 #ifdef VTY
-  "vty"
+   "vty"
 #endif
 #ifdef ANSI
- ,"ansi"
+  ,"ansi"
 #endif
 #ifdef HAPPS
- ,"happs"
+  ,"happs"
 #endif
  ]
-versionmsg  = "hledger " ++ version ++ configmsg ++ "\n"
-version     = "0.3.x"
-configmsg = if null configflags
-            then ""
-            else " with " ++ intercalate ", " configflags
-ledgerdefault  = "~/.ledger"
-ledgerenvvar   = "LEDGER"
-timelogdefault = "~/.timelog"
-timelogenvvar  = "TIMELOG"
-timeprogname   = "hours"
-usagehdr    = "Usage: hledger [OPTION] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
-              "or:    hours [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
-              "\n" ++
-              "Commands (can be abbreviated):\n" ++
-              "  balance  - show account balances\n" ++
-              "  print    - show formatted ledger entries\n" ++
-              "  register - show register transactions\n" ++
+configmsg     = if null configflags
+                then ""
+                else " with " ++ intercalate ", " configflags
+
+version       = "0.3.x"
+progname      = "hledger"
+versionmsg    = progname ++ " " ++ version ++ configmsg ++ "\n"
+ledgerpath    = "~/.ledger"
+ledgerenvvar  = "LEDGER"
+timeprogname  = "hours"
+timelogpath   = "~/.timelog"
+timelogenvvar = "TIMELOG"
+
+usagehdr = 
+  "Usage: "++progname++" [OPTION] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
+  "or:    "++timeprogname++" [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
+  "\n" ++
+  "Commands (can be abbreviated):\n" ++
+  "  balance  - show account balances\n" ++
+  "  print    - show formatted ledger entries\n" ++
+  "  register - show register transactions\n" ++
 #ifdef VTY
-              "  ui       - run a simple vty-based text ui\n" ++
+  "  ui       - run a simple vty-based text ui\n" ++
 #endif
 #ifdef ANSI
-              "  ansi     - run a simple ansi-based text ui\n" ++
+  "  ansi     - run a simple ansi-based text ui\n" ++
 #endif
 #ifdef HAPPS
-              "  happs    - run a web server providing a minimal web ui\n" ++
+  "  happs    - run a web server providing a minimal web ui\n" ++
 #endif
-              "\n" ++
-              "Options (before command, unless using --options-anywhere):"
-usageftr    = "\n" ++
-              "All dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
-              "\n" ++
-              "Account and description patterns are regular expressions which filter by\n" ++
-              "account name and entry description. Prefix a pattern with - to negate it,\n" ++
-              "and separate account and description patterns with --.\n" ++
-              "(With --options-anywhere, use ^ and ^^. \"hours\" implies --options-anywhere.)\n" ++
-              "\n" ++
-              "Also: hledger [-v] test [TESTPATTERNS] to run self-tests.\n" ++
-              "\n"
+  "\n" ++
+  "Options (before command, unless using --options-anywhere):"
+  
+
+usageftr =
+  "\n" ++
+  "All dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
+  "\n" ++
+  "Account and description patterns are regular expressions which filter by\n" ++
+  "account name and entry description. Prefix a pattern with - to negate it,\n" ++
+  "and separate account and description patterns with --.\n" ++
+  "(With --options-anywhere, use ^ and ^^. \""++timeprogname++"\" implies --options-anywhere.)\n" ++
+  "\n" ++
+  "Also: "++progname++" [-v] test [TESTPATTERNS] to run self-tests.\n" ++
+  "\n"
+
 usage = usageInfo usagehdr options ++ usageftr
 
 -- | Command-line options we accept.
@@ -92,7 +99,7 @@ options = [
  ]
     where 
       filehelp = printf "ledger file; - means use standard input. Defaults\nto the %s environment variable or %s"
-                 ledgerenvvar ledgerdefault
+                 ledgerenvvar ledgerpath
 
 -- | An option value from a command-line flag.
 data Opt = 
@@ -132,7 +139,7 @@ optValuesForConstructors fs opts = concatMap get opts
 -- command arguments. Any dates in the options are converted to full
 -- YYYY/MM/DD format, while we are in the IO monad and can get the current
 -- time. Arguments are parsed differently if the program was invoked as
--- "hours".
+-- \"hours\".
 parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- getArgs
@@ -227,8 +234,8 @@ ledgerFilePathFromOpts :: [Opt] -> IO String
 ledgerFilePathFromOpts opts = do
   istimequery <- usingTimeProgramName
   let (e,d) = if istimequery
-              then (timelogenvvar,timelogdefault)
-              else (ledgerenvvar,ledgerdefault)
+              then (timelogenvvar,timelogpath)
+              else (ledgerenvvar,ledgerpath)
   envordefault <- getEnv e `catch` \_ -> return d
   paths <- mapM tildeExpand $ [envordefault] ++ optValuesForConstructor File opts
   return $ last paths
