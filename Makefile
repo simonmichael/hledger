@@ -62,9 +62,9 @@ buildprof prof: sampleledgers
 	@echo "Profiling $(PROFCMD)"
 	$(BUILDPROF)
 	$(RUNPROF) $(PROFCMD) #>/dev/null
-	tools/simplifyprof.hs $(PROFBIN).prof >simple.prof
-	cp simple.prof profs/$(TIME).prof
-	echo; cat simple.prof
+	tools/simplifyprof.hs $(PROFBIN).prof >profile.prof
+	cp profile.prof profs/$(TIME).prof
+	echo; cat profile.prof
 
 # run performance benchmarks and save results in profs
 # executables to test, prepend ./ to these if not in $PATH
