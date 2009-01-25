@@ -35,7 +35,7 @@ usagehdr = printf (
   "  ansi     - run a simple ansi-based text ui\n" ++
 #endif
 #ifdef HAPPS
-  "  happs    - run a web server providing a minimal web ui\n" ++
+  "  web      - run a web server providing a simple web ui\n" ++
 #endif
   "\n" ++
   "PATTERNS are regular expressions which filter by account name.\n" ++

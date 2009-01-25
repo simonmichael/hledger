@@ -1,10 +1,10 @@
 {-| 
 
-A happs-based UI for hledger.
+A happs-based web UI for hledger.
 
 -}
 
-module HappsCommand
+module WebCommand
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
@@ -30,9 +30,9 @@ data AppState = AppState {
 
 tcpport = 5000
 
-happs :: [Opt] -> [String] -> Ledger -> IO ()
-happs opts args l = do
-  putStrLn $ printf "starting hledger server on port %d" tcpport
+web :: [Opt] -> [String] -> Ledger -> IO ()
+web opts args l = do
+  putStrLn $ printf "starting hledger web server on port %d" tcpport
   simpleHTTP nullConf{port=tcpport} [
                      method GET $ ok $ toResponse $ output
                     ]

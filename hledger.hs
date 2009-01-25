@@ -60,7 +60,7 @@ import qualified UICommand
 import qualified ANSICommand
 #endif
 #ifdef HAPPS
-import qualified HappsCommand
+import qualified WebCommand
 #endif
 import Tests
 
@@ -83,7 +83,7 @@ main = do
        | cmd `isPrefixOf` "ansi"     = parseLedgerAndDo opts args ANSICommand.ansi
 #endif
 #ifdef HAPPS
-       | cmd `isPrefixOf` "happs"    = parseLedgerAndDo opts args HappsCommand.happs
+       | cmd `isPrefixOf` "web"      = parseLedgerAndDo opts args WebCommand.web
 #endif
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage
