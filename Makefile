@@ -33,18 +33,20 @@ rebuild: clean build
 test:
 	./hledger.hs test
 
+# build profiling-enabled hledgerp and archive and show a cleaned-up profile
+# you may need to rebuild some libs: sudo cabal install --reinstall -p ...
 PROFBIN=hledgerp
 BUILDPROF=ghc $(BUILDFLAGS) --make hledger.hs -prof -auto-all -o $(PROFBIN)
 RUNPROF=./$(PROFBIN) +RTS -p -RTS
-PROFCMD=-s balance
+PROFCMD=-f sample1000.ledger -s balance
 TIME=`date +"%Y%m%d%H%M"`
-profile:
+profile: sampleledgers
 	@echo "Profiling $(PROFCMD)"
 	$(BUILDPROF)
-	$(RUNPROF) $(PROFCMD) >/dev/null
+	$(RUNPROF) $(PROFCMD) #>/dev/null
 	tools/simplifyprof.hs $(PROFBIN).prof >simple.prof
 	cp simple.prof profs/$(TIME).prof
-	cat simple.prof
+	echo; cat simple.prof
 
 # run performance benchmarks and save results in profs
 # executables to test, prepend ./ to these if not in $PATH
