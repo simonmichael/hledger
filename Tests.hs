@@ -128,8 +128,8 @@ misc_tests = TestList [
     assertparseequal timelog1 (parseWithCtx timelog timelog1_str)
   ,
   "parsedate" ~: do
-    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" refdate) (parsedate "2008/02/03")
-    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" refdate) (parsedate "2008-02-03")
+    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" sampledate) (parsedate "2008/02/03")
+    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" sampledate) (parsedate "2008-02-03")
   ,                  
   "smart dates"     ~: do
     let todaysdate = parsedate "2008/11/26" -- wednesday
@@ -456,7 +456,7 @@ balancecommand_tests = TestList [
              (showBalanceReport [] [] l)
  ,
   "balance report elides zero-balance root account(s)" ~: do
-    l <- ledgerfromstringwithopts [] [] reftime
+    l <- ledgerfromstringwithopts [] [] sampletime
              ("2008/1/1 one\n" ++
               "  test:a  1\n" ++
               "  test:b\n"
@@ -569,11 +569,10 @@ registercommand_tests = TestList [
 ------------------------------------------------------------------------------
 -- test data
 
-refdate = parsedate "2008/11/26"
-reftime = dayToUTC refdate
-sampleledger = ledgerfromstringwithopts [] [] reftime sample_ledger_str
-sampleledgerwithopts opts args = ledgerfromstringwithopts opts args reftime sample_ledger_str
---sampleledgerwithoptsanddate opts args date = unsafePerformIO $ ledgerfromstringwithopts opts args date sample_ledger_str
+sampledate = parsedate "2008/11/26"
+sampletime = LocalTime sampledate midday
+sampleledger = ledgerfromstringwithopts [] [] sampletime sample_ledger_str
+sampleledgerwithopts opts args = ledgerfromstringwithopts opts args sampletime sample_ledger_str
 
 sample_ledger_str = (
  "; A sample ledger file.\n" ++
