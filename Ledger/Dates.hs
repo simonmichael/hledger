@@ -47,9 +47,6 @@ getCurrentDay = do
 elapsedSeconds :: Fractional a => UTCTime -> UTCTime -> a
 elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
 
-dayToUTC :: Day -> UTCTime
-dayToUTC d = localTimeToUTC utc (LocalTime d midnight)
-
 -- | Split a DateSpan into one or more consecutive spans at the specified interval.
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan i (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
@@ -192,14 +189,14 @@ firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
 
-parsedatetimeM :: String -> Maybe UTCTime
+parsedatetimeM :: String -> Maybe LocalTime
 parsedatetimeM s = firstJust [
     parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
     parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
     ]
 
 -- | Parse a date-time string to a time type, or raise an error.
-parsedatetime :: String -> UTCTime
+parsedatetime :: String -> LocalTime
 parsedatetime s = fromMaybe (error $ "could not parse timestamp \"" ++ s ++ "\"")
                             (parsedatetimeM s)
 

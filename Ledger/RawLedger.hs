@@ -147,9 +147,10 @@ rawLedgerCommodities = map commodity . concatMap amounts . rawLedgerAmounts
 rawLedgerPrecisions :: RawLedger -> [Int]
 rawLedgerPrecisions = map precision . rawLedgerCommodities
 
-rawLedgerConvertTimeLog :: RawLedger -> RawLedger
-rawLedgerConvertTimeLog l0 = l0 { entries = convertedTimeLog ++ entries l0
-                                , open_timelog_entries = []
-                                }
-    where convertedTimeLog = entriesFromTimeLogEntries $ open_timelog_entries l0
+-- | Close any open timelog sessions using the provided current time.
+rawLedgerConvertTimeLog :: LocalTime -> RawLedger -> RawLedger
+rawLedgerConvertTimeLog t l0 = l0 { entries = convertedTimeLog ++ entries l0
+                                  , open_timelog_entries = []
+                                  }
+    where convertedTimeLog = entriesFromTimeLogEntries t $ open_timelog_entries l0
 

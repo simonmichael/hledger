@@ -33,14 +33,13 @@ import System.FilePath(takeDirectory,combine)
 
 -- | Some context kept during parsing.
 data LedgerFileCtx = Ctx {
-      ctxTimeZone :: !TimeZone         -- ^ the user's timezone
-    , ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
+      ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
     , ctxCommod   :: !(Maybe String)   -- ^ I don't know
     , ctxAccount  :: ![String]         -- ^ the current stack of "container" accounts specified by !account
     } deriving (Read, Show)
 
 emptyCtx :: LedgerFileCtx
-emptyCtx = Ctx { ctxTimeZone=utc, ctxYear=Nothing, ctxCommod=Nothing, ctxAccount=[] }
+emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
 
 -- containing accounts "nest" hierarchically
 
@@ -64,25 +63,23 @@ setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
 getYear = liftM ctxYear getState
 
-setTimeZone :: TimeZone -> GenParser tok LedgerFileCtx ()
-setTimeZone tz = updateState (\ctx -> ctx{ctxTimeZone=tz})
-
-getCtxTimeZone :: GenParser tok LedgerFileCtx TimeZone
-getCtxTimeZone = liftM ctxTimeZone getState
-
--- let's get to it
-
-parseLedgerFile :: FilePath -> ErrorT String IO RawLedger
-parseLedgerFile "-" = liftIO (hGetContents stdin) >>= parseLedger "-"
-parseLedgerFile f   = liftIO (readFile f)         >>= parseLedger f
-
 printParseError :: (Show a) => a -> IO ()
 printParseError e = do putStr "ledger parse error at "; print e
 
-parseLedger :: FilePath -> String -> ErrorT String IO RawLedger
-parseLedger inname intxt = case runParser ledgerFile emptyCtx inname intxt of
-                             Right m  -> liftM rawLedgerConvertTimeLog $ m `ap` (return rawLedgerEmpty)
-                             Left err -> throwError $ show err
+-- let's get to it
+
+parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO RawLedger
+parseLedgerFile t "-" = liftIO (hGetContents stdin) >>= parseLedger t "-"
+parseLedgerFile t f   = liftIO (readFile f)         >>= parseLedger t f
+
+-- | Parses the contents of a ledger file, or gives an error.  Requires
+-- the current (local) time to calculate any unfinished timelog sessions,
+-- we pass it in for repeatability.
+parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO RawLedger
+parseLedger reftime inname intxt = do
+  case runParser ledgerFile emptyCtx inname intxt of
+    Right m  -> liftM (rawLedgerConvertTimeLog reftime) $ m `ap` (return rawLedgerEmpty)
+    Left err -> throwError $ show err
 
 -- As all ledger line types can be distinguished by the first
 -- character, excepting transactions versus empty (blank or
@@ -337,7 +334,7 @@ ledgerpartialdate = do
   when (y==Nothing) $ error "partial date found, but no default year specified"
   return $ fromGregorian (fromJust y) (read m) (read d)
 
-ledgerdatetime :: GenParser Char LedgerFileCtx UTCTime
+ledgerdatetime :: GenParser Char LedgerFileCtx LocalTime
 ledgerdatetime = do 
   day <- ledgerdate
   h <- many1 digit
@@ -348,8 +345,7 @@ ledgerdatetime = do
       many1 digit
   many spacenonewline
   let tod = TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s)
-  tz <- getCtxTimeZone
-  return $ localTimeToUTC tz (LocalTime day tod)
+  return $ LocalTime day tod
 
 ledgerstatus :: GenParser Char st Bool
 ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False

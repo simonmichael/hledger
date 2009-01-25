@@ -17,22 +17,26 @@ import Ledger
 
 -- | Convert a RawLedger to a canonicalised, cached and filtered Ledger
 -- based on the command-line options/arguments and the current date/time.
-prepareLedger ::  [Opt] -> [String] -> UTCTime -> String -> RawLedger -> Ledger
+prepareLedger ::  [Opt] -> [String] -> LocalTime -> String -> RawLedger -> Ledger
 prepareLedger opts args reftime rawtext rl = l{rawledgertext=rawtext}
     where
       l = cacheLedger apats $ filterRawLedger span dpats c r $ canonicaliseAmounts cb rl
       (apats,dpats) = parseAccountDescriptionArgs [] args
-      span = dateSpanFromOpts (utctDay reftime) opts
+      span = dateSpanFromOpts (localDay reftime) opts
       c = Cleared `elem` opts
       r = Real `elem` opts
       cb = CostBasis `elem` opts
 
 -- | Get a RawLedger from the given string, or raise an error.
+-- This uses the current local time as the reference time (for closing
+-- open timelog entries).
 rawledgerfromstring :: String -> IO RawLedger
-rawledgerfromstring = liftM (either error id) . runErrorT . parseLedger "(string)"
+rawledgerfromstring s = do
+  t <- getCurrentLocalTime
+  liftM (either error id) $ runErrorT $ parseLedger t "(string)" s
 
 -- | Get a Ledger from the given string and options, or raise an error.
-ledgerfromstringwithopts :: [Opt] -> [String] -> UTCTime -> String -> IO Ledger
+ledgerfromstringwithopts :: [Opt] -> [String] -> LocalTime -> String -> IO Ledger
 ledgerfromstringwithopts opts args reftime s =
     liftM (prepareLedger opts args reftime s) $ rawledgerfromstring s
 
@@ -41,7 +45,7 @@ ledgerfromfilewithopts :: [Opt] -> [String] -> FilePath -> IO Ledger
 ledgerfromfilewithopts opts args f = do
   s <- readFile f 
   rl <- rawledgerfromstring s
-  reftime <- getCurrentTime
+  reftime <- getCurrentLocalTime
   return $ prepareLedger opts args reftime s rl
            
 -- | Get a Ledger from your default ledger file, or raise an error.
