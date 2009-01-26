@@ -6,12 +6,9 @@ BUILDFLAGS=-DVTY
 build: setbuildversion tag
 	$(BUILD) $(BUILDFLAGS)
 
-# force a full rebuild with normal optimisation
-rebuild: clean build
-
 # build the fastest binary we can, as hledgeropt
 BUILDOPT=ghc --make hledger.hs -o hledgeropt -O2 -fvia-C
-buildopt:
+buildopt opt:
 	$(BUILDOPT)
 
 # recompile and run tests (or another command) whenever a module changes
@@ -20,6 +17,9 @@ buildopt:
 CICMD=test
 continuous ci:
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
+
+# force a full rebuild with normal optimisation
+rebuild: clean build
 
 # run code tests
 test:
