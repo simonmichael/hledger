@@ -55,7 +55,6 @@ clever tricks like the plague." --Edsger Dijkstra
 **** charts
 **** easier data entry
 **** parse more file formats - gnucash, qif, ofx, csv..
-**** split day-spanning timelog sessions, don't report more than 24 hours in a day
 **** easier timelog format
 **** i18n
 *** speed

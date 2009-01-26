@@ -21,12 +21,20 @@ instance Show TimeLogEntry where
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
 
--- | Convert time log entries to ledger entries. When there is no clockout,
--- add one with the provided current time.
+-- | Convert time log entries to ledger entries. When there is no
+-- clockout, add one with the provided current time. Sessions crossing
+-- midnight are split to give accurate per-day totals.
 entriesFromTimeLogEntries :: LocalTime -> [TimeLogEntry] -> [Entry]
 entriesFromTimeLogEntries _ [] = []
 entriesFromTimeLogEntries t [i] = [entryFromTimeLogInOut i (TimeLogEntry 'o' t "")]
-entriesFromTimeLogEntries t (i:o:rest) = [entryFromTimeLogInOut i o] ++ entriesFromTimeLogEntries t rest
+entriesFromTimeLogEntries t (i:o:rest)
+    | odate > idate = [entryFromTimeLogInOut i o'] ++ entriesFromTimeLogEntries t (i':o:rest)
+    | otherwise = [entryFromTimeLogInOut i o] ++ entriesFromTimeLogEntries t rest
+    where
+      (itime,otime) = (tldatetime i,tldatetime o)
+      (idate,odate) = (localDay itime,localDay otime)
+      o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
+      i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 
 -- | Convert a timelog clockin and clockout entry to an equivalent ledger
 -- entry, representing the time expenditure. Note this entry is  not balanced,
@@ -38,7 +46,7 @@ entryFromTimeLogInOut i o
         error $ "clock-out time less than clock-in time in:\n" ++ showEntry e
     where
       e = Entry {
-            edate         = odate, -- like ledger
+            edate         = idate,
             estatus       = True,
             ecode         = "",
             edescription  = showtime itod ++ "-" ++ showtime otod,
