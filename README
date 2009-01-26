@@ -207,8 +207,8 @@ Other differences
 * hledger calls ledger's "note" field "description"
 * hledger doesn't require a space before command-line option values, eg: -f-
 * hledger provides "--cost" as a synonym for "--basis"
-* hledger's "weekly" reporting intervals always start on mondays
-* hledger shows start and end dates of full intervals, not just the span containing data
+* hledger's weekly reporting intervals always start on mondays
+* hledger shows start and end dates of the intervals requested, not just the span containing data
 * hledger period expressions don't support "biweekly", "bimonthly", or "every N days/weeks/..." 
 * hledger always shows timelog balances in hours
 * hledger doesn't count an unfinished timelog session

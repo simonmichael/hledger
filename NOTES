@@ -11,16 +11,11 @@ clever tricks like the plague." --Edsger Dijkstra
 * to do
 ** errors
 *** balance report: zero-balance root accounts do not elide properly
+*** too many dependencies, hard to install esp. without cabal install
 ** features
-*** actual/effective entry & txn dates, for completeness
-*** ~/.hledgerrc, for setting defaults
-*** more date syntax: last nov, next friday
-*** speed
-**** more optimisation
-**** speed regression tests
-**** cache file ?
 *** more ledger features
-**** allow - before currency symbol ?
+**** actual/effective entry & txn dates, for completeness
+**** ~/.hledgerrc for setting defaults
 **** support complete period syntax ?
     every N days     # N is any integer
     every N weeks
@@ -29,7 +24,9 @@ clever tricks like the plague." --Edsger Dijkstra
     every N years
     biweekly
     bimonthly
+**** allow - before currency symbol ?
 *** new features
+**** more date syntax: last nov, next friday, optional this, week of
 **** allow comment lines immediately after or within an entry
 **** accept multiple -f files
 **** more reliable tidy layout from print
@@ -42,9 +39,13 @@ clever tricks like the plague." --Edsger Dijkstra
 **** split day-spanning timelog sessions, don't report more than 24 hours in a day
 **** easy timelog queries when called as "hours"
 **** i18n
+*** speed
+**** more optimisation
+**** speed regression tests
+**** cache file ?
 ** tests
+*** test all esoteric ledger file features
 *** wanted: a test for reading a ledger from stdin
-*** test on more ledger files
 *** easy ledger compatibility testing
 **** --compare to compare (xml?) output with ledger with same args
 ** docs
