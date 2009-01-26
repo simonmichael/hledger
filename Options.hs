@@ -12,9 +12,9 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
 
-configflags   = [
+configflags   = tail [""
 #ifdef VTY
-   "vty"
+  ,"vty"
 #endif
 #ifdef ANSI
   ,"ansi"
