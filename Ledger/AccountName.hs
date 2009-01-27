@@ -152,4 +152,4 @@ isnegativepat pat = negateprefix `isPrefixOf` pat
 abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 positivepats = filter (not . isnegativepat)
 negativepats = filter isnegativepat
-matchregex pat str = containsRegex (mkRegexWithOpts pat True True) str
+matchregex pat str = containsRegex (mkRegexWithOpts pat True False) str

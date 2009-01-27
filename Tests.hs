@@ -514,6 +514,14 @@ registercommand_tests = TestList [
      "")
      $ showRegisterReport [] ["cash"] l
   ,
+  "register report with account pattern, case insensitive" ~:
+  do 
+    l <- sampleledger
+    assertequal (
+     "2008/06/03 eat & shop           assets:cash                     $-2          $-2\n" ++
+     "")
+     $ showRegisterReport [] ["cAsH"] l
+  ,
   "register report with display expression" ~:
   do 
     l <- sampleledger
