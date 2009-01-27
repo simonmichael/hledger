@@ -229,11 +229,17 @@ misc_tests = TestList [
     assertparseequal price1 (parseWithCtx ledgerHistoricalPrice price1_str)
   ,
   "ledgerDefaultYear" ~: do
-    -- something to check default year parsing doesn't blow up
-    rl <- rawledgerfromstring "Y2009\n"
+    rl <- rawledgerfromstring defaultyear_ledger_str
+    assertequal (fromGregorian 2009 1 1) (edate $ head $ entries rl)
     return ()
-
   ]
+
+defaultyear_ledger_str =
+ "Y2009\n" ++
+ "\n" ++
+ "01/01 A\n" ++
+ "    a  $1\n" ++
+ "    b\n"
 
 newparse_tests = TestList [ sameParseTests ]
     where sameParseTests = TestList $ map sameParse [ account1, account2, account3, account4 ]

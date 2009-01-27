@@ -303,15 +303,24 @@ ledgerEntry = do
   transactions <- ledgertransactions
   return $ balanceEntry $ Entry date status code description comment transactions ""
 
-ledgerdate :: GenParser Char st Day
-ledgerdate = do 
-  y <- many1 digit
-  char '/'
-  m <- many1 digit
-  char '/'
-  d <- many1 digit
+ledgerdate :: GenParser Char LedgerFileCtx Day
+ledgerdate = try ledgerfulldate <|> ledgerpartialdate
+
+ledgerfulldate :: GenParser Char LedgerFileCtx Day
+ledgerfulldate = do
+  (y,m,d) <- ymd
   many spacenonewline
-  return (fromGregorian (read y) (read m) (read d))
+  return $ fromGregorian (read y) (read m) (read d)
+
+-- | Match a partial M/D date in a ledger. Warning, this terminates the
+-- program if it finds a match when there is no default year specified.
+ledgerpartialdate :: GenParser Char LedgerFileCtx Day
+ledgerpartialdate = do
+  (_,m,d) <- md
+  many spacenonewline
+  y <- getYear
+  when (y==Nothing) $ error "partial date found, but no default year specified"
+  return $ fromGregorian (fromJust y) (read m) (read d)
 
 ledgerdatetime :: GenParser Char st UTCTime
 ledgerdatetime = do 
