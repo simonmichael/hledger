@@ -26,6 +26,7 @@ import Ledger.Entry
 import Ledger.Commodity
 import Ledger.TimeLog
 import Ledger.RawLedger
+import System.FilePath(takeDirectory,combine)
 
 
 -- utils
@@ -115,7 +116,7 @@ ledgerInclude = do many1 spacenonewline
                    outerState <- getState
                    outerPos <- getPosition
                    let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-                   return $ do contents <- expandPath filename >>= readFileE outerPos
+                   return $ do contents <- expandPath outerPos filename >>= readFileE outerPos
                                case runParser ledgerFile outerState filename contents of
                                  Right l   -> l `catchError` (\err -> throwError $ inIncluded ++ err)
                                  Left perr -> throwError $ inIncluded ++ show perr
@@ -124,10 +125,13 @@ ledgerInclude = do many1 spacenonewline
                     currentPos = show outerPos
                     whileReading = " reading " ++ show filename ++ ":\n"
 
-expandPath :: (MonadIO m) => FilePath -> m FilePath
-expandPath inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
-                                                  return $ homedir ++ drop 1 inname
-                  | otherwise                = return inname
+expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
+expandPath pos fp = liftM mkRelative (expandHome fp)
+  where
+    mkRelative = combine (takeDirectory (sourceName pos))
+    expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
+                                                      return $ homedir ++ drop 1 inname
+                      | otherwise                = return inname
 
 ledgerAccountBegin :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
 ledgerAccountBegin = do many1 spacenonewline

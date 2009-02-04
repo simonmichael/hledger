@@ -41,7 +41,8 @@ Executable hledger
                   time, 
                   HUnit, 
                   mtl, 
-                  bytestring
+                  bytestring,
+                  filepath
   Other-Modules:  BalanceCommand
                   Options
                   PrintCommand
@@ -81,7 +82,7 @@ Executable hledger
 
 Library
   Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,
-                  old-locale, time, HUnit
+                  old-locale, time, HUnit, filepath
   Exposed-modules:Ledger
                   Ledger.Account
                   Ledger.AccountName
