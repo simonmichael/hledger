@@ -51,24 +51,30 @@ web opts args l = do
   killThread tid
   putStrLn "shutdown complete"
 
-template  = "<div align=center style=width:100%%>" ++
-            " <a href=print>ledger</a>" ++
-            " | <a href=register>register</a>" ++
-            " | <a href=balance>balance</a>" ++
-            "</div>" ++
-            "<pre>%s</pre>"
+template r = printf (
+             "<div style=float:right>" ++
+             "<form action=%s>search:&nbsp;<input name=a value=%s></form>" ++
+             "</div>" ++
+             "<div align=center style=width:100%%%%>" ++
+             " <a href=print>ledger</a>" ++
+             " | <a href=register>register</a>" ++
+             " | <a href=balance>balance</a>" ++
+             "</div>" ++
+             "<pre>%%s</pre>")
+             (dropWhile (=='/') $ rqUri r)
+             (fromMaybe "" $ queryValue "a" r)
 
 type Handler = ServerPart Response
 
 handlers :: [Opt] -> [String] -> Ledger -> [Handler]
 handlers opts args l = 
         [
-          dir "print" [withRequest $ \r -> respond $ printreport r]
-        , dir "register" [withRequest $ \r -> respond $ registerreport r]
-        , dir "balance" [withRequest $ \r -> respond $ balancereport r]
+          dir "print" [withRequest $ \r -> respond r $ printreport r]
+        , dir "register" [withRequest $ \r -> respond r $ registerreport r]
+        , dir "balance" [withRequest $ \r -> respond r $ balancereport r]
         ]
     where
-      respond = ok . setContentType "text/html" . toResponse . (printf template :: String -> String)
+      respond r = ok . setContentType "text/html" . toResponse . (printf (template r) :: String -> String)
       printreport r = showEntries opts (pats r ++ args) l
       registerreport r = showRegisterReport opts (pats r ++ args) l
       balancereport r = showBalanceReport (opts++[SubTotal]) (pats r ++ args) l
