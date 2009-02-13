@@ -101,6 +101,6 @@ Executable hledger
                   ,happstack-server >= 0.2 && < 0.3
                   ,happstack-state >= 0.2 && < 0.3
                   ,utf8-string >= 0.3 && < 0.4
-    Other-Modules:HappsCommand
+    Other-Modules:WebCommand
     cpp-options: -DHAPPS
 
