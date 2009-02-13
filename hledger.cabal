@@ -30,19 +30,11 @@ Flag happs
 
 Executable hledger
   Main-Is:        hledger.hs
-  Build-Depends:  base,
-                  containers, 
-                  haskell98, 
-                  directory, 
-                  parsec, 
-                  regex-compat, 
-                  regexpr>=0.5.1,
-                  old-locale, 
-                  time, 
-                  HUnit, 
-                  mtl, 
-                  bytestring,
-                  filepath
+
+  Build-Depends:  base, containers, haskell98, directory, parsec,
+                  regex-compat, regexpr>=0.5.1, old-locale, time,
+                  HUnit, mtl, bytestring, filepath
+
   Other-Modules:  BalanceCommand
                   Options
                   PrintCommand
