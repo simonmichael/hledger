@@ -126,7 +126,7 @@ expressions consisting of a date predicate.  Also the following
 hledger-specific features are supported::
 
    ui,ansi                interactive curses and ansi-based text uis
-   happs                  rudimentary web interface on port 5000
+   web                    rudimentary web interface on port 5000
    --depth=N              balance report: maximum account depth to show
 
 ledger features not supported
