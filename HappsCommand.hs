@@ -10,10 +10,10 @@ import Data.Time.Clock
 import Data.Time.Format
 import System.Locale
 import Control.Concurrent
-import qualified Text.StringTemplate as T
-import Codec.Compression.GZip (compress)
 import qualified Data.ByteString.Lazy.Char8 as B
-import Data.ByteString.UTF8 (fromString, toString)
+-- import qualified Text.StringTemplate as T
+-- import Codec.Compression.GZip (compress)
+-- import Data.ByteString.UTF8 (fromString)
 import HAppS.Server
 import System.Cmd (system)
 import System.Info (os)
@@ -124,9 +124,9 @@ setContentType = setHeader "Content-Type"
 setFilename :: String -> Response -> Response
 setFilename = setHeader "Content-Disposition" . \fname -> "attachment: filename=\"" ++ fname ++ "\""
 
-gzipBinary :: Response -> Response
-gzipBinary r@(Response {rsBody = b}) =  setHeader "Content-Encoding" "gzip" $ r {rsBody = compress b}
+-- gzipBinary :: Response -> Response
+-- gzipBinary r@(Response {rsBody = b}) =  setHeader "Content-Encoding" "gzip" $ r {rsBody = compress b}
 
-acceptsZip :: Request -> Bool
-acceptsZip req = isJust $ M.lookup (fromString "accept-encoding") (rqHeaders req)
+-- acceptsZip :: Request -> Bool
+-- acceptsZip req = isJust $ M.lookup (fromString "accept-encoding") (rqHeaders req)
 
