@@ -10,11 +10,31 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
+*** -B not working
+*** balance 'assets.*fargo' shows no accounts
+*** not catching some unbalanced entries, two ways:
+**** 1
+1/1 test1
+    a             $-100
+    b        -10h @ $10
+; $ hledger -B reg -- test1
+; 2009/01/01 test1                a                          $-100.00     $-100.00
+**** 2
+1/1 test2
+    a             $-100
+    b             $-100
+; $ hledger -B reg -- test2
+; 2009/01/01 test2                a                          $-100.00     $-100.00
+;                                 b                          $-100.00     $-200.00
+
+*** register report should sort by date
+*** timelog report for today with no entries ignores an open session from yesterday
 *** balance report: zero-balance root accounts do not elide properly
 *** too many dependencies, hard to install esp. without cabal install
 ** features
 *** more ledger features
-**** actual/effective entry & txn dates, for completeness
+**** -U --uncleared
+**** actual/effective entry & txn dates, for more accurate modelling & easier reconciliation
 **** ~/.hledgerrc for setting defaults
 **** support complete period syntax ?
     every N days     # N is any integer
@@ -26,6 +46,7 @@ clever tricks like the plague." --Edsger Dijkstra
     bimonthly
 **** allow - before currency symbol ?
 *** new features
+**** a simpler timelog balance report format for clients
 **** more date syntax: last nov, next friday, optional this, week of
 **** allow comment lines immediately after or within an entry
 **** accept multiple -f files
@@ -49,7 +70,10 @@ clever tricks like the plague." --Edsger Dijkstra
 *** easy ledger compatibility testing
 **** --compare to compare (xml?) output with ledger with same args
 ** docs
-*** funding document
+*** hledgerisms in file format - that hledger can read but ledger can't
+*** complete docs for smart dates, period expressions
+*** funding
+**** original document
 =======
 funding
 =======
@@ -370,3 +394,7 @@ matrace a@(Mixed as) = trace (show as) a
 nmatrace :: MixedAmount -> MixedAmount
 nmatrace a = trace (show as) a where (Mixed as) = normaliseMixedAmount a
 
+** http://lwn.net/Articles/314577/
+** financial software
+*** http://weberp.org
+**** http://www.weberp.org/weberp/doc/Manual/ManualContents.php
