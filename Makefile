@@ -3,7 +3,7 @@ BENCHEXES=hledger ledger
 
 BUILD=ghc --make hledger.hs -o hledger -O
 BUILDFLAGS=-DVTY
-build: tag
+build: setbuildversion tag
 	$(BUILD) $(BUILDFLAGS)
 
 BUILDO2=ghc --make hledger.hs -o hledgero2 -O2 -fvia-C
@@ -58,10 +58,79 @@ send:
 push:
 	darcs push joyful.com:/repos/hledger
 
+# version numbering, releasing etc.
+#
+# Places where hledger's version number makes an appearance:
+#  hledger --version
+#  the darcs release tag
+#  the cabal file
+#  the hackage pages and tarball filenames
+#
+# Goals and constraints for version numbering:
+# 1 automation, robustness, simplicity, platform independence
+# 2 cabal versions must be all-numeric
+# 3 release versions should be concise
+# 4 releases should have a corresponding darcs tag
+# 5 development builds should have a precise version appearing in --version
+# 6 development builds should generate cabal packages with non-confusing versions
+# 7 would like a way to mark builds/releases as alpha or beta
+# 8 would like to easily darcs get the .0 even with bugfix releases present
+#
+# Current plan:
+# - Update the release version below, and record, before and/or after
+#   "make release".
+# - The release version looks like major.minor[.bugfix].  bugfix is 0 (and
+#   elided) for a normal release, or 1..n for a bugfix release, or if
+#   desired may be set to 98 meaning an alpha for the forthcoming release
+#   or 99 meaning a beta. This is propagated during "make release".
+# - The development build version is the non-elided release version plus
+#   the number of patches added since the last release, ie
+#   major.minor.bugfix.patches. This is propagated during "make".
+# - The release tag is the non-elided release version.
+RELEASE:=0.3.98
+
 # build a cabal release, tag the repo and upload to hackage
-VERSION=`egrep 'version *=' Options.hs | perl -pe 's/.*"(.*?)"/\1/'`
-release:
-	cabal sdist && darcs tag $(VERSION) && cabal upload dist/hledger-$(VERSION).tar.gz
+# don't forget to first update and record RELEASE, if needed
+release: check setreleaseversion tagrelease sdist #upload
+
+ifeq ($(shell ghc -e "length (filter (=='.') \"$(RELEASE)\")"), 1)
+RELEASE3:=$(RELEASE).0
+else
+RELEASE3:=$(RELEASE)
+endif
+
+# pre-release checks - cabal is happy, the code builds, tests pass..
+check:
+	cabal check
+	cabal configure
+	cabal build
+	dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 1'
+
+# set the precise build version in local files, but don't record.
+# This is used for development builds ("make").
+setbuildversion:
+	(export BUILD=$(RELEASE3).`expr \`darcs changes --count --from-tag=.\` - 1` \
+		&& perl -p -e "s/(^version *= *)\".*?\"/\1\"$$BUILD\"/" -i Options.hs \
+		&& perl -p -e "s/(^Version: *) .*/\1 $$BUILD/" -i hledger.cabal \
+	)
+
+# set the release version in local files (which should not have other
+# pending edits!), and record.
+setreleaseversion:
+	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(RELEASE)\"/" -i Options.hs \
+	&& perl -p -e "s/(^Version: *) .*/\1 $(RELEASE)/" -i hledger.cabal \
+	&& darcs record -a -m "bump version" Options.hs hledger.cabal
+
+tagrelease:
+	darcs tag $(RELEASE3)
+
+sdist:
+	cabal sdist
+
+upload:
+	cabal upload dist/hledger-$(RELEASE).tar.gz
+
+
 
 tag:
 	rm -f TAGS; hasktags -e *hs Ledger/*hs

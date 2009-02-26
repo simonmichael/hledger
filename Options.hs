@@ -27,9 +27,26 @@ configmsg     = if null configflags
                 then ""
                 else " with " ++ intercalate ", " configflags
 
-version       = "0.3.x"
 progname      = "hledger"
-versionmsg    = progname ++ " " ++ version ++ configmsg ++ "\n"
+-- updated by makefile, see notes there
+version       = "0.3.98"
+versionstr    = prettify $ splitAtElement '.' version
+                where
+                  prettify (major:minor:bugfix:patches:[]) =
+                      printf "%s.%s%s%s%s" major minor bugfix' patches' desc
+                          where
+                            bugfix'
+                                | bugfix `elem` ["0"{-,"98","99"-}] = ""
+                                | otherwise = "."++bugfix
+                            patches'
+                                | patches/="0" = " + "++patches++" patches"
+                                | otherwise = ""
+                            desc
+                                | bugfix=="98" = " (alpha)"
+                                | bugfix=="99" = " (beta)"
+                                | otherwise = ""
+                  prettify s = intercalate "." s
+versionmsg    = progname ++ " " ++ versionstr ++ configmsg ++ "\n"
 ledgerpath    = "~/.ledger"
 ledgerenvvar  = "LEDGER"
 timeprogname  = "hours"
