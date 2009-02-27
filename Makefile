@@ -42,7 +42,7 @@ haddocktest:
 
 # run unit tests, without waiting for compilation
 unittest:
-	./hledger.hs test
+	runghc hledger.hs test
 
 # run doc tests
 doctest: tools/doctest
