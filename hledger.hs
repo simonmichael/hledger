@@ -1,4 +1,4 @@
--- #!/usr/bin/env runhaskell
+-- sp doesn't like.. #!/usr/bin/env runhaskell
 {-# OPTIONS_GHC -cpp #-}
 {-|
 hledger - a ledger-compatible text-based accounting tool.

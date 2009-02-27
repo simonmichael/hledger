@@ -19,9 +19,9 @@ BUILDOPT=ghc --make hledger.hs -o hledgeropt -O2 -fvia-C
 buildopt opt: setversion
 	$(BUILDOPT) $(BUILDFLAGS)
 
-# recompile and run tests (or another command) whenever a module changes
-# see http://searchpath.org , you may need the patched version from
-# http://joyful.com/repos/searchpath
+# "continuous integration" testing - recompile and run test (or any other
+# command) whenever a module changes. sp is from searchpath.org , you
+# might need the patched version from http://joyful.com/repos/searchpath
 CICMD=test
 continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
@@ -29,7 +29,7 @@ continuous ci: setversion
 # force a full rebuild with normal optimisation
 rebuild: clean build
 
-# run code tests
+# run tests without compiling, might be handy now and then
 test:
 	./hledger.hs test
 
