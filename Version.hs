@@ -4,14 +4,12 @@ where
 import Ledger.Utils
 import Options (progname)
 
-#ifndef PATCHES
-#define PATCHES "0"
-#endif
-
 -- updated by build process from VERSION
 version       = "0.3.99"
 -- PATCHES defined by build process from repo state
-buildversion  = version ++ "." ++ PATCHES
+buildversion  = version ++ "." ++ "\
+PATCHES\
+"
 
 versionstr    = prettify $ splitAtElement '.' buildversion
                 where

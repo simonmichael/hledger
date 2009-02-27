@@ -58,7 +58,7 @@ Executable hledger
                   Ledger.Types
                   Ledger.Utils
   -- the cabal build does not yet report patches since last release
-  cpp-options:    -DPATCHES="0"
+  cpp-options:    -DPATCHES=0
   if flag(vty)
     Build-Depends:vty>=3.1.8.2
     Other-Modules:UICommand
