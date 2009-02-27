@@ -7,6 +7,7 @@ where
 import qualified Data.Map as Map
 import Text.ParserCombinators.Parsec
 import Test.HUnit
+import Test.HUnit.Tools (assertRaises, runVerboseTests)
 import Ledger
 import Utils
 import Options
@@ -15,19 +16,16 @@ import PrintCommand
 import RegisterCommand
 
 
-runtests opts args = do
-  when (Verbose `elem` opts)
-       (do
-         putStrLn $ printf "Running %d tests%s:" n s
-         sequence $ map (putStrLn . tname) $ tflatten flattests; putStrLn "Results:")
-  runTestTT flattests
-      where
-        deeptests = tfilter matchname $ TestList tests
-        flattests = TestList $ filter matchname $ concatMap tflatten tests
-        matchname = matchpats args . tname
-        n = length ts where (TestList ts) = flattests
-        s | null args = ""
-          | otherwise = printf " matching %s " 
+runtests opts args = runner flattests
+    where
+      runner | (Verbose `elem` opts) = runVerboseTests
+             | otherwise = \t -> runTestTT t >>= return . (flip (,) 0)
+      deeptests = tfilter matchname $ TestList tests
+      flattests = TestList $ filter matchname $ concatMap tflatten tests
+      matchname = matchpats args . tname
+      n = length ts where (TestList ts) = flattests
+      s | null args = ""
+        | otherwise = printf " matching %s "
                         (intercalate ", " $ map (printf "\"%s\"") args)
 
 -- test utils
