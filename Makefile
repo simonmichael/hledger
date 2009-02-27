@@ -1,21 +1,29 @@
 # hledger project makefile
 
+default: tag build
+
+# patches since last release tag (as a haskell string literal)
+PATCHES:="\"`expr \`darcs changes --count --from-tag=\\\\\.\` - 1`\""
+
 # build the normal hledger binary
 BUILD=ghc --make hledger.hs -o hledger -O
-BUILDFLAGS=-DVTY -DANSI -DHAPPS
-build: setbuildversion tag
-	$(BUILD) $(BUILDFLAGS)
+FLAGS=-DPATCHES=$(PATCHES)
+# optional extras described in README, turn em on if you've got the libs
+OPTFLAGS=-DVTY -DANSI -DHAPPS
+BUILDFLAGS=$(FLAGS) $(OPTFLAGS)
+build: setversion
+	@$(BUILD) $(BUILDFLAGS)
 
 # build the fastest binary we can, as hledgeropt
 BUILDOPT=ghc --make hledger.hs -o hledgeropt -O2 -fvia-C
-buildopt opt:
-	$(BUILDOPT)
+buildopt opt: setversion
+	$(BUILDOPT) $(BUILDFLAGS)
 
 # recompile and run tests (or another command) whenever a module changes
 # see http://searchpath.org , you may need the patched version from
 # http://joyful.com/repos/searchpath
 CICMD=test
-continuous ci:
+continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
 # force a full rebuild with normal optimisation
@@ -39,7 +47,7 @@ profile:
 	cat simple.prof
 
 # run performance benchmarks and save results in profs
-# prepend ./ to these if not in $PATH
+# executables to test, prepend ./ to these if not in $PATH
 BENCHEXES=hledger ledger
 bench: buildbench sampleledgers
 	./bench $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
@@ -67,79 +75,97 @@ push:
 #
 # Places where hledger's version number makes an appearance:
 #  hledger --version
-#  the darcs release tag
-#  the cabal file
-#  the hackage pages and tarball filenames
+#  hledger's cabal file
+#  darcs tags
+#  hackage tarball filenames
+#  hackage pages
 #
-# Goals and constraints for version numbering:
+# Goals and constraints for our version number system:
 # 1 automation, robustness, simplicity, platform independence
 # 2 cabal versions must be all-numeric
-# 3 release versions should be concise
+# 3 release versions can be concise (without extra .0's)
 # 4 releases should have a corresponding darcs tag
 # 5 development builds should have a precise version appearing in --version
 # 6 development builds should generate cabal packages with non-confusing versions
-# 7 would like a way to mark builds/releases as alpha or beta
-# 8 would like to easily darcs get the .0 even with bugfix releases present
+# 7 there should be a way to mark builds/releases as alpha or beta
+# 8 it should be easy to darcs get the .0 release even after bugfix releases
+# 9 avoid unnecessary compiling and linking
+# 10 minimise rcs noise and syncing issues (commits, unrecorded changes)
 #
 # Current plan:
-# - Update the release version below, and record, before and/or after
-#   "make release".
 # - The release version looks like major.minor[.bugfix].  bugfix is 0 (and
-#   elided) for a normal release, or 1..n for a bugfix release, or if
-#   desired may be set to 98 meaning an alpha for the forthcoming release
-#   or 99 meaning a beta. This is propagated during "make release".
-# - The development build version is the non-elided release version plus
-#   the number of patches added since the last release, ie
-#   major.minor.bugfix.patches. This is propagated during "make".
+#   may be elided) for a normal release, or 1..n for a bugfix release, or
+#   98 meaning an alpha for the forthcoming release, or 99 meaning a beta.
+# - The build version looks like major.minor.bugfix.patches, where patches
+#   is the number of patches applied since the last release tag.
+# - Set the release version in VERSION before "make" or "make release".
+# - "make" updates version strings where needed, and defines PATCHES.
+#   "make release" also records the version number changes and tags the
+#   repo. (Todo: make cabal build set the version and PATCHES, also)
+# - hledger --version shows the build version
+# - The cabal package uses the release version
 # - The release tag is the non-elided release version.
-RELEASE:=0.3.98
 
-# build a cabal release, tag the repo and upload to hackage
-# don't forget to first update and record RELEASE, if needed
-release: check setreleaseversion tagrelease sdist #upload
-
-ifeq ($(shell ghc -e "length (filter (=='.') \"$(RELEASE)\")"), 1)
-RELEASE3:=$(RELEASE).0
-else
-RELEASE3:=$(RELEASE)
-endif
-
-# pre-release checks - cabal is happy, the code builds, tests pass..
-check:
+# run pre-release checks: cabal is happy, the code builds, tests pass..
+check: setversion
+	cabal clean
 	cabal check
 	cabal configure
 	cabal build
-	dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 1'
+	dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 1' # XXX
 
-# set the precise build version in local files, but don't record.
-# This is used for development builds ("make").
-setbuildversion:
-	(export BUILD=$(RELEASE3).`expr \`darcs changes --count --from-tag=.\` - 1` \
-		&& perl -p -e "s/(^version *= *)\".*?\"/\1\"$$BUILD\"/" -i Options.hs \
-		&& perl -p -e "s/(^Version: *) .*/\1 $$BUILD/" -i hledger.cabal \
-	)
+# Build a cabal release, tag the repo and maybe upload to hackage.
+# Don't forget to update VERSION if needed. Examples:
+# releasing 0.5:          set VERSION to 0.5, make release hackageupload
+# doing a bugfix release: set VERSION to 0.5.1, make release hackageupload
+# building 0.6 alpha:     set VERSION to 0.5.98, make
+# releasing 0.6 beta:     set VERSION to 0.5.99, make release
+release: check setandrecordversion tagrelease sdist
 
-# set the release version in local files (which should not have other
-# pending edits!), and record.
-setreleaseversion:
-	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(RELEASE)\"/" -i Options.hs \
-	&& perl -p -e "s/(^Version: *) .*/\1 $(RELEASE)/" -i hledger.cabal \
-	&& darcs record -a -m "bump version" Options.hs hledger.cabal
+# file where the current release version is defined
+VERSIONFILE=VERSION
+
+# two or three-part version string
+VERSION:=`grep -v '^--' $(VERSIONFILE)`
+
+# three-part version string
+ifeq ($(shell ghc -e "length (filter (=='.') \"$(VERSION)\")"), 1)
+VERSION3:=$(VERSION).0
+else
+VERSION3:=$(VERSION)
+endif
+
+# other files containing the version string
+VERSIONFILES=hledger.cabal Version.hs
+
+hledger.cabal: $(VERSIONFILE)
+	perl -p -e "s/(^Version: *) .*/\1 $(VERSION)/" -i $@
+
+Version.hs: $(VERSIONFILE)
+	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
+
+# update the version string in local files. Triggered by "make".
+setversion: $(VERSIONFILES)
+
+# update the version string in local files, and record them (and
+# $VERSIONFILE) if changed.  Be careful, will record all changes in those
+# files (so prompts interactively). Triggered by "make release".
+setandrecordversion: setversion
+	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONFILES)
 
 tagrelease:
-	darcs tag $(RELEASE3)
+	darcs tag $(VERSION3)
 
 sdist:
 	cabal sdist
 
-upload:
-	cabal upload dist/hledger-$(RELEASE).tar.gz
-
+hackageupload:
+	cabal upload dist/hledger-$(VERSION).tar.gz
 
 
 # update emacs TAGS file
 tag:
-	rm -f TAGS; hasktags -e *hs Ledger/*hs
+	@rm -f TAGS; hasktags -e *hs Ledger/*hs
 
 clean:
 	rm -f {,Ledger/}*{.o,.hi,~} darcs-amend-record*
