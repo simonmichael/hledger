@@ -264,9 +264,9 @@ misc_tests = TestList [
 newparse_tests = TestList [ sameParseTests ]
     where sameParseTests = TestList $ map sameParse [ account1, account2, account3, account4 ]
           sameParse (str1, str2) 
-              = TestCase $ do l1 <- rawledgerfromstring str1                         
-                              l2 <- rawledgerfromstring str2
-                              (l1 @=? l2)
+              = "newparse_tests" ~: TestCase $ do l1 <- rawledgerfromstring str1
+                                                  l2 <- rawledgerfromstring str2
+                                                  (l1 @=? l2)
           account1 = ( "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
                      , "!account test\n2008/12/07 One\n  from  $-1\n  to  $1\n"
                      )
