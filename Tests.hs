@@ -1,3 +1,7 @@
+-- see also
+-- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
+-- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/HTF
+
 module Tests
 where
 import qualified Data.Map as Map

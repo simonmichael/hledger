@@ -10,7 +10,6 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** -B not working
 *** balance 'assets.*fargo' shows no accounts
 *** not catching some unbalanced entries, two ways:
 **** 1
@@ -73,7 +72,7 @@ clever tricks like the plague." --Edsger Dijkstra
 *** hledgerisms in file format - that hledger can read but ledger can't
 *** complete docs for smart dates, period expressions
 *** funding
-**** original document
+**** funding document 2009/01
 =======
 funding
 =======
@@ -265,6 +264,11 @@ competitors/fellow niche inhabitants
      * ledger!
      * ...
 
+***** responses
+***** albino
+      have you considered talking to business who hate their financial sw and going from there
+***** gwern
+      most haskellers have never heard of hledger, sounds arrogant or hubristic to talk of charging for it
 *** --version
 *** --help
 *** readme
@@ -297,7 +301,25 @@ competitors/fellow niche inhabitants
 **** hledger print puts a blank line after the entry, not before it
 **** ledger can get timelog entry balance wrong, see mail list
 **** ledger reports timelog sessions as virtual transactions
-** web presence
+** packaging, web presence, etc.
+*** make installation easier
+**** on all platforms
+***** via cabal install
+***** via downloading packages from hackage
+**** on linux
+***** on debian
+***** on ubuntu
+***** on redhat
+***** on arch
+***** via binaries
+**** on mac
+***** via ports
+***** via binaries
+**** on windows
+***** via binaries
+*** reduce dependencies
+*** split packages ?
+*** set up binary publishing
 *** clarify bugtracking process
 * misc
 ** things I want to know
