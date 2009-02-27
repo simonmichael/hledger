@@ -38,7 +38,7 @@ usagehdr = printf (
   "  happs    - run a web server providing a minimal web ui\n" ++
 #endif
   "\n" ++
-  "Options (before command, unless using --options-anywhere):"
+  "Options:"
   ) progname timeprogname
   
 
@@ -47,13 +47,12 @@ usageftr = printf (
   "All dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
   "\n" ++
   "Account and description patterns are regular expressions which filter by\n" ++
-  "account name and entry description. Prefix a pattern with - to negate it,\n" ++
-  "and separate account and description patterns with --.\n" ++
-  "(With --options-anywhere, use ^ and ^^. \"%s\" implies --options-anywhere.)\n" ++
+  "account name and entry description. Prefix a pattern with ^ to negate it,\n" ++
+  "and separate account and description patterns with ^^.\n" ++
   "\n" ++
   "Also: %s [-v] test [TESTPATTERNS] to run self-tests.\n" ++
   "\n"
-  ) timeprogname progname
+  ) progname
 
 usage = usageInfo usagehdr options ++ usageftr
 
@@ -81,7 +80,6 @@ options = [
  ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "verbose test output"
  ,Option ['V'] ["version"]      (NoArg  Version)       "show version"
  ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands without no output"
- ,Option []    ["options-anywhere"] (NoArg OptionsAnywhere) "allow options anywhere on the command line"
  ]
     where 
       filehelp = printf "ledger file; - means use standard input. Defaults\nto the %s environment variable or %s"
@@ -99,7 +97,6 @@ data Opt =
     Display {value::String} | 
     Empty | 
     Real | 
-    OptionsAnywhere | 
     Collapse |
     SubTotal |
     WeeklyOpt |
@@ -130,10 +127,7 @@ parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- getArgs
   istimequery <- usingTimeProgramName
-  let order = if "--options-anywhere" `elem` args || istimequery
-              then Permute 
-              else RequireOrder
-  let (os,as,es) = getOpt order options args
+  let (os,as,es) = getOpt Permute options args
   os' <- fixOptDates os
   case istimequery of
     False ->
@@ -239,14 +233,12 @@ tildeExpand xs           =  return xs
 
 -- | Gather any ledger-style account/description pattern arguments into
 -- two lists.  These are 0 or more account patterns optionally followed by
--- a separator and then 0 or more description patterns. The separator is
--- usually -- but with --options-anywhere is ^^ so we need to provide the
--- options as well.
+-- a separator and then 0 or more description patterns. Each pattern may
+-- have a negation prefix. The separator and negation prefix are, for now,
+-- ^^ and ^ .
 parseAccountDescriptionArgs :: [Opt] -> [String] -> ([String],[String])
 parseAccountDescriptionArgs opts args = (as, ds')
     where (as, ds) = break (==patseparator) args
           ds' = dropWhile (==patseparator) ds
           patseparator = replicate 2 negchar
-          negchar
-              | OptionsAnywhere `elem` opts = '^'
-              | otherwise = '-'
+          negchar = '^'

@@ -75,8 +75,8 @@ convenient querying::
 
  hours [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]
 
-PERIOD and COMMAND default to "today" and "balance --subtotal"
-respectively, and --options-anywhere is assumed.  Examples::
+PERIOD and COMMAND default to "today" and "balance --subtotal" respectively.
+Examples::
 
  hours                                 # today's balances
  hours today                           # the same
@@ -128,8 +128,6 @@ hledger-specific features are supported::
    ui,ansi                interactive curses and ansi-based text uis
    happs                  rudimentary web interface on port 5000
    --depth=N              balance report: maximum account depth to show
-   --options-anywhere     allow options anywhere, use ^ for negative patterns
-                          easier time reporting with "hours" alias
 
 ledger features not supported
 .............................
@@ -203,9 +201,11 @@ gnucash files, and the following options::
 Other differences
 .................
 
-* hledger keeps differently-priced amounts of the same commodity separate at the moment
-* hledger refers to the entry's and transaction's "description", ledger calls it "note"
-* hledger doesn't require a space before command-line option values
+* hledger accepts options anywhere on the command line. Instead of - and --
+  for pattern negation and separation, use ^ and ^^.
+* hledger always keeps differently-priced amounts of the same commodity separate
+* hledger calls ledger's "note" field "description"
+* hledger doesn't require a space before command-line option values, eg: -f-
 * hledger provides "--cost" as a synonym for "--basis"
 * hledger's "weekly" reporting intervals always start on mondays
 * hledger shows start and end dates of full intervals, not just the span containing data
