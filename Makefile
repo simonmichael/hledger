@@ -3,7 +3,7 @@
 default: tag build
 
 # patches since last release tag (as a haskell string literal)
-PATCHES:=`expr \`darcs changes --count --from-tag=\\\\\.\` - 1`
+PATCHES:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 
 # build the normal hledger binary
 BUILD=ghc --make hledger.hs -o hledger -O
