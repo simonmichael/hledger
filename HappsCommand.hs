@@ -117,9 +117,9 @@ openBrowserOn u = trybrowsers browsers u
         putStrLn $ printf "Sorry, I could not start a browser (tried: %s)" $ intercalate ", " browsers
         putStrLn $ printf "Please open your browser and visit %s" u
         return $ ExitFailure 127
-      browsers | os=="darwin"  = ["open -a firefox", "open"]
+      browsers | os=="darwin"  = ["open"]
                | os=="mingw32" = ["firefox","safari","opera","iexplore"]
-               | otherwise     = ["firefox","sensible-browser"]
+               | otherwise     = ["sensible-browser","firefox"]
     -- jeffz: write a ffi binding for it using the Win32 package as a basis
     -- start by adding System/Win32/Shell.hsc and follow the style of any
     -- other module in that directory for types, headers, error handling and
