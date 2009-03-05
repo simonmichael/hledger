@@ -30,6 +30,33 @@ runtests opts args = do
           | otherwise = printf " matching %s " 
                         (intercalate ", " $ map (printf "\"%s\"") args)
 
+-- test utils
+
+-- | Get a Test's label, or the empty string.
+tname :: Test -> String
+tname (TestLabel n _) = n
+tname _ = ""
+
+-- | Flatten a Test containing TestLists into a list of single tests.
+tflatten :: Test -> [Test]
+tflatten (TestLabel _ t@(TestList _)) = tflatten t
+tflatten (TestList ts) = concatMap tflatten ts
+tflatten t = [t]
+
+-- | Filter TestLists in a Test, recursively, preserving the structure.
+tfilter :: (Test -> Bool) -> Test -> Test
+tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
+tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
+tfilter _ t = t
+
+-- | Combine a list of TestLists into one.
+tlistconcat :: [Test] -> Test
+tlistconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
+
+-- | Assert a parsed thing equals some expected thing, or print a parse error.
+assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
+assertparseequal expected parsed = either printParseError (assertequal expected) parsed
+
 ------------------------------------------------------------------------------
 -- tests
 
@@ -233,13 +260,6 @@ misc_tests = TestList [
     assertequal (fromGregorian 2009 1 1) (edate $ head $ entries rl)
     return ()
   ]
-
-defaultyear_ledger_str =
- "Y2009\n" ++
- "\n" ++
- "01/01 A\n" ++
- "    a  $1\n" ++
- "    b\n"
 
 newparse_tests = TestList [ sameParseTests ]
     where sameParseTests = TestList $ map sameParse [ account1, account2, account3, account4 ]
@@ -591,6 +611,13 @@ sample_ledger_str = (
  ";final comment\n" ++
  "")
 
+defaultyear_ledger_str =
+ "Y2009\n" ++
+ "\n" ++
+ "01/01 A\n" ++
+ "    a  $1\n" ++
+ "    b\n"
+
 write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
 
 rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
@@ -913,34 +940,6 @@ a1 = Mixed [(hours 1){price=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
 a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
 a3 = Mixed $ (amounts a1) ++ (amounts a2)
 
-------------------------------------------------------------------------------
--- test utils
-
--- | Get a Test's label, or the empty string.
-tname :: Test -> String
-tname (TestLabel n _) = n
-tname _ = ""
-
--- | Flatten a Test containing TestLists into a list of single tests.
-tflatten :: Test -> [Test]
-tflatten (TestLabel _ t@(TestList _)) = tflatten t
-tflatten (TestList ts) = concatMap tflatten ts
-tflatten t = [t]
-
--- | Filter TestLists in a Test, recursively, preserving the structure.
-tfilter :: (Test -> Bool) -> Test -> Test
-tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
-tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
-tfilter _ t = t
-
--- | Combine a list of TestLists into one.
-tlistconcat :: [Test] -> Test
-tlistconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
-
--- | Assert a parsed thing equals some expected thing, or print a parse error.
-assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
-assertparseequal expected parsed = either printParseError (assertequal expected) parsed
-
 rawLedgerWithAmounts as = 
         RawLedger 
         [] 
@@ -949,5 +948,5 @@ rawLedgerWithAmounts as =
         []
         []
         ""
-            where parse = fromparse . parseWithCtx transactionamount . (" "++)
+    where parse = fromparse . parseWithCtx transactionamount . (" "++)
 
