@@ -20,15 +20,9 @@ runtests opts args = runner flattests
     where
       runner | (Verbose `elem` opts) = runVerboseTests
              | otherwise = \t -> runTestTT t >>= return . (flip (,) 0)
-      deeptests = tfilter matchname $ TestList tests
       flattests = TestList $ filter matchname $ concatMap tflatten tests
+      deeptests = tfilter matchname $ TestList tests
       matchname = matchpats args . tname
-      n = length ts where (TestList ts) = flattests
-      s | null args = ""
-        | otherwise = printf " matching %s "
-                        (intercalate ", " $ map (printf "\"%s\"") args)
-
--- test utils
 
 -- | Get a Test's label, or the empty string.
 tname :: Test -> String
@@ -47,94 +41,467 @@ tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
 tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
 tfilter _ t = t
 
--- | Combine a list of TestLists into one.
-tlistconcat :: [Test] -> Test
-tlistconcat = foldr (\(TestList as) (TestList bs) -> TestList (as ++ bs)) (TestList []) 
+-- | Assert something `is` some expected value.
+is :: (Eq a, Show a) => a -> a -> Assertion
+is = flip assertequal
 
--- | Assert a parsed thing equals some expected thing, or print a parse error.
-assertparseequal :: (Show a, Eq a) => a -> (Either ParseError a) -> Assertion
-assertparseequal expected parsed = either printParseError (assertequal expected) parsed
+-- | Assert a parse result is some expected value, or print a parse error.
+parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+parse `parseis` expected = either printParseError (`is` expected) parse
 
 ------------------------------------------------------------------------------
--- tests
+-- Tests for any function or topic. Mostly ordered by test name.
 
-tests = [TestList []
-        ,misc_tests
-        ,newparse_tests
-        ,balancereportacctnames_tests
-        ,balancecommand_tests
-        ,printcommand_tests
-        ,registercommand_tests
-        ]
+tests = [
 
-misc_tests = TestList [
-  "show dollars" ~: show (dollars 1) ~?= "$1.00"
+  "account directive" ~: 
+   let sameParse str1 str2 = do l1 <- rawledgerfromstring str1
+                                l2 <- rawledgerfromstring str2
+                                l1 `is` l2
+   in TestList
+   [
+    "account directive 1" ~: sameParse 
+                          "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
+                          "!account test\n2008/12/07 One\n  from  $-1\n  to  $1\n"
+
+   ,"account directive 2" ~: sameParse 
+                           "2008/12/07 One\n  test:foo:from  $-1\n  test:foo:to  $1\n"
+                           "!account test\n!account foo\n2008/12/07 One\n  from  $-1\n  to  $1\n"
+
+   ,"account directive 3" ~: sameParse 
+                           "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
+                           "!account test\n!account foo\n!end\n2008/12/07 One\n  from  $-1\n  to  $1\n"
+
+   ,"account directive 4" ~: sameParse 
+                           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
+                            "!account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" ++
+                            "!account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" ++
+                            "!end\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" ++
+                            "!end\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+                           )
+                           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
+                            "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" ++
+                            "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" ++
+                            "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" ++
+                            "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+                           )
+   ]
   ,
-  "show hours" ~: show (hours 1) ~?= "1.0h"
+
+  "accountnames" ~: do
+    accountnames ledger7 `is`
+     ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
+      "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
+      "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
   ,
-  "amount arithmetic"   ~: do
+
+  "amount arithmetic" ~: do
     let a1 = dollars 1.23
     let a2 = Amount (comm "$") (-1.23) Nothing
     let a3 = Amount (comm "$") (-1.23) Nothing
-    assertequal (Amount (comm "$") 0 Nothing) (a1 + a2)
-    assertequal (Amount (comm "$") 0 Nothing) (a1 + a3)
-    assertequal (Amount (comm "$") (-2.46) Nothing) (a2 + a3)
-    assertequal (Amount (comm "$") (-2.46) Nothing) (a3 + a3)
-    assertequal (Amount (comm "$") (-2.46) Nothing) (sum [a2,a3])
-    assertequal (Amount (comm "$") (-2.46) Nothing) (sum [a3,a3])
-    assertequal (Amount (comm "$") 0 Nothing) (sum [a1,a2,a3,-a3])
+    (a1 + a2) `is` Amount (comm "$") 0 Nothing
+    (a1 + a3) `is` Amount (comm "$") 0 Nothing
+    (a2 + a3) `is` Amount (comm "$") (-2.46) Nothing
+    (a3 + a3) `is` Amount (comm "$") (-2.46) Nothing
+    (sum [a2,a3]) `is` Amount (comm "$") (-2.46) Nothing
+    (sum [a3,a3]) `is` Amount (comm "$") (-2.46) Nothing
+    (sum [a1,a2,a3,-a3]) `is` Amount (comm "$") 0 Nothing
   ,
-  "ledgertransaction"  ~: do
-    assertparseequal rawtransaction1 (parseWithCtx ledgertransaction rawtransaction1_str)
-  ,                  
-  "ledgerentry"        ~: do
-    assertparseequal entry1 (parseWithCtx ledgerEntry entry1_str)
+
+  "balance report tests" ~:
+   let (opts,args) `gives` es = do 
+         l <- sampleledgerwithopts [] args
+         showBalanceReport opts args l `is` unlines es
+   in TestList
+   [
+
+    "balance report with no args" ~:
+    ([], []) `gives`
+    ["                 $-1  assets"
+    ,"                  $2  expenses"
+    ,"                 $-2  income"
+    ,"                  $1  liabilities"
+    ]
+   ,
+
+    "balance report with -s" ~:
+    ([SubTotal], []) `gives`
+    ["                 $-1  assets"
+    ,"                  $1    bank:saving"
+    ,"                 $-2    cash"
+    ,"                  $2  expenses"
+    ,"                  $1    food"
+    ,"                  $1    supplies"
+    ,"                 $-2  income"
+    ,"                 $-1    gifts"
+    ,"                 $-1    salary"
+    ,"                  $1  liabilities:debts"
+    ]
+   ,
+
+    "balance report --depth limits -s" ~:
+    ([SubTotal,Depth "1"], []) `gives`
+    ["                 $-1  assets"
+    ,"                  $2  expenses"
+    ,"                 $-2  income"
+    ,"                  $1  liabilities"
+    ]
+   ,
+    
+    "balance report --depth activates -s" ~:
+    ([Depth "2"], []) `gives`
+    ["                 $-1  assets"
+    ,"                  $1    bank"
+    ,"                 $-2    cash"
+    ,"                  $2  expenses"
+    ,"                  $1    food"
+    ,"                  $1    supplies"
+    ,"                 $-2  income"
+    ,"                 $-1    gifts"
+    ,"                 $-1    salary"
+    ,"                  $1  liabilities:debts"
+    ]
+   ,
+
+    "balance report with account pattern o" ~:
+    ([], ["o"]) `gives`
+    ["                  $1  expenses:food"
+    ,"                 $-2  income"
+    ,"--------------------"
+    ,"                 $-1"
+    ]
+   ,
+
+    "balance report with account pattern o and -s" ~:
+    ([SubTotal], ["o"]) `gives`
+    ["                  $1  expenses:food"
+    ,"                 $-2  income"
+    ,"                 $-1    gifts"
+    ,"                 $-1    salary"
+    ,"--------------------"
+    ,"                 $-1"
+    ]
+   ,
+
+    "balance report with account pattern a" ~:
+    ([], ["a"]) `gives`
+    ["                 $-1  assets"
+    ,"                  $1    bank:saving"
+    ,"                 $-2    cash"
+    ,"                 $-1  income:salary"
+    ,"                  $1  liabilities"
+    ,"--------------------"
+    ,"                 $-1"
+    ]
+   ,
+
+    "balance report with account pattern e" ~:
+    ([], ["e"]) `gives`
+    ["                 $-1  assets"
+    ,"                  $2  expenses"
+    ,"                  $1    supplies"
+    ,"                 $-2  income"
+    ,"                  $1  liabilities:debts"
+    ]
+   ,
+
+    "balance report with unmatched parent of two matched subaccounts" ~: 
+    ([], ["cash","saving"]) `gives`
+    ["                  $1  assets:bank:saving"
+    ,"                 $-2  assets:cash"
+    ,"--------------------"
+    ,"                 $-1"
+    ]
+   ,
+
+    "balance report with multi-part account name" ~: 
+    ([], ["expenses:food"]) `gives`
+    ["                  $1  expenses:food"
+    ,"--------------------"
+    ,"                  $1"
+    ]
+   ,
+
+    "balance report with negative account pattern" ~:
+    ([], ["^assets"]) `gives`
+    ["                  $2  expenses"
+    ,"                 $-2  income"
+    ,"                  $1  liabilities"
+    ,"--------------------"
+    ,"                  $1"
+    ]
+   ,
+
+    "balance report negative account pattern always matches full name" ~: 
+    ([], ["^e"]) `gives` []
+   ,
+
+    "balance report negative patterns affect totals" ~: 
+    ([], ["expenses","^food"]) `gives`
+    ["                  $1  expenses"
+    ,"--------------------"
+    ,"                  $1"
+    ]
+   ,
+
+    "balance report with -E shows zero-balance accounts" ~:
+    ([SubTotal,Empty], ["assets"]) `gives`
+    ["                 $-1  assets"
+    ,"                  $1    bank"
+    ,"                  $0      checking"
+    ,"                  $1      saving"
+    ,"                 $-2    cash"
+    ,"--------------------"
+    ,"                 $-1"
+    ]
+   ,
+
+    "balance report with -n omits the total" ~:
+    ([Collapse], ["cash"]) `gives`
+    ["                 $-2  assets:cash"
+    ]
+   ,
+
+    "balance report with cost basis" ~: do
+      rl <- rawledgerfromstring $ unlines
+             [""
+             ,"2008/1/1 test           "
+             ,"  a:b          10h @ $50"
+             ,"  c:d                   "
+             ,""
+             ]
+      let l = cacheLedger [] $ 
+              filterRawLedger (DateSpan Nothing Nothing) [] False False $ 
+              canonicaliseAmounts True rl -- enable cost basis adjustment            
+      showBalanceReport [] [] l `is` 
+       unlines
+        ["                $500  a"
+        ,"               $-500  c"
+        ]
+   ,
+
+    "balance report elides zero-balance root account(s)" ~: do
+      l <- ledgerfromstringwithopts [] [] sampletime
+             (unlines
+              ["2008/1/1 one"
+              ,"  test:a  1"
+              ,"  test:b"
+              ])
+      showBalanceReport [] [] l `is` ""
+      showBalanceReport [SubTotal] [] l `is`
+       unlines
+        ["                1  test:a"
+        ,"               -1  test:b"
+        ]
+
+   ]
   ,
-  "balanceEntry"      ~: do
-    assertequal
-      (Mixed [dollars (-47.18)])
-      (tamount $ last $ etransactions $ balanceEntry entry1)
+
+  "balanceEntry" ~: do
+    (tamount $ last $ etransactions $ balanceEntry entry1) `is` Mixed [dollars (-47.18)]
   ,
-  "punctuatethousands"      ~: punctuatethousands "" @?= ""
+
+  "balancereportacctnames" ~: 
+   let gives (opt,pats) e = do 
+         l <- sampleledger
+         let t = pruneZeroBalanceLeaves $ ledgerAccountTree 999 l
+         balancereportacctnames l (opt=="-s") pats t `is` e
+   in TestList
+   [
+    "balancereportacctnames 0" ~: ("-s",[])              `gives` ["assets","assets:bank","assets:bank:checking","assets:bank:saving",
+                                                                  "assets:cash","expenses","expenses:food","expenses:supplies","income",
+                                                                  "income:gifts","income:salary","liabilities","liabilities:debts"]
+   ,"balancereportacctnames 1" ~: ("",  [])              `gives` ["assets","expenses","income","liabilities"]
+   ,"balancereportacctnames 2" ~: ("",  ["assets"])      `gives` ["assets"]
+   ,"balancereportacctnames 3" ~: ("",  ["as"])          `gives` ["assets","assets:cash"]
+   ,"balancereportacctnames 4" ~: ("",  ["assets:cash"]) `gives` ["assets:cash"]
+   ,"balancereportacctnames 5" ~: ("",  ["^assets"])     `gives` ["expenses","income","liabilities"]
+   ,"balancereportacctnames 6" ~: ("",  ["^e"])          `gives` []
+   ,"balancereportacctnames 7" ~: ("-s",["assets"])      `gives` ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+   ,"balancereportacctnames 8" ~: ("-s",["^e"])          `gives` []
+   ]
   ,
-  "punctuatethousands"      ~: punctuatethousands "1234567.8901" @?= "1,234,567.8901"
+
+  "cacheLedger" ~: do
+    (length $ Map.keys $ accountmap $ cacheLedger [] rawledger7) `is` 15
   ,
-  "punctuatethousands"      ~: punctuatethousands "-100" @?= "-100"
+
+  "canonicaliseAmounts" ~:
+   "use the greatest precision" ~: do
+    (rawLedgerPrecisions $ canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"]) `is` [2,2]
   ,
+
+  "dateSpanFromOpts" ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let opts `gives` spans = show (dateSpanFromOpts todaysdate opts) `is` spans
+    [] `gives` "DateSpan Nothing Nothing"
+    [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+  ,
+
   "expandAccountNames" ~: do
-    assertequal
-      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-      (expandAccountNames ["assets:cash","assets:checking","expenses:vacation"])
+    expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
+     ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
   ,
-  "accountnames" ~: do
-    assertequal
-      ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
-       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
-       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
-      (accountnames ledger7)
-  ,
-  "cacheLedger"        ~: do
-    assertequal 15 (length $ Map.keys $ accountmap $ cacheLedger [] rawledger7)
-  ,
-  "transactionamount"       ~: do
-    assertparseequal (Mixed [dollars 47.18]) (parseWithCtx transactionamount " $47.18")
-    assertparseequal (Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]) (parseWithCtx transactionamount " $1.")
-  ,
-  "canonicaliseAmounts" ~: do
-    -- all amounts use the greatest precision
-    assertequal [2,2] (rawLedgerPrecisions $ canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"])
-  ,
-  "timeLog" ~: do
-    assertparseequal timelog1 (parseWithCtx timelog timelog1_str)
-  ,
-  "parsedate" ~: do
-    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" sampledate) (parsedate "2008/02/03")
-    assertequal (parsetimewith "%Y/%m/%d" "2008/02/03" sampledate) (parsedate "2008-02-03")
+
+  "intervalFromOpts" ~: do
+    let opts `gives` interval = intervalFromOpts opts `is` interval
+    [] `gives` NoInterval
+    [WeeklyOpt] `gives` Weekly
+    [MonthlyOpt] `gives` Monthly
+    [YearlyOpt] `gives` Yearly
+    [Period "weekly"] `gives` Weekly
+    [Period "monthly"] `gives` Monthly
+    [WeeklyOpt, Period "yearly"] `gives` Yearly
   ,                  
-  "smart dates"     ~: do
-    let todaysdate = parsedate "2008/11/26" -- wednesday
-    let str `gives` datestr = assertequal datestr (fixSmartDateStr todaysdate str)
-    -- for now at least, a fuzzy date always refers to the start of the period
+
+  "default year" ~: do
+    rl <- rawledgerfromstring defaultyear_ledger_str
+    (edate $ head $ entries rl) `is` fromGregorian 2009 1 1
+    return ()
+  ,
+
+  "ledgerEntry" ~: do
+    parseWithCtx ledgerEntry entry1_str `parseis` entry1
+  ,
+
+  "ledgerHistoricalPrice" ~: do
+    parseWithCtx ledgerHistoricalPrice price1_str `parseis` price1
+  ,
+
+  "ledgertransaction" ~: do
+    parseWithCtx ledgertransaction rawtransaction1_str `parseis` rawtransaction1
+  ,                  
+
+  "parsedate" ~: do
+    parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
+    parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
+  ,                  
+
+  "period expressions" ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let str `gives` result = (show $ parsewith (periodexpr todaysdate) str) `is` ("Right "++result)
+    "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
+    "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
+  ,                  
+
+  "print command tests" ~: TestList
+  [
+
+   "print expenses" ~:
+   do 
+    let args = ["expenses"]
+    l <- sampleledgerwithopts [] args
+    showEntries [] args l `is` unlines 
+     ["2008/06/03 * eat & shop"
+     ,"    expenses:food                                 $1"
+     ,"    expenses:supplies                             $1"
+     ,"    assets:cash                                  $-2"
+     ,""
+     ]
+
+  ]
+  ,
+
+  "punctuatethousands 1" ~: punctuatethousands "" `is` ""
+  ,
+
+  "punctuatethousands 2" ~: punctuatethousands "1234567.8901" `is` "1,234,567.8901"
+  ,
+
+  "punctuatethousands 3" ~: punctuatethousands "-100" `is` "-100"
+  ,
+
+  "register report tests" ~:
+  let registerdates = filter (not . null) .  map (strip . take 10) . lines
+  in
+  TestList
+  [
+
+   "register report with no args" ~:
+   do 
+    l <- sampleledger
+    showRegisterReport [] [] l `is` unlines
+     ["2008/01/01 income               assets:bank:checking             $1           $1"
+     ,"                                income:salary                   $-1            0"
+     ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
+     ,"                                income:gifts                    $-1            0"
+     ,"2008/06/02 save                 assets:bank:saving               $1           $1"
+     ,"                                assets:bank:checking            $-1            0"
+     ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
+     ,"                                expenses:supplies                $1           $2"
+     ,"                                assets:cash                     $-2            0"
+     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
+     ,"                                assets:bank:checking            $-1            0"
+     ]
+  ,
+
+   "register report with account pattern" ~:
+   do
+    l <- sampleledger
+    showRegisterReport [] ["cash"] l `is` unlines
+     ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
+     ]
+  ,
+
+  "register report with account pattern, case insensitive" ~:
+  do 
+    l <- sampleledger
+    showRegisterReport [] ["cAsH"] l `is` unlines
+     ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
+     ]
+  ,
+
+  "register report with display expression" ~:
+  do 
+    l <- sampleledger
+    let displayexpr `gives` dates = 
+            registerdates (showRegisterReport [Display displayexpr] [] l) `is` dates
+    "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
+    "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
+    "d=[2008/6/2]"  `gives` ["2008/06/02"]
+    "d>=[2008/6/2]" `gives` ["2008/06/02","2008/06/03","2008/12/31"]
+    "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
+  ,
+
+  "register report with period expression" ~:
+  do 
+    l <- sampleledger    
+    let periodexpr `gives` dates = do
+          lopts <- sampleledgerwithopts [Period periodexpr] []
+          registerdates (showRegisterReport [Period periodexpr] [] lopts) `is` dates
+    ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
+    "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
+    "2007" `gives` []
+    "june" `gives` ["2008/06/01","2008/06/02","2008/06/03"]
+    "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
+    showRegisterReport [Period "yearly"] [] l `is` unlines
+     ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
+     ,"                                assets:cash                     $-2          $-1"
+     ,"                                expenses:food                    $1            0"
+     ,"                                expenses:supplies                $1           $1"
+     ,"                                income:gifts                    $-1            0"
+     ,"                                income:salary                   $-1          $-1"
+     ,"                                liabilities:debts                $1            0"
+     ]
+    registerdates (showRegisterReport [Period "quarterly"] [] l) `is` ["2008/01/01","2008/04/01","2008/10/01"]
+    registerdates (showRegisterReport [Period "quarterly",Empty] [] l) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
+
+  ]
+  ,
+
+  "show dollars" ~: show (dollars 1) ~?= "$1.00"
+  ,
+
+  "show hours" ~: show (hours 1) ~?= "1.0h"
+  ,
+
+  "smart dates" ~: do
+    let str `gives` datestr = fixSmartDateStr (parsedate "2008/11/26") str `is` datestr
     "1999-12-02"   `gives` "1999/12/02"
     "1999.12.02"   `gives` "1999/12/02"
     "1999/3/2"     `gives` "1999/03/02"
@@ -168,35 +535,9 @@ misc_tests = TestList [
 --     "next friday"  `gives` "2008/11/28"
 --     "next january" `gives` "2009/01/01"
   ,
-  "dateSpanFromOpts"     ~: do
-    let todaysdate = parsedate "2008/11/26"
-    let opts `gives` spans = assertequal spans (show $ dateSpanFromOpts todaysdate opts)
-    [] `gives` "DateSpan Nothing Nothing"
-    [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-  ,
-  "intervalFromOpts"     ~: do
-    let opts `gives` interval = assertequal interval (intervalFromOpts opts)
-    [] `gives` NoInterval
-    [WeeklyOpt] `gives` Weekly
-    [MonthlyOpt] `gives` Monthly
-    [YearlyOpt] `gives` Yearly
-    [Period "weekly"] `gives` Weekly
-    [Period "monthly"] `gives` Monthly
-    [WeeklyOpt, Period "yearly"] `gives` Yearly
-  ,                  
-  "period expressions"     ~: do
-    let todaysdate = parsedate "2008/11/26"
-    let str `gives` result = assertequal ("Right "++result) (show $ parsewith (periodexpr todaysdate) str)
-    "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
-    "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
-  ,                  
-  "splitSpan"     ~: do
-    let (interval,span) `gives` spans = assertequal spans (splitSpan interval span)
+
+  "splitSpan" ~: do
+    let (interval,span) `gives` spans = splitSpan interval span `is` spans
     (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
      [mkdatespan "2008/01/01" "2009/01/01"]
     (Quarterly,mkdatespan "2008/01/01" "2009/01/01") `gives`
@@ -212,358 +553,53 @@ misc_tests = TestList [
     (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
      [mkdatespan "2008/01/01" "2008/01/01"]
   ,                  
-  "summariseTransactionsInDateSpan"     ~: do
-    let (b,e,entryno,depth,showempty,ts) `gives` summaryts = assertequal (summaryts) (summariseTransactionsInDateSpan (mkdatespan b e) entryno depth showempty ts)
 
+  "summariseTransactionsInDateSpan" ~: do
+    let (b,e,entryno,depth,showempty,ts) `gives` summaryts = 
+            summariseTransactionsInDateSpan (mkdatespan b e) entryno depth showempty ts `is` summaryts
+    let ts =
+            [
+             nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
+            ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
+            ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
+            ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
+            ]
     ("2008/01/01","2009/01/01",0,Nothing,False,[]) `gives` 
      []
-
     ("2008/01/01","2009/01/01",0,Nothing,True,[]) `gives` 
      [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31"}
      ]
-
-    let ts = [nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
-             ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
-             ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
-             ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
-             ]
     ("2008/01/01","2009/01/01",0,Nothing,False,ts) `gives` 
      [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",          amount=Mixed [dollars 4]}
      ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:dining",   amount=Mixed [dollars 10]}
      ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:groceries",amount=Mixed [dollars 1]}
      ]
-
     ("2008/01/01","2009/01/01",0,Just 2,False,ts) `gives` 
      [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",amount=Mixed [dollars 15]}
      ]
-
     ("2008/01/01","2009/01/01",0,Just 1,False,ts) `gives` 
      [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses",amount=Mixed [dollars 15]}
      ]
-
     ("2008/01/01","2009/01/01",0,Just 0,False,ts) `gives` 
      [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="",amount=Mixed [dollars 15]}
      ]
   ,
-  "ledgerentry"        ~: do
-    assertparseequal price1 (parseWithCtx ledgerHistoricalPrice price1_str)
+
+  "timelog" ~: do
+    parseWithCtx timelog timelog1_str `parseis` timelog1
   ,
-  "ledgerDefaultYear" ~: do
-    rl <- rawledgerfromstring defaultyear_ledger_str
-    assertequal (fromGregorian 2009 1 1) (edate $ head $ entries rl)
-    return ()
+
+  "transactionamount" ~: do
+    parseWithCtx transactionamount " $47.18" `parseis` Mixed [dollars 47.18]
+    parseWithCtx transactionamount " $1." `parseis` 
+     Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]
+
   ]
-
-newparse_tests = TestList [ sameParseTests ]
-    where sameParseTests = TestList $ map sameParse [ account1, account2, account3, account4 ]
-          sameParse (str1, str2) 
-              = "newparse_tests" ~: TestCase $ do l1 <- rawledgerfromstring str1
-                                                  l2 <- rawledgerfromstring str2
-                                                  (l1 @=? l2)
-          account1 = ( "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
-                     , "!account test\n2008/12/07 One\n  from  $-1\n  to  $1\n"
-                     )
-          account2 = ( "2008/12/07 One\n  test:foo:from  $-1\n  test:foo:to  $1\n"
-                     , "!account test\n!account foo\n2008/12/07 One\n  from  $-1\n  to  $1\n"
-                     )
-          account3 = ( "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
-                     , "!account test\n!account foo\n!end\n2008/12/07 One\n  from  $-1\n  to  $1\n"
-                     )
-          account4 = ( "2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
-                       "!account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" ++
-                       "!account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" ++
-                       "!end\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" ++
-                       "!end\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
-                     , "2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
-                       "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" ++
-                       "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" ++
-                       "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" ++
-                       "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
-                     )
-
-balancereportacctnames_tests = TestList 
-  [
-   "balancereportacctnames0" ~: ("-s",[])              `gives` ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash",
-                                                                "expenses","expenses:food","expenses:supplies","income",
-                                                                "income:gifts","income:salary","liabilities","liabilities:debts"]
-  ,"balancereportacctnames1" ~: ("",  [])              `gives` ["assets","expenses","income","liabilities"]
-  ,"balancereportacctnames2" ~: ("",  ["assets"])      `gives` ["assets"]
-  ,"balancereportacctnames3" ~: ("",  ["as"])          `gives` ["assets","assets:cash"]
-  ,"balancereportacctnames4" ~: ("",  ["assets:cash"]) `gives` ["assets:cash"]
-  ,"balancereportacctnames5" ~: ("",  ["^assets"])     `gives` ["expenses","income","liabilities"]
-  ,"balancereportacctnames6" ~: ("",  ["^e"])          `gives` []
-  ,"balancereportacctnames7" ~: ("-s",["assets"])      `gives` ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-  ,"balancereportacctnames8" ~: ("-s",["^e"])          `gives` []
-  ] where
-    gives (opt,pats) e = do 
-      l <- sampleledger
-      let t = pruneZeroBalanceLeaves $ ledgerAccountTree 999 l
-      assertequal e (balancereportacctnames l (opt=="-s") pats t)
-
-balancecommand_tests = TestList [
-  "simple balance report" ~:
-  ([], []) `gives`
-  ("                 $-1  assets\n" ++
-   "                  $2  expenses\n" ++
-   "                 $-2  income\n" ++
-   "                  $1  liabilities\n" ++
-   "")
- ,
-  "balance report with -s" ~:
-  ([SubTotal], []) `gives`
-  ("                 $-1  assets\n" ++
-   "                  $1    bank:saving\n" ++
-   "                 $-2    cash\n" ++
-   "                  $2  expenses\n" ++
-   "                  $1    food\n" ++
-   "                  $1    supplies\n" ++
-   "                 $-2  income\n" ++
-   "                 $-1    gifts\n" ++
-   "                 $-1    salary\n" ++
-   "                  $1  liabilities:debts\n" ++
-   "")
- ,
-  "balance report --depth limits -s" ~:
-  ([SubTotal,Depth "1"], []) `gives`
-  ("                 $-1  assets\n" ++
-   "                  $2  expenses\n" ++
-   "                 $-2  income\n" ++
-   "                  $1  liabilities\n" ++
-   "")
- ,
-  "balance report --depth activates -s" ~:
-  ([Depth "2"], []) `gives`
-  ("                 $-1  assets\n" ++
-   "                  $1    bank\n" ++
-   "                 $-2    cash\n" ++
-   "                  $2  expenses\n" ++
-   "                  $1    food\n" ++
-   "                  $1    supplies\n" ++
-   "                 $-2  income\n" ++
-   "                 $-1    gifts\n" ++
-   "                 $-1    salary\n" ++
-   "                  $1  liabilities:debts\n" ++
-   "")
- ,
-  "balance report with account pattern o" ~:
-  ([], ["o"]) `gives`
-  ("                  $1  expenses:food\n" ++
-   "                 $-2  income\n" ++
-   "--------------------\n" ++
-   "                 $-1\n" ++
-   "")
- ,
-  "balance report with account pattern o and -s" ~:
-  ([SubTotal], ["o"]) `gives`
-  ("                  $1  expenses:food\n" ++
-   "                 $-2  income\n" ++
-   "                 $-1    gifts\n" ++
-   "                 $-1    salary\n" ++
-   "--------------------\n" ++
-   "                 $-1\n" ++
-   "")
- ,
-  "balance report with account pattern a" ~:
-  ([], ["a"]) `gives`
-  ("                 $-1  assets\n" ++
-   "                  $1    bank:saving\n" ++
-   "                 $-2    cash\n" ++
-   "                 $-1  income:salary\n" ++
-   "                  $1  liabilities\n" ++
-   "--------------------\n" ++
-   "                 $-1\n" ++
-   "")
- ,
-  "balance report with account pattern e" ~:
-  ([], ["e"]) `gives`
-  ("                 $-1  assets\n" ++
-   "                  $2  expenses\n" ++
-   "                  $1    supplies\n" ++
-   "                 $-2  income\n" ++
-   "                  $1  liabilities:debts\n" ++
-   "")
- ,
-  "balance report with unmatched parent of two matched subaccounts" ~: 
-  ([], ["cash","saving"]) `gives`
-  ("                  $1  assets:bank:saving\n" ++
-   "                 $-2  assets:cash\n" ++
-   "--------------------\n" ++
-   "                 $-1\n" ++
-   "")
- ,
-  "balance report with multi-part account name" ~: 
-  ([], ["expenses:food"]) `gives`
-  ("                  $1  expenses:food\n" ++
-   "--------------------\n" ++
-   "                  $1\n" ++
-   "")
- ,
-  "balance report with negative account pattern" ~:
-  ([], ["^assets"]) `gives`
-  ("                  $2  expenses\n" ++
-   "                 $-2  income\n" ++
-   "                  $1  liabilities\n" ++
-   "--------------------\n" ++
-   "                  $1\n" ++
-   "")
- ,
-  "balance report negative account pattern always matches full name" ~: 
-  ([], ["^e"]) `gives` ""
- ,
-  "balance report negative patterns affect totals" ~: 
-  ([], ["expenses","^food"]) `gives`
-  ("                  $1  expenses\n" ++
-   "--------------------\n" ++
-   "                  $1\n" ++
-   "")
- ,
-  "balance report with -E shows zero-balance accounts" ~:
-  ([SubTotal,Empty], ["assets"]) `gives`
-  ("                 $-1  assets\n" ++
-   "                  $1    bank\n" ++
-   "                  $0      checking\n" ++
-   "                  $1      saving\n" ++
-   "                 $-2    cash\n" ++
-   "--------------------\n" ++
-   "                 $-1\n" ++
-   "")
- ,
-  "balance report with -n omits the total" ~:
-  ([Collapse], ["cash"]) `gives`
-  ("                 $-2  assets:cash\n" ++
-   "")
- ,
-  "balance report with cost basis" ~: do
-    rl <- rawledgerfromstring
-             ("" ++
-              "2008/1/1 test           \n" ++
-              "  a:b          10h @ $50\n" ++
-              "  c:d                   \n" ++
-              "\n")
-    let l = cacheLedger [] $ 
-            filterRawLedger (DateSpan Nothing Nothing) [] False False $ 
-            canonicaliseAmounts True rl -- enable cost basis adjustment            
-    assertequal 
-             ("                $500  a\n" ++
-              "               $-500  c\n" ++
-              ""
-             )
-             (showBalanceReport [] [] l)
- ,
-  "balance report elides zero-balance root account(s)" ~: do
-    l <- ledgerfromstringwithopts [] [] sampletime
-             ("2008/1/1 one\n" ++
-              "  test:a  1\n" ++
-              "  test:b\n"
-             )
-    assertequal "" (showBalanceReport [] [] l)
-    assertequal 
-             ("                1  test:a\n" ++
-              "               -1  test:b\n" ++
-              ""
-             )
-             (showBalanceReport [SubTotal] [] l)
- ] where
-    gives (opts,args) e = do 
-      l <- sampleledgerwithopts [] args
-      assertequal e (showBalanceReport opts args l)
-
-printcommand_tests = TestList [
-  "print with account patterns" ~:
-  do 
-    let args = ["expenses"]
-    l <- sampleledgerwithopts [] args
-    assertequal (
-     "2008/06/03 * eat & shop\n" ++
-     "    expenses:food                                 $1\n" ++
-     "    expenses:supplies                             $1\n" ++
-     "    assets:cash                                  $-2\n" ++
-     "\n")
-     $ showEntries [] args l
-  ]
-
-registercommand_tests = TestList [
-  "register report" ~:
-  do 
-    l <- sampleledger
-    assertequal (
-     "2008/01/01 income               assets:bank:checking             $1           $1\n" ++
-     "                                income:salary                   $-1            0\n" ++
-     "2008/06/01 gift                 assets:bank:checking             $1           $1\n" ++
-     "                                income:gifts                    $-1            0\n" ++
-     "2008/06/02 save                 assets:bank:saving               $1           $1\n" ++
-     "                                assets:bank:checking            $-1            0\n" ++
-     "2008/06/03 eat & shop           expenses:food                    $1           $1\n" ++
-     "                                expenses:supplies                $1           $2\n" ++
-     "                                assets:cash                     $-2            0\n" ++
-     "2008/12/31 pay off              liabilities:debts                $1           $1\n" ++
-     "                                assets:bank:checking            $-1            0\n" ++
-     "")
-     $ showRegisterReport [] [] l
-  ,
-  "register report with account pattern" ~:
-  do 
-    l <- sampleledger
-    assertequal (
-     "2008/06/03 eat & shop           assets:cash                     $-2          $-2\n" ++
-     "")
-     $ showRegisterReport [] ["cash"] l
-  ,
-  "register report with account pattern, case insensitive" ~:
-  do 
-    l <- sampleledger
-    assertequal (
-     "2008/06/03 eat & shop           assets:cash                     $-2          $-2\n" ++
-     "")
-     $ showRegisterReport [] ["cAsH"] l
-  ,
-  "register report with display expression" ~:
-  do 
-    l <- sampleledger
-    let expr `displayexprgives` dates = assertequal dates (datesfromregister r)
-            where r = showRegisterReport [Display expr] [] l
-    "d<[2008/6/2]"  `displayexprgives` ["2008/01/01","2008/06/01"]
-    "d<=[2008/6/2]" `displayexprgives` ["2008/01/01","2008/06/01","2008/06/02"]
-    "d=[2008/6/2]"  `displayexprgives` ["2008/06/02"]
-    "d>=[2008/6/2]" `displayexprgives` ["2008/06/02","2008/06/03","2008/12/31"]
-    "d>[2008/6/2]"  `displayexprgives` ["2008/06/03","2008/12/31"]
-  ,
-  "register report with period expression" ~:
-  do 
-    l <- sampleledger    
-    let expr `displayexprgives` dates = assertequal dates (datesfromregister r)
-            where r = showRegisterReport [Display expr] [] l
-    ""     `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
-    "2008" `periodexprgives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
-    "2007" `periodexprgives` []
-    "june" `periodexprgives` ["2008/06/01","2008/06/02","2008/06/03"]
-    "monthly" `periodexprgives` ["2008/01/01","2008/06/01","2008/12/01"]
-    assertequal (
-     "2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1\n" ++
-     "                                assets:cash                     $-2          $-1\n" ++
-     "                                expenses:food                    $1            0\n" ++
-     "                                expenses:supplies                $1           $1\n" ++
-     "                                income:gifts                    $-1            0\n" ++
-     "                                income:salary                   $-1          $-1\n" ++
-     "                                liabilities:debts                $1            0\n" ++
-     "")
-     (showRegisterReport [Period "yearly"] [] l)
-    assertequal ["2008/01/01","2008/04/01","2008/10/01"] 
-                    (datesfromregister $ showRegisterReport [Period "quarterly"] [] l)
-    assertequal ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
-                    (datesfromregister $ showRegisterReport [Period "quarterly",Empty] [] l)
-
- ]
-  where datesfromregister = filter (not . null) .  map (strip . take 10) . lines
-        expr `periodexprgives` dates = do lopts <- sampleledgerwithopts [Period expr] []
-                                          let r = showRegisterReport [Period expr] [] lopts
-                                          assertequal dates (datesfromregister r)
-
 
   
 ------------------------------------------------------------------------------
@@ -574,55 +610,56 @@ sampletime = LocalTime sampledate midday
 sampleledger = ledgerfromstringwithopts [] [] sampletime sample_ledger_str
 sampleledgerwithopts opts args = ledgerfromstringwithopts opts args sampletime sample_ledger_str
 
-sample_ledger_str = (
- "; A sample ledger file.\n" ++
- ";\n" ++
- "; Sets up this account tree:\n" ++
- "; assets\n" ++
- ";   bank\n" ++
- ";     checking\n" ++
- ";     saving\n" ++
- ";   cash\n" ++
- "; expenses\n" ++
- ";   food\n" ++
- ";   supplies\n" ++
- "; income\n" ++
- ";   gifts\n" ++
- ";   salary\n" ++
- "; liabilities\n" ++
- ";   debts\n" ++
- "\n" ++
- "2008/01/01 income\n" ++
- "    assets:bank:checking  $1\n" ++
- "    income:salary\n" ++
- "\n" ++
- "2008/06/01 gift\n" ++
- "    assets:bank:checking  $1\n" ++
- "    income:gifts\n" ++
- "\n" ++
- "2008/06/02 save\n" ++
- "    assets:bank:saving  $1\n" ++
- "    assets:bank:checking\n" ++
- "\n" ++
- "2008/06/03 * eat & shop\n" ++
- "    expenses:food      $1\n" ++
- "    expenses:supplies  $1\n" ++
- "    assets:cash\n" ++
- "\n" ++
- "2008/12/31 * pay off\n" ++
- "    liabilities:debts  $1\n" ++
- "    assets:bank:checking\n" ++
- "\n" ++
- "\n" ++
- ";final comment\n" ++
- "")
+sample_ledger_str = unlines
+ ["; A sample ledger file."
+ ,";"
+ ,"; Sets up this account tree:"
+ ,"; assets"
+ ,";   bank"
+ ,";     checking"
+ ,";     saving"
+ ,";   cash"
+ ,"; expenses"
+ ,";   food"
+ ,";   supplies"
+ ,"; income"
+ ,";   gifts"
+ ,";   salary"
+ ,"; liabilities"
+ ,";   debts"
+ ,""
+ ,"2008/01/01 income"
+ ,"    assets:bank:checking  $1"
+ ,"    income:salary"
+ ,""
+ ,"2008/06/01 gift"
+ ,"    assets:bank:checking  $1"
+ ,"    income:gifts"
+ ,""
+ ,"2008/06/02 save"
+ ,"    assets:bank:saving  $1"
+ ,"    assets:bank:checking"
+ ,""
+ ,"2008/06/03 * eat & shop"
+ ,"    expenses:food      $1"
+ ,"    expenses:supplies  $1"
+ ,"    assets:cash"
+ ,""
+ ,"2008/12/31 * pay off"
+ ,"    liabilities:debts  $1"
+ ,"    assets:bank:checking"
+ ,""
+ ,""
+ ,";final comment"
+ ]
 
-defaultyear_ledger_str =
- "Y2009\n" ++
- "\n" ++
- "01/01 A\n" ++
- "    a  $1\n" ++
- "    b\n"
+defaultyear_ledger_str = unlines
+ ["Y2009"
+ ,""
+ ,"01/01 A"
+ ,"    a  $1"
+ ,"    b"
+ ]
 
 write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
 
@@ -630,11 +667,12 @@ rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
 
 rawtransaction1 = RawTransaction "expenses:food:dining" (Mixed [dollars 10]) "" RegularTransaction
 
-entry1_str = "" ++
- "2007/01/28 coopportunity\n" ++
- "  expenses:food:groceries                 $47.18\n" ++
- "  assets:checking\n" ++
- "\n"
+entry1_str = unlines
+ ["2007/01/28 coopportunity"
+ ,"  expenses:food:groceries                 $47.18"
+ ,"  assets:checking"
+ ,""
+ ]
 
 entry1 =
     (Entry (parsedate "2007/01/28") False "" "coopportunity" ""
@@ -642,133 +680,144 @@ entry1 =
       RawTransaction "assets:checking" (Mixed [dollars (-47.18)]) "" RegularTransaction] "")
 
 
-entry2_str = "" ++
- "2007/01/27 * joes diner\n" ++
- "  expenses:food:dining                    $10.00\n" ++
- "  expenses:gifts                          $10.00\n" ++
- "  assets:checking                        $-20.00\n" ++
- "\n"
+entry2_str = unlines
+ ["2007/01/27 * joes diner"
+ ,"  expenses:food:dining                    $10.00"
+ ,"  expenses:gifts                          $10.00"
+ ,"  assets:checking                        $-20.00"
+ ,""
+ ]
 
-entry3_str = "" ++
- "2007/01/01 * opening balance\n" ++
- "    assets:cash                                $4.82\n" ++
- "    equity:opening balances\n" ++
- "\n" ++
- "2007/01/01 * opening balance\n" ++
- "    assets:cash                                $4.82\n" ++
- "    equity:opening balances\n" ++
- "\n" ++
- "2007/01/28 coopportunity\n" ++
- "  expenses:food:groceries                 $47.18\n" ++
- "  assets:checking\n" ++
- "\n"
+entry3_str = unlines
+ ["2007/01/01 * opening balance"
+ ,"    assets:cash                                $4.82"
+ ,"    equity:opening balances"
+ ,""
+ ,"2007/01/01 * opening balance"
+ ,"    assets:cash                                $4.82"
+ ,"    equity:opening balances"
+ ,""
+ ,"2007/01/28 coopportunity"
+ ,"  expenses:food:groceries                 $47.18"
+ ,"  assets:checking"
+ ,""
+ ]
 
-periodic_entry1_str = "" ++
- "~ monthly from 2007/2/2\n" ++
- "  assets:saving            $200.00\n" ++
- "  assets:checking\n" ++
- "\n"
+periodic_entry1_str = unlines
+ ["~ monthly from 2007/2/2"
+ ,"  assets:saving            $200.00"
+ ,"  assets:checking"
+ ,""
+ ]
 
-periodic_entry2_str = "" ++
- "~ monthly from 2007/2/2\n" ++
- "  assets:saving            $200.00         ;auto savings\n" ++
- "  assets:checking\n" ++
- "\n"
+periodic_entry2_str = unlines
+ ["~ monthly from 2007/2/2"
+ ,"  assets:saving            $200.00         ;auto savings"
+ ,"  assets:checking"
+ ,""
+ ]
 
-periodic_entry3_str = "" ++
- "~ monthly from 2007/01/01\n" ++
- "    assets:cash                                $4.82\n" ++
- "    equity:opening balances\n" ++
- "\n" ++
- "~ monthly from 2007/01/01\n" ++
- "    assets:cash                                $4.82\n" ++
- "    equity:opening balances\n" ++
- "\n"
+periodic_entry3_str = unlines
+ ["~ monthly from 2007/01/01"
+ ,"    assets:cash                                $4.82"
+ ,"    equity:opening balances"
+ ,""
+ ,"~ monthly from 2007/01/01"
+ ,"    assets:cash                                $4.82"
+ ,"    equity:opening balances"
+ ,""
+ ]
 
-ledger1_str = "" ++
- "\n" ++
- "2007/01/27 * joes diner\n" ++
- "  expenses:food:dining                    $10.00\n" ++
- "  expenses:gifts                          $10.00\n" ++
- "  assets:checking                        $-20.00\n" ++
- "\n" ++
- "\n" ++
- "2007/01/28 coopportunity\n" ++
- "  expenses:food:groceries                 $47.18\n" ++
- "  assets:checking                        $-47.18\n" ++
- "\n" ++
- ""
+ledger1_str = unlines
+ [""
+ ,"2007/01/27 * joes diner"
+ ,"  expenses:food:dining                    $10.00"
+ ,"  expenses:gifts                          $10.00"
+ ,"  assets:checking                        $-20.00"
+ ,""
+ ,""
+ ,"2007/01/28 coopportunity"
+ ,"  expenses:food:groceries                 $47.18"
+ ,"  assets:checking                        $-47.18"
+ ,""
+ ,""
+ ]
 
-ledger2_str = "" ++
- ";comment\n" ++
- "2007/01/27 * joes diner\n" ++
- "  expenses:food:dining                    $10.00\n" ++
- "  assets:checking                        $-47.18\n" ++
- "\n"
+ledger2_str = unlines
+ [";comment"
+ ,"2007/01/27 * joes diner"
+ ,"  expenses:food:dining                    $10.00"
+ ,"  assets:checking                        $-47.18"
+ ,""
+ ]
 
-ledger3_str = "" ++
- "2007/01/27 * joes diner\n" ++
- "  expenses:food:dining                    $10.00\n" ++
- ";intra-entry comment\n" ++
- "  assets:checking                        $-47.18\n" ++
- "\n"
+ledger3_str = unlines
+ ["2007/01/27 * joes diner"
+ ,"  expenses:food:dining                    $10.00"
+ ,";intra-entry comment"
+ ,"  assets:checking                        $-47.18"
+ ,""
+ ]
 
-ledger4_str = "" ++
- "!include \"somefile\"\n" ++
- "2007/01/27 * joes diner\n" ++
- "  expenses:food:dining                    $10.00\n" ++
- "  assets:checking                        $-47.18\n" ++
- "\n"
+ledger4_str = unlines
+ ["!include \"somefile\""
+ ,"2007/01/27 * joes diner"
+ ,"  expenses:food:dining                    $10.00"
+ ,"  assets:checking                        $-47.18"
+ ,""
+ ]
 
 ledger5_str = ""
 
-ledger6_str = "" ++
- "~ monthly from 2007/1/21\n" ++
- "    expenses:entertainment  $16.23        ;netflix\n" ++
- "    assets:checking\n" ++
- "\n" ++
- "; 2007/01/01 * opening balance\n" ++
- ";     assets:saving                            $200.04\n" ++
- ";     equity:opening balances                         \n" ++
- "\n"
+ledger6_str = unlines
+ ["~ monthly from 2007/1/21"
+ ,"    expenses:entertainment  $16.23        ;netflix"
+ ,"    assets:checking"
+ ,""
+ ,"; 2007/01/01 * opening balance"
+ ,";     assets:saving                            $200.04"
+ ,";     equity:opening balances                         "
+ ,""
+ ]
 
-ledger7_str = "" ++
- "2007/01/01 * opening balance\n" ++
- "    assets:cash                                $4.82\n" ++
- "    equity:opening balances                         \n" ++
- "\n" ++
- "2007/01/01 * opening balance\n" ++
- "    income:interest                                $-4.82\n" ++
- "    equity:opening balances                         \n" ++
- "\n" ++
- "2007/01/02 * ayres suites\n" ++
- "    expenses:vacation                        $179.92\n" ++
- "    assets:checking                                 \n" ++
- "\n" ++
- "2007/01/02 * auto transfer to savings\n" ++
- "    assets:saving                            $200.00\n" ++
- "    assets:checking                                 \n" ++
- "\n" ++
- "2007/01/03 * poquito mas\n" ++
- "    expenses:food:dining                       $4.82\n" ++
- "    assets:cash                                     \n" ++
- "\n" ++
- "2007/01/03 * verizon\n" ++
- "    expenses:phone                            $95.11\n" ++
- "    assets:checking                                 \n" ++
- "\n" ++
- "2007/01/03 * discover\n" ++
- "    liabilities:credit cards:discover         $80.00\n" ++
- "    assets:checking                                 \n" ++
- "\n" ++
- "2007/01/04 * blue cross\n" ++
- "    expenses:health:insurance                 $90.00\n" ++
- "    assets:checking                                 \n" ++
- "\n" ++
- "2007/01/05 * village market liquor\n" ++
- "    expenses:food:dining                       $6.48\n" ++
- "    assets:checking                                 \n" ++
- "\n"
+ledger7_str = unlines
+ ["2007/01/01 * opening balance"
+ ,"    assets:cash                                $4.82"
+ ,"    equity:opening balances                         "
+ ,""
+ ,"2007/01/01 * opening balance"
+ ,"    income:interest                                $-4.82"
+ ,"    equity:opening balances                         "
+ ,""
+ ,"2007/01/02 * ayres suites"
+ ,"    expenses:vacation                        $179.92"
+ ,"    assets:checking                                 "
+ ,""
+ ,"2007/01/02 * auto transfer to savings"
+ ,"    assets:saving                            $200.00"
+ ,"    assets:checking                                 "
+ ,""
+ ,"2007/01/03 * poquito mas"
+ ,"    expenses:food:dining                       $4.82"
+ ,"    assets:cash                                     "
+ ,""
+ ,"2007/01/03 * verizon"
+ ,"    expenses:phone                            $95.11"
+ ,"    assets:checking                                 "
+ ,""
+ ,"2007/01/03 * discover"
+ ,"    liabilities:credit cards:discover         $80.00"
+ ,"    assets:checking                                 "
+ ,""
+ ,"2007/01/04 * blue cross"
+ ,"    expenses:health:insurance                 $90.00"
+ ,"    assets:checking                                 "
+ ,""
+ ,"2007/01/05 * village market liquor"
+ ,"    expenses:food:dining                       $6.48"
+ ,"    assets:checking                                 "
+ ,""
+ ]
 
 rawledger7 = RawLedger
           [] 
@@ -918,11 +967,12 @@ rawledger7 = RawLedger
 
 ledger7 = cacheLedger [] rawledger7 
 
-ledger8_str = "" ++
- "2008/1/1 test           \n" ++
- "  a:b          10h @ $40\n" ++
- "  c:d                   \n" ++
- "\n"
+ledger8_str = unlines
+ ["2008/1/1 test           "
+ ,"  a:b          10h @ $40"
+ ,"  c:d                   "
+ ,""
+ ]
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
 timelogentry1 = TimeLogEntry 'i' (parsedatetime "2007/03/11 16:19:00") "hledger"
