@@ -265,10 +265,10 @@ balancereportacctnames_tests = TestList
   ,"balancereportacctnames2" ~: ("",  ["assets"])      `gives` ["assets"]
   ,"balancereportacctnames3" ~: ("",  ["as"])          `gives` ["assets","assets:cash"]
   ,"balancereportacctnames4" ~: ("",  ["assets:cash"]) `gives` ["assets:cash"]
-  ,"balancereportacctnames5" ~: ("",  ["-assets"])     `gives` ["expenses","income","liabilities"]
-  ,"balancereportacctnames6" ~: ("",  ["-e"])          `gives` []
+  ,"balancereportacctnames5" ~: ("",  ["^assets"])     `gives` ["expenses","income","liabilities"]
+  ,"balancereportacctnames6" ~: ("",  ["^e"])          `gives` []
   ,"balancereportacctnames7" ~: ("-s",["assets"])      `gives` ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-  ,"balancereportacctnames8" ~: ("-s",["-e"])          `gives` []
+  ,"balancereportacctnames8" ~: ("-s",["^e"])          `gives` []
   ] where
     gives (opt,pats) e = do 
       l <- sampleledger
@@ -374,7 +374,7 @@ balancecommand_tests = TestList [
    "")
  ,
   "balance report with negative account pattern" ~:
-  ([], ["-assets"]) `gives`
+  ([], ["^assets"]) `gives`
   ("                  $2  expenses\n" ++
    "                 $-2  income\n" ++
    "                  $1  liabilities\n" ++
@@ -383,10 +383,10 @@ balancecommand_tests = TestList [
    "")
  ,
   "balance report negative account pattern always matches full name" ~: 
-  ([], ["-e"]) `gives` ""
+  ([], ["^e"]) `gives` ""
  ,
   "balance report negative patterns affect totals" ~: 
-  ([], ["expenses","-food"]) `gives`
+  ([], ["expenses","^food"]) `gives`
   ("                  $1  expenses\n" ++
    "--------------------\n" ++
    "                  $1\n" ++
