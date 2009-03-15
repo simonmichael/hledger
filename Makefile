@@ -29,9 +29,24 @@ continuous ci: setversion
 # force a full rebuild with normal optimisation
 rebuild: clean build
 
-# run tests without compiling, might be handy now and then
-test:
+# debug prompt
+ghci:
+	ghci hledger.hs
+
+# run all tests
+test: doctest unittest haddocktest
+
+# make sure we have no haddock errors
+haddocktest:
+	@make --quiet haddock
+
+# run unit tests, without waiting for compilation
+unittest:
 	./hledger.hs test
+
+# run doc tests
+doctest:
+	tools/doctest.hs Tests.hs
 
 # build profiling-enabled hledgerp and archive and show a cleaned-up profile
 # you may need to rebuild some libs: sudo cabal install --reinstall -p ...
@@ -40,7 +55,7 @@ BUILDPROF=ghc $(BUILDFLAGS) --make hledger.hs -prof -auto-all -o $(PROFBIN)
 RUNPROF=./$(PROFBIN) +RTS -p -RTS
 PROFCMD=-f sample1000.ledger -s balance
 TIME=`date +"%Y%m%d%H%M"`
-profile: sampleledgers
+buildprof prof: sampleledgers
 	@echo "Profiling $(PROFCMD)"
 	$(BUILDPROF)
 	$(RUNPROF) $(PROFCMD) #>/dev/null
@@ -180,7 +195,7 @@ Clean: clean clean-docs
 DOCS=README NEWS
 
 # rebuild all docs
-docs: html pdf api-doc-frames
+docs: html pdf api-docs
 
 # rebuild html docs
 html:
@@ -191,39 +206,40 @@ html:
 pdf:
 	for d in $(DOCS); do rst2pdf $$d -o doc/$$d.pdf; done
 
-# rebuild api docs (haddock & hoogle) 
-api-docs: api-doc-frames
+# rebuild api docs
+# We munge haddock and hoogle into a rough but useful framed layout.
+# For this to work the hoogle cgi must be built with base target "main".
+api-docs: haddock hoogleweb
+	echo "Converting api docs to frames" ; \
+	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
+	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
+	cp doc/misc/hoogle-small.html hoogle
+
+# build and preview the api docs
+BROWSER=open
+view-api-docs: api-docs
+	$(BROWSER) api-doc/index.html
 
 api-doc-dir:
 	mkdir -p api-doc
 
+MAIN=hledger.hs
+
+# --ignore-all-exports here means these are actually implementation docs
+HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(BUILDFLAGS))
+haddock: api-doc-dir hscolour $(MAIN)
+	echo "Generating haddock api docs with source" ; \
+	$(HADDOCK) -o api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
+		cp api-doc/index.html api-doc/modules-index.html
+
 HSCOLOUR=HsColour -css 
-colourised-source hscolour: api-doc-dir
+hscolour: api-doc-dir
 	echo "Generating colourised source" ; \
 	for f in *hs Ledger/*hs; do \
 		$(HSCOLOUR) -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
 	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
 	HsColour -print-css >api-doc/hscolour.css
-
-MAIN=hledger.hs
-
-# nb --ignore-all-exports means these are actually implementation docs
-HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(BUILDFLAGS))
-
-api-doc-with-source: api-doc-dir colourised-source $(MAIN)
-	echo "Generating haddock api docs" ; \
-	$(HADDOCK) -o api-doc -h --source-module=src-%{MODULE/./-}.html $(filter-out %api-doc-dir colourised-source,$^) ; \
-	cp api-doc/index.html api-doc/modules-index.html
-#--source-entity=src-%{MODULE/./-}.html#%N 
-
-#generate a hoogle index
-hoogleindex: $(MAIN)
-	echo "Generating hoogle index" ; \
-	mkdir -p hoogle && \
-	$(HADDOCK) -o hoogle --hoogle $^ && \
-	cd hoogle && \
-	hoogle --convert=main.txt --output=default.hoo
 
 #set up the hoogle web interface
 #uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
@@ -244,19 +260,13 @@ hoogleweb: hoogleindex
 		echo "Could not find $(HOOGLE) in the hoogle source tree" ; \
 	fi
 
-# munge haddock and hoogle into a rough but useful framed layout
-# ensure that the hoogle cgi is built with base target "main"
-api-doc-frames: api-doc-with-source hoogleweb
-	echo "Converting api docs to frames" ; \
-	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
-	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
-	cp doc/misc/hoogle-small.html hoogle
-
-# build api docs and open them in a web browser, adjust to taste
-BROWSER=open
-test-docs: api-docs
-	$(BROWSER) api-doc/index.html
-#	$(BROWSER) doc/README.html
+#generate a hoogle index
+hoogleindex: $(MAIN)
+	echo "Generating hoogle index" ; \
+	mkdir -p hoogle && \
+	$(HADDOCK) -o hoogle --hoogle $^ && \
+	cd hoogle && \
+	hoogle --convert=main.txt --output=default.hoo
 
 clean-docs:
 	rm -rf api-doc hoogle
