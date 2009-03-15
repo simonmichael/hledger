@@ -360,11 +360,13 @@ tests = [
     [WeeklyOpt, Period "yearly"] `gives` Yearly
 
   ,"isAccountNamePrefixOf" ~: do
+    "assets" `isAccountNamePrefixOf` "assets" `is` False
     "assets" `isAccountNamePrefixOf` "assets:bank" `is` True
     "assets" `isAccountNamePrefixOf` "assets:bank:checking" `is` True
     "my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
 
   ,"isSubAccountNameOf" ~: do
+    "assets" `isSubAccountNameOf` "assets" `is` False
     "assets:bank" `isSubAccountNameOf` "assets" `is` True
     "assets:bank:checking" `isSubAccountNameOf` "assets" `is` False
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
