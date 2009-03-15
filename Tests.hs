@@ -54,7 +54,7 @@ parse `parseis` expected = either printParseError (`is` expected) parse
 tests :: [Test]
 tests = [
 
-  "account directive" ~: 
+   "account directive" ~: 
    let sameParse str1 str2 = do l1 <- rawledgerfromstring str1
                                 l2 <- rawledgerfromstring str2
                                 l1 `is` l2
@@ -86,23 +86,20 @@ tests = [
                             "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
                            )
    ]
-  ,
 
-  "accountnames" ~: do
+  ,"accountnames" ~: do
     accountnames ledger7 `is`
      ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
-  ,
 
-  "accountNameTreeFrom" ~: do
+  ,"accountNameTreeFrom" ~: do
     accountNameTreeFrom ["a"]       `is` Node "top" [Node "a" []]
     accountNameTreeFrom ["a","b"]   `is` Node "top" [Node "a" [], Node "b" []]
     accountNameTreeFrom ["a","a:b"] `is` Node "top" [Node "a" [Node "a:b" []]]
     accountNameTreeFrom ["a:b:c"]   `is` Node "top" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
-  ,
 
-  "amount arithmetic" ~: do
+  ,"amount arithmetic" ~: do
     let a1 = dollars 1.23
     let a2 = Amount (comm "$") (-1.23) Nothing
     let a3 = Amount (comm "$") (-1.23) Nothing
@@ -113,12 +110,11 @@ tests = [
     (sum [a2,a3]) `is` Amount (comm "$") (-2.46) Nothing
     (sum [a3,a3]) `is` Amount (comm "$") (-2.46) Nothing
     (sum [a1,a2,a3,-a3]) `is` Amount (comm "$") 0 Nothing
-  ,
 
-  "balance report tests" ~:
+  ,"balance report tests" ~:
    let (opts,args) `gives` es = do 
-         l <- sampleledgerwithopts opts args
-         showBalanceReport opts args l `is` unlines es
+        l <- sampleledgerwithopts opts args
+        showBalanceReport opts args l `is` unlines es
    in TestList
    [
 
@@ -135,18 +131,16 @@ tests = [
     ,"                 $-1    salary"
     ,"                  $1  liabilities:debts"
     ]
-   ,
 
-    "balance report level can also be limited with --depth" ~:
+   ,"balance report level can also be limited with --depth" ~:
     ([Depth "1"], []) `gives`
     ["                 $-1  assets"
     ,"                  $2  expenses"
     ,"                 $-2  income"
     ,"                  $1  liabilities"
     ]
-   ,
     
-    "balance report with account pattern o" ~:
+   ,"balance report with account pattern o" ~:
     ([SubTotal], ["o"]) `gives`
     ["                  $1  expenses:food"
     ,"                 $-2  income"
@@ -155,18 +149,16 @@ tests = [
     ,"--------------------"
     ,"                 $-1"
     ]
-   ,
 
-    "balance report with account pattern o and --depth 1" ~:
+   ,"balance report with account pattern o and --depth 1" ~:
     ([Depth "1"], ["o"]) `gives`
     ["                  $1  expenses:food"
     ,"                 $-2  income"
     ,"--------------------"
     ,"                 $-1"
     ]
-   ,
 
-    "balance report with account pattern a" ~:
+   ,"balance report with account pattern a" ~:
     ([], ["a"]) `gives`
     ["                 $-1  assets"
     ,"                  $1    bank:saving"
@@ -176,9 +168,8 @@ tests = [
     ,"--------------------"
     ,"                 $-1"
     ]
-   ,
 
-    "balance report with account pattern e" ~:
+   ,"balance report with account pattern e" ~:
     ([], ["e"]) `gives`
     ["                 $-1  assets"
     ,"                  $2  expenses"
@@ -186,26 +177,23 @@ tests = [
     ,"                 $-2  income"
     ,"                  $1  liabilities:debts"
     ]
-   ,
 
-    "balance report with unmatched parent of two matched subaccounts" ~: 
+   ,"balance report with unmatched parent of two matched subaccounts" ~: 
     ([], ["cash","saving"]) `gives`
     ["                  $1  assets:bank:saving"
     ,"                 $-2  assets:cash"
     ,"--------------------"
     ,"                 $-1"
     ]
-   ,
 
-    "balance report with multi-part account name" ~: 
+   ,"balance report with multi-part account name" ~: 
     ([], ["expenses:food"]) `gives`
     ["                  $1  expenses:food"
     ,"--------------------"
     ,"                  $1"
     ]
-   ,
 
-    "balance report with negative account pattern" ~:
+   ,"balance report with negative account pattern" ~:
     ([], ["^assets"]) `gives`
     ["                  $2  expenses"
     ,"                 $-2  income"
@@ -213,21 +201,18 @@ tests = [
     ,"--------------------"
     ,"                  $1"
     ]
-   ,
 
-    "balance report negative account pattern always matches full name" ~: 
+   ,"balance report negative account pattern always matches full name" ~: 
     ([], ["^e"]) `gives` []
-   ,
 
-    "balance report negative patterns affect totals" ~: 
+   ,"balance report negative patterns affect totals" ~: 
     ([], ["expenses","^food"]) `gives`
     ["                  $1  expenses"
     ,"--------------------"
     ,"                  $1"
     ]
-   ,
 
-    "balance report with -E shows zero-balance accounts" ~:
+   ,"balance report with -E shows zero-balance accounts" ~:
     ([SubTotal,Empty], ["assets"]) `gives`
     ["                 $-1  assets"
     ,"                  $1    bank"
@@ -237,9 +222,8 @@ tests = [
     ,"--------------------"
     ,"                 $-1"
     ]
-   ,
 
-    "balance report with cost basis" ~: do
+   ,"balance report with cost basis" ~: do
       rl <- rawledgerfromstring $ unlines
              [""
              ,"2008/1/1 test           "
@@ -255,9 +239,8 @@ tests = [
         ["                $500  a"
         ,"               $-500  c"
         ]
-   ,
 
-    "balance report elides zero-balance root account(s)" ~: do
+   ,"balance report elides zero-balance root account(s)" ~: do
       l <- ledgerfromstringwithopts [] [] sampletime
              (unlines
               ["2008/1/1 one"
@@ -272,13 +255,11 @@ tests = [
         ]
 
    ]
-  ,
 
-  "balanceEntry" ~: do
+  ,"balanceEntry" ~: do
     (tamount $ last $ etransactions $ balanceEntry entry1) `is` Mixed [dollars (-47.18)]
-  ,
 
-  "balancereportacctnames" ~: 
+  ,"balancereportacctnames" ~: 
    let gives (opt,pats) e = do 
          l <- sampleledger
          let t = pruneZeroBalanceLeaves $ ledgerAccountTree 999 l
@@ -297,32 +278,27 @@ tests = [
    ,"balancereportacctnames 7" ~: ("-s",["assets"])      `gives` ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
    ,"balancereportacctnames 8" ~: ("-s",["^e"])          `gives` []
    ]
-  ,
 
-  "cacheLedger" ~: do
+  ,"cacheLedger" ~: do
     (length $ Map.keys $ accountmap $ cacheLedger [] rawledger7) `is` 15
-  ,
 
-  "canonicaliseAmounts" ~:
+  ,"canonicaliseAmounts" ~:
    "use the greatest precision" ~: do
     (rawLedgerPrecisions $ canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"]) `is` [2,2]
-  ,
 
-  "dateSpanFromOpts" ~: do
+  ,"dateSpanFromOpts" ~: do
     let todaysdate = parsedate "2008/11/26"
     let opts `gives` spans = show (dateSpanFromOpts todaysdate opts) `is` spans
     [] `gives` "DateSpan Nothing Nothing"
     [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
     [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
     [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-  ,
 
-  "expandAccountNames" ~: do
+  ,"expandAccountNames" ~: do
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-  ,
 
-  "intervalFromOpts" ~: do
+  ,"intervalFromOpts" ~: do
     let opts `gives` interval = intervalFromOpts opts `is` interval
     [] `gives` NoInterval
     [WeeklyOpt] `gives` Weekly
@@ -331,44 +307,36 @@ tests = [
     [Period "weekly"] `gives` Weekly
     [Period "monthly"] `gives` Monthly
     [WeeklyOpt, Period "yearly"] `gives` Yearly
-  ,                  
 
-  "isAccountNamePrefixOf" ~: do
+  ,"isAccountNamePrefixOf" ~: do
     "assets" `isAccountNamePrefixOf` "assets:bank" `is` True
     "assets" `isAccountNamePrefixOf` "assets:bank:checking" `is` True
     "my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
-  ,
 
-  "isSubAccountNameOf" ~: do
+  ,"isSubAccountNameOf" ~: do
     "assets:bank" `isSubAccountNameOf` "assets" `is` True
     "assets:bank:checking" `isSubAccountNameOf` "assets" `is` False
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
-  ,
 
-  "default year" ~: do
+  ,"default year" ~: do
     rl <- rawledgerfromstring defaultyear_ledger_str
     (edate $ head $ entries rl) `is` fromGregorian 2009 1 1
     return ()
-  ,
 
-  "ledgerEntry" ~: do
+  ,"ledgerEntry" ~: do
     parseWithCtx ledgerEntry entry1_str `parseis` entry1
-  ,
 
-  "ledgerHistoricalPrice" ~: do
+  ,"ledgerHistoricalPrice" ~: do
     parseWithCtx ledgerHistoricalPrice price1_str `parseis` price1
-  ,
 
-  "ledgertransaction" ~: do
+  ,"ledgertransaction" ~: do
     parseWithCtx ledgertransaction rawtransaction1_str `parseis` rawtransaction1
-  ,                  
 
-  "parsedate" ~: do
+  ,"parsedate" ~: do
     parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
     parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
-  ,                  
 
-  "period expressions" ~: do
+  ,"period expressions" ~: do
     let todaysdate = parsedate "2008/11/26"
     let str `gives` result = (show $ parsewith (periodexpr todaysdate) str) `is` ("Right "++result)
     "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
@@ -376,9 +344,8 @@ tests = [
     "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
     "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
     "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
-  ,                  
 
-  "print command tests" ~: TestList
+  ,"print command tests" ~: TestList
   [
 
    "print expenses" ~:
@@ -392,20 +359,15 @@ tests = [
      ,"    assets:cash                                  $-2"
      ,""
      ]
-
   ]
-  ,
 
-  "punctuatethousands 1" ~: punctuatethousands "" `is` ""
-  ,
+  ,"punctuatethousands 1" ~: punctuatethousands "" `is` ""
 
-  "punctuatethousands 2" ~: punctuatethousands "1234567.8901" `is` "1,234,567.8901"
-  ,
+  ,"punctuatethousands 2" ~: punctuatethousands "1234567.8901" `is` "1,234,567.8901"
 
-  "punctuatethousands 3" ~: punctuatethousands "-100" `is` "-100"
-  ,
+  ,"punctuatethousands 3" ~: punctuatethousands "-100" `is` "-100"
 
-  "register report tests" ~:
+  ,"register report tests" ~:
   let registerdates = filter (not . null) .  map (strip . take 10) . lines
   in
   TestList
@@ -427,25 +389,22 @@ tests = [
      ,"2008/12/31 pay off              liabilities:debts                $1           $1"
      ,"                                assets:bank:checking            $-1            0"
      ]
-  ,
 
-   "register report with account pattern" ~:
+   ,"register report with account pattern" ~:
    do
     l <- sampleledger
     showRegisterReport [] ["cash"] l `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
-  ,
 
-  "register report with account pattern, case insensitive" ~:
+  ,"register report with account pattern, case insensitive" ~:
   do 
     l <- sampleledger
     showRegisterReport [] ["cAsH"] l `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
-  ,
 
-  "register report with display expression" ~:
+  ,"register report with display expression" ~:
   do 
     l <- sampleledger
     let displayexpr `gives` dates = 
@@ -455,9 +414,8 @@ tests = [
     "d=[2008/6/2]"  `gives` ["2008/06/02"]
     "d>=[2008/6/2]" `gives` ["2008/06/02","2008/06/03","2008/12/31"]
     "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
-  ,
 
-  "register report with period expression" ~:
+  ,"register report with period expression" ~:
   do 
     l <- sampleledger    
     let periodexpr `gives` dates = do
@@ -481,15 +439,12 @@ tests = [
     registerdates (showRegisterReport [Period "quarterly",Empty] [] l) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
 
   ]
-  ,
 
-  "show dollars" ~: show (dollars 1) ~?= "$1.00"
-  ,
+  ,"show dollars" ~: show (dollars 1) ~?= "$1.00"
 
-  "show hours" ~: show (hours 1) ~?= "1.0h"
-  ,
+  ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
-  "smart dates" ~: do
+  ,"smart dates" ~: do
     let str `gives` datestr = fixSmartDateStr (parsedate "2008/11/26") str `is` datestr
     "1999-12-02"   `gives` "1999/12/02"
     "1999.12.02"   `gives` "1999/12/02"
@@ -523,9 +478,8 @@ tests = [
 --     "last wed"     `gives` "2008/11/19"
 --     "next friday"  `gives` "2008/11/28"
 --     "next january" `gives` "2009/01/01"
-  ,
 
-  "splitSpan" ~: do
+  ,"splitSpan" ~: do
     let (interval,span) `gives` spans = splitSpan interval span `is` spans
     (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
      [mkdatespan "2008/01/01" "2009/01/01"]
@@ -541,15 +495,13 @@ tests = [
      [mkdatespan "2008/01/01" "2008/01/01"]
     (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
      [mkdatespan "2008/01/01" "2008/01/01"]
-  ,                  
 
-  "subAccounts" ~: do
+  ,"subAccounts" ~: do
     l <- sampleledger
     let a = ledgerAccount l "assets"
     (map aname $ subAccounts l a) `is` ["assets:bank","assets:cash"]
-  ,                  
 
-  "summariseTransactionsInDateSpan" ~: do
+  ,"summariseTransactionsInDateSpan" ~: do
     let (b,e,entryno,depth,showempty,ts) `gives` summaryts = 
             summariseTransactionsInDateSpan (mkdatespan b e) entryno depth showempty ts `is` summaryts
     let ts =
@@ -583,13 +535,11 @@ tests = [
      [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="",amount=Mixed [dollars 15]}
      ]
-  ,
 
-  "timelog" ~: do
+  ,"timelog" ~: do
     parseWithCtx timelog timelog1_str `parseis` timelog1
-  ,
 
-  "transactionamount" ~: do
+  ,"transactionamount" ~: do
     parseWithCtx transactionamount " $47.18" `parseis` Mixed [dollars 47.18]
     parseWithCtx transactionamount " $1." `parseis` 
      Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]
