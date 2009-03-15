@@ -108,7 +108,9 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
 import Ledger.AccountName
+import Ledger.Transaction
 import Ledger.Ledger
+import Ledger.Parse
 import Options
 import Utils
 
@@ -117,134 +119,48 @@ import Utils
 balance :: [Opt] -> [String] -> Ledger -> IO ()
 balance opts args l = putStr $ showBalanceReport opts args l
 
--- | Generate balance report output for a ledger.
+-- | Generate a balance report with the specified options for this ledger.
 showBalanceReport :: [Opt] -> [String] -> Ledger -> String
-showBalanceReport opts args l = acctsstr ++ (if collapse then "" else totalstr)
+showBalanceReport opts args l = acctsstr ++ totalstr
     where 
-      acctsstr = concatMap showatree $ subs t
-      showatree t = showAccountTreeWithBalances matchedacctnames t
-      matchedacctnames = balancereportacctnames l sub apats t
-      t = (if empty then id else pruneZeroBalanceLeaves) $ ledgerAccountTree maxdepth l
-      apats = fst $ parseAccountDescriptionArgs opts args
-      maxdepth = fromMaybe 9999 $ depthFromOpts opts
-      sub = SubTotal `elem` opts || (isJust $ depthFromOpts opts)
-      empty = Empty `elem` opts
-      collapse = Collapse `elem` opts
-      totalstr = if isZeroMixedAmount total 
-                 then "" 
-                 else printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmount total
-      total = sum $ map (abalance . ledgerAccount l) $ nonredundantaccts
-      nonredundantaccts = filter (not . hasparentshowing) matchedacctnames
-      hasparentshowing aname = (parentAccountName $ aname) `elem` matchedacctnames
-
--- | Identify the accounts we are interested in seeing balances for in the
--- balance report, based on the -s flag and account patterns. See Tests.hs.
-balancereportacctnames :: Ledger -> Bool -> [String] -> Tree Account -> [AccountName]
-balancereportacctnames l False [] t   = filter (/= "top") $ map aname $ flatten $ treeprune 1 t
-balancereportacctnames l False pats t = filter (/= "top") $ ns
-    where 
-      ns = filter (matchpats_balance pats) $ map aname $ flatten t'
-      t' | null $ positivepats pats = treeprune 1 t
-         | otherwise = t
-balancereportacctnames l True pats t  = nub $ map aname $ addsubaccts l $ as
-    where 
-      as = map (ledgerAccount l) ns
-      ns = balancereportacctnames l False pats t
-      -- add (in tree order) any missing subaccounts to a list of accounts
-      addsubaccts :: Ledger -> [Account] -> [Account]
-      addsubaccts l as = concatMap addsubs as where addsubs = maybe [] flatten . ledgerAccountTreeAt l
-
--- | Remove all sub-trees whose accounts have a zero balance.
-pruneZeroBalanceLeaves :: Tree Account -> Tree Account
-pruneZeroBalanceLeaves = treefilter (not . isZeroMixedAmount . abalance)
-
--- | Show this tree of accounts with balances, eliding boring parent
--- accounts and omitting uninteresting subaccounts based on the provided
--- list of account names we want to see balances for.
-showAccountTreeWithBalances :: [AccountName] -> Tree Account -> String
-showAccountTreeWithBalances matchednames t = showAccountTreeWithBalances' matchednames 0 "" t
-    where
-      showAccountTreeWithBalances' :: [AccountName] -> Int -> String -> Tree Account -> String
-      showAccountTreeWithBalances' matchednames indent prefix (Node (Account fullname _ bal) subs)
-          | isboringparent && hasmatchedsubs = subsprefixed
-          | ismatched = this ++ subsindented
-          | otherwise = subsnoindent
+      acctsstr = unlines $ map showacct interestingaccts
           where
-            subsprefixed = showsubs indent (prefix++leafname++":")
-            subsnoindent = showsubs indent ""
-            subsindented = showsubs (indent+1) ""
-            showsubs i p = concatMap (showAccountTreeWithBalances' matchednames i p) subs
-            hasmatchedsubs = any ((`elem` matchednames) . aname) $ concatMap flatten subs
-            amt = padleft 20 $ showMixedAmount bal
-            this = concatTopPadded [amt, spaces ++ prefix ++ leafname] ++ "\n"
-            spaces = "  " ++ replicate (indent * 2) ' '
-            leafname = accountLeafName fullname
-            ismatched = fullname `elem` matchednames
+            showacct = showInterestingAccount l interestingaccts
+            interestingaccts = filter (isInteresting opts l) acctnames
+            acctnames = sort $ tail $ flatten $ treemap aname accttree
+            accttree = ledgerAccountTree (depthFromOpts opts) l
+      totalstr | isZeroMixedAmount total = ""
+               | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmount total
+          where
+            total = sum $ map abalance $ topAccounts l
 
-            -- XXX 
-            isboringparent = numsubs >= 1 && (bal == subbal || not ismatched)
-            subbal = abalance $ root $ head subs
-            numsubs = length subs
-            {- gives:
-### Failure in: 52:balance report elides zero-balance root account(s)
-expected: ""
- but got: "                   0  test\n"
-Cases: 58  Tried: 58  Errors: 0  Failures: 1
-Eg:
-~/src/hledger$ hledger -f sample2.ledger  -s bal
-                   0  test
-                  $2    a:aa
-                 $-2    b
-~/src/hledger$ ledger -f sample2.ledger  -s bal
-                  $2  test:a:aa
-                 $-2  test:b
--}
+-- | Display one line of the balance report with appropriate indenting and eliding.
+showInterestingAccount :: Ledger -> [AccountName] -> AccountName -> String
+showInterestingAccount l interestingaccts a = concatTopPadded [amt, "  ", depthspacer ++ partialname]
+    where
+      amt = padleft 20 $ showMixedAmount $ abalance $ ledgerAccount l a
+      -- the depth spacer (indent) is two spaces for each interesting parent
+      parents = parentAccountNames a
+      interestingparents = filter (`elem` interestingaccts) parents
+      depthspacer = replicate (2 * length interestingparents) ' '
+      -- the partial name is the account's leaf name, prefixed by the
+      -- names of any boring parents immediately above
+      partialname = accountNameFromComponents $ (reverse $ map accountLeafName ps) ++ [accountLeafName a]
+          where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
 
+-- | Is the named account considered interesting for this ledger's balance report ?
+isInteresting :: [Opt] -> Ledger -> AccountName -> Bool
+isInteresting opts l a
+    | numinterestingsubs==1 && not atmaxdepth = notlikesub
+    | otherwise = notzero || emptyflag
+    where
+      atmaxdepth = accountNameLevel a == depthFromOpts opts
+      emptyflag = Empty `elem` opts
+      acct = ledgerAccount l a
+      notzero = not $ isZeroMixedAmount inclbalance where inclbalance = abalance acct
+      notlikesub = not $ isZeroMixedAmount exclbalance where exclbalance = sumTransactions $ atransactions acct
+      numinterestingsubs = length $ filter isInterestingTree subtrees
+          where
+            isInterestingTree t = treeany (isInteresting opts l . aname) t
+            subtrees = map (fromJust . ledgerAccountTreeAt l) $ subAccounts l $ ledgerAccount l a
 
---          isboringparent = hassubs && (not ismatched || (bal `mixedAmountEquals` subsbal))
---          hassubs = not $ null subs
---          subsbal = sum $ map (abalance . root) subs
-            {- gives:
-### Failure in: 37:balance report with -s
-expected: "                 $-1  assets\n                  $1    bank:saving\n                 $-2    cash\n                  $2  expenses\n                  $1    food\n                  $1    supplies\n                 $-2  income\n                 $-1    gifts\n                 $-1    salary\n                  $1  liabilities:debts\n"
- but got: "                  $1  assets:bank:saving\n                 $-2  assets:cash\n                  $1  expenses:food\n                  $1  expenses:supplies\n                 $-1  income:gifts\n                 $-1  income:salary\n                  $1  liabilities:debts\n"
-### Failure in: 39:balance report --depth activates -s
-expected: "                 $-1  assets\n                  $1    bank\n                 $-2    cash\n                  $2  expenses\n                  $1    food\n                  $1    supplies\n                 $-2  income\n                 $-1    gifts\n                 $-1    salary\n                  $1  liabilities:debts\n"
- but got: "                  $1  assets:bank\n                 $-2  assets:cash\n                  $1  expenses:food\n                  $1  expenses:supplies\n                 $-1  income:gifts\n                 $-1  income:salary\n                  $1  liabilities:debts\n"
-### Failure in: 41:balance report with account pattern o and -s
-expected: "                  $1  expenses:food\n                 $-2  income\n                 $-1    gifts\n                 $-1    salary\n--------------------\n                 $-1\n"
- but got: "                  $1  expenses:food\n                 $-1  income:gifts\n                 $-1  income:salary\n--------------------\n                 $-1\n"
-### Failure in: 42:balance report with account pattern a
-expected: "                 $-1  assets\n                  $1    bank:saving\n                 $-2    cash\n                 $-1  income:salary\n                  $1  liabilities\n--------------------\n                 $-1\n"
- but got: "                  $1  assets:bank:saving\n                 $-2  assets:cash\n                 $-1  income:salary\n                  $1  liabilities\n--------------------\n                 $-1\n"
-### Failure in: 43:balance report with account pattern e
-expected: "                 $-1  assets\n                  $2  expenses\n                  $1    supplies\n                 $-2  income\n                  $1  liabilities:debts\n"
- but got: "                 $-1  assets\n                  $1  expenses:supplies\n                 $-2  income\n                  $1  liabilities:debts\n"
-### Failure in: 49:balance report with -E shows zero-balance accounts
-expected: "                 $-1  assets\n                  $1    bank\n                  $0      checking\n                  $1      saving\n                 $-2    cash\n--------------------\n                 $-1\n"
- but got: "                  $0  assets:bank:checking\n                  $1  assets:bank:saving\n                 $-2  assets:cash\n--------------------\n                 $-1\n"
-### Failure in: 52:balance report elides zero-balance root account(s)
-expected: ""
- but got: "                   0  test\n"
-Cases: 58  Tried: 58  Errors: 0  Failures: 7
-Eg:
-~/src/hledger$ hledger -f sample.ledger  -s bal
-                  $1  assets:bank:saving
-                 $-2  assets:cash
-                  $1  expenses:food
-                  $1  expenses:supplies
-                 $-1  income:gifts
-                 $-1  income:salary
-                  $1  liabilities:debts
-~/src/hledger$ ledger -f sample.ledger  -s bal
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
-                  $2  expenses
-                  $1    food
-                  $1    supplies
-                 $-2  income
-                 $-1    gifts
-                 $-1    salary
-                  $1  liabilities:debts
--}
