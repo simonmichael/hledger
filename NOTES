@@ -10,7 +10,7 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** balance 'assets.*fargo' shows no accounts
+*** timelog report for today with no entries ignores an open session from yesterday
 *** not catching some unbalanced entries, two ways:
 **** 1
 1/1 test1
@@ -26,12 +26,12 @@ clever tricks like the plague." --Edsger Dijkstra
 ; 2009/01/01 test2                a                          $-100.00     $-100.00
 ;                                 b                          $-100.00     $-200.00
 
+*** --depth works with reg -W but not with reg
 *** register report should sort by date
-*** timelog report for today with no entries ignores an open session from yesterday
-*** balance report: zero-balance root accounts do not elide properly
 *** too many dependencies, hard to install esp. without cabal install
 ** features
 *** more ledger features
+**** rename entry -> transaction, transaction -> posting
 **** -U --uncleared
 **** actual/effective entry & txn dates, for more accurate modelling & easier reconciliation
 **** ~/.hledgerrc for setting defaults
@@ -62,7 +62,6 @@ clever tricks like the plague." --Edsger Dijkstra
 *** speed
 **** more optimisation
 **** speed regression tests
-**** cache file ?
 ** tests
 *** test all esoteric ledger file features
 *** wanted: a test for reading a ledger from stdin
@@ -318,7 +317,7 @@ competitors/fellow niche inhabitants
 **** on windows
 ***** via binaries
 *** reduce dependencies
-*** split packages ?
+**** split packages ?
 *** set up binary publishing
 *** clarify bugtracking process
 * misc
@@ -361,52 +360,11 @@ are there any cashflow, tax, budgetary problems looming ?
 [2:08pm] <sm> those would be a good start. How do I make those visual
 [2:09pm] <sm> well I guess the first step is a script to print them
 
-** compare other languages! a parser generator and decent speed is required
-*** python: http://cheeseshop.python.org/pypi/ZestyParser, pysec, pyparsing
-*** squeak: LanguageGame, T-Gen, SmaCC
-*** lisp: ?
-*** ruby: too slow (?)
 ** data representation
 *** http://www.python.org/dev/peps/pep-0327/
 *** http://www.n-heptane.com/nhlab/repos/Decimal/
 *** http://www.n-heptane.com/nhlab/repos/Decimal/Money.hs
 *** http://www2.hursley.ibm.com/decimal/
-** lispy's template haskell for quickcheck
--- find tests with template haskell
-import Language.Haskell.Parser
-
-{-# OPTIONS_GHC -fno-warn-unused-imports -no-recomp -fth #-}
-{- ghc --make Unit.hs -main-is Unit.runTests -o unit -}
-runTests :: IO ()
-runTests = $(mkChecks props)
-
-mkChecks []        = undefined
-mkChecks [name]    = mkCheck name
-mkChecks (name:ns) = [| $(mkCheck name) >> $(mkChecks ns) |]
-
-mkCheck name = [| putStr (name ++ ": ") >> quickCheck $(varE (mkName name)) |]
-
-{- | looks in Tests.hs for functions like prop_foo and returns
-  the list.  Requires that Tests.hs be valid Haskell98. -}
-props :: [String]
-props = unsafePerformIO $
-  do h <- openFile "Tests.hs" ReadMode
-     s <- hGetContents h
-     case parseModule s of
-       (ParseOk (HsModule _ _ _ _ ds)) -> return (map declName (filter isProp ds))
-       (ParseFailed loc s')            -> error (s' ++ " " ++ show loc)
-
-{- | checks if function binding name starts with @prop_@ indicating
- that it is a quickcheck property -}
-isProp :: HsDecl -> Bool
-isProp d@(HsFunBind _) = "prop_" `isPrefixOf` (declName d)
-isProp _ = False
-
-{- | takes an HsDecl and returns the name of the declaration -}
-declName :: HsDecl -> String
-declName (HsFunBind (HsMatch _ (HsIdent name) _ _ _:_)) = name
-declName _                                              = undefined
-
 ** snippets
 -- trace a MixedAmount
 matrace :: MixedAmount -> MixedAmount
