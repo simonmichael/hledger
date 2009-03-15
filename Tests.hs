@@ -536,6 +536,12 @@ tests = [
      [mkdatespan "2008/01/01" "2008/01/01"]
   ,                  
 
+  "subAccounts" ~: do
+    l <- sampleledger
+    let a = ledgerAccount l "assets"
+    (map aname $ subAccounts l a) `is` ["assets:bank","assets:cash"]
+  ,                  
+
   "summariseTransactionsInDateSpan" ~: do
     let (b,e,entryno,depth,showempty,ts) `gives` summaryts = 
             summariseTransactionsInDateSpan (mkdatespan b e) entryno depth showempty ts `is` summaryts

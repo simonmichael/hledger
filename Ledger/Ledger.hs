@@ -111,7 +111,7 @@ accountsMatching pats l = filter (matchpats pats . aname) $ accounts l
 -- | List a ledger account's immediate subaccounts
 subAccounts :: Ledger -> Account -> [Account]
 subAccounts l Account{aname=a} = 
-    map (ledgerAccount l) $ filter (a `isAccountNamePrefixOf`) $ accountnames l
+    map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ accountnames l
 
 -- | List a ledger's transactions.
 ledgerTransactions :: Ledger -> [Transaction]
