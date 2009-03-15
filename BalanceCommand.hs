@@ -1,88 +1,84 @@
 {-| 
 
-A ledger-compatible @balance@ command. Here's how it should work:
+A ledger-compatible @balance@ command. 
 
-A sample account tree (as in the sample.ledger file):
+ledger's balance command is easy to use but hard to describe precisely.
+Here are some attempts.
+
+
+I. high level description with examples
+---------------------------------------
+
+We'll use sample.ledger, which has the following account tree:
 
 @
  assets
-  cash
-  checking
-  saving
+   bank
+     checking
+     saving
+   cash
  expenses
-  food
-  supplies
+   food
+   supplies
  income
-  gifts
-  salary
+   gifts
+   salary
  liabilities
-  debts
+   debts
 @
 
-The balance command shows top-level accounts by default:
+The balance command shows accounts with their aggregate balances.
+Subaccounts are displayed with more indentation. Each balance is the sum
+of any transactions in that account plus any balances from subaccounts:
 
 @
- \> ledger balance
- $-1  assets
-  $2  expenses
- $-2  income
-  $1  liabilities
+ $ hledger -f sample.ledger balance
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+                  $1  liabilities:debts
 @
 
-With -s (--subtotal), also show the subaccounts:
+Usually, the non-interesting accounts are elided or omitted. To be
+precise, an interesting account is one with: a non-zero balance, or a
+balance different from its single subaccount, or two or more interesting
+subaccounts. (More subtleties to be filled in here.)
+
+So, above, @checking@ is omitted because it has no interesting subaccounts
+and a zero balance. @bank@ is elided because it has only a single
+interesting subaccount (saving) and it would be showing the same balance
+($1). Ditto for @liabilities@.
+
+With one or more account pattern arguments, the balance command shows
+accounts whose name matches one of the patterns, plus their parents
+(elided) and subaccounts. So with the pattern o we get:
 
 @
- $-1  assets
- $-2    cash
-  $1    saving
-  $2  expenses
-  $1    food
-  $1    supplies
- $-2  income
- $-1    gifts
- $-1    salary
-  $1  liabilities:debts
-@
-
-- @checking@ is not shown because it has a zero balance and no interesting
-  subaccounts.  
-
-- @liabilities@ is displayed only as a prefix because it has the same balance
-  as its single subaccount.
-
-With an account pattern, show only the accounts with matching names:
-
-@
- \> ledger balance o
-  $1  expenses:food
- $-2  income
+ $ hledger -f sample.ledger balance o
+                  $1  expenses:food
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
 --------------------
- $-1  
+                 $-1
 @
 
-- The o matched @food@ and @income@, so they are shown.
+The o pattern matched @food@ and @income@, so they are shown. Unmatched
+parents of matched accounts are also shown (elided) for context (@expenses@).
 
-- Parents of matched accounts are also shown for context (@expenses@).
+Also, the balance report shows the total of all displayed accounts, when
+that is non-zero. Here, it is displayed because the accounts shown add up
+to $-1.
 
-- This time the grand total is also shown, because it is not zero.
 
-Again, -s adds the subaccounts:
-
-@
-\> ledger -s balance o
-  $1  expenses:food
- $-2  income
- $-1    gifts
- $-1    salary
---------------------
- $-1  
-@
-
-- @food@ has no subaccounts. @income@ has two, so they are shown. 
-
-- We do not add the subaccounts of parents included for context (@expenses@).
-
-Some notes for the implementation:
+II. Some notes for the implementation
+-------------------------------------
 
 - a simple balance report shows top-level accounts
 
@@ -99,6 +95,218 @@ Some notes for the implementation:
   matched by the display options.
 
 - the sum of the balances shown is displayed at the end, if it is non-zero
+
+
+III. John's description 2009/02
+-------------------------------
+
+johnw: \"Since you've been re-implementing the balance report in Haskell, I thought
+I'd share with you in pseudocode how I rewrote it for Ledger 3.0, since
+the old method never stopped with the bugs.  The new scheme uses a 5 stage
+algorithm, with each stage gathering information for the next:
+
+STEP 1
+
+Based on the user's query, walk through all the transactions in their
+journal, finding which ones to include in the account subtotals. For each
+transaction that matches, mark the account as VISITED.
+
+STEP 2
+
+Recursively walk the accounts tree, depth-first, computing aggregate
+totals and aggregate \"counts\" (number of transactions contributing to the
+aggregate total).
+
+STEP 3
+
+Walk the account tree again, breadth-first, and for every VISITED account,
+check whether it matches the user's \"display predicate\".  If so, mark the
+account as MATCHING.
+
+STEP 4
+
+Do an in-order traversal of the account tree.  Except for the top-most
+account (which serves strictly as a container for the other accounts):
+
+a. If the account was MATCHING, or two or more of its children are
+   MATCHING or had descendents who were MATCHING, display the account.
+
+b. Otherwise, if the account had *any* children or descendants who
+   were VISITED and *no* children or descendants who were MATCHING,
+   then apply the display predicate from STEP 3 to the account.  If
+   it matches, also print this account.  (This step allows -E to
+   report empty accounts which otherwise did match the original
+   query).
+
+STEP 5
+
+When printing an account, display a \"depth spacer\" followed by the \"partial name\".
+tal
+The partial name is found by taking the base account's name, then
+prepending to it every non-MATCHING parent until a MATCHING parent is
+found.
+
+The depth spacer is found by outputting two spaces for every MATCHING parent.
+
+This way, \"Assets:Bank:Checking\" might be reported as:
+
+ Assets
+   Bank
+     Checking
+
+or
+
+ Assets
+   Bank:Checking
+
+or
+
+ Assets:Bank:Checking
+
+Depending on whether the parents were or were not reported for their own reasons.
+\"
+
+\"I just had to add one more set of tree traversals, to correctly determine
+whether a final balance should be displayed
+
+without --flat, sort at each level in the hierarchy
+with --flat, sort across all accounts\"
+
+IV. A functional description
+-----------------------------
+
+1. filter the transactions, keeping only those included in the calculation.
+   Remember the subset of accounts involved. (VISITED)
+
+2. generate a full account & balance tree from all transactions
+
+3. Remember the subset of VISITED accounts which are matched for display.
+   (MATCHING)
+
+4. walk through the account tree:
+
+   a. If the account is in MATCHING, or two or more of its children are or
+      have descendants who are, display it.
+
+   b. Otherwise, if the account has any children or descendants in VISITED
+      but none in MATCHING, and it is matched for display, display it.
+      (allows -E to report empty accounts which otherwise did match the
+      original query).
+
+5. when printing an account, display a \"depth spacer\" followed by the
+   \"partial name\".  The partial name is found by taking the base account's
+   name, then prepending to it every non-MATCHING parent until a MATCHING
+   parent is found. The depth spacer is two spaces per MATCHING parent.
+
+6. I just had to add one more set of tree traversals, to correctly
+   determine whether a final balance should be displayed
+
+7. without --flat, sort at each level in the hierarchy
+   with --flat, sort across all accounts
+
+V. Another functional description with new terminology
+------------------------------------------------------
+
+- included transactions are those included in the calculation, specified
+  by -b, -e, -p, -C, -R, account patterns and description patterns.
+
+- included accounts are the accounts referenced by included transactions.
+
+- matched transactions are the included transactions which match the
+  display predicate, specified by -d.
+
+- matched accounts are the included accounts which match the display
+  predicate, specified by -d, --depth, -E, -s
+
+- an account name tree is the full hierarchy of account names implied by a
+  set of transactions
+
+- an account tree is an account name tree augmented with the aggregate
+  balances and transaction counts for each named account
+
+- the included account tree is the account tree for the included transactions
+
+- a matched account tree contains one or more matched accounts
+
+- to generate the balance report, walk through the included account tree
+  and display each account if
+
+  - it is matching
+
+  - or it has two more more matching subtrees
+
+  - or it has included offspring but no matching offspring
+
+- to display an account, display an indent then the \"partial name\".  The
+  partial name is the account's name, prefixed by each unmatched parent
+  until a matched parent is found. The indent is two spaces per matched
+  parent.
+
+
+VI. John's description 2009/03/11
+---------------------------------
+
+johnw: \"Well, I had to rewrite the balance reporting code yet again, 
+because it wouldn't work with --depth correctly.  Here's the new algorithm.
+
+STEP 1: Walk all postings, looking for those that match the user's query.
+       As a match is found, mark its account VISITED.
+
+STEP 2: Do a traversal of all accounts, sorting as need be, and collect
+       them all into an ordered list.
+
+STEP 3: Keeping that list on the side, do a *depth-first* traversal of
+       the account tree.
+
+       visited    = 0
+       to_display = 0
+
+       (visited, to_display) += <recurse for all immediate children>
+
+       if account is VISITED or (no --flat and visited > 0):
+           if account matches display predicate and
+              (--flat or to_display != 1):
+               mark account as TO_DISPLAY
+               to_display = 1
+           visited = 1
+
+       return (visited, to_display)
+
+STEP 4: top_displayed = 0
+
+       for every account in the ordered list:
+           if account has been marked TO_DISPLAY:
+               mark account as DISPLAYED
+               format the account and print
+
+           if --flat and account is DISPLAYED:
+               top_displayed += 1
+
+       if no --flat:
+           for every top-most account:
+               if account is DISPLAYED or any children or DISPLAYED:
+                   top_displayed += 1
+
+       if no --no-total and top_displayed > 1 and
+          top-most accounts sum to a non-zero balance:
+           output separator
+           output balance sum account as DISPLAYED
+               format the account and print
+
+           if --flat and account is DISPLAYED:
+               top_displayed += 1
+
+       if no --flat:
+           for every top-most account:
+               if account is DISPLAYED or any children or DISPLAYED:
+                   top_displayed += 1
+
+       if no --no-total and top_displayed > 1 and
+          top-most accounts sum to a non-zero balance:
+           output separator
+           output balance sum
+\"
+
 
 -}
 
