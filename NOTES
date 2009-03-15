@@ -10,7 +10,6 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** timelog report for today with no entries ignores an open session from yesterday
 *** not catching some unbalanced entries, two ways:
 **** 1
 1/1 test1

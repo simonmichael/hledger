@@ -5,6 +5,8 @@
 module Tests
 where
 import qualified Data.Map as Map
+import Data.Time.Format
+import System.Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Test.HUnit
 import Test.HUnit.Tools (assertRaises, runVerboseTests)
@@ -293,6 +295,20 @@ tests = [
     [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
     [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
     [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+
+  ,"entriesFromTimeLogEntries" ~: do
+     today <- getCurrentDay
+     let
+         clockin t a = TimeLogEntry 'i' t a
+         clockout t = TimeLogEntry 'o' t ""
+         yesterday = prevday today
+         mktime d s = LocalTime d $ fromMaybe midnight $ parseTime defaultTimeLocale "%H:%M:%S" s
+         noon = LocalTime today midday
+         ts `gives` ss = (map edescription $ entriesFromTimeLogEntries noon ts) `is` ss
+     [] `gives` []
+     [clockin (mktime today "00:00:00") ""] `gives` ["00:00-12:00"]
+     [clockin (mktime yesterday "23:00:00") ""] `gives` ["23:00-23:59","00:00-12:00"]
+     [clockin (mktime (addDays (-2) today) "23:00:00") ""] `gives` ["23:00-23:59","00:00-23:59","00:00-12:00"]
 
   ,"expandAccountNames" ~: do
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
