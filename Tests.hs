@@ -118,15 +118,6 @@ tests = [
     "balance report with no args" ~:
     ([], []) `gives`
     ["                 $-1  assets"
-    ,"                  $2  expenses"
-    ,"                 $-2  income"
-    ,"                  $1  liabilities"
-    ]
-   ,
-
-    "balance report with -s" ~:
-    ([SubTotal], []) `gives`
-    ["                 $-1  assets"
     ,"                  $1    bank:saving"
     ,"                 $-2    cash"
     ,"                  $2  expenses"
@@ -139,8 +130,8 @@ tests = [
     ]
    ,
 
-    "balance report --depth limits -s" ~:
-    ([SubTotal,Depth "1"], []) `gives`
+    "balance report level can also be limited with --depth" ~:
+    ([Depth "1"], []) `gives`
     ["                 $-1  assets"
     ,"                  $2  expenses"
     ,"                 $-2  income"
@@ -148,36 +139,21 @@ tests = [
     ]
    ,
     
-    "balance report --depth activates -s" ~:
-    ([Depth "2"], []) `gives`
-    ["                 $-1  assets"
-    ,"                  $1    bank"
-    ,"                 $-2    cash"
-    ,"                  $2  expenses"
-    ,"                  $1    food"
-    ,"                  $1    supplies"
-    ,"                 $-2  income"
-    ,"                 $-1    gifts"
-    ,"                 $-1    salary"
-    ,"                  $1  liabilities:debts"
-    ]
-   ,
-
     "balance report with account pattern o" ~:
-    ([], ["o"]) `gives`
-    ["                  $1  expenses:food"
-    ,"                 $-2  income"
-    ,"--------------------"
-    ,"                 $-1"
-    ]
-   ,
-
-    "balance report with account pattern o and -s" ~:
     ([SubTotal], ["o"]) `gives`
     ["                  $1  expenses:food"
     ,"                 $-2  income"
     ,"                 $-1    gifts"
     ,"                 $-1    salary"
+    ,"--------------------"
+    ,"                 $-1"
+    ]
+   ,
+
+    "balance report with account pattern o and --depth 1" ~:
+    ([Depth "1"], ["o"]) `gives`
+    ["                  $1  expenses:food"
+    ,"                 $-2  income"
     ,"--------------------"
     ,"                 $-1"
     ]
@@ -253,12 +229,6 @@ tests = [
     ,"                 $-2    cash"
     ,"--------------------"
     ,"                 $-1"
-    ]
-   ,
-
-    "balance report with -n omits the total" ~:
-    ([Collapse], ["cash"]) `gives`
-    ["                 $-2  assets:cash"
     ]
    ,
 
