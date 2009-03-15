@@ -79,6 +79,7 @@ options = [
  ,Option ['h'] ["help"] (NoArg  Help)                  "show this help"
  ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "verbose test output"
  ,Option ['V'] ["version"]      (NoArg  Version)       "show version"
+ ,Option []    ["debug"]        (NoArg  Debug)         "debug output"
  ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands without no output"
  ]
     where 
@@ -105,6 +106,7 @@ data Opt =
     Help |
     Verbose |
     Version
+    | Debug
     | DebugNoUI
     deriving (Show,Eq)
 
