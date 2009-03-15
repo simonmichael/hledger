@@ -60,13 +60,6 @@ subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 -- tree with boring accounts elided.  This converts a list of
 -- AccountName to a tree (later we will convert that to a tree of
 -- 'Account'.)
-accountNameTreeFrom_props =
-    [
-     accountNameTreeFrom ["a"]       == Node "top" [Node "a" []],
-     accountNameTreeFrom ["a","b"]   == Node "top" [Node "a" [], Node "b" []],
-     accountNameTreeFrom ["a","a:b"] == Node "top" [Node "a" [Node "a:b" []]],
-     accountNameTreeFrom ["a:b"]     == Node "top" [Node "a" [Node "a:b" []]]
-    ]
 accountNameTreeFrom :: [AccountName] -> Tree AccountName
 accountNameTreeFrom accts = 
     Node "top" (accountsFrom (topAccountNames accts))
@@ -74,7 +67,7 @@ accountNameTreeFrom accts =
           accountsFrom :: [AccountName] -> [Tree AccountName]
           accountsFrom [] = []
           accountsFrom as = [Node a (accountsFrom $ subs a) | a <- as]
-          subs = (subAccountNamesFrom accts)
+          subs = subAccountNamesFrom (expandAccountNames accts)
 
 -- | Elide an account name to fit in the specified width.
 -- From the ledger 2.6 news:

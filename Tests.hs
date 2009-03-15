@@ -95,6 +95,13 @@ tests = [
       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
   ,
 
+  "accountNameTreeFrom" ~: do
+    accountNameTreeFrom ["a"]       `is` Node "top" [Node "a" []]
+    accountNameTreeFrom ["a","b"]   `is` Node "top" [Node "a" [], Node "b" []]
+    accountNameTreeFrom ["a","a:b"] `is` Node "top" [Node "a" [Node "a:b" []]]
+    accountNameTreeFrom ["a:b:c"]   `is` Node "top" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
+  ,
+
   "amount arithmetic" ~: do
     let a1 = dollars 1.23
     let a2 = Amount (comm "$") (-1.23) Nothing
