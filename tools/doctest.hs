@@ -39,13 +39,13 @@ main = do
   f <- head `fmap` getArgs
   s <- readFile f
   let tests = doctests s
-  putStrLn $ printf "running %d doctests from %s" (length tests) f
+  putStrLn $ printf "Running %d doctests from %s" (length tests) f
   mapM_ runShellDocTest $ doctests s
 
 runShellDocTest :: String -> IO Bool
 runShellDocTest s = do
   let (cmd, expected) = splitDocTest s
-  putStr $ printf "testing: %s .. " cmd
+  putStr $ printf "Testing: %s .. " cmd
   (_, out, _, h) <- runInteractiveCommand cmd
   exit <- waitForProcess h
   output <- hGetContents out
@@ -56,7 +56,7 @@ runShellDocTest s = do
           putStrLn "ok"
           return True
         else do
-          putStr $ printf "FAILED\nexpected:\n%sgot:\n%s" expected output
+          putStr $ printf "FAILED\nExpected:\n%sGot:\n%s" expected output
           return False
     else do
       putStrLn $ printf "ERROR: %s" (show exit)

@@ -45,8 +45,11 @@ unittest:
 	./hledger.hs test
 
 # run doc tests
-doctest:
-	tools/doctest.hs Tests.hs
+doctest: tools/doctest
+	tools/doctest Tests.hs
+
+tools/doctest: tools/doctest.hs
+	ghc --make tools/doctest.hs
 
 # build profiling-enabled hledgerp and archive and show a cleaned-up profile
 # you may need to rebuild some libs: sudo cabal install --reinstall -p ...
