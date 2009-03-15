@@ -50,8 +50,8 @@ parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
 parse `parseis` expected = either printParseError (`is` expected) parse
 
 ------------------------------------------------------------------------------
--- Tests for any function or topic. Mostly ordered by test name.
-
+-- | Tests for any function or topic. Mostly ordered by test name.
+tests :: [Test]
 tests = [
 
   "account directive" ~: 
@@ -110,7 +110,7 @@ tests = [
 
   "balance report tests" ~:
    let (opts,args) `gives` es = do 
-         l <- sampleledgerwithopts [] args
+         l <- sampleledgerwithopts opts args
          showBalanceReport opts args l `is` unlines es
    in TestList
    [
@@ -325,6 +325,18 @@ tests = [
     [Period "monthly"] `gives` Monthly
     [WeeklyOpt, Period "yearly"] `gives` Yearly
   ,                  
+
+  "isAccountNamePrefixOf" ~: do
+    "assets" `isAccountNamePrefixOf` "assets:bank" `is` True
+    "assets" `isAccountNamePrefixOf` "assets:bank:checking" `is` True
+    "my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
+  ,
+
+  "isSubAccountNameOf" ~: do
+    "assets:bank" `isSubAccountNameOf` "assets" `is` True
+    "assets:bank:checking" `isSubAccountNameOf` "assets" `is` False
+    "assets:bank" `isSubAccountNameOf` "my assets" `is` False
+  ,
 
   "default year" ~: do
     rl <- rawledgerfromstring defaultyear_ledger_str
