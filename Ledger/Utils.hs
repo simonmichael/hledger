@@ -215,6 +215,10 @@ showforest = concatMap showtree
 strace :: Show a => a -> a
 strace a = trace (show a) a
 
+-- | labelled trace - like strace, with a newline and a label prepended
+ltrace :: Show a => String -> a -> a
+ltrace l a = trace ("\n" ++ l ++ ": " ++ show a) a
+
 -- testing
 
 assertequal e a = assertEqual "" e a
