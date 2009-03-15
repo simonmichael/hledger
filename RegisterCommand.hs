@@ -70,7 +70,7 @@ showRegisterReport opts args l
 -- 
 -- The showempty flag forces the display of a zero-transaction span
 -- and also zero-transaction accounts within the span.
-summariseTransactionsInDateSpan :: DateSpan -> Int -> Maybe Int -> Bool -> [Transaction] -> [Transaction]
+summariseTransactionsInDateSpan :: DateSpan -> Int -> Int -> Bool -> [Transaction] -> [Transaction]
 summariseTransactionsInDateSpan (DateSpan b e) entryno depth showempty ts
     | null ts && showempty = [txn]
     | null ts = []
@@ -86,14 +86,13 @@ summariseTransactionsInDateSpan (DateSpan b e) entryno depth showempty ts
       -- aggregate balances by account, like cacheLedger, then do depth-clipping
       (_,_,exclbalof,inclbalof) = groupTransactions ts
       clippedanames = clipAccountNames depth txnanames
-      isclipped a = accountNameLevel a >= fromMaybe 9999 depth
+      isclipped a = accountNameLevel a >= depth
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
       summaryts = [txn{account=a,amount=balancetoshowfor a} | a <- clippedanames]
 
-clipAccountNames :: Maybe Int -> [AccountName] -> [AccountName]
-clipAccountNames Nothing as = as
-clipAccountNames (Just d) as = nub $ map (clip d) as 
+clipAccountNames :: Int -> [AccountName] -> [AccountName]
+clipAccountNames d as = nub $ map (clip d) as 
     where clip d = accountNameFromComponents . take d . accountNameComponents
 
 -- | Does the given transaction fall within the given date span ?

@@ -192,9 +192,9 @@ intervalFromOpts opts
       -- doesn't affect the interval, but parsePeriodExpr needs something
       refdate = parsedate "0001/01/01"
 
--- | Get the value of the (last) depth option, if any.
-depthFromOpts :: [Opt] -> Maybe Int
-depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
+-- | Get the value of the (last) depth option, if any, otherwise a large number.
+depthFromOpts :: [Opt] -> Int
+depthFromOpts opts = fromMaybe 9999 $ listtomaybeint $ optValuesForConstructor Depth opts
     where
       listtomaybeint [] = Nothing
       listtomaybeint vs = Just $ read $ last vs
