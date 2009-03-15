@@ -1,4 +1,80 @@
--- see also
+{- |
+hledger's test suite. Most tests are HUnit-based, and defined in the
+@tests@ list below. These tests are built in to hledger and can be run at
+any time with @hledger test@.
+
+In addition, we have tests in doctest format, which can be run with @make
+doctest@ in the hledger source tree. These have some advantages:
+
+- easier to read and write than hunit, for functional/shell tests
+
+- easier to read multi-line output from failing tests
+
+- can also appear in, and test, docs
+
+and disadvantages:
+
+- not included in hledger's built-in tests
+
+- not platform independent
+
+All doctests are included below. Some of these may also appear in other
+modules as examples within the api docs.
+
+Run a few with c++ ledger first:
+
+@
+$ ledger -f sample.ledger balance
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+                  $1  liabilities:debts
+@
+
+@
+$ ledger -f sample.ledger balance o
+                  $1  expenses:food
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+--------------------
+                 $-1
+@
+
+Then hledger:
+
+@
+$ hledger -f sample.ledger balance
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+                  $1  liabilities:debts
+@
+
+@
+$ hledger -f sample.ledger balance o
+                  $1  expenses:food
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+--------------------
+                 $-1
+@
+
+-}
+-- other test tools:
 -- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
 -- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/HTF
 
