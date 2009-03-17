@@ -68,7 +68,7 @@ Executable hledger
     Other-Modules:ANSICommand
     cpp-options: -DANSI
   if flag(happs)
-    Build-Depends:HAppS-Server>=0.9.3.1
+    Build-Depends:happstack-server>=0.2, happstack-state>=0.2
     Other-Modules:HappsCommand
     cpp-options: -DHAPPS
 
