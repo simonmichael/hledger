@@ -33,10 +33,9 @@ instance Show Ledger where
 cacheLedger :: [String] -> RawLedger -> Ledger
 cacheLedger apats l = Ledger{rawledgertext="",rawledger=l,accountnametree=ant,accountmap=acctmap}
     where
+      (ant,txnsof,_,inclbalof) = groupTransactions $ filtertxns apats $ rawLedgerTransactions l
       acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
-      mkacct a = Account a (txnsof a) (inclbalof a)
-      ts = filtertxns apats $ rawLedgerTransactions l
-      (ant,txnsof,_,inclbalof) = groupTransactions ts
+          where mkacct a = Account a (txnsof a) (inclbalof a)
 
 -- | Given a list of transactions, return an account name tree and three
 -- query functions that fetch transactions, balance, and
