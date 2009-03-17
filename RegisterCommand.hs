@@ -33,7 +33,10 @@ showRegisterReport opts args l
     | otherwise = showtxns summaryts nulltxn startbal
     where
       interval = intervalFromOpts opts
-      ts = filter (not . isZeroMixedAmount . amount) $ filter matchapats $ ledgerTransactions l
+      ts = filterempties $ filter matchapats $ ledgerTransactions l
+      filterempties
+          | Empty `elem` opts = id
+          | otherwise = filter (not . isZeroMixedAmount . amount)
       (precedingts, ts') = break (matchdisplayopt dopt) ts
       (displayedts, _) = span (matchdisplayopt dopt) ts'
       startbal = sumTransactions precedingts
