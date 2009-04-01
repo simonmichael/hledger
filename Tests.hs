@@ -319,17 +319,24 @@ tests = [
 
   ,"entriesFromTimeLogEntries" ~: do
      today <- getCurrentDay
-     let
-         clockin t a = TimeLogEntry 'i' t a
+     now <- getCurrentTime
+     tz <- getCurrentTimeZone
+     let clockin t a = TimeLogEntry 'i' t a
          clockout t = TimeLogEntry 'o' t ""
          yesterday = prevday today
          mktime d s = LocalTime d $ fromMaybe midnight $ parseTime defaultTimeLocale "%H:%M:%S" s
-         noon = LocalTime today midday
-         ts `gives` ss = (map edescription $ entriesFromTimeLogEntries noon ts) `is` ss
-     [] `gives` []
-     [clockin (mktime today "00:00:00") ""] `gives` ["00:00-12:00"]
-     [clockin (mktime yesterday "23:00:00") ""] `gives` ["23:00-23:59","00:00-12:00"]
-     [clockin (mktime (addDays (-2) today) "23:00:00") ""] `gives` ["23:00-23:59","00:00-23:59","00:00-12:00"]
+         noontoday = LocalTime today midday
+         assertEntriesGiveStrings name es ss = assertEqual name (map edescription $ entriesFromTimeLogEntries noontoday es) ss
+
+     assertEntriesGiveStrings "started yesterday, split session at midnight"
+                                  [clockin (mktime yesterday "23:00:00") ""]
+                                  ["23:00-23:59","00:00-12:00"]
+     assertEntriesGiveStrings "split multi-day sessions at each midnight"
+                                  [clockin (mktime (addDays (-2) today) "23:00:00") ""]
+                                  ["23:00-23:59","00:00-23:59","00:00-12:00"]
+     assertEntriesGiveStrings "auto-clock-out if needed" 
+                                  [clockin (mktime today "00:00:00") ""] 
+                                  ["00:00-12:00"]
 
   ,"expandAccountNames" ~: do
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
