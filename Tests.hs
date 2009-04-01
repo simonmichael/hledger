@@ -337,6 +337,11 @@ tests = [
      assertEntriesGiveStrings "auto-clock-out if needed" 
                                   [clockin (mktime today "00:00:00") ""] 
                                   ["00:00-12:00"]
+     let t = localTimeOfDay $ utcToLocalTime tz $ addUTCTime 100 now
+         s = formatTime defaultTimeLocale "%H:%M" t
+     assertEntriesGiveStrings "use the clockin time for auto-clockout if it's in the future"
+                                  [clockin (LocalTime today t) ""]
+                                  [printf "%s-%s" s s]
 
   ,"expandAccountNames" ~: do
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
