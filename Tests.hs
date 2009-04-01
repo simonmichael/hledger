@@ -43,9 +43,9 @@ tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
 tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
 tfilter _ t = t
 
--- | Assert something `is` some expected value.
+-- | Simple way to assert something is some expected value, with no label.
 is :: (Eq a, Show a) => a -> a -> Assertion
-is = flip assertequal
+a `is` e = assertEqual "" a e
 
 -- | Assert a parse result is some expected value, or print a parse error.
 parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
@@ -447,7 +447,7 @@ tests = [
      ,"                                assets:bank:checking            $-1            0"
      ]
 
-   ,"register report with account pattern" ~:
+  ,"register report with account pattern" ~:
    do
     l <- sampleledger
     showRegisterReport [] ["cash"] l `is` unlines
@@ -455,14 +455,14 @@ tests = [
      ]
 
   ,"register report with account pattern, case insensitive" ~:
-  do 
+   do 
     l <- sampleledger
     showRegisterReport [] ["cAsH"] l `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
   ,"register report with display expression" ~:
-  do 
+   do 
     l <- sampleledger
     let displayexpr `gives` dates = 
             registerdates (showRegisterReport [Display displayexpr] [] l) `is` dates
@@ -473,7 +473,7 @@ tests = [
     "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
 
   ,"register report with period expression" ~:
-  do 
+   do 
     l <- sampleledger    
     let periodexpr `gives` dates = do
           lopts <- sampleledgerwithopts [Period periodexpr] []
