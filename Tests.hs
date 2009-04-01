@@ -319,29 +319,31 @@ tests = [
 
   ,"entriesFromTimeLogEntries" ~: do
      today <- getCurrentDay
-     now <- getCurrentTime
+     now' <- getCurrentTime
      tz <- getCurrentTimeZone
-     let clockin t a = TimeLogEntry 'i' t a
-         clockout t = TimeLogEntry 'o' t ""
+     let now = utcToLocalTime tz now'
+         nowstr = showtime now
          yesterday = prevday today
+         clockin t a = TimeLogEntry 'i' t a
+         clockout t = TimeLogEntry 'o' t ""
          mktime d s = LocalTime d $ fromMaybe midnight $ parseTime defaultTimeLocale "%H:%M:%S" s
-         noontoday = LocalTime today midday
-         assertEntriesGiveStrings name es ss = assertEqual name (map edescription $ entriesFromTimeLogEntries noontoday es) ss
+         showtime t = formatTime defaultTimeLocale "%H:%M" t
+         assertEntriesGiveStrings name es ss = assertEqual name ss (map edescription $ entriesFromTimeLogEntries now es)
 
      assertEntriesGiveStrings "started yesterday, split session at midnight"
                                   [clockin (mktime yesterday "23:00:00") ""]
-                                  ["23:00-23:59","00:00-12:00"]
+                                  ["23:00-23:59","00:00-"++nowstr]
      assertEntriesGiveStrings "split multi-day sessions at each midnight"
                                   [clockin (mktime (addDays (-2) today) "23:00:00") ""]
-                                  ["23:00-23:59","00:00-23:59","00:00-12:00"]
+                                  ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
      assertEntriesGiveStrings "auto-clock-out if needed" 
                                   [clockin (mktime today "00:00:00") ""] 
-                                  ["00:00-12:00"]
-     let t = localTimeOfDay $ utcToLocalTime tz $ addUTCTime 100 now
-         s = formatTime defaultTimeLocale "%H:%M" t
+                                  ["00:00-"++nowstr]
+     let future = utcToLocalTime tz $ addUTCTime 100 now'
+         futurestr = showtime future
      assertEntriesGiveStrings "use the clockin time for auto-clockout if it's in the future"
-                                  [clockin (LocalTime today t) ""]
-                                  [printf "%s-%s" s s]
+                                  [clockin future ""]
+                                  [printf "%s-%s" futurestr futurestr]
 
   ,"expandAccountNames" ~: do
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
