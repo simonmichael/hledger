@@ -49,7 +49,13 @@ pcommentwidth = no limit -- 22
 @
 -}
 showEntry :: Entry -> String
-showEntry e = 
+showEntry = showEntry' True
+
+showEntryUnelided :: Entry -> String
+showEntryUnelided = showEntry' False
+
+showEntry' :: Bool -> Entry -> String
+showEntry' elide e = 
     unlines $ [{-precedingcomment ++ -}description] ++ (showtxns $ etransactions e) ++ [""]
     where
       precedingcomment = epreceding_comment_lines e
@@ -59,8 +65,9 @@ showEntry e =
       code = if (length $ ecode e) > 0 then (printf " (%s)" $ ecode e) else ""
       desc = " " ++ edescription e
       comment = if (length $ ecomment e) > 0 then "  ; "++(ecomment e) else ""
-      showtxns (t1:t2:[]) = [showtxn t1, showtxnnoamt t2]
-      showtxns ts = map showtxn ts
+      showtxns ts
+          | elide && length ts == 2 = [showtxn (ts !! 0), showtxnnoamt (ts !! 1)]
+          | otherwise = map showtxn ts
       showtxn t = showacct t ++ "  " ++ (showamount $ tamount t) ++ (showcomment $ tcomment t)
       showtxnnoamt t = showacct t ++ "              " ++ (showcomment $ tcomment t)
       showacct t = "    " ++ (showaccountname $ taccount t)
@@ -77,19 +84,19 @@ isEntryBalanced (Entry {etransactions=ts}) =
 -- amount first. We can auto-fill if there is just one non-virtual
 -- transaction without an amount. The auto-filled balance will be
 -- converted to cost basis if possible. If the entry can not be balanced,
--- raise an error.
-balanceEntry :: Entry -> Entry
-balanceEntry e@Entry{etransactions=ts} = (e{etransactions=ts'})
+-- return an error message instead.
+balanceEntry :: Entry -> Either String Entry
+balanceEntry e@Entry{etransactions=ts}
+    | length missingamounts > 1 = Left $ showerr "could not balance this entry, too many missing amounts"
+    | not $ isEntryBalanced e' = Left $ showerr "could not balance this entry, amounts do not balance"
+    | otherwise = Right e'
     where
-      check e
-          | isEntryBalanced e = e
-          | otherwise = error $ "could not balance this entry:\n" ++ show e
       (withamounts, missingamounts) = partition hasAmount $ filter isReal ts
-      ts' = case (length missingamounts) of
-              0 -> ts
-              1 -> map balance ts
-              otherwise -> error $ "could not balance this entry, too many missing amounts:\n" ++ show e
-      otherstotal = sum $ map tamount withamounts
-      balance t
-          | isReal t && not (hasAmount t) = t{tamount = costOfMixedAmount (-otherstotal)}
-          | otherwise = t
+      e' = e{etransactions=ts'}
+      ts' | length missingamounts == 1 = map balance ts
+          | otherwise = ts
+          where 
+            balance t | isReal t && not (hasAmount t) = t{tamount = costOfMixedAmount (-otherstotal)}
+                      | otherwise = t
+                      where otherstotal = sum $ map tamount withamounts
+      showerr s = printf "%s:\n%s" s (showEntryUnelided e)

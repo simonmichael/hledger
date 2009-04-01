@@ -259,7 +259,27 @@ tests = [
    ]
 
   ,"balanceEntry" ~: do
-    (tamount $ last $ etransactions $ balanceEntry entry1) `is` Mixed [dollars (-47.18)]
+     let fromeither (Left err) = error err
+         fromeither (Right e) = e
+     (tamount $ last $ etransactions $ fromeither $ balanceEntry entry1) `is` Mixed [dollars (-47.18)]
+     assertBool "detect unbalanced entry, sign error"
+                    (isLeft $ balanceEntry
+                           (Entry (parsedate "2007/01/28") False "" "test" ""
+                            [RawTransaction False "a" (Mixed [dollars 1]) "" RegularTransaction, 
+                             RawTransaction False "b" (Mixed [dollars 1]) "" RegularTransaction
+                            ] ""))
+     assertBool "detect unbalanced entry, multiple missing amounts"
+                    (isLeft $ balanceEntry
+                           (Entry (parsedate "2007/01/28") False "" "test" ""
+                            [RawTransaction False "a" missingamt "" RegularTransaction, 
+                             RawTransaction False "b" missingamt "" RegularTransaction
+                            ] ""))
+     assertBool "one missing amount should be ok"
+                    (isRight $ balanceEntry
+                           (Entry (parsedate "2007/01/28") False "" "test" ""
+                            [RawTransaction False "a" (Mixed [dollars 1]) "" RegularTransaction, 
+                             RawTransaction False "b" missingamt "" RegularTransaction
+                            ] ""))
 
   ,"balancereportacctnames" ~: 
    let gives (opt,pats) e = do 

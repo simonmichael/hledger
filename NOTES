@@ -10,24 +10,8 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** not catching some unbalanced entries, two ways:
-**** 1
-1/1 test1
-    a             $-100
-    b        -10h @ $10
-; $ hledger -B reg -- test1
-; 2009/01/01 test1                a                          $-100.00     $-100.00
-**** 2
-1/1 test2
-    a             $-100
-    b             $-100
-; $ hledger -B reg -- test2
-; 2009/01/01 test2                a                          $-100.00     $-100.00
-;                                 b                          $-100.00     $-200.00
-
 *** --depth works with reg -W but not with reg
 *** register report should sort by date
-*** too many dependencies, hard to install esp. without cabal install
 ** features
 *** more ledger features
 **** rename entry -> transaction, transaction -> posting

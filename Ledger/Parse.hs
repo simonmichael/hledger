@@ -301,6 +301,8 @@ ledgerDefaultYear = do
   setYear y'
   return $ return id
 
+-- | Try to parse a ledger entry. If we successfully parse an entry, ensure it is balanced,
+-- and if we cannot, raise an error.
 ledgerEntry :: GenParser Char LedgerFileCtx Entry
 ledgerEntry = do
   date <- ledgerdate <?> "entry"
@@ -313,7 +315,10 @@ ledgerEntry = do
   comment <- ledgercomment
   restofline
   transactions <- ledgertransactions
-  return $ balanceEntry $ Entry date status code description comment transactions ""
+  let e = Entry date status code description comment transactions ""
+  case balanceEntry e of
+    Right e' -> return e'
+    Left err -> error err
 
 ledgerdate :: GenParser Char LedgerFileCtx Day
 ledgerdate = try ledgerfulldate <|> ledgerpartialdate

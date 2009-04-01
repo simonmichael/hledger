@@ -239,3 +239,13 @@ spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
 restofline :: GenParser Char st String
 restofline = anyChar `manyTill` newline
 
+
+
+
+isLeft :: Either a b -> Bool
+isLeft (Left _) = True
+isLeft _        = False
+
+isRight :: Either a b -> Bool
+isRight = not . isLeft
+
