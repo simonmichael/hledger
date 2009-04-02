@@ -28,6 +28,9 @@ Changes:
   * --version gives more detailed version numbers including patchlevel for dev builds
   * new make targets include: ghci, haddocktest, doctest, unittest, view-api-docs
   * a doctest-style framework for functional/shell tests has been added
+
+..
+
   * performance has decreased slightly::
 
                                    || hledger-0.3 | hledger-0.4 | ledger-0.3
