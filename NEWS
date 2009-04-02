@@ -1,6 +1,60 @@
 NEWS
 ----
 
+2009/04/xx hledger 0.4 released
+...............................
+
+Changes:
+
+  * avoid bulky/non-portable dependencies by default, curses ui now requires a build flag (-f vty)
+  * on MS windows, provide a simple ansi-based ui in place of vty (-f ansi)
+  * new "web" command starts a webserver and shows filterable reports in a browser (-f happs)
+  * drop the --options-anywhere flag, that is now the default
+  * patterns now use not: and desc: prefixes instead of ^ and ^^
+  * patterns are now case-insensitive, like ledger
+  * !include directives are now relative to the including file (Tim Docker)
+  * "Y2009" default year directives are now supported, allowing m/d dates in ledger
+  * individual transactions now have a cleared status
+  * unbalanced entries are now reported properly
+  * balance report now passes all ledger compatibility tests
+  * balance report now shows subtotals by default, like ledger 3
+  * show the balance report's zero total when -E is used
+  * --no-total hides balance report's final total
+  * --depth affects print and register reports (aggregating with a reporting interval, filtering otherwise)
+  * register command sorts transactions by date
+  * -E works in register report
+  * provide more convenient timelog querying when invoked as "hours"
+  * multi-day timelog sessions are split at midnight
+  * unterminated timelog sessions are now counted. Accurate time reports at last!
+  * the test command gives better --verbose output
+  * --version gives more detailed version numbers including patchlevel for dev builds
+  * haddock & hoogle docs now include optional build components
+  * new make targets include: ghci, haddocktest, doctest, unittest, view-api-docs
+  * a doctest-style framework for functional/shell tests has been added
+  * performance has decreased slightly::
+
+                                   || hledger-0.3 | hledger-0.4 | ledger-0.3
+     ==============================++=============+=============+===========
+     -f sample.ledger balance      ||        0.02 |        0.01 |       0.07
+     -f sample1000.ledger balance  ||        1.02 |        1.39 |       0.53
+     -f sample10000.ledger balance ||       12.72 |       14.97 |       4.63
+
+Contributors:
+
+  * Simon Michael
+  * Tim Docker
+  * happstack and testpack developers
+
+Stats:
+
+  * Known errors: 0
+  * Commits: 132
+  * Committers: 2
+  * Tests: 56
+  * Non-test code lines: 2600
+  * Days since release: 75
+
+
 2009/01/17 hledger 0.3 released
 ...............................
 
