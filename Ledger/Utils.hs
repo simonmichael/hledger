@@ -21,7 +21,6 @@ module Debug.Trace,
 module Ledger.Utils,
 module Text.Printf,
 module Text.Regex,
-module Text.RegexPR,
 module Test.HUnit,
 )
 where
@@ -39,7 +38,6 @@ import Debug.Trace
 import Test.HUnit
 import Text.Printf
 import Text.Regex
-import Text.RegexPR
 import Text.ParserCombinators.Parsec
 
 

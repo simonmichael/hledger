@@ -6,6 +6,7 @@ import System.Console.GetOpt
 import System.Directory
 import System.Environment
 import Text.Printf
+import Text.RegexPR (gsubRegexPRBy)
 import Data.Char (toLower)
 import Ledger.Parse
 import Ledger.Utils
