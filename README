@@ -3,10 +3,13 @@ hledger - a ledger-compatible text-based accounting tool
 
 Welcome to hledger! 
 
-hledger is a haskell clone of John Wiegley's "ledger" text-based
-accounting tool (http://newartisans.com/software/ledger.html).  
-It generates ledger-compatible register & balance reports from a plain
-text ledger file, and demonstrates a functional implementation of ledger.
+hledger is a partial haskell clone of John Wiegley's text-based accounting
+tool, "ledger" (http://newartisans.com/software/ledger.html).  
+
+hledger generates ledger-compatible register & balance reports from a
+plain text journal, and demonstrates a functional implementation of
+ledger.  
+
 For more information, see hledger's home page: http://joyful.com/hledger
 
 Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
@@ -15,35 +18,32 @@ Released under GPL version 3 or later.
 
 Installation
 ------------
-hledger requires GHC. It is known to build with 6.8 and 6.10.
-If you have cabal-install, do::
+Building hledger requires GHC (http://haskell.org/ghc); it is known to
+build with GHC 6.8 and up. hledger should work on any platform which GHC
+supports.
+
+Also, installing hledger easily requires the "cabal" command-line tool,
+version 0.6.0 and up (http://www.haskell.org/cabal/download.html). (You
+can also manually download and install each dependency mentioned in
+hledger.cabal from hackage.org, but installing cabal is much quicker.)
+
+Here's how to download and install the latest hledger release::
 
  cabal update
  cabal install hledger
 
-Otherwise, unpack the latest tarball from
-http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger and do::
+Or, to build with all optional features enabled (downloads additional
+dependencies)::
 
- runhaskell Setup.hs configure
- runhaskell Setup.hs build
- sudo runhaskell Setup.hs install 
+ cabal install --flags="happs vty" hledger
 
-This will complain about any missing libraries, which you can download and
-install manually from hackage.haskell.org. The Build-Depends: in
-hledger.cabal has the full package list. 
+The available flags are::
 
-You can configure with optional flags to build additional hledger
-features. These are::
+  happs - enable the built-in webserver
+  vty   - enable the curses text ui
+  ansi  - enable the ansi text ui (use instead of vty on MS windows)
 
-  -f vty   - Build vty-based text ui (requires vty, not available on windows)
-  -f ansi  - Build ansi-based text ui (requires ansi-terminal)
-  -f happs - Build happs-based web ui (requires HApps-Server)
-
-Eg::
-
- cabal install -f "vty ansi happs" hledger (or runhaskell Setup.hs configure -f "vty ansi happs")
-
-To get the latest development code do::
+And for developers, here's how to get the latest development code::
 
  darcs get http://joyful.com/repos/hledger
 
@@ -52,8 +52,7 @@ Usage
 -----
 hledger looks for your ledger file at ~/.ledger by default. To use a
 different file, specify it with the LEDGER environment variable or -f
-option (which may be - for standard input). Here are some commands to
-try::
+option (which may be - for standard input). Here are some commands to try::
 
  hledger --help
  hledger -f sample.ledger balance
