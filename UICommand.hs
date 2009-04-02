@@ -80,7 +80,7 @@ go a@AppState{av=av,aw=aw,ah=ah,abuf=buf,amsg=amsg,aopts=opts,aargs=args,aledger
     EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter BalanceScreen a
     EvKey (KASCII 'r') []       -> go $ resetTrailAndEnter RegisterScreen a
     EvKey (KASCII 'p') []       -> go $ resetTrailAndEnter PrintScreen a
-    EvKey (KASCII 'l') []       -> go $ resetTrailAndEnter LedgerScreen a
+    -- EvKey (KASCII 'l') []       -> go $ resetTrailAndEnter LedgerScreen a
     EvKey KRight []             -> go $ drilldown a
     EvKey KEnter []             -> go $ drilldown a
     EvKey KLeft  []             -> go $ backout a
@@ -234,8 +234,9 @@ drilldown :: AppState -> AppState
 drilldown a
     | screen a == BalanceScreen  = enter RegisterScreen a{aargs=[currentAccountName a]}
     | screen a == RegisterScreen = scrollToEntry e $ enter PrintScreen a
-    | screen a == PrintScreen   = enter LedgerScreen a
-    | screen a == LedgerScreen   = a
+    | screen a == PrintScreen   = a
+    -- | screen a == PrintScreen   = enter LedgerScreen a
+    -- | screen a == LedgerScreen   = a
     where e = currentEntry a
 
 -- | Get the account name currently highlighted by the cursor on the
