@@ -10,7 +10,6 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** --depth works with reg -W but not with reg
 *** register report should sort by date
 ** features
 *** more ledger features

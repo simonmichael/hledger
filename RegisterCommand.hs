@@ -33,7 +33,8 @@ showRegisterReport opts args l
     | otherwise = showtxns summaryts nulltxn startbal
     where
       interval = intervalFromOpts opts
-      ts = filterempties $ filter matchapats $ ledgerTransactions l
+      ts = filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
+      filterdepth = filter (\t -> (accountNameLevel $ account t) <= depth)
       filterempties
           | Empty `elem` opts = id
           | otherwise = filter (not . isZeroMixedAmount . amount)

@@ -476,6 +476,19 @@ tests = [
 
   ]
 
+  , "register report with depth arg" ~:
+   do 
+    l <- sampleledger
+    showRegisterReport [Depth "2"] [] l `is` unlines
+     ["2008/01/01 income               income:salary                   $-1          $-1"
+     ,"2008/06/01 gift                 income:gifts                    $-1          $-2"
+     ,"2008/06/03 eat & shop           expenses:food                    $1          $-1"
+     ,"                                expenses:supplies                $1            0"
+     ,"                                assets:cash                     $-2          $-2"
+     ,"2008/12/31 pay off              liabilities:debts                $1          $-1"
+     ]
+
+
   ,"show dollars" ~: show (dollars 1) ~?= "$1.00"
 
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
