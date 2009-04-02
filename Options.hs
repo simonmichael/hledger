@@ -21,7 +21,7 @@ timelogenvvar = "TIMELOG"
 
 usagehdr = printf (
   "Usage: one of\n" ++
-  "  %s [OPTIONS] COMMAND [ACCTPATTERNS] [-- DESCPATTERNS]\n" ++
+  "  %s [OPTIONS] COMMAND [PATTERNS]\n" ++
   "  %s [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
   "\n" ++
   "Commands (can be abbreviated):\n" ++
@@ -38,6 +38,10 @@ usagehdr = printf (
   "  happs    - run a web server providing a minimal web ui\n" ++
 #endif
   "\n" ++
+  "PATTERNS are regular expressions which filter by account name.\n" ++
+  "Or, prefix with desc: to filter by entry description.\n" ++
+  "Or, prefix with not: to negate a pattern. (When using both, not: comes last.)\n" ++
+  "\n" ++
   "Options:"
   ) progname timeprogname
   
@@ -45,10 +49,6 @@ usagehdr = printf (
 usageftr = printf (
   "\n" ++
   "All dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
-  "\n" ++
-  "Account and description patterns are regular expressions which filter by\n" ++
-  "account name and entry description. Prefix a pattern with ^ to negate it,\n" ++
-  "and separate account and description patterns with ^^.\n" ++
   "\n" ++
   "Also: %s [-v] test [TESTPATTERNS] to run self-tests.\n" ++
   "\n"
@@ -231,14 +231,16 @@ tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
 --                                return (homeDirectory pw ++ path)
 tildeExpand xs           =  return xs
 
--- | Gather any ledger-style account/description pattern arguments into
--- two lists.  These are 0 or more account patterns optionally followed by
--- a separator and then 0 or more description patterns. Each pattern may
--- have a negation prefix. The separator and negation prefix are, for now,
--- ^^ and ^ .
+-- | Gather any pattern arguments into a list of account patterns and a
+-- list of description patterns. For now we interpret pattern arguments as
+-- follows: those prefixed with "desc:" are description patterns, all
+-- others are account patterns. Also patterns prefixed with "not:" are
+-- negated. not: should come after desc: if both are used.
+-- This is different from ledger 2 and 3.
 parseAccountDescriptionArgs :: [Opt] -> [String] -> ([String],[String])
 parseAccountDescriptionArgs opts args = (as, ds')
-    where (as, ds) = break (==patseparator) args
-          ds' = dropWhile (==patseparator) ds
-          patseparator = replicate 2 negchar
-          negchar = '^'
+    where
+      descprefix = "desc:"
+      (ds, as) = partition (descprefix `isPrefixOf`) args
+      ds' = map (drop (length descprefix)) ds
+
