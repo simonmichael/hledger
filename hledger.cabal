@@ -11,7 +11,7 @@ License:        GPL
 Stability:      beta
 Author:         Simon Michael <simon@joyful.com>
 Maintainer:     Simon Michael <simon@joyful.com>
-Homepage:       http://joyful.com/hledger
+Homepage:       http://hledger.org
 Tested-With:    GHC
 Build-Type:     Simple
 License-File:   LICENSE

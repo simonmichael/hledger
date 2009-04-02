@@ -10,7 +10,7 @@ hledger generates ledger-compatible register & balance reports from a
 plain text journal, and demonstrates a functional implementation of
 ledger.  
 
-For more information, see hledger's home page: http://joyful.com/hledger
+For more information, see http://hledger.org .
 
 Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
