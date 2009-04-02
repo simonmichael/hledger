@@ -196,7 +196,7 @@ tests = [
     ]
 
    ,"balance report with negative account pattern" ~:
-    ([], ["^assets"]) `gives`
+    ([], ["not:assets"]) `gives`
     ["                  $2  expenses"
     ,"                 $-2  income"
     ,"                  $1  liabilities"
@@ -205,10 +205,10 @@ tests = [
     ]
 
    ,"balance report negative account pattern always matches full name" ~: 
-    ([], ["^e"]) `gives` []
+    ([], ["not:e"]) `gives` []
 
    ,"balance report negative patterns affect totals" ~: 
-    ([], ["expenses","^food"]) `gives`
+    ([], ["expenses","not:food"]) `gives`
     ["                  $1  expenses"
     ,"--------------------"
     ,"                  $1"
@@ -381,7 +381,7 @@ tests = [
     "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
     "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
 
-  ,"print command tests" ~: TestList
+  ,"print report tests" ~: TestList
   [
 
    "print expenses" ~:
@@ -395,6 +395,27 @@ tests = [
      ,"    assets:cash                                  $-2"
      ,""
      ]
+
+  , "print report with depth arg" ~:
+   do 
+    l <- sampleledger
+    showEntries [Depth "2"] [] l `is` unlines
+      ["2008/01/01 income"
+      ,"    income:salary                                $-1"
+      ,""
+      ,"2008/06/01 gift"
+      ,"    income:gifts                                 $-1"
+      ,""
+      ,"2008/06/03 * eat & shop"
+      ,"    expenses:food                                 $1"
+      ,"    expenses:supplies                             $1"
+      ,"    assets:cash                                  $-2"
+      ,""
+      ,"2008/12/31 * pay off"
+      ,"    liabilities:debts                             $1"
+      ,""
+      ]
+
   ]
 
   ,"punctuatethousands 1" ~: punctuatethousands "" `is` ""
@@ -487,7 +508,6 @@ tests = [
      ,"                                assets:cash                     $-2          $-2"
      ,"2008/12/31 pay off              liabilities:debts                $1          $-1"
      ]
-
 
   ,"show dollars" ~: show (dollars 1) ~?= "$1.00"
 

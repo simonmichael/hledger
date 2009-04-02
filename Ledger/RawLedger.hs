@@ -106,6 +106,14 @@ filterRawLedgerTransactionsByRealness True (RawLedger ms ps es tls hs f) =
     RawLedger ms ps (map filtertxns es) tls hs f
     where filtertxns e@Entry{etransactions=ts} = e{etransactions=filter isReal ts}
 
+-- | Strip out any transactions to accounts deeper than the specified depth
+-- (and any entries which have no transactions as a result).
+filterRawLedgerTransactionsByDepth :: Int -> RawLedger -> RawLedger
+filterRawLedgerTransactionsByDepth depth (RawLedger ms ps es tls hs f) =
+    RawLedger ms ps (filter (not . null . etransactions) $ map filtertxns es) tls hs f
+    where filtertxns e@Entry{etransactions=ts} = 
+              e{etransactions=filter ((<= depth) . accountNameLevel . taccount) ts}
+
 -- | Keep only entries which affect accounts matched by the account patterns.
 filterRawLedgerEntriesByAccount :: [String] -> RawLedger -> RawLedger
 filterRawLedgerEntriesByAccount apats (RawLedger ms ps es tls hs f) =
