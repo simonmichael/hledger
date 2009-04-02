@@ -9,27 +9,26 @@ Changes:
 
   * avoid bulky/non-portable dependencies by default, curses ui now requires a build flag (-f vty)
   * on MS windows, provide a simple ansi-based ui in place of vty (-f ansi)
-  * new "web" command starts a webserver and shows filterable reports in a browser (-f happs)
+  * new "web" command starts a webserver and shows reports in a browser (-f happs)
   * drop the --options-anywhere flag, that is now the default
   * patterns now use not: and desc: prefixes instead of ^ and ^^
   * patterns are now case-insensitive, like ledger
   * !include directives are now relative to the including file (Tim Docker)
   * "Y2009" default year directives are now supported, allowing m/d dates in ledger
   * individual transactions now have a cleared status
-  * unbalanced entries are now reported properly
+  * unbalanced entries now cause a proper warning
   * balance report now passes all ledger compatibility tests
   * balance report now shows subtotals by default, like ledger 3
-  * show the balance report's zero total when -E is used
-  * --no-total hides balance report's final total
+  * balance report shows the final zero total when -E is used
+  * balance report hides the final total when --no-total is used
   * --depth affects print and register reports (aggregating with a reporting interval, filtering otherwise)
-  * register command sorts transactions by date
-  * -E works in register report
+  * register report sorts transactions by date
+  * register report shows zero-amount transactions when -E is used
   * provide more convenient timelog querying when invoked as "hours"
   * multi-day timelog sessions are split at midnight
   * unterminated timelog sessions are now counted. Accurate time reports at last!
   * the test command gives better --verbose output
   * --version gives more detailed version numbers including patchlevel for dev builds
-  * haddock & hoogle docs now include optional build components
   * new make targets include: ghci, haddocktest, doctest, unittest, view-api-docs
   * a doctest-style framework for functional/shell tests has been added
   * performance has decreased slightly::
@@ -45,7 +44,7 @@ Contributors:
 
   * Simon Michael
   * Tim Docker
-  * happstack and testpack developers
+  * HAppS, happstack and testpack developers
 
 Stats:
 ......

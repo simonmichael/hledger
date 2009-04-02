@@ -1,11 +1,12 @@
 
 Welcome to hledger! 
 
-hledger is a limited haskell clone of John Wiegley's text-based accounting
+hledger is a partial haskell clone of John Wiegley's text-based accounting
 tool, ledger (http://wiki.github.com/jwiegley/ledger). hledger generates
 ledger-compatible register & balance reports from a plain text journal,
-provides simple interactive querying, and demonstrates a functional
-implementation of ledger.  For more information, see http://hledger.org .
+allows precise batch-mode or interactive querying, and demonstrates a pure
+functional implementation of ledger.  For more information, see
+http://hledger.org .
 
 Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
@@ -13,13 +14,14 @@ Released under GPL version 3 or later.
 
 Installation
 ------------
+
 Building hledger requires GHC (http://haskell.org/ghc); it is known to
 build with GHC 6.8 and up. hledger should work on any platform which GHC
-supports.
+supports.  
 
 Also, installing hledger easily requires the "cabal" command-line tool,
 version 0.6.0 and up (http://www.haskell.org/cabal/download.html). (You
-can also manually download and install each dependency mentioned in
+can manually download and install each dependency mentioned in
 hledger.cabal from hackage.org, but installing cabal is much quicker.)
 
 Here's how to download and install the latest hledger release::
@@ -38,44 +40,53 @@ The available flags are::
   vty   - enable the curses text ui
   ansi  - enable the ansi text ui (use instead of vty on MS windows)
 
-And for developers, here's how to get the latest development code::
+For developers, here's how to get the latest code::
 
  darcs get http://joyful.com/repos/hledger
 
 
 Usage
 -----
+
 hledger looks for your ledger file at ~/.ledger by default. To use a
 different file, specify it with the LEDGER environment variable or -f
-option (which may be - for standard input). Here are some commands to try::
+option (which may be - for standard input). Basic usage is::
+
+ hledger [OPTIONS] COMMAND [PATTERNS]
+
+where COMMAND is one of balance, print, register, ui, web, test; and
+PATTERNS are zero or more regular expressions used to narrow the results.
+Here are some commands to try::
 
  hledger --help
- hledger -f sample.ledger balance
  export LEDGER=sample.ledger
- hledger balance --depth 1
+ hledger balance
+ hledger bal --depth 1
  hledger register
  hledger reg income
  hledger reg desc:shop
- hledger ui
+ hledger ui  # if you installed with -f vty or ansi
+ hledger web # if you installed with -f happs
 
 
 Time reporting
 --------------
-If hledger is invoked by the "hours" alias it looks for your timelog
-(~/.timelog, or the file specified by $TIMELOG or -f), and parses
-arguments slightly differently for convenient timelog querying::
+hledger will also read timeclock.el-format timelog entries.  As a
+convenience, if you invoke the hledger executable via a link or copy named
+"hours", it looks for your timelog file (~/.timelog, or the file specified
+by $TIMELOG or -f), and parses arguments slightly differently::
 
  hours [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]
 
-where PERIOD and COMMAND are "today" and "balance" by default.
-The timelog file is in timeclock.el's format, where an entry looks like::
+where PERIOD is a ledger-style period expression, defaulting to "today",
+and COMMAND is one of the commands above. Timelog entries look like this::
 
- i 2009/03/31 22:21:45 work:hledger
+ i 2009/03/31 22:21:45 some:project
  o 2009/04/01 02:00:34
 
-Time categories are treated as accounts. Here are some time queries to try::
+The clock-in project is treated as an account. Here are some time queries to try::
 
- export TIMELOG=/my/timelog            # if not ~/.timelog
+ export TIMELOG=/my/timelog            # if it's not ~/.timelog
  hours                                 # today's balances
  hours today                           # the same
  hours 'this week'                     # so far this week
