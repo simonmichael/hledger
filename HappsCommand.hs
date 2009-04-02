@@ -70,7 +70,9 @@ web opts args l =
        ]
       printreport apats    = showEntries opts (apats ++ args) l
       registerreport apats = showRegisterReport opts (apats ++ args) l
-      balancereport apats  = showBalanceReport opts (apats ++ args) l
+      balancereport []  = showBalanceReport opts args l
+      balancereport apats  = showBalanceReport opts (apats ++ args) l'
+          where l' = cacheLedger apats (rawledger l) -- re-filter by account pattern each time
 
 templatise :: String -> ServerPartT IO Response
 templatise s = do
