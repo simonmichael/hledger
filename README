@@ -4,13 +4,10 @@ hledger - a ledger-compatible text-based accounting tool
 Welcome to hledger! 
 
 hledger is a partial haskell clone of John Wiegley's text-based accounting
-tool, ledger (http://wiki.github.com/jwiegley/ledger).  
-
-hledger generates ledger-compatible register & balance reports from a
-plain text journal, and demonstrates a functional implementation of
-ledger.  
-
-For more information, see http://hledger.org .
+tool, ledger (http://wiki.github.com/jwiegley/ledger). hledger generates
+ledger-compatible register & balance reports from a plain text journal,
+and demonstrates a functional implementation of ledger.  For more
+information, see http://hledger.org .
 
 Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
@@ -39,7 +36,7 @@ dependencies)::
 
 The available flags are::
 
-  happs - enable the built-in webserver
+  happs - enable the webserver ui
   vty   - enable the curses text ui
   ansi  - enable the ansi text ui (use instead of vty on MS windows)
 
@@ -88,58 +85,61 @@ Examples::
 Features
 --------
 
-This version of hledger mimics a subset of ledger 2.6.1, and adds some
-features of its own. We currently support: the balance, print, and
-register commands, regular ledger entries, multiple commodities, virtual
-transactions, account and description patterns, the LEDGER environment
-variable, and these options::
-
-   Basic options:
-   -h, --help             display summarized help text
-   -v, --version          show version information
-   -f, --file FILE        read ledger data from FILE
- 
-   Report filtering:
-   -b, --begin DATE       set report begin date
-   -e, --end DATE         set report end date
-   -p, --period EXPR      report using the given period
-   -C, --cleared          consider only cleared transactions
-   -R, --real             consider only real (non-virtual) transactions
- 
-   Output customization:
-   -n, --collapse         balance report: no grand total
-   -d, --display EXPR     display only transactions matching EXPR (limited support)
-   -E, --empty            balance report: show accounts with zero balance
-   -s, --subtotal         balance report: show sub-accounts
- 
-   Commodity reporting:
-   -B, --basis, --cost    report cost basis of commodities
+This version of hledger mimics a subset of ledger 3.x, and adds some
+features of its own. We currently support regular ledger entries, timelog
+entries, multiple commodities, virtual transactions, account and
+description patterns, the LEDGER environment variable, and these commands
+and options::
 
    Commands:
    balance  [REGEXP]...   show balance totals for matching accounts
    register [REGEXP]...   show register of matching transactions
    print    [REGEXP]...   print all matching entries
 
-We handle (almost) the full period expression syntax, and simple display
-expressions consisting of a date predicate.  Also the following
-hledger-specific features are supported::
+   Basic options:
+   -h, --help             show summarized help
+   -f, --file FILE        read ledger data from FILE
+ 
+   Report filtering:
+   -b, --begin DATE       report on entries on or after this date
+   -e, --end DATE         report on entries prior to this date
+   -p, --period EXPR      report on entries during the specified period
+                          and/or with the specified reporting interval
+   -C, --cleared          report only on cleared entries
+   -R, --real             report only on real (non-virtual) transactions
+ 
+   Output customization:
+   -B, --basis, --cost    report cost of commodities
+   -d, --display EXPR     display only transactions matching EXPR (limited support)
+   -E, --empty            show empty/zero things which are normally elided
+   --no-total             balance report: hide the final total
+   -W, --weekly           register report: show weekly summary
+   -M, --monthly          register report: show monthly summary
+   -Y, --yearly           register report: show yearly summary
 
-   ui                     a simple curses-based text ui (unix platforms only)
-   ansi                   an even more rudimentary ansi-based text ui
-   web                    a simple web interface on port 5000
-   --depth=N              balance report: maximum account depth to show
+   Misc:
+   -V, --version          show version information
+   -v, --verbose          show verbose test output
+   --debug                show some debug output 
+   --debug-no-ui          run ui commands with no output
+
+We handle (almost) the full period expression syntax, and very limited
+display expressions consisting of a simple date predicate. Also the
+following new commands are supported::
+
+   ui                     a simple curses-based text ui (on windows, ansi-based)
+   web                    a simple web-based ui
+   test                   run self-tests
 
 ledger features not supported
 .............................
 
-ledger features not yet supported include: modifier and periodic entries,
-parsing gnucash files, and the following options::
+ledger features not currently supported include: modifier and periodic
+entries, and options such as these::
 
    Basic options:
    -o, --output FILE      write output to FILE
    -i, --init-file FILE   initialize ledger using FILE (default: ~/.ledgerrc)
-       --cache FILE       use FILE as a binary cache when --file is not used
-       --no-cache         don't use a cache, even if it would be appropriate
    -a, --account NAME     use NAME for the default account (useful with QIF)
  
    Report filtering:
@@ -157,13 +157,10 @@ parsing gnucash files, and the following options::
    -T, --total EXPR       use EXPR to calculate the displayed total
  
    Output customization:
-   -n, --collapse         register: collapse entries
+   -n, --collapse         Only show totals in the top-most accounts.
    -s, --subtotal         other: show subtotals
    -P, --by-payee         show summarized totals by payee
    -x, --comm-as-payee    set commodity name as the payee, for reporting
-   -W, --weekly           show weekly sub-totals
-   -M, --monthly          show monthly sub-totals
-   -Y, --yearly           show yearly sub-totals
        --dow              show a days-of-the-week report
    -S, --sort EXPR        sort report according to the value expression EXPR
    -w, --wide             for the default register report, use 132 columns
@@ -200,13 +197,14 @@ parsing gnucash files, and the following options::
 Other differences
 .................
 
-* hledger accepts options anywhere on the command line. Instead of - and --
-  for pattern negation and separation, use ^ and ^^.
-* hledger always keeps differently-priced amounts of the same commodity separate
-* hledger calls ledger's "note" field "description"
+* hledger calls the "note" field "description"
+* hledger recognises description and negative patterns by  "desc:" and "not:" prefixes,
+  unlike ledger 3's free-form parser
+* hledger keeps differently-priced amounts of the same commodity separate
 * hledger doesn't require a space before command-line option values, eg: -f-
-* hledger provides "--cost" as a synonym for "--basis"
 * hledger's weekly reporting intervals always start on mondays
 * hledger shows start and end dates of the intervals requested, not just the span containing data
 * hledger period expressions don't support "biweekly", "bimonthly", or "every N days/weeks/..." 
 * hledger always shows timelog balances in hours
+* hledger splits multi-day timelog sessions at midnight
+* hledger register report always sorts transactions by date

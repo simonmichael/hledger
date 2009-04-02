@@ -24,35 +24,34 @@ usagehdr = printf (
   "  %s [OPTIONS] COMMAND [PATTERNS]\n" ++
   "  %s [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
   "\n" ++
-  "Commands (can be abbreviated):\n" ++
+  "COMMAND is one of (may be abbreviated):\n" ++
   "  balance  - show account balances\n" ++
   "  print    - show formatted ledger entries\n" ++
   "  register - show register transactions\n" ++
 #ifdef VTY
-  "  ui       - run a simple vty-based text ui\n" ++
+  "  ui       - run a simple curses-based text ui\n" ++
 #endif
 #ifdef ANSI
   "  ansi     - run a simple ansi-based text ui\n" ++
 #endif
 #ifdef HAPPS
-  "  web      - run a simple web interface on port 5000\n" ++
+  "  web      - run a simple web ui\n" ++
 #endif
+  "  test     - run self-tests\n" ++
   "\n" ++
   "PATTERNS are regular expressions which filter by account name.\n" ++
   "Or, prefix with desc: to filter by entry description.\n" ++
   "Or, prefix with not: to negate a pattern. (When using both, not: comes last.)\n" ++
+  "\n" ++
+  "Dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
   "\n" ++
   "Options:"
   ) progname timeprogname
   
 
 usageftr = printf (
-  "\n" ++
-  "All dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
-  "\n" ++
-  "Also: %s [-v] test [TESTPATTERNS] to run self-tests.\n" ++
   "\n"
-  ) progname
+  )
 
 usage = usageInfo usagehdr options ++ usageftr
 
@@ -65,26 +64,27 @@ options = [
  ,Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on entries during the specified period\n" ++
                                                        "and/or with the specified reporting interval\n")
  ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries"
- ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost basis of commodities"
- ,Option []    ["depth"]        (ReqArg Depth "N")     "balance report: maximum account depth to show"
- ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("display only transactions matching simple EXPR\n" ++
+ ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
+ ,Option []    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
+ ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching simple EXPR\n" ++
                                                         "(where EXPR is 'dOP[DATE]', OP is <, <=, =, >=, >)")
- ,Option ['E'] ["empty"]        (NoArg  Empty)         "balance report: show accounts with zero balance"
+ ,Option ['E'] ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
- ,Option ['n'] ["collapse"]     (NoArg  Collapse)      "balance report: no grand total"
- ,Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
+-- ,Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
  ,Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
  ,Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
  ,Option ['Y'] ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
  ,Option ['h'] ["help"] (NoArg  Help)                  "show this help"
- ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "verbose test output"
- ,Option ['V'] ["version"]      (NoArg  Version)       "show version"
- ,Option []    ["debug"]        (NoArg  Debug)         "debug output"
- ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands without no output"
+ ,Option ['V'] ["version"]      (NoArg  Version)       "show version information"
+ ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "show verbose test output"
+ ,Option []    ["debug"]        (NoArg  Debug)         "show some debug output"
+ ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
  ]
     where 
-      filehelp = printf "ledger file; - means use standard input. Defaults\nto the %s environment variable or %s"
-                 ledgerenvvar ledgerpath
+      filehelp = printf (intercalate "\n"
+                         ["ledger file; default is the %s env. variable's"
+                         ,"value, or %s. - means use standard input."
+                         ]) ledgerenvvar ledgerpath
 
 -- | An option value from a command-line flag.
 data Opt = 
@@ -98,7 +98,6 @@ data Opt =
     Display {value::String} | 
     Empty | 
     Real | 
-    Collapse |
     SubTotal |
     WeeklyOpt |
     MonthlyOpt |

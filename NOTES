@@ -10,7 +10,6 @@ clever tricks like the plague." --Edsger Dijkstra
 
 * to do
 ** errors
-*** register report should sort by date
 ** features
 *** more ledger features
 **** rename entry -> transaction, transaction -> posting
@@ -44,7 +43,7 @@ clever tricks like the plague." --Edsger Dijkstra
 **** speed regression tests
 ** tests
 *** test all esoteric ledger file features
-*** wanted: a test for reading a ledger from stdin
+*** test reading from stdin
 *** easy ledger compatibility testing
 **** --compare to compare (xml?) output with ledger with same args
 ** docs
@@ -253,6 +252,7 @@ competitors/fellow niche inhabitants
 *** readme
 **** keep in sync (automate)
 ***** README file
+****** options list in Features should match Options.hs, generate from hledger --help ?
 ***** hledger.hs module description
 ***** hledger.cabal description field (exclude home page link)
 ***** home page description (http://joyful.com/Hledger/editform)
@@ -273,7 +273,7 @@ competitors/fellow niche inhabitants
 ****** we test continuously and thoroughly (code, doc & speed tests on each checkin)
 ****** less is more
 *** user manual
-*** differences not noted in README
+*** other differences not noted in README
 **** ledger shows description comments as part of description
 **** ledger seems to get amounts' x-position wrong more than hledger
 **** ledger can't parse full smart dates in display expressions

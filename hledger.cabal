@@ -20,15 +20,15 @@ Extra-Tmp-Files:
 Cabal-Version:  >= 1.2
 
 Flag happs
-  description: Build web-based ui (requires happstack)
+  description: enable the webserver ui
   default:     False
 
 Flag vty
-  description: Build vty-based text ui (requires vty)
+  description: enable the curses test ui
   default:     False
 
 Flag ansi
-  description: Build ansi-based text ui (requires ansi-terminal, use instead of vty on windows)
+  description: enable the ansi text ui (use instead of vty on MS windows)
   default:     False
 
 Library
