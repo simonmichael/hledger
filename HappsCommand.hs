@@ -83,7 +83,7 @@ maintemplate r = printf (unlines
   ,"<form action=%s>search:&nbsp;<input name=a value=%s></form>"
   ,"</div>"
   ,"<div align=center style=width:100%%>"
-  ," <a href=print>ledger</a>"
+  ," <a href=print>print</a>"
   ," | <a href=register>register</a>"
   ," | <a href=balance>balance</a>"
   ,"</div>"
