@@ -129,7 +129,8 @@ showBalanceReport opts args l = acctsstr ++ totalstr
             interestingaccts = filter (isInteresting opts l) acctnames
             acctnames = sort $ tail $ flatten $ treemap aname accttree
             accttree = ledgerAccountTree (depthFromOpts opts) l
-      totalstr | not (Empty `elem` opts) && isZeroMixedAmount total = ""
+      totalstr | NoTotal `elem` opts = ""
+               | not (Empty `elem` opts) && isZeroMixedAmount total = ""
                | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmount total
           where
             total = sum $ map abalance $ topAccounts l

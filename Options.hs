@@ -70,6 +70,7 @@ options = [
                                                         "(where EXPR is 'dOP[DATE]', OP is <, <=, =, >=, >)")
  ,Option ['E'] ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
+ ,Option []    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
 -- ,Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
  ,Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
  ,Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
@@ -98,6 +99,7 @@ data Opt =
     Display {value::String} | 
     Empty | 
     Real | 
+    NoTotal |
     SubTotal |
     WeeklyOpt |
     MonthlyOpt |
