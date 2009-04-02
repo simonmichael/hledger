@@ -18,63 +18,23 @@ License-File:   LICENSE
 Extra-Source-Files: README sample.ledger
 Extra-Tmp-Files: 
 Cabal-Version:  >= 1.2
-Flag vty
-  description: Build vty-based text ui (requires vty, not available on windows)
-  default:     False
-Flag ansi
-  description: Build ansi-based text ui (requires ansi-terminal)
-  default:     False
+
 Flag happs
-  description: Build happs-based web ui (requires HApps-Server)
+  description: Build web-based ui (requires happstack)
   default:     False
 
-Executable hledger
-  Main-Is:        hledger.hs
+Flag vty
+  description: Build vty-based text ui (requires vty)
+  default:     False
 
-  Build-Depends:  base, containers, haskell98, directory, parsec,
-                  regex-compat, regexpr>=0.5.1, old-locale, time,
-                  HUnit, mtl, bytestring, filepath, process, testpack
-
-  Other-Modules:  BalanceCommand
-                  Options
-                  PrintCommand
-                  RegisterCommand
-                  Setup
-                  Tests
-                  Utils
-                  Ledger
-                  Ledger.Account
-                  Ledger.AccountName
-                  Ledger.Amount
-                  Ledger.Commodity
-                  Ledger.Dates
-                  Ledger.Entry
-                  Ledger.RawLedger
-                  Ledger.Ledger
-                  Ledger.RawTransaction
-                  Ledger.Parse
-                  Ledger.TimeLog
-                  Ledger.Transaction
-                  Ledger.Types
-                  Ledger.Utils
-  -- the cabal build does not yet report patches since last release
-  cpp-options:    -DPATCHES=0
-  if flag(vty)
-    Build-Depends:vty>=3.1.8.2
-    Other-Modules:UICommand
-    cpp-options: -DVTY
-  if flag(ansi)
-    Build-Depends:ansi-terminal
-    Other-Modules:ANSICommand
-    cpp-options: -DANSI
-  if flag(happs)
-    Build-Depends:happstack-server>=0.2, happstack-state>=0.2
-    Other-Modules:HappsCommand
-    cpp-options: -DHAPPS
+Flag ansi
+  description: Build ansi-based text ui (requires ansi-terminal, use instead of vty on windows)
+  default:     False
 
 Library
   Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,
                   old-locale, time, HUnit, filepath
+
   Exposed-modules:Ledger
                   Ledger.Account
                   Ledger.AccountName
@@ -90,3 +50,57 @@ Library
                   Ledger.Transaction
                   Ledger.Types
                   Ledger.Utils
+
+Executable hledger
+  Main-Is:        hledger.hs
+
+  Build-Depends:  base, containers, haskell98, directory, parsec,
+                  regex-compat, regexpr>=0.5.1, old-locale, time,
+                  HUnit, mtl, bytestring, filepath, process, testpack
+
+  Other-Modules:  
+                  BalanceCommand
+                  Options
+                  PrintCommand
+                  RegisterCommand
+                  Setup
+                  Tests
+                  Utils
+                  Ledger
+                  Ledger.Account
+                  Ledger.AccountName
+                  Ledger.Amount
+                  Ledger.Commodity
+                  Ledger.Dates
+                  Ledger.Entry
+                  Ledger.Ledger
+                  Ledger.Parse
+                  Ledger.RawLedger
+                  Ledger.RawTransaction
+                  Ledger.TimeLog
+                  Ledger.Transaction
+                  Ledger.Types
+                  Ledger.Utils
+
+  -- how to set patchlevel in cabal builds ?
+  cpp-options:    -DPATCHES=0
+
+  if flag(vty)
+    Build-Depends:vty >= 3.1.8.2 && < 3.2
+    Other-Modules:UICommand
+    cpp-options: -DVTY
+
+  if flag(ansi)
+    Build-Depends:ansi-terminal >= 0.5 && < 0.6
+    Other-Modules:ANSICommand
+    cpp-options: -DANSI
+
+  if flag(happs)
+    Build-Depends:happstack >= 0.2 && < 0.3
+                  ,happstack-data >= 0.2 && < 0.3
+                  ,happstack-server >= 0.2 && < 0.3
+                  ,happstack-state >= 0.2 && < 0.3
+                  ,utf8-string >= 0.3 && < 0.4
+    Other-Modules:HappsCommand
+    cpp-options: -DHAPPS
+
