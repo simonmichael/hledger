@@ -54,10 +54,10 @@ option (which may be - for standard input). Here are some commands to try::
  hledger --help
  hledger -f sample.ledger balance
  export LEDGER=sample.ledger
- hledger -s balance
+ hledger balance --depth 1
  hledger register
- hledger reg cash
- hledger reg -- shop
+ hledger reg income
+ hledger reg desc:shop
  hledger ui
 
 

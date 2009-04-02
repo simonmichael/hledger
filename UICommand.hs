@@ -17,7 +17,7 @@ import RegisterCommand
 import PrintCommand
 
 
-helpmsg = "Welcome to hledger vty ui. (b)alances, (r)egister, (p)rint entries, (l)edger, (right) to drill down, (left) to back up, or (q)uit"
+helpmsg = "Welcome to hledger vty ui. (b)alances, (r)egister, (p)rint entries, raw (l)edger, (right) to drill down, (left) to back up, or (q)uit"
 
 instance Show Vty where show v = "a Vty"
 

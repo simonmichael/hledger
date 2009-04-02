@@ -52,7 +52,7 @@ web opts args l =
        putStrLn $ printf "starting web server on port %d" tcpport
        tid <- forkIO $ simpleHTTP nullConf{port=tcpport} handlers
        putStrLn "starting web browser"
-       openBrowserOn $ printf "http://localhost:%s/print" (show tcpport)
+       openBrowserOn $ printf "http://localhost:%s/balance" (show tcpport)
        waitForTermination
        putStrLn "shutting down web server..."
        killThread tid
@@ -83,9 +83,11 @@ maintemplate r = printf (unlines
   ,"<form action=%s>search:&nbsp;<input name=a value=%s></form>"
   ,"</div>"
   ,"<div align=center style=width:100%%>"
+  ," <a href=balance>balance</a>"
+  ,"|"
+  ," <a href=register>register</a>"
+  ,"|"
   ," <a href=print>print</a>"
-  ," | <a href=register>register</a>"
-  ," | <a href=balance>balance</a>"
   ,"</div>"
   ,"<pre>%s</pre>"
   ])
