@@ -128,12 +128,12 @@ push:
 # - The release tag is the non-elided release version.
 
 # run pre-release checks: cabal is happy, the code builds, tests pass..
-check: setversion
+check: setversion test
 	cabal clean
 	cabal check
 	cabal configure
 	cabal build
-	dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 1' # XXX
+	dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0'
 
 # Build a cabal release, tag the repo and maybe upload to hackage.
 # Don't forget to update VERSION if needed. Examples:
