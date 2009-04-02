@@ -3,11 +3,11 @@ hledger - a ledger-compatible text-based accounting tool
 
 Welcome to hledger! 
 
-hledger is a partial haskell clone of John Wiegley's text-based accounting
+hledger is a limited haskell clone of John Wiegley's text-based accounting
 tool, ledger (http://wiki.github.com/jwiegley/ledger). hledger generates
 ledger-compatible register & balance reports from a plain text journal,
-and demonstrates a functional implementation of ledger.  For more
-information, see http://hledger.org .
+provides simple interactive querying, and demonstrates a functional
+implementation of ledger.  For more information, see http://hledger.org .
 
 Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
@@ -63,24 +63,27 @@ option (which may be - for standard input). Here are some commands to try::
 
 Time reporting
 --------------
-hledger can parse a timelog file in timeclock.el's format, treating
-time categories as accounts. If hledger is invoked by the "hours"
-alias it looks for your timelog (~/.timelog, or the file specified by
-$TIMELOG or -f), and parses arguments slightly differently for
-convenient querying::
+If hledger is invoked by the "hours" alias it looks for your timelog
+(~/.timelog, or the file specified by $TIMELOG or -f), and parses
+arguments slightly differently for convenient timelog querying::
 
  hours [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]
 
-PERIOD and COMMAND default to "today" and "balance --subtotal" respectively.
-Examples::
+where PERIOD and COMMAND are "today" and "balance" by default.
+The timelog file is in timeclock.el's format, where an entry looks like::
 
+ i 2009/03/31 22:21:45 work:hledger
+ o 2009/04/01 02:00:34
+
+Time categories are treated as accounts. Here are some time queries to try::
+
+ export TIMELOG=/my/timelog            # if not ~/.timelog
  hours                                 # today's balances
  hours today                           # the same
  hours 'this week'                     # so far this week
- hours week                            # the same
- hours lastmonth                       # last month, the space is optional
- hours 'from 1/15'                     # from jan 15
- hours 'monthly in 2008' reg --depth 1 # monthly register, top-level only
+ hours lastmonth                       # the space is optional
+ hours 'from 1/15' register            # sessions since last january 15
+ hours 'monthly in 2009' reg --depth 1 # monthly time summary, top level only
 
 Features
 --------

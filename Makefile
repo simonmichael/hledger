@@ -9,7 +9,7 @@ PATCHES:=`expr \`darcs changes --count --from-tag=\\\\\.\` - 1`
 BUILD=ghc --make hledger.hs -o hledger -O
 FLAGS=-DPATCHES=$(PATCHES)
 # optional extras described in README, turn em on if you've got the libs
-OPTFLAGS=-DVTY -DANSI -DHAPPS
+OPTFLAGS=-DVTY -DHAPPS # -DANSI
 BUILDFLAGS=$(FLAGS) $(OPTFLAGS)
 build: setversion
 	@$(BUILD) $(BUILDFLAGS)
@@ -48,9 +48,9 @@ profile:
 
 # run performance benchmarks and save results in profs
 # executables to test, prepend ./ to these if not in $PATH
-BENCHEXES=hledger ledger
+BENCHEXES=hledger-0.3 hledger-0.4 ledger
 bench: buildbench sampleledgers
-	./bench $(BENCHEXES) | tee profs/`date +%Y%m%d%H%M%S`.bench
+	./bench $(BENCHEXES) --verbose | tee profs/`date +%Y%m%d%H%M%S`.bench
 
 # build the benchmarking tool
 buildbench:

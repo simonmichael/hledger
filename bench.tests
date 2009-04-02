@@ -1,12 +1,12 @@
 # speed tests for tools/bench.hs and "make bench"
 
 # the small sample ledger
--f sample.ledger -s balance
+-f sample.ledger balance
 
 # sample.ledger's entries replicated n times
--f sample1000.ledger -s balance
-#-f sample10000.ledger -s balance
-#-f sample100000.ledger -s balance
+-f sample1000.ledger balance
+-f sample10000.ledger balance
+#-f sample100000.ledger balance
 
 # the user's ledger, if any
-#-s balance
+#balance
