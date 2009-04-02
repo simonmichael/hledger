@@ -33,7 +33,8 @@ showRegisterReport opts args l
     | otherwise = showtxns summaryts nulltxn startbal
     where
       interval = intervalFromOpts opts
-      ts = filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
+      ts = sort $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
+           where sort = sortBy (\a b -> compare (date a) (date b))
       filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ account t) <= depth)
                   | otherwise = id
       filterempties

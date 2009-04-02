@@ -447,6 +447,19 @@ tests = [
      ,"                                assets:bank:checking            $-1            0"
      ]
 
+  ,"register report sorts by date" ~:
+   do 
+    l <- ledgerfromstringwithopts [] [] sampletime $ unlines
+        ["2008/02/02 a"
+        ,"  b  1"
+        ,"  c"
+        ,""
+        ,"2008/01/01 d"
+        ,"  e  1"
+        ,"  f"
+        ]
+    registerdates (showRegisterReport [] [] l) `is` ["2008/01/01","2008/02/02"]
+
   ,"register report with account pattern" ~:
    do
     l <- sampleledger
