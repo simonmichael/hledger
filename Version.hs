@@ -6,10 +6,13 @@ import Options (progname)
 
 -- updated by build process from VERSION
 version       = "0.3.99"
--- PATCHES defined by build process from repo state
-buildversion  = version ++ "." ++ "\
-PATCHES\
-"
+#ifdef PATCHES
+-- a "make" development build defines PATCHES from the repo state
+patchlevel = "." ++ show PATCHES -- must be numeric !
+#else
+patchlevel = ""
+#endif
+buildversion  = version ++ patchlevel
 
 versionstr    = prettify $ splitAtElement '.' buildversion
                 where
