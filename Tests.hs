@@ -328,7 +328,7 @@ tests = [
              ,""
              ]
       let l = cacheLedger [] $ 
-              filterRawLedger (DateSpan Nothing Nothing) [] False False $ 
+              filterRawLedger (DateSpan Nothing Nothing) [] Nothing False $ 
               canonicaliseAmounts True rl -- enable cost basis adjustment            
       showBalanceReport [] [] l `is` 
        unlines
@@ -534,6 +534,29 @@ tests = [
      ,"                                expenses:supplies                $1           $2"
      ,"                                assets:cash                     $-2            0"
      ,"2008/12/31 pay off              liabilities:debts                $1           $1"
+     ,"                                assets:bank:checking            $-1            0"
+     ]
+
+  ,"register report with cleared arg" ~:
+   do 
+    l <- ledgerfromstringwithopts [Cleared] [] sampletime sample_ledger_str
+    showRegisterReport [Cleared] [] l `is` unlines
+     ["2008/06/03 eat & shop           expenses:food                    $1           $1"
+     ,"                                expenses:supplies                $1           $2"
+     ,"                                assets:cash                     $-2            0"
+     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
+     ,"                                assets:bank:checking            $-1            0"
+     ]
+
+  ,"register report with uncleared arg" ~:
+   do 
+    l <- ledgerfromstringwithopts [UnCleared] [] sampletime sample_ledger_str
+    showRegisterReport [UnCleared] [] l `is` unlines
+     ["2008/01/01 income               assets:bank:checking             $1           $1"
+     ,"                                income:salary                   $-1            0"
+     ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
+     ,"                                income:gifts                    $-1            0"
+     ,"2008/06/02 save                 assets:bank:saving               $1           $1"
      ,"                                assets:bank:checking            $-1            0"
      ]
 

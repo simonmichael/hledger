@@ -69,7 +69,7 @@ rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
 -- | Remove ledger transactions we are not interested in.
 -- Keep only those which fall between the begin and end dates, and match
 -- the description pattern, and are cleared or real if those options are active.
-filterRawLedger :: DateSpan -> [String] -> Bool -> Bool -> RawLedger -> RawLedger
+filterRawLedger :: DateSpan -> [String] -> Maybe Bool -> Bool -> RawLedger -> RawLedger
 filterRawLedger span pats clearedonly realonly = 
     filterRawLedgerPostingsByRealness realonly .
     filterRawLedgerTransactionsByClearedStatus clearedonly .
@@ -91,12 +91,12 @@ filterRawLedgerTransactionsByDate (DateSpan begin end) (RawLedger ms ps ts tls h
     where 
       matchdate t = (maybe True (ltdate t>=) begin) && (maybe True (ltdate t<) end)
 
--- | Keep only ledger transactions with cleared status, if the flag is true, otherwise
--- do no filtering.
-filterRawLedgerTransactionsByClearedStatus :: Bool -> RawLedger -> RawLedger
-filterRawLedgerTransactionsByClearedStatus False l = l
-filterRawLedgerTransactionsByClearedStatus True  (RawLedger ms ps ts tls hs f) =
-    RawLedger ms ps (filter ltstatus ts) tls hs f
+-- | Keep only ledger transactions which have the requested
+-- cleared/uncleared status, if there is one.
+filterRawLedgerTransactionsByClearedStatus :: Maybe Bool -> RawLedger -> RawLedger
+filterRawLedgerTransactionsByClearedStatus Nothing rl = rl
+filterRawLedgerTransactionsByClearedStatus (Just val) (RawLedger ms ps ts tls hs f) =
+    RawLedger ms ps (filter ((==val).ltstatus) ts) tls hs f
 
 -- | Strip out any virtual postings, if the flag is true, otherwise do
 -- no filtering.

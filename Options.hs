@@ -62,6 +62,7 @@ options = [
  ,Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
                                                        "and/or with the specified reporting interval\n")
  ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
+ ,Option ['U'] ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
  ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
  ,Option []    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
  ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching simple EXPR\n" ++
@@ -92,6 +93,7 @@ data Opt =
     End     {value::String} | 
     Period  {value::String} | 
     Cleared | 
+    UnCleared | 
     CostBasis | 
     Depth   {value::String} | 
     Display {value::String} | 
@@ -109,9 +111,12 @@ data Opt =
     | DebugNoUI
     deriving (Show,Eq)
 
--- yow..
+-- these make me nervous
 optsWithConstructor f opts = concatMap get opts
     where get o = if f v == o then [o] else [] where v = value o
+
+optsWithConstructors fs opts = concatMap get opts
+    where get o = if any (\f -> f == o) fs then [o] else []
 
 optValuesForConstructor f opts = concatMap get opts
     where get o = if f v == o then [v] else [] where v = value o

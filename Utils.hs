@@ -23,9 +23,13 @@ prepareLedger opts args reftime rawtext rl = l{rawledgertext=rawtext}
       l = cacheLedger apats $ filterRawLedger span dpats c r $ canonicaliseAmounts cb rl
       (apats,dpats) = parseAccountDescriptionArgs [] args
       span = dateSpanFromOpts (localDay reftime) opts
-      c = Cleared `elem` opts
       r = Real `elem` opts
       cb = CostBasis `elem` opts
+      c = clearedValueFromOpts opts
+          where clearedValueFromOpts opts | null os = Nothing
+                                          | last os == Cleared = Just True
+                                          | otherwise = Just False
+                    where os = optsWithConstructors [Cleared,UnCleared] opts
 
 -- | Get a RawLedger from the given string, or raise an error.
 -- This uses the current local time as the reference time (for closing
