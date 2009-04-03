@@ -50,7 +50,9 @@ web opts args l =
     where
       handlers :: ServerPartT IO Response
       handlers = msum
-       [dir "print" $ withDataFn (look "a") $ \a -> templatise $ printreport [a]
+       [methodSP GET $ withDataFn (look "a") $ \a -> templatise $ balancereport [a]
+       ,methodSP GET $ templatise $ balancereport []
+       ,dir "print" $ withDataFn (look "a") $ \a -> templatise $ printreport [a]
        ,dir "print" $ templatise $ printreport []
        ,dir "register" $ withDataFn (look "a") $ \a -> templatise $ registerreport [a]
        ,dir "register" $ templatise $ registerreport []
