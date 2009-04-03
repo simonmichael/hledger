@@ -41,21 +41,22 @@ hledger looks for your ledger file at ~/.ledger by default. To use a
 different file, specify it with the LEDGER environment variable or -f
 option (which may be - for standard input). Basic usage is::
 
- hledger [OPTIONS] COMMAND [PATTERNS]
+ hledger [OPTIONS] [COMMAND [PATTERNS]]
 
-where COMMAND is one of balance, print, register, ui, web, test; and
-PATTERNS are zero or more regular expressions used to narrow the results.
-Here are some commands to try::
+COMMAND is one of balance, print, register, ui, web, test (defaulting to
+balance). PATTERNS are zero or more regular expressions used to narrow the
+results.  Here are some commands to try::
 
- hledger --help
  export LEDGER=sample.ledger
- hledger balance
- hledger bal --depth 1
- hledger register
- hledger reg income
- hledger reg desc:shop
- hledger ui
- hledger web # if you installed with -f happs
+ hledger --help                        # show usage & options
+ hledger balance                       # all accounts with aggregated balances
+ hledger bal --depth 1                 # only top-level accounts
+ hledger register                      # transaction register
+ hledger reg income                    # transactions to/from an income account
+ hledger reg checking                  # checking transactions
+ hledger reg desc:shop                 # transactions with shop in the description
+ hledger ui                            # interactive ui, if you're on unix/mac
+ hledger web                           # web ui, if you installed with -f happs
 
 
 Time reporting
@@ -73,8 +74,9 @@ and COMMAND is one of the commands above. Timelog entries look like this::
  i 2009/03/31 22:21:45 some:project
  o 2009/04/01 02:00:34
 
-The clock-in project is treated as an account. Here are some time queries to try::
+The project description is like an account name. Here are some queries to try::
 
+ ln -s `which hledger` ~/bin/hours     # add the "hours" symlink in your path
  export TIMELOG=/my/timelog            # if it's not ~/.timelog
  hours                                 # today's balances
  hours today                           # the same
@@ -136,7 +138,7 @@ ledger features not supported
 .............................
 
 ledger features not currently supported include: modifier and periodic
-entries, and options such as these::
+entries, and the following options and commands::
 
    Basic options:
    -o, --output FILE      write output to FILE
@@ -209,3 +211,5 @@ Other differences
 * hledger always shows timelog balances in hours
 * hledger splits multi-day timelog sessions at midnight
 * hledger register report always sorts transactions by date
+* hledger doesn't show description comments as part of the description
+* hledger print puts a blank line after the entry, not before it
