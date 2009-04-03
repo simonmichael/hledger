@@ -78,6 +78,7 @@ options = [
 -- ,Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
  ,Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
  ,Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
+ ,Option ['Q'] ["quarterly"]    (NoArg  QuarterlyOpt)  "register report: show quarterly summary"
  ,Option ['Y'] ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
  ,Option ['h'] ["help"] (NoArg  Help)                  "show this help"
  ,Option ['V'] ["version"]      (NoArg  Version)       "show version information"
@@ -103,6 +104,7 @@ data Opt =
     SubTotal |
     WeeklyOpt |
     MonthlyOpt |
+    QuarterlyOpt |
     YearlyOpt |
     Help |
     Verbose |
@@ -178,10 +180,11 @@ intervalFromOpts opts
     | otherwise = case last otheropts of
                     WeeklyOpt  -> Weekly
                     MonthlyOpt -> Monthly
+                    QuarterlyOpt -> Quarterly
                     YearlyOpt  -> Yearly
     where
       popts = optValuesForConstructor Period opts
-      otheropts = filter (`elem` [WeeklyOpt,MonthlyOpt,YearlyOpt]) opts 
+      otheropts = filter (`elem` [WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
       -- doesn't affect the interval, but parsePeriodExpr needs something
       refdate = parsedate "0001/01/01"
 

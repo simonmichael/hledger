@@ -490,9 +490,11 @@ tests = [
     [] `gives` NoInterval
     [WeeklyOpt] `gives` Weekly
     [MonthlyOpt] `gives` Monthly
+    [QuarterlyOpt] `gives` Quarterly
     [YearlyOpt] `gives` Yearly
     [Period "weekly"] `gives` Weekly
     [Period "monthly"] `gives` Monthly
+    [Period "quarterly"] `gives` Quarterly
     [WeeklyOpt, Period "yearly"] `gives` Yearly
 
   ,"isAccountNamePrefixOf" ~: do
@@ -731,6 +733,7 @@ tests = [
     "2007" `gives` []
     "june" `gives` ["2008/06/01","2008/06/02","2008/06/03"]
     "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
+    "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
     showRegisterReport [Period "yearly"] [] l `is` unlines
      ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
      ,"                                assets:cash                     $-2          $-1"
