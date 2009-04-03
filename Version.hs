@@ -39,8 +39,6 @@ versionmsg    = progname ++ " " ++ versionstr ++ configmsg ++ "\n"
 configflags   = tail [""
 #ifdef VTY
   ,"vty"
-#elif ANSI
-  ,"ansi"
 #endif
 #ifdef HAPPS
   ,"happs"

@@ -9,7 +9,7 @@ PATCHES:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 BUILD=ghc --make hledger.hs -o hledger -O
 FLAGS=-DPATCHES=$(PATCHES)
 # optional extras described in README, turn em on if you've got the libs
-OPTFLAGS=-DVTY -DHAPPS # -DANSI
+OPTFLAGS= #-DVTY -DHAPPS
 BUILDFLAGS=$(FLAGS) $(OPTFLAGS)
 build: setversion
 	@$(BUILD) $(BUILDFLAGS)

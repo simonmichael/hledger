@@ -18,16 +18,12 @@ Extra-Source-Files: README sample.ledger
 Extra-Tmp-Files: 
 Cabal-Version:  >= 1.2
 
-Flag happs
-  description: enable the webserver ui
-  default:     False
-
 Flag vty
-  description: enable the curses test ui
-  default:     False
+  description: enable the curses ui
+  default:     True
 
-Flag ansi
-  description: enable the ansi text ui (use instead of vty on MS windows)
+Flag happs
+  description: enable the web ui
   default:     False
 
 Library
@@ -86,21 +82,16 @@ Executable hledger
   cpp-options:    -DPATCHES=0
 
   if flag(vty)
+    cpp-options: -DVTY
     Build-Depends:vty >= 3.1.8.2 && < 3.2
     Other-Modules:UICommand
-    cpp-options: -DVTY
-
-  if flag(ansi)
-    Build-Depends:ansi-terminal >= 0.5 && < 0.6
-    Other-Modules:ANSICommand
-    cpp-options: -DANSI
 
   if flag(happs)
+    cpp-options: -DHAPPS
     Build-Depends:happstack >= 0.2 && < 0.3
                   ,happstack-data >= 0.2 && < 0.3
                   ,happstack-server >= 0.2 && < 0.3
                   ,happstack-state >= 0.2 && < 0.3
                   ,utf8-string >= 0.3 && < 0.4
     Other-Modules:WebCommand
-    cpp-options: -DHAPPS
 

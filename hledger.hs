@@ -59,8 +59,6 @@ import PrintCommand
 import RegisterCommand
 #ifdef VTY
 import UICommand
-#elif ANSI
-import ANSICommand
 #endif
 #ifdef HAPPS
 import WebCommand
@@ -80,8 +78,6 @@ main = do
        | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
 #ifdef VTY
        | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args ui
-#elif ANSI
-       | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args ansi
 #endif
 #ifdef HAPPS
        | cmd `isPrefixOf` "web"      = parseLedgerAndDo opts args web

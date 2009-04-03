@@ -1,5 +1,3 @@
-NEWS
-----
 
 2009/04/03 hledger 0.4 released
 -------------------------------
@@ -7,9 +5,8 @@ NEWS
 Changes:
 ........
 
-  * avoid bulky/non-portable dependencies by default, curses ui now requires a build flag (-f vty)
-  * on MS windows, provide a simple ansi-based ui in place of vty (-f ansi)
-  * new "web" command starts a webserver and shows reports in a browser (-f happs)
+  * new "web" command serves reports in a web browser (install with -f happs to build this)
+  * make the vty-based curses ui a cabal build option, which will be ignored on MS windows
   * drop the --options-anywhere flag, that is now the default
   * patterns now use not: and desc: prefixes instead of ^ and ^^
   * patterns are now case-insensitive, like ledger
@@ -161,4 +158,3 @@ Stats:
 Contributors:
 
   * Simon Michael
-

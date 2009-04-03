@@ -27,20 +27,9 @@ hledger.cabal from hackage.org, but installing cabal is much quicker.)
 Here's how to download and install the latest hledger release::
 
  cabal update
- cabal install hledger
+ cabal install hledger (add -f happs to include the web ui)
 
-Or, to build with all optional features enabled (downloads additional
-dependencies)::
-
- cabal install --flags="happs vty" hledger
-
-The available flags are::
-
-  happs - enable the webserver ui
-  vty   - enable the curses text ui
-  ansi  - enable the ansi text ui (use instead of vty on MS windows)
-
-For developers, here's how to get the latest code::
+Or, to get the latest development code::
 
  darcs get http://joyful.com/repos/hledger
 
@@ -65,7 +54,7 @@ Here are some commands to try::
  hledger register
  hledger reg income
  hledger reg desc:shop
- hledger ui  # if you installed with -f vty or ansi
+ hledger ui
  hledger web # if you installed with -f happs
 
 
@@ -139,8 +128,8 @@ We handle (almost) the full period expression syntax, and very limited
 display expressions consisting of a simple date predicate. Also the
 following new commands are supported::
 
-   ui                     a simple curses-based text ui (on windows, ansi-based)
-   web                    a simple web-based ui
+   ui                     a simple interactive text ui (only on unix platforms)
+   web                    a simple web ui
    test                   run self-tests
 
 ledger features not supported

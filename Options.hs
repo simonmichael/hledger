@@ -31,8 +31,6 @@ usagehdr = printf (
   "  register - show register transactions\n" ++
 #ifdef VTY
   "  ui       - run a simple curses-based text ui\n" ++
-#elif ANSI
-  "  ui       - run a simple ansi-based text ui\n" ++
 #endif
 #ifdef HAPPS
   "  web      - run a simple web ui\n" ++
