@@ -18,6 +18,21 @@ import Ledger.LedgerTransaction
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
 
+instance Show TimeLogCode where 
+    show SetBalance = "b"
+    show SetRequiredHours = "h"
+    show In = "i"
+    show Out = "o"
+    show FinalOut = "O"
+
+instance Read TimeLogCode where 
+    readsPrec _ ('b' : xs) = [(SetBalance, xs)]
+    readsPrec _ ('h' : xs) = [(SetRequiredHours, xs)]
+    readsPrec _ ('i' : xs) = [(In, xs)]
+    readsPrec _ ('o' : xs) = [(Out, xs)]
+    readsPrec _ ('O' : xs) = [(FinalOut, xs)]
+    readsPrec _ _ = []
+
 -- | Convert time log entries to ledger transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.
@@ -27,7 +42,7 @@ entriesFromTimeLogEntries now [i]
     | odate > idate = [entryFromTimeLogInOut i o'] ++ entriesFromTimeLogEntries now [i',o]
     | otherwise = [entryFromTimeLogInOut i o]
     where
-      o = TimeLogEntry 'o' end ""
+      o = TimeLogEntry Out end ""
       end = if itime > now then itime else now
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)

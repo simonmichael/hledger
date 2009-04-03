@@ -42,7 +42,6 @@ data Side = L | R deriving (Eq,Show,Ord)
 
 data Commodity = Commodity {
       symbol :: String,  -- ^ the commodity's symbol
-
       -- display preferences for amounts of this commodity
       side :: Side,      -- ^ should the symbol appear on the left or the right
       spaced :: Bool,    -- ^ should there be a space between symbol and quantity
@@ -59,7 +58,7 @@ data Amount = Amount {
 newtype MixedAmount = Mixed [Amount] deriving (Eq)
 
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
-                       deriving (Eq,Show)
+                   deriving (Eq,Show)
 
 data Posting = Posting {
       pstatus :: Bool,
@@ -89,6 +88,14 @@ data LedgerTransaction = LedgerTransaction {
       ltpreceding_comment_lines :: String
     } deriving (Eq)
 
+data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord) 
+
+data TimeLogEntry = TimeLogEntry {
+      tlcode :: TimeLogCode,
+      tldatetime :: LocalTime,
+      tlcomment :: String
+    } deriving (Eq,Ord)
+
 data HistoricalPrice = HistoricalPrice {
       hdate :: Day,
       hsymbol1 :: String,
@@ -106,11 +113,7 @@ data RawLedger = RawLedger {
       filepath :: FilePath
     } deriving (Eq)
 
-data TimeLogEntry = TimeLogEntry {
-      tlcode :: Char,
-      tldatetime :: LocalTime,
-      tlcomment :: String
-    } deriving (Eq,Ord)
+-- compound types for efficiency
 
 data Transaction = Transaction {
       tnum :: Int,

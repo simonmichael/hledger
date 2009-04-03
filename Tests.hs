@@ -460,8 +460,8 @@ tests = [
      let now = utcToLocalTime tz now'
          nowstr = showtime now
          yesterday = prevday today
-         clockin t a = TimeLogEntry 'i' t a
-         clockout t = TimeLogEntry 'o' t ""
+         clockin t a = TimeLogEntry In t a
+         clockout t = TimeLogEntry Out t ""
          mktime d s = LocalTime d $ fromMaybe midnight $ parseTime defaultTimeLocale "%H:%M:%S" s
          showtime t = formatTime defaultTimeLocale "%H:%M" t
          assertEntriesGiveStrings name es ss = assertEqual name ss (map ltdescription $ entriesFromTimeLogEntries now es)
@@ -1308,10 +1308,10 @@ ledger8_str = unlines
  ]
 
 timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
-timelogentry1 = TimeLogEntry 'i' (parsedatetime "2007/03/11 16:19:00") "hledger"
+timelogentry1 = TimeLogEntry In (parsedatetime "2007/03/11 16:19:00") "hledger"
 
 timelogentry2_str  = "o 2007/03/11 16:30:00\n"
-timelogentry2 = TimeLogEntry 'o' (parsedatetime "2007/03/11 16:30:00") ""
+timelogentry2 = TimeLogEntry Out (parsedatetime "2007/03/11 16:30:00") ""
 
 price1_str = "P 2004/05/01 XYZ $55\n"
 price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" "$" 55

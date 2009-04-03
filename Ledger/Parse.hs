@@ -552,7 +552,7 @@ timelogentry = do
   many1 spacenonewline
   datetime <- ledgerdatetime
   comment <- liftM2 (++) getParentAccount restofline
-  return $ TimeLogEntry code datetime comment
+  return $ TimeLogEntry (read [code]) datetime comment
 
 
 -- misc parsing
