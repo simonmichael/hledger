@@ -8,49 +8,42 @@ implementations were its consequences." --Niklaus Wirth
 skull. He therefore approaches his task with full humility, and avoids
 clever tricks like the plague." --Edsger Dijkstra
 
+We aim to make reliable, maintainable, usable software, sustainably.
+- pair programming
+- test-driven development
+- fixes, docs, deployment testing before features
+- "bugs" are "errors", as in "the programmer messed up"
+- test continuously and thoroughly (code, doc, speed tests/measurement on each commit, release)
+- less is more
+
 * to do
 ** errors
-** features
-*** more ledger features
-**** rename entry -> transaction, transaction -> posting
-**** -U --uncleared
-**** actual/effective entry & txn dates, for more accurate modelling & easier reconciliation
-**** ~/.hledgerrc for setting defaults
-**** support complete period syntax ?
-    every N days     # N is any integer
-    every N weeks
-    every N months
-    every N quarters
-    every N years
-    biweekly
-    bimonthly
-**** allow - before currency symbol ?
-*** new features
-**** a simpler timelog balance report format for clients
-**** more date syntax: last nov, next friday, optional this, week of
-**** allow comment lines immediately after or within an entry
-**** accept multiple -f files
-**** more reliable tidy layout from print
-**** -Q quarterly interval option, for consistency/convenience ?
-**** web gui
-**** charts
-**** easier data entry
-**** parse more file formats - gnucash, qif, ofx, csv..
-**** easier timelog format
-**** i18n
-*** speed
-**** more optimisation
-**** speed regression tests
-** tests
-*** test all esoteric ledger file features
+*** hledger web & gives an error ?
+** testing
+*** run ledger 3 baseline tests
+*** test all ledger file format features
 *** test reading from stdin
-*** easy ledger compatibility testing
-**** run ledger 3 baseline tests
-**** --compare (xml?) output with ledger's
-** docs
-*** hledgerisms in file format - that hledger can read but ledger can't
-*** complete docs for smart dates, period expressions
-*** funding
+*** --compare (xml?) output with ledger's ?
+*** clarify hledgerisms in file format - that hledger can read but ledger can't
+*** build with -Wall and anything else useful
+*** build with multiple ghc versions
+** docs & marketing
+*** document smart dates, period expressions, display expressions
+*** automate readme
+**** keep in sync (automate)
+***** README file
+****** options list in Features should match Options.hs, generate from hledger --help ?
+***** hledger.hs module description
+***** hledger.cabal description field (exclude home page link)
+***** home page description (http://joyful.com/Hledger/editform)
+***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
+***** gmane description
+***** darcsweb description
+*** automate announcements
+**** generate from README and NEWS
+*** develop funding
+**** license change ?
+**** donate button, see chimoo guy
 **** funding document 2009/01
 =======
 funding
@@ -248,59 +241,60 @@ competitors/fellow niche inhabitants
       have you considered talking to business who hate their financial sw and going from there
 ***** gwern
       most haskellers have never heard of hledger, sounds arrogant or hubristic to talk of charging for it
-*** --version
-*** --help
-*** readme
-**** keep in sync (automate)
-***** README file
-****** options list in Features should match Options.hs, generate from hledger --help ?
-***** hledger.hs module description
-***** hledger.cabal description field (exclude home page link)
-***** home page description (http://joyful.com/Hledger/editform)
-***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
-***** gmane description
-***** darcsweb description
-*** announcements
-**** generate from README and NEWS
-*** release notes
-**** NEWS
-*** implementation docs
-*** api docs
-*** developer intro
-**** style tips
-***** we aim to make reliable software:
-****** fixes come before features
-****** "bugs" get called "errors", as in "the programmer messed up"
-****** we test continuously and thoroughly (code, doc & speed tests on each checkin)
-****** less is more
-*** user manual
-*** other differences not noted in README
-**** ledger shows description comments as part of description
-**** ledger seems to get amounts' x-position wrong more than hledger
-**** ledger can't parse full smart dates in display expressions
-**** hledger print puts a blank line after the entry, not before it
-**** ledger can get timelog entry balance wrong, see mail list
-**** ledger reports timelog sessions as virtual transactions
-** packaging, web presence, etc.
+
+**** qooxledger
+*** better user manual
+*** screencasts
+*** better screenshots
+*** developer docs
+**** style guide, see also above
+**** unsafe things which may fail at runtime
+***** incomplete pattern matching
+***** error
+***** printf
+** packaging & deployment
 *** make installation easier
 **** on all platforms
-***** via cabal install
-***** via downloading packages from hackage
+***** set up binary publishing
+***** reduce dependencies
+****** drop regexpr
+***** split packages ?
+***** set up the hours alias
 **** on linux
-***** on debian
-***** on ubuntu
-***** on redhat
-***** on arch
-***** via binaries
+***** debian
+***** ubuntu
 **** on mac
-***** via ports
-***** via binaries
+***** ports
+***** binary
 **** on windows
-***** via binaries
-*** reduce dependencies
-**** split packages ?
-*** set up binary publishing
-*** clarify bugtracking process
+***** binary
+*** cabal haddock
+*** cabal test
+** code cleanup
+*** seek more modularity
+*** try export lists
+*** graph and reduce dependencies
+*** pair programming
+** features/wishlist
+*** --flat timelog balance report option for clients
+*** alternative easy timelog format
+*** better web gui
+*** nice reports with charts
+*** data entry!
+*** watching a changing journal
+*** actual & effective txn & posting dates ?
+*** wide format
+*** more date syntax ? last nov, next friday, optional this, week of
+*** more period syntax ? every N days, biweekly
+*** allow comment lines immediately after or within an entry
+*** accept multiple -f files
+*** more reliable tidy layout from print
+*** parse more file formats - gnucash, qif, ofx, csv..
+*** i18n
+*** speed
+**** optimisation
+**** speed regression tests
+*** plugins
 * misc
 ** things I want to know
 *** time
