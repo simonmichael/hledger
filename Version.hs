@@ -5,7 +5,7 @@ import Ledger.Utils
 import Options (progname)
 
 -- updated by build process from VERSION
-version       = "0.3.99"
+version       = "0.4.0"
 #ifdef PATCHES
 -- a "make" development build defines PATCHES from the repo state
 patchlevel = "." ++ show PATCHES -- must be numeric !
