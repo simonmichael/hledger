@@ -208,12 +208,7 @@ Clean: clean clean-docs
 DOCS=README NEWS
 
 # rebuild all docs
-docs: html pdf api-docs
-
-# rebuild html docs
-html:
-	for d in $(DOCS); do rst2html $$d >doc/$$d.html; done
-	cd doc; ln -f -s README.html index.html
+docs: pdf api-docs
 
 # rebuild pdf docs
 pdf:
