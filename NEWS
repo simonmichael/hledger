@@ -1,10 +1,11 @@
 NEWS
 ----
 
-2009/04/xx hledger 0.4 released
-...............................
+2009/04/03 hledger 0.4 released
+-------------------------------
 
 Changes:
+........
 
   * avoid bulky/non-portable dependencies by default, curses ui now requires a build flag (-f vty)
   * on MS windows, provide a simple ansi-based ui in place of vty (-f ansi)
@@ -40,12 +41,14 @@ Changes:
      -f sample10000.ledger balance ||       12.72 |       14.97 |       4.63
 
 Contributors:
+.............
 
   * Simon Michael
   * Tim Docker
   * happstack and testpack developers
 
 Stats:
+......
 
   * Known errors: 0
   * Commits: 132
@@ -56,7 +59,7 @@ Stats:
 
 
 2009/01/17 hledger 0.3 released
-...............................
+-------------------------------
 
 Fixes:
 

@@ -5,7 +5,7 @@
 
 # sample.ledger's entries replicated n times
 -f sample1000.ledger balance
--f sample10000.ledger balance
+#-f sample10000.ledger balance
 #-f sample100000.ledger balance
 
 # the user's ledger, if any

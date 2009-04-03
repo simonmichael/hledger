@@ -68,6 +68,7 @@ buildprof prof: sampleledgers
 
 # run performance benchmarks and save results in profs
 # executables to test, prepend ./ to these if not in $PATH
+# requires tabular from hackage
 BENCHEXES=hledger-0.3 hledger-0.4 ledger
 bench: buildbench sampleledgers
 	./bench $(BENCHEXES) --verbose | tee profs/`date +%Y%m%d%H%M%S`.bench
@@ -80,8 +81,8 @@ buildbench:
 # generate sample ledgers
 sampleledgers:
 	ghc -e 'putStr $$ unlines $$ replicate 1000 "!include sample.ledger"' >sample1000.ledger
-#	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >sample10000.ledger
-#	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >sample10000.ledger
+	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >sample10000.ledger
+	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >sample10000.ledger
 
 # send unpushed patches to the mail list
 send:

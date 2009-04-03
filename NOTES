@@ -45,7 +45,8 @@ clever tricks like the plague." --Edsger Dijkstra
 *** test all esoteric ledger file features
 *** test reading from stdin
 *** easy ledger compatibility testing
-**** --compare to compare (xml?) output with ledger with same args
+**** run ledger 3 baseline tests
+**** --compare (xml?) output with ledger's
 ** docs
 *** hledgerisms in file format - that hledger can read but ledger can't
 *** complete docs for smart dates, period expressions

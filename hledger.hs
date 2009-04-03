@@ -8,7 +8,7 @@ Released under GPL version 3 or later.
 
 hledger is a partial haskell clone of John Wiegley's "ledger" text-based
 accounting tool.  It generates ledger-compatible register & balance
-reports from a plain text ledger file, and demonstrates a functional
+reports from a plain text journal, and demonstrates a functional
 implementation of ledger.  For more information, see ledger.org .
 
 You can use the command line:

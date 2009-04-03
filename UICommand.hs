@@ -235,8 +235,8 @@ drilldown a
     | screen a == BalanceScreen  = enter RegisterScreen a{aargs=[currentAccountName a]}
     | screen a == RegisterScreen = scrollToEntry e $ enter PrintScreen a
     | screen a == PrintScreen   = a
-    -- | screen a == PrintScreen   = enter LedgerScreen a
-    -- | screen a == LedgerScreen   = a
+    -- screen a == PrintScreen   = enter LedgerScreen a
+    -- screen a == LedgerScreen   = a
     where e = currentEntry a
 
 -- | Get the account name currently highlighted by the cursor on the
