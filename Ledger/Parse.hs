@@ -509,7 +509,7 @@ numberpartsstartingwithpoint = do
   return ("",frac)
                      
 
-{-| Parse a timelog file. Here is the timelog grammar, from timeclock.el 2.6:
+{-| Parse a timelog entry. Here is the timelog grammar from timeclock.el 2.6:
 
 @
 A timelog contains data in the form of a single entry per line.
@@ -545,12 +545,6 @@ i 2007/03/10 12:26:00 hledger
 o 2007/03/10 17:26:02
 
 -}
-timelog :: GenParser Char LedgerFileCtx TimeLog
-timelog = do
-  entries <- many timelogentry <?> "timelog entry"
-  eof
-  return $ TimeLog entries
-
 timelogentry :: GenParser Char LedgerFileCtx TimeLogEntry
 timelogentry = do
   code <- oneOf "bhioO"

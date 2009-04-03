@@ -18,9 +18,6 @@ import Ledger.LedgerTransaction
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
 
-instance Show TimeLog where
-    show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
-
 -- | Convert time log entries to ledger transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.

@@ -734,9 +734,6 @@ tests = [
       nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="",amount=Mixed [dollars 15]}
      ]
 
-  ,"timelog" ~: do
-    parseWithCtx timelog timelog1_str `parseis` timelog1
-
   ,"transactionamount" ~: do
     parseWithCtx transactionamount " $47.18" `parseis` Mixed [dollars 47.18]
     parseWithCtx transactionamount " $1." `parseis` 
@@ -1134,15 +1131,6 @@ timelogentry1 = TimeLogEntry 'i' (parsedatetime "2007/03/11 16:19:00") "hledger"
 
 timelogentry2_str  = "o 2007/03/11 16:30:00\n"
 timelogentry2 = TimeLogEntry 'o' (parsedatetime "2007/03/11 16:30:00") ""
-
-timelog1_str = concat [
-                timelogentry1_str,
-                timelogentry2_str
-               ]
-timelog1 = TimeLog [
-            timelogentry1,
-            timelogentry2
-           ]
 
 price1_str = "P 2004/05/01 XYZ $55\n"
 price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" "$" 55

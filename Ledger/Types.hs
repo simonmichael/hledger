@@ -112,10 +112,6 @@ data TimeLogEntry = TimeLogEntry {
       tlcomment :: String
     } deriving (Eq,Ord)
 
-data TimeLog = TimeLog {
-      timelog_entries :: [TimeLogEntry]
-    } deriving (Eq)
-
 data Transaction = Transaction {
       tnum :: Int,
       status :: Bool,
