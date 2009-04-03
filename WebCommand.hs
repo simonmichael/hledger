@@ -40,7 +40,7 @@ web opts args l =
        putStrLn $ printf "starting web server on port %d" tcpport
        tid <- forkIO $ simpleHTTP nullConf{port=tcpport} handlers
        putStrLn "starting web browser"
-       openBrowserOn $ printf "http://localhost:%s/balance" (show tcpport)
+       openBrowserOn $ printf "http://localhost:%d/balance" tcpport
        waitForTermination
        putStrLn "shutting down web server..."
        killThread tid

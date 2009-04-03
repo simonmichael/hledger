@@ -18,7 +18,6 @@ We aim to make reliable, maintainable, usable software, sustainably.
 
 * to do
 ** errors
-*** hledger web & gives an error ?
 ** testing
 *** run ledger 3 baseline tests
 *** test all ledger file format features
