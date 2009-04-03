@@ -1,7 +1,9 @@
 {-|
 
-A 'Transaction' is a 'Posting' with its parent 'LedgerTransaction' \'s date and
-description attached. These are what we actually query when doing reports.
+A compound data type for efficiency. A 'Transaction' is a 'Posting' with
+its parent 'LedgerTransaction' \'s date and description attached. These
+are what we mostly work with when doing reports, and this name is pretty
+ingrained.
 
 -}
 

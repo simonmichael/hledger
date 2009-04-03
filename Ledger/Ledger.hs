@@ -1,9 +1,13 @@
 {-|
 
-A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
-names, and a map from account names to 'Account's. It may also have had
-uninteresting 'LedgerTransaction's and 'Posting's filtered out. It also stores
-the complete ledger file text for the ui command.
+A compound data type for efficiency. A 'Ledger' caches information derived
+from a 'RawLedger' so that it is easy to query. It typically has had
+uninteresting 'LedgerTransaction's and 'Posting's removed. It contains
+
+- the original 'RawLedger'
+- a tree of account names
+- a map from account names to 'Account's
+- the full text of the journal file, when available
 
 -}
 

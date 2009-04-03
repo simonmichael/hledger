@@ -1,25 +1,23 @@
 {-|
 
-This is the next layer up from Ledger.Utils. All main data types are
-defined here to avoid import cycles; see the corresponding modules for
-documentation.
+Most data types are defined here to avoid import cycles. See the
+corresponding modules for each type's documentation.
 
-On the current use of terminology:
+A note about entry/transaction/posting terminology:
 
-- ledger 2 has Entrys containing Transactions.
-
-- hledger 0.4 has Entrys containing RawTransactions, and Transactions
-  which are a RawTransaction with its parent Entry's info added.
-  Transactions are what we most work with when reporting and are
-  ubiquitous in the code and docs.
-
-- ledger 3 has Transactions containing Postings.
-
-- hledger 0.5 has LedgerTransactions containing Postings, with
-  Transactions kept just as in hledger 0.4 (a Posting with it's parent's
-  info added). They could be named PartialTransactions or
-  TransactionPostings, but that just gets too verbose and obscure for devs
-  and users.
+  - ledger 2 had Entrys containing Transactions.
+  
+  - hledger 0.4 had Entrys containing RawTransactions, and Transactions
+    which are a RawTransaction with its parent Entry's info added.
+    Transactions are what we most work with when reporting and are
+    ubiquitous in the code and docs.
+  
+  - ledger 3 has Transactions containing Postings.
+  
+  - hledger 0.5 has LedgerTransactions containing Postings, with
+    Transactions kept as before (a Posting plus it's parent's info).
+    These could be named PartialTransactions or TransactionPostings, but
+    it gets too verbose and obscure for devs and users.
 
 -}
 
@@ -113,22 +111,20 @@ data RawLedger = RawLedger {
       filepath :: FilePath
     } deriving (Eq)
 
--- compound types for efficiency
-
 data Transaction = Transaction {
       tnum :: Int,
-      status :: Bool,
-      date :: Day,
-      description :: String,
-      account :: AccountName,
-      amount :: MixedAmount,
-      ttype :: PostingType
+      status :: Bool,            -- ^ posting status
+      date :: Day,               -- ^ ledger transaction date
+      description :: String,     -- ^ ledger transaction description
+      account :: AccountName,    -- ^ posting account
+      amount :: MixedAmount,     -- ^ posting amount
+      ttype :: PostingType       -- ^ posting type
     } deriving (Eq)
 
 data Account = Account {
       aname :: AccountName,
-      atransactions :: [Transaction],
-      abalance :: MixedAmount
+      atransactions :: [Transaction], -- ^ transactions in this account
+      abalance :: MixedAmount         -- ^ sum of transactions in this account and subaccounts
     }
 
 data Ledger = Ledger {
