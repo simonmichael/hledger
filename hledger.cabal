@@ -66,6 +66,7 @@ Executable hledger
                   Setup
                   Tests
                   Utils
+                  Version
                   Ledger
                   Ledger.Account
                   Ledger.AccountName
