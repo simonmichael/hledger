@@ -22,7 +22,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
 import Ledger.Amount
-import Ledger.Entry
+import Ledger.LedgerTransaction
 import Ledger.Commodity
 import Ledger.TimeLog
 import Ledger.RawLedger
@@ -86,13 +86,13 @@ parseLedger reftime inname intxt = do
 -- comment-only) lines, can use choice w/o try
 
 ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
-ledgerFile = do entries <- many1 ledgerAnyEntry 
+ledgerFile = do ledger_txns <- many1 ledgerItem
                 eof
-                return $ liftM (foldr1 (.)) $ sequence entries
-    where ledgerAnyEntry = choice [ ledgerDirective
-                                  , liftM (return . addEntry)         ledgerEntry
-                                  , liftM (return . addModifierEntry) ledgerModifierEntry
-                                  , liftM (return . addPeriodicEntry) ledgerPeriodicEntry
+                return $ liftM (foldr1 (.)) $ sequence ledger_txns
+    where ledgerItem = choice [ ledgerDirective
+                                  , liftM (return . addLedgerTransaction) ledgerTransaction
+                                  , liftM (return . addModifierTransaction) ledgerModifierTransaction
+                                  , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
                                   , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
                                   , ledgerDefaultYear
                                   , emptyLine >> return (return id)
@@ -262,21 +262,21 @@ ledgercomment =
         ) 
     <|> return "" <?> "comment"
 
-ledgerModifierEntry :: GenParser Char LedgerFileCtx ModifierEntry
-ledgerModifierEntry = do
-  char '=' <?> "modifier entry"
+ledgerModifierTransaction :: GenParser Char LedgerFileCtx ModifierTransaction
+ledgerModifierTransaction = do
+  char '=' <?> "modifier transaction"
   many spacenonewline
   valueexpr <- restofline
-  transactions <- ledgertransactions
-  return $ ModifierEntry valueexpr transactions
+  postings <- ledgerpostings
+  return $ ModifierTransaction valueexpr postings
 
-ledgerPeriodicEntry :: GenParser Char LedgerFileCtx PeriodicEntry
-ledgerPeriodicEntry = do
+ledgerPeriodicTransaction :: GenParser Char LedgerFileCtx PeriodicTransaction
+ledgerPeriodicTransaction = do
   char '~' <?> "entry"
   many spacenonewline
   periodexpr <- restofline
-  transactions <- ledgertransactions
-  return $ PeriodicEntry periodexpr transactions
+  postings <- ledgerpostings
+  return $ PeriodicTransaction periodexpr postings
 
 ledgerHistoricalPrice :: GenParser Char LedgerFileCtx HistoricalPrice
 ledgerHistoricalPrice = do
@@ -303,8 +303,8 @@ ledgerDefaultYear = do
 
 -- | Try to parse a ledger entry. If we successfully parse an entry, ensure it is balanced,
 -- and if we cannot, raise an error.
-ledgerEntry :: GenParser Char LedgerFileCtx Entry
-ledgerEntry = do
+ledgerTransaction :: GenParser Char LedgerFileCtx LedgerTransaction
+ledgerTransaction = do
   date <- ledgerdate <?> "entry"
   status <- ledgerstatus
   code <- ledgercode
@@ -314,10 +314,10 @@ ledgerEntry = do
   description <- many (noneOf "\n") <?> "description"
   comment <- ledgercomment
   restofline
-  transactions <- ledgertransactions
-  let e = Entry date status code description comment transactions ""
-  case balanceEntry e of
-    Right e' -> return e'
+  postings <- ledgerpostings
+  let t = LedgerTransaction date status code description comment postings ""
+  case balanceLedgerTransaction t of
+    Right t' -> return t'
     Left err -> error err
 
 ledgerdate :: GenParser Char LedgerFileCtx Day
@@ -358,14 +358,14 @@ ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> ret
 ledgercode :: GenParser Char st String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
-ledgertransactions :: GenParser Char LedgerFileCtx [RawTransaction]
-ledgertransactions = many $ try ledgertransaction
+ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
+ledgerpostings = many $ try ledgerposting
 
-ledgertransaction :: GenParser Char LedgerFileCtx RawTransaction
-ledgertransaction = many1 spacenonewline >> choice [ normaltransaction, virtualtransaction, balancedvirtualtransaction ]
+ledgerposting :: GenParser Char LedgerFileCtx Posting
+ledgerposting = many1 spacenonewline >> choice [ normalposting, virtualposting, balancedvirtualposting ]
 
-normaltransaction :: GenParser Char LedgerFileCtx RawTransaction
-normaltransaction = do
+normalposting :: GenParser Char LedgerFileCtx Posting
+normalposting = do
   status <- ledgerstatus
   account <- transactionaccountname
   amount <- transactionamount
@@ -373,10 +373,10 @@ normaltransaction = do
   comment <- ledgercomment
   restofline
   parent <- getParentAccount
-  return (RawTransaction status account amount comment RegularTransaction)
+  return (Posting status account amount comment RegularPosting)
 
-virtualtransaction :: GenParser Char LedgerFileCtx RawTransaction
-virtualtransaction = do
+virtualposting :: GenParser Char LedgerFileCtx Posting
+virtualposting = do
   status <- ledgerstatus
   char '('
   account <- transactionaccountname
@@ -386,10 +386,10 @@ virtualtransaction = do
   comment <- ledgercomment
   restofline
   parent <- getParentAccount
-  return (RawTransaction status account amount comment VirtualTransaction)
+  return (Posting status account amount comment VirtualPosting)
 
-balancedvirtualtransaction :: GenParser Char LedgerFileCtx RawTransaction
-balancedvirtualtransaction = do
+balancedvirtualposting :: GenParser Char LedgerFileCtx Posting
+balancedvirtualposting = do
   status <- ledgerstatus
   char '['
   account <- transactionaccountname
@@ -398,7 +398,7 @@ balancedvirtualtransaction = do
   many spacenonewline
   comment <- ledgercomment
   restofline
-  return (RawTransaction status account amount comment BalancedVirtualTransaction)
+  return (Posting status account amount comment BalancedVirtualPosting)
 
 -- Qualify with the parent account from parsing context
 transactionaccountname :: GenParser Char LedgerFileCtx AccountName
@@ -571,15 +571,15 @@ datedisplayexpr = do
   char '['
   (y,m,d) <- smartdate
   char ']'
-  let edate = parsedate $ printf "%04s/%02s/%02s" y m d
+  let ltdate = parsedate $ printf "%04s/%02s/%02s" y m d
   let matcher = \(Transaction{date=tdate}) -> 
                   case op of
-                    "<"  -> tdate <  edate
-                    "<=" -> tdate <= edate
-                    "="  -> tdate == edate
-                    "==" -> tdate == edate -- just in case
-                    ">=" -> tdate >= edate
-                    ">"  -> tdate >  edate
+                    "<"  -> tdate <  ltdate
+                    "<=" -> tdate <= ltdate
+                    "="  -> tdate == ltdate
+                    "==" -> tdate == ltdate -- just in case
+                    ">=" -> tdate >= ltdate
+                    ">"  -> tdate >  ltdate
   return matcher              
 
 compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]

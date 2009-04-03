@@ -351,28 +351,28 @@ tests = [
 
    ]
 
-  ,"balanceEntry" ~: do
+  ,"balanceLedgerTransaction" ~: do
      assertBool "detect unbalanced entry, sign error"
-                    (isLeft $ balanceEntry
-                           (Entry (parsedate "2007/01/28") False "" "test" ""
-                            [RawTransaction False "a" (Mixed [dollars 1]) "" RegularTransaction, 
-                             RawTransaction False "b" (Mixed [dollars 1]) "" RegularTransaction
+                    (isLeft $ balanceLedgerTransaction
+                           (LedgerTransaction (parsedate "2007/01/28") False "" "test" ""
+                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting, 
+                             Posting False "b" (Mixed [dollars 1]) "" RegularPosting
                             ] ""))
      assertBool "detect unbalanced entry, multiple missing amounts"
-                    (isLeft $ balanceEntry
-                           (Entry (parsedate "2007/01/28") False "" "test" ""
-                            [RawTransaction False "a" missingamt "" RegularTransaction, 
-                             RawTransaction False "b" missingamt "" RegularTransaction
+                    (isLeft $ balanceLedgerTransaction
+                           (LedgerTransaction (parsedate "2007/01/28") False "" "test" ""
+                            [Posting False "a" missingamt "" RegularPosting, 
+                             Posting False "b" missingamt "" RegularPosting
                             ] ""))
-     let e = balanceEntry (Entry (parsedate "2007/01/28") False "" "test" ""
-                           [RawTransaction False "a" (Mixed [dollars 1]) "" RegularTransaction, 
-                            RawTransaction False "b" missingamt "" RegularTransaction
+     let e = balanceLedgerTransaction (LedgerTransaction (parsedate "2007/01/28") False "" "test" ""
+                           [Posting False "a" (Mixed [dollars 1]) "" RegularPosting, 
+                            Posting False "b" missingamt "" RegularPosting
                            ] "")
      assertBool "one missing amount should be ok" (isRight e)
      assertEqual "balancing amount is added" 
                      (Mixed [dollars (-1)])
                      (case e of
-                        Right e' -> (tamount $ last $ etransactions e')
+                        Right e' -> (pamount $ last $ ltpostings e')
                         Left _ -> error "should not happen")
 
   ,"cacheLedger" ~: do
@@ -401,7 +401,7 @@ tests = [
          clockout t = TimeLogEntry 'o' t ""
          mktime d s = LocalTime d $ fromMaybe midnight $ parseTime defaultTimeLocale "%H:%M:%S" s
          showtime t = formatTime defaultTimeLocale "%H:%M" t
-         assertEntriesGiveStrings name es ss = assertEqual name ss (map edescription $ entriesFromTimeLogEntries now es)
+         assertEntriesGiveStrings name es ss = assertEqual name ss (map ltdescription $ entriesFromTimeLogEntries now es)
 
      assertEntriesGiveStrings "started yesterday, split session at midnight"
                                   [clockin (mktime yesterday "23:00:00") ""]
@@ -446,17 +446,17 @@ tests = [
 
   ,"default year" ~: do
     rl <- rawledgerfromstring defaultyear_ledger_str
-    (edate $ head $ entries rl) `is` fromGregorian 2009 1 1
+    (ltdate $ head $ ledger_txns rl) `is` fromGregorian 2009 1 1
     return ()
 
-  ,"ledgerEntry" ~: do
-    parseWithCtx ledgerEntry entry1_str `parseis` entry1
+  ,"ledgerTransaction" ~: do
+    parseWithCtx ledgerTransaction entry1_str `parseis` entry1
 
   ,"ledgerHistoricalPrice" ~: do
     parseWithCtx ledgerHistoricalPrice price1_str `parseis` price1
 
-  ,"ledgertransaction" ~: do
-    parseWithCtx ledgertransaction rawtransaction1_str `parseis` rawtransaction1
+  ,"ledgerposting" ~: do
+    parseWithCtx ledgerposting rawposting1_str `parseis` rawposting1
 
   ,"parsedate" ~: do
     parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
@@ -478,7 +478,7 @@ tests = [
    do 
     let args = ["expenses"]
     l <- sampleledgerwithopts [] args
-    showEntries [] args l `is` unlines 
+    showLedgerTransactions [] args l `is` unlines 
      ["2008/06/03 * eat & shop"
      ,"    expenses:food                                 $1"
      ,"    expenses:supplies                             $1"
@@ -489,7 +489,7 @@ tests = [
   , "print report with depth arg" ~:
    do 
     l <- sampleledger
-    showEntries [Depth "2"] [] l `is` unlines
+    showLedgerTransactions [Depth "2"] [] l `is` unlines
       ["2008/01/01 income"
       ,"    income:salary                                $-1"
       ,""
@@ -674,8 +674,8 @@ tests = [
     (map aname $ subAccounts l a) `is` ["assets:bank","assets:cash"]
 
   ,"summariseTransactionsInDateSpan" ~: do
-    let (b,e,entryno,depth,showempty,ts) `gives` summaryts = 
-            summariseTransactionsInDateSpan (mkdatespan b e) entryno depth showempty ts `is` summaryts
+    let (b,e,tnum,depth,showempty,ts) `gives` summaryts = 
+            summariseTransactionsInDateSpan (mkdatespan b e) tnum depth showempty ts `is` summaryts
     let ts =
             [
              nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
@@ -780,9 +780,9 @@ defaultyear_ledger_str = unlines
 
 write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
 
-rawtransaction1_str  = "  expenses:food:dining  $10.00\n"
+rawposting1_str  = "  expenses:food:dining  $10.00\n"
 
-rawtransaction1 = RawTransaction False "expenses:food:dining" (Mixed [dollars 10]) "" RegularTransaction
+rawposting1 = Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting
 
 entry1_str = unlines
  ["2007/01/28 coopportunity"
@@ -792,9 +792,9 @@ entry1_str = unlines
  ]
 
 entry1 =
-    (Entry (parsedate "2007/01/28") False "" "coopportunity" ""
-     [RawTransaction False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularTransaction, 
-      RawTransaction False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularTransaction] "")
+    (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting, 
+      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting] "")
 
 
 entry2_str = unlines
@@ -940,154 +940,154 @@ rawledger7 = RawLedger
           [] 
           [] 
           [
-           Entry {
-             edate= parsedate "2007/01/01", 
-             estatus=False, 
-             ecode="*", 
-             edescription="opening balance", 
-             ecomment="",
-             etransactions=[
-              RawTransaction {
-                tstatus=False,
-                taccount="assets:cash", 
-                tamount=(Mixed [dollars 4.82]),
-                tcomment="",
-                rttype=RegularTransaction
+           LedgerTransaction {
+             ltdate= parsedate "2007/01/01", 
+             ltstatus=False, 
+             ltcode="*", 
+             ltdescription="opening balance", 
+             ltcomment="",
+             ltpostings=[
+              Posting {
+                pstatus=False,
+                paccount="assets:cash", 
+                pamount=(Mixed [dollars 4.82]),
+                pcomment="",
+                ptype=RegularPosting
               },
-              RawTransaction {
-                tstatus=False,
-                taccount="equity:opening balances", 
-                tamount=(Mixed [dollars (-4.82)]),
-                tcomment="",
-                rttype=RegularTransaction
+              Posting {
+                pstatus=False,
+                paccount="equity:opening balances", 
+                pamount=(Mixed [dollars (-4.82)]),
+                pcomment="",
+                ptype=RegularPosting
               }
              ],
-             epreceding_comment_lines=""
+             ltpreceding_comment_lines=""
            }
           ,
-           Entry {
-             edate= parsedate "2007/02/01", 
-             estatus=False, 
-             ecode="*", 
-             edescription="ayres suites", 
-             ecomment="",
-             etransactions=[
-              RawTransaction {
-                tstatus=False,
-                taccount="expenses:vacation", 
-                tamount=(Mixed [dollars 179.92]),
-                tcomment="",
-                rttype=RegularTransaction
+           LedgerTransaction {
+             ltdate= parsedate "2007/02/01", 
+             ltstatus=False, 
+             ltcode="*", 
+             ltdescription="ayres suites", 
+             ltcomment="",
+             ltpostings=[
+              Posting {
+                pstatus=False,
+                paccount="expenses:vacation", 
+                pamount=(Mixed [dollars 179.92]),
+                pcomment="",
+                ptype=RegularPosting
               },
-              RawTransaction {
-                tstatus=False,
-                taccount="assets:checking", 
-                tamount=(Mixed [dollars (-179.92)]),
-                tcomment="",
-                rttype=RegularTransaction
+              Posting {
+                pstatus=False,
+                paccount="assets:checking", 
+                pamount=(Mixed [dollars (-179.92)]),
+                pcomment="",
+                ptype=RegularPosting
               }
              ],
-             epreceding_comment_lines=""
+             ltpreceding_comment_lines=""
            }
           ,
-           Entry {
-             edate=parsedate "2007/01/02", 
-             estatus=False, 
-             ecode="*", 
-             edescription="auto transfer to savings", 
-             ecomment="",
-             etransactions=[
-              RawTransaction {
-                tstatus=False,
-                taccount="assets:saving", 
-                tamount=(Mixed [dollars 200]),
-                tcomment="",
-                rttype=RegularTransaction
+           LedgerTransaction {
+             ltdate=parsedate "2007/01/02", 
+             ltstatus=False, 
+             ltcode="*", 
+             ltdescription="auto transfer to savings", 
+             ltcomment="",
+             ltpostings=[
+              Posting {
+                pstatus=False,
+                paccount="assets:saving", 
+                pamount=(Mixed [dollars 200]),
+                pcomment="",
+                ptype=RegularPosting
               },
-              RawTransaction {
-                tstatus=False,
-                taccount="assets:checking", 
-                tamount=(Mixed [dollars (-200)]),
-                tcomment="",
-                rttype=RegularTransaction
+              Posting {
+                pstatus=False,
+                paccount="assets:checking", 
+                pamount=(Mixed [dollars (-200)]),
+                pcomment="",
+                ptype=RegularPosting
               }
              ],
-             epreceding_comment_lines=""
+             ltpreceding_comment_lines=""
            }
           ,
-           Entry {
-             edate=parsedate "2007/01/03", 
-             estatus=False, 
-             ecode="*", 
-             edescription="poquito mas", 
-             ecomment="",
-             etransactions=[
-              RawTransaction {
-                tstatus=False,
-                taccount="expenses:food:dining", 
-                tamount=(Mixed [dollars 4.82]),
-                tcomment="",
-                rttype=RegularTransaction
+           LedgerTransaction {
+             ltdate=parsedate "2007/01/03", 
+             ltstatus=False, 
+             ltcode="*", 
+             ltdescription="poquito mas", 
+             ltcomment="",
+             ltpostings=[
+              Posting {
+                pstatus=False,
+                paccount="expenses:food:dining", 
+                pamount=(Mixed [dollars 4.82]),
+                pcomment="",
+                ptype=RegularPosting
               },
-              RawTransaction {
-                tstatus=False,
-                taccount="assets:cash", 
-                tamount=(Mixed [dollars (-4.82)]),
-                tcomment="",
-                rttype=RegularTransaction
+              Posting {
+                pstatus=False,
+                paccount="assets:cash", 
+                pamount=(Mixed [dollars (-4.82)]),
+                pcomment="",
+                ptype=RegularPosting
               }
              ],
-             epreceding_comment_lines=""
+             ltpreceding_comment_lines=""
            }
           ,
-           Entry {
-             edate=parsedate "2007/01/03", 
-             estatus=False, 
-             ecode="*", 
-             edescription="verizon", 
-             ecomment="",
-             etransactions=[
-              RawTransaction {
-                tstatus=False,
-                taccount="expenses:phone", 
-                tamount=(Mixed [dollars 95.11]),
-                tcomment="",
-                rttype=RegularTransaction
+           LedgerTransaction {
+             ltdate=parsedate "2007/01/03", 
+             ltstatus=False, 
+             ltcode="*", 
+             ltdescription="verizon", 
+             ltcomment="",
+             ltpostings=[
+              Posting {
+                pstatus=False,
+                paccount="expenses:phone", 
+                pamount=(Mixed [dollars 95.11]),
+                pcomment="",
+                ptype=RegularPosting
               },
-              RawTransaction {
-                tstatus=False,
-                taccount="assets:checking", 
-                tamount=(Mixed [dollars (-95.11)]),
-                tcomment="",
-                rttype=RegularTransaction
+              Posting {
+                pstatus=False,
+                paccount="assets:checking", 
+                pamount=(Mixed [dollars (-95.11)]),
+                pcomment="",
+                ptype=RegularPosting
               }
              ],
-             epreceding_comment_lines=""
+             ltpreceding_comment_lines=""
            }
           ,
-           Entry {
-             edate=parsedate "2007/01/03", 
-             estatus=False, 
-             ecode="*", 
-             edescription="discover", 
-             ecomment="",
-             etransactions=[
-              RawTransaction {
-                tstatus=False,
-                taccount="liabilities:credit cards:discover", 
-                tamount=(Mixed [dollars 80]),
-                tcomment="",
-                rttype=RegularTransaction
+           LedgerTransaction {
+             ltdate=parsedate "2007/01/03", 
+             ltstatus=False, 
+             ltcode="*", 
+             ltdescription="discover", 
+             ltcomment="",
+             ltpostings=[
+              Posting {
+                pstatus=False,
+                paccount="liabilities:credit cards:discover", 
+                pamount=(Mixed [dollars 80]),
+                pcomment="",
+                ptype=RegularPosting
               },
-              RawTransaction {
-                tstatus=False,
-                taccount="assets:checking", 
-                tamount=(Mixed [dollars (-80)]),
-                tcomment="",
-                rttype=RegularTransaction
+              Posting {
+                pstatus=False,
+                paccount="assets:checking", 
+                pamount=(Mixed [dollars (-80)]),
+                pcomment="",
+                ptype=RegularPosting
               }
              ],
-             epreceding_comment_lines=""
+             ltpreceding_comment_lines=""
            }
           ] 
           []
@@ -1129,7 +1129,7 @@ rawLedgerWithAmounts as =
         RawLedger 
         [] 
         [] 
-        [nullentry{edescription=a,etransactions=[nullrawtxn{tamount=parse a}]} | a <- as]
+        [nullentry{ltdescription=a,ltpostings=[nullrawposting{pamount=parse a}]} | a <- as]
         []
         []
         ""

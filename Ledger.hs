@@ -11,11 +11,11 @@ module Ledger (
                module Ledger.Amount,
                module Ledger.Commodity,
                module Ledger.Dates,
-               module Ledger.Entry,
+               module Ledger.LedgerTransaction,
                module Ledger.Ledger,
                module Ledger.Parse,
                module Ledger.RawLedger,
-               module Ledger.RawTransaction,
+               module Ledger.Posting,
                module Ledger.TimeLog,
                module Ledger.Transaction,
                module Ledger.Types,
@@ -27,11 +27,11 @@ import Ledger.AccountName
 import Ledger.Amount
 import Ledger.Commodity
 import Ledger.Dates
-import Ledger.Entry
+import Ledger.LedgerTransaction
 import Ledger.Ledger
 import Ledger.Parse
 import Ledger.RawLedger
-import Ledger.RawTransaction
+import Ledger.Posting
 import Ledger.TimeLog
 import Ledger.Transaction
 import Ledger.Types

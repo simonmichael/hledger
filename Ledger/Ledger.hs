@@ -2,7 +2,7 @@
 
 A 'Ledger' stores, for efficiency, a 'RawLedger' plus its tree of account
 names, and a map from account names to 'Account's. It may also have had
-uninteresting 'Entry's and 'Transaction's filtered out. It also stores
+uninteresting 'LedgerTransaction's and 'Posting's filtered out. It also stores
 the complete ledger file text for the ui command.
 
 -}
@@ -18,14 +18,14 @@ import Ledger.AccountName
 import Ledger.Account
 import Ledger.Transaction
 import Ledger.RawLedger
-import Ledger.Entry
+import Ledger.LedgerTransaction
 
 
 instance Show Ledger where
-    show l = printf "Ledger with %d entries, %d accounts\n%s"
-             ((length $ entries $ rawledger l) +
-              (length $ modifier_entries $ rawledger l) +
-              (length $ periodic_entries $ rawledger l))
+    show l = printf "Ledger with %d transactions, %d accounts\n%s"
+             ((length $ ledger_txns $ rawledger l) +
+              (length $ modifier_txns $ rawledger l) +
+              (length $ periodic_txns $ rawledger l))
              (length $ accountnames l)
              (showtree $ accountnametree l)
 

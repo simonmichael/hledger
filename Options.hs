@@ -27,7 +27,7 @@ usagehdr = printf (
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
   "  balance  - show account balances\n" ++
-  "  print    - show formatted ledger entries\n" ++
+  "  print    - show formatted ledger transactions\n" ++
   "  register - show register transactions\n" ++
 #ifdef VTY
   "  ui       - run a simple curses-based text ui\n" ++
@@ -57,11 +57,11 @@ usage = usageInfo usagehdr options ++ usageftr
 options :: [OptDescr Opt]
 options = [
   Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp
- ,Option ['b'] ["begin"]        (ReqArg Begin "DATE")  "report on entries on or after this date"
- ,Option ['e'] ["end"]          (ReqArg End "DATE")    "report on entries prior to this date"
- ,Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on entries during the specified period\n" ++
+ ,Option ['b'] ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
+ ,Option ['e'] ["end"]          (ReqArg End "DATE")    "report on transactions prior to this date"
+ ,Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
                                                        "and/or with the specified reporting interval\n")
- ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared entries"
+ ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
  ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
  ,Option []    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
  ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching simple EXPR\n" ++

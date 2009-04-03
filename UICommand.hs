@@ -44,8 +44,8 @@ data Loc = Loc {
 
 -- | The screens available within the user interface.
 data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
-            | RegisterScreen    -- ^ like hledger register, shows transactions
-            | PrintScreen       -- ^ like hledger print, shows entries
+            | RegisterScreen    -- ^ like hledger register, shows transaction-postings
+            | PrintScreen       -- ^ like hledger print, shows ledger transactions
             | LedgerScreen      -- ^ shows the raw ledger
               deriving (Eq,Show)
 
@@ -221,7 +221,7 @@ updateData :: AppState -> AppState
 updateData a@AppState{aopts=opts,aargs=args,aledger=l}
     | scr == BalanceScreen  = a{abuf=lines $ showBalanceReport opts [] l, aargs=[]}
     | scr == RegisterScreen = a{abuf=lines $ showRegisterReport opts args l}
-    | scr == PrintScreen    = a{abuf=lines $ showEntries opts args l}
+    | scr == PrintScreen    = a{abuf=lines $ showLedgerTransactions opts args l}
     | scr == LedgerScreen   = a{abuf=lines $ rawledgertext l}
     where scr = screen a
 
@@ -233,11 +233,11 @@ backout a
 drilldown :: AppState -> AppState
 drilldown a
     | screen a == BalanceScreen  = enter RegisterScreen a{aargs=[currentAccountName a]}
-    | screen a == RegisterScreen = scrollToEntry e $ enter PrintScreen a
+    | screen a == RegisterScreen = scrollToLedgerTransaction e $ enter PrintScreen a
     | screen a == PrintScreen   = a
     -- screen a == PrintScreen   = enter LedgerScreen a
     -- screen a == LedgerScreen   = a
-    where e = currentEntry a
+    where e = currentLedgerTransaction a
 
 -- | Get the account name currently highlighted by the cursor on the
 -- balance screen. Results undefined while on other screens.
@@ -265,10 +265,10 @@ accountNameAt buf lineno = accountNameFromComponents anamecomponents
 
 -- | If on the print screen, move the cursor to highlight the specified entry
 -- (or a reasonable guess). Doesn't work.
-scrollToEntry :: Entry -> AppState -> AppState
-scrollToEntry e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
+scrollToLedgerTransaction :: LedgerTransaction -> AppState -> AppState
+scrollToLedgerTransaction e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
     where
-      entryfirstline = head $ lines $ showEntry $ e
+      entryfirstline = head $ lines $ showLedgerTransaction $ e
       halfph = pageHeight a `div` 2
       y = fromMaybe 0 $ findIndex (== entryfirstline) buf
       sy = max 0 $ y - halfph
@@ -277,8 +277,8 @@ scrollToEntry e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
 -- | Get the entry containing the transaction currently highlighted by the
 -- cursor on the register screen (or best guess). Results undefined while
 -- on other screens. Doesn't work.
-currentEntry :: AppState -> Entry
-currentEntry a@AppState{aledger=l,abuf=buf} = entryContainingTransaction a t
+currentLedgerTransaction :: AppState -> LedgerTransaction
+currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransaction a t
     where
       t = safehead nulltxn $ filter ismatch $ ledgerTransactions l
       ismatch t = date t == (parsedate $ take 10 datedesc)
@@ -291,8 +291,8 @@ currentEntry a@AppState{aledger=l,abuf=buf} = entryContainingTransaction a t
 
 -- | Get the entry which contains the given transaction.
 -- Will raise an error if there are problems.
-entryContainingTransaction :: AppState -> Transaction -> Entry
-entryContainingTransaction AppState{aledger=l} t = (entries $ rawledger l) !! entryno t
+entryContainingTransaction :: AppState -> Transaction -> LedgerTransaction
+entryContainingTransaction AppState{aledger=l} t = (ledger_txns $ rawledger l) !! tnum t
 
 -- renderers
 

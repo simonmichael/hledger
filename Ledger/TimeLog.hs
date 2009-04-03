@@ -13,7 +13,7 @@ import Ledger.Types
 import Ledger.Dates
 import Ledger.Commodity
 import Ledger.Amount
-import Ledger.Entry
+import Ledger.LedgerTransaction
 
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
@@ -21,10 +21,10 @@ instance Show TimeLogEntry where
 instance Show TimeLog where
     show tl = printf "TimeLog with %d entries" $ length $ timelog_entries tl
 
--- | Convert time log entries to ledger entries. When there is no
+-- | Convert time log entries to ledger transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.
-entriesFromTimeLogEntries :: LocalTime -> [TimeLogEntry] -> [Entry]
+entriesFromTimeLogEntries :: LocalTime -> [TimeLogEntry] -> [LedgerTransaction]
 entriesFromTimeLogEntries _ [] = []
 entriesFromTimeLogEntries now [i]
     | odate > idate = [entryFromTimeLogInOut i o'] ++ entriesFromTimeLogEntries now [i',o]
@@ -48,20 +48,20 @@ entriesFromTimeLogEntries now (i:o:rest)
 -- | Convert a timelog clockin and clockout entry to an equivalent ledger
 -- entry, representing the time expenditure. Note this entry is  not balanced,
 -- since we omit the \"assets:time\" transaction for simpler output.
-entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Entry
+entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> LedgerTransaction
 entryFromTimeLogInOut i o
-    | otime >= itime = e
+    | otime >= itime = t
     | otherwise = 
-        error $ "clock-out time less than clock-in time in:\n" ++ showEntry e
+        error $ "clock-out time less than clock-in time in:\n" ++ showLedgerTransaction t
     where
-      e = Entry {
-            edate         = idate,
-            estatus       = True,
-            ecode         = "",
-            edescription  = showtime itod ++ "-" ++ showtime otod,
-            ecomment      = "",
-            etransactions = txns,
-            epreceding_comment_lines=""
+      t = LedgerTransaction {
+            ltdate         = idate,
+            ltstatus       = True,
+            ltcode         = "",
+            ltdescription  = showtime itod ++ "-" ++ showtime otod,
+            ltcomment      = "",
+            ltpostings = ps,
+            ltpreceding_comment_lines=""
           }
       showtime = take 5 . show
       acctname = tlcomment i
@@ -73,6 +73,6 @@ entryFromTimeLogInOut i o
       odate    = localDay otime
       hrs      = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       amount   = Mixed [hours hrs]
-      txns     = [RawTransaction False acctname amount "" RegularTransaction
-                 --,RawTransaction "assets:time" (-amount) "" RegularTransaction
+      ps       = [Posting False acctname amount "" RegularPosting
+                 --,Posting "assets:time" (-amount) "" RegularPosting
                  ]

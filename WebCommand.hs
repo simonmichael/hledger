@@ -56,7 +56,7 @@ web opts args l =
        ,dir "balance" $ withDataFn (look "a") $ \a -> templatise $ balancereport [a]
        ,dir "balance" $ templatise $ balancereport []
        ]
-      printreport apats    = showEntries opts (apats ++ args) l
+      printreport apats    = showLedgerTransactions opts (apats ++ args) l
       registerreport apats = showRegisterReport opts (apats ++ args) l
       balancereport []  = showBalanceReport opts args l
       balancereport apats  = showBalanceReport opts (apats ++ args) l'

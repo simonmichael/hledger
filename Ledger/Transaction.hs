@@ -1,6 +1,6 @@
 {-|
 
-A 'Transaction' is a 'RawTransaction' with its parent 'Entry' \'s date and
+A 'Transaction' is a 'Posting' with its parent 'LedgerTransaction' \'s date and
 description attached. These are what we actually query when doing reports.
 
 -}
@@ -10,8 +10,8 @@ where
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
-import Ledger.Entry
-import Ledger.RawTransaction
+import Ledger.LedgerTransaction
+import Ledger.Posting
 import Ledger.Amount
 
 
@@ -22,12 +22,12 @@ showTransaction (Transaction eno stat d desc a amt ttype) =
     s ++ unwords [showDate d,desc,a,show amt,show ttype]
     where s = if stat then " *" else ""
 
--- | Convert a 'Entry' to two or more 'Transaction's. An id number
+-- | Convert a 'LedgerTransaction' to two or more 'Transaction's. An id number
 -- is attached to the transactions to preserve their grouping - it should
 -- be unique per entry.
-flattenEntry :: (Entry, Int) -> [Transaction]
-flattenEntry (Entry d s _ desc _ ts _, e) = 
-    [Transaction e s d desc (taccount t) (tamount t) (rttype t) | t <- ts]
+flattenLedgerTransaction :: (LedgerTransaction, Int) -> [Transaction]
+flattenLedgerTransaction (LedgerTransaction d s _ desc _ ps _, n) = 
+    [Transaction n s d desc (paccount p) (pamount p) (ptype p) | p <- ps]
 
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
 accountNamesFromTransactions ts = nub $ map account ts
@@ -35,4 +35,4 @@ accountNamesFromTransactions ts = nub $ map account ts
 sumTransactions :: [Transaction] -> MixedAmount
 sumTransactions = sum . map amount
 
-nulltxn = Transaction 0 False (parsedate "1900/1/1") "" "" nullmixedamt RegularTransaction
+nulltxn = Transaction 0 False (parsedate "1900/1/1") "" "" nullmixedamt RegularPosting

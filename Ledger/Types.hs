@@ -4,6 +4,23 @@ This is the next layer up from Ledger.Utils. All main data types are
 defined here to avoid import cycles; see the corresponding modules for
 documentation.
 
+On the current use of terminology:
+
+- ledger 2 has Entrys containing Transactions.
+
+- hledger 0.4 has Entrys containing RawTransactions, and Transactions
+  which are a RawTransaction with its parent Entry's info added.
+  Transactions are what we most work with when reporting and are
+  ubiquitous in the code and docs.
+
+- ledger 3 has Transactions containing Postings.
+
+- hledger 0.5 has LedgerTransactions containing Postings, with
+  Transactions kept just as in hledger 0.4 (a Posting with it's parent's
+  info added). They could be named PartialTransactions or
+  TransactionPostings, but that just gets too verbose and obscure for devs
+  and users.
+
 -}
 
 module Ledger.Types 
@@ -41,50 +58,48 @@ data Amount = Amount {
 
 newtype MixedAmount = Mixed [Amount] deriving (Eq)
 
-data TransactionType = RegularTransaction | VirtualTransaction | BalancedVirtualTransaction
+data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
                        deriving (Eq,Show)
 
-data RawTransaction = RawTransaction {
-      tstatus :: Bool,
-      taccount :: AccountName,
-      tamount :: MixedAmount,
-      tcomment :: String,
-      rttype :: TransactionType
+data Posting = Posting {
+      pstatus :: Bool,
+      paccount :: AccountName,
+      pamount :: MixedAmount,
+      pcomment :: String,
+      ptype :: PostingType
     } deriving (Eq)
 
--- | a ledger "modifier" entry. Currently ignored.
-data ModifierEntry = ModifierEntry {
-      valueexpr :: String,
-      m_transactions :: [RawTransaction]
+data ModifierTransaction = ModifierTransaction {
+      mtvalueexpr :: String,
+      mtpostings :: [Posting]
     } deriving (Eq)
 
--- | a ledger "periodic" entry. Currently ignored.
-data PeriodicEntry = PeriodicEntry {
-      periodicexpr :: String,
-      p_transactions :: [RawTransaction]
+data PeriodicTransaction = PeriodicTransaction {
+      ptperiodicexpr :: String,
+      ptpostings :: [Posting]
     } deriving (Eq)
 
-data Entry = Entry {
-      edate :: Day,
-      estatus :: Bool,
-      ecode :: String,
-      edescription :: String,
-      ecomment :: String,
-      etransactions :: [RawTransaction],
-      epreceding_comment_lines :: String
+data LedgerTransaction = LedgerTransaction {
+      ltdate :: Day,
+      ltstatus :: Bool,
+      ltcode :: String,
+      ltdescription :: String,
+      ltcomment :: String,
+      ltpostings :: [Posting],
+      ltpreceding_comment_lines :: String
     } deriving (Eq)
 
 data HistoricalPrice = HistoricalPrice {
-     hdate :: Day,
-     hsymbol1 :: String,
-     hsymbol2 :: String,
-     hprice :: Double
-} deriving (Eq,Show)
+      hdate :: Day,
+      hsymbol1 :: String,
+      hsymbol2 :: String,
+      hprice :: Double
+    } deriving (Eq,Show)
 
 data RawLedger = RawLedger {
-      modifier_entries :: [ModifierEntry],
-      periodic_entries :: [PeriodicEntry],
-      entries :: [Entry],
+      modifier_txns :: [ModifierTransaction],
+      periodic_txns :: [PeriodicTransaction],
+      ledger_txns :: [LedgerTransaction],
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
       final_comment_lines :: String
@@ -101,13 +116,13 @@ data TimeLog = TimeLog {
     } deriving (Eq)
 
 data Transaction = Transaction {
-      entryno :: Int,
+      tnum :: Int,
       status :: Bool,
       date :: Day,
       description :: String,
       account :: AccountName,
       amount :: MixedAmount,
-      ttype :: TransactionType
+      ttype :: PostingType
     } deriving (Eq)
 
 data Account = Account {

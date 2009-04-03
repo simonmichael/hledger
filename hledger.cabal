@@ -36,10 +36,10 @@ Library
                   Ledger.Amount
                   Ledger.Commodity
                   Ledger.Dates
-                  Ledger.Entry
+                  Ledger.LedgerTransaction
                   Ledger.RawLedger
                   Ledger.Ledger
-                  Ledger.RawTransaction
+                  Ledger.Posting
                   Ledger.Parse
                   Ledger.TimeLog
                   Ledger.Transaction
@@ -68,11 +68,11 @@ Executable hledger
                   Ledger.Amount
                   Ledger.Commodity
                   Ledger.Dates
-                  Ledger.Entry
+                  Ledger.LedgerTransaction
                   Ledger.Ledger
                   Ledger.Parse
                   Ledger.RawLedger
-                  Ledger.RawTransaction
+                  Ledger.Posting
                   Ledger.TimeLog
                   Ledger.Transaction
                   Ledger.Types

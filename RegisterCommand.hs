@@ -62,7 +62,7 @@ showRegisterReport opts args l
 -- As usual with date spans the end date is exclusive, but for display
 -- purposes we show the previous day as end date, like ledger.
 -- 
--- A unique entryno value is provided so that the new transactions will be
+-- A unique tnum value is provided so that the new transactions will be
 -- grouped as one entry.
 -- 
 -- When a depth argument is present, transactions to accounts of greater
@@ -71,12 +71,12 @@ showRegisterReport opts args l
 -- The showempty flag forces the display of a zero-transaction span
 -- and also zero-transaction accounts within the span.
 summariseTransactionsInDateSpan :: DateSpan -> Int -> Int -> Bool -> [Transaction] -> [Transaction]
-summariseTransactionsInDateSpan (DateSpan b e) entryno depth showempty ts
+summariseTransactionsInDateSpan (DateSpan b e) tnum depth showempty ts
     | null ts && showempty = [txn]
     | null ts = []
     | otherwise = summaryts'
     where
-      txn = nulltxn{entryno=entryno, date=b', description="- "++(showDate $ addDays (-1) e')}
+      txn = nulltxn{tnum=tnum, date=b', description="- "++(showDate $ addDays (-1) e')}
       b' = fromMaybe (date $ head ts) b
       e' = fromMaybe (date $ last ts) e
       summaryts'
@@ -108,17 +108,17 @@ showtxns [] _ _ = ""
 showtxns (t@Transaction{amount=a}:ts) tprev bal = this ++ showtxns ts t bal'
     where
       this = showtxn (t `issame` tprev) t bal'
-      issame t1 t2 = entryno t1 == entryno t2
+      issame t1 t2 = tnum t1 == tnum t2
       bal' = bal + amount t
 
 -- | Show one transaction line and balance with or without the entry details.
 showtxn :: Bool -> Transaction -> MixedAmount -> String
-showtxn omitdesc t b = concatBottomPadded [entrydesc ++ txn ++ " ", bal] ++ "\n"
+showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
     where
       entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
       date = showDate $ da
       desc = printf "%-20s" $ elideRight 20 de :: String
-      txn = showRawTransaction $ RawTransaction s a amt "" tt
+      p = showPosting $ Posting s a amt "" tt
       bal = padleft 12 (showMixedAmountOrZero b)
       Transaction{status=s,date=da,description=de,account=a,amount=amt,ttype=tt} = t
 
