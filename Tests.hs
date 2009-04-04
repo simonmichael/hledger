@@ -18,8 +18,8 @@ and disadvantages:
 
 - not platform independent
 
-All doctests are included below. Some of these may also appear in other
-modules as examples within the api docs.
+Here are the hledger doctests (some may reappear in other modules as
+examples):
 
 Run a few with c++ ledger first:
 
