@@ -163,3 +163,12 @@ rawLedgerConvertTimeLog t l0 = l0 { ledger_txns = convertedTimeLog ++ ledger_txn
                                   }
     where convertedTimeLog = entriesFromTimeLogEntries t $ open_timelog_entries l0
 
+
+-- | The date span containing all the raw ledger's transactions,
+-- or DateSpan Nothing Nothing if there are none.
+rawLedgerDateSpan :: RawLedger -> DateSpan
+rawLedgerDateSpan rl
+    | null ts = DateSpan Nothing Nothing
+    | otherwise = DateSpan (Just $ ltdate $ head ts) (Just $ addDays 1 $ ltdate $ last ts)
+    where
+      ts = sortBy (comparing ltdate) $ ledger_txns rl

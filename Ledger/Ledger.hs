@@ -132,8 +132,9 @@ ledgerAccountTree depth l = treemap (ledgerAccount l) $ treeprune depth $ accoun
 ledgerAccountTreeAt :: Ledger -> Account -> Maybe (Tree Account)
 ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 
--- | The (explicit) date span containing all the ledger's transactions,
--- or DateSpan Nothing Nothing if there are no transactions.
+-- | The date span containing all the ledger's (filtered) transactions,
+-- or DateSpan Nothing Nothing if there are none.
+ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan l
     | null ts = DateSpan Nothing Nothing
     | otherwise = DateSpan (Just $ date $ head ts) (Just $ addDays 1 $ date $ last ts)

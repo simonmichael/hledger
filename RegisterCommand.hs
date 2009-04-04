@@ -35,8 +35,7 @@ showRegisterReport opts args l
     | otherwise = showtxns summaryts nulltxn startbal
     where
       interval = intervalFromOpts opts
-      ts = sort $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
-           where sort = sortBy (\a b -> compare (date a) (date b))
+      ts = sortBy (comparing date) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
       filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ account t) <= depth)
                   | otherwise = id
       filterempties
@@ -96,13 +95,6 @@ summariseTransactionsInDateSpan (DateSpan b e) tnum depth showempty ts
 clipAccountNames :: Int -> [AccountName] -> [AccountName]
 clipAccountNames d as = nub $ map (clip d) as 
     where clip d = accountNameFromComponents . take d . accountNameComponents
-
--- | Does the given transaction fall within the given date span ?
-isTransactionInDateSpan :: DateSpan -> Transaction -> Bool
-isTransactionInDateSpan (DateSpan Nothing Nothing)   _ = True
-isTransactionInDateSpan (DateSpan Nothing (Just e))  (Transaction{date=d}) = d<e
-isTransactionInDateSpan (DateSpan (Just b) Nothing)  (Transaction{date=d}) = d>=b
-isTransactionInDateSpan (DateSpan (Just b) (Just e)) (Transaction{date=d}) = d>=b && d<e
 
 -- | Show transactions one per line, with each date/description appearing
 -- only once, and a running balance.
