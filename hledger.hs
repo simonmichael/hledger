@@ -40,6 +40,9 @@ module Main (
              module BalanceCommand,
              module PrintCommand,
              module RegisterCommand,
+#ifdef VTY
+             module UICommand,
+#endif
 #ifdef HAPPS
              module WebCommand,
 #endif
@@ -51,7 +54,7 @@ import System.IO
 
 import Version (versionmsg)
 import Ledger
-import Utils
+import Utils (withLedgerDo)
 import Options
 import Tests
 import BalanceCommand
@@ -73,27 +76,15 @@ main = do
       run cmd opts args
        | Help `elem` opts            = putStr $ usage
        | Version `elem` opts         = putStr versionmsg
-       | cmd `isPrefixOf` "balance"  = parseLedgerAndDo opts args balance
-       | cmd `isPrefixOf` "print"    = parseLedgerAndDo opts args print'
-       | cmd `isPrefixOf` "register" = parseLedgerAndDo opts args register
+       | cmd `isPrefixOf` "balance"  = withLedgerDo opts args balance
+       | cmd `isPrefixOf` "print"    = withLedgerDo opts args print'
+       | cmd `isPrefixOf` "register" = withLedgerDo opts args register
 #ifdef VTY
-       | cmd `isPrefixOf` "ui"       = parseLedgerAndDo opts args ui
+       | cmd `isPrefixOf` "ui"       = withLedgerDo opts args ui
 #endif
 #ifdef HAPPS
-       | cmd `isPrefixOf` "web"      = parseLedgerAndDo opts args web
+       | cmd `isPrefixOf` "web"      = withLedgerDo opts args web
 #endif
        | cmd `isPrefixOf` "test"     = runtests opts args >> return ()
        | otherwise                   = putStr $ usage
 
--- | parse the user's specified ledger file and do some action with it
--- (or report a parse error). This function makes the whole thing go.
-parseLedgerAndDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
-parseLedgerAndDo opts args cmd = do
-  f <- ledgerFilePathFromOpts opts
-  -- XXX we read the file twice - inelegant
-  -- and, doesn't work with stdin. kludge it, stdin won't work with ui command
-  let f' = if f == "-" then "/dev/null" else f
-  rawtext <- readFile f'
-  t <- getCurrentLocalTime
-  let runcmd = cmd opts args . prepareLedger opts args t rawtext
-  return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) runcmd

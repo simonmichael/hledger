@@ -1,24 +1,26 @@
 {-# OPTIONS_GHC -cpp #-}
+{-|
+Command-line options for the application.
+-}
+
 module Options 
 where
 import System
 import System.Console.GetOpt
-import System.Directory
 import System.Environment
 import Text.Printf
 import Text.RegexPR (gsubRegexPRBy)
 import Data.Char (toLower)
+import Ledger.IO (IOArgs,
+                  ledgerenvvar,ledgerdefaultpath,myLedgerPath,
+                  timelogenvvar,timelogdefaultpath,myTimelogPath)
 import Ledger.Parse
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
 
 progname      = "hledger"
-ledgerpath    = "~/.ledger"
-ledgerenvvar  = "LEDGER"
 timeprogname  = "hours"
-timelogpath   = "~/.timelog"
-timelogenvvar = "TIMELOG"
 
 usagehdr = printf (
   "Usage: one of\n" ++
@@ -84,7 +86,7 @@ options = [
       filehelp = printf (intercalate "\n"
                          ["ledger file; default is the %s env. variable's"
                          ,"value, or %s. - means use standard input."
-                         ]) ledgerenvvar ledgerpath
+                         ]) ledgerenvvar ledgerdefaultpath
 
 -- | An option value from a command-line flag.
 data Opt = 
@@ -209,6 +211,12 @@ displayFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
       listtomaybe [] = Nothing
       listtomaybe vs = Just $ last vs
 
+-- | Get a maybe boolean representing the last cleared/uncleared option if any.
+clearedValueFromOpts opts | null os = Nothing
+                          | last os == Cleared = Just True
+                          | otherwise = Just False
+    where os = optsWithConstructors [Cleared,UnCleared] opts
+
 -- | Was the program invoked via the \"hours\" alias ?
 usingTimeProgramName :: IO Bool
 usingTimeProgramName = do
@@ -219,23 +227,8 @@ usingTimeProgramName = do
 ledgerFilePathFromOpts :: [Opt] -> IO String
 ledgerFilePathFromOpts opts = do
   istimequery <- usingTimeProgramName
-  let (e,d) = if istimequery
-              then (timelogenvvar,timelogpath)
-              else (ledgerenvvar,ledgerpath)
-  envordefault <- getEnv e `catch` \_ -> return d
-  paths <- mapM tildeExpand $ [envordefault] ++ optValuesForConstructor File opts
-  return $ last paths
-
--- | Expand ~ in a file path (does not handle ~name).
-tildeExpand :: FilePath -> IO FilePath
-tildeExpand ('~':[])     = getHomeDirectory
-tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
---handle ~name, requires -fvia-C or ghc 6.8:
---import System.Posix.User
--- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
---                                pw <- getUserEntryForName user
---                                return (homeDirectory pw ++ path)
-tildeExpand xs           =  return xs
+  f <- if istimequery then myTimelogPath else myLedgerPath
+  return $ last $ f:(optValuesForConstructor File opts)
 
 -- | Gather any pattern arguments into a list of account patterns and a
 -- list of description patterns. For now we interpret pattern arguments as
@@ -249,4 +242,14 @@ parseAccountDescriptionArgs opts args = (as, ds')
       descprefix = "desc:"
       (ds, as) = partition (descprefix `isPrefixOf`) args
       ds' = map (drop (length descprefix)) ds
+
+-- | Convert application options to more generic types for the library.
+optsToIOArgs :: [Opt] -> [String] -> LocalTime -> IOArgs
+optsToIOArgs opts args t = (dateSpanFromOpts (localDay t) opts
+                         ,clearedValueFromOpts opts
+                         ,Real `elem` opts
+                         ,CostBasis `elem` opts
+                         ,apats
+                         ,dpats
+                         ) where (apats,dpats) = parseAccountDescriptionArgs [] args
 

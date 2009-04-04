@@ -36,6 +36,7 @@ Library
                   Ledger.Amount
                   Ledger.Commodity
                   Ledger.Dates
+                  Ledger.IO
                   Ledger.LedgerTransaction
                   Ledger.RawLedger
                   Ledger.Ledger
@@ -68,6 +69,7 @@ Executable hledger
                   Ledger.Amount
                   Ledger.Commodity
                   Ledger.Dates
+                  Ledger.IO
                   Ledger.LedgerTransaction
                   Ledger.Ledger
                   Ledger.Parse

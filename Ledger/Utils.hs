@@ -1,8 +1,7 @@
 {-|
 
-This is the bottom of the module hierarchy. It provides a number of
-standard modules and utilities which are useful everywhere (or, are needed
-low in the hierarchy). The "hledger prelude".
+Provide standard imports and utilities which are useful everywhere, or
+needed low in the module hierarchy. This is the bottom of the dependency graph.
 
 -}
 

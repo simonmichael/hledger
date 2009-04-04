@@ -11,6 +11,7 @@ module Ledger (
                module Ledger.Amount,
                module Ledger.Commodity,
                module Ledger.Dates,
+               module Ledger.IO,
                module Ledger.LedgerTransaction,
                module Ledger.Ledger,
                module Ledger.Parse,
@@ -27,6 +28,7 @@ import Ledger.AccountName
 import Ledger.Amount
 import Ledger.Commodity
 import Ledger.Dates
+import Ledger.IO
 import Ledger.LedgerTransaction
 import Ledger.Ledger
 import Ledger.Parse

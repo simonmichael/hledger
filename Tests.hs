@@ -135,14 +135,17 @@ a `is` e = assertEqual "" a e
 parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
 parse `parseis` expected = either printParseError (`is` expected) parse
 
+parseWithCtx :: GenParser Char LedgerFileCtx a -> String -> Either ParseError a
+parseWithCtx p ts = runParser p emptyCtx "" ts
+
 ------------------------------------------------------------------------------
 -- | Tests for any function or topic. Mostly ordered by test name.
 tests :: [Test]
 tests = [
 
    "account directive" ~: 
-   let sameParse str1 str2 = do l1 <- rawledgerfromstring str1
-                                l2 <- rawledgerfromstring str2
+   let sameParse str1 str2 = do l1 <- rawLedgerFromString str1
+                                l2 <- rawLedgerFromString str2
                                 l1 `is` l2
    in TestList
    [
@@ -320,7 +323,7 @@ tests = [
     ]
 
    ,"balance report with cost basis" ~: do
-      rl <- rawledgerfromstring $ unlines
+      rl <- rawLedgerFromString $ unlines
              [""
              ,"2008/1/1 test           "
              ,"  a:b          10h @ $50"
@@ -337,7 +340,7 @@ tests = [
         ]
 
    ,"balance report elides zero-balance root account(s)" ~: do
-      l <- ledgerfromstringwithopts [] [] sampletime
+      l <- ledgerFromStringWithOpts [] [] sampletime
              (unlines
               ["2008/1/1 one"
               ,"  test:a  1"
@@ -445,7 +448,7 @@ tests = [
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
 
   ,"default year" ~: do
-    rl <- rawledgerfromstring defaultyear_ledger_str
+    rl <- rawLedgerFromString defaultyear_ledger_str
     (ltdate $ head $ ledger_txns rl) `is` fromGregorian 2009 1 1
     return ()
 
@@ -539,7 +542,7 @@ tests = [
 
   ,"register report with cleared arg" ~:
    do 
-    l <- ledgerfromstringwithopts [Cleared] [] sampletime sample_ledger_str
+    l <- ledgerFromStringWithOpts [Cleared] [] sampletime sample_ledger_str
     showRegisterReport [Cleared] [] l `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
@@ -550,7 +553,7 @@ tests = [
 
   ,"register report with uncleared arg" ~:
    do 
-    l <- ledgerfromstringwithopts [UnCleared] [] sampletime sample_ledger_str
+    l <- ledgerFromStringWithOpts [UnCleared] [] sampletime sample_ledger_str
     showRegisterReport [UnCleared] [] l `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
@@ -562,7 +565,7 @@ tests = [
 
   ,"register report sorts by date" ~:
    do 
-    l <- ledgerfromstringwithopts [] [] sampletime $ unlines
+    l <- ledgerFromStringWithOpts [] [] sampletime $ unlines
         ["2008/02/02 a"
         ,"  b  1"
         ,"  c"
@@ -747,8 +750,8 @@ tests = [
 
 sampledate = parsedate "2008/11/26"
 sampletime = LocalTime sampledate midday
-sampleledger = ledgerfromstringwithopts [] [] sampletime sample_ledger_str
-sampleledgerwithopts opts args = ledgerfromstringwithopts opts args sampletime sample_ledger_str
+sampleledger = ledgerFromStringWithOpts [] [] sampletime sample_ledger_str
+sampleledgerwithopts opts args = ledgerFromStringWithOpts opts args sampletime sample_ledger_str
 
 sample_ledger_str = unlines
  ["; A sample ledger file."

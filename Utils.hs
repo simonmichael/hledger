@@ -1,61 +1,48 @@
 {-|
 
-Utilities for top-level modules and/or ghci. See also "Ledger.Utils".
+Utilities for top-level modules and ghci. See also "Ledger.IO" and
+"Ledger.Utils".
 
 -}
 
 module Utils
 where
 import Control.Monad.Error
-import qualified Data.Map as Map (lookup)
 import Data.Time.Clock
-import Text.ParserCombinators.Parsec
-import System.IO
-import Options
 import Ledger
+import Options (Opt,ledgerFilePathFromOpts,optsToIOArgs)
+import System.IO
+import Text.ParserCombinators.Parsec
+import qualified Data.Map as Map (lookup)
 
 
--- | Convert a RawLedger to a canonicalised, cached and filtered Ledger
--- based on the command-line options/arguments and the current date/time.
-prepareLedger ::  [Opt] -> [String] -> LocalTime -> String -> RawLedger -> Ledger
-prepareLedger opts args reftime rawtext rl = l{rawledgertext=rawtext}
-    where
-      l = cacheLedger apats $ filterRawLedger span dpats c r $ canonicaliseAmounts cb rl
-      (apats,dpats) = parseAccountDescriptionArgs [] args
-      span = dateSpanFromOpts (localDay reftime) opts
-      r = Real `elem` opts
-      cb = CostBasis `elem` opts
-      c = clearedValueFromOpts opts
-          where clearedValueFromOpts opts | null os = Nothing
-                                          | last os == Cleared = Just True
-                                          | otherwise = Just False
-                    where os = optsWithConstructors [Cleared,UnCleared] opts
-
--- | Get a RawLedger from the given string, or raise an error.
--- This uses the current local time as the reference time (for closing
--- open timelog entries).
-rawledgerfromstring :: String -> IO RawLedger
-rawledgerfromstring s = do
+-- | parse the user's specified ledger file and run a hledger command on it,
+-- or report a parse error. This function makes the whole thing go.
+withLedgerDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
+withLedgerDo opts args cmd = do
+  f <- ledgerFilePathFromOpts opts
+  -- kludgily read the file a second time to get the full text,
+  -- kludgily try not to fail if it's stdin. XXX
+  rawtext <- readFile $ if f == "-" then "/dev/null" else f
   t <- getCurrentLocalTime
-  liftM (either error id) $ runErrorT $ parseLedger t "(string)" s
+  let runcmd = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext
+
+  return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) runcmd
 
 -- | Get a Ledger from the given string and options, or raise an error.
-ledgerfromstringwithopts :: [Opt] -> [String] -> LocalTime -> String -> IO Ledger
-ledgerfromstringwithopts opts args reftime s =
-    liftM (prepareLedger opts args reftime s) $ rawledgerfromstring s
+ledgerFromStringWithOpts :: [Opt] -> [String] -> LocalTime -> String -> IO Ledger
+ledgerFromStringWithOpts opts args reftime s =
+    liftM (filterAndCacheLedgerWithOpts opts args reftime s) $ rawLedgerFromString s
 
--- | Get a Ledger from the given file path and options, or raise an error.
-ledgerfromfilewithopts :: [Opt] -> [String] -> FilePath -> IO Ledger
-ledgerfromfilewithopts opts args f = do
-  s <- readFile f 
-  rl <- rawledgerfromstring s
-  reftime <- getCurrentLocalTime
-  return $ prepareLedger opts args reftime s rl
+-- | Read a Ledger from the given file, filtering according to the
+-- options, or give an error.
+readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger
+readLedgerWithOpts opts args f = do
+  t <- getCurrentLocalTime
+  readLedgerWithIOArgs (optsToIOArgs opts args t) f
            
--- | Get a Ledger from your default ledger file, or raise an error.
--- Assumes no options.
-myledger :: IO Ledger
-myledger = ledgerFilePathFromOpts [] >>= ledgerfromfilewithopts [] []
+-- | Convert a RawLedger to a canonicalised, cached and filtered Ledger
+-- based on the command-line options/arguments and a reference time.
+filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> RawLedger -> Ledger
+filterAndCacheLedgerWithOpts opts args t = filterAndCacheLedger (optsToIOArgs opts args t)
 
-parseWithCtx :: GenParser Char LedgerFileCtx a -> String -> Either ParseError a
-parseWithCtx p ts = runParser p emptyCtx "" ts
