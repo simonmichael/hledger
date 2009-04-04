@@ -83,7 +83,7 @@ Executable hledger
                   Ledger.Types
                   Ledger.Utils
 
-  -- how to set patchlevel in cabal builds ?
+  -- need to set patchlevel here (darcs changes --from-tag=. --count)
   cpp-options:    -DPATCHES=0
 
   if flag(vty)
