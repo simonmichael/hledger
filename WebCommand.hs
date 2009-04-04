@@ -26,6 +26,7 @@ import Options
 import BalanceCommand
 import RegisterCommand
 import PrintCommand
+import HistogramCommand
 
 
 tcpport = 5000
@@ -55,11 +56,16 @@ web opts args l =
        ,dir "register" $ templatise $ registerreport []
        ,dir "balance" $ withDataFn (look "a") $ \a -> templatise $ balancereport [a]
        ,dir "balance" $ templatise $ balancereport []
+       ,dir "histogram" $ withDataFn (look "a") $ \a -> templatise $ histogramreport [a]
+       ,dir "histogram" $ templatise $ histogramreport []
        ]
       printreport apats    = showLedgerTransactions opts (apats ++ args) l
       registerreport apats = showRegisterReport opts (apats ++ args) l
       balancereport []  = showBalanceReport opts args l
       balancereport apats  = showBalanceReport opts (apats ++ args) l'
+          where l' = cacheLedger apats (rawledger l) -- re-filter by account pattern each time
+      histogramreport []  = showHistogram opts args l
+      histogramreport apats  = showHistogram opts (apats ++ args) l'
           where l' = cacheLedger apats (rawledger l) -- re-filter by account pattern each time
 
 templatise :: String -> ServerPartT IO Response
@@ -78,6 +84,8 @@ maintemplate r = printf (unlines
   ," <a href=register>register</a>"
   ,"|"
   ," <a href=print>print</a>"
+  ,"|"
+  ," <a href=histogram>histogram</a>"
   ,"</div>"
   ,"<pre>%s</pre>"
   ])
