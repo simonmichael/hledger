@@ -142,11 +142,11 @@ canonicaliseAmounts costbasis l@(RawLedger ms ps ts tls hs f fp) = RawLedger ms 
       commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
       commoditieswithsymbol s = filter ((s==) . symbol) commodities
       commoditysymbols = nub $ map symbol commodities
-      commodities = map commodity $ concatMap (amounts . amount) $ rawLedgerTransactions l
+      commodities = map commodity $ concatMap (amounts . tamount) $ rawLedgerTransactions l
 
 -- | Get just the amounts from a ledger, in the order parsed.
 rawLedgerAmounts :: RawLedger -> [MixedAmount]
-rawLedgerAmounts = map amount . rawLedgerTransactions
+rawLedgerAmounts = map tamount . rawLedgerTransactions
 
 -- | Get just the ammount commodities from a ledger, in the order parsed.
 rawLedgerCommodities :: RawLedger -> [Commodity]

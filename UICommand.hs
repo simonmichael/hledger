@@ -281,7 +281,7 @@ currentLedgerTransaction :: AppState -> LedgerTransaction
 currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransaction a t
     where
       t = safehead nulltxn $ filter ismatch $ ledgerTransactions l
-      ismatch t = date t == (parsedate $ take 10 datedesc)
+      ismatch t = tdate t == (parsedate $ take 10 datedesc)
                   && (take 70 $ showtxn False t nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ [safehead "" rest] ++ reverse above
       acctamt = drop 32 $ safehead "" rest

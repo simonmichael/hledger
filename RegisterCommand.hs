@@ -35,16 +35,16 @@ showRegisterReport opts args l
     | otherwise = showtxns summaryts nulltxn startbal
     where
       interval = intervalFromOpts opts
-      ts = sortBy (comparing date) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
-      filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ account t) <= depth)
+      ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
+      filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ taccount t) <= depth)
                   | otherwise = id
       filterempties
           | Empty `elem` opts = id
-          | otherwise = filter (not . isZeroMixedAmount . amount)
+          | otherwise = filter (not . isZeroMixedAmount . tamount)
       (precedingts, ts') = break (matchdisplayopt dopt) ts
       (displayedts, _) = span (matchdisplayopt dopt) ts'
       startbal = sumTransactions precedingts
-      matchapats t = matchpats apats $ account t
+      matchapats t = matchpats apats $ taccount t
       apats = fst $ parseAccountDescriptionArgs opts args
       matchdisplayopt Nothing t = True
       matchdisplayopt (Just e) t = (fromparse $ parsewith datedisplayexpr e) t
@@ -77,20 +77,20 @@ summariseTransactionsInDateSpan (DateSpan b e) tnum depth showempty ts
     | null ts = []
     | otherwise = summaryts'
     where
-      txn = nulltxn{tnum=tnum, date=b', description="- "++(showDate $ addDays (-1) e')}
-      b' = fromMaybe (date $ head ts) b
-      e' = fromMaybe (date $ last ts) e
+      txn = nulltxn{tnum=tnum, tdate=b', tdescription="- "++(showDate $ addDays (-1) e')}
+      b' = fromMaybe (tdate $ head ts) b
+      e' = fromMaybe (tdate $ last ts) e
       summaryts'
           | showempty = summaryts
-          | otherwise = filter (not . isZeroMixedAmount . amount) summaryts
-      txnanames = sort $ nub $ map account ts
+          | otherwise = filter (not . isZeroMixedAmount . tamount) summaryts
+      txnanames = sort $ nub $ map taccount ts
       -- aggregate balances by account, like cacheLedger, then do depth-clipping
       (_,_,exclbalof,inclbalof) = groupTransactions ts
       clippedanames = clipAccountNames depth txnanames
       isclipped a = accountNameLevel a >= depth
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
-      summaryts = [txn{account=a,amount=balancetoshowfor a} | a <- clippedanames]
+      summaryts = [txn{taccount=a,tamount=balancetoshowfor a} | a <- clippedanames]
 
 clipAccountNames :: Int -> [AccountName] -> [AccountName]
 clipAccountNames d as = nub $ map (clip d) as 
@@ -99,11 +99,11 @@ clipAccountNames d as = nub $ map (clip d) as
 -- | Show transactions one per line, with each date/description appearing
 -- only once, and a running balance.
 showtxns [] _ _ = ""
-showtxns (t@Transaction{amount=a}:ts) tprev bal = this ++ showtxns ts t bal'
+showtxns (t@Transaction{tamount=a}:ts) tprev bal = this ++ showtxns ts t bal'
     where
       this = showtxn (t `issame` tprev) t bal'
       issame t1 t2 = tnum t1 == tnum t2
-      bal' = bal + amount t
+      bal' = bal + tamount t
 
 -- | Show one transaction line and balance with or without the entry details.
 showtxn :: Bool -> Transaction -> MixedAmount -> String
@@ -114,5 +114,5 @@ showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
       desc = printf "%-20s" $ elideRight 20 de :: String
       p = showPosting $ Posting s a amt "" tt
       bal = padleft 12 (showMixedAmountOrZero b)
-      Transaction{status=s,date=da,description=de,account=a,amount=amt,ttype=tt} = t
+      Transaction{tstatus=s,tdate=da,tdescription=de,taccount=a,tamount=amt,ttype=tt} = t
 

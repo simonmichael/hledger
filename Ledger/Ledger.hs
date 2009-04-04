@@ -56,7 +56,7 @@ groupTransactions :: [Transaction] -> (Tree AccountName,
                                      (AccountName -> MixedAmount))
 groupTransactions ts = (ant,txnsof,exclbalof,inclbalof)
     where
-      txnanames = sort $ nub $ map account ts
+      txnanames = sort $ nub $ map taccount ts
       ant = accountNameTreeFrom $ expandAccountNames $ txnanames
       allanames = flatten ant
       txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allanames])
@@ -86,14 +86,14 @@ calculateBalances ant txnsof = addbalances ant
 transactionsByAccount :: [Transaction] -> Map.Map AccountName [Transaction]
 transactionsByAccount ts = m'
     where
-      sortedts = sortBy (comparing account) ts
-      groupedts = groupBy (\t1 t2 -> account t1 == account t2) sortedts
-      m' = Map.fromList [(account $ head g, g) | g <- groupedts]
+      sortedts = sortBy (comparing taccount) ts
+      groupedts = groupBy (\t1 t2 -> taccount t1 == taccount t2) sortedts
+      m' = Map.fromList [(taccount $ head g, g) | g <- groupedts]
 -- The special account name "top" can be used to look up all transactions. ?
 --      m' = Map.insert "top" sortedts m
 
 filtertxns :: [String] -> [Transaction] -> [Transaction]
-filtertxns apats ts = filter (matchpats apats . account) ts
+filtertxns apats ts = filter (matchpats apats . taccount) ts
 
 -- | List a ledger's account names.
 accountnames :: Ledger -> [AccountName]
@@ -137,6 +137,6 @@ ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan l
     | null ts = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just $ date $ head ts) (Just $ addDays 1 $ date $ last ts)
+    | otherwise = DateSpan (Just $ tdate $ head ts) (Just $ addDays 1 $ tdate $ last ts)
     where
-      ts = sortBy (comparing date) $ ledgerTransactions l
+      ts = sortBy (comparing tdate) $ ledgerTransactions l

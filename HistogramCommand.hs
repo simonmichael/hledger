@@ -29,13 +29,13 @@ histogram opts args l =
       days = filter (DateSpan Nothing Nothing /=) $ splitSpan interval fullspan
       daytxns = [(s, filter (isTransactionInDateSpan s) ts) | s <- days]
       -- same as RegisterCommand
-      ts = sortBy (comparing date) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
+      ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
       filterempties
           | Empty `elem` opts = id
-          | otherwise = filter (not . isZeroMixedAmount . amount)
-      matchapats t = matchpats apats $ account t
+          | otherwise = filter (not . isZeroMixedAmount . tamount)
+      matchapats t = matchpats apats $ taccount t
       (apats,_) = parsePatternArgs args
-      filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ account t) <= depth)
+      filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ taccount t) <= depth)
                   | otherwise = id
       depth = depthFromOpts opts
 

@@ -567,14 +567,14 @@ datedisplayexpr = do
   (y,m,d) <- smartdate
   char ']'
   let ltdate = parsedate $ printf "%04s/%02s/%02s" y m d
-  let matcher = \(Transaction{date=tdate}) -> 
+  let matcher = \(Transaction{tdate=d}) -> 
                   case op of
-                    "<"  -> tdate <  ltdate
-                    "<=" -> tdate <= ltdate
-                    "="  -> tdate == ltdate
-                    "==" -> tdate == ltdate -- just in case
-                    ">=" -> tdate >= ltdate
-                    ">"  -> tdate >  ltdate
+                    "<"  -> d <  ltdate
+                    "<=" -> d <= ltdate
+                    "="  -> d == ltdate
+                    "==" -> d == ltdate -- just in case
+                    ">=" -> d >= ltdate
+                    ">"  -> d >  ltdate
   return matcher              
 
 compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]

@@ -114,11 +114,11 @@ data RawLedger = RawLedger {
 
 data Transaction = Transaction {
       tnum :: Int,
-      status :: Bool,            -- ^ posting status
-      date :: Day,               -- ^ ledger transaction date
-      description :: String,     -- ^ ledger transaction description
-      account :: AccountName,    -- ^ posting account
-      amount :: MixedAmount,     -- ^ posting amount
+      tstatus :: Bool,           -- ^ posting status
+      tdate :: Day,              -- ^ ledger transaction date
+      tdescription :: String,    -- ^ ledger transaction description
+      taccount :: AccountName,   -- ^ posting account
+      tamount :: MixedAmount,    -- ^ posting amount
       ttype :: PostingType       -- ^ posting type
     } deriving (Eq)
 

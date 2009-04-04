@@ -884,34 +884,34 @@ tests = [
             summariseTransactionsInDateSpan (mkdatespan b e) tnum depth showempty ts `is` summaryts
     let ts =
             [
-             nulltxn{description="desc",account="expenses:food:groceries",amount=Mixed [dollars 1]}
-            ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 2]}
-            ,nulltxn{description="desc",account="expenses:food",          amount=Mixed [dollars 4]}
-            ,nulltxn{description="desc",account="expenses:food:dining",   amount=Mixed [dollars 8]}
+             nulltxn{tdescription="desc",taccount="expenses:food:groceries",tamount=Mixed [dollars 1]}
+            ,nulltxn{tdescription="desc",taccount="expenses:food:dining",   tamount=Mixed [dollars 2]}
+            ,nulltxn{tdescription="desc",taccount="expenses:food",          tamount=Mixed [dollars 4]}
+            ,nulltxn{tdescription="desc",taccount="expenses:food:dining",   tamount=Mixed [dollars 8]}
             ]
     ("2008/01/01","2009/01/01",0,9999,False,[]) `gives` 
      []
     ("2008/01/01","2009/01/01",0,9999,True,[]) `gives` 
      [
-      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31"}
+      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31"}
      ]
     ("2008/01/01","2009/01/01",0,9999,False,ts) `gives` 
      [
-      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",          amount=Mixed [dollars 4]}
-     ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:dining",   amount=Mixed [dollars 10]}
-     ,nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food:groceries",amount=Mixed [dollars 1]}
+      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food",          tamount=Mixed [dollars 4]}
+     ,nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food:dining",   tamount=Mixed [dollars 10]}
+     ,nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food:groceries",tamount=Mixed [dollars 1]}
      ]
     ("2008/01/01","2009/01/01",0,2,False,ts) `gives` 
      [
-      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses:food",amount=Mixed [dollars 15]}
+      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food",tamount=Mixed [dollars 15]}
      ]
     ("2008/01/01","2009/01/01",0,1,False,ts) `gives` 
      [
-      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="expenses",amount=Mixed [dollars 15]}
+      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses",tamount=Mixed [dollars 15]}
      ]
     ("2008/01/01","2009/01/01",0,0,False,ts) `gives` 
      [
-      nulltxn{date=parsedate "2008/01/01",description="- 2008/12/31",account="",amount=Mixed [dollars 15]}
+      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="",tamount=Mixed [dollars 15]}
      ]
 
   ,"postingamount" ~: do
