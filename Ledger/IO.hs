@@ -25,12 +25,12 @@ ledgerenvvar       = "LEDGER"
 timelogenvvar      = "TIMELOG"
 
 -- | A set of arguments specifying how to filter a ledger file.
-type IOArgs = (DateSpan         -- ^ only in this date span
-              ,Maybe Bool       -- ^ only cleared/uncleared/don't care
-              ,Bool             -- ^ only real/don't care
-              ,Bool             -- ^ convert amounts to cost basis
-              ,[String]         -- ^ account patterns
-              ,[String]         -- ^ description patterns
+type IOArgs = (DateSpan         -- only in this date span
+              ,Maybe Bool       -- only cleared/uncleared/don't care
+              ,Bool             -- only real/don't care
+              ,Bool             -- convert amounts to cost basis
+              ,[String]         -- account patterns
+              ,[String]         -- description patterns
               )
 
 noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [])
