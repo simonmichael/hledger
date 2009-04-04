@@ -15,24 +15,16 @@ Released under GPL version 3 or later.
 Installation
 ------------
 
-Building hledger requires GHC (http://haskell.org/ghc); it is known to
-build with GHC 6.8 and up. hledger should work on any platform which GHC
-supports.  
-
-Also, installing hledger easily requires the "cabal" command-line tool,
-version 0.6.0 and up (http://www.haskell.org/cabal/download.html). (You
-can manually download and install each dependency mentioned in
-hledger.cabal from hackage.org, but installing cabal is much quicker.)
-
-Here's how to download and install the latest hledger release::
+Platform binaries are being organized; you could try asking for one on the
+#ledger channel. Otherwise, building hledger requires GHC
+(http://haskell.org/ghc); it is known to build with GHC 6.8 and
+up. hledger should work on any platform which GHC supports.  Also,
+installing hledger easily requires cabal-install
+(http://www.haskell.org/cabal/download.html), version 0.6.0 and up. Get
+these installed on your system and then do::
 
  cabal update
- cabal install hledger (add -f happs to include the web ui)
-
-Or, to get the latest development code::
-
- darcs get http://joyful.com/repos/hledger
-
+ cabal install hledger (add -f happs if you want the web ui)
 
 Usage
 -----
@@ -76,16 +68,15 @@ and COMMAND is one of the commands above. Timelog entries look like this::
  i 2009/03/31 22:21:45 some:project
  o 2009/04/01 02:00:34
 
-The project description is like an account name. Here are some queries to try::
+The clockin description is an account name. Here are some queries to try::
 
- ln -s `which hledger` ~/bin/hours     # add the "hours" symlink in your path
- export TIMELOG=/my/timelog            # if it's not ~/.timelog
- hours                                 # today's balances
- hours today                           # the same
- hours 'this week'                     # so far this week
- hours lastmonth                       # the space is optional
- hours 'from 1/15' register            # sessions since last january 15
- hours 'monthly in 2009' reg --depth 1 # monthly time summary, top level only
+ ln -s `which hledger` ~/bin/hours      # add the "hours" symlink in your path
+ export TIMELOG=sample.timelog
+ hours                                  # time logged today, if any
+ hours 'last month'                     # last month
+ hours thisyear                         # the space is optional
+ hours 'from 1/15' register proj        # project sessions since last jan 15
+ hours 'weekly this year' reg --depth 1 # weekly time summary
 
 Features
 --------
