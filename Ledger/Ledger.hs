@@ -5,8 +5,11 @@ from a 'RawLedger' so that it is easy to query. It typically has had
 uninteresting 'LedgerTransaction's and 'Posting's removed. It contains
 
 - the original 'RawLedger'
-- a tree of account names
+
+- a tree of 'AccountName's
+
 - a map from account names to 'Account's
+
 - the full text of the journal file, when available
 
 -}

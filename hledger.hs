@@ -9,7 +9,7 @@ Released under GPL version 3 or later.
 hledger is a partial haskell clone of John Wiegley's "ledger" text-based
 accounting tool.  It generates ledger-compatible register & balance
 reports from a plain text journal, and demonstrates a functional
-implementation of ledger.  For more information, see ledger.org .
+implementation of ledger.  For more information, see http:\/\/hledger.org .
 
 You can use the command line:
 
@@ -19,8 +19,6 @@ or ghci:
 
 > $ ghci hledger
 > > l <- readLedger "sample.ledger"
-> > length $ ledgerTransactions l
-> 11
 > > register [] ["income","expenses"] l
 > 2008/01/01 income               income:salary                   $-1          $-1
 > 2008/06/01 gift                 income:gifts                    $-1          $-2
@@ -34,6 +32,7 @@ or ghci:
 > > l <- myLedger
 > > t <- myTimelog
 
+See "Ledger.Ledger" for more examples.
 -}
 
 module Main (

@@ -3,9 +3,11 @@
 A compound data type for efficiency. An 'Account' stores
 
 - an 'AccountName',
-- all `Transaction`s (postings plus ledger transaction info) in the
+
+- all 'Transaction's (postings plus ledger transaction info) in the
   account, excluding subaccounts
-- and the account balance, including subaccounts.
+
+- a 'MixedAmount' representing the account balance, including subaccounts.
 
 -}
 

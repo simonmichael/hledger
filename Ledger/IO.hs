@@ -24,13 +24,26 @@ timelogdefaultpath = "~/.timelog"
 ledgerenvvar       = "LEDGER"
 timelogenvvar      = "TIMELOG"
 
--- | A set of arguments specifying how to filter a ledger file.
-type IOArgs = (DateSpan         -- only in this date span
-              ,Maybe Bool       -- only cleared/uncleared/don't care
-              ,Bool             -- only real/don't care
-              ,Bool             -- convert amounts to cost basis
-              ,[String]         -- account patterns
-              ,[String]         -- description patterns
+-- | A tuple of arguments specifying how to filter a raw ledger file:
+-- 
+-- - only include transactions in this date span
+-- 
+-- - only include if cleared/uncleared/don't care
+-- 
+-- - only include if real/don't care
+-- 
+-- - convert all amounts to cost basis
+-- 
+-- - only include if matching these account patterns
+-- 
+-- - only include if matching these description patterns
+
+type IOArgs = (DateSpan
+              ,Maybe Bool
+              ,Bool
+              ,Bool
+              ,[String]
+              ,[String]
               )
 
 noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [])
