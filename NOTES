@@ -11,36 +11,28 @@ clever tricks like the plague." --Edsger Dijkstra
 We aim to make reliable, maintainable, usable software, sustainably.
 - pair programming
 - test-driven development
-- fixes, docs, deployment testing before features
+- fixes, docs, packaging, testing before features
 - "bugs" are "errors", as in "the programmer messed up"
 - test continuously and thoroughly (code, doc, speed tests/measurement on each commit, release)
 - less is more
 
 * to do
 ** errors
-** testing
-*** run ledger 3 baseline tests
-*** test all ledger file format features
-*** test reading from stdin
-*** --compare (xml?) output with ledger's ?
-*** clarify hledgerisms in file format - that hledger can read but ledger can't
-*** build with -Wall and anything else useful
-*** build with multiple ghc versions
-** docs & marketing
-*** document smart dates, period expressions, display expressions
-*** automate readme
-**** keep in sync (automate)
+** docs/marketing/packaging
+*** streamline - less is more
+*** automate
+**** keep blurbs in sync
 ***** README file
-****** options list in Features should match Options.hs, generate from hledger --help ?
 ***** hledger.hs module description
 ***** hledger.cabal description field (exclude home page link)
 ***** home page description (http://joyful.com/Hledger/editform)
 ***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
 ***** gmane description
 ***** darcsweb description
-*** automate announcements
-**** generate from README and NEWS
-*** develop funding
+**** keep Options.hs and README option list in sync
+**** accouncements
+*** document smart dates, period expressions, display expressions
+*** develop funding process
 **** license change ?
 **** donate button, see chimoo guy
 **** funding document 2009/01
@@ -242,16 +234,23 @@ competitors/fellow niche inhabitants
       most haskellers have never heard of hledger, sounds arrogant or hubristic to talk of charging for it
 
 **** qooxledger
-*** better user manual
-*** screencasts
 *** better screenshots
+*** screencasts
 *** developer docs
-**** style guide, see also above
+**** style guide
+***** see above
 **** unsafe things which may fail at runtime
 ***** incomplete pattern matching
 ***** error
 ***** printf
-** packaging & deployment
+*** cabal haddock
+*** liveness
+**** hledgercommitbot on #ledger
+**** show feeds on site ?
+***** commits (darcsweb)
+***** wiki pages
+**** weekly repo activity summary on list
+**** available feeds
 *** make installation easier
 **** on all platforms
 ***** set up binary publishing
@@ -267,7 +266,14 @@ competitors/fellow niche inhabitants
 ***** binary
 **** on windows
 ***** binary
-*** cabal haddock
+** testing
+*** test for robust ledger file parsing
+**** test all ledger file format features
+**** clarify hledgerisms in file format - that hledger can read but ledger can't
+**** run ledger 3 baseline tests
+*** --compare (xml?) output with ledger's ?
+*** build with -Wall and anything else useful
+*** build with multiple ghc versions
 *** cabal test
 ** code cleanup
 *** seek more modularity
