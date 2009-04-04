@@ -18,17 +18,21 @@ You can use the command line:
 or ghci:
 
 > $ ghci hledger
-> > l <- ledgerfromfilewithopts [] [] "sample.ledger"
-> > balance [] [] l
->                  $-1  assets
->                   $2  expenses
->                  $-2  income
->                   $1  liabilities
+> > l <- readLedger "sample.ledger"
+> > length $ ledgerTransactions l
+> 11
 > > register [] ["income","expenses"] l
 > 2008/01/01 income               income:salary                   $-1          $-1
 > 2008/06/01 gift                 income:gifts                    $-1          $-2
 > 2008/06/03 eat & shop           expenses:food                    $1          $-1
 >                                 expenses:supplies                $1            0
+> > balance [Depth "1"] [] l
+>                  $-1  assets
+>                   $2  expenses
+>                  $-2  income
+>                   $1  liabilities
+> > l <- myLedger
+> > t <- myTimelog
 
 -}
 
