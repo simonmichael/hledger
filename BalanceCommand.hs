@@ -127,7 +127,7 @@ showBalanceReport opts args l = acctsstr ++ totalstr
                | not (Empty `elem` opts) && isZeroMixedAmount total = ""
                | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmount total
           where
-            total = sum $ map abalance $ topAccounts l
+            total = sum $ map abalance $ ledgerTopAccounts l
 
 -- | Display one line of the balance report with appropriate indenting and eliding.
 showInterestingAccount :: Ledger -> [AccountName] -> AccountName -> String
@@ -157,5 +157,5 @@ isInteresting opts l a
       numinterestingsubs = length $ filter isInterestingTree subtrees
           where
             isInterestingTree t = treeany (isInteresting opts l . aname) t
-            subtrees = map (fromJust . ledgerAccountTreeAt l) $ subAccounts l $ ledgerAccount l a
+            subtrees = map (fromJust . ledgerAccountTreeAt l) $ ledgerSubAccounts l $ ledgerAccount l a
 

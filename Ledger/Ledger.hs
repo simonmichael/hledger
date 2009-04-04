@@ -13,6 +13,42 @@ contains:
 
 - the full text of the journal file, when available
 
+This is the main object you'll deal with as a user of the Ledger
+library. The most useful functions also have shorter, lower-case
+aliases for easier interaction. Here's an example:
+
+> > import Ledger
+> > l <- readLedger "sample.ledger"
+> > accountnames l
+> ["assets","assets:bank","assets:bank:checking","assets:bank:saving",...
+> > accounts l
+> [Account assets with 0 txns and $-1 balance,Account assets:bank with...
+> > topaccounts l
+> [Account assets with 0 txns and $-1 balance,Account expenses with...
+> > account l "assets"
+> Account assets with 0 txns and $-1 balance
+> > accountsmatching ["ch"] l
+> accountsmatching ["ch"] l
+> [Account assets:bank:checking with 4 txns and $0 balance]
+> > subaccounts l (account l "assets")
+> subaccounts l (account l "assets")
+> [Account assets:bank with 0 txns and $1 balance,Account assets:cash...
+> > head $ transactions l
+> 2008/01/01 income assets:bank:checking $1 RegularPosting
+> > accounttree 2 l
+> Node {rootLabel = Account top with 0 txns and 0 balance, subForest = [...
+> > accounttreeat l (account l "assets")
+> Just (Node {rootLabel = Account assets with 0 txns and $-1 balance, ...
+> > datespan l
+> DateSpan (Just 2008-01-01) (Just 2009-01-01)
+> > rawdatespan l
+> DateSpan (Just 2008-01-01) (Just 2009-01-01)
+> > ledgeramounts l
+> [$1,$-1,$1,$-1,$1,$-1,$1,$1,$-2,$1,$-1]
+> > commodities l
+> [Commodity {symbol = "$", side = L, spaced = False, comma = False, ...
+
+
 -}
 
 module Ledger.Ledger
@@ -96,28 +132,28 @@ filtertxns :: [String] -> [Transaction] -> [Transaction]
 filtertxns apats ts = filter (matchpats apats . taccount) ts
 
 -- | List a ledger's account names.
-accountnames :: Ledger -> [AccountName]
-accountnames l = drop 1 $ flatten $ accountnametree l
+ledgerAccountNames :: Ledger -> [AccountName]
+ledgerAccountNames l = drop 1 $ flatten $ accountnametree l
 
 -- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
 ledgerAccount l a = (accountmap l) ! a
 
 -- | List a ledger's accounts, in tree order
-accounts :: Ledger -> [Account]
-accounts l = drop 1 $ flatten $ ledgerAccountTree 9999 l
+ledgerAccounts :: Ledger -> [Account]
+ledgerAccounts l = drop 1 $ flatten $ ledgerAccountTree 9999 l
 
 -- | List a ledger's top-level accounts, in tree order
-topAccounts :: Ledger -> [Account]
-topAccounts l = map root $ branches $ ledgerAccountTree 9999 l
+ledgerTopAccounts :: Ledger -> [Account]
+ledgerTopAccounts l = map root $ branches $ ledgerAccountTree 9999 l
 
 -- | Accounts in ledger whose name matches the pattern, in tree order.
-accountsMatching :: [String] -> Ledger -> [Account]
-accountsMatching pats l = filter (matchpats pats . aname) $ accounts l
+ledgerAccountsMatching :: [String] -> Ledger -> [Account]
+ledgerAccountsMatching pats l = filter (matchpats pats . aname) $ accounts l
 
 -- | List a ledger account's immediate subaccounts
-subAccounts :: Ledger -> Account -> [Account]
-subAccounts l Account{aname=a} = 
+ledgerSubAccounts :: Ledger -> Account -> [Account]
+ledgerSubAccounts l Account{aname=a} = 
     map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ accountnames l
 
 -- | List a ledger's transactions.
@@ -140,3 +176,40 @@ ledgerDateSpan l
     | otherwise = DateSpan (Just $ tdate $ head ts) (Just $ addDays 1 $ tdate $ last ts)
     where
       ts = sortBy (comparing tdate) $ ledgerTransactions l
+
+-- | Convenience aliases.
+accountnames :: Ledger -> [AccountName]
+accountnames = ledgerAccountNames
+
+account :: Ledger -> AccountName -> Account
+account = ledgerAccount
+
+accounts :: Ledger -> [Account]
+accounts = ledgerAccounts
+
+topaccounts :: Ledger -> [Account]
+topaccounts = ledgerTopAccounts
+
+accountsmatching :: [String] -> Ledger -> [Account]
+accountsmatching = ledgerAccountsMatching
+
+subaccounts :: Ledger -> Account -> [Account]
+subaccounts = ledgerSubAccounts
+
+transactions :: Ledger -> [Transaction]
+transactions = ledgerTransactions
+
+accounttree :: Int -> Ledger -> Tree Account
+accounttree = ledgerAccountTree
+
+accounttreeat :: Ledger -> Account -> Maybe (Tree Account)
+accounttreeat = ledgerAccountTreeAt
+
+datespan :: Ledger -> DateSpan
+datespan = ledgerDateSpan
+
+rawdatespan :: Ledger -> DateSpan
+rawdatespan = rawLedgerDateSpan . rawledger
+
+ledgeramounts :: Ledger -> [MixedAmount]
+ledgeramounts = rawLedgerAmounts . rawledger
