@@ -28,9 +28,9 @@ timelogenvvar      = "TIMELOG"
 -- 
 -- - only include transactions in this date span
 -- 
--- - only include if cleared/uncleared/don't care
+-- - only include if cleared\/uncleared\/don't care
 -- 
--- - only include if real/don't care
+-- - only include if real\/don't care
 -- 
 -- - convert all amounts to cost basis
 -- 

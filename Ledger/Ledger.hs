@@ -1,10 +1,11 @@
 {-|
 
 A compound data type for efficiency. A 'Ledger' caches information derived
-from a 'RawLedger' so that it is easy to query. It typically has had
-uninteresting 'LedgerTransaction's and 'Posting's removed. It contains
+from a 'RawLedger' for easier querying. Also it typically has had
+uninteresting 'LedgerTransaction's and 'Posting's filtered out. It
+contains:
 
-- the original 'RawLedger'
+- the original unfiltered 'RawLedger'
 
 - a tree of 'AccountName's
 

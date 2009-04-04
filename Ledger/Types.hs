@@ -3,21 +3,22 @@
 Most data types are defined here to avoid import cycles. See the
 corresponding modules for each type's documentation.
 
-A note about entry/transaction/posting terminology:
+A note about entry\/transaction\/posting terminology:
 
   - ledger 2 had Entrys containing Transactions.
   
-  - hledger 0.4 had Entrys containing RawTransactions, and Transactions
-    which are a RawTransaction with its parent Entry's info added.
-    Transactions are what we most work with when reporting and are
+  - hledger 0.4 had Entrys containing RawTransactions, plus Transactions
+    which were a RawTransaction with its parent Entry's info added.
+    The latter are what we most work with when reporting and are
     ubiquitous in the code and docs.
   
   - ledger 3 has Transactions containing Postings.
   
-  - hledger 0.5 has LedgerTransactions containing Postings, with
-    Transactions kept as before (a Posting plus it's parent's info).
-    These could be named PartialTransactions or TransactionPostings, but
-    it gets too verbose and obscure for devs and users.
+
+  - hledger 0.5 has LedgerTransactions containing Postings, plus
+    Transactions as before (a Posting plus it's parent's info).  The
+    \"transaction\" term is pretty ingrained in the code, docs and with
+    users, so we've kept it. 
 
 -}
 

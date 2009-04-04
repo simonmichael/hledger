@@ -1,7 +1,11 @@
 {-|
 
-A 'Posting' represents a single transaction line within a ledger
-entry. We call it raw to distinguish from the cached 'Transaction'.
+A 'Posting' represents a 'MixedAmount' being added to or subtracted from a
+single 'Account'.  Each 'LedgerTransaction' contains two or more postings
+which should add up to 0.  
+
+Generally, we use these with the ledger transaction's date and description
+added, which we call a 'Transaction'.
 
 -}
 

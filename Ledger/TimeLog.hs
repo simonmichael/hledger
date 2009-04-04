@@ -1,8 +1,8 @@
 {-|
 
-A 'TimeLog' is a parsed timelog file (see timeclock.el or the command-line
-version) containing zero or more 'TimeLogEntry's. It can be converted to a
-'RawLedger' for querying.
+A 'TimeLogEntry' is a clock-in, clock-out, or other directive in a timelog
+file (see timeclock.el or the command-line version). These can be
+converted to 'LedgerTransactions' and queried like a ledger.
 
 -}
 
