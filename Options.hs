@@ -218,14 +218,13 @@ ledgerFilePathFromOpts opts = do
   f <- if istimequery then myTimelogPath else myLedgerPath
   return $ last $ f:(optValuesForConstructor File opts)
 
--- | Gather any pattern arguments into a list of account patterns and a
--- list of description patterns. For now we interpret pattern arguments as
+-- | Gather filter pattern arguments into a list of account patterns and a
+-- list of description patterns. We interpret pattern arguments as
 -- follows: those prefixed with "desc:" are description patterns, all
--- others are account patterns. Also patterns prefixed with "not:" are
+-- others are account patterns; also patterns prefixed with "not:" are
 -- negated. not: should come after desc: if both are used.
--- This is different from ledger 2 and 3.
-parseAccountDescriptionArgs :: [Opt] -> [String] -> ([String],[String])
-parseAccountDescriptionArgs opts args = (as, ds')
+parsePatternArgs :: [String] -> ([String],[String])
+parsePatternArgs args = (as, ds')
     where
       descprefix = "desc:"
       (ds, as) = partition (descprefix `isPrefixOf`) args
@@ -239,5 +238,5 @@ optsToIOArgs opts args t = (dateSpanFromOpts (localDay t) opts
                          ,CostBasis `elem` opts
                          ,apats
                          ,dpats
-                         ) where (apats,dpats) = parseAccountDescriptionArgs [] args
+                         ) where (apats,dpats) = parsePatternArgs args
 

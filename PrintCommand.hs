@@ -24,4 +24,4 @@ showLedgerTransactions opts args l = concatMap showLedgerTransaction $ filteredt
                         filterRawLedgerTransactionsByAccount apats $ 
                         rawledger l
       depth = depthFromOpts opts
-      (apats,_) = parseAccountDescriptionArgs opts args
+      (apats,_) = parsePatternArgs args
