@@ -604,7 +604,7 @@ tests = [
      ["2008/06/03 * eat & shop"
      ,"    expenses:food                                 $1"
      ,"    expenses:supplies                             $1"
-     ,"    assets:cash                                  $-2"
+     ,"    assets:cash"
      ,""
      ]
 
@@ -621,7 +621,7 @@ tests = [
       ,"2008/06/03 * eat & shop"
       ,"    expenses:food                                 $1"
       ,"    expenses:supplies                             $1"
-      ,"    assets:cash                                  $-2"
+      ,"    assets:cash"
       ,""
       ,"2008/12/31 * pay off"
       ,"    liabilities:debts                             $1"
@@ -762,7 +762,30 @@ tests = [
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
   ,"showLedgerTransaction" ~: do
-     showLedgerTransaction entry1 `is` entry1_str
+     assertEqual "show a balanced transaction, eliding last amount"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries                   $47.18"
+        ,"    assets:checking"
+        ,""
+        ])
+       (showLedgerTransaction
+        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
+         ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting
+         ] ""))
+     assertEqual "show an unbalanced transaction, should not elide"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries                   $47.18"
+        ,"    assets:checking                          $-47.19"
+        ,""
+        ])
+       (showLedgerTransaction
+        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
+         ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting
+         ] ""))
 
   ,"unicode in balance layout" ~: do
     l <- ledgerFromStringWithOpts [] [] sampletime
@@ -958,9 +981,9 @@ entry1 =
 
 entry2_str = unlines
  ["2007/01/27 * joes diner"
- ,"  expenses:food:dining                    $10.00"
- ,"  expenses:gifts                          $10.00"
- ,"  assets:checking                        $-20.00"
+ ,"    expenses:food:dining                      $10.00"
+ ,"    expenses:gifts                            $10.00"
+ ,"    assets:checking                          $-20.00"
  ,""
  ]
 

@@ -67,7 +67,8 @@ showLedgerTransaction' elide t =
       comment = if (length $ ltcomment t) > 0 then "  ; "++(ltcomment t) else ""
       showdate d = printf "%-10s" (showDate d)
       showpostings ps
-          | elide && length ps == 2 = [showposting (ps !! 0), showpostingnoamt (ps !! 1)]
+          | elide && length ps > 1 && isLedgerTransactionBalanced t
+              = map showposting (init ps) ++ [showpostingnoamt (last ps)]
           | otherwise = map showposting ps
           where
             showposting p = showacct p ++ "  " ++ (showamount $ pamount p) ++ (showcomment $ pcomment p)
