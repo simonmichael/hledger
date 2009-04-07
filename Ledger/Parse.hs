@@ -425,6 +425,7 @@ postingamount =
         return a
       ) <|> return missingamt
 
+someamount :: GenParser Char st MixedAmount
 someamount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount 
 
 leftsymbolamount :: GenParser Char st MixedAmount
