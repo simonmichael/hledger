@@ -748,6 +748,9 @@ tests = [
 
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
+  ,"showLedgerTransaction" ~: do
+     showLedgerTransaction entry1 `is` entry1_str
+
   ,"smart dates" ~: do
     let str `gives` datestr = fixSmartDateStr (parsedate "2008/11/26") str `is` datestr
     "1999-12-02"   `gives` "1999/12/02"
@@ -915,8 +918,8 @@ rawposting1 = Posting False "expenses:food:dining" (Mixed [dollars 10]) "" Regul
 
 entry1_str = unlines
  ["2007/01/28 coopportunity"
- ,"  expenses:food:groceries                 $47.18"
- ,"  assets:checking"
+ ,"    expenses:food:groceries                   $47.18"
+ ,"    assets:checking"
  ,""
  ]
 

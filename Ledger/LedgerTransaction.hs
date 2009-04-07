@@ -71,14 +71,13 @@ showLedgerTransaction' elide t =
           | otherwise = map showposting ps
           where
             showposting p = showacct p ++ "  " ++ (showamount $ pamount p) ++ (showcomment $ pcomment p)
-            showpostingnoamt p = showacct p ++ "              " ++ (showcomment $ pcomment p)
+            showpostingnoamt p = rstrip $ showacct p ++ "              " ++ (showcomment $ pcomment p)
             showacct p = "    " ++ showstatus p ++ (showaccountname $ paccount p)
             showamount = printf "%12s" . showMixedAmount
             showaccountname s = printf "%-34s" s
             showcomment s = if (length s) > 0 then "  ; "++s else ""
-            showstatus p = case pstatus p of
-                       True -> "* "
-                       False -> ""
+            showstatus p = if pstatus p then "* " else ""
+            rstrip = reverse . dropWhile (== ' ') . reverse
 
 isLedgerTransactionBalanced :: LedgerTransaction -> Bool
 isLedgerTransactionBalanced (LedgerTransaction {ltpostings=ps}) = 
