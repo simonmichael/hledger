@@ -368,7 +368,7 @@ normalposting :: GenParser Char LedgerFileCtx Posting
 normalposting = do
   status <- ledgerstatus
   account <- transactionaccountname
-  amount <- transactionamount
+  amount <- postingamount
   many spacenonewline
   comment <- ledgercomment
   restofline
@@ -381,7 +381,7 @@ virtualposting = do
   char '('
   account <- transactionaccountname
   char ')'
-  amount <- transactionamount
+  amount <- postingamount
   many spacenonewline
   comment <- ledgercomment
   restofline
@@ -394,7 +394,7 @@ balancedvirtualposting = do
   char '['
   account <- transactionaccountname
   char ']'
-  amount <- transactionamount
+  amount <- postingamount
   many spacenonewline
   comment <- ledgercomment
   restofline
@@ -417,8 +417,8 @@ ledgeraccountname = do
 accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
-transactionamount :: GenParser Char st MixedAmount
-transactionamount =
+postingamount :: GenParser Char st MixedAmount
+postingamount =
   try (do
         many1 spacenonewline
         a <- someamount <|> return missingamt
