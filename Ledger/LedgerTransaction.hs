@@ -22,7 +22,8 @@ instance Show ModifierTransaction where
 instance Show PeriodicTransaction where 
     show t = "~ " ++ (ptperiodicexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
 
-nullentry = LedgerTransaction {
+nullledgertxn :: LedgerTransaction
+nullledgertxn = LedgerTransaction {
               ltdate=parsedate "1900/1/1", 
               ltstatus=False, 
               ltcode="", 
