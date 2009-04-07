@@ -189,7 +189,7 @@ tfilter _ t = t
 
 -- | Simple way to assert something is some expected value, with no label.
 is :: (Eq a, Show a) => a -> a -> Assertion
-a `is` e = assertEqual "" a e
+a `is` e = assertEqual "" e a
 
 -- | Assert a parse result is some expected value, or print a parse error.
 parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
