@@ -29,7 +29,9 @@ usagehdr = (
   "When invoked as \"hours\", uses your timelog and --period today as defaults.\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
+  "  add      - read new transactions interactively\n" ++
   "  balance  - show account balances\n" ++
+  "  histogram - show transaction counts per reporting interval\n" ++
   "  print    - show formatted ledger transactions\n" ++
   "  register - show register transactions\n" ++
 #ifdef VTY
