@@ -22,8 +22,9 @@ withLedgerDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> I
 withLedgerDo opts args cmd = do
   f <- ledgerFilePathFromOpts opts
   -- kludgily read the file a second time to get the full text. Only the ui command needs it.
-  -- kludgily try not to fail if it's stdin. XXX
-  rawtext <- readFile $ if f == "-" then "/dev/null" else f
+  -- kludgily try not to fail if it's stdin.
+  -- read it strictly to let the add command work
+  rawtext <- strictReadFile $ if f == "-" then "/dev/null" else f
   t <- getCurrentLocalTime
   let runcmd = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f})
   return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) runcmd

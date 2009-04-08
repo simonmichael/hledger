@@ -24,6 +24,7 @@ module Test.HUnit,
 )
 where
 import Char
+import Control.Exception
 import Control.Monad
 import Data.List
 --import qualified Data.Map as Map
@@ -34,6 +35,7 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Debug.Trace
+import System.IO
 import Test.HUnit
 import Text.Printf
 import Text.Regex
@@ -240,7 +242,7 @@ getCurrentLocalTime = do
   tz <- getCurrentTimeZone
   return $ utcToLocalTime tz t
 
-
+-- misc
 
 isLeft :: Either a b -> Bool
 isLeft (Left _) = True
@@ -249,3 +251,5 @@ isLeft _        = False
 isRight :: Either a b -> Bool
 isRight = not . isLeft
 
+strictReadFile :: FilePath -> IO String
+strictReadFile f = readFile f >>= \s -> Control.Exception.evaluate (length s) >> return s
