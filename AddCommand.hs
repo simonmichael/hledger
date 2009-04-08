@@ -23,9 +23,9 @@ add opts args l
     | filepath (rawledger l) == "-" = return ()
     | otherwise = do
   hPutStrLn stderr ("Please enter one or more transactions, which will be added to your ledger file.\n\
-                    \A blank account or amount ends the current transaction, control-d to finish.")
+                    \A blank account or amount ends a transaction, control-d to finish.")
   ts <- getAndAddTransactions l
-  putStrLn $ printf "\n\nAdded %d transactions to %s ." (length ts) (filepath $ rawledger l)
+  putStrLn $ printf "\nAdded %d transactions to %s ." (length ts) (filepath $ rawledger l)
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger file.

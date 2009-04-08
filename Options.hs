@@ -67,8 +67,8 @@ options = [
  ,Option ['U'] ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
  ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
  ,Option []    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
- ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching simple EXPR\n" ++
-                                                        "(where EXPR is 'dOP[DATE]', OP is <, <=, =, >=, >)")
+ ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
+                                                        "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
  ,Option ['E'] ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
  ,Option []    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"

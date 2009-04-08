@@ -55,8 +55,10 @@ results.  Here are some commands to try::
  hledger reg income                    # transactions to/from an income account
  hledger reg checking                  # checking transactions
  hledger reg desc:shop                 # transactions with shop in the description
+ hledger histogram                     # transactions per day, or other interval
  hledger ui                            # interactive ui, if you're on unix/mac
  hledger web                           # web ui, if you installed with -f happs
+ echo >new; hledger -f new add         # input transactions from the command line
 
 
 Time reporting
@@ -130,6 +132,8 @@ We handle (almost) the full period expression syntax, and very limited
 display expressions consisting of a simple date predicate. Also the
 following new commands are supported::
 
+   histogram              show a barchart of transaction counts
+   add                    input transactions from the command line
    ui                     a simple interactive text ui (only on unix platforms)
    web                    a simple web ui
    test                   run self-tests
@@ -213,3 +217,4 @@ Other differences
 * hledger register report always sorts transactions by date
 * hledger doesn't show description comments as part of the description
 * hledger print puts a blank line after the entry, not before it
+* hledger doesn't print the trailing spaces after amount-elided postings
