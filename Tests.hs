@@ -774,6 +774,7 @@ tests = [
          [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
          ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting
          ] ""))
+     -- document some cases that arise in debug/testing:
      assertEqual "show an unbalanced transaction, should not elide"
        (unlines
         ["2007/01/28 coopportunity"
@@ -785,6 +786,26 @@ tests = [
         (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
          [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
          ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting
+         ] ""))
+     assertEqual "show an unbalanced transaction with one posting, should not elide"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries                   $47.18"
+        ,""
+        ])
+       (showLedgerTransaction
+        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
+         ] ""))
+     assertEqual "show a transaction with one posting and a missing amount"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries                         "
+        ,""
+        ])
+       (showLedgerTransaction
+        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" missingamt "" RegularPosting
          ] ""))
 
   ,"unicode in balance layout" ~: do
