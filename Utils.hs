@@ -25,7 +25,7 @@ withLedgerDo opts args cmd = do
   -- kludgily try not to fail if it's stdin. XXX
   rawtext <- readFile $ if f == "-" then "/dev/null" else f
   t <- getCurrentLocalTime
-  let runcmd = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext
+  let runcmd = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f})
 
   return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) runcmd
 

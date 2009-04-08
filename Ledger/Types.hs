@@ -102,7 +102,8 @@ data RawLedger = RawLedger {
       ledger_txns :: [LedgerTransaction],
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
-      final_comment_lines :: String
+      final_comment_lines :: String,
+      filepath :: FilePath
     } deriving (Eq)
 
 data TimeLogEntry = TimeLogEntry {
