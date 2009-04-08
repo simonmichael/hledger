@@ -56,7 +56,9 @@ Executable hledger
                   regex-pcre, csv, split, utf8-string
 
   Other-Modules:  
+                  AddCommand
                   BalanceCommand
+                  HistogramCommand
                   Options
                   PrintCommand
                   RegisterCommand
