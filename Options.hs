@@ -32,8 +32,8 @@ usagehdr = (
   "  add       - read new transactions interactively\n" ++
   "  balance   - show account balances\n" ++
   "  histogram - show transaction counts per reporting interval\n" ++
-  "  print     - show formatted ledger transactions\n" ++
-  "  register  - show register transactions\n" ++
+  "  print     - show transactions as formatted data\n" ++
+  "  register  - show transactions as a register\n" ++
 #ifdef VTY
   "  ui        - run a simple curses-based text ui\n" ++
 #endif
@@ -43,7 +43,7 @@ usagehdr = (
   "  test      - run self-tests\n" ++
   "\n" ++
   "PATTERNS are regular expressions which filter by account name.\n" ++
-  "Or, prefix with desc: to filter by entry description.\n" ++
+  "Or, prefix with desc: to filter by transaction description.\n" ++
   "Or, prefix with not: to negate a pattern. (When using both, not: comes last.)\n" ++
   "\n" ++
   "Dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
