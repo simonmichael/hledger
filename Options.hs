@@ -29,18 +29,18 @@ usagehdr = (
   "When invoked as \"hours\", uses your timelog and --period today as defaults.\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
-  "  add      - read new transactions interactively\n" ++
-  "  balance  - show account balances\n" ++
+  "  add       - read new transactions interactively\n" ++
+  "  balance   - show account balances\n" ++
   "  histogram - show transaction counts per reporting interval\n" ++
-  "  print    - show formatted ledger transactions\n" ++
-  "  register - show register transactions\n" ++
+  "  print     - show formatted ledger transactions\n" ++
+  "  register  - show register transactions\n" ++
 #ifdef VTY
-  "  ui       - run a simple curses-based text ui\n" ++
+  "  ui        - run a simple curses-based text ui\n" ++
 #endif
 #ifdef HAPPS
-  "  web      - run a simple web ui\n" ++
+  "  web       - run a simple web ui\n" ++
 #endif
-  "  test     - run self-tests\n" ++
+  "  test      - run self-tests\n" ++
   "\n" ++
   "PATTERNS are regular expressions which filter by account name.\n" ++
   "Or, prefix with desc: to filter by entry description.\n" ++
