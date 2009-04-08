@@ -41,8 +41,8 @@ getAndAddTransactions l = (do
                        ,ltdescription=description
                        ,ltpostings=ps
                        }
-  appendToLedgerFile l $ show t
   registerFromString (show t) >>= putStrLn
+  appendToLedgerFile l $ show t
   liftM (t:) (getAndAddTransactions l)
                           ) `catch` (\e -> if isEOFError e then return [] else ioError e)
 
