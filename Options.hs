@@ -22,10 +22,11 @@ import Ledger.Dates
 progname      = "hledger"
 timeprogname  = "hours"
 
-usagehdr = printf (
-  "Usage: one of\n" ++
-  "  %s [OPTIONS] COMMAND [PATTERNS]\n" ++
-  "  %s [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]\n" ++
+usagehdr = (
+  "Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]\n" ++
+  "       hours   [OPTIONS] [COMMAND [PATTERNS]]\n" ++
+  "\n" ++
+  "When invoked as \"hours\", uses your timelog and --period today as defaults.\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
   "  balance  - show account balances\n" ++
@@ -46,7 +47,7 @@ usagehdr = printf (
   "Dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
   "\n" ++
   "Options:"
-  ) progname timeprogname
+  )
   
 
 usageftr = printf (
@@ -127,29 +128,20 @@ optValuesForConstructors fs opts = concatMap get opts
     where get o = if any (\f -> f v == o) fs then [v] else [] where v = value o
 
 -- | Parse the command-line arguments into options, command name, and
--- command arguments. Any dates in the options are converted to full
--- YYYY/MM/DD format, while we are in the IO monad and can get the current
--- time. Arguments are parsed differently if the program was invoked as
--- \"hours\".
+-- command arguments. Any dates in the options are converted to explicit
+-- YYYY/MM/DD format based on the current time. If the program was invoked
+-- as \"hours\", the -f $TIMELOG -p today options are assumed as a default.
 parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- getArgs
-  istimequery <- usingTimeProgramName
   let (os,as,es) = getOpt Permute options args
-  os' <- fixOptDates os
-  case istimequery of
-    False ->
-        case (os,as,es) of
-          (opts,cmd:args,[])   -> return (os',cmd,args)
-          (opts,[],[])         -> return (os',"",[])
-          (opts,_,errs)        -> ioError (userError (concat errs ++ usage))
-    True -> 
-        case (os,as,es) of
-          (opts,p:cmd:args,[]) -> return (os' ++ [Period p],cmd,args)
-          (opts,p:args,[])     -> return ([Period p,SubTotal] ++ os',"balance",args)
-          (opts,[],[])         -> return ([Period "today",SubTotal] ++ os',"balance",[])
-          (opts,_,errs)        -> ioError (userError (concat errs ++ usage))
-      
+  istimequery <- usingTimeProgramName
+  let os' = if istimequery then (Period "today"):os else os
+  os'' <- fixOptDates os'
+  case (as,es) of
+    (cmd:args,[])   -> return (os'',cmd,args)
+    ([],[])         -> return (os'',"",[])
+    (_,errs)        -> ioError (userError (concat errs ++ usage))
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.

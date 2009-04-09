@@ -59,15 +59,15 @@ results.  Here are some commands to try::
 
 Time reporting
 --------------
+
 hledger will also read timeclock.el-format timelog entries.  As a
-convenience, if you invoke the hledger executable via a link or copy named
-"hours", it looks for your timelog file (~/.timelog, or the file specified
-by $TIMELOG or -f), and parses arguments slightly differently::
+convenience, if you invoke hledger via a link or copy named "hours", it
+uses your timelog file (~/.timelog or $TIMELOG) and --period today as
+defaults.
 
- hours [OPTIONS] [PERIOD [COMMAND [PATTERNS]]]
+ hours [OPTIONS] [COMMAND [PATTERNS]]
 
-where PERIOD is a ledger-style period expression, defaulting to "today",
-and COMMAND is one of the commands above. Timelog entries look like this::
+Timelog entries look like this::
 
  i 2009/03/31 22:21:45 some:project
  o 2009/04/01 02:00:34
