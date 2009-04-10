@@ -38,10 +38,11 @@ optional rule saving.
 module ConvertCommand where
 import Data.Maybe (isJust)
 import Data.List.Split (splitOn)
-import Options (Opt)
+import Options -- (Opt,Debug)
 import Ledger.Types (Ledger)
 import Ledger.Utils (strip)
 import System (getArgs)
+import System.IO (stderr, hPutStrLn)
 import Text.CSV (parseCSVFromFile, Record)
 import Text.Printf (printf)
 import Text.Regex.PCRE ((=~))
@@ -62,7 +63,7 @@ convert opts args l = do
   let records = case parse of
                   Left e -> error $ show e
                   Right rs -> reverse rs
-  mapM_ (print_ledger_txn (baseacct,fieldpositions,rules)) records
+  mapM_ (print_ledger_txn (Debug `elem` opts) (baseacct,fieldpositions,rules)) records
 
 parseRules s = do
   let ls = map strip $ lines s
@@ -71,20 +72,34 @@ parseRules s = do
   let rules = [(last p,init p) | p <- tail paras]
   return (fieldpositions,rules)
 
-print_ledger_txn (baseacct,fieldpositions,rules) record@(a:b:c:d:e) = do
+print_ledger_txn debug (baseacct,fieldpositions,rules) record@(a:b:c:d:e) = do
   let [date,cleared,number,description,amount] = map (record !!) fieldpositions
       amount' = strnegate amount where strnegate ('-':s) = s
                                        strnegate s = '-':s
       unknownacct | (read amount' :: Double) < 0 = "income:unknown"
                   | otherwise = "expenses:unknown"
-  putStrLn $ printf "%s%s %s" (fixdate date) (if not (null number) then printf " (%s)" number else "") description
-  putStrLn $ printf "    %-30s  %15s" (fromMaybe unknownacct $ choose_acct rules description) (printf "$%s" amount' :: String)
+      (acct,desc) = choose_acct_desc rules (unknownacct,description)
+  when (debug) $ hPutStrLn stderr $ printf "using %s for %s" desc description
+  putStrLn $ printf "%s%s %s" (fixdate date) (if not (null number) then printf " (%s)" number else "") desc
+  putStrLn $ printf "    %-30s  %15s" acct (printf "$%s" amount' :: String)
   putStrLn $ printf "    %s\n" baseacct
-print_ledger_txn _ _ = return ()
+print_ledger_txn True _ record = do
+  hPutStrLn stderr $ printf "ignoring %s" $ show record
+print_ledger_txn _ _ _ = return ()
 
 choose_acct rules description | null matches = Nothing
                               | otherwise = Just $ fst $ head $ matches
                               where matches = filter (any (description =~) . snd) rules
+
+choose_acct_desc rules (acct,desc) | null matches = (acct,desc)
+                                   | otherwise = (a,d)
+    where
+      matches = filter (any (desc =~) . snd) rules
+      (a,pats) = head matches
+      (before,match,after,groups) = head $ filter (\(_,m,_,_) -> not $ null m) $ map (desc =~) pats
+                                  :: (String, String, String, [String])
+      -- d = if null groups then before ++ match ++ after else head groups -- default to whole description
+      d = if null groups then match else head groups -- default to just match
 
 fixdate :: String -> String
 fixdate s = maybe "0000/00/00" showDate $ 
