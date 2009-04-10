@@ -28,42 +28,52 @@ add opts args l
   hPutStrLn stderr $ printf "\nAdded %d transactions to %s ." (length ts) (filepath $ rawledger l)
 
 -- | Read a number of ledger transactions from the command line,
--- prompting, validating, displaying and appending them to the ledger file.
+-- prompting, validating, displaying and appending them to the ledger
+-- file, until EOF.
 getAndAddTransactions :: Ledger -> IO [LedgerTransaction]
 getAndAddTransactions l = (do
+  t <- getTransaction l >>= addTransaction l
+  liftM (t:) (getAndAddTransactions l)
+ ) `catch` (\e -> if isEOFError e then return [] else ioError e)
+
+-- | Read a transaction from the command line.
+getTransaction :: Ledger -> IO LedgerTransaction
+getTransaction l = do
   today <- getCurrentDay
   datestr <- askFor "date" (Just $ showDate today)
             (Just $ \s -> null s || 
              (isRight $ parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
-  let date = fixSmartDate today $ fromparse $ parseSmartDate datestr
+  let date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
   description <- askFor "description" Nothing (Just $ not . null)
-  ps <- getPostings []
+  let getpostingsandvalidate = do
+                     ps <- getPostings []
+                     let t = nullledgertxn{ltdate=date
+                                          ,ltstatus=False
+                                          ,ltdescription=description
+                                          ,ltpostings=ps
+                                          }
+                     either (const retry) (return) $ balanceLedgerTransaction t
+      retry = do
+        hPutStrLn stderr $ nonzerobalanceerror ++ ". Re-enter:"
+        getpostingsandvalidate
+  getpostingsandvalidate
 
-  let t = nullledgertxn{ltdate=date
-                       ,ltstatus=False
-                       ,ltdescription=description
-                       ,ltpostings=ps
-                       }
-  -- a final validation, will raise an error if not parseable and balanced
-  putStrLn =<< registerFromString (show t)
-  appendToLedgerFile l $ show t
-  liftM (t:) (getAndAddTransactions l)
-                          ) `catch` (\e -> if isEOFError e then return [] else ioError e)
-    where parseSmartDate = parse smartdate "" . lowercase
-
--- | Read two or more postings interactively.
+-- | Read two or more postings from the command line.
 getPostings :: [Posting] -> IO [Posting]
 getPostings prevps = do
-  account <- askFor "account" Nothing (Just $ \s -> not $ null s && (length prevps < 2))
+  account <- askFor (printf "account %d" n) Nothing (Just $ \s -> not $ null s && (length prevps < 2))
   if null account
     then return prevps
     else do
       amount <- liftM (fromparse . parse (someamount <|> return missingamt) "")
-               $ askFor "amount" Nothing  (Just $ \s -> not $ null s && null prevps)
+               $ askFor (printf "amount  %d" n) Nothing
+                     (Just $ \s -> (null s && (not $ null prevps)) ||
+                                  (isRight $ parse (someamount>>many spacenonewline>>eof) "" s))
       let p = nullrawposting{paccount=account,pamount=amount}
       if amount == missingamt
         then return $ prevps ++ [p]
         else getPostings $ prevps ++ [p]
+    where n = length prevps + 1
 
 -- | Prompt and read a string value, possibly with a default and a validator.
 -- A validator will cause the prompt to repeat until the input is valid.
@@ -78,9 +88,15 @@ askFor prompt def validator = do
     Nothing -> return input
     where showdef s = " [" ++ s ++ "]"
 
--- | Append a string of transactions to the ledger's file, ensuring proper
--- separation from the existing data; or if the file is "-", print them
--- to stdout.
+-- | Append this transaction to the ledger's file.
+addTransaction :: Ledger -> LedgerTransaction -> IO LedgerTransaction
+addTransaction l t = do
+  putStrLn =<< registerFromString (show t)
+  appendToLedgerFile l $ show t
+  return t
+
+-- | Append data to the ledger's file, ensuring proper separation from any
+-- existing data; or if the file is "-", dump it to stdout.
 appendToLedgerFile :: Ledger -> String -> IO ()
 appendToLedgerFile l s = 
     if f == "-"
