@@ -29,7 +29,8 @@ usagehdr = (
   "       hours   [OPTIONS] [COMMAND [PATTERNS]]\n" ++
   "       hledger convert CSVFILE ACCOUNTNAME RULESFILE\n" ++
   "\n" ++
-  "When invoked as \"hours\", uses your timelog and --period today as defaults.\n" ++
+  "hledger uses your ~/.ledger or $LEDGER file (or another specified with -f).\n" ++
+  "hours uses your ~/.timelog or $TIMELOG, and --period today as default.\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
   "  add       - prompt for new transactions and add them to the ledger\n" ++
@@ -47,27 +48,22 @@ usagehdr = (
   "  test      - run self-tests\n" ++
   "\n" ++
   "PATTERNS are regular expressions which filter by account name.\n" ++
-  "Or, prefix with desc: to filter by transaction description.\n" ++
-  "Or, prefix with not: to negate a pattern. (When using both, not: comes last.)\n" ++
+  "Prefix with desc: to filter by transaction description instead.\n" ++
+  "Prefix with not: to negate a pattern. When using both, not: comes last.\n" ++
   "\n" ++
-  "Dates can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
+  "DATES can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
   "\n" ++
   "Options:"
   )
-  
-
-usageftr = printf (
-  "\n"
-  )
-
+usageftr = ""
 usage = usageInfo usagehdr options ++ usageftr
 
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
 options = [
-  Option ['f'] ["file"]         (ReqArg File "FILE")   filehelp
+  Option ['f'] ["file"]         (ReqArg File "FILE")   "use a different ledger/timelog file; - means stdin"
  ,Option ['b'] ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
- ,Option ['e'] ["end"]          (ReqArg End "DATE")    "report on transactions prior to this date"
+ ,Option ['e'] ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
  ,Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
                                                        "and/or with the specified reporting interval\n")
  ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
@@ -89,11 +85,6 @@ options = [
  ,Option []    ["debug"]        (NoArg  Debug)         "show some debug output"
  ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
  ]
-    where 
-      filehelp = printf (intercalate "\n"
-                         ["ledger file; default is the %s env. variable's"
-                         ,"value, or %s. - means use standard input."
-                         ]) ledgerenvvar ledgerdefaultpath
 
 -- | An option value from a command-line flag.
 data Opt = 
