@@ -77,7 +77,6 @@ showLedgerTransaction' elide t =
             showaccountname s = printf "%-34s" s
             showcomment s = if (length s) > 0 then "  ; "++s else ""
             showstatus p = if pstatus p then "* " else ""
-            rstrip = reverse . dropWhile (== ' ') . reverse
 
 isLedgerTransactionBalanced :: LedgerTransaction -> Bool
 isLedgerTransactionBalanced (LedgerTransaction {ltpostings=ps}) = 
