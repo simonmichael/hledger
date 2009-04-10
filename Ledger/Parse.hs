@@ -83,23 +83,24 @@ parseLedger reftime inname intxt = do
     Right m  -> liftM (rawLedgerConvertTimeLog reftime) $ m `ap` (return rawLedgerEmpty)
     Left err -> throwError $ show err
 
--- As all ledger line types can be distinguished by the first
--- character, excepting transactions versus empty (blank or
--- comment-only) lines, can use choice w/o try
 
 ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
-ledgerFile = do ledger_txns <- many1 ledgerItem
+ledgerFile = do items <- many1 ledgerItem
                 eof
-                return $ liftM (foldr1 (.)) $ sequence ledger_txns
-    where ledgerItem = choice [ ledgerDirective
-                                  , liftM (return . addLedgerTransaction) ledgerTransaction
-                                  , liftM (return . addModifierTransaction) ledgerModifierTransaction
-                                  , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
-                                  , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
-                                  , ledgerDefaultYear
-                                  , emptyLine >> return (return id)
-                                  , liftM (return . addTimeLogEntry)  timelogentry
-                                  ]
+                return $ liftM (foldr1 (.)) $ sequence items
+    where 
+      -- As all ledger line types can be distinguished by the first
+      -- character, excepting transactions versus empty (blank or
+      -- comment-only) lines, can use choice w/o try
+      ledgerItem = choice [ ledgerDirective
+                          , liftM (return . addLedgerTransaction) ledgerTransaction
+                          , liftM (return . addModifierTransaction) ledgerModifierTransaction
+                          , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
+                          , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
+                          , ledgerDefaultYear
+                          , emptyLine >> return (return id)
+                          , liftM (return . addTimeLogEntry)  timelogentry
+                          ]
 
 ledgerDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
 ledgerDirective = do char '!'
