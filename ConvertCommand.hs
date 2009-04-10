@@ -12,7 +12,8 @@ comma-separated numbers, which are the csv field positions corresponding
 to the ledger transaction's date, status, code, description, and amount.
 All other paragraphs specify one or more regular expressions, followed by
 the ledger account to use when a transaction's description matches any of
-them. Here's an example rules file:
+them. A regexp may optionally have a replacement pattern specified after =.
+Here's an example rules file:
 
 > 0,2,3,4,1
 >
@@ -23,7 +24,7 @@ them. Here's an example rules file:
 > assets:bank:savings
 >
 > ITUNES
-> BLOCKBUSTER
+> BLKBSTR=BLOCKBUSTER
 > expenses:entertainment
 
 Roadmap: 
@@ -65,11 +66,16 @@ convert opts args l = do
                   Right rs -> reverse rs
   mapM_ (print_ledger_txn (Debug `elem` opts) (baseacct,fieldpositions,rules)) records
 
+
+type Rule = (String             -- account name to use
+            ,[[String]])        -- list of pattern+replacements. The second replacement item may or may not be present.
+
+parseRules :: String -> IO ([Int],[Rule])
 parseRules s = do
   let ls = map strip $ lines s
   let paras = splitOn [""] ls
   let fieldpositions = map read $ splitOn "," $ head $ head paras
-  let rules = [(last p,init p) | p <- tail paras]
+  let rules = [(last p,map (splitOn "=") $ init p) | p <- tail paras]
   return (fieldpositions,rules)
 
 print_ledger_txn debug (baseacct,fieldpositions,rules) record@(a:b:c:d:e) = do
@@ -87,19 +93,16 @@ print_ledger_txn True _ record = do
   hPutStrLn stderr $ printf "ignoring %s" $ show record
 print_ledger_txn _ _ _ = return ()
 
-choose_acct rules description | null matches = Nothing
-                              | otherwise = Just $ fst $ head $ matches
-                              where matches = filter (any (description =~) . snd) rules
-
 choose_acct_desc rules (acct,desc) | null matches = (acct,desc)
                                    | otherwise = (a,d)
     where
-      matches = filter (any (desc =~) . snd) rules
-      (a,pats) = head matches
-      (before,match,after,groups) = head $ filter (\(_,m,_,_) -> not $ null m) $ map (desc =~) pats
-                                  :: (String, String, String, [String])
-      -- d = if null groups then before ++ match ++ after else head groups -- default to whole description
-      d = if null groups then match else head groups -- default to just match
+      matches = filter (any (desc =~) . map head . snd) rules
+      (a,pats) = head matches :: Rule
+      ((before,match,after,groups),repl) = head $ filter isMatch $ map (\(pat:repl) -> (desc=~pat,repl)) pats
+      d = head $ repl ++ [match]  -- show the replacement text if any, or the matched text
+
+isMatch :: ((String, String, String, [String]),[String]) -> Bool
+isMatch ((_,m,_,_),_) = not $ null m
 
 fixdate :: String -> String
 fixdate s = maybe "0000/00/00" showDate $ 
