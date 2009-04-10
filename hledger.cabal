@@ -52,7 +52,8 @@ Executable hledger
 
   Build-Depends:  base, containers, haskell98, directory, parsec,
                   regex-compat, regexpr>=0.5.1, old-locale, time,
-                  HUnit, mtl, bytestring, filepath, process, testpack
+                  HUnit, mtl, bytestring, filepath, process, testpack,
+                  regex-pcre, csv, split
 
   Other-Modules:  
                   BalanceCommand

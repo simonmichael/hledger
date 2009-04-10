@@ -25,15 +25,17 @@ timeprogname  = "hours"
 usagehdr = (
   "Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]\n" ++
   "       hours   [OPTIONS] [COMMAND [PATTERNS]]\n" ++
+  "       hledger convert CSVFILE ACCOUNTNAME RULESFILE\n" ++
   "\n" ++
   "When invoked as \"hours\", uses your timelog and --period today as defaults.\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
-  "  add       - read new transactions interactively\n" ++
-  "  balance   - show account balances\n" ++
-  "  histogram - show transaction counts per reporting interval\n" ++
-  "  print     - show transactions as formatted data\n" ++
-  "  register  - show transactions as a register\n" ++
+  "  add       - prompt for new transactions and add them to the ledger\n" ++
+  "  balance   - show accounts, with balances\n" ++
+  "  convert   - convert CSV data to ledger format and print on stdout\n" ++
+  "  histogram - show transaction counts per day or other interval\n" ++
+  "  print     - show transactions in ledger format\n" ++
+  "  register  - show transactions as a register with running balance\n" ++
 #ifdef VTY
   "  ui        - run a simple curses-based text ui\n" ++
 #endif

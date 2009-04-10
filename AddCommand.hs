@@ -34,12 +34,10 @@ getAndAddTransactions l = (do
   today <- getCurrentDay
   date <- liftM (fixSmartDate today . fromparse . parse smartdate "" . lowercase)
          $ askFor "date" (Just $ showDate today)
-  -- cleared' <- askFor "cleared, y/n" (Just "n")
-  -- let cleared = if cleared' == "y" then True else False
   description <- askFor "description" Nothing
   ps <- getPostings []
   let t = nullledgertxn{ltdate=date
-                       ,ltstatus=False -- cleared
+                       ,ltstatus=False
                        ,ltdescription=description
                        ,ltpostings=ps
                        }
