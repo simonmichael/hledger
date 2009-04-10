@@ -501,6 +501,30 @@ tests = [
     "assets" `isAccountNamePrefixOf` "assets:bank:checking" `is` True
     "my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
 
+  ,"isLedgerTransactionBalanced" ~: do
+     assertBool "detect balanced"
+        (isLedgerTransactionBalanced
+        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
+         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
+         ] ""))
+     assertBool "detect unbalanced"
+        (not $ isLedgerTransactionBalanced
+        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
+         ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting
+         ] ""))
+     assertBool "detect unbalanced, one posting"
+        (not $ isLedgerTransactionBalanced
+        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
+         ] ""))
+     assertBool "one zero posting is considered balanced for now"
+        (isLedgerTransactionBalanced
+        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+         [Posting False "b" (Mixed [dollars 0]) "" RegularPosting
+         ] ""))
+
   ,"isSubAccountNameOf" ~: do
     "assets" `isSubAccountNameOf` "assets" `is` False
     "assets:bank" `isSubAccountNameOf` "assets" `is` True
