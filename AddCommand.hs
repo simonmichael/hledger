@@ -25,48 +25,57 @@ add opts args l
   hPutStrLn stderr ("Please enter one or more transactions, which will be added to your ledger file.\n\
                     \A blank account or amount ends a transaction, control-d to finish.")
   ts <- getAndAddTransactions l
-  putStrLn $ printf "\nAdded %d transactions to %s ." (length ts) (filepath $ rawledger l)
+  hPutStrLn stderr $ printf "\nAdded %d transactions to %s ." (length ts) (filepath $ rawledger l)
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger file.
 getAndAddTransactions :: Ledger -> IO [LedgerTransaction]
 getAndAddTransactions l = (do
   today <- getCurrentDay
-  date <- liftM (fixSmartDate today . fromparse . parse smartdate "" . lowercase)
-         $ askFor "date" (Just $ showDate today)
-  description <- askFor "description" Nothing
+  datestr <- askFor "date" (Just $ showDate today)
+            (Just $ \s -> null s || 
+             (isRight $ parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
+  let date = fixSmartDate today $ fromparse $ parseSmartDate datestr
+  description <- askFor "description" Nothing (Just $ not . null)
   ps <- getPostings []
+
   let t = nullledgertxn{ltdate=date
                        ,ltstatus=False
                        ,ltdescription=description
                        ,ltpostings=ps
                        }
-  registerFromString (show t) >>= putStrLn
+  -- a final validation, will raise an error if not parseable and balanced
+  putStrLn =<< registerFromString (show t)
   appendToLedgerFile l $ show t
   liftM (t:) (getAndAddTransactions l)
                           ) `catch` (\e -> if isEOFError e then return [] else ioError e)
+    where parseSmartDate = parse smartdate "" . lowercase
 
--- | Read one or more postings interactively.
+-- | Read two or more postings interactively.
 getPostings :: [Posting] -> IO [Posting]
 getPostings prevps = do
-  account <- askFor "account" Nothing
+  account <- askFor "account" Nothing (Just $ \s -> not $ null s && (length prevps < 2))
   if null account
     then return prevps
     else do
       amount <- liftM (fromparse . parse (someamount <|> return missingamt) "")
-               $ askFor "amount" Nothing
+               $ askFor "amount" Nothing  (Just $ \s -> not $ null s && null prevps)
       let p = nullrawposting{paccount=account,pamount=amount}
       if amount == missingamt
         then return $ prevps ++ [p]
         else getPostings $ prevps ++ [p]
 
--- | Prompt and read a string value, possibly with a default.
-askFor :: String -> Maybe String -> IO String
-askFor prompt def = do
+-- | Prompt and read a string value, possibly with a default and a validator.
+-- A validator will cause the prompt to repeat until the input is valid.
+askFor :: String -> Maybe String -> Maybe (String -> Bool) -> IO String
+askFor prompt def validator = do
   hPutStr stderr $ prompt ++ (maybe "" showdef def) ++ ": "
   hFlush stderr
   l <- getLine
-  return $ if null l then fromMaybe l def else l
+  let input = if null l then fromMaybe l def else l
+  case validator of
+    Just valid -> if valid input then return input else askFor prompt def validator
+    Nothing -> return input
     where showdef s = " [" ++ s ++ "]"
 
 -- | Append a string of transactions to the ledger's file, ensuring proper
@@ -80,7 +89,9 @@ appendToLedgerFile l s =
     where 
       f = filepath $ rawledger l
       t = rawledgertext l
-      sep = replicate (2 - min 2 (length nls)) '\n' where nls = takeWhile (=='\n') $ reverse t
+      sep | null $ strip t = ""
+          | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
+          where lastnls = takeWhile (=='\n') $ reverse t
 
 -- | Convert a string of ledger data into a register report.
 registerFromString :: String -> IO String
@@ -89,3 +100,21 @@ registerFromString s = do
   l <- ledgerFromStringWithOpts [] [] now s
   return $ showRegisterReport [] [] l
 
+{- doctests
+
+@
+$ echo "2009/13/1"|hledger -f /dev/null add 2>&1|tail -2|head -1|sed -e's/\[[^]]*\]//g' # a bad date is not accepted
+date : date : 
+@
+
+@
+$ echo|hledger -f /dev/null add 2>&1|tail -2|head -1|sed -e's/\[[^]]*\]//g' # a blank date is ok
+date : description: 
+@
+
+@
+$ (echo;echo)|hledger -f /dev/null add 2>&1|tail -2|head -1|sed -e's/\[[^]]*\]//g' # a blank description should fail
+date : description: description: 
+@
+
+-}
