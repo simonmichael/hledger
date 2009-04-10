@@ -85,9 +85,9 @@ parseLedger reftime inname intxt = do
 
 
 ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
-ledgerFile = do items <- many1 ledgerItem
+ledgerFile = do items <- many ledgerItem
                 eof
-                return $ liftM (foldr1 (.)) $ sequence items
+                return $ liftM (foldr (.) id) $ sequence items
     where 
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
