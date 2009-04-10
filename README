@@ -71,7 +71,8 @@ Timelog entries look like this::
  i 2009/03/31 22:21:45 some:project
  o 2009/04/01 02:00:34
 
-The clockin description is an account name. Here are some queries to try::
+The clockin description is treated as an account name. Here are some
+queries to try::
 
  ln -s `which hledger` ~/bin/hours      # add the "hours" symlink in your path
  export TIMELOG=sample.timelog
