@@ -63,7 +63,7 @@ Time reporting
 hledger will also read timeclock.el-format timelog entries.  As a
 convenience, if you invoke hledger via a link or copy named "hours", it
 uses your timelog file (~/.timelog or $TIMELOG) and --period today as
-defaults.
+defaults.::
 
  hours [OPTIONS] [COMMAND [PATTERNS]]
 
