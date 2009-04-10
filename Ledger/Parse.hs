@@ -103,7 +103,7 @@ ledgerFile = do items <- many ledgerItem
                           ]
 
 ledgerDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
-ledgerDirective = do char '!'
+ledgerDirective = do char '!' <?> "directive"
                      directive <- many nonspace
                      case directive of
                        "include" -> ledgerInclude
@@ -252,7 +252,7 @@ See "Tests" for sample data.
 
 emptyLine :: GenParser Char st ()
 emptyLine = do many spacenonewline
-               optional $ char ';' >> many (noneOf "\n")
+               optional $ (char ';' <?> "comment") >> many (noneOf "\n")
                newline
                return ()
 
@@ -275,7 +275,7 @@ ledgerModifierTransaction = do
 
 ledgerPeriodicTransaction :: GenParser Char LedgerFileCtx PeriodicTransaction
 ledgerPeriodicTransaction = do
-  char '~' <?> "entry"
+  char '~' <?> "periodic transaction"
   many spacenonewline
   periodexpr <- restofline
   postings <- ledgerpostings
@@ -283,7 +283,7 @@ ledgerPeriodicTransaction = do
 
 ledgerHistoricalPrice :: GenParser Char LedgerFileCtx HistoricalPrice
 ledgerHistoricalPrice = do
-  char 'P' <?> "hprice"
+  char 'P' <?> "historical price"
   many spacenonewline
   date <- ledgerdate
   many spacenonewline
@@ -308,7 +308,7 @@ ledgerDefaultYear = do
 -- and if we cannot, raise an error.
 ledgerTransaction :: GenParser Char LedgerFileCtx LedgerTransaction
 ledgerTransaction = do
-  date <- ledgerdate <?> "entry"
+  date <- ledgerdate <?> "transaction"
   status <- ledgerstatus
   code <- ledgercode
   description <- liftM rstrip (many1 (noneOf ";\n") <?> "description")
@@ -353,10 +353,10 @@ ledgerdatetime = do
   return $ LocalTime day tod
 
 ledgerstatus :: GenParser Char st Bool
-ledgerstatus = try (do { char '*'; many1 spacenonewline; return True } ) <|> return False
+ledgerstatus = try (do { char '*' <?> "status"; many1 spacenonewline; return True } ) <|> return False
 
 ledgercode :: GenParser Char st String
-ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
+ledgercode = try (do { char '(' <?> "code"; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
 ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
 ledgerpostings = many1 $ try ledgerposting
