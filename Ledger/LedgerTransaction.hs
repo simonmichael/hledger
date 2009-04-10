@@ -91,8 +91,8 @@ isLedgerTransactionBalanced (LedgerTransaction {ltpostings=ps}) =
 -- return an error message instead.
 balanceLedgerTransaction :: LedgerTransaction -> Either String LedgerTransaction
 balanceLedgerTransaction t@LedgerTransaction{ltpostings=ps}
-    | length missingamounts > 1 = Left $ printerr "could not balance this entry, too many missing amounts"
-    | not $ isLedgerTransactionBalanced t' = Left $ printerr "could not balance this entry, amounts do not add up to zero"
+    | length missingamounts > 1 = Left $ printerr "could not balance this transaction, too many missing amounts"
+    | not $ isLedgerTransactionBalanced t' = Left $ printerr nonzerobalanceerror
     | otherwise = Right t'
     where
       (withamounts, missingamounts) = partition hasAmount $ filter isReal ps
@@ -104,3 +104,5 @@ balanceLedgerTransaction t@LedgerTransaction{ltpostings=ps}
                       | otherwise = p
                       where otherstotal = sum $ map pamount withamounts
       printerr s = printf "%s:\n%s" s (showLedgerTransactionUnelided t)
+
+nonzerobalanceerror = "could not balance this transaction, amounts do not add up to zero"
