@@ -1,6 +1,6 @@
 Name:           hledger
 -- updated by build process from VERSION
-Version:        0.4
+Version:        0.4.98
 Category:       Finance
 Synopsis:       A ledger-compatible text-based accounting tool.
 Description:    hledger is a partial haskell clone of John Wiegley's "ledger" text-based
