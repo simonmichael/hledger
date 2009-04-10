@@ -362,7 +362,7 @@ ledgercode :: GenParser Char st String
 ledgercode = try (do { char '('; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
 ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
-ledgerpostings = many $ try ledgerposting
+ledgerpostings = many1 $ try ledgerposting
 
 ledgerposting :: GenParser Char LedgerFileCtx Posting
 ledgerposting = many1 spacenonewline >> choice [ normalposting, virtualposting, balancedvirtualposting ]

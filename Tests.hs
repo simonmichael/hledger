@@ -562,6 +562,8 @@ tests = [
     parseWithCtx ledgerTransaction entry1_str `parseis` entry1
     assertBool "ledgerTransaction should not parse just a date"
                    $ isLeft $ parseWithCtx ledgerTransaction "2009/1/1\n"
+    assertBool "ledgerTransaction should require some postings"
+                   $ isLeft $ parseWithCtx ledgerTransaction "2009/1/1 a\n"
 
   ,"ledgerHistoricalPrice" ~: do
     parseWithCtx ledgerHistoricalPrice price1_str `parseis` price1
