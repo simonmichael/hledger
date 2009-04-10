@@ -40,7 +40,7 @@ module ConvertCommand where
 import Data.Maybe (isJust)
 import Data.List.Split (splitOn)
 import Options -- (Opt,Debug)
-import Ledger.Types (Ledger)
+import Ledger.Types (Ledger,AccountName)
 import Ledger.Utils (strip)
 import System (getArgs)
 import System.IO (stderr, hPutStrLn)
@@ -67,15 +67,15 @@ convert opts args l = do
   mapM_ (print_ledger_txn (Debug `elem` opts) (baseacct,fieldpositions,rules)) records
 
 
-type Rule = (String             -- account name to use
-            ,[[String]])        -- list of pattern+replacements. The second replacement item may or may not be present.
+type Rule = ([[String]]   -- list of [pattern,replacement]. replacement may or may not be present.
+            ,AccountName) -- account name to use for a transaction matching this rule
 
 parseRules :: String -> IO ([Int],[Rule])
 parseRules s = do
   let ls = map strip $ lines s
   let paras = splitOn [""] ls
   let fieldpositions = map read $ splitOn "," $ head $ head paras
-  let rules = [(last p,map (splitOn "=") $ init p) | p <- tail paras]
+  let rules = [(map (splitOn "=") $ init p, last p) | p <- tail paras]
   return (fieldpositions,rules)
 
 print_ledger_txn debug (baseacct,fieldpositions,rules) record@(a:b:c:d:e) = do
@@ -96,8 +96,8 @@ print_ledger_txn _ _ _ = return ()
 choose_acct_desc rules (acct,desc) | null matches = (acct,desc)
                                    | otherwise = (a,d)
     where
-      matches = filter (any (desc =~) . map head . snd) rules
-      (a,pats) = head matches :: Rule
+      matches = filter (any (desc =~) . map head . fst) rules
+      (pats,a) = head matches :: Rule
       ((before,match,after,groups),repl) = head $ filter isMatch $ map (\(pat:repl) -> (desc=~pat,repl)) pats
       d = head $ repl ++ [match]  -- show the replacement text if any, or the matched text
 
