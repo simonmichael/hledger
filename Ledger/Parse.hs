@@ -314,7 +314,7 @@ ledgerTransaction = do
 -- ledger treats entry comments as part of the description, we will too
 --   desc <- many (noneOf ";\n") <?> "description"
 --   let description = reverse $ dropWhile (==' ') $ reverse desc
-  description <- many (noneOf "\n") <?> "description"
+  description <- many1 (noneOf "\n") <?> "description"
   comment <- ledgercomment
   restofline
   postings <- ledgerpostings
