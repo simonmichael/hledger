@@ -311,10 +311,7 @@ ledgerTransaction = do
   date <- ledgerdate <?> "entry"
   status <- ledgerstatus
   code <- ledgercode
--- ledger treats entry comments as part of the description, we will too
---   desc <- many (noneOf ";\n") <?> "description"
---   let description = reverse $ dropWhile (==' ') $ reverse desc
-  description <- many1 (noneOf "\n") <?> "description"
+  description <- liftM rstrip (many1 (noneOf ";\n") <?> "description")
   comment <- ledgercomment
   restofline
   postings <- ledgerpostings

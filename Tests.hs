@@ -564,6 +564,9 @@ tests = [
                    $ isLeft $ parseWithCtx ledgerTransaction "2009/1/1\n"
     assertBool "ledgerTransaction should require some postings"
                    $ isLeft $ parseWithCtx ledgerTransaction "2009/1/1 a\n"
+    let t = parseWithCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
+    assertBool "ledgerTransaction should not include a comment in the description"
+                   $ either (const False) ((== "a") . ltdescription) p
 
   ,"ledgerHistoricalPrice" ~: do
     parseWithCtx ledgerHistoricalPrice price1_str `parseis` price1
