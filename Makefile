@@ -6,7 +6,7 @@ default: tag build
 PATCHES:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 
 # build the normal hledger binary
-BUILD=ghc --make hledger.hs -o hledger -O
+BUILD=ghc --make hledger.hs -o hledger #-O
 FLAGS=-DPATCHES=$(PATCHES)
 # optional extras described in README, turn em on if you've got the libs
 OPTFLAGS= #-DVTY -DHAPPS
