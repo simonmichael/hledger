@@ -112,7 +112,8 @@ getPostings bestmatchps enteredps = do
                 where Just ps = bestmatchps
       defaultaccount = maybe Nothing (Just . paccount) bestmatch
       validateaccount = Just $ \s -> not $ null s
-      defaultamount = maybe Nothing (Just . show . pamount) bestmatch
+      defaultamount | n==1 = maybe Nothing (Just . show . pamount) bestmatch -- previously used amount
+                    | otherwise = Just $ show $ negate $ sum $ map pamount enteredps -- balancing amount
       validateamount = Just $ \s -> 
                        (null s && (not $ null enteredps)) ||
                        (isRight $ parse (someamount>>many spacenonewline>>eof) "" s)
