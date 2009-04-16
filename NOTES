@@ -18,6 +18,27 @@ We aim to make reliable, maintainable, usable software, sustainably.
 
 * to do
 ** errors
+*** $ hledger -f new.ledger add
+hledger: new.ledger: openFile: does not exist (No such file or directory)
+
+*** runhaskell hledger.hs reg -p 'daily this month' -E
+hledger.hs: Prelude.head: empty list
+
+*** joyful> make ci
+["/repos/hledger/hledger","web","--debug"]                                                            |
+
+*** ghci> readLedger "~/src/hledger/sample.ledger"
+Exception: ~/src/hledger/sample.ledger: openFile: does not exist (No such file or directory)
+
+*** not:
+hledger: user error (Text.Regex.Posix.String died: (ReturnCode 14,"empty (sub)expression"))
+*** histogram stops after last occupied interval
+*** hledger: could not balance this transaction, amounts do not add up to zero:
+2007/12/08 * bus
+    expenses:transportation:bus                $1.25
+    assets:cash                                  $-1
+    assets:coins:quarters                     $-0.25
+
 ** docs/marketing/packaging
 *** streamline - less is more
 *** automate
@@ -30,6 +51,7 @@ We aim to make reliable, maintainable, usable software, sustainably.
 ***** gmane description
 ***** darcsweb description
 **** keep Options.hs and README option list in sync
+**** discover commands for --help
 **** accouncements
 *** document smart dates, period expressions, display expressions
 *** develop funding process
@@ -281,6 +303,8 @@ competitors/fellow niche inhabitants
 *** graph and reduce dependencies
 *** pair programming
 ** features/wishlist
+*** simplify hours again - no default -p, instead alias today="hours -ptoday"
+*** allow no command or unordered command with pattern args
 *** --flat timelog balance report option for clients
 *** alternative easy timelog format
 *** better web gui

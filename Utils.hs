@@ -21,12 +21,11 @@ import qualified Data.Map as Map (lookup)
 withLedgerDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 withLedgerDo opts args cmd = do
   f <- ledgerFilePathFromOpts opts
-  -- kludgily read the file a second time to get the full text,
+  -- kludgily read the file a second time to get the full text. Only the ui command needs it.
   -- kludgily try not to fail if it's stdin. XXX
   rawtext <- readFile $ if f == "-" then "/dev/null" else f
   t <- getCurrentLocalTime
   let runcmd = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f})
-
   return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) runcmd
 
 -- | Get a Ledger from the given string and options, or raise an error.
