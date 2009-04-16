@@ -75,26 +75,29 @@ getTransaction l args = do
 -- | Read two or more postings from the command line.
 getPostings :: Maybe [Posting] -> [Posting] -> IO [Posting]
 getPostings bestmatchps enteredps = do
-  account <- askFor (printf "account %d" n) 
-            (maybe Nothing (Just . paccount) bestmatch)
-            (Just $ \s -> not $ null s && (length enteredps < 2))
+  account <- askFor (printf "account %d" n) defaultaccount validateaccount
   if null account
     then return enteredps
     else do
-      amount <- liftM (fromparse . parse (someamount <|> return missingamt) "")
-               $ askFor (printf "amount  %d" n)
-                     (maybe Nothing (Just . show . pamount) bestmatch)
-                     (Just $ \s -> (null s && (not $ null enteredps)) ||
-                                  (isRight $ parse (someamount>>many spacenonewline>>eof) "" s))
+      amountstr <- askFor (printf "amount  %d" n) defaultamount validateamount
+      let amount = fromparse $ parse (someamount <|> return missingamt) "" amountstr
       let p = nullrawposting{paccount=account,pamount=amount}
       if amount == missingamt
         then return $ enteredps ++ [p]
         else getPostings bestmatchps $ enteredps ++ [p]
-    where n = length enteredps + 1
-          bestmatch | isNothing bestmatchps = Nothing
-                    | n <= length ps = Just $ ps !! (n-1)
-                    | otherwise = Nothing
-                    where Just ps = bestmatchps
+    where
+      n = length enteredps + 1
+      bestmatch | isNothing bestmatchps = Nothing
+                | n <= length ps = Just $ ps !! (n-1)
+                | otherwise = Nothing
+                where Just ps = bestmatchps
+      defaultaccount = maybe Nothing (Just . paccount) bestmatch
+      validateaccount = Just $ \s -> not $ null s && (length enteredps < 2)
+      defaultamount = maybe Nothing (Just . show . pamount) bestmatch
+      validateamount = Just $ \s -> 
+                       (null s && (not $ null enteredps)) ||
+                       (isRight $ parse (someamount>>many spacenonewline>>eof) "" s)
+
 
 -- | Prompt and read a string value, possibly with a default and a validator.
 -- A validator will cause the prompt to repeat until the input is valid.
