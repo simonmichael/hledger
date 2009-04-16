@@ -34,7 +34,7 @@ ghci:
 	ghci hledger.hs
 
 # run all tests
-test: doctest unittest haddocktest
+test: unittest doctest haddocktest
 
 # make sure we have no haddock errors
 haddocktest:
@@ -46,7 +46,8 @@ unittest:
 
 # run doc tests
 doctest: tools/doctest
-	tools/doctest Tests.hs
+	@tools/doctest AddCommand.hs
+	@tools/doctest Tests.hs
 
 tools/doctest: tools/doctest.hs
 	ghc --make tools/doctest.hs
