@@ -72,7 +72,7 @@ printParseError e = do putStr "ledger parse error at "; print e
 
 parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO RawLedger
 parseLedgerFile t "-" = liftIO (hGetContents stdin) >>= parseLedger t "-"
-parseLedgerFile t f   = liftIO (readFile f)         >>= parseLedger t f
+parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
 
 -- | Parses the contents of a ledger file, or gives an error.  Requires
 -- the current (local) time to calculate any unfinished timelog sessions,
