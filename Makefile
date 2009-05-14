@@ -197,7 +197,7 @@ tag:
 	@rm -f TAGS; hasktags -e *hs Ledger/*hs
 
 clean:
-	rm -f {,Ledger/}*{.o,.hi,~} darcs-amend-record*
+	rm -f `find -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*"`
 
 Clean: clean clean-docs
 	rm -f hledger TAGS tags
