@@ -18,6 +18,18 @@ We aim to make reliable, maintainable, usable software, sustainably.
 
 * to do
 ** errors
+*** misaligned euro amounts
+~/personal$ 2008 bal entertainment
+             $254.19                                    
+            €18.90  equity:draw:personal:entertainment
+              $93.52    books
+            €18.90    drinks
+             $153.67    music
+--------------------
+             $254.19
+            €18.90
+
+*** "from last week" gives this week, should be since monday before last
 *** $ hledger -f new.ledger add
 hledger: new.ledger: openFile: does not exist (No such file or directory)
 
@@ -38,7 +50,14 @@ hledger: user error (Text.Regex.Posix.String died: (ReturnCode 14,"empty (sub)ex
     expenses:transportation:bus                $1.25
     assets:cash                                  $-1
     assets:coins:quarters                     $-0.25
-
+*** [] virtual transactions don't enforce balancing
+*** misdated clockout gives confused results - do more checking ?
+$ cat - |hledger -f- bal --no-total
+i 2009/04/15 23:00:00 a
+o 2009/04/16 23:30:00
+i 2009/04/16 08:00:00 a
+o 2009/04/16 08:30:00
+               25.0h  a
 ** docs/marketing/packaging
 *** streamline - less is more
 *** automate
