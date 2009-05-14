@@ -51,9 +51,11 @@ module Main (
 #endif
 )
 where
+import Prelude hiding (putStr)
 import Control.Monad.Error
 import qualified Data.Map as Map (lookup)
-import System.IO
+import System.IO.UTF8
+import System.IO (stderr)
 
 import Version (versionmsg)
 import Ledger

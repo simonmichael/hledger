@@ -6,8 +6,10 @@ A ledger-compatible @print@ command.
 
 module PrintCommand
 where
+import Prelude hiding (putStr)
 import Ledger
 import Options
+import System.IO.UTF8
 
 
 -- | Print ledger transactions in standard format.

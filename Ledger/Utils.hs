@@ -23,6 +23,7 @@ module Text.Regex,
 module Test.HUnit,
 )
 where
+import Prelude hiding (readFile)
 import Char
 import Control.Exception
 import Control.Monad
@@ -35,7 +36,7 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Debug.Trace
-import System.IO
+import System.IO.UTF8
 import Test.HUnit
 import Text.Printf
 import Text.Regex

@@ -28,7 +28,7 @@ Flag happs
 
 Library
   Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,
-                  old-locale, time, HUnit, filepath
+                  old-locale, time, HUnit, filepath, utf8-string
 
   Exposed-modules:Ledger
                   Ledger.Account
@@ -53,7 +53,7 @@ Executable hledger
   Build-Depends:  base, containers, haskell98, directory, parsec,
                   regex-compat, regexpr>=0.5.1, old-locale, time,
                   HUnit, mtl, bytestring, filepath, process, testpack,
-                  regex-pcre, csv, split
+                  regex-pcre, csv, split, utf8-string
 
   Other-Modules:  
                   BalanceCommand

@@ -18,6 +18,8 @@ import Ledger.Parse
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
+import Codec.Binary.UTF8.String (decodeString)
+import Control.Monad (liftM)
 
 progname      = "hledger"
 timeprogname  = "hours"
@@ -137,7 +139,7 @@ optValuesForConstructors fs opts = concatMap get opts
 -- as \"hours\", the -f $TIMELOG -p today options are assumed as a default.
 parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
-  args <- getArgs
+  args <- liftM (map decodeString) getArgs
   let (os,as,es) = getOpt Permute options args
   istimequery <- usingTimeProgramName
   let os' = if istimequery then (Period "today"):os else os

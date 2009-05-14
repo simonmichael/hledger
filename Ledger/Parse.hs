@@ -6,6 +6,7 @@ Parsers for standard ledger and timelog files.
 
 module Ledger.Parse
 where
+import Prelude hiding (readFile, putStr, print)
 import Control.Monad
 import Control.Monad.Error
 import Text.ParserCombinators.Parsec
@@ -14,7 +15,8 @@ import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Combinator
 import qualified Text.ParserCombinators.Parsec.Token as P
 import System.Directory
-import System.IO
+import System.IO.UTF8
+import System.IO (stdin)
 import qualified Data.Map as Map
 import Data.Time.LocalTime
 import Data.Time.Calendar

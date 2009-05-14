@@ -96,6 +96,7 @@ balance report:
 
 module BalanceCommand
 where
+import Prelude hiding (putStr)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
@@ -105,6 +106,7 @@ import Ledger.Ledger
 import Ledger.Parse
 import Options
 import Utils
+import System.IO.UTF8
 
 
 -- | Print a balance report.

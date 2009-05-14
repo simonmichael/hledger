@@ -7,10 +7,12 @@ An add command to help with data entry.
 module AddCommand
 where
 -- import Data.List.Utils (replace)
+import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import Ledger
 import Options
 import RegisterCommand (showRegisterReport)
-import System.IO
+import System.IO.UTF8
+import System.IO (stderr, hFlush)
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Utils (ledgerFromStringWithOpts)
