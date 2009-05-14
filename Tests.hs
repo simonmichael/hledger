@@ -751,6 +751,23 @@ tests = [
   ,"showLedgerTransaction" ~: do
      showLedgerTransaction entry1 `is` entry1_str
 
+  ,"non-ascii description" ~: do   -- hledger-0.4-io-utf8-fixed-balance-register-print.diff
+    -- ascii
+    l <- ledgerFromStringWithOpts [] [] sampletime "2009/01/01 apple\n    a  1\n    b\n"
+    showRegisterReport [] [] l `is` unlines
+     ["2009/01/01 apple                a                                 1            1"
+     ,"                                b                                -1            0"
+     ]
+    -- non-ascii
+    l <- ledgerFromStringWithOpts [] [] sampletime "2009/01/01 жизнь\n    a  1\n    b\n"
+    showRegisterReport [] [] l `is` unlines
+-- this passes:
+--   ["2009/01/01 жизнь                a                                 1            1"
+-- but this is what I see interactively:
+     ["2009/01/01 жизнь           a                                 1            1"
+     ,"                                b                                -1            0"
+     ]
+
   ,"smart dates" ~: do
     let str `gives` datestr = fixSmartDateStr (parsedate "2008/11/26") str `is` datestr
     "1999-12-02"   `gives` "1999/12/02"
