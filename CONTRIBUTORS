@@ -34,6 +34,7 @@ By so doing you promise that all of your commits to hledger:
 hledger Contributor List
 ========================
 - Simon Michael - lead developer, project manager
+- Sergey Astanin
 
 Other contributors
 ------------------
@@ -41,7 +42,6 @@ Developers who have not yet signed this agreement:
 
 - Tim Docker
 - Nick Ingolia
-- Sergey Astanin
 
 Folks who have contributed in ways other than committing code:
 
