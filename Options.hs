@@ -29,8 +29,8 @@ usagehdr = (
   "       hours   [OPTIONS] [COMMAND [PATTERNS]]\n" ++
   "       hledger convert CSVFILE ACCOUNTNAME RULESFILE\n" ++
   "\n" ++
-  "hledger uses your ~/.ledger or $LEDGER file (or another specified with -f).\n" ++
-  "hours uses your ~/.timelog or $TIMELOG, and --period today as default.\n" ++
+  "hledger uses your ~/.ledger or $LEDGER file (or another specified with -f),\n" ++
+  "while hours uses your ~/.timelog or $TIMELOG file.\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
   "  add       - prompt for new transactions and add them to the ledger\n" ++
@@ -126,15 +126,14 @@ optValuesForConstructors fs opts = concatMap get opts
 
 -- | Parse the command-line arguments into options, command name, and
 -- command arguments. Any dates in the options are converted to explicit
--- YYYY/MM/DD format based on the current time. If the program was invoked
--- as \"hours\", the -f $TIMELOG -p today options are assumed as a default.
+-- YYYY/MM/DD format based on the current time.
 parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- liftM (map decodeString) getArgs
   let (os,as,es) = getOpt Permute options args
-  istimequery <- usingTimeProgramName
-  let os' = if istimequery then (Period "today"):os else os
-  os'' <- fixOptDates os'
+--  istimequery <- usingTimeProgramName
+--  let os' = if istimequery then (Period "today"):os else os
+  os'' <- fixOptDates os
   case (as,es) of
     (cmd:args,[])   -> return (os'',cmd,args)
     ([],[])         -> return (os'',"",[])

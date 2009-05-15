@@ -62,8 +62,7 @@ Time reporting
 
 hledger will also read timeclock.el-format timelog entries.  As a
 convenience, if you invoke hledger via a link or copy named "hours", it
-uses your timelog file (~/.timelog or $TIMELOG) and --period today as
-defaults.::
+uses your timelog file (~/.timelog or $TIMELOG) by default.::
 
  hours [OPTIONS] [COMMAND [PATTERNS]]
 
@@ -77,10 +76,10 @@ The clockin description is an account name. Here are some queries to try::
  ln -s `which hledger` ~/bin/hours      # add the "hours" symlink in your path
  export TIMELOG=sample.timelog
  hours                                  # time logged today, if any
- hours 'last month'                     # last month
- hours thisyear                         # the space is optional
- hours 'from 1/15' register proj        # project sessions since last jan 15
- hours 'weekly this year' reg --depth 1 # weekly time summary
+ hours -p 'last month'                     # last month
+ hours -p thisyear                         # the space is optional
+ hours -p 'from 1/15' register proj        # project sessions since last jan 15
+ hours -p 'weekly this year' reg --depth 1 # weekly time summary
 
 Features
 --------
