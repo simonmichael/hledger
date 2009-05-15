@@ -69,7 +69,7 @@ buildprof prof: sampleledgers
 # run performance benchmarks and save results in profs
 # executables to test, prepend ./ to these if not in $PATH
 # requires tabular from hackage
-BENCHEXES=hledger-0.3 hledger-0.4 ledger
+BENCHEXES=hledger-0.4 hledger-0.5 ledger
 bench: buildbench sampleledgers
 	./bench $(BENCHEXES) --verbose | tee profs/`date +%Y%m%d%H%M%S`.bench
 
