@@ -202,7 +202,6 @@ transactionsSimilarTo l s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
                $ [(compareLedgerDescriptions s $ ltdescription t, t) | t <- ts]
-               -- $ [(compareLedgerDescriptions s $ (strace $ unwords $ [ltdescription t] ++ (map (replace ":" " " . paccount) $ ltpostings t)), t) | t <- ts]
     where
       compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,ltdate t2) (n1,ltdate t1)
       ts = ledger_txns $ rawledger l
