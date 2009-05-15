@@ -81,6 +81,55 @@ $ hledger -f sample.ledger balance --depth 1
                   $1  liabilities
 @
 
+Unicode input/output tests
+
+-- layout of the balance command with unicode names
+@
+$ printf "2009-01-01 проверка\n  τράπεζα  10 руб\n  नकद\n" | hledger -f - bal
+              10 руб  τράπεζα
+             -10 руб  नकद
+@
+
+-- layout of the register command with unicode names
+@
+$ printf "2009-01-01 проверка\n  τράπεζα  10 руб\n  नकद\n" | hledger -f - reg
+2009/01/01 проверка             τράπεζα                      10 руб       10 руб
+                                नकद                         -10 руб            0
+@
+
+-- layout of the print command with unicode names
+@
+$ printf "2009-01-01 проверка\n счёт:первый  1\n счёт:второй\n" | hledger -f - print
+2009/01/01 проверка
+    счёт:первый                                    1
+    счёт:второй
+
+@
+
+-- search for unicode account names
+@
+$ printf "2009-01-01 проверка\n  τράπεζα  10 руб\n  नकद\n" | hledger -f - reg τράπ
+2009/01/01 проверка             τράπεζα                      10 руб       10 руб
+@
+
+-- search for unicode descriptions (should choose only the first entry)
+@
+$ printf "2009-01-01 аура (cyrillic letters)\n  bank  10\n  cash\n2010-01-01 aypa (roman letters)\n  bank  20\n  cash\n" | hledger -f - reg desc:аура
+2009/01/01 аура (cyrillic let.. bank                             10           10
+                                cash                            -10            0
+@
+
+-- error message with unicode in ledger
+@
+$ printf "2009-01-01 broken entry\n  дебит  1\n  кредит  -2\n" | hledger -f - 2>&1 ; true
+hledger: could not balance this transaction, amounts do not add up to zero:
+2009/01/01 broken entry
+    дебит                                          1
+    кредит                                        -2
+
+
+@
+
 -}
 -- other test tools:
 -- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
