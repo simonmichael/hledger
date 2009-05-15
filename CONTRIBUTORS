@@ -1,0 +1,48 @@
+Contributor Agreement and List
+##############################
+
+hledger Contributor Agreement
+=============================
+This is the official contributor agreement, version 1, and contributor
+list for the hledger project. If you have contributed code to hledger, you
+should sign this, to help ensure:
+
+1. that there is a clear audit trail and legal status for the project
+
+2. that we are able to remain license-compatible with future versions of other
+   free & open-source software packages, by updating to current versions
+   of the license(s) when appropriate
+
+3. that you get proper credit for your work.
+
+How to sign
+-----------
+Send a darcs patch adding your name to the hledger Contributor List below.
+By so doing you promise that all of your commits to hledger:
+
+- are free of patent violations or copyright violations, to the best of
+  your knowledge.
+
+- are released under the hledger project's license (which is GNU GPL v3 or
+  later); or are released under another compatible license (in which case
+  this must be clearly noted); or are public domain.
+
+- may be relicensed under official future versions of their license at the
+  project leader's discretion, if that seems useful.
+
+
+hledger Contributor List
+========================
+- Simon Michael - lead developer, project manager
+
+Other contributors
+------------------
+Developers who have not yet signed this agreement:
+
+- Tim Docker
+- Nick Ingolia
+- Sergey Astanin
+
+Folks who have contributed in ways other than committing code:
+
+- John Wiegley - design and implementation of the ledger program
