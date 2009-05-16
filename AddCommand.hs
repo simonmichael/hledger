@@ -159,6 +159,8 @@ appendToLedgerFile l s =
     else appendFile f $ sep++s
     where 
       f = filepath $ rawledger l
+      -- we keep looking at the original raw text from when the ledger
+      -- was first read, but that's good enough for now
       t = rawledgertext l
       sep | null $ strip t = ""
           | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
