@@ -127,8 +127,9 @@ We handle (almost) the full period expression syntax, and very limited
 display expressions consisting of a simple date predicate. Also the
 following new commands are supported::
 
-   histogram              show a barchart of transaction counts
+   histogram              show a (textual) barchart of transaction counts
    add                    input transactions from the command line
+   convert                convert CSV bank data to ledger journal format
    ui                     a simple interactive text ui (only on unix platforms)
    web                    a simple web ui
    test                   run self-tests
