@@ -126,8 +126,12 @@ punctuatethousands s =
 
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
-isZeroAmount a = nonzerodigits == ""
-    where nonzerodigits = filter (`elem` "123456789") $ showAmount a
+isZeroAmount a = null $ filter (`elem` "123456789") $ showAmount a
+
+-- | Is this amount "really" zero, regardless of the display precision ?
+-- Since we are using floating point, for now just test to some high precision.
+isReallyZeroAmount :: Amount -> Bool
+isReallyZeroAmount a = null $ filter (`elem` "123456789") $ printf "%.10f" $ quantity a
 
 -- | Access a mixed amount's components.
 amounts :: MixedAmount -> [Amount]
@@ -137,6 +141,10 @@ amounts (Mixed as) = as
 -- containing only simple amounts which appear to be zero ?
 isZeroMixedAmount :: MixedAmount -> Bool
 isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
+
+-- | Is this mixed amount "really" zero ? See isReallyZeroAmount.
+isReallyZeroMixedAmount :: MixedAmount -> Bool
+isReallyZeroMixedAmount = all isReallyZeroAmount . amounts . normaliseMixedAmount
 
 -- | MixedAmount derives Eq in Types.hs, but that doesn't know that we
 -- want $0 = EUR0 = 0. Yet we don't want to drag all this code in there.

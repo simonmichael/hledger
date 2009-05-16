@@ -81,6 +81,16 @@ $ hledger -f sample.ledger balance --depth 1
                   $1  liabilities
 @
 
+@
+$ printf "2009/1/1 a\n  b  1.1\n  c  -1\n" | runhaskell hledger.hs -f- reg 2>&1 ; true
+hledger.hs: could not balance this transaction, amounts do not add up to zero:
+2009/01/01 a
+    b                                            1.1
+    c                                             -1
+
+
+@
+
 Unicode input/output tests
 
 -- layout of the balance command with unicode names
