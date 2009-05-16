@@ -31,5 +31,11 @@ showPosting (Posting s a amt _ ttype) =
 isReal :: Posting -> Bool
 isReal p = ptype p == RegularPosting
 
+isVirtual :: Posting -> Bool
+isVirtual p = ptype p == VirtualPosting
+
+isBalancedVirtual :: Posting -> Bool
+isBalancedVirtual p = ptype p == BalancedVirtualPosting
+
 hasAmount :: Posting -> Bool
 hasAmount = (/= missingamt) . pamount

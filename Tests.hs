@@ -524,6 +524,28 @@ tests = [
         (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
          [Posting False "b" (Mixed [dollars 0]) "" RegularPosting
          ] ""))
+     assertBool "virtual postings don't need to balance"
+        (isLedgerTransactionBalanced
+        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
+         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
+         ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting
+         ] ""))
+     assertBool "balanced virtual postings need to balance among themselves"
+        (not $ isLedgerTransactionBalanced
+        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
+         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
+         ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting
+         ] ""))
+     assertBool "balanced virtual postings need to balance among themselves (2)"
+        (isLedgerTransactionBalanced
+        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
+         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
+         ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting
+         ,Posting False "e" (Mixed [dollars (-100)]) "" BalancedVirtualPosting
+         ] ""))
 
   ,"isSubAccountNameOf" ~: do
     "assets" `isSubAccountNameOf` "assets" `is` False

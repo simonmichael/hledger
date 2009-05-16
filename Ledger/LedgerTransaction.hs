@@ -82,7 +82,8 @@ showLedgerTransaction' elide t =
 
 isLedgerTransactionBalanced :: LedgerTransaction -> Bool
 isLedgerTransactionBalanced (LedgerTransaction {ltpostings=ps}) = 
-    isReallyZeroMixedAmount $ costOfMixedAmount $ sum $ map pamount $ filter isReal ps
+    all (isReallyZeroMixedAmount . costOfMixedAmount . sum . map pamount)
+            [filter isReal ps, filter isBalancedVirtual ps]
 
 -- | Ensure that this entry is balanced, possibly auto-filling a missing
 -- amount first. We can auto-fill if there is just one non-virtual
