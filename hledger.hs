@@ -84,17 +84,17 @@ main = do
       run cmd opts args
        | Help `elem` opts             = putStr $ usage
        | Version `elem` opts          = putStr versionmsg
-       | cmd `isPrefixOf` "balance"   = withLedgerDo opts args balance
-       | cmd `isPrefixOf` "convert"   = withLedgerDo opts args convert
-       | cmd `isPrefixOf` "print"     = withLedgerDo opts args print'
-       | cmd `isPrefixOf` "register"  = withLedgerDo opts args register
-       | cmd `isPrefixOf` "histogram" = withLedgerDo opts args histogram
-       | cmd `isPrefixOf` "add"       = withLedgerDo opts args add
+       | cmd `isPrefixOf` "balance"   = withLedgerDo opts args cmd balance
+       | cmd `isPrefixOf` "convert"   = withLedgerDo opts args cmd convert
+       | cmd `isPrefixOf` "print"     = withLedgerDo opts args cmd print'
+       | cmd `isPrefixOf` "register"  = withLedgerDo opts args cmd register
+       | cmd `isPrefixOf` "histogram" = withLedgerDo opts args cmd histogram
+       | cmd `isPrefixOf` "add"       = withLedgerDo opts args cmd add
 #ifdef VTY
-       | cmd `isPrefixOf` "ui"        = withLedgerDo opts args ui
+       | cmd `isPrefixOf` "ui"        = withLedgerDo opts args cmd ui
 #endif
 #ifdef HAPPS
-       | cmd `isPrefixOf` "web"       = withLedgerDo opts args web
+       | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web
 #endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr $ usage

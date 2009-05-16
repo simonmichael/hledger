@@ -11,23 +11,29 @@ import Control.Monad.Error
 import Data.Time.Clock
 import Ledger
 import Options (Opt,ledgerFilePathFromOpts,optsToIOArgs)
+import System.Directory (doesFileExist)
 import System.IO
 import Text.ParserCombinators.Parsec
 import qualified Data.Map as Map (lookup)
 
 
--- | parse the user's specified ledger file and run a hledger command on it,
--- or report a parse error. This function makes the whole thing go.
-withLedgerDo :: [Opt] -> [String] -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
-withLedgerDo opts args cmd = do
+-- | Parse the user's specified ledger file and run a hledger command on
+-- it, or report a parse error. This function makes the whole thing go.
+withLedgerDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
+withLedgerDo opts args cmdname cmd = do
+  -- We kludgily read the file before parsing to grab the full text, unless
+  -- it's stdin, or it doesn't exist and we are adding. We read it strictly
+  -- to let the add command work.
   f <- ledgerFilePathFromOpts opts
-  -- kludgily read the file a second time to get the full text. Only the ui command needs it.
-  -- kludgily try not to fail if it's stdin.
-  -- read it strictly to let the add command work
-  rawtext <- strictReadFile $ if f == "-" then "/dev/null" else f
+  let f' = if f == "-" then "/dev/null" else f
+  fileexists <- doesFileExist f
+  let creating = not fileexists && cmdname == "add"
+  rawtext <-  if creating then return "" else strictReadFile f'
   t <- getCurrentLocalTime
-  let runcmd = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f})
-  return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) runcmd
+  let go = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f})
+  case creating of
+    True -> return rawLedgerEmpty >>= go
+    False -> return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) go
 
 -- | Get a Ledger from the given string and options, or raise an error.
 ledgerFromStringWithOpts :: [Opt] -> [String] -> LocalTime -> String -> IO Ledger
