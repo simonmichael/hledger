@@ -38,12 +38,12 @@ noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [])
 -- | Get the user's default ledger file path.
 myLedgerPath :: IO String
 myLedgerPath = 
-    getEnv ledgerenvvar `catch` \_ -> return ledgerdefaultpath >>= tildeExpand
+    getEnv ledgerenvvar `catch` \_ -> return ledgerdefaultpath
   
 -- | Get the user's default timelog file path.
 myTimelogPath :: IO String
 myTimelogPath =
-    getEnv timelogenvvar `catch` \_ -> return timelogdefaultpath >>= tildeExpand
+    getEnv timelogenvvar `catch` \_ -> return timelogdefaultpath
 
 -- | Read the user's default ledger file, or give an error.
 myLedger :: IO Ledger
@@ -55,7 +55,7 @@ myTimelog = myTimelogPath >>= readLedger
 
 -- | Read a ledger from this file, with no filtering, or give an error.
 readLedger :: FilePath -> IO Ledger
-readLedger = readLedgerWithIOArgs noioargs
+readLedger f = tildeExpand f >>= readLedgerWithIOArgs noioargs
 
 -- | Read a ledger from this file, filtering according to the io args,
 -- | or give an error.
