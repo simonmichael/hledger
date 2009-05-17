@@ -56,7 +56,7 @@ tools/doctest: tools/doctest.hs
 PROFBIN=hledgerp
 BUILDPROF=ghc $(BUILDFLAGS) --make hledger.hs -prof -auto-all -o $(PROFBIN)
 RUNPROF=./$(PROFBIN) +RTS -p -RTS
-PROFCMD=-f 1000.ledger -s balance
+PROFCMD=-f 1000.ledger balance
 TIME=`date +"%Y%m%d%H%M"`
 buildprof prof: sampleledgers
 	@echo "Profiling $(PROFCMD)"
