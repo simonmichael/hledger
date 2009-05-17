@@ -69,6 +69,7 @@ buildprof prof: sampleledgers
 # run performance benchmarks and save results in profs
 # executables to test, prepend ./ to these if not in $PATH
 # requires tabular from hackage
+#BENCHEXES=hledger-0.1 hledger-0.2 hledger-0.3 hledger-0.4 hledger-0.5 ledger
 BENCHEXES=hledger-0.4 hledger-0.5 ledger
 bench: buildbench sampleledgers
 	./bench $(BENCHEXES) --verbose | tee profs/`date +%Y%m%d%H%M%S`.bench
@@ -79,11 +80,17 @@ buildbench:
 	rm -f bench; ln -s tools/bench
 
 # generate sample ledgers
-sampleledgers:
+# XXX should also generate sample.ledger with write_sample_ledger
+sampleledgers: 1000.ledger 10000.ledger 100000.ledger
+
+1000.ledger:
 	ghc -e 'putStr $$ unlines $$ replicate 1000 "!include sample.ledger"' >1000.ledger
+
+10000.ledger:
 	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >10000.ledger
+
+100000.ledger:
 	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >100000.ledger
-  # XXX should also generate sample.ledger with write_sample_ledger
 
 # send unpushed patches to the mail list
 send:
@@ -273,30 +280,36 @@ hoogleindex: $(MAIN)
 	cd hoogle && \
 	hoogle --convert=main.txt --output=default.hoo
 
-clean-docs:
+cleandocs:
 	rm -rf api-doc hoogle
 
 # misc
 
-show-changes:
-	@echo Changes since last release:
-	@echo
-	@darcs changes --from-tag . | grep '*'
+stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench
 
-show-unpushed:
-	@echo Changes not yet in the main hledger repo:
-	@echo
-	@darcs push joyful.com:/repos/hledger --dry-run
-
-show-authors:
+showreleaseauthors:
 	@echo Patch authors since last release:
-	@echo
 	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
 
-# count lines of code
-sloc:
-	@echo "test code:"
-	@sloccount Tests.hs | grep haskell:
-	@echo "non-test code:"
+showloc:
+	@echo Lines of non-test code:
 	@sloccount `ls {,Ledger/}*.hs |grep -v Tests.hs` | grep haskell:
+	@echo Lines of test code:
+	@sloccount Tests.hs | grep haskell:
+
+showlastreleasedate:
+	@echo Last release date:
+	@darcs changes --from-tag . | tail -2
+
+showerrors:
+	@echo Known errors:
+	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
+
+showlocalchanges:
+	@echo Changes in local repo:
+	@-darcs push joyful.com:/repos/hledger --dry-run | grep '*' | tac
+
+showreleasechanges:
+	@echo "Changes since last release: ("`darcs changes --from-tag . --count`")"
+	@darcs changes --from-tag . | grep '*'
 
