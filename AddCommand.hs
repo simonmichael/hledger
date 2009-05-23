@@ -103,17 +103,17 @@ registerFromString s = do
 {- doctests
 
 @
-$ echo "2009/13/1"|hledger -f /dev/null add 2>&1|tail -2|head -1|sed -e's/\[[^]]*\]//g' # a bad date is not accepted
+$ echo "2009/13/1"|hledger -f /dev/null add 2>&1|tail -1|sed -e's/\[[^]]*\]//g' # a bad date is not accepted
 date : date : 
 @
 
 @
-$ echo|hledger -f /dev/null add 2>&1|tail -2|head -1|sed -e's/\[[^]]*\]//g' # a blank date is ok
+$ echo|hledger -f /dev/null add 2>&1|tail -1|sed -e's/\[[^]]*\]//g' # a blank date is ok
 date : description: 
 @
 
 @
-$ (echo;echo)|hledger -f /dev/null add 2>&1|tail -2|head -1|sed -e's/\[[^]]*\]//g' # a blank description should fail
+$ printf "\n\n"|hledger -f /dev/null add 2>&1|tail -1|sed -e's/\[[^]]*\]//g' # a blank description should fail
 date : description: description: 
 @
 
