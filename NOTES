@@ -297,13 +297,22 @@ competitors/fellow niche inhabitants
 *** build with -Wall and anything else useful
 *** build with multiple ghc versions
 *** cabal test
+*** release tests
+**** cabal install with:
+***** ghc 6.8
+***** ghc 6.10.x
+***** windows
+***** linux
+***** macos
+***** no flags
+***** happs flag
+***** vty flag
 ** code cleanup
 *** seek more modularity
 *** try export lists
 *** graph and reduce dependencies
 *** pair programming
 ** features/wishlist
-*** simplify hours again - no default -p, instead alias today="hours -ptoday"
 *** allow no command or unordered command with pattern args
 *** --flat timelog balance report option for clients
 *** alternative easy timelog format
