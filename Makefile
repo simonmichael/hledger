@@ -131,7 +131,7 @@ push:
 check: setversion test
 	cabal clean
 	cabal check
-	cabal configure
+	cabal configure -fvty -fhapps
 	cabal build
 	dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0'
 
