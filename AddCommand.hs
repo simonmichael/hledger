@@ -6,7 +6,6 @@ An add command to help with data entry.
 
 module AddCommand
 where
--- import Data.List.Utils (replace)
 import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import Ledger
 import Options
@@ -18,73 +17,93 @@ import Text.ParserCombinators.Parsec
 import Utils (ledgerFromStringWithOpts)
 
 
--- | Read ledger transactions from the command line, prompting for each
--- field, and append them to the ledger file. If the ledger came from
--- stdin, this command has no effect.
+-- | Read ledger transactions from the terminal, prompting for each field,
+-- and append them to the ledger file. If the ledger came from stdin, this
+-- command has no effect.
 add :: [Opt] -> [String] -> Ledger -> IO ()
 add opts args l
     | filepath (rawledger l) == "-" = return ()
     | otherwise = do
-  hPutStrLn stderr ("Enter one or more transactions, which will be added to your ledger file.\n\
-                    \A blank account or amount ends a transaction, control-d to finish.")
-  ts <- getAndAddTransactions l args
-  hPutStrLn stderr $ printf "\nAdded %d transactions to %s" (length ts) (filepath $ rawledger l)
+  hPutStrLn stderr
+    "Enter one or more transactions, which will be added to your ledger file.\n\
+    \To complete a transaction, enter . as account name.\n\
+    \To finish input, enter control-d (discards any transaction in progress)."
+  getAndAddTransactions l args
+  return ()
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger
--- file, until EOF.
+-- file, until end of input.
 getAndAddTransactions :: Ledger -> [String] -> IO [LedgerTransaction]
-getAndAddTransactions l args = (do
-  t <- getTransaction l args >>= addTransaction l
-  liftM (t:) (getAndAddTransactions l args)
- ) `catch` (\e -> if isEOFError e then return [] else ioError e)
+getAndAddTransactions l args = do
+  -- for now, thread the eoi flag throughout rather than muck about with monads
+  (t, eoi) <- getTransaction l args
+  l <- if isJust t then addTransaction l (fromJust t) else return l
+  if eoi then return $ maybe [] (:[]) t
+         else liftM (fromJust t:) (getAndAddTransactions l args)
 
--- | Read a transaction from the command line.
-getTransaction :: Ledger -> [String] -> IO LedgerTransaction
+-- | Get a transaction from the command line, if possible, and a flag
+-- indicating end of input.
+getTransaction :: Ledger -> [String] -> IO (Maybe LedgerTransaction, Bool)
 getTransaction l args = do
   today <- getCurrentDay
-  datestr <- askFor "date" (Just $ showDate today)
-            (Just $ \s -> null s || 
-             (isRight $ parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
-  let date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
-  description <- if null args 
-                then askFor "description" Nothing (Just $ not . null) 
-                else (do
-                       hPutStrLn stderr $ "description: " ++ unwords args
-                       return $ unwords args)
-  let historymatches = transactionsSimilarTo l description
-  when (not $ null historymatches) (do
-                     hPutStrLn stderr "Similar past transactions:"
-                     hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
-  let bestmatch | null historymatches = Nothing
-                | otherwise = Just $ snd $ head $ historymatches
-  let bestmatchpostings = maybe Nothing (Just . ltpostings) bestmatch
-  let getpostingsandvalidate = do
-                     ps <- getPostings bestmatchpostings []
-                     let t = nullledgertxn{ltdate=date
-                                          ,ltstatus=False
-                                          ,ltdescription=description
-                                          ,ltpostings=ps
-                                          }
-                     either (const retry) (return) $ balanceLedgerTransaction t
-      retry = do
-        hPutStrLn stderr $ nonzerobalanceerror ++ ". Re-enter:"
-        getpostingsandvalidate
-  getpostingsandvalidate
-
--- | Read two or more postings from the command line.
-getPostings :: Maybe [Posting] -> [Posting] -> IO [Posting]
-getPostings bestmatchps enteredps = do
-  account <- askFor (printf "account %d" n) defaultaccount validateaccount
-  if null account
-    then return enteredps
+  (datestr, eoi) <- askFor "date" 
+                        (Just $ showDate today)
+                        (Just $ \s -> null s || 
+                          (isRight $ parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
+  if eoi
+    then return (Nothing, True)
     else do
-      amountstr <- askFor (printf "amount  %d" n) defaultamount validateamount
+      (description, eoi) <- if null args 
+                           then askFor "description" Nothing (Just $ not . null) 
+                           else (do
+                                  let description = unwords args
+                                  hPutStrLn stderr $ "description: " ++ description
+                                  return (description, False))
+      if eoi
+        then return (Nothing, True)
+        else do
+          let historymatches = transactionsSimilarTo l description
+          when (not $ null historymatches) (do
+                             hPutStrLn stderr "Similar past transactions found:"
+                             hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
+          let bestmatch | null historymatches = Nothing
+                        | otherwise = Just $ snd $ head $ historymatches
+              bestmatchpostings = maybe Nothing (Just . ltpostings) bestmatch
+              date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
+              getpostingsandvalidate = do
+                             (ps, eoi) <- getPostings bestmatchpostings []
+                             let t = nullledgertxn{ltdate=date
+                                                  ,ltstatus=False
+                                                  ,ltdescription=description
+                                                  ,ltpostings=ps
+                                                  }
+                             if eoi && null ps
+                               then return (Nothing, eoi)
+                               else either (const retry) (return . flip (,) eoi . Just) $ balanceLedgerTransaction t
+              retry = do
+                hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
+                getpostingsandvalidate
+          getpostingsandvalidate
+
+-- | Get two or more postings from the command line, if possible, and a
+-- flag indicating end of input.
+getPostings :: Maybe [Posting] -> [Posting] -> IO ([Posting], Bool)
+getPostings bestmatchps enteredps = do
+  (account, eoi) <- askFor (printf "account %d" n) defaultaccount validateaccount
+  if account=="." || eoi
+    then return (enteredps, eoi)
+    else do
+      (amountstr, eoi) <- askFor (printf "amount  %d" n) defaultamount validateamount
       let amount = fromparse $ parse (someamount <|> return missingamt) "" amountstr
       let p = nullrawposting{paccount=account,pamount=amount}
-      if amount == missingamt
-        then return $ enteredps ++ [p]
-        else getPostings bestmatchps $ enteredps ++ [p]
+      if eoi
+        then if null enteredps
+               then return ([], True)
+               else return (enteredps ++ [p], True)
+        else if amount == missingamt
+               then return $ (enteredps ++ [p], eoi)
+               else getPostings bestmatchps $ enteredps ++ [p]
     where
       n = length enteredps + 1
       bestmatch | isNothing bestmatchps = Nothing
@@ -92,32 +111,44 @@ getPostings bestmatchps enteredps = do
                 | otherwise = Nothing
                 where Just ps = bestmatchps
       defaultaccount = maybe Nothing (Just . paccount) bestmatch
-      validateaccount = Just $ \s -> not $ null s && (length enteredps < 2)
+      validateaccount = Just $ \s -> not $ null s
       defaultamount = maybe Nothing (Just . show . pamount) bestmatch
       validateamount = Just $ \s -> 
                        (null s && (not $ null enteredps)) ||
                        (isRight $ parse (someamount>>many spacenonewline>>eof) "" s)
 
 
--- | Prompt and read a string value, possibly with a default and a validator.
--- A validator will cause the prompt to repeat until the input is valid.
-askFor :: String -> Maybe String -> Maybe (String -> Bool) -> IO String
+-- | Prompt for and read a string value and a flag indicating whether
+-- input has ended (control-d was pressed), optionally with a default
+-- value and a validator.  A validator will cause the prompt to repeat
+-- until the input is valid (unless the input is just ctrl-d).
+askFor :: String -> Maybe String -> Maybe (String -> Bool) -> IO (String, Bool)
 askFor prompt def validator = do
   hPutStr stderr $ prompt ++ (maybe "" showdef def) ++ ": "
   hFlush stderr
-  l <- getLine
-  let input = if null l then fromMaybe l def else l
+  -- ugly
+  l <- getLine `catch` (\e -> if isEOFError e then return "*EOF*" else ioError e)
+  let (l', eoi) = case l of "*EOF*" -> ("", True)
+                            _       -> (l, False)
+  let input = if null l' then fromMaybe l' def else l'
   case validator of
-    Just valid -> if valid input then return input else askFor prompt def validator
-    Nothing -> return input
+    Just valid -> if valid input || (null input && eoi)
+                   then return (input, eoi) 
+                   else askFor prompt def validator
+    Nothing -> return (input, eoi)
     where showdef s = " [" ++ s ++ "]"
 
--- | Append this transaction to the ledger's file.
-addTransaction :: Ledger -> LedgerTransaction -> IO LedgerTransaction
+-- | Append this transaction to the ledger's file. Also, to the ledger's
+-- transaction list, but we don't bother updating the other fields - this
+-- is enough to include new transactions in the history matching.
+addTransaction :: Ledger -> LedgerTransaction -> IO Ledger
 addTransaction l t = do
-  putStrLn =<< registerFromString (show t)
   appendToLedgerFile l $ show t
-  return t
+  putStrLn $ printf "\nAdded transaction to %s:" (filepath $ rawledger l)
+  putStrLn =<< registerFromString (show t)
+  return l{rawledger=rl{ledger_txns=ts}}
+      where rl = rawledger l
+            ts = ledger_txns rl ++ [t]
 
 -- | Append data to the ledger's file, ensuring proper separation from any
 -- existing data; or if the file is "-", dump it to stdout.
@@ -138,16 +169,23 @@ registerFromString :: String -> IO String
 registerFromString s = do
   now <- getCurrentLocalTime
   l <- ledgerFromStringWithOpts [] [] now s
-  return $ showRegisterReport [] [] l
+  return $ showRegisterReport [Empty] [] l
 
--- | Simon White's letter pairs algorithm from
+-- | Return a similarity measure, from 0 to 1, for two strings.
+-- This is Simon White's letter pairs algorithm from
 -- http://www.catalysoft.com/articles/StrikeAMatch.html
-compareStrings s t = 2.0 * (fromIntegral i) / (fromIntegral u)
+-- with a modification for short strings.
+compareStrings :: String -> String -> Float
+compareStrings "" "" = 1
+compareStrings (a:[]) "" = 0
+compareStrings "" (b:[]) = 0
+compareStrings (a:[]) (b:[]) = if toUpper a == toUpper b then 1 else 0
+compareStrings s1 s2 = 2.0 * (fromIntegral i) / (fromIntegral u)
     where
-      pairs1 = wordLetterPairs $ uppercase s
-      pairs2 = wordLetterPairs $ uppercase t
-      u = length pairs1 + length pairs2
       i = length $ intersect pairs1 pairs2
+      u = length pairs1 + length pairs2
+      pairs1 = wordLetterPairs $ uppercase s1
+      pairs2 = wordLetterPairs $ uppercase s2
 wordLetterPairs = concatMap letterPairs . words
 letterPairs (a:b:rest) = [a,b]:(letterPairs (b:rest))
 letterPairs _ = []
@@ -160,12 +198,13 @@ compareLedgerDescriptions s t = compareStrings s' t'
 transactionsSimilarTo :: Ledger -> String -> [(Float,LedgerTransaction)]
 transactionsSimilarTo l s =
     sortBy compareRelevanceAndRecency
-               $ filter ((/=0).fst)
+               $ filter ((> threshold).fst)
                $ [(compareLedgerDescriptions s $ ltdescription t, t) | t <- ts]
                -- $ [(compareLedgerDescriptions s $ (strace $ unwords $ [ltdescription t] ++ (map (replace ":" " " . paccount) $ ltpostings t)), t) | t <- ts]
     where
       compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,ltdate t2) (n1,ltdate t1)
       ts = ledger_txns $ rawledger l
+      threshold = 0
 
 {- doctests
 
