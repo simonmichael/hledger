@@ -1,4 +1,54 @@
 
+2009/05/23 hledger 0.5 released
+-------------------------------
+
+Changes:
+
+  * the vty flag is disabled by default again, to ease installation on windows
+  * use ledger 3 terminology: a ledger contains transactions which contain postings
+  * new "add" command prompts for transactions interactively and adds them to the ledger
+  * new "convert" command transforms bank CSV exports to ledger format, with rule-based cleanup
+  * new "histogram" command shows transaction counts per day or other reporting interval
+  * most commands now work properly with UTF8-encoded text (Sergey Astanin)
+  * invoking as "hours" is now less different: it just uses your timelog, not your ledger
+  * --quarterly/-Q option summarises by quarter
+  * --uncleared/-U option looks only at uncleared transactions
+  * be more accurate about checking balanced amounts, don't rely on display precision
+  * enforce balancing for bracketed virtual postings
+  * fix bug in eliding of posting amounts
+  * don't show trailing spaces on amountless postings
+  * parse null input as an empty ledger
+  * don't treat comments as part of transaction descriptions
+  * require some postings in ledger transactions
+  * require a non-empty description in ledger transactions
+  * don't fail when matching an empty pattern, as in "not:"
+  * make the web server handle the null path
+  * code, api and documentation updates
+  * add a contributor agreement/list
+
+Release contributors:
+
+  * Simon Michael
+  * Sergey Astanin
+
+Release stats:
+
+  * Days since last release: 51
+  * Committers: 2
+  * Commits: 101
+  * Lines of non-test code: 2795
+  * Known errors: 0
+  * Tests: 76
+  * Performance:
+
+                            || hledger-0.4 | hledger-0.5 | ledger
+   =========================++=============+=============+=======
+   -f sample.ledger balance ||        0.01 |        0.01 |   0.06
+   -f 1000.ledger balance   ||        1.33 |        1.46 |   0.53
+   -f 10000.ledger balance  ||       15.28 |       16.35 |   4.67
+
+
+
 2009/04/03 hledger 0.4 released
 -------------------------------
 
