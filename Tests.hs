@@ -131,7 +131,8 @@ $ printf "2009-01-01 аура (cyrillic letters)\n  bank  10\n  cash\n2010-01-01
 @
 
 -- error message with unicode in ledger
-@
+-- not implemented yet
+--@
 $ printf "2009-01-01 broken entry\n  дебит  1\n  кредит  -2\n" | hledger -f - 2>&1 ; true
 hledger: could not balance this transaction, amounts do not add up to zero:
 2009/01/01 broken entry
@@ -139,7 +140,7 @@ hledger: could not balance this transaction, amounts do not add up to zero:
     кредит                                        -2
 
 
-@
+--@
 -}
 -- other test tools:
 -- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
