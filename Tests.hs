@@ -80,7 +80,8 @@ $ hledger -f sample.ledger balance --depth 1
                  $-2  income
                   $1  liabilities
 @
-
+-}
+{-
 @
 $ printf "2009/1/1 a\n  b  1.1\n  c  -1\n" | runhaskell hledger.hs -f- reg 2>&1 ; true
 hledger.hs: could not balance this transaction, amounts do not add up to zero:
@@ -139,7 +140,6 @@ hledger: could not balance this transaction, amounts do not add up to zero:
 
 
 @
-
 -}
 -- other test tools:
 -- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
