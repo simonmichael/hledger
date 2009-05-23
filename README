@@ -15,16 +15,20 @@ Released under GPL version 3 or later.
 Installation
 ------------
 
-Platform binaries are being organized; you could try asking for one on the
-#ledger channel. Otherwise, building hledger requires GHC
-(http://haskell.org/ghc); it is known to build with GHC 6.8 and
-up. hledger should work on any platform which GHC supports.  Also,
-installing hledger easily requires cabal-install
-(http://www.haskell.org/cabal/download.html), version 0.6.0 and up. Get
-these installed on your system and then do::
+Platform binaries are not yet being published; you could try asking for
+one on the #ledger channel. 
+
+Building hledger requires GHC 6.8 or later (http://haskell.org/ghc).
+hledger should work on any platform which GHC supports.
+Also, installing hledger's dependencies easily requires cabal-install
+version 0.6 or later (http://www.haskell.org/cabal/download.html).
+Once these tools are installed on your system, do::
 
  cabal update
- cabal install hledger (add -f happs if you want the web ui)
+ cabal install hledger [-fvty] [-fhapps]
+
+The vty and happs flags are optional; they enable hledger's "ui" and "web"
+commands respectively. vty is not available on the windows platform.
 
 Usage
 -----
@@ -48,8 +52,8 @@ results.  Here are some commands to try::
  hledger reg checking                  # checking transactions
  hledger reg desc:shop                 # transactions with shop in the description
  hledger histogram                     # transactions per day, or other interval
- hledger ui                            # interactive ui, if you're on unix/mac
- hledger web                           # web ui, if you installed with -f happs
+ hledger ui                            # interactive ui, if installed with -fvty
+ hledger web                           # web ui, installed with -fhapps
  echo >new; hledger -f new add         # input transactions from the command line
 
 
