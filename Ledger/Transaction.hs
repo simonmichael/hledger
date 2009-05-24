@@ -14,7 +14,7 @@ import Ledger.Dates
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
-import Ledger.LedgerTransaction
+import Ledger.LedgerTransaction (showAccountName)
 import Ledger.Posting
 import Ledger.Amount
 
@@ -23,8 +23,9 @@ instance Show Transaction where show=showTransaction
 
 showTransaction :: Transaction -> String
 showTransaction (Transaction eno stat d desc a amt ttype) = 
-    s ++ unwords [showDate d,desc,a,show amt,show ttype]
+    s ++ unwords [showDate d,desc,a',show amt,show ttype]
     where s = if stat then " *" else ""
+          a' = showAccountName Nothing ttype a
 
 -- | Convert a 'LedgerTransaction' to two or more 'Transaction's. An id number
 -- is attached to the transactions to preserve their grouping - it should

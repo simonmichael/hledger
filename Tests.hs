@@ -92,6 +92,15 @@ hledger.hs: could not balance this transaction, amounts do not add up to zero:
 
 @
 
+@
+$ printf "2009/1/1 x\n  (virtual)  100\n  a  1\n  b\n" | runhaskell hledger.hs -f- print 2>&1 ; true
+2009/01/01 x
+    (virtual)                                    100
+    a                                              1
+    b
+
+@
+
 Unicode input/output tests
 
 -- layout of the balance command with unicode names

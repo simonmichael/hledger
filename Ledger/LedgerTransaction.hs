@@ -74,11 +74,22 @@ showLedgerTransaction' elide t =
           where
             showposting p = showacct p ++ "  " ++ (showamount $ pamount p) ++ (showcomment $ pcomment p)
             showpostingnoamt p = rstrip $ showacct p ++ "              " ++ (showcomment $ pcomment p)
-            showacct p = "    " ++ showstatus p ++ (showaccountname $ paccount p)
+            showacct p = "    " ++ showstatus p ++ (printf "%-34s" $ showAccountName (Just 34) (ptype p) (paccount p))
             showamount = printf "%12s" . showMixedAmount
-            showaccountname s = printf "%-34s" s
             showcomment s = if (length s) > 0 then "  ; "++s else ""
             showstatus p = if pstatus p then "* " else ""
+
+-- | Show an account name, clipped to the given width if any, and
+-- appropriately bracketed/parenthesised for the given posting type.
+showAccountName :: Maybe Int -> PostingType -> AccountName -> String
+showAccountName w = fmt
+    where
+      fmt RegularPosting = take w'
+      fmt VirtualPosting = parenthesise . reverse . take (w'-2) . reverse
+      fmt BalancedVirtualPosting = bracket . reverse . take (w'-2) . reverse
+      w' = fromMaybe 999999 w
+      parenthesise s = "("++s++")"
+      bracket s = "["++s++"]"
 
 isLedgerTransactionBalanced :: LedgerTransaction -> Bool
 isLedgerTransactionBalanced (LedgerTransaction {ltpostings=ps}) = 
