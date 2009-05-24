@@ -1,3 +1,8 @@
+2009/05/23 hledger 0.5.1 released
+---------------------------------
+Changes:
+
+  * two fixes: really disable vty flag by default, and include ConvertCommand in cabal file
 
 2009/05/23 hledger 0.5 released
 -------------------------------
