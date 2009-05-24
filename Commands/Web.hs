@@ -64,7 +64,7 @@ webHandlers opts args l t = msum
  ]
  where 
    view f = withDataFn rqdata $ render f
-   render f (a,p) = layout (a, p) $ f opts' args' l'
+   render f (a,p) = layout (a,p) $ f opts' args' l'
        where
          opts' = opts ++ [Period p]
          args' = args ++ (map urlDecode $ words a)
@@ -106,7 +106,9 @@ maintemplate (a,p) r = printf (unlines
       -- another way to get them
       -- a = fromMaybe "" $ queryValue "a" r
       -- p = fromMaybe "" $ queryValue "p" r
-      q' = intercalate "&" $ if null a then [] else [(("a="++).urlEncode) a] ++ if null p then [] else [(("p="++).urlEncode) p]
+      q' = intercalate "&" $
+           (if null a then [] else [(("a="++).urlEncode) a]) ++ 
+           (if null p then [] else [(("p="++).urlEncode) p])
       q = if null q' then "" else '?':q'
       resetlink | null a && null p = ""
                 | otherwise = printf "&nbsp; <a href=%s>reset</a>" u
