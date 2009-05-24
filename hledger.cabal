@@ -20,7 +20,7 @@ Cabal-Version:  >= 1.2
 
 Flag vty
   description: enable the curses ui
-  default:     True
+  default:     False
 
 Flag happs
   description: enable the web ui
@@ -58,6 +58,7 @@ Executable hledger
   Other-Modules:  
                   AddCommand
                   BalanceCommand
+                  ConvertCommand
                   HistogramCommand
                   Options
                   PrintCommand
