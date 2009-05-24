@@ -2,10 +2,15 @@ Name:           hledger
 -- updated by build process from VERSION
 Version:        0.5.1
 Category:       Finance
-Synopsis:       A ledger-compatible text-based accounting tool.
-Description:    hledger is a partial haskell clone of John Wiegley's "ledger" text-based
-                accounting tool. It generates ledger-compatible register & balance reports
-                from a plain text journal, and demonstrates a functional implementation of ledger.
+Synopsis:       A text-based accounting tool, similar to John Wiegley's ledger.
+Description:    hledger is a (mostly) text-based accounting tool that
+                generates precise register and balance reports from a
+                plain text journal file.  It is a partial clone, in
+                haskell, of John Wiegley's excellent ledger. hledger
+                implements a subset of ledger's commands and options, and
+                also provides some new ones. For basic use you can use
+                hledger and ledger pretty much interchangeably on the same
+                data files.
 License:        GPL
 Stability:      beta
 Author:         Simon Michael <simon@joyful.com>
