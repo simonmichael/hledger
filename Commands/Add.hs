@@ -33,14 +33,15 @@ add opts args l
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger
--- file, until end of input.
+-- file, until end of input. Any command-line arguments are used as the
+-- first transaction's description.
 getAndAddTransactions :: Ledger -> [String] -> IO [LedgerTransaction]
 getAndAddTransactions l args = do
   -- for now, thread the eoi flag throughout rather than muck about with monads
   (t, eoi) <- getTransaction l args
   l <- if isJust t then addTransaction l (fromJust t) else return l
   if eoi then return $ maybe [] (:[]) t
-         else liftM (fromJust t:) (getAndAddTransactions l args)
+         else liftM (fromJust t:) (getAndAddTransactions l [])
 
 -- | Get a transaction from the command line, if possible, and a flag
 -- indicating end of input.
