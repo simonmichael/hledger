@@ -1,6 +1,6 @@
 {-| 
 
-An add command to help with data entry.
+A history-aware add command to help with data entry.
 
 -}
 
@@ -26,125 +26,101 @@ add opts args l
     | otherwise = do
   hPutStrLn stderr
     "Enter one or more transactions, which will be added to your ledger file.\n\
-    \To complete a transaction, enter . as account name.\n\
-    \To finish input, enter control-d (discards any transaction in progress)."
-  getAndAddTransactions l args
-  return ()
+    \To complete a transaction, enter . as account name. To quit, enter control-d."
+  getAndAddTransactions l args `catch` (\e -> if isEOFError e then return () else ioError e)
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger
--- file, until end of input. Any command-line arguments are used as the
--- first transaction's description.
-getAndAddTransactions :: Ledger -> [String] -> IO [LedgerTransaction]
+-- file, until end of input (then raise an EOF exception). Any
+-- command-line arguments are used as the first transaction's description.
+getAndAddTransactions :: Ledger -> [String] -> IO ()
 getAndAddTransactions l args = do
-  -- for now, thread the eoi flag throughout rather than muck about with monads
-  (t, eoi) <- getTransaction l args
-  l <- if isJust t then addTransaction l (fromJust t) else return l
-  if eoi then return $ maybe [] (:[]) t
-         else liftM (fromJust t:) (getAndAddTransactions l [])
+  l <- getTransaction l args >>= addTransaction l
+  getAndAddTransactions l []
 
--- | Get a transaction from the command line, if possible, and a flag
--- indicating end of input.
-getTransaction :: Ledger -> [String] -> IO (Maybe LedgerTransaction, Bool)
+-- | Read a transaction from the command line, with history-aware prompting.
+getTransaction :: Ledger -> [String] -> IO LedgerTransaction
 getTransaction l args = do
   today <- getCurrentDay
-  (datestr, eoi) <- askFor "date" 
-                        (Just $ showDate today)
-                        (Just $ \s -> null s || 
-                          (isRight $ parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
-  if eoi
-    then return (Nothing, True)
-    else do
-      (description, eoi) <- if null args 
-                           then askFor "description" Nothing (Just $ not . null) 
-                           else (do
-                                  let description = unwords args
-                                  hPutStrLn stderr $ "description: " ++ description
-                                  return (description, False))
-      if eoi
-        then return (Nothing, True)
-        else do
-          let historymatches = transactionsSimilarTo l description
-          when (not $ null historymatches) (do
-                             hPutStrLn stderr "Similar past transactions found:"
-                             hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
-          let bestmatch | null historymatches = Nothing
-                        | otherwise = Just $ snd $ head $ historymatches
-              bestmatchpostings = maybe Nothing (Just . ltpostings) bestmatch
-              date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
-              getpostingsandvalidate = do
-                             (ps, eoi) <- getPostings bestmatchpostings []
-                             let t = nullledgertxn{ltdate=date
-                                                  ,ltstatus=False
-                                                  ,ltdescription=description
-                                                  ,ltpostings=ps
-                                                  }
-                             if eoi && null ps
-                               then return (Nothing, eoi)
-                               else either (const retry) (return . flip (,) eoi . Just) $ balanceLedgerTransaction t
-              retry = do
-                hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
-                getpostingsandvalidate
-          getpostingsandvalidate
+  datestr <- askFor "date" 
+            (Just $ showDate today)
+            (Just $ \s -> null s || 
+             (isRight $ parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
+  description <- if null args 
+                  then askFor "description" Nothing (Just $ not . null) 
+                  else do
+                         let description = unwords args
+                         hPutStrLn stderr $ "description: " ++ description
+                         return description
+  let historymatches = transactionsSimilarTo l description
+      bestmatch | null historymatches = Nothing
+                | otherwise = Just $ snd $ head $ historymatches
+      bestmatchpostings = maybe Nothing (Just . ltpostings) bestmatch
+      date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
+      getpostingsandvalidate = do
+        ps <- getPostings bestmatchpostings []
+        let t = nullledgertxn{ltdate=date
+                             ,ltstatus=False
+                             ,ltdescription=description
+                             ,ltpostings=ps
+                             }
+            retry = do
+              hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
+              getpostingsandvalidate
+        either (const retry) return $ balanceLedgerTransaction t
+  when (not $ null historymatches) 
+       (do
+         hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"
+         hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
+  getpostingsandvalidate
 
--- | Get two or more postings from the command line, if possible, and a
--- flag indicating end of input.
-getPostings :: Maybe [Posting] -> [Posting] -> IO ([Posting], Bool)
-getPostings bestmatchps enteredps = do
-  (account, eoi) <- askFor (printf "account %d" n) defaultaccount validateaccount
-  if account=="." || eoi
-    then return (enteredps, eoi)
+-- | Read postings from the command line until . is entered, using the
+-- provided historical postings, if any, to guess defaults.
+getPostings :: Maybe [Posting] -> [Posting] -> IO [Posting]
+getPostings historicalps enteredps = do
+  account <- askFor (printf "account %d" n) defaultaccount (Just $ not . null)
+  if account=="."
+    then return enteredps
     else do
-      (amountstr, eoi) <- askFor (printf "amount  %d" n) defaultamount validateamount
+      amountstr <- askFor (printf "amount  %d" n) defaultamount validateamount
       let amount = fromparse $ parse (someamount <|> return missingamt) "" amountstr
-      let p = nullrawposting{paccount=stripbrackets account,pamount=amount,ptype=postingaccounttype account}
-      if eoi
-        then if null enteredps
-               then return ([], True)
-               else return (enteredps ++ [p], True)
-        else if amount == missingamt
-               then return $ (enteredps ++ [p], eoi)
-               else getPostings bestmatchps $ enteredps ++ [p]
+      let p = nullrawposting{paccount=stripbrackets account,
+                             pamount=amount,
+                             ptype=postingtype account}
+      getPostings historicalps $ enteredps ++ [p]
     where
       n = length enteredps + 1
       realn = length enteredrealps + 1
-      bestmatch | isNothing bestmatchps = Nothing
+      enteredrealps = filter isReal enteredps
+      bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
-                where Just ps = bestmatchps
+                where Just ps = historicalps
       defaultaccount = maybe Nothing (Just . showacctname) bestmatch
       showacctname p = showAccountName Nothing (ptype p) $ paccount p
-      validateaccount = Just $ \s -> not $ null s
       defaultamount = maybe balancingamount (Just . show . pamount) bestmatch
           where balancingamount = Just $ show $ negate $ sum $ map pamount enteredrealps
-      enteredrealps = filter isReal enteredps
-      postingaccounttype ('[':_) = BalancedVirtualPosting
-      postingaccounttype ('(':_) = VirtualPosting
-      postingaccounttype _ = RegularPosting
+      postingtype ('[':_) = BalancedVirtualPosting
+      postingtype ('(':_) = VirtualPosting
+      postingtype _ = RegularPosting
       stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
-      validateamount = Just $ \s -> 
-                       (null s && (not $ null enteredps)) ||
-                       (isRight $ parse (someamount>>many spacenonewline>>eof) "" s)
+      validateamount = Just $ \s -> (null s && (not $ null enteredrealps))
+                                   || (isRight $ parse (someamount>>many spacenonewline>>eof) "" s)
 
-
--- | Prompt for and read a string value and a flag indicating whether
--- input has ended (control-d was pressed), optionally with a default
--- value and a validator.  A validator will cause the prompt to repeat
--- until the input is valid (unless the input is just ctrl-d).
-askFor :: String -> Maybe String -> Maybe (String -> Bool) -> IO (String, Bool)
+-- | Prompt for and read a string value, optionally with a default value
+-- and a validator. A validator causes the prompt to repeat until the
+-- input is valid. May also raise an EOF exception if control-d is pressed.
+askFor :: String -> Maybe String -> Maybe (String -> Bool) -> IO String
 askFor prompt def validator = do
   hPutStr stderr $ prompt ++ (maybe "" showdef def) ++ ": "
   hFlush stderr
-  -- ugly
-  l <- getLine `catch` (\e -> if isEOFError e then return "*EOF*" else ioError e)
-  let (l', eoi) = case l of "*EOF*" -> ("", True)
-                            _       -> (l, False)
-  let input = if null l' then fromMaybe l' def else l'
+  l <- getLine
+  let input = if null l then fromMaybe l def else l
   case validator of
-    Just valid -> if valid input || (null input && eoi)
-                   then return (input, eoi) 
+    Just valid -> if valid input
+                   then return input
                    else askFor prompt def validator
-    Nothing -> return (input, eoi)
+    Nothing -> return input
     where showdef s = " [" ++ s ++ "]"
 
 -- | Append this transaction to the ledger's file. Also, to the ledger's
