@@ -39,13 +39,16 @@ Release stats:
   * Lines of non-test code: 2795
   * Known errors: 0
   * Tests: 76
-  * Performance:
 
-                            || hledger-0.4 | hledger-0.5 | ledger
-   =========================++=============+=============+=======
-   -f sample.ledger balance ||        0.01 |        0.01 |   0.06
-   -f 1000.ledger balance   ||        1.33 |        1.46 |   0.53
-   -f 10000.ledger balance  ||       15.28 |       16.35 |   4.67
+.. 
+
+  * Performance::
+
+                              || hledger-0.4 | hledger-0.5 | ledger
+     =========================++=============+=============+=======
+     -f sample.ledger balance ||        0.01 |        0.01 |   0.06
+     -f 1000.ledger balance   ||        1.33 |        1.46 |   0.53
+     -f 10000.ledger balance  ||       15.28 |       16.35 |   4.67
 
 
 
