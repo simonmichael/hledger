@@ -96,7 +96,7 @@ getPostings bestmatchps enteredps = do
     else do
       (amountstr, eoi) <- askFor (printf "amount  %d" n) defaultamount validateamount
       let amount = fromparse $ parse (someamount <|> return missingamt) "" amountstr
-      let p = nullrawposting{paccount=account,pamount=amount}
+      let p = nullrawposting{paccount=stripbrackets account,pamount=amount,ptype=postingaccounttype account}
       if eoi
         then if null enteredps
                then return ([], True)
@@ -106,14 +106,21 @@ getPostings bestmatchps enteredps = do
                else getPostings bestmatchps $ enteredps ++ [p]
     where
       n = length enteredps + 1
+      realn = length enteredrealps + 1
       bestmatch | isNothing bestmatchps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
                 where Just ps = bestmatchps
-      defaultaccount = maybe Nothing (Just . paccount) bestmatch
+      defaultaccount = maybe Nothing (Just . showacctname) bestmatch
+      showacctname p = showAccountName Nothing (ptype p) $ paccount p
       validateaccount = Just $ \s -> not $ null s
-      defaultamount | n==1 = maybe Nothing (Just . show . pamount) bestmatch -- previously used amount
-                    | otherwise = Just $ show $ negate $ sum $ map pamount enteredps -- balancing amount
+      defaultamount = maybe balancingamount (Just . show . pamount) bestmatch
+          where balancingamount = Just $ show $ negate $ sum $ map pamount enteredrealps
+      enteredrealps = filter isReal enteredps
+      postingaccounttype ('[':_) = BalancedVirtualPosting
+      postingaccounttype ('(':_) = VirtualPosting
+      postingaccounttype _ = RegularPosting
+      stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
       validateamount = Just $ \s -> 
                        (null s && (not $ null enteredps)) ||
                        (isRight $ parse (someamount>>many spacenonewline>>eof) "" s)
