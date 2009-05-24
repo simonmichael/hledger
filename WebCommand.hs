@@ -20,6 +20,7 @@ import Happstack.State.Control (waitForTermination)
 import System.Cmd (system)
 import System.Info (os)
 import System.Exit
+import Network.HTTP (urlEncode, urlDecode, urlEncodeVars)
 
 import Ledger
 import Options
@@ -27,72 +28,87 @@ import BalanceCommand
 import RegisterCommand
 import PrintCommand
 import HistogramCommand
+import Utils (filterAndCacheLedgerWithOpts)
 
 
 tcpport = 5000
 
 web :: [Opt] -> [String] -> Ledger -> IO ()
-web opts args l =
+web opts args l = do
+  t <- getCurrentLocalTime -- how to get this per request ?
   if Debug `elem` opts
-     then do
-       putStrLn $ printf "starting web server on port %d in debug mode" tcpport
-       simpleHTTP nullConf{port=tcpport} handlers
-     else do
-       putStrLn $ printf "starting web server on port %d" tcpport
-       tid <- forkIO $ simpleHTTP nullConf{port=tcpport} handlers
-       putStrLn "starting web browser"
-       openBrowserOn $ printf "http://localhost:%d/balance" tcpport
-       waitForTermination
-       putStrLn "shutting down web server..."
-       killThread tid
-       putStrLn "shutdown complete"
+   then do
+    -- just run the server in the foreground
+    putStrLn $ printf "starting web server on port %d in debug mode" tcpport
+    simpleHTTP nullConf{port=tcpport} $ webHandlers opts args l t
+   else do
+    -- start the server (in background, so we can..) then start the web browser
+    putStrLn $ printf "starting web server on port %d" tcpport
+    tid <- forkIO $ simpleHTTP nullConf{port=tcpport} $ webHandlers opts args l t
+    putStrLn "starting web browser"
+    openBrowserOn $ printf "http://localhost:%d/" tcpport
+    waitForTermination
+    putStrLn "shutting down web server..."
+    killThread tid
+    putStrLn "shutdown complete"
 
-    where
-      handlers :: ServerPartT IO Response
-      handlers = msum
-       [methodSP GET $ withDataFn (look "a") $ \a -> templatise $ balancereport [a]
-       ,methodSP GET $ templatise $ balancereport []
-       ,dir "print" $ withDataFn (look "a") $ \a -> templatise $ printreport [a]
-       ,dir "print" $ templatise $ printreport []
-       ,dir "register" $ withDataFn (look "a") $ \a -> templatise $ registerreport [a]
-       ,dir "register" $ templatise $ registerreport []
-       ,dir "balance" $ withDataFn (look "a") $ \a -> templatise $ balancereport [a]
-       ,dir "balance" $ templatise $ balancereport []
-       ,dir "histogram" $ withDataFn (look "a") $ \a -> templatise $ histogramreport [a]
-       ,dir "histogram" $ templatise $ histogramreport []
-       ]
-      printreport apats    = showLedgerTransactions opts (apats ++ args) l
-      registerreport apats = showRegisterReport opts (apats ++ args) l
-      balancereport []  = showBalanceReport opts args l
-      balancereport apats  = showBalanceReport opts (apats ++ args) l'
-          where l' = cacheLedger apats (rawledger l) -- re-filter by account pattern each time
-      histogramreport []  = showHistogram opts args l
-      histogramreport apats  = showHistogram opts (apats ++ args) l'
-          where l' = cacheLedger apats (rawledger l) -- re-filter by account pattern each time
+webHandlers :: [Opt] -> [String] -> Ledger -> LocalTime -> ServerPartT IO Response
+webHandlers opts args l t = msum
+ [
+  methodSP GET $ view showBalanceReport
+ ,dir "balance" $ view showBalanceReport
+ ,dir "register" $ view showRegisterReport
+ ,dir "print" $ view showLedgerTransactions
+ ,dir "histogram" $ view showHistogram
+ ]
+ where 
+   view f = withDataFn rqdata $ render f
+   render f (a,p) = layout (a, p) $ f opts' args' l'
+       where
+         opts' = opts ++ [Period p]
+         args' = args ++ (map urlDecode $ words a)
+         -- re-filter the full ledger
+         l' = filterAndCacheLedgerWithOpts opts' args' t (rawledgertext l) (rawledger l)
 
-templatise :: String -> ServerPartT IO Response
-templatise s = do
+rqdata = do
+     a <- look "a" `mplus` return "" -- filter patterns
+     p <- look "p" `mplus` return "" -- reporting period
+     return (a,p)
+
+layout :: (String, String) -> String -> ServerPartT IO Response
+layout (a,p) s = do
   r <- askRq
-  return $ setHeader "Content-Type" "text/html" $ toResponse $ maintemplate r s
+  return $ setHeader "Content-Type" "text/html" $ toResponse $ maintemplate (a,p) r s
 
-maintemplate :: Request -> String -> String
-maintemplate r = printf (unlines
-  ["<div style=float:right>"
-  ,"<form action=%s>search:&nbsp;<input name=a value=%s></form>"
+maintemplate :: (String, String) -> Request -> String -> String
+maintemplate (a,p) r = printf (unlines
+  ["<div style=\"float:right;text-align:right;\">"
+  ,"<form action=%s>"
+  ,"&nbsp; filter by:&nbsp;<input name=a size=30 value=\"%s\">"
+  ,"&nbsp; reporting period:&nbsp;<input name=p size=30 value=\"%s\">"
+  ,resetlink
+  ,"</form>"
   ,"</div>"
-  ,"<div align=center style=width:100%%>"
-  ," <a href=balance>balance</a>"
+  ,"<div style=\"width:100%%; font-weight:bold;\">"
+  ," <a href=balance%s>balance</a>"
   ,"|"
-  ," <a href=register>register</a>"
+  ," <a href=register%s>register</a>"
   ,"|"
-  ," <a href=print>print</a>"
+  ," <a href=print%s>print</a>"
   ,"|"
-  ," <a href=histogram>histogram</a>"
+  ," <a href=histogram%s>histogram</a>"
   ,"</div>"
   ,"<pre>%s</pre>"
-  ])
-  (dropWhile (=='/') $ rqUri r)
-  (fromMaybe "" $ queryValue "a" r)
+  ]) u a p q q q q
+    where
+      u = dropWhile (=='/') $ rqUri r
+      -- another way to get them
+      -- a = fromMaybe "" $ queryValue "a" r
+      -- p = fromMaybe "" $ queryValue "p" r
+      q' = intercalate "&" $ if null a then [] else [(("a="++).urlEncode) a] ++ if null p then [] else [(("p="++).urlEncode) p]
+      q = if null q' then "" else '?':q'
+      resetlink | null a && null p = ""
+                | otherwise = printf "&nbsp; <a href=%s>reset</a>" u
 
 queryValues :: String -> Request -> [String]
 queryValues q r = map (B.unpack . inputValue . snd) $ filter ((==q).fst) $ rqInputs r
