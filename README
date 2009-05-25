@@ -40,8 +40,8 @@ option (which may be - for standard input). Basic usage is::
  hledger [OPTIONS] [COMMAND [PATTERNS]]
 
 COMMAND is one of balance, print, register, ui, web, test (defaulting to
-balance). PATTERNS are zero or more regular expressions used to narrow the
-results.  Here are some commands to try::
+balance). PATTERNS are zero or more regular expressions used to filter by
+account name or transaction description.  Here are some commands to try::
 
  export LEDGER=sample.ledger
  hledger --help                        # show usage & options
@@ -52,16 +52,16 @@ results.  Here are some commands to try::
  hledger reg checking                  # checking transactions
  hledger reg desc:shop                 # transactions with shop in the description
  hledger histogram                     # transactions per day, or other interval
- hledger ui                            # interactive ui, if installed with -fvty
- hledger web                           # web ui, installed with -fhapps
- echo >new; hledger -f new add         # input transactions from the command line
+ hledger ui                            # curses ui, if installed with -fvty
+ hledger web                           # web ui, if installed with -fhapps
+ hledger -f new.ledger add             # record transactions from the command line
 
 Time reporting
 --------------
 
-hledger will also read timeclock.el-format timelog entries.  As a
-convenience, if you invoke hledger via a link or copy named "hours", it
-uses your timelog file (~/.timelog or $TIMELOG) by default.::
+hledger will also read timelog files in timeclock.el format.  If you
+invoke hledger via a symlink or copy named "hours", it looks for your
+timelog file (~/.timelog or $TIMELOG) by default.::
 
  hours [OPTIONS] [COMMAND [PATTERNS]]
 
@@ -73,13 +73,13 @@ Timelog entries look like this::
 The clockin description is treated as an account name. Here are some
 queries to try::
 
- ln -s `which hledger` ~/bin/hours      # add the "hours" symlink in your path
+ ln -s `which hledger` ~/bin/hours            # set up "hours" in your path
  export TIMELOG=sample.timelog
- hours                                  # time logged today, if any
- hours -p 'last month'                     # last month
- hours -p thisyear                         # the space is optional
- hours -p 'from 1/15' register proj        # project sessions since last jan 15
- hours -p 'weekly this year' reg --depth 1 # weekly time summary
+ hours                                        # show all time balances
+ hours -p 'last week'                         # last week
+ hours -p thismonth                           # the space is optional
+ hours -p 'from 1/15' register project        # project sessions since jan 15
+ hours -p 'weekly' reg --depth 1 -E           # weekly time summary
 
 Features
 --------
@@ -87,8 +87,7 @@ Features
 This version of hledger mimics a subset of ledger 3.x, and adds some
 features of its own. We currently support regular ledger entries, timelog
 entries, multiple commodities, virtual transactions, account and
-description patterns, the LEDGER environment variable, and these commands
-and options::
+description filtering, and these commands and options::
 
    Commands:
    balance  [REGEXP]...   show balance totals for matching accounts
@@ -126,10 +125,10 @@ We handle (almost) the full period expression syntax, and very limited
 display expressions consisting of a simple date predicate. Also the
 following new commands are supported::
 
-   histogram              show a (textual) barchart of transaction counts
-   add                    input transactions from the command line
+   histogram              show a barchart of transaction counts per interval
+   add                    record transactions from the command line
    convert                convert CSV bank data to ledger journal format
-   ui                     a simple interactive text ui (only on unix platforms)
+   ui                     a simple curses ui (only on unix platforms)
    web                    a simple web ui
    stats                  report some ledger statistics
    test                   run self-tests
