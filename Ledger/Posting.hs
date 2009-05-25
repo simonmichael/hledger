@@ -43,3 +43,9 @@ isBalancedVirtual p = ptype p == BalancedVirtualPosting
 
 hasAmount :: Posting -> Bool
 hasAmount = (/= missingamt) . pamount
+
+postingTypeFromAccountName a
+    | head a == '[' && last a == ']' = BalancedVirtualPosting
+    | head a == '(' && last a == ')' = VirtualPosting
+    | otherwise = RegularPosting
+

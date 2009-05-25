@@ -23,8 +23,10 @@ import Data.Time.Calendar
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
+import Ledger.AccountName
 import Ledger.Amount
 import Ledger.LedgerTransaction
+import Ledger.Posting
 import Ledger.Commodity
 import Ledger.TimeLog
 import Ledger.RawLedger
@@ -362,43 +364,17 @@ ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
 ledgerpostings = many1 $ try ledgerposting
 
 ledgerposting :: GenParser Char LedgerFileCtx Posting
-ledgerposting = many1 spacenonewline >> choice [ normalposting, virtualposting, balancedvirtualposting ]
-
-normalposting :: GenParser Char LedgerFileCtx Posting
-normalposting = do
+ledgerposting = do
+  many1 spacenonewline
   status <- ledgerstatus
   account <- transactionaccountname
+  let (ptype, account') = (postingTypeFromAccountName account, unbracket account)
   amount <- postingamount
   many spacenonewline
   comment <- ledgercomment
   restofline
   parent <- getParentAccount
-  return (Posting status account amount comment RegularPosting)
-
-virtualposting :: GenParser Char LedgerFileCtx Posting
-virtualposting = do
-  status <- ledgerstatus
-  char '('
-  account <- transactionaccountname
-  char ')'
-  amount <- postingamount
-  many spacenonewline
-  comment <- ledgercomment
-  restofline
-  parent <- getParentAccount
-  return (Posting status account amount comment VirtualPosting)
-
-balancedvirtualposting :: GenParser Char LedgerFileCtx Posting
-balancedvirtualposting = do
-  status <- ledgerstatus
-  char '['
-  account <- transactionaccountname
-  char ']'
-  amount <- postingamount
-  many spacenonewline
-  comment <- ledgercomment
-  restofline
-  return (Posting status account amount comment BalancedVirtualPosting)
+  return (Posting status account' amount comment ptype)
 
 -- Qualify with the parent account from parsing context
 transactionaccountname :: GenParser Char LedgerFileCtx AccountName
@@ -407,15 +383,15 @@ transactionaccountname = liftM2 (++) getParentAccount ledgeraccountname
 -- | account names may have single spaces inside them, and are terminated by two or more spaces
 ledgeraccountname :: GenParser Char st String
 ledgeraccountname = do
-    accountname <- many1 (accountnamechar <|> singlespace)
+    accountname <- many1 (nonspace <|> singlespace)
     return $ striptrailingspace accountname
     where 
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
       -- couldn't avoid consuming a final space sometimes, harmless
       striptrailingspace s = if last s == ' ' then init s else s
 
-accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
-    <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
+-- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
+--     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
 postingamount :: GenParser Char st MixedAmount
 postingamount =

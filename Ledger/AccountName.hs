@@ -23,6 +23,11 @@ accountNameFromComponents = concat . intersperse [acctsepchar]
 accountLeafName :: AccountName -> String
 accountLeafName = last . accountNameComponents
 
+unbracket :: String -> String
+unbracket s
+    | (head s == '[' && last s == ']') || (head s == '(' && last s == ')') = init $ tail s
+    | otherwise = s
+
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
 accountNameLevel a = (length $ filter (==acctsepchar) a) + 1

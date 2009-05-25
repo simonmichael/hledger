@@ -141,6 +141,16 @@ hledger: could not balance this transaction, amounts do not add up to zero:
 
 
 --@
+
+@
+$ printf "2009-01-01 x\n  a  2\n  b (b) b  -1\n  c\n" | hledger -f - print 2>&1; true
+2009/01/01 x
+    a                                              2
+    b (b) b                                       -1
+    c
+
+@
+
 -}
 -- other test tools:
 -- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
