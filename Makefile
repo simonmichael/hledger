@@ -1,44 +1,72 @@
 # hledger project makefile
 
-default: tag build
+TIME=`date +"%Y%m%d%H%M"`
 
 # patches since last release tag (as a haskell string literal)
 PATCHES:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 
-# build the normal hledger binary
-BUILD=ghc --make hledger.hs -o hledger #-O
-FLAGS=-DPATCHES=$(PATCHES)
-# optional extras described in README, turn em on if you've got the libs
-OPTFLAGS= #-DVTY -DHAPPS
-BUILDFLAGS=$(FLAGS) $(OPTFLAGS)
-build: setversion
-	@$(BUILD) $(BUILDFLAGS)
+# optional flags described in README, turn em on if you've got the libs
+OPTFLAGS=-DHAPPS -DVTY 
 
-# build the fastest binary we can, as hledgeropt
-BUILDOPT=ghc --make hledger.hs -o hledgeropt -O2 -fvia-C
-buildopt opt: setversion
-	$(BUILDOPT) $(BUILDFLAGS)
+BUILDFLAGS=-DPATCHES=$(PATCHES) $(OPTFLAGS)
 
-# "continuous integration" testing - recompile and run test (or any other
-# command) whenever a module changes. sp is from searchpath.org , you
-# might need the patched version from http://joyful.com/repos/searchpath
+default: tag hledger
+
+######################################################################
+# BUILDING, DEBUGGING
+
+# build the standard developer's binary, quickly
+hledger: setversion
+	ghc --make hledger.hs -o hledger $(BUILDFLAGS) # -O
+
+# build the profiling-enabled binary. You may need to cabal install
+# --reinstall -p some libs.
+hledgerp: setversion
+	ghc --make hledger.hs -prof -auto-all -o hledgerp #$(BUILDFLAGS) 
+
+# build the fastest binary we can
+hledgeropt: setversion
+	ghc --make hledger.hs -o hledgeropt -O2 -fvia-C $(BUILDFLAGS)
+
+# "continuous integration" testing - auto-recompile and run hledger test
+# (or some other command) whenever a module changes. sp is from
+# searchpath.org , you might need the patched version from
+# http://joyful.com/repos/searchpath .
+#CICMD=web --debug -BE
 CICMD=test
 continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
-# force a full rebuild with normal optimisation
-rebuild: clean build
+# build the benchmark runner. Requires tabular from hackage.
+bench:
+	ghc --make tools/bench.hs
 
-# debug prompt
+# build the doctest runner
+tools/doctest: tools/doctest.hs
+	ghc --make tools/doctest.hs
+
+# build the generateledger tool
+generateledger: tools/generateledger.hs
+	ghc --make tools/generateledger.hs
+
+# get a debug prompt
 ghci:
 	ghci hledger.hs
 
+# generate a standard profile, archive in profs/ and display
+PROFCMD=-f 1000x1000x10.ledger balance
+prof: sampleledgers hledgerp
+	@echo "Profiling $(PROFCMD)"
+	./hledgerp +RTS -p -RTS $(PROFCMD) >/dev/null
+	mv hledgerp.prof profs/$(TIME).prof
+	tools/simplifyprof.hs profs/$(TIME).prof >profs/$(TIME)-cleaned.prof
+	echo; cat profs/$(TIME)-cleaned.prof
+
+######################################################################
+# TESTING
+
 # run all tests
 test: unittest doctest haddocktest
-
-# make sure we have no haddock errors
-haddocktest:
-	@make --quiet haddock
 
 # run unit tests, without waiting for compilation
 unittest:
@@ -49,60 +77,126 @@ doctest: tools/doctest
 	@tools/doctest AddCommand.hs
 	@tools/doctest Tests.hs
 
-tools/doctest: tools/doctest.hs
-	ghc --make tools/doctest.hs
+# make sure we have no haddock errors
+haddocktest:
+	@make --quiet haddock
 
-# build profiling-enabled hledgerp and archive and show a cleaned-up profile
-# you may need to rebuild some libs: sudo cabal install --reinstall -p ...
-PROFBIN=hledgerp
-BUILDPROF=ghc $(BUILDFLAGS) --make hledger.hs -prof -auto-all -o $(PROFBIN)
-RUNPROF=./$(PROFBIN) +RTS -p -RTS
-PROFCMD=-f 1000.ledger balance
-TIME=`date +"%Y%m%d%H%M"`
-buildprof prof: sampleledgers
-	@echo "Profiling $(PROFCMD)"
-	$(BUILDPROF)
-	$(RUNPROF) $(PROFCMD) #>/dev/null
-	tools/simplifyprof.hs $(PROFBIN).prof >profile.prof
-	cp profile.prof profs/$(TIME).prof
-	echo; cat profile.prof
-
-# run performance benchmarks and save results in profs
-# executables to test, prepend ./ to these if not in $PATH
-# requires tabular from hackage
-#BENCHEXES=hledger-0.1 hledger-0.2 hledger-0.3 hledger-0.4 hledger-0.5 ledger
+# run performance tests and save results in profs/. 
+# Requires some tests defined in bench.tests and some executables defined below.
+# Prepend ./ to these if not in $PATH.  
 BENCHEXES=hledger-0.4 hledger-0.5 ledger
-bench: buildbench sampleledgers
-	./bench $(BENCHEXES) --verbose | tee profs/`date +%Y%m%d%H%M%S`.bench
+benchtest: sampleledgers bench.tests bench
+	tools/bench $(BENCHEXES) --verbose | tee profs/`date +%Y%m%d%H%M%S`.bench
 
-# build the benchmarking tool
-buildbench:
-	ghc --make tools/bench.hs
-	rm -f bench; ln -s tools/bench
+# generate standard sample ledgers
+sampleledgers: sample.ledger 100x100x10.ledger 1000x1000x10.ledger 10000x1000x10.ledger \
+	100000x1000x10.ledger 1000.ledger 10000.ledger 100000.ledger 1000x1000x10.ledger
 
-# generate sample ledgers
-# XXX should also generate sample.ledger with write_sample_ledger
-sampleledgers: 1000.ledger 10000.ledger 100000.ledger
+sample.ledger:
+	true # XXX should probably regenerate this
 
-1000.ledger:
+100x100x10.ledger: generateledger
+	tools/generateledger 1000 1000 10 >$@
+
+1000x1000x10.ledger: generateledger
+	tools/generateledger 1000 1000 10 >$@
+
+10000x1000x10.ledger: generateledger
+	tools/generateledger 10000 1000 10 >$@
+
+100000x1000x10.ledger: generateledger
+	tools/generateledger 100000 1000 10 >$@
+
+# keep for next benchmark report..
+1000include.ledger:
 	ghc -e 'putStr $$ unlines $$ replicate 1000 "!include sample.ledger"' >1000.ledger
 
-10000.ledger:
+10000include.ledger:
 	ghc -e 'putStr $$ unlines $$ replicate 10000 "!include sample.ledger"' >10000.ledger
 
-100000.ledger:
+100000include.ledger:
 	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >100000.ledger
 
-# send unpushed patches to the mail list
-send:
-	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
+######################################################################
+# DOCS
 
-# push patches to the main repo with ssh
-push:
-	darcs push joyful.com:/repos/hledger
+DOCS=README NEWS
 
-# version numbering, releasing etc.
-#
+# rebuild all docs
+docs: pdf api-docs
+
+# rebuild pdf docs
+pdf:
+	for d in $(DOCS); do rst2pdf $$d -o doc/$$d.pdf; done
+
+# rebuild api docs
+# We munge haddock and hoogle into a rough but useful framed layout.
+# For this to work the hoogle cgi must be built with base target "main".
+api-docs: haddock hoogleweb
+	echo "Converting api docs to frames" ; \
+	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
+	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
+	cp doc/misc/hoogle-small.html hoogle
+
+# build and preview the api docs
+BROWSER=open
+view-api-docs: api-docs
+	$(BROWSER) api-doc/index.html
+
+api-doc-dir:
+	mkdir -p api-doc
+
+MAIN=hledger.hs
+
+# --ignore-all-exports here means these are actually implementation docs
+HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(BUILDFLAGS))
+haddock: api-doc-dir hscolour $(MAIN)
+	echo "Generating haddock api docs with source" ; \
+	$(HADDOCK) -o api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
+		cp api-doc/index.html api-doc/modules-index.html
+
+HSCOLOUR=HsColour -css 
+hscolour: api-doc-dir
+	echo "Generating colourised source" ; \
+	for f in *hs Ledger/*hs; do \
+		$(HSCOLOUR) -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+	done ; \
+	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
+	HsColour -print-css >api-doc/hscolour.css
+
+#set up the hoogle web interface
+#uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
+HOOGLESRC=/usr/local/src/hoogle
+HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
+HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
+hoogleweb: hoogleindex
+	echo "Configuring hoogle web interface" ; \
+	if test -f $(HOOGLE) ; then \
+		mkdir -p hoogle && \
+		cd hoogle && \
+		rm -f $(HOOGLEVER) && \
+		ln -s . $(HOOGLEVER) && \
+		cp -r $(HOOGLESRC)/src/res/ . && \
+		cp -p $(HOOGLE) index.cgi && \
+		touch log.txt && chmod 666 log.txt ; \
+	else \
+		echo "Could not find $(HOOGLE) in the hoogle source tree" ; \
+	fi
+
+#generate a hoogle index
+hoogleindex: $(MAIN)
+	echo "Generating hoogle index" ; \
+	mkdir -p hoogle && \
+	$(HADDOCK) -o hoogle --hoogle $^ && \
+	cd hoogle && \
+	hoogle --convert=main.txt --output=default.hoo
+
+cleandocs:
+	rm -rf api-doc hoogle
+
+######################################################################
+# RELEASING
+
 # Places where hledger's version number makes an appearance:
 #  hledger --version
 #  hledger's cabal file
@@ -189,12 +283,59 @@ tagrelease:
 sdist:
 	cabal sdist
 
+# display a hackage upload command reminder
 hackageupload:
 	@echo please do: cabal upload dist/hledger-$(VERSION).tar.gz -v3
 
+# send unpushed patches to the mail list
+send:
+	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
 
-# update emacs TAGS file
-tag:
+# push patches to the main repo with ssh
+push:
+	darcs push joyful.com:/repos/hledger
+
+# show project stats useful for release notes
+stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench
+
+showreleaseauthors:
+	@echo Patch authors since last release:
+	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
+	@echo
+
+showloc:
+	@echo Lines of non-test code:
+	@sloccount `ls {,Ledger/}*.hs |grep -v Tests.hs` | grep haskell:
+	@echo Lines of test code:
+	@sloccount Tests.hs | grep haskell:
+	@echo
+
+showlastreleasedate:
+	@echo Last release date:
+	@darcs changes --from-tag . | tail -2
+	@echo
+
+showerrors:
+	@echo Known errors:
+	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
+	@echo
+
+showlocalchanges:
+	@echo Local changes:
+	@-darcs push joyful.com:/repos/hledger --dry-run | grep '*' | tac
+	@echo
+
+showreleasechanges:
+	@echo "Changes since last release: ("`darcs changes --from-tag . --count`")"
+	@darcs changes --from-tag . | grep '*'
+	@echo
+
+######################################################################
+# MISCELLANEOUS
+
+tag: emacstags
+
+emacstags:
 	@rm -f TAGS; hasktags -e *hs Ledger/*hs hledger.cabal
 
 clean:
@@ -202,110 +343,4 @@ clean:
 
 Clean: clean clean-docs
 	rm -f hledger TAGS tags
-
-# docs
-
-DOCS=README NEWS
-
-# rebuild all docs
-docs: pdf api-docs
-
-# rebuild pdf docs
-pdf:
-	for d in $(DOCS); do rst2pdf $$d -o doc/$$d.pdf; done
-
-# rebuild api docs
-# We munge haddock and hoogle into a rough but useful framed layout.
-# For this to work the hoogle cgi must be built with base target "main".
-api-docs: haddock hoogleweb
-	echo "Converting api docs to frames" ; \
-	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
-	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
-	cp doc/misc/hoogle-small.html hoogle
-
-# build and preview the api docs
-BROWSER=open
-view-api-docs: api-docs
-	$(BROWSER) api-doc/index.html
-
-api-doc-dir:
-	mkdir -p api-doc
-
-MAIN=hledger.hs
-
-# --ignore-all-exports here means these are actually implementation docs
-HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(BUILDFLAGS))
-haddock: api-doc-dir hscolour $(MAIN)
-	echo "Generating haddock api docs with source" ; \
-	$(HADDOCK) -o api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
-		cp api-doc/index.html api-doc/modules-index.html
-
-HSCOLOUR=HsColour -css 
-hscolour: api-doc-dir
-	echo "Generating colourised source" ; \
-	for f in *hs Ledger/*hs; do \
-		$(HSCOLOUR) -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
-	done ; \
-	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
-	HsColour -print-css >api-doc/hscolour.css
-
-#set up the hoogle web interface
-#uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
-HOOGLESRC=/usr/local/src/hoogle
-HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
-HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
-hoogleweb: hoogleindex
-	echo "Configuring hoogle web interface" ; \
-	if test -f $(HOOGLE) ; then \
-		mkdir -p hoogle && \
-		cd hoogle && \
-		rm -f $(HOOGLEVER) && \
-		ln -s . $(HOOGLEVER) && \
-		cp -r $(HOOGLESRC)/src/res/ . && \
-		cp -p $(HOOGLE) index.cgi && \
-		touch log.txt && chmod 666 log.txt ; \
-	else \
-		echo "Could not find $(HOOGLE) in the hoogle source tree" ; \
-	fi
-
-#generate a hoogle index
-hoogleindex: $(MAIN)
-	echo "Generating hoogle index" ; \
-	mkdir -p hoogle && \
-	$(HADDOCK) -o hoogle --hoogle $^ && \
-	cd hoogle && \
-	hoogle --convert=main.txt --output=default.hoo
-
-cleandocs:
-	rm -rf api-doc hoogle
-
-# misc
-
-stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench
-
-showreleaseauthors:
-	@echo Patch authors since last release:
-	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
-
-showloc:
-	@echo Lines of non-test code:
-	@sloccount `ls {,Ledger/}*.hs |grep -v Tests.hs` | grep haskell:
-	@echo Lines of test code:
-	@sloccount Tests.hs | grep haskell:
-
-showlastreleasedate:
-	@echo Last release date:
-	@darcs changes --from-tag . | tail -2
-
-showerrors:
-	@echo Known errors:
-	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
-
-showlocalchanges:
-	@echo Changes in local repo:
-	@-darcs push joyful.com:/repos/hledger --dry-run | grep '*' | tac
-
-showreleasechanges:
-	@echo "Changes since last release: ("`darcs changes --from-tag . --count`")"
-	@darcs changes --from-tag . | grep '*'
 
