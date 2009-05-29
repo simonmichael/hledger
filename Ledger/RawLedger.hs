@@ -172,3 +172,18 @@ rawLedgerDateSpan rl
     | otherwise = DateSpan (Just $ ltdate $ head ts) (Just $ addDays 1 $ ltdate $ last ts)
     where
       ts = sortBy (comparing ltdate) $ ledger_txns rl
+
+-- | Check if a set of ledger account/description patterns matches the
+-- given account name or entry description.  Patterns are case-insensitive
+-- regular expression strings; those beginning with - are anti-patterns.
+matchpats :: [String] -> String -> Bool
+matchpats pats str =
+    (null positives || any match positives) && (null negatives || not (any match negatives))
+    where
+      (negatives,positives) = partition isnegativepat pats
+      match "" = True
+      match pat = matchregex (abspat pat) str
+      negateprefix = "not:"
+      isnegativepat pat = negateprefix `isPrefixOf` pat
+      abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
+      matchregex pat str = null pat || containsRegex (mkRegexWithOpts pat True False) str

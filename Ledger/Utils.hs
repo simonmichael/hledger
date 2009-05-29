@@ -69,6 +69,11 @@ underline s = s' ++ replicate (length s) '-' ++ "\n"
             | last s == '\n' = s
             | otherwise = s ++ "\n"
 
+unbracket :: String -> String
+unbracket s
+    | (head s == '[' && last s == ']') || (head s == '(' && last s == ')') = init $ tail s
+    | otherwise = s
+
 -- | Join multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 concatTopPadded :: [String] -> String
 concatTopPadded strs = intercalate "\n" $ map concat $ transpose padded

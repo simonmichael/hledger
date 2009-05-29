@@ -23,11 +23,6 @@ accountNameFromComponents = concat . intersperse [acctsepchar]
 accountLeafName :: AccountName -> String
 accountLeafName = last . accountNameComponents
 
-unbracket :: String -> String
-unbracket s
-    | (head s == '[' && last s == ']') || (head s == '(' && last s == ')') = init $ tail s
-    | otherwise = s
-
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
 accountNameLevel a = (length $ filter (==acctsepchar) a) + 1
@@ -100,54 +95,3 @@ elideAccountName width s =
           | otherwise = done++ss
 
 
--- | Check if a set of ledger account/description patterns matches the
--- given account name or entry description.  Patterns are case-insensitive
--- regular expression strings; those beginning with - are anti-patterns.
-matchpats :: [String] -> String -> Bool
-matchpats pats str =
-    (null positives || any match positives) && (null negatives || not (any match negatives))
-    where
-      (negatives,positives) = partition isnegativepat pats
-      match "" = True
-      match pat = matchregex (abspat pat) str
-
--- | Similar to matchpats, but follows the special behaviour of ledger
--- 2.6's balance command: positive patterns which do not contain : match
--- the account leaf name, other patterns match the full account name.
-matchpats_balance :: [String] -> String -> Bool
-matchpats_balance pats str = match_positive_pats pats str && (not $ match_negative_pats pats str)
---    (null positives || any match positives) && (null negatives || not (any match negatives))
---     where
---       (negatives,positives) = partition isnegativepat pats
---       match "" = True
---       match pat = matchregex (abspat pat) matchee
---           where 
---             matchee = if not (':' `elem` pat) && not (isnegativepat pat)
---                       then accountLeafName str
---                       else str
-
--- | Do the positives in these patterns permit a match for this string ?
-match_positive_pats :: [String] -> String -> Bool
-match_positive_pats pats str = (null ps) || (any match ps)
-    where
-      ps = positivepats pats
-      match "" = True
-      match p = matchregex (abspat p) matchee
-          where 
-            matchee | ':' `elem` p = str
-                    | otherwise = accountLeafName str
-
--- | Do the negatives in these patterns prevent a match for this string ?
-match_negative_pats :: [String] -> String -> Bool
-match_negative_pats pats str = (not $ null ns) && (any match ns)
-    where
-      ns = map abspat $ negativepats pats
-      match "" = True
-      match p = matchregex (abspat p) str
-
-negateprefix = "not:"
-isnegativepat pat = negateprefix `isPrefixOf` pat
-abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
-positivepats = filter (not . isnegativepat)
-negativepats = filter isnegativepat
-matchregex pat str = null pat || containsRegex (mkRegexWithOpts pat True False) str
