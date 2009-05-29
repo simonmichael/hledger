@@ -159,7 +159,7 @@ heap: sampleledgers hledgerp
 	./hledgerp +RTS -hc -RTS $(PROFCMD) >/dev/null
 	mv hledgerp.hp profs/$(TIME).hp
 	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
-		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps)
+		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps; rm -f *.aux)
 	$(VIEWPSCMD) profs/latest.ps
 
 # generate and display a code coverage report
