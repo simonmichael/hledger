@@ -1,6 +1,6 @@
 # hledger project makefile
 
-TIME=`date +"%Y%m%d%H%M"`
+TIME:=`date +"%Y%m%d%H%M"`
 
 # patches since last release tag (as a haskell string literal)
 PATCHES:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
@@ -9,6 +9,13 @@ PATCHES:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 OPTFLAGS=-DHAPPS -DVTY 
 
 BUILDFLAGS=-DPATCHES=$(PATCHES) $(OPTFLAGS)
+
+# command to run during "make ci"
+#CICMD=web --debug -BE
+CICMD=test
+
+# command to run during profiling
+PROFCMD=-f 1000x1000x10.ledger balance
 
 default: tag hledger
 
@@ -32,8 +39,6 @@ hledgeropt: setversion
 # (or some other command) whenever a module changes. sp is from
 # searchpath.org , you might need the patched version from
 # http://joyful.com/repos/searchpath .
-#CICMD=web --debug -BE
-CICMD=test
 continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
@@ -53,14 +58,15 @@ generateledger: tools/generateledger.hs
 ghci:
 	ghci hledger.hs
 
-# generate a standard profile, archive in profs/ and display
-PROFCMD=-f 1000x1000x10.ledger balance
+# generate a standard profile, save in profs/ and display
 prof: sampleledgers hledgerp
 	@echo "Profiling $(PROFCMD)"
 	./hledgerp +RTS -p -RTS $(PROFCMD) >/dev/null
-	mv hledgerp.prof profs/$(TIME).prof
-	tools/simplifyprof.hs profs/$(TIME).prof >profs/$(TIME)-cleaned.prof
-	echo; cat profs/$(TIME)-cleaned.prof
+	mv hledgerp.prof profs/$(TIME)-orig.prof
+	tools/simplifyprof.hs profs/$(TIME)-orig.prof >profs/$(TIME).prof
+	(cd profs; rm -f latest*.prof; ln -s $(TIME)-orig.prof latest-orig.prof; ln -s $(TIME).prof latest.prof)
+	echo; cat profs/latest.prof
+
 
 ######################################################################
 # TESTING
@@ -86,7 +92,8 @@ haddocktest:
 # Prepend ./ to these if not in $PATH.  
 BENCHEXES=hledger-0.4 hledger-0.5 ledger
 benchtest: sampleledgers bench.tests bench
-	tools/bench $(BENCHEXES) --verbose | tee profs/`date +%Y%m%d%H%M%S`.bench
+	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
+	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
 
 # generate standard sample ledgers
 sampleledgers: sample.ledger 100x100x10.ledger 1000x1000x10.ledger 10000x1000x10.ledger \
@@ -302,6 +309,10 @@ send:
 # push patches to the main repo with ssh
 push:
 	darcs push joyful.com:/repos/hledger
+
+# sync latest profiles and benchtest results to the public site
+pushprofs:
+	rsync -azP profs/ joyful.com:/repos/hledger/profs/ #--delete 
 
 # show project stats useful for release notes
 stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench
