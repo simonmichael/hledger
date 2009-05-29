@@ -71,7 +71,7 @@ continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
 # build the benchmark runner. Requires tabular from hackage.
-bench:
+bench: tools/bench.hs
 	ghc --make tools/bench.hs
 
 # build the doctest runner
