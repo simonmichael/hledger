@@ -333,13 +333,22 @@ hackageupload:
 send:
 	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
 
-# push patches to the main repo with ssh
-push:
+# push patches and anything else pending to the public server
+push: pushprofs
 	darcs push joyful.com:/repos/hledger
 
-# sync latest profiles and benchtest results to the public site
+# pull anything pending from the public server
+pull: pullprofs
+	darcs pull -a joyful.com:/repos/hledger
+
+# push any new profiles and benchtest results to the public site
+# beware, results may look different depending on which machine generated them
 pushprofs:
-	rsync -azP profs/ joyful.com:/repos/hledger/profs/ #--delete 
+	rsync -azP profs/ joyful.com:/repos/hledger/profs/
+
+# fetch any new profiles and benchtest results from the public site
+pullprofs:
+	rsync -azP joyful.com:/repos/hledger/profs/ profs/
 
 # show project stats useful for release notes
 stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench
