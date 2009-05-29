@@ -22,6 +22,9 @@ BENCHEXES=hledger-0.4 hledger-0.5 ledger
 # command to run during profiling
 PROFCMD=-f 1000x1000x10.ledger balance
 
+# command to view postscript output
+VIEWPSCMD=open
+
 default: tag hledger
 
 ######################################################################
@@ -35,6 +38,10 @@ hledger: setversion
 # --reinstall -p some libs.
 hledgerp: setversion
 	ghc --make hledger.hs -prof -auto-all -o hledgerp #$(BUILDFLAGS) 
+
+# build the coverage-enabled binary (untested)
+hledgercov: setversion
+	ghc --make hledger.hs -hpc -o hledgercov $(BUILDFLAGS) 
 
 # build the fastest binary we can
 hledgeropt: setversion
@@ -63,7 +70,7 @@ generateledger: tools/generateledger.hs
 ghci:
 	ghci hledger.hs
 
-# generate a standard profile, save in profs/ and display
+# generate, save and display a standard profile
 prof: sampleledgers hledgerp
 	@echo "Profiling $(PROFCMD)"
 	./hledgerp +RTS -p -RTS $(PROFCMD) >/dev/null
@@ -72,6 +79,21 @@ prof: sampleledgers hledgerp
 	(cd profs; rm -f latest*.prof; ln -s $(TIME)-orig.prof latest-orig.prof; ln -s $(TIME).prof latest.prof)
 	echo; cat profs/latest.prof
 
+# generate, save and display a graphical heap profile
+heap: sampleledgers hledgerp
+	@echo "Profiling heap with $(PROFCMD)"
+	./hledgerp +RTS -hc -RTS $(PROFCMD) >/dev/null
+	mv hledgerp.hp profs/$(TIME).hp
+	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
+		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps)
+	$(VIEWPSCMD) profs/latest.ps
+
+# generate, save and display a code coverage report (untested)
+coverage: sampleledgers hledgercov
+	@echo "Generating coverage report with $(PROFCMD)"
+	./hledgercov $(PROFCMD) >/dev/null
+	hpc report hledgercov
+	#hpc markup hledgercov
 
 ######################################################################
 # TESTING
