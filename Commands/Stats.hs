@@ -49,8 +49,8 @@ showStats _ _ l today =
              end _ = ""
              days = fromMaybe 0 $ daysInSpan span
              txnrate | days==0 = 0
-                     | otherwise = fromIntegral txns / fromIntegral days :: Float
+                     | otherwise = fromIntegral txns / fromIntegral days :: Double
              txns30 = length $ filter withinlast30 rawledgertransactions
              withinlast30 t = (d>=(addDays (-30) today) && (d<=today)) where d = ltdate t
-             txnrate30 = fromIntegral txns30 / 30 :: Float
+             txnrate30 = fromIntegral txns30 / 30 :: Double
 

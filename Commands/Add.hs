@@ -161,7 +161,7 @@ registerFromString s = do
 -- This is Simon White's letter pairs algorithm from
 -- http://www.catalysoft.com/articles/StrikeAMatch.html
 -- with a modification for short strings.
-compareStrings :: String -> String -> Float
+compareStrings :: String -> String -> Double
 compareStrings "" "" = 1
 compareStrings (_:[]) "" = 0
 compareStrings "" (_:[]) = 0
@@ -181,7 +181,7 @@ compareLedgerDescriptions s t = compareStrings s' t'
           t' = simplify t
           simplify = filter (not . (`elem` "0123456789"))
 
-transactionsSimilarTo :: Ledger -> String -> [(Float,LedgerTransaction)]
+transactionsSimilarTo :: Ledger -> String -> [(Double,LedgerTransaction)]
 transactionsSimilarTo l s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
