@@ -122,11 +122,21 @@ fromPaths = foldl' mergeTrees emptyTree . map pathtree
 -- fromPaths' :: (Ord a) => [[a]] -> Tree a
 -- fromPaths' = foldl' mergeTrees' emptyTree' . map pathtree'
 
-converttree :: [AccountName] -> Tree' AccountName -> [Tree AccountName]
-converttree parents (T m) = [Node (accountNameFromComponents $ parents ++ [a]) (converttree (parents++[a]) b) | (a,b) <- M.toList m]
+
+-- converttree :: [AccountName] -> Tree' AccountName -> [Tree AccountName]
+-- converttree parents (T m) = [Node (accountNameFromComponents $ parents ++ [a]) (converttree (parents++[a]) b) | (a,b) <- M.toList m]
+
+-- accountNameTreeFrom4 :: [AccountName] -> Tree AccountName
+-- accountNameTreeFrom4 accts = Node "top" (converttree [] $ fromPaths $ map accountNameComponents accts)
+
+converttree :: Tree' AccountName -> [Tree AccountName]
+converttree (T m) = [Node a (converttree b) | (a,b) <- M.toList m]
+
+expandTreeNames :: Tree AccountName -> Tree AccountName
+expandTreeNames (Node x ts) = Node x (map (treemap (\n -> accountNameFromComponents [x,n]) . expandTreeNames) ts)
 
 accountNameTreeFrom4 :: [AccountName] -> Tree AccountName
-accountNameTreeFrom4 accts = Node "top" (converttree [] $ fromPaths $ map accountNameComponents accts)
+accountNameTreeFrom4 = Node "top" . map expandTreeNames . converttree . fromPaths . map accountNameComponents
 
 
 -- | Elide an account name to fit in the specified width.
