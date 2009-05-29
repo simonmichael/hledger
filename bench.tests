@@ -1,7 +1,16 @@
 # tests for "make bench" - one command per line, without the executable
 
--f 1000.ledger balance # old
--f 100x100x10.ledger balance
--f 1000x1000x10.ledger balance
--f 10000x1000x10.ledger balance
+-f 100x100x10.ledger     balance
+-f 1000x1000x10.ledger   balance
+-f 10000x1000x10.ledger  balance
 #-f 100000x1000x10.ledger balance
+
+-f 100x100x10.ledger     register
+-f 1000x1000x10.ledger   register
+-f 10000x1000x10.ledger  register
+#-f 100000x1000x10.ledger register
+
+-f 100x100x10.ledger     print
+-f 1000x1000x10.ledger   print
+-f 10000x1000x10.ledger  print
+#-f 100000x1000x10.ledger print
