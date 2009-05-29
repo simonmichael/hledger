@@ -1,3 +1,4 @@
+{-# LANGUAGE NoMonomorphismRestriction#-}
 {-|
 
 'AccountName's are strings like @assets:cash:petty@.
@@ -9,6 +10,9 @@ module Ledger.AccountName
 where
 import Ledger.Utils
 import Ledger.Types
+import Data.Map ((!), fromList, Map)
+import qualified Data.Map as M
+
 
 
 -- change to use a different separator for nested accounts
@@ -46,28 +50,84 @@ parentAccountNames a = parentAccountNames' $ parentAccountName a
       parentAccountNames' a = [a] ++ (parentAccountNames' $ parentAccountName a)
 
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
-p `isAccountNamePrefixOf` s = ((p ++ [acctsepchar]) `isPrefixOf` s)
+p `isAccountNamePrefixOf` s = ((p ++ [acctsepchar] ) `isPrefixOf` s)
 
 isSubAccountNameOf :: AccountName -> AccountName -> Bool
 s `isSubAccountNameOf` p = 
     (p `isAccountNamePrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
 
+-- | From a list of account names, select those which are direct
+-- subaccounts of the given account name.
 subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
 subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 
--- | We could almost get by with just the AccountName manipulations
--- above, but we need smarter structures to eg display the account
--- tree with boring accounts elided.  This converts a list of
--- AccountName to a tree (later we will convert that to a tree of
--- 'Account'.)
+-- | Convert a list of account names to a tree.
 accountNameTreeFrom :: [AccountName] -> Tree AccountName
-accountNameTreeFrom accts = 
-    Node "top" (accountsFrom (topAccountNames accts))
+accountNameTreeFrom = accountNameTreeFrom1
+
+accountNameTreeFrom1 accts = 
+    Node "top" (accounttreesfrom (topAccountNames accts))
         where
-          accountsFrom :: [AccountName] -> [Tree AccountName]
-          accountsFrom [] = []
-          accountsFrom as = [Node a (accountsFrom $ subs a) | a <- as]
+          accounttreesfrom :: [AccountName] -> [Tree AccountName]
+          accounttreesfrom [] = []
+          accounttreesfrom as = [Node a (accounttreesfrom $ subs a) | a <- as]
           subs = subAccountNamesFrom (expandAccountNames accts)
+
+accountNameTreeFrom2 accts = 
+   Node "top" $ unfoldForest (\a -> (a, subs a)) $ topAccountNames accts
+        where
+          subs = subAccountNamesFrom allaccts
+          allaccts = expandAccountNames accts
+          -- subs' a = subsmap ! a
+          -- subsmap :: Map AccountName [AccountName]
+          -- subsmap = Data.Map.fromList [(a, subAccountNamesFrom allaccts a) | a <- allaccts]
+
+accountNameTreeFrom3 accts = 
+    Node "top" $ forestfrom allaccts $ topAccountNames accts
+        where
+          -- drop accts from the list of potential subs as we add them to the tree
+          forestfrom :: [AccountName] -> [AccountName] -> Forest AccountName
+          forestfrom subaccts accts = 
+              [let subaccts' = subaccts \\ accts in Node a $ forestfrom subaccts' (subAccountNamesFrom subaccts' a) | a <- accts]
+          allaccts = expandAccountNames accts
+          
+
+-- a more efficient tree builder from Cale Gibbard
+newtype Tree' a = T (Map a (Tree' a))
+  deriving (Show, Eq, Ord)
+
+mergeTrees :: (Ord a) => Tree' a -> Tree' a -> Tree' a
+mergeTrees (T m) (T m') = T (M.unionWith mergeTrees m m')
+
+emptyTree = T M.empty
+
+pathtree :: [a] -> Tree' a
+pathtree []     = T M.empty
+pathtree (x:xs) = T (M.singleton x (pathtree xs))
+
+fromPaths :: (Ord a) => [[a]] -> Tree' a
+fromPaths = foldl' mergeTrees emptyTree . map pathtree
+
+-- the above, but trying to build Tree directly
+
+-- mergeTrees' :: (Ord a) => Tree a -> Tree a -> Tree a
+-- mergeTrees' (Node m ms) (Node m' ms') = Node undefined (ms `union` ms')
+
+-- emptyTree' = Node "top" []
+
+-- pathtree' :: [a] -> Tree a
+-- pathtree' []     = Node undefined []
+-- pathtree' (x:xs) = Node x [pathtree' xs]
+
+-- fromPaths' :: (Ord a) => [[a]] -> Tree a
+-- fromPaths' = foldl' mergeTrees' emptyTree' . map pathtree'
+
+converttree :: [AccountName] -> Tree' AccountName -> [Tree AccountName]
+converttree parents (T m) = [Node (accountNameFromComponents $ parents ++ [a]) (converttree (parents++[a]) b) | (a,b) <- M.toList m]
+
+accountNameTreeFrom4 :: [AccountName] -> Tree AccountName
+accountNameTreeFrom4 accts = Node "top" (converttree [] $ fromPaths $ map accountNameComponents accts)
+
 
 -- | Elide an account name to fit in the specified width.
 -- From the ledger 2.6 news:
