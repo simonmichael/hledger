@@ -39,6 +39,7 @@ usagehdr = (
   "  histogram - show transaction counts per day or other interval\n" ++
   "  print     - show transactions in ledger format\n" ++
   "  register  - show transactions as a register with running balance\n" ++
+  "  stats     - show various statistics for a ledger\n" ++
 #ifdef VTY
   "  ui        - run a simple curses-based text ui\n" ++
 #endif

@@ -46,6 +46,7 @@ module Main (
              module RegisterCommand,
              module HistogramCommand,
              module AddCommand,
+             module StatsCommand,
 #ifdef VTY
              module UICommand,
 #endif
@@ -71,6 +72,7 @@ import PrintCommand
 import RegisterCommand
 import HistogramCommand
 import AddCommand
+import StatsCommand
 #ifdef VTY
 import UICommand
 #endif
@@ -93,6 +95,7 @@ main = do
        | cmd `isPrefixOf` "register"  = withLedgerDo opts args cmd register
        | cmd `isPrefixOf` "histogram" = withLedgerDo opts args cmd histogram
        | cmd `isPrefixOf` "add"       = withLedgerDo opts args cmd add
+       | cmd `isPrefixOf` "stats"     = withLedgerDo opts args cmd stats
 #ifdef VTY
        | cmd `isPrefixOf` "ui"        = withLedgerDo opts args cmd ui
 #endif
