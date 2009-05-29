@@ -62,7 +62,7 @@ usagehdr = "bench [-f testsfile] [-n iterations] [-p precision] executable1 [exe
            "Run some functional tests with each of the specified executables,\n" ++
            "where a test is \"zero or more arguments supported by all executables\",\n" ++
            "and report the best execution times.\n"
-
+           
 options = [
   Option ['f'] ["testsfile"] (ReqArg File "testsfile") "file containing tests, one per line, default: bench.tests"
  ,Option ['n'] ["iterations"] (ReqArg Num "iterations") "number of test iterations to run, default: 2"
@@ -149,7 +149,7 @@ doiteration opts test exe iteration = do
 time :: String -> IO Float
 time cmd = do
   t1 <- getCurrentTime
-  ret <- system $ cmd ++ ">/dev/null 2>&1"
+  ret <- system $ cmd ++ " >/dev/null 2>&1"
   case ret of
     ExitSuccess -> return ()
     ExitFailure f -> putStr $ printf " (error %d)" f
