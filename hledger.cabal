@@ -53,7 +53,8 @@ Executable hledger
   Build-Depends:  base, containers, haskell98, directory, parsec,
                   regex-compat, regexpr>=0.5.1, old-locale, time,
                   HUnit, mtl, bytestring, filepath, process, testpack,
-                  regex-pcre, csv, split, utf8-string, http
+                  regex-pcre, csv, split, utf8-string
+                  ,HTTP >= 4000.0 && < 4000.1
 
   Other-Modules:  
                   Commands.Add
