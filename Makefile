@@ -71,7 +71,7 @@ continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
 # build the benchmark runner. Requires tabular from hackage.
-bench: tools/bench.hs
+tools/bench: tools/bench.hs
 	ghc --make tools/bench.hs
 
 # build the doctest runner
@@ -79,7 +79,7 @@ tools/doctest: tools/doctest.hs
 	ghc --make tools/doctest.hs
 
 # build the generateledger tool
-generateledger: tools/generateledger.hs
+tools/generateledger: tools/generateledger.hs
 	ghc --make tools/generateledger.hs
 
 # get a debug prompt
@@ -132,7 +132,7 @@ haddocktest:
 
 # run performance tests and save results in profs/. 
 # Requires some tests defined in bench.tests and some executables defined above.
-benchtest: sampleledgers bench.tests bench
+benchtest: sampleledgers bench.tests tools/bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
@@ -143,16 +143,16 @@ sampleledgers: sample.ledger 100x100x10.ledger 1000x1000x10.ledger 10000x1000x10
 sample.ledger:
 	true # XXX should probably regenerate this
 
-100x100x10.ledger: generateledger
+100x100x10.ledger: tools/generateledger
 	tools/generateledger 100 100 10 >$@
 
-1000x1000x10.ledger: generateledger
+1000x1000x10.ledger: tools/generateledger
 	tools/generateledger 1000 1000 10 >$@
 
-10000x1000x10.ledger: generateledger
+10000x1000x10.ledger: tools/generateledger
 	tools/generateledger 10000 1000 10 >$@
 
-100000x1000x10.ledger: generateledger
+100000x1000x10.ledger: tools/generateledger
 	tools/generateledger 100000 1000 10 >$@
 
 ######################################################################
@@ -353,7 +353,7 @@ pushbinary:
 	rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
 
 # show project stats useful for release notes
-stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench
+stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges benchtest
 
 showreleaseauthors:
 	@echo Patch authors since last release:
