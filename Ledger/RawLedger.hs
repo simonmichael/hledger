@@ -164,7 +164,7 @@ rawLedgerConvertTimeLog t l0 = l0 { ledger_txns = convertedTimeLog ++ ledger_txn
     where convertedTimeLog = entriesFromTimeLogEntries t $ open_timelog_entries l0
 
 
--- | The date span containing all the raw ledger's transactions,
+-- | The (fully specified) date span containing all the raw ledger's transactions,
 -- or DateSpan Nothing Nothing if there are none.
 rawLedgerDateSpan :: RawLedger -> DateSpan
 rawLedgerDateSpan rl

@@ -67,6 +67,11 @@ splitspan startof next s@(DateSpan (Just b) (Just e))
               | b >= e = []
               | otherwise = [DateSpan (Just $ startof b) (Just $ next $ startof b)] 
                             ++ splitspan' startof next (DateSpan (Just $ next $ startof b) (Just e))
+
+-- | Count the days in a DateSpan, or if it is open-ended return Nothing.
+daysInSpan :: DateSpan -> Maybe Integer
+daysInSpan (DateSpan (Just d1) (Just d2)) = Just $ diffDays d2 d1
+daysInSpan _ = Nothing
     
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date.

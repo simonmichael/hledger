@@ -444,6 +444,9 @@ tests = [
    "use the greatest precision" ~: do
     (rawLedgerPrecisions $ canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"]) `is` [2,2]
 
+  ,"commodities" ~: do
+    commodities ledger7 `is` [Commodity {symbol="$", side=L, spaced=False, comma=False, precision=2}]
+
   ,"dateSpanFromOpts" ~: do
     let todaysdate = parsedate "2008/11/26"
     let opts `gives` spans = show (dateSpanFromOpts todaysdate opts) `is` spans

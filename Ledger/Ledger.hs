@@ -156,7 +156,7 @@ ledgerSubAccounts :: Ledger -> Account -> [Account]
 ledgerSubAccounts l Account{aname=a} = 
     map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ accountnames l
 
--- | List a ledger's transactions.
+-- | List a ledger's "transactions", ie postings with transaction info attached.
 ledgerTransactions :: Ledger -> [Transaction]
 ledgerTransactions l = rawLedgerTransactions $ rawledger l
 
@@ -168,7 +168,7 @@ ledgerAccountTree depth l = treemap (ledgerAccount l) $ treeprune depth $ accoun
 ledgerAccountTreeAt :: Ledger -> Account -> Maybe (Tree Account)
 ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 
--- | The date span containing all the ledger's (filtered) transactions,
+-- | The (fully specified) date span containing all the ledger's (filtered) transactions,
 -- or DateSpan Nothing Nothing if there are none.
 ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan l
@@ -198,6 +198,9 @@ subaccounts = ledgerSubAccounts
 
 transactions :: Ledger -> [Transaction]
 transactions = ledgerTransactions
+
+commodities :: Ledger -> [Commodity]
+commodities = nub . rawLedgerCommodities . rawledger
 
 accounttree :: Int -> Ledger -> Tree Account
 accounttree = ledgerAccountTree

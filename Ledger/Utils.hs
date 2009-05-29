@@ -63,6 +63,12 @@ elideRight width s =
       True -> take (width - 2) s ++ ".."
       False -> s
 
+underline :: String -> String
+underline s = s' ++ replicate (length s) '-' ++ "\n"
+    where s'
+            | last s == '\n' = s
+            | otherwise = s ++ "\n"
+
 -- | Join multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 concatTopPadded :: [String] -> String
 concatTopPadded strs = intercalate "\n" $ map concat $ transpose padded
