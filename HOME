@@ -3,6 +3,8 @@ hledger
 
 **Welcome! hledger is...**
 
+- a Free Software project developed since 2007 by
+  `Simon Michael <http://joyful.com>`_ and contributors.
 - a command-line (or curses or web-based) double-entry accounting tool.  It reads a
   `plain text ledger <http://joyful.com/repos/hledger/sample.ledger>`_
   describing your transactions and displays precise 
@@ -11,8 +13,6 @@ hledger
 - a remix, in `haskell <http://haskell.org>`_, of John Wiegley's excellent
   c++ `ledger <http://wiki.github.com/jwiegley/ledger>`_. hledger reads most standard ledger files
   and vice-versa.
-- a Free Software project developed since 2008 by
-  `Simon Michael <http://joyful.com>`_ and contributors.
 
 **hledger aims to be...**
 
@@ -25,6 +25,10 @@ hledger
 - chat me (sm) on the `#ledger irc channel <irc://irc.freenode.net/#ledger>`_ which we share with ledger
 - join the `hledger google group <http://groups.google.com/group/hledger>`_
 - for something private, `email me <mailto:simon@joyful.com>`_.
+
+Bug reports and/or patches are appreciated, for website issues,
+unclear/stale/missing docs, or any difficulty encountered while
+installing, using, or contributing.
 
 Download
 --------
