@@ -123,17 +123,19 @@ sample.ledger:
 DOCS=HOME README NEWS CONTRIBUTORS SCREENSHOTS
 
 # rebuild all docs
-docs: html pdf api-docs
+docs: buildwebsite pdf api-docs
 
-buildwebsite:
-	mkdir -p website
+buildwebsite: website
+	-cp doc/*.css website
 	-cp doc/*.png website
-	for d in $(DOCS); do pandoc -r rst $$d >website/$$d.html; done
+	for d in $(DOCS); do pandoc -s -H doc/header.html -A doc/footer.html -r rst $$d >website/$$d.html; done
 	(cd website; rm -f index.html; ln -s HOME.html index.html)
 
-# rebuild pdf docs
-pdf:
-	for d in $(DOCS); do rst2pdf $$d -o doc/$$d.pdf; done
+pdf: website
+	for d in $(DOCS); do rst2pdf $$d -o website/$$d.pdf; done
+
+website:
+		mkdir -p website
 
 # rebuild api docs
 # We munge haddock and hoogle into a rough but useful framed layout.

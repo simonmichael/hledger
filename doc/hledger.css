@@ -1,0 +1,11 @@
+body {
+    margin: auto;
+    max-width: 50em; 
+}
+
+#footer {
+        padding-top: 1em;
+        font-size: 70%;
+        color: gray;
+        text-align: center;
+}

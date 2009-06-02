@@ -9,7 +9,7 @@ reports from a plain text ledger file, allows precise batch-mode or
 interactive querying, and demonstrates a pure functional implementation of
 ledger.  For more information, see http://hledger.org .
 
-Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2009 Simon Michael <simon@joyful.com> and contributors.
 Released under GPL version 3 or later.
 
 Installation
