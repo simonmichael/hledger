@@ -9,7 +9,8 @@ hledger
   `balance <http://hledger.org:5000/balance>`_ and 
   `register <http://hledger.org:5000/register?a=checking>`_ reports.
 - a remix, in `haskell <http://haskell.org>`_, of John Wiegley's excellent
-  c++ `ledger <http://wiki.github.com/jwiegley/ledger>`_
+  c++ `ledger <http://wiki.github.com/jwiegley/ledger>`_. hledger reads most standard ledger files
+  and vice-versa.
 - a Free Software project developed since 2008 by
   `Simon Michael <http://joyful.com>`_ and contributors.
 
@@ -62,7 +63,7 @@ Code repository
 ---------------
 ``darcs get http://joyful.com/repos/hledger``
 
-or `browse with darcsweb <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger>`_. Patches applied to this repo are announced on #ledger by hledgerbot.
+or `browse with darcsweb <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger>`_. New patches are announced on #ledger by hledgerbot.
 
  .. raw:: html
 
