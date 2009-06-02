@@ -22,7 +22,8 @@ BENCHEXES=hledger-0.4 hledger-0.5 ledger
 # command to run during profiling
 PROFCMD=-f 1000x1000x10.ledger balance
 
-# command to view postscript output
+# document viewing commands
+VIEWHTMLCMD=open
 VIEWPSCMD=open
 
 default: tag hledger
@@ -150,68 +151,66 @@ sample.ledger:
 	ghc -e 'putStr $$ unlines $$ replicate 100000 "!include sample.ledger"' >100000.ledger
 
 ######################################################################
-# DOCS
+# DOCUMENTATION
+
+# website/ and website/api-doc/ always exist. website contains both
+# generated files (UPPERCASE.html) and revision-controlled resource files
+# (everything else).  website/api-doc contains only generated files.
+cleandocs:
+	rm -rf website/[A-Z]*.html website/api-doc/*
 
 # rebuild all docs
-docs: buildwebsite pdf api-docs
+docs: web pdf api-docs
 
-buildwebsite: website
-	-cp doc/*.css website
-	-cp doc/*.png website
-	for d in $(DOCFILES); do pandoc -s -H doc/header.html -A doc/footer.html -r rst $$d >website/$$d.html; done
-	(cd website; rm -f index.html; ln -s HOME.html index.html)
+# build the main hledger.org website
+web:
+	for d in $(DOCFILES); do pandoc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
+	cd website; rm -f index.html; ln -s HOME.html index.html
 
-pdf: website
-	for d in $(DOCFILES); do rst2pdf $$d -o website/$$d.pdf; done
+# generate pdf versions of main docs
+pdf:
+	-for d in $(DOCFILES); do rst2pdf $$d -o website/$$d.pdf; done
 
-website:
-		mkdir -p website
-
-# rebuild api docs
+# generate api docs
 # We munge haddock and hoogle into a rough but useful framed layout.
 # For this to work the hoogle cgi must be built with base target "main".
-api-docs: haddock hoogleweb
+api-docs: haddock hoogle
 	echo "Converting api docs to frames" ; \
-	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' api-doc/modules-index.html ; \
-	cp doc/misc/api-doc-frames.html api-doc/index.html ; \
-	cp doc/misc/hoogle-small.html hoogle
+	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
+	cp website/api-doc-frames.html website/api-doc/index.html ; \
+	cp website/hoogle-small.html website/api-doc
 
-# build and preview the api docs
-BROWSER=open
+# generate and view the api docs
 view-api-docs: api-docs
-	$(BROWSER) api-doc/index.html
-
-api-doc-dir:
-	mkdir -p api-doc
+	$(VIEWHTMLCMD) website/api-doc/index.html
 
 MAIN=hledger.hs
 
-# --ignore-all-exports here means these are actually implementation docs
+# --ignore-all-exports means we are documenting internal implementation, not library api
 HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(BUILDFLAGS))
-haddock: api-doc-dir hscolour $(MAIN)
+haddock: hscolour $(MAIN)
 	echo "Generating haddock api docs with source" ; \
-	$(HADDOCK) -o api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
-		cp api-doc/index.html api-doc/modules-index.html
+	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
+		cp website/api-doc/index.html website/api-doc/modules-index.html
 
 HSCOLOUR=HsColour -css 
-hscolour: api-doc-dir
+hscolour:
 	echo "Generating colourised source" ; \
 	for f in $(SOURCEFILES); do \
-		$(HSCOLOUR) -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+		$(HSCOLOUR) -anchor $$f -owebsite/api-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
-	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
-	HsColour -print-css >api-doc/hscolour.css
+	cp website/api-doc/src-hledger.html website/api-doc/src-Main.html ; \
+	HsColour -print-css >website/api-doc/hscolour.css
 
 #set up the hoogle web interface
 #uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
 HOOGLESRC=/usr/local/src/hoogle
 HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
 HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
-hoogleweb: hoogleindex
+hoogle: hoogleindex
 	echo "Configuring hoogle web interface" ; \
 	if test -f $(HOOGLE) ; then \
-		mkdir -p hoogle && \
-		cd hoogle && \
+		cd website/api-doc && \
 		rm -f $(HOOGLEVER) && \
 		ln -s . $(HOOGLEVER) && \
 		cp -r $(HOOGLESRC)/src/res/ . && \
@@ -224,13 +223,9 @@ hoogleweb: hoogleindex
 #generate a hoogle index
 hoogleindex: $(MAIN)
 	echo "Generating hoogle index" ; \
-	mkdir -p hoogle && \
-	$(HADDOCK) -o hoogle --hoogle $^ && \
-	cd hoogle && \
+	$(HADDOCK) -o website/api-doc --hoogle $^ && \
+	cd website/api-doc && \
 	hoogle --convert=main.txt --output=default.hoo
-
-cleandocs:
-	rm -rf api-doc hoogle
 
 ######################################################################
 # RELEASING
@@ -383,9 +378,6 @@ emacstags:
 clean:
 	rm -f `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*"`
 
-clean-docs:
-	rm -rf website
-
-Clean: clean clean-docs
+Clean: clean cleandocs
 	rm -f hledger TAGS tags
 
