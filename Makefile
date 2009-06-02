@@ -120,10 +120,16 @@ sample.ledger:
 ######################################################################
 # DOCS
 
-DOCS=README NEWS
+DOCS=HOME README NEWS CONTRIBUTORS SCREENSHOTS
 
 # rebuild all docs
-docs: pdf api-docs
+docs: html pdf api-docs
+
+buildwebsite:
+	mkdir -p website
+	-cp doc/*.png website
+	for d in $(DOCS); do pandoc -r rst $$d >website/$$d.html; done
+	(cd website; rm -f index.html; ln -s HOME.html index.html)
 
 # rebuild pdf docs
 pdf:
@@ -340,6 +346,9 @@ emacstags:
 
 clean:
 	rm -f `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*"`
+
+clean-docs:
+	rm -rf website
 
 Clean: clean clean-docs
 	rm -f hledger TAGS tags

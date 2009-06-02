@@ -1,0 +1,129 @@
+From: Janis Voigtlaender <voigt@tcs.inf.tu-dresden.de>
+Newsgroups: gmane.comp.lang.haskell.cafe,gmane.comp.lang.haskell.general
+Subject: Call for Contributions - Haskell Communities and
+ Activities Report, May 2009 edition
+Date: Wed, 01 Apr 2009 15:08:49 +0200
+Organization: Dresden University of Technology
+
+Dear Haskellers,
+
+so much has happened in the Haskell world in the past months.
+Therefore, I would very much like to collect contributions for
+the 16th edition of the
+
+================================================================
+             Haskell Communities & Activities Report
+               http://www.haskell.org/communities/
+
+                 Submission deadline: 1 May 2009
+
+      (please send your contributions to hcar at haskell.org,
+                  in plain text or LaTeX format)
+================================================================
+
+This is the short story:
+
+* If you are working on any project that is in some way related
+   to Haskell, please write a short entry and submit it. Even if
+   the project is very small or unfinished or you think it is not
+   important enough -- please reconsider and submit an entry anyway!
+
+* If you are interested in any project related to Haskell that has not
+   previously been mentioned in the HC&A Report, please tell me, so that
+   I can contact the project leaders and ask them to submit an entry.
+
+* Feel free to pass on this call for contributions to others that
+   might be interested.
+
+More detailed information:
+
+The Haskell Communities & Activities Report is a bi-annual overview of
+the state of Haskell as well as Haskell-related projects over the
+last, and possibly the upcoming six months. If you have only recently
+been exposed to Haskell, it might be a good idea to browse the
+November 2008 edition -- you will find interesting topics described as
+well as several starting points and links that may provide answers to
+many questions.
+
+Contributions will be collected until the submission deadline. They
+will then be compiled into a coherent report that is published online
+as soon as it is ready. As always, this is a great opportunity to
+update your webpages, make new releases, announce or even start new
+projects, or to talk about developments you want every Haskeller to
+know about!
+
+Looking forward to your contributions,
+
+Janis (current editor)
+
+
+FAQ:
+
+Q: What format should I write in?
+
+A: The required format is a LaTeX source file, adhering to the template
+that is available at:
+
+     http://haskell.org/communities/05-2009/template.tex
+
+There is also a LaTeX style file at
+
+     http://haskell.org/communities/05-2009/hcar.sty
+
+that you can use to preview your entry. If you do not know LaTeX, then
+use plain text. If you modify an old entry that you have written for an
+earlier edition of the report, you should receive your old entry as a
+template soon (provided I have your valid email address). Please modify
+that template, rather than using your own version of the old entry as a
+template.
+
+Q: Can I include images?
+
+A: Yes, you are even encouraged to do so. Please use .jpg format, then.
+
+Q: How much should I write?
+
+A: Authors are asked to limit entries to about one column of text. This
+corresponds to approximately one page, or 40 lines of text, with the
+above style and template.
+
+A general introduction is helpful. Apart from that, you should focus on
+recent or upcoming developments. Pointers to online content can be given
+for more comprehensive or ``historic'' overviews of a project. Images do
+not count towards the length limit, so you may want to use this
+opportunity to pep entries up. There is no minimum length of an entry!
+The report aims at being as complete as possible, so please consider
+writing an entry, even if it is only a few lines long.
+
+Q: Which topics are relevant?
+
+A: All topics which are related to Haskell in some way are relevant. We
+usually had reports from users of Haskell (private, academic, or
+commercial), from authors or contributors to projects related to
+Haskell, from people working on the Haskell language, libraries, on
+language extensions or variants. We also like reports over distributions
+of Haskell software, Haskell infrastructure, books and tutorials on
+Haskell. Reports on past and upcoming events related to Haskell are also
+relevant. Finally, there might be new topics we do not even think about.
+As a rule of thumb: if in doubt, then it probably is relevant and has a
+place in the HCAR. You can also ask the editor.
+
+Q: Is unfinished work relevant? Are ideas for projects relevant?
+
+A: Yes! You can use the HCAR to talk about projects you are currently
+working on. You can use it to look for other developers that might help
+you. You can use it to write ``wishlist'' items for libraries and
+language features you would like to see implemented.
+
+Q: If I do not update my entry, but want to keep it in the report, what
+should I do?
+
+A: Tell the editor that there are no changes. The old entry will be
+reused in this case, but it might be dropped if it is older than a year,
+to give more room and more attention to projects that change a lot.
+Do not resend complete entries if you have not changed them.
+
+-- 
+Dr. Janis Voigtlaender
+http://wwwtcs.inf.tu-dresden.de/~voigt/
+mailto:voigt@tcs.inf.tu-dresden.de

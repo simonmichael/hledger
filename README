@@ -1,16 +1,16 @@
+hledger User's Guide
+====================
 
 Welcome to hledger! 
 
-hledger is a partial haskell clone of John Wiegley's text-based accounting
-tool, ledger (http://wiki.github.com/jwiegley/ledger). hledger generates
-ledger-compatible register & balance reports from a plain text journal,
-allows precise batch-mode or interactive querying, and demonstrates a pure
-functional implementation of ledger.  For more information, see
-http://hledger.org .
+hledger is a partial haskell clone of John Wiegley's "ledger" command-line
+accounting tool. hledger generates ledger-compatible register & balance
+reports from a plain text ledger file, allows precise batch-mode or
+interactive querying, and demonstrates a pure functional implementation of
+ledger.  For more information, see http://hledger.org .
 
 Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
-
 
 Installation
 ------------
@@ -55,7 +55,6 @@ results.  Here are some commands to try::
  hledger ui                            # interactive ui, if installed with -fvty
  hledger web                           # web ui, installed with -fhapps
  echo >new; hledger -f new add         # input transactions from the command line
-
 
 Time reporting
 --------------
@@ -213,4 +212,4 @@ Other differences
 * hledger register report always sorts transactions by date
 * hledger doesn't show description comments as part of the description
 * hledger print puts a blank line after the entry, not before it
-* hledger doesn't print the trailing spaces after amount-elided postings
+* hledger doesn't print trailing spaces after amount-elided postings

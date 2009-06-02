@@ -1,13 +1,13 @@
-2009/05/23 hledger 0.5.1 released
----------------------------------
-Changes:
+hledger news
+============
+
+2009/05/23 hledger 0.5.1
+.................................
 
   * two fixes: really disable vty flag by default, and include ConvertCommand in cabal file
 
-2009/05/23 hledger 0.5 released
--------------------------------
-
-Changes:
+2009/05/23 hledger 0.5
+...............................
 
   * the vty flag is disabled by default again, to ease installation on windows
   * use ledger 3 terminology: a ledger contains transactions which contain postings
@@ -16,8 +16,8 @@ Changes:
   * new "histogram" command shows transaction counts per day or other reporting interval
   * most commands now work properly with UTF8-encoded text (Sergey Astanin)
   * invoking as "hours" is now less different: it just uses your timelog, not your ledger
-  * --quarterly/-Q option summarises by quarter
-  * --uncleared/-U option looks only at uncleared transactions
+  * ..quarterly/-Q option summarises by quarter
+  * ..uncleared/-U option looks only at uncleared transactions
   * be more accurate about checking balanced amounts, don't rely on display precision
   * enforce balancing for bracketed virtual postings
   * fix bug in eliding of posting amounts
@@ -31,24 +31,16 @@ Changes:
   * code, api and documentation updates
   * add a contributor agreement/list
 
-Release contributors:
-
-  * Simon Michael
-  * Sergey Astanin
-
 Release stats:
 
+  * Contributors: Simon Michael, Sergey Astanin
   * Days since last release: 51
-  * Committers: 2
   * Commits: 101
   * Lines of non-test code: 2795
-  * Known errors: 0
   * Tests: 76
-
-.. 
-
-  * Performance::
-
+  * Known errors: 0
+  * Performance:
+..
                               || hledger-0.4 | hledger-0.5 | ledger
      =========================++=============+=============+=======
      -f sample.ledger balance ||        0.01 |        0.01 |   0.06
@@ -56,15 +48,12 @@ Release stats:
      -f 10000.ledger balance  ||       15.28 |       16.35 |   4.67
 
 
-
-2009/04/03 hledger 0.4 released
--------------------------------
-
-Changes:
+2009/04/03 hledger 0.4
+...............................
 
   * new "web" command serves reports in a web browser (install with -f happs to build this)
   * make the vty-based curses ui a cabal build option, which will be ignored on MS windows
-  * drop the --options-anywhere flag, that is now the default
+  * drop the ..options-anywhere flag, that is now the default
   * patterns now use not: and desc: prefixes instead of ^ and ^^
   * patterns are now case-insensitive, like ledger
   * !include directives are now relative to the including file (Tim Docker)
@@ -74,95 +63,72 @@ Changes:
   * balance report now passes all ledger compatibility tests
   * balance report now shows subtotals by default, like ledger 3
   * balance report shows the final zero total when -E is used
-  * balance report hides the final total when --no-total is used
-  * --depth affects print and register reports (aggregating with a reporting interval, filtering otherwise)
+  * balance report hides the final total when ..no-total is used
+  * ..depth affects print and register reports (aggregating with a reporting interval, filtering otherwise)
   * register report sorts transactions by date
   * register report shows zero-amount transactions when -E is used
   * provide more convenient timelog querying when invoked as "hours"
   * multi-day timelog sessions are split at midnight
   * unterminated timelog sessions are now counted. Accurate time reports at last!
-  * the test command gives better --verbose output
-  * --version gives more detailed version numbers including patchlevel for dev builds
+  * the test command gives better ..verbose output
+  * ..version gives more detailed version numbers including patchlevel for dev builds
   * new make targets include: ghci, haddocktest, doctest, unittest, view-api-docs
   * a doctest-style framework for functional/shell tests has been added
 
+Release stats:
+
+  * Contributors: Simon Michael, Tim Docker; thanks to the HAppS, happstack and testpack developers
+  * Days since release: 76
+  * Commits: 144
+  * Lines of non-test code: 2367
+  * Tests: 56
+  * Known errors: 0
+  * Performance:
 ..
-
-  * performance has decreased slightly::
-
                                    || hledger-0.3 | hledger-0.4 | ledger-0.3
      ==============================++=============+=============+===========
      -f sample.ledger balance      ||        0.02 |        0.01 |       0.07
      -f sample1000.ledger balance  ||        1.02 |        1.39 |       0.53
      -f sample10000.ledger balance ||       12.72 |       14.97 |       4.63
 
-Contributors:
 
-  * Simon Michael
-  * Tim Docker
-  * HAppS, happstack and testpack developers
-
-Stats:
-
-  * Known errors: 0
-  * Commits: 144
-  * Committers: 2
-  * Tests: 56
-  * Non-test code lines: 2367
-  * Days since release: 76
-
-
-2009/01/17 hledger 0.3 released
--------------------------------
-
-Fixes:
+2009/01/17 hledger 0.3
+...............................
 
   * count timelog sessions on the day they end, like ledger, for now
   * when options are repeated, use the last instead of the first
   * builds with ghc 6.10 as well as 6.8
-  * runs much faster than 0.2::
-
-     $ bench hledger-0.2 hledger ledger
-                                       || hledger-0.2 | hledger | ledger
-     ==================================++=============+=========+=======
-     -f 2008.ledger -s balance         ||        2.59 |    0.26 |   0.11
-     -f 10000entries.ledger -s balance ||      566.68 |    2.72 |   0.96
-
-Features:
-
   * a simple ui for interactive report browsing: hledger ui
   * accept smart dates everywhere (YYYYMMDD, Y/M/D, Y, M/D, D, jan, today, last week etc.)
-  * --period/-p flag accepting period expressions like "in 2008", "weekly from last month"..
+  * ..period/-p flag accepting period expressions like "in 2008", "weekly from last month"..
   * -W/-M/-Y convenience flags to summarise register weekly, monthly, yearly
-  * --depth and -E flags also affect summarised register reports (including depth=0)
-  * --display/-d flag supporting date predicates (like "d<[DATE]", "d>=[DATE]")
+  * ..depth and -E flags also affect summarised register reports (including depth=0)
+  * ..display/-d flag supporting date predicates (like "d<[DATE]", "d>=[DATE]")
   * !include directive to include additional ledger files
   * !account directive to set a default parent account
   * Added support for reading historical prices from files
   * timelog and ledger entries can be intermixed in one file
   * modifier and periodic entries can appear anywhere (but are still ignored)
   * help and readme improvements
+  * runs much faster than 0.2
 
-Contributors:
+Release stats:
 
-  * Simon Michael
-  * Nick Ingolia
-  * Tim Docker
-  * Corey O'Connor & the vty team
-
-Stats:
-
-  * Known errors: 1
-  * Tests: 58
+  * Contributors: Simon Michael, Nick Ingolia, Tim Docker; thanks to Corey O'Connor & the vty team
   * Lines of non-test code: 2123
+  * Tests: 58
+  * Known errors: 1
+  * Performance:
+..
+     $ bench hledger-0.2 hledger ledger
+                                       || hledger-0.2 | hledger | ledger
+     ==================================++=============+=========+=======
+     -f 2008.ledger -s balance         ||        2.59 |    0.26 |   0.11
+     -f 10000entries.ledger -s balance ||      566.68 |    2.72 |   0.96
 
 
-2008/11/23 hledger 0.2 released
+2008/11/23 hledger 0.2
 ...............................
-
-Summarised changes:
-
-* fixes
 
   * fix balance report totals when filtering by account
   * fix balance report selection of accounts when filtering by account
@@ -171,48 +137,41 @@ Summarised changes:
   * fix print command filtering by account
   * omit transactions with zero amount from register report
   * Fix bug in parsing of timelogs
-  * rename --showsubs to --subtotal, like ledger
-  * drop --usage flag
+  * rename ..showsubs to ..subtotal, like ledger
+  * drop ..usage flag
   * don't require quickcheck
-
-* features
-
-  * priced amounts (eg "10h @ $50") and --basis/--cost/-B flag to show them with cost basis
-  * easy --depth option, equivalent to c++ ledger's -d 'l<=N'
+  * priced amounts (eg "10h @ $50") and ..basis/..cost/-B flag to show them with cost basis
+  * easy ..depth option, equivalent to c++ ledger's -d 'l<=N'
   * smarter y/m/d date parsing for -b and -e
     (any number of digits, month and day default to 1, separator can be / - or .)
   * -n flag for balance command
-  * --empty/-E flag
+  * ..empty/-E flag
   * build a library, as well as the exe
   * new home page url (http://joyful.com/hledger)
   * publish html and pdf versions of README
   * detect display preferences for each commodity like c++ ledger
   * support amounts with multiple currencies/commodities
-  * support --real/-R flag
-  * support -C/--cleared flag to filter by entry status (not transaction status)
+  * support ..real/-R flag
+  * support -C/..cleared flag to filter by entry status (not transaction status)
   * support virtual and balanced virtual transactions
   * parse comment lines beginning with a space, as from M-; in emacs ledger-mode
   * allow any non-whitespace in account names, perhaps avoiding misleading missing amounts errors
   * clearer error message when we can't balance an entry
   * when we fail because of more than one missing amount in an entry, show the full entry
-  * document the built-in test runner in --help
-  * add a --verbose/-v flag, use it to show more test-running detail
+  * document the built-in test runner in ..help
+  * add a ..verbose/-v flag, use it to show more test-running detail
 
-Contributors:
+Release stats:
 
-  * Simon Michael
-  * Tim Docker
-
-Stats:
-
-  * Known errors: 0
-  * Tests: 43
+  * Contributors: Simon Michael, Tim Docker
   * Lines of non-test code: 1350
+  * Tests: 43
+  * Known errors: 0
 
 
-2008/10/15 hledger 0.1 released
+2008/10/15 hledger 0.1
 ...............................
 
-Contributors:
+Release stats:
 
-  * Simon Michael
+  * Contributors: Simon Michael
