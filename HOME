@@ -36,13 +36,18 @@ install hledger from `hackage
 
 Documentation
 -------------
-`User's Guide <README.html>`_ |
-`News <NEWS.html>`_ |
-`Developer API docs <http://joyful.com/repos/hledger/api-doc>`_ |
-`Developer Notes <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES>`_ |
-`Contributor List <CONTRIBUTORS.html>`_ |
-c++ ledger's `home page <http://wiki.github.com/jwiegley/ledger>`_
+`User's Guide <README.html>`_
+| `News <NEWS.html>`_
+| c++ ledger's `home page <http://wiki.github.com/jwiegley/ledger>`_
 and `manual <http://joyful.com/repos/ledger/doc/ledger.html>`_
+
+`Developer API docs <http://joyful.com/repos/hledger/api-doc>`_
+| `Developer Notes <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES>`_
+| `Contributor List <CONTRIBUTORS.html>`_
+| latest `benchtest <http://joyful.com/repos/hledger/profs/latest.bench>`_,
+`profile <http://joyful.com/repos/hledger/profs/latest.prof>`_,
+`heap <http://joyful.com/repos/hledger/profs/latest.ps>`_
+reports
 
 Screenshots
 -----------
@@ -55,7 +60,13 @@ Screenshots
 
 Code repository
 ---------------
-``darcs get http://joyful.com/repos/hledger`` (or `browse with darcsweb <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger>`_)
+``darcs get http://joyful.com/repos/hledger``
+
+or `browse with darcsweb <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger>`_. Patches applied to this repo are announced on #ledger by hledgerbot.
+
+ .. raw:: html
+
+  <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
 
 Related projects
 ----------------
