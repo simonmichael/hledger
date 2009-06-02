@@ -6,9 +6,9 @@ import Options (progname)
 
 -- updated by build process from VERSION
 version       = "0.5.1"
-#ifdef PATCHES
--- a "make" development build defines PATCHES from the repo state
-patchlevel = "." ++ show PATCHES -- must be numeric !
+#ifdef PATCHLEVEL
+-- a "make" development build defines PATCHLEVEL from the repo state
+patchlevel = "." ++ show PATCHLEVEL -- must be numeric !
 #else
 patchlevel = ""
 #endif

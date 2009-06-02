@@ -1,30 +1,27 @@
 # hledger project makefile
 
-SOURCEFILES:=*hs Commands/*hs Ledger/*hs
-DOCFILES=HOME README NEWS CONTRIBUTORS SCREENSHOTS
-TIME:=`date +"%Y%m%d%H%M"`
-
-# patches since last release tag (as a haskell string literal)
-PATCHES:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
-
-# optional flags described in README, turn em on if you've got the libs
+# optional features described in README, comment out if you don't have the libs
 OPTFLAGS=-DHAPPS -DVTY 
 
-BUILDFLAGS=-DPATCHES=$(PATCHES) $(OPTFLAGS)
-
 # command to run during "make ci"
-#CICMD=web --debug -BE
 CICMD=test
+#CICMD=web --debug -BE
 
-# executables to benchtest, prepend ./ if not in $PATH.  
-BENCHEXES=hledger-0.4 hledger-0.5 ledger
-
-# command to run during profiling
+# command to run during "make prof"
 PROFCMD=-f 1000x1000x10.ledger balance
+
+# executables to run during "make benchtest" (prepend ./ if not in $PATH)
+BENCHEXES=hledger-0.4 hledger-0.5 ledger
 
 # document viewing commands
 VIEWHTMLCMD=open
 VIEWPSCMD=open
+
+SOURCEFILES:=*hs Commands/*hs Ledger/*hs
+DOCFILES:=HOME README NEWS CONTRIBUTORS SCREENSHOTS
+PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
+BUILDFLAGS:=-DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
+TIME:=`date +"%Y%m%d%H%M"`
 
 default: tag hledger
 
@@ -46,7 +43,7 @@ hledgercov: setversion
 
 # build the fastest binary we can
 hledgeropt: setversion
-	ghc --make hledger.hs -o hledgeropt -O2 -fvia-C $(BUILDFLAGS)
+	ghc --make hledger.hs -o hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build a deployable binary for mac, one which uses only standard osx libs
 hledgermac: setversion
@@ -130,6 +127,7 @@ haddocktest:
 # Requires some tests defined in bench.tests and some executables defined above.
 benchtest: sampleledgers bench.tests bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
+	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
 
 # generate standard sample ledgers
@@ -353,7 +351,7 @@ showreleaseauthors:
 
 showloc:
 	@echo Lines of non-test code:
-	@sloccount `ls {,Ledger/}*.hs |grep -v Tests.hs` | grep haskell:
+	@sloccount `ls $(SOURCEFILES) |grep -v Tests.hs` | grep haskell:
 	@echo Lines of test code:
 	@sloccount Tests.hs | grep haskell:
 	@echo
