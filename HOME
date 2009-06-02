@@ -61,9 +61,9 @@ Code repository
 
 or `browse with darcsweb`_. New patches are announced on #ledger by hledgerbot.
 
- .. raw:: html
+.. raw:: html
 
-  <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
+ <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
 
 Related projects
 ----------------
