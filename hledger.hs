@@ -1,4 +1,4 @@
--- sp doesn't like.. #!/usr/bin/env runhaskell
+-- #!/usr/bin/env runhaskell  <- sp doesn't like
 {-# OPTIONS_GHC -cpp #-}
 {-|
 hledger - a ledger-compatible text-based accounting tool.
@@ -35,13 +35,7 @@ or ghci:
 See "Ledger.Ledger" for more examples.
 -}
 
-module Main (-- export for easy ghci access:
-             module Main,
-             module Utils,
-             module Options,
-             module Commands.All,
-            )
-where
+module Main where
 import Control.Monad.Error
 import Prelude hiding (putStr, putStrLn)
 import System.IO (stderr)
@@ -54,7 +48,6 @@ import Options
 import Tests
 import Utils (withLedgerDo)
 import Version (versionmsg, binaryfilename)
-
 
 main :: IO ()
 main = do
@@ -80,4 +73,3 @@ main = do
 #endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr $ usage
-
