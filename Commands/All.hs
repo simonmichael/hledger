@@ -1,8 +1,9 @@
 {-# OPTIONS_GHC -cpp #-}
 {-| 
 
-This module re-exports all the Commands modules. It's just a convenience,
-you can import individual modules if you prefer.
+The Commands package defines all the commands offered by the hledger
+application, like \"register\" and \"balance\".  This module exports all
+the commands; you can also import individual modules if you prefer.
 
 -}
 

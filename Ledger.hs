@@ -1,7 +1,8 @@
 {-| 
 
-The Ledger package allows parsing and querying of ledger files.
-It generally provides a compatible subset of C++ ledger's functionality.
+The Ledger library allows parsing and querying of ledger files.  It
+generally provides a compatible subset of C++ ledger's functionality.
+This package re-exports all the Ledger.* modules.
 
 -}
 
