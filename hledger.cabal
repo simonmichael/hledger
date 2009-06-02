@@ -94,7 +94,6 @@ executable hledger
                   Ledger.Types
                   Ledger.Utils
                   Options
-                  Setup
                   Tests
                   Utils
                   Version
