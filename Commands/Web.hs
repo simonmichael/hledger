@@ -2,7 +2,7 @@
 A happs-based web UI for hledger.
 -}
 
-module WebCommand
+module Commands.Web
 where
 import Control.Monad.Trans (liftIO)
 import Data.ByteString.Lazy.UTF8 (toString)
@@ -21,13 +21,14 @@ import System.Cmd (system)
 import System.Info (os)
 import System.Exit
 import Network.HTTP (urlEncode, urlDecode, urlEncodeVars)
+import Text.XHtml hiding (dir)
 
 import Ledger
 import Options
-import BalanceCommand
-import RegisterCommand
-import PrintCommand
-import HistogramCommand
+import Commands.Balance
+import Commands.Register
+import Commands.Print
+import Commands.Histogram
 import Utils (filterAndCacheLedgerWithOpts)
 
 
@@ -55,10 +56,10 @@ web opts args l = do
 webHandlers :: [Opt] -> [String] -> Ledger -> LocalTime -> ServerPartT IO Response
 webHandlers opts args l t = msum
  [
-  methodSP GET $ view showBalanceReport
- ,dir "balance" $ view showBalanceReport
- ,dir "register" $ view showRegisterReport
- ,dir "print" $ view showLedgerTransactions
+  methodSP GET    $ view showBalanceReport
+ ,dir "balance"   $ view showBalanceReport
+ ,dir "register"  $ view showRegisterReport
+ ,dir "print"     $ view showLedgerTransactions
  ,dir "histogram" $ view showHistogram
  ]
  where 
@@ -67,7 +68,7 @@ webHandlers opts args l t = msum
        where
          opts' = opts ++ [Period p]
          args' = args ++ (map urlDecode $ words a)
-         -- re-filter the full ledger
+         -- re-filter the full ledger with the new opts
          l' = filterAndCacheLedgerWithOpts opts' args' t (rawledgertext l) (rawledger l)
 
 rqdata = do
@@ -78,7 +79,7 @@ rqdata = do
 layout :: (String, String) -> String -> ServerPartT IO Response
 layout (a,p) s = do
   r <- askRq
-  return $ setHeader "Content-Type" "text/html" $ toResponse $ maintemplate (a,p) r s
+  return $ setHeader "Content-Type" "text/html" $ toResponse $ maintemplate' (a,p) r s
 
 maintemplate :: (String, String) -> Request -> String -> String
 maintemplate (a,p) r = printf (unlines
@@ -109,6 +110,44 @@ maintemplate (a,p) r = printf (unlines
       q = if null q' then "" else '?':q'
       resetlink | null a && null p = ""
                 | otherwise = printf "&nbsp; <a href=%s>reset</a>" u
+
+maintemplate' :: (String, String) -> Request -> String -> String
+maintemplate' (a,period) r s = renderHtml $ 
+  body << concatHtml [
+            (thediv Text.XHtml.! [thestyle "float:right; text-align:right;"]) << noHtml,
+            pre << s
+           ]
+
+-- printf (unlines
+--   ["<div style=\"float:right;text-align:right;\">"
+--   ,"<form action=%s>"
+--   ,"&nbsp; filter by:&nbsp;<input name=a size=30 value=\"%s\">"
+--   ,"&nbsp; reporting period:&nbsp;<input name=p size=30 value=\"%s\">"
+--   ,resetlink
+--   ,"</form>"
+--   ,"</div>"
+--   ,"<div style=\"width:100%%; font-weight:bold;\">"
+--   ," <a href=balance%s>balance</a>"
+--   ,"|"
+--   ," <a href=register%s>register</a>"
+--   ,"|"
+--   ," <a href=print%s>print</a>"
+--   ,"|"
+--   ," <a href=histogram%s>histogram</a>"
+--   ,"</div>"
+--   ,"<pre>%s</pre>"
+--   ]) u a p q q q q
+--     where
+--       u = dropWhile (=='/') $ rqUri r
+--       -- another way to get them
+--       -- a = fromMaybe "" $ queryValue "a" r
+--       -- p = fromMaybe "" $ queryValue "p" r
+--       q' = intercalate "&" $
+--            (if null a then [] else [(("a="++).urlEncode) a]) ++ 
+--            (if null p then [] else [(("p="++).urlEncode) p])
+--       q = if null q' then "" else '?':q'
+--       resetlink | null a && null p = ""
+--                 | otherwise = printf "&nbsp; <a href=%s>reset</a>" u
 
 queryValues :: String -> Request -> [String]
 queryValues q r = map (B.unpack . inputValue . snd) $ filter ((==q).fst) $ rqInputs r

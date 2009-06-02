@@ -4,12 +4,12 @@ An add command to help with data entry.
 
 -}
 
-module AddCommand
+module Commands.Add
 where
 import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import Ledger
 import Options
-import RegisterCommand (showRegisterReport)
+import Commands.Register (showRegisterReport)
 import System.IO.UTF8
 import System.IO (stderr, hFlush)
 import System.IO.Error

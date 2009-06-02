@@ -4,7 +4,7 @@ A ledger-compatible @print@ command.
 
 -}
 
-module PrintCommand
+module Commands.Print
 where
 import Prelude hiding (putStr)
 import Ledger

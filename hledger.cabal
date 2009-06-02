@@ -56,17 +56,14 @@ Executable hledger
                   regex-pcre, csv, split, utf8-string, http
 
   Other-Modules:  
-                  AddCommand
-                  BalanceCommand
-                  ConvertCommand
-                  HistogramCommand
-                  Options
-                  PrintCommand
-                  RegisterCommand
-                  Setup
-                  Tests
-                  Utils
-                  Version
+                  Commands.Add
+                  Commands.All
+                  Commands.Balance
+                  Commands.Convert
+                  Commands.Histogram
+                  Commands.Print
+                  Commands.Register
+                  Commands.Stats
                   Ledger
                   Ledger.Account
                   Ledger.AccountName
@@ -83,6 +80,11 @@ Executable hledger
                   Ledger.Transaction
                   Ledger.Types
                   Ledger.Utils
+                  Options
+                  Setup
+                  Tests
+                  Utils
+                  Version
 
   -- need to set patchlevel here (darcs changes --from-tag=. --count)
   cpp-options:    -DPATCHES=0
@@ -90,7 +92,7 @@ Executable hledger
   if flag(vty)
     cpp-options: -DVTY
     Build-Depends:vty >= 3.1.8.2 && < 3.2
-    Other-Modules:UICommand
+    Other-Modules:Commands.UI
 
   if flag(happs)
     cpp-options: -DHAPPS
@@ -99,5 +101,5 @@ Executable hledger
                   ,happstack-server >= 0.2 && < 0.3
                   ,happstack-state >= 0.2 && < 0.3
                   ,utf8-string >= 0.3 && < 0.4
-    Other-Modules:WebCommand
+    Other-Modules:Commands.Web
 

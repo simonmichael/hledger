@@ -1,5 +1,7 @@
 # hledger project makefile
 
+SOURCEFILES:=*hs Commands/*hs Ledger/*hs
+DOCFILES=HOME README NEWS CONTRIBUTORS SCREENSHOTS
 TIME:=`date +"%Y%m%d%H%M"`
 
 # patches since last release tag (as a haskell string literal)
@@ -13,6 +15,9 @@ BUILDFLAGS=-DPATCHES=$(PATCHES) $(OPTFLAGS)
 # command to run during "make ci"
 #CICMD=web --debug -BE
 CICMD=test
+
+# executables to benchtest, prepend ./ if not in $PATH.  
+BENCHEXES=hledger-0.4 hledger-0.5 ledger
 
 # command to run during profiling
 PROFCMD=-f 1000x1000x10.ledger balance
@@ -88,9 +93,7 @@ haddocktest:
 	@make --quiet haddock
 
 # run performance tests and save results in profs/. 
-# Requires some tests defined in bench.tests and some executables defined below.
-# Prepend ./ to these if not in $PATH.  
-BENCHEXES=hledger-0.4 hledger-0.5 ledger
+# Requires some tests defined in bench.tests and some executables defined above.
 benchtest: sampleledgers bench.tests bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
@@ -127,19 +130,17 @@ sample.ledger:
 ######################################################################
 # DOCS
 
-DOCS=HOME README NEWS CONTRIBUTORS SCREENSHOTS
-
 # rebuild all docs
 docs: buildwebsite pdf api-docs
 
 buildwebsite: website
 	-cp doc/*.css website
 	-cp doc/*.png website
-	for d in $(DOCS); do pandoc -s -H doc/header.html -A doc/footer.html -r rst $$d >website/$$d.html; done
+	for d in $(DOCFILES); do pandoc -s -H doc/header.html -A doc/footer.html -r rst $$d >website/$$d.html; done
 	(cd website; rm -f index.html; ln -s HOME.html index.html)
 
 pdf: website
-	for d in $(DOCS); do rst2pdf $$d -o website/$$d.pdf; done
+	for d in $(DOCFILES); do rst2pdf $$d -o website/$$d.pdf; done
 
 website:
 		mkdir -p website
@@ -173,7 +174,7 @@ haddock: api-doc-dir hscolour $(MAIN)
 HSCOLOUR=HsColour -css 
 hscolour: api-doc-dir
 	echo "Generating colourised source" ; \
-	for f in *hs Ledger/*hs; do \
+	for f in $(SOURCEFILES); do \
 		$(HSCOLOUR) -anchor $$f -oapi-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
 	cp api-doc/src-hledger.html api-doc/src-Main.html ; \
@@ -355,7 +356,7 @@ showreleasechanges:
 tag: emacstags
 
 emacstags:
-	@rm -f TAGS; hasktags -e *hs Ledger/*hs hledger.cabal
+	@rm -f TAGS; hasktags -e $(SOURCEFILES) hledger.cabal
 
 clean:
 	rm -f `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*"`

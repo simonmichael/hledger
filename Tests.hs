@@ -154,12 +154,11 @@ import System.Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Test.HUnit
 import Test.HUnit.Tools (assertRaises, runVerboseTests)
+
+import Commands.All
 import Ledger
-import Utils
 import Options
-import BalanceCommand
-import PrintCommand
-import RegisterCommand
+import Utils
 
 
 runtests opts args = runner flattests

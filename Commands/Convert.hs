@@ -36,7 +36,7 @@ optional rule saving.
 
 -}
 
-module ConvertCommand where
+module Commands.Convert where
 import Data.Maybe (isJust)
 import Data.List.Split (splitOn)
 import Options -- (Opt,Debug)

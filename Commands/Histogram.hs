@@ -4,7 +4,7 @@ Print a histogram report.
 
 -}
 
-module HistogramCommand
+module Commands.Histogram
 where
 import Prelude hiding (putStr)
 import qualified Data.Map as Map
@@ -30,7 +30,7 @@ showHistogram opts args l = concatMap (printDayWith countBar) daytxns
       fullspan = rawLedgerDateSpan $ rawledger l
       days = filter (DateSpan Nothing Nothing /=) $ splitSpan interval fullspan
       daytxns = [(s, filter (isTransactionInDateSpan s) ts) | s <- days]
-      -- same as RegisterCommand
+      -- same as Register
       ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
       filterempties
           | Empty `elem` opts = id

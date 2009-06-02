@@ -35,50 +35,25 @@ or ghci:
 See "Ledger.Ledger" for more examples.
 -}
 
-module Main (
-             -- for easy ghci access
+module Main (-- export for easy ghci access:
              module Main,
              module Utils,
              module Options,
-             module BalanceCommand,
-             module ConvertCommand,
-             module PrintCommand,
-             module RegisterCommand,
-             module HistogramCommand,
-             module AddCommand,
-             module StatsCommand,
-#ifdef VTY
-             module UICommand,
-#endif
-#ifdef HAPPS
-             module WebCommand,
-#endif
-)
+             module Commands.All,
+            )
 where
-import Prelude hiding (putStr)
 import Control.Monad.Error
-import qualified Data.Map as Map (lookup)
-import System.IO.UTF8
+import Prelude hiding (putStr)
 import System.IO (stderr)
+import System.IO.UTF8
+import qualified Data.Map as Map (lookup)
 
-import Version (versionmsg)
+import Commands.All
 import Ledger
-import Utils (withLedgerDo)
 import Options
 import Tests
-import BalanceCommand
-import ConvertCommand
-import PrintCommand
-import RegisterCommand
-import HistogramCommand
-import AddCommand
-import StatsCommand
-#ifdef VTY
-import UICommand
-#endif
-#ifdef HAPPS
-import WebCommand
-#endif
+import Utils (withLedgerDo)
+import Version (versionmsg)
 
 
 main :: IO ()

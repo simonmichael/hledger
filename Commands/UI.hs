@@ -4,7 +4,7 @@ A simple text UI for hledger, based on the vty library.
 
 -}
 
-module UICommand
+module Commands.UI
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
@@ -12,9 +12,9 @@ import Graphics.Vty
 import qualified Data.ByteString.Char8 as B
 import Ledger
 import Options
-import BalanceCommand
-import RegisterCommand
-import PrintCommand
+import Commands.Balance
+import Commands.Register
+import Commands.Print
 
 
 helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"

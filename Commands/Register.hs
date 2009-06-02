@@ -4,7 +4,7 @@ A ledger-compatible @register@ command.
 
 -}
 
-module RegisterCommand
+module Commands.Register
 where
 import Prelude hiding (putStr)
 import qualified Data.Map as Map

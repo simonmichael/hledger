@@ -4,7 +4,7 @@ Print some statistics for the ledger.
 
 -}
 
-module StatsCommand
+module Commands.Stats
 where
 import Prelude hiding (putStr)
 import qualified Data.Map as Map

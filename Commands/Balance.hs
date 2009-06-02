@@ -94,7 +94,7 @@ balance report:
 
 -}
 
-module BalanceCommand
+module Commands.Balance
 where
 import Prelude hiding (putStr)
 import Ledger.Utils
