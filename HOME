@@ -41,7 +41,7 @@ Documentation
 | c++ ledger's `home page <http://wiki.github.com/jwiegley/ledger>`_
 and `manual <http://joyful.com/repos/ledger/doc/ledger.html>`_
 
-`Developer API docs <http://joyful.com/repos/hledger/api-doc>`_
+`Developer API docs <http://hledger.org/api-doc>`_
 | `Developer Notes <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES>`_
 | `Contributor List <CONTRIBUTORS.html>`_
 | latest `benchtest <http://joyful.com/repos/hledger/profs/latest.bench>`_,
