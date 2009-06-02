@@ -3,16 +3,12 @@ hledger
 
 **Welcome! hledger is...**
 
-- a Free Software project developed since 2007 by
-  `Simon Michael <http://joyful.com>`_ and contributors.
-- a command-line (or curses or web-based) double-entry accounting tool.  It reads a
-  `plain text ledger <http://joyful.com/repos/hledger/sample.ledger>`_
-  describing your transactions and displays precise 
-  `balance <http://hledger.org:5000/balance>`_ and 
-  `register <http://hledger.org:5000/register?a=checking>`_ reports.
-- a remix, in `haskell <http://haskell.org>`_, of John Wiegley's excellent
-  c++ `ledger <http://wiki.github.com/jwiegley/ledger>`_. hledger reads most standard ledger files
-  and vice-versa.
+- a Free Software project developed since 2007 by `Simon Michael`_ and contributors.
+- a command-line (or curses or web-based) double-entry accounting tool.
+  It reads a plain text `ledger file`_ describing your transactions and
+  displays precise balance_ and register_ reports.
+- a remix, in haskell_, of John Wiegley's excellent c++ ledger_. hledger
+  reads most standard ledger files and vice-versa.
 
 **hledger aims to be...**
 
@@ -22,9 +18,9 @@ hledger
 
 **To get help...** 
 
-- chat me (sm) on the `#ledger irc channel <irc://irc.freenode.net/#ledger>`_ which we share with ledger
-- join the `hledger google group <http://groups.google.com/group/hledger>`_
-- for something private, `email me <mailto:simon@joyful.com>`_.
+- chat me (sm) on the `#ledger irc channel`_ which we share with ledger
+- join the `hledger google group`_
+- for something private, `email me`_.
 
 Bug reports and/or patches are appreciated, for website issues,
 unclear/stale/missing docs, or any difficulty encountered while
@@ -32,42 +28,30 @@ installing, using, or contributing.
 
 Download
 --------
-hledger works on all major platforms, but does not yet have binaries or platform packages;
-you'll need to install `GHC <http://haskell.org/ghc>`_ and `cabal
-<http://www.haskell.org/cabal/download.html>`_, then
-install hledger from `hackage
-<http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger>`_ with:
-``cabal install hledger``
+
+hledger works on all major platforms, but does not yet have binaries or
+platform packages; you'll need to install GHC_ and cabal_, then install
+hledger from hackage_ with: ``cabal install hledger``
 
 Documentation
 -------------
-`User's Guide <README.html>`_
-| `News <NEWS.html>`_
-| c++ ledger's `home page <http://wiki.github.com/jwiegley/ledger>`_
-and `manual <http://joyful.com/repos/ledger/doc/ledger.html>`_
+`User's Guide`_ | News_ | see also `ledger's home page`_ and manual_
 
-`Developer API docs <http://hledger.org/api-doc>`_
-| `Developer Notes <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES>`_
-| `Contributor List <CONTRIBUTORS.html>`_
-| latest `benchtest <http://joyful.com/repos/hledger/profs/latest.bench>`_,
-`profile <http://joyful.com/repos/hledger/profs/latest.prof>`_,
-`heap <http://joyful.com/repos/hledger/profs/latest.ps>`_
-reports
+`Developer API docs`_ | `Developer Notes`_ | `Contributor List`_ | latest benchtest_, profile_, heap_ reports
 
 Screenshots
 -----------
-
  .. raw:: html
 
-  <a href="SCREENSHOTS.html#hledger-screen-1"><img src=http://hledger.org/hledger-screen-1.png border=0 height=100></a>
-  <a href="SCREENSHOTS.html#sshot"><img src=http://hledger.org/sshot.png border=0 height=100></a>
-  <a href="SCREENSHOTS.html#watchhours"><img src=http://hledger.org/watchhours.png border=0 height=100></a>
+  <a href="SCREENSHOTS.html#hledger-screen-1"><img src=hledger-screen-1.png border=0 height=100></a>
+  <a href="SCREENSHOTS.html#sshot"><img src=sshot.png border=0 height=100></a>
+  <a href="SCREENSHOTS.html#watchhours"><img src=watchhours.png border=0 height=100></a>
 
 Code repository
 ---------------
 ``darcs get http://joyful.com/repos/hledger``
 
-or `browse with darcsweb <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger>`_. New patches are announced on #ledger by hledgerbot.
+or `browse with darcsweb`_. New patches are announced on #ledger by hledgerbot.
 
  .. raw:: html
 
@@ -75,11 +59,44 @@ or `browse with darcsweb <http://joyful.com/darcsweb/darcsweb.cgi?r=hledger>`_. 
 
 Related projects
 ----------------
-- `ledger <http://wiki.github.com/jwiegley/ledger>`_ inspired hledger, and the two projects are coevolving. If you like hledger, try ledger too.
-- Tim Docker's `ledger-reports <http://dockerz.net/repos/ledger-reports>`_ uses hledger as a library to generate `html reports <http://dockerz.net/software/hledger_report_sample/report.html>`_. 
+- ledger_ inspired hledger, and the two projects are coevolving. If you like hledger, try ledger too.
+- Tim Docker's ledger-reports_ uses hledger as a library to generate `html reports`_. 
 - I have a few older bits and pieces at http://joyful.com/Ledger .
 
-.. easy analytics access
 .. raw:: html
 
  <a href="https://www.google.com/analytics/reporting/?reset=1&id=15489822" accesskey="a"></a>
+
+
+.. _`ledger file`:        http://joyful.com/repos/hledger/sample.ledger
+.. _balance:              http://hledger.org:5000/balance
+.. _register:             http://hledger.org:5000/register?a=checking
+.. _hledger google group: http://groups.google.com/group/hledger
+.. _User's Guide:         README.html
+.. _News:                 NEWS.html
+.. _Contributor List:     CONTRIBUTORS.html
+.. _Developer API docs:   http://hledger.org/api-doc
+.. _Developer Notes:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES
+.. _benchtest:            http://joyful.com/repos/hledger/profs/latest.bench
+.. _profile:              http://joyful.com/repos/hledger/profs/latest.prof
+.. _heap:                 http://joyful.com/repos/hledger/profs/latest.ps
+.. _browse with darcsweb: http://joyful.com/darcsweb/darcsweb.cgi?r=hledger
+.. _email me:             mailto:simon@joyful.com
+.. _Simon Michael:        http://joyful.com
+.. _haskell:              http://haskell.org
+.. _GHC:                  http://haskell.org/ghc
+.. _cabal:                http://haskell.org/cabal/download.html
+.. _hackage:              http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger
+.. _#ledger irc channel:  irc://irc.freenode.net/#ledger
+.. _ledger:               http://wiki.github.com/jwiegley/ledger
+.. _ledger's home page:   http://wiki.github.com/jwiegley/ledger
+.. _manual:               http://joyful.com/repos/ledger/doc/ledger.html
+.. _ledger-reports:       http://dockerz.net/repos/ledger-reports
+.. _html reports:         http://dockerz.net/software/hledger_report_sample/report.html
+
+
+.. rst quick reference: http://docutils.sourceforge.net/docs/user/rst/quickref.html
+
+.. Local variables:
+.. mode: rst
+.. End:
