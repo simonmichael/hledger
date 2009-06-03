@@ -27,7 +27,7 @@ Flag happs
   default:     False
 
 Library
-  Build-Depends:  base
+  Build-Depends:  base >= 3 && < 5
                  ,containers
                  ,haskell98
                  ,directory
@@ -58,7 +58,7 @@ Library
 Executable hledger
   Main-Is:        hledger.hs
 
-  Build-Depends:  base
+  Build-Depends:  base >= 3 && < 5
                  ,containers
                  ,haskell98
                  ,directory
