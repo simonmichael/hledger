@@ -27,8 +27,17 @@ Flag happs
   default:     False
 
 Library
-  Build-Depends:  base, containers, haskell98, directory, parsec, regex-compat,
-                  old-locale, time, HUnit, filepath, utf8-string
+  Build-Depends:  base
+                 ,containers
+                 ,haskell98
+                 ,directory
+                 ,parsec
+                 ,regex-compat
+                 ,old-locale
+                 ,time
+                 ,HUnit
+                 ,filepath
+                 ,utf8-string
 
   Exposed-modules:Ledger
                   Ledger.Account
@@ -50,11 +59,26 @@ Library
 Executable hledger
   Main-Is:        hledger.hs
 
-  Build-Depends:  base, containers, haskell98, directory, parsec,
-                  regex-compat, regexpr>=0.5.1, old-locale, time,
-                  HUnit, mtl, bytestring, filepath, process, testpack,
-                  regex-pcre, csv, split, utf8-string
-                  ,HTTP >= 4000.0 && < 4000.1
+  Build-Depends:  base
+                 ,containers
+                 ,haskell98
+                 ,directory
+                 ,parsec
+                 ,regex-compat
+                 ,regexpr>=0.5.1
+                 ,old-locale
+                 ,time
+                 ,HUnit
+                 ,mtl
+                 ,bytestring
+                 ,filepath
+                 ,process
+                 ,testpack
+                 ,regex-pcre
+                 ,csv
+                 ,split
+                 ,utf8-string
+                 ,HTTP >= 4000.0 && < 4000.1
 
   Other-Modules:  
                   Commands.Add
@@ -98,10 +122,10 @@ Executable hledger
   if flag(happs)
     cpp-options: -DHAPPS
     Build-Depends:happstack >= 0.2 && < 0.3
-                  ,happstack-data >= 0.2 && < 0.3
-                  ,happstack-server >= 0.2 && < 0.3
-                  ,happstack-state >= 0.2 && < 0.3
-                  ,utf8-string >= 0.3 && < 0.4
-                  ,xhtml >= 3000.2 && < 3000.3
+                 ,happstack-data >= 0.2 && < 0.3
+                 ,happstack-server >= 0.2 && < 0.3
+                 ,happstack-state >= 0.2 && < 0.3
+                 ,utf8-string >= 0.3 && < 0.4
+                 ,xhtml >= 3000.2 && < 3000.3
     Other-Modules:Commands.Web
 
