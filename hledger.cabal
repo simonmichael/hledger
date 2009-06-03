@@ -27,18 +27,8 @@ Flag happs
   default:     False
 
 Library
-  Build-Depends:  base >= 3 && < 5
-                 ,containers
-                 ,haskell98
-                 ,directory
-                 ,parsec
-                 ,old-locale
-                 ,time
-                 ,HUnit
-                 ,filepath
-                 ,utf8-string
-
-  Exposed-modules:Ledger
+  Exposed-modules:
+                  Ledger
                   Ledger.Account
                   Ledger.AccountName
                   Ledger.Amount
@@ -54,31 +44,20 @@ Library
                   Ledger.Transaction
                   Ledger.Types
                   Ledger.Utils
+  Build-Depends:
+                  base >= 3 && < 5
+                 ,containers
+                 ,directory
+                 ,filepath
+                 ,haskell98
+                 ,old-locale
+                 ,parsec
+                 ,time
+                 ,utf8-string
+                 ,HUnit
 
 Executable hledger
   Main-Is:        hledger.hs
-
-  Build-Depends:  base >= 3 && < 5
-                 ,containers
-                 ,haskell98
-                 ,directory
-                 ,parsec
-                 ,regex-compat
-                 ,regexpr>=0.5.1
-                 ,old-locale
-                 ,time
-                 ,HUnit
-                 ,mtl
-                 ,bytestring
-                 ,filepath
-                 ,process
-                 ,testpack
-                 ,regex-pcre
-                 ,csv
-                 ,split
-                 ,utf8-string
-                 ,HTTP >= 4000.0 && < 4000.1
-
   Other-Modules:  
                   Commands.Add
                   Commands.All
@@ -109,22 +88,44 @@ Executable hledger
                   Tests
                   Utils
                   Version
+  Build-Depends:
+                  base >= 3 && < 5
+                 ,bytestring
+                 ,containers
+                 ,csv
+                 ,directory
+                 ,filepath
+                 ,haskell98
+                 ,mtl
+                 ,old-locale
+                 ,parsec
+                 ,process
+                 ,regex-compat
+                 ,regex-pcre
+                 ,regexpr >= 0.5.1
+                 ,split
+                 ,testpack
+                 ,time
+                 ,utf8-string
+                 ,HTTP >= 4000.0 && < 4000.1
+                 ,HUnit
 
-  -- need to set patchlevel here (darcs changes --from-tag=. --count)
-  cpp-options:    -DPATCHES=0
+  -- should set patchlevel here as in Makefile
+  cpp-options:    -DPATCHLEVEL=0
 
   if flag(vty)
     cpp-options: -DVTY
-    Build-Depends:vty >= 3.1.8.2 && < 3.2
     Other-Modules:Commands.UI
+    Build-Depends:
+                  vty >= 3.1.8.2 && < 3.2
 
   if flag(happs)
     cpp-options: -DHAPPS
-    Build-Depends:happstack >= 0.2 && < 0.3
+    Other-Modules:Commands.Web
+    Build-Depends:
+                  happstack >= 0.2 && < 0.3
                  ,happstack-data >= 0.2 && < 0.3
                  ,happstack-server >= 0.2 && < 0.3
                  ,happstack-state >= 0.2 && < 0.3
                  ,utf8-string >= 0.3 && < 0.4
                  ,xhtml >= 3000.2 && < 3000.3
-    Other-Modules:Commands.Web
-
