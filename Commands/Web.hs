@@ -7,7 +7,7 @@ where
 import Control.Monad.Trans (liftIO)
 import Data.ByteString.Lazy.UTF8 (toString)
 import qualified Data.Map as M
-import Data.Map ((!))
+-- import Data.Map ((!))
 import Data.Time.Clock
 import Data.Time.Format
 import System.Locale
@@ -24,7 +24,7 @@ import Network.HTTP (urlEncode, urlDecode, urlEncodeVars)
 import Text.XHtml hiding (dir)
 
 import Ledger
-import Options
+import Options hiding (value)
 import Commands.Balance
 import Commands.Register
 import Commands.Print
@@ -64,100 +64,81 @@ webHandlers opts args l t = msum
  ]
  where 
    view f = withDataFn rqdata $ render f
-   render f (a,p) = layout (a,p) $ f opts' args' l'
+   render f (a,p) = renderPage (a,p) $ f opts' args' l'
        where
          opts' = opts ++ [Period p]
          args' = args ++ (map urlDecode $ words a)
          -- re-filter the full ledger with the new opts
          l' = filterAndCacheLedgerWithOpts opts' args' t (rawledgertext l) (rawledger l)
-
-rqdata = do
+   rqdata = do
      a <- look "a" `mplus` return "" -- filter patterns
      p <- look "p" `mplus` return "" -- reporting period
      return (a,p)
+   renderPage :: (String, String) -> String -> ServerPartT IO Response
+   renderPage (a,p) s = do
+     r <- askRq
+     return $ setHeader "Content-Type" "text/html" $ toResponse $ renderHtml $ hledgerview r a p s
 
-layout :: (String, String) -> String -> ServerPartT IO Response
-layout (a,p) s = do
-  r <- askRq
-  return $ setHeader "Content-Type" "text/html" $ toResponse $ maintemplate' (a,p) r s
+{-
+ <div style=\"float:right;text-align:right;\">
+ <form action=%s>
+ &nbsp; filter by:&nbsp;<input name=a size=30 value=\"%s\">
+ &nbsp; reporting period:&nbsp;<input name=p size=30 value=\"%s\">
+ %s
+ </form>
+ </div>
+ <div style=\"width:100%%; font-weight:bold;\">
+  <a href=balance%s>balance</a>
+ | <a href=register%s>register</a>
+ | <a href=print%s>print</a>
+ | <a href=histogram%s>histogram</a>
+ </div>
+ <pre>%s</pre>
+-}
+hledgerview :: Request -> String -> String -> String -> Html
+hledgerview r a p' s = body << topbar r a p' +++ pre << s
 
-maintemplate :: (String, String) -> Request -> String -> String
-maintemplate (a,p) r = printf (unlines
-  ["<div style=\"float:right;text-align:right;\">"
-  ,"<form action=%s>"
-  ,"&nbsp; filter by:&nbsp;<input name=a size=30 value=\"%s\">"
-  ,"&nbsp; reporting period:&nbsp;<input name=p size=30 value=\"%s\">"
-  ,resetlink
-  ,"</form>"
-  ,"</div>"
-  ,"<div style=\"width:100%%; font-weight:bold;\">"
-  ," <a href=balance%s>balance</a>"
-  ,"|"
-  ," <a href=register%s>register</a>"
-  ,"|"
-  ," <a href=print%s>print</a>"
-  ,"|"
-  ," <a href=histogram%s>histogram</a>"
-  ,"</div>"
-  ,"<pre>%s</pre>"
-  ]) u a p q q q q
+topbar :: Request -> String -> String -> Html
+topbar r a p' = concatHtml
+    [thediv ! [thestyle "float:right; text-align:right;"] << searchform r a p'
+    ,thediv ! [thestyle "width:100%; font-weight:bold;"] << navlinks r a p']
+
+searchform :: Request -> String -> String -> Html
+searchform r a p' =
+    form ! [action u] << concatHtml
+      [spaceHtml +++ stringToHtml "filter by:" +++ spaceHtml 
+      ,textfield "a" ! [size s, value a]
+      ,spaceHtml
+      ,spaceHtml +++ stringToHtml "reporting period:" +++ spaceHtml 
+      ,textfield "p" ! [size s, value p']
+      ,resetlink]
     where
-      u = dropWhile (=='/') $ rqUri r
       -- another way to get them
       -- a = fromMaybe "" $ queryValue "a" r
       -- p = fromMaybe "" $ queryValue "p" r
+      u = dropWhile (=='/') $ rqUri r
+      s = "20"
+      resetlink | null a && null p' = noHtml
+                | otherwise = spaceHtml +++ anchor ! [href u] << stringToHtml "reset"
+
+navlinks :: Request -> String -> String -> Html
+navlinks r a p' = 
+    concatHtml $ intersperse sep $ map linkto ["balance", "register", "print", "histogram"]
+    where
+      sep = stringToHtml " | "
+      linkto s = anchor ! [href (s++q)] << s
       q' = intercalate "&" $
            (if null a then [] else [(("a="++).urlEncode) a]) ++ 
-           (if null p then [] else [(("p="++).urlEncode) p])
+           (if null p' then [] else [(("p="++).urlEncode) p'])
       q = if null q' then "" else '?':q'
-      resetlink | null a && null p = ""
-                | otherwise = printf "&nbsp; <a href=%s>reset</a>" u
 
-maintemplate' :: (String, String) -> Request -> String -> String
-maintemplate' (a,period) r s = renderHtml $ 
-  body << concatHtml [
-            (thediv Text.XHtml.! [thestyle "float:right; text-align:right;"]) << noHtml,
-            pre << s
-           ]
+-- queryValues :: String -> Request -> [String]
+-- queryValues q r = map (B.unpack . inputValue . snd) $ filter ((==q).fst) $ rqInputs r
 
--- printf (unlines
---   ["<div style=\"float:right;text-align:right;\">"
---   ,"<form action=%s>"
---   ,"&nbsp; filter by:&nbsp;<input name=a size=30 value=\"%s\">"
---   ,"&nbsp; reporting period:&nbsp;<input name=p size=30 value=\"%s\">"
---   ,resetlink
---   ,"</form>"
---   ,"</div>"
---   ,"<div style=\"width:100%%; font-weight:bold;\">"
---   ," <a href=balance%s>balance</a>"
---   ,"|"
---   ," <a href=register%s>register</a>"
---   ,"|"
---   ," <a href=print%s>print</a>"
---   ,"|"
---   ," <a href=histogram%s>histogram</a>"
---   ,"</div>"
---   ,"<pre>%s</pre>"
---   ]) u a p q q q q
---     where
---       u = dropWhile (=='/') $ rqUri r
---       -- another way to get them
---       -- a = fromMaybe "" $ queryValue "a" r
---       -- p = fromMaybe "" $ queryValue "p" r
---       q' = intercalate "&" $
---            (if null a then [] else [(("a="++).urlEncode) a]) ++ 
---            (if null p then [] else [(("p="++).urlEncode) p])
---       q = if null q' then "" else '?':q'
---       resetlink | null a && null p = ""
---                 | otherwise = printf "&nbsp; <a href=%s>reset</a>" u
-
-queryValues :: String -> Request -> [String]
-queryValues q r = map (B.unpack . inputValue . snd) $ filter ((==q).fst) $ rqInputs r
-
-queryValue :: String -> Request -> Maybe String
-queryValue q r = case filter ((==q).fst) $ rqInputs r of
-                   [] -> Nothing
-                   is -> Just $ B.unpack $ inputValue $ snd $ head is
+-- queryValue :: String -> Request -> Maybe String
+-- queryValue q r = case filter ((==q).fst) $ rqInputs r of
+--                    [] -> Nothing
+--                    is -> Just $ B.unpack $ inputValue $ snd $ head is
 
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode
