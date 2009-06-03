@@ -9,7 +9,6 @@ import System
 import System.Console.GetOpt
 import System.Environment
 import Text.Printf
-import Text.RegexPR (gsubRegexPRBy)
 import Data.Char (toLower)
 import Ledger.IO (IOArgs,
                   ledgerenvvar,myLedgerPath,

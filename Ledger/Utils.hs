@@ -19,7 +19,7 @@ module Data.Time.LocalTime,
 module Debug.Trace,
 module Ledger.Utils,
 module Text.Printf,
-module Text.Regex,
+module Text.RegexPR,
 module Test.HUnit,
 )
 where
@@ -39,7 +39,7 @@ import Debug.Trace
 import System.IO.UTF8
 import Test.HUnit
 import Text.Printf
-import Text.Regex
+import Text.RegexPR
 import Text.ParserCombinators.Parsec
 
 
@@ -147,10 +147,8 @@ difforzero a b = maximum [(a - b), 0]
 
 -- regexps
 
-instance Show Regex where show r = "a Regex"
-
-containsRegex :: Regex -> String -> Bool
-containsRegex r s = case matchRegex r s of
+containsRegex :: String -> String -> Bool
+containsRegex r s = case matchRegexPR ("(?i)"++r) s of
                       Just _ -> True
                       otherwise -> False
 
@@ -215,7 +213,7 @@ treeany f t = (f $ root t) || (any (treeany f) $ branches t)
 
 -- | show a compact ascii representation of a tree
 showtree :: Show a => Tree a -> String
-showtree = unlines . filter (containsRegex (mkRegex "[^ |]")) . lines . drawTree . treemap show
+showtree = unlines . filter (containsRegex "[^ |]") . lines . drawTree . treemap show
 
 -- | show a compact ascii representation of a forest
 showforest :: Show a => Forest a -> String

@@ -182,8 +182,7 @@ matchpats pats str =
     where
       (negatives,positives) = partition isnegativepat pats
       match "" = True
-      match pat = matchregex (abspat pat) str
+      match pat = containsRegex (abspat pat) str
       negateprefix = "not:"
       isnegativepat pat = negateprefix `isPrefixOf` pat
       abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
-      matchregex pat str = null pat || containsRegex (mkRegexWithOpts pat True False) str
