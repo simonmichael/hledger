@@ -107,7 +107,6 @@ Executable hledger
                  ,testpack
                  ,time
                  ,utf8-string
-                 ,HTTP >= 4000.0 && < 4000.1
                  ,HUnit
 
   -- should set patchlevel here as in Makefile
@@ -129,3 +128,4 @@ Executable hledger
                  ,happstack-state >= 0.2 && < 0.3
                  ,utf8-string >= 0.3 && < 0.4
                  ,xhtml >= 3000.2 && < 3000.3
+                 ,HTTP >= 4000.0 && < 4000.1
