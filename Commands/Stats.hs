@@ -29,9 +29,12 @@ showStats _ _ l today =
       stats = [
          ("File", filepath $ rawledger l)
         ,("Period", printf "%s to %s (%d days)" (start span) (end span) days)
-        ,("Transactions", printf "%d (%0.1f per day)" txns txnrate)
-        ,("Transactions last 30 days", printf "%d (%0.1f per day)" txns30 txnrate30)
-        ,("Payees/descriptions", show $ length $ nub $ map ltdescription rawledgertransactions)
+        ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
+        ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
+        ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
+        ,("Last transaction", maybe "none" show lastdate ++
+                              maybe "" (printf " (%d days ago)") lastelapsed)
+--        ,("Payees/descriptions", show $ length $ nub $ map ltdescription ts)
         ,("Accounts", show $ length $ accounts l)
         ,("Commodities", show $ length $ commodities l)
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
@@ -40,8 +43,11 @@ showStats _ _ l today =
       -- Days since last transaction : %(recentelapsed)s
        ]
            where 
-             rawledgertransactions = ledger_txns $ rawledger l
-             txns = length rawledgertransactions
+             ts = sortBy (comparing ltdate) $ ledger_txns $ rawledger l
+             lastdate | null ts = Nothing
+                      | otherwise = Just $ ltdate $ last ts
+             lastelapsed = maybe Nothing (Just . diffDays today) lastdate
+             tnum = length ts
              span = rawdatespan l
              start (DateSpan (Just d) _) = show d
              start _ = ""
@@ -49,8 +55,11 @@ showStats _ _ l today =
              end _ = ""
              days = fromMaybe 0 $ daysInSpan span
              txnrate | days==0 = 0
-                     | otherwise = fromIntegral txns / fromIntegral days :: Double
-             txns30 = length $ filter withinlast30 rawledgertransactions
+                     | otherwise = fromIntegral tnum / fromIntegral days :: Double
+             tnum30 = length $ filter withinlast30 ts
              withinlast30 t = (d>=(addDays (-30) today) && (d<=today)) where d = ltdate t
-             txnrate30 = fromIntegral txns30 / 30 :: Double
+             txnrate30 = fromIntegral tnum30 / 30 :: Double
+             tnum7 = length $ filter withinlast7 ts
+             withinlast7 t = (d>=(addDays (-7) today) && (d<=today)) where d = ltdate t
+             txnrate7 = fromIntegral tnum7 / 7 :: Double
 
