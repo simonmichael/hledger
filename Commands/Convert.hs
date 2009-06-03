@@ -46,7 +46,7 @@ import System (getArgs)
 import System.IO (stderr, hPutStrLn)
 import Text.CSV (parseCSVFromFile, Record)
 import Text.Printf (printf)
-import Text.Regex.PCRE ((=~))
+import Text.RegexPR (matchRegexPR)
 import Data.Maybe
 import Ledger.Dates (firstJust, showDate)
 import Locale (defaultTimeLocale)
@@ -67,16 +67,23 @@ convert opts args l = do
   mapM_ (print_ledger_txn (Debug `elem` opts) (baseacct,fieldpositions,rules)) records
 
 
-type Rule = ([[String]]   -- list of [pattern,replacement]. replacement may or may not be present.
-            ,AccountName) -- account name to use for a transaction matching this rule
+type Rule = (
+   [(String, Maybe String)] -- list of patterns and optional replacements
+  ,AccountName              -- account name to use for a matched transaction
+  )
 
 parseRules :: String -> IO ([Int],[Rule])
 parseRules s = do
   let ls = map strip $ lines s
   let paras = splitOn [""] ls
   let fieldpositions = map read $ splitOn "," $ head $ head paras
-  let rules = [(map (splitOn "=") $ init p, last p) | p <- tail paras]
+  let rules = [(map parsePatRepl $ init ls, last ls) | ls <- tail paras]
   return (fieldpositions,rules)
+
+parsePatRepl :: String -> (String, Maybe String)
+parsePatRepl l = case splitOn "=" l of
+                   (p:r:_) -> (p, Just r)
+                   (p:_)   -> (p, Nothing)
 
 print_ledger_txn debug (baseacct,fieldpositions,rules) record@(a:b:c:d:e) = do
   let [date,cleared,number,description,amount] = map (record !!) fieldpositions
@@ -93,16 +100,19 @@ print_ledger_txn True _ record = do
   hPutStrLn stderr $ printf "ignoring %s" $ show record
 print_ledger_txn _ _ _ = return ()
 
-choose_acct_desc rules (acct,desc) | null matches = (acct,desc)
+choose_acct_desc :: [Rule] -> (String,String) -> (String,String)
+choose_acct_desc rules (acct,desc) | null matchingrules = (acct,desc)
                                    | otherwise = (a,d)
     where
-      matches = filter (any (desc =~) . map head . fst) rules
-      (pats,a) = head matches :: Rule
-      ((before,match,after,groups),repl) = head $ filter isMatch $ map (\(pat:repl) -> (desc=~pat,repl)) pats
-      d = head $ repl ++ [match]  -- show the replacement text if any, or the matched text
+      matchingrules = filter ismatch rules :: [Rule]
+          where ismatch = any (isJust . flip matchregex desc . fst) . fst
+      (prs,a) = head matchingrules
+      mrs = filter (isJust . fst) $ map (\(p,r) -> (matchregex p desc, r)) prs
+      (m,repl) = head mrs
+      matched = fst $ fst $ fromJust m
+      d = fromMaybe matched repl
 
-isMatch :: ((String, String, String, [String]),[String]) -> Bool
-isMatch ((_,m,_,_),_) = not $ null m
+matchregex s = matchRegexPR ("(?i)"++s)
 
 fixdate :: String -> String
 fixdate s = maybe "0000/00/00" showDate $ 
@@ -112,3 +122,4 @@ fixdate s = maybe "0000/00/00" showDate $
               ,parseTime defaultTimeLocale "%m/%d/%Y" s
               ,parseTime defaultTimeLocale "%m-%d-%Y" s
               ]
+

@@ -110,7 +110,6 @@ executable hledger
                  ,parsec
                  ,process
                  ,regex-compat
-                 ,regex-pcre
                  ,regexpr >= 0.5.1
                  ,split
                  ,testpack
