@@ -32,7 +32,6 @@ Library
                  ,haskell98
                  ,directory
                  ,parsec
-                 ,regex-compat
                  ,old-locale
                  ,time
                  ,HUnit
