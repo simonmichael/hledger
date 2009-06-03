@@ -10,7 +10,7 @@ import qualified Data.Map as M
 -- import Data.Map ((!))
 import Data.Time.Clock
 import Data.Time.Format
-import System.Locale
+import Locale
 import Control.Concurrent
 import qualified Data.ByteString.Lazy.Char8 as B
 import Happstack.Data (defaultValue)

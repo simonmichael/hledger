@@ -52,7 +52,7 @@ import System.Exit
 import Text.Printf
 import Data.Time.Clock
 import Data.Time.Format
-import System.Locale
+import Locale
 import Control.Monad
 import Debug.Trace
 import System.Console.GetOpt

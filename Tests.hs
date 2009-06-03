@@ -150,7 +150,7 @@ module Tests
 where
 import qualified Data.Map as Map
 import Data.Time.Format
-import System.Locale (defaultTimeLocale)
+import Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Test.HUnit
 import Test.HUnit.Tools (assertRaises, runVerboseTests)

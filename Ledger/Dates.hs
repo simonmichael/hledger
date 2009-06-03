@@ -26,7 +26,7 @@ import Data.Time.Calendar.MonthDay
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Calendar.WeekDate
 import Data.Time.LocalTime
-import System.Locale (defaultTimeLocale)
+import Locale (defaultTimeLocale)
 import Text.Printf
 import Data.Maybe
 import Text.ParserCombinators.Parsec

@@ -49,7 +49,7 @@ import Text.Printf (printf)
 import Text.Regex.PCRE ((=~))
 import Data.Maybe
 import Ledger.Dates (firstJust, showDate)
-import System.Locale (defaultTimeLocale)
+import Locale (defaultTimeLocale)
 import Data.Time.Format (parseTime)
 import Control.Monad (when)
 
