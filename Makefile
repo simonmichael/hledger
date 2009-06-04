@@ -48,6 +48,17 @@ hledgercov: setversion
 hledgeropt: setversion
 	ghc --make hledger.hs -o hledgeropt -O2 -fvia-C $(BUILDFLAGS)
 
+# build a deployable binary for mac, one which uses only standard osx libs
+hledgermac: setversion
+	sudo port deactivate gmp
+	ghc --make hledger.hs -o hledgermac $(BUILDFLAGS) -O2 -optl-L/usr/lib #-optl-F/Library/Frameworks/GMP
+	sudo port activate gmp
+	otool -L hledgermac
+
+# build a deployable binary for gnu/linux, statically linked
+hledgerlinux: setversion
+	ghc --make hledger.hs -o hledgerlinux $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+
 # "continuous integration" testing - auto-recompile and run hledger test
 # (or some other command) whenever a module changes. sp is from
 # searchpath.org , you might need the patched version from
