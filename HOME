@@ -19,6 +19,9 @@ hledger
 - a useful library for finance-minded haskell programmers
 - a successful, time-and-money-solvent project within a thriving ecosystem of financial software projects.
 
+.. raw:: html
+ <a name="contact" />
+
 **To get help...** 
 
 - chat me (sm) on the `#ledger irc channel`_ which we share with ledger
