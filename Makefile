@@ -5,10 +5,13 @@ OPTFLAGS=-DHAPPS -DVTY
 
 # command to run during "make ci"
 CICMD=test
-#CICMD=web --debug -BE
+CICMD=web --debug -BE
 
-# command to run during "make prof"
+# command to run during "make prof/heap"
 PROFCMD=-f 1000x1000x10.ledger balance
+
+# command to run during "make coverage"
+COVCMD=test
 
 # executables to run during "make benchtest" (prepend ./ if not in $PATH)
 BENCHEXES=hledger-0.5 hledger-0.6 ledger
@@ -28,7 +31,7 @@ TIME:=$(shell date +"%Y%m%d%H%M")
 default: tag hledger
 
 ######################################################################
-# BUILDING, DEBUGGING
+# BUILDING
 
 # build the standard developer's binary, quickly
 hledger: setversion
@@ -37,11 +40,11 @@ hledger: setversion
 # build the profiling-enabled binary. You may need to cabal install
 # --reinstall -p some libs.
 hledgerp: setversion
-	ghc --make hledger.hs -prof -auto-all -o hledgerp #$(BUILDFLAGS) 
+	ghc --make hledger.hs -prof -auto-all -o hledgerp $(BUILDFLAGS) 
 
-# build the coverage-enabled binary (untested)
+# build the coverage-enabled binary. Warning, might need make clean
 hledgercov: setversion
-	ghc --make hledger.hs -hpc -o hledgercov $(BUILDFLAGS) 
+	ghc --make hledger.hs -fhpc -o hledgercov $(BUILDFLAGS) 
 
 # build the fastest binary we can
 hledgeropt: setversion
@@ -82,35 +85,6 @@ tools/doctest: tools/doctest.hs
 tools/generateledger: tools/generateledger.hs
 	ghc --make tools/generateledger.hs
 
-# get a debug prompt
-ghci:
-	ghci hledger.hs
-
-# generate, save and display a standard profile
-prof: sampleledgers hledgerp
-	@echo "Profiling $(PROFCMD)"
-	./hledgerp +RTS -p -RTS $(PROFCMD) >/dev/null
-	mv hledgerp.prof profs/$(TIME)-orig.prof
-	tools/simplifyprof.hs profs/$(TIME)-orig.prof >profs/$(TIME).prof
-	(cd profs; rm -f latest*.prof; ln -s $(TIME)-orig.prof latest-orig.prof; ln -s $(TIME).prof latest.prof)
-	echo; cat profs/latest.prof
-
-# generate, save and display a graphical heap profile
-heap: sampleledgers hledgerp
-	@echo "Profiling heap with $(PROFCMD)"
-	./hledgerp +RTS -hc -RTS $(PROFCMD) >/dev/null
-	mv hledgerp.hp profs/$(TIME).hp
-	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
-		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps)
-	$(VIEWPSCMD) profs/latest.ps
-
-# generate, save and display a code coverage report (untested)
-coverage: sampleledgers hledgercov
-	@echo "Generating coverage report with $(PROFCMD)"
-	./hledgercov $(PROFCMD) >/dev/null
-	hpc report hledgercov
-	#hpc markup hledgercov
-
 ######################################################################
 # TESTING
 
@@ -136,6 +110,35 @@ benchtest: sampleledgers bench.tests tools/bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
+
+# get a debug prompt
+ghci:
+	ghci hledger.hs
+
+# generate, save and display a standard profile
+prof: sampleledgers hledgerp
+	@echo "Profiling $(PROFCMD)"
+	./hledgerp +RTS -p -RTS $(PROFCMD) >/dev/null
+	mv hledgerp.prof profs/$(TIME)-orig.prof
+	tools/simplifyprof.hs profs/$(TIME)-orig.prof >profs/$(TIME).prof
+	(cd profs; rm -f latest*.prof; ln -s $(TIME)-orig.prof latest-orig.prof; ln -s $(TIME).prof latest.prof)
+	echo; cat profs/latest.prof
+
+# generate, save and display a graphical heap profile
+heap: sampleledgers hledgerp
+	@echo "Profiling heap with $(PROFCMD)"
+	./hledgerp +RTS -hc -RTS $(PROFCMD) >/dev/null
+	mv hledgerp.hp profs/$(TIME).hp
+	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
+		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps)
+	$(VIEWPSCMD) profs/latest.ps
+
+# generate and display a code coverage report
+coverage: sampleledgers hledgercov
+	@echo "Generating coverage report with $(COVCMD)"
+	tools/coverage "markup --destdir=profs/coverage" test
+	cd profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
+	$(VIEWHTMLCMD) profs/coverage/index.html
 
 # generate standard sample ledgers
 sampleledgers: sample.ledger 100x100x10.ledger 1000x1000x10.ledger 10000x1000x10.ledger 100000x1000x10.ledger
@@ -353,7 +356,7 @@ pushbinary:
 	rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
 
 # show project stats useful for release notes
-stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges benchtest
+stats: showlastreleasedate showreleaseauthors showloc showcov showerrors showlocalchanges showreleasechanges benchtest
 
 showreleaseauthors:
 	@echo Patch authors since last release:
@@ -366,6 +369,10 @@ showloc:
 	@echo Lines of test code:
 	@sloccount Tests.hs | grep haskell:
 	@echo
+
+showcov:
+	@echo Test coverage:
+	@tools/coverage report test
 
 showlastreleasedate:
 	@echo Last release date:
