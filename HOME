@@ -35,17 +35,15 @@ hledger from hackage_ with: ``cabal install hledger``
 
 Documentation
 -------------
+ .. raw:: html
+
+  <a href="SCREENSHOTS.html#hledger-screen-1"><img src=hledger-screen-1.png border=0 height=100 title="Basic command-line reports, like ledger"></a>
+  <a href="SCREENSHOTS.html#sshot"><img src=sshot.png border=0 height=100 title="The interactive curses interface"></a>
+  <a href="SCREENSHOTS.html#watchhours"><img src=watchhours.png border=0 height=100 title="A time dashboard in emacs"></a>
+
 `User's Guide`_ | News_ | see also `ledger's home page`_ and manual_
 
 `Developer API docs`_ | `Developer Notes`_ | `Contributor List`_ | latest benchtest_, profile_, heap_, `test coverage`_ reports
-
-Screenshots
------------
- .. raw:: html
-
-  <a href="SCREENSHOTS.html#hledger-screen-1"><img src=hledger-screen-1.png border=0 height=100></a>
-  <a href="SCREENSHOTS.html#sshot"><img src=sshot.png border=0 height=100></a>
-  <a href="SCREENSHOTS.html#watchhours"><img src=watchhours.png border=0 height=100></a>
 
 Code repository
 ---------------
