@@ -29,9 +29,10 @@ installing, using, or contributing.
 Download
 --------
 
-hledger works on all major platforms, but does not yet have binaries or
-platform packages; you'll need to install GHC_ and cabal_, then install
-hledger from hackage_ with: ``cabal install hledger``
+hledger works on all major platforms. Some binaries_ are appearing;
+please let me know how they work for you. Otherwise, you'll need to
+install the `Haskell Platform`_, then install hledger from hackage_
+with: ``cabal install hledger``
 
 Documentation
 -------------
@@ -70,6 +71,7 @@ Related projects
 .. _balance:              http://hledger.org:5000/balance
 .. _register:             http://hledger.org:5000/register?a=checking
 .. _hledger google group: http://groups.google.com/group/hledger
+.. _binaries:             http://hledger.org/binaries/
 .. _User's Guide:         README.html
 .. _News:                 NEWS.html
 .. _Contributor List:     CONTRIBUTORS.html
@@ -85,6 +87,7 @@ Related projects
 .. _haskell:              http://haskell.org
 .. _GHC:                  http://haskell.org/ghc
 .. _cabal:                http://haskell.org/cabal/download.html
+.. _Haskell Platform:     http://hackage.haskell.org/platform/
 .. _hackage:              http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hledger
 .. _#ledger irc channel:  irc://irc.freenode.net/#ledger
 .. _ledger:               http://wiki.github.com/jwiegley/ledger
