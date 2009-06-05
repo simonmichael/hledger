@@ -37,6 +37,9 @@ default: tag hledger
 hledger: setversion
 	ghc --make hledger.hs -o hledger $(BUILDFLAGS) # -O
 
+hledgernowarnings: setversion
+	ghc --make hledger.hs -o hledger $(BUILDFLAGS) -Werror -v0
+
 # build the profiling-enabled binary. You may need to cabal install
 # --reinstall -p some libs.
 hledgerp: setversion
@@ -88,32 +91,55 @@ tools/generateledger: tools/generateledger.hs
 ######################################################################
 # TESTING
 
-# run all tests
+# quick code tests - run all the time
 test: unittest doctest haddocktest
+
+# moderate pre-commit tests
+# run before recording or before send/pushing, your choice
+committest: unittest doctest haddocktest warningstest
+	@(cabal configure -fvty -fhapps \
+		&& echo $@ passed) || echo $@ FAILED
+
+# thorough, pre-release tests - run before release
+releasetest: unittest doctest haddocktest warningstest cabaltest
+	@dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0'
 
 # run unit tests, without waiting for compilation
 unittest:
-	runghc hledger.hs test
+	@(runghc hledger.hs test \
+		&& echo $@ passed) || echo $@ FAILED
 
 # run doc tests
 doctest: tools/doctest
-	@tools/doctest Commands/Add.hs
-	@tools/doctest Tests.hs
+	@(tools/doctest Commands/Add.hs \
+		&& tools/doctest Tests.hs \
+		&& echo $@ passed) || echo $@ FAILED
 
 # make sure we have no haddock errors
 haddocktest:
-	@make --quiet haddock
+	@(make --quiet haddock \
+		&& echo $@ passed) || echo $@ FAILED
+
+# make sure the normal build has no warnings
+warningstest:
+	@(make -s clean \
+		&& make --no-print-directory -s hledgernowarnings \
+		&& echo $@ passed) || echo $@ FAILED
+
+# make sure cabal is happy in all ways
+cabaltest: setversion
+	@(cabal clean \
+		&& cabal check \
+		&& cabal configure -fvty -fhapps \
+		&& cabal build \
+		&& echo $@ passed) || echo $@ FAILED
 
 # run performance tests and save results in profs/. 
-# Requires some tests defined in bench.tests and some executables defined above.
+# Requires some commands defined in bench.tests and some executables defined above.
 benchmark: sampleledgers bench.tests tools/bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
-
-# get a debug prompt
-ghci:
-	ghci hledger.hs
 
 # generate, save and display a standard profile
 prof: sampleledgers hledgerp
@@ -139,6 +165,10 @@ coverage: sampleledgers hledgercov
 	tools/coverage "markup --destdir=profs/coverage" test
 	cd profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
 	$(VIEWHTMLCMD) profs/coverage/index.html
+
+# get a debug prompt
+ghci:
+	ghci hledger.hs
 
 # generate standard sample ledgers
 sampleledgers: sample.ledger 100x100x10.ledger 1000x1000x10.ledger 10000x1000x10.ledger 100000x1000x10.ledger
@@ -270,14 +300,6 @@ hoogleindex: $(MAIN)
 # - hledger --version shows the build version
 # - The cabal package uses the release version
 # - The release tag is the non-elided release version.
-
-# run pre-release checks: cabal is happy, the code builds, tests pass..
-check: setversion test
-	cabal clean
-	cabal check
-	cabal configure -fvty -fhapps
-	cabal build
-	dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0'
 
 # Build a cabal release, tag the repo and maybe upload to hackage.
 # Don't forget to update VERSION if needed. Examples:
