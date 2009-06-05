@@ -43,7 +43,7 @@ module Main (-- export for easy ghci access:
             )
 where
 import Control.Monad.Error
-import Prelude hiding (putStr)
+import Prelude hiding (putStr, putStrLn)
 import System.IO (stderr)
 import System.IO.UTF8
 import qualified Data.Map as Map (lookup)
@@ -53,7 +53,7 @@ import Ledger
 import Options
 import Tests
 import Utils (withLedgerDo)
-import Version (versionmsg)
+import Version (versionmsg, binaryfilename)
 
 
 main :: IO ()
@@ -63,7 +63,8 @@ main = do
     where 
       run cmd opts args
        | Help `elem` opts             = putStr $ usage
-       | Version `elem` opts          = putStr versionmsg
+       | Version `elem` opts          = putStrLn versionmsg
+       | BinaryFilename `elem` opts   = putStrLn binaryfilename
        | cmd `isPrefixOf` "balance"   = withLedgerDo opts args cmd balance
        | cmd `isPrefixOf` "convert"   = withLedgerDo opts args cmd convert
        | cmd `isPrefixOf` "print"     = withLedgerDo opts args cmd print'

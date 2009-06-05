@@ -18,6 +18,7 @@ VIEWHTMLCMD=open
 VIEWPSCMD=open
 
 PLATFORMBINARIES=hledgermac hledgerlinux #hledgerwin
+BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 SOURCEFILES:=*hs Commands/*hs Ledger/*hs
 DOCFILES:=HOME README NEWS CONTRIBUTORS SCREENSHOTS
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
@@ -49,9 +50,10 @@ hledgeropt: setversion
 # build a deployable binary for mac, one which uses only standard osx libs
 hledgermac: setversion
 	sudo port deactivate gmp
-	ghc --make hledger.hs -o hledgermac $(BUILDFLAGS) -O2 -optl-L/usr/lib #-optl-F/Library/Frameworks/GMP
+	ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib #-optl-F/Library/Frameworks/GMP
 	sudo port activate gmp
-	otool -L hledgermac
+	@echo Please check the build depends only on standard system libraries:
+	otool -L $(BINARYFILENAME)
 
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
@@ -339,7 +341,7 @@ send:
 	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
 
 # push patches and anything else pending to the public server
-push: pushprofs pushbinaries
+push: pushprofs pushbinary
 	darcs push joyful.com:/repos/hledger
 
 # pull anything pending from the public server
@@ -347,7 +349,7 @@ pull: pullprofs
 	darcs pull -a joyful.com:/repos/hledger
 
 # push any new profiles and benchtest results to the public site
-# beware, results may look different depending on which machine generated them
+# beware, results will vary depending on which machine generated them
 pushprofs:
 	rsync -azP profs/ joyful.com:/repos/hledger/profs/
 
@@ -355,9 +357,11 @@ pushprofs:
 pullprofs:
 	rsync -azP joyful.com:/repos/hledger/profs/ profs/
 
-# push any new deployment binaries to the public site
-pushbinaries:
-	-for b in $(PLATFORMBINARIES); do rsync -azP $$b joyful.com:/repos/hledger/website/binaries/; done
+# push a deployable binary for this platform to the public site
+# make hledgerPLAT first
+pushbinary:
+	-gzip -9 $(BINARYFILENAME)
+	rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
 
 # show project stats useful for release notes
 stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench

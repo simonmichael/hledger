@@ -1,18 +1,42 @@
 {-# OPTIONS_GHC -cpp #-}
+{-
+Version-related utilities.
+
+We should follow http://haskell.org/haskellwiki/Package_versioning_policy .
+But currently hledger's version is MAJOR[.MINOR[.BUGFIX]][+PATCHLEVEL].
+See also the Makefile.
+
+-}
+
 module Version
 where
+import System.Info (os, arch)
 import Ledger.Utils
 import Options (progname)
 
--- updated by build process from VERSION
+-- version and PATCHLEVEL are set by the makefile
 version       = "0.5.1"
+
 #ifdef PATCHLEVEL
--- a "make" development build defines PATCHLEVEL from the repo state
 patchlevel = "." ++ show PATCHLEVEL -- must be numeric !
 #else
 patchlevel = ""
 #endif
+
 buildversion  = version ++ patchlevel
+
+binaryfilename = prettify $ splitAtElement '.' buildversion
+                where
+                  prettify (major:minor:bugfix:patches:[]) =
+                      printf "hledger-%s.%s%s%s-%s-%s" major minor bugfix' patches' os arch
+                          where
+                            bugfix'
+                                | bugfix `elem` ["0"{-,"98","99"-}] = ""
+                                | otherwise = "."++bugfix
+                            patches'
+                                | patches/="0" = "+"++patches
+                                | otherwise = ""
+                  prettify s = intercalate "." s
 
 versionstr    = prettify $ splitAtElement '.' buildversion
                 where
@@ -23,7 +47,7 @@ versionstr    = prettify $ splitAtElement '.' buildversion
                                 | bugfix `elem` ["0"{-,"98","99"-}] = ""
                                 | otherwise = "."++bugfix
                             patches'
-                                | patches/="0" = " + "++patches++" patches"
+                                | patches/="0" = "+"++patches++" patches"
                                 | otherwise = ""
                             desc
 --                                 | bugfix=="98" = " (alpha)"
@@ -31,10 +55,10 @@ versionstr    = prettify $ splitAtElement '.' buildversion
                                 | otherwise = ""
                   prettify s = intercalate "." s
 
-versionmsg    = progname ++ " " ++ versionstr ++ configmsg ++ "\n"
+versionmsg    = progname ++ "-" ++ versionstr ++ configmsg
     where configmsg
-              | null configflags = ""
-              | otherwise = ", built with " ++ intercalate ", " configflags
+              | null configflags = " with no extras"
+              | otherwise = " with " ++ intercalate ", " configflags
 
 configflags   = tail [""
 #ifdef VTY

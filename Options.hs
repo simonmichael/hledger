@@ -84,6 +84,7 @@ options = [
  ,Option ['h'] ["help"] (NoArg  Help)                  "show this help"
  ,Option ['V'] ["version"]      (NoArg  Version)       "show version information"
  ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "show verbose test output"
+ ,Option []    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
  ,Option []    ["debug"]        (NoArg  Debug)         "show some debug output"
  ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
  ]
@@ -110,6 +111,7 @@ data Opt =
     Help |
     Verbose |
     Version
+    | BinaryFilename
     | Debug
     | DebugNoUI
     deriving (Show,Eq)
