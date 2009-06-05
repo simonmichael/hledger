@@ -230,6 +230,9 @@ strace a = trace (show a) a
 ltrace :: Show a => String -> a -> a
 ltrace l a = trace (l ++ ": " ++ show a) a
 
+-- | trace an expression using a custom show function
+tracewith f e = trace (f e) e
+
 -- parsing
 
 parsewith :: Parser a -> String -> Either ParseError a
