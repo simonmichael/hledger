@@ -30,7 +30,7 @@ to that, and/or add this to hledger's built-in test runner.
 module Main where
 import Data.List (isPrefixOf)
 import System (getArgs)
-import System.Exit (ExitCode(ExitSuccess))
+import System.Exit (ExitCode(ExitSuccess),exitFailure,exitSuccess)
 import System.IO (hGetContents, hPutStr, hPutStrLn, stderr)
 import System.Process (runInteractiveCommand, waitForProcess)
 import Text.Printf (printf)
@@ -40,7 +40,8 @@ main = do
   s <- readFile f
   let tests = doctests s
   putStrLn $ printf "Running %d doctests from %s" (length tests) f
-  mapM_ runShellDocTest $ doctests s
+  ok <-  mapM runShellDocTest $ doctests s
+  if any not ok then exitFailure else exitSuccess
 
 runShellDocTest :: String -> IO Bool
 runShellDocTest s = do
