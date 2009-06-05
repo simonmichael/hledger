@@ -8,9 +8,10 @@ hledger
   displays precise balance_ and register_ reports via command-line,
   curses or web interface.
 - a remix, in haskell_, of John Wiegley's excellent c++ ledger_.
-  hledger reads most standard ledger files and vice-versa.
 - free software, developed by `Simon Michael`_ and contributors since
   2007 and released under GNU GPLv3.
+
+..   hledger reads most standard ledger files and vice-versa.
 
 **hledger aims to be...**
 
@@ -33,9 +34,8 @@ Download
 --------
 
 hledger works on all major platforms.
-There are no binary packages yet
-(well, just these `experimental binaries`_);
-you'll need to install the `Haskell Platform`_, then
+One of these `experimental binaries`_ might work for you.
+If not, download and install the `Haskell Platform`_, then
 install hledger from hackage_ with: ``cabal install hledger``
 
 ..
@@ -78,7 +78,7 @@ Related projects
 .. _balance:              http://hledger.org:5000/balance
 .. _register:             http://hledger.org:5000/register?a=checking&p=weekly
 .. _hledger google group: http://groups.google.com/group/hledger
-.. _issue tracker:        http://code.google.com/p/hledger/issues
+.. _issue tracker:        http://code.google.com/p/hledger/issues/list?can=2&q=&colspec=ID+Type+Status+Priority+Milestone+Owner+Summary&sort=&x=status&y=type&cells=tiles&mode=grid
 .. _experimental binaries: http://hledger.org/binaries/
 .. _User's Guide:         README.html
 .. _News:                 NEWS.html
