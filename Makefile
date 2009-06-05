@@ -307,7 +307,7 @@ hoogleindex: $(MAIN)
 # doing a bugfix release: set VERSION to 0.5.1, make release hackageupload
 # building 0.6 alpha:     set VERSION to 0.5.98, make
 # releasing 0.6 beta:     set VERSION to 0.5.99, make release
-release: check setandrecordversion tagrelease sdist
+release: releasetest setandrecordversion tagrelease sdist
 
 # file where the current release version is defined
 VERSIONFILE=VERSION
