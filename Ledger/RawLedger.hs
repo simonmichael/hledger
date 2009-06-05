@@ -13,7 +13,6 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
 import Ledger.Amount
-import Ledger.LedgerTransaction
 import Ledger.Transaction
 import Ledger.Posting
 import Ledger.TimeLog

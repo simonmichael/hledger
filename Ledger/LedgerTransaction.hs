@@ -57,15 +57,13 @@ showLedgerTransactionUnelided = showLedgerTransaction' False
 
 showLedgerTransaction' :: Bool -> LedgerTransaction -> String
 showLedgerTransaction' elide t = 
-    unlines $ [{-precedingcomment ++ -}description] ++ (showpostings $ ltpostings t) ++ [""]
+    unlines $ [description] ++ (showpostings $ ltpostings t) ++ [""]
     where
-      precedingcomment = ltpreceding_comment_lines t
       description = concat [date, status, code, desc] -- , comment]
       date = showdate $ ltdate t
       status = if ltstatus t then " *" else ""
       code = if (length $ ltcode t) > 0 then (printf " (%s)" $ ltcode t) else ""
       desc = " " ++ ltdescription t
-      comment = if (length $ ltcomment t) > 0 then "  ; "++(ltcomment t) else ""
       showdate d = printf "%-10s" (showDate d)
       showpostings ps
           | elide && length ps > 1 && isLedgerTransactionBalanced t

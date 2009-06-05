@@ -36,11 +36,8 @@ See "Ledger.Ledger" for more examples.
 -}
 
 module Main where
-import Control.Monad.Error
 import Prelude hiding (putStr, putStrLn)
-import System.IO (stderr)
 import System.IO.UTF8
-import qualified Data.Map as Map (lookup)
 
 import Commands.All
 import Ledger

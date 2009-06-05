@@ -5,8 +5,6 @@ Utilities for doing I/O with ledger files.
 module Ledger.IO
 where
 import Control.Monad.Error
-import Data.Time.Clock
-import Data.Time.LocalTime (LocalTime)
 import Ledger.Ledger (cacheLedger)
 import Ledger.Parse (parseLedger)
 import Ledger.RawLedger (canonicaliseAmounts,filterRawLedger)
@@ -15,8 +13,6 @@ import Ledger.Utils (getCurrentLocalTime)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import System.IO
-import Text.ParserCombinators.Parsec
-import qualified Data.Map as Map (lookup)
 import System.FilePath ((</>))
 
 
@@ -81,7 +77,6 @@ readLedger = readLedgerWithIOArgs noioargs
 -- | or give an error.
 readLedgerWithIOArgs :: IOArgs -> FilePath -> IO Ledger
 readLedgerWithIOArgs ioargs f = do
-  t <- getCurrentLocalTime
   s <- readFile f 
   rl <- rawLedgerFromString s
   return $ filterAndCacheLedger ioargs s rl

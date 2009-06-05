@@ -19,16 +19,9 @@ quarterly, etc.
 module Ledger.Dates
 where
 
-import Data.Time.Clock
 import Data.Time.Format
-import Data.Time.Calendar
-import Data.Time.Calendar.MonthDay
 import Data.Time.Calendar.OrdinalDate
-import Data.Time.Calendar.WeekDate
-import Data.Time.LocalTime
 import Locale (defaultTimeLocale)
-import Text.Printf
-import Data.Maybe
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Combinator
@@ -49,24 +42,29 @@ elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
 
 -- | Split a DateSpan into one or more consecutive spans at the specified interval.
 splitSpan :: Interval -> DateSpan -> [DateSpan]
-splitSpan i (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
+splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
 splitSpan NoInterval s = [s]
-splitSpan Daily s      = splitspan start next s where (start,next) = (startofday,nextday)
-splitSpan Weekly s     = splitspan start next s where (start,next) = (startofweek,nextweek)
-splitSpan Monthly s    = splitspan start next s where (start,next) = (startofmonth,nextmonth)
-splitSpan Quarterly s  = splitspan start next s where (start,next) = (startofquarter,nextquarter)
-splitSpan Yearly s     = splitspan start next s where (start,next) = (startofyear,nextyear)
+splitSpan Daily s      = splitspan startofday     nextday     s
+splitSpan Weekly s     = splitspan startofweek    nextweek    s
+splitSpan Monthly s    = splitspan startofmonth   nextmonth   s
+splitSpan Quarterly s  = splitspan startofquarter nextquarter s
+splitSpan Yearly s     = splitspan startofyear    nextyear    s
 
+splitspan :: (Day -> Day) -> (Day -> Day) -> DateSpan -> [DateSpan]
 splitspan _ _ (DateSpan Nothing Nothing) = []
-splitspan startof next (DateSpan Nothing (Just e)) = [DateSpan (Just $ startof e) (Just $ next $ startof e)]
-splitspan startof next (DateSpan (Just b) Nothing) = [DateSpan (Just $ startof b) (Just $ next $ startof b)]
-splitspan startof next s@(DateSpan (Just b) (Just e))
-    | b == e = [s]
-    | otherwise = splitspan' startof next s
-    where splitspan' startof next (DateSpan (Just b) (Just e))
-              | b >= e = []
-              | otherwise = [DateSpan (Just $ startof b) (Just $ next $ startof b)] 
-                            ++ splitspan' startof next (DateSpan (Just $ next $ startof b) (Just e))
+splitspan start next (DateSpan Nothing (Just e)) = [DateSpan (Just $ start e) (Just $ next $ start e)]
+splitspan start next (DateSpan (Just b) Nothing) = [DateSpan (Just $ start b) (Just $ next $ start b)]
+splitspan start next span@(DateSpan (Just b) (Just e))
+    | b == e = [span]
+    | otherwise = splitspan' start next span
+    where
+      splitspan' start next (DateSpan (Just b) (Just e))
+          | b >= e = []
+          | otherwise = [DateSpan (Just s) (Just n)]
+                        ++ splitspan' start next (DateSpan (Just n) (Just e))
+          where s = start b
+                n = next s
+      splitspan' _ _ _ = error "won't happen, avoids warnings"
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -89,7 +87,7 @@ spanFromSmartDateString refdate s = spanFromSmartDate refdate sdate
 spanFromSmartDate :: Day -> SmartDate -> DateSpan
 spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
     where
-      (ry,rm,rd) = toGregorian refdate
+      (ry,rm,_) = toGregorian refdate
       (b,e) = span sdate
       span :: SmartDate -> (Day,Day)
       span ("","","today")       = (refdate, nextday refdate)

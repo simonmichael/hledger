@@ -21,7 +21,7 @@ import Utils (ledgerFromStringWithOpts)
 -- and append them to the ledger file. If the ledger came from stdin, this
 -- command has no effect.
 add :: [Opt] -> [String] -> Ledger -> IO ()
-add opts args l
+add _ args l
     | filepath (rawledger l) == "-" = return ()
     | otherwise = do
   hPutStrLn stderr
@@ -90,7 +90,6 @@ getPostings historicalps enteredps = do
       getPostings historicalps $ enteredps ++ [p]
     where
       n = length enteredps + 1
-      realn = length enteredrealps + 1
       enteredrealps = filter isReal enteredps
       bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
@@ -164,8 +163,8 @@ registerFromString s = do
 -- with a modification for short strings.
 compareStrings :: String -> String -> Float
 compareStrings "" "" = 1
-compareStrings (a:[]) "" = 0
-compareStrings "" (b:[]) = 0
+compareStrings (_:[]) "" = 0
+compareStrings "" (_:[]) = 0
 compareStrings (a:[]) (b:[]) = if toUpper a == toUpper b then 1 else 0
 compareStrings s1 s2 = 2.0 * (fromIntegral i) / (fromIntegral u)
     where

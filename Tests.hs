@@ -171,8 +171,7 @@ import qualified Data.Map as Map
 import Data.Time.Format
 import Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
-import Test.HUnit
-import Test.HUnit.Tools (assertRaises, runVerboseTests)
+import Test.HUnit.Tools (runVerboseTests)
 
 import Commands.All
 import Ledger
@@ -180,12 +179,12 @@ import Options
 import Utils
 
 
-runtests opts args = runner flattests
+runtests opts args = runner ts
     where
       runner | (Verbose `elem` opts) = runVerboseTests
              | otherwise = \t -> runTestTT t >>= return . (flip (,) 0)
-      flattests = TestList $ filter matchname $ concatMap tflatten tests
-      deeptests = tfilter matchname $ TestList tests
+      ts = TestList $ filter matchname $ concatMap tflatten tests
+      --ts = tfilter matchname $ TestList tests -- unflattened
       matchname = matchpats args . tname
 
 -- | Get a Test's label, or the empty string.
@@ -482,7 +481,6 @@ tests = [
          nowstr = showtime now
          yesterday = prevday today
          clockin t a = TimeLogEntry In t a
-         clockout t = TimeLogEntry Out t ""
          mktime d s = LocalTime d $ fromMaybe midnight $ parseTime defaultTimeLocale "%H:%M:%S" s
          showtime t = formatTime defaultTimeLocale "%H:%M" t
          assertEntriesGiveStrings name es ss = assertEqual name ss (map ltdescription $ entriesFromTimeLogEntries now es)
@@ -582,7 +580,6 @@ tests = [
     return ()
 
   ,"ledgerFile" ~: do
-    let now = getCurrentLocalTime
     assertBool "ledgerFile should parse an empty file" $ (isRight $ parseWithCtx ledgerFile "")
     r <- rawLedgerFromString "" -- don't know how to get it from ledgerFile
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ ledger_txns r

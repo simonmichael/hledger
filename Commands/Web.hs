@@ -4,23 +4,13 @@ A happs-based web UI for hledger.
 
 module Commands.Web
 where
-import Control.Monad.Trans (liftIO)
-import Data.ByteString.Lazy.UTF8 (toString)
-import qualified Data.Map as M
--- import Data.Map ((!))
-import Data.Time.Clock
-import Data.Time.Format
-import Locale
 import Control.Concurrent
-import qualified Data.ByteString.Lazy.Char8 as B
-import Happstack.Data (defaultValue)
 import Happstack.Server
-import Happstack.Server.HTTP.FileServe (fileServe)
 import Happstack.State.Control (waitForTermination)
 import System.Cmd (system)
 import System.Info (os)
 import System.Exit
-import Network.HTTP (urlEncode, urlDecode, urlEncodeVars)
+import Network.HTTP (urlEncode, urlDecode)
 import Text.XHtml hiding (dir)
 
 import Ledger
@@ -122,7 +112,7 @@ searchform r a p' =
                 | otherwise = spaceHtml +++ anchor ! [href u] << stringToHtml "reset"
 
 navlinks :: Request -> String -> String -> Html
-navlinks r a p' = 
+navlinks _ a p' = 
     concatHtml $ intersperse sep $ map linkto ["balance", "register", "print", "histogram"]
     where
       sep = stringToHtml " | "

@@ -12,7 +12,6 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
 import Ledger.Commodity
-import Ledger.Amount
 import Ledger.LedgerTransaction
 
 instance Show TimeLogEntry where 
@@ -82,7 +81,6 @@ entryFromTimeLogInOut i o
       itod     = localTimeOfDay itime
       otod     = localTimeOfDay otime
       idate    = localDay itime
-      odate    = localDay otime
       hrs      = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       amount   = Mixed [hours hrs]
       ps       = [Posting False acctname amount "" RegularPosting

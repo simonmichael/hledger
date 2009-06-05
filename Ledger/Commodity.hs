@@ -8,7 +8,6 @@ are thousands separated by comma, significant decimal places and so on.
 -}
 module Ledger.Commodity
 where
-import qualified Data.Map as Map
 import Ledger.Utils
 import Ledger.Types
 
@@ -36,5 +35,5 @@ comm sym = fromMaybe
 
 -- | Find the conversion rate between two commodities. Currently returns 1.
 conversionRate :: Commodity -> Commodity -> Double
-conversionRate oldc newc = 1
+conversionRate _ _ = 1
 

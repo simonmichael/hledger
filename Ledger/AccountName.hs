@@ -10,7 +10,7 @@ module Ledger.AccountName
 where
 import Ledger.Utils
 import Ledger.Types
-import Data.Map ((!), fromList, Map)
+import Data.Map (Map)
 import qualified Data.Map as M
 
 

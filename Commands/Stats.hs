@@ -7,12 +7,9 @@ Print some statistics for the ledger.
 module Commands.Stats
 where
 import Prelude hiding (putStr)
-import qualified Data.Map as Map
-import Data.Map ((!))
 import Ledger
 import Options
 import System.IO.UTF8
-import Utils (filterAndCacheLedgerWithOpts)
 
 
 -- | Print various statistics for the ledger.
@@ -22,7 +19,7 @@ stats opts args l = do
   putStr $ showStats opts args l today
 
 showStats :: [Opt] -> [String] -> Ledger -> Day -> String
-showStats opts args l today = 
+showStats _ _ l today = 
     heading ++ (unlines $ map (\(a,b) -> printf fmt a b) stats)
     where
       heading = underline $ printf "Ledger statistics as of %s" (show today)

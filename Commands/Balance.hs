@@ -103,9 +103,7 @@ import Ledger.Amount
 import Ledger.AccountName
 import Ledger.Transaction
 import Ledger.Ledger
-import Ledger.Parse
 import Options
-import Utils
 import System.IO.UTF8
 
 
@@ -115,7 +113,7 @@ balance opts args l = putStr $ showBalanceReport opts args l
 
 -- | Generate a balance report with the specified options for this ledger.
 showBalanceReport :: [Opt] -> [String] -> Ledger -> String
-showBalanceReport opts args l = acctsstr ++ totalstr
+showBalanceReport opts _ l = acctsstr ++ totalstr
     where 
       acctsstr = unlines $ map showacct interestingaccts
           where

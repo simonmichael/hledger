@@ -150,7 +150,7 @@ difforzero a b = maximum [(a - b), 0]
 containsRegex :: String -> String -> Bool
 containsRegex r s = case matchRegexPR ("(?i)"++r) s of
                       Just _ -> True
-                      otherwise -> False
+                      _ -> False
 
 
 -- lists
@@ -184,7 +184,7 @@ subtreeat v t
 -- | get the sub-tree for the specified node value in the first tree in
 -- forest in which it occurs.
 subtreeinforest :: Eq a => a -> [Tree a] -> Maybe (Tree a)
-subtreeinforest v [] = Nothing
+subtreeinforest _ [] = Nothing
 subtreeinforest v (t:ts) = case (subtreeat v t) of
                              Just t' -> Just t'
                              Nothing -> subtreeinforest v ts

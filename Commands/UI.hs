@@ -6,8 +6,6 @@ A simple text UI for hledger, based on the vty library.
 
 module Commands.UI
 where
-import qualified Data.Map as Map
-import Data.Map ((!))
 import Graphics.Vty
 import qualified Data.ByteString.Char8 as B
 import Ledger
@@ -19,7 +17,7 @@ import Commands.Print
 
 helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"
 
-instance Show Vty where show v = "a Vty"
+instance Show Vty where show = const "a Vty"
 
 -- | The application state when running the ui command.
 data AppState = AppState {
@@ -46,7 +44,7 @@ data Loc = Loc {
 data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
             | RegisterScreen    -- ^ like hledger register, shows transaction-postings
             | PrintScreen       -- ^ like hledger print, shows ledger transactions
-            | LedgerScreen      -- ^ shows the raw ledger
+            -- | LedgerScreen      -- ^ shows the raw ledger
               deriving (Eq,Show)
 
 -- | Run the interactive text ui.
@@ -71,7 +69,7 @@ ui opts args l = do
 
 -- | Update the screen, wait for the next event, repeat.
 go :: AppState -> IO ()
-go a@AppState{av=av,aw=aw,ah=ah,abuf=buf,amsg=amsg,aopts=opts,aargs=args,aledger=l} = do
+go a@AppState{av=av,aw=_,ah=_,abuf=_,amsg=_,aopts=opts,aargs=_,aledger=_} = do
   when (not $ DebugNoUI `elem` opts) $ update av (renderScreen a)
   k <- getEvent av
   case k of 
@@ -100,9 +98,6 @@ go a@AppState{av=av,aw=aw,ah=ah,abuf=buf,amsg=amsg,aopts=opts,aargs=args,aledger
     EvKey (KASCII 'q') []       -> shutdown av >> return ()
 --    EvKey KEsc   []           -> shutdown av >> return ()
     _                           -> go a
-    where
-      bh = length buf
-      y = posY a
 
 -- app state modifiers
 
@@ -120,14 +115,20 @@ scrollY = sy . loc
 posY a = scrollY a + cursorY a
 
 setCursorY, setScrollY, setPosY :: Int -> AppState -> AppState
+setCursorY _ AppState{alocs=[]} = error "shouldn't happen" -- silence warnings
 setCursorY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)} where l' = setLocCursorY y l
+
+setScrollY _ AppState{alocs=[]} = error "shouldn't happen" -- silence warnings
 setScrollY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)} where l' = setLocScrollY y l
+
+setPosY _ AppState{alocs=[]}    = error "shouldn't happen" -- silence warnings
 setPosY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)}
     where 
       l' = setLocScrollY sy $ setLocCursorY cy l
       ph = pageHeight a
       cy = y `mod` ph
       sy = y - cy
+
 
 updateCursorY, updateScrollY, updatePosY :: (Int -> Int) -> AppState -> AppState
 updateCursorY f a = setCursorY (f $ cursorY a) a
@@ -147,17 +148,19 @@ moveToBottom :: AppState -> AppState
 moveToBottom a = setPosY (length $ abuf a) a
 
 moveUpAndPushEdge :: AppState -> AppState
-moveUpAndPushEdge a@AppState{alocs=(Loc{sy=sy,cy=cy}:_)}
+moveUpAndPushEdge a
     | cy > 0 = updateCursorY (subtract 1) a
     | sy > 0 = updateScrollY (subtract 1) a
     | otherwise = a
+    where Loc{sy=sy,cy=cy} = head $ alocs a
 
 moveDownAndPushEdge :: AppState -> AppState
-moveDownAndPushEdge a@AppState{alocs=(Loc{sy=sy,cy=cy}:_)}
+moveDownAndPushEdge a
     | sy+cy >= bh = a
     | cy < ph-1 = updateCursorY (+1) a
     | otherwise = updateScrollY (+1) a
     where 
+      Loc{sy=sy,cy=cy} = head $ alocs a
       ph = pageHeight a
       bh = length $ abuf a
 
@@ -178,7 +181,7 @@ nextpage (a@AppState{abuf=b})
 -- without moving the cursor, or if we are scrolled as far as possible
 -- then move the cursor to the first line.
 prevpage :: AppState -> AppState
-prevpage (a@AppState{abuf=b})
+prevpage a
     | sy > 0    = setScrollY sy' a
     | otherwise = setCursorY 0 a
     where
@@ -212,31 +215,30 @@ enter :: Screen -> AppState -> AppState
 enter scr@BalanceScreen a  = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 enter scr@RegisterScreen a = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 enter scr@PrintScreen a    = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
-enter scr@LedgerScreen a   = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
+-- enter scr@LedgerScreen a   = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 
 resetTrailAndEnter scr a = enter scr $ clearLocs a
 
 -- | Regenerate the display data appropriate for the current screen.
 updateData :: AppState -> AppState
-updateData a@AppState{aopts=opts,aargs=args,aledger=l}
-    | scr == BalanceScreen  = a{abuf=lines $ showBalanceReport opts [] l, aargs=[]}
-    | scr == RegisterScreen = a{abuf=lines $ showRegisterReport opts args l}
-    | scr == PrintScreen    = a{abuf=lines $ showLedgerTransactions opts args l}
-    | scr == LedgerScreen   = a{abuf=lines $ rawledgertext l}
-    where scr = screen a
+updateData a@AppState{aopts=opts,aargs=args,aledger=l} =
+    case screen a of
+      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts [] l, aargs=[]}
+      RegisterScreen -> a{abuf=lines $ showRegisterReport opts args l}
+      PrintScreen    -> a{abuf=lines $ showLedgerTransactions opts args l}
+      -- LedgerScreen   -> a{abuf=lines $ rawledgertext l}
 
 backout :: AppState -> AppState
-backout a
-    | screen a == BalanceScreen = a
-    | otherwise = updateData $ popLoc a
+backout a | screen a == BalanceScreen = a
+          | otherwise = updateData $ popLoc a
 
 drilldown :: AppState -> AppState
-drilldown a
-    | screen a == BalanceScreen  = enter RegisterScreen a{aargs=[currentAccountName a]}
-    | screen a == RegisterScreen = scrollToLedgerTransaction e $ enter PrintScreen a
-    | screen a == PrintScreen   = a
-    -- screen a == PrintScreen   = enter LedgerScreen a
-    -- screen a == LedgerScreen   = a
+drilldown a =
+    case screen a of
+      BalanceScreen  -> enter RegisterScreen a{aargs=[currentAccountName a]}
+      RegisterScreen -> scrollToLedgerTransaction e $ enter PrintScreen a
+      PrintScreen   -> a
+      -- LedgerScreen   -> a{abuf=lines $ rawledgertext l}
     where e = currentLedgerTransaction a
 
 -- | Get the account name currently highlighted by the cursor on the
@@ -350,28 +352,26 @@ renderStatus w s = renderBS statusattr (B.pack $ take w (s ++ repeat ' '))
 
 -- the all-important theming engine
 
-theme = 1
+theme = Restrained
+
+data UITheme = Restrained | Colorful | Blood
 
 (defaultattr, 
  currentlineattr, 
  statusattr
- ) = 
-    case theme of
-      1 -> ( -- restrained
-           attr
-          ,setBold attr
-          ,setRV attr
-          )
-      2 -> ( -- colorful
-           setRV attr
-          ,setFG white $ setBG red $ attr
-          ,setFG black $ setBG green $ attr
-          )
-      3 -> ( -- 
-           setRV attr
-          ,setFG white $ setBG red $ attr
-          ,setRV attr
-          )
+ ) = case theme of
+       Restrained -> (attr
+                    ,setBold attr
+                    ,setRV attr
+                    )
+       Colorful   -> (setRV attr
+                    ,setFG white $ setBG red $ attr
+                    ,setFG black $ setBG green $ attr
+                    )
+       Blood      -> (setRV attr
+                    ,setFG white $ setBG red $ attr
+                    ,setRV attr
+                    )
 
 halfbrightattr = setHalfBright attr
 reverseattr = setRV attr

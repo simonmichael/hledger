@@ -8,13 +8,10 @@ Utilities for top-level modules and ghci. See also "Ledger.IO" and
 module Utils
 where
 import Control.Monad.Error
-import Data.Time.Clock
 import Ledger
 import Options (Opt,ledgerFilePathFromOpts,optsToIOArgs)
 import System.Directory (doesFileExist)
 import System.IO
-import Text.ParserCombinators.Parsec
-import qualified Data.Map as Map (lookup)
 
 
 -- | Parse the user's specified ledger file and run a hledger command on

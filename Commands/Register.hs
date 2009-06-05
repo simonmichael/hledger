@@ -7,8 +7,6 @@ A ledger-compatible @register@ command.
 module Commands.Register
 where
 import Prelude hiding (putStr)
-import qualified Data.Map as Map
-import Data.Map ((!))
 import Ledger
 import Options
 import System.IO.UTF8
@@ -46,7 +44,7 @@ showRegisterReport opts args l
       startbal = sumTransactions precedingts
       matchapats t = matchpats apats $ taccount t
       (apats,_) = parsePatternArgs args
-      matchdisplayopt Nothing t = True
+      matchdisplayopt Nothing _ = True
       matchdisplayopt (Just e) t = (fromparse $ parsewith datedisplayexpr e) t
       dopt = displayFromOpts opts
       empty = Empty `elem` opts
@@ -99,7 +97,7 @@ clipAccountNames d as = nub $ map (clip d) as
 -- | Show transactions one per line, with each date/description appearing
 -- only once, and a running balance.
 showtxns [] _ _ = ""
-showtxns (t@Transaction{tamount=a}:ts) tprev bal = this ++ showtxns ts t bal'
+showtxns (t:ts) tprev bal = this ++ showtxns ts t bal'
     where
       this = showtxn (t `issame` tprev) t bal'
       issame t1 t2 = tnum t1 == tnum t2

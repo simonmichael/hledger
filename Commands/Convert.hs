@@ -37,14 +37,12 @@ optional rule saving.
 -}
 
 module Commands.Convert where
-import Data.Maybe (isJust)
 import Data.List.Split (splitOn)
 import Options -- (Opt,Debug)
 import Ledger.Types (Ledger,AccountName)
 import Ledger.Utils (strip)
-import System (getArgs)
 import System.IO (stderr, hPutStrLn)
-import Text.CSV (parseCSVFromFile, Record)
+import Text.CSV (parseCSVFromFile)
 import Text.Printf (printf)
 import Text.RegexPR (matchRegexPR)
 import Data.Maybe
@@ -55,7 +53,7 @@ import Control.Monad (when)
 
 
 convert :: [Opt] -> [String] -> Ledger -> IO ()
-convert opts args l = do
+convert opts args _ = do
   when (length args /= 3) (error "please specify a csv file, base account, and import rules file.")
   let [csvfile,baseacct,rulesfile] = args
   rulesstr <- readFile rulesfile
@@ -83,10 +81,11 @@ parseRules s = do
 parsePatRepl :: String -> (String, Maybe String)
 parsePatRepl l = case splitOn "=" l of
                    (p:r:_) -> (p, Just r)
-                   (p:_)   -> (p, Nothing)
+                   _       -> (l, Nothing)
 
-print_ledger_txn debug (baseacct,fieldpositions,rules) record@(a:b:c:d:e) = do
-  let [date,cleared,number,description,amount] = map (record !!) fieldpositions
+print_ledger_txn :: Bool -> (String,[Int],[Rule]) -> [String] -> IO ()
+print_ledger_txn debug (baseacct,fieldpositions,rules) record@(_:_:_:_:_:[]) = do
+  let [date,_,number,description,amount] = map (record !!) fieldpositions
       amount' = strnegate amount where strnegate ('-':s) = s
                                        strnegate s = '-':s
       unknownacct | (read amount' :: Double) < 0 = "income:unknown"

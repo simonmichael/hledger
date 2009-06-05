@@ -57,12 +57,10 @@ import qualified Data.Map as Map
 import Data.Map ((!))
 import Ledger.Utils
 import Ledger.Types
-import Ledger.Amount
+import Ledger.Account ()
 import Ledger.AccountName
-import Ledger.Account
 import Ledger.Transaction
 import Ledger.RawLedger
-import Ledger.LedgerTransaction
 
 
 instance Show Ledger where

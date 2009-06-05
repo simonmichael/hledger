@@ -7,28 +7,19 @@ Parsers for standard ledger and timelog files.
 module Ledger.Parse
 where
 import Prelude hiding (readFile, putStr, print)
-import Control.Monad
 import Control.Monad.Error
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
-import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Combinator
-import qualified Text.ParserCombinators.Parsec.Token as P
 import System.Directory
 import System.IO.UTF8
 import System.IO (stdin)
-import qualified Data.Map as Map
-import Data.Time.LocalTime
-import Data.Time.Calendar
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
-import Ledger.AccountName
 import Ledger.Amount
 import Ledger.LedgerTransaction
 import Ledger.Posting
-import Ledger.Commodity
-import Ledger.TimeLog
 import Ledger.RawLedger
 import System.FilePath(takeDirectory,combine)
 
@@ -111,6 +102,7 @@ ledgerDirective = do char '!' <?> "directive"
                        "include" -> ledgerInclude
                        "account" -> ledgerAccountBegin
                        "end"     -> ledgerAccountEnd
+                       _         -> mzero
 
 ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
 ledgerInclude = do many1 spacenonewline
@@ -291,9 +283,9 @@ ledgerHistoricalPrice = do
   many spacenonewline
   symbol1 <- commoditysymbol
   many spacenonewline
-  (Mixed [Amount c price pri]) <- someamount
+  (Mixed [Amount c q _]) <- someamount
   restofline
-  return $ HistoricalPrice date symbol1 (symbol c) price
+  return $ HistoricalPrice date symbol1 (symbol c) q
 
 -- like ledgerAccountBegin, updates the LedgerFileCtx
 ledgerDefaultYear :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
@@ -373,7 +365,6 @@ ledgerposting = do
   many spacenonewline
   comment <- ledgercomment
   restofline
-  parent <- getParentAccount
   return (Posting status account' amount comment ptype)
 
 -- Qualify with the parent account from parsing context
@@ -542,16 +533,16 @@ datedisplayexpr = do
   char '['
   (y,m,d) <- smartdate
   char ']'
-  let ltdate = parsedate $ printf "%04s/%02s/%02s" y m d
-  let matcher = \(Transaction{tdate=d}) -> 
-                  case op of
-                    "<"  -> d <  ltdate
-                    "<=" -> d <= ltdate
-                    "="  -> d == ltdate
-                    "==" -> d == ltdate -- just in case
-                    ">=" -> d >= ltdate
-                    ">"  -> d >  ltdate
-  return matcher              
+  let date    = parsedate $ printf "%04s/%02s/%02s" y m d
+      test op = return $ (`op` date) . tdate
+  case op of
+    "<"  -> test (<)
+    "<=" -> test (<=)
+    "="  -> test (==)
+    "==" -> test (==)
+    ">=" -> test (>=)
+    ">"  -> test (>)
+    _    -> mzero
 
 compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
 

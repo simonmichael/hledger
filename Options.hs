@@ -5,15 +5,9 @@ Command-line options for the application.
 
 module Options 
 where
-import System
 import System.Console.GetOpt
 import System.Environment
-import Text.Printf
-import Data.Char (toLower)
-import Ledger.IO (IOArgs,
-                  ledgerenvvar,myLedgerPath,
-                  timelogenvvar,myTimelogPath)
-import Ledger.Parse
+import Ledger.IO (IOArgs,myLedgerPath,myTimelogPath)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
@@ -176,19 +170,17 @@ dateSpanFromOpts refdate opts
 -- | Figure out the reporting interval, if any, specified by the options.
 -- If there is a period option, the others are ignored.
 intervalFromOpts :: [Opt] -> Interval
-intervalFromOpts opts
-    | not $ null popts = fst $ parsePeriodExpr refdate $ last popts
-    | null otheropts = NoInterval
-    | otherwise = case last otheropts of
-                    WeeklyOpt  -> Weekly
-                    MonthlyOpt -> Monthly
-                    QuarterlyOpt -> Quarterly
-                    YearlyOpt  -> Yearly
+intervalFromOpts opts =
+    case (periodopts, intervalopts) of
+      ((p:_), _)            -> fst $ parsePeriodExpr d p where d = parsedate "0001/01/01" -- unused
+      (_, (WeeklyOpt:_))    -> Weekly
+      (_, (MonthlyOpt:_))   -> Monthly
+      (_, (QuarterlyOpt:_)) -> Quarterly
+      (_, (YearlyOpt:_))    -> Yearly
+      (_, _)                -> NoInterval
     where
-      popts = optValuesForConstructor Period opts
-      otheropts = filter (`elem` [WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
-      -- doesn't affect the interval, but parsePeriodExpr needs something
-      refdate = parsedate "0001/01/01"
+      periodopts   = reverse $ optValuesForConstructor Period opts
+      intervalopts = reverse $ filter (`elem` [WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
 
 -- | Get the value of the (last) depth option, if any, otherwise a large number.
 depthFromOpts :: [Opt] -> Int

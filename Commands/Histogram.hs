@@ -7,8 +7,6 @@ Print a histogram report.
 module Commands.Histogram
 where
 import Prelude hiding (putStr)
-import qualified Data.Map as Map
-import Data.Map ((!))
 import Ledger
 import Options
 import System.IO.UTF8
