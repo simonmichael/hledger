@@ -313,7 +313,7 @@ ledgerTransaction = do
   let t = LedgerTransaction date status code description comment postings ""
   case balanceLedgerTransaction t of
     Right t' -> return t'
-    Left err -> error err
+    Left err -> fail err
 
 ledgerdate :: GenParser Char LedgerFileCtx Day
 ledgerdate = try ledgerfulldate <|> ledgerpartialdate
@@ -331,7 +331,7 @@ ledgerpartialdate = do
   (_,m,d) <- md
   many spacenonewline
   y <- getYear
-  when (y==Nothing) $ error "partial date found, but no default year specified"
+  when (y==Nothing) $ fail "partial date found, but no default year specified"
   return $ fromGregorian (fromJust y) (read m) (read d)
 
 ledgerdatetime :: GenParser Char LedgerFileCtx LocalTime
