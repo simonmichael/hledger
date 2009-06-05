@@ -59,12 +59,14 @@ hledgermac: setversion
 	sudo port deactivate gmp
 	ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib #-optl-F/Library/Frameworks/GMP
 	sudo port activate gmp
-	@echo Please check the build depends only on standard system libraries:
+	@echo Please check the build looks portable:
 	otool -L $(BINARYFILENAME)
 
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
-	ghc --make hledger.hs -o hledgerlinux $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+	ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+	@echo Please check the build looks portable:
+	ldd $(BINARYFILENAME)
 
 # build a deployable binary for windows, using cygwin presumably
 # hledgerwin: setversion
