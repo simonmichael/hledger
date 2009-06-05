@@ -97,7 +97,7 @@ unittest:
 
 # run doc tests
 doctest: tools/doctest
-	@tools/doctest AddCommand.hs
+	@tools/doctest Commands/Add.hs
 	@tools/doctest Tests.hs
 
 # make sure we have no haddock errors
