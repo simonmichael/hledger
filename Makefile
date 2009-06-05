@@ -45,9 +45,12 @@ hledgernowarnings: setversion
 hledgerp: setversion
 	ghc --make hledger.hs -prof -auto-all -o hledgerp $(BUILDFLAGS) 
 
-# build the coverage-enabled binary. Warning, might need make clean
+# build the coverage-enabled binary. make clean before and after,
+# tedious but necessary
 hledgercov: setversion
+	make clean
 	ghc --make hledger.hs -fhpc -o hledgercov $(BUILDFLAGS) 
+	make clean
 
 # build the fastest binary we can
 hledgeropt: setversion
