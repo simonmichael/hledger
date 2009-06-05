@@ -23,12 +23,12 @@ patchlevel = "." ++ show PATCHLEVEL -- must be numeric !
 patchlevel = ""
 #endif
 
-buildversion  = version ++ patchlevel
+buildversion  = version ++ patchlevel :: String
 
-binaryfilename = prettify $ splitAtElement '.' buildversion
+binaryfilename = prettify $ splitAtElement '.' buildversion :: String
                 where
                   prettify (major:minor:bugfix:patches:[]) =
-                      printf "hledger-%s.%s%s%s-%s-%s" major minor bugfix' patches' os arch
+                      printf "hledger-%s.%s%s%s-%s-%s" major minor bugfix' patches' os' arch
                           where
                             bugfix'
                                 | bugfix `elem` ["0"{-,"98","99"-}] = ""
@@ -36,9 +36,14 @@ binaryfilename = prettify $ splitAtElement '.' buildversion
                             patches'
                                 | patches/="0" = "+"++patches
                                 | otherwise = ""
-                  prettify s = intercalate "." s
+                            os'
+                                | os == "darwin" = "mac"
+                                | otherwise = os
+                  prettify (major:minor:bugfix:[]) = prettify (major:minor:bugfix:"0":[])
+                  prettify (major:minor:[])        = prettify (major:minor:"0":"0":[])
+                  prettify (major:[])              = prettify (major:"0":"0":"0":[])
 
-versionstr    = prettify $ splitAtElement '.' buildversion
+versionstr    = prettify $ splitAtElement '.' buildversion :: String
                 where
                   prettify (major:minor:bugfix:patches:[]) =
                       printf "%s.%s%s%s%s" major minor bugfix' patches' desc
@@ -55,7 +60,7 @@ versionstr    = prettify $ splitAtElement '.' buildversion
                                 | otherwise = ""
                   prettify s = intercalate "." s
 
-versionmsg    = progname ++ "-" ++ versionstr ++ configmsg
+versionmsg    = progname ++ "-" ++ versionstr ++ configmsg :: String
     where configmsg
               | null configflags = " with no extras"
               | otherwise = " with " ++ intercalate ", " configflags
