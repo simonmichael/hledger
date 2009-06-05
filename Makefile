@@ -66,7 +66,7 @@ hledgermac: setversion
 hledgerlinux: setversion
 	ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 	@echo Please check the build looks portable:
-	ldd $(BINARYFILENAME)
+	-ldd $(BINARYFILENAME)
 
 # build a deployable binary for windows, using cygwin presumably
 # hledgerwin: setversion
