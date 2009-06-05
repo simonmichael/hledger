@@ -213,7 +213,6 @@ pdf:
 # We munge haddock and hoogle into a rough but useful framed layout.
 # For this to work the hoogle cgi must be built with base target "main".
 api-docs: haddock hoogle
-	echo "Converting api docs to frames" ; \
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
 	cp website/api-doc-frames.html website/api-doc/index.html ; \
 	cp website/hoogle-small.html website/api-doc
@@ -227,13 +226,11 @@ MAIN=hledger.hs
 # --ignore-all-exports means we are documenting internal implementation, not library api
 HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(BUILDFLAGS))
 haddock: hscolour $(MAIN)
-	echo "Generating haddock api docs with source" ; \
 	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
 		cp website/api-doc/index.html website/api-doc/modules-index.html
 
 HSCOLOUR=HsColour -css 
 hscolour:
-	echo "Generating colourised source" ; \
 	for f in $(SOURCEFILES); do \
 		$(HSCOLOUR) -anchor $$f -owebsite/api-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
@@ -246,7 +243,6 @@ HOOGLESRC=/usr/local/src/hoogle
 HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
 HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
 hoogle: hoogleindex
-	echo "Configuring hoogle web interface" ; \
 	if test -f $(HOOGLE) ; then \
 		cd website/api-doc && \
 		rm -f $(HOOGLEVER) && \
@@ -260,7 +256,6 @@ hoogle: hoogleindex
 
 #generate a hoogle index
 hoogleindex: $(MAIN)
-	echo "Generating hoogle index" ; \
 	$(HADDOCK) -o website/api-doc --hoogle $^ && \
 	cd website/api-doc && \
 	hoogle --convert=main.txt --output=default.hoo
