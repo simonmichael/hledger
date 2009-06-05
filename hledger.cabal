@@ -1,38 +1,44 @@
-Name:           hledger
--- updated by build process from VERSION
-Version:        0.5.1
-Category:       Finance
-Synopsis:       A text-based accounting tool, similar to John Wiegley's ledger.
-Description:    hledger is a (mostly) text-based accounting tool that
-                generates precise register and balance reports from a
-                plain text journal file.  It is a partial clone, in
-                haskell, of John Wiegley's excellent ledger. hledger
-                implements a subset of ledger's commands and options, and
-                also provides some new ones. For basic use you can use
-                hledger and ledger pretty much interchangeably on the same
-                data files.
-License:        GPL
-Stability:      beta
-Author:         Simon Michael <simon@joyful.com>
-Maintainer:     Simon Michael <simon@joyful.com>
-Homepage:       http://hledger.org
-Tested-With:    GHC
-Build-Type:     Simple
-License-File:   LICENSE
-Extra-Source-Files: README sample.ledger
-Extra-Tmp-Files: 
-Cabal-Version:  >= 1.2
+name:           hledger
+-- Version is set by the makefile
+version:        0.5.1
+category:       Finance
+synopsis:       A command-line (or curses or web-based) double-entry accounting tool.
+description:
+                hledger reads a plain text ledger file or timelog
+                describing your transactions and displays precise
+                balance and register reports via command-line, curses
+                or web interface.  It is a remix, in haskell, of John
+                Wiegley's excellent c++ ledger.  hledger aims to be a
+                practical, accessible tool for end users and a useful
+                library for finance-minded haskell programmers.
 
-Flag vty
+license:        GPL
+license-file:   LICENSE
+author:         Simon Michael <simon@joyful.com>
+maintainer:     Simon Michael <simon@joyful.com>
+homepage:       http://hledger.org
+bug-reports:    http://code.google.com/p/hledger/issues
+stability:      experimental
+tested-with:    GHC==6.8, GHC==6.10
+cabal-version:  >= 1.2
+build-type:     Simple
+
+extra-tmp-files:
+extra-source-files:
+  README
+  sample.ledger
+  sample.timelog
+
+flag vty
   description: enable the curses ui
   default:     False
 
-Flag happs
+flag happs
   description: enable the web ui
   default:     False
 
-Library
-  Exposed-modules:
+library
+  exposed-modules:
                   Ledger
                   Ledger.Account
                   Ledger.AccountName
@@ -61,9 +67,9 @@ Library
                  ,utf8-string
                  ,HUnit
 
-Executable hledger
-  Main-Is:        hledger.hs
-  Other-Modules:  
+executable hledger
+  main-is:        hledger.hs
+  other-modules:
                   Commands.Add
                   Commands.All
                   Commands.Balance
@@ -93,7 +99,7 @@ Executable hledger
                   Tests
                   Utils
                   Version
-  Build-Depends:
+  build-depends:
                   base >= 3 && < 5
                  ,bytestring
                  ,containers
@@ -119,14 +125,14 @@ Executable hledger
 
   if flag(vty)
     cpp-options: -DVTY
-    Other-Modules:Commands.UI
-    Build-Depends:
+    other-modules:Commands.UI
+    build-depends:
                   vty >= 3.1.8.2 && < 3.2
 
   if flag(happs)
     cpp-options: -DHAPPS
-    Other-Modules:Commands.Web
-    Build-Depends:
+    other-modules:Commands.Web
+    build-depends:
                   happstack >= 0.2 && < 0.3
                  ,happstack-data >= 0.2 && < 0.3
                  ,happstack-server >= 0.2 && < 0.3
@@ -134,3 +140,9 @@ Executable hledger
                  ,utf8-string >= 0.3 && < 0.4
                  ,xhtml >= 3000.2 && < 3000.3
                  ,HTTP >= 4000.0 && < 4000.1
+
+source-repository head
+  type:     darcs
+  location: http://joyful.com/repos/hledger
+
+-- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
