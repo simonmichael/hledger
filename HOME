@@ -24,15 +24,19 @@ hledger
 
 Bug reports and/or patches are appreciated, for website issues,
 unclear/stale/missing docs, or any difficulty encountered while
-installing, using, or contributing.
+installing, using, or contributing. Use the channels above,
+or the new `issue tracker`_.
 
 Download
 --------
 
-hledger works on all major platforms. Some binaries_ are appearing;
-please let me know how they work for you. Otherwise, you'll need to
-install the `Haskell Platform`_, then install hledger from hackage_
-with: ``cabal install hledger``
+hledger works on all major platforms.
+There are no binary packages yet
+(well, just these `experimental binaries`_);
+you'll need to install the `Haskell Platform`_, then
+install hledger from hackage_ with: ``cabal install hledger``
+
+..
 
 Documentation
 -------------
@@ -71,7 +75,8 @@ Related projects
 .. _balance:              http://hledger.org:5000/balance
 .. _register:             http://hledger.org:5000/register?a=checking
 .. _hledger google group: http://groups.google.com/group/hledger
-.. _binaries:             http://hledger.org/binaries/
+.. _issue tracker:        http://code.google.com/p/hledger/issues
+.. _experimental binaries: http://hledger.org/binaries/
 .. _User's Guide:         README.html
 .. _News:                 NEWS.html
 .. _Contributor List:     CONTRIBUTORS.html
