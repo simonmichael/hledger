@@ -17,6 +17,7 @@ import System.IO (stdin)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
+import Ledger.AccountName (accountNameFromComponents,accountNameComponents)
 import Ledger.Amount
 import Ledger.LedgerTransaction
 import Ledger.Posting
@@ -371,11 +372,17 @@ ledgerposting = do
 transactionaccountname :: GenParser Char LedgerFileCtx AccountName
 transactionaccountname = liftM2 (++) getParentAccount ledgeraccountname
 
--- | account names may have single spaces inside them, and are terminated by two or more spaces
+-- | Account names may have single spaces inside them, and are terminated
+-- by two or more spaces. They should have one or more components of at
+-- least one character, separated by the account separator char.
+
 ledgeraccountname :: GenParser Char st String
 ledgeraccountname = do
-    accountname <- many1 (nonspace <|> singlespace)
-    return $ striptrailingspace accountname
+    a <- many1 (nonspace <|> singlespace)
+    let a' = striptrailingspace a
+    when (accountNameFromComponents (accountNameComponents a') /= a')
+         (fail $ "accountname seems ill-formed: "++a')
+    return a'
     where 
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
       -- couldn't avoid consuming a final space sometimes, harmless
