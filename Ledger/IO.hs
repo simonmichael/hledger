@@ -17,12 +17,13 @@ import System.Environment (getEnv)
 import System.IO
 import Text.ParserCombinators.Parsec
 import qualified Data.Map as Map (lookup)
+import System.FilePath ((</>))
 
 
-ledgerdefaultpath  = "~/.ledger"
-timelogdefaultpath = "~/.timelog"
-ledgerenvvar       = "LEDGER"
-timelogenvvar      = "TIMELOG"
+ledgerenvvar           = "LEDGER"
+timelogenvvar          = "TIMELOG"
+ledgerdefaultfilename  = ".ledger"
+timelogdefaultfilename = ".timelog"
 
 -- | A tuple of arguments specifying how to filter a raw ledger file:
 -- 
@@ -51,12 +52,18 @@ noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [])
 -- | Get the user's default ledger file path.
 myLedgerPath :: IO String
 myLedgerPath = 
-    getEnv ledgerenvvar `catch` \_ -> return ledgerdefaultpath
+    getEnv ledgerenvvar `catch` 
+               (\_ -> do
+                  home <- getHomeDirectory
+                  return $ home </> ledgerdefaultfilename)
   
 -- | Get the user's default timelog file path.
 myTimelogPath :: IO String
 myTimelogPath =
-    getEnv timelogenvvar `catch` \_ -> return timelogdefaultpath
+    getEnv timelogenvvar `catch`
+               (\_ -> do
+                  home <- getHomeDirectory
+                  return $ home </> timelogdefaultfilename)
 
 -- | Read the user's default ledger file, or give an error.
 myLedger :: IO Ledger
@@ -68,7 +75,7 @@ myTimelog = myTimelogPath >>= readLedger
 
 -- | Read a ledger from this file, with no filtering, or give an error.
 readLedger :: FilePath -> IO Ledger
-readLedger f = tildeExpand f >>= readLedgerWithIOArgs noioargs
+readLedger = readLedgerWithIOArgs noioargs
 
 -- | Read a ledger from this file, filtering according to the io args,
 -- | or give an error.
@@ -94,14 +101,14 @@ filterAndCacheLedger (span,cleared,real,costbasis,apats,dpats) rawtext rl =
     $ canonicaliseAmounts costbasis rl
     ){rawledgertext=rawtext}
 
--- | Expand ~ in a file path (does not handle ~name).
-tildeExpand :: FilePath -> IO FilePath
-tildeExpand ('~':[])     = getHomeDirectory
-tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
---handle ~name, requires -fvia-C or ghc 6.8:
---import System.Posix.User
--- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
---                                pw <- getUserEntryForName user
---                                return (homeDirectory pw ++ path)
-tildeExpand xs           =  return xs
+-- -- | Expand ~ in a file path (does not handle ~name).
+-- tildeExpand :: FilePath -> IO FilePath
+-- tildeExpand ('~':[])     = getHomeDirectory
+-- tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
+-- --handle ~name, requires -fvia-C or ghc 6.8:
+-- --import System.Posix.User
+-- -- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
+-- --                                pw <- getUserEntryForName user
+-- --                                return (homeDirectory pw ++ path)
+-- tildeExpand xs           =  return xs
 
