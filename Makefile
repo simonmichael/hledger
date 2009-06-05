@@ -111,8 +111,8 @@ unittest:
 
 # run doc tests
 doctest: tools/doctest
-	@(tools/doctest Commands/Add.hs \
-		&& tools/doctest Tests.hs \
+	@(tools/doctest Commands/Add.hs >/dev/null \
+		&& tools/doctest Tests.hs >/dev/null \
 		&& echo $@ passed) || echo $@ FAILED
 
 # make sure we have no haddock errors

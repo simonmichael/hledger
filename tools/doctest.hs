@@ -31,7 +31,7 @@ module Main where
 import Data.List (isPrefixOf)
 import System (getArgs)
 import System.Exit (ExitCode(ExitSuccess))
-import System.IO (hGetContents)
+import System.IO (hGetContents, hPutStr, hPutStrLn, stderr)
 import System.Process (runInteractiveCommand, waitForProcess)
 import Text.Printf (printf)
 
@@ -56,10 +56,10 @@ runShellDocTest s = do
           putStrLn "ok"
           return True
         else do
-          putStr $ printf "FAILED\nExpected:\n%sGot:\n%s" expected output
+          hPutStr stderr $ printf "FAILED\nExpected:\n%sGot:\n%s" expected output
           return False
     else do
-      putStrLn $ printf "ERROR: %s" (show exit)
+      hPutStrLn stderr $ printf "ERROR: %s" (show exit)
       return False
 
 splitDocTest s = (strip $ drop 1 $ strip $ head ls, unlines $ tail ls)
