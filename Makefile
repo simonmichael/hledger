@@ -24,7 +24,8 @@ SOURCEFILES:=*hs Commands/*hs Ledger/*hs
 DOCFILES:=HOME README NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
-BUILDFLAGS:=-DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
+WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
+BUILDFLAGS:=-DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS) $(WARNINGS)
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 default: tag hledger
@@ -74,7 +75,7 @@ hledgerlinux: setversion
 # searchpath.org , you might need the patched version from
 # http://joyful.com/repos/searchpath .
 continuous ci: setversion
-	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
+	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) -Werror --run $(CICMD)
 
 # build the benchmark runner. Requires tabular from hackage.
 tools/bench: tools/bench.hs
@@ -223,8 +224,9 @@ view-api-docs: api-docs
 
 MAIN=hledger.hs
 
+# generate code documentation with haddock
 # --ignore-all-exports means we are documenting internal implementation, not library api
-HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(BUILDFLAGS))
+HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(OPTFLAGS))
 haddock: hscolour $(MAIN)
 	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
 		cp website/api-doc/index.html website/api-doc/modules-index.html
