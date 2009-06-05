@@ -13,7 +13,7 @@ PROFCMD=-f 1000x1000x10.ledger balance
 # command to run during "make coverage"
 COVCMD=test
 
-# executables to run during "make benchtest" (prepend ./ if not in $PATH)
+# executables to run during "make benchmark" (prepend ./ if not in $PATH)
 BENCHEXES=hledger-0.5 hledger-0.6 ledger
 
 # document viewing commands
@@ -106,7 +106,7 @@ haddocktest:
 
 # run performance tests and save results in profs/. 
 # Requires some tests defined in bench.tests and some executables defined above.
-benchtest: sampleledgers bench.tests tools/bench
+benchmark: sampleledgers bench.tests tools/bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
@@ -340,12 +340,12 @@ push: pushprofs pushbinary
 pull: pullprofs
 	darcs pull -a joyful.com:/repos/hledger
 
-# push any new profiles and benchtest results to the public site
+# push any new profiles and benchmark results to the public site
 # beware, results will vary depending on which machine generated them
 pushprofs:
 	rsync -azP profs/ joyful.com:/repos/hledger/profs/
 
-# fetch any new profiles and benchtest results from the public site
+# fetch any new profiles and benchmark results from the public site
 pullprofs:
 	rsync -azP joyful.com:/repos/hledger/profs/ profs/
 
@@ -356,7 +356,7 @@ pushbinary:
 	rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
 
 # show project stats useful for release notes
-stats: showlastreleasedate showreleaseauthors showloc showcov showerrors showlocalchanges showreleasechanges benchtest
+stats: showlastreleasedate showreleaseauthors showloc showcov showerrors showlocalchanges showreleasechanges benchmark
 
 showreleaseauthors:
 	@echo Patch authors since last release:

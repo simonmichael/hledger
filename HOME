@@ -43,7 +43,7 @@ Documentation
 
 `User's Guide`_ | News_ | see also `ledger's home page`_ and manual_
 
-`Developer API docs`_ | `Developer Notes`_ | `Contributor List`_ | latest benchtest_, profile_, heap_, `test coverage`_ reports
+`Developer API docs`_ | `Developer Notes`_ | `Contributor List`_ | latest benchmark_, profile_, heap_, `test coverage`_ reports
 
 Code repository
 ---------------
@@ -75,7 +75,7 @@ Related projects
 .. _Contributor List:     CONTRIBUTORS.html
 .. _Developer API docs:   http://hledger.org/api-doc
 .. _Developer Notes:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES
-.. _benchtest:            http://joyful.com/repos/hledger/profs/latest.bench
+.. _benchmark:            http://joyful.com/repos/hledger/profs/latest.bench
 .. _profile:              http://joyful.com/repos/hledger/profs/latest.prof
 .. _heap:                 http://joyful.com/repos/hledger/profs/latest.ps
 .. _test coverage:        http://joyful.com/repos/hledger/profs/coverage/hpc_index_fun.html
