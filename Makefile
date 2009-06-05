@@ -17,6 +17,7 @@ BENCHEXES=hledger-0.4 hledger-0.5 ledger
 VIEWHTMLCMD=open
 VIEWPSCMD=open
 
+PLATFORMBINARIES=hledgermac hledgerlinux #hledgerwin
 SOURCEFILES:=*hs Commands/*hs Ledger/*hs
 DOCFILES:=HOME README NEWS CONTRIBUTORS SCREENSHOTS
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
@@ -55,6 +56,10 @@ hledgermac: setversion
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
 	ghc --make hledger.hs -o hledgerlinux $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+
+# build a deployable binary for windows, using cygwin presumably
+# hledgerwin: setversion
+# 	ghc --make hledger.hs -o hledgerlinux $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 
 # "continuous integration" testing - auto-recompile and run hledger test
 # (or some other command) whenever a module changes. sp is from
@@ -334,7 +339,7 @@ send:
 	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
 
 # push patches and anything else pending to the public server
-push: pushprofs
+push: pushprofs pushbinaries
 	darcs push joyful.com:/repos/hledger
 
 # pull anything pending from the public server
@@ -349,6 +354,10 @@ pushprofs:
 # fetch any new profiles and benchtest results from the public site
 pullprofs:
 	rsync -azP joyful.com:/repos/hledger/profs/ profs/
+
+# push any new deployment binaries to the public site
+pushbinaries:
+	-for b in $(PLATFORMBINARIES); do rsync -azP $$b joyful.com:/repos/hledger/website/binaries/; done
 
 # show project stats useful for release notes
 stats: showlastreleasedate showreleaseauthors showloc showerrors showlocalchanges showreleasechanges bench
