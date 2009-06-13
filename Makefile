@@ -11,7 +11,7 @@ CICMD=test
 PROFCMD=-f 1000x1000x10.ledger balance
 
 # executables to run during "make benchtest" (prepend ./ if not in $PATH)
-BENCHEXES=hledger-0.4 hledger-0.5 ledger
+BENCHEXES=hledger-0.5 hledger-0.6 ledger
 
 # document viewing commands
 VIEWHTMLCMD=open
