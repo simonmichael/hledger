@@ -208,6 +208,10 @@ web:
 	for d in $(DOCFILES); do pandoc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
 	cd website; rm -f index.html; ln -s HOME.html index.html; rm -f profs; ln -s ../profs
 
+# ..from anywhere
+updatesite:
+	ssh joyful.com 'make -C/repos/hledger web'
+
 # generate pdf versions of main docs
 pdf:
 	-for d in $(DOCFILES); do rst2pdf $$d -o website/$$d.pdf; done
@@ -306,7 +310,7 @@ hoogleindex: $(MAIN)
 # doing a bugfix release: set VERSION to 0.5.1, make release hackageupload
 # building 0.6 alpha:     set VERSION to 0.5.98, make
 # releasing 0.6 beta:     set VERSION to 0.5.99, make release
-release: releasetest setandrecordversion tagrelease sdist
+release: releasetest setandrecordversion tagrelease sdist hackageupload updatesite
 
 # file where the current release version is defined
 VERSIONFILE=VERSION
