@@ -75,10 +75,10 @@ Related projects
 .. _Contributor List:     CONTRIBUTORS.html
 .. _Developer API docs:   http://hledger.org/api-doc
 .. _Developer Notes:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES
-.. _benchmark:            http://joyful.com/repos/hledger/profs/latest.bench
-.. _profile:              http://joyful.com/repos/hledger/profs/latest.prof
-.. _heap:                 http://joyful.com/repos/hledger/profs/latest.ps
-.. _test coverage:        http://joyful.com/repos/hledger/profs/coverage/hpc_index_fun.html
+.. _benchmark:            http://hledger.org/profs/latest.bench
+.. _profile:              http://hledger.org/profs/latest.prof
+.. _heap:                 http://hledger.org/profs/latest.ps
+.. _test coverage:        http://hledger.org/profs/coverage/hpc_index_fun.html
 .. _browse with darcsweb: http://joyful.com/darcsweb/darcsweb.cgi?r=hledger
 .. _email me:             mailto:simon@joyful.com
 .. _Simon Michael:        http://joyful.com

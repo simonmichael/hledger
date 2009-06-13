@@ -173,7 +173,7 @@ docs: web pdf api-docs
 # build the main hledger.org website
 web:
 	for d in $(DOCFILES); do pandoc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
-	cd website; rm -f index.html; ln -s HOME.html index.html
+	cd website; rm -f index.html; ln -s HOME.html index.html; rm -f profs; ln -s ../profs
 
 # generate pdf versions of main docs
 pdf:
