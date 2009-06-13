@@ -154,7 +154,7 @@ openBrowserOn u = trybrowsers browsers u
         putStrLn $ printf "Please open your browser and visit %s" u
         return $ ExitFailure 127
       browsers | os=="darwin"  = ["open"]
-               | os=="mingw32" = ["firefox","safari","opera","iexplore"]
+               | os=="mingw32" = ["start","firefox","safari","opera","iexplore"]
                | otherwise     = ["sensible-browser","firefox"]
     -- jeffz: write a ffi binding for it using the Win32 package as a basis
     -- start by adding System/Win32/Shell.hsc and follow the style of any
