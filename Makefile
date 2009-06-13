@@ -23,7 +23,7 @@ SOURCEFILES:=*hs Commands/*hs Ledger/*hs
 DOCFILES:=HOME README NEWS CONTRIBUTORS SCREENSHOTS
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 BUILDFLAGS:=-DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
-TIME:=`date +"%Y%m%d%H%M"`
+TIME:=$(shell date +"%Y%m%d%H%M")
 
 default: tag hledger
 
