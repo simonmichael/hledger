@@ -141,8 +141,12 @@ executable hledger
                  ,xhtml >= 3000.2 && < 3000.3
                  ,HTTP >= 4000.0 && < 4000.1
 
-source-repository head
-  type:     darcs
-  location: http://joyful.com/repos/hledger
+-- source-repository head
+--   type:     darcs
+--   location: http://joyful.com/repos/hledger
+-- disabled for now due to:
+-- The 'source-repository' section is new in Cabal-1.6. Unfortunately it messes
+-- up the parser in earlier Cabal versions so you need to specify 'cabal-version:
+-- >= 1.6'.
 
 -- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
