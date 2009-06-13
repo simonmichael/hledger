@@ -1,6 +1,34 @@
 hledger news
 ============
 
+2009/06/13 hledger 0.6
+......................
+  * now cabal-installable on unix, mac, and windows, with Haskell Platform
+  * provide experimental platform binaries
+  * parsing: fix a silly failure to open ledger file paths containing ~
+  * parsing: show better errors for unbalanced transaction and missing default year
+  * parsing: allow parentheses and brackets inside account names, as ledger does
+  * parsing: fail on empty account name components, don't just ignore
+  * add: description passed as arguments now affects first transaction only
+  * add: better handling of virtual postings and default amounts
+  * print, register: show virtual accounts bracketed/parenthesised
+  * web: improved web ui supporting full patterns & period expressions
+  * new "stats" command reports some ledger statistics
+  * many dev/doc/deployment infrastructure improvements
+  * move website into darcs repo, update home page
+  * move issue tracker to google code
+
+Release stats:
+
+  * Contributors: Simon Michael
+  * Days since last release: 21
+  * Commits: 94
+  * Lines of non-test code: 2865
+  * Tests: 82
+  * Test coverage: 53% expressions
+  * Known errors: 3 (inconsistent eliding, vty-related failures)
+  * Performance: similar (http://hledger.org/profs/200906131120.bench)
+
 2009/05/23 hledger 0.5.1
 .................................
 
