@@ -131,6 +131,7 @@ following new commands are supported::
    convert                convert CSV bank data to ledger journal format
    ui                     a simple interactive text ui (only on unix platforms)
    web                    a simple web ui
+   stats                  report some ledger statistics
    test                   run self-tests
 
 ledger features not supported
