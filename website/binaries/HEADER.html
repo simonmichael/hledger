@@ -1,13 +1,55 @@
 <link rel=stylesheet href="/hledger.css" type="text/css" media=screen>
+<style>
+body {padding:1em;}
+#platformdocs table {border:none;}
+#platformdocs td    {width:33%;vertical-align:top;}
+code {white-space:nowrap;}
+</style>
+
 <h1>hledger binaries</h1>
 <p>
-Experimental <a href="http://hledger.org">hledger</a> binaries.
+
+Here are the available hledger binaries and some platform-specific hints.
+Your success/failure reports and advice on making this easier are appreciated: <a
+href="http://hledger.org/#contact">http://hledger.org/#contact</a>
+
 <p>
-Pick a likely-looking file, pick a mouse button, and download.<br>
-Go to the download folder in a terminal/shell/command window.<br>
-Hopefully the file got decompressed, if not, do that now.<br>
-Rename it to hledger.<br>
-Make it executable: <code>chmod +x hledger</code>.<br>
-Try running it: <code>./hledger --help</code>.<br>
-Success/failure reports and advice on making this easier are <a href="http://hledger.org/#contact">most welcome</a>.
-<p>
+
+<table id="platformdocs">
+	<tr>
+		<th>GNU/Linux</th>
+		<th>Mac</th>
+		<th>Windows</th>
+	</tr>
+	<tr>
+		<td>
+
+Pick a likely-looking linux binary, pick a mouse button, and download.
+Go to the download folder in a shell window.
+If the file did not get decompressed, do that now: <code>gunzip hledger-*</code>.
+Rename the binary to hledger.
+Make it executable: <code>chmod +x hledger</code>.
+Try running it: <code>./hledger --help</code>.
+
+		</td>
+		<td>
+
+Click the latest mac binary.
+The file should be downloaded and decompressed into your Safari download folder.
+Open a terminal window and go to that folder.			
+Rename the binary to hledger.
+Make it executable: <code>chmod +x hledger</code>.
+Try running it: <code>./hledger --help</code>.
+
+		</td>
+		<td>
+
+Windows binary coming soon.
+Right-click and save to your desktop.
+If the file did not get decompressed, do that now.
+Open a command window and go to that folder.
+Try running it: <code>hledger --help</code>.
+		</td>
+	</tr>
+</table>
+<br>
