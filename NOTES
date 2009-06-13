@@ -13,11 +13,33 @@ We aim to make reliable, maintainable, usable software, sustainably.
 - test-driven development
 - fixes, docs, packaging, testing before features
 - "bugs" are "errors", as in "the programmer messed up"
-- test continuously and thoroughly (code, doc, speed tests/measurement on each commit, release)
+- test continuously and thoroughly (code, docs, speed, memory, release tests)
 - less is more
 
 * to do
 ** errors
+*** account name eliding and layout varies between commands and from ledger
+*** vty: hledger ui dies showing non-ascii chars in commodity symbol
+*** vty: hledger ui shows junk in gnome terminal
+** testing
+*** test for robust ledger file parsing
+**** test all ledger file format features
+**** clarify hledgerisms in file format - that hledger can read but ledger can't
+**** run ledger 3 baseline tests
+*** --compare (xml?) output with ledger's ?
+*** build with -Wall and anything else useful
+*** build with multiple ghc versions
+*** cabal test
+*** release tests
+**** cabal install with:
+***** ghc 6.8
+***** ghc 6.10.x
+***** windows
+***** linux
+***** macos
+***** no flags
+***** happs flag
+***** vty flag
 ** docs/marketing/packaging
 *** streamline - less is more
 *** automate
@@ -246,19 +268,15 @@ competitors/fellow niche inhabitants
 ***** printf
 *** cabal haddock
 *** liveness
-**** hledgercommitbot on #ledger
 **** show feeds on site ?
 ***** commits (darcsweb)
-***** wiki pages
 **** weekly repo activity summary on list
 **** available feeds
 *** make installation easier
 **** on all platforms
 ***** set up binary publishing
 ***** reduce dependencies
-****** drop regexpr
 ***** split packages ?
-***** set up the hours alias
 **** on linux
 ***** debian
 ***** ubuntu
@@ -267,39 +285,63 @@ competitors/fellow niche inhabitants
 ***** binary
 **** on windows
 ***** binary
-** testing
-*** test for robust ledger file parsing
-**** test all ledger file format features
-**** clarify hledgerisms in file format - that hledger can read but ledger can't
-**** run ledger 3 baseline tests
-*** --compare (xml?) output with ledger's ?
-*** build with -Wall and anything else useful
-*** build with multiple ghc versions
-*** cabal test
-*** release tests
-**** cabal install with:
-***** ghc 6.8
-***** ghc 6.10.x
-***** windows
-***** linux
-***** macos
-***** no flags
-***** happs flag
-***** vty flag
+**** cabal packages after installing ghc 6.10.3, HP, hledger 0.5.1
+/usr/local/lib/ghc-6.10.3/./package.conf:
+    Cabal-1.6.0.3, GLUT-2.1.1.2, HTTP-4000.0.6, HUnit-1.2.0.3,
+    OpenGL-2.2.1.1, QuickCheck-1.2.0.0, array-0.2.0.0, base-3.0.3.1,
+    base-4.1.0.0, bytestring-0.9.1.4, cgi-3001.1.7.1,
+    containers-0.2.0.1, directory-1.0.0.3, (dph-base-0.3),
+    (dph-par-0.3), (dph-prim-interface-0.3), (dph-prim-par-0.3),
+    (dph-prim-seq-0.3), (dph-seq-0.3), editline-0.2.1.0,
+    extensible-exceptions-0.1.1.0, fgl-5.4.2.2, filepath-1.1.0.2,
+    (ghc-6.10.3), ghc-prim-0.1.0.0, haddock-2.4.2,
+    haskell-platform-2009.2.0.1, haskell-src-1.0.1.3,
+    haskell98-1.0.1.0, hpc-0.5.0.3, html-1.0.1.2, integer-0.1.0.1,
+    mtl-1.1.0.2, network-2.2.1, network-2.2.1.1, old-locale-1.0.0.1,
+    old-time-1.0.0.2, packedstring-0.1.0.1, parallel-1.1.0.1,
+    parsec-2.1.0.1, pretty-1.0.1.0, process-1.0.1.1, random-1.0.0.1,
+    regex-base-0.72.0.2, regex-compat-0.71.0.1, regex-posix-0.72.0.3,
+    rts-1.0, stm-2.1.1.2, syb-0.1.0.1, template-haskell-2.3.0.1,
+    time-1.1.2.4, time-1.1.3, unix-2.3.2.0, xhtml-3000.2.0.1,
+    zlib-0.5.0.0
+/home/simon/.ghc/i386-linux-6.10.3/package.conf:
+    csv-0.1.1, hledger-0.5.1, mtlparse-0.0.1, regex-base-0.93.1,
+    regex-compat-0.71.0.1, regex-pcre-0.94.1, regex-posix-0.72.0.3,
+    regexpr-0.5.1, split-0.1.1, testpack-1.0.2, utf8-string-0.3.4
+**** packages after hledger -fhapps -fvty
+
+*** issues with pandoc's rst support
+**** treats HOME's h2s as h1
+**** quotes only first line of a :: literal block
+**** doesn't support http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#indirect-hyperlink-targets
 ** code cleanup
+*** resources
+http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 *** seek more modularity
 *** try export lists
 *** graph and reduce dependencies
 *** pair programming
+*** levels of abstraction
+**** balance sheet view - data model, view layout
+**** hledger web framework - define routes, handlers/views/actions/controllers/presenters, skins/styles..
+**** happstack - ? happstack api..
+**** hledger app platform - hledger.hs, Options, Utils, withLedgerDo..
+**** hledger lib - Ledger, TimeLog, Account, Transaction, Commodity..
+**** hledger dev platform - make build, ci, test, bench, prof, check, release..
+**** general libs - directory, parsec, regex-*, HUnit, time..
+**** cabal - hledger.cabal, hackage..
+**** ghc - ghc 6.8, 6.10..
+**** haskell 98
+**** unix/windows/mac platform
 ** features/wishlist
+*** actual & effective txn & posting dates
 *** allow no command or unordered command with pattern args
 *** --flat timelog balance report option for clients
 *** alternative easy timelog format
 *** better web gui
 *** nice reports with charts
 *** data entry!
-*** watching a changing journal
-*** actual & effective txn & posting dates ?
+*** watching a changing ledger
 *** wide format
 *** more date syntax ? last nov, next friday, optional this, week of
 *** more period syntax ? every N days, biweekly
