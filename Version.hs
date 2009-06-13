@@ -15,7 +15,7 @@ import Ledger.Utils
 import Options (progname)
 
 -- version and PATCHLEVEL are set by the makefile
-version       = "0.5.1"
+version       = "0.6.0"
 
 #ifdef PATCHLEVEL
 patchlevel = "." ++ show PATCHLEVEL -- must be numeric !
