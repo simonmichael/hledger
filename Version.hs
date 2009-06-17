@@ -28,7 +28,7 @@ buildversion  = version ++ patchlevel :: String
 binaryfilename = prettify $ splitAtElement '.' buildversion :: String
                 where
                   prettify (major:minor:bugfix:patches:[]) =
-                      printf "hledger-%s.%s%s%s-%s-%s" major minor bugfix' patches' os' arch
+                      printf "hledger-%s.%s%s%s-%s-%s%s" major minor bugfix' patches' os' arch suffix
                           where
                             bugfix'
                                 | bugfix `elem` ["0"{-,"98","99"-}] = ""
@@ -36,9 +36,10 @@ binaryfilename = prettify $ splitAtElement '.' buildversion :: String
                             patches'
                                 | patches/="0" = "+"++patches
                                 | otherwise = ""
-                            os'
-                                | os == "darwin" = "mac"
-                                | otherwise = os
+                            (os',suffix)
+                                | os == "darwin"  = ("mac","")
+                                | os == "mingw32" = ("windows",".exe")
+                                | otherwise       = (os,"")
                   prettify (major:minor:bugfix:[]) = prettify (major:minor:bugfix:"0":[])
                   prettify (major:minor:[])        = prettify (major:minor:"0":"0":[])
                   prettify (major:[])              = prettify (major:"0":"0":"0":[])
