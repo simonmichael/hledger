@@ -251,13 +251,11 @@ emptyLine = do many spacenonewline
                return ()
 
 ledgercomment :: GenParser Char st String
-ledgercomment = 
-    try (do
-          char ';'
-          many spacenonewline
-          many (noneOf "\n")
-        ) 
-    <|> return "" <?> "comment"
+ledgercomment = do
+  many1 $ char ';'
+  many spacenonewline
+  many (noneOf "\n")
+  <?> "comment"
 
 ledgercommentline :: GenParser Char st String
 ledgercommentline = do
@@ -316,7 +314,7 @@ ledgerTransaction = do
   status <- ledgerstatus
   code <- ledgercode
   description <- many1 spacenonewline >> liftM rstrip (many1 (noneOf ";\n") <?> "description")
-  comment <- ledgercomment
+  comment <- ledgercomment <|> return ""
   restofline
   postings <- ledgerpostings
   let t = LedgerTransaction date edate status code description comment postings ""
@@ -392,7 +390,7 @@ ledgerposting = do
   let (ptype, account') = (postingTypeFromAccountName account, unbracket account)
   amount <- postingamount
   many spacenonewline
-  comment <- ledgercomment
+  comment <- ledgercomment <|> return ""
   restofline
   return (Posting status account' amount comment ptype)
 
