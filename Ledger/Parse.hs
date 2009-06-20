@@ -375,7 +375,7 @@ ledgerpostings = do
   let ls' = filter (not . (ledgercommentline `parses`)) ls
   guard (not $ null ls')
   return $ map (fromparse . parseWithCtx ctx ledgerposting) ls'
-  <?> "ledger postings"
+  <?> "postings"
 
 linebeginningwithspaces :: GenParser Char st String
 linebeginningwithspaces = do
