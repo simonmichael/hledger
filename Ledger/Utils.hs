@@ -238,6 +238,9 @@ tracewith f e = trace (f e) e
 parsewith :: Parser a -> String -> Either ParseError a
 parsewith p ts = parse p "" ts
 
+parseWithCtx :: b -> GenParser Char b a -> String -> Either ParseError a
+parseWithCtx ctx p ts = runParser p ctx "" ts
+
 fromparse :: Either ParseError a -> a
 fromparse = either (\e -> error $ "parse error at "++(show e)) id
 

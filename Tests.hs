@@ -247,9 +247,6 @@ a `is` e = assertEqual "" e a
 parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
 parse `parseis` expected = either printParseError (`is` expected) parse
 
-parseWithCtx :: GenParser Char LedgerFileCtx a -> String -> Either ParseError a
-parseWithCtx p ts = runParser p emptyCtx "" ts
-
 ------------------------------------------------------------------------------
 -- | Tests for any function or topic. Mostly ordered by test name.
 tests :: [Test]
@@ -622,20 +619,20 @@ tests = [
     return ()
 
   ,"ledgerFile" ~: do
-    assertBool "ledgerFile should parse an empty file" $ (isRight $ parseWithCtx ledgerFile "")
+    assertBool "ledgerFile should parse an empty file" $ (isRight $ parseWithCtx emptyCtx ledgerFile "")
     r <- rawLedgerFromString "" -- don't know how to get it from ledgerFile
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ ledger_txns r
 
   ,"ledgerHistoricalPrice" ~: do
-    parseWithCtx ledgerHistoricalPrice price1_str `parseis` price1
+    parseWithCtx emptyCtx ledgerHistoricalPrice price1_str `parseis` price1
 
   ,"ledgerTransaction" ~: do
-    parseWithCtx ledgerTransaction entry1_str `parseis` entry1
+    parseWithCtx emptyCtx ledgerTransaction entry1_str `parseis` entry1
     assertBool "ledgerTransaction should not parse just a date"
-                   $ isLeft $ parseWithCtx ledgerTransaction "2009/1/1\n"
+                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1\n"
     assertBool "ledgerTransaction should require some postings"
-                   $ isLeft $ parseWithCtx ledgerTransaction "2009/1/1 a\n"
-    let t = parseWithCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
+                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a\n"
+    let t = parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
     assertBool "ledgerTransaction should not include a comment in the description"
                    $ either (const False) ((== "a") . ltdescription) t
 
@@ -646,7 +643,7 @@ tests = [
     assertBool "ledgeraccountname rejects an empty trailing component" $ (isLeft $ parsewith ledgeraccountname "a:b:")
 
   ,"ledgerposting" ~: do
-    parseWithCtx ledgerposting rawposting1_str `parseis` rawposting1
+    parseWithCtx emptyCtx ledgerposting rawposting1_str `parseis` rawposting1
 
   ,"parsedate" ~: do
     parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
@@ -984,8 +981,8 @@ tests = [
      ]
 
   ,"postingamount" ~: do
-    parseWithCtx postingamount " $47.18" `parseis` Mixed [dollars 47.18]
-    parseWithCtx postingamount " $1." `parseis` 
+    parseWithCtx emptyCtx postingamount " $47.18" `parseis` Mixed [dollars 47.18]
+    parseWithCtx emptyCtx postingamount " $1." `parseis` 
      Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]
 
   ]
@@ -1405,5 +1402,5 @@ rawLedgerWithAmounts as =
         []
         ""
         ""
-    where parse = fromparse . parseWithCtx postingamount . (" "++)
+    where parse = fromparse . parseWithCtx emptyCtx postingamount . (" "++)
 
