@@ -260,6 +260,15 @@ ledgercomment =
         ) 
     <|> return "" <?> "comment"
 
+ledgercommentline :: GenParser Char st String
+ledgercommentline = do
+  many spacenonewline
+  s <- ledgercomment
+  optional newline
+  eof
+  return s
+  <?> "comment"
+
 ledgerModifierTransaction :: GenParser Char LedgerFileCtx ModifierTransaction
 ledgerModifierTransaction = do
   char '=' <?> "modifier transaction"
@@ -363,8 +372,23 @@ ledgerstatus = try (do { char '*' <?> "status"; many1 spacenonewline; return Tru
 ledgercode :: GenParser Char st String
 ledgercode = try (do { char '(' <?> "code"; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
 
+-- Complicated to handle intermixed comment lines.. please make me better.
 ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
-ledgerpostings = many1 $ try ledgerposting
+ledgerpostings = do
+  ctx <- getState
+  let p `parses` s = isRight $ parseWithCtx ctx p s
+  ls <- many1 linebeginningwithspaces
+  let ls' = filter (not . (ledgercommentline `parses`)) ls
+  guard (not $ null ls')
+  return $ map (fromparse . parseWithCtx ctx ledgerposting) ls'
+  <?> "ledger postings"
+
+linebeginningwithspaces :: GenParser Char st String
+linebeginningwithspaces = do
+  sp <- many1 spacenonewline
+  c <- nonspace
+  cs <- restofline
+  return $ sp ++ (c:cs) ++ "\n"
 
 ledgerposting :: GenParser Char LedgerFileCtx Posting
 ledgerposting = do
