@@ -371,7 +371,7 @@ ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
 ledgerpostings = do
   ctx <- getState
   let parses p = isRight . parseWithCtx ctx p
-  ls <- many1 linebeginningwithspaces
+  ls <- many1 $ try linebeginningwithspaces
   let ls' = filter (not . (ledgercommentline `parses`)) ls
   guard (not $ null ls')
   return $ map (fromparse . parseWithCtx ctx ledgerposting) ls'
