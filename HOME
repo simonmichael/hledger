@@ -77,7 +77,7 @@ Related projects
 .. _balance:              http://hledger.org:5000/balance
 .. _register:             http://hledger.org:5000/register?a=checking&p=weekly
 .. _hledger google group: http://groups.google.com/group/hledger
-.. _issue tracker:        http://code.google.com/p/hledger/issues/list?can=2&q=&colspec=ID+Type+Status+Priority+Milestone+Owner+Summary&sort=&x=status&y=type&cells=tiles&mode=grid
+.. _issue tracker:        http://code.google.com/p/hledger/issues/list?can=1&q=&colspec=ID+Type+Status+Priority+Milestone+Owner+Summary&x=status&y=type&mode=grid&cells=tiles
 .. _experimental binaries: http://hledger.org/binaries/
 .. _User's Guide:         README.html
 .. _News:                 NEWS.html
