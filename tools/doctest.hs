@@ -21,9 +21,17 @@ $ ls doctest.hs
 doctest.hs
 @
 
+Issues:
+
 After writing this I found the doctest on hackage; that one runs haskell
 expressions in comments, converting them to hunit tests. We might add this
 to that, and/or add this to hledger's built-in test runner.
+
+Error output seems to vary depending on whether things are compiled, eg:
+hledger: parse error at (line 1, column 4)
+vs:
+"-" (line 2, column 1)
+ledger-style functional tests may be more useful for this, see functest.hs.
 
 -}
 
