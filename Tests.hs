@@ -202,7 +202,7 @@ import Data.Time.Format
 import Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Test.HUnit.Tools (runVerboseTests)
-import System.Exit (exitFailure,exitSuccess)
+import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 
 import Commands.All
 import Ledger
@@ -214,7 +214,7 @@ runtests opts args = do
   (counts,_) <- runner ts
   if errors counts > 0 || (failures counts > 0)
    then exitFailure
-   else exitSuccess
+   else exitWith ExitSuccess
     where
       runner | (Verbose `elem` opts) = runVerboseTests
              | otherwise = \t -> runTestTT t >>= return . (flip (,) 0)
