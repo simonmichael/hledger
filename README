@@ -15,8 +15,8 @@ hledger works on all major platforms.
 One of these `platform binaries`_ might work for you.
 If not, please report, then install the `Haskell Platform`_ and type ``cabal install hledger``.
 
-Platform binaries are not yet being published; you could try asking for
-one on the #ledger channel. 
+One of the platform binaries published at http://hledger.org may work for you.
+If not, please report the problem and read on..
 
 
  cabal update
