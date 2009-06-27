@@ -1,0 +1,17 @@
+; shouldn't exit code be 1 ?
+register
+<<<
+2009/1/1 a
+  b  1.1
+  c  -1
+>>>
+>>>2
+"-" (line 4, column 1):
+unexpected end of input
+could not balance this transaction, amounts do not add up to zero:
+2009/01/01 a
+    b                                            1.1
+    c                                             -1
+
+
+===0

@@ -1,0 +1,15 @@
+-f sample.ledger balance
+<<<
+>>>1
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+                  $1  liabilities:debts
+>>>2
+===0

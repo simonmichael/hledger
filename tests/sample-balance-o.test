@@ -1,0 +1,11 @@
+-f sample.ledger balance o
+<<<
+>>>1
+                  $1  expenses:food
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+--------------------
+                 $-1
+>>>2
+===0
