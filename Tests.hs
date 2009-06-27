@@ -1,22 +1,18 @@
 {- |
 hledger's test suite. Most tests are HUnit-based, and defined in the
 @tests@ list below. These tests are built in to hledger and can be run at
-any time with @hledger test@.
+any time on any platform with @hledger test@.
 
-In addition, we have tests in doctest format, which can be run with @make
-doctest@ in the hledger source tree. These have some advantages:
+Secondly, we have tests in doctest format, which can be run with @make
+doctest@ in the hledger source tree. These have some advantages over
+hunit: they are sometimes easier to read and write; it is easier to read
+multi-line output; they can appear in, and test, documentation.  On the
+downside, they are not built in; you need a developer's setup to run them.
 
-- easier to read and write than hunit, for functional/shell tests
-
-- easier to read multi-line output from failing tests
-
-- can also appear in, and test, docs
-
-and disadvantages:
-
-- not included in hledger's built-in tests
-
-- not platform independent
+Thirdly, we have command-line functional tests in tests/*.test, which can
+be run with @make functest@. These are still easier to read and write than
+doctests, but likewise are not built in and are more distant from the code
+they test and you have to come up with sensible filenames.
 
 Here are the hledger doctests (some may reappear in other modules as
 examples):
