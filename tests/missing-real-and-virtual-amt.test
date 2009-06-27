@@ -5,7 +5,6 @@ register
     assets:cash
     [expenses:car]                                      $3.50
     [simon]
->>>
 >>>2
 "-" (line 6, column 1):
 unexpected end of input
@@ -17,4 +16,3 @@ could not balance this transaction, amounts do not add up to zero:
     [simon]                                         
 
 
-===0

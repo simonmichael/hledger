@@ -4,7 +4,6 @@ register
 2009/1/1 a
   b  1.1
   c  -1
->>>
 >>>2
 "-" (line 4, column 1):
 unexpected end of input
