@@ -1,0 +1,7 @@
+register
+<<<
+2009/1/1 x aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa  €1
+ b
+>>>
+2009/01/01 x                    aa:aa:aaaaaaaaaaaaaaaa           €1           €1
+                                b                               €-1            0

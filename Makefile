@@ -93,7 +93,7 @@ tools/doctest: tools/doctest.hs
 
 # build the shell test runner
 tools/shelltest: tools/shelltest.hs
-	ghc --make -threaded tools/shelltest.hs
+	ghc --make -threaded -O2 tools/shelltest.hs
 
 # build the generateledger tool
 tools/generateledger: tools/generateledger.hs
@@ -103,16 +103,16 @@ tools/generateledger: tools/generateledger.hs
 # TESTING
 
 # quick code tests - run all the time
-test: unittest doctest haddocktest
+test: unittest doctest functest haddocktest
 
 # moderate pre-commit tests
 # run before recording or before send/pushing, your choice
-committest: unittest doctest haddocktest warningstest
+committest: unittest doctest functest haddocktest warningstest
 	@(cabal configure -fvty -fhapps \
 		&& echo $@ passed) || echo $@ FAILED
 
 # thorough, pre-release tests - run before release
-releasetest: unittest doctest haddocktest warningstest cabaltest
+releasetest: unittest doctest functest haddocktest warningstest cabaltest
 
 # run unit tests, without waiting for compilation
 unittest:

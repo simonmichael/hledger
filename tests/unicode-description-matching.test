@@ -1,0 +1,11 @@
+register desc:аура
+<<<
+2009-01-01 аура (cyrillic letters)
+  bank  10
+  cash
+2010-01-01 aypa (roman letters)
+  bank  20
+  cash
+>>>
+2009/01/01 аура (cyrillic let.. bank                             10           10
+                                cash                            -10            0

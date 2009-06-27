@@ -1,0 +1,10 @@
+balance -E
+<<<
+2009/1/1 x
+ a:  13
+ b
+>>>2
+hledger: parse error at (line 1, column 4):
+unexpected " "
+accountname seems ill-formed: a:
+===1

@@ -165,10 +165,11 @@ $ printf "2009-01-01 x\n  a  2\n  b (b) b  -1\n  c\n" | hledger -f - print 2>&1;
 Nafai's bug
 @
 $ printf "2009/1/1 x\n a:  13\n b\n" | hledger -f - bal -E 2>&1; true
-"-" (line 2, column 1):
+hledger: parse error at (line 1, column 4):
 unexpected " "
 accountname seems ill-formed: a:
 @
+
 
 Eliding, general layout
 @
@@ -189,7 +190,6 @@ $ printf "2009/1/1 x\n aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaa
     aa:aaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa
     b
 @
-
 -}
 -- other test tools:
 -- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
