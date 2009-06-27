@@ -87,6 +87,10 @@ tools/bench: tools/bench.hs
 tools/doctest: tools/doctest.hs
 	ghc --make tools/doctest.hs
 
+# build the shell test runner
+tools/shelltest: tools/shelltest.hs
+	ghc --make -threaded tools/shelltest.hs
+
 # build the generateledger tool
 tools/generateledger: tools/generateledger.hs
 	ghc --make tools/generateledger.hs
@@ -110,6 +114,11 @@ releasetest: unittest doctest haddocktest warningstest cabaltest
 # run unit tests, without waiting for compilation
 unittest:
 	@(runghc hledger.hs test \
+		&& echo $@ passed) || echo $@ FAILED
+
+# run functional tests
+functest: tools/shelltest
+	@(tools/shelltest tests/*.test \
 		&& echo $@ passed) || echo $@ FAILED
 
 # run doc tests
