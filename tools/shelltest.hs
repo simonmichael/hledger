@@ -54,7 +54,8 @@ exe :: String
 exe = "hledger"
 
 data ShellTest = ShellTest {
-     command          :: String
+     filename         :: String
+    ,command          :: String
     ,stdin            :: Maybe String
     ,stdoutExpected   :: Maybe String
     ,stderrExpected   :: Maybe String
@@ -72,12 +73,14 @@ parseShellTest = liftM (either (error.show) id) . parseFromFile shelltest
 
 shelltest :: Parser ShellTest
 shelltest = do
+  st <- getParserState
+  let f = sourceName $ statePos st
   c <- commandline
   i <- optionMaybe input
   o <- optionMaybe expectedoutput
   e <- optionMaybe expectederror
   x <- optionMaybe expectedexitcode
-  return ShellTest{command=c,stdin=i,stdoutExpected=o,stderrExpected=e,exitCodeExpected=x}
+  return ShellTest{filename=f,command=c,stdin=i,stdoutExpected=o,stderrExpected=e,exitCodeExpected=x}
 
 commandline,input,expectedoutput,expectederror,delimiter,line :: Parser String
 commandline = line
@@ -93,11 +96,11 @@ expectedexitcode = string "===" >> liftM (toExitCode.read) line -- `catch` (\e -
 
 runShellTest :: ShellTest -> IO Bool
 runShellTest ShellTest{
-    command=c,stdin=i,stdoutExpected=o,stderrExpected=e,exitCodeExpected=x} = do
+    filename=f,command=c,stdin=i,stdoutExpected=o,stderrExpected=e,exitCodeExpected=x} = do
   let cmd = unwords [exe,c,if (any isinputarg $ words c) then "" else "-f-"]
             where isinputarg a = take 2 a == "-f" || (take 1 a == "<")
       (i',o',e',x') = (fromMaybe "" i, fromMaybe "" o, fromMaybe "" e, fromMaybe ExitSuccess x)
-  printf "Testing: %s" cmd; hFlush stdout
+  printf "%s .. " f; hFlush stdout
   (ih,oh,eh,ph) <- runInteractiveCommand cmd
   hPutStr ih i'
   out <- hGetContents oh
@@ -106,10 +109,10 @@ runShellTest ShellTest{
   let (outputok, errorok, exitok) = (out==o', err==e', exit==x')
   if outputok && errorok && exitok 
    then do
-     putStrLn " .. ok"
+     putStrLn "ok"
      return True 
    else do
-     hPutStr stderr $ printf " .. FAIL\n"
+     hPutStr stderr $ printf "FAIL\n"
      when (not outputok) $ printExpectedActual "stdout" o' out
      when (not errorok)  $ printExpectedActual "stderr" e' err
      when (not exitok)   $ printExpectedActual "exit code" (show (fromExitCode x')++"\n") (show (fromExitCode exit)++"\n")
