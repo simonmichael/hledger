@@ -31,14 +31,16 @@ web opts args l = do
     simpleHTTP nullConf{port=tcpport} $ handlers opts args l t
    else do
     -- start the server (in background, so we can..) then start the web browser
-    putStrLn $ printf "starting web server on port %d" tcpport
+    printf "starting web interface at %s\n" homeurl
     tid <- forkIO $ simpleHTTP nullConf{port=tcpport} $ handlers opts args l t
     putStrLn "starting web browser"
-    openBrowserOn $ printf "http://localhost:%d/" tcpport
+    openBrowserOn homeurl
     waitForTermination
     putStrLn "shutting down web server..."
     killThread tid
     putStrLn "shutdown complete"
+
+homeurl = printf "http://localhost:%d/" tcpport
 
 handlers :: [Opt] -> [String] -> Ledger -> LocalTime -> ServerPartT IO Response
 handlers opts args l t = msum
