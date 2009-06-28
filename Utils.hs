@@ -12,6 +12,9 @@ import Ledger
 import Options (Opt,ledgerFilePathFromOpts,optsToFilterSpec)
 import System.Directory (doesFileExist)
 import System.IO
+import System.Exit
+import System.Cmd (system)
+import System.Info (os)
 
 
 -- | Parse the user's specified ledger file and run a hledger command on
@@ -48,4 +51,27 @@ readLedgerWithOpts opts args f = do
 -- based on the command-line options/arguments and a reference time.
 filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> RawLedger -> Ledger
 filterAndCacheLedgerWithOpts opts args = filterAndCacheLedger . optsToFilterSpec opts args
+
+-- | Attempt to open a web browser on the given url, all platforms.
+openBrowserOn :: String -> IO ExitCode
+openBrowserOn u = trybrowsers browsers u
+    where
+      trybrowsers (b:bs) u = do
+        e <- system $ printf "%s %s" b u
+        case e of
+          ExitSuccess -> return ExitSuccess
+          ExitFailure _ -> trybrowsers bs u
+      trybrowsers [] u = do
+        putStrLn $ printf "Sorry, I could not start a browser (tried: %s)" $ intercalate ", " browsers
+        putStrLn $ printf "Please open your browser and visit %s" u
+        return $ ExitFailure 127
+      browsers | os=="darwin"  = ["open"]
+               | os=="mingw32" = ["start","firefox","safari","opera","iexplore"]
+               | otherwise     = ["sensible-browser","firefox"]
+    -- jeffz: write a ffi binding for it using the Win32 package as a basis
+    -- start by adding System/Win32/Shell.hsc and follow the style of any
+    -- other module in that directory for types, headers, error handling and
+    -- what not.
+    -- ::ShellExecute(NULL, "open", "www.somepage.com", NULL, NULL, SW_SHOWNORMAL);
+    -- ::ShellExecute(NULL, "open", "firefox.exe", "www.somepage.com" NULL, SW_SHOWNORMAL);
 
