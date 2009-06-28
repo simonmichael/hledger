@@ -83,17 +83,21 @@ hledgerlinux: setversion
 continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) -Werror --run $(CICMD)
 
-# build the benchmark runner. Requires tabular from hackage.
-tools/bench: tools/bench.hs
-	ghc --make tools/bench.hs
+# build the standalone unit test runner. Requires test-framework.
+tools/unittest: tools/unittest.hs
+	ghc --make -threaded -O2 tools/unittest.hs
+
+# build the shell test runner. Requires test-framework.
+tools/shelltest: tools/shelltest.hs
+	ghc --make -threaded -O2 tools/shelltest.hs
 
 # build the doctest runner
 tools/doctest: tools/doctest.hs
 	ghc --make tools/doctest.hs
 
-# build the shell test runner
-tools/shelltest: tools/shelltest.hs
-	ghc --make -threaded -O2 tools/shelltest.hs
+# build the benchmark runner. Requires tabular.
+tools/bench: tools/bench.hs
+	ghc --make tools/bench.hs
 
 # build the generateledger tool
 tools/generateledger: tools/generateledger.hs
@@ -102,32 +106,43 @@ tools/generateledger: tools/generateledger.hs
 ######################################################################
 # TESTING
 
-# quick code tests - run all the time
-test: unittest doctest functest haddocktest
+test: codetest
 
-# moderate pre-commit tests
-# run before recording or before send/pushing, your choice
-committest: unittest doctest functest haddocktest warningstest
-	@(cabal configure -fvty -fhapps \
+# quick code tests - run all the time
+codetest: unittest functest
+
+# moderate pre-commit tests - run before record or before send/push, your choice
+committest: unittest doctest functest haddocktest warningstest quickcabaltest
+
+# thorough pre-release tests - run before release
+releasetest: unittest doctest functest haddocktest warningstest fullcabaltest
+
+
+# run unit tests
+unittest: unittest-standalone
+
+unittest-builtin: hledger
+	@(./hledger test \
 		&& echo $@ passed) || echo $@ FAILED
 
-# thorough, pre-release tests - run before release
-releasetest: unittest doctest functest haddocktest warningstest cabaltest
+unittest-standalone: tools/unittest
+	@(tools/unittest \
+		&& echo $@ passed) || echo $@ FAILED
 
-# run unit tests, without waiting for compilation
-unittest:
+# run unit tests without waiting for compilation
+unittesths:
 	@(runghc hledger.hs test \
 		&& echo $@ passed) || echo $@ FAILED
 
 # run functional tests
 functest: tools/shelltest
-	@(tools/shelltest tests/*.test \
+	@(tools/shelltest tests/*.test -j8 \
 		&& echo $@ passed) || echo $@ FAILED
 
 # run doc tests
 doctest: tools/doctest
-	@(tools/doctest Commands/Add.hs >/dev/null \
-		&& tools/doctest Tests.hs >/dev/null \
+	@(tools/doctest Commands/Add.hs \
+		&& tools/doctest Tests.hs \
 		&& echo $@ passed) || echo $@ FAILED
 
 # make sure we have no haddock errors
@@ -141,8 +156,15 @@ warningstest:
 		&& make --no-print-directory -s hledgernowarnings \
 		&& echo $@ passed) || echo $@ FAILED
 
-# make sure cabal is happy in all ways
-cabaltest: setversion
+# make sure cabal is reasonably happy
+quickcabaltest: setversion
+	@(cabal clean \
+		&& cabal check \
+		&& cabal configure -fvty -fhapps \
+		&& echo $@ passed) || echo $@ FAILED
+
+# make sure cabal is happy in all possible ways
+fullcabaltest: setversion
 	@(cabal clean \
 		&& cabal check \
 		&& cabal configure -fvty -fhapps \
@@ -152,7 +174,7 @@ cabaltest: setversion
 		&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
 		&& echo $@ passed) || echo $@ FAILED
 
-# run performance tests and save results in profs/. 
+# run performance benchmarks and save results in profs/. 
 # Requires some commands defined in bench.tests and some executables defined above.
 benchmark: sampleledgers bench.tests tools/bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
@@ -392,7 +414,7 @@ pullprofs:
 	rsync -azP joyful.com:/repos/hledger/profs/ profs/
 
 # push a deployable binary for this platform to the public site
-# make hledgerPLAT first
+# make hledgerPLATFORM first
 pushbinary:
 	-gzip -9 $(BINARYFILENAME)
 	-rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
