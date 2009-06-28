@@ -1,12 +1,18 @@
 #!/usr/bin/env runhaskell
 {-
 
+shelltest.hs (c) 2009 Simon Michael <simon@joyful.com>
+
 Run one or more hledger command-line tests, specified by .test files like
 those used in the ledger project. A ledger-style .test file contains a
 partial command line, input, expected output, expected error output, and
 expected exit code separated by delimiters.
 
-Usage: $ shelltest *.test
+Usage: $ shelltest [OPTS] *.test
+
+This version uses the test-framework test runner. Any command-line arguments
+beginning with - are passed through to that. So avoid spaces: use -tpattern
+not -t pattern. To get a speedup, try adding -j8.
 
 Here is the .test file format:
 @
@@ -24,8 +30,8 @@ error output
 ;
 ; Lines whose first non-whitespace character is ; are ignored.
 ; The first line is the command line. "hledger" is prepended, and "-f-" is
-; appended unless there is a -f or <... argument (in which case any
-; provided input is ignored.)
+; appended unless there is a -f or <... argument, in which case any
+; provided input is ignored.
 ; Then there is a line containing <<< and 0 or more lines of input.
 ; Then a line containing >>> (or >>>1 for ledger testrunner compatibility)
 ; and 0 or more lines of expected output.
@@ -37,14 +43,25 @@ error output
 -}
 
 module Main where
-import System (getArgs)
+--import System (getArgs)
+import System.Environment (getArgs,withArgs)
 import System.Exit (exitFailure, exitWith, ExitCode(..))
-import System.IO (hGetContents, hPutStr, hFlush, stderr, stdout)
+import System.IO (hGetContents, hPutStr, stderr {-, stdout, hFlush-})
 import System.Process (runInteractiveCommand, waitForProcess)
 import Text.Printf (printf)
 import Text.ParserCombinators.Parsec
 import Control.Monad (liftM,when)
 import Data.Maybe (fromMaybe)
+import Data.List (partition)
+
+import Test.Framework (defaultMain {-, testGroup-})
+import Test.Framework.Providers.HUnit (hUnitTestToTests)
+--import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.HUnit hiding (Test)
+import qualified Test.HUnit (Test)
+--import Test.QuickCheck
+--import Tests (tests)
+
 import Debug.Trace
 strace :: Show a => a -> a
 strace a = trace (show a) a
@@ -64,9 +81,13 @@ data ShellTest = ShellTest {
 
 main :: IO ()
 main = do
-  files <- getArgs
-  ok <-  mapM (\f -> parseShellTest f >>= runShellTest) files
-  if any not ok then exitFailure else exitWith ExitSuccess
+  args <- getArgs
+  let (opts,files) = partition ((=="-").take 1) args
+  shelltests <-  mapM parseShellTest files
+  withArgs opts $ defaultMain $ concatMap (hUnitTestToTests.shellTestToHUnitTest) shelltests
+
+shellTestToHUnitTest :: ShellTest -> Test.HUnit.Test
+shellTestToHUnitTest t = filename t ~: do {r <- runShellTest t; assertBool "" r}
 
 parseShellTest :: FilePath -> IO ShellTest
 parseShellTest = liftM (either (error.show) id) . parseFromFile shelltest
@@ -96,11 +117,11 @@ expectedexitcode = string "===" >> liftM (toExitCode.read) line -- `catch` (\e -
 
 runShellTest :: ShellTest -> IO Bool
 runShellTest ShellTest{
-    filename=f,command=c,stdin=i,stdoutExpected=o,stderrExpected=e,exitCodeExpected=x} = do
+    filename=_,command=c,stdin=i,stdoutExpected=o,stderrExpected=e,exitCodeExpected=x} = do
   let cmd = unwords [exe,c,if (any isinputarg $ words c) then "" else "-f-"]
             where isinputarg a = take 2 a == "-f" || (take 1 a == "<")
       (i',o',e',x') = (fromMaybe "" i, fromMaybe "" o, fromMaybe "" e, fromMaybe ExitSuccess x)
-  printf "%s .. " f; hFlush stdout
+  -- printf "%s .. " f; hFlush stdout
   (ih,oh,eh,ph) <- runInteractiveCommand cmd
   hPutStr ih i'
   out <- hGetContents oh
@@ -109,10 +130,10 @@ runShellTest ShellTest{
   let (outputok, errorok, exitok) = (out==o', err==e', exit==x')
   if outputok && errorok && exitok 
    then do
-     putStrLn "ok"
+     -- putStrLn "ok"
      return True 
    else do
-     hPutStr stderr $ printf "FAIL\n"
+     -- hPutStr stderr $ printf "FAIL\n"
      when (not outputok) $ printExpectedActual "stdout" o' out
      when (not errorok)  $ printExpectedActual "stderr" e' err
      when (not exitok)   $ printExpectedActual "exit code" (show (fromExitCode x')++"\n") (show (fromExitCode exit)++"\n")
