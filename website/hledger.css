@@ -1,11 +1,93 @@
 body {
     margin: auto;
-    max-width: 50em; 
+    max-width: 42em;
+    margin-top: 1.0em;
+    background-color: #fff;
+    font-family: "helvetica","arial", "sans serif";
 }
 
 #footer {
-        padding-top: 1em;
-        font-size: 70%;
-        color: gray;
-        text-align: center;
+    padding-top: 1em;
+    /* font-size: 70%; */
+    color: gray;
+    text-align: center;
+}
+
+code {
+    color: #226600;
+    font-weight:bold;
+}
+
+#container {
+    margin: 0 auto;
+    width: 700px;
+}
+h1 {
+    font-size: 3.8em;
+    /* color: #49637C; */
+    color: #226600;
+    margin-bottom: 3px;
+}
+h1 .small {
+    font-size: 0.4em;
+}
+h1 a {
+    text-decoration: none;
+}
+h2 {
+    font-size: 1.5em;
+    /* color: #49637C; */
+}
+h3 {
+    text-align: center;
+    /* color: #49637C; */
+}
+a {
+    /* color: #49637C; */
+}
+.description {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+    margin-top: 30px;
+    font-style: italic;
+}
+.download {
+    float: right;
+}
+pre {
+    background: #F8F8F8; /* The same as the GitHub background color since I'm using their syntax.css */
+    padding: 15px;
+}
+hr {
+    border: 0;
+    width: 80%;
+    border-bottom: 1px solid #aaa;
+}
+img {
+    border: 0px;
+}
+.footer {
+    text-align: center;
+    padding-top: 30px;
+    font-style: italic;
+}
+.downloadoption {
+    background: #eee;
+    padding: 10px 0 10px 0; /* Keep image and text away from top and bottom */
+    margin-bottom: 10px; /* Ensure there is some whitespace between options */
+}
+.downloadoptionimage {
+    float: left;
+    width: 90px;
+    margin-left: 10px; /* Offset from left border a little */
+}
+.downloadoptiontext {
+    padding-left: 110px; /* Offset from image */
+    padding-right: 10px; /* Offset from right border of the download option */
+}
+.screenshotframe {
+    text-align: center; /* The screenshot and it's border should be in the center of the page */
+}
+.screenshot {
+    border: 10px solid #F8F8F8; /* Soft grey border */
 }
