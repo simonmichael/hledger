@@ -469,17 +469,17 @@ tests = [
   ,"balanceLedgerTransaction" ~: do
      assertBool "detect unbalanced entry, sign error"
                     (isLeft $ balanceLedgerTransaction
-                           (LedgerTransaction (parsedate "2007/01/28") False "" "test" ""
+                           (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "test" ""
                             [Posting False "a" (Mixed [dollars 1]) "" RegularPosting, 
                              Posting False "b" (Mixed [dollars 1]) "" RegularPosting
                             ] ""))
      assertBool "detect unbalanced entry, multiple missing amounts"
                     (isLeft $ balanceLedgerTransaction
-                           (LedgerTransaction (parsedate "2007/01/28") False "" "test" ""
+                           (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "test" ""
                             [Posting False "a" missingamt "" RegularPosting, 
                              Posting False "b" missingamt "" RegularPosting
                             ] ""))
-     let e = balanceLedgerTransaction (LedgerTransaction (parsedate "2007/01/28") False "" "test" ""
+     let e = balanceLedgerTransaction (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "test" ""
                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting, 
                             Posting False "b" missingamt "" RegularPosting
                            ] "")
@@ -567,43 +567,43 @@ tests = [
   ,"isLedgerTransactionBalanced" ~: do
      assertBool "detect balanced"
         (isLedgerTransactionBalanced
-        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+        (LedgerTransaction (parsedate "2009/01/01") Nothing False "" "a" ""
          [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
          ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
          ] ""))
      assertBool "detect unbalanced"
         (not $ isLedgerTransactionBalanced
-        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+        (LedgerTransaction (parsedate "2009/01/01") Nothing False "" "a" ""
          [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
          ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting
          ] ""))
      assertBool "detect unbalanced, one posting"
         (not $ isLedgerTransactionBalanced
-        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+        (LedgerTransaction (parsedate "2009/01/01") Nothing False "" "a" ""
          [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
          ] ""))
      assertBool "one zero posting is considered balanced for now"
         (isLedgerTransactionBalanced
-        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+        (LedgerTransaction (parsedate "2009/01/01") Nothing False "" "a" ""
          [Posting False "b" (Mixed [dollars 0]) "" RegularPosting
          ] ""))
      assertBool "virtual postings don't need to balance"
         (isLedgerTransactionBalanced
-        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+        (LedgerTransaction (parsedate "2009/01/01") Nothing False "" "a" ""
          [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
          ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
          ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting
          ] ""))
      assertBool "balanced virtual postings need to balance among themselves"
         (not $ isLedgerTransactionBalanced
-        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+        (LedgerTransaction (parsedate "2009/01/01") Nothing False "" "a" ""
          [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
          ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
          ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting
          ] ""))
      assertBool "balanced virtual postings need to balance among themselves (2)"
         (isLedgerTransactionBalanced
-        (LedgerTransaction (parsedate "2009/01/01") False "" "a" ""
+        (LedgerTransaction (parsedate "2009/01/01") Nothing False "" "a" ""
          [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
          ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
          ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting
@@ -839,7 +839,7 @@ tests = [
         ,""
         ])
        (showLedgerTransaction
-        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+        (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
          [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
          ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting
          ] ""))
@@ -852,7 +852,7 @@ tests = [
         ,""
         ])
        (showLedgerTransaction
-        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+        (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
          [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
          ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting
          ] ""))
@@ -863,7 +863,7 @@ tests = [
         ,""
         ])
        (showLedgerTransaction
-        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+        (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
          [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
          ] ""))
      assertEqual "show a transaction with one posting and a missing amount"
@@ -873,7 +873,7 @@ tests = [
         ,""
         ])
        (showLedgerTransaction
-        (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+        (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
          [Posting False "expenses:food:groceries" missingamt "" RegularPosting
          ] ""))
 
@@ -1064,7 +1064,7 @@ entry1_str = unlines
  ]
 
 entry1 =
-    (LedgerTransaction (parsedate "2007/01/28") False "" "coopportunity" ""
+    (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
      [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting, 
       Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting] "")
 
@@ -1213,7 +1213,8 @@ rawledger7 = RawLedger
           [] 
           [
            LedgerTransaction {
-             ltdate= parsedate "2007/01/01", 
+             ltdate=parsedate "2007/01/01", 
+             lteffectivedate=Nothing,
              ltstatus=False, 
              ltcode="*", 
              ltdescription="opening balance", 
@@ -1238,7 +1239,8 @@ rawledger7 = RawLedger
            }
           ,
            LedgerTransaction {
-             ltdate= parsedate "2007/02/01", 
+             ltdate=parsedate "2007/02/01", 
+             lteffectivedate=Nothing,
              ltstatus=False, 
              ltcode="*", 
              ltdescription="ayres suites", 
@@ -1264,6 +1266,7 @@ rawledger7 = RawLedger
           ,
            LedgerTransaction {
              ltdate=parsedate "2007/01/02", 
+             lteffectivedate=Nothing,
              ltstatus=False, 
              ltcode="*", 
              ltdescription="auto transfer to savings", 
@@ -1289,6 +1292,7 @@ rawledger7 = RawLedger
           ,
            LedgerTransaction {
              ltdate=parsedate "2007/01/03", 
+             lteffectivedate=Nothing,
              ltstatus=False, 
              ltcode="*", 
              ltdescription="poquito mas", 
@@ -1314,6 +1318,7 @@ rawledger7 = RawLedger
           ,
            LedgerTransaction {
              ltdate=parsedate "2007/01/03", 
+             lteffectivedate=Nothing,
              ltstatus=False, 
              ltcode="*", 
              ltdescription="verizon", 
@@ -1339,6 +1344,7 @@ rawledger7 = RawLedger
           ,
            LedgerTransaction {
              ltdate=parsedate "2007/01/03", 
+             lteffectivedate=Nothing,
              ltstatus=False, 
              ltcode="*", 
              ltdescription="discover", 

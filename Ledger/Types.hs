@@ -79,6 +79,7 @@ data PeriodicTransaction = PeriodicTransaction {
 
 data LedgerTransaction = LedgerTransaction {
       ltdate :: Day,
+      lteffectivedate :: Maybe Day,
       ltstatus :: Bool,
       ltcode :: String,
       ltdescription :: String,
@@ -115,7 +116,7 @@ data RawLedger = RawLedger {
 data Transaction = Transaction {
       tnum :: Int,
       tstatus :: Bool,           -- ^ posting status
-      tdate :: Day,              -- ^ ledger transaction date
+      tdate :: Day,              -- ^ transaction date
       tdescription :: String,    -- ^ ledger transaction description
       taccount :: AccountName,   -- ^ posting account
       tamount :: MixedAmount,    -- ^ posting amount

@@ -304,16 +304,26 @@ ledgerDefaultYear = do
 ledgerTransaction :: GenParser Char LedgerFileCtx LedgerTransaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
+  edate <- ledgereffectivedate
   status <- ledgerstatus
   code <- ledgercode
   description <- liftM rstrip (many1 (noneOf ";\n") <?> "description")
   comment <- ledgercomment
   restofline
   postings <- ledgerpostings
-  let t = LedgerTransaction date status code description comment postings ""
+  let t = LedgerTransaction date edate status code description comment postings ""
   case balanceLedgerTransaction t of
     Right t' -> return t'
     Left err -> fail err
+
+ledgereffectivedate :: GenParser Char LedgerFileCtx (Maybe Day)
+ledgereffectivedate = 
+    try (do
+          string "[="
+          edate <- ledgerdate
+          char ']'
+          return $ Just edate)
+    <|> return Nothing
 
 ledgerdate :: GenParser Char LedgerFileCtx Day
 ledgerdate = try ledgerfulldate <|> ledgerpartialdate

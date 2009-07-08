@@ -5,10 +5,11 @@ Utilities for doing I/O with ledger files.
 module Ledger.IO
 where
 import Control.Monad.Error
+import Data.Maybe (fromMaybe)
 import Ledger.Ledger (cacheLedger)
 import Ledger.Parse (parseLedger)
 import Ledger.RawLedger (canonicaliseAmounts,filterRawLedger)
-import Ledger.Types (DateSpan(..),RawLedger,Ledger(..))
+import Ledger.Types (DateSpan(..),LedgerTransaction(..),RawLedger(..),Ledger(..))
 import Ledger.Utils (getCurrentLocalTime)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
@@ -21,29 +22,19 @@ timelogenvvar          = "TIMELOG"
 ledgerdefaultfilename  = ".ledger"
 timelogdefaultfilename = ".timelog"
 
--- | A tuple of arguments specifying how to filter a raw ledger file:
--- 
--- - only include transactions in this date span
--- 
--- - only include if cleared\/uncleared\/don't care
--- 
--- - only include if real\/don't care
--- 
--- - convert all amounts to cost basis
--- 
--- - only include if matching these account patterns
--- 
--- - only include if matching these description patterns
-
-type IOArgs = (DateSpan
-              ,Maybe Bool
-              ,Bool
-              ,Bool
-              ,[String]
-              ,[String]
+-- | A tuple of arguments specifying how to filter a raw ledger file.
+type IOArgs = (DateSpan   -- ^ only include transactions in this date span
+              ,Maybe Bool -- ^ only include if cleared\/uncleared\/don't care
+              ,Bool       -- ^ only include if real\/don't care
+              ,Bool       -- ^ convert all amounts to cost basis
+              ,[String]   -- ^ only include if matching these account patterns
+              ,[String]   -- ^ only include if matching these description patterns
+              ,WhichDate  -- ^ which dates to use (transaction or effective)
               )
 
-noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [])
+data WhichDate = TransactionDate | EffectiveDate
+
+noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [], TransactionDate)
 
 -- | Get the user's default ledger file path.
 myLedgerPath :: IO String
@@ -90,11 +81,20 @@ rawLedgerFromString s = do
 
 -- | Convert a RawLedger to a canonicalised, cached and filtered Ledger.
 filterAndCacheLedger :: IOArgs -> String -> RawLedger -> Ledger
-filterAndCacheLedger (span,cleared,real,costbasis,apats,dpats) rawtext rl = 
+filterAndCacheLedger (span,cleared,real,costbasis,apats,dpats,whichdate) rawtext rl = 
     (cacheLedger apats 
     $ filterRawLedger span dpats cleared real 
+    $ selectDates whichdate
     $ canonicaliseAmounts costbasis rl
     ){rawledgertext=rawtext}
+
+selectDates :: WhichDate -> RawLedger -> RawLedger
+selectDates TransactionDate rl = rl
+selectDates EffectiveDate rl = rl{ledger_txns=ts}
+    where
+      ts = map selectdate $ ledger_txns rl
+      selectdate (t@LedgerTransaction{ltdate=d,lteffectivedate=e}) =
+          t{ltdate=fromMaybe d e}
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

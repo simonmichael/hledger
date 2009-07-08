@@ -7,7 +7,7 @@ module Options
 where
 import System.Console.GetOpt
 import System.Environment
-import Ledger.IO (IOArgs,myLedgerPath,myTimelogPath)
+import Ledger.IO (IOArgs,myLedgerPath,myTimelogPath,WhichDate(..))
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
@@ -66,6 +66,7 @@ options = [
  ,Option []    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
  ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
                                                         "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
+ ,Option []    ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
  ,Option ['E'] ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
  ,Option []    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
@@ -93,6 +94,7 @@ data Opt =
     CostBasis | 
     Depth   {value::String} | 
     Display {value::String} | 
+    Effective | 
     Empty | 
     Real | 
     NoTotal |
@@ -235,5 +237,8 @@ optsToIOArgs opts args t = (dateSpanFromOpts (localDay t) opts
                          ,CostBasis `elem` opts
                          ,apats
                          ,dpats
+                         ,case Effective `elem` opts of
+                            True -> EffectiveDate
+                            _    -> TransactionDate
                          ) where (apats,dpats) = parsePatternArgs args
 

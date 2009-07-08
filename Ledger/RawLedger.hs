@@ -127,7 +127,7 @@ filterRawLedgerTransactionsByAccount apats (RawLedger ms ps ts tls hs f fp) =
 canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
 canonicaliseAmounts costbasis l@(RawLedger ms ps ts tls hs f fp) = RawLedger ms ps (map fixledgertransaction ts) tls hs f fp
     where 
-      fixledgertransaction (LedgerTransaction d s c de co ts pr) = LedgerTransaction d s c de co (map fixrawposting ts) pr
+      fixledgertransaction (LedgerTransaction d ed s c de co ts pr) = LedgerTransaction d ed s c de co (map fixrawposting ts) pr
       fixrawposting (Posting s ac a c t) = Posting s ac (fixmixedamount a) c t
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount = fixcommodity . (if costbasis then costOfAmount else id)
