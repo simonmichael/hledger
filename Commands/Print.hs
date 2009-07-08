@@ -17,11 +17,12 @@ print' :: [Opt] -> [String] -> Ledger -> IO ()
 print' opts args l = putStr $ showLedgerTransactions opts args l
 
 showLedgerTransactions :: [Opt] -> [String] -> Ledger -> String
-showLedgerTransactions opts args l = concatMap showLedgerTransaction $ filteredtxns
+showLedgerTransactions opts args l = concatMap showLedgerTransaction txns
     where 
-      filteredtxns = ledger_txns $ 
-                        filterRawLedgerPostingsByDepth depth $ 
-                        filterRawLedgerTransactionsByAccount apats $ 
-                        rawledger l
+      txns = sortBy (comparing ltdate) $
+               ledger_txns $ 
+               filterRawLedgerPostingsByDepth depth $ 
+               filterRawLedgerTransactionsByAccount apats $ 
+               rawledger l
       depth = depthFromOpts opts
       (apats,_) = parsePatternArgs args
