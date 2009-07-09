@@ -11,7 +11,8 @@ import Control.Monad.Error
 import Ledger
 import Options (Opt,ledgerFilePathFromOpts,optsToFilterSpec)
 import System.Directory (doesFileExist)
-import System.IO
+import System.IO (stderr)
+import System.IO.UTF8 (hPutStrLn)
 import System.Exit
 import System.Cmd (system)
 import System.Info (os)
