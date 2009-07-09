@@ -1,11 +1,12 @@
-; not implemented yet
-balance >/dev/null
+balance
 <<<
 2009-01-01 broken entry
-  дебит  1
+  дебит    1
   кредит  -2
 >>>2
-hledger: could not balance this transaction, amounts do not add up to zero:
+"-" (line 4, column 1):
+unexpected end of input
+could not balance this transaction, amounts do not add up to zero:
 2009/01/01 broken entry
     дебит                                          1
     кредит                                        -2
