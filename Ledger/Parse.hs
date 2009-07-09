@@ -6,8 +6,8 @@ Parsers for standard ledger and timelog files.
 
 module Ledger.Parse
 where
-import Prelude hiding (readFile, putStr, print)
-import Control.Monad.Error
+import Prelude hiding (readFile, putStr, putStrLn, print)
+import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Combinator
