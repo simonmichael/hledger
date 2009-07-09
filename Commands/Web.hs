@@ -87,7 +87,7 @@ searchform r a p' =
       -- another way to get them
       -- a = fromMaybe "" $ queryValue "a" r
       -- p = fromMaybe "" $ queryValue "p" r
-      u = dropWhile (=='/') $ rqUri r
+      u = rqUri r
       s = "20"
       resetlink | null a && null p' = noHtml
                 | otherwise = spaceHtml +++ anchor ! [href u] << stringToHtml "reset"
