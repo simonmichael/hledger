@@ -25,6 +25,7 @@ instance Show PeriodicTransaction where
 nullledgertxn :: LedgerTransaction
 nullledgertxn = LedgerTransaction {
               ltdate=parsedate "1900/1/1", 
+              lteffectivedate=Nothing, 
               ltstatus=False, 
               ltcode="", 
               ltdescription="", 
@@ -116,3 +117,9 @@ balanceLedgerTransaction t@LedgerTransaction{ltpostings=ps}
       printerr s = printf "%s:\n%s" s (showLedgerTransactionUnelided t)
 
 nonzerobalanceerror = "could not balance this transaction, amounts do not add up to zero"
+
+-- | Convert the primary date to either the actual or effective date.
+ledgerTransactionWithDate :: WhichDate -> LedgerTransaction -> LedgerTransaction
+ledgerTransactionWithDate ActualDate t = t
+ledgerTransactionWithDate EffectiveDate t = t{ltdate=fromMaybe (ltdate t) (lteffectivedate t)}
+    

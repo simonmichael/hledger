@@ -5,11 +5,10 @@ Utilities for doing I/O with ledger files.
 module Ledger.IO
 where
 import Control.Monad.Error
-import Data.Maybe (fromMaybe)
 import Ledger.Ledger (cacheLedger)
 import Ledger.Parse (parseLedger)
-import Ledger.RawLedger (canonicaliseAmounts,filterRawLedger)
-import Ledger.Types (DateSpan(..),LedgerTransaction(..),RawLedger(..),Ledger(..))
+import Ledger.RawLedger (canonicaliseAmounts,filterRawLedger,rawLedgerSelectingDate)
+import Ledger.Types (WhichDate(..),DateSpan(..),RawLedger(..),Ledger(..))
 import Ledger.Utils (getCurrentLocalTime)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
@@ -32,9 +31,7 @@ type IOArgs = (DateSpan   -- ^ only include transactions in this date span
               ,WhichDate  -- ^ which dates to use (transaction or effective)
               )
 
-data WhichDate = TransactionDate | EffectiveDate
-
-noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [], TransactionDate)
+noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [], ActualDate)
 
 -- | Get the user's default ledger file path.
 myLedgerPath :: IO String
@@ -84,17 +81,9 @@ filterAndCacheLedger :: IOArgs -> String -> RawLedger -> Ledger
 filterAndCacheLedger (span,cleared,real,costbasis,apats,dpats,whichdate) rawtext rl = 
     (cacheLedger apats 
     $ filterRawLedger span dpats cleared real 
-    $ selectDates whichdate
+    $ rawLedgerSelectingDate whichdate
     $ canonicaliseAmounts costbasis rl
     ){rawledgertext=rawtext}
-
-selectDates :: WhichDate -> RawLedger -> RawLedger
-selectDates TransactionDate rl = rl
-selectDates EffectiveDate rl = rl{ledger_txns=ts}
-    where
-      ts = map selectdate $ ledger_txns rl
-      selectdate (t@LedgerTransaction{ltdate=d,lteffectivedate=e}) =
-          t{ltdate=fromMaybe d e}
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

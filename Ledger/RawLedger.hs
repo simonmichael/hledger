@@ -13,6 +13,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
 import Ledger.Amount
+import Ledger.LedgerTransaction (ledgerTransactionWithDate)
 import Ledger.Transaction
 import Ledger.Posting
 import Ledger.TimeLog
@@ -118,6 +119,13 @@ filterRawLedgerPostingsByDepth depth (RawLedger mts pts ts tls hs f fp) =
 filterRawLedgerTransactionsByAccount :: [String] -> RawLedger -> RawLedger
 filterRawLedgerTransactionsByAccount apats (RawLedger ms ps ts tls hs f fp) =
     RawLedger ms ps (filter (any (matchpats apats . paccount) . ltpostings) ts) tls hs f fp
+
+-- | Convert this ledger's transactions' primary date to either their
+-- actual or effective date.
+rawLedgerSelectingDate :: WhichDate -> RawLedger -> RawLedger
+rawLedgerSelectingDate ActualDate rl = rl
+rawLedgerSelectingDate EffectiveDate rl = 
+    rl{ledger_txns=map (ledgerTransactionWithDate EffectiveDate) $ ledger_txns rl}
 
 -- | Give all a ledger's amounts their canonical display settings.  That
 -- is, in each commodity, amounts will use the display settings of the

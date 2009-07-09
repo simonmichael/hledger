@@ -30,6 +30,8 @@ import qualified Data.Map as Map
 
 type SmartDate = (String,String,String)
 
+data WhichDate = ActualDate | EffectiveDate
+
 data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord)
 
 data Interval = NoInterval | Daily | Weekly | Monthly | Quarterly | Yearly 

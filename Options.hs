@@ -7,7 +7,7 @@ module Options
 where
 import System.Console.GetOpt
 import System.Environment
-import Ledger.IO (IOArgs,myLedgerPath,myTimelogPath,WhichDate(..))
+import Ledger.IO (IOArgs,myLedgerPath,myTimelogPath)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
@@ -239,6 +239,6 @@ optsToIOArgs opts args t = (dateSpanFromOpts (localDay t) opts
                          ,dpats
                          ,case Effective `elem` opts of
                             True -> EffectiveDate
-                            _    -> TransactionDate
+                            _    -> ActualDate
                          ) where (apats,dpats) = parsePatternArgs args
 

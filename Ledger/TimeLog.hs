@@ -67,6 +67,7 @@ entryFromTimeLogInOut i o
     where
       t = LedgerTransaction {
             ltdate         = idate,
+            lteffectivedate = Nothing,
             ltstatus       = True,
             ltcode         = "",
             ltdescription  = showtime itod ++ "-" ++ showtime otod,

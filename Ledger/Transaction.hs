@@ -30,7 +30,7 @@ showTransaction (Transaction _ stat d desc a amt ttype) =
 -- is attached to the transactions to preserve their grouping - it should
 -- be unique per entry.
 flattenLedgerTransaction :: (LedgerTransaction, Int) -> [Transaction]
-flattenLedgerTransaction (LedgerTransaction d ed s _ desc _ ps _, n) = 
+flattenLedgerTransaction (LedgerTransaction d _ s _ desc _ ps _, n) = 
     [Transaction n s d desc (paccount p) (pamount p) (ptype p) | p <- ps]
 
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
