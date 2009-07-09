@@ -1,63 +1,18 @@
 {- |
-hledger's test suite. Most tests are HUnit-based, and defined in the
-@tests@ list below. These tests are built in to hledger and can be run at
-any time on any platform with @hledger test@.
 
-Secondly, we have tests in doctest format, which can be run with @make
-doctest@ in the hledger source tree. These have some advantages over
-hunit: they are sometimes easier to read and write; it is easier to read
-multi-line output; they can appear in, and test, documentation.  On the
-downside, they are not built in; you need a developer's setup to run them.
+This module contains hledger's unit tests. These are built in to hledger,
+and can be run at any time by doing @hledger test@ (or, with a few more
+options, by doing @make unittest@ in the hledger source tree.)
 
-Thirdly, we have command-line functional tests in tests/*.test, which can
-be run with @make functest@. These are still easier to read and write than
-doctests, but likewise are not built in and are more distant from the code
-they test and you have to come up with sensible filenames.
+Other kinds of tests:
 
-Here are the hledger doctests (some may reappear in other modules as
-examples):
+hledger's functional tests are a set of shell/command-line tests defined
+by .test files in the tests\/ subdirectory. These can be run by doing
+@make functest@ in the hledger source tree.
 
-Run a few with c++ ledger first:
-
-@
-$ ledger -f sample.ledger balance
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
-                  $2  expenses
-                  $1    food
-                  $1    supplies
-                 $-2  income
-                 $-1    gifts
-                 $-1    salary
-                  $1  liabilities:debts
-@
-
-@
-$ ledger -f sample.ledger balance o
-                  $1  expenses:food
-                 $-2  income
-                 $-1    gifts
-                 $-1    salary
---------------------
-                 $-1
-@
-
-Then hledger:
-
-@
-$ hledger -f sample.ledger balance
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
-                  $2  expenses
-                  $1    food
-                  $1    supplies
-                 $-2  income
-                 $-1    gifts
-                 $-1    salary
-                  $1  liabilities:debts
-@
+hledger's doctests are shell tests defined in literal blocks in haddock
+documentation in the source, run by doing @make doctest@ in the hledger
+source tree. They are no longer used, but here is an example:
 
 @
 $ hledger -f sample.ledger balance o
@@ -69,127 +24,7 @@ $ hledger -f sample.ledger balance o
                  $-1
 @
 
-@
-$ hledger -f sample.ledger balance --depth 1
-                 $-1  assets
-                  $2  expenses
-                 $-2  income
-                  $1  liabilities
-@
 -}
-{-
-@
-$ printf "2009/1/1 a\n  b  1.1\n  c  -1\n" | runhaskell hledger.hs -f- reg 2>&1 ; true
-"-" (line 4, column 1):
-unexpected end of input
-could not balance this transaction, amounts do not add up to zero:
-2009/01/01 a
-    b                                            1.1
-    c                                             -1
-
-
-@
-
-@
-$ printf "2009/1/1 x\n  (virtual)  100\n  a  1\n  b\n" | runhaskell hledger.hs -f- print 2>&1 ; true
-2009/01/01 x
-    (virtual)                                    100
-    a                                              1
-    b
-
-@
-
-Unicode input/output tests
-
--- layout of the balance command with unicode names
-@
-$ printf "2009-01-01 проверка\n  τράπεζα  10 руб\n  नकद\n" | hledger -f - bal
-              10 руб  τράπεζα
-             -10 руб  नकद
-@
-
--- layout of the register command with unicode names
-@
-$ printf "2009-01-01 проверка\n  τράπεζα  10 руб\n  नकद\n" | hledger -f - reg
-2009/01/01 проверка             τράπεζα                      10 руб       10 руб
-                                नकद                         -10 руб            0
-@
-
--- layout of the print command with unicode names
-@
-$ printf "2009-01-01 проверка\n счёт:первый  1\n счёт:второй\n" | hledger -f - print
-2009/01/01 проверка
-    счёт:первый                                    1
-    счёт:второй
-
-@
-
--- search for unicode account names
-@
-$ printf "2009-01-01 проверка\n  τράπεζα  10 руб\n  नकद\n" | hledger -f - reg τράπ
-2009/01/01 проверка             τράπεζα                      10 руб       10 руб
-@
-
--- search for unicode descriptions (should choose only the first entry)
-@
-$ printf "2009-01-01 аура (cyrillic letters)\n  bank  10\n  cash\n2010-01-01 aypa (roman letters)\n  bank  20\n  cash\n" | hledger -f - reg desc:аура
-2009/01/01 аура (cyrillic let.. bank                             10           10
-                                cash                            -10            0
-@
-
--- error message with unicode in ledger
--- not implemented yet
---@
-$ printf "2009-01-01 broken entry\n  дебит  1\n  кредит  -2\n" | hledger -f - 2>&1 ; true
-hledger: could not balance this transaction, amounts do not add up to zero:
-2009/01/01 broken entry
-    дебит                                          1
-    кредит                                        -2
-
-
---@
-
-@
-$ printf "2009-01-01 x\n  a  2\n  b (b) b  -1\n  c\n" | hledger -f - print 2>&1; true
-2009/01/01 x
-    a                                              2
-    b (b) b                                       -1
-    c
-
-@
-
-Nafai's bug
-@
-$ printf "2009/1/1 x\n a:  13\n b\n" | hledger -f - bal -E 2>&1; true
-hledger: parse error at (line 1, column 4):
-unexpected " "
-accountname seems ill-formed: a:
-@
-
-
-Eliding, general layout
-@
-$ printf "2009/1/1 x\n aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa  €1\n b\n" | hledger -f - bal 2>&1
-                  €1  aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa
-                 €-1  b
-@
-
---@
-$ printf "2009/1/1 x\n aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa  €1\n b\n" | hledger -f - reg 2>&1
-2009/01/01 x                    aa:aa:aaaaaaaaaaaaaaaa           €1           €1
-                                b                               €-1            0
-@
-
---@
-$ printf "2009/1/1 x\n aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa  €1\n b\n" | hledger -f - print 2>&1
-2009/01/01 x
-    aa:aaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa
-    b
-@
--}
--- other test tools:
--- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/test-framework
--- http://hackage.haskell.org/cgi-bin/hackage-scripts/package/HTF
 
 module Tests
 where
