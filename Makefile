@@ -264,10 +264,10 @@ pdf:
 # generate api docs
 # We munge haddock and hoogle into a rough but useful framed layout.
 # For this to work the hoogle cgi must be built with base target "main".
-api-docs: haddock hoogle
+api-docs: haddock #hoogle
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
 	cp website/api-doc-frames.html website/api-doc/index.html ; \
-	cp website/hoogle-small.html website/api-doc
+# 	cp website/hoogle-small.html website/api-doc
 
 # generate and view the api docs
 view-api-docs: api-docs
