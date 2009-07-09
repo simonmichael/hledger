@@ -82,6 +82,7 @@ searchform r a p' =
       ,spaceHtml
       ,spaceHtml +++ stringToHtml "reporting period:" +++ spaceHtml 
       ,textfield "p" ! [size s, value p']
+      ,submit "submit" "filter" ! [thestyle "display:none;"]
       ,resetlink]
     where
       -- another way to get them
