@@ -9,7 +9,7 @@ module Utils
 where
 import Control.Monad.Error
 import Ledger
-import Options (Opt,ledgerFilePathFromOpts,optsToIOArgs)
+import Options (Opt,ledgerFilePathFromOpts,optsToFilterSpec)
 import System.Directory (doesFileExist)
 import System.IO
 
@@ -42,10 +42,10 @@ ledgerFromStringWithOpts opts args reftime s =
 readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger
 readLedgerWithOpts opts args f = do
   t <- getCurrentLocalTime
-  readLedgerWithIOArgs (optsToIOArgs opts args t) f
+  readLedgerWithFilterSpec (optsToFilterSpec opts args t) f
            
 -- | Convert a RawLedger to a canonicalised, cached and filtered Ledger
 -- based on the command-line options/arguments and a reference time.
 filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> RawLedger -> Ledger
-filterAndCacheLedgerWithOpts opts args t = filterAndCacheLedger (optsToIOArgs opts args t)
+filterAndCacheLedgerWithOpts opts args t = filterAndCacheLedger (optsToFilterSpec opts args t)
 

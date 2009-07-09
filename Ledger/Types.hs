@@ -115,6 +115,17 @@ data RawLedger = RawLedger {
       filepath :: FilePath
     } deriving (Eq)
 
+-- | A generic, pure specification of how to filter raw ledger transactions.
+data FilterSpec = FilterSpec {
+     datespan  :: DateSpan   -- ^ only include transactions in this date span
+    ,cleared   :: Maybe Bool -- ^ only include if cleared\/uncleared\/don't care
+    ,real      :: Bool       -- ^ only include if real\/don't care
+    ,costbasis :: Bool       -- ^ convert all amounts to cost basis
+    ,acctpats  :: [String]   -- ^ only include if matching these account patterns
+    ,descpats  :: [String]   -- ^ only include if matching these description patterns
+    ,whichdate :: WhichDate  -- ^ which dates to use (transaction or effective)
+    }
+
 data Transaction = Transaction {
       tnum :: Int,
       tstatus :: Bool,           -- ^ posting status

@@ -39,7 +39,7 @@ aliases for easier interaction. Here's an example:
 > Node {rootLabel = Account top with 0 txns and 0 balance, subForest = [...
 > > accounttreeat l (account l "assets")
 > Just (Node {rootLabel = Account assets with 0 txns and $-1 balance, ...
-> > datespan l
+> > datespan l -- disabled
 > DateSpan (Just 2008-01-01) (Just 2009-01-01)
 > > rawdatespan l
 > DateSpan (Just 2008-01-01) (Just 2009-01-01)
@@ -206,8 +206,8 @@ accounttree = ledgerAccountTree
 accounttreeat :: Ledger -> Account -> Maybe (Tree Account)
 accounttreeat = ledgerAccountTreeAt
 
-datespan :: Ledger -> DateSpan
-datespan = ledgerDateSpan
+-- datespan :: Ledger -> DateSpan
+-- datespan = ledgerDateSpan
 
 rawdatespan :: Ledger -> DateSpan
 rawdatespan = rawLedgerDateSpan . rawledger

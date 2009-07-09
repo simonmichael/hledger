@@ -8,7 +8,7 @@ import Control.Monad.Error
 import Ledger.Ledger (cacheLedger)
 import Ledger.Parse (parseLedger)
 import Ledger.RawLedger (canonicaliseAmounts,filterRawLedger,rawLedgerSelectingDate)
-import Ledger.Types (WhichDate(..),DateSpan(..),RawLedger(..),Ledger(..))
+import Ledger.Types (FilterSpec(..),WhichDate(..),DateSpan(..),RawLedger(..),Ledger(..))
 import Ledger.Utils (getCurrentLocalTime)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
@@ -21,17 +21,15 @@ timelogenvvar          = "TIMELOG"
 ledgerdefaultfilename  = ".ledger"
 timelogdefaultfilename = ".timelog"
 
--- | A tuple of arguments specifying how to filter a raw ledger file.
-type IOArgs = (DateSpan   -- ^ only include transactions in this date span
-              ,Maybe Bool -- ^ only include if cleared\/uncleared\/don't care
-              ,Bool       -- ^ only include if real\/don't care
-              ,Bool       -- ^ convert all amounts to cost basis
-              ,[String]   -- ^ only include if matching these account patterns
-              ,[String]   -- ^ only include if matching these description patterns
-              ,WhichDate  -- ^ which dates to use (transaction or effective)
-              )
-
-noioargs = (DateSpan Nothing Nothing, Nothing, False, False, [], [], ActualDate)
+nullfilterspec = FilterSpec {
+                  datespan=DateSpan Nothing Nothing
+                 ,cleared=Nothing
+                 ,real=False
+                 ,costbasis=False
+                 ,acctpats=[]
+                 ,descpats=[]
+                 ,whichdate=ActualDate
+                 }
 
 -- | Get the user's default ledger file path.
 myLedgerPath :: IO String
@@ -59,15 +57,15 @@ myTimelog = myTimelogPath >>= readLedger
 
 -- | Read a ledger from this file, with no filtering, or give an error.
 readLedger :: FilePath -> IO Ledger
-readLedger = readLedgerWithIOArgs noioargs
+readLedger = readLedgerWithFilterSpec nullfilterspec
 
--- | Read a ledger from this file, filtering according to the io args,
+-- | Read a ledger from this file, filtering according to the filter spec.,
 -- | or give an error.
-readLedgerWithIOArgs :: IOArgs -> FilePath -> IO Ledger
-readLedgerWithIOArgs ioargs f = do
+readLedgerWithFilterSpec :: FilterSpec -> FilePath -> IO Ledger
+readLedgerWithFilterSpec fspec f = do
   s <- readFile f 
   rl <- rawLedgerFromString s
-  return $ filterAndCacheLedger ioargs s rl
+  return $ filterAndCacheLedger fspec s rl
 
 -- | Read a RawLedger from the given string, using the current time as
 -- reference time, or give a parse error.
@@ -77,10 +75,14 @@ rawLedgerFromString s = do
   liftM (either error id) $ runErrorT $ parseLedger t "(string)" s
 
 -- | Convert a RawLedger to a canonicalised, cached and filtered Ledger.
-filterAndCacheLedger :: IOArgs -> String -> RawLedger -> Ledger
-filterAndCacheLedger (span,cleared,real,costbasis,apats,dpats,whichdate) rawtext rl = 
-    (cacheLedger apats 
-    $ filterRawLedger span dpats cleared real 
+filterAndCacheLedger :: FilterSpec -> String -> RawLedger -> Ledger
+filterAndCacheLedger (FilterSpec{datespan=datespan,cleared=cleared,real=real,
+                                 costbasis=costbasis,acctpats=acctpats,
+                                 descpats=descpats,whichdate=whichdate})
+                     rawtext
+                     rl = 
+    (cacheLedger acctpats 
+    $ filterRawLedger datespan descpats cleared real 
     $ rawLedgerSelectingDate whichdate
     $ canonicaliseAmounts costbasis rl
     ){rawledgertext=rawtext}

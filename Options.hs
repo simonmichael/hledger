@@ -7,7 +7,7 @@ module Options
 where
 import System.Console.GetOpt
 import System.Environment
-import Ledger.IO (IOArgs,myLedgerPath,myTimelogPath)
+import Ledger.IO (myLedgerPath,myTimelogPath)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
@@ -229,16 +229,18 @@ parsePatternArgs args = (as, ds')
       (ds, as) = partition (descprefix `isPrefixOf`) args
       ds' = map (drop (length descprefix)) ds
 
--- | Convert application options to more generic types for the library.
-optsToIOArgs :: [Opt] -> [String] -> LocalTime -> IOArgs
-optsToIOArgs opts args t = (dateSpanFromOpts (localDay t) opts
-                         ,clearedValueFromOpts opts
-                         ,Real `elem` opts
-                         ,CostBasis `elem` opts
-                         ,apats
-                         ,dpats
-                         ,case Effective `elem` opts of
-                            True -> EffectiveDate
-                            _    -> ActualDate
-                         ) where (apats,dpats) = parsePatternArgs args
+-- | Convert application options to the library's generic filter specification.
+optsToFilterSpec :: [Opt] -> [String] -> LocalTime -> FilterSpec
+optsToFilterSpec opts args t = FilterSpec {
+                                datespan=dateSpanFromOpts (localDay t) opts
+                               ,cleared=clearedValueFromOpts opts
+                               ,real=Real `elem` opts
+                               ,costbasis=CostBasis `elem` opts
+                               ,acctpats=apats
+                               ,descpats=dpats
+                               ,whichdate=case Effective `elem` opts of
+                                            True -> EffectiveDate
+                                            _    -> ActualDate
+                               }
+    where (apats,dpats) = parsePatternArgs args
 
