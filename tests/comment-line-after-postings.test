@@ -1,9 +1,9 @@
 print
 <<<
 2009/01/01 x
-    ; comment line within postings
     a  1
     b
+; comment line after postings
 >>>
 2009/01/01 x
     a                                              1
