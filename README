@@ -133,6 +133,87 @@ following new commands are supported::
    stats                  report some ledger statistics
    test                   run self-tests
 
+Smart dates
+...........
+
+hledger accepts "smart dates" in most places a date can be used, such as:
+transaction dates, effective dates, -b and -e options, and `period
+expressions <#period-expressions>`_. Here are some valid hledger dates:
+
+- 2009/1/1, 2009/01/01, 2009-1-1, 2009.1.1, 2009/1, 2009 (january 1, 2009)
+- 1/1, january, jan, this year (january 1, this year)
+- next year (january 1, next year)
+- this month (the 1st of the current month)
+- this week (the most recent monday)
+- last week (the monday of the week before this one)
+- today, yesterday, tomorrow
+
+Period expressions
+..................
+
+hledger supports flexible "period expressions" with the ``-p/--period``
+option to select transactions within a period of time (like 2009) and/or
+with a reporting interval (like weekly). hledger period expressions are
+similar but not identical to c++ ledger's.
+
+Here is a basic period expression specifying the first quarter of 2009
+(start date is always included, end date is always excluded)::
+
+ -p "from 2009/1/1 to 2009/4/1"
+
+Keywords like "from" and "to" are optional, and so are the spaces. Just
+don't run two dates together::
+
+ -p2009/1/1to2009/4/1
+ -p"2009/1/1 2009/4/1"
+
+Dates are `smart dates <#smart-dates>`_, so if the current year is 2009, the above can also
+be written as::
+
+ -p "1/1 to 4/1"
+ -p "january to apr"
+ -p "this year to 4/1"
+
+If you specify only one date, the missing start or end date will be the
+earliest or latest transaction in your ledger data::
+
+ -p "from 2009/1/1"  (everything after january 1, 2009)
+ -p "from 2009/1"    (the same)
+ -p "from 2009"      (the same)
+ -p "to 2009"        (everything before january 1, 2009)
+
+A single date with no "from" or "to" defines both the start and end date like so::
+
+ -p "2009"           (the year 2009;    equivalent to "2009/1/1 to 2010/1/1")
+ -p "2009/1"         (the month of jan; equivalent to "2009/1/1 to 2009/2/1")
+ -p "2009/1/1"       (just that day;    equivalent to "2009/1/1 to 2009/1/2")
+
+You can also specify a reporting interval, which causes the "register"
+command to summarise the transactions in each interval. It goes before the
+dates, and can be: "daily", "weekly", "monthly", "quarterly", or
+"yearly". An "in" keyword is optional, and so are the dates::
+
+ -p "weekly from 2009/1/1 to 2009/4/1"
+ -p "monthly in 2008"
+ -p "monthly from 2008"
+ -p "quarterly"
+
+Display expressions
+...................
+
+A display expression with the ``-d/--display`` option selects which
+transactions will be displayed (unlike a `period expression
+<#period-expressions>`_, which selects the transactions to be used for
+calculation).
+
+hledger currently supports a very small subset of c++ ledger's display
+expressions, namely: transactions before or after a date. This is useful
+for displaying your recent check register with an accurate running total.
+Note the use of >= here to include the first of the month::
+
+ hledger register -d "d>=[this month]"
+
+
 ledger features not supported
 .............................
 
