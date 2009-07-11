@@ -87,10 +87,6 @@ continuous ci: setversion
 tools/unittest: tools/unittest.hs
 	ghc --make -threaded -O2 tools/unittest.hs
 
-# build the shell test runner. Requires test-framework.
-tools/shelltest: tools/shelltest.hs
-	ghc --make -threaded -O2 tools/shelltest.hs
-
 # build the doctest runner
 tools/doctest: tools/doctest.hs
 	ghc --make tools/doctest.hs
@@ -134,9 +130,10 @@ unittesths:
 	@(runghc hledger.hs test \
 		&& echo $@ passed) || echo $@ FAILED
 
-# run functional tests
-functest: tools/shelltest
-	@(tools/shelltest tests/*.test -j8 \
+# run functional tests, requires shelltestrunner from hackage
+# -j8 not working yet
+functest: hledger
+	@(shelltestrunner ./hledger tests/*.test \
 		&& echo $@ passed) || echo $@ FAILED
 
 # run doc tests

@@ -1,4 +1,4 @@
-balance -p 'in 2009' --effective
+-f - balance -p 'in 2009' --effective
 <<<
 2009/1/1 x
   a  1

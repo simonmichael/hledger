@@ -1,5 +1,5 @@
 # shouldn't exit code be 1 ?
-register
+-f - register
 <<<
 2009/1/1 a
   b  1.1
@@ -13,4 +13,5 @@ could not balance this transaction, amounts do not add up to zero:
     c                                             -1
 
 
-===0
+>>>=
+0

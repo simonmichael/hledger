@@ -1,4 +1,4 @@
 # ignore the binary we are invoked with
--f/dev/null; echo "2009/1/32" | hledger add 2>&1 | tail -1 | sed -e's/\[[^]]*\]//g'
->>>
-date : date : 
+-f/dev/null; echo "2009/1/32" | hledger add 2>&1 | sed -e's/\[[^]]*\]//g' | grep -q 'date : date :'
+>>>=
+0
