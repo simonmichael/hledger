@@ -1,4 +1,6 @@
-# ignore the binary we are invoked with
--f/dev/null; printf "\n\n" | hledger add 2>&1 | sed -e's/\[[^]]*\]//g' | grep -q 'date : description: description:'
->>>=
-0
+add
+<<<
+
+
+>>>2 /date .*: description: description:/
+
