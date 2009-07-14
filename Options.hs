@@ -28,16 +28,16 @@ usagehdr =
   "COMMAND is one of (may be abbreviated):\n" ++
   "  add       - prompt for new transactions and add them to the ledger\n" ++
   "  balance   - show accounts, with balances\n" ++
-  "  convert   - convert CSV data to ledger format and print on stdout\n" ++
-  "  histogram - show transaction counts per day or other interval\n" ++
+  "  convert   - read CSV bank data and display in ledger format\n" ++
+  "  histogram - show a barchart of transactions per day or other interval\n" ++
   "  print     - show transactions in ledger format\n" ++
   "  register  - show transactions as a register with running balance\n" ++
   "  stats     - show various statistics for a ledger\n" ++
 #ifdef VTY
-  "  ui        - run a simple curses-based text ui\n" ++
+  "  ui        - run a simple text-based UI\n" ++
 #endif
 #ifdef HAPPS
-  "  web       - run a simple web ui\n" ++
+  "  web       - run a simple web-based UI\n" ++
 #endif
   "  test      - run self-tests\n" ++
   "\n" ++

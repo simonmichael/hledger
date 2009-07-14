@@ -1,7 +1,7 @@
 # hledger project makefile
 
 # optional features described in MANUAL, comment out if you don't have the libs
-OPTFLAGS=-DHAPPS -DVTY 
+OPTFLAGS=-DHAPPS -DVTY
 
 # command to run during "make ci"
 CICMD=test
@@ -85,7 +85,8 @@ hledgerlinux: setversion
 continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
-# build the standalone unit test runner. Requires test-framework.
+# build the standalone unit test runner. Requires test-framework, which
+# may not work on windows.
 tools/unittest: tools/unittest.hs
 	ghc --make -threaded -O2 tools/unittest.hs
 
@@ -230,9 +231,11 @@ sample.ledger:
 ######################################################################
 # DOCUMENTATION
 
-# website/ and website/api-doc/ always exist. website contains both
-# generated files (UPPERCASE.html) and revision-controlled resource files
-# (everything else).  website/api-doc contains only generated files.
+# Documentation source files are UPPERCASE files in the top directory.
+# website/ contains both html generated from these (UPPERCASE.html) and
+# revision-controlled resource files (everything else).  website/api-doc
+# contains only generated files.
+
 cleandocs:
 	rm -rf website/[A-Z]*.html website/api-doc/*
 
