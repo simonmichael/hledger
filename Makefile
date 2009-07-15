@@ -141,9 +141,8 @@ unittesths:
 		&& echo $@ passed) || echo $@ FAILED
 
 # run functional tests, requires shelltestrunner from hackage
-# -j8 not working yet
 functest: hledger
-	@(shelltestrunner ./hledger tests/*.test \
+	@(shelltestrunner ./hledger tests/*.test -- -j8 \
 		&& echo $@ passed) || echo $@ FAILED
 
 # run doc tests
