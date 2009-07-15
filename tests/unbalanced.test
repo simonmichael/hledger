@@ -13,5 +13,4 @@ could not balance this transaction, amounts do not add up to zero:
     c                                             -1
 
 
->>>=
-0
+>>>= 0
