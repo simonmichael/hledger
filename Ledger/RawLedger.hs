@@ -71,7 +71,7 @@ rawLedgerAccountNameTree = accountNameTreeFrom . rawLedgerAccountNames
 -- Keep only those which fall between the begin and end dates, and match
 -- the description pattern, and are cleared or real if those options are active.
 filterRawLedger :: DateSpan -> [String] -> Maybe Bool -> Bool -> RawLedger -> RawLedger
-filterRawLedger span pats clearedonly realonly = 
+filterRawLedger span pats clearedonly realonly =
     filterRawLedgerPostingsByRealness realonly .
     filterRawLedgerTransactionsByClearedStatus clearedonly .
     filterRawLedgerTransactionsByDate span .
@@ -79,17 +79,17 @@ filterRawLedger span pats clearedonly realonly =
 
 -- | Keep only ledger transactions whose description matches the description patterns.
 filterRawLedgerTransactionsByDescription :: [String] -> RawLedger -> RawLedger
-filterRawLedgerTransactionsByDescription pats (RawLedger ms ps ts tls hs f fp) = 
+filterRawLedgerTransactionsByDescription pats (RawLedger ms ps ts tls hs f fp) =
     RawLedger ms ps (filter matchdesc ts) tls hs f fp
     where matchdesc = matchpats pats . ltdescription
 
--- | Keep only ledger transactions which fall between begin and end dates. 
+-- | Keep only ledger transactions which fall between begin and end dates.
 -- We include transactions on the begin date and exclude transactions on the end
 -- date, like ledger.  An empty date string means no restriction.
 filterRawLedgerTransactionsByDate :: DateSpan -> RawLedger -> RawLedger
-filterRawLedgerTransactionsByDate (DateSpan begin end) (RawLedger ms ps ts tls hs f fp) = 
+filterRawLedgerTransactionsByDate (DateSpan begin end) (RawLedger ms ps ts tls hs f fp) =
     RawLedger ms ps (filter matchdate ts) tls hs f fp
-    where 
+    where
       matchdate t = maybe True (ltdate t>=) begin && maybe True (ltdate t<) end
 
 -- | Keep only ledger transactions which have the requested
@@ -112,7 +112,7 @@ filterRawLedgerPostingsByRealness True (RawLedger mts pts ts tls hs f fp) =
 filterRawLedgerPostingsByDepth :: Int -> RawLedger -> RawLedger
 filterRawLedgerPostingsByDepth depth (RawLedger mts pts ts tls hs f fp) =
     RawLedger mts pts (filter (not . null . ltpostings) $ map filtertxns ts) tls hs f fp
-    where filtertxns t@LedgerTransaction{ltpostings=ps} = 
+    where filtertxns t@LedgerTransaction{ltpostings=ps} =
               t{ltpostings=filter ((<= depth) . accountNameLevel . paccount) ps}
 
 -- | Keep only ledger transactions which affect accounts matched by the account patterns.
@@ -124,7 +124,7 @@ filterRawLedgerTransactionsByAccount apats (RawLedger ms ps ts tls hs f fp) =
 -- actual or effective date.
 rawLedgerSelectingDate :: WhichDate -> RawLedger -> RawLedger
 rawLedgerSelectingDate ActualDate rl = rl
-rawLedgerSelectingDate EffectiveDate rl = 
+rawLedgerSelectingDate EffectiveDate rl =
     rl{ledger_txns=map (ledgerTransactionWithDate EffectiveDate) $ ledger_txns rl}
 
 -- | Give all a ledger's amounts their canonical display settings.  That
@@ -134,13 +134,13 @@ rawLedgerSelectingDate EffectiveDate rl =
 -- active.
 canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
 canonicaliseAmounts costbasis l@(RawLedger ms ps ts tls hs f fp) = RawLedger ms ps (map fixledgertransaction ts) tls hs f fp
-    where 
+    where
       fixledgertransaction (LedgerTransaction d ed s c de co ts pr) = LedgerTransaction d ed s c de co (map fixrawposting ts) pr
       fixrawposting (Posting s ac a c t) = Posting s ac (fixmixedamount a) c t
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount = fixcommodity . (if costbasis then costOfAmount else id)
       fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! symbol (commodity a)
-      canonicalcommoditymap = 
+      canonicalcommoditymap =
           Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
                         let cs = commoditymap ! s,
                         let firstc = head cs,

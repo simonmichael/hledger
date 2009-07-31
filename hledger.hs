@@ -50,7 +50,7 @@ main :: IO ()
 main = do
   (opts, cmd, args) <- parseArguments
   run cmd opts args
-    where 
+    where
       run cmd opts args
        | Help `elem` opts             = putStr usage
        | Version `elem` opts          = putStrLn versionmsg

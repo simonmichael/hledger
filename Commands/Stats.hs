@@ -1,4 +1,4 @@
-{-| 
+{-|
 
 Print some statistics for the ledger.
 
@@ -19,7 +19,7 @@ stats opts args l = do
   putStr $ showStats opts args l today
 
 showStats :: [Opt] -> [String] -> Ledger -> Day -> String
-showStats _ _ l today = 
+showStats _ _ l today =
     heading ++ unlines (map (\(a,b) -> printf fmt a b) stats)
     where
       heading = underline $ printf "Ledger statistics as of %s" (show today)
@@ -42,7 +42,7 @@ showStats _ _ l today =
       -- Days since reconciliation   : %(reconcileelapsed)s
       -- Days since last transaction : %(recentelapsed)s
        ]
-           where 
+           where
              ts = sortBy (comparing ltdate) $ ledger_txns $ rawledger l
              lastdate | null ts = Nothing
                       | otherwise = Just $ ltdate $ last ts

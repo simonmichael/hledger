@@ -1,6 +1,6 @@
-{-| 
+{-|
 
-A ledger-compatible @balance@ command. 
+A ledger-compatible @balance@ command.
 
 ledger's balance command is easy to use but not easy to describe
 precisely.  In the examples below we'll use sample.ledger, which has the
@@ -114,7 +114,7 @@ balance opts args = putStr . showBalanceReport opts args
 -- | Generate a balance report with the specified options for this ledger.
 showBalanceReport :: [Opt] -> [String] -> Ledger -> String
 showBalanceReport opts _ l = acctsstr ++ totalstr
-    where 
+    where
       acctsstr = unlines $ map showacct interestingaccts
           where
             showacct = showInterestingAccount l interestingaccts
