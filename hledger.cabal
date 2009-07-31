@@ -21,7 +21,7 @@ bug-reports:    http://code.google.com/p/hledger/issues
 stability:      experimental
 tested-with:    GHC==6.8, GHC==6.10
 cabal-version:  >= 1.2
-build-type:     Simple
+build-type:     Custom
 
 extra-tmp-files:
 extra-source-files:
