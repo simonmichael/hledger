@@ -78,7 +78,8 @@ showLedgerTransaction' elide effective t =
           where
             showposting p = showacct p ++ "  " ++ (showamount $ pamount p) ++ (showcomment $ pcomment p)
             showpostingnoamt p = rstrip $ showacct p ++ "              " ++ (showcomment $ pcomment p)
-            showacct p = "    " ++ showstatus p ++ (printf "%-34s" $ showAccountName (Just 34) (ptype p) (paccount p))
+            showacct p = "    " ++ showstatus p ++ (printf (printf "%%-%ds" w) $ showAccountName Nothing (ptype p) (paccount p))
+            w = maximum $ map (length . paccount) ps
             showamount = printf "%12s" . showMixedAmount
             showcomment s = if (length s) > 0 then "  ; "++s else ""
             showstatus p = if pstatus p then "* " else ""
