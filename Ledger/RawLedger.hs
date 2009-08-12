@@ -9,6 +9,7 @@ module Ledger.RawLedger
 where
 import qualified Data.Map as Map
 import Data.Map ((!))
+import System.Time (ClockTime(TOD))
 import Ledger.Utils
 import Ledger.Types
 import Ledger.AccountName
@@ -37,6 +38,7 @@ rawLedgerEmpty = RawLedger { modifier_txns = []
                            , historical_prices = []
                            , final_comment_lines = []
                            , filepath = ""
+                           , filereadtime = TOD 0 0
                            }
 
 addLedgerTransaction :: LedgerTransaction -> RawLedger -> RawLedger
@@ -79,16 +81,16 @@ filterRawLedger span pats clearedonly realonly =
 
 -- | Keep only ledger transactions whose description matches the description patterns.
 filterRawLedgerTransactionsByDescription :: [String] -> RawLedger -> RawLedger
-filterRawLedgerTransactionsByDescription pats (RawLedger ms ps ts tls hs f fp) =
-    RawLedger ms ps (filter matchdesc ts) tls hs f fp
+filterRawLedgerTransactionsByDescription pats (RawLedger ms ps ts tls hs f fp ft) =
+    RawLedger ms ps (filter matchdesc ts) tls hs f fp ft
     where matchdesc = matchpats pats . ltdescription
 
 -- | Keep only ledger transactions which fall between begin and end dates.
 -- We include transactions on the begin date and exclude transactions on the end
 -- date, like ledger.  An empty date string means no restriction.
 filterRawLedgerTransactionsByDate :: DateSpan -> RawLedger -> RawLedger
-filterRawLedgerTransactionsByDate (DateSpan begin end) (RawLedger ms ps ts tls hs f fp) =
-    RawLedger ms ps (filter matchdate ts) tls hs f fp
+filterRawLedgerTransactionsByDate (DateSpan begin end) (RawLedger ms ps ts tls hs f fp ft) =
+    RawLedger ms ps (filter matchdate ts) tls hs f fp ft
     where
       matchdate t = maybe True (ltdate t>=) begin && maybe True (ltdate t<) end
 
@@ -96,29 +98,29 @@ filterRawLedgerTransactionsByDate (DateSpan begin end) (RawLedger ms ps ts tls h
 -- cleared/uncleared status, if there is one.
 filterRawLedgerTransactionsByClearedStatus :: Maybe Bool -> RawLedger -> RawLedger
 filterRawLedgerTransactionsByClearedStatus Nothing rl = rl
-filterRawLedgerTransactionsByClearedStatus (Just val) (RawLedger ms ps ts tls hs f fp) =
-    RawLedger ms ps (filter ((==val).ltstatus) ts) tls hs f fp
+filterRawLedgerTransactionsByClearedStatus (Just val) (RawLedger ms ps ts tls hs f fp ft) =
+    RawLedger ms ps (filter ((==val).ltstatus) ts) tls hs f fp ft
 
 -- | Strip out any virtual postings, if the flag is true, otherwise do
 -- no filtering.
 filterRawLedgerPostingsByRealness :: Bool -> RawLedger -> RawLedger
 filterRawLedgerPostingsByRealness False l = l
-filterRawLedgerPostingsByRealness True (RawLedger mts pts ts tls hs f fp) =
-    RawLedger mts pts (map filtertxns ts) tls hs f fp
+filterRawLedgerPostingsByRealness True (RawLedger mts pts ts tls hs f fp ft) =
+    RawLedger mts pts (map filtertxns ts) tls hs f fp ft
     where filtertxns t@LedgerTransaction{ltpostings=ps} = t{ltpostings=filter isReal ps}
 
 -- | Strip out any postings to accounts deeper than the specified depth
 -- (and any ledger transactions which have no postings as a result).
 filterRawLedgerPostingsByDepth :: Int -> RawLedger -> RawLedger
-filterRawLedgerPostingsByDepth depth (RawLedger mts pts ts tls hs f fp) =
-    RawLedger mts pts (filter (not . null . ltpostings) $ map filtertxns ts) tls hs f fp
+filterRawLedgerPostingsByDepth depth (RawLedger mts pts ts tls hs f fp ft) =
+    RawLedger mts pts (filter (not . null . ltpostings) $ map filtertxns ts) tls hs f fp ft
     where filtertxns t@LedgerTransaction{ltpostings=ps} =
               t{ltpostings=filter ((<= depth) . accountNameLevel . paccount) ps}
 
 -- | Keep only ledger transactions which affect accounts matched by the account patterns.
 filterRawLedgerTransactionsByAccount :: [String] -> RawLedger -> RawLedger
-filterRawLedgerTransactionsByAccount apats (RawLedger ms ps ts tls hs f fp) =
-    RawLedger ms ps (filter (any (matchpats apats . paccount) . ltpostings) ts) tls hs f fp
+filterRawLedgerTransactionsByAccount apats (RawLedger ms ps ts tls hs f fp ft) =
+    RawLedger ms ps (filter (any (matchpats apats . paccount) . ltpostings) ts) tls hs f fp ft
 
 -- | Convert this ledger's transactions' primary date to either their
 -- actual or effective date.
@@ -133,7 +135,7 @@ rawLedgerSelectingDate EffectiveDate rl =
 -- detected. Also, amounts are converted to cost basis if that flag is
 -- active.
 canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
-canonicaliseAmounts costbasis l@(RawLedger ms ps ts tls hs f fp) = RawLedger ms ps (map fixledgertransaction ts) tls hs f fp
+canonicaliseAmounts costbasis l@(RawLedger ms ps ts tls hs f fp ft) = RawLedger ms ps (map fixledgertransaction ts) tls hs f fp ft
     where
       fixledgertransaction (LedgerTransaction d ed s c de co ts pr) = LedgerTransaction d ed s c de co (map fixrawposting ts) pr
       fixrawposting (Posting s ac a c t) = Posting s ac (fixmixedamount a) c t

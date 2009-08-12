@@ -14,6 +14,7 @@ import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import System.IO
 import System.FilePath ((</>))
+import System.Time (getClockTime)
 
 
 ledgerenvvar           = "LEDGER"
@@ -63,9 +64,10 @@ readLedger = readLedgerWithFilterSpec nullfilterspec
 -- | or give an error.
 readLedgerWithFilterSpec :: FilterSpec -> FilePath -> IO Ledger
 readLedgerWithFilterSpec fspec f = do
-  s <- readFile f 
+  s <- readFile f
+  t <- getClockTime
   rl <- rawLedgerFromString s
-  return $ filterAndCacheLedger fspec s rl
+  return $ filterAndCacheLedger fspec s rl{filepath=f, filereadtime=t}
 
 -- | Read a RawLedger from the given string, using the current time as
 -- reference time, or give a parse error.

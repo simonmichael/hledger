@@ -61,6 +61,7 @@ library
                  ,directory
                  ,filepath
                  ,haskell98
+                 ,old-time
                  ,parsec
                  ,time
                  ,utf8-string >= 0.3 && < 0.4
@@ -106,6 +107,7 @@ executable hledger
                  ,filepath
                  ,haskell98
                  ,mtl
+                 ,old-time
                  ,parsec
                  ,process
                  ,regexpr >= 0.5.1

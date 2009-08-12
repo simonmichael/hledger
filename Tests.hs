@@ -203,6 +203,7 @@ import Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Test.HUnit.Tools (runVerboseTests)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
+import System.Time (ClockTime(TOD))
 
 import Commands.All
 import Ledger
@@ -1369,6 +1370,7 @@ rawledger7 = RawLedger
           []
           ""
           ""
+          (TOD 0 0)
 
 ledger7 = cacheLedger [] rawledger7 
 
@@ -1402,5 +1404,6 @@ rawLedgerWithAmounts as =
         []
         ""
         ""
+        (TOD 0 0)
     where parse = fromparse . parseWithCtx emptyCtx postingamount . (" "++)
 

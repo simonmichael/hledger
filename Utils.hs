@@ -15,6 +15,7 @@ import System.IO
 import System.Exit
 import System.Cmd (system)
 import System.Info (os)
+import System.Time (getClockTime)
 
 
 -- | Parse the user's specified ledger file and run a hledger command on
@@ -30,7 +31,8 @@ withLedgerDo opts args cmdname cmd = do
   let creating = not fileexists && cmdname == "add"
   rawtext <-  if creating then return "" else strictReadFile f'
   t <- getCurrentLocalTime
-  let go = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f})
+  tc <- getClockTime
+  let go = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f,filereadtime=tc})
   case creating of
     True -> return rawLedgerEmpty >>= go
     False -> return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) go

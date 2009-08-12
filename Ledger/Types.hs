@@ -26,6 +26,7 @@ module Ledger.Types
 where
 import Ledger.Utils
 import qualified Data.Map as Map
+import System.Time (ClockTime)
 
 
 type SmartDate = (String,String,String)
@@ -112,7 +113,8 @@ data RawLedger = RawLedger {
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
       final_comment_lines :: String,
-      filepath :: FilePath
+      filepath :: FilePath,
+      filereadtime :: ClockTime
     } deriving (Eq)
 
 -- | A generic, pure specification of how to filter raw ledger transactions.
