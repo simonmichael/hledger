@@ -130,12 +130,21 @@ executable hledger
     cpp-options: -DHAPPS
     other-modules:Commands.Web
     build-depends:
-                  happstack >= 0.2 && < 0.3
-                 ,happstack-data >= 0.2 && < 0.3
-                 ,happstack-server >= 0.2 && < 0.3
-                 ,happstack-state >= 0.2 && < 0.3
+                  hsp
+                 ,hsx
                  ,xhtml >= 3000.2 && < 3000.3
+                 ,loli
+                 ,io-storage
+                 ,hack-contrib
+                 ,hack
+                 ,hack-handler-happstack
+                 ,happstack >= 0.3 && < 0.4
+                 ,happstack-data >= 0.3 && < 0.4
+                 ,happstack-server >= 0.3 && < 0.4
+                 ,happstack-state >= 0.3 && < 0.4
                  ,HTTP >= 4000.0 && < 4000.1
+                 ,applicative-extras
+
 
 -- source-repository head
 --   type:     darcs

@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-|
 
 Most data types are defined here to avoid import cycles. See the
@@ -27,6 +28,7 @@ where
 import Ledger.Utils
 import qualified Data.Map as Map
 import System.Time (ClockTime)
+import Data.Typeable (Typeable)
 
 
 type SmartDate = (String,String,String)
@@ -148,5 +150,5 @@ data Ledger = Ledger {
       rawledger :: RawLedger,
       accountnametree :: Tree AccountName,
       accountmap :: Map.Map AccountName Account
-    }
+    } deriving Typeable
 
