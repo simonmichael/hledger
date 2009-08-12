@@ -79,7 +79,7 @@ options = [
  ,Option ['V'] ["version"]      (NoArg  Version)       "show version information"
  ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "show verbose test output"
  ,Option []    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
- ,Option []    ["debug"]        (NoArg  Debug)         "show some debug output"
+ ,Option []    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
  ]
 
@@ -133,7 +133,8 @@ parseArguments = do
   let (os,as,es) = getOpt Permute options args
 --  istimequery <- usingTimeProgramName
 --  let os' = if istimequery then (Period "today"):os else os
-  os'' <- fixOptDates os
+  os' <- fixOptDates os
+  let os'' = if Debug `elem` os' then (Verbose:os') else os'
   case (as,es) of
     (cmd:args,[])   -> return (os'',cmd,args)
     ([],[])         -> return (os'',"",[])
