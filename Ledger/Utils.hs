@@ -209,7 +209,7 @@ treeany f t = f (root t) || any (treeany f) (branches t)
 
 -- | show a compact ascii representation of a tree
 showtree :: Show a => Tree a -> String
-showtree = unlines . filter (containsRegex "[^ |]") . lines . drawTree . treemap show
+showtree = unlines . filter (containsRegex "[^ \\|]") . lines . drawTree . treemap show
 
 -- | show a compact ascii representation of a forest
 showforest :: Show a => Forest a -> String
