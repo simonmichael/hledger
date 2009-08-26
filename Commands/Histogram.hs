@@ -29,6 +29,7 @@ showHistogram opts args l = concatMap (printDayWith countBar) daytxns
       days = filter (DateSpan Nothing Nothing /=) $ splitSpan interval fullspan
       daytxns = [(s, filter (isTransactionInDateSpan s) ts) | s <- days]
       -- same as Register
+      -- should count raw transactions, not posting transactions
       ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
       filterempties
           | Empty `elem` opts = id
