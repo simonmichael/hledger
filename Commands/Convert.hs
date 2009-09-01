@@ -24,15 +24,15 @@ Here's an example rules file:
 
 > 0,-,4,1
 >
-> ATM DEPOSIT
-> assets:bank:checking
->
-> (TO|FROM) SAVINGS
-> assets:bank:savings
+> SPECTRUM
+> expenses:health:gym
 >
 > ITUNES
 > BLKBSTR=BLOCKBUSTER
 > expenses:entertainment
+>
+> (TO|FROM) SAVINGS
+> assets:bank:savings
 
 -}
 
