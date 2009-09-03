@@ -7,7 +7,6 @@ A simple text UI for hledger, based on the vty library.
 module Commands.UI
 where
 import Graphics.Vty
-import qualified Data.ByteString.Char8 as B
 import Ledger
 import Options
 import Commands.Balance
@@ -22,8 +21,8 @@ instance Show Vty where show = const "a Vty"
 -- | The application state when running the ui command.
 data AppState = AppState {
      av :: Vty                   -- ^ the vty context
-    ,aw :: Int                   -- ^ window width
-    ,ah :: Int                   -- ^ window height
+    ,aw :: Int                  -- ^ window width
+    ,ah :: Int                  -- ^ window height
     ,amsg :: String              -- ^ status message
     ,aopts :: [Opt]              -- ^ command-line opts
     ,aargs :: [String]           -- ^ command-line args
@@ -51,13 +50,13 @@ data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
 ui :: [Opt] -> [String] -> Ledger -> IO ()
 ui opts args l = do
   v <- mkVty
-  (w,h) <- getSize v
+  DisplayBounds w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts
   let a = enter BalanceScreen $ 
           AppState {
                   av=v
-                 ,aw=w
-                 ,ah=h
+                 ,aw=fromIntegral w
+                 ,ah=fromIntegral h
                  ,amsg=helpmsg
                  ,aopts=opts'
                  ,aargs=args
@@ -71,7 +70,7 @@ ui opts args l = do
 go :: AppState -> IO ()
 go a@AppState{av=av,aw=_,ah=_,abuf=_,amsg=_,aopts=opts,aargs=_,aledger=_} = do
   when (not $ DebugNoUI `elem` opts) $ update av (renderScreen a)
-  k <- getEvent av
+  k <- next_event av
   case k of 
     EvResize x y                -> go $ resize x y a
     EvKey (KASCII 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
@@ -300,21 +299,21 @@ entryContainingTransaction AppState{aledger=l} t = (ledger_txns $ rawledger l) !
 
 renderScreen :: AppState -> Picture
 renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
-    pic {pCursor = Cursor cx cy,
-         pImage = mainimg
-                  <->
-                  renderStatus w msg
-        }
+    Picture {pic_cursor = Cursor (fromIntegral cx) (fromIntegral cy)
+            ,pic_image = mainimg
+                         <->
+                         renderStatus w msg
+            ,pic_background = Background ' ' def_attr
+            }
     where 
       (cx, cy) = (0, cursorY a)
       sy = scrollY a
       -- trying for more speed
-      mainimg = (vertcat $ map (render defaultattr) above)
+      mainimg = (vert_cat $ map (string defaultattr) above)
                <->
-               (render currentlineattr thisline)
+               (string currentlineattr thisline)
                <->
-               (vertcat $ map (render defaultattr) below)
-      render attr = renderBS attr . B.pack
+               (vert_cat $ map (string defaultattr) below)
       (thisline,below) | null rest = (blankline,[])
                        | otherwise = (head rest, tail rest)
       (above,rest) = splitAt cy linestorender
@@ -339,7 +338,7 @@ padClipString h w s = rows
       blankline = replicate w ' '
 
 renderString :: Attr -> String -> Image
-renderString attr s = vertcat $ map (renderBS attr . B.pack) rows
+renderString attr s = vert_cat $ map (string attr) rows
     where
       rows = lines $ fitto w h s
       w = maximum $ map length $ ls
@@ -347,7 +346,7 @@ renderString attr s = vertcat $ map (renderBS attr . B.pack) rows
       ls = lines s
 
 renderStatus :: Int -> String -> Image
-renderStatus w s = renderBS statusattr (B.pack $ take w (s ++ repeat ' ')) 
+renderStatus w s = string statusattr (take w (s ++ repeat ' ')) 
 
 
 -- the all-important theming engine
@@ -360,25 +359,25 @@ data UITheme = Restrained | Colorful | Blood
  currentlineattr, 
  statusattr
  ) = case theme of
-       Restrained -> (attr
-                    ,setBold attr
-                    ,setRV attr
+       Restrained -> (def_attr
+                    ,def_attr `with_style` bold
+                    ,def_attr `with_style` reverse_video
                     )
-       Colorful   -> (setRV attr
-                    ,setFG white $ setBG red $ attr
-                    ,setFG black $ setBG green $ attr
+       Colorful   -> (def_attr `with_style` reverse_video
+                    ,def_attr `with_fore_color` white `with_back_color` red
+                    ,def_attr `with_fore_color` black `with_back_color` green
                     )
-       Blood      -> (setRV attr
-                    ,setFG white $ setBG red $ attr
-                    ,setRV attr
+       Blood      -> (def_attr `with_style` reverse_video
+                    ,def_attr `with_fore_color` white `with_back_color` red
+                    ,def_attr `with_style` reverse_video
                     )
 
-halfbrightattr = setHalfBright attr
-reverseattr = setRV attr
-redattr = setFG red attr
-greenattr = setFG green attr
-reverseredattr = setRV $ setFG red attr
-reversegreenattr= setRV $ setFG green attr
+halfbrightattr = def_attr `with_style` dim
+reverseattr = def_attr `with_style` reverse_video
+redattr = def_attr `with_fore_color` red
+greenattr = def_attr `with_fore_color` green
+reverseredattr = def_attr `with_style` reverse_video `with_fore_color` red
+reversegreenattr= def_attr `with_style` reverse_video `with_fore_color` green
 
 --     pic { pCursor = Cursor x y,
 --           pImage = renderFill pieceA ' ' w y 
