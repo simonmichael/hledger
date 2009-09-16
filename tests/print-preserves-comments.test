@@ -1,0 +1,18 @@
+# let's have print preserve comments as far as possible
+-f - print
+<<<
+2009/1/1 x  ; description comment
+    a  1  ; amount comment
+    ; middle posting comment
+    b
+    ; trailing posting comment
+; post-entry comment
+>>>
+2009/01/01 x  ; description comment
+    a             1  ; amount comment
+    ; middle posting comment
+    b
+    ; trailing posting comment
+; post-entry comment (?)
+
+
