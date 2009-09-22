@@ -13,7 +13,6 @@ where
 import Ledger.Dates
 import Ledger.Utils
 import Ledger.Types
-import Ledger.Dates
 import Ledger.LedgerTransaction (showAccountName)
 import Ledger.Amount
 
