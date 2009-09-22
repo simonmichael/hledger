@@ -423,8 +423,7 @@ postingamount :: GenParser Char st MixedAmount
 postingamount =
   try (do
         many1 spacenonewline
-        a <- someamount <|> return missingamt
-        return a
+        someamount <|> return missingamt
       ) <|> return missingamt
 
 someamount :: GenParser Char st MixedAmount
