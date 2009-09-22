@@ -18,7 +18,7 @@ findDeps base pkg = do
         if not ex then return [] else do
             src <- readFile hi
             let imps = filter isImport (lines src)
-            return $ catMaybes $ map getTargetModule imps
+            return $ mapMaybe getTargetModule imps
 
     where dotToSlash '.' = '/'
           dotToSlash x   = x
