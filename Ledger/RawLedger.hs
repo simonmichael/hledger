@@ -58,7 +58,7 @@ addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries 
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
 rawLedgerTransactions = txnsof . ledger_txns
-    where txnsof ts = concat $ map flattenLedgerTransaction $ zip ts [1..]
+    where txnsof ts = concatMap flattenLedgerTransaction $ zip ts [1..]
 
 rawLedgerAccountNamesUsed :: RawLedger -> [AccountName]
 rawLedgerAccountNamesUsed = accountNamesFromTransactions . rawLedgerTransactions

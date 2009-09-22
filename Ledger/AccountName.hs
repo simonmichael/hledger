@@ -33,7 +33,7 @@ accountNameLevel a = length (filter (==acctsepchar) a) + 1
 
 -- | ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
-expandAccountNames as = nub $ concat $ map expand as
+expandAccountNames as = nub $ concatMap expand as
     where expand = map accountNameFromComponents . tail . inits . accountNameComponents
 
 -- | ["a:b:c","d:e"] -> ["a","d"]
