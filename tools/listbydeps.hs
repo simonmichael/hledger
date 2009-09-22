@@ -56,5 +56,5 @@ main = do [ base, pkgFile ] <- getArgs
           mods              <- mapM (allDeps base) pkgs
           let deps           = zip pkgs mods
           let deps'          = sortBy (comparing fst) deps
-          mapM_ print $ map fst $ sortBy (comparing $ length . snd) deps'
+          mapM_ (print . fst) (sortBy (comparing $ length . snd) deps')
 
