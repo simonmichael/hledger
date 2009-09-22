@@ -14,7 +14,7 @@ import System.IO.UTF8
 
 -- | Print a register report.
 register :: [Opt] -> [String] -> Ledger -> IO ()
-register opts args l = putStr $ showRegisterReport opts args l
+register opts args = putStr . showRegisterReport opts args
 
 {- |
 Generate the register report. Each ledger entry is displayed as two or
@@ -42,7 +42,7 @@ showRegisterReport opts args l
       (precedingts, ts') = break (matchdisplayopt dopt) ts
       (displayedts, _) = span (matchdisplayopt dopt) ts'
       startbal = sumTransactions precedingts
-      matchapats t = matchpats apats $ taccount t
+      matchapats = matchpats apats . taccount
       (apats,_) = parsePatternArgs args
       matchdisplayopt Nothing _ = True
       matchdisplayopt (Just e) t = (fromparse $ parsewith datedisplayexpr e) t

@@ -17,7 +17,7 @@ barchar = '*'
 -- | Print a histogram of some statistic per reporting interval, such as
 -- number of transactions per day.
 histogram :: [Opt] -> [String] -> Ledger -> IO ()
-histogram opts args l = putStr $ showHistogram opts args l
+histogram opts args = putStr . showHistogram opts args
 
 showHistogram :: [Opt] -> [String] -> Ledger -> String
 showHistogram opts args l = concatMap (printDayWith countBar) daytxns
@@ -33,7 +33,7 @@ showHistogram opts args l = concatMap (printDayWith countBar) daytxns
       filterempties
           | Empty `elem` opts = id
           | otherwise = filter (not . isZeroMixedAmount . tamount)
-      matchapats t = matchpats apats $ taccount t
+      matchapats = matchpats apats . taccount
       (apats,_) = parsePatternArgs args
       filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ taccount t) <= depth)
                   | otherwise = id
@@ -43,6 +43,6 @@ printDayWith f (DateSpan b _, ts) = printf "%s %s\n" (show $ fromJust b) (f ts)
 
 countBar ts = replicate (length ts) barchar
 
-total ts = show $ sumTransactions ts
+total = show . sumTransactions
 
 -- totalBar ts = replicate (sumTransactions ts) barchar

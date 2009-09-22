@@ -116,7 +116,7 @@ optsWithConstructor f opts = concatMap get opts
     where get o = if f v == o then [o] else [] where v = value o
 
 optsWithConstructors fs opts = concatMap get opts
-    where get o = if any (\f -> f == o) fs then [o] else []
+    where get o = if any (== o) fs then [o] else []
 
 optValuesForConstructor f opts = concatMap get opts
     where get o = if f v == o then [v] else [] where v = value o

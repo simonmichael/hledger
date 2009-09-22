@@ -109,7 +109,7 @@ import System.IO.UTF8
 
 -- | Print a balance report.
 balance :: [Opt] -> [String] -> Ledger -> IO ()
-balance opts args l = putStr $ showBalanceReport opts args l
+balance opts args = putStr . showBalanceReport opts args
 
 -- | Generate a balance report with the specified options for this ledger.
 showBalanceReport :: [Opt] -> [String] -> Ledger -> String
@@ -154,6 +154,6 @@ isInteresting opts l a
       notlikesub = not $ isZeroMixedAmount exclbalance where exclbalance = sumTransactions $ atransactions acct
       numinterestingsubs = length $ filter isInterestingTree subtrees
           where
-            isInterestingTree t = treeany (isInteresting opts l . aname) t
+            isInterestingTree = treeany (isInteresting opts l . aname)
             subtrees = map (fromJust . ledgerAccountTreeAt l) $ ledgerSubAccounts l $ ledgerAccount l a
 

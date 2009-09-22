@@ -111,7 +111,7 @@ choose_acct_desc rules (acct,desc) | null matchingrules = (acct,desc)
       matched = fst $ fst $ fromJust m
       d = fromMaybe matched repl
 
-matchregex s = matchRegexPR ("(?i)"++s)
+matchregex = matchRegexPR . ("(?i)" ++)
 
 fixdate :: String -> String
 fixdate s = maybe "0000/00/00" showDate $ 

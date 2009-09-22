@@ -70,7 +70,7 @@ splitDocTest s = (strip $ drop 1 $ strip $ head ls, unlines $ tail ls)
 doctests :: String -> [String]
 doctests s = filter isDocTest $ haddockLiterals s
     where
-      isDocTest s = (("$" `isPrefixOf`) . dropws) $ head $ lines s
+      isDocTest = (("$" `isPrefixOf`) . dropws) . head . lines
 
 -- extract haddock literal blocks from haskell source code
 haddockLiterals :: String -> [String]

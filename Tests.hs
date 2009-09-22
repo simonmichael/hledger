@@ -499,7 +499,7 @@ tests = [
 
   ,"dateSpanFromOpts" ~: do
     let todaysdate = parsedate "2008/11/26"
-    let opts `gives` spans = show (dateSpanFromOpts todaysdate opts) `is` spans
+    let gives = is . show . dateSpanFromOpts todaysdate
     [] `gives` "DateSpan Nothing Nothing"
     [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
     [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
@@ -519,9 +519,9 @@ tests = [
      let now = utcToLocalTime tz now'
          nowstr = showtime now
          yesterday = prevday today
-         clockin t a = TimeLogEntry In t a
-         mktime d s = LocalTime d $ fromMaybe midnight $ parseTime defaultTimeLocale "%H:%M:%S" s
-         showtime t = formatTime defaultTimeLocale "%H:%M" t
+         clockin = TimeLogEntry In
+         mktime d = LocalTime d . fromMaybe midnight . parseTime defaultTimeLocale "%H:%M:%S"
+         showtime = formatTime defaultTimeLocale "%H:%M"
          assertEntriesGiveStrings name es ss = assertEqual name ss (map ltdescription $ entriesFromTimeLogEntries now es)
 
      assertEntriesGiveStrings "started yesterday, split session at midnight"
@@ -544,7 +544,7 @@ tests = [
      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
 
   ,"intervalFromOpts" ~: do
-    let opts `gives` interval = intervalFromOpts opts `is` interval
+    let gives = is . intervalFromOpts
     [] `gives` NoInterval
     [WeeklyOpt] `gives` Weekly
     [MonthlyOpt] `gives` Monthly
@@ -777,8 +777,8 @@ tests = [
   ,"register report with display expression" ~:
    do 
     l <- sampleledger
-    let displayexpr `gives` dates = 
-            registerdates (showRegisterReport [Display displayexpr] [] l) `is` dates
+    let gives displayexpr = 
+            (registerdates (showRegisterReport [Display displayexpr] [] l) `is`)
     "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
     "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
     "d=[2008/6/2]"  `gives` ["2008/06/02"]
@@ -889,7 +889,7 @@ tests = [
       ,"                                актив:наличные                 -100            0"]
 
   ,"smart dates" ~: do
-    let str `gives` datestr = fixSmartDateStr (parsedate "2008/11/26") str `is` datestr
+    let gives = is . fixSmartDateStr (parsedate "2008/11/26")
     "1999-12-02"   `gives` "1999/12/02"
     "1999.12.02"   `gives` "1999/12/02"
     "1999/3/2"     `gives` "1999/03/02"
@@ -924,7 +924,7 @@ tests = [
 --     "next january" `gives` "2009/01/01"
 
   ,"splitSpan" ~: do
-    let (interval,span) `gives` spans = splitSpan interval span `is` spans
+    let gives (interval, span) = (splitSpan interval span `is`)
     (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
      [mkdatespan "2008/01/01" "2009/01/01"]
     (Quarterly,mkdatespan "2008/01/01" "2009/01/01") `gives`
@@ -946,8 +946,8 @@ tests = [
     (map aname $ ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
   ,"summariseTransactionsInDateSpan" ~: do
-    let (b,e,tnum,depth,showempty,ts) `gives` summaryts = 
-            summariseTransactionsInDateSpan (mkdatespan b e) tnum depth showempty ts `is` summaryts
+    let gives (b,e,tnum,depth,showempty,ts) = 
+            (summariseTransactionsInDateSpan (mkdatespan b e) tnum depth showempty ts `is`)
     let ts =
             [
              nulltxn{tdescription="desc",taccount="expenses:food:groceries",tamount=Mixed [dollars 1]}

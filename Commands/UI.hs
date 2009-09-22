@@ -141,7 +141,7 @@ resize x y a = setCursorY cy' a{aw=x,ah=y}
       cy' = min cy (y-2)
 
 moveToTop :: AppState -> AppState
-moveToTop a = setPosY 0 a
+moveToTop = setPosY 0
 
 moveToBottom :: AppState -> AppState
 moveToBottom a = setPosY (length $ abuf a) a
@@ -216,7 +216,7 @@ enter scr@RegisterScreen a = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 enter scr@PrintScreen a    = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 -- enter scr@LedgerScreen a   = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 
-resetTrailAndEnter scr a = enter scr $ clearLocs a
+resetTrailAndEnter scr = enter scr . clearLocs
 
 -- | Regenerate the display data appropriate for the current screen.
 updateData :: AppState -> AppState
@@ -318,7 +318,7 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
                        | otherwise = (head rest, tail rest)
       (above,rest) = splitAt cy linestorender
       linestorender = map padclipline $ take (h-1) $ drop sy $ buf ++ replicate h blankline
-      padclipline l = take w $ l ++ blankline
+      padclipline = take w . (++ blankline)
       blankline = replicate w ' '
 --       mainimg = (renderString attr $ unlines $ above)
 --           <->
@@ -334,7 +334,7 @@ padClipString :: Int -> Int -> String -> [String]
 padClipString h w s = rows
     where
       rows = map padclipline $ take h $ lines s ++ replicate h blankline
-      padclipline l = take w $ l ++ blankline
+      padclipline = take w . (++ blankline)
       blankline = replicate w ' '
 
 renderString :: Attr -> String -> Image
@@ -346,7 +346,7 @@ renderString attr s = vert_cat $ map (string attr) rows
       ls = lines s
 
 renderStatus :: Int -> String -> Image
-renderStatus w s = string statusattr (take w (s ++ repeat ' ')) 
+renderStatus w = string statusattr . take w . (++ repeat ' ')
 
 
 -- the all-important theming engine

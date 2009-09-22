@@ -65,7 +65,7 @@ rawLedgerAccountNames :: RawLedger -> [AccountName]
 rawLedgerAccountNames = sort . expandAccountNames . rawLedgerAccountNamesUsed
 
 rawLedgerAccountNameTree :: RawLedger -> Tree AccountName
-rawLedgerAccountNameTree l = accountNameTreeFrom $ rawLedgerAccountNames l
+rawLedgerAccountNameTree = accountNameTreeFrom . rawLedgerAccountNames
 
 -- | Remove ledger transactions we are not interested in.
 -- Keep only those which fall between the begin and end dates, and match
@@ -191,5 +191,5 @@ matchpats pats str =
       match "" = True
       match pat = containsRegex (abspat pat) str
       negateprefix = "not:"
-      isnegativepat pat = negateprefix `isPrefixOf` pat
+      isnegativepat = (negateprefix `isPrefixOf`)
       abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat

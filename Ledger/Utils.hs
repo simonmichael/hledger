@@ -130,14 +130,14 @@ padright w s = intercalate "\n" $ map (printf (printf "%%-%ds" w)) $ lines s
 
 -- | Clip a multi-line string to the specified width and height from the top left.
 cliptopleft :: Int -> Int -> String -> String
-cliptopleft w h s = intercalate "\n" $ take h $ map (take w) $ lines s
+cliptopleft w h = intercalate "\n" . take h . map (take w) . lines
 
 -- | Clip and pad a multi-line string to fill the specified width and height.
 fitto :: Int -> Int -> String -> String
 fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
     where
       rows = map (fit w) $ lines s
-      fit w s = take w $ s ++ repeat ' '
+      fit w = take w . (++ repeat ' ')
       blankline = replicate w ' '
 
 -- math
@@ -236,10 +236,10 @@ tracewith f e = trace (f e) e
 -- parsing
 
 parsewith :: Parser a -> String -> Either ParseError a
-parsewith p ts = parse p "" ts
+parsewith p = parse p ""
 
 parseWithCtx :: b -> GenParser Char b a -> String -> Either ParseError a
-parseWithCtx ctx p ts = runParser p ctx "" ts
+parseWithCtx ctx p = runParser p ctx ""
 
 fromparse :: Either ParseError a -> a
 fromparse = either (\e -> error $ "parse error at "++(show e)) id
@@ -248,7 +248,7 @@ nonspace :: GenParser Char st Char
 nonspace = satisfy (not . isSpace)
 
 spacenonewline :: GenParser Char st Char
-spacenonewline = satisfy (\c -> c `elem` " \v\f\t")
+spacenonewline = satisfy (`elem` " \v\f\t")
 
 restofline :: GenParser Char st String
 restofline = anyChar `manyTill` newline

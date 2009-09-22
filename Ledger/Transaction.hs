@@ -34,7 +34,7 @@ flattenLedgerTransaction (LedgerTransaction d _ s _ desc _ ps _, n) =
     [Transaction n s d desc (paccount p) (pamount p) (ptype p) | p <- ps]
 
 accountNamesFromTransactions :: [Transaction] -> [AccountName]
-accountNamesFromTransactions ts = nub $ map taccount ts
+accountNamesFromTransactions = nub . map taccount
 
 sumTransactions :: [Transaction] -> MixedAmount
 sumTransactions = sum . map tamount

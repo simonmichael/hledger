@@ -34,14 +34,14 @@ accountNameLevel a = (length $ filter (==acctsepchar) a) + 1
 -- | ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
 expandAccountNames as = nub $ concat $ map expand as
-    where expand as = map accountNameFromComponents (tail $ inits $ accountNameComponents as)
+    where expand = map accountNameFromComponents . tail . inits . accountNameComponents
 
 -- | ["a:b:c","d:e"] -> ["a","d"]
 topAccountNames :: [AccountName] -> [AccountName]
 topAccountNames as = [a | a <- expandAccountNames as, accountNameLevel a == 1]
 
 parentAccountName :: AccountName -> AccountName
-parentAccountName a = accountNameFromComponents $ init $ accountNameComponents a
+parentAccountName = accountNameFromComponents . init . accountNameComponents
 
 parentAccountNames :: AccountName -> [AccountName]
 parentAccountNames a = parentAccountNames' $ parentAccountName a
@@ -50,7 +50,7 @@ parentAccountNames a = parentAccountNames' $ parentAccountName a
       parentAccountNames' a = [a] ++ (parentAccountNames' $ parentAccountName a)
 
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
-p `isAccountNamePrefixOf` s = ((p ++ [acctsepchar] ) `isPrefixOf` s)
+isAccountNamePrefixOf = isPrefixOf . (++ [acctsepchar])
 
 isSubAccountNameOf :: AccountName -> AccountName -> Bool
 s `isSubAccountNameOf` p = 

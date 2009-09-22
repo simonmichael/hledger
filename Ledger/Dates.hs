@@ -30,7 +30,7 @@ import Ledger.Utils
 
 
 showDate :: Day -> String
-showDate d = formatTime defaultTimeLocale "%Y/%m/%d" d
+showDate = formatTime defaultTimeLocale "%Y/%m/%d"
 
 getCurrentDay :: IO Day
 getCurrentDay = do
@@ -38,7 +38,7 @@ getCurrentDay = do
     return $ localDay (zonedTimeToLocalTime t)
 
 elapsedSeconds :: Fractional a => UTCTime -> UTCTime -> a
-elapsedSeconds t1 t2 = realToFrac $ diffUTCTime t1 t2
+elapsedSeconds t1 = realToFrac . diffUTCTime t1
 
 -- | Split a DateSpan into one or more consecutive spans at the specified interval.
 splitSpan :: Interval -> DateSpan -> [DateSpan]
@@ -420,4 +420,4 @@ justdatespan rdate = do
 
 nulldatespan = DateSpan Nothing Nothing
 
-mkdatespan b e = DateSpan (Just $ parsedate b) (Just $ parsedate e)
+mkdatespan b = DateSpan (Just $ parsedate b) . Just . parsedate

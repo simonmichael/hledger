@@ -113,7 +113,7 @@ ledgerInclude = do many1 spacenonewline
                    let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
                    return $ do contents <- expandPath outerPos filename >>= readFileE outerPos
                                case runParser ledgerFile outerState filename contents of
-                                 Right l   -> l `catchError` (\err -> throwError $ inIncluded ++ err)
+                                 Right l   -> l `catchError` (throwError . (inIncluded ++))
                                  Left perr -> throwError $ inIncluded ++ show perr
     where readFileE outerPos filename = ErrorT $ do (liftM Right $ readFile filename) `catch` leftError
               where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
@@ -376,7 +376,7 @@ ledgercode = try (do { char '(' <?> "code"; code <- anyChar `manyTill` char ')';
 ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
 ledgerpostings = do
   ctx <- getState
-  let p `parses` s = isRight $ parseWithCtx ctx p s
+  let parses p = isRight . parseWithCtx ctx p
   ls <- many1 linebeginningwithspaces
   let ls' = filter (not . (ledgercommentline `parses`)) ls
   guard (not $ null ls')

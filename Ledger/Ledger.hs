@@ -127,27 +127,27 @@ transactionsByAccount ts = m'
 --      m' = Map.insert "top" sortedts m
 
 filtertxns :: [String] -> [Transaction] -> [Transaction]
-filtertxns apats ts = filter (matchpats apats . taccount) ts
+filtertxns apats = filter (matchpats apats . taccount)
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]
-ledgerAccountNames l = drop 1 $ flatten $ accountnametree l
+ledgerAccountNames = drop 1 . flatten . accountnametree
 
 -- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
-ledgerAccount l a = (accountmap l) ! a
+ledgerAccount = (!) . accountmap
 
 -- | List a ledger's accounts, in tree order
 ledgerAccounts :: Ledger -> [Account]
-ledgerAccounts l = drop 1 $ flatten $ ledgerAccountTree 9999 l
+ledgerAccounts = drop 1 . flatten . ledgerAccountTree 9999
 
 -- | List a ledger's top-level accounts, in tree order
 ledgerTopAccounts :: Ledger -> [Account]
-ledgerTopAccounts l = map root $ branches $ ledgerAccountTree 9999 l
+ledgerTopAccounts = map root . branches . ledgerAccountTree 9999
 
 -- | Accounts in ledger whose name matches the pattern, in tree order.
 ledgerAccountsMatching :: [String] -> Ledger -> [Account]
-ledgerAccountsMatching pats l = filter (matchpats pats . aname) $ accounts l
+ledgerAccountsMatching pats = filter (matchpats pats . aname) . accounts
 
 -- | List a ledger account's immediate subaccounts
 ledgerSubAccounts :: Ledger -> Account -> [Account]
@@ -156,7 +156,7 @@ ledgerSubAccounts l Account{aname=a} =
 
 -- | List a ledger's "transactions", ie postings with transaction info attached.
 ledgerTransactions :: Ledger -> [Transaction]
-ledgerTransactions l = rawLedgerTransactions $ rawledger l
+ledgerTransactions = rawLedgerTransactions . rawledger
 
 -- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Int -> Ledger -> Tree Account

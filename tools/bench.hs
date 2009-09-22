@@ -92,16 +92,16 @@ data Opt = File {value::String}
 
 -- option value getters.
 fileopt :: [Opt] -> String
-fileopt opts = optValueWithDefault File "bench.tests" opts
+fileopt = optValueWithDefault File "bench.tests"
 
 precisionopt :: [Opt] -> Int
-precisionopt opts = read $ optValueWithDefault Prec "2" opts
+precisionopt = read . optValueWithDefault Prec "2"
 
 numopt :: [Opt] -> Int
-numopt opts = read $ optValueWithDefault Num "2" opts
+numopt = read . optValueWithDefault Num "2"
 
 verboseopt :: [Opt] -> Bool
-verboseopt opts = Verbose `elem` opts
+verboseopt = (Verbose `elem`)
 
 -- options utilities
 parseargs :: [String] -> ([Opt],[String])
