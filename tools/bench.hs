@@ -128,8 +128,8 @@ main = do
   putStrLn $ printf "Using %s" file
   putStrLn $ printf "Running %d tests %d times with %d executables at %s:" 
                (length tests) num (length exes) (show now)
-  let doexe t e = sequence $ map (doiteration opts t e) [1..num]
-  let dotest t = sequence $ map (doexe t) exes
+  let doexe t e = mapM (doiteration opts t e) [1..num]
+  let dotest t = mapM (doexe t) exes
   hSetBuffering stdout NoBuffering
   results <- mapM dotest tests
   summarise opts tests exes results 
