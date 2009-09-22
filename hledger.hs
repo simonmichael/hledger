@@ -1,5 +1,5 @@
 -- #!/usr/bin/env runhaskell  <- sp doesn't like
-{-# OPTIONS_GHC -cpp #-}
+{-# LANGUAGE CPP #-}
 {-|
 hledger - a ledger-compatible text-based accounting tool.
 

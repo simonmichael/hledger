@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -cpp #-}
+{-# LANGUAGE CPP #-}
 {-| 
 
 The Commands package defines all the commands offered by the hledger

@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -cpp #-}
+{-# LANGUAGE CPP #-}
 {-
 Version-related utilities. See the Makefile for details of our version
 numbering policy.
