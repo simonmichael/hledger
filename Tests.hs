@@ -285,7 +285,7 @@ tests = [
                            )
    ]
 
-  ,"accountnames" ~: do
+  ,"accountnames" ~:
     accountnames ledger7 `is`
      ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
@@ -487,14 +487,14 @@ tests = [
                         Right e' -> (pamount $ last $ ltpostings e')
                         Left _ -> error "should not happen")
 
-  ,"cacheLedger" ~: do
+  ,"cacheLedger" ~:
     length (Map.keys $ accountmap $ cacheLedger [] rawledger7) `is` 15
 
   ,"canonicaliseAmounts" ~:
-   "use the greatest precision" ~: do
+   "use the greatest precision" ~:
     rawLedgerPrecisions (canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"]) `is` [2,2]
 
-  ,"commodities" ~: do
+  ,"commodities" ~:
     commodities ledger7 `is` [Commodity {symbol="$", side=L, spaced=False, comma=False, precision=2}]
 
   ,"dateSpanFromOpts" ~: do
@@ -539,7 +539,7 @@ tests = [
                                   [clockin future ""]
                                   [printf "%s-%s" futurestr futurestr]
 
-  ,"expandAccountNames" ~: do
+  ,"expandAccountNames" ~:
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
 
@@ -623,7 +623,7 @@ tests = [
     r <- rawLedgerFromString "" -- don't know how to get it from ledgerFile
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ ledger_txns r
 
-  ,"ledgerHistoricalPrice" ~: do
+  ,"ledgerHistoricalPrice" ~:
     parseWithCtx emptyCtx ledgerHistoricalPrice price1_str `parseis` price1
 
   ,"ledgerTransaction" ~: do
@@ -642,7 +642,7 @@ tests = [
     assertBool "ledgeraccountname rejects an empty leading component" (isLeft $ parsewith ledgeraccountname ":b:c")
     assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
 
-  ,"ledgerposting" ~: do
+  ,"ledgerposting" ~:
     parseWithCtx emptyCtx ledgerposting rawposting1_str `parseis` rawposting1
 
   ,"parsedate" ~: do

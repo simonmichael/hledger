@@ -72,7 +72,7 @@ parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
 -- the current (local) time to calculate any unfinished timelog sessions,
 -- we pass it in for repeatability.
 parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO RawLedger
-parseLedger reftime inname intxt = do
+parseLedger reftime inname intxt =
   case runParser ledgerFile emptyCtx inname intxt of
     Right m  -> liftM (rawLedgerConvertTimeLog reftime) $ m `ap` (return rawLedgerEmpty)
     Left err -> throwError $ show err
@@ -115,7 +115,7 @@ ledgerInclude = do many1 spacenonewline
                                case runParser ledgerFile outerState filename contents of
                                  Right l   -> l `catchError` (throwError . (inIncluded ++))
                                  Left perr -> throwError $ inIncluded ++ show perr
-    where readFileE outerPos filename = ErrorT $ do liftM Right (readFile filename) `catch` leftError
+    where readFileE outerPos filename = ErrorT $ liftM Right (readFile filename) `catch` leftError
               where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
                     currentPos = show outerPos
                     whileReading = " reading " ++ show filename ++ ":\n"

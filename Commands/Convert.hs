@@ -95,7 +95,7 @@ print_ledger_txn debug (baseacct,fieldpositions,rules) record@(_:_:_:_:_:[]) = d
   putStrLn $ printf "%s%s %s" (fixdate date) (if not (null number) then printf " (%s)" number else "") desc
   putStrLn $ printf "    %-30s  %15s" acct (printf "$%s" amount' :: String)
   putStrLn $ printf "    %s\n" baseacct
-print_ledger_txn True _ record = do
+print_ledger_txn True _ record =
   hPutStrLn stderr $ printf "ignoring %s" $ show record
 print_ledger_txn _ _ _ = return ()
 
