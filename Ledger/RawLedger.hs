@@ -40,19 +40,19 @@ rawLedgerEmpty = RawLedger { modifier_txns = []
                            }
 
 addLedgerTransaction :: LedgerTransaction -> RawLedger -> RawLedger
-addLedgerTransaction t l0 = l0 { ledger_txns = t : (ledger_txns l0) }
+addLedgerTransaction t l0 = l0 { ledger_txns = t : ledger_txns l0 }
 
 addModifierTransaction :: ModifierTransaction -> RawLedger -> RawLedger
-addModifierTransaction mt l0 = l0 { modifier_txns = mt : (modifier_txns l0) }
+addModifierTransaction mt l0 = l0 { modifier_txns = mt : modifier_txns l0 }
 
 addPeriodicTransaction :: PeriodicTransaction -> RawLedger -> RawLedger
-addPeriodicTransaction pt l0 = l0 { periodic_txns = pt : (periodic_txns l0) }
+addPeriodicTransaction pt l0 = l0 { periodic_txns = pt : periodic_txns l0 }
 
 addHistoricalPrice :: HistoricalPrice -> RawLedger -> RawLedger
-addHistoricalPrice h l0 = l0 { historical_prices = h : (historical_prices l0) }
+addHistoricalPrice h l0 = l0 { historical_prices = h : historical_prices l0 }
 
 addTimeLogEntry :: TimeLogEntry -> RawLedger -> RawLedger
-addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : (open_timelog_entries l0) }
+addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries l0 }
 
 rawLedgerTransactions :: RawLedger -> [Transaction]
 rawLedgerTransactions = txnsof . ledger_txns
@@ -90,7 +90,7 @@ filterRawLedgerTransactionsByDate :: DateSpan -> RawLedger -> RawLedger
 filterRawLedgerTransactionsByDate (DateSpan begin end) (RawLedger ms ps ts tls hs f fp) = 
     RawLedger ms ps (filter matchdate ts) tls hs f fp
     where 
-      matchdate t = (maybe True (ltdate t>=) begin) && (maybe True (ltdate t<) end)
+      matchdate t = maybe True (ltdate t>=) begin && maybe True (ltdate t<) end
 
 -- | Keep only ledger transactions which have the requested
 -- cleared/uncleared status, if there is one.

@@ -17,10 +17,10 @@ import Ledger.Amount
 instance Show LedgerTransaction where show = showLedgerTransaction
 
 instance Show ModifierTransaction where 
-    show t = "= " ++ (mtvalueexpr t) ++ "\n" ++ unlines (map show (mtpostings t))
+    show t = "= " ++ mtvalueexpr t ++ "\n" ++ unlines (map show (mtpostings t))
 
 instance Show PeriodicTransaction where 
-    show t = "~ " ++ (ptperiodicexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
+    show t = "~ " ++ ptperiodicexpr t ++ "\n" ++ unlines (map show (ptpostings t))
 
 nullledgertxn :: LedgerTransaction
 nullledgertxn = LedgerTransaction {
@@ -67,7 +67,7 @@ showLedgerTransaction' elide effective t =
       date | effective = showdate $ fromMaybe (ltdate t) $ lteffectivedate t
            | otherwise = showdate (ltdate t) ++ maybe "" showedate (lteffectivedate t)
       status = if ltstatus t then " *" else ""
-      code = if length (ltcode t) > 0 then (printf " (%s)" $ ltcode t) else ""
+      code = if length (ltcode t) > 0 then printf " (%s)" $ ltcode t else ""
       desc = " " ++ ltdescription t
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
@@ -81,7 +81,7 @@ showLedgerTransaction' elide effective t =
             showacct p = "    " ++ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
             w = maximum $ map (length . paccount) ps
             showamount = printf "%12s" . showMixedAmount
-            showcomment s = if (length s) > 0 then "  ; "++s else ""
+            showcomment s = if length s > 0 then "  ; "++s else ""
             showstatus p = if pstatus p then "* " else ""
 
 -- | Show an account name, clipped to the given width if any, and

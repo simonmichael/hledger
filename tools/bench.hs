@@ -170,7 +170,7 @@ maketable opts rownames colnames results = Table rowhdrs colhdrs rows
  where
   rowhdrs = Group NoLine $ map Header $ padright rownames
   colhdrs = Group SingleLine $ map Header colnames
-  rows = map (map ((showtime opts) . minimum)) results
+  rows = map (map (showtime opts . minimum)) results
   padright ss = map (printf (printf "%%-%ds" w)) ss
       where w = maximum $ map length ss
 

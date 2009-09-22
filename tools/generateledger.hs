@@ -50,7 +50,7 @@ group (a:as) = [a] ++ map ((a++":")++) (group as)
 pair :: [a] -> [(a,a)]
 pair [] = []
 pair [a] = [(a,a)]
-pair (a:b:rest) = ((a,b):(pair rest))
+pair (a:b:rest) = (a,b):pair rest
 
 getCurrentDay :: IO Day
 getCurrentDay = do

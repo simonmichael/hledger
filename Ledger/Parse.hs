@@ -74,7 +74,7 @@ parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
 parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO RawLedger
 parseLedger reftime inname intxt =
   case runParser ledgerFile emptyCtx inname intxt of
-    Right m  -> liftM (rawLedgerConvertTimeLog reftime) $ m `ap` (return rawLedgerEmpty)
+    Right m  -> liftM (rawLedgerConvertTimeLog reftime) $ m `ap` return rawLedgerEmpty
     Left err -> throwError $ show err
 
 

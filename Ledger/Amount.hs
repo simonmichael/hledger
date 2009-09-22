@@ -116,7 +116,7 @@ showAmount' (Amount (Commodity {comma=comma,precision=p}) q _) = quantity
 -- | Add thousands-separating commas to a decimal number string
 punctuatethousands :: String -> String
 punctuatethousands s =
-    sign ++ (addcommas int) ++ frac
+    sign ++ addcommas int ++ frac
     where 
       (sign,num) = break isDigit s
       (int,frac) = break (=='.') num
@@ -206,5 +206,5 @@ nullmixedamt = Mixed []
 
 -- | A temporary value for parsed transactions which had no amount specified.
 missingamt :: MixedAmount
-missingamt = Mixed [Amount (Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0}) 0 Nothing]
+missingamt = Mixed [Amount Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0} 0 Nothing]
 

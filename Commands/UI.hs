@@ -311,7 +311,7 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
       -- trying for more speed
       mainimg = vert_cat (map (string defaultattr) above)
                <->
-               (string currentlineattr thisline)
+               string currentlineattr thisline
                <->
                vert_cat (map (string defaultattr) below)
       (thisline,below) | null rest = (blankline,[])

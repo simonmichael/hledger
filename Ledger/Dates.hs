@@ -303,8 +303,8 @@ monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","n
 weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
 weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
-monthIndex s = maybe 0 (+1) $ (lowercase s) `elemIndex` months
-monIndex s   = maybe 0 (+1) $ (lowercase s) `elemIndex` monthabbrevs
+monthIndex s = maybe 0 (+1) $ lowercase s `elemIndex` months
+monIndex s   = maybe 0 (+1) $ lowercase s `elemIndex` monthabbrevs
 
 month :: GenParser Char st SmartDate
 month = do

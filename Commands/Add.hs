@@ -111,7 +111,7 @@ getPostings historicalps enteredps = do
 -- input is valid. May also raise an EOF exception if control-d is pressed.
 askFor :: String -> Maybe String -> Maybe (String -> Bool) -> IO String
 askFor prompt def validator = do
-  hPutStr stderr $ prompt ++ (maybe "" showdef def) ++ ": "
+  hPutStr stderr $ prompt ++ maybe "" showdef def ++ ": "
   hFlush stderr
   l <- getLine
   let input = if null l then fromMaybe l def else l
@@ -166,14 +166,14 @@ compareStrings "" "" = 1
 compareStrings (_:[]) "" = 0
 compareStrings "" (_:[]) = 0
 compareStrings (a:[]) (b:[]) = if toUpper a == toUpper b then 1 else 0
-compareStrings s1 s2 = 2.0 * (fromIntegral i) / (fromIntegral u)
+compareStrings s1 s2 = 2.0 * fromIntegral i / fromIntegral u
     where
       i = length $ intersect pairs1 pairs2
       u = length pairs1 + length pairs2
       pairs1 = wordLetterPairs $ uppercase s1
       pairs2 = wordLetterPairs $ uppercase s2
 wordLetterPairs = concatMap letterPairs . words
-letterPairs (a:b:rest) = [a,b]:(letterPairs (b:rest))
+letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
 letterPairs _ = []
 
 compareLedgerDescriptions s t = compareStrings s' t'

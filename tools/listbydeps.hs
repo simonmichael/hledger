@@ -13,7 +13,7 @@ import Data.Ord
     that it imports.
 -}
 findDeps base pkg = do
-        let hi = base ++ (map dotToSlash pkg) ++ ".hs"
+        let hi = base ++ map dotToSlash pkg ++ ".hs"
         ex <- doesFileExist hi
         if not ex then return [] else do
             src <- readFile hi

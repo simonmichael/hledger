@@ -17,7 +17,7 @@ main = do
   putStr $ unlines firstpart
   let fields = map getfields $ filter (not . null) $ drop 2 secondpart
   let maxnamelen = maximum $ map (length . head) fields
-  let fmt = "%-"++(show maxnamelen)++"s %10s %5s %6s %9s %10s"
+  let fmt = "%-" ++ show maxnamelen ++ "s %10s %5s %6s %9s %10s"
   putStrLn $ showheading fmt
   putStr $ unlines $ map (format fmt) fields
 

@@ -242,7 +242,7 @@ parseWithCtx :: b -> GenParser Char b a -> String -> Either ParseError a
 parseWithCtx ctx p = runParser p ctx ""
 
 fromparse :: Either ParseError a -> a
-fromparse = either (\e -> error $ "parse error at "++(show e)) id
+fromparse = either (\e -> error $ "parse error at "++ show e) id
 
 nonspace :: GenParser Char st Char
 nonspace = satisfy (not . isSpace)

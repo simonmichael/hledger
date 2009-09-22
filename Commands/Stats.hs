@@ -23,7 +23,7 @@ showStats _ _ l today =
     heading ++ unlines (map (\(a,b) -> printf fmt a b) stats)
     where
       heading = underline $ printf "Ledger statistics as of %s" (show today)
-      fmt = "%-" ++ (show w1) ++ "s: %-" ++ (show w2) ++ "s"
+      fmt = "%-" ++ show w1 ++ "s: %-" ++ show w2 ++ "s"
       w1 = maximum $ map (length . fst) stats
       w2 = maximum $ map (length . show . snd) stats
       stats = [
@@ -57,9 +57,9 @@ showStats _ _ l today =
              txnrate | days==0 = 0
                      | otherwise = fromIntegral tnum / fromIntegral days :: Double
              tnum30 = length $ filter withinlast30 ts
-             withinlast30 t = (d>=(addDays (-30) today) && (d<=today)) where d = ltdate t
+             withinlast30 t = d >= addDays (-30) today && (d<=today) where d = ltdate t
              txnrate30 = fromIntegral tnum30 / 30 :: Double
              tnum7 = length $ filter withinlast7 ts
-             withinlast7 t = (d>=(addDays (-7) today) && (d<=today)) where d = ltdate t
+             withinlast7 t = d >= addDays (-7) today && (d<=today) where d = ltdate t
              txnrate7 = fromIntegral tnum7 / 7 :: Double
 

@@ -216,8 +216,8 @@ runtests opts args = do
    then exitFailure
    else exitWith ExitSuccess
     where
-      runner | (Verbose `elem` opts) = runVerboseTests
-             | otherwise = \t -> runTestTT t >>= return . (flip (,) 0)
+      runner | Verbose `elem` opts = runVerboseTests
+             | otherwise = \t -> runTestTT t >>= return . flip (,) 0
       ts = TestList $ filter matchname $ concatMap tflatten tests
       --ts = tfilter matchname $ TestList tests -- unflattened
       matchname = matchpats args . tname
@@ -305,9 +305,9 @@ tests = [
     (a1 + a3) `is` Amount (comm "$") 0 Nothing
     (a2 + a3) `is` Amount (comm "$") (-2.46) Nothing
     (a3 + a3) `is` Amount (comm "$") (-2.46) Nothing
-    (sum [a2,a3]) `is` Amount (comm "$") (-2.46) Nothing
-    (sum [a3,a3]) `is` Amount (comm "$") (-2.46) Nothing
-    (sum [a1,a2,a3,-a3]) `is` Amount (comm "$") 0 Nothing
+    sum [a2,a3] `is` Amount (comm "$") (-2.46) Nothing
+    sum [a3,a3] `is` Amount (comm "$") (-2.46) Nothing
+    sum [a1,a2,a3,-a3] `is` Amount (comm "$") 0 Nothing
 
   ,"balance report tests" ~:
    let (opts,args) `gives` es = do 
@@ -983,7 +983,7 @@ tests = [
   ,"postingamount" ~: do
     parseWithCtx emptyCtx postingamount " $47.18" `parseis` Mixed [dollars 47.18]
     parseWithCtx emptyCtx postingamount " $1." `parseis` 
-     Mixed [Amount (Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0}) 1 Nothing]
+     Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing]
 
   ]
 
@@ -1061,9 +1061,9 @@ entry1_str = unlines
  ]
 
 entry1 =
-    (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+    LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
      [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting, 
-      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting] "")
+      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting] ""
 
 
 entry2_str = unlines
@@ -1390,7 +1390,7 @@ price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" "$" 55
 
 a1 = Mixed [(hours 1){price=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
 a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
-a3 = Mixed $ (amounts a1) ++ (amounts a2)
+a3 = Mixed $ amounts a1 ++ amounts a2
 
 rawLedgerWithAmounts :: [String] -> RawLedger
 rawLedgerWithAmounts as = 

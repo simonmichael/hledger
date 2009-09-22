@@ -17,7 +17,7 @@ import Control.Monad (liftM)
 progname      = "hledger"
 timeprogname  = "hours"
 
-usagehdr = (
+usagehdr =
   "Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]\n" ++
   "       hours   [OPTIONS] [COMMAND [PATTERNS]]\n" ++
   "       hledger convert CSVFILE ACCOUNTNAME RULESFILE\n" ++
@@ -48,7 +48,7 @@ usagehdr = (
   "DATES can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
   "\n" ++
   "Options:"
-  )
+
 usageftr = ""
 usage = usageInfo usagehdr options ++ usageftr
 
@@ -134,7 +134,7 @@ parseArguments = do
 --  istimequery <- usingTimeProgramName
 --  let os' = if istimequery then (Period "today"):os else os
   os' <- fixOptDates os
-  let os'' = if Debug `elem` os' then (Verbose:os') else os'
+  let os'' = if Debug `elem` os' then Verbose:os' else os'
   case (as,es) of
     (cmd:args,[])   -> return (os'',cmd,args)
     ([],[])         -> return (os'',"",[])
@@ -216,7 +216,7 @@ ledgerFilePathFromOpts :: [Opt] -> IO String
 ledgerFilePathFromOpts opts = do
   istimequery <- usingTimeProgramName
   f <- if istimequery then myTimelogPath else myLedgerPath
-  return $ last $ f:(optValuesForConstructor File opts)
+  return $ last $ f : optValuesForConstructor File opts
 
 -- | Gather filter pattern arguments into a list of account patterns and a
 -- list of description patterns. We interpret pattern arguments as
