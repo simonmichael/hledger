@@ -20,7 +20,7 @@ stats opts args l = do
 
 showStats :: [Opt] -> [String] -> Ledger -> Day -> String
 showStats _ _ l today =
-    heading ++ unlines (map (\(a,b) -> printf fmt a b) stats)
+    heading ++ unlines (map (uncurry (printf fmt)) stats)
     where
       heading = underline $ printf "Ledger statistics as of %s" (show today)
       fmt = "%-" ++ show w1 ++ "s: %-" ++ show w2 ++ "s"
