@@ -52,7 +52,7 @@ ui opts args l = do
   v <- mkVty
   DisplayBounds w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts
-  let a = enter BalanceScreen $ 
+  let a = enter BalanceScreen
           AppState {
                   av=v
                  ,aw=fromIntegral w
@@ -269,7 +269,7 @@ accountNameAt buf lineno = accountNameFromComponents anamecomponents
 scrollToLedgerTransaction :: LedgerTransaction -> AppState -> AppState
 scrollToLedgerTransaction e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
     where
-      entryfirstline = head $ lines $ showLedgerTransaction $ e
+      entryfirstline = head $ lines $ showLedgerTransaction e
       halfph = pageHeight a `div` 2
       y = fromMaybe 0 $ findIndex (== entryfirstline) buf
       sy = max 0 $ y - halfph
@@ -282,8 +282,8 @@ currentLedgerTransaction :: AppState -> LedgerTransaction
 currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransaction a t
     where
       t = safehead nulltxn $ filter ismatch $ ledgerTransactions l
-      ismatch t = tdate t == (parsedate $ take 10 datedesc)
-                  && (take 70 $ showtxn False t nullmixedamt) == (datedesc ++ acctamt)
+      ismatch t = tdate t == parsedate (take 10 datedesc)
+                  && take 70 (showtxn False t nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ [safehead "" rest] ++ reverse above
       acctamt = drop 32 $ safehead "" rest
       safehead d ls = if null ls then d else head ls
@@ -293,7 +293,7 @@ currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransac
 -- | Get the entry which contains the given transaction.
 -- Will raise an error if there are problems.
 entryContainingTransaction :: AppState -> Transaction -> LedgerTransaction
-entryContainingTransaction AppState{aledger=l} t = (ledger_txns $ rawledger l) !! tnum t
+entryContainingTransaction AppState{aledger=l} t = ledger_txns (rawledger l) !! tnum t
 
 -- renderers
 
@@ -309,11 +309,11 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
       (cx, cy) = (0, cursorY a)
       sy = scrollY a
       -- trying for more speed
-      mainimg = (vert_cat $ map (string defaultattr) above)
+      mainimg = vert_cat (map (string defaultattr) above)
                <->
                (string currentlineattr thisline)
                <->
-               (vert_cat $ map (string defaultattr) below)
+               vert_cat (map (string defaultattr) below)
       (thisline,below) | null rest = (blankline,[])
                        | otherwise = (head rest, tail rest)
       (above,rest) = splitAt cy linestorender
@@ -341,7 +341,7 @@ renderString :: Attr -> String -> Image
 renderString attr s = vert_cat $ map (string attr) rows
     where
       rows = lines $ fitto w h s
-      w = maximum $ map length $ ls
+      w = maximum $ map length ls
       h = length ls
       ls = lines s
 

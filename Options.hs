@@ -150,7 +150,7 @@ fixOptDates opts = do
     fixopt d (End s)     = End $ fixSmartDateStr d s
     fixopt d (Display s) = -- hacky
         Display $ gsubRegexPRBy "\\[.+?\\]" fixbracketeddatestr s
-        where fixbracketeddatestr s = "[" ++ (fixSmartDateStr d $ init $ tail s) ++ "]"
+        where fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
     fixopt _ o            = o
 
 -- | Figure out the overall date span we should report on, based on any

@@ -65,9 +65,9 @@ import Ledger.RawLedger
 
 instance Show Ledger where
     show l = printf "Ledger with %d transactions, %d accounts\n%s"
-             ((length $ ledger_txns $ rawledger l) +
-              (length $ modifier_txns $ rawledger l) +
-              (length $ periodic_txns $ rawledger l))
+             (length (ledger_txns $ rawledger l) +
+              length (modifier_txns $ rawledger l) +
+              length (periodic_txns $ rawledger l))
              (length $ accountnames l)
              (showtree $ accountnametree l)
 
@@ -91,7 +91,7 @@ groupTransactions :: [Transaction] -> (Tree AccountName,
 groupTransactions ts = (ant,txnsof,exclbalof,inclbalof)
     where
       txnanames = sort $ nub $ map taccount ts
-      ant = accountNameTreeFrom $ expandAccountNames $ txnanames
+      ant = accountNameTreeFrom $ expandAccountNames txnanames
       allanames = flatten ant
       txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allanames])
       balmap = Map.fromList $ flatten $ calculateBalances ant txnsof

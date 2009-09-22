@@ -45,7 +45,7 @@ getTransaction l args = do
   datestr <- askFor "date" 
             (Just $ showDate today)
             (Just $ \s -> null s || 
-             (isRight $ parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
+             isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
   description <- if null args 
                   then askFor "description" Nothing (Just $ not . null) 
                   else do
@@ -54,7 +54,7 @@ getTransaction l args = do
                          return description
   let historymatches = transactionsSimilarTo l description
       bestmatch | null historymatches = Nothing
-                | otherwise = Just $ snd $ head $ historymatches
+                | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . ltpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
       getpostingsandvalidate = do
@@ -103,8 +103,8 @@ getPostings historicalps enteredps = do
       postingtype ('(':_) = VirtualPosting
       postingtype _ = RegularPosting
       stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
-      validateamount = Just $ \s -> (null s && (not $ null enteredrealps))
-                                   || (isRight $ parse (someamount>>many spacenonewline>>eof) "" s)
+      validateamount = Just $ \s -> (null s && not (null enteredrealps))
+                                   || isRight (parse (someamount>>many spacenonewline>>eof) "" s)
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
@@ -185,7 +185,7 @@ transactionsSimilarTo :: Ledger -> String -> [(Double,LedgerTransaction)]
 transactionsSimilarTo l s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
-               $ [(compareLedgerDescriptions s $ ltdescription t, t) | t <- ts]
+               [(compareLedgerDescriptions s $ ltdescription t, t) | t <- ts]
     where
       compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,ltdate t2) (n1,ltdate t1)
       ts = ledger_txns $ rawledger l

@@ -61,13 +61,13 @@ showLedgerTransactionForPrint effective = showLedgerTransaction' False effective
 
 showLedgerTransaction' :: Bool -> Bool -> LedgerTransaction -> String
 showLedgerTransaction' elide effective t =
-    unlines $ [description] ++ (showpostings $ ltpostings t) ++ [""]
+    unlines $ [description] ++ showpostings (ltpostings t) ++ [""]
     where
       description = concat [date, status, code, desc] -- , comment]
       date | effective = showdate $ fromMaybe (ltdate t) $ lteffectivedate t
            | otherwise = showdate (ltdate t) ++ maybe "" showedate (lteffectivedate t)
       status = if ltstatus t then " *" else ""
-      code = if (length $ ltcode t) > 0 then (printf " (%s)" $ ltcode t) else ""
+      code = if length (ltcode t) > 0 then (printf " (%s)" $ ltcode t) else ""
       desc = " " ++ ltdescription t
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
@@ -76,9 +76,9 @@ showLedgerTransaction' elide effective t =
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]
           | otherwise = map showposting ps
           where
-            showposting p = showacct p ++ "  " ++ (showamount $ pamount p) ++ (showcomment $ pcomment p)
-            showpostingnoamt p = rstrip $ showacct p ++ "              " ++ (showcomment $ pcomment p)
-            showacct p = "    " ++ showstatus p ++ (printf (printf "%%-%ds" w) $ showAccountName Nothing (ptype p) (paccount p))
+            showposting p = showacct p ++ "  " ++ showamount (pamount p) ++ showcomment (pcomment p)
+            showpostingnoamt p = rstrip $ showacct p ++ "              " ++ showcomment (pcomment p)
+            showacct p = "    " ++ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
             w = maximum $ map (length . paccount) ps
             showamount = printf "%12s" . showMixedAmount
             showcomment s = if (length s) > 0 then "  ; "++s else ""

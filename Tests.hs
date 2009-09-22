@@ -488,11 +488,11 @@ tests = [
                         Left _ -> error "should not happen")
 
   ,"cacheLedger" ~: do
-    (length $ Map.keys $ accountmap $ cacheLedger [] rawledger7) `is` 15
+    length (Map.keys $ accountmap $ cacheLedger [] rawledger7) `is` 15
 
   ,"canonicaliseAmounts" ~:
    "use the greatest precision" ~: do
-    (rawLedgerPrecisions $ canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"]) `is` [2,2]
+    rawLedgerPrecisions (canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"]) `is` [2,2]
 
   ,"commodities" ~: do
     commodities ledger7 `is` [Commodity {symbol="$", side=L, spaced=False, comma=False, precision=2}]
@@ -615,11 +615,11 @@ tests = [
 
   ,"default year" ~: do
     rl <- rawLedgerFromString defaultyear_ledger_str
-    (ltdate $ head $ ledger_txns rl) `is` fromGregorian 2009 1 1
+    ltdate (head $ ledger_txns rl) `is` fromGregorian 2009 1 1
     return ()
 
   ,"ledgerFile" ~: do
-    assertBool "ledgerFile should parse an empty file" $ (isRight $ parseWithCtx emptyCtx ledgerFile "")
+    assertBool "ledgerFile should parse an empty file" (isRight $ parseWithCtx emptyCtx ledgerFile "")
     r <- rawLedgerFromString "" -- don't know how to get it from ledgerFile
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ ledger_txns r
 
@@ -637,10 +637,10 @@ tests = [
                    $ either (const False) ((== "a") . ltdescription) t
 
   ,"ledgeraccountname" ~: do
-    assertBool "ledgeraccountname parses a normal accountname" $ (isRight $ parsewith ledgeraccountname "a:b:c")
-    assertBool "ledgeraccountname rejects an empty inner component" $ (isLeft $ parsewith ledgeraccountname "a::c")
-    assertBool "ledgeraccountname rejects an empty leading component" $ (isLeft $ parsewith ledgeraccountname ":b:c")
-    assertBool "ledgeraccountname rejects an empty trailing component" $ (isLeft $ parsewith ledgeraccountname "a:b:")
+    assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
+    assertBool "ledgeraccountname rejects an empty inner component" (isLeft $ parsewith ledgeraccountname "a::c")
+    assertBool "ledgeraccountname rejects an empty leading component" (isLeft $ parsewith ledgeraccountname ":b:c")
+    assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
 
   ,"ledgerposting" ~: do
     parseWithCtx emptyCtx ledgerposting rawposting1_str `parseis` rawposting1
@@ -651,7 +651,7 @@ tests = [
 
   ,"period expressions" ~: do
     let todaysdate = parsedate "2008/11/26"
-    let str `gives` result = (show $ parsewith (periodexpr todaysdate) str) `is` ("Right "++result)
+    let str `gives` result = show (parsewith (periodexpr todaysdate) str) `is` ("Right " ++ result)
     "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
     "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
     "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
@@ -943,7 +943,7 @@ tests = [
   ,"subAccounts" ~: do
     l <- sampleledger
     let a = ledgerAccount l "assets"
-    (map aname $ ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
+    map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
   ,"summariseTransactionsInDateSpan" ~: do
     let gives (b,e,tnum,depth,showempty,ts) = 

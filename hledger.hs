@@ -52,7 +52,7 @@ main = do
   run cmd opts args
     where 
       run cmd opts args
-       | Help `elem` opts             = putStr $ usage
+       | Help `elem` opts             = putStr usage
        | Version `elem` opts          = putStrLn versionmsg
        | BinaryFilename `elem` opts   = putStrLn binaryfilename
        | cmd `isPrefixOf` "balance"   = withLedgerDo opts args cmd balance
@@ -69,4 +69,4 @@ main = do
        | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web
 #endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
-       | otherwise                    = putStr $ usage
+       | otherwise                    = putStr usage

@@ -77,7 +77,7 @@ negateAmountPreservingPrice a = (-a){price=price a}
 -- and other folds start with a no-commodity amount.)
 amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
 amountop op a@(Amount _ _ _) (Amount bc bq _) = 
-    Amount bc ((quantity $ convertAmountTo bc a) `op` bq) Nothing
+    Amount bc (quantity (convertAmountTo bc a) `op` bq) Nothing
 
 -- | Convert an amount to the commodity of its saved price, if any.
 costOfAmount :: Amount -> Amount
@@ -122,7 +122,7 @@ punctuatethousands s =
       (int,frac) = break (=='.') num
       addcommas = reverse . concat . intersperse "," . triples . reverse
       triples [] = []
-      triples l  = [take 3 l] ++ (triples $ drop 3 l)
+      triples l  = [take 3 l] ++ triples (drop 3 l)
 
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
@@ -162,7 +162,7 @@ showMixedAmount :: MixedAmount -> String
 showMixedAmount m = concat $ intersperse "\n" $ map showfixedwidth as
     where 
       (Mixed as) = normaliseMixedAmount m
-      width = maximum $ map (length . show) $ as
+      width = maximum $ map (length . show) as
       showfixedwidth = printf (printf "%%%ds" width) . show
 
 -- | Get the string representation of a mixed amount, and if it

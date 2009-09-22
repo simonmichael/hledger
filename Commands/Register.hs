@@ -34,7 +34,7 @@ showRegisterReport opts args l
     where
       interval = intervalFromOpts opts
       ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
-      filterdepth | interval == NoInterval = filter (\t -> (accountNameLevel $ taccount t) <= depth)
+      filterdepth | interval == NoInterval = filter (\t -> accountNameLevel (taccount t) <= depth)
                   | otherwise = id
       filterempties
           | Empty `elem` opts = id
@@ -75,7 +75,7 @@ summariseTransactionsInDateSpan (DateSpan b e) tnum depth showempty ts
     | null ts = []
     | otherwise = summaryts'
     where
-      txn = nulltxn{tnum=tnum, tdate=b', tdescription="- "++(showDate $ addDays (-1) e')}
+      txn = nulltxn{tnum=tnum, tdate=b', tdescription="- "++ showDate (addDays (-1) e')}
       b' = fromMaybe (tdate $ head ts) b
       e' = fromMaybe (tdate $ last ts) e
       summaryts'
@@ -108,7 +108,7 @@ showtxn :: Bool -> Transaction -> MixedAmount -> String
 showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
     where
       entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
-      date = showDate $ da
+      date = showDate da
       desc = printf "%-20s" $ elideRight 20 de :: String
       p = showPosting $ Posting s a amt "" tt
       bal = padleft 12 (showMixedAmountOrZero b)

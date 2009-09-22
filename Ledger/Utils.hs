@@ -55,7 +55,7 @@ dropws = dropWhile (`elem` " \t")
 
 elideLeft width s =
     case length s > width of
-      True -> ".." ++ (reverse $ take (width - 2) $ reverse s)
+      True -> ".." ++ reverse (take (width - 2) $ reverse s)
       False -> s
 
 elideRight width s =
@@ -206,7 +206,7 @@ treefilter f t = Node
     
 -- | is predicate true in any node of tree ?
 treeany :: (a -> Bool) -> Tree a -> Bool
-treeany f t = (f $ root t) || (any (treeany f) $ branches t)
+treeany f t = f (root t) || any (treeany f) (branches t)
     
 -- treedrop -- remove the leaves which do fulfill predicate. 
 -- treedropall -- do this repeatedly.

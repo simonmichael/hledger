@@ -175,6 +175,6 @@ maketable opts rownames colnames results = Table rowhdrs colhdrs rows
       where w = maximum $ map length ss
 
 showtime :: [Opt] -> (Float -> String)
-showtime opts = printf $ "%."++(show $ precisionopt opts)++"f"
+showtime opts = printf $ "%." ++ show (precisionopt opts) ++ "f"
 
 strace a = trace (show a) a

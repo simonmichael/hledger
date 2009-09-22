@@ -45,7 +45,7 @@ uniqueacctnames' depth uniquenames = group some ++ uniqueacctnames' depth rest
 -- group ["a", "b", "c"] = ["a","a:b","a:b:c"]
 group :: [String] -> [String]
 group [] = []
-group (a:as) = [a] ++ (map ((a++":")++) $ group as)
+group (a:as) = [a] ++ map ((a++":")++) (group as)
 
 pair :: [a] -> [(a,a)]
 pair [] = []

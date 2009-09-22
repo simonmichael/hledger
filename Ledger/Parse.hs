@@ -115,7 +115,7 @@ ledgerInclude = do many1 spacenonewline
                                case runParser ledgerFile outerState filename contents of
                                  Right l   -> l `catchError` (throwError . (inIncluded ++))
                                  Left perr -> throwError $ inIncluded ++ show perr
-    where readFileE outerPos filename = ErrorT $ do (liftM Right $ readFile filename) `catch` leftError
+    where readFileE outerPos filename = ErrorT $ do liftM Right (readFile filename) `catch` leftError
               where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
                     currentPos = show outerPos
                     whileReading = " reading " ++ show filename ++ ":\n"

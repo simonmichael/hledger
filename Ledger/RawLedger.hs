@@ -21,9 +21,9 @@ import Ledger.TimeLog
 
 instance Show RawLedger where
     show l = printf "RawLedger with %d transactions, %d accounts: %s"
-             ((length $ ledger_txns l) +
-              (length $ modifier_txns l) +
-              (length $ periodic_txns l))
+             (length (ledger_txns l) +
+              length (modifier_txns l) +
+              length (periodic_txns l))
              (length accounts)
              (show accounts)
              -- ++ (show $ rawLedgerTransactions l)
@@ -139,7 +139,7 @@ canonicaliseAmounts costbasis l@(RawLedger ms ps ts tls hs f fp) = RawLedger ms 
       fixrawposting (Posting s ac a c t) = Posting s ac (fixmixedamount a) c t
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount = fixcommodity . (if costbasis then costOfAmount else id)
-      fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! (symbol $ commodity a)
+      fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! symbol (commodity a)
       canonicalcommoditymap = 
           Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
                         let cs = commoditymap ! s,

@@ -242,7 +242,7 @@ smartdate = do
                      lastthisnextthing
                     ]
   (y,m,d) <- choice $ map try dateparsers
-  return $ (y,m,d)
+  return (y,m,d)
 
 datesepchar = oneOf "/-."
 
@@ -310,7 +310,7 @@ month :: GenParser Char st SmartDate
 month = do
   m <- choice $ map (try . string) months
   let i = monthIndex m
-  return $ ("",show i,"")
+  return ("",show i,"")
 
 mon :: GenParser Char st SmartDate
 mon = do
@@ -331,7 +331,7 @@ lastthisnextthing = do
        ,string "next"
       ]
   many spacenonewline  -- make the space optional for easier scripting
-  p <- choice $ [
+  p <- choice [
         string "day"
        ,string "week"
        ,string "month"
@@ -348,7 +348,7 @@ periodexpr rdate = choice $ map try [
                     intervalanddateperiodexpr rdate,
                     intervalperiodexpr,
                     dateperiodexpr rdate,
-                    (return $ (NoInterval,DateSpan Nothing Nothing))
+                    (return (NoInterval,DateSpan Nothing Nothing))
                    ]
 
 intervalanddateperiodexpr :: Day -> GenParser Char st (Interval, DateSpan)

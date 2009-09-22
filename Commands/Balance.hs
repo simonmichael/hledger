@@ -138,7 +138,7 @@ showInterestingAccount l interestingaccts a = concatTopPadded [amt, "  ", depths
       depthspacer = replicate (2 * length interestingparents) ' '
       -- the partial name is the account's leaf name, prefixed by the
       -- names of any boring parents immediately above
-      partialname = accountNameFromComponents $ (reverse $ map accountLeafName ps) ++ [accountLeafName a]
+      partialname = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
           where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
 
 -- | Is the named account considered interesting for this ledger's balance report ?

@@ -29,7 +29,7 @@ accountLeafName = last . accountNameComponents
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
-accountNameLevel a = (length $ filter (==acctsepchar) a) + 1
+accountNameLevel a = length (filter (==acctsepchar) a) + 1
 
 -- | ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
@@ -47,7 +47,7 @@ parentAccountNames :: AccountName -> [AccountName]
 parentAccountNames a = parentAccountNames' $ parentAccountName a
     where
       parentAccountNames' "" = []
-      parentAccountNames' a = [a] ++ (parentAccountNames' $ parentAccountName a)
+      parentAccountNames' a = [a] ++ parentAccountNames' (parentAccountName a)
 
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
 isAccountNamePrefixOf = isPrefixOf . (++ [acctsepchar])
@@ -160,7 +160,7 @@ elideAccountName width s =
       where
         elideparts :: Int -> [String] -> [String] -> [String]
         elideparts width done ss
-          | (length $ accountNameFromComponents $ done++ss) <= width = done++ss
+          | length (accountNameFromComponents $ done++ss) <= width = done++ss
           | length ss > 1 = elideparts width (done++[take 2 $ head ss]) (tail ss)
           | otherwise = done++ss
 
