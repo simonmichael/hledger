@@ -34,8 +34,8 @@ withLedgerDo opts args cmdname cmd = do
   tc <- getClockTime
   let go = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f,filereadtime=tc})
   case creating of
-    True -> return rawLedgerEmpty >>= go
-    False -> return f >>= runErrorT . parseLedgerFile t >>= either (hPutStrLn stderr) go
+    True -> go rawLedgerEmpty
+    False -> (runErrorT . parseLedgerFile t) f >>= either (hPutStrLn stderr) go
 
 -- | Get a Ledger from the given string and options, or raise an error.
 ledgerFromStringWithOpts :: [Opt] -> [String] -> LocalTime -> String -> IO Ledger
