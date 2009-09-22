@@ -27,7 +27,7 @@ add _ args l
   hPutStrLn stderr
     "Enter one or more transactions, which will be added to your ledger file.\n\
     \To complete a transaction, enter . as account name. To quit, enter control-d."
-  getAndAddTransactions l args `catch` (\e -> if isEOFError e then return () else ioError e)
+  getAndAddTransactions l args `catch` (\e -> unless (isEOFError e) $ ioError e)
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger
@@ -68,7 +68,7 @@ getTransaction l args = do
               hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
               getpostingsandvalidate
         either (const retry) return $ balanceLedgerTransaction t
-  when (not $ null historymatches) 
+  unless (null historymatches) 
        (do
          hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"
          hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
