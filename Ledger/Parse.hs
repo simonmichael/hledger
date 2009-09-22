@@ -501,7 +501,7 @@ numberpartsstartingwithdigit = do
   let digitorcomma = digit <|> char ','
   first <- digit
   rest <- many digitorcomma
-  frac <- try (do {char '.'; many digit >>= return}) <|> return ""
+  frac <- try (do {char '.'; many digit}) <|> return ""
   return (first:rest,frac)
                      
 numberpartsstartingwithpoint :: GenParser Char st (String,String)
