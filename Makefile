@@ -22,7 +22,11 @@ BENCHEXES=hledger-0.6 hledger-0.7 ledger-3pre
 VIEWHTMLCMD=open
 VIEWPSCMD=open
 
-SOURCEFILES:=*hs Commands/*hs Ledger/*hs
+SOURCEFILES:= \
+	hledger.hs \
+	[A-Z]*hs \
+	Commands/[A-Z]*hs \
+	Ledger/[A-Z]*hs
 DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
