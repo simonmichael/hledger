@@ -6,6 +6,7 @@ A ledger-compatible @register@ command.
 
 module Commands.Register
 where
+import Data.Function (on)
 import Prelude hiding (putStr)
 import Ledger
 import Options
@@ -99,7 +100,7 @@ showtxns [] _ _ = ""
 showtxns (t:ts) tprev bal = this ++ showtxns ts t bal'
     where
       this = showtxn (t `issame` tprev) t bal'
-      issame t1 t2 = tnum t1 == tnum t2
+      issame = (==) `on` tnum
       bal' = bal + tamount t
 
 -- | Show one transaction line and balance with or without the entry details.
