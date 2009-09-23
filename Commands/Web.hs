@@ -12,7 +12,7 @@ import Control.Monad.Reader (ask)
 import Data.IORef (newIORef, atomicModifyIORef)
 import HSP hiding (Request)
 import HSP.HTML (renderAsHTML)
-import qualified HSX.XMLGenerator (XML)
+--import qualified HSX.XMLGenerator (XML)
 import Hack.Contrib.Constants (_TextHtmlUTF8)
 import Hack.Contrib.Response (set_content_type)
 import Hack.Handler.Happstack (run)
@@ -24,15 +24,15 @@ import Network.Loli.Type (AppUnit)
 import Network.Loli.Utils (update)
 import Options hiding (value)
 import System.Directory (getModificationTime)
-import System.IO.Storage (withStore, putValue, getValue, getDefaultValue)
+import System.IO.Storage (withStore, putValue, getValue)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
-import Text.XHtml hiding (dir, text, param, label)
-import Text.XHtml.Strict ((<<),(+++),(!))
+-- import Text.XHtml hiding (dir, text, param, label)
+-- import Text.XHtml.Strict ((<<),(+++),(!))
 import qualified HSP (Request(..))
-import qualified Hack (Env, http, Response)
+import qualified Hack (Env, http)
 import qualified Hack.Contrib.Request (inputs, params, path)
 import qualified Hack.Contrib.Response (redirect)
-import qualified Text.XHtml.Strict as H
+-- import qualified Text.XHtml.Strict as H
 
 import Commands.Add (addTransaction)
 import Commands.Balance
@@ -40,7 +40,7 @@ import Commands.Histogram
 import Commands.Print
 import Commands.Register
 import Ledger
-import Utils (filterAndCacheLedgerWithOpts, openBrowserOn, readLedgerWithOpts)
+import Utils (openBrowserOn, readLedgerWithOpts)
 
 -- import Debug.Trace
 -- strace :: Show a => a -> a
@@ -77,7 +77,7 @@ reqparam env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
 ledgerFileModifiedTime :: Ledger -> IO ClockTime
 ledgerFileModifiedTime l
     | null path = getClockTime
-    | otherwise = getModificationTime path `Prelude.catch` \e -> getClockTime
+    | otherwise = getModificationTime path `Prelude.catch` \_ -> getClockTime
     where path = filepath $ rawledger l
 
 ledgerFileReadTime :: Ledger -> ClockTime
@@ -90,7 +90,7 @@ reload l = do
   return l'
             
 reloadIfChanged :: [Opt] -> [String] -> Ledger -> IO Ledger
-reloadIfChanged opts args l = do
+reloadIfChanged opts _ l = do
   tmod <- ledgerFileModifiedTime l
   let tread = ledgerFileReadTime l
       newer = diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
@@ -113,7 +113,6 @@ server opts args l =
       \env -> do -- IO Response
        -- general request handler
        printf $ "request\n"
-       tl <- getCurrentLocalTime
        let a = intercalate "+" $ reqparam env "a"
            p = intercalate "+" $ reqparam env "p"
            opts' = opts ++ [Period p]
@@ -205,7 +204,7 @@ navbar env =
 getParamOrNull p = fromMaybe "" `fmap` getParam p
 
 navlinks :: Hack.Env -> HSP XML
-navlinks env = do
+navlinks _ = do
    a <- getParamOrNull "a"
    p <- getParamOrNull "p"
    let addparams=(++(printf "?a=%s&p=%s" (urlEncode a) (urlEncode p)))
@@ -287,18 +286,18 @@ handleAddform l = do
             amt1  = fromMaybe "" $ lookup "amt1"  inputs
             acct2 = fromMaybe "" $ lookup "acct2" inputs
             amt2  = fromMaybe "" $ lookup "amt2"  inputs
-            validateDate "" = ["missing date"]
-            validateDate s  = []
-            validateDesc "" = ["missing description"]
-            validateDesc s  = []
+            validateDate ""  = ["missing date"]
+            validateDate _   = []
+            validateDesc ""  = ["missing description"]
+            validateDesc _   = []
             validateAcct1 "" = ["missing account 1"]
-            validateAcct1 s  = []
-            validateAmt1 "" = ["missing amount 1"]
-            validateAmt1 s  = []
+            validateAcct1 _  = []
+            validateAmt1 ""  = ["missing amount 1"]
+            validateAmt1 _   = []
             validateAcct2 "" = ["missing account 2"]
-            validateAcct2 s  = []
-            validateAmt2 "" = ["missing amount 2"]
-            validateAmt2 s  = []
+            validateAcct2 _  = []
+            validateAmt2 ""  = ["missing amount 2"]
+            validateAmt2 _   = []
             t = LedgerTransaction {
                             ltdate = parsedate $ fixSmartDateStr today date
                            ,lteffectivedate=Nothing
