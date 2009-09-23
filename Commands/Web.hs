@@ -10,12 +10,12 @@ import Control.Applicative.Error (Failing(Success,Failure))
 import Control.Concurrent
 import Control.Monad.Reader (ask)
 import Data.IORef (newIORef, atomicModifyIORef)
-import HSP hiding (Request)
+import HSP hiding (Request,catch)
 import HSP.HTML (renderAsHTML)
 --import qualified HSX.XMLGenerator (XML)
 import Hack.Contrib.Constants (_TextHtmlUTF8)
 import Hack.Contrib.Response (set_content_type)
-import Hack.Handler.Happstack (run)
+import Hack.Handler.Happstack (runWithConfig,ServerConf(ServerConf))
 import Happstack.State.Control (waitForTermination)
 import Network.HTTP (urlEncode, urlDecode)
 import Network.Loli (loli, io, get, post, html, text, public)
@@ -25,6 +25,7 @@ import Network.Loli.Utils (update)
 import Options hiding (value)
 import System.Directory (getModificationTime)
 import System.IO.Storage (withStore, putValue, getValue)
+import System.Process (readProcess)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Text.ParserCombinators.Parsec (parse)
 -- import Text.XHtml hiding (dir, text, param, label)
@@ -47,7 +48,7 @@ import Utils (openBrowserOn, readLedgerWithOpts)
 -- strace :: Show a => a -> a
 -- strace a = trace (show a) a
 
-tcpport = 3000 :: Int
+tcpport = 5000 :: Int
 homeurl = printf "http://localhost:%d/" tcpport
 
 web :: [Opt] -> [String] -> Ledger -> IO ()
@@ -110,7 +111,9 @@ server opts args l =
   -- server initialisation
   withStore "hledger" $ do -- IO ()
     putValue "hledger" "ledger" l
-    run $                                                 -- (Env -> IO Response) -> IO ()
+    -- XXX hack-happstack abstraction leak
+    hostname <- readProcess "hostname" [] "" `catch` \_ -> return "hostname"
+    runWithConfig (ServerConf tcpport hostname) $            -- (Env -> IO Response) -> IO ()
       \env -> do -- IO Response
        -- general request handler
        printf $ "request\n"
@@ -123,7 +126,7 @@ server opts args l =
        -- declare path-specific request handlers
        let command :: [String] -> ([Opt] -> [String] -> Ledger -> String) -> AppUnit
            command msgs f = string msgs $ f opts' args' l''
-       (loli $                                            -- State Loli () -> (Env -> IO Response)
+       (loli $                                               -- State Loli () -> (Env -> IO Response)
          do
           get  "/balance"   $ command [] showBalanceReport   -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
