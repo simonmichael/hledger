@@ -134,7 +134,7 @@ server opts args l =
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
           get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
           public (Just "Commands/Web") ["/static"]
-          get  "/"          $ redirect (homeurl++"balance") Nothing
+          get  "/"          $ redirect ("balance") Nothing
           ) env
 
 ledgerpage :: [String] -> Ledger -> (Ledger -> String) -> AppUnit
