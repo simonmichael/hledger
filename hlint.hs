@@ -14,3 +14,4 @@ warn "Use concatMap"  = ""                - the hint to use concatMap is a warni
 -}
 
 import HLint.Default
+ignore "Use camelCase" = ""
