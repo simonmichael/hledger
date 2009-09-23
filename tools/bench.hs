@@ -116,7 +116,7 @@ optValueWithDefault optcons def opts =
 
 optValuesForConstructor :: (String -> Opt) -> [Opt] -> [String]
 optValuesForConstructor optcons opts = concatMap get opts
-    where get o = if optcons v == o then [v] else [] where v = value o
+    where get o = [v | optcons v == o] where v = value o
 
 main = do
   args <- getArgs

@@ -113,16 +113,16 @@ data Opt =
 
 -- these make me nervous
 optsWithConstructor f opts = concatMap get opts
-    where get o = if f v == o then [o] else [] where v = value o
+    where get o = [o | f v == o] where v = value o
 
 optsWithConstructors fs opts = concatMap get opts
-    where get o = if any (== o) fs then [o] else []
+    where get o = [o | any (== o) fs]
 
 optValuesForConstructor f opts = concatMap get opts
-    where get o = if f v == o then [v] else [] where v = value o
+    where get o = [v | f v == o] where v = value o
 
 optValuesForConstructors fs opts = concatMap get opts
-    where get o = if any (\f -> f v == o) fs then [v] else [] where v = value o
+    where get o = [v | any (\f -> f v == o) fs] where v = value o
 
 -- | Parse the command-line arguments into options, command name, and
 -- command arguments. Any dates in the options are converted to explicit
