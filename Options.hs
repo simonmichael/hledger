@@ -239,9 +239,7 @@ optsToFilterSpec opts args t = FilterSpec {
                                ,costbasis=CostBasis `elem` opts
                                ,acctpats=apats
                                ,descpats=dpats
-                               ,whichdate=case Effective `elem` opts of
-                                            True -> EffectiveDate
-                                            _    -> ActualDate
+                               ,whichdate = if Effective `elem` opts then EffectiveDate else ActualDate
                                }
     where (apats,dpats) = parsePatternArgs args
 

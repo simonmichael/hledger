@@ -54,14 +54,10 @@ rstrip = reverse . dropws . reverse
 dropws = dropWhile (`elem` " \t")
 
 elideLeft width s =
-    case length s > width of
-      True -> ".." ++ reverse (take (width - 2) $ reverse s)
-      False -> s
+    if length s > width then ".." ++ reverse (take (width - 2) $ reverse s) else s
 
 elideRight width s =
-    case length s > width of
-      True -> take (width - 2) s ++ ".."
-      False -> s
+    if length s > width then take (width - 2) s ++ ".." else s
 
 underline :: String -> String
 underline s = s' ++ replicate (length s) '-' ++ "\n"
