@@ -60,7 +60,7 @@ web opts args l = do
     server opts args l
    else do
     -- start the server (in background, so we can..) then start the web browser
-    printf "starting web interface at %s\n" homeurl
+    printf "starting web interface on port %d\n" tcpport
     tid <- forkIO $ server opts args l
     putStrLn "starting web browser"
     openBrowserOn homeurl
