@@ -128,7 +128,7 @@ server opts args l =
           get  "/balance"   $ command [] showBalanceReport   -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/ledger"    $ ledgerpage [] l'' $ showLedgerTransactions opts' args'
+          get  "/ledger"    $ ledgerpage [] l'' (showLedgerTransactions opts' args')
           post "/ledger"    $ handleAddform l''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
@@ -211,10 +211,10 @@ navlinks _ = do
    let addparams=(++(printf "?a=%s&p=%s" (urlEncode a) (urlEncode p)))
        link s = <a href=(addparams s) class="navlink"><% s %></a>
    <div id="navlinks">
+     <% link "ledger" %> |
      <% link "balance" %> |
      <% link "register" %> |
-     <% link "histogram" %> |
-     <% link "ledger" %>
+     <% link "histogram" %>
     </div>
 
 searchform :: Hack.Env -> HSP XML
@@ -331,6 +331,8 @@ handleAddform l = do
 
     handle :: Failing LedgerTransaction -> AppUnit
     handle (Failure errs) = hsp errs addform 
-    handle (Success t)    = io (addTransaction l t >> reload l) >> (ledgerpage [msg] l (showLedgerTransactions [] [])) -- redirect (homeurl++"print") Nothing -- hsp [msg] addform
-       where msg = printf "\nAdded transaction:\n%s" (show t)
+    handle (Success t)    = do
+                    io $ addTransaction l t >> reload l
+                    ledgerpage [msg] l (showLedgerTransactions [] [])
+       where msg = printf "Added transaction:\n%s" (show t)
 
