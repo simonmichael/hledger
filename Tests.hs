@@ -218,7 +218,7 @@ runtests opts args = do
    else exitWith ExitSuccess
     where
       runner | Verbose `elem` opts = runVerboseTests
-             | otherwise = \t -> runTestTT t >>= return . flip (,) 0
+             | otherwise = liftM (flip (,) 0) . runTestTT
       ts = TestList $ filter matchname $ concatMap tflatten tests
       --ts = tfilter matchname $ TestList tests -- unflattened
       matchname = matchpats args . tname

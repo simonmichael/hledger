@@ -123,7 +123,7 @@ main = do
   let (opts,exes) = parseargs args
   when (null exes) $ error $ "at least one executable needed\n" ++ usage
   let (file, num) = (fileopt opts, numopt opts)
-  tests <- readFile file >>= return . filter istest . lines
+  tests <- liftM (filter istest . lines) (readFile file)
   now <- getCurrentTime
   putStrLn $ printf "Using %s" file
   putStrLn $ printf "Running %d tests %d times with %d executables at %s:" 
