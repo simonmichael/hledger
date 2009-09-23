@@ -6,7 +6,7 @@ Parsers for standard ledger and timelog files.
 
 module Ledger.Parse
 where
-import Prelude hiding (readFile, putStr, putStrLn, print)
+import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
@@ -64,7 +64,7 @@ printParseError e = do putStr "ledger parse error at "; print e
 -- let's get to it
 
 parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO RawLedger
-parseLedgerFile t "-" = liftIO (hGetContents stdin) >>= parseLedger t "-"
+parseLedgerFile t "-" = liftIO getContents >>= parseLedger t "-"
 parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
 
 -- | Parses the contents of a ledger file, or gives an error.  Requires
