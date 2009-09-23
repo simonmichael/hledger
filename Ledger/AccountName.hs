@@ -47,7 +47,7 @@ parentAccountNames :: AccountName -> [AccountName]
 parentAccountNames a = parentAccountNames' $ parentAccountName a
     where
       parentAccountNames' "" = []
-      parentAccountNames' a = [a] ++ parentAccountNames' (parentAccountName a)
+      parentAccountNames' a = a : parentAccountNames' (parentAccountName a)
 
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
 isAccountNamePrefixOf = isPrefixOf . (++ [acctsepchar])

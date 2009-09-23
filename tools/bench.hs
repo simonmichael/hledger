@@ -112,7 +112,7 @@ parseargs as =
 
 optValueWithDefault :: (String -> Opt) -> String -> [Opt] -> String
 optValueWithDefault optcons def opts = 
-    last $ [def] ++ optValuesForConstructor optcons opts
+    last $ def : optValuesForConstructor optcons opts
 
 optValuesForConstructor :: (String -> Opt) -> [Opt] -> [String]
 optValuesForConstructor optcons opts = concatMap get opts

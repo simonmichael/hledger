@@ -60,8 +60,8 @@ splitspan start next span@(DateSpan (Just b) (Just e))
     where
       splitspan' start next (DateSpan (Just b) (Just e))
           | b >= e = []
-          | otherwise = [DateSpan (Just s) (Just n)]
-                        ++ splitspan' start next (DateSpan (Just n) (Just e))
+          | otherwise = DateSpan (Just s) (Just n)
+                        : splitspan' start next (DateSpan (Just n) (Just e))
           where s = start b
                 n = next s
       splitspan' _ _ _ = error "won't happen, avoids warnings"

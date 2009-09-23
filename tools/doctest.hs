@@ -76,7 +76,7 @@ doctests s = filter isDocTest $ haddockLiterals s
 haddockLiterals :: String -> [String]
 haddockLiterals "" = []
 haddockLiterals s | null lit = []
-                  | otherwise = [lit] ++ haddockLiterals rest
+                  | otherwise = lit : haddockLiterals rest
     where
       ls = drop 1 $ dropWhile (not . isLiteralBoundary) $ lines s
       lit = unlines $ takeWhile (not . isLiteralBoundary) ls

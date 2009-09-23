@@ -38,7 +38,7 @@ instance Read TimeLogCode where
 entriesFromTimeLogEntries :: LocalTime -> [TimeLogEntry] -> [LedgerTransaction]
 entriesFromTimeLogEntries _ [] = []
 entriesFromTimeLogEntries now [i]
-    | odate > idate = [entryFromTimeLogInOut i o'] ++ entriesFromTimeLogEntries now [i',o]
+    | odate > idate = entryFromTimeLogInOut i o' : entriesFromTimeLogEntries now [i',o]
     | otherwise = [entryFromTimeLogInOut i o]
     where
       o = TimeLogEntry Out end ""
@@ -48,8 +48,8 @@ entriesFromTimeLogEntries now [i]
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 entriesFromTimeLogEntries now (i:o:rest)
-    | odate > idate = [entryFromTimeLogInOut i o'] ++ entriesFromTimeLogEntries now (i':o:rest)
-    | otherwise = [entryFromTimeLogInOut i o] ++ entriesFromTimeLogEntries now rest
+    | odate > idate = entryFromTimeLogInOut i o' : entriesFromTimeLogEntries now (i':o:rest)
+    | otherwise = entryFromTimeLogInOut i o : entriesFromTimeLogEntries now rest
     where
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)

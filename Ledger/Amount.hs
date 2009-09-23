@@ -128,7 +128,7 @@ punctuatethousands s =
       (int,frac) = break (=='.') num
       addcommas = reverse . concat . intersperse "," . triples . reverse
       triples [] = []
-      triples l  = [take 3 l] ++ triples (drop 3 l)
+      triples l  = take 3 l : triples (drop 3 l)
 
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool

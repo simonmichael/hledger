@@ -251,7 +251,7 @@ accountNameAt buf lineno = accountNameFromComponents anamecomponents
       anamecomponents = reverse $ map strip $ dropsiblings thisbranch
       dropsiblings :: [AccountName] -> [AccountName]
       dropsiblings [] = []
-      dropsiblings (x:xs) = [x] ++ dropsiblings xs'
+      dropsiblings (x:xs) = x : dropsiblings xs'
           where
             xs' = dropWhile moreindented xs
             moreindented = (>= myindent) . indentof
@@ -278,7 +278,7 @@ currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransac
       t = safehead nulltxn $ filter ismatch $ ledgerTransactions l
       ismatch t = tdate t == parsedate (take 10 datedesc)
                   && take 70 (showtxn False t nullmixedamt) == (datedesc ++ acctamt)
-      datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ [safehead "" rest] ++ reverse above
+      datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ safehead "" rest : reverse above
       acctamt = drop 32 $ safehead "" rest
       safehead d ls = if null ls then d else head ls
       (above,rest) = splitAt y buf
