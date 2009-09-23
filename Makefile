@@ -117,7 +117,7 @@ committest: hlinttest unittest doctest functest haddocktest warningstest quickca
 releasetest: unittest doctest functest haddocktest warningstest fullcabaltest
 
 hlinttest hlint:
-	hlint $(SOURCEFILES) --report=hlint.html
+	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
 
 # run unit tests
 unittest: unittest-builtin
