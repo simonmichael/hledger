@@ -111,11 +111,13 @@ test: codetest
 codetest: unittest functest
 
 # moderate pre-commit tests - run before record or before send/push, your choice
-committest: unittest doctest functest haddocktest warningstest quickcabaltest
+committest: hlinttest unittest doctest functest haddocktest warningstest quickcabaltest
 
 # thorough pre-release tests - run before release
 releasetest: unittest doctest functest haddocktest warningstest fullcabaltest
 
+hlinttest hlint:
+	hlint $(SOURCEFILES) --report=hlint.html
 
 # run unit tests
 unittest: unittest-builtin
