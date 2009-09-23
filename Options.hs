@@ -55,29 +55,29 @@ usage = usageInfo usagehdr options ++ usageftr
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
 options = [
-  Option ['f'] ["file"]         (ReqArg File "FILE")   "use a different ledger/timelog file; - means stdin"
- ,Option ['b'] ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
- ,Option ['e'] ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
- ,Option ['p'] ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
+  Option "f" ["file"]         (ReqArg File "FILE")   "use a different ledger/timelog file; - means stdin"
+ ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
+ ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
+ ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
                                                        "and/or with the specified reporting interval\n")
- ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
- ,Option ['U'] ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
- ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
+ ,Option "C" ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
+ ,Option "U" ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
+ ,Option "B" ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
  ,Option ""    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
- ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
+ ,Option "d" ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
                                                         "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
  ,Option ""    ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
- ,Option ['E'] ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
- ,Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
+ ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
+ ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
  ,Option ""    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
--- ,Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
- ,Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
- ,Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
- ,Option ['Q'] ["quarterly"]    (NoArg  QuarterlyOpt)  "register report: show quarterly summary"
- ,Option ['Y'] ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
- ,Option ['h'] ["help"] (NoArg  Help)                  "show this help"
- ,Option ['V'] ["version"]      (NoArg  Version)       "show version information"
- ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "show verbose test output"
+-- ,Option "s" ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
+ ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
+ ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
+ ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register report: show quarterly summary"
+ ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
+ ,Option "h" ["help"] (NoArg  Help)                  "show this help"
+ ,Option "V" ["version"]      (NoArg  Version)       "show version information"
+ ,Option "v" ["verbose"]      (NoArg  Verbose)       "show verbose test output"
  ,Option ""    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
  ,Option ""    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option ""    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
