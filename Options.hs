@@ -63,13 +63,13 @@ options = [
  ,Option ['C'] ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
  ,Option ['U'] ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
  ,Option ['B'] ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
- ,Option []    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
+ ,Option ""    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
  ,Option ['d'] ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
                                                         "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
- ,Option []    ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
+ ,Option ""    ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
  ,Option ['E'] ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option ['R'] ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
- ,Option []    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
+ ,Option ""    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
 -- ,Option ['s'] ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
  ,Option ['W'] ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
  ,Option ['M'] ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
@@ -78,9 +78,9 @@ options = [
  ,Option ['h'] ["help"] (NoArg  Help)                  "show this help"
  ,Option ['V'] ["version"]      (NoArg  Version)       "show version information"
  ,Option ['v'] ["verbose"]      (NoArg  Verbose)       "show verbose test output"
- ,Option []    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
- ,Option []    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
- ,Option []    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
+ ,Option ""    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
+ ,Option ""    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
+ ,Option ""    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
  ]
 
 -- | An option value from a command-line flag.
