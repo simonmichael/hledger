@@ -97,6 +97,11 @@ costOfAmount (Amount _ q (Just price))
     | otherwise = Amount pc (pq*q) Nothing
     where (Amount pc pq _) = head $ amounts price
 
+-- | Convert an amount to the specified commodity using the appropriate
+-- exchange rate (which is currently always 1).
+convertAmountTo :: Commodity -> Amount -> Amount
+convertAmountTo c2 (Amount c1 q _) = Amount c2 (q * conversionRate c1 c2) Nothing
+
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
 showAmount :: Amount -> String
