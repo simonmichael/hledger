@@ -21,6 +21,9 @@ module Commands.All (
 #ifdef WEB
                      module Commands.Web,
 #endif
+#ifdef CHART
+                     module Commands.Chart
+#endif
               )
 where
 import Commands.Add
@@ -35,4 +38,7 @@ import Commands.UI
 #endif
 #ifdef WEB
 import Commands.Web
+#endif
+#ifdef CHART
+import Commands.Chart
 #endif

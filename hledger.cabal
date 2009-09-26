@@ -37,6 +37,10 @@ flag web
   description: enable the web ui
   default:     False
 
+flag chart
+  description: enable the pie chart generation
+  default:     False
+
 library
   exposed-modules:
                   Ledger
@@ -146,6 +150,12 @@ executable hledger
                  ,HTTP >= 4000.0 && < 4000.1
                  ,applicative-extras
 
+  if flag(chart)
+    cpp-options: -DCHART
+    other-modules:Commands.Chart
+    build-depends:
+                  Chart >= 0.11 && < 0.12
+                 ,colour
 
 -- source-repository head
 --   type:     darcs

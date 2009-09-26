@@ -39,6 +39,9 @@ usagehdr =
 #ifdef WEB
   "  web       - run a simple web-based UI\n" ++
 #endif
+#ifdef CHART
+  "  chart     - generate balances pie chart\n" ++
+#endif
   "  test      - run self-tests\n" ++
   "\n" ++
   "PATTERNS are regular expressions which filter by account name.\n" ++
@@ -81,6 +84,10 @@ options = [
  ,Option ""    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
  ,Option ""    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option ""    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
+#ifdef CHART
+ ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    "chart: output filename (default: hledger.png)"
+ ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") "chart: image size (default: 1024x1024)"
+#endif
  ]
 
 -- | An option value from a command-line flag.
@@ -109,6 +116,10 @@ data Opt =
     | BinaryFilename
     | Debug
     | DebugNoUI
+#ifdef CHART
+    | ChartOutput {value::String}
+    | ChartSize   {value::String}
+#endif
     deriving (Show,Eq)
 
 -- these make me nervous

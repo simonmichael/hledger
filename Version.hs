@@ -67,4 +67,7 @@ configflags   = tail [""
 #ifdef WEB
   ,"web"
 #endif
+#ifdef CHART
+  ,"chart"
+#endif
  ]

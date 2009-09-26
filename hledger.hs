@@ -68,5 +68,8 @@ main = do
 #ifdef WEB
        | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web
 #endif
+#ifdef CHART
+       | cmd `isPrefixOf` "chart"       = withLedgerDo opts args cmd chart
+#endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr usage
