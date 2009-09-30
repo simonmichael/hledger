@@ -22,17 +22,17 @@ clever tricks like the plague." --Edsger Dijkstra
 * to do
 ** packaging, installability
 *** easier installation
-**** on all platforms
+**** all platforms
 ***** binary build/publish process
 ***** reduce dependencies
 ***** split packages ?
-**** on linux
+**** linux
 ***** keep up with debian/ubuntu haskell packagers
-**** on mac
+**** mac
 ***** easy data entry, then
 ***** easy installer
 ***** easy startup
-**** on windows
+**** windows
 ***** easy data entry, then
 ***** easy installer
 ***** easy startup
@@ -41,8 +41,11 @@ clever tricks like the plague." --Edsger Dijkstra
 **** hledger/ledger feature matrix
 **** regular-user home page
 *** reduce
-*** better screenshots/images
-*** automate
+*** aesthetics
+**** better screenshots/images
+**** fix header styles
+***** fix pandoc rst header handling
+*** automation
 **** keep blurbs in sync
 ***** README file
 ***** hledger.hs module description
@@ -114,6 +117,9 @@ hledger.org/{list,bugs}/* also works
 ******* error
 ******* printf
 **** project notes
+**** functional programming
+hledger is written in the Haskell programming language;
+it demonstrates a pure functional implementation of ledger.
 *** presenting/live demos
 *** develop funding process
 **** license change ?
@@ -357,6 +363,13 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
+*** convert: allow trailing whitespace in rules file
+*** reg: extra space with effective date
+2009/09/16 CHASE visa payment   as:ba:we:checking          $-200.00     $2072.64
+2009/09/16 RENT                 as:ba:we:checking          $-781.00     $1291.64
+2009/09/16  COFFEE BEAN         as:ba:we:checking            $-0.95     $1290.69
+2009/09/16  BAJA FRESH          as:ba:we:checking            $-5.43     $1285.26
+
 *** allow comment lines immediately after postings
 *** accept all real-world ledger files
 *** account name eliding and layout varies between commands
@@ -384,6 +397,8 @@ competitors/fellow niche inhabitants
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** easier timelog formats
+*** implicit timelog account
 *** easy data entry
 *** assume current year as default
 *** wide/customisable/consistent layout
@@ -395,7 +410,6 @@ http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pd
 *** nice reports with charts
 *** more automated bank data conversion
 *** ofx download
-*** easy timelog format
 *** watching a changing ledger
 *** more date syntax ? last nov, next friday, optional this, week of
 *** more period syntax ? every N days, biweekly
@@ -460,6 +474,13 @@ matrace a@(Mixed as) = trace (show as) a
 nmatrace :: MixedAmount -> MixedAmount
 nmatrace a = trace (show as) a where (Mixed as) = normaliseMixedAmount a
 
+-- cabal test
+import System.FilePath
+main = defaultMainWithHooks $ simpleUserHooks { runTests = runTests' }
+runTests' :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO ()
+runTests' _ _ _ lbi = system testprog >> return ()
+  where testprog = (buildDir lbi) </> "hledger" </> "hledger test"
+
 ** http://lwn.net/Articles/314577/
 ** financial software
 *** http://weberp.org
@@ -468,3 +489,5 @@ nmatrace a = trace (show as) a where (Mixed as) = normaliseMixedAmount a
 *** treats HOME's h2s as h1
 *** quotes only first line of a :: literal block
 *** doesn't support http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#indirect-hyperlink-targets
+** must-read article on currency & capital gains accounting
+http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
