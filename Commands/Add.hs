@@ -46,13 +46,8 @@ getTransaction l args = do
             (Just $ showDate today)
             (Just $ \s -> null s || 
              isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
-  description <- if null args 
-                  then askFor "description" Nothing (Just $ not . null) 
-                  else do
-                         let description = unwords args
-                         hPutStrLn stderr $ "description: " ++ description
-                         return description
-  let historymatches = transactionsSimilarTo l description
+  description <- askFor "description" Nothing (Just $ not . null) 
+  let historymatches = transactionsSimilarTo l args description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
@@ -177,18 +172,19 @@ wordLetterPairs = concatMap letterPairs . words
 letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
 letterPairs _ = []
 
+compareLedgerDescriptions :: [Char] -> [Char] -> Double
 compareLedgerDescriptions s t = compareStrings s' t'
     where s' = simplify s
           t' = simplify t
           simplify = filter (not . (`elem` "0123456789"))
 
-transactionsSimilarTo :: Ledger -> String -> [(Double,Transaction)]
+transactionsSimilarTo :: Ledger -> String -> [(Double,LedgerTransaction)]
 transactionsSimilarTo l s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
                [(compareLedgerDescriptions s $ tdescription t, t) | t <- ts]
     where
-      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
-      ts = jtxns $ journal l
+      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,ltdate t2) (n1,ltdate t1)
+      ts = ledger_txns $ rawledger l
       threshold = 0
 
