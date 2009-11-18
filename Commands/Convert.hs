@@ -6,16 +6,23 @@ format, and print it on stdout.
 Usage: hledger convert CSVFILE ACCOUNTNAME RULESFILE
 
 ACCOUNTNAME is the base account to use for transactions.  RULESFILE
-provides some rules to help convert the data. It should contain paragraphs
-separated by one blank line.  The first paragraph is a single line of five
-comma-separated numbers, which are the csv field positions corresponding
-to the ledger transaction's date, status, code, description, and amount.
-All other paragraphs specify one or more regular expressions, followed by
-the ledger account to use when a transaction's description matches any of
-them. A regexp may optionally have a replacement pattern specified after =.
+provides some rules to help convert the data.
+
+- It should contain paragraphs separated by one blank line.
+
+- The first paragraph is a single line of four comma-separated fields,
+  which are numbers indicating the (0-based) csv field positions
+  corresponding to the transaction date, code/number, description, and amount.
+  If a field does not exist in the csv, use - to specify a default value.
+
+- All other paragraphs specify one or more regular expressions, followed
+  by the ledger account to use when a transaction's description matches
+  any of them. A regexp may optionally have a replacement pattern
+  specified after =.
+
 Here's an example rules file:
 
-> 0,2,3,4,1
+> 0,-,4,1
 >
 > ATM DEPOSIT
 > assets:bank:checking
@@ -26,13 +33,6 @@ Here's an example rules file:
 > ITUNES
 > BLKBSTR=BLOCKBUSTER
 > expenses:entertainment
-
-Roadmap: 
-Support for other formats will be added. To update a ledger file, pipe the
-output into the import command. The rules will move to a hledger config
-file. When no rule matches, accounts will be guessed based on similarity
-to descriptions in the current ledger, with interactive prompting and
-optional rule saving.
 
 -}
 
@@ -50,6 +50,7 @@ import Ledger.Dates (firstJust, showDate)
 import Locale (defaultTimeLocale)
 import Data.Time.Format (parseTime)
 import Control.Monad (when)
+import Safe (readMay, readDef)
 
 
 convert :: [Opt] -> [String] -> Ledger -> IO ()
@@ -70,11 +71,11 @@ type Rule = (
   ,AccountName              -- account name to use for a matched transaction
   )
 
-parseRules :: String -> IO ([Int],[Rule])
+parseRules :: String -> IO ([Maybe Int],[Rule])
 parseRules s = do
   let ls = map strip $ lines s
   let paras = splitOn [""] ls
-  let fieldpositions = map read $ splitOn "," $ head $ head paras
+  let fieldpositions = map readMay $ splitOn "," $ head $ head paras
   let rules = [(map parsePatRepl $ init ls, last ls) | ls <- tail paras]
   return (fieldpositions,rules)
 
@@ -83,21 +84,27 @@ parsePatRepl l = case splitOn "=" l of
                    (p:r:_) -> (p, Just r)
                    _       -> (l, Nothing)
 
-print_ledger_txn :: Bool -> (String,[Int],[Rule]) -> [String] -> IO ()
-print_ledger_txn debug (baseacct,fieldpositions,rules) record@(_:_:_:_:_:[]) = do
-  let [date,_,number,description,amount] = map (record !!) fieldpositions
+print_ledger_txn :: Bool -> (String,[Maybe Int],[Rule]) -> [String] -> IO ()
+print_ledger_txn _ (_,[],_) _ = return ()
+print_ledger_txn _ (('#':_),_,_) _ = return ()
+print_ledger_txn debug (baseacct,fieldpositions,rules) csvrecord
+    | length csvrecord < maximum (map (fromMaybe 0) fieldpositions) + 1 = return ()
+    | otherwise =
+ do
+  when debug $ hPutStrLn stderr $ show csvrecord
+  let date = maybe "" (csvrecord !!) (fieldpositions !! 0)
+      number = maybe "" (csvrecord !!) (fieldpositions !! 1)
+      description = maybe "" (csvrecord !!) (fieldpositions !! 2)
+      amount = maybe "" (csvrecord !!) (fieldpositions !! 3)
       amount' = strnegate amount where strnegate ('-':s) = s
                                        strnegate s = '-':s
-      unknownacct | (read amount' :: Double) < 0 = "income:unknown"
+      unknownacct | (readDef 0 amount' :: Double) < 0 = "income:unknown"
                   | otherwise = "expenses:unknown"
       (acct,desc) = choose_acct_desc rules (unknownacct,description)
   when (debug) $ hPutStrLn stderr $ printf "using %s for %s" desc description
   putStrLn $ printf "%s%s %s" (fixdate date) (if not (null number) then printf " (%s)" number else "") desc
   putStrLn $ printf "    %-30s  %15s" acct (printf "$%s" amount' :: String)
   putStrLn $ printf "    %s\n" baseacct
-print_ledger_txn True _ record =
-  hPutStrLn stderr $ printf "ignoring %s" $ show record
-print_ledger_txn _ _ _ = return ()
 
 choose_acct_desc :: [Rule] -> (String,String) -> (String,String)
 choose_acct_desc rules (acct,desc) | null matchingrules = (acct,desc)
@@ -116,9 +123,14 @@ matchregex = matchRegexPR . ("(?i)" ++)
 fixdate :: String -> String
 fixdate s = maybe "0000/00/00" showDate $ 
               firstJust
-              [parseTime defaultTimeLocale "%Y/%m/%d" s
-              ,parseTime defaultTimeLocale "%Y-%m-%d" s
-              ,parseTime defaultTimeLocale "%m/%d/%Y" s
-              ,parseTime defaultTimeLocale "%m-%d-%Y" s
+              [parseTime defaultTimeLocale "%Y/%m/%e" s
+               -- can't parse a month without leading 0, try adding onee
+              ,parseTime defaultTimeLocale "%Y/%m/%e" (take 5 s ++ "0" ++ drop 5 s)
+              ,parseTime defaultTimeLocale "%Y-%m-%e" s
+              ,parseTime defaultTimeLocale "%Y-%m-%e" (take 5 s ++ "0" ++ drop 5 s)
+              ,parseTime defaultTimeLocale "%m/%e/%Y" s
+              ,parseTime defaultTimeLocale "%m/%e/%Y" ('0':s)
+              ,parseTime defaultTimeLocale "%m-%e-%Y" s
+              ,parseTime defaultTimeLocale "%m-%e-%Y" ('0':s)
               ]
 
