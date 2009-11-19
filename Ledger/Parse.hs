@@ -13,7 +13,6 @@ import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Combinator
 import System.Directory
 import System.IO.UTF8
-import System.IO (stdin)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
