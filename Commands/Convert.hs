@@ -10,8 +10,8 @@ import Data.List.Split (splitOn)
 import Options -- (Opt,Debug)
 import Ledger.Types (Ledger,AccountName)
 import Ledger.Utils (strip)
-import System.IO (stderr, hPutStrLn)
-import Text.CSV (parseCSVFromFile)
+import System.IO (stderr, hPutStr)
+import Text.CSV (parseCSVFromFile, printCSV)
 import Text.Printf (printf)
 import Text.RegexPR (matchRegexPR)
 import Data.Maybe
@@ -60,7 +60,7 @@ print_ledger_txn debug (baseacct,fieldpositions,rules) csvrecord
     | length csvrecord < maximum (map (fromMaybe 0) fieldpositions) + 1 = return ()
     | otherwise =
  do
-  when debug $ hPutStrLn stderr $ show csvrecord
+  when debug $ hPutStr stderr $ printCSV [csvrecord]
   let date = maybe "" (csvrecord !!) (fieldpositions !! 0)
       number = maybe "" (csvrecord !!) (fieldpositions !! 1)
       description = maybe "" (csvrecord !!) (fieldpositions !! 2)
@@ -70,7 +70,6 @@ print_ledger_txn debug (baseacct,fieldpositions,rules) csvrecord
       unknownacct | (readDef 0 amount' :: Double) < 0 = "income:unknown"
                   | otherwise = "expenses:unknown"
       (acct,desc) = choose_acct_desc rules (unknownacct,description)
-  when debug $ hPutStrLn stderr $ printf "using %s for %s" desc description
   printf "%s%s %s\n" (fixdate date) (if not (null number) then printf " (%s)" number else "") desc
   printf "    %-30s  %15s\n" acct (printf "$%s" amount' :: String)
   printf "    %s\n\n" baseacct
