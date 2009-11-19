@@ -37,7 +37,7 @@ myLedgerPath :: IO String
 myLedgerPath = 
     getEnv ledgerenvvar `catch` 
                (\_ -> do
-                  home <- getHomeDirectory
+                  home <- getHomeDirectory `catch` (\_ -> return "")
                   return $ home </> ledgerdefaultfilename)
   
 -- | Get the user's default timelog file path.
