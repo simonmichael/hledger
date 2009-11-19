@@ -188,7 +188,7 @@ hledgerpage env msgs title content =
       </head>
       <body>
         <% navbar env %>
-        <span id="messages"><% intercalate ", " msgs %></span>
+        <div id="messages"><% intercalate ", " msgs %></div>
         <div id="content"><% content %></div>
       </body>
     </html>
@@ -196,8 +196,8 @@ hledgerpage env msgs title content =
 navbar :: Hack.Env -> HSP XML
 navbar env =
     <div id="navbar">
-      <div style="float:right; text-align:right;"><% searchform env %></div>
       <% navlinks env %>
+      <% searchform env %>
     </div>
 
 getParamOrNull p = fromMaybe "" `fmap` getParam p
@@ -220,10 +220,10 @@ searchform env = do
    a <- getParamOrNull "a"
    p <- getParamOrNull "p"
    let resetlink | null a && null p = <span></span>
-                 | otherwise = <span>[NBSP]<a href=u>reset</a></span>
+                 | otherwise = <span id="resetlink">[NBSP]<a href=u>reset</a></span>
                  where u = dropWhile (=='/') $ Hack.Contrib.Request.path env
    <form action="" id="searchform">
-      [NBSP]filter by:[NBSP]<input name="a" size="20" value=a
+      [NBSP]account pattern:[NBSP]<input name="a" size="20" value=a
       />[NBSP][NBSP]reporting period:[NBSP]<input name="p" size="20" value=p />
       <input type="submit" name="submit" value="filter" style="display:none" />
       <% resetlink %>
@@ -234,19 +234,21 @@ addform env = do
   let inputs = Hack.Contrib.Request.inputs env
       date  = fromMaybe "" $ lookup "date"  inputs
       desc  = fromMaybe "" $ lookup "desc"  inputs
-  <form action="" id="addform" method="POST">
+  <div id="addform">
+   <form action="" method="POST">
     <table border="0">
       <tr>
         <td>
-          Date: <input size="10" name="date" value=date />[NBSP]
-          Description: <input size="40" name="desc" value=desc />[NBSP]
+          Date: <input size="15" name="date" value=date />[NBSP]
+          Description: <input size="35" name="desc" value=desc />[NBSP]
         </td>
       </tr>
       <% transactionfields 1 env %>
       <% transactionfields 2 env %>
-      <tr align="right"><td><input type="submit" value="add" /></td></tr>
+      <tr align="right"><td><input type="submit" value="add transaction" /></td></tr>
     </table>
    </form>
+   </div>
 
 transactionfields :: Int -> Hack.Env -> HSP XML
 transactionfields n env = do
@@ -256,8 +258,8 @@ transactionfields n env = do
   <tr>
     <td>
       [NBSP][NBSP]
-      Account: <input size="40" name=acctvar value=acct />[NBSP]
-      Amount: <input size="10" name=amtvar value=amt />[NBSP]
+      Account: <input size="35" name=acctvar value=acct />[NBSP]
+      Amount: <input size="15" name=amtvar value=amt />[NBSP]
     </td>
    </tr>
     where
