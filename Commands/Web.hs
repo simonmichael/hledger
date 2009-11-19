@@ -26,6 +26,7 @@ import Options hiding (value)
 import System.Directory (getModificationTime)
 import System.IO.Storage (withStore, putValue, getValue)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
+import Text.ParserCombinators.Parsec (parse)
 -- import Text.XHtml hiding (dir, text, param, label)
 -- import Text.XHtml.Strict ((<<),(+++),(!))
 import qualified HSP (Request(..))
@@ -296,8 +297,9 @@ handleAddform l = do
             validateAmt1 _   = []
             validateAcct2 "" = ["missing account 2"]
             validateAcct2 _  = []
-            validateAmt2 ""  = ["missing amount 2"]
             validateAmt2 _   = []
+            amt1' = either (const missingamt) id $ parse someamount "" amt1
+            amt2' = either (const missingamt) id $ parse someamount "" amt2
             t = LedgerTransaction {
                             ltdate = parsedate $ fixSmartDateStr today date
                            ,lteffectivedate=Nothing
@@ -306,11 +308,14 @@ handleAddform l = do
                            ,ltdescription=desc
                            ,ltcomment=""
                            ,ltpostings=[
-                             Posting False acct1 (Mixed [dollars $ read amt1]) "" RegularPosting
-                            ,Posting False acct2 (Mixed [dollars $ read amt2]) "" RegularPosting
+                             Posting False acct1 amt1' "" RegularPosting
+                            ,Posting False acct2 amt2' "" RegularPosting
                             ]
                            ,ltpreceding_comment_lines=""
                            }
+            (t', berr) = case balanceLedgerTransaction t of
+                           Right t'' -> (t'', [])
+                           Left e -> (t, [e])
             errs = concat [
                     validateDate date
                    ,validateDesc desc
@@ -318,13 +323,11 @@ handleAddform l = do
                    ,validateAmt1 amt1
                    ,validateAcct2 acct2
                    ,validateAmt2 amt2
-                   ]
-            errs' | null errs = either (:[]) (const []) (balanceLedgerTransaction t)
-                  | otherwise = errs
+                   ] ++ berr
         in
-        case null errs' of 
-          False -> Failure errs'
-          True  -> Success t
+        case null errs of
+          False -> Failure errs
+          True  -> Success t'
 
     handle :: Failing LedgerTransaction -> AppUnit
     handle (Failure errs) = hsp errs addform 
