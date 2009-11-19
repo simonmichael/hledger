@@ -91,3 +91,4 @@ img {
 .screenshot {
     border: 10px solid #F8F8F8; /* Soft grey border */
 }
+#toc { float:right; }
