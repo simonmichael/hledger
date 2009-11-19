@@ -10,7 +10,7 @@ It reads a plain text
 precise reports via 
 `command-line <SCREENSHOTS.html#hledger-screen-1>`_, 
 `curses <SCREENSHOTS.html#sshot>`_ or 
-`web interface <http://hledger.org:5000>`_.
+`web interface <http://demo.hledger.org>`_.
 I use it every day to: track spending and income; see time reports by day/week/month/project; get accurate numbers for client billing and tax returns; find unpaid invoices, and so on.
 
 hledger is a remix, in haskell_, of John Wiegley's excellent ledger_.
@@ -63,8 +63,8 @@ Related projects
 
 .. _ledger file:          http://joyful.com/repos/hledger/sample.ledger
 .. _timelog:              http://joyful.com/repos/hledger/sample.timelog
-.. _balance:              http://hledger.org:5000/balance
-.. _register:             http://hledger.org:5000/register?a=checking&p=weekly
+.. _balance:              http://demo.hledger.org/balance
+.. _register:             http://demo.hledger.org/register?a=checking&p=weekly
 .. _mail list:            http://list.hledger.org
 .. _issue tracker:        http://bugs.hledger.org
 .. _platform binaries:    http://hledger.org/binaries/
