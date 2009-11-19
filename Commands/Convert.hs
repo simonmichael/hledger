@@ -71,9 +71,9 @@ print_ledger_txn debug (baseacct,fieldpositions,rules) csvrecord
                   | otherwise = "expenses:unknown"
       (acct,desc) = choose_acct_desc rules (unknownacct,description)
   when (debug) $ hPutStrLn stderr $ printf "using %s for %s" desc description
-  putStrLn $ printf "%s%s %s" (fixdate date) (if not (null number) then printf " (%s)" number else "") desc
-  putStrLn $ printf "    %-30s  %15s" acct (printf "$%s" amount' :: String)
-  putStrLn $ printf "    %s\n" baseacct
+  printf "%s%s %s\n" (fixdate date) (if not (null number) then printf " (%s)" number else "") desc
+  printf "    %-30s  %15s\n" acct (printf "$%s" amount' :: String)
+  printf "    %s\n\n" baseacct
 
 choose_acct_desc :: [Rule] -> (String,String) -> (String,String)
 choose_acct_desc rules (acct,desc) | null matchingrules = (acct,desc)
