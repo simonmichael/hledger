@@ -128,13 +128,13 @@ server opts args l =
           get  "/balance"   $ command [] showBalanceReport   -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/ledger"    $ ledgerpage [] l'' (showLedgerTransactions opts' args')
-          post "/ledger"    $ handleAddform l''
+          get  "/journal"   $ ledgerpage [] l'' (showLedgerTransactions opts' args')
+          post "/journal"   $ handleAddform l''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
           get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
           public (Just "Commands/Web") ["/static"]
-          get  "/"          $ redirect ("balance") Nothing
+          get  "/"          $ redirect ("journal") Nothing
           ) env
 
 ledgerpage :: [String] -> Ledger -> (Ledger -> String) -> AppUnit
@@ -211,10 +211,9 @@ navlinks _ = do
    let addparams=(++(printf "?a=%s&p=%s" (urlEncode a) (urlEncode p)))
        link s = <a href=(addparams s) class="navlink"><% s %></a>
    <div id="navlinks">
-     <% link "ledger" %> |
-     <% link "balance" %> |
+     <% link "journal" %> |
      <% link "register" %> |
-     <% link "histogram" %>
+     <% link "balance" %>
     </div>
 
 searchform :: Hack.Env -> HSP XML
