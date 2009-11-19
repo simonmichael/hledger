@@ -5,8 +5,11 @@ body { font-family: "helvetica","arial", "sans serif"; margin:0; }
 #navlinks { display:inline; }
 .navlink { font-weight:normal; }
 #searchform { font-size:small; display:inline; margin-left:1em; }
-#resetlink {  }
+#hledgerorglink { font-size:small; float:right; }
+#helplink { font-size:small; margin-left:1em; }
+#resetlink { font-size:small; }
 #messages { color:red; background-color:#ffeeee; margin:0.5em;}
 #content { padding:0 4px 0 4px; }
 #addform { margin-left:1em; font-size:small; float:right;}
 #addform table { background-color:#eeeeee; border:2px solid #dddddd; }
+#addform #addbuttonrow td { text-align:left; }

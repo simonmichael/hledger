@@ -196,8 +196,10 @@ hledgerpage env msgs title content =
 navbar :: Hack.Env -> HSP XML
 navbar env =
     <div id="navbar">
+      <a href="http://hledger.org" id="hledgerorglink">hledger.org</a>
       <% navlinks env %>
       <% searchform env %>
+      <a href="http://hledger.org/README.html" id="helplink">help</a>
     </div>
 
 getParamOrNull p = fromMaybe "" `fmap` getParam p
@@ -245,7 +247,7 @@ addform env = do
       </tr>
       <% transactionfields 1 env %>
       <% transactionfields 2 env %>
-      <tr align="right"><td><input type="submit" value="add transaction" /></td></tr>
+      <tr id="addbuttonrow"><td><input type="submit" value="add transaction" /></td></tr>
     </table>
    </form>
    </div>
