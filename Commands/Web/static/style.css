@@ -1,0 +1,12 @@
+/* hledger web ui stylesheet */
+
+body { font-family: "helvetica","arial", "sans serif"; margin:0; }
+#navbar { background-color:#eeeeee; border-bottom:2px solid #dddddd; padding:4px 4px 6px 4px; }
+#navlinks { display:inline; }
+.navlink { font-weight:normal; }
+#searchform { font-size:small; display:inline; margin-left:1em; }
+#resetlink {  }
+#messages { color:red; background-color:#ffeeee; margin:0.5em;}
+#content { padding:0 4px 0 4px; }
+#addform { margin-left:1em; font-size:small; float:right;}
+#addform table { background-color:#eeeeee; border:2px solid #dddddd; }
