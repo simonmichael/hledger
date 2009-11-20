@@ -21,7 +21,7 @@ VIEWHTMLCMD=open
 VIEWPSCMD=open
 
 SOURCEFILES:=*hs Commands/*hs Ledger/*hs
-DOCFILES:=HOME README NEWS CONTRIBUTORS SCREENSHOTS
+DOCFILES:=HOME HOMEDEV README NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing

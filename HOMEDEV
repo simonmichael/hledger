@@ -1,32 +1,58 @@
 hledger
 ==========================
 
-hledger is a computer program for easily tracking money, time, or other
-commodities, using standard accounting principles. It is quite limited in
-features, but reliable.  For some, it is a bare-bones, less complex, less
-expensive alternative to Quicken or Microsoft Money.
+hledger for techies
+-------------------
 
-hledger aims to help both computer experts and every-day users gain clarity in their finances and time management.
-I use it every day to: 
+hledger is a remix, in haskell_, of John Wiegley's excellent ledger_ accounting tool.
+It reads a plain text
+`ledger file <http://joyful.com/repos/hledger/sample.ledger>`_ or 
+`timelog <http://joyful.com/repos/hledger/sample.timelog>`_ 
+describing your transactions and displays precise reports via 
+`command-line <SCREENSHOTS.html#hledger-screen-1>`_, 
+`curses <SCREENSHOTS.html#sshot>`_ or 
+`web interface <http://demo.hledger.org>`_.
 
-- track spending and income
-- see time reports by day/week/month/project
-- get accurate numbers for client billing and tax filing
-- find unpaid invoices
+hledger aims to be:
 
-Here is a **`demo <http://demo.hledger.org>`_** of the web interface.
+- a practical, accessible, dependable tool for end users
+- a useful library and toolbox for finance-minded haskell programmers
+- a successful, time-and-money-solvent project within a thriving ecosystem of financial software projects.
 
-Here is the **`user's guide <README.html>`_**.
+hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
-Download and try
-**`hledger for mac <http://hledger.org/binaries/hledger-0.6-mac-i386.gz>`_**,
-**`hledger for windows <http://hledger.org/binaries/hledger-0.6-win-i386.zip>`_**,
-or 
-**hledger for linux 
-(`32-bit <http://hledger.org/binaries/hledger-0.6.1+9-linux-i386.gz>`_,
-`64-bit <http://hledger.org/binaries/hledger-0.6-linux-x86_64.gz>`_)**
+Getting started
+---------------
+``cabal install hledger``,
+or try these `platform binaries`_,
+or see the `installing docs <README.html#installing>`_.
 
-And go here for **`more help and technical info <HOMEDEV.html>`_**.
+Then see hledger's `User's Guide`_, News_, `Screenshots <SCREENSHOTS.html>`_, and perhaps c++ ledger's `home page`_ and manual_.
+
+If you're a developer, `browse the code`_ or ``darcs get http://joyful.com/repos/hledger``.
+See also the `hackage page`_, `Developer API docs`_, and latest notes_, benchmark_, profile_, heap_, `test coverage`_.
+
+.. raw:: html
+ <a name="contact" />
+
+To get help or discuss, use one of the channels below.
+Reports/patches for any issues with hledger, documentation, or website are appreciated!
+
+- chat Simon (sm) on the `#ledger irc channel`_ which we share with ledger
+- .. raw:: html
+     <form action="http://groups.google.com/group/hledger/boxsubscribe" >
+       join the <a href="http://hledger.org/list">mail list</a>. Your email:
+       <input type=text name=email><input type=submit name="sub" value="Subscribe">
+     </form>
+- use the `issue tracker`_
+- or `email me`_.
+
+Related projects
+----------------
+- John Wiegley's ledger_ inspired hledger, and we try to stay compatible. You can often use both tools on the same ledger file.
+- Uwe Hollerbach's umm_ is another haskell tool inspired by h/ledger.
+- Tim Docker's ledger-reports_ uses hledger as a library to generate `html reports`_. 
+- I have a few older bits and pieces `here <http://joyful.com/Ledger>`_.
 
 .. raw:: html
 
@@ -64,6 +90,7 @@ And go here for **`more help and technical info <HOMEDEV.html>`_**.
 .. _ledger:               http://wiki.github.com/jwiegley/ledger
 .. _home page:            http://wiki.github.com/jwiegley/ledger
 .. _manual:               http://joyful.com/repos/ledger/doc/ledger.html
+.. _umm:                  http://www.korgwal.com/umm/
 .. _ledger-reports:       http://dockerz.net/repos/ledger-reports
 .. _html reports:         http://dockerz.net/software/hledger_report_sample/report.html
 

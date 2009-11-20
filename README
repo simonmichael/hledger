@@ -1,28 +1,23 @@
 hledger User's Guide
 ====================
 
-Welcome to hledger! 
+hledger is an accounting tool, similar to and inspired by John Wiegley's
+"ledger" project. If you haven't already, see also hledger's home page at
+http://hledger.org .
 
-hledger is a partial haskell clone of John Wiegley's "ledger" command-line
-accounting tool. hledger generates ledger-compatible register & balance
-reports from a plain text ledger file, allows precise batch-mode or
-interactive querying, and demonstrates a pure functional implementation of
-ledger.  For more information, see http://hledger.org .
+hledger is copyright (c) 2007-2009 Simon Michael <simon@joyful.com> and
+contributors and released under GPL version 3 or later.
 
-Copyright (c) 2007-2009 Simon Michael <simon@joyful.com> and contributors.
-Released under GPL version 3 or later.
+Installing
+----------
 
-Installation
-------------
+hledger works on all major platforms.
+One of these `platform binaries`_ might work for you.
+If not, please report, then install the `Haskell Platform`_ and type ``cabal install hledger``.
 
 Platform binaries are not yet being published; you could try asking for
 one on the #ledger channel. 
 
-Building hledger requires GHC 6.8 or later (http://haskell.org/ghc).
-hledger should work on any platform which GHC supports.
-Also, installing hledger's dependencies easily requires cabal-install
-version 0.6 or later (http://www.haskell.org/cabal/download.html).
-Once these tools are installed on your system, do::
 
  cabal update
  cabal install hledger [-fvty] [-fhapps]
@@ -30,8 +25,12 @@ Once these tools are installed on your system, do::
 The vty and happs flags are optional; they enable hledger's "ui" and "web"
 commands respectively. vty is not available on the windows platform.
 
-Usage
------
+Basic usage
+-----------
+
+hledger generates ledger-compatible register & balance reports from a
+plain text ledger file. You can use it from the command line, or via the
+web or curses interface.
 
 hledger looks for your ledger file at ~/.ledger by default. To use a
 different file, specify it with the LEDGER environment variable or -f
@@ -57,7 +56,7 @@ account name or transaction description.  Here are some commands to try::
  hledger -f new.ledger add             # record transactions from the command line
 
 Time reporting
---------------
+..............
 
 hledger will also read timelog files in timeclock.el format.  If you
 invoke hledger via a symlink or copy named "hours", it looks for your
@@ -83,6 +82,9 @@ queries to try::
 
 Features
 --------
+
+Overview
+........
 
 This version of hledger mimics a subset of ledger 3.x, and adds some
 features of its own. We currently support regular ledger entries, timelog
@@ -125,12 +127,12 @@ We handle (almost) the full period expression syntax, and very limited
 display expressions consisting of a simple date predicate. Also the
 following new commands are supported::
 
-   histogram              show a barchart of transaction counts per interval
-   add                    record transactions from the command line
-   convert                convert CSV bank data to ledger journal format
-   ui                     a simple curses ui (only on unix platforms)
-   web                    a simple web ui
-   stats                  report some ledger statistics
+   add                    prompt for new transactions and add them to the ledger
+   convert                read CSV bank data and display in ledger format
+   histogram              show a barchart of transactions per day or other interval
+   ui                     run a simple text-based UI (only on unix platforms)
+   web                    run a simple web-based UI
+   stats                  show various statistics for a ledger
    test                   run self-tests
 
 Smart dates
@@ -213,6 +215,14 @@ Note the use of >= here to include the first of the month::
 
  hledger register -d "d>=[this month]"
 
+Differences from c++ ledger
+---------------------------
+
+hledger is written in the Haskell programming language, which encourages a
+coding style known as pure functional programming. This can, all going
+well, help programmers to produce reliable software and write less code.
+
+it demonstrates a pure functional implementation of ledger.
 
 ledger features not supported
 .............................
@@ -294,3 +304,6 @@ Other differences
 * hledger doesn't show description comments as part of the description
 * hledger print puts a blank line after the entry, not before it
 * hledger doesn't print trailing spaces after amount-elided postings
+
+.. _platform binaries:    http://hledger.org/binaries/
+.. _Haskell Platform:     http://hackage.haskell.org/platform/
