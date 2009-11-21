@@ -4,17 +4,18 @@ hledger manual
 This is the official hledger manual. You may also want to visit
 the http://hledger.org home page,
 the `hledger for techies`_ page,
-and possibly `c++ ledger's manual`_ for background.
+and perhaps `c++ ledger's manual`_.
+(Tip: hledger.org docs are also available with .pdf suffix.)
 
 Introduction
 ------------
 
-hledger is an accounting tool for tracking money, time, or other commodities using standard accounting principles.
+hledger is a program for tracking money, time, or other commodities using standard accounting principles.
 It was inspired by John Wiegley's "ledger" project, which I used and admired.
 I wrote hledger because I wanted to build financial tools in the Haskell
 programming language rather than C++.
 
-hledger's most basic function is to generate register and balance reports
+hledger's basic function is to generate register and balance reports
 from a plain text ledger file, at the command line or via the web or
 curses interface. You can use it to, eg,
 
