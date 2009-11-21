@@ -1,3 +1,6 @@
+hledger news
+============
+
 2009/06/22 hledger 0.6.1
 ........................
   * avoid use of exitSuccess which was breaking ghc 6.8/base 3 compatibility (issue #2)

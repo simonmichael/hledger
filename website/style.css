@@ -22,7 +22,7 @@ code {
     margin: 0 auto;
     width: 700px;
 }
-h1 {
+h1.title {
     font-size: 3.8em;
     /* color: #49637C; */
     color: #226600;
@@ -91,4 +91,4 @@ img {
 .screenshot {
     border: 10px solid #F8F8F8; /* Soft grey border */
 }
-#toc { float:right; }
+#toc,#TOC { float:right; }

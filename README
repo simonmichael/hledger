@@ -1,36 +1,52 @@
-hledger User's Guide
-====================
+hledger manual
+==============
 
-hledger is an accounting tool, similar to and inspired by John Wiegley's
-"ledger" project. If you haven't already, see also hledger's home page at
-http://hledger.org .
+This is the official hledger manual. You may also want to visit
+the http://hledger.org home page,
+the `hledger for techies`_ page,
+and possibly `c++ ledger's manual`_ for background.
+
+Introduction
+------------
+
+hledger is an accounting tool for tracking money, time, or other commodities using standard accounting principles.
+It was inspired by John Wiegley's "ledger" project, which I used and admired.
+I wrote hledger because I wanted to build financial tools in the Haskell
+programming language rather than C++.
+
+hledger's most basic function is to generate register and balance reports
+from a plain text ledger file, at the command line or via the web or
+curses interface. You can use it to, eg,
+
+- track spending and income
+- see time reports by day/week/month/project
+- get accurate numbers for client billing and tax filing
+- find unpaid invoices
+
+hledger aims to help both computer experts and every-day users gain clarity in their finances and time management.
+For now though, it is most useful to technically-minded folks who are comfortable with command-line tools.
 
 hledger is copyright (c) 2007-2009 Simon Michael <simon@joyful.com> and
-contributors and released under GPL version 3 or later.
+contributors and released as Free Software under GPL version 3 or later.
 
-Installing
+User Guide
 ----------
 
-hledger works on all major platforms.
-One of these `platform binaries`_ might work for you.
-If not, please report, then install the `Haskell Platform`_ and type ``cabal install hledger``.
+Installing
+..........
 
-One of the platform binaries published at http://hledger.org may work for you.
-If not, please report the problem and read on..
+hledger works on all major platforms. One of these pre-built binaries_ might work for you.
 
+If not, please report the problem, then install the `Haskell Platform`_ and type::
 
  cabal update
  cabal install hledger [-fvty] [-fhapps]
 
-The vty and happs flags are optional; they enable hledger's "ui" and "web"
-commands respectively. vty is not available on the windows platform.
+The optional -f flags will download more stuff and include the "ui" and
+"web" commands respectively. -fvty will not work on microsoft windows.
 
 Basic usage
------------
-
-hledger generates ledger-compatible register & balance reports from a
-plain text ledger file. You can use it from the command line, or via the
-web or curses interface.
+...........
 
 hledger looks for your ledger file at ~/.ledger by default. To use a
 different file, specify it with the LEDGER environment variable or -f
@@ -80,11 +96,11 @@ queries to try::
  hours -p 'from 1/15' register project        # project sessions since jan 15
  hours -p 'weekly' reg --depth 1 -E           # weekly time summary
 
-Features
---------
+Reference
+---------
 
-Overview
-........
+Feature overview
+................
 
 This version of hledger mimics a subset of ledger 3.x, and adds some
 features of its own. We currently support regular ledger entries, timelog
@@ -218,14 +234,12 @@ Note the use of >= here to include the first of the month::
 Differences from c++ ledger
 ---------------------------
 
-hledger is written in the Haskell programming language, which encourages a
-coding style known as pure functional programming. This can, all going
-well, help programmers to produce reliable software and write less code.
+hledger is written in the Haskell programming language, which supports a
+coding style known as pure functional programming. This can help
+programmers to produce more robust software and write fewer lines of code.
 
-it demonstrates a pure functional implementation of ledger.
-
-ledger features not supported
-.............................
+Features not supported
+......................
 
 ledger features not currently supported include: modifier and periodic
 entries, and the following options and commands::
@@ -302,8 +316,11 @@ Other differences
 * hledger splits multi-day timelog sessions at midnight
 * hledger register report always sorts transactions by date
 * hledger doesn't show description comments as part of the description
-* hledger print puts a blank line after the entry, not before it
+* hledger print puts a blank line after a transaction, not before it
 * hledger doesn't print trailing spaces after amount-elided postings
 
-.. _platform binaries:    http://hledger.org/binaries/
+
+.. _hledger for techies:  HOME2.html
+.. _c++ ledger's manual:  http://joyful.com/repos/ledger/doc/ledger.html
+.. _binaries:             http://hledger.org/binaries/
 .. _Haskell Platform:     http://hackage.haskell.org/platform/

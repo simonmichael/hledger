@@ -1,10 +1,16 @@
 hledger
-==========================
+=======
 
 hledger is a computer program for easily tracking money, time, or other
 commodities, using standard accounting principles. It is quite limited in
 features, but reliable.  For some, it is a bare-bones, less complex, less
 expensive alternative to Quicken or Microsoft Money.
+
+..
+ (For techies: hledger is a remix, in haskell, of John Wiegley's excellent
+ ledger accounting tool. It reads a plain text journal file describing your
+ transactions and displays reports via command line, curses or web
+ interface.)
 
 hledger aims to help both computer experts and every-day users gain clarity in their finances and time management.
 I use it every day to: 
@@ -14,65 +20,19 @@ I use it every day to:
 - get accurate numbers for client billing and tax filing
 - find unpaid invoices
 
-Here is a **`demo <http://demo.hledger.org>`_** of the web interface.
+Here is a **demo_** of the web interface.
 
-Here is the **`user's guide <README.html>`_**.
+Here is the **manual_**.
+For support and more technical info, see **`hledger for techies`_** or **`email me`_**.
 
-Download and try
-**`hledger for mac <http://hledger.org/binaries/hledger-0.6-mac-i386.gz>`_**,
-**`hledger for windows <http://hledger.org/binaries/hledger-0.6-win-i386.zip>`_**,
-or 
-**hledger for linux 
-(`32-bit <http://hledger.org/binaries/hledger-0.6.1+9-linux-i386.gz>`_,
-`64-bit <http://hledger.org/binaries/hledger-0.6-linux-x86_64.gz>`_)**
-
-And go here for **`more help and technical info <HOMEDEV.html>`_**.
-
-.. raw:: html
-
- <a href="https://www.google.com/analytics/reporting/?reset=1&id=15489822" accesskey="a"></a>
+Download and try **`hledger for mac`_**, **`hledger for windows`_**, or **hledger for linux (`32 bit`_, `64 bit`_)**.
 
 
-.. -------------------------------------------------------------------------
-
-.. _ledger file:          http://joyful.com/repos/hledger/sample.ledger
-.. _timelog:              http://joyful.com/repos/hledger/sample.timelog
-.. _balance:              http://demo.hledger.org/balance
-.. _register:             http://demo.hledger.org/register?a=checking&p=weekly
-.. _mail list:            http://list.hledger.org
-.. _issue tracker:        http://bugs.hledger.org
-.. _platform binaries:    http://hledger.org/binaries/
-.. _User's Guide:         README.html
-.. _News:                 NEWS.html
-.. _Contributor List:     CONTRIBUTORS.html
-.. _Developer API docs:   http://hledger.org/api-doc
-.. _notes:                http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES
-.. _benchmark:            http://hledger.org/profs/latest.bench
-.. _profile:              http://hledger.org/profs/latest.prof
-.. _heap:                 http://hledger.org/profs/latest.ps
-.. _test coverage:        http://hledger.org/profs/coverage/hpc_index_fun.html
-.. _browse the code:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger
+.. _demo:                 http://demo.hledger.org
+.. _manual:               README.html
+.. _hledger for techies:  HOME2.html
 .. _email me:             mailto:simon@joyful.com
-.. _Simon Michael:        http://joyful.com
-.. _co.:                  http://hledger.org/CONTRIBUTORS.html
-.. _haskell:              http://haskell.org
-.. _GHC:                  http://haskell.org/ghc
-.. _cabal:                http://haskell.org/cabal/download.html
-.. _Haskell Platform:     http://hackage.haskell.org/platform/
-.. _hackage page:         http://hackage.haskell.org/package/hledger
-.. _#ledger irc channel:  irc://irc.freenode.net/#ledger
-.. _ledger:               http://wiki.github.com/jwiegley/ledger
-.. _home page:            http://wiki.github.com/jwiegley/ledger
-.. _manual:               http://joyful.com/repos/ledger/doc/ledger.html
-.. _ledger-reports:       http://dockerz.net/repos/ledger-reports
-.. _html reports:         http://dockerz.net/software/hledger_report_sample/report.html
-
-.. .. raw:: html
-
- <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
-
-.. rst quick reference: http://docutils.sourceforge.net/docs/user/rst/quickref.html
-
-.. Local variables:
-.. mode: rst
-.. End:
+.. _hledger for mac:      http://hledger.org/binaries/hledger-0.6-mac-i386.gz
+.. _hledger for windows:  http://hledger.org/binaries/hledger-0.6-win-i386.zip
+.. _32 bit:               http://hledger.org/binaries/hledger-0.6.1+9-linux-i386.gz
+.. _64 bit:               http://hledger.org/binaries/hledger-0.6-linux-x86_64.gz
