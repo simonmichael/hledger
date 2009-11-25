@@ -1,4 +1,5 @@
 hledger project notes
+=====================
 
 * principles
 ** We aim to make reliable, maintainable, usable, useful software, sustainably.
@@ -39,12 +40,9 @@ clever tricks like the plague." --Edsger Dijkstra
 ** documentation, marketing
 *** add missing
 **** hledger/ledger feature matrix
-**** regular-user home page
 *** reduce
 *** aesthetics
 **** better screenshots/images
-**** fix header styles
-***** fix pandoc rst header handling
 *** automation
 **** keep blurbs in sync
 ***** README file
@@ -116,6 +114,7 @@ hledger.org/{list,bugs}/* also works
 ******* incomplete pattern matching
 ******* error
 ******* printf
+******* read
 **** project notes
 **** functional programming
 hledger is written in the Haskell programming language;
@@ -328,8 +327,8 @@ competitors/fellow niche inhabitants
 *** documentation
 **** site up, current
 **** demo up, current
-**** haddock
-**** doctests
+**** haddock building, current
+**** doctests ?
 *** unit
 **** hunit
 **** quickcheck
@@ -363,21 +362,13 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
+*** web: filter patterns not working
 *** convert: allow trailing whitespace in rules file
-*** reg: extra space with effective date
-2009/09/16 CHASE visa payment   as:ba:we:checking          $-200.00     $2072.64
-2009/09/16 RENT                 as:ba:we:checking          $-781.00     $1291.64
-2009/09/16  COFFEE BEAN         as:ba:we:checking            $-0.95     $1290.69
-2009/09/16  BAJA FRESH          as:ba:we:checking            $-5.43     $1285.26
-
-*** allow comment lines immediately after postings
-*** accept all real-world ledger files
-*** account name eliding and layout varies between commands
-*** vty issues 3, 4
-**** support upcoming vty development
-*** happstack ipv6 issue 6
+*** convert: allow more flexible field specs, handle wescom
+*** parsing: allow comment lines immediately after postings
+*** parsing: accept all real-world ledger files
+*** web: happstack ipv6 issue 6
 ** refactoring, code cleanup
-*** switch to hack, support other backends
 *** pair programming
 *** seek more modularity
 *** try export lists
@@ -402,12 +393,12 @@ http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pd
 *** easy data entry
 *** assume current year as default
 *** wide/customisable/consistent layout
-*** simple --flat balance report format
-*** better web ui/gui support
-*** effective dates for postings
+*** --flat balance report format
+*** effective/actual? dates for postings
+*** better web ui/gui
+*** nice reports with charts
 *** ledger-compatible xml output ?
 *** allow no command or unordered command with pattern args
-*** nice reports with charts
 *** more automated bank data conversion
 *** ofx download
 *** watching a changing ledger
