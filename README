@@ -104,8 +104,9 @@ Feature overview
 
 This version of hledger mimics a subset of ledger 3.x, and adds some
 features of its own. We currently support regular ledger entries, timelog
-entries, multiple commodities, virtual transactions, account and
-description filtering, and these commands and options::
+entries, multiple commodities, price history for fixed-conversion-rate
+transactions, account and description filtering, virtual postings, and
+these commands and options::
 
    Commands:
    balance  [REGEXP]...   show balance totals for matching accounts
@@ -309,6 +310,28 @@ Note the use of >= here to include the first of the month::
 
  hledger register -d "d>=[this month]"
 
+Pricing
+.............
+As in c++ ledger, you can specify the conversion rate or unit price for a
+posting by appending " @ RATE" to the amount, where RATE is another amount
+in a different commodity. Eg, one hundred euros purchased at $1.35 per
+euro::
+
+    expenses:foreign currency       €100 @ $1.35
+
+Alternatively, you can add "P" historical price records to declare a
+commodity's unit price (rate) as of a particular date.  Eg, on this date
+the exchange rate for 1 us dollar was 12.8 mexican pesos::
+
+ P 2009/11/25 $ 12.8418 MXN
+
+and the above price will apply to all dollar transactions made on or after
+that date (until a more recent price record is found.) Note, unlike c++
+ledger the rate is considered fixed as of the transaction date; this is
+good for (eg) tracking foreign currency expenses, but not for tracking
+investments with fluctuating value and capital gains.
+
+
 Differences from c++ ledger
 ---------------------------
 
@@ -396,6 +419,8 @@ Other differences
 * hledger doesn't show description comments as part of the description
 * hledger print puts a blank line after a transaction, not before it
 * hledger doesn't print trailing spaces after amount-elided postings
+* hledger doesn't track the value of commodities with varying price;
+  prices are fixed as of the transaction date
 
 
 .. _hledger for techies:  HOME2.html
