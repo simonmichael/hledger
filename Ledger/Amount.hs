@@ -21,18 +21,15 @@ A 'MixedAmount' is zero or more simple amounts:
   16h + $13.55 + AAPL 500 + 6 oranges
 @
 
-A normalised mixed amount has at most one amount of each commodity, and no
-zero amounts (or it has just a single zero amount and no others.)
-
 Amounts often have a price per unit, or conversion rate, in terms of
-another commodity. also.  If present, this is displayed after \@:
+another commodity. If present, this is displayed after \@:
 
 @
   EUR 3 \@ $1.35
 @
 
-A normalised mixed amount has at most one amount in each
-commodity/pricing, and no zero amounts (or, it has only a zero amount).
+A normalised mixed amount has at most one amount in each commodity-price,
+and no zero amounts (or it has just a single zero amount and no others.)
 
 In principle we can convert an amount to any other commodity to which we
 have a known sequence of conversion rates; in practice we only do one
