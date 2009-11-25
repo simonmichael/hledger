@@ -1,4 +1,5 @@
 # let's have print preserve comments as far as possible
+# we preserve line-end comments but not full line comments
 -f - print
 <<<
 2009/1/1 x  ; description comment
@@ -10,9 +11,5 @@
 >>>
 2009/01/01 x  ; description comment
     a             1  ; amount comment
-    ; middle posting comment
     b            -1
-    ; trailing posting comment
-; post-entry comment (?)
-
 

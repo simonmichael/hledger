@@ -1,3 +1,4 @@
+# could balance this, but complain instead like ledger
 -f - register
 <<<
 2009/6/24 carwash
@@ -5,14 +6,4 @@
     assets:cash
     [expenses:car]                                      $3.50
     [simon]
->>>2
-"-" (line 6, column 1):
-unexpected end of input
-could not balance this transaction, amounts do not add up to zero:
-2009/06/24 carwash
-    equity:draw:personal:transportatio         $3.50
-    assets:cash                                     
-    [expenses:car]                             $3.50
-    [simon]                                         
-
-
+>>>2 /too many missing/
