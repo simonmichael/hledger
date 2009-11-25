@@ -73,13 +73,18 @@ instance Ord MixedAmount where
 
 negateAmountPreservingPrice a = (-a){price=price a}
 
--- | Apply a binary arithmetic operator to two amounts - converting to the
--- second one's commodity, adopting the lowest precision, and discarding
--- any price information. (Using the second commodity is best since sum
--- and other folds start with a no-commodity amount.)
+-- | Apply a binary arithmetic operator to two amounts, converting to the
+-- second one's commodity (and display precision), discarding any price
+-- information. (Using the second commodity is best since sum and other
+-- folds start with a no-commodity amount.)
 amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
 amountop op a@(Amount _ _ _) (Amount bc bq _) = 
     Amount bc (quantity (convertAmountTo bc a) `op` bq) Nothing
+
+-- | Convert an amount to the specified commodity using the appropriate
+-- exchange rate (which is currently always 1).
+convertAmountTo :: Commodity -> Amount -> Amount
+convertAmountTo c2 (Amount c1 q _) = Amount c2 (q * conversionRate c1 c2) Nothing
 
 -- | Convert an amount to the commodity of its saved price, if any.
 costOfAmount :: Amount -> Amount
@@ -88,11 +93,6 @@ costOfAmount (Amount _ q (Just price))
     | isZeroMixedAmount price = nullamt
     | otherwise = Amount pc (pq*q) Nothing
     where (Amount pc pq _) = head $ amounts price
-
--- | Convert an amount to the specified commodity using the appropriate
--- exchange rate (which is currently always 1).
-convertAmountTo :: Commodity -> Amount -> Amount
-convertAmountTo c2 (Amount c1 q _) = Amount c2 (q * conversionRate c1 c2) Nothing
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
@@ -208,7 +208,7 @@ normaliseMixedAmount (Mixed as) = Mixed as''
       sym = symbol . commodity
       as' | null nonzeros = [head $ zeros ++ [nullamt]]
           | otherwise = nonzeros
-      (zeros,nonzeros) = partition isZeroAmount as
+      (zeros,nonzeros) = partition isReallyZeroAmount as
 
 sumSamePricedAmountsPreservingPrice [] = nullamt
 sumSamePricedAmountsPreservingPrice as = (sum as){price=price $ head as}

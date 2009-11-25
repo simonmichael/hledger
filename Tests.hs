@@ -309,6 +309,17 @@ tests = [
     sum [a2,a3] `is` Amount (comm "$") (-2.46) Nothing
     sum [a3,a3] `is` Amount (comm "$") (-2.46) Nothing
     sum [a1,a2,a3,-a3] `is` Amount (comm "$") 0 Nothing
+    let dollar0 = dollar{precision=0}
+    (sum [Amount dollar 1.25 Nothing, Amount dollar0 (-1) Nothing, Amount dollar (-0.25) Nothing])
+      `is` (Amount dollar 0 Nothing)
+
+  ,"mixed amount arithmetic" ~: do
+    let dollar0 = dollar{precision=0}
+    (sum $ map (Mixed . (\a -> [a]))
+             [Amount dollar 1.25 Nothing,
+              Amount dollar0 (-1) Nothing,
+              Amount dollar (-0.25) Nothing])
+      `is` Mixed [Amount dollar 0 Nothing]
 
   ,"balance report tests" ~:
    let (opts,args) `gives` es = do 
