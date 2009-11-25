@@ -31,6 +31,18 @@ showPosting (Posting _ a amt _ ttype) =
                           VirtualPosting -> (\s -> "("++s++")", 20)
                           _ -> (id,22)
       showamount = padleft 12 . showMixedAmountOrZero
+-- XXX refactor
+showPostingWithoutPrice (Posting _ a amt _ ttype) =
+    concatTopPadded [showaccountname a ++ " ", showamount amt]
+    where
+      ledger3ishlayout = False
+      acctnamewidth = if ledger3ishlayout then 25 else 22
+      showaccountname = printf ("%-"++(show acctnamewidth)++"s") . bracket . elideAccountName width
+      (bracket,width) = case ttype of
+                          BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
+                          VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
+                          _ -> (id,acctnamewidth)
+      showamount = padleft 12 . showMixedAmountOrZeroWithoutPrice
 
 isReal :: Posting -> Bool
 isReal p = ptype p == RegularPosting

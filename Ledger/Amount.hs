@@ -108,6 +108,10 @@ showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
       price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
                           Nothing -> ""
 
+-- | Get the string representation of an amount, without any "@ price".
+showAmountWithoutPrice :: Amount -> String
+showAmountWithoutPrice a = showAmount a{price=Nothing}
+
 -- | Get the string representation (of the number part of) of an amount
 showAmount' :: Amount -> String
 showAmount' (Amount (Commodity {comma=comma,precision=p}) q _) = quantity
@@ -128,7 +132,7 @@ punctuatethousands s =
 
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
-isZeroAmount = null . filter (`elem` "123456789") . showAmount
+isZeroAmount = null . filter (`elem` "123456789") . showAmountWithoutPrice
 
 -- | Is this amount "really" zero, regardless of the display precision ?
 -- Since we are using floating point, for now just test to some high precision.
@@ -167,6 +171,15 @@ showMixedAmount m = concat $ intersperse "\n" $ map showfixedwidth as
       width = maximum $ map (length . show) as
       showfixedwidth = printf (printf "%%%ds" width) . show
 
+-- | Get the string representation of a mixed amount, but without
+-- any "@ price"s.
+showMixedAmountWithoutPrice :: MixedAmount -> String
+showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth as
+    where
+      (Mixed as) = normaliseMixedAmountIgnoringPrice m
+      width = maximum $ map (length . show) as
+      showfixedwidth = printf (printf "%%%ds" width) . showAmountWithoutPrice
+
 -- | Get the string representation of a mixed amount, and if it
 -- appears to be all zero just show a bare 0, ledger-style.
 showMixedAmountOrZero :: MixedAmount -> String
@@ -174,13 +187,20 @@ showMixedAmountOrZero a
     | isZeroMixedAmount a = "0"
     | otherwise = showMixedAmount a
 
+-- | Get the string representation of a mixed amount, or a bare 0,
+-- without any "@ price"s.
+showMixedAmountOrZeroWithoutPrice :: MixedAmount -> String
+showMixedAmountOrZeroWithoutPrice a
+    | isZeroMixedAmount a = "0"
+    | otherwise = showMixedAmountWithoutPrice a
+
 -- | Simplify a mixed amount by combining any component amounts which have
--- the same commodity and the same price. Also removes redundant zero amounts
--- and adds a single zero amount if there are no amounts at all.
+-- the same commodity and the same price. Also removes zero amounts,
+-- or adds a single zero amount if there are no amounts at all.
 normaliseMixedAmount :: MixedAmount -> MixedAmount
 normaliseMixedAmount (Mixed as) = Mixed as''
     where 
-      as'' = map sumAmountsPreservingPrice $ group $ sort as'
+      as'' = map sumSamePricedAmountsPreservingPrice $ group $ sort as'
       sort = sortBy cmpsymbolandprice
       cmpsymbolandprice a1 a2 = compare (sym a1,price a1) (sym a2,price a2)
       group = groupBy samesymbolandprice 
@@ -190,8 +210,26 @@ normaliseMixedAmount (Mixed as) = Mixed as''
           | otherwise = nonzeros
       (zeros,nonzeros) = partition isZeroAmount as
 
-sumAmountsPreservingPrice [] = nullamt
-sumAmountsPreservingPrice as = (sum as){price=price $ head as}
+sumSamePricedAmountsPreservingPrice [] = nullamt
+sumSamePricedAmountsPreservingPrice as = (sum as){price=price $ head as}
+
+-- | Simplify a mixed amount by combining any component amounts which have
+-- the same commodity, ignoring and discarding their unit prices if any.
+-- Also removes zero amounts, or adds a single zero amount if there are no
+-- amounts at all.
+normaliseMixedAmountIgnoringPrice :: MixedAmount -> MixedAmount
+normaliseMixedAmountIgnoringPrice (Mixed as) = Mixed as''
+    where
+      as'' = map sumAmountsDiscardingPrice $ group $ sort as'
+      group = groupBy samesymbol where samesymbol a1 a2 = sym a1 == sym a2
+      sort = sortBy (comparing sym)
+      sym = symbol . commodity
+      as' | null nonzeros = [head $ zeros ++ [nullamt]]
+          | otherwise = nonzeros
+          where (zeros,nonzeros) = partition isZeroAmount as
+
+sumAmountsDiscardingPrice [] = nullamt
+sumAmountsDiscardingPrice as = (sum as){price=Nothing}
 
 -- | Convert a mixed amount's component amounts to the commodity of their
 -- saved price, if any.
