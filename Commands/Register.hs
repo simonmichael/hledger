@@ -106,9 +106,13 @@ showtxns (t:ts) tprev bal = this ++ showtxns ts t bal'
 showtxn :: Bool -> Transaction -> MixedAmount -> String
 showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
     where
-      entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
+      ledger3ishlayout = False
+      datedescwidth = if ledger3ishlayout then 34 else 32
+      entrydesc = if omitdesc then replicate datedescwidth ' ' else printf "%s %s " date desc
       date = showDate da
-      desc = printf "%-20s" $ elideRight 20 de :: String
+      datewidth = 10
+      descwidth = datedescwidth - datewidth - 2
+      desc = printf ("%-"++(show descwidth)++"s") $ elideRight descwidth de :: String
       p = showPostingWithoutPrice $ Posting s a amt "" tt
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
       Transaction{tstatus=s,tdate=da,tdescription=de,taccount=a,tamount=amt,ttype=tt} = t
