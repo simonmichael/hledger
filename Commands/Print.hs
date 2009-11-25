@@ -17,7 +17,7 @@ print' :: [Opt] -> [String] -> Ledger -> IO ()
 print' opts args l = putStr $ showLedgerTransactions opts args l
 
 showLedgerTransactions :: [Opt] -> [String] -> Ledger -> String
-showLedgerTransactions opts args l = concatMap showLedgerTransaction txns
+showLedgerTransactions opts args l = concatMap showLedgerTransactionUnelided txns
     where 
       txns = sortBy (comparing ltdate) $
                ledger_txns $ 
