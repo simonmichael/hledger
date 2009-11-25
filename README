@@ -123,6 +123,7 @@ these commands and options::
    -p, --period EXPR      report on entries during the specified period
                           and/or with the specified reporting interval
    -C, --cleared          report only on cleared entries
+   -U, --uncleared        consider only uncleared transactions
    -R, --real             report only on real (non-virtual) transactions
  
    Output customization:
@@ -320,16 +321,21 @@ euro::
     expenses:foreign currency       €100 @ $1.35
 
 Alternatively, you can add "P" historical price records to declare a
-commodity's unit price (rate) as of a particular date.  Eg, on this date
-the exchange rate for 1 us dollar was 12.8 mexican pesos::
+commodity's unit price (conversion rate) as of a particular date.  Eg, on
+this date the exchange rate for 1 us dollar was 12.8 mexican pesos::
 
  P 2009/11/25 $ 12.8418 MXN
 
 and the above price will apply to all dollar transactions made on or after
-that date (until a more recent price record is found.) Note, unlike c++
-ledger the rate is considered fixed as of the transaction date; this is
-good for (eg) tracking foreign currency expenses, but not for tracking
-investments with fluctuating value and capital gains.
+that date (until a more recent price record is found.) 
+
+Unlike c++ ledger, we assume a fixed rate for each amount based on the
+posting date; this is good for (eg) tracking foreign currency expenses,
+but not for tracking fluctuating investments and capital gains.
+
+The print command shows all conversion rates in effect. Otherwise, rates
+are not shown, but you can use the ``--cost`` or ``-B`` flag with any
+report to convert all amounts to their total cost price.
 
 
 Miscellaneous Tips
@@ -360,7 +366,6 @@ entries, and the following options and commands::
    Report filtering:
    -c, --current          show only current and past entries (not future)
        --period-sort EXPR sort each report period's entries by EXPR
-   -U, --uncleared        consider only uncleared transactions
    -L, --actual           consider only actual (non-automated) transactions
    -r, --related          calculate report using related transactions
        --budget           generate budget entries based on periodic entries
