@@ -155,3 +155,5 @@ executable hledger
 -- >= 1.6'.
 
 -- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
+
+-- required for make test: test-framework, test-framework-hunit
