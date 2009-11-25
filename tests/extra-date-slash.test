@@ -1,4 +1,4 @@
-# extra slash before [ silently breaks effective date (0.6.1)
+# an extra slash before [ silently disables the effective date in 0.6.1
 -f - print --effective -p 2009/1/2
 <<<
 2009/1/1/[=2009/1/2] x
@@ -6,3 +6,4 @@
     b
 
 >>>2 /unexpected/
+>>>= 1

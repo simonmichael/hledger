@@ -314,6 +314,7 @@ ledgerTransaction :: GenParser Char LedgerFileCtx LedgerTransaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
   edate <- ledgereffectivedate
+  many1 spacenonewline
   status <- ledgerstatus
   code <- ledgercode
   description <- liftM rstrip (many1 (noneOf ";\n") <?> "description")
