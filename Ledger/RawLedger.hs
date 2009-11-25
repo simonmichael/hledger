@@ -132,26 +132,37 @@ rawLedgerSelectingDate EffectiveDate rl =
 -- | Give all a ledger's amounts their canonical display settings.  That
 -- is, in each commodity, amounts will use the display settings of the
 -- first amount detected, and the greatest precision of the amounts
--- detected. Also, amounts are converted to cost basis if that flag is
--- active.
+-- detected.
+-- Also, missing unit prices are added if known from the price history.
+-- Also, amounts are converted to cost basis if that flag is active.
 canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
-canonicaliseAmounts costbasis l@(RawLedger ms ps ts tls hs f fp ft) = RawLedger ms ps (map fixledgertransaction ts) tls hs f fp ft
+canonicaliseAmounts costbasis rl@(RawLedger ms ps ts tls hs f fp ft) = RawLedger ms ps (map fixledgertransaction ts) tls hs f fp ft
     where
       fixledgertransaction (LedgerTransaction d ed s c de co ts pr) = LedgerTransaction d ed s c de co (map fixrawposting ts) pr
-      fixrawposting (Posting s ac a c t) = Posting s ac (fixmixedamount a) c t
-      fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = fixcommodity . (if costbasis then costOfAmount else id)
-      fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! symbol (commodity a)
-      canonicalcommoditymap =
-          Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
+          where
+            fixrawposting (Posting s ac a c t) = Posting s ac (fixmixedamount a) c t
+            fixmixedamount (Mixed as) = Mixed $ map fixamount as
+            fixamount = (if costbasis then costOfAmount else id) . fixprice . fixcommodity
+            fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! symbol (commodity a)
+            canonicalcommoditymap =
+                Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
                         let cs = commoditymap ! s,
                         let firstc = head cs,
                         let maxp = maximum $ map precision cs
                        ]
-      commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
-      commoditieswithsymbol s = filter ((s==) . symbol) commodities
-      commoditysymbols = nub $ map symbol commodities
-      commodities = map commodity $ concatMap (amounts . tamount) $ rawLedgerTransactions l
+            commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
+            commoditieswithsymbol s = filter ((s==) . symbol) commodities
+            commoditysymbols = nub $ map symbol commodities
+            commodities = map commodity $ concatMap (amounts . tamount) $ rawLedgerTransactions rl
+            fixprice a@Amount{price=Just _} = a
+            fixprice a@Amount{commodity=c} = a{price=rawLedgerHistoricalPriceFor rl c d}
+
+            -- | Get the price for commodity on the specified day from the price database, if known.
+            rawLedgerHistoricalPriceFor :: RawLedger -> Commodity -> Day -> Maybe MixedAmount
+            rawLedgerHistoricalPriceFor rl c@Commodity{symbol=s} d = do
+              let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol1) $ sortBy (comparing hdate) $ historical_prices rl
+              case ps of (HistoricalPrice {hdate=d, hsymbol2=s, hprice=q}:_) -> Just $ Mixed [Amount{commodity=canonicalcommoditymap ! s,quantity=q,price=Nothing}]
+                         _ -> Nothing
 
 -- | Get just the amounts from a ledger, in the order parsed.
 rawLedgerAmounts :: RawLedger -> [MixedAmount]
@@ -171,7 +182,6 @@ rawLedgerConvertTimeLog t l0 = l0 { ledger_txns = convertedTimeLog ++ ledger_txn
                                   , open_timelog_entries = []
                                   }
     where convertedTimeLog = entriesFromTimeLogEntries t $ open_timelog_entries l0
-
 
 -- | The (fully specified) date span containing all the raw ledger's transactions,
 -- or DateSpan Nothing Nothing if there are none.
