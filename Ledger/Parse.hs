@@ -290,7 +290,7 @@ ledgerHistoricalPrice = do
   char 'P' <?> "historical price"
   many spacenonewline
   date <- ledgerdate
-  many spacenonewline
+  many1 spacenonewline
   symbol1 <- commoditysymbol
   many spacenonewline
   (Mixed [Amount c q _]) <- someamount
@@ -313,11 +313,10 @@ ledgerDefaultYear = do
 ledgerTransaction :: GenParser Char LedgerFileCtx LedgerTransaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
-  edate <- ledgereffectivedate
-  many1 spacenonewline
+  edate <- try (ledgereffectivedate <?> "effective date") <|> return Nothing
   status <- ledgerstatus
   code <- ledgercode
-  description <- liftM rstrip (many1 (noneOf ";\n") <?> "description")
+  description <- many1 spacenonewline >> liftM rstrip (many1 (noneOf ";\n") <?> "description")
   comment <- ledgercomment
   restofline
   postings <- ledgerpostings
@@ -326,22 +325,12 @@ ledgerTransaction = do
     Right t' -> return t'
     Left err -> fail err
 
-ledgereffectivedate :: GenParser Char LedgerFileCtx (Maybe Day)
-ledgereffectivedate = 
-    try (do
-          string "[="
-          edate <- ledgerdate
-          char ']'
-          return $ Just edate)
-    <|> return Nothing
-
 ledgerdate :: GenParser Char LedgerFileCtx Day
-ledgerdate = try ledgerfulldate <|> ledgerpartialdate
+ledgerdate = (try ledgerfulldate <|> ledgerpartialdate) <?> "full or partial date"
 
 ledgerfulldate :: GenParser Char LedgerFileCtx Day
 ledgerfulldate = do
   (y,m,d) <- ymd
-  many spacenonewline
   return $ fromGregorian (read y) (read m) (read d)
 
 -- | Match a partial M/D date in a ledger. Warning, this terminates the
@@ -349,7 +338,6 @@ ledgerfulldate = do
 ledgerpartialdate :: GenParser Char LedgerFileCtx Day
 ledgerpartialdate = do
   (_,m,d) <- md
-  many spacenonewline
   y <- getYear
   when (y==Nothing) $ fail "partial date found, but no default year specified"
   return $ fromGregorian (fromJust y) (read m) (read d)
@@ -363,15 +351,21 @@ ledgerdatetime = do
   s <- optionMaybe $ do
       char ':'
       many1 digit
-  many spacenonewline
   let tod = TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s)
   return $ LocalTime day tod
 
+ledgereffectivedate :: GenParser Char LedgerFileCtx (Maybe Day)
+ledgereffectivedate = do
+  string "[="
+  edate <- ledgerdate
+  char ']'
+  return $ Just edate
+
 ledgerstatus :: GenParser Char st Bool
-ledgerstatus = try (do { char '*' <?> "status"; many1 spacenonewline; return True } ) <|> return False
+ledgerstatus = try (do { many1 spacenonewline; char '*' <?> "status"; return True } ) <|> return False
 
 ledgercode :: GenParser Char st String
-ledgercode = try (do { char '(' <?> "code"; code <- anyChar `manyTill` char ')'; many1 spacenonewline; return code } ) <|> return ""
+ledgercode = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 -- Complicated to handle intermixed comment lines.. please make me better.
 ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
@@ -560,6 +554,7 @@ timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- ledgerdatetime
+  many1 spacenonewline
   comment <- liftM2 (++) getParentAccount restofline
   return $ TimeLogEntry (read [code]) datetime comment
 

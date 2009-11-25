@@ -259,20 +259,21 @@ ymd :: GenParser Char st SmartDate
 ymd = do
   y <- many1 digit
   datesepchar
-  m <- many1 digit
-  guard (read m <= 12)
+  m <- try (count 2 digit) <|> count 1 digit
+  guard (read m >= 1 && (read m <= 12))
+  -- when (read m < 1 || (read m > 12)) $ fail "bad month number specified"
   datesepchar
-  d <- many1 digit
-  guard (read d <= 31)
-  return (y,m,d)
+  d <- try (count 2 digit) <|> count 1 digit
+  when (read d < 1 || (read d > 31)) $ fail "bad day number specified"
+  return $ (y,m,d)
 
 ym :: GenParser Char st SmartDate
 ym = do
   y <- many1 digit
   guard (read y > 12)
   datesepchar
-  m <- many1 digit
-  guard (read m <= 12)
+  m <- try (count 2 digit) <|> count 1 digit
+  guard (read m >= 1 && (read m <= 12))
   return (y,m,"")
 
 y :: GenParser Char st SmartDate
@@ -289,11 +290,11 @@ d = do
 
 md :: GenParser Char st SmartDate
 md = do
-  m <- many1 digit
-  guard (read m <= 12)
+  m <- try (count 2 digit) <|> count 1 digit
+  guard (read m >= 1 && (read m <= 12))
   datesepchar
-  d <- many1 digit
-  guard (read d <= 31)
+  d <- try (count 2 digit) <|> count 1 digit
+  when (read d < 1 || (read d > 31)) $ fail "bad day number specified"
   return ("",m,d)
 
 months         = ["january","february","march","april","may","june",
