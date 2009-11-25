@@ -118,12 +118,13 @@ releasetest: unittest doctest functest haddocktest warningstest fullcabaltest
 
 
 # run unit tests
-unittest: unittest-standalone
+unittest: unittest-builtin
 
 unittest-builtin: hledger
 	@(./hledger test \
 		&& echo $@ passed) || echo $@ FAILED
 
+# XXX doesn't rebuild on hledger source changes
 unittest-standalone: tools/unittest
 	@(tools/unittest \
 		&& echo $@ passed) || echo $@ FAILED
