@@ -17,25 +17,31 @@ A simple amount is a 'Commodity', quantity pair:
 A 'MixedAmount' is zero or more simple amounts:
 
 @
-  $50, EUR 3, AAPL 500
-  16h, $13.55, oranges 6
+  $50 + EUR 3
+  16h + $13.55 + AAPL 500 + 6 oranges
 @
 
-Not implemented:
-Commodities may be convertible or not. A mixed amount containing only
-convertible commodities can be converted to a simple amount. Arithmetic
-examples:
+A normalised mixed amount has at most one amount of each commodity, and no
+zero amounts (or it has just a single zero amount and no others.)
+
+Amounts often have a price per unit, or conversion rate, in terms of
+another commodity. also.  If present, this is displayed after \@:
 
 @
-  $1 - $5 = $-4
-  $1 + EUR 0.76 = $2
-  EUR0.76 + $1 = EUR 1.52
-  EUR0.76 - $1 = 0
-  ($5, 2h) + $1 = ($6, 2h)
-  ($50, EUR 3, AAPL 500) + ($13.55, oranges 6) = $67.51, AAPL 500, oranges 6
-  ($50, EUR 3) * $-1 = $-53.96
-  ($50, AAPL 500) * $-1 = error
-@   
+  EUR 3 \@ $1.35
+@
+
+A normalised mixed amount has at most one amount in each
+commodity/pricing, and no zero amounts (or, it has only a zero amount).
+
+In principle we can convert an amount to any other commodity to which we
+have a known sequence of conversion rates; in practice we only do one
+conversion step (eg to show cost basis with -B).
+
+We can do limited arithmetic with simple or mixed amounts: either
+price-preserving arithmetic with similarly-priced amounts, or
+price-discarding arithmetic which ignores and discards prices.
+
 -}
 
 module Ledger.Amount
