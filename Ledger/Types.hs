@@ -56,7 +56,7 @@ data Commodity = Commodity {
 data Amount = Amount {
       commodity :: Commodity,
       quantity :: Double,
-      price :: Maybe MixedAmount  -- ^ unit price for this amount at posting time, if known (from \@ or P)
+      price :: Maybe MixedAmount  -- ^ unit price/conversion rate for this amount at posting time
     } deriving (Eq)
 
 newtype MixedAmount = Mixed [Amount] deriving (Eq)
