@@ -123,7 +123,7 @@ showBalanceReport opts _ l = acctsstr ++ totalstr
             accttree = ledgerAccountTree (depthFromOpts opts) l
       totalstr | NoTotal `elem` opts = ""
                | not (Empty `elem` opts) && isZeroMixedAmount total = ""
-               | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmount total
+               | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmountWithoutPrice total
           where
             total = sum $ map abalance $ ledgerTopAccounts l
 
@@ -131,11 +131,11 @@ showBalanceReport opts _ l = acctsstr ++ totalstr
 showInterestingAccount :: Ledger -> [AccountName] -> AccountName -> String
 showInterestingAccount l interestingaccts a = concatTopPadded [amt, "  ", depthspacer ++ partialname]
     where
-      amt = padleft 20 $ showMixedAmount $ abalance $ ledgerAccount l a
-      -- the depth spacer (indent) is two spaces for each interesting parent
+      amt = padleft 20 $ showMixedAmountWithoutPrice $ abalance $ ledgerAccount l a
       parents = parentAccountNames a
       interestingparents = filter (`elem` interestingaccts) parents
-      depthspacer = replicate (2 * length interestingparents) ' '
+      depthspacer = replicate (indentperlevel * length interestingparents) ' '
+      indentperlevel = 2
       -- the partial name is the account's leaf name, prefixed by the
       -- names of any boring parents immediately above
       partialname = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]

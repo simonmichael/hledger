@@ -109,7 +109,7 @@ showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
       entrydesc = if omitdesc then replicate 32 ' ' else printf "%s %s " date desc
       date = showDate da
       desc = printf "%-20s" $ elideRight 20 de :: String
-      p = showPosting $ Posting s a amt "" tt
-      bal = padleft 12 (showMixedAmountOrZero b)
+      p = showPostingWithoutPrice $ Posting s a amt "" tt
+      bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
       Transaction{tstatus=s,tdate=da,tdescription=de,taccount=a,tamount=amt,ttype=tt} = t
 
