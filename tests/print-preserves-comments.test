@@ -11,7 +11,7 @@
 2009/01/01 x  ; description comment
     a             1  ; amount comment
     ; middle posting comment
-    b
+    b            -1
     ; trailing posting comment
 ; post-entry comment (?)
 

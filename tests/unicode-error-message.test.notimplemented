@@ -8,6 +8,6 @@
 unexpected end of input
 could not balance this transaction, amounts do not add up to zero:
 2009/01/01 broken entry
-    дебит                                          1
-    кредит                                        -2
+    дебит              1
+    кредит            -2
 

@@ -668,9 +668,9 @@ tests = [
     l <- sampleledgerwithopts [] args
     showLedgerTransactions [] args l `is` unlines 
      ["2008/06/03 * eat & shop"
-     ,"    expenses:food                                 $1"
-     ,"    expenses:supplies                             $1"
-     ,"    assets:cash"
+     ,"    expenses:food                $1"
+     ,"    expenses:supplies            $1"
+     ,"    assets:cash                 $-2"
      ,""
      ]
 
@@ -679,18 +679,18 @@ tests = [
     l <- sampleledger
     showLedgerTransactions [Depth "2"] [] l `is` unlines
       ["2008/01/01 income"
-      ,"    income:salary                                $-1"
+      ,"    income:salary           $-1"
       ,""
       ,"2008/06/01 gift"
-      ,"    income:gifts                                 $-1"
+      ,"    income:gifts           $-1"
       ,""
       ,"2008/06/03 * eat & shop"
-      ,"    expenses:food                                 $1"
-      ,"    expenses:supplies                             $1"
-      ,"    assets:cash"
+      ,"    expenses:food                $1"
+      ,"    expenses:supplies            $1"
+      ,"    assets:cash                 $-2"
       ,""
       ,"2008/12/31 * pay off"
-      ,"    liabilities:debts                             $1"
+      ,"    liabilities:debts            $1"
       ,""
       ]
 
@@ -832,7 +832,7 @@ tests = [
      assertEqual "show a balanced transaction, eliding last amount"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries                   $47.18"
+        ,"    expenses:food:groceries        $47.18"
         ,"    assets:checking"
         ,""
         ])
@@ -841,12 +841,24 @@ tests = [
          [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
          ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting
          ] ""))
+     assertEqual "show a balanced transaction, no eliding"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries        $47.18"
+        ,"    assets:checking               $-47.18"
+        ,""
+        ])
+       (showLedgerTransactionUnelided
+        (LedgerTransaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
+         ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting
+         ] ""))
      -- document some cases that arise in debug/testing:
      assertEqual "show an unbalanced transaction, should not elide"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries                   $47.18"
-        ,"    assets:checking                          $-47.19"
+        ,"    expenses:food:groceries        $47.18"
+        ,"    assets:checking               $-47.19"
         ,""
         ])
        (showLedgerTransaction
@@ -857,7 +869,7 @@ tests = [
      assertEqual "show an unbalanced transaction with one posting, should not elide"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries                   $47.18"
+        ,"    expenses:food:groceries        $47.18"
         ,""
         ])
        (showLedgerTransaction
@@ -867,7 +879,7 @@ tests = [
      assertEqual "show a transaction with one posting and a missing amount"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries                         "
+        ,"    expenses:food:groceries              "
         ,""
         ])
        (showLedgerTransaction

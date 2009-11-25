@@ -6,6 +6,6 @@
 ; comment line after postings
 >>>
 2009/01/01 x
-    a                                              1
-    b
+    a             1
+    b            -1
 
