@@ -50,7 +50,7 @@ data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
 ui :: [Opt] -> [String] -> Ledger -> IO ()
 ui opts args l = do
   v <- mkVty
-  DisplayBounds w h <- display_bounds $ terminal v
+  DisplayRegion w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts
   let a = enter BalanceScreen
           AppState {
