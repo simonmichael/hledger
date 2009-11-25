@@ -108,7 +108,7 @@ showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
       price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
                           Nothing -> ""
 
--- | Get the string representation of an amount, without any "@ price".
+-- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
 showAmountWithoutPrice a = showAmount a{price=Nothing}
 
@@ -172,7 +172,7 @@ showMixedAmount m = concat $ intersperse "\n" $ map showfixedwidth as
       showfixedwidth = printf (printf "%%%ds" width) . show
 
 -- | Get the string representation of a mixed amount, but without
--- any "@ price"s.
+-- any \@ prices.
 showMixedAmountWithoutPrice :: MixedAmount -> String
 showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth as
     where
@@ -188,7 +188,7 @@ showMixedAmountOrZero a
     | otherwise = showMixedAmount a
 
 -- | Get the string representation of a mixed amount, or a bare 0,
--- without any "@ price"s.
+-- without any \@ prices.
 showMixedAmountOrZeroWithoutPrice :: MixedAmount -> String
 showMixedAmountOrZeroWithoutPrice a
     | isZeroMixedAmount a = "0"
