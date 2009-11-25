@@ -1,0 +1,8 @@
+# should infer prices to balance this - not implemented
+-f - print
+<<<
+2009/1/1 opening balance
+    Assets:Brokerage        1 AAPL
+    Assets:Checking        $-20.00
+ 
+>>>= 0
