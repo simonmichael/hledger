@@ -159,9 +159,9 @@ canonicaliseAmounts costbasis rl@(RawLedger ms ps ts tls hs f fp ft) = RawLedger
 
             -- | Get the price for commodity on the specified day from the price database, if known.
             rawLedgerHistoricalPriceFor :: RawLedger -> Commodity -> Day -> Maybe MixedAmount
-            rawLedgerHistoricalPriceFor rl c@Commodity{symbol=s} d = do
+            rawLedgerHistoricalPriceFor rl Commodity{symbol=s} d = do
               let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol1) $ sortBy (comparing hdate) $ historical_prices rl
-              case ps of (HistoricalPrice {hdate=d, hsymbol2=s, hprice=q}:_) -> Just $ Mixed [Amount{commodity=canonicalcommoditymap ! s,quantity=q,price=Nothing}]
+              case ps of (HistoricalPrice {hsymbol2=s, hprice=q}:_) -> Just $ Mixed [Amount{commodity=canonicalcommoditymap ! s,quantity=q,price=Nothing}]
                          _ -> Nothing
 
 -- | Get just the amounts from a ledger, in the order parsed.
