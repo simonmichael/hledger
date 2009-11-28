@@ -156,4 +156,6 @@ executable hledger
 
 -- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
 
+-- Additional dependencies:
 -- required for make test: test-framework, test-framework-hunit
+-- required for make bench: tabular-0.1
