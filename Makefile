@@ -475,7 +475,7 @@ showlocalchanges:
 
 showreleasechanges:
 	@echo "Changes since last release: ("`darcs changes --from-tag . --count`")"
-	@darcs changes --from-tag . | grep '*'
+	@darcs changes --from-tag . --matches "not (name docs: or name site: or name tools:)" | grep '*'
 	@echo
 
 ######################################################################
