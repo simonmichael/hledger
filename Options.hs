@@ -36,7 +36,7 @@ usagehdr =
 #ifdef VTY
   "  ui        - run a simple text-based UI\n" ++
 #endif
-#ifdef HAPPS
+#ifdef WEB
   "  web       - run a simple web-based UI\n" ++
 #endif
   "  test      - run self-tests\n" ++

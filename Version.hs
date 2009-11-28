@@ -64,7 +64,7 @@ configflags   = tail [""
 #ifdef VTY
   ,"vty"
 #endif
-#ifdef HAPPS
-  ,"happs"
+#ifdef WEB
+  ,"web"
 #endif
  ]

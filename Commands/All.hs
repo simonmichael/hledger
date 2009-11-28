@@ -18,7 +18,7 @@ module Commands.All (
 #ifdef VTY
                      module Commands.UI,
 #endif
-#ifdef HAPPS
+#ifdef WEB
                      module Commands.Web,
 #endif
               )
@@ -33,6 +33,6 @@ import Commands.Stats
 #ifdef VTY
 import Commands.UI
 #endif
-#ifdef HAPPS
+#ifdef WEB
 import Commands.Web
 #endif

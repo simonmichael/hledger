@@ -65,7 +65,7 @@ main = do
 #ifdef VTY
        | cmd `isPrefixOf` "ui"        = withLedgerDo opts args cmd ui
 #endif
-#ifdef HAPPS
+#ifdef WEB
        | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web
 #endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()

@@ -33,7 +33,7 @@ flag vty
   description: enable the curses ui
   default:     False
 
-flag happs
+flag web
   description: enable the web ui
   default:     False
 
@@ -126,8 +126,8 @@ executable hledger
     build-depends:
                   vty >= 4.0.0.1 && < 4.1
 
-  if flag(happs)
-    cpp-options: -DHAPPS
+  if flag(web)
+    cpp-options: -DWEB
     other-modules:Commands.Web
     build-depends:
                   hsp

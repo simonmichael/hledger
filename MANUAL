@@ -46,7 +46,7 @@ hledger works on all major platforms. One of these pre-built binaries_ might wor
 If not, please report the problem, then install the `Haskell Platform`_ and type::
 
  cabal update
- cabal install hledger [-fvty] [-fhapps]
+ cabal install hledger [-fvty] [-fweb]
 
 The optional -f flags will install more libraries and enable hledger's
 "ui" and "web" commands respectively. Note -fvty may not work on Microsoft
@@ -76,7 +76,7 @@ account name or transaction description.  Here are some commands to try
  hledger reg desc:shop                 # transactions with shop in the description
  hledger histogram                     # transactions per day, or other interval
  hledger ui                            # curses ui, if installed with -fvty
- hledger web                           # web ui, if installed with -fhapps
+ hledger web                           # web ui, if installed with -fweb
  hledger -f new.ledger add             # record transactions from the command line
 
 Reference

@@ -1,7 +1,7 @@
 # hledger project makefile
 
 # optional features described in MANUAL, comment out if you don't have the libs
-OPTFLAGS=-DHAPPS -DVTY
+OPTFLAGS=-DWEB -DVTY
 
 # command to run during "make ci"
 CICMD=test
@@ -37,7 +37,7 @@ default: tag hledger
 
 # build the standard cabal binary
 hledgercabal:
-	cabal configure -fhapps -fvty && cabal build
+	cabal configure -fweb -fvty && cabal build
 
 # build the standard developer's binary, quickly
 hledger: setversion
@@ -160,14 +160,14 @@ warningstest:
 quickcabaltest: setversion
 	@(cabal clean \
 		&& cabal check \
-		&& cabal configure -fvty -fhapps \
+		&& cabal configure -fvty -fweb \
 		&& echo $@ passed) || echo $@ FAILED
 
 # make sure cabal is happy in all possible ways
 fullcabaltest: setversion
 	@(cabal clean \
 		&& cabal check \
-		&& cabal configure -fvty -fhapps \
+		&& cabal configure -fvty -fweb \
 		&& cabal build \
 		&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
 		&& cabal sdist \
