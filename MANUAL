@@ -30,7 +30,7 @@ interface. You can use it to, eg,
 - track spending and income
 - see time reports by day/week/month/project
 - get accurate numbers for client billing and tax filing
-- find unpaid invoices
+- track invoices
 
 hledger aims to help both computer experts and every-day users gain clarity in their finances and time management.
 For now though, it is most useful to technically-minded folks who are comfortable with command-line tools.
