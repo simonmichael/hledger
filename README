@@ -151,6 +151,59 @@ following new commands are supported::
    stats                  show various statistics for a ledger
    test                   run self-tests
 
+Commands
+........
+
+Convert
+,,,,,,,
+
+The convert command converts CSV (comma-separated value) files downloaded
+from a bank into ledger format. Doing a bulk import in this way can be a
+easier than entering each transaction by hand. The downside is you no
+longer have your own data with which to detect errors by the bank.
+
+Usage is different from the other commands, typically it looks like this::
+
+ hledger convert FILE.csv BASEACCOUNT FILE.rules >FILE.ledger
+ (review FILE.ledger, then copy and paste into main ledger)
+
+Ie convert the csv data and save the output into a similarly named ledger file.
+(It's not required, but convenient to use the same base filename for the
+csv, rules and output files as above.)
+
+BASEACCOUNT is the source account for these transactions, eg
+``assets:bank:checking``.
+
+FILE.rules contains some rules to help convert the data. Here's an example::
+
+ 0,-,4,1
+
+ SPECTRUM
+ expenses:health:gym
+
+ ITUNES
+ BLKBSTR=BLOCKBUSTER
+ expenses:entertainment
+
+ (TO|FROM) SAVINGS
+ assets:bank:savings
+
+It must contain:
+
+- paragraphs separated by one blank line.
+
+- The first paragraph is a single line of four comma-separated fields,
+  which are numbers indicating the (0-based) csv field positions
+  corresponding to the transaction date, code/number, description, and amount.
+  If a field does not exist in the csv, use - to specify a default value.
+
+- Other paragraphs consist of one or more regular expression patterns, one
+  per line, followed by a line specifying the account to use when a
+  transaction's description matches any of these patterns. Patterns may
+  optionally have a replacement pattern specified after =, otherwise the
+  matching part is used.
+
+
 Smart dates
 ...........
 
