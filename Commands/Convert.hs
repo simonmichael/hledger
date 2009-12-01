@@ -1,38 +1,7 @@
 {-|
 
 Convert account data in CSV format (eg downloaded from a bank) to ledger
-format, and print it on stdout.
-
-Usage: hledger convert CSVFILE ACCOUNTNAME RULESFILE
-
-ACCOUNTNAME is the base account to use for transactions.  RULESFILE
-provides some rules to help convert the data.
-
-- It should contain paragraphs separated by one blank line.
-
-- The first paragraph is a single line of four comma-separated fields,
-  which are numbers indicating the (0-based) csv field positions
-  corresponding to the transaction date, code/number, description, and amount.
-  If a field does not exist in the csv, use - to specify a default value.
-
-- All other paragraphs specify one or more regular expressions, followed
-  by the ledger account to use when a transaction's description matches
-  any of them. A regexp may optionally have a replacement pattern
-  specified after =.
-
-Here's an example rules file:
-
-> 0,-,4,1
->
-> SPECTRUM
-> expenses:health:gym
->
-> ITUNES
-> BLKBSTR=BLOCKBUSTER
-> expenses:entertainment
->
-> (TO|FROM) SAVINGS
-> assets:bank:savings
+format, and print it on stdout. See the manual for more details.
 
 -}
 
