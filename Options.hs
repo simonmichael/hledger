@@ -20,7 +20,7 @@ timeprogname  = "hours"
 usagehdr =
   "Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]\n" ++
   "       hours   [OPTIONS] [COMMAND [PATTERNS]]\n" ++
-  "       hledger convert CSVFILE ACCOUNTNAME RULESFILE\n" ++
+  "       hledger convert CSVFILE RULESFILE\n" ++
   "\n" ++
   "hledger uses your ~/.ledger or $LEDGER file (or another specified with -f),\n" ++
   "while hours uses your ~/.timelog or $TIMELOG file.\n" ++

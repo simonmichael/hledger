@@ -157,26 +157,35 @@ Commands
 Convert
 ,,,,,,,
 
-The convert command converts CSV (comma-separated value) files downloaded
-from a bank into ledger format. Doing a bulk import in this way can be a
-easier than entering each transaction by hand. The downside is you no
-longer have your own data with which to detect errors by the bank.
+The convert command reads a CSV_ file you have downloaded from your bank,
+and prints out the transactions in ledger format, suitable for adding to
+your ledger.  This can be a lot quicker than entering every transaction by
+hand. (The downside is that you are less likely to notice if your bank makes an
+error, so keep an eye on them!)
 
-Usage is different from the other commands, typically it looks like this::
+Use it like this::
 
- hledger convert FILE.csv BASEACCOUNT FILE.rules >FILE.ledger
- (review FILE.ledger, then copy and paste into main ledger)
+ hledger convert FILE.csv FILE.rules >FILE.ledger
 
-Ie convert the csv data and save the output into a similarly named ledger file.
-(It's not required, but convenient to use the same base filename for the
-csv, rules and output files as above.)
+This will convert the csv data in FILE.csv using the conversion hints in
+FILE.rules, and save the output into a temporary ledger file. Then you
+should review FILE.ledger for problems; update the rules and convert again
+if needed; and finally copy/paste transactions which are new into your
+main ledger.
 
-BASEACCOUNT is the source account for these transactions, eg
-``assets:bank:checking``.
+rules file
+''''''''''
 
-FILE.rules contains some rules to help convert the data. Here's an example::
+A .rules file contains some data definitions and some rules for assigning
+destination accounts to transactions. Typically you will have one csv file
+and corresponding rules file per bank account. Here's an example rules
+file for converting the csv download from a Wells Fargo checking account::
 
- 0,-,4,1
+ base-account assets:bank:checking
+ date-field 0
+ description-field 4
+ amount-field 1
+ currency $
 
  SPECTRUM
  expenses:health:gym
@@ -188,21 +197,33 @@ FILE.rules contains some rules to help convert the data. Here's an example::
  (TO|FROM) SAVINGS
  assets:bank:savings
 
-It must contain:
+This says:
 
-- paragraphs separated by one blank line.
+- the ledger account corresponding to this csv file is assets:bank:checking
+- the first csv field is the date, the second is the amount, the fifth is the description
+- prepend a dollar sign to the amount field
+- if description contains SPECTRUM (case-insensitive), the transaction is a gym expense
+- if description contains ITUNES or BLKBSTR, the transaction is an entertainment expense; also rewrite BLKBSTR as BLOCKBUSTER
+- if description contains TO SAVINGS or FROM SAVINGS, the transaction is a savings transfer
 
-- The first paragraph is a single line of four comma-separated fields,
-  which are numbers indicating the (0-based) csv field positions
-  corresponding to the transaction date, code/number, description, and amount.
-  If a field does not exist in the csv, use - to specify a default value.
+Notes:
 
-- Other paragraphs consist of one or more regular expression patterns, one
-  per line, followed by a line specifying the account to use when a
-  transaction's description matches any of these patterns. Patterns may
-  optionally have a replacement pattern specified after =, otherwise the
-  matching part is used.
+- Definitions must come first, one per line, all in one paragraph.  Each
+  is a name and a value separated by whitespace. Supported names are:
+  base-account, date-field, status-field, code-field, description-field,
+  amount-field, currency-field, currency. All are optional and will
+  use defaults if not specified.
 
+- The remainder of the file is account-assigning rules. Each is a
+  paragraph consisting of one or more description-matching patterns
+  (case-insensitive regular expressions), one per line, followed by the
+  account name to use when the transaction's description matches any of
+  these patterns.
+
+- A match pattern may optionally be followed by = and a replacement
+  pattern, which will become the ledger transaction's description.
+  Otherwise the matched part of the csv description is used. (To preserve
+  the full csv description, use .* before and after the match pattern.)
 
 Smart dates
 ...........
@@ -377,3 +398,5 @@ Other differences
 .. _c++ ledger's manual:  http://joyful.com/repos/ledger/doc/ledger.html
 .. _binaries:             http://hledger.org/binaries/
 .. _Haskell Platform:     http://hackage.haskell.org/platform/
+.. _CSV:                  http://en.wikipedia.org/wiki/Comma-separated_values
+
