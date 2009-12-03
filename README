@@ -5,7 +5,7 @@ This is the official hledger manual. You may also want to visit
 the http://hledger.org home page,
 the `hledger for techies`_ page,
 and perhaps `c++ ledger's manual`_.
-(Tip: hledger.org docs are also available with .pdf suffix.)
+(Tip: on hledger.org, docs are also available with .pdf suffix.)
 
 Introduction
 ------------
@@ -105,9 +105,9 @@ Feature overview
 
 This version of hledger mimics a subset of ledger 3.x, and adds some
 features of its own. We currently support regular ledger entries, timelog
-entries, multiple commodities, price history for fixed-conversion-rate
-transactions, account and description filtering, virtual postings, and
-these commands and options::
+entries, multiple commodities, price history for fixed-rate transactions,
+virtual postings, filtering by account and description, and these commands
+and options::
 
    Commands:
    balance  [REGEXP]...   show balance totals for matching accounts
@@ -164,7 +164,7 @@ The convert command reads a CSV_ file you have downloaded from your bank,
 and prints out the transactions in ledger format, suitable for adding to
 your ledger.  This can be a lot quicker than entering every transaction by
 hand. (The downside is that you are less likely to notice if your bank makes an
-error, so keep an eye on them!)
+error!)
 
 Use it like this::
 
@@ -330,28 +330,31 @@ this date the exchange rate for 1 us dollar was 12.8 mexican pesos::
 and the above price will apply to all dollar transactions made on or after
 that date (until a more recent price record is found.) 
 
-Unlike c++ ledger, we assume a fixed rate for each amount based on the
-posting date; this is good for (eg) tracking foreign currency expenses,
-but not for tracking fluctuating investments and capital gains.
+Note, unlike c++ ledger we assume a fixed rate for each amount, ie the
+rate in effect on the posting date. This is good for simple tracking of
+foreign currency expenses, but not for tracking fluctuating-value
+investments or capital gains.
 
 The print command shows all conversion rates in effect. Otherwise, rates
 are not shown, but you can use the ``--cost`` or ``-B`` flag with any
 report to convert all amounts to their total cost price.
 
+Tips
+----
 
-Miscellaneous Tips
-------------------
+- when writing a negative amount with a left-side currency symbol, the
+  minus goes after the symbol. Eg ``$-1`` not ``-$1``
 
-- when writing a negative amount with a left-side currency symbol, the minus goes after the symbol. Eg ``$-1`` not ``-$1``
-- when combining desc: and not: in a filter pattern, not: goes last. Eg ``desc:not:...`` not ``not:desc:...``.
-
+- when combining desc: and not: in a filter pattern, not: goes last. Eg
+  ``desc:not:...`` not ``not:desc:...``.
 
 Differences from c++ ledger
 ---------------------------
 
-hledger is written in the Haskell programming language, which supports a
-coding style known as pure functional programming. This can help
-programmers to produce more robust software and write fewer lines of code.
+hledger is written in the Haskell programming language. Haskell enables a
+coding style known as pure lazy functional programming, which holds the
+promise of more robust and maintainable software built with fewer lines of
+code.
 
 Features not supported
 ......................
