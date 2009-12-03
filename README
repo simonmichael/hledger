@@ -21,12 +21,13 @@ For support and more technical info, see **`hledger for techies`_** or **`email 
 
 Download and try **`hledger for mac`_**, **`hledger for windows`_**, or **hledger for linux (`32 bit intel`_, `64 bit intel`_)**.
 
+.. (If you're reading this in plain text, see also README2, MANUAL etc., or http://hledger.org)
 
+.. _hledger for techies:  README2.html
+.. _manual:               MANUAL.html
 .. _demo:                 http://demo.hledger.org
-.. _manual:               README.html
-.. _hledger for techies:  HOME2.html
-.. _email me:             mailto:simon@joyful.com
 .. _hledger for mac:      http://hledger.org/binaries/hledger-0.6-mac-i386.gz
 .. _hledger for windows:  http://hledger.org/binaries/hledger-0.6-win-i386.zip
 .. _32 bit intel:         http://hledger.org/binaries/hledger-0.6.1+9-linux-i386.gz
 .. _64 bit intel:         http://hledger.org/binaries/hledger-0.6-linux-x86_64.gz
+.. _email me:             mailto:simon@joyful.com
