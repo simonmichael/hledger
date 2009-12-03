@@ -7,7 +7,7 @@ hledger screenshots
 
 Basic command-line reports, like ledger:
 
-.. image:: http://hledger.org/hledger-screen-1.png
+.. image:: website/hledger-screen-1.png
 
 
 .. raw:: html 
@@ -16,7 +16,7 @@ Basic command-line reports, like ledger:
 
 The interactive curses interface ("hledger ui"):
 
-.. image:: http://hledger.org/sshot.png
+.. image:: website/sshot.png
 
 
 .. raw:: html 
@@ -25,5 +25,5 @@ The interactive curses interface ("hledger ui"):
 
 A time dashboard in emacs. The upper window displays today's time report every minute (using ansi-term, watch, a helper script, and hledger invoked via "hours" symlink.) The lower window is viewing the timelog file, to tweak clock-ins/clock-outs made with C-x t i and C-x t o. (`ledgerutils.el <http://joyful.com/Ledger/#ledgertools>`_ has some related bits.):
 
-.. image:: http://hledger.org/watchhours.png
+.. image:: website/watchhours.png
 
