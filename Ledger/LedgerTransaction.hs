@@ -14,7 +14,7 @@ import Ledger.Posting
 import Ledger.Amount
 
 
-instance Show LedgerTransaction where show = showLedgerTransaction
+instance Show LedgerTransaction where show = showLedgerTransactionUnelided
 
 instance Show ModifierTransaction where 
     show t = "= " ++ mtvalueexpr t ++ "\n" ++ unlines (map show (mtpostings t))
