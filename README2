@@ -19,7 +19,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 **Download**
  ``cabal install hledger``, 
  or try these ready-to-run binaries_,
- or see the `installing docs <README.html#installing>`_
+ or see the `installing docs <MANUAL.html#installing>`_
 
 **Develop**
  ``darcs get http://joyful.com/repos/hledger``, 
@@ -55,7 +55,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
  <a href="https://www.google.com/analytics/reporting/?reset=1&id=15489822" accesskey="a"></a>
 
 
-.. _hledger:              HOME.html
+.. _hledger:              README.html
 .. _`ledger file`:        http://joyful.com/repos/hledger/sample.ledger
 .. _timelog:              http://joyful.com/repos/hledger/sample.timelog
 .. _command line:         SCREENSHOTS.html#hledger-screen-1
@@ -64,7 +64,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 .. _mail list:            http://list.hledger.org
 .. _issue tracker:        http://bugs.hledger.org
 .. _binaries:             http://hledger.org/binaries/
-.. _manual:               README.html
+.. _manual:               MANUAL.html
 .. _news:                 NEWS.html
 .. _screenshots:          SCREENSHOTS.html
 .. _code docs:            http://hledger.org/api-doc
