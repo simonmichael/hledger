@@ -165,13 +165,13 @@ error, so keep an eye on them!)
 
 Use it like this::
 
- hledger convert FILE.csv FILE.rules >FILE.ledger
+ hledger convert FILE.csv >FILE.ledger
 
-This will convert the csv data in FILE.csv using the conversion hints in
-FILE.rules, and save the output into a temporary ledger file. Then you
-should review FILE.ledger for problems; update the rules and convert again
-if needed; and finally copy/paste transactions which are new into your
-main ledger.
+This will convert the csv data in FILE.csv, using conversion rules defined
+in FILE.rules, and save the output into a temporary ledger file. If
+FILE.rules does not exist it will be created. Then you should review
+FILE.ledger for problems; update the rules and convert again if needed;
+and finally copy/paste transactions which are new into your main ledger.
 
 rules file
 ''''''''''
@@ -186,6 +186,8 @@ file for converting the csv download from a Wells Fargo checking account::
  description-field 4
  amount-field 1
  currency $
+
+ # account-assigning rules
 
  SPECTRUM
  expenses:health:gym
@@ -207,6 +209,8 @@ This says:
 - if description contains TO SAVINGS or FROM SAVINGS, the transaction is a savings transfer
 
 Notes:
+
+- Lines beginning with # or ; are ignored (but avoid using inside an account rule)
 
 - Definitions must come first, one per line, all in one paragraph.  Each
   is a name and a value separated by whitespace. Supported names are:
