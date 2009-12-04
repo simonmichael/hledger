@@ -19,8 +19,9 @@ using a plain text file format and the simple but powerful principles of
 double-entry accounting.
 
 It is modelled closely on `John Wiegley's ledger`_ (aka "c++ ledger"),
-with some new features added.  I wrote hledger because I wanted to build
-financial tools in the Haskell programming language rather than in C++.
+with some features removed and some new ones added.  I wrote hledger
+because I wanted to build financial tools in the Haskell programming
+language rather than in C++.
 
 hledger's basic function is to generate register and balance reports from
 a plain text ledger file, at the command line or via the web or curses
