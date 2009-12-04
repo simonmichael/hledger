@@ -402,7 +402,7 @@ A single date with no "from" or "to" defines both the start and end date like so
  -p "2009/1/1"       (just that day;    equivalent to "2009/1/1 to 2009/1/2")
 
 Reporting interval
-''''''''''''''''''
+""""""""""""""""""
 
 You can also specify a reporting interval, which causes the "register"
 command to summarise the transactions in each interval. It goes before the
@@ -418,7 +418,7 @@ A reporting interval may also be specified with the -W/--weekly,
 -M/--monthly, -Q/--quarterly, and -Y/--yearly options. However..
 
 -p overrides other flags
-''''''''''''''''''''''''
+""""""""""""""""""""""""
 
 A period option on the command line will override any -b/-e/-W/-Q/-Y flags.
 
@@ -527,7 +527,7 @@ promise of more robust and maintainable software built with fewer lines of
 code.
 
 Features not supported
-''''''''''''''''''''''
+""""""""""""""""""""""
 
 ledger features not currently supported include: modifier and periodic
 entries, and the following options and commands::
@@ -589,7 +589,7 @@ entries, and the following options and commands::
    entry DATE PAYEE AMT   output a derived entry, based on the arguments
 
 Other differences
-'''''''''''''''''
+"""""""""""""""""
 
 * hledger recognises description and negative patterns by  "desc:" and "not:" prefixes,
   unlike ledger 3's free-form parser
