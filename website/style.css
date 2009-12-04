@@ -27,6 +27,11 @@ h1.title {
     /* color: #49637C; */
     color: #226600;
     margin-bottom: 3px;
+    text-align: left;
+}
+h1 {
+  margin-top:1em;
+  text-align: left;
 }
 h1 .small {
     font-size: 0.4em;
@@ -36,14 +41,25 @@ h1 a {
 }
 h2 {
     font-size: 1.5em;
-    /* color: #49637C; */
+}
+h2 a {
+    text-decoration: none;
 }
 h3 {
-    text-align: center;
-    /* color: #49637C; */
+    /* text-align: center; */
+}
+h3 a {
+    text-decoration: none;
+}
+h4 {
+}
+h4 a {
+    /* text-decoration: none; */
+}
+h5 a {
+    text-decoration: none;
 }
 a {
-    /* color: #49637C; */
 }
 .description {
     font-size: 1.2em;
