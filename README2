@@ -14,7 +14,7 @@ The hledger project aims to produce:
 hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
 **Learn**
- manual_, news_, screenshots_
+ manual_, news_, screenshots_, `some extra tips`_
 
 **Download**
  ``cabal install hledger``, 
@@ -84,3 +84,4 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 .. _umm:                  http://www.korgwal.com/umm/
 .. _ledger-reports:       http://dockerz.net/repos/ledger-reports
 .. _html reports:         http://dockerz.net/software/hledger_report_sample/report.html
+.. _some extra tips:      http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons/
