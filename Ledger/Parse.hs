@@ -345,6 +345,7 @@ ledgerpartialdate = do
 ledgerdatetime :: GenParser Char LedgerFileCtx LocalTime
 ledgerdatetime = do 
   day <- ledgerdate
+  many1 spacenonewline
   h <- many1 digit
   char ':'
   m <- many1 digit
@@ -553,9 +554,8 @@ timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- ledgerdatetime
-  many1 spacenonewline
-  comment <- liftM2 (++) getParentAccount restofline
-  return $ TimeLogEntry (read [code]) datetime comment
+  comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
+  return $ TimeLogEntry (read [code]) datetime (fromMaybe "" comment)
 
 
 -- misc parsing
