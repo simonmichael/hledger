@@ -198,7 +198,7 @@ navbar env =
     <div id="navbar">
       <a href="http://hledger.org" id="hledgerorglink">hledger.org</a>
       <% navlinks env %>
-      <% searchform env %>
+--      <% searchform env %>
       <a href="http://hledger.org/README.html" id="helplink">help</a>
     </div>
 
@@ -236,7 +236,8 @@ addform env = do
   let inputs = Hack.Contrib.Request.inputs env
       date  = fromMaybe "" $ lookup "date"  inputs
       desc  = fromMaybe "" $ lookup "desc"  inputs
-  <div id="addform">
+  <div>
+   <div id="addform">
    <form action="" method="POST">
     <table border="0">
       <tr>
@@ -250,6 +251,8 @@ addform env = do
       <tr id="addbuttonrow"><td><input type="submit" value="add transaction" /></td></tr>
     </table>
    </form>
+   </div>
+   <br clear="all" />
    </div>
 
 transactionfields :: Int -> Hack.Env -> HSP XML
