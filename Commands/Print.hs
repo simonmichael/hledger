@@ -17,7 +17,7 @@ print' :: [Opt] -> [String] -> Ledger -> IO ()
 print' opts args = putStr . showLedgerTransactions opts args
 
 showLedgerTransactions :: [Opt] -> [String] -> Ledger -> String
-showLedgerTransactions opts args l = concatMap showLedgerTransactionUnelided txns
+showLedgerTransactions opts args l = concatMap (showLedgerTransactionForPrint effective) txns
     where 
       txns = sortBy (comparing ltdate) $
                ledger_txns $ 
@@ -25,4 +25,5 @@ showLedgerTransactions opts args l = concatMap showLedgerTransactionUnelided txn
                filterRawLedgerTransactionsByAccount apats $ 
                rawledger l
       depth = depthFromOpts opts
+      effective = Effective `elem` opts
       (apats,_) = parsePatternArgs args

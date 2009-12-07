@@ -51,21 +51,26 @@ pcommentwidth = no limit -- 22
 @
 -}
 showLedgerTransaction :: LedgerTransaction -> String
-showLedgerTransaction = showLedgerTransaction' True
+showLedgerTransaction = showLedgerTransaction' True False
 
 showLedgerTransactionUnelided :: LedgerTransaction -> String
-showLedgerTransactionUnelided = showLedgerTransaction' False
+showLedgerTransactionUnelided = showLedgerTransaction' False False
 
-showLedgerTransaction' :: Bool -> LedgerTransaction -> String
-showLedgerTransaction' elide t = 
+showLedgerTransactionForPrint :: Bool -> LedgerTransaction -> String
+showLedgerTransactionForPrint effective = showLedgerTransaction' False effective
+
+showLedgerTransaction' :: Bool -> Bool -> LedgerTransaction -> String
+showLedgerTransaction' elide effective t =
     unlines $ [description] ++ (showpostings $ ltpostings t) ++ [""]
     where
       description = concat [date, status, code, desc] -- , comment]
-      date = showdate $ ltdate t
+      date | effective = showdate $ fromMaybe (ltdate t) $ lteffectivedate t
+           | otherwise = showdate (ltdate t) ++ maybe "" showedate (lteffectivedate t)
       status = if ltstatus t then " *" else ""
       code = if (length $ ltcode t) > 0 then (printf " (%s)" $ ltcode t) else ""
       desc = " " ++ ltdescription t
       showdate = printf "%-10s" . showDate
+      showedate = printf "[=%s]" . showdate
       showpostings ps
           | elide && length ps > 1 && isLedgerTransactionBalanced t
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]
