@@ -436,32 +436,56 @@ Note the use of >= here to include the first of the month::
 
  hledger register -d "d>=[this month]"
 
-Pricing
+Prices
 .............
-As in c++ ledger, you can specify the conversion rate or unit price for a
-posting by appending " @ RATE" to the amount, where RATE is another amount
-in a different commodity. Eg, one hundred euros purchased at $1.35 per
-euro::
 
-    expenses:foreign currency       €100 @ $1.35
+As in c++ ledger, you can specify a per-unit price (or conversion rate) in
+the following ways:
 
-Alternatively, you can add "P" historical price records to declare a
-commodity's unit price (conversion rate) as of a particular date.  Eg, on
-this date the exchange rate for 1 us dollar was 12.8 mexican pesos::
+- **set the unit price for a single amount** by appending `` @ PRICE``, where
+  PRICE is another amount in a different commodity. Eg, here is one
+  hundred euros purchased at $1.35 per euro::
 
- P 2009/11/25 $ 12.8418 MXN
+    2009/1/2 x
+     expenses:foreign currency       €100 @ $1.35
+     assets
 
-and the above price will apply to all dollar transactions made on or after
-that date (until a more recent price record is found.) 
+- **set the unit price for a commodity as of a certain date** using "P"
+  historical price records. Eg, here we say the exchange rate for 1 euro
+  is $1.35 on 2009/1/1 (and thereafter, until a newer price record is
+  found)::
 
-Note, unlike c++ ledger we assume a fixed rate for each amount, ie the
-rate in effect on the posting date. This is good for simple tracking of
-foreign currency expenses, but not for tracking fluctuating-value
-investments or capital gains.
+    P 2009/1/1 € $1.35
 
-The print command shows all conversion rates in effect. Otherwise, rates
-are not shown, but you can use the ``--cost`` or ``-B`` flag with any
-report to convert all amounts to their total cost price.
+    2009/1/2 x
+     expenses:foreign currency       €100
+     assets
+
+The print command will show the unit prices in effect::
+
+ $ hledger print
+ 2009/01/02 x
+     expenses:foreign currency  €100 @ $1.35
+     assets                     €-100 @ $1.35
+
+And to see amounts converted to their total cost, use the ``--cost/-B`` flag with any command::
+
+ $ hledger print --cost
+ 2009/01/02 x
+     expenses:foreign currency       $135.00
+     assets                         $-135.00
+
+Notes:
+
+- unlike c++ ledger we assume unit prices do not vary over time.  This is
+  good for simple reporting of foreign currency transactions, but not for
+  tracking fluctuating-value investments or capital gains.
+
+- a price is a simple amount with only one commodity. Ie you can't say an
+  orange is worth two grapes and an apple.
+
+- ``--cost/-B`` does only one lookup step, ie it will not look up the
+  price of a price's commodity.
 
 Timelog reporting
 .................
