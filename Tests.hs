@@ -1387,8 +1387,8 @@ timelogentry1 = TimeLogEntry In (parsedatetime "2007/03/11 16:19:00") "hledger"
 timelogentry2_str  = "o 2007/03/11 16:30:00\n"
 timelogentry2 = TimeLogEntry Out (parsedatetime "2007/03/11 16:30:00") ""
 
-price1_str = "P 2004/05/01 XYZ $55\n"
-price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" "$" 55
+price1_str = "P 2004/05/01 XYZ $55.00\n"
+price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55]
 
 a1 = Mixed [(hours 1){price=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
 a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]

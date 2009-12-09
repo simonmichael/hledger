@@ -101,10 +101,9 @@ data TimeLogEntry = TimeLogEntry {
 
 data HistoricalPrice = HistoricalPrice {
       hdate :: Day,
-      hsymbol1 :: String,
-      hsymbol2 :: String,
-      hprice :: Double
-    } deriving (Eq,Show)
+      hsymbol :: String,
+      hamount :: MixedAmount
+    } deriving (Eq) -- & Show (in Amount.hs)
 
 data RawLedger = RawLedger {
       modifier_txns :: [ModifierTransaction],

@@ -8,7 +8,7 @@ the cached 'Ledger'.
 module Ledger.RawLedger
 where
 import qualified Data.Map as Map
-import Data.Map ((!))
+import Data.Map (findWithDefault, (!))
 import System.Time (ClockTime(TOD))
 import Ledger.Utils
 import Ledger.Types
@@ -135,6 +135,7 @@ rawLedgerSelectingDate EffectiveDate rl =
 -- detected.
 -- Also, missing unit prices are added if known from the price history.
 -- Also, amounts are converted to cost basis if that flag is active.
+-- XXX refactor
 canonicaliseAmounts :: Bool -> RawLedger -> RawLedger
 canonicaliseAmounts costbasis rl@(RawLedger ms ps ts tls hs f fp ft) = RawLedger ms ps (map fixledgertransaction ts) tls hs f fp ft
     where
@@ -153,16 +154,23 @@ canonicaliseAmounts costbasis rl@(RawLedger ms ps ts tls hs f fp ft) = RawLedger
             commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
             commoditieswithsymbol s = filter ((s==) . symbol) commodities
             commoditysymbols = nub $ map symbol commodities
-            commodities = map commodity $ concatMap (amounts . tamount) $ rawLedgerTransactions rl
+            commodities = map commodity (concatMap (amounts . tamount) (rawLedgerTransactions rl)
+                                         ++ concatMap (amounts . hamount) (historical_prices rl))
+            fixprice :: Amount -> Amount
             fixprice a@Amount{price=Just _} = a
-            fixprice a@Amount{commodity=c} = a{price=rawLedgerHistoricalPriceFor rl c d}
+            fixprice a@Amount{commodity=c} = a{price=rawLedgerHistoricalPriceFor rl d c}
 
-            -- | Get the price for commodity on the specified day from the price database, if known.
-            rawLedgerHistoricalPriceFor :: RawLedger -> Commodity -> Day -> Maybe MixedAmount
-            rawLedgerHistoricalPriceFor rl Commodity{symbol=s} d = do
-              let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol1) $ sortBy (comparing hdate) $ historical_prices rl
-              case ps of (HistoricalPrice {hsymbol2=s, hprice=q}:_) -> Just $ Mixed [Amount{commodity=canonicalcommoditymap ! s,quantity=q,price=Nothing}]
+            -- | Get the price for a commodity on the specified day from the price database, if known.
+            -- Does only one lookup step, ie will not look up the price of a price.
+            rawLedgerHistoricalPriceFor :: RawLedger -> Day -> Commodity -> Maybe MixedAmount
+            rawLedgerHistoricalPriceFor rl d Commodity{symbol=s} = do
+              let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices rl
+              case ps of (HistoricalPrice{hamount=a}:_) -> Just $ canonicaliseCommodities a
                          _ -> Nothing
+                  where
+                    canonicaliseCommodities (Mixed as) = Mixed $ map canonicaliseCommodity as
+                        where canonicaliseCommodity a@Amount{commodity=Commodity{symbol=s}} =
+                                  a{commodity=findWithDefault (error "programmer error: canonicaliseCommodity failed") s canonicalcommoditymap}
 
 -- | Get just the amounts from a ledger, in the order parsed.
 rawLedgerAmounts :: RawLedger -> [MixedAmount]

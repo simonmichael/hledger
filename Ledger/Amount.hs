@@ -1,3 +1,4 @@
+{-# LANGUAGE StandaloneDeriving #-}
 {-|
 An 'Amount' is some quantity of money, shares, or anything else.
 
@@ -46,6 +47,7 @@ import Ledger.Commodity
 
 instance Show Amount where show = showAmount
 instance Show MixedAmount where show = showMixedAmount
+deriving instance Show HistoricalPrice
 
 instance Num Amount where
     abs (Amount c q p) = Amount c (abs q) p

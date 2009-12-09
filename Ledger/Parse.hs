@@ -291,11 +291,11 @@ ledgerHistoricalPrice = do
   many spacenonewline
   date <- ledgerdate
   many1 spacenonewline
-  symbol1 <- commoditysymbol
+  symbol <- commoditysymbol
   many spacenonewline
-  (Mixed [Amount c q _]) <- someamount
+  price <- someamount
   restofline
-  return $ HistoricalPrice date symbol1 (symbol c) q
+  return $ HistoricalPrice date symbol price
 
 -- like ledgerAccountBegin, updates the LedgerFileCtx
 ledgerDefaultYear :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
