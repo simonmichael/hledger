@@ -68,7 +68,7 @@ ui opts args l = do
 
 -- | Update the screen, wait for the next event, repeat.
 go :: AppState -> IO ()
-go a@AppState{av=av,aw=_,ah=_,abuf=_,amsg=_,aopts=opts,aargs=_,aledger=_} = do
+go a@AppState{av=av,aopts=opts} = do
   when (not $ DebugNoUI `elem` opts) $ update av (renderScreen a)
   k <- next_event av
   case k of 
@@ -77,7 +77,6 @@ go a@AppState{av=av,aw=_,ah=_,abuf=_,amsg=_,aopts=opts,aargs=_,aledger=_} = do
     EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter BalanceScreen a
     EvKey (KASCII 'r') []       -> go $ resetTrailAndEnter RegisterScreen a
     EvKey (KASCII 'p') []       -> go $ resetTrailAndEnter PrintScreen a
-    -- EvKey (KASCII 'l') []       -> go $ resetTrailAndEnter LedgerScreen a
     EvKey KRight []             -> go $ drilldown a
     EvKey KEnter []             -> go $ drilldown a
     EvKey KLeft  []             -> go $ backout a
@@ -127,7 +126,6 @@ setPosY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)}
       ph = pageHeight a
       cy = y `mod` ph
       sy = y - cy
-
 
 updateCursorY, updateScrollY, updatePosY :: (Int -> Int) -> AppState -> AppState
 updateCursorY f a = setCursorY (f $ cursorY a) a
@@ -214,7 +212,6 @@ enter :: Screen -> AppState -> AppState
 enter scr@BalanceScreen a  = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 enter scr@RegisterScreen a = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 enter scr@PrintScreen a    = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
--- enter scr@LedgerScreen a   = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 
 resetTrailAndEnter scr = enter scr . clearLocs
 
@@ -225,7 +222,6 @@ updateData a@AppState{aopts=opts,aargs=args,aledger=l} =
       BalanceScreen  -> a{abuf=lines $ showBalanceReport opts [] l, aargs=[]}
       RegisterScreen -> a{abuf=lines $ showRegisterReport opts args l}
       PrintScreen    -> a{abuf=lines $ showLedgerTransactions opts args l}
-      -- LedgerScreen   -> a{abuf=lines $ rawledgertext l}
 
 backout :: AppState -> AppState
 backout a | screen a == BalanceScreen = a
@@ -237,7 +233,6 @@ drilldown a =
       BalanceScreen  -> enter RegisterScreen a{aargs=[currentAccountName a]}
       RegisterScreen -> scrollToLedgerTransaction e $ enter PrintScreen a
       PrintScreen   -> a
-      -- LedgerScreen   -> a{abuf=lines $ rawledgertext l}
     where e = currentLedgerTransaction a
 
 -- | Get the account name currently highlighted by the cursor on the
@@ -254,7 +249,6 @@ accountNameAt buf lineno = accountNameFromComponents anamecomponents
       (indented, nonindented) = span (" " `isPrefixOf`) $ reverse namestohere
       thisbranch = indented ++ take 1 nonindented
       anamecomponents = reverse $ map strip $ dropsiblings thisbranch
-
       dropsiblings :: [AccountName] -> [AccountName]
       dropsiblings [] = []
       dropsiblings (x:xs) = [x] ++ dropsiblings xs'
@@ -308,7 +302,16 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
     where 
       (cx, cy) = (0, cursorY a)
       sy = scrollY a
-      -- trying for more speed
+--       mainimg = (renderString attr $ unlines $ above)
+--           <->
+--           (renderString reverseattr $ thisline)
+--           <->
+--           (renderString attr $ unlines $ below)
+--       (above,(thisline:below))
+--           | null ls   = ([],[""])
+--           | otherwise = splitAt y ls
+--       ls = lines $ fitto w (h-1) $ unlines $ drop as $ buf
+-- trying for more speed
       mainimg = vert_cat (map (string defaultattr) above)
                <->
                string currentlineattr thisline
@@ -320,15 +323,6 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
       linestorender = map padclipline $ take (h-1) $ drop sy $ buf ++ replicate h blankline
       padclipline = take w . (++ blankline)
       blankline = replicate w ' '
---       mainimg = (renderString attr $ unlines $ above)
---           <->
---           (renderString reverseattr $ thisline)
---           <->
---           (renderString attr $ unlines $ below)
---       (above,(thisline:below)) 
---           | null ls   = ([],[""])
---           | otherwise = splitAt y ls
---       ls = lines $ fitto w (h-1) $ unlines $ drop as $ buf
 
 padClipString :: Int -> Int -> String -> [String]
 padClipString h w s = rows
@@ -348,8 +342,7 @@ renderString attr s = vert_cat $ map (string attr) rows
 renderStatus :: Int -> String -> Image
 renderStatus w = string statusattr . take w . (++ repeat ' ')
 
-
--- the all-important theming engine
+-- the all-important theming engine!
 
 theme = Restrained
 
@@ -378,13 +371,3 @@ redattr = def_attr `with_fore_color` red
 greenattr = def_attr `with_fore_color` green
 reverseredattr = def_attr `with_style` reverse_video `with_fore_color` red
 reversegreenattr= def_attr `with_style` reverse_video `with_fore_color` green
-
---     pic { pCursor = Cursor x y,
---           pImage = renderFill pieceA ' ' w y 
---           <->
---           renderHFill pieceA ' ' x <|> renderChar pieceA '@' <|> renderHFill pieceA ' ' (w - x - 1) 
---           <->
---           renderFill pieceA ' ' w (h - y - 1) 
---           <->
---           renderStatus w msg
---         }

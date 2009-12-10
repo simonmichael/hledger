@@ -389,6 +389,10 @@ expecting blank line or comment line
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** web: filter patterns
+period doesn't work anywhere
+account doesn't work on balance
+can't filter by description
 *** easier timelog formats
 *** implicit timelog account
 *** easy data entry
