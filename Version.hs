@@ -45,17 +45,13 @@ binaryfilename = prettify $ splitAtElement '.' buildversion :: String
 versionstr    = prettify $ splitAtElement '.' buildversion :: String
                 where
                   prettify (major:minor:bugfix:patches:[]) =
-                      printf "%s.%s%s%s%s" major minor bugfix' patches' desc
+                      printf "%s.%s%s%s" major minor bugfix' patches'
                           where
                             bugfix'
                                 | bugfix `elem` ["0"{-,"98","99"-}] = ""
                                 | otherwise = "."++bugfix
                             patches'
                                 | patches/="0" = "+"++patches++" patches"
-                                | otherwise = ""
-                            desc
---                                 | bugfix=="98" = " (alpha)"
---                                 | bugfix=="99" = " (beta)"
                                 | otherwise = ""
                   prettify s = intercalate "." s
 
