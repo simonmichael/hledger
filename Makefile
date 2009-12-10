@@ -305,14 +305,16 @@ hoogleindex: $(MAIN)
 ######################################################################
 # RELEASING
 
-# Places where hledger's version number makes an appearance:
+# Version numbering. See also VERSION and Version.hs.
+#
+# hledger's version number appears in:
 #  hledger --version
 #  hledger's cabal file
 #  darcs tags
 #  hackage tarball filenames
 #  hackage pages
 #
-# Goals and constraints for our version number system:
+# Some old version numbering goals:
 # 1 automation, robustness, simplicity, platform independence
 # 2 cabal versions must be all-numeric
 # 3 release versions can be concise (without extra .0's)
@@ -324,19 +326,28 @@ hoogleindex: $(MAIN)
 # 9 avoid unnecessary compiling and linking
 # 10 minimise rcs noise and syncing issues (commits, unrecorded changes)
 #
-# Current plan:
-# - The release version looks like major.minor[.bugfix].  bugfix is 0 (and
-#   may be elided) for a normal release, or 1..n for a bugfix release, or
-#   98 meaning an alpha for the forthcoming release, or 99 meaning a beta.
-# - The build version looks like major.minor.bugfix.patches, where patches
-#   is the number of patches applied since the last release tag.
-# - Set the release version in VERSION before "make" or "make release".
-# - "make" updates version strings where needed, and defines PATCHES.
-#   "make release" also records the version number changes and tags the
-#   repo. (Todo: make cabal build set the version and PATCHES, also)
-# - hledger --version shows the build version
-# - The cabal package uses the release version
-# - The release tag is the non-elided release version.
+# Current policy:
+#
+# - We follow http://haskell.org/haskellwiki/Package_versioning_policy
+#
+# - The full release version is ma.jor.minor, where minor is 0 for a
+#   normal release or 1..n for bugfix releases.
+#
+# - The elided release version is ma.jor when minor is 0. We use it for
+#   hackage releases when possible, trusting it doesn't cause trouble..
+#
+# - The build version is ma.jor.minor+patches, where patches is the number
+#   of patches applied in the current repo since the last release tag.
+#
+# - The release tag in the repo is the full release version.
+#
+# - hledger --version shows the release version or build version as
+#   appropriate.
+#
+# - The VERSION file must be updated manually before a release
+#   "make" updates version strings in all other places, and defines PATCHES.
+#   "make release" also records the version number change and tags the repo.
+#   XXX "cabal build" should also set the version and PATCHES, but doesn't yet.
 
 # Build a cabal release, tag the repo and maybe upload to hackage.
 # Don't forget to update VERSION if needed. Examples:

@@ -1,11 +1,7 @@
 {-# OPTIONS_GHC -cpp #-}
 {-
-Version-related utilities.
-
-We should follow http://haskell.org/haskellwiki/Package_versioning_policy .
-But currently hledger's version is MAJOR[.MINOR[.BUGFIX]][+PATCHLEVEL].
-See also the Makefile.
-
+Version-related utilities. See the Makefile for details of our version
+numbering policy.
 -}
 
 module Version
