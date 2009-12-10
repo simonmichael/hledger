@@ -20,7 +20,7 @@ import Locale (defaultTimeLocale)
 import Data.Time.Format (parseTime)
 import Control.Monad (when, guard)
 import Safe (readDef, readMay)
-import System.Posix.Files (fileExist)
+import System.Directory (doesFileExist)
 import System.FilePath.Posix (takeBaseName, replaceExtension)
 import Text.ParserCombinators.Parsec
 
@@ -35,7 +35,7 @@ convert opts args _ = do
                   Right rs -> reverse $ filter (/= [""]) rs
   let debug = Debug `elem` opts
       rulesfile = rulesFileFor csvfile
-  exists <- fileExist rulesfile
+  exists <- doesFileExist rulesfile
   if (not exists) then do
                   hPrintf stderr "creating conversion rules file %s, edit this file for better results\n" rulesfile
                   writeFile rulesfile initialRulesFileContent
