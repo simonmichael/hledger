@@ -362,10 +362,11 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-*** web: filter patterns not working
-*** convert: allow trailing whitespace in rules file
-*** convert: allow more flexible field specs, handle wescom
-*** parsing: allow comment lines immediately after postings
+*** parsing: rules file with trailing whitespace
+*** parsing: rules file with comment paragraphs but no rules
+unexpected end of input
+expecting blank line or comment line
+*** parsing: comment lines immediately after postings
 *** parsing: accept all real-world ledger files
 *** web: happstack ipv6 issue 6
 ** refactoring, code cleanup
