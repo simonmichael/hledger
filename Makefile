@@ -489,3 +489,11 @@ clean:
 Clean: clean cleandocs
 	rm -f hledger TAGS tags
 
+printps:
+	enscript --line-numbers --font=Courier7 --output=cabal.ps hledger.cabal
+	enscript --line-numbers --font=Courier7 --color --pretty-print=makefile --output=make.ps  Makefile 
+	enscript --line-numbers --font=Courier7 --color --pretty-print=haskell --output=code.ps $(SOURCEFILES)
+	cat cabal.ps make.ps code.ps >all.ps
+
+print: printps
+	lpr all.ps
