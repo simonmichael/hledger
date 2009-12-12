@@ -13,7 +13,9 @@ PROFCMD=-f 1000x1000x10.ledger balance
 # command to run during "make coverage"
 COVCMD=test
 
-# executables to run during "make benchmark" (prepend ./ if not in $PATH)
+# executables to run during "make benchmark". They should be on the path
+# or in the current directory. hledger executables should generally be the
+# standard cabal builds, also constrained to parsec 2 for now.
 BENCHEXES=hledger-0.6 hledger-0.7 ledger-3pre
 
 # document viewing commands
@@ -244,7 +246,7 @@ web:
 
 # ..from anywhere
 updatesite: push
-	ssh joyful.com 'make -C/repos/hledger web'
+	ssh joyful.com 'make -C/repos/hledger docs'
 
 # generate pdf versions of main docs
 pdf:
@@ -354,16 +356,17 @@ hoogleindex: $(MAIN)
 #
 # - "make release" additionally records the main version number-affected
 #   files, and tags the repo with the release tag.
-#
-# Build a cabal release, tag the repo and maybe upload to hackage.
-# Don't forget to update VERSION if needed. Examples:
-# releasing 0.5:          set VERSION to 0.5, make release hackageupload
-# doing a bugfix release: set VERSION to 0.5.1, make release hackageupload
-# building 0.6 alpha:     set VERSION to 0.5.98, make
-# releasing 0.6 beta:     set VERSION to 0.5.99, make release
+
+# Build a release, tag the repo, prepare a cabal package
+# Don't forget to update VERSION first. Examples:
+# releasing 0.5:          set VERSION to 0.5, make release
+# doing a bugfix release: set VERSION to 0.5.1, make release
 release: releasetest setandrecordversion tagrelease sdist
 
-releaseupload: hackageupload updatesite
+# Upload the latest cabal package and update hledger.org
+upload: hackageupload updatesite
+
+releaseandupload: release upload
 
 # file where the current release version is defined
 VERSIONFILE=VERSION
@@ -394,7 +397,7 @@ setversion: $(VERSIONFILES)
 # $VERSIONFILE) if changed.  Be careful, will record all changes in those
 # files (so prompts interactively). Triggered by "make release".
 setandrecordversion: setversion
-	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONFILES)
+	darcs record -m "update version" $(VERSIONFILE) $(VERSIONFILES)
 
 tagrelease:
 	darcs tag $(VERSION3)
