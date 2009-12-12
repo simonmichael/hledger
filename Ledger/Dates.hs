@@ -1,9 +1,11 @@
 {-|
 
+Date parsing and utilities for hledger.
+
 For date and time values, we use the standard Day and UTCTime types.
 
 A 'SmartDate' is a date which may be partially-specified or relative.
-Eg 2008/12/31, but also 2008/12, 12/31, tomorrow, last week, next year.
+Eg 2008\/12\/31, but also 2008\/12, 12\/31, tomorrow, last week, next year.
 We represent these as a triple of strings like (\"2008\",\"12\",\"\"),
 (\"\",\"\",\"tomorrow\"), (\"\",\"last\",\"week\").
 
@@ -115,7 +117,7 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       span (y,m,"")              = (startofmonth day, nextmonth day) where day = fromGregorian (read y) (read m) 1
       span (y,m,d)               = (day, nextday day) where day = fromGregorian (read y) (read m) (read d)
 
--- | Convert a smart date string to an explicit yyyy/mm/dd string using
+-- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
 -- the provided reference date.
 fixSmartDateStr :: Day -> String -> String
 fixSmartDateStr t s = printf "%04d/%02d/%02d" y m d
