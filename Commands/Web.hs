@@ -6,6 +6,7 @@ A web-based UI.
 
 module Commands.Web
 where
+import Codec.Binary.UTF8.String (decodeString)
 import Control.Applicative.Error (Failing(Success,Failure))
 import Control.Concurrent
 import Control.Monad.Reader (ask)
@@ -243,8 +244,8 @@ searchform env = do
 addform :: Hack.Env -> HSP XML
 addform env = do
   let inputs = Hack.Contrib.Request.inputs env
-      date  = fromMaybe "" $ lookup "date"  inputs
-      desc  = fromMaybe "" $ lookup "desc"  inputs
+      date  = decodeString $ fromMaybe "" $ lookup "date"  inputs
+      desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
   <div>
    <div id="addform">
    <form action="" method="POST">
@@ -267,8 +268,8 @@ addform env = do
 transactionfields :: Int -> Hack.Env -> HSP XML
 transactionfields n env = do
   let inputs = Hack.Contrib.Request.inputs env
-      acct = fromMaybe "" $ lookup acctvar inputs
-      amt  = fromMaybe "" $ lookup amtvar  inputs
+      acct = decodeString $ fromMaybe "" $ lookup acctvar inputs
+      amt  = decodeString $ fromMaybe "" $ lookup amtvar  inputs
   <tr>
     <td>
       [NBSP][NBSP]
@@ -291,12 +292,12 @@ handleAddform l = do
     validate :: Hack.Env -> Day -> Failing Transaction
     validate env today =
         let inputs = Hack.Contrib.Request.inputs env
-            date  = fromMaybe "" $ lookup "date"  inputs
-            desc  = fromMaybe "" $ lookup "desc"  inputs
-            acct1 = fromMaybe "" $ lookup "acct1" inputs
-            amt1  = fromMaybe "" $ lookup "amt1"  inputs
-            acct2 = fromMaybe "" $ lookup "acct2" inputs
-            amt2  = fromMaybe "" $ lookup "amt2"  inputs
+            date  = decodeString $ fromMaybe "" $ lookup "date"  inputs
+            desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
+            acct1 = decodeString $ fromMaybe "" $ lookup "acct1" inputs
+            amt1  = decodeString $ fromMaybe "" $ lookup "amt1"  inputs
+            acct2 = decodeString $ fromMaybe "" $ lookup "acct2" inputs
+            amt2  = decodeString $ fromMaybe "" $ lookup "amt2"  inputs
             validateDate ""  = ["missing date"]
             validateDate _   = []
             validateDesc ""  = ["missing description"]
