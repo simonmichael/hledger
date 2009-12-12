@@ -14,7 +14,7 @@ PROFCMD=-f 1000x1000x10.ledger balance
 COVCMD=test
 
 # executables to run during "make benchmark" (prepend ./ if not in $PATH)
-BENCHEXES=hledger-0.5 hledger-0.6 ledger
+BENCHEXES=hledger-0.6 hledger-0.7 ledger-3pre
 
 # document viewing commands
 VIEWHTMLCMD=open
@@ -344,11 +344,17 @@ hoogleindex: $(MAIN)
 # - hledger --version shows the release version or build version as
 #   appropriate.
 #
-# - The VERSION file must be updated manually before a release
-#   "make" updates version strings in all other places, and defines PATCHES.
-#   "make release" also records the version number change and tags the repo.
-#   XXX "cabal build" should also set the version and PATCHES, but doesn't yet.
-
+# - The VERSION file must be updated manually before a release.
+#
+# - "make benchmark" depends on version numbers in BENCHEXES, these also
+#   must be updated manually.
+#
+# - "make" updates the version in most other places, and defines PATCHES.
+#   Note "cabal build" should also do this but doesn't yet.
+#
+# - "make release" additionally records the main version number-affected
+#   files, and tags the repo with the release tag.
+#
 # Build a cabal release, tag the repo and maybe upload to hackage.
 # Don't forget to update VERSION if needed. Examples:
 # releasing 0.5:          set VERSION to 0.5, make release hackageupload
