@@ -131,13 +131,13 @@ server opts args l =
           get  "/balance"   $ command [] showBalanceReport   -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/journal"   $ ledgerpage [] l'' (showLedgerTransactions opts' args')
-          post "/journal"   $ handleAddform l''
+          get  "/transactions"   $ ledgerpage [] l'' (showLedgerTransactions opts' args')
+          post "/transactions"   $ handleAddform l''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
           get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
           public (Just "Commands/Web") ["/static"]
-          get  "/"          $ redirect ("journal") Nothing
+          get  "/"          $ redirect ("transactions") Nothing
           ) env
 
 ledgerpage :: [String] -> Ledger -> (Ledger -> String) -> AppUnit
@@ -202,7 +202,7 @@ navbar env =
       <a href="http://hledger.org" id="hledgerorglink">hledger.org</a>
       <% navlinks env %>
 --      <% searchform env %>
-      <a href="http://hledger.org/README.html" id="helplink">help</a>
+      <a href="http://hledger.org/MANUAL.html" id="helplink">help</a>
     </div>
 
 getParamOrNull p = fromMaybe "" `fmap` getParam p
@@ -214,7 +214,7 @@ navlinks _ = do
    let addparams=(++(printf "?a=%s&p=%s" (urlEncode a) (urlEncode p)))
        link s = <a href=(addparams s) class="navlink"><% s %></a>
    <div id="navlinks">
-     <% link "journal" %> |
+     <% link "transactions" %> |
      <% link "register" %> |
      <% link "balance" %>
     </div>
