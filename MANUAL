@@ -205,6 +205,9 @@ Each transaction has a date, description, and two or more postings (of
 some amount to some account) which must balance to 0. As a convenience,
 the last posting's amount may be left blank and will be inferred.
 
+Note that account names may contain single spaces, and the amount must be
+separated from the account name by at least two spaces.
+
 Other c++ ledger features like effective dates, comments, and prices
 are also supported. Some additional features like modifier and periodic
 entries are accepted, but ignored.
