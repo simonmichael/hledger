@@ -38,7 +38,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 - report problems in the `issue tracker`_
 - .. raw:: html
      <form action="http://groups.google.com/group/hledger/boxsubscribe" >
-       join the <a href="http://hledger.org/list">mail list</a>. Your email:
+       join the <a href="http://hledger.org/list">hledger mail list</a>. Your email:
        <input type=text name=email><input type=submit name="sub" value="Subscribe">
      </form>
 

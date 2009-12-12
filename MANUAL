@@ -42,8 +42,8 @@ Installing
 ..........
 
 hledger works on all major platforms. One of these pre-built binaries_ might work for you.
-
-If not, please report the problem, then install the `Haskell Platform`_ and type::
+If not, please `report the problem <http://hledger.org/README2.html#support>`_, then
+install the `Haskell Platform`_ and type::
 
  cabal update
  cabal install hledger
