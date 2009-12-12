@@ -174,7 +174,7 @@ fullcabaltest: setversion
 		&& echo $@ passed) || echo $@ FAILED
 
 # run performance benchmarks and save results in profs/. 
-# Requires some commands defined in bench.tests and some executables defined above.
+# Requires some commands defined in bench.tests and some BENCHEXES defined above.
 benchmark: sampleledgers bench.tests tools/bench
 	tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
