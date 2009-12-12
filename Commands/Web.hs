@@ -292,7 +292,7 @@ handleAddform l = do
     validate :: Hack.Env -> Day -> Failing Transaction
     validate env today =
         let inputs = Hack.Contrib.Request.inputs env
-            date  = decodeString $ fromMaybe "" $ lookup "date"  inputs
+            date  = decodeString $ fromMaybe "today" $ lookup "date"  inputs
             desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
             acct1 = decodeString $ fromMaybe "" $ lookup "acct1" inputs
             amt1  = decodeString $ fromMaybe "" $ lookup "amt1"  inputs
