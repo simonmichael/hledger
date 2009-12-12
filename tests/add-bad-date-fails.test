@@ -1,5 +1,5 @@
 # add should prompt again when it gets a bad date
-add
+-f nosuch.ledger add
 <<<
 2009/1/32
 >>>2 /date .*: date .*/

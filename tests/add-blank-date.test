@@ -1,4 +1,4 @@
-add
+-f nosuch.ledger add
 <<<
 
 >>>2 /date .*: description/
