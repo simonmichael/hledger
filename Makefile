@@ -368,8 +368,8 @@ hoogleindex: $(MAIN)
 
 # Build a release, tag the repo, prepare a cabal package
 # Don't forget to update VERSION first. Examples:
-# releasing 0.5:          set VERSION to 0.5, make release
-# doing a bugfix release: set VERSION to 0.5.1, make release
+# normal release:   echo 0.7   >VERSION; make release
+# a bugfix release: echo 0.7.1 >VERSION; make release
 release: releasetest setandrecordversion tagrelease sdist
 
 # Upload the latest cabal package and update hledger.org
@@ -402,9 +402,8 @@ Version.hs: $(VERSIONFILE)
 # update the version string in local files. Triggered by "make".
 setversion: $(VERSIONFILES)
 
-# update the version string in local files, and record them (and
-# $VERSIONFILE) if changed.  Be careful, will record all changes in those
-# files (so prompts interactively). Triggered by "make release".
+# update the version number in local files, and prompt to record changes
+# in these files. Triggered by "make release".
 setandrecordversion: setversion
 	darcs record -m "update version" $(VERSIONFILE) $(VERSIONFILES)
 
