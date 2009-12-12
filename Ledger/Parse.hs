@@ -356,9 +356,8 @@ ledgerdatetime = do
 
 ledgereffectivedate :: GenParser Char LedgerFileCtx (Maybe Day)
 ledgereffectivedate = do
-  string "[="
+  char '='
   edate <- ledgerdate
-  char ']'
   return $ Just edate
 
 ledgerstatus :: GenParser Char st Bool

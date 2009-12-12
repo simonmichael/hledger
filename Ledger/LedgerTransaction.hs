@@ -70,7 +70,7 @@ showLedgerTransaction' elide effective t =
       code = if (length $ ltcode t) > 0 then (printf " (%s)" $ ltcode t) else ""
       desc = " " ++ ltdescription t
       showdate = printf "%-10s" . showDate
-      showedate = printf "[=%s]" . showdate
+      showedate = printf "=%s" . showdate
       showpostings ps
           | elide && length ps > 1 && isLedgerTransactionBalanced t
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]
