@@ -304,7 +304,6 @@ The web command starts hledger's web interface, and tries to open a web
 browser to view it (if this fails, you'll have to visit the indicated url
 yourself.) The web ui combines the features of the print, register,
 balance and add commands. It is experimental.
-Known issues: filtering does not work completely.
 
 Other commands
 """"""""""""""
