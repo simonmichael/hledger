@@ -1,6 +1,6 @@
 name:           hledger
 -- Version is set by the makefile
-version:        0.6.1
+version:        0.7.0
 category:       Finance
 synopsis:       A command-line (or curses or web-based) double-entry accounting tool.
 description:
