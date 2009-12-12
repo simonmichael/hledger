@@ -217,10 +217,9 @@ not support all the latest ledger 3 syntax like @@ and {}) and some subtle
 punctuation differences (eg comments may be permissible in different
 places.)
 
-As long as you avoid the more esoteric syntax, your ledger files should
-work with both hledger and c++ ledger. You can inadvertently create a file
-that works for one but not the other; but it's easy to restore
-compatibility by making small adjustments.
+Generally, as long as you avoid the more esoteric syntax, your ledger
+files will work with both hledger and c++ ledger (or, it will be easy to
+restore compatibility by making small adjustments.)
 
 Commands
 ........
