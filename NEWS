@@ -45,23 +45,22 @@ hledger news
   * print: always sort by date, fix long account name truncation, align
     amounts, show end of line comments, show all amounts for clarity
     (don't elide the final balancing amount)
-  * ui: use vty 4, fixes non-ascii symbol display (issue #3)
+  * ui: use vty 4, fixes non-ascii and gnome terminal problems (issues #3, #4)
   * web: allow data entry, react to data file changes, better layout, help
     links, remove histogram command and filter fields for now, fix bad
     localhost redirect, filter form did not work in eg firefox (issue #7),
     reset link did not work in all browsers
-  * parsing: require whitespace between date and status code (prevents
-    silent effective date breakage), return non-zero exit code on parse
-    failure, allow (and ignore) a time in price records, better error
-    messages
-  * handle utf8 properly in error messages (issue #5)
+  * parsing: require whitespace between date and status code, allow (and
+    ignore) a time in price records, better error messages, non-zero exit
+    code on parse failure
+  * display non-ascii error messages properly (issue #5)
   * fix an arithmetic bug that occasionally rejected valid transactions
   * fix a regex bug in showtree
   * don't break if HOME is undefined
   * --debug now implies --verbose
   * add functional tests like ledger's, use test-framework for speedy
     running, release shelltestrunner as a separate package
-  * many hlint cleanups (Marko Kocic)
+  * many hlint cleanups (Marko Kocić)
   * many site and documentation updates
 
   Stats:
