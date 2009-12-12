@@ -47,8 +47,9 @@ If not, please report the problem, then install the `Haskell Platform`_ and type
  cabal update
  cabal install hledger [-fvty] [-fhapps]
 
-The optional -f flags will download more stuff and include the "ui" and
-"web" commands respectively. Note -fvty may not work on microsoft windows.
+The optional -f flags will install more libraries and enable hledger's
+"ui" and "web" commands respectively. Note -fvty may not work on Microsoft
+windows.
 
 Basic usage
 ...........
