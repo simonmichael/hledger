@@ -66,9 +66,11 @@ hledgeropt: setversion
 	ghc --make hledger.hs -o hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build a deployable binary for mac, one which uses only standard osx libs
+# use some trickery to link without gmp lib
 hledgermac: setversion
+	ghc -c --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
 	sudo port deactivate gmp
-	ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib #-optl-F/Library/Frameworks/GMP
+	-PATH=tools:$(PATH) ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
 	sudo port activate gmp
 	@echo Please check the build looks portable:
 	otool -L $(BINARYFILENAME)

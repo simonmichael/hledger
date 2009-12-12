@@ -1,0 +1,3 @@
+#!/bin/sh
+# fake trhsx, to help "make hledgermac"
+cp $2 $3
