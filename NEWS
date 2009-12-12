@@ -1,12 +1,8 @@
 hledger news
 ============
 
-  * site and documentation updates
-  * parsing: require whitespace between date and status code, prevent
-    silent effective date breakage, return non-zero exit code on parse
-    failure, allow (and ignore) a time in price records, better error
-    messages
-  * support --effective option, uses transactions' effective dates if any
+2009/07/01 hledger 0.7
+........................
   * price history support (first cut):
     P directives now work, though differently from c++ ledger. Each
     posting amount takes its fixed unit price from the price history (or
@@ -15,6 +11,7 @@ hledger news
     and register don't show amount prices any more, and don't separate
     differently-priced amounts. Unlike ledger, print shows all amount
     prices, and supports -B.
+  * --effective option, will use transactions' effective dates if any
   * convert: new rules file format, find/create rules file automatically,
     more robust parsing, more useful --debug output
   * print: always sort by date, fix long account name truncation, align
@@ -22,27 +19,31 @@ hledger news
     (don't elide the final balancing amount)
   * ui: use vty 4, fixes non-ascii symbol display (issue #3)
   * web: allow data entry, react to data file changes, better layout, help
-    links, remove histogram command, fix bad localhost redirect, filter form
-    did not work in eg firefox (issue #7), reset link did not work in all
-    browsers
+    links, remove histogram command and filter fields for now, fix bad
+    localhost redirect, filter form did not work in eg firefox (issue #7),
+    reset link did not work in all browsers
+  * parsing: require whitespace between date and status code (prevents
+    silent effective date breakage), return non-zero exit code on parse
+    failure, allow (and ignore) a time in price records, better error
+    messages
   * handle utf8 properly in error messages (issue #5)
   * fix an arithmetic bug that occasionally rejected valid transactions
   * fix a regex bug in showtree
   * don't break if HOME is undefined
   * --debug now implies --verbose
-  * many hlint cleanups (Marko Kocic)
   * add functional tests like ledger's, use test-framework for speedy
     running, release shelltestrunner as a separate package
+  * many hlint cleanups (Marko Kocic)
+  * many site and documentation updates
 
   Stats:
-  _ contributors,
-  (jun 19) days since release,
-  _ commits,
-  _ non-test code lines,
-  n tests,
+  2 contributors,
+  175 days since release,
+  182 commits,
+  3320 non-test code lines,
+  97 tests,
   53% test coverage,
-  2 known errors,
-  similar performance.
+  performance: similar (http://hledger.org/profs/200912111852.bench)
 
 2009/06/22 hledger 0.6.1
 ........................
