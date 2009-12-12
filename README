@@ -19,13 +19,18 @@ Here is a **demo_** of the web interface.
 Here is the **manual_**.
 For support and more technical info, see **`hledger for techies`_** or **`email me`_**.
 
-Download and try **`hledger for mac`_**, **`hledger for windows`_**, or **hledger for linux (`32 bit intel`_, `64 bit intel`_)**.
+Binaries_ are not current; please get the latest hledger with cabal for now: http://hledger.org/MANUAL.html#installing 
+
+..
+
+ (Download and try **`hledger for mac`_**, **`hledger for windows`_**, or **hledger for linux (`32 bit intel`_, `64 bit intel`_)**.)
 
 .. (If you're reading this in plain text, see also README2, MANUAL etc., or http://hledger.org)
 
 .. _hledger for techies:  README2.html
 .. _manual:               MANUAL.html
 .. _demo:                 http://demo.hledger.org
+.. _binaries:             http://hledger.org/binaries/
 .. _hledger for mac:      http://hledger.org/binaries/hledger-0.6-mac-i386.gz
 .. _hledger for windows:  http://hledger.org/binaries/hledger-0.6-win-i386.zip
 .. _32 bit intel:         http://hledger.org/binaries/hledger-0.6.1+9-linux-i386.gz
