@@ -12,7 +12,8 @@ import Ledger.Utils (getCurrentLocalTime)
 import Ledger.Dates (nulldatespan)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
-import System.IO
+import Prelude hiding (readFile)
+import System.IO.UTF8
 import System.FilePath ((</>))
 import System.Time (getClockTime)
 
