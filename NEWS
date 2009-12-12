@@ -1,7 +1,7 @@
 hledger news
 ============
 
-2009/07/01 hledger 0.7
+2009/12/11 hledger 0.7
 ........................
   * price history support (first cut):
     P directives now work, though differently from c++ ledger. Each
