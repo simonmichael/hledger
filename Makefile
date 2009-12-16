@@ -265,6 +265,7 @@ pdf:
 # generate api docs
 # We munge haddock and hoogle into a rough but useful framed layout.
 # For this to work the hoogle cgi must be built with base target "main".
+# XXX move the framed index building into haddock: ?
 api-docs: haddock #hoogle
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
 	cp website/api-doc-frames.html website/api-doc/index.html ; \
