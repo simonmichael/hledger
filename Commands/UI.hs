@@ -273,9 +273,9 @@ scrollToLedgerTransaction e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy
 -- cursor on the register screen (or best guess). Results undefined while
 -- on other screens. Doesn't work.
 currentLedgerTransaction :: AppState -> LedgerTransaction
-currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransaction a t
+currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = transactionContainingLedgerPosting a t
     where
-      t = safehead nulltxn $ filter ismatch $ ledgerTransactions l
+      t = safehead nulltxn $ filter ismatch $ ledgerLedgerPostings l
       ismatch t = tdate t == parsedate (take 10 datedesc)
                   && take 70 (showtxn False t nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ safehead "" rest : reverse above
@@ -286,8 +286,8 @@ currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransac
 
 -- | Get the entry which contains the given transaction.
 -- Will raise an error if there are problems.
-entryContainingTransaction :: AppState -> Transaction -> LedgerTransaction
-entryContainingTransaction AppState{aledger=l} t = ledger_txns (journal l) !! tnum t
+transactionContainingLedgerPosting :: AppState -> LedgerPosting -> LedgerTransaction
+transactionContainingLedgerPosting AppState{aledger=l} t = ledger_txns (journal l) !! tnum t
 
 -- renderers
 

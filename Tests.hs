@@ -800,9 +800,9 @@ tests = [
     let a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
-  ,"summariseTransactionsInDateSpan" ~: do
+  ,"summariseLedgerPostingsInDateSpan" ~: do
     let gives (b,e,tnum,depth,showempty,ts) = 
-            (summariseTransactionsInDateSpan (mkdatespan b e) tnum depth showempty ts `is`)
+            (summariseLedgerPostingsInDateSpan (mkdatespan b e) tnum depth showempty ts `is`)
     let ts =
             [
              nulltxn{tdescription="desc",taccount="expenses:food:groceries",tamount=Mixed [dollars 1]}

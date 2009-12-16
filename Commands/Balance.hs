@@ -101,7 +101,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
 import Ledger.AccountName
-import Ledger.Transaction
+import Ledger.LedgerPosting
 import Ledger.Ledger
 import Options
 import System.IO.UTF8
@@ -151,7 +151,7 @@ isInteresting opts l a
       emptyflag = Empty `elem` opts
       acct = ledgerAccount l a
       notzero = not $ isZeroMixedAmount inclbalance where inclbalance = abalance acct
-      notlikesub = not $ isZeroMixedAmount exclbalance where exclbalance = sumTransactions $ atransactions acct
+      notlikesub = not $ isZeroMixedAmount exclbalance where exclbalance = sumLedgerPostings $ apostings acct
       numinterestingsubs = length $ filter isInterestingTree subtrees
           where
             isInterestingTree = treeany (isInteresting opts l . aname)

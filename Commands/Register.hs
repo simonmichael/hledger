@@ -34,7 +34,7 @@ showRegisterReport opts args l
     | otherwise = showtxns summaryts nulltxn startbal
     where
       interval = intervalFromOpts opts
-      ts = sortBy (comparing tdate) $ filterempties $ filtertxns apats $ filterdepth $ ledgerTransactions l
+      ts = sortBy (comparing tdate) $ filterempties $ filtertxns apats $ filterdepth $ ledgerLedgerPostings l
       filterdepth | interval == NoInterval = filter (\t -> accountNameLevel (taccount t) <= depth)
                   | otherwise = id
       filterempties
@@ -42,7 +42,7 @@ showRegisterReport opts args l
           | otherwise = filter (not . isZeroMixedAmount . tamount)
       (precedingts, ts') = break (matchdisplayopt dopt) ts
       (displayedts, _) = span (matchdisplayopt dopt) ts'
-      startbal = sumTransactions precedingts
+      startbal = sumLedgerPostings precedingts
       (apats,_) = parsePatternArgs args
       matchdisplayopt Nothing _ = True
       matchdisplayopt (Just e) t = (fromparse $ parsewith datedisplayexpr e) t
@@ -50,8 +50,8 @@ showRegisterReport opts args l
       empty = Empty `elem` opts
       depth = depthFromOpts opts
       summaryts = concatMap summarisespan (zip spans [1..])
-      summarisespan (s,n) = summariseTransactionsInDateSpan s n depth empty (transactionsinspan s)
-      transactionsinspan s = filter (isTransactionInDateSpan s) displayedts
+      summarisespan (s,n) = summariseLedgerPostingsInDateSpan s n depth empty (transactionsinspan s)
+      transactionsinspan s = filter (isLedgerPostingInDateSpan s) displayedts
       spans = splitSpan interval (ledgerDateSpan l)
                         
 -- | Convert a date span (representing a reporting interval) and a list of
@@ -69,8 +69,8 @@ showRegisterReport opts args l
 -- 
 -- The showempty flag forces the display of a zero-transaction span
 -- and also zero-transaction accounts within the span.
-summariseTransactionsInDateSpan :: DateSpan -> Int -> Int -> Bool -> [Transaction] -> [Transaction]
-summariseTransactionsInDateSpan (DateSpan b e) tnum depth showempty ts
+summariseLedgerPostingsInDateSpan :: DateSpan -> Int -> Int -> Bool -> [LedgerPosting] -> [LedgerPosting]
+summariseLedgerPostingsInDateSpan (DateSpan b e) tnum depth showempty ts
     | null ts && showempty = [txn]
     | null ts = []
     | otherwise = summaryts'
@@ -83,7 +83,7 @@ summariseTransactionsInDateSpan (DateSpan b e) tnum depth showempty ts
           | otherwise = filter (not . isZeroMixedAmount . tamount) summaryts
       txnanames = sort $ nub $ map taccount ts
       -- aggregate balances by account, like cacheLedger, then do depth-clipping
-      (_,_,exclbalof,inclbalof) = groupTransactions ts
+      (_,_,exclbalof,inclbalof) = groupLedgerPostings ts
       clippedanames = clipAccountNames depth txnanames
       isclipped a = accountNameLevel a >= depth
       balancetoshowfor a =
@@ -104,7 +104,7 @@ showtxns (t:ts) tprev bal = this ++ showtxns ts t bal'
       bal' = bal + tamount t
 
 -- | Show one transaction line and balance with or without the entry details.
-showtxn :: Bool -> Transaction -> MixedAmount -> String
+showtxn :: Bool -> LedgerPosting -> MixedAmount -> String
 showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
     where
       ledger3ishlayout = False
@@ -116,5 +116,5 @@ showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
       desc = printf ("%-"++(show descwidth)++"s") $ elideRight descwidth de :: String
       p = showPostingWithoutPrice $ Posting s a amt "" tt
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
-      Transaction{tstatus=s,tdate=da,tdescription=de,taccount=a,tamount=amt,ttype=tt} = t
+      LedgerPosting{tstatus=s,tdate=da,tdescription=de,taccount=a,tamount=amt,ttype=tt} = t
 

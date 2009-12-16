@@ -558,7 +558,7 @@ timelogentry = do
 
 -- | Parse a --display expression which is a simple date predicate, like
 -- "d>[DATE]" or "d<=[DATE]", and return a transaction-matching predicate.
-datedisplayexpr :: GenParser Char st (Transaction -> Bool)
+datedisplayexpr :: GenParser Char st (LedgerPosting -> Bool)
 datedisplayexpr = do
   char 'd'
   op <- compareop

@@ -56,7 +56,7 @@ library
                   Ledger.Posting
                   Ledger.Parse
                   Ledger.TimeLog
-                  Ledger.Transaction
+                  Ledger.LedgerPosting
                   Ledger.Types
                   Ledger.Utils
   Build-Depends:
@@ -95,7 +95,7 @@ executable hledger
                   Ledger.Journal
                   Ledger.Posting
                   Ledger.TimeLog
-                  Ledger.Transaction
+                  Ledger.LedgerPosting
                   Ledger.Types
                   Ledger.Utils
                   Options

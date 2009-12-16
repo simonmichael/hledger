@@ -59,7 +59,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Account ()
 import Ledger.AccountName
-import Ledger.Transaction
+import Ledger.LedgerPosting
 import Ledger.Journal
 
 
@@ -75,7 +75,7 @@ instance Show Ledger where
 cacheLedger :: [String] -> Journal -> Ledger
 cacheLedger apats l = Ledger{journaltext="",journal=l,accountnametree=ant,accountmap=acctmap}
     where
-      (ant,txnsof,_,inclbalof) = groupTransactions $ filtertxns apats $ journalTransactions l
+      (ant,txnsof,_,inclbalof) = groupLedgerPostings $ filtertxns apats $ journalLedgerPostings l
       acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
           where mkacct a = Account a (txnsof a) (inclbalof a)
 
@@ -83,12 +83,12 @@ cacheLedger apats l = Ledger{journaltext="",journal=l,accountnametree=ant,accoun
 -- query functions that fetch transactions, balance, and
 -- subaccount-including balance by account name. 
 -- This is to factor out common logic from cacheLedger and
--- summariseTransactionsInDateSpan.
-groupTransactions :: [Transaction] -> (Tree AccountName,
-                                     (AccountName -> [Transaction]), 
+-- summariseLedgerPostingsInDateSpan.
+groupLedgerPostings :: [LedgerPosting] -> (Tree AccountName,
+                                     (AccountName -> [LedgerPosting]),
                                      (AccountName -> MixedAmount), 
                                      (AccountName -> MixedAmount))
-groupTransactions ts = (ant,txnsof,exclbalof,inclbalof)
+groupLedgerPostings ts = (ant,txnsof,exclbalof,inclbalof)
     where
       txnanames = sort $ nub $ map taccount ts
       ant = accountNameTreeFrom $ expandAccountNames txnanames
@@ -106,18 +106,18 @@ groupTransactions ts = (ant,txnsof,exclbalof,inclbalof)
 -- | Add subaccount-excluding and subaccount-including balances to a tree
 -- of account names somewhat efficiently, given a function that looks up
 -- transactions by account name.
-calculateBalances :: Tree AccountName -> (AccountName -> [Transaction]) -> Tree (AccountName, (MixedAmount, MixedAmount))
+calculateBalances :: Tree AccountName -> (AccountName -> [LedgerPosting]) -> Tree (AccountName, (MixedAmount, MixedAmount))
 calculateBalances ant txnsof = addbalances ant
     where 
       addbalances (Node a subs) = Node (a,(bal,bal+subsbal)) subs'
           where
-            bal         = sumTransactions $ txnsof a
+            bal         = sumLedgerPostings $ txnsof a
             subsbal     = sum $ map (snd . snd . root) subs'
             subs'       = map addbalances subs
 
 -- | Convert a list of transactions to a map from account name to the list
 -- of all transactions in that account. 
-transactionsByAccount :: [Transaction] -> Map.Map AccountName [Transaction]
+transactionsByAccount :: [LedgerPosting] -> Map.Map AccountName [LedgerPosting]
 transactionsByAccount ts = m'
     where
       sortedts = sortBy (comparing taccount) ts
@@ -126,7 +126,7 @@ transactionsByAccount ts = m'
 -- The special account name "top" can be used to look up all transactions. ?
 --      m' = Map.insert "top" sortedts m
 
-filtertxns :: [String] -> [Transaction] -> [Transaction]
+filtertxns :: [String] -> [LedgerPosting] -> [LedgerPosting]
 filtertxns apats = filter (matchpats apats . taccount)
 
 -- | List a ledger's account names.
@@ -155,8 +155,8 @@ ledgerSubAccounts l Account{aname=a} =
     map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ accountnames l
 
 -- | List a ledger's "transactions", ie postings with transaction info attached.
-ledgerTransactions :: Ledger -> [Transaction]
-ledgerTransactions = journalTransactions . journal
+ledgerLedgerPostings :: Ledger -> [LedgerPosting]
+ledgerLedgerPostings = journalLedgerPostings . journal
 
 -- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Int -> Ledger -> Tree Account
@@ -173,7 +173,7 @@ ledgerDateSpan l
     | null ts = DateSpan Nothing Nothing
     | otherwise = DateSpan (Just $ tdate $ head ts) (Just $ addDays 1 $ tdate $ last ts)
     where
-      ts = sortBy (comparing tdate) $ ledgerTransactions l
+      ts = sortBy (comparing tdate) $ ledgerLedgerPostings l
 
 -- | Convenience aliases.
 accountnames :: Ledger -> [AccountName]
@@ -194,8 +194,8 @@ accountsmatching = ledgerAccountsMatching
 subaccounts :: Ledger -> Account -> [Account]
 subaccounts = ledgerSubAccounts
 
-transactions :: Ledger -> [Transaction]
-transactions = ledgerTransactions
+transactions :: Ledger -> [LedgerPosting]
+transactions = ledgerLedgerPostings
 
 commodities :: Ledger -> [Commodity]
 commodities = nub . journalCommodities . journal

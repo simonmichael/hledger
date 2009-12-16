@@ -5,7 +5,7 @@ single 'Account'.  Each 'LedgerTransaction' contains two or more postings
 which should add up to 0.  
 
 Generally, we use these with the ledger transaction's date and description
-added, which we call a 'Transaction'.
+added, which we call a 'LedgerPosting'.
 
 -}
 

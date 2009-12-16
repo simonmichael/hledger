@@ -22,7 +22,7 @@ showLedgerTransactions opts args l = concatMap (showLedgerTransactionForPrint ef
       txns = sortBy (comparing ltdate) $
                ledger_txns $ 
                filterJournalPostingsByDepth depth $ 
-               filterJournalTransactionsByAccount apats $ 
+               filterJournalPostingsByAccount apats $ 
                journal l
       depth = depthFromOpts opts
       effective = Effective `elem` opts

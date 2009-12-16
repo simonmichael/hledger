@@ -134,7 +134,7 @@ data FilterSpec = FilterSpec {
     ,whichdate :: WhichDate  -- ^ which dates to use (transaction or effective)
     }
 
-data Transaction = Transaction {
+data LedgerPosting = LedgerPosting {
       tnum :: Int,
       tstatus :: Bool,           -- ^ posting status
       tdate :: Day,              -- ^ transaction date
@@ -146,7 +146,7 @@ data Transaction = Transaction {
 
 data Account = Account {
       aname :: AccountName,
-      atransactions :: [Transaction], -- ^ transactions in this account
+      apostings :: [LedgerPosting], -- ^ transactions in this account
       abalance :: MixedAmount         -- ^ sum of transactions in this account and subaccounts
     }
 

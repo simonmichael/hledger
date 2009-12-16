@@ -27,10 +27,10 @@ showHistogram opts args l = concatMap (printDayWith countBar) daytxns
                | otherwise = i
       fullspan = journalDateSpan $ journal l
       days = filter (DateSpan Nothing Nothing /=) $ splitSpan interval fullspan
-      daytxns = [(s, filter (isTransactionInDateSpan s) ts) | s <- days]
+      daytxns = [(s, filter (isLedgerPostingInDateSpan s) ts) | s <- days]
       -- same as Register
       -- should count raw transactions, not posting transactions
-      ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerTransactions l
+      ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerLedgerPostings l
       filterempties
           | Empty `elem` opts = id
           | otherwise = filter (not . isZeroMixedAmount . tamount)
@@ -44,6 +44,6 @@ printDayWith f (DateSpan b _, ts) = printf "%s %s\n" (show $ fromJust b) (f ts)
 
 countBar ts = replicate (length ts) barchar
 
-total = show . sumTransactions
+total = show . sumLedgerPostings
 
--- totalBar ts = replicate (sumTransactions ts) barchar
+-- totalBar ts = replicate (sumLedgerPostings ts) barchar

@@ -14,7 +14,7 @@ import Ledger.Types
 import Ledger.AccountName
 import Ledger.Amount
 import Ledger.LedgerTransaction (ledgerTransactionWithDate)
-import Ledger.Transaction
+import Ledger.LedgerPosting
 import Ledger.Posting
 import Ledger.TimeLog
 
@@ -55,12 +55,12 @@ addHistoricalPrice h l0 = l0 { historical_prices = h : historical_prices l0 }
 addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
 addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries l0 }
 
-journalTransactions :: Journal -> [Transaction]
-journalTransactions = txnsof . ledger_txns
+journalLedgerPostings :: Journal -> [LedgerPosting]
+journalLedgerPostings = txnsof . ledger_txns
     where txnsof ts = concatMap flattenLedgerTransaction $ zip ts [1..]
 
 journalAccountNamesUsed :: Journal -> [AccountName]
-journalAccountNamesUsed = accountNamesFromTransactions . journalTransactions
+journalAccountNamesUsed = accountNamesFromLedgerPostings . journalLedgerPostings
 
 journalAccountNames :: Journal -> [AccountName]
 journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
@@ -74,30 +74,30 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 filterJournal :: DateSpan -> [String] -> Maybe Bool -> Bool -> Journal -> Journal
 filterJournal span pats clearedonly realonly =
     filterJournalPostingsByRealness realonly .
-    filterJournalTransactionsByClearedStatus clearedonly .
-    filterJournalTransactionsByDate span .
-    filterJournalTransactionsByDescription pats
+    filterJournalPostingsByClearedStatus clearedonly .
+    filterJournalLedgerTransactionsByDate span .
+    filterJournalLedgerTransactionsByDescription pats
 
 -- | Keep only ledger transactions whose description matches the description patterns.
-filterJournalTransactionsByDescription :: [String] -> Journal -> Journal
-filterJournalTransactionsByDescription pats (Journal ms ps ts tls hs f fp ft) =
+filterJournalLedgerTransactionsByDescription :: [String] -> Journal -> Journal
+filterJournalLedgerTransactionsByDescription pats (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter matchdesc ts) tls hs f fp ft
     where matchdesc = matchpats pats . ltdescription
 
 -- | Keep only ledger transactions which fall between begin and end dates.
 -- We include transactions on the begin date and exclude transactions on the end
 -- date, like ledger.  An empty date string means no restriction.
-filterJournalTransactionsByDate :: DateSpan -> Journal -> Journal
-filterJournalTransactionsByDate (DateSpan begin end) (Journal ms ps ts tls hs f fp ft) =
+filterJournalLedgerTransactionsByDate :: DateSpan -> Journal -> Journal
+filterJournalLedgerTransactionsByDate (DateSpan begin end) (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter matchdate ts) tls hs f fp ft
     where
       matchdate t = maybe True (ltdate t>=) begin && maybe True (ltdate t<) end
 
 -- | Keep only ledger transactions which have the requested
 -- cleared/uncleared status, if there is one.
-filterJournalTransactionsByClearedStatus :: Maybe Bool -> Journal -> Journal
-filterJournalTransactionsByClearedStatus Nothing rl = rl
-filterJournalTransactionsByClearedStatus (Just val) (Journal ms ps ts tls hs f fp ft) =
+filterJournalPostingsByClearedStatus :: Maybe Bool -> Journal -> Journal
+filterJournalPostingsByClearedStatus Nothing rl = rl
+filterJournalPostingsByClearedStatus (Just val) (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter ((==val).ltstatus) ts) tls hs f fp ft
 
 -- | Strip out any virtual postings, if the flag is true, otherwise do
@@ -117,8 +117,8 @@ filterJournalPostingsByDepth depth (Journal mts pts ts tls hs f fp ft) =
               t{ltpostings=filter ((<= depth) . accountNameLevel . paccount) ps}
 
 -- | Keep only ledger transactions which affect accounts matched by the account patterns.
-filterJournalTransactionsByAccount :: [String] -> Journal -> Journal
-filterJournalTransactionsByAccount apats (Journal ms ps ts tls hs f fp ft) =
+filterJournalPostingsByAccount :: [String] -> Journal -> Journal
+filterJournalPostingsByAccount apats (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter (any (matchpats apats . paccount) . ltpostings) ts) tls hs f fp ft
 
 -- | Convert this ledger's transactions' primary date to either their
@@ -153,7 +153,7 @@ canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms 
             commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
             commoditieswithsymbol s = filter ((s==) . symbol) commodities
             commoditysymbols = nub $ map symbol commodities
-            commodities = map commodity (concatMap (amounts . tamount) (journalTransactions rl)
+            commodities = map commodity (concatMap (amounts . tamount) (journalLedgerPostings rl)
                                          ++ concatMap (amounts . hamount) (historical_prices rl))
             fixprice :: Amount -> Amount
             fixprice a@Amount{price=Just _} = a
@@ -173,7 +173,7 @@ canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms 
 
 -- | Get just the amounts from a ledger, in the order parsed.
 journalAmounts :: Journal -> [MixedAmount]
-journalAmounts = map tamount . journalTransactions
+journalAmounts = map tamount . journalLedgerPostings
 
 -- | Get just the ammount commodities from a ledger, in the order parsed.
 journalCommodities :: Journal -> [Commodity]
