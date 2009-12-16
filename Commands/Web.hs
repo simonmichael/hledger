@@ -36,7 +36,7 @@ import qualified Hack.Contrib.Request (inputs, params, path)
 import qualified Hack.Contrib.Response (redirect)
 -- import qualified Text.XHtml.Strict as H
 
-import Commands.Add (addTransaction)
+import Commands.Add (ledgerAddTransaction)
 import Commands.Balance
 import Commands.Histogram
 import Commands.Print
@@ -131,7 +131,7 @@ server opts args l =
           get  "/balance"   $ command [] showBalanceReport   -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/transactions"   $ ledgerpage [] l'' (showLedgerTransactions opts' args')
+          get  "/transactions"   $ ledgerpage [] l'' (showTransactions opts' args')
           post "/transactions"   $ handleAddform l''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
@@ -280,7 +280,7 @@ handleAddform l = do
   d <- io getCurrentDay
   handle $ validate env d
   where
-    validate :: Hack.Env -> Day -> Failing LedgerTransaction
+    validate :: Hack.Env -> Day -> Failing Transaction
     validate env today =
         let inputs = Hack.Contrib.Request.inputs env
             date  = fromMaybe "" $ lookup "date"  inputs
@@ -302,7 +302,7 @@ handleAddform l = do
             validateAmt2 _   = []
             amt1' = either (const missingamt) id $ parse someamount "" amt1
             amt2' = either (const missingamt) id $ parse someamount "" amt2
-            t = LedgerTransaction {
+            t = Transaction {
                             ltdate = parsedate $ fixSmartDateStr today date
                            ,lteffectivedate=Nothing
                            ,ltstatus=False
@@ -315,7 +315,7 @@ handleAddform l = do
                             ]
                            ,ltpreceding_comment_lines=""
                            }
-            (t', berr) = case balanceLedgerTransaction t of
+            (t', berr) = case balanceTransaction t of
                            Right t'' -> (t'', [])
                            Left e -> (t, [e])
             errs = concat [
@@ -331,10 +331,10 @@ handleAddform l = do
           False -> Failure errs
           True  -> Success t'
 
-    handle :: Failing LedgerTransaction -> AppUnit
+    handle :: Failing Transaction -> AppUnit
     handle (Failure errs) = hsp errs addform 
     handle (Success t)    = do
-                    io $ addTransaction l t >> reload l
-                    ledgerpage [msg] l (showLedgerTransactions [] [])
+                    io $ ledgerAddTransaction l t >> reload l
+                    ledgerpage [msg] l (showTransactions [] [])
        where msg = printf "Added transaction:\n%s" (show t)
 

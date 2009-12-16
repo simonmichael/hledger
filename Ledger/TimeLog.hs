@@ -2,7 +2,7 @@
 
 A 'TimeLogEntry' is a clock-in, clock-out, or other directive in a timelog
 file (see timeclock.el or the command-line version). These can be
-converted to 'LedgerTransactions' and queried like a ledger.
+converted to 'Transactions' and queried like a ledger.
 
 -}
 
@@ -12,7 +12,7 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates
 import Ledger.Commodity
-import Ledger.LedgerTransaction
+import Ledger.Transaction
 
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
@@ -35,7 +35,7 @@ instance Read TimeLogCode where
 -- | Convert time log entries to ledger transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.
-entriesFromTimeLogEntries :: LocalTime -> [TimeLogEntry] -> [LedgerTransaction]
+entriesFromTimeLogEntries :: LocalTime -> [TimeLogEntry] -> [Transaction]
 entriesFromTimeLogEntries _ [] = []
 entriesFromTimeLogEntries now [i]
     | odate > idate = entryFromTimeLogInOut i o' : entriesFromTimeLogEntries now [i',o]
@@ -59,13 +59,13 @@ entriesFromTimeLogEntries now (i:o:rest)
 -- | Convert a timelog clockin and clockout entry to an equivalent ledger
 -- entry, representing the time expenditure. Note this entry is  not balanced,
 -- since we omit the \"assets:time\" transaction for simpler output.
-entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> LedgerTransaction
+entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Transaction
 entryFromTimeLogInOut i o
     | otime >= itime = t
     | otherwise = 
-        error $ "clock-out time less than clock-in time in:\n" ++ showLedgerTransaction t
+        error $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
     where
-      t = LedgerTransaction {
+      t = Transaction {
             ltdate         = idate,
             lteffectivedate = Nothing,
             ltstatus       = True,

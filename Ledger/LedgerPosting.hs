@@ -1,7 +1,7 @@
 {-|
 
 A compound data type for efficiency. A 'LedgerPosting' is a 'Posting' with
-its parent 'LedgerTransaction' \'s date and description attached. The
+its parent 'Transaction' \'s date and description attached. The
 \"transaction\" term is pretty ingrained in the code, docs and with users,
 so we've kept it. These are what we work with most of the time when doing
 reports.
@@ -13,7 +13,7 @@ where
 import Ledger.Dates
 import Ledger.Utils
 import Ledger.Types
-import Ledger.LedgerTransaction (showAccountName)
+import Ledger.Transaction (showAccountName)
 import Ledger.Amount
 
 
@@ -25,11 +25,11 @@ showLedgerPosting (LedgerPosting _ stat d desc a amt ttype) =
     where s = if stat then " *" else ""
           a' = showAccountName Nothing ttype a
 
--- | Convert a 'LedgerTransaction' to two or more 'LedgerPosting's. An id number
+-- | Convert a 'Transaction' to two or more 'LedgerPosting's. An id number
 -- is attached to the transactions to preserve their grouping - it should
 -- be unique per entry.
-flattenLedgerTransaction :: (LedgerTransaction, Int) -> [LedgerPosting]
-flattenLedgerTransaction (LedgerTransaction d _ s _ desc _ ps _, n) = 
+flattenTransaction :: (Transaction, Int) -> [LedgerPosting]
+flattenTransaction (Transaction d _ s _ desc _ ps _, n) = 
     [LedgerPosting n s d desc (paccount p) (pamount p) (ptype p) | p <- ps]
 
 accountNamesFromLedgerPostings :: [LedgerPosting] -> [AccountName]

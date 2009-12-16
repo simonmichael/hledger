@@ -2,7 +2,7 @@
 
 A compound data type for efficiency. A 'Ledger' caches information derived
 from a 'Journal' for easier querying. Also it typically has had
-uninteresting 'LedgerTransaction's and 'Posting's filtered out. It
+uninteresting 'Transaction's and 'Posting's filtered out. It
 contains:
 
 - the original unfiltered 'Journal'

@@ -1,11 +1,11 @@
 {-|
 
-A 'LedgerTransaction' represents a regular transaction in the ledger
+A 'Transaction' represents a regular transaction in the ledger
 file. It normally contains two or more balanced 'Posting's.
 
 -}
 
-module Ledger.LedgerTransaction
+module Ledger.Transaction
 where
 import Ledger.Utils
 import Ledger.Types
@@ -14,7 +14,7 @@ import Ledger.Posting
 import Ledger.Amount
 
 
-instance Show LedgerTransaction where show = showLedgerTransactionUnelided
+instance Show Transaction where show = showTransactionUnelided
 
 instance Show ModifierTransaction where 
     show t = "= " ++ mtvalueexpr t ++ "\n" ++ unlines (map show (mtpostings t))
@@ -22,8 +22,8 @@ instance Show ModifierTransaction where
 instance Show PeriodicTransaction where 
     show t = "~ " ++ ptperiodicexpr t ++ "\n" ++ unlines (map show (ptpostings t))
 
-nullledgertxn :: LedgerTransaction
-nullledgertxn = LedgerTransaction {
+nullledgertxn :: Transaction
+nullledgertxn = Transaction {
               ltdate=parsedate "1900/1/1", 
               lteffectivedate=Nothing, 
               ltstatus=False, 
@@ -50,17 +50,17 @@ pamtwidth     = 11
 pcommentwidth = no limit -- 22
 @
 -}
-showLedgerTransaction :: LedgerTransaction -> String
-showLedgerTransaction = showLedgerTransaction' True False
+showTransaction :: Transaction -> String
+showTransaction = showTransaction' True False
 
-showLedgerTransactionUnelided :: LedgerTransaction -> String
-showLedgerTransactionUnelided = showLedgerTransaction' False False
+showTransactionUnelided :: Transaction -> String
+showTransactionUnelided = showTransaction' False False
 
-showLedgerTransactionForPrint :: Bool -> LedgerTransaction -> String
-showLedgerTransactionForPrint effective = showLedgerTransaction' False effective
+showTransactionForPrint :: Bool -> Transaction -> String
+showTransactionForPrint effective = showTransaction' False effective
 
-showLedgerTransaction' :: Bool -> Bool -> LedgerTransaction -> String
-showLedgerTransaction' elide effective t =
+showTransaction' :: Bool -> Bool -> Transaction -> String
+showTransaction' elide effective t =
     unlines $ [description] ++ showpostings (ltpostings t) ++ [""]
     where
       description = concat [date, status, code, desc, comment]
@@ -73,7 +73,7 @@ showLedgerTransaction' elide effective t =
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       showpostings ps
-          | elide && length ps > 1 && isLedgerTransactionBalanced t
+          | elide && length ps > 1 && isTransactionBalanced t
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]
           | otherwise = map showposting ps
           where
@@ -97,8 +97,8 @@ showAccountName w = fmt
       parenthesise s = "("++s++")"
       bracket s = "["++s++"]"
 
-isLedgerTransactionBalanced :: LedgerTransaction -> Bool
-isLedgerTransactionBalanced (LedgerTransaction {ltpostings=ps}) = 
+isTransactionBalanced :: Transaction -> Bool
+isTransactionBalanced (Transaction {ltpostings=ps}) = 
     all (isReallyZeroMixedAmount . costOfMixedAmount . sum . map pamount)
             [filter isReal ps, filter isBalancedVirtual ps]
 
@@ -107,10 +107,10 @@ isLedgerTransactionBalanced (LedgerTransaction {ltpostings=ps}) =
 -- transaction without an amount. The auto-filled balance will be
 -- converted to cost basis if possible. If the entry can not be balanced,
 -- return an error message instead.
-balanceLedgerTransaction :: LedgerTransaction -> Either String LedgerTransaction
-balanceLedgerTransaction t@LedgerTransaction{ltpostings=ps}
+balanceTransaction :: Transaction -> Either String Transaction
+balanceTransaction t@Transaction{ltpostings=ps}
     | length missingamounts' > 1 = Left $ printerr "could not balance this transaction, too many missing amounts"
-    | not $ isLedgerTransactionBalanced t' = Left $ printerr nonzerobalanceerror
+    | not $ isTransactionBalanced t' = Left $ printerr nonzerobalanceerror
     | otherwise = Right t'
     where
       (withamounts, missingamounts) = partition hasAmount $ filter isReal ps
@@ -122,12 +122,12 @@ balanceLedgerTransaction t@LedgerTransaction{ltpostings=ps}
             balance p | isReal p && not (hasAmount p) = p{pamount = costOfMixedAmount (-otherstotal)}
                       | otherwise = p
                       where otherstotal = sum $ map pamount withamounts
-      printerr s = printf "%s:\n%s" s (showLedgerTransactionUnelided t)
+      printerr s = printf "%s:\n%s" s (showTransactionUnelided t)
 
 nonzerobalanceerror = "could not balance this transaction, amounts do not add up to zero"
 
 -- | Convert the primary date to either the actual or effective date.
-ledgerTransactionWithDate :: WhichDate -> LedgerTransaction -> LedgerTransaction
+ledgerTransactionWithDate :: WhichDate -> Transaction -> Transaction
 ledgerTransactionWithDate ActualDate t = t
 ledgerTransactionWithDate EffectiveDate t = t{ltdate=fromMaybe (ltdate t) (lteffectivedate t)}
     

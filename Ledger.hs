@@ -13,7 +13,7 @@ module Ledger (
                module Ledger.Commodity,
                module Ledger.Dates,
                module Ledger.IO,
-               module Ledger.LedgerTransaction,
+               module Ledger.Transaction,
                module Ledger.Ledger,
                module Ledger.Parse,
                module Ledger.Journal,
@@ -30,7 +30,7 @@ import Ledger.Amount
 import Ledger.Commodity
 import Ledger.Dates
 import Ledger.IO
-import Ledger.LedgerTransaction
+import Ledger.Transaction
 import Ledger.Ledger
 import Ledger.Parse
 import Ledger.Journal

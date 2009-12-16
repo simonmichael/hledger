@@ -6,7 +6,7 @@ format, and print it on stdout. See the manual for more details.
 module Commands.Convert where
 import Options (Opt(Debug))
 import Version (versionstr)
-import Ledger.Types (Ledger,AccountName,LedgerTransaction(..),Posting(..),PostingType(..))
+import Ledger.Types (Ledger,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Ledger.Utils (strip, spacenonewline, restofline)
 import Ledger.Parse (someamount, emptyCtx, ledgeraccountname)
 import Ledger.Amount (nullmixedamt)
@@ -237,7 +237,7 @@ printTxn debug rules rec = do
 
 -- csv record conversion
 
-transactionFromCsvRecord :: CsvRules -> CsvRecord -> LedgerTransaction
+transactionFromCsvRecord :: CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord rules fields =
   let 
       date = parsedate $ normaliseDate $ maybe "1900/1/1" (fields !!) (dateField rules)
@@ -257,7 +257,7 @@ transactionFromCsvRecord rules fields =
                   | otherwise = "expenses:unknown"
       (acct,newdesc) = identify (accountRules rules) unknownacct desc
   in
-    LedgerTransaction {
+    Transaction {
               ltdate=date,
               lteffectivedate=Nothing,
               ltstatus=status,

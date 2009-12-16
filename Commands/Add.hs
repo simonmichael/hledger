@@ -35,11 +35,11 @@ add _ args l
 -- command-line arguments are used as the first transaction's description.
 getAndAddTransactions :: Ledger -> [String] -> IO ()
 getAndAddTransactions l args = do
-  l <- getTransaction l args >>= addTransaction l
+  l <- getTransaction l args >>= ledgerAddTransaction l
   getAndAddTransactions l []
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Ledger -> [String] -> IO LedgerTransaction
+getTransaction :: Ledger -> [String] -> IO Transaction
 getTransaction l args = do
   today <- getCurrentDay
   datestr <- askFor "date" 
@@ -67,7 +67,7 @@ getTransaction l args = do
             retry = do
               hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
               getpostingsandvalidate
-        either (const retry) return $ balanceLedgerTransaction t
+        either (const retry) return $ balanceTransaction t
   unless (null historymatches) 
        (do
          hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"
@@ -125,8 +125,8 @@ askFor prompt def validator = do
 -- | Append this transaction to the ledger's file. Also, to the ledger's
 -- transaction list, but we don't bother updating the other fields - this
 -- is enough to include new transactions in the history matching.
-addTransaction :: Ledger -> LedgerTransaction -> IO Ledger
-addTransaction l t = do
+ledgerAddTransaction :: Ledger -> Transaction -> IO Ledger
+ledgerAddTransaction l t = do
   appendToLedgerFile l $ show t
   putStrLn $ printf "\nAdded transaction to %s:" (filepath $ journal l)
   putStrLn =<< registerFromString (show t)
@@ -181,7 +181,7 @@ compareLedgerDescriptions s t = compareStrings s' t'
           t' = simplify t
           simplify = filter (not . (`elem` "0123456789"))
 
-transactionsSimilarTo :: Ledger -> String -> [(Double,LedgerTransaction)]
+transactionsSimilarTo :: Ledger -> String -> [(Double,Transaction)]
 transactionsSimilarTo l s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)

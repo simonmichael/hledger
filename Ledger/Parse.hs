@@ -18,7 +18,7 @@ import Ledger.Types
 import Ledger.Dates
 import Ledger.AccountName (accountNameFromComponents,accountNameComponents)
 import Ledger.Amount
-import Ledger.LedgerTransaction
+import Ledger.Transaction
 import Ledger.Posting
 import Ledger.Journal
 import System.FilePath(takeDirectory,combine)
@@ -86,7 +86,7 @@ ledgerFile = do items <- many ledgerItem
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
       ledgerItem = choice [ ledgerDirective
-                          , liftM (return . addLedgerTransaction) ledgerTransaction
+                          , liftM (return . addTransaction) ledgerTransaction
                           , liftM (return . addModifierTransaction) ledgerModifierTransaction
                           , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
                           , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
@@ -307,7 +307,7 @@ ledgerDefaultYear = do
 
 -- | Try to parse a ledger entry. If we successfully parse an entry, ensure it is balanced,
 -- and if we cannot, raise an error.
-ledgerTransaction :: GenParser Char LedgerFileCtx LedgerTransaction
+ledgerTransaction :: GenParser Char LedgerFileCtx Transaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
   edate <- try (ledgereffectivedate <?> "effective date") <|> return Nothing
@@ -317,8 +317,8 @@ ledgerTransaction = do
   comment <- ledgercomment <|> return ""
   restofline
   postings <- ledgerpostings
-  let t = LedgerTransaction date edate status code description comment postings ""
-  case balanceLedgerTransaction t of
+  let t = Transaction date edate status code description comment postings ""
+  case balanceTransaction t of
     Right t' -> return t'
     Left err -> fail err
 

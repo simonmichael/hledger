@@ -221,7 +221,7 @@ updateData a@AppState{aopts=opts,aargs=args,aledger=l} =
     case screen a of
       BalanceScreen  -> a{abuf=lines $ showBalanceReport opts [] l, aargs=[]}
       RegisterScreen -> a{abuf=lines $ showRegisterReport opts args l}
-      PrintScreen    -> a{abuf=lines $ showLedgerTransactions opts args l}
+      PrintScreen    -> a{abuf=lines $ showTransactions opts args l}
 
 backout :: AppState -> AppState
 backout a | screen a == BalanceScreen = a
@@ -231,9 +231,9 @@ drilldown :: AppState -> AppState
 drilldown a =
     case screen a of
       BalanceScreen  -> enter RegisterScreen a{aargs=[currentAccountName a]}
-      RegisterScreen -> scrollToLedgerTransaction e $ enter PrintScreen a
+      RegisterScreen -> scrollToTransaction e $ enter PrintScreen a
       PrintScreen   -> a
-    where e = currentLedgerTransaction a
+    where e = currentTransaction a
 
 -- | Get the account name currently highlighted by the cursor on the
 -- balance screen. Results undefined while on other screens.
@@ -260,10 +260,10 @@ accountNameAt buf lineno = accountNameFromComponents anamecomponents
 
 -- | If on the print screen, move the cursor to highlight the specified entry
 -- (or a reasonable guess). Doesn't work.
-scrollToLedgerTransaction :: LedgerTransaction -> AppState -> AppState
-scrollToLedgerTransaction e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
+scrollToTransaction :: Transaction -> AppState -> AppState
+scrollToTransaction e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
     where
-      entryfirstline = head $ lines $ showLedgerTransaction e
+      entryfirstline = head $ lines $ showTransaction e
       halfph = pageHeight a `div` 2
       y = fromMaybe 0 $ findIndex (== entryfirstline) buf
       sy = max 0 $ y - halfph
@@ -272,8 +272,8 @@ scrollToLedgerTransaction e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy
 -- | Get the entry containing the transaction currently highlighted by the
 -- cursor on the register screen (or best guess). Results undefined while
 -- on other screens. Doesn't work.
-currentLedgerTransaction :: AppState -> LedgerTransaction
-currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = transactionContainingLedgerPosting a t
+currentTransaction :: AppState -> Transaction
+currentTransaction a@AppState{aledger=l,abuf=buf} = transactionContainingLedgerPosting a t
     where
       t = safehead nulltxn $ filter ismatch $ ledgerLedgerPostings l
       ismatch t = tdate t == parsedate (take 10 datedesc)
@@ -286,7 +286,7 @@ currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = transactionContainingL
 
 -- | Get the entry which contains the given transaction.
 -- Will raise an error if there are problems.
-transactionContainingLedgerPosting :: AppState -> LedgerPosting -> LedgerTransaction
+transactionContainingLedgerPosting :: AppState -> LedgerPosting -> Transaction
 transactionContainingLedgerPosting AppState{aledger=l} t = ledger_txns (journal l) !! tnum t
 
 -- renderers

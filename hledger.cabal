@@ -50,7 +50,7 @@ library
                   Ledger.Commodity
                   Ledger.Dates
                   Ledger.IO
-                  Ledger.LedgerTransaction
+                  Ledger.Transaction
                   Ledger.Journal
                   Ledger.Ledger
                   Ledger.Posting
@@ -89,7 +89,7 @@ executable hledger
                   Ledger.Commodity
                   Ledger.Dates
                   Ledger.IO
-                  Ledger.LedgerTransaction
+                  Ledger.Transaction
                   Ledger.Ledger
                   Ledger.Parse
                   Ledger.Journal

@@ -6,11 +6,11 @@ Here is an overview of the hledger data model as of 0.8:
 
  Ledger              -- hledger's ledger, a journal file plus various cached data
   Journal            -- representation of the journal file
-   [Transaction] (LedgerTransaction)     -- journal transactions, with date, description and..
+   [Transaction]     -- journal transactions, with date, description and..
     [Posting]        -- one or more journal postings
   [LedgerPosting]    -- all postings combined with their transaction info
   Tree AccountName   -- the tree of all account names
-  Map AccountName AccountInfo -- account info in a map for easy lookup by name
+  Map AccountName Account -- per-account ledger postings and balances for easy lookup
 
 For more detailed documentation on each type, see the corresponding modules.
 
@@ -87,7 +87,7 @@ data PeriodicTransaction = PeriodicTransaction {
       ptpostings :: [Posting]
     } deriving (Eq)
 
-data LedgerTransaction = LedgerTransaction {
+data Transaction = Transaction {
       ltdate :: Day,
       lteffectivedate :: Maybe Day,
       ltstatus :: Bool,
@@ -115,7 +115,7 @@ data HistoricalPrice = HistoricalPrice {
 data Journal = Journal {
       modifier_txns :: [ModifierTransaction],
       periodic_txns :: [PeriodicTransaction],
-      ledger_txns :: [LedgerTransaction],
+      ledger_txns :: [Transaction],
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
       final_comment_lines :: String,
