@@ -258,14 +258,14 @@ transactionFromCsvRecord rules fields =
       (acct,newdesc) = identify (accountRules rules) unknownacct desc
   in
     Transaction {
-              ltdate=date,
-              lteffectivedate=Nothing,
-              ltstatus=status,
-              ltcode=code,
-              ltdescription=newdesc,
-              ltcomment=comment,
-              ltpreceding_comment_lines=precomment,
-              ltpostings=[
+              tdate=date,
+              teffectivedate=Nothing,
+              tstatus=status,
+              tcode=code,
+              tdescription=newdesc,
+              tcomment=comment,
+              tpreceding_comment_lines=precomment,
+              tpostings=[
                    Posting {
                      pstatus=False,
                      paccount=acct,

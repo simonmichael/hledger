@@ -30,13 +30,13 @@ showHistogram opts args l = concatMap (printDayWith countBar) daytxns
       daytxns = [(s, filter (isLedgerPostingInDateSpan s) ts) | s <- days]
       -- same as Register
       -- should count raw transactions, not posting transactions
-      ts = sortBy (comparing tdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerLedgerPostings l
+      ts = sortBy (comparing lpdate) $ filterempties $ filter matchapats $ filterdepth $ ledgerLedgerPostings l
       filterempties
           | Empty `elem` opts = id
-          | otherwise = filter (not . isZeroMixedAmount . tamount)
-      matchapats = matchpats apats . taccount
+          | otherwise = filter (not . isZeroMixedAmount . lpamount)
+      matchapats = matchpats apats . lpaccount
       (apats,_) = parsePatternArgs args
-      filterdepth | interval == NoInterval = filter (\t -> accountNameLevel (taccount t) <= depth)
+      filterdepth | interval == NoInterval = filter (\t -> accountNameLevel (lpaccount t) <= depth)
                   | otherwise = id
       depth = depthFromOpts opts
 

@@ -19,8 +19,8 @@ print' opts args = putStr . showTransactions opts args
 showTransactions :: [Opt] -> [String] -> Ledger -> String
 showTransactions opts args l = concatMap (showTransactionForPrint effective) txns
     where 
-      txns = sortBy (comparing ltdate) $
-               ledger_txns $ 
+      txns = sortBy (comparing tdate) $
+               jtxns $
                filterJournalPostingsByDepth depth $ 
                filterJournalPostingsByAccount apats $ 
                journal l

@@ -65,9 +65,9 @@ import Ledger.Journal
 
 instance Show Ledger where
     show l = printf "Ledger with %d transactions, %d accounts\n%s"
-             (length (ledger_txns $ journal l) +
-              length (modifier_txns $ journal l) +
-              length (periodic_txns $ journal l))
+             (length (jtxns $ journal l) +
+              length (jmodifiertxns $ journal l) +
+              length (jperiodictxns $ journal l))
              (length $ accountnames l)
              (showtree $ accountnametree l)
 
@@ -90,7 +90,7 @@ groupLedgerPostings :: [LedgerPosting] -> (Tree AccountName,
                                      (AccountName -> MixedAmount))
 groupLedgerPostings ts = (ant,txnsof,exclbalof,inclbalof)
     where
-      txnanames = sort $ nub $ map taccount ts
+      txnanames = sort $ nub $ map lpaccount ts
       ant = accountNameTreeFrom $ expandAccountNames txnanames
       allanames = flatten ant
       txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allanames])
@@ -120,14 +120,14 @@ calculateBalances ant txnsof = addbalances ant
 transactionsByAccount :: [LedgerPosting] -> Map.Map AccountName [LedgerPosting]
 transactionsByAccount ts = m'
     where
-      sortedts = sortBy (comparing taccount) ts
-      groupedts = groupBy (\t1 t2 -> taccount t1 == taccount t2) sortedts
-      m' = Map.fromList [(taccount $ head g, g) | g <- groupedts]
+      sortedts = sortBy (comparing lpaccount) ts
+      groupedts = groupBy (\t1 t2 -> lpaccount t1 == lpaccount t2) sortedts
+      m' = Map.fromList [(lpaccount $ head g, g) | g <- groupedts]
 -- The special account name "top" can be used to look up all transactions. ?
 --      m' = Map.insert "top" sortedts m
 
 filtertxns :: [String] -> [LedgerPosting] -> [LedgerPosting]
-filtertxns apats = filter (matchpats apats . taccount)
+filtertxns apats = filter (matchpats apats . lpaccount)
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]
@@ -171,9 +171,9 @@ ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan l
     | null ts = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just $ tdate $ head ts) (Just $ addDays 1 $ tdate $ last ts)
+    | otherwise = DateSpan (Just $ lpdate $ head ts) (Just $ addDays 1 $ lpdate $ last ts)
     where
-      ts = sortBy (comparing tdate) $ ledgerLedgerPostings l
+      ts = sortBy (comparing lpdate) $ ledgerLedgerPostings l
 
 -- | Convenience aliases.
 accountnames :: Ledger -> [AccountName]

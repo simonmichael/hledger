@@ -566,7 +566,7 @@ datedisplayexpr = do
   (y,m,d) <- smartdate
   char ']'
   let date    = parsedate $ printf "%04s/%02s/%02s" y m d
-      test op = return $ (`op` date) . tdate
+      test op = return $ (`op` date) . lpdate
   case op of
     "<"  -> test (<)
     "<=" -> test (<=)

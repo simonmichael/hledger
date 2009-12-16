@@ -303,17 +303,17 @@ handleAddform l = do
             amt1' = either (const missingamt) id $ parse someamount "" amt1
             amt2' = either (const missingamt) id $ parse someamount "" amt2
             t = Transaction {
-                            ltdate = parsedate $ fixSmartDateStr today date
-                           ,lteffectivedate=Nothing
-                           ,ltstatus=False
-                           ,ltcode=""
-                           ,ltdescription=desc
-                           ,ltcomment=""
-                           ,ltpostings=[
+                            tdate = parsedate $ fixSmartDateStr today date
+                           ,teffectivedate=Nothing
+                           ,tstatus=False
+                           ,tcode=""
+                           ,tdescription=desc
+                           ,tcomment=""
+                           ,tpostings=[
                              Posting False acct1 amt1' "" RegularPosting
                             ,Posting False acct2 amt2' "" RegularPosting
                             ]
-                           ,ltpreceding_comment_lines=""
+                           ,tpreceding_comment_lines=""
                            }
             (t', berr) = case balanceTransaction t of
                            Right t'' -> (t'', [])

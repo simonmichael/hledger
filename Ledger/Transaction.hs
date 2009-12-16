@@ -24,14 +24,14 @@ instance Show PeriodicTransaction where
 
 nullledgertxn :: Transaction
 nullledgertxn = Transaction {
-              ltdate=parsedate "1900/1/1", 
-              lteffectivedate=Nothing, 
-              ltstatus=False, 
-              ltcode="", 
-              ltdescription="", 
-              ltcomment="",
-              ltpostings=[],
-              ltpreceding_comment_lines=""
+              tdate=parsedate "1900/1/1", 
+              teffectivedate=Nothing, 
+              tstatus=False, 
+              tcode="", 
+              tdescription="", 
+              tcomment="",
+              tpostings=[],
+              tpreceding_comment_lines=""
             }
 
 {-|
@@ -61,15 +61,15 @@ showTransactionForPrint effective = showTransaction' False effective
 
 showTransaction' :: Bool -> Bool -> Transaction -> String
 showTransaction' elide effective t =
-    unlines $ [description] ++ showpostings (ltpostings t) ++ [""]
+    unlines $ [description] ++ showpostings (tpostings t) ++ [""]
     where
       description = concat [date, status, code, desc, comment]
-      date | effective = showdate $ fromMaybe (ltdate t) $ lteffectivedate t
-           | otherwise = showdate (ltdate t) ++ maybe "" showedate (lteffectivedate t)
-      status = if ltstatus t then " *" else ""
-      code = if length (ltcode t) > 0 then printf " (%s)" $ ltcode t else ""
-      desc = ' ' : ltdescription t
-      comment = if null com then "" else "  ; " ++ com where com = ltcomment t
+      date | effective = showdate $ fromMaybe (tdate t) $ teffectivedate t
+           | otherwise = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
+      status = if tstatus t then " *" else ""
+      code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
+      desc = ' ' : tdescription t
+      comment = if null com then "" else "  ; " ++ com where com = tcomment t
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       showpostings ps
@@ -98,7 +98,7 @@ showAccountName w = fmt
       bracket s = "["++s++"]"
 
 isTransactionBalanced :: Transaction -> Bool
-isTransactionBalanced (Transaction {ltpostings=ps}) = 
+isTransactionBalanced (Transaction {tpostings=ps}) = 
     all (isReallyZeroMixedAmount . costOfMixedAmount . sum . map pamount)
             [filter isReal ps, filter isBalancedVirtual ps]
 
@@ -108,14 +108,14 @@ isTransactionBalanced (Transaction {ltpostings=ps}) =
 -- converted to cost basis if possible. If the entry can not be balanced,
 -- return an error message instead.
 balanceTransaction :: Transaction -> Either String Transaction
-balanceTransaction t@Transaction{ltpostings=ps}
+balanceTransaction t@Transaction{tpostings=ps}
     | length missingamounts' > 1 = Left $ printerr "could not balance this transaction, too many missing amounts"
     | not $ isTransactionBalanced t' = Left $ printerr nonzerobalanceerror
     | otherwise = Right t'
     where
       (withamounts, missingamounts) = partition hasAmount $ filter isReal ps
       (_, missingamounts') = partition hasAmount ps
-      t' = t{ltpostings=ps'}
+      t' = t{tpostings=ps'}
       ps' | length missingamounts == 1 = map balance ps
           | otherwise = ps
           where 
@@ -129,5 +129,5 @@ nonzerobalanceerror = "could not balance this transaction, amounts do not add up
 -- | Convert the primary date to either the actual or effective date.
 ledgerTransactionWithDate :: WhichDate -> Transaction -> Transaction
 ledgerTransactionWithDate ActualDate t = t
-ledgerTransactionWithDate EffectiveDate t = t{ltdate=fromMaybe (ltdate t) (lteffectivedate t)}
+ledgerTransactionWithDate EffectiveDate t = t{tdate=fromMaybe (tdate t) (teffectivedate t)}
     

@@ -34,7 +34,7 @@ showStats _ _ l today =
         ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
         ,("Last transaction", maybe "none" show lastdate ++
                               maybe "" (printf " (%d days ago)") lastelapsed)
---        ,("Payees/descriptions", show $ length $ nub $ map ltdescription ts)
+--        ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
         ,("Accounts", show $ length $ accounts l)
         ,("Commodities", show $ length $ commodities l)
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
@@ -43,9 +43,9 @@ showStats _ _ l today =
       -- Days since last transaction : %(recentelapsed)s
        ]
            where
-             ts = sortBy (comparing ltdate) $ ledger_txns $ journal l
+             ts = sortBy (comparing tdate) $ jtxns $ journal l
              lastdate | null ts = Nothing
-                      | otherwise = Just $ ltdate $ last ts
+                      | otherwise = Just $ tdate $ last ts
              lastelapsed = maybe Nothing (Just . diffDays today) lastdate
              tnum = length ts
              span = rawdatespan l
@@ -57,9 +57,9 @@ showStats _ _ l today =
              txnrate | days==0 = 0
                      | otherwise = fromIntegral tnum / fromIntegral days :: Double
              tnum30 = length $ filter withinlast30 ts
-             withinlast30 t = d >= addDays (-30) today && (d<=today) where d = ltdate t
+             withinlast30 t = d >= addDays (-30) today && (d<=today) where d = tdate t
              txnrate30 = fromIntegral tnum30 / 30 :: Double
              tnum7 = length $ filter withinlast7 ts
-             withinlast7 t = d >= addDays (-7) today && (d<=today) where d = ltdate t
+             withinlast7 t = d >= addDays (-7) today && (d<=today) where d = tdate t
              txnrate7 = fromIntegral tnum7 / 7 :: Double
 

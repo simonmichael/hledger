@@ -327,7 +327,7 @@ tests = [
      assertEqual "balancing amount is added" 
                      (Mixed [dollars (-1)])
                      (case e of
-                        Right e' -> (pamount $ last $ ltpostings e')
+                        Right e' -> (pamount $ last $ tpostings e')
                         Left _ -> error "should not happen")
 
   ,"cacheLedger" ~:
@@ -365,7 +365,7 @@ tests = [
          clockin = TimeLogEntry In
          mktime d = LocalTime d . fromMaybe midnight . parseTime defaultTimeLocale "%H:%M:%S"
          showtime = formatTime defaultTimeLocale "%H:%M"
-         assertEntriesGiveStrings name es ss = assertEqual name ss (map ltdescription $ entriesFromTimeLogEntries now es)
+         assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ entriesFromTimeLogEntries now es)
 
      assertEntriesGiveStrings "started yesterday, split session at midnight"
                                   [clockin (mktime yesterday "23:00:00") ""]
@@ -458,13 +458,13 @@ tests = [
 
   ,"default year" ~: do
     rl <- journalFromString defaultyear_ledger_str
-    ltdate (head $ ledger_txns rl) `is` fromGregorian 2009 1 1
+    tdate (head $ jtxns rl) `is` fromGregorian 2009 1 1
     return ()
 
   ,"ledgerFile" ~: do
     assertBool "ledgerFile should parse an empty file" (isRight $ parseWithCtx emptyCtx ledgerFile "")
     r <- journalFromString "" -- don't know how to get it from ledgerFile
-    assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ ledger_txns r
+    assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ jtxns r
 
   ,"ledgerHistoricalPrice" ~:
     parseWithCtx emptyCtx ledgerHistoricalPrice price1_str `parseis` price1
@@ -477,7 +477,7 @@ tests = [
                    $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a\n"
     let t = parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
     assertBool "ledgerTransaction should not include a comment in the description"
-                   $ either (const False) ((== "a") . ltdescription) t
+                   $ either (const False) ((== "a") . tdescription) t
 
   ,"ledgeraccountname" ~: do
     assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
@@ -801,38 +801,38 @@ tests = [
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
   ,"summariseLedgerPostingsInDateSpan" ~: do
-    let gives (b,e,tnum,depth,showempty,ts) = 
-            (summariseLedgerPostingsInDateSpan (mkdatespan b e) tnum depth showempty ts `is`)
+    let gives (b,e,lpnum,depth,showempty,ts) =
+            (summariseLedgerPostingsInDateSpan (mkdatespan b e) lpnum depth showempty ts `is`)
     let ts =
             [
-             nulltxn{tdescription="desc",taccount="expenses:food:groceries",tamount=Mixed [dollars 1]}
-            ,nulltxn{tdescription="desc",taccount="expenses:food:dining",   tamount=Mixed [dollars 2]}
-            ,nulltxn{tdescription="desc",taccount="expenses:food",          tamount=Mixed [dollars 4]}
-            ,nulltxn{tdescription="desc",taccount="expenses:food:dining",   tamount=Mixed [dollars 8]}
+             nullledgerposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
+            ,nullledgerposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 2]}
+            ,nullledgerposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
+            ,nullledgerposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 8]}
             ]
     ("2008/01/01","2009/01/01",0,9999,False,[]) `gives` 
      []
     ("2008/01/01","2009/01/01",0,9999,True,[]) `gives` 
      [
-      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31"}
+      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31"}
      ]
     ("2008/01/01","2009/01/01",0,9999,False,ts) `gives` 
      [
-      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food",          tamount=Mixed [dollars 4]}
-     ,nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food:dining",   tamount=Mixed [dollars 10]}
-     ,nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food:groceries",tamount=Mixed [dollars 1]}
+      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
+     ,nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 10]}
+     ,nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
      ]
     ("2008/01/01","2009/01/01",0,2,False,ts) `gives` 
      [
-      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses:food",tamount=Mixed [dollars 15]}
+      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [dollars 15]}
      ]
     ("2008/01/01","2009/01/01",0,1,False,ts) `gives` 
      [
-      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="expenses",tamount=Mixed [dollars 15]}
+      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [dollars 15]}
      ]
     ("2008/01/01","2009/01/01",0,0,False,ts) `gives` 
      [
-      nulltxn{tdate=parsedate "2008/01/01",tdescription="- 2008/12/31",taccount="",tamount=Mixed [dollars 15]}
+      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [dollars 15]}
      ]
 
   ,"postingamount" ~: do
@@ -1065,168 +1065,168 @@ journal7 = Journal
           [] 
           [
            Transaction {
-             ltdate=parsedate "2007/01/01", 
-             lteffectivedate=Nothing,
-             ltstatus=False, 
-             ltcode="*", 
-             ltdescription="opening balance", 
-             ltcomment="",
-             ltpostings=[
+             tdate=parsedate "2007/01/01",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="*",
+             tdescription="opening balance",
+             tcomment="",
+             tpostings=[
               Posting {
                 pstatus=False,
-                paccount="assets:cash", 
+                paccount="assets:cash",
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
                 ptype=RegularPosting
               },
               Posting {
                 pstatus=False,
-                paccount="equity:opening balances", 
+                paccount="equity:opening balances",
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting
               }
              ],
-             ltpreceding_comment_lines=""
+             tpreceding_comment_lines=""
            }
           ,
            Transaction {
-             ltdate=parsedate "2007/02/01", 
-             lteffectivedate=Nothing,
-             ltstatus=False, 
-             ltcode="*", 
-             ltdescription="ayres suites", 
-             ltcomment="",
-             ltpostings=[
+             tdate=parsedate "2007/02/01",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="*",
+             tdescription="ayres suites",
+             tcomment="",
+             tpostings=[
               Posting {
                 pstatus=False,
-                paccount="expenses:vacation", 
+                paccount="expenses:vacation",
                 pamount=(Mixed [dollars 179.92]),
                 pcomment="",
                 ptype=RegularPosting
               },
               Posting {
                 pstatus=False,
-                paccount="assets:checking", 
+                paccount="assets:checking",
                 pamount=(Mixed [dollars (-179.92)]),
                 pcomment="",
                 ptype=RegularPosting
               }
              ],
-             ltpreceding_comment_lines=""
+             tpreceding_comment_lines=""
            }
           ,
            Transaction {
-             ltdate=parsedate "2007/01/02", 
-             lteffectivedate=Nothing,
-             ltstatus=False, 
-             ltcode="*", 
-             ltdescription="auto transfer to savings", 
-             ltcomment="",
-             ltpostings=[
+             tdate=parsedate "2007/01/02",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="*",
+             tdescription="auto transfer to savings",
+             tcomment="",
+             tpostings=[
               Posting {
                 pstatus=False,
-                paccount="assets:saving", 
+                paccount="assets:saving",
                 pamount=(Mixed [dollars 200]),
                 pcomment="",
                 ptype=RegularPosting
               },
               Posting {
                 pstatus=False,
-                paccount="assets:checking", 
+                paccount="assets:checking",
                 pamount=(Mixed [dollars (-200)]),
                 pcomment="",
                 ptype=RegularPosting
               }
              ],
-             ltpreceding_comment_lines=""
+             tpreceding_comment_lines=""
            }
           ,
            Transaction {
-             ltdate=parsedate "2007/01/03", 
-             lteffectivedate=Nothing,
-             ltstatus=False, 
-             ltcode="*", 
-             ltdescription="poquito mas", 
-             ltcomment="",
-             ltpostings=[
+             tdate=parsedate "2007/01/03",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="*",
+             tdescription="poquito mas",
+             tcomment="",
+             tpostings=[
               Posting {
                 pstatus=False,
-                paccount="expenses:food:dining", 
+                paccount="expenses:food:dining",
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
                 ptype=RegularPosting
               },
               Posting {
                 pstatus=False,
-                paccount="assets:cash", 
+                paccount="assets:cash",
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting
               }
              ],
-             ltpreceding_comment_lines=""
+             tpreceding_comment_lines=""
            }
           ,
            Transaction {
-             ltdate=parsedate "2007/01/03", 
-             lteffectivedate=Nothing,
-             ltstatus=False, 
-             ltcode="*", 
-             ltdescription="verizon", 
-             ltcomment="",
-             ltpostings=[
+             tdate=parsedate "2007/01/03",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="*",
+             tdescription="verizon",
+             tcomment="",
+             tpostings=[
               Posting {
                 pstatus=False,
-                paccount="expenses:phone", 
+                paccount="expenses:phone",
                 pamount=(Mixed [dollars 95.11]),
                 pcomment="",
                 ptype=RegularPosting
               },
               Posting {
                 pstatus=False,
-                paccount="assets:checking", 
+                paccount="assets:checking",
                 pamount=(Mixed [dollars (-95.11)]),
                 pcomment="",
                 ptype=RegularPosting
               }
              ],
-             ltpreceding_comment_lines=""
+             tpreceding_comment_lines=""
            }
           ,
            Transaction {
-             ltdate=parsedate "2007/01/03", 
-             lteffectivedate=Nothing,
-             ltstatus=False, 
-             ltcode="*", 
-             ltdescription="discover", 
-             ltcomment="",
-             ltpostings=[
+             tdate=parsedate "2007/01/03",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="*",
+             tdescription="discover",
+             tcomment="",
+             tpostings=[
               Posting {
                 pstatus=False,
-                paccount="liabilities:credit cards:discover", 
+                paccount="liabilities:credit cards:discover",
                 pamount=(Mixed [dollars 80]),
                 pcomment="",
                 ptype=RegularPosting
               },
               Posting {
                 pstatus=False,
-                paccount="assets:checking", 
+                paccount="assets:checking",
                 pamount=(Mixed [dollars (-80)]),
                 pcomment="",
                 ptype=RegularPosting
               }
              ],
-             ltpreceding_comment_lines=""
+             tpreceding_comment_lines=""
            }
-          ] 
+          ]
           []
           []
           ""
           ""
           (TOD 0 0)
 
-ledger7 = cacheLedger [] journal7 
+ledger7 = cacheLedger [] journal7
 
 ledger8_str = unlines
  ["2008/1/1 test           "
@@ -1249,11 +1249,11 @@ a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
 a3 = Mixed $ amounts a1 ++ amounts a2
 
 journalWithAmounts :: [String] -> Journal
-journalWithAmounts as = 
-        Journal 
-        [] 
-        [] 
-        [nullledgertxn{ltdescription=a,ltpostings=[nullrawposting{pamount=parse a}]} | a <- as]
+journalWithAmounts as =
+        Journal
+        []
+        []
+        [nullledgertxn{tdescription=a,tpostings=[nullrawposting{pamount=parse a}]} | a <- as]
         []
         []
         ""

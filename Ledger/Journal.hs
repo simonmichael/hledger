@@ -21,18 +21,18 @@ import Ledger.TimeLog
 
 instance Show Journal where
     show l = printf "Journal with %d transactions, %d accounts: %s"
-             (length (ledger_txns l) +
-              length (modifier_txns l) +
-              length (periodic_txns l))
+             (length (jtxns l) +
+              length (jmodifiertxns l) +
+              length (jperiodictxns l))
              (length accounts)
              (show accounts)
              -- ++ (show $ journalTransactions l)
              where accounts = flatten $ journalAccountNameTree l
 
 journalEmpty :: Journal
-journalEmpty = Journal { modifier_txns = []
-                           , periodic_txns = []
-                           , ledger_txns = []
+journalEmpty = Journal { jmodifiertxns = []
+                           , jperiodictxns = []
+                           , jtxns = []
                            , open_timelog_entries = []
                            , historical_prices = []
                            , final_comment_lines = []
@@ -41,13 +41,13 @@ journalEmpty = Journal { modifier_txns = []
                            }
 
 addTransaction :: Transaction -> Journal -> Journal
-addTransaction t l0 = l0 { ledger_txns = t : ledger_txns l0 }
+addTransaction t l0 = l0 { jtxns = t : jtxns l0 }
 
 addModifierTransaction :: ModifierTransaction -> Journal -> Journal
-addModifierTransaction mt l0 = l0 { modifier_txns = mt : modifier_txns l0 }
+addModifierTransaction mt l0 = l0 { jmodifiertxns = mt : jmodifiertxns l0 }
 
 addPeriodicTransaction :: PeriodicTransaction -> Journal -> Journal
-addPeriodicTransaction pt l0 = l0 { periodic_txns = pt : periodic_txns l0 }
+addPeriodicTransaction pt l0 = l0 { jperiodictxns = pt : jperiodictxns l0 }
 
 addHistoricalPrice :: HistoricalPrice -> Journal -> Journal
 addHistoricalPrice h l0 = l0 { historical_prices = h : historical_prices l0 }
@@ -56,7 +56,7 @@ addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
 addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries l0 }
 
 journalLedgerPostings :: Journal -> [LedgerPosting]
-journalLedgerPostings = txnsof . ledger_txns
+journalLedgerPostings = txnsof . jtxns
     where txnsof ts = concatMap flattenTransaction $ zip ts [1..]
 
 journalAccountNamesUsed :: Journal -> [AccountName]
@@ -82,7 +82,7 @@ filterJournal span pats clearedonly realonly =
 filterJournalTransactionsByDescription :: [String] -> Journal -> Journal
 filterJournalTransactionsByDescription pats (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter matchdesc ts) tls hs f fp ft
-    where matchdesc = matchpats pats . ltdescription
+    where matchdesc = matchpats pats . tdescription
 
 -- | Keep only ledger transactions which fall between begin and end dates.
 -- We include transactions on the begin date and exclude transactions on the end
@@ -91,14 +91,14 @@ filterJournalTransactionsByDate :: DateSpan -> Journal -> Journal
 filterJournalTransactionsByDate (DateSpan begin end) (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter matchdate ts) tls hs f fp ft
     where
-      matchdate t = maybe True (ltdate t>=) begin && maybe True (ltdate t<) end
+      matchdate t = maybe True (tdate t>=) begin && maybe True (tdate t<) end
 
 -- | Keep only ledger transactions which have the requested
 -- cleared/uncleared status, if there is one.
 filterJournalPostingsByClearedStatus :: Maybe Bool -> Journal -> Journal
 filterJournalPostingsByClearedStatus Nothing rl = rl
 filterJournalPostingsByClearedStatus (Just val) (Journal ms ps ts tls hs f fp ft) =
-    Journal ms ps (filter ((==val).ltstatus) ts) tls hs f fp ft
+    Journal ms ps (filter ((==val).tstatus) ts) tls hs f fp ft
 
 -- | Strip out any virtual postings, if the flag is true, otherwise do
 -- no filtering.
@@ -106,27 +106,27 @@ filterJournalPostingsByRealness :: Bool -> Journal -> Journal
 filterJournalPostingsByRealness False l = l
 filterJournalPostingsByRealness True (Journal mts pts ts tls hs f fp ft) =
     Journal mts pts (map filtertxns ts) tls hs f fp ft
-    where filtertxns t@Transaction{ltpostings=ps} = t{ltpostings=filter isReal ps}
+    where filtertxns t@Transaction{tpostings=ps} = t{tpostings=filter isReal ps}
 
 -- | Strip out any postings to accounts deeper than the specified depth
 -- (and any ledger transactions which have no postings as a result).
 filterJournalPostingsByDepth :: Int -> Journal -> Journal
 filterJournalPostingsByDepth depth (Journal mts pts ts tls hs f fp ft) =
-    Journal mts pts (filter (not . null . ltpostings) $ map filtertxns ts) tls hs f fp ft
-    where filtertxns t@Transaction{ltpostings=ps} =
-              t{ltpostings=filter ((<= depth) . accountNameLevel . paccount) ps}
+    Journal mts pts (filter (not . null . tpostings) $ map filtertxns ts) tls hs f fp ft
+    where filtertxns t@Transaction{tpostings=ps} =
+              t{tpostings=filter ((<= depth) . accountNameLevel . paccount) ps}
 
 -- | Keep only ledger transactions which affect accounts matched by the account patterns.
 filterJournalPostingsByAccount :: [String] -> Journal -> Journal
 filterJournalPostingsByAccount apats (Journal ms ps ts tls hs f fp ft) =
-    Journal ms ps (filter (any (matchpats apats . paccount) . ltpostings) ts) tls hs f fp ft
+    Journal ms ps (filter (any (matchpats apats . paccount) . tpostings) ts) tls hs f fp ft
 
 -- | Convert this ledger's transactions' primary date to either their
 -- actual or effective date.
 journalSelectingDate :: WhichDate -> Journal -> Journal
 journalSelectingDate ActualDate rl = rl
 journalSelectingDate EffectiveDate rl =
-    rl{ledger_txns=map (ledgerTransactionWithDate EffectiveDate) $ ledger_txns rl}
+    rl{jtxns=map (ledgerTransactionWithDate EffectiveDate) $ jtxns rl}
 
 -- | Give all a ledger's amounts their canonical display settings.  That
 -- is, in each commodity, amounts will use the display settings of the
@@ -153,7 +153,7 @@ canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms 
             commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
             commoditieswithsymbol s = filter ((s==) . symbol) commodities
             commoditysymbols = nub $ map symbol commodities
-            commodities = map commodity (concatMap (amounts . tamount) (journalLedgerPostings rl)
+            commodities = map commodity (concatMap (amounts . lpamount) (journalLedgerPostings rl)
                                          ++ concatMap (amounts . hamount) (historical_prices rl))
             fixprice :: Amount -> Amount
             fixprice a@Amount{price=Just _} = a
@@ -173,7 +173,7 @@ canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms 
 
 -- | Get just the amounts from a ledger, in the order parsed.
 journalAmounts :: Journal -> [MixedAmount]
-journalAmounts = map tamount . journalLedgerPostings
+journalAmounts = map lpamount . journalLedgerPostings
 
 -- | Get just the ammount commodities from a ledger, in the order parsed.
 journalCommodities :: Journal -> [Commodity]
@@ -185,7 +185,7 @@ journalPrecisions = map precision . journalCommodities
 
 -- | Close any open timelog sessions using the provided current time.
 journalConvertTimeLog :: LocalTime -> Journal -> Journal
-journalConvertTimeLog t l0 = l0 { ledger_txns = convertedTimeLog ++ ledger_txns l0
+journalConvertTimeLog t l0 = l0 { jtxns = convertedTimeLog ++ jtxns l0
                                   , open_timelog_entries = []
                                   }
     where convertedTimeLog = entriesFromTimeLogEntries t $ open_timelog_entries l0
@@ -195,9 +195,9 @@ journalConvertTimeLog t l0 = l0 { ledger_txns = convertedTimeLog ++ ledger_txns 
 journalDateSpan :: Journal -> DateSpan
 journalDateSpan rl
     | null ts = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just $ ltdate $ head ts) (Just $ addDays 1 $ ltdate $ last ts)
+    | otherwise = DateSpan (Just $ tdate $ head ts) (Just $ addDays 1 $ tdate $ last ts)
     where
-      ts = sortBy (comparing ltdate) $ ledger_txns rl
+      ts = sortBy (comparing tdate) $ jtxns rl
 
 -- | Check if a set of ledger account/description patterns matches the
 -- given account name or entry description.  Patterns are case-insensitive

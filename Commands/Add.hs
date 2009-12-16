@@ -55,14 +55,14 @@ getTransaction l args = do
   let historymatches = transactionsSimilarTo l description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
-      bestmatchpostings = maybe Nothing (Just . ltpostings) bestmatch
+      bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
       getpostingsandvalidate = do
         ps <- getPostings bestmatchpostings []
-        let t = nullledgertxn{ltdate=date
-                             ,ltstatus=False
-                             ,ltdescription=description
-                             ,ltpostings=ps
+        let t = nullledgertxn{tdate=date
+                             ,tstatus=False
+                             ,tdescription=description
+                             ,tpostings=ps
                              }
             retry = do
               hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
@@ -130,9 +130,9 @@ ledgerAddTransaction l t = do
   appendToLedgerFile l $ show t
   putStrLn $ printf "\nAdded transaction to %s:" (filepath $ journal l)
   putStrLn =<< registerFromString (show t)
-  return l{journal=rl{ledger_txns=ts}}
+  return l{journal=rl{jtxns=ts}}
       where rl = journal l
-            ts = ledger_txns rl ++ [t]
+            ts = jtxns rl ++ [t]
 
 -- | Append data to the ledger's file, ensuring proper separation from any
 -- existing data; or if the file is "-", dump it to stdout.
@@ -185,9 +185,9 @@ transactionsSimilarTo :: Ledger -> String -> [(Double,Transaction)]
 transactionsSimilarTo l s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
-               [(compareLedgerDescriptions s $ ltdescription t, t) | t <- ts]
+               [(compareLedgerDescriptions s $ tdescription t, t) | t <- ts]
     where
-      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,ltdate t2) (n1,ltdate t1)
-      ts = ledger_txns $ journal l
+      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
+      ts = jtxns $ journal l
       threshold = 0
 

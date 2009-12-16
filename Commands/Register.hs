@@ -30,16 +30,16 @@ DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
 -}
 showRegisterReport :: [Opt] -> [String] -> Ledger -> String
 showRegisterReport opts args l
-    | interval == NoInterval = showtxns displayedts nulltxn startbal
-    | otherwise = showtxns summaryts nulltxn startbal
+    | interval == NoInterval = showlps displayedts nullledgerposting startbal
+    | otherwise = showlps summaryts nullledgerposting startbal
     where
       interval = intervalFromOpts opts
-      ts = sortBy (comparing tdate) $ filterempties $ filtertxns apats $ filterdepth $ ledgerLedgerPostings l
-      filterdepth | interval == NoInterval = filter (\t -> accountNameLevel (taccount t) <= depth)
+      ts = sortBy (comparing lpdate) $ filterempties $ filtertxns apats $ filterdepth $ ledgerLedgerPostings l
+      filterdepth | interval == NoInterval = filter (\t -> accountNameLevel (lpaccount t) <= depth)
                   | otherwise = id
       filterempties
           | Empty `elem` opts = id
-          | otherwise = filter (not . isZeroMixedAmount . tamount)
+          | otherwise = filter (not . isZeroMixedAmount . lpamount)
       (precedingts, ts') = break (matchdisplayopt dopt) ts
       (displayedts, _) = span (matchdisplayopt dopt) ts'
       startbal = sumLedgerPostings precedingts
@@ -56,7 +56,7 @@ showRegisterReport opts args l
                         
 -- | Convert a date span (representing a reporting interval) and a list of
 -- transactions within it to a new list of transactions aggregated by
--- account, which showtxns will render as a summary for this interval.
+-- account, which showlps will render as a summary for this interval.
 -- 
 -- As usual with date spans the end date is exclusive, but for display
 -- purposes we show the previous day as end date, like ledger.
@@ -75,20 +75,20 @@ summariseLedgerPostingsInDateSpan (DateSpan b e) tnum depth showempty ts
     | null ts = []
     | otherwise = summaryts'
     where
-      txn = nulltxn{tnum=tnum, tdate=b', tdescription="- "++ showDate (addDays (-1) e')}
-      b' = fromMaybe (tdate $ head ts) b
-      e' = fromMaybe (tdate $ last ts) e
+      txn = nullledgerposting{lptnum=tnum, lpdate=b', lpdescription="- "++ showDate (addDays (-1) e')}
+      b' = fromMaybe (lpdate $ head ts) b
+      e' = fromMaybe (lpdate $ last ts) e
       summaryts'
           | showempty = summaryts
-          | otherwise = filter (not . isZeroMixedAmount . tamount) summaryts
-      txnanames = sort $ nub $ map taccount ts
+          | otherwise = filter (not . isZeroMixedAmount . lpamount) summaryts
+      txnanames = sort $ nub $ map lpaccount ts
       -- aggregate balances by account, like cacheLedger, then do depth-clipping
       (_,_,exclbalof,inclbalof) = groupLedgerPostings ts
       clippedanames = clipAccountNames depth txnanames
       isclipped a = accountNameLevel a >= depth
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
-      summaryts = [txn{taccount=a,tamount=balancetoshowfor a} | a <- clippedanames]
+      summaryts = [txn{lpaccount=a,lpamount=balancetoshowfor a} | a <- clippedanames]
 
 clipAccountNames :: Int -> [AccountName] -> [AccountName]
 clipAccountNames d as = nub $ map (clip d) as 
@@ -96,16 +96,16 @@ clipAccountNames d as = nub $ map (clip d) as
 
 -- | Show transactions one per line, with each date/description appearing
 -- only once, and a running balance.
-showtxns [] _ _ = ""
-showtxns (t:ts) tprev bal = this ++ showtxns ts t bal'
+showlps [] _ _ = ""
+showlps (lp:lps) lpprev bal = this ++ showlps lps lp bal'
     where
-      this = showtxn (t `issame` tprev) t bal'
-      issame = (==) `on` tnum
-      bal' = bal + tamount t
+      this = showlp (lp `issame` lpprev) lp bal'
+      issame = (==) `on` lptnum
+      bal' = bal + lpamount lp
 
 -- | Show one transaction line and balance with or without the entry details.
-showtxn :: Bool -> LedgerPosting -> MixedAmount -> String
-showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
+showlp :: Bool -> LedgerPosting -> MixedAmount -> String
+showlp omitdesc lp b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
     where
       ledger3ishlayout = False
       datedescwidth = if ledger3ishlayout then 34 else 32
@@ -116,5 +116,5 @@ showtxn omitdesc t b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
       desc = printf ("%-"++(show descwidth)++"s") $ elideRight descwidth de :: String
       p = showPostingWithoutPrice $ Posting s a amt "" tt
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
-      LedgerPosting{tstatus=s,tdate=da,tdescription=de,taccount=a,tamount=amt,ttype=tt} = t
+      LedgerPosting{lpstatus=s,lpdate=da,lpdescription=de,lpaccount=a,lpamount=amt,lptype=tt} = lp
 

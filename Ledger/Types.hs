@@ -88,14 +88,14 @@ data PeriodicTransaction = PeriodicTransaction {
     } deriving (Eq)
 
 data Transaction = Transaction {
-      ltdate :: Day,
-      lteffectivedate :: Maybe Day,
-      ltstatus :: Bool,
-      ltcode :: String,
-      ltdescription :: String,
-      ltcomment :: String,
-      ltpostings :: [Posting],
-      ltpreceding_comment_lines :: String
+      tdate :: Day,
+      teffectivedate :: Maybe Day,
+      tstatus :: Bool,
+      tcode :: String,
+      tdescription :: String,
+      tcomment :: String,
+      tpostings :: [Posting],
+      tpreceding_comment_lines :: String
     } deriving (Eq)
 
 data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord) 
@@ -113,9 +113,9 @@ data HistoricalPrice = HistoricalPrice {
     } deriving (Eq) -- & Show (in Amount.hs)
 
 data Journal = Journal {
-      modifier_txns :: [ModifierTransaction],
-      periodic_txns :: [PeriodicTransaction],
-      ledger_txns :: [Transaction],
+      jmodifiertxns :: [ModifierTransaction],
+      jperiodictxns :: [PeriodicTransaction],
+      jtxns :: [Transaction],
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
       final_comment_lines :: String,
@@ -135,13 +135,13 @@ data FilterSpec = FilterSpec {
     }
 
 data LedgerPosting = LedgerPosting {
-      tnum :: Int,
-      tstatus :: Bool,           -- ^ posting status
-      tdate :: Day,              -- ^ transaction date
-      tdescription :: String,    -- ^ ledger transaction description
-      taccount :: AccountName,   -- ^ posting account
-      tamount :: MixedAmount,    -- ^ posting amount
-      ttype :: PostingType       -- ^ posting type
+      lptnum :: Int,              -- ^ internal transaction reference number
+      lpstatus :: Bool,           -- ^ posting status
+      lpdate :: Day,              -- ^ transaction date
+      lpdescription :: String,    -- ^ ledger transaction description
+      lpaccount :: AccountName,   -- ^ posting account
+      lpamount :: MixedAmount,    -- ^ posting amount
+      lptype :: PostingType       -- ^ posting type
     } deriving (Eq)
 
 data Account = Account {

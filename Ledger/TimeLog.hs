@@ -66,14 +66,14 @@ entryFromTimeLogInOut i o
         error $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
     where
       t = Transaction {
-            ltdate         = idate,
-            lteffectivedate = Nothing,
-            ltstatus       = True,
-            ltcode         = "",
-            ltdescription  = showtime itod ++ "-" ++ showtime otod,
-            ltcomment      = "",
-            ltpostings = ps,
-            ltpreceding_comment_lines=""
+            tdate         = idate,
+            teffectivedate = Nothing,
+            tstatus       = True,
+            tcode         = "",
+            tdescription  = showtime itod ++ "-" ++ showtime otod,
+            tcomment      = "",
+            tpostings = ps,
+            tpreceding_comment_lines=""
           }
       showtime = take 5 . show
       acctname = tlcomment i
