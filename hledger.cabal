@@ -51,7 +51,7 @@ library
                   Ledger.Dates
                   Ledger.IO
                   Ledger.LedgerTransaction
-                  Ledger.RawLedger
+                  Ledger.Journal
                   Ledger.Ledger
                   Ledger.Posting
                   Ledger.Parse
@@ -92,7 +92,7 @@ executable hledger
                   Ledger.LedgerTransaction
                   Ledger.Ledger
                   Ledger.Parse
-                  Ledger.RawLedger
+                  Ledger.Journal
                   Ledger.Posting
                   Ledger.TimeLog
                   Ledger.Transaction

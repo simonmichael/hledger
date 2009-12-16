@@ -20,7 +20,7 @@ import Ledger.AccountName (accountNameFromComponents,accountNameComponents)
 import Ledger.Amount
 import Ledger.LedgerTransaction
 import Ledger.Posting
-import Ledger.RawLedger
+import Ledger.Journal
 import System.FilePath(takeDirectory,combine)
 
 
@@ -63,21 +63,21 @@ printParseError e = do putStr "ledger parse error at "; print e
 
 -- let's get to it
 
-parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO RawLedger
+parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO Journal
 parseLedgerFile t "-" = liftIO getContents >>= parseLedger t "-"
 parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
 
 -- | Parses the contents of a ledger file, or gives an error.  Requires
 -- the current (local) time to calculate any unfinished timelog sessions,
 -- we pass it in for repeatability.
-parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO RawLedger
+parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO Journal
 parseLedger reftime inname intxt =
   case runParser ledgerFile emptyCtx inname intxt of
-    Right m  -> liftM (rawLedgerConvertTimeLog reftime) $ m `ap` return rawLedgerEmpty
+    Right m  -> liftM (journalConvertTimeLog reftime) $ m `ap` return journalEmpty
     Left err -> throwError $ show err
 
 
-ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
 ledgerFile = do items <- many ledgerItem
                 eof
                 return $ liftM (foldr (.) id) $ sequence items
@@ -95,7 +95,7 @@ ledgerFile = do items <- many ledgerItem
                           , liftM (return . addTimeLogEntry)  timelogentry
                           ]
 
-ledgerDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
 ledgerDirective = do char '!' <?> "directive"
                      directive <- many nonspace
                      case directive of
@@ -104,7 +104,7 @@ ledgerDirective = do char '!' <?> "directive"
                        "end"     -> ledgerAccountEnd
                        _         -> mzero
 
-ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
 ledgerInclude = do many1 spacenonewline
                    filename <- restofline
                    outerState <- getState
@@ -127,19 +127,19 @@ expandPath pos fp = liftM mkRelative (expandHome fp)
                                                       return $ homedir ++ drop 1 inname
                       | otherwise                = return inname
 
-ledgerAccountBegin :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerAccountBegin :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
 ledgerAccountBegin = do many1 spacenonewline
                         parent <- ledgeraccountname
                         newline
                         pushParentAccount parent
                         return $ return id
 
-ledgerAccountEnd :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerAccountEnd :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
 ledgerAccountEnd = popParentAccount >> return (return id)
 
 -- parsers
 
--- | Parse a RawLedger from either a ledger file or a timelog file.
+-- | Parse a Journal from either a ledger file or a timelog file.
 -- It tries first the timelog parser then the ledger parser; this means
 -- parse errors for ledgers are useful while those for timelogs are not.
 
@@ -295,7 +295,7 @@ ledgerHistoricalPrice = do
   return $ HistoricalPrice date symbol price
 
 -- like ledgerAccountBegin, updates the LedgerFileCtx
-ledgerDefaultYear :: GenParser Char LedgerFileCtx (ErrorT String IO (RawLedger -> RawLedger))
+ledgerDefaultYear :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
 ledgerDefaultYear = do
   char 'Y' <?> "default year"
   many spacenonewline

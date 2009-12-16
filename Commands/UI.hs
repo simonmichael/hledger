@@ -287,7 +287,7 @@ currentLedgerTransaction a@AppState{aledger=l,abuf=buf} = entryContainingTransac
 -- | Get the entry which contains the given transaction.
 -- Will raise an error if there are problems.
 entryContainingTransaction :: AppState -> Transaction -> LedgerTransaction
-entryContainingTransaction AppState{aledger=l} t = ledger_txns (rawledger l) !! tnum t
+entryContainingTransaction AppState{aledger=l} t = ledger_txns (journal l) !! tnum t
 
 -- renderers
 

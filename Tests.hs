@@ -85,8 +85,8 @@ tests :: [Test]
 tests = [
 
    "account directive" ~: 
-   let sameParse str1 str2 = do l1 <- rawLedgerFromString str1
-                                l2 <- rawLedgerFromString str2
+   let sameParse str1 str2 = do l1 <- journalFromString str1
+                                l2 <- journalFromString str2
                                 l1 `is` l2
    in TestList
    [
@@ -275,7 +275,7 @@ tests = [
     ]
 
    ,"balance report with cost basis" ~: do
-      rl <- rawLedgerFromString $ unlines
+      rl <- journalFromString $ unlines
              [""
              ,"2008/1/1 test           "
              ,"  a:b          10h @ $50"
@@ -283,7 +283,7 @@ tests = [
              ,""
              ]
       let l = cacheLedger [] $ 
-              filterRawLedger (DateSpan Nothing Nothing) [] Nothing False $ 
+              filterJournal (DateSpan Nothing Nothing) [] Nothing False $ 
               canonicaliseAmounts True rl -- enable cost basis adjustment            
       showBalanceReport [] [] l `is` 
        unlines
@@ -331,11 +331,11 @@ tests = [
                         Left _ -> error "should not happen")
 
   ,"cacheLedger" ~:
-    length (Map.keys $ accountmap $ cacheLedger [] rawledger7) `is` 15
+    length (Map.keys $ accountmap $ cacheLedger [] journal7) `is` 15
 
   ,"canonicaliseAmounts" ~:
    "use the greatest precision" ~:
-    rawLedgerPrecisions (canonicaliseAmounts False $ rawLedgerWithAmounts ["1","2.00"]) `is` [2,2]
+    journalPrecisions (canonicaliseAmounts False $ journalWithAmounts ["1","2.00"]) `is` [2,2]
 
   ,"commodities" ~:
     commodities ledger7 `is` [Commodity {symbol="$", side=L, spaced=False, comma=False, precision=2}]
@@ -457,13 +457,13 @@ tests = [
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
 
   ,"default year" ~: do
-    rl <- rawLedgerFromString defaultyear_ledger_str
+    rl <- journalFromString defaultyear_ledger_str
     ltdate (head $ ledger_txns rl) `is` fromGregorian 2009 1 1
     return ()
 
   ,"ledgerFile" ~: do
     assertBool "ledgerFile should parse an empty file" (isRight $ parseWithCtx emptyCtx ledgerFile "")
-    r <- rawLedgerFromString "" -- don't know how to get it from ledgerFile
+    r <- journalFromString "" -- don't know how to get it from ledgerFile
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ ledger_txns r
 
   ,"ledgerHistoricalPrice" ~:
@@ -1060,7 +1060,7 @@ ledger7_str = unlines
  ,""
  ]
 
-rawledger7 = RawLedger
+journal7 = Journal
           [] 
           [] 
           [
@@ -1226,7 +1226,7 @@ rawledger7 = RawLedger
           ""
           (TOD 0 0)
 
-ledger7 = cacheLedger [] rawledger7 
+ledger7 = cacheLedger [] journal7 
 
 ledger8_str = unlines
  ["2008/1/1 test           "
@@ -1248,9 +1248,9 @@ a1 = Mixed [(hours 1){price=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
 a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
 a3 = Mixed $ amounts a1 ++ amounts a2
 
-rawLedgerWithAmounts :: [String] -> RawLedger
-rawLedgerWithAmounts as = 
-        RawLedger 
+journalWithAmounts :: [String] -> Journal
+journalWithAmounts as = 
+        Journal 
         [] 
         [] 
         [nullledgertxn{ltdescription=a,ltpostings=[nullrawposting{pamount=parse a}]} | a <- as]

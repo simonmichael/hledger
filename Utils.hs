@@ -34,14 +34,14 @@ withLedgerDo opts args cmdname cmd = do
   t <- getCurrentLocalTime
   tc <- getClockTime
   let go = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f,filereadtime=tc})
-  if creating then go rawLedgerEmpty else (runErrorT . parseLedgerFile t) f
+  if creating then go journalEmpty else (runErrorT . parseLedgerFile t) f
          >>= flip either go
                  (\e -> hPutStrLn stderr e >> exitWith (ExitFailure 1))
 
 -- | Get a Ledger from the given string and options, or raise an error.
 ledgerFromStringWithOpts :: [Opt] -> [String] -> LocalTime -> String -> IO Ledger
 ledgerFromStringWithOpts opts args reftime s =
-    liftM (filterAndCacheLedgerWithOpts opts args reftime s) $ rawLedgerFromString s
+    liftM (filterAndCacheLedgerWithOpts opts args reftime s) $ journalFromString s
 
 -- | Read a Ledger from the given file, filtering according to the
 -- options, or give an error.
@@ -50,9 +50,9 @@ readLedgerWithOpts opts args f = do
   t <- getCurrentLocalTime
   readLedgerWithFilterSpec (optsToFilterSpec opts args t) f
            
--- | Convert a RawLedger to a canonicalised, cached and filtered Ledger
+-- | Convert a Journal to a canonicalised, cached and filtered Ledger
 -- based on the command-line options/arguments and a reference time.
-filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> RawLedger -> Ledger
+filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> Journal -> Ledger
 filterAndCacheLedgerWithOpts opts args = filterAndCacheLedger . optsToFilterSpec opts args
 
 -- | Attempt to open a web browser on the given url, all platforms.

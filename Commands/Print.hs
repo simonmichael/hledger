@@ -21,9 +21,9 @@ showLedgerTransactions opts args l = concatMap (showLedgerTransactionForPrint ef
     where 
       txns = sortBy (comparing ltdate) $
                ledger_txns $ 
-               filterRawLedgerPostingsByDepth depth $ 
-               filterRawLedgerTransactionsByAccount apats $ 
-               rawledger l
+               filterJournalPostingsByDepth depth $ 
+               filterJournalTransactionsByAccount apats $ 
+               journal l
       depth = depthFromOpts opts
       effective = Effective `elem` opts
       (apats,_) = parsePatternArgs args

@@ -25,7 +25,7 @@ showHistogram opts args l = concatMap (printDayWith countBar) daytxns
       i = intervalFromOpts opts
       interval | i == NoInterval = Daily
                | otherwise = i
-      fullspan = rawLedgerDateSpan $ rawledger l
+      fullspan = journalDateSpan $ journal l
       days = filter (DateSpan Nothing Nothing /=) $ splitSpan interval fullspan
       daytxns = [(s, filter (isTransactionInDateSpan s) ts) | s <- days]
       -- same as Register

@@ -1,25 +1,30 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-|
 
-Most data types are defined here to avoid import cycles. See the
-corresponding modules for each type's documentation.
+Most data types are defined here to avoid import cycles.
+Here is an overview of the hledger data model as of 0.8:
 
-A note about entry\/transaction\/posting terminology:
+ Ledger              -- hledger's ledger, a journal file plus various cached data
+  Journal            -- representation of the journal file
+   [Transaction] (LedgerTransaction)     -- journal transactions, with date, description and..
+    [Posting]        -- one or more journal postings
+  [LedgerPosting]    -- all postings combined with their transaction info
+  Tree AccountName   -- the tree of all account names
+  Map AccountName AccountInfo -- account info in a map for easy lookup by name
 
-  - ledger 2 had Entrys containing Transactions.
-  
-  - hledger 0.4 had Entrys containing RawTransactions, plus Transactions
-    which were a RawTransaction with its parent Entry's info added.
-    The latter are what we most work with when reporting and are
-    ubiquitous in the code and docs.
-  
-  - ledger 3 has Transactions containing Postings.
-  
+For more detailed documentation on each type, see the corresponding modules.
 
-  - hledger 0.5 has LedgerTransactions containing Postings, plus
-    Transactions as before (a Posting plus it's parent's info).  The
-    \"transaction\" term is pretty ingrained in the code, docs and with
-    users, so we've kept it. 
+A note about terminology:
+
+  - ledger 2 had entries containing transactions.
+
+  - ledger 3 has transactions containing postings.
+
+  - hledger 0.4 had Entrys containing RawTransactions, which were flattened to Transactions.
+
+  - hledger 0.5 had LedgerTransactions containing Postings, which were flattened to Transactions.
+
+  - hledger 0.8 has Transactions containing Postings, which are flattened to LedgerPostings.
 
 -}
 
@@ -107,7 +112,7 @@ data HistoricalPrice = HistoricalPrice {
       hamount :: MixedAmount
     } deriving (Eq) -- & Show (in Amount.hs)
 
-data RawLedger = RawLedger {
+data Journal = Journal {
       modifier_txns :: [ModifierTransaction],
       periodic_txns :: [PeriodicTransaction],
       ledger_txns :: [LedgerTransaction],
@@ -146,8 +151,8 @@ data Account = Account {
     }
 
 data Ledger = Ledger {
-      rawledgertext :: String,
-      rawledger :: RawLedger,
+      journaltext :: String,
+      journal :: Journal,
       accountnametree :: Tree AccountName,
       accountmap :: Map.Map AccountName Account
     } deriving Typeable

@@ -16,7 +16,7 @@ module Ledger (
                module Ledger.LedgerTransaction,
                module Ledger.Ledger,
                module Ledger.Parse,
-               module Ledger.RawLedger,
+               module Ledger.Journal,
                module Ledger.Posting,
                module Ledger.TimeLog,
                module Ledger.Transaction,
@@ -33,7 +33,7 @@ import Ledger.IO
 import Ledger.LedgerTransaction
 import Ledger.Ledger
 import Ledger.Parse
-import Ledger.RawLedger
+import Ledger.Journal
 import Ledger.Posting
 import Ledger.TimeLog
 import Ledger.Transaction

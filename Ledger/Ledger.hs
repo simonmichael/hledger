@@ -1,11 +1,11 @@
 {-|
 
 A compound data type for efficiency. A 'Ledger' caches information derived
-from a 'RawLedger' for easier querying. Also it typically has had
+from a 'Journal' for easier querying. Also it typically has had
 uninteresting 'LedgerTransaction's and 'Posting's filtered out. It
 contains:
 
-- the original unfiltered 'RawLedger'
+- the original unfiltered 'Journal'
 
 - a tree of 'AccountName's
 
@@ -60,22 +60,22 @@ import Ledger.Types
 import Ledger.Account ()
 import Ledger.AccountName
 import Ledger.Transaction
-import Ledger.RawLedger
+import Ledger.Journal
 
 
 instance Show Ledger where
     show l = printf "Ledger with %d transactions, %d accounts\n%s"
-             (length (ledger_txns $ rawledger l) +
-              length (modifier_txns $ rawledger l) +
-              length (periodic_txns $ rawledger l))
+             (length (ledger_txns $ journal l) +
+              length (modifier_txns $ journal l) +
+              length (periodic_txns $ journal l))
              (length $ accountnames l)
              (showtree $ accountnametree l)
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
-cacheLedger :: [String] -> RawLedger -> Ledger
-cacheLedger apats l = Ledger{rawledgertext="",rawledger=l,accountnametree=ant,accountmap=acctmap}
+cacheLedger :: [String] -> Journal -> Ledger
+cacheLedger apats l = Ledger{journaltext="",journal=l,accountnametree=ant,accountmap=acctmap}
     where
-      (ant,txnsof,_,inclbalof) = groupTransactions $ filtertxns apats $ rawLedgerTransactions l
+      (ant,txnsof,_,inclbalof) = groupTransactions $ filtertxns apats $ journalTransactions l
       acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
           where mkacct a = Account a (txnsof a) (inclbalof a)
 
@@ -156,7 +156,7 @@ ledgerSubAccounts l Account{aname=a} =
 
 -- | List a ledger's "transactions", ie postings with transaction info attached.
 ledgerTransactions :: Ledger -> [Transaction]
-ledgerTransactions = rawLedgerTransactions . rawledger
+ledgerTransactions = journalTransactions . journal
 
 -- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Int -> Ledger -> Tree Account
@@ -198,7 +198,7 @@ transactions :: Ledger -> [Transaction]
 transactions = ledgerTransactions
 
 commodities :: Ledger -> [Commodity]
-commodities = nub . rawLedgerCommodities . rawledger
+commodities = nub . journalCommodities . journal
 
 accounttree :: Int -> Ledger -> Tree Account
 accounttree = ledgerAccountTree
@@ -210,7 +210,7 @@ accounttreeat = ledgerAccountTreeAt
 -- datespan = ledgerDateSpan
 
 rawdatespan :: Ledger -> DateSpan
-rawdatespan = rawLedgerDateSpan . rawledger
+rawdatespan = journalDateSpan . journal
 
 ledgeramounts :: Ledger -> [MixedAmount]
-ledgeramounts = rawLedgerAmounts . rawledger
+ledgeramounts = journalAmounts . journal

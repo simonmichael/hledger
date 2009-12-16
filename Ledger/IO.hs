@@ -7,8 +7,8 @@ where
 import Control.Monad.Error
 import Ledger.Ledger (cacheLedger)
 import Ledger.Parse (parseLedger)
-import Ledger.RawLedger (canonicaliseAmounts,filterRawLedger,rawLedgerSelectingDate)
-import Ledger.Types (FilterSpec(..),WhichDate(..),DateSpan(..),RawLedger(..),Ledger(..))
+import Ledger.Journal (canonicaliseAmounts,filterJournal,journalSelectingDate)
+import Ledger.Types (FilterSpec(..),WhichDate(..),DateSpan(..),Journal(..),Ledger(..))
 import Ledger.Utils (getCurrentLocalTime)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
@@ -66,28 +66,28 @@ readLedgerWithFilterSpec :: FilterSpec -> FilePath -> IO Ledger
 readLedgerWithFilterSpec fspec f = do
   s <- readFile f
   t <- getClockTime
-  rl <- rawLedgerFromString s
+  rl <- journalFromString s
   return $ filterAndCacheLedger fspec s rl{filepath=f, filereadtime=t}
 
--- | Read a RawLedger from the given string, using the current time as
+-- | Read a Journal from the given string, using the current time as
 -- reference time, or give a parse error.
-rawLedgerFromString :: String -> IO RawLedger
-rawLedgerFromString s = do
+journalFromString :: String -> IO Journal
+journalFromString s = do
   t <- getCurrentLocalTime
   liftM (either error id) $ runErrorT $ parseLedger t "(string)" s
 
--- | Convert a RawLedger to a canonicalised, cached and filtered Ledger.
-filterAndCacheLedger :: FilterSpec -> String -> RawLedger -> Ledger
+-- | Convert a Journal to a canonicalised, cached and filtered Ledger.
+filterAndCacheLedger :: FilterSpec -> String -> Journal -> Ledger
 filterAndCacheLedger (FilterSpec{datespan=datespan,cleared=cleared,real=real,
                                  costbasis=costbasis,acctpats=acctpats,
                                  descpats=descpats,whichdate=whichdate})
                      rawtext
                      rl = 
     (cacheLedger acctpats 
-    $ filterRawLedger datespan descpats cleared real 
-    $ rawLedgerSelectingDate whichdate
+    $ filterJournal datespan descpats cleared real 
+    $ journalSelectingDate whichdate
     $ canonicaliseAmounts costbasis rl
-    ){rawledgertext=rawtext}
+    ){journaltext=rawtext}
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

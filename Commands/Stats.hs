@@ -27,7 +27,7 @@ showStats _ _ l today =
       w1 = maximum $ map (length . fst) stats
       w2 = maximum $ map (length . show . snd) stats
       stats = [
-         ("File", filepath $ rawledger l)
+         ("File", filepath $ journal l)
         ,("Period", printf "%s to %s (%d days)" (start span) (end span) days)
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
         ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
@@ -43,7 +43,7 @@ showStats _ _ l today =
       -- Days since last transaction : %(recentelapsed)s
        ]
            where
-             ts = sortBy (comparing ltdate) $ ledger_txns $ rawledger l
+             ts = sortBy (comparing ltdate) $ ledger_txns $ journal l
              lastdate | null ts = Nothing
                       | otherwise = Just $ ltdate $ last ts
              lastelapsed = maybe Nothing (Just . diffDays today) lastdate

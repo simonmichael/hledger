@@ -80,14 +80,14 @@ ledgerFileModifiedTime :: Ledger -> IO ClockTime
 ledgerFileModifiedTime l
     | null path = getClockTime
     | otherwise = getModificationTime path `Prelude.catch` \_ -> getClockTime
-    where path = filepath $ rawledger l
+    where path = filepath $ journal l
 
 ledgerFileReadTime :: Ledger -> ClockTime
-ledgerFileReadTime l = filereadtime $ rawledger l
+ledgerFileReadTime l = filereadtime $ journal l
 
 reload :: Ledger -> IO Ledger
 reload l = do
-  l' <- readLedgerWithOpts [] [] (filepath $ rawledger l)
+  l' <- readLedgerWithOpts [] [] (filepath $ journal l)
   putValue "hledger" "ledger" l'
   return l'
             
@@ -99,12 +99,12 @@ reloadIfChanged opts _ l = do
   -- when (Debug `elem` opts) $ printf "checking file, last modified %s, last read %s, %s\n" (show tmod) (show tread) (show newer)
   if newer
    then do
-     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" (filepath $ rawledger l)
+     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" (filepath $ journal l)
      reload l
    else return l
 
 -- refilter :: [Opt] -> [String] -> Ledger -> LocalTime -> IO Ledger
--- refilter opts args l t = return $ filterAndCacheLedgerWithOpts opts args t (rawledgertext l) (rawledger l)
+-- refilter opts args l t = return $ filterAndCacheLedgerWithOpts opts args t (journaltext l) (journal l)
 
 server :: [Opt] -> [String] -> Ledger -> IO ()
 server opts args l =

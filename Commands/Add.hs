@@ -22,7 +22,7 @@ import Utils (ledgerFromStringWithOpts)
 -- command has no effect.
 add :: [Opt] -> [String] -> Ledger -> IO ()
 add _ args l
-    | filepath (rawledger l) == "-" = return ()
+    | filepath (journal l) == "-" = return ()
     | otherwise = do
   hPutStrLn stderr
     "Enter one or more transactions, which will be added to your ledger file.\n\
@@ -128,10 +128,10 @@ askFor prompt def validator = do
 addTransaction :: Ledger -> LedgerTransaction -> IO Ledger
 addTransaction l t = do
   appendToLedgerFile l $ show t
-  putStrLn $ printf "\nAdded transaction to %s:" (filepath $ rawledger l)
+  putStrLn $ printf "\nAdded transaction to %s:" (filepath $ journal l)
   putStrLn =<< registerFromString (show t)
-  return l{rawledger=rl{ledger_txns=ts}}
-      where rl = rawledger l
+  return l{journal=rl{ledger_txns=ts}}
+      where rl = journal l
             ts = ledger_txns rl ++ [t]
 
 -- | Append data to the ledger's file, ensuring proper separation from any
@@ -142,10 +142,10 @@ appendToLedgerFile l s =
     then putStr $ sep ++ s
     else appendFile f $ sep++s
     where 
-      f = filepath $ rawledger l
+      f = filepath $ journal l
       -- we keep looking at the original raw text from when the ledger
       -- was first read, but that's good enough for now
-      t = rawledgertext l
+      t = journaltext l
       sep | null $ strip t = ""
           | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
           where lastnls = takeWhile (=='\n') $ reverse t
@@ -188,6 +188,6 @@ transactionsSimilarTo l s =
                [(compareLedgerDescriptions s $ ltdescription t, t) | t <- ts]
     where
       compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,ltdate t2) (n1,ltdate t1)
-      ts = ledger_txns $ rawledger l
+      ts = ledger_txns $ journal l
       threshold = 0
 
