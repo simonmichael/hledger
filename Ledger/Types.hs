@@ -4,17 +4,17 @@
 Most data types are defined here to avoid import cycles.
 Here is an overview of the hledger data model as of 0.8:
 
- Ledger              -- hledger's ledger, a journal file plus various cached data
-  Journal            -- representation of the journal file
-   [Transaction]     -- journal transactions, with date, description and..
-    [Posting]        -- one or more journal postings
-  [LedgerPosting]    -- all postings combined with their transaction info
-  Tree AccountName   -- the tree of all account names
-  Map AccountName Account -- per-account ledger postings and balances for easy lookup
+> Ledger              -- hledger's ledger, a journal file plus various cached data
+>  Journal            -- representation of the journal file
+>   [Transaction]     -- journal transactions, with date, description and..
+>    [Posting]        -- ..one or more journal postings
+>  [LedgerPosting]    -- all postings combined with their transaction info
+>  Tree AccountName   -- the tree of all account names
+>  Map AccountName Account -- per-account ledger postings and balances for easy lookup
 
 For more detailed documentation on each type, see the corresponding modules.
 
-A note about terminology:
+Here's how some of the terminology has evolved:
 
   - ledger 2 had entries containing transactions.
 
