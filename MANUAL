@@ -46,11 +46,18 @@ hledger works on all major platforms. One of these pre-built binaries_ might wor
 If not, please report the problem, then install the `Haskell Platform`_ and type::
 
  cabal update
- cabal install hledger [-fvty] [-fweb]
+ cabal install hledger
 
-The optional -f flags will install more libraries and enable hledger's
-"ui" and "web" commands respectively. Note -fvty may not work on Microsoft
-windows.
+You can add some options to the install step to build extra hledger features:
+
+- Add ``-fvty`` to build the `ui <#ui>`_ command. This is not available on microsoft windows.
+
+- Add ``-fweb`` to build the `web <#web>`_ command. With some versions
+  of the haskell platform, you may need to help cabal figure out the
+  dependencies. This worked for me with haskell platform 2009.2.0.2 on
+  windows::
+
+    cabal install hledger -fweb --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
 
 Basic usage
 ...........
