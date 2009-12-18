@@ -22,7 +22,9 @@ stability:      experimental
 tested-with:    GHC==6.8, GHC==6.10
 cabal-version:  >= 1.2
 build-type:     Custom
-
+data-dir:       data
+data-files:
+                web/style.css
 extra-tmp-files:
 extra-source-files:
   README
@@ -97,6 +99,7 @@ executable hledger
                   Ledger.Types
                   Ledger.Utils
                   Options
+                  Paths_hledger
                   Tests
                   Utils
                   Version

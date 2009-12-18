@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE CPP, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -F -pgmFtrhsx #-}
 {-| 
 A web-based UI.
@@ -23,6 +23,11 @@ import Network.Loli (loli, io, get, post, html, text, public)
 import Network.Loli.Type (AppUnit)
 import Network.Loli.Utils (update)
 import Options hiding (value)
+#ifdef MAKE
+import Paths_hledger_make (getDataFileName)
+#else
+import Paths_hledger (getDataFileName)
+#endif
 import System.Directory (getModificationTime)
 import System.IO.Storage (withStore, putValue, getValue)
 import System.Process (readProcess)
@@ -110,6 +115,7 @@ server :: [Opt] -> [String] -> Ledger -> IO ()
 server opts args l =
   -- server initialisation
   withStore "hledger" $ do -- IO ()
+    webfiles <- getDataFileName "web"
     putValue "hledger" "ledger" l
     -- XXX hack-happstack abstraction leak
     hostname <- readProcess "hostname" [] "" `catch` \_ -> return "hostname"
@@ -136,7 +142,7 @@ server opts args l =
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
           get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
-          public (Just "Commands/Web") ["/static"]
+          public (Just webfiles) ["/style.css"]
           get  "/"          $ redirect ("transactions") Nothing
           ) env
 
@@ -186,7 +192,7 @@ hledgerpage env msgs title content =
     <html>
       <head>
         <meta http-equiv = "Content-Type" content = "text/html; charset=utf-8" />
-        <link rel="stylesheet" type="text/css" href="/static/style.css" media="all" />
+        <link rel="stylesheet" type="text/css" href="/style.css" media="all" />
         <title><% title %></title>
       </head>
       <body>
