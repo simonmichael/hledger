@@ -26,7 +26,7 @@ add opts args l
     | otherwise = do
   hPutStrLn stderr
     "Enter one or more transactions, which will be added to your ledger file.\n\
-    \To complete a transaction, enter . as account name. To quit, enter control-d."
+    \To complete a transaction, enter . as account name. To quit, press control-c."
   today <- getCurrentDay
   getAndAddTransactions l opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
 
