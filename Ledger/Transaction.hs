@@ -131,3 +131,11 @@ ledgerTransactionWithDate :: WhichDate -> Transaction -> Transaction
 ledgerTransactionWithDate ActualDate t = t
 ledgerTransactionWithDate EffectiveDate t = t{tdate=fromMaybe (tdate t) (teffectivedate t)}
     
+
+-- | Ensure a transaction's postings refer to it as their transaction.
+txnTieKnot :: Transaction -> Transaction
+txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
+
+-- | Set a posting's parent transaction.
+settxn :: Transaction -> Posting -> Posting
+settxn t p = p{ptransaction=Just t}

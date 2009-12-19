@@ -84,6 +84,7 @@ entryFromTimeLogInOut i o
       idate    = localDay itime
       hrs      = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       amount   = Mixed [hours hrs]
-      ps       = [Posting False acctname amount "" RegularPosting
+      ps       = [Posting{pstatus=False,paccount=acctname,pamount=amount,
+                          pcomment="",ptype=RegularPosting,ptransaction=Just t}
                  --,Posting "assets:time" (-amount) "" RegularPosting
                  ]

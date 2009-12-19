@@ -140,7 +140,7 @@ canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms 
     where
       fixledgertransaction (Transaction d ed s c de co ts pr) = Transaction d ed s c de co (map fixrawposting ts) pr
           where
-            fixrawposting (Posting s ac a c t) = Posting s ac (fixmixedamount a) c t
+            fixrawposting (Posting s ac a c t txn) = Posting s ac (fixmixedamount a) c t txn
             fixmixedamount (Mixed as) = Mixed $ map fixamount as
             fixamount = (if costbasis then costOfAmount else id) . fixprice . fixcommodity
             fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! symbol (commodity a)

@@ -317,7 +317,7 @@ ledgerTransaction = do
   comment <- ledgercomment <|> return ""
   restofline
   postings <- ledgerpostings
-  let t = Transaction date edate status code description comment postings ""
+  let t = txnTieKnot $ Transaction date edate status code description comment postings ""
   case balanceTransaction t of
     Right t' -> return t'
     Left err -> fail err
@@ -392,7 +392,7 @@ ledgerposting = do
   many spacenonewline
   comment <- ledgercomment <|> return ""
   restofline
-  return (Posting status account' amount comment ptype)
+  return (Posting status account' amount comment ptype Nothing)
 
 -- Qualify with the parent account from parsing context
 transactionaccountname :: GenParser Char LedgerFileCtx AccountName

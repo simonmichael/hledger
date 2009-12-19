@@ -310,18 +310,18 @@ tests = [
      assertBool "detect unbalanced entry, sign error"
                     (isLeft $ balanceTransaction
                            (Transaction (parsedate "2007/01/28") Nothing False "" "test" ""
-                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting, 
-                             Posting False "b" (Mixed [dollars 1]) "" RegularPosting
+                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting Nothing, 
+                             Posting False "b" (Mixed [dollars 1]) "" RegularPosting Nothing
                             ] ""))
      assertBool "detect unbalanced entry, multiple missing amounts"
                     (isLeft $ balanceTransaction
                            (Transaction (parsedate "2007/01/28") Nothing False "" "test" ""
-                            [Posting False "a" missingamt "" RegularPosting, 
-                             Posting False "b" missingamt "" RegularPosting
+                            [Posting False "a" missingamt "" RegularPosting Nothing, 
+                             Posting False "b" missingamt "" RegularPosting Nothing
                             ] ""))
      let e = balanceTransaction (Transaction (parsedate "2007/01/28") Nothing False "" "test" ""
-                           [Posting False "a" (Mixed [dollars 1]) "" RegularPosting, 
-                            Posting False "b" missingamt "" RegularPosting
+                           [Posting False "a" (Mixed [dollars 1]) "" RegularPosting Nothing, 
+                            Posting False "b" missingamt "" RegularPosting Nothing
                            ] "")
      assertBool "one missing amount should be ok" (isRight e)
      assertEqual "balancing amount is added" 
@@ -405,50 +405,43 @@ tests = [
     "my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
 
   ,"isTransactionBalanced" ~: do
-     assertBool "detect balanced"
-        (isTransactionBalanced
-        (Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
-         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
-         ] ""))
-     assertBool "detect unbalanced"
-        (not $ isTransactionBalanced
-        (Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
-         ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting
-         ] ""))
-     assertBool "detect unbalanced, one posting"
-        (not $ isTransactionBalanced
-        (Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
-         ] ""))
-     assertBool "one zero posting is considered balanced for now"
-        (isTransactionBalanced
-        (Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-         [Posting False "b" (Mixed [dollars 0]) "" RegularPosting
-         ] ""))
-     assertBool "virtual postings don't need to balance"
-        (isTransactionBalanced
-        (Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
-         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
-         ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting
-         ] ""))
-     assertBool "balanced virtual postings need to balance among themselves"
-        (not $ isTransactionBalanced
-        (Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
-         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
-         ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting
-         ] ""))
-     assertBool "balanced virtual postings need to balance among themselves (2)"
-        (isTransactionBalanced
-        (Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-         [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting
-         ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting
-         ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting
-         ,Posting False "e" (Mixed [dollars (-100)]) "" BalancedVirtualPosting
-         ] ""))
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
+             ] ""
+     assertBool "detect balanced" (isTransactionBalanced t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting (Just t)
+             ] ""
+     assertBool "detect unbalanced" (not $ isTransactionBalanced t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
+             ] ""
+     assertBool "detect unbalanced, one posting" (not $ isTransactionBalanced t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
+             [Posting False "b" (Mixed [dollars 0]) "" RegularPosting (Just t)
+             ] ""
+     assertBool "one zero posting is considered balanced for now" (isTransactionBalanced t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting (Just t)
+             ] ""
+     assertBool "virtual postings don't need to balance" (isTransactionBalanced t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting (Just t)
+             ] ""
+     assertBool "balanced virtual postings need to balance among themselves" (not $ isTransactionBalanced t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting (Just t)
+             ,Posting False "e" (Mixed [dollars (-100)]) "" BalancedVirtualPosting (Just t)
+             ] ""
+     assertBool "balanced virtual postings need to balance among themselves (2)" (isTransactionBalanced t)
 
   ,"isSubAccountNameOf" ~: do
     "assets" `isSubAccountNameOf` "assets" `is` False
@@ -678,11 +671,11 @@ tests = [
         ,"    assets:checking"
         ,""
         ])
-       (showTransaction
-        (Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
-         ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting
-         ] ""))
+       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting (Just t)
+                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting (Just t)
+                ] ""
+        in showTransaction t)
      assertEqual "show a balanced transaction, no eliding"
        (unlines
         ["2007/01/28 coopportunity"
@@ -690,11 +683,11 @@ tests = [
         ,"    assets:checking               $-47.18"
         ,""
         ])
-       (showTransactionUnelided
-        (Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
-         ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting
-         ] ""))
+       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting (Just t)
+                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting (Just t)
+                ] ""
+        in showTransactionUnelided t)
      -- document some cases that arise in debug/testing:
      assertEqual "show an unbalanced transaction, should not elide"
        (unlines
@@ -704,9 +697,9 @@ tests = [
         ,""
         ])
        (showTransaction
-        (Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
-         ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing
+         ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting Nothing
          ] ""))
      assertEqual "show an unbalanced transaction with one posting, should not elide"
        (unlines
@@ -715,8 +708,8 @@ tests = [
         ,""
         ])
        (showTransaction
-        (Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing
          ] ""))
      assertEqual "show a transaction with one posting and a missing amount"
        (unlines
@@ -725,8 +718,8 @@ tests = [
         ,""
         ])
        (showTransaction
-        (Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" missingamt "" RegularPosting
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" missingamt "" RegularPosting Nothing
          ] ""))
 
   ,"unicode in balance layout" ~: do
@@ -906,19 +899,19 @@ write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
 
 rawposting1_str  = "  expenses:food:dining  $10.00\n"
 
-rawposting1 = Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting
+rawposting1 = Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting Nothing
 
 entry1_str = unlines
  ["2007/01/28 coopportunity"
  ,"    expenses:food:groceries                   $47.18"
- ,"    assets:checking"
+ ,"    assets:checking                          $-47.18"
  ,""
  ]
 
 entry1 =
-    Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting, 
-      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting] ""
+    txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing, 
+      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting Nothing] ""
 
 
 entry2_str = unlines
@@ -1064,7 +1057,7 @@ journal7 = Journal
           [] 
           [] 
           [
-           Transaction {
+           txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/01",
              teffectivedate=Nothing,
              tstatus=False,
@@ -1077,20 +1070,22 @@ journal7 = Journal
                 paccount="assets:cash",
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               },
               Posting {
                 pstatus=False,
                 paccount="equity:opening balances",
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               }
              ],
              tpreceding_comment_lines=""
            }
           ,
-           Transaction {
+           txnTieKnot $ Transaction {
              tdate=parsedate "2007/02/01",
              teffectivedate=Nothing,
              tstatus=False,
@@ -1103,20 +1098,22 @@ journal7 = Journal
                 paccount="expenses:vacation",
                 pamount=(Mixed [dollars 179.92]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               },
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
                 pamount=(Mixed [dollars (-179.92)]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               }
              ],
              tpreceding_comment_lines=""
            }
           ,
-           Transaction {
+           txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/02",
              teffectivedate=Nothing,
              tstatus=False,
@@ -1129,20 +1126,22 @@ journal7 = Journal
                 paccount="assets:saving",
                 pamount=(Mixed [dollars 200]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               },
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
                 pamount=(Mixed [dollars (-200)]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               }
              ],
              tpreceding_comment_lines=""
            }
           ,
-           Transaction {
+           txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/03",
              teffectivedate=Nothing,
              tstatus=False,
@@ -1155,20 +1154,22 @@ journal7 = Journal
                 paccount="expenses:food:dining",
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               },
               Posting {
                 pstatus=False,
                 paccount="assets:cash",
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               }
              ],
              tpreceding_comment_lines=""
            }
           ,
-           Transaction {
+           txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/03",
              teffectivedate=Nothing,
              tstatus=False,
@@ -1181,20 +1182,22 @@ journal7 = Journal
                 paccount="expenses:phone",
                 pamount=(Mixed [dollars 95.11]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               },
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
                 pamount=(Mixed [dollars (-95.11)]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               }
              ],
              tpreceding_comment_lines=""
            }
           ,
-           Transaction {
+           txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/03",
              teffectivedate=Nothing,
              tstatus=False,
@@ -1207,14 +1210,16 @@ journal7 = Journal
                 paccount="liabilities:credit cards:discover",
                 pamount=(Mixed [dollars 80]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               },
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
                 pamount=(Mixed [dollars (-80)]),
                 pcomment="",
-                ptype=RegularPosting
+                ptype=RegularPosting,
+                ptransaction=Nothing
               }
              ],
              tpreceding_comment_lines=""
@@ -1253,7 +1258,7 @@ journalWithAmounts as =
         Journal
         []
         []
-        [nullledgertxn{tdescription=a,tpostings=[nullrawposting{pamount=parse a}]} | a <- as]
+        [t | a <- as, let t = nullledgertxn{tdescription=a,tpostings=[nullrawposting{pamount=parse a,ptransaction=Just t}]}]
         []
         []
         ""

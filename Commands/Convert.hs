@@ -256,8 +256,7 @@ transactionFromCsvRecord rules fields =
       unknownacct | (readDef 0 amountstr' :: Double) < 0 = "income:unknown"
                   | otherwise = "expenses:unknown"
       (acct,newdesc) = identify (accountRules rules) unknownacct desc
-  in
-    Transaction {
+      t = Transaction {
               tdate=date,
               teffectivedate=Nothing,
               tstatus=status,
@@ -271,17 +270,20 @@ transactionFromCsvRecord rules fields =
                      paccount=acct,
                      pamount=amount,
                      pcomment="",
-                     ptype=RegularPosting
+                     ptype=RegularPosting,
+                     ptransaction=Just t
                    },
                    Posting {
                      pstatus=False,
                      paccount=baseAccount rules,
                      pamount=(-amount),
                      pcomment="",
-                     ptype=RegularPosting
+                     ptype=RegularPosting,
+                     ptransaction=Just t
                    }
                   ]
             }
+  in t
 
 -- | Convert some date string with unknown format to YYYY/MM/DD.
 normaliseDate :: String -> String

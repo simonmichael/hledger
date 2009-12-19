@@ -74,7 +74,9 @@ data Posting = Posting {
       paccount :: AccountName,
       pamount :: MixedAmount,
       pcomment :: String,
-      ptype :: PostingType
+      ptype :: PostingType,
+      ptransaction :: Maybe Transaction  -- ^ this posting's parent transaction (co-recursive types).
+                                        -- Tying this knot gets tedious, Maybe makes it easier/optional.
     } deriving (Eq)
 
 data ModifierTransaction = ModifierTransaction {

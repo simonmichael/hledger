@@ -310,8 +310,8 @@ handleAddform l = do
                            ,tdescription=desc
                            ,tcomment=""
                            ,tpostings=[
-                             Posting False acct1 amt1' "" RegularPosting
-                            ,Posting False acct2 amt2' "" RegularPosting
+                             Posting False acct1 amt1' "" RegularPosting (Just t')
+                            ,Posting False acct2 amt2' "" RegularPosting (Just t')
                             ]
                            ,tpreceding_comment_lines=""
                            }

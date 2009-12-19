@@ -114,7 +114,7 @@ showlp omitdesc lp b = concatBottomPadded [entrydesc ++ p ++ " ", bal] ++ "\n"
       datewidth = 10
       descwidth = datedescwidth - datewidth - 2
       desc = printf ("%-"++(show descwidth)++"s") $ elideRight descwidth de :: String
-      p = showPostingWithoutPrice $ Posting s a amt "" tt
+      p = showPostingWithoutPrice $ Posting s a amt "" tt Nothing
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
       LedgerPosting{lpstatus=s,lpdate=da,lpdescription=de,lpaccount=a,lpamount=amt,lptype=tt} = lp
 

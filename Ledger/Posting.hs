@@ -19,29 +19,29 @@ import Ledger.AccountName
 
 instance Show Posting where show = showPosting
 
-nullrawposting = Posting False "" nullmixedamt "" RegularPosting
+nullrawposting = Posting False "" nullmixedamt "" RegularPosting Nothing
 
 showPosting :: Posting -> String
-showPosting (Posting _ a amt com lptype) = 
+showPosting (Posting{paccount=a,pamount=amt,pcomment=com,ptype=t}) =
     concatTopPadded [showaccountname a ++ " ", showamount amt, comment]
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
       showaccountname = printf ("%-"++(show acctnamewidth)++"s") . bracket . elideAccountName width
-      (bracket,width) = case lptype of
+      (bracket,width) = case t of
                           BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
                           _ -> (id,acctnamewidth)
       showamount = padleft 12 . showMixedAmountOrZero
       comment = if null com then "" else "  ; " ++ com
 -- XXX refactor
-showPostingWithoutPrice (Posting _ a amt com lptype) =
+showPostingWithoutPrice (Posting{paccount=a,pamount=amt,pcomment=com,ptype=t}) =
     concatTopPadded [showaccountname a ++ " ", showamount amt, comment]
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
       showaccountname = printf ("%-"++(show acctnamewidth)++"s") . bracket . elideAccountName width
-      (bracket,width) = case lptype of
+      (bracket,width) = case t of
                           BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
                           _ -> (id,acctnamewidth)
