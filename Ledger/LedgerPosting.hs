@@ -1,10 +1,9 @@
 {-|
 
-A compound data type for efficiency. A 'LedgerPosting' is a 'Posting' with
-its parent 'Transaction' \'s date and description attached. The
-\"transaction\" term is pretty ingrained in the code, docs and with users,
-so we've kept it. These are what we work with most of the time when doing
-reports.
+A 'LedgerPosting' is a 'Posting' with its parent 'Transaction' \'s date
+and description attached. We flatten Transactions into multiple
+LedgerPostings, which most of the time are simpler to work with. (So far,
+at least - this is not quite settled.)
 
 -}
 
