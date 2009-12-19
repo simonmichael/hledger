@@ -140,7 +140,7 @@ data LedgerPosting = LedgerPosting {
       lptnum :: Int,              -- ^ internal transaction reference number
       lpstatus :: Bool,           -- ^ posting status
       lpdate :: Day,              -- ^ transaction date
-      lpdescription :: String,    -- ^ ledger transaction description
+      lpdescription :: String,    -- ^ transaction description
       lpaccount :: AccountName,   -- ^ posting account
       lpamount :: MixedAmount,    -- ^ posting amount
       lptype :: PostingType       -- ^ posting type
