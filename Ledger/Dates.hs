@@ -422,3 +422,5 @@ justdatespan rdate = do
 nulldatespan = DateSpan Nothing Nothing
 
 mkdatespan b = DateSpan (Just $ parsedate b) . Just . parsedate
+
+nulldate = parsedate "1900/01/01"

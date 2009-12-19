@@ -2,19 +2,18 @@
 {-|
 
 Most data types are defined here to avoid import cycles.
-Here is an overview of the hledger data model as of 0.8:
+Here is an overview of the hledger data model:
 
 > Ledger              -- hledger's ledger is a journal file plus cached/derived data
 >  Journal            -- a representation of the journal file, containing..
->   [Transaction]     -- ..journal transactions, which have date, description and..
->    [Posting]        -- ..two or more account postings
->  [LedgerPosting]    -- all postings with their transaction's info attached
->  Tree AccountName   -- the tree of all account names
->  Map AccountName Account -- per-account ledger postings and balances for easy lookup
+>   [Transaction]     -- ..journal transactions, which have date, status, code, description and..
+>    [Posting]        -- ..two or more account postings (account name and amount)
+>  Tree AccountName   -- all account names as a tree
+>  Map AccountName Account -- a map from account name to account info (postings and balances)
 
 For more detailed documentation on each type, see the corresponding modules.
 
-Here's how some of the terminology has evolved:
+Terminology has been in flux:
 
   - ledger 2 had entries containing transactions.
 
@@ -24,7 +23,7 @@ Here's how some of the terminology has evolved:
 
   - hledger 0.5 had LedgerTransactions containing Postings, which were flattened to Transactions.
 
-  - hledger 0.8 has Transactions containing Postings, which are flattened to LedgerPostings.
+  - hledger 0.8 has Transactions containing Postings, and no flattened type.
 
 -}
 
@@ -79,16 +78,6 @@ data Posting = Posting {
                                         -- Tying this knot gets tedious, Maybe makes it easier/optional.
     } deriving (Eq)
 
-data ModifierTransaction = ModifierTransaction {
-      mtvalueexpr :: String,
-      mtpostings :: [Posting]
-    } deriving (Eq)
-
-data PeriodicTransaction = PeriodicTransaction {
-      ptperiodicexpr :: String,
-      ptpostings :: [Posting]
-    } deriving (Eq)
-
 data Transaction = Transaction {
       tdate :: Day,
       teffectivedate :: Maybe Day,
@@ -98,6 +87,16 @@ data Transaction = Transaction {
       tcomment :: String,
       tpostings :: [Posting],
       tpreceding_comment_lines :: String
+    } deriving (Eq)
+
+data ModifierTransaction = ModifierTransaction {
+      mtvalueexpr :: String,
+      mtpostings :: [Posting]
+    } deriving (Eq)
+
+data PeriodicTransaction = PeriodicTransaction {
+      ptperiodicexpr :: String,
+      ptpostings :: [Posting]
     } deriving (Eq)
 
 data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord) 
@@ -136,20 +135,10 @@ data FilterSpec = FilterSpec {
     ,whichdate :: WhichDate  -- ^ which dates to use (transaction or effective)
     }
 
-data LedgerPosting = LedgerPosting {
-      lptnum :: Int,              -- ^ internal transaction reference number
-      lpstatus :: Bool,           -- ^ posting status
-      lpdate :: Day,              -- ^ transaction date
-      lpdescription :: String,    -- ^ transaction description
-      lpaccount :: AccountName,   -- ^ posting account
-      lpamount :: MixedAmount,    -- ^ posting amount
-      lptype :: PostingType       -- ^ posting type
-    } deriving (Eq)
-
 data Account = Account {
       aname :: AccountName,
-      apostings :: [LedgerPosting], -- ^ transactions in this account
-      abalance :: MixedAmount         -- ^ sum of transactions in this account and subaccounts
+      apostings :: [Posting],    -- ^ transactions in this account
+      abalance :: MixedAmount    -- ^ sum of transactions in this account and subaccounts
     }
 
 data Ledger = Ledger {

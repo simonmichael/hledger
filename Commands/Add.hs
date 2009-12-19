@@ -59,11 +59,11 @@ getTransaction l args = do
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
       getpostingsandvalidate = do
         ps <- getPostings bestmatchpostings []
-        let t = nullledgertxn{tdate=date
-                             ,tstatus=False
-                             ,tdescription=description
-                             ,tpostings=ps
-                             }
+        let t = nulltransaction{tdate=date
+                               ,tstatus=False
+                               ,tdescription=description
+                               ,tpostings=ps
+                               }
             retry = do
               hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
               getpostingsandvalidate
@@ -84,9 +84,9 @@ getPostings historicalps enteredps = do
     else do
       amountstr <- askFor (printf "amount  %d" n) defaultamount validateamount
       let amount = fromparse $ parse (someamount <|> return missingamt) "" amountstr
-      let p = nullrawposting{paccount=stripbrackets account,
-                             pamount=amount,
-                             ptype=postingtype account}
+      let p = nullposting{paccount=stripbrackets account,
+                          pamount=amount,
+                          ptype=postingtype account}
       getPostings historicalps $ enteredps ++ [p]
     where
       n = length enteredps + 1

@@ -4,8 +4,7 @@ A compound data type for efficiency. An 'Account' stores
 
 - an 'AccountName',
 
-- all 'LedgerPosting's (postings plus ledger transaction info) in the
-  account, excluding subaccounts
+- all 'Posting's in the account, excluding subaccounts
 
 - a 'MixedAmount' representing the account balance, including subaccounts.
 

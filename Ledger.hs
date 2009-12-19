@@ -19,7 +19,6 @@ module Ledger (
                module Ledger.Journal,
                module Ledger.Posting,
                module Ledger.TimeLog,
-               module Ledger.LedgerPosting,
                module Ledger.Types,
                module Ledger.Utils,
               )
@@ -36,6 +35,5 @@ import Ledger.Parse
 import Ledger.Journal
 import Ledger.Posting
 import Ledger.TimeLog
-import Ledger.LedgerPosting
 import Ledger.Types
 import Ledger.Utils

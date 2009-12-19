@@ -22,17 +22,17 @@ instance Show ModifierTransaction where
 instance Show PeriodicTransaction where 
     show t = "~ " ++ ptperiodicexpr t ++ "\n" ++ unlines (map show (ptpostings t))
 
-nullledgertxn :: Transaction
-nullledgertxn = Transaction {
-              tdate=parsedate "1900/1/1", 
-              teffectivedate=Nothing, 
-              tstatus=False, 
-              tcode="", 
-              tdescription="", 
-              tcomment="",
-              tpostings=[],
-              tpreceding_comment_lines=""
-            }
+nulltransaction :: Transaction
+nulltransaction = Transaction {
+                    tdate=nulldate,
+                    teffectivedate=Nothing, 
+                    tstatus=False, 
+                    tcode="", 
+                    tdescription="", 
+                    tcomment="",
+                    tpostings=[],
+                    tpreceding_comment_lines=""
+                  }
 
 {-|
 Show a ledger entry, formatted for the print command. ledger 2.x's

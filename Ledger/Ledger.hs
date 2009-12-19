@@ -59,8 +59,8 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Account ()
 import Ledger.AccountName
-import Ledger.LedgerPosting
 import Ledger.Journal
+import Ledger.Posting
 
 
 instance Show Ledger where
@@ -73,61 +73,55 @@ instance Show Ledger where
 
 -- | Convert a raw ledger to a more efficient cached type, described above.  
 cacheLedger :: [String] -> Journal -> Ledger
-cacheLedger apats l = Ledger{journaltext="",journal=l,accountnametree=ant,accountmap=acctmap}
+cacheLedger apats j = Ledger{journaltext="",journal=j,accountnametree=ant,accountmap=acctmap}
     where
-      (ant,txnsof,_,inclbalof) = groupLedgerPostings $ filtertxns apats $ journalLedgerPostings l
+      (ant,psof,_,inclbalof) = groupPostings $ filterPostings apats $ journalPostings j
       acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
-          where mkacct a = Account a (txnsof a) (inclbalof a)
+          where mkacct a = Account a (psof a) (inclbalof a)
 
 -- | Given a list of transactions, return an account name tree and three
 -- query functions that fetch transactions, balance, and
 -- subaccount-including balance by account name. 
 -- This is to factor out common logic from cacheLedger and
--- summariseLedgerPostingsInDateSpan.
-groupLedgerPostings :: [LedgerPosting] -> (Tree AccountName,
-                                     (AccountName -> [LedgerPosting]),
-                                     (AccountName -> MixedAmount), 
-                                     (AccountName -> MixedAmount))
-groupLedgerPostings ts = (ant,txnsof,exclbalof,inclbalof)
+-- summarisePostingsInDateSpan.
+groupPostings :: [Posting] -> (Tree AccountName,
+                             (AccountName -> [Posting]),
+                             (AccountName -> MixedAmount), 
+                             (AccountName -> MixedAmount))
+groupPostings ps = (ant,psof,exclbalof,inclbalof)
     where
-      txnanames = sort $ nub $ map lpaccount ts
-      ant = accountNameTreeFrom $ expandAccountNames txnanames
+      anames = sort $ nub $ map paccount ps
+      ant = accountNameTreeFrom $ expandAccountNames anames
       allanames = flatten ant
-      txnmap = Map.union (transactionsByAccount ts) (Map.fromList [(a,[]) | a <- allanames])
-      balmap = Map.fromList $ flatten $ calculateBalances ant txnsof
-      txnsof = (txnmap !) 
+      pmap = Map.union (postingsByAccount ps) (Map.fromList [(a,[]) | a <- allanames])
+      psof = (pmap !) 
+      balmap = Map.fromList $ flatten $ calculateBalances ant psof
       exclbalof = fst . (balmap !)
       inclbalof = snd . (balmap !)
--- debug
---       txnsof a = (txnmap ! (trace ("ts "++a) a))
---       exclbalof a = fst $ (balmap ! (trace ("eb "++a) a))
---       inclbalof a = snd $ (balmap ! (trace ("ib "++a) a))
 
 -- | Add subaccount-excluding and subaccount-including balances to a tree
 -- of account names somewhat efficiently, given a function that looks up
 -- transactions by account name.
-calculateBalances :: Tree AccountName -> (AccountName -> [LedgerPosting]) -> Tree (AccountName, (MixedAmount, MixedAmount))
-calculateBalances ant txnsof = addbalances ant
+calculateBalances :: Tree AccountName -> (AccountName -> [Posting]) -> Tree (AccountName, (MixedAmount, MixedAmount))
+calculateBalances ant psof = addbalances ant
     where 
       addbalances (Node a subs) = Node (a,(bal,bal+subsbal)) subs'
           where
-            bal         = sumLedgerPostings $ txnsof a
+            bal         = sumPostings $ psof a
             subsbal     = sum $ map (snd . snd . root) subs'
             subs'       = map addbalances subs
 
--- | Convert a list of transactions to a map from account name to the list
--- of all transactions in that account. 
-transactionsByAccount :: [LedgerPosting] -> Map.Map AccountName [LedgerPosting]
-transactionsByAccount ts = m'
+-- | Convert a list of postings to a map from account name to that
+-- account's postings.
+postingsByAccount :: [Posting] -> Map.Map AccountName [Posting]
+postingsByAccount ps = m'
     where
-      sortedts = sortBy (comparing lpaccount) ts
-      groupedts = groupBy (\t1 t2 -> lpaccount t1 == lpaccount t2) sortedts
-      m' = Map.fromList [(lpaccount $ head g, g) | g <- groupedts]
--- The special account name "top" can be used to look up all transactions. ?
---      m' = Map.insert "top" sortedts m
+      sortedps = sortBy (comparing paccount) ps
+      groupedps = groupBy (\p1 p2 -> paccount p1 == paccount p2) sortedps
+      m' = Map.fromList [(paccount $ head g, g) | g <- groupedps]
 
-filtertxns :: [String] -> [LedgerPosting] -> [LedgerPosting]
-filtertxns apats = filter (matchpats apats . lpaccount)
+filterPostings :: [String] -> [Posting] -> [Posting]
+filterPostings apats = filter (matchpats apats . paccount)
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]
@@ -154,9 +148,9 @@ ledgerSubAccounts :: Ledger -> Account -> [Account]
 ledgerSubAccounts l Account{aname=a} = 
     map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ accountnames l
 
--- | List a ledger's "transactions", ie postings with transaction info attached.
-ledgerLedgerPostings :: Ledger -> [LedgerPosting]
-ledgerLedgerPostings = journalLedgerPostings . journal
+-- | List a ledger's postings, in the order parsed.
+ledgerPostings :: Ledger -> [Posting]
+ledgerPostings = journalPostings . journal
 
 -- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Int -> Ledger -> Tree Account
@@ -170,10 +164,10 @@ ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 -- or DateSpan Nothing Nothing if there are none.
 ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan l
-    | null ts = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just $ lpdate $ head ts) (Just $ addDays 1 $ lpdate $ last ts)
+    | null ps = DateSpan Nothing Nothing
+    | otherwise = DateSpan (Just $ postingDate $ head ps) (Just $ addDays 1 $ postingDate $ last ps)
     where
-      ts = sortBy (comparing lpdate) $ ledgerLedgerPostings l
+      ps = sortBy (comparing postingDate) $ ledgerPostings l
 
 -- | Convenience aliases.
 accountnames :: Ledger -> [AccountName]
@@ -194,8 +188,8 @@ accountsmatching = ledgerAccountsMatching
 subaccounts :: Ledger -> Account -> [Account]
 subaccounts = ledgerSubAccounts
 
-transactions :: Ledger -> [LedgerPosting]
-transactions = ledgerLedgerPostings
+postings :: Ledger -> [Posting]
+postings = ledgerPostings
 
 commodities :: Ledger -> [Commodity]
 commodities = nub . journalCommodities . journal

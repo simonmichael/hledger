@@ -557,8 +557,8 @@ timelogentry = do
 -- misc parsing
 
 -- | Parse a --display expression which is a simple date predicate, like
--- "d>[DATE]" or "d<=[DATE]", and return a transaction-matching predicate.
-datedisplayexpr :: GenParser Char st (LedgerPosting -> Bool)
+-- "d>[DATE]" or "d<=[DATE]", and return a posting-matching predicate.
+datedisplayexpr :: GenParser Char st (Posting -> Bool)
 datedisplayexpr = do
   char 'd'
   op <- compareop
@@ -566,7 +566,7 @@ datedisplayexpr = do
   (y,m,d) <- smartdate
   char ']'
   let date    = parsedate $ printf "%04s/%02s/%02s" y m d
-      test op = return $ (`op` date) . lpdate
+      test op = return $ (`op` date) . postingDate
   case op of
     "<"  -> test (<)
     "<=" -> test (<=)

@@ -260,34 +260,30 @@ accountNameAt buf lineno = accountNameFromComponents anamecomponents
 
 -- | If on the print screen, move the cursor to highlight the specified entry
 -- (or a reasonable guess). Doesn't work.
-scrollToTransaction :: Transaction -> AppState -> AppState
-scrollToTransaction e a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
+scrollToTransaction :: Maybe Transaction -> AppState -> AppState
+scrollToTransaction Nothing a = a
+scrollToTransaction (Just t) a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
     where
-      entryfirstline = head $ lines $ showTransaction e
+      entryfirstline = head $ lines $ showTransaction t
       halfph = pageHeight a `div` 2
       y = fromMaybe 0 $ findIndex (== entryfirstline) buf
       sy = max 0 $ y - halfph
       cy = y - sy
 
--- | Get the entry containing the transaction currently highlighted by the
--- cursor on the register screen (or best guess). Results undefined while
--- on other screens. Doesn't work.
-currentTransaction :: AppState -> Transaction
-currentTransaction a@AppState{aledger=l,abuf=buf} = transactionContainingLedgerPosting a lp
+-- | Get the transaction containing the posting currently highlighted by
+-- the cursor on the register screen (or best guess). Results undefined
+-- while on other screens.
+currentTransaction :: AppState -> Maybe Transaction
+currentTransaction a@AppState{aledger=l,abuf=buf} = ptransaction p
     where
-      lp = safehead nullledgerposting $ filter ismatch $ ledgerLedgerPostings l
-      ismatch lp = lpdate lp == parsedate (take 10 datedesc)
-                  && take 70 (showlp False lp nullmixedamt) == (datedesc ++ acctamt)
+      p = safehead nullposting $ filter ismatch $ ledgerPostings l
+      ismatch p = postingDate p == parsedate (take 10 datedesc)
+                  && take 70 (showp False p nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ safehead "" rest : reverse above
       acctamt = drop 32 $ safehead "" rest
       safehead d ls = if null ls then d else head ls
       (above,rest) = splitAt y buf
       y = posY a
-
--- | Get the entry which contains the given transaction.
--- Will raise an error if there are problems.
-transactionContainingLedgerPosting :: AppState -> LedgerPosting -> Transaction
-transactionContainingLedgerPosting AppState{aledger=l} lp = jtxns (journal l) !! lptnum lp
 
 -- renderers
 

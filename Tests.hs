@@ -793,40 +793,40 @@ tests = [
     let a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
-  ,"summariseLedgerPostingsInDateSpan" ~: do
-    let gives (b,e,lpnum,depth,showempty,ts) =
-            (summariseLedgerPostingsInDateSpan (mkdatespan b e) lpnum depth showempty ts `is`)
-    let ts =
-            [
-             nullledgerposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
-            ,nullledgerposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 2]}
-            ,nullledgerposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
-            ,nullledgerposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 8]}
-            ]
-    ("2008/01/01","2009/01/01",0,9999,False,[]) `gives` 
-     []
-    ("2008/01/01","2009/01/01",0,9999,True,[]) `gives` 
-     [
-      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31"}
-     ]
-    ("2008/01/01","2009/01/01",0,9999,False,ts) `gives` 
-     [
-      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
-     ,nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 10]}
-     ,nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
-     ]
-    ("2008/01/01","2009/01/01",0,2,False,ts) `gives` 
-     [
-      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [dollars 15]}
-     ]
-    ("2008/01/01","2009/01/01",0,1,False,ts) `gives` 
-     [
-      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [dollars 15]}
-     ]
-    ("2008/01/01","2009/01/01",0,0,False,ts) `gives` 
-     [
-      nullledgerposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [dollars 15]}
-     ]
+  -- ,"summarisePostingsInDateSpan" ~: do
+  --   let gives (b,e,depth,showempty,ps) =
+  --           (summarisePostingsInDateSpan (mkdatespan b e) depth showempty ps `is`)
+  --   let ps =
+  --           [
+  --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
+  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 2]}
+  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
+  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 8]}
+  --           ]
+  --   ("2008/01/01","2009/01/01",0,9999,False,[]) `gives` 
+  --    []
+  --   ("2008/01/01","2009/01/01",0,9999,True,[]) `gives` 
+  --    [
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31"}
+  --    ]
+  --   ("2008/01/01","2009/01/01",0,9999,False,ts) `gives` 
+  --    [
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
+  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 10]}
+  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
+  --    ]
+  --   ("2008/01/01","2009/01/01",0,2,False,ts) `gives` 
+  --    [
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [dollars 15]}
+  --    ]
+  --   ("2008/01/01","2009/01/01",0,1,False,ts) `gives` 
+  --    [
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [dollars 15]}
+  --    ]
+  --   ("2008/01/01","2009/01/01",0,0,False,ts) `gives` 
+  --    [
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [dollars 15]}
+  --    ]
 
   ,"postingamount" ~: do
     parseWithCtx emptyCtx postingamount " $47.18" `parseis` Mixed [dollars 47.18]
@@ -1258,7 +1258,7 @@ journalWithAmounts as =
         Journal
         []
         []
-        [t | a <- as, let t = nullledgertxn{tdescription=a,tpostings=[nullrawposting{pamount=parse a,ptransaction=Just t}]}]
+        [t | a <- as, let t = nulltransaction{tdescription=a,tpostings=[nullposting{pamount=parse a,ptransaction=Just t}]}]
         []
         []
         ""

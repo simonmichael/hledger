@@ -1,11 +1,9 @@
 {-|
 
 A 'Posting' represents a 'MixedAmount' being added to or subtracted from a
-single 'Account'.  Each 'Transaction' contains two or more postings
-which should add up to 0.  
-
-Generally, we use these with the ledger transaction's date and description
-added, which we call a 'LedgerPosting'.
+single 'Account'.  Each 'Transaction' contains two or more postings which
+should add up to 0. Postings also reference their parent transaction, so
+we can get a date or description for a posting (from the transaction).
 
 -}
 
@@ -15,11 +13,12 @@ import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
 import Ledger.AccountName
+import Ledger.Dates (nulldate)
 
 
 instance Show Posting where show = showPosting
 
-nullrawposting = Posting False "" nullmixedamt "" RegularPosting Nothing
+nullposting = Posting False "" nullmixedamt "" RegularPosting Nothing
 
 showPosting :: Posting -> String
 showPosting (Posting{paccount=a,pamount=amt,pcomment=com,ptype=t}) =
@@ -65,3 +64,18 @@ postingTypeFromAccountName a
     | head a == '(' && last a == ')' = VirtualPosting
     | otherwise = RegularPosting
 
+accountNamesFromPostings :: [Posting] -> [AccountName]
+accountNamesFromPostings = nub . map paccount
+
+sumPostings :: [Posting] -> MixedAmount
+sumPostings = sum . map pamount
+
+postingDate :: Posting -> Day
+postingDate p = maybe nulldate tdate $ ptransaction p
+
+-- | Does this posting fall within the given date span ?
+isPostingInDateSpan :: DateSpan -> Posting -> Bool
+isPostingInDateSpan (DateSpan Nothing Nothing)   _ = True
+isPostingInDateSpan (DateSpan Nothing (Just e))  p = postingDate p < e
+isPostingInDateSpan (DateSpan (Just b) Nothing)  p = postingDate p >= b
+isPostingInDateSpan (DateSpan (Just b) (Just e)) p = d >= b && d < e where d = postingDate p

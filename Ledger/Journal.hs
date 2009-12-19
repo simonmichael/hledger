@@ -14,7 +14,6 @@ import Ledger.Types
 import Ledger.AccountName
 import Ledger.Amount
 import Ledger.Transaction (ledgerTransactionWithDate)
-import Ledger.LedgerPosting
 import Ledger.Posting
 import Ledger.TimeLog
 
@@ -55,12 +54,11 @@ addHistoricalPrice h l0 = l0 { historical_prices = h : historical_prices l0 }
 addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
 addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries l0 }
 
-journalLedgerPostings :: Journal -> [LedgerPosting]
-journalLedgerPostings = txnsof . jtxns
-    where txnsof ts = concatMap flattenTransaction $ zip ts [1..]
+journalPostings :: Journal -> [Posting]
+journalPostings = concatMap tpostings . jtxns
 
 journalAccountNamesUsed :: Journal -> [AccountName]
-journalAccountNamesUsed = accountNamesFromLedgerPostings . journalLedgerPostings
+journalAccountNamesUsed = accountNamesFromPostings . journalPostings
 
 journalAccountNames :: Journal -> [AccountName]
 journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
@@ -96,7 +94,7 @@ filterJournalTransactionsByDate (DateSpan begin end) (Journal ms ps ts tls hs f 
 -- | Keep only ledger transactions which have the requested
 -- cleared/uncleared status, if there is one.
 filterJournalPostingsByClearedStatus :: Maybe Bool -> Journal -> Journal
-filterJournalPostingsByClearedStatus Nothing rl = rl
+filterJournalPostingsByClearedStatus Nothing j = j
 filterJournalPostingsByClearedStatus (Just val) (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter ((==val).tstatus) ts) tls hs f fp ft
 
@@ -124,9 +122,9 @@ filterJournalPostingsByAccount apats (Journal ms ps ts tls hs f fp ft) =
 -- | Convert this ledger's transactions' primary date to either their
 -- actual or effective date.
 journalSelectingDate :: WhichDate -> Journal -> Journal
-journalSelectingDate ActualDate rl = rl
-journalSelectingDate EffectiveDate rl =
-    rl{jtxns=map (ledgerTransactionWithDate EffectiveDate) $ jtxns rl}
+journalSelectingDate ActualDate j = j
+journalSelectingDate EffectiveDate j =
+    j{jtxns=map (ledgerTransactionWithDate EffectiveDate) $ jtxns j}
 
 -- | Give all a ledger's amounts their canonical display settings.  That
 -- is, in each commodity, amounts will use the display settings of the
@@ -136,7 +134,7 @@ journalSelectingDate EffectiveDate rl =
 -- Also, amounts are converted to cost basis if that flag is active.
 -- XXX refactor
 canonicaliseAmounts :: Bool -> Journal -> Journal
-canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms ps (map fixledgertransaction ts) tls hs f fp ft
+canonicaliseAmounts costbasis j@(Journal ms ps ts tls hs f fp ft) = Journal ms ps (map fixledgertransaction ts) tls hs f fp ft
     where
       fixledgertransaction (Transaction d ed s c de co ts pr) = Transaction d ed s c de co (map fixrawposting ts) pr
           where
@@ -153,17 +151,17 @@ canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms 
             commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
             commoditieswithsymbol s = filter ((s==) . symbol) commodities
             commoditysymbols = nub $ map symbol commodities
-            commodities = map commodity (concatMap (amounts . lpamount) (journalLedgerPostings rl)
-                                         ++ concatMap (amounts . hamount) (historical_prices rl))
+            commodities = map commodity (concatMap (amounts . pamount) (journalPostings j)
+                                         ++ concatMap (amounts . hamount) (historical_prices j))
             fixprice :: Amount -> Amount
             fixprice a@Amount{price=Just _} = a
-            fixprice a@Amount{commodity=c} = a{price=journalHistoricalPriceFor rl d c}
+            fixprice a@Amount{commodity=c} = a{price=journalHistoricalPriceFor j d c}
 
             -- | Get the price for a commodity on the specified day from the price database, if known.
             -- Does only one lookup step, ie will not look up the price of a price.
             journalHistoricalPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
-            journalHistoricalPriceFor rl d Commodity{symbol=s} = do
-              let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices rl
+            journalHistoricalPriceFor j d Commodity{symbol=s} = do
+              let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices j
               case ps of (HistoricalPrice{hamount=a}:_) -> Just $ canonicaliseCommodities a
                          _ -> Nothing
                   where
@@ -173,7 +171,7 @@ canonicaliseAmounts costbasis rl@(Journal ms ps ts tls hs f fp ft) = Journal ms 
 
 -- | Get just the amounts from a ledger, in the order parsed.
 journalAmounts :: Journal -> [MixedAmount]
-journalAmounts = map lpamount . journalLedgerPostings
+journalAmounts = map pamount . journalPostings
 
 -- | Get just the ammount commodities from a ledger, in the order parsed.
 journalCommodities :: Journal -> [Commodity]
@@ -193,11 +191,11 @@ journalConvertTimeLog t l0 = l0 { jtxns = convertedTimeLog ++ jtxns l0
 -- | The (fully specified) date span containing all the raw ledger's transactions,
 -- or DateSpan Nothing Nothing if there are none.
 journalDateSpan :: Journal -> DateSpan
-journalDateSpan rl
+journalDateSpan j
     | null ts = DateSpan Nothing Nothing
     | otherwise = DateSpan (Just $ tdate $ head ts) (Just $ addDays 1 $ tdate $ last ts)
     where
-      ts = sortBy (comparing tdate) $ jtxns rl
+      ts = sortBy (comparing tdate) $ jtxns j
 
 -- | Check if a set of ledger account/description patterns matches the
 -- given account name or entry description.  Patterns are case-insensitive
