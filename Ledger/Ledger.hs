@@ -71,7 +71,7 @@ instance Show Ledger where
              (length $ accountnames l)
              (showtree $ accountnametree l)
 
--- | Convert a raw ledger to a more efficient cached type, described above.  
+-- | Convert a journal to a more efficient cached ledger, described above.  
 cacheLedger :: [String] -> Journal -> Ledger
 cacheLedger apats j = Ledger{journaltext="",journal=j,accountnametree=ant,accountmap=acctmap}
     where
@@ -79,11 +79,10 @@ cacheLedger apats j = Ledger{journaltext="",journal=j,accountnametree=ant,accoun
       acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
           where mkacct a = Account a (psof a) (inclbalof a)
 
--- | Given a list of transactions, return an account name tree and three
--- query functions that fetch transactions, balance, and
--- subaccount-including balance by account name. 
--- This is to factor out common logic from cacheLedger and
--- summarisePostingsInDateSpan.
+-- | Given a list of postings, return an account name tree and three query
+-- functions that fetch postings, balance, and subaccount-including
+-- balance by account name.  This factors out common logic from
+-- cacheLedger and summarisePostingsInDateSpan.
 groupPostings :: [Posting] -> (Tree AccountName,
                              (AccountName -> [Posting]),
                              (AccountName -> MixedAmount), 
