@@ -31,7 +31,8 @@ DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
-BUILDFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS) $(WARNINGS)
+DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
+BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS)
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 default: tag hledger
@@ -277,7 +278,7 @@ MAIN=hledger.hs
 
 # generate code documentation with haddock
 # --ignore-all-exports means we are documenting internal implementation, not library api
-HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(OPTFLAGS))
+HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(DEFINEFLAGS))
 haddock: hscolour $(MAIN)
 	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
 		cp website/api-doc/index.html website/api-doc/modules-index.html
