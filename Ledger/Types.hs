@@ -4,11 +4,11 @@
 Most data types are defined here to avoid import cycles.
 Here is an overview of the hledger data model as of 0.8:
 
-> Ledger              -- hledger's ledger, a journal file plus various cached data
->  Journal            -- representation of the journal file
->   [Transaction]     -- journal transactions, with date, description and..
->    [Posting]        -- ..one or more journal postings
->  [LedgerPosting]    -- all postings combined with their transaction info
+> Ledger              -- hledger's ledger is a journal file plus cached/derived data
+>  Journal            -- a representation of the journal file, containing..
+>   [Transaction]     -- ..journal transactions, which have date, description and..
+>    [Posting]        -- ..two or more account postings
+>  [LedgerPosting]    -- all postings with their transaction's info attached
 >  Tree AccountName   -- the tree of all account names
 >  Map AccountName Account -- per-account ledger postings and balances for easy lookup
 
@@ -18,9 +18,9 @@ Here's how some of the terminology has evolved:
 
   - ledger 2 had entries containing transactions.
 
-  - ledger 3 has transactions containing postings.
-
   - hledger 0.4 had Entrys containing RawTransactions, which were flattened to Transactions.
+
+  - ledger 3 has transactions containing postings.
 
   - hledger 0.5 had LedgerTransactions containing Postings, which were flattened to Transactions.
 
