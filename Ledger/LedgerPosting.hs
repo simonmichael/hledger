@@ -1,9 +1,8 @@
 {-|
 
 A 'LedgerPosting' is a 'Posting' with its parent 'Transaction' \'s date
-and description attached. We flatten Transactions into multiple
-LedgerPostings, which most of the time are simpler to work with. (So far,
-at least - this is not quite settled.)
+and description attached. We flatten Transactions into these, since they
+are usually simpler to work with.
 
 -}
 
