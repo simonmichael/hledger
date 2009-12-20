@@ -34,7 +34,7 @@ withLedgerDo opts args cmdname cmd = do
   t <- getCurrentLocalTime
   tc <- getClockTime
   let go = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f,filereadtime=tc})
-  if creating then go journalEmpty else (runErrorT . parseLedgerFile t) f
+  if creating then go nulljournal else (runErrorT . parseLedgerFile t) f
          >>= flip either go
                  (\e -> hPutStrLn stderr e >> exitWith (ExitFailure 1))
 

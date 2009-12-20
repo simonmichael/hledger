@@ -29,16 +29,16 @@ instance Show Journal where
              -- ++ (show $ journalTransactions l)
              where accounts = flatten $ journalAccountNameTree l
 
-journalEmpty :: Journal
-journalEmpty = Journal { jmodifiertxns = []
-                           , jperiodictxns = []
-                           , jtxns = []
-                           , open_timelog_entries = []
-                           , historical_prices = []
-                           , final_comment_lines = []
-                           , filepath = ""
-                           , filereadtime = TOD 0 0
-                           }
+nulljournal :: Journal
+nulljournal = Journal { jmodifiertxns = []
+                      , jperiodictxns = []
+                      , jtxns = []
+                      , open_timelog_entries = []
+                      , historical_prices = []
+                      , final_comment_lines = []
+                      , filepath = ""
+                      , filereadtime = TOD 0 0
+                      }
 
 addTransaction :: Transaction -> Journal -> Journal
 addTransaction t l0 = l0 { jtxns = t : jtxns l0 }
