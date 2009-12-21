@@ -155,7 +155,8 @@ tests = [
   ,"balance report tests" ~:
    let (opts,args) `gives` es = do 
         l <- sampleledgerwithopts opts args
-        showBalanceReport opts args l `is` unlines es
+        t <- getCurrentLocalTime
+        showBalanceReport opts (optsToFilterSpec opts args t) l `is` unlines es
    in TestList
    [
 
@@ -275,30 +276,28 @@ tests = [
     ]
 
    ,"balance report with cost basis" ~: do
-      rl <- journalFromString $ unlines
+      j <- journalFromString $ unlines
              [""
              ,"2008/1/1 test           "
              ,"  a:b          10h @ $50"
              ,"  c:d                   "
              ,""
              ]
-      let l = cacheLedger [] $ 
-              filterJournal (DateSpan Nothing Nothing) [] Nothing False $ 
-              canonicaliseAmounts True rl -- enable cost basis adjustment            
-      showBalanceReport [] [] l `is` 
+      let j' = canonicaliseAmounts True j -- enable cost basis adjustment
+      showBalanceReport [] nullfilterspec nullledger{journal=j'} `is`
        unlines
         ["                $500  a:b"
         ,"               $-500  c:d"
         ]
 
    ,"balance report elides zero-balance root account(s)" ~: do
-      l <- ledgerFromStringWithOpts [] [] sampletime
+      l <- ledgerFromStringWithOpts []
              (unlines
               ["2008/1/1 one"
               ,"  test:a  1"
               ,"  test:b"
               ])
-      showBalanceReport [] [] l `is`
+      showBalanceReport [] nullfilterspec l `is`
        unlines
         ["                   1  test:a"
         ,"                  -1  test:b"
@@ -331,7 +330,7 @@ tests = [
                         Left _ -> error "should not happen")
 
   ,"cacheLedger" ~:
-    length (Map.keys $ accountmap $ cacheLedger [] journal7) `is` 15
+    length (Map.keys $ accountmap $ cacheLedger journal7) `is` 15
 
   ,"canonicaliseAmounts" ~:
    "use the greatest precision" ~:
@@ -482,8 +481,8 @@ tests = [
     parseWithCtx emptyCtx ledgerposting rawposting1_str `parseis` rawposting1
 
   ,"parsedate" ~: do
-    parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
-    parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" sampledate
+    parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
+    parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
 
   ,"period expressions" ~: do
     let todaysdate = parsedate "2008/11/26"
@@ -501,7 +500,8 @@ tests = [
    do 
     let args = ["expenses"]
     l <- sampleledgerwithopts [] args
-    showTransactions [] args l `is` unlines 
+    t <- getCurrentLocalTime
+    showTransactions (optsToFilterSpec [] args t) l `is` unlines
      ["2008/06/03 * eat & shop"
      ,"    expenses:food                $1"
      ,"    expenses:supplies            $1"
@@ -512,7 +512,8 @@ tests = [
   , "print report with depth arg" ~:
    do 
     l <- sampleledger
-    showTransactions [Depth "2"] [] l `is` unlines
+    t <- getCurrentLocalTime
+    showTransactions (optsToFilterSpec [Depth "2"] [] t) l `is` unlines
       ["2008/01/01 income"
       ,"    income:salary           $-1"
       ,""
@@ -546,7 +547,7 @@ tests = [
    "register report with no args" ~:
    do 
     l <- sampleledger
-    showRegisterReport [] [] l `is` unlines
+    showRegisterReport [] (optsToFilterSpec [] [] t1) l `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -560,10 +561,11 @@ tests = [
      ,"                                assets:bank:checking            $-1            0"
      ]
 
-  ,"register report with cleared arg" ~:
+  ,"register report with cleared option" ~:
    do 
-    l <- ledgerFromStringWithOpts [Cleared] [] sampletime sample_ledger_str
-    showRegisterReport [Cleared] [] l `is` unlines
+    let opts = [Cleared]
+    l <- ledgerFromStringWithOpts opts sample_ledger_str
+    showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
      ,"                                assets:cash                     $-2            0"
@@ -571,10 +573,11 @@ tests = [
      ,"                                assets:bank:checking            $-1            0"
      ]
 
-  ,"register report with uncleared arg" ~:
+  ,"register report with uncleared option" ~:
    do 
-    l <- ledgerFromStringWithOpts [UnCleared] [] sampletime sample_ledger_str
-    showRegisterReport [UnCleared] [] l `is` unlines
+    let opts = [UnCleared]
+    l <- ledgerFromStringWithOpts opts sample_ledger_str
+    showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -585,7 +588,7 @@ tests = [
 
   ,"register report sorts by date" ~:
    do 
-    l <- ledgerFromStringWithOpts [] [] sampletime $ unlines
+    l <- ledgerFromStringWithOpts [] $ unlines
         ["2008/02/02 a"
         ,"  b  1"
         ,"  c"
@@ -594,19 +597,19 @@ tests = [
         ,"  e  1"
         ,"  f"
         ]
-    registerdates (showRegisterReport [] [] l) `is` ["2008/01/01","2008/02/02"]
+    registerdates (showRegisterReport [] (optsToFilterSpec [] [] t1) l) `is` ["2008/01/01","2008/02/02"]
 
   ,"register report with account pattern" ~:
    do
     l <- sampleledger
-    showRegisterReport [] ["cash"] l `is` unlines
+    showRegisterReport [] (optsToFilterSpec [] ["cash"] t1) l `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
   ,"register report with account pattern, case insensitive" ~:
    do 
     l <- sampleledger
-    showRegisterReport [] ["cAsH"] l `is` unlines
+    showRegisterReport [] (optsToFilterSpec [] ["cAsH"] t1) l `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
@@ -614,7 +617,8 @@ tests = [
    do 
     l <- sampleledger
     let gives displayexpr = 
-            (registerdates (showRegisterReport [Display displayexpr] [] l) `is`)
+            (registerdates (showRegisterReport opts (optsToFilterSpec opts [] t1) l) `is`)
+                where opts = [Display displayexpr]
     "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
     "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
     "d=[2008/6/2]"  `gives` ["2008/06/02"]
@@ -625,15 +629,17 @@ tests = [
    do 
     l <- sampleledger    
     let periodexpr `gives` dates = do
-          lopts <- sampleledgerwithopts [Period periodexpr] []
-          registerdates (showRegisterReport [Period periodexpr] [] lopts) `is` dates
+          l' <- sampleledgerwithopts opts []
+          registerdates (showRegisterReport opts (optsToFilterSpec opts [] t1) l') `is` dates
+              where opts = [Period periodexpr]
     ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2007" `gives` []
     "june" `gives` ["2008/06/01","2008/06/02","2008/06/03"]
     "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
     "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
-    showRegisterReport [Period "yearly"] [] l `is` unlines
+    let opts = [Period "yearly"]
+    showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
      ,"                                assets:cash                     $-2          $-1"
      ,"                                expenses:food                    $1            0"
@@ -642,15 +648,18 @@ tests = [
      ,"                                income:salary                   $-1          $-1"
      ,"                                liabilities:debts                $1            0"
      ]
-    registerdates (showRegisterReport [Period "quarterly"] [] l) `is` ["2008/01/01","2008/04/01","2008/10/01"]
-    registerdates (showRegisterReport [Period "quarterly",Empty] [] l) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
+    let opts = [Period "quarterly"]
+    registerdates (showRegisterReport opts (optsToFilterSpec opts [] t1) l) `is` ["2008/01/01","2008/04/01","2008/10/01"]
+    let opts = [Period "quarterly",Empty]
+    registerdates (showRegisterReport opts (optsToFilterSpec opts [] t1) l) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
 
   ]
 
   , "register report with depth arg" ~:
    do 
     l <- sampleledger
-    showRegisterReport [Depth "2"] [] l `is` unlines
+    let opts = [Depth "2"]
+    showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/01/01 income               income:salary                   $-1          $-1"
      ,"2008/06/01 gift                 income:gifts                    $-1          $-2"
      ,"2008/06/03 eat & shop           expenses:food                    $1          $-1"
@@ -723,16 +732,16 @@ tests = [
          ] ""))
 
   ,"unicode in balance layout" ~: do
-    l <- ledgerFromStringWithOpts [] [] sampletime
+    l <- ledgerFromStringWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    showBalanceReport [] [] l `is` unlines
+    showBalanceReport [] (optsToFilterSpec [] [] t1) l `is` unlines
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"]
 
   ,"unicode in register layout" ~: do
-    l <- ledgerFromStringWithOpts [] [] sampletime
+    l <- ledgerFromStringWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    showRegisterReport [] [] l `is` unlines
+    showRegisterReport [] (optsToFilterSpec [] [] t1) l `is` unlines
       ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
       ,"                                актив:наличные                 -100            0"]
 
@@ -789,7 +798,7 @@ tests = [
      [mkdatespan "2008/01/01" "2008/01/01"]
 
   ,"subAccounts" ~: do
-    l <- sampleledger
+    l <- liftM cacheLedger' sampleledger
     let a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
@@ -839,10 +848,11 @@ tests = [
 ------------------------------------------------------------------------------
 -- test data
 
-sampledate = parsedate "2008/11/26"
-sampletime = LocalTime sampledate midday
-sampleledger = ledgerFromStringWithOpts [] [] sampletime sample_ledger_str
-sampleledgerwithopts opts args = ledgerFromStringWithOpts opts args sampletime sample_ledger_str
+date1 = parsedate "2008/11/26"
+t1 = LocalTime date1 midday
+
+sampleledger = ledgerFromStringWithOpts [] sample_ledger_str
+sampleledgerwithopts opts _ = ledgerFromStringWithOpts opts sample_ledger_str
 
 sample_ledger_str = unlines
  ["; A sample ledger file."
@@ -1231,7 +1241,7 @@ journal7 = Journal
           ""
           (TOD 0 0)
 
-ledger7 = cacheLedger [] journal7
+ledger7 = cacheLedger journal7
 
 ledger8_str = unlines
  ["2008/1/1 test           "

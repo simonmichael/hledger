@@ -14,16 +14,13 @@ import System.IO.UTF8
 
 -- | Print ledger transactions in standard format.
 print' :: [Opt] -> [String] -> Ledger -> IO ()
-print' opts args = putStr . showTransactions opts args
+print' opts args l = do
+  t <- getCurrentLocalTime
+  putStr $ showTransactions (optsToFilterSpec opts args t) l
 
-showTransactions :: [Opt] -> [String] -> Ledger -> String
-showTransactions opts args l = concatMap (showTransactionForPrint effective) txns
-    where 
-      txns = sortBy (comparing tdate) $
-               jtxns $
-               filterJournalPostingsByDepth depth $ 
-               filterJournalPostingsByAccount apats $ 
-               journal l
-      depth = depthFromOpts opts
-      effective = Effective `elem` opts
-      (apats,_) = parsePatternArgs args
+showTransactions :: FilterSpec -> Ledger -> String
+showTransactions filterspec l =
+    concatMap (showTransactionForPrint effective) $ sortBy (comparing tdate) txns
+        where
+          effective = EffectiveDate == whichdate filterspec
+          txns = jtxns $ filterJournalTransactions filterspec $ journal l

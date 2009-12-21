@@ -47,7 +47,8 @@ import Commands.Histogram
 import Commands.Print
 import Commands.Register
 import Ledger
-import Utils (openBrowserOn, readLedgerWithOpts)
+import Utils (openBrowserOn)
+import Ledger.IO (readLedger)
 
 -- import Debug.Trace
 -- strace :: Show a => a -> a
@@ -92,7 +93,7 @@ ledgerFileReadTime l = filereadtime $ journal l
 
 reload :: Ledger -> IO Ledger
 reload l = do
-  l' <- readLedgerWithOpts [] [] (filepath $ journal l)
+  l' <- readLedger (filepath $ journal l)
   putValue "hledger" "ledger" l'
   return l'
             
@@ -115,6 +116,7 @@ server :: [Opt] -> [String] -> Ledger -> IO ()
 server opts args l =
   -- server initialisation
   withStore "hledger" $ do -- IO ()
+    t <- getCurrentLocalTime
     webfiles <- getDataFileName "web"
     putValue "hledger" "ledger" l
     -- XXX hack-happstack abstraction leak
@@ -130,14 +132,14 @@ server opts args l =
        l' <- fromJust `fmap` getValue "hledger" "ledger"
        l'' <- reloadIfChanged opts' args' l'
        -- declare path-specific request handlers
-       let command :: [String] -> ([Opt] -> [String] -> Ledger -> String) -> AppUnit
-           command msgs f = string msgs $ f opts' args' l''
+       let command :: [String] -> ([Opt] -> FilterSpec -> Ledger -> String) -> AppUnit
+           command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) l''
        (loli $                                               -- State Loli () -> (Env -> IO Response)
          do
-          get  "/balance"   $ command [] showBalanceReport   -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
+          get  "/balance"   $ command [] showBalanceReport  -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/transactions"   $ ledgerpage [] l'' (showTransactions opts' args')
+          get  "/transactions"   $ ledgerpage [] l'' (showTransactions (optsToFilterSpec opts' args' t))
           post "/transactions"   $ handleAddform l''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
@@ -284,7 +286,8 @@ handleAddform :: Ledger -> AppUnit
 handleAddform l = do
   env <- getenv
   d <- io getCurrentDay
-  handle $ validate env d
+  t <- io getCurrentLocalTime
+  handle t $ validate env d
   where
     validate :: Hack.Env -> Day -> Failing Transaction
     validate env today =
@@ -337,10 +340,10 @@ handleAddform l = do
           False -> Failure errs
           True  -> Success t'
 
-    handle :: Failing Transaction -> AppUnit
-    handle (Failure errs) = hsp errs addform 
-    handle (Success t)    = do
+    handle :: LocalTime -> Failing Transaction -> AppUnit
+    handle _ (Failure errs) = hsp errs addform
+    handle ti (Success t)   = do
                     io $ ledgerAddTransaction l t >> reload l
-                    ledgerpage [msg] l (showTransactions [] [])
+                    ledgerpage [msg] l (showTransactions (optsToFilterSpec [] [] ti))
        where msg = printf "Added transaction:\n%s" (show t)
 

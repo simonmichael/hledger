@@ -5,11 +5,11 @@ Utilities for doing I/O with ledger files.
 module Ledger.IO
 where
 import Control.Monad.Error
-import Ledger.Ledger (cacheLedger)
+import Ledger.Ledger (cacheLedger', nullledger)
 import Ledger.Parse (parseLedger)
-import Ledger.Journal (canonicaliseAmounts,filterJournal,journalSelectingDate)
-import Ledger.Types (FilterSpec(..),WhichDate(..),DateSpan(..),Journal(..),Ledger(..))
+import Ledger.Types (FilterSpec(..),WhichDate(..),Journal(..),Ledger(..))
 import Ledger.Utils (getCurrentLocalTime)
+import Ledger.Dates (nulldatespan)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import System.IO
@@ -23,14 +23,16 @@ ledgerdefaultfilename  = ".ledger"
 timelogdefaultfilename = ".timelog"
 
 nullfilterspec = FilterSpec {
-                  datespan=DateSpan Nothing Nothing
-                 ,cleared=Nothing
-                 ,real=False
-                 ,costbasis=False
-                 ,acctpats=[]
-                 ,descpats=[]
-                 ,whichdate=ActualDate
-                 }
+     datespan=nulldatespan
+    ,cleared=Nothing
+    ,real=False
+    ,empty=False
+    ,costbasis=False
+    ,acctpats=[]
+    ,descpats=[]
+    ,whichdate=ActualDate
+    ,depth=Nothing
+    }
 
 -- | Get the user's default ledger file path.
 myLedgerPath :: IO String
@@ -58,16 +60,20 @@ myTimelog = myTimelogPath >>= readLedger
 
 -- | Read a ledger from this file, with no filtering, or give an error.
 readLedger :: FilePath -> IO Ledger
-readLedger = readLedgerWithFilterSpec nullfilterspec
-
--- | Read a ledger from this file, filtering according to the filter spec.,
--- | or give an error.
-readLedgerWithFilterSpec :: FilterSpec -> FilePath -> IO Ledger
-readLedgerWithFilterSpec fspec f = do
-  s <- readFile f
+readLedger f = do
   t <- getClockTime
-  rl <- journalFromString s
-  return $ filterAndCacheLedger fspec s rl{filepath=f, filereadtime=t}
+  s <- readFile f
+  j <- journalFromString s
+  return $ cacheLedger' $ nullledger{journaltext=s,journal=j{filepath=f,filereadtime=t}}
+
+-- -- | Read a ledger from this file, filtering according to the filter spec.,
+-- -- | or give an error.
+-- readLedgerWithFilterSpec :: FilterSpec -> FilePath -> IO Ledger
+-- readLedgerWithFilterSpec fspec f = do
+--   s <- readFile f
+--   t <- getClockTime
+--   rl <- journalFromString s
+--   return $ filterAndCacheLedger fspec s rl{filepath=f, filereadtime=t}
 
 -- | Read a Journal from the given string, using the current time as
 -- reference time, or give a parse error.
@@ -76,18 +82,16 @@ journalFromString s = do
   t <- getCurrentLocalTime
   liftM (either error id) $ runErrorT $ parseLedger t "(string)" s
 
--- | Convert a Journal to a canonicalised, cached and filtered Ledger.
-filterAndCacheLedger :: FilterSpec -> String -> Journal -> Ledger
-filterAndCacheLedger (FilterSpec{datespan=datespan,cleared=cleared,real=real,
-                                 costbasis=costbasis,acctpats=acctpats,
-                                 descpats=descpats,whichdate=whichdate})
-                     rawtext
-                     rl = 
-    (cacheLedger acctpats 
-    $ filterJournal datespan descpats cleared real 
-    $ journalSelectingDate whichdate
-    $ canonicaliseAmounts costbasis rl
-    ){journaltext=rawtext}
+-- -- | Convert a Journal to a canonicalised, cached and filtered Ledger.
+-- filterAndCacheLedger :: FilterSpec -> String -> Journal -> Ledger
+-- filterAndCacheLedger _ -- filterspec
+--                      rawtext
+--                      j =
+--     (cacheLedger $
+--     -- journalSelectingDate whichdate $
+--      j
+-- --    filterJournalPostings filterspec $ filterJournalTransactions filterspec j
+--     ){journaltext=rawtext}
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

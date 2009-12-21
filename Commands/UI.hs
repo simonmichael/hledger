@@ -52,7 +52,8 @@ ui opts args l = do
   v <- mkVty
   DisplayRegion w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts
-  let a = enter BalanceScreen
+  t <-  getCurrentLocalTime
+  let a = enter t BalanceScreen
           AppState {
                   av=v
                  ,aw=fromIntegral w
@@ -71,15 +72,16 @@ go :: AppState -> IO ()
 go a@AppState{av=av,aopts=opts} = do
   when (notElem DebugNoUI opts) $ update av (renderScreen a)
   k <- next_event av
+  t <- getCurrentLocalTime
   case k of 
     EvResize x y                -> go $ resize x y a
     EvKey (KASCII 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
-    EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter BalanceScreen a
-    EvKey (KASCII 'r') []       -> go $ resetTrailAndEnter RegisterScreen a
-    EvKey (KASCII 'p') []       -> go $ resetTrailAndEnter PrintScreen a
-    EvKey KRight []             -> go $ drilldown a
-    EvKey KEnter []             -> go $ drilldown a
-    EvKey KLeft  []             -> go $ backout a
+    EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter t BalanceScreen a
+    EvKey (KASCII 'r') []       -> go $ resetTrailAndEnter t RegisterScreen a
+    EvKey (KASCII 'p') []       -> go $ resetTrailAndEnter t PrintScreen a
+    EvKey KRight []             -> go $ drilldown t a
+    EvKey KEnter []             -> go $ drilldown t a
+    EvKey KLeft  []             -> go $ backout t a
     EvKey KUp    []             -> go $ moveUpAndPushEdge a
     EvKey KDown  []             -> go $ moveDownAndPushEdge a
     EvKey KHome  []             -> go $ moveToTop a
@@ -208,30 +210,30 @@ screen :: AppState -> Screen
 screen a = scr where (Loc scr _ _) = loc a
 
 -- | Enter a new screen, saving the old ui location on the stack.
-enter :: Screen -> AppState -> AppState 
-enter scr@BalanceScreen a  = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
-enter scr@RegisterScreen a = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
-enter scr@PrintScreen a    = updateData $ pushLoc Loc{scr=scr,sy=0,cy=0} a
+enter :: LocalTime -> Screen -> AppState -> AppState
+enter t scr@BalanceScreen a  = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0} a
+enter t scr@RegisterScreen a = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0} a
+enter t scr@PrintScreen a    = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0} a
 
-resetTrailAndEnter scr = enter scr . clearLocs
+resetTrailAndEnter t scr = enter t scr . clearLocs
 
 -- | Regenerate the display data appropriate for the current screen.
-updateData :: AppState -> AppState
-updateData a@AppState{aopts=opts,aargs=args,aledger=l} =
+updateData :: LocalTime -> AppState -> AppState
+updateData t a@AppState{aopts=opts,aargs=args,aledger=l} =
     case screen a of
-      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts [] l, aargs=[]}
-      RegisterScreen -> a{abuf=lines $ showRegisterReport opts args l}
-      PrintScreen    -> a{abuf=lines $ showTransactions opts args l}
+      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts (optsToFilterSpec opts args t) l, aargs=[]}
+      RegisterScreen -> a{abuf=lines $ showRegisterReport opts (optsToFilterSpec opts args t) l}
+      PrintScreen    -> a{abuf=lines $ showTransactions (optsToFilterSpec opts args t) l}
 
-backout :: AppState -> AppState
-backout a | screen a == BalanceScreen = a
-          | otherwise = updateData $ popLoc a
+backout :: LocalTime -> AppState -> AppState
+backout t a | screen a == BalanceScreen = a
+            | otherwise = updateData t $ popLoc a
 
-drilldown :: AppState -> AppState
-drilldown a =
+drilldown :: LocalTime -> AppState -> AppState
+drilldown t a =
     case screen a of
-      BalanceScreen  -> enter RegisterScreen a{aargs=[currentAccountName a]}
-      RegisterScreen -> scrollToTransaction e $ enter PrintScreen a
+      BalanceScreen  -> enter t RegisterScreen a{aargs=[currentAccountName a]}
+      RegisterScreen -> scrollToTransaction e $ enter t PrintScreen a
       PrintScreen   -> a
     where e = currentTransaction a
 
@@ -278,7 +280,7 @@ currentTransaction a@AppState{aledger=l,abuf=buf} = ptransaction p
     where
       p = safehead nullposting $ filter ismatch $ ledgerPostings l
       ismatch p = postingDate p == parsedate (take 10 datedesc)
-                  && take 70 (showp False p nullmixedamt) == (datedesc ++ acctamt)
+                  && take 70 (showposting False p nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ safehead "" rest : reverse above
       acctamt = drop 32 $ safehead "" rest
       safehead d ls = if null ls then d else head ls

@@ -129,13 +129,14 @@ nonzerobalanceerror = "could not balance this transaction, amounts do not add up
 -- | Convert the primary date to either the actual or effective date.
 ledgerTransactionWithDate :: WhichDate -> Transaction -> Transaction
 ledgerTransactionWithDate ActualDate t = t
-ledgerTransactionWithDate EffectiveDate t = t{tdate=fromMaybe (tdate t) (teffectivedate t)}
+ledgerTransactionWithDate EffectiveDate t = txnTieKnot t{tdate=fromMaybe (tdate t) (teffectivedate t)}
     
 
--- | Ensure a transaction's postings refer to it as their transaction.
+-- | Ensure a transaction's postings refer back to it.
 txnTieKnot :: Transaction -> Transaction
 txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
 
 -- | Set a posting's parent transaction.
 settxn :: Transaction -> Posting -> Posting
 settxn t p = p{ptransaction=Just t}
+

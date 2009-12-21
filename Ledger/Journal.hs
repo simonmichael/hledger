@@ -1,6 +1,8 @@
 {-|
 
-A 'Journal' is a parsed ledger file.
+A 'Journal' is a parsed ledger file, containing 'Transaction's.
+It can be filtered and massaged in various ways, then \"crunched\"
+to form a 'Ledger'.
 
 -}
 
@@ -19,14 +21,14 @@ import Ledger.TimeLog
 
 
 instance Show Journal where
-    show l = printf "Journal with %d transactions, %d accounts: %s"
-             (length (jtxns l) +
-              length (jmodifiertxns l) +
-              length (jperiodictxns l))
+    show j = printf "Journal with %d transactions, %d accounts: %s"
+             (length (jtxns j) +
+              length (jmodifiertxns j) +
+              length (jperiodictxns j))
              (length accounts)
              (show accounts)
              -- ++ (show $ journalTransactions l)
-             where accounts = flatten $ journalAccountNameTree l
+             where accounts = flatten $ journalAccountNameTree j
 
 nulljournal :: Journal
 nulljournal = Journal { jmodifiertxns = []
@@ -66,15 +68,51 @@ journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
--- | Remove ledger transactions we are not interested in.
--- Keep only those which fall between the begin and end dates, and match
--- the description pattern, and are cleared or real if those options are active.
-filterJournal :: DateSpan -> [String] -> Maybe Bool -> Bool -> Journal -> Journal
-filterJournal span pats clearedonly realonly =
-    filterJournalPostingsByRealness realonly .
-    filterJournalPostingsByClearedStatus clearedonly .
-    filterJournalTransactionsByDate span .
-    filterJournalTransactionsByDescription pats
+-- Various kinds of filtering on journals. We do it differently depending
+-- on the command.
+
+-- | Keep only transactions we are interested in, as described by
+-- the filter specification. May also massage the data a little.
+filterJournalTransactions :: FilterSpec -> Journal -> Journal
+filterJournalTransactions FilterSpec{datespan=datespan
+                                    ,cleared=cleared
+                                    -- ,real=real
+                                    -- ,empty=empty
+                                    -- ,costbasis=_
+                                    ,acctpats=apats
+                                    ,descpats=dpats
+                                    ,whichdate=whichdate
+                                    ,depth=depth
+                                    } =
+    filterJournalTransactionsByClearedStatus cleared .
+    filterJournalPostingsByDepth depth .
+    filterJournalTransactionsByAccount apats .
+    filterJournalTransactionsByDescription dpats .
+    filterJournalTransactionsByDate datespan .
+    journalSelectingDate whichdate
+
+-- | Keep only postings we are interested in, as described by
+-- the filter specification. May also massage the data a little.
+-- This can leave unbalanced transactions.
+filterJournalPostings :: FilterSpec -> Journal -> Journal
+filterJournalPostings FilterSpec{datespan=datespan
+                                ,cleared=cleared
+                                ,real=real
+                                ,empty=empty
+--                                ,costbasis=costbasis
+                                ,acctpats=apats
+                                ,descpats=dpats
+                                ,whichdate=whichdate
+                                ,depth=depth
+                                } =
+    filterJournalPostingsByRealness real .
+    filterJournalPostingsByClearedStatus cleared .
+    filterJournalPostingsByEmpty empty .
+    filterJournalPostingsByDepth depth .
+    filterJournalPostingsByAccount apats .
+    filterJournalTransactionsByDescription dpats .
+    filterJournalTransactionsByDate datespan .
+    journalSelectingDate whichdate
 
 -- | Keep only ledger transactions whose description matches the description patterns.
 filterJournalTransactionsByDescription :: [String] -> Journal -> Journal
@@ -93,43 +131,69 @@ filterJournalTransactionsByDate (DateSpan begin end) (Journal ms ps ts tls hs f 
 
 -- | Keep only ledger transactions which have the requested
 -- cleared/uncleared status, if there is one.
+filterJournalTransactionsByClearedStatus :: Maybe Bool -> Journal -> Journal
+filterJournalTransactionsByClearedStatus Nothing j = j
+filterJournalTransactionsByClearedStatus (Just val) (Journal ms ps ts tls hs f fp ft) =
+    Journal ms ps (filter ((==val).tstatus) ts) tls hs f fp ft
+
+-- | Keep only postings which have the requested cleared/uncleared status,
+-- if there is one.
 filterJournalPostingsByClearedStatus :: Maybe Bool -> Journal -> Journal
 filterJournalPostingsByClearedStatus Nothing j = j
-filterJournalPostingsByClearedStatus (Just val) (Journal ms ps ts tls hs f fp ft) =
-    Journal ms ps (filter ((==val).tstatus) ts) tls hs f fp ft
+filterJournalPostingsByClearedStatus (Just c) j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
+    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter ((==c) . postingCleared) ps}
 
 -- | Strip out any virtual postings, if the flag is true, otherwise do
 -- no filtering.
 filterJournalPostingsByRealness :: Bool -> Journal -> Journal
 filterJournalPostingsByRealness False l = l
 filterJournalPostingsByRealness True (Journal mts pts ts tls hs f fp ft) =
-    Journal mts pts (map filtertxns ts) tls hs f fp ft
-    where filtertxns t@Transaction{tpostings=ps} = t{tpostings=filter isReal ps}
+    Journal mts pts (map filterpostings ts) tls hs f fp ft
+    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter isReal ps}
+
+-- | Strip out any postings with zero amount, unless the flag is true.
+filterJournalPostingsByEmpty :: Bool -> Journal -> Journal
+filterJournalPostingsByEmpty True l = l
+filterJournalPostingsByEmpty False (Journal mts pts ts tls hs f fp ft) =
+    Journal mts pts (map filterpostings ts) tls hs f fp ft
+    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (not . isEmptyPosting) ps}
+
+-- | Keep only transactions which affect accounts deeper than the specified depth.
+filterJournalTransactionsByDepth :: Maybe Int -> Journal -> Journal
+filterJournalTransactionsByDepth Nothing j = j
+filterJournalTransactionsByDepth (Just d) j@Journal{jtxns=ts} =
+    j{jtxns=(filter (any ((<= d+1) . accountNameLevel . paccount) . tpostings) ts)}
 
 -- | Strip out any postings to accounts deeper than the specified depth
 -- (and any ledger transactions which have no postings as a result).
-filterJournalPostingsByDepth :: Int -> Journal -> Journal
-filterJournalPostingsByDepth depth (Journal mts pts ts tls hs f fp ft) =
+filterJournalPostingsByDepth :: Maybe Int -> Journal -> Journal
+filterJournalPostingsByDepth Nothing j = j
+filterJournalPostingsByDepth (Just d) (Journal mts pts ts tls hs f fp ft) =
     Journal mts pts (filter (not . null . tpostings) $ map filtertxns ts) tls hs f fp ft
     where filtertxns t@Transaction{tpostings=ps} =
-              t{tpostings=filter ((<= depth) . accountNameLevel . paccount) ps}
+              t{tpostings=filter ((<= d) . accountNameLevel . paccount) ps}
 
--- | Keep only ledger transactions which affect accounts matched by the account patterns.
-filterJournalPostingsByAccount :: [String] -> Journal -> Journal
-filterJournalPostingsByAccount apats (Journal ms ps ts tls hs f fp ft) =
+-- | Keep only transactions which affect accounts matched by the account patterns.
+filterJournalTransactionsByAccount :: [String] -> Journal -> Journal
+filterJournalTransactionsByAccount apats (Journal ms ps ts tls hs f fp ft) =
     Journal ms ps (filter (any (matchpats apats . paccount) . tpostings) ts) tls hs f fp ft
 
--- | Convert this ledger's transactions' primary date to either their
+-- | Keep only postings which affect accounts matched by the account patterns.
+-- This can leave transactions unbalanced.
+filterJournalPostingsByAccount :: [String] -> Journal -> Journal
+filterJournalPostingsByAccount apats j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
+    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (matchpats apats . paccount) ps}
+
+-- | Convert this journal's transactions' primary date to either the
 -- actual or effective date.
 journalSelectingDate :: WhichDate -> Journal -> Journal
 journalSelectingDate ActualDate j = j
 journalSelectingDate EffectiveDate j =
     j{jtxns=map (ledgerTransactionWithDate EffectiveDate) $ jtxns j}
 
--- | Give all a ledger's amounts their canonical display settings.  That
--- is, in each commodity, amounts will use the display settings of the
--- first amount detected, and the greatest precision of the amounts
--- detected.
+-- | Convert all the journal's amounts to their canonical display settings.
+-- Ie, in each commodity, amounts will use the display settings of the first
+-- amount detected, and the greatest precision of the amounts detected.
 -- Also, missing unit prices are added if known from the price history.
 -- Also, amounts are converted to cost basis if that flag is active.
 -- XXX refactor
@@ -210,3 +274,52 @@ matchpats pats str =
       negateprefix = "not:"
       isnegativepat = (negateprefix `isPrefixOf`)
       abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
+
+-- | Calculate the account tree and account balances from a journal's
+-- postings, and return the results for efficient lookup.
+crunchJournal :: Journal -> (Tree AccountName, Map.Map AccountName Account)
+crunchJournal j = (ant,amap)
+    where
+      (ant,psof,_,inclbalof) = (groupPostings . journalPostings) j
+      amap = Map.fromList [(a, acctinfo a) | a <- flatten ant]
+      acctinfo a = Account a (psof a) (inclbalof a)
+
+-- | Given a list of postings, return an account name tree and three query
+-- functions that fetch postings, balance, and subaccount-including
+-- balance by account name.  This factors out common logic from
+-- cacheLedger and summarisePostingsInDateSpan.
+groupPostings :: [Posting] -> (Tree AccountName,
+                             (AccountName -> [Posting]),
+                             (AccountName -> MixedAmount),
+                             (AccountName -> MixedAmount))
+groupPostings ps = (ant,psof,exclbalof,inclbalof)
+    where
+      anames = sort $ nub $ map paccount ps
+      ant = accountNameTreeFrom $ expandAccountNames anames
+      allanames = flatten ant
+      pmap = Map.union (postingsByAccount ps) (Map.fromList [(a,[]) | a <- allanames])
+      psof = (pmap !)
+      balmap = Map.fromList $ flatten $ calculateBalances ant psof
+      exclbalof = fst . (balmap !)
+      inclbalof = snd . (balmap !)
+
+-- | Add subaccount-excluding and subaccount-including balances to a tree
+-- of account names somewhat efficiently, given a function that looks up
+-- transactions by account name.
+calculateBalances :: Tree AccountName -> (AccountName -> [Posting]) -> Tree (AccountName, (MixedAmount, MixedAmount))
+calculateBalances ant psof = addbalances ant
+    where
+      addbalances (Node a subs) = Node (a,(bal,bal+subsbal)) subs'
+          where
+            bal         = sumPostings $ psof a
+            subsbal     = sum $ map (snd . snd . root) subs'
+            subs'       = map addbalances subs
+
+-- | Convert a list of postings to a map from account name to that
+-- account's postings.
+postingsByAccount :: [Posting] -> Map.Map AccountName [Posting]
+postingsByAccount ps = m'
+    where
+      sortedps = sortBy (comparing paccount) ps
+      groupedps = groupBy (\p1 p2 -> paccount p1 == paccount p2) sortedps
+      m' = Map.fromList [(paccount $ head g, g) | g <- groupedps]

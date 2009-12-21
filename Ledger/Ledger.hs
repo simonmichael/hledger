@@ -54,7 +54,7 @@ aliases for easier interaction. Here's an example:
 module Ledger.Ledger
 where
 import qualified Data.Map as Map
-import Data.Map ((!))
+import Data.Map ((!), fromList)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Account ()
@@ -71,56 +71,25 @@ instance Show Ledger where
              (length $ accountnames l)
              (showtree $ accountnametree l)
 
--- | Convert a journal to a more efficient cached ledger, described above.  
-cacheLedger :: [String] -> Journal -> Ledger
-cacheLedger apats j = Ledger{journaltext="",journal=j,accountnametree=ant,accountmap=acctmap}
-    where
-      (ant,psof,_,inclbalof) = groupPostings $ filterPostings apats $ journalPostings j
-      acctmap = Map.fromList [(a, mkacct a) | a <- flatten ant]
-          where mkacct a = Account a (psof a) (inclbalof a)
+nullledger :: Ledger
+nullledger = Ledger{
+      journaltext = "",
+      journal = nulljournal,
+      accountnametree = nullaccountnametree,
+      accountmap = fromList []
+    }
 
--- | Given a list of postings, return an account name tree and three query
--- functions that fetch postings, balance, and subaccount-including
--- balance by account name.  This factors out common logic from
--- cacheLedger and summarisePostingsInDateSpan.
-groupPostings :: [Posting] -> (Tree AccountName,
-                             (AccountName -> [Posting]),
-                             (AccountName -> MixedAmount), 
-                             (AccountName -> MixedAmount))
-groupPostings ps = (ant,psof,exclbalof,inclbalof)
-    where
-      anames = sort $ nub $ map paccount ps
-      ant = accountNameTreeFrom $ expandAccountNames anames
-      allanames = flatten ant
-      pmap = Map.union (postingsByAccount ps) (Map.fromList [(a,[]) | a <- allanames])
-      psof = (pmap !) 
-      balmap = Map.fromList $ flatten $ calculateBalances ant psof
-      exclbalof = fst . (balmap !)
-      inclbalof = snd . (balmap !)
+-- | Convert a journal to a more efficient cached ledger, described above.
+cacheLedger :: Journal -> Ledger
+cacheLedger j = nullledger{journal=j,accountnametree=ant,accountmap=amap}
+    where (ant, amap) = crunchJournal j
 
--- | Add subaccount-excluding and subaccount-including balances to a tree
--- of account names somewhat efficiently, given a function that looks up
--- transactions by account name.
-calculateBalances :: Tree AccountName -> (AccountName -> [Posting]) -> Tree (AccountName, (MixedAmount, MixedAmount))
-calculateBalances ant psof = addbalances ant
-    where 
-      addbalances (Node a subs) = Node (a,(bal,bal+subsbal)) subs'
-          where
-            bal         = sumPostings $ psof a
-            subsbal     = sum $ map (snd . snd . root) subs'
-            subs'       = map addbalances subs
+-- | Add (or recalculate) the cached journal info in a ledger.
+cacheLedger' :: Ledger -> CachedLedger
+cacheLedger' l = l{accountnametree=ant,accountmap=amap}
+    where (ant, amap) = crunchJournal $ journal l
 
--- | Convert a list of postings to a map from account name to that
--- account's postings.
-postingsByAccount :: [Posting] -> Map.Map AccountName [Posting]
-postingsByAccount ps = m'
-    where
-      sortedps = sortBy (comparing paccount) ps
-      groupedps = groupBy (\p1 p2 -> paccount p1 == paccount p2) sortedps
-      m' = Map.fromList [(paccount $ head g, g) | g <- groupedps]
-
-filterPostings :: [String] -> [Posting] -> [Posting]
-filterPostings apats = filter (matchpats apats . paccount)
+type CachedLedger = Ledger
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]

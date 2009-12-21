@@ -73,6 +73,8 @@ accountNameTreeFrom1 accts =
           accounttreesfrom as = [Node a (accounttreesfrom $ subs a) | a <- as]
           subs = subAccountNamesFrom (expandAccountNames accts)
 
+nullaccountnametree = Node "top" []
+
 accountNameTreeFrom2 accts = 
    Node "top" $ unfoldForest (\a -> (a, subs a)) $ topAccountNames accts
         where
@@ -164,4 +166,6 @@ elideAccountName width s =
           | length ss > 1 = elideparts width (done++[take 2 $ head ss]) (tail ss)
           | otherwise = done++ss
 
+clipAccountName :: Int -> AccountName -> AccountName
+clipAccountName n = accountNameFromComponents . take n . accountNameComponents
 

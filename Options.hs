@@ -197,15 +197,15 @@ intervalFromOpts opts =
       intervalopts = reverse $ filter (`elem` [WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
 
 -- | Get the value of the (last) depth option, if any, otherwise a large number.
-depthFromOpts :: [Opt] -> Int
-depthFromOpts opts = fromMaybe 9999 $ listtomaybeint $ optValuesForConstructor Depth opts
+depthFromOpts :: [Opt] -> Maybe Int
+depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
     where
       listtomaybeint [] = Nothing
       listtomaybeint vs = Just $ read $ last vs
 
 -- | Get the value of the (last) display option, if any.
-displayFromOpts :: [Opt] -> Maybe String
-displayFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
+displayExprFromOpts :: [Opt] -> Maybe String
+displayExprFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
     where
       listtomaybe [] = Nothing
       listtomaybe vs = Just $ last vs
@@ -247,10 +247,17 @@ optsToFilterSpec opts args t = FilterSpec {
                                 datespan=dateSpanFromOpts (localDay t) opts
                                ,cleared=clearedValueFromOpts opts
                                ,real=Real `elem` opts
+                               ,empty=Empty `elem` opts
                                ,costbasis=CostBasis `elem` opts
                                ,acctpats=apats
                                ,descpats=dpats
                                ,whichdate = if Effective `elem` opts then EffectiveDate else ActualDate
+                               ,depth = depthFromOpts opts
                                }
     where (apats,dpats) = parsePatternArgs args
+
+-- currentLocalTimeFromOpts opts = listtomaybe $ optValuesForConstructor CurrentLocalTime opts
+--     where
+--       listtomaybe [] = Nothing
+--       listtomaybe vs = Just $ last vs
 

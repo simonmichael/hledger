@@ -102,6 +102,7 @@ import Ledger.Types
 import Ledger.Amount
 import Ledger.AccountName
 import Ledger.Posting
+import Ledger.Journal
 import Ledger.Ledger
 import Options
 import System.IO.UTF8
@@ -109,23 +110,28 @@ import System.IO.UTF8
 
 -- | Print a balance report.
 balance :: [Opt] -> [String] -> Ledger -> IO ()
-balance opts args = putStr . showBalanceReport opts args
+balance opts args l = do
+  t <- getCurrentLocalTime
+  putStr $ showBalanceReport opts (optsToFilterSpec opts args t) l
 
 -- | Generate a balance report with the specified options for this ledger.
-showBalanceReport :: [Opt] -> [String] -> Ledger -> String
-showBalanceReport opts _ l = acctsstr ++ totalstr
+showBalanceReport :: [Opt] -> FilterSpec -> Ledger -> String
+showBalanceReport opts filterspec l@Ledger{journal=j} = acctsstr ++ totalstr
     where
+      l' = l{journal=j',accountnametree=ant,accountmap=amap} -- like cacheLedger
+          where (ant, amap) = crunchJournal j'
+                j' = filterJournalPostings filterspec{depth=Nothing} j
       acctsstr = unlines $ map showacct interestingaccts
           where
-            showacct = showInterestingAccount l interestingaccts
-            interestingaccts = filter (isInteresting opts l) acctnames
+            showacct = showInterestingAccount l' interestingaccts
+            interestingaccts = filter (isInteresting opts l') acctnames
             acctnames = sort $ tail $ flatten $ treemap aname accttree
-            accttree = ledgerAccountTree (depthFromOpts opts) l
+            accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l'
       totalstr | NoTotal `elem` opts = ""
                | notElem Empty opts && isZeroMixedAmount total = ""
                | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmountWithoutPrice total
           where
-            total = sum $ map abalance $ ledgerTopAccounts l
+            total = sum $ map abalance $ ledgerTopAccounts l'
 
 -- | Display one line of the balance report with appropriate indenting and eliding.
 showInterestingAccount :: Ledger -> [AccountName] -> AccountName -> String
@@ -147,7 +153,7 @@ isInteresting opts l a
     | numinterestingsubs==1 && not atmaxdepth = notlikesub
     | otherwise = notzero || emptyflag
     where
-      atmaxdepth = accountNameLevel a == depthFromOpts opts
+      atmaxdepth = isJust d && Just (accountNameLevel a) == d where d = depthFromOpts opts
       emptyflag = Empty `elem` opts
       acct = ledgerAccount l a
       notzero = not $ isZeroMixedAmount inclbalance where inclbalance = abalance acct

@@ -14,44 +14,33 @@ import System.IO.UTF8
 
 -- | Print a register report.
 register :: [Opt] -> [String] -> Ledger -> IO ()
-register opts args = putStr . showRegisterReport opts args
+register opts args l = do
+  t <- getCurrentLocalTime
+  putStr $ showRegisterReport opts (optsToFilterSpec opts args t) l
 
-{- |
-Generate the register report. Each ledger entry is displayed as two or
-more lines like this:
-
-@
-date (10)  description (20)     account (22)            amount (11)  balance (12)
-DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
-                                aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
-                                ...                     ...         ...
-@
--}
-showRegisterReport :: [Opt] -> [String] -> Ledger -> String
-showRegisterReport opts args l
-    | interval == NoInterval = showps displayedps nullposting startbal
-    | otherwise = showps summaryps nullposting startbal
+-- | Generate the register report, which is a list of postings with transaction
+-- info and a running balance.
+showRegisterReport :: [Opt] -> FilterSpec -> Ledger -> String
+showRegisterReport opts filterspec l
+    | interval == NoInterval = showpostings displayedps nullposting startbal
+    | otherwise = showpostings summaryps nullposting startbal
     where
-      interval = intervalFromOpts opts
-      ps = sortBy (comparing postingDate) $ filterempties $ filterPostings apats $ filterdepth $ ledgerPostings l
-      filterdepth | interval == NoInterval = filter (\p -> accountNameLevel (paccount p) <= depth)
-                  | otherwise = id
-      filterempties
-          | Empty `elem` opts = id
-          | otherwise = filter (not . isZeroMixedAmount . pamount)
-      (precedingps, ps') = break (matchdisplayopt dopt) ps
-      (displayedps, _) = span (matchdisplayopt dopt) ps'
       startbal = sumPostings precedingps
-      (apats,_) = parsePatternArgs args
-      matchdisplayopt Nothing _ = True
-      matchdisplayopt (Just e) p = (fromparse $ parsewith datedisplayexpr e) p
-      dopt = displayFromOpts opts
-      empty = Empty `elem` opts
-      depth = depthFromOpts opts
+      (displayedps, _) = span displayExprMatches restofps
+      (precedingps, restofps) = break displayExprMatches sortedps
+      sortedps = sortBy (comparing postingDate) ps
+      ps = journalPostings $ filterJournalPostings filterspec $ journal l
       summaryps = concatMap summarisespan spans
       summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
       postingsinspan s = filter (isPostingInDateSpan s) displayedps
       spans = splitSpan interval (ledgerDateSpan l)
+      interval = intervalFromOpts opts
+      empty = Empty `elem` opts
+      depth = depthFromOpts opts
+      dispexpr = displayExprFromOpts opts
+      displayExprMatches p = case dispexpr of
+                               Nothing -> True
+                               Just e  -> (fromparse $ parsewith datedisplayexpr e) p
                         
 -- | Given a date span (representing a reporting interval) and a list of
 -- postings within it: aggregate the postings so there is only one per
@@ -66,7 +55,7 @@ showRegisterReport opts args l
 -- 
 -- The showempty flag forces the display of a zero-posting span
 -- and also zero-posting accounts within the span.
-summarisePostingsInDateSpan :: DateSpan -> Int -> Bool -> [Posting] -> [Posting]
+summarisePostingsInDateSpan :: DateSpan -> Maybe Int -> Bool -> [Posting] -> [Posting]
 summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
     | null ps && showempty = [p]
     | null ps = []
@@ -82,29 +71,34 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
       anames = sort $ nub $ map paccount ps
       -- aggregate balances by account, like cacheLedger, then do depth-clipping
       (_,_,exclbalof,inclbalof) = groupPostings ps
-      clippedanames = clipAccountNames depth anames
-      isclipped a = accountNameLevel a >= depth
+      clippedanames = nub $ map (clipAccountName d) anames
+      isclipped a = accountNameLevel a >= d
+      d = fromMaybe 99999 $ depth
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
       summaryps = [p{paccount=a,pamount=balancetoshowfor a} | a <- clippedanames]
 
-clipAccountNames :: Int -> [AccountName] -> [AccountName]
-clipAccountNames d as = nub $ map (clip d) as 
-    where clip d = accountNameFromComponents . take d . accountNameComponents
+{- |
+Show postings one per line, plus transaction info for the first posting of
+each transaction, and a running balance. Eg:
 
--- | Show postings one per line, along with transaction info for the first
--- posting of each transaction, and a running balance.
-showps :: [Posting] -> Posting -> MixedAmount -> String
-showps [] _ _ = ""
-showps (p:ps) pprev bal = this ++ showps ps p bal'
+@
+date (10)  description (20)     account (22)            amount (11)  balance (12)
+DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+                                aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+@
+-}
+showpostings :: [Posting] -> Posting -> MixedAmount -> String
+showpostings [] _ _ = ""
+showpostings (p:ps) pprev bal = this ++ showpostings ps p bal'
     where
-      this = showp isfirst p bal'
+      this = showposting isfirst p bal'
       isfirst = ptransaction p /= ptransaction pprev
       bal' = bal + pamount p
 
 -- | Show one posting and running balance, with or without transaction info.
-showp :: Bool -> Posting -> MixedAmount -> String
-showp withtxninfo p b = concatBottomPadded [txninfo ++ pstr ++ " ", bal] ++ "\n"
+showposting :: Bool -> Posting -> MixedAmount -> String
+showposting withtxninfo p b = concatBottomPadded [txninfo ++ pstr ++ " ", bal] ++ "\n"
     where
       ledger3ishlayout = False
       datedescwidth = if ledger3ishlayout then 34 else 32

@@ -17,10 +17,12 @@ barchar = '*'
 -- | Print a histogram of some statistic per reporting interval, such as
 -- number of postings per day.
 histogram :: [Opt] -> [String] -> Ledger -> IO ()
-histogram opts args = putStr . showHistogram opts args
+histogram opts args l = do
+  t <- getCurrentLocalTime
+  putStr $ showHistogram opts (optsToFilterSpec opts args t) l
 
-showHistogram :: [Opt] -> [String] -> Ledger -> String
-showHistogram opts args l = concatMap (printDayWith countBar) dayps
+showHistogram :: [Opt] -> FilterSpec -> Ledger -> String
+showHistogram opts filterspec l = concatMap (printDayWith countBar) dayps
     where
       i = intervalFromOpts opts
       interval | i == NoInterval = Daily
@@ -35,10 +37,10 @@ showHistogram opts args l = concatMap (printDayWith countBar) dayps
           | Empty `elem` opts = id
           | otherwise = filter (not . isZeroMixedAmount . pamount)
       matchapats = matchpats apats . paccount
-      (apats,_) = parsePatternArgs args
+      apats = acctpats filterspec
       filterdepth | interval == NoInterval = filter (\p -> accountNameLevel (paccount p) <= depth)
                   | otherwise = id
-      depth = depthFromOpts opts
+      depth = fromMaybe 99999 $ depthFromOpts opts
 
 printDayWith f (DateSpan b _, ts) = printf "%s %s\n" (show $ fromJust b) (f ts)
 

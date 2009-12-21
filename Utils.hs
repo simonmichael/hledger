@@ -9,14 +9,14 @@ module Utils
 where
 import Control.Monad.Error
 import Ledger
-import Options (Opt,ledgerFilePathFromOpts,optsToFilterSpec)
+import Options (Opt(..),ledgerFilePathFromOpts) -- ,optsToFilterSpec)
 import System.Directory (doesFileExist)
 import System.IO (stderr)
 import System.IO.UTF8 (hPutStrLn)
 import System.Exit
 import System.Cmd (system)
 import System.Info (os)
-import System.Time (getClockTime)
+import System.Time (ClockTime,getClockTime)
 
 
 -- | Parse the user's specified ledger file and run a hledger command on
@@ -30,30 +30,37 @@ withLedgerDo opts args cmdname cmd = do
   let f' = if f == "-" then "/dev/null" else f
   fileexists <- doesFileExist f
   let creating = not fileexists && cmdname == "add"
-  rawtext <-  if creating then return "" else strictReadFile f'
   t <- getCurrentLocalTime
   tc <- getClockTime
-  let go = cmd opts args . filterAndCacheLedgerWithOpts opts args t rawtext . (\rl -> rl{filepath=f,filereadtime=tc})
-  if creating then go nulljournal else (runErrorT . parseLedgerFile t) f
-         >>= flip either go
-                 (\e -> hPutStrLn stderr e >> exitWith (ExitFailure 1))
+  txt <-  if creating then return "" else strictReadFile f'
+  let runcmd = cmd opts args . mkLedger opts f tc txt
+  if creating
+   then runcmd nulljournal
+   else (runErrorT . parseLedgerFile t) f >>= either parseerror runcmd
+    where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
+
+mkLedger :: [Opt] -> FilePath -> ClockTime -> String -> Journal -> Ledger
+mkLedger opts f tc txt j = nullledger{journaltext=txt,journal=j'}
+    where j' = (canonicaliseAmounts costbasis j){filepath=f,filereadtime=tc}
+          costbasis=CostBasis `elem` opts
 
 -- | Get a Ledger from the given string and options, or raise an error.
-ledgerFromStringWithOpts :: [Opt] -> [String] -> LocalTime -> String -> IO Ledger
-ledgerFromStringWithOpts opts args reftime s =
-    liftM (filterAndCacheLedgerWithOpts opts args reftime s) $ journalFromString s
+ledgerFromStringWithOpts :: [Opt] -> String -> IO Ledger
+ledgerFromStringWithOpts opts s = do
+    tc <- getClockTime
+    j <- journalFromString s
+    return $ mkLedger opts "" tc s j
 
--- | Read a Ledger from the given file, filtering according to the
--- options, or give an error.
-readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger
-readLedgerWithOpts opts args f = do
-  t <- getCurrentLocalTime
-  readLedgerWithFilterSpec (optsToFilterSpec opts args t) f
+-- -- | Read a Ledger from the given file, or give an error.
+-- readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger
+-- readLedgerWithOpts opts args f = do
+--   t <- getCurrentLocalTime
+--   readLedger f
            
--- | Convert a Journal to a canonicalised, cached and filtered Ledger
--- based on the command-line options/arguments and a reference time.
-filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> Journal -> Ledger
-filterAndCacheLedgerWithOpts opts args = filterAndCacheLedger . optsToFilterSpec opts args
+-- -- | Convert a Journal to a canonicalised, cached and filtered Ledger
+-- -- based on the command-line options/arguments and a reference time.
+-- filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> Journal -> Ledger
+-- filterAndCacheLedgerWithOpts opts args = filterAndCacheLedger . optsToFilterSpec opts args
 
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode

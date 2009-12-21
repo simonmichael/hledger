@@ -154,8 +154,9 @@ appendToLedgerFile l s =
 registerFromString :: String -> IO String
 registerFromString s = do
   now <- getCurrentLocalTime
-  l <- ledgerFromStringWithOpts [] [] now s
-  return $ showRegisterReport [Empty] [] l
+  l <- ledgerFromStringWithOpts [] s
+  return $ showRegisterReport opts (optsToFilterSpec opts [] now) l
+    where opts = [Empty]
 
 -- | Return a similarity measure, from 0 to 1, for two strings.
 -- This is Simon White's letter pairs algorithm from
