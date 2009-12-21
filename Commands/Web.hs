@@ -208,7 +208,7 @@ navbar env =
     <div id="navbar">
       <a href="http://hledger.org" id="hledgerorglink">hledger.org</a>
       <% navlinks env %>
---      <% searchform env %>
+      <% searchform env %>
       <a href="http://hledger.org/MANUAL.html" id="helplink">help</a>
     </div>
 
