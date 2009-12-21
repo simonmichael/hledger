@@ -138,11 +138,7 @@ ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 -- | The (fully specified) date span containing all the ledger's (filtered) transactions,
 -- or DateSpan Nothing Nothing if there are none.
 ledgerDateSpan :: Ledger -> DateSpan
-ledgerDateSpan l
-    | null ps = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just $ postingDate $ head ps) (Just $ addDays 1 $ postingDate $ last ps)
-    where
-      ps = sortBy (comparing postingDate) $ ledgerPostings l
+ledgerDateSpan = postingsDateSpan . ledgerPostings
 
 -- | Convenience aliases.
 accountnames :: Ledger -> [AccountName]

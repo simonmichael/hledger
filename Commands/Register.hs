@@ -33,7 +33,7 @@ showRegisterReport opts filterspec l
       summaryps = concatMap summarisespan spans
       summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
       postingsinspan s = filter (isPostingInDateSpan s) displayedps
-      spans = splitSpan interval (ledgerDateSpan l)
+      spans = splitSpan interval (postingsDateSpan displayedps)
       interval = intervalFromOpts opts
       empty = Empty `elem` opts
       depth = depthFromOpts opts

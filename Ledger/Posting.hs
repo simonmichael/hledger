@@ -86,3 +86,10 @@ isPostingInDateSpan (DateSpan (Just b) (Just e)) p = d >= b && d < e where d = p
 isEmptyPosting :: Posting -> Bool
 isEmptyPosting = isZeroMixedAmount . pamount
 
+-- | Get the minimal date span which contains all the postings, or
+-- DateSpan Nothing Nothing if there are none.
+postingsDateSpan :: [Posting] -> DateSpan
+postingsDateSpan [] = DateSpan Nothing Nothing
+postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
+    where ps' = sortBy (comparing postingDate) ps
+
