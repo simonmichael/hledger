@@ -73,7 +73,6 @@ instance Show Ledger where
 
 nullledger :: Ledger
 nullledger = Ledger{
-      journaltext = "",
       journal = nulljournal,
       accountnametree = nullaccountnametree,
       accountmap = fromList []

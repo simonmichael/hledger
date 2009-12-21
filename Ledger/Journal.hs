@@ -39,6 +39,7 @@ nulljournal = Journal { jmodifiertxns = []
                       , final_comment_lines = []
                       , filepath = ""
                       , filereadtime = TOD 0 0
+                      , jtext = ""
                       }
 
 addTransaction :: Transaction -> Journal -> Journal
@@ -116,25 +117,22 @@ filterJournalPostings FilterSpec{datespan=datespan
 
 -- | Keep only ledger transactions whose description matches the description patterns.
 filterJournalTransactionsByDescription :: [String] -> Journal -> Journal
-filterJournalTransactionsByDescription pats (Journal ms ps ts tls hs f fp ft) =
-    Journal ms ps (filter matchdesc ts) tls hs f fp ft
+filterJournalTransactionsByDescription pats j@Journal{jtxns=ts} = j{jtxns=filter matchdesc ts}
     where matchdesc = matchpats pats . tdescription
 
 -- | Keep only ledger transactions which fall between begin and end dates.
 -- We include transactions on the begin date and exclude transactions on the end
 -- date, like ledger.  An empty date string means no restriction.
 filterJournalTransactionsByDate :: DateSpan -> Journal -> Journal
-filterJournalTransactionsByDate (DateSpan begin end) (Journal ms ps ts tls hs f fp ft) =
-    Journal ms ps (filter matchdate ts) tls hs f fp ft
-    where
-      matchdate t = maybe True (tdate t>=) begin && maybe True (tdate t<) end
+filterJournalTransactionsByDate (DateSpan begin end) j@Journal{jtxns=ts} = j{jtxns=filter match ts}
+    where match t = maybe True (tdate t>=) begin && maybe True (tdate t<) end
 
 -- | Keep only ledger transactions which have the requested
 -- cleared/uncleared status, if there is one.
 filterJournalTransactionsByClearedStatus :: Maybe Bool -> Journal -> Journal
 filterJournalTransactionsByClearedStatus Nothing j = j
-filterJournalTransactionsByClearedStatus (Just val) (Journal ms ps ts tls hs f fp ft) =
-    Journal ms ps (filter ((==val).tstatus) ts) tls hs f fp ft
+filterJournalTransactionsByClearedStatus (Just val) j@Journal{jtxns=ts} = j{jtxns=filter match ts}
+    where match = (==val).tstatus
 
 -- | Keep only postings which have the requested cleared/uncleared status,
 -- if there is one.
@@ -147,15 +145,13 @@ filterJournalPostingsByClearedStatus (Just c) j@Journal{jtxns=ts} = j{jtxns=map 
 -- no filtering.
 filterJournalPostingsByRealness :: Bool -> Journal -> Journal
 filterJournalPostingsByRealness False l = l
-filterJournalPostingsByRealness True (Journal mts pts ts tls hs f fp ft) =
-    Journal mts pts (map filterpostings ts) tls hs f fp ft
+filterJournalPostingsByRealness True j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
     where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter isReal ps}
 
 -- | Strip out any postings with zero amount, unless the flag is true.
 filterJournalPostingsByEmpty :: Bool -> Journal -> Journal
 filterJournalPostingsByEmpty True l = l
-filterJournalPostingsByEmpty False (Journal mts pts ts tls hs f fp ft) =
-    Journal mts pts (map filterpostings ts) tls hs f fp ft
+filterJournalPostingsByEmpty False j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
     where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (not . isEmptyPosting) ps}
 
 -- | Keep only transactions which affect accounts deeper than the specified depth.
@@ -168,15 +164,15 @@ filterJournalTransactionsByDepth (Just d) j@Journal{jtxns=ts} =
 -- (and any ledger transactions which have no postings as a result).
 filterJournalPostingsByDepth :: Maybe Int -> Journal -> Journal
 filterJournalPostingsByDepth Nothing j = j
-filterJournalPostingsByDepth (Just d) (Journal mts pts ts tls hs f fp ft) =
-    Journal mts pts (filter (not . null . tpostings) $ map filtertxns ts) tls hs f fp ft
+filterJournalPostingsByDepth (Just d) j@Journal{jtxns=ts} =
+    j{jtxns=filter (not . null . tpostings) $ map filtertxns ts}
     where filtertxns t@Transaction{tpostings=ps} =
               t{tpostings=filter ((<= d) . accountNameLevel . paccount) ps}
 
 -- | Keep only transactions which affect accounts matched by the account patterns.
 filterJournalTransactionsByAccount :: [String] -> Journal -> Journal
-filterJournalTransactionsByAccount apats (Journal ms ps ts tls hs f fp ft) =
-    Journal ms ps (filter (any (matchpats apats . paccount) . tpostings) ts) tls hs f fp ft
+filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter match ts}
+    where match = any (matchpats apats . paccount) . tpostings
 
 -- | Keep only postings which affect accounts matched by the account patterns.
 -- This can leave transactions unbalanced.
@@ -198,7 +194,7 @@ journalSelectingDate EffectiveDate j =
 -- Also, amounts are converted to cost basis if that flag is active.
 -- XXX refactor
 canonicaliseAmounts :: Bool -> Journal -> Journal
-canonicaliseAmounts costbasis j@(Journal ms ps ts tls hs f fp ft) = Journal ms ps (map fixledgertransaction ts) tls hs f fp ft
+canonicaliseAmounts costbasis j@Journal{jtxns=ts} = j{jtxns=map fixledgertransaction ts}
     where
       fixledgertransaction (Transaction d ed s c de co ts pr) = Transaction d ed s c de co (map fixrawposting ts) pr
           where

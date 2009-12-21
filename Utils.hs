@@ -42,8 +42,8 @@ withLedgerDo opts args cmdname cmd = do
     where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
 
 mkLedger :: [Opt] -> FilePath -> ClockTime -> String -> Journal -> Ledger
-mkLedger opts f tc txt j = nullledger{journaltext=txt,journal=j'}
-    where j' = (canonicaliseAmounts costbasis j){filepath=f,filereadtime=tc}
+mkLedger opts f tc txt j = nullledger{journal=j'}
+    where j' = (canonicaliseAmounts costbasis j){filepath=f,filereadtime=tc,jtext=txt}
           costbasis=CostBasis `elem` opts
 
 -- | Get a Ledger from the given string and options, or raise an error.

@@ -1240,6 +1240,7 @@ journal7 = Journal
           ""
           ""
           (TOD 0 0)
+          ""
 
 ledger7 = cacheLedger journal7
 
@@ -1274,5 +1275,6 @@ journalWithAmounts as =
         ""
         ""
         (TOD 0 0)
+        ""
     where parse = fromparse . parseWithCtx emptyCtx postingamount . (" "++)
 

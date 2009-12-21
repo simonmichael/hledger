@@ -64,7 +64,7 @@ readLedger f = do
   t <- getClockTime
   s <- readFile f
   j <- journalFromString s
-  return $ cacheLedger' $ nullledger{journaltext=s,journal=j{filepath=f,filereadtime=t}}
+  return $ cacheLedger' $ nullledger{journal=j{filepath=f,filereadtime=t,jtext=s}}
 
 -- -- | Read a ledger from this file, filtering according to the filter spec.,
 -- -- | or give an error.
@@ -81,17 +81,6 @@ journalFromString :: String -> IO Journal
 journalFromString s = do
   t <- getCurrentLocalTime
   liftM (either error id) $ runErrorT $ parseLedger t "(string)" s
-
--- -- | Convert a Journal to a canonicalised, cached and filtered Ledger.
--- filterAndCacheLedger :: FilterSpec -> String -> Journal -> Ledger
--- filterAndCacheLedger _ -- filterspec
---                      rawtext
---                      j =
---     (cacheLedger $
---     -- journalSelectingDate whichdate $
---      j
--- --    filterJournalPostings filterspec $ filterJournalTransactions filterspec j
---     ){journaltext=rawtext}
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

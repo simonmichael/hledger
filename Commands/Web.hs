@@ -110,7 +110,7 @@ reloadIfChanged opts _ l = do
    else return l
 
 -- refilter :: [Opt] -> [String] -> Ledger -> LocalTime -> IO Ledger
--- refilter opts args l t = return $ filterAndCacheLedgerWithOpts opts args t (journaltext l) (journal l)
+-- refilter opts args l t = return $ filterAndCacheLedgerWithOpts opts args t (jtext $ journal l) (journal l)
 
 server :: [Opt] -> [String] -> Ledger -> IO ()
 server opts args l =

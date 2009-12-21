@@ -121,7 +121,8 @@ data Journal = Journal {
       historical_prices :: [HistoricalPrice],
       final_comment_lines :: String,
       filepath :: FilePath,
-      filereadtime :: ClockTime
+      filereadtime :: ClockTime,
+      jtext :: String
     } deriving (Eq)
 
 data Account = Account {
@@ -131,7 +132,6 @@ data Account = Account {
     }
 
 data Ledger = Ledger {
-      journaltext :: String,
       journal :: Journal,
       accountnametree :: Tree AccountName,
       accountmap :: Map.Map AccountName Account
