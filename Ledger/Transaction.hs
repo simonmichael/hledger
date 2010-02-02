@@ -1,7 +1,7 @@
 {-|
 
-A 'Transaction' represents a regular transaction in the ledger
-file. It normally contains two or more balanced 'Posting's.
+A 'Transaction' represents a single balanced entry in the ledger file. It
+normally contains two or more balanced 'Posting's.
 
 -}
 
