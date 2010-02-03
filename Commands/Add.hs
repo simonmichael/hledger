@@ -34,14 +34,15 @@ add opts args l
 -- prompting, validating, displaying and appending them to the ledger
 -- file, until end of input (then raise an EOF exception). Any
 -- command-line arguments are used as the first transaction's description.
-getAndAddTransactions :: Ledger -> [String] -> IO ()
-getAndAddTransactions l args = do
-  l <- getTransaction l args >>= addTransaction l
-  getAndAddTransactions l []
+getAndAddTransactions :: Ledger -> [Opt] -> [String] -> Day -> IO ()
+getAndAddTransactions l opts args defaultDate = do
+  (ledgerTransaction,date) <- getTransaction l opts args defaultDate
+  l <- ledgerAddTransaction l ledgerTransaction
+  getAndAddTransactions l opts args date
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Ledger -> [String] -> IO LedgerTransaction
-getTransaction l args = do
+getTransaction :: Ledger -> [Opt] -> [String] -> Day -> IO (Transaction,Day)
+getTransaction l opts args defaultDate = do
   today <- getCurrentDay
   datestr <- askFor "date" 
             (Just $ showDate defaultDate)
@@ -68,7 +69,7 @@ getTransaction l args = do
             retry = do
               hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
               getpostingsandvalidate
-        either (const retry) return $ balanceLedgerTransaction t
+        either (const retry) (return . flip (,) date) $ balanceTransaction t
   unless (null historymatches) 
        (do
          hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"
