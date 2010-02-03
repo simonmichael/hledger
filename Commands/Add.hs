@@ -27,7 +27,8 @@ add opts args l
   hPutStrLn stderr
     "Enter one or more transactions, which will be added to your ledger file.\n\
     \To complete a transaction, enter . as account name. To quit, enter control-d."
-  getAndAddTransactions l opts args `catch` (\e -> unless (isEOFError e) $ ioError e)
+  today <- getCurrentDay
+  getAndAddTransactions l opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger
@@ -43,7 +44,7 @@ getTransaction :: Ledger -> [String] -> IO LedgerTransaction
 getTransaction l args = do
   today <- getCurrentDay
   datestr <- askFor "date" 
-            (Just $ showDate today)
+            (Just $ showDate defaultDate)
             (Just $ \s -> null s || 
              isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
   description <- askFor "description" Nothing (Just $ not . null) 
@@ -67,7 +68,7 @@ getTransaction l args = do
             retry = do
               hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
               getpostingsandvalidate
-        either (const retry) return $ balanceTransaction t
+        either (const retry) return $ balanceLedgerTransaction t
   unless (null historymatches) 
        (do
          hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"
