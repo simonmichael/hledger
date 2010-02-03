@@ -124,7 +124,6 @@ server opts args l =
     runWithConfig (ServerConf tcpport hostname) $            -- (Env -> IO Response) -> IO ()
       \env -> do -- IO Response
        -- general request handler
-       printf $ "request\n"
        let a = intercalate "+" $ reqparam env "a"
            p = intercalate "+" $ reqparam env "p"
            opts' = opts ++ [Period p]
