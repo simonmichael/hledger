@@ -15,19 +15,19 @@ import System.IO (stderr, hFlush)
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Utils (ledgerFromStringWithOpts)
-
+import qualified Data.Foldable as Foldable (find)
 
 -- | Read ledger transactions from the terminal, prompting for each field,
 -- and append them to the ledger file. If the ledger came from stdin, this
 -- command has no effect.
 add :: [Opt] -> [String] -> Ledger -> IO ()
-add _ args l
+add opts args l
     | filepath (journal l) == "-" = return ()
     | otherwise = do
   hPutStrLn stderr
     "Enter one or more transactions, which will be added to your ledger file.\n\
     \To complete a transaction, enter . as account name. To quit, enter control-d."
-  getAndAddTransactions l args `catch` (\e -> unless (isEOFError e) $ ioError e)
+  getAndAddTransactions l opts args `catch` (\e -> unless (isEOFError e) $ ioError e)
 
 -- | Read a number of ledger transactions from the command line,
 -- prompting, validating, displaying and appending them to the ledger
@@ -35,11 +35,11 @@ add _ args l
 -- command-line arguments are used as the first transaction's description.
 getAndAddTransactions :: Ledger -> [String] -> IO ()
 getAndAddTransactions l args = do
-  l <- getTransaction l args >>= ledgerAddTransaction l
+  l <- getTransaction l args >>= addTransaction l
   getAndAddTransactions l []
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Ledger -> [String] -> IO Transaction
+getTransaction :: Ledger -> [String] -> IO LedgerTransaction
 getTransaction l args = do
   today <- getCurrentDay
   datestr <- askFor "date" 
@@ -52,8 +52,13 @@ getTransaction l args = do
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
+      accept x = x == "." || (not . null) x &&
+        if NoNewAccts `elem` opts
+            then isJust $ Foldable.find (== x) ant
+            else True
+        where (ant,_,_,_) = groupTransactions . rawLedgerTransactions . rawledger $ l
       getpostingsandvalidate = do
-        ps <- getPostings bestmatchpostings []
+        ps <- getPostings accept bestmatchpostings []
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
@@ -71,9 +76,9 @@ getTransaction l args = do
 
 -- | Read postings from the command line until . is entered, using the
 -- provided historical postings, if any, to guess defaults.
-getPostings :: Maybe [Posting] -> [Posting] -> IO [Posting]
-getPostings historicalps enteredps = do
-  account <- askFor (printf "account %d" n) defaultaccount (Just $ not . null)
+getPostings :: (AccountName -> Bool) -> Maybe [Posting] -> [Posting] -> IO [Posting]
+getPostings accept historicalps enteredps = do
+  account <- askFor (printf "account %d" n) defaultaccount (Just accept)
   if account=="."
     then return enteredps
     else do
@@ -82,7 +87,7 @@ getPostings historicalps enteredps = do
       let p = nullposting{paccount=stripbrackets account,
                           pamount=amount,
                           ptype=postingtype account}
-      getPostings historicalps $ enteredps ++ [p]
+      getPostings accept historicalps $ enteredps ++ [p]
     where
       n = length enteredps + 1
       enteredrealps = filter isReal enteredps

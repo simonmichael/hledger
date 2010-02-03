@@ -64,6 +64,7 @@ usage = usageInfo usagehdr options ++ usageftr
 options :: [OptDescr Opt]
 options = [
   Option "f" ["file"]         (ReqArg File "FILE")   "use a different ledger/timelog file; - means stdin"
+ ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)   "don't allow to create new accounts"
  ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
  ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
  ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
@@ -99,6 +100,7 @@ options = [
 -- | An option value from a command-line flag.
 data Opt = 
     File    {value::String} | 
+    NoNewAccts |
     Begin   {value::String} | 
     End     {value::String} | 
     Period  {value::String} | 
