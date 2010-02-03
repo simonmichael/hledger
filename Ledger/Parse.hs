@@ -310,7 +310,7 @@ ledgerDefaultYear = do
 ledgerTransaction :: GenParser Char LedgerFileCtx Transaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
-  edate <- try (ledgereffectivedate <?> "effective date") <|> return Nothing
+  edate <- try (ledgereffectivedate date <?> "effective date") <|> return Nothing
   status <- ledgerstatus
   code <- ledgercode
   description <- many1 spacenonewline >> liftM rstrip (many1 (noneOf ";\n") <?> "description")
@@ -352,10 +352,17 @@ ledgerdatetime = do
   let tod = TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s)
   return $ LocalTime day tod
 
-ledgereffectivedate :: GenParser Char LedgerFileCtx (Maybe Day)
-ledgereffectivedate = do
+ledgereffectivedate :: Day -> GenParser Char LedgerFileCtx (Maybe Day)
+ledgereffectivedate actualdate = do
   char '='
-  edate <- ledgerdate
+  -- kludgily use actual date for default year
+  let withDefaultYear d p = do
+        y <- getYear
+        let (y',_,_) = toGregorian d in setYear y'
+        r <- p
+        when (isJust y) $ setYear $ fromJust y
+        return r
+  edate <- withDefaultYear actualdate ledgerdate
   return $ Just edate
 
 ledgerstatus :: GenParser Char st Bool
