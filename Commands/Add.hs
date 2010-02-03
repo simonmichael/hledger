@@ -57,7 +57,7 @@ getTransaction l args = do
         if NoNewAccts `elem` opts
             then isJust $ Foldable.find (== x) ant
             else True
-        where (ant,_,_,_) = groupTransactions . rawLedgerTransactions . rawledger $ l
+        where (ant,_,_,_) = groupPostings . journalPostings . journal $ l
       getpostingsandvalidate = do
         ps <- getPostings accept bestmatchpostings []
         let t = nulltransaction{tdate=date
