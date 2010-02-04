@@ -48,16 +48,23 @@ If not, please report the problem, then install the `Haskell Platform`_ and type
  cabal update
  cabal install hledger
 
-You can add some options to the install step to build extra hledger features:
+You can add some options to the install command to include extra features:
 
 - Add ``-fvty`` to build the `ui <#ui>`_ command. This is not available on microsoft windows.
 
-- Add ``-fweb`` to build the `web <#web>`_ command. With some versions
-  of the haskell platform, you may need to help cabal figure out the
-  dependencies. This worked for me with haskell platform 2009.2.0.2 on
-  windows::
+- Add ``-fweb`` to build the `web <#web>`_ command.
 
-    cabal install hledger -fweb --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
+- Add ``-fchart`` to build the `chart <#chart>`_ command. This requires
+  gtk2hs_, which you'll need to install yourself as it's not yet provided
+  by the haskell platform or cabal.
+
+About cabal dependency problems: in some cases, cabal install can fail
+with a compilation or link error due to incompatible package versions.
+You can sometimes work around this by specifying versions manually.
+Eg here's a recipe for haskell platform 2009.2.0.2 on MS Windows::
+
+ cabal install hledger -fweb --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
+
 
 Basic usage
 ...........
@@ -240,7 +247,7 @@ The balance command displays accounts and their balances.
 chart
 '''''
 
-The chart command generates a pie chart image for your account balances.
+The chart command generates a pie chart image of your account balances.
 The image will have filename "hledger.png" (or use -o/--output) and
 dimensions 1024x1024 (or use --size=WIDTHxHEIGHT).
 
@@ -641,3 +648,4 @@ Tips
 .. _binaries:              http://hledger.org/binaries/
 .. _Haskell Platform:      http://hackage.haskell.org/platform/
 .. _CSV:                   http://en.wikipedia.org/wiki/Comma-separated_values
+.. _gtk2hs:                http://www.haskell.org/gtk2hs/download/
