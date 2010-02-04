@@ -155,7 +155,7 @@ executable hledger
     cpp-options: -DCHART
     other-modules:Commands.Chart
     build-depends:
-                  Chart >= 0.11 && < 0.12
+                  Chart >= 0.11
                  ,colour
 
 -- source-repository head
