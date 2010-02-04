@@ -77,6 +77,7 @@ account name or transaction description.  Here are some commands to try
  hledger histogram                     # transactions per day, or other interval
  hledger ui                            # curses ui, if installed with -fvty
  hledger web                           # web ui, if installed with -fweb
+ hledger chart                         # make a balance chart, if installed with -fchart
  hledger -f new.ledger add             # record transactions from the command line
 
 Reference
@@ -113,6 +114,7 @@ Here is the command-line help::
    stats     - show various statistics for a ledger
    ui        - run a simple text-based UI
    web       - run a simple web-based UI
+   chart     - generate a balances pie chart
    test      - run self-tests
  
  PATTERNS are regular expressions which filter by account name.
@@ -122,31 +124,34 @@ Here is the command-line help::
  DATES can be y/m/d or ledger-style smart dates like "last month".
  
  Options:
-   -f FILE  --file=FILE        use a different ledger/timelog file; - means stdin
-   -b DATE  --begin=DATE       report on transactions on or after this date
-   -e DATE  --end=DATE         report on transactions before this date
-   -p EXPR  --period=EXPR      report on transactions during the specified period
-                               and/or with the specified reporting interval
-   -C       --cleared          report only on cleared transactions
-   -U       --uncleared        report only on uncleared transactions
-   -B       --cost, --basis    report cost of commodities
-            --depth=N          hide accounts/transactions deeper than this
-   -d EXPR  --display=EXPR     show only transactions matching EXPR (where
-                               EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
-            --effective        use transactions' effective dates, if any
-   -E       --empty            show empty/zero things which are normally elided
-   -R       --real             report only on real (non-virtual) transactions
-            --no-total         balance report: hide the final total
-   -W       --weekly           register report: show weekly summary
-   -M       --monthly          register report: show monthly summary
-   -Q       --quarterly        register report: show quarterly summary
-   -Y       --yearly           register report: show yearly summary
-   -h       --help             show this help
-   -V       --version          show version information
-   -v       --verbose          show verbose test output
-            --binary-filename  show the download filename for this hledger build
-            --debug            show extra debug output; implies verbose
-            --debug-no-ui      run ui commands with no output
+  -f FILE  --file=FILE          use a different ledger/timelog file; - means stdin
+           --no-new-accounts    don't allow to create new accounts
+  -b DATE  --begin=DATE         report on transactions on or after this date
+  -e DATE  --end=DATE           report on transactions before this date
+  -p EXPR  --period=EXPR        report on transactions during the specified period
+                                and/or with the specified reporting interval
+  -C       --cleared            report only on cleared transactions
+  -U       --uncleared          report only on uncleared transactions
+  -B       --cost, --basis      report cost of commodities
+           --depth=N            hide accounts/transactions deeper than this
+  -d EXPR  --display=EXPR       show only transactions matching EXPR (where
+                                EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
+           --effective          use transactions' effective dates, if any
+  -E       --empty              show empty/zero things which are normally elided
+  -R       --real               report only on real (non-virtual) transactions
+           --no-total           balance report: hide the final total
+  -W       --weekly             register report: show weekly summary
+  -M       --monthly            register report: show monthly summary
+  -Q       --quarterly          register report: show quarterly summary
+  -Y       --yearly             register report: show yearly summary
+  -h       --help               show this help
+  -V       --version            show version information
+  -v       --verbose            show verbose test output
+           --binary-filename    show the download filename for this hledger build
+           --debug              show extra debug output; implies verbose
+           --debug-no-ui        run ui commands with no output
+  -o FILE  --output=FILE        chart: output filename (default: hledger.png)
+           --size=WIDTHxHEIGHT  chart: image size (default: 1024x1024)
  
 File format
 ...........
@@ -224,6 +229,13 @@ balance
 '''''''
 
 The balance command displays accounts and their balances.
+
+chart
+'''''
+
+The chart command generates a pie chart image for your account balances.
+The image will have filename "hledger.png" (or use -o/--output) and
+dimensions 1024x1024 (or use --size=WIDTHxHEIGHT).
 
 histogram
 '''''''''
