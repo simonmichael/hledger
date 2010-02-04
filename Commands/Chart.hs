@@ -56,7 +56,7 @@ genPie opts _ l = defaultPieLayout
       items = mapMaybe (uncurry accountPieItem) $
               flatten $
               balances $
-              ledgerAccountTree (depthFromOpts opts) l
+              ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ cacheLedger' l
 
 -- | Convert all quantities of MixedAccount to a single commodity
 amountValue :: MixedAmount -> Double
