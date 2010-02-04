@@ -178,13 +178,13 @@ compareLedgerDescriptions s t = compareStrings s' t'
           t' = simplify t
           simplify = filter (not . (`elem` "0123456789"))
 
-transactionsSimilarTo :: Ledger -> String -> [(Double,LedgerTransaction)]
-transactionsSimilarTo l s =
+transactionsSimilarTo :: Ledger -> [String] -> String -> [(Double,Transaction)]
+transactionsSimilarTo l apats s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
                [(compareLedgerDescriptions s $ tdescription t, t) | t <- ts]
     where
-      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,ltdate t2) (n1,ltdate t1)
-      ts = ledger_txns $ rawledger l
+      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
+      ts = jtxns $ filterJournalTransactionsByAccount apats $ journal l
       threshold = 0
 
