@@ -54,10 +54,10 @@ aliases for easier interaction. Here's an example:
 module Ledger.Ledger
 where
 import qualified Data.Map as Map
-import Data.Map ((!), fromList)
+import Data.Map (findWithDefault, fromList)
 import Ledger.Utils
 import Ledger.Types
-import Ledger.Account ()
+import Ledger.Account (nullacct)
 import Ledger.AccountName
 import Ledger.Journal
 import Ledger.Posting
@@ -100,9 +100,11 @@ type CachedLedger = Ledger
 ledgerAccountNames :: Ledger -> [AccountName]
 ledgerAccountNames = drop 1 . flatten . accountnametree
 
--- | Get the named account from a ledger.
+-- | Get the named account from a (cached) ledger.
+-- If the ledger has not been cached (with crunchJournal or
+-- cacheLedger'), this returns the null account.
 ledgerAccount :: Ledger -> AccountName -> Account
-ledgerAccount = (!) . accountmap
+ledgerAccount l a = findWithDefault nullacct a $ accountmap l
 
 -- | List a ledger's accounts, in tree order
 ledgerAccounts :: Ledger -> [Account]

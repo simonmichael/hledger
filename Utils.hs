@@ -21,6 +21,8 @@ import System.Time (ClockTime,getClockTime)
 
 -- | Parse the user's specified ledger file and run a hledger command on
 -- it, or report a parse error. This function makes the whole thing go.
+-- Warning, this provides only an uncached Ledger (no accountnametree or
+-- accountmap), so cmd must cacheLedger'/crunchJournal if needed.
 withLedgerDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
 withLedgerDo opts args cmdname cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
