@@ -214,7 +214,7 @@ coverage: sampleledgers hledgercov
 
 # get a debug prompt
 ghci:
-	ghci hledger.hs
+	ghci -DMAKE $(OPTFLAGS) hledger.hs
 
 # generate standard sample ledgers
 sampleledgers: sample.ledger 100x100x10.ledger 1000x1000x10.ledger 10000x1000x10.ledger 100000x1000x10.ledger
