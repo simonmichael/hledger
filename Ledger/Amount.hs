@@ -89,6 +89,12 @@ amountop op a@(Amount _ _ _) (Amount bc bq _) =
 convertAmountTo :: Commodity -> Amount -> Amount
 convertAmountTo c2 (Amount c1 q _) = Amount c2 (q * conversionRate c1 c2) Nothing
 
+-- | Convert mixed amount to the specified commodity
+convertMixedAmountTo :: Commodity -> MixedAmount -> Amount
+convertMixedAmountTo c2 (Mixed ams) = Amount c2 total Nothing
+    where
+    total = sum . map (quantity . convertAmountTo c2) $ ams
+
 -- | Convert an amount to the commodity of its saved price, if any.
 costOfAmount :: Amount -> Amount
 costOfAmount a@(Amount _ _ Nothing) = a
@@ -96,11 +102,6 @@ costOfAmount (Amount _ q (Just price))
     | isZeroMixedAmount price = nullamt
     | otherwise = Amount pc (pq*q) Nothing
     where (Amount pc pq _) = head $ amounts price
-
--- | Convert an amount to the specified commodity using the appropriate
--- exchange rate (which is currently always 1).
-convertAmountTo :: Commodity -> Amount -> Amount
-convertAmountTo c2 (Amount c1 q _) = Amount c2 (q * conversionRate c1 c2) Nothing
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
