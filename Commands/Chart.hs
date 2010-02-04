@@ -26,9 +26,11 @@ import Data.List
 
 -- | Generate an image with the pie chart and write it to a file
 chart :: [Opt] -> [String] -> Ledger -> IO ()
-chart opts args l = renderableToPNGFile (toRenderable chart) w h filename
+chart opts args l = do
+  t <- getCurrentLocalTime
+  let chart = genPie opts (optsToFilterSpec opts args t) l
+  renderableToPNGFile (toRenderable chart) w h filename
     where
-      chart = genPie opts args l
       filename = getOption opts ChartOutput "hledger.png"
       (w,h) = parseSize $ getOption opts ChartSize "1024x1024"
 
@@ -47,8 +49,8 @@ parseSize str = (read w, read h)
     (w,_:h) = splitAt x str
 
 -- | Generate pie chart
-genPie :: [Opt] -> [String] -> Ledger -> PieLayout
-genPie opts _ l = defaultPieLayout
+genPie :: [Opt] -> FilterSpec -> Ledger -> PieLayout
+genPie opts filterspec l = defaultPieLayout
     { pie_background_ = solidFillStyle $ opaque $ white
     , pie_plot_ = pie_chart }
     where
@@ -56,7 +58,7 @@ genPie opts _ l = defaultPieLayout
       items = mapMaybe (uncurry accountPieItem) $
               flatten $
               balances $
-              ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ cacheLedger' l
+              ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ cacheLedger'' filterspec l
 
 -- | Convert all quantities of MixedAccount to a single commodity
 amountValue :: MixedAmount -> Double

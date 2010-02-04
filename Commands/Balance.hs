@@ -102,7 +102,6 @@ import Ledger.Types
 import Ledger.Amount
 import Ledger.AccountName
 import Ledger.Posting
-import Ledger.Journal
 import Ledger.Ledger
 import Options
 import System.IO.UTF8
@@ -116,11 +115,9 @@ balance opts args l = do
 
 -- | Generate a balance report with the specified options for this ledger.
 showBalanceReport :: [Opt] -> FilterSpec -> Ledger -> String
-showBalanceReport opts filterspec l@Ledger{journal=j} = acctsstr ++ totalstr
+showBalanceReport opts filterspec l = acctsstr ++ totalstr
     where
-      l' = l{journal=j',accountnametree=ant,accountmap=amap} -- like cacheLedger
-          where (ant, amap) = crunchJournal j'
-                j' = filterJournalPostings filterspec{depth=Nothing} j
+      l' = cacheLedger'' filterspec l
       acctsstr = unlines $ map showacct interestingaccts
           where
             showacct = showInterestingAccount l' interestingaccts

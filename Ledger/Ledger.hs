@@ -89,6 +89,11 @@ cacheLedger' :: Ledger -> CachedLedger
 cacheLedger' l = l{accountnametree=ant,accountmap=amap}
     where (ant, amap) = crunchJournal $ journal l
 
+-- | Like cacheLedger, but filtering the journal first.
+cacheLedger'' filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=ant,accountmap=amap}
+    where (ant, amap) = crunchJournal j'
+          j' = filterJournalPostings filterspec{depth=Nothing} j
+
 type CachedLedger = Ledger
 
 -- | List a ledger's account names.
