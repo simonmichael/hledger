@@ -9,8 +9,6 @@ where
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
-import Ledger.AccountName
-import Ledger.Transaction
 import Ledger.Ledger
 import Ledger.Commodity
 import Options
