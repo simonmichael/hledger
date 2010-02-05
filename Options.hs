@@ -86,6 +86,7 @@ options = [
  ,Option ""    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
 #ifdef CHART
  ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    "chart: output filename (default: hledger.png)"
+ ,Option ""  ["items"]  (ReqArg ChartItems "N")     "chart: number of accounts to show (default: 10)"
  ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") "chart: image size (default: 1024x1024)"
 #endif
  ]
@@ -118,6 +119,7 @@ data Opt =
     | DebugNoUI
 #ifdef CHART
     | ChartOutput {value::String}
+    | ChartItems  {value::String}
     | ChartSize   {value::String}
 #endif
     deriving (Show,Eq)
