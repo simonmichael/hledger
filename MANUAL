@@ -269,6 +269,7 @@ Examples::
  $ hledger chart assets --depth 2
  $ hledger chart liabilities --depth 2
  $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
+ $ for y in 2006 2007 2008 2009 2010; do hledger -f $y.ledger chart ^expenses --depth 2 -o expenses-$y.png; done
 
 histogram
 '''''''''
