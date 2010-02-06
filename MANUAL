@@ -165,7 +165,8 @@ Here is the command-line help::
            --debug              show extra debug output; implies verbose
            --debug-no-ui        run ui commands with no output
   -o FILE  --output=FILE        chart: output filename (default: hledger.png)
-           --size=WIDTHxHEIGHT  chart: image size (default: 1024x1024)
+           --items=N            chart: number of accounts to show (default: 10)
+           --size=WIDTHxHEIGHT  chart: image size (default: 600x400)
  
 File format
 ...........
@@ -247,9 +248,24 @@ The balance command displays accounts and their balances.
 chart
 '''''
 
-The chart command generates a pie chart image of your account balances.
-The image will have filename "hledger.png" (or use -o/--output) and
-dimensions 1024x1024 (or use --size=WIDTHxHEIGHT).
+The chart command saves a pie chart of your top N account balances to a
+file (usually "hledger.png", or use -o/--output FILE). You can adjust the
+image resolution with --size=WIDTHxHEIGHT, and the number of accounts with
+--items=N.
+
+Note that positive and negative balances will not be displayed together in
+the same chart; any balances not matching the sign of the first one will
+be omitted.
+
+To show only accounts above a certain depth, use the --depth option.
+Otherwise, the chart can include accounts at any depth. If parent and
+child accounts are displayed, the parent's balance excludes the child's.
+
+Examples::
+
+ $ hledger chart assets --depth 2
+ $ hledger chart liabilities --depth 2
+ $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
 
 histogram
 '''''''''
