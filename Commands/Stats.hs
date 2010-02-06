@@ -16,7 +16,7 @@ import System.IO.UTF8
 stats :: [Opt] -> [String] -> Ledger -> IO ()
 stats opts args l = do
   today <- getCurrentDay
-  putStr $ showStats opts args l today
+  putStr $ showStats opts args (cacheLedger' l) today
 
 showStats :: [Opt] -> [String] -> Ledger -> Day -> String
 showStats _ _ l today =
