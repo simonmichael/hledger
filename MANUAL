@@ -251,7 +251,7 @@ The balance command displays accounts and their balances.
 chart
 '''''
 
-The chart command saves a pie chart of your top N account balances to a
+The chart command saves a pie chart of your top account balances to a
 file (usually "hledger.png", or use -o/--output FILE). You can adjust the
 image resolution with --size=WIDTHxHEIGHT, and the number of accounts with
 --items=N.
