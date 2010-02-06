@@ -8,12 +8,12 @@ hledger is brought to you by:
 - Simon Michael - lead developer, project manager, general dogsbody
 - Sergey Astanin - utf8 support
 - Nick Ingolia - parser improvements
+- Roman Cheplyaka - "chart" command, "add" command improvements
 
 Developers who have not yet signed the contributor agreement:
 
 - Tim Docker
 - Marko Kocić
-- Roman Cheplyaka
 
 .. - parser, cabal improvements
 
