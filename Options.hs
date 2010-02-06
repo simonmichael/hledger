@@ -16,6 +16,11 @@ import Control.Monad (liftM)
 
 progname      = "hledger"
 timeprogname  = "hours"
+#ifdef CHART
+chartoutput   = "hledger.png"
+chartitems    = 10
+chartsize     = "600x400"
+#endif
 
 usagehdr =
   "Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]\n" ++
@@ -85,9 +90,9 @@ options = [
  ,Option ""    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option ""    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
 #ifdef CHART
- ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    "chart: output filename (default: hledger.png)"
- ,Option ""  ["items"]  (ReqArg ChartItems "N")     "chart: number of accounts to show (default: 10)"
- ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") "chart: image size (default: 1024x1024)"
+ ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    ("chart: output filename (default: "++chartoutput++")")
+ ,Option ""  ["items"]  (ReqArg ChartItems "N")         ("chart: number of accounts to show (default: "++show chartitems++")")
+ ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") ("chart: image size (default: "++chartsize++")")
 #endif
  ]
 

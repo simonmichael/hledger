@@ -32,8 +32,8 @@ chart opts args l = do
   let chart = genPie opts (optsToFilterSpec opts args t) l
   renderableToPNGFile (toRenderable chart) w h filename
     where
-      filename = getOption opts ChartOutput "hledger.png"
-      (w,h) = parseSize $ getOption opts ChartSize "1024x1024"
+      filename = getOption opts ChartOutput chartoutput
+      (w,h) = parseSize $ getOption opts ChartSize chartsize
 
 -- | Extract string option value from a list of options or use the default
 getOption :: [Opt] -> (String->Opt) -> String -> String
@@ -51,19 +51,36 @@ parseSize str = (read w, read h)
 
 -- | Generate pie chart
 genPie :: [Opt] -> FilterSpec -> Ledger -> PieLayout
-genPie opts filterspec l = defaultPieLayout
-    { pie_background_ = solidFillStyle $ opaque $ white
-    , pie_plot_ = pie_chart }
+genPie opts filterspec l = defaultPieLayout { pie_background_ = solidFillStyle $ opaque $ white
+                                            , pie_plot_ = pie_chart }
     where
-      pie_chart = defaultPieChart { pie_data_ = items, pie_colors_ = mkColours}
-      items = mapMaybe (uncurry accountPieItem) $
-              top num $
-              balances $
-              ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ cacheLedger'' filterspec l
+      pie_chart = defaultPieChart { pie_data_ = map (uncurry accountPieItem) chartitems'
+                                  , pie_start_angle_ = (-90)
+                                  , pie_colors_ = mkColours hue
+                                  , pie_label_style_ = defaultFontStyle{font_size_=12}
+                                  }
+      chartitems' = debug "chart" $ top num samesignitems
+      (samesignitems, sign) = sameSignNonZero rawitems
+      rawitems = debug "raw" $ flatten $ balances $
+                 ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ cacheLedger'' filterspec l
       top n t = topn ++ [other]
-          where (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) $ flatten t
-                other = ("other", sum $ map snd rest)
-      num = readDef 10 (getOption opts ChartItems "10")
+          where
+            (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) t
+            other = ("other", sum $ map snd rest)
+      num = readDef (fromIntegral chartitems) (getOption opts ChartItems (show chartitems))
+      hue = if sign > 0 then red else green where (red, green) = (0, 110)
+      debug s = if Debug `elem` opts then ltrace s else id
+
+-- | Select the nonzero items with same sign as the first, and make
+-- them positive. Also return a 1 or -1 corresponding to the original sign.
+sameSignNonZero :: [(AccountName, Double)] -> ([(AccountName, Double)], Int)
+sameSignNonZero is | null nzs = ([], 1)
+                   | otherwise = (map pos $ filter (test.snd) nzs, sign)
+                   where
+                     nzs = filter ((/=0).snd) is
+                     pos (a,b) = (a, abs b)
+                     sign = if snd (head nzs) >= 0 then 1 else (-1)
+                     test = if sign > 0 then (>0) else (<0)
 
 -- | Convert all quantities of MixedAccount to a single commodity
 amountValue :: MixedAmount -> Double
@@ -81,16 +98,13 @@ balances (Node rootAcc subAccs) = Node newroot newsubs
       newsubs = map balances subAccs
 
 -- | Build a single pie chart item
-accountPieItem :: AccountName -> Double -> Maybe PieItem 
-accountPieItem accname balance =
-    if balance == 0
-        then Nothing 
-        else Just $ PieItem accname 0 balance
+accountPieItem :: AccountName -> Double -> PieItem
+accountPieItem accname balance = PieItem accname offset balance where offset = 0
 
 -- | Generate an infinite color list suitable for charts.
-mkColours :: [AlphaColour Double]
-mkColours = cycle $ [opaque $ rgbToColour $ hsl h s l | (h,s,l) <- liftM3 (,,)
-                     [100] [0.7] [0.2,0.3..0.6] ]
+mkColours :: Double -> [AlphaColour Double]
+mkColours hue = cycle $ [opaque $ rgbToColour $ hsl h s l | (h,s,l) <- liftM3 (,,)
+                         [hue] [0.7] [0.1,0.2..0.7] ]
 
 rgbToColour :: (Fractional a) => RGB a -> Colour a
 rgbToColour (RGB r g b) = rgb r g b
