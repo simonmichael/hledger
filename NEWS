@@ -1,8 +1,36 @@
 hledger news
 ============
 
+2010/02/11 hledger 0.8
+......................
+
+  * parsing: in date=date2, use first date's year as a default for the second
+  * add: ctrl-d doesn't work on windows, suggest ctrl-c instead
+  * add: --no-new-accounts option disallows new accounts (Roman Cheplyaka)
+  * add: re-use the previous transaction's date as default (Roman Cheplyaka)
+  * add: a command-line argument now filters by account during history matching (Roman Cheplyaka)
+  * chart: new command, generates balances pie chart (requires -fchart flag, gtk2hs) (Roman Cheplyaka, Simon Michael)
+  * register: make reporting intervals honour a display expression (#18)
+  * web: fix help link
+  * web: use today as default when adding with a blank date
+  * web: re-enable account/period fields, they seem to be fixed, along with file re-reading (#16)
+  * web: get static files from the cabal data dir, or the current dir when using make (#13)
+  * web: preserve encoding during add, assuming it's utf-8 (#15)
+  * fix some non-utf8-aware file handling (#15)
+  * filter ledger again for each command, not just once at program start
+  * refactoring, clearer data types
+
+  Stats:
+  62 days since last release,
+  2 contributors,
+  76 commits,
+  3464 lines of non-test code,
+  97 tests,
+  53% test coverage
+
 2009/12/11 hledger 0.7
 ........................
+
   * price history support (first cut):
     P directives now work, though differently from c++ ledger. Each
     posting amount takes its fixed unit price from the price history (or
@@ -37,20 +65,21 @@ hledger news
   * many site and documentation updates
 
   Stats:
-  2 contributors,
-  175 days since release,
-  182 commits,
-  3320 non-test code lines,
+  1 contributors,
+  60 days since release,
+  50 commits,
+  3377 non-test code lines,
   97 tests,
-  53% test coverage,
-  performance: similar (http://hledger.org/profs/200912111852.bench)
+  53% test coverage
 
 2009/06/22 hledger 0.6.1
 ........................
+
   * avoid use of exitSuccess which was breaking ghc 6.8/base 3 compatibility (issue #2)
 
 2009/06/13 hledger 0.6
 ......................
+
   * now cabal-installable on unix, mac, and windows, with Haskell Platform
   * provide experimental platform binaries
   * parsing: fix a silly failure to open ledger file paths containing ~
