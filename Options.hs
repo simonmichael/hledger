@@ -26,11 +26,10 @@ chartsize     = "600x400"
 
 usagehdr =
   "Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]\n" ++
-  "       hours   [OPTIONS] [COMMAND [PATTERNS]]\n" ++
-  "       hledger convert CSVFILE\n" ++
+  "       hledger [OPTIONS] convert CSVFILE\n" ++
+  "       hledger [OPTIONS] stats\n" ++
   "\n" ++
-  "hledger uses your ~/.ledger or $LEDGER file (or another specified with -f),\n" ++
-  "while hours uses your ~/.timelog or $TIMELOG file.\n" ++
+  "hledger uses your ~/.ledger or $LEDGER file, or another specified with -f\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
   "  add       - prompt for new transactions and add them to the ledger\n" ++
