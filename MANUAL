@@ -78,10 +78,11 @@ option (which may be - for standard input). Basic usage is::
 
  hledger [OPTIONS] [COMMAND [PATTERNS]]
 
-COMMAND is one of balance, print, register, ui, web, test (defaulting to
-balance). PATTERNS are zero or more regular expressions used to filter by
-account name or transaction description.  Here are some commands to try
-(after downloading sample.ledger_)::
+COMMAND is one of: add, balance, chart, convert, histogram, print,
+register, stats, ui, web, test (defaulting to balance). PATTERNS are zero
+or more regular expressions used to filter by account name or transaction
+description.  Here are some commands to try (after downloading
+sample.ledger_)::
 
  export LEDGER=sample.ledger
  hledger --help                        # show usage & options
