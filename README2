@@ -13,8 +13,10 @@ The hledger project aims to produce:
 
 hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
+2010/02/11: `hledger 0.8 released <http://hledger.org/NEWS.html#TOC-hledger-08>`_
+
 **Learn**
- manual_, news_, screenshots_, `some extra tips`_
+ news_, manual_, screenshots_, `some extra tips`_
 
 **Download**
  ``cabal install hledger``, 

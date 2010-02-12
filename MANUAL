@@ -75,6 +75,8 @@ Here are some issues that have been encountered, with workarounds:
 
 - A ghc panic while building might be due to http://hackage.haskell.org/trac/ghc/ticket/3862
 
+Release notes are at http://hledger.org/NEWS.html .
+
 Basic usage
 ...........
 
