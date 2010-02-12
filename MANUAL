@@ -58,13 +58,16 @@ You can add some options to the install command to include extra features:
   gtk2hs_, which you'll need to install yourself as it's not yet provided
   by the haskell platform or cabal.
 
-About cabal dependency problems: in some cases, cabal install can fail
-with a compilation or link error due to incompatible package versions.
-You can sometimes work around this by specifying versions manually.
-Eg here's a recipe for haskell platform 2009.2.0.2 on MS Windows::
+Here are some issues that have been encountered, with workarounds:
+
+- In some cases, cabal install can fail with a compilation or link error
+due to incompatible package versions.  You can sometimes work around this
+by specifying versions manually.  Eg here's a recipe for haskell platform
+2009.2.0.2 on MS Windows::
 
  cabal install hledger -fweb --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
 
+- A ghc panic while building might be due to http://hackage.haskell.org/trac/ghc/ticket/3862
 
 Basic usage
 ...........
@@ -258,8 +261,8 @@ the same chart; any balances not matching the sign of the first one will
 be omitted.
 
 To show only accounts above a certain depth, use the --depth option.
-Otherwise, the chart can include accounts at any depth. If parent and
-child accounts are displayed, the parent's balance excludes the child's.
+Otherwise, the chart can include accounts at any depth. If a parent and
+child account are both displayed, the parent's balance excludes the child's.
 
 Examples::
 
