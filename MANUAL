@@ -105,8 +105,8 @@ You'll find more examples below.
 Reference
 ---------
 
-Feature overview
-................
+Overview
+........
 
 This version of hledger mimics a subset of ledger 3.x, and adds some
 features of its own. We currently support regular ledger entries, timelog
@@ -180,60 +180,59 @@ File format
 ...........
 
 hledger's data file (aka "the ledger") is a readable plain text
-representation of an accounting journal. The format is mostly identical
-with c++ ledger's. Here's an example::
+representation of an accounting journal. Here's an example::
 
  ; A sample ledger file.
  
  2008/01/01 income
      assets:bank:checking  $1
-     income:salary
+     income:salary        $-1
  
  2008/06/01 gift
      assets:bank:checking  $1
      income:gifts
  
  2008/06/02 save
-     assets:bank:saving  $1
+     assets:bank:saving    $1
      assets:bank:checking
  
  2008/06/03 * eat & shop
-     expenses:food      $1
-     expenses:supplies  $1
+     expenses:food         $1
+     expenses:supplies     $1
      assets:cash
  
  2008/12/31 * pay off
-     liabilities:debts  $1
+     liabilities:debts     $1
      assets:bank:checking
 
 Each transaction has a date, description, and two or more postings (of
 some amount to some account) which must balance to 0. As a convenience,
-the last posting's amount may be left blank and will be inferred.
+one posting's amount may be left blank and will be inferred.
 
-Note that account names may contain single spaces, and the amount must be
+Note: account names may contain single spaces, while the amount must be
 separated from the account name by at least two spaces.
-
-Other c++ ledger features like effective dates, comments, and prices
-are also supported. Some additional features like modifier and periodic
-entries are accepted, but ignored.
 
 Compatibility
 """""""""""""
 
-Compared to c++ ledger, hledger's file format has some omissions (we do
-not support all the latest ledger 3 syntax like @@ and {}) and some subtle
-punctuation differences (eg comments may be permissible in different
-places.)
+The format is mostly identical with that of c++ ledger version 2, with
+some features (like modifier and periodic entries) being accepted, but
+ignored. There are also some subtle differences in parser behaviour (eg
+comments may be permissible in different places.) C++ ledger version 3 has
+introduced additional syntax, which current hledger probably fails to
+parse.
 
-Generally, as long as you avoid the more esoteric syntax, your ledger
-files will work with both hledger and c++ ledger (or, it will be easy to
-restore compatibility by making small adjustments.)
+Generally, it's easy to keep a ledger file that works with both hledger
+and c++ledger if you avoid the more esoteric syntax. Occasionally you'll
+need to make small edits to restore compatibility for one or the other.
 
 Commands
 ........
 
 Reporting commands
 """"""""""""""""""
+
+These commands are read-only, that is they never modify your data.
 
 print
 '''''
@@ -263,6 +262,8 @@ Examples::
 
 chart
 '''''
+
+(optional feature)
 
 The chart command saves a pie chart of your top account balances to a
 file (usually "hledger.png", or use -o/--output FILE). You can adjust the
@@ -299,11 +300,15 @@ The stats command displays quick summary information for the ledger.
 ui
 '''
 
+(optional feature)
+
 The ui command starts hledger's text-based "curses" interface, which
 allows interactive navigation of the print/register/balance reports.
 
 Modifying commands
 """"""""""""""""""
+
+The following commands can alter your ledger file.
 
 add
 '''
@@ -314,10 +319,12 @@ to the ledger. It is experimental.
 web
 '''
 
+(optional feature)
+
 The web command starts hledger's web interface, and tries to open a web
 browser to view it (if this fails, you'll have to visit the indicated url
 yourself.) The web ui combines the features of the print, register,
-balance and add commands. It is experimental.
+balance and add commands.
 
 Other commands
 """"""""""""""
@@ -327,11 +334,11 @@ convert
 
 The convert command reads a CSV_ file you have downloaded from your bank,
 and prints out the transactions in ledger format, suitable for adding to
-your ledger.  This can be a lot quicker than entering every transaction by
-hand. (The downside is that you are less likely to notice if your bank makes an
-error!)
+your ledger. It does not alter your ledger directly.
 
-Use it like this::
+This can be a lot quicker than entering every transaction by hand. (The
+downside is that you are less likely to notice if your bank makes an
+error!) Use it like this::
 
  hledger convert FILE.csv >FILE.ledger
 
@@ -342,13 +349,14 @@ should review FILE.ledger for problems; update the rules and convert again
 if needed; and finally copy/paste transactions which are new into your
 main ledger.
 
-Rules file
-,,,,,,,,,,
+.rules file
+,,,,,,,,,,,
 
-A .rules file contains some data definitions and some rules for assigning
-destination accounts to transactions. Typically you will have one csv file
-and one rules file per bank account. Here's an example rules file for
-converting csv data from a Wells Fargo checking account::
+convert requires a *.rules file containing data definitions and rules for
+assigning destination accounts to transactions; it will be auto-created if
+missing. Typically you will have one csv file and one rules file per bank
+account. Here's an example rules file for converting csv data from a Wells
+Fargo checking account::
 
  base-account assets:bank:checking
  date-field 0
@@ -402,6 +410,9 @@ test
 ''''
 
 This command runs hledger's internal self-tests and displays a quick report.
+The -v option shows more detail, and a pattern can be provided to select
+matching tests.
+
 
 Smart dates
 ...........
