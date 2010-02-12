@@ -4,9 +4,9 @@ hledger manual
 This is the official hledger manual. You may also want to visit
 the http://hledger.org home page,
 the `hledger for techies`_ page,
-and perhaps `c++ ledger's manual`_ (but don't worry, we'll link to that below.)
-
+and for background, `c++ ledger's manual`_.
 A tip: on hledger.org, these docs are also available with .pdf suffix.
+
 
 User Guide
 ----------
@@ -72,22 +72,26 @@ by specifying versions manually.  Eg here's a recipe for haskell platform
 Basic usage
 ...........
 
-hledger looks for your ledger file at ~/.ledger by default. To use a
-different file, specify it with the LEDGER environment variable or -f
-option (which may be - for standard input). Basic usage is::
+Basic usage is::
 
  hledger [OPTIONS] [COMMAND [PATTERNS]]
 
-OPTIONS may appear anywhere on the command line.
-COMMAND is one of: add, balance, chart, convert, histogram, print,
-register, stats, ui, web, test (defaulting to balance).
-PATTERNS are zero or more regular expressions used to filter by account
-name or transaction description.
+`OPTIONS <#overview>`_ may appear anywhere on the command line.
+`COMMAND <#commands>`_ is one of: add, balance, chart, convert, histogram,
+print, register, stats, ui, web, test (defaulting to balance).  The
+optional `PATTERNS <#filter-patterns>`_ are regular expressions which
+select a subset of the ledger data.
 
-Here are some commands to try (after downloading sample.ledger_)::
+hledger looks for data in a ledger file, usually ``.ledger`` in your home
+directory.  You can specify a different file with the -f option (use - for
+standard input) or ``LEDGER`` environment variable.
 
- export LEDGER=sample.ledger
- hledger --help                        # show usage & options
+To get started, make yourself a ledger file containing some transactions.
+You can copy the sample file below (or sample.ledger_) and save it as
+``.ledger`` in your home directory.  Or, just run ``hledger add`` and enter a
+few transactions. Now you can try some of these commands, or read on::
+
+ hledger --help                        # show command-line help
  hledger balance                       # all accounts with aggregated balances
  hledger bal --depth 1                 # only top-level accounts
  hledger register                      # transaction register
@@ -95,12 +99,58 @@ Here are some commands to try (after downloading sample.ledger_)::
  hledger reg checking                  # checking transactions
  hledger reg desc:shop                 # transactions with shop in the description
  hledger histogram                     # transactions per day, or other interval
- hledger -f new.ledger add             # record transactions from the command line
+ hledger add                           # add some new transactions to the ledger file
  hledger ui                            # curses ui, if installed with -fvty
  hledger web                           # web ui, if installed with -fweb
  hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
+
+File format
+...........
+
+hledger's data file, aka the ledger, is a plain text representation of a
+standard accounting journal. It contains a number of transactions, each
+describing a transfer of money (or another commodity) between two or more
+named accounts. Here's an example::
+
+ ; A sample ledger file. This is a comment.
+ 
+ 2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
+     assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
+     income:salary        $-1    ;    followed by at least two spaces and an amount
+ 
+ 2008/06/01 gift
+     assets:bank:checking  $1    ; <- at least two postings in a transaction
+     income:gifts         $-1    ; <- their amounts must balance to 0
+ 
+ 2008/06/02 save
+     assets:bank:saving    $1
+     assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
+ 
+ 2008/06/03 eat & shop           ; <- description can be anything
+     expenses:food         $1
+     expenses:supplies     $1    ; <- this transaction debits two expense accounts
+     assets:cash                 ; <- $-2 inferred
+ 
+ 2008/12/31 * pay off            ; <- an optional * after the date means "cleared" (or anything you want)
+     liabilities:debts     $1
+     assets:bank:checking
+
+Each transaction has a date, description, and two or more postings (of
+some amount to some account) which must balance to 0. As a convenience,
+one posting's amount may be left blank and will be inferred.
+
+Note that account names may contain single spaces, while the amount must
+be separated from the account name by at least two spaces.
+
+An amount is a number, with an optional currency/commodity symbol or word
+on either the left or right. Note: when writing a negative amount with a
+left-side currency symbol, the minus goes after the symbol, eg ``$-1``.
+
+This file format is also compatible with c++ ledger, so you can use both tools.
+For more details, see `File format compatibility <#file-format-compatibility>`_.
+
 
 Reference
 ---------
@@ -118,33 +168,31 @@ display expressions consisting of a simple date predicate.
 
 Here is the command-line help::
 
- $ hledger --help
  Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]
-        hours   [OPTIONS] [COMMAND [PATTERNS]]
-        hledger convert CSVFILE
- 
- hledger uses your ~/.ledger or $LEDGER file (or another specified with -f),
- while hours uses your ~/.timelog or $TIMELOG file.
- 
+        hledger [OPTIONS] convert CSVFILE
+        hledger [OPTIONS] stats
+
+ hledger uses your ~/.ledger or $LEDGER file, or another specified with -f
+
  COMMAND is one of (may be abbreviated):
-   add       - prompt for new transactions and add them to the ledger
-   balance   - show accounts, with balances
-   convert   - read CSV bank data and display in ledger format
-   histogram - show a barchart of transactions per day or other interval
-   print     - show transactions in ledger format
-   register  - show transactions as a register with running balance
-   stats     - show various statistics for a ledger
-   ui        - run a simple text-based UI
-   web       - run a simple web-based UI
-   chart     - generate a balances pie chart
-   test      - run self-tests
- 
+  add       - prompt for new transactions and add them to the ledger
+  balance   - show accounts, with balances
+  convert   - read CSV bank data and display in ledger format
+  histogram - show a barchart of transactions per day or other interval
+  print     - show transactions in ledger format
+  register  - show transactions as a register with running balance
+  stats     - show various statistics for a ledger
+  ui        - run a simple text-based UI
+  web       - run a simple web-based UI
+  chart     - generate balances pie chart
+  test      - run self-tests
+
  PATTERNS are regular expressions which filter by account name.
  Prefix with desc: to filter by transaction description instead.
  Prefix with not: to negate a pattern. When using both, not: comes last.
- 
+
  DATES can be y/m/d or ledger-style smart dates like "last month".
- 
+
  Options:
   -f FILE  --file=FILE          use a different ledger/timelog file; - means stdin
            --no-new-accounts    don't allow to create new accounts
@@ -176,56 +224,6 @@ Here is the command-line help::
            --items=N            chart: number of accounts to show (default: 10)
            --size=WIDTHxHEIGHT  chart: image size (default: 600x400)
  
-File format
-...........
-
-hledger's data file (aka "the ledger") is a readable plain text
-representation of an accounting journal. Here's an example::
-
- ; A sample ledger file.
- 
- 2008/01/01 income
-     assets:bank:checking  $1
-     income:salary        $-1
- 
- 2008/06/01 gift
-     assets:bank:checking  $1
-     income:gifts
- 
- 2008/06/02 save
-     assets:bank:saving    $1
-     assets:bank:checking
- 
- 2008/06/03 * eat & shop
-     expenses:food         $1
-     expenses:supplies     $1
-     assets:cash
- 
- 2008/12/31 * pay off
-     liabilities:debts     $1
-     assets:bank:checking
-
-Each transaction has a date, description, and two or more postings (of
-some amount to some account) which must balance to 0. As a convenience,
-one posting's amount may be left blank and will be inferred.
-
-Note: account names may contain single spaces, while the amount must be
-separated from the account name by at least two spaces.
-
-Compatibility
-"""""""""""""
-
-The format is mostly identical with that of c++ ledger version 2, with
-some features (like modifier and periodic entries) being accepted, but
-ignored. There are also some subtle differences in parser behaviour (eg
-comments may be permissible in different places.) C++ ledger version 3 has
-introduced additional syntax, which current hledger probably fails to
-parse.
-
-Generally, it's easy to keep a ledger file that works with both hledger
-and c++ledger if you avoid the more esoteric syntax. Occasionally you'll
-need to make small edits to restore compatibility for one or the other.
-
 Commands
 ........
 
@@ -244,10 +242,22 @@ always valid ledger data.
 hledger's print command also shows all unit prices in effect, or
 (with -B/--cost) shows cost amounts.
 
+Examples::
+
+ $ hledger print
+ $ hledger print employees:bob | hledger -f- register expenses
+
 register
 ''''''''
 
-The register command displays postings, one per line, and their running total.
+The register command displays postings, one per line, and their running
+total.  With a `reporting interval <#reporting-interval>`_ it will
+aggregate similar postings within each interval.
+
+Examples::
+
+ $ hledger register
+ $ hledger register --monthly -E rent
 
 balance
 '''''''
@@ -265,8 +275,8 @@ chart
 
 (optional feature)
 
-The chart command saves a pie chart of your top account balances to a
-file (usually "hledger.png", or use -o/--output FILE). You can adjust the
+The chart command saves a pie chart of your top account balances to an
+image file (usually "hledger.png", or use -o/--output FILE). You can adjust the
 image resolution with --size=WIDTHxHEIGHT, and the number of accounts with
 --items=N.
 
@@ -292,18 +302,33 @@ The histogram command displays a quick bar chart showing transaction
 counts, per day, week, month or other reporting interval. It is
 experimental.
 
+Examples::
+
+ $ hledger histogram -p weekly dining
+
 stats
 '''''
 
 The stats command displays quick summary information for the ledger.
+
+Examples::
+
+ $ hledger stats
 
 ui
 '''
 
 (optional feature)
 
-The ui command starts hledger's text-based "curses" interface, which
-allows interactive navigation of the print/register/balance reports.
+The ui command starts hledger's curses (full-screen, text) user interface,
+which allows interactive navigation of the print/register/balance reports.
+This lets you browse around your numbers and get quick insights with less
+typing.
+
+Examples:
+
+$ hledger ui
+$ hledger ui -BE food
 
 Modifying commands
 """"""""""""""""""
@@ -316,6 +341,11 @@ add
 The add command prompts interactively for new transactions, and adds them
 to the ledger. It is experimental.
 
+Examples:
+
+$ hledger add
+$ hledger add accounts:personal:bob
+
 web
 '''
 
@@ -325,6 +355,11 @@ The web command starts hledger's web interface, and tries to open a web
 browser to view it (if this fails, you'll have to visit the indicated url
 yourself.) The web ui combines the features of the print, register,
 balance and add commands.
+
+Examples:
+
+$ hledger web
+$ hledger web --debug -f demo.ledger -p thisyear
 
 Other commands
 """"""""""""""
@@ -340,7 +375,7 @@ This can be a lot quicker than entering every transaction by hand. (The
 downside is that you are less likely to notice if your bank makes an
 error!) Use it like this::
 
- hledger convert FILE.csv >FILE.ledger
+ $ hledger convert FILE.csv >FILE.ledger
 
 where FILE.csv is your downloaded csv file. This will convert the csv data
 using conversion rules defined in FILE.rules (auto-creating this file if
@@ -409,13 +444,33 @@ Notes:
 test
 ''''
 
-This command runs hledger's internal self-tests and displays a quick report.
-The -v option shows more detail, and a pattern can be provided to select
-matching tests.
+This command runs hledger's internal self-tests and displays a quick
+report.  The -v option shows more detail, and a pattern can be provided to
+filter tests by name. It's mainly used in development, but it's also nice
+to be able to run a sanity check at any time..
 
+Examples::
+
+ $ hledger test
+ $ hledger test -v balance
+
+Other features
+..............
+
+Filter patterns
+"""""""""""""""
+
+Most commands accept one more filter pattern arguments after the command
+name. In this case, hledger will look only at postings which match any of
+the patterns. Each pattern is a regular expression which is matched
+against the posting's account. Or, a pattern prefixed with ``desc:`` is
+matched against the posting's transaction's description.
+
+To negate a pattern, prefix it with ``not:``. Note: with multiple
+prefixes, not: should go last, eg: ``desc:not:someregexp``.
 
 Smart dates
-...........
+"""""""""""
 
 hledger accepts "smart dates" in most places a date can be used, such as:
 -b and -e options, and `period expressions <#period-expressions>`_
@@ -431,7 +486,7 @@ Here are some examples:
 - today, yesterday, tomorrow
 
 Period expressions
-..................
+""""""""""""""""""
 
 hledger supports flexible "period expressions" with the ``-p/--period``
 option to select transactions within a period of time (like 2009) and/or
@@ -471,7 +526,7 @@ A single date with no "from" or "to" defines both the start and end date like so
  -p "2009/1/1"       (just that day;    equivalent to "2009/1/1 to 2009/1/2")
 
 Reporting interval
-""""""""""""""""""
+''''''''''''''''''
 
 You can also specify a reporting interval, which causes the "register"
 command to summarise the transactions in each interval. It goes before the
@@ -487,12 +542,12 @@ A reporting interval may also be specified with the -W/--weekly,
 -M/--monthly, -Q/--quarterly, and -Y/--yearly options. However..
 
 -p overrides other flags
-""""""""""""""""""""""""
+''''''''''''''''''''''''
 
 Note: any period option on the command line will override the -b, -e, -W, -Q and -Y flags.
 
 Display expressions
-...................
+"""""""""""""""""""
 
 A display expression with the ``-d/--display`` option selects which
 transactions will be displayed (unlike a `period expression
@@ -504,10 +559,10 @@ expressions, namely: transactions before or after a date. This is useful
 for displaying your recent check register with an accurate running total.
 Note the use of >= here to include the first of the month::
 
- hledger register -d "d>=[this month]"
+ $ hledger register -d "d>=[this month]"
 
 Prices
-.............
+""""""
 
 As in c++ ledger, you can specify a per-unit price (or conversion rate) in
 the following ways:
@@ -558,7 +613,7 @@ Notes:
   price of a price's commodity.
 
 Timelog reporting
-.................
+"""""""""""""""""
 
 hledger will also read timelog files in timeclock.el format.  As a
 convenience, if you invoke hledger via an "hours" symlink or copy, it uses
@@ -587,13 +642,33 @@ ledger 2.x repository. I use
 `ledgerutils.el <http://joyful.com/repos/ledgertools/ledgerutils.el>`_ 
 in emacs.
 
-Differences from c++ ledger
-...........................
+Compatibility with c++ ledger
+.............................
 
-hledger is written in the Haskell programming language. Haskell enables a
-coding style known as pure lazy functional programming, which holds the
-promise of more robust and maintainable software built with fewer lines of
-code.
+Implementation
+""""""""""""""
+
+Unlike c++ ledger, hledger is written in the Haskell programming
+language. Haskell enables a coding style known as pure lazy functional
+programming, which holds the promise of more robust and maintainable
+software built with fewer lines of code. Haskell also provides a more
+abstracted, portable platform which can make deployment and installation
+easier in some cases. Haskell also brings some new challenges such as
+managing memory growth.
+
+File format compatibility
+"""""""""""""""""""""""""
+
+hledger's file format is mostly identical with that of c++ ledger version 2, with
+some features (like modifier and periodic entries) being accepted, but
+ignored. There are also some subtle differences in parser behaviour (eg
+comments may be permissible in different places.) C++ ledger version 3 has
+introduced additional syntax, which current hledger probably fails to
+parse.
+
+Generally, it's easy to keep a ledger file that works with both hledger
+and c++ledger if you avoid the more esoteric syntax. Occasionally you'll
+need to make small edits to restore compatibility for one or the other.
 
 Features not supported
 """"""""""""""""""""""
@@ -672,17 +747,8 @@ Other differences
   prices are fixed as of the transaction date
 * hledger print shows amounts for all postings, and shows unit prices for amounts which have them
 
-Tips
-....
-
-- When writing a negative amount with a left-side currency symbol, the
-  minus goes after the symbol. Eg ``$-1`` not ``-$1``
-
-- When combining desc: and not: in a filter pattern, not: goes last. Eg
-  ``desc:not:...`` not ``not:desc:...``.
-
-More examples, recipes
-......................
+More examples and recipes
+.........................
 
 - Here's a bash function that will run hledger chart and display
   the image in your (graphical) emacs::
