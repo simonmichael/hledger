@@ -63,11 +63,11 @@ Here are some issues that have been encountered, with workarounds:
 - cabal-install 0.6.4 might succeed if cabal-install 0.6.2 does not
 
 - In some cases, cabal install can fail with a compilation or link error
-due to incompatible package versions.  You can sometimes work around this
-by specifying versions manually.  Eg here's a recipe for haskell platform
-2009.2.0.2 on MS Windows::
+  due to incompatible package versions.  You can sometimes work around
+  this by specifying versions manually.  Eg here's a recipe for haskell
+  platform 2009.2.0.2 on MS Windows::
 
- cabal install hledger -fweb --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
+   cabal install hledger -fweb --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
 
 - A ghc panic while building might be due to http://hackage.haskell.org/trac/ghc/ticket/3862
 
