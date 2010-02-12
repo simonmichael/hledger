@@ -78,11 +78,13 @@ option (which may be - for standard input). Basic usage is::
 
  hledger [OPTIONS] [COMMAND [PATTERNS]]
 
+OPTIONS may appear anywhere on the command line.
 COMMAND is one of: add, balance, chart, convert, histogram, print,
-register, stats, ui, web, test (defaulting to balance). PATTERNS are zero
-or more regular expressions used to filter by account name or transaction
-description.  Here are some commands to try (after downloading
-sample.ledger_)::
+register, stats, ui, web, test (defaulting to balance).
+PATTERNS are zero or more regular expressions used to filter by account
+name or transaction description.
+
+Here are some commands to try (after downloading sample.ledger_)::
 
  export LEDGER=sample.ledger
  hledger --help                        # show usage & options
@@ -93,10 +95,12 @@ sample.ledger_)::
  hledger reg checking                  # checking transactions
  hledger reg desc:shop                 # transactions with shop in the description
  hledger histogram                     # transactions per day, or other interval
+ hledger -f new.ledger add             # record transactions from the command line
  hledger ui                            # curses ui, if installed with -fvty
  hledger web                           # web ui, if installed with -fweb
  hledger chart                         # make a balance chart, if installed with -fchart
- hledger -f new.ledger add             # record transactions from the command line
+
+You'll find more examples below.
 
 Reference
 ---------
@@ -251,6 +255,12 @@ balance
 
 The balance command displays accounts and their balances.
 
+Examples::
+
+ $ hledger balance
+ $ hledger balance food -p 'last month'
+ $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.ledger balance ^expenses --depth 2; done
+
 chart
 '''''
 
@@ -272,7 +282,7 @@ Examples::
  $ hledger chart assets --depth 2
  $ hledger chart liabilities --depth 2
  $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
- $ for y in 2006 2007 2008 2009 2010; do hledger -f $y.ledger chart ^expenses --depth 2 -o expenses-$y.png; done
+ $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger -p 2009/$m chart ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
 histogram
 '''''''''
@@ -468,7 +478,7 @@ A reporting interval may also be specified with the -W/--weekly,
 -p overrides other flags
 """"""""""""""""""""""""
 
-A period option on the command line will override any -b/-e/-W/-Q/-Y flags.
+Note: any period option on the command line will override the -b, -e, -W, -Q and -Y flags.
 
 Display expressions
 ...................
@@ -577,8 +587,8 @@ code.
 Features not supported
 """"""""""""""""""""""
 
-ledger features not currently supported include: modifier and periodic
-entries, and the following options and commands::
+c++ ledger features not currently supported include: modifier and periodic
+entries, and the following c++ ledger options and commands::
 
    Basic options:
    -o, --output FILE      write output to FILE
@@ -654,13 +664,29 @@ Other differences
 Tips
 ....
 
-- when writing a negative amount with a left-side currency symbol, the
+- When writing a negative amount with a left-side currency symbol, the
   minus goes after the symbol. Eg ``$-1`` not ``-$1``
 
-- when combining desc: and not: in a filter pattern, not: goes last. Eg
+- When combining desc: and not: in a filter pattern, not: goes last. Eg
   ``desc:not:...`` not ``not:desc:...``.
 
+More examples, recipes
+......................
 
+- Here's a bash function that will run hledger chart and display
+  the image in your (graphical) emacs::
+
+   function chart () {
+     hledger chart $* && emacsclient -n hledger.png
+   }
+
+  Example::
+
+   $ chart food --depth 2 -p jan
+
+
+
+.. ......................................................................
 
 .. _hledger for techies:   README2.html
 .. _c++ ledger's manual:   http://joyful.com/repos/ledger/doc/ledger.html

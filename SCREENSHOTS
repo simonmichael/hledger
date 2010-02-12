@@ -27,3 +27,13 @@ A time dashboard in emacs. The upper window displays today's time report every m
 
 .. image:: watchhours.png
 
+
+.. raw:: html
+
+  <br><br><a name=hledger-charts-2>
+
+Viewing a year of monthly expense charts in emacs. See examples in http://hledger.org/MANUAL#chart .
+
+.. image:: hledger-charts-2.png
+
+
