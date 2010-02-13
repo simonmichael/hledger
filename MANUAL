@@ -393,7 +393,7 @@ main ledger.
 .rules file
 ,,,,,,,,,,,
 
-convert requires a *.rules file containing data definitions and rules for
+convert requires a \*.rules file containing data definitions and rules for
 assigning destination accounts to transactions; it will be auto-created if
 missing. Typically you will have one csv file and one rules file per bank
 account. Here's an example rules file for converting csv data from a Wells

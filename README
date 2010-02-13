@@ -14,13 +14,13 @@ I use it every day to:
 - get accurate numbers for client billing and tax filing
 - track invoices
 
-Here is a **demo_** of the web interface.
+Here is a demo_ of the web interface.
 
-Here are ready-to-run **binaries_** for mac, windows and gnu/linux.
+Here are ready-to-run binaries_ for mac, windows and gnu/linux.
 Unfortunately they are not always the latest release, sorry about that.
 
-Here is the **manual_**.
-For support and more technical info, see **`hledger for techies`_** or **`email me`_**.
+Here is the manual_.
+For support and more technical info, see `hledger for techies`_ or `email me`_.
 
 .. (If you're reading this in plain text, see also README2, MANUAL etc., or http://hledger.org)
 

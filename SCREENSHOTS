@@ -1,6 +1,7 @@
 hledger screenshots
 ===================
 
+.. ....................................................................
 .. raw:: html 
 
   <br><br><a name=hledger-screen-1>
@@ -8,8 +9,10 @@ hledger screenshots
 Basic command-line reports, like ledger:
 
 .. image:: hledger-screen-1.png
+    :width:  571px
+    :height: 400px
 
-
+.. ....................................................................
 .. raw:: html 
 
   <br><br><a name=sshot>
@@ -17,8 +20,10 @@ Basic command-line reports, like ledger:
 The interactive curses interface ("hledger ui"):
 
 .. image:: sshot.png
+    :width:  802px
+    :height: 378px
 
-
+.. ....................................................................
 .. raw:: html 
 
   <br><br><a name=watchhours>
@@ -26,8 +31,10 @@ The interactive curses interface ("hledger ui"):
 A time dashboard in emacs. The upper window displays today's time report every minute (using ansi-term, watch, a helper script, and hledger invoked via "hours" symlink.) The lower window is viewing the timelog file, to tweak clock-ins/clock-outs made with C-x t i and C-x t o. (`ledgerutils.el <http://joyful.com/Ledger/#ledgertools>`_ has some related bits.):
 
 .. image:: watchhours.png
+    :width:  756px
+    :height: 502px
 
-
+.. ....................................................................
 .. raw:: html
 
   <br><br><a name=hledger-charts-2>
@@ -35,5 +42,8 @@ A time dashboard in emacs. The upper window displays today's time report every m
 Viewing a year of monthly expense charts in emacs. See examples in http://hledger.org/MANUAL#chart .
 
 .. image:: hledger-charts-2.png
-
+    :width:  1675px
+    :height: 1004px
+    :scale:  50
+    :target: hledger-charts-2.png
 

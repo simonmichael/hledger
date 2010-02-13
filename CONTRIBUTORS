@@ -22,11 +22,13 @@ Also:
 - John Wiegley - created the original ledger program
 
 .. raw:: html
+
  <br>
 
 ----
 
 .. raw:: html
+
  <br>
 
 hledger Contributor Agreement
@@ -44,7 +46,7 @@ changes to hledger, please sign this, to help ensure:
    (eg GPLv2 -> GPLv3)
 
 To "sign", read the conditions below and then send a darcs patch to
-this file_  adding your name to the Contributor List above.  By so
+`this file`_  adding your name to the Contributor List above.  By so
 doing you promise that all of your commits to hledger:
 
 - are free of patent violations or copyright violations, to the best of
@@ -61,6 +63,6 @@ We don't currently gather paper signatures, but this is a good start.
 Feel free to update your entry as your contributions grow!
 
 
-.. _license: http://joyful.com/repos/hledger/LICENSE
-.. _file:    http://joyful.com//darcsweb/darcsweb.cgi?r=hledger;a=filehistory;f=/CONTRIBUTORS
+.. _license:   http://joyful.com/repos/hledger/LICENSE
+.. _this file: http://joyful.com//darcsweb/darcsweb.cgi?r=hledger;a=filehistory;f=/CONTRIBUTORS
 

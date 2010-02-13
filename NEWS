@@ -60,12 +60,8 @@ hledger news
   * refactoring, clearer data types
 
   Stats:
-  62 days since last release,
-  2 contributors,
-  76 commits,
-  3464 lines of non-test code,
-  97 tests,
-  53% test coverage
+  62 days, 2 contributors, 76 commits since last release.
+  Now at 3464 lines of non-test code, 97 tests, 53% test coverage.
 
 2009/12/11 hledger 0.7
 ........................
@@ -103,12 +99,8 @@ hledger news
   * many site and documentation updates
 
   Stats:
-  1 contributors,
-  60 days since release,
-  50 commits,
-  3377 non-test code lines,
-  97 tests,
-  53% test coverage
+  60 days, 1 contributor, 50 commits since last release.
+  Now at 3377 lines of non-test code, 97 tests, 53% test coverage.
 
 2009/06/22 hledger 0.6.1
 ........................
@@ -182,8 +174,9 @@ Release stats:
   * Lines of non-test code: 2795
   * Tests: 76
   * Known errors: 0
-  * Performance:
+
 ..
+  * Performance:
                               || hledger-0.4 | hledger-0.5 | ledger
      =========================++=============+=============+=======
      -f sample.ledger balance ||        0.01 |        0.01 |   0.06
@@ -226,8 +219,9 @@ Release stats:
   * Lines of non-test code: 2367
   * Tests: 56
   * Known errors: 0
-  * Performance:
+
 ..
+  * Performance:
                                    || hledger-0.3 | hledger-0.4 | ledger-0.3
      ==============================++=============+=============+===========
      -f sample.ledger balance      ||        0.02 |        0.01 |       0.07
@@ -261,8 +255,9 @@ Release stats:
   * Lines of non-test code: 2123
   * Tests: 58
   * Known errors: 1
-  * Performance:
+
 ..
+  * Performance:
      $ bench hledger-0.2 hledger ledger
                                        || hledger-0.2 | hledger | ledger
      ==================================++=============+=========+=======
