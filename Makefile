@@ -19,9 +19,14 @@ COVCMD=test
 # standard cabal builds, also constrained to parsec 2 for now.
 BENCHEXES=hledger-0.6 hledger-0.7 ledger-3pre
 
-# document viewing commands
-VIEWHTMLCMD=open
-VIEWPSCMD=open
+# misc. tools
+PANDOC=pandoc
+RST2HTML=rst2html
+RST2HTML=/opt/local/bin/rst2html.py
+VIEWHTML=open
+VIEWPS=open
+VIEWPDF=open
+PRINT=lpr
 
 SOURCEFILES:= \
 	hledger.hs \
@@ -93,6 +98,10 @@ hledgerlinux: setversion
 continuous ci: setversion
 	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
+# fix permissions (eg after darcs get)
+fixperms:
+	chmod +x tools/*
+
 # build the standalone unit test runner. Requires test-framework, which
 # may not work on windows.
 tools/unittest: tools/unittest.hs
@@ -150,7 +159,7 @@ functest: hledger
 		&& echo $@ passed) || echo $@ FAILED
 
 # run doc tests
-doctest: tools/doctest
+doctest: tools/doctest hledger
 	@(tools/doctest Commands/Add.hs \
 		&& tools/doctest Tests.hs \
 		&& echo $@ passed) || echo $@ FAILED
@@ -250,32 +259,54 @@ cleandocs:
 	rm -rf website/[A-Z]*.html website/api-doc/*
 
 # rebuild all docs
-docs: web pdf api-docs
+docs: html pdf apidocs
 
-# build the main hledger.org website
-web:
-	for d in $(DOCFILES); do pandoc --toc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
+# generate html versions of docs (and the hledger.org website)
+# work around pandoc not handling full rst image directive
+html:
+	for d in $(DOCFILES); do $(PANDOC) --toc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
+	cd website && ln -sf ../SCREENSHOTS && $(RST2HTML) SCREENSHOTS >SCREENSHOTS.html && rm -f SCREENSHOTS
 	cd website; rm -f index.html; ln -s README.html index.html; rm -f profs; ln -s ../profs
 
-# ..from anywhere
-updatesite: push
-	ssh joyful.com 'make -C/repos/hledger docs'
+pdf: docspdf codepdf
 
 # generate pdf versions of main docs
-pdf:
-	-for d in $(DOCFILES); do rst2pdf $$d -o website/$$d.pdf; done
+# work around rst2pdf needing images in the same directory
+docspdf:
+	-for d in $(DOCFILES); do (cd website && ln -sf ../$$d && rst2pdf $$d && rm -f $$d); done
+
+# format all code as a pdf for offline reading
+ENSCRIPT=enscript -q --header='$$n|$$D{%+}|Page $$% of $$=' --line-numbers --font=Courier6 --color -o-
+codepdf:
+	$(ENSCRIPT) --pretty-print=makefile hledger.cabal >cabal.ps
+	$(ENSCRIPT) --pretty-print=makefile Makefile >make.ps
+	$(ENSCRIPT) --pretty-print=haskell $(SOURCEFILES) >haskell.ps
+	cat cabal.ps make.ps haskell.ps | ps2pdf - >code.pdf
+
+# view all docs and code as pdf
+PDFS=website/{README,README2,MANUAL,NEWS,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
+viewall: pdf
+	$(VIEWPDFCMD) $(PDFS)
+
+# print all docs and code for offline reading
+printall: pdf
+	$(PRINTCMD) $(PDFS)
+
+# push latest docs etc. and update the hledger.org site
+site: push
+	ssh joyful.com 'make -C/repos/hledger docs'
 
 # generate api docs
 # We munge haddock and hoogle into a rough but useful framed layout.
 # For this to work the hoogle cgi must be built with base target "main".
 # XXX move the framed index building into haddock: ?
-api-docs: haddock #hoogle
+apidocs: haddock #hoogle
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
 	cp website/api-doc-frames.html website/api-doc/index.html ; \
 # 	cp website/hoogle-small.html website/api-doc
 
 # generate and view the api docs
-view-api-docs: api-docs
+viewapidocs: api-docs
 	$(VIEWHTMLCMD) website/api-doc/index.html
 
 MAIN=hledger.hs
@@ -497,16 +528,8 @@ emacstags:
 	@rm -f TAGS; hasktags -e $(SOURCEFILES) hledger.cabal
 
 clean:
-	rm -f `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*"`
+	rm -f `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*"`
 
 Clean: clean cleandocs
 	rm -f hledger TAGS tags
 
-printps:
-	enscript --line-numbers --font=Courier7 --output=cabal.ps hledger.cabal
-	enscript --line-numbers --font=Courier7 --color --pretty-print=makefile --output=make.ps  Makefile 
-	enscript --line-numbers --font=Courier7 --color --pretty-print=haskell --output=code.ps $(SOURCEFILES)
-	cat cabal.ps make.ps code.ps >all.ps
-
-print: printps
-	lpr all.ps
