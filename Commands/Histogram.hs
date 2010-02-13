@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-| 
 
 Print a histogram report.
@@ -6,10 +7,12 @@ Print a histogram report.
 
 module Commands.Histogram
 where
-import Prelude hiding (putStr)
 import Ledger
 import Options
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding ( putStr )
 import System.IO.UTF8
+#endif
 
 
 barchar = '*'

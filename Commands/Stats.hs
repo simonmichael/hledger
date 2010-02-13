@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 Print some statistics for the ledger.
@@ -6,10 +7,12 @@ Print some statistics for the ledger.
 
 module Commands.Stats
 where
-import Prelude hiding (putStr)
 import Ledger
 import Options
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding ( putStr )
 import System.IO.UTF8
+#endif
 
 
 -- | Print various statistics for the ledger.

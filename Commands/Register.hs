@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-| 
 
 A ledger-compatible @register@ command.
@@ -6,10 +7,12 @@ A ledger-compatible @register@ command.
 
 module Commands.Register
 where
-import Prelude hiding (putStr)
 import Ledger
 import Options
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding ( putStr )
 import System.IO.UTF8
+#endif
 
 
 -- | Print a register report.

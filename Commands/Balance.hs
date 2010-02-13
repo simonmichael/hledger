@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 A ledger-compatible @balance@ command.
@@ -96,7 +97,6 @@ balance report:
 
 module Commands.Balance
 where
-import Prelude hiding (putStr)
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
@@ -104,7 +104,10 @@ import Ledger.AccountName
 import Ledger.Posting
 import Ledger.Ledger
 import Options
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding ( putStr )
 import System.IO.UTF8
+#endif
 
 
 -- | Print a balance report.

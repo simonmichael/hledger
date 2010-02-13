@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 Provide standard imports and utilities which are useful everywhere, or
@@ -23,7 +24,6 @@ module Text.RegexPR,
 module Test.HUnit,
 )
 where
-import Prelude hiding (readFile)
 import Char
 import Control.Exception
 import Control.Monad
@@ -36,7 +36,10 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Debug.Trace
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding (readFile)
 import System.IO.UTF8
+#endif
 import Test.HUnit
 import Text.Printf
 import Text.RegexPR

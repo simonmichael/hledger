@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 Utilities for doing I/O with ledger files.
 -}
@@ -12,8 +13,10 @@ import Ledger.Utils (getCurrentLocalTime)
 import Ledger.Dates (nulldatespan)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
+#if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile)
 import System.IO.UTF8
+#endif
 import System.FilePath ((</>))
 import System.Time (getClockTime)
 

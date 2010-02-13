@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 Parsers for standard ledger and timelog files.
@@ -6,13 +7,15 @@ Parsers for standard ledger and timelog files.
 
 module Ledger.Parse
 where
-import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Combinator
 import System.Directory
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
+#endif
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Dates

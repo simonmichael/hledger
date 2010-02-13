@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 Utilities for top-level modules and ghci. See also "Ledger.IO" and
@@ -12,7 +13,11 @@ import Ledger
 import Options (Opt(..),ledgerFilePathFromOpts) -- ,optsToFilterSpec)
 import System.Directory (doesFileExist)
 import System.IO (stderr)
+#if __GLASGOW_HASKELL__ <= 610
 import System.IO.UTF8 (hPutStrLn)
+#else
+import System.IO (hPutStrLn)
+#endif
 import System.Exit
 import System.Cmd (system)
 import System.Info (os)

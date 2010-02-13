@@ -6,7 +6,9 @@ A web-based UI.
 
 module Commands.Web
 where
+#if __GLASGOW_HASKELL__ <= 610
 import Codec.Binary.UTF8.String (decodeString)
+#endif
 import Control.Applicative.Error (Failing(Success,Failure))
 import Control.Concurrent
 import Control.Monad.Reader (ask)
@@ -50,7 +52,7 @@ import Commands.Register
 import Ledger
 import Utils (openBrowserOn)
 import Ledger.IO (readLedger)
-
+# 
 -- import Debug.Trace
 -- strace :: Show a => a -> a
 -- strace a = trace (show a) a
@@ -244,8 +246,13 @@ searchform env = do
 addform :: Hack.Env -> HSP XML
 addform env = do
   let inputs = Hack.Contrib.Request.inputs env
+#if __GLASGOW_HASKELL__ <= 610
       date  = decodeString $ fromMaybe "" $ lookup "date"  inputs
       desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
+#else
+      date  = fromMaybe "" $ lookup "date"  inputs
+      desc  = fromMaybe "" $ lookup "desc"  inputs
+#endif
   <div>
    <div id="addform">
    <form action="" method="POST">
@@ -268,8 +275,13 @@ addform env = do
 transactionfields :: Int -> Hack.Env -> HSP XML
 transactionfields n env = do
   let inputs = Hack.Contrib.Request.inputs env
+#if __GLASGOW_HASKELL__ <= 610
       acct = decodeString $ fromMaybe "" $ lookup acctvar inputs
       amt  = decodeString $ fromMaybe "" $ lookup amtvar  inputs
+#else
+      acct = fromMaybe "" $ lookup acctvar inputs
+      amt  = fromMaybe "" $ lookup amtvar  inputs
+#endif
   <tr>
     <td>
       [NBSP][NBSP]
@@ -292,12 +304,21 @@ handleAddform l = do
     validate :: Hack.Env -> Day -> Failing Transaction
     validate env today =
         let inputs = Hack.Contrib.Request.inputs env
+#if __GLASGOW_HASKELL__ <= 610
             date  = decodeString $ fromMaybe "today" $ lookup "date"  inputs
             desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
             acct1 = decodeString $ fromMaybe "" $ lookup "acct1" inputs
             amt1  = decodeString $ fromMaybe "" $ lookup "amt1"  inputs
             acct2 = decodeString $ fromMaybe "" $ lookup "acct2" inputs
             amt2  = decodeString $ fromMaybe "" $ lookup "amt2"  inputs
+#else
+            date  = fromMaybe "today" $ lookup "date"  inputs
+            desc  = fromMaybe "" $ lookup "desc"  inputs
+            acct1 = fromMaybe "" $ lookup "acct1" inputs
+            amt1  = fromMaybe "" $ lookup "amt1"  inputs
+            acct2 = fromMaybe "" $ lookup "acct2" inputs
+            amt2  = fromMaybe "" $ lookup "amt2"  inputs
+#endif
             validateDate ""  = ["missing date"]
             validateDate _   = []
             validateDesc ""  = ["missing description"]

@@ -36,8 +36,10 @@ See "Ledger.Ledger" for more examples.
 -}
 
 module Main where
+#if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8
+#endif
 
 import Commands.All
 import Ledger

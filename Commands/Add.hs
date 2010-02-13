@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-| 
 
 A history-aware add command to help with data entry.
@@ -6,12 +7,16 @@ A history-aware add command to help with data entry.
 
 module Commands.Add
 where
-import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import Ledger
 import Options
 import Commands.Register (showRegisterReport)
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import System.IO.UTF8
-import System.IO (stderr, hFlush)
+import System.IO ( stderr, hFlush )
+#else
+import System.IO ( stderr, hFlush, hPutStrLn, hPutStr )
+#endif
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Utils (ledgerFromStringWithOpts)
@@ -24,9 +29,9 @@ add :: [Opt] -> [String] -> Ledger -> IO ()
 add opts args l
     | filepath (journal l) == "-" = return ()
     | otherwise = do
-  hPutStrLn stderr
-    "Enter one or more transactions, which will be added to your ledger file.\n\
-    \To complete a transaction, enter . as account name. To quit, press control-c."
+  hPutStrLn stderr $
+    "Enter one or more transactions, which will be added to your ledger file.\n"
+    ++"To complete a transaction, enter . as account name. To quit, press control-c."
   today <- getCurrentDay
   getAndAddTransactions l opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
 
