@@ -82,6 +82,7 @@ executable hledger
                   Commands.Print
                   Commands.Register
                   Commands.Stats
+                  HledgerMain
                   Ledger
                   Ledger.Account
                   Ledger.AccountName

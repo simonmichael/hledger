@@ -1,9 +1,8 @@
--- #!/usr/bin/env runhaskell  <- sp doesn't like
-{-# LANGUAGE CPP #-}
+#!/usr/bin/env runhaskell
 {-|
 hledger - a ledger-compatible text-based accounting tool.
 
-Copyright (c) 2007-2009 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2010 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 hledger is a partial haskell clone of John Wiegley's "ledger" text-based
@@ -33,45 +32,8 @@ or ghci:
 > > t <- myTimelog
 
 See "Ledger.Ledger" for more examples.
+
 -}
 
 module Main where
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (putStr, putStrLn)
-import System.IO.UTF8
-#endif
-
-import Commands.All
-import Ledger
-import Options
-import Tests
-import Utils (withLedgerDo)
-import Version (versionmsg, binaryfilename)
-
-main :: IO ()
-main = do
-  (opts, cmd, args) <- parseArguments
-  run cmd opts args
-    where
-      run cmd opts args
-       | Help `elem` opts             = putStr usage
-       | Version `elem` opts          = putStrLn versionmsg
-       | BinaryFilename `elem` opts   = putStrLn binaryfilename
-       | cmd `isPrefixOf` "balance"   = withLedgerDo opts args cmd balance
-       | cmd `isPrefixOf` "convert"   = withLedgerDo opts args cmd convert
-       | cmd `isPrefixOf` "print"     = withLedgerDo opts args cmd print'
-       | cmd `isPrefixOf` "register"  = withLedgerDo opts args cmd register
-       | cmd `isPrefixOf` "histogram" = withLedgerDo opts args cmd histogram
-       | cmd `isPrefixOf` "add"       = withLedgerDo opts args cmd add
-       | cmd `isPrefixOf` "stats"     = withLedgerDo opts args cmd stats
-#ifdef VTY
-       | cmd `isPrefixOf` "ui"        = withLedgerDo opts args cmd ui
-#endif
-#ifdef WEB
-       | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web
-#endif
-#ifdef CHART
-       | cmd `isPrefixOf` "chart"       = withLedgerDo opts args cmd chart
-#endif
-       | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
-       | otherwise                    = putStr usage
+import HledgerMain (main)
