@@ -14,10 +14,10 @@ PROFCMD=-f 1000x1000x10.ledger balance
 # command to run during "make coverage"
 COVCMD=test
 
-# executables to run during "make benchmark". They should be on the path
+# executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables should generally be the
 # standard cabal builds, also constrained to parsec 2 for now.
-BENCHEXES=hledger-0.6 hledger-0.7 ledger-3pre
+BENCHEXES=hledger-0.7 hledger-0.8 ledger-3pre
 
 # misc. tools
 PANDOC=pandoc
@@ -113,9 +113,17 @@ tools/unittest: tools/unittest.hs
 tools/doctest: tools/doctest.hs
 	ghc --make tools/doctest.hs
 
-# build the benchmark runner. Requires tabular.
-tools/bench: tools/bench.hs
-	ghc --make tools/bench.hs
+# build the simple benchmark runner. Requires tabular.
+tools/simplebench: tools/simplebench.hs
+	ghc --make tools/simplebench.hs
+
+# build the criterion-based benchmark runner. Requires criterion.
+tools/criterionbench: tools/criterionbench.hs
+	ghc --make tools/criterionbench.hs
+
+# build the progression-based benchmark runner. Requires progression.
+tools/progressionbench: tools/progressionbench.hs
+	ghc --make tools/progressionbench.hs
 
 # build the generateledger tool
 tools/generateledger: tools/generateledger.hs
@@ -195,12 +203,20 @@ fullcabaltest: setversion
 		&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
 		&& echo $@ passed) || echo $@ FAILED
 
-# run performance benchmarks and save results in profs/. 
+# run performance benchmarks and save textual results in profs/.
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
-benchmark: sampleledgers bench.tests tools/bench
+simplebench bench: sampleledgers bench.tests tools/simplebench
 	PATH=.:$(PATH) tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
+
+# run criterion benchmark tests and save graphical results
+criterionbench: sampleledgers tools/criterionbench
+	tools/criterionbench -t png -k png
+
+# run progression benchmark tests and save graphical results
+progressionbench: sampleledgers tools/progressionbench
+	tools/progressionbench -- -t png -k png
 
 # generate, save and display a standard profile
 prof: sampleledgers hledgerp
@@ -401,7 +417,7 @@ hoogleindex:
 #
 # - The VERSION file must be updated manually before a release.
 #
-# - "make benchmark" depends on version numbers in BENCHEXES, these also
+# - "make simplebench" depends on version numbers in BENCHEXES, these also
 #   must be updated manually.
 #
 # - "make" updates the version in most other places, and defines PATCHES.
@@ -489,7 +505,7 @@ pushbinary:
 	-rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
 
 # show project stats useful for release notes
-stats: showlastreleasedate showreleaseauthors showloc showcov showerrors showlocalchanges showreleasechanges benchmark
+stats: showlastreleasedate showreleaseauthors showloc showcov showerrors showlocalchanges showreleasechanges simplebench
 
 showreleaseauthors:
 	@echo Patch authors since last release:
