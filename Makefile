@@ -22,7 +22,6 @@ BENCHEXES=hledger-0.6 hledger-0.7 ledger-3pre
 # misc. tools
 PANDOC=pandoc
 RST2HTML=rst2html
-RST2HTML=/opt/local/bin/rst2html.py
 VIEWHTML=open
 VIEWPS=open
 VIEWPDF=open
