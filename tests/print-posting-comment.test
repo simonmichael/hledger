@@ -1,0 +1,13 @@
+# a posting comment should appear in print
+-f - print
+<<<
+2010/01/01 x
+    a             1  ; comment
+    b            -1
+
+>>>
+2010/01/01 x
+    a             1  ; comment
+    b            -1
+
+>>>2

@@ -135,7 +135,7 @@ showposting withtxninfo p b = concatBottomPadded [txninfo ++ pstr ++ " ", bal] +
       datewidth = 10
       descwidth = datedescwidth - datewidth - 2
       desc = printf ("%-"++(show descwidth)++"s") $ elideRight descwidth de :: String
-      pstr = showPostingWithoutPrice p
+      pstr = showPostingForRegister p
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
       (da,de) = case ptransaction p of Just (Transaction{tdate=da',tdescription=de'}) -> (da',de')
                                        Nothing -> (nulldate,"")
