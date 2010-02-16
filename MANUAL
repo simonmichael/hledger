@@ -469,21 +469,23 @@ matched against the posting's transaction's description.
 To negate a pattern, prefix it with ``not:``. Note: with multiple
 prefixes, not: should go last, eg: ``desc:not:someregexp``.
 
-Smart dates
-"""""""""""
+Dates
+"""""
 
 hledger accepts "smart dates" in most places a date can be used, such as:
 -b and -e options, and `period expressions <#period-expressions>`_
 (but actually, not in the ledger file, which has more limited date parsing.)
 Here are some examples:
 
-- 2009/1/1, 2009/01/01, 2009-1-1, 2009.1.1, 2009/1, 2009 (january 1, 2009)
-- 1/1, january, jan, this year (january 1, this year)
-- next year (january 1, next year)
-- this month (the 1st of the current month)
-- this week (the most recent monday)
-- last week (the monday of the week before this one)
-- today, yesterday, tomorrow
+- ``2009/1/1``, ``2009/01/01``, ``2009-1-1``, ``2009.1.1``, ``2009/1``, ``2009`` (january 1, 2009)
+- ``1/1``, ``january``, ``jan``, ``this year`` (january 1, this year)
+- ``next year`` (january 1, next year)
+- ``this month`` (the 1st of the current month)
+- ``this week`` (the most recent monday)
+- ``last week`` (the monday of the week before this one)
+- ``today``, ``yesterday``, ``tomorrow``
+
+Spaces are optional, so eg: ``-p lastmonth`` is valid.
 
 Period expressions
 """"""""""""""""""
@@ -504,7 +506,7 @@ don't run two dates together::
  -p2009/1/1to2009/4/1
  -p"2009/1/1 2009/4/1"
 
-Dates are `smart dates <#smart-dates>`_, so if the current year is 2009, the above can also
+Dates are `smart dates <#dates>`_, so if the current year is 2009, the above can also
 be written as::
 
  -p "1/1 to 4/1"
