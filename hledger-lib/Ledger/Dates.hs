@@ -32,7 +32,7 @@ import Ledger.Utils
 
 
 showDate :: Day -> String
-showDate = formatTime defaultTimeLocale "%Y/%m/%d"
+showDate = formatTime defaultTimeLocale "%C%y/%m/%d"
 
 getCurrentDay :: IO Day
 getCurrentDay = do

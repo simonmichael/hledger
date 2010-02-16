@@ -368,7 +368,6 @@ unexpected end of input
 expecting blank line or comment line
 *** parsing: comment lines immediately after postings
 *** parsing: accept all real-world ledger files
-*** web: happstack ipv6 issue 6
 ** refactoring, code cleanup
 *** pair programming
 *** seek more modularity
@@ -389,6 +388,8 @@ expecting blank line or comment line
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** parsing: safety check that effective date > actual (to catch eg 2009/12/30=1/4)
+*** parsing: in effective date use actual date for defaults
 *** web: filter patterns
 period doesn't work anywhere
 account doesn't work on balance
@@ -413,6 +414,10 @@ can't filter by description
 *** more reliable tidy layout from print
 *** parse more file formats - gnucash, qif, ofx, csv..
 *** i18n
+import Codec.Binary.UTF8.String (encodeString, decodeString)
+import Data.ByteString.UTF8 (fromString, toString)
+import Data.ByteString.Char8 (pack, unpack)
+import Data.Text.Encoding (decodeUtf8)
 *** speed
 *** clear interfaces/surfaces/plugin architecture
 
