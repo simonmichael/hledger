@@ -1,0 +1,11 @@
+# add's default amounts should not fail to balance due to precision
+-f nosuch.ledger add
+<<<
+2010/1/1
+x
+a
+0.25
+b
+0.5
+c
+>>>2 /amount  3 \[-0.75\]/
