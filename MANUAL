@@ -54,6 +54,10 @@ You can add some options to the install command to include extra features:
 
 - Add ``-fweb`` to build the `web <#web>`_ command.
 
+  Note: this uses a simple web server which might not support older
+  browsers like IE6. To build with a more featureful (but slightly harder
+  to install) web server, use ``-fwebhappstack`` instead.
+
 - Add ``-fchart`` to build the `chart <#chart>`_ command. This requires
   gtk2hs_, which you'll need to install yourself as it's not yet provided
   by the haskell platform or cabal.
@@ -64,10 +68,10 @@ Here are some issues that have been encountered, with workarounds:
 
 - In some cases, cabal install can fail with a compilation or link error
   due to incompatible package versions.  You can sometimes work around
-  this by specifying versions manually.  Eg here's a recipe for haskell
-  platform 2009.2.0.2 on MS Windows::
+  this by specifying versions manually.  Eg here's a recipe for building
+  with happstack on haskell platform 2009.2.0.2 on MS Windows::
 
-   cabal install hledger -fweb --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
+   cabal install hledger -fwebhappstack --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
 
 - A ghc panic while building might be due to http://hackage.haskell.org/trac/ghc/ticket/3862
 
@@ -103,7 +107,7 @@ few transactions. Now you can try some of these commands, or read on::
  hledger histogram                     # transactions per day, or other interval
  hledger add                           # add some new transactions to the ledger file
  hledger ui                            # curses ui, if installed with -fvty
- hledger web                           # web ui, if installed with -fweb
+ hledger web                           # web ui, if installed with -fweb or -fwebhappstack
  hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
