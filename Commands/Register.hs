@@ -7,6 +7,7 @@ A ledger-compatible @register@ command.
 
 module Commands.Register
 where
+import Safe (headMay, lastMay)
 import Ledger
 import Options
 #if __GLASGOW_HASKELL__ <= 610
@@ -45,6 +46,7 @@ showRegisterReport opts filterspec l
                                Nothing -> True
                                Just e  -> (fromparse $ parsewith datedisplayexpr e) p
                         
+-- XXX confusing, refactor
 -- | Given a date span (representing a reporting interval) and a list of
 -- postings within it: aggregate the postings so there is only one per
 -- account, and adjust their date/description so that they will render
@@ -60,17 +62,17 @@ showRegisterReport opts filterspec l
 -- and also zero-posting accounts within the span.
 summarisePostingsInDateSpan :: DateSpan -> Maybe Int -> Bool -> [Posting] -> [Posting]
 summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
-    | null ps && showempty = [p]
-    | null ps = []
+    | null ps && (isNothing b || isNothing e) = []
+    | null ps && showempty = [summaryp]
     | otherwise = summaryps'
     where
-      postingwithinfo date desc = nullposting{ptransaction=Just nulltransaction{tdate=date,tdescription=desc}}
-      p = postingwithinfo b' ("- "++ showDate (addDays (-1) e'))
-      b' = fromMaybe (postingDate $ head ps) b
-      e' = fromMaybe (postingDate $ last ps) e
-      summaryps'
-          | showempty = summaryps
-          | otherwise = filter (not . isZeroMixedAmount . pamount) summaryps
+      summaryp = summaryPosting b' ("- "++ showDate (addDays (-1) e'))
+      b' = fromMaybe (maybe nulldate postingDate $ headMay ps) b
+      e' = fromMaybe (maybe (addDays 1 nulldate) postingDate $ lastMay ps) e
+      summaryPosting date desc = nullposting{ptransaction=Just nulltransaction{tdate=date,tdescription=desc}}
+
+      summaryps' = (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
+      summaryps = [summaryp{paccount=a,pamount=balancetoshowfor a} | a <- clippedanames]
       anames = sort $ nub $ map paccount ps
       -- aggregate balances by account, like cacheLedger, then do depth-clipping
       (_,_,exclbalof,inclbalof) = groupPostings ps
@@ -79,7 +81,6 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
       d = fromMaybe 99999 $ depth
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
-      summaryps = [p{paccount=a,pamount=balancetoshowfor a} | a <- clippedanames]
 
 {- |
 Show postings one per line, plus transaction info for the first posting of
