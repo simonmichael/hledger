@@ -69,7 +69,7 @@ configflags   = tail [""
 #endif
 #if defined(WEB)
   ,"web (using simpleserver)"
-#else if defined(WEBHAPPSTACK)
+#elif defined(WEBHAPPSTACK)
   ,"web (using happstack)"
 #endif
  ]
