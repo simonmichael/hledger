@@ -231,8 +231,8 @@ searchform env = do
                  | otherwise = <span id="resetlink"><% nbsp %><a href=u>reset</a></span>
                  where u = dropWhile (=='/') $ Hack.Contrib.Request.path env
    <form action="" id="searchform">
-      <% nbsp %>account pattern:<% nbsp %><input name="a" size="20" value=a
-      /><% nbsp %><% nbsp %>reporting period:<% nbsp %><input name="p" size="20" value=p />
+      <% nbsp %>search for:<% nbsp %><input name="a" size="20" value=a
+      /><% nbsp %><% nbsp %>in reporting period:<% nbsp %><input name="p" size="20" value=p />
       <input type="submit" name="submit" value="filter" style="display:none" />
       <% resetlink %>
     </form>
