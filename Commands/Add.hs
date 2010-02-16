@@ -105,13 +105,46 @@ getPostings accept historicalps enteredps = do
       defaultaccount = maybe Nothing (Just . showacctname) bestmatch
       showacctname p = showAccountName Nothing (ptype p) $ paccount p
       defaultamount = maybe balancingamount (Just . show . pamount) bestmatch
-          where balancingamount = Just $ show $ negate $ sum $ map pamount enteredrealps
+          where balancingamount = Just $ show $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
       postingtype ('[':_) = BalancedVirtualPosting
       postingtype ('(':_) = VirtualPosting
       postingtype _ = RegularPosting
       stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
                                    || isRight (parse (someamount>>many spacenonewline>>eof) "" s)
+
+-- XXX urgh.. just a proof of concept, refactor
+sumMixedAmountsPreservingHighestPrecision :: [MixedAmount] -> MixedAmount
+sumMixedAmountsPreservingHighestPrecision ms = foldl' (+~) 0 ms
+    where (+~) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingHighestPrecision $ Mixed $ as ++ bs
+
+normaliseMixedAmountPreservingHighestPrecision :: MixedAmount -> MixedAmount
+normaliseMixedAmountPreservingHighestPrecision (Mixed as) = Mixed as''
+    where
+      as'' = map sumSamePricedAmountsPreservingPriceAndHighestPrecision $ group $ sort as'
+      sort = sortBy cmpsymbolandprice
+      cmpsymbolandprice a1 a2 = compare (sym a1,price a1) (sym a2,price a2)
+      group = groupBy samesymbolandprice
+      samesymbolandprice a1 a2 = (sym a1 == sym a2) && (price a1 == price a2)
+      sym = symbol . commodity
+      as' | null nonzeros = [head $ zeros ++ [nullamt]]
+          | otherwise = nonzeros
+      (zeros,nonzeros) = partition isReallyZeroAmount as
+
+sumSamePricedAmountsPreservingPriceAndHighestPrecision [] = nullamt
+sumSamePricedAmountsPreservingPriceAndHighestPrecision as = (sumAmountsPreservingHighestPrecision as){price=price $ head as}
+
+sumAmountsPreservingHighestPrecision :: [Amount] -> Amount
+sumAmountsPreservingHighestPrecision as = foldl' (+~) 0 as
+    where (+~) = amountopPreservingHighestPrecision (+)
+
+amountopPreservingHighestPrecision :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
+amountopPreservingHighestPrecision op a@(Amount ac@Commodity{precision=ap} _ _) (Amount bc@Commodity{precision=bp} bq _) = 
+    Amount c q Nothing
+    where
+      q = quantity (convertAmountTo bc a) `op` bq
+      c = if ap > bp then ac else bc
+--
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
