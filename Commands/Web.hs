@@ -13,36 +13,31 @@ import Control.Applicative.Error (Failing(Success,Failure))
 import Control.Concurrent
 import Control.Monad.Reader (ask)
 import Data.IORef (newIORef, atomicModifyIORef)
-import HSP hiding (Request,catch)
-import HSP.HTML (renderAsHTML)
---import qualified HSX.XMLGenerator (XML)
-import Hack.Contrib.Constants (_TextHtmlUTF8)
-import Hack.Contrib.Response (set_content_type)
-import Hack.Handler.Happstack (runWithConfig,ServerConf(ServerConf))
-import Happstack.State.Control (waitForTermination)
 import Network.HTTP (urlEncode, urlDecode)
-import Network.Loli (loli, io, get, post, html, text, public)
---import Network.Loli.Middleware.IOConfig (ioconfig)
-import Network.Loli.Type (AppUnit)
-import Network.Loli.Utils (update)
-import Options hiding (value)
-#ifdef MAKE
-import Paths_hledger_make (getDataFileName)
-#else
-import Paths_hledger (getDataFileName)
-#endif
 import System.Directory (getModificationTime)
 import System.IO.Storage (withStore, putValue, getValue)
-import System.Process (readProcess)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Text.ParserCombinators.Parsec (parse)
--- import Text.XHtml hiding (dir, text, param, label)
--- import Text.XHtml.Strict ((<<),(+++),(!))
-import qualified HSP (Request(..))
+
+import Hack.Contrib.Constants (_TextHtmlUTF8)
+import Hack.Contrib.Response (set_content_type)
 import qualified Hack (Env, http)
 import qualified Hack.Contrib.Request (inputs, params, path)
 import qualified Hack.Contrib.Response (redirect)
--- import qualified Text.XHtml.Strict as H
+#ifdef WEBHAPPSTACK
+import System.Process (readProcess)
+import Hack.Handler.Happstack (runWithConfig,ServerConf(ServerConf))
+#else
+import Hack.Handler.SimpleServer (run)
+#endif
+
+import Network.Loli (loli, io, get, post, html, text, public)
+import Network.Loli.Type (AppUnit)
+import Network.Loli.Utils (update)
+
+import HSP hiding (Request,catch)
+import qualified HSP (Request(..))
+import HSP.HTML (renderAsHTML)
 
 import Commands.Add (ledgerAddTransaction)
 import Commands.Balance
@@ -50,33 +45,69 @@ import Commands.Histogram
 import Commands.Print
 import Commands.Register
 import Ledger
-import Utils (openBrowserOn)
 import Ledger.IO (readLedger)
-# 
+import Options hiding (value)
+#ifdef MAKE
+import Paths_hledger_make (getDataFileName)
+#else
+import Paths_hledger (getDataFileName)
+#endif
+import Utils (openBrowserOn)
+
 -- import Debug.Trace
 -- strace :: Show a => a -> a
 -- strace a = trace (show a) a
 
 tcpport = 5000 :: Int
 homeurl = printf "http://localhost:%d/" tcpport
+browserdelay = 100000 -- microseconds
 
 web :: [Opt] -> [String] -> Ledger -> IO ()
 web opts args l = do
-  if Debug `elem` opts
-   then do
-    -- just run the server in the foreground
-    putStrLn $ printf "starting web server on port %d in debug mode" tcpport
-    server opts args l
-   else do
-    -- start the server (in background, so we can..) then start the web browser
-    printf "starting web interface on port %d\n" tcpport
-    tid <- forkIO $ server opts args l
-    putStrLn "starting web browser"
-    openBrowserOn homeurl
-    waitForTermination
-    putStrLn "shutting down web server..."
-    killThread tid
-    putStrLn "shutdown complete"
+  unless (Debug `elem` opts) $ forkIO browser >> return ()
+  server opts args l
+
+browser :: IO ()
+browser = putStrLn "starting web browser" >> threadDelay browserdelay >> openBrowserOn homeurl >> return ()
+
+server :: [Opt] -> [String] -> Ledger -> IO ()
+server opts args l =
+  -- server initialisation
+  withStore "hledger" $ do -- IO ()
+    printf "starting web server on port %d\n" tcpport
+    t <- getCurrentLocalTime
+    webfiles <- getDataFileName "web"
+    putValue "hledger" "ledger" l
+#ifdef WEBHAPPSTACK
+    hostname <- readProcess "hostname" [] "" `catch` \_ -> return "hostname"
+    runWithConfig (ServerConf tcpport hostname) $            -- (Env -> IO Response) -> IO ()
+#else
+    run tcpport $            -- (Env -> IO Response) -> IO ()
+#endif
+      \env -> do -- IO Response
+       -- general request handler
+       let a = intercalate "+" $ reqparam env "a"
+           p = intercalate "+" $ reqparam env "p"
+           opts' = opts ++ [Period p]
+           args' = args ++ (map urlDecode $ words a)
+       l' <- fromJust `fmap` getValue "hledger" "ledger"
+       l'' <- reloadIfChanged opts' args' l'
+       -- declare path-specific request handlers
+       let command :: [String] -> ([Opt] -> FilterSpec -> Ledger -> String) -> AppUnit
+           command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) l''
+       (loli $                                               -- State Loli () -> (Env -> IO Response)
+         do
+          get  "/balance"   $ command [] showBalanceReport  -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
+          get  "/register"  $ command [] showRegisterReport
+          get  "/histogram" $ command [] showHistogram
+          get  "/transactions"   $ ledgerpage [] l'' (showTransactions (optsToFilterSpec opts' args' t))
+          post "/transactions"   $ handleAddform l''
+          get  "/env"       $ getenv >>= (text . show)
+          get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
+          get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
+          public (Just webfiles) ["/style.css"]
+          get  "/"          $ redirect ("transactions") Nothing
+          ) env
 
 getenv = ask
 response = update
@@ -114,41 +145,6 @@ reloadIfChanged opts _ l = do
 
 -- refilter :: [Opt] -> [String] -> Ledger -> LocalTime -> IO Ledger
 -- refilter opts args l t = return $ filterAndCacheLedgerWithOpts opts args t (jtext $ journal l) (journal l)
-
-server :: [Opt] -> [String] -> Ledger -> IO ()
-server opts args l =
-  -- server initialisation
-  withStore "hledger" $ do -- IO ()
-    t <- getCurrentLocalTime
-    webfiles <- getDataFileName "web"
-    putValue "hledger" "ledger" l
-    -- XXX hack-happstack abstraction leak
-    hostname <- readProcess "hostname" [] "" `catch` \_ -> return "hostname"
-    runWithConfig (ServerConf tcpport hostname) $            -- (Env -> IO Response) -> IO ()
-      \env -> do -- IO Response
-       -- general request handler
-       let a = intercalate "+" $ reqparam env "a"
-           p = intercalate "+" $ reqparam env "p"
-           opts' = opts ++ [Period p]
-           args' = args ++ (map urlDecode $ words a)
-       l' <- fromJust `fmap` getValue "hledger" "ledger"
-       l'' <- reloadIfChanged opts' args' l'
-       -- declare path-specific request handlers
-       let command :: [String] -> ([Opt] -> FilterSpec -> Ledger -> String) -> AppUnit
-           command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) l''
-       (loli $                                               -- State Loli () -> (Env -> IO Response)
-         do
-          get  "/balance"   $ command [] showBalanceReport  -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
-          get  "/register"  $ command [] showRegisterReport
-          get  "/histogram" $ command [] showHistogram
-          get  "/transactions"   $ ledgerpage [] l'' (showTransactions (optsToFilterSpec opts' args' t))
-          post "/transactions"   $ handleAddform l''
-          get  "/env"       $ getenv >>= (text . show)
-          get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
-          get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
-          public (Just webfiles) ["/style.css"]
-          get  "/"          $ redirect ("transactions") Nothing
-          ) env
 
 ledgerpage :: [String] -> Ledger -> (Ledger -> String) -> AppUnit
 ledgerpage msgs l f = do

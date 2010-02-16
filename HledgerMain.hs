@@ -37,7 +37,7 @@ main = do
 #ifdef VTY
        | cmd `isPrefixOf` "ui"        = withLedgerDo opts args cmd ui
 #endif
-#ifdef WEB
+#if defined(WEB) || defined(WEBHAPPSTACK)
        | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web
 #endif
 #ifdef CHART

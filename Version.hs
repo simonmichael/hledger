@@ -61,13 +61,15 @@ versionmsg    = progname ++ "-" ++ versionstr ++ configmsg :: String
               | otherwise = " with " ++ intercalate ", " configflags
 
 configflags   = tail [""
+#ifdef CHART
+  ,"chart"
+#endif
 #ifdef VTY
   ,"vty"
 #endif
-#ifdef WEB
-  ,"web"
-#endif
-#ifdef CHART
-  ,"chart"
+#if defined(WEB)
+  ,"web (using simpleserver)"
+#else if defined(WEBHAPPSTACK)
+  ,"web (using happstack)"
 #endif
  ]

@@ -35,7 +35,11 @@ flag vty
   default:     False
 
 flag web
-  description: enable the web ui
+  description: enable the web ui (using simpleserver)
+  default:     False
+
+flag webhappstack
+  description: enable the web ui (using happstack)
   default:     False
 
 flag chart
@@ -104,6 +108,21 @@ executable hledger
 
   if flag(web)
     cpp-options: -DWEB
+    other-modules:Commands.Web
+    build-depends:
+                  hsp
+                 ,hsx
+                 ,xhtml >= 3000.2
+                 ,loli
+                 ,io-storage
+                 ,hack-contrib
+                 ,hack
+                 ,hack-handler-simpleserver
+                 ,HTTP >= 4000.0
+                 ,applicative-extras
+
+  if flag(webhappstack)
+    cpp-options: -DWEBHAPPSTACK
     other-modules:Commands.Web
     build-depends:
                   hsp
