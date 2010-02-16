@@ -635,6 +635,23 @@ Note the use of >= here to include the first of the month::
 
  $ hledger register -d "d>=[this month]"
 
+Depth limiting
+""""""""""""""
+
+With the ``--depth N`` option, reports will show only the uppermost
+accounts in the account tree, down to level N. This is most useful with
+`balance <#balance>`_ (and `chart <#chart>`_). For example::
+
+ $ hledger balance --depth 2
+
+shows a more concise balance report displaying only the top two levels of
+accounts.  This example with `register <#register>`_::
+
+ $ hledger register --depth 1
+
+would show only the postings to top-level accounts, which usually means
+none.
+
 Prices
 """"""
 
