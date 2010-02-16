@@ -358,10 +358,10 @@ browser to view it (if this fails, you'll have to visit the indicated url
 yourself.) The web ui combines the features of the print, register,
 balance and add commands.
 
-Examples:
+Examples::
 
-$ hledger web
-$ hledger web --debug -f demo.ledger -p thisyear
+ $ hledger web
+ $ hledger web --debug -f demo.ledger -p thisyear
 
 Other commands
 """"""""""""""
@@ -638,53 +638,52 @@ Note the use of >= here to include the first of the month::
 Prices
 """"""
 
-As in c++ ledger, you can specify a per-unit price (or conversion rate) in
-the following ways:
+You can specify a commodity's unit price, or exchange rate, in terms of
+another commodity. There are two ways.
 
-- **set the unit price for a single amount** by appending `` @ PRICE``, where
-  PRICE is another amount in a different commodity. Eg, here is one
-  hundred euros purchased at $1.35 per euro::
+First, you can set the price explicitly for a single posting by writing
+``@ PRICE`` after the amount. PRICE is another amount in a different
+commodity. Eg, here one hundred euros was purchased at $1.35 per euro::
 
     2009/1/2 x
      expenses:foreign currency       €100 @ $1.35
      assets
 
-- **set the unit price for a commodity as of a certain date** using "P"
-  historical price records. Eg, here we say the exchange rate for 1 euro
-  is $1.35 on 2009/1/1 (and thereafter, until a newer price record is
-  found)::
+Secondly, you can set the price for a commodity as of a certain date, by
+entering a historical price record. These are lines beginning with "P",
+appearing anywhere in the ledger between transactions.  Eg, here we say
+the exchange rate for 1 euro is $1.35 on 2009/1/1 (and thereafter, until a
+newer price record is found)::
 
-    P 2009/1/1 € $1.35
+    P 2009/1/1 € $1.35  ; <- historical price: P, date, commodity symbol, price in 2nd commodity (space-separated)
 
     2009/1/2 x
      expenses:foreign currency       €100
      assets
 
-The print command will show the unit prices in effect::
+The print command shows any unit prices in effect. Either example above
+will show::
 
  $ hledger print
  2009/01/02 x
      expenses:foreign currency  €100 @ $1.35
      assets                     €-100 @ $1.35
 
-And to see amounts converted to their total cost, use the ``--cost/-B`` flag with any command::
+To see amounts converted to their total cost, use the ``--cost/-B`` flag
+with any command::
 
  $ hledger print --cost
  2009/01/02 x
      expenses:foreign currency       $135.00
      assets                         $-135.00
 
-Notes:
+The ``--cost/-B`` flag does only one lookup step, ie it will not look up
+the price of a price's commodity.
 
-- unlike c++ ledger we assume unit prices do not vary over time.  This is
-  good for simple reporting of foreign currency transactions, but not for
-  tracking fluctuating-value investments or capital gains.
-
-- a price is a simple amount with only one commodity. Ie you can't say an
-  orange is worth two grapes and an apple.
-
-- ``--cost/-B`` does only one lookup step, ie it will not look up the
-  price of a price's commodity.
+Note hledger handles prices differently from c++ ledger in one important
+respect: we assume unit prices do not vary over time.  This is good for
+simple reporting of foreign currency transactions, but not for tracking
+fluctuating-value investments or capital gains.
 
 Timelog reporting
 """""""""""""""""
