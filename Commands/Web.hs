@@ -113,7 +113,11 @@ response = update
 redirect u c = response $ Hack.Contrib.Response.redirect u c
 
 reqparam :: Hack.Env -> String -> [String]
+#if __GLASGOW_HASKELL__ <= 610
 reqparam env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
+#else
+reqparam env p = map (decodeString.snd) $ filter ((==p).fst) $ Hack.Contrib.Request.params env
+#endif
 
 ledgerFileModifiedTime :: Ledger -> IO ClockTime
 ledgerFileModifiedTime l
@@ -209,7 +213,11 @@ navbar env =
       <a href="http://hledger.org/MANUAL.html" id="helplink">help</a>
     </div>
 
+#if __GLASGOW_HASKELL__ <= 610
+getParamOrNull p = (decodeString . fromMaybe "") `fmap` getParam p
+#else
 getParamOrNull p = fromMaybe "" `fmap` getParam p
+#endif
 
 navlinks :: Hack.Env -> HSP XML
 navlinks _ = do
