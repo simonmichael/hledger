@@ -168,12 +168,11 @@ hsp msgs f = do
   html =<< (io $ do
               hspenv <- hackEnvToHspEnv env
               (_,xml) <- runHSP html4Strict pagehsp hspenv
-              return $ addDoctype $ applyFixups $ renderAsHTML xml)
+              return $ addDoctype $ renderAsHTML xml)
   response $ set_content_type _TextHtmlUTF8
     where
       title = ""
       addDoctype = ("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n" ++)
-      applyFixups = gsubRegexPR "\\[NBSP\\]" "&nbsp;"
       hackEnvToHspEnv :: Hack.Env -> IO HSPEnv
       hackEnvToHspEnv env = do
           x <- newIORef 0
@@ -229,11 +228,11 @@ searchform env = do
    a <- getParamOrNull "a"
    p <- getParamOrNull "p"
    let resetlink | null a && null p = <span></span>
-                 | otherwise = <span id="resetlink">[NBSP]<a href=u>reset</a></span>
+                 | otherwise = <span id="resetlink"><% nbsp %><a href=u>reset</a></span>
                  where u = dropWhile (=='/') $ Hack.Contrib.Request.path env
    <form action="" id="searchform">
-      [NBSP]account pattern:[NBSP]<input name="a" size="20" value=a
-      />[NBSP][NBSP]reporting period:[NBSP]<input name="p" size="20" value=p />
+      <% nbsp %>account pattern:<% nbsp %><input name="a" size="20" value=a
+      /><% nbsp %><% nbsp %>reporting period:<% nbsp %><input name="p" size="20" value=p />
       <input type="submit" name="submit" value="filter" style="display:none" />
       <% resetlink %>
     </form>
@@ -255,8 +254,8 @@ addform env = do
     <table border="0">
       <tr>
         <td>
-          Date: <input size="15" name="date" value=date />[NBSP]
-          Description: <input size="35" name="desc" value=desc />[NBSP]
+          Date: <input size="15" name="date" value=date /><% nbsp %>
+          Description: <input size="35" name="desc" value=desc /><% nbsp %>
         </td>
       </tr>
       <% transactionfields 1 env %>
@@ -280,9 +279,9 @@ transactionfields n env = do
 #endif
   <tr>
     <td>
-      [NBSP][NBSP]
-      Account: <input size="35" name=acctvar value=acct />[NBSP]
-      Amount: <input size="15" name=amtvar value=amt />[NBSP]
+    <% nbsp %><% nbsp %>
+      Account: <input size="35" name=acctvar value=acct /><% nbsp %>
+      Amount: <input size="15" name=amtvar value=amt /><% nbsp %>
     </td>
    </tr>
     where
@@ -369,3 +368,5 @@ handleAddform l = do
                     ledgerpage [msg] l (showTransactions (optsToFilterSpec [] [] ti))
        where msg = printf "Added transaction:\n%s" (show t)
 
+nbsp :: XML
+nbsp = cdata "&nbsp;"
