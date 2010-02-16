@@ -6,6 +6,7 @@ A simple text UI for hledger, based on the vty library.
 
 module Commands.UI
 where
+import Safe (headDef)
 import Graphics.Vty
 import Ledger
 import Options
@@ -278,12 +279,11 @@ scrollToTransaction (Just t) a@AppState{abuf=buf} = setCursorY cy $ setScrollY s
 currentTransaction :: AppState -> Maybe Transaction
 currentTransaction a@AppState{aledger=l,abuf=buf} = ptransaction p
     where
-      p = safehead nullposting $ filter ismatch $ ledgerPostings l
+      p = headDef nullposting $ filter ismatch $ ledgerPostings l
       ismatch p = postingDate p == parsedate (take 10 datedesc)
                   && take 70 (showPostingWithBalance False p nullmixedamt) == (datedesc ++ acctamt)
-      datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ safehead "" rest : reverse above
-      acctamt = drop 32 $ safehead "" rest
-      safehead d ls = if null ls then d else head ls
+      datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ headDef "" rest : reverse above
+      acctamt = drop 32 $ headDef "" rest
       (above,rest) = splitAt y buf
       y = posY a
 
