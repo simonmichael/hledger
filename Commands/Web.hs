@@ -232,7 +232,10 @@ searchform env = do
                  where u = dropWhile (=='/') $ Hack.Contrib.Request.path env
    <form action="" id="searchform">
       <% nbsp %>search for:<% nbsp %><input name="a" size="20" value=a
-      /><% nbsp %><% nbsp %>in reporting period:<% nbsp %><input name="p" size="20" value=p />
+      /><a href="http://hledger.org/MANUAL.html#filter-patterns">?</
+      a><% nbsp %><% nbsp %>in reporting period:<% nbsp %><input name="p" size="20" value=p
+      /><a href="http://hledger.org/MANUAL.html#period-expressions">?</
+      a>
       <input type="submit" name="submit" value="filter" style="display:none" />
       <% resetlink %>
     </form>
