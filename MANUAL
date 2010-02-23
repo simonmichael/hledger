@@ -492,6 +492,9 @@ format. Examples:
 
  ``2010/01/31`` or ``2010/1/31`` or ``2010-1-31`` or ``2010.1.31``
 
+(Though, oddly enough, the `web <#web>`_ add form accepts `smart dates
+<#smart-dates>`_.)
+
 Default year
 ''''''''''''
 
@@ -541,9 +544,9 @@ The second date may omit the year if it is the same as the first's.
 Smart dates
 '''''''''''
 
-In `period expressions <#period-expressions>`_ and the -b and -e
-options, more flexible "smart dates" are allowed. Here are some
-examples:
+In `period expressions <#period-expressions>`_, the -b and -e options,
+and the `web <#web>`_ add form,
+more flexible "smart dates" are allowed. Here are some examples:
 
 - ``2009/1/1``, ``2009/01/01``, ``2009-1-1``, ``2009.1.1``, ``2009/1``, ``2009`` (january 1, 2009)
 - ``1/1``, ``january``, ``jan``, ``this year`` (january 1, this year)
