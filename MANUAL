@@ -484,10 +484,65 @@ transactions or postings which match
 Dates
 """""
 
-hledger accepts "smart dates" in most places a date can be used, such as:
--b and -e options, and `period expressions <#period-expressions>`_
-(but actually, not in the ledger file, which has more limited date parsing.)
-Here are some examples:
+Simple dates
+''''''''''''
+
+Within a ledger file, dates must follow a fairly simple year/month/day
+format. Examples:
+
+ ``2010/01/31`` or ``2010/1/31`` or ``2010-1-31`` or ``2010.1.31``
+
+Default year
+''''''''''''
+
+You can set a default year with a ``Y`` directive in the ledger, then
+subsequent dates may be written as month/day. Eg::
+
+ Y2009
+
+ 12/15 ...
+
+ Y2010
+
+ 1/31 ...
+
+Actual and effective dates
+''''''''''''''''''''''''''
+
+Frequently, a real-life transaction has two (or more) dates of
+interest. For example, you might make a purchase on friday with a
+debit card, and it might clear (take effect in your bank account) on
+tuesday. It's sometimes useful to model this accurately, so that your
+hledger balances match reality. So, you can specify two dates for a
+transaction, the *actual* and *effective* date, separated by
+``=``. Eg::
+
+ 2010/2/19=2010/2/23 ...
+
+Then you can use the ``--effective`` flag to prefer the effective
+(second) date, if any, in reports. This is useful for, eg, seeing a
+more accurate daily balance while reconciling a bank account.
+
+So, what do *actual* and *effective* mean, exactly ? I always assumed
+that the actual date comes first, and is "the date you enacted the
+transaction", while the effective date comes second, and is optional,
+and is "the date the transaction took effect" (showed up in your bank
+balance).
+
+Unfortunately, this is the reverse of c++ ledger's interpretation.
+However it's not *too* serious; just remember that hledger requires
+the first date; allows an optional second date which the
+``--effective`` flag will select; and the meaning of "actual" and
+"effective" is up to you.
+
+The second date may omit the year if it is the same as the first's.
+
+Smart dates
+'''''''''''
+
+In `period expressions <#period-expressions>`_ and the -b and -e
+options, more flexible "smart dates" are allowed. Here are some
+examples:
 
 - ``2009/1/1``, ``2009/01/01``, ``2009-1-1``, ``2009.1.1``, ``2009/1``, ``2009`` (january 1, 2009)
 - ``1/1``, ``january``, ``jan``, ``this year`` (january 1, this year)
