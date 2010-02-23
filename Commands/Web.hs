@@ -232,11 +232,10 @@ searchform env = do
                  where u = dropWhile (=='/') $ Hack.Contrib.Request.path env
    <form action="" id="searchform">
       <% nbsp %>search for:<% nbsp %><input name="a" size="20" value=a
-      /><a href="http://hledger.org/MANUAL.html#filter-patterns">?</
-      a><% nbsp %><% nbsp %>in reporting period:<% nbsp %><input name="p" size="20" value=p
-      /><a href="http://hledger.org/MANUAL.html#period-expressions">?</
-      a>
-      <input type="submit" name="submit" value="filter" style="display:none" />
+      /><% help "filter-patterns"
+      %><% nbsp %><% nbsp %>in reporting period:<% nbsp %><input name="p" size="20" value=p
+      /><% help "period-expressions"
+      %><input type="submit" name="submit" value="filter" style="display:none" />
       <% resetlink %>
     </form>
 
@@ -257,18 +256,25 @@ addform env = do
     <table border="0">
       <tr>
         <td>
-          Date: <input size="15" name="date" value=date /><% nbsp %>
+          Date: <input size="15" name="date" value=date /><% help "dates" %><% nbsp %>
           Description: <input size="35" name="desc" value=desc /><% nbsp %>
         </td>
       </tr>
       <% transactionfields 1 env %>
       <% transactionfields 2 env %>
-      <tr id="addbuttonrow"><td><input type="submit" value="add transaction" /></td></tr>
+      <tr id="addbuttonrow"><td><input type="submit" value="add transaction" 
+      /><% help "file-format" %></td></tr>
     </table>
    </form>
    </div>
    <br clear="all" />
    </div>
+
+help :: String -> HSP XML
+help topic = <a href=u>?</a>
+    where u = printf "http://hledger.org/MANUAL.html%s" l :: String
+          l | null topic = ""
+            | otherwise = '#':topic
 
 transactionfields :: Int -> Hack.Env -> HSP XML
 transactionfields n env = do
