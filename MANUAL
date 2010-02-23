@@ -529,7 +529,8 @@ transaction", while the effective date comes second, and is optional,
 and is "the date the transaction took effect" (showed up in your bank
 balance).
 
-Unfortunately, this is the reverse of c++ ledger's interpretation.
+Unfortunately, this is the reverse of c++ ledger's interpretation
+(cf `differences <#other-differences>`_).
 However it's not *too* serious; just remember that hledger requires
 the first date; allows an optional second date which the
 ``--effective`` flag will select; and the meaning of "actual" and
@@ -815,6 +816,9 @@ Other differences
 * hledger doesn't track the value of commodities with varying price;
   prices are fixed as of the transaction date
 * hledger print shows amounts for all postings, and shows unit prices for amounts which have them
+* hledger assumes a transaction's actual date comes first, and is required, while the optional effective date comes second
+* hledger does not support per-posting actual or effective dates
+
 
 More examples and recipes
 .........................
