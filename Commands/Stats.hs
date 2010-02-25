@@ -38,6 +38,7 @@ showStats _ _ l today =
         ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
 --        ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
         ,("Accounts", show $ length $ accounts l)
+        ,("Account tree depth", show $ maximum $ map (accountNameLevel.aname) $ accounts l)
         ,("Commodities", show $ length $ commodities l)
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
       -- Uncleared transactions      : %(uncleared)s
