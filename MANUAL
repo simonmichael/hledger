@@ -162,11 +162,11 @@ Overview
 
 This version of hledger mimics a subset of ledger 3.x, and adds some
 features of its own. We currently support regular ledger entries, timelog
-entries, multiple commodities, price history (for fixed-rate
-transactions), virtual postings, filtering by account and description, the
-familiar print, register & balance commands and several new commands. We
-handle (almost) the full period expression syntax, and very limited
-display expressions consisting of a simple date predicate.
+entries, multiple commodities, (fixed) price history, virtual postings,
+filtering by account and description, the familiar print, register &
+balance commands and several new commands. We handle (almost) the full
+period expression syntax, and very limited display expressions consisting
+of a simple date predicate.
 
 Here is the command-line help::
 
