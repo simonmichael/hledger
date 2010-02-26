@@ -816,7 +816,7 @@ Other differences
 * hledger doesn't track the value of commodities with varying price;
   prices are fixed as of the transaction date
 * hledger print shows amounts for all postings, and shows unit prices for amounts which have them
-* hledger assumes a transaction's actual date comes first, and is required, while the optional effective date comes second
+* hledger assumes a transaction's actual date comes first, and is required, while the optional effective date comes second (cf `Actual and effective dates <#actual-and-effective-dates>`_)
 * hledger does not support per-posting actual or effective dates
 
 
