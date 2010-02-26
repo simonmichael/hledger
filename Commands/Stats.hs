@@ -32,11 +32,11 @@ showStats _ _ l today =
       stats = [
          ("File", filepath $ journal l)
         ,("Period", printf "%s to %s (%d days)" (start span) (end span) days)
+        ,("Last transaction", maybe "none" show lastdate ++
+                              maybe "" (printf " (%d days ago)") lastelapsed)
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
         ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
         ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
-        ,("Last transaction", maybe "none" show lastdate ++
-                              maybe "" (printf " (%d days ago)") lastelapsed)
 --        ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
         ,("Accounts", show $ length $ accounts l)
         ,("Commodities", show $ length $ commodities l)
