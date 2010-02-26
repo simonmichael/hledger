@@ -240,12 +240,13 @@ searchform env = do
 
 addform :: Hack.Env -> HSP XML
 addform env = do
+  today <- io $ liftM showDate $ getCurrentDay
   let inputs = Hack.Contrib.Request.inputs env
 #if __GLASGOW_HASKELL__ <= 610
-      date  = decodeString $ fromMaybe "" $ lookup "date"  inputs
+      date  = decodeString $ fromMaybe today $ lookup "date"  inputs
       desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
 #else
-      date  = fromMaybe "" $ lookup "date"  inputs
+      date  = fromMaybe today $ lookup "date"  inputs
       desc  = fromMaybe "" $ lookup "desc"  inputs
 #endif
   <div>
