@@ -39,7 +39,7 @@ showStats _ _ l today =
 --        ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
         ,("Accounts", show $ length $ accounts l)
         ,("Account tree depth", show $ maximum $ map (accountNameLevel.aname) $ accounts l)
-        ,("Commodities", show $ length $ commodities l)
+        ,("Commodities", printf "%s (%s)" (show $ length $ cs) (intercalate ", " $ sort $ map symbol cs)) 
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
       -- Uncleared transactions      : %(uncleared)s
       -- Days since reconciliation   : %(reconcileelapsed)s
@@ -70,4 +70,5 @@ showStats _ _ l today =
              tnum7 = length $ filter withinlast7 ts
              withinlast7 t = d >= addDays (-7) today && (d<=today) where d = tdate t
              txnrate7 = fromIntegral tnum7 / 7 :: Double
+             cs = commodities l
 
