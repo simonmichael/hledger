@@ -270,6 +270,9 @@ html:
 	cd website && ln -sf ../SCREENSHOTS && $(RST2HTML) SCREENSHOTS >SCREENSHOTS.html && rm -f SCREENSHOTS
 	cd website; rm -f index.html; ln -s README.html index.html; rm -f profs; ln -s ../profs
 
+viewhtml: html
+	$(VIEWHTML) website/index.html
+
 pdf: docspdf codepdf
 
 # generate pdf versions of main docs
