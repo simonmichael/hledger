@@ -228,6 +228,11 @@ normaliseMixedAmount (Mixed as) = Mixed as''
           | otherwise = nonzeros
       (zeros,nonzeros) = partition isReallyZeroAmount as
 
+-- various sum variants..
+
+sumAmountsDiscardingPrice [] = nullamt
+sumAmountsDiscardingPrice as = (sum as){price=Nothing}
+
 sumSamePricedAmountsPreservingPrice [] = nullamt
 sumSamePricedAmountsPreservingPrice as = (sum as){price=price $ head as}
 
@@ -246,8 +251,37 @@ normaliseMixedAmountIgnoringPrice (Mixed as) = Mixed as''
           | otherwise = nonzeros
           where (zeros,nonzeros) = partition isZeroAmount as
 
-sumAmountsDiscardingPrice [] = nullamt
-sumAmountsDiscardingPrice as = (sum as){price=Nothing}
+sumMixedAmountsPreservingHighestPrecision :: [MixedAmount] -> MixedAmount
+sumMixedAmountsPreservingHighestPrecision ms = foldl' (+~) 0 ms
+    where (+~) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingHighestPrecision $ Mixed $ as ++ bs
+
+normaliseMixedAmountPreservingHighestPrecision :: MixedAmount -> MixedAmount
+normaliseMixedAmountPreservingHighestPrecision (Mixed as) = Mixed as''
+    where
+      as'' = map sumSamePricedAmountsPreservingPriceAndHighestPrecision $ group $ sort as'
+      sort = sortBy cmpsymbolandprice
+      cmpsymbolandprice a1 a2 = compare (sym a1,price a1) (sym a2,price a2)
+      group = groupBy samesymbolandprice
+      samesymbolandprice a1 a2 = (sym a1 == sym a2) && (price a1 == price a2)
+      sym = symbol . commodity
+      as' | null nonzeros = [head $ zeros ++ [nullamt]]
+          | otherwise = nonzeros
+      (zeros,nonzeros) = partition isReallyZeroAmount as
+
+sumSamePricedAmountsPreservingPriceAndHighestPrecision [] = nullamt
+sumSamePricedAmountsPreservingPriceAndHighestPrecision as = (sumAmountsPreservingHighestPrecision as){price=price $ head as}
+
+sumAmountsPreservingHighestPrecision :: [Amount] -> Amount
+sumAmountsPreservingHighestPrecision as = foldl' (+~) 0 as
+    where (+~) = amountopPreservingHighestPrecision (+)
+
+amountopPreservingHighestPrecision :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
+amountopPreservingHighestPrecision op a@(Amount ac@Commodity{precision=ap} _ _) (Amount bc@Commodity{precision=bp} bq _) = 
+    Amount c q Nothing
+    where
+      q = quantity (convertAmountTo bc a) `op` bq
+      c = if ap > bp then ac else bc
+--
 
 -- | Convert a mixed amount's component amounts to the commodity of their
 -- saved price, if any.
