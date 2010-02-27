@@ -164,6 +164,11 @@ isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
 isReallyZeroMixedAmount :: MixedAmount -> Bool
 isReallyZeroMixedAmount = all isReallyZeroAmount . amounts . normaliseMixedAmount
 
+-- | Is this mixed amount "really" zero, after converting to cost
+-- commodities where possible ?
+isReallyZeroMixedAmountCost :: MixedAmount -> Bool
+isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
+
 -- | MixedAmount derives Eq in Types.hs, but that doesn't know that we
 -- want $0 = EUR0 = 0. Yet we don't want to drag all this code in there.
 -- When zero equality is important, use this, for now; should be used

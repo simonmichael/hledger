@@ -71,10 +71,10 @@ getTransaction l opts args defaultDate = do
                                ,tdescription=description
                                ,tpostings=ps
                                }
-            retry = do
-              hPutStrLn stderr $ "\n" ++ nonzerobalanceerror ++ ". Re-enter:"
+            retry msg = do
+              hPutStrLn stderr $ "\n" ++ msg ++ "please re-enter."
               getpostingsandvalidate
-        either (const retry) (return . flip (,) date) $ balanceTransaction t
+        either retry (return . flip (,) date) $ balanceTransaction t
   unless (null historymatches) 
        (do
          hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"

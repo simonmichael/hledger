@@ -14,7 +14,6 @@ import Ledger.Posting
 import Ledger.Amount
 import Ledger.Commodity (dollars, dollar, unknown)
 
-
 instance Show Transaction where show = showTransactionUnelided
 
 instance Show ModifierTransaction where 
@@ -98,10 +97,27 @@ showAccountName w = fmt
       parenthesise s = "("++s++")"
       bracket s = "["++s++"]"
 
+realPostings :: Transaction -> [Posting]
+realPostings = filter isReal . tpostings
+
+virtualPostings :: Transaction -> [Posting]
+virtualPostings = filter isVirtual . tpostings
+
+balancedVirtualPostings :: Transaction -> [Posting]
+balancedVirtualPostings = filter isBalancedVirtual . tpostings
+
+-- | Get the sums of a transaction's real, virtual, and balanced virtual postings.
+transactionPostingBalances :: Transaction -> (MixedAmount,MixedAmount,MixedAmount)
+transactionPostingBalances t = (sumPostings $ realPostings t
+                               ,sumPostings $ virtualPostings t
+                               ,sumPostings $ balancedVirtualPostings t)
+
+-- | Is this transaction balanced ? A balanced transaction's real
+-- (non-virtual) postings sum to 0, and any balanced virtual postings
+-- also sum to 0.
 isTransactionBalanced :: Transaction -> Bool
-isTransactionBalanced (Transaction {tpostings=ps}) = 
-    all (isReallyZeroMixedAmount . costOfMixedAmount . sum . map pamount)
-            [filter isReal ps, filter isBalancedVirtual ps]
+isTransactionBalanced t = isReallyZeroMixedAmountCost rsum && isReallyZeroMixedAmountCost bvsum
+    where (rsum, _, bvsum) = transactionPostingBalances t
 
 -- | Ensure that this entry is balanced, possibly auto-filling a missing
 -- amount first. We can auto-fill if there is just one non-virtual
@@ -111,7 +127,7 @@ isTransactionBalanced (Transaction {tpostings=ps}) =
 balanceTransaction :: Transaction -> Either String Transaction
 balanceTransaction t@Transaction{tpostings=ps}
     | length missingamounts' > 1 = Left $ printerr "could not balance this transaction (too many missing amounts)"
-    | not $ isTransactionBalanced t' = Left $ printerr nonzerobalanceerror
+    | not $ isTransactionBalanced t' = Left $ printerr $ nonzerobalanceerror t'
     | otherwise = Right t'
     where
       (withamounts, missingamounts) = partition hasAmount $ filter isReal ps
@@ -125,7 +141,15 @@ balanceTransaction t@Transaction{tpostings=ps}
                       where otherstotal = sum $ map pamount withamounts
       printerr s = unlines [s, showTransactionUnelided t]
 
-nonzerobalanceerror = "could not balance this transaction, amounts do not add up to zero"
+nonzerobalanceerror :: Transaction -> String
+nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
+    where
+      (rsum, _, bvsum) = transactionPostingBalances t
+      rmsg | isReallyZeroMixedAmountCost rsum = ""
+           | otherwise = "real postings are off by " ++ show rsum
+      bvmsg | isReallyZeroMixedAmountCost bvsum = ""
+            | otherwise = "balanced virtual postings are off by " ++ show bvsum
+      sep = if not (null rmsg) && not (null bvmsg) then "; " else ""
 
 -- | Convert the primary date to either the actual or effective date.
 ledgerTransactionWithDate :: WhichDate -> Transaction -> Transaction
