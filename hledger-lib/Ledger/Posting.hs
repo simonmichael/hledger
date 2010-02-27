@@ -67,7 +67,7 @@ accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nub . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
-sumPostings = sum . map pamount
+sumPostings = sumMixedAmountsPreservingHighestPrecision . map pamount
 
 postingDate :: Posting -> Day
 postingDate p = maybe nulldate tdate $ ptransaction p
