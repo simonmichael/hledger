@@ -32,8 +32,7 @@ showStats _ _ l today =
       stats = [
          ("File", filepath $ journal l)
         ,("Period", printf "%s to %s (%d days)" (start span) (end span) days)
-        ,("Last transaction", maybe "none" show lastdate ++
-                              maybe "" (printf " (%d days ago)") lastelapsed)
+        ,("Last transaction", maybe "none" show lastdate ++ showelapsed lastelapsed)
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
         ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
         ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
@@ -50,6 +49,11 @@ showStats _ _ l today =
              lastdate | null ts = Nothing
                       | otherwise = Just $ tdate $ last ts
              lastelapsed = maybe Nothing (Just . diffDays today) lastdate
+             showelapsed Nothing = ""
+             showelapsed (Just days) = printf " (%d %s)" days' direction
+                                       where days' = abs days
+                                             direction | days >= 0 = "days ago"
+                                                       | otherwise = "days from now"
              tnum = length ts
              span = rawdatespan l
              start (DateSpan (Just d) _) = show d
