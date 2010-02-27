@@ -6,7 +6,7 @@ OPTFLAGS= #-DCHART -DVTY -DWEB
 
 # command to run during "make ci"
 CICMD=test
-CICMD=web --debug -BE
+CICMD=web -v --debug -f ~/personal/2009.ledger
 
 # command to run during "make prof/heap"
 PROFCMD=-f 1000x1000x10.ledger balance
@@ -21,9 +21,11 @@ BENCHEXES=hledger-0.6 hledger-0.7 ledger-3pre
 
 # misc. tools
 PANDOC=pandoc
-RST2HTML=rst2html
+#RST2HTML=rst2html
+RST2HTML=/opt/local/bin/rst2html.py
 RST2PDF=rst2pdf
-VIEWHTML=open
+#VIEWHTML=open
+VIEWHTML=open -a 'Google Chrome'
 VIEWPS=open
 VIEWPDF=open
 PRINT=lpr
@@ -141,7 +143,7 @@ hlinttest hlint:
 unittest: unittest-builtin
 
 unittest-builtin: hledger
-	@(./hledger test \
+	@(./hledger test -v \
 		&& echo $@ passed) || echo $@ FAILED
 
 # XXX doesn't rebuild on hledger source changes
@@ -518,8 +520,13 @@ showlocalchanges:
 	@-darcs push joyful.com:/repos/hledger --dry-run | grep '*' | tac
 	@echo
 
+showcodechanges:
+	@echo Code changes:
+	@darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
+	@echo
+
 showreleasechanges:
-	@echo "Changes since last release: ("`darcs changes --from-tag . --count`")"
+	@echo "Code changes since last release: ("`darcs changes --from-tag . --count`")"
 	@darcs changes --from-tag . --matches "not (name docs: or name site: or name tools:)" | grep '*'
 	@echo
 
