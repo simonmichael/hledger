@@ -1,0 +1,12 @@
+# a no-commodity amount with a price should work
+-f - print
+<<<
+2010/1/1 x
+    a  1 @ $2
+    b
+
+>>>
+2010/01/01 x
+    a        1 @ $2
+    b           $-2
+
