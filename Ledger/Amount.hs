@@ -114,6 +114,12 @@ showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
       price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
                           Nothing -> ""
 
+-- XXX refactor
+-- | Get the unambiguous string representation of an amount, for debugging.
+showAmountDebug :: Amount -> String
+showAmountDebug (Amount c q pri) = printf "Amount {commodity = %s, quantity = %s, price = %s}"
+                                   (show c) (show q) (maybe "" showMixedAmountDebug pri)
+
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
 showAmountWithoutPrice a = showAmount a{price=Nothing}
@@ -171,11 +177,12 @@ mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZ
 -- its component amounts. NB a mixed amount can have an empty amounts
 -- list in which case it shows as \"\".
 showMixedAmount :: MixedAmount -> String
-showMixedAmount m = concat $ intersperse "\n" $ map showfixedwidth as
-    where 
-      (Mixed as) = normaliseMixedAmount m
-      width = maximum $ map (length . show) as
-      showfixedwidth = printf (printf "%%%ds" width) . show
+showMixedAmount m = vConcatRightAligned $ map show $ amounts $ normaliseMixedAmount m
+
+-- | Get an unambiguous string representation of a mixed amount for debugging.
+showMixedAmountDebug :: MixedAmount -> String
+showMixedAmountDebug m = printf "Mixed [%s]" as
+    where as = intercalate "\n       " $ map showAmountDebug $ amounts $ normaliseMixedAmount m
 
 -- | Get the string representation of a mixed amount, but without
 -- any \@ prices.

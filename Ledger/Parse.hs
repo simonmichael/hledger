@@ -466,7 +466,7 @@ nosymbolamount = do
   <?> "no-symbol amount"
 
 commoditysymbol :: GenParser Char st String
-commoditysymbol = many1 (noneOf "-.0123456789;\n ") <?> "commodity symbol"
+commoditysymbol = many1 (noneOf "@-.0123456789;\n ") <?> "commodity symbol"
 
 priceamount :: GenParser Char st (Maybe MixedAmount)
 priceamount =

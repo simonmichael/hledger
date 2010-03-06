@@ -95,6 +95,13 @@ concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
                                            | otherwise = maximum $ map length ls
       padded = map (xpad . ypad) lss
 
+-- | Compose strings vertically and right-aligned.
+vConcatRightAligned :: [String] -> String
+vConcatRightAligned ss = intercalate "\n" $ map showfixedwidth ss
+    where
+      showfixedwidth = printf (printf "%%%ds" width)
+      width = maximum $ map length ss
+
 -- | Convert a multi-line string to a rectangular string top-padded to the specified height.
 padtop :: Int -> String -> String
 padtop h s = intercalate "\n" xpadded

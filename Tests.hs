@@ -79,6 +79,9 @@ a `is` e = assertEqual "" e a
 parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
 parse `parseis` expected = either printParseError (`is` expected) parse
 
+assertParse :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+assertParse = parseis
+
 ------------------------------------------------------------------------------
 -- | Tests for any function or topic. Mostly ordered by test name.
 tests :: [Test]
@@ -480,6 +483,9 @@ tests = [
   ,"ledgerposting" ~:
     parseWithCtx emptyCtx ledgerposting rawposting1_str `parseis` rawposting1
 
+  ,"normaliseMixedAmount" ~: do
+     normaliseMixedAmount (Mixed []) ~?= Mixed [nullamt]
+
   ,"parsedate" ~: do
     parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
     parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
@@ -672,6 +678,9 @@ tests = [
 
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
+  ,"showMixedAmount" ~: do
+     showMixedAmount (Mixed []) ~?= "0"
+
   ,"showTransaction" ~: do
      assertEqual "show a balanced transaction, eliding last amount"
        (unlines
@@ -730,6 +739,26 @@ tests = [
         (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
          [Posting False "expenses:food:groceries" missingamt "" RegularPosting Nothing
          ] ""))
+
+     assertEqual "show a transaction with a priced commodityless amount"
+       (unlines
+        ["2010/01/01 x"
+        ,"    a        1 @ $2"
+        ,"    b              "
+        ,""
+        ])
+       (showTransaction
+        (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" ""
+         [Posting False "a" (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting Nothing
+         ,Posting False "b" missingamt "" RegularPosting Nothing
+         ] ""))
+
+  ,"someamount" ~: do
+     let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
+         assertMixedAmountParse parseresult mixedamount =
+             (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
+     assertMixedAmountParse (parsewith someamount "1 @ $2")
+                            (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])])
 
   ,"unicode in balance layout" ~: do
     l <- ledgerFromStringWithOpts []
