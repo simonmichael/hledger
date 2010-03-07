@@ -5,8 +5,11 @@ A ledger-compatible @register@ command.
 
 -}
 
-module Commands.Register
-where
+module Commands.Register (
+  register
+ ,showRegisterReport
+) where
+
 import Safe (headMay, lastMay)
 import Ledger
 import Options
@@ -25,26 +28,40 @@ register opts args l = do
 -- | Generate the register report, which is a list of postings with transaction
 -- info and a running balance.
 showRegisterReport :: [Opt] -> FilterSpec -> Ledger -> String
-showRegisterReport opts filterspec l
-    | interval == NoInterval = showpostings displayedps nullposting startbal
-    | otherwise = showpostings summaryps nullposting startbal
+showRegisterReport opts filterspec l = showpostings ps nullposting startbal
     where
+      ps | interval == NoInterval = displayableps
+         | otherwise             = summarisePostings interval depth empty span displayableps
       startbal = sumPostings precedingps
-      (displayedps, _) = span displayExprMatches restofps
-      (precedingps, restofps) = break displayExprMatches sortedps
-      sortedps = sortBy (comparing postingDate) ps
-      ps = journalPostings $ filterJournalPostings filterspec $ journal l
-      summaryps = concatMap summarisespan spans
+      (precedingps,displayableps,_) =
+          postingsMatchingDisplayExpr (displayExprFromOpts opts) $ journalPostings $ filterJournalPostings filterspec $ journal l
+      (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
+      span = datespan filterspec
+
+-- | Convert a list of postings into summary postings, one per interval.
+summarisePostings :: Interval -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [Posting]
+summarisePostings interval depth empty span ps = concatMap summarisespan spans
+    where
       summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
-      postingsinspan s = filter (isPostingInDateSpan s) displayedps
-      spans = splitSpan interval (postingsDateSpan displayedps)
-      interval = intervalFromOpts opts
-      empty = Empty `elem` opts
-      depth = depthFromOpts opts
-      dispexpr = displayExprFromOpts opts
-      displayExprMatches p = case dispexpr of
-                               Nothing -> True
-                               Just e  -> (fromparse $ parsewith datedisplayexpr e) p
+          where postingsinspan s = filter (isPostingInDateSpan s) ps
+      spans = splitSpan interval spantoreport
+          where spantoreport | empty = span
+                             | otherwise = postingsDateSpan ps
+
+-- | Date-sort and split a list of postings into three spans - postings matched
+-- by the given display expression, and the preceding and following postings.
+postingsMatchingDisplayExpr :: Maybe String -> [Posting] -> ([Posting],[Posting],[Posting])
+postingsMatchingDisplayExpr d ps = (before, matched, after)
+    where 
+      sorted = sortBy (comparing postingDate) ps
+      (before, rest) = break (displayExprMatches d) sorted
+      (matched, after) = span (displayExprMatches d) rest
+
+-- | Does this display expression allow this posting to be displayed ?
+-- Raises an error if the display expression can't be parsed.
+displayExprMatches :: Maybe String -> Posting -> Bool
+displayExprMatches Nothing  _ = True
+displayExprMatches (Just d) p = (fromparse $ parsewith datedisplayexpr d) p
                         
 -- XXX confusing, refactor
 -- | Given a date span (representing a reporting interval) and a list of
