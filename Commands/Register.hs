@@ -8,6 +8,7 @@ A ledger-compatible @register@ command.
 module Commands.Register (
   register
  ,showRegisterReport
+ ,tests_Register
 ) where
 
 import Safe (headMay, lastMay)
@@ -133,3 +134,10 @@ showposting withtxninfo p b = concatBottomPadded [txninfo ++ pstr ++ " ", bal] +
       (da,de) = case ptransaction p of Just (Transaction{tdate=da',tdescription=de'}) -> (da',de')
                                        Nothing -> (nulldate,"")
 
+tests_Register :: Test
+tests_Register = TestList [
+
+         "summarisePostings" ~: do
+           summarisePostings Quarterly Nothing False (DateSpan Nothing Nothing) [] ~?= []
+
+        ]

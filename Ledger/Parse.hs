@@ -61,9 +61,6 @@ setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
 getYear = liftM ctxYear getState
 
-printParseError :: (Show a) => a -> IO ()
-printParseError e = do putStr "ledger parse error at "; print e
-
 -- let's get to it
 
 parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO Journal

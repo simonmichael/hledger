@@ -31,17 +31,18 @@ where
 import qualified Data.Map as Map
 import Data.Time.Format
 import Locale (defaultTimeLocale)
-import Text.ParserCombinators.Parsec
 import Test.HUnit.Tools (runVerboseTests)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.Time (ClockTime(TOD))
 
 import Commands.All
-import Ledger
+import Ledger  -- including testing utils in Ledger.Utils
 import Options
 import Utils
 
 
+-- | Run unit tests.
+runtests :: [Opt] -> [String] -> IO ()
 runtests opts args = do
   (counts,_) <- runner ts
   if errors counts > 0 || (failures counts > 0)
@@ -50,44 +51,18 @@ runtests opts args = do
     where
       runner | Verbose `elem` opts = runVerboseTests
              | otherwise = liftM (flip (,) 0) . runTestTT
-      ts = TestList $ filter matchname $ concatMap tflatten tests
-      --ts = tfilter matchname $ TestList tests -- unflattened
+      ts = TestList $ filter matchname $ tflatten tests  -- show flat test names
+      -- ts = tfilter matchname $ TestList tests -- show hierarchical test names
       matchname = matchpats args . tname
 
--- | Get a Test's label, or the empty string.
-tname :: Test -> String
-tname (TestLabel n _) = n
-tname _ = ""
+-- | hledger's unit tests, defined here and also (new) in the respective modules.
+-- The latter is probably the way forward.
+tests :: Test
+tests = TestList [
 
--- | Flatten a Test containing TestLists into a list of single tests.
-tflatten :: Test -> [Test]
-tflatten (TestLabel _ t@(TestList _)) = tflatten t
-tflatten (TestList ts) = concatMap tflatten ts
-tflatten t = [t]
+   tests_Register,
 
--- | Filter TestLists in a Test, recursively, preserving the structure.
-tfilter :: (Test -> Bool) -> Test -> Test
-tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
-tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
-tfilter _ t = t
-
--- | Simple way to assert something is some expected value, with no label.
-is :: (Eq a, Show a) => a -> a -> Assertion
-a `is` e = assertEqual "" e a
-
--- | Assert a parse result is some expected value, or print a parse error.
-parseis :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
-parse `parseis` expected = either printParseError (`is` expected) parse
-
-assertParse :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
-assertParse = parseis
-
-------------------------------------------------------------------------------
--- | Tests for any function or topic. Mostly ordered by test name.
-tests :: [Test]
-tests = [
-
-   "account directive" ~: 
+   "account directive" ~:
    let sameParse str1 str2 = do l1 <- journalFromString str1
                                 l2 <- journalFromString str2
                                 l1 `is` l2
@@ -462,10 +437,10 @@ tests = [
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ jtxns r
 
   ,"ledgerHistoricalPrice" ~:
-    parseWithCtx emptyCtx ledgerHistoricalPrice price1_str `parseis` price1
+    assertParse (parseWithCtx emptyCtx ledgerHistoricalPrice price1_str) price1
 
   ,"ledgerTransaction" ~: do
-    parseWithCtx emptyCtx ledgerTransaction entry1_str `parseis` entry1
+    assertParse (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
     assertBool "ledgerTransaction should not parse just a date"
                    $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1\n"
     assertBool "ledgerTransaction should require some postings"
@@ -481,7 +456,7 @@ tests = [
     assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
 
   ,"ledgerposting" ~:
-    parseWithCtx emptyCtx ledgerposting rawposting1_str `parseis` rawposting1
+    assertParse (parseWithCtx emptyCtx ledgerposting rawposting1_str) rawposting1
 
   ,"normaliseMixedAmount" ~: do
      normaliseMixedAmount (Mixed []) ~?= Mixed [nullamt]
@@ -867,15 +842,14 @@ tests = [
   --    ]
 
   ,"postingamount" ~: do
-    parseWithCtx emptyCtx postingamount " $47.18" `parseis` Mixed [dollars 47.18]
-    parseWithCtx emptyCtx postingamount " $1." `parseis` 
-     Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing]
+    assertParse (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
+    assertParse (parseWithCtx emptyCtx postingamount " $1.")
+                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
 
   ]
 
   
-------------------------------------------------------------------------------
--- test data
+-- fixtures/test data
 
 date1 = parsedate "2008/11/26"
 t1 = LocalTime date1 midday

@@ -37,7 +37,7 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import Debug.Trace
 #if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (readFile)
+import Prelude hiding (readFile,putStr,print)
 import System.IO.UTF8
 #endif
 import Test.HUnit
@@ -266,6 +266,37 @@ getCurrentLocalTime = do
   t <- getCurrentTime
   tz <- getCurrentTimeZone
   return $ utcToLocalTime tz t
+
+-- testing
+
+-- | Get a Test's label, or the empty string.
+tname :: Test -> String
+tname (TestLabel n _) = n
+tname _ = ""
+
+-- | Flatten a Test containing TestLists into a list of single tests.
+tflatten :: Test -> [Test]
+tflatten (TestLabel _ t@(TestList _)) = tflatten t
+tflatten (TestList ts) = concatMap tflatten ts
+tflatten t = [t]
+
+-- | Filter TestLists in a Test, recursively, preserving the structure.
+tfilter :: (Test -> Bool) -> Test -> Test
+tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
+tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
+tfilter _ t = t
+
+-- | Simple way to assert something is some expected value, with no label.
+is :: (Eq a, Show a) => a -> a -> Assertion
+a `is` e = assertEqual "" e a
+
+-- | Assert a parse result is some expected value, or print a parse error.
+assertParse :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+assertParse parse expected = either printParseError (`is` expected) parse
+
+printParseError :: (Show a) => a -> IO ()
+printParseError e = do putStr "parse error at "; print e
+
 
 -- misc
 

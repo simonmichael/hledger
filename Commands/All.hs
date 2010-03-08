@@ -22,8 +22,9 @@ module Commands.All (
                      module Commands.Web,
 #endif
 #ifdef CHART
-                     module Commands.Chart
+                     module Commands.Chart,
 #endif
+                     tests_Commands
               )
 where
 import Commands.Add
@@ -42,3 +43,25 @@ import Commands.Web
 #ifdef CHART
 import Commands.Chart
 #endif
+import Test.HUnit (Test(TestList))
+
+
+tests_Commands = TestList
+    [
+--      Commands.Add.tests_Add
+--     ,Commands.Balance.tests_Balance
+--     ,Commands.Convert.tests_Convert
+--     ,Commands.Histogram.tests_Histogram
+--     ,Commands.Print.tests_Print
+     Commands.Register.tests_Register
+--     ,Commands.Stats.tests_Stats
+-- #ifdef VTY
+--     ,Commands.UI.tests_UI
+-- #endif
+-- #if defined(WEB) || defined(WEBHAPPSTACK)
+--     ,Commands.Web.tests_Web
+-- #endif
+-- #ifdef CHART
+--     ,Commands.Chart.tests_Chart
+-- #endif
+    ]
