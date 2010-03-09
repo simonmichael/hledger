@@ -19,7 +19,7 @@ import System.IO.UTF8 (hPutStrLn)
 import System.IO (hPutStrLn)
 #endif
 import System.Exit
-import System.Cmd (system)
+import System.Process (readProcessWithExitCode)
 import System.Info (os)
 import System.Time (ClockTime,getClockTime)
 
@@ -74,7 +74,7 @@ openBrowserOn :: String -> IO ExitCode
 openBrowserOn u = trybrowsers browsers u
     where
       trybrowsers (b:bs) u = do
-        e <- system $ printf "%s %s" b u
+        (e,_,_) <- readProcessWithExitCode b [u] ""
         case e of
           ExitSuccess -> return ExitSuccess
           ExitFailure _ -> trybrowsers bs u
