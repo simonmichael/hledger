@@ -8,6 +8,7 @@ A ledger-compatible @register@ command.
 module Commands.Register (
   register
  ,showRegisterReport
+ ,showPostingWithBalance
  ,tests_Register
 ) where
 
@@ -29,7 +30,7 @@ register opts args l = do
 -- | Generate the register report, which is a list of postings with transaction
 -- info and a running balance.
 showRegisterReport :: [Opt] -> FilterSpec -> Ledger -> String
-showRegisterReport opts filterspec l = showpostings ps nullposting startbal
+showRegisterReport opts filterspec l = showPostingsWithBalance ps nullposting startbal
     where
       ps | interval == NoInterval = displayableps
          | otherwise             = summarisePostings interval depth empty filterspan displayableps
@@ -116,17 +117,17 @@ DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
                                 aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
 @
 -}
-showpostings :: [Posting] -> Posting -> MixedAmount -> String
-showpostings [] _ _ = ""
-showpostings (p:ps) pprev bal = this ++ showpostings ps p bal'
+showPostingsWithBalance :: [Posting] -> Posting -> MixedAmount -> String
+showPostingsWithBalance [] _ _ = ""
+showPostingsWithBalance (p:ps) pprev bal = this ++ showPostingsWithBalance ps p bal'
     where
-      this = showposting isfirst p bal'
+      this = showPostingWithBalance isfirst p bal'
       isfirst = ptransaction p /= ptransaction pprev
       bal' = bal + pamount p
 
 -- | Show one posting and running balance, with or without transaction info.
-showposting :: Bool -> Posting -> MixedAmount -> String
-showposting withtxninfo p b = concatBottomPadded [txninfo ++ pstr ++ " ", bal] ++ "\n"
+showPostingWithBalance :: Bool -> Posting -> MixedAmount -> String
+showPostingWithBalance withtxninfo p b = concatBottomPadded [txninfo ++ pstr ++ " ", bal] ++ "\n"
     where
       ledger3ishlayout = False
       datedescwidth = if ledger3ishlayout then 34 else 32
