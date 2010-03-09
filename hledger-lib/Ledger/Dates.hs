@@ -420,8 +420,30 @@ justdatespan rdate = do
   d <- smartdate
   return $ spanFromSmartDate rdate d
 
-nulldatespan = DateSpan Nothing Nothing
-
+mkdatespan :: String -> String -> DateSpan
 mkdatespan b = DateSpan (Just $ parsedate b) . Just . parsedate
 
+nulldatespan = DateSpan Nothing Nothing
+
 nulldate = parsedate "1900/01/01"
+
+tests_Dates = TestList [
+
+   "splitSpan" ~: do
+    let gives (interval, span) = (splitSpan interval span `is`)
+    (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
+     [mkdatespan "2008/01/01" "2009/01/01"]
+    (Quarterly,mkdatespan "2008/01/01" "2009/01/01") `gives`
+     [mkdatespan "2008/01/01" "2008/04/01"
+     ,mkdatespan "2008/04/01" "2008/07/01"
+     ,mkdatespan "2008/07/01" "2008/10/01"
+     ,mkdatespan "2008/10/01" "2009/01/01"
+     ]
+    (Quarterly,nulldatespan) `gives`
+     [nulldatespan]
+    (Daily,mkdatespan "2008/01/01" "2008/01/01") `gives`
+     [mkdatespan "2008/01/01" "2008/01/01"]
+    (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
+     [mkdatespan "2008/01/01" "2008/01/01"]
+
+    ]

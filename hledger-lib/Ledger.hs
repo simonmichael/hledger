@@ -21,6 +21,7 @@ module Ledger (
                module Ledger.TimeLog,
                module Ledger.Types,
                module Ledger.Utils,
+               tests_Ledger
               )
 where
 import Ledger.Account
@@ -37,3 +38,21 @@ import Ledger.Posting
 import Ledger.TimeLog
 import Ledger.Types
 import Ledger.Utils
+
+tests_Ledger = TestList
+    [
+    --  Ledger.Account.tests_Account
+    -- ,Ledger.AccountName.tests_AccountName
+    -- ,Ledger.Amount.tests_Amount
+    -- ,Ledger.Commodity.tests_Commodity
+     Ledger.Dates.tests_Dates
+    -- ,Ledger.IO.tests_IO
+    -- ,Ledger.Transaction.tests_Transaction
+    -- ,Ledger.Ledger.tests_Ledger
+    -- ,Ledger.Parse.tests_Parse
+    -- ,Ledger.Journal.tests_Journal
+    -- ,Ledger.Posting.tests_Posting
+    -- ,Ledger.TimeLog.tests_TimeLog
+    -- ,Ledger.Types.tests_Types
+    -- ,Ledger.Utils.tests_Utils
+    ]

@@ -59,8 +59,8 @@ runtests opts args = do
 -- The latter is probably the way forward.
 tests :: Test
 tests = TestList [
-
-   tests_Register,
+   tests_Ledger,
+   tests_Commands,
 
    "account directive" ~:
    let sameParse str1 str2 = do l1 <- journalFromString str1
@@ -783,23 +783,6 @@ tests = TestList [
 --     "last wed"     `gives` "2008/11/19"
 --     "next friday"  `gives` "2008/11/28"
 --     "next january" `gives` "2009/01/01"
-
-  ,"splitSpan" ~: do
-    let gives (interval, span) = (splitSpan interval span `is`)
-    (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
-     [mkdatespan "2008/01/01" "2009/01/01"]
-    (Quarterly,mkdatespan "2008/01/01" "2009/01/01") `gives`
-     [mkdatespan "2008/01/01" "2008/04/01"
-     ,mkdatespan "2008/04/01" "2008/07/01"
-     ,mkdatespan "2008/07/01" "2008/10/01"
-     ,mkdatespan "2008/10/01" "2009/01/01"
-     ]
-    (Quarterly,nulldatespan) `gives`
-     [nulldatespan]
-    (Daily,mkdatespan "2008/01/01" "2008/01/01") `gives`
-     [mkdatespan "2008/01/01" "2008/01/01"]
-    (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
-     [mkdatespan "2008/01/01" "2008/01/01"]
 
   ,"subAccounts" ~: do
     l <- liftM cacheLedger' sampleledger
