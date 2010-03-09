@@ -16,7 +16,7 @@ import Text.Printf (hPrintf)
 import Text.RegexPR (matchRegexPR)
 import Data.Maybe
 import Ledger.Dates (firstJust, showDate, parsedate)
-import Locale (defaultTimeLocale)
+import System.Locale (defaultTimeLocale)
 import Data.Time.Format (parseTime)
 import Control.Monad (when, guard)
 import Safe (readDef, readMay)

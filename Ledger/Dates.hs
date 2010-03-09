@@ -23,7 +23,7 @@ where
 
 import Data.Time.Format
 import Data.Time.Calendar.OrdinalDate
-import Locale (defaultTimeLocale)
+import System.Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Combinator

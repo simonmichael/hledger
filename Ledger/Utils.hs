@@ -7,7 +7,7 @@ needed low in the module hierarchy. This is the bottom of the dependency graph.
 -}
 
 module Ledger.Utils (
-module Char,
+module Data.Char,
 module Control.Monad,
 module Data.List,
 --module Data.Map,
@@ -24,7 +24,7 @@ module Text.RegexPR,
 module Test.HUnit,
 )
 where
-import Char
+import Data.Char
 import Control.Exception
 import Control.Monad
 import Data.List

@@ -2,7 +2,7 @@
 
 import System
 import System.Directory
-import IO
+import System.IO
 import Data.List
 import Data.Char
 import Data.Maybe

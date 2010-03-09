@@ -30,7 +30,7 @@ module Tests
 where
 import qualified Data.Map as Map
 import Data.Time.Format
-import Locale (defaultTimeLocale)
+import System.Locale (defaultTimeLocale)
 import Test.HUnit.Tools (runVerboseTests)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.Time (ClockTime(TOD))

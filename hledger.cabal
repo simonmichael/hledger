@@ -65,7 +65,6 @@ library
                  ,containers
                  ,directory
                  ,filepath
-                 ,haskell98
                  ,old-time
                  ,parsec
                  ,time
@@ -110,8 +109,8 @@ executable hledger
                  ,csv
                  ,directory
                  ,filepath
-                 ,haskell98
                  ,mtl
+                 ,old-locale
                  ,old-time
                  ,parsec
                  ,process
