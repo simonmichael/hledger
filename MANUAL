@@ -60,6 +60,8 @@ You can add some options to the install command to include extra features:
 
 Here are some issues that have been encountered, with workarounds:
 
+- cabal-install 0.6.4 might succeed if cabal-install 0.6.2 does not
+
 - In some cases, cabal install can fail with a compilation or link error
 due to incompatible package versions.  You can sometimes work around this
 by specifying versions manually.  Eg here's a recipe for haskell platform
