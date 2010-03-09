@@ -1,0 +1,22 @@
+# 1. account pattern with space
+-f- register 'a a'
+<<<
+2010/3/1 x
+  a a  1
+  b
+>>>
+2010/03/01 x                    a a                               1            1
+#
+# 2. description pattern with space
+-f- register desc:'x x'
+<<<
+2010/3/1 x
+  a  1
+  b
+
+2010/3/2 x x
+  a  1
+  b
+>>>
+2010/03/02 x x                  a                                 1            1
+                                b                                -1            0
