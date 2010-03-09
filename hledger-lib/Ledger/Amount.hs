@@ -201,9 +201,9 @@ showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth a
 -- | Get the string representation of a mixed amount, and if it
 -- appears to be all zero just show a bare 0, ledger-style.
 showMixedAmountOrZero :: MixedAmount -> String
-showMixedAmountOrZero a
-    | isZeroMixedAmount a = "0"
-    | otherwise = showMixedAmount a
+showMixedAmountOrZero a | a == missingamt = ""
+                        | isZeroMixedAmount a = "0"
+                        | otherwise = showMixedAmount a
 
 -- | Get the string representation of a mixed amount, or a bare 0,
 -- without any \@ prices.
@@ -270,7 +270,14 @@ missingamt = Mixed [Amount Commodity {symbol="AUTO",side=L,spaced=False,comma=Fa
 tests_Amount = TestList [
 
    "showMixedAmount" ~: do
-     showMixedAmount (Mixed []) ~?= "0"
+     showMixedAmount (Mixed [Amount dollar 0 Nothing]) `is` "$0.00"
+     showMixedAmount (Mixed []) `is` "0"
+     showMixedAmount missingamt `is` ""
+
+  ,"showMixedAmountOrZero" ~: do
+     showMixedAmountOrZero (Mixed [Amount dollar 0 Nothing]) `is` "0"
+     showMixedAmountOrZero (Mixed []) `is` "0"
+     showMixedAmountOrZero missingamt `is` ""
 
   ,"amount arithmetic" ~: do
     let a1 = dollars 1.23
