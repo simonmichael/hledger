@@ -45,7 +45,6 @@ import Commands.Histogram
 import Commands.Print
 import Commands.Register
 import Ledger
-import Ledger.IO (readLedger)
 import Options hiding (value)
 #ifdef MAKE
 import Paths_hledger_make (getDataFileName)

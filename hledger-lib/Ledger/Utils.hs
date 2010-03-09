@@ -248,7 +248,13 @@ parseWithCtx :: b -> GenParser Char b a -> String -> Either ParseError a
 parseWithCtx ctx p = runParser p ctx ""
 
 fromparse :: Either ParseError a -> a
-fromparse = either (\e -> error $ "parse error at "++ show e) id
+fromparse = either parseerror id
+
+parseerror e = error $ showParseError e
+
+showParseError e = "parse error at " ++ show e
+
+showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
 
 nonspace :: GenParser Char st Char
 nonspace = satisfy (not . isSpace)

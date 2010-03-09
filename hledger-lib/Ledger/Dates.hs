@@ -117,13 +117,19 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       span (y,m,"")              = (startofmonth day, nextmonth day) where day = fromGregorian (read y) (read m) 1
       span (y,m,d)               = (day, nextday day) where day = fromGregorian (read y) (read m) (read d)
 
+showDay :: Day -> String
+showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
+
 -- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
 -- the provided reference date.
 fixSmartDateStr :: Day -> String -> String
-fixSmartDateStr t s = printf "%04d/%02d/%02d" y m d
-    where
-      (y,m,d) = toGregorian $ fixSmartDate t sdate
-      sdate = fromparse $ parsewith smartdate $ lowercase s
+fixSmartDateStr t s = either parseerror id $ fixSmartDateStrEither t s
+
+-- | A safe version of fixSmartDateStr.
+fixSmartDateStrEither :: Day -> String -> Either ParseError String
+fixSmartDateStrEither t s = case parsewith smartdate (lowercase s) of
+                              Right sd -> Right $ showDay $ fixSmartDate t sd
+                              Left e -> Left e
 
 -- | Convert a SmartDate to an absolute date using the provided reference date.
 fixSmartDate :: Day -> SmartDate -> Day
