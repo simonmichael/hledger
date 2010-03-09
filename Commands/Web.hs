@@ -327,8 +327,11 @@ handleAddform l = do
             validateAmt2 _   = []
             amt1' = either (const missingamt) id $ parse someamount "" amt1
             amt2' = either (const missingamt) id $ parse someamount "" amt2
+            (date', dateparseerr) = case fixSmartDateStrEither today date of
+                                      Right d -> (d, [])
+                                      Left e -> ("1900/01/01", [showDateParseError e])
             t = Transaction {
-                            tdate = parsedate $ fixSmartDateStr today date
+                            tdate = parsedate date' -- date' must be parseable
                            ,teffectivedate=Nothing
                            ,tstatus=False
                            ,tcode=""
@@ -340,17 +343,19 @@ handleAddform l = do
                             ]
                            ,tpreceding_comment_lines=""
                            }
-            (t', berr) = case balanceTransaction t of
+            (t', balanceerr) = case balanceTransaction t of
                            Right t'' -> (t'', [])
-                           Left e -> (t, [e])
+                           Left e -> (t, [head $ lines e]) -- show just the error not the transaction
             errs = concat [
                     validateDate date
+                   ,dateparseerr
                    ,validateDesc desc
                    ,validateAcct1 acct1
                    ,validateAmt1 amt1
                    ,validateAcct2 acct2
                    ,validateAmt2 amt2
-                   ] ++ berr
+                   ,balanceerr
+                   ]
         in
         case null errs of
           False -> Failure errs
