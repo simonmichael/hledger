@@ -1,0 +1,43 @@
+#
+# monthly reporting interval, no end dates, shows just the intervals with data:
+-f- register --period 'monthly'
+<<<
+2010/2/1 x
+  a  1
+  b
+>>>
+2010/02/01 - 2010/02/28         a                                 1            1
+                                b                                -1            0
+#
+# with --empty, the same:
+-f- register --period 'monthly' --empty
+<<<
+2010/2/1 x
+  a  1
+  b
+>>>
+2010/02/01 - 2010/02/28         a                                 1            1
+                                b                                -1            0
+#
+# with --empty and start/end dates, show all intervals covering the specified period
+-f- register --period 'monthly from 2010/1/10 to 2010/3/15' --empty
+<<<
+2010/2/1 x
+  a  1
+  b
+>>>
+2010/01/01 - 2010/01/31                                           0            0
+2010/02/01 - 2010/02/28         a                                 1            1
+                                b                                -1            0
+2010/03/01 - 2010/03/31                                           0            0
+#
+# with just one start/end date, get the other from the data
+-f- register --period 'monthly from 2010/1/10' --empty
+<<<
+2010/2/1 x
+  a  1
+  b
+>>>
+2010/01/01 - 2010/01/31                                           0            0
+2010/02/01 - 2010/02/28         a                                 1            1
+                                b                                -1            0

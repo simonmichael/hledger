@@ -32,22 +32,28 @@ showRegisterReport :: [Opt] -> FilterSpec -> Ledger -> String
 showRegisterReport opts filterspec l = showpostings ps nullposting startbal
     where
       ps | interval == NoInterval = displayableps
-         | otherwise             = summarisePostings interval depth empty span displayableps
+         | otherwise             = summarisePostings interval depth empty filterspan displayableps
       startbal = sumPostings precedingps
       (precedingps,displayableps,_) =
           postingsMatchingDisplayExpr (displayExprFromOpts opts) $ journalPostings $ filterJournalPostings filterspec $ journal l
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
-      span = datespan filterspec
+      filterspan = datespan filterspec
 
 -- | Convert a list of postings into summary postings, one per interval.
 summarisePostings :: Interval -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [Posting]
-summarisePostings interval depth empty span ps = concatMap summarisespan spans
+summarisePostings interval depth empty filterspan ps = concatMap summarisespan $ splitSpan interval reportspan
     where
       summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
-          where postingsinspan s = filter (isPostingInDateSpan s) ps
-      spans = splitSpan interval spantoreport
-          where spantoreport | empty = span
-                             | otherwise = postingsDateSpan ps
+      postingsinspan s = filter (isPostingInDateSpan s) ps
+      dataspan = postingsDateSpan ps
+      reportspan | empty = filterspan `orDatesFrom` dataspan
+                 | otherwise = dataspan
+
+-- | Combine two datespans, filling any unspecified dates in the first
+-- with dates from the second.
+orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
+    where a = if isJust a1 then a1 else a2
+          b = if isJust b1 then b1 else b2
 
 -- | Date-sort and split a list of postings into three spans - postings matched
 -- by the given display expression, and the preceding and following postings.
