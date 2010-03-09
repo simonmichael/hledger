@@ -100,7 +100,7 @@ continuous ci: setversion
 
 # fix permissions (eg after darcs get)
 fixperms:
-	chmod +x tools/*
+	chmod +x hledger.hs tools/*
 
 # build the standalone unit test runner. Requires test-framework, which
 # may not work on windows.
