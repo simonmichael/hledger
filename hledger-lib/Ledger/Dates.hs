@@ -84,7 +84,7 @@ parsePeriodExpr refdate expr = (interval,span)
 spanFromSmartDateString :: Day -> String -> DateSpan
 spanFromSmartDateString refdate s = spanFromSmartDate refdate sdate
     where
-      sdate = fromparse $ parsewith smartdate s
+      sdate = fromparse $ parsewith smartdateonly s
 
 spanFromSmartDate :: Day -> SmartDate -> DateSpan
 spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
@@ -127,7 +127,7 @@ fixSmartDateStr t s = either parseerror id $ fixSmartDateStrEither t s
 
 -- | A safe version of fixSmartDateStr.
 fixSmartDateStrEither :: Day -> String -> Either ParseError String
-fixSmartDateStrEither t s = case parsewith smartdate (lowercase s) of
+fixSmartDateStrEither t s = case parsewith smartdateonly (lowercase s) of
                               Right sd -> Right $ showDay $ fixSmartDate t sd
                               Left e -> Left e
 
@@ -251,6 +251,14 @@ smartdate = do
                     ]
   (y,m,d) <- choice $ map try dateparsers
   return (y,m,d)
+
+-- | Like smartdate, but there must be nothing other than whitespace after the date.
+smartdateonly :: GenParser Char st SmartDate
+smartdateonly = do
+  d <- smartdate
+  many spacenonewline
+  eof
+  return d
 
 datesepchar = oneOf "/-."
 
