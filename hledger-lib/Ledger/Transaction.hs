@@ -82,7 +82,7 @@ showTransaction' elide effective t =
             showpostingnoamt p = rstrip $ showacct p ++ "              " ++ showcomment (pcomment p)
             showacct p = "    " ++ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
             w = maximum $ map (length . paccount) ps
-            showamount = printf "%12s" . showMixedAmount
+            showamount = printf "%12s" . showMixedAmountOrZero
             showcomment s = if null s then "" else "  ; "++s
             showstatus p = if pstatus p then "* " else ""
 
