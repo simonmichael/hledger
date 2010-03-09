@@ -107,29 +107,6 @@ tests = TestList [
     accountNameTreeFrom ["a","a:b"] `is` Node "top" [Node "a" [Node "a:b" []]]
     accountNameTreeFrom ["a:b:c"]   `is` Node "top" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
 
-  ,"amount arithmetic" ~: do
-    let a1 = dollars 1.23
-    let a2 = Amount (comm "$") (-1.23) Nothing
-    let a3 = Amount (comm "$") (-1.23) Nothing
-    (a1 + a2) `is` Amount (comm "$") 0 Nothing
-    (a1 + a3) `is` Amount (comm "$") 0 Nothing
-    (a2 + a3) `is` Amount (comm "$") (-2.46) Nothing
-    (a3 + a3) `is` Amount (comm "$") (-2.46) Nothing
-    sum [a2,a3] `is` Amount (comm "$") (-2.46) Nothing
-    sum [a3,a3] `is` Amount (comm "$") (-2.46) Nothing
-    sum [a1,a2,a3,-a3] `is` Amount (comm "$") 0 Nothing
-    let dollar0 = dollar{precision=0}
-    (sum [Amount dollar 1.25 Nothing, Amount dollar0 (-1) Nothing, Amount dollar (-0.25) Nothing])
-      `is` (Amount dollar 0 Nothing)
-
-  ,"mixed amount arithmetic" ~: do
-    let dollar0 = dollar{precision=0}
-    (sum $ map (Mixed . (\a -> [a]))
-             [Amount dollar 1.25 Nothing,
-              Amount dollar0 (-1) Nothing,
-              Amount dollar (-0.25) Nothing])
-      `is` Mixed [Amount dollar 0 Nothing]
-
   ,"balance report tests" ~:
    let (opts,args) `gives` es = do 
         l <- sampleledgerwithopts opts args
@@ -652,9 +629,6 @@ tests = TestList [
   ,"show dollars" ~: show (dollars 1) ~?= "$1.00"
 
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
-
-  ,"showMixedAmount" ~: do
-     showMixedAmount (Mixed []) ~?= "0"
 
   ,"someamount" ~: do
      let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity

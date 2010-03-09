@@ -43,9 +43,9 @@ tests_Ledger = TestList
     [
     --  Ledger.Account.tests_Account
     -- ,Ledger.AccountName.tests_AccountName
-    -- ,Ledger.Amount.tests_Amount
+     Ledger.Amount.tests_Amount
     -- ,Ledger.Commodity.tests_Commodity
-     Ledger.Dates.tests_Dates
+    ,Ledger.Dates.tests_Dates
     -- ,Ledger.IO.tests_IO
     ,Ledger.Transaction.tests_Transaction
     -- ,Ledger.Ledger.tests_Ledger

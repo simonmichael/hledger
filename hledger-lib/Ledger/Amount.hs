@@ -261,3 +261,34 @@ nullmixedamt = Mixed []
 missingamt :: MixedAmount
 missingamt = Mixed [Amount Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0} 0 Nothing]
 
+
+tests_Amount = TestList [
+
+   "showMixedAmount" ~: do
+     showMixedAmount (Mixed []) ~?= "0"
+
+  ,"amount arithmetic" ~: do
+    let a1 = dollars 1.23
+    let a2 = Amount (comm "$") (-1.23) Nothing
+    let a3 = Amount (comm "$") (-1.23) Nothing
+    (a1 + a2) `is` Amount (comm "$") 0 Nothing
+    (a1 + a3) `is` Amount (comm "$") 0 Nothing
+    (a2 + a3) `is` Amount (comm "$") (-2.46) Nothing
+    (a3 + a3) `is` Amount (comm "$") (-2.46) Nothing
+    sum [a2,a3] `is` Amount (comm "$") (-2.46) Nothing
+    sum [a3,a3] `is` Amount (comm "$") (-2.46) Nothing
+    sum [a1,a2,a3,-a3] `is` Amount (comm "$") 0 Nothing
+    let dollar0 = dollar{precision=0}
+    (sum [Amount dollar 1.25 Nothing, Amount dollar0 (-1) Nothing, Amount dollar (-0.25) Nothing])
+      `is` (Amount dollar 0 Nothing)
+
+  ,"mixed amount arithmetic" ~: do
+    let dollar0 = dollar{precision=0}
+    (sum $ map (Mixed . (\a -> [a]))
+             [Amount dollar 1.25 Nothing,
+              Amount dollar0 (-1) Nothing,
+              Amount dollar (-0.25) Nothing])
+      `is` Mixed [Amount dollar 0 Nothing]
+
+
+  ]
