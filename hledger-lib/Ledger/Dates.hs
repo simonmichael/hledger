@@ -74,13 +74,13 @@ daysInSpan (DateSpan (Just d1) (Just d2)) = Just $ diffDays d2 d1
 daysInSpan _ = Nothing
     
 -- | Parse a period expression to an Interval and overall DateSpan using
--- the provided reference date.
+-- the provided reference date, or raise an error.
 parsePeriodExpr :: Day -> String -> (Interval, DateSpan)
 parsePeriodExpr refdate expr = (interval,span)
     where (interval,span) = fromparse $ parsewith (periodexpr refdate) expr
     
 -- | Convert a single smart date string to a date span using the provided
--- reference date.
+-- reference date, or raise an error.
 spanFromSmartDateString :: Day -> String -> DateSpan
 spanFromSmartDateString refdate s = spanFromSmartDate refdate sdate
     where
@@ -121,7 +121,7 @@ showDay :: Day -> String
 showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
 
 -- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
--- the provided reference date.
+-- the provided reference date, or raise an error.
 fixSmartDateStr :: Day -> String -> String
 fixSmartDateStr t s = either parseerror id $ fixSmartDateStrEither t s
 
@@ -200,23 +200,24 @@ firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
 
+-- | Parse a couple of date-time string formats to a time type.
 parsedatetimeM :: String -> Maybe LocalTime
 parsedatetimeM s = firstJust [
     parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
     parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
     ]
 
--- | Parse a date-time string to a time type, or raise an error.
-parsedatetime :: String -> LocalTime
-parsedatetime s = fromMaybe (error $ "could not parse timestamp \"" ++ s ++ "\"")
-                            (parsedatetimeM s)
-
--- | Parse a date string to a time type, or raise an error.
+-- | Parse a couple of date string formats to a time type.
 parsedateM :: String -> Maybe Day
 parsedateM s = firstJust [ 
      parseTime defaultTimeLocale "%Y/%m/%d" s,
      parseTime defaultTimeLocale "%Y-%m-%d" s 
      ]
+
+-- | Parse a date-time string to a time type, or raise an error.
+parsedatetime :: String -> LocalTime
+parsedatetime s = fromMaybe (error $ "could not parse timestamp \"" ++ s ++ "\"")
+                            (parsedatetimeM s)
 
 -- | Parse a date string to a time type, or raise an error.
 parsedate :: String -> Day
