@@ -47,7 +47,7 @@ tests_Ledger = TestList
     -- ,Ledger.Commodity.tests_Commodity
      Ledger.Dates.tests_Dates
     -- ,Ledger.IO.tests_IO
-    -- ,Ledger.Transaction.tests_Transaction
+    ,Ledger.Transaction.tests_Transaction
     -- ,Ledger.Ledger.tests_Ledger
     -- ,Ledger.Parse.tests_Parse
     -- ,Ledger.Journal.tests_Journal

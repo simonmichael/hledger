@@ -12,6 +12,7 @@ import Ledger.Types
 import Ledger.Dates
 import Ledger.Posting
 import Ledger.Amount
+import Ledger.Commodity (dollars, dollar, unknown)
 
 
 instance Show Transaction where show = showTransactionUnelided
@@ -140,3 +141,86 @@ txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
 settxn :: Transaction -> Posting -> Posting
 settxn t p = p{ptransaction=Just t}
 
+tests_Transaction = TestList [
+  "showTransaction" ~: do
+     assertEqual "show a balanced transaction, eliding last amount"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries        $47.18"
+        ,"    assets:checking"
+        ,""
+        ])
+       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting (Just t)
+                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting (Just t)
+                ] ""
+        in showTransaction t)
+
+  ,"showTransaction" ~: do
+     assertEqual "show a balanced transaction, no eliding"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries        $47.18"
+        ,"    assets:checking               $-47.18"
+        ,""
+        ])
+       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting (Just t)
+                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting (Just t)
+                ] ""
+        in showTransactionUnelided t)
+
+     -- document some cases that arise in debug/testing:
+  ,"showTransaction" ~: do
+     assertEqual "show an unbalanced transaction, should not elide"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries        $47.18"
+        ,"    assets:checking               $-47.19"
+        ,""
+        ])
+       (showTransaction
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing
+         ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting Nothing
+         ] ""))
+
+  ,"showTransaction" ~: do
+     assertEqual "show an unbalanced transaction with one posting, should not elide"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries        $47.18"
+        ,""
+        ])
+       (showTransaction
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing
+         ] ""))
+
+  ,"showTransaction" ~: do
+     assertEqual "show a transaction with one posting and a missing amount"
+       (unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries              "
+        ,""
+        ])
+       (showTransaction
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+         [Posting False "expenses:food:groceries" missingamt "" RegularPosting Nothing
+         ] ""))
+
+  ,"showTransaction" ~: do
+     assertEqual "show a transaction with a priced commodityless amount"
+       (unlines
+        ["2010/01/01 x"
+        ,"    a        1 @ $2"
+        ,"    b              "
+        ,""
+        ])
+       (showTransaction
+        (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" ""
+         [Posting False "a" (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting Nothing
+         ,Posting False "b" missingamt "" RegularPosting Nothing
+         ] ""))
+
+  ]
