@@ -465,13 +465,21 @@ Filter patterns
 """""""""""""""
 
 Most commands accept one more filter pattern arguments after the command
-name. In this case, hledger will look only at postings which match any of
-the patterns. Each pattern is a regular expression which is matched
-against the posting's account. Or, a pattern prefixed with ``desc:`` is
-matched against the posting's transaction's description.
+name, to select a subset of transactions or postings. There are two kinds
+of pattern:
 
-To negate a pattern, prefix it with ``not:``. Note: with multiple
-prefixes, not: should go last, eg: ``desc:not:someregexp``.
+- an account pattern, which is a regular expression. This is matched
+  against postings' accounts. Optionally, it may be prefixed with ``not:``
+  in which case the match is negated.
+
+- a description pattern, like the above but prefixed with ``desc:``. This
+  is matched against transactions' descriptions. Note how with multiple
+  prefixes, not: goes last, eg: ``desc:not:someregexp``.
+
+When you specify multiple filter patterns, hledger selects the
+transactions or postings which match
+
+ *any of the account patterns* AND *any of the description patterns*
 
 Dates
 """""
