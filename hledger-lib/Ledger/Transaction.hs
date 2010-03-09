@@ -139,7 +139,7 @@ balanceTransaction t@Transaction{tpostings=ps}
             balance p | isReal p && not (hasAmount p) = p{pamount = costOfMixedAmount (-otherstotal)}
                       | otherwise = p
                       where otherstotal = sum $ map pamount withamounts
-      printerr s = unlines [s, showTransactionUnelided t]
+      printerr s = intercalate "\n" [s, showTransactionUnelided t]
 
 nonzerobalanceerror :: Transaction -> String
 nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
