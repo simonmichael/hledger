@@ -28,6 +28,46 @@ import Text.ParserCombinators.Parsec
 import Test.HUnit
 
 
+{- |
+A set of data definitions and account-matching patterns sufficient to
+convert a particular CSV data file into meaningful ledger transactions. See above.
+-}
+data CsvRules = CsvRules {
+      dateField :: Maybe FieldPosition,
+      statusField :: Maybe FieldPosition,
+      codeField :: Maybe FieldPosition,
+      descriptionField :: Maybe FieldPosition,
+      amountField :: Maybe FieldPosition,
+      currencyField :: Maybe FieldPosition,
+      baseCurrency :: Maybe String,
+      baseAccount :: AccountName,
+      accountRules :: [AccountRule]
+} deriving (Show, Eq)
+
+nullrules = CsvRules {
+      dateField=Nothing,
+      statusField=Nothing,
+      codeField=Nothing,
+      descriptionField=Nothing,
+      amountField=Nothing,
+      currencyField=Nothing,
+      baseCurrency=Nothing,
+      baseAccount="unknown",
+      accountRules=[]
+}
+
+type FieldPosition = Int
+
+type AccountRule = (
+   [(String, Maybe String)] -- list of regex match patterns with optional replacements
+  ,AccountName              -- account name to use for a transaction matching this rule
+  )
+
+type CsvRecord = [String]
+
+
+-- | Read the CSV file named as an argument and print equivalent ledger transactions,
+-- using/creating a .rules file.
 convert :: [Opt] -> [String] -> Ledger -> IO ()
 convert opts args _ = do
   when (null args) $ error "please specify a csv data file."
@@ -96,43 +136,6 @@ initialRulesFileContent =
     "\n" ++
     "(TO|FROM) SAVINGS\n" ++
     "assets:bank:savings\n"
-
-{- |
-A set of data definitions and account-matching patterns sufficient to
-convert a particular CSV data file into meaningful ledger transactions. See above.
--}
-data CsvRules = CsvRules {
-      dateField :: Maybe FieldPosition,
-      statusField :: Maybe FieldPosition,
-      codeField :: Maybe FieldPosition,
-      descriptionField :: Maybe FieldPosition,
-      amountField :: Maybe FieldPosition,
-      currencyField :: Maybe FieldPosition,
-      baseCurrency :: Maybe String,
-      baseAccount :: AccountName,
-      accountRules :: [AccountRule]
-} deriving (Show, Eq)
-
-nullrules = CsvRules {
-      dateField=Nothing,
-      statusField=Nothing,
-      codeField=Nothing,
-      descriptionField=Nothing,
-      amountField=Nothing,
-      currencyField=Nothing,
-      baseCurrency=Nothing,
-      baseAccount="unknown",
-      accountRules=[]
-}
-
-type FieldPosition = Int
-
-type AccountRule = (
-   [(String, Maybe String)] -- list of regex match patterns with optional replacements
-  ,AccountName              -- account name to use for a transaction matching this rule
-  )
-
-type CsvRecord = [String]
 
 -- rules file parser
 
