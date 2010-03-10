@@ -394,7 +394,7 @@ ledgerTransaction = do
   edate <- try (ledgereffectivedate date <?> "effective date") <|> return Nothing
   status <- ledgerstatus
   code <- ledgercode
-  description <- many1 spacenonewline >> liftM rstrip (many1 (noneOf ";\n") <?> "description")
+  description <- many1 spacenonewline >> liftM rstrip (many (noneOf ";\n") <?> "description")
   comment <- ledgercomment <|> return ""
   restofline
   postings <- ledgerpostings
