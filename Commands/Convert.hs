@@ -10,6 +10,7 @@ import Ledger.Types (Ledger,AccountName,Transaction(..),Posting(..),PostingType(
 import Ledger.Utils (strip, spacenonewline, restofline)
 import Ledger.Parse (someamount, emptyCtx, ledgeraccountname)
 import Ledger.Amount (nullmixedamt)
+import Safe (atDef)
 import System.IO (stderr)
 import Text.CSV (parseCSVFromFile, printCSV)
 import Text.Printf (hPrintf)
@@ -21,6 +22,7 @@ import Data.Time.Format (parseTime)
 import Control.Monad (when, guard)
 import Safe (readDef, readMay)
 import System.Directory (doesFileExist)
+import System.Exit (exitFailure)
 import System.FilePath.Posix (takeBaseName, replaceExtension)
 import Text.ParserCombinators.Parsec
 
@@ -46,7 +48,26 @@ convert opts args _ = do
                   Left e -> error $ show e
                   Right r -> r
   when debug $ hPrintf stderr "rules: %s\n" (show rules)
-  mapM_ (printTxn debug rules) records
+  let maxfield = maxFieldIndex rules
+      shortrecords = filter ((< maxfield).length) records
+  if null shortrecords
+   then mapM_ (printTxn debug rules) records
+   else do
+     hPrintf stderr (unlines [
+                      "Warning, one or more CSV records do not contain field %d referenced by the"
+                     ,"conversion rules file. Are you converting a valid CSV file ? First bad record:\n%s"
+                     ]) maxfield (show $ head shortrecords)
+     exitFailure
+
+maxFieldIndex :: CsvRules -> Int
+maxFieldIndex r = maximum $ catMaybes [
+                   dateField r
+                  ,statusField r
+                  ,codeField r
+                  ,descriptionField r
+                  ,amountField r
+                  ,currencyField r
+                  ]
 
 rulesFileFor :: FilePath -> FilePath
 rulesFileFor csvfile = replaceExtension csvfile ".rules"
@@ -232,7 +253,7 @@ matchreplacepattern = do
 
 printTxn :: Bool -> CsvRules -> CsvRecord -> IO ()
 printTxn debug rules rec = do
-  when debug $ hPrintf stderr "csv: %s" (printCSV [rec])
+  when debug $ hPrintf stderr "record: %s" (printCSV [rec])
   putStr $ show $ transactionFromCsvRecord rules rec
 
 -- csv record conversion
@@ -240,16 +261,16 @@ printTxn debug rules rec = do
 transactionFromCsvRecord :: CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord rules fields =
   let 
-      date = parsedate $ normaliseDate $ maybe "1900/1/1" (fields !!) (dateField rules)
-      status = maybe False (null . strip . (fields !!)) (statusField rules)
-      code = maybe "" (fields !!) (codeField rules)
-      desc = maybe "" (fields !!) (descriptionField rules)
+      date = parsedate $ normaliseDate $ maybe "1900/1/1" (atDef "" fields) (dateField rules)
+      status = maybe False (null . strip . (atDef "" fields)) (statusField rules)
+      code = maybe "" (atDef "" fields) (codeField rules)
+      desc = maybe "" (atDef "" fields) (descriptionField rules)
       comment = ""
       precomment = ""
-      amountstr = maybe "" (fields !!) (amountField rules)
+      amountstr = maybe "" (atDef "" fields) (amountField rules)
       amountstr' = strnegate amountstr where strnegate ('-':s) = s
                                              strnegate s = '-':s
-      currency = maybe (fromMaybe "" $ baseCurrency rules) (fields !!) (currencyField rules)
+      currency = maybe (fromMaybe "" $ baseCurrency rules) (atDef "" fields) (currencyField rules)
       amountstr'' = currency ++ amountstr'
       amountparse = runParser someamount emptyCtx "" amountstr''
       amount = either (const nullmixedamt) id amountparse
