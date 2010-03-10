@@ -1,7 +1,7 @@
 # hledger project makefile
 
 # optional features described in MANUAL, comment out if you don't have the libs
-OPTFLAGS=-DCHART -DVTY -DWEB
+OPTFLAGS= #-DCHART -DVTY -DWEB
 #OPTFLAGS=-DCHART -DVTY -DWEBHAPPSTACK
 
 # command to run during "make ci"

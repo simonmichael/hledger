@@ -437,10 +437,10 @@ tests = TestList [
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ jtxns r
 
   ,"ledgerHistoricalPrice" ~:
-    assertParse (parseWithCtx emptyCtx ledgerHistoricalPrice price1_str) price1
+    assertParseEqual (parseWithCtx emptyCtx ledgerHistoricalPrice price1_str) price1
 
   ,"ledgerTransaction" ~: do
-    assertParse (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
+    assertParseEqual (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
     assertBool "ledgerTransaction should not parse just a date"
                    $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1\n"
     assertBool "ledgerTransaction should require some postings"
@@ -456,7 +456,7 @@ tests = TestList [
     assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
 
   ,"ledgerposting" ~:
-    assertParse (parseWithCtx emptyCtx ledgerposting rawposting1_str) rawposting1
+    assertParseEqual (parseWithCtx emptyCtx ledgerposting rawposting1_str) rawposting1
 
   ,"normaliseMixedAmount" ~: do
      normaliseMixedAmount (Mixed []) ~?= Mixed [nullamt]
@@ -842,8 +842,8 @@ tests = TestList [
   --    ]
 
   ,"postingamount" ~: do
-    assertParse (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
-    assertParse (parseWithCtx emptyCtx postingamount " $1.")
+    assertParseEqual (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
+    assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
                 (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
 
   ]

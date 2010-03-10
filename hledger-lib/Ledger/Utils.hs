@@ -290,9 +290,13 @@ tfilter _ t = t
 is :: (Eq a, Show a) => a -> a -> Assertion
 a `is` e = assertEqual "" e a
 
--- | Assert a parse result is some expected value, or print a parse error.
-assertParse :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
-assertParse parse expected = either (assertFailure.show) (`is` expected) parse
+-- | Assert a parse result is successful, printing the parse error on failure.
+assertParse :: (Either ParseError a) -> Assertion
+assertParse parse = either (assertFailure.show) (const (return ())) parse
+
+-- | Assert a parse result is some expected value, printing the parse error on failure.
+assertParseEqual :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+assertParseEqual parse expected = either (assertFailure.show) (`is` expected) parse
 
 printParseError :: (Show a) => a -> IO ()
 printParseError e = do putStr "parse error at "; print e
