@@ -10,7 +10,7 @@ import Ledger.Types (Ledger,AccountName,Transaction(..),Posting(..),PostingType(
 import Ledger.Utils (strip, spacenonewline, restofline)
 import Ledger.Parse (someamount, emptyCtx, ledgeraccountname)
 import Ledger.Amount (nullmixedamt)
-import Safe (atDef)
+import Safe (atDef, maximumDef)
 import System.IO (stderr)
 import Text.CSV (parseCSVFromFile, printCSV)
 import Text.Printf (hPrintf)
@@ -48,19 +48,22 @@ convert opts args _ = do
                   Left e -> error $ show e
                   Right r -> r
   when debug $ hPrintf stderr "rules: %s\n" (show rules)
-  let maxfield = maxFieldIndex rules
-      shortrecords = filter ((< maxfield).length) records
-  if null shortrecords
+  let requiredfields = max 2 (maxFieldIndex rules + 1)
+      badrecords = take 1 $ filter ((< requiredfields).length) records
+  if null badrecords
    then mapM_ (printTxn debug rules) records
    else do
      hPrintf stderr (unlines [
-                      "Warning, one or more CSV records do not contain field %d referenced by the"
-                     ,"conversion rules file. Are you converting a valid CSV file ? First bad record:\n%s"
-                     ]) maxfield (show $ head shortrecords)
+                      "Warning, at least one CSV record does not contain a field referenced by the"
+                     ,"conversion rules file, or has less than two fields. Are you converting a"
+                     ,"valid CSV file ? First bad record:\n%s"
+                     ]) (show $ head badrecords)
      exitFailure
 
+-- | The highest (0-based) field index referenced in the field
+-- definitions, or -1 if no fields are defined.
 maxFieldIndex :: CsvRules -> Int
-maxFieldIndex r = maximum $ catMaybes [
+maxFieldIndex r = maximumDef (-1) $ catMaybes [
                    dateField r
                   ,statusField r
                   ,codeField r
