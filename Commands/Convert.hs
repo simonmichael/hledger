@@ -7,7 +7,7 @@ module Commands.Convert where
 import Options (Opt(Debug))
 import Version (versionstr)
 import Ledger.Types (Ledger,AccountName,Transaction(..),Posting(..),PostingType(..))
-import Ledger.Utils (strip, spacenonewline, restofline)
+import Ledger.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual)
 import Ledger.Parse (someamount, emptyCtx, ledgeraccountname)
 import Ledger.Amount (nullmixedamt)
 import Safe (atDef, maximumDef)
@@ -19,12 +19,13 @@ import Data.Maybe
 import Ledger.Dates (firstJust, showDate, parsedate)
 import System.Locale (defaultTimeLocale)
 import Data.Time.Format (parseTime)
-import Control.Monad (when, guard)
+import Control.Monad (when, guard, liftM)
 import Safe (readDef, readMay)
 import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
 import System.FilePath.Posix (takeBaseName, replaceExtension)
 import Text.ParserCombinators.Parsec
+import Test.HUnit
 
 
 convert :: [Opt] -> [String] -> Ledger -> IO ()
@@ -43,10 +44,7 @@ convert opts args _ = do
                   writeFile rulesfile initialRulesFileContent
    else
       hPrintf stderr "using conversion rules file %s\n" rulesfile
-  rulesstr <- readFile rulesfile
-  let rules = case parseCsvRules rulesfile rulesstr of
-                  Left e -> error $ show e
-                  Right r -> r
+  rules <- liftM (either (error.show) id) $ parseCsvRulesFile rulesfile
   when debug $ hPrintf stderr "rules: %s\n" (show rules)
   let requiredfields = max 2 (maxFieldIndex rules + 1)
       badrecords = take 1 $ filter ((< requiredfields).length) records
@@ -113,7 +111,7 @@ data CsvRules = CsvRules {
       baseCurrency :: Maybe String,
       baseAccount :: AccountName,
       accountRules :: [AccountRule]
-} deriving (Show)
+} deriving (Show, Eq)
 
 nullrules = CsvRules {
       dateField=Nothing,
@@ -137,6 +135,11 @@ type AccountRule = (
 type CsvRecord = [String]
 
 -- rules file parser
+
+parseCsvRulesFile :: FilePath -> IO (Either ParseError CsvRules)
+parseCsvRulesFile f = do
+  s <- readFile f
+  return $ parseCsvRules f s
 
 parseCsvRules :: FilePath -> String -> Either ParseError CsvRules
 parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
@@ -228,14 +231,14 @@ baseaccount = do
 
 accountrule :: GenParser Char CsvRules AccountRule
 accountrule = do
-  blanklines
   many blankorcommentline
   pats <- many1 matchreplacepattern
   guard $ length pats >= 2
   let pats' = init pats
       acct = either (fail.show) id $ runParser ledgeraccountname () "" $ fst $ last pats
-  many commentline
+  many blankorcommentline
   return (pats',acct)
+ <?> "account rule"
 
 blanklines = many1 blankline >> return ()
 
@@ -339,3 +342,42 @@ identify rules defacct desc | null matchingrules = (defacct,desc)
                           Nothing   -> desc
 
 caseinsensitive = ("(?i)"++)
+
+tests_Convert = TestList [
+
+   "convert rules parsing: empty file" ~: do
+     -- let assertMixedAmountParse parseresult mixedamount =
+     --         (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
+    assertParseEqual (parseCsvRules "unknown" "") nullrules
+
+  ,"convert rules parsing: accountrule" ~: do
+     assertParseEqual (parseWithCtx nullrules accountrule "A\na\n") -- leading blank line required
+                 ([("A",Nothing)], "a")
+
+  ,"convert rules parsing: trailing comments" ~: do
+     assertParse (parseWithCtx nullrules csvrulesfile "A\na\n# \n#\n")
+
+  ,"convert rules parsing: trailing blank lines" ~: do
+     assertParse (parseWithCtx nullrules csvrulesfile "A\na\n\n  \n")
+
+  -- not supported
+  -- ,"convert rules parsing: no final newline" ~: do
+  --    assertParse (parseWithCtx nullrules csvrulesfile "A\na")
+  --    assertParse (parseWithCtx nullrules csvrulesfile "A\na\n# \n#")
+  --    assertParse (parseWithCtx nullrules csvrulesfile "A\na\n\n  ")
+
+                 -- (nullrules{
+                 --   -- dateField=Maybe FieldPosition,
+                 --   -- statusField=Maybe FieldPosition,
+                 --   -- codeField=Maybe FieldPosition,
+                 --   -- descriptionField=Maybe FieldPosition,
+                 --   -- amountField=Maybe FieldPosition,
+                 --   -- currencyField=Maybe FieldPosition,
+                 --   -- baseCurrency=Maybe String,
+                 --   -- baseAccount=AccountName,
+                 --   accountRules=[
+                 --        ([("A",Nothing)], "a")
+                 --       ]
+                 --  })
+
+  ]

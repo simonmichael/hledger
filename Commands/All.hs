@@ -50,10 +50,10 @@ tests_Commands = TestList
     [
 --      Commands.Add.tests_Add
 --     ,Commands.Balance.tests_Balance
---     ,Commands.Convert.tests_Convert
+     Commands.Convert.tests_Convert
 --     ,Commands.Histogram.tests_Histogram
 --     ,Commands.Print.tests_Print
-     Commands.Register.tests_Register
+    ,Commands.Register.tests_Register
 --     ,Commands.Stats.tests_Stats
     ]
 -- #ifdef VTY
