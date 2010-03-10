@@ -292,7 +292,7 @@ a `is` e = assertEqual "" e a
 
 -- | Assert a parse result is some expected value, or print a parse error.
 assertParse :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
-assertParse parse expected = either printParseError (`is` expected) parse
+assertParse parse expected = either (assertFailure.show) (`is` expected) parse
 
 printParseError :: (Show a) => a -> IO ()
 printParseError e = do putStr "parse error at "; print e
