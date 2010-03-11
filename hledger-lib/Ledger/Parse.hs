@@ -24,6 +24,7 @@ import Ledger.Amount
 import Ledger.Transaction
 import Ledger.Posting
 import Ledger.Journal
+import Ledger.Commodity (dollars,dollar,unknown)
 import System.FilePath(takeDirectory,combine)
 
 
@@ -584,4 +585,60 @@ datedisplayexpr = do
     _    -> mzero
 
 compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
+
+
+tests_Parse = TestList [
+
+   "ledgerHistoricalPrice" ~:
+    assertParseEqual (parseWithCtx emptyCtx ledgerHistoricalPrice price1_str) price1
+
+  ,"ledgerTransaction" ~: do
+    assertParseEqual (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
+    assertBool "ledgerTransaction should not parse just a date"
+                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1\n"
+    assertBool "ledgerTransaction should require some postings"
+                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a\n"
+    let t = parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
+    assertBool "ledgerTransaction should not include a comment in the description"
+                   $ either (const False) ((== "a") . tdescription) t
+
+  ,"ledgeraccountname" ~: do
+    assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
+    assertBool "ledgeraccountname rejects an empty inner component" (isLeft $ parsewith ledgeraccountname "a::c")
+    assertBool "ledgeraccountname rejects an empty leading component" (isLeft $ parsewith ledgeraccountname ":b:c")
+    assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
+
+ ,"ledgerposting" ~:
+    assertParseEqual (parseWithCtx emptyCtx ledgerposting "  expenses:food:dining  $10.00\n") 
+                     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting Nothing)
+
+  ,"someamount" ~: do
+     let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
+         assertMixedAmountParse parseresult mixedamount =
+             (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
+     assertMixedAmountParse (parsewith someamount "1 @ $2")
+                            (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])])
+
+  ,"postingamount" ~: do
+    assertParseEqual (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
+    assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
+                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
+
+ ]
+
+price1_str = "P 2004/05/01 XYZ $55.00\n"
+price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55]
+
+entry1_str = unlines
+ ["2007/01/28 coopportunity"
+ ,"    expenses:food:groceries                   $47.18"
+ ,"    assets:checking                          $-47.18"
+ ,""
+ ]
+
+entry1 =
+    txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
+     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing, 
+      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting Nothing] ""
+
 

@@ -49,7 +49,7 @@ tests_Ledger = TestList
     -- ,Ledger.IO.tests_IO
     ,Ledger.Transaction.tests_Transaction
     -- ,Ledger.Ledger.tests_Ledger
-    -- ,Ledger.Parse.tests_Parse
+    ,Ledger.Parse.tests_Parse
     -- ,Ledger.Journal.tests_Journal
     -- ,Ledger.Posting.tests_Posting
     -- ,Ledger.TimeLog.tests_TimeLog

@@ -55,8 +55,8 @@ runtests opts args = do
       -- ts = tfilter matchname $ TestList tests -- show hierarchical test names
       matchname = matchpats args . tname
 
--- | hledger's unit tests, defined here and also (new) in the respective modules.
--- The latter is probably the way forward.
+-- | unit tests, augmenting the ones defined in each module. Where that is
+-- inconvenient due to import cycles or whatever, we define them here.
 tests :: Test
 tests = TestList [
    tests_Ledger,
@@ -413,28 +413,6 @@ tests = TestList [
     r <- journalFromString "" -- don't know how to get it from ledgerFile
     assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ jtxns r
 
-  ,"ledgerHistoricalPrice" ~:
-    assertParseEqual (parseWithCtx emptyCtx ledgerHistoricalPrice price1_str) price1
-
-  ,"ledgerTransaction" ~: do
-    assertParseEqual (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
-    assertBool "ledgerTransaction should not parse just a date"
-                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1\n"
-    assertBool "ledgerTransaction should require some postings"
-                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a\n"
-    let t = parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
-    assertBool "ledgerTransaction should not include a comment in the description"
-                   $ either (const False) ((== "a") . tdescription) t
-
-  ,"ledgeraccountname" ~: do
-    assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
-    assertBool "ledgeraccountname rejects an empty inner component" (isLeft $ parsewith ledgeraccountname "a::c")
-    assertBool "ledgeraccountname rejects an empty leading component" (isLeft $ parsewith ledgeraccountname ":b:c")
-    assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
-
-  ,"ledgerposting" ~:
-    assertParseEqual (parseWithCtx emptyCtx ledgerposting rawposting1_str) rawposting1
-
   ,"normaliseMixedAmount" ~: do
      normaliseMixedAmount (Mixed []) ~?= Mixed [nullamt]
 
@@ -630,13 +608,6 @@ tests = TestList [
 
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
-  ,"someamount" ~: do
-     let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
-         assertMixedAmountParse parseresult mixedamount =
-             (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-     assertMixedAmountParse (parsewith someamount "1 @ $2")
-                            (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])])
-
   ,"unicode in balance layout" ~: do
     l <- ledgerFromStringWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
@@ -726,11 +697,6 @@ tests = TestList [
   --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [dollars 15]}
   --    ]
 
-  ,"postingamount" ~: do
-    assertParseEqual (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
-    assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
-                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
-
   ]
 
   
@@ -794,23 +760,6 @@ defaultyear_ledger_str = unlines
  ]
 
 write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
-
-rawposting1_str  = "  expenses:food:dining  $10.00\n"
-
-rawposting1 = Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting Nothing
-
-entry1_str = unlines
- ["2007/01/28 coopportunity"
- ,"    expenses:food:groceries                   $47.18"
- ,"    assets:checking                          $-47.18"
- ,""
- ]
-
-entry1 =
-    txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing, 
-      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting Nothing] ""
-
 
 entry2_str = unlines
  ["2007/01/27 * joes diner"
@@ -1144,9 +1093,6 @@ timelogentry1 = TimeLogEntry In (parsedatetime "2007/03/11 16:19:00") "hledger"
 
 timelogentry2_str  = "o 2007/03/11 16:30:00\n"
 timelogentry2 = TimeLogEntry Out (parsedatetime "2007/03/11 16:30:00") ""
-
-price1_str = "P 2004/05/01 XYZ $55.00\n"
-price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55]
 
 a1 = Mixed [(hours 1){price=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
 a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
