@@ -3,151 +3,7 @@
 
 Parsers for standard ledger and timelog files.
 
--}
-
-module Ledger.Parse
-where
-import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
-import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Char
-import Text.ParserCombinators.Parsec.Combinator
-import System.Directory
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
-import System.IO.UTF8
-#endif
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Dates
-import Ledger.AccountName (accountNameFromComponents,accountNameComponents)
-import Ledger.Amount
-import Ledger.Transaction
-import Ledger.Posting
-import Ledger.Journal
-import Ledger.Commodity (dollars,dollar,unknown)
-import System.FilePath(takeDirectory,combine)
-
-
--- utils
-
--- | Some context kept during parsing.
-data LedgerFileCtx = Ctx {
-      ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
-    , ctxCommod   :: !(Maybe String)   -- ^ I don't know
-    , ctxAccount  :: ![String]         -- ^ the current stack of "container" accounts specified by !account
-    } deriving (Read, Show)
-
-emptyCtx :: LedgerFileCtx
-emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
-
--- containing accounts "nest" hierarchically
-
-pushParentAccount :: String -> GenParser tok LedgerFileCtx ()
-pushParentAccount parent = updateState addParentAccount
-    where addParentAccount ctx0 = ctx0 { ctxAccount = normalize parent : ctxAccount ctx0 }
-          normalize = (++ ":") 
-
-popParentAccount :: GenParser tok LedgerFileCtx ()
-popParentAccount = do ctx0 <- getState
-                      case ctxAccount ctx0 of
-                        [] -> unexpected "End of account block with no beginning"
-                        (_:rest) -> setState $ ctx0 { ctxAccount = rest }
-
-getParentAccount :: GenParser tok LedgerFileCtx String
-getParentAccount = liftM (concat . reverse . ctxAccount) getState
-
-setYear :: Integer -> GenParser tok LedgerFileCtx ()
-setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
-
-getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
-getYear = liftM ctxYear getState
-
--- let's get to it
-
-parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO Journal
-parseLedgerFile t "-" = liftIO getContents >>= parseLedger t "-"
-parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
-
--- | Parses the contents of a ledger file, or gives an error.  Requires
--- the current (local) time to calculate any unfinished timelog sessions,
--- we pass it in for repeatability.
-parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO Journal
-parseLedger reftime inname intxt =
-  case runParser ledgerFile emptyCtx inname intxt of
-    Right m  -> liftM (journalConvertTimeLog reftime) $ m `ap` return nulljournal
-    Left err -> throwError $ show err
-
-
-ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
-ledgerFile = do items <- many ledgerItem
-                eof
-                return $ liftM (foldr (.) id) $ sequence items
-    where 
-      -- As all ledger line types can be distinguished by the first
-      -- character, excepting transactions versus empty (blank or
-      -- comment-only) lines, can use choice w/o try
-      ledgerItem = choice [ ledgerDirective
-                          , liftM (return . addTransaction) ledgerTransaction
-                          , liftM (return . addModifierTransaction) ledgerModifierTransaction
-                          , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
-                          , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
-                          , ledgerDefaultYear
-                          , ledgerIgnoredPrice
-                          , ledgerTagDirective
-                          , ledgerEndTagDirective
-                          , emptyLine >> return (return id)
-                          , liftM (return . addTimeLogEntry)  timelogentry
-                          ]
-
-ledgerDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
-ledgerDirective = do char '!' <?> "directive"
-                     directive <- many nonspace
-                     case directive of
-                       "include" -> ledgerInclude
-                       "account" -> ledgerAccountBegin
-                       "end"     -> ledgerAccountEnd
-                       _         -> mzero
-
-ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
-ledgerInclude = do many1 spacenonewline
-                   filename <- restofline
-                   outerState <- getState
-                   outerPos <- getPosition
-                   let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-                   return $ do contents <- expandPath outerPos filename >>= readFileE outerPos
-                               case runParser ledgerFile outerState filename contents of
-                                 Right l   -> l `catchError` (throwError . (inIncluded ++))
-                                 Left perr -> throwError $ inIncluded ++ show perr
-    where readFileE outerPos filename = ErrorT $ liftM Right (readFile filename) `catch` leftError
-              where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
-                    currentPos = show outerPos
-                    whileReading = " reading " ++ show filename ++ ":\n"
-
-expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
-expandPath pos fp = liftM mkRelative (expandHome fp)
-  where
-    mkRelative = combine (takeDirectory (sourceName pos))
-    expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
-                                                      return $ homedir ++ drop 1 inname
-                      | otherwise                = return inname
-
-ledgerAccountBegin :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
-ledgerAccountBegin = do many1 spacenonewline
-                        parent <- ledgeraccountname
-                        newline
-                        pushParentAccount parent
-                        return $ return id
-
-ledgerAccountEnd :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
-ledgerAccountEnd = popParentAccount >> return (return id)
-
--- parsers
-
--- | Parse a Journal from either a ledger file or a timelog file.
--- It tries first the timelog parser then the ledger parser; this means
--- parse errors for ledgers are useful while those for timelogs are not.
-
-{-| Parse a ledger file. Here is the ledger grammar from the ledger 2.5 manual:
+Here is the ledger grammar from the ledger 2.5 manual:
 
 @
 The ledger file format is quite simple, but also very flexible. It supports
@@ -245,8 +101,146 @@ i, o, b, h
            timelog files.
 @
 
-See "Tests" for sample data.
+Here is the timelog grammar from timeclock.el 2.6:
+
+@
+A timelog contains data in the form of a single entry per line.
+Each entry has the form:
+
+  CODE YYYY/MM/DD HH:MM:SS [COMMENT]
+
+CODE is one of: b, h, i, o or O.  COMMENT is optional when the code is
+i, o or O.  The meanings of the codes are:
+
+  b  Set the current time balance, or \"time debt\".  Useful when
+     archiving old log data, when a debt must be carried forward.
+     The COMMENT here is the number of seconds of debt.
+
+  h  Set the required working time for the given day.  This must
+     be the first entry for that day.  The COMMENT in this case is
+     the number of hours in this workday.  Floating point amounts
+     are allowed.
+
+  i  Clock in.  The COMMENT in this case should be the name of the
+     project worked on.
+
+  o  Clock out.  COMMENT is unnecessary, but can be used to provide
+     a description of how the period went, for example.
+
+  O  Final clock out.  Whatever project was being worked on, it is
+     now finished.  Useful for creating summary reports.
+@
+
+Example:
+
+i 2007/03/10 12:26:00 hledger
+o 2007/03/10 17:26:02
+
 -}
+
+module Ledger.Parse
+where
+import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
+import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Char
+import Text.ParserCombinators.Parsec.Combinator
+import System.Directory
+#if __GLASGOW_HASKELL__ <= 610
+import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
+import System.IO.UTF8
+#endif
+import Ledger.Utils
+import Ledger.Types
+import Ledger.Dates
+import Ledger.AccountName (accountNameFromComponents,accountNameComponents)
+import Ledger.Amount
+import Ledger.Transaction
+import Ledger.Posting
+import Ledger.Journal
+import Ledger.Commodity (dollars,dollar,unknown)
+import System.FilePath(takeDirectory,combine)
+
+
+-- | Some context kept during parsing.
+data LedgerFileCtx = Ctx {
+      ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
+    , ctxCommod   :: !(Maybe String)   -- ^ I don't know
+    , ctxAccount  :: ![String]         -- ^ the current stack of parent accounts specified by !account
+    } deriving (Read, Show)
+
+emptyCtx :: LedgerFileCtx
+emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
+
+setYear :: Integer -> GenParser tok LedgerFileCtx ()
+setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
+
+getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
+getYear = liftM ctxYear getState
+
+pushParentAccount :: String -> GenParser tok LedgerFileCtx ()
+pushParentAccount parent = updateState addParentAccount
+    where addParentAccount ctx0 = ctx0 { ctxAccount = normalize parent : ctxAccount ctx0 }
+          normalize = (++ ":") 
+
+popParentAccount :: GenParser tok LedgerFileCtx ()
+popParentAccount = do ctx0 <- getState
+                      case ctxAccount ctx0 of
+                        [] -> unexpected "End of account block with no beginning"
+                        (_:rest) -> setState $ ctx0 { ctxAccount = rest }
+
+getParentAccount :: GenParser tok LedgerFileCtx String
+getParentAccount = liftM (concat . reverse . ctxAccount) getState
+
+expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
+expandPath pos fp = liftM mkRelative (expandHome fp)
+  where
+    mkRelative = combine (takeDirectory (sourceName pos))
+    expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
+                                                      return $ homedir ++ drop 1 inname
+                      | otherwise                = return inname
+
+-- let's get to it
+
+-- | Parses a ledger file or timelog file to a "Journal", or gives an
+-- error.  Requires the current (local) time to calculate any unfinished
+-- timelog sessions, we pass it in for repeatability.
+parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO Journal
+parseLedgerFile t "-" = liftIO getContents >>= parseLedger t "-"
+parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
+
+-- | Like parseLedgerFile, but parses a string. A file path is still
+-- provided to save in the resulting journal.
+parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO Journal
+parseLedger reftime inname intxt =
+  case runParser ledgerFile emptyCtx inname intxt of
+    Right m  -> liftM (journalConvertTimeLog reftime) $ m `ap` return nulljournal
+    Left err -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
+
+-- parsers
+
+-- | Top-level journal parser. Returns a mighty composite, I/O performing,
+-- error-raising journal transformation, which should be applied to a
+-- journal to get the final result.
+ledgerFile :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerFile = do items <- many ledgerItem
+                eof
+                return $ liftM (foldr (.) id) $ sequence items
+    where 
+      -- As all ledger line types can be distinguished by the first
+      -- character, excepting transactions versus empty (blank or
+      -- comment-only) lines, can use choice w/o try
+      ledgerItem = choice [ ledgerExclamationDirective
+                          , liftM (return . addTransaction) ledgerTransaction
+                          , liftM (return . addModifierTransaction) ledgerModifierTransaction
+                          , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
+                          , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
+                          , ledgerDefaultYear
+                          , ledgerIgnoredPriceCommodity
+                          , ledgerTagDirective
+                          , ledgerEndTagDirective
+                          , emptyLine >> return (return id)
+                          , liftM (return . addTimeLogEntry)  timelogentry
+                          ]
 
 emptyLine :: GenParser Char st ()
 emptyLine = do many spacenonewline
@@ -269,6 +263,41 @@ ledgercommentline = do
   eof
   return s
   <?> "comment"
+
+ledgerExclamationDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerExclamationDirective = do
+  char '!' <?> "directive"
+  directive <- many nonspace
+  case directive of
+    "include" -> ledgerInclude
+    "account" -> ledgerAccountBegin
+    "end"     -> ledgerAccountEnd
+    _         -> mzero
+
+ledgerInclude :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerInclude = do many1 spacenonewline
+                   filename <- restofline
+                   outerState <- getState
+                   outerPos <- getPosition
+                   let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
+                   return $ do contents <- expandPath outerPos filename >>= readFileE outerPos
+                               case runParser ledgerFile outerState filename contents of
+                                 Right l   -> l `catchError` (throwError . (inIncluded ++))
+                                 Left perr -> throwError $ inIncluded ++ show perr
+    where readFileE outerPos filename = ErrorT $ liftM Right (readFile filename) `catch` leftError
+              where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
+                    currentPos = show outerPos
+                    whileReading = " reading " ++ show filename ++ ":\n"
+
+ledgerAccountBegin :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerAccountBegin = do many1 spacenonewline
+                        parent <- ledgeraccountname
+                        newline
+                        pushParentAccount parent
+                        return $ return id
+
+ledgerAccountEnd :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerAccountEnd = popParentAccount >> return (return id)
 
 ledgerModifierTransaction :: GenParser Char LedgerFileCtx ModifierTransaction
 ledgerModifierTransaction = do
@@ -298,8 +327,8 @@ ledgerHistoricalPrice = do
   restofline
   return $ HistoricalPrice date symbol price
 
-ledgerIgnoredPrice :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
-ledgerIgnoredPrice = do
+ledgerIgnoredPriceCommodity :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerIgnoredPriceCommodity = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
   commoditysymbol
@@ -331,8 +360,8 @@ ledgerDefaultYear = do
   setYear y'
   return $ return id
 
--- | Try to parse a ledger entry. If we successfully parse an entry, ensure it is balanced,
--- and if we cannot, raise an error.
+-- | Try to parse a ledger entry. If we successfully parse an entry,
+-- check it can be balanced, and fail if not.
 ledgerTransaction :: GenParser Char LedgerFileCtx Transaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
@@ -356,8 +385,8 @@ ledgerfulldate = do
   (y,m,d) <- ymd
   return $ fromGregorian (read y) (read m) (read d)
 
--- | Match a partial M/D date in a ledger. Warning, this terminates the
--- program if it finds a match when there is no default year specified.
+-- | Match a partial M/D date in a ledger, and also require that a default
+-- year directive was previously encountered.
 ledgerpartialdate :: GenParser Char LedgerFileCtx Day
 ledgerpartialdate = do
   (_,m,d) <- md
@@ -381,7 +410,7 @@ ledgerdatetime = do
 ledgereffectivedate :: Day -> GenParser Char LedgerFileCtx (Maybe Day)
 ledgereffectivedate actualdate = do
   char '='
-  -- kludgily use actual date for default year
+  -- kludgy way to use actual date for default year
   let withDefaultYear d p = do
         y <- getYear
         let (y',_,_) = toGregorian d in setYear y'
@@ -397,9 +426,9 @@ ledgerstatus = try (do { many1 spacenonewline; char '*' <?> "status"; return Tru
 ledgercode :: GenParser Char st String
 ledgercode = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
--- Complicated to handle intermixed comment lines.. please make me better.
 ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
 ledgerpostings = do
+  -- complicated to handle intermixed comment lines.. please make me better.
   ctx <- getState
   let parses p = isRight . parseWithCtx ctx p
   ls <- many1 $ try linebeginningwithspaces
@@ -427,15 +456,15 @@ ledgerposting = do
   newline
   return (Posting status account' amount comment ptype Nothing)
 
--- Qualify with the parent account from parsing context
+-- qualify with the parent account from parsing context
 transactionaccountname :: GenParser Char LedgerFileCtx AccountName
 transactionaccountname = liftM2 (++) getParentAccount ledgeraccountname
 
--- | Account names may have single spaces inside them, and are terminated
--- by two or more spaces. They should have one or more components of at
--- least one character, separated by the account separator char.
-
-ledgeraccountname :: GenParser Char st String
+-- | Parse an account name. Account names may have single spaces inside
+-- them, and are terminated by two or more spaces. They should have one or
+-- more components of at least one character, separated by the account
+-- separator char.
+ledgeraccountname :: GenParser Char st AccountName
 ledgeraccountname = do
     a <- many1 (nonspace <|> singlespace)
     let a' = striptrailingspace a
@@ -450,6 +479,8 @@ ledgeraccountname = do
 -- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
 --     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
+-- | Parse an amount, with an optional left or right currency symbol and
+-- optional price.
 postingamount :: GenParser Char st MixedAmount
 postingamount =
   try (do
@@ -512,7 +543,7 @@ priceamount =
 
 -- gawd.. trying to parse a ledger number without error:
 
--- | parse a ledger-style numeric quantity and also return the number of
+-- | Parse a ledger-style numeric quantity and also return the number of
 -- digits to the right of the decimal point and whether thousands are
 -- separated by comma.
 amountquantity :: GenParser Char st (Double, Int, Bool)
@@ -551,42 +582,7 @@ numberpartsstartingwithpoint = do
   return ("",frac)
                      
 
-{-| Parse a timelog entry. Here is the timelog grammar from timeclock.el 2.6:
-
-@
-A timelog contains data in the form of a single entry per line.
-Each entry has the form:
-
-  CODE YYYY/MM/DD HH:MM:SS [COMMENT]
-
-CODE is one of: b, h, i, o or O.  COMMENT is optional when the code is
-i, o or O.  The meanings of the codes are:
-
-  b  Set the current time balance, or \"time debt\".  Useful when
-     archiving old log data, when a debt must be carried forward.
-     The COMMENT here is the number of seconds of debt.
-
-  h  Set the required working time for the given day.  This must
-     be the first entry for that day.  The COMMENT in this case is
-     the number of hours in this workday.  Floating point amounts
-     are allowed.
-
-  i  Clock in.  The COMMENT in this case should be the name of the
-     project worked on.
-
-  o  Clock out.  COMMENT is unnecessary, but can be used to provide
-     a description of how the period went, for example.
-
-  O  Final clock out.  Whatever project was being worked on, it is
-     now finished.  Useful for creating summary reports.
-@
-
-Example:
-
-i 2007/03/10 12:26:00 hledger
-o 2007/03/10 17:26:02
-
--}
+-- | Parse a timelog entry.
 timelogentry :: GenParser Char LedgerFileCtx TimeLogEntry
 timelogentry = do
   code <- oneOf "bhioO"
@@ -596,10 +592,8 @@ timelogentry = do
   return $ TimeLogEntry (read [code]) datetime (fromMaybe "" comment)
 
 
--- misc parsing
-
--- | Parse a --display expression which is a simple date predicate, like
--- "d>[DATE]" or "d<=[DATE]", and return a posting-matching predicate.
+-- | Parse a hledger display expression, which is a simple date test like
+-- "d>[DATE]" or "d<=[DATE]", and return a "Posting"-matching predicate.
 datedisplayexpr :: GenParser Char st (Posting -> Bool)
 datedisplayexpr = do
   char 'd'
@@ -660,8 +654,8 @@ tests_Parse = TestList [
     assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
                 (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
 
-  ,"ledgerIgnoredPrice" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerIgnoredPrice "N $\n")
+  ,"ledgerIgnoredPriceCommodity" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerIgnoredPriceCommodity "N $\n")
 
   ,"ledgerTagDirective" ~: do
      assertParse (parseWithCtx emptyCtx ledgerTagDirective "tag foo\n")
