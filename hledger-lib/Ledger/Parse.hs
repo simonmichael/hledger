@@ -92,6 +92,9 @@ ledgerFile = do items <- many ledgerItem
                           , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
                           , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
                           , ledgerDefaultYear
+                          , ledgerIgnoredPrice
+                          , ledgerTagDirective
+                          , ledgerEndTagDirective
                           , emptyLine >> return (return id)
                           , liftM (return . addTimeLogEntry)  timelogentry
                           ]
@@ -294,6 +297,28 @@ ledgerHistoricalPrice = do
   price <- someamount
   restofline
   return $ HistoricalPrice date symbol price
+
+ledgerIgnoredPrice :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerIgnoredPrice = do
+  char 'N' <?> "ignored-price commodity"
+  many1 spacenonewline
+  commoditysymbol
+  restofline
+  return $ return id
+
+ledgerTagDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerTagDirective = do
+  string "tag" <?> "tag directive"
+  many1 spacenonewline
+  _ <- many1 nonspace
+  restofline
+  return $ return id
+
+ledgerEndTagDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerEndTagDirective = do
+  string "end tag" <?> "end tag directive"
+  restofline
+  return $ return id
 
 -- like ledgerAccountBegin, updates the LedgerFileCtx
 ledgerDefaultYear :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
@@ -634,6 +659,17 @@ tests_Parse = TestList [
     assertParseEqual (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
     assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
                 (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
+
+  ,"ledgerIgnoredPrice" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerIgnoredPrice "N $\n")
+
+  ,"ledgerTagDirective" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerTagDirective "tag foo\n")
+     assertParse (parseWithCtx emptyCtx ledgerTagDirective "tag foo \n")
+
+  ,"ledgerEndTagDirective" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerEndTagDirective "end tag\n")
+     assertParse (parseWithCtx emptyCtx ledgerEndTagDirective "end tag \n")
 
  ]
 
