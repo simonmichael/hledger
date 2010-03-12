@@ -3,12 +3,4 @@
 2009-01-01 broken entry
   дебит    1
   кредит  -2
->>>2
-"-" (line 4, column 1):
-unexpected end of input
-could not balance this transaction (real postings are off by -1)
-2009/01/01 broken entry
-    дебит              1
-    кредит            -2
-
-
+>>>2 /дебит/
