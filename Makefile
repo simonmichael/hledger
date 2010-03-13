@@ -28,8 +28,9 @@ VIEWPS=open
 VIEWPDF=open
 PRINT=lpr
 
+MAIN=hledger.hs
 SOURCEFILES:= \
-	hledger.hs \
+	$(MAIN) \
 	[A-Z]*hs \
 	Commands/[A-Z]*hs \
 	Ledger/[A-Z]*hs
@@ -300,22 +301,20 @@ site: push
 # We munge haddock and hoogle into a rough but useful framed layout.
 # For this to work the hoogle cgi must be built with base target "main".
 # XXX move the framed index building into haddock: ?
-apidocs: haddock #hoogle
+apidocs: haddock hscolour #hoogle
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
 	cp website/api-doc-frames.html website/api-doc/index.html ; \
 # 	cp website/hoogle-small.html website/api-doc
 
 # generate and view the api docs
-viewapidocs: api-docs
+viewapidocs: apidocs
 	$(VIEWHTMLCMD) website/api-doc/index.html
-
-MAIN=hledger.hs
 
 # generate code documentation with haddock
 # --ignore-all-exports means we are documenting internal implementation, not library api
-HADDOCK=haddock -B `ghc --print-libdir` --no-warnings --ignore-all-exports $(subst -D,--optghc=-D,$(DEFINEFLAGS))
-haddock: hscolour $(MAIN)
-	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(filter-out %api-doc-dir hscolour,$^) && \
+HADDOCK=haddock -B `ghc --print-libdir` $(subst -D,--optghc=-D,$(DEFINEFLAGS)) --ignore-all-exports --no-warnings
+haddock:
+	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(MAIN) && \
 		cp website/api-doc/index.html website/api-doc/modules-index.html
 
 HSCOLOUR=HsColour -css 
@@ -344,8 +343,8 @@ hoogle: hoogleindex
 	fi
 
 #generate a hoogle index
-hoogleindex: $(MAIN)
-	$(HADDOCK) -o website/api-doc --hoogle $^ && \
+hoogleindex:
+	$(HADDOCK) -o website/api-doc --hoogle $(MAIN) && \
 	cd website/api-doc && \
 	hoogle --convert=main.txt --output=default.hoo
 
