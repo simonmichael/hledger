@@ -55,6 +55,7 @@ tests_Commands = TestList
 --     ,Commands.Print.tests_Print
      Commands.Register.tests_Register
 --     ,Commands.Stats.tests_Stats
+    ]
 -- #ifdef VTY
 --     ,Commands.UI.tests_UI
 -- #endif
@@ -64,4 +65,3 @@ tests_Commands = TestList
 -- #ifdef CHART
 --     ,Commands.Chart.tests_Chart
 -- #endif
-    ]

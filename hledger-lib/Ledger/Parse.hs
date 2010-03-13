@@ -133,8 +133,10 @@ i, o or O.  The meanings of the codes are:
 
 Example:
 
+@
 i 2007/03/10 12:26:00 hledger
 o 2007/03/10 17:26:02
+@
 
 -}
 
