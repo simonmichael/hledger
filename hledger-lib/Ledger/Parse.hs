@@ -335,6 +335,26 @@ ledgerIgnoredPriceCommodity = do
   restofline
   return $ return id
 
+ledgerDefaultCommodity :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerDefaultCommodity = do
+  char 'D' <?> "default commodity"
+  many1 spacenonewline
+  someamount
+  restofline
+  return $ return id
+
+ledgerCommodityConversion :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
+ledgerCommodityConversion = do
+  char 'C' <?> "commodity conversion"
+  many1 spacenonewline
+  someamount
+  many spacenonewline
+  char '='
+  many spacenonewline
+  someamount
+  restofline
+  return $ return id
+
 ledgerTagDirective :: GenParser Char LedgerFileCtx (ErrorT String IO (Journal -> Journal))
 ledgerTagDirective = do
   string "tag" <?> "tag directive"
@@ -617,10 +637,7 @@ compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
 
 tests_Parse = TestList [
 
-   "ledgerHistoricalPrice" ~:
-    assertParseEqual (parseWithCtx emptyCtx ledgerHistoricalPrice price1_str) price1
-
-  ,"ledgerTransaction" ~: do
+   "ledgerTransaction" ~: do
     assertParseEqual (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
     assertBool "ledgerTransaction should not parse just a date"
                    $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1\n"
@@ -629,6 +646,44 @@ tests_Parse = TestList [
     let t = parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
     assertBool "ledgerTransaction should not include a comment in the description"
                    $ either (const False) ((== "a") . tdescription) t
+
+  ,"ledgerModifierTransaction" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerModifierTransaction "= (some value expr)\n some:postings  1\n")
+
+  ,"ledgerPeriodicTransaction" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerPeriodicTransaction "~ (some period expr)\n some:postings  1\n")
+
+  ,"ledgerExclamationDirective" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerExclamationDirective "!include /some/file.x\n")
+     assertParse (parseWithCtx emptyCtx ledgerExclamationDirective "!account some:account\n")
+     assertParse (parseWithCtx emptyCtx (ledgerExclamationDirective >> ledgerExclamationDirective) "!account a\n!end\n")
+
+  ,"ledgercommentline" ~: do
+     assertParse (parseWithCtx emptyCtx ledgercommentline "; some comment \n")
+     assertParse (parseWithCtx emptyCtx ledgercommentline " \t; x\n")
+     assertParse (parseWithCtx emptyCtx ledgercommentline ";x")
+
+  ,"ledgerDefaultYear" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerDefaultYear "Y 2010\n")
+     assertParse (parseWithCtx emptyCtx ledgerDefaultYear "Y 10001\n")
+
+  ,"ledgerHistoricalPrice" ~:
+    assertParseEqual (parseWithCtx emptyCtx ledgerHistoricalPrice "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55])
+
+  ,"ledgerIgnoredPriceCommodity" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerIgnoredPriceCommodity "N $\n")
+
+  ,"ledgerDefaultCommodity" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerDefaultCommodity "D $1,000.0\n")
+
+  ,"ledgerCommodityConversion" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerCommodityConversion "C 1h = $50.00\n")
+
+  ,"ledgerTagDirective" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerTagDirective "tag foo \n")
+
+  ,"ledgerEndTagDirective" ~: do
+     assertParse (parseWithCtx emptyCtx ledgerEndTagDirective "end tag \n")
 
   ,"ledgeraccountname" ~: do
     assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
@@ -654,21 +709,7 @@ tests_Parse = TestList [
     assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
                 (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
 
-  ,"ledgerIgnoredPriceCommodity" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerIgnoredPriceCommodity "N $\n")
-
-  ,"ledgerTagDirective" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerTagDirective "tag foo\n")
-     assertParse (parseWithCtx emptyCtx ledgerTagDirective "tag foo \n")
-
-  ,"ledgerEndTagDirective" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerEndTagDirective "end tag\n")
-     assertParse (parseWithCtx emptyCtx ledgerEndTagDirective "end tag \n")
-
  ]
-
-price1_str = "P 2004/05/01 XYZ $55.00\n"
-price1 = HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55]
 
 entry1_str = unlines
  ["2007/01/28 coopportunity"
