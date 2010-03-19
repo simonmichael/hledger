@@ -134,7 +134,7 @@ askFor prompt def validator = do
 -- is enough to include new transactions in the history matching.
 ledgerAddTransaction :: Ledger -> Transaction -> IO Ledger
 ledgerAddTransaction l t = do
-  appendToLedgerFile l $ show t
+  appendToLedgerFile l $ showTransaction t
   putStrLn $ printf "\nAdded transaction to %s:" (filepath $ journal l)
   putStrLn =<< registerFromString (show t)
   return l{journal=rl{jtxns=ts}}
