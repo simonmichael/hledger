@@ -9,7 +9,7 @@ hledger project notes
 ** measure
 ** test continuously, test everything
 ** less is more
-** pair programming
+** pair programming/code review
 ** inspiration
 "...simplicity of design was the most essential, guiding principle.
 Clarity of concepts, economy of features, efficiency and reliability of
@@ -91,6 +91,31 @@ clever tricks like the plague." --Edsger Dijkstra
 ***** a tour of hledger's code
 **** ledger cooperation
 *** developer docs
+**** roadmap
+***** 1.0
+culmination of 0.x releases - stable/usable/documented
+followup releases are 1.01, 1.02..
+GHC 6.10/HP 2009 primary platform
+GHC 6.12/HP 2010 also supported if possible
+GHC 6.8 might work for core features, but not officially supported
+separate ledger package ? license ?
+separate vty, web packages ?
+support plugins ?
+web: loli+hsp+hack+simpleserver/happstack, or yesod+hstringtemplate+wai+simpleserver(/happstack) ?
+add: completion ?
+chart: register charts ?
+histogram: cleaned up/removed
+complete user manual
+binaries for all platforms ?
+
+***** 2.0
+development releases are.. 1.60, 1.61.. or 1.98.01, 1.98.02..
+separate ledger lib
+plugins
+Decimal
+binaries for all platforms
+
+
 **** internal api docs
 **** external api docs
 **** DEVGUIDE
@@ -362,17 +387,18 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-*** parsing: rules file with trailing whitespace
-*** parsing: rules file with comment paragraphs but no rules
-unexpected end of input
-expecting blank line or comment line
-*** parsing: comment lines immediately after postings
-*** parsing: accept all real-world ledger files
+*** better leap year checking
+ledger:
+While parsing file "/Users/simon/personal/2010.ledger", line 442: 
+While parsing transaction:
+> 2/27=2/29 (20100201ucla) ucla payment
+Error: Day of month is not valid for year
+
 ** refactoring, code cleanup
-*** pair programming
-*** seek more modularity
-*** try export lists
-*** graph and reduce dependencies
+*** more modularity
+**** plugin strategy
+**** export lists
+**** graph and reduce dependencies
 *** clarify levels of abstraction
 **** balance sheet view - data model, view layout
 **** hledger web framework - define routes, handlers/views/actions/controllers/presenters, skins/styles..
@@ -388,19 +414,26 @@ expecting blank line or comment line
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** Double -> Decimal
 *** parsing: safety check that effective date > actual (to catch eg 2009/12/30=1/4)
-*** parsing: in effective date use actual date for defaults
-*** web: filter patterns
-period doesn't work anywhere
-account doesn't work on balance
-can't filter by description
+*** parsing: accept all real-world ledger files
+As far as I know it currently accepts all ledger 2.6-era files.
+Add support for ledger 3 file format as/when that stabilises.
+It would be nice to optionally report/upload parse errors when they happen.
+*** talkback feature
+gather data on real-world installation & usage issues
+simplify bug reporting/handling
+improve reliability
+*** upload feature
+*** payee & account anonymisation
 *** easier timelog formats
 *** implicit timelog account
-*** easy data entry
-*** assume current year as default
+*** add: completion etc.
+*** convert: generalise/reuse add's history awareness
+*** web: charts (Chart or google)
 *** wide/customisable/consistent layout
 *** --flat balance report format
-*** effective/actual? dates for postings
+*** effective/actual dates for postings
 *** better web ui/gui
 *** nice reports with charts
 *** ledger-compatible xml output ?
@@ -418,8 +451,41 @@ import Codec.Binary.UTF8.String (encodeString, decodeString)
 import Data.ByteString.UTF8 (fromString, toString)
 import Data.ByteString.Char8 (pack, unpack)
 import Data.Text.Encoding (decodeUtf8)
-*** speed
-*** clear interfaces/surfaces/plugin architecture
+*** speed, memory usage
+*** clear, documented interfaces/surfaces
+*** plugin architecture/modular packaging
+**** goals
+***** allow separately-packaged functionality to be discovered at run-time and integrated within the hledger ui.
+Example: user installs hledger-ofx package from hackage, or adds Ofx.hs to their ~/.hledger/plugins/;
+then "ofx" is among the commands listed by hledger --help, and/or is a new command available in
+the web and vty interfaces, and/or is a new file format understood by the convert command.
+**** issues to consider
+***** what is the api for plugins ?
+they'll want to import Ledger lib, to work with ledger data structures
+
+***** there are different kinds of "plugin". What could plugins provide ?
+****** commands - for all uis, or for one or more of them (cli, web, vty..). A command may itself be a new ui.
+****** import/export formats
+****** skins/styles/templates for uis, eg the web ui ?
+**** techniques to consider
+***** running executables provided by plugins
+a cli command plugin: cli execs the executable with same arguments
+a web command plugin: web ui runs the executable as a subprocess and captures the output
+***** linking plugins into main app with direct-plugins
+simplification of plugins lib
+main app needs to know the types used in plugin's interface
+weakens type safety, avoiding runtime errors requires extra care
+requires whole-program linking at plugin load time
+plugins can be discovered by querying ghc for installed packages or modules in a known part of the hierarchy
+maintained and keen to help
+***** linking plugins into main app with plugins (original)
+more complex than above
+more type-safe/featureful ?
+***** interpreting plugins under control of main app with hint
+ghci in an IO-like monad
+types need converting, etc.
+plugins may run more slowly
+plugins can be discovered/loaded by module path or by loading files directly
 
 * misc
 ** things I want to know
