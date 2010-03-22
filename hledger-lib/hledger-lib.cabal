@@ -1,0 +1,78 @@
+name:           hledger-lib
+version:        0.8
+category:       Finance
+synopsis:       Core types and utilities for working with hledger data.
+description:
+                hledger reads a plain text ledger file or timelog
+                describing your transactions and displays precise
+                balance and register reports via command-line, curses
+                or web interface.  It is a remix, in haskell, of John
+                Wiegley's excellent c++ ledger.  hledger aims to be a
+                practical, accessible tool for end users and a useful
+                library for finance-minded haskell programmers.
+
+license:        GPL
+license-file:   LICENSE
+author:         Simon Michael <simon@joyful.com>
+maintainer:     Simon Michael <simon@joyful.com>
+homepage:       http://hledger.org
+bug-reports:    http://code.google.com/p/hledger/issues
+stability:      experimental
+tested-with:    GHC==6.10
+cabal-version:  >= 1.2
+build-type:     Simple
+-- data-dir:       
+-- data-files:
+-- extra-tmp-files:
+-- extra-source-files:
+--   README
+--   sample.ledger
+--   sample.timelog
+
+library
+  exposed-modules:
+                  Ledger
+                  Ledger.Account
+                  Ledger.AccountName
+                  Ledger.Amount
+                  Ledger.Commodity
+                  Ledger.Dates
+                  Ledger.IO
+                  Ledger.Transaction
+                  Ledger.Journal
+                  Ledger.Ledger
+                  Ledger.Posting
+                  Ledger.Parse
+                  Ledger.TimeLog
+                  Ledger.Types
+                  Ledger.Utils
+  Build-Depends:
+                  base >= 3 && < 5
+                 ,containers
+                 ,directory
+                 ,filepath
+                 ,mtl
+                 ,old-locale
+                 ,old-time
+                 ,parsec
+                 ,regexpr >= 0.5.1
+                 ,time
+                 ,utf8-string >= 0.3
+                 ,HUnit
+
+  -- should set patchlevel here as in Makefile
+  cpp-options:    -DPATCHLEVEL=0
+
+-- source-repository head
+--   type:     darcs
+--   location: http://joyful.com/repos/hledger
+-- disabled for now due to:
+-- The 'source-repository' section is new in Cabal-1.6. Unfortunately it messes
+-- up the parser in earlier Cabal versions so you need to specify 'cabal-version:
+-- >= 1.6'.
+
+-- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
+
+-- Additional dependencies:
+-- required for make test: test-framework, test-framework-hunit
+-- required for make bench: tabular-0.1
