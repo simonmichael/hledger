@@ -436,10 +436,12 @@ Notes:
   account name to use when the transaction's description matches any of
   these patterns.
 
-- A match pattern may optionally be followed by = and a replacement
-  pattern, which will become the ledger transaction's description.
-  Otherwise the matched part of the csv description is used. (To preserve
-  the full csv description, use .* before and after the match pattern.)
+- A match pattern may be followed by a replacement pattern, separated by
+  ``=``, which rewrites the matched part of the description.  Use this if
+  you want to clean up messy bank data.  To rewrite the entire description,
+  use a match pattern like ``.*PAT.*=REPL``. Within a replacement pattern,
+  you can refer to the matched text with ``\0`` and any regex groups
+  with ``\1``, ``\2`` in the usual way.
 
 test
 ''''

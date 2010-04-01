@@ -13,7 +13,7 @@ import Ledger.Amount (nullmixedamt)
 import System.IO (stderr)
 import Text.CSV (parseCSVFromFile, printCSV)
 import Text.Printf (hPrintf)
-import Text.RegexPR (matchRegexPR)
+import Text.RegexPR (matchRegexPR, gsubRegexPR)
 import Data.Maybe
 import Ledger.Dates (firstJust, showDate, parsedate)
 import System.Locale (defaultTimeLocale)
@@ -307,12 +307,11 @@ identify rules defacct desc | null matchingrules = (defacct,desc)
                             | otherwise = (acct,newdesc)
     where
       matchingrules = filter ismatch rules :: [AccountRule]
-          where ismatch = any (isJust . flip matchregex desc . fst) . fst
+          where ismatch = any (isJust . flip matchRegexPR (caseinsensitive desc) . fst) . fst
       (prs,acct) = head matchingrules
-      mrs = filter (isJust . fst) $ map (\(p,r) -> (matchregex p desc, r)) prs
-      (m,repl) = head mrs
-      matched = fst $ fst $ fromJust m
-      newdesc = fromMaybe matched repl
+      p_ms_r = filter (\(_,m,_) -> isJust m) $ map (\(p,r) -> (p, matchRegexPR (caseinsensitive p) desc, r)) prs
+      (p,_,r) = head p_ms_r
+      newdesc = case r of Just rpat -> gsubRegexPR (caseinsensitive p) rpat desc
+                          Nothing   -> desc
 
-matchregex = matchRegexPR . ("(?i)" ++)
-
+caseinsensitive = ("(?i)"++)
