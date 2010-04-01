@@ -506,7 +506,7 @@ don't run two dates together::
  -p2009/1/1to2009/4/1
  -p"2009/1/1 2009/4/1"
 
-Dates are `smart dates <#dates>`_, so if the current year is 2009, the above can also
+Dates are `smart dates <#smart-dates>`_, so if the current year is 2009, the above can also
 be written as::
 
  -p "1/1 to 4/1"
