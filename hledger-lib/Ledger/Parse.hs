@@ -464,7 +464,16 @@ nosymbolamount = do
   <?> "no-symbol amount"
 
 commoditysymbol :: GenParser Char st String
-commoditysymbol = many1 (noneOf "@-.0123456789;\n ") <?> "commodity symbol"
+commoditysymbol = (quotedcommoditysymbol <|>
+                   many1 (noneOf "0123456789-.@;\n \"")
+                  ) <?> "commodity symbol"
+
+quotedcommoditysymbol :: GenParser Char st String
+quotedcommoditysymbol = do
+  char '"'
+  s <- many1 $ noneOf "-.@;\n \""
+  char '"'
+  return s
 
 priceamount :: GenParser Char st (Maybe MixedAmount)
 priceamount =
@@ -608,9 +617,11 @@ tests_Parse = TestList [
     assertBool "ledgeraccountname rejects an empty leading component" (isLeft $ parsewith ledgeraccountname ":b:c")
     assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
 
- ,"ledgerposting" ~:
+ ,"ledgerposting" ~: do
     assertParseEqual (parseWithCtx emptyCtx ledgerposting "  expenses:food:dining  $10.00\n") 
                      (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting Nothing)
+    assertBool "ledgerposting parses a quoted commodity with numbers"
+                   (isRight $ parseWithCtx emptyCtx ledgerposting "  a  1 \"DE123\"\n")
 
   ,"someamount" ~: do
      let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
