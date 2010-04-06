@@ -113,4 +113,19 @@
 (^|/)\.DS_Store$
 
 
+# cabal stuff
 (^|/)dist$
+
+# profiles etc.
+(^|/)profs($|/)
+
+# compiled tools
+tools/doctest$
+tools/generateledger
+tools/simplifyprof
+
+# site stuff
+website/.*
+
+# branch repos
+(^|/)b[[:digit:]]*-
