@@ -301,7 +301,7 @@ site: push
 # We munge haddock and hoogle into a rough but useful framed layout.
 # For this to work the hoogle cgi must be built with base target "main".
 # XXX move the framed index building into haddock: ?
-apidocs: haddock hscolour #hoogle
+apidocs: haddock hscolour #sourcegraph #hoogle
 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
 	cp website/api-doc-frames.html website/api-doc/index.html ; \
 # 	cp website/hoogle-small.html website/api-doc
@@ -316,6 +316,7 @@ HADDOCK=haddock -B `ghc --print-libdir` $(subst -D,--optghc=-D,$(DEFINEFLAGS)) -
 haddock:
 	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(MAIN) && \
 		cp website/api-doc/index.html website/api-doc/modules-index.html
+	cd hledger-lib; cabal haddock
 
 HSCOLOUR=HsColour -css 
 hscolour:
@@ -324,6 +325,10 @@ hscolour:
 	done ; \
 	cp website/api-doc/src-hledger.html website/api-doc/src-Main.html ; \
 	HsColour -print-css >website/api-doc/hscolour.css
+
+sourcegraph:
+	-SourceGraph hledger.cabal
+	-cd hledger-lib; SourceGraph hledger-lib.cabal
 
 #set up the hoogle web interface
 #uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
