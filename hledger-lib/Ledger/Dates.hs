@@ -262,11 +262,10 @@ ymd = do
   y <- many1 digit
   datesepchar
   m <- try (count 2 digit) <|> count 1 digit
-  guard (read m >= 1 && (read m <= 12))
-  -- when (read m < 1 || (read m > 12)) $ fail "bad month number specified"
+  when (read m < 1 || (read m > 12)) $ error $ "bad month number: " ++ m
   datesepchar
   d <- try (count 2 digit) <|> count 1 digit
-  when (read d < 1 || (read d > 31)) $ fail "bad day number specified"
+  when (read d < 1 || (read d > 31)) $ error $ "bad day number: " ++ d
   return $ (y,m,d)
 
 ym :: GenParser Char st SmartDate

@@ -1,0 +1,15 @@
+# dates with bad month or day numbers should be rejected
+-f- print
+<<<
+2010/31/12 x
+   a  1
+   b
+>>>2 /bad month number: 31/
+>>>= 1
+-f- print
+<<<
+2010/12/32 x
+   a  1
+   b
+>>>2 /bad day number: 32/
+>>>= 1
