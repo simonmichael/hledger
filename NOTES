@@ -387,12 +387,33 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
+*** bad day/month number should give a meaningful parse error but also not terminate hledger add
 *** better leap year checking
 ledger:
 While parsing file "/Users/simon/personal/2010.ledger", line 442: 
 While parsing transaction:
 > 2/27=2/29 (20100201ucla) ucla payment
 Error: Day of month is not valid for year
+
+*** register, balance eat memory
+$ hours stats
+Ledger statistics as of 2010-04-01
+----------------------------------
+File                     : current.timelog  
+Period                   : 2007-02-05 to 2010-01-31 (1091 days)   
+Last transaction         : 2010-01-30 (61 days ago)               
+Transactions             : 4333 (4.0 per day)                     
+Transactions last 30 days: 0 (0.0 per day)                        
+Transactions last 7 days : 0 (0.0 per day)                        
+Accounts                 : 947                                    
+Account tree depth       : 8                                      
+Commodities              : 2 (h, p)                               
+$ hours reg ...Nx100Mb...
+
+*** balance: stack space overflow
+$ hours -p 2007 bal
+Stack space overflow: current size 8388608 bytes.
+Use `+RTS -Ksize' to increase it.
 
 ** refactoring, code cleanup
 *** more modularity
@@ -481,11 +502,13 @@ maintained and keen to help
 ***** linking plugins into main app with plugins (original)
 more complex than above
 more type-safe/featureful ?
+***** doing whatever xmonad does with dyre
 ***** interpreting plugins under control of main app with hint
 ghci in an IO-like monad
 types need converting, etc.
 plugins may run more slowly
 plugins can be discovered/loaded by module path or by loading files directly
+
 
 * misc
 ** things I want to know
