@@ -1,15 +1,10 @@
 name:           hledger-lib
 version:        0.9
 category:       Finance
-synopsis:       Core types and utilities for working with hledger data.
+synopsis:       Core types and utilities for working with hledger (or c++ ledger) data.
 description:
-                hledger reads a plain text ledger file or timelog
-                describing your transactions and displays precise
-                balance and register reports via command-line, curses
-                or web interface.  It is a remix, in haskell, of John
-                Wiegley's excellent c++ ledger.  hledger aims to be a
-                practical, accessible tool for end users and a useful
-                library for finance-minded haskell programmers.
+                This is the reusable core of the hledger financial app; use it to
+                build hledger and c++-ledger compatible finance tools.
 
 license:        GPL
 license-file:   LICENSE
