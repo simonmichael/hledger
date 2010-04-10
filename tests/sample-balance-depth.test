@@ -1,4 +1,4 @@
--f sample.ledger balance --depth 1
+./hledger -f sample.ledger balance --depth 1
 >>>
                  $-1  assets
                   $2  expenses

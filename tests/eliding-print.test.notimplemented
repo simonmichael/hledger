@@ -1,4 +1,4 @@
-print
+./hledger -f- print
 <<<
 2009/1/1 x
  aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa  €1

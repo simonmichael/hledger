@@ -1,4 +1,4 @@
--f sample.ledger balance o
+./hledger -f sample.ledger balance o
 >>>
                   $1  expenses:food
                  $-2  income

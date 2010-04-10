@@ -1,5 +1,5 @@
 # a posting comment should appear in print
--f - print
+./hledger -f - print
 <<<
 2010/01/01 x
     a             1  ; comment

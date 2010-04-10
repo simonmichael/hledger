@@ -1,4 +1,4 @@
--f - print --effective
+./hledger -f - print --effective
 <<<
 2009/1/1=2010/1/1 x
   a  1

@@ -1,4 +1,4 @@
--f - register
+./hledger -f - register
 <<<
 2009/1/1 a
   b  1.1

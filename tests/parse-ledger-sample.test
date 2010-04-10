@@ -1,4 +1,4 @@
--f-
+./hledger -f-
 <<<
 ; -*- ledger -*-
 

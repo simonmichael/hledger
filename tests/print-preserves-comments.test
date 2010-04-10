@@ -1,6 +1,6 @@
 # let's have print preserve comments as far as possible
 # we preserve line-end comments but not full line comments
--f - print
+./hledger -f - print
 <<<
 2009/1/1 x  ; description comment
     a  1  ; amount comment

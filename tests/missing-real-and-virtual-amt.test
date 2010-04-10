@@ -1,5 +1,5 @@
 # could balance this, but complain instead like ledger
--f - register
+./hledger -f - register
 <<<
 2009/6/24 carwash
     equity:draw:personal:transportation:car:carwash     $3.50

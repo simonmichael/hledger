@@ -1,5 +1,5 @@
 # dates with bad month or day numbers should be rejected
--f- print
+./hledger -f- print
 <<<
 2010/31/12 x
    a  1

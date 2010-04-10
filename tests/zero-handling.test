@@ -1,6 +1,6 @@
 # a zero amount is always displayed as just "0", regardless of any commodity/decimal places/price (like ledger)
 #
--f- print --empty
+./hledger -f- print --empty
 <<<
 2010/3/1 x
   a  $0.00 @ 3EUR

@@ -1,5 +1,5 @@
 # again, complain like ledger, but we could handle this
--f - print
+./hledger -f - print
 <<<
 2009/1/1 x
  a  1

@@ -146,7 +146,7 @@ unittesths:
 
 # run functional tests, requires shelltestrunner from hackage
 functest: hledger
-	@(shelltestrunner ./hledger tests/*.test --implicit=none --threads=16 \
+	(shelltest tests --implicit=none --threads=16 \
 		&& echo $@ passed) || echo $@ FAILED
 
 # run doc tests

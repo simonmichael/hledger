@@ -1,4 +1,4 @@
--f nosuch.ledger add
+./hledger -f nosuch.ledger add
 <<<
 
 

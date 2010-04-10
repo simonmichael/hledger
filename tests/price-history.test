@@ -1,4 +1,4 @@
--f - print
+./hledger -f - print
 <<<
 P 2009/1/1 p 0.5h
 

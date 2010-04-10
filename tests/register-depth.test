@@ -1,4 +1,4 @@
--f - register --depth 1
+./hledger -f - register --depth 1
 <<<
 2010/1/1 x
   a:aa      1

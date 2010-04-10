@@ -1,4 +1,4 @@
--f - balance
+./hledger -f - balance
 <<<
 2009-01-01 broken entry
   дебит    1

@@ -1,6 +1,6 @@
 # a commodity may contain/end with numbers, if double quoted
 # 1. without quotes, fail. XXX parse error should be clearer here
--f- print
+./hledger -f- print
 <<<
 2010-04-05 x
    a   10 DE0002635307
@@ -10,7 +10,7 @@ unexpected "0"
 expecting comment or new-line/
 >>>= 1
 # 2. with quotes
--f- print
+./hledger -f- print
 <<<
 2010-04-05 x
    a   10 "DE0002635307"
