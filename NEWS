@@ -1,6 +1,45 @@
 hledger news
 ============
 
+2010/04/10 hledger 0.9
+......................
+
+  * ghc 6.12 support
+  * split off hledger-lib package, containing core types & utils
+  * parsing: ignore D, C, N, tag, end tag directives; we should now accept any ledger 2.6 file
+  * parsing: allow numbers in commodities if double-quoted, like ledger
+  * parsing: allow transactions with empty descriptions
+  * parsing: show a better error for illegal month/day numbers in dates
+  * parsing: don't ignore trailing junk in a smart date, eg in web add form
+  * parsing: don't ignore unparsed text following an amount
+  * parsing: @ was being treated as a currency symbol
+  * add: fix precision handling in default amounts (#19)
+  * add: elide last amount in added transactions
+  * convert: keep original description by default, allow backreferences in replace pattern
+  * convert: basic csv file checking, warn instead of dying when it looks wrong
+  * convert: allow blank/comment lines at end of rules file
+  * print: always show zero amounts as 0, hiding any commodity/decimal places/price, like ledger
+  * register: fix bad layout with years < 1000
+  * register: fix a Prelude.head error with reporting interval, --empty, and --depth
+  * register: fix a regression, register should not show posting comments
+  * register: with --empty, intervals should continue to ends of the specified period
+  * stats: better output when last transaction is in the future
+  * stats: show commodity symbols, account tree depth, reorder slightly
+  * web: -fweb now builds with simpleserver; to get happstack, use -fwebhappstack instead
+  * web: pre-fill the add form with today's date
+  * web: help links, better search form wording
+  * web: show a proper error for a bad date in add form (#17)
+  * web: fix for unicode search form values
+  * web: fix stack overflow caused by regexpr, and handle requests faster (#14)
+  * web: look for more-generic browser executables
+  * web: more robust browser starting (#6)
+  * error message cleanups
+  * more tests, refactoring, docs
+
+  Stats:
+  58 days, 2 contributors, 102 commits since last release.
+  Now at 3983 lines of non-test code, 139 tests, 53% coverage.
+
 2010/02/11 hledger 0.8
 ......................
 
