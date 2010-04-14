@@ -23,6 +23,7 @@ where
 
 import Data.Time.Format
 import Data.Time.Calendar.OrdinalDate
+import Safe (readMay)
 import System.Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Hledger.Data.Types
@@ -261,54 +262,65 @@ smartdateonly = do
 
 datesepchar = oneOf "/-."
 
+validYear, validMonth, validDay :: String -> Bool
+validYear s = length s >= 4 && isJust (readMay s :: Maybe Int)
+validMonth s = maybe False (\n -> n>=1 && n<=12) $ readMay s
+validDay s = maybe False (\n -> n>=1 && n<=31) $ readMay s
+
+-- failIfInvalidYear, failIfInvalidMonth, failIfInvalidDay :: a
+failIfInvalidYear s  = unless (validYear s)  $ fail $ "bad year number: " ++ s
+failIfInvalidMonth s = unless (validMonth s) $ fail $ "bad month number: " ++ s
+failIfInvalidDay s   = unless (validDay s)   $ fail $ "bad day number: " ++ s
+
 yyyymmdd :: GenParser Char st SmartDate
 yyyymmdd = do
   y <- count 4 digit
   m <- count 2 digit
-  guard (read m <= 12)
+  failIfInvalidMonth m
   d <- count 2 digit
-  guard (read d <= 31)
+  failIfInvalidDay d
   return (y,m,d)
 
 ymd :: GenParser Char st SmartDate
 ymd = do
   y <- many1 digit
+  failIfInvalidYear y
   datesepchar
-  m <- try (count 2 digit) <|> count 1 digit
-  when (read m < 1 || (read m > 12)) $ error $ "bad month number: " ++ m
+  m <- many1 digit
+  failIfInvalidMonth m
   datesepchar
-  d <- try (count 2 digit) <|> count 1 digit
-  when (read d < 1 || (read d > 31)) $ error $ "bad day number: " ++ d
+  d <- many1 digit
+  failIfInvalidDay d
   return $ (y,m,d)
 
 ym :: GenParser Char st SmartDate
 ym = do
   y <- many1 digit
-  guard (read y > 12)
+  failIfInvalidYear y
   datesepchar
-  m <- try (count 2 digit) <|> count 1 digit
-  guard (read m >= 1 && (read m <= 12))
+  m <- many1 digit
+  failIfInvalidMonth m
   return (y,m,"")
 
 y :: GenParser Char st SmartDate
 y = do
   y <- many1 digit
-  guard (read y >= 1000)
+  failIfInvalidYear y
   return (y,"","")
 
 d :: GenParser Char st SmartDate
 d = do
   d <- many1 digit
-  guard (read d <= 31)
+  failIfInvalidDay d
   return ("","",d)
 
 md :: GenParser Char st SmartDate
 md = do
-  m <- try (count 2 digit) <|> count 1 digit
-  guard (read m >= 1 && (read m <= 12))
+  m <- many1 digit
+  failIfInvalidMonth m
   datesepchar
-  d <- try (count 2 digit) <|> count 1 digit
-  when (read d < 1 || (read d > 31)) $ fail "bad day number specified"
+  d <- many1 digit
+  failIfInvalidDay d
   return ("",m,d)
 
 months         = ["january","february","march","april","may","june",
