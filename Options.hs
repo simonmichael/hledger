@@ -7,6 +7,7 @@ module Options
 where
 import System.Console.GetOpt
 import System.Environment
+import Version (timeprogname)
 import Ledger.IO (myLedgerPath,myTimelogPath)
 import Ledger.Utils
 import Ledger.Types
@@ -16,8 +17,6 @@ import Codec.Binary.UTF8.String (decodeString)
 #endif
 import Control.Monad (liftM)
 
-progname      = "hledger"
-timeprogname  = "hours"
 #ifdef CHART
 chartoutput   = "hledger.png"
 chartitems    = 10

@@ -8,7 +8,6 @@ module Version
 where
 import System.Info (os, arch)
 import Ledger.Utils
-import Options (progname)
 
 -- version and PATCHLEVEL are set by the makefile
 version       = "0.8.0"
@@ -18,6 +17,9 @@ patchlevel = "." ++ show PATCHLEVEL -- must be numeric !
 #else
 patchlevel = ""
 #endif
+
+progname      = "hledger"
+timeprogname  = "hours"
 
 buildversion  = version ++ patchlevel :: String
 
