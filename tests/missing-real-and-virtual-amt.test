@@ -1,9 +1,0 @@
-# could balance this, but complain instead like ledger
-./hledger -f - register
-<<<
-2009/6/24 carwash
-    equity:draw:personal:transportation:car:carwash     $3.50
-    assets:cash
-    [expenses:car]                                      $3.50
-    [simon]
->>>2 /too many missing/

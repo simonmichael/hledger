@@ -5,24 +5,44 @@
   (virtual)  100
   a  1
   b
+#
 # 2. balanced virtual postings should be required to balance (themselves)
 ./hledger -f-
 <<<
 2010/1/1 x
-  [balanced virtual]  100
+  [balanced virtual]  10
   a  1
   b
 >>>= !0
+#
+# 3. balanced virtual postings should be required to balance (themselves)
 ./hledger -f-
 <<<
 2010/1/1 x
-  [balanced virtual]  100
-  [balanced virtual]  -100
+  [balanced virtual]  10
+  [balanced virtual]  -10
   a  1
   b
-# 3. a virtual posting with implicit amount should be handled correctly
+#
+# 4. a virtual posting with implicit amount should be handled correctly
 ./hledger -f-
 <<<
 2010/1/1 x
-    [a]    1
-    [b]
+  [a]    10
+  [b]
+#
+# 5. real and balanced virtual postings are balanced separately, and multiple blank virtuals are ok
+./hledger -f-
+<<<
+2010/1/1 x
+  a  1
+  b
+  [e]  10
+  [f]
+  (c)
+  (d)
+>>>
+                   1  a
+                  -1  b
+                  10  e
+                 -10  f

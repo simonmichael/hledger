@@ -126,19 +126,22 @@ isTransactionBalanced t = isReallyZeroMixedAmountCost rsum && isReallyZeroMixedA
 -- return an error message instead.
 balanceTransaction :: Transaction -> Either String Transaction
 balanceTransaction t@Transaction{tpostings=ps}
-    | length missingamounts' > 1 = Left $ printerr "could not balance this transaction (too many missing amounts)"
+    | length rwithoutamounts > 1 || length bvwithoutamounts > 1
+        = Left $ printerr "could not balance this transaction (too many missing amounts)"
     | not $ isTransactionBalanced t' = Left $ printerr $ nonzerobalanceerror t'
     | otherwise = Right t'
     where
-      (withamounts, missingamounts) = partition hasAmount $ filter isReal ps
-      (_, missingamounts') = partition hasAmount ps
-      t' = t{tpostings=ps'}
-      ps' | length missingamounts == 1 = map balance ps
-          | otherwise = ps
+      rps = filter isReal ps
+      bvps = filter isBalancedVirtual ps
+      (rwithamounts, rwithoutamounts) = partition hasAmount rps
+      (bvwithamounts, bvwithoutamounts) = partition hasAmount bvps
+      t' = t{tpostings=map balance ps}
           where 
-            balance p | isReal p && not (hasAmount p) = p{pamount = costOfMixedAmount (-otherstotal)}
+            balance p | not (hasAmount p) && isReal p
+                          = p{pamount = costOfMixedAmount (-(sum $ map pamount rwithamounts))}
+                      | not (hasAmount p) && isBalancedVirtual p
+                          = p{pamount = costOfMixedAmount (-(sum $ map pamount bvwithamounts))}
                       | otherwise = p
-                      where otherstotal = sum $ map pamount withamounts
       printerr s = intercalate "\n" [s, showTransactionUnelided t]
 
 nonzerobalanceerror :: Transaction -> String

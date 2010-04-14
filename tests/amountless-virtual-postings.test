@@ -1,9 +1,0 @@
-# again, complain like ledger, but we could handle this
-./hledger -f - print
-<<<
-2009/1/1 x
- a  1
- b
- (c)
- (d)
->>>2 /too many missing/
