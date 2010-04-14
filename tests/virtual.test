@@ -1,12 +1,28 @@
-./hledger -f - print
+# 1. virtual posting shouldn't affect balance
+./hledger -f-
 <<<
 2009/1/1 x
   (virtual)  100
   a  1
   b
->>>
-2009/01/01 x
-    (virtual)           100
-    a                   1
-    b                  -1
-
+# 2. balanced virtual postings should be required to balance (themselves)
+./hledger -f-
+<<<
+2010/1/1 x
+  [balanced virtual]  100
+  a  1
+  b
+>>>= !0
+./hledger -f-
+<<<
+2010/1/1 x
+  [balanced virtual]  100
+  [balanced virtual]  -100
+  a  1
+  b
+# 3. a virtual posting with implicit amount should be handled correctly
+./hledger -f-
+<<<
+2010/1/1 x
+    [a]    1
+    [b]
