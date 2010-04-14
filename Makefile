@@ -32,13 +32,13 @@ SOURCEFILES:= \
 	$(MAIN) \
 	[A-Z]*hs \
 	Commands/[A-Z]*hs \
-	Ledger/[A-Z]*hs
+	hledger-lib/Ledger/[A-Z]*hs
 DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
 DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
-BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS)
+BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS) -ihledger-lib
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 default: tag hledger
@@ -445,35 +445,38 @@ upload: hackageupload updatesite
 
 releaseandupload: release upload
 
-# file where the current release version is defined
+# file defining the current release version
 VERSIONFILE=VERSION
-
 # two or three-part version string
 VERSION:=`grep -v '^--' $(VERSIONFILE)`
-
 # three-part version string
 ifeq ($(shell ghc -e "length (filter (=='.') \"$(VERSION)\")"), 1)
 VERSION3:=$(VERSION).0
 else
 VERSION3:=$(VERSION)
 endif
-
-# other files containing the version string
-VERSIONFILES=hledger.cabal Version.hs
-
-hledger.cabal: $(VERSIONFILE)
-	perl -p -e "s/(^version: *) .*/\1 $(VERSION)/" -i $@
+# files which should be updated when the version changes
+VERSIONSENSITIVEFILES=\
+	Version.hs \
+	hledger.cabal \
+	hledger-lib/hledger-lib.cabal \
 
 Version.hs: $(VERSIONFILE)
 	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
 
+hledger.cabal: $(VERSIONFILE)
+	perl -p -e "s/(^version: *) .*/\1 $(VERSION)/" -i $@
+
+hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
+	perl -p -e "s/(^version: *) .*/\1 $(VERSION)/" -i $@
+
 # update the version string in local files. Triggered by "make".
-setversion: $(VERSIONFILES)
+setversion: $(VERSIONSENSITIVEFILES)
 
 # update the version number in local files, and prompt to record changes
 # in these files. Triggered by "make release".
 setandrecordversion: setversion
-	darcs record -m "update version" $(VERSIONFILE) $(VERSIONFILES)
+	darcs record -m "update version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
 tagrelease:
 	darcs tag $(VERSION3)
