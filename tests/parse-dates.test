@@ -6,7 +6,7 @@
    b
 >>>2 /bad month number: 31/
 >>>= 1
--f- print
+./hledger -f- print
 <<<
 2010/12/32 x
    a  1

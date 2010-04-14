@@ -5,9 +5,7 @@
 2010-04-05 x
    a   10 DE0002635307
    b
->>>2 /parse error.*
-unexpected "0"
-expecting comment or new-line/
+>>>2 /parse error.*unexpected "0"/
 >>>= 1
 # 2. with quotes
 ./hledger -f- print
