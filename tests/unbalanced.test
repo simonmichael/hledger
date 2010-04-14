@@ -3,12 +3,5 @@ bin/hledger -f - register
 2009/1/1 a
   b  1.1
   c  -1
->>>2
-"-" (line 4, column 1):
-could not balance this transaction (real postings are off by 0.1)
-2009/01/01 a
-    b           1.1
-    c            -1
-
-
+>>>2 /could not balance this transaction \(real postings are off by 0.1\)/
 >>>= 1
