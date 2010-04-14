@@ -294,7 +294,7 @@ journalDateSpan j
 
 -- | Check if a set of ledger account/description patterns matches the
 -- given account name or entry description.  Patterns are case-insensitive
--- regular expression strings; those beginning with - are anti-patterns.
+-- regular expressions. Prefixed with not:, they become anti-patterns.
 matchpats :: [String] -> String -> Bool
 matchpats pats str =
     (null positives || any match positives) && (null negatives || not (any match negatives))
