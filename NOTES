@@ -691,3 +691,24 @@ runTests' _ _ _ lbi = system testprog >> return ()
 *** doesn't support http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#indirect-hyperlink-targets
 ** must-read article on currency & capital gains accounting
 http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
+** fabrice niessen
++For me, what would be very useful for a 1.0 version would be:
++
++- @check directive (see beancount), but implemented as a comment for ledger,
++  so that ledger does not get confused by this, and that you can implement
++  more features without breaking backward compatibility;
++
++- account declaration (see beancount), in ledger comments. Giving an account
++  number would (or could) help for the reporting stuff, for knowing which
++  value to get to read, for inserting in a given report;
++
++- some built-in ratios for being able to see the health of the finances (see
++  my Excel file, if you're interested);
++
++- easier standard outputs, such as the one above (with expenses and income in
++  2 columns).
++
++- real report generation (I thought at LaTeX as in SQL Ledger, but I am now
++  heading and producing reports through Org, which is 1000x better). Results
++  soon.
++
