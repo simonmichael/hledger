@@ -246,10 +246,7 @@ Assumes any text in the parse stream has been lowercased.
 -}
 smartdate :: GenParser Char st SmartDate
 smartdate = do
-  let dateparsers = [yyyymmdd, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow,
-                     lastthisnextthing
-                    ]
-  (y,m,d) <- choice $ map try dateparsers
+  (y,m,d) <- choice' [yyyymmdd, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow, lastthisnextthing]
   return (y,m,d)
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.

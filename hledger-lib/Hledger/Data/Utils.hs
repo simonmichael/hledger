@@ -241,6 +241,8 @@ tracewith f e = trace (f e) e
 
 -- parsing
 
+choice' = choice . map Text.ParserCombinators.Parsec.try
+
 parsewith :: Parser a -> String -> Either ParseError a
 parsewith p = parse p ""
 

@@ -590,7 +590,7 @@ tests = TestList [
       ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
       ,"                                актив:наличные                 -100            0"]
 
-  ,"smart dates" ~: do
+  ,"fixSmartDateStr" ~: do
     let gives = is . fixSmartDateStr (parsedate "2008/11/26")
     "1999-12-02"   `gives` "1999/12/02"
     "1999.12.02"   `gives` "1999/12/02"
