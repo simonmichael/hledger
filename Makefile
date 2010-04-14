@@ -493,10 +493,11 @@ Version.hs: $(VERSIONFILE)
 	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
 
 hledger.cabal: $(VERSIONFILE)
-	perl -p -e "s/(^version: *) .*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^ *hledger-lib *==) *.*/\1 $(VERSION)/" -i $@
 
 hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
-	perl -p -e "s/(^version: *) .*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 
 # update the version string in local files. Triggered by "make".
 setversion: $(VERSIONSENSITIVEFILES)
