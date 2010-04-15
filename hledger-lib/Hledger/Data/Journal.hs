@@ -170,9 +170,18 @@ filterJournalPostingsByDepth (Just d) j@Journal{jtxns=ts} =
               t{tpostings=filter ((<= d) . accountNameLevel . paccount) ps}
 
 -- | Keep only transactions which affect accounts matched by the account patterns.
+-- More precisely: each positive account pattern excludes transactions
+-- which do not contain a posting to a matched account, and each negative
+-- account pattern excludes transactions containing a posting to a matched
+-- account.
 filterJournalTransactionsByAccount :: [String] -> Journal -> Journal
-filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter match ts}
-    where match = any (matchpats apats . paccount) . tpostings
+filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tmatch ts}
+    where
+      tmatch t = (null positives || any positivepmatch ps) && (null negatives || not (any negativepmatch ps)) where ps = tpostings t
+      positivepmatch p = any (`amatch` a) positives where a = paccount p
+      negativepmatch p = any (`amatch` a) negatives where a = paccount p
+      amatch pat a = containsRegex (abspat pat) a
+      (negatives,positives) = partition isnegativepat apats
 
 -- | Keep only postings which affect accounts matched by the account patterns.
 -- This can leave transactions unbalanced.
@@ -293,9 +302,12 @@ matchpats pats str =
       (negatives,positives) = partition isnegativepat pats
       match "" = True
       match pat = containsRegex (abspat pat) str
-      negateprefix = "not:"
-      isnegativepat = (negateprefix `isPrefixOf`)
-      abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
+
+negateprefix = "not:"
+
+isnegativepat = (negateprefix `isPrefixOf`)
+
+abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 
 -- | Calculate the account tree and all account balances from a journal's
 -- postings, returning the results for efficient lookup.
