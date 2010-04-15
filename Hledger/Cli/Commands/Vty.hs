@@ -216,7 +216,7 @@ currentArgs (AppState {aargs=as}) = as
 screen :: AppState -> Screen
 screen a = scr where (Loc scr _ _ _) = loc a
 
--- | Enter a new screen, with possibly new args, saving the old ui location on the stack.
+-- | Enter a new screen, with possibly new args, adding the new ui location to the stack.
 enter :: LocalTime -> Screen -> [String] -> AppState -> AppState
 enter t scr@BalanceScreen args a  = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
 enter t scr@RegisterScreen args a = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
