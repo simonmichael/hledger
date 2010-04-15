@@ -128,4 +128,4 @@ tools/simplifyprof
 website/.*
 
 # branch repos
-(^|/)b[[:digit:]]*-
+(^|/)b[[:digit:]]*
