@@ -482,13 +482,19 @@ of pattern:
   in which case the match is negated.
 
 - a description pattern, like the above but prefixed with ``desc:``. This
-  is matched against transactions' descriptions. Note how with multiple
-  prefixes, not: goes last, eg: ``desc:not:someregexp``.
+  is matched against transactions' descriptions. Note, when negating a
+  desc: pattern, not: goes last, eg: ``desc:not:someregexp``.
 
-When you specify multiple filter patterns, hledger selects the
-transactions or postings which match
+When you specify multiple filter patterns, hledger generally selects the
+transactions or postings which match (or negatively match)
 
  *any of the account patterns* AND *any of the description patterns*
+
+The `print <#print>`_ command selects transactions which
+
+ *match any of the description patterns* AND
+ *have any postings matching any of the positive account patterns* AND
+ *have no postings matching any of the negative account patterns*
 
 Dates
 """""
