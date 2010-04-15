@@ -42,11 +42,12 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 **Support**
 
 - chat Simon (sm) on the `#ledger`_ irc channel which we share, or `email me`_
-- report problems in the `issue tracker`_
+- report problems at `bugs.hledger.org <http://bugs.hledger.org>`_
+- share and test ledger snippets at paste . hledger.org
 - .. raw:: html
 
      <form action="http://groups.google.com/group/hledger/boxsubscribe" >
-       join the <a href="http://hledger.org/list">hledger mail list</a>. Your email:
+       join the hledger mail list at <a href="http://list.hledger.org">list.hledger.org</a>. Your email:
        <input type=text name=email><input type=submit name="sub" value="Subscribe">
      </form>
 
