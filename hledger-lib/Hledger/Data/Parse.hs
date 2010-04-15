@@ -244,7 +244,7 @@ ledgerFile = do items <- many ledgerItem
                           , ledgerEndTagDirective
                           , emptyLine >> return (return id)
                           , liftM (return . addTimeLogEntry)  timelogentry
-                          ]
+                          ] <?> "ledger transaction, timelog entry, or directive"
 
 emptyLine :: GenParser Char st ()
 emptyLine = do many spacenonewline
