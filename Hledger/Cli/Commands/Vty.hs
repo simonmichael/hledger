@@ -26,7 +26,7 @@ data AppState = AppState {
     ,ah :: Int                  -- ^ window height
     ,amsg :: String              -- ^ status message
     ,aopts :: [Opt]              -- ^ command-line opts
-    ,aargs :: [String]           -- ^ command-line args
+    ,aargs :: [String]           -- ^ command-line args at startup
     ,aledger :: Ledger           -- ^ parsed ledger
     ,abuf :: [String]            -- ^ lines of the current buffered view
     ,alocs :: [Loc]              -- ^ user's navigation trail within the UI
@@ -38,6 +38,7 @@ data Loc = Loc {
      scr :: Screen               -- ^ one of the available screens
     ,sy :: Int                   -- ^ viewport y scroll position
     ,cy :: Int                   -- ^ cursor y position
+    ,largs :: [String]           -- ^ command-line args, possibly narrowed for this location
     } deriving (Show)
 
 -- | The screens available within the user interface.
@@ -54,7 +55,7 @@ vty opts args l = do
   DisplayRegion w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts
   t <-  getCurrentLocalTime
-  let a = enter t BalanceScreen
+  let a = enter t BalanceScreen args
           AppState {
                   av=v
                  ,aw=fromIntegral w
@@ -207,24 +208,31 @@ exit = popLoc
 loc :: AppState -> Loc
 loc = head . alocs
 
+-- | Get the filter pattern args in effect for the current ui location.
+currentArgs :: AppState -> [String]
+currentArgs (AppState {alocs=Loc{largs=as}:_}) = as
+currentArgs (AppState {aargs=as}) = as
+
 screen :: AppState -> Screen
-screen a = scr where (Loc scr _ _) = loc a
+screen a = scr where (Loc scr _ _ _) = loc a
 
--- | Enter a new screen, saving the old ui location on the stack.
-enter :: LocalTime -> Screen -> AppState -> AppState
-enter t scr@BalanceScreen a  = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0} a
-enter t scr@RegisterScreen a = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0} a
-enter t scr@PrintScreen a    = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0} a
+-- | Enter a new screen, with possibly new args, saving the old ui location on the stack.
+enter :: LocalTime -> Screen -> [String] -> AppState -> AppState
+enter t scr@BalanceScreen args a  = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
+enter t scr@RegisterScreen args a = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
+enter t scr@PrintScreen args a    = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
 
-resetTrailAndEnter t scr = enter t scr . clearLocs
+resetTrailAndEnter :: LocalTime -> Screen -> AppState -> AppState
+resetTrailAndEnter t scr a = enter t scr (aargs a) $ clearLocs a
 
 -- | Regenerate the display data appropriate for the current screen.
 updateData :: LocalTime -> AppState -> AppState
-updateData t a@AppState{aopts=opts,aargs=args,aledger=l} =
+updateData t a@AppState{aopts=opts,aledger=l} =
     case screen a of
-      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts (optsToFilterSpec opts args t) l, aargs=[]}
-      RegisterScreen -> a{abuf=lines $ showRegisterReport opts (optsToFilterSpec opts args t) l}
-      PrintScreen    -> a{abuf=lines $ showTransactions (optsToFilterSpec opts args t) l}
+      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts fspec l}
+      RegisterScreen -> a{abuf=lines $ showRegisterReport opts fspec l}
+      PrintScreen    -> a{abuf=lines $ showTransactions fspec l}
+    where fspec = optsToFilterSpec opts (currentArgs a) t
 
 backout :: LocalTime -> AppState -> AppState
 backout t a | screen a == BalanceScreen = a
@@ -233,8 +241,8 @@ backout t a | screen a == BalanceScreen = a
 drilldown :: LocalTime -> AppState -> AppState
 drilldown t a =
     case screen a of
-      BalanceScreen  -> enter t RegisterScreen a{aargs=[currentAccountName a]}
-      RegisterScreen -> scrollToTransaction e $ enter t PrintScreen a
+      BalanceScreen  -> enter t RegisterScreen [currentAccountName a] a
+      RegisterScreen -> scrollToTransaction e $ enter t PrintScreen (currentArgs a) a
       PrintScreen   -> a
     where e = currentTransaction a
 
