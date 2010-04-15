@@ -1,0 +1,12 @@
+# 1. accept a blank description
+./hledger -f-
+<<<
+2010/1/1 
+  a  1
+  b
+# 2. same, but no separator space after the date
+./hledger -f-
+<<<
+2010/1/1
+  a  1
+  b
