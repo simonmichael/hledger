@@ -591,7 +591,7 @@ showreleasechanges:
 tag: emacstags
 
 emacstags:
-	@rm -f TAGS; hasktags -e $(SOURCEFILES) hledger.cabal
+	-@rm -f TAGS; hasktags -e $(SOURCEFILES) hledger.cabal
 
 clean:
 	rm -f `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*"`
