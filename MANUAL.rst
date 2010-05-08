@@ -473,7 +473,7 @@ Other features
 Filter patterns
 """""""""""""""
 
-Most commands accept one more filter pattern arguments after the command
+Most commands accept one or more filter pattern arguments after the command
 name, to select a subset of transactions or postings. There are two kinds
 of pattern:
 
