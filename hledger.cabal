@@ -79,7 +79,7 @@ executable hledger
                  ,process
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
-                 ,testpack
+                 ,testpack >= 1 && < 2
                  ,time
                  ,utf8-string >= 0.3
 
