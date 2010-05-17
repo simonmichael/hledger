@@ -50,9 +50,10 @@ default: tag hledger
 ######################################################################
 # BUILDING
 
-# build the standard cabal binary
+# fetch dependencies, build and install the standard cabal binary
 hledgercabal:
-	cabal configure -fweb -fvty && cabal build
+	cd hledger-lib; cabal install
+	cabal install -fweb -fvty
 
 # build the standard developer's binary, quickly
 hledger: setversion
