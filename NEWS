@@ -1,6 +1,14 @@
 hledger news
 ============
 
+unreleased
+........................
+
+  * fix "0.8" appearing in --version
+  * parsing: balance balanced-virtual postings separately, allow them to have an implicit amount
+  * parsing: clearer bad date errors
+  * add: fix wrongful program exit on bad dates
+
 2010/04/10 hledger 0.9
 ......................
 
