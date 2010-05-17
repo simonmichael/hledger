@@ -124,7 +124,7 @@ tools/doctest$
 tools/generateledger
 tools/simplifyprof
 
-# site stuff
+# site stuff not explicitly added
 website/.*
 
 # branch repos
