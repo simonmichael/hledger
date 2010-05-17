@@ -6,6 +6,22 @@ body {
     font-family: "helvetica","arial", "sans serif";
 }
 
+div#navigation {
+    /* text-align: center; */
+    /* border-bottom: 4px solid #226600; */
+}
+
+div#navigation a {
+    color: white;
+    font-weight:bold;
+    font-family:sans-serif;
+    /* font-size:small; */
+    text-decoration: none;
+    background-color: #226600;
+    padding: 3px 10px 3px 10px;
+    margin: 0 5px 0 0;
+}
+
 #footer {
     padding-top: 1em;
     /* font-size: 70%; */
@@ -22,23 +38,23 @@ code {
     margin: 0 auto;
     width: 700px;
 }
-h1.title {
-    font-size: 3.8em;
+h1 {
+    font-size: 3em;
     /* color: #49637C; */
-    color: #226600;
+    /* color: #226600; */
     margin-bottom: 3px;
     text-align: left;
 }
-h1 {
-  margin-top:1em;
-  text-align: left;
-}
-h1 .small {
-    font-size: 0.4em;
-}
-h1 a {
-    text-decoration: none;
-}
+/* h1 { */
+/*   margin-top:1em; */
+/*   text-align: left; */
+/* } */
+/* h1 .small { */
+/*     font-size: 0.4em; */
+/* } */
+/* h1 a { */
+/*     text-decoration: none; */
+/* } */
 h2 {
     font-size: 1.5em;
 }

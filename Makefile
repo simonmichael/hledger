@@ -20,8 +20,6 @@ COVCMD=test
 BENCHEXES=hledger-0.7 hledger-0.8 ledger-3pre
 
 # misc. tools
-PANDOC=pandoc
-RST2HTML=rst2html
 RST2PDF=rst2pdf
 #VIEWHTML=open
 VIEWHTML=open -a 'Google Chrome'
@@ -277,17 +275,27 @@ cleandocs:
 	rm -rf website/[A-Z]*.html website/api-doc/*
 
 # rebuild all docs
-docs: html pdf apidocs
+docs: site apidocs
+
+# build the hledger.org website
+# Requires hakyll (cabal install hakyll)
+site: website/hakyll
+	cd website; ./hakyll build
+	cd website/_site; ln -sf README.html index.html
+
+website/hakyll: website/hakyll.hs
+	cd website; ghc --make hakyll.hs
+
+viewsite: site
+	$(VIEWHTML) website/_site/index.html
 
 # generate html versions of docs (and the hledger.org website)
 # work around pandoc not handling full rst image directive
-html:
-	for d in $(DOCFILES); do $(PANDOC) --toc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
-	cd website && ln -sf ../SCREENSHOTS && $(RST2HTML) SCREENSHOTS >SCREENSHOTS.html && rm -f SCREENSHOTS
-	cd website; rm -f index.html; ln -s README.html index.html; rm -f profs; ln -s ../profs
+# html:
+# 	for d in $(DOCFILES); do $(PANDOC) --toc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
+# 	cd website && ln -sf ../SCREENSHOTS && $(RST2HTML) SCREENSHOTS >SCREENSHOTS.html && rm -f SCREENSHOTS
+# 	cd website; rm -f index.html; ln -s README.html index.html; rm -f profs; ln -s ../profs
 
-viewhtml: html
-	$(VIEWHTML) website/index.html
 
 pdf: docspdf codepdf
 
@@ -314,7 +322,7 @@ printall: pdf
 	$(PRINT) $(PDFS)
 
 # push latest docs etc. and update the hledger.org site
-site: push
+pushdocs: push
 	ssh joyful.com 'make -C/repos/hledger docs'
 
 # generate api docs

@@ -1,3 +1,6 @@
+---
+title: hledger manual
+---
 hledger manual
 ==============
 
@@ -9,7 +12,7 @@ A tip: on hledger.org, these docs are also available with .pdf suffix.
 
 
 User Guide
-----------
+::::::::::
 
 Introduction
 ............
@@ -161,7 +164,7 @@ For more details, see `File format compatibility <#file-format-compatibility>`_.
 
 
 Reference
----------
+:::::::::
 
 Overview
 ........

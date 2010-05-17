@@ -1,3 +1,6 @@
+---
+title: hledger for techies
+---
 hledger for techies
 ===================
 

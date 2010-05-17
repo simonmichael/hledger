@@ -1,3 +1,6 @@
+---
+title: hledger Contributor List and Agreement
+---
 hledger Contributor List and Agreement
 ======================================
 

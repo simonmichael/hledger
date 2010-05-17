@@ -1,10 +1,13 @@
+---
+title: hledger screenshots
+---
 hledger screenshots
 ===================
 
 .. ....................................................................
 .. raw:: html 
 
-  <br><br><a name=hledger-screen-1>
+  <a name=hledger-screen-1>
 
 Basic command-line reports, like ledger:
 
