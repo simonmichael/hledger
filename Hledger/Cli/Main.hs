@@ -47,9 +47,9 @@ import System.IO.UTF8
 import Hledger.Cli.Commands.All
 import Hledger.Data
 import Hledger.Cli.Options
-import Hledger.Tests
-import Hledger.Utils (withLedgerDo)
-import Hledger.Version (versionmsg, binaryfilename)
+import Hledger.Cli.Tests
+import Hledger.Cli.Utils (withLedgerDo)
+import Hledger.Cli.Version (versionmsg, binaryfilename)
 
 main :: IO ()
 main = do

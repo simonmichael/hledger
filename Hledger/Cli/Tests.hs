@@ -26,7 +26,7 @@ $ hledger -f sample.ledger balance o
 
 -}
 
-module Hledger.Tests
+module Hledger.Cli.Tests
 where
 import qualified Data.Map as Map
 import Test.HUnit.Tools (runVerboseTests)
@@ -36,7 +36,7 @@ import System.Time (ClockTime(TOD))
 import Hledger.Cli.Commands.All
 import Hledger.Data  -- including testing utils in Hledger.Data.Utils
 import Hledger.Cli.Options
-import Hledger.Utils
+import Hledger.Cli.Utils
 
 
 -- | Run unit tests.

@@ -5,7 +5,7 @@ format, and print it on stdout. See the manual for more details.
 
 module Hledger.Cli.Commands.Convert where
 import Hledger.Cli.Options (Opt(Debug))
-import Hledger.Version (versionstr)
+import Hledger.Cli.Version (versionstr)
 import Hledger.Data.Types (Ledger,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Hledger.Data.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual)
 import Hledger.Data.Parse (someamount, emptyCtx, ledgeraccountname)

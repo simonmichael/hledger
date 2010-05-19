@@ -32,7 +32,6 @@ MAIN=hledger.hs
 SOURCEFILES:= \
 	$(MAIN) \
 	[A-Z]*hs \
-	Hledger/*hs \
 	Hledger/Cli/*hs \
 	Hledger/Cli/Commands/*hs \
 	hledger-lib/*hs \

@@ -4,7 +4,7 @@ Version-related utilities. See the Makefile for details of our version
 numbering policy.
 -}
 
-module Hledger.Version
+module Hledger.Cli.Version
 where
 import System.Info (os, arch)
 import Hledger.Data.Utils

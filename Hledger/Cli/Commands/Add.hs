@@ -19,7 +19,7 @@ import System.IO ( stderr, hFlush, hPutStrLn, hPutStr )
 #endif
 import System.IO.Error
 import Text.ParserCombinators.Parsec
-import Hledger.Utils (ledgerFromStringWithOpts)
+import Hledger.Cli.Utils (ledgerFromStringWithOpts)
 import qualified Data.Foldable as Foldable (find)
 
 -- | Read ledger transactions from the terminal, prompting for each field,

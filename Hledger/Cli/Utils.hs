@@ -6,7 +6,7 @@ Hledger.Data.Utils.
 
 -}
 
-module Hledger.Utils
+module Hledger.Cli.Utils
 where
 import Control.Monad.Error
 import Hledger.Data

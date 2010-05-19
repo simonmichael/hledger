@@ -7,7 +7,7 @@ module Hledger.Cli.Options
 where
 import System.Console.GetOpt
 import System.Environment
-import Hledger.Version (timeprogname)
+import Hledger.Cli.Version (timeprogname)
 import Hledger.Data.IO (myLedgerPath,myTimelogPath)
 import Hledger.Data.Utils
 import Hledger.Data.Types

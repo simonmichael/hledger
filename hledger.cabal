@@ -51,11 +51,11 @@ executable hledger
   main-is:        hledger.hs
   other-modules:
                   Paths_hledger
-                  Hledger.Tests
-                  Hledger.Utils
-                  Hledger.Version
                   Hledger.Cli.Main
                   Hledger.Cli.Options
+                  Hledger.Cli.Tests
+                  Hledger.Cli.Utils
+                  Hledger.Cli.Version
                   Hledger.Cli.Commands.Add
                   Hledger.Cli.Commands.All
                   Hledger.Cli.Commands.Balance
@@ -116,11 +116,11 @@ executable hledger
 
 library
   exposed-modules:
-                  Hledger.Tests
-                  Hledger.Utils
-                  Hledger.Version
                   Hledger.Cli.Main
                   Hledger.Cli.Options
+                  Hledger.Cli.Tests
+                  Hledger.Cli.Utils
+                  Hledger.Cli.Version
                   Hledger.Cli.Commands.Add
                   Hledger.Cli.Commands.All
                   Hledger.Cli.Commands.Balance
