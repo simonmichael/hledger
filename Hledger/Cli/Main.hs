@@ -35,7 +35,7 @@ main = do
        | cmd `isPrefixOf` "add"       = withLedgerDo opts args cmd add
        | cmd `isPrefixOf` "stats"     = withLedgerDo opts args cmd stats
 #ifdef VTY
-       | cmd `isPrefixOf` "ui"        = withLedgerDo opts args cmd ui
+       | cmd `isPrefixOf` "vty"       = withLedgerDo opts args cmd vty
 #endif
 #if defined(WEB) || defined(WEBHAPPSTACK)
        | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web

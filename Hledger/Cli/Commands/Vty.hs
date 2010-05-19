@@ -4,7 +4,7 @@ A simple text UI for hledger, based on the vty library.
 
 -}
 
-module Hledger.Cli.Commands.UI
+module Hledger.Cli.Commands.Vty
 where
 import Safe (headDef)
 import Graphics.Vty
@@ -19,7 +19,7 @@ helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back
 
 instance Show Vty where show = const "a Vty"
 
--- | The application state when running the ui command.
+-- | The application state when running the vty command.
 data AppState = AppState {
      av :: Vty                   -- ^ the vty context
     ,aw :: Int                  -- ^ window width
@@ -47,9 +47,9 @@ data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
             -- | LedgerScreen      -- ^ shows the raw ledger
               deriving (Eq,Show)
 
--- | Run the interactive text ui.
-ui :: [Opt] -> [String] -> Ledger -> IO ()
-ui opts args l = do
+-- | Run the vty (curses-style) ui.
+vty :: [Opt] -> [String] -> Ledger -> IO ()
+vty opts args l = do
   v <- mkVty
   DisplayRegion w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts

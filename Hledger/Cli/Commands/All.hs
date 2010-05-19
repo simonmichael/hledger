@@ -16,7 +16,7 @@ module Hledger.Cli.Commands.All (
                      module Hledger.Cli.Commands.Register,
                      module Hledger.Cli.Commands.Stats,
 #ifdef VTY
-                     module Hledger.Cli.Commands.UI,
+                     module Hledger.Cli.Commands.Vty,
 #endif
 #if defined(WEB) || defined(WEBHAPPSTACK)
                      module Hledger.Cli.Commands.Web,
@@ -35,7 +35,7 @@ import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Stats
 #ifdef VTY
-import Hledger.Cli.Commands.UI
+import Hledger.Cli.Commands.Vty
 #endif
 #if defined(WEB) || defined(WEBHAPPSTACK)
 import Hledger.Cli.Commands.Web
@@ -57,7 +57,7 @@ tests_Hledger_Commands = TestList
 --     ,Hledger.Cli.Commands.Stats.tests_Stats
     ]
 -- #ifdef VTY
---     ,Hledger.Cli.Commands.UI.tests_UI
+--     ,Hledger.Cli.Commands.Vty.tests_Vty
 -- #endif
 -- #if defined(WEB) || defined(WEBHAPPSTACK)
 --     ,Hledger.Cli.Commands.Web.tests_Web
