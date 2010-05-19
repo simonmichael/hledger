@@ -112,9 +112,9 @@ redirect u c = response $ Hack.Contrib.Response.redirect u c
 
 reqparam :: Hack.Env -> String -> [String]
 #if __GLASGOW_HASKELL__ <= 610
-reqparam env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
-#else
 reqparam env p = map (decodeString.snd) $ filter ((==p).fst) $ Hack.Contrib.Request.params env
+#else
+reqparam env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
 #endif
 
 journalReloadIfChanged :: [Opt] -> [String] -> Journal -> IO Journal
