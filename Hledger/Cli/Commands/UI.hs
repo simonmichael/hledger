@@ -4,15 +4,15 @@ A simple text UI for hledger, based on the vty library.
 
 -}
 
-module Commands.UI
+module Hledger.Cli.Commands.UI
 where
 import Safe (headDef)
 import Graphics.Vty
 import Ledger
-import Options
-import Commands.Balance
-import Commands.Register
-import Commands.Print
+import Hledger.Cli.Options
+import Hledger.Cli.Commands.Balance
+import Hledger.Cli.Commands.Register
+import Hledger.Cli.Commands.Print
 
 
 helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"

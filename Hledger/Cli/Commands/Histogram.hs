@@ -5,10 +5,10 @@ Print a histogram report.
 
 -}
 
-module Commands.Histogram
+module Hledger.Cli.Commands.Histogram
 where
 import Ledger
-import Options
+import Hledger.Cli.Options
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding ( putStr )
 import System.IO.UTF8

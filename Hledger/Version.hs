@@ -4,7 +4,7 @@ Version-related utilities. See the Makefile for details of our version
 numbering policy.
 -}
 
-module Version
+module Hledger.Version
 where
 import System.Info (os, arch)
 import Ledger.Utils

@@ -26,7 +26,7 @@ $ hledger -f sample.ledger balance o
 
 -}
 
-module Tests
+module Hledger.Tests
 where
 import qualified Data.Map as Map
 import Data.Time.Format
@@ -35,10 +35,10 @@ import Test.HUnit.Tools (runVerboseTests)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.Time (ClockTime(TOD))
 
-import Commands.All
+import Hledger.Cli.Commands.All
 import Ledger  -- including testing utils in Ledger.Utils
-import Options
-import Utils
+import Hledger.Cli.Options
+import Hledger.Utils
 
 
 -- | Run unit tests.

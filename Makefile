@@ -31,8 +31,11 @@ MAIN=hledger.hs
 SOURCEFILES:= \
 	$(MAIN) \
 	[A-Z]*hs \
-	Commands/[A-Z]*hs \
-	hledger-lib/Ledger/[A-Z]*hs
+	Hledger/*hs \
+	Hledger/Cli/*hs \
+	Hledger/Cli/Commands/*hs \
+	hledger-lib/*hs \
+	hledger-lib/Ledger/*hs
 DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
@@ -457,8 +460,8 @@ VERSION3:=$(VERSION)
 endif
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
-	Version.hs \
 	hledger.cabal \
+	Hledger/Version.hs \
 	hledger-lib/hledger-lib.cabal \
 
 Version.hs: $(VERSIONFILE)

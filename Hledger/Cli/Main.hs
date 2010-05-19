@@ -5,18 +5,18 @@ benchmark scripts. As a side benefit, this avoids a weakness of sp, which
 doesn't allow both #! and \{\-\# lines.
 -}
 
-module HledgerMain where
+module Hledger.Cli.Main where
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8
 #endif
 
-import Commands.All
+import Hledger.Cli.Commands.All
 import Ledger
-import Options
-import Tests
-import Utils (withLedgerDo)
-import Version (versionmsg, binaryfilename)
+import Hledger.Cli.Options
+import Hledger.Tests
+import Hledger.Utils (withLedgerDo)
+import Hledger.Version (versionmsg, binaryfilename)
 
 main :: IO ()
 main = do

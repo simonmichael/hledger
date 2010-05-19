@@ -4,7 +4,7 @@
 A web-based UI.
 -}
 
-module Commands.Web
+module Hledger.Cli.Commands.Web
 where
 #if __GLASGOW_HASKELL__ <= 610
 import Codec.Binary.UTF8.String (decodeString)
@@ -39,19 +39,19 @@ import HSP hiding (Request,catch)
 import qualified HSP (Request(..))
 import HSP.HTML (renderAsHTML)
 
-import Commands.Add (ledgerAddTransaction)
-import Commands.Balance
-import Commands.Histogram
-import Commands.Print
-import Commands.Register
+import Hledger.Cli.Commands.Add (ledgerAddTransaction)
+import Hledger.Cli.Commands.Balance
+import Hledger.Cli.Commands.Histogram
+import Hledger.Cli.Commands.Print
+import Hledger.Cli.Commands.Register
 import Ledger
-import Options hiding (value)
+import Hledger.Cli.Options hiding (value)
 #ifdef MAKE
 import Paths_hledger_make (getDataFileName)
 #else
 import Paths_hledger (getDataFileName)
 #endif
-import Utils (openBrowserOn)
+import Hledger.Utils (openBrowserOn)
 
 -- import Debug.Trace
 -- strace :: Show a => a -> a

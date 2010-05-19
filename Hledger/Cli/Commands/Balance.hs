@@ -95,7 +95,7 @@ balance report:
 
 -}
 
-module Commands.Balance
+module Hledger.Cli.Commands.Balance
 where
 import Ledger.Utils
 import Ledger.Types
@@ -103,7 +103,7 @@ import Ledger.Amount
 import Ledger.AccountName
 import Ledger.Posting
 import Ledger.Ledger
-import Options
+import Hledger.Cli.Options
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding ( putStr )
 import System.IO.UTF8

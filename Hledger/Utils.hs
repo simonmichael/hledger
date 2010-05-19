@@ -6,11 +6,11 @@ Utilities for top-level modules and ghci. See also "Ledger.IO" and
 
 -}
 
-module Utils
+module Hledger.Utils
 where
 import Control.Monad.Error
 import Ledger
-import Options (Opt(..),ledgerFilePathFromOpts) -- ,optsToFilterSpec)
+import Hledger.Cli.Options (Opt(..),ledgerFilePathFromOpts) -- ,optsToFilterSpec)
 import System.Directory (doesFileExist)
 import System.IO (stderr)
 #if __GLASGOW_HASKELL__ <= 610

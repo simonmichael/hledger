@@ -3,11 +3,11 @@
 Command-line options for the application.
 -}
 
-module Options 
+module Hledger.Cli.Options
 where
 import System.Console.GetOpt
 import System.Environment
-import Version (timeprogname)
+import Hledger.Version (timeprogname)
 import Ledger.IO (myLedgerPath,myTimelogPath)
 import Ledger.Utils
 import Ledger.Types

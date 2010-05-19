@@ -3,9 +3,9 @@ Convert account data in CSV format (eg downloaded from a bank) to ledger
 format, and print it on stdout. See the manual for more details.
 -}
 
-module Commands.Convert where
-import Options (Opt(Debug))
-import Version (versionstr)
+module Hledger.Cli.Commands.Convert where
+import Hledger.Cli.Options (Opt(Debug))
+import Hledger.Version (versionstr)
 import Ledger.Types (Ledger,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Ledger.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual)
 import Ledger.Parse (someamount, emptyCtx, ledgeraccountname)

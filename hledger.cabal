@@ -51,38 +51,23 @@ flag chart
   description: enable the pie chart generation
   default:     False
 
--- minimal library so cabal list and ghc-pkg list will show this package
-library
-  exposed-modules:
-                  Version
---   Build-Depends:
---                   base >= 3 && < 5
---                  ,containers
---                  ,directory
---                  ,filepath
---                  ,old-time
---                  ,parsec
---                  ,time
---                  ,utf8-string >= 0.3
---                  ,HUnit
-
 executable hledger
   main-is:        hledger.hs
   other-modules:
-                  HledgerMain
-                  Options
                   Paths_hledger
-                  Tests
-                  Utils
-                  Version
-                  Commands.Add
-                  Commands.All
-                  Commands.Balance
-                  Commands.Convert
-                  Commands.Histogram
-                  Commands.Print
-                  Commands.Register
-                  Commands.Stats
+                  Hledger.Tests
+                  Hledger.Utils
+                  Hledger.Version
+                  Hledger.Cli.Main
+                  Hledger.Cli.Options
+                  Hledger.Cli.Commands.Add
+                  Hledger.Cli.Commands.All
+                  Hledger.Cli.Commands.Balance
+                  Hledger.Cli.Commands.Convert
+                  Hledger.Cli.Commands.Histogram
+                  Hledger.Cli.Commands.Print
+                  Hledger.Cli.Commands.Register
+                  Hledger.Cli.Commands.Stats
   build-depends:
                   hledger-lib == 0.9
                  ,HUnit
@@ -107,13 +92,13 @@ executable hledger
 
   if flag(vty)
     cpp-options: -DVTY
-    other-modules:Commands.UI
+    other-modules:Hledger.Cli.Commands.UI
     build-depends:
                   vty >= 4.0.0.1
 
   if flag(web)
     cpp-options: -DWEB
-    other-modules:Commands.Web
+    other-modules:Hledger.Cli.Commands.Web
     build-depends:
                   hsp
                  ,hsx
@@ -128,7 +113,7 @@ executable hledger
 
   if flag(webhappstack)
     cpp-options: -DWEBHAPPSTACK
-    other-modules:Commands.Web
+    other-modules:Hledger.Cli.Commands.Web
     build-depends:
                   hsp
                  ,hsx
@@ -147,7 +132,91 @@ executable hledger
 
   if flag(chart)
     cpp-options: -DCHART
-    other-modules:Commands.Chart
+    other-modules:Hledger.Cli.Commands.Chart
+    build-depends:
+                  Chart >= 0.11
+                 ,colour
+
+library
+  exposed-modules:
+                  Hledger.Tests
+                  Hledger.Utils
+                  Hledger.Version
+                  Hledger.Cli.Main
+                  Hledger.Cli.Options
+                  Hledger.Cli.Commands.Add
+                  Hledger.Cli.Commands.All
+                  Hledger.Cli.Commands.Balance
+                  Hledger.Cli.Commands.Convert
+                  Hledger.Cli.Commands.Histogram
+                  Hledger.Cli.Commands.Print
+                  Hledger.Cli.Commands.Register
+                  Hledger.Cli.Commands.Stats
+  build-depends:
+                  hledger-lib >= 0.10
+                 ,HUnit
+                 ,base >= 3 && < 5
+                 ,containers
+                 ,csv
+                 ,directory
+                 ,filepath
+                 ,mtl
+                 ,old-locale
+                 ,old-time
+                 ,parsec
+                 ,process
+                 ,regexpr >= 0.5.1
+                 ,safe >= 0.2
+                 ,testpack >= 1 && < 2
+                 ,time
+                 ,utf8-string >= 0.3
+
+  -- should set patchlevel here as in Makefile
+  cpp-options:    -DPATCHLEVEL=0
+
+  if flag(vty)
+    cpp-options: -DVTY
+    exposed-modules:Hledger.Cli.Commands.UI
+    build-depends:
+                  vty >= 4.0.0.1
+
+  if flag(web)
+    cpp-options: -DWEB
+    exposed-modules:Hledger.Cli.Commands.Web
+    build-depends:
+                  hsp
+                 ,hsx
+                 ,xhtml >= 3000.2
+                 ,loli
+                 ,io-storage
+                 ,hack-contrib
+                 ,hack
+                 ,hack-handler-simpleserver
+                 ,HTTP >= 4000.0
+                 ,applicative-extras
+
+  if flag(webhappstack)
+    cpp-options: -DWEBHAPPSTACK
+    exposed-modules:Hledger.Cli.Commands.Web
+    build-depends:
+                  hsp
+                 ,hsx
+                 ,xhtml >= 3000.2
+                 ,loli
+                 ,io-storage
+                 ,hack-contrib
+                 ,hack
+                 ,hack-handler-happstack
+                 ,happstack >= 0.3
+                 ,happstack-data >= 0.3
+                 ,happstack-server >= 0.3
+                 ,happstack-state >= 0.3
+                 ,HTTP >= 4000.0
+                 ,applicative-extras
+
+  if flag(chart)
+    cpp-options: -DCHART
+    exposed-modules:Hledger.Cli.Commands.Chart
     build-depends:
                   Chart >= 0.11
                  ,colour

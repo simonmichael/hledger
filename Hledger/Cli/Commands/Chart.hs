@@ -4,14 +4,14 @@ Generate balances pie chart
 
 -}
 
-module Commands.Chart
+module Hledger.Cli.Commands.Chart
 where
 import Ledger.Utils
 import Ledger.Types
 import Ledger.Amount
 import Ledger.Ledger
 import Ledger.Commodity
-import Options
+import Hledger.Cli.Options
 
 import Control.Monad (liftM3)
 import Graphics.Rendering.Chart

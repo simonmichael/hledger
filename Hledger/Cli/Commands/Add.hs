@@ -5,11 +5,11 @@ A history-aware add command to help with data entry.
 
 -}
 
-module Commands.Add
+module Hledger.Cli.Commands.Add
 where
 import Ledger
-import Options
-import Commands.Register (showRegisterReport)
+import Hledger.Cli.Options
+import Hledger.Cli.Commands.Register (showRegisterReport)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import System.IO.UTF8
@@ -19,7 +19,7 @@ import System.IO ( stderr, hFlush, hPutStrLn, hPutStr )
 #endif
 import System.IO.Error
 import Text.ParserCombinators.Parsec
-import Utils (ledgerFromStringWithOpts)
+import Hledger.Utils (ledgerFromStringWithOpts)
 import qualified Data.Foldable as Foldable (find)
 
 -- | Read ledger transactions from the terminal, prompting for each field,

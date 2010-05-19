@@ -5,10 +5,10 @@ Print some statistics for the ledger.
 
 -}
 
-module Commands.Stats
+module Hledger.Cli.Commands.Stats
 where
 import Ledger
-import Options
+import Hledger.Cli.Options
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding ( putStr )
 import System.IO.UTF8

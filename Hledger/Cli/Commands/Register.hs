@@ -5,7 +5,7 @@ A ledger-compatible @register@ command.
 
 -}
 
-module Commands.Register (
+module Hledger.Cli.Commands.Register (
   register
  ,showRegisterReport
  ,showPostingWithBalance
@@ -14,7 +14,7 @@ module Commands.Register (
 
 import Safe (headMay, lastMay)
 import Ledger
-import Options
+import Hledger.Cli.Options
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding ( putStr )
 import System.IO.UTF8

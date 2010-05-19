@@ -36,4 +36,4 @@ See "Ledger.Ledger" for more examples.
 -}
 
 module Main where
-import HledgerMain (main)
+import Hledger.Cli.Main (main)
