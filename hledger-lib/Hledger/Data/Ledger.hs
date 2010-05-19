@@ -17,7 +17,7 @@ This is the main object you'll deal with as a user of the Ledger
 library. The most useful functions also have shorter, lower-case
 aliases for easier interaction. Here's an example:
 
-> > import Ledger
+> > import Hledger.Data
 > > l <- readLedger "sample.ledger"
 > > accountnames l
 > ["assets","assets:bank","assets:bank:checking","assets:bank:saving",...
@@ -51,16 +51,16 @@ aliases for easier interaction. Here's an example:
 
 -}
 
-module Ledger.Ledger
+module Hledger.Data.Ledger
 where
 import qualified Data.Map as Map
 import Data.Map (findWithDefault, fromList)
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Account (nullacct)
-import Ledger.AccountName
-import Ledger.Journal
-import Ledger.Posting
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Account (nullacct)
+import Hledger.Data.AccountName
+import Hledger.Data.Journal
+import Hledger.Data.Posting
 
 
 instance Show Ledger where

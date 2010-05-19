@@ -7,7 +7,7 @@ numbering policy.
 module Hledger.Version
 where
 import System.Info (os, arch)
-import Ledger.Utils
+import Hledger.Data.Utils
 
 -- version and PATCHLEVEL are set by the makefile
 version       = "0.8.0"

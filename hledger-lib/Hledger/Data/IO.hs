@@ -3,14 +3,14 @@
 Utilities for doing I/O with ledger files.
 -}
 
-module Ledger.IO
+module Hledger.Data.IO
 where
 import Control.Monad.Error
-import Ledger.Ledger (cacheLedger', nullledger)
-import Ledger.Parse (parseLedger)
-import Ledger.Types (FilterSpec(..),WhichDate(..),Journal(..),Ledger(..))
-import Ledger.Utils (getCurrentLocalTime)
-import Ledger.Dates (nulldatespan)
+import Hledger.Data.Ledger (cacheLedger', nullledger)
+import Hledger.Data.Parse (parseLedger)
+import Hledger.Data.Types (FilterSpec(..),WhichDate(..),Journal(..),Ledger(..))
+import Hledger.Data.Utils (getCurrentLocalTime)
+import Hledger.Data.Dates (nulldatespan)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 #if __GLASGOW_HASKELL__ <= 610

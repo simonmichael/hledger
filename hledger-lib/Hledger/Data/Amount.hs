@@ -38,11 +38,11 @@ price-discarding arithmetic which ignores and discards prices.
 
 -}
 
-module Ledger.Amount
+module Hledger.Data.Amount
 where
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Commodity
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Commodity
 
 
 instance Show Amount where show = showAmount

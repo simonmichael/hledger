@@ -7,13 +7,13 @@ we can get a date or description for a posting (from the transaction).
 
 -}
 
-module Ledger.Posting
+module Hledger.Data.Posting
 where
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Amount
-import Ledger.AccountName
-import Ledger.Dates (nulldate)
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Amount
+import Hledger.Data.AccountName
+import Hledger.Data.Dates (nulldate)
 
 
 instance Show Posting where show = showPosting

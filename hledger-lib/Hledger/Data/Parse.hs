@@ -140,7 +140,7 @@ o 2007/03/10 17:26:02
 
 -}
 
-module Ledger.Parse
+module Hledger.Data.Parse
 where
 import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
 import Text.ParserCombinators.Parsec
@@ -151,15 +151,15 @@ import System.Directory
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
 #endif
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Dates
-import Ledger.AccountName (accountNameFromComponents,accountNameComponents)
-import Ledger.Amount
-import Ledger.Transaction
-import Ledger.Posting
-import Ledger.Journal
-import Ledger.Commodity (dollars,dollar,unknown)
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Dates
+import Hledger.Data.AccountName (accountNameFromComponents,accountNameComponents)
+import Hledger.Data.Amount
+import Hledger.Data.Transaction
+import Hledger.Data.Posting
+import Hledger.Data.Journal
+import Hledger.Data.Commodity (dollars,dollar,unknown)
 import System.FilePath(takeDirectory,combine)
 
 

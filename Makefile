@@ -36,7 +36,8 @@ SOURCEFILES:= \
 	Hledger/Cli/*hs \
 	Hledger/Cli/Commands/*hs \
 	hledger-lib/*hs \
-	hledger-lib/Ledger/*hs
+	hledger-lib/Hledger/*hs \
+	hledger-lib/Hledger/Data/*hs
 DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)

@@ -1,15 +1,15 @@
 {-# LANGUAGE CPP #-}
 {-|
 
-Utilities for top-level modules and ghci. See also "Ledger.IO" and
-"Ledger.Utils".
+Utilities for top-level modules and ghci. See also Hledger.Data.IO and
+Hledger.Data.Utils.
 
 -}
 
 module Hledger.Utils
 where
 import Control.Monad.Error
-import Ledger
+import Hledger.Data
 import Hledger.Cli.Options (Opt(..),ledgerFilePathFromOpts) -- ,optsToFilterSpec)
 import System.Directory (doesFileExist)
 import System.IO (stderr)

@@ -10,11 +10,11 @@ A compound data type for efficiency. An 'Account' stores
 
 -}
 
-module Ledger.Account
+module Hledger.Data.Account
 where
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Amount
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Amount
 
 
 instance Show Account where

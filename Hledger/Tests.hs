@@ -36,7 +36,7 @@ import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 comp
 import System.Time (ClockTime(TOD))
 
 import Hledger.Cli.Commands.All
-import Ledger  -- including testing utils in Ledger.Utils
+import Hledger.Data  -- including testing utils in Hledger.Data.Utils
 import Hledger.Cli.Options
 import Hledger.Utils
 
@@ -59,8 +59,8 @@ runtests opts args = do
 -- inconvenient due to import cycles or whatever, we define them here.
 tests :: Test
 tests = TestList [
-   tests_Ledger,
-   tests_Commands,
+   tests_Hledger_Data,
+   tests_Hledger_Commands,
 
    "account directive" ~:
    let sameParse str1 str2 = do l1 <- journalFromString str1

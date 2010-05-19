@@ -6,18 +6,18 @@ to form a 'Ledger'.
 
 -}
 
-module Ledger.Journal
+module Hledger.Data.Journal
 where
 import qualified Data.Map as Map
 import Data.Map (findWithDefault, (!))
 import System.Time (ClockTime(TOD))
-import Ledger.Utils
-import Ledger.Types
-import Ledger.AccountName
-import Ledger.Amount
-import Ledger.Transaction (ledgerTransactionWithDate)
-import Ledger.Posting
-import Ledger.TimeLog
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.AccountName
+import Hledger.Data.Amount
+import Hledger.Data.Transaction (ledgerTransactionWithDate)
+import Hledger.Data.Posting
+import Hledger.Data.TimeLog
 
 
 instance Show Journal where

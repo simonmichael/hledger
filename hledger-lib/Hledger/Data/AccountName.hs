@@ -6,10 +6,10 @@ From a set of these we derive the account hierarchy.
 
 -}
 
-module Ledger.AccountName
+module Hledger.Data.AccountName
 where
-import Ledger.Utils
-import Ledger.Types
+import Hledger.Data.Utils
+import Hledger.Data.Types
 import Data.Map (Map)
 import qualified Data.Map as M
 

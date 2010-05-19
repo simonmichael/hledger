@@ -13,7 +13,7 @@ module Hledger.Cli.Commands.Register (
 ) where
 
 import Safe (headMay, lastMay)
-import Ledger
+import Hledger.Data
 import Hledger.Cli.Options
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding ( putStr )

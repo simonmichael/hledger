@@ -6,7 +6,7 @@ needed low in the module hierarchy. This is the bottom of the dependency graph.
 
 -}
 
-module Ledger.Utils (
+module Hledger.Data.Utils (
 module Data.Char,
 module Control.Monad,
 module Data.List,
@@ -18,7 +18,7 @@ module Data.Time.Clock,
 module Data.Time.Calendar,
 module Data.Time.LocalTime,
 module Debug.Trace,
-module Ledger.Utils,
+module Hledger.Data.Utils,
 module Text.Printf,
 module Text.RegexPR,
 module Test.HUnit,

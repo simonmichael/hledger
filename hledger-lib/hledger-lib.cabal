@@ -26,21 +26,21 @@ build-type:     Simple
 
 library
   exposed-modules:
-                  Ledger
-                  Ledger.Account
-                  Ledger.AccountName
-                  Ledger.Amount
-                  Ledger.Commodity
-                  Ledger.Dates
-                  Ledger.IO
-                  Ledger.Transaction
-                  Ledger.Journal
-                  Ledger.Ledger
-                  Ledger.Posting
-                  Ledger.Parse
-                  Ledger.TimeLog
-                  Ledger.Types
-                  Ledger.Utils
+                  Hledger.Data
+                  Hledger.Data.Account
+                  Hledger.Data.AccountName
+                  Hledger.Data.Amount
+                  Hledger.Data.Commodity
+                  Hledger.Data.Dates
+                  Hledger.Data.IO
+                  Hledger.Data.Transaction
+                  Hledger.Data.Journal
+                  Hledger.Data.Ledger
+                  Hledger.Data.Posting
+                  Hledger.Data.Parse
+                  Hledger.Data.TimeLog
+                  Hledger.Data.Types
+                  Hledger.Data.Utils
   Build-Depends:
                   base >= 3 && < 5
                  ,containers

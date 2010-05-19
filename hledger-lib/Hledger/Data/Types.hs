@@ -27,9 +27,9 @@ Terminology has been in flux:
 
 -}
 
-module Ledger.Types 
+module Hledger.Data.Types
 where
-import Ledger.Utils
+import Hledger.Data.Utils
 import qualified Data.Map as Map
 import System.Time (ClockTime)
 import Data.Typeable (Typeable)

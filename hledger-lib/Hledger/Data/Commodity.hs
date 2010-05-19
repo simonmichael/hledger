@@ -6,10 +6,10 @@ display 'Amount's of the commodity - is the symbol on the left or right,
 are thousands separated by comma, significant decimal places and so on.
 
 -}
-module Ledger.Commodity
+module Hledger.Data.Commodity
 where
-import Ledger.Utils
-import Ledger.Types
+import Hledger.Data.Utils
+import Hledger.Data.Types
 
 
 -- convenient amount and commodity constructors, for tests etc.

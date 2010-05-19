@@ -8,10 +8,10 @@ where
 import System.Console.GetOpt
 import System.Environment
 import Hledger.Version (timeprogname)
-import Ledger.IO (myLedgerPath,myTimelogPath)
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Dates
+import Hledger.Data.IO (myLedgerPath,myTimelogPath)
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Dates
 #if __GLASGOW_HASKELL__ <= 610
 import Codec.Binary.UTF8.String (decodeString)
 #endif

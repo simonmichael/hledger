@@ -12,7 +12,7 @@ import System.IO.UTF8
 #endif
 
 import Hledger.Cli.Commands.All
-import Ledger
+import Hledger.Data
 import Hledger.Cli.Options
 import Hledger.Tests
 import Hledger.Utils (withLedgerDo)

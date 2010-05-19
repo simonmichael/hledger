@@ -18,7 +18,7 @@ quarterly, etc.
 
 -}
 
-module Ledger.Dates
+module Hledger.Data.Dates
 where
 
 import Data.Time.Format
@@ -27,8 +27,8 @@ import System.Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.ParserCombinators.Parsec.Combinator
-import Ledger.Types
-import Ledger.Utils
+import Hledger.Data.Types
+import Hledger.Data.Utils
 
 
 showDate :: Day -> String

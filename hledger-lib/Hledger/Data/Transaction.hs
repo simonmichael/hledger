@@ -5,14 +5,14 @@ normally contains two or more balanced 'Posting's.
 
 -}
 
-module Ledger.Transaction
+module Hledger.Data.Transaction
 where
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Dates
-import Ledger.Posting
-import Ledger.Amount
-import Ledger.Commodity (dollars, dollar, unknown)
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Dates
+import Hledger.Data.Posting
+import Hledger.Data.Amount
+import Hledger.Data.Commodity (dollars, dollar, unknown)
 
 instance Show Transaction where show = showTransactionUnelided
 

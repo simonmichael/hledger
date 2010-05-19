@@ -44,7 +44,7 @@ import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Histogram
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
-import Ledger
+import Hledger.Data
 import Hledger.Cli.Options hiding (value)
 #ifdef MAKE
 import Paths_hledger_make (getDataFileName)

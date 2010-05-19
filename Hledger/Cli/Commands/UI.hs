@@ -8,7 +8,7 @@ module Hledger.Cli.Commands.UI
 where
 import Safe (headDef)
 import Graphics.Vty
-import Ledger
+import Hledger.Data
 import Hledger.Cli.Options
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Register

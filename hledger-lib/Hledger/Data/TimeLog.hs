@@ -6,13 +6,13 @@ converted to 'Transactions' and queried like a ledger.
 
 -}
 
-module Ledger.TimeLog
+module Hledger.Data.TimeLog
 where
-import Ledger.Utils
-import Ledger.Types
-import Ledger.Dates
-import Ledger.Commodity
-import Ledger.Transaction
+import Hledger.Data.Utils
+import Hledger.Data.Types
+import Hledger.Data.Dates
+import Hledger.Data.Commodity
+import Hledger.Data.Transaction
 
 instance Show TimeLogEntry where 
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)

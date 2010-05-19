@@ -7,7 +7,7 @@ Print some statistics for the ledger.
 
 module Hledger.Cli.Commands.Stats
 where
-import Ledger
+import Hledger.Data
 import Hledger.Cli.Options
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding ( putStr )

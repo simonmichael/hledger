@@ -7,7 +7,7 @@ A history-aware add command to help with data entry.
 
 module Hledger.Cli.Commands.Add
 where
-import Ledger
+import Hledger.Data
 import Hledger.Cli.Options
 import Hledger.Cli.Commands.Register (showRegisterReport)
 #if __GLASGOW_HASKELL__ <= 610

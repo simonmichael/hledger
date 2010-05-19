@@ -24,7 +24,7 @@ module Hledger.Cli.Commands.All (
 #ifdef CHART
                      module Hledger.Cli.Commands.Chart,
 #endif
-                     tests_Commands
+                     tests_Hledger_Commands
               )
 where
 import Hledger.Cli.Commands.Add
@@ -46,7 +46,7 @@ import Hledger.Cli.Commands.Chart
 import Test.HUnit (Test(TestList))
 
 
-tests_Commands = TestList
+tests_Hledger_Commands = TestList
     [
 --      Hledger.Cli.Commands.Add.tests_Add
 --     ,Hledger.Cli.Commands.Balance.tests_Balance
