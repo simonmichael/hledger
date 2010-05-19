@@ -1,8 +1,41 @@
 {-# LANGUAGE CPP #-}
 {-|
-The main function is in this separate module so it can be imported by
-benchmark scripts. As a side benefit, this avoids a weakness of sp, which
-doesn't allow both #! and \{\-\# lines.
+hledger - a ledger-compatible accounting tool.
+Copyright (c) 2007-2010 Simon Michael <simon@joyful.com>
+Released under GPL version 3 or later.
+
+hledger is a partial haskell clone of John Wiegley's "ledger".  It
+generates ledger-compatible register & balance reports from a plain text
+journal, and demonstrates a functional implementation of ledger.
+For more information, see http:\/\/hledger.org .
+
+This module provides the main function for the hledger command-line
+executable. It is exposed here so that it can be imported by eg benchmark
+scripts.
+
+You can use the command line:
+
+> $ hledger --help
+
+or ghci:
+
+> $ ghci hledger
+> > l <- readLedger "sample.ledger"
+> > register [] ["income","expenses"] l
+> 2008/01/01 income               income:salary                   $-1          $-1
+> 2008/06/01 gift                 income:gifts                    $-1          $-2
+> 2008/06/03 eat & shop           expenses:food                    $1          $-1
+>                                 expenses:supplies                $1            0
+> > balance [Depth "1"] [] l
+>                  $-1  assets
+>                   $2  expenses
+>                  $-2  income
+>                   $1  liabilities
+> > l <- myLedger
+> > t <- myTimelog
+
+See "Hledger.Data.Ledger" for more examples.
+
 -}
 
 module Hledger.Cli.Main where
