@@ -16,8 +16,6 @@ The hledger project aims to produce:
 
 hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
-2010/4/9: `hledger 0.9 released <http://hledger.org/NEWS.html#hledger-09>`_
-
 **Learn**
  news_, manual_, screenshots_, `some extra tips`_
 
