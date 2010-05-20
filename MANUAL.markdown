@@ -8,8 +8,6 @@ This is the official hledger manual. You may also want to visit the
 [http://hledger.org](http://hledger.org) home page, the
 [hledger for techies](README2.html) page, and for background,
 [c++ ledger's manual](http://joyful.com/repos/ledger/doc/ledger.html).
-A tip: on hledger.org, these docs are also available with .pdf
-suffix.
 
 ## User Guide
 
