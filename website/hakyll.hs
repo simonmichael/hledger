@@ -14,7 +14,7 @@ main = hakyll "http://hledger.org" $ do
       ,"README2.rst"
       ,"NEWS.rst"
       ,"SCREENSHOTS.rst"
-      ,"MANUAL.rst"
+      ,"MANUAL.markdown"
       ,"CONTRIBUTORS.rst"
       ]
     mapM_ static
