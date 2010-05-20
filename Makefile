@@ -485,7 +485,7 @@ endif
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	hledger.cabal \
-	Hledger/Version.hs \
+	Hledger/Cli/Version.hs \
 	hledger-lib/hledger-lib.cabal \
 
 Version.hs: $(VERSIONFILE)
