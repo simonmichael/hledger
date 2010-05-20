@@ -387,15 +387,16 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-*** bad day/month number should give a meaningful parse error but also not terminate hledger add
-*** better leap year checking
-ledger:
-While parsing file "/Users/simon/personal/2010.ledger", line 442: 
-While parsing transaction:
-> 2/27=2/29 (20100201ucla) ucla payment
-Error: Day of month is not valid for year
+*** balance: stack space overflow
+<<<
+i 2009/01/02 10:18:26 work:business:systems:website:outage
+o 2009/01/02 10:35:03
 
-*** register, balance eat memory
+$ hours -p 2007 bal
+Stack space overflow: current size 8388608 bytes.
+Use `+RTS -Ksize' to increase it.
+
+*** register: eats memory
 $ hours stats
 Ledger statistics as of 2010-04-01
 ----------------------------------
@@ -410,11 +411,78 @@ Account tree depth       : 8
 Commodities              : 2 (h, p)                               
 $ hours reg ...Nx100Mb...
 
-*** balance: stack space overflow
-$ hours -p 2007 bal
-Stack space overflow: current size 8388608 bytes.
-Use `+RTS -Ksize' to increase it.
+*** register: with reporting interval and depth, should aggregate deeper txns to specified depth
+*** print: virtual parentheses/brackets throw off alignment
+<<<
+2009/01/27 (1/2009) Foobar 2
+    VLL:VLL_1_Year                           -7140.00 USD  ; Some comment
+    (Company:Baz)                                -7140.00 USD
+    FLL:Foreign   6000.0 USD
+    VLL_VAT                  1140.0 USD
+>>>
+2009/03/27 (000007) Foobar 1
+    FLL           6783.00 USD
+    (Company:Baz)   6783.00 USD
+    VAT          -5700.00 USD
+    VLL_VAT      -1083.00 USD
 
+*** parsing: timelog conversion gives unbalanced txns
+hledger -f- print
+<<<
+i 2009/01/02 10:18:26 work:business:systems:website:outage
+o 2009/01/02 10:35:03
+>>>
+2009/01/02 * 10:18-10:35
+    work:business:systems:website:outage          0.3h
+
+*** parsing: misleading error when final newline missing
+hledger -f- balance
+<<<
+2010/1/1
+  a  1
+  b
+>>>
+>>>2
+"-" (line 1, column 9):
+unexpected "\r"
+expecting digit, effective date, cleared flag, transaction code or description and/or comment
+>>>= 1
+
+*** parsing: wrong line number in error
+hledger -f- print
+<<<
+2010-03-18 Postage
+  Foo        11.04 GBP @@ 12.46 EUR  ; @ 1.129 EUR
+  Bar
+>>>
+hledger: parse error at (line 1, column 24):
+unexpected "@"
+expecting comment or new-line
+
+*** parsing: errors should include the file name
+This one does:
+$ hledger -b today
+"/Users/simon/personal/current.journal" (line 4, column 1) in included file "2010.journal":
+"2010.journal" (line 1013, column 1):
+unexpected "\n"
+could not balance this transaction (real postings are off by $-3156.72)
+
+This one doesn't:
+$ hledger -f 2008.journal stat
+hledger: parse error at (line 1, column 59):
+unexpected "["
+expecting comment or new-line
+
+*** parsing: better leap year checking
+ledger:
+While parsing file "/Users/simon/personal/2010.ledger", line 442:
+While parsing transaction:
+> 2/27=2/29 (20100201ucla) ucla payment
+Error: Day of month is not valid for year
+
+*** convert: rules file can't have blank lines after last data
+
+*** vty: left arrow from register view doesn't show full list of accounts
 ** refactoring, code cleanup
 *** more modularity
 **** plugin strategy
@@ -435,8 +503,12 @@ Use `+RTS -Ksize' to increase it.
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** register --wide and/or --format ...
+*** --related
 *** Double -> Decimal
 *** parsing: safety check that effective date > actual (to catch eg 2009/12/30=1/4)
+*** parsing: support @@
+*** parsing: support D
 *** parsing: accept all real-world ledger files
 As far as I know it currently accepts all ledger 2.6-era files.
 Add support for ledger 3 file format as/when that stabilises.
@@ -454,6 +526,44 @@ improve reliability
 *** web: charts (Chart or google)
 *** wide/customisable/consistent layout
 *** --flat balance report format
+#not:
+#hledger bal clearview
+#               43.4h  TIME:work:jobs:clearview
+#                1.7h    bad retention collection
+#                0.1h    cash receipts sales co heading
+#                0.4h    commissions dashboard breakage
+#                4.1h    commissions:total detail starting balance
+#                0.5h    cvmanage issues
+#                1.3h    dashboard error
+#                0.5h      update error logging system
+#                1.0h    filter views by sales co:commissions
+#                1.0h    html2ps error
+#                6.1h    payments have wrong sales co
+#                0.4h    site hang
+#                0.2h    sysadmin
+#               26.6h    title 24
+#--------------------
+#               43.5h
+#but:
+#hledger bal clearview --flat --depth 5
+#                1.7h    bad retention collection
+#                0.1h    cash receipts sales co heading
+#                0.4h    commissions dashboard breakage
+#                4.1h    commissions:total detail starting balance
+#                0.5h    cvmanage issues
+#                1.3h    dashboard error
+#                1.0h    filter views by sales co:commissions
+#                1.0h    html2ps error
+#                6.1h    payments have wrong sales co
+#                0.4h    site hang
+#                0.2h    sysadmin
+#               26.6h    title 24
+#--------------------
+#               43.4h
+#
+#- only depth 5 accounts are shown
+#- extra amount in parent account, if any, is added as misc
+#- visible numbers add up to the visible total
 *** effective/actual dates for postings
 *** better web ui/gui
 *** nice reports with charts
