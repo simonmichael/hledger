@@ -56,51 +56,51 @@ hledgercabal:
 
 # build the standard developer's binary, quickly
 hledger: setversion
-	ghc --make hledger.hs -o hledger $(BUILDFLAGS) # -O
+	ghc --make hledger.hs -o bin/hledger $(BUILDFLAGS) # -O
 
 hledgernowarnings: setversion
-	ghc --make hledger.hs -o hledger $(BUILDFLAGS) -Werror -v0
+	ghc --make hledger.hs -o bin/hledger $(BUILDFLAGS) -Werror -v0
 
 # build the profiling-enabled binary. You may need to cabal install
 # --reinstall -p some libs.
 hledgerp: setversion
-	ghc --make hledger.hs -prof -auto-all -o hledgerp $(BUILDFLAGS) 
+	ghc --make hledger.hs -prof -auto-all -o bin/hledgerp $(BUILDFLAGS)
 
 # build the coverage-enabled binary. coverage-enabled .o files are kept
 # separate to avoid contamination.
 hledgercov: setversion
-	ghc --make hledger.hs -fhpc -o hledgercov -outputdir .coverageobjs $(BUILDFLAGS) 
+	ghc --make hledger.hs -fhpc -o bin/hledgercov -outputdir .coverageobjs $(BUILDFLAGS)
 
 # build the fastest binary we can
 hledgeropt: setversion
-	ghc --make hledger.hs -o hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
+	ghc --make hledger.hs -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build a deployable binary for mac, one which uses only standard osx libs
 # use some trickery to link without gmp lib
 hledgermac: setversion
-	ghc -c --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
+	ghc -c --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
 	sudo port deactivate gmp
-	-PATH=tools:$(PATH) ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
+	-PATH=tools:$(PATH) ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
 	sudo port activate gmp
 	@echo Please check the build looks portable:
 	otool -L $(BINARYFILENAME)
 
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
-	ghc --make hledger.hs -o $(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+	ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 	@echo Please check the build looks portable:
 	-ldd $(BINARYFILENAME)
 
 # build a deployable binary for windows, using cygwin presumably
 # hledgerwin: setversion
-# 	ghc --make hledger.hs -o hledgerlinux $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+# 	ghc --make hledger.hs -o bin/hledgerlinux $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 
 # "continuous integration" testing - auto-recompile and run hledger test
 # (or some other command) whenever a module changes. sp is from
 # searchpath.org , you might need the patched version from
 # http://joyful.com/repos/searchpath .
 continuous ci: setversion
-	sp --no-exts --no-default-map -o hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
+	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
 
 # fix permissions (eg after darcs get)
 fixperms:
