@@ -46,45 +46,84 @@ released as Free Software under GPL version 3 or later.
 ### Installing
 
 hledger works on all major platforms. One of these pre-built
-[binaries](http://hledger.org/binaries/) might work for you. If not,
-please [report the problem](http://hledger.org/README2.html#support), then
-install the [Haskell Platform](http://hackage.haskell.org/platform/) and
-type:
+[binaries](http://hledger.org/binaries/) might work for you, but at
+present these are not very up-to-date, so preferably..
 
-    cabal update
-    cabal install hledger
+1. If you don't already have the Glasgow Haskell Compiler and
+   cabal-install, download and install the
+   [Haskell Platform](http://hackage.haskell.org/platform/).  Or, you may
+   be able to use platform packages; eg on Ubuntu Lucid, do `apt-get
+   install ghc6 cabal-install happy`.
 
-You can add some options to the install command to include extra features:
+2. Make sure ~/.cabal/bin is in your path. This is useful so that you can
+   run hledger by just typing "hledger", and necessary if (eg) you install
+   with -fweb, to avoid an installation failure..
 
--   Add `-fvty` to build the [ui](#ui) command. This is not
-    available on microsoft windows.
+2. Install hledger with cabal-install:
 
--   Add `-fweb` to build the [web](#web) command.
+        cabal update
+        cabal install hledger
 
-    Note: this uses a simple web server which might not support older
-    browsers like IE6. To build with a more featureful (but slightly
-    harder to install) web server, use `-fwebhappstack` instead.
+    You can add the following options to the install command to include extra features
+    (these are not enabled by default as they are harder to build):
 
--   Add `-fchart` to build the [chart](#chart) command. This
-    requires [gtk2hs](http://www.haskell.org/gtk2hs/download/), which
-    you'll need to install yourself as it's not yet provided by the
-    haskell platform or cabal.
+    - `-fvty` - builds the [ui](#ui) command. (Not available on microsoft
+        windows.)
 
+    - `-fweb` - builds the [web](#web) command. This uses a lightweight
+        web server which might not support older browsers like IE6; for a
+        more robust web server, use `-fwebhappstack` instead.
 
-Here are some issues that have been encountered, with workarounds:
+    - `-fchart` builds the [chart](#chart) command. This requires
+        [gtk2hs](http://www.haskell.org/gtk2hs/download/), which you'll
+        need to install yourself as it's not yet provided by the haskell
+        platform or cabal.
 
--   cabal-install 0.6.4 might succeed if cabal-install 0.6.2 does
-    not
+ This is usually where cabal
+   will install the hledger executable, and possibly others needed during
+   installation.
 
--   In some cases, cabal install can fail with a compilation or
-    link error due to incompatible package versions. You can sometimes
-    work around this by specifying versions manually. Eg here's a
-    recipe for building with happstack on haskell platform 2009.2.0.2
-    on MS Windows:
+#### Installation Problems
 
-        cabal install hledger -fwebhappstack --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
+The above builds a lot of software, and it's not always smooth sailing.
+Here are some known issues and things to try:
 
--   A ghc panic while building might be due to
+- **Ask for help on [#hledger](irc://freenode.net/#hledger) or [#haskell](irc://freenode.net/#haskell)**
+
+- **cabal update.** If you didn't already, ``cabal update`` and try again.
+
+- **Do you have a new enough version of GHC ?** As of 2010, 6.10 and 6.12
+    are supported, 6.8 might or might not work.
+
+- **Do you have a new enough version of cabal-install ?**
+  Newer versions tend to be better at resolving problems. 0.6.2 has been
+  known to fail where newer versions succeed.
+
+- **Installation fails, reporting problems in packages A, B and C.**
+  Resolve the problem packages one at a time. Eg, cabal install A.  Look
+  for the cause of the failure near the end of the output. If it's not
+  apparent, try again with `-v2` or `-v3` for more verbose output.
+
+- **Could not run trhsx.**
+  You are installing -fweb, which needs to run the ``trhsx`` executable.
+  It is usually installed in ~/.cabal/bin, which may not be in your path.
+
+- **Could not run happy.**
+  A package (eg haskell-src-exts) needs to run the ``happy`` executable.
+  If not using the haskell platform, install the appropriate platform
+  package which provides it (eg apt-get install happy).
+
+- **cabal could not reconcile dependencies**
+  In some cases, especially if you have installed/updated many packages or
+  GHC itself, cabal may not be able to figure out the installation.  This
+  can also arise due to non-optimal dependency information configured in
+  hledger or its dependencies. You can sometimes work around this by using
+  cabal's `--constraint` option. Eg this recipe was used to build with
+  happstack on haskell platform 2009.2.0.2 on MS Windows:
+
+      cabal install hledger -fwebhappstack --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
+
+- **A ghc panic while building** might be due to
     [http://hackage.haskell.org/trac/ghc/ticket/3862](http://hackage.haskell.org/trac/ghc/ticket/3862)
 
 
