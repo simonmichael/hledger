@@ -45,9 +45,11 @@ released as Free Software under GPL version 3 or later.
 
 ### Installing
 
-hledger works on all major platforms. One of these pre-built
+hledger works on all major platforms; here are the [release
+notes](http://hledger.org/NEWS.html). One of these pre-built
 [binaries](http://hledger.org/binaries/) might work for you, but at
-present these are not very up-to-date, so preferably..
+present these are not very up-to-date, so the usual thing is to build
+with the cabal-install tool:
 
 1. If you don't already have the Glasgow Haskell Compiler and
    cabal-install, download and install the
@@ -59,7 +61,7 @@ present these are not very up-to-date, so preferably..
    run hledger by just typing "hledger", and necessary if (eg) you install
    with -fweb, to avoid an installation failure..
 
-2. Install hledger with cabal-install:
+3. Install hledger with cabal-install:
 
         cabal update
         cabal install hledger
@@ -79,10 +81,6 @@ present these are not very up-to-date, so preferably..
         need to install yourself as it's not yet provided by the haskell
         platform or cabal.
 
- This is usually where cabal
-   will install the hledger executable, and possibly others needed during
-   installation.
-
 #### Installation Problems
 
 The above builds a lot of software, and it's not always smooth sailing.
@@ -99,7 +97,20 @@ Here are some known issues and things to try:
   Newer versions tend to be better at resolving problems. 0.6.2 has been
   known to fail where newer versions succeed.
 
-- **Installation fails, reporting problems in packages A, B and C.**
+- **Installation fails, reporting problems with a hledger package.**
+  That hledger release might have a coding error (heavens), or
+  compatibility problems have been revealed as dependencies have been
+  updated.  You could try installing the [previous hledger
+  version](http://hackage.haskell.org/package/hledger) (``cabal
+  install hledger-0.x``) or, preferably, the latest hledger
+  development code, which is likely to work best.  In a nutshell,
+  install [darcs](http://darcs.net) and:
+
+        darcs get --lazy http://joyful.com/repos/hledger
+        cd hledger/hledger-lib; cabal install
+        cd ..; cabal install [-fweb] [-fvty]
+
+- **Installation fails, reporting problems with packages A, B and C.**
   Resolve the problem packages one at a time. Eg, cabal install A.  Look
   for the cause of the failure near the end of the output. If it's not
   apparent, try again with `-v2` or `-v3` for more verbose output.
@@ -113,22 +124,18 @@ Here are some known issues and things to try:
   If not using the haskell platform, install the appropriate platform
   package which provides it (eg apt-get install happy).
 
+- **A ghc panic while building** might be due to
+    [http://hackage.haskell.org/trac/ghc/ticket/3862](http://hackage.haskell.org/trac/ghc/ticket/3862)
+
 - **cabal could not reconcile dependencies**
   In some cases, especially if you have installed/updated many packages or
   GHC itself, cabal may not be able to figure out the installation.  This
   can also arise due to non-optimal dependency information configured in
   hledger or its dependencies. You can sometimes work around this by using
-  cabal's `--constraint` option. Eg this recipe was used to build with
+  cabal's `--constraint` option. Eg this recipe was once used to build with
   happstack on haskell platform 2009.2.0.2 on MS Windows:
 
-      cabal install hledger -fwebhappstack --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
-
-- **A ghc panic while building** might be due to
-    [http://hackage.haskell.org/trac/ghc/ticket/3862](http://hackage.haskell.org/trac/ghc/ticket/3862)
-
-
-Release notes are at
-[http://hledger.org/NEWS.html](http://hledger.org/NEWS.html) .
+        cabal install hledger -fwebhappstack --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
 
 ### Basic usage
 
