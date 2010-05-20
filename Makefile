@@ -9,7 +9,7 @@ CICMD=test
 CICMD=web -v --debug -f ~/personal/2009.ledger
 
 # command to run during "make prof/heap"
-PROFCMD=-f 1000x1000x10.ledger balance
+PROFCMD=-f data/1000x1000x10.ledger balance
 
 # command to run during "make coverage"
 COVCMD=test
@@ -255,21 +255,21 @@ ghci:
 	ghci -DMAKE $(OPTFLAGS) hledger.hs
 
 # generate standard sample ledgers
-sampleledgers: sample.ledger 100x100x10.ledger 1000x1000x10.ledger 10000x1000x10.ledger 100000x1000x10.ledger
+sampleledgers: data/sample.ledger data/100x100x10.ledger data/1000x1000x10.ledger data/10000x1000x10.ledger data/100000x1000x10.ledger
 
-sample.ledger:
+data/sample.ledger:
 	true # XXX should probably regenerate this
 
-100x100x10.ledger: tools/generateledger
+data/100x100x10.ledger: tools/generateledger
 	tools/generateledger 100 100 10 >$@
 
-1000x1000x10.ledger: tools/generateledger
+data/1000x1000x10.ledger: tools/generateledger
 	tools/generateledger 1000 1000 10 >$@
 
-10000x1000x10.ledger: tools/generateledger
+data/10000x1000x10.ledger: tools/generateledger
 	tools/generateledger 10000 1000 10 >$@
 
-100000x1000x10.ledger: tools/generateledger
+data/100000x1000x10.ledger: tools/generateledger
 	tools/generateledger 100000 1000 10 >$@
 
 ######################################################################
