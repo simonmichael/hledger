@@ -88,7 +88,7 @@ a {
 }
 pre {
     background: #F8F8F8; /* The same as the GitHub background color since I'm using their syntax.css */
-    padding: 15px;
+    padding: 0 2em 0 2em;
 }
 hr {
     border: 0;
