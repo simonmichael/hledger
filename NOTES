@@ -1,48 +1,22 @@
 hledger project notes
 =====================
 
-* principles
-** We aim to make reliable, maintainable, usable, useful software, sustainably.
-** "bugs" are errors, as in the programmers messed up
-** packaging before docs before tests before fixes before refactoring before features
-** automate
-** measure
-** test continuously, test everything
-** less is more
-** pair programming/code review
-** inspiration
-"...simplicity of design was the most essential, guiding principle.
-Clarity of concepts, economy of features, efficiency and reliability of
-implementations were its consequences." --Niklaus Wirth
-
-"The competent programmer is fully aware of the limited size of his own
-skull. He therefore approaches his task with full humility, and avoids
-clever tricks like the plague." --Edsger Dijkstra
-
-
-* to do
-** packaging, installability
-*** easier installation
-**** all platforms
-***** binary build/publish process
-***** reduce dependencies
-***** split packages ?
-**** linux
-***** keep up with debian/ubuntu haskell packagers
-**** mac
-***** easy data entry, then
-***** easy installer
-***** easy startup
-**** windows
-***** easy data entry, then
-***** easy installer
-***** easy startup
+* todo/backlog
 ** documentation, marketing
+*** developer notes & log
+*** website hakyll conversion
+**** add tables of contents
+**** integrate binaries page ?
+*** manual
 *** add missing
-**** hledger/ledger feature matrix
+**** faq
+**** examples/how-tos
+**** hledger/ledger comparison/feature matrix
+**** blog posts
 *** reduce
 *** aesthetics
 **** better screenshots/images
+***** use highslide
 *** automation
 **** keep blurbs in sync
 ***** README file
@@ -91,17 +65,18 @@ clever tricks like the plague." --Edsger Dijkstra
 ***** a tour of hledger's code
 **** ledger cooperation
 *** developer docs
+**** developer notes & log
 **** roadmap
 ***** 1.0
 culmination of 0.x releases - stable/usable/documented
 followup releases are 1.01, 1.02..
-GHC 6.10/HP 2009 primary platform
-GHC 6.12/HP 2010 also supported if possible
+GHC 6.12/HP 2010 primary platform
+GHC 6.10/HP 2009 also supported if possible
 GHC 6.8 might work for core features, but not officially supported
 separate ledger package ? license ?
 separate vty, web packages ?
 support plugins ?
-web: loli+hsp+hack+simpleserver/happstack, or yesod+hstringtemplate+wai+simpleserver(/happstack) ?
+web: loli+hsp+hack+simpleserver/happstack, or yesod+hstringtemplate+wai+simpleserver/happstack ?
 add: completion ?
 chart: register charts ?
 histogram: cleaned up/removed
@@ -114,7 +89,6 @@ separate ledger lib
 plugins
 Decimal
 binaries for all platforms
-
 
 **** internal api docs
 **** external api docs
@@ -135,12 +109,11 @@ hledger.org/{list,bugs}/* also works
 ****** coding
 ****** funding process
 ***** reference
-****** unsafe things which may fail at runtime
+****** unsafe things which may fail at runtime include..
 ******* incomplete pattern matching
 ******* error
 ******* printf
 ******* read
-**** project notes
 **** functional programming
 hledger is written in the Haskell programming language;
 it demonstrates a pure functional implementation of ledger.
@@ -348,6 +321,23 @@ competitors/fellow niche inhabitants
        most haskellers have never heard of hledger, sounds arrogant or hubristic to talk of charging for it
 
 **** home edition
+**** real-time project ledger
+** packaging, installability
+*** easier installation
+**** all platforms
+***** binary build/publish process
+***** reduce dependencies
+***** split packages ?
+**** linux
+***** keep up with debian/ubuntu haskell packagers
+**** mac
+***** easy data entry, then
+***** easy installer
+***** easy startup
+**** windows
+***** easy data entry, then
+***** easy installer
+***** easy startup
 ** testing
 *** documentation
 **** site up, current
@@ -387,12 +377,11 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-*** balance: stack space overflow
+*** balance: stack space overflow on timelog entries with colons
 <<<
-i 2009/01/02 10:18:26 work:business:systems:website:outage
-o 2009/01/02 10:35:03
-
-$ hours -p 2007 bal
+i 2010/1/1 09:15:00 a:b
+o 2010/1/1 09:45:00
+>>>2
 Stack space overflow: current size 8388608 bytes.
 Use `+RTS -Ksize' to increase it.
 
@@ -412,6 +401,15 @@ Commodities              : 2 (h, p)
 $ hours reg ...Nx100Mb...
 
 *** register: with reporting interval and depth, should aggregate deeper txns to specified depth
+*** parsing: timelog conversion gives unbalanced txns
+hledger -f- print
+<<<
+i 2009/01/02 10:18:26 work:business:systems:website:outage
+o 2009/01/02 10:35:03
+>>>
+2009/01/02 * 10:18-10:35
+    work:business:systems:website:outage          0.3h
+
 *** print: virtual parentheses/brackets throw off alignment
 <<<
 2009/01/27 (1/2009) Foobar 2
@@ -425,15 +423,6 @@ $ hours reg ...Nx100Mb...
     (Company:Baz)   6783.00 USD
     VAT          -5700.00 USD
     VLL_VAT      -1083.00 USD
-
-*** parsing: timelog conversion gives unbalanced txns
-hledger -f- print
-<<<
-i 2009/01/02 10:18:26 work:business:systems:website:outage
-o 2009/01/02 10:35:03
->>>
-2009/01/02 * 10:18-10:35
-    work:business:systems:website:outage          0.3h
 
 *** parsing: misleading error when final newline missing
 hledger -f- balance
@@ -482,14 +471,20 @@ Error: Day of month is not valid for year
 
 *** convert: rules file can't have blank lines after last data
 
-*** vty: left arrow from register view doesn't show full list of accounts
-** refactoring, code cleanup
+** refactoring, cleanup
 *** more modularity
+**** packages/namespace
+***** make cli reusable
+****** balance sheet add-on script
+***** more package splits
+****** hledger-web
+****** hledger-vty
+****** makefile review/update
 **** plugin strategy
 **** export lists
 **** graph and reduce dependencies
 *** clarify levels of abstraction
-**** balance sheet view - data model, view layout
+**** web ui balance sheet view - data model, view layout
 **** hledger web framework - define routes, handlers/views/actions/controllers/presenters, skins/styles..
 **** happstack - ? happstack api..
 **** hledger app platform - hledger.hs, Options, Utils, withLedgerDo..
@@ -621,6 +616,24 @@ plugins can be discovered/loaded by module path or by loading files directly
 
 
 * misc
+** principles
+*** we aim to make reliable, maintainable, usable, useful software, sustainably.
+*** "bugs" are errors, as in the programmers messed up
+*** docs before packaging before tests before fixes before refactoring before features
+*** automate
+*** measure
+*** test continuously, test everything
+*** less is more
+*** code review/pair programming
+*** inspiration
+"...simplicity of design was the most essential, guiding principle.
+Clarity of concepts, economy of features, efficiency and reliability of
+implementations were its consequences." --Niklaus Wirth
+
+"The competent programmer is fully aware of the limited size of his own
+skull. He therefore approaches his task with full humility, and avoids
+clever tricks like the plague." --Edsger Dijkstra
+
 ** things I want to know
 *** time
 where have I been spending my time in recent weeks ?
@@ -665,7 +678,21 @@ are there any cashflow, tax, budgetary problems looming ?
 *** http://www.n-heptane.com/nhlab/repos/Decimal/
 *** http://www.n-heptane.com/nhlab/repos/Decimal/Money.hs
 *** http://www2.hursley.ibm.com/decimal/
-** snippets
+** docs
+*** http://en.wikibooks.org/wiki/Accounting
+*** http://books.google.com/books?id=4V8pZmpwmBYC&lpg=PP1&dq=analysis%20patterns&pg=PA95#v=onepage&q&f=false
+*** lwn grumpy editor articles
+**** http://lwn.net/Articles/149383/
+**** http://lwn.net/Articles/153043/
+**** http://lwn.net/Articles/233627/
+**** http://lwn.net/Articles/314577/
+**** http://lwn.net/Articles/387967/ (free after 5/27)
+** software
+*** http://gnucash.org
+*** http://www.xtuple.com/postbooks
+*** http://weberp.org
+**** http://www.weberp.org/weberp/doc/Manual/ManualContents.php
+** code snippets
 -- trace a MixedAmount
 matrace :: MixedAmount -> MixedAmount
 matrace a@(Mixed as) = trace (show as) a
@@ -681,17 +708,14 @@ runTests' :: Args -> Bool -> PackageDescription -> LocalBuildInfo -> IO ()
 runTests' _ _ _ lbi = system testprog >> return ()
   where testprog = (buildDir lbi) </> "hledger" </> "hledger test"
 
-** http://lwn.net/Articles/314577/
-** financial software
-*** http://weberp.org
-**** http://www.weberp.org/weberp/doc/Manual/ManualContents.php
 ** issues with pandoc's rst support
 *** treats HOME's h2s as h1
 *** quotes only first line of a :: literal block
 *** doesn't support http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#indirect-hyperlink-targets
 ** must-read article on currency & capital gains accounting
 http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
-** fabrice niessen
+** feedback
+*** fabrice niessen
 +For me, what would be very useful for a 1.0 version would be:
 +
 +- @check directive (see beancount), but implemented as a comment for ledger,
@@ -712,3 +736,35 @@ http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
 +  heading and producing reports through Org, which is 1000x better). Results
 +  soon.
 +
+
+
+* journal
+** 2010
+*** 5/4
+**** balance sheet pomodoro 1
+started balance sheet script
+began refactoring for importable Hledger.Cli.*
+set up missing tools on netbook: haskell-mode
+adapt to distro & ghc 6.12 upgrade
+ install missing cabal packages
+ tighten dependency to avoid testpack 2.0 api change
+ ghc-pkg dump error
+**** balance sheet pomodoro 2
+set up work log
+adapt to distro & ghc 6.12 upgrade: ghc-pkg dump error (cabal clean)
+tools setup: hasktags
+move Options to Hledger.Cli
+got trivial balancesheet script working
+deal with darcs mv screwup
+*** 5/6
+**** review/cleanup pomodoro
+review/record pending changes
+develop work log/backlog
+website hakyll conversion
+*** 5/19
+researched current web libs
+finished move to Hledger module space
+cleaned up notes
+*** 5/20
+converted manual to markdown
+more detailed installation docs
