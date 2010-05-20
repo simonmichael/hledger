@@ -1,0 +1,17 @@
+base-account assets:bank:checking
+date-field 0
+description-field 4
+amount-field 1
+currency $
+
+# account-assigning rules
+
+SPECTRUM
+expenses:health:gym
+
+ITUNES
+BLKBSTR=BLOCKBUSTER
+expenses:entertainment
+
+(TO|FROM) SAVINGS
+assets:bank:savings
