@@ -302,15 +302,16 @@ docs: site apidocs
 
 # build the hledger.org website
 # Requires hakyll (cabal install hakyll)
-site: website/hakyll
-	cd website; ./hakyll build
-	cd website/_site; ln -sf README.html index.html
+.PHONY: site
+site: site/hakyll
+	cd site; ./hakyll build
+	cd site/_site; ln -sf README.html index.html
 
-website/hakyll: website/hakyll.hs
-	cd website; ghc --make hakyll.hs
+site/hakyll: site/hakyll.hs
+	cd site; ghc --make hakyll.hs
 
 viewsite: site
-	$(VIEWHTML) website/_site/index.html
+	$(VIEWHTML) site/_site/index.html
 
 # generate html versions of docs (and the hledger.org website)
 # work around pandoc not handling full rst image directive
