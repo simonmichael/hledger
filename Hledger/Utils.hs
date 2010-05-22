@@ -40,14 +40,15 @@ withLedgerDo opts args cmdname cmd = do
   t <- getCurrentLocalTime
   tc <- getClockTime
   txt <-  if creating then return "" else strictReadFile f'
-  let runcmd = cmd opts args . mkLedger opts f tc txt
+  let runcmd = cmd opts args . makeUncachedLedgerWithOpts opts f tc txt
+  -- (though commands receive an uncached ledger, their type signature is just "Ledger" for now)
   if creating
    then runcmd nulljournal
    else (runErrorT . parseLedgerFile t) f >>= either parseerror runcmd
     where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
 
-mkLedger :: [Opt] -> FilePath -> ClockTime -> String -> Journal -> Ledger
-mkLedger opts f tc txt j = nullledger{journal=j'}
+makeUncachedLedgerWithOpts :: [Opt] -> FilePath -> ClockTime -> String -> Journal -> UncachedLedger
+makeUncachedLedgerWithOpts opts f tc txt j = nullledger{journal=j'}
     where j' = (canonicaliseAmounts costbasis j){filepath=f,filereadtime=tc,jtext=txt}
           costbasis=CostBasis `elem` opts
 
@@ -56,7 +57,7 @@ ledgerFromStringWithOpts :: [Opt] -> String -> IO Ledger
 ledgerFromStringWithOpts opts s = do
     tc <- getClockTime
     j <- journalFromString s
-    return $ mkLedger opts "" tc s j
+    return $ makeUncachedLedgerWithOpts opts "" tc s j
 
 -- -- | Read a Ledger from the given file, or give an error.
 -- readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger

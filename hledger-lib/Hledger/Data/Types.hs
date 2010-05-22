@@ -137,6 +137,10 @@ data Ledger = Ledger {
       accountmap :: Map.Map AccountName Account
     } deriving Typeable
 
+-- | An incomplete ledger, containing just the journal. Currently just a
+-- visual indicator used in a few places.
+type UncachedLedger = Ledger
+
 -- | A generic, pure specification of how to filter transactions/postings.
 -- This exists to keep app-specific options out of the hledger library.
 data FilterSpec = FilterSpec {

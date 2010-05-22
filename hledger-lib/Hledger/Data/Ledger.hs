@@ -78,21 +78,14 @@ nullledger = Ledger{
     }
 
 -- | Convert a journal to a more efficient cached ledger, described above.
-cacheLedger :: Journal -> Ledger
-cacheLedger j = nullledger{journal=j,accountnametree=ant,accountmap=amap}
-    where (ant, amap) = crunchJournal j
+makeLedger :: Journal -> Ledger
+makeLedger j = nullledger{journal=j,accountnametree=ant,accountmap=amap} where (ant, amap) = crunchJournal j
 
--- | Add (or recalculate) the cached journal info in a ledger.
-cacheLedger' :: Ledger -> CachedLedger
-cacheLedger' l = l{accountnametree=ant,accountmap=amap}
-    where (ant, amap) = crunchJournal $ journal l
-
--- | Like cacheLedger, but filtering the journal first.
-cacheLedger'' filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=ant,accountmap=amap}
+-- | Filter and re-cache a ledger.
+filterLedger :: FilterSpec -> Ledger -> Ledger
+filterLedger filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=ant,accountmap=amap}
     where (ant, amap) = crunchJournal j'
           j' = filterJournalPostings filterspec{depth=Nothing} j
-
-type CachedLedger = Ledger
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]

@@ -120,7 +120,7 @@ balance opts args l = do
 showBalanceReport :: [Opt] -> FilterSpec -> Ledger -> String
 showBalanceReport opts filterspec l = acctsstr ++ totalstr
     where
-      l' = cacheLedger'' filterspec l
+      l' = filterLedger filterspec l
       acctsstr = unlines $ map showacct interestingaccts
           where
             showacct = showInterestingAccount l' interestingaccts

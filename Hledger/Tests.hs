@@ -283,8 +283,8 @@ tests = TestList [
                         Right e' -> (pamount $ last $ tpostings e')
                         Left _ -> error "should not happen")
 
-  ,"cacheLedger" ~:
-    length (Map.keys $ accountmap $ cacheLedger journal7) `is` 15
+  -- ,"cacheLedger" ~:
+  --   length (Map.keys $ accountmap $ cacheLedger journal7) `is` 15
 
   ,"canonicaliseAmounts" ~:
    "use the greatest precision" ~:
@@ -657,7 +657,7 @@ tests = TestList [
 --     "next january" `gives` "2009/01/01"
 
   ,"subAccounts" ~: do
-    l <- liftM cacheLedger' sampleledger
+    l <- liftM (filterLedger nullfilterspec) sampleledger
     let a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
@@ -1078,7 +1078,7 @@ journal7 = Journal
           (TOD 0 0)
           ""
 
-ledger7 = cacheLedger journal7
+ledger7 = makeLedger journal7
 
 ledger8_str = unlines
  ["2008/1/1 test           "
