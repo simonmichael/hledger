@@ -1,16 +1,16 @@
 #!/usr/bin/env runhaskell
 {- 
-bench.hs (see usage string below). 
-
-For simple benchmarking. Based on my darcs-benchmark/bench.hs script.
-Simon Michael 2008
+bench.hs - simple benchmarking of command-line programs. Requires tabular >= 0.2.2.
+Simon Michael 2008-2010
 
 Example:
 
+$ simplebench.hs --help
+...
 $ cat - >bench.tests
 -f sample.ledger -s balance
 -f ~/.ledger -s balance
-$ bench.hs -v hledger "ledger --no-cache" ledger
+$ simplebench.hs -v hledger "ledger --no-cache" ledger
 Using bench.tests
 Running 2 tests 2 times in . with 3 executables at 2008-11-26 18:52:15.776357 UTC:
 1: hledger -f sample.ledger -s balance	[0.02s]
@@ -47,7 +47,7 @@ import System.IO
 import Text.Tabular
 import qualified Text.Tabular.AsciiArt as TA
 import qualified Text.Tabular.Html     as TH
-import Text.Html ((+++), renderHtml)
+import Text.Html ((+++), renderHtml, stringToHtml)
 import System.Exit
 import Text.Printf
 import Data.Time.Clock
@@ -160,12 +160,12 @@ summarise :: [Opt] -> [String] -> [String] -> [[[Float]]] -> IO ()
 summarise opts tests exes results = do
   putStrLn "\nSummary (best iteration):\n"
   let t = maketable opts tests exes results
-  putStrLn $ TA.render id t
+  putStrLn $ TA.render id id id t
   let outname = "benchresults"
-  writeFile (outname <.> "txt") $ TA.render id t
-  writeFile (outname <.> "html") $ renderHtml $ TH.css TH.defaultCss +++ TH.render id t
+  writeFile (outname <.> "txt") $ TA.render id id id t
+  writeFile (outname <.> "html") $ renderHtml $ TH.css TH.defaultCss +++ TH.render stringToHtml stringToHtml stringToHtml t
 
-maketable :: [Opt] -> [String] -> [String] -> [[[Float]]] -> Table String
+maketable :: [Opt] -> [String] -> [String] -> [[[Float]]] -> Table String String String
 maketable opts rownames colnames results = Table rowhdrs colhdrs rows
  where
   rowhdrs = Group NoLine $ map Header $ padright rownames
