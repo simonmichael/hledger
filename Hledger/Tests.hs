@@ -61,9 +61,9 @@ tests = TestList [
    tests_Hledger_Commands,
 
    "account directive" ~:
-   let sameParse str1 str2 = do l1 <- journalFromString str1
-                                l2 <- journalFromString str2
-                                l1 `is` l2
+   let sameParse str1 str2 = do j1 <- journalFromString str1
+                                j2 <- journalFromString str2
+                                j1 `is` j2{filereadtime=filereadtime j1, jtext=jtext j1}
    in TestList
    [
     "account directive 1" ~: sameParse 
@@ -1050,7 +1050,7 @@ journal7 = Journal
           (TOD 0 0)
           ""
 
-ledger7 = filterAndCacheLedger nullfilterspec $ makeUncachedLedger False "" (TOD 0 0) "" journal7
+ledger7 = filterAndCacheLedger nullfilterspec $ makeUncachedLedger journal7
 
 ledger8_str = unlines
  ["2008/1/1 test           "

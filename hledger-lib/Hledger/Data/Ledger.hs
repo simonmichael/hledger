@@ -60,7 +60,6 @@ import Hledger.Data.Account (nullacct)
 import Hledger.Data.AccountName
 import Hledger.Data.Journal
 import Hledger.Data.Posting
-import System.Time (ClockTime)
 
 
 instance Show Ledger where
@@ -78,14 +77,9 @@ nullledger = Ledger{
       accountmap = fromList []
     }
 
--- | Generate a ledger, from a journal and related environmental
--- information, with basic data cleanups, but don't cache it yet.
-makeUncachedLedger :: Bool -> FilePath -> ClockTime -> String -> Journal -> UncachedLedger
-makeUncachedLedger cost f t s j =
-    nullledger{journal=journalCanonicaliseAmounts $
-                       journalApplyHistoricalPrices $
-                       (if cost then journalConvertAmountsToCost else id)
-                       j{filepath=f,filereadtime=t,jtext=s}}
+-- | Generate a ledger from a journal, but don't cache it yet.
+makeUncachedLedger :: Journal -> UncachedLedger
+makeUncachedLedger j = nullledger{journal=j}
 
 -- | Filter a ledger's transactions as specified and generate derived data.
 filterAndCacheLedger :: FilterSpec -> UncachedLedger -> Ledger

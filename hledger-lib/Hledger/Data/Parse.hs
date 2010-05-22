@@ -159,6 +159,7 @@ import Hledger.Data.Posting
 import Hledger.Data.Journal
 import Hledger.Data.Commodity (dollars,dollar,unknown)
 import System.FilePath(takeDirectory,combine)
+import System.Time (getClockTime)
 
 
 -- | A JournalUpdate is some transformation of a "Journal". It can do I/O
@@ -205,22 +206,21 @@ expandPath pos fp = liftM mkRelative (expandHome fp)
 
 -- let's get to it
 
--- | Parses a ledger file or timelog file to a "Journal", or gives an
--- error.  Requires the current (local) time to calculate any unfinished
--- timelog sessions, we pass it in for repeatability.
-parseJournalFile :: LocalTime -> FilePath -> ErrorT String IO Journal
-parseJournalFile t "-" = liftIO getContents >>= parseJournal t "-"
-parseJournalFile t f   = liftIO (readFile f) >>= parseJournal t f
+-- | Parse and post-process a journal file or timelog file to a "Journal",
+-- or give an error.
+parseJournalFile :: FilePath -> ErrorT String IO Journal
+parseJournalFile "-" = liftIO getContents >>= parseJournal "-"
+parseJournalFile f   = liftIO (readFile f) >>= parseJournal f
 
--- | Like parseJournalFile, but parses a string. A file path is still
--- provided to save in the resulting journal.
-parseJournal :: LocalTime -> FilePath -> String -> ErrorT String IO Journal
-parseJournal reftime inname intxt =
-  case runParser ledgerFile emptyCtx inname intxt of
-    Right m  -> liftM (journalCloseTimeLogEntries reftime) $ m `ap` return nulljournal
+-- | Parse and post-process a "Journal" from a string, saving the provided
+-- file path and the current time, or give an error.
+parseJournal :: FilePath -> String -> ErrorT String IO Journal
+parseJournal f s = do
+  tc <- liftIO getClockTime
+  tl <- liftIO getCurrentLocalTime
+  case runParser ledgerFile emptyCtx f s of
+    Right m  -> liftM (journalFinalise tc tl f s) $ m `ap` return nulljournal
     Left err -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
-
--- parsers
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" which can be applied to an empty journal

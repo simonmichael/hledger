@@ -9,7 +9,6 @@ import Control.Monad.Error
 import Hledger.Data.Ledger (makeUncachedLedger)
 import Hledger.Data.Parse (parseJournal)
 import Hledger.Data.Types (FilterSpec(..),WhichDate(..),Journal(..),Ledger(..))
-import Hledger.Data.Utils (getCurrentLocalTime)
 import Hledger.Data.Dates (nulldatespan)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
@@ -18,7 +17,6 @@ import Prelude hiding (readFile)
 import System.IO.UTF8
 #endif
 import System.FilePath ((</>))
-import System.Time (getClockTime)
 
 
 ledgerenvvar           = "LEDGER"
@@ -65,10 +63,9 @@ myTimelog = myTimelogPath >>= readLedger
 -- | Read an unfiltered, uncached ledger from this file, or give an error.
 readLedger :: FilePath -> IO Ledger
 readLedger f = do
-  t <- getClockTime
   s <- readFile f
   j <- journalFromString s
-  return $ makeUncachedLedger False f t s j
+  return $ makeUncachedLedger j
 
 -- -- | Read a ledger from this file, filtering according to the filter spec.,
 -- -- | or give an error.
@@ -82,9 +79,7 @@ readLedger f = do
 -- | Read a Journal from the given string, using the current time as
 -- reference time, or give a parse error.
 journalFromString :: String -> IO Journal
-journalFromString s = do
-  t <- getCurrentLocalTime
-  liftM (either error id) $ runErrorT $ parseJournal t "(string)" s
+journalFromString s = liftM (either error id) $ runErrorT $ parseJournal "(string)" s
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

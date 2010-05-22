@@ -187,10 +187,27 @@ journalSelectingDate ActualDate j = j
 journalSelectingDate EffectiveDate j =
     j{jtxns=map (ledgerTransactionWithDate EffectiveDate) $ jtxns j}
 
--- | Close any open timelog sessions in this journal using the provided current time.
-journalCloseTimeLogEntries :: LocalTime -> Journal -> Journal
-journalCloseTimeLogEntries now j@Journal{jtxns=ts, open_timelog_entries=es} =
-  j{jtxns = ts ++ (timeLogEntriesToTransactions now es), open_timelog_entries = []}
+-- | Do post-parse processing on a journal, to make it ready for use.
+journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> Journal -> Journal
+journalFinalise tclock tlocal path txt j = journalCanonicaliseAmounts $
+                                           journalApplyHistoricalPrices $
+                                           journalCloseTimeLogEntries tlocal
+                                             j{filepath=path, filereadtime=tclock, jtext=txt}
+
+-- | Convert all the journal's amounts to their canonical display
+-- settings.  Ie, all amounts in a given commodity will use (a) the
+-- display settings of the first, and (b) the greatest precision, of the
+-- amounts in that commodity. Prices are canonicalised as well, so consider
+-- calling journalApplyHistoricalPrices before this.
+journalCanonicaliseAmounts :: Journal -> Journal
+journalCanonicaliseAmounts j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+    where
+      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
+      fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
+      fixmixedamount (Mixed as) = Mixed $ map fixamount as
+      fixamount a@Amount{commodity=c,price=p} = a{commodity=fixcommodity c, price=maybe Nothing (Just . fixmixedamount) p}
+      fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
+      canonicalcommoditymap = journalCanonicalCommodities j
 
 -- | Apply this journal's historical price records to unpriced amounts where possible.
 journalApplyHistoricalPrices :: Journal -> Journal
@@ -212,6 +229,11 @@ journalHistoricalPriceFor j d Commodity{symbol=s} = do
   case ps of (HistoricalPrice{hamount=a}:_) -> Just a
              _ -> Nothing
 
+-- | Close any open timelog sessions in this journal using the provided current time.
+journalCloseTimeLogEntries :: LocalTime -> Journal -> Journal
+journalCloseTimeLogEntries now j@Journal{jtxns=ts, open_timelog_entries=es} =
+  j{jtxns = ts ++ (timeLogEntriesToTransactions now es), open_timelog_entries = []}
+
 -- | Convert all this journal's amounts to cost by applying their prices, if any.
 journalConvertAmountsToCost :: Journal -> Journal
 journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
@@ -220,21 +242,6 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount = costOfAmount
-
--- | Convert all the journal's amounts to their canonical display
--- settings.  Ie, all amounts in a given commodity will use (a) the
--- display settings of the first, and (b) the greatest precision, of the
--- amounts in that commodity. Prices are canonicalised as well, so consider
--- calling journalApplyHistoricalPrices before this.
-journalCanonicaliseAmounts :: Journal -> Journal
-journalCanonicaliseAmounts j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
-    where
-      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-      fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
-      fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount a@Amount{commodity=c,price=p} = a{commodity=fixcommodity c, price=maybe Nothing (Just . fixmixedamount) p}
-      fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
-      canonicalcommoditymap = journalCanonicalCommodities j
 
 -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 journalCanonicalCommodities :: Journal -> Map.Map String Commodity
@@ -290,8 +297,8 @@ matchpats pats str =
       isnegativepat = (negateprefix `isPrefixOf`)
       abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 
--- | Calculate the account tree and account balances from a journal's
--- postings, and return the results for efficient lookup.
+-- | Calculate the account tree and all account balances from a journal's
+-- postings, returning the results for efficient lookup.
 journalAccountInfo :: Journal -> (Tree AccountName, Map.Map AccountName Account)
 journalAccountInfo j = (ant, amap)
     where
@@ -300,9 +307,8 @@ journalAccountInfo j = (ant, amap)
       acctinfo a = Account a (psof a) (inclbalof a)
 
 -- | Given a list of postings, return an account name tree and three query
--- functions that fetch postings, balance, and subaccount-including
--- balance by account name.  This factors out common logic from
--- cacheLedger and summarisePostingsInDateSpan.
+-- functions that fetch postings, subaccount-excluding-balance and
+-- subaccount-including-balance by account name.
 groupPostings :: [Posting] -> (Tree AccountName,
                              (AccountName -> [Posting]),
                              (AccountName -> MixedAmount),

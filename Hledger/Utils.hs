@@ -21,7 +21,6 @@ import System.IO (hPutStrLn)
 import System.Exit
 import System.Process (readProcessWithExitCode)
 import System.Info (os)
-import System.Time (getClockTime)
 
 
 -- | Parse the user's specified ledger file and run a hledger command on
@@ -34,26 +33,21 @@ withLedgerDo opts args cmdname cmd = do
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   f <- ledgerFilePathFromOpts opts
-  let f' = if f == "-" then "/dev/null" else f
   fileexists <- doesFileExist f
   let creating = not fileexists && cmdname == "add"
-      cb = CostBasis `elem` opts
-  t <- getCurrentLocalTime
-  tc <- getClockTime
-  txt <-  if creating then return "" else strictReadFile f'
-  let runcmd = cmd opts args . makeUncachedLedger cb f tc txt
+      cost = CostBasis `elem` opts
+  let runcmd = cmd opts args . makeUncachedLedger . (if cost then journalConvertAmountsToCost else id)
   if creating
    then runcmd nulljournal
-   else (runErrorT . parseJournalFile t) f >>= either parseerror runcmd
+   else (runErrorT . parseJournalFile) f >>= either parseerror runcmd
     where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
 
 -- | Get an uncached ledger from the given string and options, or raise an error.
 ledgerFromStringWithOpts :: [Opt] -> String -> IO UncachedLedger
 ledgerFromStringWithOpts opts s = do
-    tc <- getClockTime
     j <- journalFromString s
-    let cb = CostBasis `elem` opts
-    return $ makeUncachedLedger cb "" tc s j
+    let cost = CostBasis `elem` opts
+    return $ makeUncachedLedger $ (if cost then journalConvertAmountsToCost else id) j
 
 -- -- | Read a ledger from the given file, or give an error.
 -- readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger
