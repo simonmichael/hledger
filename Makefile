@@ -8,8 +8,9 @@ OPTFLAGS= #-DCHART -DVTY -DWEB
 CICMD=test
 CICMD=web -v --debug -f ~/personal/2009.ledger
 
-# command to run during "make prof/heap"
-PROFCMD=-f data/1000x1000x10.ledger balance
+# command line to run during "make prof" and "make heap"
+PROFCMD=bin/hledgerp -f data/1000x1000x10.ledger balance >/dev/null
+PROFCMD=bin/hledgerp -f t.timelog balance --no-total
 
 # command to run during "make coverage"
 COVCMD=test
@@ -225,23 +226,36 @@ criterionbench: sampleledgers tools/criterionbench
 progressionbench: sampleledgers tools/progressionbench
 	tools/progressionbench -- -t png -k png
 
-# generate, save and display a standard profile
+# generate, save, simplify and display an execution profile
 prof: sampleledgers hledgerp
-	@echo "Profiling $(PROFCMD)"
-	./hledgerp +RTS -p -RTS $(PROFCMD) >/dev/null
+	@echo "Profiling: $(PROFCMD)"
+	-$(PROFCMD) +RTS -p -RTS
 	mv hledgerp.prof profs/$(TIME)-orig.prof
 	tools/simplifyprof.hs profs/$(TIME)-orig.prof >profs/$(TIME).prof
 	(cd profs; rm -f latest*.prof; ln -s $(TIME)-orig.prof latest-orig.prof; ln -s $(TIME).prof latest.prof)
 	echo; cat profs/latest.prof
 
+# generate and display an execution profile, don't save or simplify
+quickprof: sampleledgers hledgerp
+	@echo "Profiling: $(PROFCMD)"
+	-$(PROFCMD) +RTS -p -RTS
+	echo; cat hledgerp.prof
+
 # generate, save and display a graphical heap profile
 heap: sampleledgers hledgerp
-	@echo "Profiling heap with $(PROFCMD)"
-	./hledgerp +RTS -hc -RTS $(PROFCMD) >/dev/null
+	@echo "Profiling heap with: $(PROFCMD)"
+	$(PROFCMD) +RTS -hc -RTS
 	mv hledgerp.hp profs/$(TIME).hp
 	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
 		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps; rm -f *.aux)
 	$(VIEWPS) profs/latest.ps
+
+# generate and display a graphical heap profile, don't save
+quickheap: sampleledgers hledgerp
+	@echo "Profiling heap with: $(PROFCMD)"
+	$(PROFCMD) +RTS -hc -RTS
+	hp2ps hledgerp.hp
+	$(VIEWPS) hledger.ps
 
 # generate and display a code coverage report
 coverage: sampleledgers hledgercov
