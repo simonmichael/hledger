@@ -13,6 +13,7 @@ import Hledger.Cli.Options
 import Prelude hiding ( putStr )
 import System.IO.UTF8
 #endif
+import qualified Data.Map as Map
 
 
 -- | Print various statistics for the ledger.
@@ -70,5 +71,5 @@ showStats _ _ l today =
              tnum7 = length $ filter withinlast7 ts
              withinlast7 t = d >= addDays (-7) today && (d<=today) where d = tdate t
              txnrate7 = fromIntegral tnum7 / 7 :: Double
-             cs = commodities l
+             cs = Map.elems $ commodities l
 

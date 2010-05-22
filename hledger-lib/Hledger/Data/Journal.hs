@@ -187,66 +187,87 @@ journalSelectingDate ActualDate j = j
 journalSelectingDate EffectiveDate j =
     j{jtxns=map (ledgerTransactionWithDate EffectiveDate) $ jtxns j}
 
--- | Convert all the journal's amounts to their canonical display settings.
--- Ie, in each commodity, amounts will use the display settings of the first
--- amount detected, and the greatest precision of the amounts detected.
--- Also, missing unit prices are added if known from the price history.
--- Also, amounts are converted to cost basis if that flag is active.
--- XXX refactor
-canonicaliseAmounts :: Bool -> Journal -> Journal
-canonicaliseAmounts costbasis j@Journal{jtxns=ts} = j{jtxns=map fixledgertransaction ts}
-    where
-      fixledgertransaction (Transaction d ed s c de co ts pr) = Transaction d ed s c de co (map fixrawposting ts) pr
-          where
-            fixrawposting (Posting s ac a c t txn) = Posting s ac (fixmixedamount a) c t txn
-            fixmixedamount (Mixed as) = Mixed $ map fixamount as
-            fixamount = (if costbasis then costOfAmount else id) . fixprice . fixcommodity
-            fixcommodity a = a{commodity=c} where c = canonicalcommoditymap ! symbol (commodity a)
-            canonicalcommoditymap =
-                Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
-                        let cs = commoditymap ! s,
-                        let firstc = head cs,
-                        let maxp = maximum $ map precision cs
-                       ]
-            commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
-            commoditieswithsymbol s = filter ((s==) . symbol) commodities
-            commoditysymbols = nub $ map symbol commodities
-            commodities = map commodity (concatMap (amounts . pamount) (journalPostings j)
-                                         ++ concatMap (amounts . hamount) (historical_prices j))
-            fixprice :: Amount -> Amount
-            fixprice a@Amount{price=Just _} = a
-            fixprice a@Amount{commodity=c} = a{price=journalHistoricalPriceFor j d c}
-
-            -- | Get the price for a commodity on the specified day from the price database, if known.
-            -- Does only one lookup step, ie will not look up the price of a price.
-            journalHistoricalPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
-            journalHistoricalPriceFor j d Commodity{symbol=s} = do
-              let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices j
-              case ps of (HistoricalPrice{hamount=a}:_) -> Just $ canonicaliseCommodities a
-                         _ -> Nothing
-                  where
-                    canonicaliseCommodities (Mixed as) = Mixed $ map canonicaliseCommodity as
-                        where canonicaliseCommodity a@Amount{commodity=Commodity{symbol=s}} =
-                                  a{commodity=findWithDefault (error "programmer error: canonicaliseCommodity failed") s canonicalcommoditymap}
-
--- | Close any open timelog sessions using the provided current time.
+-- | Close any open timelog sessions in this journal using the provided current time.
 journalCloseTimeLogEntries :: LocalTime -> Journal -> Journal
 journalCloseTimeLogEntries now j@Journal{jtxns=ts, open_timelog_entries=es} =
   j{jtxns = ts ++ (timeLogEntriesToTransactions now es), open_timelog_entries = []}
 
--- | Get just the amounts from a ledger, in the order parsed.
+-- | Apply this journal's historical price records to unpriced amounts where possible.
+journalApplyHistoricalPrices :: Journal -> Journal
+journalApplyHistoricalPrices j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+    where
+      fixtransaction t@Transaction{tdate=d, tpostings=ps} = t{tpostings=map fixposting ps}
+       where
+        fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
+        fixmixedamount (Mixed as) = Mixed $ map fixamount as
+        fixamount = fixprice
+        fixprice a@Amount{price=Just _} = a
+        fixprice a@Amount{commodity=c} = a{price=journalHistoricalPriceFor j d c}
+
+-- | Get the price for a commodity on the specified day from the price database, if known.
+-- Does only one lookup step, ie will not look up the price of a price.
+journalHistoricalPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
+journalHistoricalPriceFor j d Commodity{symbol=s} = do
+  let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices j
+  case ps of (HistoricalPrice{hamount=a}:_) -> Just a
+             _ -> Nothing
+
+-- | Convert all this journal's amounts to cost by applying their prices, if any.
+journalConvertAmountsToCost :: Journal -> Journal
+journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+    where
+      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
+      fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
+      fixmixedamount (Mixed as) = Mixed $ map fixamount as
+      fixamount = costOfAmount
+
+-- | Convert all the journal's amounts to their canonical display
+-- settings.  Ie, all amounts in a given commodity will use (a) the
+-- display settings of the first, and (b) the greatest precision, of the
+-- amounts in that commodity. Prices are canonicalised as well, so consider
+-- calling journalApplyHistoricalPrices before this.
+journalCanonicaliseAmounts :: Journal -> Journal
+journalCanonicaliseAmounts j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+    where
+      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
+      fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
+      fixmixedamount (Mixed as) = Mixed $ map fixamount as
+      fixamount a@Amount{commodity=c,price=p} = a{commodity=fixcommodity c, price=maybe Nothing (Just . fixmixedamount) p}
+      fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
+      canonicalcommoditymap = journalCanonicalCommodities j
+
+-- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
+journalCanonicalCommodities :: Journal -> Map.Map String Commodity
+journalCanonicalCommodities j =
+    Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
+                  let cs = commoditymap ! s,
+                  let firstc = head cs,
+                  let maxp = maximum $ map precision cs
+                 ]
+  where
+    commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
+    commoditieswithsymbol s = filter ((s==) . symbol) commodities
+    commoditysymbols = nub $ map symbol commodities
+    commodities = journalAmountAndPriceCommodities j
+
+-- | Get all this journal's amounts' commodities, in the order parsed.
+journalAmountCommodities :: Journal -> [Commodity]
+journalAmountCommodities = map commodity . concatMap amounts . journalAmounts
+
+-- | Get all this journal's amount and price commodities, in the order parsed.
+journalAmountAndPriceCommodities :: Journal -> [Commodity]
+journalAmountAndPriceCommodities = concatMap amountCommodities . concatMap amounts . journalAmounts
+
+-- | Get this amount's commodity and any commodities referenced in its price.
+amountCommodities :: Amount -> [Commodity]
+amountCommodities Amount{commodity=c,price=Nothing} = [c]
+amountCommodities Amount{commodity=c,price=Just ma} = c:(concatMap amountCommodities $ amounts ma)
+
+-- | Get all this journal's amounts, in the order parsed.
 journalAmounts :: Journal -> [MixedAmount]
 journalAmounts = map pamount . journalPostings
 
--- | Get just the ammount commodities from a ledger, in the order parsed.
-journalCommodities :: Journal -> [Commodity]
-journalCommodities = map commodity . concatMap amounts . journalAmounts
-
--- | Get just the amount precisions from a ledger, in the order parsed.
-journalPrecisions :: Journal -> [Int]
-journalPrecisions = map precision . journalCommodities
-
--- | The (fully specified) date span containing all the raw ledger's transactions,
+-- | The (fully specified) date span containing this journal's transactions,
 -- or DateSpan Nothing Nothing if there are none.
 journalDateSpan :: Journal -> DateSpan
 journalDateSpan j

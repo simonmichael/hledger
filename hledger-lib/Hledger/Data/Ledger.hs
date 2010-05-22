@@ -53,7 +53,7 @@ aliases for easier interaction. Here's an example:
 
 module Hledger.Data.Ledger
 where
-import Data.Map (findWithDefault, fromList)
+import Data.Map (Map, findWithDefault, fromList)
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Account (nullacct)
@@ -81,8 +81,11 @@ nullledger = Ledger{
 -- | Generate a ledger, from a journal and related environmental
 -- information, with basic data cleanups, but don't cache it yet.
 makeUncachedLedger :: Bool -> FilePath -> ClockTime -> String -> Journal -> UncachedLedger
-makeUncachedLedger costbasis f t s j =
-    nullledger{journal=canonicaliseAmounts costbasis j{filepath=f,filereadtime=t,jtext=s}}
+makeUncachedLedger cost f t s j =
+    nullledger{journal=journalCanonicaliseAmounts $
+                       journalApplyHistoricalPrices $
+                       (if cost then journalConvertAmountsToCost else id)
+                       j{filepath=f,filereadtime=t,jtext=s}}
 
 -- | Filter a ledger's transactions as specified and generate derived data.
 filterAndCacheLedger :: FilterSpec -> UncachedLedger -> Ledger
@@ -156,8 +159,8 @@ subaccounts = ledgerSubAccounts
 postings :: Ledger -> [Posting]
 postings = ledgerPostings
 
-commodities :: Ledger -> [Commodity]
-commodities = nub . journalCommodities . journal
+commodities :: Ledger -> Map String Commodity
+commodities = journalCanonicalCommodities . journal
 
 accounttree :: Int -> Ledger -> Tree Account
 accounttree = ledgerAccountTree

@@ -28,6 +28,7 @@ $ hledger -f sample.ledger balance o
 
 module Hledger.Tests
 where
+import qualified Data.Map as Map
 import Test.HUnit.Tools (runVerboseTests)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.Time (ClockTime(TOD))
@@ -235,7 +236,7 @@ tests = TestList [
              ,"  c:d                   "
              ,""
              ]
-      let j' = canonicaliseAmounts True j -- enable cost basis adjustment
+      let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
       showBalanceReport [] nullfilterspec nullledger{journal=j'} `is`
        unlines
         ["                $500  a:b"
@@ -284,12 +285,12 @@ tests = TestList [
   -- ,"cacheLedger" ~:
   --   length (Map.keys $ accountmap $ cacheLedger journal7) `is` 15
 
-  ,"canonicaliseAmounts" ~:
+  ,"journalCanonicaliseAmounts" ~:
    "use the greatest precision" ~:
-    journalPrecisions (canonicaliseAmounts False $ journalWithAmounts ["1","2.00"]) `is` [2,2]
+    (map precision $ journalAmountAndPriceCommodities $ journalCanonicaliseAmounts $ journalWithAmounts ["1","2.00"]) `is` [2,2]
 
   ,"commodities" ~:
-    commodities ledger7 `is` [Commodity {symbol="$", side=L, spaced=False, comma=False, precision=2}]
+    Map.elems (commodities ledger7) `is` [Commodity {symbol="$", side=L, spaced=False, comma=False, precision=2}]
 
   ,"dateSpanFromOpts" ~: do
     let todaysdate = parsedate "2008/11/26"
