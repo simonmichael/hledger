@@ -25,8 +25,6 @@ import Data.Time.Format
 import Data.Time.Calendar.OrdinalDate
 import System.Locale (defaultTimeLocale)
 import Text.ParserCombinators.Parsec
-import Text.ParserCombinators.Parsec.Char
-import Text.ParserCombinators.Parsec.Combinator
 import Hledger.Data.Types
 import Hledger.Data.Utils
 

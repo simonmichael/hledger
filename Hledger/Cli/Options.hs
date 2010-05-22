@@ -15,7 +15,6 @@ import Hledger.Data.Dates
 #if __GLASGOW_HASKELL__ <= 610
 import Codec.Binary.UTF8.String (decodeString)
 #endif
-import Control.Monad (liftM)
 
 #ifdef CHART
 chartoutput   = "hledger.png"

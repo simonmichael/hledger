@@ -37,7 +37,6 @@ import Network.Loli.Utils (update)
 
 import HSP hiding (Request,catch)
 import qualified HSP (Request(..))
-import HSP.HTML (renderAsHTML)
 
 import Hledger.Cli.Commands.Add (ledgerAddTransaction)
 import Hledger.Cli.Commands.Balance

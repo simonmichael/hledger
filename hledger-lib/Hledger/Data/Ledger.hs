@@ -53,7 +53,6 @@ aliases for easier interaction. Here's an example:
 
 module Hledger.Data.Ledger
 where
-import qualified Data.Map as Map
 import Data.Map (findWithDefault, fromList)
 import Hledger.Data.Utils
 import Hledger.Data.Types

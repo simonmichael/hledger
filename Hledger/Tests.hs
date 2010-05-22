@@ -28,7 +28,6 @@ $ hledger -f sample.ledger balance o
 
 module Hledger.Tests
 where
-import qualified Data.Map as Map
 import Data.Time.Format
 import System.Locale (defaultTimeLocale)
 import Test.HUnit.Tools (runVerboseTests)
