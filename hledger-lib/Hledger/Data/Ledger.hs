@@ -60,6 +60,7 @@ import Hledger.Data.Account (nullacct)
 import Hledger.Data.AccountName
 import Hledger.Data.Journal
 import Hledger.Data.Posting
+import System.Time (ClockTime)
 
 
 instance Show Ledger where
@@ -77,13 +78,15 @@ nullledger = Ledger{
       accountmap = fromList []
     }
 
--- | Convert a journal to a more efficient cached ledger, described above.
-makeLedger :: Journal -> Ledger
-makeLedger j = nullledger{journal=j,accountnametree=ant,accountmap=amap} where (ant, amap) = crunchJournal j
+-- | Generate a ledger, from a journal and related environmental
+-- information, with basic data cleanups, but don't cache it yet.
+makeUncachedLedger :: Bool -> FilePath -> ClockTime -> String -> Journal -> UncachedLedger
+makeUncachedLedger costbasis f t s j =
+    nullledger{journal=canonicaliseAmounts costbasis j{filepath=f,filereadtime=t,jtext=s}}
 
--- | Filter and re-cache a ledger.
-filterLedger :: FilterSpec -> Ledger -> Ledger
-filterLedger filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=ant,accountmap=amap}
+-- | Filter a ledger's transactions according to the filter specification and generate derived data.
+filterAndCacheLedger :: FilterSpec -> UncachedLedger -> Ledger
+filterAndCacheLedger filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=ant,accountmap=amap}
     where (ant, amap) = crunchJournal j'
           j' = filterJournalPostings filterspec{depth=Nothing} j
 

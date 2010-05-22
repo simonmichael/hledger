@@ -21,14 +21,14 @@ import System.IO (hPutStrLn)
 import System.Exit
 import System.Process (readProcessWithExitCode)
 import System.Info (os)
-import System.Time (ClockTime,getClockTime)
+import System.Time (getClockTime)
 
 
 -- | Parse the user's specified ledger file and run a hledger command on
 -- it, or report a parse error. This function makes the whole thing go.
--- Warning, this provides only an uncached Ledger (no accountnametree or
--- accountmap), so cmd must cacheLedger'/crunchJournal if needed.
-withLedgerDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> Ledger -> IO ()) -> IO ()
+-- Warning, this provides only an uncached/unfiltered ledger, so the
+-- command should do further processing if needed.
+withLedgerDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> UncachedLedger -> IO ()) -> IO ()
 withLedgerDo opts args cmdname cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
@@ -37,29 +37,25 @@ withLedgerDo opts args cmdname cmd = do
   let f' = if f == "-" then "/dev/null" else f
   fileexists <- doesFileExist f
   let creating = not fileexists && cmdname == "add"
+      cb = CostBasis `elem` opts
   t <- getCurrentLocalTime
   tc <- getClockTime
   txt <-  if creating then return "" else strictReadFile f'
-  let runcmd = cmd opts args . makeUncachedLedgerWithOpts opts f tc txt
-  -- (though commands receive an uncached ledger, their type signature is just "Ledger" for now)
+  let runcmd = cmd opts args . makeUncachedLedger cb f tc txt
   if creating
    then runcmd nulljournal
    else (runErrorT . parseLedgerFile t) f >>= either parseerror runcmd
     where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
 
-makeUncachedLedgerWithOpts :: [Opt] -> FilePath -> ClockTime -> String -> Journal -> UncachedLedger
-makeUncachedLedgerWithOpts opts f tc txt j = nullledger{journal=j'}
-    where j' = (canonicaliseAmounts costbasis j){filepath=f,filereadtime=tc,jtext=txt}
-          costbasis=CostBasis `elem` opts
-
--- | Get a Ledger from the given string and options, or raise an error.
-ledgerFromStringWithOpts :: [Opt] -> String -> IO Ledger
+-- | Get an uncached ledger from the given string and options, or raise an error.
+ledgerFromStringWithOpts :: [Opt] -> String -> IO UncachedLedger
 ledgerFromStringWithOpts opts s = do
     tc <- getClockTime
     j <- journalFromString s
-    return $ makeUncachedLedgerWithOpts opts "" tc s j
+    let cb = CostBasis `elem` opts
+    return $ makeUncachedLedger cb "" tc s j
 
--- -- | Read a Ledger from the given file, or give an error.
+-- -- | Read a ledger from the given file, or give an error.
 -- readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger
 -- readLedgerWithOpts opts args f = do
 --   t <- getCurrentLocalTime

@@ -6,7 +6,7 @@ Utilities for doing I/O with ledger files.
 module Hledger.Data.IO
 where
 import Control.Monad.Error
-import Hledger.Data.Ledger (makeLedger)
+import Hledger.Data.Ledger (makeUncachedLedger)
 import Hledger.Data.Parse (parseLedger)
 import Hledger.Data.Types (FilterSpec(..),WhichDate(..),Journal(..),Ledger(..))
 import Hledger.Data.Utils (getCurrentLocalTime)
@@ -62,13 +62,13 @@ myLedger = myLedgerPath >>= readLedger
 myTimelog :: IO Ledger
 myTimelog = myTimelogPath >>= readLedger
 
--- | Read a ledger from this file, with no filtering, or give an error.
+-- | Read an unfiltered, uncached ledger from this file, or give an error.
 readLedger :: FilePath -> IO Ledger
 readLedger f = do
   t <- getClockTime
   s <- readFile f
   j <- journalFromString s
-  return $ makeLedger j{filepath=f,filereadtime=t,jtext=s}
+  return $ makeUncachedLedger False f t s j
 
 -- -- | Read a ledger from this file, filtering according to the filter spec.,
 -- -- | or give an error.
@@ -77,7 +77,7 @@ readLedger f = do
 --   s <- readFile f
 --   t <- getClockTime
 --   j <- journalFromString s
---   return $ filterLedger fspec s j{filepath=f, filereadtime=t}
+--   return $ filterAndCacheLedger fspec s j{filepath=f, filereadtime=t}
 
 -- | Read a Journal from the given string, using the current time as
 -- reference time, or give a parse error.

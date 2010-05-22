@@ -657,7 +657,7 @@ tests = TestList [
 --     "next january" `gives` "2009/01/01"
 
   ,"subAccounts" ~: do
-    l <- liftM (filterLedger nullfilterspec) sampleledger
+    l <- liftM (filterAndCacheLedger nullfilterspec) sampleledger
     let a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
@@ -1078,7 +1078,7 @@ journal7 = Journal
           (TOD 0 0)
           ""
 
-ledger7 = makeLedger journal7
+ledger7 = filterAndCacheLedger nullfilterspec $ makeUncachedLedger False "" (TOD 0 0) "" journal7
 
 ledger8_str = unlines
  ["2008/1/1 test           "
