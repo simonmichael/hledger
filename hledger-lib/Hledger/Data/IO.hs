@@ -7,7 +7,7 @@ module Hledger.Data.IO
 where
 import Control.Monad.Error
 import Hledger.Data.Ledger (makeUncachedLedger)
-import Hledger.Data.Parse (parseLedger)
+import Hledger.Data.Parse (parseJournal)
 import Hledger.Data.Types (FilterSpec(..),WhichDate(..),Journal(..),Ledger(..))
 import Hledger.Data.Utils (getCurrentLocalTime)
 import Hledger.Data.Dates (nulldatespan)
@@ -84,7 +84,7 @@ readLedger f = do
 journalFromString :: String -> IO Journal
 journalFromString s = do
   t <- getCurrentLocalTime
-  liftM (either error id) $ runErrorT $ parseLedger t "(string)" s
+  liftM (either error id) $ runErrorT $ parseJournal t "(string)" s
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

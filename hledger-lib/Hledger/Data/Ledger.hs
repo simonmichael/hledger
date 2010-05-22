@@ -84,11 +84,11 @@ makeUncachedLedger :: Bool -> FilePath -> ClockTime -> String -> Journal -> Unca
 makeUncachedLedger costbasis f t s j =
     nullledger{journal=canonicaliseAmounts costbasis j{filepath=f,filereadtime=t,jtext=s}}
 
--- | Filter a ledger's transactions according to the filter specification and generate derived data.
+-- | Filter a ledger's transactions as specified and generate derived data.
 filterAndCacheLedger :: FilterSpec -> UncachedLedger -> Ledger
-filterAndCacheLedger filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=ant,accountmap=amap}
-    where (ant, amap) = crunchJournal j'
-          j' = filterJournalPostings filterspec{depth=Nothing} j
+filterAndCacheLedger filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=t,accountmap=m}
+    where j' = filterJournalPostings filterspec{depth=Nothing} j
+          (t, m) = journalAccountInfo j'
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]

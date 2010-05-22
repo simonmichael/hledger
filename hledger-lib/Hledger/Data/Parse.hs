@@ -208,14 +208,14 @@ expandPath pos fp = liftM mkRelative (expandHome fp)
 -- | Parses a ledger file or timelog file to a "Journal", or gives an
 -- error.  Requires the current (local) time to calculate any unfinished
 -- timelog sessions, we pass it in for repeatability.
-parseLedgerFile :: LocalTime -> FilePath -> ErrorT String IO Journal
-parseLedgerFile t "-" = liftIO getContents >>= parseLedger t "-"
-parseLedgerFile t f   = liftIO (readFile f) >>= parseLedger t f
+parseJournalFile :: LocalTime -> FilePath -> ErrorT String IO Journal
+parseJournalFile t "-" = liftIO getContents >>= parseJournal t "-"
+parseJournalFile t f   = liftIO (readFile f) >>= parseJournal t f
 
--- | Like parseLedgerFile, but parses a string. A file path is still
+-- | Like parseJournalFile, but parses a string. A file path is still
 -- provided to save in the resulting journal.
-parseLedger :: LocalTime -> FilePath -> String -> ErrorT String IO Journal
-parseLedger reftime inname intxt =
+parseJournal :: LocalTime -> FilePath -> String -> ErrorT String IO Journal
+parseJournal reftime inname intxt =
   case runParser ledgerFile emptyCtx inname intxt of
     Right m  -> liftM (journalConvertTimeLog reftime) $ m `ap` return nulljournal
     Left err -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
@@ -562,7 +562,7 @@ priceamount =
           many spacenonewline
           char '@'
           many spacenonewline
-          a <- someamount
+          a <- someamount -- XXX could parse more prices ad infinitum, shouldn't
           return $ Just a
           ) <|> return Nothing
 

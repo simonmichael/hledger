@@ -26,8 +26,8 @@ import System.Time (getClockTime)
 
 -- | Parse the user's specified ledger file and run a hledger command on
 -- it, or report a parse error. This function makes the whole thing go.
--- Warning, this provides only an uncached/unfiltered ledger, so the
--- command should do further processing if needed.
+-- The command will receive an uncached/unfiltered ledger, so should 
+-- process it further if needed.
 withLedgerDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> UncachedLedger -> IO ()) -> IO ()
 withLedgerDo opts args cmdname cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
@@ -44,7 +44,7 @@ withLedgerDo opts args cmdname cmd = do
   let runcmd = cmd opts args . makeUncachedLedger cb f tc txt
   if creating
    then runcmd nulljournal
-   else (runErrorT . parseLedgerFile t) f >>= either parseerror runcmd
+   else (runErrorT . parseJournalFile t) f >>= either parseerror runcmd
     where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
 
 -- | Get an uncached ledger from the given string and options, or raise an error.
