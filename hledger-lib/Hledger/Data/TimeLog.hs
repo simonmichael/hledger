@@ -8,6 +8,8 @@ converted to 'Transactions' and queried like a ledger.
 
 module Hledger.Data.TimeLog
 where
+import Data.Time.Format
+import System.Locale (defaultTimeLocale)
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
@@ -35,10 +37,10 @@ instance Read TimeLogCode where
 -- | Convert time log entries to ledger transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.
-entriesFromTimeLogEntries :: LocalTime -> [TimeLogEntry] -> [Transaction]
-entriesFromTimeLogEntries _ [] = []
-entriesFromTimeLogEntries now [i]
-    | odate > idate = entryFromTimeLogInOut i o' : entriesFromTimeLogEntries now [i',o]
+timeLogEntriesToTransactions :: LocalTime -> [TimeLogEntry] -> [Transaction]
+timeLogEntriesToTransactions _ [] = []
+timeLogEntriesToTransactions now [i]
+    | odate > idate = entryFromTimeLogInOut i o' : timeLogEntriesToTransactions now [i',o]
     | otherwise = [entryFromTimeLogInOut i o]
     where
       o = TimeLogEntry Out end ""
@@ -47,9 +49,9 @@ entriesFromTimeLogEntries now [i]
       (idate,odate) = (localDay itime,localDay otime)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
-entriesFromTimeLogEntries now (i:o:rest)
-    | odate > idate = entryFromTimeLogInOut i o' : entriesFromTimeLogEntries now (i':o:rest)
-    | otherwise = entryFromTimeLogInOut i o : entriesFromTimeLogEntries now rest
+timeLogEntriesToTransactions now (i:o:rest)
+    | odate > idate = entryFromTimeLogInOut i o' : timeLogEntriesToTransactions now (i':o:rest)
+    | otherwise = entryFromTimeLogInOut i o : timeLogEntriesToTransactions now rest
     where
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
@@ -88,3 +90,34 @@ entryFromTimeLogInOut i o
                           pcomment="",ptype=RegularPosting,ptransaction=Just t}
                  --,Posting "assets:time" (-amount) "" RegularPosting
                  ]
+
+tests_TimeLog = TestList [
+
+   "timeLogEntriesToTransactions" ~: do
+     today <- getCurrentDay
+     now' <- getCurrentTime
+     tz <- getCurrentTimeZone
+     let now = utcToLocalTime tz now'
+         nowstr = showtime now
+         yesterday = prevday today
+         clockin = TimeLogEntry In
+         mktime d = LocalTime d . fromMaybe midnight . parseTime defaultTimeLocale "%H:%M:%S"
+         showtime = formatTime defaultTimeLocale "%H:%M"
+         assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ timeLogEntriesToTransactions now es)
+
+     assertEntriesGiveStrings "started yesterday, split session at midnight"
+                                  [clockin (mktime yesterday "23:00:00") ""]
+                                  ["23:00-23:59","00:00-"++nowstr]
+     assertEntriesGiveStrings "split multi-day sessions at each midnight"
+                                  [clockin (mktime (addDays (-2) today) "23:00:00") ""]
+                                  ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
+     assertEntriesGiveStrings "auto-clock-out if needed" 
+                                  [clockin (mktime today "00:00:00") ""] 
+                                  ["00:00-"++nowstr]
+     let future = utcToLocalTime tz $ addUTCTime 100 now'
+         futurestr = showtime future
+     assertEntriesGiveStrings "use the clockin time for auto-clockout if it's in the future"
+                                  [clockin future ""]
+                                  [printf "%s-%s" futurestr futurestr]
+
+ ]

@@ -28,8 +28,6 @@ $ hledger -f sample.ledger balance o
 
 module Hledger.Tests
 where
-import Data.Time.Format
-import System.Locale (defaultTimeLocale)
 import Test.HUnit.Tools (runVerboseTests)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.Time (ClockTime(TOD))
@@ -307,33 +305,6 @@ tests = TestList [
   --     `is` "aa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa")
   --    (elideAccountName 20 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     `is` "aa:aa:aaaaaaaaaaaaaa")
-
-  ,"entriesFromTimeLogEntries" ~: do
-     today <- getCurrentDay
-     now' <- getCurrentTime
-     tz <- getCurrentTimeZone
-     let now = utcToLocalTime tz now'
-         nowstr = showtime now
-         yesterday = prevday today
-         clockin = TimeLogEntry In
-         mktime d = LocalTime d . fromMaybe midnight . parseTime defaultTimeLocale "%H:%M:%S"
-         showtime = formatTime defaultTimeLocale "%H:%M"
-         assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ entriesFromTimeLogEntries now es)
-
-     assertEntriesGiveStrings "started yesterday, split session at midnight"
-                                  [clockin (mktime yesterday "23:00:00") ""]
-                                  ["23:00-23:59","00:00-"++nowstr]
-     assertEntriesGiveStrings "split multi-day sessions at each midnight"
-                                  [clockin (mktime (addDays (-2) today) "23:00:00") ""]
-                                  ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
-     assertEntriesGiveStrings "auto-clock-out if needed" 
-                                  [clockin (mktime today "00:00:00") ""] 
-                                  ["00:00-"++nowstr]
-     let future = utcToLocalTime tz $ addUTCTime 100 now'
-         futurestr = showtime future
-     assertEntriesGiveStrings "use the clockin time for auto-clockout if it's in the future"
-                                  [clockin future ""]
-                                  [printf "%s-%s" futurestr futurestr]
 
   ,"expandAccountNames" ~:
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`

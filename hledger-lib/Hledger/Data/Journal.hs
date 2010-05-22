@@ -229,6 +229,11 @@ canonicaliseAmounts costbasis j@Journal{jtxns=ts} = j{jtxns=map fixledgertransac
                         where canonicaliseCommodity a@Amount{commodity=Commodity{symbol=s}} =
                                   a{commodity=findWithDefault (error "programmer error: canonicaliseCommodity failed") s canonicalcommoditymap}
 
+-- | Close any open timelog sessions using the provided current time.
+journalCloseTimeLogEntries :: LocalTime -> Journal -> Journal
+journalCloseTimeLogEntries now j@Journal{jtxns=ts, open_timelog_entries=es} =
+  j{jtxns = ts ++ (timeLogEntriesToTransactions now es), open_timelog_entries = []}
+
 -- | Get just the amounts from a ledger, in the order parsed.
 journalAmounts :: Journal -> [MixedAmount]
 journalAmounts = map pamount . journalPostings
@@ -240,13 +245,6 @@ journalCommodities = map commodity . concatMap amounts . journalAmounts
 -- | Get just the amount precisions from a ledger, in the order parsed.
 journalPrecisions :: Journal -> [Int]
 journalPrecisions = map precision . journalCommodities
-
--- | Close any open timelog sessions using the provided current time.
-journalConvertTimeLog :: LocalTime -> Journal -> Journal
-journalConvertTimeLog t l0 = l0 { jtxns = convertedTimeLog ++ jtxns l0
-                                  , open_timelog_entries = []
-                                  }
-    where convertedTimeLog = entriesFromTimeLogEntries t $ open_timelog_entries l0
 
 -- | The (fully specified) date span containing all the raw ledger's transactions,
 -- or DateSpan Nothing Nothing if there are none.

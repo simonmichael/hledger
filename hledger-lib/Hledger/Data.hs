@@ -52,7 +52,7 @@ tests_Hledger_Data = TestList
     ,Hledger.Data.Parse.tests_Parse
     -- ,Hledger.Data.Journal.tests_Journal
     -- ,Hledger.Data.Posting.tests_Posting
-    -- ,Hledger.Data.TimeLog.tests_TimeLog
+    ,Hledger.Data.TimeLog.tests_TimeLog
     -- ,Hledger.Data.Types.tests_Types
     -- ,Hledger.Data.Utils.tests_Utils
     ]
