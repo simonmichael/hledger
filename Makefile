@@ -15,9 +15,9 @@ PROFCMD=-f 1000x1000x10.ledger balance
 COVCMD=test
 
 # executables to run during "make simplebench". They should be on the path
-# or in the current directory. hledger executables should generally be the
-# standard cabal builds, also constrained to parsec 2 for now.
-BENCHEXES=hledger-0.7 hledger-0.8 ledger-3pre
+# or in the current directory. hledger executables for benchmarking should
+# generally be the standard optimised cabal build, constrained to parsec 2.
+BENCHEXES=hledger-0.8 hledger ledger-3pre
 
 # misc. tools
 RST2PDF=rst2pdf
@@ -204,10 +204,16 @@ fullcabaltest: setversion
 		&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
 		&& echo $@ passed) || echo $@ FAILED
 
+# run performance benchmarks without saving results.
+# Requires some commands defined in bench.tests and some BENCHEXES defined above.
+quickbench: sampleledgers bench.tests tools/simplebench
+	tools/simplebench -fbench.tests $(BENCHEXES)
+	@rm -f benchresults.*
+
 # run performance benchmarks and save textual results in profs/.
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
-simplebench bench: sampleledgers bench.tests tools/simplebench
-	PATH=.:$(PATH) tools/bench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
+simplebench: sampleledgers bench.tests tools/simplebench
+	tools/simplebench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
 
