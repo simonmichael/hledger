@@ -1,4 +1,4 @@
-./hledger -f- register
+bin/hledger -f- register
 <<<
 2009/1/1 x aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa  €1
  b

@@ -1,4 +1,4 @@
-./hledger -f - balance -E
+bin/hledger -f - balance -E
 <<<
 2009/1/1 x
  a:  13

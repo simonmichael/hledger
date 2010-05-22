@@ -1,5 +1,5 @@
 # 
-./hledger -f - print --effective
+bin/hledger -f - print --effective
 <<<
 2009/1/1=1/2 x
   a  1

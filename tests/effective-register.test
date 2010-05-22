@@ -1,4 +1,4 @@
-./hledger -f - register --effective
+bin/hledger -f - register --effective
 <<<
 2009/1/1=2010/1/1 x
   a  1

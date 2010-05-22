@@ -1,4 +1,4 @@
-./hledger -f-
+bin/hledger -f-
 <<<
 ; -*- ledger -*-
 

@@ -1,5 +1,5 @@
 # b amount with no decimal places, in middle, causes balance failure (0.6.1)
-./hledger -f - print
+bin/hledger -f - print
 <<<
 2009/1/1 x
     a         $1.25

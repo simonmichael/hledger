@@ -1,4 +1,4 @@
-./hledger -f - print desc:x
+bin/hledger -f - print desc:x
 <<<
 2009/1/1 x
     a  1

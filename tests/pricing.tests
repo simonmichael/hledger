@@ -1,6 +1,6 @@
 # draft pricing tests
 # 1. print a transaction with explicitly-priced amount
-./hledger -f- print
+bin/hledger -f- print
 <<<
 2009/1/2 x
      expenses:foreign currency       €100 @ $1.35
@@ -11,7 +11,7 @@
     assets                         $-135.00
 
 # 2. again, this time converting to cost basis
-./hledger -f- print -B
+bin/hledger -f- print -B
 <<<
 2009/1/2 x
      expenses:foreign currency       €100 @ $1.35
@@ -22,7 +22,7 @@
     assets                         $-135.00
 
 # 3. same as above, but using a historical price directive
-./hledger -f- print
+bin/hledger -f- print
 <<<
 P 2009/1/1 € $1.35
 
@@ -36,7 +36,7 @@ P 2009/1/1 € $1.35
     assets                     €-100 @ $1.35
 
 # 4. and with conversion
-./hledger -f- print -B
+bin/hledger -f- print -B
 <<<
 P 2009/1/1 € $1.35
 

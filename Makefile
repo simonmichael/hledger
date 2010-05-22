@@ -152,7 +152,7 @@ hlinttest hlint:
 unittest: unittest-builtin
 
 unittest-builtin: hledger
-	@(./hledger test -v \
+	@(bin/hledger test -v \
 		&& echo $@ passed) || echo $@ FAILED
 
 # XXX doesn't rebuild on hledger source changes
