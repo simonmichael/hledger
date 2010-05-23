@@ -81,10 +81,8 @@ server opts args j =
 #endif
       \env -> do -- IO Response
        -- general request handler
-       let a = intercalate "+" $ map decodeString $ reqParamUtf8 env "a"
-           p = intercalate "+" $ map decodeString $ reqParamUtf8 env "p"
-           opts' = opts ++ [Period p]
-           args' = args ++ words a
+       let opts' = opts ++ [Period $ unwords $ map decodeString $ reqParamUtf8 env "p"]
+           args' = args ++ map decodeString (reqParamUtf8 env "a")
        j' <- fromJust `fmap` getValue "hledger" "journal"
        j'' <- journalReloadIfChanged opts' args' j'
        -- declare path-specific request handlers
