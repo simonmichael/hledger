@@ -12,9 +12,7 @@ import Hledger.Data.IO (myLedgerPath,myTimelogPath)
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
-#if __GLASGOW_HASKELL__ <= 610
 import Codec.Binary.UTF8.String (decodeString)
-#endif
 
 #ifdef CHART
 chartoutput   = "hledger.png"
@@ -148,11 +146,7 @@ optValuesForConstructors fs opts = concatMap get opts
 -- YYYY/MM/DD format based on the current time.
 parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
-#if __GLASGOW_HASKELL__ <= 610
   args <- liftM (map decodeString) getArgs
-#else
-  args <- getArgs
-#endif
   let (os,as,es) = getOpt Permute options args
 --  istimequery <- usingTimeProgramName
 --  let os' = if istimequery then (Period "today"):os else os
