@@ -6,9 +6,7 @@ A web-based UI.
 
 module Hledger.Cli.Commands.Web
 where
-#if __GLASGOW_HASKELL__ <= 610
 import Codec.Binary.UTF8.String (decodeString)
-#endif
 import Control.Applicative.Error (Failing(Success,Failure))
 import Control.Concurrent
 import Control.Monad.Reader (ask)
@@ -83,8 +81,8 @@ server opts args j =
 #endif
       \env -> do -- IO Response
        -- general request handler
-       let a = intercalate "+" $ reqparam env "a"
-           p = intercalate "+" $ reqparam env "p"
+       let a = intercalate "+" $ map decodeString $ reqParamUtf8 env "a"
+           p = intercalate "+" $ map decodeString $ reqParamUtf8 env "p"
            opts' = opts ++ [Period p]
            args' = args ++ words a
        j' <- fromJust `fmap` getValue "hledger" "journal"
@@ -110,12 +108,8 @@ getenv = ask
 response = update
 redirect u c = response $ Hack.Contrib.Response.redirect u c
 
-reqparam :: Hack.Env -> String -> [String]
-#if __GLASGOW_HASKELL__ <= 610
-reqparam env p = map (decodeString.snd) $ filter ((==p).fst) $ Hack.Contrib.Request.params env
-#else
-reqparam env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
-#endif
+reqParamUtf8 :: Hack.Env -> String -> [String]
+reqParamUtf8 env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
 
 journalReloadIfChanged :: [Opt] -> [String] -> Journal -> IO Journal
 journalReloadIfChanged opts _ j@Journal{filepath=f,filereadtime=tread} = do
@@ -170,7 +164,7 @@ hsp msgs f = do
       hackEnvToHspEnv :: Hack.Env -> IO HSPEnv
       hackEnvToHspEnv env = do
           x <- newIORef 0
-          let req = HSP.Request (reqparam env) (Hack.http env)
+          let req = HSP.Request (reqParamUtf8 env) (Hack.http env)
               num = NumberGen (atomicModifyIORef x (\a -> (a+1,a)))
           return $ HSPEnv req num
 
@@ -203,11 +197,7 @@ navbar env =
       <a href="http://hledger.org/MANUAL.html" id="helplink">help</a>
     </div>
 
-#if __GLASGOW_HASKELL__ <= 610
 getParamOrNull p = (decodeString . fromMaybe "") `fmap` getParam p
-#else
-getParamOrNull p = fromMaybe "" `fmap` getParam p
-#endif
 
 navlinks :: Hack.Env -> HSP XML
 navlinks _ = do
@@ -241,13 +231,8 @@ addform :: Hack.Env -> HSP XML
 addform env = do
   today <- io $ liftM showDate $ getCurrentDay
   let inputs = Hack.Contrib.Request.inputs env
-#if __GLASGOW_HASKELL__ <= 610
       date  = decodeString $ fromMaybe today $ lookup "date"  inputs
       desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
-#else
-      date  = fromMaybe today $ lookup "date"  inputs
-      desc  = fromMaybe "" $ lookup "desc"  inputs
-#endif
   <div>
    <div id="addform">
    <form action="" method="POST">
@@ -277,13 +262,8 @@ help topic = <a href=u>?</a>
 transactionfields :: Int -> Hack.Env -> HSP XML
 transactionfields n env = do
   let inputs = Hack.Contrib.Request.inputs env
-#if __GLASGOW_HASKELL__ <= 610
       acct = decodeString $ fromMaybe "" $ lookup acctvar inputs
       amt  = decodeString $ fromMaybe "" $ lookup amtvar  inputs
-#else
-      acct = fromMaybe "" $ lookup acctvar inputs
-      amt  = fromMaybe "" $ lookup amtvar  inputs
-#endif
   <tr>
     <td>
     <% nbsp %><% nbsp %>
@@ -306,21 +286,12 @@ handleAddform j = do
     validate :: Hack.Env -> Day -> Failing Transaction
     validate env today =
         let inputs = Hack.Contrib.Request.inputs env
-#if __GLASGOW_HASKELL__ <= 610
             date  = decodeString $ fromMaybe "today" $ lookup "date"  inputs
             desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
             acct1 = decodeString $ fromMaybe "" $ lookup "acct1" inputs
             amt1  = decodeString $ fromMaybe "" $ lookup "amt1"  inputs
             acct2 = decodeString $ fromMaybe "" $ lookup "acct2" inputs
             amt2  = decodeString $ fromMaybe "" $ lookup "amt2"  inputs
-#else
-            date  = fromMaybe "today" $ lookup "date"  inputs
-            desc  = fromMaybe "" $ lookup "desc"  inputs
-            acct1 = fromMaybe "" $ lookup "acct1" inputs
-            amt1  = fromMaybe "" $ lookup "amt1"  inputs
-            acct2 = fromMaybe "" $ lookup "acct2" inputs
-            amt2  = fromMaybe "" $ lookup "amt2"  inputs
-#endif
             validateDate ""  = ["missing date"]
             validateDate _   = []
             validateDesc ""  = ["missing description"]
