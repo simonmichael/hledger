@@ -13,7 +13,6 @@ import Control.Applicative.Error (Failing(Success,Failure))
 import Control.Concurrent
 import Control.Monad.Reader (ask)
 import Data.IORef (newIORef, atomicModifyIORef)
-import Network.HTTP (urlEncode, urlDecode)
 import System.Directory (getModificationTime)
 import System.IO.Storage (withStore, putValue, getValue)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
@@ -87,7 +86,7 @@ server opts args j =
        let a = intercalate "+" $ reqparam env "a"
            p = intercalate "+" $ reqparam env "p"
            opts' = opts ++ [Period p]
-           args' = args ++ (map urlDecode $ words a)
+           args' = args ++ words a
        j' <- fromJust `fmap` getValue "hledger" "journal"
        j'' <- journalReloadIfChanged opts' args' j'
        -- declare path-specific request handlers
@@ -214,7 +213,7 @@ navlinks :: Hack.Env -> HSP XML
 navlinks _ = do
    a <- getParamOrNull "a"
    p <- getParamOrNull "p"
-   let addparams=(++(printf "?a=%s&p=%s" (urlEncode a) (urlEncode p)))
+   let addparams=(++(printf "?a=%s&p=%s" a p))
        link s = <a href=(addparams s) class="navlink"><% s %></a>
    <div id="navlinks">
      <% link "transactions" %> |
