@@ -1,4 +1,14 @@
+#
 bin/hledger -f - register --depth 1
+<<<
+2010/1/1 x
+  a:aa      1
+  b:bb:bbb
+
+>>>
+>>>2
+#
+bin/hledger -f - register --depth 1 --empty --monthly
 <<<
 2010/1/1 x
   a:aa      1
