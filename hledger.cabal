@@ -26,9 +26,14 @@ data-files:
                 web/style.css
 extra-tmp-files:
 extra-source-files:
-  README
-  sample.ledger
-  sample.timelog
+  README.rst
+  README2.rst
+  MANUAL.markdown
+  NEWS.rst
+  CONTRIBUTORS.rst
+  data/sample.ledger
+  data/sample.timelog
+  data/sample.rules
 
 flag vty
   description: enable the curses ui
