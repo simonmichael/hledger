@@ -305,7 +305,10 @@ docs: site apidocs
 .PHONY: site
 site: site/hakyll
 	cd site; ./hakyll build
-	cd site/_site; ln -sf README.html index.html
+	cd site/_site; ln -sf README.html index.html; ln -sf ../../profs
+
+cleansite: site/hakyll
+	cd site; ./hakyll clean
 
 site/hakyll: site/hakyll.hs
 	cd site; ghc --make hakyll.hs
