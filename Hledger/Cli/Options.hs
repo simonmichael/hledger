@@ -39,7 +39,7 @@ usagehdr =
   "  register  - show transactions as a register with running balance\n" ++
   "  stats     - show various statistics for a ledger\n" ++
 #ifdef VTY
-  "  ui        - run a simple text-based UI\n" ++
+  "  vty       - run a simple curses-style UI\n" ++
 #endif
 #ifdef WEB
   "  web       - run a simple web-based UI\n" ++
@@ -89,7 +89,7 @@ options = [
  ,Option "v" ["verbose"]      (NoArg  Verbose)       "show verbose test output"
  ,Option ""    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
  ,Option ""    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
- ,Option ""    ["debug-no-ui"]  (NoArg  DebugNoUI)     "run ui commands with no output"
+ ,Option ""    ["debug-vty"]  (NoArg  DebugVty)     "run vty command with no vty output, showing console"
 #ifdef CHART
  ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    ("chart: output filename (default: "++chartoutput++")")
  ,Option ""  ["items"]  (ReqArg ChartItems "N")         ("chart: number of accounts to show (default: "++show chartitems++")")
@@ -123,7 +123,7 @@ data Opt =
     Version
     | BinaryFilename
     | Debug
-    | DebugNoUI
+    | DebugVty
 #ifdef CHART
     | ChartOutput {value::String}
     | ChartItems  {value::String}
