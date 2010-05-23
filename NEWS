@@ -1,13 +1,31 @@
 hledger news
 ============
 
-unreleased
+2010/05/23 hledger 0.10
 ........................
 
-  * fix "0.8" appearing in --version
+  * fix too-loose testpack dependency, missing safe dependency
+  * fix ghc 6.12 compatibility with -fweb
+  * fix handling of non-ascii arguments with ghc 6.12
+  * fix "0.8" in --version output
+  * fix an occasional stack overflow error due to infinite recursion in Posting/Transaction equality tests
+  * the -fwebhappstack build flag is gone for now, to avoid a cabal problem
+  * parsing: if there is no description, don't require a space after the transaction date
   * parsing: balance balanced-virtual postings separately, allow them to have an implicit amount
+  * parsing: timelog entries now generate balanced transactions, using virtual postings
+  * parsing: simpler high-level parse error message
   * parsing: clearer bad date errors
   * add: fix wrongful program exit on bad dates
+  * print: negative account patterns now exclude transactions containing any posting to a matched account
+  * vty: rename the ui command to vty for consistency
+  * vty: fix restricted account scope when backing up to top level
+  * web: fix non-ascii handling with ghc 6.12
+  * web: fix a bug possibly affecting reload-on-change
+  * consolidate module namespace under Hledger, api cleanups
+
+  Stats:
+  44 days, 81 commits since last release.
+  Now at 4904 lines of code including tests, 144 tests, 53% coverage.
 
 2010/04/10 hledger 0.9
 ......................
