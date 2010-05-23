@@ -114,7 +114,7 @@ on:
     hledger reg desc:shop                 # transactions with shop in the description
     hledger histogram                     # transactions per day, or other interval
     hledger add                           # add some new transactions to the ledger file
-    hledger ui                            # curses ui, if installed with -fvty
+    hledger vty                           # curses ui, if installed with -fvty
     hledger web                           # web ui, if installed with -fweb or -fwebyesod
     hledger chart                         # make a balance chart, if installed with -fchart
 
@@ -193,7 +193,7 @@ Here is the command-line help:
      print     - show transactions in ledger format
      register  - show transactions as a register with running balance
      stats     - show various statistics for a ledger
-     ui        - run a simple text-based UI
+     vty       - run a simple curses-style UI
      web       - run a simple web-based UI
      chart     - generate balances pie chart
      test      - run self-tests
@@ -232,7 +232,7 @@ Here is the command-line help:
      -v       --verbose            show verbose test output
               --binary-filename    show the download filename for this hledger build
               --debug              show extra debug output; implies verbose
-              --debug-no-ui        run ui commands with no output
+              --debug-vty          run vty command with no vty output, showing console
      -o FILE  --output=FILE        chart: output filename (default: hledger.png)
               --items=N            chart: number of accounts to show (default: 10)
               --size=WIDTHxHEIGHT  chart: image size (default: 600x400)
@@ -321,18 +321,19 @@ Examples:
 
     $ hledger stats
 
-##### ui
+##### vty
 
 (optional feature)
 
-The ui command starts hledger's curses (full-screen, text) user interface,
+The vty command starts hledger's curses (full-screen, text) user interface,
 which allows interactive navigation of the print/register/balance
 reports. This lets you browse around your numbers and get quick insights
 with less typing.
 
 Examples:
 
-$ hledger ui $ hledger ui -BE food
+    $ hledger vty
+    $ hledger vty -BE food
 
 #### Modifying commands
 
