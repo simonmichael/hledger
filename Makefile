@@ -1,16 +1,16 @@
 # hledger project makefile
 
 # optional features described in MANUAL, comment out if you don't have the libs
-OPTFLAGS= #-DCHART -DVTY -DWEB
 #OPTFLAGS=-DCHART -DVTY -DWEBHAPPSTACK
+OPTFLAGS=-DVTY -DWEB
+#OPTFLAGS=
 
 # command to run during "make ci"
 CICMD=test
-CICMD=web -v --debug -f ~/personal/2009.ledger
+#CICMD=web -f t.journal --debug
 
 # command line to run during "make prof" and "make heap"
 PROFCMD=bin/hledgerp -f data/1000x1000x10.ledger balance >/dev/null
-PROFCMD=bin/hledgerp -f t.timelog balance --no-total
 
 # command to run during "make coverage"
 COVCMD=test
@@ -18,7 +18,7 @@ COVCMD=test
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
-BENCHEXES=hledger-0.8 hledger ledger-3pre
+BENCHEXES=hledger-0.9 hledger ledger
 
 # misc. tools
 RST2PDF=rst2pdf
