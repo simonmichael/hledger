@@ -59,16 +59,17 @@ myJournal = myLedgerPath >>= readJournal
 myTimelog :: IO Journal
 myTimelog = myTimelogPath >>= readJournal
 
--- | Read a journal from this file, or give an error.
+-- | Read a journal from this file, or throw an error.
 readJournal :: FilePath -> IO Journal
 readJournal f = do
   s <- readFile f
-  journalFromString s
+  j <- journalFromString s
+  return j{filepath=f}
 
 -- | Read a Journal from the given string, using the current time as
 -- reference time, or throw an error.
 journalFromString :: String -> IO Journal
-journalFromString s = liftM (either error id) $ runErrorT $ parseJournal "(string)" s
+journalFromString s = liftM (either error id) $ runErrorT $ parseJournal "(from string)" s
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath
