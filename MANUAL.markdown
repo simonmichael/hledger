@@ -72,9 +72,7 @@ with the cabal-install tool:
     - `-fvty` - builds the [ui](#ui) command. (Not available on microsoft
         windows.)
 
-    - `-fweb` - builds the [web](#web) command. This uses a lightweight
-        web server which might not support older browsers like IE6; for a
-        more robust web server, use `-fwebhappstack` instead.
+    - `-fweb` - builds the [web](#web) command.
 
     - `-fchart` builds the [chart](#chart) command. This requires
         [gtk2hs](http://www.haskell.org/gtk2hs/download/), which you'll
@@ -132,10 +130,7 @@ Here are some known issues and things to try:
   GHC itself, cabal may not be able to figure out the installation.  This
   can also arise due to non-optimal dependency information configured in
   hledger or its dependencies. You can sometimes work around this by using
-  cabal's `--constraint` option. Eg this recipe was once used to build with
-  happstack on haskell platform 2009.2.0.2 on MS Windows:
-
-        cabal install hledger -fwebhappstack --constraint="haskell-src-meta < 0.0.6" --constraint="syb-with-class < 0.6.1"
+  cabal's `--constraint` option.
 
 ### Basic usage
 
@@ -170,7 +165,7 @@ on:
     hledger histogram                     # transactions per day, or other interval
     hledger add                           # add some new transactions to the ledger file
     hledger ui                            # curses ui, if installed with -fvty
-    hledger web                           # web ui, if installed with -fweb or -fwebhappstack
+    hledger web                           # web ui, if installed with -fweb
     hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
