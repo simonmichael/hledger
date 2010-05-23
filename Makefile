@@ -45,6 +45,22 @@ DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
 BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS) -ihledger-lib
 TIME:=$(shell date +"%Y%m%d%H%M")
 
+# file defining the current release version
+VERSIONFILE=VERSION
+# two or three-part version string
+VERSION:=$(shell grep -v '^--' $(VERSIONFILE))
+# three-part version string
+ifeq ($(shell ghc -e "length (filter (=='.') \"$(VERSION)\")"), 1)
+VERSION3:=$(VERSION).0
+else
+VERSION3:=$(VERSION)
+endif
+# files which should be updated when the version changes
+VERSIONSENSITIVEFILES=\
+	hledger.cabal \
+	Hledger/Cli/Version.hs \
+	hledger-lib/hledger-lib.cabal \
+
 default: tag hledger
 
 ######################################################################
@@ -197,14 +213,22 @@ quickcabaltest: setversion
 
 # make sure cabal is happy in all possible ways
 fullcabaltest: setversion
-	@(cabal clean \
-		&& cabal check \
-		&& cabal configure -fvty -fweb \
-		&& cabal build \
-		&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
-		&& cabal sdist \
-		&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
-		&& echo $@ passed) || echo $@ FAILED
+	(cd hledger-lib \
+	&& cabal clean \
+	&& cabal check \
+	&& cabal install \
+	&& cabal sdist \
+	&& cabal upload dist/hledger-lib-$(VERSION).tar.gz --check -v3 \
+	&& cd .. \
+	&& cabal clean \
+	&& cabal check \
+	&& cabal configure -fvty -fweb \
+	&& cabal build \
+	&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
+	&& cabal sdist \
+	&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
+	&& echo $@ passed \
+	) || echo $@ FAILED
 
 # run performance benchmarks without saving results.
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
@@ -469,25 +493,9 @@ hoogleindex:
 release: releasetest setandrecordversion tagrelease sdist
 
 # Upload the latest cabal package and update hledger.org
-upload: hackageupload updatesite
+upload: hackageupload pushdocs
 
 releaseandupload: release upload
-
-# file defining the current release version
-VERSIONFILE=VERSION
-# two or three-part version string
-VERSION:=`grep -v '^--' $(VERSIONFILE)`
-# three-part version string
-ifeq ($(shell ghc -e "length (filter (=='.') \"$(VERSION)\")"), 1)
-VERSION3:=$(VERSION).0
-else
-VERSION3:=$(VERSION)
-endif
-# files which should be updated when the version changes
-VERSIONSENSITIVEFILES=\
-	hledger.cabal \
-	Hledger/Cli/Version.hs \
-	hledger-lib/hledger-lib.cabal \
 
 Version.hs: $(VERSIONFILE)
 	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
@@ -511,10 +519,12 @@ tagrelease:
 	darcs tag $(VERSION3)
 
 sdist:
+	cd hledger-lib; cabal sdist
 	cabal sdist
 
 # display a hackage upload command reminder
 hackageupload:
+	cabal upload hledger-lib/dist/hledger-lib-$(VERSION).tar.gz -v3
 	cabal upload dist/hledger-$(VERSION).tar.gz -v3
 
 # send unpushed patches to the mail list
