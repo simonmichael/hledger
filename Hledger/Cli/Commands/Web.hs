@@ -49,9 +49,6 @@ import Paths_hledger (getDataFileName)
 #endif
 import Hledger.Cli.Utils (openBrowserOn)
 
--- import Debug.Trace
--- strace :: Show a => a -> a
--- strace a = trace (show a) a
 
 tcpport = 5000 :: Int
 homeurl = printf "http://localhost:%d/" tcpport
