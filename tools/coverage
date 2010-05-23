@@ -6,5 +6,5 @@ import sys, os
 cov="hledgercov"
 cmd, args = sys.argv[1], ' '.join(sys.argv[2:])
 os.system("rm -f %s.tix" % cov)
-os.system("./%s %s >/dev/null" % (cov,args))
+os.system("bin/%s %s >/dev/null" % (cov,args))
 os.system("hpc %s %s" % (cmd,cov))

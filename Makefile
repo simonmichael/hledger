@@ -539,7 +539,7 @@ pushbinary:
 	-rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
 
 # show project stats useful for release notes
-stats: showlastreleasedate showreleaseauthors showloc showcov showerrors showlocalchanges showreleasechanges simplebench
+stats: showlastreleasedate showreleaseauthors showloc showcov showlocalchanges showreleasechanges #simplebench #showerrors
 
 showreleaseauthors:
 	@echo Patch authors since last release:
@@ -547,10 +547,8 @@ showreleaseauthors:
 	@echo
 
 showloc:
-	@echo Lines of non-test code:
-	@sloccount `ls $(SOURCEFILES) |grep -v Tests.hs` | grep haskell:
-	@echo Lines of test code:
-	@sloccount Tests.hs | grep haskell:
+	@echo Lines of code including tests:
+	@sloccount `ls $(SOURCEFILES)` | grep haskell:
 	@echo
 
 showcov:
@@ -562,10 +560,10 @@ showlastreleasedate:
 	@darcs changes --from-tag . | tail -2
 	@echo
 
-showerrors:
-	@echo Known errors:
-	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
-	@echo
+# showerrors:
+# 	@echo Known errors:
+# 	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
+# 	@echo
 
 showlocalchanges:
 	@echo Local changes:
