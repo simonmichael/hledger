@@ -1,10 +1,11 @@
+# a timelog session is parsed as a similarly-named transaction with one virtual posting
 bin/hledger -f - print
 <<<
-i 2009/1/1 08:00:00 x
+i 2009/1/1 08:00:00 something
 o 2009/1/1 09:00:00
 
 >>>
 2009/01/01 * 08:00-09:00
-    x          1.0h
+    (something)          1.0h
 
 >>>2

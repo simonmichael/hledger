@@ -87,9 +87,7 @@ entryFromTimeLogInOut i o
       hrs      = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       amount   = Mixed [hours hrs]
       ps       = [Posting{pstatus=False,paccount=acctname,pamount=amount,
-                          pcomment="",ptype=RegularPosting,ptransaction=Just t}
-                 --,Posting "assets:time" (-amount) "" RegularPosting
-                 ]
+                          pcomment="",ptype=VirtualPosting,ptransaction=Just t}]
 
 tests_TimeLog = TestList [
 

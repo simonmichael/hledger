@@ -6,8 +6,8 @@ i 2010/1/1 09:00:00 a:b
 o 2010/1/1 09:03:00
 >>>=0
 # incidentally this didn't trigger it.. go figure
-bin/hledger -f - balance
-<<<
-i 2010/1/1 09:00:00 a:b
-o 2010/1/1 09:02:00
->>>=0
+#bin/hledger -f - balance
+#<<<
+#i 2010/1/1 09:00:00 a:b
+#o 2010/1/1 09:02:00
+#>>>=0
