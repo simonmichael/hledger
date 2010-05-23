@@ -68,7 +68,7 @@ with the cabal-install tool:
     extra features (if you're new to cabal, I recommend you get the basic
     install working first, then add these one at a time):
 
-    - `-fvty` - builds the [ui](#ui) command. (Not available on microsoft
+    - `-fvty` - builds the [vty](#vty) command. (Not available on microsoft
         windows.)
 
     - `-fweb` - builds the [web](#web) command (works with ghc 6.10).
