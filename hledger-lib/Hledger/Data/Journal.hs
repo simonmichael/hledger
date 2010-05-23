@@ -20,7 +20,8 @@ import Hledger.Data.TimeLog
 
 
 instance Show Journal where
-    show j = printf "Journal with %d transactions, %d accounts: %s"
+    show j = printf "Journal %s with %d transactions, %d accounts: %s"
+             (filepath j)
              (length (jtxns j) +
               length (jmodifiertxns j) +
               length (jperiodictxns j))
