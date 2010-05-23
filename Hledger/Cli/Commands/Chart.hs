@@ -24,10 +24,10 @@ import Data.List
 import Safe (readDef)
 
 -- | Generate an image with the pie chart and write it to a file
-chart :: [Opt] -> [String] -> Ledger -> IO ()
-chart opts args l = do
+chart :: [Opt] -> [String] -> Journal -> IO ()
+chart opts args j = do
   t <- getCurrentLocalTime
-  let chart = genPie opts (optsToFilterSpec opts args t) l
+  let chart = genPie opts (optsToFilterSpec opts args t) j
   renderableToPNGFile (toRenderable chart) w h filename
     where
       filename = getOption opts ChartOutput chartoutput
@@ -48,8 +48,8 @@ parseSize str = (read w, read h)
     (w,_:h) = splitAt x str
 
 -- | Generate pie chart
-genPie :: [Opt] -> FilterSpec -> Ledger -> PieLayout
-genPie opts filterspec l = defaultPieLayout { pie_background_ = solidFillStyle $ opaque $ white
+genPie :: [Opt] -> FilterSpec -> Journal -> PieLayout
+genPie opts filterspec j = defaultPieLayout { pie_background_ = solidFillStyle $ opaque $ white
                                             , pie_plot_ = pie_chart }
     where
       pie_chart = defaultPieChart { pie_data_ = map (uncurry accountPieItem) chartitems'
@@ -60,7 +60,7 @@ genPie opts filterspec l = defaultPieLayout { pie_background_ = solidFillStyle $
       chartitems' = debug "chart" $ top num samesignitems
       (samesignitems, sign) = sameSignNonZero rawitems
       rawitems = debug "raw" $ flatten $ balances $
-                 ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ cacheLedger'' filterspec l
+                 ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ journalToLedger filterspec j
       top n t = topn ++ [other]
           where
             (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) t

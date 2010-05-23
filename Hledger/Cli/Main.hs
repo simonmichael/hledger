@@ -20,8 +20,8 @@ You can use the command line:
 or ghci:
 
 > $ ghci hledger
-> > l <- readLedger "sample.ledger"
-> > register [] ["income","expenses"] l
+> > j <- readJournal "data/sample.journal"
+> > register [] ["income","expenses"] j
 > 2008/01/01 income               income:salary                   $-1          $-1
 > 2008/06/01 gift                 income:gifts                    $-1          $-2
 > 2008/06/03 eat & shop           expenses:food                    $1          $-1
@@ -48,7 +48,7 @@ import Hledger.Cli.Commands.All
 import Hledger.Data
 import Hledger.Cli.Options
 import Hledger.Cli.Tests
-import Hledger.Cli.Utils (withLedgerDo)
+import Hledger.Cli.Utils (withJournalDo)
 import Hledger.Cli.Version (versionmsg, binaryfilename)
 
 main :: IO ()
@@ -60,21 +60,21 @@ main = do
        | Help `elem` opts             = putStr usage
        | Version `elem` opts          = putStrLn versionmsg
        | BinaryFilename `elem` opts   = putStrLn binaryfilename
-       | cmd `isPrefixOf` "balance"   = withLedgerDo opts args cmd balance
-       | cmd `isPrefixOf` "convert"   = withLedgerDo opts args cmd convert
-       | cmd `isPrefixOf` "print"     = withLedgerDo opts args cmd print'
-       | cmd `isPrefixOf` "register"  = withLedgerDo opts args cmd register
-       | cmd `isPrefixOf` "histogram" = withLedgerDo opts args cmd histogram
-       | cmd `isPrefixOf` "add"       = withLedgerDo opts args cmd add
-       | cmd `isPrefixOf` "stats"     = withLedgerDo opts args cmd stats
+       | cmd `isPrefixOf` "balance"   = withJournalDo opts args cmd balance
+       | cmd `isPrefixOf` "convert"   = withJournalDo opts args cmd convert
+       | cmd `isPrefixOf` "print"     = withJournalDo opts args cmd print'
+       | cmd `isPrefixOf` "register"  = withJournalDo opts args cmd register
+       | cmd `isPrefixOf` "histogram" = withJournalDo opts args cmd histogram
+       | cmd `isPrefixOf` "add"       = withJournalDo opts args cmd add
+       | cmd `isPrefixOf` "stats"     = withJournalDo opts args cmd stats
 #ifdef VTY
-       | cmd `isPrefixOf` "vty"       = withLedgerDo opts args cmd vty
+       | cmd `isPrefixOf` "vty"       = withJournalDo opts args cmd vty
 #endif
 #if defined(WEB) || defined(WEBHAPPSTACK)
-       | cmd `isPrefixOf` "web"       = withLedgerDo opts args cmd web
+       | cmd `isPrefixOf` "web"       = withJournalDo opts args cmd web
 #endif
 #ifdef CHART
-       | cmd `isPrefixOf` "chart"       = withLedgerDo opts args cmd chart
+       | cmd `isPrefixOf` "chart"       = withJournalDo opts args cmd chart
 #endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr usage

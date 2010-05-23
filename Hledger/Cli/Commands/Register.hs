@@ -22,21 +22,21 @@ import System.IO.UTF8
 
 
 -- | Print a register report.
-register :: [Opt] -> [String] -> Ledger -> IO ()
-register opts args l = do
+register :: [Opt] -> [String] -> Journal -> IO ()
+register opts args j = do
   t <- getCurrentLocalTime
-  putStr $ showRegisterReport opts (optsToFilterSpec opts args t) l
+  putStr $ showRegisterReport opts (optsToFilterSpec opts args t) j
 
 -- | Generate the register report, which is a list of postings with transaction
 -- info and a running balance.
-showRegisterReport :: [Opt] -> FilterSpec -> Ledger -> String
-showRegisterReport opts filterspec l = showPostingsWithBalance ps nullposting startbal
+showRegisterReport :: [Opt] -> FilterSpec -> Journal -> String
+showRegisterReport opts filterspec j = showPostingsWithBalance ps nullposting startbal
     where
       ps | interval == NoInterval = displayableps
          | otherwise             = summarisePostings interval depth empty filterspan displayableps
       startbal = sumPostings precedingps
       (precedingps,displayableps,_) =
-          postingsMatchingDisplayExpr (displayExprFromOpts opts) $ journalPostings $ filterJournalPostings filterspec $ journal l
+          postingsMatchingDisplayExpr (displayExprFromOpts opts) $ journalPostings $ filterJournalPostings filterspec j
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
       filterspan = datespan filterspec
 
@@ -99,7 +99,7 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
       summaryps' = (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
       summaryps = [summaryp{paccount=a,pamount=balancetoshowfor a} | a <- clippedanames]
       anames = sort $ nub $ map paccount ps
-      -- aggregate balances by account, like cacheLedger, then do depth-clipping
+      -- aggregate balances by account, like journalToLedger, then do depth-clipping
       (_,_,exclbalof,inclbalof) = groupPostings ps
       clippedanames = nub $ map (clipAccountName d) anames
       isclipped a = accountNameLevel a >= d

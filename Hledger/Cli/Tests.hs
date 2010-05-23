@@ -237,14 +237,14 @@ tests = TestList [
              ,""
              ]
       let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
-      showBalanceReport [] nullfilterspec nullledger{journal=j'} `is`
+      showBalanceReport [] nullfilterspec j' `is`
        unlines
         ["                $500  a:b"
         ,"               $-500  c:d"
         ]
 
    ,"balance report elides zero-balance root account(s)" ~: do
-      l <- ledgerFromStringWithOpts []
+      l <- journalFromStringWithOpts []
              (unlines
               ["2008/1/1 one"
               ,"  test:a  1"
@@ -281,9 +281,6 @@ tests = TestList [
                      (case e of
                         Right e' -> (pamount $ last $ tpostings e')
                         Left _ -> error "should not happen")
-
-  -- ,"cacheLedger" ~:
-  --   length (Map.keys $ accountmap $ cacheLedger journal7) `is` 15
 
   ,"journalCanonicaliseAmounts" ~:
    "use the greatest precision" ~:
@@ -471,7 +468,7 @@ tests = TestList [
   ,"register report with cleared option" ~:
    do 
     let opts = [Cleared]
-    l <- ledgerFromStringWithOpts opts sample_ledger_str
+    l <- journalFromStringWithOpts opts sample_ledger_str
     showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
@@ -483,7 +480,7 @@ tests = TestList [
   ,"register report with uncleared option" ~:
    do 
     let opts = [UnCleared]
-    l <- ledgerFromStringWithOpts opts sample_ledger_str
+    l <- journalFromStringWithOpts opts sample_ledger_str
     showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
@@ -495,7 +492,7 @@ tests = TestList [
 
   ,"register report sorts by date" ~:
    do 
-    l <- ledgerFromStringWithOpts [] $ unlines
+    l <- journalFromStringWithOpts [] $ unlines
         ["2008/02/02 a"
         ,"  b  1"
         ,"  c"
@@ -580,14 +577,14 @@ tests = TestList [
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
   ,"unicode in balance layout" ~: do
-    l <- ledgerFromStringWithOpts []
+    l <- journalFromStringWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     showBalanceReport [] (optsToFilterSpec [] [] t1) l `is` unlines
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"]
 
   ,"unicode in register layout" ~: do
-    l <- ledgerFromStringWithOpts []
+    l <- journalFromStringWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     showRegisterReport [] (optsToFilterSpec [] [] t1) l `is` unlines
       ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
@@ -629,7 +626,7 @@ tests = TestList [
 --     "next january" `gives` "2009/01/01"
 
   ,"subAccounts" ~: do
-    l <- liftM (filterAndCacheLedger nullfilterspec) sampleledger
+    l <- liftM (journalToLedger nullfilterspec) sampleledger
     let a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
@@ -676,8 +673,8 @@ tests = TestList [
 date1 = parsedate "2008/11/26"
 t1 = LocalTime date1 midday
 
-sampleledger = ledgerFromStringWithOpts [] sample_ledger_str
-sampleledgerwithopts opts _ = ledgerFromStringWithOpts opts sample_ledger_str
+sampleledger = journalFromStringWithOpts [] sample_ledger_str
+sampleledgerwithopts opts _ = journalFromStringWithOpts opts sample_ledger_str
 
 sample_ledger_str = unlines
  ["; A sample ledger file."
@@ -1050,7 +1047,7 @@ journal7 = Journal
           (TOD 0 0)
           ""
 
-ledger7 = filterAndCacheLedger nullfilterspec $ makeUncachedLedger journal7
+ledger7 = journalToLedger nullfilterspec journal7
 
 ledger8_str = unlines
  ["2008/1/1 test           "

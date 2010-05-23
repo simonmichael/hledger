@@ -17,10 +17,10 @@ import qualified Data.Map as Map
 
 
 -- | Print various statistics for the ledger.
-stats :: [Opt] -> [String] -> Ledger -> IO ()
-stats opts args l = do
+stats :: [Opt] -> [String] -> Journal -> IO ()
+stats opts args j = do
   today <- getCurrentDay
-  putStr $ showStats opts args (filterAndCacheLedger nullfilterspec l) today
+  putStr $ showStats opts args (journalToLedger nullfilterspec j) today
 
 showStats :: [Opt] -> [String] -> Ledger -> Day -> String
 showStats _ _ l today =

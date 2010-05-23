@@ -4,26 +4,31 @@
 Most data types are defined here to avoid import cycles.
 Here is an overview of the hledger data model:
 
-> Ledger              -- hledger's ledger is a journal file plus cached/derived data
->  Journal            -- a representation of the journal file, containing..
->   [Transaction]     -- ..journal transactions, which have date, status, code, description and..
->    [Posting]        -- ..two or more account postings (account name and amount)
->  Tree AccountName   -- all account names as a tree
->  Map AccountName Account -- a map from account name to account info (postings and balances)
+> Journal                  -- a journal is derived from one or more data files. It contains..
+>  [Transaction]           -- journal transactions, which have date, status, code, description and..
+>   [Posting]              -- multiple account postings (entries), which have account name and amount.
+>  [HistoricalPrice]       -- historical commodity prices
+>
+> Ledger                   -- a ledger is derived from a journal, by applying a filter specification. It contains..
+>  Journal                 -- the filtered journal, containing only the transactions and postings we are interested in
+>  Tree AccountName        -- account names referenced in the journal's transactions, as a tree
+>  Map AccountName Account -- per-account postings and balances from the journal's transactions, as a  map from account name to account info
 
 For more detailed documentation on each type, see the corresponding modules.
 
-Terminology has been in flux:
+Evolution of transaction/entry/posting terminology:
 
-  - ledger 2 had entries containing transactions.
+  - ledger 2:    entries contain transactions
 
-  - hledger 0.4 had Entrys containing RawTransactions, which were flattened to Transactions.
+  - hledger 0.4: Entrys contain RawTransactions (which are flattened to Transactions)
 
-  - ledger 3 has transactions containing postings.
+  - ledger 3:    transactions contain postings
 
-  - hledger 0.5 had LedgerTransactions containing Postings, which were flattened to Transactions.
+  - hledger 0.5: LedgerTransactions contain Postings (which are flattened to Transactions)
 
-  - hledger 0.8 has Transactions containing Postings, and no flattened type.
+  - hledger 0.8: Transactions contain Postings (referencing Transactions, corecursively)
+
+  - hledger 0.10: Postings should be called Entrys, but are left as-is for now
 
 -}
 
@@ -123,7 +128,13 @@ data Journal = Journal {
       filepath :: FilePath,
       filereadtime :: ClockTime,
       jtext :: String
-    } deriving (Eq)
+    } deriving (Eq, Typeable)
+
+data Ledger = Ledger {
+      journal :: Journal,
+      accountnametree :: Tree AccountName,
+      accountmap :: Map.Map AccountName Account
+    }
 
 data Account = Account {
       aname :: AccountName,
@@ -131,18 +142,7 @@ data Account = Account {
       abalance :: MixedAmount    -- ^ sum of postings in this account and subaccounts
     }
 
-data Ledger = Ledger {
-      journal :: Journal,
-      accountnametree :: Tree AccountName,
-      accountmap :: Map.Map AccountName Account
-    } deriving Typeable
-
--- | An incomplete ledger, containing just the journal. Currently just a
--- visual indicator used in a few places.
-type UncachedLedger = Ledger
-
--- | A generic, pure specification of how to filter transactions/postings.
--- This exists to keep app-specific options out of the hledger library.
+-- | A generic, pure specification of how to filter transactions and postings.
 data FilterSpec = FilterSpec {
      datespan  :: DateSpan   -- ^ only include if in this date span
     ,cleared   :: Maybe Bool -- ^ only include if cleared\/uncleared\/don't care

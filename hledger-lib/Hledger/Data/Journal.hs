@@ -1,8 +1,7 @@
 {-|
 
-A 'Journal' is a parsed ledger file, containing 'Transaction's.
-It can be filtered and massaged in various ways, then \"crunched\"
-to form a 'Ledger'.
+A 'Journal' is a set of 'Transaction's and related data, usually parsed
+from a hledger/ledger journal file or timelog.
 
 -}
 

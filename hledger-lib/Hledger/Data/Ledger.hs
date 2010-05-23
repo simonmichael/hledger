@@ -1,53 +1,9 @@
 {-|
 
-A compound data type for efficiency. A 'Ledger' caches information derived
-from a 'Journal' for easier querying. Also it typically has had
-uninteresting 'Transaction's and 'Posting's filtered out. It
-contains:
-
-- the original unfiltered 'Journal'
-
-- a tree of 'AccountName's
-
-- a map from account names to 'Account's
-
-- the full text of the journal file, when available
-
-This is the main object you'll deal with as a user of the Ledger
-library. The most useful functions also have shorter, lower-case
-aliases for easier interaction. Here's an example:
-
-> > import Hledger.Data
-> > l <- readLedger "sample.ledger"
-> > accountnames l
-> ["assets","assets:bank","assets:bank:checking","assets:bank:saving",...
-> > accounts l
-> [Account assets with 0 txns and $-1 balance,Account assets:bank with...
-> > topaccounts l
-> [Account assets with 0 txns and $-1 balance,Account expenses with...
-> > account l "assets"
-> Account assets with 0 txns and $-1 balance
-> > accountsmatching ["ch"] l
-> accountsmatching ["ch"] l
-> [Account assets:bank:checking with 4 txns and $0 balance]
-> > subaccounts l (account l "assets")
-> subaccounts l (account l "assets")
-> [Account assets:bank with 0 txns and $1 balance,Account assets:cash...
-> > head $ transactions l
-> 2008/01/01 income assets:bank:checking $1 RegularPosting
-> > accounttree 2 l
-> Node {rootLabel = Account top with 0 txns and 0 balance, subForest = [...
-> > accounttreeat l (account l "assets")
-> Just (Node {rootLabel = Account assets with 0 txns and $-1 balance, ...
-> > datespan l -- disabled
-> DateSpan (Just 2008-01-01) (Just 2009-01-01)
-> > rawdatespan l
-> DateSpan (Just 2008-01-01) (Just 2009-01-01)
-> > ledgeramounts l
-> [$1,$-1,$1,$-1,$1,$-1,$1,$1,$-2,$1,$-1]
-> > commodities l
-> [Commodity {symbol = "$", side = L, spaced = False, comma = False, ...
-
+A 'Ledger' is derived from a 'Journal' by applying a filter specification
+to select 'Transaction's and 'Posting's of interest. It contains the
+filtered journal and knows the resulting chart of accounts, account
+balances, and postings in each account.
 
 -}
 
@@ -77,23 +33,17 @@ nullledger = Ledger{
       accountmap = fromList []
     }
 
--- | Generate a ledger from a journal, but don't cache it yet.
-makeUncachedLedger :: Journal -> UncachedLedger
-makeUncachedLedger j = nullledger{journal=j}
-
 -- | Filter a ledger's transactions as specified and generate derived data.
-filterAndCacheLedger :: FilterSpec -> UncachedLedger -> Ledger
-filterAndCacheLedger filterspec l@Ledger{journal=j} = l{journal=j',accountnametree=t,accountmap=m}
-    where j' = filterJournalPostings filterspec{depth=Nothing} j
+journalToLedger :: FilterSpec -> Journal -> Ledger
+journalToLedger fs j = nullledger{journal=j',accountnametree=t,accountmap=m}
+    where j' = filterJournalPostings fs{depth=Nothing} j
           (t, m) = journalAccountInfo j'
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]
 ledgerAccountNames = drop 1 . flatten . accountnametree
 
--- | Get the named account from a (cached) ledger.
--- If the ledger has not been cached (with crunchJournal or
--- cacheLedger'), this returns the null account.
+-- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
 ledgerAccount l a = findWithDefault nullacct a $ accountmap l
 

@@ -111,27 +111,27 @@ import System.IO.UTF8
 
 
 -- | Print a balance report.
-balance :: [Opt] -> [String] -> Ledger -> IO ()
-balance opts args l = do
+balance :: [Opt] -> [String] -> Journal -> IO ()
+balance opts args j = do
   t <- getCurrentLocalTime
-  putStr $ showBalanceReport opts (optsToFilterSpec opts args t) l
+  putStr $ showBalanceReport opts (optsToFilterSpec opts args t) j
 
 -- | Generate a balance report with the specified options for this ledger.
-showBalanceReport :: [Opt] -> FilterSpec -> Ledger -> String
-showBalanceReport opts filterspec l = acctsstr ++ totalstr
+showBalanceReport :: [Opt] -> FilterSpec -> Journal -> String
+showBalanceReport opts filterspec j = acctsstr ++ totalstr
     where
-      l' = filterAndCacheLedger filterspec l
+      l = journalToLedger filterspec j
       acctsstr = unlines $ map showacct interestingaccts
           where
-            showacct = showInterestingAccount l' interestingaccts
-            interestingaccts = filter (isInteresting opts l') acctnames
+            showacct = showInterestingAccount l interestingaccts
+            interestingaccts = filter (isInteresting opts l) acctnames
             acctnames = sort $ tail $ flatten $ treemap aname accttree
-            accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l'
+            accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
       totalstr | NoTotal `elem` opts = ""
                | notElem Empty opts && isZeroMixedAmount total = ""
                | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmountWithoutPrice total
           where
-            total = sum $ map abalance $ ledgerTopAccounts l'
+            total = sum $ map abalance $ ledgerTopAccounts l
 
 -- | Display one line of the balance report with appropriate indenting and eliding.
 showInterestingAccount :: Ledger -> [AccountName] -> AccountName -> String

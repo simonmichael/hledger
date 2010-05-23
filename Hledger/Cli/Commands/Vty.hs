@@ -27,7 +27,7 @@ data AppState = AppState {
     ,amsg :: String              -- ^ status message
     ,aopts :: [Opt]              -- ^ command-line opts
     ,aargs :: [String]           -- ^ command-line args at startup
-    ,aledger :: Ledger           -- ^ parsed ledger
+    ,ajournal :: Journal         -- ^ parsed journal
     ,abuf :: [String]            -- ^ lines of the current buffered view
     ,alocs :: [Loc]              -- ^ user's navigation trail within the UI
                                 -- ^ never null, head is current location
@@ -49,8 +49,8 @@ data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
               deriving (Eq,Show)
 
 -- | Run the vty (curses-style) ui.
-vty :: [Opt] -> [String] -> Ledger -> IO ()
-vty opts args l = do
+vty :: [Opt] -> [String] -> Journal -> IO ()
+vty opts args j = do
   v <- mkVty
   DisplayRegion w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts
@@ -63,7 +63,7 @@ vty opts args l = do
                  ,amsg=helpmsg
                  ,aopts=opts'
                  ,aargs=args
-                 ,aledger=l
+                 ,ajournal=j
                  ,abuf=[]
                  ,alocs=[]
                  }
@@ -227,11 +227,11 @@ resetTrailAndEnter t scr a = enter t scr (aargs a) $ clearLocs a
 
 -- | Regenerate the display data appropriate for the current screen.
 updateData :: LocalTime -> AppState -> AppState
-updateData t a@AppState{aopts=opts,aledger=l} =
+updateData t a@AppState{aopts=opts,ajournal=j} =
     case screen a of
-      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts fspec l}
-      RegisterScreen -> a{abuf=lines $ showRegisterReport opts fspec l}
-      PrintScreen    -> a{abuf=lines $ showTransactions fspec l}
+      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts fspec j}
+      RegisterScreen -> a{abuf=lines $ showRegisterReport opts fspec j}
+      PrintScreen    -> a{abuf=lines $ showTransactions fspec j}
     where fspec = optsToFilterSpec opts (currentArgs a) t
 
 backout :: LocalTime -> AppState -> AppState
@@ -285,9 +285,9 @@ scrollToTransaction (Just t) a@AppState{abuf=buf} = setCursorY cy $ setScrollY s
 -- the cursor on the register screen (or best guess). Results undefined
 -- while on other screens.
 currentTransaction :: AppState -> Maybe Transaction
-currentTransaction a@AppState{aledger=l,abuf=buf} = ptransaction p
+currentTransaction a@AppState{ajournal=j,abuf=buf} = ptransaction p
     where
-      p = headDef nullposting $ filter ismatch $ ledgerPostings l
+      p = headDef nullposting $ filter ismatch $ journalPostings j
       ismatch p = postingDate p == parsedate (take 10 datedesc)
                   && take 70 (showPostingWithBalance False p nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ headDef "" rest : reverse above

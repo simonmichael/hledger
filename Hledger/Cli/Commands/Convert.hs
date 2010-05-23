@@ -6,7 +6,7 @@ format, and print it on stdout. See the manual for more details.
 module Hledger.Cli.Commands.Convert where
 import Hledger.Cli.Options (Opt(Debug))
 import Hledger.Cli.Version (versionstr)
-import Hledger.Data.Types (Ledger,AccountName,Transaction(..),Posting(..),PostingType(..))
+import Hledger.Data.Types (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Hledger.Data.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual)
 import Hledger.Data.Parse (someamount, emptyCtx, ledgeraccountname)
 import Hledger.Data.Amount (nullmixedamt)
@@ -66,9 +66,9 @@ type AccountRule = (
 type CsvRecord = [String]
 
 
--- | Read the CSV file named as an argument and print equivalent ledger transactions,
+-- | Read the CSV file named as an argument and print equivalent journal transactions,
 -- using/creating a .rules file.
-convert :: [Opt] -> [String] -> Ledger -> IO ()
+convert :: [Opt] -> [String] -> Journal -> IO ()
 convert opts args _ = do
   when (null args) $ error "please specify a csv data file."
   let csvfile = head args

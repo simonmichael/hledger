@@ -228,9 +228,9 @@ usingTimeProgramName = do
   progname <- getProgName
   return $ map toLower progname == timeprogname
 
--- | Get the ledger file path from options, an environment variable, or a default
-ledgerFilePathFromOpts :: [Opt] -> IO String
-ledgerFilePathFromOpts opts = do
+-- | Get the journal file path from options, an environment variable, or a default
+journalFilePathFromOpts :: [Opt] -> IO String
+journalFilePathFromOpts opts = do
   istimequery <- usingTimeProgramName
   f <- if istimequery then myTimelogPath else myLedgerPath
   return $ last $ f : optValuesForConstructor File opts

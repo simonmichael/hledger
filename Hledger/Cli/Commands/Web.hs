@@ -38,7 +38,7 @@ import Network.Loli.Utils (update)
 import HSP hiding (Request,catch)
 import qualified HSP (Request(..))
 
-import Hledger.Cli.Commands.Add (ledgerAddTransaction)
+import Hledger.Cli.Commands.Add (journalAddTransaction)
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Histogram
 import Hledger.Cli.Commands.Print
@@ -60,22 +60,22 @@ tcpport = 5000 :: Int
 homeurl = printf "http://localhost:%d/" tcpport
 browserdelay = 100000 -- microseconds
 
-web :: [Opt] -> [String] -> Ledger -> IO ()
-web opts args l = do
+web :: [Opt] -> [String] -> Journal -> IO ()
+web opts args j = do
   unless (Debug `elem` opts) $ forkIO browser >> return ()
-  server opts args l
+  server opts args j
 
 browser :: IO ()
 browser = putStrLn "starting web browser" >> threadDelay browserdelay >> openBrowserOn homeurl >> return ()
 
-server :: [Opt] -> [String] -> Ledger -> IO ()
-server opts args l =
+server :: [Opt] -> [String] -> Journal -> IO ()
+server opts args j =
   -- server initialisation
   withStore "hledger" $ do -- IO ()
     printf "starting web server on port %d\n" tcpport
     t <- getCurrentLocalTime
     webfiles <- getDataFileName "web"
-    putValue "hledger" "ledger" l
+    putValue "hledger" "journal" j
 #ifdef WEBHAPPSTACK
     hostname <- readProcess "hostname" [] "" `catch` \_ -> return "hostname"
     runWithConfig (ServerConf tcpport hostname) $            -- (Env -> IO Response) -> IO ()
@@ -88,18 +88,18 @@ server opts args l =
            p = intercalate "+" $ reqparam env "p"
            opts' = opts ++ [Period p]
            args' = args ++ (map urlDecode $ words a)
-       l' <- fromJust `fmap` getValue "hledger" "ledger"
-       l'' <- reloadIfChanged opts' args' l'
+       j' <- fromJust `fmap` getValue "hledger" "journal"
+       j'' <- journalReloadIfChanged opts' args' j'
        -- declare path-specific request handlers
-       let command :: [String] -> ([Opt] -> FilterSpec -> Ledger -> String) -> AppUnit
-           command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) l''
+       let command :: [String] -> ([Opt] -> FilterSpec -> Journal -> String) -> AppUnit
+           command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) j''
        (loli $                                               -- State Loli () -> (Env -> IO Response)
          do
           get  "/balance"   $ command [] showBalanceReport  -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/transactions"   $ ledgerpage [] l'' (showTransactions (optsToFilterSpec opts' args' t))
-          post "/transactions"   $ handleAddform l''
+          get  "/transactions"   $ ledgerpage [] j'' (showTransactions (optsToFilterSpec opts' args' t))
+          post "/transactions"   $ handleAddform j''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
           get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
@@ -118,41 +118,33 @@ reqparam env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
 reqparam env p = map (decodeString.snd) $ filter ((==p).fst) $ Hack.Contrib.Request.params env
 #endif
 
-ledgerFileModifiedTime :: Ledger -> IO ClockTime
-ledgerFileModifiedTime l
-    | null path = getClockTime
-    | otherwise = getModificationTime path `Prelude.catch` \_ -> getClockTime
-    where path = filepath $ journal l
-
-ledgerFileReadTime :: Ledger -> ClockTime
-ledgerFileReadTime l = filereadtime $ journal l
-
-reload :: Ledger -> IO Ledger
-reload l = do
-  l' <- readLedger (filepath $ journal l)
-  putValue "hledger" "ledger" l'
-  return l'
-            
-reloadIfChanged :: [Opt] -> [String] -> Ledger -> IO Ledger
-reloadIfChanged opts _ l = do
-  tmod <- ledgerFileModifiedTime l
-  let tread = ledgerFileReadTime l
-      newer = diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
+journalReloadIfChanged :: [Opt] -> [String] -> Journal -> IO Journal
+journalReloadIfChanged opts _ j@Journal{filepath=f,filereadtime=tread} = do
+  tmod <- journalFileModifiedTime j
+  let newer = diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
   -- when (Debug `elem` opts) $ printf "checking file, last modified %s, last read %s, %s\n" (show tmod) (show tread) (show newer)
   if newer
    then do
-     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" (filepath $ journal l)
-     reload l
-   else return l
+     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" f
+     reload j
+   else return j
 
--- refilter :: [Opt] -> [String] -> Ledger -> LocalTime -> IO Ledger
--- refilter opts args l t = return $ filterAndCacheLedgerWithOpts opts args t (jtext $ journal l) (journal l)
+journalFileModifiedTime :: Journal -> IO ClockTime
+journalFileModifiedTime Journal{filepath=f}
+    | null f = getClockTime
+    | otherwise = getModificationTime f `Prelude.catch` \_ -> getClockTime
 
-ledgerpage :: [String] -> Ledger -> (Ledger -> String) -> AppUnit
-ledgerpage msgs l f = do
+reload :: Journal -> IO Journal
+reload Journal{filepath=f} = do
+  j' <- readJournal f
+  putValue "hledger" "journal" j'
+  return j'
+            
+ledgerpage :: [String] -> Journal -> (Journal -> String) -> AppUnit
+ledgerpage msgs j f = do
   env <- getenv
-  l' <- io $ reloadIfChanged [] [] l
-  hsp msgs $ const <div><% addform env %><pre><% f l' %></pre></div>
+  j' <- io $ journalReloadIfChanged [] [] j
+  hsp msgs $ const <div><% addform env %><pre><% f j' %></pre></div>
 
 -- | A loli directive to serve a string in pre tags within the hledger web
 -- layout.
@@ -305,8 +297,8 @@ transactionfields n env = do
       acctvar = numbered "acct"
       amtvar = numbered "amt"
 
-handleAddform :: Ledger -> AppUnit
-handleAddform l = do
+handleAddform :: Journal -> AppUnit
+handleAddform j = do
   env <- getenv
   d <- io getCurrentDay
   t <- io getCurrentLocalTime
@@ -380,8 +372,8 @@ handleAddform l = do
     handle :: LocalTime -> Failing Transaction -> AppUnit
     handle _ (Failure errs) = hsp errs addform
     handle ti (Success t)   = do
-                    io $ ledgerAddTransaction l t >> reload l
-                    ledgerpage [msg] l (showTransactions (optsToFilterSpec [] [] ti))
+                    io $ journalAddTransaction j t >> reload j
+                    ledgerpage [msg] j (showTransactions (optsToFilterSpec [] [] ti))
        where msg = printf "Added transaction:\n%s" (show t)
 
 nbsp :: XML

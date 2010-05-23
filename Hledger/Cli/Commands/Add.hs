@@ -19,42 +19,42 @@ import System.IO ( stderr, hFlush, hPutStrLn, hPutStr )
 #endif
 import System.IO.Error
 import Text.ParserCombinators.Parsec
-import Hledger.Cli.Utils (ledgerFromStringWithOpts)
+import Hledger.Cli.Utils (journalFromStringWithOpts)
 import qualified Data.Foldable as Foldable (find)
 
 -- | Read ledger transactions from the terminal, prompting for each field,
 -- and append them to the ledger file. If the ledger came from stdin, this
 -- command has no effect.
-add :: [Opt] -> [String] -> Ledger -> IO ()
-add opts args l
-    | filepath (journal l) == "-" = return ()
+add :: [Opt] -> [String] -> Journal -> IO ()
+add opts args j
+    | filepath j == "-" = return ()
     | otherwise = do
   hPutStrLn stderr $
     "Enter one or more transactions, which will be added to your ledger file.\n"
     ++"To complete a transaction, enter . as account name. To quit, press control-c."
   today <- getCurrentDay
-  getAndAddTransactions l opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
+  getAndAddTransactions j opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
 
--- | Read a number of ledger transactions from the command line,
--- prompting, validating, displaying and appending them to the ledger
--- file, until end of input (then raise an EOF exception). Any
--- command-line arguments are used as the first transaction's description.
-getAndAddTransactions :: Ledger -> [Opt] -> [String] -> Day -> IO ()
-getAndAddTransactions l opts args defaultDate = do
-  (ledgerTransaction,date) <- getTransaction l opts args defaultDate
-  l <- ledgerAddTransaction l ledgerTransaction
-  getAndAddTransactions l opts args date
+-- | Read a number of transactions from the command line, prompting,
+-- validating, displaying and appending them to the journal file, until
+-- end of input (then raise an EOF exception). Any command-line arguments
+-- are used as the first transaction's description.
+getAndAddTransactions :: Journal -> [Opt] -> [String] -> Day -> IO ()
+getAndAddTransactions j opts args defaultDate = do
+  (t, d) <- getTransaction j opts args defaultDate
+  j <- journalAddTransaction j t
+  getAndAddTransactions j opts args d
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Ledger -> [Opt] -> [String] -> Day -> IO (Transaction,Day)
-getTransaction l opts args defaultDate = do
+getTransaction :: Journal -> [Opt] -> [String] -> Day -> IO (Transaction,Day)
+getTransaction j opts args defaultDate = do
   today <- getCurrentDay
   datestr <- askFor "date" 
             (Just $ showDate defaultDate)
             (Just $ \s -> null s || 
              isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
   description <- askFor "description" Nothing (Just $ not . null) 
-  let historymatches = transactionsSimilarTo l args description
+  let historymatches = transactionsSimilarTo j args description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
@@ -63,7 +63,7 @@ getTransaction l opts args defaultDate = do
         if NoNewAccts `elem` opts
             then isJust $ Foldable.find (== x) ant
             else True
-        where (ant,_,_,_) = groupPostings . journalPostings . journal $ l
+        where (ant,_,_,_) = groupPostings $ journalPostings j
       getpostingsandvalidate = do
         ps <- getPostings accept bestmatchpostings []
         let t = nulltransaction{tdate=date
@@ -129,30 +129,26 @@ askFor prompt def validator = do
     Nothing -> return input
     where showdef s = " [" ++ s ++ "]"
 
--- | Append this transaction to the ledger's file. Also, to the ledger's
+-- | Append this transaction to the journal's file. Also, to the journal's
 -- transaction list, but we don't bother updating the other fields - this
 -- is enough to include new transactions in the history matching.
-ledgerAddTransaction :: Ledger -> Transaction -> IO Ledger
-ledgerAddTransaction l t = do
-  appendToLedgerFile l $ showTransaction t
-  putStrLn $ printf "\nAdded transaction to %s:" (filepath $ journal l)
+journalAddTransaction :: Journal -> Transaction -> IO Journal
+journalAddTransaction j@Journal{jtxns=ts} t = do
+  appendToJournalFile j $ showTransaction t
+  putStrLn $ printf "\nAdded transaction to %s:" (filepath j)
   putStrLn =<< registerFromString (show t)
-  return l{journal=rl{jtxns=ts}}
-      where rl = journal l
-            ts = jtxns rl ++ [t]
+  return j{jtxns=ts++[t]}
 
--- | Append data to the ledger's file, ensuring proper separation from any
--- existing data; or if the file is "-", dump it to stdout.
-appendToLedgerFile :: Ledger -> String -> IO ()
-appendToLedgerFile l s = 
+-- | Append data to the journal's file, ensuring proper separation from
+-- any existing data; or if the file is "-", dump it to stdout.
+appendToJournalFile :: Journal -> String -> IO ()
+appendToJournalFile Journal{filepath=f, jtext=t} s =
     if f == "-"
     then putStr $ sep ++ s
     else appendFile f $ sep++s
     where 
-      f = filepath $ journal l
       -- XXX we are looking at the original raw text from when the ledger
       -- was first read, but that's good enough for now
-      t = jtext $ journal l
       sep | null $ strip t = ""
           | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
           where lastnls = takeWhile (=='\n') $ reverse t
@@ -161,7 +157,7 @@ appendToLedgerFile l s =
 registerFromString :: String -> IO String
 registerFromString s = do
   now <- getCurrentLocalTime
-  l <- ledgerFromStringWithOpts [] s
+  l <- journalFromStringWithOpts [] s
   return $ showRegisterReport opts (optsToFilterSpec opts [] now) l
     where opts = [Empty]
 
@@ -184,19 +180,19 @@ wordLetterPairs = concatMap letterPairs . words
 letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
 letterPairs _ = []
 
-compareLedgerDescriptions :: [Char] -> [Char] -> Double
-compareLedgerDescriptions s t = compareStrings s' t'
+compareDescriptions :: [Char] -> [Char] -> Double
+compareDescriptions s t = compareStrings s' t'
     where s' = simplify s
           t' = simplify t
           simplify = filter (not . (`elem` "0123456789"))
 
-transactionsSimilarTo :: Ledger -> [String] -> String -> [(Double,Transaction)]
-transactionsSimilarTo l apats s =
+transactionsSimilarTo :: Journal -> [String] -> String -> [(Double,Transaction)]
+transactionsSimilarTo j apats s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
-               [(compareLedgerDescriptions s $ tdescription t, t) | t <- ts]
+               [(compareDescriptions s $ tdescription t, t) | t <- ts]
     where
       compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
-      ts = jtxns $ filterJournalTransactionsByAccount apats $ journal l
+      ts = jtxns $ filterJournalTransactionsByAccount apats j
       threshold = 0
 

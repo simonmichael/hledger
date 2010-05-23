@@ -7,10 +7,15 @@ Hledger.Data.Utils.
 -}
 
 module Hledger.Cli.Utils
+    (
+     withJournalDo,
+     journalFromStringWithOpts,
+     openBrowserOn
+    )
 where
 import Control.Monad.Error
 import Hledger.Data
-import Hledger.Cli.Options (Opt(..),ledgerFilePathFromOpts) -- ,optsToFilterSpec)
+import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
 import System.Directory (doesFileExist)
 import System.IO (stderr)
 #if __GLASGOW_HASKELL__ <= 610
@@ -23,42 +28,29 @@ import System.Process (readProcessWithExitCode)
 import System.Info (os)
 
 
--- | Parse the user's specified ledger file and run a hledger command on
+-- | Parse the user's specified journal file and run a hledger command on
 -- it, or report a parse error. This function makes the whole thing go.
--- The command will receive an uncached/unfiltered ledger, so should 
--- process it further if needed.
-withLedgerDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> UncachedLedger -> IO ()) -> IO ()
-withLedgerDo opts args cmdname cmd = do
+withJournalDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> Journal -> IO ()) -> IO ()
+withJournalDo opts args cmdname cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  f <- ledgerFilePathFromOpts opts
+  f <- journalFilePathFromOpts opts
   fileexists <- doesFileExist f
   let creating = not fileexists && cmdname == "add"
-      cost = CostBasis `elem` opts
-  let runcmd = cmd opts args . makeUncachedLedger . (if cost then journalConvertAmountsToCost else id)
+      costify = (if CostBasis `elem` opts then journalConvertAmountsToCost else id)
+      runcmd = cmd opts args . costify
   if creating
    then runcmd nulljournal
    else (runErrorT . parseJournalFile) f >>= either parseerror runcmd
     where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
 
--- | Get an uncached ledger from the given string and options, or raise an error.
-ledgerFromStringWithOpts :: [Opt] -> String -> IO UncachedLedger
-ledgerFromStringWithOpts opts s = do
+-- | Get a journal from the given string and options, or throw an error.
+journalFromStringWithOpts :: [Opt] -> String -> IO Journal
+journalFromStringWithOpts opts s = do
     j <- journalFromString s
     let cost = CostBasis `elem` opts
-    return $ makeUncachedLedger $ (if cost then journalConvertAmountsToCost else id) j
-
--- -- | Read a ledger from the given file, or give an error.
--- readLedgerWithOpts :: [Opt] -> [String] -> FilePath -> IO Ledger
--- readLedgerWithOpts opts args f = do
---   t <- getCurrentLocalTime
---   readLedger f
-           
--- -- | Convert a Journal to a canonicalised, cached and filtered Ledger
--- -- based on the command-line options/arguments and a reference time.
--- filterAndCacheLedgerWithOpts ::  [Opt] -> [String] -> LocalTime -> String -> Journal -> Ledger
--- filterAndCacheLedgerWithOpts opts args = filterAndCacheLedger . optsToFilterSpec opts args
+    return $ (if cost then journalConvertAmountsToCost else id) j
 
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode
