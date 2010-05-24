@@ -76,6 +76,7 @@ options = [
  ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
  ,Option ""  ["flat"]         (NoArg  Flat)          "balance report: show full account names, unindented"
+ ,Option ""    ["drop"]       (ReqArg Drop "N")     "balance report: with --flat, elide first N account name components"
  ,Option ""    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
 -- ,Option "s" ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
  ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
@@ -115,6 +116,7 @@ data Opt =
     Empty | 
     Real | 
     Flat |
+    Drop   {value::String} |
     NoTotal |
     SubTotal |
     WeeklyOpt |
@@ -212,9 +214,16 @@ intervalFromOpts opts =
       periodopts   = reverse $ optValuesForConstructor Period opts
       intervalopts = reverse $ filter (`elem` [WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
 
--- | Get the value of the (last) depth option, if any, otherwise a large number.
+-- | Get the value of the (last) depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int
 depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
+    where
+      listtomaybeint [] = Nothing
+      listtomaybeint vs = Just $ read $ last vs
+
+-- | Get the value of the (last) drop option, if any, otherwise 0.
+dropFromOpts :: [Opt] -> Int
+dropFromOpts opts = fromMaybe 0 $ listtomaybeint $ optValuesForConstructor Drop opts
     where
       listtomaybeint [] = Nothing
       listtomaybeint vs = Just $ read $ last vs

@@ -282,13 +282,16 @@ Examples:
     $ hledger balance food -p 'last month'
 
 A final total is displayed, use `--no-total` to suppress this. Also, the
-`--depth` option shows accounts only to the specified depth, useful for an overview:
+`--depth N` option shows accounts only to the specified depth, useful for
+an overview:
 
     $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.ledger balance ^expenses --depth 2; done
 
 With `--flat`, a non-hierarchical list of full account names is displayed
 instead. This mode shows just the accounts actually contributing to the
 balance, making the arithmetic a little more obvious to non-hledger users.
+In this mode you can also use `--drop N` to elide the first few account
+name components.
 
 ##### chart
 

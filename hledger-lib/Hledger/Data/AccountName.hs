@@ -32,6 +32,9 @@ accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
 accountNameLevel a = length (filter (==acctsepchar) a) + 1
 
+accountNameDrop :: Int -> AccountName -> AccountName
+accountNameDrop n = accountNameFromComponents . drop n . accountNameComponents
+
 -- | ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
 expandAccountNames as = nub $ concatMap expand as
