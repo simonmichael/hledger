@@ -155,9 +155,9 @@ accounts. Here's an example:
         liabilities:debts     $1
         assets:bank:checking
 
-Each transaction has a date, description, and two or more postings (of
-some amount to some account) which must balance to 0. As a convenience,
-one posting's amount may be left blank and will be inferred.
+Each transaction has a date, optional description, and two or more
+postings (of some amount to some account) which must balance to 0. As a
+convenience, one posting's amount may be left blank and will be inferred.
 
 Note that account names may contain single spaces, while the amount must
 be separated from the account name by at least two spaces.
