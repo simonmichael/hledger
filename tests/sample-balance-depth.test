@@ -4,3 +4,5 @@ bin/hledger -f data/sample.ledger balance --depth 1
                   $2  expenses
                  $-2  income
                   $1  liabilities
+--------------------
+                  $0

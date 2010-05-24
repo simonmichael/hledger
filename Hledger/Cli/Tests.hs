@@ -125,6 +125,8 @@ tests = TestList [
     ,"                 $-1    gifts"
     ,"                 $-1    salary"
     ,"                  $1  liabilities:debts"
+    ,"--------------------"
+    ,"                  $0"
     ]
 
    ,"balance report can be limited with --depth" ~:
@@ -133,6 +135,8 @@ tests = TestList [
     ,"                  $2  expenses"
     ,"                 $-2  income"
     ,"                  $1  liabilities"
+    ,"--------------------"
+    ,"                  $0"
     ]
     
    ,"balance report with account pattern o" ~:
@@ -176,6 +180,8 @@ tests = TestList [
     ,"                 $-1    gifts"
     ,"                 $-1    salary"
     ,"                  $1  liabilities:debts"
+    ,"--------------------"
+    ,"                  $0"
     ]
 
    ,"balance report with unmatched parent of two matched subaccounts" ~: 
@@ -208,7 +214,10 @@ tests = TestList [
     ]
 
    ,"balance report negative account pattern always matches full name" ~: 
-    ([], ["not:e"]) `gives` []
+    ([], ["not:e"]) `gives`
+    ["--------------------"
+    ,"                   0"
+    ]
 
    ,"balance report negative patterns affect totals" ~: 
     ([], ["expenses","not:food"]) `gives`
@@ -234,13 +243,14 @@ tests = TestList [
              ,"2008/1/1 test           "
              ,"  a:b          10h @ $50"
              ,"  c:d                   "
-             ,""
              ]
       let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
       showBalanceReport [] nullfilterspec j' `is`
        unlines
         ["                $500  a:b"
         ,"               $-500  c:d"
+        ,"--------------------"
+        ,"                  $0"
         ]
 
    ,"balance report elides zero-balance root account(s)" ~: do
@@ -254,6 +264,8 @@ tests = TestList [
        unlines
         ["                   1  test:a"
         ,"                  -1  test:b"
+        ,"--------------------"
+        ,"                   0"
         ]
 
    ]
@@ -576,7 +588,10 @@ tests = TestList [
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     showBalanceReport [] (optsToFilterSpec [] [] t1) l `is` unlines
       ["                -100  актив:наличные"
-      ,"                 100  расходы:покупки"]
+      ,"                 100  расходы:покупки"
+      ,"--------------------"
+      ,"                   0"
+      ]
 
   ,"unicode in register layout" ~: do
     l <- readJournalWithOpts []

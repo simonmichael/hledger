@@ -10,3 +10,5 @@ bin/hledger -f data/sample.ledger balance
                  $-1    gifts
                  $-1    salary
                   $1  liabilities:debts
+--------------------
+                  $0
