@@ -224,6 +224,7 @@ Here is the command-line help:
               --effective          use transactions' effective dates, if any
      -E       --empty              show empty/zero things which are normally elided
      -R       --real               report only on real (non-virtual) transactions
+              --flat               balance report: show full account names, unindented
               --no-total           balance report: hide the final total
      -W       --weekly             register report: show weekly summary
      -M       --monthly            register report: show monthly summary
@@ -274,13 +275,20 @@ Examples:
 
 ##### balance
 
-The balance command displays accounts and their balances.
-
+The balance command displays accounts and their balances, indented to show the account hierarchy.
 Examples:
 
     $ hledger balance
     $ hledger balance food -p 'last month'
+
+A final total is displayed, use `--no-total` to suppress this. Also, the
+`--depth` option shows accounts only to the specified depth, useful for an overview:
+
     $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.ledger balance ^expenses --depth 2; done
+
+With `--flat`, a non-hierarchical list of full account names is displayed
+instead. This mode shows just the accounts actually contributing to the
+balance, making the arithmetic a little more obvious to non-hledger users.
 
 ##### chart
 

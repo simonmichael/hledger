@@ -123,21 +123,25 @@ showBalanceReport opts filterspec j = acctsstr ++ totalstr
       l = journalToLedger filterspec j
       acctsstr = unlines $ map showacct interestingaccts
           where
-            showacct = showInterestingAccount l interestingaccts
+            showacct = showInterestingAccount opts l interestingaccts
             interestingaccts = filter (isInteresting opts l) acctnames
             acctnames = sort $ tail $ flatten $ treemap aname accttree
             accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
       totalstr | NoTotal `elem` opts = ""
-               | notElem Empty opts && isZeroMixedAmount total = ""
                | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmountWithoutPrice total
           where
             total = sum $ map abalance $ ledgerTopAccounts l
 
 -- | Display one line of the balance report with appropriate indenting and eliding.
-showInterestingAccount :: Ledger -> [AccountName] -> AccountName -> String
-showInterestingAccount l interestingaccts a = concatTopPadded [amt, "  ", depthspacer ++ partialname]
+showInterestingAccount :: [Opt] -> Ledger -> [AccountName] -> AccountName -> String
+showInterestingAccount opts l interestingaccts a = concatTopPadded [amt, "  ", name]
     where
-      amt = padleft 20 $ showMixedAmountWithoutPrice $ abalance $ ledgerAccount l a
+      amt = padleft 20 $ showMixedAmountWithoutPrice bal
+      bal | Flat `elem` opts = exclusiveBalance acct
+          | otherwise = abalance acct
+      acct = ledgerAccount l a
+      name | Flat `elem` opts = a
+           | otherwise        = depthspacer ++ partialname
       parents = parentAccountNames a
       interestingparents = filter (`elem` interestingaccts) parents
       depthspacer = replicate (indentperlevel * length interestingparents) ' '
@@ -147,9 +151,23 @@ showInterestingAccount l interestingaccts a = concatTopPadded [amt, "  ", depths
       partialname = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
           where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
 
+exclusiveBalance :: Account -> MixedAmount
+exclusiveBalance = sumPostings . apostings
+
 -- | Is the named account considered interesting for this ledger's balance report ?
 isInteresting :: [Opt] -> Ledger -> AccountName -> Bool
-isInteresting opts l a
+isInteresting opts l a | Flat `elem` opts = isInterestingFlat opts l a
+                       | otherwise = isInterestingIndented opts l a
+
+isInterestingFlat :: [Opt] -> Ledger -> AccountName -> Bool
+isInterestingFlat opts l a = notempty || emptyflag
+    where
+      acct = ledgerAccount l a
+      notempty = not $ isZeroMixedAmount $ exclusiveBalance acct
+      emptyflag = Empty `elem` opts
+
+isInterestingIndented :: [Opt] -> Ledger -> AccountName -> Bool
+isInterestingIndented opts l a
     | numinterestingsubs==1 && not atmaxdepth = notlikesub
     | otherwise = notzero || emptyflag
     where

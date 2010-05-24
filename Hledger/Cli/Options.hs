@@ -75,6 +75,7 @@ options = [
  ,Option ""    ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
  ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
+ ,Option ""  ["flat"]         (NoArg  Flat)          "balance report: show full account names, unindented"
  ,Option ""    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
 -- ,Option "s" ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
  ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
@@ -113,6 +114,7 @@ data Opt =
     Effective | 
     Empty | 
     Real | 
+    Flat |
     NoTotal |
     SubTotal |
     WeeklyOpt |
