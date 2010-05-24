@@ -39,9 +39,8 @@ showStats _ _ l today =
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
         ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
         ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
---        ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
-        ,("Accounts", show $ length $ accounts l)
-        ,("Account tree depth", show $ maximum $ map (accountNameLevel.aname) $ accounts l)
+        ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
+        ,("Accounts", printf "%d (depth %d)" acctnum acctdepth)
         ,("Commodities", printf "%s (%s)" (show $ length $ cs) (intercalate ", " $ sort $ map symbol cs)) 
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
       -- Uncleared transactions      : %(uncleared)s
@@ -73,5 +72,7 @@ showStats _ _ l today =
              tnum7 = length $ filter withinlast7 ts
              withinlast7 t = d >= addDays (-7) today && (d<=today) where d = tdate t
              txnrate7 = fromIntegral tnum7 / 7 :: Double
+             acctnum = length $ accounts l
+             acctdepth = maximum $ map (accountNameLevel.aname) $ accounts l
              cs = Map.elems $ commodities l
 
