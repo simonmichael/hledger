@@ -730,6 +730,41 @@ respect: we assume unit prices do not vary over time.  This is good for
 simple reporting of foreign currency transactions, but not for tracking
 fluctuating-value investments or capital gains.
 
+#### Including other files
+
+You can pull in the content of additional journal files, by writing lines like this:
+
+    !include other/file.journal
+
+#### Set parent account
+
+You can specify a default parent account in a section of the journal with
+the `!account` directive:
+
+    !account home
+    
+    2010/1/1
+        food    $10
+        cash
+    
+    !end
+
+If `!end` is omitted, the effect lasts to the end of the file.
+The above is equivalent to:
+
+    2010/01/01
+        home:food           $10
+        home:cash          $-10
+
+Included files are also affected, eg:
+
+    !account business
+    !include biz.journal
+    !end
+    !account personal
+    !include personal.journal
+    !end
+
 #### Timelog reporting
 
 hledger will also read timelog files in timeclock.el format. As a
