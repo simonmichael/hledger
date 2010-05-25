@@ -155,9 +155,9 @@ nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rms
     where
       (rsum, _, bvsum) = transactionPostingBalances t
       rmsg | isReallyZeroMixedAmountCost rsum = ""
-           | otherwise = "real postings are off by " ++ show rsum
+           | otherwise = "real postings are off by " ++ show (costOfMixedAmount rsum)
       bvmsg | isReallyZeroMixedAmountCost bvsum = ""
-            | otherwise = "balanced virtual postings are off by " ++ show bvsum
+            | otherwise = "balanced virtual postings are off by " ++ show (costOfMixedAmount bvsum)
       sep = if not (null rmsg) && not (null bvmsg) then "; " else ""
 
 -- | Convert the primary date to either the actual or effective date.
