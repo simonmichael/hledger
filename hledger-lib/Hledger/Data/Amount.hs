@@ -150,7 +150,8 @@ isZeroAmount = null . filter (`elem` "123456789") . showAmountWithoutPrice
 -- | Is this amount "really" zero, regardless of the display precision ?
 -- Since we are using floating point, for now just test to some high precision.
 isReallyZeroAmount :: Amount -> Bool
-isReallyZeroAmount = null . filter (`elem` "123456789") . printf "%.10f" . quantity
+isReallyZeroAmount = null . filter (`elem` "123456789") . printf ("%."++show zeroprecision++"f") . quantity
+    where zeroprecision = 8
 
 -- | Access a mixed amount's components.
 amounts :: MixedAmount -> [Amount]
