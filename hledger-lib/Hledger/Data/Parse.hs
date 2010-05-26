@@ -518,12 +518,14 @@ someamount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 
 leftsymbolamount :: GenParser Char st MixedAmount
 leftsymbolamount = do
+  sign <- optionMaybe $ string "-"
+  let applysign = if isJust sign then negate else id
   sym <- commoditysymbol 
   sp <- many spacenonewline
   (q,p,comma) <- amountquantity
   pri <- priceamount
   let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,comma=comma,precision=p}
-  return $ Mixed [Amount c q pri]
+  return $ applysign $ Mixed [Amount c q pri]
   <?> "left-symbol amount"
 
 rightsymbolamount :: GenParser Char st MixedAmount
@@ -714,6 +716,14 @@ tests_Parse = TestList [
     assertParseEqual (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
     assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
                 (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
+
+  ,"leftsymbolamount" ~: do
+    assertParseEqual (parseWithCtx emptyCtx leftsymbolamount "$1")
+                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
+    assertParseEqual (parseWithCtx emptyCtx leftsymbolamount "$-1")
+                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} (-1) Nothing])
+    assertParseEqual (parseWithCtx emptyCtx leftsymbolamount "-$1")
+                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} (-1) Nothing])
 
  ]
 
