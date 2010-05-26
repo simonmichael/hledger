@@ -347,6 +347,9 @@ site/hakyll: site/hakyll.hs
 viewsite: site
 	$(VIEWHTML) site/_site/index.html
 
+# called on each darcs commit
+commithook: site
+
 # generate html versions of docs (and the hledger.org website)
 # work around pandoc not handling full rst image directive
 # html:
