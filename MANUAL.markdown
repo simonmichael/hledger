@@ -75,10 +75,7 @@ with the cabal-install tool:
 
     - `-fwebyesod` - builds a newer version of the [web](#web) command (requires ghc 6.12).
 
-    - `-fchart` builds the [chart](#chart) command. This requires
-        [gtk2hs](http://www.haskell.org/gtk2hs/download/), which you'll
-        need to install yourself as it's not yet provided by the haskell
-        platform or cabal.
+    - `-fchart` builds the [chart](#chart) command.
 
 If you have any trouble, proceed at once to [Troubleshooting](#troubleshooting) for help!
 
