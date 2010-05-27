@@ -162,11 +162,11 @@ one posting's amount may be left blank and will be inferred.
 Note that account names may contain single spaces, while the amount must
 be separated from the account name by at least two spaces.
 
-An amount is a number, with an optional currency/commodity symbol or word
-on either the left or right. For negative amounts, the minus sign usually
-goes next to the number (`$-1`), but may also go before a currency symbol
-(`-$1`). Commodity names may contain digits and spaces if enclosed in
-double quotes.
+An amount is a number, with an optional currency symbol or commodity name
+on either the left or right. Commodity names which contain more than just
+letters should be enclosed in double quotes. Negative amounts usually have
+the minus sign next to the number (`$-1`), but it may also go before the
+currency symbol/commodity name (`-$1`).
 
 hledger's file format aims to be compatible with c++ ledger, so you can
 use both tools. For more details, see
