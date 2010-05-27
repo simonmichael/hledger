@@ -157,7 +157,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Data.Posting
 import Hledger.Data.Journal
-import Hledger.Data.Commodity (dollars,dollar,unknown)
+import Hledger.Data.Commodity (dollars,dollar,unknown,nonsimplecommoditychars)
 import System.FilePath(takeDirectory,combine)
 import System.Time (getClockTime)
 
@@ -545,16 +545,17 @@ nosymbolamount = do
   <?> "no-symbol amount"
 
 commoditysymbol :: GenParser Char st String
-commoditysymbol = (quotedcommoditysymbol <|>
-                   many1 (noneOf "0123456789-.@;\n \"")
-                  ) <?> "commodity symbol"
+commoditysymbol = (quotedcommoditysymbol <|> simplecommoditysymbol) <?> "commodity symbol"
 
 quotedcommoditysymbol :: GenParser Char st String
 quotedcommoditysymbol = do
   char '"'
-  s <- many1 $ noneOf "-.@;\n\""
+  s <- many1 $ noneOf ";\n\""
   char '"'
   return s
+
+simplecommoditysymbol :: GenParser Char st String
+simplecommoditysymbol = many1 (noneOf nonsimplecommoditychars)
 
 priceamount :: GenParser Char st (Maybe MixedAmount)
 priceamount =
