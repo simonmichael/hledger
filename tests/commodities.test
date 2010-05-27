@@ -7,7 +7,7 @@ bin/hledger -f- print
    b
 >>>2 /parse error.*unexpected "0"/
 >>>= 1
-# 2. with quotes
+# 2. with quotes, ok; quotes appear in print output
 bin/hledger -f- print
 <<<
 2010-04-05 x
@@ -15,6 +15,17 @@ bin/hledger -f- print
    b
 >>>
 2010/04/05 x
-    a  10 DE0002635307
-    b  -10 DE0002635307
+    a  10 "DE0002635307"
+    b  -10 "DE0002635307"
 
+# 3. and in other reports too, I guess
+bin/hledger -f- balance
+<<<
+2010-04-05 x
+   a   10 "DE0002635307"
+   b
+>>>
+   10 "DE0002635307"  a
+  -10 "DE0002635307"  b
+--------------------
+    0 "DE0002635307"

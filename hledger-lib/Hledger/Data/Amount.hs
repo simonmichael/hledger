@@ -106,9 +106,10 @@ showAmount :: Amount -> String
 showAmount (Amount (Commodity {symbol="AUTO"}) _ _) = "" -- can appear in an error message
 showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
     case side of
-      L -> printf "%s%s%s%s" sym space quantity price
-      R -> printf "%s%s%s%s" quantity space sym price
-    where 
+      L -> printf "%s%s%s%s" sym' space quantity price
+      R -> printf "%s%s%s%s" quantity space sym' price
+    where
+      sym' = quoteCommoditySymbolIfNeeded sym
       space = if spaced then " " else ""
       quantity = showAmount' a
       price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
