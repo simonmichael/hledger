@@ -1,7 +1,8 @@
 {-|
 
 A 'Journal' is a set of 'Transaction's and related data, usually parsed
-from a hledger/ledger journal file or timelog.
+from a hledger/ledger journal file or timelog. This is the primary hledger
+data object.
 
 -}
 

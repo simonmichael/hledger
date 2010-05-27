@@ -1,8 +1,9 @@
 {-# LANGUAGE NoMonomorphismRestriction#-}
 {-|
 
-'AccountName's are strings like @assets:cash:petty@.
-From a set of these we derive the account hierarchy.
+'AccountName's are strings like @assets:cash:petty@, with multiple
+components separated by ':'.  From a set of these we derive the account
+hierarchy.
 
 -}
 

@@ -16,7 +16,7 @@ Here is an overview of the hledger data model:
 
 For more detailed documentation on each type, see the corresponding modules.
 
-Evolution of transaction/entry/posting terminology:
+Evolution of transaction\/entry\/posting terminology:
 
   - ledger 2:    entries contain transactions
 

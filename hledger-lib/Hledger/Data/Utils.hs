@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-|
 
-Provide standard imports and utilities which are useful everywhere, or
-needed low in the module hierarchy. This is the bottom of the dependency graph.
+Standard imports and utilities which are useful everywhere, or needed low
+in the module hierarchy. This is the bottom of hledger's module graph.
 
 -}
 

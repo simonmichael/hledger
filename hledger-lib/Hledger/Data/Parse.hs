@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-|
 
-Parsers for standard ledger and timelog files.
+Parsers for hledger's journal file format and the timelog file format.
 
 Here is the ledger grammar from the ledger 2.5 manual:
 

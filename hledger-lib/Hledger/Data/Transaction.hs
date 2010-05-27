@@ -1,7 +1,8 @@
 {-|
 
-A 'Transaction' represents a single balanced entry in the ledger file. It
-normally contains two or more balanced 'Posting's.
+A 'Transaction' consists of two or more related 'Posting's which balance
+to zero, representing a movement of some commodity(ies) between accounts,
+plus a date and optional metadata like description and cleared status.
 
 -}
 

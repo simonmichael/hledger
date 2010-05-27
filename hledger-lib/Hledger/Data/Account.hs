@@ -1,6 +1,6 @@
 {-|
 
-A compound data type for efficiency. An 'Account' stores
+An 'Account' stores
 
 - an 'AccountName',
 

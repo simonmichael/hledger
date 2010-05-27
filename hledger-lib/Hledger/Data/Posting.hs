@@ -4,6 +4,7 @@ A 'Posting' represents a 'MixedAmount' being added to or subtracted from a
 single 'Account'.  Each 'Transaction' contains two or more postings which
 should add up to 0. Postings also reference their parent transaction, so
 we can get a date or description for a posting (from the transaction).
+Strictly speaking, \"entry\" is probably a better name for these.
 
 -}
 
