@@ -64,8 +64,9 @@ with the cabal-install tool:
         cabal update
         cabal install hledger
 
-    You can add the following options to the install command to include extra features
-    (these are not enabled by default as they are harder to build):
+    You can add the following options to the install command to build
+    extra features (if you're new to cabal, I recommend you get the basic
+    install working first, then add these one at a time):
 
     - `-fvty` - builds the [ui](#ui) command. (Not available on microsoft
         windows.)
@@ -77,10 +78,10 @@ with the cabal-install tool:
         need to install yourself as it's not yet provided by the haskell
         platform or cabal.
 
-#### Installation Problems
+#### Installation troubleshooting
 
-The above builds a lot of software, and it's not always smooth sailing.
-Here are some known issues and things to try:
+cabal builds a lot of fast-evolving software, and it's not always smooth
+sailing.  Here are some known issues and things to try:
 
 - **Ask for help on [#hledger](irc://freenode.net/#hledger) or [#haskell](irc://freenode.net/#haskell)**
 
@@ -93,42 +94,47 @@ Here are some known issues and things to try:
   Newer versions tend to be better at resolving problems. 0.6.2 has been
   known to fail where newer versions succeed.
 
-- **Installation fails, reporting problems with a hledger package.**
-  That hledger release might have a coding error (heavens), or
-  compatibility problems have been revealed as dependencies have been
-  updated.  You could try installing the [previous hledger
-  version](http://hackage.haskell.org/package/hledger) (``cabal
-  install hledger-0.x``) or, preferably, the latest hledger
-  development code, which is likely to work best.  In a nutshell,
-  install [darcs](http://darcs.net) and:
+- **Could not run trhsx.**
+  You are installing with -fweb, which needs to run the ``trhsx`` executable.
+  It is installed by the hsx package in ~/.cabal/bin, which needs to be in
+  your path.
+
+- **Installation fails due to problems with a hledger package.**
+    The current hledger release might have a coding error, or dependency
+    error. You could try installing the
+    [previous version](http://hackage.haskell.org/package/hledger):
+
+        cabal install hledger-0.x
+
+    or (preferably) the latest development version: install
+    [darcs](http://darcs.net) and then:
 
         darcs get --lazy http://joyful.com/repos/hledger
-        cd hledger/hledger-lib; cabal install
-        cd ..; cabal install [-fweb] [-fvty]
+        cd hledger/hledger-lib
+        cabal install
+        cd ..
+        cabal install [-f...]
 
-- **Installation fails, reporting problems with packages A, B and C.**
-  Resolve the problem packages one at a time. Eg, cabal install A.  Look
-  for the cause of the failure near the end of the output. If it's not
-  apparent, try again with `-v2` or `-v3` for more verbose output.
-
-- **Could not run trhsx.**
-  You are installing -fweb, which needs to run the ``trhsx`` executable.
-  It is usually installed in ~/.cabal/bin, which may not be in your path.
+- **Installation fails due to problems with other packages.**
+  Resolve the problem packages one at a time. Eg, cabal install pkg1.
+  Look for the cause of the failure near the end of the output. If it's
+  not apparent, try again with `-v2` or `-v3` for more verbose output.
 
 - **Could not run happy.**
   A package (eg haskell-src-exts) needs to run the ``happy`` executable.
   If not using the haskell platform, install the appropriate platform
   package which provides it (eg apt-get install happy).
 
-- **A ghc panic while building** might be due to
+- **GHC panic while installing** might be due to
     [http://hackage.haskell.org/trac/ghc/ticket/3862](http://hackage.haskell.org/trac/ghc/ticket/3862)
 
 - **cabal could not reconcile dependencies**
-  In some cases, especially if you have installed/updated many packages or
-  GHC itself, cabal may not be able to figure out the installation.  This
-  can also arise due to non-optimal dependency information configured in
-  hledger or its dependencies. You can sometimes work around this by using
-  cabal's `--constraint` option.
+  In some cases, especially if you have installed/updated many cabal
+  package versions or GHC itself, cabal may not be able to reconcile the
+  package dependencies. You can sometimes work around this by using
+  cabal's `--constraint` option. Another way is to purge all unnecessary
+  package versions by removing (or renaming) ~/.ghc, then trying cabal
+  install again.
 
 - <a name="iconv" />**Undefined symbols: ... _iconv ...**
   If cabal gives this error:
