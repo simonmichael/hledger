@@ -552,7 +552,7 @@ commoditysymbol = (quotedcommoditysymbol <|>
 quotedcommoditysymbol :: GenParser Char st String
 quotedcommoditysymbol = do
   char '"'
-  s <- many1 $ noneOf "-.@;\n \""
+  s <- many1 $ noneOf "-.@;\n\""
   char '"'
   return s
 
