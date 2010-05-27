@@ -163,8 +163,9 @@ Note that account names may contain single spaces, while the amount must
 be separated from the account name by at least two spaces.
 
 An amount is a number, with an optional currency/commodity symbol or word
-on either the left or right. Note: when writing a negative amount with a
-left-side currency symbol, the minus goes after the symbol, eg `$-1`.
+on either the left or right. For negative amounts, the minus sign usually
+goes next to the number (`$-1`); immediately before a left-side currency
+symbol is also accepted (`-$1`).
 
 This file format is also compatible with c++ ledger, so you can use both
 tools. For more details, see
