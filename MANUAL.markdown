@@ -55,12 +55,10 @@ with the cabal-install tool:
    be able to use platform packages; eg on Ubuntu Lucid, do `apt-get
    install ghc6 cabal-install happy`.
 
-2. Make sure ~/.cabal/bin is in your path. This is useful so that you can
-   run hledger by just typing "hledger", and necessary if (eg) you install
-   with -fweb, to avoid an installation failure..
+2. Install hledger with cabal-install. Make sure ~/.cabal/bin is in your
+   path; this is required while installing some cabal packages. Eg:
 
-3. Install hledger with cabal-install:
-
+        export PATH=$PATH:~/.cabal/bin
         cabal update
         cabal install hledger
 
