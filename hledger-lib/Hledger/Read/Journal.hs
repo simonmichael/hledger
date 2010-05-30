@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-|
 
-Parsers for hledger's journal file format and the timelog file format.
+A reader for hledger's (and c++ ledger's) journal file format.
 
-Here is the ledger grammar from the ledger 2.5 manual:
+From the ledger 2.5 manual:
 
 @
 The ledger file format is quite simple, but also very flexible. It supports
@@ -101,50 +101,18 @@ i, o, b, h
            timelog files.
 @
 
-Here is the timelog grammar from timeclock.el 2.6:
-
-@
-A timelog contains data in the form of a single entry per line.
-Each entry has the form:
-
-  CODE YYYY/MM/DD HH:MM:SS [COMMENT]
-
-CODE is one of: b, h, i, o or O.  COMMENT is optional when the code is
-i, o or O.  The meanings of the codes are:
-
-  b  Set the current time balance, or \"time debt\".  Useful when
-     archiving old log data, when a debt must be carried forward.
-     The COMMENT here is the number of seconds of debt.
-
-  h  Set the required working time for the given day.  This must
-     be the first entry for that day.  The COMMENT in this case is
-     the number of hours in this workday.  Floating point amounts
-     are allowed.
-
-  i  Clock in.  The COMMENT in this case should be the name of the
-     project worked on.
-
-  o  Clock out.  COMMENT is unnecessary, but can be used to provide
-     a description of how the period went, for example.
-
-  O  Final clock out.  Whatever project was being worked on, it is
-     now finished.  Useful for creating summary reports.
-@
-
-Example:
-
-@
-i 2007/03/10 12:26:00 hledger
-o 2007/03/10 17:26:02
-@
-
 -}
 
-module Hledger.Data.Parse
+module Hledger.Read.Journal {- (
+       parseJournal,
+       parseJournalFile,
+       someamount,
+       emptyCtx,
+       ledgeraccountname
+) -}
 where
 import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
 import Text.ParserCombinators.Parsec
-import System.Directory
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
@@ -158,51 +126,9 @@ import Hledger.Data.Transaction
 import Hledger.Data.Posting
 import Hledger.Data.Journal
 import Hledger.Data.Commodity (dollars,dollar,unknown,nonsimplecommoditychars)
-import System.FilePath(takeDirectory,combine)
+import Hledger.Read.Common
 import System.Time (getClockTime)
 
-
--- | A JournalUpdate is some transformation of a "Journal". It can do I/O
--- or raise an error.
-type JournalUpdate = ErrorT String IO (Journal -> Journal)
-
--- | Some context kept during parsing.
-data LedgerFileCtx = Ctx {
-      ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
-    , ctxCommod   :: !(Maybe String)   -- ^ I don't know
-    , ctxAccount  :: ![String]         -- ^ the current stack of parent accounts specified by !account
-    } deriving (Read, Show)
-
-emptyCtx :: LedgerFileCtx
-emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
-
-setYear :: Integer -> GenParser tok LedgerFileCtx ()
-setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
-
-getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
-getYear = liftM ctxYear getState
-
-pushParentAccount :: String -> GenParser tok LedgerFileCtx ()
-pushParentAccount parent = updateState addParentAccount
-    where addParentAccount ctx0 = ctx0 { ctxAccount = normalize parent : ctxAccount ctx0 }
-          normalize = (++ ":") 
-
-popParentAccount :: GenParser tok LedgerFileCtx ()
-popParentAccount = do ctx0 <- getState
-                      case ctxAccount ctx0 of
-                        [] -> unexpected "End of account block with no beginning"
-                        (_:rest) -> setState $ ctx0 { ctxAccount = rest }
-
-getParentAccount :: GenParser tok LedgerFileCtx String
-getParentAccount = liftM (concat . reverse . ctxAccount) getState
-
-expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
-expandPath pos fp = liftM mkRelative (expandHome fp)
-  where
-    mkRelative = combine (takeDirectory (sourceName pos))
-    expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
-                                                      return $ homedir ++ drop 1 inname
-                      | otherwise                = return inname
 
 -- let's get to it
 
@@ -212,8 +138,9 @@ parseJournalFile :: FilePath -> ErrorT String IO Journal
 parseJournalFile "-" = liftIO getContents >>= parseJournal "-"
 parseJournalFile f   = liftIO (readFile f) >>= parseJournal f
 
--- | Parse and post-process a "Journal" from a string, saving the provided
--- file path and the current time, or give an error.
+-- | Parse and post-process a "Journal" from hledger's journal file
+-- format, saving the provided file path and the current time, or give an
+-- error.
 parseJournal :: FilePath -> String -> ErrorT String IO Journal
 parseJournal f s = do
   tc <- liftIO getClockTime
@@ -243,7 +170,6 @@ ledgerFile = do items <- many ledgerItem
                           , ledgerTagDirective
                           , ledgerEndTagDirective
                           , emptyLine >> return (return id)
-                          , liftM (return . addTimeLogEntry)  timelogentry
                           ] <?> "ledger transaction, timelog entry, or directive"
 
 emptyLine :: GenParser Char st ()
@@ -610,40 +536,7 @@ numberpartsstartingwithpoint = do
   return ("",frac)
                      
 
--- | Parse a timelog entry.
-timelogentry :: GenParser Char LedgerFileCtx TimeLogEntry
-timelogentry = do
-  code <- oneOf "bhioO"
-  many1 spacenonewline
-  datetime <- ledgerdatetime
-  comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
-  return $ TimeLogEntry (read [code]) datetime (fromMaybe "" comment)
-
-
--- | Parse a hledger display expression, which is a simple date test like
--- "d>[DATE]" or "d<=[DATE]", and return a "Posting"-matching predicate.
-datedisplayexpr :: GenParser Char st (Posting -> Bool)
-datedisplayexpr = do
-  char 'd'
-  op <- compareop
-  char '['
-  (y,m,d) <- smartdate
-  char ']'
-  let date    = parsedate $ printf "%04s/%02s/%02s" y m d
-      test op = return $ (`op` date) . postingDate
-  case op of
-    "<"  -> test (<)
-    "<=" -> test (<=)
-    "="  -> test (==)
-    "==" -> test (==)
-    ">=" -> test (>=)
-    ">"  -> test (>)
-    _    -> mzero
-
-compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
-
-
-tests_Parse = TestList [
+tests_Journal = TestList [
 
    "ledgerTransaction" ~: do
     assertParseEqual (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
@@ -738,5 +631,4 @@ entry1 =
     txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
      [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing, 
       Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting Nothing] ""
-
 

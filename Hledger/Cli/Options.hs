@@ -8,7 +8,7 @@ where
 import System.Console.GetOpt
 import System.Environment
 import Hledger.Cli.Version (timeprogname)
-import Hledger.Data.IO (myLedgerPath,myTimelogPath)
+import Hledger.Read (myLedgerPath,myTimelogPath)
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates

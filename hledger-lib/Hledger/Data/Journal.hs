@@ -15,6 +15,7 @@ import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Dates (nulldatespan)
 import Hledger.Data.Transaction (ledgerTransactionWithDate)
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
@@ -42,6 +43,18 @@ nulljournal = Journal { jmodifiertxns = []
                       , filereadtime = TOD 0 0
                       , jtext = ""
                       }
+
+nullfilterspec = FilterSpec {
+     datespan=nulldatespan
+    ,cleared=Nothing
+    ,real=False
+    ,empty=False
+    ,costbasis=False
+    ,acctpats=[]
+    ,descpats=[]
+    ,whichdate=ActualDate
+    ,depth=Nothing
+    }
 
 addTransaction :: Transaction -> Journal -> Journal
 addTransaction t l0 = l0 { jtxns = t : jtxns l0 }

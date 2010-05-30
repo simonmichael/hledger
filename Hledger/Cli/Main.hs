@@ -20,7 +20,7 @@ You can use the command line:
 or ghci:
 
 > $ ghci hledger
-> > j <- readJournal "data/sample.journal"
+> > j <- readJournalFile "data/sample.journal"
 > > register [] ["income","expenses"] j
 > 2008/01/01 income               income:salary                   $-1          $-1
 > 2008/06/01 gift                 income:gifts                    $-1          $-2

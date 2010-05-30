@@ -32,15 +32,17 @@ library
                   Hledger.Data.Amount
                   Hledger.Data.Commodity
                   Hledger.Data.Dates
-                  Hledger.Data.IO
                   Hledger.Data.Transaction
                   Hledger.Data.Journal
                   Hledger.Data.Ledger
                   Hledger.Data.Posting
-                  Hledger.Data.Parse
                   Hledger.Data.TimeLog
                   Hledger.Data.Types
                   Hledger.Data.Utils
+                  Hledger.Read
+                  Hledger.Read.Common
+                  Hledger.Read.Journal
+                  Hledger.Read.Timelog
   Build-Depends:
                   base >= 3 && < 5
                  ,containers

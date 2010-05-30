@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-|
 
-Utilities for top-level modules and ghci. See also Hledger.Data.IO and
+Utilities for top-level modules and ghci. See also Hledger.Read and
 Hledger.Data.Utils.
 
 -}
@@ -9,27 +9,21 @@ Hledger.Data.Utils.
 module Hledger.Cli.Utils
     (
      withJournalDo,
-     journalFromStringWithOpts,
+     readJournalWithOpts,
      openBrowserOn
     )
 where
-import Control.Monad.Error
 import Hledger.Data
+import Hledger.Read
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
 import System.Directory (doesFileExist)
-import System.IO (stderr)
-#if __GLASGOW_HASKELL__ <= 610
-import System.IO.UTF8 (hPutStrLn)
-#else
-import System.IO (hPutStrLn)
-#endif
 import System.Exit
-import System.Process (readProcessWithExitCode)
 import System.Info (os)
+import System.Process (readProcessWithExitCode)
 
 
 -- | Parse the user's specified journal file and run a hledger command on
--- it, or report a parse error. This function makes the whole thing go.
+-- it, or throw an error.
 withJournalDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> Journal -> IO ()) -> IO ()
 withJournalDo opts args cmdname cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
@@ -42,13 +36,12 @@ withJournalDo opts args cmdname cmd = do
       runcmd = cmd opts args . costify
   if creating
    then runcmd nulljournal
-   else (runErrorT . parseJournalFile) f >>= either parseerror runcmd
-    where parseerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
+   else readJournalFile f >>= runcmd
 
 -- | Get a journal from the given string and options, or throw an error.
-journalFromStringWithOpts :: [Opt] -> String -> IO Journal
-journalFromStringWithOpts opts s = do
-    j <- journalFromString s
+readJournalWithOpts :: [Opt] -> String -> IO Journal
+readJournalWithOpts opts s = do
+    j <- readJournal s
     let cost = CostBasis `elem` opts
     return $ (if cost then journalConvertAmountsToCost else id) j
 

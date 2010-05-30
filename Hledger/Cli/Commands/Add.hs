@@ -8,6 +8,7 @@ A history-aware add command to help with data entry.
 module Hledger.Cli.Commands.Add
 where
 import Hledger.Data
+import Hledger.Read.Journal (someamount)
 import Hledger.Cli.Options
 import Hledger.Cli.Commands.Register (showRegisterReport)
 #if __GLASGOW_HASKELL__ <= 610
@@ -19,7 +20,7 @@ import System.IO ( stderr, hFlush, hPutStrLn, hPutStr )
 #endif
 import System.IO.Error
 import Text.ParserCombinators.Parsec
-import Hledger.Cli.Utils (journalFromStringWithOpts)
+import Hledger.Cli.Utils (readJournalWithOpts)
 import qualified Data.Foldable as Foldable (find)
 
 -- | Read ledger transactions from the terminal, prompting for each field,
@@ -157,7 +158,7 @@ appendToJournalFile Journal{filepath=f, jtext=t} s =
 registerFromString :: String -> IO String
 registerFromString s = do
   now <- getCurrentLocalTime
-  l <- journalFromStringWithOpts [] s
+  l <- readJournalWithOpts [] s
   return $ showRegisterReport opts (optsToFilterSpec opts [] now) l
     where opts = [Empty]
 

@@ -19,6 +19,7 @@ import Hledger.Cli.Options
 import Prelude hiding ( putStr )
 import System.IO.UTF8
 #endif
+import Text.ParserCombinators.Parsec
 
 
 -- | Print a register report.
@@ -71,6 +72,28 @@ displayExprMatches :: Maybe String -> Posting -> Bool
 displayExprMatches Nothing  _ = True
 displayExprMatches (Just d) p = (fromparse $ parsewith datedisplayexpr d) p
                         
+-- | Parse a hledger display expression, which is a simple date test like
+-- "d>[DATE]" or "d<=[DATE]", and return a "Posting"-matching predicate.
+datedisplayexpr :: GenParser Char st (Posting -> Bool)
+datedisplayexpr = do
+  char 'd'
+  op <- compareop
+  char '['
+  (y,m,d) <- smartdate
+  char ']'
+  let date    = parsedate $ printf "%04s/%02s/%02s" y m d
+      test op = return $ (`op` date) . postingDate
+  case op of
+    "<"  -> test (<)
+    "<=" -> test (<=)
+    "="  -> test (==)
+    "==" -> test (==)
+    ">=" -> test (>=)
+    ">"  -> test (>)
+    _    -> mzero
+ where
+  compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
+
 -- XXX confusing, refactor
 -- | Given a date span (representing a reporting interval) and a list of
 -- postings within it: aggregate the postings so there is only one per

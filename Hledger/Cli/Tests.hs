@@ -35,6 +35,8 @@ import System.Time (ClockTime(TOD))
 
 import Hledger.Cli.Commands.All
 import Hledger.Data  -- including testing utils in Hledger.Data.Utils
+import Hledger.Read.Common (emptyCtx)
+import Hledger.Read (someamount,readJournal)
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
 
@@ -61,8 +63,8 @@ tests = TestList [
    tests_Hledger_Commands,
 
    "account directive" ~:
-   let sameParse str1 str2 = do j1 <- journalFromString str1
-                                j2 <- journalFromString str2
+   let sameParse str1 str2 = do j1 <- readJournal str1
+                                j2 <- readJournal str2
                                 j1 `is` j2{filereadtime=filereadtime j1, jtext=jtext j1}
    in TestList
    [
@@ -229,7 +231,7 @@ tests = TestList [
     ]
 
    ,"balance report with cost basis" ~: do
-      j <- journalFromString $ unlines
+      j <- readJournal $ unlines
              [""
              ,"2008/1/1 test           "
              ,"  a:b          10h @ $50"
@@ -244,7 +246,7 @@ tests = TestList [
         ]
 
    ,"balance report elides zero-balance root account(s)" ~: do
-      l <- journalFromStringWithOpts []
+      l <- readJournalWithOpts []
              (unlines
               ["2008/1/1 one"
               ,"  test:a  1"
@@ -372,14 +374,9 @@ tests = TestList [
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
 
   ,"default year" ~: do
-    rl <- journalFromString defaultyear_ledger_str
+    rl <- readJournal defaultyear_ledger_str
     tdate (head $ jtxns rl) `is` fromGregorian 2009 1 1
     return ()
-
-  ,"ledgerFile" ~: do
-    assertBool "ledgerFile should parse an empty file" (isRight $ parseWithCtx emptyCtx ledgerFile "")
-    r <- journalFromString "" -- don't know how to get it from ledgerFile
-    assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ jtxns r
 
   ,"normaliseMixedAmount" ~: do
      normaliseMixedAmount (Mixed []) ~?= Mixed [nullamt]
@@ -468,7 +465,7 @@ tests = TestList [
   ,"register report with cleared option" ~:
    do 
     let opts = [Cleared]
-    l <- journalFromStringWithOpts opts sample_ledger_str
+    l <- readJournalWithOpts opts sample_ledger_str
     showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
@@ -480,7 +477,7 @@ tests = TestList [
   ,"register report with uncleared option" ~:
    do 
     let opts = [UnCleared]
-    l <- journalFromStringWithOpts opts sample_ledger_str
+    l <- readJournalWithOpts opts sample_ledger_str
     showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
@@ -492,7 +489,7 @@ tests = TestList [
 
   ,"register report sorts by date" ~:
    do 
-    l <- journalFromStringWithOpts [] $ unlines
+    l <- readJournalWithOpts [] $ unlines
         ["2008/02/02 a"
         ,"  b  1"
         ,"  c"
@@ -577,14 +574,14 @@ tests = TestList [
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
   ,"unicode in balance layout" ~: do
-    l <- journalFromStringWithOpts []
+    l <- readJournalWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     showBalanceReport [] (optsToFilterSpec [] [] t1) l `is` unlines
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"]
 
   ,"unicode in register layout" ~: do
-    l <- journalFromStringWithOpts []
+    l <- readJournalWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     showRegisterReport [] (optsToFilterSpec [] [] t1) l `is` unlines
       ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
@@ -673,8 +670,8 @@ tests = TestList [
 date1 = parsedate "2008/11/26"
 t1 = LocalTime date1 midday
 
-sampleledger = journalFromStringWithOpts [] sample_ledger_str
-sampleledgerwithopts opts _ = journalFromStringWithOpts opts sample_ledger_str
+sampleledger = readJournalWithOpts [] sample_ledger_str
+sampleledgerwithopts opts _ = readJournalWithOpts opts sample_ledger_str
 
 sample_ledger_str = unlines
  ["; A sample ledger file."
@@ -1078,5 +1075,5 @@ journalWithAmounts as =
         ""
         (TOD 0 0)
         ""
-    where parse = fromparse . parseWithCtx emptyCtx postingamount . (" "++)
+    where parse = fromparse . parseWithCtx emptyCtx someamount
 

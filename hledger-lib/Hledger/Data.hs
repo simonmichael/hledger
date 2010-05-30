@@ -12,10 +12,8 @@ module Hledger.Data (
                module Hledger.Data.Amount,
                module Hledger.Data.Commodity,
                module Hledger.Data.Dates,
-               module Hledger.Data.IO,
                module Hledger.Data.Transaction,
                module Hledger.Data.Ledger,
-               module Hledger.Data.Parse,
                module Hledger.Data.Journal,
                module Hledger.Data.Posting,
                module Hledger.Data.TimeLog,
@@ -29,10 +27,8 @@ import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Commodity
 import Hledger.Data.Dates
-import Hledger.Data.IO
 import Hledger.Data.Transaction
 import Hledger.Data.Ledger
-import Hledger.Data.Parse
 import Hledger.Data.Journal
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
@@ -46,10 +42,8 @@ tests_Hledger_Data = TestList
      Hledger.Data.Amount.tests_Amount
     -- ,Hledger.Data.Commodity.tests_Commodity
     ,Hledger.Data.Dates.tests_Dates
-    -- ,Hledger.Data.IO.tests_IO
     ,Hledger.Data.Transaction.tests_Transaction
     -- ,Hledger.Data.Hledger.Data.tests_Hledger.Data
-    ,Hledger.Data.Parse.tests_Parse
     -- ,Hledger.Data.Journal.tests_Journal
     -- ,Hledger.Data.Posting.tests_Posting
     ,Hledger.Data.TimeLog.tests_TimeLog
