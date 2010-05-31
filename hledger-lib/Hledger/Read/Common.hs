@@ -9,16 +9,28 @@ module Hledger.Read.Common
 where
 
 import Control.Monad.Error
-import Data.List
+import Hledger.Data.Utils
 import Hledger.Data.Types (Journal)
-import Text.ParserCombinators.Parsec
+import Hledger.Data.Journal
 import System.Directory (getHomeDirectory)
 import System.FilePath(takeDirectory,combine)
+import System.Time (getClockTime)
+import Text.ParserCombinators.Parsec
 
 
 -- | A JournalUpdate is some transformation of a "Journal". It can do I/O
 -- or raise an error.
 type JournalUpdate = ErrorT String IO (Journal -> Journal)
+
+-- | Given a JournalUpdate-generating parsec parser, file path and data string,
+-- parse and post-process a Journal so that it's ready to use, or give an error.
+parseJournalWith :: (GenParser Char LedgerFileCtx JournalUpdate) -> FilePath -> String -> ErrorT String IO Journal
+parseJournalWith p f s = do
+  tc <- liftIO getClockTime
+  tl <- liftIO getCurrentLocalTime
+  case runParser p emptyCtx f s of
+    Right updates -> liftM (journalFinalise tc tl f s) $ updates `ap` return nulljournal
+    Left err      -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
 
 -- | Some context kept during parsing.
 data LedgerFileCtx = Ctx {

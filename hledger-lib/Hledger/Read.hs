@@ -7,34 +7,49 @@ Read hledger data from various data formats, and related utilities.
 
 module Hledger.Read (
        tests_Hledger_Read,
-       module Hledger.Read.Common,
-       Hledger.Read.Journal.someamount,
-       readJournalFile,
-       readJournal,
        myLedgerPath,
        myTimelogPath,
        myJournal,
        myTimelog,
+       readJournalFile,
+       readJournal,
 )
 where
 import Hledger.Data.Types (Journal(..))
 import Hledger.Data.Utils
 import Hledger.Read.Common
-import qualified Hledger.Read.Journal (parseJournal,parseJournalFile,ledgerFile,someamount,tests_Journal)
-import qualified Hledger.Read.Timelog (tests_Timelog) --parseJournal
+import qualified Hledger.Read.Journal (parseJournal,ledgerFile,tests_Journal)
+import qualified Hledger.Read.Timelog (parseJournal,tests_Timelog)
 
 import Control.Monad.Error
+import Data.Either (partitionEithers)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import System.FilePath ((</>))
 import System.Exit
 import System.IO (stderr)
 #if __GLASGOW_HASKELL__ <= 610
-import System.IO.UTF8 (hPutStrLn)
+import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
+import System.IO.UTF8
 #else
 import System.IO (hPutStrLn)
 #endif
 
+
+formats = [
+  "journal"
+ ,"timelog"
+-- ,"csv"
+ ]
+
+unknownformatmsg fp = printf "could not recognise %sdata in %s" (fmt formats) fp
+    where fmt [] = ""
+          fmt [f] = f ++ " "
+          fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
+
+parsers = [Hledger.Read.Journal.parseJournal
+          ,Hledger.Read.Timelog.parseJournal
+          ]
 
 ledgerenvvar           = "LEDGER"
 timelogenvvar          = "TIMELOG"
@@ -65,27 +80,28 @@ myJournal = myLedgerPath >>= readJournalFile
 myTimelog :: IO Journal
 myTimelog = myTimelogPath >>= readJournalFile
 
--- | Read a journal from this file, or throw an error.
+-- | Read a journal from this file, trying all known data formats,
+-- or give an error.
 readJournalFile :: FilePath -> IO Journal
-readJournalFile f =
-  (runErrorT . Hledger.Read.Journal.parseJournalFile) f >>= either printerror return
-  where printerror e = hPutStrLn stderr e >> exitWith (ExitFailure 1)
+readJournalFile "-" = getContents >>= journalFromPathAndString "(stdin)"
+readJournalFile f   = readFile f  >>= journalFromPathAndString f
 
--- | Read a Journal from this string, or throw an error.
+-- | Read a Journal from this string, trying all known data formats, or
+-- give an error.
 readJournal :: String -> IO Journal
-readJournal s =
-  (runErrorT . Hledger.Read.Journal.parseJournal "(from string)") s >>= either error return
+readJournal = journalFromPathAndString "(string)"
 
--- -- | Expand ~ in a file path (does not handle ~name).
--- tildeExpand :: FilePath -> IO FilePath
--- tildeExpand ('~':[])     = getHomeDirectory
--- tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
--- --handle ~name, requires -fvia-C or ghc 6.8:
--- --import System.Posix.User
--- -- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
--- --                                pw <- getUserEntryForName user
--- --                                return (homeDirectory pw ++ path)
--- tildeExpand xs           =  return xs
+-- | Read a Journal from this string, trying each known data format in
+-- turn, or give an error.  The file path is also required.
+journalFromPathAndString :: FilePath -> String -> IO Journal
+journalFromPathAndString f s = do
+  (errors, journals) <- partitionEithers `fmap` mapM try parsers
+  case journals of j:_ -> return j
+                   _   -> hPutStrLn stderr (errmsg errors) >> exitWith (ExitFailure 1)
+    where
+      try p = (runErrorT . p f) s
+      errmsg [] = unknownformatmsg f
+      errmsg (e:_) = unlines [unknownformatmsg f, e]
 
 tests_Hledger_Read = TestList
   [

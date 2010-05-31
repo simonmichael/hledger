@@ -321,3 +321,15 @@ isRight = not . isLeft
 
 strictReadFile :: FilePath -> IO String
 strictReadFile f = readFile f >>= \s -> Control.Exception.evaluate (length s) >> return s
+
+-- -- | Expand ~ in a file path (does not handle ~name).
+-- tildeExpand :: FilePath -> IO FilePath
+-- tildeExpand ('~':[])     = getHomeDirectory
+-- tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
+-- --handle ~name, requires -fvia-C or ghc 6.8:
+-- --import System.Posix.User
+-- -- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
+-- --                                pw <- getUserEntryForName user
+-- --                                return (homeDirectory pw ++ path)
+-- tildeExpand xs           =  return xs
+

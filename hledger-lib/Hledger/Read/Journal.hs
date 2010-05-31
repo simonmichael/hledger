@@ -103,15 +103,20 @@ i, o, b, h
 
 -}
 
-module Hledger.Read.Journal {- (
+module Hledger.Read.Journal (
+       tests_Journal,
        parseJournal,
-       parseJournalFile,
+       ledgerFile,
        someamount,
-       emptyCtx,
-       ledgeraccountname
-) -}
+       ledgeraccountname,
+       ledgerExclamationDirective,
+       ledgerHistoricalPrice,
+       ledgerDefaultYear,
+       emptyLine,
+       ledgerdatetime,
+)
 where
-import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError, catchError)
+import Control.Monad.Error (ErrorT(..), throwError, catchError)
 import Text.ParserCombinators.Parsec
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
@@ -127,27 +132,14 @@ import Hledger.Data.Posting
 import Hledger.Data.Journal
 import Hledger.Data.Commodity (dollars,dollar,unknown,nonsimplecommoditychars)
 import Hledger.Read.Common
-import System.Time (getClockTime)
 
 
 -- let's get to it
 
--- | Parse and post-process a journal file or timelog file to a "Journal",
--- or give an error.
-parseJournalFile :: FilePath -> ErrorT String IO Journal
-parseJournalFile "-" = liftIO getContents >>= parseJournal "-"
-parseJournalFile f   = liftIO (readFile f) >>= parseJournal f
-
 -- | Parse and post-process a "Journal" from hledger's journal file
--- format, saving the provided file path and the current time, or give an
--- error.
+-- format, or give an error.
 parseJournal :: FilePath -> String -> ErrorT String IO Journal
-parseJournal f s = do
-  tc <- liftIO getClockTime
-  tl <- liftIO getCurrentLocalTime
-  case runParser ledgerFile emptyCtx f s of
-    Right m  -> liftM (journalFinalise tc tl f s) $ m `ap` return nulljournal
-    Left err -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
+parseJournal = parseJournalWith ledgerFile
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" which can be applied to an empty journal
@@ -170,7 +162,7 @@ ledgerFile = do items <- many ledgerItem
                           , ledgerTagDirective
                           , ledgerEndTagDirective
                           , emptyLine >> return (return id)
-                          ] <?> "ledger transaction, timelog entry, or directive"
+                          ] <?> "ledger transaction or directive"
 
 emptyLine :: GenParser Char st ()
 emptyLine = do many spacenonewline

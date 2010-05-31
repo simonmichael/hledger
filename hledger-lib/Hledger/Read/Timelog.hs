@@ -42,29 +42,23 @@ o 2007/03/10 17:26:02
 
 -}
 
-module Hledger.Read.Timelog {- (
+module Hledger.Read.Timelog (
+       tests_Timelog,
        parseJournal,
-       parseJournalFile
-) -}
+)
 where
-import Control.Monad.Error (ErrorT(..), MonadIO, liftIO, throwError)
+import Control.Monad.Error (ErrorT(..))
 import Text.ParserCombinators.Parsec
-import System.Time (getClockTime)
 import Hledger.Data
-import Hledger.Read.Common (LedgerFileCtx,JournalUpdate,emptyCtx,getParentAccount)
-import Hledger.Read.Journal hiding (parseJournal, parseJournalFile)
+import Hledger.Read.Common
+import Hledger.Read.Journal hiding (parseJournal)
 
 
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parseJournal :: FilePath -> String -> ErrorT String IO Journal
-parseJournal f s = do
-  tc <- liftIO getClockTime
-  tl <- liftIO getCurrentLocalTime
-  case runParser timelogFile emptyCtx f s of
-    Right m  -> liftM (journalFinalise tc tl f s) $ m `ap` return nulljournal
-    Left err -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
+parseJournal = parseJournalWith timelogFile
 
 timelogFile :: GenParser Char LedgerFileCtx JournalUpdate
 timelogFile = do items <- many timelogItem

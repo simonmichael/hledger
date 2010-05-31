@@ -37,6 +37,7 @@ import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
 import Hledger.Data
 import Hledger.Read
+import Hledger.Read.Journal (someamount)
 import Hledger.Cli.Options hiding (value)
 #ifdef MAKE
 import Paths_hledger_make (getDataFileName)

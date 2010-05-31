@@ -36,7 +36,8 @@ import System.Time (ClockTime(TOD))
 import Hledger.Cli.Commands.All
 import Hledger.Data  -- including testing utils in Hledger.Data.Utils
 import Hledger.Read.Common (emptyCtx)
-import Hledger.Read (someamount,readJournal)
+import Hledger.Read (readJournal)
+import Hledger.Read.Journal (someamount)
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
 
