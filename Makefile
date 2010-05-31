@@ -37,7 +37,8 @@ SOURCEFILES:= \
 	Hledger/Cli/Commands/*hs \
 	hledger-lib/*hs \
 	hledger-lib/Hledger/*hs \
-	hledger-lib/Hledger/Data/*hs
+	hledger-lib/Hledger/Data/*hs \
+	hledger-lib/Hledger/Read/*hs
 DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
 BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
@@ -317,12 +318,12 @@ data/100000x1000x10.journal: tools/generatejournal
 # DOCUMENTATION
 
 # Documentation source files are UPPERCASE files in the top directory.
-# website/ contains both html generated from these (UPPERCASE.html) and
-# revision-controlled resource files (everything else).  website/api-doc
+# site/ contains both html generated from these (UPPERCASE.html) and
+# revision-controlled resource files (everything else).  site/api-doc
 # contains only generated files.
 
 cleandocs:
-	rm -rf website/[A-Z]*.html website/api-doc/*
+	rm -rf site/[A-Z]*.html site/api-doc/*
 
 # rebuild all docs
 docs: site apidocs
@@ -337,6 +338,9 @@ site: site/hakyll
 cleansite: site/hakyll
 	cd site; ./hakyll clean
 
+previewsite: site/hakyll
+	cd site; ./hakyll preview
+
 site/hakyll: site/hakyll.hs
 	cd site; ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS)
 
@@ -346,9 +350,9 @@ viewsite: site
 # generate html versions of docs (and the hledger.org website)
 # work around pandoc not handling full rst image directive
 # html:
-# 	for d in $(DOCFILES); do $(PANDOC) --toc -s -H website/header.html -A website/footer.html -r rst $$d >website/$$d.html; done
-# 	cd website && ln -sf ../SCREENSHOTS && $(RST2HTML) SCREENSHOTS >SCREENSHOTS.html && rm -f SCREENSHOTS
-# 	cd website; rm -f index.html; ln -s README.html index.html; rm -f profs; ln -s ../profs
+# 	for d in $(DOCFILES); do $(PANDOC) --toc -s -H site/header.html -A site/footer.html -r rst $$d >site/$$d.html; done
+# 	cd site && ln -sf ../SCREENSHOTS && $(RST2HTML) SCREENSHOTS >SCREENSHOTS.html && rm -f SCREENSHOTS
+# 	cd site; rm -f index.html; ln -s README.html index.html; rm -f profs; ln -s ../profs
 
 
 pdf: docspdf codepdf
@@ -356,7 +360,7 @@ pdf: docspdf codepdf
 # generate pdf versions of main docs
 # work around rst2pdf needing images in the same directory
 docspdf:
-	-for d in $(DOCFILES); do (cd website && ln -sf ../$$d && $(RST2PDF) $$d && rm -f $$d); done
+	-for d in $(DOCFILES); do (cd site && ln -sf ../$$d && $(RST2PDF) $$d && rm -f $$d); done
 
 # format all code as a pdf for offline reading
 ENSCRIPT=enscript -q --header='$$n|$$D{%+}|Page $$% of $$=' --line-numbers --font=Courier6 --color -o-
@@ -367,7 +371,7 @@ codepdf:
 	cat cabal.ps make.ps haskell.ps | ps2pdf - >code.pdf
 
 # view all docs and code as pdf
-PDFS=website/{README,README2,MANUAL,NEWS,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
+PDFS=site/{README,README2,MANUAL,NEWS,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
 viewall: pdf
 	$(VIEWPDF) $(PDFS)
 
@@ -384,29 +388,29 @@ pushdocs: push
 # For this to work the hoogle cgi must be built with base target "main".
 # XXX move the framed index building into haddock: ?
 apidocs: haddock hscolour #sourcegraph #hoogle
-	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' website/api-doc/modules-index.html ; \
-	cp website/api-doc-frames.html website/api-doc/index.html ; \
-# 	cp website/hoogle-small.html website/api-doc
+	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' site/api-doc/modules-index.html ; \
+	cp site/api-doc-frames.html site/api-doc/index.html ; \
+# 	cp site/hoogle-small.html site/api-doc
 
 # generate and view the api docs
 viewapidocs: apidocs
-	$(VIEWHTML) website/api-doc/index.html
+	$(VIEWHTML) site/api-doc/index.html
 
 # generate code documentation with haddock
 # --ignore-all-exports means we are documenting internal implementation, not library api
 HADDOCK=haddock -B `ghc --print-libdir` $(subst -D,--optghc=-D,$(DEFINEFLAGS)) --ignore-all-exports --no-warnings
 haddock:
-	$(HADDOCK) -o website/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(MAIN) && \
-		cp website/api-doc/index.html website/api-doc/modules-index.html
+	$(HADDOCK) -o site/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(MAIN) && \
+		cp site/api-doc/index.html site/api-doc/modules-index.html
 	cd hledger-lib; cabal haddock
 
 HSCOLOUR=HsColour -css 
 hscolour:
 	for f in $(SOURCEFILES); do \
-		$(HSCOLOUR) -anchor $$f -owebsite/api-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+		$(HSCOLOUR) -anchor $$f -osite/api-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done ; \
-	cp website/api-doc/src-hledger.html website/api-doc/src-Main.html ; \
-	HsColour -print-css >website/api-doc/hscolour.css
+	cp site/api-doc/src-hledger.html site/api-doc/src-Main.html ; \
+	HsColour -print-css >site/api-doc/hscolour.css
 
 sourcegraph:
 	-SourceGraph hledger.cabal
@@ -419,7 +423,7 @@ HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
 HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
 hoogle: hoogleindex
 	if test -f $(HOOGLE) ; then \
-		cd website/api-doc && \
+		cd site/api-doc && \
 		rm -f $(HOOGLEVER) && \
 		ln -s . $(HOOGLEVER) && \
 		cp -r $(HOOGLESRC)/src/res/ . && \
@@ -431,8 +435,8 @@ hoogle: hoogleindex
 
 #generate a hoogle index
 hoogleindex:
-	$(HADDOCK) -o website/api-doc --hoogle $(MAIN) && \
-	cd website/api-doc && \
+	$(HADDOCK) -o site/api-doc --hoogle $(MAIN) && \
+	cd site/api-doc && \
 	hoogle --convert=main.txt --output=default.hoo
 
 ######################################################################
@@ -555,7 +559,7 @@ pullprofs:
 # make hledgerPLATFORM first
 pushbinary:
 	-gzip -9 $(BINARYFILENAME)
-	-rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/website/binaries/
+	-rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/site/binaries/
 
 # show project stats useful for release notes
 stats: showlastreleasedate showreleaseauthors showloc showcov showlocalchanges showreleasechanges #simplebench #showerrors
