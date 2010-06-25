@@ -105,7 +105,7 @@ i, o, b, h
 
 module Hledger.Read.Journal (
        tests_Journal,
-       parseJournal,
+       reader,
        ledgerFile,
        someamount,
        ledgeraccountname,
@@ -117,7 +117,7 @@ module Hledger.Read.Journal (
 )
 where
 import Control.Monad.Error (ErrorT(..), throwError, catchError)
-import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec hiding (parse)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
@@ -136,10 +136,20 @@ import Hledger.Read.Common
 
 -- let's get to it
 
+reader :: Reader
+reader = Reader format detect parse
+
+format :: String
+format = "journal"
+
+-- | Does the given file path and data provide hledger's journal file format ?
+detect :: FilePath -> String -> Bool
+detect f _ = fileSuffix f == format
+
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
-parseJournal :: FilePath -> String -> ErrorT String IO Journal
-parseJournal = parseJournalWith ledgerFile
+parse :: FilePath -> String -> ErrorT String IO Journal
+parse = parseJournalWith ledgerFile
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" which can be applied to an empty journal

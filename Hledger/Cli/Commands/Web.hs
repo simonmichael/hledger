@@ -116,7 +116,7 @@ journalFileModifiedTime Journal{filepath=f}
 
 reload :: Journal -> IO Journal
 reload Journal{filepath=f} = do
-  j' <- readJournalFile f
+  j' <- readJournalFile Nothing f
   putValue "hledger" "journal" j'
   return j'
             

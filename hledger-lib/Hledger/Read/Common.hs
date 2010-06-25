@@ -18,6 +18,12 @@ import System.Time (getClockTime)
 import Text.ParserCombinators.Parsec
 
 
+-- | A hledger data reader is a triple of format name, format-detecting predicate, and a parser to Journal.
+data Reader = Reader {rFormat   :: String
+                     ,rDetector :: FilePath -> String -> Bool
+                     ,rParser   :: FilePath -> String -> ErrorT String IO Journal
+                     }
+
 -- | A JournalUpdate is some transformation of a "Journal". It can do I/O
 -- or raise an error.
 type JournalUpdate = ErrorT String IO (Journal -> Journal)
@@ -70,3 +76,5 @@ expandPath pos fp = liftM mkRelative (expandHome fp)
                                                       return $ homedir ++ drop 1 inname
                       | otherwise                = return inname
 
+fileSuffix :: FilePath -> String
+fileSuffix = reverse . takeWhile (/='.') . reverse . dropWhile (/='.')

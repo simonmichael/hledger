@@ -36,12 +36,12 @@ withJournalDo opts args cmdname cmd = do
       runcmd = cmd opts args . costify
   if creating
    then runcmd nulljournal
-   else readJournalFile f >>= runcmd
+   else readJournalFile Nothing f >>= runcmd
 
 -- | Get a journal from the given string and options, or throw an error.
 readJournalWithOpts :: [Opt] -> String -> IO Journal
 readJournalWithOpts opts s = do
-    j <- readJournal s
+    j <- readJournal Nothing s
     let cost = CostBasis `elem` opts
     return $ (if cost then journalConvertAmountsToCost else id) j
 

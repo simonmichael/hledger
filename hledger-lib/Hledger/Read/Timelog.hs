@@ -44,21 +44,32 @@ o 2007/03/10 17:26:02
 
 module Hledger.Read.Timelog (
        tests_Timelog,
-       parseJournal,
+       reader,
 )
 where
 import Control.Monad.Error (ErrorT(..))
-import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec hiding (parse)
 import Hledger.Data
 import Hledger.Read.Common
-import Hledger.Read.Journal hiding (parseJournal)
+import Hledger.Read.Journal (ledgerExclamationDirective, ledgerHistoricalPrice,
+                             ledgerDefaultYear, emptyLine, ledgerdatetime)
 
+
+reader :: Reader
+reader = Reader format detect parse
+
+format :: String
+format = "timelog"
+
+-- | Does the given file path and data provide timeclock.el's timelog format ?
+detect :: FilePath -> String -> Bool
+detect f _ = fileSuffix f == format
 
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an
 -- error.
-parseJournal :: FilePath -> String -> ErrorT String IO Journal
-parseJournal = parseJournalWith timelogFile
+parse :: FilePath -> String -> ErrorT String IO Journal
+parse = parseJournalWith timelogFile
 
 timelogFile :: GenParser Char LedgerFileCtx JournalUpdate
 timelogFile = do items <- many timelogItem

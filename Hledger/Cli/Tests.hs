@@ -64,8 +64,8 @@ tests = TestList [
    tests_Hledger_Commands,
 
    "account directive" ~:
-   let sameParse str1 str2 = do j1 <- readJournal str1
-                                j2 <- readJournal str2
+   let sameParse str1 str2 = do j1 <- readJournal Nothing str1
+                                j2 <- readJournal Nothing str2
                                 j1 `is` j2{filereadtime=filereadtime j1, jtext=jtext j1}
    in TestList
    [
@@ -232,7 +232,7 @@ tests = TestList [
     ]
 
    ,"balance report with cost basis" ~: do
-      j <- readJournal $ unlines
+      j <- readJournal Nothing $ unlines
              [""
              ,"2008/1/1 test           "
              ,"  a:b          10h @ $50"
@@ -375,7 +375,7 @@ tests = TestList [
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
 
   ,"default year" ~: do
-    rl <- readJournal defaultyear_ledger_str
+    rl <- readJournal Nothing defaultyear_ledger_str
     tdate (head $ jtxns rl) `is` fromGregorian 2009 1 1
     return ()
 
