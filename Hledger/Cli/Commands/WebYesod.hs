@@ -88,6 +88,14 @@ getParamsDebug = do
 getIndexPage :: Handler HledgerWebApp ()
 getIndexPage = redirect RedirectTemporary TransactionsPage
 
+getStyleCss :: Handler HledgerWebApp RepPlain
+getStyleCss = do
+    app <- getYesod
+    let dir = appWebdir app
+    s <- liftIO $ readFile $ dir </> "style.css"
+    header "Content-Type" "text/css"
+    return $ RepPlain $ toContent s
+
 getTransactionsPage :: Handler HledgerWebApp RepHtml
 getTransactionsPage = withLatestJournalRender (const showTransactions)
 
@@ -98,51 +106,44 @@ getBalancePage :: Handler HledgerWebApp RepHtml
 getBalancePage = withLatestJournalRender showBalanceReport
 
 withLatestJournalRender :: ([Opt] -> FilterSpec -> Journal -> String) -> Handler HledgerWebApp RepHtml
-withLatestJournalRender f = do
+withLatestJournalRender reportfn = do
     app <- getYesod
-    req <- getRequest
     params <- getParams
-    msg <- getMessage
     t <- liftIO $ getCurrentLocalTime
-    -- today <- liftIO $ liftM showDate $ getCurrentDay
     let as = params "a"
         ps = params "p"
         opts = appOpts app ++ [Period $ unwords ps]
         args = appArgs app ++ as
-        fs = optsToFilterSpec opts args t
-  --    date = fromMaybe (decodeString today) $ getParam "date"
-  --    desc = fromMaybe "" $ getParam "desc"
-  --    acct = fromMaybe "" $ getParam "acctvar"
-  --    amt  = fromMaybe "" $ getParam "amtvar"
+        fspec = optsToFilterSpec opts args t
+    -- reload journal if changed
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
     (changed, j') <- liftIO $ journalReloadIfChanged opts j
     when changed $ liftIO $ putValue "hledger" "journal" j'
-    let content = f opts fs j'
-    return $ RepHtml $ toContent $ renderHamlet id $ template req msg as ps "hledger" content
-    -- hamletToRepHtml $ template "" s
+    -- run the specified report using this request's params
+    let s = reportfn opts fspec j'
+    -- render the standard template
+    req <- getRequest
+    msg <- getMessage
+    return $ RepHtml $ toContent $ renderHamlet id $ template req msg as ps "hledger" s
+    -- hamletToRepHtml $ template req msg as ps "hledger" s
+-- template :: Request -> Maybe (Html ()) -> [String] -> [String] -> String -> String -> Hamlet (Routes HledgerWebApp)
+-- Couldn't match expected type `Routes HledgerWebApp'
+--        against inferred type `[Char]'
 
-getStyleCss :: Handler HledgerWebApp RepPlain
-getStyleCss = do
-    app <- getYesod
-    let dir = appWebdir app
-    s <- liftIO $ readFile $ dir </> "style.css"
-    header "Content-Type" "text/css"
-    return $ RepPlain $ toContent s
-
-template :: Request -> Maybe (Html ()) -> [String] -> [String] -> String -> String -> Hamlet String
-template req msg as ps t s = [$hamlet|
+-- template :: Request -> Maybe (Html ()) -> [String] -> [String] -> String -> String -> Hamlet String
+template req msg as ps title content = [$hamlet|
 !!!
 %html
  %head
+  %title $string.title$
   %meta!http-equiv=Content-Type!content=$string.metacontent$
   %link!rel=stylesheet!type=text/css!href=@stylesheet@!media=all
-  %title $string.t$
  %body
   ^navbar'^
   #messages $m$
   ^addform'^
   #content
-   %pre $string.s$
+   %pre $string.content$
 |]
  where m = fromMaybe (string "") msg
        navbar' = navbar req as ps
@@ -150,7 +151,7 @@ template req msg as ps t s = [$hamlet|
        stylesheet = "/style.css"
        metacontent = "text/html; charset=utf-8"
 
-navbar :: Request -> [String] -> [String] -> Hamlet String
+-- navbar :: Request -> [String] -> [String] -> Hamlet String
 navbar req as ps = [$hamlet|
  #navbar
   %a#hledgerorglink!href=@hledgerurl@ hledger.org
@@ -161,7 +162,7 @@ navbar req as ps = [$hamlet|
  where navlinks' = navlinks req as ps
        searchform' = searchform req as ps
 
-navlinks :: Request -> [String] -> [String] -> Hamlet String
+-- navlinks :: Request -> [String] -> [String] -> Hamlet String
 navlinks _ as ps = [$hamlet|
  #navlinks
   ^transactionslink^ | $
@@ -175,7 +176,7 @@ navlinks _ as ps = [$hamlet|
   navlink s = [$hamlet|%a.navlink!href=@u@ $string.s$|]
    where u = printf "../%s?a=%s&p=%s" s (intercalate "+" as) (intercalate "+" ps)
 
-searchform :: Request -> [String] -> [String] -> Hamlet String
+-- searchform :: Request -> [String] -> [String] -> Hamlet String
 searchform req as ps = [$hamlet|
  %form#searchform!action=$string.action$
   search for: $
@@ -202,7 +203,7 @@ searchform req as ps = [$hamlet|
 helplink topic = [$hamlet|%a!href=@u@ ?|]
     where u = manualurl ++ if null topic then "" else '#':topic
 
-addform :: Request -> [String] -> [String] -> Hamlet String
+-- addform :: Request -> [String] -> [String] -> Hamlet String
 addform _ _ _ = [$hamlet|
  %form#addform!action=$string.action$!method=POST
   %table!border=0
@@ -231,7 +232,7 @@ addform _ _ _ = [$hamlet|
   transactionfields1 = transactionfields 1
   transactionfields2 = transactionfields 2
 
-transactionfields :: Int -> Hamlet String
+-- transactionfields :: Int -> Hamlet String
 transactionfields n = [$hamlet|
  %tr
   %td
@@ -252,7 +253,7 @@ transactionfields n = [$hamlet|
 postTransactionsPage :: Handler HledgerWebApp RepPlain
 postTransactionsPage = do
   today <- liftIO getCurrentDay
-  -- get form input values, or basic validation errors. E suffix means an Either value.
+  -- get form input values, or basic validation errors. E means an Either value.
   dateE  <- runFormPost $ catchFormError $ notEmpty $ required $ input "date"
   descE  <- runFormPost $ catchFormError $ required $ input "desc"
   acct1E <- runFormPost $ catchFormError $ notEmpty $ required $ input "acct1"
@@ -294,8 +295,9 @@ postTransactionsPage = do
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    j' <- liftIO $ journalAddTransaction j t' >>= journalReload
-    liftIO $ putValue "hledger" "journal" j'
+    -- j' <- liftIO $ journalAddTransaction j t' >>= journalReload
+    -- liftIO $ putValue "hledger" "journal" j'
+    liftIO $ journalAddTransaction j t'
     setMessage $ string $ printf "Added transaction:\n%s" (show t')
     redirect RedirectTemporary TransactionsPage
 

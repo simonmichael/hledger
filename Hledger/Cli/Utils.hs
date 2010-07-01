@@ -53,10 +53,10 @@ readJournalWithOpts opts s = do
 journalReload :: Journal -> IO Journal
 journalReload Journal{filepath=f} = readJournalFile Nothing f
 
--- | Re-read a journal from its data file using the specified options,
--- only if the file has changed since last read (or if there is no file,
--- ie data read from stdin). Return a journal and a flag indicating
--- whether it was re-read or not.
+-- | Re-read a journal from its data file mostly, only if the file has
+-- changed since last read (or if there is no file, ie data read from
+-- stdin). The provided options are mostly ignored. Return a journal and a
+-- flag indicating whether it was re-read or not.
 journalReloadIfChanged :: [Opt] -> Journal -> IO (Bool, Journal)
 journalReloadIfChanged opts j@Journal{filepath=f,filereadtime=tread} = do
   tmod <- journalFileModificationTime j
