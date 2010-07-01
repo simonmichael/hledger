@@ -5,23 +5,24 @@ A web-based UI.
 
 module Hledger.Cli.Commands.WebYesod
 where
-
 import Control.Concurrent -- (forkIO)
+import qualified Data.ByteString.Char8 as B
+import Data.Either
 import qualified Network.Wai (Request(pathInfo))
 import System.FilePath ((</>))
 import System.IO.Storage (withStore, putValue, getValue)
 import Text.Hamlet
-import qualified Data.ByteString.Char8 as B
+import Text.ParserCombinators.Parsec (parse)
 import Yesod
 
--- import Hledger.Cli.Commands.Add (journalAddTransaction)
+import Hledger.Cli.Commands.Add (journalAddTransaction)
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
-
 import Hledger.Cli.Options hiding (value)
 import Hledger.Cli.Utils
 import Hledger.Data
+import Hledger.Read.Journal (someamount)
 #ifdef MAKE
 import Paths_hledger_make (getDataFileName)
 #else
@@ -90,9 +91,6 @@ getIndexPage = redirect RedirectTemporary TransactionsPage
 getTransactionsPage :: Handler HledgerWebApp RepHtml
 getTransactionsPage = withLatestJournalRender (const showTransactions)
 
-postTransactionsPage :: Handler HledgerWebApp RepHtml
-postTransactionsPage = withLatestJournalRender (const showTransactions)
-
 getRegisterPage :: Handler HledgerWebApp RepHtml
 getRegisterPage = withLatestJournalRender showRegisterReport
 
@@ -104,17 +102,23 @@ withLatestJournalRender f = do
     app <- getYesod
     req <- getRequest
     params <- getParams
+    msg <- getMessage
     t <- liftIO $ getCurrentLocalTime
+    -- today <- liftIO $ liftM showDate $ getCurrentDay
     let as = params "a"
         ps = params "p"
         opts = appOpts app ++ [Period $ unwords ps]
         args = appArgs app ++ as
         fs = optsToFilterSpec opts args t
+  --    date = fromMaybe (decodeString today) $ getParam "date"
+  --    desc = fromMaybe "" $ getParam "desc"
+  --    acct = fromMaybe "" $ getParam "acctvar"
+  --    amt  = fromMaybe "" $ getParam "amtvar"
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
     (changed, j') <- liftIO $ journalReloadIfChanged opts j
     when changed $ liftIO $ putValue "hledger" "journal" j'
     let content = f opts fs j'
-    return $ RepHtml $ toContent $ renderHamlet id $ template req as ps "" content
+    return $ RepHtml $ toContent $ renderHamlet id $ template req msg as ps "hledger" content
     -- hamletToRepHtml $ template "" s
 
 getStyleCss :: Handler HledgerWebApp RepPlain
@@ -125,8 +129,8 @@ getStyleCss = do
     header "Content-Type" "text/css"
     return $ RepPlain $ toContent s
 
-template :: Request -> [String] -> [String] -> String -> String -> Hamlet String
-template req as ps t s = [$hamlet|
+template :: Request -> Maybe (Html ()) -> [String] -> [String] -> String -> String -> Hamlet String
+template req msg as ps t s = [$hamlet|
 !!!
 %html
  %head
@@ -135,12 +139,14 @@ template req as ps t s = [$hamlet|
   %title $string.t$
  %body
   ^navbar'^
-  #messages $string.msgs$
+  #messages $m$
+  ^addform'^
   #content
    %pre $string.s$
 |]
- where msgs = intercalate ", " []
+ where m = fromMaybe (string "") msg
        navbar' = navbar req as ps
+       addform' = addform req as ps
        stylesheet = "/style.css"
        metacontent = "text/html; charset=utf-8"
 
@@ -196,119 +202,100 @@ searchform req as ps = [$hamlet|
 helplink topic = [$hamlet|%a!href=@u@ ?|]
     where u = manualurl ++ if null topic then "" else '#':topic
 
-{-
-            
-addform :: Hack.Env -> HSP XML
-addform env = do
-  today <- io $ liftM showDate $ getCurrentDay
-  let inputs = Hack.Contrib.Request.inputs env
-      date  = decodeString $ fromMaybe today $ lookup "date"  inputs
-      desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
-  <div>
-   <div id="addform">
-   <form action="" method="POST">
-    <table border="0">
-      <tr>
-        <td>
-          Date: <input size="15" name="date" value=date /><% help "dates" %><% nbsp %>
-          Description: <input size="35" name="desc" value=desc /><% nbsp %>
-        </td>
-      </tr>
-      <% transactionfields 1 env %>
-      <% transactionfields 2 env %>
-      <tr id="addbuttonrow"><td><input type="submit" value="add transaction" 
-      /><% help "file-format" %></td></tr>
-    </table>
-   </form>
-   </div>
-   <br clear="all" />
-   </div>
+addform :: Request -> [String] -> [String] -> Hamlet String
+addform _ _ _ = [$hamlet|
+ %form#addform!action=$string.action$!method=POST
+  %table!border=0
+   %tr
+    %td
+     Date:
+     %input!size=15!name=date!value=$string.date$
+     ^datehelp^ $
+     Description:
+     %input!size=35!name=desc!value=$string.desc$ $
+   ^transactionfields1^
+   ^transactionfields2^
+   %tr#addbuttonrow
+    %td
+     %input!type=submit!value=$string.addlabel$
+     ^addhelp^
+ <br clear="all" />
+|]
+ where
+  datehelp = helplink "dates"
+  addlabel = "add transaction"
+  addhelp = helplink "file-format"
+  action=""
+  date = ""
+  desc = ""
+  transactionfields1 = transactionfields 1
+  transactionfields2 = transactionfields 2
 
-transactionfields :: Int -> Hack.Env -> HSP XML
-transactionfields n env = do
-  let inputs = Hack.Contrib.Request.inputs env
-      acct = decodeString $ fromMaybe "" $ lookup acctvar inputs
-      amt  = decodeString $ fromMaybe "" $ lookup amtvar  inputs
-  <tr>
-    <td>
-    <% nbsp %><% nbsp %>
-      Account: <input size="35" name=acctvar value=acct /><% nbsp %>
-      Amount: <input size="15" name=amtvar value=amt /><% nbsp %>
-    </td>
-   </tr>
-    where
-      numbered = (++ show n)
-      acctvar = numbered "acct"
-      amtvar = numbered "amt"
+transactionfields :: Int -> Hamlet String
+transactionfields n = [$hamlet|
+ %tr
+  %td
+   &nbsp;&nbsp;
+   Account:
+   %input!size=35!name=$string.acctvar$!value=$string.acct$
+   &nbsp;
+   Amount:
+   %input!size=15!name=$string.amtvar$!value=$string.amt$ $
+|]
+ where
+  acct = ""
+  amt = ""
+  numbered = (++ show n)
+  acctvar = numbered "acct"
+  amtvar = numbered "amt"
 
-handleAddform :: Journal -> AppUnit
-handleAddform j = do
-  env <- getenv
-  d <- io getCurrentDay
-  t <- io getCurrentLocalTime
-  handle t $ validate env d
-  where
-    validate :: Hack.Env -> Day -> Failing Transaction
-    validate env today =
-        let inputs = Hack.Contrib.Request.inputs env
-            date  = decodeString $ fromMaybe "today" $ lookup "date"  inputs
-            desc  = decodeString $ fromMaybe "" $ lookup "desc"  inputs
-            acct1 = decodeString $ fromMaybe "" $ lookup "acct1" inputs
-            amt1  = decodeString $ fromMaybe "" $ lookup "amt1"  inputs
-            acct2 = decodeString $ fromMaybe "" $ lookup "acct2" inputs
-            amt2  = decodeString $ fromMaybe "" $ lookup "amt2"  inputs
-            validateDate ""  = ["missing date"]
-            validateDate _   = []
-            validateDesc ""  = ["missing description"]
-            validateDesc _   = []
-            validateAcct1 "" = ["missing account 1"]
-            validateAcct1 _  = []
-            validateAmt1 ""  = ["missing amount 1"]
-            validateAmt1 _   = []
-            validateAcct2 "" = ["missing account 2"]
-            validateAcct2 _  = []
-            validateAmt2 _   = []
-            amt1' = either (const missingamt) id $ parse someamount "" amt1
-            amt2' = either (const missingamt) id $ parse someamount "" amt2
-            (date', dateparseerr) = case fixSmartDateStrEither today date of
-                                      Right d -> (d, [])
-                                      Left e -> ("1900/01/01", [showDateParseError e])
-            t = Transaction {
-                            tdate = parsedate date' -- date' must be parseable
-                           ,teffectivedate=Nothing
-                           ,tstatus=False
-                           ,tcode=""
-                           ,tdescription=desc
-                           ,tcomment=""
-                           ,tpostings=[
-                             Posting False acct1 amt1' "" RegularPosting (Just t')
-                            ,Posting False acct2 amt2' "" RegularPosting (Just t')
-                            ]
-                           ,tpreceding_comment_lines=""
-                           }
-            (t', balanceerr) = case balanceTransaction t of
-                           Right t'' -> (t'', [])
-                           Left e -> (t, [head $ lines e]) -- show just the error not the transaction
-            errs = concat [
-                    validateDate date
-                   ,dateparseerr
-                   ,validateDesc desc
-                   ,validateAcct1 acct1
-                   ,validateAmt1 amt1
-                   ,validateAcct2 acct2
-                   ,validateAmt2 amt2
-                   ,balanceerr
-                   ]
-        in
-        case null errs of
-          False -> Failure errs
-          True  -> Success t'
+postTransactionsPage :: Handler HledgerWebApp RepPlain
+postTransactionsPage = do
+  today <- liftIO getCurrentDay
+  -- get form input values, or basic validation errors. E suffix means an Either value.
+  dateE  <- runFormPost $ catchFormError $ notEmpty $ required $ input "date"
+  descE  <- runFormPost $ catchFormError $ required $ input "desc"
+  acct1E <- runFormPost $ catchFormError $ notEmpty $ required $ input "acct1"
+  amt1E  <- runFormPost $ catchFormError $ required $ input "amt1"
+  acct2E <- runFormPost $ catchFormError $ notEmpty $ required $ input "acct2"
+  amt2E  <- runFormPost $ catchFormError $ required $ input "amt2"
+  -- supply defaults and parse date and amounts, or get errors.
+  let dateE' = either Left (either (\e -> Left [("date", showDateParseError e)]) Right . fixSmartDateStrEither today) dateE
+      amt1E' = either Left (either (const (Right missingamt)) Right . parse someamount "") amt1E  -- XXX missingamt only when missing/empty
+      amt2E' = either Left (either (const (Right missingamt)) Right . parse someamount "") amt2E
+      strEs = [dateE', descE, acct1E, acct2E]
+      amtEs = [amt1E', amt2E']
+      errs = lefts strEs ++ lefts amtEs
+      [date,desc,acct1,acct2] = rights strEs
+      [amt1,amt2] = rights amtEs
+      -- if no errors so far, generate a transaction and balance it or get the error.
+      tE | not $ null errs = Left errs
+         | otherwise = either (\e -> Left [[("unbalanced postings", head $ lines e)]]) Right
+                        (balanceTransaction $ nulltransaction {
+                           tdate=parsedate date
+                          ,teffectivedate=Nothing
+                          ,tstatus=False
+                          ,tcode=""
+                          ,tdescription=desc
+                          ,tcomment=""
+                          ,tpostings=[
+                            Posting False acct1 amt1 "" RegularPosting Nothing
+                           ,Posting False acct2 amt2 "" RegularPosting Nothing
+                           ]
+                          ,tpreceding_comment_lines=""
+                          })
+  -- display errors or add transaction
+  case tE of
+   Left errs -> do
+    -- save current form values in session
+    setMessage $ string $ intercalate ", " $ map (intercalate ", " . map (\(a,b) -> a++": "++b)) errs
+    redirect RedirectTemporary TransactionsPage
 
-    handle :: LocalTime -> Failing Transaction -> AppUnit
-    handle _ (Failure errs) = hsp errs addform
-    handle ti (Success t)   = do
-                    io $ journalAddTransaction j t >> reload j
-                    ledgerpage [msg] j (showTransactions (optsToFilterSpec [] [] ti))
-       where msg = printf "Added transaction:\n%s" (show t)
+   Right t -> do
+    let t' = txnTieKnot t -- XXX move into balanceTransaction
+    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+    j' <- liftIO $ journalAddTransaction j t' >>= journalReload
+    liftIO $ putValue "hledger" "journal" j'
+    setMessage $ string $ printf "Added transaction:\n%s" (show t')
+    redirect RedirectTemporary TransactionsPage
 
--}
