@@ -18,8 +18,11 @@ module Hledger.Cli.Commands.All (
 #ifdef VTY
                      module Hledger.Cli.Commands.Vty,
 #endif
-#if defined(WEB) || defined(WEBHAPPSTACK)
+#if defined(WEB)
                      module Hledger.Cli.Commands.Web,
+#endif
+#if defined(WEBYESOD)
+                     module Hledger.Cli.Commands.WebYesod,
 #endif
 #ifdef CHART
                      module Hledger.Cli.Commands.Chart,
@@ -37,8 +40,11 @@ import Hledger.Cli.Commands.Stats
 #ifdef VTY
 import Hledger.Cli.Commands.Vty
 #endif
-#if defined(WEB) || defined(WEBHAPPSTACK)
+#if defined(WEB)
 import Hledger.Cli.Commands.Web
+#endif
+#if defined(WEBYESOD)
+import Hledger.Cli.Commands.WebYesod
 #endif
 #ifdef CHART
 import Hledger.Cli.Commands.Chart
@@ -59,8 +65,11 @@ tests_Hledger_Commands = TestList
 -- #ifdef VTY
 --     ,Hledger.Cli.Commands.Vty.tests_Vty
 -- #endif
--- #if defined(WEB) || defined(WEBHAPPSTACK)
+-- #if defined(WEB)
 --     ,Hledger.Cli.Commands.Web.tests_Web
+-- #endif
+-- #if defined(WEBYESOD)
+--     ,Hledger.Cli.Commands.WebYesod.tests_Web
 -- #endif
 -- #ifdef CHART
 --     ,Hledger.Cli.Commands.Chart.tests_Chart

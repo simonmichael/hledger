@@ -40,7 +40,11 @@ flag vty
   default:     False
 
 flag web
-  description: enable the web ui (using simpleserver)
+  description: enable the web ui (using loli, hack, simpleserver)
+  default:     False
+
+flag webyesod
+  description: enable the web ui (using yesod, wai, simpleserver)
   default:     False
 
 flag chart
@@ -106,6 +110,16 @@ executable hledger
                  ,hack-handler-simpleserver
                  ,HTTP >= 4000.0
                  ,applicative-extras
+
+  if flag(webyesod)
+    cpp-options: -DWEBYESOD
+    other-modules:Hledger.Cli.Commands.WebYesod
+    build-depends:
+                  bytestring >= 0.9.1 && < 0.9.2
+                 ,hamlet >= 0.3.1 && < 0.4
+                 ,io-storage >= 0.3 && < 0.4
+                 ,wai >= 0.1 && < 0.2
+                 ,yesod >= 0.3.1 && < 0.4
 
   if flag(chart)
     cpp-options: -DCHART

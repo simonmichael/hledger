@@ -21,12 +21,7 @@ import Hack.Contrib.Response (set_content_type)
 import qualified Hack (Env, http)
 import qualified Hack.Contrib.Request (inputs, params, path)
 import qualified Hack.Contrib.Response (redirect)
-#ifdef WEBHAPPSTACK
-import System.Process (readProcess)
-import Hack.Handler.Happstack (runWithConfig,ServerConf(ServerConf))
-#else
 import Hack.Handler.SimpleServer (run)
-#endif
 
 import Network.Loli (loli, io, get, post, html, text, public)
 import Network.Loli.Type (AppUnit)
@@ -70,12 +65,7 @@ server opts args j =
     t <- getCurrentLocalTime
     webfiles <- getDataFileName "web"
     putValue "hledger" "journal" j
-#ifdef WEBHAPPSTACK
-    hostname <- readProcess "hostname" [] "" `catch` \_ -> return "hostname"
-    runWithConfig (ServerConf tcpport hostname) $            -- (Env -> IO Response) -> IO ()
-#else
     run tcpport $            -- (Env -> IO Response) -> IO ()
-#endif
       \env -> do -- IO Response
        -- general request handler
        let opts' = opts ++ [Period $ unwords $ map decodeString $ reqParamUtf8 env "p"]
