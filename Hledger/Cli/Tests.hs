@@ -29,7 +29,6 @@ $ hledger -f sample.ledger balance o
 module Hledger.Cli.Tests
 where
 import qualified Data.Map as Map
-import Test.HUnit.Tools (runVerboseTests)
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.Time (ClockTime(TOD))
 
@@ -45,13 +44,11 @@ import Hledger.Cli.Utils
 -- | Run unit tests.
 runtests :: [Opt] -> [String] -> IO ()
 runtests _ args = do
-  (counts,_) <- runner ts
+  (counts,_) <- liftM (flip (,) 0) $ runTestTT ts
   if errors counts > 0 || (failures counts > 0)
    then exitFailure
    else exitWith ExitSuccess
     where
-      runner | Verbose `elem` opts = runVerboseTests
-             | otherwise = liftM (flip (,) 0) . runTestTT
       ts = TestList $ filter matchname $ tflatten tests  -- show flat test names
       -- ts = tfilter matchname $ TestList tests -- show hierarchical test names
       matchname = matchpats args . tname

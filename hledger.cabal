@@ -84,7 +84,6 @@ executable hledger
                  ,process
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
-                 ,testpack >= 1 && < 2
                  ,time
                  ,utf8-string >= 0.3
 
@@ -162,7 +161,6 @@ library
                  ,process
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
-                 ,testpack >= 1 && < 2
                  ,time
                  ,utf8-string >= 0.3
 

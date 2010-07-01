@@ -87,7 +87,7 @@ options = [
 #endif
  ,Option "h"  ["help"] (NoArg  Help)                  "show this help"
  ,Option "V" ["version"]      (NoArg  Version)       "show version information"
- ,Option "v" ["verbose"]      (NoArg  Verbose)       "show verbose test output"
+ ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
  ,Option ""    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
  ,Option ""    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option ""    ["debug-vty"]  (NoArg  DebugVty)     "run vty command with no vty output, showing console"

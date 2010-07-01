@@ -233,7 +233,7 @@ Here is the command-line help:
               --port               web: serve on tcp port N (default 5000)
      -h       --help               show this help
      -V       --version            show version information
-     -v       --verbose            show verbose test output
+     -v       --verbose            show more verbose output
               --binary-filename    show the download filename for this hledger build
               --debug              show extra debug output; implies verbose
               --debug-vty          run vty command with no vty output, showing console
