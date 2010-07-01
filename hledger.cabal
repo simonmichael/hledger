@@ -40,11 +40,11 @@ flag vty
   default:     False
 
 flag web
-  description: enable the web ui (using loli, hack, simpleserver)
+  description: enable the web ui (using loli/hsp/simpleserver, works with ghc 6.10)
   default:     False
 
 flag webyesod
-  description: enable the web ui (using yesod, wai, simpleserver)
+  description: enable the web ui (using yesod/hamlet/simpleserver, requires ghc 6.12)
   default:     False
 
 flag chart

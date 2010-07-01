@@ -20,8 +20,7 @@ module Hledger.Cli.Commands.All (
 #endif
 #if defined(WEB)
                      module Hledger.Cli.Commands.Web,
-#endif
-#if defined(WEBYESOD)
+#elif defined(WEBYESOD)
                      module Hledger.Cli.Commands.WebYesod,
 #endif
 #ifdef CHART
@@ -42,8 +41,7 @@ import Hledger.Cli.Commands.Vty
 #endif
 #if defined(WEB)
 import Hledger.Cli.Commands.Web
-#endif
-#if defined(WEBYESOD)
+#elif defined(WEBYESOD)
 import Hledger.Cli.Commands.WebYesod
 #endif
 #ifdef CHART
@@ -67,8 +65,7 @@ tests_Hledger_Commands = TestList
 -- #endif
 -- #if defined(WEB)
 --     ,Hledger.Cli.Commands.Web.tests_Web
--- #endif
--- #if defined(WEBYESOD)
+-- #elif defined(WEBYESOD)
 --     ,Hledger.Cli.Commands.WebYesod.tests_Web
 -- #endif
 -- #ifdef CHART
