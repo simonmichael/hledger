@@ -10,16 +10,20 @@ module Hledger.Cli.Utils
     (
      withJournalDo,
      readJournalWithOpts,
+     journalReload,
+     journalReloadIfChanged,
+     journalFileModificationTime,
      openBrowserOn
     )
 where
 import Hledger.Data
 import Hledger.Read
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
-import System.Directory (doesFileExist)
+import System.Directory (doesFileExist, getModificationTime)
 import System.Exit
 import System.Info (os)
 import System.Process (readProcessWithExitCode)
+import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 
 
 -- | Parse the user's specified journal file and run a hledger command on
@@ -44,6 +48,34 @@ readJournalWithOpts opts s = do
     j <- readJournal Nothing s
     let cost = CostBasis `elem` opts
     return $ (if cost then journalConvertAmountsToCost else id) j
+
+-- | Re-read a journal from its data file.
+journalReload :: Journal -> IO Journal
+journalReload Journal{filepath=f} = readJournalFile Nothing f
+
+-- | Re-read a journal from its data file using the specified options,
+-- only if the file has changed since last read (or if there is no file,
+-- ie data read from stdin). Return a journal and a flag indicating
+-- whether it was re-read or not.
+journalReloadIfChanged :: [Opt] -> Journal -> IO (Bool, Journal)
+journalReloadIfChanged opts j@Journal{filepath=f,filereadtime=tread} = do
+  tmod <- journalFileModificationTime j
+  let newer = diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
+  -- when (Debug `elem` opts) $ printf "checking file, last modified %s, last read %s, %s\n" (show tmod) (show tread) (show newer)
+  if newer
+   then do
+     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" f
+     j' <- journalReload j
+     return (True, j')
+   else
+     return (False, j)
+
+-- | Get the last modified time of the journal's data file (or if there is no
+-- file, the current time).
+journalFileModificationTime :: Journal -> IO ClockTime
+journalFileModificationTime Journal{filepath=f}
+    | null f = getClockTime
+    | otherwise = getModificationTime f `Prelude.catch` \_ -> getClockTime
 
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode

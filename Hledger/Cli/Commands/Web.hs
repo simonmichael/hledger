@@ -11,9 +11,7 @@ import Control.Applicative.Error (Failing(Success,Failure))
 import Control.Concurrent
 import Control.Monad.Reader (ask)
 import Data.IORef (newIORef, atomicModifyIORef)
-import System.Directory (getModificationTime)
 import System.IO.Storage (withStore, putValue, getValue)
-import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Text.ParserCombinators.Parsec (parse)
 
 import Hack.Contrib.Constants (_TextHtmlUTF8)
@@ -36,7 +34,6 @@ import Hledger.Cli.Commands.Histogram
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
 import Hledger.Data
-import Hledger.Read
 import Hledger.Read.Journal (someamount)
 import Hledger.Cli.Options hiding (value)
 #ifdef MAKE
@@ -44,7 +41,7 @@ import Paths_hledger_make (getDataFileName)
 #else
 import Paths_hledger (getDataFileName)
 #endif
-import Hledger.Cli.Utils (openBrowserOn)
+import Hledger.Cli.Utils
 
 
 tcpport = 5000 :: Int
@@ -73,7 +70,8 @@ server opts args j =
        let opts' = opts ++ [Period $ unwords $ map decodeString $ reqParamUtf8 env "p"]
            args' = args ++ map decodeString (reqParamUtf8 env "a")
        j' <- fromJust `fmap` getValue "hledger" "journal"
-       j'' <- journalReloadIfChanged opts' args' j'
+       (changed, j'') <- io $ journalReloadIfChanged opts j'
+       when changed $ putValue "hledger" "journal" j''
        -- declare path-specific request handlers
        let command :: [String] -> ([Opt] -> FilterSpec -> Journal -> String) -> AppUnit
            command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) j''
@@ -98,32 +96,10 @@ redirect u c = response $ Hack.Contrib.Response.redirect u c
 reqParamUtf8 :: Hack.Env -> String -> [String]
 reqParamUtf8 env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
 
-journalReloadIfChanged :: [Opt] -> [String] -> Journal -> IO Journal
-journalReloadIfChanged opts _ j@Journal{filepath=f,filereadtime=tread} = do
-  tmod <- journalFileModifiedTime j
-  let newer = diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
-  -- when (Debug `elem` opts) $ printf "checking file, last modified %s, last read %s, %s\n" (show tmod) (show tread) (show newer)
-  if newer
-   then do
-     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" f
-     reload j
-   else return j
-
-journalFileModifiedTime :: Journal -> IO ClockTime
-journalFileModifiedTime Journal{filepath=f}
-    | null f = getClockTime
-    | otherwise = getModificationTime f `Prelude.catch` \_ -> getClockTime
-
-reload :: Journal -> IO Journal
-reload Journal{filepath=f} = do
-  j' <- readJournalFile Nothing f
-  putValue "hledger" "journal" j'
-  return j'
-            
 ledgerpage :: [String] -> Journal -> (Journal -> String) -> AppUnit
 ledgerpage msgs j f = do
   env <- getenv
-  j' <- io $ journalReloadIfChanged [] [] j
+  (_, j') <- io $ journalReloadIfChanged [] j
   hsp msgs $ const <div><% addform env %><pre><% f j' %></pre></div>
 
 -- | A loli directive to serve a string in pre tags within the hledger web
@@ -329,7 +305,7 @@ handleAddform j = do
     handle :: LocalTime -> Failing Transaction -> AppUnit
     handle _ (Failure errs) = hsp errs addform
     handle ti (Success t)   = do
-                    io $ journalAddTransaction j t >> reload j
+                    io $ journalAddTransaction j t >>= journalReload
                     ledgerpage [msg] j (showTransactions (optsToFilterSpec [] [] ti))
        where msg = printf "Added transaction:\n%s" (show t)
 

@@ -6,29 +6,22 @@ A web-based UI.
 module Hledger.Cli.Commands.WebYesod
 where
 
--- import Codec.Binary.UTF8.String (decodeString)
 import Control.Concurrent -- (forkIO)
 import qualified Network.Wai (Request(pathInfo))
-import System.Directory (getModificationTime)
 import System.FilePath ((</>))
 import System.IO.Storage (withStore, putValue, getValue)
-import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Text.Hamlet
--- import qualified Data.ByteString.Lazy as BS
 import qualified Data.ByteString.Char8 as B
 import Yesod
--- import Yesod.Helpers.Static
 
 -- import Hledger.Cli.Commands.Add (journalAddTransaction)
 import Hledger.Cli.Commands.Balance
--- import Hledger.Cli.Commands.Histogram
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
 
 import Hledger.Cli.Options hiding (value)
-import Hledger.Cli.Utils (openBrowserOn)
+import Hledger.Cli.Utils
 import Hledger.Data
-import Hledger.Read
 #ifdef MAKE
 import Paths_hledger_make (getDataFileName)
 #else
@@ -106,14 +99,6 @@ getRegisterPage = withLatestJournalRender showRegisterReport
 getBalancePage :: Handler HledgerWebApp RepHtml
 getBalancePage = withLatestJournalRender showBalanceReport
 
-getStyleCss :: Handler HledgerWebApp RepPlain
-getStyleCss = do
-    app <- getYesod
-    let dir = appWebdir app
-    s <- liftIO $ readFile $ dir </> "style.css"
-    header "Content-Type" "text/css"
-    return $ RepPlain $ toContent s
-
 withLatestJournalRender :: ([Opt] -> FilterSpec -> Journal -> String) -> Handler HledgerWebApp RepHtml
 withLatestJournalRender f = do
     app <- getYesod
@@ -126,36 +111,19 @@ withLatestJournalRender f = do
         args = appArgs app ++ as
         fs = optsToFilterSpec opts args t
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    j' <- liftIO $ journalReloadIfChanged opts args j
+    (changed, j') <- liftIO $ journalReloadIfChanged opts j
+    when changed $ liftIO $ putValue "hledger" "journal" j'
     let content = f opts fs j'
     return $ RepHtml $ toContent $ renderHamlet id $ template req as ps "" content
     -- hamletToRepHtml $ template "" s
 
-journalReloadIfChanged :: [Opt] -> [String] -> Journal -> IO Journal
-journalReloadIfChanged opts _ j@Journal{filepath=f,filereadtime=tread} = do
-  tmod <- journalFileModifiedTime j
-  let newer = diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
-  -- when (Debug `elem` opts) $ printf "checking file, last modified %s, last read %s, %s\n" (show tmod) (show tread) (show newer)
-  if newer
-   then do
-     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" f
-     reload j
-   else return j
-
-journalFileModifiedTime :: Journal -> IO ClockTime
-journalFileModifiedTime Journal{filepath=f}
-    | null f = getClockTime
-    | otherwise = getModificationTime f `Prelude.catch` \_ -> getClockTime
-
-reload :: Journal -> IO Journal
-reload Journal{filepath=f} = do
-  j' <- readJournalFile Nothing f
-  putValue "hledger" "journal" j'
-  return j'
-            
-stylesheet = "/style.css"
--- stylesheet = StaticR "/style.css"
-metacontent = "text/html; charset=utf-8"
+getStyleCss :: Handler HledgerWebApp RepPlain
+getStyleCss = do
+    app <- getYesod
+    let dir = appWebdir app
+    s <- liftIO $ readFile $ dir </> "style.css"
+    header "Content-Type" "text/css"
+    return $ RepPlain $ toContent s
 
 template :: Request -> [String] -> [String] -> String -> String -> Hamlet String
 template req as ps t s = [$hamlet|
@@ -173,6 +141,8 @@ template req as ps t s = [$hamlet|
 |]
  where msgs = intercalate ", " []
        navbar' = navbar req as ps
+       stylesheet = "/style.css"
+       metacontent = "text/html; charset=utf-8"
 
 navbar :: Request -> [String] -> [String] -> Hamlet String
 navbar req as ps = [$hamlet|
