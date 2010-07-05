@@ -125,12 +125,8 @@ withLatestJournalRender reportfn = do
     req <- getRequest
     msg <- getMessage
     return $ RepHtml $ toContent $ renderHamlet id $ template req msg as ps "hledger" s
-    -- hamletToRepHtml $ template req msg as ps "hledger" s
--- template :: Request -> Maybe (Html ()) -> [String] -> [String] -> String -> String -> Hamlet (Routes HledgerWebApp)
--- Couldn't match expected type `Routes HledgerWebApp'
---        against inferred type `[Char]'
+--    hamletToRepHtml $ template req msg as ps "hledger" s
 
--- template :: Request -> Maybe (Html ()) -> [String] -> [String] -> String -> String -> Hamlet String
 template req msg as ps title content = [$hamlet|
 !!!
 %html
