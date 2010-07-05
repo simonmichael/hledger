@@ -71,7 +71,9 @@ with the cabal-install tool:
     - `-fvty` - builds the [ui](#ui) command. (Not available on microsoft
         windows.)
 
-    - `-fweb` - builds the [web](#web) command.
+    - `-fweb` - builds the [web](#web) command (works with ghc 6.10).
+
+    - `-fwebyesod` - builds a newer version of the [web](#web) command (requires ghc 6.12).
 
     - `-fchart` builds the [chart](#chart) command. This requires
         [gtk2hs](http://www.haskell.org/gtk2hs/download/), which you'll
@@ -95,7 +97,7 @@ sailing.  Here are some known issues and things to try:
   known to fail where newer versions succeed.
 
 - **Could not run trhsx.**
-  You are installing with -fweb, which needs to run the ``trhsx`` executable.
+  You are installing with `-fweb`, which needs to run the ``trhsx`` executable.
   It is installed by the hsx package in ~/.cabal/bin, which needs to be in
   your path.
 
@@ -227,7 +229,7 @@ on:
     hledger histogram                     # transactions per day, or other interval
     hledger add                           # add some new transactions to the ledger file
     hledger ui                            # curses ui, if installed with -fvty
-    hledger web                           # web ui, if installed with -fweb
+    hledger web                           # web ui, if installed with -fweb or -fwebyesod
     hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
