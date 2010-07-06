@@ -158,22 +158,24 @@ navbar here a p = [$hamlet|
   ^navlinks'^
   ^searchform'^
 |]
- where navlinks' = navlinks a p
+ where navlinks' = navlinks here a p
        searchform' = searchform here a p
 
-navlinks :: String -> String -> Hamlet HledgerWebAppRoutes
-navlinks a p = [$hamlet|
+navlinks :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
+navlinks here a p = [$hamlet|
  #navlinks
   ^transactionslink^ | $
   ^registerlink^ | $
   ^balancelink^
 |]
  where
-  transactionslink = navlink "transactions" TransactionsPage
-  registerlink = navlink "register" RegisterPage
-  balancelink = navlink "balance" BalancePage
-  navlink s dest = [$hamlet|%a.navlink!href=@?u@ $string.s$|]
+  transactionslink = navlink here "transactions" TransactionsPage
+  registerlink = navlink here "register" RegisterPage
+  balancelink = navlink here "balance" BalancePage
+  navlink here s dest = [$hamlet|%a.$style$!href=@?u@ $string.s$|]
    where u = (dest, [("a", a), ("p", p)])
+         style | here == dest = string "navlinkcurrent"
+               | otherwise = string "navlink"
 
 searchform :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
 searchform here a p = [$hamlet|
