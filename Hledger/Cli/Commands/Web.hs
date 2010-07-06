@@ -169,7 +169,7 @@ navlinks a p = [$hamlet|
 
 searchform :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
 searchform here a p = [$hamlet|
- %form#searchform!action=$string.action$
+ %form#searchform
   search for: $
   %input!name=a!size=20!value=$string.a$
   ^ahelp^ $
@@ -180,7 +180,6 @@ searchform here a p = [$hamlet|
   ^resetlink^
 |]
  where
-  action=""
   ahelp = helplink "filter-patterns"
   phelp = helplink "period-expressions"
   resetlink
@@ -193,7 +192,7 @@ helplink topic = [$hamlet|%a!href=$string.u$ ?|]
 
 addform :: Hamlet HledgerWebAppRoutes
 addform = [$hamlet|
- %form#addform!action=$string.action$!method=POST
+ %form#addform!method=POST
   %table!border=0
    %tr
     %td
@@ -214,7 +213,6 @@ addform = [$hamlet|
   datehelp = helplink "dates"
   addlabel = "add transaction"
   addhelp = helplink "file-format"
-  action=""
   date = ""
   desc = ""
   transactionfields1 = transactionfields 1
