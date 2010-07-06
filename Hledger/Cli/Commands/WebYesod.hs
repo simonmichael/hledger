@@ -36,9 +36,12 @@ import Paths_hledger (getDataFileName)
 #endif
 
 
-tcpport = 5000 :: Int
-browserdelay = 100000 -- microseconds
-homeurl = printf "http://localhost:%d" tcpport
+hostname = "localhost"
+tcpport  = 5000
+
+browserstartdelay = 100000 -- microseconds
+
+homeurl = printf "http://%s:%d" hostname tcpport
 hledgerurl = "http://hledger.org"
 manualurl = hledgerurl++"/MANUAL.html"
 
@@ -48,7 +51,7 @@ web opts args j = do
   server opts args j
 
 browser :: IO ()
-browser = putStrLn "starting web browser" >> threadDelay browserdelay >> openBrowserOn homeurl >> return ()
+browser = putStrLn "starting web browser" >> threadDelay browserstartdelay >> openBrowserOn homeurl >> return ()
 
 server :: [Opt] -> [String] -> Journal -> IO ()
 server opts args j = do
