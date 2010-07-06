@@ -5,7 +5,7 @@ A web-based UI.
 
 module Hledger.Cli.Commands.Web
 where
-import Control.Concurrent -- (forkIO)
+import Control.Concurrent (forkIO, threadDelay)
 import Data.Either
 import Network.Wai.Handler.SimpleServer (run)
 import System.FilePath ((</>))
@@ -73,21 +73,16 @@ instance Yesod HledgerWebApp where approot = appRoot
 
 mkYesod "HledgerWebApp" [$parseRoutes|
 /             IndexPage        GET
+/style.css    StyleCss         GET
 /transactions TransactionsPage GET POST
 /register     RegisterPage     GET
 /balance      BalancePage      GET
-/style.css    StyleCss         GET
-/params       ParamsDebug      GET
 |]
-
-getParamsDebug = do
-    r <- getRequest
-    return $ RepHtml $ toContent $ show $ reqGetParams r
 
 getIndexPage :: Handler HledgerWebApp ()
 getIndexPage = redirect RedirectTemporary TransactionsPage
 
-getStyleCss :: Handler HledgerWebApp RepPlain
+getStyleCss :: Handler HledgerWebApp ()
 getStyleCss = do
     app <- getYesod
     let dir = appWebdir app
@@ -110,10 +105,10 @@ withLatestJournalRender reportfn = do
     params <- getParams
     t <- liftIO $ getCurrentLocalTime
     let head' x = if null x then "" else head x
-        as = head' $ params "a"
-        ps = head' $ params "p"
-        opts = appOpts app ++ [Period ps]
-        args = appArgs app ++ [as]
+        a = head' $ params "a"
+        p = head' $ params "p"
+        opts = appOpts app ++ [Period p]
+        args = appArgs app ++ [a]
         fspec = optsToFilterSpec opts args t
     -- reload journal if changed
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
@@ -122,15 +117,13 @@ withLatestJournalRender reportfn = do
     -- run the specified report using this request's params
     let s = reportfn opts fspec j'
     -- render the standard template
-    req <- getRequest
     msg <- getMessage
     Just here <- getRoute
-    hamletToRepHtml $ template here req msg as ps "hledger" s
+    hamletToRepHtml $ template here msg a p "hledger" s
 
-template :: HledgerWebAppRoutes
-         -> Request -> Maybe (Html ()) -> String -> String
+template :: HledgerWebAppRoutes -> Maybe (Html ()) -> String -> String
          -> String -> String -> Hamlet HledgerWebAppRoutes
-template here req msg as ps title content = [$hamlet|
+template here msg a p title content = [$hamlet|
 !!!
 %html
  %head
@@ -140,29 +133,28 @@ template here req msg as ps title content = [$hamlet|
  %body
   ^navbar'^
   #messages $m$
-  ^addform'^
+  ^addform^
   #content
    %pre $string.content$
 |]
  where m = fromMaybe (string "") msg
-       navbar' = navbar here req as ps
-       addform' = addform req as ps
+       navbar' = navbar here a p
        stylesheet = StyleCss
        metacontent = "text/html; charset=utf-8"
 
-navbar :: HledgerWebAppRoutes -> Request -> String -> String -> Hamlet HledgerWebAppRoutes
-navbar here req as ps = [$hamlet|
+navbar :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
+navbar here a p = [$hamlet|
  #navbar
   %a#hledgerorglink!href=$string.hledgerurl$ hledger.org
   ^navlinks'^
   ^searchform'^
   %a#helplink!href=$string.manualurl$ help
 |]
- where navlinks' = navlinks req as ps
-       searchform' = searchform here as ps
+ where navlinks' = navlinks a p
+       searchform' = searchform here a p
 
-navlinks :: Request -> String -> String -> Hamlet HledgerWebAppRoutes
-navlinks _ as ps = [$hamlet|
+navlinks :: String -> String -> Hamlet HledgerWebAppRoutes
+navlinks a p = [$hamlet|
  #navlinks
   ^transactionslink^ | $
   ^registerlink^ | $
@@ -173,7 +165,7 @@ navlinks _ as ps = [$hamlet|
   registerlink = navlink "register" RegisterPage
   balancelink = navlink "balance" BalancePage
   navlink s dest = [$hamlet|%a.navlink!href=@?u@ $string.s$|]
-   where u = (dest, [("a", as), ("p", ps)])
+   where u = (dest, [("a", a), ("p", p)])
 
 searchform :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
 searchform here a p = [$hamlet|
@@ -199,8 +191,8 @@ searchform here a p = [$hamlet|
 helplink topic = [$hamlet|%a!href=$string.u$ ?|]
     where u = manualurl ++ if null topic then "" else '#':topic
 
-addform :: Request -> String -> String -> Hamlet HledgerWebAppRoutes
-addform _ _ _ = [$hamlet|
+addform :: Hamlet HledgerWebAppRoutes
+addform = [$hamlet|
  %form#addform!action=$string.action$!method=POST
   %table!border=0
    %tr
