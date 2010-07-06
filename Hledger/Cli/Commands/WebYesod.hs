@@ -6,9 +6,7 @@ A web-based UI.
 module Hledger.Cli.Commands.WebYesod
 where
 import Control.Concurrent -- (forkIO)
-import qualified Data.ByteString.Char8 as B
 import Data.Either
-import qualified Network.Wai (Request(pathInfo))
 import System.FilePath ((</>))
 import System.IO.Storage (withStore, putValue, getValue)
 import Text.Hamlet
@@ -125,7 +123,6 @@ withLatestJournalRender reportfn = do
     -- render the standard template
     req <- getRequest
     msg <- getMessage
-    --return $ RepHtml $ toContent $ renderHamlet id $ template req msg as ps "hledger" s
     Just here <- getRoute
     hamletToRepHtml $ template here req msg as ps "hledger" s
 
@@ -161,7 +158,7 @@ navbar here req as ps = [$hamlet|
   %a#helplink!href=$string.manualurl$ help
 |]
  where navlinks' = navlinks req as ps
-       searchform' = searchform here req as ps
+       searchform' = searchform here as ps
 
 navlinks :: Request -> String -> String -> Hamlet HledgerWebAppRoutes
 navlinks _ as ps = [$hamlet|
@@ -177,9 +174,8 @@ navlinks _ as ps = [$hamlet|
   navlink s dest = [$hamlet|%a.navlink!href=@?u@ $string.s$|]
    where u = (dest, [("a", as), ("p", ps)])
 
-searchform :: HledgerWebAppRoutes
-           -> Request -> String -> String -> Hamlet HledgerWebAppRoutes
-searchform here req a p = [$hamlet|
+searchform :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
+searchform here a p = [$hamlet|
  %form#searchform!action=$string.action$
   search for: $
   %input!name=a!size=20!value=$string.a$
