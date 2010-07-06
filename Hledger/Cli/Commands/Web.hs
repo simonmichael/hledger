@@ -181,7 +181,8 @@ navlinks here a p = [$hamlet|
   registerlink = navlink here "register" RegisterPage
   balancelink = navlink here "balance" BalancePage
   navlink here s dest = [$hamlet|%a.$style$!href=@?u@ $string.s$|]
-   where u = (dest, [("a", a), ("p", p)])
+   where u = (dest, concat [(if null a then [] else [("a", a)])
+                           ,(if null p then [] else [("p", p)])])
          style | here == dest = string "navlinkcurrent"
                | otherwise = string "navlink"
 
