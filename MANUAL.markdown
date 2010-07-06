@@ -104,7 +104,7 @@ standard input) or `LEDGER` environment variable.
 
 To get started, make yourself a ledger file containing some
 transactions. You can copy the sample file below (or
-[sample.ledger](http://joyful.com/repos/hledger/sample.ledger)) and save
+[sample.ledger](http://joyful.com/repos/hledger/data/sample.ledger)) and save
 it as `.ledger` in your home directory. Or, just run `hledger add` and
 enter a few transactions. Now you can try some of these commands, or read
 on:
