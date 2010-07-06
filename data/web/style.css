@@ -5,11 +5,16 @@ body { font-family: "helvetica","arial", "sans serif"; margin:0; }
 #navlinks { display:inline; }
 .navlink { font-weight:normal; }
 #searchform { font-size:small; display:inline; margin-left:1em; }
-#hledgerorglink { font-size:small; float:right; }
-#helplink { font-size:small; margin-left:1em; }
 #resetlink { font-size:small; }
+.toprightlink { font-size:small; margin-left:1em; float:right; }
 #messages { color:red; background-color:#ffeeee; margin:0.5em;}
-#content { padding:0 4px 0 4px; }
-#addform { margin-left:1em; font-size:small; float:right;}
-#addform table { background-color:#eeeeee; border:2px solid #dddddd; }
-#addform #addbuttonrow td { text-align:left; }
+#addform { margin:1em; font-size:small; }
+#addform { background-color:#eeeeee; border:2px solid #dddddd; cell-padding:0; cell-spacing:0; }
+#addform #descriptionrow { }
+#addform #postingrow { }
+#addform #addbuttonrow { text-align:right; }
+#content { margin:1em; }
+.formheading td { padding-bottom:8px; }
+#formheading { font-size:medium; font-weight:bold; }
+.helprow td { padding-bottom:8px; }
+#help {font-style: italic; font-size:smaller; }
