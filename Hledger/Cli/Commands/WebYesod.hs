@@ -124,9 +124,11 @@ withLatestJournalRender reportfn = do
     -- render the standard template
     req <- getRequest
     msg <- getMessage
-    return $ RepHtml $ toContent $ renderHamlet id $ template req msg as ps "hledger" s
---    hamletToRepHtml $ template req msg as ps "hledger" s
+    --return $ RepHtml $ toContent $ renderHamlet id $ template req msg as ps "hledger" s
+    hamletToRepHtml $ template req msg as ps "hledger" s
 
+template :: Request -> Maybe (Html ()) -> [String] -> [String]
+         -> String -> String -> Hamlet HledgerWebAppRoutes
 template req msg as ps title content = [$hamlet|
 !!!
 %html
@@ -144,21 +146,21 @@ template req msg as ps title content = [$hamlet|
  where m = fromMaybe (string "") msg
        navbar' = navbar req as ps
        addform' = addform req as ps
-       stylesheet = "/style.css"
+       stylesheet = StyleCss
        metacontent = "text/html; charset=utf-8"
 
--- navbar :: Request -> [String] -> [String] -> Hamlet String
+navbar :: Request -> [String] -> [String] -> Hamlet HledgerWebAppRoutes
 navbar req as ps = [$hamlet|
  #navbar
-  %a#hledgerorglink!href=@hledgerurl@ hledger.org
+  %a#hledgerorglink!href=$string.hledgerurl$ hledger.org
   ^navlinks'^
   ^searchform'^
-  %a#helplink!href=@manualurl@ help
+  %a#helplink!href=$string.manualurl$ help
 |]
  where navlinks' = navlinks req as ps
        searchform' = searchform req as ps
 
--- navlinks :: Request -> [String] -> [String] -> Hamlet String
+navlinks :: Request -> [String] -> [String] -> Hamlet HledgerWebAppRoutes
 navlinks _ as ps = [$hamlet|
  #navlinks
   ^transactionslink^ | $
@@ -169,10 +171,10 @@ navlinks _ as ps = [$hamlet|
   transactionslink = navlink "transactions"
   registerlink = navlink "register"
   balancelink = navlink "balance"
-  navlink s = [$hamlet|%a.navlink!href=@u@ $string.s$|]
-   where u = printf "../%s?a=%s&p=%s" s (intercalate "+" as) (intercalate "+" ps)
+  navlink s = [$hamlet|%a.navlink!href=$string.u$ $string.s$|]
+   where u = printf "../%s?a=%s&p=%s" s (intercalate "+" as) (intercalate "+" ps) -- FIXME use URL params instead
 
--- searchform :: Request -> [String] -> [String] -> Hamlet String
+searchform :: Request -> [String] -> [String] -> Hamlet HledgerWebAppRoutes
 searchform req as ps = [$hamlet|
  %form#searchform!action=$string.action$
   search for: $
@@ -193,13 +195,13 @@ searchform req as ps = [$hamlet|
   resetlink
    | null a && null p = [$hamlet||]
    | otherwise        = [$hamlet|%span#resetlink $
-                                  %a!href=@u@ reset|]
-   where u = B.unpack $ Network.Wai.pathInfo $ waiRequest req
+                                  %a!href=$string.u$ reset|]
+   where u = B.unpack $ Network.Wai.pathInfo $ waiRequest req -- FIXME I'd be worried about this line
 
-helplink topic = [$hamlet|%a!href=@u@ ?|]
+helplink topic = [$hamlet|%a!href=$string.u$ ?|]
     where u = manualurl ++ if null topic then "" else '#':topic
 
--- addform :: Request -> [String] -> [String] -> Hamlet String
+addform :: Request -> [String] -> [String] -> Hamlet HledgerWebAppRoutes
 addform _ _ _ = [$hamlet|
  %form#addform!action=$string.action$!method=POST
   %table!border=0
