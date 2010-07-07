@@ -148,6 +148,16 @@ Here are some known issues and things to try:
 
         $ cabal install hledger --extra-lib-dirs=/usr/lib
 
+- **setup: failed to parse output of 'ghc-pkg dump'**
+  This probably means
+  [you need a newer version of cabal-install](http://stackoverflow.com/questions/1908333/getting-cabal-to-work-with-ghc-6-12-1).
+  Do eg:
+  
+        $ cabal update
+        $ cabal install cabal-install
+        
+    then try installing hledger again.
+
 ### Basic usage
 
 Basic usage is:
