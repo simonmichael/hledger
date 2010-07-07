@@ -56,14 +56,14 @@ pandocwritercfg = defaultWriterOptions {
  -- ,writerIdentifierPrefix = ""                    -- ^ Prefix for section & note ids in HTML
  }
 
-hakyllcfg = defaultHakyllConfiguration {
-  absoluteUrl = "http://hledger.org" -- Absolute URL of the site.
+hakyllcfg = (defaultHakyllConfiguration "http://hledger.org") {
+--  absoluteUrl = "http://hledger.org" -- Absolute URL of the site.
  -- ,additionalContext = Context -- An additional context to use when rendering. This additional context is used globally.
  -- ,siteDirectory = FilePath -- Directory where the site is placed.
  -- ,cacheDirectory = FilePath -- Directory for cache files.
  -- ,enableIndexUrl = Bool -- Enable index links.
  -- ,previewPollDelay = Int -- Delay between polls in preview mode.
- ,pandocParserState = pandocparsercfg
+  pandocParserState = pandocparsercfg
  ,pandocWriterOptions = pandocwritercfg
  }
 
