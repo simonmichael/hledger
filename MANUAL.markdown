@@ -130,6 +130,24 @@ Here are some known issues and things to try:
   hledger or its dependencies. You can sometimes work around this by using
   cabal's `--constraint` option.
 
+- <a name="iconv" />**Undefined symbols: ... _iconv ...**
+  If cabal gives this error:
+
+        Linking dist/build/hledger/hledger ...
+        Undefined symbols:
+          "_iconv_close", referenced from:
+              _hs_iconv_close in libHSbase-4.2.0.2.a(iconv.o)
+          "_iconv", referenced from:
+              _hs_iconv in libHSbase-4.2.0.2.a(iconv.o)
+          "_iconv_open", referenced from:
+              _hs_iconv_open in libHSbase-4.2.0.2.a(iconv.o)
+
+    you are probably on a mac with macports libraries installed:
+    [http://hackage.haskell.org/trac/ghc/ticket/4068](http://hackage.haskell.org/trac/ghc/ticket/4068).
+    To work around, add this --extra-lib-dirs flag:
+
+        $ cabal install hledger --extra-lib-dirs=/usr/lib
+
 ### Basic usage
 
 Basic usage is:
