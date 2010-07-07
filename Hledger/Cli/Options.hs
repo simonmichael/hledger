@@ -81,7 +81,11 @@ options = [
  ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
  ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register report: show quarterly summary"
  ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
- ,Option "h" ["help"] (NoArg  Help)                  "show this help"
+#if defined(WEB) || defined(WEBYESOD)
+ ,Option ""  ["host"] (ReqArg Host "HOST")           "web: use hostname HOST rather than localhost"
+ ,Option ""  ["port"] (ReqArg Port "N")              "web: use tcp port N rather than 5000"
+#endif
+ ,Option "h"  ["help"] (NoArg  Help)                  "show this help"
  ,Option "V" ["version"]      (NoArg  Version)       "show version information"
  ,Option "v" ["verbose"]      (NoArg  Verbose)       "show verbose test output"
  ,Option ""    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
@@ -115,6 +119,10 @@ data Opt =
     MonthlyOpt |
     QuarterlyOpt |
     YearlyOpt |
+#if defined(WEB) || defined(WEBYESOD)
+    Host    {value::String} |
+    Port    {value::String} |
+#endif
     Help |
     Verbose |
     Version
@@ -215,6 +223,23 @@ displayExprFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
     where
       listtomaybe [] = Nothing
       listtomaybe vs = Just $ last vs
+
+#if defined(WEB) || defined(WEBYESOD)
+-- | Get the value of the (last) host option, if any.
+hostFromOpts :: [Opt] -> Maybe String
+hostFromOpts opts = listtomaybe $ optValuesForConstructor Host opts
+    where
+      listtomaybe [] = Nothing
+      listtomaybe vs = Just $ last vs
+
+-- | Get the value of the (last) port option, if any.
+portFromOpts :: [Opt] -> Maybe Int
+portFromOpts opts = listtomaybeint $ optValuesForConstructor Port opts
+    where
+      listtomaybeint [] = Nothing
+      listtomaybeint vs = Just $ read $ last vs
+
+#endif
 
 -- | Get a maybe boolean representing the last cleared/uncleared option if any.
 clearedValueFromOpts opts | null os = Nothing

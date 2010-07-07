@@ -36,45 +36,47 @@ import Paths_hledger (getDataFileName)
 #endif
 
 
-hostname = "localhost"
-tcpport  = 5000
-
+defhost = "localhost"
+defport = 5000
 browserstartdelay = 100000 -- microseconds
-
-homeurl = printf "http://%s:%d" hostname tcpport
 hledgerurl = "http://hledger.org"
 manualurl = hledgerurl++"/MANUAL.html"
 
 web :: [Opt] -> [String] -> Journal -> IO ()
 web opts args j = do
-  unless (Debug `elem` opts) $ forkIO browser >> return ()
-  server opts args j
+  let host = fromMaybe defhost $ hostFromOpts opts
+      port = fromMaybe defport $ portFromOpts opts
+      url = printf "http://%s:%d" host port :: String
+  unless (Debug `elem` opts) $ forkIO (browser url) >> return ()
+  server url port opts args j
 
-browser :: IO ()
-browser = putStrLn "starting web browser" >> threadDelay browserstartdelay >> openBrowserOn homeurl >> return ()
+browser :: String -> IO ()
+browser url = putStrLn "starting web browser" >> threadDelay browserstartdelay >> openBrowserOn url >> return ()
 
-server :: [Opt] -> [String] -> Journal -> IO ()
-server opts args j = do
-    printf "starting web server on port %d\n" tcpport
+server :: String -> Int -> [Opt] -> [String] -> Journal -> IO ()
+server url port opts args j = do
+    printf "starting web server at %s\n" url
     fp <- getDataFileName "web"
     let app = HledgerWebApp{
                appOpts=opts
               ,appArgs=args
               ,appJournal=j
               ,appWebdir=fp
+              ,appRoot=url
               }
     withStore "hledger" $ do -- IO ()
      putValue "hledger" "journal" j
-     toWaiApp app >>= basicHandler tcpport
+     toWaiApp app >>= basicHandler port
 
 data HledgerWebApp = HledgerWebApp {
       appOpts::[Opt]
      ,appArgs::[String]
      ,appJournal::Journal
      ,appWebdir::FilePath
+     ,appRoot::String
      }
 
-instance Yesod HledgerWebApp where approot _ = homeurl
+instance Yesod HledgerWebApp where approot = appRoot
 
 mkYesod "HledgerWebApp" [$parseRoutes|
 /             IndexPage        GET
