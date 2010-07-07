@@ -80,121 +80,7 @@ with the cabal-install tool:
         need to install yourself as it's not yet provided by the haskell
         platform or cabal.
 
-#### Installation troubleshooting
-
-cabal builds a lot of fast-evolving software, and it's not always smooth
-sailing.  Here are some known issues and things to try:
-
-- **Ask for help on [#hledger](irc://freenode.net/#hledger) or [#haskell](irc://freenode.net/#haskell)**
-
-- **cabal update.** If you didn't already, ``cabal update`` and try again.
-
-- **Do you have a new enough version of GHC ?** As of 2010, 6.10 and 6.12
-    are supported, 6.8 might or might not work.
-
-- **Do you have a new enough version of cabal-install ?**
-  Newer versions tend to be better at resolving problems. 0.6.2 has been
-  known to fail where newer versions succeed.
-
-- **Could not run trhsx.**
-  You are installing with `-fweb`, which needs to run the ``trhsx`` executable.
-  It is installed by the hsx package in ~/.cabal/bin, which needs to be in
-  your path.
-
-- **Installation fails due to problems with a hledger package.**
-    The current hledger release might have a coding error, or dependency
-    error. You could try installing the
-    [previous version](http://hackage.haskell.org/package/hledger):
-
-        cabal install hledger-0.x
-
-    or (preferably) the latest development version: install
-    [darcs](http://darcs.net) and then:
-
-        darcs get --lazy http://joyful.com/repos/hledger
-        cd hledger/hledger-lib
-        cabal install
-        cd ..
-        cabal install [-f...]
-
-- **Installation fails due to problems with other packages.**
-  Resolve the problem packages one at a time. Eg, cabal install pkg1.
-  Look for the cause of the failure near the end of the output. If it's
-  not apparent, try again with `-v2` or `-v3` for more verbose output.
-
-- **Could not run happy.**
-  A package (eg haskell-src-exts) needs to run the ``happy`` executable.
-  If not using the haskell platform, install the appropriate platform
-  package which provides it (eg apt-get install happy).
-
-- **GHC panic while installing** might be due to
-    [http://hackage.haskell.org/trac/ghc/ticket/3862](http://hackage.haskell.org/trac/ghc/ticket/3862)
-
-- **cabal could not reconcile dependencies**
-  In some cases, especially if you have installed/updated many cabal
-  package versions or GHC itself, cabal may not be able to reconcile the
-  package dependencies. You can sometimes work around this by using
-  cabal's `--constraint` option. Another way is to purge all unnecessary
-  package versions by removing (or renaming) ~/.ghc, then trying cabal
-  install again. Also remember that `-fwebyesod` requires GHC 6.12 or greater.
-
-- <a name="locale" />**hledger: ... hGetContents: invalid argument (Illegal byte sequence)**
-  You may get this error when running hledger built with GHC 6.12 on a
-  mac, when the locale is unset (check it at the terminal prompt):
-  
-        $ locale
-        LANG=
-        LC_COLLATE="C"
-        LC_CTYPE="C"
-        LC_MESSAGES="C"
-        LC_MONETARY="C"
-        LC_NUMERIC="C"
-        LC_TIME="C"
-        LC_ALL=
-
-    and there is non-ascii text in your journal file:
-
-        $ file my.journal
-        .../.journal: UTF-8 Unicode C++ program text
-  
-    In this case you need to set the `LANG` environment variable to a
-    locale suitable for the encoding shown (almost certainly UTF-8). You
-    can set it every time you run hledger:
-  
-        $ LANG=en_US.UTF-8 hledger ...
-      
-    or configure it permanently:
-  
-        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
-        $ bash --login
-
-- <a name="iconv" />**Undefined symbols: ... _iconv ...**
-  If cabal gives this error:
-
-        Linking dist/build/hledger/hledger ...
-        Undefined symbols:
-          "_iconv_close", referenced from:
-              _hs_iconv_close in libHSbase-4.2.0.2.a(iconv.o)
-          "_iconv", referenced from:
-              _hs_iconv in libHSbase-4.2.0.2.a(iconv.o)
-          "_iconv_open", referenced from:
-              _hs_iconv_open in libHSbase-4.2.0.2.a(iconv.o)
-
-    you are probably on a mac with macports libraries installed:
-    [http://hackage.haskell.org/trac/ghc/ticket/4068](http://hackage.haskell.org/trac/ghc/ticket/4068).
-    To work around, add this --extra-lib-dirs flag:
-
-        $ cabal install hledger --extra-lib-dirs=/usr/lib
-
-- **setup: failed to parse output of 'ghc-pkg dump'**
-  This probably means
-  [you need a newer version of cabal-install](http://stackoverflow.com/questions/1908333/getting-cabal-to-work-with-ghc-6-12-1).
-  Do eg:
-  
-        $ cabal update
-        $ cabal install cabal-install
-        
-    then try installing hledger again.
+If you have any trouble, proceed at once to [Troubleshooting](#troubleshooting) for help!
 
 ### Basic usage
 
@@ -983,4 +869,127 @@ entries, and the following c++ ledger options and commands:
     Example:
 
         $ chart food --depth 2 -p jan
+
+### Troubleshooting
+
+#### Installation issues
+
+cabal builds a lot of fast-evolving software, and it's not always smooth
+sailing.  Here are some known issues and things to try:
+
+- **Ask for help on [#hledger](irc://freenode.net/#hledger) or [#haskell](irc://freenode.net/#haskell).**
+  Eg: join the #hledger channel with your IRC client and type: "sm: I did ... and ... happened", then leave
+  that window open until you get helped.
+
+- **Did you cabal update ?** If you didn't already, ``cabal update`` and try again.
+
+- **Do you have a new enough version of GHC ?** As of 2010, 6.10 and 6.12
+    are supported, 6.8 might or might not work.
+
+- **Do you have a new enough version of cabal-install ?**
+  Recent versions tend to be better at resolving dependencies.  The error
+  `setup: failed to parse output of 'ghc-pkg dump'` is another symptom of
+  this.  To update, do:
+  
+        $ cabal update
+        $ cabal install cabal-install
+        
+    then try installing hledger again.
+
+- **Could not run trhsx.**
+  You are installing with `-fweb`, which needs to run the ``trhsx`` executable.
+  It is installed by the hsx package in ~/.cabal/bin, which needs to be in
+  your path.
+
+- **Could not run happy.**
+  A package (eg haskell-src-exts) needs to run the ``happy`` executable.
+  If not using the haskell platform, install the appropriate platform
+  package which provides it (eg apt-get install happy).
+
+- <a name="iconv" />**Undefined symbols: ... _iconv ...**
+  If cabal gives this error:
+
+        Linking dist/build/hledger/hledger ...
+        Undefined symbols:
+          "_iconv_close", referenced from:
+              _hs_iconv_close in libHSbase-4.2.0.2.a(iconv.o)
+          "_iconv", referenced from:
+              _hs_iconv in libHSbase-4.2.0.2.a(iconv.o)
+          "_iconv_open", referenced from:
+              _hs_iconv_open in libHSbase-4.2.0.2.a(iconv.o)
+
+    you are probably on a mac with macports libraries installed, causing
+    [this issue](http://hackage.haskell.org/trac/ghc/ticket/4068).
+    To work around, add this --extra-lib-dirs flag:
+
+        $ cabal install hledger --extra-lib-dirs=/usr/lib
+
+- **A ghc: panic! (the 'impossible' happened)** might be
+    [this issue](http://hackage.haskell.org/trac/ghc/ticket/3862)
+
+- **Another error while building a hledger package.**
+    The current hledger release might have a coding error, or dependency
+    error. You could try installing the
+    [previous version](http://hackage.haskell.org/package/hledger):
+
+        cabal install hledger-0.x
+
+    or (preferably) the latest development version: install
+    [darcs](http://darcs.net) and then:
+
+        darcs get --lazy http://joyful.com/repos/hledger
+        cd hledger/hledger-lib
+        cabal install
+        cd ..
+        cabal install [-f...]
+
+- **An error while building non-hledger packages.**
+  Resolve these problem packages one at a time. Eg, cabal install pkg1.
+  Look for the cause of the failure near the end of the output. If it's
+  not apparent, try again with `-v2` or `-v3` for more verbose output.
+
+- **cabal fails to reconcile dependencies.**
+  This could be related to your GHC version: hledger requires at least GHC
+  6.10 and `-fwebyesod` requires 6.12 or greater.
+  
+    Also, it's possible for cabal to get confused, eg if you have
+    installed/updated many cabal package versions or GHC itself. You can
+    sometimes work around this by using cabal install's `--constraint`
+    option. Another (drastic) way is to purge all unnecessary package
+    versions by removing (or renaming) ~/.ghc, then trying cabal install
+    again.
+
+#### Usage issues
+
+Here are some issues you might encounter when you run hledger:
+
+- <a name="locale" />**hledger: ... hGetContents: invalid argument (Illegal byte sequence)**
+  You may get this error when running hledger built with GHC 6.12 on a
+  machine using the default C locale, eg a mac:
+  
+        $ locale
+        LANG=
+        LC_COLLATE="C"
+        LC_CTYPE="C"
+        LC_MESSAGES="C"
+        LC_MONETARY="C"
+        LC_NUMERIC="C"
+        LC_TIME="C"
+        LC_ALL=
+
+    if there is non-ascii text in your journal file:
+
+        $ file my.journal
+        .../.journal: UTF-8 Unicode C++ program text
+  
+    In this case you need to set the `LANG` environment variable to a
+    locale suitable for the encoding shown (probably UTF-8). You
+    can set it temporarily when you run hledger:
+  
+        $ LANG=en_US.UTF-8 hledger ...
+      
+    or permanently:
+  
+        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+        $ bash --login
 
