@@ -134,7 +134,37 @@ sailing.  Here are some known issues and things to try:
   package dependencies. You can sometimes work around this by using
   cabal's `--constraint` option. Another way is to purge all unnecessary
   package versions by removing (or renaming) ~/.ghc, then trying cabal
-  install again.
+  install again. Also remember that `-fwebyesod` requires GHC 6.12 or greater.
+
+- <a name="locale" />**hledger: ... hGetContents: invalid argument (Illegal byte sequence)**
+  You may get this error when running hledger built with GHC 6.12 on a
+  mac, when the locale is unset (check it at the terminal prompt):
+  
+        $ locale
+        LANG=
+        LC_COLLATE="C"
+        LC_CTYPE="C"
+        LC_MESSAGES="C"
+        LC_MONETARY="C"
+        LC_NUMERIC="C"
+        LC_TIME="C"
+        LC_ALL=
+
+    and there is non-ascii text in your journal file:
+
+        $ file my.journal
+        .../.journal: UTF-8 Unicode C++ program text
+  
+    In this case you need to set the `LANG` environment variable to a
+    locale suitable for the encoding shown (almost certainly UTF-8). You
+    can set it every time you run hledger:
+  
+        $ LANG=en_US.UTF-8 hledger ...
+      
+    or configure it permanently:
+  
+        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+        $ bash --login
 
 - <a name="iconv" />**Undefined symbols: ... _iconv ...**
   If cabal gives this error:
