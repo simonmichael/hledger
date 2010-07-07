@@ -7,6 +7,7 @@ module Hledger.Cli.Commands.WebYesod
 where
 import Control.Concurrent -- (forkIO)
 import Data.Either
+import Network.Wai.Handler.SimpleServer (run)
 import System.FilePath ((</>))
 import System.IO.Storage (withStore, putValue, getValue)
 import Text.Hamlet
@@ -58,7 +59,7 @@ server url port opts args j = do
               }
     withStore "hledger" $ do -- IO ()
      putValue "hledger" "journal" j
-     toWaiApp app >>= basicHandler port
+     toWaiApp app >>= run port
 
 data HledgerWebApp = HledgerWebApp {
       appOpts::[Opt]
