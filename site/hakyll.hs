@@ -50,6 +50,7 @@ main = hakyllWithConfiguration cfg $ do
       ,"watchhours.png"
       ,"hledger-screen-1.png"
       ,"hledger-charts-2.png"
+      ,"hledger-web-journal.png"
       ]
     where
       -- Render a page from the parent directory as if it was in the hakyll
