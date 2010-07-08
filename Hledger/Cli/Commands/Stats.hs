@@ -72,7 +72,9 @@ showStats _ _ l today =
              tnum7 = length $ filter withinlast7 ts
              withinlast7 t = d >= addDays (-7) today && (d<=today) where d = tdate t
              txnrate7 = fromIntegral tnum7 / 7 :: Double
-             acctnum = length $ accounts l
-             acctdepth = maximum $ map (accountNameLevel.aname) $ accounts l
+             acctnum = length as
+             acctdepth | null as = 0
+                       | otherwise = maximum $ map (accountNameLevel.aname) as
+             as = accounts l
              cs = Map.elems $ commodities l
 

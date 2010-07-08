@@ -1,0 +1,3 @@
+bin/hledger -f- stats
+<<<
+>>> /Accounts.* 0 \(depth 0\)/
