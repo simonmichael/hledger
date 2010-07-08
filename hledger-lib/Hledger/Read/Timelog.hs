@@ -93,7 +93,7 @@ timelogentry = do
   many1 spacenonewline
   datetime <- ledgerdatetime
   comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
-  return $ TimeLogEntry (read [code]) datetime (fromMaybe "" comment)
+  return $ TimeLogEntry (read [code]) datetime (maybe "" rstrip comment)
 
 tests_Timelog = TestList [
  ]
