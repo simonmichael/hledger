@@ -384,10 +384,13 @@ ledgerpostings = do
   -- complicated to handle intermixed comment lines.. please make me better.
   ctx <- getState
   let parses p = isRight . parseWithCtx ctx p
+  -- parse the following non-comment whitespace-beginning lines as postings
+  -- make sure the sub-parse starts from the current position, for useful errors
+  pos <- getPosition
   ls <- many1 $ try linebeginningwithspaces
   let ls' = filter (not . (ledgercommentline `parses`)) ls
   when (null ls') $ fail "no postings"
-  return $ map (fromparse . parseWithCtx ctx ledgerposting) ls'
+  return $ map (fromparse . parseWithCtx ctx (setPosition pos >> ledgerposting)) ls'
   <?> "postings"
 
 linebeginningwithspaces :: GenParser Char st String
