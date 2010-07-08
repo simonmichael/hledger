@@ -38,7 +38,7 @@ usagehdr =
 #ifdef VTY
   "  vty       - run a simple curses-style UI\n" ++
 #endif
-#ifdef WEB
+#if defined(WEB) || defined(WEBYESOD)
   "  web       - run a simple web-based UI\n" ++
 #endif
 #ifdef CHART
