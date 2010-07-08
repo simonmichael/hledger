@@ -31,35 +31,35 @@ import Paths_hledger (getDataFileName)
 
 defhost = "localhost"
 defport = 5000
+defbaseurl = printf "http://%s:%d" defhost defport :: String
 browserstartdelay = 100000 -- microseconds
 hledgerurl = "http://hledger.org"
 manualurl = hledgerurl++"/MANUAL.html"
 
 web :: [Opt] -> [String] -> Journal -> IO ()
 web opts args j = do
-  let host = fromMaybe defhost $ hostFromOpts opts
+  let baseurl = fromMaybe defbaseurl $ baseUrlFromOpts opts
       port = fromMaybe defport $ portFromOpts opts
-      url = printf "http://%s:%d" host port :: String
-  unless (Debug `elem` opts) $ forkIO (browser url) >> return ()
-  server url port opts args j
+  unless (Debug `elem` opts) $ forkIO (browser baseurl) >> return ()
+  server baseurl port opts args j
 
 browser :: String -> IO ()
-browser url = do
+browser baseurl = do
   putStrLn "starting web browser"
   threadDelay browserstartdelay
-  openBrowserOn url
+  openBrowserOn baseurl
   return ()
 
 server :: String -> Int -> [Opt] -> [String] -> Journal -> IO ()
-server url port opts args j = do
-    printf "starting web server at %s\n" url
+server baseurl port opts args j = do
+    printf "starting web server on port %d with base url %s\n" port baseurl
     fp <- getDataFileName "web"
     let app = HledgerWebApp{
                appOpts=opts
               ,appArgs=args
               ,appJournal=j
               ,appWebdir=fp
-              ,appRoot=url
+              ,appRoot=baseurl
               }
     withStore "hledger" $ do
      putValue "hledger" "journal" j

@@ -82,8 +82,8 @@ options = [
  ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register report: show quarterly summary"
  ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
 #ifdef WEB
- ,Option ""  ["host"] (ReqArg Host "HOST")           "web: use hostname HOST rather than localhost"
- ,Option ""  ["port"] (ReqArg Port "N")              "web: use tcp port N rather than 5000"
+ ,Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "web: use this base url (default http://localhost:PORT)"
+ ,Option ""  ["port"]         (ReqArg Port "N")      "web: serve on tcp port N (default 5000)"
 #endif
  ,Option "h"  ["help"] (NoArg  Help)                  "show this help"
  ,Option "V" ["version"]      (NoArg  Version)       "show version information"
@@ -120,7 +120,7 @@ data Opt =
     QuarterlyOpt |
     YearlyOpt |
 #ifdef WEB
-    Host    {value::String} |
+    BaseUrl {value::String} |
     Port    {value::String} |
 #endif
     Help |
@@ -225,9 +225,9 @@ displayExprFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
       listtomaybe vs = Just $ last vs
 
 #ifdef WEB
--- | Get the value of the (last) host option, if any.
-hostFromOpts :: [Opt] -> Maybe String
-hostFromOpts opts = listtomaybe $ optValuesForConstructor Host opts
+-- | Get the value of the (last) baseurl option, if any.
+baseUrlFromOpts :: [Opt] -> Maybe String
+baseUrlFromOpts opts = listtomaybe $ optValuesForConstructor BaseUrl opts
     where
       listtomaybe [] = Nothing
       listtomaybe vs = Just $ last vs
