@@ -1,5 +1,5 @@
 name:           hledger
-version: 0.10
+version: 0.10.99
 category:       Finance
 synopsis:       A command-line (or curses or web-based) double-entry accounting tool.
 description:
