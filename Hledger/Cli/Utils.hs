@@ -13,14 +13,18 @@ module Hledger.Cli.Utils
      journalReload,
      journalReloadIfChanged,
      journalFileModificationTime,
-     openBrowserOn
+     openBrowserOn,
+     writeFileWithBackup,
+     writeFileWithBackupIfChanged,
     )
 where
 import Hledger.Data
 import Hledger.Read
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
-import System.Directory (doesFileExist, getModificationTime)
+import Safe (readMay)
+import System.Directory (doesFileExist, getModificationTime, getDirectoryContents, copyFile)
 import System.Exit
+import System.FilePath ((</>), splitFileName, takeDirectory)
 import System.Info (os)
 import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
@@ -100,3 +104,33 @@ openBrowserOn u = trybrowsers browsers u
     -- ::ShellExecute(NULL, "open", "www.somepage.com", NULL, NULL, SW_SHOWNORMAL);
     -- ::ShellExecute(NULL, "open", "firefox.exe", "www.somepage.com" NULL, SW_SHOWNORMAL);
 
+-- | Back up this file with a (incrementing) numbered suffix then
+-- overwrite it with this new text, or give an error, but only if the text
+-- is different from the current file contents, and return a flag
+-- indicating whether we did anything.
+writeFileWithBackupIfChanged :: FilePath -> String -> IO Bool
+writeFileWithBackupIfChanged f t = do
+  s <- readFile f
+  if t == s then return False
+            else backUpFile f >> writeFile f t >> return True
+
+-- | Back up this file with a (incrementing) numbered suffix, then
+-- overwrite it with this new text, or give an error.
+writeFileWithBackup :: FilePath -> String -> IO ()
+writeFileWithBackup f t = backUpFile f >> writeFile f t
+
+-- | Back up this file with a (incrementing) numbered suffix, or give an error.
+backUpFile :: FilePath -> IO ()
+backUpFile fp = do
+  fs <- getDirectoryContents $ takeDirectory fp
+  let (d,f) = splitFileName fp
+      versions = catMaybes $ map (f `backupNumber`) fs
+      next = maximum (0:versions) + 1
+      f' = printf "%s.%d" f next
+  copyFile fp (d </> f')
+
+-- | Does the second file represent a backup of the first, and if so which version is it ?
+backupNumber :: FilePath -> FilePath -> Maybe Int
+backupNumber f g = case matchRegexPR ("^" ++ f ++ "\\.([0-9]+)$") g of
+                        Just (_, ((_,suffix):_)) -> readMay suffix
+                        _ -> Nothing

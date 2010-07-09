@@ -79,6 +79,7 @@ mkYesod "HledgerWebApp" [$parseRoutes|
 /             IndexPage        GET
 /style.css    StyleCss         GET
 /journal      JournalPage      GET POST
+/edit         EditPage         GET POST
 /register     RegisterPage     GET
 /balance      BalancePage      GET
 |]
@@ -164,12 +165,14 @@ navbar here a p = [$hamlet|
 navlinks :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
 navlinks here a p = [$hamlet|
  #navlinks
-  ^journallink^ | $
-  ^registerlink^ | $
-  ^balancelink^
+  ^journallink^ $
+  (^editlink^) $
+  | ^registerlink^ $
+  | ^balancelink^ $
 |]
  where
   journallink = navlink here "journal" JournalPage
+  editlink = navlink here "edit" EditPage
   registerlink = navlink here "register" RegisterPage
   balancelink = navlink here "balance" BalancePage
   navlink here s dest = [$hamlet|%a.$style$!href=@?u@ $string.s$|]
@@ -203,10 +206,9 @@ helplink topic label = [$hamlet|%a!href=$string.u$ $string.label$|]
 addform :: Hamlet HledgerWebAppRoutes
 addform = [$hamlet|
  %form!method=POST
-  %table#addform!cellpadding=0!cellspacing=0!!border=0
+  %table.form#addform!cellpadding=0!cellspacing=0!!border=0
    %tr.formheading
     %td!colspan=4
-     %span!style=float:right; ^formhelp^
      %span#formheading Add a transaction:
    %tr
     %td!colspan=4
@@ -330,5 +332,95 @@ postJournalPage = do
     -- liftIO $ putValue "hledger" "journal" j'
     liftIO $ journalAddTransaction j t'
     setMessage $ string $ printf "Added transaction:\n%s" (show t')
+    redirect RedirectTemporary JournalPage
+
+getEditPage :: Handler HledgerWebApp RepHtml
+getEditPage = do
+    -- app <- getYesod
+    params <- getParams
+    -- t <- liftIO $ getCurrentLocalTime
+    let head' x = if null x then "" else head x
+        a = head' $ params "a"
+        p = head' $ params "p"
+        -- opts = appOpts app ++ [Period p]
+        -- args = appArgs app ++ [a]
+        -- fspec = optsToFilterSpec opts args t
+    -- reload journal's text, without parsing, if changed
+    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+    changed <- liftIO $ journalFileIsNewer j
+    -- XXX readFile may throw an error
+    s <- liftIO $ if changed then readFile (filepath j) else return (jtext j)
+    -- render the page
+    msg <- getMessage
+    Just here <- getRoute
+    hamletToRepHtml $ template' here msg a p "hledger" s
+
+template' here msg a p title content = [$hamlet|
+!!!
+%html
+ %head
+  %title $string.title$
+  %meta!http-equiv=Content-Type!content=$string.metacontent$
+  %link!rel=stylesheet!type=text/css!href=@stylesheet@!media=all
+ %body
+  ^navbar'^
+  #messages $m$
+  ^editform'^
+|]
+ where m = fromMaybe (string "") msg
+       navbar' = navbar here a p
+       stylesheet = StyleCss
+       metacontent = "text/html; charset=utf-8"
+       editform' = editform content
+
+editform :: String -> Hamlet HledgerWebAppRoutes
+editform t = [$hamlet|
+ %form!method=POST
+  %table.form#editform!cellpadding=0!cellspacing=0!!border=0
+   %tr.formheading
+    %td!colspan=2
+     %span!style=float:right; ^formhelp^
+     %span#formheading Edit journal:
+   %tr
+    %td!colspan=2
+     %textarea!name=text!rows=50!cols=80
+      $string.t$
+   %tr#addbuttonrow
+    %td
+     %a!href=@JournalPage@ cancel
+    %td!align=right
+     %input!type=submit!value=$string.submitlabel$
+   %tr.helprow
+    %td
+    %td!align=right
+     #help $string.edithelp$
+|]
+ where
+  submitlabel = "save journal"
+  formhelp = helplink "file-format" "file format help"
+  edithelp = "Are you sure ? All previous data will be replaced"
+
+postEditPage :: Handler HledgerWebApp RepPlain
+postEditPage = do
+  -- get form input values, or basic validation errors. E means an Either value.
+  textE  <- runFormPost $ catchFormError $ required $ input "text"
+  -- display errors or add transaction
+  case textE of
+   Left errs -> do
+    -- save current form values in session
+    setMessage $ string $ intercalate "; " $ map (intercalate ", " . map (\(a,b) -> a++": "++b)) [errs]
+    redirect RedirectTemporary JournalPage
+
+   Right t' -> do
+    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+    filechanged' <- liftIO $ journalFileIsNewer j
+    let f = filepath j
+        told = jtext j
+        tnew = filter (/= '\r') t'
+        changed = tnew /= told || filechanged'
+--    changed <- liftIO $ writeFileWithBackupIfChanged f t''
+    liftIO $ writeFileWithBackup f tnew
+    setMessage $ string $ if changed then printf "Saved journal to %s\n" (show f)
+                                     else "No change"
     redirect RedirectTemporary JournalPage
 

@@ -9,11 +9,13 @@ body { font-family: "helvetica","arial", "sans serif"; margin:0; }
 #resetlink { font-size:small; }
 .toprightlink { font-size:small; margin-left:1em; float:right; }
 #messages { color:red; background-color:#ffeeee; margin:0.5em;}
-#addform { margin:1em; font-size:small; }
+.form { margin:1em; font-size:small; }
 #addform { background-color:#eeeeee; border:2px solid #dddddd; cell-padding:0; cell-spacing:0; }
+#addform { float:right; }
 #addform #descriptionrow { }
 #addform #postingrow { }
 #addform #addbuttonrow { text-align:right; }
+#editform textarea { background-color:#eeeeee; }
 #content { margin:1em; }
 .formheading td { padding-bottom:8px; }
 #formheading { font-size:medium; font-weight:bold; }

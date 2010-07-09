@@ -28,7 +28,7 @@ import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import System.FilePath ((</>))
 import System.Exit
-import System.IO (stderr)
+import System.IO (IOMode(..), withFile, hGetContents, stderr)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
@@ -82,10 +82,10 @@ journalFromPathAndString format fp s = do
                 fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
 
 -- | Read a journal from this file, using the specified data format or
--- trying all known formats, or give an error.
+-- trying all known formats, or give an error (and ensure the file is closed).
 readJournalFile :: Maybe String -> FilePath -> IO Journal
 readJournalFile format "-" = getContents >>= journalFromPathAndString format "(stdin)"
-readJournalFile format f   = readFile f  >>= journalFromPathAndString format f
+readJournalFile format f   = withFile f ReadMode $ \h -> hGetContents h >>= journalFromPathAndString format f
 
 -- | Read a Journal from this string, using the specified data format or
 -- trying all known formats, or give an error.
