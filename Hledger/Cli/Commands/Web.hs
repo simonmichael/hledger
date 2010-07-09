@@ -241,7 +241,6 @@ addform = [$hamlet|
      %input!type=submit!value=$string.addlabel$
 |]
  where
-  formhelp = helplink "file-format" "?"
   datehelplink = helplink "dates" "..."
   datehelp = "eg: 7/20, 2010/1/1, "
   deschelp = "eg: supermarket (optional)"
