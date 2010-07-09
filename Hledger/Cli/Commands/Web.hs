@@ -115,14 +115,19 @@ withLatestJournalRender reportfn = do
         opts = appOpts app ++ [Period p]
         args = appArgs app ++ [a]
         fspec = optsToFilterSpec opts args t
-    -- reload journal if changed
+    -- reload journal if changed, displaying any error as a message
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    (changed, j') <- liftIO $ journalReloadIfChanged opts j
-    when changed $ liftIO $ putValue "hledger" "journal" j'
+    (changed, jE) <- liftIO $ journalReloadIfChanged opts j
+    (err, j') <- either (\e -> return (show e,j)) (\j -> return ("",j)) jE
+    when (changed && null err) $ liftIO $ putValue "hledger" "journal" j'
+    if (changed && not (null err)) then setMessage $ string "error while reading"
+                                 else return ()
     -- run the specified report using this request's params
     let s = reportfn opts fspec j'
     -- render the standard template
-    msg <- getMessage
+    msg' <- getMessage
+    -- XXX work around a bug, can't get the message we set above
+    let msg = if null err then msg' else Just $ string $ printf "Error while reading %s" (filepath j')
     Just here <- getRoute
     hamletToRepHtml $ template here msg a p "hledger" s
 

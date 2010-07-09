@@ -12,12 +12,14 @@ module Hledger.Cli.Utils
      readJournalWithOpts,
      journalReload,
      journalReloadIfChanged,
+     journalFileIsNewer,
      journalFileModificationTime,
      openBrowserOn,
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
     )
 where
+import Control.Exception (SomeException(..), try)
 import Hledger.Data
 import Hledger.Read
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
@@ -53,26 +55,31 @@ readJournalWithOpts opts s = do
     let cost = CostBasis `elem` opts
     return $ (if cost then journalConvertAmountsToCost else id) j
 
--- | Re-read a journal from its data file.
-journalReload :: Journal -> IO Journal
-journalReload Journal{filepath=f} = readJournalFile Nothing f
+-- | Re-read a journal from its data file, or return the exception that was raised.
+journalReload :: Journal -> IO (Either SomeException Journal)
+journalReload Journal{filepath=f} = try $ readJournalFile Nothing f
 
 -- | Re-read a journal from its data file mostly, only if the file has
 -- changed since last read (or if there is no file, ie data read from
--- stdin). The provided options are mostly ignored. Return a journal and a
--- flag indicating whether it was re-read or not.
-journalReloadIfChanged :: [Opt] -> Journal -> IO (Bool, Journal)
-journalReloadIfChanged opts j@Journal{filepath=f,filereadtime=tread} = do
-  tmod <- journalFileModificationTime j
-  let newer = diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
-  -- when (Debug `elem` opts) $ printf "checking file, last modified %s, last read %s, %s\n" (show tmod) (show tread) (show newer)
-  if newer
+-- stdin). The provided options are mostly ignored. Return a journal or
+-- the exception that was raised while reading it, and a flag indicating
+-- whether it was re-read or not.
+journalReloadIfChanged :: [Opt] -> Journal -> IO (Bool, Either SomeException Journal)
+journalReloadIfChanged opts j@Journal{filepath=f} = do
+  changed <- journalFileIsNewer j
+  if changed
    then do
      when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" f
-     j' <- journalReload j
-     return (True, j')
+     jE <- journalReload j
+     return (True, jE)
    else
-     return (False, j)
+     return (False, Right j)
+
+-- | Has the journal's data file changed since last parsed ?
+journalFileIsNewer :: Journal -> IO Bool
+journalFileIsNewer j@Journal{filereadtime=tread} = do
+  tmod <- journalFileModificationTime j
+  return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
 
 -- | Get the last modified time of the journal's data file (or if there is no
 -- file, the current time).
