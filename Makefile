@@ -607,7 +607,7 @@ emacstags:
 	-@rm -f TAGS; hasktags -e $(SOURCEFILES) hledger.cabal Makefile
 
 clean:
-	rm -f `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*"`
+	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*"`
 
 Clean: clean cleandocs
 	rm -f hledger TAGS tags
