@@ -61,8 +61,8 @@ tests = TestList [
    tests_Hledger_Commands,
 
    "account directive" ~:
-   let sameParse str1 str2 = do j1 <- readJournal Nothing str1
-                                j2 <- readJournal Nothing str2
+   let sameParse str1 str2 = do j1 <- readJournal Nothing str1 >>= either error return
+                                j2 <- readJournal Nothing str2 >>= either error return
                                 j1 `is` j2{filereadtime=filereadtime j1, jtext=jtext j1}
    in TestList
    [
@@ -238,12 +238,12 @@ tests = TestList [
     ]
 
    ,"balance report with cost basis" ~: do
-      j <- readJournal Nothing $ unlines
+      j <- (readJournal Nothing $ unlines
              [""
              ,"2008/1/1 test           "
              ,"  a:b          10h @ $50"
              ,"  c:d                   "
-             ]
+             ]) >>= either error return
       let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
       showBalanceReport [] nullfilterspec j' `is`
        unlines
@@ -384,7 +384,7 @@ tests = TestList [
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
 
   ,"default year" ~: do
-    rl <- readJournal Nothing defaultyear_ledger_str
+    rl <- readJournal Nothing defaultyear_ledger_str >>= either error return
     tdate (head $ jtxns rl) `is` fromGregorian 2009 1 1
     return ()
 

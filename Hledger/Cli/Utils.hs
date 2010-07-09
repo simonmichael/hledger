@@ -19,7 +19,6 @@ module Hledger.Cli.Utils
      writeFileWithBackupIfChanged,
     )
 where
-import Control.Exception (SomeException(..), try)
 import Hledger.Data
 import Hledger.Read
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
@@ -46,34 +45,34 @@ withJournalDo opts args cmdname cmd = do
       runcmd = cmd opts args . costify
   if creating
    then runcmd nulljournal
-   else readJournalFile Nothing f >>= runcmd
+   else readJournalFile Nothing f >>= either error runcmd
 
 -- | Get a journal from the given string and options, or throw an error.
 readJournalWithOpts :: [Opt] -> String -> IO Journal
 readJournalWithOpts opts s = do
-    j <- readJournal Nothing s
+    j <- readJournal Nothing s >>= either error return
     let cost = CostBasis `elem` opts
     return $ (if cost then journalConvertAmountsToCost else id) j
 
--- | Re-read a journal from its data file, or return the exception that was raised.
-journalReload :: Journal -> IO (Either SomeException Journal)
-journalReload Journal{filepath=f} = try $ readJournalFile Nothing f
+-- | Re-read a journal from its data file, or return an error string.
+journalReload :: Journal -> IO (Either String Journal)
+journalReload Journal{filepath=f} = readJournalFile Nothing f
 
 -- | Re-read a journal from its data file mostly, only if the file has
 -- changed since last read (or if there is no file, ie data read from
 -- stdin). The provided options are mostly ignored. Return a journal or
--- the exception that was raised while reading it, and a flag indicating
--- whether it was re-read or not.
-journalReloadIfChanged :: [Opt] -> Journal -> IO (Bool, Either SomeException Journal)
+-- the error message while reading it, and a flag indicating whether it
+-- was re-read or not.
+journalReloadIfChanged :: [Opt] -> Journal -> IO (Either String Journal, Bool)
 journalReloadIfChanged opts j@Journal{filepath=f} = do
   changed <- journalFileIsNewer j
   if changed
    then do
      when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" f
      jE <- journalReload j
-     return (True, jE)
+     return (jE, True)
    else
-     return (False, Right j)
+     return (Right j, False)
 
 -- | Has the journal's data file changed since last parsed ?
 journalFileIsNewer :: Journal -> IO Bool

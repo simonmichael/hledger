@@ -21,6 +21,7 @@ import Hledger.Cli.Commands.Register
 import Hledger.Cli.Options hiding (value)
 import Hledger.Cli.Utils
 import Hledger.Data
+import Hledger.Read (journalFromPathAndString)
 import Hledger.Read.Journal (someamount)
 #ifdef MAKE
 import Paths_hledger_make (getDataFileName)
@@ -117,8 +118,8 @@ withLatestJournalRender reportfn = do
         fspec = optsToFilterSpec opts args t
     -- reload journal if changed, displaying any error as a message
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    (changed, jE) <- liftIO $ journalReloadIfChanged opts j
-    (err, j') <- either (\e -> return (show e,j)) (\j -> return ("",j)) jE
+    (jE, changed) <- liftIO $ journalReloadIfChanged opts j
+    let (j', err) = either (\e -> (j,e)) (\j -> (j,"")) jE
     when (changed && null err) $ liftIO $ putValue "hledger" "journal" j'
     if (changed && not (null err)) then setMessage $ string "error while reading"
                                  else return ()
@@ -333,8 +334,6 @@ postJournalPage = do
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    -- j' <- liftIO $ journalAddTransaction j t' >>= journalReload
-    -- liftIO $ putValue "hledger" "journal" j'
     liftIO $ journalAddTransaction j t'
     setMessage $ string $ printf "Added transaction:\n%s" (show t')
     redirect RedirectTemporary JournalPage
@@ -412,11 +411,12 @@ postEditPage = do
   -- display errors or add transaction
   case textE of
    Left errs -> do
-    -- save current form values in session
+    -- XXX should save current form values in session
     setMessage $ string $ intercalate "; " $ map (intercalate ", " . map (\(a,b) -> a++": "++b)) [errs]
     redirect RedirectTemporary JournalPage
 
    Right t' -> do
+    -- try to avoid unnecessary backups or saving invalid data
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
     filechanged' <- liftIO $ journalFileIsNewer j
     let f = filepath j
@@ -424,8 +424,19 @@ postEditPage = do
         tnew = filter (/= '\r') t'
         changed = tnew /= told || filechanged'
 --    changed <- liftIO $ writeFileWithBackupIfChanged f t''
-    liftIO $ writeFileWithBackup f tnew
-    setMessage $ string $ if changed then printf "Saved journal to %s\n" (show f)
-                                     else "No change"
-    redirect RedirectTemporary JournalPage
+    if not changed
+     then do
+       setMessage $ string $ "No change"
+       redirect RedirectTemporary EditPage
+     else do
+      jE <- liftIO $ journalFromPathAndString Nothing f tnew
+      either
+       (\e -> do
+          setMessage $ string e
+          redirect RedirectTemporary EditPage)
+       (const $ do
+          liftIO $ writeFileWithBackup f tnew
+          setMessage $ string $ printf "Saved journal to %s\n" (show f)
+          redirect RedirectTemporary JournalPage)
+       jE
 

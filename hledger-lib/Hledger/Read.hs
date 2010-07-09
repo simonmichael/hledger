@@ -9,6 +9,7 @@ module Hledger.Read (
        tests_Hledger_Read,
        readJournalFile,
        readJournal,
+       journalFromPathAndString,
        myLedgerPath,
        myTimelogPath,
        myJournal,
@@ -27,7 +28,6 @@ import Safe (headDef)
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
 import System.FilePath ((</>))
-import System.Exit
 import System.IO (IOMode(..), withFile, hGetContents, stderr)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
@@ -58,20 +58,20 @@ readerForFormat s | null rs = Nothing
       rs = filter ((s==).rFormat) readers :: [Reader]
 
 -- | Read a Journal from this string (and file path), auto-detecting the
--- data format, or give an error. Tries to parse each known data format in
--- turn. If none succeed, gives the error message specific to the intended
--- data format, which if not specified is guessed from the file suffix and
--- possibly the data.
-journalFromPathAndString :: Maybe String -> FilePath -> String -> IO Journal
+-- data format, or give a useful error string. Tries to parse each known
+-- data format in turn. If none succeed, gives the error message specific
+-- to the intended data format, which if not specified is guessed from the
+-- file suffix and possibly the data.
+journalFromPathAndString :: Maybe String -> FilePath -> String -> IO (Either String Journal)
 journalFromPathAndString format fp s = do
   let readers' = case format of Just f -> case readerForFormat f of Just r -> [r]
                                                                     Nothing -> []
                                 Nothing -> readers
-  (errors, journals) <- partitionEithers `fmap` mapM try readers'
-  case journals of j:_ -> return j
-                   _   -> hPutStrLn stderr (errMsg errors) >> exitWith (ExitFailure 1)
+  (errors, journals) <- partitionEithers `fmap` mapM tryReader readers'
+  case journals of j:_ -> return $ Right j
+                   _   -> let s = errMsg errors in hPutStrLn stderr s >> return (Left s)
     where
-      try r = (runErrorT . (rParser r) fp) s
+      tryReader r = (runErrorT . (rParser r) fp) s
       errMsg [] = unknownFormatMsg
       errMsg es = printf "could not parse %s data in %s\n%s" (rFormat r) fp e
           where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
@@ -82,14 +82,14 @@ journalFromPathAndString format fp s = do
                 fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
 
 -- | Read a journal from this file, using the specified data format or
--- trying all known formats, or give an error (and ensure the file is closed).
-readJournalFile :: Maybe String -> FilePath -> IO Journal
+-- trying all known formats, or give an error string.
+readJournalFile :: Maybe String -> FilePath -> IO (Either String Journal)
 readJournalFile format "-" = getContents >>= journalFromPathAndString format "(stdin)"
 readJournalFile format f   = withFile f ReadMode $ \h -> hGetContents h >>= journalFromPathAndString format f
 
 -- | Read a Journal from this string, using the specified data format or
--- trying all known formats, or give an error.
-readJournal :: Maybe String -> String -> IO Journal
+-- trying all known formats, or give an error string.
+readJournal :: Maybe String -> String -> IO (Either String Journal)
 readJournal format s = journalFromPathAndString format "(string)" s
 
 -- | Get the user's default ledger file path.
@@ -110,19 +110,19 @@ myTimelogPath =
 
 -- | Read the user's default journal file, or give an error.
 myJournal :: IO Journal
-myJournal = myLedgerPath >>= readJournalFile Nothing
+myJournal = myLedgerPath >>= readJournalFile Nothing >>= either error return
 
 -- | Read the user's default timelog file, or give an error.
 myTimelog :: IO Journal
-myTimelog = myTimelogPath >>= readJournalFile Nothing
+myTimelog = myTimelogPath >>= readJournalFile Nothing >>= either error return
 
 tests_Hledger_Read = TestList
   [
 
    "ledgerFile" ~: do
     assertBool "ledgerFile should parse an empty file" (isRight $ parseWithCtx emptyCtx Journal.ledgerFile "")
-    r <- readJournal Nothing "" -- don't know how to get it from ledgerFile
-    assertBool "ledgerFile parsing an empty file should give an empty ledger" $ null $ jtxns r
+    jE <- readJournal Nothing "" -- don't know how to get it from ledgerFile
+    either error (assertBool "ledgerFile parsing an empty file should give an empty ledger" . null . jtxns) jE
 
   ,Journal.tests_Journal
   ,Timelog.tests_Timelog
