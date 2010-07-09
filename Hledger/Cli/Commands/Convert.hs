@@ -24,7 +24,7 @@ import Control.Monad (when, guard, liftM)
 import Safe (readDef, readMay)
 import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
-import System.FilePath.Posix (takeBaseName, replaceExtension)
+import System.FilePath (takeBaseName, replaceExtension)
 import Text.ParserCombinators.Parsec
 import Test.HUnit
 
