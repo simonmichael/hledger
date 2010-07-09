@@ -42,7 +42,8 @@ BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
 DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
-BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS) -ihledger-lib
+PREFERMACUSRLIBFLAGS=-L/usr/lib
+BUILDFLAGS:=$(PREFERMACUSRLIBFLAGS) $(DEFINEFLAGS) $(WARNINGS) -ihledger-lib
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 # file defining the current release version
@@ -336,7 +337,7 @@ cleansite: site/hakyll
 	cd site; ./hakyll clean
 
 site/hakyll: site/hakyll.hs
-	cd site; ghc --make hakyll.hs
+	cd site; ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS)
 
 viewsite: site
 	$(VIEWHTML) site/_site/index.html
