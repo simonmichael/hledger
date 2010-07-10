@@ -47,9 +47,9 @@ TIME:=$(shell date +"%Y%m%d%H%M")
 
 # file defining the current release version
 VERSIONFILE=VERSION
-# two or three-part version string
+# two or three-part version string, whatever's in VERSION
 VERSION:=$(shell grep -v '^--' $(VERSIONFILE))
-# three-part version string
+# three-part version string, 0-padded if necessary
 ifeq ($(shell ghc -e "length (filter (=='.') \"$(VERSION)\")"), 1)
 VERSION3:=$(VERSION).0
 else
@@ -497,6 +497,15 @@ upload: hackageupload pushdocs
 
 releaseandupload: release upload
 
+
+# update the version number in local files, and prompt to record changes
+# in these files. Triggered by "make release".
+setandrecordversion: setversion
+	darcs record -m "update version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+
+# update the version string in local files. Triggered by "make".
+setversion: $(VERSIONSENSITIVEFILES)
+
 Version.hs: $(VERSIONFILE)
 	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
 
@@ -506,14 +515,6 @@ hledger.cabal: $(VERSIONFILE)
 
 hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-
-# update the version string in local files. Triggered by "make".
-setversion: $(VERSIONSENSITIVEFILES)
-
-# update the version number in local files, and prompt to record changes
-# in these files. Triggered by "make release".
-setandrecordversion: setversion
-	darcs record -m "update version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
 tagrelease:
 	darcs tag $(VERSION3)
