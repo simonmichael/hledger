@@ -70,8 +70,8 @@ configflags   = tail [""
   ,"vty"
 #endif
 #if defined(WEB)
-  ,"web (using loli/hsp/simpleserver)"
-#elif defined(WEBYESOD)
   ,"web (using yesod/hamlet/simpleserver)"
+#elif defined(WEB610)
+  ,"web (using loli/hsp/simpleserver)"
 #endif
  ]

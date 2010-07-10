@@ -68,17 +68,21 @@ with the cabal-install tool:
     extra features (if you're new to cabal, I recommend you get the basic
     install working first, then add these one at a time):
 
-    - `-fvty` - builds the [vty](#vty) command. (Not available on microsoft
-        windows.)
-
-    - `-fweb` - builds the [web](#web) command (works with ghc 6.10).
-
-    - `-fwebyesod` - builds a newer version of the [web](#web) command (requires ghc 6.12).
-
-    - `-fchart` builds the [chart](#chart) command. This requires
-      additional GTK/GHC integration libraries (on ubuntu: `apt-get
-      install libghc6-gtk-dev`) and possibly other things - see the
+    - `-fchart` builds the [chart](#chart) command, enabling simple
+      balance pie chart generation. This requires additional GTK/GHC
+      integration libraries (on ubuntu: `apt-get install libghc6-gtk-dev`)
+      and possibly other things - see the
       [gtk2hs install docs](http://code.haskell.org/gtk2hs/INSTALL).
+      At present this add a lot of build complexity for not much gain.
+
+    - `-fvty` - builds the [vty](#vty) command, enabling a basic
+      curses-style user interface. This does not work on microsoft
+      windows, unless possibly with cygwin.
+
+    - `-fweb` - builds the [web](#web) command, enabling a web-based user
+      interface (requires ghc 6.12). If you are stuck with ghc 6.10, you
+      can use `-fweb610` instead, to build an older version of the
+      [web](#web) command.
 
 If you have any trouble, proceed at once to [Troubleshooting](#troubleshooting) for help!
 
@@ -115,7 +119,7 @@ on:
     hledger histogram                     # transactions per day, or other interval
     hledger add                           # add some new transactions to the ledger file
     hledger vty                           # curses ui, if installed with -fvty
-    hledger web                           # web ui, if installed with -fweb or -fwebyesod
+    hledger web                           # web ui, if installed with -fweb or -fweb610
     hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
@@ -280,8 +284,6 @@ Examples:
 
 ##### chart
 
-(optional feature)
-
 The chart command saves a pie chart of your top account balances to an
 image file (usually "hledger.png", or use -o/--output FILE). You can
 adjust the image resolution with --size=WIDTHxHEIGHT, and the number of
@@ -303,6 +305,8 @@ Examples:
     $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger -p 2009/$m chart ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
+This is an optional feature; see [installing](#installing).
+
 ##### histogram
 
 The histogram command displays a quick bar chart showing transaction
@@ -323,8 +327,6 @@ Examples:
 
 ##### vty
 
-(optional feature)
-
 The vty command starts hledger's curses (full-screen, text) user interface,
 which allows interactive navigation of the print/register/balance
 reports. This lets you browse around your numbers and get quick insights
@@ -334,6 +336,8 @@ Examples:
 
     $ hledger vty
     $ hledger vty -BE food
+
+This is an optional feature; see [installing](#installing).
 
 #### Modifying commands
 
@@ -350,32 +354,25 @@ $ hledger add $ hledger add accounts:personal:bob
 
 ##### web
 
-(optional feature)
-
 The web command starts hledger's web interface, and tries to open a web
-browser to view it (if this fails, you'll have to visit the indicated url
-yourself.) The web ui combines the features of the print, register,
-balance and add commands.
+browser to view it. (If this fails, you'll have to manually visit the url
+it displays.) The web interface combines the features of the print,
+register, balance and add commands, and adds a general edit command.
 
-Note there are two alternate implementations of the web command - the old
-one, built with `-fweb`:
+This is an optional feature. Note there is also an older implementation of
+the web command which does not provide edit. See [installing](#installing).
 
-    $ hledger web
-
-and the new one, built with `-fwebyesod`, which you run in the same way:
+Examples:
 
     $ hledger web
-    
-We will assume the latter in the rest of these docs. Some more examples:
-    
     $ hledger web -E -B  p 'this year'
     $ hledger web --base-url http://this.vhost.com --port 5010 --debug -f my.journal
 
-The new web ui adds an edit command. Warning: this is the first hledger
-feature which can alter your existing journal data.  You can edit, or
-ERASE, the (top-level) journal file through the web ui. There is no access
-control. A numbered backup of the file will be saved at each edit, in
-normal circumstances (eg if file permissions allow, disk is not full, etc.)
+About the edit command: warning, this is the first hledger feature which
+can alter your existing journal data.  You can edit, or erase, the journal
+file through the web ui. There is no access control. A numbered backup of
+the file will be saved at each edit, in normal circumstances (eg if file
+permissions allow, disk is not full, etc.)
 
 #### Other commands
 
@@ -884,8 +881,8 @@ sailing.  Here are some known issues and things to try:
 
 - **Did you cabal update ?** If you didn't already, ``cabal update`` and try again.
 
-- **Do you have a new enough version of GHC ?** As of 2010, 6.10 and 6.12
-    are supported, 6.8 might or might not work.
+- **Do you have a new enough version of GHC ?** hledger supports GHC 6.10
+  and 6.12. Building with the `-fweb` flag requires 6.12 or greater.
 
 - **Do you have a new enough version of cabal-install ?**
   Recent versions tend to be better at resolving dependencies.  The error
@@ -894,11 +891,12 @@ sailing.  Here are some known issues and things to try:
   
         $ cabal update
         $ cabal install cabal-install
+        $ cabal clean
         
     then try installing hledger again.
 
 - **Could not run trhsx.**
-  You are installing with `-fweb`, which needs to run the ``trhsx`` executable.
+  You are installing with `-fweb610`, which needs to run the ``trhsx`` executable.
   It is installed by the hsx package in ~/.cabal/bin, which needs to be in
   your path.
 
@@ -921,9 +919,13 @@ sailing.  Here are some known issues and things to try:
 
     you are probably on a mac with macports libraries installed, causing
     [this issue](http://hackage.haskell.org/trac/ghc/ticket/4068).
-    To work around, add this --extra-lib-dirs flag:
+    To work around temporarily, add this --extra-lib-dirs flag:
 
         $ cabal install hledger --extra-lib-dirs=/usr/lib
+
+    or permanently, add this to ~/.cabal/config:
+    
+        extra-lib-dirs: /usr/lib
 
 - **A ghc: panic! (the 'impossible' happened)** might be
     [this issue](http://hackage.haskell.org/trac/ghc/ticket/3862)
@@ -949,16 +951,13 @@ sailing.  Here are some known issues and things to try:
   Look for the cause of the failure near the end of the output. If it's
   not apparent, try again with `-v2` or `-v3` for more verbose output.
 
-- **cabal fails to reconcile dependencies.**
-  This could be related to your GHC version: hledger requires at least GHC
-  6.10 and `-fwebyesod` requires 6.12 or greater.
-  
-    Also, it's possible for cabal to get confused, eg if you have
-    installed/updated many cabal package versions or GHC itself. You can
-    sometimes work around this by using cabal install's `--constraint`
-    option. Another (drastic) way is to purge all unnecessary package
-    versions by removing (or renaming) ~/.ghc, then trying cabal install
-    again.
+- **cabal fails to resolve dependencies.**
+  It's possible for cabal to get confused, eg if you have
+  installed/updated many cabal package versions or GHC itself. You can
+  sometimes work around this by using cabal install's `--constraint`
+  option. Another (drastic) way is to purge all unnecessary package
+  versions by removing (or renaming) ~/.ghc, then trying cabal install
+  again.
 
 #### Usage issues
 

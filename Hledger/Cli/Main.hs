@@ -70,7 +70,7 @@ main = do
 #ifdef VTY
        | cmd `isPrefixOf` "vty"       = withJournalDo opts args cmd vty
 #endif
-#if defined(WEB) || defined(WEBYESOD)
+#if defined(WEB) || defined(WEB610)
        | cmd `isPrefixOf` "web"       = withJournalDo opts args cmd web
 #endif
 #ifdef CHART

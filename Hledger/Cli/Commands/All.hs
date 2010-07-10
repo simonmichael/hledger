@@ -15,16 +15,16 @@ module Hledger.Cli.Commands.All (
                      module Hledger.Cli.Commands.Print,
                      module Hledger.Cli.Commands.Register,
                      module Hledger.Cli.Commands.Stats,
+#ifdef CHART
+                     module Hledger.Cli.Commands.Chart,
+#endif
 #ifdef VTY
                      module Hledger.Cli.Commands.Vty,
 #endif
 #if defined(WEB)
                      module Hledger.Cli.Commands.Web,
-#elif defined(WEBYESOD)
-                     module Hledger.Cli.Commands.WebYesod,
-#endif
-#ifdef CHART
-                     module Hledger.Cli.Commands.Chart,
+#elif defined(WEB610)
+                     module Hledger.Cli.Commands.Web610,
 #endif
                      tests_Hledger_Commands
               )
@@ -36,16 +36,16 @@ import Hledger.Cli.Commands.Histogram
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Stats
+#ifdef CHART
+import Hledger.Cli.Commands.Chart
+#endif
 #ifdef VTY
 import Hledger.Cli.Commands.Vty
 #endif
 #if defined(WEB)
 import Hledger.Cli.Commands.Web
-#elif defined(WEBYESOD)
-import Hledger.Cli.Commands.WebYesod
-#endif
-#ifdef CHART
-import Hledger.Cli.Commands.Chart
+#elif defined(WEB610)
+import Hledger.Cli.Commands.Web610
 #endif
 import Test.HUnit (Test(TestList))
 
@@ -60,14 +60,14 @@ tests_Hledger_Commands = TestList
     ,Hledger.Cli.Commands.Register.tests_Register
 --     ,Hledger.Cli.Commands.Stats.tests_Stats
     ]
+-- #ifdef CHART
+--     ,Hledger.Cli.Commands.Chart.tests_Chart
+-- #endif
 -- #ifdef VTY
 --     ,Hledger.Cli.Commands.Vty.tests_Vty
 -- #endif
 -- #if defined(WEB)
 --     ,Hledger.Cli.Commands.Web.tests_Web
--- #elif defined(WEBYESOD)
---     ,Hledger.Cli.Commands.WebYesod.tests_Web
--- #endif
--- #ifdef CHART
---     ,Hledger.Cli.Commands.Chart.tests_Chart
+-- #elif defined(WEB610)
+--     ,Hledger.Cli.Commands.Web610.tests_Web
 -- #endif

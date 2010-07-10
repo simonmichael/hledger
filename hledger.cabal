@@ -18,7 +18,7 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      experimental
-tested-with:    GHC==6.10
+tested-with:    GHC==6.10, GHC==6.12
 cabal-version:  >= 1.2
 build-type:     Custom
 data-dir:       data
@@ -35,24 +35,26 @@ extra-source-files:
   data/sample.timelog
   data/sample.rules
 
+flag chart
+  description: enable simple balance pie chart generation
+  default:     False
+
 flag vty
-  description: enable the curses ui
+  description: enable the curses-style ui
   default:     False
 
 flag web
-  description: enable the web ui (using loli/hsp/simpleserver, works with ghc 6.10)
-  default:     False
-
-flag webyesod
   description: enable the web ui (using yesod/hamlet/simpleserver, requires ghc 6.12)
   default:     False
 
-flag chart
-  description: enable the pie chart generation
+flag web610
+  description: enable the web ui (using loli/hsp/simpleserver, works with ghc 6.10)
   default:     False
 
 executable hledger
   main-is:        hledger.hs
+  -- should set patchlevel here as in Makefile
+  cpp-options:    -DPATCHLEVEL=0
   other-modules:
                   Paths_hledger
                   Hledger.Cli.Main
@@ -87,8 +89,12 @@ executable hledger
                  ,time
                  ,utf8-string >= 0.3
 
-  -- should set patchlevel here as in Makefile
-  cpp-options:    -DPATCHLEVEL=0
+  if flag(chart)
+    cpp-options: -DCHART
+    other-modules:Hledger.Cli.Commands.Chart
+    build-depends:
+                  Chart >= 0.11
+                 ,colour
 
   if flag(vty)
     cpp-options: -DVTY
@@ -99,6 +105,18 @@ executable hledger
   if flag(web)
     cpp-options: -DWEB
     other-modules:Hledger.Cli.Commands.Web
+    build-depends:
+                  bytestring >= 0.9.1 && < 0.9.2
+                 ,blaze-html >= 0.1.1 && < 0.2
+                 ,hamlet >= 0.3.1 && < 0.4
+                 ,io-storage >= 0.3 && < 0.4
+                 ,wai >= 0.1 && < 0.2
+                 ,wai-extra >= 0.1 && < 0.2
+                 ,yesod >= 0.3.1 && < 0.4
+
+  if flag(web610)
+    cpp-options: -DWEB610
+    other-modules:Hledger.Cli.Commands.Web610
     build-depends:
                   hsp
                  ,hsx
@@ -111,27 +129,13 @@ executable hledger
                  ,HTTP >= 4000.0
                  ,applicative-extras
 
-  if flag(webyesod)
-    cpp-options: -DWEBYESOD
-    other-modules:Hledger.Cli.Commands.WebYesod
-    build-depends:
-                  bytestring >= 0.9.1 && < 0.9.2
-                 ,blaze-html >= 0.1.1 && < 0.2
-                 ,hamlet >= 0.3.1 && < 0.4
-                 ,io-storage >= 0.3 && < 0.4
-                 ,wai >= 0.1 && < 0.2
-                 ,wai-extra >= 0.1 && < 0.2
-                 ,yesod >= 0.3.1 && < 0.4
-
-  if flag(chart)
-    cpp-options: -DCHART
-    other-modules:Hledger.Cli.Commands.Chart
-    build-depends:
-                  Chart >= 0.11
-                 ,colour
-
+-- modules and dependencies below should be as above, except
+-- chart, vty, web etc. are not presently exposed as library functions
 library
+  -- should set patchlevel here as in Makefile
+  cpp-options:    -DPATCHLEVEL=0
   exposed-modules:
+                  Paths_hledger
                   Hledger.Cli.Main
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
@@ -163,37 +167,6 @@ library
                  ,testpack >= 1 && < 2
                  ,time
                  ,utf8-string >= 0.3
-
-  -- should set patchlevel here as in Makefile
-  cpp-options:    -DPATCHLEVEL=0
-
-  if flag(vty)
-    cpp-options: -DVTY
-    exposed-modules:Hledger.Cli.Commands.Vty
-    build-depends:
-                  vty >= 4.0.0.1
-
-  if flag(web)
-    cpp-options: -DWEB
-    exposed-modules:Hledger.Cli.Commands.Web
-    build-depends:
-                  hsp
-                 ,hsx
-                 ,xhtml >= 3000.2
-                 ,loli
-                 ,io-storage
-                 ,hack-contrib
-                 ,hack
-                 ,hack-handler-simpleserver
-                 ,HTTP >= 4000.0
-                 ,applicative-extras
-
-  if flag(chart)
-    cpp-options: -DCHART
-    exposed-modules:Hledger.Cli.Commands.Chart
-    build-depends:
-                  Chart >= 0.11
-                 ,colour
 
 -- source-repository head
 --   type:     darcs

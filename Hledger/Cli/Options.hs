@@ -38,7 +38,7 @@ usagehdr =
 #ifdef VTY
   "  vty       - run a simple curses-style UI\n" ++
 #endif
-#if defined(WEB) || defined(WEBYESOD)
+#if defined(WEB) || defined(WEB610)
   "  web       - run a simple web-based UI\n" ++
 #endif
 #ifdef CHART
@@ -81,7 +81,7 @@ options = [
  ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
  ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register report: show quarterly summary"
  ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
-#if defined(WEB) || defined(WEBYESOD)
+#ifdef WEB
  ,Option ""  ["host"] (ReqArg Host "HOST")           "web: use hostname HOST rather than localhost"
  ,Option ""  ["port"] (ReqArg Port "N")              "web: use tcp port N rather than 5000"
 #endif
@@ -119,7 +119,7 @@ data Opt =
     MonthlyOpt |
     QuarterlyOpt |
     YearlyOpt |
-#if defined(WEB) || defined(WEBYESOD)
+#ifdef WEB
     Host    {value::String} |
     Port    {value::String} |
 #endif
@@ -224,7 +224,7 @@ displayExprFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
       listtomaybe [] = Nothing
       listtomaybe vs = Just $ last vs
 
-#if defined(WEB) || defined(WEBYESOD)
+#ifdef WEB
 -- | Get the value of the (last) host option, if any.
 hostFromOpts :: [Opt] -> Maybe String
 hostFromOpts opts = listtomaybe $ optValuesForConstructor Host opts

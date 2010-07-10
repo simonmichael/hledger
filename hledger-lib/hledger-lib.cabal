@@ -25,6 +25,8 @@ build-type:     Simple
 --   sample.timelog
 
 library
+  -- should set patchlevel here as in Makefile
+  cpp-options:    -DPATCHLEVEL=0
   exposed-modules:
                   Hledger.Data
                   Hledger.Data.Account
@@ -57,9 +59,6 @@ library
                  ,time
                  ,utf8-string >= 0.3
                  ,HUnit
-
-  -- should set patchlevel here as in Makefile
-  cpp-options:    -DPATCHLEVEL=0
 
 -- source-repository head
 --   type:     darcs
