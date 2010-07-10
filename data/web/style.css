@@ -15,7 +15,8 @@ body { font-family: "helvetica","arial", "sans serif"; margin:0; }
 #addform #descriptionrow { }
 #addform #postingrow { }
 #addform #addbuttonrow { text-align:right; }
-#editform textarea { background-color:#eeeeee; }
+#editform { width:95%; }
+#editform textarea { background-color:#eeeeee; font-family:monospace; font-size:medium; width:100%; }
 #content { margin:1em; }
 .formheading td { padding-bottom:8px; }
 #formheading { font-size:medium; font-weight:bold; }

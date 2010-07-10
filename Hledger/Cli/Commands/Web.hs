@@ -386,7 +386,7 @@ editform t = [$hamlet|
      %span#formheading Edit journal:
    %tr
     %td!colspan=2
-     %textarea!name=text!rows=50!cols=80
+     %textarea!name=text!rows=30!cols=80
       $string.t$
    %tr#addbuttonrow
     %td
