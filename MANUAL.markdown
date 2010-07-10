@@ -736,6 +736,9 @@ You can pull in the content of additional journal files, by writing lines like t
 
     !include other/file.journal
 
+The `!include` directive may only be used in journal files, and currently
+it may only include other journal files (eg, not timelog files.)
+
 #### Set parent account
 
 You can specify a default parent account in a section of the journal with
