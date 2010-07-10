@@ -18,3 +18,6 @@ body { font-family: "helvetica","arial", "sans serif"; margin:0; }
 #formheading { font-size:medium; font-weight:bold; }
 .helprow td { padding-bottom:8px; }
 #help {font-style: italic; font-size:smaller; }
+
+/* for -fweb610 */
+#hledgerorglink, #helplink { float:right; margin-left:1em; }

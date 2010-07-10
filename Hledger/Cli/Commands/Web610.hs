@@ -70,18 +70,20 @@ server opts args j =
        let opts' = opts ++ [Period $ unwords $ map decodeString $ reqParamUtf8 env "p"]
            args' = args ++ map decodeString (reqParamUtf8 env "a")
        j' <- fromJust `fmap` getValue "hledger" "journal"
-       (changed, j'') <- io $ journalReloadIfChanged opts j'
-       when changed $ putValue "hledger" "journal" j''
+       (jE, changed) <- io $ journalReloadIfChanged opts j'
+       let (j''', err) = either (\e -> (j',e)) (\j'' -> (j'',"")) jE
+       when (changed && null err) $ putValue "hledger" "journal" j'''
+       when (changed && not (null err)) $ printf "error while reading %s\n" (filepath j')
        -- declare path-specific request handlers
        let command :: [String] -> ([Opt] -> FilterSpec -> Journal -> String) -> AppUnit
-           command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) j''
+           command msgs f = string msgs $ f opts' (optsToFilterSpec opts' args' t) j'''
        (loli $                                               -- State Loli () -> (Env -> IO Response)
          do
           get  "/balance"   $ command [] showBalanceReport  -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/transactions"   $ ledgerpage [] j'' (showTransactions (optsToFilterSpec opts' args' t))
-          post "/transactions"   $ handleAddform j''
+          get  "/transactions"   $ ledgerpage [] j''' (showTransactions (optsToFilterSpec opts' args' t))
+          post "/transactions"   $ handleAddform j'''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
           get  "/inputs"    $ getenv >>= (text . show . Hack.Contrib.Request.inputs)
@@ -99,8 +101,9 @@ reqParamUtf8 env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params 
 ledgerpage :: [String] -> Journal -> (Journal -> String) -> AppUnit
 ledgerpage msgs j f = do
   env <- getenv
-  (_, j') <- io $ journalReloadIfChanged [] j
-  hsp msgs $ const <div><% addform env %><pre><% f j' %></pre></div>
+  (jE, _) <- io $ journalReloadIfChanged [] j
+  let (j'', _) = either (\e -> (j,e)) (\j' -> (j',"")) jE
+  hsp msgs $ const <div><% addform env %><pre><% f j'' %></pre></div>
 
 -- | A loli directive to serve a string in pre tags within the hledger web
 -- layout.
