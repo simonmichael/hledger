@@ -80,9 +80,9 @@ with the cabal-install tool:
       windows, unless possibly with cygwin.
 
     - `-fweb` builds the [web](#web) command, enabling a web-based user
-      interface (requires ghc 6.12). If you are stuck with ghc 6.10, you
-      can use `-fweb610` instead, to build an older version of the
-      [web](#web) command.
+      interface. This requires GHC 6.12. If you are stuck with GHC 6.10,
+      you can use `-fweb610` instead, to build an older version of the web
+      interface.
 
 If you have any trouble, proceed at once to [Troubleshooting](#troubleshooting) for help!
 
@@ -370,7 +370,8 @@ to the journal. It is experimental.
 
 Examples:
 
-$ hledger add $ hledger add accounts:personal:bob
+    $ hledger add
+    $ hledger add accounts:personal:bob
 
 ##### web
 
@@ -388,10 +389,10 @@ Examples:
     $ hledger web -E -B --depth 2
     $ hledger web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
 
-About the edit command: warning, this is the first hledger feature which
-can alter your existing journal data.  You can edit, or erase, the journal
-file through the web ui. There is no access control. A numbered backup of
-the file will be saved at each edit, in normal circumstances (eg if file
+Warning: unlike all other hledger features, the edit form can alter your
+existing journal data.  You can edit, or erase, the journal file through
+the web ui. There is currently no access control. A numbered backup of the
+file will be saved at each edit, in normal circumstances (eg if file
 permissions allow, disk is not full, etc.)
 
 There are some options specific to the web server:
