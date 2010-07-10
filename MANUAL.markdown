@@ -408,12 +408,14 @@ Note there are two alternate implementations of the web command - the old
 one, built with `-fweb`:
 
     $ hledger web
-    $ hledger web -E -B  p 'this year'
 
-and the new one, built with `-fwebyesod`, which we will assume in the rest
-of these docs:
+and the new one, built with `-fwebyesod`, which you run in the same way:
 
     $ hledger web
+    
+We will assume the latter in the rest of these docs. Some more examples:
+    
+    $ hledger web -E -B  p 'this year'
     $ hledger web --base-url http://this.vhost.com --port 5010 --debug -f my.journal
 
 The new web ui adds an edit command. Warning: this is the first hledger
