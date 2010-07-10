@@ -158,7 +158,9 @@ navbar :: HledgerWebAppRoute -> String -> String -> Hamlet HledgerWebAppRoute
 navbar here a p = [$hamlet|
  #navbar
   %a.toprightlink!href=$string.hledgerurl$ hledger.org
+  \ $
   %a.toprightlink!href=$string.manualurl$ manual
+  \ $
   ^navlinks'^
   ^searchform'^
 |]
