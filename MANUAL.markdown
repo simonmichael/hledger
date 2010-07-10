@@ -404,10 +404,23 @@ browser to view it (if this fails, you'll have to visit the indicated url
 yourself.) The web ui combines the features of the print, register,
 balance and add commands.
 
-Examples:
+Note there are two alternate implementations of the web command - the old
+one, built with `-fweb`:
 
     $ hledger web
-    $ hledger web --base-url http://this.vhost.com --port 5010 --debug -f demo.ledger -p thisyear
+    $ hledger web -E -B  p 'this year'
+
+and the new one, built with `-fwebyesod`, which we will assume in the rest
+of these docs:
+
+    $ hledger web
+    $ hledger web --base-url http://this.vhost.com --port 5010 --debug -f my.journal
+
+The new web ui adds an edit command. Warning: this is the first hledger
+feature which can alter your existing journal data.  You can edit, or
+ERASE, the (top-level) journal file through the web ui. There is no access
+control. A numbered backup of the file will be saved at each edit, in
+normal circumstances (eg if file permissions allow, disk is not full, etc.)
 
 #### Other commands
 
