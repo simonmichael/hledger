@@ -273,8 +273,8 @@ Here is the command-line help:
      -M       --monthly            register report: show monthly summary
      -Q       --quarterly          register report: show quarterly summary
      -Y       --yearly             register report: show yearly summary
-              --host               web: use hostname HOST rather than localhost
-              --port               web: use tcp port N rather than 5000
+              --base-url           web: use this base url (default http://localhost:PORT)
+              --port               web: serve on tcp port N (default 5000)
      -h       --help               show this help
      -V       --version            show version information
      -v       --verbose            show verbose test output
@@ -407,7 +407,7 @@ balance and add commands.
 Examples:
 
     $ hledger web
-    $ hledger web --host this.host.com --port 5010 --debug -f demo.ledger -p thisyear
+    $ hledger web --base-url http://this.vhost.com --port 5010 --debug -f demo.ledger -p thisyear
 
 #### Other commands
 
