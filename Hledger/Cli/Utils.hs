@@ -123,12 +123,16 @@ writeFileWithBackup f t = backUpFile f >> writeFile f t
 -- | Back up this file with a (incrementing) numbered suffix, or give an error.
 backUpFile :: FilePath -> IO ()
 backUpFile fp = do
-  fs <- getDirectoryContents $ takeDirectory fp
+  fs <- safeGetDirectoryContents $ takeDirectory $ fp
   let (d,f) = splitFileName fp
       versions = catMaybes $ map (f `backupNumber`) fs
       next = maximum (0:versions) + 1
       f' = printf "%s.%d" f next
   copyFile fp (d </> f')
+
+safeGetDirectoryContents :: FilePath -> IO [FilePath]
+safeGetDirectoryContents "" = getDirectoryContents "."
+safeGetDirectoryContents fp = getDirectoryContents fp
 
 -- | Does the second file represent a backup of the first, and if so which version is it ?
 backupNumber :: FilePath -> FilePath -> Maybe Int
