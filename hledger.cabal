@@ -70,7 +70,7 @@ executable hledger
                   Hledger.Cli.Commands.Register
                   Hledger.Cli.Commands.Stats
   build-depends:
-                  hledger-lib >= 0.10
+                  hledger-lib >= 0.10.99
                  ,HUnit
                  ,base >= 3 && < 5
                  ,containers
@@ -147,7 +147,7 @@ library
                   Hledger.Cli.Commands.Register
                   Hledger.Cli.Commands.Stats
   build-depends:
-                  hledger-lib >= 0.10
+                  hledger-lib >= 0.10.99
                  ,HUnit
                  ,base >= 3 && < 5
                  ,containers
