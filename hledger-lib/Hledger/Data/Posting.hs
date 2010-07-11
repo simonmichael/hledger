@@ -14,7 +14,7 @@ import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
-import Hledger.Data.Dates (nulldate)
+import Hledger.Data.Dates (nulldate, spanContainsDate)
 
 
 instance Show Posting where show = showPosting
@@ -79,10 +79,7 @@ postingCleared p = maybe False tstatus $ ptransaction p
 
 -- | Does this posting fall within the given date span ?
 isPostingInDateSpan :: DateSpan -> Posting -> Bool
-isPostingInDateSpan (DateSpan Nothing Nothing)   _ = True
-isPostingInDateSpan (DateSpan Nothing (Just e))  p = postingDate p < e
-isPostingInDateSpan (DateSpan (Just b) Nothing)  p = postingDate p >= b
-isPostingInDateSpan (DateSpan (Just b) (Just e)) p = d >= b && d < e where d = postingDate p
+isPostingInDateSpan s = spanContainsDate s . postingDate
 
 isEmptyPosting :: Posting -> Bool
 isEmptyPosting = isZeroMixedAmount . pamount

@@ -15,6 +15,7 @@ import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Commodity (canonicaliseCommodities)
 import Hledger.Data.Dates (nulldatespan)
 import Hledger.Data.Transaction (journalTransactionWithDate)
 import Hledger.Data.Posting
@@ -268,17 +269,7 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 
 -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 journalCanonicalCommodities :: Journal -> Map.Map String Commodity
-journalCanonicalCommodities j =
-    Map.fromList [(s,firstc{precision=maxp}) | s <- commoditysymbols,
-                  let cs = commoditymap ! s,
-                  let firstc = head cs,
-                  let maxp = maximum $ map precision cs
-                 ]
-  where
-    commoditymap = Map.fromList [(s,commoditieswithsymbol s) | s <- commoditysymbols]
-    commoditieswithsymbol s = filter ((s==) . symbol) commodities
-    commoditysymbols = nub $ map symbol commodities
-    commodities = journalAmountAndPriceCommodities j
+journalCanonicalCommodities j = canonicaliseCommodities $ journalAmountAndPriceCommodities j
 
 -- | Get all this journal's amounts' commodities, in the order parsed.
 journalAmountCommodities :: Journal -> [Commodity]

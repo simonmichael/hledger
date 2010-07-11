@@ -71,7 +71,20 @@ splitspan start next span@(DateSpan (Just b) (Just e))
 daysInSpan :: DateSpan -> Maybe Integer
 daysInSpan (DateSpan (Just d1) (Just d2)) = Just $ diffDays d2 d1
 daysInSpan _ = Nothing
+
+-- | Does the span include the given date ?
+spanContainsDate :: DateSpan -> Day -> Bool
+spanContainsDate (DateSpan Nothing Nothing)   _ = True
+spanContainsDate (DateSpan Nothing (Just e))  d = d < e
+spanContainsDate (DateSpan (Just b) Nothing)  d = d >= b
+spanContainsDate (DateSpan (Just b) (Just e)) d = d >= b && d < e
     
+-- | Combine two datespans, filling any unspecified dates in the first
+-- with dates from the second.
+orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
+    where a = if isJust a1 then a1 else a2
+          b = if isJust b1 then b1 else b2
+
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or raise an error.
 parsePeriodExpr :: Day -> String -> (Interval, DateSpan)

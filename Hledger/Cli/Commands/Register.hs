@@ -51,12 +51,6 @@ summarisePostings interval depth empty filterspan ps = concatMap summarisespan $
       reportspan | empty = filterspan `orDatesFrom` dataspan
                  | otherwise = dataspan
 
--- | Combine two datespans, filling any unspecified dates in the first
--- with dates from the second.
-orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
-    where a = if isJust a1 then a1 else a2
-          b = if isJust b1 then b1 else b2
-
 -- | Date-sort and split a list of postings into three spans - postings matched
 -- by the given display expression, and the preceding and following postings.
 postingsMatchingDisplayExpr :: Maybe String -> [Posting] -> ([Posting],[Posting],[Posting])

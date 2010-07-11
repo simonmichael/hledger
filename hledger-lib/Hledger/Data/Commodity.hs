@@ -10,6 +10,8 @@ module Hledger.Data.Commodity
 where
 import Hledger.Data.Utils
 import Hledger.Data.Types
+import qualified Data.Map as Map
+import Data.Map ((!))
 
 
 nonsimplecommoditychars = "0123456789-.@;\n \""
@@ -39,3 +41,16 @@ comm sym = fromMaybe
 conversionRate :: Commodity -> Commodity -> Double
 conversionRate _ _ = 1
 
+-- | Convert a list of commodities to a map from commodity symbols to
+-- unique, display-preference-canonicalised commodities.
+canonicaliseCommodities :: [Commodity] -> Map.Map String Commodity
+canonicaliseCommodities cs =
+    Map.fromList [(s,firstc{precision=maxp}) | s <- symbols,
+                  let cs = commoditymap ! s,
+                  let firstc = head cs,
+                  let maxp = maximum $ map precision cs
+                 ]
+  where
+    commoditymap = Map.fromList [(s, commoditieswithsymbol s) | s <- symbols]
+    commoditieswithsymbol s = filter ((s==) . symbol) cs
+    symbols = nub $ map symbol cs
