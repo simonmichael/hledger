@@ -385,14 +385,29 @@ the web command which does not provide edit. See [installing](#installing).
 Examples:
 
     $ hledger web
-    $ hledger web -E -B  p 'this year'
-    $ hledger web --base-url http://this.vhost.com --port 5010 --debug -f my.journal
+    $ hledger web -E -B --depth 2
+    $ hledger web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
 
 About the edit command: warning, this is the first hledger feature which
 can alter your existing journal data.  You can edit, or erase, the journal
 file through the web ui. There is no access control. A numbered backup of
 the file will be saved at each edit, in normal circumstances (eg if file
 permissions allow, disk is not full, etc.)
+
+There are some options specific to the web server:
+
+    --port=N           web: serve on tcp port N (default 5000)
+
+hledger will serve pages on port 5000 by default.
+
+    --base-url=URL     web: use this base url (default http://localhost:PORT)
+
+Hyperlinks in the web interface all point to "localhost" by default, so if
+you want to visit the hledger web server from other machines, you'll need
+to use this option. Just give your machine's host name or ip address
+instead of localhost. This option may also be useful when running hledger
+behind a reverse proxy, to conform to your url scheme. Note that the PORT
+in the base url need not be the same as the `--port` argument.
 
 #### Other commands
 
