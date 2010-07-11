@@ -551,34 +551,33 @@ subsequent dates may be written as month/day. Eg:
     
     1/31 ...
 
-##### Actual and effective dates
+##### Actual/effective dates
 
-Frequently, a real-life transaction has two (or more) dates of
-interest. For example, you might make a purchase on friday with a debit
-card, and it might clear (take effect in your bank account) on
-tuesday. It's sometimes useful to model this accurately, so that your
-hledger balances match reality. So, you can specify two dates for a
-transaction, the *actual* and *effective* date, separated by `=`. Eg:
+Real-life transactions sometimes have two (or more) dates of interest.
+For example, you might buy a movie ticket on friday with a debit or credit
+card, and the transaction might appear in your bank account on monday.
+When you don't care about this, just record one date. When you do care,
+you can record two dates separated by `=`: the *actual date* on the left
+and the *effective date* on the right. Here's how hledger and ledger users
+use these terms:
 
-    2010/2/19=2010/2/23 ...
+    ; The ticket purchase took EFFECT on friday 19th,
+    ; but ACTUALly appeared in bank statement on monday 23rd.
+    ; The effective date is often the earlier one, but it goes on the right.
+    ;
+    ;  ACTUAL=EFFECTIVE
+    2010/2/23=2010/2/19 movie ticket
+      expenses:cinema        $10
+      assets:bank:checking  $-10
 
-Then you can use the `--effective` flag to prefer the effective (second)
-date, if any, in reports. This is useful for, eg, seeing a more accurate
-daily balance while reconciling a bank account.
+You can use the `--effective` flag to prefer the effective date in
+reports.  This can be useful, eg, to adjust your transaction dates to
+match the ones in your bank statement for easier reconciling.
 
-So, what do *actual* and *effective* mean, exactly ? I always assumed that
-the actual date comes first, and is "the date you enacted the
-transaction", while the effective date comes second, and is optional, and
-is "the date the transaction took effect" (showed up in your bank
-balance).
+The year may optionally be omitted in the second date.
 
-Unfortunately, this is the reverse of c++ ledger's interpretation (cf
-[differences](#other-differences)). However it's not *too* serious; just
-remember that hledger requires the first date; allows an optional second
-date which the `--effective` flag will select; and the meaning of "actual"
-and "effective" is up to you.
-
-The second date may omit the year if it is the same as the first's.
+hledger does not allow separate dates for individual postings, unlike c++
+ledger.
 
 ##### Smart dates
 
