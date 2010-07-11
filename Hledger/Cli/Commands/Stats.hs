@@ -20,7 +20,9 @@ import qualified Data.Map as Map
 stats :: [Opt] -> [String] -> Journal -> IO ()
 stats opts args j = do
   today <- getCurrentDay
-  putStr $ showStats opts args (journalToLedger nullfilterspec j) today
+  t <- getCurrentLocalTime
+  let filterspec = optsToFilterSpec opts args t
+  putStr $ showStats opts args (journalToLedger filterspec j) today
 
 showStats :: [Opt] -> [String] -> Ledger -> Day -> String
 showStats _ _ l today =
