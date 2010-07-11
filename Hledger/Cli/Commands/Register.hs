@@ -150,7 +150,7 @@ showPostingsWithBalance (p:ps) pprev bal = this ++ showPostingsWithBalance ps p 
 
 -- | Show one posting and running balance, with or without transaction info.
 showPostingWithBalance :: Bool -> Posting -> MixedAmount -> String
-showPostingWithBalance withtxninfo p b = concatBottomPadded [txninfo ++ pstr ++ " ", bal] ++ "\n"
+showPostingWithBalance withtxninfo p b = concatTopPadded [txninfo, pstr, " ", bal] ++ "\n"
     where
       ledger3ishlayout = False
       datedescwidth = if ledger3ishlayout then 34 else 32

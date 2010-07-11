@@ -78,13 +78,18 @@ showTransaction' elide effective t =
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]
           | otherwise = map showposting ps
           where
-            showposting p = showacct p ++ "  " ++ showamount (pamount p) ++ showcomment (pcomment p)
             showpostingnoamt p = rstrip $ showacct p ++ "              " ++ showcomment (pcomment p)
+            showposting p = concatTopPadded [showacct p
+                                            ,"  "
+                                            ,showamt (pamount p)
+                                            ,showcomment (pcomment p)
+                                            ]
             showacct p = "    " ++ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
-            w = maximum $ map (length . paccount) ps
-            showamount = printf "%12s" . showMixedAmountOrZero
+                where w = maximum $ map (length . paccount) ps
+                      showstatus p = if pstatus p then "* " else ""
+            showamt =
+                padleft 12 . showMixedAmountOrZero
             showcomment s = if null s then "" else "  ; "++s
-            showstatus p = if pstatus p then "* " else ""
 
 -- | Show an account name, clipped to the given width if any, and
 -- appropriately bracketed/parenthesised for the given posting type.

@@ -1,0 +1,41 @@
+# test mixed amount layout with various commands
+bin/hledger -f - print
+<<<
+2010/1/1
+    a  EUR 1  ; a euro
+    b  USD 1  ; a dollar
+    c         ; a euro and a dollar
+>>>
+2010/01/01 
+    a         EUR 1  ; a euro
+    b         USD 1  ; a dollar
+             EUR -1                       
+    c        USD -1  ; a euro and a dollar
+
+#
+bin/hledger -f - register
+<<<
+2010/1/1
+    a  EUR 1  ; a euro
+    b  USD 1  ; a dollar
+    c         ; a euro and a dollar
+>>>
+2010/01/01                      a                             EUR 1        EUR 1
+                                                                           EUR 1
+                                b                             USD 1        USD 1
+                                                             EUR -1             
+                                c                            USD -1            0
+#
+bin/hledger -f - balance
+<<<
+2010/1/1
+    a  EUR 1  ; a euro
+    b  USD 1  ; a dollar
+    c         ; a euro and a dollar
+>>>
+               EUR 1  a
+               USD 1  b
+              EUR -1   
+              USD -1  c
+--------------------
+               EUR 0
