@@ -35,6 +35,7 @@ showPosting (Posting{paccount=a,pamount=amt,pcomment=com,ptype=t}) =
       showamount = padleft 12 . showMixedAmountOrZero
       comment = if null com then "" else "  ; " ++ com
 -- XXX refactor
+showPostingForRegister :: Posting -> String
 showPostingForRegister (Posting{paccount=a,pamount=amt,ptype=t}) =
     concatTopPadded [showaccountname a ++ " ", showamount amt]
     where
