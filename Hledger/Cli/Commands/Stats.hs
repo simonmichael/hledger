@@ -9,26 +9,31 @@ module Hledger.Cli.Commands.Stats
 where
 import Hledger.Data
 import Hledger.Cli.Options
+import qualified Data.Map as Map
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding ( putStr )
 import System.IO.UTF8
 #endif
-import qualified Data.Map as Map
 
 
+-- like Register.summarisePostings
 -- | Print various statistics for the ledger.
 stats :: [Opt] -> [String] -> Journal -> IO ()
 stats opts args j = do
   today <- getCurrentDay
   t <- getCurrentLocalTime
   let filterspec = optsToFilterSpec opts args t
-  putStr $ showStats opts args (journalToLedger filterspec j) today
+      l = journalToLedger filterspec j
+      reportspan = (ledgerDateSpan l) `orDatesFrom` (datespan filterspec)
+      intervalspans = splitSpan (intervalFromOpts opts) reportspan
+      showstats = showLedgerStats opts args l today
+      s = intercalate "\n" $ map showstats intervalspans
+  putStr s
 
-showStats :: [Opt] -> [String] -> Ledger -> Day -> String
-showStats _ _ l today =
-    heading ++ unlines (map (uncurry (printf fmt)) stats)
+showLedgerStats :: [Opt] -> [String] -> Ledger -> Day -> DateSpan -> String
+showLedgerStats _ _ l today span =
+    unlines (map (uncurry (printf fmt)) stats)
     where
-      heading = underline $ printf "Ledger statistics as of %s" (show today)
       fmt = "%-" ++ show w1 ++ "s: %-" ++ show w2 ++ "s"
       w1 = maximum $ map (length . fst) stats
       w2 = maximum $ map (length . show . snd) stats
@@ -41,14 +46,16 @@ showStats _ _ l today =
         ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
         ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
         ,("Accounts", printf "%d (depth %d)" acctnum acctdepth)
-        ,("Commodities", printf "%s (%s)" (show $ length $ cs) (intercalate ", " $ sort $ map symbol cs)) 
+        ,("Commodities", printf "%s (%s)" (show $ length cs) (intercalate ", " cs))
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
       -- Uncleared transactions      : %(uncleared)s
       -- Days since reconciliation   : %(reconcileelapsed)s
       -- Days since last transaction : %(recentelapsed)s
        ]
            where
-             ts = sortBy (comparing tdate) $ jtxns $ journal l
+             ts = sortBy (comparing tdate) $ filter (spanContainsDate span . tdate) $ jtxns $ journal l
+             as = nub $ map paccount $ concatMap tpostings ts
+             cs = Map.keys $ canonicaliseCommodities $ nub $ map commodity $ concatMap amounts $ map pamount $ concatMap tpostings ts
              lastdate | null ts = Nothing
                       | otherwise = Just $ tdate $ last ts
              lastelapsed = maybe Nothing (Just . diffDays today) lastdate
@@ -58,7 +65,6 @@ showStats _ _ l today =
                                              direction | days >= 0 = "days ago"
                                                        | otherwise = "days from now"
              tnum = length ts
-             span = rawdatespan l
              start (DateSpan (Just d) _) = show d
              start _ = ""
              end (DateSpan _ (Just d)) = show d
@@ -74,7 +80,5 @@ showStats _ _ l today =
              txnrate7 = fromIntegral tnum7 / 7 :: Double
              acctnum = length as
              acctdepth | null as = 0
-                       | otherwise = maximum $ map (accountNameLevel.aname) as
-             as = accounts l
-             cs = Map.elems $ commodities l
+                       | otherwise = maximum $ map accountNameLevel as
 
