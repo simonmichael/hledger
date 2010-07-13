@@ -39,6 +39,7 @@ See "Hledger.Data.Ledger" for more examples.
 -}
 
 module Hledger.Cli.Main where
+import System.Info (os)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8
@@ -62,7 +63,7 @@ main = do
        | HelpAll `elem` opts          = putStr $ help1 ++ "\n" ++ help2
        | Version `elem` opts          = putStrLn versionmsg
        | BinaryFilename `elem` opts   = putStrLn binaryfilename
-       | null cmd                     = putStr help1
+       | null cmd                     = maybe (putStr help1) (withJournalDo opts args cmd) defaultcmd
        | cmd `isPrefixOf` "balance"   = withJournalDo opts args cmd balance
        | cmd `isPrefixOf` "convert"   = withJournalDo opts args cmd convert
        | cmd `isPrefixOf` "print"     = withJournalDo opts args cmd print'
@@ -81,3 +82,11 @@ main = do
 #endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr help1
+
+-- in a web-enabled build on windows, run the web ui by default
+#if defined(WEB) || defined(WEB610)
+      defaultcmd | os=="mingw32" = Just web
+                 | otherwise = Nothing
+#else
+      defaultcmd = Nothing
+#endif
