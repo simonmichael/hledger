@@ -28,13 +28,14 @@ import qualified Data.Foldable as Foldable (find)
 -- command has no effect.
 add :: [Opt] -> [String] -> Journal -> IO ()
 add opts args j
-    | filepath j == "-" = return ()
+    | f == "-" = return ()
     | otherwise = do
   hPutStrLn stderr $
     "Enter one or more transactions, which will be added to your journal file.\n"
     ++"To complete a transaction, enter . as account name. To quit, press control-c."
   today <- getCurrentDay
   getAndAddTransactions j opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
+      where f = filepath j
 
 -- | Read a number of transactions from the command line, prompting,
 -- validating, displaying and appending them to the journal file, until

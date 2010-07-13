@@ -23,7 +23,7 @@ import Hledger.Data
 import Hledger.Read
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
 import Safe (readMay)
-import System.Directory (doesFileExist, getModificationTime, getDirectoryContents, copyFile)
+import System.Directory (getModificationTime, getDirectoryContents, copyFile)
 import System.Exit
 import System.FilePath ((</>), splitFileName, takeDirectory)
 import System.Info (os)
@@ -34,25 +34,21 @@ import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 -- | Parse the user's specified journal file and run a hledger command on
 -- it, or throw an error.
 withJournalDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> Journal -> IO ()) -> IO ()
-withJournalDo opts args cmdname cmd = do
+withJournalDo opts args _ cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  f <- journalFilePathFromOpts opts
-  fileexists <- doesFileExist f
-  let creating = not fileexists && cmdname == "add"
+  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either error runcmd
+    where
       costify = (if CostBasis `elem` opts then journalConvertAmountsToCost else id)
       runcmd = cmd opts args . costify
-  if creating
-   then runcmd nulljournal
-   else readJournalFile Nothing f >>= either error runcmd
 
 -- | Get a journal from the given string and options, or throw an error.
 readJournalWithOpts :: [Opt] -> String -> IO Journal
 readJournalWithOpts opts s = do
-    j <- readJournal Nothing s >>= either error return
-    let cost = CostBasis `elem` opts
-    return $ (if cost then journalConvertAmountsToCost else id) j
+  j <- readJournal Nothing s >>= either error return
+  return $ (if cost then journalConvertAmountsToCost else id) j
+    where cost = CostBasis `elem` opts
 
 -- | Re-read a journal from its data file, or return an error string.
 journalReload :: Journal -> IO (Either String Journal)

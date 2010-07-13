@@ -16,16 +16,18 @@ module Hledger.Read (
        myTimelog,
 )
 where
+import Hledger.Data.Dates (getCurrentDay)
 import Hledger.Data.Types (Journal(..))
 import Hledger.Data.Utils
 import Hledger.Read.Common
 import Hledger.Read.Journal as Journal
 import Hledger.Read.Timelog as Timelog
+import Hledger.Cli.Version (version)
 
 import Control.Monad.Error
 import Data.Either (partitionEithers)
 import Safe (headDef)
-import System.Directory (getHomeDirectory)
+import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.FilePath ((</>))
 import System.IO (IOMode(..), withFile, hGetContents, stderr)
@@ -82,10 +84,28 @@ journalFromPathAndString format fp s = do
                 fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
 
 -- | Read a journal from this file, using the specified data format or
--- trying all known formats, or give an error string.
+-- trying all known formats, or give an error string; also create the file
+-- if it doesn't exist.
 readJournalFile :: Maybe String -> FilePath -> IO (Either String Journal)
 readJournalFile format "-" = getContents >>= journalFromPathAndString format "(stdin)"
-readJournalFile format f   = withFile f ReadMode $ \h -> hGetContents h >>= journalFromPathAndString format f
+readJournalFile format f = do
+  ensureJournalFile f
+  withFile f ReadMode $ \h -> hGetContents h >>= journalFromPathAndString format f
+
+-- | Ensure there is a journal at the given file path, creating an empty one if needed.
+ensureJournalFile :: FilePath -> IO ()
+ensureJournalFile f = do
+  exists <- doesFileExist f
+  when (not exists) $ do
+    printf "No journal file at %s, creating...\n" f
+    printf "Edit this file or use hledger add or hledger web to add transactions.\n"
+    emptyJournal >>= writeFile f
+
+-- | Give the content for a new auto-created journal file.
+emptyJournal :: IO String
+emptyJournal = do
+  d <- getCurrentDay
+  return $ printf "; journal created by hledger %s on %s\n; see http://hledger.org/MANUAL.html#file-format\n\n" version (show d)
 
 -- | Read a Journal from this string, using the specified data format or
 -- trying all known formats, or give an error string.
