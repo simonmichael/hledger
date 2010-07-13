@@ -276,6 +276,9 @@ Examples:
     $ hledger register
     $ hledger register --monthly -E rent
 
+Note `--depth` doesn't work too well with `register` currently;
+it hides deeper postings rather than aggregating them.
+
 ##### balance
 
 The balance command displays accounts and their balances, indented to show the account hierarchy.
@@ -294,7 +297,8 @@ With `--flat`, a non-hierarchical list of full account names is displayed
 instead. This mode shows just the accounts actually contributing to the
 balance, making the arithmetic a little more obvious to non-hledger users.
 In this mode you can also use `--drop N` to elide the first few account
-name components.
+name components. Note `--depth` doesn't work too well with `--flat` currently;
+it hides deeper accounts rather than aggregating them.
 
 ##### chart
 
