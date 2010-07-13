@@ -75,11 +75,11 @@ with the cabal-install tool:
       [gtk2hs install docs](http://code.haskell.org/gtk2hs/INSTALL).
       At present this add a lot of build complexity for not much gain.
 
-    - `-fvty` - builds the [vty](#vty) command, enabling a basic
+    - `-fvty` builds the [vty](#vty) command, enabling a basic
       curses-style user interface. This does not work on microsoft
       windows, unless possibly with cygwin.
 
-    - `-fweb` - builds the [web](#web) command, enabling a web-based user
+    - `-fweb` builds the [web](#web) command, enabling a web-based user
       interface (requires ghc 6.12). If you are stuck with ghc 6.10, you
       can use `-fweb610` instead, to build an older version of the
       [web](#web) command.
@@ -127,11 +127,12 @@ You'll find more examples below.
 ### File format
 
 hledger's data file, aka the journal, is a plain text representation of a
-standard accounting general journal. It contains a number of transactions, each
-describing a transfer of money (or another commodity) between two or more
-named accounts. Here's an example:
+standard accounting
+[general journal](http://en.wikipedia.org/wiki/General_journal). It
+contains a number of transactions, each describing a transfer of money (or
+another commodity) between two or more named accounts. Here's an example:
 
-    ; A samplejournal file. This is a comment.
+    ; A sample journal file. This is a comment.
     
     2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
         assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
