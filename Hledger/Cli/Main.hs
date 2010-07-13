@@ -57,9 +57,12 @@ main = do
   run cmd opts args
     where
       run cmd opts args
-       | Help `elem` opts             = putStr usage
+       | Help `elem` opts             = putStr help1
+       | HelpOptions `elem` opts      = putStr help2
+       | HelpAll `elem` opts          = putStr $ help1 ++ "\n" ++ help2
        | Version `elem` opts          = putStrLn versionmsg
        | BinaryFilename `elem` opts   = putStrLn binaryfilename
+       | null cmd                     = putStr help1
        | cmd `isPrefixOf` "balance"   = withJournalDo opts args cmd balance
        | cmd `isPrefixOf` "convert"   = withJournalDo opts args cmd convert
        | cmd `isPrefixOf` "print"     = withJournalDo opts args cmd print'
@@ -77,4 +80,4 @@ main = do
        | cmd `isPrefixOf` "chart"       = withJournalDo opts args cmd chart
 #endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
-       | otherwise                    = putStr usage
+       | otherwise                    = putStr help1

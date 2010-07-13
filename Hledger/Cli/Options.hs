@@ -20,12 +20,12 @@ chartitems    = 10
 chartsize     = "600x400"
 #endif
 
-usagehdr =
-  "Usage: hledger [OPTIONS] [COMMAND [PATTERNS]]\n" ++
+help1 =
+  "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
   "       hledger [OPTIONS] convert CSVFILE\n" ++
   "       hledger [OPTIONS] stats\n" ++
   "\n" ++
-  "hledger uses your ~/.ledger or $LEDGER file, or another specified with -f\n" ++
+  "hledger reads your ~/.ledger file, or another specified with $LEDGER or -f\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
   "  add       - prompt for new transactions and add them to the ledger\n" ++
@@ -52,52 +52,55 @@ usagehdr =
   "\n" ++
   "DATES can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
   "\n" ++
-  "Options:"
+  "Use --help-options to see OPTIONS, or --help-all/-H.\n" ++
+  ""
 
-usageftr = ""
-usage = usageInfo usagehdr options ++ usageftr
+help2 = usageInfo "Options:\n" options
 
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
 options = [
   Option "f" ["file"]         (ReqArg File "FILE")   "use a different ledger/timelog file; - means stdin"
- ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)   "don't allow to create new accounts"
+ ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "don't allow to create new accounts"
  ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
  ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
  ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
-                                                       "and/or with the specified reporting interval\n")
+                                                      "and/or with the specified reporting interval\n")
  ,Option "C" ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
  ,Option "U" ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
  ,Option "B" ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
- ,Option ""    ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
+ ,Option ""  ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
  ,Option "d" ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
-                                                        "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
- ,Option ""    ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
+                                                       "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
+ ,Option ""  ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
  ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
  ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
- ,Option ""  ["flat"]         (NoArg  Flat)          "balance report: show full account names, unindented"
- ,Option ""    ["drop"]       (ReqArg Drop "N")     "balance report: with --flat, elide first N account name components"
- ,Option ""    ["no-total"]     (NoArg  NoTotal)       "balance report: hide the final total"
--- ,Option "s" ["subtotal"]     (NoArg  SubTotal)      "balance report: show subaccounts"
- ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register report: show weekly summary"
- ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register report: show monthly summary"
- ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register report: show quarterly summary"
- ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register report: show yearly summary"
-#ifdef WEB
- ,Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "web: use this base url (default http://localhost:PORT)"
- ,Option ""  ["port"]         (ReqArg Port "N")      "web: serve on tcp port N (default 5000)"
-#endif
- ,Option "h"  ["help"] (NoArg  Help)                  "show this help"
- ,Option "V" ["version"]      (NoArg  Version)       "show version information"
- ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
- ,Option ""    ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
- ,Option ""    ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
- ,Option ""    ["debug-vty"]  (NoArg  DebugVty)     "run vty command with no vty output, showing console"
+ ,Option ""  ["flat"]         (NoArg  Flat)          "balance: show full account names, unindented"
+ ,Option ""  ["drop"]         (ReqArg Drop "N")      "balance: with --flat, elide first N account name components"
+ ,Option ""  ["no-total"]     (NoArg  NoTotal)       "balance: hide the final total"
+ ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register, stats: report by week"
+ ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
+ ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
+ ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register, stats: report by year"
 #ifdef CHART
  ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    ("chart: output filename (default: "++chartoutput++")")
  ,Option ""  ["items"]  (ReqArg ChartItems "N")         ("chart: number of accounts to show (default: "++show chartitems++")")
  ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") ("chart: image size (default: "++chartsize++")")
 #endif
+#ifdef VTY
+ ,Option ""  ["debug-vty"]    (NoArg  DebugVty)      "vty: run with no terminal output, showing console"
+#endif
+#ifdef WEB
+ ,Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "web: use this base url (default http://localhost:PORT)"
+ ,Option ""  ["port"]         (ReqArg Port "N")      "web: serve on tcp port N (default 5000)"
+#endif
+ ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
+ ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
+ ,Option ""  ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
+ ,Option "V" ["version"]      (NoArg  Version)       "show version information"
+ ,Option "h" ["help"]         (NoArg  Help)          "show basic command-line usage"
+ ,Option ""  ["help-options"] (NoArg  HelpOptions)   "show command-line options"
+ ,Option "H" ["help-all"]     (NoArg  HelpAll)       "show command-line usage and options"
  ]
 
 -- | An option value from a command-line flag.
@@ -128,6 +131,8 @@ data Opt =
     Port    {value::String} |
 #endif
     Help |
+    HelpOptions |
+    HelpAll |
     Verbose |
     Version
     | BinaryFilename
@@ -167,7 +172,7 @@ parseArguments = do
   case (as,es) of
     (cmd:args,[])   -> return (os'',cmd,args)
     ([],[])         -> return (os'',"",[])
-    (_,errs)        -> ioError (userError (concat errs ++ usage))
+    (_,errs)        -> ioError (userError (concat errs ++ help1))
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.
