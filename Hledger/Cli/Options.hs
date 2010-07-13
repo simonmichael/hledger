@@ -35,14 +35,23 @@ help1 =
   "  print     - show transactions in ledger format\n" ++
   "  register  - show transactions as a register with running balance\n" ++
   "  stats     - show various statistics for a ledger\n" ++
+  "  vty       - run a simple curses-style UI" ++
 #ifdef VTY
-  "  vty       - run a simple curses-style UI\n" ++
+  "\n" ++
+#else
+  " (DISABLED, install with -fvty)\n" ++
 #endif
+  "  web       - run a simple web-based UI" ++
 #if defined(WEB) || defined(WEB610)
-  "  web       - run a simple web-based UI\n" ++
+  "\n" ++
+#else
+  " (DISABLED, install with -fweb or -fweb610)\n" ++
 #endif
+  "  chart     - generate balances pie charts" ++
 #ifdef CHART
-  "  chart     - generate balances pie chart\n" ++
+  "\n" ++
+#else
+  " (DISABLED, install with -fchart)\n" ++
 #endif
   "  test      - run self-tests\n" ++
   "\n" ++
