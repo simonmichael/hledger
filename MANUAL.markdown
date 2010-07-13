@@ -330,11 +330,13 @@ Examples:
 
 ##### stats
 
-The stats command displays quick summary information for the ledger.
+The stats command displays quick summary information for the whole ledger,
+or by period.
 
 Examples:
 
     $ hledger stats
+    $ hledger stats -p 'monthly in 2009'
 
 ##### vty
 
