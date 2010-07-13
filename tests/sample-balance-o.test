@@ -1,4 +1,4 @@
-bin/hledger -f data/sample.ledger balance o
+bin/hledger -f data/sample.journal balance o
 >>>
                   $1  expenses:food
                  $-2  income

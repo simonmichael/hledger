@@ -1,4 +1,4 @@
-bin/hledger -f data/sample.ledger balance --depth 1
+bin/hledger -f data/sample.journal balance --depth 1
 >>>
                  $-1  assets
                   $2  expenses

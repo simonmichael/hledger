@@ -1,5 +1,5 @@
 # add's default amounts should not fail to balance due to precision
-bin/hledger -f nosuch.ledger add
+bin/hledger -f nosuch.journal add
 <<<
 2010/1/1
 x

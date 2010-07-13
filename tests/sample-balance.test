@@ -1,4 +1,4 @@
-bin/hledger -f data/sample.ledger balance
+bin/hledger -f data/sample.journal balance
 >>>
                  $-1  assets
                   $1    bank:saving
