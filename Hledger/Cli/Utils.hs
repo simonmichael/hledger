@@ -93,18 +93,17 @@ openBrowserOn u = trybrowsers browsers u
           ExitSuccess -> return ExitSuccess
           ExitFailure _ -> trybrowsers bs u
       trybrowsers [] u = do
-        putStrLn $ printf "Sorry, I could not start a browser (tried: %s)" $ intercalate ", " browsers
+        putStrLn $ printf "Could not start a web browser (tried: %s)" $ intercalate ", " browsers
         putStrLn $ printf "Please open your browser and visit %s" u
         return $ ExitFailure 127
       browsers | os=="darwin"  = ["open"]
-               | os=="mingw32" = ["start"]
+               | os=="mingw32" = ["c:/Program Files/Mozilla Firefox/firefox.exe"]
                | otherwise     = ["sensible-browser","gnome-www-browser","firefox"]
     -- jeffz: write a ffi binding for it using the Win32 package as a basis
     -- start by adding System/Win32/Shell.hsc and follow the style of any
     -- other module in that directory for types, headers, error handling and
     -- what not.
     -- ::ShellExecute(NULL, "open", "www.somepage.com", NULL, NULL, SW_SHOWNORMAL);
-    -- ::ShellExecute(NULL, "open", "firefox.exe", "www.somepage.com" NULL, SW_SHOWNORMAL);
 
 -- | Back up this file with a (incrementing) numbered suffix then
 -- overwrite it with this new text, or give an error, but only if the text
