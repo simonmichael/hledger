@@ -23,15 +23,15 @@ import Text.ParserCombinators.Parsec
 import Hledger.Cli.Utils (readJournalWithOpts)
 import qualified Data.Foldable as Foldable (find)
 
--- | Read ledger transactions from the terminal, prompting for each field,
--- and append them to the ledger file. If the ledger came from stdin, this
+-- | Read transactions from the terminal, prompting for each field,
+-- and append them to the journal file. If the journal came from stdin, this
 -- command has no effect.
 add :: [Opt] -> [String] -> Journal -> IO ()
 add opts args j
     | filepath j == "-" = return ()
     | otherwise = do
   hPutStrLn stderr $
-    "Enter one or more transactions, which will be added to your ledger file.\n"
+    "Enter one or more transactions, which will be added to your journal file.\n"
     ++"To complete a transaction, enter . as account name. To quit, press control-c."
   today <- getCurrentDay
   getAndAddTransactions j opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
@@ -148,13 +148,13 @@ appendToJournalFile Journal{filepath=f, jtext=t} s =
     then putStr $ sep ++ s
     else appendFile f $ sep++s
     where 
-      -- XXX we are looking at the original raw text from when the ledger
+      -- XXX we are looking at the original raw text from when the journal
       -- was first read, but that's good enough for now
       sep | null $ strip t = ""
           | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
           where lastnls = takeWhile (=='\n') $ reverse t
 
--- | Convert a string of ledger data into a register report.
+-- | Convert a string of journal data into a register report.
 registerFromString :: String -> IO String
 registerFromString s = do
   now <- getCurrentLocalTime

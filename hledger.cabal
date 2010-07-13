@@ -3,7 +3,7 @@ version: 0.10
 category:       Finance
 synopsis:       A command-line (or curses or web-based) double-entry accounting tool.
 description:
-                hledger reads a plain text ledger file or timelog
+                hledger reads a plain text general journal or time log
                 describing your transactions and displays precise
                 balance and register reports via command-line, curses
                 or web interface.  It is a remix, in haskell, of John
@@ -31,7 +31,7 @@ extra-source-files:
   MANUAL.markdown
   NEWS.rst
   CONTRIBUTORS.rst
-  data/sample.ledger
+  data/sample.journal
   data/sample.timelog
   data/sample.rules
 

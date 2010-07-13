@@ -1,5 +1,5 @@
 {-|
-Convert account data in CSV format (eg downloaded from a bank) to ledger
+Convert account data in CSV format (eg downloaded from a bank) to journal
 format, and print it on stdout. See the manual for more details.
 -}
 
@@ -31,7 +31,7 @@ import Test.HUnit
 
 {- |
 A set of data definitions and account-matching patterns sufficient to
-convert a particular CSV data file into meaningful ledger transactions. See above.
+convert a particular CSV data file into meaningful journal transactions. See above.
 -}
 data CsvRules = CsvRules {
       dateField :: Maybe FieldPosition,

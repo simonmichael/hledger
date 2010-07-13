@@ -16,7 +16,7 @@ import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldatespan)
-import Hledger.Data.Transaction (ledgerTransactionWithDate)
+import Hledger.Data.Transaction (journalTransactionWithDate)
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
 
@@ -129,20 +129,20 @@ filterJournalPostings FilterSpec{datespan=datespan
     filterJournalTransactionsByDate datespan .
     journalSelectingDate whichdate
 
--- | Keep only ledger transactions whose description matches the description patterns.
+-- | Keep only transactions whose description matches the description patterns.
 filterJournalTransactionsByDescription :: [String] -> Journal -> Journal
 filterJournalTransactionsByDescription pats j@Journal{jtxns=ts} = j{jtxns=filter matchdesc ts}
     where matchdesc = matchpats pats . tdescription
 
--- | Keep only ledger transactions which fall between begin and end dates.
+-- | Keep only transactions which fall between begin and end dates.
 -- We include transactions on the begin date and exclude transactions on the end
 -- date, like ledger.  An empty date string means no restriction.
 filterJournalTransactionsByDate :: DateSpan -> Journal -> Journal
 filterJournalTransactionsByDate (DateSpan begin end) j@Journal{jtxns=ts} = j{jtxns=filter match ts}
     where match t = maybe True (tdate t>=) begin && maybe True (tdate t<) end
 
--- | Keep only ledger transactions which have the requested
--- cleared/uncleared status, if there is one.
+-- | Keep only transactions which have the requested cleared/uncleared
+-- status, if there is one.
 filterJournalTransactionsByClearedStatus :: Maybe Bool -> Journal -> Journal
 filterJournalTransactionsByClearedStatus Nothing j = j
 filterJournalTransactionsByClearedStatus (Just val) j@Journal{jtxns=ts} = j{jtxns=filter match ts}
@@ -175,7 +175,7 @@ filterJournalTransactionsByDepth (Just d) j@Journal{jtxns=ts} =
     j{jtxns=(filter (any ((<= d+1) . accountNameLevel . paccount) . tpostings) ts)}
 
 -- | Strip out any postings to accounts deeper than the specified depth
--- (and any ledger transactions which have no postings as a result).
+-- (and any transactions which have no postings as a result).
 filterJournalPostingsByDepth :: Maybe Int -> Journal -> Journal
 filterJournalPostingsByDepth Nothing j = j
 filterJournalPostingsByDepth (Just d) j@Journal{jtxns=ts} =
@@ -208,7 +208,7 @@ filterJournalPostingsByAccount apats j@Journal{jtxns=ts} = j{jtxns=map filterpos
 journalSelectingDate :: WhichDate -> Journal -> Journal
 journalSelectingDate ActualDate j = j
 journalSelectingDate EffectiveDate j =
-    j{jtxns=map (ledgerTransactionWithDate EffectiveDate) $ jtxns j}
+    j{jtxns=map (journalTransactionWithDate EffectiveDate) $ jtxns j}
 
 -- | Do post-parse processing on a journal, to make it ready for use.
 journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> Journal -> Journal
@@ -306,7 +306,7 @@ journalDateSpan j
     where
       ts = sortBy (comparing tdate) $ jtxns j
 
--- | Check if a set of ledger account/description patterns matches the
+-- | Check if a set of hledger account/description filter patterns matches the
 -- given account name or entry description.  Patterns are case-insensitive
 -- regular expressions. Prefixed with not:, they become anti-patterns.
 matchpats :: [String] -> String -> Bool

@@ -15,7 +15,7 @@ import System.IO.UTF8
 #endif
 
 
--- | Print ledger transactions in standard format.
+-- | Print journal transactions in standard format.
 print' :: [Opt] -> [String] -> Journal -> IO ()
 print' opts args j = do
   t <- getCurrentLocalTime

@@ -10,7 +10,7 @@ CICMD=test
 #CICMD=web -f t.journal --debug
 
 # command line to run during "make prof" and "make heap"
-PROFCMD=bin/hledgerp -f data/1000x1000x10.ledger balance >/dev/null
+PROFCMD=bin/hledgerp -f data/1000x1000x10.journal balance >/dev/null
 
 # command to run during "make coverage"
 COVCMD=test
@@ -128,9 +128,9 @@ tools/criterionbench: tools/criterionbench.hs
 tools/progressionbench: tools/progressionbench.hs
 	ghc --make tools/progressionbench.hs
 
-# build the generateledger tool
-tools/generateledger: tools/generateledger.hs
-	ghc --make tools/generateledger.hs
+# build the generatejournal tool
+tools/generatejournal: tools/generatejournal.hs
+	ghc --make tools/generatejournal.hs
 
 ######################################################################
 # TESTING
@@ -208,27 +208,27 @@ fullcabaltest: setversion
 
 # run performance benchmarks without saving results.
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
-quickbench: sampleledgers bench.tests tools/simplebench
+quickbench: samplejournals bench.tests tools/simplebench
 	tools/simplebench -fbench.tests $(BENCHEXES)
 	@rm -f benchresults.*
 
 # run performance benchmarks and save textual results in profs/.
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
-simplebench: sampleledgers bench.tests tools/simplebench
+simplebench: samplejournals bench.tests tools/simplebench
 	tools/simplebench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
 
 # run criterion benchmark tests and save graphical results
-criterionbench: sampleledgers tools/criterionbench
+criterionbench: samplejournals tools/criterionbench
 	tools/criterionbench -t png -k png
 
 # run progression benchmark tests and save graphical results
-progressionbench: sampleledgers tools/progressionbench
+progressionbench: samplejournals tools/progressionbench
 	tools/progressionbench -- -t png -k png
 
 # generate, save, simplify and display an execution profile
-prof: sampleledgers hledgerp
+prof: samplejournals hledgerp
 	@echo "Profiling: $(PROFCMD)"
 	-$(PROFCMD) +RTS -p -RTS
 	mv hledgerp.prof profs/$(TIME)-orig.prof
@@ -237,13 +237,13 @@ prof: sampleledgers hledgerp
 	echo; cat profs/latest.prof
 
 # generate and display an execution profile, don't save or simplify
-quickprof: sampleledgers hledgerp
+quickprof: samplejournals hledgerp
 	@echo "Profiling: $(PROFCMD)"
 	-$(PROFCMD) +RTS -p -RTS
 	echo; cat hledgerp.prof
 
 # generate, save and display a graphical heap profile
-heap: sampleledgers hledgerp
+heap: samplejournals hledgerp
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
 	mv hledgerp.hp profs/$(TIME).hp
@@ -252,14 +252,14 @@ heap: sampleledgers hledgerp
 	$(VIEWPS) profs/latest.ps
 
 # generate and display a graphical heap profile, don't save
-quickheap: sampleledgers hledgerp
+quickheap: samplejournals hledgerp
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
 	hp2ps hledgerp.hp
 	$(VIEWPS) hledger.ps
 
 # generate and display a code coverage report
-coverage: sampleledgers hledgercov
+coverage: samplejournals hledgercov
 	@echo "Generating coverage report with $(COVCMD)"
 	tools/coverage "markup --destdir=profs/coverage" test
 	cd profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
@@ -269,23 +269,23 @@ coverage: sampleledgers hledgercov
 ghci:
 	ghci -DMAKE $(OPTFLAGS) hledger.hs
 
-# generate standard sample ledgers
-sampleledgers: data/sample.ledger data/100x100x10.ledger data/1000x1000x10.ledger data/10000x1000x10.ledger data/100000x1000x10.ledger
+# generate standard sample journals
+samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/10000x1000x10.journal data/100000x1000x10.journal
 
-data/sample.ledger:
+data/sample.journal:
 	true # XXX should probably regenerate this
 
-data/100x100x10.ledger: tools/generateledger
-	tools/generateledger 100 100 10 >$@
+data/100x100x10.journal: tools/generatejournal
+	tools/generatejournal 100 100 10 >$@
 
-data/1000x1000x10.ledger: tools/generateledger
-	tools/generateledger 1000 1000 10 >$@
+data/1000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 1000 1000 10 >$@
 
-data/10000x1000x10.ledger: tools/generateledger
-	tools/generateledger 10000 1000 10 >$@
+data/10000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 10000 1000 10 >$@
 
-data/100000x1000x10.ledger: tools/generateledger
-	tools/generateledger 100000 1000 10 >$@
+data/100000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 100000 1000 10 >$@
 
 ######################################################################
 # DOCUMENTATION

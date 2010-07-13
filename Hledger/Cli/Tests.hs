@@ -15,7 +15,7 @@ documentation in the source, run by doing @make doctest@ in the hledger
 source tree. They are no longer used, but here is an example:
 
 @
-$ hledger -f sample.ledger balance o
+$ hledger -f sample.journal balance o
                   $1  expenses:food
                  $-2  income
                  $-1    gifts
@@ -107,7 +107,7 @@ tests = TestList [
 
   ,"balance report tests" ~:
    let (opts,args) `gives` es = do 
-        l <- sampleledgerwithopts opts args
+        l <- samplejournalwithopts opts args
         t <- getCurrentLocalTime
         showBalanceReport opts (optsToFilterSpec opts args t) l `is` unlines es
    in TestList
@@ -384,7 +384,7 @@ tests = TestList [
     "assets:bank" `isSubAccountNameOf` "my assets" `is` False
 
   ,"default year" ~: do
-    rl <- readJournal Nothing defaultyear_ledger_str >>= either error return
+    rl <- readJournal Nothing defaultyear_journal_str >>= either error return
     tdate (head $ jtxns rl) `is` fromGregorian 2009 1 1
     return ()
 
@@ -410,7 +410,7 @@ tests = TestList [
    "print expenses" ~:
    do 
     let args = ["expenses"]
-    l <- sampleledgerwithopts [] args
+    l <- samplejournalwithopts [] args
     t <- getCurrentLocalTime
     showTransactions (optsToFilterSpec [] args t) l `is` unlines
      ["2008/06/03 * eat & shop"
@@ -422,7 +422,7 @@ tests = TestList [
 
   , "print report with depth arg" ~:
    do 
-    l <- sampleledger
+    l <- samplejournal
     t <- getCurrentLocalTime
     showTransactions (optsToFilterSpec [Depth "2"] [] t) l `is` unlines
       ["2008/01/01 income"
@@ -457,7 +457,7 @@ tests = TestList [
 
    "register report with no args" ~:
    do 
-    l <- sampleledger
+    l <- samplejournal
     showRegisterReport [] (optsToFilterSpec [] [] t1) l `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
@@ -475,7 +475,7 @@ tests = TestList [
   ,"register report with cleared option" ~:
    do 
     let opts = [Cleared]
-    l <- readJournalWithOpts opts sample_ledger_str
+    l <- readJournalWithOpts opts sample_journal_str
     showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
@@ -487,7 +487,7 @@ tests = TestList [
   ,"register report with uncleared option" ~:
    do 
     let opts = [UnCleared]
-    l <- readJournalWithOpts opts sample_ledger_str
+    l <- readJournalWithOpts opts sample_journal_str
     showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
@@ -512,21 +512,21 @@ tests = TestList [
 
   ,"register report with account pattern" ~:
    do
-    l <- sampleledger
+    l <- samplejournal
     showRegisterReport [] (optsToFilterSpec [] ["cash"] t1) l `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
   ,"register report with account pattern, case insensitive" ~:
    do 
-    l <- sampleledger
+    l <- samplejournal
     showRegisterReport [] (optsToFilterSpec [] ["cAsH"] t1) l `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
   ,"register report with display expression" ~:
    do 
-    l <- sampleledger
+    l <- samplejournal
     let gives displayexpr = 
             (registerdates (showRegisterReport opts (optsToFilterSpec opts [] t1) l) `is`)
                 where opts = [Display displayexpr]
@@ -538,9 +538,9 @@ tests = TestList [
 
   ,"register report with period expression" ~:
    do 
-    l <- sampleledger    
+    l <- samplejournal
     let periodexpr `gives` dates = do
-          l' <- sampleledgerwithopts opts []
+          l' <- samplejournalwithopts opts []
           registerdates (showRegisterReport opts (optsToFilterSpec opts [] t1) l') `is` dates
               where opts = [Period periodexpr]
     ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
@@ -568,7 +568,7 @@ tests = TestList [
 
   , "register report with depth arg" ~:
    do 
-    l <- sampleledger
+    l <- samplejournal
     let opts = [Depth "2"]
     showRegisterReport opts (optsToFilterSpec opts [] t1) l `is` unlines
      ["2008/01/01 income               income:salary                   $-1          $-1"
@@ -636,7 +636,7 @@ tests = TestList [
 --     "next january" `gives` "2009/01/01"
 
   ,"subAccounts" ~: do
-    l <- liftM (journalToLedger nullfilterspec) sampleledger
+    l <- liftM (journalToLedger nullfilterspec) samplejournal
     let a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
@@ -683,11 +683,11 @@ tests = TestList [
 date1 = parsedate "2008/11/26"
 t1 = LocalTime date1 midday
 
-sampleledger = readJournalWithOpts [] sample_ledger_str
-sampleledgerwithopts opts _ = readJournalWithOpts opts sample_ledger_str
+samplejournal = readJournalWithOpts [] sample_journal_str
+samplejournalwithopts opts _ = readJournalWithOpts opts sample_journal_str
 
-sample_ledger_str = unlines
- ["; A sample ledger file."
+sample_journal_str = unlines
+ ["; A sample journal file."
  ,";"
  ,"; Sets up this account tree:"
  ,"; assets"
@@ -729,7 +729,7 @@ sample_ledger_str = unlines
  ,";final comment"
  ]
 
-defaultyear_ledger_str = unlines
+defaultyear_journal_str = unlines
  ["Y2009"
  ,""
  ,"01/01 A"
@@ -737,7 +737,7 @@ defaultyear_ledger_str = unlines
  ,"    b"
  ]
 
-write_sample_ledger = writeFile "sample.ledger" sample_ledger_str
+write_sample_journal = writeFile "sample.journal" sample_journal_str
 
 entry2_str = unlines
  ["2007/01/27 * joes diner"
@@ -787,7 +787,7 @@ periodic_entry3_str = unlines
  ,""
  ]
 
-ledger1_str = unlines
+journal1_str = unlines
  [""
  ,"2007/01/27 * joes diner"
  ,"  expenses:food:dining                    $10.00"
@@ -802,7 +802,7 @@ ledger1_str = unlines
  ,""
  ]
 
-ledger2_str = unlines
+journal2_str = unlines
  [";comment"
  ,"2007/01/27 * joes diner"
  ,"  expenses:food:dining                    $10.00"
@@ -810,7 +810,7 @@ ledger2_str = unlines
  ,""
  ]
 
-ledger3_str = unlines
+journal3_str = unlines
  ["2007/01/27 * joes diner"
  ,"  expenses:food:dining                    $10.00"
  ,";intra-entry comment"
@@ -818,7 +818,7 @@ ledger3_str = unlines
  ,""
  ]
 
-ledger4_str = unlines
+journal4_str = unlines
  ["!include \"somefile\""
  ,"2007/01/27 * joes diner"
  ,"  expenses:food:dining                    $10.00"
@@ -826,9 +826,9 @@ ledger4_str = unlines
  ,""
  ]
 
-ledger5_str = ""
+journal5_str = ""
 
-ledger6_str = unlines
+journal6_str = unlines
  ["~ monthly from 2007/1/21"
  ,"    expenses:entertainment  $16.23        ;netflix"
  ,"    assets:checking"
@@ -839,7 +839,7 @@ ledger6_str = unlines
  ,""
  ]
 
-ledger7_str = unlines
+journal7_str = unlines
  ["2007/01/01 * opening balance"
  ,"    assets:cash                                $4.82"
  ,"    equity:opening balances                         "
@@ -1059,7 +1059,7 @@ journal7 = Journal
 
 ledger7 = journalToLedger nullfilterspec journal7
 
-ledger8_str = unlines
+journal8_str = unlines
  ["2008/1/1 test           "
  ,"  a:b          10h @ $40"
  ,"  c:d                   "

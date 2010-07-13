@@ -10,7 +10,7 @@ module Hledger.Read (
        readJournalFile,
        readJournal,
        journalFromPathAndString,
-       myLedgerPath,
+       myJournalPath,
        myTimelogPath,
        myJournal,
        myTimelog,
@@ -37,9 +37,9 @@ import System.IO (hPutStrLn)
 #endif
 
 
-ledgerenvvar           = "LEDGER"
+journalenvvar           = "LEDGER"
 timelogenvvar          = "TIMELOG"
-ledgerdefaultfilename  = ".ledger"
+journaldefaultfilename  = ".journal"
 timelogdefaultfilename = ".timelog"
 
 -- Here are the available readers. The first is the default, used for unknown data formats.
@@ -92,13 +92,13 @@ readJournalFile format f   = withFile f ReadMode $ \h -> hGetContents h >>= jour
 readJournal :: Maybe String -> String -> IO (Either String Journal)
 readJournal format s = journalFromPathAndString format "(string)" s
 
--- | Get the user's default ledger file path.
-myLedgerPath :: IO String
-myLedgerPath = 
-    getEnv ledgerenvvar `catch` 
+-- | Get the user's default journal file path.
+myJournalPath :: IO String
+myJournalPath =
+    getEnv journalenvvar `catch`
                (\_ -> do
                   home <- getHomeDirectory `catch` (\_ -> return "")
-                  return $ home </> ledgerdefaultfilename)
+                  return $ home </> journaldefaultfilename)
   
 -- | Get the user's default timelog file path.
 myTimelogPath :: IO String
@@ -110,7 +110,7 @@ myTimelogPath =
 
 -- | Read the user's default journal file, or give an error.
 myJournal :: IO Journal
-myJournal = myLedgerPath >>= readJournalFile Nothing >>= either error return
+myJournal = myJournalPath >>= readJournalFile Nothing >>= either error return
 
 -- | Read the user's default timelog file, or give an error.
 myTimelog :: IO Journal
@@ -119,10 +119,10 @@ myTimelog = myTimelogPath >>= readJournalFile Nothing >>= either error return
 tests_Hledger_Read = TestList
   [
 
-   "ledgerFile" ~: do
-    assertBool "ledgerFile should parse an empty file" (isRight $ parseWithCtx emptyCtx Journal.ledgerFile "")
-    jE <- readJournal Nothing "" -- don't know how to get it from ledgerFile
-    either error (assertBool "ledgerFile parsing an empty file should give an empty ledger" . null . jtxns) jE
+   "journalFile" ~: do
+    assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx emptyCtx Journal.journalFile "")
+    jE <- readJournal Nothing "" -- don't know how to get it from journalFile
+    either error (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
 
   ,Journal.tests_Journal
   ,Timelog.tests_Timelog

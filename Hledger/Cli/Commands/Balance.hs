@@ -4,7 +4,7 @@
 A ledger-compatible @balance@ command.
 
 ledger's balance command is easy to use but not easy to describe
-precisely.  In the examples below we'll use sample.ledger, which has the
+precisely.  In the examples below we'll use sample.journal, which has the
 following account tree:
 
 @
@@ -29,7 +29,7 @@ sum of any transactions in that account plus any balances from
 subaccounts:
 
 @
- $ hledger -f sample.ledger balance
+ $ hledger -f sample.journal balance
                  $-1  assets
                   $1    bank:saving
                  $-2    cash
@@ -52,7 +52,7 @@ The --depth argument can be used to limit the depth of the balance report.
 So, to see just the top level accounts:
 
 @
-$ hledger -f sample.ledger balance --depth 1
+$ hledger -f sample.journal balance --depth 1
                  $-1  assets
                   $2  expenses
                  $-2  income
@@ -67,7 +67,7 @@ accounts whose name matches one of the patterns, plus their parents
 (elided) and subaccounts. So with the pattern o we get:
 
 @
- $ hledger -f sample.ledger balance o
+ $ hledger -f sample.journal balance o
                   $1  expenses:food
                  $-2  income
                  $-1    gifts
@@ -116,7 +116,7 @@ balance opts args j = do
   t <- getCurrentLocalTime
   putStr $ showBalanceReport opts (optsToFilterSpec opts args t) j
 
--- | Generate a balance report with the specified options for this ledger.
+-- | Generate a balance report with the specified options for this journal.
 showBalanceReport :: [Opt] -> FilterSpec -> Journal -> String
 showBalanceReport opts filterspec j = acctsstr ++ totalstr
     where

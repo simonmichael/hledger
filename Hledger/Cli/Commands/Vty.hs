@@ -44,8 +44,8 @@ data Loc = Loc {
 -- | The screens available within the user interface.
 data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
             | RegisterScreen    -- ^ like hledger register, shows transaction-postings
-            | PrintScreen       -- ^ like hledger print, shows ledger transactions
-            -- | LedgerScreen      -- ^ shows the raw ledger
+            | PrintScreen       -- ^ like hledger print, shows journal transactions
+            -- | LedgerScreen      -- ^ shows the raw journal
               deriving (Eq,Show)
 
 -- | Run the vty (curses-style) ui.

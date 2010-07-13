@@ -82,7 +82,7 @@ server opts args j =
           get  "/balance"   $ command [] showBalanceReport  -- String -> ReaderT Env (StateT Response IO) () -> State Loli ()
           get  "/register"  $ command [] showRegisterReport
           get  "/histogram" $ command [] showHistogram
-          get  "/transactions"   $ ledgerpage [] j''' (showTransactions (optsToFilterSpec opts' args' t))
+          get  "/transactions"   $ journalpage [] j''' (showTransactions (optsToFilterSpec opts' args' t))
           post "/transactions"   $ handleAddform j'''
           get  "/env"       $ getenv >>= (text . show)
           get  "/params"    $ getenv >>= (text . show . Hack.Contrib.Request.params)
@@ -98,8 +98,8 @@ redirect u c = response $ Hack.Contrib.Response.redirect u c
 reqParamUtf8 :: Hack.Env -> String -> [String]
 reqParamUtf8 env p = map snd $ filter ((==p).fst) $ Hack.Contrib.Request.params env
 
-ledgerpage :: [String] -> Journal -> (Journal -> String) -> AppUnit
-ledgerpage msgs j f = do
+journalpage :: [String] -> Journal -> (Journal -> String) -> AppUnit
+journalpage msgs j f = do
   env <- getenv
   (jE, _) <- io $ journalReloadIfChanged [] j
   let (j'', _) = either (\e -> (j,e)) (\j' -> (j',"")) jE
@@ -309,7 +309,7 @@ handleAddform j = do
     handle _ (Failure errs) = hsp errs addform
     handle ti (Success t)   = do
                     io $ journalAddTransaction j t >>= journalReload
-                    ledgerpage [msg] j (showTransactions (optsToFilterSpec [] [] ti))
+                    journalpage [msg] j (showTransactions (optsToFilterSpec [] [] ti))
        where msg = printf "Added transaction:\n%s" (show t)
 
 nbsp :: XML

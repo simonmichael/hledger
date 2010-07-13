@@ -34,7 +34,7 @@ instance Read TimeLogCode where
     readsPrec _ ('O' : xs) = [(FinalOut, xs)]
     readsPrec _ _ = []
 
--- | Convert time log entries to ledger transactions. When there is no
+-- | Convert time log entries to journal transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.
 timeLogEntriesToTransactions :: LocalTime -> [TimeLogEntry] -> [Transaction]
@@ -58,8 +58,8 @@ timeLogEntriesToTransactions now (i:o:rest)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 
--- | Convert a timelog clockin and clockout entry to an equivalent ledger
--- entry, representing the time expenditure. Note this entry is  not balanced,
+-- | Convert a timelog clockin and clockout entry to an equivalent journal
+-- transaction, representing the time expenditure. Note this entry is  not balanced,
 -- since we omit the \"assets:time\" transaction for simpler output.
 entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Transaction
 entryFromTimeLogInOut i o

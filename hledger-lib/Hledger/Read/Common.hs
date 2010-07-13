@@ -30,7 +30,7 @@ type JournalUpdate = ErrorT String IO (Journal -> Journal)
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseJournalWith :: (GenParser Char LedgerFileCtx JournalUpdate) -> FilePath -> String -> ErrorT String IO Journal
+parseJournalWith :: (GenParser Char JournalContext JournalUpdate) -> FilePath -> String -> ErrorT String IO Journal
 parseJournalWith p f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
@@ -38,34 +38,34 @@ parseJournalWith p f s = do
     Right updates -> liftM (journalFinalise tc tl f s) $ updates `ap` return nulljournal
     Left err      -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
 
--- | Some context kept during parsing.
-data LedgerFileCtx = Ctx {
+-- | Some state kept while parsing a journal file.
+data JournalContext = Ctx {
       ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
     , ctxCommod   :: !(Maybe String)   -- ^ I don't know
     , ctxAccount  :: ![String]         -- ^ the current stack of parent accounts specified by !account
     } deriving (Read, Show)
 
-emptyCtx :: LedgerFileCtx
+emptyCtx :: JournalContext
 emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
 
-setYear :: Integer -> GenParser tok LedgerFileCtx ()
+setYear :: Integer -> GenParser tok JournalContext ()
 setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 
-getYear :: GenParser tok LedgerFileCtx (Maybe Integer)
+getYear :: GenParser tok JournalContext (Maybe Integer)
 getYear = liftM ctxYear getState
 
-pushParentAccount :: String -> GenParser tok LedgerFileCtx ()
+pushParentAccount :: String -> GenParser tok JournalContext ()
 pushParentAccount parent = updateState addParentAccount
     where addParentAccount ctx0 = ctx0 { ctxAccount = normalize parent : ctxAccount ctx0 }
           normalize = (++ ":") 
 
-popParentAccount :: GenParser tok LedgerFileCtx ()
+popParentAccount :: GenParser tok JournalContext ()
 popParentAccount = do ctx0 <- getState
                       case ctxAccount ctx0 of
                         [] -> unexpected "End of account block with no beginning"
                         (_:rest) -> setState $ ctx0 { ctxAccount = rest }
 
-getParentAccount :: GenParser tok LedgerFileCtx String
+getParentAccount :: GenParser tok JournalContext String
 getParentAccount = liftM (concat . reverse . ctxAccount) getState
 
 expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath

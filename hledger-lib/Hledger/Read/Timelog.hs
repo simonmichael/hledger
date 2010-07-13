@@ -71,7 +71,7 @@ detect f _ = fileSuffix f == format
 parse :: FilePath -> String -> ErrorT String IO Journal
 parse = parseJournalWith timelogFile
 
-timelogFile :: GenParser Char LedgerFileCtx JournalUpdate
+timelogFile :: GenParser Char JournalContext JournalUpdate
 timelogFile = do items <- many timelogItem
                  eof
                  return $ liftM (foldr (.) id) $ sequence items
@@ -87,7 +87,7 @@ timelogFile = do items <- many timelogItem
                           ] <?> "timelog entry, or default year or historical price directive"
 
 -- | Parse a timelog entry.
-timelogentry :: GenParser Char LedgerFileCtx TimeLogEntry
+timelogentry :: GenParser Char JournalContext TimeLogEntry
 timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline

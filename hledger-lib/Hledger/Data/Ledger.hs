@@ -33,7 +33,9 @@ nullledger = Ledger{
       accountmap = fromList []
     }
 
--- | Filter a ledger's transactions as specified and generate derived data.
+-- | Filter a journal's transactions as specified, and then process them
+-- to derive a ledger containing all balances, the chart of accounts,
+-- canonicalised commodities etc.
 journalToLedger :: FilterSpec -> Journal -> Ledger
 journalToLedger fs j = nullledger{journal=j',accountnametree=t,accountmap=m}
     where j' = filterJournalPostings fs{depth=Nothing} j

@@ -8,7 +8,7 @@ where
 import System.Console.GetOpt
 import System.Environment
 import Hledger.Cli.Version (timeprogname)
-import Hledger.Read (myLedgerPath,myTimelogPath)
+import Hledger.Read (myJournalPath, myTimelogPath)
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
@@ -25,16 +25,16 @@ help1 =
   "       hledger [OPTIONS] convert CSVFILE\n" ++
   "       hledger [OPTIONS] stats\n" ++
   "\n" ++
-  "hledger reads your ~/.ledger file, or another specified with $LEDGER or -f\n" ++
+  "hledger reads your ~/.journal file, or another specified with $LEDGER or -f\n" ++
   "\n" ++
   "COMMAND is one of (may be abbreviated):\n" ++
-  "  add       - prompt for new transactions and add them to the ledger\n" ++
+  "  add       - prompt for new transactions and add them to the journal\n" ++
   "  balance   - show accounts, with balances\n" ++
-  "  convert   - read CSV bank data and display in ledger format\n" ++
+  "  convert   - read CSV bank data and display in journal format\n" ++
   "  histogram - show a barchart of transactions per day or other interval\n" ++
-  "  print     - show transactions in ledger format\n" ++
+  "  print     - show transactions in journal format\n" ++
   "  register  - show transactions as a register with running balance\n" ++
-  "  stats     - show various statistics for a ledger\n" ++
+  "  stats     - show various statistics for a journal\n" ++
   "  vty       - run a simple curses-style UI" ++
 #ifdef VTY
   "\n" ++
@@ -69,7 +69,7 @@ help2 = usageInfo "Options:\n" options
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
 options = [
-  Option "f" ["file"]         (ReqArg File "FILE")   "use a different ledger/timelog file; - means stdin"
+  Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
  ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "don't allow to create new accounts"
  ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
  ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
@@ -282,7 +282,7 @@ usingTimeProgramName = do
 journalFilePathFromOpts :: [Opt] -> IO String
 journalFilePathFromOpts opts = do
   istimequery <- usingTimeProgramName
-  f <- if istimequery then myTimelogPath else myLedgerPath
+  f <- if istimequery then myTimelogPath else myJournalPath
   return $ last $ f : optValuesForConstructor File opts
 
 -- | Gather filter pattern arguments into a list of account patterns and a

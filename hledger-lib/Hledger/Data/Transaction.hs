@@ -36,7 +36,7 @@ nulltransaction = Transaction {
                   }
 
 {-|
-Show a ledger entry, formatted for the print command. ledger 2.x's
+Show a journal transaction, formatted for the print command. ledger 2.x's
 standard format looks like this:
 
 @
@@ -156,9 +156,9 @@ nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rms
       sep = if not (null rmsg) && not (null bvmsg) then "; " else ""
 
 -- | Convert the primary date to either the actual or effective date.
-ledgerTransactionWithDate :: WhichDate -> Transaction -> Transaction
-ledgerTransactionWithDate ActualDate t = t
-ledgerTransactionWithDate EffectiveDate t = txnTieKnot t{tdate=fromMaybe (tdate t) (teffectivedate t)}
+journalTransactionWithDate :: WhichDate -> Transaction -> Transaction
+journalTransactionWithDate ActualDate t = t
+journalTransactionWithDate EffectiveDate t = txnTieKnot t{tdate=fromMaybe (tdate t) (teffectivedate t)}
     
 
 -- | Ensure a transaction's postings refer back to it.

@@ -106,7 +106,7 @@ i, o, b, h
 module Hledger.Read.Journal (
        tests_Journal,
        reader,
-       ledgerFile,
+       journalFile,
        someamount,
        ledgeraccountname,
        ledgerExclamationDirective,
@@ -149,20 +149,20 @@ detect f _ = fileSuffix f == format
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: FilePath -> String -> ErrorT String IO Journal
-parse = parseJournalWith ledgerFile
+parse = parseJournalWith journalFile
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" which can be applied to an empty journal
 -- to get the final result.
-ledgerFile :: GenParser Char LedgerFileCtx JournalUpdate
-ledgerFile = do items <- many ledgerItem
-                eof
-                return $ liftM (foldr (.) id) $ sequence items
+journalFile :: GenParser Char JournalContext JournalUpdate
+journalFile = do items <- many journalItem
+                 eof
+                 return $ liftM (foldr (.) id) $ sequence items
     where 
-      -- As all ledger line types can be distinguished by the first
+      -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      ledgerItem = choice [ ledgerExclamationDirective
+      journalItem = choice [ ledgerExclamationDirective
                           , liftM (return . addTransaction) ledgerTransaction
                           , liftM (return . addModifierTransaction) ledgerModifierTransaction
                           , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
@@ -172,7 +172,7 @@ ledgerFile = do items <- many ledgerItem
                           , ledgerTagDirective
                           , ledgerEndTagDirective
                           , emptyLine >> return (return id)
-                          ] <?> "ledger transaction or directive"
+                          ] <?> "journal transaction or directive"
 
 emptyLine :: GenParser Char st ()
 emptyLine = do many spacenonewline
@@ -196,7 +196,7 @@ ledgercommentline = do
   return s
   <?> "comment"
 
-ledgerExclamationDirective :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerExclamationDirective :: GenParser Char JournalContext JournalUpdate
 ledgerExclamationDirective = do
   char '!' <?> "directive"
   directive <- many nonspace
@@ -206,14 +206,14 @@ ledgerExclamationDirective = do
     "end"     -> ledgerAccountEnd
     _         -> mzero
 
-ledgerInclude :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerInclude :: GenParser Char JournalContext JournalUpdate
 ledgerInclude = do many1 spacenonewline
                    filename <- restofline
                    outerState <- getState
                    outerPos <- getPosition
                    let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
                    return $ do contents <- expandPath outerPos filename >>= readFileE outerPos
-                               case runParser ledgerFile outerState filename contents of
+                               case runParser journalFile outerState filename contents of
                                  Right l   -> l `catchError` (throwError . (inIncluded ++))
                                  Left perr -> throwError $ inIncluded ++ show perr
     where readFileE outerPos filename = ErrorT $ liftM Right (readFile filename) `catch` leftError
@@ -221,17 +221,17 @@ ledgerInclude = do many1 spacenonewline
                     currentPos = show outerPos
                     whileReading = " reading " ++ show filename ++ ":\n"
 
-ledgerAccountBegin :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerAccountBegin :: GenParser Char JournalContext JournalUpdate
 ledgerAccountBegin = do many1 spacenonewline
                         parent <- ledgeraccountname
                         newline
                         pushParentAccount parent
                         return $ return id
 
-ledgerAccountEnd :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerAccountEnd :: GenParser Char JournalContext JournalUpdate
 ledgerAccountEnd = popParentAccount >> return (return id)
 
-ledgerModifierTransaction :: GenParser Char LedgerFileCtx ModifierTransaction
+ledgerModifierTransaction :: GenParser Char JournalContext ModifierTransaction
 ledgerModifierTransaction = do
   char '=' <?> "modifier transaction"
   many spacenonewline
@@ -239,7 +239,7 @@ ledgerModifierTransaction = do
   postings <- ledgerpostings
   return $ ModifierTransaction valueexpr postings
 
-ledgerPeriodicTransaction :: GenParser Char LedgerFileCtx PeriodicTransaction
+ledgerPeriodicTransaction :: GenParser Char JournalContext PeriodicTransaction
 ledgerPeriodicTransaction = do
   char '~' <?> "periodic transaction"
   many spacenonewline
@@ -247,7 +247,7 @@ ledgerPeriodicTransaction = do
   postings <- ledgerpostings
   return $ PeriodicTransaction periodexpr postings
 
-ledgerHistoricalPrice :: GenParser Char LedgerFileCtx HistoricalPrice
+ledgerHistoricalPrice :: GenParser Char JournalContext HistoricalPrice
 ledgerHistoricalPrice = do
   char 'P' <?> "historical price"
   many spacenonewline
@@ -259,7 +259,7 @@ ledgerHistoricalPrice = do
   restofline
   return $ HistoricalPrice date symbol price
 
-ledgerIgnoredPriceCommodity :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerIgnoredPriceCommodity :: GenParser Char JournalContext JournalUpdate
 ledgerIgnoredPriceCommodity = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
@@ -267,7 +267,7 @@ ledgerIgnoredPriceCommodity = do
   restofline
   return $ return id
 
-ledgerDefaultCommodity :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerDefaultCommodity :: GenParser Char JournalContext JournalUpdate
 ledgerDefaultCommodity = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
@@ -275,7 +275,7 @@ ledgerDefaultCommodity = do
   restofline
   return $ return id
 
-ledgerCommodityConversion :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerCommodityConversion :: GenParser Char JournalContext JournalUpdate
 ledgerCommodityConversion = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
@@ -287,7 +287,7 @@ ledgerCommodityConversion = do
   restofline
   return $ return id
 
-ledgerTagDirective :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerTagDirective :: GenParser Char JournalContext JournalUpdate
 ledgerTagDirective = do
   string "tag" <?> "tag directive"
   many1 spacenonewline
@@ -295,14 +295,14 @@ ledgerTagDirective = do
   restofline
   return $ return id
 
-ledgerEndTagDirective :: GenParser Char LedgerFileCtx JournalUpdate
+ledgerEndTagDirective :: GenParser Char JournalContext JournalUpdate
 ledgerEndTagDirective = do
   string "end tag" <?> "end tag directive"
   restofline
   return $ return id
 
--- like ledgerAccountBegin, updates the LedgerFileCtx
-ledgerDefaultYear :: GenParser Char LedgerFileCtx JournalUpdate
+-- like ledgerAccountBegin, updates the JournalContext
+ledgerDefaultYear :: GenParser Char JournalContext JournalUpdate
 ledgerDefaultYear = do
   char 'Y' <?> "default year"
   many spacenonewline
@@ -314,7 +314,7 @@ ledgerDefaultYear = do
 
 -- | Try to parse a ledger entry. If we successfully parse an entry,
 -- check it can be balanced, and fail if not.
-ledgerTransaction :: GenParser Char LedgerFileCtx Transaction
+ledgerTransaction :: GenParser Char JournalContext Transaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
   edate <- optionMaybe (ledgereffectivedate date) <?> "effective date"
@@ -330,24 +330,24 @@ ledgerTransaction = do
     Right t' -> return t'
     Left err -> fail err
 
-ledgerdate :: GenParser Char LedgerFileCtx Day
+ledgerdate :: GenParser Char JournalContext Day
 ledgerdate = choice' [ledgerfulldate, ledgerpartialdate] <?> "full or partial date"
 
-ledgerfulldate :: GenParser Char LedgerFileCtx Day
+ledgerfulldate :: GenParser Char JournalContext Day
 ledgerfulldate = do
   (y,m,d) <- ymd
   return $ fromGregorian (read y) (read m) (read d)
 
 -- | Match a partial M/D date in a ledger, and also require that a default
 -- year directive was previously encountered.
-ledgerpartialdate :: GenParser Char LedgerFileCtx Day
+ledgerpartialdate :: GenParser Char JournalContext Day
 ledgerpartialdate = do
   (_,m,d) <- md
   y <- getYear
   when (isNothing y) $ fail "partial date found, but no default year specified"
   return $ fromGregorian (fromJust y) (read m) (read d)
 
-ledgerdatetime :: GenParser Char LedgerFileCtx LocalTime
+ledgerdatetime :: GenParser Char JournalContext LocalTime
 ledgerdatetime = do 
   day <- ledgerdate
   many1 spacenonewline
@@ -360,7 +360,7 @@ ledgerdatetime = do
   let tod = TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s)
   return $ LocalTime day tod
 
-ledgereffectivedate :: Day -> GenParser Char LedgerFileCtx Day
+ledgereffectivedate :: Day -> GenParser Char JournalContext Day
 ledgereffectivedate actualdate = do
   char '='
   -- kludgy way to use actual date for default year
@@ -379,7 +379,7 @@ ledgerstatus = try (do { many1 spacenonewline; char '*' <?> "status"; return Tru
 ledgercode :: GenParser Char st String
 ledgercode = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
-ledgerpostings :: GenParser Char LedgerFileCtx [Posting]
+ledgerpostings :: GenParser Char JournalContext [Posting]
 ledgerpostings = do
   -- complicated to handle intermixed comment lines.. please make me better.
   ctx <- getState
@@ -397,7 +397,7 @@ linebeginningwithspaces = do
   cs <- restofline
   return $ sp ++ (c:cs) ++ "\n"
 
-ledgerposting :: GenParser Char LedgerFileCtx Posting
+ledgerposting :: GenParser Char JournalContext Posting
 ledgerposting = do
   many1 spacenonewline
   status <- ledgerstatus
@@ -410,7 +410,7 @@ ledgerposting = do
   return (Posting status account' amount comment ptype Nothing)
 
 -- qualify with the parent account from parsing context
-transactionaccountname :: GenParser Char LedgerFileCtx AccountName
+transactionaccountname :: GenParser Char JournalContext AccountName
 transactionaccountname = liftM2 (++) getParentAccount ledgeraccountname
 
 -- | Parse an account name. Account names may have single spaces inside

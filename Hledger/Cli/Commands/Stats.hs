@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-|
 
-Print some statistics for the ledger.
+Print some statistics for the journal.
 
 -}
 
@@ -17,7 +17,7 @@ import System.IO.UTF8
 
 
 -- like Register.summarisePostings
--- | Print various statistics for the ledger.
+-- | Print various statistics for the journal.
 stats :: [Opt] -> [String] -> Journal -> IO ()
 stats opts args j = do
   today <- getCurrentDay
