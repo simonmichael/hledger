@@ -20,14 +20,14 @@ I use it every day to:
 Here is a demo_ of the web interface.
 
 Here are ready-to-run binaries_ for mac, windows and gnu/linux.
-They are not always the `latest release`_, sorry about that.
+They are not the `current release`_, sorry about that.
 
 Here is the manual_.
-For support and more technical info, see `hledger for techies`_ or `email me`_.
+For support and more technical info, see `development`_ or `email me`_.
 
 .. (If you're reading this in plain text, see also README2, MANUAL etc., or http://hledger.org)
 
-.. _hledger for techies:  README2.html
+.. _development:          README2.html
 .. _manual:               MANUAL.html
 .. _demo:                 http://demo.hledger.org
 .. _binaries:             http://hledger.org/binaries/
@@ -36,4 +36,4 @@ For support and more technical info, see `hledger for techies`_ or `email me`_.
 .. _32 bit intel:         http://hledger.org/binaries/hledger-0.6.1+9-linux-i386.gz
 .. _64 bit intel:         http://hledger.org/binaries/hledger-0.6-linux-x86_64.gz
 .. _email me:             mailto:simon@joyful.com
-.. _latest release:       http://hledger.org/MANUAL.html#installing
+.. _current release:       http://hledger.org/MANUAL.html#installing

@@ -1,12 +1,14 @@
 ---
-title: hledger for techies
+title: hledger development
 ---
-hledger for techies
+hledger development
 ===================
 
+**Techie intro**
+
 hledger_ is a remix, in haskell_, of John Wiegley's excellent ledger_ accounting tool.
-It reads a plain text `ledger file`_ or timelog_ describing your transactions
-and displays reports via `command line`_, curses_ or `web interface`_ (click for a demo).
+It reads a plain text journal_ or timelog_ file describing your transactions
+and displays reports via command line, curses or web interfaces.
 
 The hledger project aims to produce:
 
@@ -43,7 +45,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
 - chat Simon (sm) on the `#ledger`_ irc channel which we share, or `email me`_
 - report problems at `bugs.hledger.org <http://bugs.hledger.org>`_
-- share and test ledger snippets at paste . hledger.org
+- share and test journal snippets at paste . hledger.org
 - .. raw:: html
 
      <form action="http://groups.google.com/group/hledger/boxsubscribe" >
@@ -53,7 +55,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
 **Related projects**
 
-- John Wiegley's ledger_ inspired hledger, and we try to stay compatible. You can often use both tools on the same ledger file.
+- John Wiegley's ledger_ inspired hledger, and we try to stay compatible. You can often use both tools on the same journal file.
 - Uwe Hollerbach's umm_ is another haskell tool inspired by h/ledger.
 - Tim Docker's ledger-reports_ uses hledger as a library to generate `html reports`_. 
 - I have a few older bits and pieces `here <http://joyful.com/Ledger>`_.
@@ -65,7 +67,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
 
 .. _hledger:              README.html
-.. _`ledger file`:        http://joyful.com/repos/hledger/sample.ledger
+.. _journal:              http://joyful.com/repos/hledger/sample.journal
 .. _timelog:              http://joyful.com/repos/hledger/sample.timelog
 .. _command line:         SCREENSHOTS.html#hledger-screen-1
 .. _curses:               SCREENSHOTS.html#sshot

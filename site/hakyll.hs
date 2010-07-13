@@ -66,6 +66,7 @@ cfg = (defaultHakyllConfiguration baseurl) {
    -- stateIndentedCodeClasses = []     -- ^ Classes to use for indented code blocks
   },
   pandocWriterOptions = defaultWriterOptions {
+                            -- so we can have a TOC:
    writerStandalone       = True, -- ^ Include header and footer
    writerTemplate         = pandocTemplate, -- ^ Template to use in standalone mode
    -- writerVariables        = [],    -- ^ Variables to set in template
@@ -88,7 +89,7 @@ cfg = (defaultHakyllConfiguration baseurl) {
   }
  }
 
--- the body part of pandoc 1.5.1.1's html output template, so we can have a TOC
+-- the body part of pandoc 1.5.1.1's html output template
 pandocTemplate = "\
 \$if(title)$\
 \<h1 class=\"title\">$title$</h1>\

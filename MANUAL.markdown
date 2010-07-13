@@ -124,13 +124,15 @@ on:
 
 You'll find more examples below.
 
-### File format
+<a name="file-format" />
 
-hledger's data file, aka the journal, is a plain text representation of a
-standard accounting
-[general journal](http://en.wikipedia.org/wiki/General_journal). It
-contains a number of transactions, each describing a transfer of money (or
-another commodity) between two or more named accounts. Here's an example:
+### Journal file
+
+hledger's data file, aka the journal, is a standard accounting
+[general journal](http://en.wikipedia.org/wiki/General_journal) in a plain
+text format. It contains a number of transactions, each describing a
+transfer of money (or another commodity) between two or more named
+accounts. Here's an example:
 
     ; A sample journal file. This is a comment.
     
@@ -739,9 +741,9 @@ You can pull in the content of additional journal files, by writing lines like t
 The `!include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not timelog files.)
 
-#### Set parent account
+#### Default parent account
 
-You can specify a default parent account in a section of the journal with
+You can specify a default parent account within a section of the journal with
 the `!account` directive:
 
     !account home
