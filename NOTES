@@ -1,13 +1,28 @@
 hledger project notes
 =====================
 
+* inspiration
+"...simplicity of design was the most essential, guiding principle.
+Clarity of concepts, economy of features, efficiency and reliability of
+implementations were its consequences." --Niklaus Wirth
+
+"The competent programmer is fully aware of the limited size of his own
+skull. He therefore approaches his task with full humility, and avoids
+clever tricks like the plague." --Edsger Dijkstra
+
+"I was hesitating to cross the street in Edinburgh one day, and these two
+little old Scottish ladies cried out to me 'LIVE DANGEROUSLY, SON! LIVE
+DANGEROUSLY'" --kowey
+
+
 * todo/backlog
 ** documentation, marketing
 *** developer notes & log
-*** website hakyll conversion
+*** website
 **** add tables of contents
-**** integrate binaries page ?
+**** integrate binaries, demo, pastebin
 *** manual
+**** make accessible from command line
 *** add missing
 **** faq
 **** examples/how-tos
@@ -377,13 +392,13 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-*** a first run with no journal file should give better help
-*** print: bad layout with mixed amounts
-*** register: confusing output with mixed amounts
-$ hledger reg opening
-2010/01/01 OPENING BALANCES                               $19690.92   $19690.92
-                               eq:opening balances         €-35.00      €-35.00
-*** non-blockers
+*** docs: manual needs a table of contents
+*** windows: fix browser starting (starts firefox but says could not start)
+*** non-blockers/retest
+**** docs: need to be less wall-of-text
+**** docs:installing:list three install options
+**** balance: --depth with --flat should show aggregate balances
+**** register: --depth should show aggregate postings
 **** parsing: only journals can include, and only another journal
 **** convert: rules file can't have blank lines after last data
 
@@ -603,15 +618,6 @@ plugins can be discovered/loaded by module path or by loading files directly
 *** test continuously, test everything
 *** less is more
 *** code review/pair programming
-*** inspiration
-"...simplicity of design was the most essential, guiding principle.
-Clarity of concepts, economy of features, efficiency and reliability of
-implementations were its consequences." --Niklaus Wirth
-
-"The competent programmer is fully aware of the limited size of his own
-skull. He therefore approaches his task with full humility, and avoids
-clever tricks like the plague." --Edsger Dijkstra
-
 ** things I want to know
 *** time
 where have I been spending my time in recent weeks ?
