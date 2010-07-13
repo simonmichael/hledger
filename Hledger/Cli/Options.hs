@@ -174,8 +174,6 @@ parseArguments :: IO ([Opt], String, [String])
 parseArguments = do
   args <- liftM (map decodeString) getArgs
   let (os,as,es) = getOpt Permute options args
---  istimequery <- usingTimeProgramName
---  let os' = if istimequery then (Period "today"):os else os
   os' <- fixOptDates os
   let os'' = if Debug `elem` os' then Verbose:os' else os'
   case (as,es) of
@@ -272,7 +270,7 @@ clearedValueFromOpts opts | null os = Nothing
                           | otherwise = Just False
     where os = optsWithConstructors [Cleared,UnCleared] opts
 
--- | Was the program invoked via the \"hours\" alias ?
+-- | Were we invoked as \"hours\" ?
 usingTimeProgramName :: IO Bool
 usingTimeProgramName = do
   progname <- getProgName
