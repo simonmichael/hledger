@@ -123,4 +123,16 @@ img {
 .screenshot {
     border: 10px solid #F8F8F8; /* Soft grey border */
 }
-#toc,#TOC { float:right; }
+
+#TOC {
+    float:right;
+    font-size:small;
+    margin:2em 0 1em 1em;
+    border:thin solid #ddd;
+    background-color:#f0f0f0;
+}
+
+#TOC ul {
+    list-style-type: none;
+    padding:0 1em 0 1em;
+}

@@ -41,11 +41,11 @@ main = hakyllWithConfiguration cfg $ do
 
 cfg :: HakyllConfiguration
 cfg = (defaultHakyllConfiguration baseurl) {
-  -- ,additionalContext = Context -- An additional context to use when rendering. This additional context is used globally.
-  -- ,siteDirectory = FilePath -- Directory where the site is placed.
-  -- ,cacheDirectory = FilePath -- Directory for cache files.
-  -- ,enableIndexUrl = Bool -- Enable index links.
-  -- ,previewPollDelay = Int -- Delay between polls in preview mode.
+  -- additionalContext = Context, -- An additional context to use when rendering. This additional context is used globally.
+  -- siteDirectory = FilePath, -- Directory where the site is placed.
+  -- cacheDirectory = FilePath, -- Directory for cache files.
+  -- enableIndexUrl = False, -- Enable index links.
+  -- previewPollDelay = Int, -- Delay between polls in preview mode.
   pandocParserState = defaultParserState {
    -- stateParseRaw        = False, -- ^ Parse raw HTML and LaTeX?
    -- stateParserContext   = NullState, -- ^ Inside list?
@@ -64,27 +64,43 @@ cfg = (defaultHakyllConfiguration baseurl) {
    -- stateColumns         = 80,        -- ^ Number of columns in terminal
    -- stateHeaderTable     = [],        -- ^ Ordered list of header types used
    -- stateIndentedCodeClasses = []     -- ^ Classes to use for indented code blocks
-  }
- ,pandocWriterOptions = defaultWriterOptions {
-   writerStandalone       = False -- ^ Include header and footer
-   -- ,writerTemplate         = ""    -- ^ Template to use in standalone mode
-   -- ,writerVariables        = []    -- ^ Variables to set in template
-   -- ,writerIncludeBefore    = ""    -- ^ Text to include before the body
-   -- ,writerIncludeAfter     = ""    -- ^ Text to include after the body
-   -- ,writerTabStop          = 4     -- ^ Tabstop for conversion btw spaces and tabs
-   -- ,writerTableOfContents  = False -- ^ Include table of contents
-   -- ,writerS5               = False -- ^ We're writing S5
-   -- ,writerXeTeX            = False -- ^ Create latex suitable for use by xetex
-   -- ,writerHTMLMathMethod   = PlainMath -- ^ How to print math in HTML
-   -- ,writerIgnoreNotes      = False     -- ^ Ignore footnotes (used in making toc)
-   -- ,writerIncremental      = False     -- ^ Incremental S5 lists
-   -- ,writerNumberSections   = False     -- ^ Number sections in LaTeX
-   -- ,writerStrictMarkdown   = False     -- ^ Use strict markdown syntax
-   -- ,writerReferenceLinks   = False     -- ^ Use reference links in writing markdown, rst
-   -- ,writerWrapText         = True      -- ^ Wrap text to line length
-   -- ,writerLiterateHaskell  = False     -- ^ Write as literate haskell
-   -- ,writerEmailObfuscation = JavascriptObfuscation -- ^ How to obfuscate emails
-   -- ,writerIdentifierPrefix = ""                    -- ^ Prefix for section & note ids in HTML
+  },
+  pandocWriterOptions = defaultWriterOptions {
+   writerStandalone       = True, -- ^ Include header and footer
+   writerTemplate         = pandocTemplate, -- ^ Template to use in standalone mode
+   -- writerVariables        = [],    -- ^ Variables to set in template
+   -- writerIncludeBefore    = "",    -- ^ Text to include before the body
+   -- writerIncludeAfter     = "",    -- ^ Text to include after the body
+   -- writerTabStop          = 4,     -- ^ Tabstop for conversion btw spaces and tabs
+   writerTableOfContents  = True -- ^ Include table of contents
+   -- writerS5               = False, -- ^ We're writing S5
+   -- writerXeTeX            = False, -- ^ Create latex suitable for use by xetex
+   -- writerHTMLMathMethod   = PlainMath, -- ^ How to print math in HTML
+   -- writerIgnoreNotes      = False,     -- ^ Ignore footnotes (used in making toc)
+   -- writerIncremental      = False,     -- ^ Incremental S5 lists
+   -- writerNumberSections   = False,     -- ^ Number sections in LaTeX
+   -- writerStrictMarkdown   = False,     -- ^ Use strict markdown syntax
+   -- writerReferenceLinks   = False,     -- ^ Use reference links in writing markdown, rst
+   -- writerWrapText         = True,      -- ^ Wrap text to line length
+   -- writerLiterateHaskell  = False,     -- ^ Write as literate haskell
+   -- writerEmailObfuscation = JavascriptObfuscation, -- ^ How to obfuscate emails
+   -- writerIdentifierPrefix = "",                    -- ^ Prefix for section & note ids in HTML
   }
  }
 
+-- the body part of pandoc 1.5.1.1's html output template, so we can have a TOC
+pandocTemplate = "\
+\$if(title)$\
+\<h1 class=\"title\">$title$</h1>\
+\$endif$\
+\$for(include-before)$\
+\$include-before$\
+\$endfor$\
+\$if(toc)$\
+\$toc$\
+\$endif$\
+\$body$\
+\$for(include-after)$\
+\$include-after$\
+\$endfor$\
+\"
