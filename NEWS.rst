@@ -4,6 +4,36 @@ title: hledger news
 hledger news
 ============
 
+2010/07/15 hledger 0.11
+........................
+
+  * split --help, adding --help-options and --help-all/-H, and make it the default command
+  * use "journal" instead of "ledger file"; default suffix is .journal, default file is ~/.journal
+  * auto-create missing journal files rather than giving an error
+  * new format-detecting file reader (mixed journal transactions and timelog entries are no longer supported)
+  * work around for first real-world rounding issue (test zero to 8 decimal places instead of 10)
+  * when reporting a balancing error, convert the error amount to cost
+  * parsing: support double-quoted commodity symbols, containing anything but a newline or double quote
+  * parsing: allow minus sign before commodity symbol as well as after (also fixes a convert bug)
+  * parsing: fix wrong parse error locations within postings
+  * parsing: don't let trailing whitespace in a timelog description mess up account names
+  * balance: --flat provides a simple non-hierarchical format
+  * balance: --drop N removes leading account name components from a --flat report
+  * print, register, balance: fix layout issues with mixed-commodity amounts
+  * print: display non-simple commodity names with double-quotes
+  * stats: layout tweaks, add payee/description count
+  * stats: don't break on an empty file
+  * stats: -p/--period support; a reporting interval generates multiple reports
+  * test: drop verbose test runner and testpack dependency
+  * web: a new web ui based on yesod, requires ghc 6.12; old ghc 6.10-compatible version remains as -fweb610
+  * web: add a wiki-style edit form for journals
+  * web: warn and keep running if reloading the journal gives an error
+  * web: --port and --base-url options set the webserver's tcp port and base url
+  * web: slightly better browser opening on microsoft windows, should find a standard firefox install
+  * web: in a web-enabled build on microsoft windows, run the web ui by default
+
+  Stats: 53 days and 125 commits since last release. Now at 5560 lines of code with 133 tests and 53% coverage.
+
 2010/05/23 hledger 0.10
 ........................
 
