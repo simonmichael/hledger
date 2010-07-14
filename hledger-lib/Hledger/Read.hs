@@ -22,7 +22,6 @@ import Hledger.Data.Utils
 import Hledger.Read.Common
 import Hledger.Read.Journal as Journal
 import Hledger.Read.Timelog as Timelog
-import Hledger.Cli.Version (version)
 
 import Control.Monad.Error
 import Data.Either (partitionEithers)
@@ -105,7 +104,7 @@ ensureJournalFile f = do
 emptyJournal :: IO String
 emptyJournal = do
   d <- getCurrentDay
-  return $ printf "; journal created by hledger %s on %s\n; see http://hledger.org/MANUAL.html#file-format\n\n" version (show d)
+  return $ printf "; journal created by hledger on %s\n; see http://hledger.org/MANUAL.html#file-format\n\n" (show d)
 
 -- | Read a Journal from this string, using the specified data format or
 -- trying all known formats, or give an error string.
