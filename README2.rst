@@ -67,8 +67,8 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
 
 .. _hledger:              README.html
-.. _journal:              http://joyful.com/repos/hledger/sample.journal
-.. _timelog:              http://joyful.com/repos/hledger/sample.timelog
+.. _journal:              http://joyful.com/repos/hledger/data/sample.journal
+.. _timelog:              http://joyful.com/repos/hledger/data/sample.timelog
 .. _command line:         SCREENSHOTS.html#hledger-screen-1
 .. _curses:               SCREENSHOTS.html#sshot
 .. _web interface:        http://demo.hledger.org

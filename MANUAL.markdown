@@ -4,9 +4,9 @@ title: hledger manual
 
 # hledger manual
 
-This is the official hledger manual. You may also want to visit the
-[http://hledger.org](http://hledger.org) home page, the
-[hledger for techies](README2.html) page, and for background,
+This is the official hledger manual, for version 0.10.99.  You may also
+want to visit the rest of [hledger.org](http://hledger.org), and for
+background,
 [c++ ledger's manual](http://joyful.com/repos/ledger/doc/ledger.html).
 
 ## User Guide
