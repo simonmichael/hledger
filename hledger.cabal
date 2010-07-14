@@ -104,10 +104,8 @@ executable hledger
     cpp-options: -DWEB
     other-modules:Hledger.Cli.Commands.Web
     build-depends:
-                  hamlet >= 0.3.1 && < 0.4
-                 ,io-storage >= 0.3 && < 0.4
-                 ,wai-extra >= 0.1 && < 0.2
-                 ,yesod >= 0.3.1 && < 0.4
+                  io-storage >= 0.3 && < 0.4
+                 ,yesod >= 0.4.0 && < 0.5
 
   if flag(web610)
     cpp-options: -DWEB610

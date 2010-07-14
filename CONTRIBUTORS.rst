@@ -12,6 +12,7 @@ hledger is brought to you by:
 - Sergey Astanin - utf8 support
 - Nick Ingolia - parser improvements
 - Roman Cheplyaka - "chart" command, "add" command improvements
+- Michael Snoyman - some additions to the Yesod web interface
 
 Developers who have not yet signed the contributor agreement:
 

@@ -6,11 +6,10 @@ A web-based UI.
 module Hledger.Cli.Commands.Web
 where
 import Control.Concurrent (forkIO, threadDelay)
+import Control.Applicative ((<$>), (<*>))
 import Data.Either
-import Network.Wai.Handler.SimpleServer (run)
 import System.FilePath ((</>))
 import System.IO.Storage (withStore, putValue, getValue)
-import Text.Hamlet
 import Text.ParserCombinators.Parsec (parse)
 import Yesod
 
@@ -64,7 +63,7 @@ server baseurl port opts args j = do
               }
     withStore "hledger" $ do
      putValue "hledger" "journal" j
-     toWaiApp app >>= run port
+     basicHandler port app
 
 data HledgerWebApp = HledgerWebApp {
       appOpts::[Opt]
@@ -74,8 +73,6 @@ data HledgerWebApp = HledgerWebApp {
      ,appRoot::String
      }
 
-instance Yesod HledgerWebApp where approot = appRoot
-
 mkYesod "HledgerWebApp" [$parseRoutes|
 /             IndexPage        GET
 /style.css    StyleCss         GET
@@ -84,6 +81,8 @@ mkYesod "HledgerWebApp" [$parseRoutes|
 /register     RegisterPage     GET
 /balance      BalancePage      GET
 |]
+
+instance Yesod HledgerWebApp where approot = appRoot
 
 getIndexPage :: Handler HledgerWebApp ()
 getIndexPage = redirect RedirectTemporary JournalPage
@@ -108,12 +107,10 @@ getBalancePage = withLatestJournalRender showBalanceReport
 withLatestJournalRender :: ([Opt] -> FilterSpec -> Journal -> String) -> Handler HledgerWebApp RepHtml
 withLatestJournalRender reportfn = do
     app <- getYesod
-    params <- getParams
     t <- liftIO $ getCurrentLocalTime
-    let head' x = if null x then "" else head x
-        a = head' $ params "a"
-        p = head' $ params "p"
-        opts = appOpts app ++ [Period p]
+    a <- fromMaybe "" <$> lookupGetParam "a"
+    p <- fromMaybe "" <$> lookupGetParam "p"
+    let opts = appOpts app ++ [Period p]
         args = appArgs app ++ [a]
         fspec = optsToFilterSpec opts args t
     -- reload journal if changed, displaying any error as a message
@@ -129,11 +126,11 @@ withLatestJournalRender reportfn = do
     msg' <- getMessage
     -- XXX work around a bug, can't get the message we set above
     let msg = if null err then msg' else Just $ string $ printf "Error while reading %s" (filepath j')
-    Just here <- getRoute
+    Just here <- getCurrentRoute
     hamletToRepHtml $ template here msg a p "hledger" s
 
-template :: HledgerWebAppRoutes -> Maybe (Html ()) -> String -> String
-         -> String -> String -> Hamlet HledgerWebAppRoutes
+template :: HledgerWebAppRoute -> Maybe (Html ()) -> String -> String
+         -> String -> String -> Hamlet HledgerWebAppRoute
 template here msg a p title content = [$hamlet|
 !!!
 %html
@@ -157,7 +154,7 @@ template here msg a p title content = [$hamlet|
 
 nulltemplate = [$hamlet||]
 
-navbar :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
+navbar :: HledgerWebAppRoute -> String -> String -> Hamlet HledgerWebAppRoute
 navbar here a p = [$hamlet|
  #navbar
   %a.toprightlink!href=$string.hledgerurl$ hledger.org
@@ -168,7 +165,7 @@ navbar here a p = [$hamlet|
  where navlinks' = navlinks here a p
        searchform' = searchform here a p
 
-navlinks :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
+navlinks :: HledgerWebAppRoute -> String -> String -> Hamlet HledgerWebAppRoute
 navlinks here a p = [$hamlet|
  #navlinks
   ^journallink^ $
@@ -186,7 +183,7 @@ navlinks here a p = [$hamlet|
          style | here == dest = string "navlinkcurrent"
                | otherwise = string "navlink"
 
-searchform :: HledgerWebAppRoutes -> String -> String -> Hamlet HledgerWebAppRoutes
+searchform :: HledgerWebAppRoute -> String -> String -> Hamlet HledgerWebAppRoute
 searchform here a p = [$hamlet|
  %form#searchform
   filter by: $
@@ -209,10 +206,10 @@ searchform here a p = [$hamlet|
 helplink topic label = [$hamlet|%a!href=$string.u$ $string.label$|]
     where u = manualurl ++ if null topic then "" else '#':topic
 
-addform :: Hamlet HledgerWebAppRoutes
+addform :: Hamlet HledgerWebAppRoute
 addform = [$hamlet|
  %form!method=POST
-  %table.form#addform!cellpadding=0!cellspacing=0!!border=0
+  %table.form#addform!cellpadding=0!cellspacing=0!border=0
    %tr.formheading
     %td!colspan=4
      %span#formheading Add a transaction:
@@ -291,26 +288,29 @@ transactionfields n = [$hamlet|
 postJournalPage :: Handler HledgerWebApp RepPlain
 postJournalPage = do
   today <- liftIO getCurrentDay
-  -- get form input values, or basic validation errors. E means an Either value.
-  dateE  <- runFormPost $ catchFormError $ notEmpty $ required $ input "date"
-  descE  <- runFormPost $ catchFormError $ required $ input "description"
-  acct1E <- runFormPost $ catchFormError $ notEmpty $ required $ input "accountname1"
-  amt1E  <- runFormPost $ catchFormError $ notEmpty $ required $ input "amount1"
-  acct2E <- runFormPost $ catchFormError $ notEmpty $ required $ input "accountname2"
-  amt2E  <- runFormPost $ catchFormError $ input "amount2"
+  -- get form input values. M means a Maybe value.
+  (dateM, descM, acct1M, amt1M, acct2M, amt2M) <- runFormPost'
+    $   (,,,,,)
+    <$> maybeStringInput "date"
+    <*> maybeStringInput "descritpion"
+    <*> maybeStringInput "accountname1"
+    <*> maybeStringInput "amount1"
+    <*> maybeStringInput "accountname2"
+    <*> maybeStringInput "amount2"
   -- supply defaults and parse date and amounts, or get errors.
-  let dateE' = either Left (either (\e -> Left [("date", showDateParseError e)]) Right . fixSmartDateStrEither today) dateE
-      amt1E' = either Left (either (const (Right missingamt)) Right . parse someamount "") amt1E  -- XXX missingamt only when missing/empty
-      amt2E' = case amt2E of Right [] -> Right missingamt
-                             _        -> either Left (either (const (Right missingamt)) Right . parse someamount "" . head) amt2E
-      strEs = [dateE', descE, acct1E, acct2E]
+  let dateE' = maybe (Left "No date provided") (either (\e -> Left ("date: " ++ showDateParseError e)) Right . fixSmartDateStrEither today) dateM
+      amt1E' = maybe (Left "No amount provided") (either (const (Right missingamt)) Right . parse someamount "") amt1M  -- XXX missingamt only when missing/empty
+      amt2E' = case amt2M of Nothing  -> Right missingamt
+                             Just amt -> (either (const (Right missingamt)) Right . parse someamount "") amt
+      toEither = maybe (Left "") Right
+      strEs = [dateE', Right $ fromMaybe "" descM, toEither acct1M, toEither acct2M]
       amtEs = [amt1E', amt2E']
       errs = lefts strEs ++ lefts amtEs
       [date,desc,acct1,acct2] = rights strEs
       [amt1,amt2] = rights amtEs
       -- if no errors so far, generate a transaction and balance it or get the error.
       tE | not $ null errs = Left errs
-         | otherwise = either (\e -> Left [[("unbalanced postings", head $ lines e)]]) Right
+         | otherwise = either (\e -> Left ["unbalanced postings: " ++ (head $ lines e)]) Right
                         (balanceTransaction $ nulltransaction {
                            tdate=parsedate date
                           ,teffectivedate=Nothing
@@ -328,7 +328,7 @@ postJournalPage = do
   case tE of
    Left errs -> do
     -- save current form values in session
-    setMessage $ string $ intercalate "; " $ map (intercalate ", " . map (\(a,b) -> a++": "++b)) errs
+    setMessage $ string $ intercalate "; " errs
     redirect RedirectTemporary JournalPage
 
    Right t -> do
@@ -341,11 +341,9 @@ postJournalPage = do
 getEditPage :: Handler HledgerWebApp RepHtml
 getEditPage = do
     -- app <- getYesod
-    params <- getParams
     -- t <- liftIO $ getCurrentLocalTime
-    let head' x = if null x then "" else head x
-        a = head' $ params "a"
-        p = head' $ params "p"
+    a <- fromMaybe "" <$> lookupGetParam "a"
+    p <- fromMaybe "" <$> lookupGetParam "p"
         -- opts = appOpts app ++ [Period p]
         -- args = appArgs app ++ [a]
         -- fspec = optsToFilterSpec opts args t
@@ -356,7 +354,7 @@ getEditPage = do
     s <- liftIO $ if changed then readFile (filepath j) else return (jtext j)
     -- render the page
     msg <- getMessage
-    Just here <- getRoute
+    Just here <- getCurrentRoute
     hamletToRepHtml $ template' here msg a p "hledger" s
 
 template' here msg a p title content = [$hamlet|
@@ -377,10 +375,10 @@ template' here msg a p title content = [$hamlet|
        metacontent = "text/html; charset=utf-8"
        editform' = editform content
 
-editform :: String -> Hamlet HledgerWebAppRoutes
+editform :: String -> Hamlet HledgerWebAppRoute
 editform t = [$hamlet|
  %form!method=POST
-  %table.form#editform!cellpadding=0!cellspacing=0!!border=0
+  %table.form#editform!cellpadding=0!cellspacing=0!border=0
    %tr.formheading
     %td!colspan=2
      %span!style=float:right; ^formhelp^
@@ -407,12 +405,13 @@ editform t = [$hamlet|
 postEditPage :: Handler HledgerWebApp RepPlain
 postEditPage = do
   -- get form input values, or basic validation errors. E means an Either value.
-  textE  <- runFormPost $ catchFormError $ required $ input "text"
+  textM  <- runFormPost' $ maybeStringInput "text"
+  let textE = maybe (Left "No value provided") Right textM
   -- display errors or add transaction
   case textE of
    Left errs -> do
     -- XXX should save current form values in session
-    setMessage $ string $ intercalate "; " $ map (intercalate ", " . map (\(a,b) -> a++": "++b)) [errs]
+    setMessage $ string errs
     redirect RedirectTemporary JournalPage
 
    Right t' -> do
