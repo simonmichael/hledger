@@ -4,6 +4,11 @@ title: hledger news
 hledger news
 ============
 
+2010/07/17 hledger 0.11.1
+.........................
+
+  * fix --version output
+
 2010/07/17 hledger 0.11
 ........................
 
