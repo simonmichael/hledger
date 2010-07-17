@@ -105,7 +105,7 @@ hledgeropt: setversion
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
 	ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
-	@echo Please check the build looks portable (static):
+	@echo 'Please check the build looks portable (statically linked):'
 	-file bin/$(BINARYFILENAME)
 
 # build a deployable binary for mac, using only standard osx libs
