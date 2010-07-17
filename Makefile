@@ -515,7 +515,7 @@ setandrecordversion: setversion
 # update the version string in local files. Triggered by "make".
 setversion: $(VERSIONSENSITIVEFILES)
 
-Version.hs: $(VERSIONFILE)
+Hledger/Cli/Version.hs: $(VERSIONFILE)
 	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
 
 hledger.cabal: $(VERSIONFILE)
