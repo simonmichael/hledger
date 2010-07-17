@@ -4,7 +4,7 @@ title: hledger news
 hledger news
 ============
 
-2010/07/?? hledger 0.11
+2010/07/17 hledger 0.11
 ........................
 
   * split --help, adding --help-options and --help-all/-H, and make it the default command
@@ -17,6 +17,7 @@ hledger news
   * parsing: allow minus sign before commodity symbol as well as after (also fixes a convert bug)
   * parsing: fix wrong parse error locations within postings
   * parsing: don't let trailing whitespace in a timelog description mess up account names
+  * add: allow blank descriptions
   * balance: --flat provides a simple non-hierarchical format
   * balance: --drop removes leading account name components from a --flat report
   * print, register, balance: fix layout issues with mixed-commodity amounts
@@ -32,7 +33,7 @@ hledger news
   * web: slightly better browser opening on microsoft windows, should find a standard firefox install now
   * web: in a web-enabled build on microsoft windows, run the web ui by default
 
-  Stats: 53 days and 125 commits since last release. Now at 5560 lines of code with 133 tests and 53% coverage.
+  Stats: 55 days and 136 commits since last release. Now at 5552 lines of code with 132 tests and 54% unit test coverage.
 
 2010/05/23 hledger 0.10
 ........................
