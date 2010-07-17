@@ -4,7 +4,7 @@ description-field 4
 amount-field 1
 currency $
 
-# account-assigning rules
+; account-assigning rules:
 
 SPECTRUM
 expenses:health:gym
