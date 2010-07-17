@@ -290,24 +290,25 @@ postJournalPage = do
   today <- liftIO getCurrentDay
   -- get form input values. M means a Maybe value.
   (dateM, descM, acct1M, amt1M, acct2M, amt2M) <- runFormPost'
-    $   (,,,,,)
+    $ (,,,,,)
     <$> maybeStringInput "date"
-    <*> maybeStringInput "descritpion"
+    <*> maybeStringInput "description"
     <*> maybeStringInput "accountname1"
     <*> maybeStringInput "amount1"
     <*> maybeStringInput "accountname2"
     <*> maybeStringInput "amount2"
   -- supply defaults and parse date and amounts, or get errors.
-  let dateE' = maybe (Left "No date provided") (either (\e -> Left ("date: " ++ showDateParseError e)) Right . fixSmartDateStrEither today) dateM
-      amt1E' = maybe (Left "No amount provided") (either (const (Right missingamt)) Right . parse someamount "") amt1M  -- XXX missingamt only when missing/empty
-      amt2E' = case amt2M of Nothing  -> Right missingamt
-                             Just amt -> (either (const (Right missingamt)) Right . parse someamount "") amt
-      toEither = maybe (Left "") Right
-      strEs = [dateE', Right $ fromMaybe "" descM, toEither acct1M, toEither acct2M]
-      amtEs = [amt1E', amt2E']
-      errs = lefts strEs ++ lefts amtEs
+  let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today) dateM
+      descE = Right $ fromMaybe "" descM
+      acct1E = maybe (Left "to account required") Right acct1M
+      acct2E = maybe (Left "from account required") Right acct2M
+      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parse someamount "") amt1M
+      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parse someamount "") amt2M
+      strEs = [dateE, descE, acct1E, acct2E]
+      amtEs = [amt1E, amt2E]
       [date,desc,acct1,acct2] = rights strEs
       [amt1,amt2] = rights amtEs
+      errs = lefts strEs ++ lefts amtEs
       -- if no errors so far, generate a transaction and balance it or get the error.
       tE | not $ null errs = Left errs
          | otherwise = either (\e -> Left ["unbalanced postings: " ++ (head $ lines e)]) Right
@@ -435,7 +436,7 @@ postEditPage = do
           redirect RedirectTemporary EditPage)
        (const $ do
           liftIO $ writeFileWithBackup f tnew
-          setMessage $ string $ printf "Saved journal to %s\n" (show f)
+          setMessage $ string $ printf "Saved journal %s\n" (show f)
           redirect RedirectTemporary JournalPage)
        jE
 
