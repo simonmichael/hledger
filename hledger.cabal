@@ -106,6 +106,7 @@ executable hledger
     build-depends:
                   io-storage >= 0.3 && < 0.4
                  ,yesod >= 0.4.0 && < 0.5
+                 ,convertible-text >= 0.3.0.1
 
   if flag(web610)
     cpp-options: -DWEB610

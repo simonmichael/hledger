@@ -56,7 +56,7 @@ library
                  ,parsec
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
-                 ,time < 1.2
+                 ,time
                  ,utf8-string >= 0.3
                  ,HUnit
 
