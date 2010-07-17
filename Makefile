@@ -65,6 +65,7 @@ VERSIONSENSITIVEFILES=\
 	hledger.cabal \
 	Hledger/Cli/Version.hs \
 	hledger-lib/hledger-lib.cabal \
+	MANUAL.markdown \
 
 default: tag hledger
 
@@ -98,20 +99,16 @@ hledgeropt: setversion
 	ghc --make hledger.hs -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build a deployable binary for mac, one which uses only standard osx libs
-# use some trickery to link without gmp lib
 hledgermac: setversion
-	ghc -c --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
-	sudo port deactivate gmp
-	-PATH=tools:$(PATH) ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -optl-L/usr/lib
-	sudo port activate gmp
+	ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 # -optl-L/usr/lib
 	@echo Please check the build looks portable:
-	otool -L $(BINARYFILENAME)
+	otool -L bin/$(BINARYFILENAME)
 
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
 	ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
-	@echo Please check the build looks portable:
-	-ldd $(BINARYFILENAME)
+	@echo Please check the build looks portable (static):
+	-file bin/$(BINARYFILENAME)
 
 # build a deployable binary for windows, using cygwin presumably
 # hledgerwin: setversion
@@ -188,6 +185,7 @@ unittesths:
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run functional tests, requires shelltestrunner from hackage
+# 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: hledger
 	(shelltest tests --implicit=none --plain --threads=16 \
 		&& echo $@ PASSED) || echo $@ FAILED
@@ -350,6 +348,9 @@ previewsite: site/hakyll
 
 site/hakyll: site/hakyll.hs
 	cd site; ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS)
+
+siteci:
+	cd site; sp --no-exts --no-default-map -o hakyll ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS) --run preview
 
 viewsite: site
 	$(VIEWHTML) site/_site/index.html
@@ -517,13 +518,14 @@ releaseandupload: release upload
 # update the version number in local files, and prompt to record changes
 # in these files. Triggered by "make release".
 setandrecordversion: setversion
-	darcs record -m "update version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
 # update the version string in local files. Triggered by "make".
 setversion: $(VERSIONSENSITIVEFILES)
 
 Hledger/Cli/Version.hs: $(VERSIONFILE)
 	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
+# XXX also touch manually when switching between cabal install -fweb and -fweb610
 
 hledger.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
@@ -531,6 +533,9 @@ hledger.cabal: $(VERSIONFILE)
 
 hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+
+MANUAL.markdown: $(VERSIONFILE)
+	perl -p -e "s/(^This is the official.*?version) +[0-9.]+/\1 $(VERSION3)./" -i $@
 
 tagrelease:
 	darcs tag $(VERSION3)
@@ -568,8 +573,8 @@ pullprofs:
 # push a deployable binary for this platform to the public site
 # make hledgerPLATFORM first
 pushbinary:
-	-gzip -9 $(BINARYFILENAME)
-	-rsync -aP $(BINARYFILENAME).gz joyful.com:/repos/hledger/site/binaries/
+	-gzip -9 bin/$(BINARYFILENAME)
+	-rsync -aP bin/$(BINARYFILENAME).gz joyful.com:/repos/hledger/site/binaries/
 
 # show project stats useful for release notes
 stats: showlastreleasedate showreleaseauthors showloc showcov showlocalchanges showreleasechanges #simplebench #showerrors
@@ -584,7 +589,7 @@ showloc:
 	@sloccount `ls $(SOURCEFILES)` | grep haskell:
 	@echo
 
-showcov:
+showcov: hledgercov
 	@echo Test coverage:
 	@tools/coverage report test
 
@@ -609,8 +614,8 @@ showcodechanges:
 	@echo
 
 showreleasechanges:
-	@echo "Code changes since last release: ("`darcs changes --from-tag . --count`")"
-	@darcs changes --from-tag . --matches "not (name docs: or name site: or name tools:)" | grep '*'
+	@echo "Feature/bugfix changes since last release: ("`darcs changes --from-tag . --count`")"
+	@darcs changes --from-tag . --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
 	@echo
 
 ######################################################################
