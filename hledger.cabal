@@ -56,7 +56,6 @@ executable hledger
   -- should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
   other-modules:
-                  Paths_hledger
                   Hledger.Cli.Main
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
@@ -135,7 +134,6 @@ library
   -- should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
   exposed-modules:
-                  Paths_hledger
                   Hledger.Cli.Main
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
