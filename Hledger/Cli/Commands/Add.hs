@@ -54,7 +54,7 @@ getTransaction j opts args defaultDate = do
             (Just $ showDate defaultDate)
             (Just $ \s -> null s || 
              isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
-  description <- askFor "description" Nothing (Just $ not . null) 
+  description <- askFor "description" (Just "") Nothing
   let historymatches = transactionsSimilarTo j args description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
