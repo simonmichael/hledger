@@ -96,6 +96,7 @@ executable hledger
     build-depends:
                   Chart >= 0.11
                  ,colour
+                 ,gtk2hs-buildtools
 
   if flag(vty)
     cpp-options: -DVTY
