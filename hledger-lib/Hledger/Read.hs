@@ -96,15 +96,15 @@ ensureJournalFile :: FilePath -> IO ()
 ensureJournalFile f = do
   exists <- doesFileExist f
   when (not exists) $ do
-    printf "No journal file at %s, creating...\n" f
-    printf "Edit this file or use hledger add or hledger web to add transactions.\n"
+    hPrintf stderr "No journal file \"%s\", creating it.\n" f
+    hPrintf stderr "Edit this file or use \"hledger add\" or \"hledger web\" to add transactions.\n"
     emptyJournal >>= writeFile f
 
 -- | Give the content for a new auto-created journal file.
 emptyJournal :: IO String
 emptyJournal = do
   d <- getCurrentDay
-  return $ printf "; journal created by hledger on %s\n; see http://hledger.org/MANUAL.html#file-format\n\n" (show d)
+  return $ printf "; journal created %s; see http://hledger.org/MANUAL.html#journal-file\n\n" (show d)
 
 -- | Read a Journal from this string, using the specified data format or
 -- trying all known formats, or give an error string.
