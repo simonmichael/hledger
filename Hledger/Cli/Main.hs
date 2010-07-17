@@ -39,7 +39,9 @@ See "Hledger.Data.Ledger" for more examples.
 -}
 
 module Hledger.Cli.Main where
+#if defined(WEB) || defined(WEB610)
 import System.Info (os)
+#endif
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8
