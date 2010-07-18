@@ -45,7 +45,7 @@ SOURCEFILES:= \
 	hledger-lib/Hledger/Data/*hs \
 	hledger-lib/Hledger/Read/*hs
 DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
-BINARYFILENAME=`runhaskell ./hledger.hs --binary-filename`
+BINARYFILENAME=$(shell runhaskell ./hledger.hs --binary-filename)
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
 DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
@@ -114,9 +114,9 @@ hledgermac: setversion
 	@echo Please check the build looks portable:
 	otool -L bin/$(BINARYFILENAME)
 
-# build a deployable binary for windows, running make via cygwin presumably
-hledgerwin: setversion hledgercabal
-	cp ~/.cabal/bin/hledger.exe bin/$(BINARYFILENAME)
+# build a deployable binary for windows, assuming cygwin tools are present
+hledgerwin: setversion #hledgercabal
+	cp ~/.cabal/bin/hledger.exe bin/`echo $(BINARYFILENAME) | dos2unix`
 
 # auto-recompile and run (with the specified argument) whenever a module changes.
 # sp is from searchpath.org, you might need the patched version from
