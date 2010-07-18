@@ -402,7 +402,7 @@ printall: pdf
 
 # push latest docs etc. and update the hledger.org site
 pushdocs: push
-	ssh joyful.com 'make -C/repos/hledger docs'
+	ssh simon@joyful.com 'make -C/repos/hledger docs'
 
 # generate api docs
 # We munge haddock and hoogle into a rough but useful framed layout.
@@ -567,20 +567,20 @@ send:
 
 # push patches and anything else pending to the public server
 push: pushprofs pushbinary
-	darcs push joyful.com:/repos/hledger
+	darcs push simon@joyful.com:/repos/hledger
 
 # pull anything pending from the public server
 pull: pullprofs
-	darcs pull -a joyful.com:/repos/hledger
+	darcs pull -a simon@joyful.com:/repos/hledger
 
 # push any new profiles and benchmark results to the public site
 # beware, results will vary depending on which machine generated them
 pushprofs:
-	rsync -azP profs/ joyful.com:/repos/hledger/profs/
+	rsync -azP profs/ simon@joyful.com:/repos/hledger/profs/
 
 # fetch any new profiles and benchmark results from the public site
 pullprofs:
-	rsync -azP joyful.com:/repos/hledger/profs/ profs/
+	rsync -azP simon@joyful.com:/repos/hledger/profs/ profs/
 
 # push a deployable binary for this platform to the public site
 # make hledgerPLATFORM first
@@ -622,7 +622,7 @@ showlastreleasedate:
 
 showlocalchanges:
 	@echo Local changes:
-	@-darcs push joyful.com:/repos/hledger --dry-run | grep '*' | tac
+	@-darcs push simon@joyful.com:/repos/hledger --dry-run | grep '*' | tac
 	@echo
 
 showcodechanges:
