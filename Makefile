@@ -586,7 +586,12 @@ pullprofs:
 # make hledgerPLATFORM first
 pushbinary:
 	-gzip -9 bin/$(BINARYFILENAME)
-	-rsync -aP bin/$(BINARYFILENAME).gz joyful.com:/repos/hledger/site/binaries/
+	-rsync -aP bin/$(BINARYFILENAME).gz simon@joyful.com:/repos/hledger/site/binaries/
+
+pushbinarywin:
+	cd bin; zip -9 $(BINARYFILENAME).zip $(BINARYFILENAME)
+	-rsync -aP bin/$(BINARYFILENAME).zip simon@joyful.com:/repos/hledger/site/binaries/
+
 
 # show project stats useful for release notes
 stats: showlastreleasedate showreleaseauthors showloc showcov showlocalchanges showreleasechanges #simplebench #showerrors
