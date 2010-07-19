@@ -18,8 +18,8 @@ COVCMD=test
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
-#BENCHEXES=hledger-0.9 hledger ledger
-BENCHEXES=hledger
+BENCHEXES=hledger-0.9 hledger-0.10-1 hledger ledger
+#BENCHEXES=hledger
 
 # misc. tools
 RST2PDF=rst2pdf
