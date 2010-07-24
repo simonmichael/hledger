@@ -43,52 +43,59 @@ released as Free Software under GPL version 3 or later.
 
 ### Installing
 
-hledger works on all major platforms; here are the [release
-notes](http://hledger.org/NEWS.html). One of these pre-built
-[binaries](http://hledger.org/binaries/) might work for you, but at
-present these are not very up-to-date, so the usual thing is to build
-with the cabal-install tool:
+hledger works on all major platforms. Here are the [release
+notes](http://hledger.org/NEWS.html), and pre-built
+[binaries](http://hledger.org/binaries/) you should be able to
+download and run. If not, or if you prefer an up-to-date build,
+open a shell/terminal/command window and:
 
-1. If you don't already have the Glasgow Haskell Compiler and
-   cabal-install, download and install the
-   [Haskell Platform](http://hackage.haskell.org/platform/).  Or, you may
-   be able to use platform packages; eg on Ubuntu Lucid, do `apt-get
-   install ghc6 cabal-install happy`.
+1. **ensure you have GHC (6.10 or newer) and cabal-install**
 
-2. Install hledger with cabal-install. Make sure ~/.cabal/bin is in your
-   path; this is required while installing some cabal packages. Eg:
+        $ ghc --version
+        $ cabal --version
 
-        export PATH=$PATH:~/.cabal/bin
-        cabal update
-        cabal install hledger
+    If not, download and install the [Haskell
+    Platform](http://hackage.haskell.org/platform/).  Or, you may be
+    able to use your platform's packaging system, eg on ubuntu lucid
+    do `apt-get install ghc6 cabal-install zlib1g-dev`.  Also make
+    sure ~/.cabal/bin is in your PATH.
 
-    You can add the following options to the install command to build
-    extra features (if you're new to cabal, I recommend you get the basic
-    install working first, then add these one at a time):
+2. **install hledger with cabal-install**
 
-    - `-fchart` builds the [chart](#chart) command, enabling simple
-      balance pie chart generation. This requires additional GTK/GHC
-      integration libraries (on ubuntu: `apt-get install libghc6-gtk-dev`)
-      and possibly other things - see the
-      [gtk2hs install docs](http://code.haskell.org/gtk2hs/INSTALL).
-      At present this add a lot of build complexity for not much gain.
+        $ cabal update
+        $ cabal install hledger
 
-    - `-fvty` builds the [vty](#vty) command, enabling a basic
-      curses-style user interface. This does not work on microsoft
-      windows, unless possibly with cygwin.
+#### Install options
 
-    - `-fweb` builds the [web](#web) command, enabling a web-based user
-      interface. This requires GHC 6.12. If you are stuck with GHC 6.10,
-      you can use `-fweb610` instead, to build an older version of the web
-      interface.
+You can add the following options to the basic `cabal install hledger`
+command to build extra features. I recommend you get the basic install
+working first, then try these one at a time:
 
-If you have any trouble, proceed at once to [Troubleshooting](#troubleshooting) for help!
+- `-fweb` builds the [web](#web) command, enabling a web-based user
+  interface. This requires GHC 6.12. If you are stuck with GHC 6.10,
+  you can use `-fweb610` instead, to build an older version of the web
+  interface.
+
+- `-fvty` builds the [vty](#vty) command, enabling a basic
+  curses-style user interface. This does not work on microsoft
+  windows, unless possibly with cygwin.
+
+- `-fchart` builds the [chart](#chart) command, enabling simple
+  balance pie chart generation. This requires additional GTK/GHC
+  integration libraries (on ubuntu: `apt-get install libghc6-gtk-dev`)
+  and possibly other things - see the
+  [gtk2hs install docs](http://code.haskell.org/gtk2hs/INSTALL).
+  At present this add a lot of build complexity for not much gain.
+
+#### If you have trouble..
+
+proceed to [Troubleshooting](#troubleshooting) for help!
 
 ### Basic usage
 
 Basic usage is:
 
-    hledger [OPTIONS] [COMMAND [PATTERNS]]
+    $ hledger [OPTIONS] [COMMAND [PATTERNS]]
 
 [OPTIONS](#overview) may appear anywhere on the command line.
 [COMMAND](#commands) is one of: add, balance, chart, convert, histogram,
@@ -107,30 +114,39 @@ it as `.journal` in your home directory. Or, just run `hledger add` and
 enter a few transactions. Now you can try some of these commands, or read
 on:
 
-    hledger --help                        # show command-line help
-    hledger balance                       # all accounts with aggregated balances
-    hledger bal --depth 1                 # only top-level accounts
-    hledger register                      # transaction register
-    hledger reg income                    # transactions to/from an income account
-    hledger reg checking                  # checking transactions
-    hledger reg desc:shop                 # transactions with shop in the description
-    hledger histogram                     # transactions per day, or other interval
-    hledger add                           # add some new transactions to the journal file
-    hledger vty                           # curses ui, if installed with -fvty
-    hledger web                           # web ui, if installed with -fweb or -fweb610
-    hledger chart                         # make a balance chart, if installed with -fchart
+    $ hledger --help                        # show command-line help
+    $ hledger balance                       # all accounts with aggregated balances
+    $ hledger bal --depth 1                 # only top-level accounts
+    $ hledger register                      # transaction register
+    $ hledger reg income                    # transactions to/from an income account
+    $ hledger reg checking                  # checking transactions
+    $ hledger reg desc:shop                 # transactions with shop in the description
+    $ hledger histogram                     # transactions per day, or other interval
+    $ hledger add                           # add some new transactions to the journal file
+    $ hledger vty                           # curses ui, if installed with -fvty
+    $ hledger web                           # web ui, if installed with -fweb or -fweb610
+    $ hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
 
 <a name="file-format" />
 
-### Journal file
+#### Journal file
 
-hledger's data file, aka the journal, is a standard accounting
-[general journal](http://en.wikipedia.org/wiki/General_journal) in a plain
-text format. It contains a number of transactions, each describing a
-transfer of money (or another commodity) between two or more named
-accounts. Here's an example:
+hledger reads data from a plain text file, called a *journal* because
+it represents a standard accounting [general
+journal](http://en.wikipedia.org/wiki/General_journal).  It contains a
+number of transactions, each describing a transfer of money (or
+any commodity) between two or more named accounts, in a simple
+format readable by both hledger and humans.
+
+You can use hledger without learning any more about this file; just
+use the [add](#add) or [web](#web) commands.  Most users, though, edit
+the journal file directly with a text editor. This is a distinguishing
+feature of hledger (and c++ ledger.) You can do this while the web
+interface is running, too; it watches the file for changes.
+
+Here's an example:
 
     ; A sample journal file. This is a comment.
     
@@ -168,9 +184,9 @@ letters should be enclosed in double quotes. Negative amounts usually have
 the minus sign next to the number (`$-1`), but it may also go before the
 currency symbol/commodity name (`-$1`).
 
-hledger's file format aims to be compatible with c++ ledger, so you can
-use both tools. For more details, see
-[File format compatibility](#file-format-compatibility).
+hledger's file format aims to be compatible with c++ ledger, so you
+can use both tools on your journal. For more details, see [File format
+compatibility](#file-format-compatibility).
 
 ## Reference
 
@@ -953,7 +969,7 @@ sailing.  Here are some known issues and things to try:
   Eg: join the #hledger channel with your IRC client and type: "sm: I did ... and ... happened", then leave
   that window open until you get helped.
 
-- **Did you cabal update ?** If you didn't already, ``cabal update`` and try again.
+- **Did you cabal update ?** If you didn't already, `cabal update` and try again.
 
 - **Do you have a new enough version of GHC ?** hledger supports GHC 6.10
   and 6.12. Building with the `-fweb` flag requires 6.12 or greater.
@@ -970,12 +986,15 @@ sailing.  Here are some known issues and things to try:
     then try installing hledger again.
 
 - **Could not run trhsx.**
-  You are installing with `-fweb610`, which needs to run the ``trhsx`` executable.
-  It is installed by the hsx package in ~/.cabal/bin, which needs to be in
-  your path.
+  You are installing with `-fweb610`, which needs to run the `trhsx` executable.
+  It is installed by the hsx package in `~/.cabal/bin`, which needs to be in
+  your path. Do something like:
+
+        $ echo 'export PATH=$PATH:~/.cabal/bin' >> ~/.bash_profile; source ~/.bash_profile
+
 
 - **Could not run happy.**
-  A package (eg haskell-src-exts) needs to run the ``happy`` executable.
+  A package (eg haskell-src-exts) needs to run the `happy` executable.
   If not using the haskell platform, install the appropriate platform
   package which provides it (eg apt-get install happy).
 
@@ -1009,16 +1028,16 @@ sailing.  Here are some known issues and things to try:
     error. You could try installing the
     [previous version](http://hackage.haskell.org/package/hledger):
 
-        cabal install hledger-0.x
+        $ cabal install hledger-0.x
 
     or (preferably) the latest development version: install
     [darcs](http://darcs.net) and then:
 
-        darcs get --lazy http://joyful.com/repos/hledger
-        cd hledger/hledger-lib
-        cabal install
-        cd ..
-        cabal install [-f...]
+        $ darcs get --lazy http://joyful.com/repos/hledger
+        $ cd hledger/hledger-lib
+        $ cabal install
+        $ cd ..
+        $ cabal install [-f...]
 
 - **An error while building non-hledger packages.**
   Resolve these problem packages one at a time. Eg, cabal install pkg1.
