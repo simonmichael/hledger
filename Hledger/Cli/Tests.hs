@@ -323,6 +323,7 @@ tests = TestList [
   ,"intervalFromOpts" ~: do
     let gives = is . intervalFromOpts
     [] `gives` NoInterval
+    [DailyOpt] `gives` Daily
     [WeeklyOpt] `gives` Weekly
     [MonthlyOpt] `gives` Monthly
     [QuarterlyOpt] `gives` Quarterly

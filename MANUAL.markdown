@@ -233,6 +233,7 @@ Here is the command-line help:
                --flat             balance: show full account names, unindented
                --drop=N           balance: with --flat, elide first N account name components
                --no-total         balance: hide the final total
+      -D       --daily            register, stats: report by day
       -W       --weekly           register, stats: report by week
       -M       --monthly          register, stats: report by month
       -Q       --quarterly        register, stats: report by quarter

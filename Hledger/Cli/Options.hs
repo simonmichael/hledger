@@ -87,6 +87,7 @@ options = [
  ,Option ""  ["flat"]         (NoArg  Flat)          "balance: show full account names, unindented"
  ,Option ""  ["drop"]         (ReqArg Drop "N")      "balance: with --flat, elide first N account name components"
  ,Option ""  ["no-total"]     (NoArg  NoTotal)       "balance: hide the final total"
+ ,Option "D" ["daily"]        (NoArg  DailyOpt)      "register, stats: report by day"
  ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register, stats: report by week"
  ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
  ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
@@ -131,6 +132,7 @@ data Opt =
     Drop   {value::String} |
     NoTotal |
     SubTotal |
+    DailyOpt |
     WeeklyOpt |
     MonthlyOpt |
     QuarterlyOpt |
@@ -215,6 +217,7 @@ intervalFromOpts :: [Opt] -> Interval
 intervalFromOpts opts =
     case (periodopts, intervalopts) of
       ((p:_), _)            -> fst $ parsePeriodExpr d p where d = parsedate "0001/01/01" -- unused
+      (_, (DailyOpt:_))     -> Daily
       (_, (WeeklyOpt:_))    -> Weekly
       (_, (MonthlyOpt:_))   -> Monthly
       (_, (QuarterlyOpt:_)) -> Quarterly
@@ -222,7 +225,7 @@ intervalFromOpts opts =
       (_, _)                -> NoInterval
     where
       periodopts   = reverse $ optValuesForConstructor Period opts
-      intervalopts = reverse $ filter (`elem` [WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
+      intervalopts = reverse $ filter (`elem` [DailyOpt,WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
 
 -- | Get the value of the (last) depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int
