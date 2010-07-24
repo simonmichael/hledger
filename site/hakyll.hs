@@ -19,6 +19,7 @@ baseurl = "http://hledger.org"
 main = hakyllWithConfiguration cfg $ do
     mapM_ renderParentDirPage
       ["README.rst"
+      ,"DOWNLOAD.markdown"
       ,"DEVELOPMENT.rst"
       ,"NEWS.rst"
       ,"SCREENSHOTS.markdown"
