@@ -584,33 +584,54 @@ subsequent dates may be written as month/day. Eg:
     
     1/31  ; <- equivalent to 2010/1/31
 
-##### Actual/effective dates
+##### Actual & effective dates
 
-Real-life transactions sometimes have two (or more) dates of interest.
-For example, you might buy a movie ticket on friday with a debit or credit
+Real-life transactions sometimes have more than one date.  For
+example, you might buy a movie ticket on friday with a bank debit
 card, and the transaction might appear in your bank account on monday.
-When you don't care about this, just record one date. When you do care,
-you can record two dates separated by `=`: the *actual date* on the left
-and the *effective date* on the right. Here's how hledger and ledger users
-use these terms:
+hledger and ledger users call these the *effective date* and *actual
+date* respectively. We say:
 
-    ; The ticket purchase took EFFECT on friday 19th,
-    ; but ACTUALly appeared in bank statement on monday 23rd.
-    ; The effective date is often the earlier one, but it goes on the right.
-    ;
-    ;  ACTUAL=EFFECTIVE
-    2010/2/23=2010/2/19 movie ticket
-      expenses:cinema        $10
-      assets:bank:checking  $-10
+> *"The ticket purchase took EFFECT on friday, but ACTUALly appeared in my bank balance on monday."*
 
-You can use the `--effective` flag to prefer the effective date in
-reports.  This can be useful, eg, to adjust your transaction dates to
-match the ones in your bank statement for easier reconciling.
+You can often think of effective date as "my date" and actual date as "bank's date".
+
+When these dates differ, as in the example above, hledger's daily
+balances will not exactly match your bank's. But exact daily
+reconciling can be quite useful, to see precisely when disagreements
+arise. There are several ways you can handle this:
+
+1. don't bother with exact daily reconciling; accept temporary
+   disagreements between hledger and bank balances.
+
+2. adjust manually recorded transactions to actual bank dates when necessary.
+   Your hledger balance will match your bank's exactly, but you no longer have
+   a record of when transactions *really* happened.
+
+3. record both dates separated by an equals sign: the *actual date* on
+   the left and the *effective date* on the right.
+
+Here's an example of the last approach: on friday 19 you record:
+
+        2010/2/19 movie
+          expenses:cinema          $10
+          assets:checking
+
+hledger shows $10 less in your checking account through saturday and
+sunday.. but your online bank statement does not. It shows the
+transaction clearing a few days later, on monday 23. So you then
+insert that actual date:
+
+        ;  ACTUAL=EFFECTIVE
+        2010/2/23=2010/2/19 movie
+          expenses:cinema          $10
+          assets:checking
+
+Now your hledger reports match your bank's daily balance exactly,
+since they use the actual date by preference. To report based on
+effective dates instead, use the `--effective` flag.
 
 The year may optionally be omitted in the second date.
-
-hledger does not allow separate dates for individual postings, unlike c++
-ledger.
 
 ##### Smart dates
 
