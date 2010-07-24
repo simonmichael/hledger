@@ -29,6 +29,6 @@ I appreciate feedback on all aspects of hledger. Thanks!
 .. _screenshots:   SCREENSHOTS.html
 .. _demo:          http://demo.hledger.org
 .. _web interface: MANUAL.html#web
-.. _download:      download
+.. _download:      DOWNLOAD.html
 .. _development:   DEVELOPMENT.html
 .. _email me:      mailto:simon@joyful.com?subject=hledger:

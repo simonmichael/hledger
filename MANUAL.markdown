@@ -58,7 +58,7 @@ open a shell/terminal/command window and:
     Platform](http://hackage.haskell.org/platform/).  Or, you may be
     able to use your platform's packaging system, eg on ubuntu lucid
     do `apt-get install ghc6 cabal-install zlib1g-dev`.  Also make
-    sure ~/.cabal/bin is in your PATH.
+    sure `~/.cabal/bin` is in your PATH.
 
 2. **install hledger with cabal-install**
 
@@ -80,12 +80,10 @@ working first, then try these one at a time:
   curses-style user interface. This does not work on microsoft
   windows, unless possibly with cygwin.
 
-- `-fchart` builds the [chart](#chart) command, enabling simple
-  balance pie chart generation. This requires additional GTK/GHC
-  integration libraries (on ubuntu: `apt-get install libghc6-gtk-dev`)
-  and possibly other things - see the
-  [gtk2hs install docs](http://code.haskell.org/gtk2hs/INSTALL).
-  At present this add a lot of build complexity for not much gain.
+- `-fchart` builds the [chart](#chart) command, enabling rudimentary
+  pie chart generation. This requires additional GTK-related libraries
+  (on ubuntu: `apt-get install libghc6-gtk-dev`) and possibly [other
+  things](http://code.haskell.org/gtk2hs/INSTALL).
 
 #### If you have trouble..
 
@@ -141,10 +139,12 @@ any commodity) between two or more named accounts, in a simple
 format readable by both hledger and humans.
 
 You can use hledger without learning any more about this file; just
-use the [add](#add) or [web](#web) commands.  Most users, though, edit
-the journal file directly with a text editor. This is a distinguishing
-feature of hledger (and c++ ledger.) You can do this while the web
-interface is running, too; it watches the file for changes.
+use the [add](#add) or [web](#web) commands.
+
+Many users, though, edit the journal file directly with a text
+editor. This is a distinguishing feature of hledger (and c++ ledger.)
+You can even do this while the web interface is running, and see the
+changes right away.
 
 Here's an example:
 
@@ -172,8 +172,8 @@ Here's an example:
         assets:bank:checking
 
 Each transaction has a date, optional description, and two or more
-postings (of some amount to some account) which must balance to 0. As a
-convenience, one posting's amount may be left blank and will be inferred.
+postings, of some amount to some account. The amounts within a transaction must balance,
+ie add up to 0. Or, you can leave one amount blank and it will be inferred.
 
 Note that account names may contain single spaces, while the amount must
 be separated from the account name by at least two spaces.
@@ -568,21 +568,24 @@ format. Examples:
 
 > `2010/01/31` or `2010/1/31` or `2010-1-31` or `2010.1.31`
 
-The [add](#add) command and the [web](#web) add form, as well as some
-other places, accept [smart dates](#smart-dates) - more about those below.
+The year is optional if you define a [default year](#default-year).
 
-##### Default year
+##### Smart dates
 
-You can set a default year with a `Y` directive in the journal, then
-subsequent dates may be written as month/day. Eg:
+In [period expressions](#period-expressions), the `-b` and `-e` options,
+the [add](#add) command and the [web](#web) add form, more flexible "smart
+dates" are allowed. Here are some examples:
 
-    Y2009
-    
-    12/15  ; <- equivalent to 2009/12/15
-    
-    Y2010
-    
-    1/31  ; <- equivalent to 2010/1/31
+-   `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1`, `2009/1`,
+    `2009` (january 1, 2009)
+-   `1/1`, `january`, `jan`, `this year` (january 1, this year)
+-   `next year` (january 1, next year)
+-   `this month` (the 1st of the current month)
+-   `this week` (the most recent monday)
+-   `last week` (the monday of the week before this one)
+-   `today`, `yesterday`, `tomorrow`
+
+Spaces are optional, so eg: `-b lastmonth` is valid.
 
 ##### Actual & effective dates
 
@@ -609,7 +612,8 @@ arise. There are several ways you can handle this:
    a record of when transactions *really* happened.
 
 3. record both dates separated by an equals sign: the *actual date* on
-   the left and the *effective date* on the right.
+   the left and the *effective date* on the right. The year is
+   optional in the second date.
 
 Here's an example of the last approach: on friday 19 you record:
 
@@ -631,24 +635,18 @@ Now your hledger reports match your bank's daily balance exactly,
 since they use the actual date by preference. To report based on
 effective dates instead, use the `--effective` flag.
 
-The year may optionally be omitted in the second date.
+##### Default year
 
-##### Smart dates
+You can set a default year with a `Y` directive in the journal, then
+subsequent dates may be written as month/day. Eg:
 
-In [period expressions](#period-expressions), the `-b` and `-e` options,
-the [add](#add) command and the [web](#web) add form, more flexible "smart
-dates" are allowed. Here are some examples:
-
--   `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1`, `2009/1`,
-    `2009` (january 1, 2009)
--   `1/1`, `january`, `jan`, `this year` (january 1, this year)
--   `next year` (january 1, next year)
--   `this month` (the 1st of the current month)
--   `this week` (the most recent monday)
--   `last week` (the monday of the week before this one)
--   `today`, `yesterday`, `tomorrow`
-
-Spaces are optional, so eg: `-p lastmonth` is valid.
+    Y2009
+    
+    12/15  ; <- equivalent to 2009/12/15
+    
+    Y2010
+    
+    1/31  ; <- equivalent to 2010/1/31
 
 #### Period expressions
 
@@ -676,7 +674,7 @@ above can also be written as:
     -p "this year to 4/1"
 
 If you specify only one date, the missing start or end date will be the
-earliest or latest transaction in your journal data:
+earliest or latest transaction in your journal:
 
     -p "from 2009/1/1"  (everything after january 1, 2009)
     -p "from 2009/1"    (the same)
@@ -690,6 +688,9 @@ like so:
     -p "2009/1"         (the month of jan; equivalent to "2009/1/1 to 2009/2/1")
     -p "2009/1/1"       (just that day;    equivalent to "2009/1/1 to 2009/1/2")
 
+The `-b/--begin` and `-e/--end` options may be used as a shorthand for
+`-p 'from ...'` and `-p 'to ...'` respectively. But note [-p overrides other flags](#p-overrides-other-flags).
+
 ##### Reporting interval
 
 You can also specify a reporting interval, which causes the "register"
@@ -702,13 +703,14 @@ the dates, and can be: "daily", "weekly", "monthly", "quarterly", or
     -p "monthly from 2008"
     -p "quarterly"
 
-A reporting interval may also be specified with the -W/--weekly,
--M/--monthly, -Q/--quarterly, and -Y/--yearly options. However..
+A reporting interval may also be specified with the `-D/--daily`,
+`-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`
+options. But note...
 
 ##### -p overrides other flags
 
-Note: any period option on the command line will override the -b, -e, -W,
--Q and -Y flags.
+A `-p/--period` option on the command line will cause any
+`-b`/`-e`/`-D`/`-W`/`-M`/`-Q`/`-Y` flags to be ignored.
 
 #### Display expressions
 
@@ -718,26 +720,28 @@ transactions will be displayed (unlike a
 to be used for calculation).
 
 hledger currently supports a very small subset of c++ ledger's display
-expressions, namely: transactions before or after a date.  This is useful
-for displaying your recent check register with an accurate running
-total. Note the use of \>= here to include the first of the month:
+expressions, namely: transactions before or after a date.  This is
+useful for displaying a portion of your checking register with an
+accurate running total. Eg, to show the balance since the first of the month:
 
-    $ hledger register -d "d>=[this month]"
+    $ hledger register -d "d>=[1]"
 
 #### Depth limiting
 
 With the `--depth N` option, reports will show only the uppermost accounts
 in the account tree, down to level N. This is most useful with
-[balance](#balance) (and [chart](#chart)). For example:
+[balance](#balance) and [chart](#chart). For example:
 
     $ hledger balance --depth 2
 
 shows a more concise balance report displaying only the top two levels of
-accounts. This example with [register](#register):
+accounts.
+
+It's currently not so useful with [register](#register), eg this:
 
     $ hledger register --depth 1
 
-would show only the postings to top-level accounts, which usually means
+shows only the postings in top-level accounts, which usually means
 none.
 
 #### Prices
@@ -793,7 +797,7 @@ fluctuating-value investments or capital gains.
 
 You can pull in the content of additional journal files, by writing lines like this:
 
-    !include other/file.journal
+    !include path/to/file.journal
 
 The `!include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not timelog files.)
@@ -831,7 +835,7 @@ Included files are also affected, eg:
 
 hledger will also read timelog files in timeclock.el format. As a
 convenience, if you invoke hledger via an "hours" symlink or copy, it uses
-your timelog file (\~/.timelog or $TIMELOG) by default, rather than your
+your timelog file (`~/.timelog` or `$TIMELOG`) by default, rather than your
 journal.
 
 Timelog entries look like this:

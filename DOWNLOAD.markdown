@@ -16,41 +16,45 @@ title: hledger downloads
 </style>
 
 Here are hledger binaries which might just work on your computer.
-Please try the instructions for your platform, and if you have trouble,
-<a href="http://hledger.org/README2.html#support">report it to Support</a>.
-Or, try <a href="http://hledger.org/MANUAL.html#installing">installing with cabal</a>.
+Or, you could try <a href="http://hledger.org/MANUAL.html#installing">installing with cabal</a>.
+Please report any trouble (or success!) to <a href="http://hledger.org/DEVELOPMENT.html#support">Support</a>.
     
 <table id="platformdocs">
 	<tr>
-		<th><img src="../linux.png" /><br />GNU/Linux (intel)</th>
+		<th><img src="../linux.png" /><br />GNU/Linux (x86)</th>
 		<th><a href="download/hledger-0.11.1-mac-i386.gz"><img src="../mac.png" border=0 /></a><br />Mac (intel)</th>
 		<th><a href="download/hledger-0.11.1-win-i386.gz"><img src="../windows.png" border=0 /></a><br />Windows</th>
 	</tr>
 	<tr>
 		<td>
 Download the  
-[32-bit](download/hledger-0.11.1-linux-i386.gz) or 
-[64-bit](download/hledger-0.11.1-linux-x86_64.gz) version.  
+**[32-bit](download/hledger-0.11.1-linux-i386.gz)** or 
+**[64-bit](download/hledger-0.11.1-linux-x86_64.gz)** version  
   
 Open a terminal window and go to your browser's download directory, then:  
-`gunzip hledger-*86*`
-`mv hledger-*86* hledger`  
-`chmod +x hledger`  
-`./hledger`
+`$ gunzip hledger-*86*`
+`$ mv hledger-*86* hledger`  
+`$ chmod +x hledger`  
+`$ ./hledger`
 		</td>
 		<td>
 Download  
-[hledger-0.11.1-mac-i386.gz](download/hledger-0.11.1-mac-i386.gz)  
+<span style="white-space:nowrap;">
+**[hledger-0.11.1-mac-i386.gz](download/hledger-0.11.1-mac-i386.gz)**  
+</span>
   
+Double-click the downloaded file to decompress it.  
+Rename the decompressed file to "hledger".  
 Open a terminal window and go to your browser's download directory, then:  
-`gunzip hledger-*86*`
-`mv hledger-*86* hledger`  
-`chmod +x hledger`  
-`./hledger`
+`$ chmod +x hledger`  
+Run it:  
+`$ ./hledger`
 		</td>
 		<td>
 Download  
-[hledger-0.11.1-windows-i386.exe.zip](download/hledger-0.11.1-windows-i386.exe.zip)  
+<span style="white-space:nowrap;">
+**[hledger-0.11.1-windows-i386.exe.zip](download/hledger-0.11.1-windows-i386.exe.zip)**  
+</span>
   
 Unzip it to (eg) your desktop.  
 Double-click on the unzipped file to run the web interface (the default behaviour on windows).  
@@ -60,3 +64,6 @@ may access your hledger web interface.
 	</tr>
 </table>
 
+Errata:
+
+- the binaries have no stylesheet for the web interface unless you [copy it](http://joyful.com/repos/hledger/data/web/style.css) to `./data/web/style.css`
