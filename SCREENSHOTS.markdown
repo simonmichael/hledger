@@ -4,7 +4,8 @@ title: hledger screenshots
 
 # hledger screenshots
 
-Mouse over for captions, click to enlarge.
+
+Click to enlarge, or mouse over for captions..
 
 <style>
 .highslide img {height:90px;}

@@ -30,12 +30,12 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
  ``darcs get http://joyful.com/repos/hledger``, 
  `browse the repo`_, 
  `hackage page`_, 
- `hledger-lib api docs`_, 
- `hledger api docs`_, 
- `hledger-lib sourcegraph report`_, 
- `hledger sourcegraph report`_, 
+ `hledger haddock docs`_, 
  benchmark_\/profile_\/heap_\/coverage_ reports,
  `developer notes`_
+
+ .. `hledger-lib sourcegraph report`_, 
+ .. `hledger sourcegraph report`_, 
 
 .. raw:: html
 
@@ -78,8 +78,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 .. _manual:               MANUAL.html
 .. _news:                 NEWS.html
 .. _screenshots:          SCREENSHOTS.html
-.. _hledger-lib api docs: http://joyful.com/repos/hledger/hledger-lib/dist/doc/html/hledger-lib/index.html
-.. _hledger api docs:     http://joyful.com/repos/hledger/dist/doc/html/hledger/index.html
+.. _hledger haddock docs: http://hledger.org/api-doc/
 .. _hledger-lib sourcegraph report: http://joyful.com/repos/hledger/hledger-lib/SourceGraph/hledger-lib.html
 .. _hledger sourcegraph report: http://joyful.com/repos/hledger/SourceGraph/hledger.html
 .. _developer notes:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES
@@ -88,7 +87,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 .. _heap:                 http://hledger.org/profs/latest.ps
 .. _coverage:             http://hledger.org/profs/coverage/hpc_index_fun.html
 .. _browse the repo:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger
-.. _email me:             mailto:simon@joyful.com
+.. _email me:             mailto:simon@joyful.com?subject=hledger:
 .. _Simon Michael:        http://joyful.com
 .. _co.:                  http://hledger.org/CONTRIBUTORS.html
 .. _hackage page:         http://hackage.haskell.org/package/hledger

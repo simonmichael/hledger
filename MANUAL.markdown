@@ -578,11 +578,11 @@ subsequent dates may be written as month/day. Eg:
 
     Y2009
     
-    12/15 ...
+    12/15  ; <- equivalent to 2009/12/15
     
     Y2010
     
-    1/31 ...
+    1/31  ; <- equivalent to 2010/1/31
 
 ##### Actual/effective dates
 
@@ -862,6 +862,9 @@ Generally, it's easy to keep a journal file that works with both hledger
 and c++ledger if you avoid the more esoteric syntax.  Occasionally you'll
 need to make small edits to restore compatibility for one or the other.
 
+hledger does not allow separate dates for individual postings, unlike c++
+ledger.
+
 #### Features not supported
 
 c++ ledger features not currently supported include: modifier and periodic
@@ -927,23 +930,28 @@ entries, and the following c++ ledger options and commands:
 
 -   hledger recognises description and negative patterns by "desc:"
     and "not:" prefixes, unlike ledger 3's free-form parser
+
 -   hledger doesn't require a space before command-line option
-    values, you can write -f-
+    values, eg either `-f-` or `-f -` is fine
+
 -   hledger's weekly reporting intervals always start on mondays
+
 -   hledger shows start and end dates of the intervals requested,
     not just the span containing data
+
 -   hledger period expressions don't support "biweekly",
     "bimonthly", or "every N days/weeks/..."
+
 -   hledger always shows timelog balances in hours
+
 -   hledger splits multi-day timelog sessions at midnight
+
 -   hledger doesn't track the value of commodities with varying
     price; prices are fixed as of the transaction date
+
 -   hledger print shows amounts for all postings, and shows unit
-    prices for amounts which have them
--   hledger assumes a transaction's actual date comes first, and is
-    required, while the optional effective date comes second (cf
-    [Actual and effective dates](#actual-and-effective-dates))
--   hledger does not support per-posting actual or effective dates
+    prices for amounts which have them. (This currently means that
+    it does not print multi-commodity transactions in valid journal format.)
 
 ### More examples and recipes
 
