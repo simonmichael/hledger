@@ -110,10 +110,12 @@ import System.IO.UTF8
 #endif
 
 
-type BalanceReportData = ([BalanceReportItem]
-                         ,MixedAmount  -- ^ total balance of all accounts
-                         )
+-- | The data for a balance report.
+type BalanceReport = ([BalanceReportItem] -- ^ line items, one per account
+                     ,MixedAmount         -- ^ total balance of all accounts
+                     )
 
+-- | The data for a single balance report line item, representing one account.
 type BalanceReportItem = (AccountName  -- ^ full account name
                          ,AccountName  -- ^ account name elided for display: the leaf name,
                                        --   prefixed by any boring parents immediately above
@@ -126,8 +128,8 @@ balance opts args j = do
   t <- getCurrentLocalTime
   putStr $ showBalanceReport opts $ balanceReport opts (optsToFilterSpec opts args t) j
 
--- | Render balance report data as plain text suitable for console output.
-showBalanceReport :: [Opt] -> BalanceReportData -> String
+-- | Render a balance report as plain text suitable for console output.
+showBalanceReport :: [Opt] -> BalanceReport -> String
 showBalanceReport opts (items,total) = acctsstr ++ totalstr
     where
       acctsstr = unlines $ map showitem items
@@ -137,10 +139,14 @@ showBalanceReport opts (items,total) = acctsstr ++ totalstr
       showitem :: BalanceReportItem -> String
       showitem (a, adisplay, adepth, abal) = concatTopPadded [amt, "  ", name]
           where
-            total = sum $ map abalance $ ledgerTopAccounts l
+            amt = padleft 20 $ showMixedAmountWithoutPrice abal
+            name | Flat `elem` opts = accountNameDrop (dropFromOpts opts) a
+                 | otherwise        = depthspacer ++ adisplay
+            depthspacer = replicate (indentperlevel * adepth) ' '
+            indentperlevel = 2
 
--- | Get data for a balance report with the specified options for this journal.
-balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReportData
+-- | Get a balance report with the specified options for this journal.
+balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
 balanceReport opts filterspec j = (items, total)
     where
       items = map mkitem interestingaccts

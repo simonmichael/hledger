@@ -36,6 +36,47 @@ browserstartdelay = 100000 -- microseconds
 hledgerurl = "http://hledger.org"
 manualurl = hledgerurl++"/MANUAL.html"
 
+data HledgerWebApp = HledgerWebApp {
+      appRoot    :: String
+     ,appWebdir  :: FilePath
+     ,appOpts    :: [Opt]
+     ,appArgs    :: [String]
+     ,appJournal :: Journal
+     }
+
+mkYesod "HledgerWebApp" [$parseRoutes|
+/             IndexPage        GET
+/journal      JournalPage      GET POST
+/edit         EditPage         GET POST
+/register     RegisterPage     GET
+/balance      BalancePage      GET
+/style.css    StyleCss         GET
+|]
+
+instance Yesod HledgerWebApp where approot = appRoot
+
+-- | A bundle of useful data passed to templates.
+data TemplateData = TD {
+     here         :: HledgerWebAppRoute -- ^ the current page's route
+    ,title        :: String             -- ^ page's title
+    ,msg          :: Maybe (Html ())     -- ^ transient message
+    ,a            :: String             -- ^ a (filter pattern) parameter
+    ,p            :: String             -- ^ p (period expression) parameter
+    ,content      :: Html ()             -- ^ html for the content area
+    ,contentplain :: String             -- ^ or plain text content
+    }
+
+td = TD {
+      here = IndexPage
+     ,title = "hledger"
+     ,msg = Nothing
+     ,a = ""
+     ,p = ""
+     ,content = nulltemplate id
+     ,contentplain = ""
+     }
+
+-- | The web command.
 web :: [Opt] -> [String] -> Journal -> IO ()
 web opts args j = do
   let baseurl = fromMaybe defbaseurl $ baseUrlFromOpts opts
@@ -55,37 +96,17 @@ server baseurl port opts args j = do
     printf "starting web server on port %d with base url %s\n" port baseurl
     fp <- getDataFileName "web"
     let app = HledgerWebApp{
-               appOpts=opts
+               appRoot=baseurl
+              ,appWebdir=fp
+              ,appOpts=opts
               ,appArgs=args
               ,appJournal=j
-              ,appWebdir=fp
-              ,appRoot=baseurl
               }
     withStore "hledger" $ do
      putValue "hledger" "journal" j
      basicHandler port app
 
-data HledgerWebApp = HledgerWebApp {
-      appOpts::[Opt]
-     ,appArgs::[String]
-     ,appJournal::Journal
-     ,appWebdir::FilePath
-     ,appRoot::String
-     }
-
-mkYesod "HledgerWebApp" [$parseRoutes|
-/             IndexPage        GET
-/style.css    StyleCss         GET
-/journal      JournalPage      GET POST
-/edit         EditPage         GET POST
-/register     RegisterPage     GET
-/balance      BalancePage      GET
-|]
-
-instance Yesod HledgerWebApp where approot = appRoot
-
-getIndexPage :: Handler HledgerWebApp ()
-getIndexPage = redirect RedirectTemporary JournalPage
+-- handlers
 
 getStyleCss :: Handler HledgerWebApp ()
 getStyleCss = do
@@ -93,15 +114,14 @@ getStyleCss = do
     let dir = appWebdir app
     sendFile "text/css" $ dir </> "style.css"
 
+getIndexPage :: Handler HledgerWebApp ()
+getIndexPage = redirect RedirectTemporary JournalPage
+
 getJournalPage :: Handler HledgerWebApp RepHtml
 getJournalPage = withLatestJournalRender (const showTransactions)
 
 getRegisterPage :: Handler HledgerWebApp RepHtml
 getRegisterPage = withLatestJournalRender showRegisterReport
-
-getBalancePage :: Handler HledgerWebApp RepHtml
-getBalancePage = withLatestJournalRender render
-    where render opts filterspec j = showBalanceReport opts $ balanceReport opts filterspec j
 
 withLatestJournalRender :: ([Opt] -> FilterSpec -> Journal -> String) -> Handler HledgerWebApp RepHtml
 withLatestJournalRender reportfn = do
@@ -126,165 +146,83 @@ withLatestJournalRender reportfn = do
     -- XXX work around a bug, can't get the message we set above
     let msg = if null err then msg' else Just $ string $ printf "Error while reading %s" (filepath j')
     Just here <- getCurrentRoute
-    hamletToRepHtml $ template here msg a p "hledger" s
+    hamletToRepHtml $ pageLayout td{here=here, title="hledger", msg=msg, a=a, p=p, content=stringToPre s}
 
-template :: HledgerWebAppRoute -> Maybe (Html ()) -> String -> String
-         -> String -> String -> Hamlet HledgerWebAppRoute
-template here msg a p title content = [$hamlet|
-!!!
-%html
- %head
-  %title $string.title$
-  %meta!http-equiv=Content-Type!content=$string.metacontent$
-  %link!rel=stylesheet!type=text/css!href=@stylesheet@!media=all
- %body
-  ^navbar'^
-  #messages $m$
-  ^addform'^
-  #content
-   %pre $string.content$
-|]
- where m = fromMaybe (string "") msg
-       navbar' = navbar here a p
-       addform' | here == JournalPage = addform
-                | otherwise = nulltemplate
-       stylesheet = StyleCss
-       metacontent = "text/html; charset=utf-8"
+-- XXX duplication of withLatestJournalRender
+getEditPage :: Handler HledgerWebApp RepHtml
+getEditPage = do
+    -- app <- getYesod
+    -- t <- liftIO $ getCurrentLocalTime
+    a <- fromMaybe "" <$> lookupGetParam "a"
+    p <- fromMaybe "" <$> lookupGetParam "p"
+        -- opts = appOpts app ++ [Period p]
+        -- args = appArgs app ++ [a]
+        -- fspec = optsToFilterSpec opts args t
+    -- reload journal's text, without parsing, if changed
+    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+    changed <- liftIO $ journalFileIsNewer j
+    -- XXX readFile may throw an error
+    s <- liftIO $ if changed then readFile (filepath j) else return (jtext j)
+    -- render the page
+    msg <- getMessage
+    Just here <- getCurrentRoute
+     -- XXX mucking around to squeeze editform into pageLayout
+    let td' = td{here=here, title="hledger", msg=msg, a=a, p=p, content=(editform td') show, contentplain=s}
+    hamletToRepHtml $ pageLayout td'
 
-nulltemplate = [$hamlet||]
+-- XXX duplication of withLatestJournalRender
+getBalancePage :: Handler HledgerWebApp RepHtml
+getBalancePage = do
+    app <- getYesod
+    t <- liftIO $ getCurrentLocalTime
+    a <- fromMaybe "" <$> lookupGetParam "a"
+    p <- fromMaybe "" <$> lookupGetParam "p"
+    let opts = appOpts app ++ [Period p]
+        args = appArgs app ++ [a]
+        fspec = optsToFilterSpec opts args t
+    -- reload journal if changed, displaying any error as a message
+    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+    (jE, changed) <- liftIO $ journalReloadIfChanged opts j
+    let (j', err) = either (\e -> (j,e)) (\j -> (j,"")) jE
+    when (changed && null err) $ liftIO $ putValue "hledger" "journal" j'
+    if (changed && not (null err)) then setMessage $ string "error while reading"
+                                 else return ()
+    Just here <- getCurrentRoute
+    msg' <- getMessage
+    -- XXX work around a misfeature, can't get a message we just set in this request
+    let msg = if null err then msg' else Just $ string $ printf "Error while reading %s" (filepath j')
+    -- run and render the report
+    let td' = td{here=here, title="hledger", msg=msg, a=a, p=p
+                ,content=(balanceReportToHtml opts td' $ balanceReport opts fspec j')}
+    hamletToRepHtml $ pageLayout td'
 
-navbar :: HledgerWebAppRoute -> String -> String -> Hamlet HledgerWebAppRoute
-navbar here a p = [$hamlet|
- #navbar
-  %a.toprightlink!href=$string.hledgerurl$ hledger.org
-  \ $
-  %a.toprightlink!href=$string.manualurl$ manual
-  \ $
-  ^navlinks'^
-  ^searchform'^
-|]
- where navlinks' = navlinks here a p
-       searchform' = searchform here a p
-
-navlinks :: HledgerWebAppRoute -> String -> String -> Hamlet HledgerWebAppRoute
-navlinks here a p = [$hamlet|
- #navlinks
-  ^journallink^ $
-  (^editlink^) $
-  | ^registerlink^ $
-  | ^balancelink^ $
-|]
+-- | Render a balance report as HTML.
+balanceReportToHtml :: [Opt] -> TemplateData -> BalanceReport -> Html ()
+balanceReportToHtml _ td (items,total) = [$hamlet|
+%table
+ $forall items i
+  ^itemToHtml' i^
+ %tr
+  %td!colspan=2!style="border-top:1px black solid;"
+ %tr
+  %td
+  %td!align=right $mixedAmountToHtml.total$
+|] id
  where
-  journallink = navlink here "journal" JournalPage
-  editlink = navlink here "edit" EditPage
-  registerlink = navlink here "register" RegisterPage
-  balancelink = navlink here "balance" BalancePage
-  navlink here s dest = [$hamlet|%a.$style$!href=@?u@ $string.s$|]
-   where u = (dest, concat [(if null a then [] else [("a", a)])
-                           ,(if null p then [] else [("p", p)])])
-         style | here == dest = string "navlinkcurrent"
-               | otherwise = string "navlink"
+   itemToHtml' = itemToHtml td
+   itemToHtml :: TemplateData -> BalanceReportItem -> Hamlet String
+   itemToHtml TD{p=p} (a, adisplay, adepth, abal) = [$hamlet|
+     %tr
+      %td
+       $indent$
+       %a!href=$aurl$ $adisplay$
+      %td!align=right $mixedAmountToHtml.abal$
+     |] where
+       indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
+       aurl = printf "../register?a=^%s%s" a p' :: String
+       p' = if null p then "" else printf "&p=%s" p
 
-searchform :: HledgerWebAppRoute -> String -> String -> Hamlet HledgerWebAppRoute
-searchform here a p = [$hamlet|
- %form#searchform!method=GET
-  filter by: $
-  %input!name=a!size=20!value=$string.a$
-  ^ahelp^ $
-  in period: $
-  %input!name=p!size=20!value=$string.p$
-  ^phelp^ $
-  %input!type=submit!value=filter
-  ^resetlink^
-|]
- where
-  ahelp = helplink "filter-patterns" "?"
-  phelp = helplink "period-expressions" "?"
-  resetlink
-   | null a && null p = nulltemplate
-   | otherwise        = [$hamlet|%span#resetlink $
-                                  %a!href=@here@ reset|]
-
-helplink topic label = [$hamlet|%a!href=$string.u$ $string.label$|]
-    where u = manualurl ++ if null topic then "" else '#':topic
-
-addform :: Hamlet HledgerWebAppRoute
-addform = [$hamlet|
- %form!method=POST
-  %table.form#addform!cellpadding=0!cellspacing=0!border=0
-   %tr.formheading
-    %td!colspan=4
-     %span#formheading Add a transaction:
-   %tr
-    %td!colspan=4
-     %table!cellpadding=0!cellspacing=0!border=0
-      %tr#descriptionrow
-       %td
-        Date:
-       %td
-        %input!size=15!name=date!value=$string.date$
-       %td
-        Description:
-       %td
-        %input!size=35!name=description!value=$string.desc$
-      %tr.helprow
-       %td
-       %td
-        #help $string.datehelp$ ^datehelplink^ $
-       %td
-       %td
-        #help $string.deschelp$
-   ^transactionfields1^
-   ^transactionfields2^
-   %tr#addbuttonrow
-    %td!colspan=4
-     %input!type=submit!value=$string.addlabel$
-|]
- where
-  datehelplink = helplink "dates" "..."
-  datehelp = "eg: 7/20, 2010/1/1, "
-  deschelp = "eg: supermarket (optional)"
-  addlabel = "add transaction"
-  date = "today"
-  desc = ""
-  transactionfields1 = transactionfields 1
-  transactionfields2 = transactionfields 2
-
--- transactionfields :: Int -> Hamlet String
-transactionfields n = [$hamlet|
- %tr#postingrow
-  %td!align=right
-   $string.label$:
-  %td
-   %input!size=35!name=$string.acctvar$!value=$string.acct$
-  ^amtfield^
- %tr.helprow
-  %td
-  %td
-   #help $string.accthelp$
-  %td
-  %td
-   #help $string.amthelp$
-|]
- where
-  label | n == 1    = "To account"
-        | otherwise = "From account"
-  accthelp | n == 1    = "eg: expenses:food"
-           | otherwise = "eg: assets:bank:checking"
-  amtfield | n == 1 = [$hamlet|
-                       %td
-                        Amount:
-                       %td
-                        %input!size=15!name=$string.amtvar$!value=$string.amt$
-                       |]
-           | otherwise = nulltemplate
-  amthelp | n == 1    = "eg: 5, $6, €7.01"
-          | otherwise = ""
-  acct = ""
-  amt = ""
-  numbered = (++ show n)
-  acctvar = numbered "accountname"
-  amtvar = numbered "amount"
+mixedAmountToHtml = intercalate ", " . lines . show
 
 postJournalPage :: Handler HledgerWebApp RepPlain
 postJournalPage = do
@@ -340,70 +278,6 @@ postJournalPage = do
     setMessage $ string $ printf "Added transaction:\n%s" (show t')
     redirect RedirectTemporary JournalPage
 
-getEditPage :: Handler HledgerWebApp RepHtml
-getEditPage = do
-    -- app <- getYesod
-    -- t <- liftIO $ getCurrentLocalTime
-    a <- fromMaybe "" <$> lookupGetParam "a"
-    p <- fromMaybe "" <$> lookupGetParam "p"
-        -- opts = appOpts app ++ [Period p]
-        -- args = appArgs app ++ [a]
-        -- fspec = optsToFilterSpec opts args t
-    -- reload journal's text, without parsing, if changed
-    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    changed <- liftIO $ journalFileIsNewer j
-    -- XXX readFile may throw an error
-    s <- liftIO $ if changed then readFile (filepath j) else return (jtext j)
-    -- render the page
-    msg <- getMessage
-    Just here <- getCurrentRoute
-    hamletToRepHtml $ template' here msg a p "hledger" s
-
-template' here msg a p title content = [$hamlet|
-!!!
-%html
- %head
-  %title $string.title$
-  %meta!http-equiv=Content-Type!content=$string.metacontent$
-  %link!rel=stylesheet!type=text/css!href=@stylesheet@!media=all
- %body
-  ^navbar'^
-  #messages $m$
-  ^editform'^
-|]
- where m = fromMaybe (string "") msg
-       navbar' = navbar here a p
-       stylesheet = StyleCss
-       metacontent = "text/html; charset=utf-8"
-       editform' = editform content
-
-editform :: String -> Hamlet HledgerWebAppRoute
-editform t = [$hamlet|
- %form!method=POST
-  %table.form#editform!cellpadding=0!cellspacing=0!border=0
-   %tr.formheading
-    %td!colspan=2
-     %span!style=float:right; ^formhelp^
-     %span#formheading Edit journal:
-   %tr
-    %td!colspan=2
-     %textarea!name=text!rows=30!cols=80
-      $string.t$
-   %tr#addbuttonrow
-    %td
-     %a!href=@JournalPage@ cancel
-    %td!align=right
-     %input!type=submit!value=$string.submitlabel$
-   %tr.helprow
-    %td
-    %td!align=right
-     #help $string.edithelp$
-|]
- where
-  submitlabel = "save journal"
-  formhelp = helplink "file-format" "file format help"
-  edithelp = "Are you sure ? All previous data will be replaced"
-
 postEditPage :: Handler HledgerWebApp RepPlain
 postEditPage = do
   -- get form input values, or basic validation errors. E means an Either value.
@@ -440,4 +314,190 @@ postEditPage = do
           setMessage $ string $ printf "Saved journal %s\n" (show f)
           redirect RedirectTemporary JournalPage)
        jE
+
+-- templates
+
+nulltemplate = [$hamlet||]
+
+stringToPre :: String -> Html ()
+stringToPre s = [$hamlet|%pre $s$|] id
+
+pageLayout :: TemplateData -> Hamlet HledgerWebAppRoute
+pageLayout td@TD{here=here, title=title, msg=msg, content=content} = [$hamlet|
+!!!
+%html
+ %head
+  %title $title$
+  %meta!http-equiv=Content-Type!content=$metacontent$
+  %link!rel=stylesheet!type=text/css!href=@stylesheet@!media=all
+ %body
+  ^navbar.td^
+  #messages $m$
+  ^addform'.here^
+  #content
+   $content$
+|]
+ where m = fromMaybe (string "") msg
+       addform' JournalPage = addform
+       addform' _           = nulltemplate
+       stylesheet = StyleCss
+       metacontent = "text/html; charset=utf-8"
+
+navbar :: TemplateData -> Hamlet HledgerWebAppRoute
+navbar td = [$hamlet|
+ #navbar
+  %a.toprightlink!href=$hledgerurl$ hledger.org
+  \ $
+  %a.toprightlink!href=$manualurl$ manual
+  \ $
+  ^navlinks.td^
+  ^searchform.td^
+|]
+
+navlinks :: TemplateData -> Hamlet HledgerWebAppRoute
+navlinks TD{here=here,a=a,p=p} = [$hamlet|
+ #navlinks
+  ^journallink^ $
+  (^editlink^) $
+  | ^balancelink^ $
+  | ^registerlink^ $
+|]
+ where
+  journallink = navlink here "journal" JournalPage
+  editlink = navlink here "edit" EditPage
+  registerlink = navlink here "register" RegisterPage
+  balancelink = navlink here "balance" BalancePage
+  navlink here s dest = [$hamlet|%a.$style$!href=@?u@ $s$|]
+   where u = (dest, concat [(if null a then [] else [("a", a)])
+                           ,(if null p then [] else [("p", p)])])
+         style | here == dest = "navlinkcurrent"
+               | otherwise    = "navlink"
+
+searchform :: TemplateData -> Hamlet HledgerWebAppRoute
+searchform TD{here=here,a=a,p=p} = [$hamlet|
+ %form#searchform!method=GET
+  ^resetlink^ $
+  %span!style=white-space:nowrap;
+   filter by: $
+   %input!name=a!size=30!value=$a$
+   ^ahelp^ $
+   in period: $
+   %input!name=p!size=30!value=$p$
+   ^phelp^ $
+   %input!type=submit!value=filter
+|]
+ where
+  ahelp = helplink "filter-patterns" "?"
+  phelp = helplink "period-expressions" "?"
+  resetlink
+   | null a && null p = nulltemplate
+   | otherwise        = [$hamlet|%span#resetlink!style=font-weight:bold; $
+                                  %a!href=@here@ stop filtering|]
+
+helplink topic label = [$hamlet|%a!href=$u$ $label$|]
+    where u = manualurl ++ if null topic then "" else '#':topic
+
+editform :: TemplateData -> Hamlet HledgerWebAppRoute
+editform TD{contentplain=t} = [$hamlet|
+ %form!method=POST
+  %table.form#editform!cellpadding=0!cellspacing=0!border=0
+   %tr.formheading
+    %td!colspan=2
+     %span!style=float:right; ^formhelp^
+     %span#formheading Edit journal:
+   %tr
+    %td!colspan=2
+     %textarea!name=text!rows=30!cols=80
+      $t$
+   %tr#addbuttonrow
+    %td
+     %a!href=@JournalPage@ cancel
+    %td!align=right
+     %input!type=submit!value=$submitlabel$
+   %tr.helprow
+    %td
+    %td!align=right
+     #help Are you sure ? All previous data will be replaced
+|]
+ where
+  submitlabel = "save journal"
+  formhelp = helplink "file-format" "file format help"
+
+addform :: Hamlet HledgerWebAppRoute
+addform = [$hamlet|
+ %form!method=POST
+  %table.form#addform!cellpadding=0!cellspacing=0!border=0
+   %tr.formheading
+    %td!colspan=4
+     %span#formheading Add a transaction:
+   %tr
+    %td!colspan=4
+     %table!cellpadding=0!cellspacing=0!border=0
+      %tr#descriptionrow
+       %td
+        Date:
+       %td
+        %input!size=15!name=date!value=$date$
+       %td
+        Description:
+       %td
+        %input!size=35!name=description!value=$desc$
+      %tr.helprow
+       %td
+       %td
+        #help $datehelp$ ^datehelplink^ $
+       %td
+       %td
+        #help $deschelp$
+   ^transactionfields1^
+   ^transactionfields2^
+   %tr#addbuttonrow
+    %td!colspan=4
+     %input!type=submit!value=$addlabel$
+|]
+ where
+  datehelplink = helplink "dates" "..."
+  datehelp = "eg: 7/20, 2010/1/1, "
+  deschelp = "eg: supermarket (optional)"
+  addlabel = "add transaction"
+  date = "today"
+  desc = ""
+  transactionfields1 = transactionfields 1
+  transactionfields2 = transactionfields 2
+
+transactionfields :: Int -> Hamlet HledgerWebAppRoute
+transactionfields n = [$hamlet|
+ %tr#postingrow
+  %td!align=right
+   $label$:
+  %td
+   %input!size=35!name=$acctvar$!value=$acct$
+  ^amtfield^
+ %tr.helprow
+  %td
+  %td
+   #help $accthelp$
+  %td
+  %td
+   #help $amthelp$
+|]
+ where
+  label | n == 1    = "To account"
+        | otherwise = "From account"
+  accthelp | n == 1    = "eg: expenses:food"
+           | otherwise = "eg: assets:bank:checking"
+  amtfield | n == 1 = [$hamlet|
+                       %td
+                        Amount:
+                       %td
+                        %input!size=15!name=$amtvar$!value=$amt$
+                       |]
+           | otherwise = nulltemplate
+  amthelp | n == 1    = "eg: 5, $6, €7.01"
+          | otherwise = ""
+  acct = ""
+  amt = ""
+  numbered = (++ show n)
+  acctvar = numbered "accountname"
+  amtvar = numbered "amount"
 
