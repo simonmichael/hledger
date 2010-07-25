@@ -1,5 +1,5 @@
 name:           hledger-lib
-version: 0.11.1
+version: 0.11.99
 category:       Finance
 synopsis:       Core types and utilities for working with hledger (or c++ ledger) data.
 description:
