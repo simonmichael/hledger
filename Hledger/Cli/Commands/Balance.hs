@@ -110,46 +110,57 @@ import System.IO.UTF8
 #endif
 
 
+type BalanceReportData = ([BalanceReportItem]
+                         ,MixedAmount  -- ^ total balance of all accounts
+                         )
+
+type BalanceReportItem = (AccountName  -- ^ full account name
+                         ,AccountName  -- ^ account name elided for display: the leaf name,
+                                       --   prefixed by any boring parents immediately above
+                         ,Int          -- ^ account depth within this report, excludes boring parents
+                         ,MixedAmount) -- ^ account balance, includes subs unless --flat is present
+
 -- | Print a balance report.
 balance :: [Opt] -> [String] -> Journal -> IO ()
 balance opts args j = do
   t <- getCurrentLocalTime
-  putStr $ showBalanceReport opts (optsToFilterSpec opts args t) j
+  putStr $ showBalanceReport opts $ balanceReport opts (optsToFilterSpec opts args t) j
 
--- | Generate a balance report with the specified options for this journal.
-showBalanceReport :: [Opt] -> FilterSpec -> Journal -> String
-showBalanceReport opts filterspec j = acctsstr ++ totalstr
+-- | Render balance report data as plain text suitable for console output.
+showBalanceReport :: [Opt] -> BalanceReportData -> String
+showBalanceReport opts (items,total) = acctsstr ++ totalstr
     where
-      l = journalToLedger filterspec j
-      acctsstr = unlines $ map showacct interestingaccts
-          where
-            showacct = showInterestingAccount opts l interestingaccts
-            interestingaccts = filter (isInteresting opts l) acctnames
-            acctnames = sort $ tail $ flatten $ treemap aname accttree
-            accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
+      acctsstr = unlines $ map showitem items
       totalstr | NoTotal `elem` opts = ""
                | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmountWithoutPrice total
+      -- | Render one balance report line item as plain text.
+      showitem :: BalanceReportItem -> String
+      showitem (a, adisplay, adepth, abal) = concatTopPadded [amt, "  ", name]
           where
             total = sum $ map abalance $ ledgerTopAccounts l
 
--- | Display one line of the balance report with appropriate indenting and eliding.
-showInterestingAccount :: [Opt] -> Ledger -> [AccountName] -> AccountName -> String
-showInterestingAccount opts l interestingaccts a = concatTopPadded [amt, "  ", name]
+-- | Get data for a balance report with the specified options for this journal.
+balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReportData
+balanceReport opts filterspec j = (items, total)
     where
-      amt = padleft 20 $ showMixedAmountWithoutPrice bal
-      bal | Flat `elem` opts = exclusiveBalance acct
-          | otherwise = abalance acct
-      acct = ledgerAccount l a
-      name | Flat `elem` opts = accountNameDrop (dropFromOpts opts) a
-           | otherwise        = depthspacer ++ partialname
-      parents = parentAccountNames a
-      interestingparents = filter (`elem` interestingaccts) parents
-      depthspacer = replicate (indentperlevel * length interestingparents) ' '
-      indentperlevel = 2
-      -- the partial name is the account's leaf name, prefixed by the
-      -- names of any boring parents immediately above
-      partialname = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
-          where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
+      items = map mkitem interestingaccts
+      interestingaccts = filter (isInteresting opts l) acctnames
+      acctnames = sort $ tail $ flatten $ treemap aname accttree
+      accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
+      total = sum $ map abalance $ ledgerTopAccounts l
+      l = journalToLedger filterspec j
+      -- | Get data for one balance report line item.
+      mkitem :: AccountName -> BalanceReportItem
+      mkitem a = (a, adisplay, adepth, abal)
+          where
+            adisplay = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
+                where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
+            adepth = length interestingparents
+            interestingparents = filter (`elem` interestingaccts) parents
+            parents = parentAccountNames a
+            abal | Flat `elem` opts = exclusiveBalance acct
+                 | otherwise = abalance acct
+                 where acct = ledgerAccount l a
 
 exclusiveBalance :: Account -> MixedAmount
 exclusiveBalance = sumPostings . apostings

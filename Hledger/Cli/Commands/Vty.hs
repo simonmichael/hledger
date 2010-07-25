@@ -229,7 +229,7 @@ resetTrailAndEnter t scr a = enter t scr (aargs a) $ clearLocs a
 updateData :: LocalTime -> AppState -> AppState
 updateData t a@AppState{aopts=opts,ajournal=j} =
     case screen a of
-      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts fspec j}
+      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts $ balanceReport opts fspec j}
       RegisterScreen -> a{abuf=lines $ showRegisterReport opts fspec j}
       PrintScreen    -> a{abuf=lines $ showTransactions fspec j}
     where fspec = optsToFilterSpec opts (currentArgs a) t

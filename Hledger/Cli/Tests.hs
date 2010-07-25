@@ -109,7 +109,7 @@ tests = TestList [
    let (opts,args) `gives` es = do 
         l <- samplejournalwithopts opts args
         t <- getCurrentLocalTime
-        showBalanceReport opts (optsToFilterSpec opts args t) l `is` unlines es
+        showBalanceReport opts (balanceReport opts (optsToFilterSpec opts args t) l) `is` unlines es
    in TestList
    [
 
@@ -245,7 +245,7 @@ tests = TestList [
              ,"  c:d                   "
              ]) >>= either error return
       let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
-      showBalanceReport [] nullfilterspec j' `is`
+      showBalanceReport [] (balanceReport [] nullfilterspec j') `is`
        unlines
         ["                $500  a:b"
         ,"               $-500  c:d"
@@ -260,7 +260,7 @@ tests = TestList [
               ,"  test:a  1"
               ,"  test:b"
               ])
-      showBalanceReport [] nullfilterspec l `is`
+      showBalanceReport [] (balanceReport [] nullfilterspec l) `is`
        unlines
         ["                   1  test:a"
         ,"                  -1  test:b"
@@ -586,7 +586,7 @@ tests = TestList [
   ,"unicode in balance layout" ~: do
     l <- readJournalWithOpts []
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    showBalanceReport [] (optsToFilterSpec [] [] t1) l `is` unlines
+    showBalanceReport [] (balanceReport [] (optsToFilterSpec [] [] t1) l) `is` unlines
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"
       ,"--------------------"

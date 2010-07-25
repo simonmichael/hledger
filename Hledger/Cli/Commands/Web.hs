@@ -100,7 +100,8 @@ getRegisterPage :: Handler HledgerWebApp RepHtml
 getRegisterPage = withLatestJournalRender showRegisterReport
 
 getBalancePage :: Handler HledgerWebApp RepHtml
-getBalancePage = withLatestJournalRender showBalanceReport
+getBalancePage = withLatestJournalRender render
+    where render opts filterspec j = showBalanceReport opts $ balanceReport opts filterspec j
 
 withLatestJournalRender :: ([Opt] -> FilterSpec -> Journal -> String) -> Handler HledgerWebApp RepHtml
 withLatestJournalRender reportfn = do
