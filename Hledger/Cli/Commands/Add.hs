@@ -10,7 +10,7 @@ where
 import Hledger.Data
 import Hledger.Read.Journal (someamount)
 import Hledger.Cli.Options
-import Hledger.Cli.Commands.Register (showRegisterReport)
+import Hledger.Cli.Commands.Register (registerReport, registerReportAsText)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import System.IO.UTF8
@@ -160,7 +160,7 @@ registerFromString :: String -> IO String
 registerFromString s = do
   now <- getCurrentLocalTime
   l <- readJournalWithOpts [] s
-  return $ showRegisterReport opts (optsToFilterSpec opts [] now) l
+  return $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] now) l
     where opts = [Empty]
 
 -- | Return a similarity measure, from 0 to 1, for two strings.

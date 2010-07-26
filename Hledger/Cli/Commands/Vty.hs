@@ -229,8 +229,8 @@ resetTrailAndEnter t scr a = enter t scr (aargs a) $ clearLocs a
 updateData :: LocalTime -> AppState -> AppState
 updateData t a@AppState{aopts=opts,ajournal=j} =
     case screen a of
-      BalanceScreen  -> a{abuf=lines $ showBalanceReport opts $ balanceReport opts fspec j}
-      RegisterScreen -> a{abuf=lines $ showRegisterReport opts fspec j}
+      BalanceScreen  -> a{abuf=lines $ balanceReportAsText opts $ balanceReport opts fspec j}
+      RegisterScreen -> a{abuf=lines $ registerReportAsText opts $ registerReport opts fspec j}
       PrintScreen    -> a{abuf=lines $ showTransactions fspec j}
     where fspec = optsToFilterSpec opts (currentArgs a) t
 
@@ -289,7 +289,7 @@ currentTransaction a@AppState{ajournal=j,abuf=buf} = ptransaction p
     where
       p = headDef nullposting $ filter ismatch $ journalPostings j
       ismatch p = postingDate p == parsedate (take 10 datedesc)
-                  && take 70 (showPostingWithBalance False p nullmixedamt) == (datedesc ++ acctamt)
+                  && take 70 (showPostingWithBalanceForVty False p nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ headDef "" rest : reverse above
       acctamt = drop 32 $ headDef "" rest
       (above,rest) = splitAt y buf

@@ -25,3 +25,16 @@ body { font-family: "helvetica","arial", "sans serif"; margin:0; }
 
 /* for -fweb610 */
 #hledgerorglink, #helplink { float:right; margin-left:1em; }
+
+/* .balancereport { font-size:small; } */
+.balancereport tr { vertical-align:top; }
+/* .itemrule td { border-top:thin solid #ddd; } */
+.totalrule td { border-top:thin solid black; }
+
+.registerreport { font-size:small; }
+.registerreport tr { vertical-align:top; }
+.registerreport .date { white-space:nowrap; }
+/* .registerreport .description { font-size:small; } */
+.registerreport .account { white-space:nowrap; }
+.registerreport .amount { white-space:nowrap; }
+.registerreport .balance { white-space:nowrap; }

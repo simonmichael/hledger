@@ -7,8 +7,11 @@ A ledger-compatible @register@ command.
 
 module Hledger.Cli.Commands.Register (
   register
- ,showRegisterReport
- ,showPostingWithBalance
+ ,RegisterReport
+ ,RegisterReportItem
+ ,registerReport
+ ,registerReportAsText
+ ,showPostingWithBalanceForVty
  ,tests_Register
 ) where
 
@@ -22,24 +25,80 @@ import System.IO.UTF8
 import Text.ParserCombinators.Parsec
 
 
+-- | A register report is a list of postings to an account or set of
+-- accounts, with a running total. Postings may be actual postings, or
+-- virtual postings aggregated over a reporting interval.
+type RegisterReport = [RegisterReportItem] -- ^ line items, one per posting
+
+-- | The data for a single register report line item, representing one posting.
+type RegisterReportItem = (Maybe (Day, String) -- ^ transaction date and description if this is the first posting
+                          ,Posting             -- ^ the posting
+                          ,MixedAmount         -- ^ balance so far
+                          )
+
 -- | Print a register report.
 register :: [Opt] -> [String] -> Journal -> IO ()
 register opts args j = do
   t <- getCurrentLocalTime
-  putStr $ showRegisterReport opts (optsToFilterSpec opts args t) j
+  putStr $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts args t) j
 
--- | Generate the register report, which is a list of postings with transaction
--- info and a running balance.
-showRegisterReport :: [Opt] -> FilterSpec -> Journal -> String
-showRegisterReport opts filterspec j = showPostingsWithBalance ps nullposting startbal
+-- | Render a register report as plain text suitable for console output.
+registerReportAsText :: [Opt] -> RegisterReport -> String
+registerReportAsText opts = unlines . map (registerReportItemAsText opts)
+
+-- | Render one register report line item as plain text. Eg:
+-- @
+-- date (10)  description (20)     account (22)            amount (11)  balance (12)
+-- DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
+-- ^ displayed for first postings^
+--   only, otherwise blank
+-- @
+registerReportItemAsText :: [Opt] -> RegisterReportItem -> String
+registerReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", bal]
+    where
+      datedesc = case dd of Nothing -> replicate datedescwidth ' '
+                            Just (da, de) -> printf "%s %s " date desc
+                                where
+                                  date = showDate da
+                                  desc = printf ("%-"++(show descwidth)++"s") $ elideRight descwidth de :: String
+          where
+            descwidth = datedescwidth - datewidth - 2
+            datedescwidth = 32
+            datewidth = 10
+      pstr = showPostingForRegister p
+      bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
+
+showPostingWithBalanceForVty showtxninfo p b = registerReportItemAsText [] $ mkitem showtxninfo p b
+
+-- | Get a register report with the specified options for this journal.
+registerReport :: [Opt] -> FilterSpec -> Journal -> RegisterReport
+registerReport opts fspec j = getitems ps nullposting startbal
     where
       ps | interval == NoInterval = displayableps
-         | otherwise             = summarisePostings interval depth empty filterspan displayableps
+         | otherwise              = summarisePostings interval depth empty filterspan displayableps
+      (precedingps, displayableps, _) =
+          postingsMatchingDisplayExpr (displayExprFromOpts opts) $ journalPostings $ filterJournalPostings fspec j
       startbal = sumPostings precedingps
-      (precedingps,displayableps,_) =
-          postingsMatchingDisplayExpr (displayExprFromOpts opts) $ journalPostings $ filterJournalPostings filterspec j
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
-      filterspan = datespan filterspec
+      filterspan = datespan fspec
+
+-- | Generate register report line items.
+getitems :: [Posting] -> Posting -> MixedAmount -> [RegisterReportItem]
+getitems [] _ _ = []
+getitems (p:ps) pprev b = i:(getitems ps p b')
+    where
+      i = mkitem isfirst p b'
+      isfirst = ptransaction p /= ptransaction pprev
+      b' = b + pamount p
+
+-- | Generate one register report line item, from a flag indicating
+-- whether to include transaction info, a posting, and the current running
+-- balance.
+mkitem :: Bool -> Posting -> MixedAmount -> RegisterReportItem
+mkitem False p b = (Nothing, p, b)
+mkitem True p b = (ds, p, b)
+    where ds = case ptransaction p of Just (Transaction{tdate=da,tdescription=de}) -> Just (da,de)
+                                      Nothing -> Just (nulldate,"")
 
 -- | Convert a list of postings into summary postings, one per interval.
 summarisePostings :: Interval -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [Posting]
@@ -123,40 +182,6 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
       d = fromMaybe 99999 $ depth
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
-
-{- |
-Show postings one per line, plus transaction info for the first posting of
-each transaction, and a running balance. Eg:
-
-@
-date (10)  description (20)     account (22)            amount (11)  balance (12)
-DDDDDDDDDD dddddddddddddddddddd aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
-                                aaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAA AAAAAAAAAAAA
-@
--}
-showPostingsWithBalance :: [Posting] -> Posting -> MixedAmount -> String
-showPostingsWithBalance [] _ _ = ""
-showPostingsWithBalance (p:ps) pprev bal = this ++ showPostingsWithBalance ps p bal'
-    where
-      this = showPostingWithBalance isfirst p bal'
-      isfirst = ptransaction p /= ptransaction pprev
-      bal' = bal + pamount p
-
--- | Show one posting and running balance, with or without transaction info.
-showPostingWithBalance :: Bool -> Posting -> MixedAmount -> String
-showPostingWithBalance withtxninfo p b = concatTopPadded [txninfo, pstr, " ", bal] ++ "\n"
-    where
-      ledger3ishlayout = False
-      datedescwidth = if ledger3ishlayout then 34 else 32
-      txninfo = if withtxninfo then printf "%s %s " date desc else replicate datedescwidth ' '
-      date = showDate da
-      datewidth = 10
-      descwidth = datedescwidth - datewidth - 2
-      desc = printf ("%-"++(show descwidth)++"s") $ elideRight descwidth de :: String
-      pstr = showPostingForRegister p
-      bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
-      (da,de) = case ptransaction p of Just (Transaction{tdate=da',tdescription=de'}) -> (da',de')
-                                       Nothing -> (nulldate,"")
 
 tests_Register :: Test
 tests_Register = TestList [

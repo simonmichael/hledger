@@ -115,114 +115,155 @@ getStyleCss = do
     sendFile "text/css" $ dir </> "style.css"
 
 getIndexPage :: Handler HledgerWebApp ()
-getIndexPage = redirect RedirectTemporary JournalPage
+getIndexPage = redirect RedirectTemporary BalancePage
+
+-- | Gather all the stuff we want for a typical hledger web request handler.
+getHandlerParameters :: Handler HledgerWebApp
+                       (String, String, [Opt], FilterSpec, Journal, Maybe (Html ()), HledgerWebAppRoute)
+getHandlerParameters = do
+  Just here <- getCurrentRoute
+  (a, p, opts, fspec) <- getReportParameters
+  (j, err) <- getLatestJournal opts
+  msg <- getMessage' err
+  return (a, p, opts, fspec, j, msg, here)
+    where
+      -- | Get current report parameters for this request.
+      getReportParameters :: Handler HledgerWebApp (String, String, [Opt], FilterSpec)
+      getReportParameters = do
+          app <- getYesod
+          t <- liftIO $ getCurrentLocalTime
+          a <- fromMaybe "" <$> lookupGetParam "a"
+          p <- fromMaybe "" <$> lookupGetParam "p"
+          let opts = appOpts app ++ [Period p]
+              args = appArgs app ++ [a]
+              fspec = optsToFilterSpec opts args t
+          return (a, p, opts, fspec)
+
+      -- | Update our copy of the journal if the file changed. If there is an
+      -- error while reloading, keep the old one and return the error, and set a
+      -- ui message.
+      getLatestJournal :: [Opt] -> Handler HledgerWebApp (Journal, Maybe String)
+      getLatestJournal opts = do
+        j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+        (jE, changed) <- liftIO $ journalReloadIfChanged opts j
+        if not changed
+         then return (j,Nothing)
+         else case jE of
+                Right j' -> do liftIO $ putValue "hledger" "journal" j'
+                               return (j',Nothing)
+                Left e  -> do setMessage $ string "error while reading" {- ++ ": " ++ e-}
+                              return (j, Just e)
+
+      -- | Helper to work around a yesod feature (can't set and get a message in the same request.)
+      getMessage' :: Maybe String -> Handler HledgerWebApp (Maybe (Html ()))
+      getMessage' newmsgstr = do
+        oldmsg <- getMessage
+        return $ maybe oldmsg (Just . string) newmsgstr
+
+-- renderLatestJournalWith :: ([Opt] -> FilterSpec -> Journal -> Html ()) -> Handler HledgerWebApp RepHtml
+-- renderLatestJournalWith reportHtml = do
+--   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+--   let td' = td{here=here, title="hledger", msg=msg, a=a, p=p, content=reportHtml opts fspec j}
+--   hamletToRepHtml $ pageLayout td'
 
 getJournalPage :: Handler HledgerWebApp RepHtml
-getJournalPage = withLatestJournalRender (const showTransactions)
+getJournalPage = do
+  (a, p, _, fspec, j, msg, here) <- getHandlerParameters
+  let td' = td{here=here, title="hledger", msg=msg, a=a, p=p, content=
+                     stringToPre $ showTransactions fspec j
+              }
+  hamletToRepHtml $ pageLayout td'
 
-getRegisterPage :: Handler HledgerWebApp RepHtml
-getRegisterPage = withLatestJournalRender showRegisterReport
-
-withLatestJournalRender :: ([Opt] -> FilterSpec -> Journal -> String) -> Handler HledgerWebApp RepHtml
-withLatestJournalRender reportfn = do
-    app <- getYesod
-    t <- liftIO $ getCurrentLocalTime
-    a <- fromMaybe "" <$> lookupGetParam "a"
-    p <- fromMaybe "" <$> lookupGetParam "p"
-    let opts = appOpts app ++ [Period p]
-        args = appArgs app ++ [a]
-        fspec = optsToFilterSpec opts args t
-    -- reload journal if changed, displaying any error as a message
-    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    (jE, changed) <- liftIO $ journalReloadIfChanged opts j
-    let (j', err) = either (\e -> (j,e)) (\j -> (j,"")) jE
-    when (changed && null err) $ liftIO $ putValue "hledger" "journal" j'
-    if (changed && not (null err)) then setMessage $ string "error while reading"
-                                 else return ()
-    -- run the specified report using this request's params
-    let s = reportfn opts fspec j'
-    -- render the standard template
-    msg' <- getMessage
-    -- XXX work around a bug, can't get the message we set above
-    let msg = if null err then msg' else Just $ string $ printf "Error while reading %s" (filepath j')
-    Just here <- getCurrentRoute
-    hamletToRepHtml $ pageLayout td{here=here, title="hledger", msg=msg, a=a, p=p, content=stringToPre s}
-
--- XXX duplication of withLatestJournalRender
-getEditPage :: Handler HledgerWebApp RepHtml
-getEditPage = do
-    -- app <- getYesod
-    -- t <- liftIO $ getCurrentLocalTime
-    a <- fromMaybe "" <$> lookupGetParam "a"
-    p <- fromMaybe "" <$> lookupGetParam "p"
-        -- opts = appOpts app ++ [Period p]
-        -- args = appArgs app ++ [a]
-        -- fspec = optsToFilterSpec opts args t
-    -- reload journal's text, without parsing, if changed
-    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    changed <- liftIO $ journalFileIsNewer j
-    -- XXX readFile may throw an error
-    s <- liftIO $ if changed then readFile (filepath j) else return (jtext j)
-    -- render the page
-    msg <- getMessage
-    Just here <- getCurrentRoute
-     -- XXX mucking around to squeeze editform into pageLayout
-    let td' = td{here=here, title="hledger", msg=msg, a=a, p=p, content=(editform td') show, contentplain=s}
-    hamletToRepHtml $ pageLayout td'
-
--- XXX duplication of withLatestJournalRender
 getBalancePage :: Handler HledgerWebApp RepHtml
 getBalancePage = do
-    app <- getYesod
-    t <- liftIO $ getCurrentLocalTime
-    a <- fromMaybe "" <$> lookupGetParam "a"
-    p <- fromMaybe "" <$> lookupGetParam "p"
-    let opts = appOpts app ++ [Period p]
-        args = appArgs app ++ [a]
-        fspec = optsToFilterSpec opts args t
-    -- reload journal if changed, displaying any error as a message
-    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    (jE, changed) <- liftIO $ journalReloadIfChanged opts j
-    let (j', err) = either (\e -> (j,e)) (\j -> (j,"")) jE
-    when (changed && null err) $ liftIO $ putValue "hledger" "journal" j'
-    if (changed && not (null err)) then setMessage $ string "error while reading"
-                                 else return ()
-    Just here <- getCurrentRoute
-    msg' <- getMessage
-    -- XXX work around a misfeature, can't get a message we just set in this request
-    let msg = if null err then msg' else Just $ string $ printf "Error while reading %s" (filepath j')
-    -- run and render the report
-    let td' = td{here=here, title="hledger", msg=msg, a=a, p=p
-                ,content=(balanceReportToHtml opts td' $ balanceReport opts fspec j')}
-    hamletToRepHtml $ pageLayout td'
+  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+  let td' = td{here=here, title="hledger", msg=msg, a=a, p=p, content=
+                     balanceReportAsHtml opts td' $ balanceReport opts fspec j
+              }
+  hamletToRepHtml $ pageLayout td'
 
 -- | Render a balance report as HTML.
-balanceReportToHtml :: [Opt] -> TemplateData -> BalanceReport -> Html ()
-balanceReportToHtml _ td (items,total) = [$hamlet|
-%table
+balanceReportAsHtml :: [Opt] -> TemplateData -> BalanceReport -> Html ()
+balanceReportAsHtml _ td (items,total) = [$hamlet|
+%table.balancereport
  $forall items i
-  ^itemToHtml' i^
- %tr
-  %td!colspan=2!style="border-top:1px black solid;"
+  %tr.itemrule
+   %td!colspan=2
+  ^itemAsHtml' i^
+ %tr.totalrule
+  %td!colspan=2
  %tr
   %td
-  %td!align=right $mixedAmountToHtml.total$
+  %td!align=right $mixedAmountAsHtml.total$
 |] id
  where
-   itemToHtml' = itemToHtml td
-   itemToHtml :: TemplateData -> BalanceReportItem -> Hamlet String
-   itemToHtml TD{p=p} (a, adisplay, adepth, abal) = [$hamlet|
-     %tr
-      %td
+   itemAsHtml' = itemAsHtml td
+   itemAsHtml :: TemplateData -> BalanceReportItem -> Hamlet String
+   itemAsHtml TD{p=p} (a, adisplay, adepth, abal) = [$hamlet|
+     %tr.item
+      %td.account
        $indent$
        %a!href=$aurl$ $adisplay$
-      %td!align=right $mixedAmountToHtml.abal$
+      %td.balance!align=right $mixedAmountAsHtml.abal$
      |] where
        indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
        aurl = printf "../register?a=^%s%s" a p' :: String
        p' = if null p then "" else printf "&p=%s" p
 
-mixedAmountToHtml = intercalate ", " . lines . show
+--mixedAmountAsHtml = intercalate ", " . lines . show
+mixedAmountAsHtml = preEscapedString . intercalate "<br>" . lines . show
+
+getRegisterPage :: Handler HledgerWebApp RepHtml
+getRegisterPage = do
+  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+  let td' = td{here=here, title="hledger", msg=msg, a=a, p=p, content=
+                     registerReportAsHtml opts td' $ registerReport opts fspec j
+              }
+  hamletToRepHtml $ pageLayout td'
+
+-- | Render a register report as HTML.
+registerReportAsHtml :: [Opt] -> TemplateData -> RegisterReport -> Html ()
+registerReportAsHtml _ td items = [$hamlet|
+%table.registerreport
+ $forall items i
+  %tr.itemrule
+   %td!colspan=5
+  ^itemAsHtml' i^
+|] id
+ where
+   itemAsHtml' = itemAsHtml td
+   itemAsHtml :: TemplateData -> RegisterReportItem -> Hamlet String
+   itemAsHtml TD{p=p} (ds, posting, b) = [$hamlet|
+     %tr.item
+      %td.date $date$
+      %td.description $desc$
+      %td.account
+       %a!href=$aurl$ $acct$
+      %td.amount!align=right $mixedAmountAsHtml.pamount.posting$
+      %td.balance!align=right $mixedAmountAsHtml.b$
+     |] where
+       (date, desc) = case ds of Just (da, de) -> (show da, de)
+                                 Nothing -> ("", "")
+       acct = paccount posting
+       aurl = printf "../register?a=^%s%s" acct p' :: String
+       p' = if null p then "" else printf "&p=%s" p
+
+queryStringFromAP a p = if null ap then "" else "?" ++ ap
+    where
+      ap = intercalate "&" [a',p']
+      a' = if null a then "" else printf "&a=%s" a
+      p' = if null p then "" else printf "&p=%s" p
+
+getEditPage :: Handler HledgerWebApp RepHtml
+getEditPage = do
+  (a, p, _, _, _, msg, here) <- getHandlerParameters
+  -- reload journal's text without parsing, if changed
+  j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+  changed <- liftIO $ journalFileIsNewer j
+  s <- liftIO $ if changed then readFile (filepath j) else return (jtext j) -- XXX readFile may throw an error
+  let td' = td{here=here, title="hledger", msg=msg, a=a, p=p, 
+                     content=(editform td') show, contentplain=s} -- XXX provide both to squeeze editform into pageLayout
+  hamletToRepHtml $ pageLayout td'
 
 postJournalPage :: Handler HledgerWebApp RepPlain
 postJournalPage = do

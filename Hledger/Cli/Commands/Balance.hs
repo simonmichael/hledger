@@ -95,8 +95,14 @@ balance report:
 
 -}
 
-module Hledger.Cli.Commands.Balance
-where
+module Hledger.Cli.Commands.Balance (
+  balance
+ ,BalanceReport
+ ,BalanceReportItem
+ ,balanceReport
+ ,balanceReportAsText
+ -- ,tests_Balance
+) where
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
@@ -110,7 +116,7 @@ import System.IO.UTF8
 #endif
 
 
--- | The data for a balance report.
+-- | A balance report is a chart of accounts with balances, and their grand total.
 type BalanceReport = ([BalanceReportItem] -- ^ line items, one per account
                      ,MixedAmount         -- ^ total balance of all accounts
                      )
@@ -126,24 +132,29 @@ type BalanceReportItem = (AccountName  -- ^ full account name
 balance :: [Opt] -> [String] -> Journal -> IO ()
 balance opts args j = do
   t <- getCurrentLocalTime
-  putStr $ showBalanceReport opts $ balanceReport opts (optsToFilterSpec opts args t) j
+  putStr $ balanceReportAsText opts $ balanceReport opts (optsToFilterSpec opts args t) j
 
 -- | Render a balance report as plain text suitable for console output.
-showBalanceReport :: [Opt] -> BalanceReport -> String
-showBalanceReport opts (items,total) = acctsstr ++ totalstr
+balanceReportAsText :: [Opt] -> BalanceReport -> String
+balanceReportAsText opts (items,total) =
+    unlines $
+            map (balanceReportItemAsText opts) items
+            ++
+            if NoTotal `elem` opts
+             then []
+             else ["--------------------"
+                  ,padleft 20 $ showMixedAmountWithoutPrice total
+                  ]
+
+-- | Render one balance report line item as plain text.
+balanceReportItemAsText :: [Opt] -> BalanceReportItem -> String
+balanceReportItemAsText opts (a, adisplay, adepth, abal) = concatTopPadded [amt, "  ", name]
     where
-      acctsstr = unlines $ map showitem items
-      totalstr | NoTotal `elem` opts = ""
-               | otherwise = printf "--------------------\n%s\n" $ padleft 20 $ showMixedAmountWithoutPrice total
-      -- | Render one balance report line item as plain text.
-      showitem :: BalanceReportItem -> String
-      showitem (a, adisplay, adepth, abal) = concatTopPadded [amt, "  ", name]
-          where
-            amt = padleft 20 $ showMixedAmountWithoutPrice abal
-            name | Flat `elem` opts = accountNameDrop (dropFromOpts opts) a
-                 | otherwise        = depthspacer ++ adisplay
-            depthspacer = replicate (indentperlevel * adepth) ' '
-            indentperlevel = 2
+      amt = padleft 20 $ showMixedAmountWithoutPrice abal
+      name | Flat `elem` opts = accountNameDrop (dropFromOpts opts) a
+           | otherwise        = depthspacer ++ adisplay
+      depthspacer = replicate (indentperlevel * adepth) ' '
+      indentperlevel = 2
 
 -- | Get a balance report with the specified options for this journal.
 balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
@@ -157,11 +168,13 @@ balanceReport opts filterspec j = (items, total)
       l = journalToLedger filterspec j
       -- | Get data for one balance report line item.
       mkitem :: AccountName -> BalanceReportItem
-      mkitem a = (a, adisplay, adepth, abal)
+      mkitem a = (a, adisplay, indent, abal)
           where
-            adisplay = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
+            adisplay | Flat `elem` opts = a
+                     | otherwise = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
                 where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
-            adepth = length interestingparents
+            indent | Flat `elem` opts = 0
+                   | otherwise = length interestingparents
             interestingparents = filter (`elem` interestingaccts) parents
             parents = parentAccountNames a
             abal | Flat `elem` opts = exclusiveBalance acct
