@@ -23,8 +23,6 @@ module Hledger.Cli.Commands.All (
 #endif
 #if defined(WEB)
                      module Hledger.Cli.Commands.Web,
-#elif defined(WEB610)
-                     module Hledger.Cli.Commands.Web610,
 #endif
                      tests_Hledger_Commands
               )
@@ -44,8 +42,6 @@ import Hledger.Cli.Commands.Vty
 #endif
 #if defined(WEB)
 import Hledger.Cli.Commands.Web
-#elif defined(WEB610)
-import Hledger.Cli.Commands.Web610
 #endif
 import Test.HUnit (Test(TestList))
 
@@ -68,6 +64,4 @@ tests_Hledger_Commands = TestList
 -- #endif
 -- #if defined(WEB)
 --     ,Hledger.Cli.Commands.Web.tests_Web
--- #elif defined(WEB610)
---     ,Hledger.Cli.Commands.Web610.tests_Web
 -- #endif

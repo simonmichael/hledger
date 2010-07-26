@@ -42,10 +42,10 @@ help1 =
   " (DISABLED, install with -fvty)\n" ++
 #endif
   "  web       - run a simple web-based UI" ++
-#if defined(WEB) || defined(WEB610)
+#if defined(WEB)
   "\n" ++
 #else
-  " (DISABLED, install with -fweb or -fweb610)\n" ++
+  " (DISABLED, install with -fweb)\n" ++
 #endif
   "  chart     - generate balances pie charts" ++
 #ifdef CHART

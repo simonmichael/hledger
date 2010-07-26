@@ -39,7 +39,7 @@ See "Hledger.Data.Ledger" for more examples.
 -}
 
 module Hledger.Cli.Main where
-#if defined(WEB) || defined(WEB610)
+#if defined(WEB)
 import System.Info (os)
 #endif
 #if __GLASGOW_HASKELL__ <= 610
@@ -76,7 +76,7 @@ main = do
 #ifdef VTY
        | cmd `isPrefixOf` "vty"       = withJournalDo opts args cmd vty
 #endif
-#if defined(WEB) || defined(WEB610)
+#if defined(WEB)
        | cmd `isPrefixOf` "web"       = withJournalDo opts args cmd web
 #endif
 #ifdef CHART
@@ -86,7 +86,7 @@ main = do
        | otherwise                    = putStr help1
 
 -- in a web-enabled build on windows, run the web ui by default
-#if defined(WEB) || defined(WEB610)
+#if defined(WEB)
       defaultcmd | os=="mingw32" = Just web
                  | otherwise = Nothing
 #else

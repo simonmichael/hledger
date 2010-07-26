@@ -535,7 +535,6 @@ setversion: $(VERSIONSENSITIVEFILES)
 
 Hledger/Cli/Version.hs: $(VERSIONFILE)
 	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
-# XXX also touch manually when switching between cabal install -fweb and -fweb610
 
 hledger.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@

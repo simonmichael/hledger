@@ -53,10 +53,6 @@ flag web
   description: enable the web ui (using yesod/hamlet/simpleserver, requires ghc 6.12)
   default:     False
 
-flag web610
-  description: enable the web ui (using loli/hsp/simpleserver, works with ghc 6.10)
-  default:     False
-
 executable hledger
   main-is:        hledger.hs
   -- should set patchlevel here as in Makefile
@@ -117,21 +113,6 @@ executable hledger
                  ,convertible-text >= 0.3.0.1 && < 0.4
                  ,data-object >= 0.3.1.2 && < 0.4
                  ,failure >= 0.1 && < 0.2
-
-  if flag(web610)
-    cpp-options: -DWEB610
-    other-modules:Hledger.Cli.Commands.Web610
-    build-depends:
-                  hsp
-                 ,hsx
-                 ,xhtml >= 3000.2
-                 ,loli
-                 ,io-storage
-                 ,hack-contrib
-                 ,hack
-                 ,hack-handler-simpleserver
-                 ,HTTP >= 4000.0
-                 ,applicative-extras
 
 -- modules and dependencies below should be as above, except
 -- chart, vty, web etc. are not presently exposed as library functions
