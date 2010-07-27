@@ -44,7 +44,7 @@ add opts args j
 getAndAddTransactions :: Journal -> [Opt] -> [String] -> Day -> IO ()
 getAndAddTransactions j opts args defaultDate = do
   (t, d) <- getTransaction j opts args defaultDate
-  j <- journalAddTransaction j t
+  j <- journalAddTransaction j opts t
   getAndAddTransactions j opts args d
 
 -- | Read a transaction from the command line, with history-aware prompting.
@@ -134,11 +134,12 @@ askFor prompt def validator = do
 -- | Append this transaction to the journal's file. Also, to the journal's
 -- transaction list, but we don't bother updating the other fields - this
 -- is enough to include new transactions in the history matching.
-journalAddTransaction :: Journal -> Transaction -> IO Journal
-journalAddTransaction j@Journal{jtxns=ts} t = do
+journalAddTransaction :: Journal -> [Opt] -> Transaction -> IO Journal
+journalAddTransaction j@Journal{jtxns=ts} opts t = do
   appendToJournalFile j $ showTransaction t
-  putStrLn $ printf "\nAdded transaction to %s:" (filepath j)
-  putStrLn =<< registerFromString (show t)
+  when (Debug `elem` opts) $ do
+    putStrLn $ printf "\nAdded transaction to %s:" (filepath j)
+    putStrLn =<< registerFromString (show t)
   return j{jtxns=ts++[t]}
 
 -- | Append data to the journal's file, ensuring proper separation from

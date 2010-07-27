@@ -6,9 +6,9 @@ A ledger-compatible @register@ command.
 -}
 
 module Hledger.Cli.Commands.Register (
-  register
- ,RegisterReport
+  RegisterReport
  ,RegisterReportItem
+ ,register
  ,registerReport
  ,registerReportAsText
  ,showPostingWithBalanceForVty

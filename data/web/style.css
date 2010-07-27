@@ -1,12 +1,19 @@
 /* hledger web ui stylesheet */
 
-body { font-family: "helvetica","arial", "sans serif"; margin:0; }
-#navbar { background-color:#eeeeee; border-bottom:2px solid #dddddd; padding:4px 4px 6px 4px; }
+/* font families */
+body { font-family:helvetica,arial,"sans serif"; }
+/* pre { font-family:monospace,courier,"courier new"; } */
+#editform textarea { font-family:courier,"courier new",monospace; }
+
+body { margin:0; }
+#navbar { /* background-color:#eeeeee; */ /* border-bottom:2px solid #dddddd; */ padding:4px 4px 6px 4px; }
 #navlinks { display:inline; }
 .navlink { }
 .navlinkcurrent { font-weight:bold; }
-#searchform { font-size:small; display:inline; margin-left:1em; }
-#resetlink { font-size:small; }
+.nav2 { font-size:small; }
+#filterform { font-size:small; display:inline; margin-left:1em; }
+.filtering { background-color:#eee; font-weight:bold; }
+#stopfilterlink { font-size:small; }
 .toprightlink { font-size:small; margin-left:1em; float:right; }
 #messages { color:red; background-color:#ffeeee; margin:0.5em;}
 .form { margin:1em; font-size:small; }
@@ -16,25 +23,50 @@ body { font-family: "helvetica","arial", "sans serif"; margin:0; }
 #addform #postingrow { }
 #addform #addbuttonrow { text-align:right; }
 #editform { width:95%; }
-#editform textarea { background-color:#eeeeee; font-family:monospace; font-size:medium; width:100%; }
+#editform textarea { /* background-color:#eeeeee; */ width:100%; }
 #content { margin:1em; }
 .formheading td { padding-bottom:8px; }
 #formheading { font-size:medium; font-weight:bold; }
 .helprow td { padding-bottom:8px; }
-#help {font-style: italic; font-size:smaller; }
+.help {font-style: italic; font-size:smaller; }
 
 /* for -fweb610 */
-#hledgerorglink, #helplink { float:right; margin-left:1em; }
+/* #hledgerorglink, #helplink { float:right; margin-left:1em; } */
 
-/* .balancereport { font-size:small; } */
+.current { font-weight:bold; background-color:#eee; }
+.description { padding-left:1em; }
+.account { white-space:nowrap; padding-left:1em; }
+.amount { white-space:nowrap; padding-left:1em; }
+.balance { white-space:nowrap; padding-left:1em; }
+ /* don't let fields get too small in emptyish reports */
+.description { width:4em; }
+.account, .amount, .balance { width:2em; }
+/* .odd { background-color:#e8e8e8; } */
+/* .even { background-color:#e8f8e8; } */
+/* .even { background-color:#f0fff0; } */
+
+.journalreport { font-size:small; }
+table.journalreport { margin-top:1em; }
+.journalreport td { border-top:thin solid #ddd; }
+.journalreport pre { margin-top:0; }
+
+.ledger .accounts {padding-right:1em; margin-right:1em; border-right:thin solid #ddd;}
+.ledger .register {}
+
+.balancereport { font-size:small; }
 .balancereport tr { vertical-align:top; }
+table.balancereport { border-spacing:0; }
+.ledger .balancereport td { padding:0; }
 /* .itemrule td { border-top:thin solid #ddd; } */
 .totalrule td { border-top:thin solid black; }
 
+table.registerreport { border-spacing:0; }
 .registerreport { font-size:small; }
 .registerreport tr { vertical-align:top; }
+.registerreport td { padding-bottom:0.2em; }
+/* .registerreport td { margin-left:0em; margin-right:0; } */
 .registerreport .date { white-space:nowrap; }
 /* .registerreport .description { font-size:small; } */
-.registerreport .account { white-space:nowrap; }
-.registerreport .amount { white-space:nowrap; }
-.registerreport .balance { white-space:nowrap; }
+/* .firstposting { background-color:#eee; } */
+.registerreport .even { background-color:#f0f0f0; }
+
