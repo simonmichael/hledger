@@ -153,6 +153,10 @@ isReallyZeroAmount :: Amount -> Bool
 isReallyZeroAmount = null . filter (`elem` "123456789") . printf ("%."++show zeroprecision++"f") . quantity
     where zeroprecision = 8
 
+-- | Is this amount negative ? The price is ignored.
+isNegativeAmount :: Amount -> Bool
+isNegativeAmount Amount{quantity=q} = q < 0
+
 -- | Access a mixed amount's components.
 amounts :: MixedAmount -> [Amount]
 amounts (Mixed as) = as
@@ -165,6 +169,13 @@ isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
 -- | Is this mixed amount "really" zero ? See isReallyZeroAmount.
 isReallyZeroMixedAmount :: MixedAmount -> Bool
 isReallyZeroMixedAmount = all isReallyZeroAmount . amounts . normaliseMixedAmount
+
+-- | Is this mixed amount negative, if it can be normalised to a single commodity ?
+isNegativeMixedAmount :: MixedAmount -> Maybe Bool
+isNegativeMixedAmount m = case as of [a] -> Just $ isNegativeAmount a
+                                     _   -> Nothing
+    where
+      as = amounts $ normaliseMixedAmount m
 
 -- | Is this mixed amount "really" zero, after converting to cost
 -- commodities where possible ?
