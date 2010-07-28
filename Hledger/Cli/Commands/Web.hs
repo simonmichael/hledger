@@ -158,6 +158,102 @@ journalReportAsHtml _ td items = [$hamlet|
        evenodd = if even n then "even" else "odd"
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
+addform :: Hamlet HledgerWebAppRoute
+addform = [$hamlet|
+ %form#addform!method=POST!style=display:none;
+  %table.form
+   %tr
+    %td!colspan=4
+     %table
+      %tr#descriptionrow
+       %td
+        Date:
+       %td
+        %input.textinput!size=15!name=date!value=$date$
+       %td!style=padding-left:1em;
+        Description:
+       %td
+        %input.textinput!size=35!name=description!value=$desc$
+      %tr.helprow
+       %td
+       %td
+        .help $datehelp$ ^datehelplink^ $
+       %td
+       %td
+        .help $deschelp$
+   ^transactionfields1^
+   ^transactionfields2^
+   %tr#addbuttonrow
+    %td!colspan=4
+     %input!type=hidden!name=add!value=1
+     %input!type=submit!name=submit!value="add transaction"
+|]
+ where
+  datehelplink = helplink "dates" "..."
+  datehelp = "eg: 7/20, 2010/1/1, "
+  deschelp = "eg: supermarket (optional)"
+  date = "today"
+  desc = ""
+  transactionfields1 = transactionfields 1
+  transactionfields2 = transactionfields 2
+
+transactionfields :: Int -> Hamlet HledgerWebAppRoute
+transactionfields n = [$hamlet|
+ %tr#postingrow
+  %td!align=right
+   $label$:
+  %td
+   %input.textinput!size=35!name=$acctvar$!value=$acct$
+  ^amtfield^
+ %tr.helprow
+  %td
+  %td
+   .help $accthelp$
+  %td
+  %td
+   .help $amthelp$
+|]
+ where
+  label | n == 1    = "To account"
+        | otherwise = "From account"
+  accthelp | n == 1    = "eg: expenses:food"
+           | otherwise = "eg: assets:bank:checking"
+  amtfield | n == 1 = [$hamlet|
+                       %td!style=padding-left:1em;
+                        Amount:
+                       %td
+                        %input.textinput!size=15!name=$amtvar$!value=$amt$
+                       |]
+           | otherwise = nulltemplate
+  amthelp | n == 1    = "eg: 5, $6, €7.01"
+          | otherwise = ""
+  acct = ""
+  amt = ""
+  numbered = (++ show n)
+  acctvar = numbered "accountname"
+  amtvar = numbered "amount"
+
+editform :: TemplateData -> String -> Hamlet HledgerWebAppRoute
+editform _ content = [$hamlet|
+ %form#editform!method=POST!style=display:none;
+  %table.form#editform
+   %tr
+    %td!colspan=2
+     %textarea!name=text!rows=30!cols=80
+      $content$
+   %tr#addbuttonrow
+    %td
+     %span.help ^formathelp^
+    %td!align=right
+     %span.help Are you sure ? This will overwrite the journal. $
+     %input!type=hidden!name=edit!value=1
+     %input!type=submit!name=submit!value="save journal"
+     \ or $
+     %a!href!onclick="return editformToggle()" cancel
+|]
+  where
+    formathelp = helplink "file-format" "file format help"
+
 journalScripts = [$hamlet|
 <script type="text/javascript">
 
@@ -307,102 +403,6 @@ postEditForm = do
           redirect RedirectTemporary JournalPage)
        jE
 
-addform :: Hamlet HledgerWebAppRoute
-addform = [$hamlet|
- %form#addform!method=POST!style=display:none;
-  %table.form!cellpadding=0!cellspacing=0!border=0
-   %tr
-    %td!colspan=4
-     %table!cellpadding=0!cellspacing=0!border=0
-      %tr#descriptionrow
-       %td
-        Date:
-       %td
-        %input!size=15!name=date!value=$date$
-       %td
-        Description:
-       %td
-        %input!size=35!name=description!value=$desc$
-      %tr.helprow
-       %td
-       %td
-        .help $datehelp$ ^datehelplink^ $
-       %td
-       %td
-        .help $deschelp$
-   ^transactionfields1^
-   ^transactionfields2^
-   %tr#addbuttonrow
-    %td!colspan=4
-     %input!type=hidden!name=add!value=1
-     %input!type=submit!name=submit!value="add transaction"
-|]
- where
-  datehelplink = helplink "dates" "..."
-  datehelp = "eg: 7/20, 2010/1/1, "
-  deschelp = "eg: supermarket (optional)"
-  date = "today"
-  desc = ""
-  transactionfields1 = transactionfields 1
-  transactionfields2 = transactionfields 2
-
-transactionfields :: Int -> Hamlet HledgerWebAppRoute
-transactionfields n = [$hamlet|
- %tr#postingrow
-  %td!align=right
-   $label$:
-  %td
-   %input!size=35!name=$acctvar$!value=$acct$
-  ^amtfield^
- %tr.helprow
-  %td
-  %td
-   .help $accthelp$
-  %td
-  %td
-   .help $amthelp$
-|]
- where
-  label | n == 1    = "To account"
-        | otherwise = "From account"
-  accthelp | n == 1    = "eg: expenses:food"
-           | otherwise = "eg: assets:bank:checking"
-  amtfield | n == 1 = [$hamlet|
-                       %td
-                        Amount:
-                       %td
-                        %input!size=15!name=$amtvar$!value=$amt$
-                       |]
-           | otherwise = nulltemplate
-  amthelp | n == 1    = "eg: 5, $6, €7.01"
-          | otherwise = ""
-  acct = ""
-  amt = ""
-  numbered = (++ show n)
-  acctvar = numbered "accountname"
-  amtvar = numbered "amount"
-
-editform :: TemplateData -> String -> Hamlet HledgerWebAppRoute
-editform _ content = [$hamlet|
- %form#editform!method=POST!style=display:none;
-  %table.form#editform!cellpadding=0!cellspacing=0!border=0
-   %tr
-    %td!colspan=2
-     %textarea!name=text!rows=30!cols=80
-      $content$
-   %tr#addbuttonrow
-    %td
-     %span.help ^formathelp^
-    %td!align=right
-     %span.help Are you sure ? This will overwrite the journal. $
-     %input!type=hidden!name=edit!value=1
-     %input!type=submit!name=submit!value="save journal"
-     \ or $
-     %a!href!onclick="return editformToggle()" cancel
-|]
-  where
-    formathelp = helplink "file-format" "file format help"
-
 ----------------------------------------------------------------------
 
 -- | A combined accounts and postings view, like hledger balance + hledger register.
@@ -415,7 +415,7 @@ getLedgerPage = do
   let args = appArgs app
       fspec' = optsToFilterSpec opts args t
       br = balanceReportAsHtml opts td $ balanceReport opts fspec' j
-      rr = if null a && null p
+      rr = if null a && null p && not showpostingsbydefault
             then nulltemplate
             else registerReportAsHtml opts td $ registerReport opts fspec j
       td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
@@ -424,6 +424,7 @@ getLedgerPage = do
  %div.accounts!style=float:left;  ^br^
  %div.register ^rr^
 |]
+showpostingsbydefault = False
 
 ----------------------------------------------------------------------
 
@@ -586,7 +587,7 @@ navbar td = [$hamlet|
  #navbar
   %a.toprightlink!href=$hledgerurl$ hledger $version$
   \ $
-  %a.toprightlink!href=$manualurl$ manual
+  %a.toprightlink!href=$manualurl$!target=hledgerhelp manual
   \ $
   ^navlinks.td^
   ^filterform.td^

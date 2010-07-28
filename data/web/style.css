@@ -1,73 +1,68 @@
-/* hledger web ui stylesheet */
+/* hledger web ui styles */
 
-/* font families */
-body { font-family:helvetica,arial,"sans serif"; }
-/* pre { font-family:monospace,courier,"courier new"; } */
-#editform textarea { font-family:courier,"courier new",monospace; }
+/* font families & sizes */
+/* overspecified for cross-browser robustness */
+body                        { font-family:helvetica,arial,"sans serif"; }
+pre                         { font-family:courier,"courier new",monospace; }
+#addform input.textinput    { font-family:courier,"courier new",monospace; font-size:small; }
+#editform textarea          { font-family:courier,"courier new",monospace; font-size:small; }
+.nav2                       { font-size:small; }
+#filterform                 { font-size:small; }
+.toprightlink               { font-size:small; }
+.help                       { font-size:smaller; }
+.form                       { font-size:small; }
+.journalreport              { font-size:small; }
+.balancereport              { font-size:small; }
+.registerreport             { font-size:small; }
 
-body { margin:0; }
-#navbar { /* background-color:#eeeeee; */ /* border-bottom:2px solid #dddddd; */ padding:4px 4px 6px 4px; }
-#navlinks { display:inline; }
-.navlink { }
-.navlinkcurrent { font-weight:bold; }
-.nav2 { font-size:small; }
-#filterform { font-size:small; display:inline; margin-left:1em; }
-.filtering { background-color:#ddd; font-weight:bold; }
-#stopfilterlink { font-size:small; }
-.toprightlink { font-size:small; margin-left:1em; float:right; }
-#messages { color:red; background-color:#ffeeee; margin:0.5em;}
-.form { margin:1em; font-size:small; }
-#addform { background-color:#eeeeee; border:2px solid #dddddd; cell-padding:0; cell-spacing:0; }
-#addform { /* float:right; */ }
-#addform #descriptionrow { }
-#addform #postingrow { }
-#addform #addbuttonrow { text-align:right; }
-#editform { width:95%; }
-#editform textarea { /* background-color:#eeeeee; */ width:100%; }
-#content { margin:1em; }
-.formheading td { padding-bottom:8px; }
-#formheading { font-size:medium; font-weight:bold; }
-.helprow td { padding-bottom:8px; }
-.help {font-style: italic; font-size:smaller; }
+body                        { margin:0; }
+#navbar                     { padding:0px 6px; }
+/* #navbar                  { padding:4px; background-color:#eeeeee; border-bottom:2px solid #dddddd; } */
+#navlinks                   { display:inline; }
+.navlink                    { }
+.navlinkcurrent             { font-weight:bold; }
+#filterform                 { display:inline; margin-left:1em; padding:4px; }
+.filtering                  { background-color:#ddd; font-weight:bold; }
+.form                       { margin:1em; }
+.toprightlink               { margin-left:1em; float:right; }
+#messages                   { color:red; background-color:#ffeeee; margin:0.5em;}
+.help                       { font-style: italic; }
+.helprow td                 { padding-bottom:8px; }
+#content                    { margin:1em; }
 
-/* for -fweb610 */
-/* #hledgerorglink, #helplink { float:right; margin-left:1em; } */
+.current                    { font-weight:bold; background-color:#ddd; }
+.description                { padding-left:1em; }
+.account                    { white-space:nowrap; padding-left:1em; }
+.amount                     { white-space:nowrap; padding-left:1em; }
+.balance                    { white-space:nowrap; padding-left:1em; }
+.account, .amount, .balance { width:2em; }  /* minimum width */
+.positive                   { }
+.negative                   { color:#800; }
+/* .odd                     { background-color:#e8e8e8; } */
+/* .even                    { background-color:#e8f8e8; } */
+/* .even                    { background-color:#f0fff0; } */
 
-.current { font-weight:bold; background-color:#ddd; }
-.description { padding-left:1em; }
-.account { white-space:nowrap; padding-left:1em; }
-.amount { white-space:nowrap; padding-left:1em; }
-.balance { white-space:nowrap; padding-left:1em; }
- /* don't let fields get too small in emptyish reports */
-.account, .amount, .balance { width:2em; }
-.positive { }
-.negative { color:red; }
-/* .odd { background-color:#e8e8e8; } */
-/* .even { background-color:#e8f8e8; } */
-/* .even { background-color:#f0fff0; } */
+table.journalreport         { margin-top:1em; }
+.journalreport td           { border-top:thin solid #ddd; }
+.journalreport pre          { margin-top:0; }
 
-.journalreport { font-size:small; }
-table.journalreport { margin-top:1em; }
-.journalreport td { border-top:thin solid #ddd; }
-.journalreport pre { margin-top:0; }
+.ledger .accounts           {padding-right:1em; margin-right:1em; border-right:thin solid #ddd;}
+.ledger .register           { }
 
-.ledger .accounts {padding-right:1em; margin-right:1em; border-right:thin solid #ddd;}
-.ledger .register {}
+.balancereport tr           { vertical-align:top; }
+table.balancereport         { border-spacing:0; }
+.ledger .balancereport td   { padding:0; }
+.totalrule td               { border-top:thin solid black; }
 
-.balancereport { font-size:small; }
-.balancereport tr { vertical-align:top; }
-table.balancereport { border-spacing:0; }
-.ledger .balancereport td { padding:0; }
-/* .itemrule td { border-top:thin solid #ddd; } */
-.totalrule td { border-top:thin solid black; }
+table.registerreport        { border-spacing:0; }
+.registerreport tr          { vertical-align:top; }
+.registerreport td          { padding-bottom:0.2em; }
+.registerreport .date       { white-space:nowrap; }
+.firstposting td            { }
+.registerreport .even       { background-color:#f0f0f0; }
 
-table.registerreport { border-spacing:0; }
-.registerreport { font-size:small; }
-.registerreport tr { vertical-align:top; }
-.registerreport td { padding-bottom:0.2em; }
-/* .registerreport td { margin-left:0em; margin-right:0; } */
-.registerreport .date { white-space:nowrap; }
-/* .registerreport .description { font-size:small; } */
-/* .firstposting { background-color:#eee; } */
-.registerreport .even { background-color:#f0f0f0; }
-
+#addform input.textinput    { background-color:#eee; padding:4px; }
+#addform table              { }
+#addform #addbuttonrow      { text-align:right; }
+#editform                   { width:95%; }
+#editform textarea          { width:100%; background-color:#eee; padding:4px; }
