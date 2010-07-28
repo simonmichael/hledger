@@ -394,7 +394,7 @@ editform _ content = [$hamlet|
     %td
      %span.help ^formathelp^
     %td!align=right
-     %span.help Are you sure ? Your journal will be overwritten. $
+     %span.help Are you sure ? This will overwrite the journal. $
      %input!type=hidden!name=edit!value=1
      %input!type=submit!name=submit!value="save journal"
      \ or $
@@ -456,8 +456,11 @@ balanceReportAsHtml _ td (items,total) = [$hamlet|
      |] where
        current = if not (null a) && containsRegex a acct then "current" else ""
        indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
-       aurl = printf "../ledger?a=^%s%s" acct p' :: String
+       aurl = printf "../ledger?a=%s%s" (accountMatchingRegex acct) p' :: String
        p' = if null p then "" else printf "&p=%s" p
+
+accountMatchingRegex :: String -> String
+accountMatchingRegex = printf "^%s(:|$)"
 
 ----------------------------------------------------------------------
 
@@ -492,7 +495,7 @@ registerReportAsHtml _ td items = [$hamlet|
        (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
                                                Nothing -> ("", "", "")
        acct = paccount posting
-       aurl = printf "../ledger?a=^%s%s" acct p' :: String
+       aurl = printf "../ledger?a=%s%s" (accountMatchingRegex acct) p' :: String
        p' = if null p then "" else printf "&p=%s" p
 
 --mixedAmountAsHtml = intercalate ", " . lines . show
