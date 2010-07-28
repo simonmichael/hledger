@@ -415,7 +415,9 @@ getLedgerPage = do
   let args = appArgs app
       fspec' = optsToFilterSpec opts args t
       br = balanceReportAsHtml opts td $ balanceReport opts fspec' j
-      rr = registerReportAsHtml opts td $ registerReport opts fspec j
+      rr = if null a && null p
+            then nulltemplate
+            else registerReportAsHtml opts td $ registerReport opts fspec j
       td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div.ledger
@@ -499,7 +501,10 @@ registerReportAsHtml _ td items = [$hamlet|
        p' = if null p then "" else printf "&p=%s" p
 
 --mixedAmountAsHtml = intercalate ", " . lines . show
-mixedAmountAsHtml = preEscapedString . intercalate "<br>" . lines . show
+mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
+    where addclass = printf "<span class=\"%s\">%s</span>" c
+          c = case isNegativeMixedAmount b of Just True -> "negative amount"
+                                              _         -> "positive amount"
 
 ----------------------------------------------------------------------
 

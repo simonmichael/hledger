@@ -12,7 +12,7 @@ body { margin:0; }
 .navlinkcurrent { font-weight:bold; }
 .nav2 { font-size:small; }
 #filterform { font-size:small; display:inline; margin-left:1em; }
-.filtering { background-color:#eee; font-weight:bold; }
+.filtering { background-color:#ddd; font-weight:bold; }
 #stopfilterlink { font-size:small; }
 .toprightlink { font-size:small; margin-left:1em; float:right; }
 #messages { color:red; background-color:#ffeeee; margin:0.5em;}
@@ -33,14 +33,15 @@ body { margin:0; }
 /* for -fweb610 */
 /* #hledgerorglink, #helplink { float:right; margin-left:1em; } */
 
-.current { font-weight:bold; background-color:#eee; }
+.current { font-weight:bold; background-color:#ddd; }
 .description { padding-left:1em; }
 .account { white-space:nowrap; padding-left:1em; }
 .amount { white-space:nowrap; padding-left:1em; }
 .balance { white-space:nowrap; padding-left:1em; }
  /* don't let fields get too small in emptyish reports */
-.description { width:4em; }
 .account, .amount, .balance { width:2em; }
+.positive { }
+.negative { color:red; }
 /* .odd { background-color:#e8e8e8; } */
 /* .even { background-color:#e8f8e8; } */
 /* .even { background-color:#f0fff0; } */
