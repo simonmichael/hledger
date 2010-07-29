@@ -14,21 +14,28 @@ pre                         { font-family:courier,"courier new",monospace; }
 .journalreport              { font-size:small; }
 .balancereport              { font-size:small; }
 .registerreport             { font-size:small; }
+#showmoreaccounts           { font-size:small; }
+/* #addformlink                { font-size:small; } */
+/* #editformlink               { font-size:small; } */
 
 body                        { margin:0; }
 #navbar                     { padding:0px 6px; }
-/* #navbar                  { padding:4px; background-color:#eeeeee; border-bottom:2px solid #dddddd; } */
-#navlinks                   { display:inline; }
-.navlink                    { }
-.navlinkcurrent             { font-weight:bold; }
-#filterform                 { display:inline; margin-left:1em; padding:4px; }
-.filtering                  { background-color:#ddd; font-weight:bold; }
-.form                       { margin:1em; }
+/* #navbar                  { padding:4px; background-color:#eee; border-bottom:2px solid #ddd; } */
 .toprightlink               { margin-left:1em; float:right; }
 #messages                   { color:red; background-color:#ffeeee; margin:0.5em;}
 .help                       { font-style: italic; }
 .helprow td                 { padding-bottom:8px; }
 #content                    { margin:1em; }
+#navlinks                   { margin-bottom:1em; }
+.navlink                    { }
+.navlinkcurrent             { font-weight:bold; }
+.form                       { margin:1em; }
+
+#filterformdiv              { margin:0 0 1em 0; white-space:nowrap; }
+#filterform                 { margin:0; }
+#filterform span            { padding:4px; }
+#stopfilterlink             { font-weight:bold; }
+.filtering                  { background-color:#ddd; }
 
 .current                    { font-weight:bold; background-color:#ddd; }
 .description                { padding-left:1em; }
@@ -42,12 +49,14 @@ body                        { margin:0; }
 /* .even                    { background-color:#e8f8e8; } */
 /* .even                    { background-color:#f0fff0; } */
 
-table.journalreport         { margin-top:1em; }
-.journalreport td           { border-top:thin solid #ddd; }
+table.journalreport         { }
+.journalreport td           { border-top:thin solid #eee; }
 .journalreport pre          { margin-top:0; }
 
-.ledger .accounts           {padding-right:1em; margin-right:1em; border-right:thin solid #ddd;}
+.ledger .accounts           {padding-right:1em; margin-right:1em; border-right:thin solid #eee;}
 .ledger .register           { }
+
+div.accounts                { padding-bottom: 10em; }
 
 .balancereport tr           { vertical-align:top; }
 table.balancereport         { border-spacing:0; }
@@ -59,10 +68,10 @@ table.registerreport        { border-spacing:0; }
 .registerreport td          { padding-bottom:0.2em; }
 .registerreport .date       { white-space:nowrap; }
 .firstposting td            { }
-.registerreport .even       { background-color:#f0f0f0; }
+.registerreport .odd        { background-color:#f0f0f0; }
 
 #addform input.textinput    { background-color:#eee; padding:4px; }
 #addform table              { }
 #addform #addbuttonrow      { text-align:right; }
-#editform                   { width:95%; }
+/* #editform                   { width:95%; } */
 #editform textarea          { width:100%; background-color:#eee; padding:4px; }
