@@ -114,18 +114,18 @@ cfg = (defaultHakyllConfiguration baseurl) {
  }
 
 -- the body part of pandoc 1.5.1.1's html output template
-pandocTemplate = "\
-\$if(title)$\
-\<h1 class=\"title\">$title$</h1>\
-\$endif$\
-\$for(include-before)$\
-\$include-before$\
-\$endfor$\
-\$if(toc)$\
-\$toc$\
-\$endif$\
-\$body$\
-\$for(include-after)$\
-\$include-after$\
-\$endfor$\
-\"
+pandocTemplate = unlines
+    [ "$if(title)$"
+    , "<h1 class=\"title\">$title$</h1>"
+    , "$endif$"
+    , "$for(include-before)$"
+    , "$include-before$"
+    , "$endfor$"
+    , "$if(toc)$"
+    , "$toc$"
+    , "$endif$"
+    , "$body$"
+    , "$for(include-after)$"
+    , "$include-after$"
+    , "$endfor$"
+    ]
