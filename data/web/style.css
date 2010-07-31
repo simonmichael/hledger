@@ -8,7 +8,9 @@ pre                         { font-family:courier,"courier new",monospace; }
 #editform textarea          { font-family:courier,"courier new",monospace; font-size:small; }
 .nav2                       { font-size:small; }
 #filterform                 { font-size:small; }
+.topleftlink                { font-size:small; }
 .toprightlink               { font-size:small; }
+#journalinfo                { font-size:small; }
 .help                       { font-size:smaller; }
 .form                       { font-size:small; }
 .journalreport              { font-size:small; }
@@ -19,9 +21,12 @@ pre                         { font-family:courier,"courier new",monospace; }
 /* #editformlink               { font-size:small; } */
 
 body                        { margin:0; }
-#navbar                     { padding:0px 6px; }
+#navbar                     { padding:2px; }
+.topleftlink                { float:left; margin-right:1em; padding:2px; }
+.toprightlink               { float:right; margin-left:1em; padding:2px; }
+#navbar h1                  { display:inline-block; vertical-align:top; margin:0; }
+#journalinfo                { vertical-align:middle; margin:0; }
 /* #navbar                  { padding:4px; background-color:#eee; border-bottom:2px solid #ddd; } */
-.toprightlink               { margin-left:1em; float:right; }
 #messages                   { color:red; background-color:#ffeeee; margin:0.5em;}
 .help                       { font-style: italic; }
 .helprow td                 { padding-bottom:8px; }
@@ -49,14 +54,14 @@ body                        { margin:0; }
 /* .even                    { background-color:#e8f8e8; } */
 /* .even                    { background-color:#f0fff0; } */
 
-table.journalreport         { }
+table.journalreport         { border-spacing: 0; }
 .journalreport td           { border-top:thin solid #eee; }
 .journalreport pre          { margin-top:0; }
 
-.ledger .accounts           {padding-right:1em; margin-right:1em; border-right:thin solid #eee;}
+.ledger .accounts           {padding-right:1em; margin-right:1em; border-right:thin solid #eee; }
 .ledger .register           { }
 
-div.accounts                { padding-bottom: 10em; }
+div.accounts                { margin-bottom:5em; }
 
 .balancereport tr           { vertical-align:top; }
 table.balancereport         { border-spacing:0; }

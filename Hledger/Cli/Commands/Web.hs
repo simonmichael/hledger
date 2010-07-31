@@ -8,7 +8,7 @@ where
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Applicative ((<$>), (<*>))
 import Data.Either
-import System.FilePath ((</>))
+import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (withStore, putValue, getValue)
 import Text.ParserCombinators.Parsec (parse)
 import Yesod
@@ -64,8 +64,9 @@ data TemplateData = TD {
      here         :: HledgerWebAppRoute -- ^ the current page's route
     ,title        :: String             -- ^ page's title
     ,msg          :: Maybe (Html ())     -- ^ transient message
-    ,a            :: String             -- ^ a (filter pattern) parameter
+    ,a            :: String             -- ^ a (acct/desc filter pattern) parameter
     ,p            :: String             -- ^ p (period expression) parameter
+    ,j            :: Journal            -- ^ the current journal
     }
 
 mktd = TD {
@@ -74,6 +75,7 @@ mktd = TD {
      ,msg = Nothing
      ,a = ""
      ,p = ""
+     ,j = nulljournal
      }
 
 -- | The web command.
@@ -165,11 +167,150 @@ getIndexPage = redirect RedirectTemporary defaultpage
 
 ----------------------------------------------------------------------
 
+-- | A combined accounts and journal view.
+getAccountsJournalPage :: Handler HledgerWebApp RepHtml
+getAccountsJournalPage = do
+  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+  -- app <- getYesod
+  -- t <- liftIO $ getCurrentLocalTime
+  let -- args = appArgs app
+      -- fspec' = optsToFilterSpec opts args t
+      br = balanceReportAsHtml opts td $ balanceReport opts fspec j
+      jr = journalReportAsHtml opts td $ journalReport opts fspec j
+      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+      editform' = editform td $ jtext j
+  hamletToRepHtml $ pageLayout td [$hamlet|
+^scripts^
+%div.ledger
+ %div.accounts!style=float:left;  ^br^
+ ^navlinks.td^
+ ^addform^
+ ^editform'^
+ %div#transactions.journal
+  ^filterform.td^
+  ^jr^
+|]
+
+postAccountsJournalPage :: Handler HledgerWebApp RepPlain
+postAccountsJournalPage = postJournalOnlyPage
+
+----------------------------------------------------------------------
+
+-- | A combined accounts and register view.
+getAccountsRegisterPage :: Handler HledgerWebApp RepHtml
+getAccountsRegisterPage = do
+  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+  -- app <- getYesod
+  -- t <- liftIO $ getCurrentLocalTime
+  let -- args = appArgs app
+      -- opts' = Empty:opts
+      -- fspec' = optsToFilterSpec opts' args t
+      br = balanceReportAsHtml opts td $ balanceReport opts fspec j
+      rr = registerReportAsHtml opts td $ registerReport opts fspec j
+      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+      editform' = editform td $ jtext j
+  hamletToRepHtml $ pageLayout td [$hamlet|
+^scripts^
+%div.ledger
+ %div.accounts!style=float:left;  ^br^
+ ^navlinks.td^
+ ^addform^
+ ^editform'^
+ %div#transactions.register
+  ^filterform.td^
+  ^rr^
+|]
+
+postAccountsRegisterPage :: Handler HledgerWebApp RepPlain
+postAccountsRegisterPage = postJournalOnlyPage
+
+----------------------------------------------------------------------
+
+-- | A simple accounts and balances view like hledger balance.
+getAccountsPage :: Handler HledgerWebApp RepHtml
+getAccountsPage = do
+  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+  hamletToRepHtml $ pageLayout td $ balanceReportAsHtml opts td $ balanceReport opts fspec j
+
+-- | Render a balance report as HTML.
+balanceReportAsHtml :: [Opt] -> TemplateData -> BalanceReport -> Hamlet HledgerWebAppRoute
+balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
+%table.balancereport
+ ^allaccts^
+ $forall items i
+  ^itemAsHtml' i^
+ %tr.totalrule
+  %td!colspan=2
+ %tr
+  %td
+  %td!align=right $mixedAmountAsHtml.total$
+|]
+ where
+   filtering = not $ null a && null p
+   showmore = if filtering then [$hamlet|
+^showmore'^
+\ | $
+%a!href=@here@ show all
+|] else nulltemplate
+   showmore' = case (filtering, items) of
+                 -- cunning parent account logic
+                 (True, ((acct, _, _, _):_)) ->
+                     let a' = if isAccountRegex a then a else acct
+                         a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
+                         parenturl = (here, [("a",a''), ("p",p)])
+                     in [$hamlet|
+                         \ | $
+                         %a!href=@?parenturl@ show more &uarr;
+                         |]
+                 _ -> nulltemplate
+   allacctslink = True
+   allaccts = if allacctslink
+               then -- [$hamlet|%tr.$current$
+                    --           %td
+                    --            %a!href=@?u@ all accounts
+                    --           %td
+                    [$hamlet|
+accounts
+\ $
+%span#showmoreaccounts ^showmore^
+<br />
+<br />
+|]
+               else nulltemplate
+   --     where u = (here, [("a",".*"),("p",p)])
+   -- current = "" -- if a == ".*" then "current" else ""
+   itemAsHtml' = itemAsHtml td
+   itemAsHtml :: TemplateData -> BalanceReportItem -> Hamlet HledgerWebAppRoute
+   itemAsHtml TD{p=p} (acct, adisplay, adepth, abal) = [$hamlet|
+     %tr.item.$current$
+      %td.account
+       $indent$
+       %a!href=$aurl$ $adisplay$
+      %td.balance!align=right $mixedAmountAsHtml.abal$
+     |] where
+       current = "" -- if not (null a) && containsRegex a acct then "current" else ""
+       indent = preEscapedString $ concat $ replicate (2 * (adepth + if allacctslink then 1 else 0)) "&nbsp;"
+       aurl = printf ".?a=%s%s" (accountNameToAccountRegex acct) p' :: String
+       p' = if null p then "" else printf "&p=%s" p
+
+accountNameToAccountRegex :: String -> String
+accountNameToAccountRegex "" = ""
+accountNameToAccountRegex a = printf "^%s(:|$)" a
+
+accountRegexToAccountName :: String -> String
+accountRegexToAccountName = gsubRegexPR "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
+
+isAccountRegex  :: String -> Bool
+isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
+
+----------------------------------------------------------------------
+
 -- | A basic journal view, like hledger print, with editing.
 getJournalOnlyPage :: Handler HledgerWebApp RepHtml
 getJournalOnlyPage = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
       editform' = editform td $ jtext j
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
   hamletToRepHtml $ pageLayout td [$hamlet|
@@ -222,7 +363,7 @@ addform = [$hamlet|
       %tr.helprow
        %td
        %td
-        .help $datehelp$ ^datehelplink^ $
+        .help $datehelp$ $
        %td
        %td
         .help $deschelp$
@@ -234,7 +375,7 @@ addform = [$hamlet|
      %input!type=submit!name=submit!value="add transaction"
 |]
  where
-  datehelplink = helplink "dates" "..."
+  -- datehelplink = helplink "dates" "..."
   datehelp = "eg: 7/20, 2010/1/1, "
   deschelp = "eg: supermarket (optional)"
   date = "today"
@@ -471,91 +612,11 @@ postEditForm = do
 
 ----------------------------------------------------------------------
 
--- | A simple accounts and balances view like hledger balance.
-getAccountsPage :: Handler HledgerWebApp RepHtml
-getAccountsPage = do
-  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
-  hamletToRepHtml $ pageLayout td $ balanceReportAsHtml opts td $ balanceReport opts fspec j
-
--- | Render a balance report as HTML.
-balanceReportAsHtml :: [Opt] -> TemplateData -> BalanceReport -> Hamlet HledgerWebAppRoute
-balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
-%table.balancereport
- ^allaccts^
- $forall items i
-  ^itemAsHtml' i^
- %tr.totalrule
-  %td!colspan=2
- %tr
-  %td
-  %td!align=right $mixedAmountAsHtml.total$
-|]
- where
-   filtering = not $ null a && null p
-   showmore = if filtering then [$hamlet|
-^showmore'^
-\ | $
-%a!href=@here@ show all
-|] else nulltemplate
-   showmore' = case (filtering, items) of 
-                 -- cunning parent account logic
-                 (True, ((acct, _, _, _):_)) -> 
-                     let a' = if isAccountRegex a then a else acct
-                         a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
-                         parenturl = (here, [("a",a''), ("p",p)])
-                     in [$hamlet|
-                         \ | $
-                         %a!href=@?parenturl@ show more
-                         |]
-                 _ -> nulltemplate
-   allacctslink = True
-   allaccts = if allacctslink
-               then -- [$hamlet|%tr.$current$
-                    --           %td
-                    --            %a!href=@?u@ all accounts
-                    --           %td
-                    [$hamlet|
-accounts
-\ $
-%span#showmoreaccounts ^showmore^
-<br />
-<br />
-|]
-               else nulltemplate
-       where u = (here, [("a",".*"),("p",p)])
-   current = "" -- if a == ".*" then "current" else ""
-   itemAsHtml' = itemAsHtml td
-   itemAsHtml :: TemplateData -> BalanceReportItem -> Hamlet HledgerWebAppRoute
-   itemAsHtml TD{a=a,p=p} (acct, adisplay, adepth, abal) = [$hamlet|
-     %tr.item.$current$
-      %td.account
-       $indent$
-       %a!href=$aurl$ $adisplay$
-      %td.balance!align=right $mixedAmountAsHtml.abal$
-     |] where
-       current = "" -- if not (null a) && containsRegex a acct then "current" else ""
-       indent = preEscapedString $ concat $ replicate (2 * (adepth + if allacctslink then 1 else 0)) "&nbsp;"
-       aurl = printf ".?a=%s%s" (accountNameToAccountRegex acct) p' :: String
-       p' = if null p then "" else printf "&p=%s" p
-
-accountNameToAccountRegex :: String -> String
-accountNameToAccountRegex "" = ""
-accountNameToAccountRegex a = printf "^%s(:|$)" a
-
-accountRegexToAccountName :: String -> String
-accountRegexToAccountName = gsubRegexPR "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
-
-isAccountRegex  :: String -> Bool
-isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
-
-----------------------------------------------------------------------
-
 -- | A simple postings view like hledger register.
 getRegisterOnlyPage :: Handler HledgerWebApp RepHtml
 getRegisterOnlyPage = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
   hamletToRepHtml $ pageLayout td $ registerReportAsHtml opts td $ registerReport opts fspec j
 
 -- | Render a register report as HTML.
@@ -596,71 +657,12 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
 getEditPage :: Handler HledgerWebApp RepHtml
 getEditPage = do
   (a, p, _, _, _, msg, here) <- getHandlerParameters
-  -- reload journal's text without parsing, if changed
+  -- reload journal's text without parsing, if changed     -- XXX are we doing this right ?
   j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
   changed <- liftIO $ journalFileIsNewer j
   s <- liftIO $ if changed then readFile (filepath j) else return (jtext j) -- XXX readFile may throw an error
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
   hamletToRepHtml $ pageLayout td $ editform td s
-
-----------------------------------------------------------------------
-
--- | A combined accounts and journal view.
-getAccountsJournalPage :: Handler HledgerWebApp RepHtml
-getAccountsJournalPage = do
-  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  app <- getYesod
-  t <- liftIO $ getCurrentLocalTime
-  let args = appArgs app
-      fspec' = optsToFilterSpec opts args t
-      br = balanceReportAsHtml opts td $ balanceReport opts fspec j
-      jr = journalReportAsHtml opts td $ journalReport opts fspec j
-      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
-      editform' = editform td $ jtext j
-  hamletToRepHtml $ pageLayout td [$hamlet|
-^scripts^
-%div.ledger
- %div.accounts!style=float:left;  ^br^
- ^navlinks.td^
- ^addform^
- ^editform'^
- %div#transactions.journal
-  ^filterform.td^
-  ^jr^
-|]
-
-postAccountsJournalPage :: Handler HledgerWebApp RepPlain
-postAccountsJournalPage = postJournalOnlyPage
-
-----------------------------------------------------------------------
-
--- | A combined accounts and register view.
-getAccountsRegisterPage :: Handler HledgerWebApp RepHtml
-getAccountsRegisterPage = do
-  (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  app <- getYesod
-  t <- liftIO $ getCurrentLocalTime
-  let args = appArgs app
-      -- opts' = Empty:opts
-      -- fspec' = optsToFilterSpec opts' args t
-      br = balanceReportAsHtml opts td $ balanceReport opts fspec j
-      rr = registerReportAsHtml opts td $ registerReport opts fspec j
-      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p}
-      editform' = editform td $ jtext j
-  hamletToRepHtml $ pageLayout td [$hamlet|
-^scripts^
-%div.ledger
- %div.accounts!style=float:left;  ^br^
- ^navlinks.td^
- ^addform^
- ^editform'^
- %div#transactions.register
-  ^filterform.td^
-  ^rr^
-|]
-
-postAccountsRegisterPage :: Handler HledgerWebApp RepPlain
-postAccountsRegisterPage = postJournalOnlyPage
 
 ----------------------------------------------------------------------
 
@@ -675,21 +677,24 @@ pageLayout td@TD{title=title, msg=msg} content = [$hamlet|
   %link!rel=stylesheet!type=text/css!href=@StyleCss@!media=all
  %body
   ^navbar.td^
+  #messages $m$
   #content
-   #messages $m$
    ^content^
 |]
  where m = fromMaybe (string "") msg
        metacontent = "text/html; charset=utf-8"
 
 navbar :: TemplateData -> Hamlet HledgerWebAppRoute
-navbar _ = [$hamlet|
+navbar TD{j=j} = [$hamlet|
  #navbar
-  %a.toprightlink!href=$hledgerurl$ hledger $version$
-  \ $
+  %a.topleftlink!href=$hledgerurl$
+   hledger
+   <br />
+   $version$
   %a.toprightlink!href=$manualurl$!target=hledgerhelp manual
-  \ $
+  %h1 $journaltitle$
 |]
+  where journaltitle = printf "%s" (takeFileName $ filepath j) :: String
 
 navlinks :: TemplateData -> Hamlet HledgerWebAppRoute
 navlinks td = [$hamlet|
@@ -698,9 +703,9 @@ navlinks td = [$hamlet|
   \ | $
   ^accountsregisterlink^
   \ | $
-  %a#editformlink!href!onclick="return editformToggle()" edit journal
-  \ | $
   %a#addformlink!href!onclick="return addformToggle()" add transaction
+  \ | $
+  %a#editformlink!href!onclick="return editformToggle()" edit journal
 |]
  where
    accountsjournallink   = navlink td "journal" AccountsJournalPage
@@ -735,10 +740,10 @@ filterform TD{here=here,a=a,p=p} = [$hamlet|
  where
   ahelp = helplink "filter-patterns" "?"
   phelp = helplink "period-expressions" "?"
-  (filtering, visible, filterformlabel, stopfiltering)
+  (filtering, visible, _, stopfiltering)
    | null a && null p = ("", defaultdisplay, [$hamlet|%a#filterformlink!href!onclick="return filterformToggle()" filter...|], nulltemplate) -- [$hamlet|filter by $|])
    | otherwise        = ("filtering", defaultdisplay, [$hamlet|filtering...|], [$hamlet|%a#stopfilterlink!href=@here@ stop filtering|])
-  defaultdisplay = "none"
+  defaultdisplay = "block"
 
 helplink :: String -> String -> Hamlet HledgerWebAppRoute
 helplink topic label = [$hamlet|%a!href=$u$!target=hledgerhelp $label$|]
