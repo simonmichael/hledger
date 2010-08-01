@@ -200,7 +200,9 @@ fixOptDates opts = do
 -- others are ignored.
 dateSpanFromOpts :: Day -> [Opt] -> DateSpan
 dateSpanFromOpts refdate opts
-    | not $ null popts = snd $ parsePeriodExpr refdate $ last popts
+    | not (null popts) = case parsePeriodExpr refdate $ last popts of
+                         Right (_, s) -> s
+                         Left e       -> parseerror e
     | otherwise = DateSpan lastb laste
     where
       popts = optValuesForConstructor Period opts
@@ -216,7 +218,9 @@ dateSpanFromOpts refdate opts
 intervalFromOpts :: [Opt] -> Interval
 intervalFromOpts opts =
     case (periodopts, intervalopts) of
-      ((p:_), _)            -> fst $ parsePeriodExpr d p where d = parsedate "0001/01/01" -- unused
+      ((p:_), _)            -> case parsePeriodExpr (parsedate "0001/01/01") p of
+                                Right (i, _) -> i
+                                Left e       -> parseerror e
       (_, (DailyOpt:_))     -> Daily
       (_, (WeeklyOpt:_))    -> Weekly
       (_, (MonthlyOpt:_))   -> Monthly

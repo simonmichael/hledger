@@ -20,7 +20,7 @@ import Hledger.Cli.Commands.Register
 import Hledger.Cli.Options hiding (value)
 import Hledger.Cli.Utils
 import Hledger.Cli.Version (version)
-import Hledger.Data
+import Hledger.Data hiding (today)
 import Hledger.Read (journalFromPathAndString)
 import Hledger.Read.Journal (someamount)
 #ifdef MAKE
@@ -67,6 +67,7 @@ data TemplateData = TD {
     ,a            :: String             -- ^ a (acct/desc filter pattern) parameter
     ,p            :: String             -- ^ p (period expression) parameter
     ,j            :: Journal            -- ^ the current journal
+    ,today        :: Day                -- ^ the current day
     }
 
 mktd = TD {
@@ -76,6 +77,7 @@ mktd = TD {
      ,a = ""
      ,p = ""
      ,j = nulljournal
+     ,today = ModifiedJulianDay 0
      }
 
 -- | The web command.
@@ -171,13 +173,14 @@ getIndexPage = redirect RedirectTemporary defaultpage
 getAccountsJournalPage :: Handler HledgerWebApp RepHtml
 getAccountsJournalPage = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+  today <- liftIO getCurrentDay
   -- app <- getYesod
   -- t <- liftIO $ getCurrentLocalTime
   let -- args = appArgs app
       -- fspec' = optsToFilterSpec opts args t
       br = balanceReportAsHtml opts td $ balanceReport opts fspec j
       jr = journalReportAsHtml opts td $ journalReport opts fspec j
-      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
   hamletToRepHtml $ pageLayout td [$hamlet|
 ^scripts^
@@ -201,6 +204,7 @@ postAccountsJournalPage = postJournalOnlyPage
 getAccountsRegisterPage :: Handler HledgerWebApp RepHtml
 getAccountsRegisterPage = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
+  today <- liftIO getCurrentDay
   -- app <- getYesod
   -- t <- liftIO $ getCurrentLocalTime
   let -- args = appArgs app
@@ -208,7 +212,7 @@ getAccountsRegisterPage = do
       -- fspec' = optsToFilterSpec opts' args t
       br = balanceReportAsHtml opts td $ balanceReport opts fspec j
       rr = registerReportAsHtml opts td $ registerReport opts fspec j
-      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
   hamletToRepHtml $ pageLayout td [$hamlet|
 ^scripts^
@@ -232,7 +236,8 @@ postAccountsRegisterPage = postJournalOnlyPage
 getAccountsPage :: Handler HledgerWebApp RepHtml
 getAccountsPage = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+  today <- liftIO getCurrentDay
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
   hamletToRepHtml $ pageLayout td $ balanceReportAsHtml opts td $ balanceReport opts fspec j
 
 -- | Render a balance report as HTML.
@@ -312,7 +317,8 @@ isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
 getJournalOnlyPage :: Handler HledgerWebApp RepHtml
 getJournalOnlyPage = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+  today <- liftIO getCurrentDay
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
   hamletToRepHtml $ pageLayout td [$hamlet|
@@ -714,7 +720,8 @@ postImportForm = do
 getRegisterOnlyPage :: Handler HledgerWebApp RepHtml
 getRegisterOnlyPage = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+  today <- liftIO getCurrentDay
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
   hamletToRepHtml $ pageLayout td $ registerReportAsHtml opts td $ registerReport opts fspec j
 
 -- | Render a register report as HTML.
@@ -755,11 +762,12 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
 getEditPage :: Handler HledgerWebApp RepHtml
 getEditPage = do
   (a, p, _, _, _, msg, here) <- getHandlerParameters
+  today <- liftIO getCurrentDay
   -- reload journal's text without parsing, if changed     -- XXX are we doing this right ?
   j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
   changed <- liftIO $ journalFileIsNewer j
   s <- liftIO $ if changed then readFile (filepath j) else return (jtext j) -- XXX readFile may throw an error
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j}
+  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
   hamletToRepHtml $ pageLayout td $ editform td s
 
 ----------------------------------------------------------------------
@@ -783,7 +791,7 @@ pageLayout td@TD{title=title, msg=msg} content = [$hamlet|
        metacontent = "text/html; charset=utf-8"
 
 navbar :: TemplateData -> Hamlet HledgerWebAppRoute
-navbar TD{j=j} = [$hamlet|
+navbar TD{p=p,j=j,today=today} = [$hamlet|
  #navbar
   %a.topleftlink!href=$hledgerurl$
    hledger
@@ -791,8 +799,15 @@ navbar TD{j=j} = [$hamlet|
    $version$
   %a.toprightlink!href=$manualurl$!target=hledgerhelp manual
   %h1 $journaltitle$
+  \ $
+  %span#journalinfo $journalinfo$
 |]
-  where journaltitle = printf "%s" (takeFileName $ filepath j) :: String
+  where
+    journaltitle = printf "%s" (takeFileName $ filepath j) :: String
+    journalinfo  = printf "%s" (showspan span) :: String
+    showspan (DateSpan Nothing Nothing) = ""
+    showspan s = " (showing " ++ dateSpanAsText s ++ ")"
+    span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
 
 navlinks :: TemplateData -> Hamlet HledgerWebAppRoute
 navlinks td = [$hamlet|

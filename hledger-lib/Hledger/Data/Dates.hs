@@ -86,10 +86,16 @@ orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
           b = if isJust b1 then b1 else b2
 
 -- | Parse a period expression to an Interval and overall DateSpan using
--- the provided reference date, or raise an error.
-parsePeriodExpr :: Day -> String -> (Interval, DateSpan)
-parsePeriodExpr refdate expr = (interval,span)
-    where (interval,span) = fromparse $ parsewith (periodexpr refdate) expr
+-- the provided reference date, or return a parse error.
+parsePeriodExpr :: Day -> String -> Either ParseError (Interval, DateSpan)
+parsePeriodExpr refdate = parsewith (periodexpr refdate)
+
+-- | Show a DateSpan as a human-readable pseudo-period-expression string.
+dateSpanAsText :: DateSpan -> String
+dateSpanAsText (DateSpan Nothing Nothing)   = "all"
+dateSpanAsText (DateSpan Nothing (Just e))  = printf "to %s" (show e)
+dateSpanAsText (DateSpan (Just b) Nothing)  = printf "from %s" (show b)
+dateSpanAsText (DateSpan (Just b) (Just e)) = printf "%s to %s" (show b) (show e)
     
 -- | Convert a single smart date string to a date span using the provided
 -- reference date, or raise an error.
