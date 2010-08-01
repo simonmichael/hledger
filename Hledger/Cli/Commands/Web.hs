@@ -244,7 +244,7 @@ getAccountsPage = do
 balanceReportAsHtml :: [Opt] -> TemplateData -> BalanceReport -> Hamlet HledgerWebAppRoute
 balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
 %table.balancereport
- ^allaccts^
+ ^accountsheading^
  $forall items i
   ^itemAsHtml' i^
  %tr.totalrule
@@ -254,39 +254,33 @@ balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
   %td!align=right $mixedAmountAsHtml.total$
 |]
  where
-   filtering = not $ null a && null p
-   showmore = if filtering then [$hamlet|
-^showmore'^
-\ | $
-%a!href=@here@ show all
-|] else nulltemplate
-   showmore' = case (filtering, items) of
-                 -- cunning parent account logic
-                 (True, ((acct, _, _, _):_)) ->
-                     let a' = if isAccountRegex a then a else acct
-                         a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
-                         parenturl = (here, [("a",a''), ("p",p)])
-                     in [$hamlet|
-                         \ | $
-                         %a!href=@?parenturl@ show more &uarr;
-                         |]
-                 _ -> nulltemplate
-   allacctslink = True
-   allaccts = if allacctslink
-               then -- [$hamlet|%tr.$current$
-                    --           %td
-                    --            %a!href=@?u@ all accounts
-                    --           %td
-                    [$hamlet|
-accounts
-\ $
-%span#showmoreaccounts ^showmore^
-<br />
-<br />
-|]
-               else nulltemplate
-   --     where u = (here, [("a",".*"),("p",p)])
-   -- current = "" -- if a == ".*" then "current" else ""
+   accountsheading = [$hamlet|
+                      accounts
+                      \ $
+                      %span#showmoreaccounts ^showmore^ ^showall^
+                      <br />
+                      <br />
+                      |]
+       where
+         filteringaccts = not $ null a
+         showmore = case (filteringaccts, items) of
+                      -- cunning parent account logic
+                      (True, ((acct, _, _, _):_)) ->
+                          let a' = if isAccountRegex a then a else acct
+                              a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
+                              parenturl = (here, [("a",a''), ("p",p)])
+                          in [$hamlet|
+                              \ | $
+                              %a!href=@?parenturl@ show more &uarr;
+                              |]
+                      _ -> nulltemplate
+         showall = if filteringaccts
+                    then [$hamlet|
+                          \ | $
+                          %a!href=@?allurl@ show all
+                          |]
+                    else nulltemplate
+             where allurl = (here, [("p",p)])
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> BalanceReportItem -> Hamlet HledgerWebAppRoute
    itemAsHtml TD{p=p} (acct, adisplay, adepth, abal) = [$hamlet|
@@ -297,7 +291,7 @@ accounts
       %td.balance!align=right $mixedAmountAsHtml.abal$
      |] where
        current = "" -- if not (null a) && containsRegex a acct then "current" else ""
-       indent = preEscapedString $ concat $ replicate (2 * (adepth + if allacctslink then 1 else 0)) "&nbsp;"
+       indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
        aurl = printf ".?a=%s%s" (accountNameToAccountRegex acct) p' :: String
        p' = if null p then "" else printf "&p=%s" p
 
@@ -806,7 +800,7 @@ navbar TD{p=p,j=j,today=today} = [$hamlet|
     journaltitle = printf "%s" (takeFileName $ filepath j) :: String
     journalinfo  = printf "%s" (showspan span) :: String
     showspan (DateSpan Nothing Nothing) = ""
-    showspan s = " (showing " ++ dateSpanAsText s ++ ")"
+    showspan s = " (" ++ dateSpanAsText s ++ ")"
     span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
 
 navlinks :: TemplateData -> Hamlet HledgerWebAppRoute
@@ -817,11 +811,11 @@ navlinks td = [$hamlet|
   ^accountsregisterlink^
   \ | $
   %a#addformlink!href!onclick="return addformToggle()" add transaction
+  %a#importformlink!href!onclick="return importformToggle()"!style=display:none; import transactions
   \ | $
   %a#editformlink!href!onclick="return editformToggle()" edit journal
 |]
-  -- \ | $
-  -- %a#importformlink!href!onclick="return importformToggle()" import transactions
+--  \ | $
  where
    accountsjournallink  = navlink td "journal" AccountsJournalPage
    accountsregisterlink = navlink td "register" AccountsRegisterPage
@@ -837,28 +831,40 @@ filterform :: TemplateData -> Hamlet HledgerWebAppRoute
 filterform TD{here=here,a=a,p=p} = [$hamlet|
  #filterformdiv
   %form#filterform.form!method=GET!style=display:$visible$;
-   %span.$filtering$
-    filter by account/description:
-    \ $
-    %input!name=a!size=50!value=$a$
-    ^ahelp^
-    \ $
-    in period:
-    \ $
-    %input!name=p!size=25!value=$p$
-    ^phelp^
-    \ $
-    %input!type=submit!value=filter $
-    \ $
-    ^stopfiltering^
+   %table.form
+    %tr.$filteringperiodclass$
+     %td
+      filter by period:
+      \ $
+     %td
+      %input!name=p!size=60!value=$p$
+      ^phelp^
+      \ $
+     %td!align=right
+      ^stopfilteringperiod^
+    %tr.$filteringclass$
+     %td
+      filter by account/description:
+      \ $
+     %td
+      %input!name=a!size=60!value=$a$
+      ^ahelp^
+      \ $
+      %input!type=submit!value=filter $
+      \ $
+     %td!align=right
+      ^stopfiltering^
 |]
  where
   ahelp = helplink "filter-patterns" "?"
   phelp = helplink "period-expressions" "?"
-  (filtering, visible, _, stopfiltering)
-   | null a && null p = ("", defaultdisplay, [$hamlet|%a#filterformlink!href!onclick="return filterformToggle()" filter...|], nulltemplate) -- [$hamlet|filter by $|])
-   | otherwise        = ("filtering", defaultdisplay, [$hamlet|filtering...|], [$hamlet|%a#stopfilterlink!href=@here@ stop filtering|])
-  defaultdisplay = "block"
+  filtering = not $ null a
+  filteringperiod = not $ null p
+  visible = "block"
+  filteringclass = if filtering then "filtering" else ""
+  filteringperiodclass = if filteringperiod then "filtering" else ""
+  stopfiltering = if filtering then [$hamlet|%a#stopfilterlink!href=@here@ stop filtering acct/desc|] else nulltemplate
+  stopfilteringperiod = if filteringperiod then [$hamlet|%a#stopfilterlink!href=@here@ stop filtering period|] else nulltemplate
 
 helplink :: String -> String -> Hamlet HledgerWebAppRoute
 helplink topic label = [$hamlet|%a!href=$u$!target=hledgerhelp $label$|]

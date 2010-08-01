@@ -80,3 +80,4 @@ table.registerreport        { border-spacing:0; }
 #addform #addbuttonrow      { text-align:right; }
 /* #editform                   { width:95%; } */
 #editform textarea          { width:100%; background-color:#eee; padding:4px; }
+#filterform table           { border-spacing:0; padding-left:1em; }
