@@ -186,6 +186,7 @@ getAccountsJournalPage = do
  ^navlinks.td^
  ^addform^
  ^editform'^
+ ^importform^
  %div#transactions.journal
   ^filterform.td^
   ^jr^
@@ -216,6 +217,7 @@ getAccountsRegisterPage = do
  ^navlinks.td^
  ^addform^
  ^editform'^
+ ^importform^
  %div#transactions.register
   ^filterform.td^
   ^rr^
@@ -371,7 +373,7 @@ addform = [$hamlet|
    ^transactionfields2^
    %tr#addbuttonrow
     %td!colspan=4
-     %input!type=hidden!name=add!value=1
+     %input!type=hidden!name=action!value=add
      %input!type=submit!name=submit!value="add transaction"
 |]
  where
@@ -432,7 +434,7 @@ editform _ content = [$hamlet|
      %span.help ^formathelp^
     %td!align=right
      %span.help Are you sure ? This will overwrite the journal. $
-     %input!type=hidden!name=edit!value=1
+     %input!type=hidden!name=action!value=edit
      %input!type=submit!name=submit!value="save journal"
      \ or $
      %a!href!onclick="return editformToggle()" cancel
@@ -440,12 +442,35 @@ editform _ content = [$hamlet|
   where
     formathelp = helplink "file-format" "file format help"
 
+importform :: Hamlet HledgerWebAppRoute
+importform = [$hamlet|
+ %form#importform!method=POST!style=display:none;
+  %table.form
+   %tr
+    %td
+     %input!type=file!name=file
+     %input!type=hidden!name=action!value=import
+     %input!type=submit!name=submit!value="import from file"
+     \ or $
+     %a!href!onclick="return importformToggle()" cancel
+|]
+
 scripts = [$hamlet|
 <script type="text/javascript">
 
  function filterformToggle() {
-  f = document.getElementById('filterform');
-  flink = document.getElementById('filterformlink');
+ var a = document.getElementById('addform');
+ var e = document.getElementById('editform');
+ var f = document.getElementById('filterform');
+ var i = document.getElementById('importform');
+ var t = document.getElementById('transactions');
+ var alink = document.getElementById('addformlink');
+ var elink = document.getElementById('editformlink');
+ var flink = document.getElementById('filterformlink');
+ var ilink = document.getElementById('importformlink');
+ var jlink = document.getElementById('journallink');
+ var rlink = document.getElementById('registerlink');
+
   if (f.style.display == 'none') {
    flink.style['font-weight'] = 'bold';
    f.style.display = 'block';
@@ -457,52 +482,105 @@ scripts = [$hamlet|
  }
 
  function addformToggle() {
-  a = document.getElementById('addform');
-  e = document.getElementById('editform');
-  t = document.getElementById('transactions');
-  alink = document.getElementById('addformlink');
-  elink = document.getElementById('editformlink');
-  jlink = document.getElementById('journallink');
-  rlink = document.getElementById('registerlink');
+ var a = document.getElementById('addform');
+ var e = document.getElementById('editform');
+ var f = document.getElementById('filterform');
+ var i = document.getElementById('importform');
+ var t = document.getElementById('transactions');
+ var alink = document.getElementById('addformlink');
+ var elink = document.getElementById('editformlink');
+ var flink = document.getElementById('filterformlink');
+ var ilink = document.getElementById('importformlink');
+ var jlink = document.getElementById('journallink');
+ var rlink = document.getElementById('registerlink');
+
   if (a.style.display == 'none') {
    alink.style['font-weight'] = 'bold';
    elink.style['font-weight'] = 'normal';
+   ilink.style['font-weight'] = 'normal';
    jlink.style['font-weight'] = 'normal';
    rlink.style['font-weight'] = 'normal';
    a.style.display = 'block';
    e.style.display = 'none';
+   i.style.display = 'none';
    t.style.display = 'none';
   } else {
    alink.style['font-weight'] = 'normal';
    elink.style['font-weight'] = 'normal';
+   ilink.style['font-weight'] = 'normal';
    a.style.display = 'none';
    e.style.display = 'none';
+   i.style.display = 'none';
    t.style.display = 'block';
   }
   return false;
  }
 
  function editformToggle() {
-  a = document.getElementById('addform');
-  e = document.getElementById('editform');
-  t = document.getElementById('transactions');
-  alink = document.getElementById('addformlink');
-  elink = document.getElementById('editformlink');
-  jlink = document.getElementById('journallink');
-  rlink = document.getElementById('registerlink');
+ var a = document.getElementById('addform');
+ var e = document.getElementById('editform');
+ var f = document.getElementById('filterform');
+ var i = document.getElementById('importform');
+ var t = document.getElementById('transactions');
+ var alink = document.getElementById('addformlink');
+ var elink = document.getElementById('editformlink');
+ var flink = document.getElementById('filterformlink');
+ var ilink = document.getElementById('importformlink');
+ var jlink = document.getElementById('journallink');
+ var rlink = document.getElementById('registerlink');
+
   if (e.style.display == 'none') {
    alink.style['font-weight'] = 'normal';
    elink.style['font-weight'] = 'bold';
+   ilink.style['font-weight'] = 'normal';
    jlink.style['font-weight'] = 'normal';
    rlink.style['font-weight'] = 'normal';
    a.style.display = 'none';
    e.style.display = 'block';
+   i.style.display = 'none';
    t.style.display = 'none';
   } else {
    alink.style['font-weight'] = 'normal';
    elink.style['font-weight'] = 'normal';
+   ilink.style['font-weight'] = 'normal';
    a.style.display = 'none';
    e.style.display = 'none';
+   i.style.display = 'none';
+   t.style.display = 'block';
+  }
+  return false;
+ }
+
+ function importformToggle() {
+ var a = document.getElementById('addform');
+ var e = document.getElementById('editform');
+ var f = document.getElementById('filterform');
+ var i = document.getElementById('importform');
+ var t = document.getElementById('transactions');
+ var alink = document.getElementById('addformlink');
+ var elink = document.getElementById('editformlink');
+ var flink = document.getElementById('filterformlink');
+ var ilink = document.getElementById('importformlink');
+ var jlink = document.getElementById('journallink');
+ var rlink = document.getElementById('registerlink');
+
+  if (i.style.display == 'none') {
+   alink.style['font-weight'] = 'normal';
+   elink.style['font-weight'] = 'normal';
+   ilink.style['font-weight'] = 'bold';
+   jlink.style['font-weight'] = 'normal';
+   rlink.style['font-weight'] = 'normal';
+   a.style.display = 'none';
+   e.style.display = 'none';
+   i.style.display = 'block';
+   t.style.display = 'none';
+  } else {
+   alink.style['font-weight'] = 'normal';
+   elink.style['font-weight'] = 'normal';
+   ilink.style['font-weight'] = 'normal';
+   a.style.display = 'none';
+   e.style.display = 'none';
+   i.style.display = 'none';
    t.style.display = 'block';
   }
   return false;
@@ -513,8 +591,10 @@ scripts = [$hamlet|
 
 postJournalOnlyPage :: Handler HledgerWebApp RepPlain
 postJournalOnlyPage = do
-  edit <- runFormPost' $ maybeStringInput "edit"
-  if isJust edit then postEditForm else postAddForm
+  action <- runFormPost' $ maybeStringInput "action"
+  case action of Just "edit"   -> postEditForm
+                 Just "import" -> postImportForm
+                 _             -> postAddForm
 
 -- | Handle a journal add form post.
 postAddForm :: Handler HledgerWebApp RepPlain
@@ -609,6 +689,24 @@ postEditForm = do
           setMessage $ string $ printf "Saved journal %s\n" (show f)
           redirect RedirectTemporary AccountsJournalPage)
        jE
+
+-- | Handle an import page post.
+postImportForm :: Handler HledgerWebApp RepPlain
+postImportForm = do
+  setMessage $ string $ "can't handle file upload yet"
+  redirect RedirectTemporary AccountsJournalPage
+  -- -- get form input values, or basic validation errors. E means an Either value.
+  -- fileM <- runFormPost' $ maybeFileInput "file"
+  -- let fileE = maybe (Left "No file provided") Right fileM
+  -- -- display errors or import transactions
+  -- case fileE of
+  --  Left errs -> do
+  --   setMessage $ string errs
+  --   redirect RedirectTemporary AccountsJournalPage
+
+  --  Right s -> do
+  --    setMessage $ string $ s
+  --    redirect RedirectTemporary AccountsJournalPage
 
 ----------------------------------------------------------------------
 
@@ -707,9 +805,11 @@ navlinks td = [$hamlet|
   \ | $
   %a#editformlink!href!onclick="return editformToggle()" edit journal
 |]
+  -- \ | $
+  -- %a#importformlink!href!onclick="return importformToggle()" import transactions
  where
-   accountsjournallink   = navlink td "journal" AccountsJournalPage
-   accountsregisterlink   = navlink td "register" AccountsRegisterPage
+   accountsjournallink  = navlink td "journal" AccountsJournalPage
+   accountsregisterlink = navlink td "register" AccountsRegisterPage
 
 navlink :: TemplateData -> String -> HledgerWebAppRoute -> Hamlet HledgerWebAppRoute
 navlink TD{here=here,a=a,p=p} s dest = [$hamlet|%a#$s$link.$style$!href=@?u@ $s$|]
