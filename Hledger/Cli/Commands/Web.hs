@@ -189,7 +189,7 @@ getJournalR = do
       -- fspec' = optsToFilterSpec opts args t
       br = balanceReportAsHtml opts td $ balanceReport opts fspec j
       jr = journalReportAsHtml opts td $ journalReport opts fspec j
-      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
+      td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div.ledger
@@ -220,7 +220,7 @@ getRegisterR = do
       -- fspec' = optsToFilterSpec opts' args t
       br = balanceReportAsHtml opts td $ balanceReport opts fspec j
       rr = registerReportAsHtml opts td $ registerReport opts fspec j
-      td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
+      td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div.ledger
@@ -244,7 +244,7 @@ getAccountsOnlyR :: Handler RepHtml
 getAccountsOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
+  let td = mktd{here=here, title="hledger accounts", msg=msg, a=a, p=p, j=j, today=today}
   hamletToRepHtml $ pageLayout td $ balanceReportAsHtml opts td $ balanceReport opts fspec j
 
 -- | Render a balance report as HTML.
@@ -321,7 +321,7 @@ getJournalOnlyR :: Handler RepHtml
 getJournalOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
+  let td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
   hamletToRepHtml $ pageLayout td [$hamlet|
@@ -618,7 +618,7 @@ getRegisterOnlyR :: Handler RepHtml
 getRegisterOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
+  let td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
   hamletToRepHtml $ pageLayout td $ registerReportAsHtml opts td $ registerReport opts fspec j
 
 -- | Render a register report as HTML.
@@ -673,7 +673,7 @@ getEditR = do
   j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
   changed <- liftIO $ journalFileIsNewer j
   s <- liftIO $ if changed then readFile (filepath j) else return (jtext j) -- XXX readFile may throw an error
-  let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
+  let td = mktd{here=here, title="hledger journal edit", msg=msg, a=a, p=p, j=j, today=today}
   hamletToRepHtml $ pageLayout td $ editform td s
 
 ----------------------------------------------------------------------
@@ -770,11 +770,11 @@ renderHamlet' h = h renderurlwithparams
 
 -- | Wrap a template with the standard hledger web ui page layout.
 pageLayout :: TemplateData -> Hamlet HledgerWebAppRoute -> Hamlet HledgerWebAppRoute
-pageLayout td@TD{title=title, msg=msg} content = [$hamlet|
+pageLayout td@TD{title=basetitle, msg=msg, p=p, j=j, today=today} content = [$hamlet|
 !!!
 %html
  %head
-  %title $title$
+  %title $title'$
   %meta!http-equiv=Content-Type!content=$metacontent$
   %script!type=text/javascript!src=@StaticR.jquery_js@
   %script!type=text/javascript!src=@StaticR.jquery_url_js@
@@ -790,6 +790,8 @@ pageLayout td@TD{title=title, msg=msg} content = [$hamlet|
 |]
  where m = fromMaybe (string "") msg
        metacontent = "text/html; charset=utf-8"
+       (journaltitle, _) = journalTitleInfo j p today
+       title' = basetitle ++ " - " ++ journaltitle
 
 navbar :: TemplateData -> Hamlet HledgerWebAppRoute
 navbar TD{p=p,j=j,today=today} = [$hamlet|
@@ -803,12 +805,17 @@ navbar TD{p=p,j=j,today=today} = [$hamlet|
   \ $
   %span#journalinfo $journalinfo$
 |]
+  where (journaltitle, journalinfo) = journalTitleInfo j p today
+
+-- | Generate journal- and context-specific title and info strings for display.
+journalTitleInfo :: Journal -> String -> Day -> (String, String)
+journalTitleInfo j p today = (journaltitle, journalinfo)
   where
     journaltitle = printf "%s" (takeFileName $ filepath j) :: String
     journalinfo  = printf "%s" (showspan span) :: String
+    span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
     showspan (DateSpan Nothing Nothing) = ""
     showspan s = " (" ++ dateSpanAsText s ++ ")"
-    span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
 
 navlinks :: TemplateData -> Hamlet HledgerWebAppRoute
 navlinks td = [$hamlet|
