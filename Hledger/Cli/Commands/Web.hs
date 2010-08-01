@@ -846,8 +846,10 @@ filterform TD{here=here,a=a,p=p} = [$hamlet|
   visible = "block"
   filteringclass = if filtering then "filtering" else ""
   filteringperiodclass = if filteringperiod then "filtering" else ""
-  stopfiltering = if filtering then [$hamlet|%a#stopfilterlink!href=@here@ stop filtering acct/desc|] else nulltemplate
-  stopfilteringperiod = if filteringperiod then [$hamlet|%a#stopfilterlink!href=@here@ stop filtering period|] else nulltemplate
+  stopfiltering = if filtering then [$hamlet|%a#stopfilterlink!href=@?u@ stop filtering acct/desc|] else nulltemplate
+      where u = (here, if filteringperiod then [("p", p)] else [])
+  stopfilteringperiod = if filteringperiod then [$hamlet|%a#stopfilterlink!href=@?u@ stop filtering period|] else nulltemplate
+      where u = (here, if filtering then [("a", a)] else [])
 
 helplink :: String -> String -> Hamlet HledgerWebAppRoute
 helplink topic label = [$hamlet|%a!href=$u$!target=hledgerhelp $label$|]
