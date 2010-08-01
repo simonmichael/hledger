@@ -625,11 +625,20 @@ getRegisterOnlyR = do
 registerReportAsHtml :: [Opt] -> TemplateData -> RegisterReport -> Hamlet HledgerWebAppRoute
 registerReportAsHtml _ td items = [$hamlet|
 %table.registerreport
+ %tr.headings
+  ^headings^
  $forall number.items i
   ^itemAsHtml' i^
 |]
  where
    number = zip [1..]
+   headings = [$hamlet|
+               %th.date!align=left Date
+               %th.description!align=left Description
+               %th.account!align=left Account
+               %th.amount!align=right Amount
+               %th.balance!align=right Balance
+               |]
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> (Int, RegisterReportItem) -> Hamlet HledgerWebAppRoute
    itemAsHtml TD{p=p} (n, (ds, posting, b)) = [$hamlet|
