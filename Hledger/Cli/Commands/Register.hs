@@ -75,12 +75,14 @@ registerReport :: [Opt] -> FilterSpec -> Journal -> RegisterReport
 registerReport opts fspec j = getitems ps nullposting startbal
     where
       ps | interval == NoInterval = displayableps
-         | otherwise              = summarisePostings interval depth empty filterspan displayableps
-      (precedingps, displayableps, _) =
-          postingsMatchingDisplayExpr (displayExprFromOpts opts) $ journalPostings $ filterJournalPostings fspec j
+         | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
+      (precedingps, displayableps, _) = postingsMatchingDisplayExpr (displayExprFromOpts opts)
+                                        $ depthClipPostings depth
+                                        $ journalPostings
+                                        $ filterJournalPostings fspec{depth=Nothing} j
       startbal = sumPostings precedingps
-      (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
       filterspan = datespan fspec
+      (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
 
 -- | Generate register report line items.
 getitems :: [Posting] -> Posting -> MixedAmount -> [RegisterReportItem]
@@ -99,16 +101,6 @@ mkitem False p b = (Nothing, p, b)
 mkitem True p b = (ds, p, b)
     where ds = case ptransaction p of Just (Transaction{tdate=da,tdescription=de}) -> Just (da,de)
                                       Nothing -> Just (nulldate,"")
-
--- | Convert a list of postings into summary postings, one per interval.
-summarisePostings :: Interval -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [Posting]
-summarisePostings interval depth empty filterspan ps = concatMap summarisespan $ splitSpan interval reportspan
-    where
-      summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
-      postingsinspan s = filter (isPostingInDateSpan s) ps
-      dataspan = postingsDateSpan ps
-      reportspan | empty = filterspan `orDatesFrom` dataspan
-                 | otherwise = dataspan
 
 -- | Date-sort and split a list of postings into three spans - postings matched
 -- by the given display expression, and the preceding and following postings.
@@ -148,6 +140,19 @@ datedisplayexpr = do
   compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
 
 -- XXX confusing, refactor
+
+-- | Convert a list of postings into summary postings. Summary postings
+-- are one per account per interval and aggregated to the specified depth
+-- if any.
+summarisePostingsByInterval :: Interval -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [Posting]
+summarisePostingsByInterval interval depth empty filterspan ps = concatMap summarisespan $ splitSpan interval reportspan
+    where
+      summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
+      postingsinspan s = filter (isPostingInDateSpan s) ps
+      dataspan = postingsDateSpan ps
+      reportspan | empty = filterspan `orDatesFrom` dataspan
+                 | otherwise = dataspan
+
 -- | Given a date span (representing a reporting interval) and a list of
 -- postings within it: aggregate the postings so there is only one per
 -- account, and adjust their date/description so that they will render
@@ -159,8 +164,8 @@ datedisplayexpr = do
 -- When a depth argument is present, postings to accounts of greater
 -- depth are aggregated where possible.
 -- 
--- The showempty flag forces the display of a zero-posting span
--- and also zero-posting accounts within the span.
+-- The showempty flag includes spans with no postings and also postings
+-- with 0 amount.
 summarisePostingsInDateSpan :: DateSpan -> Maybe Int -> Bool -> [Posting] -> [Posting]
 summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
     | null ps && (isNothing b || isNothing e) = []
@@ -183,10 +188,20 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
       balancetoshowfor a =
           (if isclipped a then inclbalof else exclbalof) (if null a then "top" else a)
 
+-- | Clip the account names to the specified depth in a list of postings.
+depthClipPostings :: Maybe Int -> [Posting] -> [Posting]
+depthClipPostings depth = map (depthClipPosting depth)
+
+-- | Clip a posting's account name to the specified depth.
+depthClipPosting :: Maybe Int -> Posting -> Posting
+depthClipPosting Nothing p = p
+depthClipPosting (Just d) p@Posting{paccount=a} = p{paccount=clipAccountName d a}
+
+
 tests_Register :: Test
 tests_Register = TestList [
 
-         "summarisePostings" ~: do
-           summarisePostings Quarterly Nothing False (DateSpan Nothing Nothing) [] ~?= []
+         "summarisePostingsByInterval" ~: do
+           summarisePostingsByInterval Quarterly Nothing False (DateSpan Nothing Nothing) [] ~?= []
 
         ]

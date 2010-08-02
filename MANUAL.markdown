@@ -240,7 +240,7 @@ Here is the command-line help:
       -C       --cleared          report only on cleared transactions
       -U       --uncleared        report only on uncleared transactions
       -B       --cost, --basis    report cost of commodities
-               --depth=N          hide accounts/transactions deeper than this
+               --depth=N          hide sub-accounts deeper than this
       -d EXPR  --display=EXPR     show only transactions matching EXPR (where
                                   EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
                --effective        use transactions' effective dates, if any
@@ -284,17 +284,24 @@ Examples:
 
 ##### register
 
-The register command displays postings, one per line, and their running
-total. With a [reporting interval](#reporting-interval) it will aggregate
-similar postings within each interval.
-
-Examples:
+The register command displays postings, one per line, and their running total.
+With no [filter patterns](#filter-patterns), this is not all that different from [print](#print):
 
     $ hledger register
-    $ hledger register --monthly -E rent
 
-Note `--depth` doesn't work too well with `register` currently;
-it hides deeper postings rather than aggregating them.
+More typically, use it to see a specific account's activity:
+
+    $ hledger register assets:bank:checking
+
+The `--depth` option limits the amount of sub-account detail displayed:
+
+    $ hledger register assets:bank:checking --depth 2
+
+With a [reporting interval](#reporting-interval) it shows aggregated
+summary postings within each interval:
+
+    $ hledger register --monthly rent
+    $ hledger register --monthly -E food --depth 4
 
 ##### balance
 
@@ -651,8 +658,8 @@ subsequent dates may be written as month/day. Eg:
 #### Period expressions
 
 hledger supports flexible "period expressions" with the `-p/--period`
-option to select transactions within a period of time (like 2009) and/or
-with a reporting interval (like weekly). hledger period expressions are
+option to select transactions within a period of time (eg in 2009) and/or
+with a reporting interval (eg weekly). hledger period expressions are
 similar but not identical to c++ ledger's.
 
 Here is a basic period expression specifying the first quarter of 2009
@@ -729,20 +736,8 @@ accurate running total. Eg, to show the balance since the first of the month:
 #### Depth limiting
 
 With the `--depth N` option, reports will show only the uppermost accounts
-in the account tree, down to level N. This is most useful with
-[balance](#balance) and [chart](#chart). For example:
-
-    $ hledger balance --depth 2
-
-shows a more concise balance report displaying only the top two levels of
-accounts.
-
-It's currently not so useful with [register](#register), eg this:
-
-    $ hledger register --depth 1
-
-shows only the postings in top-level accounts, which usually means
-none.
+in the account tree, down to level N. See the [balance](#balance),
+[register](#register) and [chart](#chart) examples.
 
 #### Prices
 

@@ -572,12 +572,17 @@ tests = TestList [
     l <- samplejournal
     let opts = [Depth "2"]
     (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is` unlines
-     ["2008/01/01 income               income:salary                   $-1          $-1"
-     ,"2008/06/01 gift                 income:gifts                    $-1          $-2"
-     ,"2008/06/03 eat & shop           expenses:food                    $1          $-1"
-     ,"                                expenses:supplies                $1            0"
-     ,"                                assets:cash                     $-2          $-2"
-     ,"2008/12/31 pay off              liabilities:debts                $1          $-1"
+     ["2008/01/01 income               assets:bank                      $1           $1"
+     ,"                                income:salary                   $-1            0"
+     ,"2008/06/01 gift                 assets:bank                      $1           $1"
+     ,"                                income:gifts                    $-1            0"
+     ,"2008/06/02 save                 assets:bank                      $1           $1"
+     ,"                                assets:bank                     $-1            0"
+     ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
+     ,"                                expenses:supplies                $1           $2"
+     ,"                                assets:cash                     $-2            0"
+     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
+     ,"                                assets:bank                     $-1            0"
      ]
 
   ,"show dollars" ~: show (dollars 1) ~?= "$1.00"
