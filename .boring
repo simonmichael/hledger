@@ -125,7 +125,7 @@ tools/generateledger
 tools/simplifyprof
 
 # site stuff not explicitly added
-website/.*
+site/.*
 
 # branch repos
 (^|/)b[[:digit:]]*
