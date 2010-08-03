@@ -13,7 +13,7 @@ A 'DateSpan' is the span of time between two specific calendar dates, or
 an open-ended span where one or both dates are unspecified. (A date span
 with both ends unspecified matches all dates.)
 
-An 'Interval' is ledger's "reporting interval" - weekly, monthly,
+An 'Interval' is ledger's \"reporting interval\" - weekly, monthly,
 quarterly, etc.
 
 -}

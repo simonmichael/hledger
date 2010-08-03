@@ -9,7 +9,7 @@ Here is an overview of the hledger data model:
 >   [Posting]              -- multiple account postings (entries), which have account name and amount.
 >  [HistoricalPrice]       -- historical commodity prices
 >
-> Ledger                   -- a ledger is derived from a journal, by applying a filter specification. It contains..
+> Ledger                   -- a ledger is derived from a journal, by applying a filter specification and doing some further processing. It contains..
 >  Journal                 -- the filtered journal, containing only the transactions and postings we are interested in
 >  Tree AccountName        -- account names referenced in the journal's transactions, as a tree
 >  Map AccountName Account -- per-account postings and balances from the journal's transactions, as a  map from account name to account info
@@ -26,9 +26,7 @@ Evolution of transaction\/entry\/posting terminology:
 
   - hledger 0.5: LedgerTransactions contain Postings (which are flattened to Transactions)
 
-  - hledger 0.8: Transactions contain Postings (referencing Transactions, corecursively)
-
-  - hledger 0.10: Postings should be called Entrys, but are left as-is for now
+  - hledger 0.8: Transactions contain Postings (referencing Transactions..)
 
 -}
 
