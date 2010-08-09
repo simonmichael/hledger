@@ -117,16 +117,16 @@ import System.IO.UTF8
 
 
 -- | A balance report is a chart of accounts with balances, and their grand total.
-type BalanceReport = ([BalanceReportItem] -- ^ line items, one per account
-                     ,MixedAmount         -- ^ total balance of all accounts
+type BalanceReport = ([BalanceReportItem] -- line items, one per account
+                     ,MixedAmount         -- total balance of all accounts
                      )
 
 -- | The data for a single balance report line item, representing one account.
-type BalanceReportItem = (AccountName  -- ^ full account name
-                         ,AccountName  -- ^ account name elided for display: the leaf name,
-                                       --   prefixed by any boring parents immediately above
-                         ,Int          -- ^ account depth within this report, excludes boring parents
-                         ,MixedAmount) -- ^ account balance, includes subs unless --flat is present
+type BalanceReportItem = (AccountName  -- full account name
+                         ,AccountName  -- account name elided for display: the leaf name,
+                                       -- prefixed by any boring parents immediately above
+                         ,Int          -- account depth within this report, excludes boring parents
+                         ,MixedAmount) -- account balance, includes subs unless --flat is present
 
 -- | Print a balance report.
 balance :: [Opt] -> [String] -> Journal -> IO ()

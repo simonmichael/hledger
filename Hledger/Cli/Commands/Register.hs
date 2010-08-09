@@ -28,12 +28,12 @@ import Text.ParserCombinators.Parsec
 -- | A register report is a list of postings to an account or set of
 -- accounts, with a running total. Postings may be actual postings, or
 -- virtual postings aggregated over a reporting interval.
-type RegisterReport = [RegisterReportItem] -- ^ line items, one per posting
+type RegisterReport = [RegisterReportItem] -- line items, one per posting
 
 -- | The data for a single register report line item, representing one posting.
-type RegisterReportItem = (Maybe (Day, String) -- ^ transaction date and description if this is the first posting
-                          ,Posting             -- ^ the posting
-                          ,MixedAmount         -- ^ balance so far
+type RegisterReportItem = (Maybe (Day, String) -- transaction date and description if this is the first posting
+                          ,Posting             -- the posting
+                          ,MixedAmount         -- balance so far
                           )
 
 -- | Print a register report.
