@@ -3,6 +3,9 @@
 
 $(document).ready(function() {
 
+    /* maybe show forms */
+    if ($.url.param('add')) addformToggle();
+    else if ($.url.param('edit')) editformToggle();
 
 });
 

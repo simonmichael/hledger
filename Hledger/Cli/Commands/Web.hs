@@ -62,6 +62,7 @@ mkYesod "HledgerWebApp" [$parseRoutes|
 style_css       = StaticRoute ["style.css"]
 hledger_js      = StaticRoute ["hledger.js"]
 jquery_js       = StaticRoute ["jquery.js"]
+jquery_url_js   = StaticRoute ["jquery.url.js"]
 dhtmlxcommon_js = StaticRoute ["dhtmlxcommon.js"]
 dhtmlxcombo_js  = StaticRoute ["dhtmlxcombo.js"]
 
@@ -752,6 +753,7 @@ pageLayout td@TD{title=title, msg=msg} content = [$hamlet|
   %title $title$
   %meta!http-equiv=Content-Type!content=$metacontent$
   %script!type=text/javascript!src=@StaticR.jquery_js@
+  %script!type=text/javascript!src=@StaticR.jquery_url_js@
   %script!type=text/javascript!src=@StaticR.dhtmlxcommon_js@
   %script!type=text/javascript!src=@StaticR.dhtmlxcombo_js@
   %script!type=text/javascript!src=@StaticR.hledger_js@

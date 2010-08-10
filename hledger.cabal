@@ -26,6 +26,7 @@ data-files:
                 web/static/style.css
                 web/static/hledger.js
                 web/static/jquery.js
+                web/static/jquery.url.js
                 web/static/dhtmlxcommon.js
                 web/static/dhtmlxcombo.js
                 web/static/images/combo_select.gif
