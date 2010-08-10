@@ -4,7 +4,7 @@
 /* overspecified for cross-browser robustness */
 body                        { font-family:helvetica,arial,"sans serif"; }
 pre                         { font-family:courier,"courier new",monospace; }
-#addform input.textinput    { font-family:courier,"courier new",monospace; font-size:small; }
+input.textinput, .dhx_combo_input, .dhx_combo_list    { font-size:small; }
 #editform textarea          { font-family:courier,"courier new",monospace; font-size:small; }
 .nav2                       { font-size:small; }
 #filterform                 { font-size:small; }
@@ -75,9 +75,152 @@ table.registerreport        { border-spacing:0; }
 .firstposting td            { }
 .registerreport .odd        { background-color:#f0f0f0; }
 
-#addform input.textinput    { background-color:#eee; padding:4px; }
+#addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { background-color:#eee; padding:4px; }
 #addform table              { }
 #addform #addbuttonrow      { text-align:right; }
 /* #editform                   { width:95%; } */
 #editform textarea          { width:100%; background-color:#eee; padding:4px; }
 #filterform table           { border-spacing:0; padding-left:1em; }
+
+
+/*------------------------------------------------------------------------------------------*/
+
+.dhx_combo_input{
+/* color:#333333; */
+/* font-family: Arial; */
+/* font-size: 9pt; */
+/* border:0px; */
+/* padding:2px 2px 2px 2px; */
+/* position:absolute; */
+/* top:0px; */
+}
+
+/* table {border:thin solid red} */
+/* div {border:thin solid yellow} */
+
+.dhx_combo_box{
+    position:relative;
+    display:inline-block;
+    /* text-align:left; */
+    /* height:20px; */
+    /* _height:22px; */
+    /* overflow:hidden; */
+    /* background-color: white; */
+}
+
+.dhx_combo_list{
+    position:absolute;
+    z-index:230;
+    overflow-y:auto;
+    overflow-x:hidden;
+    white-space:nowrap;
+    border:1px solid black;
+    height:50%;
+    /* background-color: white; */
+}
+
+.dhx_combo_list div{
+    cursor:default;
+    padding:2px 2px 2px 2px;
+}
+
+.dhx_selected_option{
+    background-color:navy;
+    color:white;
+}
+
+.dhx_combo_img{
+    /* display:none; */
+    width:18px;
+    height:20px;
+    position:absolute;
+    top:12px;
+    right:-10px;
+}
+
+.dhx_combo_option_img{
+	position:relative;
+	top:1px;
+	margin:0px;
+	margin-left:2px;
+	left:0px;
+	width:18px; height:18px;
+}
+
+/* .combo_dhx_sel{ */
+/* .dhx_selected_option{ */
+/*    background-image: url("../static/images/bg_selection.gif") !important; */
+/*    background-position: bottom; */
+/*    background-repeat: repeat-x; */
+/*    color:black; */
+/* } */
+
+
+
+/* .dhx_combo_img_rtl{ */
+/* 	position:absolute; */
+/* 	top:0px; */
+/* 	left:1px; */
+/* 	width:17px; */
+/* 	height:20px; */
+/* } */
+/* .dhx_combo_option_img_rtl{ */
+/* 	float:right; */
+/* 	margin-right :0px; */
+/* 	width:18px; height:18px; */
+/* } */
+
+/* .dhx_combo_list_rtl{ */
+/* 	direction: rtl; */
+/* 	unicode-bidi : bidi-override; */
+/*    position:absolute; */
+/*    z-index:230; */
+/*    overflow-y:auto; */
+/*    overflow-x:hidden; */
+/*    border:1px solid black; */
+/*    height:100px; */
+/*    /\* font-family: Arial; *\/ */
+/*    font-size: 9pt; */
+/*    background-color: white; */
+/* } */
+/* .dhx_combo_list_rtl div{ */
+/* 	direction: rtl; */
+/* 	unicode-bidi : bidi-override; */
+/* 	padding:2px 2px 2px 2px; */
+/* } */
+/* .dhx_combo_list_rtl div div{ */
+/* 	float :right !important; */
+/* 	cursor:default; */
+/* } */
+/* .dhx_combo_list_rtl div img{ */
+/* 	float :right !important; */
+/* } */
+/* .dhx_combo_list_rtl div input{ */
+/* 	float :right !important; */
+/* } */
+
+/* .dhx_combo_box.dhx_skyblue{ */
+/* 	border:1px solid #a4bed4; */
+/* } */
+/* .dhx_combo_box.dhx_skyblue .dhx_combo_input { */
+/* 	font-family:Tahoma; */
+/* 	font-size: 11px; */
+/* 	padding:3px; */
+/* } */
+/* .dhx_combo_list.dhx_skyblue_list{ */
+/* 	background-color: #eaf2fb; */
+/* 	border:1px solid #a4bed4; */
+/* 	font-family:Tahoma; */
+/* 	font-size: 11px; */
+/* } */
+/* .dhx_combo_list.dhx_skyblue_list div{ */
+/* 	cursor:default; */
+/* 	padding:3px 4px; */
+/* } */
+/* .dhx_combo_list_rtl.dhx_skyblue_list{ */
+/*    background-color: #eaf2fb; */
+/* 	border:1px solid #a4bed4; */
+/* 	font-family:Tahoma; */
+/* 	font-size: 11px; */
+/* } */
+

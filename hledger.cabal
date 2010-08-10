@@ -23,7 +23,12 @@ cabal-version:  >= 1.2
 build-type:     Custom
 data-dir:       data
 data-files:
-                web/style.css
+                web/static/style.css
+                web/static/hledger.js
+                web/static/jquery.js
+                web/static/dhtmlxcommon.js
+                web/static/dhtmlxcombo.js
+                web/static/images/combo_select.gif
 extra-tmp-files:
 extra-source-files:
   README.rst

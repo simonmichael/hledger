@@ -12,6 +12,7 @@ import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (withStore, putValue, getValue)
 import Text.ParserCombinators.Parsec (parse)
 import Yesod
+import Yesod.Helpers.Static
 
 import Hledger.Cli.Commands.Add (journalAddTransaction)
 import Hledger.Cli.Commands.Balance
@@ -28,36 +29,43 @@ import Paths_hledger_make (getDataFileName)
 #else
 import Paths_hledger (getDataFileName)
 #endif
+-- import Hledger.Cli.Commands.Web.Templates
 
 
-defhost = "localhost"
-defport = 5000
-defbaseurl = printf "http://%s:%d" defhost defport :: String
+defhost           = "localhost"
+defport           = 5000
 browserstartdelay = 100000 -- microseconds
-hledgerurl = "http://hledger.org"
-manualurl = hledgerurl++"/MANUAL.html"
+hledgerorgurl     = "http://hledger.org"
+manualurl         = hledgerorgurl++"/MANUAL.html"
 
 data HledgerWebApp = HledgerWebApp {
       appRoot    :: String
-     ,appWebdir  :: FilePath
+     ,appDir     :: FilePath
      ,appOpts    :: [Opt]
      ,appArgs    :: [String]
      ,appJournal :: Journal
+     ,appStatic  :: Static
      }
 
 mkYesod "HledgerWebApp" [$parseRoutes|
-/             IndexPage            GET
-/style.css    StyleCss             GET
-/journalonly  JournalOnlyPage      GET POST
-/registeronly RegisterOnlyPage     GET
-/accounts     AccountsPage         GET
-/journal      AccountsJournalPage  GET POST
-/register     AccountsRegisterPage GET POST
+/static          StaticR           Static appStatic
+/                IndexR            GET
+/journalonly     JournalOnlyR      GET POST
+/registeronly    RegisterOnlyR     GET
+/accounts        AccountsOnlyR     GET
+/journal         JournalR          GET POST
+/register        RegisterR         GET POST
 |]
+
+style_css       = StaticRoute ["style.css"]
+hledger_js      = StaticRoute ["hledger.js"]
+jquery_js       = StaticRoute ["jquery.js"]
+dhtmlxcommon_js = StaticRoute ["dhtmlxcommon.js"]
+dhtmlxcombo_js  = StaticRoute ["dhtmlxcombo.js"]
 
 instance Yesod HledgerWebApp where approot = appRoot
 
-defaultpage = AccountsJournalPage
+defaultroute = JournalR
 
 -- | A bundle of useful data passed to templates.
 data TemplateData = TD {
@@ -71,7 +79,7 @@ data TemplateData = TD {
     }
 
 mktd = TD {
-      here = IndexPage
+      here = IndexR
      ,title = "hledger"
      ,msg = Nothing
      ,a = ""
@@ -83,8 +91,9 @@ mktd = TD {
 -- | The web command.
 web :: [Opt] -> [String] -> Journal -> IO ()
 web opts args j = do
-  let baseurl = fromMaybe defbaseurl $ baseUrlFromOpts opts
-      port = fromMaybe defport $ portFromOpts opts
+  let host    = defhost
+      port    = fromMaybe defport $ portFromOpts opts
+      baseurl = fromMaybe (printf "http://%s:%d" host port) $ baseUrlFromOpts opts
   unless (Debug `elem` opts) $ forkIO (browser baseurl) >> return ()
   server baseurl port opts args j
 
@@ -98,10 +107,11 @@ browser baseurl = do
 server :: String -> Int -> [Opt] -> [String] -> Journal -> IO ()
 server baseurl port opts args j = do
     printf "starting web server on port %d with base url %s\n" port baseurl
-    fp <- getDataFileName "web"
+    dir <- getDataFileName "web"
     let app = HledgerWebApp{
                appRoot=baseurl
-              ,appWebdir=fp
+              ,appDir=dir
+              ,appStatic=fileLookupDir (dir </> "static") $ typeByExt -- ++[("hamlet","text/plain")]
               ,appOpts=opts
               ,appArgs=args
               ,appJournal=j
@@ -156,22 +166,14 @@ getHandlerParameters = do
 ----------------------------------------------------------------------
 -- handlers & templates
 
-getStyleCss :: Handler HledgerWebApp ()
-getStyleCss = do
-    app <- getYesod
-    let dir = appWebdir app
-    sendFile "text/css" $ dir </> "style.css"
-
-----------------------------------------------------------------------
-
-getIndexPage :: Handler HledgerWebApp ()
-getIndexPage = redirect RedirectTemporary defaultpage
+getIndexR :: Handler HledgerWebApp ()
+getIndexR = redirect RedirectTemporary defaultroute
 
 ----------------------------------------------------------------------
 
 -- | A combined accounts and journal view.
-getAccountsJournalPage :: Handler HledgerWebApp RepHtml
-getAccountsJournalPage = do
+getJournalR :: Handler HledgerWebApp RepHtml
+getJournalR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
   -- app <- getYesod
@@ -183,11 +185,10 @@ getAccountsJournalPage = do
       td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
   hamletToRepHtml $ pageLayout td [$hamlet|
-^scripts^
 %div.ledger
  %div.accounts!style=float:left;  ^br^
  ^navlinks.td^
- ^addform^
+ ^addform.td^
  ^editform'^
  ^importform^
  %div#transactions.journal
@@ -195,14 +196,14 @@ getAccountsJournalPage = do
   ^jr^
 |]
 
-postAccountsJournalPage :: Handler HledgerWebApp RepPlain
-postAccountsJournalPage = postJournalOnlyPage
+postJournalR :: Handler HledgerWebApp RepPlain
+postJournalR = postJournalOnlyR
 
 ----------------------------------------------------------------------
 
 -- | A combined accounts and register view.
-getAccountsRegisterPage :: Handler HledgerWebApp RepHtml
-getAccountsRegisterPage = do
+getRegisterR :: Handler HledgerWebApp RepHtml
+getRegisterR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
   -- app <- getYesod
@@ -215,11 +216,10 @@ getAccountsRegisterPage = do
       td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td $ jtext j
   hamletToRepHtml $ pageLayout td [$hamlet|
-^scripts^
 %div.ledger
  %div.accounts!style=float:left;  ^br^
  ^navlinks.td^
- ^addform^
+ ^addform.td^
  ^editform'^
  ^importform^
  %div#transactions.register
@@ -227,14 +227,14 @@ getAccountsRegisterPage = do
   ^rr^
 |]
 
-postAccountsRegisterPage :: Handler HledgerWebApp RepPlain
-postAccountsRegisterPage = postJournalOnlyPage
+postRegisterR :: Handler HledgerWebApp RepPlain
+postRegisterR = postJournalOnlyR
 
 ----------------------------------------------------------------------
 
 -- | A simple accounts and balances view like hledger balance.
-getAccountsPage :: Handler HledgerWebApp RepHtml
-getAccountsPage = do
+getAccountsOnlyR :: Handler HledgerWebApp RepHtml
+getAccountsOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
   let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
@@ -308,8 +308,8 @@ isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
 ----------------------------------------------------------------------
 
 -- | A basic journal view, like hledger print, with editing.
-getJournalOnlyPage :: Handler HledgerWebApp RepHtml
-getJournalOnlyPage = do
+getJournalOnlyR :: Handler HledgerWebApp RepHtml
+getJournalOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
   let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
@@ -317,12 +317,11 @@ getJournalOnlyPage = do
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div.journal
- ^scripts^
  %div.nav2
   %a#addformlink!href!onclick="return addformToggle()" add one transaction
   \ | $
   %a#editformlink!href!onclick="return editformToggle()" edit the whole journal
- ^addform^
+ ^addform.td^
  ^editform'^
  #transactions ^txns^
 |]
@@ -346,9 +345,25 @@ journalReportAsHtml _ td items = [$hamlet|
        evenodd = if even n then "even" else "odd"
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
-addform :: Hamlet HledgerWebAppRoute
-addform = [$hamlet|
- %form#addform!method=POST!style=display:none;
+addform :: TemplateData -> Hamlet HledgerWebAppRoute
+addform td = [$hamlet|
+%script!type=text/javascript
+ $$(document).ready(function() {
+    /* dhtmlxcombo setup */
+    window.dhx_globalImgPath="../static/images/";
+    var desccombo  = new dhtmlXCombo("description");
+    var acct1combo = new dhtmlXCombo("account1");
+    var acct2combo = new dhtmlXCombo("account2");
+    desccombo.enableFilteringMode(true);
+    acct1combo.enableFilteringMode(true);
+    acct2combo.enableFilteringMode(true);
+    desccombo.setSize(300);
+    acct1combo.setSize(300);
+    acct2combo.setSize(300);
+    /* desccombo.enableOptionAutoHeight(true, 20); */
+    /* desccombo.setOptionHeight(200); */
+ });
+%form#addform!method=POST!style=display:none;
   %table.form
    %tr
     %td!colspan=4
@@ -361,7 +376,10 @@ addform = [$hamlet|
        %td!style=padding-left:1em;
         Description:
        %td
-        %input.textinput!size=35!name=description!value=$desc$
+        %select!id=description!name=description
+         %option
+         $forall descriptions d
+          %option!value=$d$ $d$
       %tr.helprow
        %td
        %td
@@ -369,8 +387,7 @@ addform = [$hamlet|
        %td
        %td
         .help $deschelp$
-   ^transactionfields1^
-   ^transactionfields2^
+   ^postingsfields.td^
    %tr#addbuttonrow
     %td!colspan=4
      %input!type=hidden!name=action!value=add
@@ -378,20 +395,29 @@ addform = [$hamlet|
 |]
  where
   -- datehelplink = helplink "dates" "..."
-  datehelp = "eg: 7/20, 2010/1/1, "
+  datehelp = "eg: 2010/7/20"
   deschelp = "eg: supermarket (optional)"
   date = "today"
-  desc = ""
-  transactionfields1 = transactionfields 1
-  transactionfields2 = transactionfields 2
+  descriptions = sort $ nub $ map tdescription $ jtxns $ j td
 
-transactionfields :: Int -> Hamlet HledgerWebAppRoute
-transactionfields n = [$hamlet|
+postingsfields :: TemplateData -> Hamlet HledgerWebAppRoute
+postingsfields td = [$hamlet|
+ ^p1^
+ ^p2^
+|]
+  where
+    p1 = postingfields td 1
+    p2 = postingfields td 2
+
+postingfields :: TemplateData -> Int -> Hamlet HledgerWebAppRoute
+postingfields td n = [$hamlet|
  %tr#postingrow
-  %td!align=right
-   $label$:
+  %td!align=right $acctlabel$:
   %td
-   %input.textinput!size=35!name=$acctvar$!value=$acct$
+   %select!id=$acctvar$!name=$acctvar$
+    %option
+    $forall acctnames a
+     %option!value=$a$ $a$
   ^amtfield^
  %tr.helprow
   %td
@@ -402,24 +428,26 @@ transactionfields n = [$hamlet|
    .help $amthelp$
 |]
  where
-  label | n == 1    = "To account"
-        | otherwise = "From account"
-  accthelp | n == 1    = "eg: expenses:food"
-           | otherwise = "eg: assets:bank:checking"
-  amtfield | n == 1 = [$hamlet|
+  numbered = (++ show n)
+  acctvar = numbered "account"
+  amtvar = numbered "amount"
+  acctnames = sort $ journalAccountNamesUsed $ j td
+  (acctlabel, accthelp, amtfield, amthelp)
+       | n == 1     = ("To account"
+                     ,"eg: expenses:food"
+                     ,[$hamlet|
                        %td!style=padding-left:1em;
                         Amount:
                        %td
-                        %input.textinput!size=15!name=$amtvar$!value=$amt$
+                        %input.textinput!size=15!name=$amtvar$!value=""
                        |]
-           | otherwise = nulltemplate
-  amthelp | n == 1    = "eg: 5, $6, €7.01"
-          | otherwise = ""
-  acct = ""
-  amt = ""
-  numbered = (++ show n)
-  acctvar = numbered "accountname"
-  amtvar = numbered "amount"
+                     ,"eg: $6"
+                     )
+       | otherwise = ("From account"
+                     ,"eg: assets:bank:checking"
+                     ,nulltemplate
+                     ,""
+                     )
 
 editform :: TemplateData -> String -> Hamlet HledgerWebAppRoute
 editform _ content = [$hamlet|
@@ -455,142 +483,8 @@ importform = [$hamlet|
      %a!href!onclick="return importformToggle()" cancel
 |]
 
-scripts = [$hamlet|
-<script type="text/javascript">
-
- function filterformToggle() {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var f = document.getElementById('filterform');
- var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
- var ilink = document.getElementById('importformlink');
- var jlink = document.getElementById('journallink');
- var rlink = document.getElementById('registerlink');
-
-  if (f.style.display == 'none') {
-   flink.style['font-weight'] = 'bold';
-   f.style.display = 'block';
-  } else {
-   flink.style['font-weight'] = 'normal';
-   f.style.display = 'none';
-  }
-  return false;
- }
-
- function addformToggle() {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var f = document.getElementById('filterform');
- var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
- var ilink = document.getElementById('importformlink');
- var jlink = document.getElementById('journallink');
- var rlink = document.getElementById('registerlink');
-
-  if (a.style.display == 'none') {
-   alink.style['font-weight'] = 'bold';
-   elink.style['font-weight'] = 'normal';
-   ilink.style['font-weight'] = 'normal';
-   jlink.style['font-weight'] = 'normal';
-   rlink.style['font-weight'] = 'normal';
-   a.style.display = 'block';
-   e.style.display = 'none';
-   i.style.display = 'none';
-   t.style.display = 'none';
-  } else {
-   alink.style['font-weight'] = 'normal';
-   elink.style['font-weight'] = 'normal';
-   ilink.style['font-weight'] = 'normal';
-   a.style.display = 'none';
-   e.style.display = 'none';
-   i.style.display = 'none';
-   t.style.display = 'block';
-  }
-  return false;
- }
-
- function editformToggle() {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var f = document.getElementById('filterform');
- var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
- var ilink = document.getElementById('importformlink');
- var jlink = document.getElementById('journallink');
- var rlink = document.getElementById('registerlink');
-
-  if (e.style.display == 'none') {
-   alink.style['font-weight'] = 'normal';
-   elink.style['font-weight'] = 'bold';
-   ilink.style['font-weight'] = 'normal';
-   jlink.style['font-weight'] = 'normal';
-   rlink.style['font-weight'] = 'normal';
-   a.style.display = 'none';
-   e.style.display = 'block';
-   i.style.display = 'none';
-   t.style.display = 'none';
-  } else {
-   alink.style['font-weight'] = 'normal';
-   elink.style['font-weight'] = 'normal';
-   ilink.style['font-weight'] = 'normal';
-   a.style.display = 'none';
-   e.style.display = 'none';
-   i.style.display = 'none';
-   t.style.display = 'block';
-  }
-  return false;
- }
-
- function importformToggle() {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var f = document.getElementById('filterform');
- var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
- var ilink = document.getElementById('importformlink');
- var jlink = document.getElementById('journallink');
- var rlink = document.getElementById('registerlink');
-
-  if (i.style.display == 'none') {
-   alink.style['font-weight'] = 'normal';
-   elink.style['font-weight'] = 'normal';
-   ilink.style['font-weight'] = 'bold';
-   jlink.style['font-weight'] = 'normal';
-   rlink.style['font-weight'] = 'normal';
-   a.style.display = 'none';
-   e.style.display = 'none';
-   i.style.display = 'block';
-   t.style.display = 'none';
-  } else {
-   alink.style['font-weight'] = 'normal';
-   elink.style['font-weight'] = 'normal';
-   ilink.style['font-weight'] = 'normal';
-   a.style.display = 'none';
-   e.style.display = 'none';
-   i.style.display = 'none';
-   t.style.display = 'block';
-  }
-  return false;
- }
-
-</script>
-|]
-
-postJournalOnlyPage :: Handler HledgerWebApp RepPlain
-postJournalOnlyPage = do
+postJournalOnlyR :: Handler HledgerWebApp RepPlain
+postJournalOnlyR = do
   action <- runFormPost' $ maybeStringInput "action"
   case action of Just "edit"   -> postEditForm
                  Just "import" -> postImportForm
@@ -606,9 +500,9 @@ postAddForm = do
     $ (,,,,,)
     <$> maybeStringInput "date"
     <*> maybeStringInput "description"
-    <*> maybeStringInput "accountname1"
+    <*> maybeStringInput "account1"
     <*> maybeStringInput "amount1"
-    <*> maybeStringInput "accountname2"
+    <*> maybeStringInput "account2"
     <*> maybeStringInput "amount2"
   -- supply defaults and parse date and amounts, or get errors.
   let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today) dateM
@@ -643,14 +537,14 @@ postAddForm = do
    Left errs -> do
     -- save current form values in session
     setMessage $ string $ intercalate "; " errs
-    redirect RedirectTemporary AccountsRegisterPage
+    redirect RedirectTemporary RegisterR
 
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
     j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
     liftIO $ journalAddTransaction j opts t'
     setMessage $ string $ printf "Added transaction:\n%s" (show t')
-    redirect RedirectTemporary AccountsRegisterPage
+    redirect RedirectTemporary RegisterR
 
 -- | Handle a journal edit form post.
 postEditForm :: Handler HledgerWebApp RepPlain
@@ -663,7 +557,7 @@ postEditForm = do
    Left errs -> do
     -- XXX should save current form values in session
     setMessage $ string errs
-    redirect RedirectTemporary AccountsJournalPage
+    redirect RedirectTemporary JournalR
 
    Right t' -> do
     -- try to avoid unnecessary backups or saving invalid data
@@ -677,24 +571,24 @@ postEditForm = do
     if not changed
      then do
        setMessage $ string $ "No change"
-       redirect RedirectTemporary AccountsJournalPage
+       redirect RedirectTemporary JournalR
      else do
       jE <- liftIO $ journalFromPathAndString Nothing f tnew
       either
        (\e -> do
           setMessage $ string e
-          redirect RedirectTemporary AccountsJournalPage)
+          redirect RedirectTemporary JournalR)
        (const $ do
           liftIO $ writeFileWithBackup f tnew
           setMessage $ string $ printf "Saved journal %s\n" (show f)
-          redirect RedirectTemporary AccountsJournalPage)
+          redirect RedirectTemporary JournalR)
        jE
 
 -- | Handle an import page post.
 postImportForm :: Handler HledgerWebApp RepPlain
 postImportForm = do
   setMessage $ string $ "can't handle file upload yet"
-  redirect RedirectTemporary AccountsJournalPage
+  redirect RedirectTemporary JournalR
   -- -- get form input values, or basic validation errors. E means an Either value.
   -- fileM <- runFormPost' $ maybeFileInput "file"
   -- let fileE = maybe (Left "No file provided") Right fileM
@@ -702,17 +596,17 @@ postImportForm = do
   -- case fileE of
   --  Left errs -> do
   --   setMessage $ string errs
-  --   redirect RedirectTemporary AccountsJournalPage
+  --   redirect RedirectTemporary JournalR
 
   --  Right s -> do
   --    setMessage $ string $ s
-  --    redirect RedirectTemporary AccountsJournalPage
+  --    redirect RedirectTemporary JournalR
 
 ----------------------------------------------------------------------
 
 -- | A simple postings view like hledger register.
-getRegisterOnlyPage :: Handler HledgerWebApp RepHtml
-getRegisterOnlyPage = do
+getRegisterOnlyR :: Handler HledgerWebApp RepHtml
+getRegisterOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
   let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
@@ -753,8 +647,8 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
 ----------------------------------------------------------------------
 
 -- | A standalone journal edit form page.
-getEditPage :: Handler HledgerWebApp RepHtml
-getEditPage = do
+getEditR :: Handler HledgerWebApp RepHtml
+getEditR = do
   (a, p, _, _, _, msg, here) <- getHandlerParameters
   today <- liftIO getCurrentDay
   -- reload journal's text without parsing, if changed     -- XXX are we doing this right ?
@@ -774,7 +668,11 @@ pageLayout td@TD{title=title, msg=msg} content = [$hamlet|
  %head
   %title $title$
   %meta!http-equiv=Content-Type!content=$metacontent$
-  %link!rel=stylesheet!type=text/css!href=@StyleCss@!media=all
+  %script!type=text/javascript!src=@StaticR.jquery_js@
+  %script!type=text/javascript!src=@StaticR.dhtmlxcommon_js@
+  %script!type=text/javascript!src=@StaticR.dhtmlxcombo_js@
+  %script!type=text/javascript!src=@StaticR.hledger_js@
+  %link!rel=stylesheet!type=text/css!media=all!href=@StaticR.style_css@
  %body
   ^navbar.td^
   #messages $m$
@@ -787,7 +685,7 @@ pageLayout td@TD{title=title, msg=msg} content = [$hamlet|
 navbar :: TemplateData -> Hamlet HledgerWebAppRoute
 navbar TD{p=p,j=j,today=today} = [$hamlet|
  #navbar
-  %a.topleftlink!href=$hledgerurl$
+  %a.topleftlink!href=$hledgerorgurl$
    hledger
    <br />
    $version$
@@ -817,8 +715,8 @@ navlinks td = [$hamlet|
 |]
 --  \ | $
  where
-   accountsjournallink  = navlink td "journal" AccountsJournalPage
-   accountsregisterlink = navlink td "register" AccountsRegisterPage
+   accountsjournallink  = navlink td "journal" JournalR
+   accountsregisterlink = navlink td "register" RegisterR
 
 navlink :: TemplateData -> String -> HledgerWebAppRoute -> Hamlet HledgerWebAppRoute
 navlink TD{here=here,a=a,p=p} s dest = [$hamlet|%a#$s$link.$style$!href=@?u@ $s$|]
