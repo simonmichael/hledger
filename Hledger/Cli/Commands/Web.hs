@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP, TypeFamilies, QuasiQuotes, TemplateHaskell #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, FlexibleContexts #-}
 {-| 
 A web-based UI.
 -}
@@ -7,11 +8,14 @@ module Hledger.Cli.Commands.Web
 where
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Applicative ((<$>), (<*>))
+import Control.Failure
 import Data.Either
 import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (withStore, putValue, getValue)
 import Text.ParserCombinators.Parsec (parse)
-import Yesod
+import Yesod hiding (defaultHamletSettings)
+import Text.Hamlet.Parse (defaultHamletSettings)
+import Text.Hamlet.RT
 import Yesod.Helpers.Static
 
 import Hledger.Cli.Commands.Add (journalAddTransaction)
@@ -29,7 +33,6 @@ import Paths_hledger_make (getDataFileName)
 #else
 import Paths_hledger (getDataFileName)
 #endif
--- import Hledger.Cli.Commands.Web.Templates
 
 
 defhost           = "localhost"
@@ -55,6 +58,7 @@ mkYesod "HledgerWebApp" [$parseRoutes|
 /accounts        AccountsOnlyR     GET
 /journal         JournalR          GET POST
 /register        RegisterR         GET POST
+/addformrt       AddformRTR        GET
 |]
 
 style_css       = StaticRoute ["style.css"]
@@ -657,6 +661,87 @@ getEditR = do
   s <- liftIO $ if changed then readFile (filepath j) else return (jtext j) -- XXX readFile may throw an error
   let td = mktd{here=here, title="hledger", msg=msg, a=a, p=p, j=j, today=today}
   hamletToRepHtml $ pageLayout td $ editform td s
+
+----------------------------------------------------------------------
+
+-- | Get the add form from template files reloaded at run-time.
+getAddformRTR :: Handler HledgerWebApp RepHtml
+getAddformRTR = do
+  (a, p, _, _, j, msg, here) <- getHandlerParameters
+  today <- liftIO getCurrentDay
+  let td = mktd{here=here, title="hledger add transaction", msg=msg, a=a, p=p, j=j, today=today}
+      descriptions = sort $ nub $ map tdescription $ jtxns j
+      acctnames = sort $ journalAccountNamesUsed j
+      postingData n = HDMap [
+                       ("acctlabel", hdstring acctlabel)
+                      ,("acctvar",   hdstring acctvar)
+                      ,("acctnames", HDList $ map hdstring acctnames)
+                      ,("amtfield",  HDHtml $ renderHamlet' amtfield)
+                      ,("accthelp",  hdstring accthelp)
+                      ,("amthelp",   hdstring amthelp)
+                      ] :: HamletData HledgerWebAppRoute
+          where
+            numbered = (++ show n)
+            acctvar = numbered "account"
+            amtvar = numbered "amount"
+            (acctlabel, accthelp, amtfield, amthelp)
+                | n == 1     = ("To account"
+                              ,"eg: expenses:food"
+                              ,[$hamlet|
+                                %td!style=padding-left:1em;
+                                 Amount:
+                                %td
+                                 %input.textinput!size=15!name=$amtvar$!value=""
+                                |]
+                              ,"eg: $6"
+                              )
+                | otherwise = ("From account"
+                              ,"eg: assets:bank:checking"
+                              ,nulltemplate
+                              ,""
+                              )
+  pfields1 <- renderHamletFile "addformpostingfields.hamlet" (postingData 1)
+  pfields2 <- renderHamletFile "addformpostingfields.hamlet" (postingData 2)
+  addform  <- renderHamletFile "addform.hamlet" (HDMap [
+                                                 ("date", hdstring "today")
+                                                ,("desc", hdstring "")
+                                                ,("descriptions", HDList $ map hdstring descriptions)
+                                                ,("datehelp", hdstring "eg: 2010/7/20")
+                                                ,("deschelp", hdstring "eg: supermarket (optional)")
+                                                ,("postingfields1", HDHtml pfields1)
+                                                ,("postingfields2", HDHtml pfields2)
+                                                ])
+  hamletToRepHtml $ pageLayout td $ htmlAsHamlet addform
+
+hdstring = HDHtml . string
+
+instance Failure HamletException (Handler HledgerWebApp)
+    where failure = error . show
+
+renderHamletFile :: FilePath -> HamletData HledgerWebAppRoute -> Handler HledgerWebApp (Html ())
+renderHamletFile hfile hdata = do
+  hrt <- readHamletFile hfile >>= parseHamletRT defaultHamletSettings
+  renderHamletRT hrt hdata show
+
+readHamletFile :: FilePath -> Handler HledgerWebApp String
+readHamletFile hfile = do
+  dir <- ((</> "templates") . appDir) `fmap` getYesod
+  liftIO $ readFile $ dir </> hfile
+
+htmlAsHamlet :: Html () -> Hamlet HledgerWebAppRoute
+htmlAsHamlet h = [$hamlet|$h$|]
+
+parseHamletRT' :: Failure HamletException m => String -> m HamletRT
+parseHamletRT' s = parseHamletRT defaultHamletSettings s
+
+renderHamletRT' :: Failure HamletException m => HamletData HledgerWebAppRoute -> HamletRT -> m (Html ())
+renderHamletRT' d h = renderHamletRT h d show
+
+renderHamlet' :: Hamlet HledgerWebAppRoute -> Html ()
+renderHamlet' h = h show
+
+-- hamletToHamletRT ::  Failure HamletException m => Hamlet HledgerWebAppRoute -> m HamletRT
+-- hamletToHamletRT h = stringToHamletRT $ show $ unsafeByteString $ renderHamlet show h
 
 ----------------------------------------------------------------------
 

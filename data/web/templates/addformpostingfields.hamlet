@@ -1,0 +1,15 @@
+ %tr#postingrow
+  %td!align=right $acctlabel$:
+  %td
+   %select!id=$acctvar$!name=$acctvar$
+    %option
+    $forall acctnames a
+     %option!value=$a$ $a$
+  $amtfield$
+ %tr.helprow
+  %td
+  %td
+   .help $accthelp$
+  %td
+  %td
+   .help $amthelp$
