@@ -44,7 +44,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 **Support**
 
 - chat Simon (sm) on the `#ledger`_ irc channel which we share, or `email me`_
-- report problems at `bugs.hledger.org <http://bugs.hledger.org>`_
+- report problems at `bugs.hledger.org <http://bugs.hledger.org>`_ (`grid <http://bugs.hledger.org/grid>`_)
 - share and test journal snippets at paste . hledger.org
 - .. raw:: html
 
