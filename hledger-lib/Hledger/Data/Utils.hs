@@ -282,6 +282,7 @@ tracewith f e = trace (f e) e
 
 -- parsing
 
+choice' :: [GenParser tok st a] -> GenParser tok st a
 choice' = choice . map Text.ParserCombinators.Parsec.try
 
 parsewith :: Parser a -> String -> Either ParseError a
