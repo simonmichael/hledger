@@ -13,9 +13,7 @@ import Data.Either
 import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (withStore, putValue, getValue)
 import Text.ParserCombinators.Parsec (parse)
-import Yesod hiding (defaultHamletSettings)
-import Text.Hamlet.Parse (defaultHamletSettings)
-import Text.Hamlet.RT
+import Yesod
 import Yesod.Helpers.Static
 
 import Hledger.Cli.Commands.Add (journalAddTransaction)
