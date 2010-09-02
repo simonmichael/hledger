@@ -123,6 +123,7 @@ import Text.ParserCombinators.Parsec hiding (parse)
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
 #endif
+import System.FilePath
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
@@ -214,7 +215,7 @@ ledgerInclude = do many1 spacenonewline
                    outerPos <- getPosition
                    let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
                    return $ do contents <- expandPath outerPos filename >>= readFileE outerPos
-                               case runParser journalFile outerState filename contents of
+                               case runParser journalFile outerState (combine ((takeDirectory . sourceName) outerPos) filename) contents of
                                  Right l   -> l `catchError` (throwError . (inIncluded ++))
                                  Left perr -> throwError $ inIncluded ++ show perr
     where readFileE outerPos filename = ErrorT $ liftM Right (readFile filename) `catch` leftError
