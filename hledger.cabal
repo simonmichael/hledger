@@ -19,7 +19,7 @@ homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      experimental
 tested-with:    GHC==6.10, GHC==6.12
-cabal-version:  >= 1.2
+cabal-version:  >= 1.5
 build-type:     Custom
 data-dir:       data
 data-files:
