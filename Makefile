@@ -1,5 +1,8 @@
 # hledger project makefile
 
+# ghc 6.12 executables need a locale
+export LANG=en_US.UTF-8
+
 # optional features described in MANUAL, comment out if you don't have the libs
 OPTFLAGS=-DWEB -DVTY -DCHART
 OPTFLAGS=-DWEB -DVTY
@@ -115,12 +118,13 @@ hledgerlinux: setversion
 # hledgerwin: setversion
 # 	ghc --make hledger.hs -o bin/hledgerlinux $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 
-# "continuous integration" testing - auto-recompile and run hledger test
-# (or some other command) whenever a module changes. sp is from
-# searchpath.org , you might need the patched version from
-# http://joyful.com/repos/searchpath .
-continuous ci: setversion
-	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger.hs $(BUILDFLAGS) --run $(CICMD)
+# auto-recompile and run (with the specified argument) whenever a module changes.
+# sp is from searchpath.org, you might need the patched version from
+# http://joyful.com/repos/searchpath.
+auto-%: setversion
+	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger.hs $(BUILDFLAGS) --run $*
+
+autobuild auto: auto-test
 
 # fix permissions (eg after darcs get)
 fixperms:
@@ -185,7 +189,7 @@ unittesths:
 	@(runghc hledger.hs test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
-# run functional tests, requires shelltestrunner from hackage
+# run functional tests, requires shelltestrunner >= 0.9 from hackage
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: hledger
 	(shelltest tests --implicit=none --plain --threads=16 \
@@ -337,9 +341,14 @@ docs: site apidocs
 # build the hledger.org website
 # Requires hakyll (cabal install hakyll)
 .PHONY: site
-site: site/hakyll
+site: site/hakyll site/_site/index.html site/_site/profs
 	cd site; ./hakyll build
+
+site/_site/index.html:
 	cd site/_site; ln -sf README.html index.html; ln -sf ../../profs
+
+site/_site/profs:
+	cd site/_site; ln -sf ../../profs
 
 cleansite: site/hakyll
 	cd site; ./hakyll clean
@@ -646,5 +655,5 @@ clean:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*"`
 
 Clean: clean cleandocs
-	rm -f hledger TAGS tags
+	rm -f bin/hledger TAGS tags
 
