@@ -265,6 +265,7 @@ Assumes any text in the parse stream has been lowercased.
 -}
 smartdate :: GenParser Char st SmartDate
 smartdate = do
+  -- XXX maybe obscures date errors ? see ledgerdate
   (y,m,d) <- choice' [yyyymmdd, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow, lastthisnextthing]
   return (y,m,d)
 
@@ -276,7 +277,8 @@ smartdateonly = do
   eof
   return d
 
-datesepchar = oneOf "/-."
+datesepchars = "/-."
+datesepchar = oneOf datesepchars
 
 validYear, validMonth, validDay :: String -> Bool
 validYear s = length s >= 4 && isJust (readMay s :: Maybe Int)

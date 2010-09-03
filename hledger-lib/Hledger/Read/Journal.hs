@@ -117,6 +117,7 @@ module Hledger.Read.Journal (
 )
 where
 import Control.Monad.Error (ErrorT(..), throwError, catchError)
+import Data.List.Split (wordsBy)
 import Text.ParserCombinators.Parsec hiding (parse)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
@@ -331,21 +332,27 @@ ledgerTransaction = do
     Left err -> fail err
 
 ledgerdate :: GenParser Char JournalContext Day
-ledgerdate = choice' [ledgerfulldate, ledgerpartialdate] <?> "full or partial date"
-
-ledgerfulldate :: GenParser Char JournalContext Day
-ledgerfulldate = do
-  (y,m,d) <- ymd
-  return $ fromGregorian (read y) (read m) (read d)
-
--- | Match a partial M/D date in a ledger, and also require that a default
--- year directive was previously encountered.
-ledgerpartialdate :: GenParser Char JournalContext Day
-ledgerpartialdate = do
-  (_,m,d) <- md
-  y <- getYear
-  when (isNothing y) $ fail "partial date found, but no default year specified"
-  return $ fromGregorian (fromJust y) (read m) (read d)
+ledgerdate = do
+  -- hacky: try to ensure precise errors for invalid dates
+  -- XXX reported error position is not too good
+  -- pos <- getPosition
+  datestr <- many1 $ choice' [digit, datesepchar]
+  let dateparts = wordsBy (`elem` datesepchars) datestr
+  case dateparts of
+    [y,m,d] -> do
+               failIfInvalidYear y
+               failIfInvalidMonth m
+               failIfInvalidDay d
+               return $ fromGregorian (read y) (read m) (read d)
+    [m,d]   -> do
+               y <- getYear
+               case y of Nothing -> fail "partial date found, but no default year specified"
+                         Just y' -> do failIfInvalidYear $ show y'
+                                       failIfInvalidMonth m
+                                       failIfInvalidDay d
+                                       return $ fromGregorian y' (read m) (read d)
+    _       -> fail $ "bad date: " ++ datestr
+  <?> "full or partial date"
 
 ledgerdatetime :: GenParser Char JournalContext LocalTime
 ledgerdatetime = do 
