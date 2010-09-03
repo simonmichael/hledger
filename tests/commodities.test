@@ -5,7 +5,7 @@ bin/hledger -f- print
 2010-04-05 x
    a   10 DE0002635307
    b
->>>2 /parse error.*unexpected "0"/
+>>>2 /unexpected "0"/
 >>>= 1
 # 2. with quotes, ok; quotes appear in print output
 bin/hledger -f- print
