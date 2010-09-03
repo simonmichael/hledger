@@ -29,12 +29,12 @@ import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.FilePath ((</>))
-import System.IO (IOMode(..), withFile, hGetContents, stderr)
+import System.IO (IOMode(..), withFile, stderr)
 #if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
-import System.IO.UTF8
+import Prelude hiding (getContents)
+import System.IO.UTF8 (getContents, hGetContents)
 #else
-import System.IO (hPutStrLn)
+import System.IO (hGetContents)
 #endif
 
 
@@ -70,7 +70,7 @@ journalFromPathAndString format fp s = do
                                 Nothing -> readers
   (errors, journals) <- partitionEithers `fmap` mapM tryReader readers'
   case journals of j:_ -> return $ Right j
-                   _   -> let s = errMsg errors in hPutStrLn stderr s >> return (Left s)
+                   _   -> return $ Left $ errMsg errors
     where
       tryReader r = (runErrorT . (rParser r) fp) s
       errMsg [] = unknownFormatMsg
