@@ -173,39 +173,39 @@ unittest: unittest-builtin
 
 unittest-builtin: hledger
 	@(bin/hledger test \
-		&& echo $@ passed) || echo $@ FAILED
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # XXX doesn't rebuild on hledger source changes
 unittest-standalone: tools/unittest
 	@(tools/unittest \
-		&& echo $@ passed) || echo $@ FAILED
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit tests without waiting for compilation
 unittesths:
 	@(runghc hledger.hs test \
-		&& echo $@ passed) || echo $@ FAILED
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # run functional tests, requires shelltestrunner from hackage
 functest: hledger
 	(shelltest tests --implicit=none --plain --threads=16 \
-		&& echo $@ passed) || echo $@ FAILED
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # run doc tests
 doctest: tools/doctest hledger
 	@(tools/doctest Commands/Add.hs \
 		&& tools/doctest Tests.hs \
-		&& echo $@ passed) || echo $@ FAILED
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure we have no haddock errors
 haddocktest:
 	@(make --quiet haddock \
-		&& echo $@ passed) || echo $@ FAILED
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure the normal build has no warnings
 warningstest:
 	@(make -s clean \
 		&& make --no-print-directory -s hledgernowarnings \
-		&& echo $@ passed) || echo $@ FAILED
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure cabal is reasonably happy
 quickcabaltest: setversion
@@ -235,7 +235,7 @@ fullcabaltest: setversion
 	&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
 	&& cabal sdist \
 	&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
-	&& echo $@ passed \
+	&& echo $@ PASSED \
 	) || echo $@ FAILED
 
 # run performance benchmarks without saving results.
