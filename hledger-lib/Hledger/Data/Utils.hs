@@ -25,6 +25,7 @@ module Test.HUnit,
 )
 where
 import Data.Char
+import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
 import Control.Exception
 import Control.Monad
 import Data.List
@@ -44,6 +45,7 @@ import Test.HUnit
 import Text.Printf
 import Text.RegexPR
 import Text.ParserCombinators.Parsec
+import System.Info (os)
 
 
 -- strings
@@ -145,6 +147,33 @@ fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
       rows = map (fit w) $ lines s
       fit w = take w . (++ repeat ' ')
       blankline = replicate w ' '
+
+-- encoded platform strings
+
+-- | A platform string is a string value from or for the operating system,
+-- such as a file path or command-line argument (or environment variable's
+-- name or value ?). On some platforms (such as unix) these are not real
+-- unicode strings but have some encoding such as UTF-8. This alias does
+-- no type enforcement but aids code clarity.
+type PlatformString = String
+
+-- | Convert a possibly encoded platform string to a real unicode string.
+-- We decode the UTF-8 encoding recommended for unix systems
+-- (cf http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html)
+-- and leave anything else unchanged.
+fromPlatformString :: PlatformString -> String
+fromPlatformString s = if UTF8.isUTF8Encoded s then UTF8.decodeString s else s
+
+-- | Convert a unicode string to a possibly encoded platform string.
+-- On unix we encode with the recommended UTF-8
+-- (cf http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html)
+-- and elsewhere we leave it unchanged.
+toPlatformString :: String -> PlatformString
+toPlatformString = case os of
+                     "unix" -> UTF8.encodeString
+                     "linux" -> UTF8.encodeString
+                     "darwin" -> UTF8.encodeString
+                     _ -> id
 
 -- math
 
