@@ -21,7 +21,7 @@ main = hakyllWithConfiguration cfg $ do
       ["README.rst"
       ,"DOWNLOAD.markdown"
       ,"DEVELOPMENT.rst"
-      ,"NEWS.rst"
+      ,"NEWS.markdown"
       ,"SCREENSHOTS.markdown"
       ,"MANUAL.markdown"
       ,"CONTRIBUTORS.rst"
