@@ -29,7 +29,7 @@ extra-source-files:
   README.rst
   README2.rst
   MANUAL.markdown
-  NEWS.rst
+  NEWS.markdown
   CONTRIBUTORS.rst
   data/sample.journal
   data/sample.timelog
