@@ -1025,6 +1025,21 @@ sailing.  Here are some known issues and things to try:
   Look for the cause of the failure near the end of the output. If it's
   not apparent, try again with `-v2` or `-v3` for more verbose output.
 
+- **This package indirectly depends on multiple versions of the same package.**
+  You may have previously installed some of hledger's dependencies
+  depending on different versions of (eg) parsec. Then cabal install hledger gives
+  an error like this:
+
+        Warning: This package indirectly depends on multiple versions of the same
+        package. This is highly likely to cause a compile failure.
+        package yesod-0.5.0.3 requires parsec-2.1.0.1
+        package csv-0.1.1 requires parsec-3.1.0
+        ...
+
+    The above example could be resolved by, eg:
+
+        $ cabal install yesod --reinstall --constraint 'parsec == 3.1.0"
+
 - **cabal fails to resolve dependencies.**
   It's possible for cabal to get confused, eg if you have
   installed/updated many cabal package versions or GHC itself. You can
