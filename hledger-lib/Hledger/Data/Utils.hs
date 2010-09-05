@@ -175,6 +175,14 @@ toPlatformString = case os of
                      "darwin" -> UTF8.encodeString
                      _ -> id
 
+-- | A version of error that's better at displaying unicode.
+error' :: String -> a
+error' = error . toPlatformString
+
+-- | A version of userError that's better at displaying unicode.
+userError' :: String -> IOError
+userError' = userError . toPlatformString
+
 -- math
 
 difforzero :: (Num a, Ord a) => a -> a -> a
@@ -281,7 +289,7 @@ parseWithCtx ctx p = runParser p ctx ""
 fromparse :: Either ParseError a -> a
 fromparse = either parseerror id
 
-parseerror e = error $ showParseError e
+parseerror e = error' $ showParseError e
 
 showParseError e = "parse error at " ++ show e
 

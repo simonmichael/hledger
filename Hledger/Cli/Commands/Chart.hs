@@ -44,7 +44,7 @@ getOption opts opt def =
 parseSize :: String -> (Int,Int)
 parseSize str = (read w, read h)
     where
-    x = fromMaybe (error "Size should be in WIDTHxHEIGHT format") $ findIndex (=='x') str
+    x = fromMaybe (error' "Size should be in WIDTHxHEIGHT format") $ findIndex (=='x') str
     (w,_:h) = splitAt x str
 
 -- | Generate pie chart

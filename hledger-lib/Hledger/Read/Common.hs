@@ -36,7 +36,7 @@ parseJournalWith p f s = do
   tl <- liftIO getCurrentLocalTime
   case runParser p emptyCtx f s of
     Right updates -> liftM (journalFinalise tc tl f s) $ updates `ap` return nulljournal
-    Left err      -> throwError $ show err -- XXX raises an uncaught exception if we have a parsec user error, eg from many ?
+    Left err      -> throwError $ show err
 
 -- | Some state kept while parsing a journal file.
 data JournalContext = Ctx {

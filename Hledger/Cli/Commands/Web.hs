@@ -725,7 +725,7 @@ hdstringlist :: [String] -> HamletData HledgerWebAppRoute
 hdstringlist ss = HDList [ [([], hdstring s)] | s <- ss ]
 
 instance Failure HamletException Handler
-    where failure = error . show
+    where failure = error' . show
 
 renderHamletFile :: FilePath -> HamletMap HledgerWebAppRoute -> Handler Html
 renderHamletFile hfile hmap = do

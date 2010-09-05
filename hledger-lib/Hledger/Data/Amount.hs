@@ -64,9 +64,9 @@ instance Num MixedAmount where
     fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
     negate (Mixed as) = Mixed $ map negateAmountPreservingPrice as
     (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ as ++ bs
-    (*)    = error "programming error, mixed amounts do not support multiplication"
-    abs    = error "programming error, mixed amounts do not support abs"
-    signum = error "programming error, mixed amounts do not support signum"
+    (*)    = error' "programming error, mixed amounts do not support multiplication"
+    abs    = error' "programming error, mixed amounts do not support abs"
+    signum = error' "programming error, mixed amounts do not support signum"
 
 instance Ord MixedAmount where
     compare (Mixed as) (Mixed bs) = compare as bs

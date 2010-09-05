@@ -38,7 +38,7 @@ withJournalDo opts args _ cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either error runcmd
+  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either (error'.trace "BBB") runcmd
     where
       costify = (if CostBasis `elem` opts then journalConvertAmountsToCost else id)
       runcmd = cmd opts args . costify
@@ -46,7 +46,7 @@ withJournalDo opts args _ cmd = do
 -- | Get a journal from the given string and options, or throw an error.
 readJournalWithOpts :: [Opt] -> String -> IO Journal
 readJournalWithOpts opts s = do
-  j <- readJournal Nothing s >>= either error return
+  j <- readJournal Nothing s >>= either error' return
   return $ (if cost then journalConvertAmountsToCost else id) j
     where cost = CostBasis `elem` opts
 

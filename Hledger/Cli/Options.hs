@@ -179,7 +179,7 @@ parseArguments = do
   case (as,es) of
     (cmd:args,[])   -> return (os'',cmd,args)
     ([],[])         -> return (os'',"",[])
-    (_,errs)        -> ioError (userError (concat errs ++ help1))
+    (_,errs)        -> ioError (userError' (concat errs ++ help1))
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.

@@ -117,13 +117,13 @@ scrollY = sy . loc
 posY a = scrollY a + cursorY a
 
 setCursorY, setScrollY, setPosY :: Int -> AppState -> AppState
-setCursorY _ AppState{alocs=[]} = error "shouldn't happen" -- silence warnings
+setCursorY _ AppState{alocs=[]} = error' "shouldn't happen" -- silence warnings
 setCursorY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)} where l' = setLocCursorY y l
 
-setScrollY _ AppState{alocs=[]} = error "shouldn't happen" -- silence warnings
+setScrollY _ AppState{alocs=[]} = error' "shouldn't happen" -- silence warnings
 setScrollY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)} where l' = setLocScrollY y l
 
-setPosY _ AppState{alocs=[]}    = error "shouldn't happen" -- silence warnings
+setPosY _ AppState{alocs=[]}    = error' "shouldn't happen" -- silence warnings
 setPosY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)}
     where 
       l' = setLocScrollY sy $ setLocCursorY cy l

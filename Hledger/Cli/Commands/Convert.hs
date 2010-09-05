@@ -7,7 +7,7 @@ module Hledger.Cli.Commands.Convert where
 import Hledger.Cli.Options (Opt(Debug))
 import Hledger.Cli.Version (versionstr)
 import Hledger.Data.Types (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
-import Hledger.Data.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual)
+import Hledger.Data.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error')
 import Hledger.Read.Common (emptyCtx)
 import Hledger.Read.Journal (someamount,ledgeraccountname)
 import Hledger.Data.Amount (nullmixedamt)
@@ -71,11 +71,11 @@ type CsvRecord = [String]
 -- using/creating a .rules file.
 convert :: [Opt] -> [String] -> Journal -> IO ()
 convert opts args _ = do
-  when (null args) $ error "please specify a csv data file."
+  when (null args) $ error' "please specify a csv data file."
   let csvfile = head args
   csvparse <- parseCSVFromFile csvfile
   let records = case csvparse of
-                  Left e -> error $ show e
+                  Left e -> error' $ show e
                   Right rs -> reverse $ filter (/= [""]) rs
   let debug = Debug `elem` opts
       rulesfile = rulesFileFor csvfile
@@ -85,7 +85,7 @@ convert opts args _ = do
                   writeFile rulesfile initialRulesFileContent
    else
       hPrintf stderr "using conversion rules file %s\n" rulesfile
-  rules <- liftM (either (error.show) id) $ parseCsvRulesFile rulesfile
+  rules <- liftM (either (error'.show) id) $ parseCsvRulesFile rulesfile
   when debug $ hPrintf stderr "rules: %s\n" (show rules)
   let requiredfields = max 2 (maxFieldIndex rules + 1)
       badrecords = take 1 $ filter ((< requiredfields).length) records

@@ -65,7 +65,7 @@ entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Transaction
 entryFromTimeLogInOut i o
     | otime >= itime = t
     | otherwise = 
-        error $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
+        error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
     where
       t = Transaction {
             tdate         = idate,

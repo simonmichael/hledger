@@ -65,7 +65,7 @@ splitspan start next span@(DateSpan (Just b) (Just e))
                         : splitspan' start next (DateSpan (Just n) (Just e))
           where s = start b
                 n = next s
-      splitspan' _ _ _ = error "won't happen, avoids warnings"
+      splitspan' _ _ _ = error' "won't happen, avoids warnings"
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -234,12 +234,12 @@ parsedateM s = firstJust [
 
 -- | Parse a date-time string to a time type, or raise an error.
 parsedatetime :: String -> LocalTime
-parsedatetime s = fromMaybe (error $ "could not parse timestamp \"" ++ s ++ "\"")
+parsedatetime s = fromMaybe (error' $ "could not parse timestamp \"" ++ s ++ "\"")
                             (parsedatetimeM s)
 
 -- | Parse a date string to a time type, or raise an error.
 parsedate :: String -> Day
-parsedate s =  fromMaybe (error $ "could not parse date \"" ++ s ++ "\"")
+parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
                          (parsedateM s)
 
 -- | Parse a time string to a time type using the provided pattern, or

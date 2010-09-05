@@ -129,11 +129,11 @@ myTimelogPath =
 
 -- | Read the user's default journal file, or give an error.
 myJournal :: IO Journal
-myJournal = myJournalPath >>= readJournalFile Nothing >>= either error return
+myJournal = myJournalPath >>= readJournalFile Nothing >>= either error' return
 
 -- | Read the user's default timelog file, or give an error.
 myTimelog :: IO Journal
-myTimelog = myTimelogPath >>= readJournalFile Nothing >>= either error return
+myTimelog = myTimelogPath >>= readJournalFile Nothing >>= either error' return
 
 tests_Hledger_Read = TestList
   [
@@ -141,7 +141,7 @@ tests_Hledger_Read = TestList
    "journalFile" ~: do
     assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx emptyCtx Journal.journalFile "")
     jE <- readJournal Nothing "" -- don't know how to get it from journalFile
-    either error (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
+    either error' (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
 
   ,Journal.tests_Journal
   ,Timelog.tests_Timelog

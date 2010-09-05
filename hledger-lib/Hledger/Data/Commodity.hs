@@ -37,7 +37,7 @@ defaultcommodities = [dollar,  euro,  pound, hour, unknown]
 -- | Look up one of the hard-coded default commodities. For use in tests.
 comm :: String -> Commodity
 comm sym = fromMaybe 
-              (error "commodity lookup failed") 
+              (error' "commodity lookup failed") 
               $ find (\(Commodity{symbol=s}) -> s==sym) defaultcommodities
 
 -- | Find the conversion rate between two commodities. Currently returns 1.
