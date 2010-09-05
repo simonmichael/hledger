@@ -4,6 +4,22 @@ title: hledger news
 
 # hledger news
 
+## 2010/9/5 hledger 0.12
+
+  * installing: fix a build error with parsec 3 (#22)
+  * installing: require exactly matching hledger-lib version for more robust builds
+  * installing: explicit data-object dependency to ensure hledger and hledger-lib use the same time version
+  * installing: build threaded and with warnings
+  * installing: drop -fweb610 flag
+  * installing: add gtk2hs-buildtools dependency needed to build with -fchart
+  * add -D/--daily flag
+  * register: with --depth, clip account names or aggregate postings rather than excluding them
+  * web: new, better web ui; accounts are now a permanent sidebar; add form uses auto-completing combo fields
+  * fix !include with deeply nested directories (#21)
+  * fix obscured date parse errors with parsec 3
+  * handle unicode better in errors
+  * fix a ghc 6.12.3 error when running interpreted
+
 ## 2010/07/17 hledger 0.11.1
 
   * fix --version output
