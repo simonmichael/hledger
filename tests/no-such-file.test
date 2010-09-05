@@ -1,10 +1,10 @@
 # commands should generally autocreate an empty journal when missing, see also add*.test
 # $$ used for safe concurrent test running, may be a bash-ism
 #
-rm -f $$; bin/hledger register -f $$; rm -f $$
+ rm -f $$; bin/hledger register -f $$; rm -f $$
 >>>
 >>>2 /No journal file.*creating it/
 #
-rm -f $$; bin/hledger balance --no-total -f $$; rm -f $$
+ rm -f $$; bin/hledger balance --no-total -f $$; rm -f $$
 >>>
 >>>2 /No journal file.*creating it/
