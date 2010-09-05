@@ -163,7 +163,7 @@ codetest: unittest functest
 committest: hlinttest unittest doctest functest haddocktest warningstest quickcabaltest
 
 # thorough pre-release tests - run before release
-releasetest: unittest doctest functest haddocktest warningstest fullcabaltest
+releasetest: unittest doctest functest warningstest fullcabaltest haddocktest
 
 hlinttest hlint:
 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
@@ -209,10 +209,15 @@ warningstest:
 
 # make sure cabal is reasonably happy
 quickcabaltest: setversion
-	@(cabal clean \
-		&& cabal check \
-		&& cabal configure -fvty -fweb \
-		&& echo $@ passed) || echo $@ FAILED
+	(cd hledger-lib \
+	&& cabal clean \
+	&& cabal check \
+	&& cabal configure \
+	&& cd .. \
+	&& cabal clean \
+	&& cabal check \
+	&& cabal configure -fvty -fweb \
+	&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure cabal is happy in all possible ways
 fullcabaltest: setversion
