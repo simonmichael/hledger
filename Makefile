@@ -1,13 +1,15 @@
 # hledger project makefile
 
 # optional features described in MANUAL, comment out if you don't have the libs
-#OPTFLAGS=-DCHART -DVTY -DWEB
-OPTFLAGS=-DWEB
+OPTFLAGS=-DWEB -DVTY -DCHART
+OPTFLAGS=-DWEB -DVTY
+#OPTFLAGS=-DWEB
 #OPTFLAGS=
 
 # command to run during "make ci"
+CICMD=web --debug -f ~/personal/current.journal # -f data/sample.journal
 CICMD=test
-#CICMD=web -f t.journal --debug
+#CICMD=-f t.journal print
 
 # command line to run during "make prof" and "make heap"
 PROFCMD=bin/hledgerp -f data/1000x1000x10.journal balance >/dev/null
@@ -18,13 +20,13 @@ COVCMD=test
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
-BENCHEXES=hledger-0.9 hledger-0.10-1 hledger ledger
+BENCHEXES=hledger-0.9 hledger-0.10-1 hledgeropt ledger
 #BENCHEXES=hledger
 
 # misc. tools
 RST2PDF=rst2pdf
-#VIEWHTML=open
-VIEWHTML=open -a 'Google Chrome'
+#VIEWHTML=open -a 'Google Chrome'
+VIEWHTML=google-chrome
 VIEWPS=open
 VIEWPDF=open
 PRINT=lpr
@@ -192,8 +194,8 @@ functest: hledger
 
 # run doc tests
 doctest: tools/doctest hledger
-	@(tools/doctest Commands/Add.hs \
-		&& tools/doctest Tests.hs \
+	@(tools/doctest Hledger/Cli/Commands/Add.hs \
+		&& tools/doctest Hledger/Cli/Tests.hs \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure we have no haddock errors
@@ -613,6 +615,18 @@ showreleasechanges:
 
 ######################################################################
 # MISCELLANEOUS
+
+#LOCAL
+
+# deploy latest build at demo.hledger.org
+deploy:
+	ssh -t simon@joyful.com make -C /repos/hledger deploy
+
+# autobuild web ui showing my personal journal
+autowebmine:
+	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger.hs $(BUILDFLAGS) -DWEB --run web -B -f ~/personal/2010.journal
+
+#
 
 tag: emacstags
 
