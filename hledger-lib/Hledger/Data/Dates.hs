@@ -285,7 +285,7 @@ validYear s = length s >= 4 && isJust (readMay s :: Maybe Int)
 validMonth s = maybe False (\n -> n>=1 && n<=12) $ readMay s
 validDay s = maybe False (\n -> n>=1 && n<=31) $ readMay s
 
--- failIfInvalidYear, failIfInvalidMonth, failIfInvalidDay :: a
+failIfInvalidYear, failIfInvalidMonth, failIfInvalidDay :: (Monad m) => String -> m ()
 failIfInvalidYear s  = unless (validYear s)  $ fail $ "bad year number: " ++ s
 failIfInvalidMonth s = unless (validMonth s) $ fail $ "bad month number: " ++ s
 failIfInvalidDay s   = unless (validDay s)   $ fail $ "bad day number: " ++ s
