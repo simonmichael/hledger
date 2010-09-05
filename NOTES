@@ -394,49 +394,11 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-*** unicode tests fail on linux - retest
-*** web: doesn't support multiple filter patterns
-*** web: accounts final balance can be -0, colored red
-*** web: post handlers should preserve a p
-*** web: --base-url trailing slash gives redirect loop
-hledger web --port 5001 --base-url http://localhost:5001/ -f ~/personal/household.journal
-*** web: assets.bank.checking indentation in demo journal
-*** web: loses -B after an edit, and/or a filesystem edit
 *** balance: --depth with --flat should show aggregate balances
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
 *** convert: rules file can't have blank lines after last data
-
-*** problem with ~ in path ?
-CICMD=web --debug # -f data/sample.journal 
-No journal file "~/personal/current.journal", creating it.
-Edit this file or use "hledger add" or "hledger web" to add transactions.
-hledger: ~/personal/current.journal: openFile: does not exist (No such file or directory)
 *** parsing: period expressions should allow interval at the end
-*** parsing: double error output
-could not parse journal data in (stdin)
-"(stdin)" (line 7, column 1):
-unexpected end of input
-could not balance this transaction (real postings are off by $0.01)
-2010/08/01 (2420) simon monthly contribution
-    eleonore        $40.50
-    simon         $-100.00  ; car payment contribution for aug
-    simon           $38.46  ; 50-50 car adjustment     for jul
-    simon           $49.13  ; 50-50 food adjustment    for jul
-    simon          $-28.08  ; 50-50 home adjustment    for jul
-
-
-hledger: could not parse journal data in (stdin)
-"(stdin)" (line 7, column 1):
-unexpected end of input
-could not balance this transaction (real postings are off by $0.01)
-2010/08/01 (2420) simon monthly contribution
-    eleonore        $40.50
-    simon         $-100.00  ; car payment contribution for aug
-    simon           $38.46  ; 50-50 car adjustment     for jul
-    simon           $49.13  ; 50-50 food adjustment    for jul
-    simon          $-28.08  ; 50-50 home adjustment    for jul
-
-*** parsing: canonicalise account name case
+*** parsing: canonicalise account names to be case-insensitive
 *** parsing: only journals can include, and only another journal
 *** parsing: misleading error when journal lacks a final newline
 hledger -f- balance
@@ -451,34 +413,19 @@ While parsing transaction:
 > 2/27=2/29 (20100201ucla) ucla payment
 Error: Day of month is not valid for year
 
+*** web: doesn't support multiple filter patterns
+*** web: accounts final balance can be -0, colored red
+*** web: post handlers should preserve a p
+*** web: --base-url trailing slash gives redirect loop
+hledger web --port 5001 --base-url http://localhost:5001/ -f ~/personal/household.journal
+*** web: assets.bank.checking indentation in demo journal
+*** web: loses -B after an edit, and/or a filesystem edit
 *** docs: need to be less wall-of-text
 *** docs:installing:describe three install options in one place
 *** LEDGER vs LEDGER_FILE
-*** data safety issues
-**** clarify read-only story
-***** auto-create of empty files annoying ?
-***** data-modifying commands: add, web->add/edit
-*** compile warnings on linux
-simon@joyful:/repos/hledger$ ghc --make hledger.hs -o bin/`runhaskell ./hledger.hs --binary-filename` -L/usr/lib -DMAKE -DPATCHLEVEL=0 -DCHART -DVTY -DWEB -W -fwarn-tabs  -ihledger-lib -O2 -static -optl-static -optl-pthread
-
-hledger.hs:1:0:
-    The main function `main' is not exported by module `Main'
-[16 of 35] Compiling Hledger.Cli.Version ( Hledger/Cli/Version.hs, Hledger/Cli/Version.o )
-[19 of 35] Compiling Hledger.Read     ( Hledger/Read.hs, Hledger/Read.o )
-[20 of 35] Compiling Hledger.Cli.Options ( Hledger/Cli/Options.hs, Hledger/Cli/Options.o )
-[21 of 35] Compiling Hledger.Cli.Commands.Balance ( Hledger/Cli/Commands/Balance.hs, Hledger/Cli/Commands/Balance.o )
-[22 of 35] Compiling Hledger.Cli.Commands.Convert ( Hledger/Cli/Commands/Convert.hs, Hledger/Cli/Commands/Convert.o )
-[23 of 35] Compiling Hledger.Cli.Commands.Chart ( Hledger/Cli/Commands/Chart.hs, Hledger/Cli/Commands/Chart.o )
-
-Hledger/Cli/Commands/Chart.hs:16:0:
-    Warning: The import of `Control.Monad' is redundant
-               except perhaps to import instances from `Control.Monad'
-             To import instances alone, use: import Control.Monad()
-
-Hledger/Cli/Commands/Chart.hs:23:0:
-    Warning: The import of `Data.List' is redundant
-               except perhaps to import instances from `Data.List'
-             To import instances alone, use: import Data.List()
+*** clarify data modifying story
+**** auto-create of empty files annoying ?
+**** data-modifying commands: add, web->add/edit
 ** refactoring, cleanup
 *** more modularity
 **** packages/namespace
