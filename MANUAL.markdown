@@ -1002,16 +1002,10 @@ sailing.  Here are some known issues and things to try:
 - **Do you have a new enough version of GHC ?** hledger supports GHC 6.10
   and 6.12. Building with the `-fweb` flag requires 6.12 or greater.
 
-- **Do you have a new enough version of cabal-install ?**
-  Recent versions tend to be better at resolving dependencies.  The error
-  `setup: failed to parse output of 'ghc-pkg dump'` is another symptom of
-  this.  To update, do:
-  
-        $ cabal update
-        $ cabal install cabal-install
-        $ cabal clean
-        
-    then try installing hledger again.
+- **An error while building non-hledger packages.**
+  Resolve these problem packages one at a time. Eg, cabal install pkg1.
+  Look for the cause of the failure near the end of the output. If it's
+  not apparent, try again with `-v2` or `-v3` for more verbose output.
 
 - **Could not run trhsx.**
   You are installing with `-fweb610`, which needs to run the `trhsx` executable.
@@ -1051,6 +1045,21 @@ sailing.  Here are some known issues and things to try:
 - **A ghc: panic! (the 'impossible' happened)** might be
     [this issue](http://hackage.haskell.org/trac/ghc/ticket/3862)
 
+- **This package indirectly depends on multiple versions of the same package.**
+  You may have previously installed some of hledger's dependencies
+  depending on different versions of (eg) parsec. Then cabal install hledger gives
+  an error like this:
+
+        Warning: This package indirectly depends on multiple versions of the same
+        package. This is highly likely to cause a compile failure.
+        package yesod-0.5.0.3 requires parsec-2.1.0.1
+        package csv-0.1.1 requires parsec-3.1.0
+        ...
+
+    The above example could be resolved by, eg:
+
+        $ cabal install yesod --reinstall --constraint 'parsec == 3.1.0"
+
 - **Another error while building a hledger package.**
     The current hledger release might have a coding error, or dependency
     error. You could try installing the
@@ -1067,25 +1076,16 @@ sailing.  Here are some known issues and things to try:
         $ cd ..
         $ cabal install [-f...]
 
-- **An error while building non-hledger packages.**
-  Resolve these problem packages one at a time. Eg, cabal install pkg1.
-  Look for the cause of the failure near the end of the output. If it's
-  not apparent, try again with `-v2` or `-v3` for more verbose output.
-
-- **This package indirectly depends on multiple versions of the same package.**
-  You may have previously installed some of hledger's dependencies
-  depending on different versions of (eg) parsec. Then cabal install hledger gives
-  an error like this:
-
-        Warning: This package indirectly depends on multiple versions of the same
-        package. This is highly likely to cause a compile failure.
-        package yesod-0.5.0.3 requires parsec-2.1.0.1
-        package csv-0.1.1 requires parsec-3.1.0
-        ...
-
-    The above example could be resolved by, eg:
-
-        $ cabal install yesod --reinstall --constraint 'parsec == 3.1.0"
+- **Do you have a new enough version of cabal-install ?**
+  Recent versions tend to be better at resolving dependencies.  The error
+  `setup: failed to parse output of 'ghc-pkg dump'` is another symptom of
+  this.  To update, do:
+  
+        $ cabal update
+        $ cabal install cabal-install
+        $ cabal clean
+        
+    then try installing hledger again.
 
 - **cabal fails to resolve dependencies.**
   It's possible for cabal to get confused, eg if you have
