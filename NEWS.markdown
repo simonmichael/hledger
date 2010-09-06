@@ -4,21 +4,31 @@ title: hledger news
 
 # hledger news
 
+## 2010/9/6 hledger 0.12.1
+
+  * web: fix account filtering breakage
+  * installing: tighten up utf8-string dependency
+
 ## 2010/9/5 hledger 0.12
 
+  * web: new, better web ui; accounts are now a permanent sidebar; add form uses auto-completing combo fields
   * installing: fix a build error with parsec 3 (#22)
   * installing: require exactly matching hledger-lib version for more robust builds
   * installing: explicit data-object dependency to ensure hledger and hledger-lib use the same time version
+  * installing: explicit hamlet dependency for more robust building
   * installing: build threaded and with warnings
   * installing: drop -fweb610 flag
   * installing: add gtk2hs-buildtools dependency needed to build with -fchart
+  * installing: require cabal 1.6 or greater
   * add -D/--daily flag
   * register: with --depth, clip account names or aggregate postings rather than excluding them
-  * web: new, better web ui; accounts are now a permanent sidebar; add form uses auto-completing combo fields
   * fix !include with deeply nested directories (#21)
   * fix obscured date parse errors with parsec 3
   * handle unicode better in errors
   * fix a ghc 6.12.3 error when running interpreted
+
+Stats: 50 days and 90 commits since last release, now at 5741
+lines of code with 136 tests and 41% unit test coverage.
 
 ## 2010/07/17 hledger 0.11.1
 
