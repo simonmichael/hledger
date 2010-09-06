@@ -72,9 +72,7 @@ command to build extra features. I recommend you get the basic install
 working first, then try these one at a time:
 
 - `-fweb` builds the [web](#web) command, enabling a web-based user
-  interface. This requires GHC 6.12. If you are stuck with GHC 6.10,
-  you can use `-fweb610` instead, to build an older version of the web
-  interface.
+  interface. This requires GHC 6.12 or greater.
 
 - `-fvty` builds the [vty](#vty) command, enabling a basic
   curses-style user interface. This does not work on microsoft
@@ -122,7 +120,7 @@ on:
     $ hledger histogram                     # transactions per day, or other interval
     $ hledger add                           # add some new transactions to the journal file
     $ hledger vty                           # curses ui, if installed with -fvty
-    $ hledger web                           # web ui, if installed with -fweb or -fweb610
+    $ hledger web                           # web ui, if installed with -fweb
     $ hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
@@ -217,7 +215,7 @@ Here is the command-line help:
       register  - show transactions as a register with running balance
       stats     - show various statistics for a journal
       vty       - run a simple curses-style UI (if installed with -fvty)
-      web       - run a simple web-based UI (if installed with -fweb or -fweb610)
+      web       - run a simple web-based UI (if installed with -fweb
       chart     - generate balances pie charts (if installed with -fchart)
       test      - run self-tests
 
@@ -1041,14 +1039,6 @@ sailing.  Here are some known issues and things to try:
   Resolve these problem packages one at a time. Eg, cabal install pkg1.
   Look for the cause of the failure near the end of the output. If it's
   not apparent, try again with `-v2` or `-v3` for more verbose output.
-
-- **Could not run trhsx.**
-  You are installing with `-fweb610`, which needs to run the `trhsx` executable.
-  It is installed by the hsx package in `~/.cabal/bin`, which needs to be in
-  your path. Do something like:
-
-        $ echo 'export PATH=$PATH:~/.cabal/bin' >> ~/.bash_profile; source ~/.bash_profile
-
 
 - **Could not run happy.**
   A package (eg haskell-src-exts) needs to run the `happy` executable.
