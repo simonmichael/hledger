@@ -45,7 +45,7 @@ SOURCEFILES:= \
 	hledger-lib/Hledger/Data/*hs \
 	hledger-lib/Hledger/Read/*hs
 DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
-BINARYFILENAME=$(shell runhaskell ./hledger.hs --binary-filename)
+BINARYFILENAME=$(shell touch Hledger/Cli/Version.hs; runhaskell ./hledger.hs --binary-filename)
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
 DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
@@ -79,7 +79,7 @@ default: tag hledger
 # fetch dependencies, build and install the standard cabal binary
 hledgercabal:
 	cd hledger-lib; cabal install
-	cabal install -fweb -fvty
+	cabal install -fweb # -fvty
 
 # build the standard developer's binary, quickly
 hledger: setversion
@@ -115,7 +115,7 @@ hledgermac: setversion
 	otool -L bin/$(BINARYFILENAME)
 
 # build a deployable binary for windows, assuming cygwin tools are present
-hledgerwin: setversion #hledgercabal
+hledgerwin: setversion hledgercabal
 	cp ~/.cabal/bin/hledger.exe bin/`echo $(BINARYFILENAME) | dos2unix`
 
 # auto-recompile and run (with the specified argument) whenever a module changes.
@@ -167,7 +167,8 @@ codetest: unittest functest
 committest: hlinttest unittest doctest functest haddocktest warningstest quickcabaltest
 
 # thorough pre-release tests - run before release
-releasetest: unittest doctest functest warningstest fullcabaltest haddocktest
+# consider hiding dev-build symlinks in Hledger/ first
+releasetest: Clean unittest doctest functest warningstest fullcabaltest haddocktest
 
 hlinttest hlint:
 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
@@ -514,13 +515,13 @@ hoogleindex:
 #   files, and tags the repo with the release tag.
 
 # Build a release, tag the repo, prepare a cabal package
-# Don't forget to update VERSION first. Examples:
-# normal release:   echo 0.7   >VERSION; make release
+# First update VERSION. Eg:
+# a normal release: echo 0.7   >VERSION; make release
 # a bugfix release: echo 0.7.1 >VERSION; make release
-release: releasetest setandrecordversion tagrelease sdist
+release: releasetest setandrecordversion tagrelease
 
 # Upload the latest cabal package and update hledger.org
-upload: hackageupload pushdocs
+upload: sdist hackageupload pushdocs
 
 releaseandupload: release upload
 
@@ -582,15 +583,16 @@ pushprofs:
 pullprofs:
 	rsync -azP simon@joyful.com:/repos/hledger/profs/ profs/
 
-# push a deployable binary for this platform to the public site
-# make hledgerPLATFORM first
-pushbinary:
-	-gzip -9 bin/$(BINARYFILENAME)
-	-rsync -aP bin/$(BINARYFILENAME).gz simon@joyful.com:/repos/hledger/site/download/
-
-pushbinarywin:
+# compress the just-built platform binary. make hledgerPLATFORM first. Use
+# the win variant on windows.
+compressbinary:
+	gzip -9 bin/$(BINARYFILENAME)
+compressbinarywin:
 	cd bin; zip -9 $(BINARYFILENAME).zip $(BINARYFILENAME)
-	-rsync -aP bin/$(BINARYFILENAME).zip simon@joyful.com:/repos/hledger/site/download/
+
+# push the last-updated platform binary to the public download directory
+pushbinary:
+	cd bin; rsync -aP `ls -t | head -1` simon@joyful.com:/repos/hledger/site/download/
 
 
 # show project stats useful for release notes
