@@ -142,7 +142,7 @@ getHandlerParameters = do
       getReportParameters = do
           app <- getYesod
           t <- liftIO $ getCurrentLocalTime
-          a <- fromMaybe "" <$> lookupGetParam "x"
+          a <- fromMaybe "" <$> lookupGetParam "a"
           p <- fromMaybe "" <$> lookupGetParam "p"
           let opts = appOpts app ++ [Period p]
               args = appArgs app ++ [a]
@@ -277,7 +277,7 @@ balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
                       (True, ((acct, _, _, _):_)) ->
                           let a' = if isAccountRegex a then a else acct
                               a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
-                              parenturl = (here, [("y",a''), ("p",p)])
+                              parenturl = (here, [("a",a''), ("p",p)])
                           in [$hamlet|
                               \ | $
                               %a!href=@?parenturl@ show more &uarr;
@@ -836,7 +836,7 @@ navlinks td = [$hamlet|
 
 navlink :: TemplateData -> String -> HledgerWebAppRoute -> Hamlet HledgerWebAppRoute
 navlink TD{here=here,a=a,p=p} s dest = [$hamlet|%a#$s$link.$style$!href=@?u@ $s$|]
- where u = (dest, concat [(if null a then [] else [("z", a)])
+ where u = (dest, concat [(if null a then [] else [("a", a)])
                          ,(if null p then [] else [("p", p)])])
        style | dest == here = "navlinkcurrent"
              | otherwise    = "navlink"
@@ -880,7 +880,7 @@ filterform TD{here=here,a=a,p=p} = [$hamlet|
   stopfiltering = if filtering then [$hamlet|%a#stopfilterlink!href=@?u@ stop filtering acct/desc|] else nulltemplate
       where u = (here, if filteringperiod then [("p", p)] else [])
   stopfilteringperiod = if filteringperiod then [$hamlet|%a#stopfilterlink!href=@?u@ stop filtering period|] else nulltemplate
-      where u = (here, if filtering then [("q", a)] else [])
+      where u = (here, if filtering then [("a", a)] else [])
 
 helplink :: String -> String -> Hamlet HledgerWebAppRoute
 helplink topic label = [$hamlet|%a!href=$u$!target=hledgerhelp $label$|]
