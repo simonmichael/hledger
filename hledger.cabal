@@ -88,7 +88,7 @@ executable hledger
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,time
-                 ,utf8-string >= 0.3
+                 ,utf8-string >= 0.3.5 && < 0.4
 
   if flag(chart)
     cpp-options: -DCHART
@@ -151,7 +151,7 @@ library
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,time
-                 ,utf8-string >= 0.3
+                 ,utf8-string >= 0.3.5 && < 0.4
 
 source-repository head
   type:     darcs
