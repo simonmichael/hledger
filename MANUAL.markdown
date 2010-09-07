@@ -433,11 +433,10 @@ Examples:
 
 The web command starts hledger's web interface, and tries to open a web
 browser to view it. (If this fails, you'll have to manually visit the url
-it displays.) The web interface combines the features of the print,
+shown on the console.) The web interface combines the features of the print,
 register, balance and add commands, and adds a general edit command.
 
-This is an optional feature. Note there is also an older implementation of
-the web command which does not provide edit. See [installing](#installing).
+This is an optional feature, see [installing](#installing).
 
 Examples:
 
