@@ -66,4 +66,4 @@ may access your hledger web interface.
 
 Errata:
 
-- the binaries have no stylesheet for the web interface unless you [copy it](http://joyful.com/repos/hledger/data/web/style.css) to `./data/web/style.css`
+- these binaries lack support files for the web interface, you must [copy them](http://joyful.com/repos/hledger/data/web/static/) to `./data/web/static/`
