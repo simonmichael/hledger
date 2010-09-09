@@ -691,18 +691,6 @@ showreleasechanges:
 ######################################################################
 # MISCELLANEOUS
 
-#LOCAL
-
-# deploy latest build at demo.hledger.org
-deploy:
-	ssh -t simon@joyful.com make -C /repos/hledger deploy
-
-# autobuild web ui showing my personal journal
-autowebmine:
-	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger.hs $(BUILDFLAGS) -DWEB --run web -B -f ~/personal/2010.journal
-
-#
-
 tag: emacstags
 
 emacstags:
