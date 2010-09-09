@@ -14,12 +14,6 @@ import Hledger.Data.Types
 import Hledger.Data.Dates
 import Codec.Binary.UTF8.String (decodeString)
 
-#ifdef CHART
-chartoutput   = "hledger.png"
-chartitems    = 10
-chartsize     = "600x400"
-#endif
-
 help1 =
   "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
   "       hledger [OPTIONS] convert CSVFILE\n" ++
@@ -35,24 +29,6 @@ help1 =
   "  print     - show transactions in journal format\n" ++
   "  register  - show transactions as a register with running balance\n" ++
   "  stats     - show various statistics for a journal\n" ++
-  "  vty       - run a simple curses-style UI" ++
-#ifdef VTY
-  "\n" ++
-#else
-  " (DISABLED, install with -fvty)\n" ++
-#endif
-  "  web       - run a simple web-based UI" ++
-#if defined(WEB)
-  "\n" ++
-#else
-  " (DISABLED, install with -fweb)\n" ++
-#endif
-  "  chart     - generate balances pie charts" ++
-#ifdef CHART
-  "\n" ++
-#else
-  " (DISABLED, install with -fchart)\n" ++
-#endif
   "  test      - run self-tests\n" ++
   "\n" ++
   "PATTERNS are regular expressions which filter by account name.\n" ++
@@ -92,18 +68,6 @@ options = [
  ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
  ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
  ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register, stats: report by year"
-#ifdef CHART
- ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    ("chart: output filename (default: "++chartoutput++")")
- ,Option ""  ["items"]  (ReqArg ChartItems "N")         ("chart: number of accounts to show (default: "++show chartitems++")")
- ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") ("chart: image size (default: "++chartsize++")")
-#endif
-#ifdef VTY
- ,Option ""  ["debug-vty"]    (NoArg  DebugVty)      "vty: run with no terminal output, showing console"
-#endif
-#ifdef WEB
- ,Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "web: use this base url (default http://localhost:PORT)"
- ,Option ""  ["port"]         (ReqArg Port "N")      "web: serve on tcp port N (default 5000)"
-#endif
  ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
  ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option ""  ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
@@ -147,11 +111,6 @@ data Opt =
     | BinaryFilename
     | Debug
     | DebugVty
-#ifdef CHART
-    | ChartOutput {value::String}
-    | ChartItems  {value::String}
-    | ChartSize   {value::String}
-#endif
     deriving (Show,Eq)
 
 -- these make me nervous

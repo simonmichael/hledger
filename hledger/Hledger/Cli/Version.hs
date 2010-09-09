@@ -10,7 +10,7 @@ import System.Info (os, arch)
 import Hledger.Data.Utils
 
 -- version and PATCHLEVEL are set by the makefile
-version       = "0.12.1"
+version       = "0.12.98"
 
 #ifdef PATCHLEVEL
 patchlevel = "." ++ show PATCHLEVEL -- must be numeric !
@@ -63,13 +63,4 @@ versionmsg    = progname ++ "-" ++ versionstr ++ configmsg :: String
               | otherwise = " with " ++ intercalate ", " configflags
 
 configflags   = tail [""
-#ifdef CHART
-  ,"chart"
-#endif
-#ifdef VTY
-  ,"vty"
-#endif
-#if defined(WEB)
-  ,"web"
-#endif
  ]

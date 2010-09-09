@@ -15,7 +15,7 @@ documentation in the source, run by doing @make doctest@ in the hledger
 source tree. They hardly used, but here is an example:
 
 @
-$ hledger -f data/sample.journal balance o
+$ hledger -f hledger/data/sample.journal balance o
                   $1  expenses:food
                  $-2  income
                  $-1    gifts

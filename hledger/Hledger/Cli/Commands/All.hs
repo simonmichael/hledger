@@ -15,15 +15,6 @@ module Hledger.Cli.Commands.All (
                      module Hledger.Cli.Commands.Print,
                      module Hledger.Cli.Commands.Register,
                      module Hledger.Cli.Commands.Stats,
-#ifdef CHART
-                     module Hledger.Cli.Commands.Chart,
-#endif
-#ifdef VTY
-                     module Hledger.Cli.Commands.Vty,
-#endif
-#if defined(WEB)
-                     module Hledger.Cli.Commands.Web,
-#endif
                      tests_Hledger_Commands
               )
 where
@@ -34,15 +25,6 @@ import Hledger.Cli.Commands.Histogram
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Stats
-#ifdef CHART
-import Hledger.Cli.Commands.Chart
-#endif
-#ifdef VTY
-import Hledger.Cli.Commands.Vty
-#endif
-#if defined(WEB)
-import Hledger.Cli.Commands.Web
-#endif
 import Test.HUnit (Test(TestList))
 
 
@@ -56,12 +38,3 @@ tests_Hledger_Commands = TestList
     ,Hledger.Cli.Commands.Register.tests_Register
 --     ,Hledger.Cli.Commands.Stats.tests_Stats
     ]
--- #ifdef CHART
---     ,Hledger.Cli.Commands.Chart.tests_Chart
--- #endif
--- #ifdef VTY
---     ,Hledger.Cli.Commands.Vty.tests_Vty
--- #endif
--- #if defined(WEB)
---     ,Hledger.Cli.Commands.Web.tests_Web
--- #endif

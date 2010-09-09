@@ -4,7 +4,7 @@ A simple text UI for hledger, based on the vty library.
 
 -}
 
-module Hledger.Cli.Commands.Vty
+module Hledger.Vty
 where
 import Safe (headDef)
 import Graphics.Vty

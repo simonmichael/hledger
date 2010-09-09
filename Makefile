@@ -3,17 +3,6 @@
 # ghc 6.12 executables need a locale
 export LANG=en_US.UTF-8
 
-# optional features described in MANUAL, comment out if you don't have the libs
-OPTFLAGS=-DWEB -DVTY -DCHART
-OPTFLAGS=-DWEB -DVTY
-#OPTFLAGS=-DWEB
-#OPTFLAGS=
-
-# command to run during "make ci"
-CICMD=web --debug -f ~/personal/current.journal # -f data/sample.journal
-CICMD=test
-#CICMD=-f t.journal print
-
 # command line to run during "make prof" and "make heap"
 PROFCMD=bin/hledgerp -f data/1000x1000x10.journal balance >/dev/null
 
@@ -23,34 +12,38 @@ COVCMD=test
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
-BENCHEXES=hledger-0.9 hledger-0.10-1 hledgeropt ledger
+BENCHEXES=hledger-0.9 hledger-0.10-1 hledger-0.11 hledger-0.12.1 hledgeropt ledger
 #BENCHEXES=hledger
 
 # misc. tools
-RST2PDF=rst2pdf
 #VIEWHTML=open -a 'Google Chrome'
 VIEWHTML=google-chrome
-VIEWPS=open
-VIEWPDF=open
+VIEWPS=google-chrome
+VIEWPDF=google-chrome
 PRINT=lpr
 
-MAIN=hledger.hs
+MAIN=hledger/hledger.hs
 SOURCEFILES:= \
 	$(MAIN) \
-	[A-Z]*hs \
-	Hledger/Cli/*hs \
-	Hledger/Cli/Commands/*hs \
-	hledger-lib/*hs \
+	hledger/*hs \
+	hledger/Hledger/Cli/*hs \
+	hledger/Hledger/Cli/Commands/*hs \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/Data/*hs \
-	hledger-lib/Hledger/Read/*hs
-DOCFILES:=README README2 MANUAL NEWS CONTRIBUTORS SCREENSHOTS
-BINARYFILENAME=$(shell touch Hledger/Cli/Version.hs; runhaskell ./hledger.hs --binary-filename)
+	hledger-lib/Hledger/Read/*hs \
+	hledger-*/*hs \
+	hledger-*/Hledger/*hs
+VERSIONHS=hledger/Hledger/Cli/Version.hs
+CABALFILES:= \
+	hledger/hledger.cabal \
+	hledger-*/*.cabal
+# DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
+BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell $(MAIN) --binary-filename)
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
-DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(OPTFLAGS)
+DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL)
 PREFERMACUSRLIBFLAGS=-L/usr/lib
-BUILDFLAGS:=$(PREFERMACUSRLIBFLAGS) $(DEFINEFLAGS) $(WARNINGS) -ihledger-lib
+BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS) $(PREFERMACUSRLIBFLAGS) -ihledger-lib
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 # file defining the current release version
@@ -65,23 +58,100 @@ VERSION3:=$(VERSION)
 endif
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
-	hledger.cabal \
-	Hledger/Cli/Version.hs \
-	hledger-lib/hledger-lib.cabal \
+	$(VERSIONHS) \
 	MANUAL.markdown \
 	DOWNLOAD.markdown \
+	$(CABALFILES) \
 
 default: tag hledger
 
 ######################################################################
 # BUILDING
 
-# fetch dependencies, build and install the standard cabal binary
-hledgercabal:
-	cd hledger-lib; cabal install
-	cabal install -fweb # -fvty
+PACKAGES=\
+	hledger-lib \
+	hledger \
+	hledger-web \
+	hledger-vty \
+#	hledger-chart \
 
-# build the standard developer's binary, quickly
+# set version numbers, fetch dependencies, build and install standard binaries
+# and libs from all hledger packages. A good thing to run first; the other
+# allcabal rules require hledger-VERSION and hledger-lib-VERSION installed.
+# You may want to change the version number in VERSION file first.
+install: setversion allcabalinstall
+
+# set version numbers and configure all hledger packages
+configure: setversion allcabalconfigure
+
+# set version numbers and build all hledger packages
+build: setversion allcabalbuild
+
+# set version numbers and cabal test all hledger packages
+cabaltest: setversion allcabaltest
+
+# run a cabal command in all hledger package dirs
+allcabal%:
+	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*); done
+
+# run a command in all hledger package dirs
+all%:
+	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
+
+# fix permissions (eg after darcs get)
+fixperms:
+	chmod +x $(MAIN) tools/*
+
+# build the standalone unit test runner. Requires test-framework, which
+# may not work on windows.
+tools/unittest: tools/unittest.hs
+	ghc --make -threaded -O2 tools/unittest.hs
+
+# build the doctest runner
+tools/doctest: tools/doctest.hs
+	ghc --make tools/doctest.hs
+
+# build the simple benchmark runner. Requires tabular.
+tools/simplebench: tools/simplebench.hs
+	ghc --make tools/simplebench.hs
+
+# build the criterion-based benchmark runner. Requires criterion.
+tools/criterionbench: tools/criterionbench.hs
+	ghc --make tools/criterionbench.hs
+
+# build the progression-based benchmark runner. Requires progression.
+tools/progressionbench: tools/progressionbench.hs
+	ghc --make tools/progressionbench.hs
+
+# build the generatejournal tool
+tools/generatejournal: tools/generatejournal.hs
+	ghc --make tools/generatejournal.hs
+
+######################################################################
+# TESTING
+
+
+######################################################################
+# DOCUMENTATION
+
+
+######################################################################
+# RELEASING
+
+
+######################################################################
+# MISCELLANEOUS
+
+
+
+######################################################################
+# OLD PRE PKG SPLIT
+######################################################################
+
+######################################################################
+# BUILDING
+
+# build a developer's binary, as quickly as possible
 hledger: setversion
 	ghc --make hledger.hs -o bin/hledger $(BUILDFLAGS) # -O
 
@@ -114,46 +184,9 @@ hledgermac: setversion
 	@echo Please check the build looks portable:
 	otool -L bin/$(BINARYFILENAME)
 
-# build a deployable binary for windows, assuming cygwin tools are present
-hledgerwin: setversion hledgercabal
+# build deployable binaries for windows, assuming cygwin tools are present
+hledgerwin: install
 	cp ~/.cabal/bin/hledger.exe bin/`echo $(BINARYFILENAME) | dos2unix`
-
-# auto-recompile and run (with the specified argument) whenever a module changes.
-# sp is from searchpath.org, you might need the patched version from
-# http://joyful.com/repos/searchpath.
-auto-%: setversion
-	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger.hs $(BUILDFLAGS) --run $*
-
-autobuild auto: auto-test
-
-# fix permissions (eg after darcs get)
-fixperms:
-	chmod +x hledger.hs tools/*
-
-# build the standalone unit test runner. Requires test-framework, which
-# may not work on windows.
-tools/unittest: tools/unittest.hs
-	ghc --make -threaded -O2 tools/unittest.hs
-
-# build the doctest runner
-tools/doctest: tools/doctest.hs
-	ghc --make tools/doctest.hs
-
-# build the simple benchmark runner. Requires tabular.
-tools/simplebench: tools/simplebench.hs
-	ghc --make tools/simplebench.hs
-
-# build the criterion-based benchmark runner. Requires criterion.
-tools/criterionbench: tools/criterionbench.hs
-	ghc --make tools/criterionbench.hs
-
-# build the progression-based benchmark runner. Requires progression.
-tools/progressionbench: tools/progressionbench.hs
-	ghc --make tools/progressionbench.hs
-
-# build the generatejournal tool
-tools/generatejournal: tools/generatejournal.hs
-	ghc --make tools/generatejournal.hs
 
 ######################################################################
 # TESTING
@@ -197,10 +230,11 @@ functest: hledger
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run doc tests
-doctest: tools/doctest hledger
-	@(tools/doctest Hledger/Cli/Commands/Add.hs \
-		&& tools/doctest Hledger/Cli/Tests.hs \
-		&& echo $@ PASSED) || echo $@ FAILED
+DOCTESTFILES=\
+	hledger/Hledger/Cli/Tests.hs
+doctest: tools/doctest
+	@for f in $(DOCTESTFILES); do \
+		(tools/doctest $$f && echo $@ PASSED) || echo $@ FAILED ; done
 
 # make sure we have no haddock errors
 haddocktest:
@@ -222,7 +256,7 @@ quickcabaltest: setversion
 	&& cd .. \
 	&& cabal clean \
 	&& cabal check \
-	&& cabal configure -fvty -fweb \
+	&& cabal configure \
 	&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure cabal is happy in all possible ways
@@ -236,7 +270,7 @@ fullcabaltest: setversion
 	&& cd .. \
 	&& cabal clean \
 	&& cabal check \
-	&& cabal configure -fvty -fweb \
+	&& cabal configure \
 	&& cabal build \
 	&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
 	&& cabal sdist \
@@ -305,7 +339,7 @@ coverage: samplejournals hledgercov
 
 # get a debug prompt
 ghci:
-	ghci -DMAKE $(OPTFLAGS) hledger.hs
+	ghci hledger/hledger.hs
 
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/10000x1000x10.journal data/100000x1000x10.journal
@@ -380,9 +414,8 @@ commithook: site
 pdf: docspdf codepdf
 
 # generate pdf versions of main docs
-# work around rst2pdf needing images in the same directory
-docspdf:
-	-for d in $(DOCFILES); do (cd site && ln -sf ../$$d && $(RST2PDF) $$d && rm -f $$d); done
+# docspdf:
+# 	-for d in $(DOCFILES); do (cd site && ln -sf ../$$d && pandoc $$d -w pdf && rm -f $$d); done
 
 # format all code as a pdf for offline reading
 ENSCRIPT=enscript -q --header='$$n|$$D{%+}|Page $$% of $$=' --line-numbers --font=Courier6 --color -o-
@@ -534,15 +567,33 @@ setandrecordversion: setversion
 # update the version string in local files. Triggered by "make".
 setversion: $(VERSIONSENSITIVEFILES)
 
-Hledger/Cli/Version.hs: $(VERSIONFILE)
-	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
+Setversion:
+	touch $(VERSIONFILE); make setversion
 
-hledger.cabal: $(VERSIONFILE)
-	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^ *hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+hledger/Hledger/Cli/Version.hs: $(VERSIONFILE)
+	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
 
 hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+
+hledger.cabal: $(VERSIONFILE)
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+
+hledger-chart/hledger-chart.cabal: $(VERSIONFILE)
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+
+hledger-vty/hledger-vty.cabal: $(VERSIONFILE)
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+
+hledger-web/hledger-web.cabal: $(VERSIONFILE)
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
 
 MANUAL.markdown: $(VERSIONFILE)
 	perl -p -e "s/(^This is the official.*?version) +[0-9.]+/\1 $(VERSION3)./" -i $@
@@ -655,7 +706,7 @@ autowebmine:
 tag: emacstags
 
 emacstags:
-	-@rm -f TAGS; hasktags -e $(SOURCEFILES) hledger.cabal Makefile
+	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(CABALFILES) Makefile
 
 clean:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*"`

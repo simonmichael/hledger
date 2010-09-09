@@ -39,9 +39,7 @@ See "Hledger.Data.Ledger" for more examples.
 -}
 
 module Hledger.Cli.Main where
-#if defined(WEB)
-import System.Info (os)
-#endif
+
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8
@@ -73,22 +71,7 @@ main = do
        | cmd `isPrefixOf` "histogram" = withJournalDo opts args cmd histogram
        | cmd `isPrefixOf` "add"       = withJournalDo opts args cmd add
        | cmd `isPrefixOf` "stats"     = withJournalDo opts args cmd stats
-#ifdef VTY
-       | cmd `isPrefixOf` "vty"       = withJournalDo opts args cmd vty
-#endif
-#if defined(WEB)
-       | cmd `isPrefixOf` "web"       = withJournalDo opts args cmd web
-#endif
-#ifdef CHART
-       | cmd `isPrefixOf` "chart"       = withJournalDo opts args cmd chart
-#endif
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr help1
 
--- in a web-enabled build on windows, run the web ui by default
-#if defined(WEB)
-      defaultcmd | os=="mingw32" = Just web
-                 | otherwise = Nothing
-#else
       defaultcmd = Nothing
-#endif

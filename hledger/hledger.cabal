@@ -1,15 +1,15 @@
 name:           hledger
-version: 0.12.1
+version: 0.12.98
 category:       Finance
-synopsis:       A command-line (or curses or web-based) double-entry accounting tool.
+synopsis:       A command-line double-entry accounting tool.
 description:
                 hledger reads a plain text general journal or time log
                 describing your transactions and displays precise
-                balance and register reports via command-line, curses
-                or web interface.  It is a remix, in haskell, of John
-                Wiegley's excellent c++ ledger.  hledger aims to be a
-                practical, accessible tool for end users and a useful
-                library for finance-minded haskell programmers.
+                balance and register reports on the console.
+                It is a remix, in haskell, of John Wiegley's excellent c++
+                ledger.  hledger aims to be a practical, accessible tool
+                for end users and a useful library for finance-minded
+                haskell programmers.
 
 license:        GPL
 license-file:   LICENSE
@@ -21,41 +21,18 @@ stability:      beta
 tested-with:    GHC==6.10, GHC==6.12
 cabal-version:  >= 1.6
 build-type:     Custom
-data-dir:       data
+data-dir:
 data-files:
-                web/static/style.css
-                web/static/hledger.js
-                web/static/jquery.js
-                web/static/jquery.url.js
-                web/static/dhtmlxcommon.js
-                web/static/dhtmlxcombo.js
-                web/static/images/combo_select.gif
 extra-tmp-files:
 extra-source-files:
-  README.rst
-  DEVELOPMENT.rst
-  MANUAL.markdown
-  NEWS.markdown
-  CONTRIBUTORS.rst
-  data/sample.journal
-  data/sample.timelog
-  data/sample.rules
 
-flag chart
-  description: enable simple balance pie chart generation
-  default:     False
-
-flag vty
-  description: enable the curses-style ui
-  default:     False
-
-flag web
-  description: enable the web ui (using yesod/hamlet/simpleserver, requires ghc 6.12)
-  default:     False
+source-repository head
+  type:     darcs
+  location: http://joyful.com/repos/hledger
 
 executable hledger
   main-is:        hledger.hs
-  -- should set patchlevel here as in Makefile
+  -- XXX set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
   ghc-options:    -threaded -W
   other-modules:
@@ -73,7 +50,7 @@ executable hledger
                   Hledger.Cli.Commands.Register
                   Hledger.Cli.Commands.Stats
   build-depends:
-                  hledger-lib == 0.12.1
+                  hledger-lib == 0.12.98
                  ,HUnit
                  ,base >= 3 && < 5
                  ,containers
@@ -91,33 +68,7 @@ executable hledger
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
 
-  if flag(chart)
-    cpp-options: -DCHART
-    other-modules:Hledger.Cli.Commands.Chart
-    build-depends:
-                  Chart >= 0.11
-                 ,colour
-                 ,gtk2hs-buildtools
-
-  if flag(vty)
-    cpp-options: -DVTY
-    other-modules:Hledger.Cli.Commands.Vty
-    build-depends:
-                  vty >= 4.0.0.1
-
-  if flag(web)
-    cpp-options: -DWEB
-    other-modules:Hledger.Cli.Commands.Web
-    build-depends:
-                  io-storage >= 0.3 && < 0.4
-                 ,yesod >= 0.5.0.3 && < 0.6
-                 ,hamlet == 0.5.*
-                 ,convertible-text >= 0.3.0.1 && < 0.4
-                 ,data-object >= 0.3.1.2 && < 0.4
-                 ,failure >= 0.1 && < 0.2
-
--- modules and dependencies below should be as above, except
--- chart, vty, web etc. are not presently exposed as library functions
+-- modules and dependencies below should be as above
 library
   -- should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
@@ -137,7 +88,7 @@ library
                   Hledger.Cli.Commands.Register
                   Hledger.Cli.Commands.Stats
   build-depends:
-                  hledger-lib == 0.12.1
+                  hledger-lib == 0.12.98
                  ,HUnit
                  ,base >= 3 && < 5
                  ,containers
@@ -154,13 +105,3 @@ library
                  ,split == 0.1.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
-
-source-repository head
-  type:     darcs
-  location: http://joyful.com/repos/hledger
-
--- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
-
--- Additional dependencies:
--- required for make test: test-framework, test-framework-hunit
--- required for make bench: tabular-0.1

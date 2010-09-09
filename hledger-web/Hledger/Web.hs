@@ -4,7 +4,7 @@
 A web-based UI.
 -}
 
-module Hledger.Cli.Commands.Web
+module Hledger.Web
 where
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Applicative ((<$>), (<*>))
@@ -29,9 +29,9 @@ import Hledger.Data hiding (today)
 import Hledger.Read (journalFromPathAndString)
 import Hledger.Read.Journal (someamount)
 #ifdef MAKE
-import Paths_hledger_make (getDataFileName)
+import Paths_hledger_web_make (getDataFileName)
 #else
-import Paths_hledger (getDataFileName)
+import Paths_hledger_web (getDataFileName)
 #endif
 
 
@@ -114,7 +114,7 @@ browser baseurl = do
 server :: String -> Int -> [Opt] -> [String] -> Journal -> IO ()
 server baseurl port opts args j = do
     printf "starting web server on port %d with base url %s\n" port baseurl
-    dir <- getDataFileName "web"
+    dir <- getDataFileName ""
     let app = HledgerWebApp{
                appRoot=baseurl
               ,appDir=dir
