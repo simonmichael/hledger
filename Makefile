@@ -63,7 +63,7 @@ VERSIONSENSITIVEFILES=\
 	DOWNLOAD.markdown \
 	$(CABALFILES) \
 
-default: tag hledger
+default: tag install
 
 ######################################################################
 # BUILDING
@@ -98,9 +98,15 @@ allcabal%:
 all%:
 	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
 
-# fix permissions (eg after darcs get)
-fixperms:
-	chmod +x $(MAIN) tools/*
+# auto-recompile and run (hledger test) whenever a module changes.
+# sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
+autotest: setversion
+	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger/hledger.hs -ihledger $(BUILDFLAGS) --run test
+
+# auto-recompile and run (hledger-web) whenever a module changes.
+# sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
+autoweb: setversion
+	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/Main.hs -ihledger-web -ihledger $(BUILDFLAGS) --run
 
 # build the standalone unit test runner. Requires test-framework, which
 # may not work on windows.
@@ -690,6 +696,10 @@ showreleasechanges:
 
 ######################################################################
 # MISCELLANEOUS
+
+# fix permissions (eg after darcs get)
+fixperms:
+	chmod +x tools/* $(MAIN) hledger-*/Main.hs
 
 tag: emacstags
 
