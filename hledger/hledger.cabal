@@ -21,8 +21,8 @@ stability:      beta
 tested-with:    GHC==6.10, GHC==6.12
 cabal-version:  >= 1.6
 build-type:     Custom
-data-dir:
-data-files:
+-- data-dir:       data
+-- data-files:
 extra-tmp-files:
 extra-source-files:
 
