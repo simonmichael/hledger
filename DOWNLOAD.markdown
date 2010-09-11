@@ -66,4 +66,4 @@ may access your hledger web interface.
 
 Errata:
 
-- these binaries lack support files for the web interface, you must [copy them](http://joyful.com/repos/hledger/data/web/static/) to `./data/web/static/`
+- these binaries lack support files for the web interface, you must copy [them](http://joyful.com/repos/hledger/hledger-web/data/static/) to `./data/web/static/`
