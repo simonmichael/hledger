@@ -7,11 +7,11 @@ description:
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
-maintainer:     
+maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
-stability:      experimental
-tested-with:    GHC==6.10, GHC==6.12
+stability:      alpha
+tested-with:    GHC==6.12
 cabal-version:  >= 1.6
 build-type:     Simple
 data-dir:       data
@@ -22,7 +22,15 @@ data-files:
                 static/jquery.url.js
                 static/dhtmlxcommon.js
                 static/dhtmlxcombo.js
+                static/favicon.ico
                 static/images/combo_select.gif
+                templates/addform.hamlet
+                templates/addformpostingfields.hamlet
+                templates/default-layout.cassius
+                templates/default-layout.hamlet
+                templates/homepage.cassius
+                templates/homepage.hamlet
+                templates/homepage.julius
 extra-tmp-files:
 extra-source-files:
 
@@ -30,11 +38,18 @@ source-repository head
   type:     darcs
   location: http://joyful.com/repos/hledger
 
+Flag production
+    Description:   Build in production mode, which reads templates only once at startup.
+    Default:       False
+
 executable hledger-web
   main-is:        Main.hs
   ghc-options:    -threaded -W
+  if flag(production)
+      cpp-options:   -DPRODUCTION
   other-modules:
-                  Hledger.Web
+                  Hledger.Web.App
+                  Hledger.Web.Settings
   build-depends:
                   hledger == 0.12.98
                  ,hledger-lib == 0.12.98
@@ -60,3 +75,7 @@ executable hledger-web
                  ,convertible-text >= 0.3.0.1 && < 0.4
                  ,data-object >= 0.3.1.2 && < 0.4
                  ,failure >= 0.1 && < 0.2
+                 ,persistent == 0.2.*
+                 ,persistent-sqlite == 0.2.*
+                 ,template-haskell == 2.4.*
+                 ,wai-extra == 0.2.*
