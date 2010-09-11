@@ -2,7 +2,7 @@ name:           hledger-chart
 version: 0.13
 category:       Finance
 synopsis:       A hledger add-on command to generate pie charts.
-description:    This generates rudimentary pie charts of account balances.
+description:    This generates simple pie chart images showing relative account balances.
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
