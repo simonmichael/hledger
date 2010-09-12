@@ -23,7 +23,7 @@ data-files:
                 static/dhtmlxcommon.js
                 static/dhtmlxcombo.js
                 static/favicon.ico
-                static/images/combo_select.gif
+                static/combo_select.gif
                 templates/addform.hamlet
                 templates/addformpostingfields.hamlet
                 templates/default-layout.cassius
