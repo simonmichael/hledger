@@ -1,0 +1,12 @@
+%h1 Hello
+%h2#$h2id$ You do not have Javascript enabled.
+$maybe mu u
+    %p
+        You are logged in as $userIdent.snd.u$. $
+        %a!href=@AuthR.LogoutR@ Logout
+        \.
+$nothing
+    %p
+        You are not logged in. $
+        %a!href=@AuthR.LoginR@ Login now
+        \.
