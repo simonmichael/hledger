@@ -156,9 +156,9 @@ parse = parseJournalWith journalFile
 -- error-raising "JournalUpdate" which can be applied to an empty journal
 -- to get the final result.
 journalFile :: GenParser Char JournalContext JournalUpdate
-journalFile = do items <- many journalItem
+journalFile = do journalupdates <- many journalItem
                  eof
-                 return $ liftM (foldr (.) id) $ sequence items
+                 return $ juSequence journalupdates
     where 
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
@@ -174,6 +174,9 @@ journalFile = do items <- many journalItem
                           , ledgerEndTagDirective
                           , emptyLine >> return (return id)
                           ] <?> "journal transaction or directive"
+
+journalAddFilePath :: FilePath -> Journal -> Journal
+journalAddFilePath f j@Journal{allfilepaths=fs} = j{allfilepaths=fs++[f]}
 
 emptyLine :: GenParser Char st ()
 emptyLine = do many spacenonewline
@@ -217,7 +220,7 @@ ledgerInclude = do
               contents <- readFileOrError outerPos filepath
               let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
               case runParser journalFile outerState filepath contents of
-                Right ju -> ju `catchError` (throwError . (inIncluded ++))
+                Right ju -> juSequence [return $ journalAddFilePath filepath, ju] `catchError` (throwError . (inIncluded ++))
                 Left err -> throwError $ inIncluded ++ show err
       where readFileOrError pos fp =
                 ErrorT $ liftM Right (readFile fp) `catch`

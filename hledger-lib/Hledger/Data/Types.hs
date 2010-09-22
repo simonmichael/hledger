@@ -129,6 +129,7 @@ data Journal = Journal {
       historical_prices :: [HistoricalPrice],
       final_comment_lines :: String, -- ^ any trailing comments from the journal file
       filepath :: FilePath,      -- ^ file path of this journal
+      allfilepaths :: [FilePath], -- ^ file paths of this and any included journals
       filereadtime :: ClockTime, -- ^ when this journal was read from its file
       jtext :: String            -- ^ the raw text read from the journal's file
     } deriving (Eq, Typeable)

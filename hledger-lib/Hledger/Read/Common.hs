@@ -28,6 +28,9 @@ data Reader = Reader {rFormat   :: String
 -- or raise an error.
 type JournalUpdate = ErrorT String IO (Journal -> Journal)
 
+juSequence :: [JournalUpdate] -> JournalUpdate
+juSequence us = liftM (foldr (.) id) $ sequence us
+
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
 parseJournalWith :: (GenParser Char JournalContext JournalUpdate) -> FilePath -> String -> ErrorT String IO Journal

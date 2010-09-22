@@ -41,6 +41,7 @@ nulljournal = Journal { jmodifiertxns = []
                       , historical_prices = []
                       , final_comment_lines = []
                       , filepath = ""
+                      , allfilepaths = []
                       , filereadtime = TOD 0 0
                       , jtext = ""
                       }
@@ -216,7 +217,7 @@ journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> Journal -> Jo
 journalFinalise tclock tlocal path txt j = journalCanonicaliseAmounts $
                                            journalApplyHistoricalPrices $
                                            journalCloseTimeLogEntries tlocal
-                                             j{filepath=path, filereadtime=tclock, jtext=txt}
+                                             j{filepath=path, allfilepaths=path:(allfilepaths j), filereadtime=tclock, jtext=txt}
 
 -- | Convert all the journal's amounts to their canonical display
 -- settings.  Ie, all amounts in a given commodity will use (a) the
