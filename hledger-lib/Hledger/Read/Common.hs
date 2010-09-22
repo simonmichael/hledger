@@ -69,9 +69,9 @@ getParentAccount :: GenParser tok JournalContext String
 getParentAccount = liftM (concat . reverse . ctxAccount) getState
 
 expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
-expandPath pos fp = liftM mkRelative (expandHome fp)
+expandPath pos fp = liftM mkAbsolute (expandHome fp)
   where
-    mkRelative = combine (takeDirectory (sourceName pos))
+    mkAbsolute = combine (takeDirectory (sourceName pos))
     expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
                                                       return $ homedir ++ drop 1 inname
                       | otherwise                = return inname

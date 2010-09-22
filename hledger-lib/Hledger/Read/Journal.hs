@@ -123,7 +123,6 @@ import Text.ParserCombinators.Parsec hiding (parse)
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
 #endif
-import System.FilePath
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
@@ -209,19 +208,20 @@ ledgerExclamationDirective = do
     _         -> mzero
 
 ledgerInclude :: GenParser Char JournalContext JournalUpdate
-ledgerInclude = do many1 spacenonewline
-                   filename <- restofline
-                   outerState <- getState
-                   outerPos <- getPosition
-                   let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-                   return $ do contents <- expandPath outerPos filename >>= readFileE outerPos
-                               case runParser journalFile outerState (combine ((takeDirectory . sourceName) outerPos) filename) contents of
-                                 Right l   -> l `catchError` (throwError . (inIncluded ++))
-                                 Left perr -> throwError $ inIncluded ++ show perr
-    where readFileE outerPos filename = ErrorT $ liftM Right (readFile filename) `catch` leftError
-              where leftError err = return $ Left $ currentPos ++ whileReading ++ show err
-                    currentPos = show outerPos
-                    whileReading = " reading " ++ show filename ++ ":\n"
+ledgerInclude = do
+  many1 spacenonewline
+  filename <- restofline
+  outerState <- getState
+  outerPos <- getPosition
+  return $ do filepath <- expandPath outerPos filename
+              contents <- readFileOrError outerPos filepath
+              let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
+              case runParser journalFile outerState filepath contents of
+                Right ju -> ju `catchError` (throwError . (inIncluded ++))
+                Left err -> throwError $ inIncluded ++ show err
+      where readFileOrError pos fp =
+                ErrorT $ liftM Right (readFile fp) `catch`
+                  \err -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show err)
 
 ledgerAccountBegin :: GenParser Char JournalContext JournalUpdate
 ledgerAccountBegin = do many1 spacenonewline
