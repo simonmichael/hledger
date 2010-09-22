@@ -68,6 +68,8 @@ popParentAccount = do ctx0 <- getState
 getParentAccount :: GenParser tok JournalContext String
 getParentAccount = liftM (concat . reverse . ctxAccount) getState
 
+-- | Convert a possibly relative, possibly tilde-containing file path to an absolute one.
+-- using the current directory from a parsec source position. ~username is not supported.
 expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
 expandPath pos fp = liftM mkAbsolute (expandHome fp)
   where

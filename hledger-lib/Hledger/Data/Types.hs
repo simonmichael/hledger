@@ -127,10 +127,10 @@ data Journal = Journal {
       jtxns :: [Transaction],
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
-      final_comment_lines :: String,
-      filepath :: FilePath,
-      filereadtime :: ClockTime,
-      jtext :: String
+      final_comment_lines :: String, -- ^ any trailing comments from the journal file
+      filepath :: FilePath,      -- ^ file path of this journal
+      filereadtime :: ClockTime, -- ^ when this journal was read from its file
+      jtext :: String            -- ^ the raw text read from the journal's file
     } deriving (Eq, Typeable)
 
 data Ledger = Ledger {

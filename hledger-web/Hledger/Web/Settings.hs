@@ -87,8 +87,9 @@ staticdir = datadir ++ "/static"
 templatesdir :: FilePath
 templatesdir = datadir ++ "/templates"
 
--- The following are compile-time macros. In production mode, the template
--- is read only once at startup, otherwise every time.
+-- The following are compile-time macros. If the file paths they point to
+-- don't exist, they will give an error (at compile time). In production
+-- mode, files are read once at compile time, otherwise repeatedly at runtime.
 
 hamletFile :: FilePath -> Q Exp
 #ifdef PRODUCTION
