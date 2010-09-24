@@ -40,11 +40,9 @@ SOURCEFILES:= \
 	hledger/*hs \
 	hledger/Hledger/Cli/*hs \
 	hledger/Hledger/Cli/Commands/*hs \
-	hledger-lib/Hledger/*hs \
-	hledger-lib/Hledger/Data/*hs \
-	hledger-lib/Hledger/Read/*hs \
 	hledger-*/*hs \
-	hledger-*/Hledger/*hs
+	hledger-*/Hledger/*hs \
+	hledger-*/Hledger/*/*hs
 VERSIONHS=hledger/Hledger/Cli/Version.hs
 CABALFILES:= \
 	hledger/hledger.cabal \
