@@ -107,6 +107,7 @@ module Hledger.Read.Journal (
        tests_Journal,
        reader,
        journalFile,
+       journalAddFile,
        someamount,
        ledgeraccountname,
        ledgerExclamationDirective,
@@ -150,7 +151,9 @@ detect f _ = fileSuffix f == format
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: FilePath -> String -> ErrorT String IO Journal
-parse = parseJournalWith journalFile
+parse = do
+  j <- parseJournalWith journalFile
+  return j
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" which can be applied to an empty journal
@@ -176,8 +179,8 @@ journalFile = do journalupdates <- many journalItem
                           , emptyLine >> return (return id)
                           ] <?> "journal transaction or directive"
 
-journalAddFilePath :: FilePath -> Journal -> Journal
-journalAddFilePath f j@Journal{allfilepaths=fs} = j{allfilepaths=fs++[f]}
+journalAddFile :: (FilePath,String) -> Journal -> Journal
+journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
 
 emptyLine :: GenParser Char JournalContext ()
 emptyLine = do many spacenonewline
@@ -218,10 +221,10 @@ ledgerInclude = do
   outerState <- getState
   outerPos <- getPosition
   return $ do filepath <- expandPath outerPos filename
-              contents <- readFileOrError outerPos filepath
+              txt <- readFileOrError outerPos filepath
               let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-              case runParser journalFile outerState filepath contents of
-                Right ju -> juSequence [return $ journalAddFilePath filepath, ju] `catchError` (throwError . (inIncluded ++))
+              case runParser journalFile outerState filepath txt of
+                Right ju -> juSequence [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
                 Left err -> throwError $ inIncluded ++ show err
       where readFileOrError pos fp =
                 ErrorT $ liftM Right (readFile fp) `catch`

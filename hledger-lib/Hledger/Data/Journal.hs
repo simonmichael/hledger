@@ -10,6 +10,7 @@ module Hledger.Data.Journal
 where
 import qualified Data.Map as Map
 import Data.Map (findWithDefault, (!))
+import Safe (headDef)
 import System.Time (ClockTime(TOD))
 import Hledger.Data.Utils
 import Hledger.Data.Types
@@ -24,7 +25,7 @@ import Hledger.Data.TimeLog
 
 instance Show Journal where
     show j = printf "Journal %s with %d transactions, %d accounts: %s"
-             (filepath j)
+             (journalFilePath j)
              (length (jtxns j) +
               length (jmodifiertxns j) +
               length (jperiodictxns j))
@@ -40,10 +41,8 @@ nulljournal = Journal { jmodifiertxns = []
                       , open_timelog_entries = []
                       , historical_prices = []
                       , final_comment_lines = []
-                      , filepath = ""
-                      , allfilepaths = []
+                      , files = []
                       , filereadtime = TOD 0 0
-                      , jtext = ""
                       }
 
 nullfilterspec = FilterSpec {
@@ -57,6 +56,15 @@ nullfilterspec = FilterSpec {
     ,whichdate=ActualDate
     ,depth=Nothing
     }
+
+journalFilePath :: Journal -> FilePath
+journalFilePath = fst . mainfile
+
+journalFilePaths :: Journal -> [FilePath]
+journalFilePaths = map fst . files
+
+mainfile :: Journal -> (FilePath, String)
+mainfile = headDef ("", "") . files
 
 addTransaction :: Transaction -> Journal -> Journal
 addTransaction t l0 = l0 { jtxns = t : jtxns l0 }
@@ -214,10 +222,11 @@ journalSelectingDate EffectiveDate j =
 
 -- | Do post-parse processing on a journal, to make it ready for use.
 journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> Journal -> Journal
-journalFinalise tclock tlocal path txt j = journalCanonicaliseAmounts $
-                                           journalApplyHistoricalPrices $
-                                           journalCloseTimeLogEntries tlocal
-                                             j{filepath=path, allfilepaths=path:(allfilepaths j), filereadtime=tclock, jtext=txt}
+journalFinalise tclock tlocal path txt j@Journal{files=fs} =
+    journalCanonicaliseAmounts $
+    journalApplyHistoricalPrices $
+    journalCloseTimeLogEntries tlocal
+    j{files=(path,txt):fs, filereadtime=tclock}
 
 -- | Convert all the journal's amounts to their canonical display
 -- settings.  Ie, all amounts in a given commodity will use (a) the

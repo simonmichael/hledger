@@ -26,7 +26,6 @@ module Test.HUnit,
 where
 import Data.Char
 import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
-import Control.Exception
 import Control.Monad
 import Data.List
 --import qualified Data.Map as Map
@@ -360,9 +359,6 @@ isLeft _        = False
 
 isRight :: Either a b -> Bool
 isRight = not . isLeft
-
-strictReadFile :: FilePath -> IO String
-strictReadFile f = readFile f >>= \s -> Control.Exception.evaluate (length s) >> return s
 
 -- -- | Expand ~ in a file path (does not handle ~name).
 -- tildeExpand :: FilePath -> IO FilePath

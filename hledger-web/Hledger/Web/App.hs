@@ -27,7 +27,7 @@ import Yesod.Helpers.Auth
 import Text.Hamlet (defaultHamletSettings)
 import Text.Hamlet.RT
 
-import Hledger.Cli.Commands.Add (journalAddTransaction)
+import Hledger.Cli.Commands.Add (appendToJournalFile)
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
@@ -339,7 +339,7 @@ navbar TD{p=p,j=j,today=today} = [$hamlet|
 journalTitleDesc :: Journal -> String -> Day -> (String, String)
 journalTitleDesc j p today = (title, desc)
   where
-    title = printf "%s" (takeFileName $ filepath j) :: String
+    title = printf "%s" (takeFileName $ journalFilePath j) :: String
     desc  = printf "%s" (showspan span) :: String
     span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
     showspan (DateSpan Nothing Nothing) = ""
@@ -503,7 +503,7 @@ getJournalR = do
       br = balanceReportAsHtml opts td $ balanceReport opts fspec j
       jr = journalReportAsHtml opts td $ journalReport opts fspec j
       td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
-      editform' = editform td $ jtext j
+      editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div.ledger
  %div.accounts!style=float:left;  ^br^
@@ -534,7 +534,7 @@ getRegisterR = do
       br = balanceReportAsHtml opts td $ balanceReport opts fspec j
       rr = registerReportAsHtml opts td $ registerReport opts fspec j
       td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
-      editform' = editform td $ jtext j
+      editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div.ledger
  %div.accounts!style=float:left;  ^br^
@@ -635,7 +635,7 @@ getJournalOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerData
   today <- liftIO getCurrentDay
   let td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
-      editform' = editform td $ jtext j
+      editform' = editform td
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div.journal
@@ -714,6 +714,8 @@ addform td = [$hamlet|
     %td!colspan=4
      %input!type=hidden!name=action!value=add
      %input!type=submit!name=submit!value="add transaction"
+     $if manyfiles
+      \ to: ^journalselect.files.j.td^
 |]
  where
   -- datehelplink = helplink "dates" "..."
@@ -721,6 +723,7 @@ addform td = [$hamlet|
   deschelp = "eg: supermarket (optional)"
   date = "today"
   descriptions = sort $ nub $ map tdescription $ jtxns $ j td
+  manyfiles = (length $ files $ j td) > 1
 
 postingsfields :: TemplateData -> Hamlet AppRoute
 postingsfields td = [$hamlet|
@@ -732,7 +735,7 @@ postingsfields td = [$hamlet|
     p2 = postingfields td 2
 
 postingfields :: TemplateData -> Int -> Hamlet AppRoute
-postingfields td n = [$hamlet|
+postingfields TD{j=j} n = [$hamlet|
  %tr#postingrow
   %td!align=right $acctlabel$:
   %td
@@ -753,7 +756,7 @@ postingfields td n = [$hamlet|
   numbered = (++ show n)
   acctvar = numbered "account"
   amtvar = numbered "amount"
-  acctnames = sort $ journalAccountNamesUsed $ j td
+  acctnames = sort $ journalAccountNamesUsed j
   (acctlabel, accthelp, amtfield, amthelp)
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
@@ -771,14 +774,19 @@ postingfields td n = [$hamlet|
                      ,""
                      )
 
-editform :: TemplateData -> String -> Hamlet AppRoute
-editform _ content = [$hamlet|
+editform :: TemplateData -> Hamlet AppRoute
+editform TD{j=j} = [$hamlet|
  %form#editform!method=POST!style=display:none;
   %table.form#editform
+   $if manyfiles
+    %tr
+     %td!colspan=2
+      Editing ^journalselect.files.j^
    %tr
     %td!colspan=2
-     %textarea!name=text!rows=30!cols=80
-      $content$
+     $forall files.j f
+      %textarea!id=$fst.f$_textarea!name=text!rows=25!cols=80!style=display:none;!disabled=disabled
+       $snd.f$
    %tr#addbuttonrow
     %td
      %span.help ^formathelp^
@@ -788,9 +796,17 @@ editform _ content = [$hamlet|
      %input!type=submit!name=submit!value="save journal"
      \ or $
      %a!href!onclick="return editformToggle()" cancel
-|]
+|] -- XXX textarea ids are unquoted journal file paths, which is not valid html
   where
+    manyfiles = (length $ files j) > 1
     formathelp = helplink "file-format" "file format help"
+
+journalselect :: [(FilePath,String)] -> Hamlet AppRoute
+journalselect journalfiles = [$hamlet|
+     %select!id=journalselect!name=journal!onchange="editformJournalSelect()"
+      $forall journalfiles f
+       %option!value=$fst.f$ $fst.f$
+|]
 
 importform :: Hamlet AppRoute
 importform = [$hamlet|
@@ -815,17 +831,18 @@ postJournalOnlyR = do
 -- | Handle a journal add form post.
 postAddForm :: Handler RepPlain
 postAddForm = do
-  (_, _, opts, _, _, _, _) <- getHandlerData
+  (_, _, _, _, j, _, _) <- getHandlerData
   today <- liftIO getCurrentDay
   -- get form input values. M means a Maybe value.
-  (dateM, descM, acct1M, amt1M, acct2M, amt2M) <- runFormPost'
-    $ (,,,,,)
+  (dateM, descM, acct1M, amt1M, acct2M, amt2M, journalM) <- runFormPost'
+    $ (,,,,,,)
     <$> maybeStringInput "date"
     <*> maybeStringInput "description"
     <*> maybeStringInput "account1"
     <*> maybeStringInput "amount1"
     <*> maybeStringInput "account2"
     <*> maybeStringInput "amount2"
+    <*> maybeStringInput "journal"
   -- supply defaults and parse date and amounts, or get errors.
   let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today) dateM
       descE = Right $ fromMaybe "" descM
@@ -833,11 +850,16 @@ postAddForm = do
       acct2E = maybe (Left "from account required") Right acct2M
       amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parse someamount "") amt1M
       amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parse someamount "") amt2M
-      strEs = [dateE, descE, acct1E, acct2E]
+      journalE = maybe (Right $ journalFilePath j)
+                       (\f -> if f `elem` journalFilePaths j
+                              then Right f
+                              else Left $ "unrecognised journal file path: " ++ f)
+                       journalM
+      strEs = [dateE, descE, acct1E, acct2E, journalE]
       amtEs = [amt1E, amt2E]
-      [date,desc,acct1,acct2] = rights strEs
-      [amt1,amt2] = rights amtEs
       errs = lefts strEs ++ lefts amtEs
+      [date,desc,acct1,acct2,journalpath] = rights strEs
+      [amt1,amt2] = rights amtEs
       -- if no errors so far, generate a transaction and balance it or get the error.
       tE | not $ null errs = Left errs
          | otherwise = either (\e -> Left ["unbalanced postings: " ++ (head $ lines e)]) Right
@@ -863,46 +885,54 @@ postAddForm = do
 
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
-    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    liftIO $ journalAddTransaction j opts t'
+    liftIO $ appendToJournalFile journalpath $ showTransaction t'
     setMessage $ string $ printf "Added transaction:\n%s" (show t')
     redirect RedirectTemporary RegisterR
 
 -- | Handle a journal edit form post.
 postEditForm :: Handler RepPlain
 postEditForm = do
-  -- get form input values, or basic validation errors. E means an Either value.
-  textM  <- runFormPost' $ maybeStringInput "text"
+  (_, _, _, _, j, _, _) <- getHandlerData
+  -- get form input values, or validation errors.
+  -- getRequest >>= liftIO (reqRequestBody req) >>= mtrace
+  (textM, journalM) <- runFormPost'
+    $ (,)
+    <$> maybeStringInput "text"
+    <*> maybeStringInput "journal"
   let textE = maybe (Left "No value provided") Right textM
-  -- display errors or add transaction
-  case textE of
-   Left errs -> do
-    -- XXX should save current form values in session
-    setMessage $ string errs
+      journalE = maybe (Right $ journalFilePath j)
+                       (\f -> if f `elem` journalFilePaths j
+                              then Right f
+                              else Left "unrecognised journal file path")
+                       journalM
+      strEs = [textE, journalE]
+      errs = lefts strEs
+      [text,journalpath] = rights strEs
+  -- display errors or perform edit
+  if not $ null errs
+   then do
+    setMessage $ string $ intercalate "; " errs
     redirect RedirectTemporary JournalR
 
-   Right t' -> do
+   else do
     -- try to avoid unnecessary backups or saving invalid data
-    j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-    filechanged' <- liftIO $ journalFileIsNewer j
-    let f = filepath j
-        told = jtext j
-        tnew = filter (/= '\r') t'
+    filechanged' <- liftIO $ journalSpecifiedFileIsNewer j journalpath
+    told <- liftIO $ readFileStrictly journalpath
+    let tnew = filter (/= '\r') text
         changed = tnew /= told || filechanged'
---    changed <- liftIO $ writeFileWithBackupIfChanged f t''
     if not changed
      then do
        setMessage $ string $ "No change"
        redirect RedirectTemporary JournalR
      else do
-      jE <- liftIO $ journalFromPathAndString Nothing f tnew
+      jE <- liftIO $ journalFromPathAndString Nothing journalpath tnew
       either
        (\e -> do
           setMessage $ string e
           redirect RedirectTemporary JournalR)
        (const $ do
-          liftIO $ writeFileWithBackup f tnew
-          setMessage $ string $ printf "Saved journal %s\n" (show f)
+          liftIO $ writeFileWithBackup journalpath tnew
+          setMessage $ string $ printf "Saved journal %s\n" (show journalpath)
           redirect RedirectTemporary JournalR)
        jE
 

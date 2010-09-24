@@ -70,6 +70,7 @@ function addformToggle() {
 function editformToggle() {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
+ var ej = document.getElementById('journalselect');
  var f = document.getElementById('filterform');
  var i = document.getElementById('importform');
  var t = document.getElementById('transactions');
@@ -87,9 +88,10 @@ function editformToggle() {
   jlink.style['font-weight'] = 'normal';
   rlink.style['font-weight'] = 'normal';
   a.style.display = 'none';
-  e.style.display = 'block';
   i.style.display = 'none';
   t.style.display = 'none';
+  e.style.display = 'block';
+  editformJournalSelect();
  } else {
   alink.style['font-weight'] = 'normal';
   elink.style['font-weight'] = 'normal';
@@ -100,6 +102,24 @@ function editformToggle() {
   t.style.display = 'block';
  }
  return false;
+}
+
+function editformJournalSelect() {
+ var textareas = $('textarea', $('form#editform'));
+ for (i=0; i<textareas.length; i++) {
+   textareas[i].style.display = 'none';
+   textareas[i].disabled = true;
+ }
+ if (event.target.value) {
+   var journalid = event.target.value+'_textarea';
+   var textarea = document.getElementById(journalid);
+ }
+ else {
+   var textarea = textareas[0];
+ }
+ textarea.style.display = 'block';
+ textarea.disabled = false;
+ return true;
 }
 
 function importformToggle() {

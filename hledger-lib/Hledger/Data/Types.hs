@@ -128,10 +128,11 @@ data Journal = Journal {
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
       final_comment_lines :: String, -- ^ any trailing comments from the journal file
-      filepath :: FilePath,      -- ^ file path of this journal
-      allfilepaths :: [FilePath], -- ^ file paths of this and any included journals
-      filereadtime :: ClockTime, -- ^ when this journal was read from its file
-      jtext :: String            -- ^ the raw text read from the journal's file
+      files :: [(FilePath, String)], -- ^ the file path and raw text of the main and
+                                    -- any included journal files. The main file is
+                                    -- first followed by any included files in the
+                                    -- order encountered.
+      filereadtime :: ClockTime -- ^ when this journal was last read from its file(s)
     } deriving (Eq, Typeable)
 
 data Ledger = Ledger {

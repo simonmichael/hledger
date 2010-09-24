@@ -36,7 +36,7 @@ add opts args j
     ++"To complete a transaction, enter . as account name. To quit, press control-c."
   today <- getCurrentDay
   getAndAddTransactions j opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
-      where f = filepath j
+      where f = journalFilePath j
 
 -- | Read a number of transactions from the command line, prompting,
 -- validating, displaying and appending them to the journal file, until
@@ -132,30 +132,28 @@ askFor prompt def validator = do
     Nothing -> return input
     where showdef s = " [" ++ s ++ "]"
 
--- | Append this transaction to the journal's file. Also, to the journal's
--- transaction list, but we don't bother updating the other fields - this
--- is enough to include new transactions in the history matching.
+-- | Append this transaction to the journal's file, and to the journal's
+-- transaction list.
 journalAddTransaction :: Journal -> [Opt] -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
-  appendToJournalFile j $ showTransaction t
+  let f = journalFilePath j
+  appendToJournalFile f $ showTransaction t
   when (Debug `elem` opts) $ do
-    putStrLn $ printf "\nAdded transaction to %s:" (filepath j)
+    putStrLn $ printf "\nAdded transaction to %s:" f
     putStrLn =<< registerFromString (show t)
   return j{jtxns=ts++[t]}
 
--- | Append data to the journal's file, ensuring proper separation from
--- any existing data; or if the file is "-", dump it to stdout.
-appendToJournalFile :: Journal -> String -> IO ()
-appendToJournalFile Journal{filepath=f, jtext=t} s =
+-- | Append data to a journal file; or if the file is "-", dump it to stdout.
+appendToJournalFile :: FilePath -> String -> IO ()
+appendToJournalFile f s =
     if f == "-"
     then putStr $ sep ++ s
     else appendFile f $ sep++s
     where 
-      -- XXX we are looking at the original raw text from when the journal
-      -- was first read, but that's good enough for now
-      sep | null $ strip t = ""
-          | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
-          where lastnls = takeWhile (=='\n') $ reverse t
+      sep = "\n\n"
+      -- sep | null $ strip t = ""
+      --     | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
+      --     where lastnls = takeWhile (=='\n') $ reverse t
 
 -- | Convert a string of journal data into a register report.
 registerFromString :: String -> IO String

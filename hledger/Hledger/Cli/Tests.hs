@@ -63,7 +63,7 @@ tests = TestList [
    "account directive" ~:
    let sameParse str1 str2 = do j1 <- readJournal Nothing str1 >>= either error' return
                                 j2 <- readJournal Nothing str2 >>= either error' return
-                                j1 `is` j2{filereadtime=filereadtime j1, jtext=jtext j1}
+                                j1 `is` j2{filereadtime=filereadtime j1, files=files j1}
    in TestList
    [
     "account directive 1" ~: sameParse 
@@ -1059,9 +1059,8 @@ journal7 = Journal
           []
           []
           ""
-          ""
+          []
           (TOD 0 0)
-          ""
 
 ledger7 = journalToLedger nullfilterspec journal7
 
@@ -1091,8 +1090,7 @@ journalWithAmounts as =
         []
         []
         ""
-        ""
+        []
         (TOD 0 0)
-        ""
     where parse = fromparse . parseWithCtx emptyCtx someamount
 

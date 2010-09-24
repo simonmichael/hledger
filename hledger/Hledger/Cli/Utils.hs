@@ -13,15 +13,18 @@ module Hledger.Cli.Utils
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
-     journalFileModificationTime,
+     journalSpecifiedFileIsNewer,
+     fileModificationTime,
      openBrowserOn,
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
+     readFileStrictly,
     )
 where
 import Hledger.Data
 import Hledger.Read
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
+import Control.Exception
 import Safe (readMay)
 import System.Directory (getModificationTime, getDirectoryContents, copyFile)
 import System.Exit
@@ -38,7 +41,7 @@ withJournalDo opts args _ cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either (error'.trace "BBB") runcmd
+  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either error' runcmd
     where
       costify = (if CostBasis `elem` opts then journalConvertAmountsToCost else id)
       runcmd = cmd opts args . costify
@@ -52,7 +55,7 @@ readJournalWithOpts opts s = do
 
 -- | Re-read a journal from its data file, or return an error string.
 journalReload :: Journal -> IO (Either String Journal)
-journalReload Journal{filepath=f} = readJournalFile Nothing f
+journalReload j = readJournalFile Nothing $ journalFilePath j
 
 -- | Re-read a journal from its data file mostly, only if the file has
 -- changed since last read (or if there is no file, ie data read from
@@ -60,26 +63,36 @@ journalReload Journal{filepath=f} = readJournalFile Nothing f
 -- the error message while reading it, and a flag indicating whether it
 -- was re-read or not.
 journalReloadIfChanged :: [Opt] -> Journal -> IO (Either String Journal, Bool)
-journalReloadIfChanged opts j@Journal{filepath=f} = do
-  changed <- journalFileIsNewer j
-  if changed
+journalReloadIfChanged opts j = do
+  let maybeChangedFilename f = do newer <- journalSpecifiedFileIsNewer j f
+                                  return $ if newer then Just f else Nothing
+  changedfiles <- catMaybes `fmap` mapM maybeChangedFilename (journalFilePaths j)
+  if not $ null changedfiles
    then do
-     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" f
+     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" (head changedfiles)
      jE <- journalReload j
      return (jE, True)
    else
      return (Right j, False)
 
--- | Has the journal's data file changed since last parsed ?
+-- | Has the journal's main data file changed since the journal was last
+-- read ?
 journalFileIsNewer :: Journal -> IO Bool
 journalFileIsNewer j@Journal{filereadtime=tread} = do
-  tmod <- journalFileModificationTime j
+  tmod <- fileModificationTime $ journalFilePath j
   return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
 
--- | Get the last modified time of the journal's data file (or if there is no
--- file, the current time).
-journalFileModificationTime :: Journal -> IO ClockTime
-journalFileModificationTime Journal{filepath=f}
+-- | Has the specified file (presumably one of journal's data files)
+-- changed since journal was last read ?
+journalSpecifiedFileIsNewer :: Journal -> FilePath -> IO Bool
+journalSpecifiedFileIsNewer Journal{filereadtime=tread} f = do
+  tmod <- fileModificationTime f
+  return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
+
+-- | Get the last modified time of the specified file, or if it does not
+-- exist or there is some other error, the current time.
+fileModificationTime :: FilePath -> IO ClockTime
+fileModificationTime f
     | null f = getClockTime
     | otherwise = getModificationTime f `Prelude.catch` \_ -> getClockTime
 
@@ -119,6 +132,9 @@ writeFileWithBackupIfChanged f t = do
 -- overwrite it with this new text, or give an error.
 writeFileWithBackup :: FilePath -> String -> IO ()
 writeFileWithBackup f t = backUpFile f >> writeFile f t
+
+readFileStrictly :: FilePath -> IO String
+readFileStrictly f = readFile f >>= \s -> Control.Exception.evaluate (length s) >> return s
 
 -- | Back up this file with a (incrementing) numbered suffix, or give an error.
 backUpFile :: FilePath -> IO ()
