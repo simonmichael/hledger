@@ -67,6 +67,7 @@ executable hledger
                  ,split == 0.1.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
+                 ,haskeline == 0.6.*
 
 -- modules and dependencies below should be as above
 library

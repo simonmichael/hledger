@@ -14,14 +14,19 @@ import Hledger.Cli.Commands.Register (registerReport, registerReportAsText)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import System.IO.UTF8
-import System.IO ( stderr, hFlush )
+import System.IO ( stderr )
 #else
-import System.IO ( stderr, hFlush, hPutStrLn, hPutStr )
+import System.IO ( stderr, hPutStrLn, hPutStr )
 #endif
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Hledger.Cli.Utils (readJournalWithOpts)
 import qualified Data.Foldable as Foldable (find)
+import System.Console.Haskeline (
+            InputT, runInputT, defaultSettings, setComplete, getInputLine)
+import Control.Monad.Trans (liftIO)
+import System.Console.Haskeline.Completion
+import qualified Data.Set as Set
 
 -- | Read transactions from the terminal, prompting for each field,
 -- and append them to the journal file. If the journal came from stdin, this
@@ -34,23 +39,25 @@ add opts args j
     "Enter one or more transactions, which will be added to your journal file.\n"
     ++"To complete a transaction, enter . as account name. To quit, press control-c."
   today <- getCurrentDay
-  getAndAddTransactions j opts args today `catch` (\e -> unless (isEOFError e) $ ioError e)
+  runInteraction j (getAndAddTransactions j opts args today)
+        `catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
 
 -- | Read a number of transactions from the command line, prompting,
 -- validating, displaying and appending them to the journal file, until
 -- end of input (then raise an EOF exception). Any command-line arguments
 -- are used as the first transaction's description.
-getAndAddTransactions :: Journal -> [Opt] -> [String] -> Day -> IO ()
+getAndAddTransactions :: Journal -> [Opt] -> [String] -> Day -> InputT IO ()
 getAndAddTransactions j opts args defaultDate = do
   (t, d) <- getTransaction j opts args defaultDate
-  j <- journalAddTransaction j opts t
+  j <- liftIO $ journalAddTransaction j opts t
   getAndAddTransactions j opts args d
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Journal -> [Opt] -> [String] -> Day -> IO (Transaction,Day)
+getTransaction :: Journal -> [Opt] -> [String] -> Day
+                    -> InputT IO (Transaction,Day)
 getTransaction j opts args defaultDate = do
-  today <- getCurrentDay
+  today <- liftIO getCurrentDay
   datestr <- askFor "date" 
             (Just $ showDate defaultDate)
             (Just $ \s -> null s || 
@@ -74,18 +81,18 @@ getTransaction j opts args defaultDate = do
                                ,tpostings=ps
                                }
             retry msg = do
-              hPutStrLn stderr $ "\n" ++ msg ++ "please re-enter."
+              liftIO $ hPutStrLn stderr $ "\n" ++ msg ++ "please re-enter."
               getpostingsandvalidate
         either retry (return . flip (,) date) $ balanceTransaction t
   unless (null historymatches) 
-       (do
+       (liftIO $ do
          hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"
          hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
   getpostingsandvalidate
 
 -- | Read postings from the command line until . is entered, using the
 -- provided historical postings, if any, to guess defaults.
-getPostings :: (AccountName -> Bool) -> Maybe [Posting] -> [Posting] -> IO [Posting]
+getPostings :: (AccountName -> Bool) -> Maybe [Posting] -> [Posting] -> InputT IO [Posting]
 getPostings accept historicalps enteredps = do
   account <- askFor (printf "account %d" n) defaultaccount (Just accept)
   if account=="."
@@ -118,11 +125,10 @@ getPostings accept historicalps enteredps = do
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
 -- input is valid. May also raise an EOF exception if control-d is pressed.
-askFor :: String -> Maybe String -> Maybe (String -> Bool) -> IO String
+askFor :: String -> Maybe String -> Maybe (String -> Bool) -> InputT IO String
 askFor prompt def validator = do
-  hPutStr stderr $ prompt ++ maybe "" showdef def ++ ": "
-  hFlush stderr
-  l <- getLine
+  l <- fmap (maybe "" id)
+            $ getInputLine $ prompt ++ maybe "" showdef def ++ ": "
   let input = if null l then fromMaybe l def else l
   case validator of
     Just valid -> if valid input
@@ -197,3 +203,22 @@ transactionsSimilarTo j apats s =
       ts = jtxns $ filterJournalTransactionsByAccount apats j
       threshold = 0
 
+runInteraction :: Journal -> InputT IO a -> IO a
+runInteraction j m = do
+    let cc = completionCache j
+    runInputT (setComplete (accountCompletion cc) defaultSettings) m
+
+-- A precomputed list of all accounts previously entered into the journal.
+type CompletionCache = [AccountName]
+
+completionCache :: Journal -> CompletionCache
+completionCache j = -- Only keep unique account names.
+                    Set.toList $ Set.fromList
+                        [paccount p | t <- jtxns j, p <- tpostings t]
+
+accountCompletion :: CompletionCache -> CompletionFunc IO
+accountCompletion cc = completeWord Nothing
+                        "" -- don't break words on whitespace, since account names
+                           -- can contain spaces.
+                        $ \s -> return $ map simpleCompletion
+                                        $ filter (s `isPrefixOf`) cc
