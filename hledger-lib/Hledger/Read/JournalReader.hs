@@ -166,6 +166,7 @@ journalFile = do
                           , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
                           , ledgerDefaultYear
                           , ledgerDefaultCommodity
+                          , ledgerCommodityConversion
                           , ledgerIgnoredPriceCommodity
                           , ledgerTagDirective
                           , ledgerEndTagDirective
