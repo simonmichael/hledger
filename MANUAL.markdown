@@ -797,6 +797,20 @@ You can pull in the content of additional journal files, by writing lines like t
 The `!include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not timelog files.)
 
+##### Default commodity
+
+You can set a default commodity with a `D` directive in the journal. This
+will be used for any subsequent amounts with no commodity symbol,
+including the commodity display settings (left or right symbol, spacing,
+thousands separator, and precision.)
+
+    ; default commodity: british pound, comma thousands separator, two decimal places
+    D £1,000.00
+    
+    2010/1/1
+      a  2340.11   ; <- no commodity symbol, so will use the above
+      b
+
 #### Default parent account
 
 You can specify a default parent account within a section of the journal with

@@ -169,6 +169,7 @@ journalFile = do journalupdates <- many journalItem
                           , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
                           , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
                           , ledgerDefaultYear
+                          , ledgerDefaultCommodity
                           , ledgerIgnoredPriceCommodity
                           , ledgerTagDirective
                           , ledgerEndTagDirective
@@ -178,20 +179,20 @@ journalFile = do journalupdates <- many journalItem
 journalAddFilePath :: FilePath -> Journal -> Journal
 journalAddFilePath f j@Journal{allfilepaths=fs} = j{allfilepaths=fs++[f]}
 
-emptyLine :: GenParser Char st ()
+emptyLine :: GenParser Char JournalContext ()
 emptyLine = do many spacenonewline
                optional $ (char ';' <?> "comment") >> many (noneOf "\n")
                newline
                return ()
 
-ledgercomment :: GenParser Char st String
+ledgercomment :: GenParser Char JournalContext String
 ledgercomment = do
   many1 $ char ';'
   many spacenonewline
   many (noneOf "\n")
   <?> "comment"
 
-ledgercommentline :: GenParser Char st String
+ledgercommentline :: GenParser Char JournalContext String
 ledgercommentline = do
   many spacenonewline
   s <- ledgercomment
@@ -272,14 +273,6 @@ ledgerIgnoredPriceCommodity = do
   restofline
   return $ return id
 
-ledgerDefaultCommodity :: GenParser Char JournalContext JournalUpdate
-ledgerDefaultCommodity = do
-  char 'D' <?> "default commodity"
-  many1 spacenonewline
-  someamount
-  restofline
-  return $ return id
-
 ledgerCommodityConversion :: GenParser Char JournalContext JournalUpdate
 ledgerCommodityConversion = do
   char 'C' <?> "commodity conversion"
@@ -315,6 +308,17 @@ ledgerDefaultYear = do
   let y' = read y
   failIfInvalidYear y
   setYear y'
+  return $ return id
+
+ledgerDefaultCommodity :: GenParser Char JournalContext JournalUpdate
+ledgerDefaultCommodity = do
+  char 'D' <?> "default commodity"
+  many1 spacenonewline
+  a <- someamount
+  -- someamount always returns a MixedAmount containing one Amount, but let's be safe
+  let as = amounts a
+  when (not $ null as) $ setCommodity $ commodity $ head as
+  restofline
   return $ return id
 
 -- | Try to parse a ledger entry. If we successfully parse an entry,
@@ -384,10 +388,10 @@ ledgereffectivedate actualdate = do
   edate <- withDefaultYear actualdate ledgerdate
   return edate
 
-ledgerstatus :: GenParser Char st Bool
+ledgerstatus :: GenParser Char JournalContext Bool
 ledgerstatus = try (do { many1 spacenonewline; char '*' <?> "status"; return True } ) <|> return False
 
-ledgercode :: GenParser Char st String
+ledgercode :: GenParser Char JournalContext String
 ledgercode = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 ledgerpostings :: GenParser Char JournalContext [Posting]
@@ -404,7 +408,7 @@ ledgerpostings = do
   return $ map (fromparse . parseWithCtx ctx (setPosition pos >> ledgerposting)) ls'
   <?> "postings"
 
-linebeginningwithspaces :: GenParser Char st String
+linebeginningwithspaces :: GenParser Char JournalContext String
 linebeginningwithspaces = do
   sp <- many1 spacenonewline
   c <- nonspace
@@ -448,17 +452,17 @@ ledgeraccountname = do
 
 -- | Parse an amount, with an optional left or right currency symbol and
 -- optional price.
-postingamount :: GenParser Char st MixedAmount
+postingamount :: GenParser Char JournalContext MixedAmount
 postingamount =
   try (do
         many1 spacenonewline
         someamount <|> return missingamt
       ) <|> return missingamt
 
-someamount :: GenParser Char st MixedAmount
+someamount :: GenParser Char JournalContext MixedAmount
 someamount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount 
 
-leftsymbolamount :: GenParser Char st MixedAmount
+leftsymbolamount :: GenParser Char JournalContext MixedAmount
 leftsymbolamount = do
   sign <- optionMaybe $ string "-"
   let applysign = if isJust sign then negate else id
@@ -470,7 +474,7 @@ leftsymbolamount = do
   return $ applysign $ Mixed [Amount c q pri]
   <?> "left-symbol amount"
 
-rightsymbolamount :: GenParser Char st MixedAmount
+rightsymbolamount :: GenParser Char JournalContext MixedAmount
 rightsymbolamount = do
   (q,p,comma) <- amountquantity
   sp <- many spacenonewline
@@ -480,28 +484,29 @@ rightsymbolamount = do
   return $ Mixed [Amount c q pri]
   <?> "right-symbol amount"
 
-nosymbolamount :: GenParser Char st MixedAmount
+nosymbolamount :: GenParser Char JournalContext MixedAmount
 nosymbolamount = do
   (q,p,comma) <- amountquantity
   pri <- priceamount
-  let c = Commodity {symbol="",side=L,spaced=False,comma=comma,precision=p}
+  defc <- getCommodity
+  let c = fromMaybe Commodity{symbol="",side=L,spaced=False,comma=comma,precision=p} defc
   return $ Mixed [Amount c q pri]
   <?> "no-symbol amount"
 
-commoditysymbol :: GenParser Char st String
+commoditysymbol :: GenParser Char JournalContext String
 commoditysymbol = (quotedcommoditysymbol <|> simplecommoditysymbol) <?> "commodity symbol"
 
-quotedcommoditysymbol :: GenParser Char st String
+quotedcommoditysymbol :: GenParser Char JournalContext String
 quotedcommoditysymbol = do
   char '"'
   s <- many1 $ noneOf ";\n\""
   char '"'
   return s
 
-simplecommoditysymbol :: GenParser Char st String
+simplecommoditysymbol :: GenParser Char JournalContext String
 simplecommoditysymbol = many1 (noneOf nonsimplecommoditychars)
 
-priceamount :: GenParser Char st (Maybe MixedAmount)
+priceamount :: GenParser Char JournalContext (Maybe MixedAmount)
 priceamount =
     try (do
           many spacenonewline
@@ -516,7 +521,7 @@ priceamount =
 -- | Parse a ledger-style numeric quantity and also return the number of
 -- digits to the right of the decimal point and whether thousands are
 -- separated by comma.
-amountquantity :: GenParser Char st (Double, Int, Bool)
+amountquantity :: GenParser Char JournalContext (Double, Int, Bool)
 amountquantity = do
   sign <- optionMaybe $ string "-"
   (intwithcommas,frac) <- numberparts
@@ -534,10 +539,10 @@ amountquantity = do
 -- | parse the two strings of digits before and after a possible decimal
 -- point.  The integer part may contain commas, or either part may be
 -- empty, or there may be no point.
-numberparts :: GenParser Char st (String,String)
+numberparts :: GenParser Char JournalContext (String,String)
 numberparts = numberpartsstartingwithdigit <|> numberpartsstartingwithpoint
 
-numberpartsstartingwithdigit :: GenParser Char st (String,String)
+numberpartsstartingwithdigit :: GenParser Char JournalContext (String,String)
 numberpartsstartingwithdigit = do
   let digitorcomma = digit <|> char ','
   first <- digit
@@ -545,7 +550,7 @@ numberpartsstartingwithdigit = do
   frac <- try (do {char '.'; many digit}) <|> return ""
   return (first:rest,frac)
                      
-numberpartsstartingwithpoint :: GenParser Char st (String,String)
+numberpartsstartingwithpoint :: GenParser Char JournalContext (String,String)
 numberpartsstartingwithpoint = do
   char '.'
   frac <- many1 digit
@@ -618,7 +623,7 @@ tests_Journal = TestList [
      let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
          assertMixedAmountParse parseresult mixedamount =
              (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-     assertMixedAmountParse (parsewith someamount "1 @ $2")
+     assertMixedAmountParse (parseWithCtx emptyCtx someamount "1 @ $2")
                             (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])])
 
   ,"postingamount" ~: do

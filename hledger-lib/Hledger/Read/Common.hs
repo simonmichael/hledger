@@ -10,7 +10,7 @@ where
 
 import Control.Monad.Error
 import Hledger.Data.Utils
-import Hledger.Data.Types (Journal)
+import Hledger.Data.Types (Journal, Commodity)
 import Hledger.Data.Journal
 import System.Directory (getHomeDirectory)
 import System.FilePath(takeDirectory,combine)
@@ -43,19 +43,25 @@ parseJournalWith p f s = do
 
 -- | Some state kept while parsing a journal file.
 data JournalContext = Ctx {
-      ctxYear     :: !(Maybe Integer)  -- ^ the default year most recently specified with Y
-    , ctxCommod   :: !(Maybe String)   -- ^ I don't know
-    , ctxAccount  :: ![String]         -- ^ the current stack of parent accounts specified by !account
+      ctxYear      :: !(Maybe Integer)   -- ^ the default year most recently specified with Y
+    , ctxCommodity :: !(Maybe Commodity) -- ^ the default commodity recently specified with D
+    , ctxAccount   :: ![String]          -- ^ the current stack of parent accounts specified by !account
     } deriving (Read, Show)
 
 emptyCtx :: JournalContext
-emptyCtx = Ctx { ctxYear = Nothing, ctxCommod = Nothing, ctxAccount = [] }
+emptyCtx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [] }
 
 setYear :: Integer -> GenParser tok JournalContext ()
 setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 
 getYear :: GenParser tok JournalContext (Maybe Integer)
 getYear = liftM ctxYear getState
+
+setCommodity :: Commodity -> GenParser tok JournalContext ()
+setCommodity c = updateState (\ctx -> ctx{ctxCommodity=Just c})
+
+getCommodity :: GenParser tok JournalContext (Maybe Commodity)
+getCommodity = liftM ctxCommodity getState
 
 pushParentAccount :: String -> GenParser tok JournalContext ()
 pushParentAccount parent = updateState addParentAccount

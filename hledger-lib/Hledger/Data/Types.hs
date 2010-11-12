@@ -49,7 +49,7 @@ data Interval = NoInterval | Daily | Weekly | Monthly | Quarterly | Yearly
 
 type AccountName = String
 
-data Side = L | R deriving (Eq,Show,Ord) 
+data Side = L | R deriving (Eq,Show,Read,Ord)
 
 data Commodity = Commodity {
       symbol :: String,  -- ^ the commodity's symbol
@@ -58,7 +58,7 @@ data Commodity = Commodity {
       spaced :: Bool,    -- ^ should there be a space between symbol and quantity
       comma :: Bool,     -- ^ should thousands be comma-separated
       precision :: Int   -- ^ number of decimal places to display
-    } deriving (Eq,Show,Ord)
+    } deriving (Eq,Show,Read,Ord)
 
 data Amount = Amount {
       commodity :: Commodity,
