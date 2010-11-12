@@ -831,7 +831,7 @@ You can pull in the content of additional journal files, by writing lines like t
 The `!include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not timelog files.)
 
-##### Default commodity
+#### Default commodity
 
 You can set a default commodity with a `D` directive in the journal. This
 will be used for any subsequent amounts with no commodity symbol,
