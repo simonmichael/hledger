@@ -115,6 +115,13 @@ showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
       price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
                           Nothing -> ""
 
+-- | Get the string representation of an amount, based on its commodity's
+-- display settings except using the specified precision.
+showAmountWithPrecision :: Int -> Amount -> String
+showAmountWithPrecision p = showAmount . setAmountPrecision p
+
+setAmountPrecision p a@Amount{commodity=c} = a{commodity=c{precision=p}}
+
 -- XXX refactor
 -- | Get the unambiguous string representation of an amount, for debugging.
 showAmountDebug :: Amount -> String
@@ -125,12 +132,18 @@ showAmountDebug (Amount c q pri) = printf "Amount {commodity = %s, quantity = %s
 showAmountWithoutPrice :: Amount -> String
 showAmountWithoutPrice a = showAmount a{price=Nothing}
 
--- | Get the string representation (of the number part of) of an amount
+-- | Get the string representation of the number part of of an amount,
+-- using the display precision from its commodity.
 showAmount' :: Amount -> String
-showAmount' (Amount (Commodity {comma=comma,precision=p}) q _) = quantity
+showAmount' (Amount (Commodity {comma=comma,precision=p}) q _) = addthousandsseparators $ qstr
   where
-    quantity = commad $ printf ("%."++show p++"f") q
-    commad = if comma then punctuatethousands else id
+    addthousandsseparators = if comma then punctuatethousands else id
+    qstr | p == maxprecision && isint q = printf "%d" (round q::Integer)
+         | p == maxprecision            = printf "%f" q
+         | otherwise                    = printf ("%."++show p++"f") q
+    isint n = fromIntegral (round n) == n
+
+maxprecision = 999999
 
 -- | Add thousands-separating commas to a decimal number string
 punctuatethousands :: String -> String
@@ -196,6 +209,17 @@ mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZ
 -- list in which case it shows as \"\".
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = vConcatRightAligned $ map show $ amounts $ normaliseMixedAmount m
+
+setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
+setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
+
+-- | Get the string representation of a mixed amount, showing each of its
+-- component amounts with the specified precision, ignoring their
+-- commoditys' display precision settings. NB a mixed amount can have an
+-- empty amounts list in which case it shows as \"\".
+showMixedAmountWithPrecision :: Int -> MixedAmount -> String
+showMixedAmountWithPrecision p m =
+    vConcatRightAligned $ map (showAmountWithPrecision p) $ amounts $ normaliseMixedAmount m
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
