@@ -101,12 +101,18 @@ all%:
 # auto-recompile and run (hledger test) whenever a module changes.
 # sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
 autotest: setversion
+	rm -f bin/hledger
 	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger/hledger.hs -ihledger $(BUILDFLAGS) --run test
 
 # auto-recompile and run (hledger-web) whenever a module changes.
 # sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
-autoweb: setversion
-	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/Main.hs -ihledger-web -ihledger $(BUILDFLAGS) --run
+autoweb: setversion hledgerwebdatalinks
+	rm -f bin/hledger-web
+	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/Main.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug
+
+# make symlinks to allow running hledger-web from the top directory
+hledgerwebdatalinks:
+	cd data; for f in ../hledger-web/data/*; do ln -sf $$f; done
 
 # build the standalone unit test runner. Requires test-framework, which
 # may not work on windows.
@@ -180,6 +186,7 @@ hledgeropt: setversion
 
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
+	cd hledger; \
 	ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 	@echo 'Please check the build looks portable (statically linked):'
 	-file bin/$(BINARYFILENAME)
@@ -689,7 +696,7 @@ showcodechanges:
 	@darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
 	@echo
 
-showreleasechanges:
+showunreleasedchanges:
 	@echo "Feature/bugfix changes since last release: ("`darcs changes --from-tag . --count`")"
 	@darcs changes --from-tag . --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
 	@echo
