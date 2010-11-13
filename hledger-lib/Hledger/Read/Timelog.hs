@@ -71,10 +71,11 @@ detect f _ = fileSuffix f == format
 parse :: FilePath -> String -> ErrorT String IO Journal
 parse = parseJournalWith timelogFile
 
-timelogFile :: GenParser Char JournalContext JournalUpdate
+timelogFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
 timelogFile = do items <- many timelogItem
                  eof
-                 return $ liftM (foldr (.) id) $ sequence items
+                 ctx <- getState
+                 return (liftM (foldr (.) id) $ sequence items, ctx)
     where 
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or

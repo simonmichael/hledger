@@ -10,7 +10,7 @@ where
 
 import Control.Monad.Error
 import Hledger.Data.Utils
-import Hledger.Data.Types (Journal, Commodity)
+import Hledger.Data.Types (Journal, JournalContext(..), Commodity)
 import Hledger.Data.Journal
 import System.Directory (getHomeDirectory)
 import System.FilePath(takeDirectory,combine)
@@ -33,23 +33,13 @@ juSequence us = liftM (foldr (.) id) $ sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseJournalWith :: (GenParser Char JournalContext JournalUpdate) -> FilePath -> String -> ErrorT String IO Journal
+parseJournalWith :: (GenParser Char JournalContext (JournalUpdate,JournalContext)) -> FilePath -> String -> ErrorT String IO Journal
 parseJournalWith p f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
-  case runParser p emptyCtx f s of
-    Right updates -> liftM (journalFinalise tc tl f s) $ updates `ap` return nulljournal
+  case runParser p nullctx f s of
+    Right (updates,ctx) -> liftM (journalFinalise tc tl f s ctx) $ updates `ap` return nulljournal
     Left err      -> throwError $ show err
-
--- | Some state kept while parsing a journal file.
-data JournalContext = Ctx {
-      ctxYear      :: !(Maybe Integer)   -- ^ the default year most recently specified with Y
-    , ctxCommodity :: !(Maybe Commodity) -- ^ the default commodity recently specified with D
-    , ctxAccount   :: ![String]          -- ^ the current stack of parent accounts specified by !account
-    } deriving (Read, Show)
-
-emptyCtx :: JournalContext
-emptyCtx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [] }
 
 setYear :: Integer -> GenParser tok JournalContext ()
 setYear y = updateState (\ctx -> ctx{ctxYear=Just y})

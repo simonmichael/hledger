@@ -34,7 +34,6 @@ import System.Time (ClockTime(TOD))
 
 import Hledger.Cli.Commands.All
 import Hledger.Data  -- including testing utils in Hledger.Data.Utils
-import Hledger.Read.Common (emptyCtx)
 import Hledger.Read (readJournal)
 import Hledger.Read.Journal (someamount)
 import Hledger.Cli.Options
@@ -1059,6 +1058,7 @@ journal7 = Journal
           []
           []
           ""
+          nullctx
           []
           (TOD 0 0)
 
@@ -1090,7 +1090,8 @@ journalWithAmounts as =
         []
         []
         ""
+        nullctx
         []
         (TOD 0 0)
-    where parse = fromparse . parseWithCtx emptyCtx someamount
+    where parse = fromparse . parseWithCtx nullctx someamount
 

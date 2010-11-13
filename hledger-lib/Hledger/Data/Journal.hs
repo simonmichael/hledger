@@ -41,9 +41,13 @@ nulljournal = Journal { jmodifiertxns = []
                       , open_timelog_entries = []
                       , historical_prices = []
                       , final_comment_lines = []
+                      , jContext = nullctx
                       , files = []
                       , filereadtime = TOD 0 0
                       }
+
+nullctx :: JournalContext
+nullctx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [] }
 
 nullfilterspec = FilterSpec {
      datespan=nulldatespan
@@ -221,12 +225,12 @@ journalSelectingDate EffectiveDate j =
     j{jtxns=map (journalTransactionWithDate EffectiveDate) $ jtxns j}
 
 -- | Do post-parse processing on a journal, to make it ready for use.
-journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> Journal -> Journal
-journalFinalise tclock tlocal path txt j@Journal{files=fs} =
+journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Journal -> Journal
+journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =
     journalCanonicaliseAmounts $
     journalApplyHistoricalPrices $
     journalCloseTimeLogEntries tlocal
-    j{files=(path,txt):fs, filereadtime=tclock}
+    j{files=(path,txt):fs, filereadtime=tclock, jContext=ctx}
 
 -- | Convert all the journal's amounts to their canonical display
 -- settings.  Ie, all amounts in a given commodity will use (a) the

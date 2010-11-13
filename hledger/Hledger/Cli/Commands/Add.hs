@@ -9,7 +9,6 @@ module Hledger.Cli.Commands.Add
 where
 import Hledger.Data
 import Hledger.Read.Journal (someamount)
-import Hledger.Read.Common (emptyCtx)
 import Hledger.Cli.Options
 import Hledger.Cli.Commands.Register (registerReport, registerReportAsText)
 #if __GLASGOW_HASKELL__ <= 610
@@ -93,7 +92,7 @@ getPostings accept historicalps enteredps = do
     then return enteredps
     else do
       amountstr <- askFor (printf "amount  %d" n) defaultamount validateamount
-      let amount = fromparse $ runParser (someamount <|> return missingamt) emptyCtx "" amountstr
+      let amount = fromparse $ parse (someamount <|> return missingamt) "" amountstr
       let p = nullposting{paccount=stripbrackets account,
                           pamount=amount,
                           ptype=postingtype account}
@@ -114,7 +113,7 @@ getPostings accept historicalps enteredps = do
       postingtype _ = RegularPosting
       stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
-                                   || isRight (runParser (someamount>>many spacenonewline>>eof) emptyCtx "" s)
+                                   || isRight (parse (someamount>>many spacenonewline>>eof) "" s)
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the

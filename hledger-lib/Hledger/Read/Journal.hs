@@ -151,17 +151,17 @@ detect f _ = fileSuffix f == format
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: FilePath -> String -> ErrorT String IO Journal
-parse = do
-  j <- parseJournalWith journalFile
-  return j
+parse = parseJournalWith journalFile
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" which can be applied to an empty journal
 -- to get the final result.
-journalFile :: GenParser Char JournalContext JournalUpdate
-journalFile = do journalupdates <- many journalItem
-                 eof
-                 return $ juSequence journalupdates
+journalFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
+journalFile = do
+  journalupdates <- many journalItem
+  eof
+  finalctx <- getState
+  return $ (juSequence journalupdates, finalctx)
     where 
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
@@ -224,8 +224,8 @@ ledgerInclude = do
               txt <- readFileOrError outerPos filepath
               let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
               case runParser journalFile outerState filepath txt of
-                Right ju -> juSequence [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
-                Left err -> throwError $ inIncluded ++ show err
+                Right (ju,_) -> juSequence [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
+                Left err     -> throwError $ inIncluded ++ show err
       where readFileOrError pos fp =
                 ErrorT $ liftM Right (readFile fp) `catch`
                   \err -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show err)
@@ -563,52 +563,52 @@ numberpartsstartingwithpoint = do
 tests_Journal = TestList [
 
    "ledgerTransaction" ~: do
-    assertParseEqual (parseWithCtx emptyCtx ledgerTransaction entry1_str) entry1
+    assertParseEqual (parseWithCtx nullctx ledgerTransaction entry1_str) entry1
     assertBool "ledgerTransaction should not parse just a date"
-                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1\n"
+                   $ isLeft $ parseWithCtx nullctx ledgerTransaction "2009/1/1\n"
     assertBool "ledgerTransaction should require some postings"
-                   $ isLeft $ parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a\n"
-    let t = parseWithCtx emptyCtx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
+                   $ isLeft $ parseWithCtx nullctx ledgerTransaction "2009/1/1 a\n"
+    let t = parseWithCtx nullctx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
     assertBool "ledgerTransaction should not include a comment in the description"
                    $ either (const False) ((== "a") . tdescription) t
 
   ,"ledgerModifierTransaction" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerModifierTransaction "= (some value expr)\n some:postings  1\n")
+     assertParse (parseWithCtx nullctx ledgerModifierTransaction "= (some value expr)\n some:postings  1\n")
 
   ,"ledgerPeriodicTransaction" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerPeriodicTransaction "~ (some period expr)\n some:postings  1\n")
+     assertParse (parseWithCtx nullctx ledgerPeriodicTransaction "~ (some period expr)\n some:postings  1\n")
 
   ,"ledgerExclamationDirective" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerExclamationDirective "!include /some/file.x\n")
-     assertParse (parseWithCtx emptyCtx ledgerExclamationDirective "!account some:account\n")
-     assertParse (parseWithCtx emptyCtx (ledgerExclamationDirective >> ledgerExclamationDirective) "!account a\n!end\n")
+     assertParse (parseWithCtx nullctx ledgerExclamationDirective "!include /some/file.x\n")
+     assertParse (parseWithCtx nullctx ledgerExclamationDirective "!account some:account\n")
+     assertParse (parseWithCtx nullctx (ledgerExclamationDirective >> ledgerExclamationDirective) "!account a\n!end\n")
 
   ,"ledgercommentline" ~: do
-     assertParse (parseWithCtx emptyCtx ledgercommentline "; some comment \n")
-     assertParse (parseWithCtx emptyCtx ledgercommentline " \t; x\n")
-     assertParse (parseWithCtx emptyCtx ledgercommentline ";x")
+     assertParse (parseWithCtx nullctx ledgercommentline "; some comment \n")
+     assertParse (parseWithCtx nullctx ledgercommentline " \t; x\n")
+     assertParse (parseWithCtx nullctx ledgercommentline ";x")
 
   ,"ledgerDefaultYear" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerDefaultYear "Y 2010\n")
-     assertParse (parseWithCtx emptyCtx ledgerDefaultYear "Y 10001\n")
+     assertParse (parseWithCtx nullctx ledgerDefaultYear "Y 2010\n")
+     assertParse (parseWithCtx nullctx ledgerDefaultYear "Y 10001\n")
 
   ,"ledgerHistoricalPrice" ~:
-    assertParseEqual (parseWithCtx emptyCtx ledgerHistoricalPrice "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55])
+    assertParseEqual (parseWithCtx nullctx ledgerHistoricalPrice "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55])
 
   ,"ledgerIgnoredPriceCommodity" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerIgnoredPriceCommodity "N $\n")
+     assertParse (parseWithCtx nullctx ledgerIgnoredPriceCommodity "N $\n")
 
   ,"ledgerDefaultCommodity" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerDefaultCommodity "D $1,000.0\n")
+     assertParse (parseWithCtx nullctx ledgerDefaultCommodity "D $1,000.0\n")
 
   ,"ledgerCommodityConversion" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerCommodityConversion "C 1h = $50.00\n")
+     assertParse (parseWithCtx nullctx ledgerCommodityConversion "C 1h = $50.00\n")
 
   ,"ledgerTagDirective" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerTagDirective "tag foo \n")
+     assertParse (parseWithCtx nullctx ledgerTagDirective "tag foo \n")
 
   ,"ledgerEndTagDirective" ~: do
-     assertParse (parseWithCtx emptyCtx ledgerEndTagDirective "end tag \n")
+     assertParse (parseWithCtx nullctx ledgerEndTagDirective "end tag \n")
 
   ,"ledgeraccountname" ~: do
     assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
@@ -617,29 +617,29 @@ tests_Journal = TestList [
     assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
 
  ,"ledgerposting" ~: do
-    assertParseEqual (parseWithCtx emptyCtx ledgerposting "  expenses:food:dining  $10.00\n") 
+    assertParseEqual (parseWithCtx nullctx ledgerposting "  expenses:food:dining  $10.00\n")
                      (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting Nothing)
     assertBool "ledgerposting parses a quoted commodity with numbers"
-                   (isRight $ parseWithCtx emptyCtx ledgerposting "  a  1 \"DE123\"\n")
+                   (isRight $ parseWithCtx nullctx ledgerposting "  a  1 \"DE123\"\n")
 
   ,"someamount" ~: do
      let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
          assertMixedAmountParse parseresult mixedamount =
              (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-     assertMixedAmountParse (parseWithCtx emptyCtx someamount "1 @ $2")
+     assertMixedAmountParse (parseWithCtx nullctx someamount "1 @ $2")
                             (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])])
 
   ,"postingamount" ~: do
-    assertParseEqual (parseWithCtx emptyCtx postingamount " $47.18") (Mixed [dollars 47.18])
-    assertParseEqual (parseWithCtx emptyCtx postingamount " $1.")
+    assertParseEqual (parseWithCtx nullctx postingamount " $47.18") (Mixed [dollars 47.18])
+    assertParseEqual (parseWithCtx nullctx postingamount " $1.")
                 (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
 
   ,"leftsymbolamount" ~: do
-    assertParseEqual (parseWithCtx emptyCtx leftsymbolamount "$1")
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")
                      (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
-    assertParseEqual (parseWithCtx emptyCtx leftsymbolamount "$-1")
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$-1")
                      (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} (-1) Nothing])
-    assertParseEqual (parseWithCtx emptyCtx leftsymbolamount "-$1")
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1")
                      (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} (-1) Nothing])
 
  ]

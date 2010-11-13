@@ -121,18 +121,31 @@ data HistoricalPrice = HistoricalPrice {
       hamount :: MixedAmount
     } deriving (Eq) -- & Show (in Amount.hs)
 
+type Year = Integer
+
+-- | A journal "context" is some data which can change in the course of
+-- parsing a journal. An example is the default year, which changes when a
+-- Y directive is encountered.  At the end of parsing, the final context
+-- is saved for later use by eg the add command.
+data JournalContext = Ctx {
+      ctxYear      :: !(Maybe Year)      -- ^ the default year most recently specified with Y
+    , ctxCommodity :: !(Maybe Commodity) -- ^ the default commodity most recently specified with D
+    , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts specified by !account
+    } deriving (Read, Show, Eq)
+
 data Journal = Journal {
       jmodifiertxns :: [ModifierTransaction],
       jperiodictxns :: [PeriodicTransaction],
       jtxns :: [Transaction],
       open_timelog_entries :: [TimeLogEntry],
       historical_prices :: [HistoricalPrice],
-      final_comment_lines :: String, -- ^ any trailing comments from the journal file
-      files :: [(FilePath, String)], -- ^ the file path and raw text of the main and
-                                    -- any included journal files. The main file is
-                                    -- first followed by any included files in the
-                                    -- order encountered.
-      filereadtime :: ClockTime -- ^ when this journal was last read from its file(s)
+      final_comment_lines :: String,        -- ^ any trailing comments from the journal file
+      jContext :: JournalContext,           -- ^ the context (parse state) at the end of parsing
+      files :: [(FilePath, String)],        -- ^ the file path and raw text of the main and
+                                           -- any included journal files. The main file is
+                                           -- first followed by any included files in the
+                                           -- order encountered.
+      filereadtime :: ClockTime             -- ^ when this journal was last read from its file(s)
     } deriving (Eq, Typeable)
 
 data Ledger = Ledger {

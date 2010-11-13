@@ -8,7 +8,6 @@ import Hledger.Cli.Options (Opt(Debug))
 import Hledger.Cli.Version (versionstr)
 import Hledger.Data.Types (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Hledger.Data.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error')
-import Hledger.Read.Common (emptyCtx)
 import Hledger.Read.Journal (someamount,ledgeraccountname)
 import Hledger.Data.Amount (nullmixedamt)
 import Safe (atDef, maximumDef)
@@ -282,7 +281,7 @@ transactionFromCsvRecord rules fields =
                                              strnegate s = '-':s
       currency = maybe (fromMaybe "" $ baseCurrency rules) (atDef "" fields) (currencyField rules)
       amountstr'' = currency ++ amountstr'
-      amountparse = runParser someamount emptyCtx "" amountstr''
+      amountparse = parse someamount "" amountstr''
       amount = either (const nullmixedamt) id amountparse
       unknownacct | (readDef 0 amountstr' :: Double) < 0 = "income:unknown"
                   | otherwise = "expenses:unknown"

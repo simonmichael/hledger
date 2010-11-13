@@ -18,6 +18,7 @@ module Hledger.Read (
 where
 import Hledger.Data.Dates (getCurrentDay)
 import Hledger.Data.Types (Journal(..))
+import Hledger.Data.Journal (nullctx)
 import Hledger.Data.Utils
 import Hledger.Read.Common
 import Hledger.Read.Journal as Journal
@@ -139,7 +140,7 @@ tests_Hledger_Read = TestList
   [
 
    "journalFile" ~: do
-    assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx emptyCtx Journal.journalFile "")
+    assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx nullctx Journal.journalFile "")
     jE <- readJournal Nothing "" -- don't know how to get it from journalFile
     either error' (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
 
