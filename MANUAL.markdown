@@ -4,7 +4,7 @@ title: hledger manual
 
 # hledger manual
 
-This is the official hledger manual, for version 0.12.1.  You may also
+This is the official hledger manual, for version 0.12.98.  You may also
 want to visit the rest of [hledger.org](http://hledger.org), and for
 background,
 [c++ ledger's manual](http://joyful.com/repos/ledger/doc/ledger.html).
