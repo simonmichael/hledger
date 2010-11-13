@@ -932,6 +932,10 @@ need to make small edits to restore compatibility for one or the other.
 hledger does not allow separate dates for individual postings, unlike c++
 ledger.
 
+Likewise, hledger does not support per-posting cleared status. It does
+ignore a cleared flag (`*`) at the start of a posting, so that the account
+name is parsed correctly.
+
 #### Features not supported
 
 c++ ledger features not currently supported include: modifier and periodic
