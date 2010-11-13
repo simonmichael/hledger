@@ -390,12 +390,26 @@ The following commands can alter your journal file.
 ##### add
 
 The add command prompts interactively for new transactions, and adds them
-to the journal. It is experimental.
+to the journal, with assistance:
+
+- During data entry, the usual console editing keys should work
+
+- If there are earlier transactions approximately matching the description
+  you enter, the best match will provide defaults for the other fields.
+
+- If you specify [account pattern(s)](#filter-patterns) on the command
+  line, only matching transactions will be considered for defaults.
+
+- While entering account names, the tab key will auto-complete up to the
+  next : separator
+
+- If a [default commodity](#default-commodity) is defined, it will be used
+  for any commodity-less amounts entered.
 
 Examples:
 
     $ hledger add
-    $ hledger add accounts:personal:bob
+    $ hledger -f home.journal add equity:bob
 
 ##### web
 

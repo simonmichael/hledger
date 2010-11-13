@@ -27,6 +27,8 @@ import System.Console.Haskeline (
 import Control.Monad.Trans (liftIO)
 import System.Console.Haskeline.Completion
 import qualified Data.Set as Set
+import Safe (headMay)
+
 
 -- | Read transactions from the terminal, prompting for each field,
 -- and append them to the journal file. If the journal came from stdin, this
@@ -74,7 +76,7 @@ getTransaction j opts args defaultDate = do
             else True
         where (ant,_,_,_) = groupPostings $ journalPostings j
       getpostingsandvalidate = do
-        ps <- getPostings accept bestmatchpostings []
+        ps <- getPostings (jContext j) accept bestmatchpostings []
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
@@ -90,37 +92,51 @@ getTransaction j opts args defaultDate = do
          hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
   getpostingsandvalidate
 
--- | Read postings from the command line until . is entered, using the
--- provided historical postings, if any, to guess defaults.
-getPostings :: (AccountName -> Bool) -> Maybe [Posting] -> [Posting] -> InputT IO [Posting]
-getPostings accept historicalps enteredps = do
-  account <- askFor (printf "account %d" n) defaultaccount (Just accept)
-  if account=="."
-    then return enteredps
-    else do
-      amountstr <- askFor (printf "amount  %d" n) defaultamount validateamount
-      let amount = fromparse $ parse (someamount <|> return missingamt) "" amountstr
-      let p = nullposting{paccount=stripbrackets account,
-                          pamount=amount,
-                          ptype=postingtype account}
-      getPostings accept historicalps $ enteredps ++ [p]
-    where
-      n = length enteredps + 1
-      enteredrealps = filter isReal enteredps
-      bestmatch | isNothing historicalps = Nothing
+-- | Read postings from the command line until . is entered, using any
+-- provided historical postings and the journal context to guess defaults.
+getPostings :: JournalContext -> (AccountName -> Bool) -> Maybe [Posting] -> [Posting] -> InputT IO [Posting]
+getPostings ctx accept historicalps enteredps = do
+  let bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
                 where Just ps = historicalps
       defaultaccount = maybe Nothing (Just . showacctname) bestmatch
+  account <- askFor (printf "account %d" n) defaultaccount (Just accept)
+  if account=="."
+    then return enteredps
+    else do
+      let defaultacctused = Just account == defaultaccount
+          historicalps' = if defaultacctused then historicalps else Nothing
+          bestmatch' | isNothing historicalps' = Nothing
+                     | n <= length ps = Just $ ps !! (n-1)
+                     | otherwise = Nothing
+                     where Just ps = historicalps'
+          defaultamountstr | isJust bestmatch' = Just $ showMixedAmountWithPrecision maxprecision $ pamount $ fromJust bestmatch'
+                           | n > 1             = Just balancingamountstr
+                           | otherwise         = Nothing
+              where balancingamountstr = showMixedAmountWithPrecision maxprecision $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
+      amountstr <- askFor (printf "amount  %d" n) defaultamountstr validateamount
+      let amount = setMixedAmountPrecision maxprecision $ fromparse $ runParser (someamount <|> return missingamt) ctx "" amountstr
+          defaultamtused = Just (showMixedAmount amount) == defaultamountstr
+          historicalps'' = if defaultamtused then historicalps' else Nothing
+          commodityadded | showMixedAmountWithPrecision maxprecision amount == amountstr = Nothing
+                         | otherwise = maybe Nothing (Just . commodity) $ headMay $ amounts amount
+          p = nullposting{paccount=stripbrackets account,
+                          pamount=amount,
+                          ptype=postingtype account}
+      when (isJust commodityadded) $
+           liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (symbol $ fromJust commodityadded)
+      getPostings ctx accept historicalps'' $ enteredps ++ [p]
+    where
+      n = length enteredps + 1
+      enteredrealps = filter isReal enteredps
       showacctname p = showAccountName Nothing (ptype p) $ paccount p
-      defaultamount = maybe balancingamount (Just . show . pamount) bestmatch
-          where balancingamount = Just $ show $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
       postingtype ('[':_) = BalancedVirtualPosting
       postingtype ('(':_) = VirtualPosting
       postingtype _ = RegularPosting
       stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
-                                   || isRight (parse (someamount>>many spacenonewline>>eof) "" s)
+                                   || isRight (runParser (someamount>>many spacenonewline>>eof) ctx "" s)
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the

@@ -1,0 +1,15 @@
+# add should use the (final) default commodity if any
+# disabled as add currently requires ctrl-c to terminate
+#
+#  printf 'D £1000.00\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
+# <<<
+# 2010/1/1
+
+# a
+# 1000
+# b
+# >>>
+# 2010/01/01 y
+#     a      £1000.00
+#     b     £-1000.00
+
