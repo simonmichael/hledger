@@ -400,8 +400,8 @@ to the journal, with assistance:
 - If you specify [account pattern(s)](#filter-patterns) on the command
   line, only matching transactions will be considered for defaults.
 
-- While entering account names, the tab key will auto-complete up to the
-  next : separator
+- While entering account names, the tab key will auto-complete as far as
+  possible, and if pressed a second time will show a list of options.
 
 - If a [default commodity](#default-commodity) is defined, it will be used
   for any commodity-less amounts entered.
