@@ -919,12 +919,11 @@ managing memory growth.
 
 #### File format compatibility
 
-hledger's file format is mostly identical with that of c++ ledger version
-2, with some features (like modifier and periodic entries) being accepted,
-but ignored. There are also some subtle differences in parser behaviour
-(eg comments may be permissible in different places.) C++ ledger version 3
-has introduced additional syntax, which current hledger probably fails to
-parse.
+hledger's file format is mostly identical with that of c++ ledger, with
+some features being accepted but ignored. (Eg modifier entries, periodic
+entries, metadata, per-posting cleared flags). There are also some subtle
+differences in parser behaviour (eg comments may be permissible in
+different places.)
 
 Generally, it's easy to keep a journal file that works with both hledger
 and c++ledger if you avoid the more esoteric syntax.  Occasionally you'll

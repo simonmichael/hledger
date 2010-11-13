@@ -329,9 +329,10 @@ ledgerTransaction = do
       (do {many1 spacenonewline; d <- liftM rstrip (many (noneOf ";\n")); c <- ledgercomment <|> return ""; newline; return (d, c)} <|>
        do {many spacenonewline; c <- ledgercomment <|> return ""; newline; return ("", c)}
       ) <?> "description and/or comment"
+  md <- try ledgermetadata <|> return []
   postings <- ledgerpostings
-  let t = txnTieKnot $ Transaction date edate status code description comment postings ""
-  case balanceTransaction t of
+  let t = txnTieKnot $ Transaction date edate status code description comment md postings ""
+  case Right t of -- balanceTransaction t of
     Right t' -> return t'
     Left err -> fail err
 
@@ -390,20 +391,44 @@ ledgerstatus = try (do { many1 spacenonewline; char '*' <?> "status"; return Tru
 ledgercode :: GenParser Char JournalContext String
 ledgercode = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
+ledgermetadata :: GenParser Char JournalContext [(String,String)]
+ledgermetadata = many ledgermetadataline
+
+-- a comment line containing a metadata declaration, eg:
+-- ; name: value
+ledgermetadataline :: GenParser Char JournalContext (String,String)
+ledgermetadataline = do
+  many1 spacenonewline
+  many1 $ char ';'
+  many spacenonewline
+  name <- many1 $ noneOf ": \t"
+  char ':'
+  many spacenonewline
+  value <- many (noneOf "\n")
+  optional newline
+--  eof
+  return (name,value)
+  <?> "metadata line"
+
+-- Parse the following whitespace-beginning lines as postings, posting metadata, and/or comments.
+-- complicated to handle intermixed comment and metadata lines.. make me better ?
 ledgerpostings :: GenParser Char JournalContext [Posting]
 ledgerpostings = do
-  -- complicated to handle intermixed comment lines.. please make me better.
   ctx <- getState
-  let parses p = isRight . parseWithCtx ctx p
-  -- parse the following non-comment whitespace-beginning lines as postings
-  -- make sure the sub-parse starts from the current position, for useful errors
+  -- pass current position to the sub-parses for more useful errors
   pos <- getPosition
   ls <- many1 $ try linebeginningwithspaces
-  let ls' = filter (not . (ledgercommentline `parses`)) ls
-  when (null ls') $ fail "no postings"
-  return $ map (fromparse . parseWithCtx ctx (setPosition pos >> ledgerposting)) ls'
+  let parses p = isRight . parseWithCtx ctx p
+      postinglines = filter (not . (ledgercommentline `parses`)) ls
+      postinglinegroups :: [String] -> [String]
+      postinglinegroups [] = []
+      postinglinegroups (pline:ls) = (unlines $ pline:mdlines):postinglinegroups rest
+          where (mdlines,rest) = span (ledgermetadataline `parses`) ls
+      pstrs = postinglinegroups postinglines
+  when (null pstrs) $ fail "no postings"
+  return $ map (fromparse . parseWithCtx ctx (setPosition pos >> ledgerposting)) pstrs
   <?> "postings"
-
+            
 linebeginningwithspaces :: GenParser Char JournalContext String
 linebeginningwithspaces = do
   sp <- many1 spacenonewline
@@ -421,7 +446,8 @@ ledgerposting = do
   many spacenonewline
   comment <- ledgercomment <|> return ""
   newline
-  return (Posting status account' amount comment ptype Nothing)
+  md <- ledgermetadata
+  return (Posting status account' amount comment ptype md Nothing)
 
 -- qualify with the parent account from parsing context
 transactionaccountname :: GenParser Char JournalContext AccountName
@@ -611,7 +637,7 @@ tests_JournalReader = TestList [
 
  ,"ledgerposting" ~: do
     assertParseEqual (parseWithCtx nullctx ledgerposting "  expenses:food:dining  $10.00\n")
-                     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting Nothing)
+                     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting [] Nothing)
     assertBool "ledgerposting parses a quoted commodity with numbers"
                    (isRight $ parseWithCtx nullctx ledgerposting "  a  1 \"DE123\"\n")
 
@@ -645,7 +671,7 @@ entry1_str = unlines
  ]
 
 entry1 =
-    txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing, 
-      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting Nothing] ""
+    txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting [] Nothing, 
+      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting [] Nothing] ""
 

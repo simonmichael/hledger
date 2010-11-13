@@ -1,0 +1,19 @@
+# we currently should parse and ignore ledger-style metadata attributes
+#
+bin/hledger -f - print
+<<<
+2010/01/01
+    ; txndata1: txn val 1
+   ; txndata2: txn val 2
+    a             1
+    ; posting1data1: posting1 val 1
+ ; posting1data2: 
+    b            -1
+    ; posting2data1:
+; posting2nonmetadata:
+>>>
+2010/01/01 
+    a             1
+    b            -1
+
+>>>2

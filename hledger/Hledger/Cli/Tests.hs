@@ -272,19 +272,19 @@ tests = TestList [
   ,"balanceTransaction" ~: do
      assertBool "detect unbalanced entry, sign error"
                     (isLeft $ balanceTransaction
-                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" ""
-                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting Nothing, 
-                             Posting False "b" (Mixed [dollars 1]) "" RegularPosting Nothing
+                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing, 
+                             Posting False "b" (Mixed [dollars 1]) "" RegularPosting [] Nothing
                             ] ""))
      assertBool "detect unbalanced entry, multiple missing amounts"
                     (isLeft $ balanceTransaction
-                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" ""
-                            [Posting False "a" missingamt "" RegularPosting Nothing, 
-                             Posting False "b" missingamt "" RegularPosting Nothing
+                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                            [Posting False "a" missingamt "" RegularPosting [] Nothing, 
+                             Posting False "b" missingamt "" RegularPosting [] Nothing
                             ] ""))
-     let e = balanceTransaction (Transaction (parsedate "2007/01/28") Nothing False "" "test" ""
-                           [Posting False "a" (Mixed [dollars 1]) "" RegularPosting Nothing, 
-                            Posting False "b" missingamt "" RegularPosting Nothing
+     let e = balanceTransaction (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                           [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing, 
+                            Posting False "b" missingamt "" RegularPosting [] Nothing
                            ] "")
      assertBool "one missing amount should be ok" (isRight e)
      assertEqual "balancing amount is added" 
@@ -339,41 +339,41 @@ tests = TestList [
     "my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
 
   ,"isTransactionBalanced" ~: do
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
-             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
              ] ""
      assertBool "detect balanced" (isTransactionBalanced t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
-             ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting (Just t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting [] (Just t)
              ] ""
      assertBool "detect unbalanced" (not $ isTransactionBalanced t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
              ] ""
      assertBool "detect unbalanced, one posting" (not $ isTransactionBalanced t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-             [Posting False "b" (Mixed [dollars 0]) "" RegularPosting (Just t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 0]) "" RegularPosting [] (Just t)
              ] ""
      assertBool "one zero posting is considered balanced for now" (isTransactionBalanced t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
-             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
-             ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting (Just t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting [] (Just t)
              ] ""
      assertBool "virtual postings don't need to balance" (isTransactionBalanced t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
-             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
-             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting (Just t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting [] (Just t)
              ] ""
      assertBool "balanced virtual postings need to balance among themselves" (not $ isTransactionBalanced t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" ""
-             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting (Just t)
-             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting (Just t)
-             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting (Just t)
-             ,Posting False "e" (Mixed [dollars (-100)]) "" BalancedVirtualPosting (Just t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting [] (Just t)
+             ,Posting False "e" (Mixed [dollars (-100)]) "" BalancedVirtualPosting [] (Just t)
              ] ""
      assertBool "balanced virtual postings need to balance among themselves (2)" (isTransactionBalanced t)
 
@@ -894,6 +894,7 @@ journal7 = Journal
              tcode="*",
              tdescription="opening balance",
              tcomment="",
+             tmetadata=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -901,6 +902,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -909,6 +911,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               }
              ],
@@ -922,6 +925,7 @@ journal7 = Journal
              tcode="*",
              tdescription="ayres suites",
              tcomment="",
+             tmetadata=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -929,6 +933,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 179.92]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -937,6 +942,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-179.92)]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               }
              ],
@@ -950,6 +956,7 @@ journal7 = Journal
              tcode="*",
              tdescription="auto transfer to savings",
              tcomment="",
+             tmetadata=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -957,6 +964,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 200]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -965,6 +973,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-200)]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               }
              ],
@@ -978,6 +987,7 @@ journal7 = Journal
              tcode="*",
              tdescription="poquito mas",
              tcomment="",
+             tmetadata=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -985,6 +995,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -993,6 +1004,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               }
              ],
@@ -1006,6 +1018,7 @@ journal7 = Journal
              tcode="*",
              tdescription="verizon",
              tcomment="",
+             tmetadata=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -1013,6 +1026,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 95.11]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -1021,6 +1035,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-95.11)]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               }
              ],
@@ -1034,6 +1049,7 @@ journal7 = Journal
              tcode="*",
              tdescription="discover",
              tcomment="",
+             tmetadata=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -1041,6 +1057,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 80]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -1049,6 +1066,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-80)]),
                 pcomment="",
                 ptype=RegularPosting,
+                pmetadata=[],
                 ptransaction=Nothing
               }
              ],

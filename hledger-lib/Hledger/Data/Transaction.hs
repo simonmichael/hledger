@@ -31,6 +31,7 @@ nulltransaction = Transaction {
                     tcode="", 
                     tdescription="", 
                     tcomment="",
+                    tmetadata=[],
                     tpostings=[],
                     tpreceding_comment_lines=""
                   }
@@ -183,9 +184,9 @@ tests_Transaction = TestList [
         ,"    assets:checking"
         ,""
         ])
-       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting (Just t)
-                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting (Just t)
+       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting [] (Just t)
+                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting [] (Just t)
                 ] ""
         in showTransaction t)
 
@@ -197,9 +198,9 @@ tests_Transaction = TestList [
         ,"    assets:checking               $-47.18"
         ,""
         ])
-       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting (Just t)
-                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting (Just t)
+       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+                [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting [] (Just t)
+                ,Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting [] (Just t)
                 ] ""
         in showTransactionUnelided t)
 
@@ -213,9 +214,9 @@ tests_Transaction = TestList [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing
-         ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting Nothing
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting [] Nothing
+         ,Posting False "assets:checking" (Mixed [dollars (-47.19)]) "" RegularPosting [] Nothing
          ] ""))
 
   ,"showTransaction" ~: do
@@ -226,8 +227,8 @@ tests_Transaction = TestList [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting Nothing
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+         [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting [] Nothing
          ] ""))
 
   ,"showTransaction" ~: do
@@ -238,8 +239,8 @@ tests_Transaction = TestList [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" ""
-         [Posting False "expenses:food:groceries" missingamt "" RegularPosting Nothing
+        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+         [Posting False "expenses:food:groceries" missingamt "" RegularPosting [] Nothing
          ] ""))
 
   ,"showTransaction" ~: do
@@ -251,9 +252,9 @@ tests_Transaction = TestList [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" ""
-         [Posting False "a" (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting Nothing
-         ,Posting False "b" missingamt "" RegularPosting Nothing
+        (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" "" []
+         [Posting False "a" (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting [] Nothing
+         ,Posting False "b" missingamt "" RegularPosting [] Nothing
          ] ""))
 
   ]
