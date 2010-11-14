@@ -332,7 +332,7 @@ ledgerTransaction = do
   md <- try ledgermetadata <|> return []
   postings <- ledgerpostings
   let t = txnTieKnot $ Transaction date edate status code description comment md postings ""
-  case Right t of -- balanceTransaction t of
+  case balanceTransaction t of
     Right t' -> return t'
     Left err -> fail err
 
