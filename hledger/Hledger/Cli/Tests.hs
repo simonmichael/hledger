@@ -271,18 +271,18 @@ tests = TestList [
 
   ,"balanceTransaction" ~: do
      assertBool "detect unbalanced entry, sign error"
-                    (isLeft $ balanceTransaction
+                    (isLeft $ balanceTransaction Nothing
                            (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
                             [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing, 
                              Posting False "b" (Mixed [dollars 1]) "" RegularPosting [] Nothing
                             ] ""))
      assertBool "detect unbalanced entry, multiple missing amounts"
-                    (isLeft $ balanceTransaction
+                    (isLeft $ balanceTransaction Nothing
                            (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
                             [Posting False "a" missingamt "" RegularPosting [] Nothing, 
                              Posting False "b" missingamt "" RegularPosting [] Nothing
                             ] ""))
-     let e = balanceTransaction (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+     let e = balanceTransaction Nothing (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing, 
                             Posting False "b" missingamt "" RegularPosting [] Nothing
                            ] "")
@@ -343,39 +343,39 @@ tests = TestList [
              [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
              ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
              ] ""
-     assertBool "detect balanced" (isTransactionBalanced t)
+     assertBool "detect balanced" (isTransactionBalanced Nothing t)
      let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
              [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
              ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting [] (Just t)
              ] ""
-     assertBool "detect unbalanced" (not $ isTransactionBalanced t)
+     assertBool "detect unbalanced" (not $ isTransactionBalanced Nothing t)
      let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
              [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
              ] ""
-     assertBool "detect unbalanced, one posting" (not $ isTransactionBalanced t)
+     assertBool "detect unbalanced, one posting" (not $ isTransactionBalanced Nothing t)
      let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
              [Posting False "b" (Mixed [dollars 0]) "" RegularPosting [] (Just t)
              ] ""
-     assertBool "one zero posting is considered balanced for now" (isTransactionBalanced t)
+     assertBool "one zero posting is considered balanced for now" (isTransactionBalanced Nothing t)
      let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
              [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
              ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
              ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting [] (Just t)
              ] ""
-     assertBool "virtual postings don't need to balance" (isTransactionBalanced t)
+     assertBool "virtual postings don't need to balance" (isTransactionBalanced Nothing t)
      let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
              [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
              ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
              ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting [] (Just t)
              ] ""
-     assertBool "balanced virtual postings need to balance among themselves" (not $ isTransactionBalanced t)
+     assertBool "balanced virtual postings need to balance among themselves" (not $ isTransactionBalanced Nothing t)
      let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
              [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
              ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
              ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting [] (Just t)
              ,Posting False "e" (Mixed [dollars (-100)]) "" BalancedVirtualPosting [] (Just t)
              ] ""
-     assertBool "balanced virtual postings need to balance among themselves (2)" (isTransactionBalanced t)
+     assertBool "balanced virtual postings need to balance among themselves (2)" (isTransactionBalanced Nothing t)
 
   ,"isSubAccountNameOf" ~: do
     "assets" `isSubAccountNameOf` "assets" `is` False

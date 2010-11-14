@@ -26,8 +26,12 @@ parseJournalWith p f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
   case runParser p nullctx f s of
-    Right (updates,ctx) -> liftM (journalFinalise tc tl f s ctx) $ updates `ap` return nulljournal
-    Left err      -> throwError $ show err
+    Right (updates,ctx) -> do
+                           j <- updates `ap` return nulljournal
+                           case journalFinalise tc tl f s ctx j of
+                             Right j'  -> return j'
+                             Left estr -> throwError estr
+    Left e -> throwError $ show e
 
 setYear :: Integer -> GenParser tok JournalContext ()
 setYear y = updateState (\ctx -> ctx{ctxYear=Just y})

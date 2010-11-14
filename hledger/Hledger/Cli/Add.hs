@@ -87,7 +87,7 @@ getTransaction j opts args defaultDate = do
             retry msg = do
               liftIO $ hPutStrLn stderr $ "\n" ++ msg ++ "please re-enter."
               getpostingsandvalidate
-        either retry (return . flip (,) date) $ balanceTransaction t
+        either retry (return . flip (,) date) $ balanceTransaction Nothing t -- imprecise balancing
   unless (null historymatches) 
        (liftIO $ do
          hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"

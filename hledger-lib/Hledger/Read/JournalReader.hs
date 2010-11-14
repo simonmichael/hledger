@@ -332,9 +332,11 @@ ledgerTransaction = do
   md <- try ledgermetadata <|> return []
   postings <- ledgerpostings
   let t = txnTieKnot $ Transaction date edate status code description comment md postings ""
-  case balanceTransaction t of
-    Right t' -> return t'
-    Left err -> fail err
+  -- case balanceTransaction Nothing t of
+  --   Right t' -> return t'
+  --   Left err -> fail err
+  -- check it later, after we have worked out commodity display precisions
+  return t
 
 ledgerdate :: GenParser Char JournalContext Day
 ledgerdate = do

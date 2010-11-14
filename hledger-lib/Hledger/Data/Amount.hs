@@ -110,7 +110,7 @@ showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
       R -> printf "%s%s%s%s" quantity space sym' price
     where
       sym' = quoteCommoditySymbolIfNeeded sym
-      space = if spaced then " " else ""
+      space = if (spaced && not (null sym')) then " " else ""
       quantity = showAmount' a
       price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
                           Nothing -> ""
@@ -131,6 +131,10 @@ showAmountDebug (Amount c q pri) = printf "Amount {commodity = %s, quantity = %s
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
 showAmountWithoutPrice a = showAmount a{price=Nothing}
+
+-- | Get the string representation of an amount, without any price or commodity symbol.
+showAmountWithoutPriceOrCommodity :: Amount -> String
+showAmountWithoutPriceOrCommodity a@Amount{commodity=c} = showAmount a{commodity=c{symbol=""}, price=Nothing}
 
 -- | Get the string representation of the number part of of an amount,
 -- using the display precision from its commodity.
@@ -158,7 +162,7 @@ punctuatethousands s =
 
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
-isZeroAmount = null . filter (`elem` "123456789") . showAmountWithoutPrice
+isZeroAmount = null . filter (`elem` "123456789") . showAmountWithoutPriceOrCommodity
 
 -- | Is this amount "really" zero, regardless of the display precision ?
 -- Since we are using floating point, for now just test to some high precision.

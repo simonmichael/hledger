@@ -1,0 +1,33 @@
+# http://code.google.com/p/hledger/issues/detail?id=23
+#
+# with explicit price:
+# prices' commodities are unobserved, so $'s display precision here should be 2 not 4
+bin/hledger -f - print --cost
+<<<
+2010/1/1
+   a  $0.00
+   a  1C @ $1.0049
+   a
+>>>
+2010/01/01 
+    a             0
+    a         $1.00
+    a        $-1.00
+
+>>>2
+# with $'s display precision at 3 or more, this txn should not balance
+bin/hledger -f - balance --no-total --cost --empty
+<<<
+2010/1/1
+   a  1C @ $1.0049
+   a  $-1.000
+>>>2 /off by \$0.005/
+>>>= 1
+# with $'s display precision at 2 or less, this txn should balance
+bin/hledger -f - balance --no-total --cost --empty
+<<<
+2010/1/1
+   a  1C @ $1.0049
+   a  $-1.00
+>>>
+               $0.00  a

@@ -8,6 +8,9 @@ plus a date and optional metadata like description and cleared status.
 
 module Hledger.Data.Transaction
 where
+import qualified Data.Map as Map
+import Data.Map (findWithDefault)
+
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
@@ -75,7 +78,7 @@ showTransaction' elide effective t =
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       showpostings ps
-          | elide && length ps > 1 && isTransactionBalanced t
+          | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]
           | otherwise = map showposting ps
           where
@@ -122,20 +125,34 @@ transactionPostingBalances t = (sumPostings $ realPostings t
 -- | Is this transaction balanced ? A balanced transaction's real
 -- (non-virtual) postings sum to 0, and any balanced virtual postings
 -- also sum to 0.
-isTransactionBalanced :: Transaction -> Bool
-isTransactionBalanced t = isReallyZeroMixedAmountCost rsum && isReallyZeroMixedAmountCost bvsum
-    where (rsum, _, bvsum) = transactionPostingBalances t
+isTransactionBalanced :: Maybe (Map.Map String Commodity) -> Transaction -> Bool
+isTransactionBalanced canonicalcommoditymap t =
+    -- isReallyZeroMixedAmountCost rsum && isReallyZeroMixedAmountCost bvsum
+    isZeroMixedAmount rsum' && isZeroMixedAmount bvsum'
+    where
+      (rsum, _, bvsum) = transactionPostingBalances t
+      rsum'  = canonicaliseMixedAmount canonicalcommoditymap $ costOfMixedAmount rsum
+      bvsum' = canonicaliseMixedAmount canonicalcommoditymap $ costOfMixedAmount bvsum
+
+canonicaliseMixedAmount :: Maybe (Map.Map String Commodity) -> MixedAmount -> MixedAmount
+canonicaliseMixedAmount Nothing                      = id
+canonicaliseMixedAmount (Just canonicalcommoditymap) = fixmixedamount
+    where
+      -- like journalCanonicaliseAmounts
+      fixmixedamount (Mixed as) = Mixed $ map fixamount as
+      fixamount a@Amount{commodity=c} = a{commodity=fixcommodity c}
+      fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
 
 -- | Ensure that this entry is balanced, possibly auto-filling a missing
 -- amount first. We can auto-fill if there is just one non-virtual
 -- transaction without an amount. The auto-filled balance will be
 -- converted to cost basis if possible. If the entry can not be balanced,
 -- return an error message instead.
-balanceTransaction :: Transaction -> Either String Transaction
-balanceTransaction t@Transaction{tpostings=ps}
+balanceTransaction :: Maybe (Map.Map String Commodity) -> Transaction -> Either String Transaction
+balanceTransaction canonicalcommoditymap t@Transaction{tpostings=ps}
     | length rwithoutamounts > 1 || length bvwithoutamounts > 1
         = Left $ printerr "could not balance this transaction (too many missing amounts)"
-    | not $ isTransactionBalanced t' = Left $ printerr $ nonzerobalanceerror t'
+    | not $ isTransactionBalanced canonicalcommoditymap t' = Left $ printerr $ nonzerobalanceerror t'
     | otherwise = Right t'
     where
       rps = filter isReal ps
@@ -145,9 +162,9 @@ balanceTransaction t@Transaction{tpostings=ps}
       t' = t{tpostings=map balance ps}
           where 
             balance p | not (hasAmount p) && isReal p
-                          = p{pamount = costOfMixedAmount (-(sum $ map pamount rwithamounts))}
+                          = p{pamount = (-(sum $ map pamount rwithamounts))}
                       | not (hasAmount p) && isBalancedVirtual p
-                          = p{pamount = costOfMixedAmount (-(sum $ map pamount bvwithamounts))}
+                          = p{pamount = (-(sum $ map pamount bvwithamounts))}
                       | otherwise = p
       printerr s = intercalate "\n" [s, showTransactionUnelided t]
 

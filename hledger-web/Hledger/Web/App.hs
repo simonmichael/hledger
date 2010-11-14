@@ -881,7 +881,7 @@ postAddForm = do
       -- if no errors so far, generate a transaction and balance it or get the error.
       tE | not $ null errs = Left errs
          | otherwise = either (\e -> Left ["unbalanced postings: " ++ (head $ lines e)]) Right
-                        (balanceTransaction $ nulltransaction {
+                        (balanceTransaction Nothing $ nulltransaction { -- imprecise balancing
                            tdate=parsedate date
                           ,tdescription=desc
                           ,tpostings=[

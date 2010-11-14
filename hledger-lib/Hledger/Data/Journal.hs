@@ -18,7 +18,7 @@ import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Commodity (canonicaliseCommodities)
 import Hledger.Data.Dates (nulldatespan)
-import Hledger.Data.Transaction (journalTransactionWithDate)
+import Hledger.Data.Transaction (journalTransactionWithDate,balanceTransaction)
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
 
@@ -225,12 +225,23 @@ journalSelectingDate EffectiveDate j =
     j{jtxns=map (journalTransactionWithDate EffectiveDate) $ jtxns j}
 
 -- | Do post-parse processing on a journal, to make it ready for use.
-journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Journal -> Journal
+journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Journal -> Either String Journal
 journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =
+    journalBalanceTransactions $
     journalCanonicaliseAmounts $
     journalApplyHistoricalPrices $
     journalCloseTimeLogEntries tlocal
     j{files=(path,txt):fs, filereadtime=tclock, jContext=ctx}
+
+-- | Fill in any missing amounts and check that all journal transactions
+-- balance, or return an error message. This is done after parsing all
+-- amounts and working out the canonical commodities, since balancing
+-- depends on display precision. Reports only the first error encountered.
+journalBalanceTransactions :: Journal -> Either String Journal
+journalBalanceTransactions j@Journal{jtxns=ts} =
+  case sequence $ map balance ts of Right ts' -> Right j{jtxns=ts'}
+                                    Left e    -> Left e
+      where balance = balanceTransaction (Just $ journalCanonicalCommodities j)
 
 -- | Convert all the journal's amounts to their canonical display
 -- settings.  Ie, all amounts in a given commodity will use (a) the
@@ -283,7 +294,7 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 
 -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 journalCanonicalCommodities :: Journal -> Map.Map String Commodity
-journalCanonicalCommodities j = canonicaliseCommodities $ journalAmountAndPriceCommodities j
+journalCanonicalCommodities j = canonicaliseCommodities $ journalAmountCommodities j
 
 -- | Get all this journal's amounts' commodities, in the order parsed.
 journalAmountCommodities :: Journal -> [Commodity]
