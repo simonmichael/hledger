@@ -62,7 +62,7 @@ tests = TestList [
    "account directive" ~:
    let sameParse str1 str2 = do j1 <- readJournal Nothing str1 >>= either error' return
                                 j2 <- readJournal Nothing str2 >>= either error' return
-                                j1 `is` j2{filereadtime=filereadtime j1, files=files j1}
+                                j1 `is` j2{filereadtime=filereadtime j1, files=files j1, jContext=jContext j1}
    in TestList
    [
     "account directive 1" ~: sameParse 
