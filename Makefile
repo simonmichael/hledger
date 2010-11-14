@@ -22,6 +22,18 @@ VIEWPS=google-chrome
 VIEWPDF=google-chrome
 PRINT=lpr
 
+PACKAGES=\
+	hledger-lib \
+	hledger \
+	hledger-web \
+	hledger-vty
+#	hledger-chart
+INCLUDEPATHS=\
+	-ihledger-lib \
+	-ihledger \
+	-ihledger-web \
+	-ihledger-vty
+#	-ihledger-chart
 MAIN=hledger/hledger.hs
 SOURCEFILES:= \
 	$(MAIN) \
@@ -43,7 +55,7 @@ PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
 DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL)
 PREFERMACUSRLIBFLAGS=-L/usr/lib
-BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS) $(PREFERMACUSRLIBFLAGS) -ihledger-lib
+BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS) $(PREFERMACUSRLIBFLAGS) $(INCLUDEPATHS)
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 # file defining the current release version
@@ -67,13 +79,6 @@ default: tag install
 
 ######################################################################
 # BUILDING
-
-PACKAGES=\
-	hledger-lib \
-	hledger \
-	hledger-web \
-	hledger-vty \
-#	hledger-chart \
 
 # set version numbers, fetch dependencies, build and install standard binaries
 # and libs from all hledger packages. A good thing to run first; the other
@@ -102,7 +107,7 @@ all%:
 # sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
 autotest: setversion
 	rm -f bin/hledger
-	sp --no-exts --no-default-map -o bin/hledger ghc --make hledger/hledger.hs -ihledger $(BUILDFLAGS) --run test
+	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) -ihledger $(BUILDFLAGS) --run test
 
 # auto-recompile and run (hledger-web) whenever a module changes.
 # sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
@@ -165,35 +170,35 @@ tools/generatejournal: tools/generatejournal.hs
 
 # build a developer's binary, as quickly as possible
 hledger: setversion
-	ghc --make hledger.hs -o bin/hledger $(BUILDFLAGS) # -O
+	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS) # -O
 
 hledgernowarnings: setversion
-	ghc --make hledger.hs -o bin/hledger $(BUILDFLAGS) -Werror -v0
+	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS) -Werror -v0
 
 # build the profiling-enabled binary. You may need to cabal install
 # --reinstall -p some libs.
 hledgerp: setversion
-	ghc --make hledger.hs -prof -auto-all -o bin/hledgerp $(BUILDFLAGS)
+	ghc --make $(MAIN) -prof -auto-all -o bin/hledgerp $(BUILDFLAGS)
 
 # build the coverage-enabled binary. coverage-enabled .o files are kept
 # separate to avoid contamination.
 hledgercov: setversion
-	ghc --make hledger.hs -fhpc -o bin/hledgercov -outputdir .coverageobjs $(BUILDFLAGS)
+	ghc --make $(MAIN) -fhpc -o bin/hledgercov -outputdir .coverageobjs $(BUILDFLAGS)
 
 # build the fastest binary we can
 hledgeropt: setversion
-	ghc --make hledger.hs -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
+	ghc --make $(MAIN) -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build a deployable binary for gnu/linux, statically linked
 hledgerlinux: setversion
 	cd hledger; \
-	ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+	ghc --make $(MAIN) -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 	@echo 'Please check the build looks portable (statically linked):'
 	-file bin/$(BINARYFILENAME)
 
 # build a deployable binary for mac, using only standard osx libs
 hledgermac: setversion
-	ghc --make hledger.hs -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 # -optl-L/usr/lib
+	ghc --make $(MAIN) -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 # -optl-L/usr/lib
 	@echo Please check the build looks portable:
 	otool -L bin/$(BINARYFILENAME)
 
@@ -233,7 +238,7 @@ unittest-standalone: tools/unittest
 
 # run unit tests without waiting for compilation
 unittesths:
-	@(runghc hledger.hs test \
+	@(runghc $(MAIN) test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run functional tests, requires shelltestrunner >= 0.9 from hackage
@@ -352,7 +357,7 @@ coverage: samplejournals hledgercov
 
 # get a debug prompt
 ghci:
-	ghci hledger/hledger.hs
+	ghci $(INCLUDEPATHS) $(MAIN)
 
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/10000x1000x10.journal data/100000x1000x10.journal
