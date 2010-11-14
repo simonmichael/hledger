@@ -9,7 +9,6 @@ plus a date and optional metadata like description and cleared status.
 module Hledger.Data.Transaction
 where
 import qualified Data.Map as Map
-import Data.Map (findWithDefault)
 
 import Hledger.Data.Utils
 import Hledger.Data.Types
@@ -133,15 +132,6 @@ isTransactionBalanced canonicalcommoditymap t =
       (rsum, _, bvsum) = transactionPostingBalances t
       rsum'  = canonicaliseMixedAmount canonicalcommoditymap $ costOfMixedAmount rsum
       bvsum' = canonicaliseMixedAmount canonicalcommoditymap $ costOfMixedAmount bvsum
-
-canonicaliseMixedAmount :: Maybe (Map.Map String Commodity) -> MixedAmount -> MixedAmount
-canonicaliseMixedAmount Nothing                      = id
-canonicaliseMixedAmount (Just canonicalcommoditymap) = fixmixedamount
-    where
-      -- like journalCanonicaliseAmounts
-      fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount a@Amount{commodity=c} = a{commodity=fixcommodity c}
-      fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
 
 -- | Ensure that this entry is balanced, possibly auto-filling a missing
 -- amount first. We can auto-fill if there is just one non-virtual

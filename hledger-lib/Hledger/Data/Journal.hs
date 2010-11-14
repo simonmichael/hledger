@@ -254,7 +254,7 @@ journalCanonicaliseAmounts j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount a@Amount{commodity=c,price=p} = a{commodity=fixcommodity c, price=maybe Nothing (Just . fixmixedamount) p}
+      fixamount a@Amount{commodity=c} = a{commodity=fixcommodity c}
       fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
       canonicalcommoditymap = journalCanonicalCommodities j
 
@@ -287,10 +287,11 @@ journalCloseTimeLogEntries now j@Journal{jtxns=ts, open_timelog_entries=es} =
 journalConvertAmountsToCost :: Journal -> Journal
 journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
     where
+      -- similar to journalCanonicaliseAmounts
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = costOfAmount
+      fixamount = canonicaliseAmount (Just $ journalCanonicalCommodities j) . costOfAmount
 
 -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 journalCanonicalCommodities :: Journal -> Map.Map String Commodity

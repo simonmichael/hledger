@@ -40,6 +40,9 @@ price-discarding arithmetic which ignores and discards prices.
 
 module Hledger.Data.Amount
 where
+import qualified Data.Map as Map
+import Data.Map (findWithDefault)
+
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Commodity
@@ -268,6 +271,21 @@ normaliseMixedAmount (Mixed as) = Mixed as''
       as' | null nonzeros = [head $ zeros ++ [nullamt]]
           | otherwise = nonzeros
       (zeros,nonzeros) = partition isReallyZeroAmount as
+
+-- | Set a mixed amount's commodity to the canonicalised commodity from
+-- the provided commodity map.
+canonicaliseMixedAmount :: Maybe (Map.Map String Commodity) -> MixedAmount -> MixedAmount
+canonicaliseMixedAmount canonicalcommoditymap (Mixed as) = Mixed $ map (canonicaliseAmount canonicalcommoditymap) as
+
+-- | Set an amount's commodity to the canonicalised commodity from
+-- the provided commodity map.
+canonicaliseAmount :: Maybe (Map.Map String Commodity) -> Amount -> Amount
+canonicaliseAmount Nothing                      = id
+canonicaliseAmount (Just canonicalcommoditymap) = fixamount
+    where
+      -- like journalCanonicaliseAmounts
+      fixamount a@Amount{commodity=c} = a{commodity=fixcommodity c}
+      fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
 
 -- various sum variants..
 
