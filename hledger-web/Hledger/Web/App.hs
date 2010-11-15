@@ -27,10 +27,10 @@ import Yesod.Helpers.Static
 import Text.Hamlet (defaultHamletSettings)
 import Text.Hamlet.RT
 
-import Hledger.Cli.Commands.Add (appendToJournalFile)
-import Hledger.Cli.Commands.Balance
-import Hledger.Cli.Commands.Print
-import Hledger.Cli.Commands.Register
+import Hledger.Cli.Add (appendToJournalFile)
+import Hledger.Cli.Balance
+import Hledger.Cli.Print
+import Hledger.Cli.Register
 import Hledger.Cli.Options hiding (value)
 import Hledger.Cli.Utils
 import Hledger.Cli.Version (version)

@@ -41,14 +41,14 @@ executable hledger
                   Hledger.Cli.Tests
                   Hledger.Cli.Utils
                   Hledger.Cli.Version
-                  Hledger.Cli.Commands.Add
-                  Hledger.Cli.Commands.All
-                  Hledger.Cli.Commands.Balance
-                  Hledger.Cli.Commands.Convert
-                  Hledger.Cli.Commands.Histogram
-                  Hledger.Cli.Commands.Print
-                  Hledger.Cli.Commands.Register
-                  Hledger.Cli.Commands.Stats
+                  Hledger.Cli.Commands
+                  Hledger.Cli.Add
+                  Hledger.Cli.Balance
+                  Hledger.Cli.Convert
+                  Hledger.Cli.Histogram
+                  Hledger.Cli.Print
+                  Hledger.Cli.Register
+                  Hledger.Cli.Stats
   build-depends:
                   hledger-lib == 0.13
                  ,HUnit
@@ -80,14 +80,14 @@ library
                   Hledger.Cli.Tests
                   Hledger.Cli.Utils
                   Hledger.Cli.Version
-                  Hledger.Cli.Commands.Add
-                  Hledger.Cli.Commands.All
-                  Hledger.Cli.Commands.Balance
-                  Hledger.Cli.Commands.Convert
-                  Hledger.Cli.Commands.Histogram
-                  Hledger.Cli.Commands.Print
-                  Hledger.Cli.Commands.Register
-                  Hledger.Cli.Commands.Stats
+                  Hledger.Cli.Commands
+                  Hledger.Cli.Add
+                  Hledger.Cli.Balance
+                  Hledger.Cli.Convert
+                  Hledger.Cli.Histogram
+                  Hledger.Cli.Print
+                  Hledger.Cli.Register
+                  Hledger.Cli.Stats
   build-depends:
                   hledger-lib == 0.13
                  ,HUnit

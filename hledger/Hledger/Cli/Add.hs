@@ -5,12 +5,12 @@ A history-aware add command to help with data entry.
 
 -}
 
-module Hledger.Cli.Commands.Add
+module Hledger.Cli.Add
 where
 import Hledger.Data
 import Hledger.Read.Journal (someamount)
 import Hledger.Cli.Options
-import Hledger.Cli.Commands.Register (registerReport, registerReportAsText)
+import Hledger.Cli.Register (registerReport, registerReportAsText)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn, getLine, appendFile)
 import System.IO.UTF8

@@ -5,7 +5,7 @@ A ledger-compatible @print@ command.
 
 -}
 
-module Hledger.Cli.Commands.Print (
+module Hledger.Cli.Print (
   JournalReport
  ,JournalReportItem
  ,print'

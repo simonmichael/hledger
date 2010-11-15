@@ -4,7 +4,7 @@ Generate balances pie chart
 
 -}
 
-module Hledger.Cli.Commands.Chart
+module Hledger.Cli.Chart
 where
 import Hledger.Data.Utils
 import Hledger.Data.Types

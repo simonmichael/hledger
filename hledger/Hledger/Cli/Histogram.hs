@@ -5,7 +5,7 @@ Print a histogram report.
 
 -}
 
-module Hledger.Cli.Commands.Histogram
+module Hledger.Cli.Histogram
 where
 import Hledger.Data
 import Hledger.Cli.Options

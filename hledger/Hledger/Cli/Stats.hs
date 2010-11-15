@@ -5,7 +5,7 @@ Print some statistics for the journal.
 
 -}
 
-module Hledger.Cli.Commands.Stats
+module Hledger.Cli.Stats
 where
 import Hledger.Data
 import Hledger.Cli.Options

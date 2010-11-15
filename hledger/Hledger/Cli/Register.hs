@@ -5,7 +5,7 @@ A ledger-compatible @register@ command.
 
 -}
 
-module Hledger.Cli.Commands.Register (
+module Hledger.Cli.Register (
   RegisterReport
  ,RegisterReportItem
  ,register

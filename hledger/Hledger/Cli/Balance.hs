@@ -95,7 +95,7 @@ balance report:
 
 -}
 
-module Hledger.Cli.Commands.Balance (
+module Hledger.Cli.Balance (
   BalanceReport
  ,BalanceReportItem
  ,balance

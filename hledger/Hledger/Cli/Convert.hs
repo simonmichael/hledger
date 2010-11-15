@@ -3,7 +3,7 @@ Convert account data in CSV format (eg downloaded from a bank) to journal
 format, and print it on stdout. See the manual for more details.
 -}
 
-module Hledger.Cli.Commands.Convert where
+module Hledger.Cli.Convert where
 import Hledger.Cli.Options (Opt(Debug))
 import Hledger.Cli.Version (versionstr)
 import Hledger.Data.Types (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))

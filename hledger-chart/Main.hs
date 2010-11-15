@@ -13,7 +13,7 @@ import System.IO.UTF8 (putStr, putStrLn)
 #endif
 
 import Hledger.Chart
-import Hledger.Cli.Commands.All
+import Hledger.Cli.Commands
 import Hledger.Cli.Options
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils (withJournalDo)

@@ -10,9 +10,9 @@ import Safe (headDef)
 import Graphics.Vty
 import Hledger.Data
 import Hledger.Cli.Options
-import Hledger.Cli.Commands.Balance
-import Hledger.Cli.Commands.Register
-import Hledger.Cli.Commands.Print
+import Hledger.Cli.Balance
+import Hledger.Cli.Register
+import Hledger.Cli.Print
 
 
 helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"

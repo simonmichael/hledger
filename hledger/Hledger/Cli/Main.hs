@@ -45,8 +45,8 @@ import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8
 #endif
 
-import Hledger.Cli.Commands.All
 import Hledger.Data
+import Hledger.Cli.Commands
 import Hledger.Cli.Options
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils (withJournalDo)
