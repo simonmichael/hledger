@@ -75,7 +75,7 @@ executable hledger-web
                  ,convertible-text >= 0.3.0.1 && < 0.4
                  ,data-object >= 0.3.1.2 && < 0.4
                  ,failure >= 0.1 && < 0.2
-                 ,persistent == 0.2.*
-                 ,persistent-sqlite == 0.2.*
+                 -- ,persistent == 0.2.*
+                 -- ,persistent-sqlite == 0.2.*
                  ,template-haskell == 2.4.*
                  ,wai-extra == 0.2.*

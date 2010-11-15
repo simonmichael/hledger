@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP, QuasiQuotes, TemplateHaskell, TypeFamilies, GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, FlexibleContexts #-}
 {-| 
-The web app providing a richer interface to hledger's data, along with
-authentication, registration and persistent storage of user accounts.
+The web app providing a richer interface to hledger's data.
 -}
+-- with authentication, registration and persistent storage of user accounts (not yet)
 module Hledger.Web.App
     ( App (..)
     , withApp
@@ -18,11 +18,11 @@ import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (putValue, getValue)
 import Text.ParserCombinators.Parsec hiding (string)
 
-import Database.Persist.GenericSql (ConnectionPool, SqlPersist, runMigration, migrate)
+-- import Database.Persist.GenericSql (ConnectionPool, SqlPersist, runMigration, migrate)
 import Yesod
-import Yesod.Mail
 import Yesod.Helpers.Static
-import Yesod.Helpers.Auth
+-- import Yesod.Helpers.Auth
+-- import Yesod.Mail
 -- import Yesod.WebRoutes
 import Text.Hamlet (defaultHamletSettings)
 import Text.Hamlet.RT
@@ -38,13 +38,13 @@ import Hledger.Data hiding (insert, today)
 import Hledger.Read (journalFromPathAndString)
 import Hledger.Read.Journal (someamount)
 import Hledger.Web.Settings (
-      withConnectionPool
-    , runConnectionPool
+    --   withConnectionPool
+    -- , runConnectionPool
     -- , staticroot
-    , staticdir
+      staticdir
     , hamletFile
     , cassiusFile
-    , juliusFile
+    -- , juliusFile
     , hledgerorgurl
     , manualurl
     , style_css
@@ -65,22 +65,22 @@ import Hledger.Web.Settings (
 -- hledger's main data is stored in the usual places (journal files etc.)
 -- persist (quasi-quoter from persistent) defines a list of data entities.
 -- mkPersist (template haskell from persistent) defines persistence-capable data types based on these.
-mkPersist [$persist|
-User
-    ident String
-    password String null update
-    UniqueUser ident
-Email
-    email String
-    user UserId null update
-    verkey String null update
-    UniqueEmail email
-|]
+-- mkPersist [$persist|
+-- User
+--     ident String
+--     password String null update
+--     UniqueUser ident
+-- Email
+--     email String
+--     user UserId null update
+--     verkey String null update
+--     UniqueEmail email
+-- |]
 
 -- run-time data kept by the web app.
 data App = App
-    {appConnPool :: Maybe ConnectionPool
-    ,appRoot    :: String
+    { -- appConnPool :: Maybe ConnectionPool
+     appRoot    :: String
     ,appDataDir :: FilePath
     ,appOpts    :: [Opt]
     ,appArgs    :: [String]
@@ -90,8 +90,8 @@ data App = App
 
 -- parseRoutes (quasi-quoter from web-routes) defines a list of route patterns for the web app.
 -- mkYesod (template haskell from yesod) defines types for the web app based on the routes.
+-- /auth            AuthR             Auth getAuth
 mkYesod "App" [$parseRoutes|
-/auth            AuthR             Auth getAuth
 /favicon.ico     FaviconR          GET
 /robots.txt      RobotsR           GET
 /static          StaticR           Static appStatic
@@ -114,7 +114,8 @@ instance Yesod App where
             widget
             addStyle $(cassiusFile "default-layout")
         hamletToRepHtml $(hamletFile "default-layout")
-    authRoute _ = Just $ AuthR LoginR
+    -- authRoute _ = Just $ AuthR LoginR
+
     -- static file-serving optimisations, disable for the moment
     -- urlRenderOverride a (StaticR s) =
     --     Just $ uncurry (joinPath a staticroot) $ format s
@@ -130,95 +131,97 @@ instance Yesod App where
     --     liftIO $ L.writeFile (statictmp ++ fn) content
     --     return $ Just $ Right (StaticR $ StaticRoute ["tmp", fn] [], [])
 
-instance YesodPersist App where
-    type YesodDB App = SqlPersist
-    runDB db = do
-      y <- getYesod
-      let p = appConnPool y
-      case p of Just p' -> runConnectionPool db p'
-                Nothing -> error "no connection pool, programmer error" -- XXX
+-- instance YesodPersist App where
+--     type YesodDB App = SqlPersist
+--     runDB db = do
+--       y <- getYesod
+--       let p = appConnPool y
+--       case p of Just p' -> runConnectionPool db p'
+--                 Nothing -> error "no connection pool, programmer error" -- XXX
 
-instance YesodAuth App where
-    type AuthEntity App = User
-    type AuthEmailEntity App = Email
+-- instance YesodAuth App where
+--     type AuthEntity App = User
+--     type AuthEmailEntity App = Email
 
-    defaultDest _ = IndexR
+--     defaultDest _ = IndexR
 
-    getAuthId creds _extra = runDB $ do
-        x <- getBy $ UniqueUser $ credsIdent creds
-        case x of
-            Just (uid, _) -> return $ Just uid
-            Nothing -> do
-                fmap Just $ insert $ User (credsIdent creds) Nothing
+--     getAuthId creds _extra = runDB $ do
+--         x <- getBy $ UniqueUser $ credsIdent creds
+--         case x of
+--             Just (uid, _) -> return $ Just uid
+--             Nothing -> do
+--                 fmap Just $ insert $ User (credsIdent creds) Nothing
 
-    openIdEnabled _ = True
+--     openIdEnabled _ = True
 
-    emailSettings _ = Just EmailSettings {
-          addUnverified = \email verkey -> runDB $ insert $ Email email Nothing (Just verkey)
-        , sendVerifyEmail = sendVerifyEmail'
-        , getVerifyKey = runDB . fmap (join . fmap emailVerkey) . get
-        , setVerifyKey = \eid key -> runDB $ update eid [EmailVerkey $ Just key]
-        , verifyAccount = \eid -> runDB $ do
-            me <- get eid
-            case me of
-                Nothing -> return Nothing
-                Just e -> do
-                    let email = emailEmail e
-                    case emailUser e of
-                        Just uid -> return $ Just uid
-                        Nothing -> do
-                            uid <- insert $ User email Nothing
-                            update eid [EmailUser $ Just uid]
-                            return $ Just uid
-        , getPassword = runDB . fmap (join . fmap userPassword) . get
-        , setPassword = \uid pass -> runDB $ update uid [UserPassword $ Just pass]
-        , getEmailCreds = \email -> runDB $ do
-            me <- getBy $ UniqueEmail email
-            case me of
-                Nothing -> return Nothing
-                Just (eid, e) -> return $ Just EmailCreds
-                    { emailCredsId = eid
-                    , emailCredsAuthId = emailUser e
-                    , emailCredsStatus = isJust $ emailUser e
-                    , emailCredsVerkey = emailVerkey e
-                    }
-        , getEmail = runDB . fmap (fmap emailEmail) . get
-        }
+--     emailSettings _ = Just EmailSettings {
+--           addUnverified = \email verkey -> runDB $ insert $ Email email Nothing (Just verkey)
+--         , sendVerifyEmail = sendVerifyEmail'
+--         , getVerifyKey = runDB . fmap (join . fmap emailVerkey) . get
+--         , setVerifyKey = \eid key -> runDB $ update eid [EmailVerkey $ Just key]
+--         , verifyAccount = \eid -> runDB $ do
+--             me <- get eid
+--             case me of
+--                 Nothing -> return Nothing
+--                 Just e -> do
+--                     let email = emailEmail e
+--                     case emailUser e of
+--                         Just uid -> return $ Just uid
+--                         Nothing -> do
+--                             uid <- insert $ User email Nothing
+--                             update eid [EmailUser $ Just uid]
+--                             return $ Just uid
+--         , getPassword = runDB . fmap (join . fmap userPassword) . get
+--         , setPassword = \uid pass -> runDB $ update uid [UserPassword $ Just pass]
+--         , getEmailCreds = \email -> runDB $ do
+--             me <- getBy $ UniqueEmail email
+--             case me of
+--                 Nothing -> return Nothing
+--                 Just (eid, e) -> return $ Just EmailCreds
+--                     { emailCredsId = eid
+--                     , emailCredsAuthId = emailUser e
+--                     , emailCredsStatus = isJust $ emailUser e
+--                     , emailCredsVerkey = emailVerkey e
+--                     }
+--         , getEmail = runDB . fmap (fmap emailEmail) . get
+--         }
 
-sendVerifyEmail' :: String -> String -> String -> GHandler Auth m ()
-sendVerifyEmail' email _ verurl =
-    liftIO $ renderSendMail Mail
-            { mailHeaders =
-                [ ("From", "noreply")
-                , ("To", email)
-                , ("Subject", "Verify your email address")
-                ]
-            , mailPlain = verurl
-            , mailParts = return Part
-                { partType = "text/html; charset=utf-8"
-                , partEncoding = None
-                , partDisposition = Inline
-                , partContent = renderHamlet id [$hamlet|
-%p Please confirm your email address by clicking on the link below.
-%p
-    %a!href=$verurl$ $verurl$
-%p Thank you
-|]
-                }
-            }
+-- sendVerifyEmail' :: String -> String -> String -> GHandler Auth m ()
+-- sendVerifyEmail' email _ verurl =
+--     liftIO $ renderSendMail Mail
+--             { mailHeaders =
+--                 [ ("From", "noreply")
+--                 , ("To", email)
+--                 , ("Subject", "Verify your email address")
+--                 ]
+--             , mailPlain = verurl
+--             , mailParts = return Part
+--                 { partType = "text/html; charset=utf-8"
+--                 , partEncoding = None
+--                 , partDisposition = Inline
+--                 , partContent = renderHamlet id [$hamlet|
+-- %p Please confirm your email address by clicking on the link below.
+-- %p
+--     %a!href=$verurl$ $verurl$
+-- %p Thank you
+-- |]
+--                 }
+--             }
 
 -- | Migrate the app's persistent data and run the given yesod/persistent/wai-ish IO action on it.
+-- withApp :: App -> (Yesod.Application -> IO a) -> IO a
+-- withApp app f = toPersistentApp app >>= toWaiApp >>= f
 withApp :: App -> (Yesod.Application -> IO a) -> IO a
-withApp app f = toPersistentApp app >>= toWaiApp >>= f
+withApp app f = toWaiApp app >>= f
 
--- | Obtain a persistent db connection pool to the app, and run any necessary data migrations.
-toPersistentApp :: App -> IO App
-toPersistentApp app = withConnectionPool $ \p -> do
-    flip runConnectionPool p $ runMigration $ do
-        migrate (undefined :: User)
-        migrate (undefined :: Email)
-        return ()
-    return app{appConnPool=Just p}
+-- -- | Obtain a persistent db connection pool to the app, and run any necessary data migrations.
+-- toPersistentApp :: App -> IO App
+-- toPersistentApp app = withConnectionPool $ \p -> do
+--     flip runConnectionPool p $ runMigration $ do
+--         migrate (undefined :: User)
+--         migrate (undefined :: Email)
+--         return ()
+--     return app{appConnPool=Just p}
 
 
 ----------------------------------------------------------------------
@@ -486,15 +489,15 @@ getIndexR = redirect RedirectTemporary defaultroute where defaultroute = Journal
 
 ----------------------------------------------------------------------
 
-getDemoR :: Handler RepHtml
-getDemoR = do
-    mu <- maybeAuth
-    defaultLayout $ do
-        h2id <- newIdent
-        setTitle $ string "hledger front page"
-        addBody $(hamletFile "homepage")
-        addStyle $(cassiusFile "homepage")
-        addJavascript $(juliusFile "homepage")
+-- getDemoR :: Handler RepHtml
+-- getDemoR = do
+--     -- mu <- maybeAuth
+--     defaultLayout $ do
+--         h2id <- newIdent
+--         setTitle $ string "hledger front page"
+--         addBody $(hamletFile "homepage")
+--         addStyle $(cassiusFile "homepage")
+--         addJavascript $(juliusFile "homepage")
 
 ----------------------------------------------------------------------
 

@@ -74,8 +74,8 @@ server baseurl port opts args j = do
     -- dir <- getDataFileName ""
     -- let staticdir = dir </> "static"
     withApp App{
-              appConnPool=Nothing
-             ,appRoot=baseurl
+              -- appConnPool=Nothing
+              appRoot=baseurl
              ,appDataDir=datadir
              ,appStatic=fileLookupDir staticdir $ typeByExt -- ++[("hamlet","text/plain")]
              ,appOpts=opts
