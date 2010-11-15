@@ -112,7 +112,7 @@ instance Yesod App where
         mmsg <- getMessage
         pc <- widgetToPageContent $ do
             widget
-            addStyle $(cassiusFile "default-layout")
+            addCassius $(cassiusFile "default-layout")
         hamletToRepHtml $(hamletFile "default-layout")
     -- authRoute _ = Just $ AuthR LoginR
 

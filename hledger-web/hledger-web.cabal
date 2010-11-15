@@ -66,10 +66,10 @@ executable hledger-web
                  -- ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
                  ,io-storage >= 0.3 && < 0.4
-                 ,yesod >= 0.5.0.3 && < 0.6
-                 ,hamlet == 0.5.*
-                 ,convertible-text >= 0.3.0.1 && < 0.4
-                 ,data-object >= 0.3.1.2 && < 0.4
+                 ,yesod >= 0.6.1.2 && < 0.7
+                 ,hamlet >= 0.5.1 && < 0.7
+                 -- ,convertible-text >= 0.3.0.1 && < 0.4
+                 -- ,data-object >= 0.3.1.2 && < 0.4
                  ,failure >= 0.1 && < 0.2
                  -- ,persistent == 0.2.*
                  -- ,persistent-sqlite == 0.2.*
