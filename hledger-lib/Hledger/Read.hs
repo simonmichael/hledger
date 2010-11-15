@@ -17,10 +17,9 @@ module Hledger.Read (
 )
 where
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.Types (Journal(..))
+import Hledger.Data.Types (Journal(..), Reader(..))
 import Hledger.Data.Journal (nullctx)
 import Hledger.Data.Utils
-import Hledger.Read.Common
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimelogReader as TimelogReader
 

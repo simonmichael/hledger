@@ -50,9 +50,9 @@ where
 import Control.Monad.Error (ErrorT(..))
 import Text.ParserCombinators.Parsec hiding (parse)
 import Hledger.Data
-import Hledger.Read.Common
+import Hledger.Read.Utils
 import Hledger.Read.JournalReader (ledgerExclamationDirective, ledgerHistoricalPrice,
-                             ledgerDefaultYear, emptyLine, ledgerdatetime)
+                                   ledgerDefaultYear, emptyLine, ledgerdatetime)
 
 
 reader :: Reader

@@ -32,10 +32,12 @@ Evolution of transaction\/entry\/posting terminology:
 
 module Hledger.Data.Types
 where
-import Hledger.Data.Utils
+import Control.Monad.Error (ErrorT)
+import Data.Typeable (Typeable)
 import qualified Data.Map as Map
 import System.Time (ClockTime)
-import Data.Typeable (Typeable)
+
+import Hledger.Data.Utils
 
 
 type SmartDate = (String,String,String)
@@ -147,6 +149,17 @@ data Journal = Journal {
                                            -- order encountered.
       filereadtime :: ClockTime             -- ^ when this journal was last read from its file(s)
     } deriving (Eq, Typeable)
+
+-- | A JournalUpdate is some transformation of a Journal. It can do I/O or
+-- raise an error.
+type JournalUpdate = ErrorT String IO (Journal -> Journal)
+
+-- | A hledger journal reader is a triple of format name, format-detecting
+-- predicate, and a parser to Journal.
+data Reader = Reader {rFormat   :: String
+                     ,rDetector :: FilePath -> String -> Bool
+                     ,rParser   :: FilePath -> String -> ErrorT String IO Journal
+                     }
 
 data Ledger = Ledger {
       journal :: Journal,

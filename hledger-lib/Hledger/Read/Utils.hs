@@ -1,32 +1,20 @@
 {-|
-
-Common utilities for hledger data readers, such as the context (state)
-that is kept while parsing a journal.
-
+Utilities common to hledger journal readers.
 -}
 
-module Hledger.Read.Common
+module Hledger.Read.Utils
 where
 
 import Control.Monad.Error
-import Hledger.Data.Utils
-import Hledger.Data.Types (Journal, JournalContext(..), Commodity)
-import Hledger.Data.Journal
 import System.Directory (getHomeDirectory)
 import System.FilePath(takeDirectory,combine)
 import System.Time (getClockTime)
 import Text.ParserCombinators.Parsec
 
+import Hledger.Data.Types (Journal, JournalContext(..), Commodity, JournalUpdate)
+import Hledger.Data.Utils
+import Hledger.Data.Journal (nullctx, nulljournal, journalFinalise)
 
--- | A hledger data reader is a triple of format name, format-detecting predicate, and a parser to Journal.
-data Reader = Reader {rFormat   :: String
-                     ,rDetector :: FilePath -> String -> Bool
-                     ,rParser   :: FilePath -> String -> ErrorT String IO Journal
-                     }
-
--- | A JournalUpdate is some transformation of a "Journal". It can do I/O
--- or raise an error.
-type JournalUpdate = ErrorT String IO (Journal -> Journal)
 
 juSequence :: [JournalUpdate] -> JournalUpdate
 juSequence us = liftM (foldr (.) id) $ sequence us

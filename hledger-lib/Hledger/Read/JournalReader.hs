@@ -124,16 +124,9 @@ import Text.ParserCombinators.Parsec hiding (parse)
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
 import System.IO.UTF8
 #endif
-import Hledger.Data.Utils
-import Hledger.Data.Types
-import Hledger.Data.Dates
-import Hledger.Data.AccountName (accountNameFromComponents,accountNameComponents)
-import Hledger.Data.Amount
-import Hledger.Data.Transaction
-import Hledger.Data.Posting
-import Hledger.Data.Journal
-import Hledger.Data.Commodity (dollars,dollar,unknown,nonsimplecommoditychars)
-import Hledger.Read.Common
+
+import Hledger.Data
+import Hledger.Read.Utils
 
 
 -- let's get to it
@@ -154,8 +147,8 @@ parse :: FilePath -> String -> ErrorT String IO Journal
 parse = parseJournalWith journalFile
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
--- error-raising "JournalUpdate" which can be applied to an empty journal
--- to get the final result.
+-- error-raising "JournalUpdate" (and final "JournalContext") which can be
+-- applied to an empty journal to get the final result.
 journalFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
 journalFile = do
   journalupdates <- many journalItem
