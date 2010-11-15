@@ -21,8 +21,8 @@ import Hledger.Data.Types (Journal(..))
 import Hledger.Data.Journal (nullctx)
 import Hledger.Data.Utils
 import Hledger.Read.Common
-import Hledger.Read.Journal as Journal
-import Hledger.Read.Timelog as Timelog
+import Hledger.Read.JournalReader as JournalReader
+import Hledger.Read.TimelogReader as TimelogReader
 
 import Control.Monad.Error
 import Data.Either (partitionEithers)
@@ -47,8 +47,8 @@ timelogdefaultfilename = ".timelog"
 -- Here are the available readers. The first is the default, used for unknown data formats.
 readers :: [Reader]
 readers = [
-  Journal.reader
- ,Timelog.reader
+  JournalReader.reader
+ ,TimelogReader.reader
  ]
 
 formats   = map rFormat readers
@@ -140,10 +140,10 @@ tests_Hledger_Read = TestList
   [
 
    "journalFile" ~: do
-    assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx nullctx Journal.journalFile "")
+    assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx nullctx JournalReader.journalFile "")
     jE <- readJournal Nothing "" -- don't know how to get it from journalFile
     either error' (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
 
-  ,Journal.tests_Journal
-  ,Timelog.tests_Timelog
+  ,JournalReader.tests_JournalReader
+  ,TimelogReader.tests_TimelogReader
   ]

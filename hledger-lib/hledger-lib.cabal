@@ -43,8 +43,8 @@ library
                   Hledger.Data.Utils
                   Hledger.Read
                   Hledger.Read.Utils
-                  Hledger.Read.Journal
-                  Hledger.Read.Timelog
+                  Hledger.Read.JournalReader
+                  Hledger.Read.TimelogReader
   Build-Depends:
                   base >= 3 && < 5
                  ,containers

@@ -8,7 +8,7 @@ A history-aware add command to help with data entry.
 module Hledger.Cli.Add
 where
 import Hledger.Data
-import Hledger.Read.Journal (someamount)
+import Hledger.Read.JournalReader (someamount)
 import Hledger.Cli.Options
 import Hledger.Cli.Register (registerReport, registerReportAsText)
 #if __GLASGOW_HASKELL__ <= 610

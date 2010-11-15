@@ -36,7 +36,7 @@ import Hledger.Cli.Utils
 import Hledger.Cli.Version (version)
 import Hledger.Data hiding (insert, today)
 import Hledger.Read (journalFromPathAndString)
-import Hledger.Read.Journal (someamount)
+import Hledger.Read.JournalReader (someamount)
 import Hledger.Web.Settings (
     --   withConnectionPool
     -- , runConnectionPool

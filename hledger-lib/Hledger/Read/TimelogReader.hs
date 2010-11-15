@@ -42,8 +42,8 @@ o 2007/03/10 17:26:02
 
 -}
 
-module Hledger.Read.Timelog (
-       tests_Timelog,
+module Hledger.Read.TimelogReader (
+       tests_TimelogReader,
        reader,
 )
 where
@@ -51,7 +51,7 @@ import Control.Monad.Error (ErrorT(..))
 import Text.ParserCombinators.Parsec hiding (parse)
 import Hledger.Data
 import Hledger.Read.Common
-import Hledger.Read.Journal (ledgerExclamationDirective, ledgerHistoricalPrice,
+import Hledger.Read.JournalReader (ledgerExclamationDirective, ledgerHistoricalPrice,
                              ledgerDefaultYear, emptyLine, ledgerdatetime)
 
 
@@ -96,6 +96,6 @@ timelogentry = do
   comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
   return $ TimeLogEntry (read [code]) datetime (maybe "" rstrip comment)
 
-tests_Timelog = TestList [
+tests_TimelogReader = TestList [
  ]
 

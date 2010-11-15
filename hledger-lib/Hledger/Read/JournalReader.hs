@@ -103,8 +103,8 @@ i, o, b, h
 
 -}
 
-module Hledger.Read.Journal (
-       tests_Journal,
+module Hledger.Read.JournalReader (
+       tests_JournalReader,
        reader,
        journalFile,
        journalAddFile,
@@ -560,7 +560,7 @@ numberpartsstartingwithpoint = do
   return ("",frac)
                      
 
-tests_Journal = TestList [
+tests_JournalReader = TestList [
 
    "ledgerTransaction" ~: do
     assertParseEqual (parseWithCtx nullctx ledgerTransaction entry1_str) entry1
