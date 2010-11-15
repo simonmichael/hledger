@@ -28,6 +28,7 @@ import Control.Monad.Trans (liftIO)
 import System.Console.Haskeline.Completion
 import qualified Data.Set as Set
 import Safe (headMay)
+import Control.Exception (throw)
 
 
 -- | Read transactions from the terminal, prompting for each field,
@@ -151,7 +152,7 @@ getPostings ctx accept historicalps enteredps = do
 -- input is valid. May also raise an EOF exception if control-d is pressed.
 askFor :: String -> Maybe String -> Maybe (String -> Bool) -> InputT IO String
 askFor prompt def validator = do
-  l <- fmap (maybe "" id)
+  l <- fmap (maybe eofErr id)
             $ getInputLine $ prompt ++ maybe "" showdef def ++ ": "
   let input = if null l then fromMaybe l def else l
   case validator of
@@ -159,7 +160,9 @@ askFor prompt def validator = do
                    then return input
                    else askFor prompt def validator
     Nothing -> return input
-    where showdef s = " [" ++ s ++ "]"
+    where
+        showdef s = " [" ++ s ++ "]"
+        eofErr = throw $ mkIOError eofErrorType "end of input" Nothing Nothing
 
 -- | Append this transaction to the journal's file, and to the journal's
 -- transaction list.
