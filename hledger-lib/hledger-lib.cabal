@@ -42,7 +42,7 @@ library
                   Hledger.Data.Types
                   Hledger.Data.Utils
                   Hledger.Read
-                  Hledger.Read.Common
+                  Hledger.Read.Utils
                   Hledger.Read.Journal
                   Hledger.Read.Timelog
   Build-Depends:
