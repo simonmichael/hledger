@@ -14,16 +14,18 @@ clever tricks like the plague." --Edsger Dijkstra
 little old Scottish ladies cried out to me 'LIVE DANGEROUSLY, SON! LIVE
 DANGEROUSLY'" --kowey
 
+ALL THAT'S NEEDED IS THE DESIRE TO BE HEARD. THE WILL TO LEARN. AND THE
+ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 
 * principles
-*** we aim to make reliable, maintainable, usable, useful software, sustainably.
-*** docs before packaging before tests before fixes before refactoring before features
-*** "bugs" are errors, as in the programmers messed up
-*** automate
-*** measure
-*** test continuously, test everything
-*** less is more
-*** code review/pair programming
+** we aim to make reliable, maintainable, usable, useful software, sustainably.
+** docs before packaging before tests before fixes before refactoring before features
+** "bugs" are errors, as in the programmers messed up
+** automate
+** measure
+** test continuously, test everything
+** less is more
+** code review/pair programming
 
 
 * todo/backlog
@@ -394,9 +396,19 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-*** balance: --depth with --flat should show aggregate balances
-*** register: intervals with unspecified from should start from first txn not first matched txn ?
-*** convert: rules file can't have blank lines after last data
+*** parsing: recursive file includes cause a hang
+*** parsing: extra noise with eg bad date parse errors
+$ cat t.journal
+200/1/99 x
+  a  1
+  b
+$ ./hledger.hs -f t.journal print
+hledger.hs: could not parse journal data in t.journal
+"t.journal" (line 1, column 9):
+unexpected " "                      <- undesired
+expecting digit                     <- noise
+bad year number: 200
+
 *** parsing: period expressions should allow interval at the end
 *** parsing: canonicalise account names to be case-insensitive
 *** parsing: only journals can include, and only another journal
@@ -413,6 +425,9 @@ While parsing transaction:
 > 2/27=2/29 (20100201ucla) ucla payment
 Error: Day of month is not valid for year
 
+*** balance: --depth with --flat should show aggregate balances
+*** register: intervals with unspecified from should start from first txn not first matched txn ?
+*** convert: rules file can't have blank lines after last data
 *** web: doesn't support multiple filter patterns
 *** web: accounts final balance can be -0, colored red
 *** web: post handlers should preserve a p
@@ -422,6 +437,11 @@ hledger web --port 5001 --base-url http://localhost:5001/ -f ~/personal/househol
 *** web: loses -B after an edit, and/or a filesystem edit
 *** docs: need to be less wall-of-text
 *** docs:installing:describe three install options in one place
+*** windows: can't print non-ascii
+http://code.google.com/p/hledger/issues/detail?id=25
+http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
+http://www.burningcutlery.com/derek/winsetup/
+http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** LEDGER vs LEDGER_FILE
 *** clarify data modifying story
 **** auto-create of empty files annoying ?
@@ -450,6 +470,41 @@ hledger web --port 5001 --base-url http://localhost:5001/ -f ~/personal/househol
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** show add form after adding
+*** : completes one account name component
+*** auto-complete from substrings, not just prefixes
+*** auto-complete accounts & amount as well as description
+*** use current year as default when no year specified
+*** use journal from stdin when provided ?
+*** allow price record for null commodity, eg with quotes
+P 2009/1/1 "" 0.5h
+and why doesn't this work ? time.journal:
+P 2010/9/27 h 1
+$ hledger -f time.journal bal -p aug -B
+                   1           
+              17.75h  work:jobs
+                   1             
+              17.50h    clearview
+                   1      60 clear glass thermal data
+               0.25h      admin:cheque issue
+              12.75h      backups/hosting
+               2.00h        cleanup
+               1.00h        move plan
+               2.25h        move prep
+               4.00h        testing
+               3.50h          speed
+               1.50h      barbara spellcheck issue
+               0.50h      installation report dates
+               0.25h      plan change issue
+               1.00h      planning/discussion
+               0.50h      speed issue
+               0.25h      tina quote low-e layout
+               0.50h      tina title 24 issue
+               0.25h    kcrw:admin:contract update:unbilled
+--------------------
+                   1
+              17.75h
+
 *** register --wide and/or --format ...
 *** --related
 *** Double -> Decimal
@@ -679,6 +734,46 @@ Or to see how your expenses will add up:
 
     ledger --forecast 'd<[2012]' register '^expenses'
 
+*** essential/getting started info
+
+I've never used financial management software before, I'm just confused at what I'm doing.
+http://en.wikipedia.org/wiki/Double-entry_bookkeeping_system
+money isn't created or destroyed, it moves between accounts
+all possible accounts are organised under five categories: assets, liabilities, equity, income, expenses 
+
+the gist of it for *ledger users is that each transaction in your journal (file) is balanced, ie its postings add up to zero
+typically you have a posting to some account (expenses:food  $10) and an equal posting from another (assets:cash  $-10)
+
+so should things like income be a forever-decreasing value?
+yes
+
+I think traditional bookkeeping uses "debit"  and "credit" for (among other things) hiding the negative sign
+I wonder, if folks had been comfortable with negative numbers in the middle ages, if debit/credit would have been invented
+
+so, when I start a ledger file and I start my initial account balances for, say, checking, I withdraw them from equity or income?  Or does it matter in this case?
+traditionally, you transfer opening balances from equity
+and this is just a convention, or is there some better reason behind it?
+I believe it's actually based on the real-world meaning, and makes sense if you study enough bookkeeping
+I thought equity was more a share of something owned.
+that's right, and if you squint enough the two uses are equivalent
+So I'd do something like "assets:checking $foo \ assets:savings $bar \ liabilities:creditcard $-baz \ equity:opening balance"?
+yes
+
+what about loans?  Those are liabilities, right?
+yes
+
+okay.  So after I set up my initial account balances, it's just a matter of keeping track how and what I spend.
+yup, tracking your checking account's or your wallet's inflows and outflows is a good way to start
+Gradually you'll add more tricky things like invoices and short-term loans (accounts receivable/payable)
+
+
+I also read in the manual that you can set up routine actions, like debiting from one account and crediting to another on a monthly basis.
+this can help me set up budgets, right?
+yes, ledger lets you specify those with special modifier/periodic transactions. They appear in reports but not in your journal file. Or you can use cron or something to actually add them to the journal
+and there's also a budget report feature
+
+a catalog of standard bookkeeping entries for typical real-world transactions is really helpful and worth searching for
+
 ** software
 *** http://gnucash.org
 *** http://www.xtuple.com/postbooks
@@ -725,6 +820,40 @@ http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
 **** why !: : for conditional attributes ? How about !? ?
 
 ** code snippets
+
+fromOfxTransaction :: StatementTransaction -> LedgerTransaction
+fromOfxTransaction StatementTransaction {
+                        stType        = _ --sttype        -- :: TransactionType
+                       ,stDatePosted  = stdateposted  -- :: Maybe UTCTime
+                       ,stAmount      = stamount      -- :: Decimal
+                       ,stCheckNumber = stchecknumber -- :: Maybe Int
+                       ,stFITID       = _ --stfitid       -- :: String
+                       ,stSIC         = _ --stsic         -- :: Maybe String
+                       ,stName        = stname        -- :: String
+                       } =
+                   LedgerTransaction {
+                        ltdate                    = date -- :: Day,
+                       ,ltstatus                  = stat -- :: Bool,
+                       ,ltcode                    = code -- :: String,
+                       ,ltdescription             = desc -- :: String,
+                       ,ltcomment                 = com  -- :: String,
+                       ,ltpostings                = ps   -- :: [Posting],
+                       ,ltpreceding_comment_lines = prec -- :: String
+                       }
+    where
+      date = maybe (error "found an undated bank transaction, giving up") utctDay stdateposted
+      stat = False
+      code = maybe "" show stchecknumber
+      desc = stname
+      com = ""
+      ps = [
+       Posting False "UNKNOWN"  a    "" RegularPosting,
+       Posting False "CHECKING" (-a) "" RegularPosting
+       ]
+      prec = ""
+      a = Mixed [dollars $ fromDecimal stamount]
+      fromDecimal d = fromIntegral (decimalMantissa d) / (10 ^ decimalPlaces d)
+
 
 Name:                test
 Version:             0.1
