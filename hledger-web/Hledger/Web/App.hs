@@ -16,7 +16,6 @@ import Data.Either
 -- import System.Directory
 import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (putValue, getValue)
-import Text.ParserCombinators.Parsec (parse)
 
 import Database.Persist.GenericSql (ConnectionPool, SqlPersist, runMigration, migrate)
 import Yesod
@@ -848,8 +847,8 @@ postAddForm = do
       descE = Right $ fromMaybe "" descM
       acct1E = maybe (Left "to account required") Right acct1M
       acct2E = maybe (Left "from account required") Right acct2M
-      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parse someamount "") amt1M
-      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parse someamount "") amt2M
+      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount) amt1M
+      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount) amt2M
       journalE = maybe (Right $ journalFilePath j)
                        (\f -> if f `elem` journalFilePaths j
                               then Right f
@@ -865,16 +864,11 @@ postAddForm = do
          | otherwise = either (\e -> Left ["unbalanced postings: " ++ (head $ lines e)]) Right
                         (balanceTransaction $ nulltransaction {
                            tdate=parsedate date
-                          ,teffectivedate=Nothing
-                          ,tstatus=False
-                          ,tcode=""
                           ,tdescription=desc
-                          ,tcomment=""
                           ,tpostings=[
-                            Posting False acct1 amt1 "" RegularPosting Nothing
-                           ,Posting False acct2 amt2 "" RegularPosting Nothing
+                            Posting False acct1 amt1 "" RegularPosting [] Nothing
+                           ,Posting False acct2 amt2 "" RegularPosting [] Nothing
                            ]
-                          ,tpreceding_comment_lines=""
                           })
   -- display errors or add transaction
   case tE of
@@ -1008,16 +1002,16 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
 ----------------------------------------------------------------------
 
 -- | A standalone journal edit form page.
-getEditR :: Handler RepHtml
-getEditR = do
-  (a, p, _, _, _, msg, here) <- getHandlerData
-  today <- liftIO getCurrentDay
-  -- reload journal's text without parsing, if changed     -- XXX are we doing this right ?
-  j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-  changed <- liftIO $ journalFileIsNewer j
-  s <- liftIO $ if changed then readFile (filepath j) else return (jtext j) -- XXX readFile may throw an error
-  let td = mktd{here=here, title="hledger journal edit", msg=msg, a=a, p=p, j=j, today=today}
-  hamletToRepHtml $ pageLayout td $ editform td s
+-- getEditR :: Handler RepHtml
+-- getEditR = do
+--   (a, p, _, _, _, msg, here) <- getHandlerData
+--   today <- liftIO getCurrentDay
+--   -- reload journal's text without parsing, if changed     -- XXX are we doing this right ?
+--   j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+--   changed <- liftIO $ journalFileIsNewer j
+--   s <- liftIO $ if changed then readFile (filepath j) else return (jtext j) -- XXX readFile may throw an error
+--   let td = mktd{here=here, title="hledger journal edit", msg=msg, a=a, p=p, j=j, today=today}
+--   hamletToRepHtml $ pageLayout td $ editform td s
 
 ----------------------------------------------------------------------
 
