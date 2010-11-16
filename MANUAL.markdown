@@ -389,22 +389,29 @@ The following commands can alter your journal file.
 
 ##### add
 
-The add command prompts interactively for new transactions, and adds them
-to the journal, with assistance:
+The add command prompts interactively for new transactions, and appends
+them to the journal file. Each transaction is appended when you complete
+it by entering `.` (period) at the account prompt.  Enter control-D or
+control-C when you are done.
 
-- During data entry, the usual console editing keys should work
+add tries to be helpful, providing:
 
-- If there are earlier transactions approximately matching the description
-  you enter, the best match will provide defaults for the other fields.
+- Readline-style input: during data entry, the usual console editing keys
+  should work.
 
-- If you specify [account pattern(s)](#filter-patterns) on the command
-  line, only matching transactions will be considered for defaults.
+- (Selective) history awareness: if there are earlier transactions
+  approximately matching the description you enter, the best match will
+  provide defaults for the other fields. If you specify
+  [filter pattern(s)](#filter-patterns) on the command line, only matching
+  transactions will be considered for defaults.
 
-- While entering account names, the tab key will auto-complete as far as
-  possible, and if pressed a second time will show a list of options.
+- Auto-completion: while entering account names, the tab key will
+  auto-complete as far as possible. If pressed a second time it will show
+  a list of options.
 
-- If a [default commodity](#default-commodity) is defined, it will be used
-  for any commodity-less amounts entered.
+- Default commodity: if the journal specifies a
+  [default commodity directive](#default-commodity), that will be applied
+  to any bare numbers entered.
 
 Examples:
 
