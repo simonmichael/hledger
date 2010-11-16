@@ -39,7 +39,8 @@ add opts args j
     | otherwise = do
   hPutStrLn stderr $
     "Enter one or more transactions, which will be added to your journal file.\n"
-    ++"To complete a transaction, enter . as account name. To quit, press control-c."
+    ++"To complete a transaction, enter . when prompted for an account.\n"
+    ++"To quit, press control-d or control-c."
   today <- getCurrentDay
   runInteraction j (getAndAddTransactions j opts args today)
         `catch` (\e -> unless (isEOFError e) $ ioError e)
