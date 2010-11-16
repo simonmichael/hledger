@@ -1,3 +1,21 @@
+##############################################################################
+# data validation
+#
+# should prompt again for a bad date
+ rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add
+<<<
+2009/1/32
+>>> /date .*: date .*/
+#
+# should accept a blank date
+ rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add
+<<<
+
+>>> /date .*: description/
+#
+##############################################################################
+# precision and commodity handling
+#
 # simple add with no existing journal, no commodity entered
  rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
 <<<
@@ -69,3 +87,14 @@ b
 
 .
 >>> /a  +£1,000.00/
+# default amounts should not fail to balance due to precision
+bin/hledger -f nosuch.journal add
+<<<
+2010/1/1
+x
+a
+0.25
+b
+0.5
+c
+>>> /amount  3 \[-0.75\]/
