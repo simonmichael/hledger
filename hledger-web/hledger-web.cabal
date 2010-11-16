@@ -14,7 +14,7 @@ stability:      alpha
 tested-with:    GHC==6.12
 cabal-version:  >= 1.6
 build-type:     Simple
-data-dir:       data
+data-dir:       .hledger
 data-files:
                 static/style.css
                 static/hledger.js

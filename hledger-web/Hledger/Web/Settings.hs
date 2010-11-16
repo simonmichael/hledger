@@ -79,13 +79,13 @@ robots_txt = "User-agent: *"
 -- XXX hard-coded data directory path. This must be in your current dir
 -- when you run or compile hledger-web.
 datadir :: FilePath
-datadir = "data"
+datadir = ".hledger"
 
 staticdir :: FilePath
-staticdir = datadir ++ "/static"
+staticdir = datadir ++ "/web"
 
 templatesdir :: FilePath
-templatesdir = datadir ++ "/templates"
+templatesdir = datadir ++ "/web"
 
 -- The following are compile-time macros. If the file paths they point to
 -- don't exist, they will give an error (at compile time). In production
