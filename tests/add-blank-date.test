@@ -1,4 +1,4 @@
 bin/hledger -f nosuch.journal add
 <<<
 
->>>2 /date .*: description/
+>>> /date .*: description/

@@ -92,6 +92,7 @@ getTransaction j opts args defaultDate = do
          hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
   getpostingsandvalidate
 
+-- fragile
 -- | Read postings from the command line until . is entered, using any
 -- provided historical postings and the journal context to guess defaults.
 getPostings :: JournalContext -> (AccountName -> Bool) -> Maybe [Posting] -> [Posting] -> InputT IO [Posting]
@@ -111,16 +112,22 @@ getPostings ctx accept historicalps enteredps = do
                      | n <= length ps = Just $ ps !! (n-1)
                      | otherwise = Nothing
                      where Just ps = historicalps'
-          defaultamountstr | isJust bestmatch' = Just $ showMixedAmountWithPrecision maxprecision $ pamount $ fromJust bestmatch'
+          defaultamountstr | isJust bestmatch' = Just historicalamountstr
                            | n > 1             = Just balancingamountstr
                            | otherwise         = Nothing
-              where balancingamountstr = showMixedAmountWithPrecision maxprecision $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
+              where
+                historicalamountstr = showMixedAmountWithPrecision maxprecision $ pamount $ fromJust bestmatch'
+                balancingamountstr  = showMixedAmountWithPrecision maxprecision $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
       amountstr <- askFor (printf "amount  %d" n) defaultamountstr validateamount
-      let amount = setMixedAmountPrecision maxprecision $ fromparse $ runParser (someamount <|> return missingamt) ctx "" amountstr
+      let amount  = fromparse $ runParser (someamount <|> return missingamt) ctx     "" amountstr
+          amount' = fromparse $ runParser (someamount <|> return missingamt) nullctx "" amountstr
           defaultamtused = Just (showMixedAmount amount) == defaultamountstr
           historicalps'' = if defaultamtused then historicalps' else Nothing
-          commodityadded | showMixedAmountWithPrecision maxprecision amount == amountstr = Nothing
-                         | otherwise = maybe Nothing (Just . commodity) $ headMay $ amounts amount
+          commodityadded | c == cwithnodef = Nothing
+                         | otherwise       = c
+              where c          = maybemixedamountcommodity amount
+                    cwithnodef = maybemixedamountcommodity amount'
+                    maybemixedamountcommodity = maybe Nothing (Just . commodity) . headMay . amounts
           p = nullposting{paccount=stripbrackets account,
                           pamount=amount,
                           ptype=postingtype account}
