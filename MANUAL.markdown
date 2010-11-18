@@ -4,72 +4,64 @@ title: hledger manual
 
 # hledger manual
 
-This is the official hledger manual, for version 0.12.98.  You may also
-want to visit the rest of [hledger.org](http://hledger.org), and for
-background,
-[c++ ledger's manual](http://joyful.com/repos/ledger/doc/ledger.html).
-
-## User Guide
-
-### Introduction
+## About
 
 hledger is a program for tracking money, time, or any other commodity,
-using a plain text file format and the simple but powerful principles of
-double-entry accounting.
+using a directly editable file format and the simple but powerful
+principles of double-entry accounting. It was inspired by [ledger](#faq).
 
-It is modelled closely on
-[John Wiegley's ledger](http://wiki.github.com/jwiegley/ledger) (aka "c++
-ledger"), with some features removed and some new ones added. I wrote
-hledger because I wanted to build financial tools in the Haskell
-programming language rather than in C++.
+hledger's basic function is to read a plain text file describing (eg)
+financial transactions, and quickly generate useful reports via the
+command line. It can also help you record transactions, or (via add-ons)
+provide a local web interface for editing, or publish live financial data
+on the web.
 
-hledger's basic function is to generate register and balance reports from
-a plain text general journal file, at the command line or via the web or
-curses interface. You can use it to, eg,
+You can use it to, eg:
 
 -   track spending and income
--   see time reports by day/week/month/project
+-   track unpaid or due invoices
+-   track time and report by day/week/month/project
 -   get accurate numbers for client billing and tax filing
--   track invoices
 
-hledger aims to help both computer experts and every-day users gain
-clarity in their finances and time management. For now though, it is most
-useful to technically-minded folks who are comfortable with command-line
-tools.
+hledger aims to help both computer experts and regular folks gain clarity
+in their finances. For the moment, it may be a little more suited to
+techies.  Please give it a try and let me know how we're doing.
 
-hledger is copyright (c) 2007-2009 Simon Michael
-<[simon@joyful.com](mailto:simon@joyful.com)\> and contributors and
-released as Free Software under GPL version 3 or later.
+hledger is copyright (c) 2007-2010
+[Simon&nbsp;Michael&nbsp;<simon@joyful.com>](mailto:simon@joyful.com) and
+contributors, and released as Free Software under GPL version 3 or later.
 
-### Installing
+This is the manual for hledger 0.12.98.
 
-hledger works on all major platforms. Here are the [release
-notes](http://hledger.org/NEWS.html), and pre-built
-[binaries](http://hledger.org/binaries/) you should be able to
-download and run. If not, or if you prefer an up-to-date build,
-open a shell/terminal/command window and:
+## Installing
 
-1. **ensure you have GHC (6.10 or newer) and cabal-install**
+hledger works on all major platforms. You can download and run current
+release binaries from the [download page](DOWNLOAD.html).
 
-        $ ghc --version
-        $ cabal --version
+You can also build the current release from source using cabal-install.
+Ensure you have a working
+[haskell environment](http://hackage.haskell.org/platform/), then:
 
-    If not, download and install the [Haskell
-    Platform](http://hackage.haskell.org/platform/).  Or, you may be
-    able to use your platform's packaging system, eg on ubuntu lucid
-    do `apt-get install ghc6 cabal-install zlib1g-dev`.  Also make
-    sure `~/.cabal/bin` is in your PATH.
+    $ cabal update
+    $ cabal install hledger
 
-2. **install hledger with cabal-install**
+*(Until next release: add -fweb, -fvty, or -fchart to cabal install those
+extra features.)*
 
-        $ cabal update
-        $ cabal install hledger
+*(With both of the methods above, running the web interface requires some
+ extra support files - see the download page.)*
 
-#### Install options
+Or, you can build the latest [development](DEVELOPMENT.html) version:
 
-You can add the following options to the basic `cabal install hledger`
-command to build extra features. I recommend you get the basic install
-working first, then try these one at a time:
+    $ darcs get --lazy http://joyful.com/repos/hledger
+    $ cd hledger
+    $ make install
+
+If you have any trouble, please proceed to
+[Troubleshooting](#troubleshooting) for help and/or seek
+[Support](DEVELOPMENT.html#support).
+
+<!--
 
 - `-fweb` builds the [web](#web) command, enabling a web-based user
   interface. This requires GHC 6.12 or greater.
@@ -83,34 +75,27 @@ working first, then try these one at a time:
   (on ubuntu: `apt-get install libghc6-gtk-dev`) and possibly [other
   things](http://code.haskell.org/gtk2hs/INSTALL).
 
-#### If you have trouble..
+-->
 
-proceed to [Troubleshooting](#troubleshooting) for help!
+## Usage
 
-### Basic usage
+hledger looks for data in a file named `.journal` in your home directory,
+creating it if it doesn't exist.  Or you can specify a different file with
+the -f option or the `LEDGER` environment variable. Basic usage is:
 
-Basic usage is:
+    $ hledger [OPTIONS] COMMAND [PATTERNS]
 
-    $ hledger [OPTIONS] [COMMAND [PATTERNS]]
+where the command is one of the [commands](#commands) described below.
+[Filter patterns](#filter-patterns) may be used to select a subset of the
+journal data, eg to report only food-related transactions.
+[Options](#overview) may appear anywhere on the command line.
 
-[OPTIONS](#overview) may appear anywhere on the command line.
-[COMMAND](#commands) is one of: add, balance, chart, convert, histogram,
-print, register, stats, ui, web, test (defaulting to balance). The
-optional [PATTERNS](#filter-patterns) are regular expressions which select
-a subset of the journal data.
-
-hledger looks for data in a journal file, usually `.journal` in your home
-directory. You can specify a different file with the -f option (use - for
-standard input) or `LEDGER` environment variable.
-
-To get started, make yourself a journal file containing some
-transactions. You can copy the sample file below (or
-[sample.journal](http://joyful.com/repos/hledger/data/sample.journal)) and save
-it as `.journal` in your home directory. Or, just run `hledger add` and
-enter a few transactions. Now you can try some of these commands, or read
-on:
+To try it out, just run `hledger add` and [enter some transactions](#add).
+(Or, you could save the [sample file](#journal-file) as `.journal` in your
+home directory.) Now try some of these commands:
 
     $ hledger --help                        # show command-line help
+    $ hledger add                           # add some new transactions to the journal file
     $ hledger balance                       # all accounts with aggregated balances
     $ hledger bal --depth 1                 # only top-level accounts
     $ hledger register                      # transaction register
@@ -118,73 +103,38 @@ on:
     $ hledger reg checking                  # checking transactions
     $ hledger reg desc:shop                 # transactions with shop in the description
     $ hledger histogram                     # transactions per day, or other interval
-    $ hledger add                           # add some new transactions to the journal file
-    $ hledger vty                           # curses ui, if installed with -fvty
-    $ hledger web                           # web ui, if installed with -fweb
-    $ hledger chart                         # make a balance chart, if installed with -fchart
 
 You'll find more examples below.
 
-<a name="file-format" />
+<a name="faq" />
 
-#### Journal file
+## Frequently asked questions
 
-hledger reads data from a plain text file, called a *journal* because
-it represents a standard accounting [general
-journal](http://en.wikipedia.org/wiki/General_journal).  It contains a
-number of transactions, each describing a transfer of money (or
-any commodity) between two or more named accounts, in a simple
-format readable by both hledger and humans.
+- **How does hledger relate to John Wiegley's ledger project ?**
 
-You can use hledger without learning any more about this file; just
-use the [add](#add) or [web](#web) commands.
-
-Many users, though, edit the journal file directly with a text
-editor. This is a distinguishing feature of hledger (and c++ ledger.)
-You can even do this while the web interface is running, and see the
-changes right away.
-
-Here's an example:
-
-    ; A sample journal file. This is a comment.
+    hledger was inspired by and modelled closely on
+    [ledger](http://wiki.github.com/jwiegley/ledger) (called "c++ ledger"
+    in these docs.)  The two projects (indeed the whole family of
+    ledger-inspired projects) collaborate freely, and we share ledger's
+    IRC channel.
     
-    2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
-        assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
-        income:salary        $-1    ;    followed by at least two spaces and an amount
+    After using and contributing to c++ ledger for a while, I wrote
+    hledger because I wanted to develop financial tools in the Haskell
+    programming language and ecosystem, whose advantages I believe are
+    compelling.
     
-    2008/06/01 gift
-        assets:bank:checking  $1    ; <- at least two postings in a transaction
-        income:gifts         $-1    ; <- their amounts must balance to 0
+    I have also tried to make hledger a little more simple, user-friendly,
+    installable, and documented, and to offer additional user interfaces
+    (add, vty, web) and other things that I find useful.
     
-    2008/06/02 save
-        assets:bank:saving    $1
-        assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
+    C++ ledger has more command-line power-user features (periodic
+    transactions, budgets, capital gains tracking, value expressions,
+    custom output formats, ...)  and remains faster and more memory
+    efficient on large data sets.
     
-    2008/06/03 eat & shop           ; <- description can be anything
-        expenses:food         $1
-        expenses:supplies     $1    ; <- this transaction debits two expense accounts
-        assets:cash                 ; <- $-2 inferred
-    
-    2008/12/31 * pay off            ; <- an optional * after the date means "cleared" (or anything you want)
-        liabilities:debts     $1
-        assets:bank:checking
-
-Each transaction has a date, optional description, and two or more
-postings, of some amount to some account. The amounts within a transaction must balance,
-ie add up to 0. Or, you can leave one amount blank and it will be inferred.
-
-Note that account names may contain single spaces, while the amount must
-be separated from the account name by at least two spaces.
-
-An amount is a number, with an optional currency symbol or commodity name
-on either the left or right. Commodity names which contain more than just
-letters should be enclosed in double quotes. Negative amounts usually have
-the minus sign next to the number (`$-1`), but it may also go before the
-currency symbol/commodity name (`-$1`).
-
-hledger's file format aims to be compatible with c++ ledger, so you
-can use both tools on your journal. For more details, see [File format
-compatibility](#file-format-compatibility).
+    We try to stay compatible with c++ ledger as far as possible; it's
+    intended that you can use both tools on the same journal file.  Here
+    is [more detail about compatibility](#compatibility-with-c-ledger).
 
 ## Reference
 
@@ -259,6 +209,67 @@ Here is the command-line help:
       -h       --help             show basic command-line usage
                --help-options     show command-line options
       -H       --help-all         show command-line usage and options
+
+<a name="file-format" />
+
+### Journal file
+
+hledger reads data from a plain text file, called a *journal* because
+it represents a standard accounting [general
+journal](http://en.wikipedia.org/wiki/General_journal).  It contains a
+number of transactions, each describing a transfer of money (or
+any commodity) between two or more named accounts, in a simple
+format readable by both hledger and humans.
+
+You can use hledger without learning any more about this file; just
+use the [add](#add) or [web](#web) commands.
+
+Many users, though, edit the journal file directly with a text
+editor. This is a distinguishing feature of hledger (and c++ ledger.)
+You can even do this while the web interface is running, and see the
+changes right away.
+
+Here's an example:
+
+    ; A sample journal file. This is a comment.
+    
+    2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
+        assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
+        income:salary        $-1    ;    followed by at least two spaces and an amount
+    
+    2008/06/01 gift
+        assets:bank:checking  $1    ; <- at least two postings in a transaction
+        income:gifts         $-1    ; <- their amounts must balance to 0
+    
+    2008/06/02 save
+        assets:bank:saving    $1
+        assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
+    
+    2008/06/03 eat & shop           ; <- description can be anything
+        expenses:food         $1
+        expenses:supplies     $1    ; <- this transaction debits two expense accounts
+        assets:cash                 ; <- $-2 inferred
+    
+    2008/12/31 * pay off            ; <- an optional * after the date means "cleared" (or anything you want)
+        liabilities:debts     $1
+        assets:bank:checking
+
+Each transaction has a date, optional description, and two or more
+postings, of some amount to some account. The amounts within a transaction must balance,
+ie add up to 0. Or, you can leave one amount blank and it will be inferred.
+
+Note that account names may contain single spaces, while the amount must
+be separated from the account name by at least two spaces.
+
+An amount is a number, with an optional currency symbol or commodity name
+on either the left or right. Commodity names which contain more than just
+letters should be enclosed in double quotes. Negative amounts usually have
+the minus sign next to the number (`$-1`), but it may also go before the
+currency symbol/commodity name (`-$1`).
+
+hledger's file format aims to be compatible with c++ ledger, so you
+can use both tools on your journal. For more details, see [File format
+compatibility](#file-format-compatibility).
 
 ### Commands
 
@@ -394,8 +405,7 @@ control-C when you are done.
 
 add tries to be helpful, providing:
 
-- Readline-style input: during data entry, the usual console editing keys
-  should work.
+- Sensible defaults
 
 - (Selective) history awareness: if there are earlier transactions
   approximately matching the description you enter, the best match will
@@ -403,11 +413,14 @@ add tries to be helpful, providing:
   [filter pattern(s)](#filter-patterns) on the command line, only matching
   transactions will be considered for defaults.
 
-- Auto-completion: while entering account names, the tab key will
-  auto-complete as far as possible. If pressed a second time it will show
-  a list of options.
+- Readline-style input: during data entry, the usual editing keys should
+  work.
 
-- Default commodity: if the journal specifies a
+- Auto-completion for account names: while entering account names, the tab
+  key will auto-complete as far as possible, or list the available
+  options.
+
+- Default commodity awareness: if the journal specifies a
   [default commodity directive](#default-commodity), that will be applied
   to any bare numbers entered.
 
@@ -1153,4 +1166,12 @@ Here are some issues you might encounter when you run hledger:
   
         $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
         $ bash --login
+
+## Other resources
+
+- The rest of the [hledger.org](http://hledger.org) site.
+
+- The [c++ ledger site](https://github.com/jwiegley/ledger/wiki).
+  Also the [c++ ledger 2.x manual](http://joyful.com/repos/ledger/doc/ledger.html)
+  is slightly outdated but informative.
 

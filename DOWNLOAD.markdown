@@ -15,10 +15,14 @@ title: hledger downloads
 }
 </style>
 
-Here are hledger binaries which might just work on your computer.
-Or, you could try <a href="http://hledger.org/MANUAL.html#installing">installing with cabal</a>.
-Please report any trouble (or success!) to <a href="http://hledger.org/DEVELOPMENT.html#support">Support</a>.
+Here are hledger binaries which should "just work" on your computer.  For
+more help and alternatives, please see the <a
+href="../MANUAL.html#installing">installing doc</a>.
     
+Errata: these binaries lack support files for the web interface, you must copy
+  [those files](http://joyful.com/repos/hledger/hledger-web/data/static/) to
+  `./data/web/static/` below the directory where you run hledger.
+
 <table id="platformdocs">
 	<tr>
 		<th><img src="../linux.png" /><br />GNU/Linux (x86)</th>
@@ -33,8 +37,8 @@ Download the
 
 Open a terminal window and go to your browser's download directory, then:  
 `$ gunzip hledger-*86*`
-`$ mv hledger-*86* hledger`  
-`$ chmod +x hledger`  
+`$ mv hledger-*86* hledger`
+`$ chmod +x hledger`
 `$ ./hledger`
 		</td>
 		<td>
@@ -64,6 +68,3 @@ may access your hledger web interface.
 	</tr>
 </table>
 
-Errata:
-
-- these binaries lack support files for the web interface, you must copy [them](http://joyful.com/repos/hledger/hledger-web/data/static/) to `./data/web/static/`

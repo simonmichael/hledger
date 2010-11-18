@@ -55,7 +55,7 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 
 **Related projects**
 
-- John Wiegley's ledger_ inspired hledger, and we try to stay compatible. You can often use both tools on the same journal file.
+- John Wiegley's ledger_ inspired hledger.
 - Uwe Hollerbach's umm_ is another haskell tool inspired by h/ledger.
 - Tim Docker's ledger-reports_ uses hledger as a library to generate `html reports`_. 
 - I have a few older bits and pieces `here <http://joyful.com/Ledger>`_.
