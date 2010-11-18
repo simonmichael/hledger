@@ -1021,9 +1021,9 @@ entries, and the following c++ ledger options and commands:
     prices for amounts which have them. (This currently means that
     it does not print multi-commodity transactions in valid journal format.)
 
-### Troubleshooting
+## Troubleshooting
 
-#### Installation issues
+### Installation issues
 
 cabal builds a lot of fast-evolving software, and it's not always smooth
 sailing.  Here are some known issues and things to try:
@@ -1088,20 +1088,9 @@ sailing.  Here are some known issues and things to try:
         $ cabal install yesod --reinstall --constraint 'parsec == 3.1.0"
 
 - **Another error while building a hledger package.**
-    The current hledger release might have a coding error, or dependency
-    error. You could try installing the
-    [previous version](http://hackage.haskell.org/package/hledger):
-
-        $ cabal install hledger-0.x
-
-    or (preferably) the latest development version: install
-    [darcs](http://darcs.net) and then:
-
-        $ darcs get --lazy http://joyful.com/repos/hledger
-        $ cd hledger/hledger-lib
-        $ cabal install
-        $ cd ..
-        $ cabal install [-f...]
+    The current hledger release might have an error in its code or package
+    dependencies. You could try [installing](#installing) the latest
+    development version.
 
 - **Do you have a new enough version of cabal-install ?**
   Recent versions tend to be better at resolving dependencies.  The error
@@ -1122,13 +1111,14 @@ sailing.  Here are some known issues and things to try:
   versions by removing (or renaming) ~/.ghc, then trying cabal install
   again.
 
-#### Usage issues
+### Usage issues
 
 Here are some issues you might encounter when you run hledger:
 
 - <a name="locale" />**hledger: ... hGetContents: invalid argument (Illegal byte sequence)**
-  You may get this error when running hledger built with GHC 6.12 on a
-  machine using the default C locale, eg a mac:
+    You may get this error when running hledger with a journal containing
+    non-ascii text, on a machine using the default C locale. You can check
+    this like so:
   
         $ locale
         LANG=
@@ -1139,14 +1129,11 @@ Here are some issues you might encounter when you run hledger:
         LC_NUMERIC="C"
         LC_TIME="C"
         LC_ALL=
-
-    if there is non-ascii text in your journal file:
-
         $ file my.journal
         .../.journal: UTF-8 Unicode C++ program text
   
     In this case you need to set the `LANG` environment variable to a
-    locale suitable for the encoding shown (probably UTF-8). You
+    locale suitable for the encoding shown (eg UTF-8). You
     can set it temporarily when you run hledger:
   
         $ LANG=en_US.UTF-8 hledger ...
