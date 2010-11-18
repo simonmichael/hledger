@@ -12,25 +12,19 @@ import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8 (putStr, putStrLn)
 #endif
 import Control.Concurrent (forkIO, threadDelay)
--- import System.FilePath ((</>))
-import System.IO.Storage (withStore, putValue,)
-
 import Network.Wai.Handler.SimpleServer (run)
+import System.Exit (exitFailure) -- , exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
+import System.IO.Storage (withStore, putValue,)
 import Yesod.Content (typeByExt)
 import Yesod.Helpers.Static (fileLookupDir)
 
 import Hledger.Cli.Options
--- import Hledger.Cli.Tests
 import Hledger.Cli.Utils (withJournalDo, openBrowserOn)
 import Hledger.Cli.Version (versionmsg) --, binaryfilename)
 import Hledger.Data
 import Hledger.Web.App (App(..), withApp)
-import Hledger.Web.Settings (browserstartdelay, defhost, defport, datadir, staticdir)
--- #ifdef MAKE
--- import Paths_hledger_web_make (getDataFileName)
--- #else
--- import Paths_hledger_web (getDataFileName)
--- #endif
+import Hledger.Web.Files (createFilesIfMissing)
+import Hledger.Web.Settings (browserstartdelay, defhost, defport, datadir)
 
 
 main :: IO ()
@@ -54,32 +48,37 @@ main = do
 -- | The web command.
 web :: [Opt] -> [String] -> Journal -> IO ()
 web opts args j = do
-  let host    = defhost
-      port    = fromMaybe defport $ portFromOpts opts
-      baseurl = fromMaybe (printf "http://%s:%d" host port) $ baseUrlFromOpts opts
-  unless (Debug `elem` opts) $ forkIO (browser baseurl) >> return ()
-  server baseurl port opts args j
-
-browser :: String -> IO ()
-browser baseurl = do
-  putStrLn "starting web browser"
-  threadDelay $ fromIntegral browserstartdelay
-  openBrowserOn baseurl >> return ()
+  created <- createFilesIfMissing
+  if created
+   then do
+     putStrLn $ "Installing support files in "++datadir++" - done, please run again."
+     exitFailure
+   else do
+     putStrLn $ "Using support files in "++datadir
+     let host    = defhost
+         port    = fromMaybe defport $ portFromOpts opts
+         baseurl = fromMaybe (printf "http://%s:%d" host port) $ baseUrlFromOpts opts
+     unless (Debug `elem` opts) $ forkIO (browser baseurl) >> return ()
+     server baseurl port opts args j
 
 server :: String -> Int -> [Opt] -> [String] -> Journal -> IO ()
 server baseurl port opts args j = do
-  printf "starting web server on port %d with base url %s\n" port baseurl
+  printf "Starting http server on port %d with base url %s\n" port baseurl
   withStore "hledger" $ do
     putValue "hledger" "journal" j
-    -- dir <- getDataFileName ""
-    -- let staticdir = dir </> "static"
     withApp App{
               -- appConnPool=Nothing
               appRoot=baseurl
              ,appDataDir=datadir
-             ,appStatic=fileLookupDir staticdir $ typeByExt -- ++[("hamlet","text/plain")]
+             ,appStatic=fileLookupDir datadir $ typeByExt -- ++[("hamlet","text/plain")]
              ,appOpts=opts
              ,appArgs=args
              ,appJournal=j
              } $ run port
+
+browser :: String -> IO ()
+browser baseurl = do
+  threadDelay $ fromIntegral browserstartdelay
+  putStrLn "Attempting to start a web browser"
+  openBrowserOn baseurl >> return ()
 

@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module Hledger.Web.Settings
-    ( hamletFile
+    (
+     hamletFile
     , cassiusFile
     , juliusFile
     -- , connStr
@@ -10,9 +11,6 @@ module Hledger.Web.Settings
     , approot
     , staticroot
     , datadir
-    , staticdir
-    , templatesdir
-
     , defhost
     , defport
     , browserstartdelay
@@ -27,12 +25,12 @@ module Hledger.Web.Settings
     , robots_txt
     ) where
 
-import System.FilePath ((</>))
-import Text.Printf (printf)
-import qualified Text.Hamlet as H
-import qualified Text.Cassius as H
-import qualified Text.Julius as H
 import Language.Haskell.TH.Syntax
+import System.FilePath ((</>))
+import qualified Text.Cassius as H
+import qualified Text.Hamlet as H
+import qualified Text.Julius as H
+import Text.Printf (printf)
 -- import Database.Persist.Sqlite
 -- import Yesod (MonadCatchIO)
 import Yesod.Helpers.Static
@@ -76,40 +74,35 @@ robots_txt = "User-agent: *"
 -- filesystem
 ----------------------------------------------------------------------
 
--- XXX hard-coded data directory path. This must be in your current dir
--- when you run or compile hledger-web.
+-- | Hard-coded data directory path. This must be in your current dir when
+-- you compile or run hledger-web.
 datadir :: FilePath
-datadir = ".hledger"
-
-staticdir :: FilePath
-staticdir = datadir ++ "/web"
-
-templatesdir :: FilePath
-templatesdir = datadir ++ "/web"
+datadir = "./.hledger/web/"
 
 -- The following are compile-time macros. If the file paths they point to
--- don't exist, they will give an error (at compile time). In production
--- mode, files are read once at compile time, otherwise repeatedly at runtime.
+-- don't exist, they will give an error (at compile time). If PRODUCTION
+-- is defined, files are read only once at (startup?) time, otherwise
+-- repeatedly at run time.
 
 hamletFile :: FilePath -> Q Exp
 #ifdef PRODUCTION
-hamletFile x = H.hamletFile $ templatesdir </> (x ++ ".hamlet")
+hamletFile x = H.hamletFile $ datadir </> (x ++ ".hamlet")
 #else
-hamletFile x = H.hamletFileDebug $ templatesdir </> (x ++ ".hamlet")
+hamletFile x = H.hamletFileDebug $ datadir </> (x ++ ".hamlet")
 #endif
 
 cassiusFile :: FilePath -> Q Exp
 #ifdef PRODUCTION
-cassiusFile x = H.cassiusFile $ templatesdir </> (x ++ ".cassius")
+cassiusFile x = H.cassiusFile $ datadir </> (x ++ ".cassius")
 #else
-cassiusFile x = H.cassiusFileDebug $ templatesdir </> (x ++ ".cassius")
+cassiusFile x = H.cassiusFileDebug $ datadir </> (x ++ ".cassius")
 #endif
 
 juliusFile :: FilePath -> Q Exp
 #ifdef PRODUCTION
-juliusFile x = H.juliusFile $ templatesdir </> (x ++ ".julius")
+juliusFile x = H.juliusFile $ datadir </> (x ++ ".julius")
 #else
-juliusFile x = H.juliusFileDebug $ templatesdir </> (x ++ ".julius")
+juliusFile x = H.juliusFileDebug $ datadir </> (x ++ ".julius")
 #endif
 
 ----------------------------------------------------------------------

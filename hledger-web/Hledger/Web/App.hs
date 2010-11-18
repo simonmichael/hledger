@@ -41,7 +41,7 @@ import Hledger.Web.Settings (
     --   withConnectionPool
     -- , runConnectionPool
     -- , staticroot
-      staticdir
+      datadir
     , hamletFile
     , cassiusFile
     -- , juliusFile
@@ -126,7 +126,7 @@ instance Yesod App where
     urlRenderOverride _ _ = Nothing
     -- addStaticContent ext' _ content = do
     --     let fn = base64md5 content ++ '.' : ext'
-    --     let statictmp = staticdir ++ "/tmp/"
+    --     let statictmp = datadir ++ "/tmp/"
     --     liftIO $ createDirectoryIfMissing True statictmp
     --     liftIO $ L.writeFile (statictmp ++ fn) content
     --     return $ Just $ Right (StaticR $ StaticRoute ["tmp", fn] [], [])
@@ -475,7 +475,7 @@ hdstringlist ss = HDList [ [([], hdstring s)] | s <- ss ]
 ----------------------------------------------------------------------
 
 getFaviconR :: Handler ()
-getFaviconR = sendFile "image/x-icon" $ staticdir </> "favicon.ico"
+getFaviconR = sendFile "image/x-icon" $ datadir </> "favicon.ico"
 
 ----------------------------------------------------------------------
 
