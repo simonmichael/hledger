@@ -61,22 +61,6 @@ If you have any trouble, please proceed to
 [Troubleshooting](#troubleshooting) for help and/or seek
 [Support](DEVELOPMENT.html#support).
 
-<!--
-
-- `-fweb` builds the [web](#web) command, enabling a web-based user
-  interface. This requires GHC 6.12 or greater.
-
-- `-fvty` builds the [vty](#vty) command, enabling a basic
-  curses-style user interface. This does not work on microsoft
-  windows, unless possibly with cygwin.
-
-- `-fchart` builds the [chart](#chart) command, enabling rudimentary
-  pie chart generation. This requires additional GTK-related libraries
-  (on ubuntu: `apt-get install libghc6-gtk-dev`) and possibly [other
-  things](http://code.haskell.org/gtk2hs/INSTALL).
-
--->
-
 ## Usage
 
 hledger looks for data in a [journal file](#journal-file) named `.journal`
@@ -274,44 +258,50 @@ compatibility](#file-format-compatibility).
 
 ### Commands
 
-#### Reporting commands
+Here are the commands hledger supports. Note,
 
-##### print
+- the most frequently used commands are [print](#print),
+  [register](#register) and [balance](#balance).
 
-The print command displays full transactions from the journal file, tidily
-formatted and showing all amounts explicitly. The output of print is
-always a valid hledger journal.
+- except where noted, all commands are read-only, that is they never
+  modify your data. The exceptions are [add](#add) and [web](#web).
 
-hledger's print command also shows all unit prices in effect, or (with
--B/--cost) shows cost amounts.
+#### add
+
+Note: this command can append to your journal file.
+
+The add command prompts interactively for new transactions, and appends
+them to the journal file. Each transaction is appended when you complete
+it by entering `.` (period) at the account prompt.  Enter control-D or
+control-C when you are done.
+
+The add command tries to be helpful, providing:
+
+- Sensible defaults
+
+- History awareness: if there are existing transactions approximately
+  matching the description you enter, they will be displayed and the best
+  match will provide defaults for the other fields. If you specify
+  [filter pattern(s)](#filter-patterns) on the command line, only matching
+  transactions will be considered as history.
+
+- Readline-style input: during data entry, the usual editing keys should
+  work.
+
+- Auto-completion for account names: while entering account names, the tab
+  key will auto-complete as far as possible, or list the available
+  options.
+
+- Default commodity awareness: if the journal specifies a
+  [default commodity directive](#default-commodity), that will be applied
+  to any bare numbers entered.
 
 Examples:
 
-    $ hledger print
-    $ hledger print employees:bob | hledger -f- register expenses
+    $ hledger add
+    $ hledger -f home.journal add equity:bob
 
-##### register
-
-The register command displays postings, one per line, and their running total.
-With no [filter patterns](#filter-patterns), this is not all that different from [print](#print):
-
-    $ hledger register
-
-More typically, use it to see a specific account's activity:
-
-    $ hledger register assets:bank:checking
-
-The `--depth` option limits the amount of sub-account detail displayed:
-
-    $ hledger register assets:bank:checking --depth 2
-
-With a [reporting interval](#reporting-interval) it shows aggregated
-summary postings within each interval:
-
-    $ hledger register --monthly rent
-    $ hledger register --monthly -E food --depth 4
-
-##### balance
+#### balance
 
 The balance command displays accounts and their balances, indented to show the account hierarchy.
 Examples:
@@ -332,141 +322,7 @@ In this mode you can also use `--drop N` to elide the first few account
 name components. Note `--depth` doesn't work too well with `--flat` currently;
 it hides deeper accounts rather than aggregating them.
 
-##### chart
-
-*This is an add-on; see [installing](#installing). Next release, it will be provided by the hledger-chart package.*
-
-The chart command saves a pie chart of your top account balances to an
-image file (usually "hledger.png", or use -o/--output FILE). You can
-adjust the image resolution with --size=WIDTHxHEIGHT, and the number of
-accounts with --items=N.
-
-Note that positive and negative balances will not be displayed together in
-the same chart; any balances not matching the sign of the first one will
-be omitted.
-
-To show only accounts above a certain depth, use the --depth
-option. Otherwise, the chart can include accounts at any depth. If a
-parent and child account are both displayed, the parent's balance excludes
-the child's.
-
-Examples:
-
-    $ hledger chart assets --depth 2
-    $ hledger chart liabilities --depth 2
-    $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
-    $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger -p 2009/$m chart ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
-
-##### histogram
-
-The histogram command displays a quick bar chart showing transaction
-counts, per day, week, month or other reporting interval. It is
-experimental.
-
-Examples:
-
-    $ hledger histogram -p weekly dining
-
-##### stats
-
-The stats command displays quick summary information for the whole journal,
-or by period.
-
-Examples:
-
-    $ hledger stats
-    $ hledger stats -p 'monthly in 2009'
-
-##### vty
-
-*This is an add-on; see [installing](#installing). Next release, it will be provided by the hledger-vty package.*
-
-The vty command starts hledger's curses (full-screen, text) user interface,
-which allows interactive navigation of the print/register/balance
-reports. This lets you browse around your numbers and get quick insights
-with less typing.
-
-Examples:
-
-    $ hledger vty
-    $ hledger vty -BE food
-
-#### Modifying commands
-
-The following commands can alter your journal file.
-
-##### add
-
-The add command prompts interactively for new transactions, and appends
-them to the journal file. Each transaction is appended when you complete
-it by entering `.` (period) at the account prompt.  Enter control-D or
-control-C when you are done.
-
-add tries to be helpful, providing:
-
-- Sensible defaults
-
-- (Selective) history awareness: if there are earlier transactions
-  approximately matching the description you enter, the best match will
-  provide defaults for the other fields. If you specify
-  [filter pattern(s)](#filter-patterns) on the command line, only matching
-  transactions will be considered for defaults.
-
-- Readline-style input: during data entry, the usual editing keys should
-  work.
-
-- Auto-completion for account names: while entering account names, the tab
-  key will auto-complete as far as possible, or list the available
-  options.
-
-- Default commodity awareness: if the journal specifies a
-  [default commodity directive](#default-commodity), that will be applied
-  to any bare numbers entered.
-
-Examples:
-
-    $ hledger add
-    $ hledger -f home.journal add equity:bob
-
-##### web
-
-*This is an add-on; see [installing](#installing). Next release, it will be provided by the hledger-web package.*
-
-The web command starts hledger's web interface, and tries to open a web
-browser to view it. (If this fails, you'll have to manually visit the url
-shown on the console.) The web interface combines the features of the print,
-register, balance and add commands, and adds a general edit command.
-
-Examples:
-
-    $ hledger web
-    $ hledger web -E -B --depth 2
-    $ hledger web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
-
-Warning: unlike all other hledger features, the edit form can alter your
-existing journal data.  You can edit, or erase, the journal file through
-the web ui. There is currently no access control. A numbered backup of the
-file will be saved at each edit, in normal circumstances (eg if file
-permissions allow, disk is not full, etc.)
-
-There are some options specific to the web server:
-
-    --port=N           web: serve on tcp port N (default 5000)
-
-hledger will serve pages on port 5000 by default.
-
-    --base-url=URL     web: use this base url (default http://localhost:PORT)
-
-Hyperlinks in the web interface all point to "localhost" by default, so if
-you want to visit the hledger web server from other machines, you'll need
-to use this option. Just give your machine's host name or ip address
-instead of localhost. This option may also be useful when running hledger
-behind a reverse proxy, to conform to your url scheme. Note that the PORT
-in the base url need not be the same as the `--port` argument.
-
-#### Other commands
-
-##### convert
+#### convert
 
 The convert command reads a
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) file you have
@@ -487,7 +343,7 @@ review FILE.journal for problems; update the rules and convert again if
 needed; and finally copy/paste transactions which are new into your main
 journal.
 
-###### .rules file
+<!-- ###### .rules file -->
 
 convert requires a \*.rules file containing data definitions and rules for
 assigning destination accounts to transactions; it will be auto-created if
@@ -552,18 +408,160 @@ Notes:
     matched text with `\0` and any regex groups with `\1`, `\2` in the
     usual way.
 
+#### histogram
 
-##### test
+The histogram command displays a quick bar chart showing transaction
+counts, per day, week, month or other reporting interval. It is
+experimental.
+
+Examples:
+
+    $ hledger histogram -p weekly dining
+
+#### print
+
+The print command displays full transactions from the journal file, tidily
+formatted and showing all amounts explicitly. The output of print is
+always a valid hledger journal.
+
+hledger's print command also shows all unit prices in effect, or (with
+-B/--cost) shows cost amounts.
+
+Examples:
+
+    $ hledger print
+    $ hledger print employees:bob | hledger -f- register expenses
+
+#### register
+
+The register command displays postings, one per line, and their running total.
+With no [filter patterns](#filter-patterns), this is not all that different from [print](#print):
+
+    $ hledger register
+
+More typically, use it to see a specific account's activity:
+
+    $ hledger register assets:bank:checking
+
+The `--depth` option limits the amount of sub-account detail displayed:
+
+    $ hledger register assets:bank:checking --depth 2
+
+With a [reporting interval](#reporting-interval) it shows aggregated
+summary postings within each interval:
+
+    $ hledger register --monthly rent
+    $ hledger register --monthly -E food --depth 4
+
+#### stats
+
+The stats command displays quick summary information for the whole journal,
+or by period.
+
+Examples:
+
+    $ hledger stats
+    $ hledger stats -p 'monthly in 2009'
+
+#### test
 
 This command runs hledger's internal self-tests and displays a quick
 report. The -v option shows more detail, and a pattern can be provided to
 filter tests by name. It's mainly used in development, but it's also nice
-to be able to run a sanity check at any time..
+to be able to test for smoke at any time.
 
 Examples:
 
     $ hledger test
     $ hledger test -v balance
+
+#### Add-on commands
+
+The following commands are optional add-ons. Here is their availability:
+
+- in the binaries on the download page, they are included where possible
+  *(currently web on all platforms, vty on all but windows, chart on none)*
+- when cabal installing the current release, they are enabled by flags
+  (see [installing](#installing)).
+- in the next release, they will be provided by separate packages (eg
+  hledger-web) and invoked by running a similarly-named executable.
+
+##### chart
+
+*Requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu: `apt-get install libghc6-gtk-dev`*
+
+The chart command saves a pie chart of your top account balances to an
+image file (usually "hledger.png", or use -o/--output FILE). You can
+adjust the image resolution with --size=WIDTHxHEIGHT, and the number of
+accounts with --items=N.
+
+Note that positive and negative balances will not be displayed together in
+the same chart; any balances not matching the sign of the first one will
+be omitted.
+
+To show only accounts above a certain depth, use the --depth
+option. Otherwise, the chart can include accounts at any depth. If a
+parent and child account are both displayed, the parent's balance excludes
+the child's.
+
+Examples:
+
+    $ hledger chart assets --depth 2
+    $ hledger chart liabilities --depth 2
+    $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
+    $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger -p 2009/$m chart ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
+
+##### vty
+
+*Not available on microsoft windows, except possibly via cygwin.*
+
+The vty command starts hledger's curses (full-screen, text) user interface,
+which allows interactive navigation of the print/register/balance
+reports. This lets you browse around your numbers and get quick insights
+with less typing.
+
+Examples:
+
+    $ hledger vty
+    $ hledger vty -BE food
+
+##### web
+
+*Requires GHC 6.12 or greater.*
+
+Note: this command can edit or overwrite your journal file.
+
+The web command starts hledger's web interface, and tries to open a web
+browser to view it. (If this fails, you'll have to manually visit the url
+shown on the console.) The web interface combines the features of the print,
+register, balance and add commands, and adds a general edit command.
+
+Examples:
+
+    $ hledger web
+    $ hledger web -E -B --depth 2
+    $ hledger web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
+
+Warning: unlike all other hledger features, the edit form can alter your
+existing journal data.  You can edit, or erase, the journal file through
+the web ui. There is currently no access control. A numbered backup of the
+file will be saved at each edit, in normal circumstances (eg if file
+permissions allow, disk is not full, etc.)
+
+There are some options specific to the web server:
+
+    --port=N           web: serve on tcp port N (default 5000)
+
+hledger will serve pages on port 5000 by default.
+
+    --base-url=URL     web: use this base url (default http://localhost:PORT)
+
+Hyperlinks in the web interface all point to "localhost" by default, so if
+you want to visit the hledger web server from other machines, you'll need
+to use this option. Just give your machine's host name or ip address
+instead of localhost. This option may also be useful when running hledger
+behind a reverse proxy, to conform to your url scheme. Note that the PORT
+in the base url need not be the same as the `--port` argument.
 
 ### Other features
 
