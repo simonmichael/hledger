@@ -45,11 +45,11 @@ Ensure you have a working
     $ cabal update
     $ cabal install hledger
 
-*(Until next release: add -fweb, -fvty, or -fchart to cabal install those
-extra features.)*
+*(Add -fweb, -fvty, or -fchart to cabal install those extra features. Next
+ release these will be separate packages.)*
 
-*(With both of the methods above, running the web interface requires some
- extra support files - see the download page.)*
+*(Both methods above require some extra support files for the web
+ interface, see the download page. Next release will not require this.)*
 
 Or, you can build the latest [development](DEVELOPMENT.html) version:
 
@@ -79,9 +79,10 @@ If you have any trouble, please proceed to
 
 ## Usage
 
-hledger looks for data in a file named `.journal` in your home directory,
-creating it if it doesn't exist.  Or you can specify a different file with
-the -f option or the `LEDGER` environment variable. Basic usage is:
+hledger looks for data in a [journal file](#journal-file) named `.journal`
+in your home directory, creating it if it doesn't exist.  Or you can
+specify a different file with the -f option or the `LEDGER` environment
+variable. Basic usage is:
 
     $ hledger [OPTIONS] COMMAND [PATTERNS]
 
@@ -275,8 +276,6 @@ compatibility](#file-format-compatibility).
 
 #### Reporting commands
 
-These commands are read-only, that is they never modify your data.
-
 ##### print
 
 The print command displays full transactions from the journal file, tidily
@@ -335,6 +334,8 @@ it hides deeper accounts rather than aggregating them.
 
 ##### chart
 
+*This is an add-on; see [installing](#installing). Next release, it will be provided by the hledger-chart package.*
+
 The chart command saves a pie chart of your top account balances to an
 image file (usually "hledger.png", or use -o/--output FILE). You can
 adjust the image resolution with --size=WIDTHxHEIGHT, and the number of
@@ -355,8 +356,6 @@ Examples:
     $ hledger chart liabilities --depth 2
     $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger -p 2009/$m chart ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
-
-This is an optional feature; see [installing](#installing).
 
 ##### histogram
 
@@ -380,6 +379,8 @@ Examples:
 
 ##### vty
 
+*This is an add-on; see [installing](#installing). Next release, it will be provided by the hledger-vty package.*
+
 The vty command starts hledger's curses (full-screen, text) user interface,
 which allows interactive navigation of the print/register/balance
 reports. This lets you browse around your numbers and get quick insights
@@ -389,8 +390,6 @@ Examples:
 
     $ hledger vty
     $ hledger vty -BE food
-
-This is an optional feature; see [installing](#installing).
 
 #### Modifying commands
 
@@ -431,12 +430,12 @@ Examples:
 
 ##### web
 
+*This is an add-on; see [installing](#installing). Next release, it will be provided by the hledger-web package.*
+
 The web command starts hledger's web interface, and tries to open a web
 browser to view it. (If this fails, you'll have to manually visit the url
 shown on the console.) The web interface combines the features of the print,
 register, balance and add commands, and adds a general edit command.
-
-This is an optional feature, see [installing](#installing).
 
 Examples:
 
@@ -567,6 +566,9 @@ Examples:
     $ hledger test -v balance
 
 ### Other features
+
+Here are some additional hledger features and concepts that affect most
+commands.
 
 #### Filter patterns
 
@@ -1018,19 +1020,6 @@ entries, and the following c++ ledger options and commands:
     prices for amounts which have them. (This currently means that
     it does not print multi-commodity transactions in valid journal format.)
 
-### More examples and recipes
-
--   Here's a bash function that will run hledger chart and display
-    the image in your (graphical) emacs:
-
-        function chart () {
-          hledger chart $* && emacsclient -n hledger.png
-        }
-
-    Example:
-
-        $ chart food --depth 2 -p jan
-
 ### Troubleshooting
 
 #### Installation issues
@@ -1165,6 +1154,19 @@ Here are some issues you might encounter when you run hledger:
   
         $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
         $ bash --login
+
+## Examples and recipes
+
+-   Here's a bash function that will run hledger chart and display
+    the image in your (graphical) emacs:
+
+        function chart () {
+          hledger chart $* && emacsclient -n hledger.png
+        }
+
+    Example:
+
+        $ chart food --depth 2 -p jan
 
 ## Other resources
 
