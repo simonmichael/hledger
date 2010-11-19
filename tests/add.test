@@ -2,13 +2,13 @@
 # data validation
 #
 # should prompt again for a bad date
- rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add
+ rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
 <<<
 2009/1/32
 >>> /date .*: date .*/
 #
 # should accept a blank date
- rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add
+ rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
 <<<
 
 >>> /date .*: description/
