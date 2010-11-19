@@ -4,47 +4,10 @@ title: hledger development
 hledger development
 ===================
 
-**Techie intro**
-
-hledger_ is a remix, in haskell_, of John Wiegley's excellent ledger_ accounting tool.
-It reads a plain text journal_ or timelog_ file describing your transactions
-and displays reports via command line, curses or web interfaces.
-
-The hledger project aims to produce:
-
-- a practical, accessible, dependable tool for end users
-- a useful library and toolbox for finance-minded haskell programmers
-- a successful, time-and-money-solvent project within a thriving ecosystem of financial software projects.
-
-hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
-
-**Learn**
- news_, manual_, screenshots_, `some extra tips`_
-
-**Download**
- ``cabal install hledger``, 
- or try these ready-to-run binaries_,
- or see the `installing docs <MANUAL.html#installing>`_
-
-**Develop**
- ``darcs get http://joyful.com/repos/hledger``, 
- `browse the repo`_, 
- `hackage page`_, 
- `hledger haddock docs`_, 
- benchmark_\/profile_\/heap_\/coverage_ reports,
- `developer notes`_
-
- .. `hledger-lib sourcegraph report`_, 
- .. `hledger sourcegraph report`_, 
-
-.. raw:: html
-
- <a name="support" />
-
-**Support**
+**Support** for users and developers:
 
 - chat Simon (sm) on the `#ledger`_ irc channel which we share, or `email me`_
-- report problems at `bugs.hledger.org <http://bugs.hledger.org>`_ (`grid <http://bugs.hledger.org/grid>`_)
+- `report <http://code.google.com/p/hledger/issues/entry>`_ problems at `bugs.hledger.org <http://bugs.hledger.org>`_ (`view all <http://bugs.hledger.org/grid>`_)
 - share and test journal snippets at paste . hledger.org
 - .. raw:: html
 
@@ -53,17 +16,41 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
        <input type=text name=email><input type=submit name="sub" value="Subscribe">
      </form>
 
-**Related projects**
+**Goals:** the hledger project aims to produce
 
-- John Wiegley's ledger_ inspired hledger.
-- Uwe Hollerbach's umm_ is another haskell tool inspired by h/ledger.
-- Tim Docker's ledger-reports_ uses hledger as a library to generate `html reports`_. 
-- I have a few older bits and pieces `here <http://joyful.com/Ledger>`_.
+- a practical, accessible, dependable tool for end users
+- a useful library and toolbox for finance-minded haskell programmers
+- a successful, time-and-money-solvent project within a thriving ecosystem of financial software projects.
+
+**Code:**
+
+ :: 
+
+  darcs get --lazy http://joyful.com/repos/hledger
+  cd hledger
+  make or make install
+
+ `Release notes`_, 
+ `browse the repo`_, 
+ `hackage page`_, 
+ `combined api docs`_, 
+ benchmark_\/profile_\/heap_\/`coverage reports`_,
+ `developer notes`_
+
+.. `hledger-lib sourcegraph report`_, 
+.. `hledger sourcegraph report`_, 
 
 .. raw:: html
 
  <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
  <a href="https://www.google.com/analytics/reporting/?reset=1&id=15489822" accesskey="a"></a>
+
+**Related projects**
+
+- John Wiegley's ledger_ inspired hledger.
+- h/ledger inspired Uwe Hollerbach's umm_.
+- Tim Docker's ledger-reports_ builds on hledger to generate `html reports`_. 
+- I have a few older bits and pieces `here <http://joyful.com/Ledger>`_.
 
 
 .. _hledger:              README.html
@@ -74,18 +61,15 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 .. _web interface:        http://demo.hledger.org
 .. _mail list:            http://list.hledger.org
 .. _issue tracker:        http://bugs.hledger.org
-.. _binaries:             http://hledger.org/binaries/
-.. _manual:               MANUAL.html
-.. _news:                 NEWS.html
-.. _screenshots:          SCREENSHOTS.html
-.. _hledger haddock docs: http://hledger.org/api-doc/
+.. _Release notes:        NEWS.html
+.. _combined api docs:      http://hledger.org/api-doc/
 .. _hledger-lib sourcegraph report: http://joyful.com/repos/hledger/hledger-lib/SourceGraph/hledger-lib.html
 .. _hledger sourcegraph report: http://joyful.com/repos/hledger/SourceGraph/hledger.html
 .. _developer notes:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES
 .. _benchmark:            http://hledger.org/profs/latest.bench
 .. _profile:              http://hledger.org/profs/latest.prof
 .. _heap:                 http://hledger.org/profs/latest.ps
-.. _coverage:             http://hledger.org/profs/coverage/hpc_index_fun.html
+.. _coverage reports:     http://hledger.org/profs/coverage/hpc_index_fun.html
 .. _browse the repo:      http://joyful.com/darcsweb/darcsweb.cgi?r=hledger
 .. _email me:             mailto:simon@joyful.com?subject=hledger:
 .. _Simon Michael:        http://joyful.com
@@ -97,4 +81,3 @@ hledger is free software by `Simon Michael`_ & `co.`_, released under GNU GPLv3.
 .. _umm:                  http://www.korgwal.com/umm/
 .. _ledger-reports:       http://dockerz.net/repos/ledger-reports
 .. _html reports:         http://dockerz.net/software/hledger_report_sample/report.html
-.. _some extra tips:      http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons/

@@ -7,8 +7,8 @@ title: hledger manual
 ## About
 
 hledger is a program for tracking money, time, or any other commodity,
-using a directly editable file format and the simple but powerful
-principles of double-entry accounting. It was inspired by [ledger](#faq).
+using a simple, editable file format and the powerful principles of
+double-entry accounting. It was inspired by [ledger](#faq).
 
 hledger's basic function is to read a plain text file describing (eg)
 financial transactions, and quickly generate useful reports via the
@@ -18,10 +18,10 @@ on the web.
 
 You can use it to, eg:
 
--   track spending and income
--   track unpaid or due invoices
--   track time and report by day/week/month/project
--   get accurate numbers for client billing and tax filing
+- track spending and income
+- track unpaid or due invoices
+- track time and report by day/week/month/project
+- get accurate numbers for client billing and tax filing
 
 hledger aims to help both computer experts and regular folks gain clarity
 in their finances. For the moment, it may be a little more suited to
@@ -57,9 +57,8 @@ Or, you can build the latest [development](DEVELOPMENT.html) version:
     $ cd hledger
     $ make install
 
-If you have any trouble, please proceed to
-[Troubleshooting](#troubleshooting) for help and/or seek
-[Support](DEVELOPMENT.html#support).
+If you have any trouble, please see [Troubleshooting](#troubleshooting)
+and/or seek [Support](DEVELOPMENT.html#support).
 
 ## Usage
 
@@ -268,7 +267,7 @@ Here are the commands hledger supports. Note,
 
 #### add
 
-Note: this command can append to your journal file.
+*This command can append to your journal file.*
 
 The add command prompts interactively for new transactions, and appends
 them to the journal file. Each transaction is appended when you complete
@@ -411,8 +410,7 @@ Notes:
 #### histogram
 
 The histogram command displays a quick bar chart showing transaction
-counts, per day, week, month or other reporting interval. It is
-experimental.
+counts by day, week, month or other reporting interval.
 
 Examples:
 
@@ -480,7 +478,7 @@ Examples:
 The following commands are optional add-ons. Here is their availability:
 
 - in the binaries on the download page, they are included where possible
-  *(currently web on all platforms, vty on all but windows, chart on none)*
+  *(currently: web on all platforms, vty on all but windows, chart on none?)*
 - when cabal installing the current release, they are enabled by flags
   (see [installing](#installing)).
 - in the next release, they will be provided by separate packages (eg
@@ -529,7 +527,7 @@ Examples:
 
 *Requires GHC 6.12 or greater.*
 
-Note: this command can edit or overwrite your journal file.
+*This command can edit or overwrite your journal file.*
 
 The web command starts hledger's web interface, and tries to open a web
 browser to view it. (If this fails, you'll have to manually visit the url
@@ -1174,3 +1172,4 @@ Here are some issues you might encounter when you run hledger:
   Also the [c++ ledger 2.x manual](http://joyful.com/repos/ledger/doc/ledger.html)
   is slightly outdated but informative.
 
+- [Why you need accounting](http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons)
