@@ -30,17 +30,17 @@ title: hledger development
 >`cd hledger`  
 >`make` or `make install`
 
-- [release notes](NEWS.html),
-  [browse the repo](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
+- [browse the repo](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
+  [release notes](NEWS.html),
   [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES)
 - [api docs](http://hledger.org/api-doc), [internal code docs](http://hledger.org/code-doc) for all packages
 - [hledger](http://hackage.haskell.org/package/hledger),
   [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
   hackage packages
-- [benchmark](http://hledger.org/profs/latest.bench),
+- [test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
+  [benchmark](http://hledger.org/profs/latest.bench),
   [profile](http://hledger.org/profs/latest.prof),
-  [heap](http://hledger.org/profs/latest.ps),
-  [coverage](http://hledger.org/profs/coverage/hpc_index_fun.html)
+  [heap](http://hledger.org/profs/latest.ps)
   reports
 
 <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
