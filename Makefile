@@ -338,13 +338,13 @@ fullcabaltest:
 	&& echo $@ PASSED \
 	) || echo $@ FAILED
 
-# run performance benchmarks without saving results.
+# run simple performance benchmarks without saving results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
 quickbench: samplejournals bench.tests tools/simplebench
 	tools/simplebench -fbench.tests $(BENCHEXES)
 	@rm -f benchresults.*
 
-# run performance benchmarks and save textual results in profs/.
+# run simple performance benchmarks and archive results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
 simplebench: samplejournals bench.tests tools/simplebench
 	tools/simplebench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
@@ -359,14 +359,16 @@ criterionbench: samplejournals tools/criterionbench
 progressionbench: samplejournals tools/progressionbench
 	tools/progressionbench -- -t png -k png
 
-# generate, save, simplify and display an execution profile
+# generate and archive an execution profile
 prof: samplejournals hledgerp
 	@echo "Profiling: $(PROFCMD)"
 	-$(PROFCMD) +RTS -p -RTS
-	mv hledgerp.prof profs/$(TIME)-orig.prof
-	tools/simplifyprof.hs profs/$(TIME)-orig.prof >profs/$(TIME).prof
-	(cd profs; rm -f latest*.prof; ln -s $(TIME)-orig.prof latest-orig.prof; ln -s $(TIME).prof latest.prof)
-	echo; cat profs/latest.prof
+	mv hledgerp.prof profs/$(TIME).prof
+	(cd profs; rm -f latest*.prof; ln -s $(TIME).prof latest.prof)
+
+# generate, archive, simplify and display an execution profile
+viewprof: prof
+	tools/simplifyprof.hs profs/latest.prof
 
 # generate and display an execution profile, don't save or simplify
 quickprof: samplejournals hledgerp
@@ -374,13 +376,15 @@ quickprof: samplejournals hledgerp
 	-$(PROFCMD) +RTS -p -RTS
 	echo; cat hledgerp.prof
 
-# generate, save and display a graphical heap profile
+# generate and archive a graphical heap profile
 heap: samplejournals hledgerp
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
 	mv hledgerp.hp profs/$(TIME).hp
 	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
 		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps; rm -f *.aux)
+
+viewheap: heap
 	$(VIEWPS) profs/latest.ps
 
 # generate and display a graphical heap profile, don't save
@@ -390,11 +394,13 @@ quickheap: samplejournals hledgerp
 	hp2ps hledgerp.hp
 	$(VIEWPS) hledger.ps
 
-# generate and display a code coverage report
+# generate a code coverage report
 coverage: samplejournals hledgercov
 	@echo "Generating coverage report with $(COVCMD)"
 	tools/coverage "markup --destdir=profs/coverage" test
 	cd profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
+
+viewcoverage: coverage
 	$(VIEWHTML) profs/coverage/index.html
 
 # get a debug prompt
@@ -501,7 +507,7 @@ pushdocs: push
 	ssh simon@joyful.com 'make -C/repos/hledger docs'
 
 # generate api & other code docs
-codedocs: hscolour apihaddock codehaddock #sourcegraph #hoogle
+codedocs: hscolour apihaddock codehaddock coverage #sourcegraph #hoogle
 
 # browse the code docs
 viewcodedocs:
