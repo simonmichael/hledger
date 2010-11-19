@@ -39,7 +39,6 @@ SOURCEFILES:= \
 	$(MAIN) \
 	hledger/*hs \
 	hledger/Hledger/Cli/*hs \
-	hledger/Hledger/Cli/Commands/*hs \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs
@@ -73,7 +72,7 @@ VERSIONSENSITIVEFILES=\
 	DOWNLOAD.markdown \
 	$(CABALFILES) \
 
-default: tag install
+default: tag hledger
 
 ######################################################################
 # BUILDING
@@ -108,7 +107,7 @@ autotest: setversion
 	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) -ihledger $(BUILDFLAGS) --run test
 
 # as above for add-on programs
-autoweb: setversion hledgerwebdatalinks
+autoweb: setversion linkhledgerwebdir
 	rm -f bin/hledger-web
 	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/hledger-web.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug
 
@@ -120,9 +119,11 @@ autochart: setversion
 	rm -f bin/hledger-chart
 	sp --no-exts --no-default-map -o bin/hledger-chart ghc --make hledger-chart/hledger-chart.hs -ihledger-chart -ihledger $(BUILDFLAGS) --run --help
 
-# make symlinks to allow running hledger-web from the top directory
-hledgerwebdatalinks:
-	cd data; for f in ../hledger-web/data/*; do ln -sf $$f; done
+# make symlinks so that running hledger-web from the top directory will
+# use the in-development hledger-web support files. Cf Hledger.Web.Settings:
+HLEDGERDATADIR:=.hledger
+linkhledgerwebdir:
+	mkdir -p $(HLEDGERDATADIR); ln -sf ../hledger-web/$(HLEDGERDATADIR)/web $(HLEDGERDATADIR)/web
 
 # build the standalone unit test runner. Requires test-framework, which
 # may not work on windows.
