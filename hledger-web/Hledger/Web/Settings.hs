@@ -75,7 +75,7 @@ robots_txt = "User-agent: *"
 ----------------------------------------------------------------------
 
 -- | Hard-coded data directory path. This must be in your current dir when
--- you compile or run hledger-web.
+-- you compile. At run time it's also required but we'll auto-create it.
 datadir :: FilePath
 datadir = "./.hledger/web/"
 

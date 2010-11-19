@@ -258,7 +258,7 @@ and maybe some others:
 > 21
 > october, oct
 > yesterday, today, tomorrow
-> (not yet) this/next/last week/day/month/quarter/year
+> this/next/last week/day/month/quarter/year
 
 Returns a SmartDate, to be converted to a full date later (see fixSmartDate).
 Assumes any text in the parse stream has been lowercased.
