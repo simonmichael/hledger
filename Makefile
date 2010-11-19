@@ -35,12 +35,20 @@ INCLUDEPATHS=\
 	-ihledger-vty \
 	-ihledger-chart
 MAIN=hledger/hledger.hs
+# all source files in the project (plus a few strays like Setup.hs & hlint.hs)
 SOURCEFILES:= \
 	hledger/*hs \
 	hledger/Hledger/*/*hs \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs
+# a more careful list suitable for for haddock
+SOURCEFILESFORHADDOCK:= \
+	hledger-lib/Hledger/*hs \
+	hledger-lib/Hledger/*/*hs \
+	hledger/Hledger/Cli/*hs \
+	hledger-web/Hledger/*/*hs \
+	hledger-vty/Hledger/*hs
 VERSIONHS=hledger/Hledger/Cli/Version.hs
 CABALFILES:= \
 	hledger/hledger.cabal \
@@ -289,7 +297,7 @@ doctest: tools/doctest
 
 # make sure we have no haddock errors
 haddocktest:
-	@(make --quiet haddock \
+	@(make --quiet codehaddock \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure the normal build has no warnings
@@ -422,7 +430,7 @@ cleandocs:
 	rm -rf site/[A-Z]*.html site/api-doc/*
 
 # rebuild all docs
-docs: site apidocs
+docs: site codedocs
 
 # build the hledger.org website
 # Requires hakyll (cabal install hakyll)
@@ -431,9 +439,11 @@ site: site/hakyll site/_site/index.html site/_site/profs
 	cd site; ./hakyll build
 
 site/_site/index.html:
+	mkdir -p site/_site
 	cd site/_site; ln -sf README.html index.html; ln -sf ../../profs
 
 site/_site/profs:
+	mkdir -p site/_site
 	cd site/_site; ln -sf ../../profs
 
 cleansite: site/hakyll
@@ -489,61 +499,92 @@ printall: pdf
 pushdocs: push
 	ssh simon@joyful.com 'make -C/repos/hledger docs'
 
-# generate api docs
-# We munge haddock and hoogle into a rough but useful framed layout.
-# For this to work the hoogle cgi must be built with base target "main".
-# XXX move the framed index building into haddock: ?
-apidocs: haddock hscolour #sourcegraph #hoogle
-	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' site/api-doc/modules-index.html ; \
-	cp site/api-doc-frames.html site/api-doc/index.html ; \
-# 	cp site/hoogle-small.html site/api-doc
+# generate api & other code docs
+codedocs: hscolour apihaddock codehaddock #sourcegraph #hoogle
 
-# generate and view the api docs
-viewapidocs: apidocs
-	$(VIEWHTML) site/api-doc/index.html
+# browse the code docs
+viewcodedocs:
+	$(VIEWHTML) site/code-doc/index.html
 
-# generate code documentation with haddock
-# --ignore-all-exports means we are documenting internal implementation, not library api
-HADDOCK=haddock -B `ghc --print-libdir` $(subst -D,--optghc=-D,$(DEFINEFLAGS)) --ignore-all-exports --no-warnings
-haddock:
-	$(HADDOCK) -o site/api-doc -h --source-module=src-%{MODULE/./-}.html --source-entity=src-%{MODULE/./-}.html#%N $(MAIN) && \
-		cp site/api-doc/index.html site/api-doc/modules-index.html
-	cd hledger-lib; cabal haddock
+#http://www.haskell.org/haddock/doc/html/invoking.html
+#$(subst -D,--optghc=-D,$(DEFINEFLAGS))
+HADDOCK=haddock --optghc='-hide-package monads-tf' --no-warnings --prologue .haddockprologue
 
-HSCOLOUR=HsColour -css 
+.haddocksynopsis: hledger/hledger.cabal
+	grep synopsis $< | sed -e 's/synopsis: *//' >$@
+
+.haddockprologue: hledger/hledger.cabal
+	cat $< | perl -ne 'print if (/^description:/../^$$/)' | sed -e 's/^description: *//' >$@
+	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
+
+# generate external api docs for the whole project
+apihaddock: linkhledgerwebdir .haddockprologue
+	$(HADDOCK) --title "hledger API docs (all packages)" \
+	 -o site/api-doc \
+	 --html \
+	 --source-module=../code-doc/src/%{MODULE/./-}.html \
+	 --source-entity=../code-doc/src/%{MODULE/./-}.html#%N \
+	 $(SOURCEFILESFORHADDOCK)
+
+# generate internal code docs for the whole project
+codehaddock: linkhledgerwebdir .haddockprologue
+	$(HADDOCK) --title "hledger internal code docs (all packages)" \
+	 -o site/code-doc \
+	 --ignore-all-exports \
+	 --html \
+	 --source-module=../code-doc/src/%{MODULE/./-}.html \
+	 --source-entity=../code-doc/src/%{MODULE/./-}.html#%N \
+	 $(SOURCEFILESFORHADDOCK)
+
+#http://www.cs.york.ac.uk/fp/darcs/hscolour/
+HSCOLOUR=HsColour -icss
 hscolour:
-	for f in $(SOURCEFILES); do \
-		$(HSCOLOUR) -anchor $$f -osite/api-doc/`echo "src/"$$f | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
-	done ; \
-	cp site/api-doc/src-hledger.html site/api-doc/src-Main.html ; \
-	HsColour -print-css >site/api-doc/hscolour.css
+	mkdir -p site/code-doc/src
+	for f in $(SOURCEFILESFORHADDOCK); do \
+		$(HSCOLOUR) -anchor $$f -osite/code-doc/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+	done
 
 sourcegraph:
-	-SourceGraph hledger.cabal
-	-cd hledger-lib; SourceGraph hledger-lib.cabal
+	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
+
+# # generate external api docs for each package
+# allhaddock: allcabalhaddock\ --hyperlink-source\ --executables
+
+# # generate internal code docs for each package
+# allhaddockinternal: allcabalhaddock\ --hyperlink-source\ --executables\ --internal
+
+# # generate hoogle indices for each package
+# allhoogle: allcabalhaddock\ --hoogle\ --executables
 
 #set up the hoogle web interface
+## We munge haddock and hoogle into a rough but useful framed layout.
+## For this to work the hoogle cgi must be built with base target "main".
+## XXX move the framed index building into haddock: ?
+# 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' site/api-doc/modules-index.html ; \
+# 	cp site/api-doc-frames.html site/api-doc/index.html ; \
+# # 	cp site/hoogle-small.html site/api-doc
+#
 #uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
-HOOGLESRC=/usr/local/src/hoogle
-HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
-HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
-hoogle: hoogleindex
-	if test -f $(HOOGLE) ; then \
-		cd site/api-doc && \
-		rm -f $(HOOGLEVER) && \
-		ln -s . $(HOOGLEVER) && \
-		cp -r $(HOOGLESRC)/src/res/ . && \
-		cp -p $(HOOGLE) index.cgi && \
-		touch log.txt && chmod 666 log.txt ; \
-	else \
-		echo "Could not find $(HOOGLE) in the hoogle source tree" ; \
-	fi
-
+# HOOGLESRC=/usr/local/src/hoogle
+# HOOGLE=$(HOOGLESRC)/dist/build/hoogle/hoogle
+# HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
+# hoogle: hoogleindex
+# 	if test -f $(HOOGLE) ; then \
+# 		cd site/api-doc && \
+# 		rm -f $(HOOGLEVER) && \
+# 		ln -s . $(HOOGLEVER) && \
+# 		cp -r $(HOOGLESRC)/src/res/ . && \
+# 		cp -p $(HOOGLE) index.cgi && \
+# 		touch log.txt && chmod 666 log.txt ; \
+# 	else \
+# 		echo "Could not find $(HOOGLE) in the hoogle source tree" ; \
+# 	fi
+#
 #generate a hoogle index
-hoogleindex:
-	$(HADDOCK) -o site/api-doc --hoogle $(MAIN) && \
-	cd site/api-doc && \
-	hoogle --convert=main.txt --output=default.hoo
+# hoogleindex:
+# 	$(HADDOCK) -o site/api-doc --hoogle $(MAIN) && \
+# 	cd site/api-doc && \
+# 	hoogle --convert=main.txt --output=default.hoo
 
 ######################################################################
 # RELEASING
