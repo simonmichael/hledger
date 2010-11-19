@@ -37,10 +37,10 @@ main = do
        | HelpOptions `elem` opts      = putStr help2
        | HelpAll `elem` opts          = putStr $ help1 ++ "\n" ++ help2
        | Version `elem` opts          = putStrLn versionmsg
-       -- | BinaryFilename `elem` opts   = putStrLn binaryfilename
+       -- \| BinaryFilename `elem` opts   = putStrLn binaryfilename
        | null cmd                     = maybe (putStr help1) (withJournalDo opts args cmd) defaultcmd
        | cmd `isPrefixOf` "web"       = withJournalDo opts args cmd web
-       -- | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
+       -- \| cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr help1
 
       defaultcmd = Just web
