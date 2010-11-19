@@ -3,7 +3,6 @@
 hakyll build script for hledger.org
 requires Hakyll >= 2.1, pandoc >= 1.5
 -}
-
 import Control.Monad (forM_)
 import Control.Monad.Trans (liftIO)
 import System.Process (system)
@@ -20,7 +19,7 @@ main = hakyllWithConfiguration cfg $ do
     mapM_ renderParentDirPage
       ["README.rst"
       ,"DOWNLOAD.markdown"
-      ,"DEVELOPMENT.rst"
+      ,"DEVELOPMENT.markdown"
       ,"NEWS.markdown"
       ,"SCREENSHOTS.markdown"
       ,"MANUAL.markdown"
