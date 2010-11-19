@@ -5,6 +5,7 @@ Command-line options for the application.
 
 module Hledger.Cli.Options
 where
+import Safe (headDef)
 import System.Console.GetOpt
 import System.Environment
 import Hledger.Cli.Version (timeprogname)
@@ -40,7 +41,9 @@ help1 =
   "Use --help-options to see OPTIONS, or --help-all/-H.\n" ++
   ""
 
-help2 = usageInfo "Options:\n" options
+help2 = usageInfo "Options:\n" options'
+    where options' = filter (\(Option _ name _ _) -> not $ (headDef "" name) `elem` hiddenoptions) options
+          hiddenoptions = ["base-url","port","debug-vty","output","items","size"]
 
 -- | Command-line options we accept.
 options :: [OptDescr Opt]
@@ -75,7 +78,21 @@ options = [
  ,Option "h" ["help"]         (NoArg  Help)          "show basic command-line usage"
  ,Option ""  ["help-options"] (NoArg  HelpOptions)   "show command-line options"
  ,Option "H" ["help-all"]     (NoArg  HelpAll)       "show command-line usage and options"
+-- hidden options needed for add-ons, for now
+ ,Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "web: use this base url (default http://localhost:PORT)"
+ ,Option ""  ["port"]         (ReqArg Port "N")      "web: serve on tcp port N (default 5000)"
+ ,Option ""  ["debug-vty"]    (NoArg  DebugVty)      "vty: run with no terminal output, showing console"
+ ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    ("chart: output filename (default: "++chartoutput++")")
+ ,Option ""  ["items"]  (ReqArg ChartItems "N")         ("chart: number of accounts to show (default: "++show chartitems++")")
+ ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") ("chart: image size (default: "++chartsize++")")
  ]
+
+    -- -  "  vty       - run a simple curses-style UI" ++
+    -- -  "  web       - run a simple web-based UI" ++
+    -- -  "  chart     - generate balances pie charts" ++
+chartoutput   = "hledger.png"
+chartitems    = 10
+chartsize     = "600x400"
 
 -- | An option value from a command-line flag.
 data Opt = 
@@ -101,8 +118,6 @@ data Opt =
     MonthlyOpt |
     QuarterlyOpt |
     YearlyOpt |
-    BaseUrl {value::String} |
-    Port    {value::String} |
     Help |
     HelpOptions |
     HelpAll |
@@ -110,7 +125,13 @@ data Opt =
     Version
     | BinaryFilename
     | Debug
+    --
     | DebugVty
+    | BaseUrl {value::String}
+    | Port    {value::String}
+    | ChartOutput {value::String}
+    | ChartItems  {value::String}
+    | ChartSize   {value::String}
     deriving (Show,Eq)
 
 -- these make me nervous
@@ -276,4 +297,3 @@ optsToFilterSpec opts args t = FilterSpec {
 --     where
 --       listtomaybe [] = Nothing
 --       listtomaybe vs = Just $ last vs
-
