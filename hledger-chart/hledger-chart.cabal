@@ -23,10 +23,10 @@ source-repository head
   location: http://joyful.com/repos/hledger
 
 executable hledger-chart
-  main-is:        Main.hs
+  main-is:        hledger-chart.hs
   ghc-options:    -threaded -W
   other-modules:
-                  Hledger.Chart
+                  Hledger.Chart.Main
   build-depends:
                   hledger == 0.13
                  ,hledger-lib == 0.13

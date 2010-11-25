@@ -36,11 +36,12 @@ Flag production
     Default:       False
 
 executable hledger-web
-  main-is:        Main.hs
+  main-is:        hledger-web.hs
   ghc-options:    -threaded -W
   if flag(production)
       cpp-options: -DPRODUCTION
   other-modules:
+                  Hledger.Web.Main
                   Hledger.Web.App
                   Hledger.Web.Files
                   Hledger.Web.Settings
