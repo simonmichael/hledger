@@ -47,4 +47,4 @@ executable hledger-vty
                  -- ,split == 0.1.*
                  -- ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
-                 ,vty >= 4.0.0.1
+                 ,vty >= 4.6.0.1 && < 4.7
