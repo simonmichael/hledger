@@ -48,7 +48,8 @@ SOURCEFILESFORHADDOCK:= \
 	hledger-lib/Hledger/*/*hs \
 	hledger/Hledger/Cli/*hs \
 	hledger-web/Hledger/*/*hs \
-	hledger-vty/Hledger/*hs
+	hledger-vty/Hledger/*/*hs \
+	hledger-chart/Hledger/*/*hs
 VERSIONHS=hledger/Hledger/Cli/Version.hs
 CABALFILES:= \
 	hledger/hledger.cabal \
