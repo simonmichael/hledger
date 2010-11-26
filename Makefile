@@ -26,14 +26,14 @@ PACKAGES=\
 	hledger-lib \
 	hledger \
 	hledger-web \
-	hledger-vty
-#	hledger-chart
+	hledger-vty \
+	hledger-chart
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger \
 	-ihledger-web \
-	-ihledger-vty
-#	-ihledger-chart
+	-ihledger-vty \
+	-ihledger-chart
 MAIN=hledger/hledger.hs
 SOURCEFILES:= \
 	$(MAIN) \
@@ -103,17 +103,24 @@ allcabal%:
 all%:
 	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
 
-# auto-recompile and run (hledger test) whenever a module changes.
+# auto-recompile and run (something, eg unit tests) whenever a module changes.
 # sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
 autotest: setversion
 	rm -f bin/hledger
 	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) -ihledger $(BUILDFLAGS) --run test
 
-# auto-recompile and run (hledger-web) whenever a module changes.
-# sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
+# as above for add-on programs
 autoweb: setversion hledgerwebdatalinks
 	rm -f bin/hledger-web
-	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/Main.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug
+	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/hledger-web.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug
+
+autovty: setversion
+	rm -f bin/hledger-vty
+	sp --no-exts --no-default-map -o bin/hledger-vty ghc --make hledger-vty/hledger-vty.hs -ihledger-vty -ihledger $(BUILDFLAGS) --run --help
+
+autochart: setversion
+	rm -f bin/hledger-chart
+	sp --no-exts --no-default-map -o bin/hledger-chart ghc --make hledger-chart/hledger-chart.hs -ihledger-chart -ihledger $(BUILDFLAGS) --run --help
 
 # make symlinks to allow running hledger-web from the top directory
 hledgerwebdatalinks:
