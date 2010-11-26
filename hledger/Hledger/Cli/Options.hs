@@ -5,49 +5,58 @@ Command-line options for the application.
 
 module Hledger.Cli.Options
 where
-import Safe (headDef)
+import Codec.Binary.UTF8.String (decodeString)
 import System.Console.GetOpt
 import System.Environment
-import Hledger.Cli.Version (timeprogname)
-import Hledger.Read (myJournalPath, myTimelogPath)
+
 import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
-import Codec.Binary.UTF8.String (decodeString)
+import Hledger.Read (myJournalPath, myTimelogPath)
 
-help1 =
+
+progname_cli = "hledger"
+
+-- | The program name which, if we are invoked as (via symlink or
+-- renaming), causes us to default to reading the user's time log instead
+-- of their journal.
+progname_cli_time  = "hours"
+
+usage_preamble_cli =
   "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
   "       hledger [OPTIONS] convert CSVFILE\n" ++
-  "       hledger [OPTIONS] stats\n" ++
   "\n" ++
-  "hledger reads your ~/.journal file, or another specified with $LEDGER or -f\n" ++
+  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
+  "runs the specified command (may be abbreviated):\n" ++
   "\n" ++
-  "COMMAND is one of (may be abbreviated):\n" ++
   "  add       - prompt for new transactions and add them to the journal\n" ++
   "  balance   - show accounts, with balances\n" ++
-  "  convert   - read CSV bank data and display in journal format\n" ++
+  "  convert   - show the specified CSV file as a hledger journal\n" ++
   "  histogram - show a barchart of transactions per day or other interval\n" ++
   "  print     - show transactions in journal format\n" ++
   "  register  - show transactions as a register with running balance\n" ++
   "  stats     - show various statistics for a journal\n" ++
   "  test      - run self-tests\n" ++
-  "\n" ++
-  "PATTERNS are regular expressions which filter by account name.\n" ++
-  "Prefix with desc: to filter by transaction description instead.\n" ++
-  "Prefix with not: to negate a pattern. When using both, not: comes last.\n" ++
-  "\n" ++
-  "DATES can be y/m/d or ledger-style smart dates like \"last month\".\n" ++
-  "\n" ++
-  "Use --help-options to see OPTIONS, or --help-all/-H.\n" ++
-  ""
+  "\n"
 
-help2 = usageInfo "Options:\n" options'
-    where options' = filter (\(Option _ name _ _) -> not $ (headDef "" name) `elem` hiddenoptions) options
-          hiddenoptions = ["base-url","port","debug-vty","output","items","size"]
+usage_options_cli = usageInfo "hledger options:" options_cli
+
+usage_postscript_cli =
+ "\n" ++
+ "DATES can be y/m/d or smart dates like \"last month\".  PATTERNS are regular\n" ++
+ "expressions which filter by account name.  Prefix a pattern with desc: to\n" ++
+ "filter by transaction description instead, prefix with not: to negate it.\n" ++
+ "When using both, not: comes last.\n"
+
+usage_cli = concat [
+             usage_preamble_cli
+            ,usage_options_cli
+            ,usage_postscript_cli
+            ]
 
 -- | Command-line options we accept.
-options :: [OptDescr Opt]
-options = [
+options_cli :: [OptDescr Opt]
+options_cli = [
   Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
  ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "don't allow to create new accounts"
  ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
@@ -75,60 +84,45 @@ options = [
  ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option ""  ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
  ,Option "V" ["version"]      (NoArg  Version)       "show version information"
- ,Option "h" ["help"]         (NoArg  Help)          "show basic command-line usage"
- ,Option ""  ["help-options"] (NoArg  HelpOptions)   "show command-line options"
- ,Option "H" ["help-all"]     (NoArg  HelpAll)       "show command-line usage and options"
--- hidden options needed for add-ons, for now
- ,Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "web: use this base url (default http://localhost:PORT)"
- ,Option ""  ["port"]         (ReqArg Port "N")      "web: serve on tcp port N (default 5000)"
- ,Option ""  ["debug-vty"]    (NoArg  DebugVty)      "vty: run with no terminal output, showing console"
- ,Option "o" ["output"]  (ReqArg ChartOutput "FILE")    ("chart: output filename (default: "++chartoutput++")")
- ,Option ""  ["items"]  (ReqArg ChartItems "N")         ("chart: number of accounts to show (default: "++show chartitems++")")
- ,Option ""  ["size"] (ReqArg ChartSize "WIDTHxHEIGHT") ("chart: image size (default: "++chartsize++")")
+ ,Option "h" ["help"]         (NoArg  Help)          "show command-line usage"
  ]
-
-    -- -  "  vty       - run a simple curses-style UI" ++
-    -- -  "  web       - run a simple web-based UI" ++
-    -- -  "  chart     - generate balances pie charts" ++
-chartoutput   = "hledger.png"
-chartitems    = 10
-chartsize     = "600x400"
 
 -- | An option value from a command-line flag.
 data Opt = 
-    File    {value::String} | 
-    NoNewAccts |
-    Begin   {value::String} | 
-    End     {value::String} | 
-    Period  {value::String} | 
-    Cleared | 
-    UnCleared | 
-    CostBasis | 
-    Depth   {value::String} | 
-    Display {value::String} | 
-    Effective | 
-    Empty | 
-    Real | 
-    Flat |
-    Drop   {value::String} |
-    NoTotal |
-    SubTotal |
-    DailyOpt |
-    WeeklyOpt |
-    MonthlyOpt |
-    QuarterlyOpt |
-    YearlyOpt |
-    Help |
-    HelpOptions |
-    HelpAll |
-    Verbose |
-    Version
+    File          {value::String}
+    | NoNewAccts
+    | Begin       {value::String}
+    | End         {value::String}
+    | Period      {value::String}
+    | Cleared
+    | UnCleared
+    | CostBasis
+    | Depth       {value::String}
+    | Display     {value::String}
+    | Effective
+    | Empty
+    | Real
+    | Flat
+    | Drop        {value::String}
+    | NoTotal
+    | SubTotal
+    | DailyOpt
+    | WeeklyOpt
+    | MonthlyOpt
+    | QuarterlyOpt
+    | YearlyOpt
+    | Help
+    | Verbose
+    | Version
     | BinaryFilename
     | Debug
-    --
+    -- XXX add-on options, must be defined here for now
+    -- vty
     | DebugVty
-    | BaseUrl {value::String}
-    | Port    {value::String}
+    -- web
+    | BaseUrl     {value::String}
+    | Port        {value::String}
+    -- chart
     | ChartOutput {value::String}
     | ChartItems  {value::String}
     | ChartSize   {value::String}
@@ -147,11 +141,14 @@ optValuesForConstructor f opts = concatMap get opts
 optValuesForConstructors fs opts = concatMap get opts
     where get o = [v | any (\f -> f v == o) fs] where v = value o
 
--- | Parse the command-line arguments into options, command name, and
--- command arguments. Any dates in the options are converted to explicit
--- YYYY/MM/DD format based on the current time.
-parseArguments :: IO ([Opt], String, [String])
-parseArguments = do
+-- | Parse the command-line arguments into options, command name (first
+-- argument), and command arguments (rest of arguments), using the
+-- specified options. Any smart dates in the options are converted to
+-- explicit YYYY/MM/DD format based on the current time. If parsing fails,
+-- raise an error, displaying the problem along with the specified usage
+-- string.
+parseArgumentsWith :: [OptDescr Opt] -> String -> IO ([Opt], String, [String])
+parseArgumentsWith options usage = do
   args <- liftM (map decodeString) getArgs
   let (os,as,es) = getOpt Permute options args
   os' <- fixOptDates os
@@ -159,7 +156,7 @@ parseArguments = do
   case (as,es) of
     (cmd:args,[])   -> return (os'',cmd,args)
     ([],[])         -> return (os'',"",[])
-    (_,errs)        -> ioError (userError' (concat errs ++ help1))
+    (_,errs)        -> ioError (userError' (concat errs ++ usage))
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.
@@ -257,7 +254,7 @@ clearedValueFromOpts opts | null os = Nothing
 usingTimeProgramName :: IO Bool
 usingTimeProgramName = do
   progname <- getProgName
-  return $ map toLower progname == timeprogname
+  return $ map toLower progname == progname_cli_time
 
 -- | Get the journal file path from options, an environment variable, or a default
 journalFilePathFromOpts :: [Opt] -> IO String

@@ -50,20 +50,18 @@ import Hledger.Cli.Commands
 import Hledger.Cli.Options
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils (withJournalDo)
-import Hledger.Cli.Version (versionmsg, binaryfilename)
+import Hledger.Cli.Version (progversionstr, binaryfilename)
 
 main :: IO ()
 main = do
-  (opts, cmd, args) <- parseArguments
+  (opts, cmd, args) <- parseArgumentsWith options_cli usage_cli
   run cmd opts args
     where
       run cmd opts args
-       | Help `elem` opts             = putStr help1
-       | HelpOptions `elem` opts      = putStr help2
-       | HelpAll `elem` opts          = putStr $ help1 ++ "\n" ++ help2
-       | Version `elem` opts          = putStrLn versionmsg
-       | BinaryFilename `elem` opts   = putStrLn binaryfilename
-       | null cmd                     = maybe (putStr help1) (withJournalDo opts args cmd) defaultcmd
+       | Help `elem` opts             = putStr usage_cli
+       | Version `elem` opts          = putStrLn $ progversionstr progname_cli
+       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_cli
+       | null cmd                     = maybe (putStr usage_cli) (withJournalDo opts args cmd) defaultcmd
        | cmd `isPrefixOf` "balance"   = withJournalDo opts args cmd balance
        | cmd `isPrefixOf` "convert"   = withJournalDo opts args cmd convert
        | cmd `isPrefixOf` "print"     = withJournalDo opts args cmd print'
@@ -72,6 +70,6 @@ main = do
        | cmd `isPrefixOf` "add"       = withJournalDo opts args cmd add
        | cmd `isPrefixOf` "stats"     = withJournalDo opts args cmd stats
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
-       | otherwise                    = putStr help1
+       | otherwise                    = putStr usage_cli
 
       defaultcmd = Nothing

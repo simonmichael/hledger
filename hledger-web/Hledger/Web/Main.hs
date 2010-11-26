@@ -13,37 +13,55 @@ import System.IO.UTF8 (putStr, putStrLn)
 #endif
 import Control.Concurrent (forkIO, threadDelay)
 import Network.Wai.Handler.SimpleServer (run)
-import System.Exit (exitFailure) -- , exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
+import System.Exit (exitFailure)
 import System.IO.Storage (withStore, putValue,)
 import Yesod.Content (typeByExt)
 import Yesod.Helpers.Static (fileLookupDir)
+import System.Console.GetOpt
 
 import Hledger.Cli.Options
 import Hledger.Cli.Utils (withJournalDo, openBrowserOn)
-import Hledger.Cli.Version (versionmsg) --, binaryfilename)
+import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
 import Hledger.Web.App (App(..), withApp)
 import Hledger.Web.Files (createFilesIfMissing)
 import Hledger.Web.Settings (browserstartdelay, defhost, defport, datadir)
 
 
+progname_web = progname_cli ++ "-web"
+
+options_web :: [OptDescr Opt]
+options_web = [
+  Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "use this base url (default http://localhost:PORT)"
+ ,Option ""  ["port"]         (ReqArg Port "N")      "serve on tcp port N (default 5000)"
+ ]
+
+usage_preamble_web =
+  "Usage: hledger-web [OPTIONS] [PATTERNS]\n" ++
+  "\n" ++
+  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
+  "starts a web ui server. Also attempts to start a web browser (unless --debug).\n" ++
+  "\n"
+
+usage_options_web = usageInfo "hledger-web options:" options_web ++ "\n"
+
+usage_web = concat [
+             usage_preamble_web
+            ,usage_options_web
+            ,usage_options_cli
+            ,usage_postscript_cli
+            ]
+
 main :: IO ()
 main = do
-  (opts, cmd, args) <- parseArguments
-  run cmd opts args
+  (opts, cmd, args) <- parseArgumentsWith (options_cli++options_web) usage_web
+  run opts (cmd:args)
     where
-      run cmd opts args
-       | Help `elem` opts             = putStr help1
-       | HelpOptions `elem` opts      = putStr help2
-       | HelpAll `elem` opts          = putStr $ help1 ++ "\n" ++ help2
-       | Version `elem` opts          = putStrLn versionmsg
-       -- \| BinaryFilename `elem` opts   = putStrLn binaryfilename
-       | null cmd                     = maybe (putStr help1) (withJournalDo opts args cmd) defaultcmd
-       | cmd `isPrefixOf` "web"       = withJournalDo opts args cmd web
-       -- \| cmd `isPrefixOf` "test"      = runtests opts args >> return ()
-       | otherwise                    = putStr help1
-
-      defaultcmd = Just web
+      run opts args
+       | Help `elem` opts             = putStr usage_web
+       | Version `elem` opts          = putStrLn $ progversionstr progname_web
+       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_web
+       | otherwise                    = withJournalDo opts args "web" web
 
 -- | The web command.
 web :: [Opt] -> [String] -> Journal -> IO ()

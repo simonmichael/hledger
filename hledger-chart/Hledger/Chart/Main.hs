@@ -16,36 +16,59 @@ import Data.Colour.RGBSpace.HSL (hsl)
 import Data.Colour.SRGB.Linear (rgb)
 import Data.List
 import Safe (readDef)
+import System.Console.GetOpt
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8 (putStr, putStrLn)
 #endif
 
-import Hledger.Chart
 import Hledger.Cli.Commands
 import Hledger.Cli.Options
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils (withJournalDo)
-import Hledger.Cli.Version (versionmsg, binaryfilename)
+import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
 
 
+progname_chart = progname_cli ++ "-chart"
+
+defchartoutput   = "hledger.png"
+defchartitems    = 10
+defchartsize     = "600x400"
+
+options_chart :: [OptDescr Opt]
+options_chart = [
+  Option "o" ["output"] (ReqArg ChartOutput "FILE")       ("output filename (default: "++defchartoutput++")")
+ ,Option ""  ["items"]  (ReqArg ChartItems "N")           ("number of accounts to show (default: "++show defchartitems++")")
+ ,Option ""  ["size"]   (ReqArg ChartSize "WIDTHxHEIGHT") ("image size (default: "++defchartsize++")")
+ ]
+
+usage_preamble_chart =
+  "Usage: hledger-chart [OPTIONS] [PATTERNS]\n" ++
+  "\n" ++
+  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
+  "generates simple pie chart images.\n" ++
+  "\n"
+
+usage_options_chart = usageInfo "hledger-chart options:" options_chart ++ "\n"
+
+usage_chart = concat [
+             usage_preamble_chart
+            ,usage_options_chart
+            ,usage_options_cli
+            ,usage_postscript_cli
+            ]
+
 main :: IO ()
 main = do
-  (opts, cmd, args) <- parseArguments
-  run cmd opts args
+  (opts, cmd, args) <- parseArgumentsWith (options_cli++options_chart) usage_chart
+  run opts (cmd:args)
     where
-      run cmd opts args
-       | Help `elem` opts             = putStr help1
-       | HelpOptions `elem` opts      = putStr help2
-       | HelpAll `elem` opts          = putStr $ help1 ++ "\n" ++ help2
-       | Version `elem` opts          = putStrLn versionmsg
-       | BinaryFilename `elem` opts   = putStrLn binaryfilename
-       | null cmd                     = maybe (putStr help1) (withJournalDo opts args cmd) defaultcmd
-       | cmd `isPrefixOf` "chart"     = withJournalDo opts args cmd chart
-       | otherwise                    = putStr help1
-
-      defaultcmd = Just chart
+      run opts args
+       | Help `elem` opts             = putStr usage_chart
+       | Version `elem` opts          = putStrLn $ progversionstr progname_chart
+       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_chart
+       | otherwise                    = withJournalDo opts args "chart" chart
 
 -- | Generate an image with the pie chart and write it to a file
 chart :: [Opt] -> [String] -> Journal -> IO ()
@@ -54,8 +77,8 @@ chart opts args j = do
   let chart = genPie opts (optsToFilterSpec opts args t) j
   renderableToPNGFile (toRenderable chart) w h filename
     where
-      filename = getOption opts ChartOutput chartoutput
-      (w,h) = parseSize $ getOption opts ChartSize chartsize
+      filename = getOption opts ChartOutput defchartoutput
+      (w,h) = parseSize $ getOption opts ChartSize defchartsize
 
 -- | Extract string option value from a list of options or use the default
 getOption :: [Opt] -> (String->Opt) -> String -> String
@@ -89,7 +112,7 @@ genPie opts filterspec j = defaultPieLayout { pie_background_ = solidFillStyle $
           where
             (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) t
             other = ("other", sum $ map snd rest)
-      num = readDef (fromIntegral chartitems) (getOption opts ChartItems (show chartitems))
+      num = readDef (fromIntegral defchartitems) (getOption opts ChartItems (show defchartitems))
       hue = if sign > 0 then red else green where (red, green) = (0, 110)
       debug s = if Debug `elem` opts then ltrace s else id
 

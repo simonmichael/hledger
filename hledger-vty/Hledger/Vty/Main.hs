@@ -11,34 +11,52 @@ module Hledger.Vty.Main where
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8 (putStr, putStrLn)
 #endif
-import Safe (headDef)
 import Graphics.Vty
+import Safe (headDef)
+import System.Console.GetOpt
 
 import Hledger.Cli.Balance
 import Hledger.Cli.Options
 import Hledger.Cli.Print
 import Hledger.Cli.Register
 import Hledger.Cli.Utils (withJournalDo)
-import Hledger.Cli.Version (versionmsg, binaryfilename)
+import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
 
 
+progname_vty = progname_cli ++ "-vty"
+
+options_vty :: [OptDescr Opt]
+options_vty = [
+ Option ""  ["debug-vty"]    (NoArg  DebugVty)      "run with no terminal output, showing console"
+ ]
+
+usage_preamble_vty =
+  "Usage: hledger-vty [OPTIONS] [PATTERNS]\n" ++
+  "\n" ++
+  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
+  "starts the full-window curses ui.\n" ++
+  "\n"
+
+usage_options_vty = usageInfo "hledger-vty options:" options_vty ++ "\n"
+
+usage_vty = concat [
+             usage_preamble_vty
+            ,usage_options_vty
+            ,usage_options_cli
+            ,usage_postscript_cli
+            ]
+
 main :: IO ()
 main = do
-  (opts, cmd, args) <- parseArguments
-  run cmd opts args
+  (opts, cmd, args) <- parseArgumentsWith (options_cli++options_vty) usage_vty
+  run opts (cmd:args)
     where
-      run cmd opts args
-       | Help `elem` opts             = putStr help1
-       | HelpOptions `elem` opts      = putStr help2
-       | HelpAll `elem` opts          = putStr $ help1 ++ "\n" ++ help2
-       | Version `elem` opts          = putStrLn versionmsg
-       | BinaryFilename `elem` opts   = putStrLn binaryfilename
-       | null cmd                     = maybe (putStr help1) (withJournalDo opts args cmd) defaultcmd
-       | cmd `isPrefixOf` "vty"       = withJournalDo opts args cmd vty
-       | otherwise                    = putStr help1
-
-      defaultcmd = Just vty
+      run opts args
+       | Help `elem` opts             = putStr usage_vty
+       | Version `elem` opts          = putStrLn $ progversionstr progname_vty
+       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_vty
+       | otherwise                    = withJournalDo opts args "vty" vty
 
 helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"
 
