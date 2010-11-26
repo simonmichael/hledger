@@ -7,7 +7,6 @@ Released under GPL version 3 or later.
 
 module Hledger.Chart.Main
 where
-import Control.Monad (liftM3)
 import Graphics.Rendering.Chart
 import Data.Colour
 import Data.Colour.Names
@@ -22,9 +21,7 @@ import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8 (putStr, putStrLn)
 #endif
 
-import Hledger.Cli.Commands
 import Hledger.Cli.Options
-import Hledger.Cli.Tests
 import Hledger.Cli.Utils (withJournalDo)
 import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
@@ -76,6 +73,7 @@ chart opts args j = do
   t <- getCurrentLocalTime
   let chart = genPie opts (optsToFilterSpec opts args t) j
   renderableToPNGFile (toRenderable chart) w h filename
+  return ()
     where
       filename = getOption opts ChartOutput defchartoutput
       (w,h) = parseSize $ getOption opts ChartSize defchartsize
