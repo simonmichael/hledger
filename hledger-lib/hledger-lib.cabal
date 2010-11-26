@@ -12,7 +12,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
-stability:      experimental
+stability:      beta
 tested-with:    GHC==6.10
 cabal-version:  >= 1.6
 build-type:     Simple
