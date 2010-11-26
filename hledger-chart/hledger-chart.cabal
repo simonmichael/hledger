@@ -31,7 +31,7 @@ executable hledger-chart
                   hledger == 0.13
                  ,hledger-lib == 0.13
                  -- ,HUnit
-                 -- ,base >= 3 && < 5
+                 ,base >= 3 && < 5
                  -- ,containers
                  -- ,csv
                  -- ,directory
@@ -42,10 +42,9 @@ executable hledger-chart
                  -- ,parsec
                  -- ,process
                  -- ,regexpr >= 0.5.1
-                 -- ,safe >= 0.2
+                 ,safe >= 0.2
                  -- ,split == 0.1.*
                  -- ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
                  ,Chart >= 0.11
                  ,colour
-                 ,gtk2hs-buildtools
