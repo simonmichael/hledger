@@ -42,8 +42,15 @@ body                        { margin:0; }
 #stopfilterlink             { font-weight:bold; }
 .filtering                  { background-color:#ddd; }
 
+div#floatcontainer     { white-space:nowrap; }
+div#accounts           { float:left; padding-right:1em; border-right:thin solid #eee; margin-right:1em; margin-bottom:5em; }
+div#transactions       { }
+
+div.journal            { }
+div.register           { }
+
 .current                    { font-weight:bold; background-color:#ddd; }
-.description                { padding-left:1em; }
+.description                { padding-left:1em; white-space:normal; }
 .account                    { white-space:nowrap; padding-left:1em; }
 .amount                     { white-space:nowrap; padding-left:1em; }
 .balance                    { white-space:nowrap; padding-left:1em; }
@@ -58,14 +65,9 @@ table.journalreport         { border-spacing: 0; }
 .journalreport td           { border-top:thin solid #eee; }
 .journalreport pre          { margin-top:0; }
 
-.ledger .accounts           {padding-right:1em; margin-right:1em; border-right:thin solid #eee; }
-.ledger .register           { }
-
-div.accounts                { margin-bottom:5em; }
-
 .balancereport tr           { vertical-align:top; }
 table.balancereport         { border-spacing:0; }
-.ledger .balancereport td   { padding:0; }
+.balancereport td           { padding:0; }
 .totalrule td               { border-top:thin solid black; }
 
 table.registerreport        { border-spacing:0; }

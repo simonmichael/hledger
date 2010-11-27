@@ -512,8 +512,8 @@ getJournalR = do
       td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
-%div.ledger
- %div.accounts!style=float:left;  ^br^
+%div#ledger
+ %div#accounts ^br^
  ^navlinks.td^
  ^addform.td^
  ^editform'^
@@ -543,8 +543,8 @@ getRegisterR = do
       td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
-%div.ledger
- %div.accounts!style=float:left;  ^br^
+%div#ledger
+ %div#accounts ^br^
  ^navlinks.td^
  ^addform.td^
  ^editform'^
@@ -645,7 +645,7 @@ getJournalOnlyR = do
       editform' = editform td
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
   hamletToRepHtml $ pageLayout td [$hamlet|
-%div.journal
+%div#journal
  %div.nav2
   %a#addformlink!href!onclick="return addformToggle()" add one transaction
   \ | $
