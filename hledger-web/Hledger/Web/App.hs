@@ -42,8 +42,8 @@ import Hledger.Web.Settings (
     -- , runConnectionPool
     -- , staticroot
       datadir
-    , hamletFile
-    , cassiusFile
+    -- , hamletFile
+    -- , cassiusFile
     -- , juliusFile
     , hledgerorgurl
     , manualurl
@@ -92,10 +92,10 @@ data App = App
 -- mkYesod (template haskell from yesod) defines types for the web app based on the routes.
 -- /auth            AuthR             Auth getAuth
 mkYesod "App" [$parseRoutes|
+/                IndexR            GET
 /favicon.ico     FaviconR          GET
 /robots.txt      RobotsR           GET
 /static          StaticR           Static appStatic
-/                IndexR            GET
 /journalonly     JournalOnlyR      GET POST
 /registeronly    RegisterOnlyR     GET
 /accounts        AccountsOnlyR     GET
@@ -108,12 +108,14 @@ type Handler = GHandler App App
 
 instance Yesod App where
     approot = appRoot
-    defaultLayout widget = do
-        mmsg <- getMessage
-        pc <- widgetToPageContent $ do
-            widget
-            addCassius $(cassiusFile "default-layout")
-        hamletToRepHtml $(hamletFile "default-layout")
+
+    -- defaultLayout widget = do
+    --     mmsg <- getMessage
+    --     pc <- widgetToPageContent $ do
+    --         widget
+    --         addCassius $(cassiusFile "default-layout")
+    --     hamletToRepHtml $(hamletFile "default-layout")
+
     -- authRoute _ = Just $ AuthR LoginR
 
     -- static file-serving optimisations, disable for the moment
@@ -436,7 +438,7 @@ renderHamletFileRT hfile hmap = do
 -- | Read a file from the app's templates directory.
 readTemplateFile :: FilePath -> Handler String
 readTemplateFile hfile = do
-  dir <- ((</> "templates") . appDataDir) `fmap` getYesod
+  dir <- appDataDir `fmap` getYesod
   liftIO $ readFile $ dir </> hfile
 
 -- what to do if rendering a runtime template fails.
