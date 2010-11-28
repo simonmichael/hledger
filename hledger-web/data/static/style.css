@@ -1,72 +1,94 @@
 /* hledger web ui styles */
 
-/* font families & sizes */
+/*------------------------------------------------------------------------------------------*/
+/* 1. colours */
+
+/* green */
+body                                                                 { background-color:#efe; }
+.registerreport .odd                                                 { background-color:#ded; }
+.filtering                                                           { background-color:#ded; }
+/* white */
+/* body                                                                 { background-color:#fff; } */
+/* .registerreport .odd                                                 { background-color:#eee; } */
+/* .filtering                                                           { background-color:#ddd; } */
+
+.negative                                                            { color:#800; }
+#messages                                                            { color:red; background-color:#fee; }
+#addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list { background-color:#eee; }
+#editform textarea                                                   { background-color:#eee; }
+
+/*------------------------------------------------------------------------------------------*/
+/* 2. font families & sizes */
 /* overspecified for cross-browser robustness */
-body                        { font-family:helvetica,arial,"sans serif"; }
-pre                         { font-family:courier,"courier new",monospace; }
-input.textinput, .dhx_combo_input, .dhx_combo_list    { font-size:small; }
-#editform textarea          { font-family:courier,"courier new",monospace; font-size:small; }
-.nav2                       { font-size:small; }
-#filterform                 { font-size:small; }
-.topleftlink                { font-size:small; }
-.toprightlink               { font-size:small; }
-#journaldesc                { font-size:small; }
-.help                       { font-size:smaller; }
-.form                       { font-size:small; }
-.journalreport              { font-size:small; }
-.balancereport              { font-size:small; }
-.registerreport             { font-size:small; }
-#showmoreaccounts           { font-size:small; }
-/* #addformlink                { font-size:small; } */
-/* #editformlink               { font-size:small; } */
+body                                               { font-family:helvetica,arial,"sans serif"; }
+pre                                                { font-family:courier,"courier new",monospace; }
+input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
+#editform textarea                                 { font-family:courier,"courier new",monospace; font-size:small; }
+.nav2                                              { font-size:small; }
+#filterform                                        { font-size:small; }
+.topleftlink                                       { font-size:small; }
+.toprightlink                                      { font-size:small; }
+#journaldesc                                       { font-size:small; }
+.help                                              { font-size:smaller; }
+.form                                              { font-size:small; }
+.journalreport                                     { font-size:small; }
+.balancereport                                     { font-size:small; }
+.registerreport                                    { font-size:small; }
+#showmoreaccounts                                  { font-size:small; }
+/* #addformlink                                    { font-size:small; } */
+/* #editformlink                                   { font-size:small; } */
+
+/*------------------------------------------------------------------------------------------*/
+/* 3. layout */
 
 body                        { margin:0; }
+
 #navbar                     { padding:2px; }
 .topleftlink                { float:left; margin-right:1em; padding:2px; }
 .toprightlink               { float:right; margin-left:1em; padding:2px; }
 #navbar h1                  { display:inline-block; vertical-align:top; margin:0; }
 #journalinfo                { vertical-align:middle; margin:0; }
-/* #navbar                  { padding:4px; background-color:#eee; border-bottom:2px solid #ddd; } */
-#messages                   { color:red; background-color:#ffeeee; margin:0.5em;}
+/* #navbar                  { padding:4px; border-bottom:2px solid #ddd; } */
+
+#messages                   { margin:0.5em;}
 .help                       { font-style: italic; }
 .helprow td                 { padding-bottom:8px; }
-#content                    { margin:1em; }
+
+#content                    { padding:4px; }
+
+#sidebar { float:left; padding-right:1em; margin-bottom:5em; }
+
+#main { overflow:auto; border-left:thin solid #ded; padding-left:1em; }
+
 #navlinks                   { margin-bottom:1em; }
 .navlink                    { }
 .navlinkcurrent             { font-weight:bold; }
-.form                       { margin:1em; }
+.form                       { margin:0em; }
 
 #filterformdiv              { margin:0 0 1em 0; white-space:nowrap; }
 #filterform                 { margin:0; }
 #filterform span            { padding:4px; }
 #stopfilterlink             { font-weight:bold; }
-.filtering                  { background-color:#ddd; }
+.filtering                  { font-weight:bold; }
 
-div#floatcontainer     { white-space:nowrap; }
-div#accounts           { float:left; padding-right:1em; border-right:thin solid #eee; margin-right:1em; margin-bottom:5em; }
-div#transactions       { }
-
-div.journal            { }
-div.register           { }
-
-.current                    { font-weight:bold; background-color:#ddd; }
+#main .journal { }
+#main .register { }
+/* .current                    { font-weight:bold; } */
 .description                { padding-left:1em; white-space:normal; }
-.account                    { white-space:nowrap; padding-left:1em; }
+#transactions .account                    { white-space:nowrap; padding-left:1em; }
 .amount                     { white-space:nowrap; padding-left:1em; }
 .balance                    { white-space:nowrap; padding-left:1em; }
 .account, .amount, .balance { width:2em; }  /* minimum width */
 .positive                   { }
-.negative                   { color:#800; }
-/* .odd                     { background-color:#e8e8e8; } */
-/* .even                    { background-color:#e8f8e8; } */
-/* .even                    { background-color:#f0fff0; } */
 
 table.journalreport         { border-spacing: 0; }
 .journalreport td           { border-top:thin solid #eee; }
 .journalreport pre          { margin-top:0; }
 
-.balancereport tr           { vertical-align:top; }
-table.balancereport         { border-spacing:0; }
+.balancereport              { border-spacing:0; }
+.balancereport tr           { vertical-align:bottom; border-spacing:0; }
+.balancereport .title       { white-space:nowrap; }
+.balancereport .item        { }
 .balancereport td           { padding:0; }
 .totalrule td               { border-top:thin solid black; }
 
@@ -75,17 +97,17 @@ table.registerreport        { border-spacing:0; }
 .registerreport td          { padding-bottom:0.2em; }
 .registerreport .date       { white-space:nowrap; }
 .firstposting td            { }
-.registerreport .odd        { background-color:#f0f0f0; }
 
-#addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { background-color:#eee; padding:4px; }
+#addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { padding:4px; }
 #addform table              { }
 #addform #addbuttonrow      { text-align:right; }
 /* #editform                   { width:95%; } */
-#editform textarea          { width:100%; background-color:#eee; padding:4px; }
-#filterform table           { border-spacing:0; padding-left:1em; }
+#editform textarea          { width:100%; padding:4px; }
+#filterform table           { border-spacing:0; padding-left:0em; }
 
 
 /*------------------------------------------------------------------------------------------*/
+/* 4. dhtmlx.com auto-completing combo box styles */
 
 .dhx_combo_input{
 /* color:#333333; */

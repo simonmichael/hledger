@@ -414,9 +414,9 @@ filterform TD{here=here,a=a,p=p} = [$hamlet|
   visible = "block"
   filteringclass = if filtering then "filtering" else ""
   filteringperiodclass = if filteringperiod then "filtering" else ""
-  stopfiltering = if filtering then [$hamlet|%a#stopfilterlink!href=@?u@ stop filtering acct/desc|] else nulltemplate
+  stopfiltering = if filtering then [$hamlet|%a#stopfilterlink!href=@?u@ clear filter|] else nulltemplate
       where u = (here, if filteringperiod then [("p", p)] else [])
-  stopfilteringperiod = if filteringperiod then [$hamlet|%a#stopfilterlink!href=@?u@ stop filtering period|] else nulltemplate
+  stopfilteringperiod = if filteringperiod then [$hamlet|%a#stopfilterlink!href=@?u@ clear filter|] else nulltemplate
       where u = (here, if filtering then [("a", a)] else [])
 
 -- | Link to a topic in the manual.
@@ -507,20 +507,21 @@ getJournalR = do
   -- t <- liftIO $ getCurrentLocalTime
   let -- args = appArgs app
       -- fspec' = optsToFilterSpec opts args t
-      br = balanceReportAsHtml opts td $ balanceReport opts fspec j
-      jr = journalReportAsHtml opts td $ journalReport opts fspec j
+      sidecontent = balanceReportAsHtml opts td $ balanceReport opts fspec j
+      maincontent = journalReportAsHtml opts td $ journalReport opts fspec j
       td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
-%div#ledger
- %div#accounts ^br^
- ^navlinks.td^
- ^addform.td^
- ^editform'^
- ^importform^
- %div#transactions.journal
-  ^filterform.td^
-  ^jr^
+ %div#content
+  %div#sidebar
+   ^sidecontent^
+  %div#main.journal
+   ^navlinks.td^
+   ^addform.td^
+   ^editform'^
+   ^importform^
+   ^filterform.td^
+   ^maincontent^
 |]
 
 postJournalR :: Handler RepPlain
@@ -538,20 +539,21 @@ getRegisterR = do
   let -- args = appArgs app
       -- opts' = Empty:opts
       -- fspec' = optsToFilterSpec opts' args t
-      br = balanceReportAsHtml opts td $ balanceReport opts fspec j
-      rr = registerReportAsHtml opts td $ registerReport opts fspec j
+      sidecontent = balanceReportAsHtml opts td $ balanceReport opts fspec j
+      maincontent = registerReportAsHtml opts td $ registerReport opts fspec j
       td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
-%div#ledger
- %div#accounts ^br^
- ^navlinks.td^
- ^addform.td^
- ^editform'^
- ^importform^
- %div#transactions.register
-  ^filterform.td^
-  ^rr^
+ %div#content
+  %div#sidebar
+   ^sidecontent^
+  %div#main.journal
+   ^navlinks.td^
+   ^addform.td^
+   ^editform'^
+   ^importform^
+   ^filterform.td^
+   ^maincontent^
 |]
 
 postRegisterR :: Handler RepPlain
@@ -613,13 +615,13 @@ balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml TD{p=p} (acct, adisplay, adepth, abal) = [$hamlet|
-     %tr.item.$current$
+     %tr.item
       %td.account
        $indent$
        %a!href=$aurl$ $adisplay$
       %td.balance!align=right $mixedAmountAsHtml.abal$
      |] where
-       current = "" -- if not (null a) && containsRegex a acct then "current" else ""
+       -- current = if not (null a) && containsRegex a acct then "current" else ""
        indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
        aurl = printf ".?a=%s%s" (accountNameToAccountRegex acct) p' :: String
        p' = if null p then "" else printf "&p=%s" p
