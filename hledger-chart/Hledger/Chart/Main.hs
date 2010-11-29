@@ -16,6 +16,7 @@ import Data.Colour.SRGB.Linear (rgb)
 import Data.List
 import Safe (readDef)
 import System.Console.GetOpt
+import System.Exit (exitFailure)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
 import System.IO.UTF8 (putStr, putStrLn)
@@ -71,12 +72,15 @@ main = do
 chart :: [Opt] -> [String] -> Journal -> IO ()
 chart opts args j = do
   t <- getCurrentLocalTime
-  let chart = genPie opts (optsToFilterSpec opts args t) j
-  renderableToPNGFile (toRenderable chart) w h filename
-  return ()
-    where
-      filename = getOption opts ChartOutput defchartoutput
-      (w,h) = parseSize $ getOption opts ChartSize defchartsize
+  if null $ jtxns j
+   then putStrLn "This journal has no transactions, can't make a chart." >> exitFailure
+   else do
+     let chart = genPie opts (optsToFilterSpec opts args t) j
+     renderableToPNGFile (toRenderable chart) w h filename
+     return ()
+      where
+        filename = getOption opts ChartOutput defchartoutput
+        (w,h) = parseSize $ getOption opts ChartSize defchartsize
 
 -- | Extract string option value from a list of options or use the default
 getOption :: [Opt] -> (String->Opt) -> String -> String
