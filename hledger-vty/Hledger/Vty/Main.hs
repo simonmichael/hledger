@@ -49,7 +49,7 @@ usage_vty = concat [
 
 main :: IO ()
 main = do
-  (opts, args) <- parseArgumentsWith (options_cli++options_vty) usage_vty
+  (opts, args) <- parseArgumentsWith $ options_cli++options_vty
   run opts args
     where
       run opts args

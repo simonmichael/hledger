@@ -54,7 +54,7 @@ usage_web = concat [
 
 main :: IO ()
 main = do
-  (opts, args) <- parseArgumentsWith (options_cli++options_web) usage_web
+  (opts, args) <- parseArgumentsWith $ options_cli++options_web
   run opts args
     where
       run opts args

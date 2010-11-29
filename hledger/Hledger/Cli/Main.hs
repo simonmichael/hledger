@@ -54,14 +54,15 @@ import Hledger.Cli.Version (progversionstr, binaryfilename)
 
 main :: IO ()
 main = do
-  (opts, args) <- parseArgumentsWith options_cli usage_cli
+  (opts, args) <- parseArgumentsWith options_cli
   run opts args
     where
-      run _ []                        = putStr usage_cli
-      run opts (cmd:args)
+      run opts _
        | Help `elem` opts             = putStr usage_cli
        | Version `elem` opts          = putStrLn $ progversionstr progname_cli
        | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_cli
+      run _ []                        = argsError "a command is required."
+      run opts (cmd:args)
        | cmd `isPrefixOf` "balance"   = withJournalDo opts args cmd balance
        | cmd `isPrefixOf` "convert"   = withJournalDo opts args cmd convert
        | cmd `isPrefixOf` "print"     = withJournalDo opts args cmd print'
@@ -70,4 +71,4 @@ main = do
        | cmd `isPrefixOf` "add"       = withJournalDo opts args cmd add
        | cmd `isPrefixOf` "stats"     = withJournalDo opts args cmd stats
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
-       | otherwise                    = putStr usage_cli
+       | otherwise                    = argsError $ "command "++cmd++" is unrecognized."

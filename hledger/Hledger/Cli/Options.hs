@@ -146,15 +146,18 @@ optValuesForConstructors fs opts = concatMap get opts
 -- converted to explicit YYYY/MM/DD format based on the current time. If
 -- parsing fails, raise an error, displaying the problem along with the
 -- provided usage string.
-parseArgumentsWith :: [OptDescr Opt] -> String -> IO ([Opt], [String])
-parseArgumentsWith options usage = do
-  rawargs <- liftM (map decodeString) getArgs
+parseArgumentsWith :: [OptDescr Opt] -> IO ([Opt], [String])
+parseArgumentsWith options = do
+  rawargs <- map decodeString `fmap` getArgs
   let (opts,args,errs) = getOpt Permute options rawargs
   opts' <- fixOptDates opts
   let opts'' = if Debug `elem` opts' then Verbose:opts' else opts'
   if null errs
    then return (opts'',args)
-   else ioError $ userError' $ concat errs ++ usage
+   else argsError (concat errs) >> return ([],[])
+
+argsError :: String -> IO ()
+argsError = ioError . userError' . (++ " Run with --help to see usage.")
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.
