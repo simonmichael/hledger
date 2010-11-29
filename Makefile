@@ -168,9 +168,20 @@ tools/generatejournal: tools/generatejournal.hs
 ######################################################################
 # BUILDING
 
+hledgerall: hledger hledger-web hledger-vty hledger-chart
+
 # build a developer's binary, as quickly as possible
 hledger: setversion
-	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS) # -O
+	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
+
+hledger-web: setversion
+	ghc --make hledger-web/hledger-web.hs -o bin/hledger-web -ihledger-web -ihledger $(BUILDFLAGS)
+
+hledger-vty: setversion
+	ghc --make hledger-vty/hledger-vty.hs -o bin/hledger-vty -ihledger-vty -ihledger $(BUILDFLAGS)
+
+hledger-chart: setversion
+	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart -ihledger-chart -ihledger $(BUILDFLAGS)
 
 hledgernowarnings: setversion
 	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS) -Werror -v0
