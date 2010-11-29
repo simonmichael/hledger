@@ -7,10 +7,15 @@
 body                                                                 { background-color:#efe; }
 .registerreport .odd                                                 { background-color:#ded; }
 .filtering                                                           { background-color:#ded; }
+/* #main                                                                { border-color:#ded; } see below */
+/* .journalreport td                                                    { border-color:thin solid #ded; } see below */
+
 /* white */
 /* body                                                                 { background-color:#fff; } */
 /* .registerreport .odd                                                 { background-color:#eee; } */
 /* .filtering                                                           { background-color:#ddd; } */
+/* #main                                                                { border-color:#eee; } see below */
+/* .journalreport td                                                    { border-color:thin solid #eee; } see below */
 
 .negative                                                            { color:#800; }
 #messages                                                            { color:red; background-color:#fee; }
@@ -82,7 +87,7 @@ body                        { margin:0; }
 .positive                   { }
 
 table.journalreport         { border-spacing: 0; }
-.journalreport td           { border-top:thin solid #eee; }
+.journalreport td           { border-top:thin solid #ded; }
 .journalreport pre          { margin-top:0; }
 
 .balancereport              { border-spacing:0; }
@@ -97,6 +102,8 @@ table.registerreport        { border-spacing:0; }
 .registerreport td          { padding-bottom:0.2em; }
 .registerreport .date       { white-space:nowrap; }
 .firstposting td            { }
+#accountsheading            { font-weight:bold; }
+
 
 #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { padding:4px; }
 #addform table              { }
