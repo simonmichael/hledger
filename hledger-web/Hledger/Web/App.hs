@@ -523,8 +523,9 @@ getJournalR = do
    ^addform.td^
    ^editform'^
    ^importform^
-   ^filterform.td^
-   ^maincontent^
+   %div#transactions
+    ^filterform.td^
+    ^maincontent^
 |]
 
 postJournalR :: Handler RepPlain
@@ -555,8 +556,9 @@ getRegisterR = do
    ^addform.td^
    ^editform'^
    ^importform^
-   ^filterform.td^
-   ^maincontent^
+   %div#transactions
+    ^filterform.td^
+    ^maincontent^
 |]
 
 postRegisterR :: Handler RepPlain
