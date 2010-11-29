@@ -16,18 +16,11 @@ cabal-version:  >= 1.6
 build-type:     Simple
 data-dir:       .hledger
 data-files:
-                web/addform.hamlet
-                web/addformpostingfields.hamlet
                 web/combo_select.gif
-                web/default-layout.cassius
-                web/default-layout.hamlet
                 web/dhtmlxcombo.js
                 web/dhtmlxcommon.js
                 web/favicon.ico
                 web/hledger.js
-                web/homepage.cassius
-                web/homepage.hamlet
-                web/homepage.julius
                 web/jquery.js
                 web/jquery.url.js
                 web/style.css
