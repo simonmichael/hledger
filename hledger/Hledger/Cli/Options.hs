@@ -141,22 +141,20 @@ optValuesForConstructor f opts = concatMap get opts
 optValuesForConstructors fs opts = concatMap get opts
     where get o = [v | any (\f -> f v == o) fs] where v = value o
 
--- | Parse the command-line arguments into options, command name (first
--- argument), and command arguments (rest of arguments), using the
--- specified options. Any smart dates in the options are converted to
--- explicit YYYY/MM/DD format based on the current time. If parsing fails,
--- raise an error, displaying the problem along with the specified usage
--- string.
-parseArgumentsWith :: [OptDescr Opt] -> String -> IO ([Opt], String, [String])
+-- | Parse the command-line arguments into options and arguments using the
+-- specified option descriptors. Any smart dates in the options are
+-- converted to explicit YYYY/MM/DD format based on the current time. If
+-- parsing fails, raise an error, displaying the problem along with the
+-- provided usage string.
+parseArgumentsWith :: [OptDescr Opt] -> String -> IO ([Opt], [String])
 parseArgumentsWith options usage = do
-  args <- liftM (map decodeString) getArgs
-  let (os,as,es) = getOpt Permute options args
-  os' <- fixOptDates os
-  let os'' = if Debug `elem` os' then Verbose:os' else os'
-  case (as,es) of
-    (cmd:args,[])   -> return (os'',cmd,args)
-    ([],[])         -> return (os'',"",[])
-    (_,errs)        -> ioError (userError' (concat errs ++ usage))
+  rawargs <- liftM (map decodeString) getArgs
+  let (opts,args,errs) = getOpt Permute options rawargs
+  opts' <- fixOptDates opts
+  let opts'' = if Debug `elem` opts' then Verbose:opts' else opts'
+  if null errs
+   then return (opts'',args)
+   else ioError $ userError' $ concat errs ++ usage
 
 -- | Convert any fuzzy dates within these option values to explicit ones,
 -- based on today's date.

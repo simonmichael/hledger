@@ -54,14 +54,14 @@ import Hledger.Cli.Version (progversionstr, binaryfilename)
 
 main :: IO ()
 main = do
-  (opts, cmd, args) <- parseArgumentsWith options_cli usage_cli
-  run cmd opts args
+  (opts, args) <- parseArgumentsWith options_cli usage_cli
+  run opts args
     where
-      run cmd opts args
+      run _ []                        = putStr usage_cli
+      run opts (cmd:args)
        | Help `elem` opts             = putStr usage_cli
        | Version `elem` opts          = putStrLn $ progversionstr progname_cli
        | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_cli
-       | null cmd                     = maybe (putStr usage_cli) (withJournalDo opts args cmd) defaultcmd
        | cmd `isPrefixOf` "balance"   = withJournalDo opts args cmd balance
        | cmd `isPrefixOf` "convert"   = withJournalDo opts args cmd convert
        | cmd `isPrefixOf` "print"     = withJournalDo opts args cmd print'
@@ -71,5 +71,3 @@ main = do
        | cmd `isPrefixOf` "stats"     = withJournalDo opts args cmd stats
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = putStr usage_cli
-
-      defaultcmd = Nothing

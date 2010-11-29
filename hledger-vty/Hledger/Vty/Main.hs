@@ -49,8 +49,8 @@ usage_vty = concat [
 
 main :: IO ()
 main = do
-  (opts, cmd, args) <- parseArgumentsWith (options_cli++options_vty) usage_vty
-  run opts (cmd:args)
+  (opts, args) <- parseArgumentsWith (options_cli++options_vty) usage_vty
+  run opts args
     where
       run opts args
        | Help `elem` opts             = putStr usage_vty

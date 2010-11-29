@@ -59,8 +59,8 @@ usage_chart = concat [
 
 main :: IO ()
 main = do
-  (opts, cmd, args) <- parseArgumentsWith (options_cli++options_chart) usage_chart
-  run opts (cmd:args)
+  (opts, args) <- parseArgumentsWith (options_cli++options_chart) usage_chart
+  run opts args
     where
       run opts args
        | Help `elem` opts             = putStr usage_chart
