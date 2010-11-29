@@ -269,7 +269,7 @@ getHandlerData = do
           a <- fromMaybe "" <$> lookupGetParam "a"
           p <- fromMaybe "" <$> lookupGetParam "p"
           let opts = appOpts app ++ [Period p]
-              args = appArgs app ++ [a]
+              args = appArgs app ++ words a
               fspec = optsToFilterSpec opts args t
           return (a, p, opts, fspec)
 
