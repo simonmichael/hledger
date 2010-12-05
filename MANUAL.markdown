@@ -40,19 +40,22 @@ release binaries from the [download page](DOWNLOAD.html).
 
 You can also build the current release from source using cabal-install.
 Ensure you have a working
-[haskell environment](http://hackage.haskell.org/platform/), then:
+[haskell environment](http://hackage.haskell.org/platform/), then install
+the hledger command-line tool:
 
     $ cabal update
     $ cabal install hledger
 
-*(Add -fweb, -fvty, or -fchart to cabal install those extra features. Next
- release these will be separate packages.)*
+You can also install these optional [add-on packages](#add-on-commands)
+providing extra features:
 
-*(Both methods above require some extra support files for the web
- interface, see the download page. Next release will not require this.)*
+    $ cabal install hledger-web
+    $ cabal install hledger-vty
+    $ cabal install hledger-chart
 
-Or, you can build the latest [development](DEVELOPMENT.html) version:
+Or, you can build the latest [development version](DEVELOPMENT.html):
 
+    $ cabal update
     $ darcs get --lazy http://joyful.com/repos/hledger
     $ cd hledger
     $ make install
