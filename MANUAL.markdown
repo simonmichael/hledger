@@ -475,53 +475,56 @@ Examples:
 
 #### Add-on commands
 
-The following commands are optional add-ons. Here is their availability:
-
-- in the binaries on the download page, they are included where possible
-  *(currently: web on all platforms, vty on all but windows, chart on none?)*
-- when cabal installing the current release, they are enabled by flags
-  (see [installing](#installing)).
-- in the next release, they will be provided by separate packages (eg
-  hledger-web) and invoked by running a similarly-named executable.
+The following extra commands will be available if they have been
+[installed](#installing).  Note, currently you must invoke them like, eg,
+`$ hledger-web ...` - not `$ hledger web ...`. The hledger-NAME
+executables support the usual hledger options, and possible specific
+options of their own. Add-ons may have varying levels of support and
+maturity and may not be available on all platforms - if available, they
+are provided on the download page.
 
 ##### chart
 
 *Requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu: `apt-get install libghc6-gtk-dev`*
 
-The chart command saves a pie chart of your top account balances to an
-image file (usually "hledger.png", or use -o/--output FILE). You can
-adjust the image resolution with --size=WIDTHxHEIGHT, and the number of
-accounts with --items=N.
+The chart command saves an image file showing a pie chart of your top
+account balances. It is pretty rudimentary.  Note that positive and
+negative balances will not be displayed together in the same chart; any
+balances not matching the sign of the first one will be ignored.
 
-Note that positive and negative balances will not be displayed together in
-the same chart; any balances not matching the sign of the first one will
-be omitted.
+The output file is "hledger.png", or you can specify another with
+-o/--output. Use a different suffix (eg .gif or .jpg) to generate that
+format.
 
-To show only accounts above a certain depth, use the --depth
-option. Otherwise, the chart can include accounts at any depth. If a
-parent and child account are both displayed, the parent's balance excludes
-the child's.
+You can adjust the image resolution with --size=WIDTHxHEIGHT.
+
+Set the number of accounts to show with --items=N (default is 10).
+
+To show only accounts above a certain depth, use the --depth option;
+otherwise the chart can include accounts of any depth. When a parent and
+child account both appear in a chart, the parent's balance will be
+exclusive of the child's.
 
 Examples:
 
-    $ hledger chart assets --depth 2
-    $ hledger chart liabilities --depth 2
-    $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
-    $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger -p 2009/$m chart ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
+    $ hledger-chart assets --depth 2
+    $ hledger-chart liabilities --depth 2
+    $ hledger-chart ^expenses -o balance.png --size 1000x600 --items 20
+    $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger-chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
 ##### vty
 
 *Not available on microsoft windows, except possibly via cygwin.*
 
-The vty command starts hledger's curses (full-screen, text) user interface,
+The vty command starts a simple curses-style (full-screen, text) user interface,
 which allows interactive navigation of the print/register/balance
 reports. This lets you browse around your numbers and get quick insights
 with less typing.
 
 Examples:
 
-    $ hledger vty
-    $ hledger vty -BE food
+    $ hledger-vty
+    $ hledger-vty -BE food
 
 ##### web
 
@@ -529,16 +532,16 @@ Examples:
 
 *This command can edit or overwrite your journal file.*
 
-The web command starts hledger's web interface, and tries to open a web
-browser to view it. (If this fails, you'll have to manually visit the url
-shown on the console.) The web interface combines the features of the print,
-register, balance and add commands, and adds a general edit command.
+The web command starts a web server providing a web-based user interface,
+and if possible, opens a web browser to view it. The web UI combines the
+features of the print, register, balance and add commands, and adds a
+general edit command.
 
 Examples:
 
-    $ hledger web
-    $ hledger web -E -B --depth 2
-    $ hledger web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
+    $ hledger-web
+    $ hledger-web -E -B --depth 2
+    $ hledger-web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
 
 Warning: unlike all other hledger features, the edit form can alter your
 existing journal data.  You can edit, or erase, the journal file through
@@ -546,20 +549,20 @@ the web ui. There is currently no access control. A numbered backup of the
 file will be saved at each edit, in normal circumstances (eg if file
 permissions allow, disk is not full, etc.)
 
-There are some options specific to the web server:
+There are some hledger-web-specific options:
 
-    --port=N           web: serve on tcp port N (default 5000)
+    --port=N           serve on tcp port N (default 5000)
 
-hledger will serve pages on port 5000 by default.
+The server listens on port 5000 by default; use --port to change that.
 
-    --base-url=URL     web: use this base url (default http://localhost:PORT)
+    --base-url=URL     use this base url (default http://localhost:PORT)
 
-Hyperlinks in the web interface all point to "localhost" by default, so if
-you want to visit the hledger web server from other machines, you'll need
-to use this option. Just give your machine's host name or ip address
-instead of localhost. This option may also be useful when running hledger
-behind a reverse proxy, to conform to your url scheme. Note that the PORT
-in the base url need not be the same as the `--port` argument.
+If you want to visit the web UI from other machines, you'll need to use
+this option to fix the hyperlinks. Just give your machine's host name or
+ip address instead of localhost. This option is also lets you conform to a
+custom url scheme when running hledger-web behind a reverse proxy as part
+of a larger site. Note that the PORT in the base url need not be the same
+as the `--port` argument.
 
 ### Other features
 
