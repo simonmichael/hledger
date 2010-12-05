@@ -102,7 +102,8 @@ table.registerreport        { border-spacing:0; }
 .registerreport td          { padding-bottom:0.2em; }
 .registerreport .date       { white-space:nowrap; }
 .firstposting td            { }
-#accountsheading            { font-weight:bold; }
+#accountsheading            { font-weight:bold; white-space:nowrap; margin-bottom:1em; }
+#showmoreaccounts           { }
 
 
 #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { padding:4px; }
