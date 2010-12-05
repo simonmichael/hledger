@@ -16,6 +16,7 @@ import Data.Either
 -- import System.Directory
 import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (putValue, getValue)
+import Text.ParserCombinators.Parsec hiding (string)
 
 import Database.Persist.GenericSql (ConnectionPool, SqlPersist, runMigration, migrate)
 import Yesod
@@ -268,9 +269,16 @@ getHandlerData = do
           a <- fromMaybe "" <$> lookupGetParam "a"
           p <- fromMaybe "" <$> lookupGetParam "p"
           let opts = appOpts app ++ [Period p]
-              args = appArgs app ++ words a
+              args = appArgs app ++ words' a
               fspec = optsToFilterSpec opts args t
           return (a, p, opts, fspec)
+
+      -- | Quote-sensitive words, ie don't split on spaces which are inside quotes.
+      words' :: String -> [String]
+      words' = fromparse . parsewith ((quotedPattern <|> pattern) `sepBy` many1 spacenonewline)
+          where
+            pattern = many (noneOf " \n\r\"")
+            quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
 
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
