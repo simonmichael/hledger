@@ -16,19 +16,20 @@ title: hledger news
   * parsing: ledger compatibility: ignore metadata tags on transactions and postings
   * parsing: ledger compatibility: ignore cleared flags at the start of postings
   * parsing: ledger compatibility: ignore C commodity conversion directives
+  * parsing: price precisions no longer affect commodities' display precisions
+  * add: readline-style editing
+  * add: tab-completion for account names
   * add: add the default commodity, if any, to commodity-less amounts (#26)
-  * add: misc. bugfixes for commodity/precision/defaults handling
-  * add: readline-style editing, tab-completion for account names
-  * chart: update for current Chart (0.14)
+  * add: misc. commodity/precision/defaults-related bugfixes
   * chart: give a meaningful error message for empty journals
+  * chart: update for current Chart lib (0.14)
   * web: use support files from ./.hledger/web/, and auto-create them if missing
   * web: page layout is more robust with wide content
-  * web: offer a choice of files to edit when there are multiple (included) files
-  * web: update for current yesod (0.6.*)
+  * web: allow editing of included files
   * web: handle multiple filter patterns correctly
   * web: allow single- or double-quoted filter patterns containing spaces
+  * web: update for current yesod lib (0.6.*)
   * transaction balancing is now based on display precision (#23)
-  * price precisions no longer affect commodities' display precisions
   * briefer, more informative usage error messages
 
 ## 2010/9/6 hledger 0.12.1
