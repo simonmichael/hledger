@@ -37,6 +37,9 @@ title: hledger development
 - [hledger](http://hackage.haskell.org/package/hledger),
   [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
   hackage packages
+- [hledger](http://packdeps.haskellers.com/feed/?needle=hledger),
+  [hledger-lib](http://packdeps.haskellers.com/feed/?needle=hledger-lib)
+  dependency reports
 - [test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   [benchmark](http://hledger.org/profs/latest.bench),
   [profile](http://hledger.org/profs/latest.prof),
