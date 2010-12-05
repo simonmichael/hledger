@@ -36,9 +36,8 @@ INCLUDEPATHS=\
 	-ihledger-chart
 MAIN=hledger/hledger.hs
 SOURCEFILES:= \
-	$(MAIN) \
 	hledger/*hs \
-	hledger/Hledger/Cli/*hs \
+	hledger/Hledger/*/*hs \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs
