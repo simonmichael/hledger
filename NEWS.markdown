@@ -4,6 +4,33 @@ title: hledger news
 
 # hledger news
 
+## unreleased
+
+  * move web, vty, chart commands into separate hledger-web, hledger-vty,
+    hledger-chart packages. This both simplifies (no more build flags) and
+    complicates (more room for dependency hassles), but I hope overall it
+    will be easier and more scalable.
+  * all packages but chart are now marked "beta", ie "not finished but
+    suitable for everyday use"
+  * parsing: ledger compatibility: support D default commodity directive
+  * parsing: ledger compatibility: ignore metadata tags on transactions and postings
+  * parsing: ledger compatibility: ignore cleared flags at the start of postings
+  * parsing: ledger compatibility: ignore C commodity conversion directives
+  * add: add the default commodity, if any, to commodity-less amounts (#26)
+  * add: misc. bugfixes for commodity/precision/defaults handling
+  * add: readline-style editing, tab-completion for account names
+  * chart: update for current Chart (0.14)
+  * chart: give a meaningful error message for empty journals
+  * web: use support files from ./.hledger/web/, and auto-create them if missing
+  * web: page layout is more robust with wide content
+  * web: offer a choice of files to edit when there are multiple (included) files
+  * web: update for current yesod (0.6.*)
+  * web: handle multiple filter patterns correctly
+  * web: allow single- or double-quoted filter patterns containing spaces
+  * transaction balancing is now based on display precision (#23)
+  * price precisions no longer affect commodities' display precisions
+  * briefer, more informative usage error messages
+
 ## 2010/9/6 hledger 0.12.1
 
   * web: fix account filtering breakage
