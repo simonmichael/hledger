@@ -80,7 +80,7 @@ body                        { margin:0; }
 #main .register { }
 /* .current                    { font-weight:bold; } */
 .description                { padding-left:1em; white-space:normal; }
-#transactions .account                    { white-space:nowrap; padding-left:1em; }
+.account                    { white-space:normal; padding-left:1em; }
 .amount                     { white-space:nowrap; padding-left:1em; }
 .balance                    { white-space:nowrap; padding-left:1em; }
 .account, .amount, .balance { width:2em; }  /* minimum width */
