@@ -113,7 +113,7 @@ autotest:
 # as above for add-on programs
 autoweb: linkhledgerwebdir
 	rm -f bin/hledger-web
-	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/hledger-web.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug
+	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/hledger-web.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug -B
 
 autovty:
 	rm -f bin/hledger-vty
