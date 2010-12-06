@@ -188,9 +188,8 @@ tools/generatejournal: tools/generatejournal.hs
 
 hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
 
-# build developer binaries, as quickly as possible
-# this one is named bin/ to avoid case clash on mac
-bin/hledger:
+# build a developer's binary, as quickly as possible
+hledger: setversion
 	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
 
 hledger-web:
@@ -220,22 +219,17 @@ hledgeropt:
 	ghc --make $(MAIN) -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build a deployable binary for gnu/linux, statically linked
-hledgerlinux:
-	ghc --make $(MAIN) $(LINUXRELEASEBUILDFLAGS) -o bin/$(BINARYFILENAME)
-	-ghc --make hledger-web/hledger-web.hs $(LINUXRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/'`
-	-ghc --make hledger-vty/hledger-vty.hs $(LINUXRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/'`
-	-ghc --make hledger-chart/hledger-chart.hs $(LINUXRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/'`
-	@echo 'Please check the binaries look portable, then make compressbinaries:'
-	-file bin/*`arch`
+hledgerlinux: setversion
+	cd hledger; \
+	ghc --make $(MAIN) -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
+	@echo 'Please check the build looks portable (statically linked):'
+	-file bin/$(BINARYFILENAME)
 
 # build a deployable binary for mac, using only standard osx libs
-hledgermac:
-	ghc --make $(MAIN) $(MACRELEASEBUILDFLAGS) -o bin/$(BINARYFILENAME)
-	-ghc --make hledger-web/hledger-web.hs $(MACRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/'`
-	-ghc --make hledger-vty/hledger-vty.hs $(MACRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/'`
-	-ghc --make hledger-chart/hledger-chart.hs $(MACRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/'`
-	@echo 'Please check the binaries look portable, then make compressbinaries:'
-	otool -L bin/*`arch`
+hledgermac: setversion
+	ghc --make $(MAIN) -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 # -optl-L/usr/lib
+	@echo Please check the build looks portable:
+	otool -L bin/$(BINARYFILENAME)
 
 # build deployable binaries for windows, assuming cygwin tools are present
 hledgerwin: install
@@ -835,7 +829,7 @@ autowebmine:
 # auto-recompile and run (with the specified argument) whenever a module changes.
 # sp is from searchpath.org, you might need the patched version from
 # http://joyful.com/repos/searchpath.
-# auto%: setversion
+# auto%:
 # 	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) $(BUILDFLAGS) --run $*
 
 allsrclinks:
