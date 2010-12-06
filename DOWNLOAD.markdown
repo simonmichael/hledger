@@ -22,15 +22,15 @@ Please report any trouble (or success!) to <a href="http://hledger.org/DEVELOPME
 <table id="platformdocs">
 	<tr>
 		<th><img src="../linux.png" /><br />GNU/Linux (x86)</th>
-		<th><a href="download/hledger-0.12.1-mac-i386.gz"><img src="../mac.png" border=0 /></a><br />Mac (intel)</th>
+		<th><a href="download/hledger-0.12.1-mac-i386.gz"><img src="../mac.png" border=0 /></a><br />Mac</th>
 		<th><a href="download/hledger-0.12.1-win-i386.gz"><img src="../windows.png" border=0 /></a><br />Windows</th>
 	</tr>
 	<tr>
 		<td>
 Download the  
-**[32-bit](download/hledger-0.12.1-linux-i386.gz)** or 
-**[64-bit](download/hledger-0.12.1-linux-x86_64.gz)** version  
-  
+**[32-bit](download/hledger-0.12.1-linux-i386.gz)** or
+**[64-bit](download/hledger-0.12.1-linux-x86_64.gz)** version
+
 Open a terminal window and go to your browser's download directory, then:  
 `$ gunzip hledger-*86*`
 `$ mv hledger-*86* hledger`  
@@ -40,7 +40,7 @@ Open a terminal window and go to your browser's download directory, then:
 		<td>
 Download  
 <span style="white-space:nowrap;">
-**[hledger-0.12.1-mac-i386.gz](download/hledger-0.12.1-mac-i386.gz)**  
+**[hledger-0.12.1-mac-i386.gz](download/hledger-0.12.1-mac-i386.gz)**
 </span>
   
 Double-click the downloaded file to decompress it.  
@@ -53,7 +53,7 @@ Run it:
 		<td>
 Download  
 <span style="white-space:nowrap;">
-**[hledger-0.12.1-windows-i386.exe.zip](download/hledger-0.12.1-windows-i386.exe.zip)**  
+**[hledger-0.12.1-windows-i386.exe.zip](download/hledger-0.12.1-windows-i386.exe.zip)**
 </span>
   
 Unzip it to (eg) your desktop.  
