@@ -1,4 +1,5 @@
-bin/hledger -f-
+; can we parse this sample journal from c++ ledger source
+bin/hledger -f- stats
 <<<
 ; -*- ledger -*-
 
