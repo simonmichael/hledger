@@ -820,3 +820,31 @@ clean:
 Clean: clean cleandocs
 	rm -f bin/hledger TAGS tags
 
+######################################################################
+# LOCAL
+
+# deploy latest build at demo.hledger.org
+deploy:
+	ssh -t simon@joyful.com make -C /repos/hledger deploy
+
+# autobuild web ui showing my personal journal
+autowebmine:
+	rm -f bin/hledger-web
+	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/Main.hs -ihledger-web -ihledger $(BUILDFLAGS) --run -B -f ~/personal/2010.journal
+
+# auto-recompile and run (with the specified argument) whenever a module changes.
+# sp is from searchpath.org, you might need the patched version from
+# http://joyful.com/repos/searchpath.
+# auto%: setversion
+# 	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) $(BUILDFLAGS) --run $*
+
+allsrclinks:
+	mkdir -p allsrc/Hledger
+	cd allsrc/Hledger; \
+		for p in $(PACKAGES); do \
+			for f in ../../$$p/Hledger/*; do ln -sf $$f; done; done
+
+hledgersrclinks:
+	cd hledger/Hledger; \
+		for f in ../../hledger-lib/Hledger/*; do ln -sf $$f; done
+
