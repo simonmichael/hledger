@@ -6,7 +6,6 @@ title: hledger downloads
 
 <style>
 #platformdocs td {
-    width:33%;
     vertical-align:top;
     font-size:small;
 }
@@ -15,56 +14,101 @@ title: hledger downloads
 }
 </style>
 
-Here are hledger binaries which should "just work" on your computer.  For
-more help and alternatives, please see the <a
-href="../MANUAL.html#installing">installing doc</a>.
+Here are pre-built hledger binaries which you can download. There is no
+installation wizard but they should "just work" if you make them
+executable and run them.  For more help and alternate installation
+methods, please see the <a href="../MANUAL.html#installing">installation
+docs</a>.
     
-Errata: these binaries lack support files for the web interface, you must copy
-  [those files](http://joyful.com/repos/hledger/hledger-web/data/static/) to
-  `./data/web/static/` below the directory where you run hledger.
-
 <table id="platformdocs">
-	<tr>
-		<th><img src="../linux.png" /><br />GNU/Linux (x86)</th>
-		<th><a href="download/hledger-0.13-mac-i386.gz"><img src="../mac.png" border=0 /></a><br />Mac</th>
-		<th><a href="download/hledger-0.13-win-i386.gz"><img src="../windows.png" border=0 /></a><br />Windows</th>
-	</tr>
-	<tr>
-		<td>
-Download the  
-**[32-bit](download/hledger-0.13-linux-i386.gz)** or
-**[64-bit](download/hledger-0.13-linux-x86_64.gz)** version
+  <tr>
+    <th width="34%" colspan=2><img src="../linux.png" /><br />GNU/Linux</th>
+    <th width="33%"><a href="download/hledger-0.13-mac-i386.gz"><img src="../mac.png" border=0 /></a><br />Mac</th>
+    <th width="33%"><a href="download/hledger-0.13-win-i386.gz"><img src="../windows.png" border=0 /></a><br />Windows</th>
+  </tr>
+  <tr><td colspan=4><br>command-line tool:</td></tr>
+  <tr align="center">
+    <td>
+      **[hledger-0.13-linux-i386.gz](download/hledger-0.13-linux-i386.gz)**<br><br>
+    </td>
+    <td>
+      <!-- **[hledger-0.13-linux-x86_64.gz](download/hledger-0.13-linux-x86_64.gz)**<br><br> -->
+    </td>
+    <td>
+      **[hledger-0.13-mac-i386.gz](download/hledger-0.13-mac-i386.gz)**<br><br>
+    </td>
+    <td>
+      *windows build problems, for now use*
+      **[hledger-0.12.1-windows-i386.exe.zip](download/hledger-0.12.1-windows-i386.exe.zip)**
+    </td>
+  </tr>
+  <tr><td colspan=4>optional add-ons:</td></tr>
+  <tr><td colspan=4>web interface</td></tr>
+  <tr align="center">
+    <td>
+      **[hledger-web-0.13-linux-i386.gz](download/hledger-web-0.13-linux-i386.gz)**<br><br>
+    </td>
+    <td>
+      <!-- **[hledger-web-0.13-linux-x86_64.gz](download/hledger-web-0.13-linux-x86_64.gz)**<br><br> -->
+    </td>
+    <td>
+      **[hledger-web-0.13-mac-i386.gz](download/hledger-web-0.13-mac-i386.gz)**<br><br>
+    </td>
+    <td>
+    </td>
+  </tr>
+  <tr><td colspan=4>curses-style interface</td></tr>
+  <tr align="center">
+    <td>
+      **[hledger-vty-0.13-linux-i386.gz](download/hledger-vty-0.13-linux-i386.gz)**<br><br>
+    </td>
+    <td>
+      <!-- **[hledger-vty-0.13-linux-x86_64.gz](download/hledger-vty-0.13-linux-x86_64.gz)**<br><br> -->
+    </td>
+    <td>
+      **[hledger-vty-0.13-mac-i386.gz](download/hledger-vty-0.13-mac-i386.gz)**<br><br>
+    </td>
+    <td>
+    </td>
+  </tr>
+  <tr><td colspan=4>pie chart generator</td></tr>
+  <tr align="center">
+    <td>
+      **[hledger-chart-0.13-linux-i386.gz](download/hledger-chart-0.13-linux-i386.gz)**<br><br>
+    </td>
+    <td>
+      <!-- **[hledger-chart-0.13-linux-x86_64.gz](download/hledger-chart-0.13-linux-x86_64.gz)**<br><br> -->
+    </td>
+    <td>
+      **[hledger-chart-0.13-mac-i386.gz](download/hledger-chart-0.13-mac-i386.gz)**<br><br>
+    </td>
+    <td>
+    </td>
+  </tr>
 
-Open a terminal window and go to your browser's download directory, then:  
-`$ gunzip hledger-*86*`
-`$ mv hledger-*86* hledger`
-`$ chmod +x hledger`
-`$ ./hledger`
-		</td>
-		<td>
-Download  
-<span style="white-space:nowrap;">
-**[hledger-0.13-mac-i386.gz](download/hledger-0.13-mac-i386.gz)**
-</span>
-  
-Double-click the downloaded file to decompress it.  
-Rename the decompressed file to "hledger".  
-Open a terminal window and go to your browser's download directory, then:  
-`$ chmod +x hledger`  
-Run it:  
-`$ ./hledger`
-		</td>
-		<td>
-Download  
-<span style="white-space:nowrap;">
-**[hledger-0.13-windows-i386.exe.zip](download/hledger-0.13-windows-i386.exe.zip)**
-</span>
-  
-Unzip it to (eg) your desktop.  
-Double-click on the unzipped file to run the web interface (the default behaviour on windows).  
-A security dialog may pop up, where you can choose whether other machines
-may access your hledger web interface.
-		</td>
-	</tr>
+  <!-- <tr> -->
+  <!--   <td colspan=2> -->
+  <!--     Open a terminal window and go to your browser's download directory, then:   -->
+  <!--     `$ gunzip hledger-*86*`   -->
+  <!--     `$ mv hledger-*86* hledger`   -->
+  <!--     `$ chmod +x hledger`   -->
+  <!--     `$ ./hledger`   -->
+  <!--   </td> -->
+  <!--   <td> -->
+  <!--     Double-click the downloaded file to decompress it.   -->
+  <!--     Rename the decompressed file to "hledger".   -->
+  <!--     Open a terminal window and go to your browser's download directory, then:   -->
+  <!--     `$ chmod +x hledger`   -->
+  <!--     Run it:   -->
+  <!--     `$ ./hledger` -->
+  <!--   </td> -->
+  <!--   <td> -->
+  <!--     Unzip it to (eg) your desktop.   -->
+  <!--     Double-click on the unzipped file to run the web interface (the default behaviour on windows).   -->
+  <!--     A security dialog may pop up, where you can choose whether other machines -->
+  <!--     may access your hledger web interface. -->
+  <!--   </td> -->
+  <!-- </tr> -->
+
 </table>
 

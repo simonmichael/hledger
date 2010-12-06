@@ -35,8 +35,9 @@ This is the manual for hledger 0.13.0.
 
 ## Installing
 
-hledger works on all major platforms. You can download and run current
-release binaries from the [download page](DOWNLOAD.html).
+hledger works on all major platforms *(except microsoft windows, as of 
+version 0.13; to be fixed)*. You can download and run current release binaries from
+the [download page](DOWNLOAD.html).
 
 You can also build the current release from source using cabal-install.
 Ensure you have a working
@@ -531,8 +532,7 @@ Examples:
 
 ##### web
 
-*Requires GHC 6.12 or greater.*
-*This command can edit or overwrite your journal file.*
+*Building from source requires GHC 6.12 or greater.*
 
 The web command starts a web server providing a web-based user interface,
 and if possible, opens a web browser to view it. The web UI combines the
