@@ -46,7 +46,7 @@ the hledger command-line tool:
     $ cabal update
     $ cabal install hledger
 
-You can also install these optional [add-on packages](#add-on-commands)
+You can also build (or download) these optional [add-ons](#add-on-commands)
 providing extra features:
 
     $ cabal install hledger-web
@@ -61,7 +61,7 @@ Or, you can build the latest [development version](DEVELOPMENT.html):
     $ make install
 
 If you have any trouble, please see [Troubleshooting](#troubleshooting)
-and/or seek [Support](DEVELOPMENT.html#support).
+and seek [Support](DEVELOPMENT.html#support).
 
 ## Usage
 
@@ -479,12 +479,12 @@ Examples:
 #### Add-on commands
 
 The following extra commands will be available if they have been
-[installed](#installing).  Note, currently you must invoke them like, eg,
-`$ hledger-web ...` - not `$ hledger web ...`. The hledger-NAME
-executables support the usual hledger options, and possible specific
-options of their own. Add-ons may have varying levels of support and
-maturity and may not be available on all platforms - if available, they
-are provided on the download page.
+[installed](#installing).  Add-ons may differ from hledger core in their
+level of support and maturity and may not be available on all platforms;
+if available, they are provided on the download page.  Note currently you
+must invoke add-on commands like, eg: `$ hledger-web ...`, not `$ hledger
+web ...`. The hledger-NAME executables support the usual hledger options,
+and any specific options of their own.
 
 ##### chart
 
@@ -519,10 +519,10 @@ Examples:
 
 *Not available on microsoft windows, except possibly via cygwin.*
 
-The vty command starts a simple curses-style (full-screen, text) user interface,
-which allows interactive navigation of the print/register/balance
-reports. This lets you browse around your numbers and get quick insights
-with less typing.
+The vty command starts a simple curses-style (full-screen, text) user
+interface, which allows interactive navigation of the
+print/register/balance reports. This lets you browse around and explore
+your numbers quickly with less typing.
 
 Examples:
 
@@ -532,7 +532,6 @@ Examples:
 ##### web
 
 *Requires GHC 6.12 or greater.*
-
 *This command can edit or overwrite your journal file.*
 
 The web command starts a web server providing a web-based user interface,
