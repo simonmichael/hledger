@@ -1,5 +1,5 @@
 name:           hledger-chart
-version: 0.12.98
+version: 0.13
 category:       Finance
 synopsis:       A hledger add-on command to generate pie charts.
 description:    This generates rudimentary pie charts of account balances.
@@ -28,8 +28,8 @@ executable hledger-chart
   other-modules:
                   Hledger.Chart
   build-depends:
-                  hledger == 0.12.98
-                 ,hledger-lib == 0.12.98
+                  hledger == 0.13
+                 ,hledger-lib == 0.13
                  -- ,HUnit
                  -- ,base >= 3 && < 5
                  -- ,containers

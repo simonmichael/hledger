@@ -10,7 +10,7 @@ import System.Info (os, arch)
 import Hledger.Data.Utils
 
 -- version and PATCHLEVEL are set by the makefile
-version       = "0.12.98"
+version       = "0.13.0"
 
 #ifdef PATCHLEVEL
 patchlevel = "." ++ show PATCHLEVEL -- must be numeric !

@@ -1,5 +1,5 @@
 name:           hledger-vty
-version: 0.12.98
+version: 0.13
 category:       Finance
 synopsis:       A hledger add-on command providing a curses-style console interface.
 description:    
@@ -29,8 +29,8 @@ executable hledger-vty
   other-modules:
                   Hledger.Vty
   build-depends:
-                  hledger == 0.12.98
-                 ,hledger-lib == 0.12.98
+                  hledger == 0.13
+                 ,hledger-lib == 0.13
                  -- ,HUnit
                  ,base >= 3 && < 5
                  -- ,containers
