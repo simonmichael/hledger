@@ -664,90 +664,96 @@ The [print](#print) command selects transactions which
 
 ##### Simple dates
 
-Within a journal file, dates must follow a fairly simple year/month/day
-format. Examples:
+Within a journal file, transaction dates always follow a year/month/day
+format, although several different separator characters are accepted. Some
+examples:
 
-> `2010/01/31` or `2010/1/31` or `2010-1-31` or `2010.1.31`
+> `2010/01/31`, `2010/1/31`, `2010-1-31`, `2010.1.31`
 
-The year is optional if you define a [default year](#default-year).
-
-##### Smart dates
-
-In [period expressions](#period-expressions), the `-b` and `-e` options,
-the [add](#add) command and the [web](#web) add form, more flexible "smart
-dates" are allowed. Here are some examples:
-
--   `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1`, `2009/1`,
-    `2009` (january 1, 2009)
--   `1/1`, `january`, `jan`, `this year` (january 1, this year)
--   `next year` (january 1, next year)
--   `this month` (the 1st of the current month)
--   `this week` (the most recent monday)
--   `last week` (the monday of the week before this one)
--   `today`, `yesterday`, `tomorrow`
-
-Spaces are optional, so eg: `-b lastmonth` is valid.
-
-##### Actual & effective dates
-
-Real-life transactions sometimes have more than one date.  For
-example, you might buy a movie ticket on friday with a bank debit
-card, and the transaction might appear in your bank account on monday.
-hledger and ledger users call these the *effective date* and *actual
-date* respectively. We say:
-
-> *"The ticket purchase took EFFECT on friday, but ACTUALly appeared in my bank balance on monday."*
-
-You can often think of effective date as "my date" and actual date as "bank's date".
-
-When these dates differ, as in the example above, hledger's daily
-balances will not exactly match your bank's. But exact daily
-reconciling can be quite useful, to see precisely when disagreements
-arise. There are several ways you can handle this:
-
-1. don't bother with exact daily reconciling; accept temporary
-   disagreements between hledger and bank balances.
-
-2. adjust manually recorded transactions to actual bank dates when necessary.
-   Your hledger balance will match your bank's exactly, but you no longer have
-   a record of when transactions *really* happened.
-
-3. record both dates separated by an equals sign: the *actual date* on
-   the left and the *effective date* on the right. The year is
-   optional in the second date.
-
-Here's an example of the last approach: on friday 19 you record:
-
-        2010/2/19 movie
-          expenses:cinema          $10
-          assets:checking
-
-hledger shows $10 less in your checking account through saturday and
-sunday.. but your online bank statement does not. It shows the
-transaction clearing a few days later, on monday 23. So you then
-insert that actual date:
-
-        ;  ACTUAL=EFFECTIVE
-        2010/2/23=2010/2/19 movie
-          expenses:cinema          $10
-          assets:checking
-
-Now your hledger reports match your bank's daily balance exactly,
-since they use the actual date by preference. To report based on
-effective dates instead, use the `--effective` flag.
+Simple dates are always unambiguous, but writing the year is optional if
+you define a..
 
 ##### Default year
 
-You can set a default year with a `Y` directive in the journal, then
-subsequent dates may be written as month/day. Eg:
+You can set a default year for simple dates with a `Y` directive in the
+journal, as below. Then subsequent dates may be written as month/day. Eg:
 
     Y2009
     
     12/15  ; <- equivalent to 2009/12/15
+      ...
     
     Y2010
     
     1/31  ; <- equivalent to 2010/1/31
+      ...
+
+##### Actual & effective dates
+
+This is a more advanced feature of dates in the journal file. Real-life
+transactions sometimes involve more than one date. For example, you buy a
+movie ticket on friday with a debit card, and the transaction is charged
+to your bank account on monday.  Or you write a cheque to someone and they
+deposit it weeks later.
+
+For most transactions, you won't care which date is recorded in your
+journal - either will do, especially if the dates are not far apart. But
+when you need to model reality (here, your daily bank balance) more
+accurately, you can record two dates, separated by an equals sign.  By
+default, the first date is used in reports; to use the second one instead,
+run hledger with the `--effective` flag.
+
+About the terminology: we follow c++ ledger's usage, calling these the
+*actual date* (on the left) and the *effective date* (on the right).
+hledger doesn't actually care what these terms mean, but here are some
+mnemonics to help keep our usage consistent and avoid confusion:
+
+- "The movie ticket purchase took EFFECT on friday, but ACTUALLY appeared in my bank balance on monday."
+
+- "The payment by cheque took EFFECT then, but ACTUALLY cleared weeks later."
+
+- ACTUAL=EFFECTIVE. The actual date is by definition the one on the left,
+  the effective date is on the right. A before E.
+
+- LATER=EARLIER. The effective date is usually the chronologically earlier one.
+
+- BANKDATE=MYDATE. You can usually think of effective date as "my date" and actual date as "bank's date".
+  If you record a transaction manually, you'll use the effective (your) date.
+  If you convert a transaction from bank data, it will have the actual (bank's) date.
+
+Example:
+
+    ; journal transaction with ACTUAL=EFFECTIVE
+    2010/2/23=2010/2/19 movie ticket
+      expenses:cinema                   $10
+      assets:checking
+
+    $ hledger register checking
+    2010/02/23 movie ticket         assets:checking                $-10         $-10
+
+    $ hledger register checking --effective
+    2010/02/19 movie ticket         assets:checking                $-10         $-10
+
+
+##### Smart dates
+
+Unlike the journal file, hledger's user interface accepts more flexible
+"smart dates", for example in the `-b` and `-e` options, period
+expressions, display expressions, the add command and the web add form.
+Smart dates allow some natural english words, will assume 1 where
+less-significant date parts are unspecified, and can be relative to
+today's date. Examples:
+
+- `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1` (simple dates)
+- `2009/1`, `2009` (these also mean january 1, 2009)
+- `1/1`, `january`, `jan`, `this year` (relative dates, meaning january 1 of this year)
+- `next year` (january 1, next year)
+- `this month` (the 1st of the current month)
+- `this week` (the most recent monday)
+- `last week` (the monday of the week before this one)
+- `today`, `yesterday`, `tomorrow`
+
+Spaces in smart dates are optional, so eg: `-b lastmonth` is valid.
 
 #### Period expressions
 
@@ -756,8 +762,8 @@ option to select transactions within a period of time (eg in 2009) and/or
 with a reporting interval (eg weekly). hledger period expressions are
 similar but not identical to c++ ledger's.
 
-Here is a basic period expression specifying the first quarter of 2009
-(start date is always included, end date is always excluded):
+Here is a basic period expression specifying the first quarter of 2009.
+Note the start date is always included and the end date is always excluded:
 
     -p "from 2009/1/1 to 2009/4/1"
 
@@ -794,10 +800,11 @@ The `-b/--begin` and `-e/--end` options may be used as a shorthand for
 
 ##### Reporting interval
 
-You can also specify a reporting interval, which causes the "register"
-command to summarise the transactions in each interval.  It goes before
-the dates, and can be: "daily", "weekly", "monthly", "quarterly", or
-"yearly". An "in" keyword is optional, and so are the dates:
+Period expressions can also begin with (or be) a reporting interval, which
+affects commands like [register](#register) and [histogram](#histogram).
+The reporting interval is one of: `daily`, `weekly`, `monthly`,
+`quarterly`, or `yearly`, optionally followed by an `in`
+keyword. Examples:
 
     -p "weekly from 2009/1/1 to 2009/4/1"
     -p "monthly in 2008"
@@ -806,7 +813,7 @@ the dates, and can be: "daily", "weekly", "monthly", "quarterly", or
 
 A reporting interval may also be specified with the `-D/--daily`,
 `-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`
-options. But note...
+options. But remember:
 
 ##### -p overrides other flags
 
@@ -815,17 +822,20 @@ A `-p/--period` option on the command line will cause any
 
 #### Display expressions
 
-A display expression with the `-d/--display` option selects which
-transactions will be displayed (unlike a
-[period expression](#period-expressions), which selects the transactions
-to be used for calculation).
+Unlike a [period expression](#period-expressions), which selects the
+transactions to be used for calculation, a display expression specified
+with the `-d/--display` option selects which transactions will be
+displayed. This useful, say, if you want to see your checking register
+just for this month, but with an accurate running balance based on all
+transactions. Eg:
 
-hledger currently supports a very small subset of c++ ledger's display
-expressions, namely: transactions before or after a date.  This is
-useful for displaying a portion of your checking register with an
-accurate running total. Eg, to show the balance since the first of the month:
+    $ hledger register checking --display "d>=[1]"
 
-    $ hledger register -d "d>=[1]"
+meaning "make a register report of all checking transactions, but display
+only the ones with date on or after the 1st of this month."
+
+This is really all that we support of c++ ledger's display expressions:
+namely transactions before or after a given (smart) date.
 
 #### Depth limiting
 
