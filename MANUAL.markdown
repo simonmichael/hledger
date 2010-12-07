@@ -583,6 +583,22 @@ need to be upgraded too, probably by removing them and letting them be
 recreated.  So if you do customise them, remember what you changed; a
 version control system such as darcs will work well here.
 
+###### detecting changes
+
+As noted, changes to the support files will take effect immediately,
+without a restart.  This applies to the journal data too; you can directly
+edit the journal file(s) (or, eg, commit a change within a version control
+system) while the web UI is running, and the changes will be visible on
+the next page reload.
+
+###### malformed edits
+
+The journal file must remain in good [hledger format](#journal-file) so
+that hledger can parse it. The web add and edit forms ensure this by not
+allowing edits which would introduce parse errors. If a direct edit makes
+the journal file unparseable, the web UI will show the error instead of
+data, until the file has been fixed.
+
 There are some web-specific options:
 
 ###### --port

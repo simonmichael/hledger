@@ -754,7 +754,7 @@ stats: showlastreleasedate showreleaseauthors showloc showcov showlocalchanges s
 
 showreleaseauthors:
 	@echo Patch authors since last release:
-	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
+	@darcs changes --from-tag 0.12 |grep '^\w' |cut -c 31- |sort |uniq
 	@echo
 
 showloc:
