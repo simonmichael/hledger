@@ -484,16 +484,23 @@ plus any specific options of their own.
 
 ##### chart
 
-The chart command saves an image file showing a basic pie chart of your
-top account balances. Note that positive and negative balances will not be
-displayed together in the same chart; any balances not matching the sign
-of the first one will be ignored.
+The chart command saves an image file, by default "hledger.png", showing a
+basic pie chart of your top account balances. Note that positive and
+negative balances will not be displayed together in the same chart; any
+balances not matching the sign of the first one will be ignored.
 
-The output file is "hledger.png", or you can specify another with
--o/--output. Use a different suffix (eg .gif or .jpg) to generate that
-format.
+chart-specific options:
 
-You can adjust the image resolution with --size=WIDTHxHEIGHT.
+###### --output
+
+You can specify a different output file name with -o/--output. The data
+currently will always be in PNG format.
+
+###### --size
+
+You can adjust the image resolution with --size=WIDTHxHEIGHT (in pixels).
+
+###### --items
 
 Set the number of accounts to show with --items=N (default is 10).
 
@@ -521,6 +528,12 @@ interface, which allows interactive navigation of the
 print/register/balance reports. This lets you browse around and explore
 your numbers quickly with less typing.
 
+vty-specific options:
+
+###### --debug-vty
+
+    --debug-vty  run with no terminal output, showing console
+
 Examples:
 
     $ hledger-vty
@@ -537,23 +550,56 @@ and if possible, opens a web browser to view it. The web UI combines the
 features of the print, register, balance and add commands, and adds a
 general edit command.
 
+###### data safety
+
+Warning: unlike all other hledger features, the web UI's edit form can
+alter your existing journal data.  It will let any visitor edit or
+overwrite the journal file (and any included files) through the web UI.
+hledger provides no access control. A numbered backup of the file is saved
+on each edit, normally - ie if file permissions allow, disk is not full,
+etc.
+
+###### web support files
+
+hledger-web requires certain support files (images, stylesheets,
+javascript etc.) to be present in a particular location when it
+runs. Specifically, they need to be in a `web` directory, under the
+`.hledger` directory, under the current directory when you start
+hledger-web. To make this easy, hledger-web will auto-create these files
+in `./.hledger/web/` if they do not exist. Currently, after doing this
+it will exit, with a notice explaining what happened, and you'll have to
+run it a second time.
+
+The above is a compromise to satisfy certain technical constraints, but
+there is an advantage: you can easily customise the web UI's appearance
+(even while it is running) by editing these files. This is useful eg for
+integrating with an existing site. You can also run with different
+customisations by starting hledger-web from a different current
+directory. Note this means you should be aware of where you start
+hledger-web from, otherwise it may just create a new copy of the support
+files and ignore your stylings. To keep things simple you might choose to
+always run it from the same place, eg your home directory.
+
+Also note that when you upgrade hledger-web in future, these files will
+need to be upgraded too, probably by removing them and letting them be
+recreated.  So if you do customise them, remember what you changed; a
+version control system such as darcs will work well here.
+
 Examples:
 
     $ hledger-web
     $ hledger-web -E -B --depth 2
     $ hledger-web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
 
-Warning: unlike all other hledger features, the edit form can alter your
-existing journal data.  You can edit or overwrite the journal file through
-the web ui, and hledger provides no access control. A numbered backup of
-the file will be saved at each edit, normally (if file permissions allow,
-disk is not full, etc.)
+There are some web-specific options:
 
-There are some hledger-web-specific options:
+###### --port
 
     --port=N           serve on tcp port N (default 5000)
 
 The server listens on port 5000 by default; use --port to change that.
+
+###### --base-url
 
     --base-url=URL     use this base url (default http://localhost:PORT)
 
