@@ -39,16 +39,14 @@ hledger works on all major platforms *(except microsoft windows, as of
 version 0.13; to be fixed)*. You can download and run current release binaries from
 the [download page](DOWNLOAD.html).
 
-You can also build the current release from source using cabal-install.
-Ensure you have a working
-[haskell environment](http://hackage.haskell.org/platform/), then install
-the hledger command-line tool:
+You can build the current release from source using cabal-install, like
+so: ensure you have a working [haskell environment](http://hackage.haskell.org/platform/), then:
 
     $ cabal update
     $ cabal install hledger
 
-You can also build (or download) these optional [add-ons](#add-on-commands)
-providing extra features:
+You can also build these optional [add-ons](#add-on-commands) providing
+extra features:
 
     $ cabal install hledger-web
     $ cabal install hledger-vty
@@ -152,9 +150,6 @@ Here is the command-line help:
       print     - show transactions in journal format
       register  - show transactions as a register with running balance
       stats     - show various statistics for a journal
-      vty       - run a simple curses-style UI (if installed with -fvty)
-      web       - run a simple web-based UI (if installed with -fweb
-      chart     - generate balances pie charts (if installed with -fchart)
       test      - run self-tests
 
     PATTERNS are regular expressions which filter by account name.
@@ -485,16 +480,14 @@ level of support and maturity and may not be available on all platforms;
 if available, they are provided on the download page.  Note currently you
 must invoke add-on commands like, eg: `$ hledger-web ...`, not `$ hledger
 web ...`. The hledger-NAME executables support the usual hledger options,
-and any specific options of their own.
+plus any specific options of their own.
 
 ##### chart
 
-*Requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu: `apt-get install libghc6-gtk-dev`*
-
-The chart command saves an image file showing a pie chart of your top
-account balances. It is pretty rudimentary.  Note that positive and
-negative balances will not be displayed together in the same chart; any
-balances not matching the sign of the first one will be ignored.
+The chart command saves an image file showing a basic pie chart of your
+top account balances. Note that positive and negative balances will not be
+displayed together in the same chart; any balances not matching the sign
+of the first one will be ignored.
 
 The output file is "hledger.png", or you can specify another with
 -o/--output. Use a different suffix (eg .gif or .jpg) to generate that
@@ -516,9 +509,12 @@ Examples:
     $ hledger-chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger-chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
-##### vty
+Installation notes:
 
-*Not available on microsoft windows, except possibly via cygwin.*
+Requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu: `apt-get install libghc6-gtk-dev`.
+
+
+##### vty
 
 The vty command starts a simple curses-style (full-screen, text) user
 interface, which allows interactive navigation of the
@@ -530,9 +526,11 @@ Examples:
     $ hledger-vty
     $ hledger-vty -BE food
 
-##### web
+Installation notes:
 
-*Building from source requires GHC 6.12 or greater.*
+Not buildable on microsoft windows, except possibly via cygwin.
+
+##### web
 
 The web command starts a web server providing a web-based user interface,
 and if possible, opens a web browser to view it. The web UI combines the
@@ -546,10 +544,10 @@ Examples:
     $ hledger-web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
 
 Warning: unlike all other hledger features, the edit form can alter your
-existing journal data.  You can edit, or erase, the journal file through
-the web ui. There is currently no access control. A numbered backup of the
-file will be saved at each edit, in normal circumstances (eg if file
-permissions allow, disk is not full, etc.)
+existing journal data.  You can edit or overwrite the journal file through
+the web ui, and hledger provides no access control. A numbered backup of
+the file will be saved at each edit, normally (if file permissions allow,
+disk is not full, etc.)
 
 There are some hledger-web-specific options:
 
@@ -565,6 +563,10 @@ ip address instead of localhost. This option is also lets you conform to a
 custom url scheme when running hledger-web behind a reverse proxy as part
 of a larger site. Note that the PORT in the base url need not be the same
 as the `--port` argument.
+
+Installation notes:
+
+Building requires GHC 6.12 or greater.
 
 ### Other features
 
