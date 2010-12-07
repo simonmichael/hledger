@@ -4,7 +4,7 @@ title: hledger news
 
 # hledger news
 
-## unreleased
+## 2010/12/6 hledger 0.13
 
   * move web, vty, chart commands into separate hledger-web, hledger-vty,
     hledger-chart packages. This both simplifies (no more build flags) and
