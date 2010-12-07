@@ -12,10 +12,10 @@ by .test files in the tests\/ subdirectory. These can be run by doing
 
 hledger's doctests are shell tests defined in literal blocks in haddock
 documentation in the source, run by doing @make doctest@ in the hledger
-source tree. They hardly used, but here is an example:
+source tree. are They hardly used, but here is an example:
 
 @
-$ hledger -f hledger/data/sample.journal balance o
+$ bin/hledger -f data/sample.journal balance o
                   $1  expenses:food
                  $-2  income
                  $-1    gifts
