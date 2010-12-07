@@ -33,14 +33,41 @@ contributors, and released as Free Software under GPL version 3 or later.
 
 This is the manual for hledger 0.13.0.
 
+## Frequently asked questions
+
+- **How does hledger relate to John Wiegley's ledger project ?**
+
+    hledger was very much inspired by, and is partly a clone of,
+    [ledger](http://wiki.github.com/jwiegley/ledger) (also called "c++
+    ledger" in these docs.) I was a happy ledger user and contributor for
+    some time, and I still use it occasionally. I wrote hledger because I
+    wanted to develop financial tools in the Haskell programming language
+    and ecosystem, whose advantages I believe are compelling. I have also
+    tried to make hledger a little more simple, usable, installable, and
+    documented, and to provide alternate user interfaces and other
+    enhancements to make it more widely useful.
+    
+    ledger has more advanced command-line power features (periodic
+    transactions, budgets, capital gains tracking, value expressions,
+    custom output formats, ...)  and it remains faster and more memory
+    efficient on large data files.
+    
+    The two projects (indeed the whole family of ledger-inspired projects)
+    collaborate freely, and we share ledger's IRC channel (but have our
+    own mail list.) We stay compatible with ledger wherever possible,
+    intending that you can use both tools on the same data, each for its
+    strengths.  Here is
+    [more detail about compatibility](#compatibility-with-c-ledger).
+
 ## Installing
 
 hledger works on all major platforms *(except microsoft windows, as of 
 version 0.13; to be fixed)*. You can download and run current release binaries from
 the [download page](DOWNLOAD.html).
 
-You can build the current release from source using cabal-install, like
-so: ensure you have a working [haskell environment](http://hackage.haskell.org/platform/), then:
+Or, you can build the current release from source using cabal-install.
+Ensure you have a working
+[haskell environment](http://hackage.haskell.org/platform/), then:
 
     $ cabal update
     $ cabal install hledger
@@ -52,15 +79,24 @@ extra features:
     $ cabal install hledger-vty
     $ cabal install hledger-chart
 
-Or, you can build the latest [development version](DEVELOPMENT.html):
+Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger):
 
     $ cabal update
     $ darcs get --lazy http://joyful.com/repos/hledger
     $ cd hledger
     $ make install
 
-If you have any trouble, please see [Troubleshooting](#troubleshooting)
-and seek [Support](DEVELOPMENT.html#support).
+You may encounter dependency issues when using cabal, which can often be
+worked around by (a) being sure to cabal update, (b) using --constraint,
+(c) unregistering obsolete package versions from your system.  Otherwise,
+please see [Troubleshooting](#troubleshooting) and seek
+[Support](DEVELOPMENT.html#support).
+
+More installation tips:
+
+- hledger-chart: requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
+- hledger-vty: requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
+- hledger-web: building requires GHC 6.12 or greater.
 
 ## Usage
 
@@ -93,34 +129,6 @@ home directory.) Now try some of these commands:
 You'll find more examples below.
 
 <a name="faq" />
-
-## Frequently asked questions
-
-- **How does hledger relate to John Wiegley's ledger project ?**
-
-    hledger was inspired by and modelled closely on
-    [ledger](http://wiki.github.com/jwiegley/ledger) (called "c++ ledger"
-    in these docs.)  The two projects (indeed the whole family of
-    ledger-inspired projects) collaborate freely, and we share ledger's
-    IRC channel.
-    
-    After using and contributing to c++ ledger for a while, I wrote
-    hledger because I wanted to develop financial tools in the Haskell
-    programming language and ecosystem, whose advantages I believe are
-    compelling.
-    
-    I have also tried to make hledger a little more simple, user-friendly,
-    installable, and documented, and to offer additional user interfaces
-    (add, vty, web) and other things that I find useful.
-    
-    C++ ledger has more command-line power-user features (periodic
-    transactions, budgets, capital gains tracking, value expressions,
-    custom output formats, ...)  and remains faster and more memory
-    efficient on large data sets.
-    
-    We try to stay compatible with c++ ledger as far as possible; it's
-    intended that you can use both tools on the same journal file.  Here
-    is [more detail about compatibility](#compatibility-with-c-ledger).
 
 ## Reference
 
@@ -516,11 +524,6 @@ Examples:
     $ hledger-chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger-chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
-Installation notes:
-
-Requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu: `apt-get install libghc6-gtk-dev`.
-
-
 ##### vty
 
 The vty command starts a simple curses-style (full-screen, text) user
@@ -539,25 +542,20 @@ Examples:
     $ hledger-vty
     $ hledger-vty -BE food
 
-Installation notes:
-
-Not buildable on microsoft windows, except possibly via cygwin.
-
 ##### web
 
 The web command starts a web server providing a web-based user interface,
-and if possible, opens a web browser to view it. The web UI combines the
+and if possible opens a web browser to view it. The web UI combines the
 features of the print, register, balance and add commands, and adds a
 general edit command.
 
 ###### data safety
 
-Warning: unlike all other hledger features, the web UI's edit form can
-alter your existing journal data.  It will let any visitor edit or
-overwrite the journal file (and any included files) through the web UI.
-hledger provides no access control. A numbered backup of the file is saved
-on each edit, normally - ie if file permissions allow, disk is not full,
-etc.
+Warning: the web UI's edit form can alter your existing journal data (it
+is the only hledger feature that can do so.)  Any visitor to the web UI
+can edit or overwrite the journal file (and any included files); hledger
+provides no access control. A numbered backup of the file is saved on each
+edit, normally - ie if file permissions allow, disk is not full, etc.
 
 ###### web support files
 
@@ -585,12 +583,6 @@ need to be upgraded too, probably by removing them and letting them be
 recreated.  So if you do customise them, remember what you changed; a
 version control system such as darcs will work well here.
 
-Examples:
-
-    $ hledger-web
-    $ hledger-web -E -B --depth 2
-    $ hledger-web --port 5010 --base-url http://some.vhost.com --debug -f my.journal
-
 There are some web-specific options:
 
 ###### --port
@@ -610,9 +602,11 @@ custom url scheme when running hledger-web behind a reverse proxy as part
 of a larger site. Note that the PORT in the base url need not be the same
 as the `--port` argument.
 
-Installation notes:
+Examples:
 
-Building requires GHC 6.12 or greater.
+    $ hledger-web
+    $ hledger-web -E -B --depth 2 -f some.journal
+    $ hledger-web --port 5010 --base-url http://some.vhost.com --debug
 
 ### Other features
 
