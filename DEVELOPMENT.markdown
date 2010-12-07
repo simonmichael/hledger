@@ -35,10 +35,16 @@ title: hledger development
   [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES)
 - [api docs](http://hledger.org/api-doc), [internal code docs](http://hledger.org/code-doc) for all packages
 - [hledger](http://hackage.haskell.org/package/hledger),
-  [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
-  hackage packages
+  [hledger-lib](http://hackage.haskell.org/package/hledger-lib),
+  [hledger-chart](http://hackage.haskell.org/package/hledger-chart),
+  [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
+  [hledger-web](http://hackage.haskell.org/package/hledger-web)
+  packages
 - [hledger](http://packdeps.haskellers.com/feed/?needle=hledger),
-  [hledger-lib](http://packdeps.haskellers.com/feed/?needle=hledger-lib)
+  [hledger-lib](http://packdeps.haskellers.com/feed/?needle=hledger-lib),
+  [hledger-chart](http://packdeps.haskellers.com/feed/?needle=hledger-chart),
+  [hledger-vty](http://packdeps.haskellers.com/feed/?needle=hledger-vty),
+  [hledger-web](http://packdeps.haskellers.com/feed/?needle=hledger-web)
   dependency reports
 - [test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   [benchmark](http://hledger.org/profs/latest.bench),
