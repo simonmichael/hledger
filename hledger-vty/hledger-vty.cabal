@@ -3,10 +3,11 @@ version: 0.12.98
 category:       Finance
 synopsis:       A hledger add-on command providing a curses-style console interface.
 description:    
+    A hledger add-on command providing a full-window console interface.
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
-maintainer:     
+maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      experimental
