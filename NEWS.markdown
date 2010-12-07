@@ -23,7 +23,7 @@ title: hledger news
   * add: misc. commodity/precision/defaults-related bugfixes
   * chart: give a meaningful error message for empty journals
   * chart: update for current Chart lib (0.14)
-  * web: use support files from ./.hledger/web/, and auto-create them if missing
+  * web: support files now live in ./.hledger/web/ and will be auto-created at startup
   * web: page layout is more robust with wide content
   * web: allow editing of included files
   * web: handle multiple filter patterns correctly
