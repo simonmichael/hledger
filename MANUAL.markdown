@@ -98,23 +98,31 @@ More installation tips:
 - hledger-vty: requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
 - hledger-web: building requires GHC 6.12 or greater.
 
-## Usage
+## Basic usage
 
-hledger looks for data in a [journal file](#journal-file) named `.journal`
-in your home directory, creating it if it doesn't exist.  Or you can
-specify a different file with the -f option or the `LEDGER` environment
-variable. Basic usage is:
+Basic usage is:
 
-    $ hledger [OPTIONS] COMMAND [PATTERNS]
+    $ hledger [OPTIONS] COMMAND [FILTER PATTERNS]
 
-where the command is one of the [commands](#commands) described below.
-[Filter patterns](#filter-patterns) may be used to select a subset of the
-journal data, eg to report only food-related transactions.
+hledger first looks for data in a specially-formatted
+[journal file](#journal-file).  You can specify the file with the -f
+option or the `LEDGER` environment variable; otherwise hledger assumes it
+is a file named `.journal` in your home directory. If the journal file
+does not exist, it will be auto-created.
+
 [Options](#overview) may appear anywhere on the command line.
 
-To try it out, just run `hledger add` and [enter some transactions](#add).
-(Or, you could save the [sample file](#journal-file) as `.journal` in your
-home directory.) Now try some of these commands:
+[Commands](#core-commands) are described below.  Note that most hledger
+commands are read-only, that is they can not modify your data. The
+exceptions are the add command which is append-only, and the (add-on) web
+command which can change everything.
+
+[Filter patterns](#filter-patterns) are often used to select a subset of the
+journal data, eg to report only food-related transactions.
+
+To try it out, just run `hledger add` and enter some transactions.  (Or,
+save the [sample file](#journal-file) as `.journal` in your home
+directory.) Now try some of these commands:
 
     $ hledger --help                        # show command-line help
     $ hledger add                           # add some new transactions to the journal file
@@ -262,19 +270,13 @@ hledger's file format aims to be compatible with c++ ledger, so you
 can use both tools on your journal. For more details, see [File format
 compatibility](#file-format-compatibility).
 
-### Commands
+### Core commands
 
-Here are the commands hledger supports. Note,
-
-- the most frequently used commands are [print](#print),
-  [register](#register) and [balance](#balance).
-
-- except where noted, all commands are read-only, that is they never
-  modify your data. The exceptions are [add](#add) and [web](#web).
+These commands are provided by the main hledger package and are always
+available. The most frequently used commands are [print](#print),
+[register](#register) and [balance](#balance).
 
 #### add
-
-*This command can append to your journal file.*
 
 The add command prompts interactively for new transactions, and appends
 them to the journal file. Each transaction is appended when you complete
@@ -480,7 +482,7 @@ Examples:
     $ hledger test
     $ hledger test -v balance
 
-#### Add-on commands
+### Add-on commands
 
 The following extra commands will be available if they have been
 [installed](#installing).  Add-ons may differ from hledger core in their
@@ -490,7 +492,7 @@ must invoke add-on commands like, eg: `$ hledger-web ...`, not `$ hledger
 web ...`. The hledger-NAME executables support the usual hledger options,
 plus any specific options of their own.
 
-##### chart
+#### chart
 
 The chart command saves an image file, by default "hledger.png", showing a
 basic pie chart of your top account balances. Note that positive and
@@ -499,16 +501,16 @@ balances not matching the sign of the first one will be ignored.
 
 chart-specific options:
 
-###### --output
+##### --output
 
 You can specify a different output file name with -o/--output. The data
 currently will always be in PNG format.
 
-###### --size
+##### --size
 
 You can adjust the image resolution with --size=WIDTHxHEIGHT (in pixels).
 
-###### --items
+##### --items
 
 Set the number of accounts to show with --items=N (default is 10).
 
@@ -524,7 +526,7 @@ Examples:
     $ hledger-chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger-chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
-##### vty
+#### vty
 
 The vty command starts a simple curses-style (full-screen, text) user
 interface, which allows interactive navigation of the
@@ -533,7 +535,7 @@ your numbers quickly with less typing.
 
 vty-specific options:
 
-###### --debug-vty
+##### --debug-vty
 
     --debug-vty  run with no terminal output, showing console
 
@@ -542,14 +544,14 @@ Examples:
     $ hledger-vty
     $ hledger-vty -BE food
 
-##### web
+#### web
 
 The web command starts a web server providing a web-based user interface,
 and if possible opens a web browser to view it. The web UI combines the
 features of the print, register, balance and add commands, and adds a
 general edit command.
 
-###### data safety
+##### data safety
 
 Warning: the web UI's edit form can alter your existing journal data (it
 is the only hledger feature that can do so.)  Any visitor to the web UI
@@ -557,7 +559,7 @@ can edit or overwrite the journal file (and any included files); hledger
 provides no access control. A numbered backup of the file is saved on each
 edit, normally - ie if file permissions allow, disk is not full, etc.
 
-###### web support files
+##### web support files
 
 hledger-web requires certain support files (images, stylesheets,
 javascript etc.) to be present in a particular location when it
@@ -583,7 +585,7 @@ need to be upgraded too, probably by removing them and letting them be
 recreated.  So if you do customise them, remember what you changed; a
 version control system such as darcs will work well here.
 
-###### detecting changes
+##### detecting changes
 
 As noted, changes to the support files will take effect immediately,
 without a restart.  This applies to the journal data too; you can directly
@@ -591,7 +593,7 @@ edit the journal file(s) (or, eg, commit a change within a version control
 system) while the web UI is running, and the changes will be visible on
 the next page reload.
 
-###### malformed edits
+##### malformed edits
 
 The journal file must remain in good [hledger format](#journal-file) so
 that hledger can parse it. The web add and edit forms ensure this by not
@@ -601,13 +603,13 @@ data, until the file has been fixed.
 
 There are some web-specific options:
 
-###### --port
+##### --port
 
     --port=N           serve on tcp port N (default 5000)
 
 The server listens on port 5000 by default; use --port to change that.
 
-###### --base-url
+##### --base-url
 
     --base-url=URL     use this base url (default http://localhost:PORT)
 
