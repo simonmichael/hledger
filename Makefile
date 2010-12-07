@@ -47,12 +47,15 @@ CABALFILES:= \
 	hledger/hledger.cabal \
 	hledger-*/*.cabal
 # DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
-BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell $(MAIN) --binary-filename)
+BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell -ihledger $(MAIN) --binary-filename)
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
-DEFINEFLAGS:=-DMAKE -DPATCHLEVEL=$(PATCHLEVEL)
+DEFINEFLAGS:=
 PREFERMACUSRLIBFLAGS=-L/usr/lib
-BUILDFLAGS:=$(DEFINEFLAGS) $(WARNINGS) $(PREFERMACUSRLIBFLAGS) $(INCLUDEPATHS)
+BUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -DPATCHLEVEL=$(PATCHLEVEL)
+LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-static -optl-pthread
+MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) #-O2 # -optl-L/usr/lib
+#WINDOWSRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS)
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 # file defining the current release version
@@ -71,6 +74,7 @@ VERSIONSENSITIVEFILES=\
 	MANUAL.markdown \
 	DOWNLOAD.markdown \
 	$(CABALFILES) \
+	hledger-web/.hledger/web/.version \
 
 default: tag hledger
 
@@ -81,16 +85,16 @@ default: tag hledger
 # and libs from all hledger packages. A good thing to run first; the other
 # allcabal rules require hledger-VERSION and hledger-lib-VERSION installed.
 # You may want to change the version number in VERSION file first.
-install: setversion allcabalinstall
+install: allcabalinstall
 
 # set version numbers and configure all hledger packages
-configure: setversion allcabalconfigure
+configure: allcabalconfigure
 
 # set version numbers and build all hledger packages
-build: setversion allcabalbuild
+build: allcabalbuild
 
 # set version numbers and cabal test all hledger packages
-cabaltest: setversion allcabaltest
+cabaltest: allcabaltest
 
 # run a cabal command in all hledger package dirs
 allcabal%:
@@ -102,20 +106,20 @@ all%:
 
 # auto-recompile and run (something, eg unit tests) whenever a module changes.
 # sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
-autotest: setversion
+autotest:
 	rm -f bin/hledger
 	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) -ihledger $(BUILDFLAGS) --run test
 
 # as above for add-on programs
-autoweb: setversion linkhledgerwebdir
+autoweb: linkhledgerwebdir
 	rm -f bin/hledger-web
 	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/hledger-web.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug
 
-autovty: setversion
+autovty:
 	rm -f bin/hledger-vty
 	sp --no-exts --no-default-map -o bin/hledger-vty ghc --make hledger-vty/hledger-vty.hs -ihledger-vty -ihledger $(BUILDFLAGS) --run --help
 
-autochart: setversion
+autochart:
 	rm -f bin/hledger-chart
 	sp --no-exts --no-default-map -o bin/hledger-chart ghc --make hledger-chart/hledger-chart.hs -ihledger-chart -ihledger $(BUILDFLAGS) --run --help
 
@@ -176,52 +180,65 @@ tools/generatejournal: tools/generatejournal.hs
 
 hledgerall: hledger hledger-web hledger-vty hledger-chart
 
-# build a developer's binary, as quickly as possible
-hledger: setversion
+# build developer binaries, as quickly as possible
+bin/hledger:
 	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
 
-hledger-web: setversion
+hledger-web:
 	ghc --make hledger-web/hledger-web.hs -o bin/hledger-web -ihledger-web -ihledger $(BUILDFLAGS)
 
-hledger-vty: setversion
+hledger-vty:
 	ghc --make hledger-vty/hledger-vty.hs -o bin/hledger-vty -ihledger-vty -ihledger $(BUILDFLAGS)
 
-hledger-chart: setversion
+hledger-chart:
 	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart -ihledger-chart -ihledger $(BUILDFLAGS)
 
-hledgernowarnings: setversion
+hledgernowarnings:
 	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS) -Werror -v0
 
 # build the profiling-enabled binary. You may need to cabal install
 # --reinstall -p some libs.
-hledgerp: setversion
+hledgerp:
 	ghc --make $(MAIN) -prof -auto-all -o bin/hledgerp $(BUILDFLAGS)
 
 # build the coverage-enabled binary. coverage-enabled .o files are kept
 # separate to avoid contamination.
-hledgercov: setversion
+hledgercov:
 	ghc --make $(MAIN) -fhpc -o bin/hledgercov -outputdir .coverageobjs $(BUILDFLAGS)
 
 # build the fastest binary we can
-hledgeropt: setversion
+hledgeropt:
 	ghc --make $(MAIN) -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build a deployable binary for gnu/linux, statically linked
-hledgerlinux: setversion
-	cd hledger; \
-	ghc --make $(MAIN) -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
-	@echo 'Please check the build looks portable (statically linked):'
-	-file bin/$(BINARYFILENAME)
+hledgerlinux:
+	ghc --make $(MAIN) $(LINUXRELEASEBUILDFLAGS) -o bin/$(BINARYFILENAME)
+	-ghc --make hledger-web/hledger-web.hs $(LINUXRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/'`
+	-ghc --make hledger-vty/hledger-vty.hs $(LINUXRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/'`
+	-ghc --make hledger-chart/hledger-chart.hs $(LINUXRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/'`
+	@echo 'Please check the binaries look portable, then make compressbinaries:'
+	-file bin/*`arch`
 
 # build a deployable binary for mac, using only standard osx libs
-hledgermac: setversion
-	ghc --make $(MAIN) -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 # -optl-L/usr/lib
-	@echo Please check the build looks portable:
-	otool -L bin/$(BINARYFILENAME)
+hledgermac:
+	ghc --make $(MAIN) $(MACRELEASEBUILDFLAGS) -o bin/$(BINARYFILENAME)
+	-ghc --make hledger-web/hledger-web.hs $(MACRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/'`
+	-ghc --make hledger-vty/hledger-vty.hs $(MACRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/'`
+	-ghc --make hledger-chart/hledger-chart.hs $(MACRELEASEBUILDFLAGS) -o bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/'`
+	@echo 'Please check the binaries look portable, then make compressbinaries:'
+	otool -L bin/*`arch`
 
 # build deployable binaries for windows, assuming cygwin tools are present
 hledgerwin: install
 	cp ~/.cabal/bin/hledger.exe bin/`echo $(BINARYFILENAME) | dos2unix`
+	-cp ~/.cabal/bin/hledger-web.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/' | dos2unix`
+	-cp ~/.cabal/bin/hledger-vty.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/' | dos2unix`
+	-cp ~/.cabal/bin/hledger-chart.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/' | dos2unix`
+	@echo 'Please check the binaries look portable, then zip them:'
+	ls -l bin/*`arch`
+
+compressbinaries:
+	gzip bin/*`arch`
 
 ######################################################################
 # TESTING
@@ -283,7 +300,7 @@ warningstest:
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure cabal is reasonably happy
-quickcabaltest: setversion
+quickcabaltest:
 	(cd hledger-lib \
 	&& cabal clean \
 	&& cabal check \
@@ -295,7 +312,7 @@ quickcabaltest: setversion
 	&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure cabal is happy in all possible ways
-fullcabaltest: setversion
+fullcabaltest:
 	(cd hledger-lib \
 	&& cabal clean \
 	&& cabal check \
@@ -596,12 +613,14 @@ releaseandupload: release upload
 
 # update the version number in local files, and prompt to record changes
 # in these files. Triggered by "make release".
-setandrecordversion: setversion
+setandrecordversion:
 	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
-# update the version string in local files. Triggered by "make".
+# update the version string in local files. This should be run immediately
+# after editing the VERSION file.
 setversion: $(VERSIONSENSITIVEFILES)
 
+# re-update version string even if it seems unchanged
 Setversion:
 	touch $(VERSIONFILE); make setversion
 
@@ -611,7 +630,7 @@ hledger/Hledger/Cli/Version.hs: $(VERSIONFILE)
 hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 
-hledger.cabal: $(VERSIONFILE)
+hledger/hledger.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
 
@@ -630,8 +649,11 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
 
+hledger-web/.hledger/web/.version: $(VERSIONFILE)
+	cat $(VERSIONFILE) >$@
+
 MANUAL.markdown: $(VERSIONFILE)
-	perl -p -e "s/(^This is the official.*?version) +[0-9.]+/\1 $(VERSION3)./" -i $@
+	perl -p -e "s/(^This is the.*?manual for hledger.*?) +[0-9.]+/\1 $(VERSION3)./" -i $@
 
 DOWNLOAD.markdown: $(VERSIONFILE)
 	perl -p -e "s/hledger-[0-9.]+-/hledger-$(VERSION3)-/g" -i $@
