@@ -33,6 +33,8 @@ contributors, and released as Free Software under GPL version 3 or later.
 
 This is the manual for hledger 0.13.0.
 
+<a name="faq" />
+
 ## Frequently asked questions
 
 - **How does hledger relate to John Wiegley's ledger project ?**
@@ -105,12 +107,12 @@ Basic usage is:
     $ hledger [OPTIONS] COMMAND [FILTER PATTERNS]
 
 hledger first looks for data in a specially-formatted
-[journal file](#journal-file).  You can specify the file with the -f
+[journal file](#journal-file-format).  You can specify the file with the -f
 option or the `LEDGER` environment variable; otherwise hledger assumes it
 is a file named `.journal` in your home directory. If the journal file
 does not exist, it will be auto-created.
 
-[Options](#overview) may appear anywhere on the command line.
+[Options](#options) may appear anywhere on the command line.
 
 [Commands](#core-commands) are described below.  Note that most hledger
 commands are read-only, that is they can not modify your data. The
@@ -124,7 +126,6 @@ To try it out, save the [sample file](#journal-file) as `.journal` in your
 home directory, or just run `hledger add` and enter some transactions. Now
 try some of these commands:
 
-    $ hledger --help                        # show command-line help
     $ hledger add                           # add some new transactions to the journal file
     $ hledger balance                       # all accounts with aggregated balances
     $ hledger bal --depth 1                 # only top-level accounts
@@ -133,51 +134,31 @@ try some of these commands:
     $ hledger reg checking                  # checking transactions
     $ hledger reg desc:shop                 # transactions with shop in the description
     $ hledger histogram                     # transactions per day, or other interval
+    $ hledger --help                        # show command-line help
 
 You'll find more examples below.
 
-<a name="faq" />
+## Options
 
-## Reference
-
-### Overview
-
-This version of hledger mimics a subset of ledger 3.x, and adds some
-features of its own. We currently support regular journal transactions, timelog
-entries, multiple commodities, (fixed) price history, virtual postings,
-filtering by account and description, the familiar print, register &
-balance commands and several new commands. We handle (almost) the full
-period expression syntax, and very limited display expressions consisting
-of a simple date predicate.
-
-Here is the command-line help:
+Here is the hledger --help overview. [Other features](#other-features)
+has more discussion of specific options:
 
     Usage: hledger [OPTIONS] COMMAND [PATTERNS]
            hledger [OPTIONS] convert CSVFILE
-           hledger [OPTIONS] stats
-
-    hledger reads your ~/.journal file, or another specified with $LEDGER or -f FILE
-
-    COMMAND is one of (may be abbreviated):
+    
+    Reads your ~/.journal file, or another specified by $LEDGER or -f, and
+    runs the specified command (may be abbreviated):
+    
       add       - prompt for new transactions and add them to the journal
       balance   - show accounts, with balances
-      convert   - read CSV bank data and display in journal format
+      convert   - show the specified CSV file as a hledger journal
       histogram - show a barchart of transactions per day or other interval
       print     - show transactions in journal format
       register  - show transactions as a register with running balance
       stats     - show various statistics for a journal
       test      - run self-tests
-
-    PATTERNS are regular expressions which filter by account name.
-    Prefix with desc: to filter by transaction description instead.
-    Prefix with not: to negate a pattern. When using both, not: comes last.
-
-    DATES can be y/m/d or ledger-style smart dates like "last month".
-
-    Use --help-options to see OPTIONS, or --help-all/-H.
-
-    Options:
-
+    
+    hledger options:
       -f FILE  --file=FILE        use a different journal/timelog file; - means stdin
                --no-new-accounts  don't allow to create new accounts
       -b DATE  --begin=DATE       report on transactions on or after this date
@@ -187,7 +168,7 @@ Here is the command-line help:
       -C       --cleared          report only on cleared transactions
       -U       --uncleared        report only on uncleared transactions
       -B       --cost, --basis    report cost of commodities
-               --depth=N          hide sub-accounts deeper than this
+               --depth=N          hide accounts/transactions deeper than this
       -d EXPR  --display=EXPR     show only transactions matching EXPR (where
                                   EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
                --effective        use transactions' effective dates, if any
@@ -205,13 +186,16 @@ Here is the command-line help:
                --debug            show extra debug output; implies verbose
                --binary-filename  show the download filename for this hledger build
       -V       --version          show version information
-      -h       --help             show basic command-line usage
-               --help-options     show command-line options
-      -H       --help-all         show command-line usage and options
-
+      -h       --help             show command-line usage
+    
+    DATES can be y/m/d or smart dates like "last month".  PATTERNS are regular
+    expressions which filter by account name.  Prefix a pattern with desc: to
+    filter by transaction description instead, prefix with not: to negate it.
+    When using both, not: comes last.
+    
 <a name="file-format" />
 
-### Journal file
+## Journal file format
 
 hledger reads data from a plain text file, called a *journal* because
 it represents a standard accounting [general
@@ -272,13 +256,180 @@ hledger's file format aims to be compatible with c++ ledger, so you
 can use both tools on your journal. For more details, see [File format
 compatibility](#file-format-compatibility).
 
-### Core commands
+### Simple dates
+
+Within a journal file, transaction dates always follow a year/month/day
+format, although several different separator characters are accepted. Some
+examples:
+
+> `2010/01/31`, `2010/1/31`, `2010-1-31`, `2010.1.31`
+
+Writing the year is optional if you set a default year with a Y directive.
+This is a line containing `Y` and the year; it affects subsequent
+transactions, like so:
+
+    Y2009
+    
+    12/15  ; equivalent to 2009/12/15
+      ...
+    
+    Y2010
+    
+    1/31  ; equivalent to 2010/1/31
+      ...
+
+### Actual & effective dates
+
+Most of the time, a simple transaction date is all you need. However
+real-life transactions sometimes involve more than one date.  For example,
+you buy a movie ticket on friday with a debit card, and the transaction is
+charged to your bank account on monday.  Or you write a cheque to someone
+and they deposit it weeks later.
+
+When you don't care about this, just pick one date for your journal
+transaction; either will do.  This means your hledger reports can be
+slightly out of step with reality (eg your daily bank balance.)
+
+When you need to model reality more accurately, you can write both dates,
+separated by an equals sign.  By default, the first date is used in
+reports; to use the second one instead, run hledger with the `--effective`
+flag.
+
+About the terminology: we follow c++ ledger's usage, calling these the
+*actual date* (on the left) and the *effective date* (on the right).
+hledger doesn't actually care what these terms mean, but here are some
+mnemonics to help keep our usage consistent and avoid confusion:
+
+- "The movie ticket purchase took EFFECT on friday, but ACTUALLY appeared in my bank balance on monday."
+
+- "The payment by cheque took EFFECT then, but ACTUALLY cleared weeks later."
+
+- ACTUAL=EFFECTIVE. The actual date is by definition the one on the left,
+  the effective date is on the right. A before E.
+
+- LATER=EARLIER. The effective date is usually the chronologically earlier one.
+
+- BANKDATE=MYDATE. You can usually think of effective date as "my date" and actual date as "bank's date".
+  If you record a transaction manually, you'll use the effective (your) date.
+  If you convert a transaction from bank data, it will have the actual (bank's) date.
+
+Example:
+
+    ; ACTUAL=EFFECTIVE
+    ; The latter's year can be omitted, it will be taken from the former
+    2010/2/23=2/19 movie ticket
+      expenses:cinema                   $10
+      assets:checking
+
+    $ hledger register checking
+    2010/02/23 movie ticket         assets:checking                $-10         $-10
+
+    $ hledger register checking --effective
+    2010/02/19 movie ticket         assets:checking                $-10         $-10
+
+### Default commodity
+
+You can set a default commodity or currency with a D directive. The
+commodity (and its symbol position and number format settings) will be
+used for any subsequent amounts which have no commodity symbol.
+
+    ; default commodity: british pound, comma thousands separator, two decimal places
+    D £1,000.00
+    
+    2010/1/1
+      a  2340   ; no commodity symbol, will use the above
+      b
+
+### Prices
+
+You can specify a commodity's unit price or exchange rate, in terms of
+another commodity. To set the price for a single posting's amount, write
+`@ PRICE` after the amount, where PRICE is another amount in a different
+commodity:
+
+    2009/1/2
+     assets:cash:foreign currency       €100 @ $1.35  ; one hundred euros priced at $1.35 each
+     assets:cash
+
+Or, you can set the price for a commodity as of a certain date, using a
+historical price directive as shown here:
+
+    ; the exchange rate for euro is $1.35 on 2009/1/1 (and thereafter, until a newer price directive is found)
+    ; four space-separated fields: P, date, commodity symbol, unit price in 2nd commodity
+    P 2009/1/1 € $1.35  
+    
+    2009/1/2 x
+     expenses:foreign currency       €100
+     assets
+
+The print command shows any prices in effect. Either example above will show:
+
+    $ hledger print
+    2009/01/02 x
+        expenses:foreign currency  €100 @ $1.35
+        assets                     €-100 @ $1.35
+
+To see amounts converted to their total cost, use the `--cost/-B` flag
+with any command:
+
+    $ hledger print --cost
+    2009/01/02 x
+        expenses:foreign currency       $135.00
+        assets                         $-135.00
+
+The `--cost/-B` flag does only one lookup step, ie it will not look up the
+price of a price's commodity.
+
+Note hledger handles prices differently from c++ ledger in this respect:
+we assume unit prices do not vary over time.  This is good for simple
+reporting of foreign currency transactions, but not for tracking
+fluctuating-value investments or capital gains.
+
+### Including other files
+
+You can pull in the content of additional journal files, by writing lines like this:
+
+    !include path/to/file.journal
+
+The `!include` directive may only be used in journal files, and currently
+it may only include other journal files (eg, not timelog files.)
+
+### Default parent account
+
+You can specify a parent account which will be prepended to all accounts
+within a section of the journal. Use the `!account` directive like so:
+
+    !account home
+    
+    2010/1/1
+        food    $10
+        cash
+    
+    !end
+
+If `!end` is omitted, the effect lasts to the end of the file.
+The above is equivalent to:
+
+    2010/01/01
+        home:food           $10
+        home:cash          $-10
+
+Included files are also affected, eg:
+
+    !account business
+    !include biz.journal
+    !end
+    !account personal
+    !include personal.journal
+    !end
+
+## Core commands
 
 These commands are provided by the main hledger package and are always
 available. The most frequently used commands are [print](#print),
 [register](#register) and [balance](#balance).
 
-#### add
+### add
 
 The add command prompts interactively for new transactions, and appends
 them to the journal file. Each transaction is appended when you complete
@@ -311,7 +462,7 @@ Examples:
     $ hledger add
     $ hledger -f home.journal add equity:bob
 
-#### balance
+### balance
 
 The balance command displays accounts and their balances, indented to show the account hierarchy.
 Examples:
@@ -332,7 +483,7 @@ In this mode you can also use `--drop N` to elide the first few account
 name components. Note `--depth` doesn't work too well with `--flat` currently;
 it hides deeper accounts rather than aggregating them.
 
-#### convert
+### convert
 
 The convert command reads a
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) file you have
@@ -418,7 +569,7 @@ Notes:
     matched text with `\0` and any regex groups with `\1`, `\2` in the
     usual way.
 
-#### histogram
+### histogram
 
 The histogram command displays a quick bar chart showing transaction
 counts by day, week, month or other reporting interval.
@@ -427,7 +578,7 @@ Examples:
 
     $ hledger histogram -p weekly dining
 
-#### print
+### print
 
 The print command displays full transactions from the journal file, tidily
 formatted and showing all amounts explicitly. The output of print is
@@ -441,7 +592,7 @@ Examples:
     $ hledger print
     $ hledger print employees:bob | hledger -f- register expenses
 
-#### register
+### register
 
 The register command displays postings, one per line, and their running total.
 With no [filter patterns](#filter-patterns), this is not all that different from [print](#print):
@@ -462,7 +613,7 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
-#### stats
+### stats
 
 The stats command displays quick summary information for the whole journal,
 or by period.
@@ -472,7 +623,7 @@ Examples:
     $ hledger stats
     $ hledger stats -p 'monthly in 2009'
 
-#### test
+### test
 
 This command runs hledger's internal self-tests and displays a quick
 report. The -v option shows more detail, and a pattern can be provided to
@@ -484,7 +635,7 @@ Examples:
     $ hledger test
     $ hledger test -v balance
 
-### Add-on commands
+## Add-on commands
 
 The following extra commands will be available if they have been
 [installed](#installing).  Add-ons may differ from hledger core in their
@@ -494,7 +645,7 @@ must invoke add-on commands like, eg: `$ hledger-web ...`, not `$ hledger
 web ...`. The hledger-NAME executables support the usual hledger options,
 plus any specific options of their own.
 
-#### chart
+### chart
 
 The chart command saves an image file, by default "hledger.png", showing a
 basic pie chart of your top account balances. Note that positive and
@@ -503,16 +654,16 @@ balances not matching the sign of the first one will be ignored.
 
 chart-specific options:
 
-##### --output
+#### --output
 
 You can specify a different output file name with -o/--output. The data
 currently will always be in PNG format.
 
-##### --size
+#### --size
 
 You can adjust the image resolution with --size=WIDTHxHEIGHT (in pixels).
 
-##### --items
+#### --items
 
 Set the number of accounts to show with --items=N (default is 10).
 
@@ -528,7 +679,7 @@ Examples:
     $ hledger-chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger-chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
-#### vty
+### vty
 
 The vty command starts a simple curses-style (full-screen, text) user
 interface, which allows interactive navigation of the
@@ -537,7 +688,7 @@ your numbers quickly with less typing.
 
 vty-specific options:
 
-##### --debug-vty
+#### --debug-vty
 
     --debug-vty  run with no terminal output, showing console
 
@@ -546,14 +697,33 @@ Examples:
     $ hledger-vty
     $ hledger-vty -BE food
 
-#### web
+### web
 
 The web command starts a web server providing a web-based user interface,
 and if possible opens a web browser to view it. The web UI combines the
 features of the print, register, balance and add commands, and adds a
 general edit command.
 
-##### data safety
+There are some web-specific options:
+
+#### --port
+
+    --port=N           serve on tcp port N (default 5000)
+
+The server listens on port 5000 by default; use --port to change that.
+
+#### --base-url
+
+    --base-url=URL     use this base url (default http://localhost:PORT)
+
+If you want to visit the web UI from other machines, you'll need to use
+this option to fix the hyperlinks. Just give your machine's host name or
+ip address instead of localhost. This option is also lets you conform to a
+custom url scheme when running hledger-web behind a reverse proxy as part
+of a larger site. Note that the PORT in the base url need not be the same
+as the `--port` argument.
+
+#### data safety
 
 Warning: the web UI's edit form can alter your existing journal data (it
 is the only hledger feature that can do so.)  Any visitor to the web UI
@@ -561,7 +731,7 @@ can edit or overwrite the journal file (and any included files); hledger
 provides no access control. A numbered backup of the file is saved on each
 edit, normally - ie if file permissions allow, disk is not full, etc.
 
-##### web support files
+#### web support files
 
 hledger-web requires certain support files (images, stylesheets,
 javascript etc.) to be present in a particular location when it
@@ -587,7 +757,7 @@ need to be upgraded too, probably by removing them and letting them be
 recreated.  So if you do customise them, remember what you changed; a
 version control system such as darcs will work well here.
 
-##### detecting changes
+#### detecting changes
 
 As noted, changes to the support files will take effect immediately,
 without a restart.  This applies to the journal data too; you can directly
@@ -595,32 +765,13 @@ edit the journal file(s) (or, eg, commit a change within a version control
 system) while the web UI is running, and the changes will be visible on
 the next page reload.
 
-##### malformed edits
+#### malformed edits
 
-The journal file must remain in good [hledger format](#journal-file) so
+The journal file must remain in good [hledger format](#journal-file-format) so
 that hledger can parse it. The web add and edit forms ensure this by not
 allowing edits which would introduce parse errors. If a direct edit makes
 the journal file unparseable, the web UI will show the error instead of
 data, until the file has been fixed.
-
-There are some web-specific options:
-
-##### --port
-
-    --port=N           serve on tcp port N (default 5000)
-
-The server listens on port 5000 by default; use --port to change that.
-
-##### --base-url
-
-    --base-url=URL     use this base url (default http://localhost:PORT)
-
-If you want to visit the web UI from other machines, you'll need to use
-this option to fix the hyperlinks. Just give your machine's host name or
-ip address instead of localhost. This option is also lets you conform to a
-custom url scheme when running hledger-web behind a reverse proxy as part
-of a larger site. Note that the PORT in the base url need not be the same
-as the `--port` argument.
 
 Examples:
 
@@ -628,12 +779,12 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --port 5010 --base-url http://some.vhost.com --debug
 
-### Other features
+## Other features
 
 Here are some additional hledger features and concepts that affect most
 commands.
 
-#### Filter patterns
+### Filter patterns
 
 Most commands accept one or more filter pattern arguments after the
 command name, to select a subset of transactions or postings. There are
@@ -662,82 +813,7 @@ The [print](#print) command selects transactions which
 > AND
 > *have no postings matching any of the negative account patterns*
 
-#### Dates
-
-##### Simple dates
-
-Within a journal file, transaction dates always follow a year/month/day
-format, although several different separator characters are accepted. Some
-examples:
-
-> `2010/01/31`, `2010/1/31`, `2010-1-31`, `2010.1.31`
-
-Simple dates are always unambiguous, but writing the year is optional if
-you define a..
-
-##### Default year
-
-You can set a default year for simple dates with a `Y` directive in the
-journal, as below. Then subsequent dates may be written as month/day. Eg:
-
-    Y2009
-    
-    12/15  ; <- equivalent to 2009/12/15
-      ...
-    
-    Y2010
-    
-    1/31  ; <- equivalent to 2010/1/31
-      ...
-
-##### Actual & effective dates
-
-This is a more advanced feature of dates in the journal file. Real-life
-transactions sometimes involve more than one date. For example, you buy a
-movie ticket on friday with a debit card, and the transaction is charged
-to your bank account on monday.  Or you write a cheque to someone and they
-deposit it weeks later.
-
-For most transactions, you won't care which date is recorded in your
-journal - either will do, especially if the dates are not far apart. But
-when you need to model reality (here, your daily bank balance) more
-accurately, you can record two dates, separated by an equals sign.  By
-default, the first date is used in reports; to use the second one instead,
-run hledger with the `--effective` flag.
-
-About the terminology: we follow c++ ledger's usage, calling these the
-*actual date* (on the left) and the *effective date* (on the right).
-hledger doesn't actually care what these terms mean, but here are some
-mnemonics to help keep our usage consistent and avoid confusion:
-
-- "The movie ticket purchase took EFFECT on friday, but ACTUALLY appeared in my bank balance on monday."
-
-- "The payment by cheque took EFFECT then, but ACTUALLY cleared weeks later."
-
-- ACTUAL=EFFECTIVE. The actual date is by definition the one on the left,
-  the effective date is on the right. A before E.
-
-- LATER=EARLIER. The effective date is usually the chronologically earlier one.
-
-- BANKDATE=MYDATE. You can usually think of effective date as "my date" and actual date as "bank's date".
-  If you record a transaction manually, you'll use the effective (your) date.
-  If you convert a transaction from bank data, it will have the actual (bank's) date.
-
-Example:
-
-    ; journal transaction with ACTUAL=EFFECTIVE
-    2010/2/23=2010/2/19 movie ticket
-      expenses:cinema                   $10
-      assets:checking
-
-    $ hledger register checking
-    2010/02/23 movie ticket         assets:checking                $-10         $-10
-
-    $ hledger register checking --effective
-    2010/02/19 movie ticket         assets:checking                $-10         $-10
-
-
-##### Smart dates
+### Smart dates
 
 Unlike the journal file, hledger's user interface accepts more flexible
 "smart dates", for example in the `-b` and `-e` options, period
@@ -757,7 +833,7 @@ today's date. Examples:
 
 Spaces in smart dates are optional, so eg: `-b lastmonth` is valid.
 
-#### Period expressions
+### Period expressions
 
 hledger supports flexible "period expressions" with the `-p/--period`
 option to select transactions within a period of time (eg in 2009) and/or
@@ -797,10 +873,13 @@ like so:
     -p "2009/1"         (the month of jan; equivalent to "2009/1/1 to 2009/2/1")
     -p "2009/1/1"       (just that day;    equivalent to "2009/1/1 to 2009/1/2")
 
-The `-b/--begin` and `-e/--end` options may be used as a shorthand for
-`-p 'from ...'` and `-p 'to ...'` respectively. But note [-p overrides other flags](#p-overrides-other-flags).
+The `-b/--begin` and `-e/--end` options may be used as a shorthand for `-p
+'from ...'` and `-p 'to ...'` respectively.
 
-##### Reporting interval
+Note, however: a `-p/--period` option in the command line will cause any
+`-b`/`-e`/`-D`/`-W`/`-M`/`-Q`/`-Y` flags to be ignored.
+
+### Reporting interval
 
 Period expressions can also begin with (or be) a reporting interval, which
 affects commands like [register](#register) and [histogram](#histogram).
@@ -815,14 +894,12 @@ keyword. Examples:
 
 A reporting interval may also be specified with the `-D/--daily`,
 `-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`
-options. But remember:
+options. But as noted above, a --period option will override these.
 
-##### -p overrides other flags
+This is currently the only kind of display expression that we support:
+transactions before or after a given (smart) date.
 
-A `-p/--period` option on the command line will cause any
-`-b`/`-e`/`-D`/`-W`/`-M`/`-Q`/`-Y` flags to be ignored.
-
-#### Display expressions
+### Display expressions
 
 Unlike a [period expression](#period-expressions), which selects the
 transactions to be used for calculation, a display expression (specified
@@ -833,152 +910,80 @@ month, but with an accurate running balance based on all transactions. Eg:
     $ hledger register checking --display "d>=[1]"
 
 meaning "make a register report of all checking transactions, but display
-only the ones with date on or after the 1st of this month."
+only the ones with date on or after the 1st of this month." This the only
+kind of display expression we currently support, ie transactions before or
+after a given (smart) date.
 
-This is currently the only kind of display expression that we support, ie
-transactions before or after a given (smart) date.
-
-#### Depth limiting
+### Depth limiting
 
 With the `--depth N` option, reports will show only the uppermost accounts
 in the account tree, down to level N. See the [balance](#balance),
 [register](#register) and [chart](#chart) examples.
 
-#### Prices
+### Timelog reporting
 
-You can specify a commodity's unit price, or exchange rate, in terms of
-another commodity. There are two ways.
+hledger can also read time log files in timeclock.el's format, containing
+clock-in and clock-out entries like so:
 
-First, you can set the price explicitly for a single posting by writing `@
-PRICE` after the amount. PRICE is another amount in a different
-commodity. Eg, here one hundred euros was purchased at $1.35 per euro:
-
-    2009/1/2 x
-     expenses:foreign currency       €100 @ $1.35
-     assets
-
-Secondly, you can set the price for a commodity as of a certain date, by
-entering a historical price record. These are lines beginning with "P",
-appearing anywhere in the journal between transactions. Eg, here we say the
-exchange rate for 1 euro is $1.35 on 2009/1/1 (and thereafter, until a
-newer price record is found):
-
-    P 2009/1/1 € $1.35  ; <- historical price: P, date, commodity symbol, price in 2nd commodity (space-separated)
-    
-    2009/1/2 x
-     expenses:foreign currency       €100
-     assets
-
-The print command shows any unit prices in effect. Either example above
-will show:
-
-    $ hledger print
-    2009/01/02 x
-        expenses:foreign currency  €100 @ $1.35
-        assets                     €-100 @ $1.35
-
-To see amounts converted to their total cost, use the `--cost/-B` flag
-with any command:
-
-    $ hledger print --cost
-    2009/01/02 x
-        expenses:foreign currency       $135.00
-        assets                         $-135.00
-
-The `--cost/-B` flag does only one lookup step, ie it will not look up the
-price of a price's commodity.
-
-Note hledger handles prices differently from c++ ledger in one important
-respect: we assume unit prices do not vary over time.  This is good for
-simple reporting of foreign currency transactions, but not for tracking
-fluctuating-value investments or capital gains.
-
-#### Including other files
-
-You can pull in the content of additional journal files, by writing lines like this:
-
-    !include path/to/file.journal
-
-The `!include` directive may only be used in journal files, and currently
-it may only include other journal files (eg, not timelog files.)
-
-#### Default commodity
-
-You can set a default commodity with a `D` directive in the journal. This
-will be used for any subsequent amounts with no commodity symbol,
-including the commodity display settings (left or right symbol, spacing,
-thousands separator, and precision.)
-
-    ; default commodity: british pound, comma thousands separator, two decimal places
-    D £1,000.00
-    
-    2010/1/1
-      a  2340.11   ; <- no commodity symbol, so will use the above
-      b
-
-#### Default parent account
-
-You can specify a default parent account within a section of the journal with
-the `!account` directive:
-
-    !account home
-    
-    2010/1/1
-        food    $10
-        cash
-    
-    !end
-
-If `!end` is omitted, the effect lasts to the end of the file.
-The above is equivalent to:
-
-    2010/01/01
-        home:food           $10
-        home:cash          $-10
-
-Included files are also affected, eg:
-
-    !account business
-    !include biz.journal
-    !end
-    !account personal
-    !include personal.journal
-    !end
-
-#### Timelog reporting
-
-hledger will also read timelog files in timeclock.el format. As a
-convenience, if you invoke hledger via an "hours" symlink or copy, it uses
-your timelog file (`~/.timelog` or `$TIMELOG`) by default, rather than your
-journal.
-
-Timelog entries look like this:
-
-    i 2009/03/31 22:21:45 some:project
+    i 2009/03/31 22:21:45 projects:A
     o 2009/04/01 02:00:34
 
-The clockin description is treated as an account name. Here are some
-queries to try (after downloading
-[sample.timelog](http://joyful.com/repos/hledger/sample.timelog)):
+hledger treats the clock-in description ("projects:A") as an account name,
+and creates a virtual transaction (or several - one per day) with the
+appropriate amount of hours. From the time log above, hledger print gives:
 
-    ln -s `which hledger` ~/bin/hours            # set up "hours" in your path
-    export TIMELOG=sample.timelog
-    hours                                        # show all time balances
-    hours -p 'last week'                         # last week
-    hours -p thismonth                           # the space is optional
-    hours -p 'from 1/15' register project        # project sessions since jan 15
-    hours -p 'weekly' reg --depth 1 -E           # weekly time summary
+    2009/03/31 * 22:21-23:59
+        (projects:A)          1.6h
+    
+    2009/04/01 * 00:00-02:00
+        (projects:A)          2.0h
 
-This is a useful feature, if you can find a way to efficiently record
-timelog entries. The "ti" and "to" scripts may be available from the c++
-ledger 2.x repository. I use
+Here is a
+[sample.timelog](http://joyful.com/repos/hledger/data/sample.timelog) to
+download and some queries to try:
+
+    hledger -f sample.timelog balance                               # current time balances
+    hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
+    hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
+
+To record time logs, you could use
 [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el) and
+perhaps
 [ledgerutils.el](http://joyful.com/repos/ledgertools/ledgerutils.el) in
-emacs.
+emacs. Or investigate the "ti" and "to" command-line scripts in the
+[c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
 
-### Compatibility with c++ ledger
+## Compatibility with c++ ledger
 
-#### Implementation
+hledger mimics a subset of ledger 3.x, and adds some features of its own
+(the add, web, vty, chart commands). We currently support:
+
+- regular journal transactions
+- journal format (we should be able to parse most ledger journals)
+- timelog format
+- multiple commodities
+- prices and price history (with non-changing prices)
+- virtual postings
+- filtering by account and description
+- print, register & balance commands
+- period expressions quite similar to ledger's
+- display expressions containing just a simple date predicate
+
+We do not support:
+
+- periodic and modifier transactions
+- fluctuating prices
+- display formats
+- budget reports
+
+And we add some features:
+
+- add
+- chart
+- vty
+- web
+
+### Implementation
 
 Unlike c++ ledger, hledger is written in the Haskell programming
 language. Haskell enables a coding style known as pure lazy functional
@@ -988,7 +993,7 @@ abstracted, portable platform which can make deployment and installation
 easier in some cases. Haskell also brings some new challenges such as
 managing memory growth.
 
-#### File format compatibility
+### File format compatibility
 
 hledger's file format is mostly identical with that of c++ ledger, with
 some features being accepted but ignored. (Eg modifier entries, periodic
@@ -1007,7 +1012,7 @@ Likewise, hledger does not support per-posting cleared status. It does
 ignore a cleared flag (`*`) at the start of a posting, so that the account
 name is parsed correctly.
 
-#### Features not supported
+### Features not supported
 
 c++ ledger features not currently supported include: modifier and periodic
 entries, and the following c++ ledger options and commands:
@@ -1068,7 +1073,7 @@ entries, and the following c++ ledger options and commands:
     prices   [REGEXP]...   display price history for matching commodities
     entry DATE PAYEE AMT   output a derived entry, based on the arguments
 
-#### Other differences
+### Other differences
 
 -   hledger recognises description and negative patterns by "desc:"
     and "not:" prefixes, unlike ledger 3's free-form parser
