@@ -120,9 +120,9 @@ command which can change everything.
 [Filter patterns](#filter-patterns) are often used to select a subset of the
 journal data, eg to report only food-related transactions.
 
-To try it out, just run `hledger add` and enter some transactions.  (Or,
-save the [sample file](#journal-file) as `.journal` in your home
-directory.) Now try some of these commands:
+To try it out, save the [sample file](#journal-file) as `.journal` in your
+home directory, or just run `hledger add` and enter some transactions. Now
+try some of these commands:
 
     $ hledger --help                        # show command-line help
     $ hledger add                           # add some new transactions to the journal file
@@ -257,14 +257,16 @@ Each transaction has a date, optional description, and two or more
 postings, of some amount to some account. The amounts within a transaction must balance,
 ie add up to 0. Or, you can leave one amount blank and it will be inferred.
 
-Note that account names may contain single spaces, while the amount must
-be separated from the account name by at least two spaces.
+Account names typically have several parts separated by a colon, from
+which hledger will derive a hierarchical chart of accounts. Account names
+may contain single spaces.
 
-An amount is a number, with an optional currency symbol or commodity name
-on either the left or right. Commodity names which contain more than just
-letters should be enclosed in double quotes. Negative amounts usually have
-the minus sign next to the number (`$-1`), but it may also go before the
-currency symbol/commodity name (`-$1`).
+After the account name, separated by at least *two* spaces, there is
+usually an amount.  This is a number, optionally with a currency symbol or
+commodity name on either the left or right. Commodity names which contain
+more than just letters should be enclosed in double quotes. Negative
+amounts usually have the minus sign next to the number (`$-1`), but it may
+also go before a currency symbol (`-$1`).
 
 hledger's file format aims to be compatible with c++ ledger, so you
 can use both tools on your journal. For more details, see [File format
@@ -823,19 +825,18 @@ A `-p/--period` option on the command line will cause any
 #### Display expressions
 
 Unlike a [period expression](#period-expressions), which selects the
-transactions to be used for calculation, a display expression specified
-with the `-d/--display` option selects which transactions will be
-displayed. This useful, say, if you want to see your checking register
-just for this month, but with an accurate running balance based on all
-transactions. Eg:
+transactions to be used for calculation, a display expression (specified
+with `-d/--display`) selects which transactions will be displayed. This
+useful, say, if you want to see your checking register just for this
+month, but with an accurate running balance based on all transactions. Eg:
 
     $ hledger register checking --display "d>=[1]"
 
 meaning "make a register report of all checking transactions, but display
 only the ones with date on or after the 1st of this month."
 
-This is really all that we support of c++ ledger's display expressions:
-namely transactions before or after a given (smart) date.
+This is currently the only kind of display expression that we support, ie
+transactions before or after a given (smart) date.
 
 #### Depth limiting
 
