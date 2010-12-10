@@ -55,7 +55,6 @@ CABALFILES:= \
 	hledger/hledger.cabal \
 	hledger-*/*.cabal
 # DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
-BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell -ihledger $(MAIN) --binary-filename)
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
 DEFINEFLAGS:=
@@ -83,6 +82,9 @@ VERSIONSENSITIVEFILES=\
 	DOWNLOAD.markdown \
 	$(CABALFILES) \
 	hledger-web/.hledger/web/.version \
+
+#BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell -ihledger $(MAIN) --binary-filename)
+RELEASEBINARYSUFFIX:=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '[:lower:]')
 
 default: tag hledger
 
@@ -224,6 +226,13 @@ hledgerlinux: setversion
 	ghc --make $(MAIN) -o bin/$(BINARYFILENAME) $(BUILDFLAGS) -O2 -static -optl-static -optl-pthread
 	@echo 'Please check the build looks portable (statically linked):'
 	-file bin/$(BINARYFILENAME)
+
+linuxbinary-%:
+	ghc --make $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
+
+# XXX link errors
+linuxbinary-hledger-chart:
+	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS) -lpixman-1 -v
 
 # build a deployable binary for mac, using only standard osx libs
 hledgermac: setversion
