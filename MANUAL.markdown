@@ -112,19 +112,10 @@ option or the `LEDGER` environment variable; otherwise hledger assumes it
 is a file named `.journal` in your home directory. If the journal file
 does not exist, it will be auto-created.
 
-[Options](#options) may appear anywhere on the command line.
-
-[Commands](#core-commands) are described below.  Note that most hledger
-commands are read-only, that is they can not modify your data. The
-exceptions are the add command which is append-only, and the (add-on) web
-command which can change everything.
-
-[Filter patterns](#filter-patterns) are often used to select a subset of the
-journal data, eg to report only food-related transactions.
-
-To try it out, save the [sample file](#journal-file) as `.journal` in your
-home directory, or just run `hledger add` and enter some transactions. Now
-try some of these commands:
+To get started, save this
+[sample file](http://joyful.com/repos/hledger/data/sample.journal) as
+`.journal` in your home directory, or just run `hledger add` and enter
+some transactions. Now try commands like these:
 
     $ hledger add                           # add some new transactions to the journal file
     $ hledger balance                       # all accounts with aggregated balances
@@ -136,28 +127,18 @@ try some of these commands:
     $ hledger histogram                     # transactions per day, or other interval
     $ hledger --help                        # show command-line help
 
-You'll find more examples below.
+[Commands](#core-commands) are described below.  Note that most hledger
+commands are read-only, that is they can not modify your data. The
+exceptions are the add command which is append-only, and the (add-on) web
+command which can change everything.
 
-## Options
+[Filter patterns](#filter-patterns) are often used to select a subset of the
+journal data, eg to report only food-related transactions.
 
-Here is the hledger --help overview. [Other features](#other-features)
-has more discussion of specific options:
+Options may appear anywhere on the command line.
+Here are the core hledger options, affecting most commands.
+Some of these are discussed more in [other features](#other-features):
 
-    Usage: hledger [OPTIONS] COMMAND [PATTERNS]
-           hledger [OPTIONS] convert CSVFILE
-    
-    Reads your ~/.journal file, or another specified by $LEDGER or -f, and
-    runs the specified command (may be abbreviated):
-    
-      add       - prompt for new transactions and add them to the journal
-      balance   - show accounts, with balances
-      convert   - show the specified CSV file as a hledger journal
-      histogram - show a barchart of transactions per day or other interval
-      print     - show transactions in journal format
-      register  - show transactions as a register with running balance
-      stats     - show various statistics for a journal
-      test      - run self-tests
-    
     hledger options:
       -f FILE  --file=FILE        use a different journal/timelog file; - means stdin
                --no-new-accounts  don't allow to create new accounts
@@ -187,11 +168,6 @@ has more discussion of specific options:
                --binary-filename  show the download filename for this hledger build
       -V       --version          show version information
       -h       --help             show command-line usage
-    
-    DATES can be y/m/d or smart dates like "last month".  PATTERNS are regular
-    expressions which filter by account name.  Prefix a pattern with desc: to
-    filter by transaction description instead, prefix with not: to negate it.
-    When using both, not: comes last.
     
 <a name="file-format" />
 
