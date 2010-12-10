@@ -34,8 +34,7 @@ href="../MANUAL.html#installing">installation docs</a>.
   <tr class="heading"><td colspan=4>command-line interface:</td></tr>
   <tr align="center">
     <td>
-      <!-- **[hledger-0.13-linux-i386.gz](download/hledger-0.13-linux-i386.gz)**<br><br> -->
-      [hledger-0.12.1-linux-i386.gz](download/hledger-0.12.1-linux-i386.gz)
+      [hledger-0.13-linux-i686.gz](download/hledger-0.13-linux-i686.gz)<br><br>
     </td>
     <td>
       [hledger-0.13-linux-x86_64.gz](download/hledger-0.13-linux-x86_64.gz)<br><br>
@@ -51,8 +50,7 @@ href="../MANUAL.html#installing">installation docs</a>.
   <tr class="heading"><td colspan=4>web interface:</td></tr>
   <tr align="center">
     <td>
-      -
-      <!-- [hledger-web-0.13-linux-i386.gz](download/hledger-web-0.13-linux-i386.gz)<br><br> -->
+      [hledger-web-0.13-linux-i686.gz](download/hledger-web-0.13-linux-i686.gz)<br><br>
     </td>
     <td>
       [hledger-web-0.13-linux-x86_64.gz](download/hledger-web-0.13-linux-x86_64.gz)<br><br>
@@ -67,8 +65,7 @@ href="../MANUAL.html#installing">installation docs</a>.
   <tr class="heading"><td colspan=4>text interface:</td></tr>
   <tr align="center">
     <td>
-      -
-      <!-- [hledger-vty-0.13-linux-i386.gz](download/hledger-vty-0.13-linux-i386.gz)<br><br> -->
+      [hledger-vty-0.13-linux-i686.gz](download/hledger-vty-0.13-linux-i686.gz)<br><br>
     </td>
     <td>
       [hledger-vty-0.13-linux-x86_64.gz](download/hledger-vty-0.13-linux-x86_64.gz)<br><br>
@@ -84,7 +81,7 @@ href="../MANUAL.html#installing">installation docs</a>.
   <tr align="center">
     <td>
       -
-      <!-- [hledger-chart-0.13-linux-i386.gz](download/hledger-chart-0.13-linux-i386.gz)<br><br> -->
+      <!-- [hledger-chart-0.13-linux-i686.gz](download/hledger-chart-0.13-linux-i686.gz)<br><br> -->
       &nbsp;
     </td>
     <td>
