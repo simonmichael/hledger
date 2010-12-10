@@ -1108,6 +1108,10 @@ entries, and the following c++ ledger options and commands:
     prices for amounts which have them. (This currently means that
     it does not print multi-commodity transactions in valid journal format.)
 
+  - hledger's default commodity directive (D) applies the commodity to
+    subsequent commodityless amounts. ledger uses it only to set commodity
+    display settings (and for the entry command).
+
 ## Troubleshooting
 
 ### Installation issues
