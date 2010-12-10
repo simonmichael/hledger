@@ -250,7 +250,9 @@ usually an amount.  This is a number, optionally with a currency symbol or
 commodity name on either the left or right. Commodity names which contain
 more than just letters should be enclosed in double quotes. Negative
 amounts usually have the minus sign next to the number (`$-1`), but it may
-also go before a currency symbol (`-$1`).
+also go before a currency symbol/commodity name (`-$1`). The number may
+optionally have thousands separators. Currently, thousands separators must
+be `,` (comma) and the decimal point must be `.` (period).
 
 hledger's file format aims to be compatible with c++ ledger, so you
 can use both tools on your journal. For more details, see [File format
