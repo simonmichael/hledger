@@ -106,7 +106,7 @@ cabaltest: allcabaltest
 
 # run a cabal command in all hledger package dirs
 allcabal%:
-	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*); done
+	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
 
 # run a command in all hledger package dirs
 all%:
@@ -186,9 +186,10 @@ tools/generatejournal: tools/generatejournal.hs
 ######################################################################
 # BUILDING
 
-hledgerall: hledger hledger-web hledger-vty hledger-chart
+hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
 
 # build developer binaries, as quickly as possible
+# this one is named bin/ to avoid case clash on mac
 bin/hledger:
 	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
 
@@ -269,7 +270,7 @@ hlinttest hlint:
 # run unit tests
 unittest: unittest-builtin
 
-unittest-builtin: hledger
+unittest-builtin: bin/hledger
 	@(bin/hledger test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
@@ -301,42 +302,45 @@ haddocktest:
 	@(make --quiet codehaddock \
 		&& echo $@ PASSED) || echo $@ FAILED
 
+# needs updating
 # make sure the normal build has no warnings
 warningstest:
 	@(make -s clean \
 		&& make --no-print-directory -s hledgernowarnings \
 		&& echo $@ PASSED) || echo $@ FAILED
 
-# make sure cabal is reasonably happy
-quickcabaltest:
-	(cd hledger-lib \
-	&& cabal clean \
-	&& cabal check \
-	&& cabal configure \
-	&& cd .. \
-	&& cabal clean \
-	&& cabal check \
-	&& cabal configure \
-	&& echo $@ PASSED) || echo $@ FAILED
+# needs updating
+# # make sure cabal is reasonably happy
+# quickcabaltest:
+# 	(cd hledger-lib \
+# 	&& cabal clean \
+# 	&& cabal check \
+# 	&& cabal configure \
+# 	&& cd .. \
+# 	&& cabal clean \
+# 	&& cabal check \
+# 	&& cabal configure \
+# 	&& echo $@ PASSED) || echo $@ FAILED
 
+# needs updating
 # make sure cabal is happy in all possible ways
-fullcabaltest:
-	(cd hledger-lib \
-	&& cabal clean \
-	&& cabal check \
-	&& cabal install \
-	&& cabal sdist \
-	&& cabal upload dist/hledger-lib-$(VERSION).tar.gz --check -v3 \
-	&& cd .. \
-	&& cabal clean \
-	&& cabal check \
-	&& cabal configure \
-	&& cabal build \
-	&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
-	&& cabal sdist \
-	&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
-	&& echo $@ PASSED \
-	) || echo $@ FAILED
+# # fullcabaltest:
+# 	(cd hledger-lib \
+# 	&& cabal clean \
+# 	&& cabal check \
+# 	&& cabal install \
+# 	&& cabal sdist \
+# 	&& cabal upload dist/hledger-lib-$(VERSION).tar.gz --check -v3 \
+# 	&& cd .. \
+# 	&& cabal clean \
+# 	&& cabal check \
+# 	&& cabal configure \
+# 	&& cabal build \
+# 	&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
+# 	&& cabal sdist \
+# 	&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
+# 	&& echo $@ PASSED \
+# 	) || echo $@ FAILED
 
 # run simple performance benchmarks without saving results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
@@ -653,7 +657,7 @@ sourcegraph:
 release: releasetest setandrecordversion tagrelease
 
 # Upload the latest cabal package and update hledger.org
-upload: sdist hackageupload pushdocs
+upload: allcabalsdist hackageupload pushdocs
 
 releaseandupload: release upload
 
@@ -708,14 +712,9 @@ DOWNLOAD.markdown: $(VERSIONFILE)
 tagrelease:
 	darcs tag $(VERSION3)
 
-sdist:
-	cd hledger-lib; cabal sdist
-	cabal sdist
-
 # display a hackage upload command reminder
 hackageupload:
-	cabal upload hledger-lib/dist/hledger-lib-$(VERSION).tar.gz -v3
-	cabal upload dist/hledger-$(VERSION).tar.gz -v3
+	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v3; done
 
 # send unpushed patches to the mail list
 send:
