@@ -34,6 +34,26 @@ ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 *** website
 **** add tables of contents
 **** integrate binaries, demo, pastebin
+*** faq
+**** life cycle of top-level accounts
+For personal ledgers, when you're born, all accounts are at zero (one hopes) and as you live:
+
+1. Equity accounts accommodate your previous years of not maintaining accounts (fixed, probably negative) 
+
+2. Expense accounts become more and more positive (unavoidably) 
+
+3. Income accounts become more and more negative (on payday) 
+
+4. Assets Accounts become more and more positive (in good times) 
+
+5. Liability account become more positive (in good times, when you pay them off) and more negative (when you use them to buy things). 
+
+When you die, Equity: and Income: will stand at large negative balances,
+Expense: and Assets: will stand at large positive balances and Liabilities
+will have to be paid (out of Assets) before your heirs get what's left.
+
+adapted from Ben Alexander, ledger-cli
+
 *** manual
 **** make accessible from command line
 *** add missing
@@ -443,9 +463,7 @@ http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.htm
 http://www.burningcutlery.com/derek/winsetup/
 http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** LEDGER vs LEDGER_FILE
-*** clarify data modifying story
-**** auto-create of empty files annoying ?
-**** data-modifying commands: add, web->add/edit
+*** auto-create of empty files annoying ?
 ** refactoring, cleanup
 *** more modularity
 **** packages/namespace
@@ -470,6 +488,13 @@ http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** better international number format support
+http://en.wikipedia.org/wiki/Decimal_separator
+
+2010/1/1 
+  a  $1.234,56
+  b
+
 *** show add form after adding
 *** : completes one account name component
 *** auto-complete from substrings, not just prefixes
@@ -1045,6 +1070,157 @@ maybeFileInput name = GForm $ \_ env -> do
 -- 	}
 -- ?>
 
+** linux binary linking issue
+Linking bin/hledger-0.13-linux-x86_64 ...
+/usr/local/lib/ghc-6.12.3/unix-2.4.0.2/libHSunix-2.4.0.2.a(HsUnix.o): In function `__hsunix_getpwent':
+HsUnix.c:(.text+0x171): warning: Using 'getpwent' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/local/lib/ghc-6.12.3/unix-2.4.0.2/libHSunix-2.4.0.2.a(HsUnix.o): In function `__hsunix_getpwnam_r':
+HsUnix.c:(.text+0x161): warning: Using 'getpwnam_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/local/lib/ghc-6.12.3/unix-2.4.0.2/libHSunix-2.4.0.2.a(HsUnix.o): In function `__hsunix_getpwuid_r':
+HsUnix.c:(.text+0x151): warning: Using 'getpwuid_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+** windows build issues
+with cygwin 1.7.7, windows xp
+*** process
+$ (date && ghc --version && cabal update && cabal configure && cabal build) >log 2>&1
+Mon Dec  6 14:23:11 PST 2010
+The Glorious Glasgow Haskell Compilation System, version 6.12.3
+Downloading the latest package list from hackage.haskell.org
+Resolving dependencies...
+Configuring process-1.0.1.4...
+configure: WARNING: unrecognized options: --with-compiler
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.exe
+checking for suffix of executables... .exe
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking how to run the C preprocessor... gcc -E
+checking for grep that handles long lines and -e... /usr/bin/grep
+checking for egrep... /usr/bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking for pid_t... yes
+checking vfork.h usability... no
+checking vfork.h presence... no
+checking for vfork.h... no
+checking for fork... yes
+checking for vfork... yes
+checking for working fork... yes
+checking for working vfork... (cached) yes
+checking signal.h usability... yes
+checking signal.h presence... yes
+checking for signal.h... yes
+checking sys/wait.h usability... yes
+checking sys/wait.h presence... yes
+checking for sys/wait.h... yes
+checking fcntl.h usability... yes
+checking fcntl.h presence... yes
+checking for fcntl.h... yes
+checking for setitimer,... no
+checking for sysconf... yes
+checking value of SIG_DFL... 0
+checking value of SIG_IGN... 1
+configure: creating ./config.status
+config.status: creating include/HsProcessConfig.h
+config.status: include/HsProcessConfig.h is unchanged
+configure: WARNING: unrecognized options: --with-compiler
+Preprocessing library process-1.0.1.4...
+Building process-1.0.1.4...
+In file included from C:/HP/lib/base-4.2.0.2/include/HsBase.h:33,
+
+                 from cbits\runProcess.c:12:0: 
+C:/cygwin/usr/include/stdlib.h:110: warning: `__warning__' attribute directive ignored
+C:/cygwin/usr/include/stdlib.h:117: warning: `__warning__' attribute directive ignored
+In file included from C:/HP/mingw/bin/../lib/gcc/mingw32/3.4.5/../../../../include/windows.h:98,
+                 from C:/HP/lib/base-4.2.0.2/include/HsBase.h:88,
+
+                 from cbits\runProcess.c:12:0: 
+C:/HP/mingw/bin/../lib/gcc/mingw32/3.4.5/../../../../include/winsock2.h:103:2: warning: #warning "fd_set and associated macros have been defined in sys/types.      This may cause runtime problems with W32 sockets"
+
+In file included from cbits\runProcess.c:12:0: 
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_ftruncate':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:347: warning: implicit declaration of function `ftruncate'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: At top level:
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:378: error: syntax error before "stsize_t"
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:378: warning: type defaults to `int' in declaration of `stsize_t'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:378: warning: data definition has no type or storage class
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_sizeof_stat':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:387: error: invalid application of `sizeof' to incomplete type `C:/HP/lib/base-4.2.0.2/include/HsBase.h' 
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_st_mtime':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:390: error: dereferencing pointer to incomplete type
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: At top level:
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:391: error: syntax error before "__hscore_st_size"
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:391: warning: return type defaults to `int'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_st_size':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:391: error: dereferencing pointer to incomplete type
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_st_mode':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:393: error: dereferencing pointer to incomplete type
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_st_dev':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:394: error: dereferencing pointer to incomplete type
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_st_ino':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:395: error: dereferencing pointer to incomplete type
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_stat':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:400: warning: implicit declaration of function `_wstati64'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_fstat':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:404: warning: implicit declaration of function `_fstati64'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_open':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:591: warning: implicit declaration of function `_wsopen'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: At top level:
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:608: error: syntax error before "__hscore_lseek"
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:608: error: syntax error before "off64_t"
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:608: warning: return type defaults to `int'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h: In function `__hscore_lseek':
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:609: warning: implicit declaration of function `_lseeki64'
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:609: error: `fd' undeclared (first use in this function)
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:609: error: (Each undeclared identifier is reported only once
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:609: error: for each function it appears in.)
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:609: error: `off' undeclared (first use in this function)
+C:/HP/lib/base-4.2.0.2/include/HsBase.h:609: error: `whence' undeclared (first use in this function)
+cbits\runProcess.c: In function `runInteractiveProcess':
+
+cbits\runProcess.c:387:0:
+     warning: implicit declaration of function `_get_osfhandle'
+
+cbits\runProcess.c:463:0:
+     warning: implicit declaration of function `_open_osfhandle'
+
+*** haskeline
+$ (date && ghc --version && cabal update && cabal install haskeline) >log 2>&1
+Mon Dec  6 14:39:54 PST 2010
+The Glorious Glasgow Haskell Compilation System, version 6.12.3
+Downloading the latest package list from hackage.haskell.org
+Resolving dependencies...
+[1 of 1] Compiling Main             ( C:\DOCUME~1\SIMON\LOCALS~1\Temp\haskeline-0.6.3.24132\haskeline-0.6.3.2\Setup.hs, C:\DOCUME~1\SIMON\LOCALS~1\Temp\haskeline-0.6.3.24132\haskeline-0.6.3.2\dist\setup\Main.o )
+Linking C:\DOCUME~1\SIMON\LOCALS~1\Temp\haskeline-0.6.3.24132\haskeline-0.6.3.2\dist\setup\setup.exe ...
+Configuring haskeline-0.6.3.2...
+Preprocessing library haskeline-0.6.3.2...
+In file included from C:/HP/mingw/bin/../lib/gcc/mingw32/3.4.5/../../../../include/windows.h:98,
+                 from includes/win_console.h:3,
+                 from System\Console\Haskeline\Backend\Win32.hsc:27:
+C:/HP/mingw/bin/../lib/gcc/mingw32/3.4.5/../../../../include/winsock2.h:103:2: warning: #warning "fd_set and associated macros have been defined in sys/types.      This may cause runtime problems with W32 sockets"
+dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o:Win32_hsc_make.c:(.text+0x47): undefined reference to `_impure_ptr'
+dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o:Win32_hsc_make.c:(.text+0x7b): undefined reference to `_impure_ptr'
+dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o:Win32_hsc_make.c:(.text+0x93): undefined reference to `_impure_ptr'
+dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o:Win32_hsc_make.c:(.text+0xc7): undefined reference to `_impure_ptr'
+dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o:Win32_hsc_make.c:(.text+0xf3): undefined reference to `_impure_ptr'
+dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o:Win32_hsc_make.c:(.text+0x127): more undefined references to `_impure_ptr' follow
+collect2: ld returned 1 exit status
+linking dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o failed
+command was: C:\HP\mingw\bin\gcc.exe -LC:\cygwin\lib -LC:\Documents and Settings\Simon\Application Data\cabal\utf8-string-0.3.6\ghc-6.12.3 -LC:\cygwin\lib -LC:\HP\lib\extralibs\mtl-1.1.0.2\ghc-6.12.3 -LC:\HP\lib\extensible-exceptions-0.1.1.1 -LC:\HP\lib\directory-1.0.1.1 -LC:\HP\lib\old-time-1.0.0.5 -LC:\HP\lib\old-locale-1.0.0.2 -LC:\HP\lib\filepath-1.1.0.4 -LC:\HP\lib\containers-0.3.0.0 -LC:\HP\lib\base-3.0.3.2 -LC:\HP\lib\syb-0.1.0.2 -LC:\HP\lib\array-0.3.0.1 -LC:\HP\lib\Win32-2.2.0.2 -luser32 -lgdi32 -lwinmm -ladvapi32 -lshell32 -lshfolder -LC:\HP\lib\bytestring-0.9.1.7 -LC:\HP\lib\base-4.2.0.2 -lwsock32 -luser32 -lshell32 -LC:\HP\lib\integer-gmp-0.2.0.1 -LC:\HP\lib\ghc-prim-0.2.0.0 -LC:\HP\lib -LC:\HP\lib/gcc-lib -lm -lwsock32 -LC:\HP\lib dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.o -o dist\build\System\Console\Haskeline\Backend\Win32_hsc_make.exe
+cabal.exe: Error: some packages failed to install:
+haskeline-0.6.3.2 failed during the building phase. The exception was:
+ExitFailure 1
 
 * journal
 ** 2010
