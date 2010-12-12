@@ -1,7 +1,7 @@
 ---
 title: hledger Contributor List and Agreement
 ---
-hledger Contributor List and Agreement
+Contributor List and Agreement
 ======================================
 
 hledger Contributors

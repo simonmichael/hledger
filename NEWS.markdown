@@ -2,7 +2,7 @@
 title: hledger news
 ---
 
-# hledger news
+# News
 
 ## 2011/4/22 hledger 0.14
 

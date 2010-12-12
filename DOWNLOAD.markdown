@@ -2,7 +2,7 @@
 title: hledger downloads
 ---
 
-# hledger downloads
+# Downloads
 
 <style>
 tr.heading td {

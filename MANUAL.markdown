@@ -1,8 +1,8 @@
 ---
-title: hledger manual
+title: hledger user manual
 ---
 
-# hledger manual
+# User manual
 
 ## About
 

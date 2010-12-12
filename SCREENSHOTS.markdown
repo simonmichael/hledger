@@ -2,7 +2,7 @@
 title: hledger screenshots
 ---
 
-# hledger screenshots
+# Screenshots
 
 
 Click to enlarge, or mouse over for captions..
