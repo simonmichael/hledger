@@ -63,9 +63,9 @@ This is the manual for hledger 0.14.0.
 
 ## Installing
 
-hledger works on all major platforms *(except microsoft windows, as of 
-version 0.13; to be fixed)*. You can download and run current release binaries from
-the [download page](DOWNLOAD.html).
+hledger works on all major platforms *(except microsoft windows, as of
+version 0.13; to be fixed)*. You can download and run current release
+binaries from the [download page](DOWNLOAD.html).
 
 Or, you can build the current release from source using cabal-install.
 Ensure you have a working
@@ -88,16 +88,20 @@ Or, you can build the latest [development version](http://joyful.com/darcsweb/da
     $ cd hledger
     $ make install
 
-If you have trouble, please see [Troubleshooting](#troubleshooting) and
-ask for [Support](DEVELOPMENT.html#support). Also note these tips:
+**Installation notes:**
 
-- If you're working with non-ascii journal data, be sure to [set a suitable locale](#usage-issues)
+- Whatever installation method you use, you may need to
+  [set a suitable locale](#usage-issues) if you're working with non-ascii
+  journal data.
 - When installing with cabal you may encounter dependency issues. These
   can often be worked around by: making sure to cabal update; using
   --constraint; and/or ghc-pkg unregister-ing obsolete package versions.
 - hledger-chart: requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
 - hledger-vty: requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
 - hledger-web: building requires GHC 6.12 or greater.
+
+If you have trouble, please see [Troubleshooting](#troubleshooting) and
+ask for [Support](DEVELOPMENT.html#support).
 
 ## Basic usage
 
