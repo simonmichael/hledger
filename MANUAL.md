@@ -88,14 +88,13 @@ Or, you can build the latest [development version](http://joyful.com/darcsweb/da
     $ cd hledger
     $ make install
 
-You may encounter dependency issues when using cabal, which can often be
-worked around by (a) being sure to cabal update, (b) using --constraint,
-(c) unregistering obsolete package versions from your system.  Otherwise,
-please see [Troubleshooting](#troubleshooting) and seek
-[Support](DEVELOPMENT.html#support).
+If you have trouble, please see [Troubleshooting](#troubleshooting) and
+ask for [Support](DEVELOPMENT.html#support). Also note these tips:
 
-More installation tips:
-
+- If you're working with non-ascii journal data, be sure to [set a suitable locale](#usage-issues)
+- When installing with cabal you may encounter dependency issues. These
+  can often be worked around by: making sure to cabal update; using
+  --constraint; and/or ghc-pkg unregister-ing obsolete package versions.
 - hledger-chart: requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
 - hledger-vty: requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
 - hledger-web: building requires GHC 6.12 or greater.
@@ -1233,30 +1232,42 @@ sailing.  Here are some known issues and things to try:
 
 Here are some issues you might encounter when you run hledger:
 
-- <a name="locale" />**hledger: ... hGetContents: invalid argument (Illegal byte sequence)**
-    You may get this error when running hledger with a journal containing
-    non-ascii text, on a machine using the default C locale. You can check
-    this like so:
-  
-        $ locale
-        LANG=
-        LC_COLLATE="C"
-        LC_CTYPE="C"
-        LC_MESSAGES="C"
-        LC_MONETARY="C"
-        LC_NUMERIC="C"
-        LC_TIME="C"
-        LC_ALL=
+- <a name="locale" />**non-ascii data gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**
+
+    hledger and other executables produced by GHC will give this error if
+    asked to read a non-ascii file when a proper system locale is not
+    configured. Eg, it's common for journal files to be UTF-8-encoded, in
+    which case the system must have a (installed) UTF-8-aware locale
+    configured.  You can also configure it temporarily by setting the LANG
+    environment variable on the command line. Here's an example, using
+    ubuntu:
+    
         $ file my.journal
-        .../.journal: UTF-8 Unicode C++ program text
+        my.journal: UTF-8 Unicode text
+        $ locale -a
+        C
+        en_US.utf8
+        POSIX
+        $ LANG=en_US.utf8 hledger -f my.journal print
   
-    In this case you need to set the `LANG` environment variable to a
-    locale suitable for the encoding shown (eg UTF-8). You
-    can set it temporarily when you run hledger:
-  
-        $ LANG=en_US.UTF-8 hledger ...
-      
-    or permanently:
+    If we prefer, say, fr_FR.utf8, we'd better make sure it's installed:
+    
+        $ apt-get install language-pack-fr
+        $ locale -a
+        C
+        en_US.utf8
+        fr_BE.utf8
+        fr_CA.utf8
+        fr_CH.utf8
+        fr_FR.utf8
+        fr_LU.utf8
+        POSIX
+        $ LANG=fr_FR.utf8 hledger -f my.journal print
+
+    Also note that on ubuntu variant spellings of "utf8", like "fr_FR.UTF8", are allowed,
+    while on mac osx it must be exactly "fr_FR.UTF-8".
+
+    Here's one way to set LANG permanently:
   
         $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
         $ bash --login

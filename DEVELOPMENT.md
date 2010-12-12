@@ -58,6 +58,7 @@ A rough guide for hledger contributors of all kinds, plus some quick links for e
   [\#ledger](irc://irc.freenode.net/#ledger) irc channel which we
   share, or [send email](mailto:simon@joyful.com?subject=hledger:)
 - for issues relevant to the wider *ledger community, you can also use or cc ledger's mail list
+- don't forget the [installation tips](MANUAL.html#installing), [Troubleshooting](MANUAL.html#troubleshooting) section, and bug tracker
 
 ### how to report problems
 

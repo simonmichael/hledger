@@ -20,7 +20,7 @@ code {
 Here are pre-built hledger binaries which you can download. You may need
 to decompress *(gunzip FILE.gz)* and make them executable *(chmod +x
 FILE)* before running them.  Please <a
-href="DEVELOPMENT.html#support">report</a> problems and for more help and
+href="DEVELOPMENT.html#support">report</a> any problems. For more help and
 alternate installation methods, see the <a
 href="../MANUAL.html#installing">installation docs</a>.
     
