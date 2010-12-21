@@ -35,6 +35,7 @@ convert a particular CSV data file into meaningful journal transactions. See abo
 -}
 data CsvRules = CsvRules {
       dateField :: Maybe FieldPosition,
+      dateFormat :: Maybe String,
       statusField :: Maybe FieldPosition,
       codeField :: Maybe FieldPosition,
       descriptionField :: Maybe FieldPosition,
@@ -47,6 +48,7 @@ data CsvRules = CsvRules {
 
 nullrules = CsvRules {
       dateField=Nothing,
+      dateFormat=Nothing,
       statusField=Nothing,
       codeField=Nothing,
       descriptionField=Nothing,
@@ -165,6 +167,7 @@ definitions :: GenParser Char CsvRules ()
 definitions = do
   choice' [
     datefield
+   ,dateformat
    ,statusfield
    ,codefield
    ,descriptionfield
@@ -182,6 +185,13 @@ datefield = do
   v <- restofline
   r <- getState
   setState r{dateField=readMay v}
+
+dateformat = do
+  string "date-format"
+  many1 spacenonewline
+  v <- restofline
+  r <- getState
+  setState r{dateFormat=Just v}
 
 codefield = do
   string "code-field"
@@ -271,7 +281,7 @@ printTxn debug rules rec = do
 transactionFromCsvRecord :: CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord rules fields =
   let 
-      date = parsedate $ normaliseDate $ maybe "1900/1/1" (atDef "" fields) (dateField rules)
+      date = parsedate $ normaliseDate (dateFormat rules) $ maybe "1900/1/1" (atDef "" fields) (dateField rules)
       status = maybe False (null . strip . (atDef "" fields)) (statusField rules)
       code = maybe "" (atDef "" fields) (codeField rules)
       desc = maybe "" (atDef "" fields) (descriptionField rules)
@@ -323,9 +333,11 @@ transactionFromCsvRecord rules fields =
   in t
 
 -- | Convert some date string with unknown format to YYYY/MM/DD.
-normaliseDate :: String -> String
-normaliseDate s = maybe "0000/00/00" showDate $
-              firstJust
+normaliseDate :: Maybe String -- ^ User-supplied date format: this should be tried in preference to all others
+              -> String -> String
+normaliseDate mb_user_format s = maybe "0000/00/00" showDate $
+              firstJust $
+              (maybe id (\user_format -> (parseTime defaultTimeLocale user_format s :)) mb_user_format) $
               [parseTime defaultTimeLocale "%Y/%m/%e" s
                -- can't parse a month without leading 0, try adding one
               ,parseTime defaultTimeLocale "%Y/%m/%e" (take 5 s ++ "0" ++ drop 5 s)
