@@ -74,8 +74,14 @@ sumPostings = sumMixedAmountsPreservingHighestPrecision . map pamount
 postingDate :: Posting -> Day
 postingDate p = maybe nulldate tdate $ ptransaction p
 
+-- |Is this posting cleared? If this posting was individually marked
+-- as cleared, returns True. Otherwise, return the parent
+-- transaction's cleared status or, if there is no parent
+-- transaction, return False.
 postingCleared :: Posting -> Bool
-postingCleared p = maybe False tstatus $ ptransaction p
+postingCleared p = if pstatus p
+                    then True
+                    else maybe False tstatus $ ptransaction p
 
 -- | Does this posting fall within the given date span ?
 isPostingInDateSpan :: DateSpan -> Posting -> Bool
