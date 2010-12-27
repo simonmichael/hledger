@@ -90,7 +90,7 @@ entryFromTimeLogInOut i o
       ps       = [Posting{pstatus=False,paccount=acctname,pamount=amount,
                           pcomment="",ptype=VirtualPosting,pmetadata=[],ptransaction=Just t}]
 
-tests_TimeLog = TestList [
+tests_Hledger_Data_TimeLog = TestList [
 
    "timeLogEntriesToTransactions" ~: do
      today <- getCurrentDay

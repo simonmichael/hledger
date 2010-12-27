@@ -389,3 +389,7 @@ postingsByAccount ps = m'
       sortedps = sortBy (comparing paccount) ps
       groupedps = groupBy (\p1 p2 -> paccount p1 == paccount p2) sortedps
       m' = Map.fromList [(paccount $ head g, g) | g <- groupedps]
+
+tests_Hledger_Data_Journal = TestList [
+ ]
+

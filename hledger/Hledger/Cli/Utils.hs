@@ -19,6 +19,7 @@ module Hledger.Cli.Utils
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
      readFileStrictly,
+     Test(TestList),
     )
 where
 import Hledger.Data

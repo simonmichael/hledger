@@ -182,7 +182,7 @@ txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
 settxn :: Transaction -> Posting -> Posting
 settxn t p = p{ptransaction=Just t}
 
-tests_Transaction = TestList [
+tests_Hledger_Data_Transaction = TestList [
   "showTransaction" ~: do
      assertEqual "show a balanced transaction, eliding last amount"
        (unlines
@@ -263,5 +263,68 @@ tests_Transaction = TestList [
          [Posting False "a" (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting [] Nothing
          ,Posting False "b" missingamt "" RegularPosting [] Nothing
          ] ""))
+
+  ,"balanceTransaction" ~: do
+     assertBool "detect unbalanced entry, sign error"
+                    (isLeft $ balanceTransaction Nothing
+                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing, 
+                             Posting False "b" (Mixed [dollars 1]) "" RegularPosting [] Nothing
+                            ] ""))
+     assertBool "detect unbalanced entry, multiple missing amounts"
+                    (isLeft $ balanceTransaction Nothing
+                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                            [Posting False "a" missingamt "" RegularPosting [] Nothing, 
+                             Posting False "b" missingamt "" RegularPosting [] Nothing
+                            ] ""))
+     let e = balanceTransaction Nothing (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                           [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing, 
+                            Posting False "b" missingamt "" RegularPosting [] Nothing
+                           ] "")
+     assertBool "one missing amount should be ok" (isRight e)
+     assertEqual "balancing amount is added" 
+                     (Mixed [dollars (-1)])
+                     (case e of
+                        Right e' -> (pamount $ last $ tpostings e')
+                        Left _ -> error' "should not happen")
+
+  ,"isTransactionBalanced" ~: do
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
+             ] ""
+     assertBool "detect balanced" (isTransactionBalanced Nothing t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.01)]) "" RegularPosting [] (Just t)
+             ] ""
+     assertBool "detect unbalanced" (not $ isTransactionBalanced Nothing t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ] ""
+     assertBool "detect unbalanced, one posting" (not $ isTransactionBalanced Nothing t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 0]) "" RegularPosting [] (Just t)
+             ] ""
+     assertBool "one zero posting is considered balanced for now" (isTransactionBalanced Nothing t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" VirtualPosting [] (Just t)
+             ] ""
+     assertBool "virtual postings don't need to balance" (isTransactionBalanced Nothing t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting [] (Just t)
+             ] ""
+     assertBool "balanced virtual postings need to balance among themselves" (not $ isTransactionBalanced Nothing t)
+     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+             [Posting False "b" (Mixed [dollars 1.00]) "" RegularPosting [] (Just t)
+             ,Posting False "c" (Mixed [dollars (-1.00)]) "" RegularPosting [] (Just t)
+             ,Posting False "d" (Mixed [dollars 100]) "" BalancedVirtualPosting [] (Just t)
+             ,Posting False "e" (Mixed [dollars (-100)]) "" BalancedVirtualPosting [] (Just t)
+             ] ""
+     assertBool "balanced virtual postings need to balance among themselves (2)" (isTransactionBalanced Nothing t)
 
   ]

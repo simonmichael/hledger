@@ -137,12 +137,12 @@ myTimelog = myTimelogPath >>= readJournalFile Nothing >>= either error' return
 
 tests_Hledger_Read = TestList
   [
+   tests_Hledger_Read_JournalReader,
+   tests_Hledger_Read_TimelogReader,
 
    "journalFile" ~: do
     assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx nullctx JournalReader.journalFile "")
     jE <- readJournal Nothing "" -- don't know how to get it from journalFile
     either error' (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
 
-  ,JournalReader.tests_JournalReader
-  ,TimelogReader.tests_TimelogReader
   ]

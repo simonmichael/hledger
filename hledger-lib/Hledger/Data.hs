@@ -37,16 +37,16 @@ import Hledger.Data.Utils
 
 tests_Hledger_Data = TestList
     [
-    --  Hledger.Data.Account.tests_Account
-    -- ,Hledger.Data.AccountName.tests_AccountName
-     Hledger.Data.Amount.tests_Amount
-    -- ,Hledger.Data.Commodity.tests_Commodity
-    ,Hledger.Data.Dates.tests_Dates
-    ,Hledger.Data.Transaction.tests_Transaction
-    -- ,Hledger.Data.Hledger.Data.tests_Hledger.Data
-    -- ,Hledger.Data.Journal.tests_Journal
-    -- ,Hledger.Data.Posting.tests_Posting
-    ,Hledger.Data.TimeLog.tests_TimeLog
-    -- ,Hledger.Data.Types.tests_Types
-    -- ,Hledger.Data.Utils.tests_Utils
+     tests_Hledger_Data_Account
+    ,tests_Hledger_Data_AccountName
+    ,tests_Hledger_Data_Amount
+    ,tests_Hledger_Data_Commodity
+    ,tests_Hledger_Data_Dates
+    ,tests_Hledger_Data_Journal
+    ,tests_Hledger_Data_Ledger
+    ,tests_Hledger_Data_Posting
+    ,tests_Hledger_Data_TimeLog
+    ,tests_Hledger_Data_Transaction
+    -- ,tests_Hledger_Data_Types
+    -- ,tests_Hledger_Data_Utils
     ]

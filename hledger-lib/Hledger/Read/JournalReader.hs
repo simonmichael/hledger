@@ -104,17 +104,17 @@ i, o, b, h
 -}
 
 module Hledger.Read.JournalReader (
-       tests_JournalReader,
-       reader,
-       journalFile,
+       emptyLine,
        journalAddFile,
-       someamount,
+       journalFile,
        ledgeraccountname,
+       ledgerdatetime,
+       ledgerDefaultYear,
        ledgerExclamationDirective,
        ledgerHistoricalPrice,
-       ledgerDefaultYear,
-       emptyLine,
-       ledgerdatetime,
+       reader,
+       someamount,
+       tests_Hledger_Read_JournalReader
 )
 where
 import Control.Monad.Error (ErrorT(..), throwError, catchError)
@@ -590,7 +590,7 @@ numberpartsstartingwithpoint = do
   return ("",frac)
                      
 
-tests_JournalReader = TestList [
+tests_Hledger_Read_JournalReader = TestList [
 
    "ledgerTransaction" ~: do
     assertParseEqual (parseWithCtx nullctx ledgerTransaction entry1_str) entry1

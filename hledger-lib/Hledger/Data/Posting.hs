@@ -91,3 +91,6 @@ postingsDateSpan [] = DateSpan Nothing Nothing
 postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
     where ps' = sortBy (comparing postingDate) ps
 
+tests_Hledger_Data_Posting = TestList [
+ ]
+

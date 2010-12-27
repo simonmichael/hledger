@@ -43,8 +43,8 @@ o 2007/03/10 17:26:02
 -}
 
 module Hledger.Read.TimelogReader (
-       tests_TimelogReader,
        reader,
+       tests_Hledger_Read_TimelogReader
 )
 where
 import Control.Monad.Error (ErrorT(..))
@@ -96,6 +96,6 @@ timelogentry = do
   comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
   return $ TimeLogEntry (read [code]) datetime (maybe "" rstrip comment)
 
-tests_TimelogReader = TestList [
+tests_Hledger_Read_TimelogReader = TestList [
  ]
 

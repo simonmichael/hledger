@@ -470,7 +470,8 @@ nulldatespan = DateSpan Nothing Nothing
 
 nulldate = parsedate "1900/01/01"
 
-tests_Dates = TestList [
+tests_Hledger_Data_Dates = TestList
+ [
 
    "splitSpan" ~: do
     let gives (interval, span) = (splitSpan interval span `is`)
@@ -489,4 +490,53 @@ tests_Dates = TestList [
     (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
      [mkdatespan "2008/01/01" "2008/01/01"]
 
-    ]
+  ,"parsedate" ~: do
+    let date1 = parsedate "2008/11/26"
+    parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
+    parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
+
+  ,"period expressions" ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let str `gives` result = show (parsewith (periodexpr todaysdate) str) `is` ("Right " ++ result)
+    "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
+    "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
+
+  ,"fixSmartDateStr" ~: do
+    let gives = is . fixSmartDateStr (parsedate "2008/11/26")
+    "1999-12-02"   `gives` "1999/12/02"
+    "1999.12.02"   `gives` "1999/12/02"
+    "1999/3/2"     `gives` "1999/03/02"
+    "19990302"     `gives` "1999/03/02"
+    "2008/2"       `gives` "2008/02/01"
+    "0020/2"       `gives` "0020/02/01"
+    "1000"         `gives` "1000/01/01"
+    "4/2"          `gives` "2008/04/02"
+    "2"            `gives` "2008/11/02"
+    "January"      `gives` "2008/01/01"
+    "feb"          `gives` "2008/02/01"
+    "today"        `gives` "2008/11/26"
+    "yesterday"    `gives` "2008/11/25"
+    "tomorrow"     `gives` "2008/11/27"
+    "this day"     `gives` "2008/11/26"
+    "last day"     `gives` "2008/11/25"
+    "next day"     `gives` "2008/11/27"
+    "this week"    `gives` "2008/11/24" -- last monday
+    "last week"    `gives` "2008/11/17" -- previous monday
+    "next week"    `gives` "2008/12/01" -- next monday
+    "this month"   `gives` "2008/11/01"
+    "last month"   `gives` "2008/10/01"
+    "next month"   `gives` "2008/12/01"
+    "this quarter" `gives` "2008/10/01"
+    "last quarter" `gives` "2008/07/01"
+    "next quarter" `gives` "2009/01/01"
+    "this year"    `gives` "2008/01/01"
+    "last year"    `gives` "2007/01/01"
+    "next year"    `gives` "2009/01/01"
+--     "last wed"     `gives` "2008/11/19"
+--     "next friday"  `gives` "2008/11/28"
+--     "next january" `gives` "2009/01/01"
+
+ ]

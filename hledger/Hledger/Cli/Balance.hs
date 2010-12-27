@@ -101,6 +101,7 @@ module Hledger.Cli.Balance (
  ,balance
  ,balanceReport
  ,balanceReportAsText
+ ,tests_Hledger_Cli_Balance
  -- ,tests_Balance
 ) where
 import Hledger.Data.Utils
@@ -211,3 +212,6 @@ isInterestingIndented opts l a
             isInterestingTree = treeany (isInteresting opts l . aname)
             subtrees = map (fromJust . ledgerAccountTreeAt l) $ ledgerSubAccounts l $ ledgerAccount l a
 
+tests_Hledger_Cli_Balance = TestList
+ [
+ ]

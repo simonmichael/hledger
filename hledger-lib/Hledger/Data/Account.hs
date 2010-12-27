@@ -25,3 +25,6 @@ instance Eq Account where
 
 nullacct = Account "" [] nullmixedamt
 
+tests_Hledger_Data_Account = TestList [
+ ]
+

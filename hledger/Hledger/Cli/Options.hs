@@ -295,3 +295,28 @@ optsToFilterSpec opts args t = FilterSpec {
 --     where
 --       listtomaybe [] = Nothing
 --       listtomaybe vs = Just $ last vs
+
+tests_Hledger_Cli_Options = TestList
+ [
+  "dateSpanFromOpts" ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let gives = is . show . dateSpanFromOpts todaysdate
+    [] `gives` "DateSpan Nothing Nothing"
+    [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+
+  ,"intervalFromOpts" ~: do
+    let gives = is . intervalFromOpts
+    [] `gives` NoInterval
+    [DailyOpt] `gives` Daily
+    [WeeklyOpt] `gives` Weekly
+    [MonthlyOpt] `gives` Monthly
+    [QuarterlyOpt] `gives` Quarterly
+    [YearlyOpt] `gives` Yearly
+    [Period "weekly"] `gives` Weekly
+    [Period "monthly"] `gives` Monthly
+    [Period "quarterly"] `gives` Quarterly
+    [WeeklyOpt, Period "yearly"] `gives` Yearly
+
+ ]

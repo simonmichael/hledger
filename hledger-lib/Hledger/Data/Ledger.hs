@@ -122,3 +122,8 @@ rawdatespan = journalDateSpan . journal
 
 ledgeramounts :: Ledger -> [MixedAmount]
 ledgeramounts = journalAmounts . journal
+
+tests_Hledger_Data_Ledger = TestList
+ [
+ ]
+

@@ -38,7 +38,32 @@ price-discarding arithmetic which ignores and discards prices.
 
 -}
 
-module Hledger.Data.Amount
+module Hledger.Data.Amount (
+                            amounts,
+                            canonicaliseAmount,
+                            canonicaliseMixedAmount,
+                            convertMixedAmountTo,
+                            costOfAmount,
+                            costOfMixedAmount,
+                            isNegativeMixedAmount,
+                            isReallyZeroMixedAmountCost,
+                            isZeroMixedAmount,
+                            maxprecision,
+                            missingamt,
+                            normaliseMixedAmount,
+                            nullamt,
+                            nullmixedamt,
+                            punctuatethousands,
+                            showMixedAmount,
+                            showMixedAmountDebug,
+                            showMixedAmountOrZero,
+                            showMixedAmountOrZeroWithoutPrice,
+                            showMixedAmountWithoutPrice,
+                            showMixedAmountWithPrecision,
+                            sumMixedAmountsPreservingHighestPrecision,
+                            tests_Hledger_Data_Amount
+                            -- Hledger.Data.Amount.tests_Hledger_Data_Amount
+                           )
 where
 import qualified Data.Map as Map
 import Data.Map (findWithDefault)
@@ -216,14 +241,14 @@ isNegativeMixedAmount m = case as of [a] -> Just $ isNegativeAmount a
 isReallyZeroMixedAmountCost :: MixedAmount -> Bool
 isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
 
--- | MixedAmount derives Eq in Types.hs, but that doesn't know that we
--- want $0 = EUR0 = 0. Yet we don't want to drag all this code in there.
--- When zero equality is important, use this, for now; should be used
--- everywhere.
-mixedAmountEquals :: MixedAmount -> MixedAmount -> Bool
-mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZeroMixedAmount b')
-    where a' = normaliseMixedAmount a
-          b' = normaliseMixedAmount b
+-- -- | MixedAmount derives Eq in Types.hs, but that doesn't know that we
+-- -- want $0 = EUR0 = 0. Yet we don't want to drag all this code in there.
+-- -- When zero equality is important, use this, for now; should be used
+-- -- everywhere.
+-- mixedAmountEquals :: MixedAmount -> MixedAmount -> Bool
+-- mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZeroMixedAmount b')
+--     where a' = normaliseMixedAmount a
+--           b' = normaliseMixedAmount b
 
 -- | Get the string representation of a mixed amount, showing each of
 -- its component amounts. NB a mixed amount can have an empty amounts
@@ -231,8 +256,8 @@ mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZ
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = vConcatRightAligned $ map show $ amounts $ normaliseMixedAmount m
 
-setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
-setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
+-- setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
+-- setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 
 -- | Get the string representation of a mixed amount, showing each of its
 -- component amounts with the specified precision, ignoring their
@@ -382,7 +407,7 @@ missingamt :: MixedAmount
 missingamt = Mixed [Amount Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0} 0 Nothing]
 
 
-tests_Amount = TestList [
+tests_Hledger_Data_Amount = TestList [
 
    "showMixedAmount" ~: do
      showMixedAmount (Mixed [Amount dollar 0 Nothing]) `is` "$0.00"
@@ -417,5 +442,13 @@ tests_Amount = TestList [
               Amount dollar (-0.25) Nothing])
       `is` Mixed [Amount dollar 0 Nothing]
 
+  ,"normaliseMixedAmount" ~: do
+     normaliseMixedAmount (Mixed []) ~?= Mixed [nullamt]
+
+  ,"punctuatethousands 1" ~: punctuatethousands "" `is` ""
+
+  ,"punctuatethousands 2" ~: punctuatethousands "1234567.8901" `is` "1,234,567.8901"
+
+  ,"punctuatethousands 3" ~: punctuatethousands "-100" `is` "-100"
 
   ]
