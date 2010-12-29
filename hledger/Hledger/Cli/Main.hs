@@ -42,10 +42,8 @@ module Hledger.Cli.Main where
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Data.UTF8 (putStr, putStrLn)
 import Hledger.Data
-import Hledger.Cli.Commands
-import Hledger.Cli.Options
+import Hledger.Cli
 import Hledger.Cli.Tests
-import Hledger.Cli.Utils (withJournalDo)
 import Hledger.Cli.Version (progversionstr, binaryfilename)
 
 main :: IO ()
