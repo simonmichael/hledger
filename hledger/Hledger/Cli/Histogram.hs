@@ -23,14 +23,14 @@ histogram opts args j = do
   putStr $ showHistogram opts (optsToFilterSpec opts args t) j
 
 showHistogram :: [Opt] -> FilterSpec -> Journal -> String
-showHistogram opts filterspec j = concatMap (printDayWith countBar) dayps
+showHistogram opts filterspec j = concatMap (printDayWith countBar) spanps
     where
       i = intervalFromOpts opts
       interval | i == NoInterval = Days 1
                | otherwise = i
-      fullspan = journalDateSpan j
-      days = filter (DateSpan Nothing Nothing /=) $ splitSpan interval fullspan
-      dayps = [(s, filter (isPostingInDateSpan s) ps) | s <- days]
+      span = datespan filterspec `orDatesFrom` journalDateSpan j
+      spans = filter (DateSpan Nothing Nothing /=) $ splitSpan interval span
+      spanps = [(s, filter (isPostingInDateSpan s) ps) | s <- spans]
       -- same as Register
       -- should count transactions, not postings ?
       ps = sortBy (comparing postingDate) $ filterempties $ filter matchapats $ filterdepth $ journalPostings j
