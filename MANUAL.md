@@ -928,9 +928,6 @@ A reporting interval may also be specified with the `-D/--daily`,
 `-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`
 options. But as noted above, a --period option will override these.
 
-This is currently the only kind of display expression that we support:
-transactions before or after a given (smart) date.
-
 ### Display expressions
 
 Unlike a [period expression](#period-expressions), which selects the
