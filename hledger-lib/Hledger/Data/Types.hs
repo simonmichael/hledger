@@ -46,7 +46,7 @@ data WhichDate = ActualDate | EffectiveDate deriving (Eq,Show)
 
 data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord)
 
-data Interval = NoInterval | Daily | Weekly | Monthly | Quarterly | Yearly 
+data Interval = NoInterval | Daily | Weekly | Biweekly | Monthly | Bimonthly | Quarterly | Yearly
                 deriving (Eq,Show,Ord)
 
 type AccountName = String

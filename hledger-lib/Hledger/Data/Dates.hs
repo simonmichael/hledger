@@ -49,7 +49,9 @@ splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
 splitSpan NoInterval s = [s]
 splitSpan Daily s      = splitspan startofday     nextday     s
 splitSpan Weekly s     = splitspan startofweek    nextweek    s
+splitSpan Biweekly s   = splitspan startofweek    (nextweek.nextweek)    s
 splitSpan Monthly s    = splitspan startofmonth   nextmonth   s
+splitSpan Bimonthly s  = splitspan startofmonth   (nextmonth.nextmonth)   s
 splitSpan Quarterly s  = splitspan startofquarter nextquarter s
 splitSpan Yearly s     = splitspan startofyear    nextyear    s
 
@@ -422,13 +424,15 @@ periodexprinterval =
     choice $ map try [
                 tryinterval "day" "daily" Daily,
                 tryinterval "week" "weekly" Weekly,
+                tryinterval "" "biweekly" Biweekly,
                 tryinterval "month" "monthly" Monthly,
+                tryinterval "" "bimonthly" Bimonthly,
                 tryinterval "quarter" "quarterly" Quarterly,
                 tryinterval "year" "yearly" Yearly
                ]
     where
-      tryinterval s1 s2 v = 
-          choice [try (string $ "every "++s1), try (string s2)] >> return v
+      tryinterval "" s2 v = try (string s2) >> return v
+      tryinterval s1 s2 v = choice [try (string $ "every "++s1), try (string s2)] >> return v
 
 periodexprdatespan :: Day -> GenParser Char st DateSpan
 periodexprdatespan rdate = choice $ map try [
@@ -491,6 +495,24 @@ tests_Hledger_Data_Dates = TestList
      [mkdatespan "2008/01/01" "2008/01/01"]
     (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
      [mkdatespan "2008/01/01" "2008/01/01"]
+    (Monthly,mkdatespan "2008/01/01" "2008/04/01") `gives`
+     [mkdatespan "2008/01/01" "2008/02/01"
+     ,mkdatespan "2008/02/01" "2008/03/01"
+     ,mkdatespan "2008/03/01" "2008/04/01"
+     ]
+    (Bimonthly,mkdatespan "2008/01/01" "2008/04/01") `gives`
+     [mkdatespan "2008/01/01" "2008/03/01"
+     ,mkdatespan "2008/03/01" "2008/05/01"
+     ]
+    (Weekly,mkdatespan "2008/01/01" "2008/01/15") `gives`
+     [mkdatespan "2007/12/31" "2008/01/07"
+     ,mkdatespan "2008/01/07" "2008/01/14"
+     ,mkdatespan "2008/01/14" "2008/01/21"
+     ]
+    (Biweekly,mkdatespan "2008/01/01" "2008/01/15") `gives`
+     [mkdatespan "2007/12/31" "2008/01/14"
+     ,mkdatespan "2008/01/14" "2008/01/28"
+     ]
 
   ,"parsedate" ~: do
     let date1 = parsedate "2008/11/26"
