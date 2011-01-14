@@ -416,6 +416,10 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
+*** #35 wludwick hledger-web startup issue
+*** #34 tdaucourt encoding issue: setting locale does not always work
+https://github.com/jgm/pandoc/commit/7be82b45361e65939008bb93f0006c10dad946d5
+http://www.opensubscriber.com/message/haskell-cafe@haskell.org/14641759.html
 *** parsing: recursive file includes cause a hang
 *** parsing: extra noise with eg bad date parse errors
 $ cat t.journal
@@ -488,13 +492,7 @@ http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
-*** better international number format support
-http://en.wikipedia.org/wiki/Decimal_separator
-
-2010/1/1 
-  a  $1.234,56
-  b
-
+*** better international number format support (#32)
 *** show add form after adding
 *** : completes one account name component
 *** auto-complete from substrings, not just prefixes
@@ -548,6 +546,7 @@ improve reliability
 *** payee & account anonymisation
 *** easier timelog formats
 *** add: completion etc.
+*** convert: handle separate debit/credit columns
 *** convert: generalise/reuse add's history awareness
 *** web: charts (Chart or google)
 *** wide/customisable/consistent layout
@@ -1222,6 +1221,8 @@ cabal.exe: Error: some packages failed to install:
 haskeline-0.6.3.2 failed during the building phase. The exception was:
 ExitFailure 1
 
+*** gtk2hs
+Eduard_Munteanu> sm: gtk2hs-0.10.1 (binary), HP 2009.2.0.1 (binary too)  -- if you ever need it.
 * journal
 ** 2010
 *** 5/4
