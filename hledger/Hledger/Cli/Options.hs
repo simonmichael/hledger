@@ -198,11 +198,11 @@ intervalFromOpts opts =
       ((p:_), _)            -> case parsePeriodExpr (parsedate "0001/01/01") p of
                                 Right (i, _) -> i
                                 Left e       -> parseerror e
-      (_, (DailyOpt:_))     -> Daily
-      (_, (WeeklyOpt:_))    -> Weekly
-      (_, (MonthlyOpt:_))   -> Monthly
-      (_, (QuarterlyOpt:_)) -> Quarterly
-      (_, (YearlyOpt:_))    -> Yearly
+      (_, (DailyOpt:_))     -> Days 1
+      (_, (WeeklyOpt:_))    -> Weeks 1
+      (_, (MonthlyOpt:_))   -> Months 1
+      (_, (QuarterlyOpt:_)) -> Quarters 1
+      (_, (YearlyOpt:_))    -> Years 1
       (_, _)                -> NoInterval
     where
       periodopts   = reverse $ optValuesForConstructor Period opts
@@ -308,14 +308,14 @@ tests_Hledger_Cli_Options = TestList
   ,"intervalFromOpts" ~: do
     let gives = is . intervalFromOpts
     [] `gives` NoInterval
-    [DailyOpt] `gives` Daily
-    [WeeklyOpt] `gives` Weekly
-    [MonthlyOpt] `gives` Monthly
-    [QuarterlyOpt] `gives` Quarterly
-    [YearlyOpt] `gives` Yearly
-    [Period "weekly"] `gives` Weekly
-    [Period "monthly"] `gives` Monthly
-    [Period "quarterly"] `gives` Quarterly
-    [WeeklyOpt, Period "yearly"] `gives` Yearly
+    [DailyOpt] `gives` Days 1
+    [WeeklyOpt] `gives` Weeks 1
+    [MonthlyOpt] `gives` Months 1
+    [QuarterlyOpt] `gives` Quarters 1
+    [YearlyOpt] `gives` Years 1
+    [Period "weekly"] `gives` Weeks 1
+    [Period "monthly"] `gives` Months 1
+    [Period "quarterly"] `gives` Quarters 1
+    [WeeklyOpt, Period "yearly"] `gives` Years 1
 
  ]

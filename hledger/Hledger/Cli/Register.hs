@@ -203,7 +203,7 @@ tests_Hledger_Cli_Register = TestList
  [
 
   "summarisePostingsByInterval" ~: do
-    summarisePostingsByInterval Quarterly Nothing False (DateSpan Nothing Nothing) [] ~?= []
+    summarisePostingsByInterval (Quarters 1) Nothing False (DateSpan Nothing Nothing) [] ~?= []
 
   -- ,"summarisePostingsInDateSpan" ~: do
   --   let gives (b,e,depth,showempty,ps) =

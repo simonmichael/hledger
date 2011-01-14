@@ -28,7 +28,7 @@ showHistogram :: [Opt] -> FilterSpec -> Journal -> String
 showHistogram opts filterspec j = concatMap (printDayWith countBar) dayps
     where
       i = intervalFromOpts opts
-      interval | i == NoInterval = Daily
+      interval | i == NoInterval = Days 1
                | otherwise = i
       fullspan = journalDateSpan j
       days = filter (DateSpan Nothing Nothing /=) $ splitSpan interval fullspan

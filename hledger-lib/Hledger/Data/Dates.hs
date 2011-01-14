@@ -420,19 +420,35 @@ dateperiodexpr rdate = do
   return (NoInterval, s)
 
 periodexprinterval :: GenParser Char st Interval
-periodexprinterval = 
-    choice $ map try [
-                tryinterval "day" "daily" Daily,
-                tryinterval "week" "weekly" Weekly,
-                tryinterval "" "biweekly" Biweekly,
-                tryinterval "month" "monthly" Monthly,
-                tryinterval "" "bimonthly" Bimonthly,
-                tryinterval "quarter" "quarterly" Quarterly,
-                tryinterval "year" "yearly" Yearly
+periodexprinterval = choice' [
+                       tryinterval "day"     "daily"     Days,
+                       tryinterval "week"    "weekly"    Weeks,
+                       tryinterval "month"   "monthly"   Months,
+                       tryinterval "quarter" "quarterly" Quarters,
+                       tryinterval "year"    "yearly"    Years,
+                       do string "biweekly"
+                          return $ Weeks 2,
+                       do string "bimonthly"
+                          return $ Months 2
                ]
     where
-      tryinterval "" s2 v = try (string s2) >> return v
-      tryinterval s1 s2 v = choice [try (string $ "every "++s1), try (string s2)] >> return v
+      tryinterval :: String -> String -> (Int -> Interval) -> GenParser Char st Interval
+      tryinterval singular compact intcons =
+          choice' [
+           do string compact
+              return $ intcons 1,
+           do string "every"
+              many spacenonewline
+              string singular
+              return $ intcons 1,
+           do string "every"
+              many spacenonewline
+              n <- fmap read $ many1 digit
+              many spacenonewline
+              string plural
+              return $ intcons n
+           ]
+          where plural = singular ++ "s"
 
 periodexprdatespan :: Day -> GenParser Char st DateSpan
 periodexprdatespan rdate = choice $ map try [
@@ -483,33 +499,33 @@ tests_Hledger_Data_Dates = TestList
     let gives (interval, span) = (splitSpan interval span `is`)
     (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
      [mkdatespan "2008/01/01" "2009/01/01"]
-    (Quarterly,mkdatespan "2008/01/01" "2009/01/01") `gives`
+    (Quarters 1,mkdatespan "2008/01/01" "2009/01/01") `gives`
      [mkdatespan "2008/01/01" "2008/04/01"
      ,mkdatespan "2008/04/01" "2008/07/01"
      ,mkdatespan "2008/07/01" "2008/10/01"
      ,mkdatespan "2008/10/01" "2009/01/01"
      ]
-    (Quarterly,nulldatespan) `gives`
+    (Quarters 1,nulldatespan) `gives`
      [nulldatespan]
-    (Daily,mkdatespan "2008/01/01" "2008/01/01") `gives`
+    (Days 1,mkdatespan "2008/01/01" "2008/01/01") `gives`
      [mkdatespan "2008/01/01" "2008/01/01"]
-    (Quarterly,mkdatespan "2008/01/01" "2008/01/01") `gives`
+    (Quarters 1,mkdatespan "2008/01/01" "2008/01/01") `gives`
      [mkdatespan "2008/01/01" "2008/01/01"]
-    (Monthly,mkdatespan "2008/01/01" "2008/04/01") `gives`
+    (Months 1,mkdatespan "2008/01/01" "2008/04/01") `gives`
      [mkdatespan "2008/01/01" "2008/02/01"
      ,mkdatespan "2008/02/01" "2008/03/01"
      ,mkdatespan "2008/03/01" "2008/04/01"
      ]
-    (Bimonthly,mkdatespan "2008/01/01" "2008/04/01") `gives`
+    (Months 2,mkdatespan "2008/01/01" "2008/04/01") `gives`
      [mkdatespan "2008/01/01" "2008/03/01"
      ,mkdatespan "2008/03/01" "2008/05/01"
      ]
-    (Weekly,mkdatespan "2008/01/01" "2008/01/15") `gives`
+    (Weeks 1,mkdatespan "2008/01/01" "2008/01/15") `gives`
      [mkdatespan "2007/12/31" "2008/01/07"
      ,mkdatespan "2008/01/07" "2008/01/14"
      ,mkdatespan "2008/01/14" "2008/01/21"
      ]
-    (Biweekly,mkdatespan "2008/01/01" "2008/01/15") `gives`
+    (Weeks 2,mkdatespan "2008/01/01" "2008/01/15") `gives`
      [mkdatespan "2007/12/31" "2008/01/14"
      ,mkdatespan "2008/01/14" "2008/01/28"
      ]
@@ -524,9 +540,9 @@ tests_Hledger_Data_Dates = TestList
     let str `gives` result = show (parsewith (periodexpr todaysdate) str) `is` ("Right " ++ result)
     "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
     "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "every day from aug to oct" `gives` "(Daily,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "daily from aug"            `gives` "(Daily,DateSpan (Just 2008-08-01) Nothing)"
-    "every week to 2009"        `gives` "(Weekly,DateSpan Nothing (Just 2009-01-01))"
+    "every 3 days from aug to oct" `gives` "(Days 3,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "daily from aug"            `gives` "(Days 1,DateSpan (Just 2008-08-01) Nothing)"
+    "every week to 2009"        `gives` "(Weeks 1,DateSpan Nothing (Just 2009-01-01))"
 
   ,"fixSmartDateStr" ~: do
     let gives = is . fixSmartDateStr (parsedate "2008/11/26")
