@@ -897,8 +897,15 @@ keyword. Examples:
 
     -p "weekly from 2009/1/1 to 2009/4/1"
     -p "monthly in 2008"
-    -p "monthly from 2008"
+    -p "bimonthly from 2008"
     -p "quarterly"
+    -p "every 2 weeks"
+    -p "every 5 days from 1/3"
+    -p "every 15th day of month"
+    -p "every 4th day of week"
+
+Note the last two give intervals that are one day long, so are not
+all that useful currently.
 
 A reporting interval may also be specified with the `-D/--daily`,
 `-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`
@@ -1088,9 +1095,6 @@ entries, and the following c++ ledger options and commands:
 
 -   hledger shows start and end dates of the intervals requested,
     not just the span containing data
-
--   hledger period expressions don't support "biweekly",
-    "bimonthly", or "every N days/weeks/..."
 
 -   hledger always shows timelog balances in hours
 

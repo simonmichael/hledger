@@ -371,3 +371,6 @@ isRight = not . isLeft
 -- --                                return (homeDirectory pw ++ path)
 -- tildeExpand xs           =  return xs
 
+-- | Apply a function the specified number of times. Possibly uses O(n) stack ?
+applyN :: Int -> (a -> a) -> a -> a
+applyN n f = (!! n) . iterate f

@@ -48,6 +48,8 @@ data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord)
 
 data Interval = NoInterval
               | Days Int | Weeks Int | Months Int | Quarters Int | Years Int
+              | DayOfMonth Int | DayOfWeek Int
+              -- | WeekOfYear Int | MonthOfYear Int | QuarterOfYear Int
                 deriving (Eq,Show,Ord)
 
 type AccountName = String

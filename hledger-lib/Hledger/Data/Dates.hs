@@ -46,30 +46,37 @@ elapsedSeconds t1 = realToFrac . diffUTCTime t1
 -- | Split a DateSpan into one or more consecutive spans at the specified interval.
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
-splitSpan NoInterval s = [s]
-splitSpan Daily s      = splitspan startofday     nextday     s
-splitSpan Weekly s     = splitspan startofweek    nextweek    s
-splitSpan Biweekly s   = splitspan startofweek    (nextweek.nextweek)    s
-splitSpan Monthly s    = splitspan startofmonth   nextmonth   s
-splitSpan Bimonthly s  = splitspan startofmonth   (nextmonth.nextmonth)   s
-splitSpan Quarterly s  = splitspan startofquarter nextquarter s
-splitSpan Yearly s     = splitspan startofyear    nextyear    s
+splitSpan NoInterval     s = [s]
+splitSpan (Days n)       s = splitspan startofday     (applyN n nextday)     Nothing s
+splitSpan (Weeks n)      s = splitspan startofweek    (applyN n nextweek)    Nothing s
+splitSpan (Months n)     s = splitspan startofmonth   (applyN n nextmonth)   Nothing s
+splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) Nothing s
+splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    Nothing s
+splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (applyN (n-1) nextday . nextmonth) (Just nextday) s
+splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1) nextday . nextweek)  (Just nextday) s
+-- splitSpan (WeekOfYear n)    s = splitspan startofweek    (applyN n nextweek)    s
+-- splitSpan (MonthOfYear n)   s = splitspan startofmonth   (applyN n nextmonth)   s
+-- splitSpan (QuarterOfYear n) s = splitspan startofquarter (applyN n nextquarter) s
 
-splitspan :: (Day -> Day) -> (Day -> Day) -> DateSpan -> [DateSpan]
-splitspan _ _ (DateSpan Nothing Nothing) = []
-splitspan start next (DateSpan Nothing (Just e)) = [DateSpan (Just $ start e) (Just $ next $ start e)]
-splitspan start next (DateSpan (Just b) Nothing) = [DateSpan (Just $ start b) (Just $ next $ start b)]
-splitspan start next span@(DateSpan (Just b) (Just e))
-    | b == e = [span]
-    | otherwise = splitspan' start next span
+-- Split the given span using the provided helper functions:
+-- start is applied to the span's start date to get the first sub-span's start date
+-- next is applied to a sub-span's start date to get the next sub-span's start date
+-- end is applied to a sub-span's start date to get that sub-span's end date, if different from the above.
+splitspan :: (Day -> Day) -> (Day -> Day) -> Maybe (Day -> Day) -> DateSpan -> [DateSpan]
+splitspan _ _ _ (DateSpan Nothing Nothing) = []
+splitspan start next end (DateSpan Nothing (Just e)) = splitspan start next end (DateSpan (Just $ start e) (Just $ next $ start e))
+splitspan start next end (DateSpan (Just s) Nothing) = splitspan start next end (DateSpan (Just $ start s) (Just $ next $ start s))
+splitspan start next end span@(DateSpan (Just s) (Just e))
+    | s == e = [span]
+    | otherwise = splitspan' start next end span
     where
-      splitspan' start next (DateSpan (Just b) (Just e))
-          | b >= e = []
-          | otherwise = DateSpan (Just s) (Just n)
-                        : splitspan' start next (DateSpan (Just n) (Just e))
-          where s = start b
-                n = next s
-      splitspan' _ _ _ = error' "won't happen, avoids warnings"
+      splitspan' start next end (DateSpan (Just s) (Just e))
+          | s >= e = []
+          | otherwise = DateSpan (Just subs) (Just sube) : splitspan' start next end (DateSpan (Just subn) (Just e))
+          where subs = start s
+                sube = (fromMaybe next end) subs
+                subn = next subs
+      splitspan' _ _ _ _ = error' "won't happen, avoids warnings"
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -214,6 +221,18 @@ thisyear = startofyear
 prevyear = startofyear . addGregorianYearsClip (-1)
 nextyear = startofyear . addGregorianYearsClip 1
 startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
+
+nthdayofmonthcontaining n d | d1 >= d    = d1
+                            | otherwise = d2
+    where d1 = addDays (fromIntegral n-1) s
+          d2 = addDays (fromIntegral n-1) $ nextmonth s
+          s = startofmonth d
+
+nthdayofweekcontaining n d | d1 >= d    = d1
+                           | otherwise = d2
+    where d1 = addDays (fromIntegral n-1) s
+          d2 = addDays (fromIntegral n-1) $ nextweek s
+          s = startofweek d
 
 ----------------------------------------------------------------------
 -- parsing
@@ -402,7 +421,7 @@ periodexpr rdate = choice $ map try [
 intervalanddateperiodexpr :: Day -> GenParser Char st (Interval, DateSpan)
 intervalanddateperiodexpr rdate = do
   many spacenonewline
-  i <- periodexprinterval
+  i <- reportinginterval
   many spacenonewline
   s <- periodexprdatespan rdate
   return (i,s)
@@ -410,7 +429,7 @@ intervalanddateperiodexpr rdate = do
 intervalperiodexpr :: GenParser Char st (Interval, DateSpan)
 intervalperiodexpr = do
   many spacenonewline
-  i <- periodexprinterval
+  i <- reportinginterval
   return (i, DateSpan Nothing Nothing)
 
 dateperiodexpr :: Day -> GenParser Char st (Interval, DateSpan)
@@ -419,8 +438,9 @@ dateperiodexpr rdate = do
   s <- periodexprdatespan rdate
   return (NoInterval, s)
 
-periodexprinterval :: GenParser Char st Interval
-periodexprinterval = choice' [
+-- Parse a reporting interval.
+reportinginterval :: GenParser Char st Interval
+reportinginterval = choice' [
                        tryinterval "day"     "daily"     Days,
                        tryinterval "week"    "weekly"    Weeks,
                        tryinterval "month"   "monthly"   Months,
@@ -429,9 +449,36 @@ periodexprinterval = choice' [
                        do string "biweekly"
                           return $ Weeks 2,
                        do string "bimonthly"
-                          return $ Months 2
-               ]
+                          return $ Months 2,
+                       do string "every"
+                          many spacenonewline
+                          n <- fmap read $ many1 digit
+                          thsuffix
+                          many spacenonewline
+                          string "day"
+                          many spacenonewline
+                          string "of"
+                          many spacenonewline
+                          string "week"
+                          return $ DayOfWeek n,
+                       do string "every"
+                          many spacenonewline
+                          n <- fmap read $ many1 digit
+                          thsuffix
+                          many spacenonewline
+                          string "day"
+                          optional $ do
+                            many spacenonewline
+                            string "of"
+                            many spacenonewline
+                            string "month"
+                          return $ DayOfMonth n
+                    ]
     where
+
+      thsuffix = choice' $ map string ["st","nd","rd","th"]
+
+      -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
       tryinterval :: String -> String -> (Int -> Interval) -> GenParser Char st Interval
       tryinterval singular compact intcons =
           choice' [
@@ -495,7 +542,21 @@ nulldate = parsedate "1900/01/01"
 tests_Hledger_Data_Dates = TestList
  [
 
-   "splitSpan" ~: do
+   "parsedate" ~: do
+    let date1 = parsedate "2008/11/26"
+    parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
+    parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
+
+  ,"period expressions" ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let str `gives` result = show (parsewith (periodexpr todaysdate) str) `is` ("Right " ++ result)
+    "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
+    "every 3 days in aug"       `gives` "(Days 3,DateSpan (Just 2008-08-01) (Just 2008-09-01))"
+    "daily from aug"            `gives` "(Days 1,DateSpan (Just 2008-08-01) Nothing)"
+    "every week to 2009"        `gives` "(Weeks 1,DateSpan Nothing (Just 2009-01-01))"
+
+  ,"splitSpan" ~: do
     let gives (interval, span) = (splitSpan interval span `is`)
     (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
      [mkdatespan "2008/01/01" "2009/01/01"]
@@ -529,20 +590,15 @@ tests_Hledger_Data_Dates = TestList
      [mkdatespan "2007/12/31" "2008/01/14"
      ,mkdatespan "2008/01/14" "2008/01/28"
      ]
-
-  ,"parsedate" ~: do
-    let date1 = parsedate "2008/11/26"
-    parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
-    parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
-
-  ,"period expressions" ~: do
-    let todaysdate = parsedate "2008/11/26"
-    let str `gives` result = show (parsewith (periodexpr todaysdate) str) `is` ("Right " ++ result)
-    "from aug to oct"           `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "aug to oct"                `gives` "(NoInterval,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "every 3 days from aug to oct" `gives` "(Days 3,DateSpan (Just 2008-08-01) (Just 2008-10-01))"
-    "daily from aug"            `gives` "(Days 1,DateSpan (Just 2008-08-01) Nothing)"
-    "every week to 2009"        `gives` "(Weeks 1,DateSpan Nothing (Just 2009-01-01))"
+    (DayOfMonth 2,mkdatespan "2008/01/01" "2008/04/01") `gives`
+     [mkdatespan "2008/01/02" "2008/01/03"
+     ,mkdatespan "2008/02/02" "2008/02/03"
+     ,mkdatespan "2008/03/02" "2008/03/03"
+     ]
+    (DayOfWeek 2,mkdatespan "2011/01/01" "2011/01/15") `gives`
+     [mkdatespan "2011/01/04" "2011/01/05"
+     ,mkdatespan "2011/01/11" "2011/01/12"
+     ]
 
   ,"fixSmartDateStr" ~: do
     let gives = is . fixSmartDateStr (parsedate "2008/11/26")
