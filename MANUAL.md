@@ -911,9 +911,9 @@ Note, however: a `-p/--period` option in the command line will cause any
 
 Period expressions can also begin with (or be) a reporting interval, which
 affects commands like [register](#register) and [histogram](#histogram).
-The reporting interval is one of: `daily`, `weekly`, `monthly`,
-`quarterly`, or `yearly`, optionally followed by an `in`
-keyword. Examples:
+The reporting interval can be `daily`, `weekly`, `monthly`, `quarterly`, `yearly`,
+or one of the `every ...` expressions below, optionally followed by `in`.
+Examples:
 
     -p "weekly from 2009/1/1 to 2009/4/1"
     -p "monthly in 2008"
@@ -923,9 +923,6 @@ keyword. Examples:
     -p "every 5 days from 1/3"
     -p "every 15th day of month"
     -p "every 4th day of week"
-
-Note the last two give intervals that are one day long, so are not
-all that useful currently.
 
 A reporting interval may also be specified with the `-D/--daily`,
 `-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`

@@ -54,13 +54,13 @@ elapsedSeconds t1 = realToFrac . diffUTCTime t1
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
 splitSpan NoInterval     s = [s]
-splitSpan (Days n)       s = splitspan startofday     (applyN n nextday)     Nothing s
-splitSpan (Weeks n)      s = splitspan startofweek    (applyN n nextweek)    Nothing s
-splitSpan (Months n)     s = splitspan startofmonth   (applyN n nextmonth)   Nothing s
-splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) Nothing s
-splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    Nothing s
-splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (applyN (n-1) nextday . nextmonth) (Just nextday) s
-splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1) nextday . nextweek)  (Just nextday) s
+splitSpan (Days n)       s = splitspan startofday     (applyN n nextday)     s
+splitSpan (Weeks n)      s = splitspan startofweek    (applyN n nextweek)    s
+splitSpan (Months n)     s = splitspan startofmonth   (applyN n nextmonth)   s
+splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) s
+splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    s
+splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (applyN (n-1) nextday . nextmonth) s
+splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1) nextday . nextweek)  s
 -- splitSpan (WeekOfYear n)    s = splitspan startofweek    (applyN n nextweek)    s
 -- splitSpan (MonthOfYear n)   s = splitspan startofmonth   (applyN n nextmonth)   s
 -- splitSpan (QuarterOfYear n) s = splitspan startofquarter (applyN n nextquarter) s
@@ -68,22 +68,20 @@ splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1)
 -- Split the given span using the provided helper functions:
 -- start is applied to the span's start date to get the first sub-span's start date
 -- next is applied to a sub-span's start date to get the next sub-span's start date
--- end is applied to a sub-span's start date to get that sub-span's end date, if different from the above.
-splitspan :: (Day -> Day) -> (Day -> Day) -> Maybe (Day -> Day) -> DateSpan -> [DateSpan]
-splitspan _ _ _ (DateSpan Nothing Nothing) = []
-splitspan start next end (DateSpan Nothing (Just e)) = splitspan start next end (DateSpan (Just $ start e) (Just $ next $ start e))
-splitspan start next end (DateSpan (Just s) Nothing) = splitspan start next end (DateSpan (Just $ start s) (Just $ next $ start s))
-splitspan start next end span@(DateSpan (Just s) (Just e))
+splitspan :: (Day -> Day) -> (Day -> Day) -> DateSpan -> [DateSpan]
+splitspan _ _ (DateSpan Nothing Nothing) = []
+splitspan start next (DateSpan Nothing (Just e)) = splitspan start next (DateSpan (Just $ start e) (Just $ next $ start e))
+splitspan start next (DateSpan (Just s) Nothing) = splitspan start next (DateSpan (Just $ start s) (Just $ next $ start s))
+splitspan start next span@(DateSpan (Just s) (Just e))
     | s == e = [span]
-    | otherwise = splitspan' start next end span
+    | otherwise = splitspan' start next span
     where
-      splitspan' start next end (DateSpan (Just s) (Just e))
+      splitspan' start next (DateSpan (Just s) (Just e))
           | s >= e = []
-          | otherwise = DateSpan (Just subs) (Just sube) : splitspan' start next end (DateSpan (Just subn) (Just e))
+          | otherwise = DateSpan (Just subs) (Just sube) : splitspan' start next (DateSpan (Just sube) (Just e))
           where subs = start s
-                sube = (fromMaybe next end) subs
-                subn = next subs
-      splitspan' _ _ _ _ = error' "won't happen, avoids warnings"
+                sube = next subs
+      splitspan' _ _ _ = error' "won't happen, avoids warnings"
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -598,13 +596,13 @@ tests_Hledger_Data_Dates = TestList
      ,mkdatespan "2008/01/14" "2008/01/28"
      ]
     (DayOfMonth 2,mkdatespan "2008/01/01" "2008/04/01") `gives`
-     [mkdatespan "2008/01/02" "2008/01/03"
-     ,mkdatespan "2008/02/02" "2008/02/03"
-     ,mkdatespan "2008/03/02" "2008/03/03"
+     [mkdatespan "2008/01/02" "2008/02/02"
+     ,mkdatespan "2008/02/02" "2008/03/02"
+     ,mkdatespan "2008/03/02" "2008/04/02"
      ]
     (DayOfWeek 2,mkdatespan "2011/01/01" "2011/01/15") `gives`
-     [mkdatespan "2011/01/04" "2011/01/05"
-     ,mkdatespan "2011/01/11" "2011/01/12"
+     [mkdatespan "2011/01/04" "2011/01/11"
+     ,mkdatespan "2011/01/11" "2011/01/18"
      ]
 
   ,"fixSmartDateStr" ~: do
