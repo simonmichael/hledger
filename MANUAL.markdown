@@ -1012,6 +1012,8 @@ Likewise, hledger does not support per-posting cleared status. It does
 ignore a cleared flag (`*`) at the start of a posting, so that the account
 name is parsed correctly.
 
+(See also [usage issues](#usage-issues))
+
 ### Features not supported
 
 c++ ledger features not currently supported include: modifier and periodic
@@ -1221,6 +1223,18 @@ Here are some issues you might encounter when you run hledger:
   
         $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
         $ bash --login
+
+- **hledger fails to parse some ledger syntax**
+
+    There are still some valid c++ ledger journals we don't parse. Here's
+    the current list of things we know we don't parse (see also
+    [file format compatibility](#file-format-compatibility):
+
+    - AMOUNT1 = AMOUNT2 (balance assertion ? price specification ?)
+    - specifying prices with @@
+    - specifying prices via postings in different commodities
+    - comma decimal point and period thousands separator, or any number
+      format other than the US standard
 
 ## Examples and recipes
 
