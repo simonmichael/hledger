@@ -21,11 +21,11 @@ quoteCommoditySymbolIfNeeded s | any (`elem` nonsimplecommoditychars) s = "\"" +
 
 -- convenient amount and commodity constructors, for tests etc.
 
-unknown = Commodity {symbol="",   side=L,spaced=False,comma=False,precision=0}
-dollar  = Commodity {symbol="$",  side=L,spaced=False,comma=False,precision=2}
-euro    = Commodity {symbol="EUR",side=L,spaced=False,comma=False,precision=2}
-pound   = Commodity {symbol="£",  side=L,spaced=False,comma=False,precision=2}
-hour    = Commodity {symbol="h",  side=R,spaced=False,comma=False,precision=1}
+unknown = Commodity {symbol="", side=L,spaced=False,comma=False,precision=0}
+dollar  = Commodity {symbol="$",side=L,spaced=False,comma=False,precision=2}
+euro    = Commodity {symbol="€",side=L,spaced=False,comma=False,precision=2}
+pound   = Commodity {symbol="£",side=L,spaced=False,comma=False,precision=2}
+hour    = Commodity {symbol="h",side=R,spaced=False,comma=False,precision=1}
 
 dollars n = Amount dollar n Nothing
 euros n   = Amount euro n Nothing

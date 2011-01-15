@@ -60,15 +60,21 @@ data Commodity = Commodity {
       spaced :: Bool,    -- ^ should there be a space between symbol and quantity
       comma :: Bool,     -- ^ should thousands be comma-separated
       precision :: Int   -- ^ number of decimal places to display
-    } deriving (Eq,Show,Read,Ord)
+    } deriving (Eq,Ord,Show,Read)
+
+-- | An amount's price may be written as @ unit price or @@ total price.
+-- Note although Price has a MixedAmount, it should hold only
+-- single-commodity amounts, cf costOfAmount.
+data Price = UnitPrice MixedAmount | TotalPrice MixedAmount
+             deriving (Eq,Ord)
 
 data Amount = Amount {
       commodity :: Commodity,
       quantity :: Double,
-      price :: Maybe MixedAmount  -- ^ unit price/conversion rate for this amount at posting time
-    } deriving (Eq)
+      price :: Maybe Price  -- ^ the price for this amount at posting time
+    } deriving (Eq,Ord)
 
-newtype MixedAmount = Mixed [Amount] deriving (Eq)
+newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord)
 
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
                    deriving (Eq,Show)

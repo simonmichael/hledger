@@ -344,14 +344,20 @@ used for any subsequent amounts which have no commodity symbol.
 
 You can specify a commodity's unit price or exchange rate, in terms of
 another commodity. To set the price for a single posting's amount, write
-`@ PRICE` after the amount, where PRICE is another amount in a different
-commodity:
+`@ UNITPRICE` after the amount, where UNITPRICE is the per-unit price in a
+different commodity:
 
     2009/1/2
      assets:cash:foreign currency       €100 @ $1.35  ; one hundred euros priced at $1.35 each
      assets:cash
 
-Or, you can set the price for a commodity as of a certain date, using a
+Or, you can write `@@ TOTALPRICE`, which is sometimes more convenient:
+
+    2009/1/2
+     assets:cash:foreign currency       €100 @@ $135  ; one hundred euros priced at $135 for the lot (equivalent to the above)
+     assets:cash
+
+Or, you can set the price for this commodity as of a certain date, using a
 historical price directive as shown here:
 
     ; the exchange rate for euro is $1.35 on 2009/1/1 (and thereafter, until a newer price directive is found)
@@ -1231,7 +1237,6 @@ Here are some issues you might encounter when you run hledger:
     [file format compatibility](#file-format-compatibility):
 
     - AMOUNT1 = AMOUNT2 (balance assertion ? price specification ?)
-    - specifying prices with @@
     - specifying prices via postings in different commodities
     - comma decimal point and period thousands separator, or any number
       format other than the US standard

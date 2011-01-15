@@ -268,7 +268,7 @@ journalApplyHistoricalPrices j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts
         fixmixedamount (Mixed as) = Mixed $ map fixamount as
         fixamount = fixprice
         fixprice a@Amount{price=Just _} = a
-        fixprice a@Amount{commodity=c} = a{price=journalHistoricalPriceFor j d c}
+        fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalHistoricalPriceFor j d c}
 
 -- | Get the price for a commodity on the specified day from the price database, if known.
 -- Does only one lookup step, ie will not look up the price of a price.
@@ -307,8 +307,10 @@ journalAmountAndPriceCommodities = concatMap amountCommodities . concatMap amoun
 
 -- | Get this amount's commodity and any commodities referenced in its price.
 amountCommodities :: Amount -> [Commodity]
-amountCommodities Amount{commodity=c,price=Nothing} = [c]
-amountCommodities Amount{commodity=c,price=Just ma} = c:(concatMap amountCommodities $ amounts ma)
+amountCommodities Amount{commodity=c,price=p} =
+    case p of Nothing -> [c]
+              Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
+              Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
 
 -- | Get all this journal's amounts, in the order parsed.
 journalAmounts :: Journal -> [MixedAmount]

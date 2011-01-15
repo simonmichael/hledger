@@ -423,6 +423,7 @@ ledgerpostings = do
   ls <- many1 $ try linebeginningwithspaces
   let parses p = isRight . parseWithCtx ctx p
       postinglines = filter (not . (ledgercommentline `parses`)) ls
+      -- group any metadata lines with the posting line above
       postinglinegroups :: [String] -> [String]
       postinglinegroups [] = []
       postinglinegroups (pline:ls) = (unlines $ pline:mdlines):postinglinegroups rest
@@ -532,15 +533,21 @@ quotedcommoditysymbol = do
 simplecommoditysymbol :: GenParser Char JournalContext String
 simplecommoditysymbol = many1 (noneOf nonsimplecommoditychars)
 
-priceamount :: GenParser Char JournalContext (Maybe MixedAmount)
+priceamount :: GenParser Char JournalContext (Maybe Price)
 priceamount =
     try (do
           many spacenonewline
           char '@'
-          many spacenonewline
-          a <- someamount -- XXX could parse more prices ad infinitum, shouldn't
-          return $ Just a
-          ) <|> return Nothing
+          try (do
+                char '@'
+                many spacenonewline
+                a <- someamount -- XXX this could parse more prices ad infinitum, but shouldn't
+                return $ Just $ TotalPrice a)
+           <|> (do
+            many spacenonewline
+            a <- someamount -- XXX this could parse more prices ad infinitum, but shouldn't
+            return $ Just $ UnitPrice a))
+         <|> return Nothing
 
 -- gawd.. trying to parse a ledger number without error:
 
@@ -650,12 +657,28 @@ tests_JournalReader = TestList [
          assertMixedAmountParse parseresult mixedamount =
              (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
      assertMixedAmountParse (parseWithCtx nullctx someamount "1 @ $2")
-                            (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])])
+                            (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])])
 
   ,"postingamount" ~: do
     assertParseEqual (parseWithCtx nullctx postingamount " $47.18") (Mixed [dollars 47.18])
     assertParseEqual (parseWithCtx nullctx postingamount " $1.")
                 (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
+  ,"postingamount with unit price" ~: do
+    assertParseEqual
+     (parseWithCtx nullctx postingamount " $10 @ €0.5")
+     (Mixed [Amount{commodity=dollar{precision=0},
+                    quantity=10,
+                    price=(Just $ UnitPrice $ Mixed [Amount{commodity=euro{precision=1},
+                                                            quantity=0.5,
+                                                            price=Nothing}])}])
+  ,"postingamount with total price" ~: do
+    assertParseEqual
+     (parseWithCtx nullctx postingamount " $10 @@ €5")
+     (Mixed [Amount{commodity=dollar{precision=0},
+                    quantity=10,
+                    price=(Just $ TotalPrice $ Mixed [Amount{commodity=euro{precision=0},
+                                                             quantity=5,
+                                                             price=Nothing}])}])
 
   ,"leftsymbolamount" ~: do
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")

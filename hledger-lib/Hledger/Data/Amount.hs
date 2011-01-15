@@ -60,9 +60,6 @@ instance Num Amount where
     (-) = amountop (-)
     (*) = amountop (*)
 
-instance Ord Amount where
-    compare (Amount ac aq ap) (Amount bc bq bp) = compare (ac,aq,ap) (bc,bq,bp)
-
 instance Num MixedAmount where
     fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
     negate (Mixed as) = Mixed $ map negateAmountPreservingPrice as
@@ -70,9 +67,6 @@ instance Num MixedAmount where
     (*)    = error' "programming error, mixed amounts do not support multiplication"
     abs    = error' "programming error, mixed amounts do not support abs"
     signum = error' "programming error, mixed amounts do not support signum"
-
-instance Ord MixedAmount where
-    compare (Mixed as) (Mixed bs) = compare as bs
 
 negateAmountPreservingPrice a = (-a){price=price a}
 
@@ -95,13 +89,26 @@ convertMixedAmountTo c2 (Mixed ams) = Amount c2 total Nothing
     where
     total = sum . map (quantity . convertAmountTo c2) $ ams
 
--- | Convert an amount to the commodity of its saved price, if any.
+-- | Convert an amount to the commodity of its saved price, if any.  Note
+-- that although the price is a MixedAmount, only its first Amount is used.
 costOfAmount :: Amount -> Amount
-costOfAmount a@(Amount _ _ Nothing) = a
-costOfAmount (Amount _ q (Just price))
-    | isZeroMixedAmount price = nullamt
-    | otherwise = Amount pc (pq*q) Nothing
-    where (Amount pc pq _) = head $ amounts price
+costOfAmount a@(Amount _ q price)
+    | isNothing price      = a
+    | isZeroMixedAmount up = nullamt
+    | otherwise            = Amount pc (q*pq) Nothing
+    where
+      unitprice@(Just up) = priceAndQuantityToMaybeUnitPrice price q
+      (Amount pc pq _) =
+          case price of
+            Just (UnitPrice  pa) -> head $ amounts pa
+            Just (TotalPrice _)  -> head $ amounts $ fromJust unitprice
+            _ -> error "impossible case, programmer error"
+
+-- | Convert a (unit or total) Price and quantity to a MixedAmount unit price.
+priceAndQuantityToMaybeUnitPrice :: Maybe Price -> Double -> Maybe MixedAmount
+priceAndQuantityToMaybeUnitPrice Nothing _               = Nothing
+priceAndQuantityToMaybeUnitPrice (Just (UnitPrice a)) _  = Just a
+priceAndQuantityToMaybeUnitPrice (Just (TotalPrice a)) q = Just $ a `divideMixedAmount` q
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings.
@@ -115,8 +122,15 @@ showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
       sym' = quoteCommoditySymbolIfNeeded sym
       space = if (spaced && not (null sym')) then " " else ""
       quantity = showAmount' a
-      price = case pri of (Just pamt) -> " @ " ++ showMixedAmount pamt
-                          Nothing -> ""
+      price = maybe "" showPrice pri
+
+showPrice :: Price -> String
+showPrice (UnitPrice pa)  = " @ "  ++ showMixedAmount pa
+showPrice (TotalPrice pa) = " @@ " ++ showMixedAmount pa
+
+showPriceDebug :: Price -> String
+showPriceDebug (UnitPrice pa)  = " @ "  ++ showMixedAmountDebug pa
+showPriceDebug (TotalPrice pa) = " @@ " ++ showMixedAmountDebug pa
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings except using the specified precision.
@@ -129,7 +143,7 @@ setAmountPrecision p a@Amount{commodity=c} = a{commodity=c{precision=p}}
 -- | Get the unambiguous string representation of an amount, for debugging.
 showAmountDebug :: Amount -> String
 showAmountDebug (Amount c q pri) = printf "Amount {commodity = %s, quantity = %s, price = %s}"
-                                   (show c) (show q) (maybe "" showMixedAmountDebug pri)
+                                   (show c) (show q) (maybe "" showPriceDebug pri)
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
@@ -346,6 +360,14 @@ amountopPreservingHighestPrecision op a@(Amount ac@Commodity{precision=ap} _ _) 
 -- saved price, if any.
 costOfMixedAmount :: MixedAmount -> MixedAmount
 costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
+
+-- | Divide a mixed amount's quantities by some constant.
+divideMixedAmount :: MixedAmount -> Double -> MixedAmount
+divideMixedAmount (Mixed as) d = Mixed $ map (flip divideAmount d) as
+
+-- | Divide an amount's quantity by some constant.
+divideAmount :: Amount -> Double -> Amount
+divideAmount a@Amount{quantity=q} d = a{quantity=q/d}
 
 -- | The empty simple amount.
 nullamt :: Amount

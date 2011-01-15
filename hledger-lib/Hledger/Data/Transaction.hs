@@ -260,7 +260,7 @@ tests_Transaction = TestList [
         ])
        (showTransaction
         (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" "" []
-         [Posting False "a" (Mixed [Amount unknown 1 (Just $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting [] Nothing
+         [Posting False "a" (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting [] Nothing
          ,Posting False "b" missingamt "" RegularPosting [] Nothing
          ] ""))
 
