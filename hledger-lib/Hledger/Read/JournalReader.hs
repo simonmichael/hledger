@@ -317,8 +317,7 @@ ledgerDefaultCommodity = do
   restofline
   return $ return id
 
--- | Try to parse a ledger entry. If we successfully parse an entry,
--- check it can be balanced, and fail if not.
+-- | Parse a (possibly unbalanced) ledger transaction.
 ledgerTransaction :: GenParser Char JournalContext Transaction
 ledgerTransaction = do
   date <- ledgerdate <?> "transaction"
@@ -331,12 +330,7 @@ ledgerTransaction = do
       ) <?> "description and/or comment"
   md <- try ledgermetadata <|> return []
   postings <- ledgerpostings
-  let t = txnTieKnot $ Transaction date edate status code description comment md postings ""
-  -- case balanceTransaction Nothing t of
-  --   Right t' -> return t'
-  --   Left err -> fail err
-  -- check it later, after we have worked out commodity display precisions
-  return t
+  return $ txnTieKnot $ Transaction date edate status code description comment md postings ""
 
 ledgerdate :: GenParser Char JournalContext Day
 ledgerdate = do
