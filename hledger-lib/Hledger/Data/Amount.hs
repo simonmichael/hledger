@@ -45,6 +45,8 @@ module Hledger.Data.Amount (
                             convertMixedAmountTo,
                             costOfAmount,
                             costOfMixedAmount,
+                            divideAmount,
+                            divideMixedAmount,
                             isNegativeMixedAmount,
                             isReallyZeroMixedAmountCost,
                             isZeroMixedAmount,
@@ -54,6 +56,8 @@ module Hledger.Data.Amount (
                             nullamt,
                             nullmixedamt,
                             punctuatethousands,
+                            setAmountPrecision,
+                            setMixedAmountPrecision,
                             showMixedAmount,
                             showMixedAmountDebug,
                             showMixedAmountOrZero,
@@ -189,6 +193,7 @@ showAmount' (Amount (Commodity {decimalpoint=d,precision=p,separator=s,separator
          | otherwise                    = printf ("%."++show p++"f") q
     -- isint n = fromIntegral (round n) == n
 
+-- | A special precision value meaning show all available digits.
 maxprecision = 999999
 
 -- | Replace a number string's decimal point with the specified character,
@@ -273,8 +278,8 @@ isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = vConcatRightAligned $ map show $ amounts $ normaliseMixedAmount m
 
--- setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
--- setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
+setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
+setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 
 -- | Get the string representation of a mixed amount, showing each of its
 -- component amounts with the specified precision, ignoring their
