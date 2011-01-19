@@ -18,7 +18,7 @@ bin/hledger -f- print --cleared
     a             1
     b            -1
 
-2010/01/03 * 
+2010/01/03 *
     a             1
     b            -1
 

@@ -72,8 +72,8 @@ showTransaction' elide effective t =
            | otherwise = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
       status = if tstatus t then " *" else ""
       code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
-      desc = ' ' : tdescription t
-      comment = if null com then "" else "  ; " ++ com where com = tcomment t
+      desc = if null d then "" else " " ++ d where d = tdescription t
+      comment = if null c then "" else "  ; " ++ c where c = tcomment t
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       showpostings ps

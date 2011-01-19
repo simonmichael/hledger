@@ -12,7 +12,7 @@ bin/hledger -f - print
     ; posting2data1:
 ; posting2nonmetadata:
 >>>
-2010/01/01 
+2010/01/01
     a             1
     b            -1
 
