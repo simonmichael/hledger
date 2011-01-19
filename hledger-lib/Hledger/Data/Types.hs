@@ -54,12 +54,15 @@ type AccountName = String
 data Side = L | R deriving (Eq,Show,Read,Ord)
 
 data Commodity = Commodity {
-      symbol :: String,  -- ^ the commodity's symbol
+      symbol :: String,            -- ^ the commodity's symbol
       -- display preferences for amounts of this commodity
-      side :: Side,      -- ^ should the symbol appear on the left or the right
-      spaced :: Bool,    -- ^ should there be a space between symbol and quantity
-      comma :: Bool,     -- ^ should thousands be comma-separated
-      precision :: Int   -- ^ number of decimal places to display
+      side :: Side,                -- ^ should the symbol appear on the left or the right
+      spaced :: Bool,              -- ^ should there be a space between symbol and quantity
+      precision :: Int,            -- ^ number of decimal places to display
+      -- XXX these three might be better belonging to Journal
+      decimalpoint :: Char,        -- ^ character to use as decimal point
+      separator :: Char,           -- ^ character to use for separating digit groups (eg thousands)
+      separatorpositions :: [Int]  -- ^ positions of separators, counting leftward from decimal point
     } deriving (Eq,Ord,Show,Read)
 
 -- | An amount's price may be written as @ unit price or @@ total price.

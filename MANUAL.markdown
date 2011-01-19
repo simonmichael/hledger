@@ -251,8 +251,8 @@ commodity name on either the left or right. Commodity names which contain
 more than just letters should be enclosed in double quotes. Negative
 amounts usually have the minus sign next to the number (`$-1`), but it may
 also go before a currency symbol/commodity name (`-$1`). The number may
-optionally have thousands separators. Currently, thousands separators must
-be `,` (comma) and the decimal point must be `.` (period).
+optionally have a decimal point and/or digit group separators (`.` and `,`
+or vice-versa).
 
 hledger's file format aims to be compatible with c++ ledger, so you
 can use both tools on your journal. For more details, see [File format
@@ -1016,10 +1016,6 @@ need to make small edits to restore compatibility for one or the other.
 hledger does not allow separate dates for individual postings, unlike c++
 ledger.
 
-Likewise, hledger does not support per-posting cleared status. It does
-ignore a cleared flag (`*`) at the start of a posting, so that the account
-name is parsed correctly.
-
 (See also [usage issues](#usage-issues))
 
 ### Features not supported
@@ -1106,13 +1102,16 @@ entries, and the following c++ ledger options and commands:
 -   hledger doesn't track the value of commodities with varying
     price; prices are fixed as of the transaction date
 
+-   hledger's output follows the decimal point character, digit grouping,
+    and digit group separator character used in the journal.
+
 -   hledger print shows amounts for all postings, and shows unit
     prices for amounts which have them. (This currently means that
     it does not print multi-commodity transactions in valid journal format.)
 
-  - hledger's default commodity directive (D) applies the commodity to
+  - hledger's default commodity directive (D) sets the commodity for
     subsequent commodityless amounts. ledger uses it only to set commodity
-    display settings (and for the entry command).
+    display settings and for the entry command.
 
 ## Troubleshooting
 

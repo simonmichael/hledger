@@ -179,17 +179,35 @@ showAmountWithoutPriceOrCommodity :: Amount -> String
 showAmountWithoutPriceOrCommodity a@Amount{commodity=c} = showAmount a{commodity=c{symbol=""}, price=Nothing}
 
 -- | Get the string representation of the number part of of an amount,
--- using the display precision from its commodity.
+-- using the display settings from its commodity.
 showAmount' :: Amount -> String
-showAmount' (Amount (Commodity {comma=comma,precision=p}) q _) = addthousandsseparators $ qstr
-  where
-    addthousandsseparators = if comma then punctuatethousands else id
-    qstr | p == maxprecision && isint q = printf "%d" (round q::Integer)
+showAmount' (Amount (Commodity {decimalpoint=d,precision=p,separator=s,separatorpositions=spos}) q _) =
+    punctuatenumber d s spos $ qstr
+    where
+    qstr -- | p == maxprecision && isint q = printf "%d" (round q::Integer)
          | p == maxprecision            = printf "%f" q
          | otherwise                    = printf ("%."++show p++"f") q
-    isint n = fromIntegral (round n) == n
+    -- isint n = fromIntegral (round n) == n
 
 maxprecision = 999999
+
+-- | Replace a number string's decimal point with the specified character,
+-- and add the specified digit group separators.
+punctuatenumber :: Char -> Char -> [Int] -> String -> String
+punctuatenumber dec sep grps str = sign ++ reverse (addseps sep (extend grps) (reverse int)) ++ frac''
+    where
+      (sign,num) = break isDigit str
+      (int,frac) = break (=='.') num
+      frac' = dropWhile (=='.') frac
+      frac'' | null frac' = ""
+             | otherwise  = dec:frac'
+      extend [] = []
+      extend gs = init gs ++ repeat (last gs)
+      addseps _ [] str = str
+      addseps sep (g:gs) str
+          | length str <= g = str
+          | otherwise = let (s,rest) = splitAt g str
+                        in s ++ [sep] ++ addseps sep gs rest
 
 -- | Add thousands-separating commas to a decimal number string
 punctuatethousands :: String -> String
@@ -404,7 +422,7 @@ nullmixedamt = Mixed []
 
 -- | A temporary value for parsed transactions which had no amount specified.
 missingamt :: MixedAmount
-missingamt = Mixed [Amount Commodity {symbol="AUTO",side=L,spaced=False,comma=False,precision=0} 0 Nothing]
+missingamt = Mixed [Amount unknown{symbol="AUTO"} 0 Nothing]
 
 
 tests_Hledger_Data_Amount = TestList [

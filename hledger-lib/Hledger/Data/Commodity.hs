@@ -21,18 +21,18 @@ quoteCommoditySymbolIfNeeded s | any (`elem` nonsimplecommoditychars) s = "\"" +
 
 -- convenient amount and commodity constructors, for tests etc.
 
-unknown = Commodity {symbol="", side=L,spaced=False,comma=False,precision=0}
-dollar  = Commodity {symbol="$",side=L,spaced=False,comma=False,precision=2}
-euro    = Commodity {symbol="€",side=L,spaced=False,comma=False,precision=2}
-pound   = Commodity {symbol="£",side=L,spaced=False,comma=False,precision=2}
-hour    = Commodity {symbol="h",side=R,spaced=False,comma=False,precision=1}
+unknown = Commodity {symbol="", side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]}
+dollar  = Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=2,separator=',',separatorpositions=[]}
+euro    = Commodity {symbol="€",side=L,spaced=False,decimalpoint='.',precision=2,separator=',',separatorpositions=[]}
+pound   = Commodity {symbol="£",side=L,spaced=False,decimalpoint='.',precision=2,separator=',',separatorpositions=[]}
+hour    = Commodity {symbol="h",side=R,spaced=False,decimalpoint='.',precision=1,separator=',',separatorpositions=[]}
 
 dollars n = Amount dollar n Nothing
-euros n   = Amount euro n Nothing
-pounds n  = Amount pound n Nothing
-hours n   = Amount hour n Nothing
+euros n   = Amount euro   n Nothing
+pounds n  = Amount pound  n Nothing
+hours n   = Amount hour   n Nothing
 
-defaultcommodities = [dollar,  euro,  pound, hour, unknown]
+defaultcommodities = [dollar, euro, pound, hour, unknown]
 
 -- | Look up one of the hard-coded default commodities. For use in tests.
 comm :: String -> Commodity

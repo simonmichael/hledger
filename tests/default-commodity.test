@@ -9,14 +9,14 @@ bin/hledger -f- print
   a  1000
   b
 
-; pound, two decimal places, no thousands separator
+; pound, two decimal places, no digit group separator
 D £1000.00
 
 2010/1/1 y
   a  1000
   b
 
-; dollar, no decimal places, comma thousands separator
+; dollar, comma decimal point, three decimal places, no digit group separator
 D $1,000
 
 2010/1/1 z
@@ -33,6 +33,6 @@ D $1,000
     b     £-1000.00
 
 2010/01/01 z
-    a        $1,000
-    b       $-1,000
+    a     $1000,000
+    b    $-1000,000
 

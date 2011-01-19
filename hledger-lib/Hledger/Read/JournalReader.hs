@@ -119,6 +119,7 @@ module Hledger.Read.JournalReader (
 where
 import Control.Monad.Error (ErrorT(..), throwError, catchError)
 import Data.List.Split (wordsBy)
+import Safe (headDef)
 import Text.ParserCombinators.Parsec hiding (parse)
 #if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
@@ -495,28 +496,28 @@ leftsymbolamount = do
   let applysign = if isJust sign then negate else id
   sym <- commoditysymbol 
   sp <- many spacenonewline
-  (q,p,comma) <- amountquantity
+  (q,p,d,s,spos) <- number
   pri <- priceamount
-  let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,comma=comma,precision=p}
+  let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,decimalpoint=d,precision=p,separator=s,separatorpositions=spos}
   return $ applysign $ Mixed [Amount c q pri]
   <?> "left-symbol amount"
 
 rightsymbolamount :: GenParser Char JournalContext MixedAmount
 rightsymbolamount = do
-  (q,p,comma) <- amountquantity
+  (q,p,d,s,spos) <- number
   sp <- many spacenonewline
   sym <- commoditysymbol
   pri <- priceamount
-  let c = Commodity {symbol=sym,side=R,spaced=not $ null sp,comma=comma,precision=p}
+  let c = Commodity {symbol=sym,side=R,spaced=not $ null sp,decimalpoint=d,precision=p,separator=s,separatorpositions=spos}
   return $ Mixed [Amount c q pri]
   <?> "right-symbol amount"
 
 nosymbolamount :: GenParser Char JournalContext MixedAmount
 nosymbolamount = do
-  (q,p,comma) <- amountquantity
+  (q,p,d,s,spos) <- number
   pri <- priceamount
   defc <- getCommodity
-  let c = fromMaybe Commodity{symbol="",side=L,spaced=False,comma=comma,precision=p} defc
+  let c = fromMaybe Commodity{symbol="",side=L,spaced=False,decimalpoint=d,precision=p,separator=s,separatorpositions=spos} defc
   return $ Mixed [Amount c q pri]
   <?> "no-symbol amount"
 
@@ -541,58 +542,130 @@ priceamount =
           try (do
                 char '@'
                 many spacenonewline
-                a <- someamount -- XXX this could parse more prices ad infinitum, but shouldn't
+                a <- someamount -- XXX can parse more prices ad infinitum, shouldn't
                 return $ Just $ TotalPrice a)
            <|> (do
             many spacenonewline
-            a <- someamount -- XXX this could parse more prices ad infinitum, but shouldn't
+            a <- someamount -- XXX can parse more prices ad infinitum, shouldn't
             return $ Just $ UnitPrice a))
          <|> return Nothing
 
 -- gawd.. trying to parse a ledger number without error:
 
--- | Parse a ledger-style numeric quantity and also return the number of
--- digits to the right of the decimal point and whether thousands are
--- separated by comma.
-amountquantity :: GenParser Char JournalContext (Double, Int, Bool)
-amountquantity = do
+type Quantity = Double
+
+-- -- | Parse a ledger-style numeric quantity and also return the number of
+-- -- digits to the right of the decimal point and whether thousands are
+-- -- separated by comma.
+-- amountquantity :: GenParser Char JournalContext (Quantity, Int, Bool)
+-- amountquantity = do
+--   sign <- optionMaybe $ string "-"
+--   (intwithcommas,frac) <- numberparts
+--   let comma = ',' `elem` intwithcommas
+--   let precision = length frac
+--   -- read the actual value. We expect this read to never fail.
+--   let int = filter (/= ',') intwithcommas
+--   let int' = if null int then "0" else int
+--   let frac' = if null frac then "0" else frac
+--   let sign' = fromMaybe "" sign
+--   let quantity = read $ sign'++int'++"."++frac'
+--   return (quantity, precision, comma)
+--   <?> "commodity quantity"
+
+-- -- | parse the two strings of digits before and after a possible decimal
+-- -- point.  The integer part may contain commas, or either part may be
+-- -- empty, or there may be no point.
+-- numberparts :: GenParser Char JournalContext (String,String)
+-- numberparts = numberpartsstartingwithdigit <|> numberpartsstartingwithpoint
+
+-- numberpartsstartingwithdigit :: GenParser Char JournalContext (String,String)
+-- numberpartsstartingwithdigit = do
+--   let digitorcomma = digit <|> char ','
+--   first <- digit
+--   rest <- many digitorcomma
+--   frac <- try (do {char '.'; many digit}) <|> return ""
+--   return (first:rest,frac)
+                     
+-- numberpartsstartingwithpoint :: GenParser Char JournalContext (String,String)
+-- numberpartsstartingwithpoint = do
+--   char '.'
+--   frac <- many1 digit
+--   return ("",frac)
+
+-- | Parse a numeric quantity for its value and display attributes.  Some
+-- international number formats (cf
+-- http://en.wikipedia.org/wiki/Decimal_separator) are accepted: either
+-- period or comma may be used for the decimal point, and the other of
+-- these may be used for separating digit groups in the integer part (eg a
+-- thousands separator).  This returns the numeric value, the precision
+-- (number of digits to the right of the decimal point), the decimal point
+-- and separator characters (defaulting to . and ,), and the positions of
+-- separators (counting leftward from the decimal point, the last is
+-- assumed to repeat).
+number :: GenParser Char JournalContext (Quantity, Int, Char, Char, [Int])
+number = do
   sign <- optionMaybe $ string "-"
-  (intwithcommas,frac) <- numberparts
-  let comma = ',' `elem` intwithcommas
-  let precision = length frac
-  -- read the actual value. We expect this read to never fail.
-  let int = filter (/= ',') intwithcommas
-  let int' = if null int then "0" else int
-  let frac' = if null frac then "0" else frac
-  let sign' = fromMaybe "" sign
-  let quantity = read $ sign'++int'++"."++frac'
-  return (quantity, precision, comma)
-  <?> "commodity quantity"
-
--- | parse the two strings of digits before and after a possible decimal
--- point.  The integer part may contain commas, or either part may be
--- empty, or there may be no point.
-numberparts :: GenParser Char JournalContext (String,String)
-numberparts = numberpartsstartingwithdigit <|> numberpartsstartingwithpoint
-
-numberpartsstartingwithdigit :: GenParser Char JournalContext (String,String)
-numberpartsstartingwithdigit = do
-  let digitorcomma = digit <|> char ','
-  first <- digit
-  rest <- many digitorcomma
-  frac <- try (do {char '.'; many digit}) <|> return ""
-  return (first:rest,frac)
-                     
-numberpartsstartingwithpoint :: GenParser Char JournalContext (String,String)
-numberpartsstartingwithpoint = do
-  char '.'
-  frac <- many1 digit
-  return ("",frac)
-                     
+  parts <- many1 $ choice' [many1 digit, many1 $ char ',', many1 $ char '.']
+  let numeric = isNumber . headDef '_'
+      (_, puncparts) = partition numeric parts
+      (ok,decimalpoint',separator') =
+          case puncparts of
+            []     -> (True, Nothing, Nothing)  -- no punctuation chars
+            [d:""] -> (True, Just d, Nothing)   -- just one punctuation char, assume it's a decimal point
+            [_]    -> (False, Nothing, Nothing) -- adjacent punctuation chars, not ok
+            _:_:_  -> let (s:ss, d) = (init puncparts, last puncparts) -- two or more punctuation chars
+                     in if (any ((/=1).length) puncparts  -- adjacent punctuation chars, not ok
+                            || any (s/=) ss                -- separator chars differ, not ok
+                            || head parts == s)            -- number begins with a separator char, not ok
+                         then (False, Nothing, Nothing)
+                         else if s == d
+                               then (True, Nothing, Just $ head s) -- just one kind of punctuation, assume separator chars
+                               else (True, Just $ head d, Just $ head s) -- separators and a decimal point
+  when (not ok) (fail $ "number seems ill-formed: "++concat parts)
+  let (intparts',fracparts') = span ((/= decimalpoint') . Just . head) parts
+      (intparts, fracpart) = (filter numeric intparts', filter numeric fracparts')
+      separatorpositions = reverse $ map length $ drop 1 intparts
+      int = concat $ "":intparts
+      frac = concat $ "":fracpart
+      precision = length frac
+      int' = if null int then "0" else int
+      frac' = if null frac then "0" else frac
+      sign' = fromMaybe "" sign
+      quantity = read $ sign'++int'++"."++frac' -- this read should never fail
+      (decimalpoint, separator) = case (decimalpoint', separator') of (Just d,  Just s)   -> (d,s)
+                                                                      (Just '.',Nothing)  -> ('.',',')
+                                                                      (Just ',',Nothing)  -> (',','.')
+                                                                      (Nothing, Just '.') -> (',','.')
+                                                                      (Nothing, Just ',') -> ('.',',')
+                                                                      _                   -> ('.',',')
+  return (quantity,precision,decimalpoint,separator,separatorpositions)
+  <?> "number"
 
 tests_Hledger_Read_JournalReader = TestList [
 
-   "ledgerTransaction" ~: do
+    "number" ~: do
+      let s `is` n = assertParseEqual (parseWithCtx nullctx number s) n
+          assertFails = assertBool "" . isLeft . parseWithCtx nullctx number 
+      assertFails ""
+      "0"          `is` (0, 0, '.', ',', [])
+      "1"          `is` (1, 0, '.', ',', [])
+      "1.1"        `is` (1.1, 1, '.', ',', [])
+      "1,000.1"    `is` (1000.1, 1, '.', ',', [3])
+      "1.00.000,1" `is` (100000.1, 1, ',', '.', [3,2])
+      "1,000,000"  `is` (1000000, 0, '.', ',', [3,3])
+      "1."         `is` (1,   0, '.', ',', [])
+      "1,"         `is` (1,   0, ',', '.', [])
+      ".1"         `is` (0.1, 1, '.', ',', [])
+      ",1"         `is` (0.1, 1, ',', '.', [])
+      assertFails "1,000.000,1"
+      assertFails "1.000,000.1"
+      assertFails "1,000.000.1"
+      assertFails "1,,1"
+      assertFails "1..1"
+      assertFails ".1,"
+      assertFails ",1."
+
+   ,"ledgerTransaction" ~: do
     assertParseEqual (parseWithCtx nullctx ledgerTransaction entry1_str) entry1
     assertBool "ledgerTransaction should not parse just a date"
                    $ isLeft $ parseWithCtx nullctx ledgerTransaction "2009/1/1\n"
@@ -662,7 +735,7 @@ tests_Hledger_Read_JournalReader = TestList [
   ,"postingamount" ~: do
     assertParseEqual (parseWithCtx nullctx postingamount " $47.18") (Mixed [dollars 47.18])
     assertParseEqual (parseWithCtx nullctx postingamount " $1.")
-                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
+                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} 1 Nothing])
   ,"postingamount with unit price" ~: do
     assertParseEqual
      (parseWithCtx nullctx postingamount " $10 @ €0.5")
@@ -682,11 +755,11 @@ tests_Hledger_Read_JournalReader = TestList [
 
   ,"leftsymbolamount" ~: do
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")
-                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} 1 Nothing])
+                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} 1 Nothing])
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "$-1")
-                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} (-1) Nothing])
+                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} (-1) Nothing])
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1")
-                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,comma=False,precision=0} (-1) Nothing])
+                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} (-1) Nothing])
 
  ]
 
