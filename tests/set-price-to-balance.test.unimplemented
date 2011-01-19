@@ -1,8 +1,0 @@
-# should infer prices to balance this - not implemented
-bin/hledger -f - print
-<<<
-2009/1/1 opening balance
-    Assets:Brokerage        1 AAPL
-    Assets:Checking        $-20.00
- 
->>>= 0

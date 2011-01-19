@@ -1,0 +1,66 @@
+# price-related tests
+# 1. print a transaction with an explicit unit price
+bin/hledger -f- print
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011/01/01
+    expenses:foreign currency  €100 @ $1.35
+    assets                     €-100 @ $1.35
+
+# 2. convert to cost basis
+bin/hledger -f- print -B
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011/01/01
+    expenses:foreign currency       $135.00
+    assets                         $-135.00
+
+# 2. with a historical price directive
+bin/hledger -f- print -B
+<<<
+P 2010/12/31 € $1.34
+P 2011/01/01 € $1.35
+P 2011/01/02 € $1.36
+
+2011/01/01
+    expenses:foreign currency       €100
+    assets
+
+>>>
+2011/01/01
+    expenses:foreign currency       $135.00
+    assets                         $-135.00
+
+# 3. with a total price
+bin/hledger -f - print
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @@ $135
+    assets
+>>>
+2011/01/01
+    expenses:foreign currency  €100 @@ $135
+    assets                     €-100 @@ $135
+
+# 4. with an implicit price
+# bin/hledger -f - print
+# <<<
+# 2011/01/01
+#     expenses:foreign currency       €100 @ $1.35
+#     assets                              $-135.00
+# >>>
+# 2011/01/01
+#     expenses:foreign currency  €100 @ $1.35
+#     assets
+#
+# 2009/1/1 opening balance
+#     Assets:Brokerage        1 AAPL
+#     Assets:Checking        $-20.00
+#
+# >>>= 0
