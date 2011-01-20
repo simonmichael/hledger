@@ -31,7 +31,7 @@ hledger is copyright (c) 2007-2010
 [Simon&nbsp;Michael&nbsp;<simon@joyful.com>](mailto:simon@joyful.com) and
 contributors, and released as Free Software under GPL version 3 or later.
 
-This is the manual for hledger 0.13.0.
+This is the manual for hledger 0.14.0-pre (it may be slightly in advance of the current release).
 
 <a name="faq" />
 
@@ -107,7 +107,7 @@ Basic usage is:
     $ hledger [OPTIONS] COMMAND [FILTER PATTERNS]
 
 hledger first looks for data in a specially-formatted
-[journal file](#journal-file-format).  You can specify the file with the -f
+[journal file](#file-format).  You can specify the file with the -f
 option or the `LEDGER` environment variable; otherwise hledger assumes it
 is a file named `.journal` in your home directory. If the journal file
 does not exist, it will be auto-created.
@@ -169,9 +169,7 @@ Some of these are discussed more in [other features](#other-features):
       -V       --version          show version information
       -h       --help             show command-line usage
     
-<a name="file-format" />
-
-## Journal file format
+## File format
 
 hledger reads data from a plain text file, called a *journal* because
 it represents a standard accounting [general
@@ -326,7 +324,7 @@ Example:
 ### Default commodity
 
 You can set a default commodity or currency with a D directive. The
-commodity (and its symbol position and number format settings) will be
+commodity <!-- (and its symbol position and number format settings) --> will be
 used for any subsequent amounts which have no commodity symbol.
 
     ; default commodity: british pound, comma thousands separator, two decimal places
@@ -777,7 +775,7 @@ the next page reload.
 
 #### malformed edits
 
-The journal file must remain in good [hledger format](#journal-file-format) so
+The journal file must remain in good [hledger format](#file-format) so
 that hledger can parse it. The web add and edit forms ensure this by not
 allowing edits which would introduce parse errors. If a direct edit makes
 the journal file unparseable, the web UI will show the error instead of
