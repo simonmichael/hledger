@@ -53,6 +53,7 @@ module Hledger.Data.Amount (
                             isReallyZeroMixedAmountCost,
                             isZeroMixedAmount,
                             maxprecision,
+                            maxprecisionwithpoint,
                             missingamt,
                             normaliseMixedAmount,
                             nullamt,
@@ -183,13 +184,20 @@ showamountquantity :: Amount -> String
 showamountquantity (Amount (Commodity {decimalpoint=d,precision=p,separator=s,separatorpositions=spos}) q _) =
     punctuatenumber d s spos $ qstr
     where
-    qstr -- | p == maxprecision && isint q = printf "%d" (round q::Integer)
-         | p == maxprecision            = printf "%f" q
-         | otherwise                    = printf ("%."++show p++"f") q
     -- isint n = fromIntegral (round n) == n
+    qstr -- | p == maxprecision && isint q = printf "%d" (round q::Integer)
+         | p == maxprecisionwithpoint    = printf "%f" q
+         | p == maxprecision             = chopdotzero $ printf "%f" q
+         | otherwise                    = printf ("%."++show p++"f") q
+
+chopdotzero str = reverse $ case reverse str of
+                              '0':'.':s -> s
+                              s         -> s
 
 -- | A special precision value meaning show all available digits.
-maxprecision = 999999
+maxprecision = 999998
+-- | Similar, forces display of a decimal point.
+maxprecisionwithpoint = 999999
 
 -- | Replace a number string's decimal point with the specified character,
 -- and add the specified digit group separators.

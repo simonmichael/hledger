@@ -122,8 +122,10 @@ getPostings ctx accept historicalps enteredps = do
                            | n > 1             = Just balancingamountstr
                            | otherwise         = Nothing
               where
-                historicalamountstr = showMixedAmountWithPrecision maxprecision $ pamount $ fromJust bestmatch'
-                balancingamountstr  = showMixedAmountWithPrecision maxprecision $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
+                -- force a decimal point in the output in case there's a
+                -- digit group separator that would be mistaken for one
+                historicalamountstr = showMixedAmountWithPrecision maxprecisionwithpoint $ pamount $ fromJust bestmatch'
+                balancingamountstr  = showMixedAmountWithPrecision maxprecisionwithpoint $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
       amountstr <- askFor (printf "amount  %d" n) defaultamountstr validateamount
       let amount  = fromparse $ runParser (someamount <|> return missingamt) ctx     "" amountstr
           amount' = fromparse $ runParser (someamount <|> return missingamt) nullctx "" amountstr

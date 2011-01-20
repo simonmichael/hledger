@@ -86,7 +86,7 @@ a
 b
 
 .
->>> /a  +£1,000.0/
+>>> /a  +£1,000.00/
 # 9. default amounts should not fail to balance due to precision
 bin/hledger -f nosuch.journal add
 <<<
