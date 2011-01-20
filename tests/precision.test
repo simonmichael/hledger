@@ -1,6 +1,6 @@
 # http://code.google.com/p/hledger/issues/detail?id=23
 #
-# with explicit price:
+# 1. with explicit price:
 # prices' commodities are unobserved, so $'s display precision here should be 2 not 4
 bin/hledger -f - print --cost
 <<<
@@ -14,7 +14,7 @@ bin/hledger -f - print --cost
     a         $1.00
     a        $-1.00
 
-# and here the price should be printed with its original precision, not
+# 2. and here the price should be printed with its original precision, not
 # the canonical display precision
 bin/hledger -f - print
 <<<
@@ -28,7 +28,7 @@ bin/hledger -f - print
     a  1C @ $1.0049
     a  -1C @ $1.0049
 
-# with $'s display precision at 3 or more, this txn should not balance.
+# 3. with $'s display precision at 3 or more, this txn should not balance.
 # The error message shows the difference with full precision.
 bin/hledger -f - balance --no-total --cost --empty
 <<<
@@ -37,7 +37,7 @@ bin/hledger -f - balance --no-total --cost --empty
    a  $-1.000
 >>>2 /off by \$0.0049/
 >>>= 1
-# with $'s display precision at 2 or less, this txn should balance
+# 4. with $'s display precision at 2 or less, this txn should balance
 bin/hledger -f - balance --no-total --cost --empty
 <<<
 2010/1/1
@@ -45,3 +45,26 @@ bin/hledger -f - balance --no-total --cost --empty
    a  $-1.00
 >>>
                $0.00  a
+# 5. avamk's 2011/1/19 example
+bin/hledger -f - -B bal
+<<<
+2001/01/01 * ACME fund
+           assets:investment:ACME     203.890 ACME @ $16.02
+           equity:opening balances
+>>>
+?
+# hledger 0.14pre:
+#            $3266.32  assets:investment:ACME
+#           $-3266.32  equity:opening balances
+#--------------------
+#               $0.00
+#
+# ledger "2.6.0.90" (with -s):
+#          $3266.3178  assets:investment:ACME
+#         $-3266.3178  equity:opening balances
+#
+# ledger 3:
+#               $3266  assets:investment:ACME
+#              $-3266  equity:opening balances
+#--------------------
+#                   0
