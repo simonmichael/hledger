@@ -1,0 +1,123 @@
+# price-related tests
+# 1. print a transaction with an explicit unit price
+bin/hledger -f- print
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011/01/01
+    expenses:foreign currency  €100 @ $1.35
+    assets                     €-100 @ $1.35
+
+# 2. convert to cost basis
+bin/hledger -f- print -B
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @ $1.35
+    assets
+>>>
+2011/01/01
+    expenses:foreign currency       $135.00
+    assets                         $-135.00
+
+# 3. with a historical price directive
+bin/hledger -f- print -B
+<<<
+P 2010/12/31 € $1.34
+P 2011/01/01 € $1.35
+P 2011/01/02 € $1.36
+
+2011/01/01
+    expenses:foreign currency       €100
+    assets
+
+>>>
+2011/01/01
+    expenses:foreign currency       $135.00
+    assets                         $-135.00
+
+# 4. with a total price
+bin/hledger -f - print
+<<<
+2011/01/01
+    expenses:foreign currency       €100 @@ $135
+    assets
+>>>
+2011/01/01
+    expenses:foreign currency  €100 @@ $135
+    assets                     €-100 @@ $135
+
+# 5. when the balance has exactly two commodities, both unpriced, infer an
+# implicit conversion price for the first one in terms of the second.
+bin/hledger -f - print
+<<<
+2011/01/01
+    expenses:foreign currency       €100
+    misc                              $2.1
+    assets                         $-135.00
+    misc                              €1
+    misc                             €-1
+    misc                             $-2.1
+>>>
+2011/01/01
+    expenses:foreign currency  €100 @ $1.35
+    misc                              $2.10
+    assets                         $-135.00
+    misc                         €1 @ $1.35
+    misc                        €-1 @ $1.35
+    misc                             $-2.10
+
+# # 6. when the *cost-basis* balance has exactly two commodities, both
+# # unpriced, infer an implicit conversion price for the first one in terms
+# # of the second.
+# bin/hledger -f - print
+# <<<
+# 2011/01/01
+#     expenses:foreign currency       €100
+#     assets                         $-135.00
+#     misc                              $3.1 @ 2 bob
+#     misc                             $-3.1 @ 2 bob
+#     misc                              £1 @@ 2 shekels
+#     misc                             £-1 @@ 2 shekels
+# >>>
+# 2011/01/01
+#     expenses:foreign currency   €100 @ $1.35
+#     assets                     €-100 @ $1.35
+#     misc                        $3.1 @ 2 bob
+#     misc                       $-3.1 @ 2 bob
+#     misc                          £1 @@ 2 shekels
+#     misc                         £-1 @@ 2 shekels
+#
+## 7. another, from ledger tests. Just one posting to price so uses @@.
+bin/hledger -f - print
+<<<
+2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
+    c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG
+    a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
+>>>
+2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
+    c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG @@ $17,783.72
+    a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
+
+# 8. when the balance has more than two commodities, don't bother
+bin/hledger -f - print
+<<<
+2011/01/01
+    expenses:foreign currency       €100
+    assets                         $-135
+    expenses:other                  £200
+>>>= !0
+# 9. another
+bin/hledger -f - balance -B
+<<<
+2011/01/01
+    expenses:foreign currency        €99
+    assets                         $-130
+    expenses:foreign currency         €1
+    assets                           $-5
+>>>
+               $-135  assets
+                $135  expenses:foreign currency
+--------------------
+                  $0

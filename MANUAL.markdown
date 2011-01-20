@@ -360,20 +360,28 @@ Or, you can write `@@ TOTALPRICE`, which is sometimes more convenient:
      assets:cash
 
 Or, you can set the price for this commodity as of a certain date, using a
-historical price directive as shown here:
+historical price directive (P) as shown:
 
     ; the exchange rate for euro is $1.35 on 2009/1/1 (and thereafter, until a newer price directive is found)
     ; four space-separated fields: P, date, commodity symbol, unit price in 2nd commodity
     P 2009/1/1 € $1.35  
     
-    2009/1/2 x
+    2009/1/2
      expenses:foreign currency       €100
      assets
 
-The print command shows any prices in effect. Either example above will show:
+Or, you can write a transaction in two commodities, without prices but
+with all amounts specified, and a conversion price will be inferred so as
+to balance the transaction:
+
+    2009/1/2
+     expenses:foreign currency       €100
+     assets                         $-135
+
+The print command shows any prices in effect. So the first example above gives:
 
     $ hledger print
-    2009/01/02 x
+    2009/01/02
         expenses:foreign currency  €100 @ $1.35
         assets                     €-100 @ $1.35
 
@@ -385,8 +393,8 @@ with any command:
         expenses:foreign currency       $135.00
         assets                         $-135.00
 
-The `--cost/-B` flag does only one lookup step, ie it will not look up the
-price of a price's commodity.
+In other words the `--cost/-B` flag converts amounts to their price's
+commodity. (It will not look up the price of a price.)
 
 Note hledger handles prices differently from c++ ledger in this respect:
 we assume unit prices do not vary over time.  This is good for simple
@@ -1110,8 +1118,9 @@ entries, and the following c++ ledger options and commands:
     it does not print multi-commodity transactions in valid journal format.)
 
   - hledger's default commodity directive (D) sets the commodity for
-    subsequent commodityless amounts. ledger uses it only to set commodity
-    display settings and for the entry command.
+    subsequent commodityless amounts, and contributes to that commodity's
+    display settings. ledger uses D only for commodity display settings
+    and for the entry command.
 
 ## Troubleshooting
 
@@ -1241,10 +1250,8 @@ Here are some issues you might encounter when you run hledger:
     the current list of things we know we don't parse (see also
     [file format compatibility](#file-format-compatibility):
 
-    - AMOUNT1 = AMOUNT2 (balance assertion ? price specification ?)
-    - specifying prices via postings in different commodities
-    - comma decimal point and period thousands separator, or any number
-      format other than the US standard
+    - AMOUNT1 = AMOUNT2 (balance assertion/price specification ?)
+    - ... AMOUNT {...}
 
 ## Examples and recipes
 
