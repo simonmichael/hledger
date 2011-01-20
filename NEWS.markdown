@@ -4,6 +4,18 @@ title: hledger news
 
 # hledger news
 
+
+  * installing: don't specify process version after all, too many problems
+  * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
+  * parsing: support @@ syntax specifying total price
+  * parsing: infer a conversion price in unpriced two-commodity transactions
+  * parsing: support per-posting cleared status
+  * parsing: more reporting interval syntax: biweekly, bimonthly, every N days/weeks/months/quarters/years, every Nst/nd/rd/th day of month/week
+  * convert: support custom date formats
+  * histogram: honour the specified start or end dates
+  * print: don't show a trailing space when description is blank
+  * web: allow filter patterns with spaces if quoted, like command line
+
 ## 2010/12/6 hledger 0.13
 
   * move web, vty, chart commands into separate hledger-web, hledger-vty,

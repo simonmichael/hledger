@@ -1012,17 +1012,14 @@ managing memory growth.
 ### File format compatibility
 
 hledger's file format is mostly identical with that of c++ ledger, with
-some features being accepted but ignored. (Eg modifier entries, periodic
-entries, metadata, per-posting cleared flags). There are also some subtle
-differences in parser behaviour (eg comments may be permissible in
-different places.)
+some features being accepted but ignored (eg, modifier entries and
+periodic entries). There are subtle differences in parser behaviour, eg
+comments may be permissible in different places. hledger does not allow
+separate dates for individual postings, or AMT1=AMT2 or { } syntax.
 
 Generally, it's easy to keep a journal file that works with both hledger
-and c++ledger if you avoid the more esoteric syntax.  Occasionally you'll
-need to make small edits to restore compatibility for one or the other.
-
-hledger does not allow separate dates for individual postings, unlike c++
-ledger.
+and c++ledger if you avoid these.  Occasionally you'll need to make small
+adjustments to restore compatibility for one or the other.
 
 (See also [usage issues](#usage-issues))
 
@@ -1244,14 +1241,9 @@ Here are some issues you might encounter when you run hledger:
         $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
         $ bash --login
 
-- **hledger fails to parse some ledger syntax**
+- **hledger fails to parse some valid ledger files**
 
-    There are still some valid c++ ledger journals we don't parse. Here's
-    the current list of things we know we don't parse (see also
-    [file format compatibility](#file-format-compatibility):
-
-    - AMOUNT1 = AMOUNT2 (balance assertion/price specification ?)
-    - ... AMOUNT {...}
+    See [file format compatibility](#file-format-compatibility).
 
 ## Examples and recipes
 
