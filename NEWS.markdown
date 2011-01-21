@@ -4,8 +4,9 @@ title: hledger news
 
 # hledger news
 
-
-  * installing: don't specify process version after all, too many problems
+  * installing: don't specify process version, too many problems
+  * always read and write UTF-8, ignoring locale (#34)
+  * treat arguments as possibly-encoded platform strings, not unconditionally utf-8
   * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
   * parsing: support @@ syntax specifying total price
   * parsing: infer a conversion price in unpriced two-commodity transactions
@@ -15,6 +16,9 @@ title: hledger news
   * histogram: honour the specified start or end dates
   * print: don't show a trailing space when description is blank
   * web: allow filter patterns with spaces if quoted, like command line
+  * web: make edit form more cross-browser compatible, fixing it in firefox (#38)
+  * web: move hidden add/edit/import forms below main content to help text-mode browsers a bit (#33)
+
 
 ## 2010/12/6 hledger 0.13
 

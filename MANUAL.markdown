@@ -204,13 +204,13 @@ number of transactions, each describing a transfer of money (or
 any commodity) between two or more named accounts, in a simple
 format readable by both hledger and humans.
 
-You can use hledger without learning any more about this file; just
-use the [add](#add) or [web](#web) commands.
+You can use hledger without learning any more about this file; just use
+the [add](#add) or [web](#web) commands. Many users, though, edit the
+journal file directly with a text editor (perhaps using emacs' or vi's
+helper modes). This is a distinguishing feature of hledger and c++ ledger.
 
-Many users, though, edit the journal file directly with a text
-editor. This is a distinguishing feature of hledger (and c++ ledger.)
-You can even do this while the web interface is running, and see the
-changes right away.
+hledger's file format aims to be [compatible](#file-format-compatibility)
+with c++ ledger, so you can use both tools on your journal.
 
 Here's an example:
 
@@ -237,26 +237,44 @@ Here's an example:
         liabilities:debts     $1
         assets:bank:checking
 
-Each transaction has a date, optional description, and two or more
-postings, of some amount to some account. The amounts within a transaction must balance,
-ie add up to 0. Or, you can leave one amount blank and it will be inferred.
+### Transactions
 
-Account names typically have several parts separated by a colon, from
-which hledger will derive a hierarchical chart of accounts. Account names
-may contain single spaces.
+Each transaction begins with a date in column 0, followed by an optional
+description, then two or more postings (of some amount to some account),
+each on their own line.
 
-After the account name, separated by at least *two* spaces, there is
+The posting amounts within a transaction must always balance, ie add up to
+0.  You can leave one amount blank and it will be inferred.
+
+### Account names
+
+Account names typically have several parts separated by a full colon, from
+which hledger derives a hierarchical chart of accounts. They can be
+anything you like, but in finance there are traditionally five top-level
+accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
+
+Account names may contain single spaces, eg: `assets:accounts receivable`.
+
+### Amounts
+
+After the account name, separated by *two or more spaces*, there is
 usually an amount.  This is a number, optionally with a currency symbol or
 commodity name on either the left or right. Commodity names which contain
-more than just letters should be enclosed in double quotes. Negative
-amounts usually have the minus sign next to the number (`$-1`), but it may
-also go before a currency symbol/commodity name (`-$1`). The number may
-optionally have a decimal point and/or digit group separators (`.` and `,`
-or vice-versa).
+more than just letters should be enclosed in double quotes.
 
-hledger's file format aims to be compatible with c++ ledger, so you
-can use both tools on your journal. For more details, see [File format
-compatibility](#file-format-compatibility).
+Negative amounts usually have the minus sign next to the number: `$-1`.
+Or it may go before the symbol: `-$1`.
+
+The number may optionally have a decimal point, either a period (`.`) or a
+comma (`,`). hledger's reports will generally use the highest precision
+you have used in each commodity.
+
+Numbers may also have digit group separators, eg thousands separators.
+hledger's reports will follow the digit groups you have used.  The
+separator character is either comma or period - whichever one you did not
+use as a decimal point. If using digit group separators you should write
+at least one number with a decimal point, so hledger will know which is
+which. Eg: `1,000.00` or `1.000,00`.
 
 ### Simple dates
 
