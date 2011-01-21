@@ -526,12 +526,12 @@ getJournalR = do
    ^sidecontent^
   %div#main.journal
    ^navlinks.td^
-   ^addform.td^
-   ^editform'^
-   ^importform^
    %div#transactions
     ^filterform.td^
     ^maincontent^
+   ^addform.td^
+   ^editform'^
+   ^importform^
 |]
 
 postJournalR :: Handler RepPlain
@@ -559,12 +559,12 @@ getRegisterR = do
    ^sidecontent^
   %div#main.journal
    ^navlinks.td^
-   ^addform.td^
-   ^editform'^
-   ^importform^
    %div#transactions
     ^filterform.td^
     ^maincontent^
+   ^addform.td^
+   ^editform'^
+   ^importform^
 |]
 
 postRegisterR :: Handler RepPlain
@@ -661,9 +661,9 @@ getJournalOnlyR = do
   %a#addformlink!href!onclick="return addformToggle(event)" add one transaction
   \ | $
   %a#editformlink!href!onclick="return editformToggle(event)" edit the whole journal
+ #transactions ^txns^
  ^addform.td^
  ^editform'^
- #transactions ^txns^
 |]
 
 -- | Render a journal report as HTML.
