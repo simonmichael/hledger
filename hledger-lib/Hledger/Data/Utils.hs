@@ -19,6 +19,7 @@ module Data.Time.Calendar,
 module Data.Time.LocalTime,
 module Debug.Trace,
 module Hledger.Data.Utils,
+-- module Hledger.Data.UTF8,
 module Text.Printf,
 module Text.RegexPR,
 module Test.HUnit,
@@ -36,10 +37,9 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Debug.Trace
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (readFile,putStr,print)
-import System.IO.UTF8
-#endif
+-- needs to be done in each module I think
+-- import Prelude hiding (readFile,writeFile,getContents,putStr,putStrLn)
+-- import Hledger.Data.UTF8
 import Test.HUnit
 import Text.Printf
 import Text.RegexPR

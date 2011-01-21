@@ -42,12 +42,14 @@ library
                   Hledger.Data.TimeLog
                   Hledger.Data.Types
                   Hledger.Data.Utils
+                  Hledger.Data.UTF8
                   Hledger.Read
                   Hledger.Read.Utils
                   Hledger.Read.JournalReader
                   Hledger.Read.TimelogReader
   Build-Depends:
                   base >= 3 && < 5
+                 ,bytestring
                  ,containers
                  ,directory
                  ,filepath

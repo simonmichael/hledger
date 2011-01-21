@@ -111,10 +111,8 @@ import Hledger.Data.AccountName
 import Hledger.Data.Posting
 import Hledger.Data.Ledger
 import Hledger.Cli.Options
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding ( putStr )
-import System.IO.UTF8
-#endif
+import Prelude hiding (putStr)
+import Hledger.Data.UTF8 (putStr)
 
 
 -- | A balance report is a chart of accounts with balances, and their grand total.

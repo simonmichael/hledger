@@ -16,13 +16,6 @@ module Hledger.Read (
        myTimelog,
 )
 where
-import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.Types (Journal(..), Reader(..))
-import Hledger.Data.Journal (nullctx)
-import Hledger.Data.Utils
-import Hledger.Read.JournalReader as JournalReader
-import Hledger.Read.TimelogReader as TimelogReader
-
 import Control.Monad.Error
 import Data.Either (partitionEithers)
 import Safe (headDef)
@@ -30,12 +23,15 @@ import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.FilePath ((</>))
 import System.IO (IOMode(..), withFile, stderr)
-#if __GLASGOW_HASKELL__ <= 610
+
+import Hledger.Data.Dates (getCurrentDay)
+import Hledger.Data.Types (Journal(..), Reader(..))
+import Hledger.Data.Journal (nullctx)
+import Hledger.Data.Utils
 import Prelude hiding (getContents)
-import System.IO.UTF8 (getContents, hGetContents)
-#else
-import System.IO (hGetContents)
-#endif
+import Hledger.Data.UTF8 (getContents, hGetContents)
+import Hledger.Read.JournalReader as JournalReader
+import Hledger.Read.TimelogReader as TimelogReader
 
 
 journalenvvar           = "LEDGER_FILE"

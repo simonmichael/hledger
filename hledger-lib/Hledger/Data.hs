@@ -2,7 +2,8 @@
 
 The Hledger.Data library allows parsing and querying of C++ ledger-style
 journal files.  It generally provides a compatible subset of C++ ledger's
-functionality.  This package re-exports all the Hledger.Data.* modules.
+functionality.  This package re-exports all the Hledger.Data.* modules
+(except UTF8, which requires an explicit import.)
 
 -}
 

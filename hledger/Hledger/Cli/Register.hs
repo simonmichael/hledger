@@ -16,13 +16,12 @@ module Hledger.Cli.Register (
 ) where
 
 import Safe (headMay, lastMay)
-import Hledger.Data
-import Hledger.Cli.Options
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding ( putStr )
-import System.IO.UTF8
-#endif
 import Text.ParserCombinators.Parsec
+
+import Hledger.Cli.Options
+import Hledger.Data
+import Prelude hiding (putStr)
+import Hledger.Data.UTF8 (putStr)
 
 
 -- | A register report is a list of postings to an account or set of

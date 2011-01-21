@@ -9,10 +9,8 @@ module Hledger.Cli.Histogram
 where
 import Hledger.Data
 import Hledger.Cli.Options
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding ( putStr )
-import System.IO.UTF8
-#endif
+import Prelude hiding (putStr)
+import Hledger.Data.UTF8 (putStr)
 
 
 barchar = '*'

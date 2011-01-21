@@ -7,10 +7,6 @@ Released under GPL version 3 or later.
 
 module Hledger.Vty.Main where
 
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (putStr, putStrLn)
-import System.IO.UTF8 (putStr, putStrLn)
-#endif
 import Graphics.Vty
 import Safe (headDef)
 import System.Console.GetOpt
@@ -22,6 +18,8 @@ import Hledger.Cli.Register
 import Hledger.Cli.Utils (withJournalDo)
 import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
+import Prelude hiding (putStr, putStrLn)
+import Hledger.Data.UTF8 (putStr, putStrLn)
 
 
 progname_vty = progname_cli ++ "-vty"

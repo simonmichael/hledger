@@ -15,13 +15,10 @@ import Hledger.Data
 import Hledger.Read.JournalReader (someamount)
 import Hledger.Cli.Options
 import Hledger.Cli.Register (registerReport, registerReportAsText)
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (putStr, putStrLn, getLine, appendFile)
-import System.IO.UTF8
-import System.IO ( stderr )
-#else
+import Prelude hiding (putStr, putStrLn, appendFile)
+import Hledger.Data.UTF8 (putStr, putStrLn, appendFile)
+
 import System.IO ( stderr, hPutStrLn, hPutStr )
-#endif
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Hledger.Cli.Utils (readJournalWithOpts)

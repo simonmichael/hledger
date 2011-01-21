@@ -12,12 +12,10 @@ module Hledger.Cli.Print (
  ,journalReport
  ,showTransactions
 ) where
-import Hledger.Data
 import Hledger.Cli.Options
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding ( putStr )
-import System.IO.UTF8
-#endif
+import Hledger.Data
+import Prelude hiding (putStr)
+import Hledger.Data.UTF8 (putStr)
 
 
 -- | A "journal report" is just a list of transactions.

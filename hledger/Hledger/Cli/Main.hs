@@ -39,11 +39,8 @@ See "Hledger.Data.Ledger" for more examples.
 
 module Hledger.Cli.Main where
 
-#if __GLASGOW_HASKELL__ <= 610
 import Prelude hiding (putStr, putStrLn)
-import System.IO.UTF8
-#endif
-
+import Hledger.Data.UTF8 (putStr, putStrLn)
 import Hledger.Data
 import Hledger.Cli.Commands
 import Hledger.Cli.Options

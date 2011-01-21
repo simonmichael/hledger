@@ -7,10 +7,6 @@ Released under GPL version 3 or later.
 
 module Hledger.Web.Main where
 
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (putStr, putStrLn)
-import System.IO.UTF8 (putStr, putStrLn)
-#endif
 import Control.Concurrent (forkIO, threadDelay)
 import Network.Wai.Handler.SimpleServer (run)
 import System.Exit (exitFailure)
@@ -23,6 +19,8 @@ import Hledger.Cli.Options
 import Hledger.Cli.Utils (withJournalDo, openBrowserOn)
 import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
+import Prelude hiding (putStr, putStrLn)
+import Hledger.Data.UTF8 (putStr, putStrLn)
 import Hledger.Web.App (App(..), withApp)
 import Hledger.Web.Files (createFilesIfMissing)
 import Hledger.Web.Settings (browserstartdelay, defhost, defport, datadir)

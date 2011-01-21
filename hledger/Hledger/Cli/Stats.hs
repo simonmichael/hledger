@@ -7,13 +7,12 @@ Print some statistics for the journal.
 
 module Hledger.Cli.Stats
 where
-import Hledger.Data
-import Hledger.Cli.Options
 import qualified Data.Map as Map
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding ( putStr )
-import System.IO.UTF8
-#endif
+
+import Hledger.Cli.Options
+import Hledger.Data
+import Prelude hiding (putStr)
+import Hledger.Data.UTF8 (putStr)
 
 
 -- like Register.summarisePostings

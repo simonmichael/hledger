@@ -121,12 +121,10 @@ import Control.Monad.Error (ErrorT(..), throwError, catchError)
 import Data.List.Split (wordsBy)
 import Safe (headDef)
 import Text.ParserCombinators.Parsec hiding (parse)
-#if __GLASGOW_HASKELL__ <= 610
-import Prelude hiding (readFile, putStr, putStrLn, print, getContents)
-import System.IO.UTF8
-#endif
 
 import Hledger.Data
+import Prelude hiding (readFile)
+import Hledger.Data.UTF8 (readFile)
 import Hledger.Read.Utils
 
 
