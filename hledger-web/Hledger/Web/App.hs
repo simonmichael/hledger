@@ -365,10 +365,10 @@ navlinks td = [$hamlet|
   \ | $
   ^accountsregisterlink^
   \ | $
-  %a#addformlink!href!onclick="return addformToggle()" add transaction
-  %a#importformlink!href!onclick="return importformToggle()"!style=display:none; import transactions
+  %a#addformlink!href!onclick="return addformToggle(event)" add transaction
+  %a#importformlink!href!onclick="return importformToggle(event)"!style=display:none; import transactions
   \ | $
-  %a#editformlink!href!onclick="return editformToggle()" edit journal
+  %a#editformlink!href!onclick="return editformToggle(event)" edit journal
 |]
 --  \ | $
  where
@@ -658,9 +658,9 @@ getJournalOnlyR = do
   hamletToRepHtml $ pageLayout td [$hamlet|
 %div#journal
  %div.nav2
-  %a#addformlink!href!onclick="return addformToggle()" add one transaction
+  %a#addformlink!href!onclick="return addformToggle(event)" add one transaction
   \ | $
-  %a#editformlink!href!onclick="return editformToggle()" edit the whole journal
+  %a#editformlink!href!onclick="return editformToggle(event)" edit the whole journal
  ^addform.td^
  ^editform'^
  #transactions ^txns^
@@ -813,7 +813,7 @@ editform TD{j=j} = [$hamlet|
      %input!type=hidden!name=action!value=edit
      %input!type=submit!name=submit!value="save journal"
      \ or $
-     %a!href!onclick="return editformToggle()" cancel
+     %a!href!onclick="return editformToggle(event)" cancel
 |] -- XXX textarea ids are unquoted journal file paths, which is not valid html
   where
     manyfiles = (length $ files j) > 1
@@ -821,7 +821,7 @@ editform TD{j=j} = [$hamlet|
 
 journalselect :: [(FilePath,String)] -> Hamlet AppRoute
 journalselect journalfiles = [$hamlet|
-     %select!id=journalselect!name=journal!onchange="editformJournalSelect()"
+     %select!id=journalselect!name=journal!onchange="editformJournalSelect(event)"
       $forall journalfiles f
        %option!value=$fst.f$ $fst.f$
 |]
@@ -836,7 +836,7 @@ importform = [$hamlet|
      %input!type=hidden!name=action!value=import
      %input!type=submit!name=submit!value="import from file"
      \ or $
-     %a!href!onclick="return importformToggle()" cancel
+     %a!href!onclick="return importformToggle(event)" cancel
 |]
 
 postJournalOnlyR :: Handler RepPlain

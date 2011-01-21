@@ -32,7 +32,7 @@ function filterformToggle() {
  return false;
 }
 
-function addformToggle() {
+function addformToggle(ev) {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
  var f = document.getElementById('filterform');
@@ -67,7 +67,7 @@ function addformToggle() {
  return false;
 }
 
-function editformToggle() {
+function editformToggle(ev) {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
  var ej = document.getElementById('journalselect');
@@ -91,7 +91,7 @@ function editformToggle() {
   i.style.display = 'none';
   t.style.display = 'none';
   e.style.display = 'block';
-  editformJournalSelect();
+  editformJournalSelect(ev);
  } else {
   alink.style['font-weight'] = 'normal';
   elink.style['font-weight'] = 'normal';
@@ -104,14 +104,20 @@ function editformToggle() {
  return false;
 }
 
-function editformJournalSelect() {
+function editformJournalSelect(ev) {
+  // http://www.quirksmode.org/js/events_properties.html
+ if (!ev) var e = window.event;
+ if (ev.target) targ = ev.target;
+ else if (ev.srcElement) targ = ev.srcElement;
+ if (targ.nodeType == 3) targ = targ.parentNode;
+
  var textareas = $('textarea', $('form#editform'));
  for (i=0; i<textareas.length; i++) {
    textareas[i].style.display = 'none';
    textareas[i].disabled = true;
  }
- if (event.target.value) {
-   var journalid = event.target.value+'_textarea';
+ if (targ.value) {
+   var journalid = targ.value+'_textarea';
    var textarea = document.getElementById(journalid);
  }
  else {
@@ -122,7 +128,7 @@ function editformJournalSelect() {
  return true;
 }
 
-function importformToggle() {
+function importformToggle(ev) {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
  var f = document.getElementById('filterform');
