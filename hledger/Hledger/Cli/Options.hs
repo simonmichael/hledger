@@ -4,7 +4,6 @@ Command-line options for the application.
 
 module Hledger.Cli.Options
 where
-import Codec.Binary.UTF8.String (decodeString)
 import System.Console.GetOpt
 import System.Environment
 
@@ -147,7 +146,7 @@ optValuesForConstructors fs opts = concatMap get opts
 -- provided usage string.
 parseArgumentsWith :: [OptDescr Opt] -> IO ([Opt], [String])
 parseArgumentsWith options = do
-  rawargs <- map decodeString `fmap` getArgs
+  rawargs <- map fromPlatformString `fmap` getArgs
   let (opts,args,errs) = getOpt Permute options rawargs
   opts' <- fixOptDates opts
   let opts'' = if Debug `elem` opts' then Verbose:opts' else opts'
