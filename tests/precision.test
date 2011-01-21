@@ -59,19 +59,52 @@ bin/hledger -f - -B bal
            assets:investment:ACME     203.890 ACME @ $16.02
            equity:opening balances
 >>>
-?
-# hledger 0.14pre:
+            $3266.32  assets:investment:ACME
+           $-3266.32  equity:opening balances
+--------------------
+               $0.00
+>>>=0
+# hledger 0.14pre: precision=2, presumably from price
 #            $3266.32  assets:investment:ACME
 #           $-3266.32  equity:opening balances
 #--------------------
 #               $0.00
 #
-# ledger "2.6.0.90" (with -s):
+# ledger "2.6.0.90" with -s: full precision, ignores price
 #          $3266.3178  assets:investment:ACME
 #         $-3266.3178  equity:opening balances
 #
-# ledger 3:
+# ledger 3: precision=0, uses default, ignores price
 #               $3266  assets:investment:ACME
 #              $-3266  equity:opening balances
 #--------------------
 #                   0
+## 6. with a default commodity.. XXX should observe it
+
+ bin/hledger -f - -B balance
+<<<
+D $1000.0
+2001/01/01 * ACME fund
+           assets:investment:ACME     203.890 ACME @ $16.02
+           equity:opening balances
+>>>
+            $3266.32  assets:investment:ACME
+           $-3266.32  equity:opening balances
+--------------------
+               $0.00
+>>>=0
+### hledger 0.14pre: precision=2, presumably from price, ignores D
+###            $3266.32  assets:investment:ACME
+###           $-3266.32  equity:opening balances
+###--------------------
+###               $0.00
+###
+### ledger "2.6.0.90" with -s: full precision, ignores price and D
+###          $3266.3178  assets:investment:ACME
+###         $-3266.3178  equity:opening balances
+###
+### ledger 3: precision=1, ignores price, observes D
+###             $3266.3  assets:investment:ACME
+###            $-3266.3  equity:opening balances
+###--------------------
+###                   0
