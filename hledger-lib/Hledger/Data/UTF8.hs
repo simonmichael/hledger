@@ -1,5 +1,5 @@
 {-
-Copied from pandoc.
+From pandoc, slightly extended.
 
 ----------------------------------------------------------------------
 Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
@@ -32,7 +32,9 @@ UTF-8 aware string IO functions that will work with GHC 6.10 or 6.12.
 -}
 module Hledger.Data.UTF8 ( readFile
                          , writeFile
+                         , appendFile
                          , getContents
+                         , hGetContents
                          , putStr
                          , putStrLn
                          , hPutStr
@@ -42,7 +44,7 @@ module Hledger.Data.UTF8 ( readFile
 where
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy.UTF8 (toString, fromString)
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
+import Prelude hiding (readFile, writeFile, appendFile, getContents, putStr, putStrLn)
 import System.IO (Handle)
 import Control.Monad (liftM)
 
@@ -59,8 +61,14 @@ readFile = liftM (toString . stripBOM) . B.readFile
 writeFile :: FilePath -> String -> IO ()
 writeFile f = B.writeFile f . fromString
 
+appendFile :: FilePath -> String -> IO ()
+appendFile f = B.appendFile f . fromString
+
 getContents :: IO String
 getContents = liftM (toString . stripBOM) B.getContents
+
+hGetContents :: Handle -> IO String
+hGetContents h = liftM (toString . stripBOM) (B.hGetContents h)
 
 putStr :: String -> IO ()
 putStr = B.putStr . fromString
