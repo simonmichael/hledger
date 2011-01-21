@@ -1,5 +1,5 @@
 name:           hledger-vty
-version: 0.13
+version: 0.13.98
 category:       Finance
 synopsis:       A hledger add-on command providing a full-window console interface.
 description:    
@@ -29,8 +29,8 @@ executable hledger-vty
   other-modules:
                   Hledger.Vty.Main
   build-depends:
-                  hledger == 0.13
-                 ,hledger-lib == 0.13
+                  hledger == 0.13.98
+                 ,hledger-lib == 0.13.98
                  -- ,HUnit
                  ,base >= 3 && < 5
                  -- ,containers
