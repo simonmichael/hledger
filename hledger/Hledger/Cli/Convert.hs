@@ -42,6 +42,7 @@ data CsvRules = CsvRules {
       amountField :: Maybe FieldPosition,
       currencyField :: Maybe FieldPosition,
       baseCurrency :: Maybe String,
+      accountField :: Maybe FieldPosition,
       baseAccount :: AccountName,
       accountRules :: [AccountRule]
 } deriving (Show, Eq)
@@ -55,6 +56,7 @@ nullrules = CsvRules {
       amountField=Nothing,
       currencyField=Nothing,
       baseCurrency=Nothing,
+      accountField=Nothing,
       baseAccount="unknown",
       accountRules=[]
 }
@@ -174,6 +176,7 @@ definitions = do
    ,descriptionfield
    ,amountfield
    ,currencyfield
+   ,accountfield
    ,basecurrency
    ,baseaccount
    ,commentline
@@ -228,6 +231,14 @@ currencyfield = do
   v <- restofline
   r <- getState
   setState r{currencyField=readMay v}
+
+accountfield = do
+  string "account-field"
+  many1 spacenonewline
+  v <- restofline
+  r <- getState
+  setState r{accountField=readMay v}
+
 
 basecurrency = do
   string "currency"
@@ -288,6 +299,7 @@ transactionFromCsvRecord rules fields =
       desc = maybe "" (atDef "" fields) (descriptionField rules)
       comment = ""
       precomment = ""
+      baseacc = maybe (baseAccount rules) (atDef "" fields) (accountField rules)
       amountstr = maybe "" (atDef "" fields) (amountField rules)
       amountstr' = strnegate amountstr where strnegate ('-':s) = s
                                              strnegate s = '-':s
@@ -322,7 +334,7 @@ transactionFromCsvRecord rules fields =
                    },
                    Posting {
                      pstatus=False,
-                     paccount=baseAccount rules,
+                     paccount=baseacc,
                      pamount=(-baseamount),
                      pcomment="",
                      ptype=RegularPosting,

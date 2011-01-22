@@ -561,8 +561,12 @@ Notes:
 -   Definitions must come first, one per line, all in one
     paragraph. Each is a name and a value separated by whitespace.
     Supported names are: base-account, date-field, date-format, status-field,
-    code-field, description-field, amount-field, currency-field,
+    code-field, description-field, amount-field, currency-field, account-field,
     currency. All are optional and will use defaults if not specified.
+
+-   If your file contains data corresponding to several accounts (for example - bulk
+    export from other accounting software), you can use account-field to override
+    value of base-account. When account-field value is empty, base-account will be used.
 
 -   The date-format field contains the expected format for the input dates:
     this is the same as that accepted by the Haskell
