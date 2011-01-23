@@ -560,7 +560,7 @@ Notes:
 
 -   Definitions must come first, one per line, all in one
     paragraph. Each is a name and a value separated by whitespace.
-    Supported names are: base-account, date-field, date-format, status-field,
+    Supported names are: base-account, date-field, effective-date-field, date-format, status-field,
     code-field, description-field, amount-field, currency-field, account-field,
     currency. All are optional and will use defaults if not specified.
 

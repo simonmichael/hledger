@@ -43,6 +43,7 @@ data CsvRules = CsvRules {
       currencyField :: Maybe FieldPosition,
       baseCurrency :: Maybe String,
       accountField :: Maybe FieldPosition,
+      effectiveDateField :: Maybe FieldPosition,
       baseAccount :: AccountName,
       accountRules :: [AccountRule]
 } deriving (Show, Eq)
@@ -57,6 +58,7 @@ nullrules = CsvRules {
       currencyField=Nothing,
       baseCurrency=Nothing,
       accountField=Nothing,
+      effectiveDateField=Nothing,
       baseAccount="unknown",
       accountRules=[]
 }
@@ -114,6 +116,7 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
                   ,amountField r
                   ,currencyField r
                   ,accountField r
+                  ,effectiveDateField r
                   ]
 
 rulesFileFor :: FilePath -> FilePath
@@ -177,6 +180,7 @@ definitions = do
    ,amountfield
    ,currencyfield
    ,accountfield
+   ,effectivedatefield
    ,basecurrency
    ,baseaccount
    ,commentline
@@ -189,6 +193,13 @@ datefield = do
   v <- restofline
   r <- getState
   setState r{dateField=readMay v}
+
+effectivedatefield = do
+  string "effective-date-field"
+  many1 spacenonewline
+  v <- restofline
+  r <- getState
+  setState r{effectiveDateField=readMay v}
 
 dateformat = do
   string "date-format"
@@ -294,6 +305,8 @@ transactionFromCsvRecord :: CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord rules fields =
   let 
       date = parsedate $ normaliseDate (dateFormat rules) $ maybe "1900/1/1" (atDef "" fields) (dateField rules)
+      effectivedate = do idx <- effectiveDateField rules
+                         return $ parsedate $ normaliseDate (dateFormat rules) $ (atDef "" fields) idx
       status = maybe False (null . strip . (atDef "" fields)) (statusField rules)
       code = maybe "" (atDef "" fields) (codeField rules)
       desc = maybe "" (atDef "" fields) (descriptionField rules)
@@ -315,7 +328,7 @@ transactionFromCsvRecord rules fields =
       (acct,newdesc) = identify (accountRules rules) unknownacct desc
       t = Transaction {
               tdate=date,
-              teffectivedate=Nothing,
+              teffectivedate=effectivedate,
               tstatus=status,
               tcode=code,
               tdescription=newdesc,
