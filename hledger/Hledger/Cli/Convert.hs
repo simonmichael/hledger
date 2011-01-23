@@ -111,6 +111,7 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
                   ,descriptionField r
                   ,amountField r
                   ,currencyField r
+                  ,accountField r
                   ]
 
 rulesFileFor :: FilePath -> FilePath
