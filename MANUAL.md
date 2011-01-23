@@ -567,7 +567,8 @@ Notes:
 -   The date-format field contains the expected format for the input dates:
     this is the same as that accepted by the Haskell
     [formatTime](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime)
-    function.
+    function. Note that '%d' and '%m' specifiers require day and month numbers to have
+    leading zeroes, otherwise your format might fail to work.
 
 -   The remainder of the file is account-assigning rules. Each is a
     paragraph consisting of one or more description-matching patterns
