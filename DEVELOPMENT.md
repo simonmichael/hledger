@@ -18,8 +18,8 @@ A rough guide for hledger contributors of all kinds, plus some quick links for e
 - Code:
   [get it](#how-to-set-up-for-hledger-development),
   [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
-  [api docs](http://hledger.org/api-doc), 
-  [internal code docs](http://hledger.org/code-doc) for all packages
+  [latest api docs](http://hledger.org/api-doc), 
+  [latest internal code docs](http://hledger.org/code-doc) for all packages
 - Packages:
   [hledger](http://hackage.haskell.org/package/hledger),
   [hledger-lib](http://hackage.haskell.org/package/hledger-lib),
@@ -37,6 +37,14 @@ A rough guide for hledger contributors of all kinds, plus some quick links for e
 <!--   [hledger-chart dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-chart), -->
 <!--   [hledger-vty dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-vty), -->
 <!--   [hledger-web dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-web) -->
+
+<script type="text/javascript" src="http://haskell.org/hoogle/jquery-1.4.2.js"></script>
+<script type="text/javascript" src="http://haskell.org/hoogle/hoogle.js"></script>
+<form action="http://haskell.org/hoogle/" method="get">
+ <input type="text"   name="hoogle" id="hoogle" accesskey="1" size="30" />
+ <input type="hidden" name="prefix" value="+hledger +hledger-lib" />
+ <input type="submit" value="Search hledger, hledger-lib API" />
+</form>
 
 ## How to..
 
