@@ -977,12 +977,19 @@ download and some queries to try:
     hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
     hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
 
-To record time logs, you could use
-[timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el) and
-perhaps
-[ledgerutils.el](http://joyful.com/repos/ledgertools/ledgerutils.el) in
-emacs. Or investigate the "ti" and "to" command-line scripts in the
-[c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
+To record time logs, ie to clock in and clock out, you could:
+
+- use emacs and
+  [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el) and perhaps
+  [ledgerutils.el](http://joyful.com/repos/ledgertools/ledgerutils.el)
+
+- at the command line, use these bash aliases:
+
+       alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
+       alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
+
+- or the old "ti" and "to" scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
+  These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ## Compatibility with c++ ledger
 
