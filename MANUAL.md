@@ -1152,6 +1152,9 @@ sailing.  Here are some known issues and things to try:
   Look for the cause of the failure near the end of the output. If it's
   not apparent, try again with `-v2` or `-v3` for more verbose output.
 
+- **ExitFailure 11 from cabal**
+  Probably http://hackage.haskell.org/trac/hackage/ticket/777
+
 - **Could not run happy.**
   A package (eg haskell-src-exts) needs to run the `happy` executable.
   If not using the haskell platform, install the appropriate platform
