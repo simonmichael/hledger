@@ -35,10 +35,17 @@ import Hledger.Data.Utils
 showDate :: Day -> String
 showDate = formatTime defaultTimeLocale "%C%y/%m/%d"
 
+-- | Get the current local date.
 getCurrentDay :: IO Day
 getCurrentDay = do
     t <- getZonedTime
     return $ localDay (zonedTimeToLocalTime t)
+
+-- | Get the current local year.
+getCurrentYear :: IO Integer
+getCurrentYear = do
+  (y,_,_) <- toGregorian `fmap` getCurrentDay
+  return y
 
 elapsedSeconds :: Fractional a => UTCTime -> UTCTime -> a
 elapsedSeconds t1 = realToFrac . diffUTCTime t1

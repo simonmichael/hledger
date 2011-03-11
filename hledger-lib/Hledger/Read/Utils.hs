@@ -13,6 +13,7 @@ import Text.ParserCombinators.Parsec
 
 import Hledger.Data.Types (Journal, JournalContext(..), Commodity, JournalUpdate)
 import Hledger.Data.Utils
+import Hledger.Data.Dates (getCurrentYear)
 import Hledger.Data.Journal (nullctx, nulljournal, journalFinalise)
 
 
@@ -25,7 +26,8 @@ parseJournalWith :: (GenParser Char JournalContext (JournalUpdate,JournalContext
 parseJournalWith p f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
-  case runParser p nullctx f s of
+  y <- liftIO getCurrentYear
+  case runParser p nullctx{ctxYear=Just y} f s of
     Right (updates,ctx) -> do
                            j <- updates `ap` return nulljournal
                            case journalFinalise tc tl f s ctx j of
