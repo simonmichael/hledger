@@ -38,7 +38,7 @@ import Control.Exception (throw)
      etc in add prompt
 -}
 data PostingState = PostingState {
-      psContext :: JournalContext,
+      psJournal :: Journal,
       psAccept  :: AccountName -> Bool,
       psSuggestHistoricalAmount :: Bool,
       psHistory :: Maybe [Posting]}
@@ -55,7 +55,7 @@ add opts args j
     ++"To complete a transaction, enter . when prompted for an account.\n"
     ++"To quit, press control-d or control-c."
   today <- getCurrentDay
-  runInteraction j (getAndAddTransactions j opts args today)
+  getAndAddTransactions j opts args today
         `catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
 
@@ -63,22 +63,22 @@ add opts args j
 -- validating, displaying and appending them to the journal file, until
 -- end of input (then raise an EOF exception). Any command-line arguments
 -- are used as the first transaction's description.
-getAndAddTransactions :: Journal -> [Opt] -> [String] -> Day -> InputT IO ()
+getAndAddTransactions :: Journal -> [Opt] -> [String] -> Day -> IO ()
 getAndAddTransactions j opts args defaultDate = do
   (t, d) <- getTransaction j opts args defaultDate
-  j <- liftIO $ journalAddTransaction j opts t
+  j <- journalAddTransaction j opts t
   getAndAddTransactions j opts args d
 
 -- | Read a transaction from the command line, with history-aware prompting.
 getTransaction :: Journal -> [Opt] -> [String] -> Day
-                    -> InputT IO (Transaction,Day)
+                    -> IO (Transaction,Day)
 getTransaction j opts args defaultDate = do
-  today <- liftIO getCurrentDay
-  datestr <- askFor "date" 
+  today <- getCurrentDay
+  datestr <- runInteractionDefault $ askFor "date" 
             (Just $ showDate defaultDate)
             (Just $ \s -> null s || 
              isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
-  description <- askFor "description" (Just "") Nothing
+  description <- runInteractionDefault $ askFor "description" (Just "") Nothing
   let historymatches = transactionsSimilarTo j args description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
@@ -90,7 +90,7 @@ getTransaction j opts args defaultDate = do
             else True
         where (ant,_,_,_) = groupPostings $ journalPostings j
       getpostingsandvalidate = do
-        ps <- getPostings (PostingState (jContext j) accept True bestmatchpostings) []
+        ps <- getPostings (PostingState j accept True bestmatchpostings) []
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
@@ -109,14 +109,14 @@ getTransaction j opts args defaultDate = do
 -- fragile
 -- | Read postings from the command line until . is entered, using any
 -- provided historical postings and the journal context to guess defaults.
-getPostings :: PostingState -> [Posting] -> InputT IO [Posting]
+getPostings :: PostingState -> [Posting] -> IO [Posting]
 getPostings st enteredps = do
   let bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
                 where Just ps = historicalps
       defaultaccount = maybe Nothing (Just . showacctname) bestmatch
-  account <- askFor (printf "account %d" n) defaultaccount (Just accept)
+  account <- runInteraction j $ askFor (printf "account %d" n) defaultaccount (Just accept)
   if account=="."
     then return enteredps
     else do
@@ -134,7 +134,7 @@ getPostings st enteredps = do
                 -- digit group separator that would be mistaken for one
                 historicalamountstr = showMixedAmountWithPrecision maxprecisionwithpoint $ pamount $ fromJust bestmatch'
                 balancingamountstr  = showMixedAmountWithPrecision maxprecisionwithpoint $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
-      amountstr <- askFor (printf "amount  %d" n) defaultamountstr validateamount
+      amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
       let amount  = fromparse $ runParser (someamount <|> return missingamt) ctx     "" amountstr
           amount' = fromparse $ runParser (someamount <|> return missingamt) nullctx "" amountstr
           defaultamtused = Just (showMixedAmount amount) == defaultamountstr
@@ -153,8 +153,9 @@ getPostings st enteredps = do
            liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (symbol $ fromJust commodityadded)
       getPostings st' (enteredps ++ [p])
     where
+      j = psJournal st
       historicalps = psHistory st
-      ctx = psContext st
+      ctx = jContext j
       accept = psAccept st
       suggesthistorical = psSuggestHistoricalAmount st
       n = length enteredps + 1
@@ -254,6 +255,10 @@ runInteraction :: Journal -> InputT IO a -> IO a
 runInteraction j m = do
     let cc = completionCache j
     runInputT (setComplete (accountCompletion cc) defaultSettings) m
+
+runInteractionDefault :: InputT IO a -> IO a
+runInteractionDefault m = do
+    runInputT (setComplete noCompletion defaultSettings) m
 
 -- A precomputed list of all accounts previously entered into the journal.
 type CompletionCache = [AccountName]
