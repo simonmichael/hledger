@@ -18,6 +18,8 @@ bin/hledger -f- print
     a  10 "DE0002635307"
     b  -10 "DE0002635307"
 
+>>>=0
+
 # 3. and in other reports too, I guess
 bin/hledger -f- balance
 <<<
@@ -29,3 +31,4 @@ bin/hledger -f- balance
   -10 "DE0002635307"  b
 --------------------
     0 "DE0002635307"
+>>>=0

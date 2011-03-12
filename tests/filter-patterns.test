@@ -6,6 +6,8 @@ bin/hledger -f- register 'a a'
   b
 >>>
 2010/03/01 x                    a a                               1            1
+>>>=0
+
 #
 # 2. description pattern with space
 bin/hledger -f- register desc:'x x'
@@ -20,3 +22,4 @@ bin/hledger -f- register desc:'x x'
 >>>
 2010/03/02 x x                  a                                 1            1
                                 b                                -1            0
+>>>=0

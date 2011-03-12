@@ -5,6 +5,7 @@ bin/hledger -f- print
   (virtual)  100
   a  1
   b
+>>>=0
 #
 # 2. balanced virtual postings should be required to balance (themselves)
 bin/hledger -f- print
@@ -23,6 +24,7 @@ bin/hledger -f- print
   [balanced virtual]  -10
   a  1
   b
+>>>=0
 #
 # 4. a virtual posting with implicit amount should be handled correctly
 bin/hledger -f- print
@@ -30,6 +32,7 @@ bin/hledger -f- print
 2010/1/1 x
   [a]    10
   [b]
+>>>=0
 #
 # 5. real and balanced virtual postings are balanced separately, and multiple blank virtuals are ok
 bin/hledger -f- balance
@@ -48,3 +51,4 @@ bin/hledger -f- balance
                  -10  f
 --------------------
                    0
+>>>=0

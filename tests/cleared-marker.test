@@ -22,6 +22,8 @@ bin/hledger -f- print --cleared
     a             1
     b            -1
 
+>>>=0
+
 # report uncleared transactions only
 bin/hledger -f- print --uncleared
 <<<
@@ -41,6 +43,8 @@ bin/hledger -f- print --uncleared
     a             1
     b            -1
 
+>>>=0
+
 # we don't yet support cleared postings, except we should ignore the marker when parsing them
 bin/hledger -f- balance --no-total
 <<<
@@ -53,3 +57,4 @@ bin/hledger -f- balance --no-total
 >>>
                    7  a
                   -7  b
+>>>=0

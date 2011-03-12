@@ -14,6 +14,8 @@ bin/hledger -f - print --cost
     a         $1.00
     a        $-1.00
 
+>>>=0
+
 # 2. and here the price should be printed with its original precision, not
 # the canonical display precision
 bin/hledger -f - print
@@ -28,6 +30,8 @@ bin/hledger -f - print
     a  1C @ $1.0049
     a  -1C @ $1.0049
 
+>>>=0
+
 # 3. with $'s display precision at 3 or more, this txn should not balance.
 # The error message shows the difference with full precision.
 bin/hledger -f - balance --no-total --cost --empty
@@ -37,6 +41,7 @@ bin/hledger -f - balance --no-total --cost --empty
    a  $-1.000
 >>>2 /off by \$0.0049/
 >>>= 1
+
 # 4. with $'s display precision at 2 or less, this txn should balance
 bin/hledger -f - balance --no-total --cost --empty
 <<<
@@ -45,6 +50,8 @@ bin/hledger -f - balance --no-total --cost --empty
    a  $-1.00
 >>>
                $0.00  a
+>>>=0
+
 # 5. avamk's 2011/1/19 example
 bin/hledger -f - -B bal
 <<<

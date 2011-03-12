@@ -10,6 +10,8 @@ bin/hledger -f- print
     expenses:foreign currency  €100 @ $1.35
     assets                     €-100 @ $1.35
 
+>>>=0
+
 # 2. convert to cost basis
 bin/hledger -f- print -B
 <<<
@@ -20,6 +22,8 @@ bin/hledger -f- print -B
 2011/01/01
     expenses:foreign currency       $135.00
     assets                         $-135.00
+
+>>>=0
 
 # 3. with a historical price directive
 bin/hledger -f- print -B
@@ -37,6 +41,8 @@ P 2011/01/02 € $1.36
     expenses:foreign currency       $135.00
     assets                         $-135.00
 
+>>>=0
+
 # 4. with a total price
 bin/hledger -f - print
 <<<
@@ -47,6 +53,8 @@ bin/hledger -f - print
 2011/01/01
     expenses:foreign currency  €100 @@ $135
     assets                     €-100 @@ $135
+
+>>>=0
 
 # 5. when the balance has exactly two commodities, both unpriced, infer an
 # implicit conversion price for the first one in terms of the second.
@@ -67,6 +75,8 @@ bin/hledger -f - print
     misc                         €1 @ $1.35
     misc                        €-1 @ $1.35
     misc                             $-2.10
+
+>>>=0
 
 # # 6. when the *cost-basis* balance has exactly two commodities, both
 # # unpriced, infer an implicit conversion price for the first one in terms
@@ -100,6 +110,8 @@ bin/hledger -f - print
     c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG @@ $17,783.72
     a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
 
+>>>=0
+
 # 8. when the balance has more than two commodities, don't bother
 bin/hledger -f - print
 <<<
@@ -121,3 +133,4 @@ bin/hledger -f - balance -B
                 $135  expenses:foreign currency
 --------------------
                   $0
+>>>=0

@@ -13,6 +13,8 @@ bin/hledger -f - print
              EUR -1                       
     c        USD -1  ; a euro and a dollar
 
+>>>=0
+
 # 2. register
 bin/hledger -f - register
 <<<
@@ -26,6 +28,8 @@ bin/hledger -f - register
                                 b                             USD 1        USD 1
                                                              EUR -1             
                                 c                            USD -1            0
+>>>=0
+
 # 3. balance
 bin/hledger -f - balance
 <<<
@@ -40,6 +44,8 @@ bin/hledger -f - balance
               USD -1  c
 --------------------
                EUR 0
+>>>=0
+
 # 4. mixed amounts with prices
 # XXX
 # bin/hledger -f - print
@@ -61,6 +67,8 @@ bin/hledger -f - balance
 #     b       USD 1.0  ; a dollar
 #     c      USD -2.1  ; a euro and a dollar
 #
+#>>>=0
+#
 # #
 # bin/hledger -f - register
 # <<<
@@ -74,6 +82,8 @@ bin/hledger -f - balance
 #                                 b                           USD 1.0      USD 1.0
 #                                                                            EUR 1
 #                                 c                          USD -2.1     USD -1.1
+#>>>=0
+#
 # #
 # bin/hledger -f - balance
 # <<<
