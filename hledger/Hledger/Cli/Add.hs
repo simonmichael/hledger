@@ -34,6 +34,13 @@ import qualified Data.Set as Set
 import Safe (headMay)
 import Control.Exception (throw)
 
+{- | Information used as the basis for suggested account names, amounts,
+     etc in add prompt
+-}
+data PostingState = PostingState {
+      psContext :: JournalContext,
+      psAccept  :: AccountName -> Bool,
+      psHistory :: Maybe [Posting]}
 
 -- | Read transactions from the terminal, prompting for each field,
 -- and append them to the journal file. If the journal came from stdin, this
@@ -82,7 +89,7 @@ getTransaction j opts args defaultDate = do
             else True
         where (ant,_,_,_) = groupPostings $ journalPostings j
       getpostingsandvalidate = do
-        ps <- getPostings (jContext j) accept bestmatchpostings []
+        ps <- getPostings (PostingState (jContext j) accept bestmatchpostings) []
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
@@ -101,8 +108,8 @@ getTransaction j opts args defaultDate = do
 -- fragile
 -- | Read postings from the command line until . is entered, using any
 -- provided historical postings and the journal context to guess defaults.
-getPostings :: JournalContext -> (AccountName -> Bool) -> Maybe [Posting] -> [Posting] -> InputT IO [Posting]
-getPostings ctx accept historicalps enteredps = do
+getPostings :: PostingState -> [Posting] -> InputT IO [Posting]
+getPostings st enteredps = do
   let bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
@@ -130,7 +137,6 @@ getPostings ctx accept historicalps enteredps = do
       let amount  = fromparse $ runParser (someamount <|> return missingamt) ctx     "" amountstr
           amount' = fromparse $ runParser (someamount <|> return missingamt) nullctx "" amountstr
           defaultamtused = Just (showMixedAmount amount) == defaultamountstr
-          historicalps'' = if defaultamtused then historicalps' else Nothing
           commodityadded | c == cwithnodef = Nothing
                          | otherwise       = c
               where c          = maybemixedamountcommodity amount
@@ -139,10 +145,14 @@ getPostings ctx accept historicalps enteredps = do
           p = nullposting{paccount=stripbrackets account,
                           pamount=amount,
                           ptype=postingtype account}
+          st' = st{psHistory = if defaultamtused then historicalps' else Nothing}
       when (isJust commodityadded) $
            liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (symbol $ fromJust commodityadded)
-      getPostings ctx accept historicalps'' $ enteredps ++ [p]
+      getPostings st' (enteredps ++ [p])
     where
+      historicalps = psHistory st
+      ctx = psContext st
+      accept = psAccept st
       n = length enteredps + 1
       enteredrealps = filter isReal enteredps
       showacctname p = showAccountName Nothing (ptype p) $ paccount p
