@@ -1,5 +1,5 @@
 # 1. accept a blank description
-bin/hledger -f-
+bin/hledger -f- print
 <<<
 2010/1/1 
   a  1
@@ -8,7 +8,7 @@ bin/hledger -f-
 >>>=0
 
 # 2. same, but no separator space after the date
-bin/hledger -f-
+bin/hledger -f- print
 <<<
 2010/1/1
   a  1
