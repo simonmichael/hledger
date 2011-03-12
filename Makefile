@@ -190,18 +190,21 @@ tools/generatejournal: tools/generatejournal.hs
 
 hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
 
+# force a compile even if binary exists, since we don't specify dependencies
+.PHONY: bin/hledger hledger-web hledger-vty hledger-chart
+
 # build developer binaries, as quickly as possible
 # this one is named bin/ to avoid case clash on mac
 bin/hledger:
 	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
 
-hledger-web:
+bin/hledger-web:
 	ghc --make hledger-web/hledger-web.hs -o bin/hledger-web -ihledger-web -ihledger $(BUILDFLAGS)
 
-hledger-vty:
+bin/hledger-vty:
 	ghc --make hledger-vty/hledger-vty.hs -o bin/hledger-vty -ihledger-vty -ihledger $(BUILDFLAGS)
 
-hledger-chart:
+bin/hledger-chart:
 	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart -ihledger-chart -ihledger $(BUILDFLAGS)
 
 hledgernowarnings:
