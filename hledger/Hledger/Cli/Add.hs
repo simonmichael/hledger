@@ -40,6 +40,7 @@ import Control.Exception (throw)
 data PostingState = PostingState {
       psContext :: JournalContext,
       psAccept  :: AccountName -> Bool,
+      psSuggestHistoricalAmount :: Bool,
       psHistory :: Maybe [Posting]}
 
 -- | Read transactions from the terminal, prompting for each field,
@@ -89,7 +90,7 @@ getTransaction j opts args defaultDate = do
             else True
         where (ant,_,_,_) = groupPostings $ journalPostings j
       getpostingsandvalidate = do
-        ps <- getPostings (PostingState (jContext j) accept bestmatchpostings) []
+        ps <- getPostings (PostingState (jContext j) accept True bestmatchpostings) []
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
@@ -125,7 +126,7 @@ getPostings st enteredps = do
                      | n <= length ps = Just $ ps !! (n-1)
                      | otherwise = Nothing
                      where Just ps = historicalps'
-          defaultamountstr | isJust bestmatch' = Just historicalamountstr
+          defaultamountstr | isJust bestmatch' && suggesthistorical = Just historicalamountstr
                            | n > 1             = Just balancingamountstr
                            | otherwise         = Nothing
               where
@@ -145,7 +146,9 @@ getPostings st enteredps = do
           p = nullposting{paccount=stripbrackets account,
                           pamount=amount,
                           ptype=postingtype account}
-          st' = st{psHistory = if defaultamtused then historicalps' else Nothing}
+          st' = if defaultamtused then st
+                   else st{psHistory = historicalps',
+                           psSuggestHistoricalAmount = False}
       when (isJust commodityadded) $
            liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (symbol $ fromJust commodityadded)
       getPostings st' (enteredps ++ [p])
@@ -153,6 +156,7 @@ getPostings st enteredps = do
       historicalps = psHistory st
       ctx = psContext st
       accept = psAccept st
+      suggesthistorical = psSuggestHistoricalAmount st
       n = length enteredps + 1
       enteredrealps = filter isReal enteredps
       showacctname p = showAccountName Nothing (ptype p) $ paccount p
