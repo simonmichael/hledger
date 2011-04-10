@@ -578,6 +578,15 @@ Notes:
     matched text with `\0` and any regex groups with `\1`, `\2` in the
     usual way.
 
+-   Amount may contain the total or per-unit price. For example, lets
+    assume that your base account "bank-current" is in GBP, and your CSV specifies amount of "10
+    USD @@ 15 GBP", and account-assigning rules selected account
+    "travel-expenses" for this transaction. As a result,
+    "travel-expenses" would be credited by "10 USD @@ 15 GBP", and
+    "bank-current" would be debited by "-15 GBP". This way you could
+    track the expenses in the currencies there were made, while
+    keeping your base account in single currency
+
 ### histogram
 
 The histogram command displays a quick bar chart showing transaction

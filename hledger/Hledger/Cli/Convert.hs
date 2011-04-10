@@ -10,7 +10,7 @@ import Hledger.Data.Types (Journal,AccountName,Transaction(..),Posting(..),Posti
 import Hledger.Data.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error')
 import Hledger.Read.JournalReader (someamount,ledgeraccountname)
 import Hledger.Data.Journal (nullctx)
-import Hledger.Data.Amount (nullmixedamt)
+import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
 import Safe (atDef, maximumDef)
 import System.IO (stderr)
 import Text.CSV (parseCSVFromFile, printCSV)
@@ -284,6 +284,9 @@ transactionFromCsvRecord rules fields =
       amountstr'' = currency ++ amountstr'
       amountparse = runParser someamount nullctx "" amountstr''
       amount = either (const nullmixedamt) id amountparse
+      -- Using costOfMixedAmount here to allow complex costs like "10 GBP @@ 15 USD".
+      -- Aim is to have "10 GBP @@ 15 USD" applied to account "acct", but have "-15USD" applied to "baseacct"
+      baseamount = costOfMixedAmount amount
       unknownacct | (readDef 0 amountstr' :: Double) < 0 = "income:unknown"
                   | otherwise = "expenses:unknown"
       (acct,newdesc) = identify (accountRules rules) unknownacct desc
@@ -309,7 +312,7 @@ transactionFromCsvRecord rules fields =
                    Posting {
                      pstatus=False,
                      paccount=baseAccount rules,
-                     pamount=(-amount),
+                     pamount=(-baseamount),
                      pcomment="",
                      ptype=RegularPosting,
                      pmetadata=[],
