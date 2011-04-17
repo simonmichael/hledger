@@ -417,10 +417,13 @@ competitors/fellow niche inhabitants
 **** download & usage stats
 ** errors
 *** #35 wludwick hledger-web startup issue
+**** TODO elaborate
 *** #34 tdaucourt encoding issue: setting locale does not always work
 https://github.com/jgm/pandoc/commit/7be82b45361e65939008bb93f0006c10dad946d5
 http://www.opensubscriber.com/message/haskell-cafe@haskell.org/14641759.html
 *** parsing: recursive file includes cause a hang
+echo "!include rec" > rec
+hledger -f rec print
 *** parsing: extra noise with eg bad date parse errors
 $ cat t.journal
 200/1/99 x
@@ -434,24 +437,28 @@ expecting digit                     <- noise
 bad year number: 200
 
 *** parsing: period expressions should allow interval at the end
+**** TODO Needs example!
 *** parsing: canonicalise account names to be case-insensitive
-*** parsing: only journals can include, and only another journal
-*** parsing: misleading error when journal lacks a final newline
-hledger -f- balance
-<<<
-2010/1/2
-  a  1
-  b
+*** parsing: only journals (not timelog files) can include, and only another journal
 *** parsing: better leap year checking
+
+Some previous version did this:
 ledger:
 While parsing file "/Users/simon/personal/2010.ledger", line 442:
 While parsing transaction:
 > 2/27=2/29 (20100201ucla) ucla payment
 Error: Day of month is not valid for year
 
+Current build (as of 2011/04/17) silently converts to 2/28.
+
+*** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance"
+**** TODO Needs minimal testcase
 *** balance: --depth with --flat should show aggregate balances
+**** TODO Needs example!
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
+**** TODO Needs example!
 *** convert: rules file can't have blank lines after last data
+**** TODO Needs example!
 *** web: doesn't support multiple filter patterns
 *** web: accounts final balance can be -0, colored red
 *** web: post handlers should preserve a p
