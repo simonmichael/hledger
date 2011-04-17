@@ -7,6 +7,7 @@ title: hledger news
   * installing: don't specify process version, too many problems
   * always read and write UTF-8, ignoring locale (#34)
   * treat arguments as possibly-encoded platform strings, not unconditionally utf-8
+  * parsing: assume current year when transaction dates have no year and there is no default year
   * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
   * parsing: support @@ syntax specifying total price
   * parsing: infer a conversion price in unpriced two-commodity transactions
