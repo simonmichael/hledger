@@ -107,14 +107,15 @@ Basic usage is:
     $ hledger [OPTIONS] COMMAND [FILTER PATTERNS]
 
 hledger first looks for data in a specially-formatted
-[journal file](#file-format).  You can specify the file with the -f
-option or the `LEDGER` environment variable; otherwise hledger assumes it
-is a file named `.journal` in your home directory. If the journal file
+[journal file](#file-format).  You can specify the file with the `-f`
+option or the `LEDGER_FILE` environment variable (`LEDGER` is also
+supported for backwards compatibility); otherwise hledger assumes it is a
+file named `.hledger.journal` in your home directory. If the journal file
 does not exist, it will be auto-created.
 
 To get started, save this
 [sample file](http://joyful.com/repos/hledger/data/sample.journal) as
-`.journal` in your home directory, or just run `hledger add` and enter
+`.hledger.journal` in your home directory, or just run `hledger add` and enter
 some transactions. Now try commands like these:
 
     $ hledger add                           # add some new transactions to the journal file
