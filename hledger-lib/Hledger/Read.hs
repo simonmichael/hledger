@@ -41,8 +41,8 @@ import System.IO (hGetContents)
 journalenvvar           = "LEDGER_FILE"
 journalenvvar2          = "LEDGER"
 timelogenvvar           = "TIMELOG"
-journaldefaultfilename  = ".journal"
-timelogdefaultfilename = ".timelog"
+journaldefaultfilename  = ".hledger.journal"
+timelogdefaultfilename = ".hledger.timelog"
 
 -- Here are the available readers. The first is the default, used for unknown data formats.
 readers :: [Reader]
