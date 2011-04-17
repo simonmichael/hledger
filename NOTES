@@ -32,6 +32,9 @@ ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 ** documentation, marketing
 *** developer notes & log
 *** website
+**** add related links:
+http://darcsden.com/dbp/housetab-multi
+
 **** add tables of contents
 **** integrate binaries, demo, pastebin
 *** faq
@@ -416,11 +419,35 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
+NOTE: This is the "developers' quick bug list", which predates the
+web-based bug tracker and is still used sometimes by hledger developers
+comfortable with org-mode.
+
+*** handle blank LEDGER value more gracefully
+$ LEDGER= hledger stat
+No journal file "", creating it.
+Edit this file or use "hledger add" or "hledger web" to add transactions.
+hledger: : openFile: does not exist (No such file or directory)
+
+*** parsing: could not balance error does not show line number
+*** web: account patterns on command line are ignored
+*** zero amounts sometimes displayed with negative sign
+~/personal$ hledger -f da-tue-meeting.journal balance --no-total assets -E -e 5/1
+           $1,205.49  assets
+           $1,160.40    bank
+              $-0.00      7th
+             $835.94      GSR
+             $324.46      reserve
+              $45.09    cash
+              $38.09      7th
+               $7.00      GSR
+               $0.00    prepaid rent
+
 *** #35 wludwick hledger-web startup issue
-**** TODO elaborate
 *** #34 tdaucourt encoding issue: setting locale does not always work
 https://github.com/jgm/pandoc/commit/7be82b45361e65939008bb93f0006c10dad946d5
 http://www.opensubscriber.com/message/haskell-cafe@haskell.org/14641759.html
+*** parsing: support --options
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print
@@ -436,28 +463,36 @@ unexpected " "                      <- undesired
 expecting digit                     <- noise
 bad year number: 200
 
-*** parsing: period expressions should allow interval at the end
-**** TODO Needs example!
 *** parsing: canonicalise account names to be case-insensitive
+*** parsing: confusing error when journal lacks a final newline
+$ cat - >t.j
+2010/1/2
+  a  1
+  b<ctrl-d>
+$ hledger -f t.j bal
+hledger: could not parse journal data in t.j
+"t.j" (line 3, column 3):
+unexpected "b"
+expecting comment or new-line
+
+
 *** parsing: only journals (not timelog files) can include, and only another journal
-*** parsing: better leap year checking
+*** parsing: better leap year checking, like ledger
+t.j:
+Y2010
 
-Some previous version did this:
-ledger:
-While parsing file "/Users/simon/personal/2010.ledger", line 442:
-While parsing transaction:
-> 2/27=2/29 (20100201ucla) ucla payment
-Error: Day of month is not valid for year
+2/27=2/29
+  a  1
+  b
 
-Current build (as of 2011/04/17) silently converts to 2/28.
+ledger says Error: Day of month is not valid for year
+current hledger  silently converts to 2/28!
 
-*** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance"
+*** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance" --DA
 **** TODO Needs minimal testcase
 *** balance: --depth with --flat should show aggregate balances
 **** TODO Needs example!
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
-**** TODO Needs example!
-*** convert: rules file can't have blank lines after last data
 **** TODO Needs example!
 *** web: doesn't support multiple filter patterns
 *** web: accounts final balance can be -0, colored red
@@ -473,7 +508,6 @@ http://code.google.com/p/hledger/issues/detail?id=25
 http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
 http://www.burningcutlery.com/derek/winsetup/
 http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
-*** LEDGER vs LEDGER_FILE
 *** auto-create of empty files annoying ?
 ** refactoring, cleanup
 *** more modularity
@@ -499,6 +533,74 @@ http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** parsing: period expressions should allow interval at the end
+eg support -p 'from 1/1 to 2/1 weekly'
+
+*** --empty-parents
+             $260.00  expenses
+             $260.00    rent
+*** --empty -> --show-zero-accounts, --show-empty-parents
+*** --output-layout=ledger|traditional
+*** --output-format=text|html|pdf
+*** try indenting amounts
+             $260.00    expenses
+               $260.00    rent
+*** chart of accounts specification
+; chart of accounts
+; defines allowed account names, hierarchy, default sort order, 
+; and some metadata (account numbers, cf http://www.netmba.com/accounting/fin/accounts/chart/)
+ACCOUNTS
+ assets                       ; :number: 1000
+  cash                        ; :number: 1010
+   HT7                        ; :number: 1011
+    jan                       ; :number: 1011.01
+    feb                       ; :number: 1011.02
+    mar                       ; :number: 1011.03
+   RSG                        ; :number: 1012
+    jan                       ; :number: 1012.01
+    feb                       ; :number: 1012.02
+    mar                       ; :number: 1012.03
+  bank                        ; :number: 1020
+   HT7                        ; :number: 1021
+   RSG                        ; :number: 1022
+   reserve                    ; :number: 1023
+ liabilities                  ; :number: 2000
+  accounts payable            ; :number: 2010
+   BSG/GI/RSG                 ; :number: 2011
+ equity                       ; :number: 3000
+  opening balances            ; :number: 3010
+ income                       ; :number: 4000
+  HT7                         ; :number: 4010
+  RSG                         ; :number: 4020
+ expenses                     ; :number: 6000
+  rent                        ; :number: 6010
+
+*** ignore/support ledger assert statements
+ ; Assertion directives Options
+ ; These can occur in many places: 
+ ;       ; Within an automated transaction, the assert is evaluated every time 
+ ;       ; a posting is matched, with the expression context set to the 
+ ;       ; matched posting. 
+ ;       = /Food/ 
+ ;         assert account("Expenses:Food").total >= $100 
+ ;       2010-06-12 Sample 
+ ;         Expenses:Food                $100 
+ ;         Assets:Checking 
+ ;       ; At file scope, the expression is evaluated within "global" scope. 
+ ;       assert account("Expenses:Food").total == $100 
+ ;       ; At the top of a transction, the assertion's scope is the 
+ ;       ; transaction.  After a posting, the scope is that posting.  Note 
+ ;       ; however that account totals are only adjusted after successful 
+ ;       ; parsing of a transaction, which means that all the assertions below 
+ ;       ; are true, even though it appears as though the first posting should 
+ ;       ; affect the total immediately, which is not the case. 
+ ;       2010-06-12 Sample 2 
+ ;         assert account("Expenses:Food").total == $100 
+ ;         Expenses:Food                $50 
+ ;         assert account("Expenses:Food").total == $100 
+ ;         Assets:Checking 
+ ;         assert account("Expenses:Food").total == $100 
+
 *** better international number format support (#32)
 *** show add form after adding
 *** : completes one account name component
