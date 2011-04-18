@@ -423,14 +423,17 @@ NOTE: This is the "developers' quick bug list", which predates the
 web-based bug tracker and is still used sometimes by hledger developers
 comfortable with org-mode.
 
-*** handle blank LEDGER value more gracefully
-$ LEDGER= hledger stat
-No journal file "", creating it.
-Edit this file or use "hledger add" or "hledger web" to add transactions.
-hledger: : openFile: does not exist (No such file or directory)
+*** parsing: better leap year checking, like ledger
+t.j:
+Y2010
 
-*** parsing: could not balance error does not show line number
-*** web: account patterns on command line are ignored
+2/27=2/29
+  a  1
+  b
+
+ledger says Error: Day of month is not valid for year
+current hledger  silently converts to 2/28!
+
 *** zero amounts sometimes displayed with negative sign
 ~/personal$ hledger -f da-tue-meeting.journal balance --no-total assets -E -e 5/1
            $1,205.49  assets
@@ -444,13 +447,10 @@ hledger: : openFile: does not exist (No such file or directory)
                $0.00    prepaid rent
 
 *** #35 wludwick hledger-web startup issue
-*** #34 tdaucourt encoding issue: setting locale does not always work
-https://github.com/jgm/pandoc/commit/7be82b45361e65939008bb93f0006c10dad946d5
-http://www.opensubscriber.com/message/haskell-cafe@haskell.org/14641759.html
-*** parsing: support --options
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print
+*** parsing: could not balance error does not show line number
 *** parsing: extra noise with eg bad date parse errors
 $ cat t.journal
 200/1/99 x
@@ -463,7 +463,6 @@ unexpected " "                      <- undesired
 expecting digit                     <- noise
 bad year number: 200
 
-*** parsing: canonicalise account names to be case-insensitive
 *** parsing: confusing error when journal lacks a final newline
 $ cat - >t.j
 2010/1/2
@@ -475,40 +474,28 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
-
 *** parsing: only journals (not timelog files) can include, and only another journal
-*** parsing: better leap year checking, like ledger
-t.j:
-Y2010
-
-2/27=2/29
-  a  1
-  b
-
-ledger says Error: Day of month is not valid for year
-current hledger  silently converts to 2/28!
-
 *** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance" --DA
 **** TODO Needs minimal testcase
 *** balance: --depth with --flat should show aggregate balances
 **** TODO Needs example!
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
 **** TODO Needs example!
+*** web: account patterns on command line are ignored
 *** web: doesn't support multiple filter patterns
-*** web: accounts final balance can be -0, colored red
-*** web: post handlers should preserve a p
+*** web: post handlers should preserve a and p
 *** web: --base-url trailing slash gives redirect loop
-hledger web --port 5001 --base-url http://localhost:5001/ -f ~/personal/household.journal
+hledger-web --port 5001 --base-url http://localhost:5001/ -f ~/personal/household.journal
 *** web: assets.bank.checking indentation in demo journal
 *** web: loses -B after an edit, and/or a filesystem edit
 *** docs: need to be less wall-of-text
-*** docs:installing:describe three install options in one place
-*** windows: can't print non-ascii
+*** docs:installing:describe the three install methods in one place
+*** #25 can't print non-ascii in windows console
 http://code.google.com/p/hledger/issues/detail?id=25
 http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
 http://www.burningcutlery.com/derek/winsetup/
 http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
-*** auto-create of empty files annoying ?
+*** auto-creating missing journal files annoying or helpful ?
 ** refactoring, cleanup
 *** more modularity
 **** packages/namespace
@@ -533,6 +520,8 @@ http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** parsing: support --options (?)
+*** parsing: canonicalise account names to be case-insensitive ?
 *** parsing: period expressions should allow interval at the end
 eg support -p 'from 1/1 to 2/1 weekly'
 
