@@ -10,3 +10,42 @@ o 2009/1/1 09:00:00
 
 >>>2
 >>>= 0
+
+# ledger timelog example from #ledger
+# ==== consulting.timelog
+# ; Timelog for consulting sideline
+# ; All times UTC
+# i 2011/01/26 16:00:00 XXXX:Remote "IPMI Access" 
+# o 2011/01/26 16:15:00
+
+# i 2011/01/26 17:45:00 XXXX:Onsite "Fix opty server" 
+# o 2011/01/26 20:00:00
+
+# i 2011/01/27 18:00:00 XXXX:Remote "SSL certificate for www.YYYY.com"
+# o 2011/01/27 18:15:00
+
+# ; vim:ts=2 sw=2 sts=2 et ft=ledger fdm=manual:
+# ==== consulting.dat
+# ; Ledger for Consulting sideline
+
+# !account Consulting
+# !include consulting.timelog
+# !end
+
+
+# 2010/02/27 (INV#2) XXXX Test Invoice
+#   Consulting:XXXX:Remote                -0.5h @ $75.00
+#   Consulting:XXXX:Onsite                -2.25h @ $100.00
+#   Receivable:Consulting:XXXX
+
+
+# ; vim:ts=2 sw=2 sts=2 et ft=ledger fdm=manual:
+# ==== command: ledger -f consulting.dat -s bal
+#               -2.25h  Consulting:XXXX:Onsite
+#                2.25h  Consulting:XXXX:Onsite "Fix opty server" 
+#               -30.0m  Consulting:XXXX:Remote
+#                15.0m  Consulting:XXXX:Remote "IPMI Access" 
+#                15.0m  Consulting:XXXX:Remote "SSL certificate for www.YYYY.com"
+#               $262.5  Receivable:Consulting:XXXX
+# --------------------
+#               $262.5  
