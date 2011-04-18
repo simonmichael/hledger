@@ -5,11 +5,11 @@ title: hledger news
 # hledger news
 
   * don't depend on any particular version of process, it caused too many problems
-  * always read and write UTF-8, ignoring locale (#34)
-  * treat arguments as possibly-encoded platform strings, not unconditionally utf-8
+  * always read and write UTF-8, ignoring the system locale (#34)
+  * treat arguments as possibly-encoded platform strings, do not assume UTF-8
   * look at LEDGER_FILE for the journal path, otherwise LEDGER, like c++ ledger
   * handle a blank LEDGER_FILE or LEDGER value more gracefully (use the default file path)
-  * switch default journal file name to ~/.hledger.journal, to avoid breaking mac filevault (#41)
+  * the default journal file path is now ~/.hledger.journal, to avoid breaking mac filevault (#41)
   * parsing: assume current year when transaction dates have no year and there is no default year
   * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
   * parsing: support @@ syntax specifying total price
@@ -18,9 +18,9 @@ title: hledger news
   * parsing: more reporting interval syntax: biweekly, bimonthly, every N days/weeks/months/quarters/years, every Nst/nd/rd/th day of month/week
   * add: avoid offering account names for completion in inapproriate contexts
   * add: remember default account even if user submits a different amount.
-  * convert: `account-field` directive specifies a field containing the base account name
-  * convert: `effective-date-field` directive specifies a field containing the effective date
-  * convert: `date-format` directive specifies custom date formats
+  * convert: account-field directive specifies a field containing the base account name
+  * convert: effective-date-field directive specifies a field containing the effective date
+  * convert: date-format directive specifies custom date formats
   * convert: allow amount fields containing "AMT @@ PRICE"
   * histogram: honour the specified start or end dates
   * print: don't show a trailing space when description is blank
