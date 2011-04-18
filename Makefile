@@ -12,7 +12,7 @@ COVCMD=test
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
-BENCHEXES=hledger-0.9 hledger-0.10-1 hledger-0.11 hledger-0.12.1 hledgeropt ledger
+BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14-ghc6.12.3 ledger
 #BENCHEXES=hledger
 
 # misc. tools
@@ -309,38 +309,15 @@ warningstest:
 		&& make --no-print-directory -s hledgernowarnings \
 		&& echo $@ PASSED) || echo $@ FAILED
 
-# needs updating
-# # make sure cabal is reasonably happy
-# quickcabaltest:
-# 	(cd hledger-lib \
-# 	&& cabal clean \
-# 	&& cabal check \
-# 	&& cabal configure \
-# 	&& cd .. \
-# 	&& cabal clean \
-# 	&& cabal check \
-# 	&& cabal configure \
-# 	&& echo $@ PASSED) || echo $@ FAILED
+# make sure cabal is reasonably happy
+quickcabaltest:
+	@(make --no-print-directory allcabalclean allcabalcheck allcabalconfigure \
+		&& echo $@ PASSED) || echo $@ FAILED
 
-# needs updating
 # make sure cabal is happy in all possible ways
-# # fullcabaltest:
-# 	(cd hledger-lib \
-# 	&& cabal clean \
-# 	&& cabal check \
-# 	&& cabal install \
-# 	&& cabal sdist \
-# 	&& cabal upload dist/hledger-lib-$(VERSION).tar.gz --check -v3 \
-# 	&& cd .. \
-# 	&& cabal clean \
-# 	&& cabal check \
-# 	&& cabal configure \
-# 	&& cabal build \
-# 	&& dist/build/hledger/hledger test 2>&1 | tail -1 | grep -q 'Errors: 0  Failures: 0' \
-# 	&& cabal sdist \
-# 	&& cabal upload dist/hledger-$(VERSION).tar.gz --check -v3 \
-# 	&& echo $@ PASSED \
-# 	) || echo $@ FAILED
+fullcabaltest:
+	(for p in $(PACKAGES); do (cd $$p && cabal clean && cabal check && cabal install && cabal sdist && cabal upload dist/$$p-$(VERSION).tar.gz --check -v3); done \
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # run simple performance benchmarks without saving results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
@@ -664,7 +641,7 @@ releaseandupload: release upload
 
 # update the version number in local files, and prompt to record changes
 # in these files. Triggered by "make release".
-setandrecordversion:
+setandrecordversion: setversion
 	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
 # update the version string in local files. This should be run immediately
@@ -707,7 +684,7 @@ MANUAL.markdown: $(VERSIONFILE)
 	perl -p -e "s/(^This is the.*?manual for hledger.*?) +[0-9.]+/\1 $(VERSION3)./" -i $@
 
 DOWNLOAD.markdown: $(VERSIONFILE)
-	perl -p -e "s/hledger-[0-9.]+-/hledger-$(VERSION)-/g" -i $@
+	perl -p -e "s/hledger(|-chart|-web|-vty)-[0-9.]+-/hledger\1-$(VERSION)-/g" -i $@
 
 tagrelease:
 	darcs tag $(VERSION3)
@@ -750,11 +727,17 @@ pushbinary:
 
 
 # show project stats useful for release notes
-stats: showlastreleasedate showreleaseauthors showloc showcov showlocalchanges showreleasechanges #simplebench #showerrors
+stats: showlastreleasedate showreleaseauthors showloc showcov showunpushedchanges showunreleasedchanges #simplebench #showerrors
+
+# ghci> let (d1,d2) = ("2010/12/06","2011/04/17") in diffDays (parsedate d2) (parsedate d1)
+showlastreleasedate:
+	@echo Last release date:
+	@darcs changes --from-tag . | tail -2
+	@echo
 
 showreleaseauthors:
 	@echo Patch authors since last release:
-	@darcs changes --from-tag 0.12 |grep '^\w' |cut -c 31- |sort |uniq
+	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
 	@echo
 
 showloc:
@@ -766,17 +749,12 @@ showcov: hledgercov
 	@echo Test coverage:
 	@tools/coverage report test
 
-showlastreleasedate:
-	@echo Last release date:
-	@darcs changes --from-tag . | tail -2
-	@echo
-
 # showerrors:
 # 	@echo Known errors:
 # 	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
 # 	@echo
 
-showlocalchanges:
+showunpushedchanges:
 	@echo Local changes:
 	@-darcs push simon@joyful.com:/repos/hledger --dry-run | grep '*' | tac
 	@echo
