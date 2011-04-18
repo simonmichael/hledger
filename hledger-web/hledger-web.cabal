@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.13.98
+version: 0.14
 category:       Finance
 synopsis:       A hledger add-on command providing a web interface.
 description:    
@@ -46,8 +46,8 @@ executable hledger-web
                   Hledger.Web.Files
                   Hledger.Web.Settings
   build-depends:
-                  hledger == 0.13.98
-                 ,hledger-lib == 0.13.98
+                  hledger == 0.14
+                 ,hledger-lib == 0.14
                  -- ,HUnit
                  ,base >= 3 && < 5
                  ,bytestring
