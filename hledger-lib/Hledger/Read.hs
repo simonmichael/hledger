@@ -112,19 +112,21 @@ emptyJournal = do
 readJournal :: Maybe String -> String -> IO (Either String Journal)
 readJournal format s = journalFromPathAndString format "(string)" s
 
--- | Get the user's default journal file path. Like ledger, we look first
--- for the LEDGER_FILE environment variable, and if that does not exist,
--- for the legacy LEDGER environment variable. If neither exists, the path
--- will be ".hledger.journal" in the users's home directory, or if we
--- cannot determine that, in the current directory.
+-- | Get the user's journal file path. Like ledger, we look first for the
+-- LEDGER_FILE environment variable, and if that does not exist, for the
+-- legacy LEDGER environment variable. If neither is set, or the value is
+-- blank, return the default journal file path, which is
+-- ".hledger.journal" in the users's home directory, or if we cannot
+-- determine that, in the current directory.
 myJournalPath :: IO String
-myJournalPath =
-    getEnv journalenvvar `catch`
-               (\_ -> do
-                  getEnv journalenvvar2 `catch`
-                             (\_ -> do
-                                home <- getHomeDirectory `catch` (\_ -> return "")
-                                return $ home </> journaldefaultfilename))
+myJournalPath = do
+  s <- envJournalPath
+  if null s then defaultJournalPath else return s
+    where
+      envJournalPath = getEnv journalenvvar `catch` (\_ -> getEnv journalenvvar2 `catch` (\_ -> return ""))
+      defaultJournalPath = do
+                  home <- getHomeDirectory `catch` (\_ -> return "")
+                  return $ home </> journaldefaultfilename
   
 -- | Get the user's default timelog file path.
 myTimelogPath :: IO String
