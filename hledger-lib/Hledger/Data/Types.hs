@@ -49,7 +49,7 @@ data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord)
 data Interval = NoInterval
               | Days Int | Weeks Int | Months Int | Quarters Int | Years Int
               | DayOfMonth Int | DayOfWeek Int
-              -- | WeekOfYear Int | MonthOfYear Int | QuarterOfYear Int
+              -- WeekOfYear Int | MonthOfYear Int | QuarterOfYear Int
                 deriving (Eq,Show,Ord)
 
 type AccountName = String
@@ -68,7 +68,7 @@ data Commodity = Commodity {
       separatorpositions :: [Int]  -- ^ positions of separators, counting leftward from decimal point
     } deriving (Eq,Ord,Show,Read)
 
--- | An amount's price may be written as @ unit price or @@ total price.
+-- | An amount's price may be written as \@ unit price or \@\@ total price.
 -- Note although Price has a MixedAmount, it should hold only
 -- single-commodity amounts, cf costOfAmount.
 data Price = UnitPrice MixedAmount | TotalPrice MixedAmount

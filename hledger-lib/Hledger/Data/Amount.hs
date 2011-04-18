@@ -185,7 +185,7 @@ showamountquantity (Amount (Commodity {decimalpoint=d,precision=p,separator=s,se
     punctuatenumber d s spos $ qstr
     where
     -- isint n = fromIntegral (round n) == n
-    qstr -- | p == maxprecision && isint q = printf "%d" (round q::Integer)
+    qstr -- p == maxprecision && isint q = printf "%d" (round q::Integer)
          | p == maxprecisionwithpoint    = printf "%f" q
          | p == maxprecision             = chopdotzero $ printf "%f" q
          | otherwise                    = printf ("%."++show p++"f") q
