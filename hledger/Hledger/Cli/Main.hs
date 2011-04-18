@@ -1,6 +1,6 @@
 {-|
 hledger - a ledger-compatible accounting tool.
-Copyright (c) 2007-2010 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 hledger is a partial haskell clone of John Wiegley's "ledger".  It

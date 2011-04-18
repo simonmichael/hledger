@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-|
 hledger-vty - a hledger add-on providing a curses-style interface.
-Copyright (c) 2007-2010 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
 
