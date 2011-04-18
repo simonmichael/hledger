@@ -4,22 +4,32 @@ title: hledger news
 
 # hledger news
 
-  * installing: don't specify process version, too many problems
+  * don't depend on any particular version of process, it caused too many problems
   * always read and write UTF-8, ignoring locale (#34)
   * treat arguments as possibly-encoded platform strings, not unconditionally utf-8
+  * look at LEDGER_FILE for the journal path, otherwise LEDGER, like c++ ledger
+  * handle a blank LEDGER_FILE or LEDGER value more gracefully (use the default file path)
+  * switch default journal file name to ~/.hledger.journal, to avoid breaking mac filevault (#41)
   * parsing: assume current year when transaction dates have no year and there is no default year
   * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
   * parsing: support @@ syntax specifying total price
-  * parsing: infer a conversion price in unpriced two-commodity transactions
+  * parsing: infer the conversion price in transactions involving two unpriced commodities
   * parsing: support per-posting cleared status
   * parsing: more reporting interval syntax: biweekly, bimonthly, every N days/weeks/months/quarters/years, every Nst/nd/rd/th day of month/week
-  * convert: support custom date formats
+  * add: avoid offering account names for completion in inapproriate contexts
+  * add: remember default account even if user submits a different amount.
+  * convert: `account-field` directive specifies a field containing the base account name
+  * convert: `effective-date-field` directive specifies a field containing the effective date
+  * convert: `date-format` directive specifies custom date formats
+  * convert: allow amount fields containing "AMT @@ PRICE"
   * histogram: honour the specified start or end dates
   * print: don't show a trailing space when description is blank
   * web: allow filter patterns with spaces if quoted, like command line
   * web: make edit form more cross-browser compatible, fixing it in firefox (#38)
   * web: move hidden add/edit/import forms below main content to help text-mode browsers a bit (#33)
 
+Release contributors: Simon Michael, Dmitry Astapov, Eric Kow, Max Bolingbroke, Omari Norman.
+Stats: 132 days and 95 commits since last release, now at 5542 lines of code with 182 tests and 57% unit test coverage.
 
 ## 2010/12/6 hledger 0.13
 
