@@ -10,3 +10,15 @@ bin/hledger -f - print --effective
     b            -1
 
 >>>2
+# Effecitve date of 29 Feb on leap year should be valid
+bin/hledger -f - print --effective
+<<<
+2010/2/27=2010/2/29 x
+  a  1
+  b
+>>>
+2010/02/29 x
+    a             1
+    b            -1
+
+>>>2
