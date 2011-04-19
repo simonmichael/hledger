@@ -1,9 +1,11 @@
 name:           hledger-web
 version: 0.14
 category:       Finance
-synopsis:       A hledger add-on command providing a web interface.
+synopsis:       A web interface for the hledger accounting tool.
 description:    
-    A hledger add-on command providing a web interface.
+                hledger is a haskell port and friendly fork of John Wiegley's ledger accounting tool.
+                This package provides a web interface as an alternative to the hledger command line interface.
+
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
