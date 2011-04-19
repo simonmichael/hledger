@@ -1,15 +1,4 @@
-#
-bin/hledger -f - balance
-<<<
-2009/1/1 x
- aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa  €1
- b
->>>
-                  €1  aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa
-                 €-1  b
---------------------
-                  €0
-# One commodity. Balance should be elided
+# 1. One commodity. Zero accounts should be elided but the final total should not.
 bin/hledger -f - balance
 <<<
 2010/04/01 tr1
@@ -22,7 +11,9 @@ bin/hledger -f - balance
 >>>
 --------------------
                    0
-# Two commodities. Balance should also be elided
+>>>=0
+
+# 2. Two commodities. As above, and the final total should be a single commodityless zero.
 bin/hledger -f - balance
 <<<
 2010/04/01 tr1
@@ -35,3 +26,5 @@ bin/hledger -f - balance
 >>>
 --------------------
                    0
+>>>=0
+
