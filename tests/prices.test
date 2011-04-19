@@ -134,3 +134,16 @@ bin/hledger -f - balance -B
 --------------------
                   $0
 >>>=0
+# 10. transaction in two commodities should balance out properly
+bin/hledger -f - balance --basis
+<<<
+2011/01/01 x
+  a  10£ @@ 16$
+  b
+>>>
+                 16$  a
+                -16$  b
+--------------------
+                  0$
+
+>>>=0
