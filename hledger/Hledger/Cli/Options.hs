@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-|
 Command-line options for the application.
 -}
