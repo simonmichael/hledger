@@ -13,3 +13,22 @@ bin/hledger -f- print
    b
 >>>2 /bad day number: 32/
 >>>= 1
+# 29th feb on leap year
+bin/hledger -f- print
+<<<
+2010/2/29 x
+   a  1
+   b
+>>>
+2010/02/29 x
+    a             1
+    b            -1
+>>>= 0
+# 29th feb on non-leap yeap
+bin/hledger -f- print
+<<<
+2011/2/29 x
+   a  1
+   b
+>>>2 /bad day number: 29/
+>>>= 1
