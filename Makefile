@@ -493,6 +493,11 @@ printall: pdf
 pushdocs: push
 	ssh simon@joyful.com 'make -C/repos/hledger docs'
 
+# dump all executables' command line help into files for review
+EXES=hledger hledger-vty hledger-web hledger-chart
+savehelp:
+	for e in $(EXES); do $$e --help >.HELP_$$e; done
+
 # generate api & other code docs
 codedocs: hscolour apihaddock codehaddock coverage #sourcegraph #hoogle
 
