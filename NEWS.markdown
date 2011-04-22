@@ -4,15 +4,16 @@ title: hledger news
 
 # hledger news
 
-  * don't depend on any particular version of process, it caused too many problems
-  * always read and write UTF-8, ignoring the system locale (#34)
+## 2011/4/22 hledger 0.14
+
+  * remove the specific process dependency that caused too many cabal install problems
   * treat arguments as possibly-encoded platform strings, do not assume UTF-8
-  * look at LEDGER_FILE for the journal path, otherwise LEDGER, like c++ ledger
+  * hledger now always reads and writes data as UTF-8, ignoring the system locale (#34)
+  * look at the LEDGER_FILE env var for the journal path, otherwise LEDGER, like ledger
   * handle a blank LEDGER_FILE or LEDGER value more gracefully (use the default file path)
   * the default journal file path is now ~/.hledger.journal, to avoid breaking mac filevault (#41)
   * amounts with different prices are now aggregated, like ledger
-  * zero amounts have no sign or commodity, like ledger
-  * fix a sign bug with negative total-priced (@@) amounts
+  * zero amounts now have no sign or commodity, like ledger
   * parsing: assume current year when transaction dates have no year and there is no default year
   * parsing: more careful validation of eg leap years in transaction dates
   * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
@@ -20,7 +21,7 @@ title: hledger news
   * parsing: infer the conversion price in transactions involving two unpriced commodities
   * parsing: support per-posting cleared status
   * parsing: more reporting interval syntax: biweekly, bimonthly, every N days/weeks/months/quarters/years, every Nst/nd/rd/th day of month/week
-  * add: avoid offering account names for completion in inapproriate contexts
+  * add: avoid offering account names for completion in inappropriate contexts
   * add: remember default account even if user submits a different amount.
   * convert: account-field directive specifies a field containing the base account name
   * convert: effective-date-field directive specifies a field containing the effective date
@@ -33,7 +34,10 @@ title: hledger news
   * web: move hidden add/edit/import forms below main content to help text-mode browsers a bit (#33)
 
 Release contributors: Simon Michael, Dmitry Astapov, Eric Kow, Max Bolingbroke, Omari Norman.
-Stats: 132 days and 95 commits since last release, now at 5542 lines of code with 182 tests and 57% unit test coverage.
+Stats:
+137 days, 113 commits, 11 end-user features and 15 end-user bugfixes since last release.
+189 unit & functional tests and 59% unit test coverage (hledger, hledger-lib packages).
+5540 lines of code (all packages).
 
 ## 2010/12/6 hledger 0.13
 
