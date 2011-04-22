@@ -210,10 +210,10 @@ hledgernowarnings:
 hledgerp:
 	ghc --make $(MAIN) -prof -auto-all -o bin/hledgerp $(BUILDFLAGS)
 
-# build the coverage-enabled binary. coverage-enabled .o files are kept
-# separate to avoid contamination.
-hledgercov:
-	ghc --make $(MAIN) -fhpc -o bin/hledgercov -outputdir .coverageobjs $(BUILDFLAGS)
+# build the -fhpc hledger binary used for coverage reports and heap profiles.
+# The associated .o files are kept separate from the regular ones.
+hledgerhpc:
+	ghc --make $(MAIN) -fhpc -o bin/hledgerhpc -outputdir .hledgerhpcobjs $(BUILDFLAGS)
 
 # build the fastest binary we can
 hledgeropt:
@@ -375,13 +375,19 @@ quickheap: samplejournals hledgerp
 	hp2ps hledgerp.hp
 	$(VIEWPS) hledger.ps
 
-# generate a code coverage report
-coverage: samplejournals hledgercov
-	@echo "Generating coverage report with $(COVCMD)"
-	tools/coverage "markup --destdir=profs/coverage" test
+# display a code coverage text report from running hledger COVCMD
+quickcoverage:
+	@echo "Generating code coverage text report for hledger command: $(COVCMD)"
+	tools/runhledgerhpc "report" $(COVCMD)
+
+# generate a code coverage html report from running hledger COVCMD
+coverage: samplejournals hledgerhpc
+	@echo "Generating code coverage html report for hledger command: $(COVCMD)"
+	tools/runhledgerhpc "markup --destdir=profs/coverage" $(COVCMD)
 	cd profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
 
-viewcoverage: coverage
+# view the last html code coverage report
+viewcoverage:
 	$(VIEWHTML) profs/coverage/index.html
 
 # get a debug prompt
