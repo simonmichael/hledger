@@ -5,4 +5,4 @@ bin/hledger -f data/sample.journal balance --depth 1
                  $-2  income
                   $1  liabilities
 --------------------
-                  $0
+                   0

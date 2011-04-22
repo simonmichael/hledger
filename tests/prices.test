@@ -132,7 +132,7 @@ bin/hledger -f - balance -B
                $-135  assets
                 $135  expenses:foreign currency
 --------------------
-                  $0
+                   0
 >>>=0
 # 10. transaction in two commodities should balance out properly
 bin/hledger -f - balance --basis
@@ -144,6 +144,5 @@ bin/hledger -f - balance --basis
                  16$  a
                 -16$  b
 --------------------
-                  0$
-
+                   0
 >>>=0

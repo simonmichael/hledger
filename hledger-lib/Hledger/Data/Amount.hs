@@ -238,8 +238,7 @@ isNegativeAmount Amount{quantity=q} = q < 0
 amounts :: MixedAmount -> [Amount]
 amounts (Mixed as) = as
 
--- | Does this mixed amount appear to be zero - empty, or
--- containing only simple amounts which appear to be zero ?
+-- | Does this mixed amount appear to be zero when displayed with its given precision ?
 isZeroMixedAmount :: MixedAmount -> Bool
 isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
 
@@ -313,21 +312,19 @@ showMixedAmountOrZeroWithoutPrice a
     | isZeroMixedAmount a = "0"
     | otherwise = showMixedAmountWithoutPrice a
 
--- | Simplify a mixed amount by combining any component amounts which have
--- the same commodity and the same price. Also removes zero amounts,
--- or adds a single zero amount if there are no amounts at all.
+-- | Simplify a mixed amount by removing redundancy in its component amounts, as follows:
+-- 1. sum amounts which have the same commodity (ignoring their price)
+-- 2. remove zero amounts
+-- 3. if there are no amounts at all, add a single zero amount
 normaliseMixedAmount :: MixedAmount -> MixedAmount
 normaliseMixedAmount (Mixed as) = Mixed as''
     where 
-      as'' = map sumSamePricedAmountsPreservingPrice $ group $ sort as'
-      sort = sortBy cmpsymbolandprice
-      cmpsymbolandprice a1 a2 = compare (sym a1,price a1) (sym a2,price a2)
-      group = groupBy samesymbolandprice 
-      samesymbolandprice a1 a2 = (sym a1 == sym a2) && (price a1 == price a2)
+      as'' = if null nonzeros then [nullamt] else nonzeros
+      (_,nonzeros) = partition (\a -> isReallyZeroAmount a && Mixed [a] /= missingamt) as'
+      as' = map sumSamePricedAmountsPreservingPrice $ group $ sort as
+      sort = sortBy (\a1 a2 -> compare (sym a1) (sym a2))
+      group = groupBy (\a1 a2 -> sym a1 == sym a2)
       sym = symbol . commodity
-      as' | null nonzeros = [head $ zeros ++ [nullamt]]
-          | otherwise = nonzeros
-      (zeros,nonzeros) = partition isReallyZeroAmount as
 
 -- | Set a mixed amount's commodity to the canonicalised commodity from
 -- the provided commodity map.
@@ -427,8 +424,11 @@ missingamt = Mixed [Amount unknown{symbol="AUTO"} 0 Nothing]
 
 tests_Hledger_Data_Amount = TestList [
 
-   "showMixedAmount" ~: do
-     showMixedAmount (Mixed [Amount dollar 0 Nothing]) `is` "$0.00"
+   "showAmount" ~: do
+     showAmount (dollars 0 + pounds 0) `is` "0"
+
+  ,"showMixedAmount" ~: do
+     showMixedAmount (Mixed [Amount dollar 0 Nothing]) `is` "0"
      showMixedAmount (Mixed []) `is` "0"
      showMixedAmount missingamt `is` ""
 
@@ -458,10 +458,15 @@ tests_Hledger_Data_Amount = TestList [
              [Amount dollar 1.25 Nothing,
               Amount dollar0 (-1) Nothing,
               Amount dollar (-0.25) Nothing])
-      `is` Mixed [Amount dollar 0 Nothing]
+      `is` Mixed [Amount unknown 0 Nothing]
 
   ,"normaliseMixedAmount" ~: do
-     normaliseMixedAmount (Mixed []) ~?= Mixed [nullamt]
+     normaliseMixedAmount (Mixed []) `is` Mixed [nullamt]
+     assertBool "" $ isZeroMixedAmount $ normaliseMixedAmount (Mixed [Amount {commodity=dollar, quantity=10,    price=Nothing}
+                                                                     ,Amount {commodity=dollar, quantity=10,    price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
+                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Nothing}
+                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
+                                                                     ])
 
   ,"punctuatethousands 1" ~: punctuatethousands "" `is` ""
 

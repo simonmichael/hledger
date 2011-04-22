@@ -11,4 +11,4 @@ bin/hledger -f data/sample.journal balance
                  $-1    salary
                   $1  liabilities:debts
 --------------------
-                  $0
+                   0

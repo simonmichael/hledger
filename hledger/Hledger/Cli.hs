@@ -112,7 +112,7 @@ tests_Hledger_Cli = TestList
     ,"                 $-1    salary"
     ,"                  $1  liabilities:debts"
     ,"--------------------"
-    ,"                  $0"
+    ,"                   0"
     ]
 
    ,"balance report can be limited with --depth" ~:
@@ -122,7 +122,7 @@ tests_Hledger_Cli = TestList
     ,"                 $-2  income"
     ,"                  $1  liabilities"
     ,"--------------------"
-    ,"                  $0"
+    ,"                   0"
     ]
     
    ,"balance report with account pattern o" ~:
@@ -167,7 +167,7 @@ tests_Hledger_Cli = TestList
     ,"                 $-1    salary"
     ,"                  $1  liabilities:debts"
     ,"--------------------"
-    ,"                  $0"
+    ,"                   0"
     ]
 
    ,"balance report with unmatched parent of two matched subaccounts" ~: 
@@ -216,7 +216,7 @@ tests_Hledger_Cli = TestList
     ([SubTotal,Empty], ["assets"]) `gives`
     ["                 $-1  assets"
     ,"                  $1    bank"
-    ,"                  $0      checking"
+    ,"                   0      checking"
     ,"                  $1      saving"
     ,"                 $-2    cash"
     ,"--------------------"
@@ -236,7 +236,7 @@ tests_Hledger_Cli = TestList
         ["                $500  a:b"
         ,"               $-500  c:d"
         ,"--------------------"
-        ,"                  $0"
+        ,"                   0"
         ]
 
    ,"balance report elides zero-balance root account(s)" ~: do

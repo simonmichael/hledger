@@ -49,7 +49,7 @@ bin/hledger -f - balance --no-total --cost --empty
    a  1C @ $1.0049
    a  $-1.00
 >>>
-               $0.00  a
+                   0  a
 >>>=0
 
 # 5. avamk's 2011/1/19 example
@@ -62,7 +62,7 @@ bin/hledger -f - -B bal
             $3266.32  assets:investment:ACME
            $-3266.32  equity:opening balances
 --------------------
-               $0.00
+                   0
 >>>=0
 # hledger 0.14pre: precision=2, presumably from price
 #            $3266.32  assets:investment:ACME
@@ -91,7 +91,7 @@ D $1000.0
             $3266.32  assets:investment:ACME
            $-3266.32  equity:opening balances
 --------------------
-               $0.00
+                   0
 >>>=0
 ### hledger 0.14pre: precision=2, presumably from price, ignores D
 ###            $3266.32  assets:investment:ACME

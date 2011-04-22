@@ -43,7 +43,7 @@ bin/hledger -f - balance
               EUR -1   
               USD -1  c
 --------------------
-               EUR 0
+                   0
 >>>=0
 
 # 4. mixed amounts with prices
