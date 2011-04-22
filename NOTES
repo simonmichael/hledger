@@ -31,6 +31,39 @@ ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 * todo/backlog
 ** documentation, marketing
 *** developer notes & log
+*** intro brainstorming
+
+hledger is a robust command-line accounting tool with a simple plain text data format.
+
+hledger is a reporting tool for accounting transactions stored in a simple human-editable text format.
+
+hledger is a computer program for easily tracking money, time, or other transactions, usually recorded in a general journal file with a simple human-editable markup format.
+
+hledger is primarily a reporting tool, but it can also help you add transactions to the journal, or convert from other data formats.
+
+hledger is a haskell port and friendly fork of John Wiegley's c++ ledger tool.
+
+hledger aims to be a reliable, practical, useful tool for (slightly geeky) users and a reusable library for haskell programmers interested in finance.
+
+hledger is quite simple in essence, aiming to be a reliable low-level parsing-and-reporting tool that doesn't get in your way.
+
+For some, it is a less complex, less expensive, more efficient alternative to Quicken or Quickbooks.
+
+hledger is available for free under the GNU General Public License.
+
+hledger reads plain text files (general journal, timelog, or CSV format) describing transactions (in money, time or other commodities) and prints the chart of accounts, account balances, or transactions you're interested in.
+
+hledger is a free program that helps you understand your finances, making calculations based on data stored a simple text file. If you prefer the command line and a text editor to a big gui application, hledger gives you the power of Quicken and Quickbooks without the complexity.
+
+Your financial data will outlive your financial software, so it should have longevity and accessibility. Its integrity is important to your peace of mind, so changes should be transparent and (if desired) version controlled. It may also be important to allow multiple authors to edit safely. A structured, easy-to-parse, human-friendly plain text format, as in the wiki world, provides a good balance of longevity, reliability, transparency and flexibility.
+
+hledger helps you track and understand your finances, making calculations based on data stored in a simple text file. If you prefer the command line and a text editor to a big gui application, hledger gives you the power of Quicken and Quickbooks without the complexity.
+
+Features: reads transactions in journal, timelog, or CSV format; handles multi-currency/multi-commodity transactions; prints the chart of accounts, account balances, or transactions you're interested in, quickly; scriptable.
+
+
+
+
 *** website
 **** add related links:
 http://darcsden.com/dbp/housetab-multi
@@ -423,34 +456,12 @@ NOTE: This is the "developers' quick bug list", which predates the
 web-based bug tracker and is still used sometimes by hledger developers
 comfortable with org-mode.
 
-*** parsing: better leap year checking, like ledger
-t.j:
-Y2010
-
-2/27=2/29
-  a  1
-  b
-
-ledger says Error: Day of month is not valid for year
-current hledger  silently converts to 2/28!
-
-*** zero amounts sometimes displayed with negative sign
-~/personal$ hledger -f da-tue-meeting.journal balance --no-total assets -E -e 5/1
-           $1,205.49  assets
-           $1,160.40    bank
-              $-0.00      7th
-             $835.94      GSR
-             $324.46      reserve
-              $45.09    cash
-              $38.09      7th
-               $7.00      GSR
-               $0.00    prepaid rent
-
 *** #35 wludwick hledger-web startup issue
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print
-*** parsing: could not balance error does not show line number
+*** parsing: only journals (not timelog files) can include, and only another journal
+*** parsing: "could not balance" error does not show line number
 *** parsing: extra noise with eg bad date parse errors
 $ cat t.journal
 200/1/99 x
@@ -474,7 +485,8 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
-*** parsing: only journals (not timelog files) can include, and only another journal
+*** parsing: let's enforce positive price amounts for clarity, like ledger
+eg 1€ @@ $-2 is not allowed
 *** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance" --DA
 **** TODO Needs minimal testcase
 *** balance: --depth with --flat should show aggregate balances
@@ -495,7 +507,7 @@ http://code.google.com/p/hledger/issues/detail?id=25
 http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
 http://www.burningcutlery.com/derek/winsetup/
 http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
-*** auto-creating missing journal files annoying or helpful ?
+*** auto-creating missing journal files - annoying or helpful ?
 ** refactoring, cleanup
 *** more modularity
 **** packages/namespace
