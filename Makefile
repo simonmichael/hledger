@@ -202,6 +202,10 @@ tools/generatejournal: tools/generatejournal.hs
 ######################################################################
 # RELEASING
 
+# set up this repo copy for previewing a release:
+# ensure download links work
+set-up-rc-repo:
+	cd site/_site; ln -s ../download
 
 ######################################################################
 # MISCELLANEOUS
