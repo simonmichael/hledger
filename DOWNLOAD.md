@@ -42,7 +42,7 @@ href="../MANUAL.html#installing">installation docs</a>.
       [hledger-0.14-linux-i686.gz](download/hledger-0.14-linux-i686.gz)<br><br>
     </td>
     <td>
-      [hledger-0.14-linux-x86_64.gz](download/hledger-0.14-linux-x86_64.gz)<br><br>
+      <!-- [hledger-0.14-linux-x86_64.gz](download/hledger-0.14-linux-x86_64.gz)<br><br> -->
     </td>
     <td>
       [hledger-0.14-mac-i386.gz](download/hledger-0.14-mac-i386.gz)<br><br>
@@ -59,13 +59,12 @@ href="../MANUAL.html#installing">installation docs</a>.
       [hledger-web-0.14-linux-i686.gz](download/hledger-web-0.14-linux-i686.gz)<br><br>
     </td>
     <td>
-      [hledger-web-0.14-linux-x86_64.gz](download/hledger-web-0.14-linux-x86_64.gz)<br><br>
+      <!-- [hledger-web-0.14-linux-x86_64.gz](download/hledger-web-0.14-linux-x86_64.gz)<br><br> -->
     </td>
     <td>
       [hledger-web-0.14-mac-i386.gz](download/hledger-web-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
-      -
     </td>
   </tr>
 
@@ -75,32 +74,28 @@ href="../MANUAL.html#installing">installation docs</a>.
       [hledger-vty-0.14-linux-i686.gz](download/hledger-vty-0.14-linux-i686.gz)<br><br>
     </td>
     <td>
-      [hledger-vty-0.14-linux-x86_64.gz](download/hledger-vty-0.14-linux-x86_64.gz)<br><br>
+      <!-- [hledger-vty-0.14-linux-x86_64.gz](download/hledger-vty-0.14-linux-x86_64.gz)<br><br> -->
     </td>
     <td>
       [hledger-vty-0.14-mac-i386.gz](download/hledger-vty-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
-      -
+      not supported
     </td>
   </tr>
   <tr class="heading"><td colspan=4>**hledger-chart** (pie chart generator):</td></tr>
   <tr align="center">
     <td>
-      -
       <!-- [hledger-chart-0.14-linux-i686.gz](download/hledger-chart-0.14-linux-i686.gz)<br><br> -->
       &nbsp;
     </td>
     <td>
-      -
       <!-- [hledger-chart-0.14-linux-x86_64.gz](download/hledger-chart-0.14-linux-x86_64.gz)<br><br> -->
     </td>
     <td>
-      -
       <!-- [hledger-chart-0.14-mac-i386.gz](download/hledger-chart-0.14-mac-i386.gz)<br><br> -->
     </td>
     <td>
-      -
     </td>
   </tr>
 
