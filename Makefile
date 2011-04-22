@@ -50,6 +50,11 @@ SOURCEFILESFORHADDOCK:= \
 	hledger-web/Hledger/*/*hs \
 	hledger-vty/Hledger/*/*hs \
 	hledger-chart/Hledger/*/*hs
+# just the library-exporting files for haddock, similar to what hackage shows
+LIBSOURCEFILESFORHADDOCK:= \
+	hledger-lib/Hledger/*hs \
+	hledger-lib/Hledger/*/*hs \
+	hledger/Hledger/Cli/*hs
 VERSIONHS=hledger/Hledger/Cli/Version.hs
 CABALFILES:= \
 	hledger/hledger.cabal \
@@ -333,7 +338,7 @@ quickcabaltest:
 
 # make sure cabal is happy in all possible ways
 fullcabaltest:
-	(for p in $(PACKAGES); do (cd $$p && cabal clean && cabal check && cabal install && cabal sdist && cabal upload dist/$$p-$(VERSION).tar.gz --check -v3); done \
+	(for p in $(PACKAGES); do (echo "testing $$p package" && cd $$p && cabal clean && cabal check && cabal install && cabal sdist && cabal upload dist/$$p-$(VERSION).tar.gz --check -v3); done \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run simple performance benchmarks without saving results
@@ -524,7 +529,7 @@ viewcodedocs:
 
 #http://www.haskell.org/haddock/doc/html/invoking.html
 #$(subst -D,--optghc=-D,$(DEFINEFLAGS))
-HADDOCK=haddock --optghc='-hide-package monads-tf' --no-warnings --prologue .haddockprologue
+HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-package monads-tf' 
 
 .haddocksynopsis: hledger/hledger.cabal
 	grep synopsis $< | sed -e 's/synopsis: *//' >$@
@@ -537,16 +542,16 @@ haddock: apihaddock internalhaddock
 
 # generate external api docs for the whole project
 apihaddock: linkhledgerwebdir .haddockprologue
-	$(HADDOCK) --title "hledger API docs (all packages)" \
+	$(HADDOCK) --title "hledger & hledger-lib API docs" \
 	 -o site/api-doc \
 	 --html \
 	 --source-module=../code-doc/src/%{MODULE/./-}.html \
 	 --source-entity=../code-doc/src/%{MODULE/./-}.html#%N \
-	 $(SOURCEFILESFORHADDOCK)
+	 $(LIBSOURCEFILESFORHADDOCK)
 
 # generate internal code docs for the whole project
 codehaddock: linkhledgerwebdir .haddockprologue
-	$(HADDOCK) --title "hledger internal code docs (all packages)" \
+	$(HADDOCK) --title "hledger internal code docs, all packages" \
 	 -o site/code-doc \
 	 --ignore-all-exports \
 	 --html \
