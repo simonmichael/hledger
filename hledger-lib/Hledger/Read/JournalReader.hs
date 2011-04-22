@@ -347,20 +347,15 @@ ledgerdate = do
   -- pos <- getPosition
   datestr <- many1 $ choice' [digit, datesepchar]
   let dateparts = wordsBy (`elem` datesepchars) datestr
-  case dateparts of
-    [y,m,d] -> do
-               failIfInvalidYear y
-               failIfInvalidMonth m
-               failIfInvalidDay d
-               return $ fromGregorian (read y) (read m) (read d)
-    [m,d]   -> do
-               y <- getYear
-               case y of Nothing -> fail "partial date found, but no default year specified"
-                         Just y' -> do failIfInvalidYear $ show y'
-                                       failIfInvalidMonth m
-                                       failIfInvalidDay d
-                                       return $ fromGregorian y' (read m) (read d)
-    _       -> fail $ "bad date: " ++ datestr
+  currentyear <- getYear
+  let [y,m,d] = case (dateparts,currentyear) of
+                  ([m,d],Just y)  -> [show y,m,d]
+                  ([_,_],Nothing) -> fail $ "partial date "++datestr++" found, but the current year is unknown"
+                  _               -> dateparts
+      maybedate = fromGregorianValid (read y) (read m) (read d)
+  case maybedate of
+    Nothing   -> fail $ "bad date: " ++ datestr
+    Just date -> return date
   <?> "full or partial date"
 
 ledgerdatetime :: GenParser Char JournalContext LocalTime

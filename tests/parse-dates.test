@@ -5,7 +5,7 @@ bin/hledger -f- print
 2010/31/12 x
    a  1
    b
->>>2 /bad month number: 31/
+>>>2 /bad date/
 >>>= 1
 # 2. too-large day
 bin/hledger -f- print
@@ -13,7 +13,7 @@ bin/hledger -f- print
 2010/12/32 x
    a  1
    b
->>>2 /bad day number: 32/
+>>>2 /bad date/
 >>>= 1
 # 3. 29th feb on leap year should be ok
 bin/hledger -f- print
@@ -27,11 +27,11 @@ bin/hledger -f- print
     b            -1
 
 >>>= 0
-# 3. 29th feb on non-leap year should fail
+# 4. 29th feb on non-leap year should fail
 bin/hledger -f- print
 <<<
 2001/2/29 x
    a  1
    b
->>>2 /bad day number: 29/
+>>>2 /bad date/
 >>>= 1

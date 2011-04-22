@@ -18,6 +18,8 @@ quarterly, etc.
 
 -}
 
+-- XXX fromGregorian silently clips bad dates, use fromGregorianValid instead ?
+
 module Hledger.Data.Dates
 where
 
