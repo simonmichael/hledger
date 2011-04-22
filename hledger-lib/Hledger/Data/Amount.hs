@@ -125,45 +125,12 @@ convertMixedAmountToSimilarCommodity c (Mixed as) = Amount c total Nothing
 -- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error)
 -- - price amounts should be positive, though this is not currently enforced
 costOfAmount :: Amount -> Amount
-costOfAmount a@(Amount _ q price)
-    | isNothing price      = a
-    | isZeroMixedAmount up = nullamt
-    | otherwise            = Amount pc (q*pq) Nothing
-    where
-      unitprice@(Just up) = priceAndQuantityToMaybeUnitPrice price q
-      (Amount pc pq _) =
-          case price of
-            Just (UnitPrice  pa) -> head $ amounts pa
-            Just (TotalPrice _)  -> head $ amounts $ fromJust unitprice
-            _ -> error "impossible case, programmer error"
-
--- | Convert a (unit or total) Price and quantity to a MixedAmount unit price.
-priceAndQuantityToMaybeUnitPrice :: Maybe Price -> Double -> Maybe MixedAmount
-priceAndQuantityToMaybeUnitPrice Nothing _               = Nothing
-priceAndQuantityToMaybeUnitPrice (Just (UnitPrice a)) _  = Just a
-priceAndQuantityToMaybeUnitPrice (Just (TotalPrice a)) q = Just $ a `divideMixedAmount` q
-
--- | Get the string representation of an amount, based on its commodity's
--- display settings.
-showAmount :: Amount -> String
-showAmount (Amount (Commodity {symbol="AUTO"}) _ _) = "" -- can appear in an error message
-showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
-    case side of
-      L -> printf "%s%s%s%s" sym' space quantity price
-      R -> printf "%s%s%s%s" quantity space sym' price
-    where
-      sym' = quoteCommoditySymbolIfNeeded sym
-      space = if (spaced && not (null sym')) then " " else ""
-      quantity = showAmount' a
-      price = maybe "" showPrice pri
-
-showPrice :: Price -> String
-showPrice (UnitPrice pa)  = " @ "  ++ showMixedAmount pa
-showPrice (TotalPrice pa) = " @@ " ++ showMixedAmount pa
-
-showPriceDebug :: Price -> String
-showPriceDebug (UnitPrice pa)  = " @ "  ++ showMixedAmountDebug pa
-showPriceDebug (TotalPrice pa) = " @@ " ++ showMixedAmountDebug pa
+costOfAmount a@(Amount _ q price) =
+    case price of
+      Nothing -> a
+      Just (UnitPrice  (Mixed [Amount pc pq Nothing])) -> Amount pc (pq*q) Nothing
+      Just (TotalPrice (Mixed [Amount pc pq Nothing])) -> Amount pc (pq*signum q) Nothing
+      _ -> error' "costOfAmount: Malformed price encountered, programmer error"
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings except using the specified precision.
@@ -186,10 +153,34 @@ showAmountWithoutPrice a = showAmount a{price=Nothing}
 showAmountWithoutPriceOrCommodity :: Amount -> String
 showAmountWithoutPriceOrCommodity a@Amount{commodity=c} = showAmount a{commodity=c{symbol=""}, price=Nothing}
 
+showPrice :: Price -> String
+showPrice (UnitPrice pa)  = " @ "  ++ showMixedAmount pa
+showPrice (TotalPrice pa) = " @@ " ++ showMixedAmount pa
+
+showPriceDebug :: Price -> String
+showPriceDebug (UnitPrice pa)  = " @ "  ++ showMixedAmountDebug pa
+showPriceDebug (TotalPrice pa) = " @@ " ++ showMixedAmountDebug pa
+
+-- | Get the string representation of an amount, based on its commodity's
+-- display settings. Amounts which look like zero are rendered without sign or commodity.
+showAmount :: Amount -> String
+showAmount (Amount (Commodity {symbol="AUTO"}) _ _) = "" -- can appear in an error message
+showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
+    case side of
+      L -> printf "%s%s%s%s" sym' space quantity' price
+      R -> printf "%s%s%s%s" quantity' space sym' price
+    where
+      quantity = showamountquantity a
+      displayingzero = null $ filter (`elem` "123456789") $ quantity
+      (quantity',sym') | displayingzero = ("0","")
+                       | otherwise      = (quantity,quoteCommoditySymbolIfNeeded sym)
+      space = if (not (null sym') && spaced) then " " else ""
+      price = maybe "" showPrice pri
+
 -- | Get the string representation of the number part of of an amount,
 -- using the display settings from its commodity.
-showAmount' :: Amount -> String
-showAmount' (Amount (Commodity {decimalpoint=d,precision=p,separator=s,separatorpositions=spos}) q _) =
+showamountquantity :: Amount -> String
+showamountquantity (Amount (Commodity {decimalpoint=d,precision=p,separator=s,separatorpositions=spos}) q _) =
     punctuatenumber d s spos $ qstr
     where
     qstr -- | p == maxprecision && isint q = printf "%d" (round q::Integer)
@@ -486,5 +477,11 @@ tests_Hledger_Data_Amount = TestList [
   ,"punctuatethousands 2" ~: punctuatethousands "1234567.8901" `is` "1,234,567.8901"
 
   ,"punctuatethousands 3" ~: punctuatethousands "-100" `is` "-100"
+
+  ,"costOfAmount" ~: do
+    costOfAmount (euros 1) `is` euros 1
+    costOfAmount (euros 2){price=Just $ UnitPrice $ Mixed [dollars 2]} `is` dollars 4
+    costOfAmount (euros 1){price=Just $ TotalPrice $ Mixed [dollars 2]} `is` dollars 2
+    costOfAmount (euros (-1)){price=Just $ TotalPrice $ Mixed [dollars 2]} `is` dollars (-2)
 
   ]
