@@ -38,11 +38,13 @@ price-discarding arithmetic which ignores and discards prices.
 
 -}
 
+-- XXX due for review/rewrite
+
 module Hledger.Data.Amount (
                             amounts,
                             canonicaliseAmount,
                             canonicaliseMixedAmount,
-                            convertMixedAmountTo,
+                            convertMixedAmountToSimilarCommodity,
                             costOfAmount,
                             costOfMixedAmount,
                             divideAmount,
@@ -58,6 +60,7 @@ module Hledger.Data.Amount (
                             punctuatethousands,
                             setAmountPrecision,
                             setMixedAmountPrecision,
+                            showAmountDebug,
                             showMixedAmount,
                             showMixedAmountDebug,
                             showMixedAmountOrZero,
@@ -85,41 +88,42 @@ instance Num Amount where
     abs (Amount c q p) = Amount c (abs q) p
     signum (Amount c q p) = Amount c (signum q) p
     fromInteger i = Amount (comm "") (fromInteger i) Nothing
-    (+) = amountop (+)
-    (-) = amountop (-)
-    (*) = amountop (*)
+    (+) = similarAmountsOp (+)
+    (-) = similarAmountsOp (-)
+    (*) = similarAmountsOp (*)
 
 instance Num MixedAmount where
     fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
     negate (Mixed as) = Mixed $ map negateAmountPreservingPrice as
+        where negateAmountPreservingPrice a = (-a){price=price a}
     (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ as ++ bs
     (*)    = error' "programming error, mixed amounts do not support multiplication"
     abs    = error' "programming error, mixed amounts do not support abs"
     signum = error' "programming error, mixed amounts do not support signum"
 
-negateAmountPreservingPrice a = (-a){price=price a}
+-- | Apply a binary arithmetic operator to two amounts, after converting
+-- the first to the commodity (and display precision) of the second in a
+-- simplistic way. This should be used only for two amounts in the same
+-- commodity, since the conversion rate is assumed to be 1.
+-- NB preserving the second commodity is preferred since sum and other
+-- folds start with the no-commodity zero amount.
+similarAmountsOp :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
+similarAmountsOp op a (Amount bc bq _) =
+    Amount bc (quantity (convertAmountToSimilarCommodity bc a) `op` bq) Nothing
 
--- | Apply a binary arithmetic operator to two amounts, converting to the
--- second one's commodity (and display precision), discarding any price
--- information. (Using the second commodity is best since sum and other
--- folds start with a no-commodity amount.)
-amountop :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
-amountop op a@(Amount _ _ _) (Amount bc bq _) = 
-    Amount bc (quantity (convertAmountTo bc a) `op` bq) Nothing
+-- | Convert an amount to the specified commodity, assuming an exchange rate of 1.
+convertAmountToSimilarCommodity :: Commodity -> Amount -> Amount
+convertAmountToSimilarCommodity c (Amount _ q _) = Amount c q Nothing
 
--- | Convert an amount to the specified commodity using the appropriate
--- exchange rate (which is currently always 1).
-convertAmountTo :: Commodity -> Amount -> Amount
-convertAmountTo c2 (Amount c1 q _) = Amount c2 (q * conversionRate c1 c2) Nothing
-
--- | Convert mixed amount to the specified commodity
-convertMixedAmountTo :: Commodity -> MixedAmount -> Amount
-convertMixedAmountTo c2 (Mixed ams) = Amount c2 total Nothing
+-- | Convert a mixed amount to the specified commodity, assuming an exchange rate of 1.
+convertMixedAmountToSimilarCommodity :: Commodity -> MixedAmount -> Amount
+convertMixedAmountToSimilarCommodity c (Mixed as) = Amount c total Nothing
     where
-    total = sum . map (quantity . convertAmountTo c2) $ ams
+      total = sum $ map (quantity . convertAmountToSimilarCommodity c) as
 
--- | Convert an amount to the commodity of its saved price, if any.  Note
--- that although the price is a MixedAmount, only its first Amount is used.
+-- | Convert an amount to the commodity of its saved price, if any.  Notes:
+-- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error)
+-- - price amounts should be positive, though this is not currently enforced
 costOfAmount :: Amount -> Amount
 costOfAmount a@(Amount _ q price)
     | isNothing price      = a
@@ -397,7 +401,7 @@ amountopPreservingHighestPrecision :: (Double -> Double -> Double) -> Amount -> 
 amountopPreservingHighestPrecision op a@(Amount ac@Commodity{precision=ap} _ _) (Amount bc@Commodity{precision=bp} bq _) = 
     Amount c q Nothing
     where
-      q = quantity (convertAmountTo bc a) `op` bq
+      q = quantity (convertAmountToSimilarCommodity bc a) `op` bq
       c = if ap > bp then ac else bc
 --
 
@@ -450,6 +454,10 @@ tests_Hledger_Data_Amount = TestList [
     (a1 + a3) `is` Amount (comm "$") 0 Nothing
     (a2 + a3) `is` Amount (comm "$") (-2.46) Nothing
     (a3 + a3) `is` Amount (comm "$") (-2.46) Nothing
+    -- arithmetic with different commodities currently assumes conversion rate 1:
+    let a4 = euros (-1.23)
+    assertBool "" $ isZeroAmount (a1 + a4)
+
     sum [a2,a3] `is` Amount (comm "$") (-2.46) Nothing
     sum [a3,a3] `is` Amount (comm "$") (-2.46) Nothing
     sum [a1,a2,a3,-a3] `is` Amount (comm "$") 0 Nothing

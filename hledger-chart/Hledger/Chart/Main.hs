@@ -131,7 +131,7 @@ sameSignNonZero is | null nzs = ([], 1)
 
 -- | Convert all quantities of MixedAccount to a single commodity
 amountValue :: MixedAmount -> Double
-amountValue = quantity . convertMixedAmountTo unknown
+amountValue = quantity . convertMixedAmountToSimilarCommodity unknown
 
 -- | Generate a tree of account names together with their balances.
 --   The balance of account is decremented by the balance of its subaccounts
