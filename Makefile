@@ -727,12 +727,26 @@ pushbinary:
 
 
 # show project stats useful for release notes
-stats: showlastreleasedate showreleaseauthors showloc showcov showunpushedchanges showunreleasedchanges #simplebench #showerrors
+releasestats: \
+	showreleasedays \
+	showunreleasedchangecount \
+	showloc \
+	showtestcount \
+	showunittestcoverage \
+	showreleaseauthors \
+	showunreleasedcodechanges \
+	showunpushedchanges
+#	simplebench
+#	showerrors
 
-# ghci> let (d1,d2) = ("2010/12/06","2011/04/17") in diffDays (parsedate d2) (parsedate d1)
-showlastreleasedate:
-	@echo Last release date:
-	@darcs changes --from-tag . | tail -2
+showreleasedays:
+	@echo Days since last release:
+	@tools/dayssincerelease.hs | head -1 | cut -d' ' -f-1
+	@echo
+
+showunreleasedchangecount:
+	@echo Commits since last release:
+	@darcs changes --from-tag . --count
 	@echo
 
 showreleaseauthors:
@@ -741,32 +755,40 @@ showreleaseauthors:
 	@echo
 
 showloc:
-	@echo Lines of code including tests:
+	@echo Current lines of code including tests:
 	@sloccount `ls $(SOURCEFILES)` | grep haskell:
 	@echo
 
-showcov: hledgercov
-	@echo Test coverage:
-	@tools/coverage report test
+showtestcount:
+	@echo "Unit tests:"
+	@hledger test 2>&1 | cut -d' ' -f2
+	@echo "Functional tests:"
+	@make --no-print functest | egrep '^ Total' | awk '{print $$2}'
+	@echo
+
+showunittestcoverage:
+	@echo Unit test coverage:
+	@make --no-print quickcoverage | grep 'expressions'
+	@echo
 
 # showerrors:
 # 	@echo Known errors:
 # 	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
 # 	@echo
 
-showunpushedchanges:
-	@echo Local changes:
+showunpushedchanges unpushed:
+	@echo "Changes not yet pushed upstream (to `darcs show repo | grep 'Default Remote' | cut -c 17-`):"
 	@-darcs push simon@joyful.com:/repos/hledger --dry-run | grep '*' | tac
 	@echo
 
-showcodechanges:
-	@echo Code changes:
-	@darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
+showunreleasedcodechanges unreleased:
+	@echo "hledger code changes since last release:"
+	@darcs changes --from-tag . --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
 	@echo
 
-showunreleasedchanges:
-	@echo "Feature/bugfix changes since last release: ("`darcs changes --from-tag . --count`")"
-	@darcs changes --from-tag . --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
+showcodechanges:
+	@echo "hledger code changes:"
+	@darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
 	@echo
 
 ######################################################################
