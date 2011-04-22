@@ -10,7 +10,11 @@ title: hledger news
   * look at LEDGER_FILE for the journal path, otherwise LEDGER, like c++ ledger
   * handle a blank LEDGER_FILE or LEDGER value more gracefully (use the default file path)
   * the default journal file path is now ~/.hledger.journal, to avoid breaking mac filevault (#41)
+  * amounts with different prices are now aggregated, like ledger
+  * zero amounts have no sign or commodity, like ledger
+  * fix a sign bug with negative total-priced (@@) amounts
   * parsing: assume current year when transaction dates have no year and there is no default year
+  * parsing: more careful validation of eg leap years in transaction dates
   * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
   * parsing: support @@ syntax specifying total price
   * parsing: infer the conversion price in transactions involving two unpriced commodities
