@@ -42,8 +42,8 @@ A rough guide for hledger contributors of all kinds, plus some quick links for e
 <script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
 <form action="http://haskell.org/hoogle/" method="get">
  <input type="text"   name="hoogle" id="hoogle" accesskey="1" size="80" />
- <input type="hidden" name="prefix" value="+hledger +hledger-lib" />
- <input type="submit" value="Search hledger, hledger-lib API" />
+ <input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
+ <input type="submit" value="Search API of all hledger packages" />
 </form>
 
 ## How to..
