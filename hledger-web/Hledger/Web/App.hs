@@ -360,7 +360,7 @@ navbar :: TemplateData -> Hamlet AppRoute
 navbar TD{p=p,j=j,today=today} = [$hamlet|
  <div#navbar
   <a.topleftlink href=#{hledgerorgurl}
-   hledger
+   hledger-web
    <br />
    #{version}
   <a.toprightlink href=#{manualurl} target=hledgerhelp manual
