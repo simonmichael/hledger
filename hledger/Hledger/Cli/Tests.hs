@@ -10,9 +10,9 @@ hledger's functional tests are a set of shell/command-line tests defined
 by .test files in the tests\/ subdirectory. These can be run by doing
 @make functest@ in the hledger source tree.
 
-hledger's doctests are shell tests defined in literal blocks in haddock
-documentation in the source, run by doing @make doctest@ in the hledger
-source tree. are They hardly used, but here is an example:
+hledger's doctests are shell commands with expected output in literal
+blocks in the haddock documentation, run by doing @make doctest@ in the
+hledger source tree. They are hardly used, but here is an example:
 
 @
 $ bin\/hledger -f data\/sample.journal balance o
