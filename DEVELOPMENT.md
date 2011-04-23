@@ -27,6 +27,7 @@ A rough guide for hledger contributors of all kinds, plus some quick links for e
   [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
   [hledger-web](http://hackage.haskell.org/package/hledger-web)
 - Developer reports:
+  [haddock coverage](http://hledger.org/profs/haddock-coverage),
   [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   [benchmark](http://hledger.org/profs/latest.bench),
   [profile](http://hledger.org/profs/latest.prof),
