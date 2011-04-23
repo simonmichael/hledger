@@ -484,7 +484,7 @@ The add command tries to be helpful, providing:
   key will auto-complete as far as possible, or list the available
   options.
 
-- Default commodity awareness: if the journal specifies a
+- Default commodity awareness: if the journal has a
   [default commodity directive](#default-commodity), that will be applied
   to any bare numbers entered.
 
@@ -1011,8 +1011,8 @@ in the account tree, down to level N. See the [balance](#balance),
 
 ### Timelog reporting
 
-hledger can also read time log files in timeclock.el's format, containing
-clock-in and clock-out entries like so:
+hledger can also read time log files in (a subset of) timeclock.el's
+format, containing clock-in and clock-out entries like so:
 
     i 2009/03/31 22:21:45 projects:A
     o 2009/04/01 02:00:34
@@ -1035,18 +1035,18 @@ download and some queries to try:
     hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
     hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
 
-To record time logs, ie to clock in and clock out, you could:
+To generate time logs, ie to clock in and clock out, you could:
 
-- use emacs and
-  [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el) and perhaps
-  [ledgerutils.el](http://joyful.com/repos/ledgertools/ledgerutils.el)
+- use emacs and the built-in timeclock.el, or
+  the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el)
+  and perhaps the extras in [ledgerutils.el](http://joyful.com/repos/ledgertools/ledgerutils.el)
 
 - at the command line, use these bash aliases:
 
-       alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
-       alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
+        alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
+        alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
 
-- or the old "ti" and "to" scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
+- or use the old `ti` and `to` scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ### Custom output formats
@@ -1168,7 +1168,9 @@ Generally, it's easy to keep a journal file that works with both hledger
 and c++ledger if you avoid these.  Occasionally you'll need to make small
 adjustments to restore compatibility for one or the other.
 
-(See also [usage issues](#usage-issues))
+See also:
+[other differences](#other-differences),
+[usage issues](#usage-issues).
 
 ### Features not supported
 
@@ -1262,6 +1264,9 @@ entries, and the following c++ ledger options and commands:
     subsequent commodityless amounts, and contributes to that commodity's
     display settings. ledger uses D only for commodity display settings
     and for the entry command.
+
+-   hledger generates a description for timelog sessions, instead of
+    taking it from the clock-out entry
 
 ## Troubleshooting
 
