@@ -146,3 +146,18 @@ bin/hledger -f - balance --cost
 --------------------
                    0
 >>>=0
+# 11. When commodity price is specified implicitly, transaction should
+#     be considered balanced out even when first amount is negative
+#     (that is, price for it should be determined properly, with proper sign)
+bin/hledger -f - balance
+<<<
+2011/01/01 x
+  a  -10£
+  b  16$
+>>>
+                -10£  a
+                 16$  b
+--------------------
+                 16$
+                -10£
+>>>=0
