@@ -42,7 +42,7 @@ href="../MANUAL.html#installing">installation docs</a>.
       [hledger-0.14-linux-i686.gz](download/hledger-0.14-linux-i686.gz)<br><br>
     </td>
     <td>
-      <!-- [hledger-0.14-linux-x86_64.gz](download/hledger-0.14-linux-x86_64.gz)<br><br> -->
+      [hledger-0.14-linux-x86_64.gz](download/hledger-0.14-linux-x86_64.gz)<br><br>
     </td>
     <td>
       [hledger-0.14-mac-i386.gz](download/hledger-0.14-mac-i386.gz)<br><br>
@@ -59,7 +59,7 @@ href="../MANUAL.html#installing">installation docs</a>.
       [hledger-web-0.14-linux-i686.gz](download/hledger-web-0.14-linux-i686.gz)<br><br>
     </td>
     <td>
-      <!-- [hledger-web-0.14-linux-x86_64.gz](download/hledger-web-0.14-linux-x86_64.gz)<br><br> -->
+      [hledger-web-0.14-linux-x86_64.gz](download/hledger-web-0.14-linux-x86_64.gz)<br><br>
     </td>
     <td>
       [hledger-web-0.14-mac-i386.gz](download/hledger-web-0.14-mac-i386.gz)<br><br>
@@ -75,7 +75,7 @@ href="../MANUAL.html#installing">installation docs</a>.
       [hledger-vty-0.14-linux-i686.gz](download/hledger-vty-0.14-linux-i686.gz)<br><br>
     </td>
     <td>
-      <!-- [hledger-vty-0.14-linux-x86_64.gz](download/hledger-vty-0.14-linux-x86_64.gz)<br><br> -->
+      [hledger-vty-0.14-linux-x86_64.gz](download/hledger-vty-0.14-linux-x86_64.gz)<br><br>
     </td>
     <td>
       [hledger-vty-0.14-mac-i386.gz](download/hledger-vty-0.14-mac-i386.gz)<br><br>
