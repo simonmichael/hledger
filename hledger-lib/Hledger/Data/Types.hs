@@ -71,7 +71,8 @@ data Commodity = Commodity {
 
 -- | An amount's price may be written as \@ unit price or \@\@ total price.
 -- Note although Price has a MixedAmount, it should hold only
--- single-commodity amounts, cf costOfAmount.
+-- single-commodity amounts, cf costOfAmount. Moreover, price should always 
+-- be positive, though it is currently not enforced.
 data Price = UnitPrice MixedAmount | TotalPrice MixedAmount
              deriving (Eq,Ord)
 

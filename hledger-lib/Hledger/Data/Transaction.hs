@@ -189,9 +189,10 @@ balanceTransaction canonicalcommoditymap t@Transaction{tpostings=ps}
                 where
                   conversionprice c | c == unpricedcommodity
                                         -- assign a balancing price. Use @@ for more exact output when possible.
+                                        -- invariant: prices should always be positive. Enforced with "abs"
                                         = if length ramountsinunpricedcommodity == 1
-                                           then Just $ TotalPrice $ Mixed [setAmountPrecision maxprecision $ negate $ targetcommodityamount]
-                                           else Just $ UnitPrice $ Mixed [setAmountPrecision maxprecision $ negate $ targetcommodityamount `divideAmount` (quantity unpricedamount)]
+                                           then Just $ TotalPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount]
+                                           else Just $ UnitPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (quantity unpricedamount)]
                                     | otherwise = Nothing
                       where
                         unpricedcommodity     = head $ filter (`elem` (map commodity rsumamounts)) rcommoditiesinorder
@@ -214,8 +215,8 @@ balanceTransaction canonicalcommoditymap t@Transaction{tpostings=ps}
                 where
                   conversionprice c | c == unpricedcommodity
                                         = if length bvamountsinunpricedcommodity == 1
-                                           then Just $ TotalPrice $ Mixed [setAmountPrecision maxprecision $ negate $ targetcommodityamount]
-                                           else Just $ UnitPrice $ Mixed [setAmountPrecision maxprecision $ negate $ targetcommodityamount `divideAmount` (quantity unpricedamount)]
+                                           then Just $ TotalPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount]
+                                           else Just $ UnitPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (quantity unpricedamount)]
                                     | otherwise = Nothing
                       where
                         unpricedcommodity     = head $ filter (`elem` (map commodity bvsumamounts)) bvcommoditiesinorder
