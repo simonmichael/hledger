@@ -65,6 +65,7 @@ href="../MANUAL.html#installing">installation docs</a>.
       [hledger-web-0.14-mac-i386.gz](download/hledger-web-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
+      [hledger-web-0.14-windows-i386.exe.zip](download/hledger-web-0.14-windows-i386.exe.zip)
     </td>
   </tr>
 
