@@ -3,7 +3,7 @@
 A history-aware add command to help with data entry.
 
 Note: this might not be sensible, but add has some aspirations of being
-both user-fiendly and pipeable/scriptable and for this reason
+both user-friendly and pipeable/scriptable and for this reason
 informational messages are mostly written to stderr rather than stdout.
 
 -}

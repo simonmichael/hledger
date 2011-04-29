@@ -4,15 +4,15 @@
 Most data types are defined here to avoid import cycles.
 Here is an overview of the hledger data model:
 
-> Journal                  -- a journal is derived from one or more data files. It contains..
+> Journal                  -- a journal is read from one or more data files. It contains..
 >  [Transaction]           -- journal transactions, which have date, status, code, description and..
->   [Posting]              -- multiple account postings (entries), which have account name and amount.
+>   [Posting]              -- multiple account postings (entries), which have account name and amount
 >  [HistoricalPrice]       -- historical commodity prices
 >
 > Ledger                   -- a ledger is derived from a journal, by applying a filter specification and doing some further processing. It contains..
->  Journal                 -- the filtered journal, containing only the transactions and postings we are interested in
->  Tree AccountName        -- account names referenced in the journal's transactions, as a tree
->  Map AccountName Account -- per-account postings and balances from the journal's transactions, as a  map from account name to account info
+>  Journal                 -- a filtered copy of the original journal, containing only the transactions and postings we are interested in
+>  Tree AccountName        -- all accounts named by the journal's transactions, as a hierarchy
+>  Map AccountName Account -- the postings, and resulting balances, in each account
 
 For more detailed documentation on each type, see the corresponding modules.
 
