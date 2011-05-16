@@ -280,8 +280,8 @@ The hledger project aims to produce:
   [html reports](http://dockerz.net/software/hledger_report_sample/report.html)
 - [beancount](https://furius.ca/beancount/) is another ledger clone, in python
 - h/ledger inspired Uwe Hollerbach's [umm](http://www.korgwal.com/umm/)
-- http://darcsden.com/alex/bill, http://darcsden.com/alex/bill-atomo, http://darcsden.com/alex/bill-scheme - a time-tracking and billing app
-- http://darcsden.com/ozamosi/debts - Silly debt tracking webapp
-- http://darcsden.com/dbp/housetab-multi - a webapp to manage expenses between a group of friends.
+- [http://darcsden.com/alex/bill](http://darcsden.com/alex/bill), [http://darcsden.com/alex/bill-atomo](http://darcsden.com/alex/bill-atomo), [http://darcsden.com/alex/bill-scheme](http://darcsden.com/alex/bill-scheme) - a time-tracking and billing app
+- [http://darcsden.com/ozamosi/debts](http://darcsden.com/ozamosi/debts) - Silly debt tracking webapp
+- [http://darcsden.com/housetab-multi](http://darcsden.com/dbp/housetab-multi), [housetab.org](http://housetab.org) - a webapp to manage expenses between a group of friends.
 
 <!-- <a href="https://www.google.com/analytics/reporting/?reset=1&id=15489822" accesskey="a"></a> -->
