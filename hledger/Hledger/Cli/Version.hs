@@ -17,14 +17,17 @@ import Hledger.Data.Utils
 
 -- version and PATCHLEVEL are set by the make process
 
+version :: String
 version       = "0.14.0"
 
+patchlevel :: String
 #ifdef PATCHLEVEL
-patchlevel = "." ++ show PATCHLEVEL -- must be numeric !
+patchlevel = "." ++ show (PATCHLEVEL :: Int) -- must be numeric !
 #else
 patchlevel = ""
 #endif
 
+buildversion :: String
 buildversion  = version ++ patchlevel :: String
 
 -- | Given a program name, return a human-readable version string.  For
