@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, OverloadedStrings #-}
 module Hledger.Web.Settings
     (
      hamletFile
@@ -42,17 +42,18 @@ browserstartdelay = 100000 -- microseconds
 -- urls
 ----------------------------------------------------------------------
 
+hledgerorgurl, manualurl :: String
 hledgerorgurl     = "http://hledger.org"
 manualurl         = hledgerorgurl++"/MANUAL.html"
 
-defhost           = "localhost"
+defhost           = "localhost" :: String
 defport           = 5000
 
 approot :: String
 #ifdef PRODUCTION
-approot = printf "http://%s:%d" defhost (defport :: Int)
+approot = printf "http://%s:%d" defhost (defport :: Int) :: String
 #else
-approot = printf "http://%s:%d" defhost (defport :: Int)
+approot = printf "http://%s:%d" defhost (defport :: Int) :: String
 #endif
 
 staticroot :: String

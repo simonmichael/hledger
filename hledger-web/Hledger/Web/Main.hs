@@ -8,12 +8,12 @@ Released under GPL version 3 or later.
 module Hledger.Web.Main where
 
 import Control.Concurrent (forkIO, threadDelay)
-import Network.Wai.Handler.SimpleServer (run)
+import Data.Text(pack)
 import System.Exit (exitFailure)
 import System.IO.Storage (withStore, putValue,)
-import Yesod.Content (typeByExt)
-import Yesod.Helpers.Static (fileLookupDir)
 import System.Console.GetOpt
+import Yesod
+import Yesod.Helpers.Static
 
 import Hledger.Cli.Options
 import Hledger.Cli.Utils (withJournalDo, openBrowserOn)
@@ -21,7 +21,7 @@ import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Data.UTF8 (putStr, putStrLn)
-import Hledger.Web.App (App(..), withApp)
+import Hledger.Web.App (App(..))
 import Hledger.Web.Files (createFilesIfMissing)
 import Hledger.Web.Settings (browserstartdelay, defhost, defport, datadir)
 
@@ -82,15 +82,15 @@ server baseurl port opts args j = do
   printf "Starting http server on port %d with base url %s\n" port baseurl
   withStore "hledger" $ do
     putValue "hledger" "journal" j
-    withApp App{
+    warpDebug port $ App{
               -- appConnPool=Nothing
-              appRoot=baseurl
+              appRoot=pack baseurl
              ,appDataDir=datadir
-             ,appStatic=fileLookupDir datadir $ typeByExt -- ++[("hamlet","text/plain")]
+             ,appStaticSettings=static datadir
              ,appOpts=opts
              ,appArgs=args
              ,appJournal=j
-             } $ run port
+             }
 
 browser :: String -> IO ()
 browser baseurl = do

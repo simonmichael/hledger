@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, QuasiQuotes, TemplateHaskell, TypeFamilies, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP, QuasiQuotes, TemplateHaskell, TypeFamilies, GeneralizedNewtypeDeriving, OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, FlexibleContexts #-}
 {-| 
 The web app providing a richer interface to hledger's data.
@@ -11,11 +11,14 @@ module Hledger.Web.App
 where
 import Control.Applicative ((<$>), (<*>))
 -- import Control.Failure
--- import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString.Lazy as L
 import Data.Either
--- import System.Directory
+-- import qualified Data.Text as T
+import Data.Text(Text,pack,unpack)
+import System.Directory
 import System.FilePath ((</>), takeFileName)
 import System.IO.Storage (putValue, getValue)
+import Text.Jasmine (minifym)
 import Text.ParserCombinators.Parsec hiding (string)
 
 -- import Database.Persist.GenericSql (ConnectionPool, SqlPersist, runMigration, migrate)
@@ -37,24 +40,24 @@ import Hledger.Cli.Version (version)
 import Hledger.Data hiding (insert, today)
 import Hledger.Read (journalFromPathAndString)
 import Hledger.Read.JournalReader (someamount)
-import Hledger.Web.Settings (
-    --   withConnectionPool
-    -- , runConnectionPool
-    -- , staticroot
-      datadir
-    -- , hamletFile
-    -- , cassiusFile
-    -- , juliusFile
-    , hledgerorgurl
-    , manualurl
-    , style_css
-    , hledger_js
-    , jquery_js
-    , jquery_url_js
-    , dhtmlxcommon_js
-    , dhtmlxcombo_js
-    , robots_txt
-    )
+import Hledger.Web.Settings
+    -- --   withConnectionPool
+    -- -- , runConnectionPool
+    -- -- , staticroot
+    --   datadir
+    -- -- , hamletFile
+    -- -- , cassiusFile
+    -- -- , juliusFile
+    -- -- , hledgerorgurl
+    -- , manualurl
+    -- -- , style_css
+    -- -- , hledger_js
+    -- -- , jquery_js
+    -- -- , jquery_url_js
+    -- -- , dhtmlxcommon_js
+    -- -- , dhtmlxcombo_js
+    -- , robots_txt
+    -- )
 
 
 ----------------------------------------------------------------------
@@ -80,12 +83,12 @@ import Hledger.Web.Settings (
 -- run-time data kept by the web app.
 data App = App
     { -- appConnPool :: Maybe ConnectionPool
-     appRoot    :: String
+     appRoot    :: Text
     ,appDataDir :: FilePath
     ,appOpts    :: [Opt]
     ,appArgs    :: [String]
+    ,appStaticSettings :: Static
     ,appJournal :: Journal
-    ,appStatic  :: Static
     }
 
 -- parseRoutes (quasi-quoter from web-routes) defines a list of route patterns for the web app.
@@ -93,9 +96,9 @@ data App = App
 -- /auth            AuthR             Auth getAuth
 mkYesod "App" [$parseRoutes|
 /                IndexR            GET
+/static          StaticR           Static appStaticSettings
 /favicon.ico     FaviconR          GET
 /robots.txt      RobotsR           GET
-/static          StaticR           Static appStatic
 /journalonly     JournalOnlyR      GET POST
 /registeronly    RegisterOnlyR     GET
 /accounts        AccountsOnlyR     GET
@@ -108,6 +111,24 @@ type Handler = GHandler App App
 
 instance Yesod App where
     approot = appRoot
+    -- This function creates static content files in the static folder
+    -- and names them based on a hash of their content. This allows
+    -- expiration dates to be set far in the future without worry of
+    -- users receiving stale content.
+    addStaticContent ext' _ content = do
+        let fn = base64md5 content ++ '.' : unpack ext'
+        let content' =
+                if ext' == "js"
+                    then case minifym content of
+                            Left _ -> content
+                            Right y -> y
+                    else content
+        let statictmp = Hledger.Web.Settings.datadir ++ "/tmp/"
+        liftIO $ createDirectoryIfMissing True statictmp
+        let fn' = statictmp ++ fn
+        exists <- liftIO $ doesFileExist fn'
+        unless exists $ liftIO $ L.writeFile fn' content'
+        return $ Just $ Right (StaticR $ StaticRoute ["tmp", pack fn] [], [])
 
     -- defaultLayout widget = do
     --     mmsg <- getMessage
@@ -230,6 +251,7 @@ withApp app f = toWaiApp app >>= f
 -- handler utilities, common templates
 ----------------------------------------------------------------------
 
+nulltemplate :: Hamlet AppRoute
 nulltemplate = [$hamlet||]
 
 -- | A bundle of useful data passed to templates.
@@ -243,6 +265,7 @@ data TemplateData = TD {
     ,today        :: Day                -- ^ the current day
     }
 
+mktd :: TemplateData
 mktd = TD {
       here = IndexR
      ,title = "hledger"
@@ -260,11 +283,11 @@ mktd = TD {
 -- message if any.
 getHandlerData :: Handler (String, String, [Opt], FilterSpec, Journal, Maybe Html, AppRoute)
 getHandlerData = do
-  Just here <- getCurrentRoute
+  Just here' <- getCurrentRoute
   (a, p, opts, fspec) <- getReportParameters
   (j, err) <- getLatestJournal opts
   msg <- getMessage' err
-  return (a, p, opts, fspec, j, msg, here)
+  return (a, p, opts, fspec, j, msg, here')
     where
       -- | Get current report parameters for this request.
       getReportParameters :: Handler (String, String, [Opt], FilterSpec)
@@ -273,10 +296,11 @@ getHandlerData = do
           t <- liftIO $ getCurrentLocalTime
           a <- fromMaybe "" <$> lookupGetParam "a"
           p <- fromMaybe "" <$> lookupGetParam "p"
-          let opts = appOpts app ++ [Period p]
-              args = appArgs app ++ words' a
+          let (a',p') = (unpack a, unpack p)
+              opts = appOpts app ++ [Period p']
+              args = appArgs app ++ words' a'
               fspec = optsToFilterSpec opts args t
-          return (a, p, opts, fspec)
+          return (a', p', opts, fspec)
 
       -- | Quote-sensitive words, ie don't split on spaces which are inside quotes.
       words' :: String -> [String]
@@ -297,52 +321,52 @@ getHandlerData = do
          else case jE of
                 Right j' -> do liftIO $ putValue "hledger" "journal" j'
                                return (j',Nothing)
-                Left e  -> do setMessage $ string "error while reading" {- ++ ": " ++ e-}
+                Left e  -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
                               return (j, Just e)
 
       -- | Helper to work around a yesod feature (can't set and get a message in the same request.)
       getMessage' :: Maybe String -> Handler (Maybe Html)
       getMessage' newmsgstr = do
         oldmsg <- getMessage
-        return $ maybe oldmsg (Just . string) newmsgstr
+        return $ maybe oldmsg (Just . toHtml) newmsgstr
 
 -- | Wrap a template with the standard hledger web ui page layout.
 pageLayout :: TemplateData -> Hamlet AppRoute -> Hamlet AppRoute
 pageLayout td@TD{title=basetitle, msg=msg, p=p, j=j, today=today} content = [$hamlet|
 !!!
-%html
- %head
-  %title $title'$
-  %meta!http-equiv=Content-Type!content=$metacontent$
-  %script!type=text/javascript!src=@StaticR.jquery_js@
-  %script!type=text/javascript!src=@StaticR.jquery_url_js@
-  %script!type=text/javascript!src=@StaticR.dhtmlxcommon_js@
-  %script!type=text/javascript!src=@StaticR.dhtmlxcombo_js@
-  %script!type=text/javascript!src=@StaticR.hledger_js@
-  %link!rel=stylesheet!type=text/css!media=all!href=@StaticR.style_css@
- %body
-  ^navbar.td^
-  #messages $m$
-  #content
-   ^content^
+<html
+ <head
+  <title>#{title'}
+  <meta http-equiv=Content-Type content=#{metacontent}
+  <script type=text/javascript src=@{StaticR jquery_js}
+  <script type=text/javascript src=@{StaticR jquery_url_js}
+  <script type=text/javascript src=@{StaticR dhtmlxcommon_js}
+  <script type=text/javascript src=@{StaticR dhtmlxcombo_js}
+  <script type=text/javascript src=@{StaticR hledger_js}
+  <link rel=stylesheet type=text/css media=all href=@{StaticR style_css}
+ <body
+  ^{navbar td}
+  <div#messages>#{m}
+  <div#content
+   ^{content}
 |]
  where title' = basetitle ++ " - " ++ journaltitle
        (journaltitle, _) = journalTitleDesc j p today
-       metacontent = "text/html; charset=utf-8"
-       m = fromMaybe (string "") msg
+       metacontent = "text/html; charset=utf-8" :: String
+       m = fromMaybe "" msg
 
 -- | Global toolbar/heading area.
 navbar :: TemplateData -> Hamlet AppRoute
 navbar TD{p=p,j=j,today=today} = [$hamlet|
- #navbar
-  %a.topleftlink!href=$hledgerorgurl$
+ <div#navbar
+  <a.topleftlink href=#{hledgerorgurl}
    hledger
    <br />
-   $version$
-  %a.toprightlink!href=$manualurl$!target=hledgerhelp manual
-  %h1 $title$
-  \ $
-  %span#journaldesc $desc$
+   #{version}
+  <a.toprightlink href=#{manualurl} target=hledgerhelp manual
+  <h1>#{title}
+  \ #
+  <span#journaldesc>#{desc}
 |]
   where (title, desc) = journalTitleDesc j p today
 
@@ -360,73 +384,73 @@ journalTitleDesc j p today = (title, desc)
 -- | Links to the main views.
 navlinks :: TemplateData -> Hamlet AppRoute
 navlinks td = [$hamlet|
- #navlinks
-  ^accountsjournallink^
-  \ | $
-  ^accountsregisterlink^
-  \ | $
-  %a#addformlink!href!onclick="return addformToggle(event)" add transaction
-  %a#importformlink!href!onclick="return importformToggle(event)"!style=display:none; import transactions
-  \ | $
-  %a#editformlink!href!onclick="return editformToggle(event)" edit journal
+ <div#navlinks
+  ^{accountsjournallink}
+  \ | #
+  ^{accountsregisterlink}
+  \ | #
+  <a#addformlink href onclick="return addformToggle(event)">add transaction
+  <a#importformlink href onclick="return importformToggle(event)" style="display:none;">import transactions
+  \ | #
+  <a#editformlink href onclick="return editformToggle(event)">edit journal
 |]
---  \ | $
+--  \ | #
  where
    accountsjournallink  = navlink td "journal" JournalR
    accountsregisterlink = navlink td "register" RegisterR
 
 navlink :: TemplateData -> String -> AppRoute -> Hamlet AppRoute
-navlink TD{here=here,a=a,p=p} s dest = [$hamlet|%a#$s$link.$style$!href=@?u@ $s$|]
- where u = (dest, concat [(if null a then [] else [("a", a)])
-                         ,(if null p then [] else [("p", p)])])
+navlink TD{here=here,a=a,p=p} s dest = [$hamlet|<a##{s}link.#{style} href=@?{u}>#{s}</a>|]
+ where u = (dest, concat [(if null a then [] else [("a", pack a)])
+                         ,(if null p then [] else [("p", pack p)])])
        style | dest == here = "navlinkcurrent"
-             | otherwise    = "navlink"
+             | otherwise    = "navlink" :: Text
 
 -- | Form controlling journal filtering parameters.
 filterform :: TemplateData -> Hamlet AppRoute
 filterform TD{here=here,a=a,p=p} = [$hamlet|
- #filterformdiv
-  %form#filterform.form!method=GET!style=display:$visible$;
-   %table.form
-    %tr.$filteringperiodclass$
-     %td
+ <div#filterformdiv
+  <form#filterform.form method=GET style=display:#{visible};
+   <table.form
+    <tr.#{filteringperiodclass}
+     <td
       filter by period:
-      \ $
-     %td
-      %input!name=p!size=60!value=$p$
-      ^phelp^
-      \ $
-     %td!align=right
-      ^stopfilteringperiod^
-    %tr.$filteringclass$
-     %td
+      \ #
+     <td
+      <input name=p size=60 value=#{p}
+      ^{phelp}
+      \ #
+     <td align=right
+      ^{stopfilteringperiod}
+    <tr.#{filteringclass}
+     <td
       filter by account/description:
-      \ $
-     %td
-      %input!name=a!size=60!value=$a$
-      ^ahelp^
-      \ $
-      %input!type=submit!value=filter $
-      \ $
-     %td!align=right
-      ^stopfiltering^
+      \ #
+     <td
+      <input name=a size=60 value=#{a}
+      ^{ahelp}
+      \ #
+      <input type=submit value=filter #
+      \ #
+     <td align=right
+      ^{stopfiltering}
 |]
  where
   ahelp = helplink "filter-patterns" "?"
   phelp = helplink "period-expressions" "?"
   filtering = not $ null a
   filteringperiod = not $ null p
-  visible = "block"
-  filteringclass = if filtering then "filtering" else ""
-  filteringperiodclass = if filteringperiod then "filtering" else ""
-  stopfiltering = if filtering then [$hamlet|%a#stopfilterlink!href=@?u@ clear filter|] else nulltemplate
-      where u = (here, if filteringperiod then [("p", p)] else [])
-  stopfilteringperiod = if filteringperiod then [$hamlet|%a#stopfilterlink!href=@?u@ clear filter|] else nulltemplate
-      where u = (here, if filtering then [("a", a)] else [])
+  visible = "block" :: String
+  filteringclass = if filtering then "filtering" else "" :: String
+  filteringperiodclass = if filteringperiod then "filtering" else "" :: String
+  stopfiltering = if filtering then [$hamlet|<a#stopfilterlink href=@?{u} clear filter|] else nulltemplate
+      where u = (here, if filteringperiod then [("p", pack p)] else [])
+  stopfilteringperiod = if filteringperiod then [$hamlet|<a#stopfilterlink href=@?{u} clear filter|] else nulltemplate
+      where u = (here, if filtering then [("a", pack a)] else [])
 
 -- | Link to a topic in the manual.
 helplink :: String -> String -> Hamlet AppRoute
-helplink topic label = [$hamlet|%a!href=$u$!target=hledgerhelp $label$|]
+helplink topic label = [$hamlet|<a href=#{u} target=hledgerhelp>#{label}|]
     where u = manualurl ++ if null topic then "" else '#':topic
 
 {-
@@ -521,17 +545,17 @@ getJournalR = do
       td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
- %div#content
-  %div#sidebar
-   ^sidecontent^
-  %div#main.journal
-   ^navlinks.td^
-   %div#transactions
-    ^filterform.td^
-    ^maincontent^
-   ^addform.td^
-   ^editform'^
-   ^importform^
+ <div#content
+  <div#sidebar
+   ^{sidecontent}
+  <div#main.journal
+   ^{navlinks td}
+   <div#transactions
+    ^{filterform td}
+    ^{maincontent}
+   ^{addform td}
+   ^{editform'}
+   ^{importform}
 |]
 
 postJournalR :: Handler RepPlain
@@ -554,17 +578,17 @@ getRegisterR = do
       td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
   hamletToRepHtml $ pageLayout td [$hamlet|
- %div#content
-  %div#sidebar
-   ^sidecontent^
-  %div#main.journal
-   ^navlinks.td^
-   %div#transactions
-    ^filterform.td^
-    ^maincontent^
-   ^addform.td^
-   ^editform'^
-   ^importform^
+ <div#content
+  <div#sidebar
+   ^{sidecontent}
+  <div#main.journal
+   ^{navlinks td}
+   <div#transactions
+    ^{filterform td}
+    ^{maincontent}
+   ^{addform td}
+   ^{editform'}
+   ^{importform}
 |]
 
 postRegisterR :: Handler RepPlain
@@ -583,57 +607,57 @@ getAccountsOnlyR = do
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> TemplateData -> BalanceReport -> Hamlet AppRoute
 balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
-^accountsheading^
-%table.balancereport
- $forall items i
-  ^itemAsHtml' i^
- %tr.totalrule
-  %td!colspan=2
- %tr
-  %td
-  %td!align=right $mixedAmountAsHtml.total$
+^{accountsheading}
+<table.balancereport>
+ $forall i <- items
+  ^{itemAsHtml' i}
+ <tr.totalrule>
+  <td colspan=2>
+ <tr>
+  <td>
+  <td align=right>#{mixedAmountAsHtml total} >
 |]
  where
    accountsheading = [$hamlet|
-                      #accountsheading
+                      <div#accountsheading
                        accounts
-                       \ $
-                       ^showlinks^
-                      |]
+                       \ #
+                       ^{showlinks}
+                      |] :: Hamlet AppRoute
        where
          filteringaccts = not $ null a
-         showlinks = [$hamlet|%span#showmoreaccounts ^showmore^ ^showall^|]
+         showlinks = [$hamlet|<span#showmoreaccounts ^{showmore} ^{showall}|] :: Hamlet AppRoute
          showmore = case (filteringaccts, items) of
                       -- cunning parent account logic
                       (True, ((acct, _, _, _):_)) ->
                           let a' = if isAccountRegex a then a else acct
                               a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
-                              parenturl = (here, [("a",a''), ("p",p)])
+                              parenturl = (here, [("a",pack a''), ("p",pack p)])
                           in [$hamlet|
-                              \ | $
-                              %a!href=@?parenturl@ show more &uarr;
+                              \ | #
+                              <a href=@?{parenturl} show more &uarr;
                               |]
                       _ -> nulltemplate
          showall = if filteringaccts
                     then [$hamlet|
-                          \ | $
-                          %a!href=@?allurl@ show all
+                          \ | #
+                          <a href=@?{allurl} show all
                           |]
                     else nulltemplate
-             where allurl = (here, [("p",p)])
+             where allurl = (here, [("p",pack p)])
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml TD{p=p} (acct, adisplay, adepth, abal) = [$hamlet|
-     %tr.item
-      %td.account
-       $indent$
-       %a!href=$aurl$ $adisplay$
-      %td.balance!align=right $mixedAmountAsHtml.abal$
+     <tr.item
+      <td.account
+       #{indent}
+       <a href=#{aurl}>#{adisplay}
+      <td.balance align=right>#{mixedAmountAsHtml abal}
      |] where
        -- current = if not (null a) && containsRegex a acct then "current" else ""
        indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
        aurl = printf ".?a=%s%s" (accountNameToAccountRegex acct) p' :: String
-       p' = if null p then "" else printf "&p=%s" p
+       p' = if null p then "" else printf "&p=%s" p :: String
 
 accountNameToAccountRegex :: String -> String
 accountNameToAccountRegex "" = ""
@@ -656,39 +680,39 @@ getJournalOnlyR = do
       editform' = editform td
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
   hamletToRepHtml $ pageLayout td [$hamlet|
-%div#journal
- %div.nav2
-  %a#addformlink!href!onclick="return addformToggle(event)" add one transaction
-  \ | $
-  %a#editformlink!href!onclick="return editformToggle(event)" edit the whole journal
- #transactions ^txns^
- ^addform.td^
- ^editform'^
+<div#journal
+ <div.nav2
+  <a#addformlink href onclick="return addformToggle(event)" add one transaction
+  \ | #
+  <a#editformlink href onclick="return editformToggle(event)" edit the whole journal
+ <div#transactions ^{txns}
+ ^{addform td}
+ ^{editform'}
 |]
 
 -- | Render a journal report as HTML.
 journalReportAsHtml :: [Opt] -> TemplateData -> JournalReport -> Hamlet AppRoute
 journalReportAsHtml _ td items = [$hamlet|
-%table.journalreport
- $forall number.items i
-  ^itemAsHtml' i^
+<table.journalreport>
+ $forall i <- number items
+  ^{itemAsHtml' i}
 |]
  where
    number = zip [1..]
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> (Int, JournalReportItem) -> Hamlet AppRoute
    itemAsHtml _ (n, t) = [$hamlet|
-     %tr.item.$evenodd$
-      %td.transaction
-       %pre $txn$
+     <tr.item.#{evenodd} >
+      <td.transaction>
+       <pre> #{txn}
      |] where
-       evenodd = if even n then "even" else "odd"
+       evenodd = if even n then "even" else "odd" :: String
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
 addform :: TemplateData -> Hamlet AppRoute
 addform td = [$hamlet|
-%script!type=text/javascript
- $$(document).ready(function() {
+<script type=text/javascript>
+ $(document).ready(function() {
     /* dhtmlxcombo setup */
     window.dhx_globalImgPath="../static/";
     var desccombo  = new dhtmlXCombo("description");
@@ -703,50 +727,50 @@ addform td = [$hamlet|
     /* desccombo.enableOptionAutoHeight(true, 20); */
     /* desccombo.setOptionHeight(200); */
  });
-%form#addform!method=POST!style=display:none;
-  %table.form
-   %tr
-    %td!colspan=4
-     %table
-      %tr#descriptionrow
-       %td
+<form#addform method=POST style=display:none;
+  <table.form
+   <tr
+    <td colspan=4
+     <table
+      <tr#descriptionrow
+       <td
         Date:
-       %td
-        %input.textinput!size=15!name=date!value=$date$
-       %td!style=padding-left:1em;
+       <td
+        <input.textinput size=15 name=date value=#{date}
+       <td style=padding-left:1em;
         Description:
-       %td
-        %select!id=description!name=description
-         %option
-         $forall descriptions d
-          %option!value=$d$ $d$
-      %tr.helprow
-       %td
-       %td
-        .help $datehelp$ $
-       %td
-       %td
-        .help $deschelp$
-   ^postingsfields.td^
-   %tr#addbuttonrow
-    %td!colspan=4
-     %input!type=hidden!name=action!value=add
-     %input!type=submit!name=submit!value="add transaction"
+       <td
+        <select id=description name=description
+         <option
+         $forall d <- descriptions
+          <option value=#{d}>#{d}
+      <tr.helprow
+       <td
+       <td
+        <span.help>#{datehelp} #
+       <td
+       <td
+        <span.help>#{deschelp}
+   ^{postingsfields td}
+   <tr#addbuttonrow
+    <td colspan=4
+     <input type=hidden name=action value=add
+     <input type=submit name=submit value="add transaction"
      $if manyfiles
-      \ to: ^journalselect.files.j.td^
+      \ to: ^{journalselect $ files $ j td}
 |]
  where
   -- datehelplink = helplink "dates" "..."
-  datehelp = "eg: 2010/7/20"
-  deschelp = "eg: supermarket (optional)"
-  date = "today"
+  datehelp = "eg: 2010/7/20" :: String
+  deschelp = "eg: supermarket (optional)" :: String
+  date = "today" :: String
   descriptions = sort $ nub $ map tdescription $ jtxns $ j td
   manyfiles = (length $ files $ j td) > 1
 
 postingsfields :: TemplateData -> Hamlet AppRoute
 postingsfields td = [$hamlet|
- ^p1^
- ^p2^
+ ^{p1}
+ ^{p2}
 |]
   where
     p1 = postingfields td 1
@@ -754,21 +778,21 @@ postingsfields td = [$hamlet|
 
 postingfields :: TemplateData -> Int -> Hamlet AppRoute
 postingfields TD{j=j} n = [$hamlet|
- %tr#postingrow
-  %td!align=right $acctlabel$:
-  %td
-   %select!id=$acctvar$!name=$acctvar$
-    %option
-    $forall acctnames a
-     %option!value=$a$ $a$
-  ^amtfield^
- %tr.helprow
-  %td
-  %td
-   .help $accthelp$
-  %td
-  %td
-   .help $amthelp$
+ <tr#postingrow
+  <td align=right>#{acctlabel}:
+  <td
+   <select id=#{acctvar} name=#{acctvar}
+    <option
+    $forall a <- acctnames
+     <option value=#{a}>#{a}
+  ^{amtfield}
+ <tr.helprow
+  <td
+  <td
+   <span.help>#{accthelp}
+  <td
+  <td
+   <span.help>#{amthelp}
 |]
  where
   numbered = (++ show n)
@@ -779,41 +803,41 @@ postingfields TD{j=j} n = [$hamlet|
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
                      ,[$hamlet|
-                       %td!style=padding-left:1em;
+                       <td style=padding-left:1em;
                         Amount:
-                       %td
-                        %input.textinput!size=15!name=$amtvar$!value=""
+                       <td
+                        <input.textinput size=15 name=#{amtvar} value=""
                        |]
                      ,"eg: $6"
                      )
-       | otherwise = ("From account"
-                     ,"eg: assets:bank:checking"
+       | otherwise = ("From account" :: String
+                     ,"eg: assets:bank:checking" :: String
                      ,nulltemplate
-                     ,""
+                     ,"" :: String
                      )
 
 editform :: TemplateData -> Hamlet AppRoute
 editform TD{j=j} = [$hamlet|
- %form#editform!method=POST!style=display:none;
-  %table.form#editform
+ <form#editform method=POST style=display:none;
+  <table.form#editform
    $if manyfiles
-    %tr
-     %td!colspan=2
-      Editing ^journalselect.files.j^
-   %tr
-    %td!colspan=2
-     $forall files.j f
-      %textarea!id=$fst.f$_textarea!name=text!rows=25!cols=80!style=display:none;!disabled=disabled
-       $snd.f$
-   %tr#addbuttonrow
-    %td
-     %span.help ^formathelp^
-    %td!align=right
-     %span.help Are you sure ? This will overwrite the journal. $
-     %input!type=hidden!name=action!value=edit
-     %input!type=submit!name=submit!value="save journal"
-     \ or $
-     %a!href!onclick="return editformToggle(event)" cancel
+    <tr
+     <td colspan=2
+      Editing ^{journalselect $ files j}
+   <tr
+    <td colspan=2
+     $forall f <- files j
+      <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled
+       #{snd f}
+   <tr#addbuttonrow
+    <td
+     <span.help ^{formathelp}
+    <td align=right
+     <span.help Are you sure ? This will overwrite the journal. #
+     <input type=hidden name=action value=edit
+     <input type=submit name=submit value="save journal"
+     \ or #
+     <a href onclick="return editformToggle(event)">cancel
 |] -- XXX textarea ids are unquoted journal file paths, which is not valid html
   where
     manyfiles = (length $ files j) > 1
@@ -821,22 +845,22 @@ editform TD{j=j} = [$hamlet|
 
 journalselect :: [(FilePath,String)] -> Hamlet AppRoute
 journalselect journalfiles = [$hamlet|
-     %select!id=journalselect!name=journal!onchange="editformJournalSelect(event)"
-      $forall journalfiles f
-       %option!value=$fst.f$ $fst.f$
+     <select id=journalselect name=journal onchange="editformJournalSelect(event)"
+      $forall f <- journalfiles
+       <option value=#{fst f}>#{fst f}
 |]
 
 importform :: Hamlet AppRoute
 importform = [$hamlet|
- %form#importform!method=POST!style=display:none;
-  %table.form
-   %tr
-    %td
-     %input!type=file!name=file
-     %input!type=hidden!name=action!value=import
-     %input!type=submit!name=submit!value="import from file"
-     \ or $
-     %a!href!onclick="return importformToggle(event)" cancel
+ <form#importform method=POST style=display:none;
+  <table.form
+   <tr
+    <td
+     <input type=file name=file
+     <input type=hidden name=action value=import
+     <input type=submit name=submit value="import from file"
+     \ or #
+     <a href onclick="return importformToggle(event)" cancel
 |]
 
 postJournalOnlyR :: Handler RepPlain
@@ -862,16 +886,18 @@ postAddForm = do
     <*> maybeStringInput "amount2"
     <*> maybeStringInput "journal"
   -- supply defaults and parse date and amounts, or get errors.
-  let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today) dateM
-      descE = Right $ fromMaybe "" descM
-      acct1E = maybe (Left "to account required") Right acct1M
-      acct2E = maybe (Left "from account required") Right acct2M
-      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount) amt1M
-      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount) amt2M
+  let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . unpack) dateM
+      descE = Right $ maybe "" unpack descM
+      acct1E = maybe (Left "to account required") (Right . unpack) acct1M
+      acct2E = maybe (Left "from account required") (Right . unpack) acct2M
+      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount . unpack) amt1M
+      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount . unpack) amt2M
       journalE = maybe (Right $ journalFilePath j)
-                       (\f -> if f `elem` journalFilePaths j
-                              then Right f
-                              else Left $ "unrecognised journal file path: " ++ f)
+                       (\f -> let f' = unpack f in
+                              if f' `elem` journalFilePaths j
+                              then Right f'
+                              else Left $ "unrecognised journal file path: " ++ f'
+                              )
                        journalM
       strEs = [dateE, descE, acct1E, acct2E, journalE]
       amtEs = [amt1E, amt2E]
@@ -893,13 +919,13 @@ postAddForm = do
   case tE of
    Left errs -> do
     -- save current form values in session
-    setMessage $ string $ intercalate "; " errs
+    setMessage $ toHtml $ intercalate "; " errs
     redirect RedirectTemporary RegisterR
 
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
     liftIO $ appendToJournalFile journalpath $ showTransaction t'
-    setMessage $ string $ printf "Added transaction:\n%s" (show t')
+    setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
     redirect RedirectTemporary RegisterR
 
 -- | Handle a journal edit form post.
@@ -912,10 +938,11 @@ postEditForm = do
     $ (,)
     <$> maybeStringInput "text"
     <*> maybeStringInput "journal"
-  let textE = maybe (Left "No value provided") Right textM
+  let textE = maybe (Left "No value provided") (Right . unpack) textM
       journalE = maybe (Right $ journalFilePath j)
-                       (\f -> if f `elem` journalFilePaths j
-                              then Right f
+                       (\f -> let f' = unpack f in
+                              if f' `elem` journalFilePaths j
+                              then Right f'
                               else Left "unrecognised journal file path")
                        journalM
       strEs = [textE, journalE]
@@ -924,7 +951,7 @@ postEditForm = do
   -- display errors or perform edit
   if not $ null errs
    then do
-    setMessage $ string $ intercalate "; " errs
+    setMessage $ toHtml (intercalate "; " errs :: String)
     redirect RedirectTemporary JournalR
 
    else do
@@ -935,24 +962,24 @@ postEditForm = do
         changed = tnew /= told || filechanged'
     if not changed
      then do
-       setMessage $ string $ "No change"
+       setMessage "No change"
        redirect RedirectTemporary JournalR
      else do
       jE <- liftIO $ journalFromPathAndString Nothing journalpath tnew
       either
        (\e -> do
-          setMessage $ string e
+          setMessage $ toHtml e
           redirect RedirectTemporary JournalR)
        (const $ do
           liftIO $ writeFileWithBackup journalpath tnew
-          setMessage $ string $ printf "Saved journal %s\n" (show journalpath)
+          setMessage $ toHtml (printf "Saved journal %s\n" (show journalpath) :: String)
           redirect RedirectTemporary JournalR)
        jE
 
 -- | Handle an import page post.
 postImportForm :: Handler RepPlain
 postImportForm = do
-  setMessage $ string $ "can't handle file upload yet"
+  setMessage "can't handle file upload yet"
   redirect RedirectTemporary JournalR
   -- -- get form input values, or basic validation errors. E means an Either value.
   -- fileM <- runFormPost' $ maybeFileInput "file"
@@ -960,11 +987,11 @@ postImportForm = do
   -- -- display errors or import transactions
   -- case fileE of
   --  Left errs -> do
-  --   setMessage $ string errs
+  --   setMessage errs
   --   redirect RedirectTemporary JournalR
 
   --  Right s -> do
-  --    setMessage $ string $ s
+  --    setMessage s
   --    redirect RedirectTemporary JournalR
 
 ----------------------------------------------------------------------
@@ -980,41 +1007,41 @@ getRegisterOnlyR = do
 -- | Render a register report as HTML.
 registerReportAsHtml :: [Opt] -> TemplateData -> RegisterReport -> Hamlet AppRoute
 registerReportAsHtml _ td items = [$hamlet|
-%table.registerreport
- %tr.headings
-  ^headings^
- $forall number.items i
-  ^itemAsHtml' i^
+<table.registerreport
+ <tr.headings
+  ^{headings}
+ $forall i <- number items
+  ^{itemAsHtml' i}
 |]
  where
    number = zip [1..]
    headings = [$hamlet|
-               %th.date!align=left Date
-               %th.description!align=left Description
-               %th.account!align=left Account
-               %th.amount!align=right Amount
-               %th.balance!align=right Balance
-               |]
+               <th.date align=left Date
+               <th.description align=left Description
+               <th.account align=left Account
+               <th.amount align=right Amount
+               <th.balance align=right Balance
+               |] :: Hamlet AppRoute
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> (Int, RegisterReportItem) -> Hamlet AppRoute
    itemAsHtml TD{p=p} (n, (ds, posting, b)) = [$hamlet|
-     %tr.item.$evenodd$.$firstposting$
-      %td.date $date$
-      %td.description $desc$
-      %td.account
-       %a!href=$aurl$ $acct$
-      %td.amount!align=right $mixedAmountAsHtml.pamount.posting$
-      %td.balance!align=right $mixedAmountAsHtml.b$
+     <tr.item.#{evenodd}.#{firstposting}
+      <td.date>#{date}
+      <td.description>#{desc}
+      <td.account
+       <a href=#{aurl}>#{acct}
+      <td.amount align=right>#{mixedAmountAsHtml $ pamount posting}
+      <td.balance align=right>#{mixedAmountAsHtml b}
      |] where
-       evenodd = if even n then "even" else "odd"
+       evenodd = if even n then "even" else "odd" :: String
        (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
-                                               Nothing -> ("", "", "")
+                                               Nothing -> ("", "", "") :: (String,String,String)
        acct = paccount posting
        aurl = printf ".?a=%s%s" (accountNameToAccountRegex acct) p' :: String
-       p' = if null p then "" else printf "&p=%s" p
+       p' = if null p then "" else printf "&p=%s" p :: String
 
 mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
-    where addclass = printf "<span class=\"%s\">%s</span>" c
+    where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
           c = case isNegativeMixedAmount b of Just True -> "negative amount"
                                               _         -> "positive amount"
 
@@ -1058,10 +1085,10 @@ getAddformRTR = do
                 | n == 1     = ("To account"
                               ,"eg: expenses:food"
                               ,[$hamlet|
-                                %td!style=padding-left:1em;
+                                %td style=padding-left:1em;
                                  Amount:
                                 %td
-                                 %input.textinput!size=15!name=$amtvar$!value=""
+                                 %input.textinput size=15 name=$amtvar$ value=""
                                 |]
                               ,"eg: $6"
                               )
