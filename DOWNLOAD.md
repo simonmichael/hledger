@@ -26,10 +26,15 @@ href="../MANUAL.html#installing">installation docs</a>.
 <table>
   <tr>
     <th width="34%" colspan=2><img src="../linux.png" /><br />GNU/Linux</th>
-    <th width="33%"><a href="download/hledger-0.14-mac-i386.gz"><img src="../mac.png" border=0 /></a><br />Mac</th>
-    <th width="33%"><a href="download/hledger-0.14-win-i386.gz"><img src="../windows.png" border=0 /></a><br />Windows</th>
+    <th width="33%"><img src="../mac.png" border=0 /><br />Mac</th>
+    <th width="33%"><img src="../windows.png" border=0 /><br />Windows</th>
   </tr>
-  <tr style="text-align:center; white-space:nowrap;"><td width="25%">**32-bit**</td><td width="25%">**64-bit**</td><td width="25%"></td><td width="25%"></td></tr>
+  <tr style="text-align:center; white-space:nowrap;">
+    <td width="25%">**32-bit**</td>
+    <td width="25%">**64-bit**</td>
+    <td width="25%">**10.5**</td>
+    <td width="25%"></td>
+  </tr>
 
   <tr class="heading"><td colspan=4>**hledger** (command-line interface):</td></tr>
   <tr align="center">
