@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.14
+version: 0.14.98
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -37,21 +37,31 @@ Flag production
     Description:   Build in production mode, which reads template files only once at startup.
     Default:       False
 
+Flag devel
+    Description:   Build for use with "yesod devel"
+    Default:       False
+
 executable hledger-web
   main-is:        hledger-web.hs
-  ghc-options:    -threaded -W
+  -- hs-source-dirs: ., config
+  if flag(devel)
+      Buildable: False
   if flag(production)
-      cpp-options: -DPRODUCTION
+      cpp-options:   -DPRODUCTION
+      ghc-options:   -Wall -threaded -O2
+  else
+      ghc-options:   -W -threaded
   other-modules:
-                  Hledger.Web.Main
-                  Hledger.Web.App
-                  Hledger.Web.Files
-                  Hledger.Web.Settings
+                     App
+                     EmbeddedFiles
+                     Settings
+                     StaticFiles
+                     Handlers
   build-depends:
-                  hledger == 0.14
+                  hledger == 0.14.98
                  ,hledger-lib == 0.14
                  -- ,HUnit
-                 ,base >= 3 && < 5
+                 ,base >= 4 && < 5
                  ,bytestring
                  -- ,containers
                  -- ,csv
@@ -65,15 +75,66 @@ executable hledger-web
                  -- ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  -- ,split == 0.1.*
+                 ,text
                  -- ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
                  ,io-storage >= 0.3 && < 0.4
-                 ,yesod >= 0.8 && < 0.9
                  -- ,convertible-text >= 0.3.0.1 && < 0.4
                  -- ,data-object >= 0.3.1.2 && < 0.4
                  ,failure >= 0.1 && < 0.2
-                 -- ,persistent == 0.2.*
-                 -- ,persistent-sqlite == 0.2.*
-                 ,template-haskell >= 2.4 && < 2.6
-                 ,wai-extra == 0.4.*
                  ,file-embed == 0.0.*
+                 ,template-haskell >= 2.4 && < 2.6
+                 -- ,yesod >= 0.8 && < 0.9
+                 ,yesod-core   >= 0.8     && < 0.9
+                 ,yesod-static
+                 ,hamlet == 0.8.*
+                 ,transformers
+                 ,wai
+                 ,wai-extra == 0.4.*
+                 ,warp
+                 -- , blaze-builder
+                 -- , web-routes
+
+library
+    if flag(devel)
+        Buildable: True
+    else
+        Buildable: False
+    exposed-modules: 
+                     Controller
+    other-modules:
+                     App
+                     EmbeddedFiles
+                     Settings
+                     StaticFiles
+                     Handlers
+
+-- executable         hledger-web
+    -- if flag(devel)
+    --     Buildable: False
+
+    -- if flag(production)
+    --     cpp-options:   -DPRODUCTION
+    --     ghc-options:   -Wall -threaded -O2
+    -- else
+    --     ghc-options:   -Wall -threaded
+
+    -- main-is:       config/hledger-web.hs
+    -- hs-source-dirs: ., config
+
+    -- build-depends: base         >= 4       && < 5
+    --              , yesod-core   >= 0.8     && < 0.9
+    --              , yesod-static
+    --              , wai-extra
+    --              , directory
+    --              , bytestring
+    --              , text
+    --              , template-haskell
+    --              , hamlet
+    --              , web-routes
+    --              , transformers
+    --              , wai
+    --              , warp
+    --              , blaze-builder
+
+

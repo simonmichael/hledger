@@ -1,0 +1,4 @@
+h1
+    text-align: center
+h2##{h2id}
+    color: #990

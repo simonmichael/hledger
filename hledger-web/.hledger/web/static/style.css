@@ -1,3 +1,10 @@
+/* LOCAL:
+hledger-web executables built in this repo will include these local styles
+when generating the web support files
+*/
+body { border-top: thin solid red; }
+/* END LOCAL */
+
 /* hledger web ui styles */
 
 /*------------------------------------------------------------------------------------------*/

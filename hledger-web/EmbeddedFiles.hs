@@ -1,14 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-| 
 
-Support files used by the web app are embedded here at compile time via
-template haskell magic.  This allows us minimise deployment hassle by
-recreating them on the filesystem when needed (since hamlet can not use
-the embedded files directly.)  Installing on the filesystem has the added
-benefit of making them easily customisable.
+Support files (static files and templates) used by the web app are
+embedded in this module at compile time. Since hamlet can not use the
+embedded files directly, we also provide a way to write them out to the
+filesystem at startup, when needed. This simplifies installation for
+end-users, and customisation too.
 
 -}
-module Hledger.Web.Files
+module EmbeddedFiles
     (
      files
     ,createFilesIfMissing
@@ -18,9 +18,9 @@ import Control.Monad
 import qualified Data.ByteString as B
 import Data.FileEmbed (embedDir)
 import System.Directory
+import System.FilePath
 
-import Hledger.Web.Settings (datadir)
-
+import Settings (datadir)
 
 -- | An embedded copy of all files below the the hledger-web data
 -- directory (@.hledger/web/@) at compile time, as (FilePath,ByteString)
@@ -40,5 +40,7 @@ createFilesIfMissing = do
    else do
      createDirectoryIfMissing True datadir  
      setCurrentDirectory datadir
-     forM_ files $ \(f,d) -> B.writeFile f d
+     forM_ files $ \(f,d) -> do
+                              createDirectoryIfMissing True $ takeDirectory f
+                              B.writeFile f d
      return True

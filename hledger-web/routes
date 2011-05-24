@@ -1,0 +1,7 @@
+/static StaticR Static getStatic
+/favicon.ico FaviconR GET
+/robots.txt RobotsR GET
+/ RootR GET
+/accounts        AccountsOnlyR     GET
+/journal         JournalR          GET
+/register        RegisterR         GET

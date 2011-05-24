@@ -1,0 +1,9 @@
+!!!
+<html
+    <head
+        <title>#{pageTitle pc}
+        ^{pageHead pc}
+    <body
+        $maybe msg <- mmsg
+            <div #message>#{msg}
+        ^{pageBody pc}
