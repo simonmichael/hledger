@@ -1,5 +1,5 @@
 name:           hledger-chart
-version: 0.14
+version: 0.14.98
 category:       Finance
 synopsis:       A pie chart generator for the hledger accounting tool.
 description:
@@ -31,8 +31,8 @@ executable hledger-chart
   other-modules:
                   Hledger.Chart.Main
   build-depends:
-                  hledger == 0.14
-                 ,hledger-lib == 0.14
+                  hledger == 0.14.98
+                 ,hledger-lib == 0.14.98
                  -- ,HUnit
                  ,base >= 3 && < 5
                  -- ,containers
