@@ -59,7 +59,7 @@ executable hledger-web
                      Handlers
   build-depends:
                   hledger == 0.14.98
-                 ,hledger-lib == 0.14
+                 ,hledger-lib == 0.14.98
                  -- ,HUnit
                  ,base >= 4 && < 5
                  ,bytestring
@@ -86,7 +86,7 @@ executable hledger-web
                  ,template-haskell >= 2.4 && < 2.6
                  -- ,yesod >= 0.8 && < 0.9
                  ,yesod-core   >= 0.8     && < 0.9
-                 ,yesod-static
+                 ,yesod-static == 0.1.0
                  ,hamlet == 0.8.*
                  ,transformers
                  ,wai
