@@ -86,6 +86,7 @@ executable hledger-web
                  ,template-haskell >= 2.4 && < 2.6
                  -- ,yesod >= 0.8 && < 0.9
                  ,yesod-core   >= 0.8     && < 0.9
+                 ,yesod-form   == 0.1.*
                  ,yesod-static == 0.1.0
                  ,hamlet == 0.8.*
                  ,transformers

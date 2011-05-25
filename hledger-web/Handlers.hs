@@ -1,14 +1,17 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings #-}
 module Handlers where
 
-import Control.Applicative ((<$>)) --, (<*>))
+import Control.Applicative ((<$>), (<*>))
 import Data.ByteString (ByteString)
+import Data.Either (lefts,rights)
 import Data.Text(Text,pack,unpack)
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
 import Text.ParserCombinators.Parsec hiding (string)
+import Yesod.Form
 
+import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Print
 import Hledger.Cli.Register
@@ -16,6 +19,8 @@ import Hledger.Cli.Options hiding (value)
 import Hledger.Cli.Utils
 import Hledger.Cli.Version (version)
 import Hledger.Data hiding (insert, today)
+import Hledger.Read (journalFromPathAndString)
+import Hledger.Read.JournalReader (someamount)
 
 import App
 import Settings
@@ -58,8 +63,8 @@ getJournalR = do
       setTitle "hledger-web journal"
       addHamlet $(Settings.hamletFile "journal")
 
--- postJournalR :: Handler RepPlain
--- postJournalR = postJournalOnlyR
+postJournalR :: Handler RepPlain
+postJournalR = postJournalOnlyR
 
 ----------------------------------------------------------------------
 
@@ -81,8 +86,8 @@ getRegisterR = do
       setTitle "hledger-web register"
       addHamlet $(Settings.hamletFile "register")
 
--- postRegisterR :: Handler RepPlain
--- postRegisterR = postJournalOnlyR
+postRegisterR :: Handler RepPlain
+postRegisterR = postJournalOnlyR
 
 ----------------------------------------------------------------------
 
@@ -201,7 +206,37 @@ journalselect journalfiles = $(Settings.hamletFile "journalselect")
 importform :: Hamlet AppRoute
 importform = $(Settings.hamletFile "importform")
 
-{-
+----------------------------------------------------------------------
+
+-- | A simple postings view, like hledger register.
+getRegisterOnlyR :: Handler RepHtml
+getRegisterOnlyR = do
+  (a, p, opts, fspec, j, msg, here) <- getHandlerData
+  today <- liftIO getCurrentDay
+  let td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
+  hamletToRepHtml $ hledgerLayout td $ registerReportAsHtml opts td $ registerReport opts fspec j
+
+-- | Render a register report as HTML.
+registerReportAsHtml :: [Opt] -> TemplateData -> RegisterReport -> Hamlet AppRoute
+registerReportAsHtml _ td items = $(Settings.hamletFile "registerreport")
+ where
+   number = zip [1..]
+   itemAsHtml' = itemAsHtml td
+   itemAsHtml :: TemplateData -> (Int, RegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml TD{here=here,p=p} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
+     where
+       evenodd = if even n then "even" else "odd" :: String
+       (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
+                                               Nothing -> ("", "", "") :: (String,String,String)
+       acct = paccount posting
+       acctpat = accountNameToAccountRegex acct
+       pparam = if null p then "" else "&p="++p
+
+mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
+    where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
+          c = case isNegativeMixedAmount b of Just True -> "negative amount"
+                                              _         -> "positive amount"
+
 postJournalOnlyR :: Handler RepPlain
 postJournalOnlyR = do
   action <- runFormPost' $ maybeStringInput "action"
@@ -332,38 +367,6 @@ postImportForm = do
   --  Right s -> do
   --    setMessage s
   --    redirect RedirectTemporary JournalR
--}
-
-----------------------------------------------------------------------
-
--- | A simple postings view like hledger register.
-getRegisterOnlyR :: Handler RepHtml
-getRegisterOnlyR = do
-  (a, p, opts, fspec, j, msg, here) <- getHandlerData
-  today <- liftIO getCurrentDay
-  let td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
-  hamletToRepHtml $ hledgerLayout td $ registerReportAsHtml opts td $ registerReport opts fspec j
-
--- | Render a register report as HTML.
-registerReportAsHtml :: [Opt] -> TemplateData -> RegisterReport -> Hamlet AppRoute
-registerReportAsHtml _ td items = $(Settings.hamletFile "registerreport")
- where
-   number = zip [1..]
-   itemAsHtml' = itemAsHtml td
-   itemAsHtml :: TemplateData -> (Int, RegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml TD{here=here,p=p} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
-     where
-       evenodd = if even n then "even" else "odd" :: String
-       (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
-                                               Nothing -> ("", "", "") :: (String,String,String)
-       acct = paccount posting
-       acctpat = accountNameToAccountRegex acct
-       pparam = if null p then "" else "&p="++p
-
-mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
-    where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
-          c = case isNegativeMixedAmount b of Just True -> "negative amount"
-                                              _         -> "positive amount"
 
 ----------------------------------------------------------------------
 -- common templates, helpers, utilities
@@ -509,4 +512,3 @@ getHandlerData = do
       getMessage' newmsgstr = do
         oldmsg <- getMessage
         return $ maybe oldmsg (Just . toHtml) newmsgstr
-
