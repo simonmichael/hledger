@@ -1,0 +1,3 @@
+     <tr.item.#{evenodd} >
+      <td.transaction>
+       <pre> #{txn}

@@ -8,18 +8,17 @@ Released under GPL version 3 or later.
 module Main
 where
 
+import Prelude hiding (putStr, putStrLn)
+-- import Control.Concurrent (forkIO, threadDelay)
+import Data.Text(pack)
 import Network.Wai.Handler.Warp (run)
 #if PRODUCTION
 #else
 import Network.Wai.Middleware.Debug (debug)
 #endif
-
-import Prelude hiding (putStr, putStrLn)
--- import Control.Concurrent (forkIO, threadDelay)
-import Data.Text(pack)
+import System.Console.GetOpt
 import System.Exit (exitFailure)
 import System.IO.Storage (withStore, putValue,)
-import System.Console.GetOpt
 import Yesod.Helpers.Static
 
 import Hledger.Cli.Options
@@ -31,7 +30,6 @@ import Hledger.Data.UTF8 (putStr, putStrLn)
 import App
 import AppRun (withApp)
 import EmbeddedFiles (createFilesIfMissing)
-import Settings (defhost, defport, datadir, staticdir) -- , browserstartdelay)
 
 
 progname_web = progname_cli ++ "-web"

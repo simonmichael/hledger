@@ -1,0 +1,6 @@
+<div.journal
+ ^{editlinks}
+ <div#transactions
+  ^{txns}
+ ^{addform td}
+ ^{editform'}

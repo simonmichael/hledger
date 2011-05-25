@@ -2,8 +2,9 @@
 module Handlers where
 
 import Control.Applicative ((<$>)) --, (<*>))
+import Data.ByteString (ByteString)
 import Data.Text(Text,pack,unpack)
-import System.FilePath (takeFileName) --(</>))
+import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
 import Text.ParserCombinators.Parsec hiding (string)
@@ -25,40 +26,22 @@ import StaticFiles
 -- handlers/views
 ----------------------------------------------------------------------
 
+-- Some default handlers that ship with the Yesod site template. You will
+-- very rarely need to modify this.
+getFaviconR :: Handler ()
+getFaviconR = sendFile "image/x-icon" $ Settings.staticdir </> "favicon.ico"
+
+getRobotsR :: Handler RepPlain
+getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)
+
+----------------------------------------------------------------------
+
 getRootR :: Handler RepHtml
 getRootR = redirect RedirectTemporary defaultroute where defaultroute = JournalR
 
 ----------------------------------------------------------------------
 
--- | A combined accounts and journal view.
--- old inline version
-getJournalR1 :: Handler RepHtml
-getJournalR1 = do
-  (a, p, opts, fspec, j, msg, here) <- getHandlerData
-  today <- liftIO getCurrentDay
-  -- app <- getYesod
-  -- t <- liftIO $ getCurrentLocalTime
-  let -- args = appArgs app
-      -- fspec' = optsToFilterSpec opts args t
-      sidecontent = balanceReportAsHtml opts td $ balanceReport opts fspec j
-      maincontent = journalReportAsHtml opts td $ journalReport opts fspec j
-      td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
-      editform' = editform td
-  hamletToRepHtml $ pageLayout td [$hamlet|
-   <div#content
-    <div#sidebar
-     ^{sidecontent}
-    <div#main.journal
-     ^{navlinks td}
-     <div#transactions
-      ^{filterform td}
-      ^{maincontent}
-     ^{addform td}
-     ^{editform'}
-     ^{importform}
-   |]
-
--- new widget file version
+-- | The main journal view, with accounts sidebar.
 getJournalR :: Handler RepHtml
 getJournalR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerData
@@ -72,8 +55,7 @@ getJournalR = do
       td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
   defaultLayout $ do
-      h2id <- lift newIdent
-      setTitle "hledger-web journal view"
+      setTitle "hledger-web journal"
       addHamlet $(Settings.hamletFile "journal")
 
 -- postJournalR :: Handler RepPlain
@@ -81,7 +63,7 @@ getJournalR = do
 
 ----------------------------------------------------------------------
 
--- | A combined accounts and register view.
+-- | The main register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerData
@@ -95,83 +77,49 @@ getRegisterR = do
       maincontent = registerReportAsHtml opts td $ registerReport opts fspec j
       td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
-  hamletToRepHtml $ pageLayout td [$hamlet|
- <div#content
-  <div#sidebar
-   ^{sidecontent}
-  <div#main.journal
-   ^{navlinks td}
-   <div#transactions
-    ^{filterform td}
-    ^{maincontent}
-   ^{addform td}
-   ^{editform'}
-   ^{importform}
-|]
+  defaultLayout $ do
+      setTitle "hledger-web register"
+      addHamlet $(Settings.hamletFile "register")
 
 -- postRegisterR :: Handler RepPlain
 -- postRegisterR = postJournalOnlyR
 
 ----------------------------------------------------------------------
 
--- | A simple accounts and balances view like hledger balance.
+-- | A simple accounts view, like hledger balance.
 getAccountsOnlyR :: Handler RepHtml
 getAccountsOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerData
   today <- liftIO getCurrentDay
   let td = mktd{here=here, title="hledger accounts", msg=msg, a=a, p=p, j=j, today=today}
-  hamletToRepHtml $ pageLayout td $ balanceReportAsHtml opts td $ balanceReport opts fspec j
+  defaultLayout $ do
+      setTitle "hledger-web accounts"
+      addHamlet $ balanceReportAsHtml opts td $ balanceReport opts fspec j
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> TemplateData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = [$hamlet|
-^{accountsheading}
-<table.balancereport>
- $forall i <- items
-  ^{itemAsHtml' i}
- <tr.totalrule>
-  <td colspan=2>
- <tr>
-  <td>
-  <td align=right>#{mixedAmountAsHtml total}
-|]
+balanceReportAsHtml _ td@TD{here=here,a=a,p=p} (items,total) = $(Settings.hamletFile "balancereport")
  where
-   accountsheading = [$hamlet|
-                      <span#accountsheading
-                       accounts
-                       \ #
-                       ^{showlinks}
-                      |] :: Hamlet AppRoute
+   accountsheading = $(Settings.hamletFile "accountsheading")
        where
          filteringaccts = not $ null a
-         showlinks = [$hamlet|<span#showmoreaccounts>^{showmore} ^{showall}|] :: Hamlet AppRoute
+         showlinks = $(Settings.hamletFile "accountsheadinglinks")
          showmore = case (filteringaccts, items) of
                       -- cunning parent account logic
                       (True, ((acct, _, _, _):_)) ->
                           let a' = if isAccountRegex a then a else acct
                               a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
                               parenturl = (here, [("a",pack a''), ("p",pack p)])
-                          in [$hamlet|
-                              \ | #
-                              <a href=@?{parenturl}>show more &uarr;
-                              |]
+                          in $(Settings.hamletFile "accountsheadinglinksmore")
                       _ -> nulltemplate
          showall = if filteringaccts
-                    then [$hamlet|
-                          \ | #
-                          <a href=@?{allurl}>show all
-                          |]
+                    then $(Settings.hamletFile "accountsheadinglinksall")
                     else nulltemplate
              where allurl = (here, [("p",pack p)])
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> BalanceReportItem -> Hamlet AppRoute
-   itemAsHtml TD{p=p} (acct, adisplay, adepth, abal) = [$hamlet|
-     <tr.item
-      <td.account
-       #{indent}
-       <a href="@{here}?a=#{acctpat}#{pparam}">#{adisplay}
-      <td.balance align=right>#{mixedAmountAsHtml abal}
-     |] where
+   itemAsHtml TD{p=p} (acct, adisplay, adepth, abal) = $(Settings.hamletFile "balancereportitem")
+     where
        indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
        acctpat = accountNameToAccountRegex acct
        pparam = if null p then "" else "&p="++p
@@ -188,7 +136,7 @@ isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
 
 ----------------------------------------------------------------------
 
--- | A basic journal view, like hledger print, with editing.
+-- | A simple journal view, like hledger print (with editing.)
 getJournalOnlyR :: Handler RepHtml
 getJournalOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerData
@@ -196,86 +144,24 @@ getJournalOnlyR = do
   let td = mktd{here=here, title="hledger journal", msg=msg, a=a, p=p, j=j, today=today}
       editform' = editform td
       txns = journalReportAsHtml opts td $ journalReport opts fspec j
-  hamletToRepHtml $ pageLayout td [$hamlet|
-<div#journal
- <div.nav2
-  <a#addformlink href onclick="return addformToggle(event)" add one transaction
-  \ | #
-  <a#editformlink href onclick="return editformToggle(event)" edit the whole journal
- <div#transactions ^{txns}
- ^{addform td}
- ^{editform'}
-|]
+  defaultLayout $ do
+      setTitle "hledger-web journal only"
+      addHamlet $(Settings.hamletFile "journalonly")
 
 -- | Render a journal report as HTML.
 journalReportAsHtml :: [Opt] -> TemplateData -> JournalReport -> Hamlet AppRoute
-journalReportAsHtml _ td items = [$hamlet|
-<table.journalreport>
- $forall i <- number items
-  ^{itemAsHtml' i}
-|]
+journalReportAsHtml _ td items = $(Settings.hamletFile "journalreport")
  where
    number = zip [1..]
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> (Int, JournalReportItem) -> Hamlet AppRoute
-   itemAsHtml _ (n, t) = [$hamlet|
-     <tr.item.#{evenodd} >
-      <td.transaction>
-       <pre> #{txn}
-     |] where
+   itemAsHtml _ (n, t) = $(Settings.hamletFile "journalreportitem")
+     where
        evenodd = if even n then "even" else "odd" :: String
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
 addform :: TemplateData -> Hamlet AppRoute
-addform td = [$hamlet|
-<script type=text/javascript>
- $(document).ready(function() {
-    /* dhtmlxcombo setup */
-    window.dhx_globalImgPath="../static/";
-    var desccombo  = new dhtmlXCombo("description");
-    var acct1combo = new dhtmlXCombo("account1");
-    var acct2combo = new dhtmlXCombo("account2");
-    desccombo.enableFilteringMode(true);
-    acct1combo.enableFilteringMode(true);
-    acct2combo.enableFilteringMode(true);
-    desccombo.setSize(300);
-    acct1combo.setSize(300);
-    acct2combo.setSize(300);
-    /* desccombo.enableOptionAutoHeight(true, 20); */
-    /* desccombo.setOptionHeight(200); */
- });
-<form#addform method=POST style=display:none;
-  <table.form
-   <tr
-    <td colspan=4
-     <table
-      <tr#descriptionrow
-       <td
-        Date:
-       <td
-        <input.textinput size=15 name=date value=#{date}
-       <td style=padding-left:1em;
-        Description:
-       <td
-        <select id=description name=description
-         <option
-         $forall d <- descriptions
-          <option value=#{d}>#{d}
-      <tr.helprow
-       <td
-       <td
-        <span.help>#{datehelp} #
-       <td
-       <td
-        <span.help>#{deschelp}
-   ^{postingsfields td}
-   <tr#addbuttonrow
-    <td colspan=4
-     <input type=hidden name=action value=add
-     <input type=submit name=submit value="add transaction"
-     $if manyfiles
-      \ to: ^{journalselect $ files $ j td}
-|]
+addform td = $(Settings.hamletFile "addform")
  where
   -- datehelplink = helplink "dates" "..."
   datehelp = "eg: 2010/7/20" :: String
@@ -284,33 +170,8 @@ addform td = [$hamlet|
   descriptions = sort $ nub $ map tdescription $ jtxns $ j td
   manyfiles = (length $ files $ j td) > 1
 
-postingsfields :: TemplateData -> Hamlet AppRoute
-postingsfields td = [$hamlet|
- ^{p1}
- ^{p2}
-|]
-  where
-    p1 = postingfields td 1
-    p2 = postingfields td 2
-
 postingfields :: TemplateData -> Int -> Hamlet AppRoute
-postingfields TD{j=j} n = [$hamlet|
- <tr#postingrow
-  <td align=right>#{acctlabel}:
-  <td
-   <select id=#{acctvar} name=#{acctvar}
-    <option
-    $forall a <- acctnames
-     <option value=#{a}>#{a}
-  ^{amtfield}
- <tr.helprow
-  <td
-  <td
-   <span.help>#{accthelp}
-  <td
-  <td
-   <span.help>#{amthelp}
-|]
+postingfields TD{j=j} n = $(Settings.hamletFile "postingfields")
  where
   numbered = (++ show n)
   acctvar = numbered "account"
@@ -319,12 +180,7 @@ postingfields TD{j=j} n = [$hamlet|
   (acctlabel, accthelp, amtfield, amthelp)
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
-                     ,[$hamlet|
-                       <td style=padding-left:1em;
-                        Amount:
-                       <td
-                        <input.textinput size=15 name=#{amtvar} value=""
-                       |]
+                     ,$(Settings.hamletFile "postingfieldsamount")
                      ,"eg: $6"
                      )
        | otherwise = ("From account" :: String
@@ -334,51 +190,16 @@ postingfields TD{j=j} n = [$hamlet|
                      )
 
 editform :: TemplateData -> Hamlet AppRoute
-editform TD{j=j} = [$hamlet|
- <form#editform method=POST style=display:none;
-  <table.form#editform
-   $if manyfiles
-    <tr
-     <td colspan=2
-      Editing ^{journalselect $ files j}
-   <tr
-    <td colspan=2
-     $forall f <- files j
-      <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled
-       #{snd f}
-   <tr#addbuttonrow
-    <td
-     <span.help ^{formathelp}
-    <td align=right
-     <span.help Are you sure ? This will overwrite the journal. #
-     <input type=hidden name=action value=edit
-     <input type=submit name=submit value="save journal"
-     \ or #
-     <a href onclick="return editformToggle(event)">cancel
-|] -- XXX textarea ids are unquoted journal file paths, which is not valid html
+editform TD{j=j} = $(Settings.hamletFile "editform")
   where
     manyfiles = (length $ files j) > 1
     formathelp = helplink "file-format" "file format help"
 
 journalselect :: [(FilePath,String)] -> Hamlet AppRoute
-journalselect journalfiles = [$hamlet|
-     <select id=journalselect name=journal onchange="editformJournalSelect(event)"
-      $forall f <- journalfiles
-       <option value=#{fst f}>#{fst f}
-|]
+journalselect journalfiles = $(Settings.hamletFile "journalselect")
 
 importform :: Hamlet AppRoute
-importform = [$hamlet|
- <form#importform method=POST style=display:none;
-  <table.form
-   <tr
-    <td
-     <input type=file name=file
-     <input type=hidden name=action value=import
-     <input type=submit name=submit value="import from file"
-     \ or #
-     <a href onclick="return importformToggle(event)" cancel
-|]
+importform = $(Settings.hamletFile "importform")
 
 {-
 postJournalOnlyR :: Handler RepPlain
@@ -521,37 +342,17 @@ getRegisterOnlyR = do
   (a, p, opts, fspec, j, msg, here) <- getHandlerData
   today <- liftIO getCurrentDay
   let td = mktd{here=here, title="hledger register", msg=msg, a=a, p=p, j=j, today=today}
-  hamletToRepHtml $ pageLayout td $ registerReportAsHtml opts td $ registerReport opts fspec j
+  hamletToRepHtml $ hledgerLayout td $ registerReportAsHtml opts td $ registerReport opts fspec j
 
 -- | Render a register report as HTML.
 registerReportAsHtml :: [Opt] -> TemplateData -> RegisterReport -> Hamlet AppRoute
-registerReportAsHtml _ td items = [$hamlet|
-<table.registerreport
- <tr.headings
-  ^{headings}
- $forall i <- number items
-  ^{itemAsHtml' i}
-|]
+registerReportAsHtml _ td items = $(Settings.hamletFile "registerreport")
  where
    number = zip [1..]
-   headings = [$hamlet|
-               <th.date align=left Date
-               <th.description align=left Description
-               <th.account align=left Account
-               <th.amount align=right Amount
-               <th.balance align=right Balance
-               |] :: Hamlet AppRoute
    itemAsHtml' = itemAsHtml td
    itemAsHtml :: TemplateData -> (Int, RegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml TD{here=here,p=p} (n, (ds, posting, b)) = [$hamlet|
-     <tr.item.#{evenodd}.#{firstposting}
-      <td.date>#{date}
-      <td.description>#{desc}
-      <td.account
-       <a href="@{here}?a=#{acctpat}#{pparam}">#{acct}
-      <td.amount align=right>#{mixedAmountAsHtml $ pamount posting}
-      <td.balance align=right>#{mixedAmountAsHtml b}
-     |] where
+   itemAsHtml TD{here=here,p=p} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
+     where
        evenodd = if even n then "even" else "odd" :: String
        (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
                                                Nothing -> ("", "", "") :: (String,String,String)
@@ -565,11 +366,73 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
                                               _         -> "positive amount"
 
 ----------------------------------------------------------------------
--- utilities, common templates
+-- common templates, helpers, utilities
 ----------------------------------------------------------------------
+
+-- | Wrap a template with the standard hledger web ui page layout.
+hledgerLayout :: TemplateData -> Hamlet AppRoute -> Hamlet AppRoute
+hledgerLayout td@TD{title=basetitle, msg=msg, p=p, j=j, today=today} content =
+ $(Settings.hamletFile "hledger-layout")
+ where title' = basetitle ++ " - " ++ journaltitle
+       (journaltitle, _) = journalTitleDesc j p today
+       metacontent = "text/html; charset=utf-8" :: String
+       m = fromMaybe "" msg
+
+-- | Global toolbar/heading area.
+navbar :: TemplateData -> Hamlet AppRoute
+navbar TD{p=p,j=j,today=today} = $(Settings.hamletFile "navbar")
+  where (title, desc) = journalTitleDesc j p today
+
+-- | Links to the main views.
+navlinks :: TemplateData -> Hamlet AppRoute
+navlinks td = $(Settings.hamletFile "navlinks")
+ where
+   accountsjournallink  = navlink td "journal" JournalR
+   accountsregisterlink = navlink td "register" RegisterR
+   navlink :: TemplateData -> String -> AppRoute -> Hamlet AppRoute
+   navlink TD{here=here,a=a,p=p} s dest = $(Settings.hamletFile "navlink")
+    where u = (dest, concat [(if null a then [] else [("a", pack a)])
+                            ,(if null p then [] else [("p", pack p)])])
+          style | dest == here = "navlinkcurrent"
+                | otherwise    = "navlink" :: Text
+
+editlinks :: Hamlet AppRoute
+editlinks = $(Settings.hamletFile "editlinks")
+
+-- | Link to a topic in the manual.
+helplink :: String -> String -> Hamlet AppRoute
+helplink topic label = $(Settings.hamletFile "helplink")
+    where u = manualurl ++ if null topic then "" else '#':topic
+
+-- | Form controlling journal filtering parameters.
+filterform :: TemplateData -> Hamlet AppRoute
+filterform TD{here=here,a=a,p=p} = $(Settings.hamletFile "filterform")
+ where
+  ahelp = helplink "filter-patterns" "?"
+  phelp = helplink "period-expressions" "?"
+  filtering = not $ null a
+  filteringperiod = not $ null p
+  visible = "block" :: String
+  filteringclass = if filtering then "filtering" else "" :: String
+  filteringperiodclass = if filteringperiod then "filtering" else "" :: String
+  stopfiltering = if filtering then $(Settings.hamletFile "filterformclear") else nulltemplate
+      where u = (here, if filteringperiod then [("p", pack p)] else [])
+  stopfilteringperiod = if filteringperiod then $(Settings.hamletFile "filterformclear") else nulltemplate
+      where u = (here, if filtering then [("a", pack a)] else [])
 
 nulltemplate :: Hamlet AppRoute
 nulltemplate = [$hamlet||]
+
+-- | Generate a title and description for the given journal, period
+-- expression, and date.
+journalTitleDesc :: Journal -> String -> Day -> (String, String)
+journalTitleDesc j p today = (title, desc)
+  where
+    title = printf "%s" (takeFileName $ journalFilePath j) :: String
+    desc  = printf "%s" (showspan span) :: String
+    span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
+    showspan (DateSpan Nothing Nothing) = ""
+    showspan s = " (" ++ dateSpanAsText s ++ ")"
 
 -- | A bundle of useful data passed to templates.
 data TemplateData = TD {
@@ -593,126 +456,57 @@ mktd = TD {
      ,today = ModifiedJulianDay 0
      }
 
--- | Wrap a template with the standard hledger web ui page layout.
-pageLayout :: TemplateData -> Hamlet AppRoute -> Hamlet AppRoute
-pageLayout td@TD{title=basetitle, msg=msg, p=p, j=j, today=today} content = [$hamlet|
-!!!
-<html
- <head
-  <title>#{title'}
-  <meta http-equiv=Content-Type content=#{metacontent}
-  <script type=text/javascript src=@{StaticR jquery_js}
-  <script type=text/javascript src=@{StaticR jquery_url_js}
-  <script type=text/javascript src=@{StaticR dhtmlxcommon_js}
-  <script type=text/javascript src=@{StaticR dhtmlxcombo_js}
-  <script type=text/javascript src=@{StaticR hledger_js}
-  <link rel=stylesheet type=text/css media=all href=@{StaticR style_css}
- <body
-  ^{navbar td}
-  <div#messages>#{m}
-  <div#content
-   ^{content}
-|]
- where title' = basetitle ++ " - " ++ journaltitle
-       (journaltitle, _) = journalTitleDesc j p today
-       metacontent = "text/html; charset=utf-8" :: String
-       m = fromMaybe "" msg
+-- | Gather the data useful for a hledger web request handler, including:
+-- initial command-line options, current a and p query string values, a
+-- journal filter specification based on the above and the current time,
+-- an up-to-date parsed journal, the current route, and the current ui
+-- message if any.
+getHandlerData :: Handler (String, String, [Opt], FilterSpec, Journal, Maybe Html, AppRoute)
+getHandlerData = do
+  Just here' <- getCurrentRoute
+  (a, p, opts, fspec) <- getReportParameters
+  (j, err) <- getLatestJournal opts
+  msg <- getMessage' err
+  return (a, p, opts, fspec, j, msg, here')
+    where
+      -- | Get current report parameters for this request.
+      getReportParameters :: Handler (String, String, [Opt], FilterSpec)
+      getReportParameters = do
+          app <- getYesod
+          t <- liftIO $ getCurrentLocalTime
+          a <- fromMaybe "" <$> lookupGetParam "a"
+          p <- fromMaybe "" <$> lookupGetParam "p"
+          let (a',p') = (unpack a, unpack p)
+              opts = appOpts app ++ [Period p']
+              args = appArgs app ++ words' a'
+              fspec = optsToFilterSpec opts args t
+          return (a', p', opts, fspec)
 
--- | Global toolbar/heading area.
-navbar :: TemplateData -> Hamlet AppRoute
-navbar TD{p=p,j=j,today=today} = [$hamlet|
- <div#navbar
-  <a.topleftlink href=#{hledgerorgurl}
-   hledger-web
-   <br />
-   #{version}
-  <a.toprightlink href=#{manualurl} target=hledgerhelp>manual
-  <h1>#{title}
-  \ #
-  <span#journaldesc>#{desc}
-|]
-  where (title, desc) = journalTitleDesc j p today
+      -- | Quote-sensitive words, ie don't split on spaces which are inside quotes.
+      words' :: String -> [String]
+      words' = fromparse . parsewith ((quotedPattern <|> pattern) `sepBy` many1 spacenonewline)
+          where
+            pattern = many (noneOf " \n\r\"")
+            quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
 
--- | Generate a title and description for the given journal, period
--- expression, and date.
-journalTitleDesc :: Journal -> String -> Day -> (String, String)
-journalTitleDesc j p today = (title, desc)
-  where
-    title = printf "%s" (takeFileName $ journalFilePath j) :: String
-    desc  = printf "%s" (showspan span) :: String
-    span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
-    showspan (DateSpan Nothing Nothing) = ""
-    showspan s = " (" ++ dateSpanAsText s ++ ")"
+      -- | Update our copy of the journal if the file changed. If there is an
+      -- error while reloading, keep the old one and return the error, and set a
+      -- ui message.
+      getLatestJournal :: [Opt] -> Handler (Journal, Maybe String)
+      getLatestJournal opts = do
+        j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+        (jE, changed) <- liftIO $ journalReloadIfChanged opts j
+        if not changed
+         then return (j,Nothing)
+         else case jE of
+                Right j' -> do liftIO $ putValue "hledger" "journal" j'
+                               return (j',Nothing)
+                Left e  -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
+                              return (j, Just e)
 
--- | Links to the main views.
-navlinks :: TemplateData -> Hamlet AppRoute
-navlinks td = [$hamlet|
- <div#navlinks
-  ^{accountsjournallink}
-  \ | #
-  ^{accountsregisterlink}
-  \ | #
-  <a#addformlink href onclick="return addformToggle(event)">add transaction
-  <a#importformlink href onclick="return importformToggle(event)" style="display:none;">import transactions
-  \ | #
-  <a#editformlink href onclick="return editformToggle(event)">edit journal
-|]
---  \ | #
- where
-   accountsjournallink  = navlink td "journal" JournalR
-   accountsregisterlink = navlink td "register" RegisterR
-
-navlink :: TemplateData -> String -> AppRoute -> Hamlet AppRoute
-navlink TD{here=here,a=a,p=p} s dest = [$hamlet|<a##{s}link.#{style} href=@?{u}>#{s}|]
- where u = (dest, concat [(if null a then [] else [("a", pack a)])
-                         ,(if null p then [] else [("p", pack p)])])
-       style | dest == here = "navlinkcurrent"
-             | otherwise    = "navlink" :: Text
-
--- | Form controlling journal filtering parameters.
-filterform :: TemplateData -> Hamlet AppRoute
-filterform TD{here=here,a=a,p=p} = [$hamlet|
- <div#filterformdiv
-  <form#filterform.form method=GET style=display:#{visible};
-   <table.form
-    <tr.#{filteringperiodclass}
-     <td
-      filter by period:
-      \ #
-     <td
-      <input name=p size=60 value=#{p}
-      ^{phelp}
-      \ #
-     <td align=right
-      ^{stopfilteringperiod}
-    <tr.#{filteringclass}
-     <td
-      filter by account/description:
-      \ #
-     <td
-      <input name=a size=60 value=#{a}
-      ^{ahelp}
-      \ #
-      <input type=submit value=filter #
-      \ #
-     <td align=right
-      ^{stopfiltering}
-|]
- where
-  ahelp = helplink "filter-patterns" "?"
-  phelp = helplink "period-expressions" "?"
-  filtering = not $ null a
-  filteringperiod = not $ null p
-  visible = "block" :: String
-  filteringclass = if filtering then "filtering" else "" :: String
-  filteringperiodclass = if filteringperiod then "filtering" else "" :: String
-  stopfiltering = if filtering then [$hamlet|<a#stopfilterlink href=@?{u}>clear filter|] else nulltemplate
-      where u = (here, if filteringperiod then [("p", pack p)] else [])
-  stopfilteringperiod = if filteringperiod then [$hamlet|<a#stopfilterlink href=@?{u}>clear filter|] else nulltemplate
-      where u = (here, if filtering then [("a", pack a)] else [])
-
--- | Link to a topic in the manual.
-helplink :: String -> String -> Hamlet AppRoute
-helplink topic label = [$hamlet|<a href=#{u} target=hledgerhelp>#{label}|]
-    where u = manualurl ++ if null topic then "" else '#':topic
+      -- | Helper to work around a yesod feature (can't set and get a message in the same request.)
+      getMessage' :: Maybe String -> Handler (Maybe Html)
+      getMessage' newmsgstr = do
+        oldmsg <- getMessage
+        return $ maybe oldmsg (Just . toHtml) newmsgstr
 

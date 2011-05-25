@@ -1,0 +1,3 @@
+<table.journalreport>
+ $forall i <- number items
+  ^{itemAsHtml' i}

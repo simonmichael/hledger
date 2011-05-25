@@ -1,9 +1,8 @@
 !!!
 <html
  <head
-     <title>#{pageTitle pc}
-     ^{pageHead pc}
-  <meta http-equiv=Content-Type content="text/html; charset=utf-8"
+  <title>#{title'}
+  <meta http-equiv=Content-Type content=#{metacontent}
   <script type=text/javascript src=@{StaticR jquery_js}
   <script type=text/javascript src=@{StaticR jquery_url_js}
   <script type=text/javascript src=@{StaticR dhtmlxcommon_js}
@@ -11,7 +10,8 @@
   <script type=text/javascript src=@{StaticR hledger_js}
   <link rel=stylesheet type=text/css media=all href=@{StaticR style_css}
  <body
-     $maybe msg <- mmsg
-         <div #message>#{msg}
+  ^{navbar td}
+  <div#messages>#{m}
   <div#content
-     ^{pageBody pc}
+   ^{content}
+|]

@@ -1,0 +1,9 @@
+<table.registerreport
+ <tr.headings
+  <th.date align=left Date
+  <th.description align=left Description
+  <th.account align=left Account
+  <th.amount align=right Amount
+  <th.balance align=right Balance
+ $forall i <- number items
+  ^{itemAsHtml' i}

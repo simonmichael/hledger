@@ -1,0 +1,10 @@
+    <div#sidebar
+     ^{sidecontent}
+    <div#main.journal
+     ^{navlinks td}
+     <div#transactions
+      ^{filterform td}
+      ^{maincontent}
+     ^{addform td}
+     ^{editform'}
+     ^{importform}

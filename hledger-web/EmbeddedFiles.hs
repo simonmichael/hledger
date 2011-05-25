@@ -2,10 +2,10 @@
 {-| 
 
 Support files (static files and templates) used by the web app are
-embedded in this module at compile time. Since hamlet can not use the
-embedded files directly, we also provide a way to write them out to the
-filesystem at startup, when needed. This simplifies installation for
-end-users, and customisation too.
+embedded in this module at compile time. Since hamlet can not easily use
+these directly, we provide a way to write them out to the filesystem at
+startup, when needed. This simplifies installation for end-users, and
+customisation too.
 
 -}
 module EmbeddedFiles

@@ -11,10 +11,8 @@ module App
     , StaticRoute (..)
     , lift
     , liftIO
- ,getHandlerData
     ) where
 
-import Control.Monad (unless)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text as T
@@ -23,23 +21,8 @@ import qualified Data.ByteString.Lazy as L
 import Yesod.Core
 import Yesod.Helpers.Static
 
-import Control.Applicative ((<$>)) --, (<*>))
-import Data.Text(Text,pack,unpack)
-import System.FilePath (takeFileName) --(</>))
-import System.IO.Storage (putValue, getValue)
-import Text.Hamlet hiding (hamletFile)
-import Text.ParserCombinators.Parsec hiding (string)
-
 import Hledger.Cli.Options
 import Hledger.Data
-
-import Hledger.Cli.Balance
-import Hledger.Cli.Print
-import Hledger.Cli.Register
-import Hledger.Cli.Options hiding (value)
-import Hledger.Cli.Utils
-import Hledger.Cli.Version (version)
-import Hledger.Data hiding (insert, today)
 
 import Settings
 import StaticFiles
@@ -91,7 +74,6 @@ instance Yesod App where
     approot = appRoot
 
     defaultLayout widget = do
-        -- (a, p, opts, fspec, j, msg, here) <- getHandlerData
         mmsg <- getMessage
         pc <- widgetToPageContent $ do
             widget
@@ -116,58 +98,4 @@ instance Yesod App where
         exists <- liftIO $ doesFileExist fn'
         unless exists $ liftIO $ L.writeFile fn' content
         return $ Just $ Right (StaticR $ StaticRoute ["tmp", T.pack fn] [], [])
-
--- | Gather the data useful for a hledger web request handler, including:
--- initial command-line options, current a and p query string values, a
--- journal filter specification based on the above and the current time,
--- an up-to-date parsed journal, the current route, and the current ui
--- message if any.
-getHandlerData :: Handler (String, String, [Opt], FilterSpec, Journal, Maybe Html, AppRoute)
-getHandlerData = do
-  Just here' <- getCurrentRoute
-  (a, p, opts, fspec) <- getReportParameters
-  (j, err) <- getLatestJournal opts
-  msg <- getMessage' err
-  return (a, p, opts, fspec, j, msg, here')
-    where
-      -- | Get current report parameters for this request.
-      getReportParameters :: Handler (String, String, [Opt], FilterSpec)
-      getReportParameters = do
-          app <- getYesod
-          t <- liftIO $ getCurrentLocalTime
-          a <- fromMaybe "" <$> lookupGetParam "a"
-          p <- fromMaybe "" <$> lookupGetParam "p"
-          let (a',p') = (unpack a, unpack p)
-              opts = appOpts app ++ [Period p']
-              args = appArgs app ++ words' a'
-              fspec = optsToFilterSpec opts args t
-          return (a', p', opts, fspec)
-
-      -- | Quote-sensitive words, ie don't split on spaces which are inside quotes.
-      words' :: String -> [String]
-      words' = fromparse . parsewith ((quotedPattern <|> pattern) `sepBy` many1 spacenonewline)
-          where
-            pattern = many (noneOf " \n\r\"")
-            quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
-
-      -- | Update our copy of the journal if the file changed. If there is an
-      -- error while reloading, keep the old one and return the error, and set a
-      -- ui message.
-      getLatestJournal :: [Opt] -> Handler (Journal, Maybe String)
-      getLatestJournal opts = do
-        j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
-        (jE, changed) <- liftIO $ journalReloadIfChanged opts j
-        if not changed
-         then return (j,Nothing)
-         else case jE of
-                Right j' -> do liftIO $ putValue "hledger" "journal" j'
-                               return (j',Nothing)
-                Left e  -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
-                              return (j, Just e)
-
-      -- | Helper to work around a yesod feature (can't set and get a message in the same request.)
-      getMessage' :: Maybe String -> Handler (Maybe Html)
-      getMessage' newmsgstr = do
-        oldmsg <- getMessage
-        return $ maybe oldmsg (Just . toHtml) newmsgstr
 

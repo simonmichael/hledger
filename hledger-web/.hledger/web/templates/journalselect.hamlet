@@ -1,0 +1,3 @@
+     <select id=journalselect name=journal onchange="editformJournalSelect(event)"
+      $forall f <- journalfiles
+       <option value=#{fst f}>#{fst f}
