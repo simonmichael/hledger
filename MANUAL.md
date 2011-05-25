@@ -1081,8 +1081,8 @@ The default output format is `%20(total)  %2(depth_spacer)%-(account)`
 
 ### Compatibility with c++ ledger
 
-hledger mimics a subset of ledger 3.x, and adds some features of its own
-(the add, web, vty, chart commands). We currently support:
+hledger mimics a subset of ledger 3.x, and adds some features of its own.
+We currently support:
 
 - regular journal transactions
 - journal format (we should be able to parse most ledger journals)
@@ -1103,7 +1103,7 @@ We do not support:
 - display formats (actually, a small subset is supported)
 - budget reports
 
-And we add some features:
+And we add these commands:
 
 - add
 - chart
@@ -1129,7 +1129,7 @@ comments may be permissible in different places. hledger does not allow
 separate dates for individual postings, or AMT1=AMT2 or { } syntax.
 
 Generally, it's easy to keep a journal file that works with both hledger
-and c++ledger if you avoid these.  Occasionally you'll need to make small
+and c++ ledger if you avoid these.  Occasionally you'll need to make small
 adjustments to restore compatibility for one or the other.
 
 See also:
