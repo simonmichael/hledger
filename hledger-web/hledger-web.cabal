@@ -101,7 +101,7 @@ library
     else
         Buildable: False
     exposed-modules: 
-                     Controller
+                     AppRun
     other-modules:
                      App
                      EmbeddedFiles

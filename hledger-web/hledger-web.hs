@@ -8,7 +8,6 @@ Released under GPL version 3 or later.
 module Main
 where
 
-import Controller (withApp)
 import Network.Wai.Handler.Warp (run)
 #if PRODUCTION
 #else
@@ -30,6 +29,7 @@ import Hledger.Data
 import Hledger.Data.UTF8 (putStr, putStrLn)
 
 import App
+import AppRun (withApp)
 import EmbeddedFiles (createFilesIfMissing)
 import Settings (defhost, defport, datadir, staticdir) -- , browserstartdelay)
 
