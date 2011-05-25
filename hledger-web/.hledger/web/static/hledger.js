@@ -46,23 +46,23 @@ function addformToggle(ev) {
  var rlink = document.getElementById('registerlink');
 
  if (a.style.display == 'none') {
-  alink.style['font-weight'] = 'bold';
-  elink.style['font-weight'] = 'normal';
-  ilink.style['font-weight'] = 'normal';
-  jlink.style['font-weight'] = 'normal';
-  rlink.style['font-weight'] = 'normal';
-  a.style.display = 'block';
-  e.style.display = 'none';
-  i.style.display = 'none';
-  t.style.display = 'none';
+   if (alink) alink.style['font-weight'] = 'bold';
+   if (elink) elink.style['font-weight'] = 'normal';
+   if (ilink) ilink.style['font-weight'] = 'normal';
+   if (jlink) jlink.style['font-weight'] = 'normal';
+   if (rlink) rlink.style['font-weight'] = 'normal';
+   if (a) a.style.display = 'block';
+   if (e) e.style.display = 'none';
+   if (i) i.style.display = 'none';
+   if (t) t.style.display = 'none';
  } else {
-  alink.style['font-weight'] = 'normal';
-  elink.style['font-weight'] = 'normal';
-  ilink.style['font-weight'] = 'normal';
-  a.style.display = 'none';
-  e.style.display = 'none';
-  i.style.display = 'none';
-  t.style.display = 'block';
+   if (alink) alink.style['font-weight'] = 'normal';
+   if (elink) elink.style['font-weight'] = 'normal';
+   if (ilink) ilink.style['font-weight'] = 'normal';
+   if (a) a.style.display = 'none';
+   if (e) e.style.display = 'none';
+   if (i) i.style.display = 'none';
+   if (t) t.style.display = 'block';
  }
  return false;
 }
@@ -82,24 +82,24 @@ function editformToggle(ev) {
  var rlink = document.getElementById('registerlink');
 
  if (e.style.display == 'none') {
-  alink.style['font-weight'] = 'normal';
-  elink.style['font-weight'] = 'bold';
-  ilink.style['font-weight'] = 'normal';
-  jlink.style['font-weight'] = 'normal';
-  rlink.style['font-weight'] = 'normal';
-  a.style.display = 'none';
-  i.style.display = 'none';
-  t.style.display = 'none';
-  e.style.display = 'block';
+  if (alink) alink.style['font-weight'] = 'normal';
+  if (elink) elink.style['font-weight'] = 'bold';
+  if (ilink) ilink.style['font-weight'] = 'normal';
+  if (jlink) jlink.style['font-weight'] = 'normal';
+  if (rlink) rlink.style['font-weight'] = 'normal';
+  if (a) a.style.display = 'none';
+  if (i) i.style.display = 'none';
+  if (t) t.style.display = 'none';
+  if (e) e.style.display = 'block';
   editformJournalSelect(ev);
  } else {
-  alink.style['font-weight'] = 'normal';
-  elink.style['font-weight'] = 'normal';
-  ilink.style['font-weight'] = 'normal';
-  a.style.display = 'none';
-  e.style.display = 'none';
-  i.style.display = 'none';
-  t.style.display = 'block';
+  if (alink) alink.style['font-weight'] = 'normal';
+  if (elink) elink.style['font-weight'] = 'normal';
+  if (ilink) ilink.style['font-weight'] = 'normal';
+  if (a) a.style.display = 'none';
+  if (e) e.style.display = 'none';
+  if (i) i.style.display = 'none';
+  if (t) t.style.display = 'block';
  }
  return false;
 }
@@ -142,23 +142,23 @@ function importformToggle(ev) {
  var rlink = document.getElementById('registerlink');
 
  if (i.style.display == 'none') {
-  alink.style['font-weight'] = 'normal';
-  elink.style['font-weight'] = 'normal';
-  ilink.style['font-weight'] = 'bold';
-  jlink.style['font-weight'] = 'normal';
-  rlink.style['font-weight'] = 'normal';
-  a.style.display = 'none';
-  e.style.display = 'none';
-  i.style.display = 'block';
-  t.style.display = 'none';
+   if (alink) alink.style['font-weight'] = 'normal';
+   if (elink) elink.style['font-weight'] = 'normal';
+   if (ilink) ilink.style['font-weight'] = 'bold';
+   if (jlink) jlink.style['font-weight'] = 'normal';
+   if (rlink) rlink.style['font-weight'] = 'normal';
+   if (a) a.style.display = 'none';
+   if (e) e.style.display = 'none';
+   if (i) i.style.display = 'block';
+   if (t) t.style.display = 'none';
  } else {
-  alink.style['font-weight'] = 'normal';
-  elink.style['font-weight'] = 'normal';
-  ilink.style['font-weight'] = 'normal';
-  a.style.display = 'none';
-  e.style.display = 'none';
-  i.style.display = 'none';
-  t.style.display = 'block';
+   if (alink) alink.style['font-weight'] = 'normal';
+   if (elink) elink.style['font-weight'] = 'normal';
+   if (ilink) ilink.style['font-weight'] = 'normal';
+   if (a) a.style.display = 'none';
+   if (e) e.style.display = 'none';
+   if (i) i.style.display = 'none';
+   if (t) t.style.display = 'block';
  }
  return false;
 }
