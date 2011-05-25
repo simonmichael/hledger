@@ -63,7 +63,6 @@ Features: reads transactions in journal, timelog, or CSV format; handles multi-c
 
 
 
-
 *** website
 **** add tables of contents
 **** integrate binaries, demo, pastebin
@@ -98,18 +97,6 @@ adapted from Ben Alexander, ledger-cli
 *** aesthetics
 **** better screenshots/images
 ***** use highslide
-*** automation
-**** keep blurbs in sync
-***** README file
-***** hledger.hs module description
-***** hledger.cabal description field (exclude home page link)
-***** home page description (http://joyful.com/Hledger/editform)
-***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
-***** gmane description
-***** darcsweb description
-**** keep Options.hs and README option list in sync
-**** discovering commands for --help
-**** announcements
 *** liveness
 **** show feeds on site ?
 ***** commits (darcsweb)
@@ -198,6 +185,20 @@ hledger.org/{list,bugs}/* also works
 **** functional programming
 hledger is written in the Haskell programming language;
 it demonstrates a pure functional implementation of ledger.
+*** announcements
+**** set up a template
+*** misc automation issues
+**** keep intro blurbs in sync
+***** README file
+***** hledger.hs module description
+***** hledger.cabal description field (exclude home page link)
+***** home page description (http://joyful.com/Hledger/editform)
+***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
+***** gmane description
+***** darcsweb description
+**** keep usage info in sync
+***** Options.hs
+***** MANUAL.md
 *** presenting/live demos
 *** develop funding process
 **** license change ?
