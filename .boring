@@ -132,4 +132,4 @@ site/.*
 bin/*
 
 # branch repos
-(^|/)b[[:digit:]]*
+(^|/)b[[:digit:]]+
