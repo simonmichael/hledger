@@ -1,0 +1,9 @@
+^{accountsheading}
+<table.balancereport>
+ $forall i <- items
+  ^{itemAsHtml' i}
+ <tr.totalrule>
+  <td colspan=2>
+ <tr>
+  <td>
+  <td align=right>#{mixedAmountAsHtml total}
