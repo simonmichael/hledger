@@ -1,9 +1,0 @@
- <div#navbar
-  <a.topleftlink href=#{hledgerorgurl}
-   hledger-web
-   <br />
-   #{version}
-  <a.toprightlink href=#{manualurl} target=hledgerhelp>manual
-  <h1>#{title}
-  \ #
-  <span#journaldesc>#{desc}

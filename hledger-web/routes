@@ -1,8 +1,9 @@
-/static StaticR Static getStatic
-/favicon.ico FaviconR GET
-/robots.txt RobotsR GET
-/ RootR GET
-/journal         JournalR          GET POST
-/register        RegisterR         GET POST
-/journalonly     JournalOnlyR      GET POST
-/accountsonly    AccountsOnlyR     GET
+/static          StaticR Static getStatic
+/favicon.ico     FaviconR       GET
+/robots.txt      RobotsR        GET
+/                RootR          GET
+/journal         JournalR       GET POST
+/register        RegisterR      GET POST
+/journalonly     JournalOnlyR   GET POST
+/registeronly    RegisterOnlyR  GET POST
+/accountsonly    AccountsOnlyR  GET

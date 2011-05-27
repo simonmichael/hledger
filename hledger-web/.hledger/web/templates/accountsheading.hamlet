@@ -1,4 +1,4 @@
-                      <span#accountsheading
-                       accounts
-                       \ #
-                       ^{showlinks}
+<div#accountsheading
+ accounts
+ \ #
+ ^{showlinks}

@@ -75,7 +75,7 @@ instance Yesod App where
     approot = appRoot
 
     defaultLayout widget = do
-        mmsg <- return (Nothing :: Maybe String) -- getMessage  -- XXX let getHandlerData get it
+        -- mmsg <- getMessage
         pc <- widgetToPageContent $ do
             widget
             addCassius $(Settings.cassiusFile "default-layout")

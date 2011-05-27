@@ -1,3 +1,2 @@
-                              \ | #
-                              <a href=@?{parenturl}>show more &uarr;
-                              |]
+\ | #
+<a href=@?{parenturl}>show more &uarr;

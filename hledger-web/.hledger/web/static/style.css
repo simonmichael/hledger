@@ -1,10 +1,3 @@
-/* LOCAL:
-hledger-web executables built in this repo will include these local styles
-when generating the web support files
-*/
-body { border-top: thin solid red; }
-/* END LOCAL */
-
 /* hledger web ui styles */
 
 /*------------------------------------------------------------------------------------------*/
@@ -25,7 +18,7 @@ body                                                                 { backgroun
 /* .journalreport td                                                    { border-color:thin solid #eee; } see below */
 
 .negative                                                            { color:#800; }
-#messages                                                            { color:red; background-color:#fee; }
+#message                                                             { color:red; background-color:#fee; }
 #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list { background-color:#eee; }
 #editform textarea                                                   { background-color:#eee; }
 
@@ -54,19 +47,18 @@ input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
 /* 3. layout */
 
 body                        { margin:0; }
+#content                    { padding:1em 0 0 0.5em; }
 
-#navbar                     { padding:2px; }
+#topbar                     { padding:2px; }
 .topleftlink                { float:left; margin-right:1em; padding:2px; }
 .toprightlink               { float:right; margin-left:1em; padding:2px; }
-#navbar h1                  { display:inline-block; vertical-align:top; margin:0; }
+#topbar h1                  { display:inline-block; vertical-align:top; margin:0; }
 #journalinfo                { vertical-align:middle; margin:0; }
-/* #navbar                  { padding:4px; border-bottom:2px solid #ddd; } */
+/* #topbar                  { padding:4px; border-bottom:2px solid #ddd; } */
 
-#messages                   { margin:0.5em;}
+#message                    { margin:0.5em;}
 .help                       { font-style: italic; }
 .helprow td                 { padding-bottom:8px; }
-
-#content                    { padding:4px; }
 
 #sidebar { float:left; padding-right:1em; margin-bottom:5em; }
 
@@ -109,8 +101,8 @@ table.registerreport        { border-spacing:0; }
 .registerreport td          { padding-bottom:0.2em; }
 .registerreport .date       { white-space:nowrap; }
 .firstposting td            { }
-#accountsheading            { font-weight:bold; white-space:nowrap; margin-bottom:1em; }
-#showmoreaccounts           { }
+#accountsheading            { white-space:nowrap; margin-bottom:1em; }
+#showmoreaccounts           { font-weight:bold; }
 
 
 #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { padding:4px; }

@@ -1,10 +1,12 @@
-  <div#sidebar
-   ^{sidecontent}
-  <div#main.journal
-   ^{navlinks td}
-   <div#transactions
-    ^{filterform td}
-    ^{maincontent}
-   ^{addform td}
-   ^{editform'}
-   ^{importform}
+^{topbar vd}
+<div#content
+ <div#sidebar
+  ^{sidecontent}
+ <div#main.register
+  ^{navlinks vd}
+  <div#maincontent
+   ^{filterform vd}
+   ^{maincontent}
+  ^{addform vd}
+  ^{editform vd}
+  ^{importform}

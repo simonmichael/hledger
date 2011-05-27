@@ -14,7 +14,7 @@ function filterformToggle() {
  var e = document.getElementById('editform');
  var f = document.getElementById('filterform');
  var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
+ var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
  var flink = document.getElementById('filterformlink');
@@ -37,7 +37,7 @@ function addformToggle(ev) {
  var e = document.getElementById('editform');
  var f = document.getElementById('filterform');
  var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
+ var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
  var flink = document.getElementById('filterformlink');
@@ -54,7 +54,7 @@ function addformToggle(ev) {
    if (a) a.style.display = 'block';
    if (e) e.style.display = 'none';
    if (i) i.style.display = 'none';
-   if (t) t.style.display = 'none';
+   if (c) c.style.display = 'none';
  } else {
    if (alink) alink.style['font-weight'] = 'normal';
    if (elink) elink.style['font-weight'] = 'normal';
@@ -62,7 +62,7 @@ function addformToggle(ev) {
    if (a) a.style.display = 'none';
    if (e) e.style.display = 'none';
    if (i) i.style.display = 'none';
-   if (t) t.style.display = 'block';
+   if (c) c.style.display = 'block';
  }
  return false;
 }
@@ -73,7 +73,7 @@ function editformToggle(ev) {
  var ej = document.getElementById('journalselect');
  var f = document.getElementById('filterform');
  var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
+ var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
  var flink = document.getElementById('filterformlink');
@@ -89,7 +89,7 @@ function editformToggle(ev) {
   if (rlink) rlink.style['font-weight'] = 'normal';
   if (a) a.style.display = 'none';
   if (i) i.style.display = 'none';
-  if (t) t.style.display = 'none';
+  if (c) c.style.display = 'none';
   if (e) e.style.display = 'block';
   editformJournalSelect(ev);
  } else {
@@ -99,7 +99,7 @@ function editformToggle(ev) {
   if (a) a.style.display = 'none';
   if (e) e.style.display = 'none';
   if (i) i.style.display = 'none';
-  if (t) t.style.display = 'block';
+  if (c) c.style.display = 'block';
  }
  return false;
 }
@@ -133,7 +133,7 @@ function importformToggle(ev) {
  var e = document.getElementById('editform');
  var f = document.getElementById('filterform');
  var i = document.getElementById('importform');
- var t = document.getElementById('transactions');
+ var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
  var flink = document.getElementById('filterformlink');
@@ -150,7 +150,7 @@ function importformToggle(ev) {
    if (a) a.style.display = 'none';
    if (e) e.style.display = 'none';
    if (i) i.style.display = 'block';
-   if (t) t.style.display = 'none';
+   if (c) c.style.display = 'none';
  } else {
    if (alink) alink.style['font-weight'] = 'normal';
    if (elink) elink.style['font-weight'] = 'normal';
@@ -158,7 +158,7 @@ function importformToggle(ev) {
    if (a) a.style.display = 'none';
    if (e) e.style.display = 'none';
    if (i) i.style.display = 'none';
-   if (t) t.style.display = 'block';
+   if (c) c.style.display = 'block';
  }
  return false;
 }

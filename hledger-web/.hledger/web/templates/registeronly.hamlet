@@ -1,4 +1,4 @@
-<div.journal
+<div.register
  ^{editlinks}
  <div#maincontent
   ^{maincontent}
