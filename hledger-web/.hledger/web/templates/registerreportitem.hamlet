@@ -1,7 +1,6 @@
-     <tr.item.#{evenodd}.#{firstposting}
-      <td.date>#{date}
-      <td.description>#{desc}
-      <td.account
-       <a href="@{here}?a=#{acctpat}#{pparam}">#{acct}
-      <td.amount align=right>#{mixedAmountAsHtml $ pamount posting}
-      <td.balance align=right>#{mixedAmountAsHtml b}
+<tr.item.#{evenodd}.#{firstposting}
+ <td.date>#{date}
+ <td.description>#{desc}
+ <td.account><a href="@{here}?a=#{acctpat}#{pparam}">#{acct}
+ <td.amount align=right>#{mixedAmountAsHtml $ pamount posting}
+ <td.balance align=right>#{mixedAmountAsHtml b}

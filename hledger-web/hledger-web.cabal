@@ -43,7 +43,6 @@ Flag devel
 
 executable hledger-web
   main-is:        hledger-web.hs
-  -- hs-source-dirs: ., config
   if flag(devel)
       Buildable: False
   if flag(production)
@@ -109,33 +108,3 @@ library
                      Settings
                      StaticFiles
                      Handlers
-
--- executable         hledger-web
-    -- if flag(devel)
-    --     Buildable: False
-
-    -- if flag(production)
-    --     cpp-options:   -DPRODUCTION
-    --     ghc-options:   -Wall -threaded -O2
-    -- else
-    --     ghc-options:   -Wall -threaded
-
-    -- main-is:       config/hledger-web.hs
-    -- hs-source-dirs: ., config
-
-    -- build-depends: base         >= 4       && < 5
-    --              , yesod-core   >= 0.8     && < 0.9
-    --              , yesod-static
-    --              , wai-extra
-    --              , directory
-    --              , bytestring
-    --              , text
-    --              , template-haskell
-    --              , hamlet
-    --              , web-routes
-    --              , transformers
-    --              , wai
-    --              , warp
-    --              , blaze-builder
-
-

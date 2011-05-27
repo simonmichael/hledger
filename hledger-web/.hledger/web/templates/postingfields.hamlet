@@ -1,15 +1,15 @@
- <tr#postingrow
-  <td align=right>#{acctlabel}:
-  <td
-   <select id=#{acctvar} name=#{acctvar}
-    <option
-    $forall a <- acctnames
-     <option value=#{a}>#{a}
-  ^{amtfield}
- <tr.helprow
-  <td
-  <td
-   <span.help>#{accthelp}
-  <td
-  <td
-   <span.help>#{amthelp}
+<tr#postingrow
+ <td align=right>#{acctlabel}:
+ <td
+  <select id=#{acctvar} name=#{acctvar}
+   <option
+   $forall a <- acctnames
+    <option value=#{a}>#{a}
+ ^{amtfield}
+<tr.helprow
+ <td
+ <td
+  <span.help>#{accthelp}
+ <td
+ <td
+  <span.help>#{amthelp}

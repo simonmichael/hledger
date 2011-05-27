@@ -1,25 +1,25 @@
- <div#filterformdiv
-  <form#filterform.form method=GET style=display:#{visible};
-   <table.form
-    <tr.#{filteringperiodclass}
-     <td
-      filter by period:
-      \ #
-     <td
-      <input name=p size=60 value=#{p}
-      ^{phelp}
-      \ #
-     <td align=right
-      ^{stopfilteringperiod}
-    <tr.#{filteringclass}
-     <td
-      filter by account/description:
-      \ #
-     <td
-      <input name=a size=60 value=#{a}
-      ^{ahelp}
-      \ #
-      <input type=submit value=filter #
-      \ #
-     <td align=right
-      ^{stopfiltering}
+<div#filterformdiv
+ <form#filterform.form method=GET style=display:#{visible};
+  <table.form
+   <tr.#{filteringperiodclass}
+    <td
+     filter by period:
+     \ #
+    <td
+     <input name=p size=60 value=#{p}
+     ^{phelp}
+     \ #
+    <td align=right
+     ^{stopfilteringperiod}
+   <tr.#{filteringclass}
+    <td
+     filter by account/description:
+     \ #
+    <td
+     <input name=a size=60 value=#{a}
+     ^{ahelp}
+     \ #
+     <input type=submit value=filter #
+     \ #
+    <td align=right
+     ^{stopfiltering}

@@ -57,7 +57,6 @@ getJournalR = do
   vd@VD{opts=opts,fspec=fspec,j=j} <- getViewData
   let sidecontent = balanceReportAsHtml opts vd $ balanceReport opts fspec j
       maincontent = journalReportAsHtml opts vd $ journalReport opts fspec j
-      editform' = editform vd
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet $(Settings.hamletFile "journal")
@@ -115,7 +114,6 @@ getAccountsOnlyR = do
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
 balanceReportAsHtml _ vd@VD{here=here,a=a,p=p} (items,total) = $(Settings.hamletFile "balancereport")
  where
-   itemAsHtml' = itemAsHtml vd
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{p=p} (acct, adisplay, adepth, abal) = $(Settings.hamletFile "balancereportitem")
      where
@@ -143,8 +141,6 @@ balanceReportAsHtml _ vd@VD{here=here,a=a,p=p} (items,total) = $(Settings.hamlet
 journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
 journalReportAsHtml _ vd items = $(Settings.hamletFile "journalreport")
  where
-   number = zip [1..]
-   itemAsHtml' = itemAsHtml vd
    itemAsHtml :: ViewData -> (Int, JournalReportItem) -> Hamlet AppRoute
    itemAsHtml _ (n, t) = $(Settings.hamletFile "journalreportitem")
      where
@@ -155,8 +151,6 @@ journalReportAsHtml _ vd items = $(Settings.hamletFile "journalreport")
 registerReportAsHtml :: [Opt] -> ViewData -> RegisterReport -> Hamlet AppRoute
 registerReportAsHtml _ vd items = $(Settings.hamletFile "registerreport")
  where
-   number = zip [1..]
-   itemAsHtml' = itemAsHtml vd
    itemAsHtml :: ViewData -> (Int, RegisterReportItem) -> Hamlet AppRoute
    itemAsHtml VD{here=here,p=p} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
      where
@@ -494,3 +488,4 @@ words' = fromparse . parsewith ((quotedPattern <|> pattern) `sepBy` many1 spacen
       pattern = many (noneOf " \n\r\"")
       quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
 
+numbered = zip [1..]

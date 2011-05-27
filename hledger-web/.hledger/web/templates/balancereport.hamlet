@@ -1,7 +1,7 @@
 ^{accountsheading}
 <table.balancereport>
  $forall i <- items
-  ^{itemAsHtml' i}
+  ^{itemAsHtml vd i}
  <tr.totalrule>
   <td colspan=2>
  <tr>

@@ -5,5 +5,5 @@
   <th.account align=left Account
   <th.amount align=right Amount
   <th.balance align=right Balance
- $forall i <- number items
-  ^{itemAsHtml' i}
+ $forall i <- numbered items
+  ^{itemAsHtml vd i}
