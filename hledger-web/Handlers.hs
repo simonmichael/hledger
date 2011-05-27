@@ -8,6 +8,7 @@ hledger-web's request handlers, and helpers.
 module Handlers where
 
 import Control.Applicative ((<$>), (<*>))
+import Data.Aeson
 import Data.ByteString (ByteString)
 import Data.Either (lefts,rights)
 import Data.List
@@ -21,6 +22,7 @@ import Text.ParserCombinators.Parsec -- hiding (string)
 import Text.Printf
 import Text.RegexPR
 import Yesod.Form
+import Yesod.Json
 
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
@@ -100,13 +102,22 @@ getRegisterOnlyR = do
 postRegisterOnlyR :: Handler RepPlain
 postRegisterOnlyR = handlePost
 
--- | A simple accounts view, like hledger balance.
-getAccountsOnlyR :: Handler RepHtml
+-- | A simple accounts view, like hledger balance. If the Accept header
+-- specifies json, returns the chart of accounts as json.
+getAccountsOnlyR :: Handler RepHtmlJson
 getAccountsOnlyR = do
   vd@VD{opts=opts,fspec=fspec,j=j} <- getViewData
-  defaultLayout $ do
-      setTitle "hledger-web accounts"
-      addHamlet $ balanceReportAsHtml opts vd $ balanceReport opts fspec j
+  let json = jsonMap [("accounts", toJSON $ journalAccountNames j)]
+      html = do
+        setTitle "hledger-web accounts"
+        addHamlet $ balanceReportAsHtml opts vd $ balanceReport opts fspec j
+  defaultLayoutJson html json
+
+-- | Return the chart of accounts as json, without needing a special Accept header.
+getAccountsJsonR :: Handler RepJson
+getAccountsJsonR = do
+  VD{j=j} <- getViewData
+  jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j)]
 
 -- helpers
 

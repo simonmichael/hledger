@@ -7,3 +7,4 @@
 /journalonly     JournalOnlyR   GET POST
 /registeronly    RegisterOnlyR  GET POST
 /accountsonly    AccountsOnlyR  GET
+/accountsjson    AccountsJsonR  GET

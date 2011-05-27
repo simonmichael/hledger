@@ -86,7 +86,9 @@ executable hledger-web
                  -- ,yesod >= 0.8 && < 0.9
                  ,yesod-core   >= 0.8     && < 0.9
                  ,yesod-form   == 0.1.*
+                 ,yesod-json
                  ,yesod-static == 0.1.0
+                 ,aeson == 0.3.*
                  ,hamlet == 0.8.*
                  ,transformers
                  ,wai
