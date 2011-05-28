@@ -23,13 +23,22 @@ quarterly, etc.
 module Hledger.Data.Dates
 where
 
+import Control.Monad
+import Data.List
+import Data.Maybe
 import Data.Time.Format
+import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
+import Data.Time.Clock
+import Data.Time.LocalTime
 import Safe (readMay)
 import System.Locale (defaultTimeLocale)
+import Test.HUnit
 import Text.ParserCombinators.Parsec
+import Text.Printf
+
 import Hledger.Data.Types
-import Hledger.Data.Utils
+import Hledger.Utils
 
 
 showDate :: Day -> String

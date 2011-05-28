@@ -10,7 +10,13 @@ Strictly speaking, \"entry\" is probably a better name for these.
 
 module Hledger.Data.Posting
 where
-import Hledger.Data.Utils
+import Data.List
+import Data.Ord
+import Data.Time.Calendar
+import Test.HUnit
+import Text.Printf
+
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName

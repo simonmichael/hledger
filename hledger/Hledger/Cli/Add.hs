@@ -11,25 +11,32 @@ informational messages are mostly written to stderr rather than stdout.
 
 module Hledger.Cli.Add
 where
-import Hledger.Data
-import Hledger.Read.JournalReader (someamount)
-import Hledger.Cli.Options
-import Hledger.Cli.Register (registerReport, registerReportAsText)
-import Prelude hiding (putStr, putStrLn, appendFile)
-import Hledger.Data.UTF8 (putStr, putStrLn, appendFile)
-
+import Control.Exception (throw)
+import Control.Monad
+import Control.Monad.Trans (liftIO)
+import Data.Char (toUpper)
+import Data.List
+import Data.Maybe
+import Data.Time.Calendar
+import Safe (headMay)
+import System.Console.Haskeline (InputT, runInputT, defaultSettings, setComplete, getInputLine)
+import System.Console.Haskeline.Completion
 import System.IO ( stderr, hPutStrLn, hPutStr )
 import System.IO.Error
 import Text.ParserCombinators.Parsec
-import Hledger.Cli.Utils (readJournalWithOpts)
+import Text.Printf
 import qualified Data.Foldable as Foldable (find)
-import System.Console.Haskeline (
-            InputT, runInputT, defaultSettings, setComplete, getInputLine)
-import Control.Monad.Trans (liftIO)
-import System.Console.Haskeline.Completion
 import qualified Data.Set as Set
-import Safe (headMay)
-import Control.Exception (throw)
+
+import Hledger.Cli.Options
+import Hledger.Cli.Register (registerReport, registerReportAsText)
+import Hledger.Cli.Utils (readJournalWithOpts)
+import Hledger.Data
+import Hledger.Read.JournalReader (someamount)
+import Hledger.Utils
+import Prelude hiding (putStr, putStrLn, appendFile)
+import Hledger.Utils.UTF8 (putStr, putStrLn, appendFile)
+
 
 {- | Information used as the basis for suggested account names, amounts,
      etc in add prompt
@@ -200,6 +207,9 @@ appendToJournalFile f s =
     then putStr $ sep ++ s
     else appendFile f $ sep++s
     where 
+      -- appendFile means we don't need file locking to be
+      -- multi-user-safe, but also that we can't figure out the minimal
+      -- number of newlines needed as separator
       sep = "\n\n"
       -- sep | null $ strip t = ""
       --     | otherwise = replicate (2 - min 2 (length lastnls)) '\n'

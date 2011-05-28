@@ -12,9 +12,11 @@ An 'Account' stores
 
 module Hledger.Data.Account
 where
-import Hledger.Data.Utils
-import Hledger.Data.Types
+import Test.HUnit
+import Text.Printf
+
 import Hledger.Data.Amount
+import Hledger.Data.Types
 
 
 instance Show Account where

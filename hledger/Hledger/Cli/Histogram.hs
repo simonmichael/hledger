@@ -7,10 +7,16 @@ Print a histogram report.
 
 module Hledger.Cli.Histogram
 where
-import Hledger.Data
+import Data.List
+import Data.Maybe
+import Data.Ord
+import Text.Printf
+
 import Hledger.Cli.Options
+import Hledger.Data
+import Hledger.Utils
 import Prelude hiding (putStr)
-import Hledger.Data.UTF8 (putStr)
+import Hledger.Utils.UTF8 (putStr)
 
 
 barchar = '*'

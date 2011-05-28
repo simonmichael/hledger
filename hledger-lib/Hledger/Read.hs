@@ -18,20 +18,23 @@ module Hledger.Read (
 where
 import Control.Monad.Error
 import Data.Either (partitionEithers)
+import Data.List
 import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.FilePath ((</>))
 import System.IO (IOMode(..), withFile, stderr)
+import Test.HUnit
+import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay)
 import Hledger.Data.Types (Journal(..), Reader(..))
 import Hledger.Data.Journal (nullctx)
-import Hledger.Data.Utils
-import Prelude hiding (getContents)
-import Hledger.Data.UTF8 (getContents, hGetContents)
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimelogReader as TimelogReader
+import Hledger.Utils
+import Prelude hiding (getContents)
+import Hledger.Utils.UTF8 (getContents, hGetContents)
 
 
 journalenvvar           = "LEDGER_FILE"

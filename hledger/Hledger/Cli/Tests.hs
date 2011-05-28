@@ -28,10 +28,13 @@ $ bin/hledger -f data/sample.journal balance o
 
 module Hledger.Cli.Tests
 where
+import Control.Monad
 import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
+import Test.HUnit
 
-import Hledger.Data  -- including testing utils in Hledger.Data.Utils
 import Hledger.Cli
+import Hledger.Data
+import Hledger.Utils
 
 
 -- | Run unit tests.

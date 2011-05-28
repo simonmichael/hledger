@@ -8,9 +8,13 @@ plus a date and optional metadata like description and cleared status.
 
 module Hledger.Data.Transaction
 where
+import Data.List
+import Data.Maybe
+import Test.HUnit
+import Text.Printf
 import qualified Data.Map as Map
 
-import Hledger.Data.Utils
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Posting

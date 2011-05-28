@@ -6,46 +6,40 @@ in the module hierarchy. This is the bottom of hledger's module graph.
 
 -}
 
-module Hledger.Data.Utils (
-module Data.Char,
-module Control.Monad,
-module Data.List,
---module Data.Map,
-module Data.Maybe,
-module Data.Ord,
-module Data.Tree,
-module Data.Time.Clock,
-module Data.Time.Calendar,
-module Data.Time.LocalTime,
-module Debug.Trace,
-module Hledger.Data.Utils,
--- module Hledger.Data.UTF8,
-module Text.Printf,
-module Text.RegexPR,
-module Test.HUnit,
-)
+module Hledger.Utils (---- provide these frequently used modules - or not, for clearer api:
+                          -- module Control.Monad,
+                          -- module Data.List,
+                          -- module Data.Maybe,
+                          -- module Data.Time.Calendar,
+                          -- module Data.Time.Clock,
+                          -- module Data.Time.LocalTime,
+                          -- module Data.Tree,
+                          -- module Debug.Trace,
+                          -- module Text.RegexPR,
+                          -- module Test.HUnit,
+                          -- module Text.Printf,
+                          ---- all of this one:
+                          module Hledger.Utils
+                          ---- and this for i18n - needs to be done in each module I think:
+                          -- module Hledger.Utils.UTF8
+                          )
 where
-import Data.Char
 import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
-import Control.Monad
+import Data.Char
 import Data.List
---import qualified Data.Map as Map
-import Data.Maybe
-import Data.Ord
-import Data.Tree
 import Data.Time.Clock
-import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.Tree
 import Debug.Trace
--- needs to be done in each module I think
--- import Prelude hiding (readFile,writeFile,getContents,putStr,putStrLn)
--- import Hledger.Data.UTF8
+import System.Info (os)
 import Test.HUnit
+import Text.ParserCombinators.Parsec
 import Text.Printf
 import Text.RegexPR
-import Text.ParserCombinators.Parsec
-import System.Info (os)
-
+-- import qualified Data.Map as Map
+-- 
+-- import Prelude hiding (readFile,writeFile,getContents,putStr,putStrLn)
+-- import Hledger.Utils.UTF8
 
 -- strings
 
@@ -219,7 +213,6 @@ containsRegex r s = case matchRegexPR ("(?i)"++r) s of
                       Just _ -> True
                       _ -> False
 
-
 -- lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
@@ -375,7 +368,6 @@ assertParseEqual parse expected = either (assertFailure.show) (`is` expected) pa
 printParseError :: (Show a) => a -> IO ()
 printParseError e = do putStr "parse error at "; print e
 
-
 -- misc
 
 isLeft :: Either a b -> Bool
@@ -384,17 +376,6 @@ isLeft _        = False
 
 isRight :: Either a b -> Bool
 isRight = not . isLeft
-
--- -- | Expand ~ in a file path (does not handle ~name).
--- tildeExpand :: FilePath -> IO FilePath
--- tildeExpand ('~':[])     = getHomeDirectory
--- tildeExpand ('~':'/':xs) = getHomeDirectory >>= return . (++ ('/':xs))
--- --handle ~name, requires -fvia-C or ghc 6.8:
--- --import System.Posix.User
--- -- tildeExpand ('~':xs)     =  do let (user, path) = span (/= '/') xs
--- --                                pw <- getUserEntryForName user
--- --                                return (homeDirectory pw ++ path)
--- tildeExpand xs           =  return xs
 
 -- | Apply a function the specified number of times. Possibly uses O(n) stack ?
 applyN :: Int -> (a -> a) -> a -> a

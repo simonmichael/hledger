@@ -47,12 +47,16 @@ module Hledger.Read.TimelogReader (
        tests_Hledger_Read_TimelogReader
 )
 where
-import Control.Monad.Error (ErrorT(..))
+import Control.Monad
+import Control.Monad.Error
+import Test.HUnit
 import Text.ParserCombinators.Parsec hiding (parse)
+
 import Hledger.Data
 import Hledger.Read.Utils
 import Hledger.Read.JournalReader (ledgerExclamationDirective, ledgerHistoricalPrice,
                                    ledgerDefaultYear, emptyLine, ledgerdatetime)
+import Hledger.Utils
 
 
 reader :: Reader

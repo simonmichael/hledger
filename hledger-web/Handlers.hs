@@ -24,13 +24,7 @@ import Text.RegexPR
 import Yesod.Form
 import Yesod.Json
 
-import Hledger.Cli.Add
-import Hledger.Cli.Balance
-import Hledger.Cli.Print
-import Hledger.Cli.Register
-import Hledger.Cli.Options hiding (value)
-import Hledger.Cli.Utils
-import Hledger.Cli.Version (version)
+import Hledger.Cli
 import Hledger.Cli.Version -- XXX
 import Hledger.Data hiding (today)
 import Hledger.Read (journalFromPathAndString)

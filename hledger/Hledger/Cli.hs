@@ -16,6 +16,13 @@ module Hledger.Cli (
                      tests_Hledger_Cli
               )
 where
+import Control.Monad
+import qualified Data.Map as Map
+import Data.Time.Calendar
+import Data.Time.LocalTime
+import System.Time (ClockTime(TOD))
+import Test.HUnit
+
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Convert
@@ -25,14 +32,10 @@ import Hledger.Cli.Register
 import Hledger.Cli.Stats
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
-
-
-import qualified Data.Map as Map
-import System.Time (ClockTime(TOD))
-
 import Hledger.Data  -- including testing utils in Hledger.Data.Utils
 import Hledger.Read
 import Hledger.Read.JournalReader (someamount)
+import Hledger.Utils
 
 
 -- | hledger and hledger-lib's unit tests aggregated from all modules

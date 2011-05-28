@@ -19,7 +19,7 @@ import Hledger.Cli.Utils (withJournalDo)
 import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Hledger.Data
 import Prelude hiding (putStr, putStrLn)
-import Hledger.Data.UTF8 (putStr, putStrLn)
+import Hledger.Utils.UTF8 (putStr, putStrLn)
 
 
 progname_vty = progname_cli ++ "-vty"

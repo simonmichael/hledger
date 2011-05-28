@@ -10,7 +10,11 @@ balances, and postings in each account.
 module Hledger.Data.Ledger
 where
 import Data.Map (Map, findWithDefault, fromList)
-import Hledger.Data.Utils
+import Data.Tree
+import Test.HUnit
+import Text.Printf
+
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Account (nullacct)
 import Hledger.Data.AccountName

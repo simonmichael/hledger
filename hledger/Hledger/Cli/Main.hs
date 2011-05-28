@@ -39,12 +39,13 @@ See "Hledger.Data.Ledger" for more examples.
 
 module Hledger.Cli.Main where
 
-import Prelude hiding (putStr, putStrLn)
-import Hledger.Data.UTF8 (putStr, putStrLn)
-import Hledger.Data
+import Data.List
+
 import Hledger.Cli
 import Hledger.Cli.Tests
 import Hledger.Cli.Version (progversionstr, binaryfilename)
+import Prelude hiding (putStr, putStrLn)
+import Hledger.Utils.UTF8 (putStr, putStrLn)
 
 main :: IO ()
 main = do

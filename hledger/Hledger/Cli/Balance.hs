@@ -104,15 +104,16 @@ module Hledger.Cli.Balance (
  ,tests_Hledger_Cli_Balance
  -- ,tests_Balance
 ) where
-import Hledger.Data.Utils
-import Hledger.Data.Types
-import Hledger.Data.Amount
-import Hledger.Data.AccountName
-import Hledger.Data.Posting
-import Hledger.Data.Ledger
+import Data.List
+import Data.Maybe
+import Data.Tree
+import Test.HUnit
+
 import Hledger.Cli.Options
+import Hledger.Data
+import Hledger.Utils
 import Prelude hiding (putStr)
-import Hledger.Data.UTF8 (putStr)
+import Hledger.Utils.UTF8 (putStr)
 
 
 -- | A balance report is a chart of accounts with balances, and their grand total.

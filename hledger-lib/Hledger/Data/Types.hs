@@ -33,11 +33,12 @@ Evolution of transaction\/entry\/posting terminology:
 module Hledger.Data.Types
 where
 import Control.Monad.Error (ErrorT)
+import Data.Time.Calendar
+import Data.Time.LocalTime
+import Data.Tree
 import Data.Typeable (Typeable)
 import qualified Data.Map as Map
 import System.Time (ClockTime)
-
-import Hledger.Data.Utils
 
 
 type SmartDate = (String,String,String)

@@ -8,11 +8,19 @@ data object.
 
 module Hledger.Data.Journal
 where
-import qualified Data.Map as Map
+import Data.List
 import Data.Map (findWithDefault, (!))
+import Data.Ord
+import Data.Time.Calendar
+import Data.Time.LocalTime
+import Data.Tree
 import Safe (headDef)
 import System.Time (ClockTime(TOD))
-import Hledger.Data.Utils
+import Test.HUnit
+import Text.Printf
+import qualified Data.Map as Map
+
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
@@ -50,6 +58,7 @@ nulljournal = Journal { jmodifiertxns = []
 nullctx :: JournalContext
 nullctx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [] }
 
+nullfilterspec :: FilterSpec
 nullfilterspec = FilterSpec {
      datespan=nulldatespan
     ,cleared=Nothing

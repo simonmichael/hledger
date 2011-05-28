@@ -70,15 +70,19 @@ module Hledger.Data.Amount (
                             showMixedAmountWithPrecision,
                             sumMixedAmountsPreservingHighestPrecision,
                             tests_Hledger_Data_Amount
-                            -- Hledger.Data.Amount.tests_Hledger_Data_Amount
                            )
 where
-import qualified Data.Map as Map
+import Data.Char (isDigit)
+import Data.List
 import Data.Map (findWithDefault)
+import Data.Ord
+import Test.HUnit
+import Text.Printf
+import qualified Data.Map as Map
 
-import Hledger.Data.Utils
 import Hledger.Data.Types
 import Hledger.Data.Commodity
+import Hledger.Utils
 
 
 instance Show Amount where show = showAmount

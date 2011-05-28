@@ -12,10 +12,14 @@ module Hledger.Cli.Print (
  ,journalReport
  ,showTransactions
 ) where
+import Data.List
+import Data.Ord
+
 import Hledger.Cli.Options
 import Hledger.Data
+import Hledger.Utils
 import Prelude hiding (putStr)
-import Hledger.Data.UTF8 (putStr)
+import Hledger.Utils.UTF8 (putStr)
 
 
 -- | A "journal report" is just a list of transactions.

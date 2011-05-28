@@ -117,15 +117,24 @@ module Hledger.Read.JournalReader (
        tests_Hledger_Read_JournalReader
 )
 where
-import Control.Monad.Error (ErrorT(..), throwError, catchError)
+import Control.Monad
+import Control.Monad.Error
+import Data.Char (isNumber)
+import Data.List
 import Data.List.Split (wordsBy)
+import Data.Maybe
+import Data.Time.Calendar
+import Data.Time.LocalTime
 import Safe (headDef)
+import Test.HUnit
 import Text.ParserCombinators.Parsec hiding (parse)
+import Text.Printf
 
 import Hledger.Data
-import Prelude hiding (readFile)
-import Hledger.Data.UTF8 (readFile)
 import Hledger.Read.Utils
+import Hledger.Utils
+import Prelude hiding (readFile)
+import Hledger.Utils.UTF8 (readFile)
 
 
 -- let's get to it

@@ -6,13 +6,14 @@ module Hledger.Read.Utils
 where
 
 import Control.Monad.Error
+import Data.List
 import System.Directory (getHomeDirectory)
 import System.FilePath(takeDirectory,combine)
 import System.Time (getClockTime)
 import Text.ParserCombinators.Parsec
 
 import Hledger.Data.Types (Journal, JournalContext(..), Commodity, JournalUpdate)
-import Hledger.Data.Utils
+import Hledger.Utils
 import Hledger.Data.Dates (getCurrentYear)
 import Hledger.Data.Journal (nullctx, nulljournal, journalFinalise)
 

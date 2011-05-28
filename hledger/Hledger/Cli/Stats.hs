@@ -7,12 +7,18 @@ Print some statistics for the journal.
 
 module Hledger.Cli.Stats
 where
+import Data.List
+import Data.Maybe
+import Data.Ord
+import Data.Time.Calendar
+import Text.Printf
 import qualified Data.Map as Map
 
 import Hledger.Cli.Options
 import Hledger.Data
+import Hledger.Utils
 import Prelude hiding (putStr)
-import Hledger.Data.UTF8 (putStr)
+import Hledger.Utils.UTF8 (putStr)
 
 
 -- like Register.summarisePostings

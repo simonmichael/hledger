@@ -8,9 +8,16 @@ converted to 'Transactions' and queried like a ledger.
 
 module Hledger.Data.TimeLog
 where
+import Data.Maybe
+import Data.Time.Calendar
+import Data.Time.Clock
 import Data.Time.Format
+import Data.Time.LocalTime
 import System.Locale (defaultTimeLocale)
-import Hledger.Data.Utils
+import Test.HUnit
+import Text.Printf
+
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Commodity

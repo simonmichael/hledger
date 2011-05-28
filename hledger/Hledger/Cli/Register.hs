@@ -15,13 +15,21 @@ module Hledger.Cli.Register (
  ,tests_Hledger_Cli_Register
 ) where
 
+import Control.Monad
+import Data.List
+import Data.Maybe
+import Data.Ord
+import Data.Time.Calendar
 import Safe (headMay, lastMay)
+import Test.HUnit
 import Text.ParserCombinators.Parsec
+import Text.Printf
 
 import Hledger.Cli.Options
 import Hledger.Data
+import Hledger.Utils
 import Prelude hiding (putStr)
-import Hledger.Data.UTF8 (putStr)
+import Hledger.Utils.UTF8 (putStr)
 
 
 -- | A register report is a list of postings to an account or set of

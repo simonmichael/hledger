@@ -8,10 +8,14 @@ are thousands separated by comma, significant decimal places and so on.
 -}
 module Hledger.Data.Commodity
 where
-import Hledger.Data.Utils
-import Hledger.Data.Types
-import qualified Data.Map as Map
+import Data.List
 import Data.Map ((!))
+import Data.Maybe
+import Test.HUnit
+import qualified Data.Map as Map
+
+import Hledger.Data.Types
+import Hledger.Utils
 
 
 nonsimplecommoditychars = "0123456789-.@;\n \""

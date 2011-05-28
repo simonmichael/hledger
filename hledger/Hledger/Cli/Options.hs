@@ -4,13 +4,19 @@ Command-line options for the application.
 
 module Hledger.Cli.Options
 where
+import Data.Char (toLower)
+import Data.List
+import Data.Maybe
+import Data.Time.Calendar
+import Data.Time.LocalTime
 import System.Console.GetOpt
 import System.Environment
+import Test.HUnit
+import Text.RegexPR
 
-import Hledger.Data.Utils
-import Hledger.Data.Types
-import Hledger.Data.Dates
+import Hledger.Data
 import Hledger.Read (myJournalPath, myTimelogPath)
+import Hledger.Utils
 
 
 progname_cli = "hledger"

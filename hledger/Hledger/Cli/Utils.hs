@@ -2,7 +2,7 @@
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and
-Hledger.Data.Utils.
+Hledger.Utils.
 
 -}
 
@@ -22,10 +22,10 @@ module Hledger.Cli.Utils
      Test(TestList),
     )
 where
-import Hledger.Data
-import Hledger.Read
-import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts) -- ,optsToFilterSpec)
 import Control.Exception
+import Control.Monad
+import Data.List
+import Data.Maybe
 import Safe (readMay)
 import System.Directory (getModificationTime, getDirectoryContents, copyFile)
 import System.Exit
@@ -33,6 +33,14 @@ import System.FilePath ((</>), splitFileName, takeDirectory)
 import System.Info (os)
 import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
+import Test.HUnit
+import Text.Printf
+import Text.RegexPR
+
+import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts)
+import Hledger.Data
+import Hledger.Read
+import Hledger.Utils
 
 
 -- | Parse the user's specified journal file and run a hledger command on

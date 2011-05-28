@@ -1,5 +1,9 @@
 {-
-From pandoc, slightly extended.
+From pandoc, slightly extended. Example usage:
+
+ import Prelude hiding (readFile,writeFile,getContents,putStr,putStrLn)
+ import Hledger.Utils.UTF8 (readFile,writeFile,getContents,putStr,putStrLn)
+
 
 ----------------------------------------------------------------------
 Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
@@ -30,7 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 UTF-8 aware string IO functions that will work with GHC 6.10 or 6.12.
 -}
-module Hledger.Data.UTF8 ( readFile
+module Hledger.Utils.UTF8 ( readFile
                          , writeFile
                          , appendFile
                          , getContents

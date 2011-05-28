@@ -10,9 +10,11 @@ module Hledger.Cli.Version (
                            ,binaryfilename
 )
 where
+import Data.List
 import System.Info (os, arch)
+import Text.Printf
 
-import Hledger.Data.Utils
+import Hledger.Utils
 
 
 -- version and PATCHLEVEL are set by the make process

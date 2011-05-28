@@ -4,30 +4,30 @@ format, and print it on stdout. See the manual for more details.
 -}
 
 module Hledger.Cli.Convert where
-import Hledger.Cli.Options (Opt(Debug), progname_cli)
-import Hledger.Cli.Version (progversionstr)
-import Hledger.Data.Types (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
-import Hledger.Data.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error')
-import Hledger.Read.JournalReader (someamount,ledgeraccountname)
-import Hledger.Data.Journal (nullctx)
-import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
-import Safe (atDef, maximumDef)
-import System.IO (stderr)
-import Text.CSV (parseCSVFromFile, printCSV)
-import Text.Printf (hPrintf)
-import Text.RegexPR (matchRegexPR, gsubRegexPR)
-import Data.Maybe
-import Hledger.Data.Dates (firstJust, showDate, parsedate)
-import System.Locale (defaultTimeLocale)
-import Data.Time.Format (parseTime)
 import Control.Monad (when, guard, liftM)
+import Data.Maybe
+import Data.Time.Format (parseTime)
+import Hledger.Data.Dates (firstJust, showDate, parsedate)
+import Safe (atDef, maximumDef)
 import Safe (readDef, readMay)
 import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
 import System.FilePath (takeBaseName, replaceExtension)
-import Text.ParserCombinators.Parsec
+import System.IO (stderr)
+import System.Locale (defaultTimeLocale)
 import Test.HUnit
+import Text.CSV (parseCSVFromFile, printCSV)
+import Text.ParserCombinators.Parsec
+import Text.Printf (hPrintf)
+import Text.RegexPR (matchRegexPR, gsubRegexPR)
 
+import Hledger.Cli.Options (Opt(Debug), progname_cli)
+import Hledger.Cli.Version (progversionstr)
+import Hledger.Data (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
+import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
+import Hledger.Data.Journal (nullctx)
+import Hledger.Read.JournalReader (someamount,ledgeraccountname)
+import Hledger.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error')
 
 {- |
 A set of data definitions and account-matching patterns sufficient to
