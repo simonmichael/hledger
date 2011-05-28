@@ -65,9 +65,6 @@ Features: reads transactions in journal, timelog, or CSV format; handles multi-c
 
 
 *** website
-**** add related links:
-http://darcsden.com/dbp/housetab-multi
-
 **** add tables of contents
 **** integrate binaries, demo, pastebin
 *** faq
@@ -456,6 +453,30 @@ NOTE: This is the "developers' quick bug list", which predates the
 web-based bug tracker and is still used sometimes by hledger developers
 comfortable with org-mode.
 
+*** strange balancing failure
+2011/01/01 Example 
+  Assets:Brokerage:TESTA         188.424 TESTA @      $76.61 
+  Assets:Brokerage:TESTB       1,809.282 TESTB @      $15.60 
+  Assets:Brokerage:TESTC         384.320 TESTC @@  $5,000.00 
+  Assets:Brokerage:TESTC           5.306 TESTC @@     $68.18 
+  Equity:Opening Balances 
+
+
+$ hledger -f t.j bal
+hledger: could not parse journal data in t.j
+could not balance this transaction (real postings are off by $-4,931.82)
+2011/01/01 Example
+    Assets:Brokerage:TESTA   188.424 TESTA @ $76.61
+    Assets:Brokerage:TESTB   1,809.282 TESTB @ $15.60
+    Assets:Brokerage:TESTC   384.320 TESTC @@ $5,000.00
+    Assets:Brokerage:TESTC   5.306 TESTC @@ $68.18
+    Equity:Opening Balances              
+
+*** parsing: timezone should be supported in historical price records, elsewhere ? (greenskeleton)
+https://gist.github.com/972281
+
+*** linux 32 binary fails on ubuntu 11.04 due to libc6 gconv file path change (greenskeleton)
+https://gist.github.com/972289
 *** #35 wludwick hledger-web startup issue
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
@@ -532,6 +553,7 @@ http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** take port from base-url when appropriate
 *** parsing: support --options (?)
 *** parsing: canonicalise account names to be case-insensitive ?
 *** parsing: period expressions should allow interval at the end
@@ -575,6 +597,8 @@ ACCOUNTS
   RSG                         ; :number: 4020
  expenses                     ; :number: 6000
   rent                        ; :number: 6010
+
+or: http://furius.ca/beancount/examples/demo.ledger
 
 *** ignore/support ledger assert statements
  ; Assertion directives Options

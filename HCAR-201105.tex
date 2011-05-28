@@ -1,0 +1,53 @@
+% http://www.haskell.org/pipermail/haskell/2011-April/022720.html
+% http://haskell.org/communities/05-2011/template.tex
+% http://haskell.org/communities/05-2011/hcar.sty
+
+\documentclass{scrreprt}
+\usepackage{paralist}
+\usepackage{graphicx}
+\usepackage[final]{hcar}
+
+%include polycode.fmt
+
+\def\EMailRepl#1#2{\DoEMailRepl{#2} #1@@\End}
+\def\DoEMailRepl#1#2@@#3\End
+  {\if!#3!#2\else\DoDoEmailRepl{#1}{#2}#3\fi}
+\def\DoDoEmailRepl#1#2#3@@{#2#1#3}
+\def\EAt{ @@ }
+
+\begin{document}
+
+\begin{hcarentry}{hledger}
+\report{Simon Michael}
+\status{Ongoing development; suitable for daily use}
+\participants{}% optional
+\makeheader
+
+hledger is a haskell port and friendly fork of John Wiegley's ledger.  It
+is a robust command-line accounting tool with a simple human-editable data
+format. Given a plain text file describing transactions, of money or any
+other commodity, hledger will print the chart of accounts, account
+balances, or transactions you're interested in.  It can also help you
+record transactions, or convert CSV data from your bank. There are also
+curses and web interfaces. The project aims to provide a reliable,
+practical day-to-day financial reporting tool, and also a useful library
+for building financial apps in haskell.
+
+Since hledger's last HCAR entry in 2009, hledger became cabalised, had 10
+non-bugfix releases on hackage, split into multiple packages, acquired a
+public mailing list, bug tracker, fairly comprehensive manual,
+cross-platform binaries, and has grown to 5k lines of code and 15
+committers. 0.14 has just been released, with 5 code committers.
+
+The project is available under the GNU GPLv3 or later, at http://hledger.org .
+
+Current plans are to continue development at a steady pace, to attract
+more developers, and to become more useful to a wider range of users, eg
+by building in more awareness of standard accounting procedures and by
+improving the web and other interfaces.
+
+\FurtherReading
+  \url{http://hledger.org}
+\end{hcarentry}
+
+\end{document}
