@@ -16,30 +16,35 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      beta
-tested-with:    GHC==6.10, GHC==6.12
-cabal-version:  >= 1.6
-build-type:     Custom
+tested-with:    GHC==6.12, GHC==7.0
+cabal-version:  >= 1.8
+build-type:     Simple
 -- data-dir:       data
 -- data-files:
 extra-tmp-files:
 extra-source-files:
 
+-- Cabal-Version:  >= 1.9.2
+-- Test-Suite test-hledger
+--     type:       exitcode-stdio-1.0
+--     main-is:    test-hledger.hs
+--     build-depends: base
+
 source-repository head
   type:     darcs
   location: http://joyful.com/repos/hledger
 
-executable hledger
-  main-is:        hledger.hs
-  -- XXX set patchlevel here as in Makefile
+library
+  -- should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
-  ghc-options:    -threaded -W
-  other-modules:
+  ghc-options:    -W
+  exposed-modules:
+                  Hledger.Cli
                   Hledger.Cli.Main
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
                   Hledger.Cli.Utils
                   Hledger.Cli.Version
-                  Hledger.Cli
                   Hledger.Cli.Add
                   Hledger.Cli.Balance
                   Hledger.Cli.Convert
@@ -67,27 +72,16 @@ executable hledger
                  ,utf8-string >= 0.3.5 && < 0.4
                  ,haskeline == 0.6.*
 
--- modules and dependencies below should be as above
-library
-  -- should set patchlevel here as in Makefile
+executable hledger
+  main-is:        hledger.hs
+  -- XXX set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
-  ghc-options:    -W
-  exposed-modules:
-                  Hledger.Cli.Main
-                  Hledger.Cli.Options
-                  Hledger.Cli.Tests
-                  Hledger.Cli.Utils
-                  Hledger.Cli.Version
-                  Hledger.Cli
-                  Hledger.Cli.Add
-                  Hledger.Cli.Balance
-                  Hledger.Cli.Convert
-                  Hledger.Cli.Histogram
-                  Hledger.Cli.Print
-                  Hledger.Cli.Register
-                  Hledger.Cli.Stats
+  ghc-options:    -threaded -W
+  -- must be the same as above, for some reason
   build-depends:
-                  hledger-lib == 0.14.98
+                  base >= 3 && < 5
+                 ,hledger == 0.14.98
+                 ,hledger-lib == 0.14.98
                  ,HUnit
                  ,base >= 3 && < 5
                  ,containers
@@ -104,3 +98,5 @@ library
                  ,split == 0.1.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
+                 ,haskeline == 0.6.*
+
