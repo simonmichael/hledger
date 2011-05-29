@@ -4,6 +4,7 @@ format, and print it on stdout. See the manual for more details.
 -}
 
 module Hledger.Cli.Convert where
+import Prelude hiding (getContents)
 import Control.Monad (when, guard, liftM)
 import Data.Maybe
 import Data.Time.Format (parseTime)
@@ -16,18 +17,19 @@ import System.FilePath (takeBaseName, replaceExtension)
 import System.IO (stderr)
 import System.Locale (defaultTimeLocale)
 import Test.HUnit
-import Text.CSV (parseCSVFromFile, printCSV)
+import Text.CSV (parseCSV, parseCSVFromFile, printCSV, CSV)
 import Text.ParserCombinators.Parsec
 import Text.Printf (hPrintf)
 import Text.RegexPR (matchRegexPR, gsubRegexPR)
 
-import Hledger.Cli.Options (Opt(Debug), progname_cli)
+import Hledger.Cli.Options (Opt(Debug), progname_cli, rulesFileFromOpts)
 import Hledger.Cli.Version (progversionstr)
 import Hledger.Data (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
 import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader (someamount,ledgeraccountname)
 import Hledger.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error')
+import Hledger.Utils.UTF8 (getContents)
 
 {- |
 A set of data definitions and account-matching patterns sufficient to
@@ -79,12 +81,16 @@ convert :: [Opt] -> [String] -> Journal -> IO ()
 convert opts args _ = do
   when (null args) $ error' "please specify a csv data file."
   let csvfile = head args
-  csvparse <- parseCSVFromFile csvfile
+  let 
+    rulesFileSpecified = isNothing $ rulesFileFromOpts opts
+    usingStdin = csvfile == "-"
+  when (usingStdin && (not rulesFileSpecified)) $ error' "please specify a files file when converting stdin"
+  csvparse <- parseCsv csvfile
   let records = case csvparse of
                   Left e -> error' $ show e
                   Right rs -> reverse $ filter (/= [""]) rs
   let debug = Debug `elem` opts
-      rulesfile = rulesFileFor csvfile
+      rulesfile = rulesFileFor opts csvfile
   exists <- doesFileExist rulesfile
   if (not exists) then do
                   hPrintf stderr "creating conversion rules file %s, edit this file for better results\n" rulesfile
@@ -105,6 +111,12 @@ convert opts args _ = do
                      ]) (show $ head badrecords)
      exitFailure
 
+parseCsv :: FilePath -> IO (Either ParseError CSV)
+parseCsv path =
+  case path of
+    "-" -> liftM (parseCSV "(stdin)") getContents
+    p   -> parseCSVFromFile p
+
 -- | The highest (0-based) field index referenced in the field
 -- definitions, or -1 if no fields are defined.
 maxFieldIndex :: CsvRules -> Int
@@ -119,8 +131,13 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
                   ,effectiveDateField r
                   ]
 
-rulesFileFor :: FilePath -> FilePath
-rulesFileFor csvfile = replaceExtension csvfile ".rules"
+rulesFileFor :: [Opt] -> FilePath -> FilePath
+rulesFileFor opts csvfile = 
+    case opt of
+      Just path -> path
+      Nothing   -> replaceExtension csvfile ".rules"
+    where
+      opt = rulesFileFromOpts opts
 
 initialRulesFileContent :: String
 initialRulesFileContent =

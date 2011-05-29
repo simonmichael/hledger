@@ -84,6 +84,7 @@ options_cli = [
  ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
  ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
  ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register, stats: report by year"
+ ,Option "r" ["rules"]        (ReqArg RulesFile "FILE") "convert, rules file to use"
  ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
  ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
  ,Option ""  ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
@@ -115,6 +116,7 @@ data Opt =
     | MonthlyOpt
     | QuarterlyOpt
     | YearlyOpt
+    | RulesFile   {value::String}
     | Help
     | Verbose
     | Version
@@ -212,6 +214,12 @@ intervalFromOpts opts =
     where
       periodopts   = reverse $ optValuesForConstructor Period opts
       intervalopts = reverse $ filter (`elem` [DailyOpt,WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
+
+rulesFileFromOpts :: [Opt] -> Maybe FilePath
+rulesFileFromOpts opts = listtomaybe $ optValuesForConstructor RulesFile opts
+    where
+      listtomaybe [] = Nothing
+      listtomaybe vs = Just $ head vs
 
 -- | Get the value of the (last) depth option, if any.
 depthFromOpts :: [Opt] -> Maybe Int

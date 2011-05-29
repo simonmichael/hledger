@@ -29,7 +29,6 @@ library
   -- should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
   exposed-modules:
-                  Hledger
                   Hledger.Data
                   Hledger.Data.Account
                   Hledger.Data.AccountName

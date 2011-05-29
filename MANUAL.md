@@ -521,7 +521,13 @@ journal.
 convert requires a \*.rules file containing data definitions and rules for
 assigning destination accounts to transactions; it will be auto-created if
 missing. Typically you will have one csv file and one rules file per bank
-account. Here's an example rules file for converting csv data from a Wells
+account.
+
+If you have many CSV files for each account, have many accounts in the
+same bank or for any other reason want to re-use the rules file you can
+state it explicitly with the `--rules` argument.
+
+Here's an example rules file for converting csv data from a Wells
 Fargo checking account:
 
     base-account assets:bank:checking
@@ -599,6 +605,14 @@ Notes:
     "bank-current" would be debited by "-15 GBP". This way you could
     track the expenses in the currencies there were made, while
     keeping your base account in single currency
+
+The convert command also supports converting standard input if you're
+streaming a CSV file from the web or another tool. Use `-` as the input
+file and hledger will read from stdin:
+
+    $ cat foo.csv | fixup | hledger convert --rules foo.rules -
+
+Note that a rules file is required when streaming.
 
 ### histogram
 
