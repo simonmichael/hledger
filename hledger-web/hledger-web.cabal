@@ -20,18 +20,11 @@ stability:      beta
 tested-with:    GHC==6.12
 cabal-version:  >= 1.6
 build-type:     Simple
-data-dir:       .hledger
-data-files:
-                web/combo_select.gif
-                web/dhtmlxcombo.js
-                web/dhtmlxcommon.js
-                web/favicon.ico
-                web/hledger.js
-                web/jquery.js
-                web/jquery.url.js
-                web/style.css
 extra-tmp-files:
 extra-source-files:
+-- included via hamletFile/EmbeddedFiles.hs since yesod needs the paths at compile-time
+-- data-dir:    
+-- data-files:  
 
 source-repository head
   type:     darcs
