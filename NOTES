@@ -449,11 +449,33 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
-NOTE: This is the "developers' quick bug list", which predates the
-web-based bug tracker and is still used sometimes by hledger developers
-comfortable with org-mode.
+*** about:
+The quick bug list - predates the web-based bug tracker, still in use as
+front-line tracker by the org-mode-comfortable hledger developer(s)
 
-*** strange balancing failure
+*** tools: avoid haskell compiles and compile errors while setting up makefile vars
+joyful$ make help
+GHCi runtime linker: fatal error: I found a duplicate definition for symbol
+   __hscore_S_IFDIR
+whilst processing object file
+   /usr/local/lib/ghc-7.0.2/directory-1.1.0.0/HSdirectory-1.1.0.0.o
+This could be caused by:
+   * Loading two different object files which export the same symbol
+   * Specifying the same object file twice on the GHCi command line
+   * An incorrect `package.conf' entry, causing some object to be
+     loaded twice.
+GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
+
+make: *** No rule to make target `help'.  Stop.
+
+*** linux 32 binary fails on ubuntu 11.04 due to libc6 gconv file path change (greenskeleton)
+http://code.google.com/p/hledger/issues/detail?id=43
+*** parsing: balancing fails for a commodityless amount with a price 
+1/1
+    a       927.5 @ 2EUR
+    b
+
+*** parsing: strange balancing failure
 2011/01/01 Example 
   Assets:Brokerage:TESTA         188.424 TESTA @      $76.61 
   Assets:Brokerage:TESTB       1,809.282 TESTB @      $15.60 
@@ -474,14 +496,9 @@ could not balance this transaction (real postings are off by $-4,931.82)
 
 *** parsing: timezone should be supported in historical price records, elsewhere ? (greenskeleton)
 https://gist.github.com/972281
-
-*** linux 32 binary fails on ubuntu 11.04 due to libc6 gconv file path change (greenskeleton)
-https://gist.github.com/972289
-*** #35 wludwick hledger-web startup issue
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print
-*** parsing: only journals (not timelog files) can include, and only another journal
 *** parsing: "could not balance" error does not show line number
 *** parsing: extra noise with eg bad date parse errors
 $ cat t.journal
@@ -506,23 +523,14 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
-*** parsing: let's enforce positive price amounts for clarity, like ledger
-eg 1€ @@ $-2 is not allowed
 *** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance" --DA
 **** TODO Needs minimal testcase
-*** balance: --depth with --flat should show aggregate balances
-**** TODO Needs example!
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
 **** TODO Needs example!
-*** web: account patterns on command line are ignored
-*** web: doesn't support multiple filter patterns
-*** web: post handlers should preserve a and p
 *** web: --base-url trailing slash gives redirect loop
-hledger-web --port 5001 --base-url http://localhost:5001/ -f ~/personal/household.journal
-*** web: assets.bank.checking indentation in demo journal
+hledger-web --port 5001 --base-url http://localhost:5001/
+*** web: account patterns on command line are ignored
 *** web: loses -B after an edit, and/or a filesystem edit
-*** docs: need to be less wall-of-text
-*** docs:installing:describe the three install methods in one place
 *** #25 can't print non-ascii in windows console
 http://code.google.com/p/hledger/issues/detail?id=25
 http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
@@ -553,12 +561,63 @@ http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
+*** cli, web: richer filter patterns
+ledger's query syntax: http://ledger-cli.org/3.0/doc/ledger.1.html
+**** draft 1:
+
+Filter patterns restrict the postings/transactions that are displayed.
+(They often reduce the amount of processing work hledger has to do, as well.)
+A pattern is a string or regular expression, usually with a prefix specifying the type of match to do.
+The supported prefixes are:
+
+acct:PAT        match postings affecting accounts whose name matches PAT
+otheracct:PAT   match the other postings in transactions with an acct match (like ledger's --related)
+anyacct:PAT     match all postings in transactions with an acct match (union of acct and otheracct)
+desc:PAT        match postings whose description matches PAT
+status:PAT      match postings whose cleared status matches PAT
+code:PAT        match postings whose transaction code matches PAT
+tag:PAT         match postings with a metadata tag whose name matches PAT
+tag:TAG=PAT     match postings with a metadata tag named TAG whose value matches PAT
+from:DATE       match postings on or after DATE (like --begin)
+to:DATE         match postings before DATE (like --end)
+in:PERIOD       match postings during PERIOD (like --period)
+(or ?
+begin:DATE       match postings on or after DATE (like --begin)
+end:DATE         match postings before DATE (like --end)
+period:PERIOD    match postings during PERIOD (like --period)
+)
+
+Prefixes have a short form which is their first letter, except for tag and anyacct.
+
+Prefix-less patterns are treated like acct: patterns, except by the
+register command which treats them as otheracct: .
+
+Patterns containing whitespace must be enclosed in quotes.
+
+Matches are always case-insensitive.
+
+Matches are always substring matches (except for TAG); to match exactly,
+wrap the pattern in ^ and $.
+
+A posting's date, status, code, etc. is usually (but not always) that of
+its containing transaction.
+
+Any of these may be further prefixed with not: for an inverse match.
+
+Filter patterns may be combined with AND, OR, and parentheses.  OR is
+assumed by default.
+
+*** web: optional production build needing no files at all (static files embedded)
+*** docs: better intro, less wall-of-text, separate reference manual & tutorials
+*** balance: --depth with --flat should show aggregate balances including the non-displayed deeper accounts
 *** take port from base-url when appropriate
-*** parsing: support --options (?)
+*** parsing: let's enforce positive price amounts for clarity, like ledger
+eg 1€ @@ $-2 is not allowed
 *** parsing: canonicalise account names to be case-insensitive ?
 *** parsing: period expressions should allow interval at the end
 eg support -p 'from 1/1 to 2/1 weekly'
 
+*** parsing: only journals (not timelog files) can include, and only another journal
 *** --empty-parents
              $260.00  expenses
              $260.00    rent
