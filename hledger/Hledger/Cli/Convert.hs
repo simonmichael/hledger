@@ -89,7 +89,7 @@ convert opts args _ = do
   when (null args) $ error' "please specify a csv data file."
   let csvfile = head args
   let 
-    rulesFileSpecified = isNothing $ rulesFileFromOpts opts
+    rulesFileSpecified = isJust $ rulesFileFromOpts opts
     usingStdin = csvfile == "-"
   when (usingStdin && (not rulesFileSpecified)) $ error' "please specify a files file when converting stdin"
   csvparse <- parseCsv csvfile
