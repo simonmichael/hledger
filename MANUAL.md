@@ -563,6 +563,13 @@ This says:
 -   if description contains TO SAVINGS or FROM SAVINGS, the
     transaction is a savings transfer
 
+If your bank or external system uses two different columns for in and
+out movements, use the `in-field` and `out-field` rules instead of
+`amount-field`.
+
+Note that the numbers are assumed to be positive, implying that an "out"
+movement gets recorded as a transaction with a negative amount.
+
 Notes:
 
 -   Lines beginning with ; or \# are ignored (but avoid using inside an

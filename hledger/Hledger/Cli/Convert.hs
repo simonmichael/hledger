@@ -8,7 +8,6 @@ import Prelude hiding (getContents)
 import Control.Monad (when, guard, liftM)
 import Data.Maybe
 import Data.Time.Format (parseTime)
-import Hledger.Data.Dates (firstJust, showDate, parsedate)
 import Safe (atDef, maximumDef)
 import Safe (readDef, readMay)
 import System.Directory (doesFileExist)
@@ -23,8 +22,9 @@ import Text.Printf (hPrintf)
 
 import Hledger.Cli.Options (Opt(Debug), progname_cli, rulesFileFromOpts)
 import Hledger.Cli.Version (progversionstr)
-import Hledger.Data (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
+import Hledger.Data.Dates (firstJust, showDate, parsedate)
+import Hledger.Data (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
 import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader (someamount,ledgeraccountname)
 import Hledger.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error', regexMatchesCI, regexReplaceCI)
@@ -41,6 +41,8 @@ data CsvRules = CsvRules {
       codeField :: Maybe FieldPosition,
       descriptionField :: Maybe FieldPosition,
       amountField :: Maybe FieldPosition,
+      inField :: Maybe FieldPosition,
+      outField :: Maybe FieldPosition,
       currencyField :: Maybe FieldPosition,
       baseCurrency :: Maybe String,
       accountField :: Maybe FieldPosition,
@@ -56,6 +58,8 @@ nullrules = CsvRules {
       codeField=Nothing,
       descriptionField=Nothing,
       amountField=Nothing,
+      inField=Nothing,
+      outField=Nothing,
       currencyField=Nothing,
       baseCurrency=Nothing,
       accountField=Nothing,
@@ -97,7 +101,9 @@ convert opts args _ = do
    else
       hPrintf stderr "using conversion rules file %s\n" rulesfile
   rules <- liftM (either (error'.show) id) $ parseCsvRulesFile rulesfile
+  let invalid = validateRules rules
   when debug $ hPrintf stderr "rules: %s\n" (show rules)
+  when (isJust invalid) $ error (fromJust invalid)
   let requiredfields = max 2 (maxFieldIndex rules + 1)
       badrecords = take 1 $ filter ((< requiredfields).length) records
   if null badrecords
@@ -125,6 +131,8 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
                   ,codeField r
                   ,descriptionField r
                   ,amountField r
+                  ,inField r
+                  ,outField r
                   ,currencyField r
                   ,accountField r
                   ,effectiveDateField r
@@ -162,6 +170,18 @@ initialRulesFileContent =
     "(TO|FROM) SAVINGS\n" ++
     "assets:bank:savings\n"
 
+validateRules :: CsvRules -> Maybe String
+validateRules rules = let
+    hasAccount = isJust $ accountField rules
+    hasIn = isJust $ inField rules
+    hasOut = isJust $ outField rules
+  in case (hasAccount, hasIn, hasOut) of
+    (True, True, _) -> Just "Don't specify in-field when specifying amount-field"
+    (True, _, True) -> Just "Don't specify out-field when specifying amount-field"
+    (_, False, True) -> Just "You have to specify in-field when specifying out-field"
+    (_, True, False) -> Just "You have to specify out-field when specifying in-field"
+    _ -> Nothing
+
 -- rules file parser
 
 parseCsvRulesFile :: FilePath -> IO (Either ParseError CsvRules)
@@ -194,6 +214,8 @@ definitions = do
    ,codefield
    ,descriptionfield
    ,amountfield
+   ,infield
+   ,outfield
    ,currencyfield
    ,accountfield
    ,effectivedatefield
@@ -251,6 +273,20 @@ amountfield = do
   v <- restofline
   r <- getState
   setState r{amountField=readMay v}
+
+infield = do
+  string "in-field"
+  many1 spacenonewline
+  v <- restofline
+  r <- getState
+  setState r{inField=readMay v}
+
+outfield = do
+  string "out-field"
+  many1 spacenonewline
+  v <- restofline
+  r <- getState
+  setState r{outField=readMay v}
 
 currencyfield = do
   string "currency-field"
@@ -329,7 +365,7 @@ transactionFromCsvRecord rules fields =
       comment = ""
       precomment = ""
       baseacc = maybe (baseAccount rules) (atDef "" fields) (accountField rules)
-      amountstr = maybe "" (atDef "" fields) (amountField rules)
+      amountstr = getAmount rules fields
       amountstr' = strnegate amountstr where strnegate ('-':s) = s
                                              strnegate s = '-':s
       currency = maybe (fromMaybe "" $ baseCurrency rules) (atDef "" fields) (currencyField rules)
@@ -406,6 +442,18 @@ identify rules defacct desc | null matchingrules = (defacct,desc)
                           Nothing   -> desc
 
 caseinsensitive = ("(?i)"++)
+
+getAmount :: CsvRules -> CsvRecord -> String
+getAmount rules fields = case (accountField rules) of
+  Just f  -> maybe "" (atDef "" fields) $ Just f
+  Nothing ->
+    case (c, d) of
+      (x, "") -> x
+      ("", x) -> "-"++x
+      _ -> ""
+    where
+      c = maybe "" (atDef "" fields) (inField rules)
+      d = maybe "" (atDef "" fields) (outField rules)
 
 tests_Hledger_Cli_Convert = TestList [
 
