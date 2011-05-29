@@ -72,11 +72,11 @@ executable hledger-web
                  -- ,old-time
                  ,parsec
                  -- ,process
-                 -- ,regexpr >= 0.5.1
+                 ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  -- ,split == 0.1.*
                  ,text
-                 -- ,time
+                 ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
                  ,io-storage >= 0.3 && < 0.4
                  -- ,convertible-text >= 0.3.0.1 && < 0.4

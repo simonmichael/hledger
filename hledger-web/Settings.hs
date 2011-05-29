@@ -111,7 +111,7 @@ toJuliusFile x  = datadir++"templates/" ++ x ++ ".julius"
 toLuciusFile x  = datadir++"templates/" ++ x ++ ".lucius"
 
 hamletFile :: FilePath -> Q Exp
-hamletFile = H.hamletFile . toHamletFile
+hamletFile = H.hamletFile . toHamletFile -- debug variant not used, http://www.yesodweb.com/book/faq#q1
 
 cassiusFile :: FilePath -> Q Exp
 #ifdef PRODUCTION

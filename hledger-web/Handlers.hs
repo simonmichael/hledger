@@ -4,11 +4,16 @@ module Handlers where
 import Control.Applicative ((<$>), (<*>))
 import Data.ByteString (ByteString)
 import Data.Either (lefts,rights)
+import Data.List
+import Data.Maybe
 import Data.Text(Text,pack,unpack)
+import Data.Time.Calendar
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
 import Text.ParserCombinators.Parsec hiding (string)
+import Text.Printf
+import Text.RegexPR
 import Yesod.Form
 
 import Hledger.Cli.Add
@@ -18,9 +23,11 @@ import Hledger.Cli.Register
 import Hledger.Cli.Options hiding (value)
 import Hledger.Cli.Utils
 import Hledger.Cli.Version (version)
-import Hledger.Data hiding (insert, today)
+import Hledger.Cli.Version -- XXX
+import Hledger.Data hiding (today)
 import Hledger.Read (journalFromPathAndString)
 import Hledger.Read.JournalReader (someamount)
+import Hledger.Utils
 
 import App
 import Settings

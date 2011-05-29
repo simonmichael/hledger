@@ -13,6 +13,7 @@ module App
     , liftIO
     ) where
 
+import Control.Monad
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text as T
