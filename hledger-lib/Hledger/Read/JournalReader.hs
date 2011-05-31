@@ -300,7 +300,7 @@ ledgerTagDirective = do
 
 ledgerEndTagDirective :: GenParser Char JournalContext JournalUpdate
 ledgerEndTagDirective = do
-  string "end tag" <?> "end tag directive"
+  (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
   return $ return id
 
@@ -708,6 +708,8 @@ tests_Hledger_Read_JournalReader = TestList [
 
   ,"ledgerEndTagDirective" ~: do
      assertParse (parseWithCtx nullctx ledgerEndTagDirective "end tag \n")
+  ,"ledgerEndTagDirective" ~: do
+     assertParse (parseWithCtx nullctx ledgerEndTagDirective "pop \n")
 
   ,"ledgeraccountname" ~: do
     assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
