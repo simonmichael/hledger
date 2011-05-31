@@ -457,7 +457,7 @@ identify rules defacct desc | null matchingrules = (defacct,desc)
 caseinsensitive = ("(?i)"++)
 
 getAmount :: CsvRules -> CsvRecord -> String
-getAmount rules fields = case (accountField rules) of
+getAmount rules fields = case amountField rules of
   Just f  -> maybe "" (atDef "" fields) $ Just f
   Nothing ->
     case (c, d) of
