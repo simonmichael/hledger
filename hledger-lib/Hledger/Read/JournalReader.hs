@@ -372,11 +372,12 @@ ledgerdate = do
   datestr <- many1 $ choice' [digit, datesepchar]
   let dateparts = wordsBy (`elem` datesepchars) datestr
   currentyear <- getYear
-  let [y,m,d] = case (dateparts,currentyear) of
-                  ([m,d],Just y)  -> [show y,m,d]
-                  ([_,_],Nothing) -> fail $ "partial date "++datestr++" found, but the current year is unknown"
-                  _               -> dateparts
-      maybedate = fromGregorianValid (read y) (read m) (read d)
+  [y,m,d] <- case (dateparts,currentyear) of
+              ([m,d],Just y)  -> return [show y,m,d]
+              ([_,_],Nothing) -> fail $ "partial date "++datestr++" found, but the current year is unknown"
+              ([y,m,d],_)     -> return [y,m,d]
+              _               -> fail $ "bad date: " ++ datestr
+  let maybedate = fromGregorianValid (read y) (read m) (read d)
   case maybedate of
     Nothing   -> fail $ "bad date: " ++ datestr
     Just date -> return date
@@ -714,6 +715,11 @@ tests_Hledger_Read_JournalReader = TestList [
      assertParse (parseWithCtx nullctx ledgercommentline "; some comment \n")
      assertParse (parseWithCtx nullctx ledgercommentline " \t; x\n")
      assertParse (parseWithCtx nullctx ledgercommentline ";x")
+
+  ,"ledgerdate" ~: do
+     assertParse (parseWithCtx nullctx ledgerdate "2011/1/1")
+     assertParseFailure (parseWithCtx nullctx ledgerdate "1/1")
+     assertParse (parseWithCtx nullctx{ctxYear=Just 2011} ledgerdate "1/1")
 
   ,"ledgerDefaultYear" ~: do
      assertParse (parseWithCtx nullctx ledgerDefaultYear "Y 2010\n")
