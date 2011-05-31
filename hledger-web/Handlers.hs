@@ -106,8 +106,10 @@ postRegisterOnlyR = handlePost
 -- specifies json, returns the chart of accounts as json.
 getAccountsOnlyR :: Handler RepHtmlJson
 getAccountsOnlyR = do
-  vd@VD{opts=opts,fspec=fspec,j=j} <- getViewData
-  let json = jsonMap [("accounts", toJSON $ journalAccountNames j)]
+  vd@VD{opts=opts,fspec=fspec,j=j,a=a} <- getViewData
+  let accountNames = journalAccountNames j :: [AccountName]
+      accountNames' = filter (matchpats [a]) $ accountNames
+      json = jsonMap [("accounts", toJSON $ accountNames')]
       html = do
         setTitle "hledger-web accounts"
         addHamlet $ balanceReportAsHtml opts vd $ balanceReport opts fspec j
@@ -116,8 +118,10 @@ getAccountsOnlyR = do
 -- | Return the chart of accounts as json, without needing a special Accept header.
 getAccountsJsonR :: Handler RepJson
 getAccountsJsonR = do
-  VD{j=j} <- getViewData
-  jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j)]
+  VD{a=a,j=j} <- getViewData
+  let accountNames = journalAccountNames j :: [AccountName]
+      accountNames' = filter (matchpats [a]) $ accountNames
+  jsonToRepJson $ jsonMap [("accounts", toJSON $ accountNames')]
 
 -- helpers
 
