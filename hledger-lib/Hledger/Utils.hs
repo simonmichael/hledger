@@ -402,6 +402,10 @@ a `is` e = assertEqual "" e a
 assertParse :: (Either ParseError a) -> Assertion
 assertParse parse = either (assertFailure.show) (const (return ())) parse
 
+-- | Assert a parse result is successful, printing the parse error on failure.
+assertParseFailure :: (Either ParseError a) -> Assertion
+assertParseFailure parse = either (const $ return ()) (const $ assertFailure "parse should not have succeeded") parse
+
 -- | Assert a parse result is some expected value, printing the parse error on failure.
 assertParseEqual :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
 assertParseEqual parse expected = either (assertFailure.show) (`is` expected) parse
