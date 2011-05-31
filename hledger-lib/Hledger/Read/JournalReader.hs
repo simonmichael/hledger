@@ -388,12 +388,19 @@ ledgerdatetime = do
   day <- ledgerdate
   many1 spacenonewline
   h <- many1 digit
+  let h' = read h
+  guard $ h' >= 0 && h' <= 23
   char ':'
   m <- many1 digit
+  let m' = read m
+  guard $ m' >= 0 && m' <= 59
   s <- optionMaybe $ do
       char ':'
       many1 digit
-  let tod = TimeOfDay (read h) (read m) (maybe 0 (fromIntegral.read) s)
+  let s' = case s of Just sstr -> read sstr
+                     Nothing -> 0
+  guard $ s' >= 0 && s' <= 59
+  let tod = TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day tod
 
 ledgereffectivedate :: Day -> GenParser Char JournalContext Day
@@ -720,6 +727,15 @@ tests_Hledger_Read_JournalReader = TestList [
      assertParse (parseWithCtx nullctx ledgerdate "2011/1/1")
      assertParseFailure (parseWithCtx nullctx ledgerdate "1/1")
      assertParse (parseWithCtx nullctx{ctxYear=Just 2011} ledgerdate "1/1")
+
+  ,"ledgerdatetime" ~: do
+     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1")
+     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1 24:00:00")
+     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1 00:60:00")
+     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1 00:00:60")
+     assertParse (parseWithCtx nullctx ledgerdatetime "2011/1/1 00:00")
+     assertParse (parseWithCtx nullctx ledgerdatetime "2011/1/1 23:59:59")
+     assertParse (parseWithCtx nullctx ledgerdatetime "2011/1/1 3:5:7")
 
   ,"ledgerDefaultYear" ~: do
      assertParse (parseWithCtx nullctx ledgerDefaultYear "Y 2010\n")
