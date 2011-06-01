@@ -35,9 +35,10 @@ source-repository head
   location: http://joyful.com/repos/hledger
 
 library
-  -- should set patchlevel here as in Makefile
+  -- XXX should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
   ghc-options:    -W
+  -- should be the same as below
   exposed-modules:
                   Hledger.Cli
                   Hledger.Cli.Main
@@ -52,6 +53,7 @@ library
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
+  -- should be the same as below
   build-depends:
                   hledger-lib == 0.14.98
                  ,HUnit
@@ -72,12 +74,35 @@ library
                  ,utf8-string >= 0.3.5 && < 0.4
                  ,haskeline == 0.6.*
 
+-- should reuse the library above to avoid double compilation, but
+-- this is still too complicated as of 2011/6/1. Notes:
+-- - interferes with haddock generation, reportedly
+-- - library and executable must have different hs-source-dirs
+-- - how it works seems ghc version dependent
+-- - the exe may need to list all the lib's dependencies
+-- - leksah is the package reported to have this working
+--   (http://hackage.haskell.org/packages/archive/leksah/0.10.0.4/leksah.cabal)
 executable hledger
   main-is:        hledger.hs
-  -- XXX set patchlevel here as in Makefile
+  -- should be the same as above
+  other-modules:
+                  Hledger.Cli
+                  Hledger.Cli.Main
+                  Hledger.Cli.Options
+                  Hledger.Cli.Tests
+                  Hledger.Cli.Utils
+                  Hledger.Cli.Version
+                  Hledger.Cli.Add
+                  Hledger.Cli.Balance
+                  Hledger.Cli.Convert
+                  Hledger.Cli.Histogram
+                  Hledger.Cli.Print
+                  Hledger.Cli.Register
+                  Hledger.Cli.Stats
+  -- XXX should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
   ghc-options:    -threaded -W
-  -- must be the same as above, for some reason
+  -- should be the same as above
   build-depends:
                   base >= 3 && < 5
                  ,hledger == 0.14.98
@@ -99,4 +124,3 @@ executable hledger
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
                  ,haskeline == 0.6.*
-
