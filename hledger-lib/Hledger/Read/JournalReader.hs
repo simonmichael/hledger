@@ -123,8 +123,11 @@ import Data.List
 import Data.List.Split (wordsBy)
 import Data.Maybe
 import Data.Time.Calendar
+-- import Data.Time.Clock
+-- import Data.Time.Format
 import Data.Time.LocalTime
 import Safe (headDef)
+-- import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Text.ParserCombinators.Parsec hiding (parse)
 import Text.Printf
@@ -364,6 +367,8 @@ ledgerTransaction = do
   postings <- ledgerpostings
   return $ txnTieKnot $ Transaction date edate status code description comment md postings ""
 
+-- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
+-- may be omitted if a default year has already been set.
 ledgerdate :: GenParser Char JournalContext Day
 ledgerdate = do
   -- hacky: try to ensure precise errors for invalid dates
@@ -383,6 +388,10 @@ ledgerdate = do
     Just date -> return date
   <?> "full or partial date"
 
+-- | Parse a date and time in YYYY/MM/DD HH:MM[:SS][+-ZZZZ] format.  Any
+-- timezone will be ignored; the time is treated as local time.  Fewer
+-- digits are allowed, except in the timezone. The year may be omitted if
+-- a default year has already been set.
 ledgerdatetime :: GenParser Char JournalContext LocalTime
 ledgerdatetime = do 
   day <- ledgerdate
@@ -394,14 +403,22 @@ ledgerdatetime = do
   m <- many1 digit
   let m' = read m
   guard $ m' >= 0 && m' <= 59
-  s <- optionMaybe $ do
-      char ':'
-      many1 digit
+  s <- optionMaybe $ char ':' >> many1 digit
   let s' = case s of Just sstr -> read sstr
-                     Nothing -> 0
+                     Nothing   -> 0
   guard $ s' >= 0 && s' <= 59
-  let tod = TimeOfDay h' m' (fromIntegral s')
-  return $ LocalTime day tod
+  {- tz <- -}
+  optionMaybe $ do
+                   plusminus <- oneOf "-+"
+                   d1 <- digit
+                   d2 <- digit
+                   d3 <- digit
+                   d4 <- digit
+                   return $ plusminus:d1:d2:d3:d4:""
+  -- ltz <- liftIO $ getCurrentTimeZone
+  -- let tz' = maybe ltz (fromMaybe ltz . parseTime defaultTimeLocale "%z") tz
+  -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
+  return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
 ledgereffectivedate :: Day -> GenParser Char JournalContext Day
 ledgereffectivedate actualdate = do
@@ -729,13 +746,20 @@ tests_Hledger_Read_JournalReader = TestList [
      assertParse (parseWithCtx nullctx{ctxYear=Just 2011} ledgerdate "1/1")
 
   ,"ledgerdatetime" ~: do
-     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1")
-     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1 24:00:00")
-     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1 00:60:00")
-     assertParseFailure (parseWithCtx nullctx ledgerdatetime "2011/1/1 00:00:60")
-     assertParse (parseWithCtx nullctx ledgerdatetime "2011/1/1 00:00")
-     assertParse (parseWithCtx nullctx ledgerdatetime "2011/1/1 23:59:59")
-     assertParse (parseWithCtx nullctx ledgerdatetime "2011/1/1 3:5:7")
+      let p = do {t <- ledgerdatetime; eof; return t}
+          bad = assertParseFailure . parseWithCtx nullctx p
+          good = assertParse . parseWithCtx nullctx p
+      bad "2011/1/1"
+      bad "2011/1/1 24:00:00"
+      bad "2011/1/1 00:60:00"
+      bad "2011/1/1 00:00:60"
+      good "2011/1/1 00:00"
+      good "2011/1/1 23:59:59"
+      good "2011/1/1 3:5:7"
+      -- timezone is parsed but ignored
+      let startofday = LocalTime (fromGregorian 2011 1 1) (TimeOfDay 0 0 (fromIntegral 0))
+      assertParseEqual (parseWithCtx nullctx p "2011/1/1 00:00-0800") startofday
+      assertParseEqual (parseWithCtx nullctx p "2011/1/1 00:00+1234") startofday
 
   ,"ledgerDefaultYear" ~: do
      assertParse (parseWithCtx nullctx ledgerDefaultYear "Y 2010\n")

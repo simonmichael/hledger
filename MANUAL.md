@@ -290,6 +290,8 @@ historical price directive (P) as shown:
      expenses:foreign currency       €100
      assets
 
+Note: a time and numeric time zone are allowed in historical price directives, but currently ignored.
+
 Or, you can write a transaction in two commodities, without prices but
 with all amounts specified, and a conversion price will be inferred so as
 to balance the transaction:
