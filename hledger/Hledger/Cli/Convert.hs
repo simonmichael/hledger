@@ -171,8 +171,9 @@ validateRules rules = let
   in case (hasAccount, hasIn, hasOut) of
     (True, True, _) -> Just "Don't specify in-field when specifying amount-field"
     (True, _, True) -> Just "Don't specify out-field when specifying amount-field"
-    (_, False, True) -> Just "You have to specify in-field when specifying out-field"
-    (_, True, False) -> Just "You have to specify out-field when specifying in-field"
+    (_, False, True) -> Just "Please specify in-field when specifying out-field"
+    (_, True, False) -> Just "Please specify out-field when specifying in-field"
+    (False, False, False) -> Just "Please specify either amount-field, or in-field and out-field"
     _ -> Nothing
 
 -- rules file parser
