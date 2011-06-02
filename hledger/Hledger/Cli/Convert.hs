@@ -165,10 +165,10 @@ initialRulesFileContent =
 
 validateRules :: CsvRules -> Maybe String
 validateRules rules = let
-    hasAccount = isJust $ accountField rules
+    hasAmount = isJust $ amountField rules
     hasIn = isJust $ inField rules
     hasOut = isJust $ outField rules
-  in case (hasAccount, hasIn, hasOut) of
+  in case (hasAmount, hasIn, hasOut) of
     (True, True, _) -> Just "Don't specify in-field when specifying amount-field"
     (True, _, True) -> Just "Don't specify out-field when specifying amount-field"
     (_, False, True) -> Just "Please specify in-field when specifying out-field"
