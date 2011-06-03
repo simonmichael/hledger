@@ -6,7 +6,7 @@
      Search:
      \ #
     <td
-     <input name=a size=100 value=#{a}
+     <input name=q size=100 value=#{q}
      \#
     <td align=right
      ^{stopfiltering}

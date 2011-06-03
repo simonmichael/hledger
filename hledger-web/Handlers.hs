@@ -17,7 +17,7 @@ import Data.Time.Calendar
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
-import Text.ParserCombinators.Parsec hiding (string)
+import Text.ParserCombinators.Parsec -- hiding (string)
 import Text.Printf
 import Text.RegexPR
 import Yesod.Form
@@ -67,9 +67,9 @@ postJournalR = handlePost
 -- | The main register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-  vd@VD{opts=opts,fspec=fspec,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml opts vd $ balanceReport opts fspec j
-      maincontent = registerReportAsHtml opts vd $ registerReport opts fspec j
+  vd@VD{opts=opts,fspec=fspec,m=m,j=j} <- getViewData
+  let sidecontent = balanceReportAsHtml opts vd $ balanceReport opts fspec $ filterJournalPostings2 m j
+      maincontent = registerReportAsHtml opts vd $ registerReport opts fspec $ filterJournalPostings2 m j
       editform' = editform vd
   defaultLayout $ do
       setTitle "hledger-web register"
@@ -342,19 +342,16 @@ helplink topic label = $(Settings.hamletFile "helplink")
 
 -- | Form controlling journal filtering parameters.
 filterform :: ViewData -> Hamlet AppRoute
-filterform VD{here=here,a=a,p=p} = $(Settings.hamletFile "filterform")
+filterform VD{here=here,a=a,p=p,q=q} = $(Settings.hamletFile "filterform")
  where
   ahelp = helplink "filter-patterns" "?"
   phelp = helplink "period-expressions" "?"
-  filtering = not $ null a
-  filteringperiod = not $ null p
+  filtering = not $ null q
   visible = "block" :: String
   filteringclass = if filtering then "filtering" else "" :: String
-  filteringperiodclass = if filteringperiod then "filtering" else "" :: String
+  filteringperiodclass = "" :: String
   stopfiltering = if filtering then $(Settings.hamletFile "filterformclear") else nulltemplate
-      where u = (here, if filteringperiod then [("p", pack p)] else [])
-  stopfilteringperiod = if filteringperiod then $(Settings.hamletFile "filterformclear") else nulltemplate
-      where u = (here, if filtering then [("a", pack a)] else [])
+      where u = (here, [])
 
 -- | Add transaction form.
 addform :: ViewData -> Hamlet AppRoute
@@ -401,14 +398,16 @@ journalselect journalfiles = $(Settings.hamletFile "journalselect")
 -- utilities
 
 nulltemplate :: Hamlet AppRoute
-nulltemplate = [hamlet||]
+nulltemplate = [$hamlet||]
 
 -- | A bundle of data useful for handlers and their templates.
 data ViewData = VD {
      opts  :: [Opt]       -- ^ command-line options at startup
-    ,a     :: String      -- ^ current a parameter (a hledger account/description filter pattern)
-    ,p     :: String      -- ^ current p parameter (a hledger period expression)
+    ,a     :: String      -- ^ current a (query) parameter
+    ,p     :: String      -- ^ current p (query) parameter
+    ,q     :: String      -- ^ current q (query) parameter
     ,fspec :: FilterSpec  -- ^ a journal filter specification based on the above
+    ,m     :: Matcher     -- ^ a search/filter expression based on the above
     ,j     :: Journal     -- ^ an up-to-date parsed journal
     ,today :: Day         -- ^ the current day
     ,here  :: AppRoute    -- ^ the current route
@@ -420,7 +419,9 @@ mkvd = VD {
       opts  = []
      ,a     = ""
      ,p     = ""
+     ,q     = ""
      ,fspec = nullfilterspec
+     ,m     = MatchOr []
      ,j     = nulljournal
      ,today = ModifiedJulianDay 0
      ,here  = RootR
@@ -431,24 +432,23 @@ mkvd = VD {
 getViewData :: Handler ViewData
 getViewData = do
   Just here'          <- getCurrentRoute
-  (a, p, opts, fspec) <- getCurrentParameters
+  (q, opts, fspec, m) <- getCurrentParameters
   (j, err)            <- getCurrentJournal opts
   msg                 <- getMessageOr err
   today               <- liftIO getCurrentDay
-  return mkvd{opts=opts, a=a, p=p, fspec=fspec, j=j, today=today, here=here', msg=msg}
+  return mkvd{opts=opts, q=q, fspec=fspec, m=m, j=j, today=today, here=here', msg=msg}
     where
       -- | Get current report parameters for this request.
-      getCurrentParameters :: Handler (String, String, [Opt], FilterSpec)
+      getCurrentParameters :: Handler (String, [Opt], FilterSpec, Matcher)
       getCurrentParameters = do
           app <- getYesod
           t <- liftIO $ getCurrentLocalTime
-          a <- fromMaybe "" <$> lookupGetParam "a"
-          p <- fromMaybe "" <$> lookupGetParam "p"
-          let (a',p') = (unpack a, unpack p)
-              opts = appOpts app ++ [Period p']
-              args = appArgs app ++ words' a'
+          q <- unpack `fmap` fromMaybe "" <$> lookupGetParam "q"
+          let opts = appOpts app -- ++ [Period p']
+              args = appArgs app -- ++ words' a'
               fspec = optsToFilterSpec opts args t
-          return (a', p', opts, fspec)
+              m = parseMatcher q
+          return (q, opts, fspec, m)
 
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
@@ -464,6 +464,19 @@ getViewData = do
                                return (j',Nothing)
                 Left e  -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
                               return (j, Just e)
+
+
+parseMatcher :: String -> Matcher
+parseMatcher s = MatchOr $ map (MatchAcct True) $ words' s
+
+parseMatcher2 :: String -> Matcher
+parseMatcher2 s = either (const (MatchOr [])) id $ runParser matcher () "" $ lexmatcher s
+
+lexmatcher :: String -> [String]
+lexmatcher s = words' s
+
+matcher :: GenParser String () Matcher
+matcher = undefined
 
 -- | Get the message set by the last request, or the newer message provided, if any.
 getMessageOr :: Maybe String -> Handler (Maybe Html)
