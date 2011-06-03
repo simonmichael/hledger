@@ -9,7 +9,9 @@ Hledger.Utils.
 module Hledger.Cli.Utils
     (
      withJournalDo,
-     readJournalWithOpts,
+     readJournal',
+     journalSelectingDateFromOpts,
+     journalSelectingAmountFromOpts,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -36,7 +38,7 @@ import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Test.HUnit
 import Text.Printf
 
-import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts)
+import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts,whichDateFromOpts)
 import Hledger.Data
 import Hledger.Read
 import Hledger.Utils
@@ -49,17 +51,27 @@ withJournalDo opts args _ cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either error' runcmd
-    where
-      costify = (if CostBasis `elem` opts then journalConvertAmountsToCost else id)
-      runcmd = cmd opts args . costify
+  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either error' (cmd opts args)
 
--- | Get a journal from the given string and options, or throw an error.
-readJournalWithOpts :: [Opt] -> String -> IO Journal
-readJournalWithOpts opts s = do
-  j <- readJournal Nothing s >>= either error' return
-  return $ (if cost then journalConvertAmountsToCost else id) j
-    where cost = CostBasis `elem` opts
+-- -- | Get a journal from the given string and options, or throw an error.
+-- readJournalWithOpts :: [Opt] -> String -> IO Journal
+-- readJournalWithOpts opts s = readJournal Nothing s >>= either error' return
+
+-- | Get a journal from the given string, or throw an error.
+readJournal' :: String -> IO Journal
+readJournal' s = readJournal Nothing s >>= either error' return
+
+-- | Convert this journal's transactions' primary date to either the
+-- actual or effective date, as per options.
+journalSelectingDateFromOpts :: [Opt] -> Journal -> Journal
+journalSelectingDateFromOpts opts = journalSelectingDate (whichDateFromOpts opts)
+
+-- | Convert this journal's postings' amounts to the cost basis amounts if
+-- specified by options.
+journalSelectingAmountFromOpts :: [Opt] -> Journal -> Journal
+journalSelectingAmountFromOpts opts
+    | CostBasis `elem` opts = journalConvertAmountsToCost
+    | otherwise             = id
 
 -- | Re-read a journal from its data file, or return an error string.
 journalReload :: Journal -> IO (Either String Journal)

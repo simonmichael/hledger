@@ -30,7 +30,7 @@ import qualified Data.Set as Set
 
 import Hledger.Cli.Options
 import Hledger.Cli.Register (registerReport, registerReportAsText)
-import Hledger.Cli.Utils (readJournalWithOpts)
+import Hledger.Cli.Utils
 import Hledger.Data
 import Hledger.Read.JournalReader (someamount)
 import Hledger.Utils
@@ -219,8 +219,8 @@ appendToJournalFile f s =
 registerFromString :: String -> IO String
 registerFromString s = do
   now <- getCurrentLocalTime
-  l <- readJournalWithOpts [] s
-  return $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] now) l
+  j <- readJournal' s
+  return $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] now) j
     where opts = [Empty]
 
 -- | Return a similarity measure, from 0 to 1, for two strings.

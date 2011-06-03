@@ -110,6 +110,7 @@ import Data.Tree
 import Test.HUnit
 
 import Hledger.Cli.Options
+import Hledger.Cli.Utils
 import Hledger.Data
 import Hledger.Utils
 import Prelude hiding (putStr)
@@ -166,7 +167,7 @@ balanceReport opts filterspec j = (items, total)
       accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
       total = sum $ map abalance $ ledgerTopAccounts l
       l = journalToLedger filterspec j'
-      j' = journalSelectingDate (whichDateFromOpts opts) j
+      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
       -- | Get data for one balance report line item.
       mkitem :: AccountName -> BalanceReportItem
       mkitem a = (a, adisplay, indent, abal)

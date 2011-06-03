@@ -96,9 +96,9 @@ tests_Hledger_Cli = TestList
 
   ,"balance report tests" ~:
    let (opts,args) `gives` es = do 
-        l <- samplejournalwithopts opts args
+        j <- samplejournal
         t <- getCurrentLocalTime
-        balanceReportAsText opts (balanceReport opts (optsToFilterSpec opts args t) l) `is` unlines es
+        balanceReportAsText opts (balanceReport opts (optsToFilterSpec opts args t) j) `is` unlines es
    in TestList
    [
 
@@ -243,13 +243,13 @@ tests_Hledger_Cli = TestList
         ]
 
    ,"balance report elides zero-balance root account(s)" ~: do
-      l <- readJournalWithOpts []
+      j <- readJournal'
              (unlines
               ["2008/1/1 one"
               ,"  test:a  1"
               ,"  test:b"
               ])
-      balanceReportAsText [] (balanceReport [] nullfilterspec l) `is`
+      balanceReportAsText [] (balanceReport [] nullfilterspec j) `is`
        unlines
         ["                   1  test:a"
         ,"                  -1  test:b"
@@ -274,8 +274,8 @@ tests_Hledger_Cli = TestList
   --     `is` "aa:aa:aaaaaaaaaaaaaa")
 
   ,"default year" ~: do
-    rl <- readJournal Nothing defaultyear_journal_str >>= either error' return
-    tdate (head $ jtxns rl) `is` fromGregorian 2009 1 1
+    j <- readJournal Nothing defaultyear_journal_str >>= either error' return
+    tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
     return ()
 
   ,"print report tests" ~: TestList
@@ -285,9 +285,9 @@ tests_Hledger_Cli = TestList
    do 
     let args = ["expenses"]
         opts = []
-    l <- samplejournalwithopts opts args
+    j <- samplejournal
     t <- getCurrentLocalTime
-    showTransactions opts (optsToFilterSpec opts args t) l `is` unlines
+    showTransactions opts (optsToFilterSpec opts args t) j `is` unlines
      ["2008/06/03 * eat & shop"
      ,"    expenses:food                $1"
      ,"    expenses:supplies            $1"
@@ -297,9 +297,9 @@ tests_Hledger_Cli = TestList
 
   , "print report with depth arg" ~:
    do 
-    l <- samplejournal
+    j <- samplejournal
     t <- getCurrentLocalTime
-    showTransactions [] (optsToFilterSpec [Depth "2"] [] t) l `is` unlines
+    showTransactions [] (optsToFilterSpec [Depth "2"] [] t) j `is` unlines
       ["2008/01/01 income"
       ,"    income:salary           $-1"
       ,""
@@ -326,8 +326,8 @@ tests_Hledger_Cli = TestList
 
    "register report with no args" ~:
    do 
-    l <- samplejournal
-    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] [] t1) l) `is` unlines
+    j <- samplejournal
+    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] [] t1) j) `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -344,8 +344,8 @@ tests_Hledger_Cli = TestList
   ,"register report with cleared option" ~:
    do 
     let opts = [Cleared]
-    l <- readJournalWithOpts opts sample_journal_str
-    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is` unlines
+    j <- readJournal' sample_journal_str
+    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j) `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
      ,"                                assets:cash                     $-2            0"
@@ -356,8 +356,8 @@ tests_Hledger_Cli = TestList
   ,"register report with uncleared option" ~:
    do 
     let opts = [UnCleared]
-    l <- readJournalWithOpts opts sample_journal_str
-    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is` unlines
+    j <- readJournal' sample_journal_str
+    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j) `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -368,7 +368,7 @@ tests_Hledger_Cli = TestList
 
   ,"register report sorts by date" ~:
    do 
-    l <- readJournalWithOpts [] $ unlines
+    j <- readJournal' $ unlines
         ["2008/02/02 a"
         ,"  b  1"
         ,"  c"
@@ -377,27 +377,27 @@ tests_Hledger_Cli = TestList
         ,"  e  1"
         ,"  f"
         ]
-    registerdates (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] [] t1) l) `is` ["2008/01/01","2008/02/02"]
+    registerdates (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] [] t1) j) `is` ["2008/01/01","2008/02/02"]
 
   ,"register report with account pattern" ~:
    do
-    l <- samplejournal
-    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] ["cash"] t1) l) `is` unlines
+    j <- samplejournal
+    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] ["cash"] t1) j) `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
   ,"register report with account pattern, case insensitive" ~:
    do 
-    l <- samplejournal
-    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] ["cAsH"] t1) l) `is` unlines
+    j <- samplejournal
+    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] ["cAsH"] t1) j) `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
   ,"register report with display expression" ~:
    do 
-    l <- samplejournal
+    j <- samplejournal
     let gives displayexpr = 
-            (registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is`)
+            (registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j) `is`)
                 where opts = [Display displayexpr]
     "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
     "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
@@ -407,10 +407,10 @@ tests_Hledger_Cli = TestList
 
   ,"register report with period expression" ~:
    do 
-    l <- samplejournal
+    j <- samplejournal
     let periodexpr `gives` dates = do
-          l' <- samplejournalwithopts opts []
-          registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l') `is` dates
+          j' <- samplejournal
+          registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j') `is` dates
               where opts = [Period periodexpr]
     ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
@@ -419,7 +419,7 @@ tests_Hledger_Cli = TestList
     "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
     "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
     let opts = [Period "yearly"]
-    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is` unlines
+    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j) `is` unlines
      ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
      ,"                                assets:cash                     $-2          $-1"
      ,"                                expenses:food                    $1            0"
@@ -429,17 +429,17 @@ tests_Hledger_Cli = TestList
      ,"                                liabilities:debts                $1            0"
      ]
     let opts = [Period "quarterly"]
-    registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is` ["2008/01/01","2008/04/01","2008/10/01"]
+    registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
     let opts = [Period "quarterly",Empty]
-    registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
+    registerdates (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
 
   ]
 
   , "register report with depth arg" ~:
    do 
-    l <- samplejournal
+    j <- samplejournal
     let opts = [Depth "2"]
-    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) l) `is` unlines
+    (registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] t1) j) `is` unlines
      ["2008/01/01 income               assets:bank                      $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank                      $1           $1"
@@ -458,9 +458,9 @@ tests_Hledger_Cli = TestList
   ,"show hours" ~: show (hours 1) ~?= "1.0h"
 
   ,"unicode in balance layout" ~: do
-    l <- readJournalWithOpts []
+    j <- readJournal'
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    balanceReportAsText [] (balanceReport [] (optsToFilterSpec [] [] t1) l) `is` unlines
+    balanceReportAsText [] (balanceReport [] (optsToFilterSpec [] [] t1) j) `is` unlines
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"
       ,"--------------------"
@@ -468,9 +468,9 @@ tests_Hledger_Cli = TestList
       ]
 
   ,"unicode in register layout" ~: do
-    l <- readJournalWithOpts []
+    j <- readJournal'
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] [] t1) l) `is` unlines
+    (registerReportAsText [] $ registerReport [] (optsToFilterSpec [] [] t1) j) `is` unlines
       ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
       ,"                                актив:наличные                 -100            0"]
 
@@ -487,8 +487,7 @@ tests_Hledger_Cli = TestList
 date1 = parsedate "2008/11/26"
 t1 = LocalTime date1 midday
 
-samplejournal = readJournalWithOpts [] sample_journal_str
-samplejournalwithopts opts _ = readJournalWithOpts opts sample_journal_str
+samplejournal = readJournal' sample_journal_str
 
 sample_journal_str = unlines
  ["; A sample journal file."

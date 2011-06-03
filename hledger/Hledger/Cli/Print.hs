@@ -16,6 +16,7 @@ import Data.List
 import Data.Ord
 
 import Hledger.Cli.Options
+import Hledger.Cli.Utils
 import Hledger.Data
 import Hledger.Utils
 import Prelude hiding (putStr)
@@ -43,5 +44,6 @@ journalReportAsText opts _ items = concatMap (showTransactionForPrint effective)
 
 journalReport :: [Opt] -> FilterSpec -> Journal -> JournalReport
 journalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
-    where j' = journalSelectingDate (whichDateFromOpts opts) j
+    where
+      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
 

@@ -26,6 +26,7 @@ import Text.ParserCombinators.Parsec
 import Text.Printf
 
 import Hledger.Cli.Options
+import Hledger.Cli.Utils
 import Hledger.Data
 import Hledger.Utils
 import Prelude hiding (putStr)
@@ -86,8 +87,10 @@ registerReport opts fspec j = getitems ps nullposting startbal
       (precedingps, displayableps, _) = postingsMatchingDisplayExpr (displayExprFromOpts opts)
                                         $ depthClipPostings depth
                                         $ journalPostings
-                                        $ filterJournalPostings fspec{depth=Nothing} j'
-      j' = journalSelectingDate (whichDateFromOpts opts) j
+                                        $ filterJournalPostings fspec{depth=Nothing}
+                                        $ journalSelectingDateFromOpts opts
+                                        $ journalSelectingAmountFromOpts opts
+                                        j
       startbal = sumPostings precedingps
       filterspan = datespan fspec
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
