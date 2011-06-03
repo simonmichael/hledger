@@ -48,12 +48,12 @@ withDevelApp = toDyn (withApp a :: (Application -> IO ()) -> IO ())
 -- Eg: cabal-dev/bin/wai-handler-devel 5001 AppRun withWaiHandlerDevelApp
 withWaiHandlerDevelApp :: (Application -> IO ()) -> IO ()
 withWaiHandlerDevelApp func = do
-  let f = "/repos/hledger/hledger-web/demo.journal"
+  let f = "./test.journal"
   ej <- readJournalFile Nothing f
   let Right j = ej
   let a = App{
               getStatic=static Hledger.Web.Settings.staticdir
-             ,appRoot=Settings.defapproot
+             ,appRoot="http://localhost:5002"
              ,appOpts=defwebopts{cliopts_=defcliopts{file_=Just f}}
              ,appArgs=[]
              ,appJournal=j
