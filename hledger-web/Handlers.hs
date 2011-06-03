@@ -46,7 +46,7 @@ getRobotsR :: Handler RepPlain
 getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)
 
 getRootR :: Handler RepHtml
-getRootR = redirect RedirectTemporary defaultroute where defaultroute = JournalR
+getRootR = redirect RedirectTemporary defaultroute where defaultroute = RegisterR
 
 ----------------------------------------------------------------------
 -- main views
@@ -322,8 +322,8 @@ journalTitleDesc j p today = (title, desc)
 navlinks :: ViewData -> Hamlet AppRoute
 navlinks vd = $(Settings.hamletFile "navlinks")
  where
-   accountsjournallink  = navlink vd "journal" JournalR
-   accountsregisterlink = navlink vd "register" RegisterR
+   accountsjournallink  = navlink vd "transactions" JournalR
+   accountsregisterlink = navlink vd "postings" RegisterR
    navlink :: ViewData -> String -> AppRoute -> Hamlet AppRoute
    navlink VD{here=here,a=a,p=p} s dest = $(Settings.hamletFile "navlink")
     where u = (dest, concat [(if null a then [] else [("a", pack a)])
@@ -401,7 +401,7 @@ journalselect journalfiles = $(Settings.hamletFile "journalselect")
 -- utilities
 
 nulltemplate :: Hamlet AppRoute
-nulltemplate = [$hamlet||]
+nulltemplate = [hamlet||]
 
 -- | A bundle of data useful for handlers and their templates.
 data ViewData = VD {

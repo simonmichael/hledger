@@ -3,23 +3,10 @@
   <table.form
    <tr.#{filteringperiodclass}
     <td
-     filter by period:
+     Search:
      \ #
     <td
-     <input name=p size=60 value=#{p}
-     ^{phelp}
-     \ #
-    <td align=right
-     ^{stopfilteringperiod}
-   <tr.#{filteringclass}
-    <td
-     filter by account/description:
-     \ #
-    <td
-     <input name=a size=60 value=#{a}
-     ^{ahelp}
-     \ #
-     <input type=submit value=filter #
-     \ #
+     <input name=a size=100 value=#{a}
+     \#
     <td align=right
      ^{stopfiltering}

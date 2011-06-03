@@ -19,7 +19,7 @@ import Network.Wai.Middleware.Debug (debug)
 #endif
 import System.Console.GetOpt
 import System.Exit (exitFailure)
-import System.IO.Storage (withStore, putValue,)
+import System.IO.Storage (withStore, putValue)
 import Text.Printf
 import Yesod.Helpers.Static
 
