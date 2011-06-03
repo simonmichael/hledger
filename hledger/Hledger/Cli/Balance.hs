@@ -131,7 +131,8 @@ type BalanceReportItem = (AccountName  -- full account name
 balance :: [Opt] -> [String] -> Journal -> IO ()
 balance opts args j = do
   t <- getCurrentLocalTime
-  putStr $ balanceReportAsText opts $ balanceReport opts (optsToFilterSpec opts args t) j
+  let j' = journalSelectingDate (whichDateFromOpts opts) j
+  putStr $ balanceReportAsText opts $ balanceReport opts (optsToFilterSpec opts args t) j'
 
 -- | Render a balance report as plain text suitable for console output.
 balanceReportAsText :: [Opt] -> BalanceReport -> String

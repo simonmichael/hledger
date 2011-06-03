@@ -281,9 +281,10 @@ tests_Hledger_Cli = TestList
    "print expenses" ~:
    do 
     let args = ["expenses"]
-    l <- samplejournalwithopts [] args
+        opts = []
+    l <- samplejournalwithopts opts args
     t <- getCurrentLocalTime
-    showTransactions (optsToFilterSpec [] args t) l `is` unlines
+    showTransactions opts (optsToFilterSpec opts args t) l `is` unlines
      ["2008/06/03 * eat & shop"
      ,"    expenses:food                $1"
      ,"    expenses:supplies            $1"
@@ -295,7 +296,7 @@ tests_Hledger_Cli = TestList
    do 
     l <- samplejournal
     t <- getCurrentLocalTime
-    showTransactions (optsToFilterSpec [Depth "2"] [] t) l `is` unlines
+    showTransactions [] (optsToFilterSpec [Depth "2"] [] t) l `is` unlines
       ["2008/01/01 income"
       ,"    income:salary           $-1"
       ,""

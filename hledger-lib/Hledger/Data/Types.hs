@@ -193,10 +193,8 @@ data FilterSpec = FilterSpec {
     ,cleared   :: Maybe Bool -- ^ only include if cleared\/uncleared\/don't care
     ,real      :: Bool       -- ^ only include if real\/don't care
     ,empty     :: Bool       -- ^ include if empty (ie amount is zero)
-    ,costbasis :: Bool       -- ^ convert all amounts to cost basis
     ,acctpats  :: [String]   -- ^ only include if matching these account patterns
     ,descpats  :: [String]   -- ^ only include if matching these description patterns
-    ,whichdate :: WhichDate  -- ^ which dates to use (actual or effective)
     ,depth     :: Maybe Int
     } deriving (Show)
 

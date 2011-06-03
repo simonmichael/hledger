@@ -249,6 +249,10 @@ clearedValueFromOpts opts | null os = Nothing
                           | otherwise = Just False
     where os = optsWithConstructors [Cleared,UnCleared] opts
 
+-- | Detect which date we will report on, based on --effective.
+whichDateFromOpts :: [Opt] -> WhichDate
+whichDateFromOpts opts = if Effective `elem` opts then EffectiveDate else ActualDate
+
 -- | Were we invoked as \"hours\" ?
 usingTimeProgramName :: IO Bool
 usingTimeProgramName = do
@@ -281,10 +285,8 @@ optsToFilterSpec opts args t = FilterSpec {
                                ,cleared=clearedValueFromOpts opts
                                ,real=Real `elem` opts
                                ,empty=Empty `elem` opts
-                               ,costbasis=CostBasis `elem` opts
                                ,acctpats=apats
                                ,descpats=dpats
-                               ,whichdate = if Effective `elem` opts then EffectiveDate else ActualDate
                                ,depth = depthFromOpts opts
                                }
     where (apats,dpats) = parsePatternArgs args

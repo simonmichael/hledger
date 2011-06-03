@@ -54,10 +54,8 @@ nullfilterspec = FilterSpec {
     ,cleared=Nothing
     ,real=False
     ,empty=False
-    ,costbasis=False
     ,acctpats=[]
     ,descpats=[]
-    ,whichdate=ActualDate
     ,depth=Nothing
     }
 
@@ -100,38 +98,32 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
 
--- | Keep only transactions we are interested in, as described by
--- the filter specification. May also massage the data a little.
+-- | Keep only transactions we are interested in, as described by the
+-- filter specification.
 filterJournalTransactions :: FilterSpec -> Journal -> Journal
 filterJournalTransactions FilterSpec{datespan=datespan
                                     ,cleared=cleared
                                     -- ,real=real
                                     -- ,empty=empty
-                                    -- ,costbasis=_
                                     ,acctpats=apats
                                     ,descpats=dpats
-                                    ,whichdate=whichdate
                                     ,depth=depth
                                     } =
     filterJournalTransactionsByClearedStatus cleared .
     filterJournalPostingsByDepth depth .
     filterJournalTransactionsByAccount apats .
     filterJournalTransactionsByDescription dpats .
-    filterJournalTransactionsByDate datespan .
-    journalSelectingDate whichdate
+    filterJournalTransactionsByDate datespan
 
--- | Keep only postings we are interested in, as described by
--- the filter specification. May also massage the data a little.
--- This can leave unbalanced transactions.
+-- | Keep only postings we are interested in, as described by the filter
+-- specification. This can leave unbalanced transactions.
 filterJournalPostings :: FilterSpec -> Journal -> Journal
 filterJournalPostings FilterSpec{datespan=datespan
                                 ,cleared=cleared
                                 ,real=real
                                 ,empty=empty
---                                ,costbasis=costbasis
                                 ,acctpats=apats
                                 ,descpats=dpats
-                                ,whichdate=whichdate
                                 ,depth=depth
                                 } =
     filterJournalPostingsByRealness real .
@@ -140,8 +132,7 @@ filterJournalPostings FilterSpec{datespan=datespan
     filterJournalPostingsByDepth depth .
     filterJournalPostingsByAccount apats .
     filterJournalTransactionsByDescription dpats .
-    filterJournalTransactionsByDate datespan .
-    journalSelectingDate whichdate
+    filterJournalTransactionsByDate datespan
 
 -- | Keep only transactions whose description matches the description patterns.
 filterJournalTransactionsByDescription :: [String] -> Journal -> Journal
