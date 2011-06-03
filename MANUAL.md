@@ -553,8 +553,9 @@ Notes:
 -   The date-format field contains the expected format for the input dates:
     this is the same as that accepted by the Haskell
     [formatTime](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime)
-    function. Note that '%d' and '%m' specifiers require day and month numbers to have
-    leading zeroes, otherwise your format might fail to work.
+    function. Notes: the '%d' and '%m' specifiers expect leading zeroes;
+    the '%y' specifier works better when hledger is built with version
+    1.2.0.5 or greater of the time library.
 
 -   The remainder of the file is account-assigning rules. Each is a
     paragraph consisting of one or more description-matching patterns
