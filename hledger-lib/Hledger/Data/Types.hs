@@ -187,7 +187,7 @@ data Account = Account {
       abalance :: MixedAmount    -- ^ sum of postings in this account and subaccounts
     }
 
--- | A generic, pure specification of how to filter transactions and postings.
+-- | A generic, pure specification of how to filter (or search) transactions and postings.
 data FilterSpec = FilterSpec {
      datespan  :: DateSpan   -- ^ only include if in this date span
     ,cleared   :: Maybe Bool -- ^ only include if cleared\/uncleared\/don't care
@@ -198,3 +198,17 @@ data FilterSpec = FilterSpec {
     ,depth     :: Maybe Int
     } deriving (Show)
 
+-- | A more general way to match transactions and postings, successor to FilterSpec. (?)
+-- If the first boolean is False, it's a negative match.
+data Matcher = MatchDesc Bool String          -- ^ match if description matches this regexp
+             | MatchAcct Bool String          -- ^ match postings whose account matches this regexp
+             | MatchOtherAcct Bool String -- ^ match postings whose transaction contains a posting to an account matching this regexp
+             | MatchADate Bool DateSpan   -- ^ match if actual date in this date span
+             | MatchEDate Bool DateSpan   -- ^ match if effective date in this date span
+             | MatchStatus Bool Bool      -- ^ match if cleared status has this value
+             | MatchReal Bool Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
+             | MatchEmpty Bool Bool       -- ^ match if "emptiness" (amount is zero ?) has this value
+             | MatchDepth Bool Int        -- ^ match if account depth is less than or equal to this value
+             | MatchAnd [Matcher]         -- ^ match if all match
+             | MatchOr [Matcher]          -- ^ match if any match
+    deriving (Show)

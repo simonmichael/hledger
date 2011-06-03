@@ -98,6 +98,31 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
 
+-------------------------------------------------------------------------------
+-- filtering V2
+
+-- | Keep only transactions matching the query expression.
+-- filterJournalTransactions2 :: Matcher -> Journal -> Journal
+-- filterJournalTransactions2 = undefined
+-- pats j@Journal{jtxns=ts} = j{jtxns=filter matchdesc ts}
+--     where matchdesc = matchpats pats . tdescription
+
+-- | Keep only postings matching the query expression.
+-- This can leave unbalanced transactions.
+filterJournalPostings2 :: Matcher -> Journal -> Journal
+filterJournalPostings2 m j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
+    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (m `matches`) ps}
+
+matches :: Matcher -> Posting -> Bool
+matches (MatchOr ms) p = any (`matches` p) ms
+matches (MatchAnd ms) p = all (`matches` p) ms
+matches (MatchAcct True r) p = containsRegex r $ paccount p
+matches (MatchAcct False r) p = not $ matches (MatchAcct True r) p
+matches _ _ = False
+
+-------------------------------------------------------------------------------
+-- filtering V1
+
 -- | Keep only transactions we are interested in, as described by the
 -- filter specification.
 filterJournalTransactions :: FilterSpec -> Journal -> Journal
