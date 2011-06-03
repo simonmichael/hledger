@@ -32,15 +32,16 @@ type JournalReportItem = Transaction
 print' :: [Opt] -> [String] -> Journal -> IO ()
 print' opts args j = do
   t <- getCurrentLocalTime
-  let j' = journalSelectingDate (whichDateFromOpts opts) j
-  putStr $ showTransactions opts (optsToFilterSpec opts args t) j'
+  putStr $ showTransactions opts (optsToFilterSpec opts args t) j
 
 showTransactions :: [Opt] -> FilterSpec -> Journal -> String
-showTransactions opts fspec j = journalReportAsText opts fspec $ journalReport [] fspec j
+showTransactions opts fspec j = journalReportAsText opts fspec $ journalReport opts fspec j
 
 journalReportAsText :: [Opt] -> FilterSpec -> JournalReport -> String
 journalReportAsText opts _ items = concatMap (showTransactionForPrint effective) items
     where effective = Effective `elem` opts
 
 journalReport :: [Opt] -> FilterSpec -> Journal -> JournalReport
-journalReport _ fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j
+journalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
+    where j' = journalSelectingDate (whichDateFromOpts opts) j
+

@@ -132,8 +132,7 @@ type BalanceReportItem = (AccountName  -- full account name
 balance :: [Opt] -> [String] -> Journal -> IO ()
 balance opts args j = do
   t <- getCurrentLocalTime
-  let j' = journalSelectingDate (whichDateFromOpts opts) j
-  putStr $ balanceReportAsText opts $ balanceReport opts (optsToFilterSpec opts args t) j'
+  putStr $ balanceReportAsText opts $ balanceReport opts (optsToFilterSpec opts args t) j
 
 -- | Render a balance report as plain text suitable for console output.
 balanceReportAsText :: [Opt] -> BalanceReport -> String
@@ -166,7 +165,8 @@ balanceReport opts filterspec j = (items, total)
       acctnames = sort $ tail $ flatten $ treemap aname accttree
       accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
       total = sum $ map abalance $ ledgerTopAccounts l
-      l = journalToLedger filterspec j
+      l = journalToLedger filterspec j'
+      j' = journalSelectingDate (whichDateFromOpts opts) j
       -- | Get data for one balance report line item.
       mkitem :: AccountName -> BalanceReportItem
       mkitem a = (a, adisplay, indent, abal)
