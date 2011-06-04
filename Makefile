@@ -61,9 +61,16 @@ HADDOCKSOURCEFILES:= \
 #	hledger-chart/Hledger/*/*hs
 
 VERSIONHS=hledger/Hledger/Cli/Version.hs
+
 CABALFILES:= \
 	hledger/hledger.cabal \
 	hledger-*/*.cabal
+
+WEBFILES:= \
+	hledger-web/.hledger/web/templates/* \
+	hledger-web/.hledger/web/static/*.js \
+	hledger-web/.hledger/web/static/*.css
+
 # DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
@@ -830,7 +837,7 @@ fixperms:
 tag: emacstags
 
 emacstags:
-	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(CABALFILES) Makefile
+	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(CABALFILES) $(WEBFILES) Makefile
 
 clean:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*"`
