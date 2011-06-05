@@ -1,5 +1,5 @@
 <form#editform method=POST style=display:none;
- <table.form#editform
+ <table.form
   $if manyfiles
    <tr
     <td colspan=2
