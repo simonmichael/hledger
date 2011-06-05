@@ -46,3 +46,5 @@
      <input type=submit name=submit value="add transaction"
      $if manyfiles
       \ to: ^{journalselect $ files $ j vd}
+     \ or #
+     <a href onclick="return addformToggle(event)">cancel
