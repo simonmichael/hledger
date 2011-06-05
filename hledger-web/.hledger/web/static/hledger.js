@@ -114,7 +114,7 @@ function editformToggle(ev) {
 
 function editformJournalSelect(ev) {
   // http://www.quirksmode.org/js/events_properties.html
- if (!ev) var e = window.event;
+ if (!ev) var ev = window.event;
  if (ev.target) targ = ev.target;
  else if (ev.srcElement) targ = ev.srcElement;
  if (targ.nodeType == 3) targ = targ.parentNode;
