@@ -3,7 +3,9 @@
  <div#sidebar
   ^{sidecontent}
  <div#main.register
-  ^{navlinks vd}
+  <div#navlinks
+   ^{navlink vd "transactions" RegisterR} | #
+   ^{editlinks}
   <div#maincontent
    ^{searchform vd}
    ^{maincontent}

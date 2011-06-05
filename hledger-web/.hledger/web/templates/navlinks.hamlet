@@ -1,4 +1,6 @@
 <div#navlinks
- ^{accountsregisterlink}
+ ^{journallink}
+ \ | #
+ ^{registerlink}
  \ | #
  ^{editlinks}

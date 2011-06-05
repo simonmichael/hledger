@@ -342,17 +342,19 @@ topbar VD{j=j,msg=msg,today=today} = $(Settings.hamletFile "topbar")
   where
     title = takeFileName $ journalFilePath j
 
--- | Links to navigate between the main views.
-navlinks :: ViewData -> Hamlet AppRoute
-navlinks vd = $(Settings.hamletFile "navlinks")
- where
-   accountsjournallink  = navlink vd "transactions" JournalR
-   accountsregisterlink = navlink vd "postings" RegisterR
-   navlink :: ViewData -> String -> AppRoute -> Hamlet AppRoute
-   navlink VD{here=here,q=q} s dest = $(Settings.hamletFile "navlink")
-    where u = (dest, if null q then [] else [("q", pack q)])
-          style | dest == here = "navlinkcurrent"
-                | otherwise    = "navlink" :: Text
+-- -- | Links to navigate between the main views.
+-- navlinks :: ViewData -> Hamlet AppRoute
+-- navlinks vd = $(Settings.hamletFile "navlinks")
+--  where
+--    journallink  = navlink vd "transactions" JournalR
+--    registerlink = navlink vd "postings" RegisterR
+
+-- | Navigation link, preserving parameters and possibly highlighted.
+navlink :: ViewData -> String -> AppRoute -> Hamlet AppRoute
+navlink VD{here=here,q=q} s dest = $(Settings.hamletFile "navlink")
+  where u = (dest, if null q then [] else [("q", pack q)])
+        style | dest == here = "navlinkcurrent"
+              | otherwise    = "navlink" :: Text
 
 -- | Links to the various journal editing forms.
 editlinks :: Hamlet AppRoute

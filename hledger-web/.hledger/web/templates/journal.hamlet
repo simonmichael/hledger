@@ -3,7 +3,9 @@
  <div#sidebar
   ^{sidecontent}
  <div#main.journal
-  ^{navlinks vd}
+  <div#navlinks
+   ^{navlink vd "transactions" JournalR} | #
+   ^{editlinks}
   <div#maincontent
    ^{searchform vd}
    ^{maincontent}
