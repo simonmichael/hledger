@@ -13,11 +13,12 @@ module Hledger.Data (
                module Hledger.Data.Amount,
                module Hledger.Data.Commodity,
                module Hledger.Data.Dates,
-               module Hledger.Data.Transaction,
-               module Hledger.Data.Ledger,
                module Hledger.Data.Journal,
+               module Hledger.Data.Ledger,
+               module Hledger.Data.Matching,
                module Hledger.Data.Posting,
                module Hledger.Data.TimeLog,
+               module Hledger.Data.Transaction,
                module Hledger.Data.Types,
                module Hledger.Data.Utils,
                tests_Hledger_Data
@@ -28,11 +29,12 @@ import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Commodity
 import Hledger.Data.Dates
-import Hledger.Data.Transaction
-import Hledger.Data.Ledger
 import Hledger.Data.Journal
+import Hledger.Data.Ledger
+import Hledger.Data.Matching
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
+import Hledger.Data.Transaction
 import Hledger.Data.Types
 import Hledger.Data.Utils
 

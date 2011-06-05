@@ -21,6 +21,7 @@ import Hledger.Data.Dates (nulldatespan)
 import Hledger.Data.Transaction (journalTransactionWithDate,balanceTransaction)
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
+import Hledger.Data.Matching
 
 
 instance Show Journal where
@@ -101,24 +102,16 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -------------------------------------------------------------------------------
 -- filtering V2
 
--- | Keep only transactions matching the query expression.
--- filterJournalTransactions2 :: Matcher -> Journal -> Journal
--- filterJournalTransactions2 = undefined
--- pats j@Journal{jtxns=ts} = j{jtxns=filter matchdesc ts}
---     where matchdesc = matchpats pats . tdescription
-
 -- | Keep only postings matching the query expression.
 -- This can leave unbalanced transactions.
 filterJournalPostings2 :: Matcher -> Journal -> Journal
-filterJournalPostings2 m j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
-    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (m `matches`) ps}
+filterJournalPostings2 m j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
+    where
+      filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
 
-matches :: Matcher -> Posting -> Bool
-matches (MatchOr ms) p = any (`matches` p) ms
-matches (MatchAnd ms) p = all (`matches` p) ms
-matches (MatchAcct True r) p = containsRegex r $ paccount p
-matches (MatchAcct False r) p = not $ matches (MatchAcct True r) p
-matches _ _ = False
+-- | Keep only transactions matching the query expression.
+filterJournalTransactions2 :: Matcher -> Journal -> Journal
+filterJournalTransactions2 m j@Journal{jtxns=ts} = j{jtxns=filter (m `matchesTransaction`) ts}
 
 -------------------------------------------------------------------------------
 -- filtering V1
