@@ -453,11 +453,4 @@ accountRegexToAccountName = gsubRegexPR "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
 isAccountRegex  :: String -> Bool
 isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
 
--- | Quote-aware version of words - don't split on spaces which are inside quotes.
-words' :: String -> [String]
-words' = fromparse . parsewith ((quotedPattern <|> pattern) `sepBy` many1 spacenonewline)
-    where
-      pattern = many (noneOf " \n\r\"")
-      quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
-
 numbered = zip [1..]

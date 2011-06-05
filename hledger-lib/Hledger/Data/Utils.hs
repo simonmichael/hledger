@@ -69,6 +69,31 @@ underline s = s' ++ replicate (length s) '-' ++ "\n"
             | last s == '\n' = s
             | otherwise = s ++ "\n"
 
+-- | Wrap a string in single quotes, and \-prefix any embedded single
+-- quotes, if it contains whitespace and is not already single- or
+-- double-quoted.
+quoteIfSpaced :: String -> String
+quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
+                | not $ any (`elem` s) whitespacechars = s
+                | otherwise = "'"++escapeSingleQuotes s++"'"
+                  where escapeSingleQuotes = regexReplace "'" "\'"
+
+-- | Quote-aware version of words - don't split on spaces which are inside quotes.
+words' :: String -> [String]
+words' = map stripquotes . fromparse . parsewith ((quotedPattern <|> pattern) `sepBy` many1 spacenonewline)
+    where
+      pattern = many (noneOf whitespacechars)
+      quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
+
+whitespacechars = " \t\n\r\'\""
+
+-- | Strip one matching pair of single or double quotes on the ends of a string.
+stripquotes :: String -> String
+stripquotes s = if isSingleQuoted s || isDoubleQuoted s then init $ tail s else s
+
+isSingleQuoted s = head s == '\'' && last s == '\''
+isDoubleQuoted s = head s == '"' && last s == '"'
+
 unbracket :: String -> String
 unbracket s
     | (head s == '[' && last s == ']') || (head s == '(' && last s == ')') = init $ tail s
