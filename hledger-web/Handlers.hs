@@ -445,3 +445,13 @@ getMessageOr mnewmsg = do
   return $ maybe oldmsg (Just . toHtml) mnewmsg
 
 numbered = zip [1..]
+
+-- Add incrementing transaction numbers to a list of register report items starting at 1.
+numberTransactions :: [RegisterReportItem] -> [(Int,RegisterReportItem)]
+numberTransactions [] = []
+numberTransactions is = number 0 is
+  where
+    number _ [] = []
+    number n (i@(Just _, _, _):is)  = (n+1,i):(number (n+1) is)
+    number n (i@(Nothing, _, _):is) = (n,i):(number n is)
+
