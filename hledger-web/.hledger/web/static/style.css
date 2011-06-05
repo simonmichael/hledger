@@ -6,6 +6,7 @@
 /* green */
 body                                                                 { background-color:white; color:black; }
 .registerreport .odd                                                 { background-color:#ded; }
+.journalreport .odd                                                 { background-color:#eee; }
 .filtering                                                           { background-color:#ded; }
 /* #main                                                                { border-color:#ded; } see below */
 /* .journalreport td                                                    { border-color:thin solid #ded; } see below */
