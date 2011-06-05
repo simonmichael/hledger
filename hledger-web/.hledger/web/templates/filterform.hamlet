@@ -7,6 +7,7 @@
      \ #
     <td
      <input name=q size=100 value=#{q}
-     \#
-    <td align=right
-     ^{stopfiltering}
+     $if filtering
+      \ #
+      <span.showall
+       <a href=@{here}>show all

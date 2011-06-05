@@ -39,7 +39,7 @@ input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
 .journalreport                                     { font-size:small; }
 .balancereport                                     { font-size:small; }
 .registerreport                                    { font-size:small; }
-#showmoreaccounts                                  { font-size:small; }
+.showall                                           { font-size:small; }
 /* #addformlink                                    { font-size:small; } */
 /* #editformlink                                   { font-size:small; } */
 
@@ -77,7 +77,7 @@ body                        { margin:0; }
 
 #main .journal { }
 #main .register { }
-/* .current                    { font-weight:bold; } */
+.current                    { font-weight:bold; }
 .description                { padding-left:1em; white-space:normal; }
 .account                    { white-space:normal; padding-left:1em; }
 .amount                     { white-space:nowrap; padding-left:1em; }
@@ -102,7 +102,6 @@ table.registerreport        { border-spacing:0; }
 .registerreport .date       { white-space:nowrap; }
 .firstposting td            { }
 #accountsheading            { white-space:nowrap; margin-bottom:1em; }
-#showmoreaccounts           { font-weight:bold; }
 
 
 #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { padding:4px; }

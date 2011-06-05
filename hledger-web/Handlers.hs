@@ -18,7 +18,6 @@ import Data.Time.Calendar
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
-import Text.ParserCombinators.Parsec -- hiding (string)
 import Text.Printf
 import Text.RegexPR
 import Yesod.Form
@@ -56,9 +55,9 @@ getRootR = redirect RedirectTemporary defaultroute where defaultroute = Register
 -- | The main journal view, with accounts sidebar.
 getJournalR :: Handler RepHtml
 getJournalR = do
-  vd@VD{opts=opts,fspec=fspec,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml opts vd $ balanceReport opts fspec j
-      maincontent = journalReportAsHtml opts vd $ journalReport opts fspec j
+  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  let sidecontent = balanceReportAsHtml opts vd{q=""} $ balanceReport opts nullfilterspec j
+      maincontent = journalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet $(Settings.hamletFile "journal")
@@ -69,9 +68,9 @@ postJournalR = handlePost
 -- | The main register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-  vd@VD{opts=opts,fspec=fspec,m=m,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml opts vd $ balanceReport opts fspec $ filterJournalPostings2 m j
-      maincontent = registerReportAsHtml opts vd $ registerReport opts fspec $ filterJournalPostings2 m j
+  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport  opts nullfilterspec j
+      maincontent = registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
       editform' = editform vd
   defaultLayout $ do
       setTitle "hledger-web register"
@@ -83,10 +82,10 @@ postRegisterR = handlePost
 -- | A simple journal view, like hledger print (with editing.)
 getJournalOnlyR :: Handler RepHtml
 getJournalOnlyR = do
-  vd@VD{opts=opts,fspec=fspec,j=j} <- getViewData
+  vd@VD{opts=opts,m=m,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal only"
-      addHamlet $ journalReportAsHtml opts vd $ journalReport opts fspec j
+      addHamlet $ journalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
 
 postJournalOnlyR :: Handler RepPlain
 postJournalOnlyR = handlePost
@@ -94,63 +93,60 @@ postJournalOnlyR = handlePost
 -- | A simple postings view, like hledger register (with editing.)
 getRegisterOnlyR :: Handler RepHtml
 getRegisterOnlyR = do
-  vd@VD{opts=opts,fspec=fspec,j=j} <- getViewData
+  vd@VD{opts=opts,m=m,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web register only"
-      addHamlet $ registerReportAsHtml opts vd $ registerReport opts fspec j
+      addHamlet $ registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
 
 postRegisterOnlyR :: Handler RepPlain
 postRegisterOnlyR = handlePost
 
 -- | A simple accounts view, like hledger balance. If the Accept header
 -- specifies json, returns the chart of accounts as json.
-getAccountsOnlyR :: Handler RepHtmlJson
-getAccountsOnlyR = do
-  vd@VD{opts=opts,fspec=fspec,j=j,a=a} <- getViewData
-  let accountNames = journalAccountNames j :: [AccountName]
-      accountNames' = filter (matchpats [a]) $ accountNames
-      json = jsonMap [("accounts", toJSON $ accountNames')]
+getAccountsR :: Handler RepHtmlJson
+getAccountsR = do
+  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  let j' = filterJournalPostings2 m j
       html = do
         setTitle "hledger-web accounts"
-        addHamlet $ balanceReportAsHtml opts vd $ balanceReport opts fspec j
+        addHamlet $ balanceReportAsHtml opts vd $ balanceReport opts nullfilterspec j'
+      json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
   defaultLayoutJson html json
 
 -- | Return the chart of accounts as json, without needing a special Accept header.
 getAccountsJsonR :: Handler RepJson
 getAccountsJsonR = do
-  VD{a=a,j=j} <- getViewData
-  let accountNames = journalAccountNames j :: [AccountName]
-      accountNames' = filter (matchpats [a]) $ accountNames
-  jsonToRepJson $ jsonMap [("accounts", toJSON $ accountNames')]
+  VD{m=m,j=j} <- getViewData
+  let j' = filterJournalPostings2 m j
+  jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j')]
 
 -- helpers
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{here=here,a=a,p=p} (items,total) = $(Settings.hamletFile "balancereport")
+balanceReportAsHtml _ vd@VD{here=here,q=q} (items,total) = $(Settings.hamletFile "balancereport")
  where
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
-   itemAsHtml VD{p=p} (acct, adisplay, adepth, abal) = $(Settings.hamletFile "balancereportitem")
+   itemAsHtml VD{here=here,q=q} (acct, adisplay, adepth, abal) = $(Settings.hamletFile "balancereportitem")
      where
        indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
-       acctpat = accountNameToAccountRegex acct
-       pparam = if null p then "" else "&p="++p
+       accturl = (here, [("q", pack $ "otheracct:" ++ quoteIfSpaced (accountNameToAccountRegex acct))])
    accountsheading = $(Settings.hamletFile "accountsheading")
        where
-         filteringaccts = not $ null a
-         showlinks = $(Settings.hamletFile "accountsheadinglinks")
-         showmore = case (filteringaccts, items) of
-                      -- cunning parent account logic
-                      (True, ((acct, _, _, _):_)) ->
-                          let a' = if isAccountRegex a then a else acct
-                              a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
-                              parenturl = (here, [("a",pack a''), ("p",pack p)])
-                          in $(Settings.hamletFile "accountsheadinglinksmore")
-                      _ -> nulltemplate
-         showall = if filteringaccts
-                    then $(Settings.hamletFile "accountsheadinglinksall")
-                    else nulltemplate
-             where allurl = (here, [("p",pack p)])
+         filtering = not $ null q
+         -- showlinks = $(Settings.hamletFile "accountsheadinglinks")
+         -- showmore = case (filteringaccts, items) of
+         --              -- cunning parent account logic
+         --              (True, ((acct, _, _, _):_)) ->
+         --                  let a' = if isAccountRegex a then a else acct
+         --                      a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
+         --                      parenturl = (here, [("a",pack a''), ("p",pack p)])
+         --                  in $(Settings.hamletFile "accountsheadinglinksmore")
+         --              _ -> nulltemplate
+         -- showall = if filteringaccts
+         --            then $(Settings.hamletFile "accountsheadinglinksall")
+         --            else nulltemplate
+         --     where allurl = (here, [])
 
 -- | Render a journal report as HTML.
 journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
@@ -167,14 +163,13 @@ registerReportAsHtml :: [Opt] -> ViewData -> RegisterReport -> Hamlet AppRoute
 registerReportAsHtml _ vd items = $(Settings.hamletFile "registerreport")
  where
    itemAsHtml :: ViewData -> (Int, RegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here,p=p} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
+   itemAsHtml VD{here=here} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
      where
        evenodd = if even n then "even" else "odd" :: String
        (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
                                                Nothing -> ("", "", "") :: (String,String,String)
        acct = paccount posting
-       acctpat = accountNameToAccountRegex acct
-       pparam = if null p then "" else "&p="++p
+       accturl = (here, [("q", pack $ "otheracct:" ++ quoteIfSpaced (accountNameToAccountRegex acct))])
 
 mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
     where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
@@ -318,20 +313,9 @@ handleImport = do
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> Hamlet AppRoute
-topbar VD{p=p,j=j,msg=msg,today=today} = $(Settings.hamletFile "topbar")
+topbar VD{j=j,msg=msg,today=today} = $(Settings.hamletFile "topbar")
   where
-    (title, desc) = journalTitleDesc j p today
-
--- | Generate a title and description for the given journal, period
--- expression, and date.
-journalTitleDesc :: Journal -> String -> Day -> (String, String)
-journalTitleDesc j p today = (title, desc)
-  where
-    title = printf "%s" (takeFileName $ journalFilePath j) :: String
-    desc  = printf "%s" (showspan span) :: String
-    span = either (const $ DateSpan Nothing Nothing) snd (parsePeriodExpr today p)
-    showspan (DateSpan Nothing Nothing) = ""
-    showspan s = " (" ++ dateSpanAsText s ++ ")"
+    title = takeFileName $ journalFilePath j
 
 -- | Links to navigate between the main views.
 navlinks :: ViewData -> Hamlet AppRoute
@@ -340,9 +324,8 @@ navlinks vd = $(Settings.hamletFile "navlinks")
    accountsjournallink  = navlink vd "transactions" JournalR
    accountsregisterlink = navlink vd "postings" RegisterR
    navlink :: ViewData -> String -> AppRoute -> Hamlet AppRoute
-   navlink VD{here=here,a=a,p=p} s dest = $(Settings.hamletFile "navlink")
-    where u = (dest, concat [(if null a then [] else [("a", pack a)])
-                            ,(if null p then [] else [("p", pack p)])])
+   navlink VD{here=here,q=q} s dest = $(Settings.hamletFile "navlink")
+    where u = (dest, if null q then [] else [("q", pack q)])
           style | dest == here = "navlinkcurrent"
                 | otherwise    = "navlink" :: Text
 
@@ -357,10 +340,10 @@ helplink topic label = $(Settings.hamletFile "helplink")
 
 -- | Form controlling journal filtering parameters.
 filterform :: ViewData -> Hamlet AppRoute
-filterform VD{here=here,a=a,p=p,q=q} = $(Settings.hamletFile "filterform")
+filterform VD{here=here,q=q} = $(Settings.hamletFile "filterform")
  where
-  ahelp = helplink "filter-patterns" "?"
-  phelp = helplink "period-expressions" "?"
+  -- ahelp = helplink "filter-patterns" "?"
+  -- phelp = helplink "period-expressions" "?"
   filtering = not $ null q
   visible = "block" :: String
   filteringclass = if filtering then "filtering" else "" :: String
@@ -413,17 +396,14 @@ journalselect journalfiles = $(Settings.hamletFile "journalselect")
 -- utilities
 
 nulltemplate :: Hamlet AppRoute
-nulltemplate = [$hamlet||]
+nulltemplate = [hamlet||]
 
 -- | A bundle of data useful for handlers and their templates.
 data ViewData = VD {
      opts  :: [Opt]       -- ^ command-line options at startup
-    ,a     :: String      -- ^ current a (query) parameter
-    ,p     :: String      -- ^ current p (query) parameter
     ,q     :: String      -- ^ current q (query) parameter
-    ,fspec :: FilterSpec  -- ^ a journal filter specification based on the above
     ,m     :: Matcher     -- ^ a search/filter expression based on the above
-    ,j     :: Journal     -- ^ an up-to-date parsed journal
+    ,j     :: Journal     -- ^ the up-to-date parsed unfiltered journal
     ,today :: Day         -- ^ the current day
     ,here  :: AppRoute    -- ^ the current route
     ,msg   :: Maybe Html  -- ^ the current UI message if any, possibly from the current request
@@ -432,10 +412,7 @@ data ViewData = VD {
 mkvd :: ViewData
 mkvd = VD {
       opts  = []
-     ,a     = ""
-     ,p     = ""
      ,q     = ""
-     ,fspec = nullfilterspec
      ,m     = MatchOr []
      ,j     = nulljournal
      ,today = ModifiedJulianDay 0
@@ -446,25 +423,16 @@ mkvd = VD {
 -- | Gather data useful for a hledger-web request handler and its templates.
 getViewData :: Handler ViewData
 getViewData = do
-  Just here'          <- getCurrentRoute
-  (q, opts, fspec, m) <- getCurrentParameters
-  (j, err)            <- getCurrentJournal opts
-  msg                 <- getMessageOr err
-  today               <- liftIO getCurrentDay
-  return mkvd{opts=opts, q=q, fspec=fspec, m=m, j=j, today=today, here=here', msg=msg}
+  app        <- getYesod
+  let opts = appOpts app
+  (j, err)   <- getCurrentJournal opts
+  msg        <- getMessageOr err
+  Just here' <- getCurrentRoute
+  today      <- liftIO getCurrentDay
+  q          <- getParameter "q"
+  let m = parseMatcher today q
+  return mkvd{opts=opts, q=q, m=m, j=j, today=today, here=here', msg=msg}
     where
-      -- | Get current report parameters for this request.
-      getCurrentParameters :: Handler (String, [Opt], FilterSpec, Matcher)
-      getCurrentParameters = do
-          app <- getYesod
-          t <- liftIO $ getCurrentLocalTime
-          q <- unpack `fmap` fromMaybe "" <$> lookupGetParam "q"
-          let opts = appOpts app -- ++ [Period p']
-              args = appArgs app -- ++ words' a'
-              fspec = optsToFilterSpec opts args t
-              m = parseMatcher q
-          return (q, opts, fspec, m)
-
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
       -- ui message.
@@ -480,18 +448,9 @@ getViewData = do
                 Left e  -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
                               return (j, Just e)
 
-
-parseMatcher :: String -> Matcher
-parseMatcher s = MatchOr $ map (MatchAcct True) $ words' s
-
-parseMatcher2 :: String -> Matcher
-parseMatcher2 s = either (const (MatchOr [])) id $ runParser matcher () "" $ lexmatcher s
-
-lexmatcher :: String -> [String]
-lexmatcher s = words' s
-
-matcher :: GenParser String () Matcher
-matcher = undefined
+      -- | Get the named request parameter.
+      getParameter :: String -> Handler String
+      getParameter p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
 
 -- | Get the message set by the last request, or the newer message provided, if any.
 getMessageOr :: Maybe String -> Handler (Maybe Html)

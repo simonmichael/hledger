@@ -1,4 +1,6 @@
 <div#accountsheading
  accounts
- \ #
- ^{showlinks}
+ $if filtering
+  \ #
+  <span.showall
+   <a href=@{here}>show all
