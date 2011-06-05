@@ -27,6 +27,7 @@ where
 import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
 import Data.Char
 import Data.List
+import Data.Maybe
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Tree
@@ -208,10 +209,31 @@ difforzero a b = maximum [(a - b), 0]
 
 -- regexps
 
-containsRegex :: String -> String -> Bool
-containsRegex r s = case matchRegexPR ("(?i)"++r) s of
-                      Just _ -> True
-                      _ -> False
+-- regexMatch :: String -> String -> MatchFun Maybe
+regexMatch r s = matchRegexPR r s
+
+-- regexMatchCI :: String -> String -> MatchFun Maybe
+regexMatchCI r s = regexMatch (regexToCaseInsensitive r) s
+
+regexMatches :: String -> String -> Bool
+regexMatches r s = isJust $ matchRegexPR r s
+
+regexMatchesCI :: String -> String -> Bool
+regexMatchesCI r s = regexMatches (regexToCaseInsensitive r) s
+
+containsRegex = regexMatchesCI
+
+regexReplace :: String -> String -> String -> String
+regexReplace r repl s = gsubRegexPR r repl s
+
+regexReplaceCI :: String -> String -> String -> String
+regexReplaceCI r s = regexReplace (regexToCaseInsensitive r) s
+
+regexReplaceBy :: String -> (String -> String) -> String -> String
+regexReplaceBy r replfn s = gsubRegexPRBy r replfn s
+
+regexToCaseInsensitive :: String -> String
+regexToCaseInsensitive r = "(?i)"++ r
 
 -- lists
 
@@ -273,7 +295,7 @@ treeany f t = f (root t) || any (treeany f) (branches t)
 
 -- | show a compact ascii representation of a tree
 showtree :: Show a => Tree a -> String
-showtree = unlines . filter (containsRegex "[^ \\|]") . lines . drawTree . treemap show
+showtree = unlines . filter (regexMatches "[^ \\|]") . lines . drawTree . treemap show
 
 -- | show a compact ascii representation of a forest
 showforest :: Show a => Forest a -> String

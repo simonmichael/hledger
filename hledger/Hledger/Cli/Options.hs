@@ -12,7 +12,6 @@ import Data.Time.LocalTime
 import System.Console.GetOpt
 import System.Environment
 import Test.HUnit
-import Text.RegexPR
 
 import Hledger.Data
 import Hledger.Read (myJournalPath, myTimelogPath)
@@ -175,7 +174,7 @@ fixOptDates opts = do
     fixopt d (Begin s)   = Begin $ fixSmartDateStr d s
     fixopt d (End s)     = End $ fixSmartDateStr d s
     fixopt d (Display s) = -- hacky
-        Display $ gsubRegexPRBy "\\[.+?\\]" fixbracketeddatestr s
+        Display $ regexReplaceBy "\\[.+?\\]" fixbracketeddatestr s
         where fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
     fixopt _ o            = o
 

@@ -20,7 +20,6 @@ import Test.HUnit
 import Text.CSV (parseCSV, parseCSVFromFile, printCSV, CSV)
 import Text.ParserCombinators.Parsec
 import Text.Printf (hPrintf)
-import Text.RegexPR (matchRegexPR, gsubRegexPR)
 
 import Hledger.Cli.Options (Opt(Debug), progname_cli, rulesFileFromOpts)
 import Hledger.Cli.Version (progversionstr)
@@ -28,7 +27,7 @@ import Hledger.Data (Journal,AccountName,Transaction(..),Posting(..),PostingType
 import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
 import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader (someamount,ledgeraccountname)
-import Hledger.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error')
+import Hledger.Utils (strip, spacenonewline, restofline, parseWithCtx, assertParse, assertParseEqual, error', regexMatchesCI, regexReplaceCI)
 import Hledger.Utils.UTF8 (getContents)
 
 {- |
@@ -399,11 +398,11 @@ identify rules defacct desc | null matchingrules = (defacct,desc)
                             | otherwise = (acct,newdesc)
     where
       matchingrules = filter ismatch rules :: [AccountRule]
-          where ismatch = any (isJust . flip matchRegexPR (caseinsensitive desc) . fst) . fst
+          where ismatch = any ((`regexMatchesCI` desc) . fst) . fst
       (prs,acct) = head matchingrules
-      p_ms_r = filter (\(_,m,_) -> isJust m) $ map (\(p,r) -> (p, matchRegexPR (caseinsensitive p) desc, r)) prs
+      p_ms_r = filter (\(_,m,_) -> m) $ map (\(p,r) -> (p, p `regexMatchesCI` desc, r)) prs
       (p,_,r) = head p_ms_r
-      newdesc = case r of Just rpat -> gsubRegexPR (caseinsensitive p) rpat desc
+      newdesc = case r of Just repl -> regexReplaceCI p repl desc
                           Nothing   -> desc
 
 caseinsensitive = ("(?i)"++)

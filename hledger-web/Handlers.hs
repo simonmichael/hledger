@@ -20,7 +20,6 @@ import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
 import Text.Printf
-import Text.RegexPR
 import Yesod.Form
 import Yesod.Json
 
@@ -442,7 +441,7 @@ accountNameToAccountRegex "" = ""
 accountNameToAccountRegex a = printf "^%s(:|$)" a
 
 accountRegexToAccountName :: String -> String
-accountRegexToAccountName = gsubRegexPR "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
+accountRegexToAccountName = regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
 
 isAccountRegex  :: String -> Bool
 isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("

@@ -35,7 +35,6 @@ import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Test.HUnit
 import Text.Printf
-import Text.RegexPR
 
 import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts)
 import Hledger.Data
@@ -161,6 +160,6 @@ safeGetDirectoryContents fp = getDirectoryContents fp
 
 -- | Does the second file represent a backup of the first, and if so which version is it ?
 backupNumber :: FilePath -> FilePath -> Maybe Int
-backupNumber f g = case matchRegexPR ("^" ++ f ++ "\\.([0-9]+)$") g of
+backupNumber f g = case regexMatch ("^" ++ f ++ "\\.([0-9]+)$") g of
                         Just (_, ((_,suffix):_)) -> readMay suffix
                         _ -> Nothing
