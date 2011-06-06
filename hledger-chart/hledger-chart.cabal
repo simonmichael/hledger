@@ -35,7 +35,7 @@ executable hledger-chart
                  ,hledger-lib == 0.15
                  -- ,HUnit
                  ,base >= 3 && < 5
-                 -- ,containers
+                 ,containers
                  -- ,csv
                  -- ,directory
                  -- ,filepath
@@ -47,7 +47,7 @@ executable hledger-chart
                  -- ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  -- ,split == 0.1.*
-                 -- ,time
+                 ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
                  ,Chart >= 0.11 && < 0.15
                  ,colour

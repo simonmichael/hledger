@@ -7,21 +7,26 @@ Released under GPL version 3 or later.
 
 module Hledger.Chart.Main
 where
-import Graphics.Rendering.Chart
+import Control.Monad
 import Data.Colour
 import Data.Colour.Names
 import Data.Colour.RGBSpace
 import Data.Colour.RGBSpace.HSL (hsl)
 import Data.Colour.SRGB.Linear (rgb)
 import Data.List
+import Data.Maybe
+import Data.Ord
+import Data.Tree
+import Graphics.Rendering.Chart
 import Safe (readDef)
 import System.Console.GetOpt
 import System.Exit (exitFailure)
 
 import Hledger.Cli.Options
 import Hledger.Cli.Utils (withJournalDo)
-import Hledger.Cli.Version (progversionstr, binaryfilename)
+import Hledger.Cli.Version
 import Hledger.Data
+import Hledger.Utils
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Utils.UTF8 (putStr, putStrLn)
 
