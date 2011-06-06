@@ -7,17 +7,17 @@ Released under GPL version 3 or later.
 
 module Hledger.Vty.Main where
 
+import Control.Monad
+import Data.List
+import Data.Maybe
+import Data.Time.LocalTime
 import Graphics.Vty
 import Safe (headDef)
 import System.Console.GetOpt
 
-import Hledger.Cli.Balance
-import Hledger.Cli.Options
-import Hledger.Cli.Print
-import Hledger.Cli.Register
-import Hledger.Cli.Utils (withJournalDo)
-import Hledger.Cli.Version (progversionstr, binaryfilename)
+import Hledger.Cli
 import Hledger.Data
+import Hledger.Utils
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Utils.UTF8 (putStr, putStrLn)
 
@@ -272,7 +272,7 @@ updateData t a@AppState{aopts=opts,ajournal=j} =
     case screen a of
       BalanceScreen  -> a{abuf=lines $ balanceReportAsText opts $ balanceReport opts fspec j}
       RegisterScreen -> a{abuf=lines $ registerReportAsText opts $ registerReport opts fspec j}
-      PrintScreen    -> a{abuf=lines $ showTransactions fspec j}
+      PrintScreen    -> a{abuf=lines $ showTransactions opts fspec j}
     where fspec = optsToFilterSpec opts (currentArgs a) t
 
 backout :: LocalTime -> AppState -> AppState
