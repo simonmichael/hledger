@@ -103,10 +103,13 @@ VERSIONSENSITIVEFILES=\
 	$(CABALFILES) \
 	hledger-web/.hledger/web/.version \
 
-BINARYFILENAME:=$(shell touch $(VERSIONHS); runhaskell -ihledger -ihledger-lib $(MAIN) --binary-filename)
+# get an accurate binary filename from the current source on the current platform
+# nb not := as that would break the makefile when hledger is not compiling.
+BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell -ihledger -ihledger-lib $(MAIN) --binary-filename)
+
 RELEASEBINARYSUFFIX:=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '[:lower:]')
 
-default: tag hledger
+default: tag bin/hledger
 
 ######################################################################
 # BUILDING
