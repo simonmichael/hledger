@@ -530,7 +530,7 @@ savehelp:
 	for e in $(EXES); do $$e --help >.HELP_$$e; done
 
 # generate api & other code docs
-codedocs: hscolour apihaddock codehaddock coverage #sourcegraph #hoogle
+codedocs: hscolour apihaddock internalhaddock coverage #sourcegraph #hoogle
 
 # browse the code docs
 viewcodedocs:
@@ -559,12 +559,11 @@ apihaddock: linkhledgerwebdir .haddockprologue
 	 $(HADDOCKLIBSOURCEFILES)
 
 # generate internal code docs for the whole project
-# Very fragile. Things that may help:
-# ln -s hledger/Hledger
+# Fragile. Things that may help ?:
 # ln -s hledger-web/routes
-# cabal install hledger-lib hledger ?
-# mkdir Hledger; cd Hledger; for f in ../hledger{,-lib}/Hledger/*; do ln -s $f; done
-codehaddock: linkhledgerwebdir .haddockprologue
+# cabal install hledger-lib hledger
+# ln -s hledger-lib/Hledger.hs; mkdir Hledger; cd Hledger; for f in ../hledger{,-lib}/Hledger/*; do ln -s $f; done
+internalhaddock: linkhledgerwebdir .haddockprologue
 	$(HADDOCK) --title "hledger internal code docs, all packages" \
 	 -o site/code-doc \
 	 --ignore-all-exports \
@@ -575,11 +574,16 @@ codehaddock: linkhledgerwebdir .haddockprologue
 
 # http://www.cs.york.ac.uk/fp/darcs/hscolour/
 HSCOLOUR=HsColour -css
-hscolour:
-	mkdir -p site/code-doc/src
+hscolour: site/code-doc/src site/code-doc/src/hscolour.css
 	for f in $(HADDOCKSOURCEFILES); do \
 		$(HSCOLOUR) -anchor $$f -osite/code-doc/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done
+
+site/code-doc/src/hscolour.css: site/code-doc/src
+	$(HSCOLOUR) -print-css >site/code-doc/src/hscolour.css
+
+site/code-doc/src:
+	mkdir -p site/code-doc/src
 
 sourcegraph:
 	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
