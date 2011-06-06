@@ -20,8 +20,8 @@ import Text.CSV (parseCSV, parseCSVFromFile, printCSV, CSV)
 import Text.ParserCombinators.Parsec
 import Text.Printf (hPrintf)
 
+import Hledger.Cli.Version
 import Hledger.Cli.Options (Opt(Debug), progname_cli, rulesFileFromOpts)
-import Hledger.Cli.Version (progversionstr)
 import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
 import Hledger.Data.Dates (firstJust, showDate, parsedate)
 import Hledger.Data (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))

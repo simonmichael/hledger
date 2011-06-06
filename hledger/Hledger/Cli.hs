@@ -13,6 +13,7 @@ module Hledger.Cli (
                      module Hledger.Cli.Stats,
                      module Hledger.Cli.Options,
                      module Hledger.Cli.Utils,
+                     module Hledger.Cli.Version,
                      tests_Hledger_Cli
               )
 where
@@ -31,6 +32,7 @@ import Hledger.Cli.Register
 import Hledger.Cli.Stats
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
+import Hledger.Cli.Version
 import Hledger.Data  -- including testing utils in Hledger.Data.Utils
 import Hledger.Read
 import Hledger.Read.JournalReader (someamount)

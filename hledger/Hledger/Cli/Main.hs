@@ -43,7 +43,6 @@ import Data.List
 
 import Hledger.Cli
 import Hledger.Cli.Tests
-import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Utils (error')
 import Hledger.Utils.UTF8 (putStr, putStrLn)

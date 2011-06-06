@@ -24,7 +24,6 @@ import Yesod.Form
 import Yesod.Json
 
 import Hledger.Cli
-import Hledger.Cli.Version -- XXX
 import Hledger.Data hiding (today)
 import Hledger.Read (journalFromPathAndString)
 import Hledger.Read.JournalReader (someamount)
