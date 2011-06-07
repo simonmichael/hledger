@@ -33,8 +33,9 @@ import Hledger.Data.Dates
 
 -- | A more general way to match transactions and postings, successor to FilterSpec. (?)
 -- If the first boolean is False, it's a negative match.
-data Matcher = MatchOr [Matcher]          -- ^ match if any match
-             | MatchAnd [Matcher]         -- ^ match if all match
+data Matcher = MatchAny                   -- ^ always match
+             | MatchOr [Matcher]          -- ^ match if any of these match
+             | MatchAnd [Matcher]         -- ^ match if all of these match
              | MatchDesc Bool String      -- ^ match if description matches this regexp
              | MatchAcct Bool String      -- ^ match postings whose account matches this regexp
              | MatchOtherAcct Bool String -- ^ match postings whose transaction contains a posting to an account matching this regexp
@@ -48,19 +49,20 @@ data Matcher = MatchOr [Matcher]          -- ^ match if any match
 
 -- | Parse a query expression as a list of match patterns OR'd together.
 parseMatcher :: Day -> String -> Matcher
-parseMatcher refdate s = MatchOr $ map parseword $ words'' ["otheracct:"] s
+parseMatcher refdate s = MatchAnd $ map parseword $ words'' ["not:","acct:","desc:"] s
   where
     parseword :: String -> Matcher
     parseword ('n':'o':'t':':':s) = negateMatch $ parseMatcher refdate s
     parseword ('d':'e':'s':'c':':':s) = MatchDesc True s
-    parseword ('a':'c':'c':'t':':':s) = MatchAcct True s
-    parseword ('o':'t':'h':'e':'r':'a':'c':'c':'t':':':s) = MatchOtherAcct True s
+    -- parseword ('a':'c':'c':'t':':':s) = MatchAcct True s
+    parseword ('a':'c':'c':'t':':':s) = MatchOtherAcct True s
     parseword ('d':'a':'t':'e':':':s) = MatchDate True $ spanFromSmartDateString refdate s
     parseword ('e':'d':'a':'t':'e':':':s) = MatchEDate True $ spanFromSmartDateString refdate s
     parseword ('s':'t':'a':'t':'u':'s':':':s) = MatchStatus True $ parseStatus s
     parseword ('r':'e':'a':'l':':':s) = MatchReal True $ parseBool s
     parseword ('e':'m':'p':'t':'y':':':s) = MatchEmpty True $ parseBool s
     parseword ('d':'e':'p':'t':'h':':':s) = MatchDepth True $ readDef 0 s
+    parseword "" = MatchAny
     parseword s = parseword $ "acct:"++s
 
     parseStatus "*" = True
@@ -86,7 +88,7 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases
 
 -- -- | Parse the query string as a boolean tree of match patterns.
 -- parseMatcher :: String -> Matcher
--- parseMatcher s = either (const (MatchOr [])) id $ runParser matcher () "" $ lexmatcher s
+-- parseMatcher s = either (const (MatchAny)) id $ runParser matcher () "" $ lexmatcher s
 
 -- lexmatcher :: String -> [String]
 -- lexmatcher s = words' s
@@ -95,11 +97,12 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases
 -- matcher = undefined
 
 matchesPosting :: Matcher -> Posting -> Bool
+matchesPosting (MatchAny) p = True
 matchesPosting (MatchOr ms) p = any (`matchesPosting` p) ms
 matchesPosting (MatchAnd ms) p = all (`matchesPosting` p) ms
-matchesPosting (MatchDesc True r) p = regexMatches r $ maybe "" tdescription $ ptransaction p
+matchesPosting (MatchDesc True r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
 matchesPosting (MatchDesc False r) p = not $ (MatchDesc True r) `matchesPosting` p
-matchesPosting (MatchAcct True r) p = regexMatches r $ paccount p
+matchesPosting (MatchAcct True r) p = regexMatchesCI r $ paccount p
 matchesPosting (MatchAcct False r) p = not $ (MatchAcct True r) `matchesPosting` p
 matchesPosting (MatchOtherAcct True r) p =
     case ptransaction p of
@@ -109,14 +112,24 @@ matchesPosting (MatchOtherAcct False r) p = not $ (MatchOtherAcct True r) `match
 matchesPosting _ _ = False
 
 matchesTransaction :: Matcher -> Transaction -> Bool
+matchesTransaction (MatchAny) t = True
 matchesTransaction (MatchOr ms) t = any (`matchesTransaction` t) ms
 matchesTransaction (MatchAnd ms) t = all (`matchesTransaction` t) ms
-matchesTransaction (MatchDesc True r) t = regexMatches r $ tdescription t
+matchesTransaction (MatchDesc True r) t = regexMatchesCI r $ tdescription t
 matchesTransaction (MatchDesc False r) t = not $ (MatchDesc True r) `matchesTransaction` t
 matchesTransaction m@(MatchAcct True _) t = any (m `matchesPosting`) $ tpostings t
 matchesTransaction (MatchAcct False r) t = not $ (MatchAcct True r) `matchesTransaction` t
-matchesTransaction m@(MatchOtherAcct sense r) t = (MatchAcct sense r) `matchesTransaction` t
+matchesTransaction (MatchOtherAcct sense r) t = (MatchAcct sense r) `matchesTransaction` t
 matchesTransaction _ _ = False
+
+-- | Does this matcher match this account name as one we are "in" ?
+matchesInAccount :: Matcher -> AccountName -> Bool
+matchesInAccount (MatchAny) a = True
+matchesInAccount (MatchOr ms) a = any (`matchesInAccount` a) ms
+matchesInAccount (MatchAnd ms) a = all (`matchesInAccount` a) ms
+matchesInAccount (MatchOtherAcct True r) a = regexMatchesCI r a
+matchesInAccount (MatchOtherAcct False r) a = not $ (MatchOtherAcct True r) `matchesInAccount` a
+matchesInAccount _ _ = True
 
 negateMatch :: Matcher -> Matcher
 negateMatch (MatchOr ms)               = MatchAnd $ map negateMatch ms

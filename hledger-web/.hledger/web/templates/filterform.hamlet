@@ -1,7 +1,7 @@
 <div#filterformdiv
- <form#filterform.form method=GET style=display:#{visible};
-  <table.form
-   <tr.#{filteringperiodclass}
+ <form#filterform.form method=GET
+  <table
+   <tr
     <td
      Search:
      \ #
@@ -11,3 +11,11 @@
       \ #
       <span.showall
        <a href=@{here}>show all
+   <tr.help
+    <td
+    <td
+     PAT or acct:PAT to see transactions in all matched accounts, desc:PAT to search by description
+     <br>
+     not: to negate, multiple patterns are AND'ed, patterns are regular expressions
+     <br>
+     leave blank to see general journal (all postings)

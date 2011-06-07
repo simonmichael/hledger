@@ -122,31 +122,21 @@ getAccountsJsonR = do
 
 -- helpers
 
+accountUrl a = "acct:" ++ quoteIfSpaced (accountNameToAccountRegex a)
+
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{here=here,q=q} (items,total) = $(Settings.hamletFile "balancereport")
+balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,j=j} (items,total) = $(Settings.hamletFile "balancereport")
  where
+   filtering = not $ null q
+   inaccts = filter (m `matchesInAccount`) $ journalAccountNames j
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{here=here,q=q} (acct, adisplay, adepth, abal) = $(Settings.hamletFile "balancereportitem")
      where
+       depthclass = "depth"++show adepth
+       inclass = if acct `elem` inaccts then "inacct" else "notinacct" :: String
        indent = preEscapedString $ concat $ replicate (2 * adepth) "&nbsp;"
-       accturl = (here, [("q", pack $ "otheracct:" ++ quoteIfSpaced (accountNameToAccountRegex acct))])
-   accountsheading = $(Settings.hamletFile "accountsheading")
-       where
-         filtering = not $ null q
-         -- showlinks = $(Settings.hamletFile "accountsheadinglinks")
-         -- showmore = case (filteringaccts, items) of
-         --              -- cunning parent account logic
-         --              (True, ((acct, _, _, _):_)) ->
-         --                  let a' = if isAccountRegex a then a else acct
-         --                      a'' = accountNameToAccountRegex $ parentAccountName $ accountRegexToAccountName a'
-         --                      parenturl = (here, [("a",pack a''), ("p",pack p)])
-         --                  in $(Settings.hamletFile "accountsheadinglinksmore")
-         --              _ -> nulltemplate
-         -- showall = if filteringaccts
-         --            then $(Settings.hamletFile "accountsheadinglinksall")
-         --            else nulltemplate
-         --     where allurl = (here, [])
+       accturl = (here, [("q", pack $ accountUrl acct)])
 
 -- | Render a journal report as HTML.
 journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
@@ -169,7 +159,7 @@ registerReportAsHtml _ vd items = $(Settings.hamletFile "registerreport")
        (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
                                                Nothing -> ("", "", "") :: (String,String,String)
        acct = paccount posting
-       accturl = (here, [("q", pack $ "otheracct:" ++ quoteIfSpaced (accountNameToAccountRegex acct))])
+       accturl = (here, [("q", pack $ accountUrl acct)])
 
 mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
     where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
@@ -342,14 +332,7 @@ helplink topic label = $(Settings.hamletFile "helplink")
 filterform :: ViewData -> Hamlet AppRoute
 filterform VD{here=here,q=q} = $(Settings.hamletFile "filterform")
  where
-  -- ahelp = helplink "filter-patterns" "?"
-  -- phelp = helplink "period-expressions" "?"
   filtering = not $ null q
-  visible = "block" :: String
-  filteringclass = if filtering then "filtering" else "" :: String
-  filteringperiodclass = "" :: String
-  stopfiltering = if filtering then $(Settings.hamletFile "filterformclear") else nulltemplate
-      where u = (here, [])
 
 -- | Add transaction form.
 addform :: ViewData -> Hamlet AppRoute
@@ -360,7 +343,7 @@ addform vd = $(Settings.hamletFile "addform")
   date = "today" :: String
   descriptions = sort $ nub $ map tdescription $ jtxns $ j vd
   manyfiles = (length $ files $ j vd) > 1
-  postingfields VD{j=j} n = $(Settings.hamletFile "postingfields")
+  postingfields VD{j=j} n = $(Settings.hamletFile "addformpostingfields")
    where
     numbered = (++ show n)
     acctvar = numbered "account"
@@ -369,7 +352,7 @@ addform vd = $(Settings.hamletFile "addform")
     (acctlabel, accthelp, amtfield, amthelp)
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
-                     ,$(Settings.hamletFile "postingfieldsamount")
+                     ,$(Settings.hamletFile "addformpostingfieldsamount")
                      ,"eg: $6"
                      )
        | otherwise = ("From account" :: String
@@ -413,7 +396,7 @@ mkvd :: ViewData
 mkvd = VD {
       opts  = []
      ,q     = ""
-     ,m     = MatchOr []
+     ,m     = MatchAny
      ,j     = nulljournal
      ,today = ModifiedJulianDay 0
      ,here  = RootR
@@ -430,7 +413,7 @@ getViewData = do
   Just here' <- getCurrentRoute
   today      <- liftIO getCurrentDay
   q          <- getParameter "q"
-  let m = parseMatcher today q
+  let m = strace $ parseMatcher today q
   return mkvd{opts=opts, q=q, m=m, j=j, today=today, here=here', msg=msg}
     where
       -- | Update our copy of the journal if the file changed. If there is an

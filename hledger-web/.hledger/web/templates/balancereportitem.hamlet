@@ -1,5 +1,5 @@
-<tr.item
- <td.account
+<tr.item.#{inclass}
+ <td.account.#{depthclass}
   #{indent}
   <a href="@?{accturl}">#{adisplay}
  <td.balance align=right>#{mixedAmountAsHtml abal}

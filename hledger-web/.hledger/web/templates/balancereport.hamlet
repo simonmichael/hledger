@@ -1,7 +1,14 @@
-^{accountsheading}
+<div#accountsheading
+ accounts
+ $if filtering
+  \ #
+  <span.showall
+   <a href=@{here}>show all
+
 <table.balancereport>
  $forall i <- items
   ^{itemAsHtml vd i}
+
  <tr.totalrule>
   <td colspan=2>
  <tr>

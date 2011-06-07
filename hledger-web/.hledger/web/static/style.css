@@ -17,10 +17,13 @@ body                                                                 { backgroun
 /* #main                                                                { border-color:#eee; } see below */
 /* .journalreport td                                                    { border-color:thin solid #eee; } see below */
 
-.negative                                                            { color:#800; }
 #message                                                             { color:red; background-color:#fee; }
 #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list { background-color:#eee; }
 #editform textarea                                                   { background-color:#eee; }
+.negative                                                            { color:#800; }
+
+.balancereport .inacct                                               { /*background-color:#f0f0f0;*/ }
+.notinacct, .notinacct :link, .notinacct :visited, .notinacct .negative  { color:#aaa; }
 
 /*------------------------------------------------------------------------------------------*/
 /* 2. font families & sizes */
@@ -93,6 +96,7 @@ table.journalreport         { border-spacing: 0; }
 .balancereport tr           { vertical-align:bottom; border-spacing:0; }
 .balancereport .title       { white-space:nowrap; }
 .balancereport .item        { }
+.balancereport .depth0      { padding-top:1em; }
 .balancereport td           { padding:0; }
 .totalrule td               { border-top:thin solid black; }
 
