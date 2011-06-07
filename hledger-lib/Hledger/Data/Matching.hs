@@ -98,7 +98,7 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases
 -- matcher = undefined
 
 matchesPosting :: Matcher -> Posting -> Bool
-matchesPosting (MatchAny) p = True
+matchesPosting (MatchAny) _ = True
 matchesPosting (MatchOr ms) p = any (`matchesPosting` p) ms
 matchesPosting (MatchAnd ms) p = all (`matchesPosting` p) ms
 matchesPosting (MatchDesc True r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
@@ -113,7 +113,7 @@ matchesPosting (MatchInAcct False r) p = not $ (MatchInAcct True r) `matchesPost
 matchesPosting _ _ = False
 
 matchesTransaction :: Matcher -> Transaction -> Bool
-matchesTransaction (MatchAny) t = True
+matchesTransaction (MatchAny) _ = True
 matchesTransaction (MatchOr ms) t = any (`matchesTransaction` t) ms
 matchesTransaction (MatchAnd ms) t = all (`matchesTransaction` t) ms
 matchesTransaction (MatchDesc True r) t = regexMatchesCI r $ tdescription t
@@ -126,7 +126,7 @@ matchesTransaction _ _ = False
 -- | Does this matcher specify this account as the one we are "in" ?
 -- For now, does a case-insensitive exact string match on the full account name.
 matchesInAccount :: Matcher -> AccountName -> Bool
-matchesInAccount (MatchAny) a = True
+matchesInAccount (MatchAny) _ = True
 matchesInAccount (MatchOr ms) a = any (`matchesInAccount` a) ms
 matchesInAccount (MatchAnd ms) a = all (`matchesInAccount` a) ms
 matchesInAccount (MatchInAcct True r) a = lowercase r == lowercase a -- regexMatchesCI r a
@@ -134,6 +134,7 @@ matchesInAccount (MatchInAcct False r) a = not $ (MatchInAcct True r) `matchesIn
 matchesInAccount _ _ = True
 
 negateMatch :: Matcher -> Matcher
+negateMatch MatchAny                   = MatchOr [] -- matches nothing
 negateMatch (MatchOr ms)               = MatchAnd $ map negateMatch ms
 negateMatch (MatchAnd ms)              = MatchOr $ map negateMatch ms
 negateMatch (MatchAcct sense arg)      = MatchAcct (not sense) arg
