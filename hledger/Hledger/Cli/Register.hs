@@ -241,3 +241,7 @@ tests_Hledger_Cli_Register = TestList
   --    ]
 
  ]
+
+--------------------------------------------------------------------------------
+-- register mode 2: realistic account register
+

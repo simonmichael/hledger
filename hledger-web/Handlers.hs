@@ -15,6 +15,7 @@ import Data.List
 import Data.Maybe
 import Data.Text(Text,pack,unpack)
 import Data.Time.Calendar
+import Safe
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
@@ -122,19 +123,20 @@ getAccountsJsonR = do
 
 -- helpers
 
-accountUrl a = "acct:" ++ quoteIfSpaced (accountNameToAccountRegex a)
+accountUrl :: String -> String
+accountUrl a = "in:" ++ quoteIfSpaced (accountNameToAccountRegex a)
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
 balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,j=j} (items,total) = $(Settings.hamletFile "balancereport")
  where
    filtering = not $ null q
-   inaccts = filter (m `matchesInAccount`) $ journalAccountNames j
+   inacct = headMay $ filter (m `matchesInAccount`) $ journalAccountNames j
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
      where
        depthclass = "depth"++show aindent
-       inclass = if acct `elem` inaccts then "inacct" else "notinacct" :: String
+       inclass = if acct == inacct then "inacct" else "notinacct" :: String
        indent = preEscapedString $ concat $ replicate (2 * aindent) "&nbsp;"
        accturl = (here, [("q", pack $ accountUrl acct)])
 
@@ -379,7 +381,7 @@ journalselect journalfiles = $(Settings.hamletFile "journalselect")
 -- utilities
 
 nulltemplate :: Hamlet AppRoute
-nulltemplate = [hamlet||]
+nulltemplate = [$hamlet||]
 
 -- | A bundle of data useful for handlers and their templates.
 data ViewData = VD {

@@ -38,7 +38,7 @@ data Matcher = MatchAny                   -- ^ always match
              | MatchAnd [Matcher]         -- ^ match if all of these match
              | MatchDesc Bool String      -- ^ match if description matches this regexp
              | MatchAcct Bool String      -- ^ match postings whose account matches this regexp
-             | MatchOtherAcct Bool String -- ^ match postings whose transaction contains a posting to an account matching this regexp
+             | MatchInAcct Bool String    -- ^ XXX match postings whose transaction contains a posting to an account matching this regexp
              | MatchDate Bool DateSpan    -- ^ match if actual date in this date span
              | MatchEDate Bool DateSpan   -- ^ match if effective date in this date span
              | MatchStatus Bool Bool      -- ^ match if cleared status has this value
@@ -54,8 +54,9 @@ parseMatcher refdate s = MatchAnd $ map parseword $ words'' ["not:","acct:","des
     parseword :: String -> Matcher
     parseword ('n':'o':'t':':':s) = negateMatch $ parseMatcher refdate s
     parseword ('d':'e':'s':'c':':':s) = MatchDesc True s
-    -- parseword ('a':'c':'c':'t':':':s) = MatchAcct True s
-    parseword ('a':'c':'c':'t':':':s) = MatchOtherAcct True s
+    parseword ('a':'c':'c':'t':':':s) = MatchAcct True s
+    parseword ('i':'n':'a':'c':'c':'t':':':s) = MatchInAcct True s
+    parseword ('i':'n':':':s) = MatchInAcct True s
     parseword ('d':'a':'t':'e':':':s) = MatchDate True $ spanFromSmartDateString refdate s
     parseword ('e':'d':'a':'t':'e':':':s) = MatchEDate True $ spanFromSmartDateString refdate s
     parseword ('s':'t':'a':'t':'u':'s':':':s) = MatchStatus True $ parseStatus s
@@ -63,7 +64,7 @@ parseMatcher refdate s = MatchAnd $ map parseword $ words'' ["not:","acct:","des
     parseword ('e':'m':'p':'t':'y':':':s) = MatchEmpty True $ parseBool s
     parseword ('d':'e':'p':'t':'h':':':s) = MatchDepth True $ readDef 0 s
     parseword "" = MatchAny
-    parseword s = parseword $ "acct:"++s
+    parseword s = parseword $ "in:"++s
 
     parseStatus "*" = True
     parseStatus _ = False
@@ -104,11 +105,11 @@ matchesPosting (MatchDesc True r) p = regexMatchesCI r $ maybe "" tdescription $
 matchesPosting (MatchDesc False r) p = not $ (MatchDesc True r) `matchesPosting` p
 matchesPosting (MatchAcct True r) p = regexMatchesCI r $ paccount p
 matchesPosting (MatchAcct False r) p = not $ (MatchAcct True r) `matchesPosting` p
-matchesPosting (MatchOtherAcct True r) p =
+matchesPosting (MatchInAcct True r) p =
     case ptransaction p of
         Just t -> (MatchAcct True r) `matchesTransaction` t && (MatchAcct False r) `matchesPosting` p
         Nothing -> False
-matchesPosting (MatchOtherAcct False r) p = not $ (MatchOtherAcct True r) `matchesPosting` p
+matchesPosting (MatchInAcct False r) p = not $ (MatchInAcct True r) `matchesPosting` p
 matchesPosting _ _ = False
 
 matchesTransaction :: Matcher -> Transaction -> Bool
@@ -119,16 +120,17 @@ matchesTransaction (MatchDesc True r) t = regexMatchesCI r $ tdescription t
 matchesTransaction (MatchDesc False r) t = not $ (MatchDesc True r) `matchesTransaction` t
 matchesTransaction m@(MatchAcct True _) t = any (m `matchesPosting`) $ tpostings t
 matchesTransaction (MatchAcct False r) t = not $ (MatchAcct True r) `matchesTransaction` t
-matchesTransaction (MatchOtherAcct sense r) t = (MatchAcct sense r) `matchesTransaction` t
+matchesTransaction (MatchInAcct sense r) t = (MatchAcct sense r) `matchesTransaction` t
 matchesTransaction _ _ = False
 
--- | Does this matcher match this account name as one we are "in" ?
+-- | Does this matcher specify this account as the one we are "in" ?
+-- For now, does a case-insensitive exact string match on the full account name.
 matchesInAccount :: Matcher -> AccountName -> Bool
 matchesInAccount (MatchAny) a = True
 matchesInAccount (MatchOr ms) a = any (`matchesInAccount` a) ms
 matchesInAccount (MatchAnd ms) a = all (`matchesInAccount` a) ms
-matchesInAccount (MatchOtherAcct True r) a = regexMatchesCI r a
-matchesInAccount (MatchOtherAcct False r) a = not $ (MatchOtherAcct True r) `matchesInAccount` a
+matchesInAccount (MatchInAcct True r) a = lowercase r == lowercase a -- regexMatchesCI r a
+matchesInAccount (MatchInAcct False r) a = not $ (MatchInAcct True r) `matchesInAccount` a
 matchesInAccount _ _ = True
 
 negateMatch :: Matcher -> Matcher
@@ -136,7 +138,7 @@ negateMatch (MatchOr ms)               = MatchAnd $ map negateMatch ms
 negateMatch (MatchAnd ms)              = MatchOr $ map negateMatch ms
 negateMatch (MatchAcct sense arg)      = MatchAcct (not sense) arg
 negateMatch (MatchDesc sense arg)      = MatchDesc (not sense) arg
-negateMatch (MatchOtherAcct sense arg) = MatchOtherAcct (not sense) arg
+negateMatch (MatchInAcct sense arg)    = MatchInAcct (not sense) arg
 negateMatch (MatchDate sense arg)      = MatchDate (not sense) arg
 negateMatch (MatchEDate sense arg)     = MatchEDate (not sense) arg
 negateMatch (MatchStatus sense arg)    = MatchStatus (not sense) arg
