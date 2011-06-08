@@ -238,7 +238,7 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
       tmatch t = (null positives || any positivepmatch ps) && (null negatives || not (any negativepmatch ps)) where ps = tpostings t
       positivepmatch p = any (`amatch` a) positives where a = paccount p
       negativepmatch p = any (`amatch` a) negatives where a = paccount p
-      amatch pat a = regexMatches (abspat pat) a
+      amatch pat a = regexMatchesCI (abspat pat) a
       (negatives,positives) = partition isnegativepat apats
 
 -- | Keep only postings which affect accounts matched by the account patterns.
@@ -371,7 +371,7 @@ matchpats pats str =
     where
       (negatives,positives) = partition isnegativepat pats
       match "" = True
-      match pat = regexMatches (abspat pat) str
+      match pat = regexMatchesCI (abspat pat) str
 
 negateprefix = "not:"
 
