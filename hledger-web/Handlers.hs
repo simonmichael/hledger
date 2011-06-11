@@ -62,7 +62,7 @@ postJournalR = handlePost
 getRegisterR :: Handler RepHtml
 getRegisterR = do
   vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport  opts nullfilterspec j
+  let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport opts nullfilterspec j
       maincontent =
           case inAccountMatcher qopts of Just m' -> accountRegisterReportAsHtml opts vd $ accountRegisterReport opts j m m'
                                          Nothing -> postingRegisterReportAsHtml opts vd $ postingRegisterReport opts nullfilterspec $ filterJournalPostings2 m j
@@ -126,6 +126,8 @@ accountUrl a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
 balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items,total) = $(Settings.hamletFile "balancereport")
  where
+   l = journalToLedger nullfilterspec j
+   numpostingsinacct = length . apostings . ledgerAccount l
    filtering = not $ null q
    inacctmatcher = inAccountMatcher qopts
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute

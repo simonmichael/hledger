@@ -3,3 +3,4 @@
   #{indent}
   <a href="@?{accturl}">#{adisplay}
  <td.balance align=right>#{mixedAmountAsHtml abal}
+ <td.numpostings align=right>(#{numpostingsinacct acct})

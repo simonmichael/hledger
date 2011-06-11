@@ -24,6 +24,7 @@ body                                                                 { backgroun
 
 .balancereport .inacct                                               { background-color:#eee; font-weight:bold; }
 .notinacct, .notinacct :link, .notinacct :visited, .notinacct .negative  { /*color:#aaa;*/ }
+.balancereport .numpostings                                          { padding-left:1em; color:#aaa; }
 
 /*------------------------------------------------------------------------------------------*/
 /* 2. font families & sizes */
