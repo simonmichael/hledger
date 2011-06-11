@@ -13,6 +13,7 @@ import Data.List
 import Data.Map (Map)
 import Data.Tree
 import Test.HUnit
+import Text.Printf
 import qualified Data.Map as M
 
 import Hledger.Data.Types
@@ -176,6 +177,24 @@ elideAccountName width s =
 
 clipAccountName :: Int -> AccountName -> AccountName
 clipAccountName n = accountNameFromComponents . take n . accountNameComponents
+
+-- | Convert an account name to a regular expression matching it and its subaccounts.
+accountNameToAccountRegex :: String -> String
+accountNameToAccountRegex "" = ""
+accountNameToAccountRegex a = printf "^%s(:|$)" a
+
+-- | Convert an account name to a regular expression matching it and its subaccounts.
+accountNameToAccountOnlyRegex :: String -> String
+accountNameToAccountOnlyRegex "" = ""
+accountNameToAccountOnlyRegex a = printf "^%s$" a
+
+-- | Convert an exact account-matching regular expression to a plain account name.
+accountRegexToAccountName :: String -> String
+accountRegexToAccountName = regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
+
+-- | Does this string look like an exact account-matching regular expression ?
+isAccountRegex  :: String -> Bool
+isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
 
 tests_Hledger_Data_AccountName = TestList
  [

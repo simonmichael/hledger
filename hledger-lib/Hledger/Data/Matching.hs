@@ -48,12 +48,12 @@ data Matcher = MatchAny                   -- ^ always match
              | MatchDepth Bool Int        -- ^ match if account depth is less than or equal to this value
              -- XXX not sure if this belongs here
              | MatchInAcct Bool String    -- ^ match postings whose transaction contains a posting to an account matching this regexp
-    deriving (Show)
+    deriving (Show, Eq)
 
 -- | Parse a query expression string as a list of match patterns OR'd together.
 -- The current date is required to interpret relative dates.
 parseMatcher :: Day -> String -> Matcher
-parseMatcher refdate s = MatchAnd $ map parseword $ words'' ["not:","acct:","desc:"] s
+parseMatcher refdate s = MatchAnd $ map parseword $ words'' matcherprefixes s
   where
     parseword :: String -> Matcher
     parseword ('n':'o':'t':':':s) = negateMatch $ parseMatcher refdate s
@@ -69,6 +69,9 @@ parseMatcher refdate s = MatchAnd $ map parseword $ words'' ["not:","acct:","des
     parseword ('d':'e':'p':'t':'h':':':s) = MatchDepth True $ readDef 0 s
     parseword "" = MatchAny
     parseword s = parseword $ "acct:"++s
+
+    -- keep synced with patterns above
+    matcherprefixes = map (++":") ["not","desc","acct","inacct","in","date","edate","status","real","empty","depth"]
 
     parseStatus "*" = True
     parseStatus _ = False
@@ -144,6 +147,17 @@ matchesTransaction (MatchAcct False r) t = not $ (MatchAcct True r) `matchesTran
 matchesTransaction (MatchInAcct sense r) t = (MatchAcct sense r) `matchesTransaction` t
 matchesTransaction _ _ = False
 
+-- | Does the match expression match this account ?
+-- A matching in: clause is also considered a match.
+matchesAccount :: Matcher -> AccountName -> Bool
+matchesAccount (MatchAny) _ = True
+matchesAccount (MatchOr ms) a = any (`matchesAccount` a) ms
+matchesAccount (MatchAnd ms) a = all (`matchesAccount` a) ms
+matchesAccount (MatchAcct True r) a = regexMatchesCI r a
+matchesAccount (MatchAcct False r) a = not $ (MatchAcct True r) `matchesAccount` a
+matchesAccount (MatchInAcct True r) a = (MatchAcct True r) `matchesAccount` a
+matchesAccount _ _ = False
+
 -- | Does the match expression include an "in:" clause specifying this account ?
 -- For now, does a case-insensitive exact string match on the full account name.
 -- XXX perhaps in: should be handled separately.
@@ -155,14 +169,14 @@ matchesInAccount (MatchInAcct True s) a = lowercase s == lowercase a -- regexMat
 matchesInAccount (MatchInAcct False s) a = not $ (MatchInAcct True s) `matchesInAccount` a
 matchesInAccount _ _ = True
 
--- | Which account does the match expression specify as the one we are in, if any ?
+-- | Which account is specified by an in:ACCT in the match expression, if any ?
 matcherInAccount :: Matcher -> Maybe AccountName
 matcherInAccount (MatchOr ms) = case catMaybes $ map matcherInAccount ms of
                                   [a] -> Just a
                                   (a:as@(_:_)) -> if all (==a) as then Just a else Nothing
                                   _ -> Nothing
 matcherInAccount (MatchAnd ms) = headDef Nothing $ map Just $ catMaybes $ map matcherInAccount ms
-matcherInAccount (MatchInAcct True a) = Just a
+matcherInAccount (MatchInAcct True a) = Just $ strace a
 matcherInAccount _ = Nothing
 
 -- | What start date does this matcher specify, if any ?
@@ -192,6 +206,15 @@ tests_Hledger_Data_Matching :: Test
 tests_Hledger_Data_Matching = TestList
  [
 
-  -- "summarisePostingsByInterval" ~: do
-  --   summarisePostingsByInterval (Quarters 1) Nothing False (DateSpan Nothing Nothing) [] ~?= []
+  "parseMatcher" ~: do
+    let d = parsedate "2011/1/1"
+    parseMatcher d "in:'expenses:autres d\233penses'" `is`
+     (MatchAnd [MatchInAcct True "expenses:autres d\233penses"])
+
+  ,"matchesAccount" ~: do
+    assertBool "positive acct match" $ matchesAccount (MatchAcct True "b:c") "a:bb:c:d"
+    -- assertBool "acct should match at beginning" $ not $ matchesAccount (MatchAcct True "a:b") "c:a:b"
+
+  -- ,"matchesAccount" ~: do
+  --   matchesAccount (MatchAcct )
  ]

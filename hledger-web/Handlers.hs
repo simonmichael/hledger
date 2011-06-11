@@ -436,14 +436,4 @@ getMessageOr mnewmsg = do
   oldmsg <- getMessage
   return $ maybe oldmsg (Just . toHtml) mnewmsg
 
-accountNameToAccountRegex :: String -> String
-accountNameToAccountRegex "" = ""
-accountNameToAccountRegex a = printf "^%s(:|$)" a
-
-accountRegexToAccountName :: String -> String
-accountRegexToAccountName = regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
-
-isAccountRegex  :: String -> Bool
-isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
-
 numbered = zip [1..]
