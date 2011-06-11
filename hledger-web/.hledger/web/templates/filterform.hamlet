@@ -7,15 +7,15 @@
      \ #
     <td
      <input name=q size=100 value=#{q}
+     <input type=submit value="Search"
      $if filtering
       \ #
       <span.showall
-       <a href=@{here}>show all
+       <a href=@{here}>clear search
    <tr.help
     <td
     <td
-     PAT or acct:PAT to see transactions in all matched accounts, desc:PAT to search by description
-     <br>
-     not: to negate, multiple patterns are AND'ed, patterns are regular expressions
-     <br>
-     leave blank to see general journal (all postings)
+     leave blank to see general journal (all postings)<br>
+     acct:REGEXP to see postings to matched accounts, desc:REGEXP to search by description<br>
+     inacct:FULLACCTNAME or click an account to see transactions and accurate balance in a single account<br>
+     not: to negate, single or double quotes to include spaces, multiple patterns are AND'ed

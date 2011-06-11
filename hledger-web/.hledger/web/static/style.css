@@ -22,8 +22,8 @@ body                                                                 { backgroun
 #editform textarea                                                   { background-color:#eee; }
 .negative                                                            { color:#800; }
 
-.balancereport .inacct                                               { /*background-color:#f0f0f0;*/ }
-.notinacct, .notinacct :link, .notinacct :visited, .notinacct .negative  { color:#aaa; }
+.balancereport .inacct                                               { background-color:#eee; font-weight:bold; }
+.notinacct, .notinacct :link, .notinacct :visited, .notinacct .negative  { /*color:#aaa;*/ }
 
 /*------------------------------------------------------------------------------------------*/
 /* 2. font families & sizes */

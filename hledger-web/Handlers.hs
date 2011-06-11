@@ -15,7 +15,7 @@ import Data.List
 import Data.Maybe
 import Data.Text(Text,pack,unpack)
 import Data.Time.Calendar
-import Safe
+-- import Safe
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import Text.Hamlet hiding (hamletFile)
@@ -63,7 +63,7 @@ getRegisterR :: Handler RepHtml
 getRegisterR = do
   vd@VD{opts=opts,m=m,j=j} <- getViewData
   let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport  opts nullfilterspec j
-      maincontent = registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
+      maincontent = registerReportAsHtml opts vd $ accountOrJournalRegisterReport opts m j
       editform' = editform vd
   defaultLayout $ do
       setTitle "hledger-web register"
@@ -89,10 +89,16 @@ getRegisterOnlyR = do
   vd@VD{opts=opts,m=m,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web register only"
-      addHamlet $ registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
+      addHamlet $ registerReportAsHtml opts vd $ accountOrJournalRegisterReport opts m j
 
 postRegisterOnlyR :: Handler RepPlain
 postRegisterOnlyR = handlePost
+
+-- temporary helper - use the new account register report when in:ACCT is specified.
+accountOrJournalRegisterReport :: [Opt] -> Matcher -> Journal -> RegisterReport
+accountOrJournalRegisterReport opts m j =
+    case matcherInAccount m of Just a  -> accountRegisterReport opts j m a
+                               Nothing -> registerReport opts nullfilterspec $ filterJournalPostings2 m j
 
 -- | A simple accounts view, like hledger balance. If the Accept header
 -- specifies json, returns the chart of accounts as json.
@@ -116,19 +122,21 @@ getAccountsJsonR = do
 -- helpers
 
 accountUrl :: String -> String
-accountUrl a = "in:" ++ quoteIfSpaced (accountNameToAccountRegex a)
+accountUrl a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
 balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,j=j} (items,total) = $(Settings.hamletFile "balancereport")
  where
    filtering = not $ null q
-   inacct = headMay $ filter (m `matchesInAccount`) $ journalAccountNames j
+   inacct = matcherInAccount m -- headMay $ filter (m `matchesInAccount`) $ journalAccountNames j
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
      where
        depthclass = "depth"++show aindent
-       inclass = if acct == inacct then "inacct" else "notinacct" :: String
+       inclass | Just acct == inacct = "inacct"
+               | isJust inacct       = "notinacct"
+               | otherwise           = "" :: String
        indent = preEscapedString $ concat $ replicate (2 * aindent) "&nbsp;"
        accturl = (here, [("q", pack $ accountUrl acct)])
 
@@ -407,7 +415,7 @@ getViewData = do
   Just here' <- getCurrentRoute
   today      <- liftIO getCurrentDay
   q          <- getParameter "q"
-  let m = strace $ parseMatcher today q
+  let m = parseMatcher today q
   return mkvd{opts=opts, q=q, m=m, j=j, today=today, here=here', msg=msg}
     where
       -- | Update our copy of the journal if the file changed. If there is an
