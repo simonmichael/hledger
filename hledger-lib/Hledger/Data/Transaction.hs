@@ -119,6 +119,9 @@ virtualPostings = filter isVirtual . tpostings
 balancedVirtualPostings :: Transaction -> [Posting]
 balancedVirtualPostings = filter isBalancedVirtual . tpostings
 
+transactionsPostings :: [Transaction] -> [Posting]
+transactionsPostings = concat . map tpostings
+
 -- | Get the sums of a transaction's real, virtual, and balanced virtual postings.
 transactionPostingBalances :: Transaction -> (MixedAmount,MixedAmount,MixedAmount)
 transactionPostingBalances t = (sumPostings $ realPostings t

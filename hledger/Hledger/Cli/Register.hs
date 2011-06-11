@@ -10,6 +10,7 @@ module Hledger.Cli.Register (
  ,RegisterReportItem
  ,register
  ,registerReport
+ ,accountRegisterReport
  ,registerReportAsText
  ,showPostingWithBalanceForVty
  ,tests_Hledger_Cli_Register
@@ -79,8 +80,11 @@ registerReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", ba
 showPostingWithBalanceForVty showtxninfo p b = registerReportItemAsText [] $ mkitem showtxninfo p b
 
 -- | Get a register report with the specified options for this journal.
+-- This is a journal register report, covering the whole journal like
+-- ledger's register command; for an account-specific register see
+-- accountRegisterReport.
 registerReport :: [Opt] -> FilterSpec -> Journal -> RegisterReport
-registerReport opts fspec j = getitems ps nullposting startbal
+registerReport opts fspec j = postingsToRegisterReportItems ps nullposting startbal (+)
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
@@ -95,14 +99,36 @@ registerReport opts fspec j = getitems ps nullposting startbal
       filterspan = datespan fspec
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
 
+-- | Get an account register report with the specified options for this
+-- journal.  An account register report is like a postings register report
+-- except it is focussed on one account only, it shows the other postings
+-- in the transactions for this account, and it shows the accurate
+-- historic balance for this account.
+-- Does not yet handle reporting intervals.
+accountRegisterReport :: [Opt] -> Journal -> Matcher -> AccountName -> RegisterReport
+accountRegisterReport _ j m a = postingsToRegisterReportItems ps nullposting startbal (-)
+ where
+     ps = displayps
+      -- ps | interval == NoInterval = displayps
+      --    | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
+     -- postings to display: this account's transactions' "other" postings, filtered
+     -- same matcher used on transactions then again on postings, ok I think
+     ts = filter (matchesTransaction (MatchInAcct True a)) $ jtxns j
+     displayps = filter (matchesPosting (MatchAnd [MatchAcct False a, m])) $ transactionsPostings ts
+     -- starting balance: sum of this account's unfiltered postings prior to the specified start date, if any
+     startdate = matcherStartDate m
+     priormatcher = MatchAnd [MatchDate True (DateSpan Nothing startdate), MatchAcct True a]
+     priorps = filter (matchesPosting priormatcher) $ journalPostings j
+     startbal = sumPostings priorps
+
 -- | Generate register report line items.
-getitems :: [Posting] -> Posting -> MixedAmount -> [RegisterReportItem]
-getitems [] _ _ = []
-getitems (p:ps) pprev b = i:(getitems ps p b')
+postingsToRegisterReportItems :: [Posting] -> Posting -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [RegisterReportItem]
+postingsToRegisterReportItems [] _ _ _ = []
+postingsToRegisterReportItems (p:ps) pprev b sumfn = i:(postingsToRegisterReportItems ps p b' sumfn)
     where
       i = mkitem isfirst p b'
       isfirst = ptransaction p /= ptransaction pprev
-      b' = b + pamount p
+      b' = b `sumfn` pamount p
 
 -- | Generate one register report line item, from a flag indicating
 -- whether to include transaction info, a posting, and the current running
@@ -252,7 +278,3 @@ tests_Hledger_Cli_Register = TestList
   --    ]
 
  ]
-
---------------------------------------------------------------------------------
--- register mode 2: realistic account register
-
