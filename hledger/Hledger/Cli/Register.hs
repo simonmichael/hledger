@@ -113,7 +113,7 @@ accountRegisterReport _ j m a = postingsToRegisterReportItems ps nullposting sta
       --    | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
      -- postings to display: this account's transactions' "other" postings, filtered
      -- same matcher used on transactions then again on postings, ok I think
-     ts = filter (matchesTransaction (MatchInAcct True a)) $ jtxns j
+     ts = filter (matchesTransaction (MatchInAcct True $ accountNameToAccountOnlyRegex a)) $ jtxns j
      displayps = filter (matchesPosting (MatchAnd [MatchAcct False a, m])) $ transactionsPostings ts
      -- starting balance: sum of this account's unfiltered postings prior to the specified start date, if any
      startdate = matcherStartDate m
