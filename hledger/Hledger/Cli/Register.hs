@@ -111,13 +111,17 @@ accountRegisterReport _ j m a = postingsToRegisterReportItems ps nullposting sta
      ps = displayps
       -- ps | interval == NoInterval = displayps
       --    | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
+     a' = accountNameToAccountOnlyRegex a
+     -- XXX priorps and displayps not right due to inacct: still in matcher
      -- postings to display: this account's transactions' "other" postings, filtered
      -- same matcher used on transactions then again on postings, ok I think
-     ts = filter (matchesTransaction (MatchInAcct True $ accountNameToAccountOnlyRegex a)) $ jtxns j
-     displayps = filter (matchesPosting (MatchAnd [MatchAcct False a, m])) $ transactionsPostings ts
+     ts = filter (matchesTransaction (MatchInAcct True a')) $ jtxns j
+     displaymatcher = (MatchAnd [MatchAcct False a', m])
+     displayps = filter (matchesPosting displaymatcher) $ transactionsPostings ts
      -- starting balance: sum of this account's unfiltered postings prior to the specified start date, if any
-     startdate = matcherStartDate m
-     priormatcher = MatchAnd [MatchDate True (DateSpan Nothing startdate), MatchAcct True a]
+     priormatcher = case matcherStartDate m of
+                      Nothing -> MatchNone
+                      d       -> MatchAnd [MatchDate True (DateSpan Nothing d), MatchAcct True a']
      priorps = filter (matchesPosting priormatcher) $ journalPostings j
      startbal = sumPostings priorps
 
