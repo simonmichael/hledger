@@ -17,5 +17,6 @@
     <td
      leave blank to see general journal (all postings)<br>
      acct:REGEXP to see postings to matched accounts, desc:REGEXP to search by description<br>
+     date:PERIODEXP or edate:PERIODEXP to match by date or effective date<br>
      inacct:FULLACCTNAME or click an account to see transactions and accurate balance in a single account<br>
      not: to negate, single or double quotes to include spaces, multiple patterns are AND'ed
