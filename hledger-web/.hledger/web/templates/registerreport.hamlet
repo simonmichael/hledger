@@ -4,7 +4,7 @@
   <th.description align=left>Description
   <th.account align=left>Account
   <th.amount align=right>Amount
-  <th.balance align=right>Balance
+  <th.balance align=right>#{balancelabel}
 
  $forall i <- numbered items
   ^{itemAsHtml vd i}

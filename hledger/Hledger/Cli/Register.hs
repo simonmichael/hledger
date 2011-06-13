@@ -37,7 +37,10 @@ import Hledger.Utils.UTF8 (putStr)
 -- | A register report is a list of postings to an account or set of
 -- accounts, with a running total. Postings may be actual postings, or
 -- virtual postings aggregated over a reporting interval.
-type RegisterReport = [RegisterReportItem] -- line items, one per posting
+-- And also some heading info.
+type RegisterReport = (String               -- a possibly null label for the running balance column
+                      ,[RegisterReportItem] -- line items, one per posting
+                      )
 
 -- | The data for a single register report line item, representing one posting.
 type RegisterReportItem = (Maybe (Day, String) -- transaction date and description if this is the first posting
@@ -53,7 +56,7 @@ register opts args j = do
 
 -- | Render a register report as plain text suitable for console output.
 registerReportAsText :: [Opt] -> RegisterReport -> String
-registerReportAsText opts = unlines . map (registerReportItemAsText opts)
+registerReportAsText opts = unlines . map (registerReportItemAsText opts) . snd
 
 -- | Render one register report line item as plain text. Eg:
 -- @
@@ -84,7 +87,7 @@ showPostingWithBalanceForVty showtxninfo p b = registerReportItemAsText [] $ mki
 -- ledger's register command; for an account-specific register see
 -- accountRegisterReport.
 registerReport :: [Opt] -> FilterSpec -> Journal -> RegisterReport
-registerReport opts fspec j = postingsToRegisterReportItems ps nullposting startbal (+)
+registerReport opts fspec j = (totallabel,postingsToRegisterReportItems ps nullposting startbal (+))
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
@@ -100,30 +103,53 @@ registerReport opts fspec j = postingsToRegisterReportItems ps nullposting start
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
 
 -- | Get an account register report with the specified options for this
--- journal.  An account register report is like a postings register report
--- except it is focussed on one account only, it shows the other postings
--- in the transactions for this account, and it shows the accurate
--- historic balance for this account.
--- Does not yet handle reporting intervals.
+-- journal.  An account register report is like the traditional account
+-- register seen in bank statements and personal finance programs.  It is
+-- focussed on one account only; it shows this account's transactions'
+-- postings to other accounts; and if there is no transaction filtering in
+-- effect other than a start date, it shows a historically-accurate
+-- running balance for this account. Once additional filters are applied,
+-- the running balance reverts to a running total starting at 0.
+--
+-- Does not handle reporting intervals.
+--
 accountRegisterReport :: [Opt] -> Journal -> Matcher -> AccountName -> RegisterReport
-accountRegisterReport _ j m a = postingsToRegisterReportItems ps nullposting startbal (-)
+accountRegisterReport opts j m a = (label, postingsToRegisterReportItems displayps nullposting startbal (-))
  where
-     ps = displayps
-      -- ps | interval == NoInterval = displayps
-      --    | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
+      -- displayps' | interval == NoInterval = displayps
+      --            | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
+
+     -- transactions affecting this account
      a' = accountNameToAccountOnlyRegex a
-     -- XXX priorps and displayps not right due to inacct: still in matcher
-     -- postings to display: this account's transactions' "other" postings, filtered
-     -- same matcher used on transactions then again on postings, ok I think
-     ts = filter (matchesTransaction (MatchInAcct True a')) $ jtxns j
-     displaymatcher = (MatchAnd [MatchAcct False a', m])
-     displayps = filter (matchesPosting displaymatcher) $ transactionsPostings ts
-     -- starting balance: sum of this account's unfiltered postings prior to the specified start date, if any
-     priormatcher = case matcherStartDate m of
-                      Nothing -> MatchNone
-                      d       -> MatchAnd [MatchDate True (DateSpan Nothing d), MatchAcct True a']
-     priorps = filter (matchesPosting priormatcher) $ journalPostings j
-     startbal = sumPostings priorps
+     thisacctmatcher = MatchAcct True a'
+     ts = filter (matchesTransaction thisacctmatcher) $ jtxns j
+
+     -- all postings in these transactions
+     ps = transactionsPostings ts
+
+     -- starting balance: if we are filtering by a start date and nothing else
+     -- else, the sum of postings to this account before it; otherwise zero.
+     (startbal,label) | matcherIsNull m = (nullmixedamt,balancelabel)
+                      | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel)
+                      | otherwise = (nullmixedamt,totallabel)
+                      where
+                        priorps = -- ltrace "priorps" $
+                                  filter (matchesPosting
+                                          (-- ltrace "priormatcher" $
+                                           MatchAnd [thisacctmatcher, tostartdatematcher])) ps
+                        tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
+                        startdate = matcherStartDate effective m
+                        effective = Effective `elem` opts
+
+     -- postings to display: this account's transactions' "other" postings, with any additional filter applied
+     -- XXX would be better to collapse multiple postings from one txn into one (expandable) "split" item
+     displayps = -- ltrace "displayps" $
+                 filter (matchesPosting $
+                         -- ltrace "displaymatcher" $
+                         (MatchAnd [negateMatcher thisacctmatcher, m])) ps
+
+totallabel = "Total"
+balancelabel = "Balance"
 
 -- | Generate register report line items.
 postingsToRegisterReportItems :: [Posting] -> Posting -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [RegisterReportItem]

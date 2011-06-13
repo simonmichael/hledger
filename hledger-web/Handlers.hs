@@ -61,9 +61,9 @@ postJournalR = handlePost
 -- | The main register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  vd@VD{opts=opts,j=j} <- getViewData
   let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport  opts nullfilterspec j
-      maincontent = registerReportAsHtml opts vd $ accountOrJournalRegisterReport opts m j
+      maincontent = registerReportAsHtml opts vd $ accountOrJournalRegisterReport vd j
       editform' = editform vd
   defaultLayout $ do
       setTitle "hledger-web register"
@@ -86,19 +86,19 @@ postJournalOnlyR = handlePost
 -- | A simple postings view, like hledger register (with editing.)
 getRegisterOnlyR :: Handler RepHtml
 getRegisterOnlyR = do
-  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  vd@VD{opts=opts,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web register only"
-      addHamlet $ registerReportAsHtml opts vd $ accountOrJournalRegisterReport opts m j
+      addHamlet $ registerReportAsHtml opts vd $ accountOrJournalRegisterReport vd j
 
 postRegisterOnlyR :: Handler RepPlain
 postRegisterOnlyR = handlePost
 
 -- temporary helper - use the new account register report when in:ACCT is specified.
-accountOrJournalRegisterReport :: [Opt] -> Matcher -> Journal -> RegisterReport
-accountOrJournalRegisterReport opts m j =
-    case matcherInAccount m of Just a  -> accountRegisterReport opts j m a
-                               Nothing -> registerReport opts nullfilterspec $ filterJournalPostings2 m j
+accountOrJournalRegisterReport :: ViewData -> Journal -> RegisterReport
+accountOrJournalRegisterReport VD{opts=opts,m=m,qopts=qopts} j =
+    case inAccount qopts of Just a  -> accountRegisterReport opts j m a
+                            Nothing -> registerReport opts nullfilterspec $ filterJournalPostings2 m j
 
 -- | A simple accounts view, like hledger balance. If the Accept header
 -- specifies json, returns the chart of accounts as json.
@@ -126,10 +126,10 @@ accountUrl a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,j=j} (items,total) = $(Settings.hamletFile "balancereport")
+balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items,total) = $(Settings.hamletFile "balancereport")
  where
    filtering = not $ null q
-   inacct = matcherInAccount m -- headMay $ filter (m `matchesInAccount`) $ journalAccountNames j
+   inacct = inAccount qopts
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
      where
@@ -152,7 +152,7 @@ journalReportAsHtml _ vd items = $(Settings.hamletFile "journalreport")
 
 -- | Render a register report as HTML.
 registerReportAsHtml :: [Opt] -> ViewData -> RegisterReport -> Hamlet AppRoute
-registerReportAsHtml _ vd items = $(Settings.hamletFile "registerreport")
+registerReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "registerreport")
  where
    itemAsHtml :: ViewData -> (Int, RegisterReportItem) -> Hamlet AppRoute
    itemAsHtml VD{here=here} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
@@ -385,13 +385,14 @@ nulltemplate = [$hamlet||]
 
 -- | A bundle of data useful for handlers and their templates.
 data ViewData = VD {
-     opts  :: [Opt]       -- ^ command-line options at startup
-    ,q     :: String      -- ^ current q (query) parameter
-    ,m     :: Matcher     -- ^ a search/filter expression based on the above
-    ,j     :: Journal     -- ^ the up-to-date parsed unfiltered journal
-    ,today :: Day         -- ^ the current day
-    ,here  :: AppRoute    -- ^ the current route
-    ,msg   :: Maybe Html  -- ^ the current UI message if any, possibly from the current request
+     opts  :: [Opt]         -- ^ command-line options at startup
+    ,q     :: String        -- ^ current q parameter (the query expression for filtering transactions)
+    ,m     :: Matcher       -- ^ a matcher parsed from the query expr
+    ,qopts :: [QueryOpt]    -- ^ query options parsed from the query expr
+    ,j     :: Journal       -- ^ the up-to-date parsed unfiltered journal
+    ,today :: Day           -- ^ the current day
+    ,here  :: AppRoute      -- ^ the current route
+    ,msg   :: Maybe Html    -- ^ the current UI message if any, possibly from the current request
     }
 
 mkvd :: ViewData
@@ -399,6 +400,7 @@ mkvd = VD {
       opts  = []
      ,q     = ""
      ,m     = MatchAny
+     ,qopts = []
      ,j     = nulljournal
      ,today = ModifiedJulianDay 0
      ,here  = RootR
@@ -415,8 +417,8 @@ getViewData = do
   Just here' <- getCurrentRoute
   today      <- liftIO getCurrentDay
   q          <- getParameter "q"
-  let m = parseMatcher today q
-  return mkvd{opts=opts, q=q, m=m, j=j, today=today, here=here', msg=msg}
+  let (m,qopts) = parseQuery today q
+  return mkvd{opts=opts, q=q, m=m, qopts=qopts, j=j, today=today, here=here', msg=msg}
     where
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
