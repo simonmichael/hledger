@@ -7,6 +7,7 @@ Currently used only by hledger-web.
 
 module Hledger.Data.Matching
 where
+import Data.Either
 import Data.List
 -- import Data.Map (findWithDefault, (!))
 import Data.Maybe
@@ -47,61 +48,77 @@ data Matcher = MatchAny                   -- ^ always match
              | MatchReal Bool Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
              | MatchEmpty Bool Bool       -- ^ match if "emptiness" (amount is zero ?) has this value
              | MatchDepth Bool Int        -- ^ match if account depth is less than or equal to this value
-             -- XXX not sure if this belongs here
-             | MatchInAcct Bool String    -- ^ a flag indicating account register mode
     deriving (Show, Eq)
 
+-- | A query option changes a query's/report's behaviour and output in some way.
+
+-- XXX could use regular cli Opts ?
+data QueryOpt = QueryOptInAcct AccountName  -- ^ show an account register focussed on this account
+           -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
+           -- | QueryOptEffectiveDate  -- ^ show effective dates instead of actual dates
+    deriving (Show, Eq)
+
+inAccount :: [QueryOpt] -> Maybe AccountName
+inAccount []     = Nothing
+inAccount (o:os) = case o of QueryOptInAcct a -> Just a; _ -> inAccount os
+-- inAccount = msum . map f where f o = case o of (QueryOptInAcct a) -> Just a; _ -> Nothing
+
 -- | Convert a query expression containing zero or more space-separated
--- search terms to a matcher and list of modifiers (TODO). A search term is either:
+-- terms to a matcher and zero or more query options. A query term is either:
 --
--- 1. a match criteria, used to select transactions. This is usually a prefixed pattern such as:
---    - acct:REGEXP
---    - date:PERIODEXP
---    - not:desc:REGEXP
+-- 1. a search criteria, used to match transactions. This is usually a prefixed pattern such as:
+--    acct:REGEXP
+--    date:PERIODEXP
+--    not:desc:REGEXP
 --
--- 2. a modifier, that changes behaviour in some other way. There is currently one of these:
---    - inacct:FULLACCTNAME - should appear only once
+-- 2. a query option, which changes behaviour in some way. There is currently one of these:
+--    inacct:FULLACCTNAME - should appear only once
 --
+-- Multiple search criteria are AND'ed together.
 -- When a pattern contains spaces, it or the whole term should be enclosed in single or double quotes.
--- Multiple terms are AND'ed together.
 -- A reference date is required to interpret relative dates in period expressions.
 --
--- parseMatcher :: Day -> String -> (Matcher,[Modifier])
-parseMatcher :: Day -> String -> Matcher
-parseMatcher refdate s = m
+parseQuery :: Day -> String -> (Matcher,[QueryOpt])
+parseQuery d s = (m,qopts)
   where
-    m = case ms of []     -> MatchAny
-                   (m:[]) -> m
-                   ms     -> MatchAnd ms
-    ms = map parseword $ words'' matcherprefixes s
+    terms = words'' prefixes s
+    (matchers, qopts) = partitionEithers $ map (parseMatcher d) terms
+    m = case matchers of []      -> MatchAny
+                         (m':[]) -> m'
+                         ms      -> MatchAnd ms
 
-    -- keep synced with patterns below
-    matcherprefixes = map (++":") [
-                       "desc","acct","inacct","in","date","edate","status","real","empty","depth"]
+-- keep synced with patterns below, excluding "not"
+prefixes = map (++":") [
+            "inacct"
+           ,"desc","acct","date","edate","status","real","empty","depth"
+           ]
+defaultprefix = "acct"
 
-    parseword :: String -> Matcher
-    parseword ('n':'o':'t':':':s) = negateMatch $ parseMatcher refdate $ quoteIfSpaced s
-    parseword ('d':'e':'s':'c':':':s) = MatchDesc True s
-    parseword ('a':'c':'c':'t':':':s) = MatchAcct True s
-    parseword ('i':'n':'a':'c':'c':'t':':':s) = MatchInAcct True s
-    parseword ('i':'n':':':s)                 = MatchInAcct True s
-    parseword ('d':'a':'t':'e':':':s) =
-        case parsePeriodExpr refdate s of Left _ -> MatchNone -- XXX warn
-                                          Right (_,span) -> MatchDate True span
-    parseword ('e':'d':'a':'t':'e':':':s) =
-        case parsePeriodExpr refdate s of Left _ -> MatchNone -- XXX warn
-                                          Right (_,span) -> MatchEDate True span
-    parseword ('s':'t':'a':'t':'u':'s':':':s) = MatchStatus True $ parseStatus s
-    parseword ('r':'e':'a':'l':':':s) = MatchReal True $ parseBool s
-    parseword ('e':'m':'p':'t':'y':':':s) = MatchEmpty True $ parseBool s
-    parseword ('d':'e':'p':'t':'h':':':s) = MatchDepth True $ readDef 0 s
-    parseword "" = MatchAny
-    parseword s = parseword $ "acct:"++s
+-- | Parse a single query term as either a matcher or a query option.
+parseMatcher :: Day -> String -> Either Matcher QueryOpt
+parseMatcher _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
+parseMatcher d ('n':'o':'t':':':s) = case parseMatcher d $ quoteIfSpaced s of
+                                       Left m  -> Left $ negateMatcher m
+                                       Right _ -> Left MatchAny -- not:somequeryoption will be ignored
+parseMatcher _ ('d':'e':'s':'c':':':s) = Left $ MatchDesc True s
+parseMatcher _ ('a':'c':'c':'t':':':s) = Left $ MatchAcct True s
+parseMatcher d ('d':'a':'t':'e':':':s) =
+        case parsePeriodExpr d s of Left _ -> Left MatchNone -- XXX should warn
+                                    Right (_,span) -> Left $ MatchDate True span
+parseMatcher d ('e':'d':'a':'t':'e':':':s) =
+        case parsePeriodExpr d s of Left _ -> Left MatchNone -- XXX should warn
+                                    Right (_,span) -> Left $ MatchEDate True span
+parseMatcher _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ MatchStatus True $ parseStatus s
+parseMatcher _ ('r':'e':'a':'l':':':s) = Left $ MatchReal True $ parseBool s
+parseMatcher _ ('e':'m':'p':'t':'y':':':s) = Left $ MatchEmpty True $ parseBool s
+parseMatcher _ ('d':'e':'p':'t':'h':':':s) = Left $ MatchDepth True $ readDef 0 s
+parseMatcher _ "" = Left $ MatchAny
+parseMatcher d s = parseMatcher d $ defaultprefix++":"++s
 
-    parseStatus "*" = True
-    parseStatus _ = False
+parseStatus "*" = True
+parseStatus _ = False
 
-    parseBool s = s `elem` ["t","true","1","on"]
+parseBool s = s `elem` ["t","true","1","on"]
 
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
@@ -131,20 +148,19 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
 -- matcher = undefined
 
 -- | Convert a match expression to its inverse.
-negateMatch :: Matcher -> Matcher
-negateMatch MatchAny                   = MatchNone
-negateMatch MatchNone                  = MatchAny
-negateMatch (MatchOr ms)               = MatchAnd $ map negateMatch ms
-negateMatch (MatchAnd ms)              = MatchOr $ map negateMatch ms
-negateMatch (MatchAcct sense arg)      = MatchAcct (not sense) arg
-negateMatch (MatchDesc sense arg)      = MatchDesc (not sense) arg
-negateMatch (MatchInAcct sense arg)    = MatchInAcct (not sense) arg
-negateMatch (MatchDate sense arg)      = MatchDate (not sense) arg
-negateMatch (MatchEDate sense arg)     = MatchEDate (not sense) arg
-negateMatch (MatchStatus sense arg)    = MatchStatus (not sense) arg
-negateMatch (MatchReal sense arg)      = MatchReal (not sense) arg
-negateMatch (MatchEmpty sense arg)     = MatchEmpty (not sense) arg
-negateMatch (MatchDepth sense arg)     = MatchDepth (not sense) arg
+negateMatcher :: Matcher -> Matcher
+negateMatcher MatchAny                   = MatchNone
+negateMatcher MatchNone                  = MatchAny
+negateMatcher (MatchOr ms)               = MatchAnd $ map negateMatcher ms
+negateMatcher (MatchAnd ms)              = MatchOr $ map negateMatcher ms
+negateMatcher (MatchAcct sense arg)      = MatchAcct (not sense) arg
+negateMatcher (MatchDesc sense arg)      = MatchDesc (not sense) arg
+negateMatcher (MatchDate sense arg)      = MatchDate (not sense) arg
+negateMatcher (MatchEDate sense arg)     = MatchEDate (not sense) arg
+negateMatcher (MatchStatus sense arg)    = MatchStatus (not sense) arg
+negateMatcher (MatchReal sense arg)      = MatchReal (not sense) arg
+negateMatcher (MatchEmpty sense arg)     = MatchEmpty (not sense) arg
+negateMatcher (MatchDepth sense arg)     = MatchDepth (not sense) arg
 
 -- | Does the match expression match this posting ?
 matchesPosting :: Matcher -> Posting -> Bool
@@ -156,11 +172,6 @@ matchesPosting (MatchDesc True r) p = regexMatchesCI r $ maybe "" tdescription $
 matchesPosting (MatchDesc False r) p = not $ (MatchDesc True r) `matchesPosting` p
 matchesPosting (MatchAcct True r) p = regexMatchesCI r $ paccount p
 matchesPosting (MatchAcct False r) p = not $ (MatchAcct True r) `matchesPosting` p
-matchesPosting (MatchInAcct True _) _ = True
-    -- case ptransaction p of
-    --     Just t -> (MatchAcct True r) `matchesTransaction` t && (MatchAcct False r) `matchesPosting` p
-    --     Nothing -> False
--- matchesPosting (MatchInAcct False r) p = not $ (MatchInAcct True r) `matchesPosting` p
 matchesPosting (MatchDate True span) p =
     case d of Just d'  -> spanContainsDate span d'
               Nothing -> False
@@ -183,7 +194,6 @@ matchesTransaction (MatchDesc True r) t = regexMatchesCI r $ tdescription t
 matchesTransaction (MatchDesc False r) t = not $ (MatchDesc True r) `matchesTransaction` t
 matchesTransaction m@(MatchAcct True _) t = any (m `matchesPosting`) $ tpostings t
 matchesTransaction (MatchAcct False r) t = not $ (MatchAcct True r) `matchesTransaction` t
-matchesTransaction (MatchInAcct sense r) t = (MatchAcct sense r) `matchesTransaction` t
 matchesTransaction (MatchDate True span) t = spanContainsDate span $ tdate t
 matchesTransaction (MatchDate False span) t = not $ (MatchDate True span) `matchesTransaction` t
 matchesTransaction (MatchEDate True span) Transaction{teffectivedate=Just d} = spanContainsDate span d
@@ -200,38 +210,34 @@ matchesAccount (MatchOr ms) a = any (`matchesAccount` a) ms
 matchesAccount (MatchAnd ms) a = all (`matchesAccount` a) ms
 matchesAccount (MatchAcct True r) a = regexMatchesCI r a
 matchesAccount (MatchAcct False r) a = not $ (MatchAcct True r) `matchesAccount` a
-matchesAccount (MatchInAcct True r) a = (MatchAcct True r) `matchesAccount` a
 matchesAccount _ _ = False
-
--- | Does the match expression include an "in:" clause specifying this account ?
--- For now, does a case-insensitive exact string match on the full account name.
--- XXX perhaps in: should be handled separately.
-matchesInAccount :: Matcher -> AccountName -> Bool
-matchesInAccount (MatchAny) _ = True
-matchesInAccount (MatchNone) _ = False
-matchesInAccount (MatchOr ms) a = any (`matchesInAccount` a) ms
-matchesInAccount (MatchAnd ms) a = all (`matchesInAccount` a) ms
-matchesInAccount (MatchInAcct True s) a = lowercase s == lowercase a -- regexMatchesCI r a
-matchesInAccount (MatchInAcct False s) a = not $ (MatchInAcct True s) `matchesInAccount` a
-matchesInAccount _ _ = True
-
--- | Which account is specified by an in:ACCT in the match expression, if any ?
-matcherInAccount :: Matcher -> Maybe AccountName
-matcherInAccount (MatchOr ms) = case catMaybes $ map matcherInAccount ms of
-                                  [a] -> Just a
-                                  (a:as@(_:_)) -> if all (==a) as then Just a else Nothing
-                                  _ -> Nothing
-matcherInAccount (MatchAnd ms) = headDef Nothing $ map Just $ catMaybes $ map matcherInAccount ms
-matcherInAccount (MatchInAcct True a) = Just a
-matcherInAccount _ = Nothing
 
 -- | What start date does this matcher specify, if any ?
 -- If the matcher is an OR expression, returns the earliest of the alternatives.
-matcherStartDate :: Matcher -> Maybe Day
-matcherStartDate (MatchOr ms) = earliestMaybeDate $ map matcherStartDate ms
-matcherStartDate (MatchAnd ms) = latestMaybeDate $ map matcherStartDate ms
-matcherStartDate (MatchDate True (DateSpan (Just d) _)) = Just d
-matcherStartDate _ = Nothing
+-- When the flag is true, look for a starting effective date instead.
+matcherStartDate :: Bool -> Matcher -> Maybe Day
+matcherStartDate effective (MatchOr ms) = earliestMaybeDate $ map (matcherStartDate effective) ms
+matcherStartDate effective (MatchAnd ms) = latestMaybeDate $ map (matcherStartDate effective) ms
+matcherStartDate False (MatchDate True (DateSpan (Just d) _)) = Just d
+matcherStartDate True (MatchEDate True (DateSpan (Just d) _)) = Just d
+matcherStartDate _ _ = Nothing
+
+-- | Does this matcher specify a start date and nothing else (that would
+-- filter postings prior to the date) ?
+-- When the flag is true, look for a starting effective date instead.
+matcherIsStartDateOnly :: Bool -> Matcher -> Bool
+matcherIsStartDateOnly _ MatchAny = False
+matcherIsStartDateOnly _ MatchNone = False
+matcherIsStartDateOnly effective (MatchOr ms) = and $ map (matcherIsStartDateOnly effective) ms
+matcherIsStartDateOnly effective (MatchAnd ms) = and $ map (matcherIsStartDateOnly effective) ms
+matcherIsStartDateOnly False (MatchDate _ (DateSpan (Just _) _)) = True
+matcherIsStartDateOnly True (MatchEDate _ (DateSpan (Just _) _)) = True
+matcherIsStartDateOnly _ _ = False
+
+-- | Does this matcher match everything ?
+matcherIsNull MatchAny = True
+matcherIsNull (MatchAnd []) = True
+matcherIsNull _ = False
 
 -- | What is the earliest of these dates, where Nothing is earliest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day
@@ -252,16 +258,16 @@ tests_Hledger_Data_Matching :: Test
 tests_Hledger_Data_Matching = TestList
  [
 
-  "parseMatcher" ~: do
+  "parseQuery" ~: do
     let d = parsedate "2011/1/1"
-    parseMatcher d "a" `is` (MatchAcct True "a")
-    parseMatcher d "acct:a" `is` (MatchAcct True "a")
-    parseMatcher d "acct:a desc:b" `is` (MatchAnd [MatchAcct True "a", MatchDesc True "b"])
-    parseMatcher d "\"acct:expenses:autres d\233penses\"" `is` (MatchAcct True "expenses:autres d\233penses")
-    parseMatcher d "not:desc:'a b'" `is` (MatchDesc False "a b")
+    parseQuery d "a" `is` (MatchAcct True "a", [])
+    parseQuery d "acct:a" `is` (MatchAcct True "a", [])
+    parseQuery d "acct:a desc:b" `is` (MatchAnd [MatchAcct True "a", MatchDesc True "b"], [])
+    parseQuery d "\"acct:expenses:autres d\233penses\"" `is` (MatchAcct True "expenses:autres d\233penses", [])
+    parseQuery d "not:desc:'a b'" `is` (MatchDesc False "a b", [])
 
-    parseMatcher d "inacct:a desc:b" `is` (MatchAnd [MatchInAcct True "a", MatchDesc True "b"])
-    parseMatcher d "inacct:a inacct:b" `is` (MatchAnd [MatchInAcct True "a", MatchInAcct True "b"])
+    parseQuery d "inacct:a desc:b" `is` (MatchDesc True "b", [QueryOptInAcct "b"])
+    parseQuery d "inacct:a inacct:b" `is` (MatchAny, [QueryOptInAcct "a"])
 
   ,"matchesAccount" ~: do
     assertBool "positive acct match" $ matchesAccount (MatchAcct True "b:c") "a:bb:c:d"
