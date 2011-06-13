@@ -114,7 +114,7 @@ registerReport opts fspec j = (totallabel,postingsToRegisterReportItems ps nullp
 -- Does not handle reporting intervals.
 --
 accountRegisterReport :: [Opt] -> Journal -> Matcher -> AccountName -> RegisterReport
-accountRegisterReport opts j m a = (label, postingsToRegisterReportItems displayps nullposting startbal (-))
+accountRegisterReport opts j m a = (label, postingsToRegisterReportItems displayps nullposting startbal sumfn)
  where
       -- displayps' | interval == NoInterval = displayps
       --            | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
@@ -129,9 +129,9 @@ accountRegisterReport opts j m a = (label, postingsToRegisterReportItems display
 
      -- starting balance: if we are filtering by a start date and nothing else
      -- else, the sum of postings to this account before it; otherwise zero.
-     (startbal,label) | matcherIsNull m = (nullmixedamt,balancelabel)
-                      | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel)
-                      | otherwise = (nullmixedamt,totallabel)
+     (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
+                             | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel,(-))
+                             | otherwise = (nullmixedamt,totallabel,(+))
                       where
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
