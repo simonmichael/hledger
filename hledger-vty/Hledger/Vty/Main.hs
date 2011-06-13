@@ -10,7 +10,7 @@ module Hledger.Vty.Main where
 import Control.Monad
 import Data.List
 import Data.Maybe
-import Data.Time.LocalTime
+import Data.Time.Calendar
 import Graphics.Vty
 import Safe (headDef)
 import System.Console.GetOpt
@@ -95,8 +95,8 @@ vty opts args j = do
   v <- mkVty
   DisplayRegion w h <- display_bounds $ terminal v
   let opts' = SubTotal:opts
-  t <-  getCurrentLocalTime
-  let a = enter t BalanceScreen args
+  d <-  getCurrentDay
+  let a = enter d BalanceScreen args
           AppState {
                   av=v
                  ,aw=fromIntegral w
@@ -115,16 +115,16 @@ go :: AppState -> IO ()
 go a@AppState{av=av,aopts=opts} = do
   when (notElem DebugVty opts) $ update av (renderScreen a)
   k <- next_event av
-  t <- getCurrentLocalTime
+  d <- getCurrentDay
   case k of 
     EvResize x y                -> go $ resize x y a
     EvKey (KASCII 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
-    EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter t BalanceScreen a
-    EvKey (KASCII 'r') []       -> go $ resetTrailAndEnter t RegisterScreen a
-    EvKey (KASCII 'p') []       -> go $ resetTrailAndEnter t PrintScreen a
-    EvKey KRight []             -> go $ drilldown t a
-    EvKey KEnter []             -> go $ drilldown t a
-    EvKey KLeft  []             -> go $ backout t a
+    EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter d BalanceScreen a
+    EvKey (KASCII 'r') []       -> go $ resetTrailAndEnter d RegisterScreen a
+    EvKey (KASCII 'p') []       -> go $ resetTrailAndEnter d PrintScreen a
+    EvKey KRight []             -> go $ drilldown d a
+    EvKey KEnter []             -> go $ drilldown d a
+    EvKey KLeft  []             -> go $ backout d a
     EvKey KUp    []             -> go $ moveUpAndPushEdge a
     EvKey KDown  []             -> go $ moveDownAndPushEdge a
     EvKey KHome  []             -> go $ moveToTop a
@@ -258,32 +258,32 @@ screen :: AppState -> Screen
 screen a = scr where (Loc scr _ _ _) = loc a
 
 -- | Enter a new screen, with possibly new args, adding the new ui location to the stack.
-enter :: LocalTime -> Screen -> [String] -> AppState -> AppState
-enter t scr@BalanceScreen args a  = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
-enter t scr@RegisterScreen args a = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
-enter t scr@PrintScreen args a    = updateData t $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
+enter :: Day -> Screen -> [String] -> AppState -> AppState
+enter d scr@BalanceScreen args a  = updateData d $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
+enter d scr@RegisterScreen args a = updateData d $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
+enter d scr@PrintScreen args a    = updateData d $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
 
-resetTrailAndEnter :: LocalTime -> Screen -> AppState -> AppState
-resetTrailAndEnter t scr a = enter t scr (aargs a) $ clearLocs a
+resetTrailAndEnter :: Day -> Screen -> AppState -> AppState
+resetTrailAndEnter d scr a = enter d scr (aargs a) $ clearLocs a
 
 -- | Regenerate the display data appropriate for the current screen.
-updateData :: LocalTime -> AppState -> AppState
-updateData t a@AppState{aopts=opts,ajournal=j} =
+updateData :: Day -> AppState -> AppState
+updateData d a@AppState{aopts=opts,ajournal=j} =
     case screen a of
       BalanceScreen  -> a{abuf=lines $ balanceReportAsText opts $ balanceReport opts fspec j}
       RegisterScreen -> a{abuf=lines $ registerReportAsText opts $ registerReport opts fspec j}
       PrintScreen    -> a{abuf=lines $ showTransactions opts fspec j}
-    where fspec = optsToFilterSpec opts (currentArgs a) t
+    where fspec = optsToFilterSpec opts (currentArgs a) d
 
-backout :: LocalTime -> AppState -> AppState
-backout t a | screen a == BalanceScreen = a
-            | otherwise = updateData t $ popLoc a
+backout :: Day -> AppState -> AppState
+backout d a | screen a == BalanceScreen = a
+            | otherwise = updateData d $ popLoc a
 
-drilldown :: LocalTime -> AppState -> AppState
-drilldown t a =
+drilldown :: Day -> AppState -> AppState
+drilldown d a =
     case screen a of
-      BalanceScreen  -> enter t RegisterScreen [currentAccountName a] a
-      RegisterScreen -> scrollToTransaction e $ enter t PrintScreen (currentArgs a) a
+      BalanceScreen  -> enter d RegisterScreen [currentAccountName a] a
+      RegisterScreen -> scrollToTransaction e $ enter d PrintScreen (currentArgs a) a
       PrintScreen   -> a
     where e = currentTransaction a
 

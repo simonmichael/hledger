@@ -218,9 +218,9 @@ appendToJournalFile f s =
 -- | Convert a string of journal data into a register report.
 registerFromString :: String -> IO String
 registerFromString s = do
-  now <- getCurrentLocalTime
+  d <- getCurrentDay
   j <- readJournal' s
-  return $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] now) j
+  return $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] d) j
     where opts = [Empty]
 
 -- | Return a similarity measure, from 0 to 1, for two strings.

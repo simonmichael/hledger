@@ -14,7 +14,6 @@ import Text.Printf
 
 import Hledger.Cli.Options
 import Hledger.Data
-import Hledger.Utils
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 
@@ -25,8 +24,8 @@ barchar = '*'
 -- number of postings per day.
 histogram :: [Opt] -> [String] -> Journal -> IO ()
 histogram opts args j = do
-  t <- getCurrentLocalTime
-  putStr $ showHistogram opts (optsToFilterSpec opts args t) j
+  d <- getCurrentDay
+  putStr $ showHistogram opts (optsToFilterSpec opts args d) j
 
 showHistogram :: [Opt] -> FilterSpec -> Journal -> String
 showHistogram opts filterspec j = concatMap (printDayWith countBar) spanps

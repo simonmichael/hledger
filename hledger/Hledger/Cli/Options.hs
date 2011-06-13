@@ -8,7 +8,6 @@ import Data.Char (toLower)
 import Data.List
 import Data.Maybe
 import Data.Time.Calendar
-import Data.Time.LocalTime
 import System.Console.GetOpt
 import System.Environment
 import Test.HUnit
@@ -292,9 +291,9 @@ parsePatternArgs args = (as, ds')
       ds' = map (drop (length descprefix)) ds
 
 -- | Convert application options to the library's generic filter specification.
-optsToFilterSpec :: [Opt] -> [String] -> LocalTime -> FilterSpec
-optsToFilterSpec opts args t = FilterSpec {
-                                datespan=dateSpanFromOpts (localDay t) opts
+optsToFilterSpec :: [Opt] -> [String] -> Day -> FilterSpec
+optsToFilterSpec opts args d = FilterSpec {
+                                datespan=dateSpanFromOpts d opts
                                ,cleared=clearedValueFromOpts opts
                                ,real=Real `elem` opts
                                ,empty=Empty `elem` opts

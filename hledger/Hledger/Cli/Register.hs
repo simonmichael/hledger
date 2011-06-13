@@ -47,8 +47,8 @@ type RegisterReportItem = (Maybe (Day, String) -- transaction date and descripti
 -- | Print a register report.
 register :: [Opt] -> [String] -> Journal -> IO ()
 register opts args j = do
-  t <- getCurrentLocalTime
-  putStr $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts args t) j
+  d <- getCurrentDay
+  putStr $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts args d) j
 
 -- | Render a register report as plain text suitable for console output.
 registerReportAsText :: [Opt] -> RegisterReport -> String

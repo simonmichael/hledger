@@ -69,11 +69,11 @@ main = do
 -- | Generate an image with the pie chart and write it to a file
 chart :: [Opt] -> [String] -> Journal -> IO ()
 chart opts args j = do
-  t <- getCurrentLocalTime
+  d <- getCurrentDay
   if null $ jtxns j
    then putStrLn "This journal has no transactions, can't make a chart." >> exitFailure
    else do
-     let chart = genPie opts (optsToFilterSpec opts args t) j
+     let chart = genPie opts (optsToFilterSpec opts args d) j
      renderableToPNGFile (toRenderable chart) w h filename
      return ()
       where

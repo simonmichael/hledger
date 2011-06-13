@@ -16,7 +16,6 @@ import qualified Data.Map as Map
 
 import Hledger.Cli.Options
 import Hledger.Data
-import Hledger.Utils
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 
@@ -25,13 +24,12 @@ import Hledger.Utils.UTF8 (putStr)
 -- | Print various statistics for the journal.
 stats :: [Opt] -> [String] -> Journal -> IO ()
 stats opts args j = do
-  today <- getCurrentDay
-  t <- getCurrentLocalTime
-  let filterspec = optsToFilterSpec opts args t
+  d <- getCurrentDay
+  let filterspec = optsToFilterSpec opts args d
       l = journalToLedger filterspec j
       reportspan = (ledgerDateSpan l) `orDatesFrom` (datespan filterspec)
       intervalspans = splitSpan (intervalFromOpts opts) reportspan
-      showstats = showLedgerStats opts args l today
+      showstats = showLedgerStats opts args l d
       s = intercalate "\n" $ map showstats intervalspans
   putStr s
 

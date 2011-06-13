@@ -18,7 +18,6 @@ import Data.Ord
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
 import Hledger.Data
-import Hledger.Utils
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 
@@ -32,8 +31,8 @@ type JournalReportItem = Transaction
 -- | Print journal transactions in standard format.
 print' :: [Opt] -> [String] -> Journal -> IO ()
 print' opts args j = do
-  t <- getCurrentLocalTime
-  putStr $ showTransactions opts (optsToFilterSpec opts args t) j
+  d <- getCurrentDay
+  putStr $ showTransactions opts (optsToFilterSpec opts args d) j
 
 showTransactions :: [Opt] -> FilterSpec -> Journal -> String
 showTransactions opts fspec j = journalReportAsText opts fspec $ journalReport opts fspec j
