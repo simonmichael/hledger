@@ -60,8 +60,7 @@ data QueryOpt = QueryOptInAcct AccountName  -- ^ show an account register focuss
 
 inAccount :: [QueryOpt] -> Maybe AccountName
 inAccount []     = Nothing
-inAccount (o:os) = case o of QueryOptInAcct a -> Just a; _ -> inAccount os
--- inAccount = msum . map f where f o = case o of (QueryOptInAcct a) -> Just a; _ -> Nothing
+inAccount (QueryOptInAcct a:_) = Just a
 
 -- | Convert a query expression containing zero or more space-separated
 -- terms to a matcher and zero or more query options. A query term is either:
