@@ -33,7 +33,7 @@ pre                                                { font-family:courier,"courie
 input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
 #editform textarea                                 { font-family:courier,"courier new",monospace; font-size:small; }
 .nav2                                              { font-size:small; }
-#filterform                                        { font-size:small; }
+#searchform                                        { font-size:small; }
 .topleftlink                                       { font-size:small; }
 .toprightlink                                      { font-size:small; }
 #journaldesc                                       { font-size:small; }
@@ -72,9 +72,9 @@ body                        { margin:0; }
 .navlinkcurrent             { font-weight:bold; }
 .form                       { margin:0em; }
 
-#filterformdiv              { margin:0 0 1em 0; white-space:nowrap; }
-#filterform                 { margin:0; }
-#filterform span            { padding:4px; }
+#searchformdiv              { margin:0 0 1em 0; white-space:nowrap; }
+#searchform                 { margin:0; }
+#searchform span            { padding:4px; }
 #stopfilterlink             { font-weight:bold; }
 .filtering                  { font-weight:bold; }
 
@@ -116,7 +116,7 @@ tr.newmonth td              { border-top: 2px solid black; }
 #addform #addbuttonrow      { text-align:right; }
 /* #editform                   { width:95%; } */
 #editform textarea          { width:100%; padding:4px; }
-#filterform table           { border-spacing:0; padding-left:0em; }
+#searchform table           { border-spacing:0; padding-left:0em; }
 
 
 /*------------------------------------------------------------------------------------------*/

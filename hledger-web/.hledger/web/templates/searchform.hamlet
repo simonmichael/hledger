@@ -1,5 +1,5 @@
-<div#filterformdiv
- <form#filterform.form method=GET
+<div#searchformdiv
+ <form#searchform.form method=GET
   <table
    <tr
     <td

@@ -9,15 +9,15 @@ $(document).ready(function() {
 
 });
 
-function filterformToggle() {
+function searchformToggle() {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
- var f = document.getElementById('filterform');
+ var f = document.getElementById('searchform');
  var i = document.getElementById('importform');
  var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
+ var flink = document.getElementById('searchformlink');
  var ilink = document.getElementById('importformlink');
  var jlink = document.getElementById('journallink');
  var rlink = document.getElementById('registerlink');
@@ -35,12 +35,12 @@ function filterformToggle() {
 function addformToggle(ev) {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
- var f = document.getElementById('filterform');
+ var f = document.getElementById('searchform');
  var i = document.getElementById('importform');
  var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
+ var flink = document.getElementById('searchformlink');
  var ilink = document.getElementById('importformlink');
  var jlink = document.getElementById('journallink');
  var rlink = document.getElementById('registerlink');
@@ -71,12 +71,12 @@ function editformToggle(ev) {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
  var ej = document.getElementById('journalselect');
- var f = document.getElementById('filterform');
+ var f = document.getElementById('searchform');
  var i = document.getElementById('importform');
  var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
+ var flink = document.getElementById('searchformlink');
  var ilink = document.getElementById('importformlink');
  var jlink = document.getElementById('journallink');
  var rlink = document.getElementById('registerlink');
@@ -131,12 +131,12 @@ function editformJournalSelect(ev) {
 function importformToggle(ev) {
  var a = document.getElementById('addform');
  var e = document.getElementById('editform');
- var f = document.getElementById('filterform');
+ var f = document.getElementById('searchform');
  var i = document.getElementById('importform');
  var c = document.getElementById('maincontent');
  var alink = document.getElementById('addformlink');
  var elink = document.getElementById('editformlink');
- var flink = document.getElementById('filterformlink');
+ var flink = document.getElementById('searchformlink');
  var ilink = document.getElementById('importformlink');
  var jlink = document.getElementById('journallink');
  var rlink = document.getElementById('registerlink');

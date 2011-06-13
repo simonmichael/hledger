@@ -1,6 +1,6 @@
 ^{topbar vd}
 <div#content
- ^{filterform vd}
+ ^{searchform vd}
  <div#sidebar
   ^{sidecontent}
  <div#main.register

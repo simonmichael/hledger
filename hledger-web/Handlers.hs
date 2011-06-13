@@ -379,9 +379,9 @@ helplink :: String -> String -> Hamlet AppRoute
 helplink topic label = $(Settings.hamletFile "helplink")
     where u = manualurl ++ if null topic then "" else '#':topic
 
--- | Form controlling journal filtering parameters.
-filterform :: ViewData -> Hamlet AppRoute
-filterform VD{here=here,q=q} = $(Settings.hamletFile "filterform")
+-- | Search form for entering custom queries to filter journal data.
+searchform :: ViewData -> Hamlet AppRoute
+searchform VD{here=here,q=q} = $(Settings.hamletFile "searchform")
  where
   filtering = not $ null q
 
