@@ -115,7 +115,7 @@ defaultprefix = "acct"
 parseMatcher :: Day -> String -> Either Matcher QueryOpt
 parseMatcher _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly s
 parseMatcher _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
-parseMatcher d ('n':'o':'t':':':s) = case parseMatcher d $ quoteIfSpaced s of
+parseMatcher d ('n':'o':'t':':':s) = case parseMatcher d s of
                                        Left m  -> Left $ negateMatcher m
                                        Right _ -> Left MatchAny -- not:somequeryoption will be ignored
 parseMatcher _ ('d':'e':'s':'c':':':s) = Left $ MatchDesc True s
@@ -307,8 +307,8 @@ tests_Hledger_Data_Matching = TestList
     parseQuery d "\"acct:expenses:autres d\233penses\"" `is` (MatchAcct True "expenses:autres d\233penses", [])
     parseQuery d "not:desc:'a b'" `is` (MatchDesc False "a b", [])
 
-    parseQuery d "inacct:a desc:b" `is` (MatchDesc True "b", [QueryOptInAcct "b"])
-    parseQuery d "inacct:a inacct:b" `is` (MatchAny, [QueryOptInAcct "a"])
+    parseQuery d "inacct:a desc:b" `is` (MatchDesc True "b", [QueryOptInAcct "a"])
+    parseQuery d "inacct:a inacct:b" `is` (MatchAny, [QueryOptInAcct "a", QueryOptInAcct "b"])
 
     parseQuery d "status:1" `is` (MatchStatus True True, [])
     parseQuery d "status:0" `is` (MatchStatus True False, [])
