@@ -16,10 +16,11 @@ BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14-ghc6.12.3 ledger
 #BENCHEXES=hledger
 
 # misc. tools
-#VIEWHTML=open -a 'Google Chrome'
-VIEWHTML=google-chrome
-VIEWPS=google-chrome
-VIEWPDF=google-chrome
+BROWSE=google-chrome
+#BROWSE=open -a 'Google Chrome'
+VIEWHTML=$(BROWSE)
+VIEWPS=$(BROWSE)
+VIEWPDF=$(BROWSE)
 PRINT=lpr
 
 PACKAGES=\
