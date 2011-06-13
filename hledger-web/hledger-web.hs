@@ -23,6 +23,7 @@ import Text.Printf
 import Yesod.Helpers.Static
 
 import Hledger.Cli
+import Hledger.Cli.Tests (runTestsOrExit)
 import Hledger.Data
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Utils.UTF8 (putStr, putStrLn)
@@ -67,6 +68,8 @@ main = do
 -- | The web command.
 web :: [Opt] -> [String] -> Journal -> IO ()
 web opts args j = do
+  putStrLn $ "Running self-tests..."
+  runTestsOrExit opts args
   created <- createFilesIfMissing
   if created
    then do
