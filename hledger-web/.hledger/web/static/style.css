@@ -122,8 +122,9 @@ table.registerreport tr.posting { font-size:smaller; }
 table.registerreport tr.posting .account  { padding-left:1.5em; }
 table.registerreport tr.posting .amount  { padding-right:0.5em; }
 tr.firstposting td          { }
-tr.newday td                { border-top: 1px solid black; }
-tr.newmonth td              { border-top: 2px solid black; }
+tr.newday td                { border-top: 1px solid #464; }
+/* tr.newday .date             { font-weight:bold; } */
+tr.newmonth td              { border-top: 2px solid #464; }
 /* tr.newyear td               { border-top: 3px solid black; } */
 #accountsheading            { white-space:nowrap; }
 
