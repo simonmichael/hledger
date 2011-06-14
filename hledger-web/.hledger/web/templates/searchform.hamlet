@@ -16,7 +16,7 @@
     <td
     <td
      leave blank to see general journal (all postings)<br>
-     inacct:FULLACCTNAME (just one) or click an account to see transactions and accurate balance in a single account<br>
+     inacct:FULLACCTNAME or click an account to focus on one account, or inaccts: to include subs<br>
      acct:REGEXP to see postings to matched accounts, desc:REGEXP to search by description<br>
      date:PERIODEXP or edate:PERIODEXP to match by date or effective date<br>
      not: to negate, single or double quotes to include spaces, multiple patterns are AND'ed
