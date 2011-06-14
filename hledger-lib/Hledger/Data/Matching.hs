@@ -104,6 +104,33 @@ parseQuery d s = (m,qopts)
                          (m':[]) -> m'
                          ms      -> MatchAnd ms
 
+-- | Quote-and-prefix-aware version of words - don't split on spaces which
+-- are inside quotes, including quotes which may have one of the specified
+-- prefixes in front, and maybe an additional not: prefix in front of that.
+words'' :: [String] -> String -> [String]
+words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
+    where
+      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, quotedPattern, pattern] `sepBy` many1 spacenonewline
+      prefixedQuotedPattern = do
+        not' <- optionMaybe $ string "not:"
+        prefix <- choice' $ map string prefixes
+        p <- quotedPattern
+        return $ fromMaybe "" not' ++ prefix ++ stripquotes p
+      quotedPattern = do
+        p <- between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
+        return $ stripquotes p
+      pattern = many (noneOf " \n\r\"")
+
+-- -- | Parse the query string as a boolean tree of match patterns.
+-- parseMatcher :: String -> Matcher
+-- parseMatcher s = either (const (MatchAny)) id $ runParser matcher () "" $ lexmatcher s
+
+-- lexmatcher :: String -> [String]
+-- lexmatcher s = words' s
+
+-- matcher :: GenParser String () Matcher
+-- matcher = undefined
+
 -- keep synced with patterns below, excluding "not"
 prefixes = map (++":") [
             "inacct","inacctonly",
@@ -145,33 +172,6 @@ parseBool s = s `elem` truestrings
 
 truestrings :: [String]
 truestrings = ["1","t","true"]
-
--- | Quote-and-prefix-aware version of words - don't split on spaces which
--- are inside quotes, including quotes which may have one of the specified
--- prefixes in front, and maybe an additional not: prefix in front of that.
-words'' :: [String] -> String -> [String]
-words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
-    where
-      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, quotedPattern, pattern] `sepBy` many1 spacenonewline
-      prefixedQuotedPattern = do
-        not' <- optionMaybe $ string "not:"
-        prefix <- choice' $ map string prefixes
-        p <- quotedPattern
-        return $ fromMaybe "" not' ++ prefix ++ stripquotes p
-      quotedPattern = do
-        p <- between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
-        return $ stripquotes p
-      pattern = many (noneOf " \n\r\"")
-
--- -- | Parse the query string as a boolean tree of match patterns.
--- parseMatcher :: String -> Matcher
--- parseMatcher s = either (const (MatchAny)) id $ runParser matcher () "" $ lexmatcher s
-
--- lexmatcher :: String -> [String]
--- lexmatcher s = words' s
-
--- matcher :: GenParser String () Matcher
--- matcher = undefined
 
 -- | Convert a match expression to its inverse.
 negateMatcher :: Matcher -> Matcher
