@@ -17,7 +17,7 @@ BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14-ghc6.12.3 ledger
 
 # misc. tools
 BROWSE=google-chrome
-#BROWSE=open -a 'Google Chrome'
+BROWSE=open -a 'Google Chrome'
 VIEWHTML=$(BROWSE)
 VIEWPS=$(BROWSE)
 VIEWPDF=$(BROWSE)
@@ -311,7 +311,7 @@ unittesths:
 # run functional tests, requires shelltestrunner >= 0.9 from hackage
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledger
-	(shelltest tests --implicit=none --plain --threads=16 \
+	(shelltest tests --implicit=none -- --threads=16 \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run doc tests
@@ -859,3 +859,5 @@ hledgersrclinks:
 	cd hledger/Hledger; \
 		for f in ../../hledger-lib/Hledger/*; do ln -sf $$f; done
 
+
+# for f in ../../hledger{,-lib}/Hledger/*; do ln -s $f; done; ln -s ../hledger-lib/Hledger.hs
