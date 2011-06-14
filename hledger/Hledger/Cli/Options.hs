@@ -74,6 +74,7 @@ options_cli = [
                                                        "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
  ,Option ""  ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
  ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
+ ,Option ""  ["no-elide"]     (NoArg  NoElide)       "no eliding at all, stronger than -E (eg for balance report)"
  ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
  ,Option ""  ["flat"]         (NoArg  Flat)          "balance: show full account names, unindented"
  ,Option ""  ["drop"]         (ReqArg Drop "N")      "balance: with --flat, elide first N account name components"
@@ -108,6 +109,7 @@ data Opt =
     | Display     {value::String}
     | Effective
     | Empty
+    | NoElide
     | Real
     | Flat
     | Drop        {value::String}

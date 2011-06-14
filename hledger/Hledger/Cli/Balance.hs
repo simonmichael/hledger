@@ -201,7 +201,8 @@ balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
 balanceReport opts filterspec j = (items, total)
     where
       items = map mkitem interestingaccts
-      interestingaccts = filter (isInteresting opts l) acctnames
+      interestingaccts | NoElide `elem` opts = acctnames
+                       | otherwise = filter (isInteresting opts l) acctnames
       acctnames = sort $ tail $ flatten $ treemap aname accttree
       accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
       total = sum $ map abalance $ ledgerTopAccounts l
@@ -254,6 +255,7 @@ exclusiveBalance :: Account -> MixedAmount
 exclusiveBalance = sumPostings . apostings
 
 -- | Is the named account considered interesting for this ledger's balance report ?
+-- We follow the style of ledger's balance command.
 isInteresting :: [Opt] -> Ledger -> AccountName -> Bool
 isInteresting opts l a | Flat `elem` opts = isInterestingFlat opts l a
                        | otherwise = isInterestingIndented opts l a
