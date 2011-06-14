@@ -566,9 +566,11 @@ justdatespan rdate = do
 mkdatespan :: String -> String -> DateSpan
 mkdatespan b = DateSpan (Just $ parsedate b) . Just . parsedate
 
+nulldatespan :: DateSpan
 nulldatespan = DateSpan Nothing Nothing
 
-nulldate = parsedate "1900/01/01"
+nulldate :: Day
+nulldate = parsedate "0000/00/00"
 
 tests_Hledger_Data_Dates = TestList
  [
