@@ -1,11 +1,10 @@
 <div#accountsheading
  accounts
- $if filtering
-  \ #
-  <span.showall
-   <a href=@{here}>show all
 
 <table.balancereport>
+ <tr.item :allaccts:.inacct
+  <td.account colspan=3><a href=@{here}>all accounts
+
  $forall i <- items
   ^{itemAsHtml vd i}
 
