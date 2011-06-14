@@ -32,7 +32,7 @@ b
 >>>=0
 
 # 4. default commodity with greater precision
- printf 'D $1000.00\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf 'D $1000.00\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
 
 
@@ -45,7 +45,7 @@ b
 >>>=0
 
 # 5. default commodity with less precision
- printf 'D $1000.0\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf 'D $1000.0\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
 
 
@@ -58,7 +58,7 @@ b
 >>>=0
 
 # 6. existing commodity with greater precision
- printf '2010/1/1\n a  $1000.00\n b\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf '2010/1/1\n a  $1000.00\n b\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
 
 
@@ -71,7 +71,7 @@ b
 >>>=0
 
 # 7. existing commodity with less precision
- printf '2010/1/1\n a  $1000.0\n b\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf '2010/1/1\n a  $1000.0\n b\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
 
 
@@ -84,7 +84,7 @@ b
 >>>=0
 
 # 8. no commodity entered, the (most recent) default commodity should be applied
- printf 'D $1000.0\nD £1,000.00\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf 'D $1000.0\nD £1,000.00\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
 2010/1/1
 
