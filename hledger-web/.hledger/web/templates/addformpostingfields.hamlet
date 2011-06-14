@@ -4,7 +4,7 @@
   <select id=#{acctvar} name=#{acctvar}
    <option
    $forall a <- acctnames
-    <option value=#{a}>#{a}
+    <option value=#{a} :shouldselect a:selected>#{a}
  ^{amtfield}
 <tr.helprow
  <td
