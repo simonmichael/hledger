@@ -113,15 +113,13 @@ registerReport opts fspec j = (totallabel,postingsToRegisterReportItems ps nullp
 --
 -- Does not handle reporting intervals.
 --
-accountRegisterReport :: [Opt] -> Journal -> Matcher -> AccountName -> RegisterReport
-accountRegisterReport opts j m a = (label, postingsToRegisterReportItems displayps nullposting startbal sumfn)
+accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> RegisterReport
+accountRegisterReport opts j m thisacctmatcher = (label, postingsToRegisterReportItems displayps nullposting startbal sumfn)
  where
       -- displayps' | interval == NoInterval = displayps
       --            | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
 
      -- transactions affecting this account
-     a' = accountNameToAccountOnlyRegex a
-     thisacctmatcher = MatchAcct True a'
      ts = filter (matchesTransaction thisacctmatcher) $ jtxns j
 
      -- all postings in these transactions
