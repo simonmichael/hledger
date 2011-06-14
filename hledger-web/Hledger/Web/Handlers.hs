@@ -258,7 +258,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
        inacctclass = case inacctmatcher of
                        Just m -> if m `matchesAccount` acct then "inacct" else "notinacct"
                        Nothing -> "" :: String
-       indent = preEscapedString $ concat $ replicate (2 * aindent) "&nbsp;"
+       indent = preEscapedString $ concat $ replicate (2 * (1+aindent)) "&nbsp;"
        acctquery = (RegisterR, [("q", pack $ accountQuery acct)])
        acctonlyquery = (RegisterR, [("q", pack $ accountOnlyQuery acct)])
 
