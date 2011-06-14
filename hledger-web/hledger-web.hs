@@ -68,14 +68,14 @@ main = do
 -- | The web command.
 web :: [Opt] -> [String] -> Journal -> IO ()
 web opts args j = do
-  putStrLn $ "Running self-tests..."
-  runTestsOrExit opts args
   created <- createFilesIfMissing
   if created
    then do
      putStrLn $ "Installing support files in "++datadir++" - done, please run again."
      exitFailure
    else do
+     putStrLn $ "Running self-tests..."
+     runTestsOrExit opts args
      putStrLn $ "Using support files in "++datadir
      let host    = defhost
          port    = fromMaybe defport $ portFromOpts opts
