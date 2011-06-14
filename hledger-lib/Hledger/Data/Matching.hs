@@ -97,14 +97,14 @@ parseQuery d s = (m,qopts)
 
 -- keep synced with patterns below, excluding "not"
 prefixes = map (++":") [
-            "inacct","subs",
+            "inacct","inaccts",
             "desc","acct","date","edate","status","real","empty","depth"
            ]
 defaultprefix = "acct"
 
 -- | Parse a single query term as either a matcher or a query option.
 parseMatcher :: Day -> String -> Either Matcher QueryOpt
-parseMatcher _ ('i':'n':'a':'c':'c':'t':'s':'u':'b':'s':':':s) = Right $ QueryOptInAcctSubs s
+parseMatcher _ ('i':'n':'a':'c':'c':'t':'s':':':s) = Right $ QueryOptInAcctSubs s
 parseMatcher _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
 parseMatcher d ('n':'o':'t':':':s) = case parseMatcher d $ quoteIfSpaced s of
                                        Left m  -> Left $ negateMatcher m
