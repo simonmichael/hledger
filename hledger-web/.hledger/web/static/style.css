@@ -101,10 +101,13 @@ table.journalreport         { border-spacing: 0; }
 .totalrule td               { border-top:thin solid black; }
 
 table.registerreport        { border-spacing:0; }
-.registerreport tr          { vertical-align:top; }
-.registerreport td          { padding-bottom:0.2em; }
-.registerreport .date       { white-space:nowrap; }
-.firstposting td            { }
+table.registerreport tr     { vertical-align:top; }
+table.registerreport td     { padding-bottom:0.2em; }
+table.registerreport .date  { white-space:nowrap; }
+tr.firstposting td          { }
+tr.newday td                { border-top: 1px solid black; }
+tr.newmonth td              { border-top: 2px solid black; }
+/* tr.newyear td               { border-top: 3px solid black; } */
 #accountsheading            { white-space:nowrap; margin-bottom:1em; }
 
 

@@ -1,4 +1,4 @@
-<tr.item.#{evenodd}.#{firstposting}
+<tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
  <td.description>#{desc}
  <td.account><a href="@?{accturl}">#{acct}

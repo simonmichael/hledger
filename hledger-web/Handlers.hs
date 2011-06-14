@@ -134,8 +134,9 @@ balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items,total) = $
    itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
      where
        depthclass = "depth"++show aindent
-       inclass = case inacctmatcher of Just m -> if m `matchesAccount` acct then "inacct" else "notinacct"
-                                       Nothing -> "" :: String
+       inacctclass = case inacctmatcher of
+                       Just m -> if m `matchesAccount` acct then "inacct" else "notinacct"
+                       Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * aindent) "&nbsp;"
        accturl = (here, [("q", pack $ accountUrl acct)])
 
@@ -153,10 +154,14 @@ journalReportAsHtml _ vd items = $(Settings.hamletFile "journalreport")
 registerReportAsHtml :: [Opt] -> ViewData -> RegisterReport -> Hamlet AppRoute
 registerReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "registerreport")
  where
-   itemAsHtml :: ViewData -> (Int, RegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here} (n, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, RegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml VD{here=here} (n, newd, newm, newy, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
      where
        evenodd = if even n then "even" else "odd" :: String
+       datetransition -- | newy && n > 1 = "newyear"
+                      | newm = "newmonth"
+                      | newd = "newday"
+                      | otherwise = "" :: String
        (firstposting, date, desc) = case ds of Just (da, de) -> ("firstposting", show da, de)
                                                Nothing -> ("", "", "") :: (String,String,String)
        acct = paccount posting
@@ -446,12 +451,20 @@ getMessageOr mnewmsg = do
 
 numbered = zip [1..]
 
--- Add incrementing transaction numbers to a list of register report items starting at 1.
-numberTransactions :: [RegisterReportItem] -> [(Int,RegisterReportItem)]
+-- Add incrementing transaction numbers to a list of register report items
+-- starting at 1.  Also add three flags that are true if the date, month,
+-- and year is different from the previous item's.
+numberTransactions :: [RegisterReportItem] -> [(Int,Bool,Bool,Bool,RegisterReportItem)]
 numberTransactions [] = []
-numberTransactions is = number 0 is
+numberTransactions is = number 0 nulldate is
   where
-    number _ [] = []
-    number n (i@(Just _, _, _):is)  = (n+1,i):(number (n+1) is)
-    number n (i@(Nothing, _, _):is) = (n,i):(number n is)
-
+    number :: Int -> Day -> [RegisterReportItem] -> [(Int,Bool,Bool,Bool,RegisterReportItem)]
+    number _ _ [] = []
+    number n prevd (i@(Nothing, _, _)   :is)  = (n,False,False,False,i)    :(number n prevd is)
+    number n prevd (i@(Just (d,_), _, _):is)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d is)
+        where
+          newday = d/=prevd
+          newmonth = dm/=prevdm || dy/=prevdy
+          newyear = dy/=prevdy
+          (dy,dm,_) = toGregorian d
+          (prevdy,prevdm,_) = toGregorian prevd

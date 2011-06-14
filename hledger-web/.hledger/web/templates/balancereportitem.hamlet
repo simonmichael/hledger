@@ -1,4 +1,4 @@
-<tr.item.#{inclass}
+<tr.item.#{inacctclass}
  <td.account.#{depthclass}
   #{indent}
   <a href="@?{accturl}">#{adisplay}
