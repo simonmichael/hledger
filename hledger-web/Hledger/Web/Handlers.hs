@@ -505,14 +505,23 @@ handleAdd = do
   case tE of
    Left errs -> do
     -- save current form values in session
-    setMessage $ toHtml $ intercalate "; " errs
-    redirect RedirectTemporary RegisterR
+    -- setMessage $ toHtml $ intercalate "; " errs
+    setMessage [$hamlet|
+                 Errors:<br>
+                 $forall e<-errs
+                  #{e}<br>
+               |]
+    redirectParams RedirectTemporary RegisterR [("add","1")]
 
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
     liftIO $ appendToJournalFile journalpath $ showTransaction t'
-    setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
-    redirect RedirectTemporary RegisterR
+    -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
+    setMessage [$hamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
+    redirectParams RedirectTemporary RegisterR [("add","1")]
+
+chomp :: String -> String
+chomp = reverse . dropWhile (`elem` "\r\n") . reverse
 
 -- | Handle a post from the journal edit form.
 handleEdit :: Handler RepPlain
