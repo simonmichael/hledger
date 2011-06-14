@@ -124,7 +124,7 @@ type BalanceReport = ([BalanceReportItem] -- line items, one per account
 type BalanceReportItem = (AccountName  -- full account name
                          ,AccountName  -- account name elided for display: the leaf name,
                                        -- prefixed by any boring parents immediately above
-                         ,Int          -- account depth within this report, excludes boring parents
+                         ,Int          -- how many steps to indent this account (0-based account depth excluding boring parents)
                          ,MixedAmount) -- account balance, includes subs unless --flat is present
 
 -- | Print a balance report.
@@ -148,12 +148,12 @@ balanceReportAsText opts (items,total) =
 
 -- | Render one balance report line item as plain text.
 balanceReportItemAsText :: [Opt] -> BalanceReportItem -> String
-balanceReportItemAsText opts (a, adisplay, adepth, abal) = concatTopPadded [amt, "  ", name]
+balanceReportItemAsText opts (a, adisplay, aindent, abal) = concatTopPadded [amt, "  ", name]
     where
       amt = padleft 20 $ showMixedAmountWithoutPrice abal
       name | Flat `elem` opts = accountNameDrop (dropFromOpts opts) a
-           | otherwise        = depthspacer ++ adisplay
-      depthspacer = replicate (indentperlevel * adepth) ' '
+           | otherwise        = indentspacer ++ adisplay
+      indentspacer = replicate (indentperlevel * aindent) ' '
       indentperlevel = 2
 
 -- | Get a balance report with the specified options for this journal.
