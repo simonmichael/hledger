@@ -120,13 +120,10 @@ accountRegisterReport opts j m thisacctmatcher = (label, postingsToRegisterRepor
       --            | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
 
      -- transactions affecting this account
-     ts = filter (matchesTransaction thisacctmatcher) $ jtxns j
+     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
 
-     -- all postings in these transactions
-     ps = transactionsPostings ts
-
-     -- starting balance: if we are filtering by a start date and nothing else
-     -- else, the sum of postings to this account before it; otherwise zero.
+     -- starting balance: if we are filtering by a start date and nothing else,
+     -- the sum of postings to this account before that date; otherwise zero.
      (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
                              | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel,(-))
                              | otherwise = (nullmixedamt,totallabel,(+))
@@ -134,7 +131,8 @@ accountRegisterReport opts j m thisacctmatcher = (label, postingsToRegisterRepor
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
                                           (-- ltrace "priormatcher" $
-                                           MatchAnd [thisacctmatcher, tostartdatematcher])) ps
+                                           MatchAnd [thisacctmatcher, tostartdatematcher]))
+                                         $ transactionsPostings ts
                         tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
                         startdate = matcherStartDate effective m
                         effective = Effective `elem` opts
@@ -142,9 +140,21 @@ accountRegisterReport opts j m thisacctmatcher = (label, postingsToRegisterRepor
      -- postings to display: this account's transactions' "other" postings, with any additional filter applied
      -- XXX would be better to collapse multiple postings from one txn into one (expandable) "split" item
      displayps = -- ltrace "displayps" $
-                 filter (matchesPosting $
-                         -- ltrace "displaymatcher" $
-                         (MatchAnd [negateMatcher thisacctmatcher, m])) ps
+                 catMaybes $ map displayPostingFromTransaction ts
+
+     displaymatcher = -- ltrace "displaymatcher" $
+                      MatchAnd [negateMatcher thisacctmatcher, m]
+
+     -- get the other account posting from this transaction, or if there
+     -- is more than one make a dummy posting indicating that
+     displayPostingFromTransaction :: Transaction -> Maybe Posting
+     displayPostingFromTransaction Transaction{tpostings=ps} =
+         case filter (displaymatcher `matchesPosting`) ps of
+           [] -> Nothing -- a virtual transaction, maybe
+           [p] -> Just p
+           ps'@(p':_) -> Just p'{paccount=splitdesc,pamount=splitamt}
+               where splitdesc = "SPLIT ("++intercalate ", " (map (accountLeafName . paccount) ps')++")"
+                     splitamt = sum $ map pamount ps'
 
 totallabel = "Total"
 balancelabel = "Balance"
