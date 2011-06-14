@@ -113,6 +113,7 @@ table.journalreport         { border-spacing: 0; }
 .balancereport .depth0      { padding-top:1em; }
 .balancereport td           { padding:0; }
 .totalrule td               { border-top:thin solid black; }
+.balancereport .account     { white-space:nowrap; }
 
 .hidden { display:none; }
 table.registerreport        { border-spacing:0; }
