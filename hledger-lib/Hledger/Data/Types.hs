@@ -5,8 +5,8 @@ Most data types are defined here to avoid import cycles.
 Here is an overview of the hledger data model:
 
 > Journal                  -- a journal is read from one or more data files. It contains..
->  [Transaction]           -- journal transactions, which have date, status, code, description and..
->   [Posting]              -- multiple account postings (entries), which have account name and amount
+>  [Transaction]           -- journal transactions (aka entries), which have date, status, code, description and..
+>   [Posting]              -- multiple account postings, which have account name and amount
 >  [HistoricalPrice]       -- historical commodity prices
 >
 > Ledger                   -- a ledger is derived from a journal, by applying a filter specification and doing some further processing. It contains..
