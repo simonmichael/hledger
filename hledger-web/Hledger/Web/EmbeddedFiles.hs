@@ -23,12 +23,12 @@ import System.FilePath
 import Hledger.Web.Settings (datadir)
 
 -- | An embedded copy of all files below the the hledger-web data
--- directory (@.hledger/web/@) at compile time, as (FilePath,ByteString)
+-- directory (@.hledger\/web\/@) at compile time, as (FilePath,ByteString)
 -- pairs.
 files :: [(FilePath, B.ByteString)]
 files = $(embedDir datadir)
 
--- | If the hledger-web data directory (@.hledger/web/@) does not exist in
+-- | If the hledger-web data directory (@.hledger\/web\/@) does not exist in
 -- the current directory, create and fill it with the web app support
 -- files (templates, stylesheets, images etc.) Returns True if the
 -- directory was missing.
