@@ -435,6 +435,9 @@ viewcoverage:
 ghci:
 	ghci $(INCLUDEPATHS) $(MAIN)
 
+ghci-vty:
+	ghci $(INCLUDEPATHS) hledger-vty/Hledger/Vty/Main.hs
+
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/10000x1000x10.journal data/100000x1000x10.journal
 
