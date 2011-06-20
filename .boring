@@ -66,6 +66,7 @@
 (^|/)\.hg($|/)
 # git
 (^|/)\.git($|/)
+(^|/)\.gitignore($|/)
 # bzr
 \.bzr$
 # sccs
@@ -126,6 +127,9 @@ tools/simplifyprof
 
 # site stuff not explicitly added
 site/.*
+
+# compiled binaries
+bin/*
 
 # branch repos
 (^|/)b[[:digit:]]*
