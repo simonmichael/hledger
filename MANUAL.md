@@ -167,6 +167,7 @@ Some of these are discussed more in [other features](#other-features):
       -M       --monthly          register, stats: report by month
       -Q       --quarterly        register, stats: report by quarter
       -Y       --yearly           register, stats: report by year
+      -F STR   --format=STR       use STR as the format
       -v       --verbose          show more verbose output
                --debug            show extra debug output; implies verbose
                --binary-filename  show the download filename for this hledger build
@@ -1006,6 +1007,80 @@ To record time logs, ie to clock in and clock out, you could:
 - or the old "ti" and "to" scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
+### Output formatting
+
+Hledger supports custom formatting the output from the balance
+command. The format string can contain either literal text which is
+written directly to the output or formatting of particular fields.
+
+#### Format specification
+
+The format is similar to the one used by C's `printf` and `strftime`,
+with the exception that the field name are enclosed in parentheses:
+
+    %[-][MIN][.MAX]([FIELD])
+
+If the minus sign is given, the text is left justified. The `MIN` field
+specified a minimum number of characters in width. After the value is
+injected into the string, spaces is added to make sure the string is at
+least as long as `MIN`. Similary, the `MAX` field specifies the maximum
+number of characters. The string will be cut if the injected string is
+too long.
+
+- `%-(total)   ` the total of an account, left justified
+- `%20(total)  ` The same, right justified, at least 20 chars wide
+- `%.20(total) ` The same, no more than 20 chars wide
+- `%-.20(total)` Left justified, maximum twenty chars wide
+
+#### Supported fields
+
+Currently three fields can be used in a formatting string:
+
+- `account` Inserts the account name
+- `depth_spacer` Inserts a space for each level of an account's
+  depth. That is, if an account has two parents, this construct will
+  insert two spaces. If a minimum width is specified, that much space
+  is inserted for each level of depth. Thus `%5_`, for an account
+  with four parents, will insert twenty spaces.
+- `total` Inserts the total for the account
+
+##### Examples
+
+If you want the account before the total you can use this format:
+
+    $ hledger balance --format "%20(account) %-(total)"
+                  assets $-1
+             bank:saving $1
+                    cash $-2
+                expenses $2
+                    food $1
+                supplies $1
+                  income $-2
+                   gifts $-1
+                  salary $-1
+       liabilities:debts $1
+    --------------------
+                       0
+
+Or, if you'd like to export the balance sheet:
+
+    $ hledger balance --format "%(total);%(account)" --no-total
+    $-1;assets
+    $1;bank:saving
+    $-2;cash
+    $2;expenses
+    $1;food
+    $1;supplies
+    $-2;income
+    $-1;gifts
+    $-1;salary
+    $1;liabilities:debts
+
+The default output format is `%20(total)  %2(depth_spacer)%-(account)`
+
+Note: output formatting is only available for the [balance](#balance)
+command.
+
 ## Compatibility with c++ ledger
 
 hledger mimics a subset of ledger 3.x, and adds some features of its own
@@ -1021,12 +1096,13 @@ hledger mimics a subset of ledger 3.x, and adds some features of its own
 - print, register & balance commands
 - period expressions quite similar to ledger's
 - display expressions containing just a simple date predicate
+- basic support (read: incomplete) for display formatting
 
 We do not support:
 
 - periodic and modifier transactions
 - fluctuating prices
-- display formats
+- display formats (actually, a small subset is supported)
 - budget reports
 
 And we add some features:

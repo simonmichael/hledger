@@ -97,7 +97,7 @@ tests_Hledger_Cli = TestList
    let (opts,args) `gives` es = do 
         j <- samplejournal
         d <- getCurrentDay
-        balanceReportAsText opts (balanceReport opts (optsToFilterSpec opts args d) j) `is` unlines es
+        balanceReportAsText opts (balanceReport opts (optsToFilterSpec opts args d) j) `is` es
    in TestList
    [
 
@@ -234,7 +234,6 @@ tests_Hledger_Cli = TestList
              ]) >>= either error' return
       let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
       balanceReportAsText [] (balanceReport [] nullfilterspec j') `is`
-       unlines
         ["                $500  a:b"
         ,"               $-500  c:d"
         ,"--------------------"
@@ -249,7 +248,6 @@ tests_Hledger_Cli = TestList
               ,"  test:b"
               ])
       balanceReportAsText [] (balanceReport [] nullfilterspec j) `is`
-       unlines
         ["                   1  test:a"
         ,"                  -1  test:b"
         ,"--------------------"
@@ -459,7 +457,7 @@ tests_Hledger_Cli = TestList
   ,"unicode in balance layout" ~: do
     j <- readJournal'
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    balanceReportAsText [] (balanceReport [] (optsToFilterSpec [] [] date1) j) `is` unlines
+    balanceReportAsText [] (balanceReport [] (optsToFilterSpec [] [] date1) j) `is`
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"
       ,"--------------------"

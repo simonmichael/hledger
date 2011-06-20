@@ -1,5 +1,5 @@
 # Conversion from CSV to Ledger with in-field and out-field
-printf 'base-account Assets:MyAccount\ndate-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\nin-field 2\nout-field 3\ncurrency $\n' >convert.rules ; touch unused.journal ; bin/hledger -f unused.journal convert --rules convert.rules - ; rm -rf unused.journal convert.rules
+rm -rf unused.journal convert.rules; printf 'base-account Assets:MyAccount\ndate-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\nin-field 2\nout-field 3\ncurrency $\n' >convert.rules ; touch unused.journal ; bin/hledger -f unused.journal convert --rules convert.rules - ; rm -rf unused.journal convert.rules
 <<<
 10/2009/09,Flubber Co,50,
 11/2009/09,Flubber Co,,50

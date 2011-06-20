@@ -42,6 +42,7 @@ library
   exposed-modules:
                   Hledger.Cli
                   Hledger.Cli.Main
+                  Hledger.Cli.Format
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
                   Hledger.Cli.Utils

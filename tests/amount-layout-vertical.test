@@ -40,7 +40,7 @@ bin/hledger -f - balance
 >>>
                EUR 1  a
                USD 1  b
-              EUR -1   
+              EUR -1  
               USD -1  c
 --------------------
                    0

@@ -62,6 +62,7 @@ module Hledger.Data.Amount (
                             setAmountPrecision,
                             setMixedAmountPrecision,
                             showAmountDebug,
+                            showAmountWithoutPrice,
                             showMixedAmount,
                             showMixedAmountDebug,
                             showMixedAmountOrZero,

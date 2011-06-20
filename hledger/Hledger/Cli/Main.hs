@@ -45,11 +45,17 @@ import Hledger.Cli
 import Hledger.Cli.Tests
 import Hledger.Cli.Version (progversionstr, binaryfilename)
 import Prelude hiding (putStr, putStrLn)
+import Hledger.Utils (error')
 import Hledger.Utils.UTF8 (putStr, putStrLn)
 
 main :: IO ()
 main = do
   (opts, args) <- parseArgumentsWith options_cli
+  case validateOpts opts of
+    Just err -> error' err
+    Nothing -> run opts args
+
+run opts args =
   run opts args
     where
       run opts _
@@ -67,3 +73,9 @@ main = do
        | cmd `isPrefixOf` "stats"     = withJournalDo opts args cmd stats
        | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
        | otherwise                    = argsError $ "command "++cmd++" is unrecognized."
+
+validateOpts :: [Opt] -> Maybe String
+validateOpts opts =
+  case parseFormatFromOpts opts of
+    Left err -> Just $ unlines ["Invalid format", err]
+    Right _ -> Nothing
