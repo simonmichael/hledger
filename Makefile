@@ -122,23 +122,27 @@ all%:
 	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
 
 # auto-recompile and run (something, eg unit tests) whenever a module changes.
-# sp is from searchpath.org, you might need the http://joyful.com/repos/searchpath version.
-autotest:
+autotest: sp
 	rm -f bin/hledger
 	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) -ihledger $(BUILDFLAGS) --run test
 
 # as above for add-on programs
-autoweb: linkhledgerwebdir
+autoweb: sp linkhledgerwebdir
 	rm -f bin/hledger-web
 	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/hledger-web.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug -B
 
-autovty:
+autovty: sp
 	rm -f bin/hledger-vty
 	sp --no-exts --no-default-map -o bin/hledger-vty ghc --make hledger-vty/hledger-vty.hs -ihledger-vty -ihledger $(BUILDFLAGS) --run --help
 
-autochart:
+autochart: sp
 	rm -f bin/hledger-chart
 	sp --no-exts --no-default-map -o bin/hledger-chart ghc --make hledger-chart/hledger-chart.hs -ihledger-chart -ihledger $(BUILDFLAGS) --run --help
+
+# check for sp and explain how to get it if not found. The joyful.com version works best.
+sp:
+	@/usr/bin/env which sp >/dev/null || \
+	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/repos/searchpath, make it and add it to your PATH'; exit 1)
 
 # make symlinks so that running hledger-web from the top directory will
 # use the in-development hledger-web support files. Cf Hledger.Web.Settings:
