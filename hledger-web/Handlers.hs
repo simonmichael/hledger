@@ -133,11 +133,13 @@ accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items,total) = $(Settings.hamletFile "balancereport")
+balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items',total) = $(Settings.hamletFile "balancereport")
  where
    l = journalToLedger nullfilterspec j
    inacctmatcher = inAccountMatcher qopts
+   showacctmatcher = showAccountMatcher qopts
    allaccts = isNothing inacctmatcher
+   items = maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
      where

@@ -55,21 +55,32 @@ data Matcher = MatchAny                   -- ^ always match
 -- XXX could use regular cli Opts ?
 data QueryOpt = QueryOptInAcct AccountName  -- ^ show an account register focussed on this account
               | QueryOptInAcctSubs AccountName -- ^ as above but include sub-accounts in the account register
+              | QueryOptInAcctSubsOnly AccountName -- ^ as above plus narrow the accounts sidebar to show just these accounts
            -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
            -- | QueryOptEffectiveDate  -- ^ show effective dates instead of actual dates
     deriving (Show, Eq)
 
 -- | The account we are currently focussed on, if any.
+-- Just looks at the first query option.
 inAccount :: [QueryOpt] -> Maybe AccountName
-inAccount []     = Nothing
+inAccount [] = Nothing
 inAccount (QueryOptInAcct a:_) = Just a
 inAccount (QueryOptInAcctSubs a:_) = Just a
+inAccount (QueryOptInAcctSubsOnly a:_) = Just a
 
 -- | A matcher for the account(s) we are currently focussed on, if any.
+-- Just looks at the first query option.
 inAccountMatcher :: [QueryOpt] -> Maybe Matcher
-inAccountMatcher []     = Nothing
+inAccountMatcher [] = Nothing
 inAccountMatcher (QueryOptInAcct a:_) = Just $ MatchAcct True $ accountNameToAccountOnlyRegex a
 inAccountMatcher (QueryOptInAcctSubs a:_) = Just $ MatchAcct True $ accountNameToAccountRegex a
+inAccountMatcher (QueryOptInAcctSubsOnly a:_) = Just $ MatchAcct True $ accountNameToAccountRegex a
+
+-- | A matcher restricting the account(s) to be shown in the sidebar, if any.
+-- Just looks at the first query option.
+showAccountMatcher :: [QueryOpt] -> Maybe Matcher
+showAccountMatcher (QueryOptInAcctSubsOnly a:_) = Just $ MatchAcct True $ accountNameToAccountRegex a
+showAccountMatcher _ = Nothing
 
 -- | Convert a query expression containing zero or more space-separated
 -- terms to a matcher and zero or more query options. A query term is either:
@@ -104,6 +115,7 @@ defaultprefix = "acct"
 
 -- | Parse a single query term as either a matcher or a query option.
 parseMatcher :: Day -> String -> Either Matcher QueryOpt
+parseMatcher _ ('i':'n':'a':'c':'c':'t':'s':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctSubsOnly s
 parseMatcher _ ('i':'n':'a':'c':'c':'t':'s':':':s) = Right $ QueryOptInAcctSubs s
 parseMatcher _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
 parseMatcher d ('n':'o':'t':':':s) = case parseMatcher d $ quoteIfSpaced s of
