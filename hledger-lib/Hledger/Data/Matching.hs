@@ -109,7 +109,7 @@ parseQuery d s = (m,qopts)
 
 -- keep synced with patterns below, excluding "not"
 prefixes = map (++":") [
-            "inacct","inaccts",
+            "inacct","inaccts","inacctsonly",
             "desc","acct","date","edate","status","real","empty","depth"
            ]
 defaultprefix = "acct"
