@@ -100,73 +100,6 @@ showPostingWithBalanceForVty showtxninfo p b = postingRegisterReportItemAsText [
 totallabel = "Total"
 balancelabel = "Balance"
 
--- | Get a quicken/gnucash-style account register report, with the
--- specified options, for the currently focussed account (or possibly the
--- focussed account plus sub-accounts.) This differs from
--- "postingRegisterReport" in several ways:
---
--- 1. it shows transactions, from the point of view of the focussed
---    account. The other account's name and posted amount is displayed,
---    aggregated if there is more than one other account posting.
---
--- 2. With no transaction filtering in effect other than a start date, it
---    shows the accurate historical running balance for this
---    account. Otherwise it shows a running total starting at 0 like the posting register report.
---
--- 3. Currently this report does not handle reporting intervals.
---
--- 4. Report items will be most recent first.
---
-accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> AccountRegisterReport
-accountRegisterReport opts j m thisacctmatcher = (label, items)
- where
-     -- transactions affecting this account, in date order
-     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
-
-     -- starting balance: if we are filtering by a start date and nothing else,
-     -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
-                             | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel,(-))
-                             | otherwise = (nullmixedamt,totallabel,(+))
-                      where
-                        priorps = -- ltrace "priorps" $
-                                  filter (matchesPosting
-                                          (-- ltrace "priormatcher" $
-                                           MatchAnd [thisacctmatcher, tostartdatematcher]))
-                                         $ transactionsPostings ts
-                        tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
-                        startdate = matcherStartDate effective m
-                        effective = Effective `elem` opts
-
-     displaymatcher = -- ltrace "displaymatcher" $
-                      MatchAnd [negateMatcher thisacctmatcher, m]
-
-     items = reverse $ accountRegisterReportItems ts displaymatcher nulltransaction startbal sumfn
-
--- | Generate account register line items from a list of transactions,
--- using the provided matcher (postings not matching this will not affect
--- the displayed item), starting transaction, starting balance, and
--- balance summing function.
-accountRegisterReportItems :: [Transaction] -> Matcher -> Transaction -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [AccountRegisterReportItem]
-accountRegisterReportItems [] _ _ _ _ = []
-accountRegisterReportItems (t@Transaction{tpostings=ps}:ts) displaymatcher _ bal sumfn =
-    case i of Just i' -> i':is
-              Nothing -> is
-    where
-      (i,bal'') = case filter (displaymatcher `matchesPosting`) ps of
-           []  -> (Nothing,bal) -- maybe a virtual transaction, or transfer to self
-           [p] -> (Just (t, acct, amt, bal'), bal')
-               where
-                 acct = paccount p
-                 amt = pamount p
-                 bal' = bal `sumfn` amt
-           ps' -> (Just (t,acct,amt,bal'), bal')
-               where
-                 acct = "SPLIT ("++intercalate ", " (map (accountLeafName . paccount) ps')++")"
-                 amt = sum $ map pamount ps'
-                 bal' = bal `sumfn` amt
-      is = (accountRegisterReportItems ts displaymatcher t bal'' sumfn)
-
 -- | Get a ledger-style posting register report, with the specified options,
 -- for the whole journal. See also "accountRegisterReport".
 postingRegisterReport :: [Opt] -> FilterSpec -> Journal -> PostingRegisterReport
@@ -239,6 +172,73 @@ datedisplayexpr = do
     _    -> mzero
  where
   compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
+
+-- | Get a quicken/gnucash-style account register report, with the
+-- specified options, for the currently focussed account (or possibly the
+-- focussed account plus sub-accounts.) This differs from
+-- "postingRegisterReport" in several ways:
+--
+-- 1. it shows transactions, from the point of view of the focussed
+--    account. The other account's name and posted amount is displayed,
+--    aggregated if there is more than one other account posting.
+--
+-- 2. With no transaction filtering in effect other than a start date, it
+--    shows the accurate historical running balance for this
+--    account. Otherwise it shows a running total starting at 0 like the posting register report.
+--
+-- 3. Currently this report does not handle reporting intervals.
+--
+-- 4. Report items will be most recent first.
+--
+accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> AccountRegisterReport
+accountRegisterReport opts j m thisacctmatcher = (label, items)
+ where
+     -- transactions affecting this account, in date order
+     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
+
+     -- starting balance: if we are filtering by a start date and nothing else,
+     -- the sum of postings to this account before that date; otherwise zero.
+     (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
+                             | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel,(-))
+                             | otherwise = (nullmixedamt,totallabel,(+))
+                      where
+                        priorps = -- ltrace "priorps" $
+                                  filter (matchesPosting
+                                          (-- ltrace "priormatcher" $
+                                           MatchAnd [thisacctmatcher, tostartdatematcher]))
+                                         $ transactionsPostings ts
+                        tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
+                        startdate = matcherStartDate effective m
+                        effective = Effective `elem` opts
+
+     displaymatcher = -- ltrace "displaymatcher" $
+                      MatchAnd [negateMatcher thisacctmatcher, m]
+
+     items = reverse $ accountRegisterReportItems ts displaymatcher nulltransaction startbal sumfn
+
+-- | Generate account register line items from a list of transactions,
+-- using the provided matcher (postings not matching this will not affect
+-- the displayed item), starting transaction, starting balance, and
+-- balance summing function.
+accountRegisterReportItems :: [Transaction] -> Matcher -> Transaction -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [AccountRegisterReportItem]
+accountRegisterReportItems [] _ _ _ _ = []
+accountRegisterReportItems (t@Transaction{tpostings=ps}:ts) displaymatcher _ bal sumfn =
+    case i of Just i' -> i':is
+              Nothing -> is
+    where
+      (i,bal'') = case filter (displaymatcher `matchesPosting`) ps of
+           []  -> (Nothing,bal) -- maybe a virtual transaction, or transfer to self
+           [p] -> (Just (t, acct, amt, bal'), bal')
+               where
+                 acct = paccount p
+                 amt = pamount p
+                 bal' = bal `sumfn` amt
+           ps' -> (Just (t,acct,amt,bal'), bal')
+               where
+                 acct = "SPLIT ("++intercalate ", " (map (accountLeafName . paccount) ps')++")"
+                 amt = sum $ map pamount ps'
+                 bal' = bal `sumfn` amt
+      is = (accountRegisterReportItems ts displaymatcher t bal'' sumfn)
 
 -- XXX confusing, refactor
 
