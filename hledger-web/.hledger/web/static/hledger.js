@@ -7,7 +7,19 @@ $(document).ready(function() {
     if ($.url.param('add')) addformToggle();
     else if ($.url.param('edit')) editformToggle();
 
+    /* set up hover handlers for sidebar account links */
+    $('.balancereport .account a').hover(displayMouseOver,hideMouseOver);
 });
+
+/* Display this element's *mouseover sibling */
+function displayMouseOver(ev) {
+  $(getTarget(ev)).next().style.display = 'block';
+}
+
+/* Display this element's *mouseover sibling */
+function hideMouseOver(ev) {
+  $(getTarget(ev)).next().style.display = 'none';
+}
 
 function searchformToggle() {
  var a = document.getElementById('addform');

@@ -25,6 +25,7 @@ body                                                                 { backgroun
 .balancereport .inacct                                               { background-color:#eee; font-weight:bold; }
 .notinacct, .notinacct :link, .notinacct :visited, .notinacct .negative  { /*color:#aaa;*/ }
 .balancereport .numpostings                                          { padding-left:1em; color:#aaa; }
+.balancereport .accountmouseover                                     { background-color:rgba(0,0,138,0.5); display:none; position:relative; }
 
 /*------------------------------------------------------------------------------------------*/
 /* 2. font families & sizes */

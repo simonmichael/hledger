@@ -122,6 +122,12 @@ getAccountsJsonR = do
 accountUrl :: String -> String
 accountUrl a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 
+accountsUrl :: String -> String
+accountsUrl a = "inaccts:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
+
+accountsOnlyUrl :: String -> String
+accountsOnlyUrl a = "inacctsonly:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
+
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
 balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items,total) = $(Settings.hamletFile "balancereport")
@@ -139,6 +145,8 @@ balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items,total) = $
                        Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * aindent) "&nbsp;"
        accturl = (here, [("q", pack $ accountUrl acct)])
+       acctsurl = (here, [("q", pack $ accountsUrl acct)])
+       acctsonlyurl = (here, [("q", pack $ accountsOnlyUrl acct)])
 
 -- | Render a journal report as HTML.
 journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
