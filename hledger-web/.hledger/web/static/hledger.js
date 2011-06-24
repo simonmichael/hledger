@@ -13,6 +13,7 @@ $(document).ready(function() {
 
     /* set up various show/hide toggles */
     $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); });
+    $('#accounts-toggle-link').click(function() { $('#accounts').slideToggle('fast'); });
 
 });
 

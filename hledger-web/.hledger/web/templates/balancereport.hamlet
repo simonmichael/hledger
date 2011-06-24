@@ -1,15 +1,18 @@
 <div#accountsheading
  accounts
+ \ #
+ <a#accounts-toggle-link.togglelink href="#">[+/-]
 
-<table.balancereport>
- <tr.item :allaccts:.inacct
-  <td.account colspan=3><a href=@{here}>all accounts
+<div#accounts
+ <table.balancereport>
+  <tr.item :allaccts:.inacct
+   <td.account colspan=3><a href=@{here}>all accounts
 
- $forall i <- items
-  ^{itemAsHtml vd i}
+  $forall i <- items
+   ^{itemAsHtml vd i}
 
- <tr.totalrule>
-  <td colspan=2>
- <tr>
-  <td>
-  <td align=right>#{mixedAmountAsHtml total}
+  <tr.totalrule>
+   <td colspan=2>
+  <tr>
+   <td>
+   <td align=right>#{mixedAmountAsHtml total}
