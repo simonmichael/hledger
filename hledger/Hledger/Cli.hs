@@ -41,7 +41,7 @@ import Hledger.Utils
 
 -- | hledger and hledger-lib's unit tests aggregated from all modules
 -- plus some more which are easier to define here for now.
--- tests_Hledger_Cli1 :: Test
+tests_Hledger_Cli :: Test
 tests_Hledger_Cli = TestList
  [
     tests_Hledger_Data

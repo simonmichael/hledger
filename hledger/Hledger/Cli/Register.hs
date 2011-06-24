@@ -107,7 +107,7 @@ balancelabel = "Balance"
 --
 -- 1. it shows transactions, from the point of view of the focussed
 --    account. The other account's name and posted amount is displayed,
---    aggregated if there is more than other account posting.
+--    aggregated if there is more than one other account posting.
 --
 -- 2. With no transaction filtering in effect other than a start date, it
 --    shows the accurate historical running balance for this
