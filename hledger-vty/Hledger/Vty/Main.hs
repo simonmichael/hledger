@@ -270,7 +270,7 @@ updateData :: Day -> AppState -> AppState
 updateData d a@AppState{aopts=opts,ajournal=j} =
     case screen a of
       BalanceScreen  -> a{abuf=balanceReportAsText opts $ balanceReport opts fspec j}
-      RegisterScreen -> a{abuf=lines $ registerReportAsText opts $ registerReport opts fspec j}
+      RegisterScreen -> a{abuf=lines $ postingRegisterReportAsText opts $ postingRegisterReport opts fspec j}
       PrintScreen    -> a{abuf=lines $ showTransactions opts fspec j}
     where fspec = optsToFilterSpec opts (currentArgs a) d
 

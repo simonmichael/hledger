@@ -6,14 +6,14 @@ A ledger-compatible @register@ command.
 -}
 
 module Hledger.Cli.Register (
-  RegisterReport
- ,RegisterReportItem
- ,RegisterReport2
- ,RegisterReport2Item
+  PostingRegisterReport
+ ,PostingRegisterReportItem
+ ,AccountRegisterReport
+ ,AccountRegisterReportItem
  ,register
- ,registerReport
+ ,postingRegisterReport
  ,accountRegisterReport
- ,registerReportAsText
+ ,postingRegisterReportAsText
  ,showPostingWithBalanceForVty
  ,tests_Hledger_Cli_Register
 ) where
@@ -36,40 +36,42 @@ import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 
 
--- | A register report is a list of postings to an account or set of
--- accounts, with a running total. Postings may be actual postings, or
--- virtual postings aggregated over a reporting interval.
--- And also some heading info.
-type RegisterReport = (String               -- a possibly null label for the running balance column
-                      ,[RegisterReportItem] -- line items, one per posting
-                      )
+-- | A posting register report lists postings to one or more accounts,
+-- with a running total. Postings may be actual postings, or aggregate
+-- postings corresponding to a reporting interval.
+type PostingRegisterReport = (String                      -- label for the running balance column XXX remove
+                             ,[PostingRegisterReportItem] -- line items, one per posting
+                             )
 
--- | The data for a single register report line item, representing one posting.
-type RegisterReportItem = (Maybe (Day, String) -- transaction date and description if this is the first posting
-                          ,Posting             -- the posting
-                          ,MixedAmount         -- balance so far
-                          )
+-- | A single posting register line item, representing one posting.
+type PostingRegisterReportItem = (Maybe (Day, String) -- transaction date and description if this is the first posting
+                                 ,Posting             -- the posting
+                                 ,MixedAmount         -- the running total after this posting
+                                 )
 
--- | Register report mark II, used in hledger-web's account register (see "accountRegisterReport".
-type RegisterReport2 = (String                -- a possibly null label for the running balance column
-                       ,[RegisterReport2Item] -- line items, one per transaction
-                       )
--- | A single register report 2 line item, representing one transaction to/from the focussed account.
-type RegisterReport2Item = (Transaction -- the corresponding transaction
-                           ,String      -- the (possibly aggregated) account info to display
-                           ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
-                           ,MixedAmount -- the running balance for the focussed account after this transaction
-                           )
+-- | An account register report lists transactions to a single account (or
+-- possibly subs as well), with the accurate running account balance when
+-- possible (otherwise, a running total.)
+type AccountRegisterReport = (String                      -- label for the balance column, eg "balance" or "total"
+                             ,[AccountRegisterReportItem] -- line items, one per transaction
+                             )
 
--- | Print a register report.
+-- | A single account register line item, representing one transaction to/from the focussed account.
+type AccountRegisterReportItem = (Transaction -- the corresponding transaction
+                                 ,String      -- the (possibly aggregated) account info to display
+                                 ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
+                                 ,MixedAmount -- the running balance for the focussed account after this transaction
+                                 )
+
+-- | Print a (posting) register report.
 register :: [Opt] -> [String] -> Journal -> IO ()
 register opts args j = do
   d <- getCurrentDay
-  putStr $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts args d) j
+  putStr $ postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts args d) j
 
 -- | Render a register report as plain text suitable for console output.
-registerReportAsText :: [Opt] -> RegisterReport -> String
-registerReportAsText opts = unlines . map (registerReportItemAsText opts) . snd
+postingRegisterReportAsText :: [Opt] -> PostingRegisterReport -> String
+postingRegisterReportAsText opts = unlines . map (postingRegisterReportItemAsText opts) . snd
 
 -- | Render one register report line item as plain text. Eg:
 -- @
@@ -78,8 +80,8 @@ registerReportAsText opts = unlines . map (registerReportItemAsText opts) . snd
 -- ^ displayed for first postings^
 --   only, otherwise blank
 -- @
-registerReportItemAsText :: [Opt] -> RegisterReportItem -> String
-registerReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", bal]
+postingRegisterReportItemAsText :: [Opt] -> PostingRegisterReportItem -> String
+postingRegisterReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", bal]
     where
       datedesc = case dd of Nothing -> replicate datedescwidth ' '
                             Just (da, de) -> printf "%s %s " date desc
@@ -93,27 +95,31 @@ registerReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", ba
       pstr = showPostingForRegister p
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
 
-showPostingWithBalanceForVty showtxninfo p b = registerReportItemAsText [] $ mkitem showtxninfo p b
+showPostingWithBalanceForVty showtxninfo p b = postingRegisterReportItemAsText [] $ mkitem showtxninfo p b
 
 totallabel = "Total"
 balancelabel = "Balance"
 
--- | Get an account register report with the specified options for this
--- journal.  An account register report is like the traditional account
--- register seen in bank statements and personal finance programs.  It is
--- focussed on one account only; it shows this account's transactions'
--- postings to other accounts; and if there is no transaction filtering in
--- effect other than a start date, it shows a historically-accurate
--- running balance for this account. Once additional filters are applied,
--- the running balance reverts to a running total starting at 0.
--- Does not handle reporting intervals.
--- Items are returned most recent first.
-accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> RegisterReport2
+-- | Get a quicken/gnucash-style account register report, with the
+-- specified options, for the currently focussed account (or possibly the
+-- focussed account plus sub-accounts.) This differs from
+-- "postingRegisterReport" in several ways:
+--
+-- 1. it shows transactions, from the point of view of the focussed
+--    account. The other account's name and posted amount is displayed,
+--    aggregated if there is more than other account posting.
+--
+-- 2. With no transaction filtering in effect other than a start date, it
+--    shows the accurate historical running balance for this
+--    account. Otherwise it shows a running total starting at 0 like the posting register report.
+--
+-- 3. Currently this report does not handle reporting intervals.
+--
+-- 4. Report items will be most recent first.
+--
+accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> AccountRegisterReport
 accountRegisterReport opts j m thisacctmatcher = (label, items)
  where
-      -- interval == NoInterval = items
-      -- otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
-
      -- transactions affecting this account, in date order
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
 
@@ -141,7 +147,7 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
 -- using the provided matcher (postings not matching this will not affect
 -- the displayed item), starting transaction, starting balance, and
 -- balance summing function.
-accountRegisterReportItems :: [Transaction] -> Matcher -> Transaction -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [RegisterReport2Item]
+accountRegisterReportItems :: [Transaction] -> Matcher -> Transaction -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [AccountRegisterReportItem]
 accountRegisterReportItems [] _ _ _ _ = []
 accountRegisterReportItems (t@Transaction{tpostings=ps}:ts) displaymatcher _ bal sumfn =
     case i of Just i' -> i':is
@@ -161,12 +167,10 @@ accountRegisterReportItems (t@Transaction{tpostings=ps}:ts) displaymatcher _ bal
                  bal' = bal `sumfn` amt
       is = (accountRegisterReportItems ts displaymatcher t bal'' sumfn)
 
--- | Get a traditional register report with the specified options for this journal.
--- This is a journal register report, covering the whole journal like
--- ledger's register command; for an account-specific register see
--- accountRegisterReport.
-registerReport :: [Opt] -> FilterSpec -> Journal -> RegisterReport
-registerReport opts fspec j = (totallabel,postingsToRegisterReportItems ps nullposting startbal (+))
+-- | Get a ledger-style posting register report, with the specified options,
+-- for the whole journal. See also "accountRegisterReport".
+postingRegisterReport :: [Opt] -> FilterSpec -> Journal -> PostingRegisterReport
+postingRegisterReport opts fspec j = (totallabel,postingRegisterItems ps nullposting startbal (+))
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
@@ -181,10 +185,10 @@ registerReport opts fspec j = (totallabel,postingsToRegisterReportItems ps nullp
       filterspan = datespan fspec
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
 
--- | Generate register report line items.
-postingsToRegisterReportItems :: [Posting] -> Posting -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [RegisterReportItem]
-postingsToRegisterReportItems [] _ _ _ = []
-postingsToRegisterReportItems (p:ps) pprev b sumfn = i:(postingsToRegisterReportItems ps p b' sumfn)
+-- | Generate posting register report line items.
+postingRegisterItems :: [Posting] -> Posting -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [PostingRegisterReportItem]
+postingRegisterItems [] _ _ _ = []
+postingRegisterItems (p:ps) pprev b sumfn = i:(postingRegisterItems ps p b' sumfn)
     where
       i = mkitem isfirst p b'
       isfirst = ptransaction p /= ptransaction pprev
@@ -193,7 +197,7 @@ postingsToRegisterReportItems (p:ps) pprev b sumfn = i:(postingsToRegisterReport
 -- | Generate one register report line item, from a flag indicating
 -- whether to include transaction info, a posting, and the current running
 -- balance.
-mkitem :: Bool -> Posting -> MixedAmount -> RegisterReportItem
+mkitem :: Bool -> Posting -> MixedAmount -> PostingRegisterReportItem
 mkitem False p b = (Nothing, p, b)
 mkitem True p b = (ds, p, b)
     where ds = case ptransaction p of Just (Transaction{tdate=da,tdescription=de}) -> Just (da,de)

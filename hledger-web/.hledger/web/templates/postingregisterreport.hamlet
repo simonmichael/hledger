@@ -6,5 +6,5 @@
   <th.amount align=right>Amount
   <th.balance align=right>#{balancelabel}
 
- $forall i <- numberRegisterReport2Items items
+ $forall i <- numberPostingRegisterReportItems items
   ^{itemAsHtml vd i}

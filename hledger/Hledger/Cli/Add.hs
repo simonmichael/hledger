@@ -29,7 +29,7 @@ import qualified Data.Foldable as Foldable (find)
 import qualified Data.Set as Set
 
 import Hledger.Cli.Options
-import Hledger.Cli.Register (registerReport, registerReportAsText)
+import Hledger.Cli.Register (postingRegisterReport, postingRegisterReportAsText)
 import Hledger.Cli.Utils
 import Hledger.Data
 import Hledger.Read.JournalReader (someamount)
@@ -220,7 +220,7 @@ registerFromString :: String -> IO String
 registerFromString s = do
   d <- getCurrentDay
   j <- readJournal' s
-  return $ registerReportAsText opts $ registerReport opts (optsToFilterSpec opts [] d) j
+  return $ postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] d) j
     where opts = [Empty]
 
 -- | Return a similarity measure, from 0 to 1, for two strings.

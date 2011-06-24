@@ -64,8 +64,8 @@ getRegisterR = do
   vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
   let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport  opts nullfilterspec j
       maincontent =
-          case inAccountMatcher qopts of Just m'  -> registerReport2AsHtml opts vd $ accountRegisterReport opts j m m'
-                                         Nothing -> registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
+          case inAccountMatcher qopts of Just m' -> accountRegisterReportAsHtml opts vd $ accountRegisterReport opts j m m'
+                                         Nothing -> postingRegisterReportAsHtml opts vd $ postingRegisterReport opts nullfilterspec $ filterJournalPostings2 m j
       editform' = editform vd
   defaultLayout $ do
       setTitle "hledger-web register"
@@ -92,17 +92,11 @@ getRegisterOnlyR = do
   defaultLayout $ do
       setTitle "hledger-web register only"
       addHamlet $
-          case inAccountMatcher qopts of Just m'  -> registerReport2AsHtml opts vd $ accountRegisterReport opts j m m'
-                                         Nothing -> registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
+          case inAccountMatcher qopts of Just m' -> accountRegisterReportAsHtml opts vd $ accountRegisterReport opts j m m'
+                                         Nothing -> postingRegisterReportAsHtml opts vd $ postingRegisterReport opts nullfilterspec $ filterJournalPostings2 m j
 
 postRegisterOnlyR :: Handler RepPlain
 postRegisterOnlyR = handlePost
-
--- -- temporary helper - use the new account register report when in:ACCT is specified.
--- accountOrJournalRegisterReport :: ViewData -> Journal -> RegisterReport
--- accountOrJournalRegisterReport VD{opts=opts,m=m,qopts=qopts} j =
---     case inAccountMatcher qopts of Just m'  -> accountRegisterReport opts j m m'
---                                    Nothing -> registerReport opts nullfilterspec $ filterJournalPostings2 m j
 
 -- | A simple accounts view, like hledger balance. If the Accept header
 -- specifies json, returns the chart of accounts as json.
@@ -155,11 +149,12 @@ journalReportAsHtml _ vd items = $(Settings.hamletFile "journalreport")
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
 -- | Render a register report as HTML.
-registerReportAsHtml :: [Opt] -> ViewData -> RegisterReport -> Hamlet AppRoute
-registerReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "registerreport")
+-- Journal-wide postings register, when no account has focus.
+postingRegisterReportAsHtml :: [Opt] -> ViewData -> PostingRegisterReport -> Hamlet AppRoute
+postingRegisterReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "postingregisterreport")
  where
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, RegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here} (n, newd, newm, newy, (ds, posting, b)) = $(Settings.hamletFile "registerreportitem")
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, PostingRegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml VD{here=here} (n, newd, newm, newy, (ds, posting, b)) = $(Settings.hamletFile "postingregisterreportitem")
      where
        evenodd = if even n then "even" else "odd" :: String
        datetransition -- | newy && n > 1 = "newyear"
@@ -171,12 +166,30 @@ registerReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "register
        acct = paccount posting
        accturl = (here, [("q", pack $ accountUrl acct)])
 
--- mark II
-registerReport2AsHtml :: [Opt] -> ViewData -> RegisterReport2 -> Hamlet AppRoute
-registerReport2AsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "registerreport2")
+-- Add incrementing transaction numbers to a list of register report items
+-- starting at 1.  Also add three flags that are true if the date, month,
+-- and year is different from the previous item's.
+numberPostingRegisterReportItems :: [PostingRegisterReportItem] -> [(Int,Bool,Bool,Bool,PostingRegisterReportItem)]
+numberPostingRegisterReportItems [] = []
+numberPostingRegisterReportItems is = number 0 nulldate is
+  where
+    number :: Int -> Day -> [PostingRegisterReportItem] -> [(Int,Bool,Bool,Bool,PostingRegisterReportItem)]
+    number _ _ [] = []
+    number n prevd (i@(Nothing, _, _)   :is)  = (n,False,False,False,i)    :(number n prevd is)
+    number n prevd (i@(Just (d,_), _, _):is)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d is)
+        where
+          newday = d/=prevd
+          newmonth = dm/=prevdm || dy/=prevdy
+          newyear = dy/=prevdy
+          (dy,dm,_) = toGregorian d
+          (prevdy,prevdm,_) = toGregorian prevd
+
+-- Account-specific transaction register, when an account is focussed.
+accountRegisterReportAsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
+accountRegisterReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "accountregisterreport")
  where
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, RegisterReport2Item) -> Hamlet AppRoute
-   itemAsHtml VD{here=here} (n, newd, newm, newy, (t, acct, amt, bal)) = $(Settings.hamletFile "registerreport2item")
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml VD{here=here} (n, newd, newm, newy, (t, acct, amt, bal)) = $(Settings.hamletFile "accountregisterreportitem")
      where
        evenodd = if even n then "even" else "odd" :: String
        datetransition | newm = "newmonth"
@@ -185,11 +198,11 @@ registerReport2AsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "registe
        (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
        accturl = (here, [("q", pack $ accountUrl acct)])
 
-numberRegisterReport2Items :: [RegisterReport2Item] -> [(Int,Bool,Bool,Bool,RegisterReport2Item)]
-numberRegisterReport2Items [] = []
-numberRegisterReport2Items is = number 0 nulldate is
+numberAccountRegisterReportItems :: [AccountRegisterReportItem] -> [(Int,Bool,Bool,Bool,AccountRegisterReportItem)]
+numberAccountRegisterReportItems [] = []
+numberAccountRegisterReportItems is = number 0 nulldate is
   where
-    number :: Int -> Day -> [RegisterReport2Item] -> [(Int,Bool,Bool,Bool,RegisterReport2Item)]
+    number :: Int -> Day -> [AccountRegisterReportItem] -> [(Int,Bool,Bool,Bool,AccountRegisterReportItem)]
     number _ _ [] = []
     number n prevd (i@(Transaction{tdate=d},_,_,_):is)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d is)
         where
@@ -482,22 +495,4 @@ getMessageOr mnewmsg = do
   return $ maybe oldmsg (Just . toHtml) mnewmsg
 
 numbered = zip [1..]
-
--- Add incrementing transaction numbers to a list of register report items
--- starting at 1.  Also add three flags that are true if the date, month,
--- and year is different from the previous item's.
-numberTransactions :: [RegisterReportItem] -> [(Int,Bool,Bool,Bool,RegisterReportItem)]
-numberTransactions [] = []
-numberTransactions is = number 0 nulldate is
-  where
-    number :: Int -> Day -> [RegisterReportItem] -> [(Int,Bool,Bool,Bool,RegisterReportItem)]
-    number _ _ [] = []
-    number n prevd (i@(Nothing, _, _)   :is)  = (n,False,False,False,i)    :(number n prevd is)
-    number n prevd (i@(Just (d,_), _, _):is)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d is)
-        where
-          newday = d/=prevd
-          newmonth = dm/=prevdm || dy/=prevdy
-          newyear = dy/=prevdy
-          (dy,dm,_) = toGregorian d
-          (prevdy,prevdm,_) = toGregorian prevd
 
