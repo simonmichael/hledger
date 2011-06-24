@@ -18,7 +18,7 @@ contributors and developers.
   <br>Bug tracker: [bugs.hledger.org](http://bugs.hledger.org)
 
 **Released version**<br>
-  [Release notes](NEWS.html)<br>
+  [Release notes](NEWS.html), [hledger-web demo](http://demo.hledger.org)<br>
   [hledger](http://hackage.haskell.org/package/hledger),
   [hledger-web](http://hackage.haskell.org/package/hledger-web),
   [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
@@ -31,7 +31,8 @@ contributors and developers.
 <input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
 **Latest development version**<br>
   [get it](#how-to-set-up-for-hledger-development),
-  [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger)
+  [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
+  [hledger-web dev demo](http://demo.hledger.org:5001)
   <br>[external API haddocks](http://hledger.org/api-doc)
   <input type="text"   name="hoogle" id="hoogle" accesskey="1"
   /><input type="submit" value="search"
