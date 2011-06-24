@@ -4,47 +4,52 @@ title: hledger developers' guide
 
 # Developers' guide
 
-A rough guide for hledger contributors of all kinds, plus some quick links for everyone.
+Quick links for everyone, plus a rough guide mostly for hledger
+contributors and developers.
 
 <a name="support" />
 
 ## Quick links
 
-- User and developer support: [how to get help](#how-to-get-help)  
-- IRC channel: [irc://irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)  
-- Mail list: [http://list.hledger.org](http://list.hledger.org)  
-- Bug tracker: [http://bugs.hledger.org](http://bugs.hledger.org)  
-- [Release notes](NEWS.html)
-- Code:
-  [get it](#how-to-set-up-for-hledger-development),
-  [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
-  [latest api docs](http://hledger.org/api-doc), 
-  [latest internal code docs](http://hledger.org/code-doc) for all packages
-- Packages:
+**Support**<br>
+  Users and developers: [how to get help](#how-to-get-help)
+  <br>IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)
+  <br>Mail list: [list.hledger.org](http://list.hledger.org)
+  <br>Bug tracker: [bugs.hledger.org](http://bugs.hledger.org)
+
+**Released version**<br>
+  [Release notes](NEWS.html)<br>
   [hledger](http://hackage.haskell.org/package/hledger),
-  [hledger-lib](http://hackage.haskell.org/package/hledger-lib),
-  [hledger-chart](http://hackage.haskell.org/package/hledger-chart),
+  [hledger-web](http://hackage.haskell.org/package/hledger-web),
   [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
-  [hledger-web](http://hackage.haskell.org/package/hledger-web)
-- Developer reports:
+  [hledger-chart](http://hackage.haskell.org/package/hledger-chart),
+  [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
+
+<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
+<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
+<form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
+<input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
+**Latest development version**<br>
+  [get it](#how-to-set-up-for-hledger-development),
+  [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger)
+  <br>[external API haddocks](http://hledger.org/api-doc)
+  <input type="text"   name="hoogle" id="hoogle" accesskey="1"
+  /><input type="submit" value="search"
+  />&nbsp;(if you are scripting or using hledger in another app)
+  <br>[internal code haddocks](http://hledger.org/code-doc)
+  <br>&nbsp;(if you are learning/developing hledger's internals)
+  <br>[Developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
   [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   [benchmark](http://hledger.org/profs/latest.bench),
   [profile](http://hledger.org/profs/latest.prof),
   [heap](http://hledger.org/profs/latest.ps)
-- [Developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES)
 <!--   [hledger dependencies](http://packdeps.haskellers.com/feed/?needle=hledger), -->
 <!--   [hledger-lib dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-lib), -->
 <!--   [hledger-chart dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-chart), -->
 <!--   [hledger-vty dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-vty), -->
 <!--   [hledger-web dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-web) -->
-
-<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
-<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
-<form action="http://haskell.org/hoogle/" method="get">
- <input type="text"   name="hoogle" id="hoogle" accesskey="1" size="80" />
- <input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
- <input type="submit" value="Search API of all hledger packages" />
+reports
 </form>
 
 ## How to..
@@ -58,8 +63,8 @@ A rough guide for hledger contributors of all kinds, plus some quick links for e
 - chat Simon (sm) on the
   [\#ledger](irc://irc.freenode.net/#ledger) irc channel which we
   share, or [send email](mailto:simon@joyful.com?subject=hledger:)
-- for issues relevant to the wider *ledger community, you can also use or cc ledger's mail list
-- don't forget the [installation tips](MANUAL.html#installing), [Troubleshooting](MANUAL.html#troubleshooting) section, and bug tracker
+- for issues relevant to the wider *ledger community, you can also use or cc [ledger's mail list](http://list.ledger-cli.org)
+- don't forget the [installation tips](MANUAL.html#installing), [Troubleshooting](MANUAL.html#troubleshooting) section, and [bug tracker](http://bugs.hledger.org)
 
 ### how to report problems
 
