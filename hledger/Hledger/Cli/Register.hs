@@ -8,6 +8,8 @@ A ledger-compatible @register@ command.
 module Hledger.Cli.Register (
   RegisterReport
  ,RegisterReportItem
+ ,RegisterReport2
+ ,RegisterReport2Item
  ,register
  ,registerReport
  ,accountRegisterReport
@@ -48,6 +50,17 @@ type RegisterReportItem = (Maybe (Day, String) -- transaction date and descripti
                           ,MixedAmount         -- balance so far
                           )
 
+-- | Register report mark II, used in hledger-web's account register (see "accountRegisterReport".
+type RegisterReport2 = (String                -- a possibly null label for the running balance column
+                       ,[RegisterReport2Item] -- line items, one per transaction
+                       )
+-- | A single register report 2 line item, representing one transaction to/from the focussed account.
+type RegisterReport2Item = (Transaction -- the corresponding transaction
+                           ,String      -- the (possibly aggregated) account info to display
+                           ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
+                           ,MixedAmount -- the running balance for the focussed account after this transaction
+                           )
+
 -- | Print a register report.
 register :: [Opt] -> [String] -> Journal -> IO ()
 register opts args j = do
@@ -82,7 +95,73 @@ registerReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", ba
 
 showPostingWithBalanceForVty showtxninfo p b = registerReportItemAsText [] $ mkitem showtxninfo p b
 
--- | Get a register report with the specified options for this journal.
+totallabel = "Total"
+balancelabel = "Balance"
+
+-- | Get an account register report with the specified options for this
+-- journal.  An account register report is like the traditional account
+-- register seen in bank statements and personal finance programs.  It is
+-- focussed on one account only; it shows this account's transactions'
+-- postings to other accounts; and if there is no transaction filtering in
+-- effect other than a start date, it shows a historically-accurate
+-- running balance for this account. Once additional filters are applied,
+-- the running balance reverts to a running total starting at 0.
+-- Does not handle reporting intervals.
+-- Items are returned most recent first.
+accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> RegisterReport2
+accountRegisterReport opts j m thisacctmatcher = (label, items)
+ where
+      -- | interval == NoInterval = items
+      -- | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
+
+     -- transactions affecting this account, in date order
+     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
+
+     -- starting balance: if we are filtering by a start date and nothing else,
+     -- the sum of postings to this account before that date; otherwise zero.
+     (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
+                             | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel,(-))
+                             | otherwise = (nullmixedamt,totallabel,(+))
+                      where
+                        priorps = -- ltrace "priorps" $
+                                  filter (matchesPosting
+                                          (-- ltrace "priormatcher" $
+                                           MatchAnd [thisacctmatcher, tostartdatematcher]))
+                                         $ transactionsPostings ts
+                        tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
+                        startdate = matcherStartDate effective m
+                        effective = Effective `elem` opts
+
+     displaymatcher = -- ltrace "displaymatcher" $
+                      MatchAnd [negateMatcher thisacctmatcher, m]
+
+     items = reverse $ accountRegisterReportItems ts displaymatcher nulltransaction startbal sumfn
+
+-- | Generate account register line items from a list of transactions,
+-- using the provided matcher (postings not matching this will not affect
+-- the displayed item), starting transaction, starting balance, and
+-- balance summing function.
+accountRegisterReportItems :: [Transaction] -> Matcher -> Transaction -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [RegisterReport2Item]
+accountRegisterReportItems [] _ _ _ _ = []
+accountRegisterReportItems (t@Transaction{tpostings=ps}:ts) displaymatcher _ bal sumfn =
+    case i of Just i' -> i':is
+              Nothing -> is
+    where
+      (i,bal'') = case filter (displaymatcher `matchesPosting`) ps of
+           []  -> (Nothing,bal) -- maybe a virtual transaction, or transfer to self
+           [p] -> (Just (t, acct, amt, bal'), bal')
+               where
+                 acct = paccount p
+                 amt = pamount p
+                 bal' = bal `sumfn` amt
+           ps' -> (Just (t,acct,amt,bal'), bal')
+               where
+                 acct = "SPLIT ("++intercalate ", " (map (accountLeafName . paccount) ps')++")"
+                 amt = sum $ map pamount ps'
+                 bal' = bal `sumfn` amt
+      is = (accountRegisterReportItems ts displaymatcher t bal'' sumfn)
+
+-- | Get a traditional register report with the specified options for this journal.
 -- This is a journal register report, covering the whole journal like
 -- ledger's register command; for an account-specific register see
 -- accountRegisterReport.
@@ -101,63 +180,6 @@ registerReport opts fspec j = (totallabel,postingsToRegisterReportItems ps nullp
       startbal = sumPostings precedingps
       filterspan = datespan fspec
       (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
-
--- | Get an account register report with the specified options for this
--- journal.  An account register report is like the traditional account
--- register seen in bank statements and personal finance programs.  It is
--- focussed on one account only; it shows this account's transactions'
--- postings to other accounts; and if there is no transaction filtering in
--- effect other than a start date, it shows a historically-accurate
--- running balance for this account. Once additional filters are applied,
--- the running balance reverts to a running total starting at 0.
---
--- Does not handle reporting intervals.
---
-accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> RegisterReport
-accountRegisterReport opts j m thisacctmatcher = (label, postingsToRegisterReportItems displayps nullposting startbal sumfn)
- where
-      -- displayps' | interval == NoInterval = displayps
-      --            | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
-
-     -- transactions affecting this account
-     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
-
-     -- starting balance: if we are filtering by a start date and nothing else,
-     -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
-                             | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel,(-))
-                             | otherwise = (nullmixedamt,totallabel,(+))
-                      where
-                        priorps = -- ltrace "priorps" $
-                                  filter (matchesPosting
-                                          (-- ltrace "priormatcher" $
-                                           MatchAnd [thisacctmatcher, tostartdatematcher]))
-                                         $ transactionsPostings ts
-                        tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
-                        startdate = matcherStartDate effective m
-                        effective = Effective `elem` opts
-
-     -- postings to display: this account's transactions' "other" postings, with any additional filter applied
-     -- XXX would be better to collapse multiple postings from one txn into one (expandable) "split" item
-     displayps = -- ltrace "displayps" $
-                 catMaybes $ map displayPostingFromTransaction ts
-
-     displaymatcher = -- ltrace "displaymatcher" $
-                      MatchAnd [negateMatcher thisacctmatcher, m]
-
-     -- get the other account posting from this transaction, or if there
-     -- is more than one make a dummy posting indicating that
-     displayPostingFromTransaction :: Transaction -> Maybe Posting
-     displayPostingFromTransaction Transaction{tpostings=ps} =
-         case filter (displaymatcher `matchesPosting`) ps of
-           [] -> Nothing -- a virtual transaction, maybe
-           [p] -> Just p
-           ps'@(p':_) -> Just p'{paccount=splitdesc,pamount=splitamt}
-               where splitdesc = "SPLIT ("++intercalate ", " (map (accountLeafName . paccount) ps')++")"
-                     splitamt = sum $ map pamount ps'
-
-totallabel = "Total"
-balancelabel = "Balance"
 
 -- | Generate register report line items.
 postingsToRegisterReportItems :: [Posting] -> Posting -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [RegisterReportItem]

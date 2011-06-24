@@ -61,9 +61,11 @@ postJournalR = handlePost
 -- | The main register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-  vd@VD{opts=opts,j=j} <- getViewData
+  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
   let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport  opts nullfilterspec j
-      maincontent = registerReportAsHtml opts vd $ accountOrJournalRegisterReport vd j
+      maincontent =
+          case inAccountMatcher qopts of Just m'  -> registerReport2AsHtml opts vd $ accountRegisterReport opts j m m'
+                                         Nothing -> registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
       editform' = editform vd
   defaultLayout $ do
       setTitle "hledger-web register"
@@ -86,19 +88,21 @@ postJournalOnlyR = handlePost
 -- | A simple postings view, like hledger register (with editing.)
 getRegisterOnlyR :: Handler RepHtml
 getRegisterOnlyR = do
-  vd@VD{opts=opts,j=j} <- getViewData
+  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web register only"
-      addHamlet $ registerReportAsHtml opts vd $ accountOrJournalRegisterReport vd j
+      addHamlet $
+          case inAccountMatcher qopts of Just m'  -> registerReport2AsHtml opts vd $ accountRegisterReport opts j m m'
+                                         Nothing -> registerReportAsHtml opts vd $ registerReport opts nullfilterspec $ filterJournalPostings2 m j
 
 postRegisterOnlyR :: Handler RepPlain
 postRegisterOnlyR = handlePost
 
--- temporary helper - use the new account register report when in:ACCT is specified.
-accountOrJournalRegisterReport :: ViewData -> Journal -> RegisterReport
-accountOrJournalRegisterReport VD{opts=opts,m=m,qopts=qopts} j =
-    case inAccountMatcher qopts of Just m'  -> accountRegisterReport opts j m m'
-                                   Nothing -> registerReport opts nullfilterspec $ filterJournalPostings2 m j
+-- -- temporary helper - use the new account register report when in:ACCT is specified.
+-- accountOrJournalRegisterReport :: ViewData -> Journal -> RegisterReport
+-- accountOrJournalRegisterReport VD{opts=opts,m=m,qopts=qopts} j =
+--     case inAccountMatcher qopts of Just m'  -> accountRegisterReport opts j m m'
+--                                    Nothing -> registerReport opts nullfilterspec $ filterJournalPostings2 m j
 
 -- | A simple accounts view, like hledger balance. If the Accept header
 -- specifies json, returns the chart of accounts as json.
@@ -166,6 +170,34 @@ registerReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "register
                                                Nothing -> ("", "", "") :: (String,String,String)
        acct = paccount posting
        accturl = (here, [("q", pack $ accountUrl acct)])
+
+-- mark II
+registerReport2AsHtml :: [Opt] -> ViewData -> RegisterReport2 -> Hamlet AppRoute
+registerReport2AsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "registerreport2")
+ where
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, RegisterReport2Item) -> Hamlet AppRoute
+   itemAsHtml VD{here=here} (n, newd, newm, newy, (t, acct, amt, bal)) = $(Settings.hamletFile "registerreport2item")
+     where
+       evenodd = if even n then "even" else "odd" :: String
+       datetransition | newm = "newmonth"
+                      | newd = "newday"
+                      | otherwise = "" :: String
+       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
+       accturl = (here, [("q", pack $ accountUrl acct)])
+
+numberRegisterReport2Items :: [RegisterReport2Item] -> [(Int,Bool,Bool,Bool,RegisterReport2Item)]
+numberRegisterReport2Items [] = []
+numberRegisterReport2Items is = number 0 nulldate is
+  where
+    number :: Int -> Day -> [RegisterReport2Item] -> [(Int,Bool,Bool,Bool,RegisterReport2Item)]
+    number _ _ [] = []
+    number n prevd (i@(Transaction{tdate=d},_,_,_):is)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d is)
+        where
+          newday = d/=prevd
+          newmonth = dm/=prevdm || dy/=prevdy
+          newyear = dy/=prevdy
+          (dy,dm,_) = toGregorian d
+          (prevdy,prevdm,_) = toGregorian prevd
 
 mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
     where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
@@ -468,3 +500,4 @@ numberTransactions is = number 0 nulldate is
           newyear = dy/=prevdy
           (dy,dm,_) = toGregorian d
           (prevdy,prevdm,_) = toGregorian prevd
+
