@@ -11,6 +11,9 @@ $(document).ready(function() {
     $('.balancereport td.account').mouseenter(function(){ $(this).addClass('mouseover'); });
     $('.balancereport td.account').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
+    /* set up various show/hide toggles */
+    $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); });
+
 });
 
 function searchformToggle() {
