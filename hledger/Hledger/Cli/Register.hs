@@ -111,8 +111,8 @@ balancelabel = "Balance"
 accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> RegisterReport2
 accountRegisterReport opts j m thisacctmatcher = (label, items)
  where
-      -- | interval == NoInterval = items
-      -- | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
+      -- interval == NoInterval = items
+      -- otherwise              = summarisePostingsByInterval interval depth empty filterspan displayps
 
      -- transactions affecting this account, in date order
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
