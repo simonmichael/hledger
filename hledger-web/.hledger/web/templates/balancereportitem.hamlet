@@ -2,9 +2,11 @@
  <td.account.#{depthclass}
   #{indent}
   <a href="@?{accturl}">#{adisplay}
-  <div.accountmouseover
-   <a href="@?{acctsurl}">subs
-   <a href="@?{acctsonlyurl}">only
+  <span.accountextralinks
+   &nbsp;
+   <a href="@?{acctsurl}">+subs
+   &nbsp;
+   <a href="@?{acctsonlyurl}">-others
 
  <td.balance align=right>#{mixedAmountAsHtml abal}
  <td.numpostings align=right>(#{numpostingsinacct acct})
