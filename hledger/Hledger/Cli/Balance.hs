@@ -175,7 +175,7 @@ formatAccount opts accountName depth balance leftJustified min max field = case 
                                Just m  -> formatValue leftJustified Nothing max $ replicate (depth * m) ' '
                                Nothing -> formatValue leftJustified Nothing max $ replicate depth ' '
         Total           -> formatValue leftJustified min max $ showAmountWithoutPrice balance
-        _	        -> ""
+        _               -> ""
     where
       a = maybe "" (accountNameDrop (drop_ opts)) accountName
 
