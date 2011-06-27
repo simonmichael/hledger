@@ -15,6 +15,7 @@ $(document).ready(function() {
     /* set up various show/hide toggles */
     $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); event.preventDefault(); });
     $('#accounts-toggle-link').click(function() { $('#accounts').slideToggle('fast'); event.preventDefault(); });
+    $('#all-postings-toggle-link').click(function() { $('.posting').toggle(); event.preventDefault(); });
     $('.postings-toggle-link').click(function() { $(this).parent().parent().nextUntil(':not(.posting)').toggle(); event.preventDefault(); });
 
 });

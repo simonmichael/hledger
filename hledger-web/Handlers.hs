@@ -166,7 +166,7 @@ accountRegisterReportAsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Ham
 accountRegisterReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "accountregisterreport")
  where
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here} (n, newd, newm, newy, (t, t', split, acct, amt, bal)) = $(Settings.hamletFile "accountregisterreportitem")
+   itemAsHtml VD{here=here,p=p} (n, newd, newm, newy, (t, t', split, acct, amt, bal)) = $(Settings.hamletFile "accountregisterreportitem")
      where
        evenodd = if even n then "even" else "odd" :: String
        datetransition | newm = "newmonth"
@@ -175,6 +175,7 @@ accountRegisterReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "a
        (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
        acctquery = (here, [("q", pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
+       displayclass = if p then "" else "hidden" :: String
 
 stringIfLongerThan :: Int -> String -> String
 stringIfLongerThan n s = if length s > n then s else ""
@@ -416,7 +417,8 @@ nulltemplate = [$hamlet||]
 -- | A bundle of data useful for handlers and their templates.
 data ViewData = VD {
      opts  :: [Opt]         -- ^ command-line options at startup
-    ,q     :: String        -- ^ current q parameter (the query expression for filtering transactions)
+    ,q     :: String        -- ^ current q parameter, the query expression
+    ,p     :: Bool          -- ^ current p parameter, 1 or 0 shows/hides all postings, default is based on query
     ,m     :: Matcher       -- ^ a matcher parsed from the query expr
     ,qopts :: [QueryOpt]    -- ^ query options parsed from the query expr
     ,j     :: Journal       -- ^ the up-to-date parsed unfiltered journal
@@ -429,6 +431,7 @@ mkvd :: ViewData
 mkvd = VD {
       opts  = []
      ,q     = ""
+     ,p     = False
      ,m     = MatchAny
      ,qopts = []
      ,j     = nulljournal
@@ -448,7 +451,11 @@ getViewData = do
   today      <- liftIO getCurrentDay
   q          <- getParameter "q"
   let (m,qopts) = parseQuery today q
-  return mkvd{opts=opts, q=q, m=m, qopts=qopts, j=j, today=today, here=here', msg=msg}
+  p          <- getParameter "p"
+  let p' | p == "1" = True
+         | p == "0" = False
+         | otherwise = isNothing $ inAccountMatcher qopts
+  return mkvd{opts=opts, q=q, p=p', m=m, qopts=qopts, j=j, today=today, here=here', msg=msg}
     where
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a

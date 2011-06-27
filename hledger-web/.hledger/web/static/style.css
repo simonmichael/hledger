@@ -108,11 +108,12 @@ table.journalreport         { border-spacing: 0; }
 .balancereport td           { padding:0; }
 .totalrule td               { border-top:thin solid black; }
 
+.hidden { display:none; }
 table.registerreport        { border-spacing:0; }
 table.registerreport tr     { vertical-align:top; }
 table.registerreport td     { padding-bottom:0.2em; }
 table.registerreport .date  { white-space:nowrap; }
-table.registerreport tr.posting { display:none; font-size:smaller; }
+table.registerreport tr.posting { font-size:smaller; }
 table.registerreport tr.posting .account  { padding-left:1.5em; }
 table.registerreport tr.posting .amount  { padding-right:0.5em; }
 tr.firstposting td          { }
