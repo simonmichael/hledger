@@ -183,7 +183,7 @@ journalRegisterReport :: [Opt] -> Journal -> Matcher -> AccountRegisterReport
 journalRegisterReport opts j@Journal{jtxns=ts} m = (totallabel, items)
    where
      ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
-     items = reverse $ accountRegisterReportItems m MatchAny nullmixedamt (+) ts'
+     items = reverse $ accountRegisterReportItems m MatchNone nullmixedamt (+) ts'
 
 -- | Get a conventional account register report, with the specified
 -- options, for the currently focussed account (or possibly the focussed
