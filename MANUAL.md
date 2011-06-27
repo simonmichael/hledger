@@ -674,6 +674,28 @@ Notes:
     track the expenses in the currencies there were made, while
     keeping your base account in single currency
 
+#### Formatting the description field
+
+If you want to combine more than one field from the CVS row into
+the description field you can use an formatting expression for
+`description-field`.
+
+With this rule:
+
+    $ description-field %(1)/%(3)
+
+and this CVS input:
+
+    $ 11/2009/09,Flubber Co,50,My comment
+
+you will get this record:
+
+    2009/09/11 Flubber Co/My comment
+        income:unknown             $50
+        Assets:MyAccount          $-50
+
+#### Converting streams
+
 The convert command also supports converting standard input if you're
 streaming a CSV file from the web or another tool. Use `-` as the input
 file and hledger will read from stdin:
