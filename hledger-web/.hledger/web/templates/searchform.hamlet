@@ -9,7 +9,7 @@
      <input name=q size=60 value=#{q}
      <input type=submit value="Search"
      \ #
-     <a#search-help-link href="#">help
+     <a#search-help-link href="#" title="Toggle search help">help
      $if filtering
       \ #
       <span.showall

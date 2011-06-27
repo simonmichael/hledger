@@ -4,7 +4,7 @@
   ^{sidecontent}
  <div#main.journal
   <div#navlinks
-   ^{navlink vd "transactions" JournalR} | #
+   ^{navlink vd "transactions" JournalR "View the transaction register"} | #
    ^{editlinks}
   <div#maincontent
    ^{searchform vd}

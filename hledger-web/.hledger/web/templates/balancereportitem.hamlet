@@ -10,4 +10,4 @@
     <a href="@?{acctsonlyquery}" title="Focus on this account and sub-accounts and hide others">-others -->
 
  <td.balance align=right>#{mixedAmountAsHtml abal}
- <td.numpostings align=right>(#{numpostingsinacct acct})
+ <td.numpostings align=right title="#{numpostings} transactions in this account">(#{numpostings})

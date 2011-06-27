@@ -1,4 +1,4 @@
-<a#editformlink href onclick="return editformToggle(event)">edit
+<a#editformlink href onclick="return editformToggle(event)" title="Toggle journal edit form">edit
 \ | #
-<a#addformlink href onclick="return addformToggle(event)">add
+<a#addformlink href onclick="return addformToggle(event)" title="Toggle transaction add form">add
 <a#importformlink href onclick="return importformToggle(event)" style="display:none;">import transactions

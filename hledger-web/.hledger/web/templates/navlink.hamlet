@@ -1,1 +1,1 @@
-<a##{s}link.#{style} href=@?{u}>#{s}
+<a##{s}link.#{style} href=@?{u} title="#{title}">#{s}

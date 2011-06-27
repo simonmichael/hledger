@@ -1,12 +1,12 @@
 <div#accountsheading
  accounts
  \ #
- <a#accounts-toggle-link.togglelink href="#">[+/-]
+ <a#accounts-toggle-link.togglelink href="#" title="Toggle accounts sidebar">[+/-]
 
 <div#accounts
  <table.balancereport>
   <tr.item :allaccts:.inacct
-   <td.account colspan=3><a href=@{here}>all accounts
+   <td.account colspan=3><a href=@{here} title="Show all accounts and postings">all accounts
 
   $forall i <- items
    ^{itemAsHtml vd i}

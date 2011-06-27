@@ -350,8 +350,8 @@ topbar VD{j=j,msg=msg,today=today} = $(Settings.hamletFile "topbar")
 --    registerlink = navlink vd "postings" RegisterR
 
 -- | Navigation link, preserving parameters and possibly highlighted.
-navlink :: ViewData -> String -> AppRoute -> Hamlet AppRoute
-navlink VD{here=here,q=q} s dest = $(Settings.hamletFile "navlink")
+navlink :: ViewData -> String -> AppRoute -> String -> Hamlet AppRoute
+navlink VD{here=here,q=q} s dest title = $(Settings.hamletFile "navlink")
   where u = (dest, if null q then [] else [("q", pack q)])
         style | dest == here = "navlinkcurrent"
               | otherwise    = "navlink" :: Text
