@@ -3,8 +3,9 @@
   #{indent}
   <a href="@?{acctquery}" title="Focus on this account">#{adisplay}
   <span.hoverlinks
-   &nbsp;
-   <a href="@?{acctsquery}" title="Focus on this account and sub-accounts">+subs
+   $if hassubs
+    &nbsp;
+    <a href="@?{acctsquery}" title="Focus on this account and sub-accounts">+subs
    <!--
     &nbsp;
     <a href="@?{acctsonlyquery}" title="Focus on this account and sub-accounts and hide others">-others -->

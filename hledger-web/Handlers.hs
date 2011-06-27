@@ -143,6 +143,7 @@ balanceReportAsHtml _ vd@VD{here=here,m=m,q=q,qopts=qopts,j=j} (items',total) = 
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
      where
+       hassubs = not $ null $ ledgerSubAccounts l $ ledgerAccount l acct
        numpostings = length $ apostings $ ledgerAccount l acct
        depthclass = "depth"++show aindent
        inacctclass = case inacctmatcher of
