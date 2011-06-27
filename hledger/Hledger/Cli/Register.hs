@@ -180,7 +180,7 @@ datedisplayexpr = do
 -- Similar to "postingRegisterReport" except it uses matchers and
 -- per-transaction report items like "accountRegisterReport".
 journalRegisterReport :: [Opt] -> Journal -> Matcher -> AccountRegisterReport
-journalRegisterReport opts j@Journal{jtxns=ts} m = (totallabel, items)
+journalRegisterReport _ Journal{jtxns=ts} m = (totallabel, items)
    where
      ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
      items = reverse $ accountRegisterReportItems m MatchNone nullmixedamt (+) ts'
@@ -228,7 +228,7 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
 -- and balance summing function.
 accountRegisterReportItems :: Matcher -> Matcher -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [Transaction] -> [AccountRegisterReportItem]
 accountRegisterReportItems _ _ _ _ [] = []
-accountRegisterReportItems matcher thisacctmatcher bal sumfn (t@Transaction{tpostings=ps}:ts) =
+accountRegisterReportItems matcher thisacctmatcher bal sumfn (t:ts) =
     case i of Just i' -> i':is
               Nothing -> is
     where
