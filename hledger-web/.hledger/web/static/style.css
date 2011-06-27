@@ -44,7 +44,7 @@ input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
 .topleftlink                                       { font-size:small; }
 .toprightlink                                      { font-size:small; }
 #journaldesc                                       { font-size:small; }
-.togglelink                                        { font-size:small; }
+.togglelink                                        { font-size:smaller; white-space:nowrap }
 .help                                              { font-size:smaller; }
 .form                                              { font-size:small; }
 .journalreport                                     { font-size:small; }

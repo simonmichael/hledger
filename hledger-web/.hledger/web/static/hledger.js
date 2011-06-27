@@ -3,17 +3,18 @@
 
 $(document).ready(function() {
 
-    /* maybe show forms */
+    /* show/hide things based on request parameters */
     if ($.url.param('add')) addformToggle();
     else if ($.url.param('edit')) editformToggle();
+    if ($.url.param('accounts')=='0') $('#accounts').hide();
 
     /* set up sidebar account mouse-over handlers */
     $('.balancereport td.account').mouseenter(function(){ $(this).addClass('mouseover'); });
     $('.balancereport td.account').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
     /* set up various show/hide toggles */
-    $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); });
-    $('#accounts-toggle-link').click(function() { $('#accounts').slideToggle('fast'); });
+    $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); event.preventDefault(); });
+    $('#accounts-toggle-link').click(function() { $('#accounts').slideToggle('fast'); event.preventDefault(); });
     $('.postings-toggle-link').click(function() { $(this).parent().parent().nextUntil(':not(.posting)').toggle(); event.preventDefault(); });
 
 });
