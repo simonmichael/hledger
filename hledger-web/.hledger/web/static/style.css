@@ -112,6 +112,9 @@ table.registerreport        { border-spacing:0; }
 table.registerreport tr     { vertical-align:top; }
 table.registerreport td     { padding-bottom:0.2em; }
 table.registerreport .date  { white-space:nowrap; }
+table.registerreport tr.posting { display:none; font-size:smaller; }
+table.registerreport tr.posting .account  { padding-left:1.5em; }
+table.registerreport tr.posting .amount  { padding-right:0.5em; }
 tr.firstposting td          { }
 tr.newday td                { border-top: 1px solid black; }
 tr.newmonth td              { border-top: 2px solid black; }

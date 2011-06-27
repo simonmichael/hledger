@@ -14,6 +14,7 @@ $(document).ready(function() {
     /* set up various show/hide toggles */
     $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); });
     $('#accounts-toggle-link').click(function() { $('#accounts').slideToggle('fast'); });
+    $('.postings-toggle-link').click(function() { $(this).parent().parent().nextUntil(':not(.posting)').toggle(); event.preventDefault(); });
 
 });
 

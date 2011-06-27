@@ -1,6 +1,6 @@
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
  <td.description title="#{desc}">#{elideRight 30 desc}
- <td.account><a href="@?{accturl}" title="#{acct}">#{elideRight 40 acct}
+ <td.account><a href="@?{acctquery}" title="#{acct}">#{elideRight 40 acct}
  <td.amount align=right>#{mixedAmountAsHtml $ pamount posting}
  <td.balance align=right>#{mixedAmountAsHtml b}

@@ -1,12 +1,13 @@
 <tr.item.#{inacctclass}
  <td.account.#{depthclass}
   #{indent}
-  <a href="@?{accturl}">#{adisplay}
+  <a href="@?{acctquery}" title="Focus on this account">#{adisplay}
   <span.accountextralinks
    &nbsp;
-   <a href="@?{acctsurl}">+subs
-   &nbsp;
-   <a href="@?{acctsonlyurl}">-others
+   <a href="@?{acctsquery}" title="Focus on this account and sub-accounts">+subs
+   <!--
+    &nbsp;
+    <a href="@?{acctsonlyquery}" title="Focus on this account and sub-accounts and hide others">-others -->
 
  <td.balance align=right>#{mixedAmountAsHtml abal}
  <td.numpostings align=right>(#{numpostingsinacct acct})

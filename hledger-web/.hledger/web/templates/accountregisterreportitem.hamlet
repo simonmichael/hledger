@@ -1,6 +1,24 @@
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
- <td.description title="#{desc}">#{elideRight 30 desc}
- <td.account><a href="@?{accturl}" title="#{acct}">#{elideRight 40 acct}
- <td.amount align=right>#{mixedAmountAsHtml amt}
+ <td.description title="#{show t}">#{elideRight 30 desc}
+ <td.account>
+  $if split
+   <a title="#{acct}"
+    #{elideRight 40 acct}
+   &nbsp;
+   <a.postings-toggle-link.togglelink href="#" title="Toggle postings"
+    [+/-]
+  $else
+   <a href="@?{acctquery}" title="Go to #{acct}">#{elideRight 40 acct}
+ <td.amount align=right>
+  $if showamt
+   #{mixedAmountAsHtml amt}
  <td.balance align=right>#{mixedAmountAsHtml bal}
+$if split
+ $forall p <- tpostings t'
+  <tr.item.#{evenodd}.posting
+   <td.date
+   <td.description
+   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="#{stringIfLongerThan 40 $ paccount p}">#{elideRight 40 $ paccount p}
+   <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
+   <td.balance align=right>

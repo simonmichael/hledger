@@ -13,6 +13,7 @@ module Hledger.Cli.Register (
  ,register
  ,postingRegisterReport
  ,accountRegisterReport
+ ,journalRegisterReport
  ,postingRegisterReportAsText
  ,showPostingWithBalanceForVty
  ,tests_Hledger_Cli_Register
@@ -58,6 +59,8 @@ type AccountRegisterReport = (String                      -- label for the balan
 
 -- | A single account register line item, representing one transaction to/from the focussed account.
 type AccountRegisterReportItem = (Transaction -- the corresponding transaction
+                                 ,Transaction -- the transaction with postings to the focussed account removed
+                                 ,Bool        -- is this a split (more than one other-account posting) ?
                                  ,String      -- the (possibly aggregated) account info to display
                                  ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
                                  ,MixedAmount -- the running balance for the focussed account after this transaction
@@ -103,7 +106,7 @@ balancelabel = "Balance"
 -- | Get a ledger-style posting register report, with the specified options,
 -- for the whole journal. See also "accountRegisterReport".
 postingRegisterReport :: [Opt] -> FilterSpec -> Journal -> PostingRegisterReport
-postingRegisterReport opts fspec j = (totallabel,postingRegisterItems ps nullposting startbal (+))
+postingRegisterReport opts fspec j = (totallabel, postingRegisterItems ps nullposting startbal (+))
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
@@ -173,10 +176,19 @@ datedisplayexpr = do
  where
   compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
 
--- | Get a quicken/gnucash-style account register report, with the
--- specified options, for the currently focussed account (or possibly the
--- focussed account plus sub-accounts.) This differs from
--- "postingRegisterReport" in several ways:
+-- | Get a ledger-style register report showing all matched transactions and postings.
+-- Similar to "postingRegisterReport" except it uses matchers and
+-- per-transaction report items like "accountRegisterReport".
+journalRegisterReport :: [Opt] -> Journal -> Matcher -> AccountRegisterReport
+journalRegisterReport opts j@Journal{jtxns=ts} m = (totallabel, items)
+   where
+     ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
+     items = reverse $ accountRegisterReportItems m MatchAny nullmixedamt (+) ts'
+
+-- | Get a conventional account register report, with the specified
+-- options, for the currently focussed account (or possibly the focussed
+-- account plus sub-accounts.) This differs from "postingRegisterReport"
+-- in several ways:
 --
 -- 1. it shows transactions, from the point of view of the focussed
 --    account. The other account's name and posted amount is displayed,
@@ -195,7 +207,6 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
  where
      -- transactions affecting this account, in date order
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
-
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
      (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
@@ -210,35 +221,45 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
                         tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
                         startdate = matcherStartDate effective m
                         effective = Effective `elem` opts
-
-     displaymatcher = -- ltrace "displaymatcher" $
-                      MatchAnd [negateMatcher thisacctmatcher, m]
-
-     items = reverse $ accountRegisterReportItems ts displaymatcher nulltransaction startbal sumfn
+     items = reverse $ accountRegisterReportItems m thisacctmatcher startbal sumfn ts
 
 -- | Generate account register line items from a list of transactions,
--- using the provided matcher (postings not matching this will not affect
--- the displayed item), starting transaction, starting balance, and
--- balance summing function.
-accountRegisterReportItems :: [Transaction] -> Matcher -> Transaction -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [AccountRegisterReportItem]
-accountRegisterReportItems [] _ _ _ _ = []
-accountRegisterReportItems (t@Transaction{tpostings=ps}:ts) displaymatcher _ bal sumfn =
+-- using the provided query and "this account" matchers, starting balance,
+-- and balance summing function.
+accountRegisterReportItems :: Matcher -> Matcher -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [Transaction] -> [AccountRegisterReportItem]
+accountRegisterReportItems _ _ _ _ [] = []
+accountRegisterReportItems matcher thisacctmatcher bal sumfn (t@Transaction{tpostings=ps}:ts) =
     case i of Just i' -> i':is
               Nothing -> is
     where
-      (i,bal'') = case filter (displaymatcher `matchesPosting`) ps of
+      thisacctps = tpostings $ filterTransactionPostings thisacctmatcher t
+      numthisacctsposted = length $ nub $ map paccount thisacctps
+      displaymatcher | numthisacctsposted > 1 = matcher
+                     | otherwise              = MatchAnd [negateMatcher thisacctmatcher, matcher]
+      t'@Transaction{tpostings=ps'} = filterTransactionPostings displaymatcher t
+      (i,bal'') = case ps' of
            []  -> (Nothing,bal) -- maybe a virtual transaction, or transfer to self
-           [p] -> (Just (t, acct, amt, bal'), bal')
+           [p] -> (Just (t, t', False, acct, amt, bal'), bal')
                where
                  acct = paccount p
                  amt = pamount p
                  bal' = bal `sumfn` amt
-           ps' -> (Just (t,acct,amt,bal'), bal')
+           ps' -> (Just (t, t', True, acct, amt, bal'), bal')
                where
-                 acct = "SPLIT ("++intercalate ", " (map (accountLeafName . paccount) ps')++")"
+                 -- describe split as from ..., to ... (not always right)
+                 acct = case (simplify tos, simplify froms) of
+                         ([],ts) -> "to "++commafy ts
+                         (fs,[]) -> "from "++commafy fs
+                         (fs,ts) -> "to "++commafy ts++" from "++commafy fs
+                        where (tos,froms) = partition (fromMaybe False . isNegativeMixedAmount . pamount) ps'
+                              simplify = nub . map (accountLeafName . paccount)
+                              commafy = intercalate ", "
                  amt = sum $ map pamount ps'
                  bal' = bal `sumfn` amt
-      is = (accountRegisterReportItems ts displaymatcher t bal'' sumfn)
+      is = accountRegisterReportItems matcher thisacctmatcher bal'' sumfn ts
+
+filterTransactionPostings :: Matcher -> Transaction -> Transaction
+filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
 
 -- XXX confusing, refactor
 
