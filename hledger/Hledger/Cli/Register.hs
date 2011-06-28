@@ -209,9 +209,9 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label, sumfn) | matcherIsNull m = (nullmixedamt,balancelabel,(-))
-                             | matcherIsStartDateOnly effective m = (sumPostings priorps,balancelabel,(-))
-                             | otherwise = (nullmixedamt,totallabel,(+))
+     (startbal,label, sumfn) | matcherIsNull m                    = (nullmixedamt,        balancelabel, (-))
+                             | matcherIsStartDateOnly effective m = (sumPostings priorps, balancelabel, (-))
+                             | otherwise                          = (nullmixedamt,        totallabel,   (+))
                       where
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
