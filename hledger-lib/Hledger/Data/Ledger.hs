@@ -20,6 +20,7 @@ import Hledger.Data.Account (nullacct)
 import Hledger.Data.AccountName
 import Hledger.Data.Journal
 import Hledger.Data.Posting
+import Hledger.Data.Matching
 
 
 instance Show Ledger where
@@ -44,6 +45,15 @@ journalToLedger :: FilterSpec -> Journal -> Ledger
 journalToLedger fs j = nullledger{journal=j',accountnametree=t,accountmap=m}
     where j' = filterJournalPostings fs{depth=Nothing} j
           (t, m) = journalAccountInfo j'
+
+-- | Filter a journal's transactions as specified, and then process them
+-- to derive a ledger containing all balances, the chart of accounts,
+-- canonicalised commodities etc.
+-- Like journalToLedger but uses the new matchers.
+journalToLedger2 :: Matcher -> Journal -> Ledger
+journalToLedger2 m j = nullledger{journal=j',accountnametree=t,accountmap=amap}
+    where j' = filterJournalPostings2 m j
+          (t, amap) = journalAccountInfo j'
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]

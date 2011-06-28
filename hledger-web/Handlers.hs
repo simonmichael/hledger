@@ -48,8 +48,8 @@ getRootR = redirect RedirectTemporary defaultroute where defaultroute = Register
 -- | The main journal view, with accounts sidebar.
 getJournalR :: Handler RepHtml
 getJournalR = do
-  vd@VD{opts=opts,m=m,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml opts vd{q=""} $ balanceReport opts nullfilterspec j
+  vd@VD{opts=opts,m=m,am=am,j=j} <- getViewData
+  let sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
       maincontent = journalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
@@ -61,8 +61,8 @@ postJournalR = handlePost
 -- | The main register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml  opts vd{q=""} $ balanceReport opts nullfilterspec j
+  vd@VD{opts=opts,qopts=qopts,m=m,am=am,j=j} <- getViewData
+  let sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
       maincontent =
           case inAccountMatcher qopts of Just m' -> accountRegisterReportAsHtml opts vd $ accountRegisterReport opts j m m'
                                          Nothing -> accountRegisterReportAsHtml opts vd $ journalRegisterReport opts j m
@@ -102,11 +102,11 @@ postRegisterOnlyR = handlePost
 -- specifies json, returns the chart of accounts as json.
 getAccountsR :: Handler RepHtmlJson
 getAccountsR = do
-  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  vd@VD{opts=opts,m=m,am=am,j=j} <- getViewData
   let j' = filterJournalPostings2 m j
       html = do
         setTitle "hledger-web accounts"
-        addHamlet $ balanceReportAsHtml opts vd $ balanceReport opts nullfilterspec j'
+        addHamlet $ balanceReportAsHtml opts vd $ balanceReport2 opts am j'
       json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
   defaultLayoutJson html json
 
@@ -133,7 +133,7 @@ accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{here=here,q=q,m=m,qopts=qopts,j=j} (items',total) = $(Settings.hamletFile "balancereport")
+balanceReportAsHtml _ vd@VD{here=here,m=m,qopts=qopts,j=j} (items',total) = $(Settings.hamletFile "balancereport")
  where
    l = journalToLedger nullfilterspec j
    inacctmatcher = inAccountMatcher qopts
@@ -421,8 +421,10 @@ data ViewData = VD {
      opts  :: [Opt]         -- ^ command-line options at startup
     ,q     :: String        -- ^ current q parameter, the query expression
     ,p     :: Bool          -- ^ current p parameter, 1 or 0 shows/hides all postings, default is based on query
-    ,m     :: Matcher       -- ^ a matcher parsed from the query expr
-    ,qopts :: [QueryOpt]    -- ^ query options parsed from the query expr
+    ,m     :: Matcher       -- ^ a matcher parsed from the main query expr ("q" parameter)
+    ,qopts :: [QueryOpt]    -- ^ query options parsed from the main query expr
+    ,am    :: Matcher       -- ^ a matcher parsed from the accounts sidebar query expr ("a" parameter)
+    ,aopts :: [QueryOpt]    -- ^ query options parsed from the accounts sidebar query expr
     ,j     :: Journal       -- ^ the up-to-date parsed unfiltered journal
     ,today :: Day           -- ^ the current day
     ,here  :: AppRoute      -- ^ the current route
@@ -436,6 +438,8 @@ mkvd = VD {
      ,p     = False
      ,m     = MatchAny
      ,qopts = []
+     ,am     = MatchAny
+     ,aopts = []
      ,j     = nulljournal
      ,today = ModifiedJulianDay 0
      ,here  = RootR
@@ -452,12 +456,14 @@ getViewData = do
   Just here' <- getCurrentRoute
   today      <- liftIO getCurrentDay
   q          <- getParameter "q"
-  let (m,qopts) = parseQuery today q
+  let (querymatcher,queryopts) = parseQuery today q
+  a          <- getParameter "a"
+  let (acctsmatcher,acctsopts) = parseQuery today a
   p          <- getParameter "p"
   let p' | p == "1" = True
          | p == "0" = False
-         | otherwise = isNothing $ inAccountMatcher qopts
-  return mkvd{opts=opts, q=q, p=p', m=m, qopts=qopts, j=j, today=today, here=here', msg=msg}
+         | otherwise = isNothing $ inAccountMatcher queryopts
+  return mkvd{opts=opts, q=q, p=p', m=querymatcher, qopts=queryopts, am=acctsmatcher, aopts=acctsopts, j=j, today=today, here=here', msg=msg}
     where
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
