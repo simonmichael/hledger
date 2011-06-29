@@ -1,8 +1,8 @@
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
  <td.description title="#{show t}">#{elideRight 30 desc}
- <td.account>
-  $if split
+ <td.account title="#{show t}>
+  $if True
    <a title="#{acct}"
     #{elideRight 40 acct}
    &nbsp;
@@ -14,8 +14,8 @@
   $if showamt
    #{mixedAmountAsHtml amt}
  <td.balance align=right>#{mixedAmountAsHtml bal}
-$if split
- $forall p <- tpostings t'
+$if True
+ $forall p <- tpostings t
   <tr.item.#{evenodd}.posting.#{displayclass}
    <td.date
    <td.description
