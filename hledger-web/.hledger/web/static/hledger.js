@@ -9,7 +9,7 @@ $(document).ready(function() {
     if ($.url.param('accounts')=='0') $('#accounts').hide();
 
     /* set up sidebar account mouse-over handlers */
-    $('.balancereport td').mouseenter(function(){ $(this).addClass('mouseover'); });
+    $('.balancereport td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
     $('.balancereport td').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
     /* set up various show/hide toggles */
