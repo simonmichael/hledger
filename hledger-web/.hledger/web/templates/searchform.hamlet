@@ -23,7 +23,8 @@
       <br>
       acct:REGEXP to filter postings/transactions by account, #
       desc:REGEXP by description, #
-      date:PERIODEXP or edate:PERIODEXP by date or effective date,
-      status:BOOL by cleared status
+      date:PERIODEXP or edate:PERIODEXP by date or effective date, #
+      status:BOOL by cleared status, #
+      real:BOOL by real/virtualness.
       <br>
       not: to negate, use single or double quotes to include spaces, multiple patterns are AND'ed.

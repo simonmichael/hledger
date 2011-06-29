@@ -110,6 +110,9 @@ showAccountName w = fmt
       parenthesise s = "("++s++")"
       bracket s = "["++s++"]"
 
+hasRealPostings :: Transaction -> Bool
+hasRealPostings = not . null . realPostings
+
 realPostings :: Transaction -> [Posting]
 realPostings = filter isReal . tpostings
 

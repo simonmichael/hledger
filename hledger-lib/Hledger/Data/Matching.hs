@@ -136,14 +136,18 @@ parseMatcher _ ('d':'e':'p':'t':'h':':':s) = Left $ MatchDepth True $ readDef 0 
 parseMatcher _ "" = Left $ MatchAny
 parseMatcher d s = parseMatcher d $ defaultprefix++":"++s
 
+-- | Parse the boolean value part of a "status:" matcher, allowing "*" as
+-- another way to spell True, similar to the journal file format.
 parseStatus :: String -> Bool
 parseStatus s = s `elem` (truestrings ++ ["*"])
 
+-- | Parse the boolean value part of a "status:" matcher. A true value can
+-- be spelled as "1", "t" or "true".
 parseBool :: String -> Bool
 parseBool s = s `elem` truestrings
 
 truestrings :: [String]
-truestrings = ["t","true","1","on"]
+truestrings = ["1","t","true"]
 
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
@@ -207,8 +211,10 @@ matchesPosting (MatchEDate True span) p =
               Nothing -> False
     where d = maybe Nothing teffectivedate $ ptransaction p
 matchesPosting (MatchEDate False span) p = not $ (MatchEDate True span) `matchesPosting` p
-matchesPosting (MatchStatus True status) p = status == postingCleared p
-matchesPosting (MatchStatus False status) p = status /= postingCleared p
+matchesPosting (MatchStatus True v) p = v == postingCleared p
+matchesPosting (MatchStatus False v) p = v /= postingCleared p
+matchesPosting (MatchReal True v) p = v == isReal p
+matchesPosting (MatchReal False v) p = v /= isReal p
 matchesPosting _ _ = False
 
 -- | Does the match expression match this transaction ?
@@ -226,8 +232,10 @@ matchesTransaction (MatchDate False span) t = not $ (MatchDate True span) `match
 matchesTransaction (MatchEDate True span) Transaction{teffectivedate=Just d} = spanContainsDate span d
 matchesTransaction _ Transaction{teffectivedate=Nothing} = False
 matchesTransaction (MatchEDate False span) t = not $ (MatchEDate True span) `matchesTransaction` t
-matchesTransaction (MatchStatus True status) t = status == tstatus t
-matchesTransaction (MatchStatus False status) t = status /= tstatus t
+matchesTransaction (MatchStatus True v) t = v == tstatus t
+matchesTransaction (MatchStatus False v) t = v /= tstatus t
+matchesTransaction (MatchReal True v) t = v == hasRealPostings t
+matchesTransaction (MatchReal False v) t = v /= hasRealPostings t
 matchesTransaction _ _ = False
 
 -- | Does the match expression match this account ?
@@ -300,6 +308,8 @@ tests_Hledger_Data_Matching = TestList
 
     parseQuery d "status:1" `is` (MatchStatus True True, [])
     parseQuery d "status:0" `is` (MatchStatus True False, [])
+    parseQuery d "status:" `is` (MatchStatus True False, [])
+    parseQuery d "real:1" `is` (MatchReal True True, [])
 
   ,"matchesAccount" ~: do
     assertBool "positive acct match" $ matchesAccount (MatchAcct True "b:c") "a:bb:c:d"
@@ -317,5 +327,8 @@ tests_Hledger_Data_Matching = TestList
                not $ (MatchStatus False False) `matchesPosting` nullposting{pstatus=False}
     assertBool "positive match on true posting status acquired from transaction" $
                    (MatchStatus True  True) `matchesPosting` nullposting{pstatus=False,ptransaction=Just nulltransaction{tstatus=True}}
+    assertBool "real:1 on real posting" $ (MatchReal True True) `matchesPosting` nullposting{ptype=RegularPosting}
+    assertBool "real:1 on virtual posting fails" $ not $ (MatchReal True True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    assertBool "real:1 on balanced virtual posting fails" $ not $ (MatchReal True True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
 
  ]
