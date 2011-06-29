@@ -6,7 +6,7 @@
      Search:
      \ #
     <td
-     <input name=q size=100 value=#{q}
+     <input name=q size=60 value=#{q}
      <input type=submit value="Search"
      \ #
      <a#search-help-link href="#">help
@@ -18,15 +18,18 @@
     <td
     <td
      <div#search-help.help style="display:none;"
-      Leave blank or click "all accounts" to see general journal (all postings). #
-      Click account links to focus on one account, optionally with subaccounts.
+      Leave blank to see general journal (all transactions), or #
+      click account links to see that account, optionally with sub-accounts.
       <br>
-      acct:REGEXP to filter postings/transactions by account, #
-      desc:REGEXP by description, #
-      date:PERIODEXP or edate:PERIODEXP by date or effective date.
+      Transactions/postings may additionally be filtered by:
       <br>
-      status:BOOL by cleared status, #
-      real:BOOL by real/virtualness, #
-      empty:BOOL by posting amount==0.
+      acct:REGEXP (target account), #
+      desc:REGEXP (description), #
+      date:PERIODEXP (date), #
+      edate:PERIODEXP (effective date), #
       <br>
-      not: to negate, use single or double quotes to include spaces, multiple patterns are AND'ed.
+      status:BOOL (cleared status), #
+      real:BOOL (real/virtual-ness), #
+      empty:BOOL (posting amount = 0).
+      <br>
+      not: to negate, enclose space-containing patterns in quotes, multiple filters are AND'ed.

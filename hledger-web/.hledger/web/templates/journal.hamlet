@@ -1,11 +1,11 @@
 ^{topbar vd}
 <div#content
- ^{searchform vd}
  <div#sidebar
   ^{sidecontent}
  <div#main.journal
   ^{navlinks vd}
   <div#maincontent
+   ^{searchform vd}
    ^{maincontent}
   ^{addform vd}
   ^{editform vd}
