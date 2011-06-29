@@ -26,6 +26,7 @@
       date:PERIODEXP or edate:PERIODEXP by date or effective date.
       <br>
       status:BOOL by cleared status, #
-      real:BOOL by real/virtualness.
+      real:BOOL by real/virtualness, #
+      empty:BOOL by posting amount==0.
       <br>
       not: to negate, use single or double quotes to include spaces, multiple patterns are AND'ed.

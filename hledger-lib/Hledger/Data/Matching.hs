@@ -25,17 +25,17 @@ import Text.ParserCombinators.Parsec
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
--- import Hledger.Data.Amount
+import Hledger.Data.Amount
 -- import Hledger.Data.Commodity (canonicaliseCommodities)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 -- import Hledger.Data.TimeLog
 
--- | A matcher is an arbitrary boolean expression of various search criteria.
--- It can be used to match postings, transactions, accounts and more.
+-- | A matcher is a single, or boolean composition of, search criteria,
+-- which can be used to match postings, transactions, accounts and more.
 -- If the first boolean is False, it's an inverse match.
--- Currently used by hledger-web, will probably also replace FilterSpec at some point.
+-- Currently used by hledger-web, will likely replace FilterSpec at some point.
 data Matcher = MatchAny                   -- ^ always match
              | MatchNone                  -- ^ never match
              | MatchOr [Matcher]          -- ^ match if any of these match
@@ -46,7 +46,8 @@ data Matcher = MatchAny                   -- ^ always match
              | MatchEDate Bool DateSpan   -- ^ match if effective date in this date span
              | MatchStatus Bool Bool      -- ^ match if cleared status has this value
              | MatchReal Bool Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
-             | MatchEmpty Bool Bool       -- ^ match if "emptiness" (amount is zero ?) has this value
+             | MatchEmpty Bool Bool       -- ^ match if "emptiness" (from the --empty command-line flag) has this value.
+                                          --   Currently this means a posting with zero amount.
              | MatchDepth Bool Int        -- ^ match if account depth is less than or equal to this value
     deriving (Show, Eq)
 
@@ -215,6 +216,8 @@ matchesPosting (MatchStatus True v) p = v == postingCleared p
 matchesPosting (MatchStatus False v) p = v /= postingCleared p
 matchesPosting (MatchReal True v) p = v == isReal p
 matchesPosting (MatchReal False v) p = v /= isReal p
+matchesPosting (MatchEmpty True v) Posting{pamount=a} = v == isZeroMixedAmount a
+matchesPosting (MatchEmpty False v) p = not $ (MatchEmpty True v) `matchesPosting` p
 matchesPosting _ _ = False
 
 -- | Does the match expression match this transaction ?
