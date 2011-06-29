@@ -3,7 +3,7 @@
   <th.date align=left>Date
   <th.description align=left>Description
   <th.account align=left>
-    Account
+    Accounts
     <!-- \ #
     <a#all-postings-toggle-link.togglelink href="#" title="Toggle all split postings">[+/-] -->
   <th.amount align=right>Amount
