@@ -1,12 +1,26 @@
 <div#accountsheading
- accounts
- \ #
- <a#accounts-toggle-link.togglelink href="#" title="Toggle accounts sidebar">[+/-]
-
+ <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+/-]
 <div#accounts
  <table.balancereport>
+  <tr
+   <td.add colspan=3
+    <br>
+    <a#addformlink href onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
+
   <tr.item :allaccts:.inacct
-   <td.account colspan=3><a href=@{here} title="Show all accounts and postings">all accounts
+   <td.journal colspan=3
+    <br>
+    <a href=@{RegisterR} title="Show all transactions">General journal
+    <span.hoverlinks
+     &nbsp;
+     <a href=@{JournalR} title="Show journal source text">source</a>
+     &nbsp;
+     <a#editformlink href onclick="return editformToggle(event)" title="Edit the journal">edit
+
+  <tr
+   <td colspan=3
+    <br>
+    Accounts
 
   $forall i <- items
    ^{itemAsHtml vd i}

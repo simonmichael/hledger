@@ -133,7 +133,7 @@ accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
 -- | Render a balance report as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{here=here,m=m,qopts=qopts,j=j} (items',total) = $(Settings.hamletFile "balancereport")
+balanceReportAsHtml _ vd@VD{here=here,m=m,q=q,qopts=qopts,j=j} (items',total) = $(Settings.hamletFile "balancereport")
  where
    l = journalToLedger nullfilterspec j
    inacctmatcher = inAccountMatcher qopts
@@ -149,9 +149,9 @@ balanceReportAsHtml _ vd@VD{here=here,m=m,qopts=qopts,j=j} (items',total) = $(Se
                        Just m -> if m `matchesAccount` acct then "inacct" else "notinacct"
                        Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * aindent) "&nbsp;"
-       acctquery = (here, [("q", pack $ accountQuery acct)])
-       acctsquery = (here, [("q", pack $ accountsQuery acct)])
-       acctsonlyquery = (here, [("q", pack $ accountsOnlyQuery acct)])
+       acctquery = (RegisterR, [("q", pack $ accountQuery acct)])
+       acctsquery = (RegisterR, [("q", pack $ accountsQuery acct)])
+       acctsonlyquery = (RegisterR, [("q", pack $ accountsOnlyQuery acct)])
 
 -- | Render a journal report as HTML.
 journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute

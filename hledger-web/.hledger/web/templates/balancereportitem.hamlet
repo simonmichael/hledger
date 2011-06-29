@@ -2,7 +2,7 @@
  <td.account.#{depthclass}
   #{indent}
   <a href="@?{acctquery}" title="Focus on this account">#{adisplay}
-  <span.accountextralinks
+  <span.hoverlinks
    &nbsp;
    <a href="@?{acctsquery}" title="Focus on this account and sub-accounts">+subs
    <!--
