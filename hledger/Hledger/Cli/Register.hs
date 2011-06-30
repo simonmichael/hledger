@@ -16,6 +16,8 @@ module Hledger.Cli.Register (
  ,journalRegisterReport
  ,postingRegisterReportAsText
  ,showPostingWithBalanceForVty
+ ,ariDate
+ ,ariBalance
  ,tests_Hledger_Cli_Register
 ) where
 
@@ -65,6 +67,10 @@ type AccountRegisterReportItem = (Transaction -- the corresponding transaction
                                  ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
                                  ,MixedAmount -- the running balance for the focussed account after this transaction
                                  )
+
+ariDate (t,_,_,_,_,_) = tdate t
+ariBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
+                                           (Amount{quantity=q}):_ -> show q
 
 -- | Print a (posting) register report.
 register :: [Opt] -> [String] -> Journal -> IO ()

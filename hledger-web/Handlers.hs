@@ -15,9 +15,12 @@ import Data.List
 import Data.Maybe
 import Data.Text(Text,pack,unpack)
 import Data.Time.Calendar
+import Data.Time.Clock
+import Data.Time.Format
 -- import Safe
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
+import System.Locale (defaultTimeLocale)
 import Text.Hamlet hiding (hamletFile)
 import Text.Printf
 import Yesod.Form
@@ -490,3 +493,6 @@ getMessageOr mnewmsg = do
 
 numbered = zip [1..]
 
+dayToJsTimestamp :: Day -> Integer
+dayToJsTimestamp d = read (formatTime defaultTimeLocale "%s" t) * 1000
+                     where t = UTCTime d (secondsToDiffTime 0)

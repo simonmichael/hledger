@@ -1,3 +1,24 @@
+<script type=text/javascript>
+ $(document).ready(function() {
+    /* render chart */
+    /* if ($('#register-chart')) */
+      $.plot($('#register-chart'),
+             [
+              [
+               $forall i <- items
+                [#{dayToJsTimestamp $ ariDate i}, #{ariBalance i}],
+              ]
+             ],
+             {
+               xaxis: {
+                mode: "time",
+                timeformat: "%y/%m/%d"
+               }
+             }
+             );
+ });
+<div#register-chart style="width:600px;height:100px; margin-bottom:1em;"
+
 <table.registerreport
  <tr.headings
   <th.date align=left>Date
