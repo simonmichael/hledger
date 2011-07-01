@@ -245,7 +245,6 @@ accountRegisterReportItems matcher thisacctmatcher bal signfn (t:ts) =
       tmatched@Transaction{tpostings=psmatched} = filterTransactionPostings matcher t
       (psthisacct,psotheracct) = case thisacctmatcher of Just m  -> partition (matchesPosting m) psmatched
                                                          Nothing -> ([],psmatched)
-      numthisaccts = length $ nub $ map paccount psthisacct
       numotheraccts = length $ nub $ map paccount psotheracct
       amt = sum $ map pamount psotheracct
       acct | isNothing thisacctmatcher = summarisePostings psmatched -- journal register
