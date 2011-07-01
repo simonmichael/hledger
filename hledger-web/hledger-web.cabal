@@ -74,7 +74,7 @@ executable hledger-web
                  ,directory
                  ,filepath
                  -- ,mtl
-                 -- ,old-locale
+                 ,old-locale
                  -- ,old-time
                  ,parsec
                  -- ,process
