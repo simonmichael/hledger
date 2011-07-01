@@ -24,7 +24,8 @@ body                                                                 { backgroun
 .help                                                                {  }
 
 .balancereport .inacct                                               { /*background-color:#ddd;*/ font-weight:bold; }
-.notinacct, .notinacct :link, .notinacct :visited, .notinacct .negative  { color:#aaa; }
+.notinacct, .notinacct :link, .notinacct :visited { color:#888; }
+.notinacct .negative { color:#b77; }
 .balancereport .numpostings                                          { padding-left:1em; color:#aaa; }
 .balancereport .hoverlinks { visibility:hidden; }
 .balancereport td.add.mouseover { background-color:rgba(208,208,208,0.5); }
@@ -33,7 +34,7 @@ body                                                                 { backgroun
 .balancereport .hoverlinks { visibility:hidden; }
 .balancereport td.account.mouseover { background-color:rgba(208,208,208,0.5); }
 .balancereport td.account.mouseover .hoverlinks { visibility:visible; }
-.balancereport .hoverlinks { margin-left:0em; font-weight:normal; font-size:smaller; display:inline-block; text-align:right; }
+.balancereport .hoverlinks { margin-left:0em; font-weight:normal; /*font-size:smaller;*/ display:inline-block; text-align:right; }
 .balancereport .hoverlinks a { margin-left:0.5em; }
 
 /*------------------------------------------------------------------------------------------*/
