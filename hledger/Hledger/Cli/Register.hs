@@ -189,7 +189,7 @@ journalRegisterReport :: [Opt] -> Journal -> Matcher -> AccountRegisterReport
 journalRegisterReport _ Journal{jtxns=ts} m = (totallabel, items)
    where
      ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
-     items = reverse $ accountRegisterReportItems m Nothing nullmixedamt id (+) ts'
+     items = reverse $ accountRegisterReportItems m Nothing nullmixedamt id ts'
 
 -- | Get a conventional account register report, with the specified
 -- options, for the currently focussed account (or possibly the focussed
@@ -215,9 +215,9 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label, sumfn) | matcherIsNull m                    = (nullmixedamt,        balancelabel, (+))
-                             | matcherIsStartDateOnly effective m = (sumPostings priorps, balancelabel, (+))
-                             | otherwise                          = (nullmixedamt,        totallabel,   (-))
+     (startbal,label) | matcherIsNull m                    = (nullmixedamt,        balancelabel)
+                      | matcherIsStartDateOnly effective m = (sumPostings priorps, balancelabel)
+                      | otherwise                          = (nullmixedamt,        totallabel)
                       where
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
@@ -227,7 +227,7 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
                         tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
                         startdate = matcherStartDate effective m
                         effective = Effective `elem` opts
-     items = reverse $ accountRegisterReportItems m (Just thisacctmatcher) startbal negate sumfn ts
+     items = reverse $ accountRegisterReportItems m (Just thisacctmatcher) startbal negate ts
 
 -- | Generate account register line items from a list of transactions,
 -- using the provided query and "this account" matchers, starting balance,
@@ -235,9 +235,9 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
 
 -- This is used for both accountRegisterReport and journalRegisterReport,
 -- which makes it a bit overcomplicated.
-accountRegisterReportItems :: Matcher -> Maybe Matcher -> MixedAmount -> (MixedAmount -> MixedAmount) -> (MixedAmount -> MixedAmount -> MixedAmount) -> [Transaction] -> [AccountRegisterReportItem]
-accountRegisterReportItems _ _ _ _ _ [] = []
-accountRegisterReportItems matcher thisacctmatcher bal signfn sumfn (t:ts) =
+accountRegisterReportItems :: Matcher -> Maybe Matcher -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [AccountRegisterReportItem]
+accountRegisterReportItems _ _ _ _ [] = []
+accountRegisterReportItems matcher thisacctmatcher bal signfn (t:ts) =
     case i of Just i' -> i':is
               Nothing -> is
     where
@@ -248,28 +248,31 @@ accountRegisterReportItems matcher thisacctmatcher bal signfn sumfn (t:ts) =
       numotheraccts = length $ nub $ map paccount psotheracct
       amt = sum $ map pamount psotheracct
       acct | isNothing thisacctmatcher = summarisePostings psmatched -- journal register
-           | numotheraccts > 0 = prefix              ++ commafy (simplifyPostingAccounts psotheracct)
-           | otherwise         = "transfer between " ++ commafy (simplifyPostingAccounts psthisacct)
+           | numotheraccts == 0 = "transfer between " ++ summarisePostingAccounts psthisacct
+           | otherwise          = prefix              ++ summarisePostingAccounts psotheracct
            where prefix = maybe "" (\b -> if b then "from " else "to ") $ isNegativeMixedAmount amt
       (i,bal') = case psmatched of
            [] -> (Nothing,bal)
            _  -> (Just (t, tmatched, numotheraccts > 1, acct, a, b), b)
                  where
                   a = signfn amt
-                  b = bal `sumfn` a
-      is = accountRegisterReportItems matcher thisacctmatcher bal' signfn sumfn ts
+                  b = bal + a
+      is = accountRegisterReportItems matcher thisacctmatcher bal' signfn ts
 
--- | Generate a short readable summary of some postings.
+-- | Generate a short readable summary of some postings, like
+-- "from (negatives) to (positives)".
+summarisePostings :: [Posting] -> String
 summarisePostings ps =
-    case (simplifyPostingAccounts tos, simplifyPostingAccounts froms) of
-       ([],ts) -> "to "++commafy ts
-       (fs,[]) -> "from "++commafy fs
-       (fs,ts) -> "from "++commafy fs++" to "++commafy ts
+    case (summarisePostingAccounts froms, summarisePostingAccounts tos) of
+       ("",t) -> "to "++t
+       (f,"") -> "from "++f
+       (f,t)  -> "from "++f++" to "++t
     where
-      (tos,froms) = partition (fromMaybe False . isNegativeMixedAmount . pamount) ps
+      (froms,tos) = partition (fromMaybe False . isNegativeMixedAmount . pamount) ps
 
-simplifyPostingAccounts = map accountLeafName . nub . map paccount
-commafy = intercalate ", "
+-- | Generate a simplified summary of some postings' accounts.
+summarisePostingAccounts :: [Posting] -> String
+summarisePostingAccounts = intercalate ", " . map accountLeafName . nub . map paccount
 
 filterTransactionPostings :: Matcher -> Transaction -> Transaction
 filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
