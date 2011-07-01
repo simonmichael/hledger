@@ -39,7 +39,7 @@ body                                                                 { backgroun
 /*------------------------------------------------------------------------------------------*/
 /* 2. font families & sizes */
 /* overspecified for cross-browser robustness */
-body                                               { font-family:helvetica,arial,"sans serif"; }
+body                                               { font-family:helvetica,arial,sans-serif; }
 pre                                                { font-family:courier,"courier new",monospace; }
 input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
 #editform textarea                                 { font-family:courier,"courier new",monospace; font-size:small; }
@@ -57,6 +57,7 @@ input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
 .showall                                           { font-size:small; }
 /* #addformlink                                    { font-size:small; } */
 /* #editformlink                                   { font-size:small; } */
+#contenttitle                                    { font-size:1.2em; }
 
 /*------------------------------------------------------------------------------------------*/
 /* 3. layout */

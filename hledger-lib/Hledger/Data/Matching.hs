@@ -60,12 +60,12 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
            -- | QueryOptEffectiveDate  -- ^ show effective dates instead of actual dates
     deriving (Show, Eq)
 
--- | The account we are currently focussed on, if any.
+-- | The account we are currently focussed on, if any, and whether subaccounts are included.
 -- Just looks at the first query option.
-inAccount :: [QueryOpt] -> Maybe AccountName
+inAccount :: [QueryOpt] -> Maybe (AccountName,Bool)
 inAccount [] = Nothing
-inAccount (QueryOptInAcctOnly a:_) = Just a
-inAccount (QueryOptInAcct a:_) = Just a
+inAccount (QueryOptInAcctOnly a:_) = Just (a,False)
+inAccount (QueryOptInAcct a:_) = Just (a,True)
 
 -- | A matcher for the account(s) we are currently focussed on, if any.
 -- Just looks at the first query option.

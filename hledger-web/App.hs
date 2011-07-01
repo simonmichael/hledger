@@ -16,9 +16,10 @@ module App
 import Control.Monad
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.IO.Class (liftIO)
+import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 import System.Directory
-import qualified Data.ByteString.Lazy as L
+import Text.Hamlet hiding (hamletFile)
 import Yesod.Core
 import Yesod.Helpers.Static
 
@@ -78,8 +79,25 @@ instance Yesod App where
         -- mmsg <- getMessage
         pc <- widgetToPageContent $ do
             widget
-            addCassius $(Settings.cassiusFile "default-layout")
-        hamletToRepHtml $(Settings.hamletFile "default-layout")
+            -- addCassius $(Settings.cassiusFile "default-layout")
+        hamletToRepHtml [$hamlet|
+!!!
+<html
+ <head
+  <title>#{pageTitle pc}
+  ^{pageHead pc}
+  <meta http-equiv=Content-Type content="text/html; charset=utf-8"
+  <script type=text/javascript src=@{StaticR jquery_js}
+  <script type=text/javascript src=@{StaticR jquery_url_js}
+  <script type=text/javascript src=@{StaticR jquery_flot_js}
+  <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
+  <script type=text/javascript src=@{StaticR dhtmlxcommon_js}
+  <script type=text/javascript src=@{StaticR dhtmlxcombo_js}
+  <script type=text/javascript src=@{StaticR hledger_js}
+  <link rel=stylesheet type=text/css media=all href=@{StaticR style_css}
+ <body
+  ^{pageBody pc}
+|]
 
     -- -- This is done to provide an optimization for serving static files from
     -- -- a separate domain. Please see the staticroot setting in Settings.hs

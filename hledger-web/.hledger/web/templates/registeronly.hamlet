@@ -1,7 +1,0 @@
-<div.register
- ^{editlinks}
- <div#maincontent
-  ^{maincontent}
- ^{addform vd}
- ^{editform vd}
- ^{importform}

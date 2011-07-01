@@ -1,4 +1,0 @@
-<td style=padding-left:1em;
- Amount:
-<td
- <input.textinput size=15 name=#{amtvar} value=""

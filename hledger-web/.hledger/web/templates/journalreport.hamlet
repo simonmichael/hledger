@@ -1,3 +1,0 @@
-<table.journalreport>
- $forall i <- numbered items
-  ^{itemAsHtml vd i}

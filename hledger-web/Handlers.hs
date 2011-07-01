@@ -48,36 +48,32 @@ getRootR = redirect RedirectTemporary defaultroute where defaultroute = Register
 ----------------------------------------------------------------------
 -- main views
 
--- | The main journal view, with accounts sidebar.
+-- | The journal entries view, with accounts sidebar.
 getJournalR :: Handler RepHtml
 getJournalR = do
   vd@VD{opts=opts,m=m,am=am,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
+  let
+      sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
+      title = "Journal entries" ++ if m /= MatchAny then ", filtered" else "" :: String
       maincontent = journalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
-      addHamlet $(Settings.hamletFile "journal")
+      addHamlet [$hamlet|
+^{topbar vd}
+<div#content
+ <div#sidebar
+  ^{sidecontent}
+ <div#main.journal
+  <h2#contenttitle>#{title}
+  ^{searchform vd}
+  <div#maincontent
+   ^{maincontent}
+  ^{addform vd}
+  ^{editform vd}
+  ^{importform}
+|]
 
-postJournalR :: Handler RepPlain
-postJournalR = handlePost
-
--- | The main register view, with accounts sidebar.
-getRegisterR :: Handler RepHtml
-getRegisterR = do
-  vd@VD{opts=opts,qopts=qopts,m=m,am=am,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
-      maincontent =
-          case inAccountMatcher qopts of Just m' -> accountRegisterReportAsHtml opts vd $ accountRegisterReport opts j m m'
-                                         Nothing -> accountRegisterReportAsHtml opts vd $ journalRegisterReport opts j m
-      editform' = editform vd
-  defaultLayout $ do
-      setTitle "hledger-web register"
-      addHamlet $(Settings.hamletFile "register")
-
-postRegisterR :: Handler RepPlain
-postRegisterR = handlePost
-
--- | A simple journal view, like hledger print (with editing.)
+-- | The journal entries view with no sidebar.
 getJournalOnlyR :: Handler RepHtml
 getJournalOnlyR = do
   vd@VD{opts=opts,m=m,j=j} <- getViewData
@@ -85,24 +81,54 @@ getJournalOnlyR = do
       setTitle "hledger-web journal only"
       addHamlet $ journalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
 
-postJournalOnlyR :: Handler RepPlain
-postJournalOnlyR = handlePost
+-- | The main journal/account register view, with accounts sidebar.
+getRegisterR :: Handler RepHtml
+getRegisterR = do
+  vd@VD{opts=opts,qopts=qopts,m=m,am=am,j=j} <- getViewData
+  let sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
+      -- XXX like registerReportAsHtml
+      inacct = inAccount qopts
+      -- injournal = isNothing inacct
+      filtering = m /= MatchAny
+      -- showlastcolumn = if injournal && not filtering then False else True
+      title = case inacct of
+                Nothing       -> "Journal"++filter
+                Just (a,subs) -> "Transactions in "++a++andsubs++filter
+                                  where andsubs = if subs then " (and subaccounts)" else ""
+                where
+                  filter = if filtering then ", filtered" else ""
+      maincontent =
+          case inAccountMatcher qopts of Just m' -> registerReportAsHtml opts vd $ accountRegisterReport opts j m m'
+                                         Nothing -> registerReportAsHtml opts vd $ journalRegisterReport opts j m
+  defaultLayout $ do
+      setTitle "hledger-web register"
+      addHamlet [$hamlet|
+^{topbar vd}
+<div#content
+ <div#sidebar
+  ^{sidecontent}
+ <div#main.register
+  <h2#contenttitle>#{title}
+  ^{searchform vd}
+  <div#maincontent
+   ^{maincontent}
+  ^{addform vd}
+  ^{editform vd}
+  ^{importform}
+|]
 
--- | A simple postings view, like hledger register (with editing.)
+-- | The register view with no sidebar.
 getRegisterOnlyR :: Handler RepHtml
 getRegisterOnlyR = do
   vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web register only"
       addHamlet $
-          case inAccountMatcher qopts of Just m' -> accountRegisterReportAsHtml opts vd $ accountRegisterReport opts j m m'
-                                         Nothing -> accountRegisterReportAsHtml opts vd $ journalRegisterReport opts j m
+          case inAccountMatcher qopts of Just m' -> registerReportAsHtml opts vd $ accountRegisterReport opts j m m'
+                                         Nothing -> registerReportAsHtml opts vd $ journalRegisterReport opts j m
 
-postRegisterOnlyR :: Handler RepPlain
-postRegisterOnlyR = handlePost
-
--- | A simple accounts view, like hledger balance. If the Accept header
--- specifies json, returns the chart of accounts as json.
+-- | A simple accounts view. This one is json-capable, returning the chart
+-- of accounts as json if the Accept header specifies json.
 getAccountsR :: Handler RepHtmlJson
 getAccountsR = do
   vd@VD{opts=opts,m=m,am=am,j=j} <- getViewData
@@ -113,34 +139,75 @@ getAccountsR = do
       json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
   defaultLayoutJson html json
 
--- | Return the chart of accounts as json, without needing a special Accept header.
+-- | A json-only version of "getAccountsR", does not require the special Accept header.
 getAccountsJsonR :: Handler RepJson
 getAccountsJsonR = do
   VD{m=m,j=j} <- getViewData
   let j' = filterJournalPostings2 m j
   jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j')]
 
--- helpers
+----------------------------------------------------------------------
+-- view helpers
 
-accountQuery :: AccountName -> String
-accountQuery a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
-
-accountOnlyQuery :: AccountName -> String
-accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
-
--- accountUrl :: AppRoute -> AccountName -> (AppRoute,[(String,ByteString)])
-accountUrl r a = (r, [("q",pack $ accountQuery a)])
-
--- | Render a balance report as HTML.
+-- | Render a "BalanceReport" as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{here=here,m=m,q=q,qopts=qopts,j=j} (items',total) = $(Settings.hamletFile "balancereport")
+balanceReportAsHtml _ vd@VD{qopts=qopts,j=j} (items',total) =
+ [$hamlet|
+<div#accountsheading
+ <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+/-]
+<div#accounts
+ <table.balancereport>
+  <tr
+   <td.add colspan=3
+    <br>
+    <a#addformlink href onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
+
+  <tr.item :allaccts:.inacct
+   <td.journal colspan=3
+    <br>
+    <a href=@{RegisterR} title="Show all transactions in journal format">Journal
+    <span.hoverlinks
+     &nbsp;
+     <a href=@{JournalR} title="Show raw journal entries">entries</a>
+     &nbsp;
+     <a#editformlink href onclick="return editformToggle(event)" title="Edit the journal">edit
+
+  <tr
+   <td colspan=3
+    <br>
+    Accounts
+
+  $forall i <- items
+   ^{itemAsHtml vd i}
+
+  <tr.totalrule>
+   <td colspan=2>
+  <tr>
+   <td>
+   <td align=right>#{mixedAmountAsHtml total}
+|]
  where
    l = journalToLedger nullfilterspec j
    inacctmatcher = inAccountMatcher qopts
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
-   itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
+   itemAsHtml _ (acct, adisplay, aindent, abal) = [$hamlet|
+<tr.item.#{inacctclass}
+ <td.account.#{depthclass}
+  #{indent}
+  <a href="@?{acctquery}" title="Show transactions in this account, including subaccounts">#{adisplay}
+  <span.hoverlinks
+   $if hassubs
+    &nbsp;
+    <a href="@?{acctonlyquery}" title="Show transactions in this account only">only
+   <!--
+    &nbsp;
+    <a href="@?{acctsonlyquery}" title="Focus on this account and sub-accounts and hide others">-others -->
+
+ <td.balance align=right>#{mixedAmountAsHtml abal}
+ <td.numpostings align=right title="#{numpostings} transactions in this account">(#{numpostings})
+|]
      where
        hassubs = not $ null $ ledgerSubAccounts l $ ledgerAccount l acct
        numpostings = length $ apostings $ ledgerAccount l acct
@@ -152,22 +219,110 @@ balanceReportAsHtml _ vd@VD{here=here,m=m,q=q,qopts=qopts,j=j} (items',total) = 
        acctquery = (RegisterR, [("q", pack $ accountQuery acct)])
        acctonlyquery = (RegisterR, [("q", pack $ accountOnlyQuery acct)])
 
--- | Render a journal report as HTML.
+accountQuery :: AccountName -> String
+accountQuery a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
+
+accountOnlyQuery :: AccountName -> String
+accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
+
+-- accountUrl :: AppRoute -> AccountName -> (AppRoute,[(String,ByteString)])
+accountUrl r a = (r, [("q",pack $ accountQuery a)])
+
+-- | Render a "JournalReport" as HTML.
 journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
-journalReportAsHtml _ vd items = $(Settings.hamletFile "journalreport")
+journalReportAsHtml _ vd items = [$hamlet|
+<table.journalreport>
+ $forall i <- numbered items
+  ^{itemAsHtml vd i}
+ |]
  where
    itemAsHtml :: ViewData -> (Int, JournalReportItem) -> Hamlet AppRoute
-   itemAsHtml _ (n, t) = $(Settings.hamletFile "journalreportitem")
+   itemAsHtml _ (n, t) = [$hamlet|
+<tr.item.#{evenodd}>
+ <td.transaction>
+  <pre>#{txn}
+ |]
      where
        evenodd = if even n then "even" else "odd" :: String
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
--- Account-specific transaction register, when an account is focussed.
-accountRegisterReportAsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
-accountRegisterReportAsHtml _ vd (balancelabel,items) = $(Settings.hamletFile "accountregisterreport")
+-- Render an "AccountRegisterReport" as html, for the journal/account register views.
+registerReportAsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
+registerReportAsHtml _ vd@VD{m=m,qopts=qopts} (balancelabel,items) = [$hamlet|
+$if showlastcolumn
+ <script type=text/javascript>
+  $(document).ready(function() {
+    /* render chart */
+    /* if ($('#register-chart')) */
+      $.plot($('#register-chart'),
+             [
+              [
+               $forall i <- items
+                [#{dayToJsTimestamp $ ariDate i}, #{ariBalance i}],
+              ]
+             ],
+             {
+               xaxis: {
+                mode: "time",
+                timeformat: "%y/%m/%d"
+               }
+             }
+             );
+  });
+ <div#register-chart style="width:600px;height:100px; margin-bottom:1em;"
+
+<table.registerreport
+ <tr.headings
+  <th.date align=left>Date
+  <th.description align=left>Description
+  <th.account align=left>
+    $if injournal
+     Accounts
+    $else
+     To/From Account
+    <!-- \ #
+    <a#all-postings-toggle-link.togglelink href="#" title="Toggle all split postings">[+/-] -->
+  <th.amount align=right>Amount
+  $if showlastcolumn
+   <th.balance align=right>#{balancelabel}
+
+ $forall i <- numberAccountRegisterReportItems items
+  ^{itemAsHtml vd i}
+ |]
  where
+   inacct = inAccount qopts
+   filtering = m /= MatchAny
+   injournal = isNothing inacct
+   showlastcolumn = if injournal && not filtering then False else True
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here,p=p} (n, newd, newm, newy, (t, t', split, acct, amt, bal)) = $(Settings.hamletFile "accountregisterreportitem")
+   itemAsHtml VD{here=here,p=p} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
+<tr.item.#{evenodd}.#{firstposting}.#{datetransition}
+ <td.date>#{date}
+ <td.description title="#{show t}">#{elideRight 30 desc}
+ <td.account title="#{show t}"
+  $if True
+   <a
+    #{elideRight 40 acct}
+   &nbsp;
+   <a.postings-toggle-link.togglelink href="#" title="Toggle postings"
+    [+/-]
+  $else
+   <a href="@?{acctquery}" title="Go to #{acct}">#{elideRight 40 acct}
+ <td.amount align=right>
+  $if showamt
+   #{mixedAmountAsHtml amt}
+ $if showlastcolumn
+  <td.balance align=right>#{mixedAmountAsHtml bal}
+$if True
+ $forall p <- tpostings t
+  <tr.item.#{evenodd}.posting.#{displayclass}
+   <td.date
+   <td.description
+   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
+   <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
+   $if showlastcolumn
+    <td.balance align=right>
+|]
      where
        evenodd = if even n then "even" else "odd" :: String
        datetransition | newm = "newmonth"
@@ -199,6 +354,21 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
     where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
           c = case isNegativeMixedAmount b of Just True -> "negative amount"
                                               _         -> "positive amount"
+
+-------------------------------------------------------------------------------
+-- post handlers
+
+postJournalR :: Handler RepPlain
+postJournalR = handlePost
+
+postRegisterR :: Handler RepPlain
+postRegisterR = handlePost
+
+postJournalOnlyR :: Handler RepPlain
+postJournalOnlyR = handlePost
+
+postRegisterOnlyR :: Handler RepPlain
+postRegisterOnlyR = handlePost
 
 -- | Handle a post from any of the edit forms.
 handlePost :: Handler RepPlain
@@ -314,7 +484,7 @@ handleEdit = do
           redirect RedirectTemporary JournalR)
        jE
 
--- | Handle post from the journal import form.
+-- | Handle a post from the journal import form.
 handleImport :: Handler RepPlain
 handleImport = do
   setMessage "can't handle file upload yet"
@@ -337,51 +507,168 @@ handleImport = do
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> Hamlet AppRoute
-topbar VD{j=j,msg=msg,today=today} = $(Settings.hamletFile "topbar")
+topbar VD{j=j,msg=msg} = [$hamlet|
+<div#topbar
+ <a.topleftlink href=#{hledgerorgurl} title="More about hledger"
+  hledger-web
+  <br />
+  #{version}
+ <a.toprightlink href=#{manualurl} target=hledgerhelp title="User manual">manual
+ <h1>#{title}
+$maybe m <- msg
+ <div#message>#{m}
+|]
   where
     title = takeFileName $ journalFilePath j
 
--- -- | Links to navigate between the main views.
--- navlinks :: ViewData -> Hamlet AppRoute
--- navlinks vd = $(Settings.hamletFile "navlinks")
---  where
---    journallink  = navlink vd "transactions" JournalR
---    registerlink = navlink vd "postings" RegisterR
-
 -- | Navigation link, preserving parameters and possibly highlighted.
 navlink :: ViewData -> String -> AppRoute -> String -> Hamlet AppRoute
-navlink VD{here=here,q=q} s dest title = $(Settings.hamletFile "navlink")
+navlink VD{here=here,q=q} s dest title = [$hamlet|
+<a##{s}link.#{style} href=@?{u} title="#{title}">#{s}
+|]
   where u = (dest, if null q then [] else [("q", pack q)])
         style | dest == here = "navlinkcurrent"
               | otherwise    = "navlink" :: Text
 
 -- | Links to the various journal editing forms.
 editlinks :: Hamlet AppRoute
-editlinks = $(Settings.hamletFile "editlinks")
+editlinks = [$hamlet|
+<a#editformlink href onclick="return editformToggle(event)" title="Toggle journal edit form">edit
+\ | #
+<a#addformlink href onclick="return addformToggle(event)" title="Toggle transaction add form">add
+<a#importformlink href onclick="return importformToggle(event)" style="display:none;">import transactions
+|]
 
 -- | Link to a topic in the manual.
 helplink :: String -> String -> Hamlet AppRoute
-helplink topic label = $(Settings.hamletFile "helplink")
+helplink topic label = [$hamlet|
+<a href=#{u} target=hledgerhelp>#{label}
+|]
     where u = manualurl ++ if null topic then "" else '#':topic
 
 -- | Search form for entering custom queries to filter journal data.
 searchform :: ViewData -> Hamlet AppRoute
-searchform VD{here=here,q=q} = $(Settings.hamletFile "searchform")
+searchform VD{here=here,q=q} = [$hamlet|
+<div#searchformdiv
+ <form#searchform.form method=GET
+  <table
+   <tr
+    <td
+     Search:
+     \ #
+    <td
+     <input name=q size=70 value=#{q}
+     <input type=submit value="Search"
+     $if filtering
+      \ #
+      <span.showall
+       <a href=@{here}>clear search
+     \ #
+     <a#search-help-link href="#" title="Toggle search help">help
+   <tr
+    <td
+    <td
+     <div#search-help.help style="display:none;"
+      Leave blank to see journal (all transactions), or click account links to see transactions under that account.
+      <br>
+      Transactions/postings may additionally be filtered by:
+      <br>
+      acct:REGEXP (target account), #
+      desc:REGEXP (description), #
+      date:PERIODEXP (date), #
+      edate:PERIODEXP (effective date), #
+      <br>
+      status:BOOL (cleared status), #
+      real:BOOL (real/virtual-ness), #
+      empty:BOOL (posting amount = 0).
+      <br>
+      not: to negate, enclose space-containing patterns in quotes, multiple filters are AND'ed.
+|]
  where
   filtering = not $ null q
 
 -- | Add transaction form.
 addform :: ViewData -> Hamlet AppRoute
-addform vd@VD{qopts=qopts} = $(Settings.hamletFile "addform")
+addform vd@VD{qopts=qopts} = [$hamlet|
+<script type=text/javascript>
+ $(document).ready(function() {
+    /* dhtmlxcombo setup */
+    window.dhx_globalImgPath="../static/";
+    var desccombo  = new dhtmlXCombo("description");
+    var acct1combo = new dhtmlXCombo("account1");
+    var acct2combo = new dhtmlXCombo("account2");
+    desccombo.enableFilteringMode(true);
+    acct1combo.enableFilteringMode(true);
+    acct2combo.enableFilteringMode(true);
+    desccombo.setSize(300);
+    acct1combo.setSize(300);
+    acct2combo.setSize(300);
+    /* desccombo.enableOptionAutoHeight(true, 20); */
+    /* desccombo.setOptionHeight(200); */
+ });
+
+<form#addform method=POST style=display:none;
+  <h2#contenttitle>#{title}
+  <table.form
+   <tr
+    <td colspan=4
+     <table
+      <tr#descriptionrow
+       <td
+        Date:
+       <td
+        <input.textinput size=15 name=date value=#{date}
+       <td style=padding-left:1em;
+        Description:
+       <td
+        <select id=description name=description
+         <option
+         $forall d <- descriptions
+          <option value=#{d}>#{d}
+      <tr.helprow
+       <td
+       <td
+        <span.help>#{datehelp} #
+       <td
+       <td
+        <span.help>#{deschelp}
+   ^{postingfields vd 1}
+   ^{postingfields vd 2}
+   <tr#addbuttonrow
+    <td colspan=4
+     <input type=hidden name=action value=add
+     <input type=submit name=submit value="add transaction"
+     $if manyfiles
+      \ to: ^{journalselect $ files $ j vd}
+     \ or #
+     <a href onclick="return addformToggle(event)">cancel
+|]
  where
+  title = "Add transaction" :: String
   datehelp = "eg: 2010/7/20" :: String
   deschelp = "eg: supermarket (optional)" :: String
   date = "today" :: String
   descriptions = sort $ nub $ map tdescription $ jtxns $ j vd
   manyfiles = (length $ files $ j vd) > 1
-  postingfields VD{j=j} n = $(Settings.hamletFile "addformpostingfields")
+  postingfields VD{j=j} n = [$hamlet|
+<tr#postingrow
+ <td align=right>#{acctlabel}:
+ <td
+  <select id=#{acctvar} name=#{acctvar}
+   <option
+   $forall a <- acctnames
+    <option value=#{a} :shouldselect a:selected>#{a}
+ ^{amtfield}
+<tr.helprow
+ <td
+ <td
+  <span.help>#{accthelp}
+ <td
+ <td
+  <span.help>#{amthelp}
+|]
    where
-    shouldselect a = n == 2 && Just a == inAccount qopts
+    shouldselect a = n == 2 && maybe False ((a==).fst) (inAccount qopts)
     numbered = (++ show n)
     acctvar = numbered "account"
     amtvar = numbered "amount"
@@ -389,7 +676,12 @@ addform vd@VD{qopts=qopts} = $(Settings.hamletFile "addform")
     (acctlabel, accthelp, amtfield, amthelp)
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
-                     ,$(Settings.hamletFile "addformpostingfieldsamount")
+                     ,[$hamlet|
+<td style=padding-left:1em;
+ Amount:
+<td
+ <input.textinput size=15 name=#{amtvar} value=""
+|]
                      ,"eg: $6"
                      )
        | otherwise = ("From account" :: String
@@ -400,25 +692,61 @@ addform vd@VD{qopts=qopts} = $(Settings.hamletFile "addform")
 
 -- | Edit journal form.
 editform :: ViewData -> Hamlet AppRoute
-editform VD{j=j} = $(Settings.hamletFile "editform")
+editform VD{j=j} = [$hamlet|
+<form#editform method=POST style=display:none;
+ <table.form
+  $if manyfiles
+   <tr
+    <td colspan=2
+     Editing ^{journalselect $ files j}
+  <tr
+   <td colspan=2
+    <!-- XXX textarea ids are unquoted journal file paths here, not valid html -->
+    $forall f <- files j
+     <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled
+      #{snd f}
+  <tr#addbuttonrow
+   <td
+    <span.help>^{formathelp}
+   <td align=right
+    <span.help Are you sure ? This will overwrite the journal. #
+    <input type=hidden name=action value=edit
+    <input type=submit name=submit value="save journal"
+    \ or #
+    <a href onclick="return editformToggle(event)">cancel
+|]
   where
     manyfiles = (length $ files j) > 1
     formathelp = helplink "file-format" "file format help"
 
 -- | Import journal form.
 importform :: Hamlet AppRoute
-importform = $(Settings.hamletFile "importform")
+importform = [$hamlet|
+<form#importform method=POST style=display:none;
+ <table.form
+  <tr
+   <td
+    <input type=file name=file
+    <input type=hidden name=action value=import
+    <input type=submit name=submit value="import from file"
+    \ or #
+    <a href onclick="return importformToggle(event)" cancel
+|]
 
 journalselect :: [(FilePath,String)] -> Hamlet AppRoute
-journalselect journalfiles = $(Settings.hamletFile "journalselect")
-
-----------------------------------------------------------------------
--- utilities
+journalselect journalfiles = [$hamlet|
+<select id=journalselect name=journal onchange="editformJournalSelect(event)"
+ $forall f <- journalfiles
+  <option value=#{fst f}>#{fst f}
+|]
 
 nulltemplate :: Hamlet AppRoute
 nulltemplate = [$hamlet||]
 
--- | A bundle of data useful for handlers and their templates.
+----------------------------------------------------------------------
+-- utilities
+
+-- | A bundle of data useful for hledger-web request handlers and templates.
 data ViewData = VD {
      opts  :: [Opt]         -- ^ command-line options at startup
     ,q     :: String        -- ^ current q parameter, the query expression
@@ -448,7 +776,7 @@ mkvd = VD {
      ,msg   = Nothing
      }
 
--- | Gather data useful for a hledger-web request handler and its templates.
+-- | Gather useful data for handlers and templates.
 getViewData :: Handler ViewData
 getViewData = do
   app        <- getYesod

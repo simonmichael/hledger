@@ -1,9 +1,0 @@
-<div#topbar
- <a.topleftlink href=#{hledgerorgurl} title="More about hledger"
-  hledger-web
-  <br />
-  #{version}
- <a.toprightlink href=#{manualurl} target=hledgerhelp title="User manual">manual
- <h1>#{title}
-$maybe m <- msg
- <div#message>#{m}
