@@ -204,9 +204,8 @@ matchesPosting (MatchDate True span) p =
     where d = maybe Nothing (Just . tdate) $ ptransaction p
 matchesPosting (MatchDate False span) p = not $ (MatchDate True span) `matchesPosting` p
 matchesPosting (MatchEDate True span) p =
-    case d of Just d  -> spanContainsDate span d
-              Nothing -> False
-    where d = maybe Nothing teffectivedate $ ptransaction p
+    case postingEffectiveDate p of Just d  -> spanContainsDate span d
+                                   Nothing -> False
 matchesPosting (MatchEDate False span) p = not $ (MatchEDate True span) `matchesPosting` p
 matchesPosting (MatchStatus True v) p = v == postingCleared p
 matchesPosting (MatchStatus False v) p = v /= postingCleared p
@@ -228,14 +227,20 @@ matchesTransaction m@(MatchAcct True _) t = any (m `matchesPosting`) $ tpostings
 matchesTransaction (MatchAcct False r) t = not $ (MatchAcct True r) `matchesTransaction` t
 matchesTransaction (MatchDate True span) t = spanContainsDate span $ tdate t
 matchesTransaction (MatchDate False span) t = not $ (MatchDate True span) `matchesTransaction` t
-matchesTransaction (MatchEDate True span) Transaction{teffectivedate=Just d} = spanContainsDate span d
-matchesTransaction _ Transaction{teffectivedate=Nothing} = False
+matchesTransaction (MatchEDate True span) t = spanContainsDate span $ transactionEffectiveDate t
 matchesTransaction (MatchEDate False span) t = not $ (MatchEDate True span) `matchesTransaction` t
 matchesTransaction (MatchStatus True v) t = v == tstatus t
 matchesTransaction (MatchStatus False v) t = v /= tstatus t
 matchesTransaction (MatchReal True v) t = v == hasRealPostings t
 matchesTransaction (MatchReal False v) t = v /= hasRealPostings t
 matchesTransaction _ _ = False
+
+postingEffectiveDate :: Posting -> Maybe Day
+postingEffectiveDate p = maybe Nothing (Just . transactionEffectiveDate) $ ptransaction p
+
+transactionEffectiveDate :: Transaction -> Day
+transactionEffectiveDate t = case teffectivedate t of Just d  -> d
+                                                      Nothing -> tdate t
 
 -- | Does the match expression match this account ?
 -- A matching in: clause is also considered a match.
