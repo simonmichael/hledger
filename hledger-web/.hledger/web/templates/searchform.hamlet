@@ -19,7 +19,7 @@
     <td
      <div#search-help.help style="display:none;"
       Leave blank to see general journal (all transactions), or #
-      click account links to see that account, optionally with sub-accounts.
+      click account links to see transactions under that account.
       <br>
       Transactions/postings may additionally be filtered by:
       <br>

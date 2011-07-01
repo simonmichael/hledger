@@ -19,6 +19,6 @@ $if True
   <tr.item.#{evenodd}.posting.#{displayclass}
    <td.date
    <td.description
-   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Focus on #{paccount p}">#{elideRight 40 $ paccount p}
+   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
    <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
    <td.balance align=right>

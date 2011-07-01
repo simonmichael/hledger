@@ -1,11 +1,11 @@
 <tr.item.#{inacctclass}
  <td.account.#{depthclass}
   #{indent}
-  <a href="@?{acctquery}" title="Focus on this account">#{adisplay}
+  <a href="@?{acctquery}" title="Show transactions in this account, including subaccounts">#{adisplay}
   <span.hoverlinks
    $if hassubs
     &nbsp;
-    <a href="@?{acctsquery}" title="Focus on this account and sub-accounts">+subs
+    <a href="@?{acctonlyquery}" title="Show transactions in this account only">only
    <!--
     &nbsp;
     <a href="@?{acctsonlyquery}" title="Focus on this account and sub-accounts and hide others">-others -->

@@ -122,11 +122,8 @@ getAccountsJsonR = do
 accountQuery :: AccountName -> String
 accountQuery a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 
-accountsQuery :: AccountName -> String
-accountsQuery a = "inaccts:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
-
-accountsOnlyQuery :: AccountName -> String
-accountsOnlyQuery a = "inacctsonly:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
+accountOnlyQuery :: AccountName -> String
+accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 
 -- accountUrl :: AppRoute -> AccountName -> (AppRoute,[(String,ByteString)])
 accountUrl r a = (r, [("q",pack $ accountQuery a)])
@@ -137,9 +134,8 @@ balanceReportAsHtml _ vd@VD{here=here,m=m,q=q,qopts=qopts,j=j} (items',total) = 
  where
    l = journalToLedger nullfilterspec j
    inacctmatcher = inAccountMatcher qopts
-   showacctmatcher = showAccountMatcher qopts
    allaccts = isNothing inacctmatcher
-   items = maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
+   items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
    itemAsHtml VD{here=here,q=q} (acct, adisplay, aindent, abal) = $(Settings.hamletFile "balancereportitem")
      where
@@ -151,8 +147,7 @@ balanceReportAsHtml _ vd@VD{here=here,m=m,q=q,qopts=qopts,j=j} (items',total) = 
                        Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * aindent) "&nbsp;"
        acctquery = (RegisterR, [("q", pack $ accountQuery acct)])
-       acctsquery = (RegisterR, [("q", pack $ accountsQuery acct)])
-       acctsonlyquery = (RegisterR, [("q", pack $ accountsOnlyQuery acct)])
+       acctonlyquery = (RegisterR, [("q", pack $ accountOnlyQuery acct)])
 
 -- | Render a journal report as HTML.
 journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
