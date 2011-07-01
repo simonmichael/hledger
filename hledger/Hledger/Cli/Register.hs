@@ -268,7 +268,7 @@ summarisePostings ps =
     where
       (tos,froms) = partition (fromMaybe False . isNegativeMixedAmount . pamount) ps
 
-simplifyPostingAccounts = nub . map (accountLeafName . paccount)
+simplifyPostingAccounts = map accountLeafName . nub . map paccount
 commafy = intercalate ", "
 
 filterTransactionPostings :: Matcher -> Transaction -> Transaction
