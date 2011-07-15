@@ -3,8 +3,8 @@
 /robots.txt      RobotsR        GET
 /                RootR          GET
 /journal         JournalR       GET POST
-/register        RegisterR      GET POST
-/journalonly     JournalOnlyR   GET POST
-/registeronly    RegisterOnlyR  GET POST
+/journal/raw     JournalRawR    GET
+/journal/edit    JournalEditR   GET
+/register        RegisterR      GET
 /accounts        AccountsR      GET
-/accountsjson    AccountsJsonR  GET
+/api/accounts    AccountsJsonR  GET

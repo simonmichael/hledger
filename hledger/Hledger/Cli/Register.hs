@@ -190,6 +190,7 @@ journalRegisterReport _ Journal{jtxns=ts} m = (totallabel, items)
    where
      ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
      items = reverse $ accountRegisterReportItems m Nothing nullmixedamt id ts'
+     -- XXX items' first element should be the full transaction with all postings
 
 -- | Get a conventional account register report, with the specified
 -- options, for the currently focussed account (or possibly the focussed

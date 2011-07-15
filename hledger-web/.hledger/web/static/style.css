@@ -27,13 +27,12 @@ body                                                                 { backgroun
 .notinacct, .notinacct :link, .notinacct :visited { color:#888; }
 .notinacct .negative { color:#b77; }
 .balancereport .numpostings                                          { padding-left:1em; color:#aaa; }
-.balancereport .hoverlinks { visibility:hidden; }
 .balancereport td.add.mouseover { background-color:rgba(208,208,208,0.5); }
 .balancereport td.journal.mouseover { background-color:rgba(208,208,208,0.5); }
 .balancereport td.journal.mouseover .hoverlinks { visibility:visible; }
-.balancereport .hoverlinks { visibility:hidden; }
 .balancereport td.account.mouseover { background-color:rgba(208,208,208,0.5); }
 .balancereport td.account.mouseover .hoverlinks { visibility:visible; }
+.balancereport .hoverlinks { visibility:hidden; }
 .balancereport .hoverlinks { margin-left:0em; font-weight:normal; /*font-size:smaller;*/ display:inline-block; text-align:right; }
 .balancereport .hoverlinks a { margin-left:0.5em; }
 
@@ -103,7 +102,7 @@ body                        { margin:0; }
 .positive                   { }
 
 table.journalreport         { border-spacing: 0; }
-.journalreport td           { border-top:thin solid #ded; }
+.journalreport td           {  }
 .journalreport pre          { margin-top:0; }
 
 .balancereport              { border-spacing:0; }

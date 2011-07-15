@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, RecordWildCards  #-}
 {-
 
 hledger-web's request handlers, and helpers.
@@ -46,16 +46,90 @@ getRootR :: Handler RepHtml
 getRootR = redirect RedirectTemporary defaultroute where defaultroute = RegisterR
 
 ----------------------------------------------------------------------
--- main views
+-- main views:
 
--- | The journal entries view, with accounts sidebar.
+-- | The formatted journal view, with sidebar.
 getJournalR :: Handler RepHtml
 getJournalR = do
-  vd@VD{opts=opts,m=m,am=am,j=j} <- getViewData
+  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
+  let sidecontent = sidebar vd
+      -- XXX like registerReportAsHtml
+      inacct = inAccount qopts
+      -- injournal = isNothing inacct
+      filtering = m /= MatchAny
+      -- showlastcolumn = if injournal && not filtering then False else True
+      title = case inacct of
+                Nothing       -> "Journal"++filter
+                Just (a,subs) -> "Transactions in "++a++andsubs++filter
+                                  where andsubs = if subs then " (and subaccounts)" else ""
+                where
+                  filter = if filtering then ", filtered" else ""
+      maincontent = formattedJournalReportAsHtml opts vd $ journalRegisterReport opts j m
+  defaultLayout $ do
+      setTitle "hledger-web journal"
+      addHamlet [$hamlet|
+^{topbar vd}
+<div#content
+ <div#sidebar
+  ^{sidecontent}
+ <div#main.register
+  <h2#contenttitle>#{title}
+  ^{searchform vd}
+  <div#maincontent
+   ^{maincontent}
+  ^{addform vd}
+  ^{editform vd}
+  ^{importform}
+|]
+
+-- | The journal editform, no sidebar.
+getJournalEditR :: Handler RepHtml
+getJournalEditR = do
+  vd <- getViewData
+  defaultLayout $ do
+      setTitle "hledger-web journal edit form"
+      addHamlet $ editform vd
+
+--   let sidecontent = sidebar vd
+--       -- XXX like registerReportAsHtml
+--       inacct = inAccount qopts
+--       -- injournal = isNothing inacct
+--       filtering = m /= MatchAny
+--       -- showlastcolumn = if injournal && not filtering then False else True
+--       title = case inacct of
+--                 Nothing       -> "Journal"++filter
+--                 Just (a,subs) -> "Transactions in "++a++andsubs++filter
+--                                   where andsubs = if subs then " (and subaccounts)" else ""
+--                 where
+--                   filter = if filtering then ", filtered" else ""
+--       maincontent =
+--           case inAccountMatcher qopts of Just m' -> registerReportAsHtml opts vd $ accountRegisterReport opts j m m'
+--                                          Nothing -> registerReportAsHtml opts vd $ journalRegisterReport opts j m
+--   defaultLayout $ do
+--       setTitle "hledger-web register"
+--       addHamlet [$hamlet|
+-- ^{topbar vd}
+-- <div#content
+--  <div#sidebar
+--   ^{sidecontent}
+--  <div#main.register
+--   <h2#contenttitle>#{title}
+--   ^{searchform vd}
+--   <div#maincontent
+--    ^{maincontent}
+--   ^{addform vd}
+--   ^{editform vd}
+--   ^{importform}
+-- |]
+
+-- | The raw journal view, with sidebar.
+getJournalRawR :: Handler RepHtml
+getJournalRawR = do
+  vd@VD{opts=opts,m=m,j=j} <- getViewData
   let
-      sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
+      sidecontent = sidebar vd
       title = "Journal entries" ++ if m /= MatchAny then ", filtered" else "" :: String
-      maincontent = journalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
+      maincontent = rawJournalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet [$hamlet|
@@ -73,33 +147,29 @@ getJournalR = do
   ^{importform}
 |]
 
--- | The journal entries view with no sidebar.
+-- | The raw journal view, no sidebar.
 getJournalOnlyR :: Handler RepHtml
 getJournalOnlyR = do
   vd@VD{opts=opts,m=m,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal only"
-      addHamlet $ journalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
+      addHamlet $ rawJournalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
+
+----------------------------------------------------------------------
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-  vd@VD{opts=opts,qopts=qopts,m=m,am=am,j=j} <- getViewData
-  let sidecontent = balanceReportAsHtml opts vd $ balanceReport2 opts am j
-      -- XXX like registerReportAsHtml
-      inacct = inAccount qopts
+  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
+  let sidecontent = sidebar vd
       -- injournal = isNothing inacct
       filtering = m /= MatchAny
-      -- showlastcolumn = if injournal && not filtering then False else True
-      title = case inacct of
-                Nothing       -> "Journal"++filter
-                Just (a,subs) -> "Transactions in "++a++andsubs++filter
-                                  where andsubs = if subs then " (and subaccounts)" else ""
-                where
-                  filter = if filtering then ", filtered" else ""
-      maincontent =
-          case inAccountMatcher qopts of Just m' -> registerReportAsHtml opts vd $ accountRegisterReport opts j m m'
-                                         Nothing -> registerReportAsHtml opts vd $ journalRegisterReport opts j m
+      title = "Transactions in "++a++andsubs++filter
+               where
+                 (a,subs) = fromMaybe ("all accounts",False) $ inAccount qopts
+                 andsubs = if subs then " (and subaccounts)" else ""
+                 filter = if filtering then ", filtered" else ""
+      maincontent = registerReportHtml opts vd $ accountRegisterReport opts j m $ fromMaybe MatchAny $ inAccountMatcher qopts
   defaultLayout $ do
       setTitle "hledger-web register"
       addHamlet [$hamlet|
@@ -117,15 +187,17 @@ getRegisterR = do
   ^{importform}
 |]
 
--- | The register view with no sidebar.
+-- | The register view, no sidebar.
 getRegisterOnlyR :: Handler RepHtml
 getRegisterOnlyR = do
   vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web register only"
       addHamlet $
-          case inAccountMatcher qopts of Just m' -> registerReportAsHtml opts vd $ accountRegisterReport opts j m m'
-                                         Nothing -> registerReportAsHtml opts vd $ journalRegisterReport opts j m
+          case inAccountMatcher qopts of Just m' -> registerReportHtml opts vd $ accountRegisterReport opts j m m'
+                                         Nothing -> registerReportHtml opts vd $ journalRegisterReport opts j m
+
+----------------------------------------------------------------------
 
 -- | A simple accounts view. This one is json-capable, returning the chart
 -- of accounts as json if the Accept header specifies json.
@@ -149,12 +221,16 @@ getAccountsJsonR = do
 ----------------------------------------------------------------------
 -- view helpers
 
+-- | Render the sidebar used on most views.
+sidebar :: ViewData -> Hamlet AppRoute
+sidebar vd@VD{opts=opts,am=am,j=j} = balanceReportAsHtml opts vd $ balanceReport2 opts am j
+
 -- | Render a "BalanceReport" as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
 balanceReportAsHtml _ vd@VD{qopts=qopts,j=j} (items',total) =
  [$hamlet|
 <div#accountsheading
- <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+/-]
+ <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
 <div#accounts
  <table.balancereport>
   <tr
@@ -165,12 +241,14 @@ balanceReportAsHtml _ vd@VD{qopts=qopts,j=j} (items',total) =
   <tr.item :allaccts:.inacct
    <td.journal colspan=3
     <br>
-    <a href=@{RegisterR} title="Show all transactions in journal format">Journal
+    <a href=@{JournalR} title="Show all transactions in journal format">Journal
     <span.hoverlinks
      &nbsp;
-     <a href=@{JournalR} title="Show raw journal entries">entries</a>
+     <a href=@{JournalRawR} title="Show raw journal entries">raw</a>
      &nbsp;
-     <a#editformlink href onclick="return editformToggle(event)" title="Edit the journal">edit
+     <a href=@{JournalEditR} title="Edit the journal">edit
+     &nbsp;
+     (<a#editformlink href onclick="return editformToggle(event)" title="Edit the journal">edit</a>)
 
   <tr
    <td colspan=3
@@ -228,9 +306,9 @@ accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRe
 -- accountUrl :: AppRoute -> AccountName -> (AppRoute,[(String,ByteString)])
 accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
--- | Render a "JournalReport" as HTML.
-journalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
-journalReportAsHtml _ vd items = [$hamlet|
+-- | Render a "JournalReport" as HTML for the raw journal view.
+rawJournalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
+rawJournalReportAsHtml _ vd items = [$hamlet|
 <table.journalreport>
  $forall i <- numbered items
   ^{itemAsHtml vd i}
@@ -246,11 +324,107 @@ journalReportAsHtml _ vd items = [$hamlet|
        evenodd = if even n then "even" else "odd" :: String
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
--- Render an "AccountRegisterReport" as html, for the journal/account register views.
-registerReportAsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
-registerReportAsHtml _ vd@VD{m=m,qopts=qopts} (balancelabel,items) = [$hamlet|
-$if showlastcolumn
- <script type=text/javascript>
+-- | Render an "AccountRegisterReport" as HTML for the formatted journal view.
+formattedJournalReportAsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
+formattedJournalReportAsHtml _ vd (_,items) = [$hamlet|
+<table.journalreport
+ <tr.headings
+  <th.date align=left>Date
+  <th.description align=left>Description
+  <th.account align=left>Accounts
+  <th.amount align=right>Amount
+ $forall i <- numberAccountRegisterReportItems items
+  ^{itemAsHtml vd i}
+ |]
+ where
+-- .#{datetransition}
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml VD{here=here} (n, _, _, _, (t, _, split, _, amt, _)) = [$hamlet|
+<tr.item.#{evenodd}.#{firstposting}
+ <td.date>#{date}
+ <td.description colspan=2 title="#{show t}">#{elideRight 60 desc}
+ <td.amount align=right>
+  $if showamt
+   #{mixedAmountAsHtml amt}
+$forall p <- tpostings t
+  <tr.item.#{evenodd}.posting
+   <td.date
+   <td.description
+   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
+   <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
+|]
+     where
+       evenodd = if even n then "even" else "odd" :: String
+       -- datetransition | newm = "newmonth"
+       --                | newd = "newday"
+       --                | otherwise = "" :: String
+       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
+       -- acctquery = (here, [("q", pack $ accountQuery acct)])
+       showamt = not split || not (isZeroMixedAmount amt)
+
+-- Generate html for an account register, including a balance chart and transaction list.
+registerReportHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
+registerReportHtml opts vd r@(_,items) = [$hamlet|
+ ^{registerChartHtml items}
+ ^{registerItemsHtml opts vd r}
+|]
+
+-- Generate html for a transaction list from an "AccountRegisterReport".
+registerItemsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
+registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
+<table.registerreport
+ <tr.headings
+  <th.date align=left>Date
+  <th.description align=left>Description
+  <th.account align=left>To/From Account
+    <!-- \ #
+    <a#all-postings-toggle-link.togglelink href="#" title="Toggle all split postings">[+] -->
+  <th.amount align=right>Amount
+  <th.balance align=right>#{balancelabel}
+
+ $forall i <- numberAccountRegisterReportItems items
+  ^{itemAsHtml vd i}
+ |]
+ where
+   -- inacct = inAccount qopts
+   -- filtering = m /= MatchAny
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml VD{here=here,p=p} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
+<tr.item.#{evenodd}.#{firstposting}.#{datetransition}
+ <td.date>#{date}
+ <td.description title="#{show t}">#{elideRight 30 desc}
+ <td.account title="#{show t}"
+  <a
+   #{elideRight 40 acct}
+  &nbsp;
+  <a.postings-toggle-link.togglelink href="#" title="Toggle all postings"
+   [+]
+ <td.amount align=right>
+  $if showamt
+   #{mixedAmountAsHtml amt}
+ <td.balance align=right>#{mixedAmountAsHtml bal}
+$forall p <- tpostings t
+ <tr.item.#{evenodd}.posting.#{displayclass}
+   <td.date
+   <td.description
+   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
+   <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
+   <td.balance align=right>
+|]
+     where
+       evenodd = if even n then "even" else "odd" :: String
+       datetransition | newm = "newmonth"
+                      | newd = "newday"
+                      | otherwise = "" :: String
+       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
+       -- acctquery = (here, [("q", pack $ accountQuery acct)])
+       showamt = not split || not (isZeroMixedAmount amt)
+       displayclass = if p then "" else "hidden" :: String
+
+-- | Generate javascript/html for a register balance line chart based on
+-- the provided "AccountRegisterReportItem"s.
+registerChartHtml items = [$hamlet|
+<script type=text/javascript>
   $(document).ready(function() {
     /* render chart */
     /* if ($('#register-chart')) */
@@ -269,69 +443,8 @@ $if showlastcolumn
              }
              );
   });
- <div#register-chart style="width:600px;height:100px; margin-bottom:1em;"
-
-<table.registerreport
- <tr.headings
-  <th.date align=left>Date
-  <th.description align=left>Description
-  <th.account align=left>
-    $if injournal
-     Accounts
-    $else
-     To/From Account
-    <!-- \ #
-    <a#all-postings-toggle-link.togglelink href="#" title="Toggle all split postings">[+/-] -->
-  <th.amount align=right>Amount
-  $if showlastcolumn
-   <th.balance align=right>#{balancelabel}
-
- $forall i <- numberAccountRegisterReportItems items
-  ^{itemAsHtml vd i}
- |]
- where
-   inacct = inAccount qopts
-   filtering = m /= MatchAny
-   injournal = isNothing inacct
-   showlastcolumn = if injournal && not filtering then False else True
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here,p=p} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
-<tr.item.#{evenodd}.#{firstposting}.#{datetransition}
- <td.date>#{date}
- <td.description title="#{show t}">#{elideRight 30 desc}
- <td.account title="#{show t}"
-  $if True
-   <a
-    #{elideRight 40 acct}
-   &nbsp;
-   <a.postings-toggle-link.togglelink href="#" title="Toggle postings"
-    [+/-]
-  $else
-   <a href="@?{acctquery}" title="Go to #{acct}">#{elideRight 40 acct}
- <td.amount align=right>
-  $if showamt
-   #{mixedAmountAsHtml amt}
- $if showlastcolumn
-  <td.balance align=right>#{mixedAmountAsHtml bal}
-$if True
- $forall p <- tpostings t
-  <tr.item.#{evenodd}.posting.#{displayclass}
-   <td.date
-   <td.description
-   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
-   <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
-   $if showlastcolumn
-    <td.balance align=right>
+<div#register-chart style="width:600px;height:100px; margin-bottom:1em;"
 |]
-     where
-       evenodd = if even n then "even" else "odd" :: String
-       datetransition | newm = "newmonth"
-                      | newd = "newday"
-                      | otherwise = "" :: String
-       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
-       acctquery = (here, [("q", pack $ accountQuery acct)])
-       showamt = not split || not (isZeroMixedAmount amt)
-       displayclass = if p then "" else "hidden" :: String
 
 stringIfLongerThan :: Int -> String -> String
 stringIfLongerThan n s = if length s > n then s else ""
