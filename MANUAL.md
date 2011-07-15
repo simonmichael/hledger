@@ -37,30 +37,44 @@ This is the manual for hledger 0.14.0.
 
 ## Frequently asked questions
 
-- **How does hledger relate to John Wiegley's ledger project ?**
+- **How does hledger relate to [John Wiegley's ledger](http://ledger-cli.org) ?**
 
-    hledger was very much inspired by, and is partly a clone of,
-    [ledger](http://wiki.github.com/jwiegley/ledger) (also called "c++
-    ledger" in these docs.) I was a happy ledger user and contributor for
-    some time, and I still use it occasionally. I wrote hledger because I
-    wanted to develop financial tools in the Haskell programming language
-    and ecosystem, whose advantages I believe are compelling. I have also
-    tried to make hledger a little more simple, usable, installable, and
-    documented, and to provide alternate user interfaces and other
-    enhancements to make it more widely useful.
-    
-    ledger has more advanced command-line power features (periodic
-    transactions, budgets, capital gains tracking, value expressions,
-    custom output formats, ...)  and it remains faster and more memory
-    efficient on large data files.
-    
-    The two projects (indeed the whole family of ledger-inspired projects)
-    collaborate freely, and we share ledger's IRC channel (but have our
-    own mail list.) We stay compatible with ledger wherever possible,
-    intending that you can use both tools on the same data, each for its
-    strengths.  Here is
-    [more detail about compatibility](#compatibility-with-c-ledger).
+    Short version: hledger is a friendly, co-evolving, compatible
+    reimplementation in Haskell, lacking some of ledger's power features
+    and raw performance, and focussing on robustness, usability, ease of
+    development, and experimental add-ons, notably the (separate,
+    optional) [web interface](#web).
 
+    Long version:
+    
+    hledger was inspired by and is partly a clone of ledger (also called
+    "c++ ledger" here.) I was a happy ledger user and contributor for some
+    time; I still use it occasionally. I wrote hledger because I wanted to
+    develop financial tools in the Haskell programming language and
+    ecosystem, whose advantages I believe are compelling. I have also
+    tried to make hledger a little more simple, usable, installable,
+    documented, appealing to collaborators, and to provide alternate user
+    interfaces to make it more widely useful.
+
+    ledger has more advanced power-user features on the command-line
+    (periodic and modifier transactions, budgets, capital gains tracking,
+    value expressions, custom output formats, etc.) and it remains faster
+    and more memory efficient (for now!)...
+
+    hledger builds faster and has an up-to-date manual and an optional web
+    interface (which often works on ledger files too)...
+
+    The two projects collaborate freely.  We share the
+    [#ledger](irc://irc.freenode.net/#ledger) IRC channel but have
+    separate mail lists
+    ([hledger list](http://groups.google.com/group/hledger/),
+    [ledger-cli list](http://groups.google.com/group/ledger-cli/)).  I try
+    to give back by providing infrastructure
+    ([ledger-cli.org](http://ledger-cli.org)) and IRC support.
+    hledger stays compatible with ledger wherever possible, so that you
+    can often use both tools on the same data file. Here is
+    [more about compatibility](#compatibility-with-c-ledger).
+    
 ## Installing
 
 hledger works on all major platforms *(except microsoft windows, as of
@@ -822,8 +836,10 @@ Examples:
 
 The web command starts a web server providing a web-based user interface,
 and if possible opens a web browser to view it. The web UI combines the
-features of the print, register, balance and add commands, and adds a
-general edit command.
+features of the print, register, balance and add commands, and also
+supports data entry and modification.  You can see it in action here:
+[current release demo](http://demo.hledger.org),
+[latest development demo](http://demo.hledger.org:5001).
 
 There are some web-specific options:
 
