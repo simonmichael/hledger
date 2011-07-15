@@ -18,7 +18,8 @@ contributors and developers.
   <br>Bug tracker: [bugs.hledger.org](http://bugs.hledger.org)
 
 **Released version**<br>
-  [Release notes](NEWS.html), [hledger-web demo](http://demo.hledger.org)<br>
+  [Binaries](DOWNLOADS.html), [release notes](NEWS.html), [hledger-web demo](http://demo.hledger.org)<br>
+  Hackage:
   [hledger](http://hackage.haskell.org/package/hledger),
   [hledger-web](http://hackage.haskell.org/package/hledger-web),
   [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
@@ -30,15 +31,17 @@ contributors and developers.
 <form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
 <input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
 **Latest development version**<br>
-  [get it](#how-to-set-up-for-hledger-development),
+  [Get it](#how-to-set-up-for-hledger-development),
   [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
   [hledger-web dev demo](http://demo.hledger.org:5001)
-  <br>[external API haddocks](http://hledger.org/api-doc)
-  <input type="text"   name="hoogle" id="hoogle" accesskey="1"
+  <br>[External API haddocks](http://hledger.org/api-doc)
+  (for scripting or building on hledger)
+  <span style="white-space:nowrap;"
+  ><input type="text" name="hoogle" id="hoogle" accesskey="1"
   /><input type="submit" value="search"
-  />&nbsp;(if you are scripting or using hledger in another app)
-  <br>[internal code haddocks](http://hledger.org/code-doc)
-  <br>&nbsp;(if you are learning/developing hledger's internals)
+  /></span>
+  <br>[Internal code haddocks](http://hledger.org/code-doc)
+  (for learning/developing hledger's internals)
   <br>[Developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
   [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
