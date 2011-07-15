@@ -48,9 +48,8 @@ lowercase = map toLower
 uppercase = map toUpper
 
 strip = lstrip . rstrip
-lstrip = dropws
-rstrip = reverse . dropws . reverse
-dropws = dropWhile (`elem` " \t")
+lstrip = dropWhile (`elem` " \t")
+rstrip = reverse . lstrip . reverse
 
 elideLeft width s =
     if length s > width then ".." ++ reverse (take (width - 2) $ reverse s) else s
