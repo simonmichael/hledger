@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-|
 
 Standard imports and utilities which are useful everywhere, or needed low

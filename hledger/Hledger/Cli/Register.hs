@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-| 
 
 A ledger-compatible @register@ command.

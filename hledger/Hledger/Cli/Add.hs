@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-| 
 
 A history-aware add command to help with data entry.

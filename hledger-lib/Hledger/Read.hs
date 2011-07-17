@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-| 
 
 Read hledger data from various data formats, and related utilities.

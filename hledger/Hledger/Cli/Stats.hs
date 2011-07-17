@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-|
 
 Print some statistics for the journal.

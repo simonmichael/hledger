@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and

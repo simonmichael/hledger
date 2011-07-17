@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-| 
 
 Print a histogram report.

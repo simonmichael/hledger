@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-|
 
 A reader for hledger's (and c++ ledger's) journal file format.

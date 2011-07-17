@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-| 
 
 A ledger-compatible @print@ command.
