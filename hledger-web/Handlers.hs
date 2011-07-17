@@ -48,7 +48,7 @@ getRootR = redirect RedirectTemporary defaultroute where defaultroute = Register
 -- | The formatted journal view, with sidebar.
 getJournalR :: Handler RepHtml
 getJournalR = do
-  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
+  vd@VD{..} <- getViewData
   let sidecontent = sidebar vd
       -- XXX like registerReportAsHtml
       inacct = inAccount qopts
@@ -122,7 +122,7 @@ getJournalEditR = do
 -- | The raw journal view, with sidebar.
 getJournalRawR :: Handler RepHtml
 getJournalRawR = do
-  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  vd@VD{..} <- getViewData
   let
       sidecontent = sidebar vd
       title = "Journal entries" ++ if m /= MatchAny then ", filtered" else "" :: String
@@ -147,7 +147,7 @@ getJournalRawR = do
 -- | The raw journal view, no sidebar.
 getJournalOnlyR :: Handler RepHtml
 getJournalOnlyR = do
-  vd@VD{opts=opts,m=m,j=j} <- getViewData
+  vd@VD{..} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal only"
       addHamlet $ rawJournalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
@@ -157,7 +157,7 @@ getJournalOnlyR = do
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
 getRegisterR = do
-  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
+  vd@VD{..} <- getViewData
   let sidecontent = sidebar vd
       -- injournal = isNothing inacct
       filtering = m /= MatchAny
@@ -187,7 +187,7 @@ getRegisterR = do
 -- | The register view, no sidebar.
 getRegisterOnlyR :: Handler RepHtml
 getRegisterOnlyR = do
-  vd@VD{opts=opts,qopts=qopts,m=m,j=j} <- getViewData
+  vd@VD{..} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web register only"
       addHamlet $
@@ -200,7 +200,7 @@ getRegisterOnlyR = do
 -- of accounts as json if the Accept header specifies json.
 getAccountsR :: Handler RepHtmlJson
 getAccountsR = do
-  vd@VD{opts=opts,m=m,am=am,j=j} <- getViewData
+  vd@VD{..} <- getViewData
   let j' = filterJournalPostings2 m j
       html = do
         setTitle "hledger-web accounts"
@@ -211,7 +211,7 @@ getAccountsR = do
 -- | A json-only version of "getAccountsR", does not require the special Accept header.
 getAccountsJsonR :: Handler RepJson
 getAccountsJsonR = do
-  VD{m=m,j=j} <- getViewData
+  VD{..} <- getViewData
   let j' = filterJournalPostings2 m j
   jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j')]
 
@@ -220,11 +220,11 @@ getAccountsJsonR = do
 
 -- | Render the sidebar used on most views.
 sidebar :: ViewData -> Hamlet AppRoute
-sidebar vd@VD{opts=opts,am=am,j=j} = balanceReportAsHtml opts vd $ balanceReport2 opts am j
+sidebar vd@VD{..} = balanceReportAsHtml opts vd $ balanceReport2 opts am j
 
 -- | Render a "BalanceReport" as HTML.
 balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{qopts=qopts,j=j} (items',total) =
+balanceReportAsHtml _ vd@VD{..} (items',total) =
  [$hamlet|
 <div#accountsheading
  <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
@@ -336,7 +336,7 @@ formattedJournalReportAsHtml _ vd (_,items) = [$hamlet|
  where
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here} (n, _, _, _, (t, _, split, _, amt, _)) = [$hamlet|
+   itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [$hamlet|
 <tr.item.#{evenodd}.#{firstposting}
  <td.date>#{date}
  <td.description colspan=2 title="#{show t}">#{elideRight 60 desc}
@@ -386,7 +386,7 @@ registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
    -- inacct = inAccount qopts
    -- filtering = m /= MatchAny
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
-   itemAsHtml VD{here=here,p=p} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
+   itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
  <td.description title="#{show t}">#{elideRight 30 desc}
@@ -492,7 +492,7 @@ handlePost = do
 -- | Handle a post from the transaction add form.
 handleAdd :: Handler RepPlain
 handleAdd = do
-  VD{j=j,today=today} <- getViewData
+  VD{..} <- getViewData
   -- get form input values. M means a Maybe value.
   (dateM, descM, acct1M, amt1M, acct2M, amt2M, journalM) <- runFormPost'
     $ (,,,,,,)
@@ -549,7 +549,7 @@ handleAdd = do
 -- | Handle a post from the journal edit form.
 handleEdit :: Handler RepPlain
 handleEdit = do
-  VD{j=j} <- getViewData
+  VD{..} <- getViewData
   -- get form input values, or validation errors.
   -- getRequest >>= liftIO (reqRequestBody req) >>= mtrace
   (textM, journalM) <- runFormPost'
@@ -617,7 +617,7 @@ handleImport = do
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> Hamlet AppRoute
-topbar VD{j=j,msg=msg} = [$hamlet|
+topbar VD{..} = [$hamlet|
 <div#topbar
  <a.topleftlink href=#{hledgerorgurl} title="More about hledger"
   hledger-web
@@ -633,7 +633,7 @@ $maybe m <- msg
 
 -- | Navigation link, preserving parameters and possibly highlighted.
 navlink :: ViewData -> String -> AppRoute -> String -> Hamlet AppRoute
-navlink VD{here=here,q=q} s dest title = [$hamlet|
+navlink VD{..} s dest title = [$hamlet|
 <a##{s}link.#{style} href=@?{u} title="#{title}">#{s}
 |]
   where u = (dest, if null q then [] else [("q", pack q)])
@@ -658,7 +658,7 @@ helplink topic label = [$hamlet|
 
 -- | Search form for entering custom queries to filter journal data.
 searchform :: ViewData -> Hamlet AppRoute
-searchform VD{here=here,q=q} = [$hamlet|
+searchform VD{..} = [$hamlet|
 <div#searchformdiv
  <form#searchform.form method=GET
   <table
@@ -699,7 +699,7 @@ searchform VD{here=here,q=q} = [$hamlet|
 
 -- | Add transaction form.
 addform :: ViewData -> Hamlet AppRoute
-addform vd@VD{qopts=qopts} = [$hamlet|
+addform vd@VD{..} = [$hamlet|
 <script type=text/javascript>
  $(document).ready(function() {
     /* dhtmlxcombo setup */
@@ -749,7 +749,7 @@ addform vd@VD{qopts=qopts} = [$hamlet|
      <input type=hidden name=action value=add
      <input type=submit name=submit value="add transaction"
      $if manyfiles
-      \ to: ^{journalselect $ files $ j vd}
+      \ to: ^{journalselect $ files j}
      \ or #
      <a href onclick="return addformToggle(event)">cancel
 |]
@@ -758,9 +758,9 @@ addform vd@VD{qopts=qopts} = [$hamlet|
   datehelp = "eg: 2010/7/20" :: String
   deschelp = "eg: supermarket (optional)" :: String
   date = "today" :: String
-  descriptions = sort $ nub $ map tdescription $ jtxns $ j vd
-  manyfiles = (length $ files $ j vd) > 1
-  postingfields VD{j=j} n = [$hamlet|
+  descriptions = sort $ nub $ map tdescription $ jtxns j
+  manyfiles = (length $ files j) > 1
+  postingfields VD{..} n = [$hamlet|
 <tr#postingrow
  <td align=right>#{acctlabel}:
  <td
@@ -802,7 +802,7 @@ addform vd@VD{qopts=qopts} = [$hamlet|
 
 -- | Edit journal form.
 editform :: ViewData -> Hamlet AppRoute
-editform VD{j=j} = [$hamlet|
+editform VD{..} = [$hamlet|
 <form#editform method=POST style=display:none;
  <table.form
   $if manyfiles
