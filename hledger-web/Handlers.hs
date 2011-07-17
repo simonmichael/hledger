@@ -87,38 +87,6 @@ getJournalEditR = do
       setTitle "hledger-web journal edit form"
       addHamlet $ editform vd
 
---   let sidecontent = sidebar vd
---       -- XXX like registerReportAsHtml
---       inacct = inAccount qopts
---       -- injournal = isNothing inacct
---       filtering = m /= MatchAny
---       -- showlastcolumn = if injournal && not filtering then False else True
---       title = case inacct of
---                 Nothing       -> "Journal"++filter
---                 Just (a,subs) -> "Transactions in "++a++andsubs++filter
---                                   where andsubs = if subs then " (and subaccounts)" else ""
---                 where
---                   filter = if filtering then ", filtered" else ""
---       maincontent =
---           case inAccountMatcher qopts of Just m' -> registerReportAsHtml opts vd $ accountRegisterReport opts j m m'
---                                          Nothing -> registerReportAsHtml opts vd $ journalRegisterReport opts j m
---   defaultLayout $ do
---       setTitle "hledger-web register"
---       addHamlet [$hamlet|
--- ^{topbar vd}
--- <div#content
---  <div#sidebar
---   ^{sidecontent}
---  <div#main.register
---   <h2#contenttitle>#{title}
---   ^{searchform vd}
---   <div#maincontent
---    ^{maincontent}
---   ^{addform vd}
---   ^{editform vd}
---   ^{importform}
--- |]
-
 -- | The raw journal view, with sidebar.
 getJournalRawR :: Handler RepHtml
 getJournalRawR = do
