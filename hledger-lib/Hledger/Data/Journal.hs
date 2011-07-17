@@ -109,7 +109,7 @@ journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
 
 journalAccountNamesUsed :: Journal -> [AccountName]
-journalAccountNamesUsed = accountNamesFromPostings . journalPostings
+journalAccountNamesUsed = sort . accountNamesFromPostings . journalPostings
 
 journalAccountNames :: Journal -> [AccountName]
 journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
