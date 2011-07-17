@@ -96,18 +96,13 @@ balance report:
 -}
 
 module Hledger.Cli.Balance (
-  BalanceReport
- ,BalanceReportItem
- ,balance
- ,balanceReport
- ,balanceReport2
+  balance
  ,balanceReportAsText
  ,tests_Hledger_Cli_Balance
- -- ,tests_Balance
 ) where
+
 import Data.List
 import Data.Maybe
-import Data.Tree
 import Test.HUnit
 
 import Hledger.Cli.Format
@@ -119,18 +114,6 @@ import Hledger.Utils
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 
-
--- | A balance report is a chart of accounts with balances, and their grand total.
-type BalanceReport = ([BalanceReportItem] -- line items, one per account
-                     ,MixedAmount         -- total balance of all accounts
-                     )
-
--- | The data for a single balance report line item, representing one account.
-type BalanceReportItem = (AccountName  -- full account name
-                         ,AccountName  -- account name elided for display: the leaf name,
-                                       -- prefixed by any boring parents immediately above
-                         ,Int          -- how many steps to indent this account (0-based account depth excluding boring parents)
-                         ,MixedAmount) -- account balance, includes subs unless --flat is present
 
 -- | Print a balance report.
 balance :: [Opt] -> [String] -> Journal -> IO ()
@@ -195,73 +178,6 @@ formatAccount opts accountName depth balance leftJustified min max field = case 
         _	        -> ""
     where
       a = maybe "" (accountNameDrop (dropFromOpts opts)) accountName
-
--- | Get a balance report with the specified options for this journal.
-balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
-balanceReport opts filterspec j = balanceReport' opts j (journalToLedger filterspec)
-
--- | Get a balance report with the specified options for this
--- journal. Like balanceReport but uses the new matchers.
-balanceReport2 :: [Opt] -> Matcher -> Journal -> BalanceReport
-balanceReport2 opts matcher j = balanceReport' opts j (journalToLedger2 matcher)
-
--- Balance report helper.
-balanceReport' :: [Opt] -> Journal -> (Journal -> Ledger) -> BalanceReport
-balanceReport' opts j jtol = (items, total)
-    where
-      items = map mkitem interestingaccts
-      interestingaccts | NoElide `elem` opts = acctnames
-                       | otherwise = filter (isInteresting opts l) acctnames
-      acctnames = sort $ tail $ flatten $ treemap aname accttree
-      accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
-      total = sum $ map abalance $ ledgerTopAccounts l
-      l =  jtol $ journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
-
-      -- | Get data for one balance report line item.
-      mkitem :: AccountName -> BalanceReportItem
-      mkitem a = (a, adisplay, indent, abal)
-          where
-            adisplay | Flat `elem` opts = a
-                     | otherwise = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
-                where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
-            indent | Flat `elem` opts = 0
-                   | otherwise = length interestingparents
-            interestingparents = filter (`elem` interestingaccts) parents
-            parents = parentAccountNames a
-            abal | Flat `elem` opts = exclusiveBalance acct
-                 | otherwise = abalance acct
-                 where acct = ledgerAccount l a
-
-exclusiveBalance :: Account -> MixedAmount
-exclusiveBalance = sumPostings . apostings
-
--- | Is the named account considered interesting for this ledger's balance report ?
--- We follow the style of ledger's balance command.
-isInteresting :: [Opt] -> Ledger -> AccountName -> Bool
-isInteresting opts l a | Flat `elem` opts = isInterestingFlat opts l a
-                       | otherwise = isInterestingIndented opts l a
-
-isInterestingFlat :: [Opt] -> Ledger -> AccountName -> Bool
-isInterestingFlat opts l a = notempty || emptyflag
-    where
-      acct = ledgerAccount l a
-      notempty = not $ isZeroMixedAmount $ exclusiveBalance acct
-      emptyflag = Empty `elem` opts
-
-isInterestingIndented :: [Opt] -> Ledger -> AccountName -> Bool
-isInterestingIndented opts l a
-    | numinterestingsubs==1 && not atmaxdepth = notlikesub
-    | otherwise = notzero || emptyflag
-    where
-      atmaxdepth = isJust d && Just (accountNameLevel a) == d where d = depthFromOpts opts
-      emptyflag = Empty `elem` opts
-      acct = ledgerAccount l a
-      notzero = not $ isZeroMixedAmount inclbalance where inclbalance = abalance acct
-      notlikesub = not $ isZeroMixedAmount exclbalance where exclbalance = sumPostings $ apostings acct
-      numinterestingsubs = length $ filter isInterestingTree subtrees
-          where
-            isInterestingTree = treeany (isInteresting opts l . aname)
-            subtrees = map (fromJust . ledgerAccountTreeAt l) $ ledgerSubAccounts l $ ledgerAccount l a
 
 tests_Hledger_Cli_Balance = TestList
  [

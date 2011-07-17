@@ -1,6 +1,7 @@
 module Hledger (
                 module Hledger.Data
                ,module Hledger.Read
+               ,module Hledger.Report
                ,module Hledger.Utils
 )
 where
