@@ -38,7 +38,7 @@ INCLUDEPATHS=\
 	-ihledger-web \
 	-ihledger-vty \
 	-ihledger-chart
-MAIN=hledger/hledger.hs
+MAIN=hledger/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
 SOURCEFILES:= \

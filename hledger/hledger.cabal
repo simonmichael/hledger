@@ -85,7 +85,7 @@ library
 -- - how it works seems ghc version dependent
 -- leksah is reported to have this working, http://hackage.haskell.org/packages/archive/leksah/0.10.0.4/leksah.cabal
 executable hledger
-  main-is:        hledger.hs
+  main-is:        hledger-cli.hs
   -- should be the same as above
   other-modules:
                   Hledger.Cli
