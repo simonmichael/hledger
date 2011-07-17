@@ -1,5 +1,5 @@
 {-|
-hledger-web - a hledger add-on providing rudimentary pie chart generation.
+hledger-chart - a hledger add-on providing rudimentary pie chart generation.
 Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}

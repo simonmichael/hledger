@@ -562,7 +562,7 @@ justdatespan rdate = do
   return $ spanFromSmartDate rdate d
 
 -- | Make a datespan from two valid date strings parseable by parsedate
--- (or raise an error). Eg: mkdatespan "2011/1/1" "2011/12/31".
+-- (or raise an error). Eg: mkdatespan \"2011/1/1\" \"2011/12/31\".
 mkdatespan :: String -> String -> DateSpan
 mkdatespan b = DateSpan (Just $ parsedate b) . Just . parsedate
 
