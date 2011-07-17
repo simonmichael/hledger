@@ -825,52 +825,61 @@ nulltemplate = [$hamlet||]
 
 -- | A bundle of data useful for hledger-web request handlers and templates.
 data ViewData = VD {
-     opts  :: [Opt]         -- ^ command-line options at startup
-    ,q     :: String        -- ^ current q parameter, the query expression
-    ,p     :: Bool          -- ^ current p parameter, 1 or 0 shows/hides all postings, default is based on query
-    ,m     :: Matcher       -- ^ a matcher parsed from the main query expr ("q" parameter)
-    ,qopts :: [QueryOpt]    -- ^ query options parsed from the main query expr
-    ,am    :: Matcher       -- ^ a matcher parsed from the accounts sidebar query expr ("a" parameter)
-    ,aopts :: [QueryOpt]    -- ^ query options parsed from the accounts sidebar query expr
-    ,j     :: Journal       -- ^ the up-to-date parsed unfiltered journal
-    ,today :: Day           -- ^ the current day
-    ,here  :: AppRoute      -- ^ the current route
-    ,msg   :: Maybe Html    -- ^ the current UI message if any, possibly from the current request
+     opts         :: [Opt]      -- ^ the command-line options at startup
+    ,here         :: AppRoute   -- ^ the current route
+    ,msg          :: Maybe Html -- ^ the current UI message if any, possibly from the current request
+    ,today        :: Day        -- ^ today's date (for queries containing relative dates)
+    ,j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
+    ,q            :: String     -- ^ the current q parameter, the main query expression
+    ,m            :: Matcher    -- ^ a matcher parsed from the q parameter
+    ,qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
+    ,am           :: Matcher    -- ^ a matcher parsed from the accounts sidebar query expr ("a" parameter)
+    ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
+    ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
     }
 
-mkvd :: ViewData
-mkvd = VD {
-      opts  = []
-     ,q     = ""
-     ,p     = False
-     ,m     = MatchAny
-     ,qopts = []
-     ,am     = MatchAny
-     ,aopts = []
-     ,j     = nulljournal
-     ,today = ModifiedJulianDay 0
-     ,here  = RootR
-     ,msg   = Nothing
-     }
+-- | Make a default ViewData, using day 0 as today's date.
+nullviewdata :: ViewData
+nullviewdata = viewdataWithDateAndParams nulldate "" "" ""
 
--- | Gather useful data for handlers and templates.
+-- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
+viewdataWithDateAndParams :: Day -> String -> String -> String -> ViewData
+viewdataWithDateAndParams d q a p =
+    let (querymatcher,queryopts) = parseQuery d q
+        (acctsmatcher,acctsopts) = parseQuery d a
+    in VD {
+           opts         = [NoElide]
+          ,j            = nulljournal
+          ,here         = RootR
+          ,msg          = Nothing
+          ,today        = d
+          ,q            = q
+          ,m            = querymatcher
+          ,qopts        = queryopts
+          ,am           = acctsmatcher
+          ,aopts        = acctsopts
+          ,showpostings = p == "1"
+          }
+
+-- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = do
   app        <- getYesod
   let opts = appOpts app
   (j, err)   <- getCurrentJournal opts
   msg        <- getMessageOr err
-  Just here' <- getCurrentRoute
+  Just here  <- getCurrentRoute
   today      <- liftIO getCurrentDay
   q          <- getParameter "q"
-  let (querymatcher,queryopts) = parseQuery today q
   a          <- getParameter "a"
-  let (acctsmatcher,acctsopts) = parseQuery today a
   p          <- getParameter "p"
-  let p' | p == "1" = True
-         | p == "0" = False
-         | otherwise = isNothing $ inAccountMatcher queryopts
-  return mkvd{opts=opts, q=q, p=p', m=querymatcher, qopts=queryopts, am=acctsmatcher, aopts=acctsopts, j=j, today=today, here=here', msg=msg}
+  return (viewdataWithDateAndParams today q a p){
+               opts=opts
+              ,msg=msg
+              ,here=here
+              ,today=today
+              ,j=j
+              }
     where
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
