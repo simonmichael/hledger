@@ -157,10 +157,10 @@ setPosY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)}
       cy = y `mod` ph
       sy = y - cy
 
-updateCursorY, updateScrollY, updatePosY :: (Int -> Int) -> AppState -> AppState
+updateCursorY, updateScrollY {-, updatePosY-} :: (Int -> Int) -> AppState -> AppState
 updateCursorY f a = setCursorY (f $ cursorY a) a
 updateScrollY f a = setScrollY (f $ scrollY a) a
-updatePosY f a = setPosY (f $ posY a) a
+-- updatePosY f a = setPosY (f $ posY a) a
 
 resize :: Int -> Int -> AppState -> AppState
 resize x y a = setCursorY cy' a{aw=x,ah=y}
@@ -228,8 +228,8 @@ popLoc a@AppState{alocs=locs}
 clearLocs :: AppState -> AppState
 clearLocs a = a{alocs=[]}
 
-exit :: AppState -> AppState 
-exit = popLoc
+-- exit :: AppState -> AppState
+-- exit = popLoc
 
 loc :: AppState -> Loc
 loc = head . alocs
@@ -357,20 +357,20 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
       padclipline = take w . (++ blankline)
       blankline = replicate w ' '
 
-padClipString :: Int -> Int -> String -> [String]
-padClipString h w s = rows
-    where
-      rows = map padclipline $ take h $ lines s ++ replicate h blankline
-      padclipline = take w . (++ blankline)
-      blankline = replicate w ' '
+-- padClipString :: Int -> Int -> String -> [String]
+-- padClipString h w s = rows
+--     where
+--       rows = map padclipline $ take h $ lines s ++ replicate h blankline
+--       padclipline = take w . (++ blankline)
+--       blankline = replicate w ' '
 
-renderString :: Attr -> String -> Image
-renderString attr s = vert_cat $ map (string attr) rows
-    where
-      rows = lines $ fitto w h s
-      w = maximum $ map length ls
-      h = length ls
-      ls = lines s
+-- renderString :: Attr -> String -> Image
+-- renderString attr s = vert_cat $ map (string attr) rows
+--     where
+--       rows = lines $ fitto w h s
+--       w = maximum $ map length ls
+--       h = length ls
+--       ls = lines s
 
 renderStatus :: Int -> String -> Image
 renderStatus w = string statusattr . take w . (++ repeat ' ')
@@ -398,9 +398,9 @@ data UITheme = Restrained | Colorful | Blood
                     ,def_attr `with_style` reverse_video
                     )
 
-halfbrightattr = def_attr `with_style` dim
-reverseattr = def_attr `with_style` reverse_video
-redattr = def_attr `with_fore_color` red
-greenattr = def_attr `with_fore_color` green
-reverseredattr = def_attr `with_style` reverse_video `with_fore_color` red
-reversegreenattr= def_attr `with_style` reverse_video `with_fore_color` green
+-- halfbrightattr = def_attr `with_style` dim
+-- reverseattr = def_attr `with_style` reverse_video
+-- redattr = def_attr `with_fore_color` red
+-- greenattr = def_attr `with_fore_color` green
+-- reverseredattr = def_attr `with_style` reverse_video `with_fore_color` red
+-- reversegreenattr= def_attr `with_style` reverse_video `with_fore_color` green
