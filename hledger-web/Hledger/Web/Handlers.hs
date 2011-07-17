@@ -227,7 +227,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    <td colspan=2>
   <tr>
    <td>
-   <td align=right>#{mixedAmountAsHtml total}
+   <td.balance align=right>#{mixedAmountAsHtml total}
 |]
  where
    l = journalToLedger nullfilterspec j
