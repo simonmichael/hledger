@@ -336,6 +336,8 @@ tracewith f e = trace (f e) e
 
 -- parsing
 
+-- | Backtracking choice, use this when alternatives share a prefix.
+-- Consumes no input if all choices fail.
 choice' :: [GenParser tok st a] -> GenParser tok st a
 choice' = choice . map Text.ParserCombinators.Parsec.try
 
