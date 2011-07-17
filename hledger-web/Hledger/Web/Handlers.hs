@@ -369,7 +369,7 @@ registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
    #{mixedAmountAsHtml amt}
  <td.balance align=right>#{mixedAmountAsHtml bal}
 $forall p <- tpostings t
- <tr.item.#{evenodd}.posting.#{displayclass}
+ <tr.item.#{evenodd}.posting style=#{postingsdisplaystyle}
    <td.date
    <td.description
    <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
@@ -384,7 +384,7 @@ $forall p <- tpostings t
        (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
        -- acctquery = (here, [("q", pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
-       displayclass = if p then "" else "hidden" :: String
+       postingsdisplaystyle = if showpostings then "" else "display:none;" :: String
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
