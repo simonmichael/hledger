@@ -198,35 +198,16 @@ formatAccount opts accountName depth balance leftJustified min max field = case 
 
 -- | Get a balance report with the specified options for this journal.
 balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
-balanceReport opts filterspec j = (items, total)
-    where
-      items = map mkitem interestingaccts
-      interestingaccts | NoElide `elem` opts = acctnames
-                       | otherwise = filter (isInteresting opts l) acctnames
-      acctnames = sort $ tail $ flatten $ treemap aname accttree
-      accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
-      total = sum $ map abalance $ ledgerTopAccounts l
-      l = journalToLedger filterspec j'
-      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
-      -- | Get data for one balance report line item.
-      mkitem :: AccountName -> BalanceReportItem
-      mkitem a = (a, adisplay, indent, abal)
-          where
-            adisplay | Flat `elem` opts = a
-                     | otherwise = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
-                where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
-            indent | Flat `elem` opts = 0
-                   | otherwise = length interestingparents
-            interestingparents = filter (`elem` interestingaccts) parents
-            parents = parentAccountNames a
-            abal | Flat `elem` opts = exclusiveBalance acct
-                 | otherwise = abalance acct
-                 where acct = ledgerAccount l a
+balanceReport opts filterspec j = balanceReport' opts j (journalToLedger filterspec)
 
 -- | Get a balance report with the specified options for this
 -- journal. Like balanceReport but uses the new matchers.
 balanceReport2 :: [Opt] -> Matcher -> Journal -> BalanceReport
-balanceReport2 opts m j = (items, total)
+balanceReport2 opts matcher j = balanceReport' opts j (journalToLedger2 matcher)
+
+-- Balance report helper.
+balanceReport' :: [Opt] -> Journal -> (Journal -> Ledger) -> BalanceReport
+balanceReport' opts j jtol = (items, total)
     where
       items = map mkitem interestingaccts
       interestingaccts | NoElide `elem` opts = acctnames
@@ -234,8 +215,8 @@ balanceReport2 opts m j = (items, total)
       acctnames = sort $ tail $ flatten $ treemap aname accttree
       accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
       total = sum $ map abalance $ ledgerTopAccounts l
-      l = journalToLedger2 m j'
-      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
+      l =  jtol $ journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
+
       -- | Get data for one balance report line item.
       mkitem :: AccountName -> BalanceReportItem
       mkitem a = (a, adisplay, indent, abal)
