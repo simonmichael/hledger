@@ -15,11 +15,10 @@ import Graphics.Vty
 import Safe (headDef)
 import System.Console.GetOpt
 
-import Hledger.Cli
-import Hledger.Data
-import Hledger.Utils
+import Hledger
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Utils.UTF8 (putStr, putStrLn)
+import Hledger.Cli
 
 
 progname_vty = progname_cli ++ "-vty"

@@ -22,13 +22,12 @@ import Safe (readDef)
 import System.Console.GetOpt
 import System.Exit (exitFailure)
 
+import Hledger
+import Prelude hiding (putStr, putStrLn)
+import Hledger.Utils.UTF8 (putStr, putStrLn)
 import Hledger.Cli.Options
 import Hledger.Cli.Utils (withJournalDo)
 import Hledger.Cli.Version
-import Hledger.Data
-import Hledger.Utils
-import Prelude hiding (putStr, putStrLn)
-import Hledger.Utils.UTF8 (putStr, putStrLn)
 
 
 progname_chart = progname_cli ++ "-chart"

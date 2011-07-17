@@ -23,6 +23,7 @@ import Data.Time.Calendar
 import System.Time (ClockTime(TOD))
 import Test.HUnit
 
+import Hledger
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Convert
@@ -33,10 +34,6 @@ import Hledger.Cli.Stats
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
-import Hledger.Data  -- including testing utils in Hledger.Data.Utils
-import Hledger.Read
-import Hledger.Read.JournalReader (someamount)
-import Hledger.Utils
 
 
 -- | hledger and hledger-lib's unit tests aggregated from all modules

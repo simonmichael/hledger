@@ -14,6 +14,7 @@ module Hledger.Read (
        myTimelogPath,
        myJournal,
        myTimelog,
+       someamount,
 )
 where
 import Control.Monad.Error

@@ -17,12 +17,10 @@ import Data.Maybe
 import Test.HUnit
 import Text.Printf
 
-import Hledger.Cli.Options
-import Hledger.Cli.Utils
-import Hledger.Data
-import Hledger.Utils
+import Hledger
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
+import Hledger.Cli.Options
 
 
 -- | Print a (posting) register report.

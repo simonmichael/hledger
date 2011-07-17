@@ -7,4 +7,5 @@ module Hledger (
 where
 import Hledger.Data
 import Hledger.Read
+import Hledger.Report
 import Hledger.Utils

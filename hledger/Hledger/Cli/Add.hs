@@ -28,14 +28,12 @@ import Text.Printf
 import qualified Data.Foldable as Foldable (find)
 import qualified Data.Set as Set
 
-import Hledger.Cli.Options
-import Hledger.Cli.Register (postingRegisterReport, postingRegisterReportAsText)
-import Hledger.Cli.Utils
-import Hledger.Data
-import Hledger.Read.JournalReader (someamount)
-import Hledger.Utils
+import Hledger
 import Prelude hiding (putStr, putStrLn, appendFile)
 import Hledger.Utils.UTF8 (putStr, putStrLn, appendFile)
+import Hledger.Cli.Options
+import Hledger.Cli.Register (postingRegisterReportAsText)
+import Hledger.Cli.Utils
 
 
 {- | Information used as the basis for suggested account names, amounts,

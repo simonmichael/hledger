@@ -105,14 +105,12 @@ import Data.List
 import Data.Maybe
 import Test.HUnit
 
+import Hledger
+import Prelude hiding (putStr)
+import Hledger.Utils.UTF8 (putStr)
 import Hledger.Cli.Format
 import qualified Hledger.Cli.Format as Format
 import Hledger.Cli.Options
-import Hledger.Cli.Utils
-import Hledger.Data
-import Hledger.Utils
-import Prelude hiding (putStr)
-import Hledger.Utils.UTF8 (putStr)
 
 
 -- | Print a balance report.
