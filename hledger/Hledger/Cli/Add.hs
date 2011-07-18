@@ -34,6 +34,7 @@ import Hledger.Utils.UTF8 (putStr, putStrLn, appendFile)
 import Hledger.Cli.Options
 import Hledger.Cli.Register (postingRegisterReportAsText)
 import Hledger.Cli.Utils
+import Hledger.Cli.Reports
 
 
 {- | Information used as the basis for suggested account names, amounts,

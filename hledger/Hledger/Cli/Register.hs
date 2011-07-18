@@ -21,6 +21,7 @@ import Hledger
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 import Hledger.Cli.Options
+import Hledger.Cli.Reports
 
 
 -- | Print a (posting) register report.

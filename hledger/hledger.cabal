@@ -53,6 +53,7 @@ library
                   Hledger.Cli.Histogram
                   Hledger.Cli.Print
                   Hledger.Cli.Register
+                  Hledger.Cli.Reports
                   Hledger.Cli.Stats
   -- should be the same as below
   build-depends:
@@ -99,6 +100,7 @@ executable hledger
                   Hledger.Cli.Histogram
                   Hledger.Cli.Print
                   Hledger.Cli.Register
+                  Hledger.Cli.Reports
                   Hledger.Cli.Stats
   -- XXX should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0

@@ -1,31 +1,37 @@
 {-|
 
-Generate several common kinds of report from a journal, as "Reports" -
+Generate several common kinds of report from a journal, as \"*Report\" -
 simple intermediate data structures intended to be easily rendered as
 text, html, json, csv etc. by hledger commands, hamlet templates,
-javascript, or whatever.
+javascript, or whatever. This is under Hledger.Cli since it depends
+on the command-line options, should move to hledger-lib later.
 
 -}
 
-module Hledger.Report (
-  tests_Hledger_Report
- ,JournalReport
- ,JournalReportItem
- ,PostingRegisterReport
- ,PostingRegisterReportItem
- ,AccountRegisterReport
- ,AccountRegisterReportItem
- ,BalanceReport
- ,BalanceReportItem
- ,ariDate
- ,ariBalance
- ,journalReport
- ,postingRegisterReport
- ,accountRegisterReport
- ,journalRegisterReport
- ,mkpostingRegisterItem -- for silly showPostingWithBalanceForVty in Hledger.Cli.Register
- ,balanceReport
- ,balanceReport2
+module Hledger.Cli.Reports (
+  -- * Journal report
+  JournalReport,
+  JournalReportItem,
+  journalReport,
+  -- * Posting register report
+  PostingRegisterReport,
+  PostingRegisterReportItem,
+  postingRegisterReport,
+  mkpostingRegisterItem, -- for silly showPostingWithBalanceForVty in Hledger.Cli.Register
+  journalRegisterReport,
+  -- * Account register report
+  AccountRegisterReport,
+  AccountRegisterReportItem,
+  ariDate,
+  ariBalance,
+  accountRegisterReport,
+  -- * Balance report
+  BalanceReport,
+  BalanceReportItem,
+  balanceReport,
+  balanceReport2,
+  -- * Tests
+  tests_Hledger_Cli_Reports
 )
 where
 
@@ -40,15 +46,25 @@ import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
 
-import Hledger.Cli.Options
-import Hledger.Cli.Utils
 import Hledger.Data
 import Hledger.Utils
+import Hledger.Cli.Options
+import Hledger.Cli.Utils
+
+-------------------------------------------------------------------------------
 
 -- | A "journal report" is just a list of transactions.
 type JournalReport = [JournalReportItem]
 
 type JournalReportItem = Transaction
+
+-- | Select transactions, as in the print command.
+journalReport :: [Opt] -> FilterSpec -> Journal -> JournalReport
+journalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
+    where
+      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
+
+-------------------------------------------------------------------------------
 
 -- | A posting register report lists postings to one or more accounts,
 -- with a running total. Postings may be actual postings, or aggregate
@@ -61,46 +77,6 @@ type PostingRegisterReportItem = (Maybe (Day, String) -- transaction date and de
                                  ,Posting             -- the posting
                                  ,MixedAmount         -- the running total after this posting
                                  )
-
--- | An account register report lists transactions to a single account (or
--- possibly subs as well), with the accurate running account balance when
--- possible (otherwise, a running total.)
-type AccountRegisterReport = (String                      -- label for the balance column, eg "balance" or "total"
-                             ,[AccountRegisterReportItem] -- line items, one per transaction
-                             )
-
-type AccountRegisterReportItem = (Transaction -- the corresponding transaction
-                                 ,Transaction -- the transaction with postings to the focussed account removed
-                                 ,Bool        -- is this a split (more than one other-account posting) ?
-                                 ,String      -- the (possibly aggregated) account info to display
-                                 ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
-                                 ,MixedAmount -- the running balance for the focussed account after this transaction
-                                 )
-
-ariDate (t,_,_,_,_,_) = tdate t
-ariBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
-                                           (Amount{quantity=q}):_ -> show q
-
--- | A balance report is a chart of accounts with balances, and their grand total.
-type BalanceReport = ([BalanceReportItem] -- line items, one per account
-                     ,MixedAmount         -- total balance of all accounts
-                     )
-
-type BalanceReportItem = (AccountName  -- full account name
-                         ,AccountName  -- account name elided for display: the leaf name,
-                                       -- prefixed by any boring parents immediately above
-                         ,Int          -- how many steps to indent this account (0-based account depth excluding boring parents)
-                         ,MixedAmount) -- account balance, includes subs unless --flat is present
-
--------------------------------------------------------------------------------
-
--- | Select transactions, as in the print command.
-journalReport :: [Opt] -> FilterSpec -> Journal -> JournalReport
-journalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
-    where
-      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
-
--------------------------------------------------------------------------------
 
 -- | Select postings from the journal and get their running balance, as in
 -- the register command.
@@ -250,6 +226,25 @@ journalRegisterReport _ Journal{jtxns=ts} m = (totallabel, items)
 
 -------------------------------------------------------------------------------
 
+-- | An account register report lists transactions to a single account (or
+-- possibly subs as well), with the accurate running account balance when
+-- possible (otherwise, a running total.)
+type AccountRegisterReport = (String                      -- label for the balance column, eg "balance" or "total"
+                             ,[AccountRegisterReportItem] -- line items, one per transaction
+                             )
+
+type AccountRegisterReportItem = (Transaction -- the corresponding transaction
+                                 ,Transaction -- the transaction with postings to the focussed account removed
+                                 ,Bool        -- is this a split (more than one other-account posting) ?
+                                 ,String      -- the (possibly aggregated) account info to display
+                                 ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
+                                 ,MixedAmount -- the running balance for the focussed account after this transaction
+                                 )
+
+ariDate (t,_,_,_,_,_) = tdate t
+ariBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
+                                           (Amount{quantity=q}):_ -> show q
+
 -- | Select transactions within one (or more) specified accounts, and get
 -- their running balance within that (those) account(s). Used for a
 -- conventional quicker/gnucash/bank-style account register. Specifically,
@@ -338,6 +333,17 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -------------------------------------------------------------------------------
 
+-- | A balance report is a chart of accounts with balances, and their grand total.
+type BalanceReport = ([BalanceReportItem] -- line items, one per account
+                     ,MixedAmount         -- total balance of all accounts
+                     )
+
+type BalanceReportItem = (AccountName  -- full account name
+                         ,AccountName  -- account name elided for display: the leaf name,
+                                       -- prefixed by any boring parents immediately above
+                         ,Int          -- how many steps to indent this account (0-based account depth excluding boring parents)
+                         ,MixedAmount) -- account balance, includes subs unless --flat is present
+
 -- | Select accounts, and get their balances at the end of the selected
 -- period, as in the balance command.
 balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
@@ -408,8 +414,8 @@ isInterestingIndented opts l a
 
 -------------------------------------------------------------------------------
 
-tests_Hledger_Report :: Test
-tests_Hledger_Report = TestList
+tests_Hledger_Cli_Reports :: Test
+tests_Hledger_Cli_Reports = TestList
  [
 
   "summarisePostingsByInterval" ~: do
