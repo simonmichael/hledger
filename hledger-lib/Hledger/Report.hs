@@ -1,6 +1,9 @@
 {-|
 
-Generate various kinds of report from a journal/ledger.
+Generate several common kinds of report from a journal, as "Reports" -
+simple intermediate data structures intended to be easily rendered as
+text, html, json, csv etc. by hledger commands, hamlet templates,
+javascript, or whatever.
 
 -}
 
@@ -20,7 +23,7 @@ module Hledger.Report (
  ,postingRegisterReport
  ,accountRegisterReport
  ,journalRegisterReport
- ,mkpostingRegisterItem
+ ,mkpostingRegisterItem -- for silly showPostingWithBalanceForVty in Hledger.Cli.Register
  ,balanceReport
  ,balanceReport2
 )
@@ -41,7 +44,6 @@ import Hledger.Cli.Options
 import Hledger.Cli.Utils
 import Hledger.Data
 import Hledger.Utils
-
 
 -- | A "journal report" is just a list of transactions.
 type JournalReport = [JournalReportItem]
@@ -92,6 +94,7 @@ type BalanceReportItem = (AccountName  -- full account name
 
 -------------------------------------------------------------------------------
 
+-- | Select transactions, as in the print command.
 journalReport :: [Opt] -> FilterSpec -> Journal -> JournalReport
 journalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
     where
@@ -99,8 +102,8 @@ journalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTra
 
 -------------------------------------------------------------------------------
 
--- | Get a ledger-style posting register report, with the specified options,
--- for the whole journal. See also "accountRegisterReport".
+-- | Select postings from the journal and get their running balance, as in
+-- the register command.
 postingRegisterReport :: [Opt] -> FilterSpec -> Journal -> PostingRegisterReport
 postingRegisterReport opts fspec j = (totallabel, postingRegisterItems ps nullposting startbal (+))
     where
@@ -235,7 +238,7 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
 
 -------------------------------------------------------------------------------
 
--- | Get a ledger-style register report showing all matched transactions and postings.
+-- | Select postings from the whole journal and get their running balance.
 -- Similar to "postingRegisterReport" except it uses matchers and
 -- per-transaction report items like "accountRegisterReport".
 journalRegisterReport :: [Opt] -> Journal -> Matcher -> AccountRegisterReport
@@ -247,10 +250,10 @@ journalRegisterReport _ Journal{jtxns=ts} m = (totallabel, items)
 
 -------------------------------------------------------------------------------
 
--- | Get a conventional account register report, with the specified
--- options, for the currently focussed account (or possibly the focussed
--- account plus sub-accounts.) This differs from "postingRegisterReport"
--- in several ways:
+-- | Select transactions within one (or more) specified accounts, and get
+-- their running balance within that (those) account(s). Used for a
+-- conventional quicker/gnucash/bank-style account register. Specifically,
+-- this differs from "postingRegisterReport" as follows:
 --
 -- 1. it shows transactions, from the point of view of the focussed
 --    account. The other account's name and posted amount is displayed,
@@ -258,11 +261,12 @@ journalRegisterReport _ Journal{jtxns=ts} m = (totallabel, items)
 --
 -- 2. With no transaction filtering in effect other than a start date, it
 --    shows the accurate historical running balance for this
---    account. Otherwise it shows a running total starting at 0 like the posting register report.
+--    account. Otherwise it shows a running total starting at 0 like the
+--    posting register report.
 --
--- 3. Currently this report does not handle reporting intervals.
+-- 3. It currently does not handle reporting intervals.
 --
--- 4. Report items will be most recent first.
+-- 4. Report items are most recent first.
 --
 accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> AccountRegisterReport
 accountRegisterReport opts j m thisacctmatcher = (label, items)
@@ -334,12 +338,13 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -------------------------------------------------------------------------------
 
--- | Get a balance report with the specified options for this journal.
+-- | Select accounts, and get their balances at the end of the selected
+-- period, as in the balance command.
 balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
 balanceReport opts filterspec j = balanceReport' opts j (journalToLedger filterspec)
 
--- | Get a balance report with the specified options for this
--- journal. Like balanceReport but uses the new matchers.
+-- | Select accounts, and get their balances at the end of the selected
+-- period. Like "balanceReport" but uses the new matchers.
 balanceReport2 :: [Opt] -> Matcher -> Journal -> BalanceReport
 balanceReport2 opts matcher j = balanceReport' opts j (journalToLedger2 matcher)
 
