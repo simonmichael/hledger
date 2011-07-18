@@ -56,12 +56,13 @@ library
   -- should be the same as below
   build-depends:
                   hledger-lib == 0.14.98
-                 ,HUnit
                  ,base >= 3 && < 5
                  ,containers
                  ,csv
                  ,directory
                  ,filepath
+                 ,haskeline == 0.6.*
+                 ,HUnit
                  ,mtl
                  ,old-locale
                  ,old-time
@@ -72,22 +73,21 @@ library
                  ,split == 0.1.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
-                 ,haskeline == 0.6.*
 
--- should reuse the library above to avoid double compilation, but
--- this is still too complicated as of 2011/6/1. Notes:
--- - interferes with haddock generation, reportedly
+-- should depend on the above to avoid double compilation but this is
+-- still too complicated as of 2011/6/1 because:
+-- - breaks haddock, http://hackage.haskell.org/trac/hackage/ticket/656
 -- - library and executable must have different hs-source-dirs
--- - how it works seems ghc version dependent
 -- - the exe may need to list all the lib's dependencies
--- - leksah is the package reported to have this working
---   (http://hackage.haskell.org/packages/archive/leksah/0.10.0.4/leksah.cabal)
+-- - how it works seems ghc version dependent
+-- leksah is reported to have this working, http://hackage.haskell.org/packages/archive/leksah/0.10.0.4/leksah.cabal
 executable hledger
   main-is:        hledger.hs
   -- should be the same as above
   other-modules:
                   Hledger.Cli
                   Hledger.Cli.Main
+                  Hledger.Cli.Format
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
                   Hledger.Cli.Utils
@@ -104,15 +104,14 @@ executable hledger
   ghc-options:    -threaded -W
   -- should be the same as above
   build-depends:
-                  base >= 3 && < 5
-                 ,hledger == 0.14.98
-                 ,hledger-lib == 0.14.98
-                 ,HUnit
+                  hledger-lib == 0.14.98
                  ,base >= 3 && < 5
                  ,containers
                  ,csv
                  ,directory
                  ,filepath
+                 ,haskeline == 0.6.*
+                 ,HUnit
                  ,mtl
                  ,old-locale
                  ,old-time
@@ -123,4 +122,3 @@ executable hledger
                  ,split == 0.1.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
-                 ,haskeline == 0.6.*
