@@ -46,6 +46,7 @@ SOURCEFILES:= \
 HADDOCKSOURCEFILES:= \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
+	hledger/Hledger/*hs \
 	hledger/Hledger/Cli/*hs \
 	hledger-web/Hledger/*/*hs \
 	hledger-vty/Hledger/*/*hs \
@@ -54,6 +55,7 @@ HADDOCKSOURCEFILES:= \
 HADDOCKLIBSOURCEFILES:= \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
+	hledger/Hledger/*hs \
 	hledger/Hledger/Cli/*hs
 VERSIONHS=hledger/Hledger/Cli/Version.hs
 CABALFILES:= \
