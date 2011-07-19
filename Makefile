@@ -43,6 +43,7 @@ MAIN=hledger/hledger.hs
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
 SOURCEFILES:= \
 	hledger/*hs \
+	hledger/Hledger/*hs \
 	hledger/Hledger/*/*hs \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
