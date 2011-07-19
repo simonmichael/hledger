@@ -7,7 +7,7 @@ A ledger-compatible @register@ command.
 
 module Hledger.Cli.Register (
   register
- ,postingRegisterReportAsText
+ ,postingsReportAsText
  ,showPostingWithBalanceForVty
  ,tests_Hledger_Cli_Register
 ) where
@@ -28,11 +28,11 @@ import Hledger.Cli.Reports
 register :: [Opt] -> [String] -> Journal -> IO ()
 register opts args j = do
   d <- getCurrentDay
-  putStr $ postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts args d) j
+  putStr $ postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts args d) j
 
 -- | Render a register report as plain text suitable for console output.
-postingRegisterReportAsText :: [Opt] -> PostingRegisterReport -> String
-postingRegisterReportAsText opts = unlines . map (postingRegisterReportItemAsText opts) . snd
+postingsReportAsText :: [Opt] -> PostingsReport -> String
+postingsReportAsText opts = unlines . map (postingsReportItemAsText opts) . snd
 
 -- | Render one register report line item as plain text. Eg:
 -- @
@@ -41,8 +41,8 @@ postingRegisterReportAsText opts = unlines . map (postingRegisterReportItemAsTex
 -- ^ displayed for first postings^
 --   only, otherwise blank
 -- @
-postingRegisterReportItemAsText :: [Opt] -> PostingRegisterReportItem -> String
-postingRegisterReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", bal]
+postingsReportItemAsText :: [Opt] -> PostingsReportItem -> String
+postingsReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", bal]
     where
       datedesc = case dd of Nothing -> replicate datedescwidth ' '
                             Just (da, de) -> printf "%s %s " date desc
@@ -57,7 +57,7 @@ postingRegisterReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, 
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
 
 -- XXX
-showPostingWithBalanceForVty showtxninfo p b = postingRegisterReportItemAsText [] $ mkpostingRegisterItem showtxninfo p b
+showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText [] $ mkpostingsReportItem showtxninfo p b
 
 tests_Hledger_Cli_Register :: Test
 tests_Hledger_Cli_Register = TestList

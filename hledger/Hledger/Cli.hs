@@ -111,7 +111,7 @@ tests_Hledger_Cli = TestList
    let (opts,args) `gives` es = do 
         j <- samplejournal
         d <- getCurrentDay
-        balanceReportAsText opts (balanceReport opts (optsToFilterSpec opts args d) j) `is` es
+        accountsReportAsText opts (accountsReport opts (optsToFilterSpec opts args d) j) `is` es
    in TestList
    [
 
@@ -247,7 +247,7 @@ tests_Hledger_Cli = TestList
              ,"  c:d                   "
              ]) >>= either error' return
       let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
-      balanceReportAsText [] (balanceReport [] nullfilterspec j') `is`
+      accountsReportAsText [] (accountsReport [] nullfilterspec j') `is`
         ["                $500  a:b"
         ,"               $-500  c:d"
         ,"--------------------"
@@ -261,7 +261,7 @@ tests_Hledger_Cli = TestList
               ,"  test:a  1"
               ,"  test:b"
               ])
-      balanceReportAsText [] (balanceReport [] nullfilterspec j) `is`
+      accountsReportAsText [] (accountsReport [] nullfilterspec j) `is`
         ["                   1  test:a"
         ,"                  -1  test:b"
         ,"--------------------"
@@ -338,7 +338,7 @@ tests_Hledger_Cli = TestList
    "register report with no args" ~:
    do 
     j <- samplejournal
-    (postingRegisterReportAsText [] $ postingRegisterReport [] (optsToFilterSpec [] [] date1) j) `is` unlines
+    (postingsReportAsText [] $ postingsReport [] (optsToFilterSpec [] [] date1) j) `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -356,7 +356,7 @@ tests_Hledger_Cli = TestList
    do 
     let opts = [Cleared]
     j <- readJournal' sample_journal_str
-    (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
      ,"                                assets:cash                     $-2            0"
@@ -368,7 +368,7 @@ tests_Hledger_Cli = TestList
    do 
     let opts = [UnCleared]
     j <- readJournal' sample_journal_str
-    (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -388,19 +388,19 @@ tests_Hledger_Cli = TestList
         ,"  e  1"
         ,"  f"
         ]
-    registerdates (postingRegisterReportAsText [] $ postingRegisterReport [] (optsToFilterSpec [] [] date1) j) `is` ["2008/01/01","2008/02/02"]
+    registerdates (postingsReportAsText [] $ postingsReport [] (optsToFilterSpec [] [] date1) j) `is` ["2008/01/01","2008/02/02"]
 
   ,"register report with account pattern" ~:
    do
     j <- samplejournal
-    (postingRegisterReportAsText [] $ postingRegisterReport [] (optsToFilterSpec [] ["cash"] date1) j) `is` unlines
+    (postingsReportAsText [] $ postingsReport [] (optsToFilterSpec [] ["cash"] date1) j) `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
   ,"register report with account pattern, case insensitive" ~:
    do 
     j <- samplejournal
-    (postingRegisterReportAsText [] $ postingRegisterReport [] (optsToFilterSpec [] ["cAsH"] date1) j) `is` unlines
+    (postingsReportAsText [] $ postingsReport [] (optsToFilterSpec [] ["cAsH"] date1) j) `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
@@ -408,7 +408,7 @@ tests_Hledger_Cli = TestList
    do 
     j <- samplejournal
     let gives displayexpr = 
-            (registerdates (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j) `is`)
+            (registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j) `is`)
                 where opts = [Display displayexpr]
     "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
     "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
@@ -421,7 +421,7 @@ tests_Hledger_Cli = TestList
     j <- samplejournal
     let periodexpr `gives` dates = do
           j' <- samplejournal
-          registerdates (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j') `is` dates
+          registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j') `is` dates
               where opts = [Period periodexpr]
     ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
@@ -430,7 +430,7 @@ tests_Hledger_Cli = TestList
     "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
     "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
     let opts = [Period "yearly"]
-    (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
      ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
      ,"                                assets:cash                     $-2          $-1"
      ,"                                expenses:food                    $1            0"
@@ -440,9 +440,9 @@ tests_Hledger_Cli = TestList
      ,"                                liabilities:debts                $1            0"
      ]
     let opts = [Period "quarterly"]
-    registerdates (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
+    registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
     let opts = [Period "quarterly",Empty]
-    registerdates (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
+    registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
 
   ]
 
@@ -450,7 +450,7 @@ tests_Hledger_Cli = TestList
    do 
     j <- samplejournal
     let opts = [Depth "2"]
-    (postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] date1) j) `is` unlines
      ["2008/01/01 income               assets:bank                      $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank                      $1           $1"
@@ -471,7 +471,7 @@ tests_Hledger_Cli = TestList
   ,"unicode in balance layout" ~: do
     j <- readJournal'
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    balanceReportAsText [] (balanceReport [] (optsToFilterSpec [] [] date1) j) `is`
+    accountsReportAsText [] (accountsReport [] (optsToFilterSpec [] [] date1) j) `is`
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"
       ,"--------------------"
@@ -481,7 +481,7 @@ tests_Hledger_Cli = TestList
   ,"unicode in register layout" ~: do
     j <- readJournal'
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    (postingRegisterReportAsText [] $ postingRegisterReport [] (optsToFilterSpec [] [] date1) j) `is` unlines
+    (postingsReportAsText [] $ postingsReport [] (optsToFilterSpec [] [] date1) j) `is` unlines
       ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
       ,"                                актив:наличные                 -100            0"]
 

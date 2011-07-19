@@ -9,27 +9,27 @@ on the command-line options, should move to hledger-lib later.
 -}
 
 module Hledger.Cli.Reports (
-  -- * Journal report
-  JournalReport,
-  JournalReportItem,
-  journalReport,
-  -- * Posting register report
-  PostingRegisterReport,
-  PostingRegisterReportItem,
-  postingRegisterReport,
-  mkpostingRegisterItem, -- for silly showPostingWithBalanceForVty in Hledger.Cli.Register
-  journalRegisterReport,
-  -- * Account register report
-  AccountRegisterReport,
-  AccountRegisterReportItem,
+  -- * Raw journal report
+  RawJournalReport,
+  RawJournalReportItem,
+  rawJournalReport,
+  -- * Postings report
+  PostingsReport,
+  PostingsReportItem,
+  postingsReport,
+  mkpostingsReportItem, -- XXX for showPostingWithBalanceForVty in Hledger.Cli.Register
+  -- * Transactions report
+  TransactionsReport,
+  TransactionsReportItem,
   ariDate,
   ariBalance,
-  accountRegisterReport,
-  -- * Balance report
-  BalanceReport,
-  BalanceReportItem,
-  balanceReport,
-  balanceReport2,
+  journalTransactionsReport,
+  accountTransactionsReport,
+  -- * Accounts report
+  AccountsReport,
+  AccountsReportItem,
+  accountsReport,
+  accountsReport2,
   -- * Tests
   tests_Hledger_Cli_Reports
 )
@@ -53,35 +53,33 @@ import Hledger.Cli.Utils
 
 -------------------------------------------------------------------------------
 
--- | A "journal report" is just a list of transactions.
-type JournalReport = [JournalReportItem]
+-- | A raw journal report is a list of transactions used to generate a raw journal view.
+-- Used by eg hledger's print command.
+type RawJournalReport = [RawJournalReportItem]
+type RawJournalReportItem = Transaction
 
-type JournalReportItem = Transaction
-
--- | Select transactions, as in the print command.
-journalReport :: [Opt] -> FilterSpec -> Journal -> JournalReport
-journalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
+-- | Select transactions for a raw journal report.
+rawJournalReport :: [Opt] -> FilterSpec -> Journal -> RawJournalReport
+rawJournalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
     where
       j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
 
 -------------------------------------------------------------------------------
 
--- | A posting register report lists postings to one or more accounts,
--- with a running total. Postings may be actual postings, or aggregate
--- postings corresponding to a reporting interval.
-type PostingRegisterReport = (String                      -- label for the running balance column XXX remove
-                             ,[PostingRegisterReportItem] -- line items, one per posting
-                             )
-
-type PostingRegisterReportItem = (Maybe (Day, String) -- transaction date and description if this is the first posting
-                                 ,Posting             -- the posting
-                                 ,MixedAmount         -- the running total after this posting
+-- | A postings report is a list of postings with a running total, a label
+-- for the total field, and a little extra transaction info to help with rendering.
+type PostingsReport = (String               -- label for the running balance column XXX remove
+                      ,[PostingsReportItem] -- line items, one per posting
+                      )
+type PostingsReportItem = (Maybe (Day, String) -- transaction date and description if this is the first posting
+                                 ,Posting      -- the posting
+                                 ,MixedAmount  -- the running total after this posting
                                  )
 
--- | Select postings from the journal and get their running balance, as in
--- the register command.
-postingRegisterReport :: [Opt] -> FilterSpec -> Journal -> PostingRegisterReport
-postingRegisterReport opts fspec j = (totallabel, postingRegisterItems ps nullposting startbal (+))
+-- | Select postings from the journal and add running balance and other
+-- information to make a postings report. Used by eg hledger's register command.
+postingsReport :: [Opt] -> FilterSpec -> Journal -> PostingsReport
+postingsReport opts fspec j = (totallabel, postingsReportItems ps nullposting startbal (+))
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
@@ -99,21 +97,21 @@ postingRegisterReport opts fspec j = (totallabel, postingRegisterItems ps nullpo
 totallabel = "Total"
 balancelabel = "Balance"
 
--- | Generate posting register report line items.
-postingRegisterItems :: [Posting] -> Posting -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [PostingRegisterReportItem]
-postingRegisterItems [] _ _ _ = []
-postingRegisterItems (p:ps) pprev b sumfn = i:(postingRegisterItems ps p b' sumfn)
+-- | Generate postings report line items.
+postingsReportItems :: [Posting] -> Posting -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [PostingsReportItem]
+postingsReportItems [] _ _ _ = []
+postingsReportItems (p:ps) pprev b sumfn = i:(postingsReportItems ps p b' sumfn)
     where
-      i = mkpostingRegisterItem isfirst p b'
+      i = mkpostingsReportItem isfirst p b'
       isfirst = ptransaction p /= ptransaction pprev
       b' = b `sumfn` pamount p
 
--- | Generate one register report line item, from a flag indicating
+-- | Generate one postings report line item, from a flag indicating
 -- whether to include transaction info, a posting, and the current running
 -- balance.
-mkpostingRegisterItem :: Bool -> Posting -> MixedAmount -> PostingRegisterReportItem
-mkpostingRegisterItem False p b = (Nothing, p, b)
-mkpostingRegisterItem True p b = (ds, p, b)
+mkpostingsReportItem :: Bool -> Posting -> MixedAmount -> PostingsReportItem
+mkpostingsReportItem False p b = (Nothing, p, b)
+mkpostingsReportItem True p b = (ds, p, b)
     where ds = case ptransaction p of Just (Transaction{tdate=da,tdescription=de}) -> Just (da,de)
                                       Nothing -> Just (nulldate,"")
 
@@ -214,57 +212,56 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
 
 -------------------------------------------------------------------------------
 
--- | Select postings from the whole journal and get their running balance.
--- Similar to "postingRegisterReport" except it uses matchers and
--- per-transaction report items like "accountRegisterReport".
-journalRegisterReport :: [Opt] -> Journal -> Matcher -> AccountRegisterReport
-journalRegisterReport _ Journal{jtxns=ts} m = (totallabel, items)
-   where
-     ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
-     items = reverse $ accountRegisterReportItems m Nothing nullmixedamt id ts'
-     -- XXX items' first element should be the full transaction with all postings
-
--------------------------------------------------------------------------------
-
--- | An account register report lists transactions to a single account (or
--- possibly subs as well), with the accurate running account balance when
--- possible (otherwise, a running total.)
-type AccountRegisterReport = (String                      -- label for the balance column, eg "balance" or "total"
-                             ,[AccountRegisterReportItem] -- line items, one per transaction
-                             )
-
-type AccountRegisterReportItem = (Transaction -- the corresponding transaction
-                                 ,Transaction -- the transaction with postings to the focussed account removed
-                                 ,Bool        -- is this a split (more than one other-account posting) ?
-                                 ,String      -- the (possibly aggregated) account info to display
-                                 ,MixedAmount -- the (possibly aggregated) amount to display (sum of the other-account postings)
-                                 ,MixedAmount -- the running balance for the focussed account after this transaction
-                                 )
+-- | A transactions report includes a list of transactions
+-- (posting-filtered and unfiltered variants), a running balance, and some
+-- other information helpful for rendering a register view (a flag
+-- indicating multiple other accounts and a display string describing
+-- them) with or without a notion of current account(s).
+type TransactionsReport = (String                   -- label for the balance column, eg "balance" or "total"
+                          ,[TransactionsReportItem] -- line items, one per transaction
+                          )
+type TransactionsReportItem = (Transaction -- the corresponding transaction
+                              ,Transaction -- the transaction with postings to the current account(s) removed
+                              ,Bool        -- is this a split, ie more than one other account posting
+                              ,String      -- a display string describing the other account(s), if any
+                              ,MixedAmount -- the amount posted to the current account(s) (or total amount posted)
+                              ,MixedAmount -- the running balance for the current account(s) after this transaction
+                              )
 
 ariDate (t,_,_,_,_,_) = tdate t
 ariBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
                                            (Amount{quantity=q}):_ -> show q
 
--- | Select transactions within one (or more) specified accounts, and get
--- their running balance within that (those) account(s). Used for a
--- conventional quicker/gnucash/bank-style account register. Specifically,
--- this differs from "postingRegisterReport" as follows:
+-- | Select transactions from the whole journal for a transactions report,
+-- with no \"current\" account. The end result is similar to
+-- "postingsReport" except it uses matchers and transaction-based report
+-- items and the items are most recent first. Used by eg hledger-web's
+-- journal view.
+journalTransactionsReport :: [Opt] -> Journal -> Matcher -> TransactionsReport
+journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
+   where
+     ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
+     items = reverse $ accountTransactionsReportItems m Nothing nullmixedamt id ts'
+     -- XXX items' first element should be the full transaction with all postings
+
+-------------------------------------------------------------------------------
+
+-- | Select transactions within one or more \"current\" accounts, and make a
+-- transactions report relative to those account(s). This means:
 --
--- 1. it shows transactions, from the point of view of the focussed
---    account. The other account's name and posted amount is displayed,
---    aggregated if there is more than one other account posting.
+-- 1. it shows transactions from the point of view of the current account(s).
+--    The transaction amount is the amount posted to the current account(s).
+--    The other accounts' names are provided. 
 --
 -- 2. With no transaction filtering in effect other than a start date, it
---    shows the accurate historical running balance for this
---    account. Otherwise it shows a running total starting at 0 like the
---    posting register report.
+--    shows the accurate historical running balance for the current account(s).
+--    Otherwise it shows a running total starting at 0.
 --
--- 3. It currently does not handle reporting intervals.
+-- Currently, reporting intervals are not supported, and report items are
+-- most recent first. Used by eg hledger-web's account register view.
 --
--- 4. Report items are most recent first.
---
-accountRegisterReport :: [Opt] -> Journal -> Matcher -> Matcher -> AccountRegisterReport
-accountRegisterReport opts j m thisacctmatcher = (label, items)
+accountTransactionsReport :: [Opt] -> Journal -> Matcher -> Matcher -> TransactionsReport
+accountTransactionsReport opts j m thisacctmatcher = (label, items)
  where
      -- transactions affecting this account, in date order
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
@@ -282,17 +279,16 @@ accountRegisterReport opts j m thisacctmatcher = (label, items)
                         tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
                         startdate = matcherStartDate effective m
                         effective = Effective `elem` opts
-     items = reverse $ accountRegisterReportItems m (Just thisacctmatcher) startbal negate ts
+     items = reverse $ accountTransactionsReportItems m (Just thisacctmatcher) startbal negate ts
 
--- | Generate account register line items from a list of transactions,
--- using the provided query and "this account" matchers, starting balance,
+-- | Generate transactions report items from a list of transactions,
+-- using the provided query and current account matchers, starting balance,
 -- sign-setting function and balance-summing function.
-
--- This is used for both accountRegisterReport and journalRegisterReport,
--- which makes it a bit overcomplicated.
-accountRegisterReportItems :: Matcher -> Maybe Matcher -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [AccountRegisterReportItem]
-accountRegisterReportItems _ _ _ _ [] = []
-accountRegisterReportItems matcher thisacctmatcher bal signfn (t:ts) =
+accountTransactionsReportItems :: Matcher -> Maybe Matcher -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [TransactionsReportItem]
+accountTransactionsReportItems _ _ _ _ [] = []
+accountTransactionsReportItems matcher thisacctmatcher bal signfn (t:ts) =
+    -- This is used for both accountTransactionsReport and journalTransactionsReport,
+    -- which makes it a bit overcomplicated
     case i of Just i' -> i':is
               Nothing -> is
     where
@@ -311,7 +307,7 @@ accountRegisterReportItems matcher thisacctmatcher bal signfn (t:ts) =
                  where
                   a = signfn amt
                   b = bal + a
-      is = accountRegisterReportItems matcher thisacctmatcher bal' signfn ts
+      is = accountTransactionsReportItems matcher thisacctmatcher bal' signfn ts
 
 -- | Generate a short readable summary of some postings, like
 -- "from (negatives) to (positives)".
@@ -333,30 +329,33 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -------------------------------------------------------------------------------
 
--- | A balance report is a chart of accounts with balances, and their grand total.
-type BalanceReport = ([BalanceReportItem] -- line items, one per account
-                     ,MixedAmount         -- total balance of all accounts
-                     )
-
-type BalanceReportItem = (AccountName  -- full account name
-                         ,AccountName  -- account name elided for display: the leaf name,
-                                       -- prefixed by any boring parents immediately above
-                         ,Int          -- how many steps to indent this account (0-based account depth excluding boring parents)
-                         ,MixedAmount) -- account balance, includes subs unless --flat is present
-
--- | Select accounts, and get their balances at the end of the selected
--- period, as in the balance command.
-balanceReport :: [Opt] -> FilterSpec -> Journal -> BalanceReport
-balanceReport opts filterspec j = balanceReport' opts j (journalToLedger filterspec)
+-- | An accounts report is a list of account names (full and short
+-- variants) with their balances, appropriate indentation for rendering as
+-- a hierarchy tree, and grand total.
+type AccountsReport = ([AccountsReportItem] -- line items, one per account
+                      ,MixedAmount          -- total balance of all accounts
+                      )
+type AccountsReportItem = (AccountName  -- full account name
+                          ,AccountName  -- short account name for display (the leaf name, prefixed by any boring parents immediately above)
+                          ,Int          -- how many steps to indent this account (0-based account depth excluding boring parents)
+                          ,MixedAmount) -- account balance, includes subs unless --flat is present
 
 -- | Select accounts, and get their balances at the end of the selected
--- period. Like "balanceReport" but uses the new matchers.
-balanceReport2 :: [Opt] -> Matcher -> Journal -> BalanceReport
-balanceReport2 opts matcher j = balanceReport' opts j (journalToLedger2 matcher)
+-- period, and misc. display information, for an accounts report. Used by
+-- eg hledger's balance command.
+accountsReport :: [Opt] -> FilterSpec -> Journal -> AccountsReport
+accountsReport opts filterspec j = accountsReport' opts j (journalToLedger filterspec)
 
--- Balance report helper.
-balanceReport' :: [Opt] -> Journal -> (Journal -> Ledger) -> BalanceReport
-balanceReport' opts j jtol = (items, total)
+-- | Select accounts, and get their balances at the end of the selected
+-- period, and misc. display information, for an accounts report. Like
+-- "accountsReport" but uses the new matchers. Used by eg hledger-web's
+-- accounts sidebar.
+accountsReport2 :: [Opt] -> Matcher -> Journal -> AccountsReport
+accountsReport2 opts matcher j = accountsReport' opts j (journalToLedger2 matcher)
+
+-- Accounts report helper.
+accountsReport' :: [Opt] -> Journal -> (Journal -> Ledger) -> AccountsReport
+accountsReport' opts j jtol = (items, total)
     where
       items = map mkitem interestingaccts
       interestingaccts | NoElide `elem` opts = acctnames
@@ -367,7 +366,7 @@ balanceReport' opts j jtol = (items, total)
       l =  jtol $ journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
 
       -- | Get data for one balance report line item.
-      mkitem :: AccountName -> BalanceReportItem
+      mkitem :: AccountName -> AccountsReportItem
       mkitem a = (a, adisplay, indent, abal)
           where
             adisplay | Flat `elem` opts = a
@@ -384,8 +383,8 @@ balanceReport' opts j jtol = (items, total)
 exclusiveBalance :: Account -> MixedAmount
 exclusiveBalance = sumPostings . apostings
 
--- | Is the named account considered interesting for this ledger's balance report ?
--- We follow the style of ledger's balance command.
+-- | Is the named account considered interesting for this ledger's accounts report,
+-- following the eliding style of ledger's balance command ?
 isInteresting :: [Opt] -> Ledger -> AccountName -> Bool
 isInteresting opts l a | Flat `elem` opts = isInterestingFlat opts l a
                        | otherwise = isInterestingIndented opts l a

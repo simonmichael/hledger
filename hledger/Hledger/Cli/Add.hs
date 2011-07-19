@@ -32,7 +32,7 @@ import Hledger
 import Prelude hiding (putStr, putStrLn, appendFile)
 import Hledger.Utils.UTF8 (putStr, putStrLn, appendFile)
 import Hledger.Cli.Options
-import Hledger.Cli.Register (postingRegisterReportAsText)
+import Hledger.Cli.Register (postingsReportAsText)
 import Hledger.Cli.Utils
 import Hledger.Cli.Reports
 
@@ -219,7 +219,7 @@ registerFromString :: String -> IO String
 registerFromString s = do
   d <- getCurrentDay
   j <- readJournal' s
-  return $ postingRegisterReportAsText opts $ postingRegisterReport opts (optsToFilterSpec opts [] d) j
+  return $ postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] d) j
     where opts = [Empty]
 
 -- | Return a similarity measure, from 0 to 1, for two strings.

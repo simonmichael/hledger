@@ -97,7 +97,7 @@ balance report:
 
 module Hledger.Cli.Balance (
   balance
- ,balanceReportAsText
+ ,accountsReportAsText
  ,tests_Hledger_Cli_Balance
 ) where
 
@@ -120,14 +120,14 @@ balance opts args j = do
   d <- getCurrentDay
   let lines = case parseFormatFromOpts opts of
             Left err -> [err]
-            Right _ -> balanceReportAsText opts $ balanceReport opts (optsToFilterSpec opts args d) j
+            Right _ -> accountsReportAsText opts $ accountsReport opts (optsToFilterSpec opts args d) j
   putStr $ unlines lines
 
 -- | Render a balance report as plain text suitable for console output.
-balanceReportAsText :: [Opt] -> BalanceReport -> [String]
-balanceReportAsText opts (items, total) = concat lines ++ t
+accountsReportAsText :: [Opt] -> AccountsReport -> [String]
+accountsReportAsText opts (items, total) = concat lines ++ t
     where
-      lines = map (balanceReportItemAsText opts format) items
+      lines = map (accountsReportItemAsText opts format) items
       format = formatFromOpts opts
       t = if NoTotal `elem` opts
              then []
@@ -147,21 +147,21 @@ This implementation turned out to be a bit convoluted but implements the followi
     b         USD -1  ; Account 'b' has two amounts. The account name is printed on the last line.
 -}
 -- | Render one balance report line item as plain text.
-balanceReportItemAsText :: [Opt] -> [FormatString] -> BalanceReportItem -> [String]
-balanceReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
+accountsReportItemAsText :: [Opt] -> [FormatString] -> AccountsReportItem -> [String]
+accountsReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
     case amounts of
       [] -> []
-      [a] -> [formatBalanceReportItem opts (Just accountName) depth a format]
+      [a] -> [formatAccountsReportItem opts (Just accountName) depth a format]
       (as) -> asText as
     where
       asText :: [Amount] -> [String]
       asText []     = []
-      asText [a]    = [formatBalanceReportItem opts (Just accountName) depth a format]
-      asText (a:as) = (formatBalanceReportItem opts Nothing depth a format) : asText as
+      asText [a]    = [formatAccountsReportItem opts (Just accountName) depth a format]
+      asText (a:as) = (formatAccountsReportItem opts Nothing depth a format) : asText as
 
-formatBalanceReportItem :: [Opt] -> Maybe AccountName -> Int -> Amount -> [FormatString] -> String
-formatBalanceReportItem _ _ _ _ [] = ""
-formatBalanceReportItem opts accountName depth amount (f:fs) = s ++ (formatBalanceReportItem opts accountName depth amount fs)
+formatAccountsReportItem :: [Opt] -> Maybe AccountName -> Int -> Amount -> [FormatString] -> String
+formatAccountsReportItem _ _ _ _ [] = ""
+formatAccountsReportItem opts accountName depth amount (f:fs) = s ++ (formatAccountsReportItem opts accountName depth amount fs)
   where
     s = case f of
             FormatLiteral l -> l

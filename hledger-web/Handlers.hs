@@ -61,7 +61,7 @@ getJournalR = do
                                   where andsubs = if subs then " (and subaccounts)" else ""
                 where
                   filter = if filtering then ", filtered" else ""
-      maincontent = formattedJournalReportAsHtml opts vd $ journalRegisterReport opts j m
+      maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport opts j m
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet [$hamlet|
@@ -126,7 +126,7 @@ getJournalRawR = do
   let
       sidecontent = sidebar vd
       title = "Journal entries" ++ if m /= MatchAny then ", filtered" else "" :: String
-      maincontent = rawJournalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
+      maincontent = rawJournalReportAsHtml opts vd $ rawJournalReport opts nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet [$hamlet|
@@ -150,7 +150,7 @@ getJournalOnlyR = do
   vd@VD{..} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal only"
-      addHamlet $ rawJournalReportAsHtml opts vd $ journalReport opts nullfilterspec $ filterJournalTransactions2 m j
+      addHamlet $ rawJournalReportAsHtml opts vd $ rawJournalReport opts nullfilterspec $ filterJournalTransactions2 m j
 
 ----------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ getRegisterR = do
                  (a,subs) = fromMaybe ("all accounts",False) $ inAccount qopts
                  andsubs = if subs then " (and subaccounts)" else ""
                  filter = if filtering then ", filtered" else ""
-      maincontent = registerReportHtml opts vd $ accountRegisterReport opts j m $ fromMaybe MatchAny $ inAccountMatcher qopts
+      maincontent = registerReportHtml opts vd $ accountTransactionsReport opts j m $ fromMaybe MatchAny $ inAccountMatcher qopts
   defaultLayout $ do
       setTitle "hledger-web register"
       addHamlet [$hamlet|
@@ -191,8 +191,8 @@ getRegisterOnlyR = do
   defaultLayout $ do
       setTitle "hledger-web register only"
       addHamlet $
-          case inAccountMatcher qopts of Just m' -> registerReportHtml opts vd $ accountRegisterReport opts j m m'
-                                         Nothing -> registerReportHtml opts vd $ journalRegisterReport opts j m
+          case inAccountMatcher qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport opts j m m'
+                                         Nothing -> registerReportHtml opts vd $ journalTransactionsReport opts j m
 
 ----------------------------------------------------------------------
 
@@ -204,7 +204,7 @@ getAccountsR = do
   let j' = filterJournalPostings2 m j
       html = do
         setTitle "hledger-web accounts"
-        addHamlet $ balanceReportAsHtml opts vd $ balanceReport2 opts am j'
+        addHamlet $ accountsReportAsHtml opts vd $ accountsReport2 opts am j'
       json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
   defaultLayoutJson html json
 
@@ -220,11 +220,11 @@ getAccountsJsonR = do
 
 -- | Render the sidebar used on most views.
 sidebar :: ViewData -> Hamlet AppRoute
-sidebar vd@VD{..} = balanceReportAsHtml opts vd $ balanceReport2 opts am j
+sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport2 opts am j
 
--- | Render a "BalanceReport" as HTML.
-balanceReportAsHtml :: [Opt] -> ViewData -> BalanceReport -> Hamlet AppRoute
-balanceReportAsHtml _ vd@VD{..} (items',total) =
+-- | Render a "AccountsReport" as HTML.
+accountsReportAsHtml :: [Opt] -> ViewData -> AccountsReport -> Hamlet AppRoute
+accountsReportAsHtml _ vd@VD{..} (items',total) =
  [$hamlet|
 <div#accountsheading
  <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
@@ -266,7 +266,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    inacctmatcher = inAccountMatcher qopts
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
-   itemAsHtml :: ViewData -> BalanceReportItem -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> AccountsReportItem -> Hamlet AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [$hamlet|
 <tr.item.#{inacctclass}
  <td.account.#{depthclass}
@@ -303,15 +303,15 @@ accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRe
 -- accountUrl :: AppRoute -> AccountName -> (AppRoute,[(String,ByteString)])
 accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
--- | Render a "JournalReport" as HTML for the raw journal view.
-rawJournalReportAsHtml :: [Opt] -> ViewData -> JournalReport -> Hamlet AppRoute
+-- | Render a "RawJournalReport" as HTML for the raw journal view.
+rawJournalReportAsHtml :: [Opt] -> ViewData -> RawJournalReport -> Hamlet AppRoute
 rawJournalReportAsHtml _ vd items = [$hamlet|
 <table.journalreport>
  $forall i <- numbered items
   ^{itemAsHtml vd i}
  |]
  where
-   itemAsHtml :: ViewData -> (Int, JournalReportItem) -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> (Int, RawJournalReportItem) -> Hamlet AppRoute
    itemAsHtml _ (n, t) = [$hamlet|
 <tr.item.#{evenodd}>
  <td.transaction>
@@ -321,21 +321,21 @@ rawJournalReportAsHtml _ vd items = [$hamlet|
        evenodd = if even n then "even" else "odd" :: String
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
--- | Render an "AccountRegisterReport" as HTML for the formatted journal view.
-formattedJournalReportAsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
-formattedJournalReportAsHtml _ vd (_,items) = [$hamlet|
+-- | Render an "TransactionsReport" as HTML for the formatted journal view.
+journalTransactionsReportAsHtml :: [Opt] -> ViewData -> TransactionsReport -> Hamlet AppRoute
+journalTransactionsReportAsHtml _ vd (_,items) = [$hamlet|
 <table.journalreport
  <tr.headings
   <th.date align=left>Date
   <th.description align=left>Description
   <th.account align=left>Accounts
   <th.amount align=right>Amount
- $forall i <- numberAccountRegisterReportItems items
+ $forall i <- numberTransactionsReportItems items
   ^{itemAsHtml vd i}
  |]
  where
 -- .#{datetransition}
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> Hamlet AppRoute
    itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [$hamlet|
 <tr.item.#{evenodd}.#{firstposting}
  <td.date>#{date}
@@ -360,14 +360,14 @@ $forall p <- tpostings t
        showamt = not split || not (isZeroMixedAmount amt)
 
 -- Generate html for an account register, including a balance chart and transaction list.
-registerReportHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
+registerReportHtml :: [Opt] -> ViewData -> TransactionsReport -> Hamlet AppRoute
 registerReportHtml opts vd r@(_,items) = [$hamlet|
  ^{registerChartHtml items}
  ^{registerItemsHtml opts vd r}
 |]
 
--- Generate html for a transaction list from an "AccountRegisterReport".
-registerItemsHtml :: [Opt] -> ViewData -> AccountRegisterReport -> Hamlet AppRoute
+-- Generate html for a transaction list from an "TransactionsReport".
+registerItemsHtml :: [Opt] -> ViewData -> TransactionsReport -> Hamlet AppRoute
 registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
 <table.registerreport
  <tr.headings
@@ -379,13 +379,13 @@ registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
   <th.amount align=right>Amount
   <th.balance align=right>#{balancelabel}
 
- $forall i <- numberAccountRegisterReportItems items
+ $forall i <- numberTransactionsReportItems items
   ^{itemAsHtml vd i}
  |]
  where
    -- inacct = inAccount qopts
    -- filtering = m /= MatchAny
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, AccountRegisterReportItem) -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> Hamlet AppRoute
    itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
@@ -419,7 +419,7 @@ $forall p <- tpostings t
        displayclass = if p then "" else "hidden" :: String
 
 -- | Generate javascript/html for a register balance line chart based on
--- the provided "AccountRegisterReportItem"s.
+-- the provided "TransactionsReportItem"s.
 registerChartHtml items = [$hamlet|
 <script type=text/javascript>
   $(document).ready(function() {
@@ -446,11 +446,11 @@ registerChartHtml items = [$hamlet|
 stringIfLongerThan :: Int -> String -> String
 stringIfLongerThan n s = if length s > n then s else ""
 
-numberAccountRegisterReportItems :: [AccountRegisterReportItem] -> [(Int,Bool,Bool,Bool,AccountRegisterReportItem)]
-numberAccountRegisterReportItems [] = []
-numberAccountRegisterReportItems is = number 0 nulldate is
+numberTransactionsReportItems :: [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
+numberTransactionsReportItems [] = []
+numberTransactionsReportItems is = number 0 nulldate is
   where
-    number :: Int -> Day -> [AccountRegisterReportItem] -> [(Int,Bool,Bool,Bool,AccountRegisterReportItem)]
+    number :: Int -> Day -> [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
     number _ _ [] = []
     number n prevd (i@(Transaction{tdate=d},_,_,_,_,_):is)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d is)
         where

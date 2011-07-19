@@ -268,8 +268,8 @@ resetTrailAndEnter d scr a = enter d scr (aargs a) $ clearLocs a
 updateData :: Day -> AppState -> AppState
 updateData d a@AppState{aopts=opts,ajournal=j} =
     case screen a of
-      BalanceScreen  -> a{abuf=balanceReportAsText opts $ balanceReport opts fspec j}
-      RegisterScreen -> a{abuf=lines $ postingRegisterReportAsText opts $ postingRegisterReport opts fspec j}
+      BalanceScreen  -> a{abuf=accountsReportAsText opts $ accountsReport opts fspec j}
+      RegisterScreen -> a{abuf=lines $ postingsReportAsText opts $ postingsReport opts fspec j}
       PrintScreen    -> a{abuf=lines $ showTransactions opts fspec j}
     where fspec = optsToFilterSpec opts (currentArgs a) d
 

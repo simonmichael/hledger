@@ -24,9 +24,9 @@ print' opts args j = do
   putStr $ showTransactions opts (optsToFilterSpec opts args d) j
 
 showTransactions :: [Opt] -> FilterSpec -> Journal -> String
-showTransactions opts fspec j = journalReportAsText opts fspec $ journalReport opts fspec j
+showTransactions opts fspec j = rawJournalReportAsText opts fspec $ rawJournalReport opts fspec j
 
-journalReportAsText :: [Opt] -> FilterSpec -> JournalReport -> String
-journalReportAsText opts _ items = concatMap (showTransactionForPrint effective) items
+rawJournalReportAsText :: [Opt] -> FilterSpec -> RawJournalReport -> String
+rawJournalReportAsText opts _ items = concatMap (showTransactionForPrint effective) items
     where effective = Effective `elem` opts
 
