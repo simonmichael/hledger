@@ -43,6 +43,18 @@ instance Show Journal where
              -- ++ (show $ journalTransactions l)
              where accounts = flatten $ journalAccountNameTree j
 
+showJournalDebug j = unlines [
+                      show j
+                     ,show (jtxns j)
+                     ,show (jmodifiertxns j)
+                     ,show (jperiodictxns j)
+                     ,show $ open_timelog_entries j
+                     ,show $ historical_prices j
+                     ,show $ final_comment_lines j
+                     ,show $ jContext j
+                     ,show $ map fst $ files j
+                     ]
+
 nulljournal :: Journal
 nulljournal = Journal { jmodifiertxns = []
                       , jperiodictxns = []
