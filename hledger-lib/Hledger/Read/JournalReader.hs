@@ -110,7 +110,7 @@ module Hledger.Read.JournalReader (
        ledgeraccountname,
        ledgerdatetime,
        ledgerDefaultYear,
-       ledgerExclamationDirective,
+       ledgerDirective,
        ledgerHistoricalPrice,
        reader,
        someamount,
@@ -167,7 +167,7 @@ journalFile = do
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      journalItem = choice [ ledgerExclamationDirective
+      journalItem = choice [ ledgerDirective
                           , liftM (return . addTransaction) ledgerTransaction
                           , liftM (return . addModifierTransaction) ledgerModifierTransaction
                           , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
@@ -206,15 +206,15 @@ ledgercommentline = do
   return s
   <?> "comment"
 
-ledgerExclamationDirective :: GenParser Char JournalContext JournalUpdate
-ledgerExclamationDirective = do
-  char '!' <?> "directive"
-  directive <- many nonspace
-  case directive of
-    "include" -> ledgerInclude
-    "account" -> ledgerAccountBegin
-    "end"     -> ledgerAccountEnd
-    _         -> mzero
+ledgerDirective :: GenParser Char JournalContext JournalUpdate
+ledgerDirective = do
+  optional $ char '!'
+  choice' [
+    string "include" >> ledgerInclude
+   ,string "account" >> ledgerAccountBegin
+   ,string "end"     >> ledgerAccountEnd
+   ]
+  <?> "directive"
 
 ledgerInclude :: GenParser Char JournalContext JournalUpdate
 ledgerInclude = do
@@ -677,10 +677,10 @@ tests_Hledger_Read_JournalReader = TestList [
   ,"ledgerPeriodicTransaction" ~: do
      assertParse (parseWithCtx nullctx ledgerPeriodicTransaction "~ (some period expr)\n some:postings  1\n")
 
-  ,"ledgerExclamationDirective" ~: do
-     assertParse (parseWithCtx nullctx ledgerExclamationDirective "!include /some/file.x\n")
-     assertParse (parseWithCtx nullctx ledgerExclamationDirective "!account some:account\n")
-     assertParse (parseWithCtx nullctx (ledgerExclamationDirective >> ledgerExclamationDirective) "!account a\n!end\n")
+  ,"ledgerDirective" ~: do
+     assertParse (parseWithCtx nullctx ledgerDirective "!include /some/file.x\n")
+     assertParse (parseWithCtx nullctx ledgerDirective "account some:account\n")
+     assertParse (parseWithCtx nullctx (ledgerDirective >> ledgerDirective) "!account a\nend\n")
 
   ,"ledgercommentline" ~: do
      assertParse (parseWithCtx nullctx ledgercommentline "; some comment \n")

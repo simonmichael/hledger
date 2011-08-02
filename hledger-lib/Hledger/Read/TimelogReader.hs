@@ -54,7 +54,7 @@ import Text.ParserCombinators.Parsec hiding (parse)
 
 import Hledger.Data
 import Hledger.Read.Utils
-import Hledger.Read.JournalReader (ledgerExclamationDirective, ledgerHistoricalPrice,
+import Hledger.Read.JournalReader (ledgerDirective, ledgerHistoricalPrice,
                                    ledgerDefaultYear, emptyLine, ledgerdatetime)
 import Hledger.Utils
 
@@ -84,7 +84,7 @@ timelogFile = do items <- many timelogItem
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      timelogItem = choice [ ledgerExclamationDirective
+      timelogItem = choice [ ledgerDirective
                           , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
                           , ledgerDefaultYear
                           , emptyLine >> return (return id)
