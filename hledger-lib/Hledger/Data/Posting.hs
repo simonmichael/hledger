@@ -13,6 +13,7 @@ where
 import Data.List
 import Data.Ord
 import Data.Time.Calendar
+import Safe
 import Test.HUnit
 import Text.Printf
 
@@ -66,11 +67,6 @@ isBalancedVirtual p = ptype p == BalancedVirtualPosting
 hasAmount :: Posting -> Bool
 hasAmount = (/= missingamt) . pamount
 
-postingTypeFromAccountName a
-    | head a == '[' && last a == ']' = BalancedVirtualPosting
-    | head a == '(' && last a == ')' = VirtualPosting
-    | otherwise = RegularPosting
-
 accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nub . map paccount
 
@@ -103,6 +99,60 @@ postingsDateSpan [] = DateSpan Nothing Nothing
 postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
     where ps' = sortBy (comparing postingDate) ps
 
+-- balanced/non-balanced posting indicators
+
+accountNamePostingType :: AccountName -> PostingType
+accountNamePostingType a
+    | null a = RegularPosting
+    | head a == '[' && last a == ']' = BalancedVirtualPosting
+    | head a == '(' && last a == ')' = VirtualPosting
+    | otherwise = RegularPosting
+
+accountNameWithoutPostingType :: AccountName -> AccountName
+accountNameWithoutPostingType a = case accountNamePostingType a of
+                                    BalancedVirtualPosting -> init $ tail a
+                                    VirtualPosting -> init $ tail a
+                                    RegularPosting -> a
+
+accountNameWithPostingType :: PostingType -> AccountName -> AccountName
+accountNameWithPostingType BalancedVirtualPosting a = "["++accountNameWithoutPostingType a++"]"
+accountNameWithPostingType VirtualPosting a = "("++accountNameWithoutPostingType a++")"
+accountNameWithPostingType RegularPosting a = accountNameWithoutPostingType a
+
+-- | Prefix one account name to another, preserving posting type
+-- indicators like concatAccountNames.
+joinAccountNames :: AccountName -> AccountName -> AccountName
+joinAccountNames a b = concatAccountNames $ filter (not . null) [a,b]
+
+-- | Join account names into one. If any of them has () or [] posting type
+-- indicators, these (the first type encountered) will also be applied to
+-- the resulting account name.
+concatAccountNames :: [AccountName] -> AccountName
+concatAccountNames as = accountNameWithPostingType t $ intercalate ":" $ map accountNameWithoutPostingType as
+    where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
+
 tests_Hledger_Data_Posting = TestList [
+
+  "accountNamePostingType" ~: do
+    accountNamePostingType "a" `is` RegularPosting
+    accountNamePostingType "(a)" `is` VirtualPosting
+    accountNamePostingType "[a]" `is` BalancedVirtualPosting
+
+ ,"accountNameWithoutPostingType" ~: do
+    accountNameWithoutPostingType "(a)" `is` "a"
+
+ ,"accountNameWithPostingType" ~: do
+    accountNameWithPostingType VirtualPosting "[a]" `is` "(a)"
+
+ ,"joinAccountNames" ~: do
+    "a" `joinAccountNames` "b:c" `is` "a:b:c"
+    "a" `joinAccountNames` "(b:c)" `is` "(a:b:c)"
+    "[a]" `joinAccountNames` "(b:c)" `is` "[a:b:c]"
+    "" `joinAccountNames` "a" `is` "a"
+
+ ,"concatAccountNames" ~: do
+    concatAccountNames [] `is` ""
+    concatAccountNames ["a","(b)","[c:d]"] `is` "(a:b:c:d)"
+
  ]
 

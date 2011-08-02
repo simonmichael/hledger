@@ -147,7 +147,9 @@ type Year = Integer
 data JournalContext = Ctx {
       ctxYear      :: !(Maybe Year)      -- ^ the default year most recently specified with Y
     , ctxCommodity :: !(Maybe Commodity) -- ^ the default commodity most recently specified with D
-    , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts specified by !account
+    , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts/account name components
+                                        --   specified with "account" directive(s). Concatenated, these
+                                        --   are the account prefix prepended to parsed account names.
     } deriving (Read, Show, Eq)
 
 data Journal = Journal {

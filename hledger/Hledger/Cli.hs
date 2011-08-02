@@ -87,6 +87,13 @@ tests_Hledger_Cli = TestList
                             "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" ++
                             "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
                            )
+
+   ,"account directive should preserve \"virtual\" posting type" ~: do
+      j <- readJournal Nothing "!account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
+      let p = head $ tpostings $ head $ jtxns j
+      assertBool "" $ (paccount p) == "test:from"
+      assertBool "" $ (ptype p) == VirtualPosting
+
    ]
 
   ,"ledgerAccountNames" ~:

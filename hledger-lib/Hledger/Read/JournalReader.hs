@@ -448,7 +448,7 @@ ledgerposting = do
   status <- ledgerstatus
   many spacenonewline
   account <- transactionaccountname
-  let (ptype, account') = (postingTypeFromAccountName account, unbracket account)
+  let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- postingamount
   many spacenonewline
   comment <- ledgercomment <|> return ""
@@ -456,9 +456,9 @@ ledgerposting = do
   md <- ledgermetadata
   return (Posting status account' amount comment ptype md Nothing)
 
--- qualify with the parent account from parsing context
+-- Prepend any parent account currently in effect.
 transactionaccountname :: GenParser Char JournalContext AccountName
-transactionaccountname = liftM2 (++) getParentAccount ledgeraccountname
+transactionaccountname = liftM2 joinAccountNames getParentAccount ledgeraccountname
 
 -- | Parse an account name. Account names may have single spaces inside
 -- them, and are terminated by two or more spaces. They should have one or

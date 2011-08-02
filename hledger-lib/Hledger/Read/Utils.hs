@@ -14,6 +14,7 @@ import Text.ParserCombinators.Parsec
 
 import Hledger.Data.Types
 import Hledger.Utils
+import Hledger.Data.Posting
 import Hledger.Data.Dates (getCurrentYear)
 import Hledger.Data.Journal (nullctx, nulljournal, journalFinalise)
 
@@ -50,8 +51,7 @@ getCommodity = liftM ctxCommodity getState
 
 pushParentAccount :: String -> GenParser tok JournalContext ()
 pushParentAccount parent = updateState addParentAccount
-    where addParentAccount ctx0 = ctx0 { ctxAccount = normalize parent : ctxAccount ctx0 }
-          normalize = (++ ":") 
+    where addParentAccount ctx0 = ctx0 { ctxAccount = parent : ctxAccount ctx0 }
 
 popParentAccount :: GenParser tok JournalContext ()
 popParentAccount = do ctx0 <- getState
@@ -60,7 +60,7 @@ popParentAccount = do ctx0 <- getState
                         (_:rest) -> setState $ ctx0 { ctxAccount = rest }
 
 getParentAccount :: GenParser tok JournalContext String
-getParentAccount = liftM (concat . reverse . ctxAccount) getState
+getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) getState
 
 -- | Convert a possibly relative, possibly tilde-containing file path to an absolute one.
 -- using the current directory from a parsec source position. ~username is not supported.
