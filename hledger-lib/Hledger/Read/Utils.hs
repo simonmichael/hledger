@@ -12,7 +12,7 @@ import System.FilePath(takeDirectory,combine)
 import System.Time (getClockTime)
 import Text.ParserCombinators.Parsec
 
-import Hledger.Data.Types (Journal, JournalContext(..), Commodity, JournalUpdate)
+import Hledger.Data.Types
 import Hledger.Utils
 import Hledger.Data.Dates (getCurrentYear)
 import Hledger.Data.Journal (nullctx, nulljournal, journalFinalise)

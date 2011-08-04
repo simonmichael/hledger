@@ -168,21 +168,12 @@ journalFile = do
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
       journalItem = choice [ ledgerDirective
-                          , liftM (return . addTransaction) ledgerTransaction
-                          , liftM (return . addModifierTransaction) ledgerModifierTransaction
-                          , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
-                          , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
-                          , ledgerDefaultYear
-                          , ledgerDefaultCommodity
-                          , ledgerCommodityConversion
-                          , ledgerIgnoredPriceCommodity
-                          , ledgerTagDirective
-                          , ledgerEndTagDirective
-                          , emptyLine >> return (return id)
-                          ] <?> "journal transaction or directive"
-
-journalAddFile :: (FilePath,String) -> Journal -> Journal
-journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
+                           , liftM (return . addTransaction) ledgerTransaction
+                           , liftM (return . addModifierTransaction) ledgerModifierTransaction
+                           , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
+                           , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
+                           , emptyLine >> return (return id)
+                           ] <?> "journal transaction or directive"
 
 emptyLine :: GenParser Char JournalContext ()
 emptyLine = do many spacenonewline
@@ -210,14 +201,21 @@ ledgerDirective :: GenParser Char JournalContext JournalUpdate
 ledgerDirective = do
   optional $ char '!'
   choice' [
-    string "include" >> ledgerInclude
-   ,string "account" >> ledgerAccountBegin
-   ,string "end"     >> ledgerAccountEnd
+    ledgerInclude
+   ,ledgerAccountBegin
+   ,ledgerAccountEnd
+   ,ledgerTagDirective
+   ,ledgerEndTagDirective
+   ,ledgerDefaultYear
+   ,ledgerDefaultCommodity
+   ,ledgerCommodityConversion
+   ,ledgerIgnoredPriceCommodity
    ]
   <?> "directive"
 
 ledgerInclude :: GenParser Char JournalContext JournalUpdate
 ledgerInclude = do
+  string "include"
   many1 spacenonewline
   filename <- restofline
   outerState <- getState
@@ -232,31 +230,58 @@ ledgerInclude = do
                 ErrorT $ liftM Right (readFile fp) `catch`
                   \err -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show err)
 
+journalAddFile :: (FilePath,String) -> Journal -> Journal
+journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
+
 ledgerAccountBegin :: GenParser Char JournalContext JournalUpdate
-ledgerAccountBegin = do many1 spacenonewline
-                        parent <- ledgeraccountname
-                        newline
-                        pushParentAccount parent
-                        return $ return id
+ledgerAccountBegin = do
+  string "account"
+  many1 spacenonewline
+  parent <- ledgeraccountname
+  newline
+  pushParentAccount parent
+  return $ return id
 
 ledgerAccountEnd :: GenParser Char JournalContext JournalUpdate
-ledgerAccountEnd = popParentAccount >> return (return id)
+ledgerAccountEnd = do
+  string "end"
+  popParentAccount
+  return (return id)
 
-ledgerModifierTransaction :: GenParser Char JournalContext ModifierTransaction
-ledgerModifierTransaction = do
-  char '=' <?> "modifier transaction"
-  many spacenonewline
-  valueexpr <- restofline
-  postings <- ledgerpostings
-  return $ ModifierTransaction valueexpr postings
+ledgerTagDirective :: GenParser Char JournalContext JournalUpdate
+ledgerTagDirective = do
+  string "tag" <?> "tag directive"
+  many1 spacenonewline
+  _ <- many1 nonspace
+  restofline
+  return $ return id
 
-ledgerPeriodicTransaction :: GenParser Char JournalContext PeriodicTransaction
-ledgerPeriodicTransaction = do
-  char '~' <?> "periodic transaction"
+ledgerEndTagDirective :: GenParser Char JournalContext JournalUpdate
+ledgerEndTagDirective = do
+  (string "end tag" <|> string "pop") <?> "end tag or pop directive"
+  restofline
+  return $ return id
+
+ledgerDefaultYear :: GenParser Char JournalContext JournalUpdate
+ledgerDefaultYear = do
+  char 'Y' <?> "default year"
   many spacenonewline
-  periodexpr <- restofline
-  postings <- ledgerpostings
-  return $ PeriodicTransaction periodexpr postings
+  y <- many1 digit
+  let y' = read y
+  failIfInvalidYear y
+  setYear y'
+  return $ return id
+
+ledgerDefaultCommodity :: GenParser Char JournalContext JournalUpdate
+ledgerDefaultCommodity = do
+  char 'D' <?> "default commodity"
+  many1 spacenonewline
+  a <- someamount
+  -- someamount always returns a MixedAmount containing one Amount, but let's be safe
+  let as = amounts a
+  when (not $ null as) $ setCommodity $ commodity $ head as
+  restofline
+  return $ return id
 
 ledgerHistoricalPrice :: GenParser Char JournalContext HistoricalPrice
 ledgerHistoricalPrice = do
@@ -290,41 +315,21 @@ ledgerCommodityConversion = do
   restofline
   return $ return id
 
-ledgerTagDirective :: GenParser Char JournalContext JournalUpdate
-ledgerTagDirective = do
-  string "tag" <?> "tag directive"
-  many1 spacenonewline
-  _ <- many1 nonspace
-  restofline
-  return $ return id
-
-ledgerEndTagDirective :: GenParser Char JournalContext JournalUpdate
-ledgerEndTagDirective = do
-  (string "end tag" <|> string "pop") <?> "end tag or pop directive"
-  restofline
-  return $ return id
-
--- like ledgerAccountBegin, updates the JournalContext
-ledgerDefaultYear :: GenParser Char JournalContext JournalUpdate
-ledgerDefaultYear = do
-  char 'Y' <?> "default year"
+ledgerModifierTransaction :: GenParser Char JournalContext ModifierTransaction
+ledgerModifierTransaction = do
+  char '=' <?> "modifier transaction"
   many spacenonewline
-  y <- many1 digit
-  let y' = read y
-  failIfInvalidYear y
-  setYear y'
-  return $ return id
+  valueexpr <- restofline
+  postings <- ledgerpostings
+  return $ ModifierTransaction valueexpr postings
 
-ledgerDefaultCommodity :: GenParser Char JournalContext JournalUpdate
-ledgerDefaultCommodity = do
-  char 'D' <?> "default commodity"
-  many1 spacenonewline
-  a <- someamount
-  -- someamount always returns a MixedAmount containing one Amount, but let's be safe
-  let as = amounts a
-  when (not $ null as) $ setCommodity $ commodity $ head as
-  restofline
-  return $ return id
+ledgerPeriodicTransaction :: GenParser Char JournalContext PeriodicTransaction
+ledgerPeriodicTransaction = do
+  char '~' <?> "periodic transaction"
+  many spacenonewline
+  periodexpr <- restofline
+  postings <- ledgerpostings
+  return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) ledger transaction.
 ledgerTransaction :: GenParser Char JournalContext Transaction
