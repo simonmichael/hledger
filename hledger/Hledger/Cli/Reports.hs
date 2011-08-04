@@ -21,8 +21,8 @@ module Hledger.Cli.Reports (
   -- * Transactions report
   TransactionsReport,
   TransactionsReportItem,
-  ariDate,
-  ariBalance,
+  triDate,
+  triBalance,
   journalTransactionsReport,
   accountTransactionsReport,
   -- * Accounts report
@@ -53,8 +53,9 @@ import Hledger.Cli.Utils
 
 -------------------------------------------------------------------------------
 
--- | A raw journal report is a list of transactions used to generate a raw journal view.
--- Used by eg hledger's print command.
+-- | A raw journal report is a list of whole transactions used to generate
+-- a raw journal view.  Used by eg hledger's print command and
+-- hledger-web's raw journal view.
 type RawJournalReport = [RawJournalReportItem]
 type RawJournalReportItem = Transaction
 
@@ -228,8 +229,8 @@ type TransactionsReportItem = (Transaction -- the corresponding transaction
                               ,MixedAmount -- the running balance for the current account(s) after this transaction
                               )
 
-ariDate (t,_,_,_,_,_) = tdate t
-ariBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
+triDate (t,_,_,_,_,_) = tdate t
+triBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
                                            (Amount{quantity=q}):_ -> show q
 
 -- | Select transactions from the whole journal for a transactions report,
@@ -331,7 +332,7 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -- | An accounts report is a list of account names (full and short
 -- variants) with their balances, appropriate indentation for rendering as
--- a hierarchy tree, and grand total.
+-- a hierarchy, and grand total.
 type AccountsReport = ([AccountsReportItem] -- line items, one per account
                       ,MixedAmount          -- total balance of all accounts
                       )

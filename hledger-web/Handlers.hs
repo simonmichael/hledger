@@ -429,7 +429,7 @@ registerChartHtml items = [$hamlet|
              [
               [
                $forall i <- items
-                [#{dayToJsTimestamp $ ariDate i}, #{ariBalance i}],
+                [#{dayToJsTimestamp $ triDate i}, #{triBalance i}],
               ]
              ],
              {
