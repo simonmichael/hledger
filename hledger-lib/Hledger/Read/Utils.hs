@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-|
 Utilities common to hledger journal readers.
 -}
@@ -61,6 +62,15 @@ popParentAccount = do ctx0 <- getState
 
 getParentAccount :: GenParser tok JournalContext String
 getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) getState
+
+addAccountAlias :: (AccountName,AccountName) -> GenParser tok JournalContext ()
+addAccountAlias a = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
+
+getAccountAliases :: GenParser tok JournalContext [(AccountName,AccountName)]
+getAccountAliases = liftM ctxAliases getState
+
+clearAccountAliases :: GenParser tok JournalContext ()
+clearAccountAliases = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
 -- | Convert a possibly relative, possibly tilde-containing file path to an absolute one.
 -- using the current directory from a parsec source position. ~username is not supported.

@@ -436,6 +436,46 @@ Included files are also affected, eg:
     !include personal.journal
     !end
 
+### Account aliases
+
+You can define account aliases to rewrite certain account names (and their subaccounts).
+The format is `alias ORIGACCT = ALIAS`. Use `end aliases` to forget all previously defined aliases.
+
+Here's an example: say a sole proprietor has a personal.journal:
+
+    1/1
+        expenses:food  $1
+        assets:cash
+
+and a business.journal:
+
+    1/1
+        expenses:office supplies  $1
+        assets:business checking
+
+Here each entity has a simple journal with its own simple chart of
+accounts.  But at tax reporting time, we need to view these as a single
+entity.  So in unified.journal we adjust the personal account names to fit
+within the business chart of accounts:
+
+    alias expenses    = equity:draw:personal
+    alias assets:cash = assets:personal cash
+    include personal.journal
+    end aliases
+    include business.journal
+
+giving:
+
+    $ hledger -f unified.journal print
+    2011/01/01
+        equity:draw:personal:food            $1
+        assets:personal cash                $-1
+    
+    2011/01/01
+        expenses:office supplies            $1
+        assets:business checking           $-1
+
+
 ## Core commands
 
 These commands are provided by the main hledger package and are always

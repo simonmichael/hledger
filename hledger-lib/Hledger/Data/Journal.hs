@@ -56,7 +56,7 @@ nulljournal = Journal { jmodifiertxns = []
                       }
 
 nullctx :: JournalContext
-nullctx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [] }
+nullctx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [], ctxAliases = [] }
 
 nullfilterspec :: FilterSpec
 nullfilterspec = FilterSpec {

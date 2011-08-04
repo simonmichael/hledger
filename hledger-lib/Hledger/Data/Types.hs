@@ -150,6 +150,7 @@ data JournalContext = Ctx {
     , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts/account name components
                                         --   specified with "account" directive(s). Concatenated, these
                                         --   are the account prefix prepended to parsed account names.
+    , ctxAliases   :: ![(AccountName,AccountName)] -- ^ the current list of account name aliases in effect
     } deriving (Read, Show, Eq)
 
 data Journal = Journal {

@@ -96,6 +96,11 @@ tests_Hledger_Cli = TestList
 
    ]
 
+   ,"account aliases" ~: do
+      Right j <- readJournal Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n"
+      let p = head $ tpostings $ head $ jtxns j
+      assertBool "" $ paccount p == "equity:draw:personal:food"
+
   ,"ledgerAccountNames" ~:
     ledgerAccountNames ledger7 `is`
      ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",

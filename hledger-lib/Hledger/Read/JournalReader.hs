@@ -202,6 +202,8 @@ ledgerDirective = do
   optional $ char '!'
   choice' [
     ledgerInclude
+   ,ledgerAlias
+   ,ledgerEndAliases
    ,ledgerAccountBegin
    ,ledgerAccountEnd
    ,ledgerTagDirective
@@ -246,6 +248,23 @@ ledgerAccountEnd :: GenParser Char JournalContext JournalUpdate
 ledgerAccountEnd = do
   string "end"
   popParentAccount
+  return (return id)
+
+ledgerAlias :: GenParser Char JournalContext JournalUpdate
+ledgerAlias = do
+  string "alias"
+  many1 spacenonewline
+  orig <- many1 $ noneOf "="
+  char '='
+  alias <- restofline
+  addAccountAlias (accountNameWithoutPostingType $ strip orig
+                  ,accountNameWithoutPostingType $ strip alias)
+  return $ return id
+
+ledgerEndAliases :: GenParser Char JournalContext JournalUpdate
+ledgerEndAliases = do
+  string "end aliases"
+  clearAccountAliases
   return (return id)
 
 ledgerTagDirective :: GenParser Char JournalContext JournalUpdate
@@ -447,7 +466,7 @@ ledgerposting = do
   many1 spacenonewline
   status <- ledgerstatus
   many spacenonewline
-  account <- transactionaccountname
+  account <- modifiedaccountname
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- postingamount
   many spacenonewline
@@ -456,9 +475,19 @@ ledgerposting = do
   md <- ledgermetadata
   return (Posting status account' amount comment ptype md Nothing)
 
--- Prepend any parent account currently in effect.
-transactionaccountname :: GenParser Char JournalContext AccountName
-transactionaccountname = liftM2 joinAccountNames getParentAccount ledgeraccountname
+-- Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
+modifiedaccountname :: GenParser Char JournalContext AccountName
+modifiedaccountname = do
+  a <- ledgeraccountname
+  prefix <- getParentAccount
+  let prefixed = prefix `joinAccountNames` a
+  aliases <- getAccountAliases
+  let t = accountNamePostingType prefixed
+      a' = accountNameWithoutPostingType prefixed
+      match = headDef Nothing $ map Just $ filter (\(orig,_) -> orig == a' || orig `isAccountNamePrefixOf` a') aliases
+      rewritten = maybe a' (\(orig,alias) -> alias++drop (length orig) a') match
+      withtype = accountNameWithPostingType t rewritten
+  return withtype
 
 -- | Parse an account name. Account names may have single spaces inside
 -- them, and are terminated by two or more spaces. They should have one or
