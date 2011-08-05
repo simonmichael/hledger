@@ -38,7 +38,7 @@ import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Test.HUnit
 import Text.Printf
 
-import Hledger.Cli.Options (Opt(..),journalFilePathFromOpts,whichDateFromOpts)
+import Hledger.Cli.Options
 import Hledger.Data
 import Hledger.Read
 import Hledger.Utils
@@ -51,7 +51,8 @@ withJournalDo opts args _ cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  journalFilePathFromOpts opts >>= readJournalFile Nothing >>= either error' (cmd opts args)
+  journalFilePathFromOpts opts >>= readJournalFile Nothing >>=
+    either error' (cmd opts args . journalApplyAliases (aliasesFromOpts opts))
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournalWithOpts :: [Opt] -> String -> IO Journal

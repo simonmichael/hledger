@@ -242,6 +242,13 @@ journalSelectingDate ActualDate j = j
 journalSelectingDate EffectiveDate j =
     j{jtxns=map (journalTransactionWithDate EffectiveDate) $ jtxns j}
 
+-- | Apply additional account aliases (eg from the command-line) to all postings in a journal.
+journalApplyAliases :: [(AccountName,AccountName)] -> Journal -> Journal
+journalApplyAliases aliases j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+    where
+      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
+      fixposting p@Posting{paccount=a} = p{paccount=accountNameApplyAliases aliases a}
+
 -- | Do post-parse processing on a journal, to make it ready for use.
 journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Journal -> Either String Journal
 journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =

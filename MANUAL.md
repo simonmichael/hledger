@@ -439,7 +439,8 @@ Included files are also affected, eg:
 ### Account aliases
 
 You can define account aliases to rewrite certain account names (and their subaccounts).
-The format is `alias ORIGACCT = ALIAS`. Use `end aliases` to forget all previously defined aliases.
+The format is `alias ORIG = ALIAS`, where ORIG and ALIAS are full account names.
+To forget all aliases defined to this point, use `end aliases`.
 
 Here's an example: say a sole proprietor has a personal.journal:
 
@@ -475,6 +476,21 @@ giving:
         expenses:office supplies            $1
         assets:business checking           $-1
 
+You can also specify aliases on the command line. This could be useful to
+rewrite account names when sharing a report with someone else, such as
+your accountant:
+
+    $ hledger --alias 'my earning=income:business'
+
+Command-line alias options are applied after any alias directives in the
+journal.  At most one alias directive and one alias option will be applied
+to each account name.
+
+Aliases tend to be a little more reliable than post-processing with sed or
+similar, as they know about account name syntax, posting type indicators
+etc. Note aliases only change the displayed names, not the account
+hierarchy - aliasing two accounts to the same name does not merge them
+into one account.
 
 ## Core commands
 

@@ -62,6 +62,7 @@ options_cli :: [OptDescr Opt]
 options_cli = [
   Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
  ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "don't allow to create new accounts"
+ ,Option ""  ["alias"]        (ReqArg Alias "ACCT=ALIAS")  "display ACCT's name as ALIAS instead"
  ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
  ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
  ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
@@ -96,6 +97,7 @@ options_cli = [
 data Opt = 
     File          {value::String}
     | NoNewAccts
+    | Alias       {value::String}
     | Begin       {value::String}
     | End         {value::String}
     | Period      {value::String}
@@ -305,6 +307,18 @@ journalFilePathFromOpts opts = do
   istimequery <- usingTimeProgramName
   f <- if istimequery then myTimelogPath else myJournalPath
   return $ last $ f : optValuesForConstructor File opts
+
+aliasesFromOpts :: [Opt] -> [(AccountName,AccountName)]
+aliasesFromOpts opts = map parseAlias $ optValuesForConstructor Alias opts
+    where
+      -- similar to ledgerAlias
+      parseAlias :: String -> (AccountName,AccountName)
+      parseAlias s = (accountNameWithoutPostingType $ strip orig
+                     ,accountNameWithoutPostingType $ strip alias')
+          where
+            (orig, alias) = break (=='=') s
+            alias' = case alias of ('=':rest) -> rest
+                                   _ -> orig
 
 -- | Gather filter pattern arguments into a list of account patterns and a
 -- list of description patterns. We interpret pattern arguments as

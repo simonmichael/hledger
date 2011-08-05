@@ -482,12 +482,7 @@ modifiedaccountname = do
   prefix <- getParentAccount
   let prefixed = prefix `joinAccountNames` a
   aliases <- getAccountAliases
-  let t = accountNamePostingType prefixed
-      a' = accountNameWithoutPostingType prefixed
-      match = headDef Nothing $ map Just $ filter (\(orig,_) -> orig == a' || orig `isAccountNamePrefixOf` a') aliases
-      rewritten = maybe a' (\(orig,alias) -> alias++drop (length orig) a') match
-      withtype = accountNameWithPostingType t rewritten
-  return withtype
+  return $ accountNameApplyAliases aliases prefixed
 
 -- | Parse an account name. Account names may have single spaces inside
 -- them, and are terminated by two or more spaces. They should have one or

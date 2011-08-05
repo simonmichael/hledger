@@ -99,7 +99,7 @@ postingsDateSpan [] = DateSpan Nothing Nothing
 postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
     where ps' = sortBy (comparing postingDate) ps
 
--- balanced/non-balanced posting indicators
+-- AccountName stuff that depends on PostingType
 
 accountNamePostingType :: AccountName -> PostingType
 accountNamePostingType a
@@ -130,6 +130,15 @@ joinAccountNames a b = concatAccountNames $ filter (not . null) [a,b]
 concatAccountNames :: [AccountName] -> AccountName
 concatAccountNames as = accountNameWithPostingType t $ intercalate ":" $ map accountNameWithoutPostingType as
     where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
+
+-- | Rewrite an account name using the first applicable alias from the given list, if any.
+accountNameApplyAliases :: [(AccountName,AccountName)] -> AccountName -> AccountName
+accountNameApplyAliases aliases a = withorigtype
+    where
+      (a',t) = (accountNameWithoutPostingType a, accountNamePostingType a)
+      firstmatchingalias = headDef Nothing $ map Just $ filter (\(orig,_) -> orig == a' || orig `isAccountNamePrefixOf` a') aliases
+      rewritten = maybe a' (\(orig,alias) -> alias++drop (length orig) a') firstmatchingalias
+      withorigtype = accountNameWithPostingType t rewritten
 
 tests_Hledger_Data_Posting = TestList [
 

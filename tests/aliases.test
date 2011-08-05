@@ -1,0 +1,49 @@
+# alias-related tests
+
+# 1. command-line --alias option.  Note multiple applicable aliases, but
+# only one is applied per account name.  Spaces are allowed if quoted.
+bin/hledger -f- print --alias 'a a=A' --alias b=B
+<<<
+2011/01/01
+    a a  1
+    c
+
+>>>
+2011/01/01
+    A             1
+    c            -1
+
+>>>=0
+
+# 2. alias directive, and an account with unbalanced posting indicators.
+bin/hledger -f- print
+<<<
+alias b=B
+
+2011/01/01
+    (b)  1
+
+>>>
+2011/01/01
+    (B)             1
+
+>>>=0
+
+# 3. --alias options run after alias directives. Subaccounts are also
+# matched and rewritten. Accounts with an internal part matching the alias
+# are ignored.
+bin/hledger -f- print --alias a=A --alias B=C
+<<<
+alias a=B
+
+2011/01/01
+    [a:x]    1
+    [x:a:x]
+
+>>>
+2011/01/01
+    [C:x]             1
+    [x:a:x]            -1
+
+>>>2
+>>>=0
