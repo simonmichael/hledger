@@ -153,6 +153,7 @@ Some of these are discussed more in [other features](#other-features):
       -C       --cleared          report only on cleared transactions
       -U       --uncleared        report only on uncleared transactions
       -B       --cost, --basis    report cost of commodities
+               --alias=ACCT=ALIAS display ACCT's name as ALIAS in reports
                --depth=N          hide accounts/transactions deeper than this
       -d EXPR  --display=EXPR     show only transactions matching EXPR (where
                                   EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
@@ -488,9 +489,7 @@ to each account name.
 
 Aliases tend to be a little more reliable than post-processing with sed or
 similar, as they know about account name syntax, posting type indicators
-etc. Note aliases only change the displayed names, not the account
-hierarchy - aliasing two accounts to the same name does not merge them
-into one account.
+etc.
 
 ## Core commands
 

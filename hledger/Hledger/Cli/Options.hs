@@ -62,7 +62,6 @@ options_cli :: [OptDescr Opt]
 options_cli = [
   Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
  ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "don't allow to create new accounts"
- ,Option ""  ["alias"]        (ReqArg Alias "ACCT=ALIAS")  "display ACCT's name as ALIAS instead"
  ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
  ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
  ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
@@ -70,6 +69,7 @@ options_cli = [
  ,Option "C" ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
  ,Option "U" ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
  ,Option "B" ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
+ ,Option ""  ["alias"]        (ReqArg Alias "ACCT=ALIAS")  "display ACCT's name as ALIAS in reports"
  ,Option ""  ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
  ,Option "d" ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
                                                        "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
@@ -97,13 +97,13 @@ options_cli = [
 data Opt = 
     File          {value::String}
     | NoNewAccts
-    | Alias       {value::String}
     | Begin       {value::String}
     | End         {value::String}
     | Period      {value::String}
     | Cleared
     | UnCleared
     | CostBasis
+    | Alias       {value::String}
     | Depth       {value::String}
     | Display     {value::String}
     | Effective
