@@ -8,7 +8,7 @@
 -- In addition, you can configure a number of different aspects of Yesod
 -- by overriding methods in the Yesod typeclass. That instance is
 -- declared in the hledger-web.hs file.
-module Settings
+module Hledger.Web.Settings
     ( hamletFile
     , cassiusFile
     , juliusFile

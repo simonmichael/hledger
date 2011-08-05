@@ -9,10 +9,10 @@ way; use their FilePath or URL to access them.
 This is a separate module to satisfy template haskell requirements.
 
 -}
-module StaticFiles where
+module Hledger.Web.StaticFiles where
 
 import Yesod.Helpers.Static
 
-import Settings (staticdir)
+import Hledger.Web.Settings (staticdir)
 
 $(staticFiles staticdir)

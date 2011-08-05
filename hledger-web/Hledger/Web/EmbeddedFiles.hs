@@ -8,7 +8,7 @@ startup, when needed. This simplifies installation for end-users, and
 customisation too.
 
 -}
-module EmbeddedFiles
+module Hledger.Web.EmbeddedFiles
     (
      files
     ,createFilesIfMissing
@@ -20,7 +20,7 @@ import Data.FileEmbed (embedDir)
 import System.Directory
 import System.FilePath
 
-import Settings (datadir)
+import Hledger.Web.Settings (datadir)
 
 -- | An embedded copy of all files below the the hledger-web data
 -- directory (@.hledger/web/@) at compile time, as (FilePath,ByteString)

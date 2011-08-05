@@ -26,10 +26,7 @@ import Hledger.Cli
 import Hledger.Data
 import Prelude hiding (putStr, putStrLn)
 import Hledger.Utils.UTF8 (putStr, putStrLn)
-
-import App
-import AppRun (withApp)
-import EmbeddedFiles (createFilesIfMissing)
+import Hledger.Web
 
 
 progname_web = progname_cli ++ "-web"

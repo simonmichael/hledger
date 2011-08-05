@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module AppRun (
+module Hledger.Web.AppRun (
                withApp
               ,withDevelApp
               ,withWaiHandlerDevelApp
@@ -16,10 +16,9 @@ import Yesod.Helpers.Static
 
 import Hledger
 import Hledger.Cli
-
-import App
-import Handlers
-import Settings
+import Hledger.Web.App
+import Hledger.Web.Handlers
+import Hledger.Web.Settings
 
 -- This line actually creates our YesodSite instance. It is the second half
 -- of the call to mkYesodData which occurs in App.hs. Please see
@@ -37,8 +36,8 @@ withApp a f = toWaiApp a >>= f
 withDevelApp :: Dynamic
 withDevelApp = toDyn (withApp a :: (Application -> IO ()) -> IO ())
    where a = App{
-              getStatic=static Settings.staticdir
-             ,appRoot=Settings.defapproot
+              getStatic=static Hledger.Web.Settings.staticdir
+             ,appRoot=Hledger.Web.Settings.defapproot
              ,appOpts=[]
              ,appArgs=[]
              ,appJournal=nulljournal
@@ -52,7 +51,7 @@ withWaiHandlerDevelApp func = do
   ej <- readJournalFile Nothing f
   let Right j = ej
   let a = App{
-              getStatic=static Settings.staticdir
+              getStatic=static Hledger.Web.Settings.staticdir
              ,appRoot=Settings.defapproot
              ,appOpts=[File f]
              ,appArgs=[]

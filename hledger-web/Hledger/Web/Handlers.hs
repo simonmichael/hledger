@@ -5,7 +5,7 @@ hledger-web's request handlers, and helpers.
 
 -}
 
-module Handlers where
+module Hledger.Web.Handlers where
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Aeson
@@ -28,13 +28,12 @@ import Yesod.Json
 
 import Hledger hiding (today)
 import Hledger.Cli
-
-import App
-import Settings
+import Hledger.Web.App
+import Hledger.Web.Settings
 
 
 getFaviconR :: Handler ()
-getFaviconR = sendFile "image/x-icon" $ Settings.staticdir </> "favicon.ico"
+getFaviconR = sendFile "image/x-icon" $ Hledger.Web.Settings.staticdir </> "favicon.ico"
 
 getRobotsR :: Handler RepPlain
 getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)

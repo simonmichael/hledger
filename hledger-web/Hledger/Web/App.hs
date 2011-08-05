@@ -1,13 +1,12 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
-module App
+module Hledger.Web.App
     ( App (..)
     , AppRoute (..)
     , resourcesApp
     , Handler
     , Widget
     , module Yesod.Core
-    , module Settings
     , StaticRoute (..)
     , lift
     , liftIO
@@ -25,9 +24,8 @@ import Yesod.Helpers.Static
 
 import Hledger.Cli.Options
 import Hledger.Data
-
-import Settings
-import StaticFiles
+import Hledger.Web.Settings
+import Hledger.Web.StaticFiles
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -111,7 +109,7 @@ instance Yesod App where
     -- users receiving stale content.
     addStaticContent ext' _ content = do
         let fn = base64md5 content ++ '.' : T.unpack ext'
-        let statictmp = Settings.staticdir ++ "/tmp/"
+        let statictmp = Hledger.Web.Settings.staticdir ++ "/tmp/"
         liftIO $ createDirectoryIfMissing True statictmp
         let fn' = statictmp ++ fn
         exists <- liftIO $ doesFileExist fn'
