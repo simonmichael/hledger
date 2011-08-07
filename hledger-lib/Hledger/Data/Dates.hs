@@ -50,6 +50,12 @@ getCurrentDay = do
     t <- getZonedTime
     return $ localDay (zonedTimeToLocalTime t)
 
+-- | Get the current local month number.
+getCurrentMonth :: IO Int
+getCurrentMonth = do
+  (_,m,_) <- toGregorian `fmap` getCurrentDay
+  return m
+
 -- | Get the current local year.
 getCurrentYear :: IO Integer
 getCurrentYear = do

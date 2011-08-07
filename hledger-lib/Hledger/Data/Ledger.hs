@@ -71,6 +71,10 @@ ledgerAccounts = drop 1 . flatten . ledgerAccountTree 9999
 ledgerTopAccounts :: Ledger -> [Account]
 ledgerTopAccounts = map root . branches . ledgerAccountTree 9999
 
+-- | List a ledger's bottom-level (subaccount-less) accounts, in tree order
+ledgerLeafAccounts :: Ledger -> [Account]
+ledgerLeafAccounts = leaves . ledgerAccountTree 9999
+
 -- | Accounts in ledger whose name matches the pattern, in tree order.
 ledgerAccountsMatching :: [String] -> Ledger -> [Account]
 ledgerAccountsMatching pats = filter (matchpats pats . aname) . accounts

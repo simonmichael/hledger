@@ -42,6 +42,7 @@ module Hledger.Reports (
   AccountsReportItem,
   accountsReport,
   accountsReport2,
+  isInteresting,
   -- * Tests
   tests_Hledger_Reports
 )
