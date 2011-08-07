@@ -332,6 +332,7 @@ mtrace :: (Monad m, Show a) => a -> m a
 mtrace a = strace a `seq` return a
 
 -- | trace an expression using a custom show function
+tracewith :: (a -> String) -> a -> a
 tracewith f e = trace (f e) e
 
 -- parsing
