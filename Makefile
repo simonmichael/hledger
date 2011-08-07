@@ -534,7 +534,7 @@ HADDOCK=haddock --optghc='-hide-package monads-tf' --no-warnings --prologue .had
 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
 
 # generate external api docs for the whole project
-apihaddock: linkhledgerwebdir .haddockprologue
+apihaddock haddock: linkhledgerwebdir .haddockprologue
 	$(HADDOCK) --title "hledger API docs (all packages)" \
 	 -o site/api-doc \
 	 --html \
