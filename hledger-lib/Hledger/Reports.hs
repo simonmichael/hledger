@@ -414,7 +414,7 @@ accountTransactionsReport opts j m thisacctmatcher = (label, items)
                                           (-- ltrace "priormatcher" $
                                            MatchAnd [thisacctmatcher, tostartdatematcher]))
                                          $ transactionsPostings ts
-                        tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
+                        tostartdatematcher = MatchDate (DateSpan Nothing startdate)
                         startdate = matcherStartDate (effective_ opts) m
      items = reverse $ accountTransactionsReportItems m (Just thisacctmatcher) startbal negate ts
 
