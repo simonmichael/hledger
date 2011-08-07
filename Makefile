@@ -15,6 +15,9 @@ COVCMD=test
 BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14-ghc6.12.3 ledger
 #BENCHEXES=hledger
 
+# searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
+AUTOBUILD=sp --no-exts --no-default-map ghc --make
+
 # misc. tools
 BROWSE=google-chrome
 BROWSE=open -a 'Google Chrome'
@@ -124,22 +127,22 @@ all%:
 # auto-recompile and run (something, eg unit tests) whenever a module changes.
 autotest: sp
 	rm -f bin/hledger
-	sp --no-exts --no-default-map -o bin/hledger ghc --make $(MAIN) -ihledger $(BUILDFLAGS) --run test
+	$(AUTOBUILD) $(MAIN) -o bin/hledger -ihledger $(BUILDFLAGS) --run --help
 
 # as above for add-on programs
 autoweb: sp linkhledgerwebdir
 	rm -f bin/hledger-web
-	sp --no-exts --no-default-map -o bin/hledger-web ghc --make hledger-web/hledger-web.hs -ihledger-web -ihledger $(BUILDFLAGS) --run --debug -B
+	$(AUTOBUILD) hledger-web/hledger-web.hs -o bin/hledger-web -ihledger-web -ihledger $(BUILDFLAGS) --run #-f test.journal
 
 autovty: sp
 	rm -f bin/hledger-vty
-	sp --no-exts --no-default-map -o bin/hledger-vty ghc --make hledger-vty/hledger-vty.hs -ihledger-vty -ihledger $(BUILDFLAGS) --run --help
+	$(AUTOBUILD) hledger-vty/hledger-vty.hs -o bin/hledger-vty -ihledger-vty -ihledger $(BUILDFLAGS) --run --help
 
 autochart: sp
 	rm -f bin/hledger-chart
-	sp --no-exts --no-default-map -o bin/hledger-chart ghc --make hledger-chart/hledger-chart.hs -ihledger-chart -ihledger $(BUILDFLAGS) --run --help
+	$(AUTOBUILD) hledger-chart/hledger-chart.hs -o bin/hledger-chart -ihledger-chart -ihledger $(BUILDFLAGS) --run --help
 
-# check for sp and explain how to get it if not found. The joyful.com version works best.
+# check for sp and explain how to get it if not found.
 sp:
 	@/usr/bin/env which sp >/dev/null || \
 	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/repos/searchpath, make it and add it to your PATH'; exit 1)
@@ -470,7 +473,7 @@ site/hakyll: site/hakyll.hs
 	cd site; ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS)
 
 autosite:
-	cd site; sp --no-exts --no-default-map -o hakyll ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS) --run preview
+	cd site; $(AUTOBUILD) hakyll.hs -o hakyll $(PREFERMACUSRLIBFLAGS) --run preview
 
 viewsite: site
 	$(VIEWHTML) site/_site/index.html
