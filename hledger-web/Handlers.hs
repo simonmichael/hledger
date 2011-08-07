@@ -87,14 +87,14 @@ getJournalEditR = do
       setTitle "hledger-web journal edit form"
       addHamlet $ editform vd
 
--- | The raw journal view, with sidebar.
-getJournalRawR :: Handler RepHtml
-getJournalRawR = do
+-- | The journal entries view, with sidebar.
+getJournalEntriesR :: Handler RepHtml
+getJournalEntriesR = do
   vd@VD{..} <- getViewData
   let
       sidecontent = sidebar vd
       title = "Journal entries" ++ if m /= MatchAny then ", filtered" else "" :: String
-      maincontent = rawJournalReportAsHtml opts vd $ rawJournalReport opts nullfilterspec $ filterJournalTransactions2 m j
+      maincontent = entriesReportAsHtml opts vd $ entriesReport opts nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet [$hamlet|
@@ -112,13 +112,13 @@ getJournalRawR = do
   ^{importform}
 |]
 
--- | The raw journal view, no sidebar.
+-- | The journal entries view, no sidebar.
 getJournalOnlyR :: Handler RepHtml
 getJournalOnlyR = do
   vd@VD{..} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal only"
-      addHamlet $ rawJournalReportAsHtml opts vd $ rawJournalReport opts nullfilterspec $ filterJournalTransactions2 m j
+      addHamlet $ entriesReportAsHtml opts vd $ entriesReport opts nullfilterspec $ filterJournalTransactions2 m j
 
 ----------------------------------------------------------------------
 
@@ -209,7 +209,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
     <a href=@{JournalR} title="Show all transactions in journal format">Journal
     <span.hoverlinks
      &nbsp;
-     <a href=@{JournalRawR} title="Show raw journal entries">raw</a>
+     <a href=@{JournalEntriesR} title="Show journal entries">entries</a>
      &nbsp;
      <a href=@{JournalEditR} title="Edit the journal">edit
      &nbsp;
@@ -271,15 +271,15 @@ accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRe
 -- accountUrl :: AppRoute -> AccountName -> (AppRoute,[(String,ByteString)])
 accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
--- | Render a "RawJournalReport" as HTML for the raw journal view.
-rawJournalReportAsHtml :: [Opt] -> ViewData -> RawJournalReport -> Hamlet AppRoute
-rawJournalReportAsHtml _ vd items = [$hamlet|
+-- | Render a "EntriesReport" as HTML for the journal entries view.
+entriesReportAsHtml :: [Opt] -> ViewData -> EntriesReport -> Hamlet AppRoute
+entriesReportAsHtml _ vd items = [$hamlet|
 <table.journalreport>
  $forall i <- numbered items
   ^{itemAsHtml vd i}
  |]
  where
-   itemAsHtml :: ViewData -> (Int, RawJournalReportItem) -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> (Int, EntriesReportItem) -> Hamlet AppRoute
    itemAsHtml _ (n, t) = [$hamlet|
 <tr.item.#{evenodd}>
  <td.transaction>

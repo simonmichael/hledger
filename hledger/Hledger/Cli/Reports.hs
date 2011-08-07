@@ -9,10 +9,10 @@ on the command-line options, should move to hledger-lib later.
 -}
 
 module Hledger.Cli.Reports (
-  -- * Raw journal report
-  RawJournalReport,
-  RawJournalReportItem,
-  rawJournalReport,
+  -- * Entries report
+  EntriesReport,
+  EntriesReportItem,
+  entriesReport,
   -- * Postings report
   PostingsReport,
   PostingsReportItem,
@@ -53,15 +53,15 @@ import Hledger.Cli.Utils
 
 -------------------------------------------------------------------------------
 
--- | A raw journal report is a list of whole transactions used to generate
--- a raw journal view.  Used by eg hledger's print command and
--- hledger-web's raw journal view.
-type RawJournalReport = [RawJournalReportItem]
-type RawJournalReportItem = Transaction
+-- | A journal entries report is a list of whole transactions as
+-- originally entered in the journal (mostly). Used by eg hledger's print
+-- command and hledger-web's journal entries view.
+type EntriesReport = [EntriesReportItem]
+type EntriesReportItem = Transaction
 
--- | Select transactions for a raw journal report.
-rawJournalReport :: [Opt] -> FilterSpec -> Journal -> RawJournalReport
-rawJournalReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
+-- | Select transactions for an entries report.
+entriesReport :: [Opt] -> FilterSpec -> Journal -> EntriesReport
+entriesReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
     where
       j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
 

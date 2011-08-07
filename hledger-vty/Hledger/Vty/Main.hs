@@ -85,7 +85,7 @@ data Loc = Loc {
 data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
             | RegisterScreen    -- ^ like hledger register, shows transaction-postings
             | PrintScreen       -- ^ like hledger print, shows journal transactions
-            -- | LedgerScreen      -- ^ shows the raw journal
+            -- | LedgerScreen      -- ^ shows the raw journal entries
               deriving (Eq,Show)
 
 -- | Run the vty (curses-style) ui.

@@ -1,10 +1,10 @@
-/static          StaticR        Static getStatic
-/favicon.ico     FaviconR       GET
-/robots.txt      RobotsR        GET
-/                RootR          GET
-/journal         JournalR       GET POST
-/journal/raw     JournalRawR    GET
-/journal/edit    JournalEditR   GET
-/register        RegisterR      GET
-/accounts        AccountsR      GET
-/api/accounts    AccountsJsonR  GET
+/static          StaticR         Static getStatic
+/favicon.ico     FaviconR        GET
+/robots.txt      RobotsR         GET
+/                RootR           GET
+/journal         JournalR        GET POST
+/journal/entries JournalEntriesR GET
+/journal/edit    JournalEditR    GET
+/register        RegisterR       GET
+/accounts        AccountsR       GET
+/api/accounts    AccountsJsonR   GET
