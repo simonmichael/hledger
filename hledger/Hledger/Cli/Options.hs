@@ -110,7 +110,6 @@ data Opt =
     | Flat
     | Drop        {value::String}
     | NoTotal
-    | SubTotal
     | DailyOpt
     | WeeklyOpt
     | MonthlyOpt

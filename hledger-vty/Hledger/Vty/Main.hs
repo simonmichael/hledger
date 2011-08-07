@@ -94,7 +94,6 @@ vty :: [Opt] -> [String] -> Journal -> IO ()
 vty opts args j = do
   v <- mkVty
   DisplayRegion w h <- display_bounds $ terminal v
-  let opts' = SubTotal:opts
   d <-  getCurrentDay
   let a = enter d BalanceScreen args
           AppState {
@@ -102,7 +101,7 @@ vty opts args j = do
                  ,aw=fromIntegral w
                  ,ah=fromIntegral h
                  ,amsg=helpmsg
-                 ,aopts=opts'
+                 ,aopts=opts
                  ,aargs=args
                  ,ajournal=j
                  ,abuf=[]

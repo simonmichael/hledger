@@ -130,7 +130,7 @@ tests_Hledger_Cli = TestList
     ]
     
    ,"balance report with account pattern o" ~:
-    ([SubTotal], ["o"]) `gives`
+    ([], ["o"]) `gives`
     ["                  $1  expenses:food"
     ,"                 $-2  income"
     ,"                 $-1    gifts"
@@ -217,7 +217,7 @@ tests_Hledger_Cli = TestList
     ]
 
    ,"balance report with -E shows zero-balance accounts" ~:
-    ([SubTotal,Empty], ["assets"]) `gives`
+    ([Empty], ["assets"]) `gives`
     ["                 $-1  assets"
     ,"                  $1    bank"
     ,"                   0      checking"
