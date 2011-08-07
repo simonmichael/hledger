@@ -41,10 +41,19 @@ module Hledger.Cli.Main where
 
 import Data.List
 
-import Hledger.Cli
+import Hledger.Cli.Add
+import Hledger.Cli.Balance
+import Hledger.Cli.Convert
+import Hledger.Cli.Histogram
+import Hledger.Cli.Print
+import Hledger.Cli.Register
+import Hledger.Cli.Stats
+import Hledger.Cli.Options
 import Hledger.Cli.Tests
+import Hledger.Cli.Utils
+import Hledger.Cli.Version
+import Hledger.Utils
 import Prelude hiding (putStr, putStrLn)
-import Hledger.Utils (error')
 import Hledger.Utils.UTF8 (putStr, putStrLn)
 
 main :: IO ()
