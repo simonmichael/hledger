@@ -61,7 +61,6 @@ usage_cli = concat [
 options_cli :: [OptDescr Opt]
 options_cli = [
   Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
- ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "don't allow to create new accounts"
  ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
  ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
  ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
@@ -84,7 +83,8 @@ options_cli = [
  ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
  ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
  ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register, stats: report by year"
- ,Option "r" ["rules"]        (ReqArg RulesFile "FILE") "convert, rules file to use"
+ ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "add: don't allow creating new accounts"
+ ,Option "r" ["rules"]        (ReqArg RulesFile "FILE") "convert: rules file to use (default:JOURNAL.rules)"
  ,Option "F" ["format"]       (ReqArg ReportFormat "STR") "use STR as the format"
  ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
  ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
