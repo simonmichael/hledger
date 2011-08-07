@@ -54,8 +54,10 @@ HADDOCKSOURCEFILES:= \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
 	hledger/Hledger/*hs \
-	hledger/Hledger/Cli/*hs \
-	hledger-web/*hs \
+	hledger/Hledger/*/*hs \
+	hledger-web/Hledger/*hs \
+	hledger-web/Hledger/*/*hs \
+	hledger-vty/Hledger/*hs \
 	hledger-vty/Hledger/*/*hs
 #	hledger-chart/Hledger/*hs
 #	hledger-chart/Hledger/*/*hs
@@ -67,9 +69,9 @@ CABALFILES:= \
 	hledger-*/*.cabal
 
 WEBFILES:= \
-	hledger-web/.hledger/web/templates/* \
 	hledger-web/.hledger/web/static/*.js \
 	hledger-web/.hledger/web/static/*.css
+#	hledger-web/.hledger/web/templates/* \
 
 # DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
