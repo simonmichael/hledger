@@ -19,7 +19,8 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- module Test.HUnit,
                           -- module Text.Printf,
                           ---- all of this one:
-                          module Hledger.Utils
+                          module Hledger.Utils,
+                          Debug.Trace.trace
                           ---- and this for i18n - needs to be done in each module I think:
                           -- module Hledger.Utils.UTF8
                           )
