@@ -347,10 +347,13 @@ parseWithCtx ctx p = runParser p ctx ""
 fromparse :: Either ParseError a -> a
 fromparse = either parseerror id
 
+parseerror :: ParseError -> a
 parseerror e = error' $ showParseError e
 
+showParseError :: ParseError -> String
 showParseError e = "parse error at " ++ show e
 
+showDateParseError :: ParseError -> String
 showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
 
 nonspace :: GenParser Char st Char
