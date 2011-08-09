@@ -127,7 +127,7 @@ all%:
 # auto-recompile and run (something, eg unit tests) whenever a module changes.
 autotest: sp
 	rm -f bin/hledger
-	$(AUTOBUILD) $(MAIN) -o bin/hledger -ihledger $(BUILDFLAGS) --run --help
+	$(AUTOBUILD) $(MAIN) -o bin/hledger -ihledger $(BUILDFLAGS) --run test
 
 # as above for add-on programs
 autoweb: sp linkhledgerwebdir
