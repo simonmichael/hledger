@@ -169,13 +169,19 @@ showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
 -- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
 -- the provided reference date, or raise an error.
 fixSmartDateStr :: Day -> String -> String
-fixSmartDateStr d s = either (\e->error' $ printf "could not parse date %s %s" (show s) (show e)) id $ fixSmartDateStrEither d s
+fixSmartDateStr d s = either
+                       (\e->error' $ printf "could not parse date %s %s" (show s) (show e))
+                       id
+                       $ fixSmartDateStrEither d s
 
 -- | A safe version of fixSmartDateStr.
 fixSmartDateStrEither :: Day -> String -> Either ParseError String
-fixSmartDateStrEither t s = case parsewith smartdateonly (lowercase s) of
-                              Right sd -> Right $ showDay $ fixSmartDate t sd
-                              Left e -> Left e
+fixSmartDateStrEither d = either Left (Right . showDate) . fixSmartDateStrEither' d
+
+fixSmartDateStrEither' :: Day -> String -> Either ParseError Day
+fixSmartDateStrEither' d s = case parsewith smartdateonly (lowercase s) of
+                               Right sd -> Right $ fixSmartDate d sd
+                               Left e -> Left e
 
 -- | Convert a SmartDate to an absolute date using the provided reference date.
 fixSmartDate :: Day -> SmartDate -> Day
