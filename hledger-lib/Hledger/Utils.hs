@@ -97,8 +97,11 @@ whitespacechars = " \t\n\r"
 stripquotes :: String -> String
 stripquotes s = if isSingleQuoted s || isDoubleQuoted s then init $ tail s else s
 
-isSingleQuoted s = head s == '\'' && last s == '\''
-isDoubleQuoted s = head s == '"' && last s == '"'
+isSingleQuoted s@(_:_:_) = head s == '\'' && last s == '\''
+isSingleQuoted _ = False
+
+isDoubleQuoted s@(_:_:_) = head s == '"' && last s == '"'
+isDoubleQuoted _ = False
 
 unbracket :: String -> String
 unbracket s
