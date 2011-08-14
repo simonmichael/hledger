@@ -6,3 +6,4 @@ bin/hledger -f data/sample.journal balance o
                  $-1    salary
 --------------------
                  $-1
+>>>=0

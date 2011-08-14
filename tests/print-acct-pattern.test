@@ -5,3 +5,4 @@ bin/hledger -f- print not:a
   a   1
   b  -1
 >>>
+>>>=0

@@ -13,3 +13,4 @@ bin/hledger -f - print desc:x
     a             1
     b            -1
 
+>>>=0

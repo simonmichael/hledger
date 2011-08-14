@@ -7,3 +7,4 @@ bin/hledger -f - print
     c         $-0.25
 
 >>>2
+>>>=0

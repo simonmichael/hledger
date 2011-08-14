@@ -6,13 +6,15 @@
 <<<
 2009/1/32
 >>> /date .*: date .*/
-#
+>>>=0
+
 # 2. should accept a blank date
  rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
 <<<
 
 >>> /date .*: description/
-#
+>>>=0
+
 ##############################################################################
 # precision and commodity handling
 #
@@ -27,7 +29,8 @@ b
 
 .
 >>> /^date \[.*\]: description \[\]: account 1: amount  1: account 2: amount  2 \[-1000.0\]: account 3: date \[.*\]: $/
-#
+>>>=0
+
 # 4. default commodity with greater precision
  printf 'D $1000.00\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
@@ -39,7 +42,8 @@ b
 
 .
 >>> /a  +\$1000\.0/
-#
+>>>=0
+
 # 5. default commodity with less precision
  printf 'D $1000.0\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
@@ -51,7 +55,8 @@ b
 
 .
 >>> /a  +\$1000\.00/
-#
+>>>=0
+
 # 6. existing commodity with greater precision
  printf '2010/1/1\n a  $1000.00\n b\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
@@ -63,7 +68,8 @@ b
 
 .
 >>> /a  +\$1000\.0/
-#
+>>>=0
+
 # 7. existing commodity with less precision
  printf '2010/1/1\n a  $1000.0\n b\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
@@ -75,7 +81,8 @@ b
 
 .
 >>> /a  +\$1000\.00/
-#
+>>>=0
+
 # 8. no commodity entered, the (most recent) default commodity should be applied
  printf 'D $1000.0\nD £1,000.00\n' >add-default-commodity-$$.j; hledger -fadd-default-commodity-$$.j add; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
 <<<
@@ -87,6 +94,8 @@ b
 
 .
 >>> /a  +£1,000.00/
+>>>=0
+
 # 9. default amounts should not fail to balance due to precision
 bin/hledger -f nosuch.journal add
 <<<
@@ -98,3 +107,4 @@ b
 0.5
 c
 >>> /amount  3 \[-0.75\]/
+>>>=0

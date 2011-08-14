@@ -17,3 +17,4 @@ bin/hledger -f - print
     b            -1
 
 >>>2
+>>>=0

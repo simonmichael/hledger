@@ -12,3 +12,4 @@ bin/hledger -f - balance -p 'in 2009' --effective
                   -1  b
 --------------------
                    0
+>>>=0

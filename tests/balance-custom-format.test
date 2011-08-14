@@ -12,3 +12,4 @@ bin/hledger -f data/sample.journal balance --format="%30(account) %-.20(total)"
              liabilities:debts $1
 --------------------
                    0
+>>>= 0

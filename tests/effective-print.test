@@ -8,3 +8,4 @@ bin/hledger -f - print --effective
     a             1
     b            -1
 
+>>>=0

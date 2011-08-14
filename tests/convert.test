@@ -7,3 +7,4 @@ rm -rf input.rules; printf 'base-account Assets:MyAccount\ndate-field 0\ndate-fo
 
 >>>2
 using conversion rules file input.rules
+>>>=0

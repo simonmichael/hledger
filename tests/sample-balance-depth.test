@@ -6,3 +6,4 @@ bin/hledger -f data/sample.journal balance --depth 1
                   $1  liabilities
 --------------------
                    0
+>>>=0

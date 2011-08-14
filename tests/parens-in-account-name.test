@@ -10,3 +10,4 @@ bin/hledger -f - print
     b (b) b            -1
     c                  -1
 
+>>>=0

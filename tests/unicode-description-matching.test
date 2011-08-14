@@ -9,3 +9,4 @@ bin/hledger -f - register desc:аура
 >>>
 2009/01/01 аура (cyrillic let.. bank                             10           10
                                 cash                            -10            0
+>>>=0

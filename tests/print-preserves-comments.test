@@ -13,3 +13,4 @@ bin/hledger -f - print
     a             1  ; amount comment
     b            -1
 
+>>>=0
