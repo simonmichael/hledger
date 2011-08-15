@@ -311,7 +311,7 @@ unittesths:
 # run functional tests, requires shelltestrunner >= 0.9 from hackage
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledger
-	(shelltest tests --implicit=none -- --threads=16 \
+	(shelltest tests -- --threads=16 --hide-successes \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run doc tests
