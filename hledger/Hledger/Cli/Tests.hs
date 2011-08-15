@@ -29,7 +29,7 @@ $ bin\/hledger -f data\/sample.journal balance o
 module Hledger.Cli.Tests
 where
 import Control.Monad
-import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
+import System.Exit
 import Test.HUnit
 
 import Hledger.Cli
