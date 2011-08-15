@@ -1,2 +1,2 @@
 #!/usr/bin/env runhaskell
-import Hledger.Chart.Main (main)
+import Hledger.Chart (main)

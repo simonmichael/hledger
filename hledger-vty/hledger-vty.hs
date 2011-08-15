@@ -1,2 +1,2 @@
 #!/usr/bin/env runhaskell
-import Hledger.Vty.Main (main)
+import Hledger.Vty (main)

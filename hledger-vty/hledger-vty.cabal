@@ -33,7 +33,9 @@ executable hledger-vty
   main-is:        hledger-vty.hs
   ghc-options:    -threaded -W
   other-modules:
+                  Hledger.Vty
                   Hledger.Vty.Main
+                  Hledger.Vty.Options
   build-depends:
                   hledger == 0.15
                  ,hledger-lib == 0.15
