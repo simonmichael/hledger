@@ -74,13 +74,24 @@ quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
                   where escapeSingleQuotes = regexReplace "'" "\'"
 
 -- | Quote-aware version of words - don't split on spaces which are inside quotes.
+-- NB correctly handles "a'b" but not "''a''".
 words' :: String -> [String]
-words' = map stripquotes . fromparse . parsewith ((quotedPattern <|> pattern) `sepBy` many1 spacenonewline)
+words' = map stripquotes . fromparse . parsewith p
     where
+      p = do ss <- (quotedPattern <|> pattern) `sepBy` many1 spacenonewline
+             -- eof
+             return ss
       pattern = many (noneOf whitespacechars)
       quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
 
-whitespacechars = " \t\n\r\'\""
+-- | Quote-aware version of unwords - single-quote strings which contain whitespace
+unwords' :: [String] -> String
+unwords' = unwords . map singleQuoteIfNeeded
+
+singleQuoteIfNeeded s | any (`elem` s) whitespacechars = "'"++s++"'"
+                      | otherwise = s
+
+whitespacechars = " \t\n\r"
 
 -- | Strip one matching pair of single or double quotes on the ends of a string.
 stripquotes :: String -> String
