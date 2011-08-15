@@ -111,7 +111,6 @@ import Hledger.Utils.UTF8 (putStr)
 import Hledger.Cli.Format
 import qualified Hledger.Cli.Format as Format
 import Hledger.Cli.Options
-import Hledger.Cli.Reports
 
 
 -- | Print a balance report.

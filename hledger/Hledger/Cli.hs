@@ -10,7 +10,6 @@ module Hledger.Cli (
                      module Hledger.Cli.Histogram,
                      module Hledger.Cli.Print,
                      module Hledger.Cli.Register,
-                     module Hledger.Cli.Reports,
                      module Hledger.Cli.Stats,
                      module Hledger.Cli.Options,
                      module Hledger.Cli.Utils,
@@ -31,7 +30,6 @@ import Hledger.Cli.Convert
 import Hledger.Cli.Histogram
 import Hledger.Cli.Print
 import Hledger.Cli.Register
-import Hledger.Cli.Reports
 import Hledger.Cli.Stats
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
@@ -51,7 +49,6 @@ tests_Hledger_Cli = TestList
    ,tests_Hledger_Cli_Options
    -- ,tests_Hledger_Cli_Print
    ,tests_Hledger_Cli_Register
-   ,tests_Hledger_Cli_Reports
    -- ,tests_Hledger_Cli_Stats
 
 

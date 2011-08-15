@@ -13,8 +13,8 @@ import Data.Ord
 import Text.Printf
 
 import Hledger.Cli.Options
-import Hledger.Cli.Reports
 import Hledger.Data
+import Hledger.Reports
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 

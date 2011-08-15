@@ -48,6 +48,7 @@ library
                   Hledger.Read.JournalReader
                   Hledger.Read.TimelogReader
                   Hledger.Read.Utils
+                  Hledger.Reports
                   Hledger.Utils
                   Hledger.Utils.UTF8
   Build-Depends:

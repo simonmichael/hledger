@@ -10,6 +10,7 @@ module Hledger.Read (
        readJournalFile,
        readJournal,
        journalFromPathAndString,
+       ledgeraccountname,
        myJournalPath,
        myTimelogPath,
        myJournal,

@@ -32,9 +32,8 @@ import Control.Monad
 import System.Exit
 import Test.HUnit
 
+import Hledger
 import Hledger.Cli
-import Hledger.Data
-import Hledger.Utils
 
 
 -- | Run unit tests and exit with success or failure.

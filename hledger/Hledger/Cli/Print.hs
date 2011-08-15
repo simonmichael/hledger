@@ -15,7 +15,6 @@ import Hledger
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 import Hledger.Cli.Options
-import Hledger.Cli.Reports
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()

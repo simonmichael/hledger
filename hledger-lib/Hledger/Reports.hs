@@ -9,7 +9,7 @@ on the command-line options, should move to hledger-lib later.
 
 -}
 
-module Hledger.Cli.Reports (
+module Hledger.Reports (
   ReportOpts(..),
   DisplayExp,
   FormatStr,
@@ -43,7 +43,7 @@ module Hledger.Cli.Reports (
   accountsReport,
   accountsReport2,
   -- * Tests
-  tests_Hledger_Cli_Reports
+  tests_Hledger_Reports
 )
 where
 
@@ -61,7 +61,6 @@ import Text.Printf
 
 import Hledger.Data
 import Hledger.Utils
--- import Hledger.Cli.Utils
 
 -- report options, used in hledger-lib and above
 data ReportOpts = ReportOpts {
@@ -550,8 +549,8 @@ isInterestingIndented opts l a
 
 -------------------------------------------------------------------------------
 
-tests_Hledger_Cli_Reports :: Test
-tests_Hledger_Cli_Reports = TestList
+tests_Hledger_Reports :: Test
+tests_Hledger_Reports = TestList
  [
 
   "summarisePostingsByInterval" ~: do

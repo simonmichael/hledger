@@ -4,7 +4,6 @@ format, and print it on stdout. See the manual for more details.
 -}
 
 module Hledger.Cli.Convert where
-import Prelude hiding (getContents)
 import Control.Monad (when, guard, liftM)
 import Data.Maybe
 import Data.Time.Format (parseTime)
@@ -19,18 +18,13 @@ import Text.CSV (parseCSV, parseCSVFromFile, printCSV, CSV)
 import Text.ParserCombinators.Parsec
 import Text.Printf (hPrintf)
 
+import Prelude hiding (getContents)
+import Hledger.Utils.UTF8 (getContents)
+import Hledger
 import Hledger.Cli.Format
 import qualified Hledger.Cli.Format as Format
 import Hledger.Cli.Version
 import Hledger.Cli.Options
-import Hledger.Cli.Reports
-import Hledger.Data.Amount (nullmixedamt, costOfMixedAmount)
-import Hledger.Data.Dates (firstJust, showDate, parsedate)
-import Hledger.Data (Journal,AccountName,Transaction(..),Posting(..),PostingType(..))
-import Hledger.Data.Journal (nullctx)
-import Hledger.Read.JournalReader (someamount,ledgeraccountname)
-import Hledger.Utils
-import Hledger.Utils.UTF8 (getContents)
 
 {- |
 A set of data definitions and account-matching patterns sufficient to

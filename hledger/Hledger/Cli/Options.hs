@@ -20,12 +20,9 @@ import Test.HUnit
 import Text.Parsec
 import Text.Printf
 
+import Hledger
 import Hledger.Cli.Format as Format
-import Hledger.Cli.Reports
 import Hledger.Cli.Version
-import Hledger.Data
-import Hledger.Read
-import Hledger.Utils
 
 
 progname = "hledger"

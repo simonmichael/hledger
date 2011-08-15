@@ -14,9 +14,8 @@ import Data.Time.Calendar
 import Text.Printf
 import qualified Data.Map as Map
 
+import Hledger
 import Hledger.Cli.Options
-import Hledger.Cli.Reports
-import Hledger.Data
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
 
