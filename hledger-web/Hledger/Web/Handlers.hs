@@ -29,6 +29,7 @@ import Yesod.Json
 import Hledger hiding (today)
 import Hledger.Cli
 import Hledger.Web.App
+import Hledger.Web.Options
 import Hledger.Web.Settings
 
 
@@ -60,7 +61,7 @@ getJournalR = do
                                   where andsubs = if subs then " (and subaccounts)" else ""
                 where
                   filter = if filtering then ", filtered" else ""
-      maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport opts j m
+      maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet [$hamlet|
@@ -93,7 +94,7 @@ getJournalEntriesR = do
   let
       sidecontent = sidebar vd
       title = "Journal entries" ++ if m /= MatchAny then ", filtered" else "" :: String
-      maincontent = entriesReportAsHtml opts vd $ entriesReport opts nullfilterspec $ filterJournalTransactions2 m j
+      maincontent = entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
       addHamlet [$hamlet|
@@ -117,7 +118,7 @@ getJournalOnlyR = do
   vd@VD{..} <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal only"
-      addHamlet $ entriesReportAsHtml opts vd $ entriesReport opts nullfilterspec $ filterJournalTransactions2 m j
+      addHamlet $ entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
 
 ----------------------------------------------------------------------
 
@@ -133,7 +134,7 @@ getRegisterR = do
                  (a,subs) = fromMaybe ("all accounts",False) $ inAccount qopts
                  andsubs = if subs then " (and subaccounts)" else ""
                  filter = if filtering then ", filtered" else ""
-      maincontent = registerReportHtml opts vd $ accountTransactionsReport opts j m $ fromMaybe MatchAny $ inAccountMatcher qopts
+      maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe MatchAny $ inAccountMatcher qopts
   defaultLayout $ do
       setTitle "hledger-web register"
       addHamlet [$hamlet|
@@ -158,8 +159,8 @@ getRegisterOnlyR = do
   defaultLayout $ do
       setTitle "hledger-web register only"
       addHamlet $
-          case inAccountMatcher qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport opts j m m'
-                                         Nothing -> registerReportHtml opts vd $ journalTransactionsReport opts j m
+          case inAccountMatcher qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m m'
+                                         Nothing -> registerReportHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
 
 ----------------------------------------------------------------------
 
@@ -171,7 +172,7 @@ getAccountsR = do
   let j' = filterJournalPostings2 m j
       html = do
         setTitle "hledger-web accounts"
-        addHamlet $ accountsReportAsHtml opts vd $ accountsReport2 opts am j'
+        addHamlet $ accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j'
       json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
   defaultLayoutJson html json
 
@@ -187,10 +188,10 @@ getAccountsJsonR = do
 
 -- | Render the sidebar used on most views.
 sidebar :: ViewData -> Hamlet AppRoute
-sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport2 opts am j
+sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j
 
 -- | Render a "AccountsReport" as HTML.
-accountsReportAsHtml :: [Opt] -> ViewData -> AccountsReport -> Hamlet AppRoute
+accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> Hamlet AppRoute
 accountsReportAsHtml _ vd@VD{..} (items',total) =
  [$hamlet|
 <div#accountsheading
@@ -271,7 +272,7 @@ accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRe
 accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
 -- | Render a "EntriesReport" as HTML for the journal entries view.
-entriesReportAsHtml :: [Opt] -> ViewData -> EntriesReport -> Hamlet AppRoute
+entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> Hamlet AppRoute
 entriesReportAsHtml _ vd items = [$hamlet|
 <table.journalreport>
  $forall i <- numbered items
@@ -289,7 +290,7 @@ entriesReportAsHtml _ vd items = [$hamlet|
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
 -- | Render an "TransactionsReport" as HTML for the formatted journal view.
-journalTransactionsReportAsHtml :: [Opt] -> ViewData -> TransactionsReport -> Hamlet AppRoute
+journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> Hamlet AppRoute
 journalTransactionsReportAsHtml _ vd (_,items) = [$hamlet|
 <table.journalreport
  <tr.headings
@@ -327,14 +328,14 @@ $forall p <- tpostings t
        showamt = not split || not (isZeroMixedAmount amt)
 
 -- Generate html for an account register, including a balance chart and transaction list.
-registerReportHtml :: [Opt] -> ViewData -> TransactionsReport -> Hamlet AppRoute
+registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> Hamlet AppRoute
 registerReportHtml opts vd r@(_,items) = [$hamlet|
  ^{registerChartHtml items}
  ^{registerItemsHtml opts vd r}
 |]
 
 -- Generate html for a transaction list from an "TransactionsReport".
-registerItemsHtml :: [Opt] -> ViewData -> TransactionsReport -> Hamlet AppRoute
+registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> Hamlet AppRoute
 registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
 <table.registerreport
  <tr.headings
@@ -825,7 +826,7 @@ nulltemplate = [$hamlet||]
 
 -- | A bundle of data useful for hledger-web request handlers and templates.
 data ViewData = VD {
-     opts         :: [Opt]      -- ^ the command-line options at startup
+     opts         :: WebOpts    -- ^ the command-line options at startup
     ,here         :: AppRoute   -- ^ the current route
     ,msg          :: Maybe Html -- ^ the current UI message if any, possibly from the current request
     ,today        :: Day        -- ^ today's date (for queries containing relative dates)
@@ -848,7 +849,7 @@ viewdataWithDateAndParams d q a p =
     let (querymatcher,queryopts) = parseQuery d q
         (acctsmatcher,acctsopts) = parseQuery d a
     in VD {
-           opts         = [NoElide]
+           opts         = defwebopts{cliopts_=defcliopts{reportopts_=defreportopts{no_elide_=True}}}
           ,j            = nulljournal
           ,here         = RootR
           ,msg          = Nothing
@@ -865,8 +866,8 @@ viewdataWithDateAndParams d q a p =
 getViewData :: Handler ViewData
 getViewData = do
   app        <- getYesod
-  let opts = appOpts app ++ [NoElide]
-  (j, err)   <- getCurrentJournal opts
+  let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
+  (j, err)   <- getCurrentJournal $ copts{reportopts_=ropts{no_elide_=True}}
   msg        <- getMessageOr err
   Just here  <- getCurrentRoute
   today      <- liftIO getCurrentDay
@@ -884,7 +885,7 @@ getViewData = do
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
       -- ui message.
-      getCurrentJournal :: [Opt] -> Handler (Journal, Maybe String)
+      getCurrentJournal :: CliOpts -> Handler (Journal, Maybe String)
       getCurrentJournal opts = do
         j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
         (jE, changed) <- liftIO $ journalReloadIfChanged opts j

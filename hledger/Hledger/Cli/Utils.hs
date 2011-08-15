@@ -10,8 +10,6 @@ module Hledger.Cli.Utils
     (
      withJournalDo,
      readJournal',
-     journalSelectingDateFromOpts,
-     journalSelectingAmountFromOpts,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -25,10 +23,10 @@ module Hledger.Cli.Utils
     )
 where
 import Control.Exception
-import Control.Monad
 import Data.List
 import Data.Maybe
 import Safe (readMay)
+import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile)
 import System.Exit
 import System.FilePath ((</>), splitFileName, takeDirectory)
@@ -46,33 +44,21 @@ import Hledger.Utils
 
 -- | Parse the user's specified journal file and run a hledger command on
 -- it, or throw an error.
-withJournalDo :: [Opt] -> [String] -> String -> ([Opt] -> [String] -> Journal -> IO ()) -> IO ()
-withJournalDo opts args _ cmd = do
+withJournalDo :: CliOpts -> (CliOpts -> Journal -> IO ()) -> IO ()
+withJournalDo opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalFilePathFromOpts opts >>= readJournalFile Nothing >>=
-    either error' (cmd opts args . journalApplyAliases (aliasesFromOpts opts))
+    either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts))
 
 -- -- | Get a journal from the given string and options, or throw an error.
--- readJournalWithOpts :: [Opt] -> String -> IO Journal
+-- readJournalWithOpts :: CliOpts -> String -> IO Journal
 -- readJournalWithOpts opts s = readJournal Nothing s >>= either error' return
 
 -- | Get a journal from the given string, or throw an error.
 readJournal' :: String -> IO Journal
 readJournal' s = readJournal Nothing s >>= either error' return
-
--- | Convert this journal's transactions' primary date to either the
--- actual or effective date, as per options.
-journalSelectingDateFromOpts :: [Opt] -> Journal -> Journal
-journalSelectingDateFromOpts opts = journalSelectingDate (whichDateFromOpts opts)
-
--- | Convert this journal's postings' amounts to the cost basis amounts if
--- specified by options.
-journalSelectingAmountFromOpts :: [Opt] -> Journal -> Journal
-journalSelectingAmountFromOpts opts
-    | CostBasis `elem` opts = journalConvertAmountsToCost
-    | otherwise             = id
 
 -- | Re-read a journal from its data file, or return an error string.
 journalReload :: Journal -> IO (Either String Journal)
@@ -83,14 +69,14 @@ journalReload j = readJournalFile Nothing $ journalFilePath j
 -- stdin). The provided options are mostly ignored. Return a journal or
 -- the error message while reading it, and a flag indicating whether it
 -- was re-read or not.
-journalReloadIfChanged :: [Opt] -> Journal -> IO (Either String Journal, Bool)
-journalReloadIfChanged opts j = do
+journalReloadIfChanged :: CliOpts -> Journal -> IO (Either String Journal, Bool)
+journalReloadIfChanged _ j = do
   let maybeChangedFilename f = do newer <- journalSpecifiedFileIsNewer j f
                                   return $ if newer then Just f else Nothing
   changedfiles <- catMaybes `fmap` mapM maybeChangedFilename (journalFilePaths j)
   if not $ null changedfiles
    then do
-     when (Verbose `elem` opts) $ printf "%s has changed, reloading\n" (head changedfiles)
+     whenLoud $ printf "%s has changed, reloading\n" (head changedfiles)
      jE <- journalReload j
      return (jE, True)
    else

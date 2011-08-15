@@ -115,26 +115,27 @@ import Hledger.Cli.Reports
 
 
 -- | Print a balance report.
-balance :: [Opt] -> [String] -> Journal -> IO ()
-balance opts args j = do
+balance :: CliOpts -> Journal -> IO ()
+balance CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  let lines = case parseFormatFromOpts opts of
+  let lines = case formatFromOpts ropts of
             Left err -> [err]
-            Right _ -> accountsReportAsText opts $ accountsReport opts (optsToFilterSpec opts args d) j
+            Right _ -> accountsReportAsText ropts $ accountsReport ropts (optsToFilterSpec ropts d) j
   putStr $ unlines lines
 
 -- | Render a balance report as plain text suitable for console output.
-accountsReportAsText :: [Opt] -> AccountsReport -> [String]
+accountsReportAsText :: ReportOpts -> AccountsReport -> [String]
 accountsReportAsText opts (items, total) = concat lines ++ t
     where
-      lines = map (accountsReportItemAsText opts format) items
-      format = formatFromOpts opts
-      t = if NoTotal `elem` opts
-             then []
-             else ["--------------------"
-                    -- TODO: This must use the format somehow
-                  , padleft 20 $ showMixedAmountWithoutPrice total
-                  ]
+      lines = case formatFromOpts opts of
+                Right f -> map (accountsReportItemAsText opts f) items
+                Left err -> [[err]]
+      t = if no_total_ opts
+           then []
+           else ["--------------------"
+                 -- TODO: This must use the format somehow
+                ,padleft 20 $ showMixedAmountWithoutPrice total
+                ]
 
 {-
 This implementation turned out to be a bit convoluted but implements the following algorithm for formatting:
@@ -147,7 +148,7 @@ This implementation turned out to be a bit convoluted but implements the followi
     b         USD -1  ; Account 'b' has two amounts. The account name is printed on the last line.
 -}
 -- | Render one balance report line item as plain text.
-accountsReportItemAsText :: [Opt] -> [FormatString] -> AccountsReportItem -> [String]
+accountsReportItemAsText :: ReportOpts -> [FormatString] -> AccountsReportItem -> [String]
 accountsReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
     case amounts of
       [] -> []
@@ -159,7 +160,7 @@ accountsReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
       asText [a]    = [formatAccountsReportItem opts (Just accountName) depth a format]
       asText (a:as) = (formatAccountsReportItem opts Nothing depth a format) : asText as
 
-formatAccountsReportItem :: [Opt] -> Maybe AccountName -> Int -> Amount -> [FormatString] -> String
+formatAccountsReportItem :: ReportOpts -> Maybe AccountName -> Int -> Amount -> [FormatString] -> String
 formatAccountsReportItem _ _ _ _ [] = ""
 formatAccountsReportItem opts accountName depth amount (f:fs) = s ++ (formatAccountsReportItem opts accountName depth amount fs)
   where
@@ -167,7 +168,7 @@ formatAccountsReportItem opts accountName depth amount (f:fs) = s ++ (formatAcco
             FormatLiteral l -> l
             FormatField leftJustified min max field  -> formatAccount opts accountName depth amount leftJustified min max field
 
-formatAccount :: [Opt] -> Maybe AccountName -> Int -> Amount -> Bool -> Maybe Int -> Maybe Int -> Field -> String
+formatAccount :: ReportOpts -> Maybe AccountName -> Int -> Amount -> Bool -> Maybe Int -> Maybe Int -> Field -> String
 formatAccount opts accountName depth balance leftJustified min max field = case field of
         Format.Account  -> formatValue leftJustified min max a
         DepthSpacer     -> case min of
@@ -176,7 +177,7 @@ formatAccount opts accountName depth balance leftJustified min max field = case 
         Total           -> formatValue leftJustified min max $ showAmountWithoutPrice balance
         _	        -> ""
     where
-      a = maybe "" (accountNameDrop (dropFromOpts opts)) accountName
+      a = maybe "" (accountNameDrop (drop_ opts)) accountName
 
 tests_Hledger_Cli_Balance = TestList
  [

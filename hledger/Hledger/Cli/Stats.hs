@@ -15,6 +15,7 @@ import Text.Printf
 import qualified Data.Map as Map
 
 import Hledger.Cli.Options
+import Hledger.Cli.Reports
 import Hledger.Data
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8 (putStr)
@@ -22,19 +23,19 @@ import Hledger.Utils.UTF8 (putStr)
 
 -- like Register.summarisePostings
 -- | Print various statistics for the journal.
-stats :: [Opt] -> [String] -> Journal -> IO ()
-stats opts args j = do
+stats :: CliOpts -> Journal -> IO ()
+stats CliOpts{reportopts_=reportopts_} j = do
   d <- getCurrentDay
-  let filterspec = optsToFilterSpec opts args d
+  let filterspec = optsToFilterSpec reportopts_ d
       l = journalToLedger filterspec j
       reportspan = (ledgerDateSpan l) `orDatesFrom` (datespan filterspec)
-      intervalspans = splitSpan (intervalFromOpts opts) reportspan
-      showstats = showLedgerStats opts args l d
+      intervalspans = splitSpan (intervalFromOpts reportopts_) reportspan
+      showstats = showLedgerStats l d
       s = intercalate "\n" $ map showstats intervalspans
   putStr s
 
-showLedgerStats :: [Opt] -> [String] -> Ledger -> Day -> DateSpan -> String
-showLedgerStats _ _ l today span =
+showLedgerStats :: Ledger -> Day -> DateSpan -> String
+showLedgerStats l today span =
     unlines (map (uncurry (printf fmt)) stats)
     where
       fmt = "%-" ++ show w1 ++ "s: %-" ++ show w2 ++ "s"

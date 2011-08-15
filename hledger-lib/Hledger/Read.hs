@@ -15,6 +15,8 @@ module Hledger.Read (
        myJournal,
        myTimelog,
        someamount,
+       journalenvvar,
+       journaldefaultfilename
 )
 where
 import Control.Monad.Error

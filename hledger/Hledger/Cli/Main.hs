@@ -39,7 +39,9 @@ See "Hledger.Data.Ledger" for more examples.
 
 module Hledger.Cli.Main where
 
+import Control.Monad
 import Data.List
+import Text.Printf
 
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
@@ -52,38 +54,49 @@ import Hledger.Cli.Options
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
-import Hledger.Utils
-import Prelude hiding (putStr, putStrLn)
-import Hledger.Utils.UTF8 (putStr, putStrLn)
 
 main :: IO ()
 main = do
-  (opts, args) <- parseArgumentsWith options_cli
-  case validateOpts opts of
-    Just err -> error' err
-    Nothing -> run opts args
+  opts <- getHledgerOpts
+  when (debug_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  runWith opts
 
-run opts args =
-  run opts args
-    where
-      run opts _
-       | Help `elem` opts             = putStr usage_cli
-       | Version `elem` opts          = putStrLn $ progversionstr progname_cli
-       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_cli
-      run _ []                        = argsError "a command is required."
-      run opts (cmd:args)
-       | cmd `isPrefixOf` "balance"   = withJournalDo opts args cmd balance
-       | cmd `isPrefixOf` "convert"   = withJournalDo opts args cmd convert
-       | cmd `isPrefixOf` "print"     = withJournalDo opts args cmd print'
-       | cmd `isPrefixOf` "register"  = withJournalDo opts args cmd register
-       | cmd `isPrefixOf` "histogram" = withJournalDo opts args cmd histogram
-       | cmd `isPrefixOf` "add"       = withJournalDo opts args cmd add
-       | cmd `isPrefixOf` "stats"     = withJournalDo opts args cmd stats
-       | cmd `isPrefixOf` "test"      = runtests opts args >> return ()
-       | otherwise                    = argsError $ "command "++cmd++" is unrecognized."
+runWith :: CliOpts -> IO ()
+runWith opts = run' opts
+    where 
+      cmd = command_ opts
+      run' opts
+          | null cmd                                       = printModeHelpAndExit mainmode
+          | any (cmd `isPrefixOf`) ["accounts","balance"]  = showModeHelpOr accountsmode $ withJournalDo opts balance
+          | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
+          | cmd `isPrefixOf` "add"                         = showModeHelpOr addmode $ withJournalDo opts add
+          | cmd `isPrefixOf` "convert"                     = showModeHelpOr convertmode $ withJournalDo opts convert
+          | any (cmd `isPrefixOf`) ["entries","print"]     = showModeHelpOr entriesmode $ withJournalDo opts print'
+          | any (cmd `isPrefixOf`) ["postings","register"] = showModeHelpOr postingsmode $ withJournalDo opts register
+          | cmd `isPrefixOf` "stats"                       = showModeHelpOr statsmode $ withJournalDo opts stats
+          | cmd `isPrefixOf` "test"                        = showModeHelpOr testmode $ runtests opts >> return ()
+          | cmd `isPrefixOf` "binaryfilename"              = showModeHelpOr binaryfilenamemode $ putStrLn $ binaryfilename progname
+          | otherwise                                      = showModeHelpOr mainmode $ optserror $ "command "++cmd++" is not recognized"
+      showModeHelpOr mode f = do
+        when ("help" `in_` (rawopts_ opts)) $ printModeHelpAndExit mode
+        when ("version" `in_` (rawopts_ opts)) $ printVersionAndExit
+        f
 
-validateOpts :: [Opt] -> Maybe String
-validateOpts opts =
-  case parseFormatFromOpts opts of
-    Left err -> Just $ unlines ["Invalid format", err]
-    Right _ -> Nothing
+{- tests:
+
+hledger -> main help
+hledger --help -> main help
+hledger --help command -> command help
+hledger command --help -> command help
+hledger badcommand -> unrecognized command, try --help (non-zero exit)
+hledger badcommand --help -> main help
+hledger --help badcommand -> main help
+hledger --mainflag command -> works
+hledger command --mainflag -> works
+hledger command --commandflag -> works
+hledger command --mainflag --commandflag -> works
+XX hledger --mainflag command --commandflag -> works
+XX hledger --commandflag command -> works
+XX hledger --commandflag command --mainflag -> works
+
+-}

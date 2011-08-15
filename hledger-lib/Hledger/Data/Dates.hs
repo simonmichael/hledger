@@ -115,6 +115,9 @@ orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
 parsePeriodExpr :: Day -> String -> Either ParseError (Interval, DateSpan)
 parsePeriodExpr refdate = parsewith (periodexpr refdate)
 
+maybePeriod :: Day -> String -> Maybe (Interval,DateSpan)
+maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
+
 -- | Show a DateSpan as a human-readable pseudo-period-expression string.
 dateSpanAsText :: DateSpan -> String
 dateSpanAsText (DateSpan Nothing Nothing)   = "all"

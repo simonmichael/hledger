@@ -9,6 +9,7 @@ module Main
 where
 
 -- import Control.Concurrent (forkIO, threadDelay)
+import Control.Monad
 import Data.Maybe
 import Data.Text(pack)
 import Network.Wai.Handler.Warp (run)
@@ -16,58 +17,41 @@ import Network.Wai.Handler.Warp (run)
 #else
 import Network.Wai.Middleware.Debug (debug)
 #endif
-import System.Console.GetOpt
 import System.Exit (exitFailure)
 import System.IO.Storage (withStore, putValue)
 import Text.Printf
 import Yesod.Helpers.Static
 
-import Hledger.Cli
-import Hledger.Cli.Tests (runTestsOrExit)
-import Hledger.Data
-import Prelude hiding (putStr, putStrLn)
-import Hledger.Utils.UTF8 (putStr, putStrLn)
+import Hledger
+import Hledger.Cli hiding (progname,progversion)
+import Hledger.Cli.Tests
+import Prelude hiding (putStrLn)
+import Hledger.Utils.UTF8 (putStrLn)
 import Hledger.Web
 
 
-progname_web = progname_cli ++ "-web"
-
-options_web :: [OptDescr Opt]
-options_web = [
-  Option ""  ["base-url"]     (ReqArg BaseUrl "URL") "use this base url (default http://localhost:PORT)"
- ,Option ""  ["port"]         (ReqArg Port "N")      "serve on tcp port N (default 5000)"
- ]
-
-usage_preamble_web =
-  "Usage: hledger-web [OPTIONS] [PATTERNS]\n" ++
-  "\n" ++
-  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
-  "starts a web ui server. Also attempts to start a web browser (unless --debug).\n" ++
-  "\n"
-
-usage_options_web = usageInfo "hledger-web options:" options_web ++ "\n"
-
-usage_web = concat [
-             usage_preamble_web
-            ,usage_options_web
-            ,usage_options_cli
-            ,usage_postscript_cli
-            ]
-
 main :: IO ()
 main = do
-  (opts, args) <- parseArgumentsWith $ options_cli++options_web
-  run opts args
+  opts <- getHledgerWebOpts
+  when (debug_ $ cliopts_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  runWith opts
+
+runWith :: WebOpts -> IO ()
+runWith opts = run opts
     where
-      run opts args
-       | Help `elem` opts             = putStr usage_web
-       | Version `elem` opts          = putStrLn $ progversionstr progname_web
-       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_web
-       | otherwise                    = withJournalDo opts args "web" web
+      run opts
+          | "help" `in_` (rawopts_ $ cliopts_ opts)            = printModeHelpAndExit webmode
+          | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+          | otherwise                                          = withJournalDo' opts web
+
+withJournalDo' :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
+withJournalDo' opts cmd = do
+  journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing >>=
+    either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
 -- | The web command.
-web :: [Opt] -> [String] -> Journal -> IO ()
-web opts args j = do
+web :: WebOpts -> Journal -> IO ()
+web opts j = do
   created <- createFilesIfMissing
   if created
    then do
@@ -75,13 +59,10 @@ web opts args j = do
      exitFailure
    else do
      putStrLn $ "Running self-tests..."
-     runTestsOrExit opts args
+     runTestsOrExit $ cliopts_ opts
      putStrLn $ "Using support files in "++datadir
-     let host    = defhost
-         port    = fromMaybe defport $ portFromOpts opts
-         baseurl = fromMaybe (printf "http://%s:%d" host port) $ baseUrlFromOpts opts
-     -- unless (Debug `elem` opts) $ forkIO (browser baseurl) >> return ()
-     server baseurl port opts args j
+     -- unless (debug_ $ cliopts_ opts) $ forkIO (browser baseurl) >> return ()
+     server (base_url_ opts) (port_ opts) opts j
 
 -- browser :: String -> IO ()
 -- browser baseurl = do
@@ -89,17 +70,18 @@ web opts args j = do
 --   putStrLn "Attempting to start a web browser"
 --   openBrowserOn baseurl >> return ()
 
-server :: String -> Int -> [Opt] -> [String] -> Journal -> IO ()
-server baseurl port opts args j = do
+server :: String -> Int -> WebOpts -> Journal -> IO ()
+server baseurl port opts j = do
   printf "Starting http server on port %d with base url %s\n" port baseurl
   let a = App{getStatic=static staticdir
              ,appRoot=pack baseurl
              ,appOpts=opts
-             ,appArgs=args
+             ,appArgs=patterns_ $ reportopts_ $ cliopts_ opts
              ,appJournal=j
              }
   withStore "hledger" $ do
     putValue "hledger" "journal" j
+    return ()
 #if PRODUCTION
     withApp a (run port)
 #else

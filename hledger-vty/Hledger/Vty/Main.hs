@@ -12,48 +12,34 @@ import Data.List
 import Data.Maybe
 import Data.Time.Calendar
 import Graphics.Vty
-import Safe (headDef)
-import System.Console.GetOpt
+import Safe
+import Text.Printf
 
 import Hledger
-import Prelude hiding (putStr, putStrLn)
-import Hledger.Utils.UTF8 (putStr, putStrLn)
-import Hledger.Cli
+import Hledger.Cli hiding (progname,progversion)
+import Hledger.Vty.Options
+import Prelude hiding (putStrLn)
+import Hledger.Utils.UTF8 (putStrLn)
 
-
-progname_vty = progname_cli ++ "-vty"
-
-options_vty :: [OptDescr Opt]
-options_vty = [
- Option ""  ["debug-vty"]    (NoArg  DebugVty)      "run with no terminal output, showing console"
- ]
-
-usage_preamble_vty =
-  "Usage: hledger-vty [OPTIONS] [PATTERNS]\n" ++
-  "\n" ++
-  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
-  "starts the full-window curses ui.\n" ++
-  "\n"
-
-usage_options_vty = usageInfo "hledger-vty options:" options_vty ++ "\n"
-
-usage_vty = concat [
-             usage_preamble_vty
-            ,usage_options_vty
-            ,usage_options_cli
-            ,usage_postscript_cli
-            ]
 
 main :: IO ()
 main = do
-  (opts, args) <- parseArgumentsWith $ options_cli++options_vty
-  run opts args
+  opts <- getHledgerVtyOpts
+  when (debug_ $ cliopts_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  runWith opts
+
+runWith :: VtyOpts -> IO ()
+runWith opts = run opts
     where
-      run opts args
-       | Help `elem` opts             = putStr usage_vty
-       | Version `elem` opts          = putStrLn $ progversionstr progname_vty
-       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_vty
-       | otherwise                    = withJournalDo opts args "vty" vty
+      run opts
+          | "help" `in_` (rawopts_ $ cliopts_ opts)            = printModeHelpAndExit vtymode
+          | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+          | otherwise                                          = withJournalDo' opts vty
+
+withJournalDo' :: VtyOpts -> (VtyOpts -> Journal -> IO ()) -> IO ()
+withJournalDo' opts cmd = do
+  journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing >>=
+    either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
 helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"
 
@@ -62,10 +48,10 @@ instance Show Vty where show = const "a Vty"
 -- | The application state when running the vty command.
 data AppState = AppState {
      av :: Vty                   -- ^ the vty context
-    ,aw :: Int                  -- ^ window width
-    ,ah :: Int                  -- ^ window height
+    ,aw :: Int                   -- ^ window width
+    ,ah :: Int                   -- ^ window height
     ,amsg :: String              -- ^ status message
-    ,aopts :: [Opt]              -- ^ command-line opts
+    ,aopts :: VtyOpts            -- ^ command-line opts
     ,aargs :: [String]           -- ^ command-line args at startup
     ,ajournal :: Journal         -- ^ parsed journal
     ,abuf :: [String]            -- ^ lines of the current buffered view
@@ -89,19 +75,19 @@ data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
               deriving (Eq,Show)
 
 -- | Run the vty (curses-style) ui.
-vty :: [Opt] -> [String] -> Journal -> IO ()
-vty opts args j = do
+vty :: VtyOpts -> Journal -> IO ()
+vty opts j = do
   v <- mkVty
   DisplayRegion w h <- display_bounds $ terminal v
   d <-  getCurrentDay
-  let a = enter d BalanceScreen args
+  let a = enter d BalanceScreen (patterns_ $ reportopts_ $ cliopts_ opts)
           AppState {
                   av=v
                  ,aw=fromIntegral w
                  ,ah=fromIntegral h
                  ,amsg=helpmsg
                  ,aopts=opts
-                 ,aargs=args
+                 ,aargs=patterns_ $ reportopts_ $ cliopts_ opts
                  ,ajournal=j
                  ,abuf=[]
                  ,alocs=[]
@@ -111,7 +97,7 @@ vty opts args j = do
 -- | Update the screen, wait for the next event, repeat.
 go :: AppState -> IO ()
 go a@AppState{av=av,aopts=opts} = do
-  when (notElem DebugVty opts) $ update av (renderScreen a)
+  when (not $ debug_vty_ opts) $ update av (renderScreen a)
   k <- next_event av
   d <- getCurrentDay
   case k of 
@@ -268,10 +254,11 @@ resetTrailAndEnter d scr a = enter d scr (aargs a) $ clearLocs a
 updateData :: Day -> AppState -> AppState
 updateData d a@AppState{aopts=opts,ajournal=j} =
     case screen a of
-      BalanceScreen  -> a{abuf=accountsReportAsText opts $ accountsReport opts fspec j}
-      RegisterScreen -> a{abuf=lines $ postingsReportAsText opts $ postingsReport opts fspec j}
-      PrintScreen    -> a{abuf=lines $ showTransactions opts fspec j}
-    where fspec = optsToFilterSpec opts (currentArgs a) d
+      BalanceScreen  -> a{abuf=accountsReportAsText ropts $ accountsReport ropts fspec j}
+      RegisterScreen -> a{abuf=lines $ postingsReportAsText ropts $ postingsReport ropts fspec j}
+      PrintScreen    -> a{abuf=lines $ showTransactions ropts fspec j}
+    where fspec = optsToFilterSpec ropts{patterns_=currentArgs a} d
+          ropts = reportopts_ $ cliopts_ opts
 
 backout :: Day -> AppState -> AppState
 backout d a | screen a == BalanceScreen = a

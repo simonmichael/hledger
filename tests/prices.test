@@ -12,8 +12,8 @@ bin/hledger -f- print
 
 >>>=0
 
-# 2. convert to cost basis
-bin/hledger -f- print -B
+# 2. convert to cost
+bin/hledger -f- print --cost
 <<<
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -135,7 +135,7 @@ bin/hledger -f - balance -B
                    0
 >>>=0
 # 10. transaction in two commodities should balance out properly
-bin/hledger -f - balance --basis
+bin/hledger -f - balance --cost
 <<<
 2011/01/01 x
   a  10£ @@ 16$

@@ -38,22 +38,22 @@ import Hledger.Utils
 
 
 -- | Run unit tests and exit with success or failure.
-runtests :: [Opt] -> [String] -> IO ()
-runtests opts args = do
-  (hunitcounts,_) <- runtests' opts args
+runtests :: CliOpts -> IO ()
+runtests opts = do
+  (hunitcounts,_) <- runtests' opts
   if errors hunitcounts > 0 || (failures hunitcounts > 0)
    then exitFailure
    else exitWith ExitSuccess
 
 -- | Run unit tests and exit on failure.
-runTestsOrExit :: [Opt] -> [String] -> IO ()
-runTestsOrExit opts args = do
-  (hunitcounts,_) <- runtests' opts args
+runTestsOrExit :: CliOpts -> IO ()
+runTestsOrExit opts = do
+  (hunitcounts,_) <- runtests' opts
   when (errors hunitcounts > 0 || (failures hunitcounts > 0)) $ exitFailure
 
-runtests' :: Num b => t -> [String] -> IO (Counts, b)
-runtests' _ args = liftM (flip (,) 0) $ runTestTT ts
+runtests' :: Num b => CliOpts -> IO (Counts, b)
+runtests' opts = liftM (flip (,) 0) $ runTestTT ts
     where
       ts = TestList $ filter matchname $ tflatten tests_Hledger_Cli  -- show flat test names
       -- ts = tfilter matchname $ TestList tests -- show hierarchical test names
-      matchname = matchpats args . tname
+      matchname = matchpats (patterns_ $ reportopts_ opts) . tname

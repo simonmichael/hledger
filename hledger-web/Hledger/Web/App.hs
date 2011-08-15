@@ -1,5 +1,4 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, OverloadedStrings #-}
 module Hledger.Web.App
     ( App (..)
     , AppRoute (..)
@@ -22,8 +21,8 @@ import Text.Hamlet hiding (hamletFile)
 import Yesod.Core
 import Yesod.Helpers.Static
 
-import Hledger.Cli.Options
 import Hledger.Data
+import Hledger.Web.Options
 import Hledger.Web.Settings
 import Hledger.Web.StaticFiles
 
@@ -34,7 +33,7 @@ import Hledger.Web.StaticFiles
 data App = App
     {getStatic :: Static -- ^ Settings for static file serving.
     ,appRoot    :: T.Text
-    ,appOpts    :: [Opt]
+    ,appOpts    :: WebOpts
     ,appArgs    :: [String]
     ,appJournal :: Journal
     }

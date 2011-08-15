@@ -36,7 +36,7 @@ import Control.Monad.Error (ErrorT)
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Tree
-import Data.Typeable (Typeable)
+import Data.Typeable
 import qualified Data.Map as Map
 import System.Time (ClockTime)
 

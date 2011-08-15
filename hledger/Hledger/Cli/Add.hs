@@ -49,8 +49,8 @@ data PostingState = PostingState {
 -- | Read transactions from the terminal, prompting for each field,
 -- and append them to the journal file. If the journal came from stdin, this
 -- command has no effect.
-add :: [Opt] -> [String] -> Journal -> IO ()
-add opts args j
+add :: CliOpts -> Journal -> IO ()
+add opts j
     | f == "-" = return ()
     | otherwise = do
   hPutStrLn stderr $
@@ -58,7 +58,7 @@ add opts args j
     ++"To complete a transaction, enter . when prompted for an account.\n"
     ++"To quit, press control-d or control-c."
   today <- getCurrentDay
-  getAndAddTransactions j opts args today
+  getAndAddTransactions j opts today
         `catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
 
@@ -66,29 +66,29 @@ add opts args j
 -- validating, displaying and appending them to the journal file, until
 -- end of input (then raise an EOF exception). Any command-line arguments
 -- are used as the first transaction's description.
-getAndAddTransactions :: Journal -> [Opt] -> [String] -> Day -> IO ()
-getAndAddTransactions j opts args defaultDate = do
-  (t, d) <- getTransaction j opts args defaultDate
+getAndAddTransactions :: Journal -> CliOpts -> Day -> IO ()
+getAndAddTransactions j opts defaultDate = do
+  (t, d) <- getTransaction j opts defaultDate
   j <- journalAddTransaction j opts t
-  getAndAddTransactions j opts args d
+  getAndAddTransactions j opts d
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Journal -> [Opt] -> [String] -> Day
+getTransaction :: Journal -> CliOpts -> Day
                     -> IO (Transaction,Day)
-getTransaction j opts args defaultDate = do
+getTransaction j opts defaultDate = do
   today <- getCurrentDay
   datestr <- runInteractionDefault $ askFor "date" 
             (Just $ showDate defaultDate)
             (Just $ \s -> null s || 
              isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
   description <- runInteractionDefault $ askFor "description" (Just "") Nothing
-  let historymatches = transactionsSimilarTo j args description
+  let historymatches = transactionsSimilarTo j (patterns_ $ reportopts_ opts) description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
       accept x = x == "." || (not . null) x &&
-        if NoNewAccts `elem` opts
+        if no_new_accounts_ opts
             then isJust $ Foldable.find (== x) ant
             else True
         where (ant,_,_,_) = groupPostings $ journalPostings j
@@ -190,11 +190,11 @@ askFor prompt def validator = do
 
 -- | Append this transaction to the journal's file, and to the journal's
 -- transaction list.
-journalAddTransaction :: Journal -> [Opt] -> Transaction -> IO Journal
+journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
   let f = journalFilePath j
   appendToJournalFile f $ showTransaction t
-  when (Debug `elem` opts) $ do
+  when (debug_ opts) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
     putStrLn =<< registerFromString (show t)
   return j{jtxns=ts++[t]}
@@ -219,8 +219,8 @@ registerFromString :: String -> IO String
 registerFromString s = do
   d <- getCurrentDay
   j <- readJournal' s
-  return $ postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts [] d) j
-    where opts = [Empty]
+  return $ postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts d) j
+      where opts = defreportopts{empty_=True}
 
 -- | Return a similarity measure, from 0 to 1, for two strings.
 -- This is Simon White's letter pairs algorithm from

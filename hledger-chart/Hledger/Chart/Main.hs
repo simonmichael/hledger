@@ -18,78 +18,49 @@ import Data.Maybe
 import Data.Ord
 import Data.Tree
 import Graphics.Rendering.Chart
-import Safe (readDef)
-import System.Console.GetOpt
 import System.Exit (exitFailure)
+import Text.Printf
 
 import Hledger
-import Prelude hiding (putStr, putStrLn)
-import Hledger.Utils.UTF8 (putStr, putStrLn)
-import Hledger.Cli.Options
-import Hledger.Cli.Utils (withJournalDo)
-import Hledger.Cli.Version
+import Hledger.Cli hiding (progname,progversion)
+import Prelude hiding (putStrLn)
+import Hledger.Utils.UTF8 (putStrLn)
 
-
-progname_chart = progname_cli ++ "-chart"
-
-defchartoutput   = "hledger.png"
-defchartitems    = 10
-defchartsize     = "600x400"
-
-options_chart :: [OptDescr Opt]
-options_chart = [
-  Option "o" ["output"] (ReqArg ChartOutput "FILE")       ("output filename (default: "++defchartoutput++")")
- ,Option ""  ["items"]  (ReqArg ChartItems "N")           ("number of accounts to show (default: "++show defchartitems++")")
- ,Option ""  ["size"]   (ReqArg ChartSize "WIDTHxHEIGHT") ("image size (default: "++defchartsize++")")
- ]
-
-usage_preamble_chart =
-  "Usage: hledger-chart [OPTIONS] [PATTERNS]\n" ++
-  "\n" ++
-  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
-  "generates simple pie chart images.\n" ++
-  "\n"
-
-usage_options_chart = usageInfo "hledger-chart options:" options_chart ++ "\n"
-
-usage_chart = concat [
-             usage_preamble_chart
-            ,usage_options_chart
-            ,usage_options_cli
-            ,usage_postscript_cli
-            ]
+import Hledger.Chart.Options
 
 main :: IO ()
 main = do
-  (opts, args) <- parseArgumentsWith $ options_cli++options_chart
-  run opts args
+  opts <- getHledgerChartOpts
+  when (debug_ $ cliopts_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  runWith opts
+
+runWith :: ChartOpts -> IO ()
+runWith opts = run opts
     where
-      run opts args
-       | Help `elem` opts             = putStr usage_chart
-       | Version `elem` opts          = putStrLn $ progversionstr progname_chart
-       | BinaryFilename `elem` opts   = putStrLn $ binaryfilename progname_chart
-       | otherwise                    = withJournalDo opts args "chart" chart
+      run opts
+          | "help" `in_` (rawopts_ $ cliopts_ opts)            = printModeHelpAndExit chartmode
+          | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+          | otherwise                                          = withJournalDo' opts chart
+
+withJournalDo' :: ChartOpts -> (ChartOpts -> Journal -> IO ()) -> IO ()
+withJournalDo' opts cmd = do
+  journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing >>=
+    either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
 -- | Generate an image with the pie chart and write it to a file
-chart :: [Opt] -> [String] -> Journal -> IO ()
-chart opts args j = do
+chart :: ChartOpts -> Journal -> IO ()
+chart opts j = do
   d <- getCurrentDay
   if null $ jtxns j
    then putStrLn "This journal has no transactions, can't make a chart." >> exitFailure
    else do
-     let chart = genPie opts (optsToFilterSpec opts args d) j
+     let chart = genPie opts (optsToFilterSpec ropts d) j
      renderableToPNGFile (toRenderable chart) w h filename
      return ()
       where
-        filename = getOption opts ChartOutput defchartoutput
-        (w,h) = parseSize $ getOption opts ChartSize defchartsize
-
--- | Extract string option value from a list of options or use the default
-getOption :: [Opt] -> (String->Opt) -> String -> String
-getOption opts opt def = 
-    case reverse $ optValuesForConstructor opt opts of
-        [] -> def
-        x:_ -> x
+        filename = chart_output_ opts
+        (w,h) = parseSize $ chart_size_ opts
+        ropts = reportopts_ $ cliopts_ opts
 
 -- | Parse image size from a command-line option
 parseSize :: String -> (Int,Int)
@@ -99,26 +70,28 @@ parseSize str = (read w, read h)
     (w,_:h) = splitAt x str
 
 -- | Generate pie chart
-genPie :: [Opt] -> FilterSpec -> Journal -> PieLayout
+genPie :: ChartOpts -> FilterSpec -> Journal -> PieLayout
 genPie opts filterspec j = defaultPieLayout { pie_background_ = solidFillStyle $ opaque $ white
                                             , pie_plot_ = pie_chart }
     where
-      pie_chart = defaultPieChart { pie_data_ = map (uncurry accountPieItem) chartitems'
+      pie_chart = defaultPieChart { pie_data_ = map (uncurry accountPieItem) chartitems
                                   , pie_start_angle_ = (-90)
                                   , pie_colors_ = mkColours hue
                                   , pie_label_style_ = defaultFontStyle{font_size_=12}
                                   }
-      chartitems' = debug "chart" $ top num samesignitems
+      chartitems = debug "chart" $ top num samesignitems
       (samesignitems, sign) = sameSignNonZero rawitems
       rawitems = debug "raw" $ flatten $ balances $
-                 ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) $ journalToLedger filterspec j
+                 ledgerAccountTree (fromMaybe 99999 $ depth_ ropts) $ journalToLedger filterspec j
       top n t = topn ++ [other]
           where
             (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) t
             other = ("other", sum $ map snd rest)
-      num = readDef (fromIntegral defchartitems) (getOption opts ChartItems (show defchartitems))
+      num = chart_items_ opts
       hue = if sign > 0 then red else green where (red, green) = (0, 110)
-      debug s = if Debug `elem` opts then ltrace s else id
+      debug s = if debug_ copts then ltrace s else id
+      copts = cliopts_ opts
+      ropts = reportopts_ copts
 
 -- | Select the nonzero items with same sign as the first, and make
 -- them positive. Also return a 1 or -1 corresponding to the original sign.

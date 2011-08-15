@@ -7,6 +7,7 @@ module Hledger.Web (
                      module Hledger.Web.AppRun,
                      module Hledger.Web.EmbeddedFiles,
                      module Hledger.Web.Handlers,
+                     module Hledger.Web.Options,
                      module Hledger.Web.Settings,
                      module Hledger.Web.StaticFiles,
                      tests_Hledger_Web
@@ -18,6 +19,7 @@ import Hledger.Web.App
 import Hledger.Web.AppRun
 import Hledger.Web.EmbeddedFiles
 import Hledger.Web.Handlers
+import Hledger.Web.Options
 import Hledger.Web.Settings
 import Hledger.Web.StaticFiles
 

@@ -18,15 +18,14 @@ import Hledger.Cli.Options
 import Hledger.Cli.Reports
 
 -- | Print journal transactions in standard format.
-print' :: [Opt] -> [String] -> Journal -> IO ()
-print' opts args j = do
+print' :: CliOpts -> Journal -> IO ()
+print' CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ showTransactions opts (optsToFilterSpec opts args d) j
+  putStr $ showTransactions ropts (optsToFilterSpec ropts d) j
 
-showTransactions :: [Opt] -> FilterSpec -> Journal -> String
+showTransactions :: ReportOpts -> FilterSpec -> Journal -> String
 showTransactions opts fspec j = entriesReportAsText opts fspec $ entriesReport opts fspec j
 
-entriesReportAsText :: [Opt] -> FilterSpec -> EntriesReport -> String
-entriesReportAsText opts _ items = concatMap (showTransactionForPrint effective) items
-    where effective = Effective `elem` opts
+entriesReportAsText :: ReportOpts -> FilterSpec -> EntriesReport -> String
+entriesReportAsText opts _ items = concatMap (showTransactionForPrint (effective_ opts)) items
 

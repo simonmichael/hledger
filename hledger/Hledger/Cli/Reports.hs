@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-|
 
 Generate several common kinds of report from a journal, as \"*Report\" -
@@ -9,6 +10,17 @@ on the command-line options, should move to hledger-lib later.
 -}
 
 module Hledger.Cli.Reports (
+  ReportOpts(..),
+  DisplayExpr,
+  FormatStr,
+  defreportopts,
+  dateSpanFromOpts,
+  intervalFromOpts,
+  clearedValueFromOpts,
+  whichDateFromOpts,
+  journalSelectingDateFromOpts,
+  journalSelectingAmountFromOpts,
+  optsToFilterSpec,
   -- * Entries report
   EntriesReport,
   EntriesReportItem,
@@ -42,14 +54,138 @@ import Data.Ord
 import Data.Time.Calendar
 import Data.Tree
 import Safe (headMay, lastMay)
+import System.Console.CmdArgs  -- for defaults support
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Cli.Options
-import Hledger.Cli.Utils
+-- import Hledger.Cli.Utils
+
+-- report options, used in hledger-lib and above
+data ReportOpts = ReportOpts {
+     begin_          :: Maybe Day
+    ,end_            :: Maybe Day
+    ,period_         :: Maybe (Interval,DateSpan)
+    ,cleared_        :: Bool
+    ,uncleared_      :: Bool
+    ,cost_           :: Bool
+    ,depth_          :: Maybe Int
+    ,display_        :: Maybe DisplayExpr
+    ,effective_      :: Bool
+    ,empty_          :: Bool
+    ,no_elide_       :: Bool
+    ,real_           :: Bool
+    ,flat_           :: Bool -- balance
+    ,drop_           :: Int  -- balance
+    ,no_total_       :: Bool -- balance
+    ,daily_          :: Bool
+    ,weekly_         :: Bool
+    ,monthly_        :: Bool
+    ,quarterly_      :: Bool
+    ,yearly_         :: Bool
+    ,format_         :: Maybe FormatStr
+    ,patterns_       :: [String]
+ } deriving (Show)
+
+type DisplayExpr = String
+type FormatStr = String
+
+defreportopts = ReportOpts
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+
+instance Default ReportOpts where def = defreportopts
+
+-- | Figure out the date span we should report on, based on any
+-- begin/end/period options provided. A period option will cause begin and
+-- end options to be ignored.
+dateSpanFromOpts :: Day -> ReportOpts -> DateSpan
+dateSpanFromOpts _ ReportOpts{..} =
+    case period_ of Just (_,span) -> span
+                    Nothing -> DateSpan begin_ end_
+
+-- | Figure out the reporting interval, if any, specified by the options.
+-- --period overrides --daily overrides --weekly overrides --monthly etc.
+intervalFromOpts :: ReportOpts -> Interval
+intervalFromOpts ReportOpts{..} =
+    case period_ of
+      Just (interval,_) -> interval
+      Nothing -> i
+          where i | daily_ = Days 1
+                  | weekly_ = Weeks 1
+                  | monthly_ = Months 1
+                  | quarterly_ = Quarters 1
+                  | yearly_ = Years 1
+                  | otherwise =  NoInterval
+
+-- | Get a maybe boolean representing the last cleared/uncleared option if any.
+clearedValueFromOpts :: ReportOpts -> Maybe Bool
+clearedValueFromOpts ReportOpts{..} | cleared_   = Just True
+                                    | uncleared_ = Just False
+                                    | otherwise  = Nothing
+
+-- | Detect which date we will report on, based on --effective.
+whichDateFromOpts :: ReportOpts -> WhichDate
+whichDateFromOpts ReportOpts{..} = if effective_ then EffectiveDate else ActualDate
+
+-- | Convert this journal's transactions' primary date to either the
+-- actual or effective date, as per options.
+journalSelectingDateFromOpts :: ReportOpts -> Journal -> Journal
+journalSelectingDateFromOpts opts = journalSelectingDate (whichDateFromOpts opts)
+
+-- | Convert this journal's postings' amounts to the cost basis amounts if
+-- specified by options.
+journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
+journalSelectingAmountFromOpts opts
+    | cost_ opts = journalConvertAmountsToCost
+    | otherwise = id
+
+-- | Convert application options to the library's generic filter specification.
+optsToFilterSpec :: ReportOpts -> Day -> FilterSpec
+optsToFilterSpec opts@ReportOpts{..} d = FilterSpec {
+                                datespan=dateSpanFromOpts d opts
+                               ,cleared= clearedValueFromOpts opts
+                               ,real=real_
+                               ,empty=empty_
+                               ,acctpats=apats
+                               ,descpats=dpats
+                               ,depth = depth_
+                               }
+    where (apats,dpats) = parsePatternArgs patterns_
+
+-- | Gather filter pattern arguments into a list of account patterns and a
+-- list of description patterns. We interpret pattern arguments as
+-- follows: those prefixed with "desc:" are description patterns, all
+-- others are account patterns; also patterns prefixed with "not:" are
+-- negated. not: should come after desc: if both are used.
+parsePatternArgs :: [String] -> ([String],[String])
+parsePatternArgs args = (as, ds')
+    where
+      descprefix = "desc:"
+      (ds, as) = partition (descprefix `isPrefixOf`) args
+      ds' = map (drop (length descprefix)) ds
 
 -------------------------------------------------------------------------------
 
@@ -60,7 +196,7 @@ type EntriesReport = [EntriesReportItem]
 type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
-entriesReport :: [Opt] -> FilterSpec -> Journal -> EntriesReport
+entriesReport :: ReportOpts -> FilterSpec -> Journal -> EntriesReport
 entriesReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
     where
       j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
@@ -79,12 +215,12 @@ type PostingsReportItem = (Maybe (Day, String) -- transaction date and descripti
 
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
-postingsReport :: [Opt] -> FilterSpec -> Journal -> PostingsReport
+postingsReport :: ReportOpts -> FilterSpec -> Journal -> PostingsReport
 postingsReport opts fspec j = (totallabel, postingsReportItems ps nullposting startbal (+))
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
-      (precedingps, displayableps, _) = postingsMatchingDisplayExpr (displayExprFromOpts opts)
+      (precedingps, displayableps, _) = postingsMatchingDisplayExpr (display_ opts)
                                         $ depthClipPostings depth
                                         $ journalPostings
                                         $ filterJournalPostings fspec{depth=Nothing}
@@ -93,7 +229,7 @@ postingsReport opts fspec j = (totallabel, postingsReportItems ps nullposting st
                                         j
       startbal = sumPostings precedingps
       filterspan = datespan fspec
-      (interval, depth, empty) = (intervalFromOpts opts, depthFromOpts opts, Empty `elem` opts)
+      (interval, depth, empty) = (intervalFromOpts opts, depth_ opts, empty_ opts)
 
 totallabel = "Total"
 balancelabel = "Balance"
@@ -238,7 +374,7 @@ triBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
 -- "postingsReport" except it uses matchers and transaction-based report
 -- items and the items are most recent first. Used by eg hledger-web's
 -- journal view.
-journalTransactionsReport :: [Opt] -> Journal -> Matcher -> TransactionsReport
+journalTransactionsReport :: ReportOpts -> Journal -> Matcher -> TransactionsReport
 journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
    where
      ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
@@ -261,16 +397,16 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 -- Currently, reporting intervals are not supported, and report items are
 -- most recent first. Used by eg hledger-web's account register view.
 --
-accountTransactionsReport :: [Opt] -> Journal -> Matcher -> Matcher -> TransactionsReport
+accountTransactionsReport :: ReportOpts -> Journal -> Matcher -> Matcher -> TransactionsReport
 accountTransactionsReport opts j m thisacctmatcher = (label, items)
  where
      -- transactions affecting this account, in date order
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label) | matcherIsNull m                    = (nullmixedamt,        balancelabel)
-                      | matcherIsStartDateOnly effective m = (sumPostings priorps, balancelabel)
-                      | otherwise                          = (nullmixedamt,        totallabel)
+     (startbal,label) | matcherIsNull m                           = (nullmixedamt,        balancelabel)
+                      | matcherIsStartDateOnly (effective_ opts) m = (sumPostings priorps, balancelabel)
+                      | otherwise                                 = (nullmixedamt,        totallabel)
                       where
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
@@ -278,8 +414,7 @@ accountTransactionsReport opts j m thisacctmatcher = (label, items)
                                            MatchAnd [thisacctmatcher, tostartdatematcher]))
                                          $ transactionsPostings ts
                         tostartdatematcher = MatchDate True (DateSpan Nothing startdate)
-                        startdate = matcherStartDate effective m
-                        effective = Effective `elem` opts
+                        startdate = matcherStartDate (effective_ opts) m
      items = reverse $ accountTransactionsReportItems m (Just thisacctmatcher) startbal negate ts
 
 -- | Generate transactions report items from a list of transactions,
@@ -344,25 +479,25 @@ type AccountsReportItem = (AccountName  -- full account name
 -- | Select accounts, and get their balances at the end of the selected
 -- period, and misc. display information, for an accounts report. Used by
 -- eg hledger's balance command.
-accountsReport :: [Opt] -> FilterSpec -> Journal -> AccountsReport
+accountsReport :: ReportOpts -> FilterSpec -> Journal -> AccountsReport
 accountsReport opts filterspec j = accountsReport' opts j (journalToLedger filterspec)
 
 -- | Select accounts, and get their balances at the end of the selected
 -- period, and misc. display information, for an accounts report. Like
 -- "accountsReport" but uses the new matchers. Used by eg hledger-web's
 -- accounts sidebar.
-accountsReport2 :: [Opt] -> Matcher -> Journal -> AccountsReport
+accountsReport2 :: ReportOpts -> Matcher -> Journal -> AccountsReport
 accountsReport2 opts matcher j = accountsReport' opts j (journalToLedger2 matcher)
 
 -- Accounts report helper.
-accountsReport' :: [Opt] -> Journal -> (Journal -> Ledger) -> AccountsReport
+accountsReport' :: ReportOpts -> Journal -> (Journal -> Ledger) -> AccountsReport
 accountsReport' opts j jtol = (items, total)
     where
       items = map mkitem interestingaccts
-      interestingaccts | NoElide `elem` opts = acctnames
+      interestingaccts | no_elide_ opts = acctnames
                        | otherwise = filter (isInteresting opts l) acctnames
       acctnames = sort $ tail $ flatten $ treemap aname accttree
-      accttree = ledgerAccountTree (fromMaybe 99999 $ depthFromOpts opts) l
+      accttree = ledgerAccountTree (fromMaybe 99999 $ depth_ opts) l
       total = sum $ map abalance $ ledgerTopAccounts l
       l =  jtol $ journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
 
@@ -370,14 +505,14 @@ accountsReport' opts j jtol = (items, total)
       mkitem :: AccountName -> AccountsReportItem
       mkitem a = (a, adisplay, indent, abal)
           where
-            adisplay | Flat `elem` opts = a
+            adisplay | flat_ opts = a
                      | otherwise = accountNameFromComponents $ reverse (map accountLeafName ps) ++ [accountLeafName a]
                 where ps = takeWhile boring parents where boring = not . (`elem` interestingparents)
-            indent | Flat `elem` opts = 0
+            indent | flat_ opts = 0
                    | otherwise = length interestingparents
             interestingparents = filter (`elem` interestingaccts) parents
             parents = parentAccountNames a
-            abal | Flat `elem` opts = exclusiveBalance acct
+            abal | flat_ opts = exclusiveBalance acct
                  | otherwise = abalance acct
                  where acct = ledgerAccount l a
 
@@ -386,24 +521,24 @@ exclusiveBalance = sumPostings . apostings
 
 -- | Is the named account considered interesting for this ledger's accounts report,
 -- following the eliding style of ledger's balance command ?
-isInteresting :: [Opt] -> Ledger -> AccountName -> Bool
-isInteresting opts l a | Flat `elem` opts = isInterestingFlat opts l a
+isInteresting :: ReportOpts -> Ledger -> AccountName -> Bool
+isInteresting opts l a | flat_ opts = isInterestingFlat opts l a
                        | otherwise = isInterestingIndented opts l a
 
-isInterestingFlat :: [Opt] -> Ledger -> AccountName -> Bool
+isInterestingFlat :: ReportOpts -> Ledger -> AccountName -> Bool
 isInterestingFlat opts l a = notempty || emptyflag
     where
       acct = ledgerAccount l a
       notempty = not $ isZeroMixedAmount $ exclusiveBalance acct
-      emptyflag = Empty `elem` opts
+      emptyflag = empty_ opts
 
-isInterestingIndented :: [Opt] -> Ledger -> AccountName -> Bool
+isInterestingIndented :: ReportOpts -> Ledger -> AccountName -> Bool
 isInterestingIndented opts l a
     | numinterestingsubs==1 && not atmaxdepth = notlikesub
     | otherwise = notzero || emptyflag
     where
-      atmaxdepth = isJust d && Just (accountNameLevel a) == d where d = depthFromOpts opts
-      emptyflag = Empty `elem` opts
+      atmaxdepth = isJust d && Just (accountNameLevel a) == d where d = depth_ opts
+      emptyflag = empty_ opts
       acct = ledgerAccount l a
       notzero = not $ isZeroMixedAmount inclbalance where inclbalance = abalance acct
       notlikesub = not $ isZeroMixedAmount exclbalance where exclbalance = sumPostings $ apostings acct

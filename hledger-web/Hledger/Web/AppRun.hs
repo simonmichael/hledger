@@ -18,6 +18,7 @@ import Hledger
 import Hledger.Cli
 import Hledger.Web.App
 import Hledger.Web.Handlers
+import Hledger.Web.Options
 import Hledger.Web.Settings
 
 -- This line actually creates our YesodSite instance. It is the second half
@@ -38,7 +39,7 @@ withDevelApp = toDyn (withApp a :: (Application -> IO ()) -> IO ())
    where a = App{
               getStatic=static Hledger.Web.Settings.staticdir
              ,appRoot=Hledger.Web.Settings.defapproot
-             ,appOpts=[]
+             ,appOpts=defwebopts
              ,appArgs=[]
              ,appJournal=nulljournal
              }
@@ -53,7 +54,7 @@ withWaiHandlerDevelApp func = do
   let a = App{
               getStatic=static Hledger.Web.Settings.staticdir
              ,appRoot=Settings.defapproot
-             ,appOpts=[File f]
+             ,appOpts=defwebopts{cliopts_=defcliopts{file_=Just f}}
              ,appArgs=[]
              ,appJournal=j
              }

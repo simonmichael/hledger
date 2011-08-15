@@ -25,13 +25,13 @@ import Hledger.Cli.Reports
 
 
 -- | Print a (posting) register report.
-register :: [Opt] -> [String] -> Journal -> IO ()
-register opts args j = do
+register :: CliOpts -> Journal -> IO ()
+register CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts args d) j
+  putStr $ postingsReportAsText ropts $ postingsReport ropts (optsToFilterSpec ropts d) j
 
 -- | Render a register report as plain text suitable for console output.
-postingsReportAsText :: [Opt] -> PostingsReport -> String
+postingsReportAsText :: ReportOpts -> PostingsReport -> String
 postingsReportAsText opts = unlines . map (postingsReportItemAsText opts) . snd
 
 -- | Render one register report line item as plain text. Eg:
@@ -41,7 +41,7 @@ postingsReportAsText opts = unlines . map (postingsReportItemAsText opts) . snd
 -- ^ displayed for first postings^
 --   only, otherwise blank
 -- @
-postingsReportItemAsText :: [Opt] -> PostingsReportItem -> String
+postingsReportItemAsText :: ReportOpts -> PostingsReportItem -> String
 postingsReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", bal]
     where
       datedesc = case dd of Nothing -> replicate datedescwidth ' '
@@ -57,7 +57,7 @@ postingsReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", ba
       bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
 
 -- XXX
-showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText [] $ mkpostingsReportItem showtxninfo p b
+showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText defreportopts $ mkpostingsReportItem showtxninfo p b
 
 tests_Hledger_Cli_Register :: Test
 tests_Hledger_Cli_Register = TestList

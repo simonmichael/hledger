@@ -53,7 +53,7 @@ data Matcher = MatchAny                   -- ^ always match
 
 -- | A query option changes a query's/report's behaviour and output in some way.
 
--- XXX could use regular cli Opts ?
+-- XXX could use regular CliOpts ?
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
               | QueryOptInAcct AccountName      -- ^ as above but include sub-accounts in the account register
            -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
