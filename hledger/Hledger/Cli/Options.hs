@@ -316,8 +316,8 @@ toCliOpts rawopts = do
 
 -- workaround for http://code.google.com/p/ndmitchell/issues/detail?id=457
 -- just handles commonest cases
-moveFlagsAfterCommand ("-f":f:cmd:rest) = cmd:"-f":f:rest
-moveFlagsAfterCommand (first:cmd:rest) | "-f" `isPrefixOf` first = cmd:first:rest
+moveFlagsAfterCommand (fflagandval@('-':'f':_:_):cmd:rest) = cmd:fflagandval:rest
+moveFlagsAfterCommand ("-f":fval:cmd:rest) = cmd:"-f":fval:rest
 moveFlagsAfterCommand as = as
 
 -- | Convert possibly encoded option values to regular unicode strings.
