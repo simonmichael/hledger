@@ -43,7 +43,7 @@ SOURCEFILES:= \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs
 # a more careful list suitable for for haddock
-SOURCEFILESFORHADDOCK:= \
+HADDOCKSOURCEFILES:= \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
 	hledger/Hledger/Cli/*hs \
@@ -51,7 +51,7 @@ SOURCEFILESFORHADDOCK:= \
 	hledger-vty/Hledger/*/*hs \
 	hledger-chart/Hledger/*/*hs
 # just the library-exporting files for haddock, similar to what hackage shows
-LIBSOURCEFILESFORHADDOCK:= \
+HADDOCKLIBSOURCEFILES:= \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
 	hledger/Hledger/Cli/*hs
@@ -547,7 +547,7 @@ apihaddock: linkhledgerwebdir .haddockprologue
 	 --html \
 	 --source-module=../code-doc/src/%{MODULE/./-}.html \
 	 --source-entity=../code-doc/src/%{MODULE/./-}.html#%N \
-	 $(LIBSOURCEFILESFORHADDOCK)
+	 $(HADDOCKLIBSOURCEFILES)
 
 # generate internal code docs for the whole project
 codehaddock: linkhledgerwebdir .haddockprologue
@@ -557,13 +557,13 @@ codehaddock: linkhledgerwebdir .haddockprologue
 	 --html \
 	 --source-module=../code-doc/src/%{MODULE/./-}.html \
 	 --source-entity=../code-doc/src/%{MODULE/./-}.html#%N \
-	 $(SOURCEFILESFORHADDOCK)
+	 $(HADDOCKSOURCEFILES)
 
 #http://www.cs.york.ac.uk/fp/darcs/hscolour/
 HSCOLOUR=HsColour -icss
 hscolour:
 	mkdir -p site/code-doc/src
-	for f in $(SOURCEFILESFORHADDOCK); do \
+	for f in $(HADDOCKSOURCEFILES); do \
 		$(HSCOLOUR) -anchor $$f -osite/code-doc/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done
 
