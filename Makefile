@@ -46,20 +46,23 @@ SOURCEFILES:= \
 
 # a more careful list suitable for for haddock
 HADDOCKSOURCEFILES:= \
+	hledger-lib/*hs \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
 	hledger/Hledger/*hs \
 	hledger/Hledger/Cli/*hs \
 	hledger-web/*hs \
 	hledger-vty/Hledger/*/*hs
+#	hledger-chart/Hledger/*hs
 #	hledger-chart/Hledger/*/*hs
 
 # just the library-exporting files for haddock, similar to what hackage shows
 HADDOCKLIBSOURCEFILES:= \
+	hledger-lib/*hs \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
 	hledger/Hledger/*hs \
-	hledger/Hledger/Cli/*hs
+	hledger/Hledger/*/*hs
 
 VERSIONHS=hledger/Hledger/Cli/Version.hs
 CABALFILES:= \
