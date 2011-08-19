@@ -775,7 +775,7 @@ showreleaseauthors:
 	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
 	@echo
 
-showloc:
+showloc sloccount:
 	@echo Current lines of code including tests:
 	@sloccount `ls $(SOURCEFILES)` | grep haskell:
 	@echo
