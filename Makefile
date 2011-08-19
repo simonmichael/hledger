@@ -316,7 +316,7 @@ doctest: tools/doctest
 
 # make sure we have no haddock errors
 haddocktest:
-	@(make --quiet codehaddock \
+	@(make --quiet haddock \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # needs updating
@@ -533,8 +533,10 @@ HADDOCK=haddock --optghc='-hide-package monads-tf' --no-warnings --prologue .had
 	cat $< | perl -ne 'print if (/^description:/../^$$/)' | sed -e 's/^description: *//' >$@
 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
 
+haddock: apihaddock internalhaddock
+
 # generate external api docs for the whole project
-apihaddock haddock: linkhledgerwebdir .haddockprologue
+apihaddock: linkhledgerwebdir .haddockprologue
 	$(HADDOCK) --title "hledger API docs (all packages)" \
 	 -o site/api-doc \
 	 --html \
