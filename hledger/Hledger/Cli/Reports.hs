@@ -401,7 +401,8 @@ accountTransactionsReport :: ReportOpts -> Journal -> Matcher -> Matcher -> Tran
 accountTransactionsReport opts j m thisacctmatcher = (label, items)
  where
      -- transactions affecting this account, in date order
-     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns j
+     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns $
+          journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
      (startbal,label) | matcherIsNull m                           = (nullmixedamt,        balancelabel)
