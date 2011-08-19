@@ -11,7 +11,7 @@ on the command-line options, should move to hledger-lib later.
 
 module Hledger.Cli.Reports (
   ReportOpts(..),
-  DisplayExpr,
+  DisplayExp,
   FormatStr,
   defreportopts,
   dateSpanFromOpts,
@@ -72,7 +72,7 @@ data ReportOpts = ReportOpts {
     ,uncleared_      :: Bool
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
-    ,display_        :: Maybe DisplayExpr
+    ,display_        :: Maybe DisplayExp
     ,effective_      :: Bool
     ,empty_          :: Bool
     ,no_elide_       :: Bool
@@ -89,7 +89,7 @@ data ReportOpts = ReportOpts {
     ,patterns_       :: [String]
  } deriving (Show)
 
-type DisplayExpr = String
+type DisplayExp = String
 type FormatStr = String
 
 defreportopts = ReportOpts

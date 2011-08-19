@@ -117,7 +117,7 @@ fileflags = [
 reportflags = [
   flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "report on transactions on or after this date"
  ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "report on transactions before this date"
- ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
+ ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "report on transactions during the specified period and/or with the specified reporting interval"
  ,flagNone ["daily","D"]     (\opts -> setboolopt "daily" opts) "report by day"
  ,flagNone ["weekly","W"]    (\opts -> setboolopt "weekly" opts) "report by week"
  ,flagNone ["monthly","M"]   (\opts -> setboolopt "monthly" opts) "report by month"
@@ -127,7 +127,7 @@ reportflags = [
  ,flagNone ["uncleared","U"] (\opts -> setboolopt "uncleared" opts) "report only on uncleared transactions"
  ,flagNone ["cost","B"]      (\opts -> setboolopt "cost" opts) "report cost of commodities"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/transactions deeper than this"
- ,flagReq  ["display","d"]   (\s opts -> Right $ setopt "display" s opts) "DISPLAYEXPR" "show only transactions matching the expr, which is 'dOP[DATE]' where OP is <, <=, =, >=, >"
+ ,flagReq  ["display","d"]   (\s opts -> Right $ setopt "display" s opts) "DISPLAYEXP" "show only transactions matching the expression, which is 'dOP[DATE]' where OP is <, <=, =, >=, >"
  ,flagNone ["effective"]     (\opts -> setboolopt "effective" opts) "use transactions' effective dates, if any"
  ,flagNone ["empty","E"]     (\opts -> setboolopt "empty" opts) "show empty/zero things which are normally elided"
  ,flagNone ["real","R"]      (\opts -> setboolopt "real" opts) "report only on real (non-virtual) transactions"
@@ -393,7 +393,7 @@ maybesmartdateopt d name rawopts =
                     Just
                     $ fixSmartDateStrEither' d s
 
-maybedisplayopt :: Day -> RawOpts -> Maybe DisplayExpr
+maybedisplayopt :: Day -> RawOpts -> Maybe DisplayExp
 maybedisplayopt d rawopts =
     maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) $ maybestringopt "display" rawopts
     where
