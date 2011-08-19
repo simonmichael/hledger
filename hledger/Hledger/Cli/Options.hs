@@ -6,7 +6,7 @@ Command-line options for the hledger program, and option-parsing utilities.
 
 module Hledger.Cli.Options
 where
-import Data.List
+-- import Data.List
 import Data.Maybe
 import Data.Time.Calendar
 import Safe
