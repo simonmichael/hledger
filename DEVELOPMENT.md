@@ -97,8 +97,6 @@ reports
 3. it's probably worth getting the latest and best cabal: `cabal update; cabal install cabal-install`
 4. get an up-to-date [darcs](http://darcs.net), at least 2.x and preferably newer: use a binary package or `cabal install darcs`
 
-5. cd hledger/hledger-lib; cabal install --only-dep; cd ../hledger; cabal install --only-dep; cd ..; make
-
 - get the hledger repo:
   
         darcs get --lazy http://joyful.com/repos/hledger
@@ -109,9 +107,9 @@ reports
         cabal update
         make install
 
-    This will also try to cabal install the development version of the
-    hledger packages, so ghc-pkg unregister those afterwards if you don't
-    want that.
+    This will also try to cabal install development builds of the hledger
+    executables, so ghc-pkg unregister those afterwards if you don't want
+    that.
 
 - try building with make:
 
