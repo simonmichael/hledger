@@ -92,7 +92,13 @@ reports
 
 ### how to set up for hledger development
 
-- install [darcs](http://darcs.net) if you don't have it (version 2)
+1. get an up-to-date [ghc](http://haskell.org/ghc), at least 6.12.3 but preferably 7
+2. there's probably no need to install the [haskell platform](http://haskell.org/platform) now, but you could
+3. it's probably worth getting the latest and best cabal: `cabal update; cabal install cabal-install`
+4. get an up-to-date [darcs](http://darcs.net), at least 2.x and preferably newer: use a binary package or `cabal install darcs`
+
+5. cd hledger/hledger-lib; cabal install --only-dep; cd ../hledger; cabal install --only-dep; cd ..; make
+
 - get the hledger repo:
   
         darcs get --lazy http://joyful.com/repos/hledger
@@ -106,6 +112,21 @@ reports
     This will also try to cabal install the development version of the
     hledger packages, so ghc-pkg unregister those afterwards if you don't
     want that.
+
+- try building with make:
+
+        make bin/hledger
+
+    This is usually quicker and simpler than fiddling with multiple cabal packages during development.
+
+- try auto-building with sp:
+
+        darcs get http://joyful.com/repos/searchpath
+        searchpath$ make, add sp to your path
+        hledger$ make autotest
+
+    This is how I do most hledger development. It will recompile whenever you save changes to source files.
+    You'll need to install `sp` as shown.
         
 - test patch sending. Make a dummy change:
 
