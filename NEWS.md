@@ -4,6 +4,38 @@ title: hledger news
 
 # News
 
+## unreleased hledger 0.15[]()
+
+  * ported to cmdargs; the cli is now modal, providing better help, and more modular/extensible
+  * parsing: "alias"/"end aliases" directives, like ledger's but a bit more powerful, also --alias option
+  * parsing: "account" directive preserves posting type (normal/virtual/balanced virtual)
+  * parsing: "pop" directive is supported as an alias for "end tag", like ledger
+  * parsing: "P" (historical price) directives may contain a (ignored) numeric time zone, like ledger
+  * parsing: the leading ! in directives is now optional and deprecated, like ledger
+  * parsing: entries with a negative amount in the first posting now infer the correct balancing amount
+  * parsing: bad date parse errors are more accurate
+  * balance: --no-elide disables collapsing boring accounts to one line
+  * convert: a rules file may be specified with --rules
+  * convert: standard input may be converted
+  * convert: "account2-field" can be used when the CSV file specifies both accounts
+  * convert: "description-field" can have a custom format and combine multiple CSV fields
+  * convert: "in-field" and "out-field" support CSV files that use two amount columns
+  * scripts: new examples of api use in the scripts/ directory: equity.hs, uniquify.hs
+  * web: ui overhaul, cleanups
+  * web: account register views are now transaction-based, like gnucash etc., and show accurate historical balances when possible
+  * web: more powerful and consistent search patterns
+  * web: add form uses currently focussed account as default, redirects to itself, formats status messages better
+  * web: sidebar now shows empty/boring accounts too
+  * web: run unit tests at startup.. it's handy for development, and why not
+  * web: simple balance charts, using flot
+  * web: use yesod/hamlet 0.8.*
+  * case insensitivity of command-line filter patterns has been fixed
+  * api simplifications
+  * importable Hledger, Hledger.Web, Hledger.Vty and Hledger.Chart modules
+  * the basic reports are now provided by hledger-lib for easier reuse
+  * some old base 3 support has been dropped
+  * the old -s (show subtotal) option has been dropped
+
 ## [2011/4/22 hledger 0.14](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/383)
 
   * remove the specific process dependency that caused too many cabal install problems
