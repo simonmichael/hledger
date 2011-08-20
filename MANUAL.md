@@ -1417,6 +1417,8 @@ Here are some issues you might encounter when you run hledger:
 
         $ chart food --depth 2 -p jan
 
+See also the [examples](http://joyful.com/repos/hledger/examples) directory.
+
 ## Other resources
 
 - The rest of the [hledger.org](http://hledger.org) site.
