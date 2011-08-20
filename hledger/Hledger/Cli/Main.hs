@@ -82,8 +82,8 @@ main = do
           | cmd `isPrefixOf` "binaryfilename"              = showModeHelpOr binaryfilenamemode $ putStrLn $ binaryfilename progname
           | otherwise                                      = showModeHelpOr mainmode $ optserror $ "command "++cmd++" is not recognized"
       showModeHelpOr mode f = do
-        when ("help" `in_` (rawopts_ opts)) $ printModeHelpAndExit mode
         when ("version" `in_` (rawopts_ opts)) $ printVersionAndExit
+        when ("help" `in_` (rawopts_ opts)) $ printModeHelpAndExit mode
         f
 
 {- tests:
