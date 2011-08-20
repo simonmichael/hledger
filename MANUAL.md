@@ -27,7 +27,7 @@ hledger aims to help both computer experts and regular folks gain clarity
 in their finances. For the moment, it may be a little more suited to
 techies.  Please give it a try and let me know how we're doing.
 
-hledger is copyright (c) 2007-2010
+hledger is copyright (c) 2007-2011
 [Simon&nbsp;Michael&nbsp;<simon@joyful.com>](mailto:simon@joyful.com) and
 contributors, and released as Free Software under GPL version 3 or later.
 
@@ -110,7 +110,7 @@ Or, you can build the latest [development version](http://joyful.com/darcsweb/da
 - When installing with cabal you may encounter dependency issues. These
   can often be worked around by: making sure to cabal update; using
   --constraint; and/or ghc-pkg unregister-ing obsolete package versions.
-- hledger-chart: requires additional GTK-related libraries and possibly [other things](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
+- hledger-chart: requires additional GTK-related libraries, see [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
 - hledger-vty: requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
 - hledger-web: building requires GHC 6.12 or greater.
 
@@ -835,10 +835,10 @@ Examples:
 ### web
 
 The web command starts a web server providing a web-based user interface,
-and if possible opens a web browser to view it. The web UI combines the
-features of the print, register, balance and add commands, and also
-supports data entry and modification.  You can see it in action here:
-[current release demo](http://demo.hledger.org),
+and if possible opens a web browser to view it. The web UI provides the
+functionality of the print and balance commands, a more useful register
+view, and also data entry and modification.  You can see it in action
+here: [current release demo](http://demo.hledger.org),
 [latest development demo](http://demo.hledger.org:5001).
 
 There are some web-specific options:
