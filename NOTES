@@ -449,6 +449,10 @@ competitors/fellow niche inhabitants
 **** usability
 **** download & usage stats
 ** errors
+*** convert: unparseable example from Cliff:
+03/11/11,,"CK# 9988",-$25.01,+$100.00
+03/12/11,,"DEPOSIT - BRANCH",+$50.00,+$150.00
+
 *** about:
 The quick bug list - predates the web-based bug tracker, still in use as
 front-line tracker by the org-mode-comfortable hledger developer(s)
@@ -527,6 +531,13 @@ expecting comment or new-line
 **** TODO Needs minimal testcase
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
 **** TODO Needs example!
+*** register: report items don't indicate the new transaction with successive identical transactions
+getitems (p:ps) pprev b = i:(getitems ps p b')
+    where
+      i = mkitem isfirst p b'
+      isfirst = ptransaction p /= ptransaction pprev
+      b' = b + pamount p
+
 *** web: --base-url trailing slash gives redirect loop
 hledger-web --port 5001 --base-url http://localhost:5001/
 *** web: account patterns on command line are ignored
@@ -561,7 +572,7 @@ http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features
-*** cli, web: richer filter patterns
+*** cli, web: richer filter patterns/query language
 ledger's query syntax: http://ledger-cli.org/3.0/doc/ledger.1.html
 **** draft 1:
 
@@ -606,6 +617,18 @@ Any of these may be further prefixed with not: for an inverse match.
 
 Filter patterns may be combined with AND, OR, and parentheses.  OR is
 assumed by default.
+(previously:
+When you specify multiple filter patterns, hledger generally selects the
+items which match:
+
+  any of the account patterns AND any of the description patterns
+
+The print command selects transactions which
+
+  match any of the description patterns AND have any postings matching any
+  of the positive account patterns AND have no postings matching any of
+  the negative account patterns
+)
 
 *** web: optional production build needing no files at all (static files embedded)
 *** docs: better intro, less wall-of-text, separate reference manual & tutorials
@@ -839,6 +862,8 @@ are there any cashflow, tax, budgetary problems looming ?
 *** http://www.n-heptane.com/nhlab/repos/Decimal/Money.hs
 *** http://www2.hursley.ibm.com/decimal/
 ** docs
+*** http://current.workingdirectory.net/posts/2011/gnucash-python-bindings
+*** http://hackage.haskell.org/trac/ghc/wiki/Commentary/CodingStyle
 *** http://en.wikibooks.org/wiki/Accounting
 *** http://books.google.com/books?id=4V8pZmpwmBYC&lpg=PP1&dq=analysis%20patterns&pg=PA95#v=onepage&q&f=false
 *** lwn grumpy editor articles
@@ -1037,6 +1062,27 @@ http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
 **** why !: : for conditional attributes ? How about !? ?
 
 ** code snippets
+
+<luite> hopefully debugging coffeescript won't be too troublesome :)    [20:41]
+<gweber> luite: only a little- it makes you more productive overall (at least
+         once you are doing a decent amount of javascript in your app). I also
+         recommend underscore.js for functional helpers.                [20:52]
+
+compiling coffeescript in yesod (gweber)
+
+  defaultLayout widget = doe
+    y <- getYesod
+    mroute <- liftIO $ readIORef $ staticRenders y
+    coffeeUrl <- case mroute of
+          Just r -> return r
+          Nothing -> do
+            renderUrl <- getUrlRenderParams
+            c <- liftIO $ renderCoffee renderUrl $(Settings.coffeeFile "search")
+            Just (Right (u, p)) <- addStaticContent "js" "text/javascript; charset=utf-8"
+                                      $ encodeUtf8 c
+            let r = renderUrl u p 
+            liftIO $ writeIORef (staticRenders y) (Just r)
+            return r 
 
 fromOfxTransaction :: StatementTransaction -> LedgerTransaction
 fromOfxTransaction StatementTransaction {
