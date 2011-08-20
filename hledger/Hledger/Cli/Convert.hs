@@ -86,12 +86,12 @@ type CsvRecord = [String]
 -- using/creating a .rules file.
 convert :: CliOpts -> IO ()
 convert opts = do
-  let csvfile = headDef "" $ patterns_ $ reportopts_ opts
-  when (null csvfile) $ error' "please specify a csv data file."
-  let 
-    rulesFileSpecified = isJust $ rules_file_ opts
-    rulesfile = rulesFileFor opts csvfile
-    usingStdin = csvfile == "-"
+  let csvfile = case headDef "" $ patterns_ $ reportopts_ opts of
+                  "" -> "-"
+                  s -> s
+      usingStdin = csvfile == "-"
+      rulesFileSpecified = isJust $ rules_file_ opts
+      rulesfile = rulesFileFor opts csvfile
   when (usingStdin && (not rulesFileSpecified)) $ error' "please specify a files file when converting stdin"
   csvparse <- parseCsv csvfile
   let records = case csvparse of

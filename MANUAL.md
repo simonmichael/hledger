@@ -697,12 +697,11 @@ you will get this record:
 #### Converting streams
 
 The convert command also supports converting standard input if you're
-streaming a CSV file from the web or another tool. Use `-` as the input
-file and hledger will read from stdin:
+streaming a CSV file from the web or another tool. Use `-` (or nothing) as
+the input file and hledger will read from stdin. You must specify the
+rules file in this case:
 
-    $ cat foo.csv | fixup | hledger convert --rules foo.rules -
-
-Note that a rules file is required when streaming.
+    $ cat foo.csv | fixup | hledger convert --rules foo.rules
 
 ### histogram
 

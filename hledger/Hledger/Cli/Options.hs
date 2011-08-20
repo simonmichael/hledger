@@ -168,7 +168,7 @@ addmode = (commandmode ["add"]) {
 convertmode = (commandmode ["convert"]) {
   modeValue = [("command","convert")]
  ,modeHelp = "show the specified CSV file as hledger journal entries"
- ,modeArgs = Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "CSVFILE"
+ ,modeArgs = Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "[CSVFILE]"
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "FILE" "rules file to use (default: CSVFILE.rules)"
