@@ -84,8 +84,8 @@ type CsvRecord = [String]
 
 -- | Read the CSV file named as an argument and print equivalent journal transactions,
 -- using/creating a .rules file.
-convert :: CliOpts -> Journal -> IO ()
-convert opts _ = do
+convert :: CliOpts -> IO ()
+convert opts = do
   let csvfile = headDef "" $ patterns_ $ reportopts_ opts
   when (null csvfile) $ error' "please specify a csv data file."
   let 
