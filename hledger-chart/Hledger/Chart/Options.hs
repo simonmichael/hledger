@@ -26,8 +26,13 @@ chartflags = [
  
 chartmode =  (mode "hledger-chart" [("command","chart")]
             "generate a pie chart image for the top account balances (of one sign only)"
-            commandargsflag (chartflags++generalflags1)){
-             modeHelpSuffix=[
+            commandargsflag []){
+              modeGroupFlags = Group {
+                                groupUnnamed = chartflags
+                               ,groupHidden = []
+                               ,groupNamed = [(generalflagstitle, generalflags1)]
+                               }
+             ,modeHelpSuffix=[
                   -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
                  ]
            }

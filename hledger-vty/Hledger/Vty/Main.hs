@@ -13,6 +13,7 @@ import Data.Maybe
 import Data.Time.Calendar
 import Graphics.Vty
 import Safe
+import System.Exit
 import Text.Printf
 
 import Hledger
@@ -32,7 +33,8 @@ runWith :: VtyOpts -> IO ()
 runWith opts = run opts
     where
       run opts
-          | "help" `in_` (rawopts_ $ cliopts_ opts)            = printModeHelpAndExit vtymode
+          | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp vtymode) >> exitSuccess
+          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
           | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
           | otherwise                                          = withJournalDo' opts vty
 

@@ -6,16 +6,20 @@ Command-line options for the hledger program, and option-parsing utilities.
 
 module Hledger.Cli.Options
 where
--- import Data.List
+import Data.List
+import Data.List.Split
 import Data.Maybe
 import Data.Time.Calendar
 import Safe
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
+import System.Directory
 import System.Environment
 import System.Exit
 import Test.HUnit
+import Text.Parsec
+import Text.Printf
 
 import Hledger.Cli.Format as Format
 import Hledger.Cli.Reports
@@ -46,21 +50,20 @@ defmode =   Mode {
  ,modeGroupModes = toGroup []
  }
 
-mainmode = defmode {
+mainmode addons = defmode {
   modeNames = [progname]
- ,modeHelp = "run the specified hledger command. hledger COMMAND --help for more detail. When mixing general and command-specific flags, put them all after COMMAND."
- ,modeHelpSuffix = help_postscript
+ ,modeHelp = "run the specified hledger command. hledger COMMAND --help for more detail. \nIn general, COMMAND should precede OPTIONS."
+ ,modeHelpSuffix = [""]
  ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [(generalflagstitle, generalflags1)]
+     groupUnnamed = helpflags
+    ,groupHidden = [flagNone ["binary-filename"] (setboolopt "binary-filename") "show the download filename for this executable, and exit"]
+    ,groupNamed = []
     }
  ,modeArgs = Just mainargsflag
  ,modeGroupModes = Group {
      groupUnnamed = [
      ]
     ,groupHidden = [
-      binaryfilenamemode
      ]
     ,groupNamed = [
       ("Misc commands", [
@@ -77,7 +80,21 @@ mainmode = defmode {
        ,statsmode
        ])
      ]
+     ++ case addons of [] -> []
+                       cs -> [("\nAdd-on commands found", map addonmode cs)]
     }
+ }
+
+addonmode name = defmode {
+  modeNames = [name]
+ ,modeHelp = printf "[-- OPTIONS]   run the %s-%s program" progname name
+ ,modeValue=[("command",name)]
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [(generalflagstitle, generalflags1)]
+    }
+ ,modeArgs = Just addonargsflag
  }
 
 help_postscript = [
@@ -130,6 +147,8 @@ mainargsflag = flagArg f ""
                      in Right $ setopt "command" cmd $ setopt "args" args opts
 
 commandargsflag = flagArg (\s opts -> Right $ setopt "args" s opts) "[PATTERNS]"
+
+addonargsflag = flagArg (\s opts -> Right $ setopt "args" s opts) "[ARGS]"
 
 commandmode names = defmode {modeNames=names, modeValue=[("command",headDef "" names)]}
 
@@ -236,16 +255,6 @@ statsmode = (commandmode ["stats"]) {
     }
  }
 
-binaryfilenamemode = (commandmode ["binaryfilename"]) {
-  modeHelp = "show the download filename for this hledger build, and exit"
- ,modeArgs = Nothing
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [(generalflagstitle, generalflags3)]
-    }
- }
-
 -- 2. ADT holding options used in this package and above, parsed from RawOpts.
 -- This represents the command-line options that were provided, with all
 -- parsing completed, but before adding defaults or derived values (XXX add)
@@ -314,23 +323,33 @@ toCliOpts rawopts = do
                             }
              }
 
--- workaround for http://code.google.com/p/ndmitchell/issues/detail?id=457
--- just handles commonest cases
-moveFlagsAfterCommand (fflagandval@('-':'f':_:_):cmd:rest) = cmd:fflagandval:rest
-moveFlagsAfterCommand ("-f":fval:cmd:rest) = cmd:"-f":fval:rest
-moveFlagsAfterCommand as = as
+-- | Get all command-line options, specifying any extra commands that are allowed, or fail on parse errors.
+getHledgerCliOpts :: [String] -> IO CliOpts
+getHledgerCliOpts addons = do
+  args <- getArgs
+  toCliOpts (decodeRawOpts $ processValue (mainmode addons) $ tempMoveFlagsAfterCommand args) >>= checkCliOpts
+
+-- utils
+
+getHledgerAddonCommands :: IO [String]
+getHledgerAddonCommands = map (drop (length progname + 1)) `fmap` getHledgerProgramsInPath
+
+getHledgerProgramsInPath :: IO [String]
+getHledgerProgramsInPath = do
+  pathdirs <- splitOn ":" `fmap` getEnv "PATH"
+  pathexes <- concat `fmap` mapM getDirectoryContents pathdirs
+  return $ nub $ sort $ filter (isRight . parsewith hledgerprog) pathexes
+    where
+      hledgerprog = string progname >> char '-' >> many1 (letter <|> char '-') >> eof
 
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts = map (\(name,val) -> (name, fromPlatformString val))
 
--- | Get all command-line options, failing on any parse errors.
-getHledgerOpts :: IO CliOpts
--- getHledgerOpts = processArgs mainmode >>= return . decodeRawOpts >>= toOpts >>= checkOpts
-getHledgerOpts = do
-  args <- getArgs
-  toCliOpts (decodeRawOpts $ processValue mainmode $ moveFlagsAfterCommand args) >>= checkCliOpts
-
--- utils
+-- workaround for http://code.google.com/p/ndmitchell/issues/detail?id=457
+-- just handles commonest case, -f option before command
+tempMoveFlagsAfterCommand (fflagandval@('-':'f':_:_):cmd:rest) = cmd:fflagandval:rest
+tempMoveFlagsAfterCommand ("-f":fval:cmd:rest) = cmd:"-f":fval:rest
+tempMoveFlagsAfterCommand as = as
 
 optserror = error' . (++ " (run with --help for usage)")
 
@@ -422,8 +441,9 @@ aliasesFromOpts = map parseAlias . alias_
             alias' = case alias of ('=':rest) -> rest
                                    _ -> orig
 
-printModeHelpAndExit mode = putStrLn progversion >> putStr help >> exitSuccess
-    where help = showText defaultWrap $ helpText HelpFormatDefault mode
+printModeHelpAndExit mode = putStr (showModeHelp mode) >> exitSuccess
+
+showModeHelp = showText defaultWrap . helpText HelpFormatDefault
 
 printVersionAndExit = putStrLn progversion >> exitSuccess
 

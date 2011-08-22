@@ -18,7 +18,7 @@ import Data.Maybe
 import Data.Ord
 import Data.Tree
 import Graphics.Rendering.Chart
-import System.Exit (exitFailure)
+import System.Exit
 import Text.Printf
 
 import Hledger
@@ -38,7 +38,8 @@ runWith :: ChartOpts -> IO ()
 runWith opts = run opts
     where
       run opts
-          | "help" `in_` (rawopts_ $ cliopts_ opts)            = printModeHelpAndExit chartmode
+          | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp chartmode) >> exitSuccess
+          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
           | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
           | otherwise                                          = withJournalDo' opts chart
 

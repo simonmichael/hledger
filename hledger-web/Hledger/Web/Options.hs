@@ -27,8 +27,13 @@ webflags = [
  
 webmode =  (mode "hledger-web" [("command","web")]
             "start serving the hledger web interface"
-            commandargsflag (webflags++generalflags1)){
-             modeHelpSuffix=[
+            commandargsflag []){
+              modeGroupFlags = Group {
+                                groupUnnamed = webflags
+                               ,groupHidden = []
+                               ,groupNamed = [(generalflagstitle, generalflags1)]
+                               }
+             ,modeHelpSuffix=[
                   -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
                  ]
            }

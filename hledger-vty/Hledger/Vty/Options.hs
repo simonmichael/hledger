@@ -19,8 +19,13 @@ vtyflags = [
 
 vtymode =  (mode "hledger-vty" [("command","vty")]
             "browse accounts, postings and entries in a full-window curses interface"
-            commandargsflag (vtyflags++generalflags1)){
-             modeHelpSuffix=[
+            commandargsflag []){
+              modeGroupFlags = Group {
+                                groupUnnamed = vtyflags
+                               ,groupHidden = []
+                               ,groupNamed = [(generalflagstitle, generalflags1)]
+                               }
+             ,modeHelpSuffix=[
                   -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
                  ]
            }

@@ -17,7 +17,7 @@ import Network.Wai.Handler.Warp (run)
 #else
 import Network.Wai.Middleware.Debug (debug)
 #endif
-import System.Exit (exitFailure)
+import System.Exit
 import System.IO.Storage (withStore, putValue)
 import Text.Printf
 import Yesod.Helpers.Static
@@ -40,7 +40,8 @@ runWith :: WebOpts -> IO ()
 runWith opts = run opts
     where
       run opts
-          | "help" `in_` (rawopts_ $ cliopts_ opts)            = printModeHelpAndExit webmode
+          | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp webmode) >> exitSuccess
+          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
           | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
           | otherwise                                          = withJournalDo' opts web
 

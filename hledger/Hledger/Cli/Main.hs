@@ -41,6 +41,10 @@ module Hledger.Cli.Main where
 
 import Control.Monad
 import Data.List
+import Safe
+import System.Environment
+import System.Exit
+import System.Process
 import Text.Printf
 
 import Hledger.Cli.Add
@@ -54,15 +58,15 @@ import Hledger.Cli.Options
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
+import Hledger.Utils
 
 main :: IO ()
 main = do
-  opts <- getHledgerOpts
+  args <- getArgs
+  addons <- getHledgerAddonCommands
+  opts <- getHledgerCliOpts addons
   when (debug_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
-  runWith opts
-
-runWith :: CliOpts -> IO ()
-runWith opts = run' opts
+  run' opts addons args
     where 
       cmd = command_ opts
       run' opts
@@ -70,7 +74,7 @@ runWith opts = run' opts
           | any (cmd `isPrefixOf`) ["accounts","balance"]  = showModeHelpOr accountsmode $ withJournalDo opts balance
           | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
           | cmd `isPrefixOf` "add"                         = showModeHelpOr addmode $ withJournalDo opts add
-          | cmd `isPrefixOf` "convert"                     = showModeHelpOr convertmode $ convert opts
+          | cmd `isPrefixOf` "convert"                     = showModeHelpOr convertmode $ withJournalDo opts convert
           | any (cmd `isPrefixOf`) ["entries","print"]     = showModeHelpOr entriesmode $ withJournalDo opts print'
           | any (cmd `isPrefixOf`) ["postings","register"] = showModeHelpOr postingsmode $ withJournalDo opts register
           | cmd `isPrefixOf` "stats"                       = showModeHelpOr statsmode $ withJournalDo opts stats
