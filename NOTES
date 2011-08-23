@@ -27,7 +27,24 @@ ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 ** less is more
 ** code review/pair programming
 
-* todo/backlog
+* todo
+** shortlist for next release
+*** redo subcommand detection
+*** fix tests
+*** docs: manual needs updating for 0.15 changes
+*** parsing: alias directives should be modified by account directives
+*** web: should take port from base-url when appropriate
+*** web: --base-url trailing slash gives redirect loop
+hledger-web --port 5001 --base-url http://localhost:5001/
+*** web: account patterns on command line are ignored
+*** web: loses -B after an edit, and/or a filesystem edit
+*** finish release notes
+*** prepare for funded binaries
+*** prepare announcement
+
+*** release testing
+*** bump version
+*** release
 ** documentation, marketing
 *** developer notes & log
 *** intro brainstorming
@@ -59,7 +76,6 @@ Your financial data will outlive your financial software, so it should have long
 hledger helps you track and understand your finances, making calculations based on data stored in a simple text file. If you prefer the command line and a text editor to a big gui application, hledger gives you the power of Quicken and Quickbooks without the complexity.
 
 Features: reads transactions in journal, timelog, or CSV format; handles multi-currency/multi-commodity transactions; prints the chart of accounts, account balances, or transactions you're interested in, quickly; scriptable.
-
 
 *** website
 **** add tables of contents
@@ -543,12 +559,6 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** errors
-*** about:
-The quick bug list - predates the web-based bug tracker, still in use as
-front-line tracker by the org-mode-comfortable hledger developer(s)
-
-*** parsing: timezone should be supported in historical price records, elsewhere ? (greenskeleton)
-https://gist.github.com/972281
 *** tools: avoid haskell compiles and compile errors while setting up makefile vars
 joyful$ make help
 GHCi runtime linker: fatal error: I found a duplicate definition for symbol
@@ -621,17 +631,13 @@ expecting comment or new-line
 **** TODO Needs minimal testcase
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
 **** TODO Needs example!
-*** register: report items don't indicate the new transaction with successive identical transactions
+*** register: with adjacent identical transactions, posting report items don't indicate the change of transaction
 getitems (p:ps) pprev b = i:(getitems ps p b')
     where
       i = mkitem isfirst p b'
       isfirst = ptransaction p /= ptransaction pprev
       b' = b + pamount p
 
-*** web: --base-url trailing slash gives redirect loop
-hledger-web --port 5001 --base-url http://localhost:5001/
-*** web: account patterns on command line are ignored
-*** web: loses -B after an edit, and/or a filesystem edit
 *** #25 can't print non-ascii in windows console
 http://code.google.com/p/hledger/issues/detail?id=25
 http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
@@ -639,6 +645,9 @@ http://www.burningcutlery.com/derek/winsetup/
 http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** auto-creating missing journal files - annoying or helpful ?
 ** refactoring, cleanup
+*** use matchers for command line too
+**** design cli, backwards compatibility strategy
+**** replace optsToFilterSpec
 *** optionsgeddon oh my god
 **** old help
 Usage: hledger [OPTIONS] COMMAND [PATTERNS]
@@ -691,7 +700,7 @@ expressions which filter by account name.  Prefix a pattern with desc: to
 filter by transaction description instead, prefix with not: to negate it.
 When using both, not: comes last.
 
-**** implementations
+**** attempts
 ***** original getopts
 progname_cli = "hledger"
 
@@ -1742,13 +1751,8 @@ testmain = do
 http://www.haskell.org/haskellwiki/Heterogenous_collections
 make cmdargs generate flat help from nested ADTs
 make cmdargs pass through extra opts without --
-**** todo
+**** still to do
 move *FromOpts into toOpts
-
-*** use matchers for command line
-**** todo
-design cli, backwards compatibility ?
-replace optsToFilterSpec
 
 *** review/simplify apis
 simplify option types ?
@@ -1778,63 +1782,46 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
-*** setting balances
-You can accomplish "setting to the bank's view" with a transaction like this:
-
-2011-08-12 Sample
-  Assets:Checking    = $200.00
-  Equity:Adjustments
-
-This tells Ledger (Git/3.0) that your checking account's balance must be $200
-after this transaction is completed.  It will put whatever amounts are
-required to accomplish this into the Equity:Adjustments account.
-
-what about balance assertions ?
-
+*** web: can't find out total income:7th total in june at http://localhost:5005/register?q=inacct%3Aassets%3Atreasury !
+*** web: update/remove browser startup
+*** simple hledger.org/topic help urls, like php.net
 *** --help-web and web ui help links that go to online help, with paragraph comments & chat
 cf clients & profits interactive user guide, php.net, realworldhaskell etc.
-*** directives without !
-*** account prefix should remain in effect till end directive or end of all data, like ledger
-*** account prefix should preserve non-balanced postings
-*** account prefix should be a special case of alias ?
-*** alias directives should be modified by account directives
-*** -X, report in target commodity
+*** parsing: accounts tree & metadata specification
+; chart of accounts
+; defines allowed account names, hierarchy, default sort order, 
+; and some metadata (account numbers, cf http://www.netmba.com/accounting/fin/accounts/chart/)
+ACCOUNTS
+ assets                       ; :number: 1000
+  cash                        ; :number: 1010
+   HT7                        ; :number: 1011
+    jan                       ; :number: 1011.01
+    feb                       ; :number: 1011.02
+    mar                       ; :number: 1011.03
+   RSG                        ; :number: 1012
+    jan                       ; :number: 1012.01
+    feb                       ; :number: 1012.02
+    mar                       ; :number: 1012.03
+  bank                        ; :number: 1020
+   HT7                        ; :number: 1021
+   RSG                        ; :number: 1022
+   reserve                    ; :number: 1023
+ liabilities                  ; :number: 2000
+  accounts payable            ; :number: 2010
+   BSG/GI/RSG                 ; :number: 2011
+ equity                       ; :number: 3000
+  opening balances            ; :number: 3010
+ income                       ; :number: 4000
+  HT7                         ; :number: 4010
+  RSG                         ; :number: 4020
+ expenses                     ; :number: 6000
+  rent                        ; :number: 6010
+
+or: http://furius.ca/beancount/examples/demo.ledger
+
+*** -X/--show-in-commodity
 cf http://bugs.ledger-cli.org/show_bug.cgi?id=538
-*** account aliasing/aligning
-**** Martin Wuertele:
-I see our task not in keeping accounts (that's in the responsibility of
-the trusted bodies) but more in management accounts. In order to achieve
-that we need a solution that mirrors the financials of the trusted
-bodies, has a way to streamline them (allign different local chart of
-accounts or reporting formats to an unified one), do some
-reclassifications and accruals on top, performe currency conversions (we
-have debian.uk, debian.ch, FFIS, SPI-INC,...), accumulate the results,
-add additional reclassifications and accruals on top and, in some cases,
-add consolidation entries (e.g.  SPI-INC does reembursement but gets
-itself reembursed by FFIS).
-
-We do not bother with any local tasks like income tax, vat or
-statistical filing, invoicing and the like.
-
-*** can't find out total income:7th total in june at http://localhost:5005/register?q=inacct%3Aassets%3Atreasury !
-*** journalAddTransaction should check txn balances
-*** parsing: ignore tag, pop
-		
-Feb 26 2009
-Just added a new feature to better improve 3.0's use of metadata: 
-There are now "tag/pop" directives, to apply metadata to a range of   
-transactions (and their postings).  For example, if you wanted a   
-conceptual "page" of transactions relating to business trip to   
-Chicago, you could do this: 
-   tag Location: Chicago 
-   tag Purpose: Business 
-   ... transactions go here 
-   pop 
-   pop 
-It would be as if you'd applied "; Location: Chicago", etc., to every   
-transaction. 
-
-*** cli, web: richer filter patterns/query language
+*** cli, web: consistent rich query language, including and/or/parentheses
 ledger's query syntax: http://ledger-cli.org/3.0/doc/ledger.1.html
 **** draft 1:
 
@@ -1892,59 +1879,47 @@ The print command selects transactions which
   the negative account patterns
 )
 
-*** web: optional production build needing no files at all (static files embedded)
-*** docs: better intro, less wall-of-text, separate reference manual & tutorials
+*** journalAddTransaction should check txn balances
+*** balance setting
+ledger: You can accomplish "setting to the bank's view" with a transaction like this:
+
+2011-08-12 Sample
+  Assets:Checking    = $200.00
+  Equity:Adjustments
+
+This tells Ledger (Git/3.0) that your checking account's balance must be $200
+after this transaction is completed.  It will put whatever amounts are
+required to accomplish this into the Equity:Adjustments account.
+
+what about balance assertions ?
+
+*** web: optional fully self-contained production build (all support files embedded)
+*** tools: fix slow make startup
+*** tools: better ghci setup
+*** docs: better intro, less wall-of-text, separate tutorial & reference sections
 *** balance: --depth with --flat should show aggregate balances including the non-displayed deeper accounts
-*** take port from base-url when appropriate
 *** parsing: let's enforce positive price amounts for clarity, like ledger
 eg 1€ @@ $-2 is not allowed
 *** parsing: canonicalise account names to be case-insensitive ?
 *** parsing: period expressions should allow interval at the end
 eg support -p 'from 1/1 to 2/1 weekly'
 
-*** parsing: only journals (not timelog files) can include, and only another journal
-*** --empty-parents
+*** parsing: more flexible file including
+currently only journals (not timelog files) can include, and only another journal
+*** --no-elide -> --empty-parents ? Make it the default ?
              $260.00  expenses
              $260.00    rent
-*** --empty -> --show-zero-accounts, --show-empty-parents
-*** --output-layout=ledger|traditional
-*** --output-format=text|html|pdf
-*** try indenting amounts
+*** --empty -> --show-zero-accounts, --show-empty-parents ? Make it default ?
+*** cli: better control of output format/layout
+**** register --format, generalise --format
+**** --wide ? window width sensitive ?
+**** more tidy/consistent layout from print
+**** --output-layout=ledger|traditional
+**** --output-format=text|html|pdf
+*** balance: try indenting amounts
              $260.00    expenses
                $260.00    rent
-*** chart of accounts specification
-; chart of accounts
-; defines allowed account names, hierarchy, default sort order, 
-; and some metadata (account numbers, cf http://www.netmba.com/accounting/fin/accounts/chart/)
-ACCOUNTS
- assets                       ; :number: 1000
-  cash                        ; :number: 1010
-   HT7                        ; :number: 1011
-    jan                       ; :number: 1011.01
-    feb                       ; :number: 1011.02
-    mar                       ; :number: 1011.03
-   RSG                        ; :number: 1012
-    jan                       ; :number: 1012.01
-    feb                       ; :number: 1012.02
-    mar                       ; :number: 1012.03
-  bank                        ; :number: 1020
-   HT7                        ; :number: 1021
-   RSG                        ; :number: 1022
-   reserve                    ; :number: 1023
- liabilities                  ; :number: 2000
-  accounts payable            ; :number: 2010
-   BSG/GI/RSG                 ; :number: 2011
- equity                       ; :number: 3000
-  opening balances            ; :number: 3010
- income                       ; :number: 4000
-  HT7                         ; :number: 4010
-  RSG                         ; :number: 4020
- expenses                     ; :number: 6000
-  rent                        ; :number: 6010
-
-or: http://furius.ca/beancount/examples/demo.ledger
-
-*** ignore/support ledger assert statements
+*** parsing: ignore/support ledger assert statements
  ; Assertion directives Options
  ; These can occur in many places: 
  ;       ; Within an automated transaction, the assert is evaluated every time 
@@ -1970,14 +1945,11 @@ or: http://furius.ca/beancount/examples/demo.ledger
  ;         Assets:Checking 
  ;         assert account("Expenses:Food").total == $100 
 
-*** better international number format support (#32)
-*** show add form after adding
-*** : completes one account name component
-*** auto-complete from substrings, not just prefixes
-*** auto-complete accounts & amount as well as description
-*** use current year as default when no year specified
-*** use journal from stdin when provided ?
-*** allow price record for null commodity, eg with quotes
+*** parsing: better international number format support (#32)
+*** web: : completes one account name component in add form account fields
+*** web: auto-complete from substrings, not just prefixes
+*** web: auto-complete accounts & amount as well as description
+*** parsing: allow price record for null commodity, eg with quotes
 P 2009/1/1 "" 0.5h
 and why doesn't this work ? time.journal:
 P 2010/9/27 h 1
@@ -2006,41 +1978,37 @@ $ hledger -f time.journal bal -p aug -B
                    1
               17.75h
 
-*** register --wide and/or --format ...
 *** --related
 *** Double -> Decimal
 *** parsing: safety check that effective date > actual (to catch eg 2009/12/30=1/4)
-*** parsing: support @@
-*** parsing: support D
 *** parsing: accept all real-world ledger files
 As far as I know it currently accepts all ledger 2.6-era files.
 Add support for ledger 3 file format as/when that stabilises.
-It would be nice to optionally report/upload parse errors when they happen.
+It would be nice to optionally semi/automatically submit parse error reports when they happen
 *** talkback feature
 gather data on real-world installation & usage issues
 simplify bug reporting/handling
 improve reliability
 *** upload feature
-*** payee & account anonymisation
+*** generation
+**** move generatejournal.hs to a subcommand
+*** anonymisation
+**** payees
+**** accounts
 *** easier timelog formats
-*** add: completion etc.
-*** convert: handle separate debit/credit columns
 *** convert: generalise/reuse add's history awareness
-*** web: charts (Chart or google)
-*** wide/customisable/consistent layout
-*** effective/actual dates for postings
-*** better web ui/gui
-*** nice reports with charts
+*** parsing: per-posting effective/actual dates
+*** web: better web ui/gui
+*** nice standard financial reports
 *** more automated bank data conversion
 *** parse more file formats - gnucash, qif, ofx, csv..
 *** download via ofx protocol
-*** watching a changing ledger
-*** more date syntax ? last nov, next friday, optional this, week of
-*** more period syntax ? every N days, biweekly
-*** accept multiple -f files
-*** more reliable tidy layout from print
+*** parsing: more date syntax ? last nov, next friday, optional this, week of
+*** parsing: more period syntax ? every N days, biweekly
+*** cli: accept multiple journal file options
 *** i18n
 *** speed, memory usage
+**** simple/more frequent benchmarking
 *** clear, documented interfaces/surfaces
 *** plugin architecture/modular packaging
 **** goals
@@ -2312,6 +2280,22 @@ http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
 +  heading and producing reports through Org, which is 1000x better). Results
 +  soon.
 +
+
+*** Martin Wuertele, debian:
+I see our task not in keeping accounts (that's in the responsibility of
+the trusted bodies) but more in management accounts. In order to achieve
+that we need a solution that mirrors the financials of the trusted
+bodies, has a way to streamline them (allign different local chart of
+accounts or reporting formats to an unified one), do some
+reclassifications and accruals on top, performe currency conversions (we
+have debian.uk, debian.ch, FFIS, SPI-INC,...), accumulate the results,
+add additional reclassifications and accruals on top and, in some cases,
+add consolidation entries (e.g.  SPI-INC does reembursement but gets
+itself reembursed by FFIS).
+
+We do not bother with any local tasks like income tax, vat or
+statistical filing, invoicing and the like.
+
 
 ** hamlet feedback
 *** thread data through nested templates with Reader monad
