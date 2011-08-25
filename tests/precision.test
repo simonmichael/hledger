@@ -53,7 +53,7 @@ bin/hledger -f - balance --no-total --cost --empty
 >>>=0
 
 # 5. avamk's 2011/1/19 example
-bin/hledger -f - -B bal
+bin/hledger -f - balance --cost
 <<<
 2001/01/01 * ACME fund
            assets:investment:ACME     203.890 ACME @ $16.02
@@ -81,7 +81,7 @@ bin/hledger -f - -B bal
 #                   0
 ## 6. with a default commodity.. XXX should observe it
 
- bin/hledger -f - -B balance
+ bin/hledger -f - balance --cost
 <<<
 D $1000.0
 2001/01/01 * ACME fund
