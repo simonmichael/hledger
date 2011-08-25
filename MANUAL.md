@@ -4,7 +4,7 @@ title: hledger user manual
 
 # User manual
 
-## About
+## Introduction
 
 hledger is a program for tracking money, time, or any other commodity,
 using a simple, editable file format and the powerful principles of
@@ -31,7 +31,7 @@ hledger is copyright (c) 2007-2011
 [Simon&nbsp;Michael&nbsp;<simon@joyful.com>](mailto:simon@joyful.com) and
 contributors, and released as Free Software under GPL version 3 or later.
 
-This is the manual for hledger 0.14.0.
+This is the user manual and reference for hledger version 0.14.0.
 
 <a name="faq" />
 
@@ -82,8 +82,9 @@ version 0.13; to be fixed)*. You can download and run current release
 binaries from the [download page](DOWNLOAD.html).
 
 Or, you can build the current release from source using cabal-install.
-Ensure you have a working
-[haskell environment](http://hackage.haskell.org/platform/), then:
+Ensure you have [GHC](http://hackage.haskell.org/ghc/) (6.12 or greater)
+or the [Haskell Platform](http://hackage.haskell.org/platform/) installed,
+then:
 
     $ cabal update
     $ cabal install hledger
@@ -94,8 +95,9 @@ extra features:
     $ cabal install hledger-web
     $ cabal install hledger-vty
     $ cabal install hledger-chart
+    $ cabal install hledger-interest
 
-Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger):
+Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger) of (most of) these:
 
     $ cabal update
     $ darcs get --lazy http://joyful.com/repos/hledger
@@ -104,18 +106,16 @@ Or, you can build the latest [development version](http://joyful.com/darcsweb/da
 
 **Installation notes:**
 
+- When installing with cabal you may encounter dependency issues. These
+  can often be worked around by making sure to cabal update, using
+  --constraint, and/or ghc-pkg unregister-ing obsolete package versions.
 - Whatever installation method you use, you may need to
   [set a suitable locale](#usage-issues) if you're working with non-ascii
   journal data.
-- When installing with cabal you may encounter dependency issues. These
-  can often be worked around by: making sure to cabal update; using
-  --constraint; and/or ghc-pkg unregister-ing obsolete package versions.
-- hledger-chart: requires additional GTK-related libraries, see [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
-- hledger-vty: requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
-- hledger-web: building requires GHC 6.12 or greater.
-
-If you have trouble, please see [Troubleshooting](#troubleshooting) and
-ask for [Support](DEVELOPMENT.html#support).
+- hledger-chart requires additional GTK-related libraries, see [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
+- hledger-vty requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
+- If you have trouble, please see [Troubleshooting](#troubleshooting) and
+  ask for [Support](DEVELOPMENT.html#support).
 
 ## Basic usage
 
@@ -789,18 +789,18 @@ balances not matching the sign of the first one will be ignored.
 
 chart-specific options:
 
-#### --output
+    -o/--chart-output=IMGFILE  output filename (default: hledger.png)
 
 You can specify a different output file name with -o/--output. The data
 currently will always be in PNG format.
 
-#### --size
-
-You can adjust the image resolution with --size=WIDTHxHEIGHT (in pixels).
-
-#### --items
+    --chart-items=N            number of accounts to show (default: 10)
 
 Set the number of accounts to show with --items=N (default is 10).
+
+    --chart-size=WIDTHxHEIGHT  image size (default: 600x400)
+
+You can adjust the image resolution with --size=WIDTHxHEIGHT (in pixels).
 
 To show only accounts above a certain depth, use the --depth option;
 otherwise the chart can include accounts of any depth. When a parent and
@@ -823,8 +823,6 @@ your numbers quickly with less typing.
 
 vty-specific options:
 
-#### --debug-vty
-
     --debug-vty  run with no terminal output, showing console
 
 Examples:
@@ -843,13 +841,9 @@ here: [current release demo](http://demo.hledger.org),
 
 There are some web-specific options:
 
-#### --port
-
     --port=N           serve on tcp port N (default 5000)
 
 The server listens on port 5000 by default; use --port to change that.
-
-#### --base-url
 
     --base-url=URL     use this base url (default http://localhost:PORT)
 
@@ -1422,10 +1416,10 @@ Here are some issues you might encounter when you run hledger:
     hledger and other executables produced by GHC will give this error if
     asked to read a non-ascii file when a proper system locale is not
     configured. Eg, it's common for journal files to be UTF-8-encoded, in
-    which case the system must have a (installed) UTF-8-aware locale
-    configured.  You can also configure it temporarily by setting the LANG
-    environment variable on the command line. Here's an example, using
-    ubuntu:
+    which case the system must have a UTF-8-aware locale installed and
+    selected.  You can also select such a locale temporarily by setting
+    the LANG environment variable on the command line. Here's an example,
+    using ubuntu:
     
         $ file my.journal
         my.journal: UTF-8 Unicode text
