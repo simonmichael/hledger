@@ -16,7 +16,6 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
 import System.Directory
 import System.Environment
-import System.Exit
 import Test.HUnit
 import Text.Parsec
 import Text.Printf
