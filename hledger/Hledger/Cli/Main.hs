@@ -67,24 +67,27 @@ main = do
   opts <- getHledgerCliOpts addons
   when (debug_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
   run' opts addons args
-    where 
-      cmd = command_ opts
-      run' opts
-          | null cmd                                       = printModeHelpAndExit mainmode
-          | any (cmd `isPrefixOf`) ["accounts","balance"]  = showModeHelpOr accountsmode $ withJournalDo opts balance
-          | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
-          | cmd `isPrefixOf` "add"                         = showModeHelpOr addmode $ withJournalDo opts add
-          | cmd `isPrefixOf` "convert"                     = showModeHelpOr convertmode $ withJournalDo opts convert
-          | any (cmd `isPrefixOf`) ["entries","print"]     = showModeHelpOr entriesmode $ withJournalDo opts print'
-          | any (cmd `isPrefixOf`) ["postings","register"] = showModeHelpOr postingsmode $ withJournalDo opts register
-          | cmd `isPrefixOf` "stats"                       = showModeHelpOr statsmode $ withJournalDo opts stats
-          | cmd `isPrefixOf` "test"                        = showModeHelpOr testmode $ runtests opts >> return ()
-          | cmd `isPrefixOf` "binaryfilename"              = showModeHelpOr binaryfilenamemode $ putStrLn $ binaryfilename progname
-          | otherwise                                      = showModeHelpOr mainmode $ optserror $ "command "++cmd++" is not recognized"
-      showModeHelpOr mode f = do
-        when ("help" `in_` (rawopts_ opts)) $ printModeHelpAndExit mode
-        when ("version" `in_` (rawopts_ opts)) $ printVersionAndExit
-        f
+    where
+      run' opts@CliOpts{command_=cmd} addons args
+       | "version" `in_` (rawopts_ opts)                 = putStrLn progversion
+       | "binary-filename" `in_` (rawopts_ opts)         = putStrLn $ binaryfilename progname
+       | null cmd                                        = putStr $ showModeHelp mainmode'
+       | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ withJournalDo opts add
+       | cmd `isPrefixOf` "convert"                      = showModeHelpOr convertmode  $ convert opts
+       | cmd `isPrefixOf` "test"                         = showModeHelpOr testmode     $ runtests opts
+       | any (cmd `isPrefixOf`) ["accounts","balance"]   = showModeHelpOr accountsmode $ withJournalDo opts balance
+       | any (cmd `isPrefixOf`) ["entries","print"]      = showModeHelpOr entriesmode  $ withJournalDo opts print'
+       | any (cmd `isPrefixOf`) ["postings","register"]  = showModeHelpOr postingsmode $ withJournalDo opts register
+       | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
+       | cmd `isPrefixOf` "stats"                        = showModeHelpOr statsmode    $ withJournalDo opts stats
+       | not (null matchedaddon)                           = system shellcmd >>= exitWith
+       | otherwise                                       = optserror ("command "++cmd++" is not recognized") >> exitFailure
+       where
+        mainmode' = mainmode addons
+        showModeHelpOr mode f | "help" `in_` (rawopts_ opts) = putStr $ showModeHelp mode
+                              | otherwise = f
+        matchedaddon = headDef "" $ filter (cmd `isPrefixOf`) addons
+        shellcmd = printf "%s-%s %s" progname matchedaddon (unwords' args)
 
 {- tests:
 

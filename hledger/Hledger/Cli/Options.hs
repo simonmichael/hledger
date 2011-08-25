@@ -326,7 +326,7 @@ toCliOpts rawopts = do
 getHledgerCliOpts :: [String] -> IO CliOpts
 getHledgerCliOpts addons = do
   args <- getArgs
-  toCliOpts (decodeRawOpts $ processValue (mainmode addons) $ tempMoveFlagsAfterCommand args) >>= checkCliOpts
+  toCliOpts (decodeRawOpts $ processValue (mainmode addons) $ moveFileOption args) >>= checkCliOpts
 
 -- utils
 
@@ -352,11 +352,12 @@ getDirectoryContentsSafe d = getDirectoryContents d `catch` (\_ -> return [])
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts = map (\(name,val) -> (name, fromPlatformString val))
 
--- workaround for http://code.google.com/p/ndmitchell/issues/detail?id=457
--- just handles commonest case, -f option before command
-tempMoveFlagsAfterCommand (fflagandval@('-':'f':_:_):cmd:rest) = cmd:fflagandval:rest
-tempMoveFlagsAfterCommand ("-f":fval:cmd:rest) = cmd:"-f":fval:rest
-tempMoveFlagsAfterCommand as = as
+-- A workaround related to http://code.google.com/p/ndmitchell/issues/detail?id=457 :
+-- we'd like to permit options before COMMAND as well as after it. Here we
+-- make sure at least -f FILE will be accepted in either position.
+moveFileOption (fopt@('-':'f':_:_):cmd:rest) = cmd:fopt:rest
+moveFileOption ("-f":fval:cmd:rest) = cmd:"-f":fval:rest
+moveFileOption as = as
 
 optserror = error' . (++ " (run with --help for usage)")
 
@@ -448,11 +449,7 @@ aliasesFromOpts = map parseAlias . alias_
             alias' = case alias of ('=':rest) -> rest
                                    _ -> orig
 
-printModeHelpAndExit mode = putStr (showModeHelp mode) >> exitSuccess
-
 showModeHelp = showText defaultWrap . helpText HelpFormatDefault
-
-printVersionAndExit = putStrLn progversion >> exitSuccess
 
 tests_Hledger_Cli_Options = TestList
  [
