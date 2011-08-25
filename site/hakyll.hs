@@ -19,10 +19,11 @@ main = hakyllWithConfiguration cfg $ do
     mapM_ renderParentDirPage
       ["README.md"
       ,"DOWNLOAD.md"
-      ,"DEVELOPMENT.md"
-      ,"NEWS.md"
       ,"SCREENSHOTS.md"
       ,"MANUAL.md"
+      ,"FAQ.md"
+      ,"NEWS.md"
+      ,"DEVELOPMENT.md"
       ,"CONTRIBUTORS.md"
       ]
     mapM_ static

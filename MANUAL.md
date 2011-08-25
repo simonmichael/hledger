@@ -8,7 +8,7 @@ title: hledger user manual
 
 hledger is a program for tracking money, time, or any other commodity,
 using a simple, editable file format and the powerful principles of
-double-entry accounting. It was inspired by [ledger](#faq).
+double-entry accounting. It was inspired by [ledger](FAQ.html).
 
 hledger's basic function is to read a plain text file describing (eg)
 financial transactions, and quickly generate useful reports via the
@@ -33,48 +33,6 @@ contributors, and released as Free Software under GPL version 3 or later.
 
 This is the user manual and reference for hledger version 0.14.0.
 
-<a name="faq" />
-
-## Frequently asked questions
-
-- **How does hledger relate to [John Wiegley's ledger](http://ledger-cli.org) ?**
-
-    Short version: hledger is a friendly, co-evolving, compatible
-    reimplementation in Haskell, lacking some of ledger's power features
-    and raw performance, and focussing on robustness, usability, ease of
-    development, and experimental add-ons, notably the (separate,
-    optional) [web interface](#web).
-
-    Long version:
-    
-    hledger was inspired by and is partly a clone of ledger (also called
-    "c++ ledger" here.) I was a happy ledger user and contributor for some
-    time; I still use it occasionally. I wrote hledger because I wanted to
-    develop financial tools in the Haskell programming language and
-    ecosystem, whose advantages I believe are compelling. I have also
-    tried to make hledger a little more simple, usable, installable,
-    documented, appealing to collaborators, and to provide alternate user
-    interfaces to make it more widely useful.
-
-    ledger has more advanced power-user features on the command-line
-    (periodic and modifier transactions, budgets, capital gains tracking,
-    value expressions, custom output formats, etc.) and it remains faster
-    and more memory efficient (for now!)...
-
-    hledger builds faster and has an up-to-date manual and an optional web
-    interface (which often works on ledger files too)...
-
-    The two projects collaborate freely.  We share the
-    [#ledger](irc://irc.freenode.net/#ledger) IRC channel but have
-    separate mail lists
-    ([hledger list](http://groups.google.com/group/hledger/),
-    [ledger-cli list](http://groups.google.com/group/ledger-cli/)).  I try
-    to give back by providing infrastructure
-    ([ledger-cli.org](http://ledger-cli.org)) and IRC support.
-    hledger stays compatible with ledger wherever possible, so that you
-    can often use both tools on the same data file. Here is
-    [more about compatibility](#compatibility-with-c-ledger).
-    
 ## Installing
 
 hledger works on all major platforms *(except microsoft windows, as of
