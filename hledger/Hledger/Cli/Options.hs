@@ -341,12 +341,13 @@ getHledgerAddonCommands = map (drop (length progname + 1)) `fmap` getHledgerProg
 -- user's PATH, or the empty list if there is any problem.
 getHledgerProgramsInPath :: IO [String]
 getHledgerProgramsInPath = do
-  pathdirs <- splitOn ":" `fmap` getEnv "PATH"
+  pathdirs <- splitOn ":" `fmap` getEnvSafe "PATH"
   pathexes <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
   return $ nub $ sort $ filter (isRight . parsewith hledgerprog) pathexes
     where
       hledgerprog = string progname >> char '-' >> many1 (letter <|> char '-') >> eof
 
+getEnvSafe v = getEnv v `catch` (\_ -> return "")
 getDirectoryContentsSafe d = getDirectoryContents d `catch` (\_ -> return [])
 
 -- | Convert possibly encoded option values to regular unicode strings.
