@@ -331,9 +331,14 @@ getHledgerCliOpts addons = do
 
 -- utils
 
+-- | Get the unique suffixes (without hledger-) of hledger-* executables
+-- found in the current user's PATH, or the empty list if there is any
+-- problem.
 getHledgerAddonCommands :: IO [String]
 getHledgerAddonCommands = map (drop (length progname + 1)) `fmap` getHledgerProgramsInPath
 
+-- | Get the unique names of hledger-* executables found in the current
+-- user's PATH, or the empty list if there is any problem.
 getHledgerProgramsInPath :: IO [String]
 getHledgerProgramsInPath = do
   pathdirs <- splitOn ":" `fmap` getEnv "PATH"
