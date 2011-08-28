@@ -188,8 +188,8 @@ testmode = (commandmode ["test"]) {
     }
  }
 
-accountsmode = (commandmode ["accounts","balance"]) {
-  modeHelp = "(or balance) show matched accounts and their balances"
+accountsmode = (commandmode ["balance","accounts"]) {
+  modeHelp = "(or accounts) show matched accounts and their balances"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = [
@@ -204,8 +204,8 @@ accountsmode = (commandmode ["accounts","balance"]) {
     }
  }
 
-entriesmode = (commandmode ["entries","print"]) {
-  modeHelp = "(or print) show matched journal entries"
+entriesmode = (commandmode ["print","entries"]) {
+  modeHelp = "(or entries) show matched journal entries"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
@@ -214,8 +214,8 @@ entriesmode = (commandmode ["entries","print"]) {
     }
  }
 
-postingsmode = (commandmode ["postings","register"]) {
-  modeHelp = "(or register) show matched postings and running total"
+postingsmode = (commandmode ["register","postings"]) {
+  modeHelp = "(or postings) show matched postings and running total"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
