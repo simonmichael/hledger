@@ -47,15 +47,17 @@ then:
     $ cabal update
     $ cabal install hledger
 
-You can also build these optional [add-ons](#add-on-commands) providing
-extra features:
+You can also install some optional [add-ons](#add-on-commands) providing
+extra features. These vary in maturity and supportedness and may not be
+available on all platforms (check the download page to see platform
+support).
 
     $ cabal install hledger-web
     $ cabal install hledger-vty
     $ cabal install hledger-chart
     $ cabal install hledger-interest
 
-Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger) of (most of) these:
+Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger) of (most of) these like so:
 
     $ cabal update
     $ darcs get --lazy http://joyful.com/repos/hledger
@@ -64,102 +66,63 @@ Or, you can build the latest [development version](http://joyful.com/darcsweb/da
 
 **Installation notes:**
 
-- When installing with cabal you may encounter dependency issues. These
-  can often be worked around by making sure to cabal update, using
-  --constraint, and/or ghc-pkg unregister-ing obsolete package versions.
-- Whatever installation method you use, you may need to
-  [set a suitable locale](#usage-issues) if you're working with non-ascii
-  journal data.
+- When installing with cabal, dependency problems are common. These can often be worked around by making sure to cabal update, using --constraint, and/or ghc-pkg unregister-ing obsolete package versions.
+- If you have non-ascii journal data, you may need to [set a suitable locale](#usage-issues)
 - hledger-chart requires additional GTK-related libraries, see [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
-- hledger-vty requires curses-related libraries (ubuntu package: `libncurses5-dev`). Not buildable on microsoft windows, except possibly via cygwin.
-- If you have trouble, please see [Troubleshooting](#troubleshooting) and
-  ask for [Support](DEVELOPMENT.html#support).
+- hledger-vty requires curses-related libraries (ubuntu package: `libncurses5-dev`) and is not buildable on microsoft windows (except possibly via cygwin.)
+- If you have trouble, please see [Troubleshooting](#troubleshooting) and ask for [Support](DEVELOPMENT.html#support).
 
-## Basic usage
+## Usage
 
 Basic usage is:
 
-    $ hledger [OPTIONS] COMMAND [FILTER PATTERNS]
+    $ hledger COMMAND [OPTIONS] [ARGS]
 
-hledger first looks for data in a specially-formatted
-[journal file](#file-format).  You can specify the file with the `-f`
-option or the `LEDGER_FILE` environment variable (`LEDGER` is also
-supported for backwards compatibility); otherwise hledger assumes it is a
-file named `.hledger.journal` in your home directory. If the journal file
-does not exist, it will be auto-created.
+Most [commands](#commands) query or operate on a
+[journal file](#the-journal-file), which by default is `.hledger.journal`
+in your home directory. You can specify a different file with the `-f`
+option or `LEDGER_FILE` environment variable, or standard input with `-f
+-`.  If the journal file does not exist, an empty one will be
+created. Aside from this, only the `add` and `web` commands can modify the
+journal.
 
-To get started, save this
+Options are similar across most commands, with some variations; use
+`hledger COMMAND --help` for details. Most options must appear somewhere
+after COMMAND, not before it. The `-f` option can appear anywhere.
+
+Arguments are also command-specific, but usually they are
+[filter patterns](#filter-patterns) which select a subset of the journal,
+eg transactions in a certain account.
+
+To get started quickly, run `hledger add` and follow the prompts to enter
+some transactions.  Or, save this
 [sample file](http://joyful.com/repos/hledger/data/sample.journal) as
-`.hledger.journal` in your home directory, or just run `hledger add` and enter
-some transactions. Now try commands like these:
+`.hledger.journal` in your home directory. Now try commands like these:
 
+    $ hledger                               # show available commands
     $ hledger add                           # add some new transactions to the journal file
     $ hledger balance                       # all accounts with aggregated balances
-    $ hledger bal --depth 1                 # only top-level accounts
-    $ hledger register                      # transaction register
-    $ hledger reg income                    # transactions to/from an income account
-    $ hledger reg checking                  # checking transactions
-    $ hledger reg desc:shop                 # transactions with shop in the description
-    $ hledger histogram                     # transactions per day, or other interval
-    $ hledger --help                        # show command-line help
-
-[Commands](#commands) are described below.  Note that most hledger
-commands are read-only, that is they can not modify your data. The
-exceptions are the add command which is append-only, and the (add-on) web
-command which can change everything.
-
-[Filter patterns](#filter-patterns) are often used to select a subset of the
-journal data, eg to report only food-related transactions.
-
-Options may appear anywhere on the command line.
-Here are the core hledger options, affecting most commands.
-Some of these are discussed more in [other features](#other-features):
-
-    hledger options:
-      -f FILE  --file=FILE        use a different journal/timelog file; - means stdin
-               --no-new-accounts  don't allow to create new accounts
-      -b DATE  --begin=DATE       report on transactions on or after this date
-      -e DATE  --end=DATE         report on transactions before this date
-      -p EXPR  --period=EXPR      report on transactions during the specified period
-                                  and/or with the specified reporting interval
-      -C       --cleared          report only on cleared transactions
-      -U       --uncleared        report only on uncleared transactions
-      -B       --cost, --basis    report cost of commodities
-               --alias=ACCT=ALIAS display ACCT's name as ALIAS in reports
-               --depth=N          hide accounts/transactions deeper than this
-      -d EXPR  --display=EXPR     show only transactions matching EXPR (where
-                                  EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
-               --effective        use transactions' effective dates, if any
-      -E       --empty            show empty/zero things which are normally elided
-      -R       --real             report only on real (non-virtual) transactions
-               --flat             balance: show full account names, unindented
-               --drop=N           balance: with --flat, elide first N account name components
-               --no-total         balance: hide the final total
-      -D       --daily            register, stats: report by day
-      -W       --weekly           register, stats: report by week
-      -M       --monthly          register, stats: report by month
-      -Q       --quarterly        register, stats: report by quarter
-      -Y       --yearly           register, stats: report by year
-      -F STR   --format=STR       use STR as the format
-      -v       --verbose          show more verbose output
-               --debug            show extra debug output; implies verbose
-               --binary-filename  show the download filename for this hledger build
-      -V       --version          show version information
-      -h       --help             show command-line usage
+    $ hledger balance --help                # show help for balance command
+    $ hledger balance --depth 1             # only top-level accounts
+    $ hledger register                      # show a register of postings from all transactions
+    $ hledger reg income                    # show postings to/from income accounts
+    $ hledger reg checking                  # show postings to/from checking account
+    $ hledger reg desc:shop                 # show postings with shop in the description
+    $ hledger histogram                     # show transactions per day as a bar chart
     
-## File format
+## The journal file
 
-hledger reads data from a plain text file, called a *journal* because
-it represents a standard accounting [general
-journal](http://en.wikipedia.org/wiki/General_journal).  It contains a
-number of transactions, each describing a transfer of money (or
-any commodity) between two or more named accounts, in a simple
+hledger reads data from a plain text file, called a *journal* because it
+represents a standard accounting
+[general journal](http://en.wikipedia.org/wiki/General_journal).  It
+contains a number of transaction entries, each describing a transfer of
+money (or any commodity) between two or more named accounts, in a simple
 format readable by both hledger and humans.
 
 You can use hledger without learning any more about this file; just use
-the [add](#add) or [web](#web) commands. Many users, though, edit the
-journal file directly with a text editor (perhaps using emacs' or vi's
-helper modes). This is a distinguishing feature of hledger and c++ ledger.
+the [add](#add) or [web](#web) commands. Many users, though, also edit the
+journal file directly with a text editor, perhaps assisted by the helper
+modes for emacs or vi.
 
 hledger's file format aims to be [compatible](#file-format-compatibility)
 with c++ ledger, so you can use both tools on your journal.
@@ -451,7 +414,7 @@ to each account name.
 
 hledger provides a number of subcommands, in the style of git or darcs.
 Run `hledger` with no arguments to see a list.  Most are built in to the
-core hledger package, while ["add-on" commands](#add-on-commands) will
+core hledger package, while [add-on commands](#add-on-commands) will
 appear if you install additional hledger-* packages. You can also install
 your own subcommands by putting programs or scripts named `hledger-NAME`
 in your PATH.
@@ -735,11 +698,7 @@ Examples:
 ### Add-on commands
 
 The following extra commands will be available if they have been
-[installed](#installing) (run `hledger` to find out.)
-
-Add-ons may differ from hledger core in their level of support and
-maturity and may not be available on all platforms; if available, they are
-provided on the download page. 
+[installed](#installing) (run `hledger` by itself to find out):
 
 #### chart
 
@@ -811,13 +770,13 @@ custom url scheme when running hledger-web behind a reverse proxy as part
 of a larger site. Note that the PORT in the base url need not be the same
 as the `--port` argument.
 
-**Data safety**
-
-Warning: the web UI's edit form can alter your existing journal data (it
-is the only hledger feature that can do so.)  Any visitor to the web UI
-can edit or overwrite the journal file (and any included files); hledger
-provides no access control. A numbered backup of the file is saved on each
-edit, normally - ie if file permissions allow, disk is not full, etc.
+**Warning:**
+Unlike other hledger commands, `web` can alter existing journal data, via
+the edit form.  A numbered backup of the file will be saved on each edit,
+normally (ie if file permissions allow, disk is not full, etc.)  Also,
+there is no built-in access control. So unless you run it behind an
+authenticating proxy, any visitor to your server will be able to see and
+overwrite the journal file (and included files.)
 
 **Support files**
 
@@ -843,9 +802,9 @@ always run it from the same place, eg your home directory.
 Also note that when you upgrade hledger-web in future, these files will
 need to be upgraded too, probably by removing them and letting them be
 recreated.  So if you do customise them, remember what you changed; a
-version control system such as darcs will work well here.
+version control system such as darcs will help here.
 
-**Detecting changes**
+**File changes are detected**
 
 As noted, changes to the support files will take effect immediately,
 without a restart.  This applies to the journal data too; you can directly
@@ -853,9 +812,9 @@ edit the journal file(s) (or, eg, commit a change within a version control
 system) while the web UI is running, and the changes will be visible on
 the next page reload.
 
-**Malformed edits**
+**Malformed edits are rejected**
 
-The journal file must remain in good [hledger format](#file-format) so
+The journal file must remain in good [hledger format](#the-journal-file) so
 that hledger can parse it. The web add and edit forms ensure this by not
 allowing edits which would introduce parse errors. If a direct edit makes
 the journal file unparseable, the web UI will show the error instead of
@@ -867,10 +826,10 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --port 5010 --base-url http://some.vhost.com --debug
 
-## Other features
+## Reporting options
 
-Here are some additional hledger features and concepts that affect most
-commands.
+The following additional features and options allow for fine-grained
+reporting. They are common to most commands, where applicable.
 
 ### Filter patterns
 
@@ -1115,7 +1074,9 @@ Or, if you'd like to export the balance sheet:
 The default output format is `%20(total)  %2(depth_spacer)%-(account)`
 
 
-## Compatibility with c++ ledger
+## Appendices
+
+### Compatibility with c++ ledger
 
 hledger mimics a subset of ledger 3.x, and adds some features of its own
 (the add, web, vty, chart commands). We currently support:
@@ -1146,7 +1107,7 @@ And we add some features:
 - vty
 - web
 
-### Implementation
+#### Implementation
 
 Unlike c++ ledger, hledger is written in the Haskell programming
 language. Haskell enables a coding style known as pure lazy functional
@@ -1156,7 +1117,7 @@ abstracted, portable platform which can make deployment and installation
 easier in some cases. Haskell also brings some new challenges such as
 managing memory growth.
 
-### File format compatibility
+#### File format compatibility
 
 hledger's file format is mostly identical with that of c++ ledger, with
 some features being accepted but ignored (eg, modifier entries and
@@ -1172,7 +1133,7 @@ See also:
 [other differences](#other-differences),
 [usage issues](#usage-issues).
 
-### Features not supported
+#### Features not supported
 
 c++ ledger features not currently supported include: modifier and periodic
 entries, and the following c++ ledger options and commands:
@@ -1233,7 +1194,7 @@ entries, and the following c++ ledger options and commands:
     prices   [REGEXP]...   display price history for matching commodities
     entry DATE PAYEE AMT   output a derived entry, based on the arguments
 
-### Other differences
+#### Other differences
 
 -   hledger recognises description and negative patterns by "desc:"
     and "not:" prefixes, unlike ledger 3's free-form parser
@@ -1268,9 +1229,9 @@ entries, and the following c++ ledger options and commands:
 -   hledger generates a description for timelog sessions, instead of
     taking it from the clock-out entry
 
-## Troubleshooting
+### Troubleshooting
 
-### Installation issues
+#### Installation issues
 
 cabal builds a lot of fast-evolving software, and it's not always smooth
 sailing.  Here are some known issues and things to try:
@@ -1361,7 +1322,7 @@ sailing.  Here are some known issues and things to try:
   versions by removing (or renaming) ~/.ghc, then trying cabal install
   again.
 
-### Usage issues
+#### Usage issues
 
 Here are some issues you might encounter when you run hledger:
 
@@ -1409,7 +1370,7 @@ Here are some issues you might encounter when you run hledger:
 
     See [file format compatibility](#file-format-compatibility).
 
-## Examples and recipes
+### Examples and recipes
 
 -   Here's a bash function that will run hledger chart and display
     the image in your (graphical) emacs:
@@ -1424,7 +1385,7 @@ Here are some issues you might encounter when you run hledger:
 
 See also the [examples](http://joyful.com/repos/hledger/examples) directory.
 
-## Other resources
+### Other resources
 
 - The rest of the [hledger.org](http://hledger.org) site.
 
