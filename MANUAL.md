@@ -145,7 +145,7 @@ some transactions. Now try commands like these:
     $ hledger histogram                     # transactions per day, or other interval
     $ hledger --help                        # show command-line help
 
-[Commands](#core-commands) are described below.  Note that most hledger
+[Commands](#commands) are described below.  Note that most hledger
 commands are read-only, that is they can not modify your data. The
 exceptions are the add command which is append-only, and the (add-on) web
 command which can change everything.
@@ -489,13 +489,20 @@ Command-line alias options are applied after any alias directives in the
 journal.  At most one alias directive and one alias option will be applied
 to each account name.
 
-## Core commands
+## Commands
 
-These commands are provided by the main hledger package and are always
-available. The most frequently used commands are [print](#print),
-[register](#register) and [balance](#balance).
+hledger provides a number of subcommands, in the style of git or darcs.
+Run `hledger` with no arguments to see a list.  Most are built in to the
+core hledger package, while ["add-on" commands](#add-on-commands) will
+appear if you install additional hledger-* packages. You can also install
+your own subcommands by putting programs or scripts named `hledger-NAME`
+in your PATH.
 
-### add
+### Misc commands
+
+Here are some miscellaneous commands you might use to get started:
+
+#### add
 
 The add command prompts interactively for new transactions, and appends
 them to the journal file. Each transaction is appended when you complete
@@ -528,28 +535,7 @@ Examples:
     $ hledger add
     $ hledger -f home.journal add equity:bob
 
-### balance
-
-The balance command displays accounts and their balances, indented to show the account hierarchy.
-Examples:
-
-    $ hledger balance
-    $ hledger balance food -p 'last month'
-
-A final total is displayed, use `--no-total` to suppress this. Also, the
-`--depth N` option shows accounts only to the specified depth, useful for
-an overview:
-
-    $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done
-
-With `--flat`, a non-hierarchical list of full account names is displayed
-instead. This mode shows just the accounts actually contributing to the
-balance, making the arithmetic a little more obvious to non-hledger users.
-In this mode you can also use `--drop N` to elide the first few account
-name components. Note `--depth` doesn't work too well with `--flat` currently;
-it hides deeper accounts rather than aggregating them.
-
-### convert
+#### convert
 
 The convert command reads a
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) file you have
@@ -672,45 +658,69 @@ Notes:
     track the expenses in the currencies there were made, while
     keeping your base account in single currency
 
-#### Formatting the description field
+- If you want to combine more than one field from the CVS row into the
+  description field you can use an formatting expression for
+  `description-field`. For example:
 
-If you want to combine more than one field from the CVS row into
-the description field you can use an formatting expression for
-`description-field`.
+    CSV input:
 
-With this rule:
+        11/2009/09,Flubber Co,50,My comment
 
-    $ description-field %(1)/%(3)
+    description-field in rules file:
 
-and this CVS input:
+        $ description-field %(1)/%(3)
 
-    $ 11/2009/09,Flubber Co,50,My comment
+    converted output:
 
-you will get this record:
+        2009/09/11 Flubber Co/My comment
+            income:unknown             $50
+            Assets:MyAccount          $-50
 
-    2009/09/11 Flubber Co/My comment
-        income:unknown             $50
-        Assets:MyAccount          $-50
+- The convert command also supports converting standard input if you're
+  streaming a CSV file from the web or another tool. Use `-` (or nothing)
+  as the input file and hledger will read from stdin. You must specify the
+  rules file in this case:
 
-#### Converting streams
+        $ cat foo.csv | fixup | hledger convert --rules foo.rules
 
-The convert command also supports converting standard input if you're
-streaming a CSV file from the web or another tool. Use `-` (or nothing) as
-the input file and hledger will read from stdin. You must specify the
-rules file in this case:
+#### test
 
-    $ cat foo.csv | fixup | hledger convert --rules foo.rules
-
-### histogram
-
-The histogram command displays a quick bar chart showing transaction
-counts by day, week, month or other reporting interval.
+This command runs hledger's internal self-tests and displays a quick
+report. The -v option shows more detail, and a pattern can be provided to
+filter tests by name. It's mainly used in development, but it's also nice
+to be able to test for smoke at any time.
 
 Examples:
 
-    $ hledger histogram -p weekly dining
+    $ hledger test
+    $ hledger test -v balance
 
-### print
+### Reporting commands
+
+These are the commands for querying your ledger.
+
+#### balance
+
+The balance command displays accounts and their balances, indented to show the account hierarchy.
+Examples:
+
+    $ hledger balance
+    $ hledger balance food -p 'last month'
+
+A final total is displayed, use `--no-total` to suppress this. Also, the
+`--depth N` option shows accounts only to the specified depth, useful for
+an overview:
+
+    $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done
+
+With `--flat`, a non-hierarchical list of full account names is displayed
+instead. This mode shows just the accounts actually contributing to the
+balance, making the arithmetic a little more obvious to non-hledger users.
+In this mode you can also use `--drop N` to elide the first few account
+name components. Note `--depth` doesn't work too well with `--flat` currently;
+it hides deeper accounts rather than aggregating them.
+
+#### print
 
 The print command displays full transactions from the journal file, tidily
 formatted and showing all amounts explicitly. The output of print is
@@ -724,7 +734,7 @@ Examples:
     $ hledger print
     $ hledger print employees:bob | hledger -f- register expenses
 
-### register
+#### register
 
 The register command displays postings, one per line, and their running total.
 With no [filter patterns](#filter-patterns), this is not all that different from [print](#print):
@@ -745,39 +755,35 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
-### stats
+#### histogram
 
-The stats command displays quick summary information for the whole journal,
-or by period.
+The histogram command displays a quick textual bar chart showing
+transaction counts by day, week, month or other reporting interval.
+
+Examples:
+
+    $ hledger histogram -p weekly dining
+
+#### stats
+
+The stats command displays summary information for the whole journal, or
+a matched part of it.
 
 Examples:
 
     $ hledger stats
     $ hledger stats -p 'monthly in 2009'
 
-### test
-
-This command runs hledger's internal self-tests and displays a quick
-report. The -v option shows more detail, and a pattern can be provided to
-filter tests by name. It's mainly used in development, but it's also nice
-to be able to test for smoke at any time.
-
-Examples:
-
-    $ hledger test
-    $ hledger test -v balance
-
-## Add-on commands
+### Add-on commands
 
 The following extra commands will be available if they have been
-[installed](#installing).  Add-ons may differ from hledger core in their
-level of support and maturity and may not be available on all platforms;
-if available, they are provided on the download page.  Note currently you
-must invoke add-on commands like, eg: `$ hledger-web ...`, not `$ hledger
-web ...`. The hledger-NAME executables support the usual hledger options,
-plus any specific options of their own.
+[installed](#installing) (run `hledger` to find out.)
 
-### chart
+Add-ons may differ from hledger core in their level of support and
+maturity and may not be available on all platforms; if available, they are
+provided on the download page. 
+
+#### chart
 
 The chart command saves an image file, by default "hledger.png", showing a
 basic pie chart of your top account balances. Note that positive and
@@ -793,7 +799,7 @@ currently will always be in PNG format.
 
     --chart-items=N            number of accounts to show (default: 10)
 
-Set the number of accounts to show with --items=N (default is 10).
+The number of top accounts to show (default is 10).
 
     --chart-size=WIDTHxHEIGHT  image size (default: 600x400)
 
@@ -806,12 +812,12 @@ exclusive of the child's.
 
 Examples:
 
-    $ hledger-chart assets --depth 2
-    $ hledger-chart liabilities --depth 2
-    $ hledger-chart ^expenses -o balance.png --size 1000x600 --items 20
-    $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger-chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
+    $ hledger chart assets --depth 2
+    $ hledger chart liabilities --depth 2
+    $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
+    $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
 
-### vty
+#### vty
 
 The vty command starts a simple curses-style (full-screen, text) user
 interface, which allows interactive navigation of the
@@ -824,24 +830,20 @@ vty-specific options:
 
 Examples:
 
-    $ hledger-vty
-    $ hledger-vty -BE food
+    $ hledger vty
+    $ hledger vty -BE food
 
-### web
+#### web
 
-The web command starts a web server providing a web-based user interface,
-and if possible opens a web browser to view it. The web UI provides the
-functionality of the print and balance commands, a more useful register
+The web command starts a web server providing a web-based user interface.
+The web UI provides reporting, including a more useful account register
 view, and also data entry and modification.  You can see it in action
 here: [current release demo](http://demo.hledger.org),
 [latest development demo](http://demo.hledger.org:5001).
 
-There are some web-specific options:
+web-specific options:
 
     --port=N           serve on tcp port N (default 5000)
-
-The server listens on port 5000 by default; use --port to change that.
-
     --base-url=URL     use this base url (default http://localhost:PORT)
 
 If you want to visit the web UI from other machines, you'll need to use
@@ -851,7 +853,7 @@ custom url scheme when running hledger-web behind a reverse proxy as part
 of a larger site. Note that the PORT in the base url need not be the same
 as the `--port` argument.
 
-#### data safety
+**Data safety**
 
 Warning: the web UI's edit form can alter your existing journal data (it
 is the only hledger feature that can do so.)  Any visitor to the web UI
@@ -859,7 +861,7 @@ can edit or overwrite the journal file (and any included files); hledger
 provides no access control. A numbered backup of the file is saved on each
 edit, normally - ie if file permissions allow, disk is not full, etc.
 
-#### web support files
+**Support files**
 
 hledger-web requires certain support files (images, stylesheets,
 javascript etc.) to be present in a particular location when it
@@ -885,7 +887,7 @@ need to be upgraded too, probably by removing them and letting them be
 recreated.  So if you do customise them, remember what you changed; a
 version control system such as darcs will work well here.
 
-#### detecting changes
+**Detecting changes**
 
 As noted, changes to the support files will take effect immediately,
 without a restart.  This applies to the journal data too; you can directly
@@ -893,7 +895,7 @@ edit the journal file(s) (or, eg, commit a change within a version control
 system) while the web UI is running, and the changes will be visible on
 the next page reload.
 
-#### malformed edits
+**Malformed edits**
 
 The journal file must remain in good [hledger format](#file-format) so
 that hledger can parse it. The web add and edit forms ensure this by not
@@ -1089,16 +1091,12 @@ To record time logs, ie to clock in and clock out, you could:
 - or the old "ti" and "to" scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
-### Output formatting
+### Custom output formats
 
-Hledger supports custom formatting the output from the balance
-command. The format string can contain either literal text which is
-written directly to the output or formatting of particular fields.
-
-#### Format specification
-
-The format is similar to the one used by C's `printf` and `strftime`,
-with the exception that the field name are enclosed in parentheses:
+The `--format FMT` option will customize the line format of the balance
+command's output (only, for now). `FMT` is a C printf/strftime-style
+format string, with the exception that field names are enclosed in
+parentheses:
 
     %[-][MIN][.MAX]([FIELD])
 
@@ -1106,27 +1104,25 @@ If the minus sign is given, the text is left justified. The `MIN` field
 specified a minimum number of characters in width. After the value is
 injected into the string, spaces is added to make sure the string is at
 least as long as `MIN`. Similary, the `MAX` field specifies the maximum
-number of characters. The string will be cut if the injected string is
-too long.
+number of characters. The string will be cut if the injected string is too
+long.
 
 - `%-(total)   ` the total of an account, left justified
 - `%20(total)  ` The same, right justified, at least 20 chars wide
 - `%.20(total) ` The same, no more than 20 chars wide
 - `%-.20(total)` Left justified, maximum twenty chars wide
 
-#### Supported fields
+The following `FIELD` types are currently supported:
 
-Currently three fields can be used in a formatting string:
-
-- `account` Inserts the account name
-- `depth_spacer` Inserts a space for each level of an account's
+- `account` inserts the account name
+- `depth_spacer` inserts a space for each level of an account's
   depth. That is, if an account has two parents, this construct will
-  insert two spaces. If a minimum width is specified, that much space
-  is inserted for each level of depth. Thus `%5_`, for an account
-  with four parents, will insert twenty spaces.
-- `total` Inserts the total for the account
+  insert two spaces. If a minimum width is specified, that much space is
+  inserted for each level of depth. Thus `%5_`, for an account with four
+  parents, will insert twenty spaces.
+- `total` inserts the total for the account
 
-##### Examples
+Examples:
 
 If you want the account before the total you can use this format:
 
@@ -1160,8 +1156,6 @@ Or, if you'd like to export the balance sheet:
 
 The default output format is `%20(total)  %2(depth_spacer)%-(account)`
 
-Note: output formatting is only available for the [balance](#balance)
-command.
 
 ## Compatibility with c++ ledger
 
