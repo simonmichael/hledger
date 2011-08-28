@@ -25,9 +25,9 @@ href="../MANUAL.html#installing">installation docs</a>.
     
 <table>
   <tr>
-    <th width="34%" colspan=2><img src="../linux.png" /><br />GNU/Linux</th>
-    <th width="33%"><img src="../mac.png" border=0 /><br />Mac</th>
-    <th width="33%"><img src="../windows.png" border=0 /><br />Windows</th>
+    <th width="34%" colspan=2><img src="images/linux.png" /><br />GNU/Linux</th>
+    <th width="33%"><img src="images/mac.png" border=0 /><br />Mac</th>
+    <th width="33%"><img src="images/windows.png" border=0 /><br />Windows</th>
   </tr>
   <tr style="text-align:center; white-space:nowrap;">
     <td width="25%">**32-bit**</td>

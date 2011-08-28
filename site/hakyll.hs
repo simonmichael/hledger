@@ -1,76 +1,47 @@
 #!/usr/bin/env runhaskell
+{-# LANGUAGE OverloadedStrings #-}
 {-
-hakyll build script for hledger.org
-requires Hakyll >= 2.1, pandoc >= 1.5
+hakyll (3.2) build script for hledger.org
 -}
-import Control.Monad (forM_)
-import Control.Monad.Trans (liftIO)
+
+
+import Prelude hiding (id)
+import Control.Arrow ((>>>)) --, (***), arr)
+-- import Control.Category (id)
+import Control.Monad
+import Data.List
+-- import Data.Monoid (mempty, mconcat)
+import Hakyll
+import System.Directory
 import System.Process (system)
-import Text.Hakyll (hakyllWithConfiguration, defaultHakyllConfiguration)
-import Text.Hakyll.HakyllMonad (HakyllConfiguration(..))
-import Text.Hakyll.Render (renderChain, static)
-import Text.Hakyll.CreateContext (createPage, createCustomPage, createListing)
-import Text.Pandoc (ParserState(..), WriterOptions(..), defaultParserState, defaultWriterOptions)
+import Text.Pandoc
 import Text.Printf
 
-baseurl = "http://hledger.org"
+main = do
+  symlinkPagesFromParentDir
+  symlinkIndexHtml
+  symlinkProfsDir
+  hakyll $ do
+    match "templates/*" $ compile templateCompiler
+    match "css/*" css
+    match "images/*" file
+    match "js/**" file
+    match "robots.txt" file
+    match "*.md" page
 
-main = hakyllWithConfiguration cfg $ do
-    mapM_ renderParentDirPage
-      ["README.md"
-      ,"DOWNLOAD.md"
-      ,"SCREENSHOTS.md"
-      ,"MANUAL.md"
-      ,"FAQ.md"
-      ,"NEWS.md"
-      ,"DEVELOPMENT.md"
-      ,"CONTRIBUTORS.md"
-      ]
-    mapM_ static
-      ["style.css"
-      ,"highslide/highslide.js"
-      ,"highslide/highslide.css"
-      ,"highslide/highslide-ie6.css"
-      ,"highslide/graphics/zoomin.cur"
-      ,"highslide/graphics/zoomout.cur"
-      ,"highslide/graphics/outlines/rounded-black.png"
-      ,"highslide/graphics/outlines/rounded-white.png"
-      ,"highslide/graphics/outlines/beveled.png"
-      ,"highslide/graphics/outlines/drop-shadow.png"
-      ,"highslide/graphics/outlines/glossy-dark.png"
-      ,"highslide/graphics/outlines/outer-glow.png"
-      ,"highslide/graphics/loader.gif"
-      ,"highslide/graphics/loader.white.gif"
-      ,"highslide/graphics/icon.gif"
-      ,"highslide/graphics/resize.gif"
-      ,"highslide/graphics/fullexpand.gif"
-      ,"highslide/graphics/geckodimmer.png"
-      ,"highslide/graphics/close.png"
-      ,"highslide/graphics/closeX.png"
-      ,"linux.png"
-      ,"mac.png"
-      ,"windows.png"
-      ,"sshot.png"
-      ,"watchhours.png"
-      ,"hledger-screen-1.png"
-      ,"hledger-charts-2.png"
-      ,"hledger-web-journal.png"
-      ]
-    where
-      -- Render a page from the parent directory as if it was in the hakyll
-      -- root dir, setting up a symbolic link when needed.
-      renderParentDirPage p = do
-        liftIO $ system $ printf "[ -f %s ] || ln -s ../%s" p p
-        renderChain ["site.tmpl"] $ createPage p
+symlinkPagesFromParentDir = do
+  fs <- filter (".md" `isSuffixOf`) `fmap` getDirectoryContents ".."
+  forM_ fs $ \f -> system $ printf "[ -f %s ] || ln -s ../%s" f f
+symlinkIndexHtml = ensureSiteDir >> system "ln -sf README.html _site/index.html"
+symlinkProfsDir = ensureSiteDir >> system "ln -sf ../../profs _site/profs"
+ensureSiteDir = system "mkdir -p _site"
+file = route idRoute >> compile copyFileCompiler
+css = route idRoute >> compile compressCssCompiler
+page = do
+  route $ setExtension "html"
+  compile $ pageCompilerWith pandocParserState pandocWriterOptions >>> applyTemplateCompiler "templates/default.html" >>> relativizeUrlsCompiler
 
-cfg :: HakyllConfiguration
-cfg = (defaultHakyllConfiguration baseurl) {
-  -- additionalContext = Context, -- An additional context to use when rendering. This additional context is used globally.
-  -- siteDirectory = FilePath, -- Directory where the site is placed.
-  -- cacheDirectory = FilePath, -- Directory for cache files.
-  -- enableIndexUrl = False, -- Enable index links.
-  -- previewPollDelay = Int, -- Delay between polls in preview mode.
-  pandocParserState = defaultParserState {
+pandocParserState = defaultParserState {-
    -- stateParseRaw        = False, -- ^ Parse raw HTML and LaTeX?
    -- stateParserContext   = NullState, -- ^ Inside list?
    -- stateQuoteContext    = NoQuote,   -- ^ Inside quoted environment?
@@ -83,16 +54,31 @@ cfg = (defaultHakyllConfiguration baseurl) {
    -- stateAuthors         = [],        -- ^ Authors of document
    -- stateDate            = [],        -- ^ Date of document
    -- stateStrict          = False,     -- ^ Use strict markdown syntax?
-   stateSmart           = False     -- ^ Use smart typography?
+   -- stateSmart           = False     -- ^ Use smart typography?
    -- stateLiterateHaskell = False,     -- ^ Treat input as literate haskell
    -- stateColumns         = 80,        -- ^ Number of columns in terminal
    -- stateHeaderTable     = [],        -- ^ Ordered list of header types used
    -- stateIndentedCodeClasses = []     -- ^ Classes to use for indented code blocks
-  },
-  pandocWriterOptions = defaultWriterOptions {
-                            -- so we can have a TOC:
-   writerStandalone       = True, -- ^ Include header and footer
-   writerTemplate         = pandocTemplate, -- ^ Template to use in standalone mode
+ -}
+
+pandocWriterOptions = defaultWriterOptions {
+   writerStandalone       = True, -- ^ Include header and footer -- needs to be true to have a toc
+   writerTemplate         =  -- ^ Template to use in standalone mode
+    unlines
+    [ "$if(title)$"
+    , "<h1 class=\"title\">$title$</h1>"
+    , "$endif$"
+    , "$for(include-before)$"
+    , "$include-before$"
+    , "$endfor$"
+    , "$if(toc)$"
+    , "$toc$"
+    , "$endif$"
+    , "$body$"
+    , "$for(include-after)$"
+    , "$include-after$"
+    , "$endfor$"
+    ],
    -- writerVariables        = [],    -- ^ Variables to set in template
    -- writerIncludeBefore    = "",    -- ^ Text to include before the body
    -- writerIncludeAfter     = "",    -- ^ Text to include after the body
@@ -111,21 +97,3 @@ cfg = (defaultHakyllConfiguration baseurl) {
    -- writerEmailObfuscation = JavascriptObfuscation, -- ^ How to obfuscate emails
    -- writerIdentifierPrefix = "",                    -- ^ Prefix for section & note ids in HTML
   }
- }
-
--- the body part of pandoc 1.5.1.1's html output template
-pandocTemplate = unlines
-    [ "$if(title)$"
-    , "<h1 class=\"title\">$title$</h1>"
-    , "$endif$"
-    , "$for(include-before)$"
-    , "$include-before$"
-    , "$endfor$"
-    , "$if(toc)$"
-    , "$toc$"
-    , "$endif$"
-    , "$body$"
-    , "$for(include-after)$"
-    , "$include-after$"
-    , "$endfor$"
-    ]

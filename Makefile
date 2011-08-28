@@ -452,16 +452,8 @@ docs: site codedocs
 # build the hledger.org website
 # Requires hakyll (cabal install hakyll)
 .PHONY: site
-site: site/hakyll site/_site/index.html site/_site/profs
+site: site/hakyll
 	cd site; ./hakyll build
-
-site/_site/index.html:
-	mkdir -p site/_site
-	cd site/_site; ln -sf README.html index.html; ln -sf ../../profs
-
-site/_site/profs:
-	mkdir -p site/_site
-	cd site/_site; ln -sf ../../profs
 
 cleansite: site/hakyll
 	cd site; ./hakyll clean
@@ -472,7 +464,7 @@ previewsite: site/hakyll
 site/hakyll: site/hakyll.hs
 	cd site; ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS)
 
-siteci:
+autosite:
 	cd site; sp --no-exts --no-default-map -o hakyll ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS) --run preview
 
 viewsite: site
