@@ -108,7 +108,7 @@ some transactions.  Or, save this
     $ hledger reg income                    # show postings to/from income accounts
     $ hledger reg checking                  # show postings to/from checking account
     $ hledger reg desc:shop                 # show postings with shop in the description
-    $ hledger histogram                     # show transactions per day as a bar chart
+    $ hledger activity                      # show transactions per day as a bar chart
     
 ## The journal file
 
@@ -676,14 +676,14 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
-#### histogram
+#### activity
 
-The histogram command displays a quick textual bar chart showing
+The activity command displays a quick textual bar chart showing
 transaction counts by day, week, month or other reporting interval.
 
 Examples:
 
-    $ hledger histogram -p weekly dining
+    $ hledger activity -p weekly dining
 
 #### stats
 
@@ -929,7 +929,7 @@ Note, however: a `-p/--period` option in the command line will cause any
 ### Reporting interval
 
 Period expressions can also begin with (or be) a reporting interval, which
-affects commands like [register](#register) and [histogram](#histogram).
+affects commands like [register](#register) and [activity](#activity).
 The reporting interval can be `daily`, `weekly`, `monthly`, `quarterly`, `yearly`,
 or one of the `every ...` expressions below, optionally followed by `in`.
 Examples:
