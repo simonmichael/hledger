@@ -26,12 +26,11 @@ data Field =
 
 data FormatString =
     FormatLiteral String
-  | FormatField 
-    Bool            -- Left justified 
-    (Maybe Int)     -- Min width
-    (Maybe Int)     -- Max width
-    Field           -- Field
-    deriving (Show, Eq)
+  | FormatField Bool        -- Left justified ?
+                (Maybe Int) -- Min width
+                (Maybe Int) -- Max width
+                Field       -- Field
+  deriving (Show, Eq)
 
 formatValue :: Bool -> Maybe Int -> Maybe Int -> String -> String
 formatValue leftJustified min max value = printf formatS value

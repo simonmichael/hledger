@@ -162,20 +162,21 @@ accountsReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
 
 formatAccountsReportItem :: ReportOpts -> Maybe AccountName -> Int -> Amount -> [FormatString] -> String
 formatAccountsReportItem _ _ _ _ [] = ""
-formatAccountsReportItem opts accountName depth amount (f:fs) = s ++ (formatAccountsReportItem opts accountName depth amount fs)
+formatAccountsReportItem opts accountName depth amount (fmt:fmts) =
+  s ++ (formatAccountsReportItem opts accountName depth amount fs)
   where
-    s = case f of
-            FormatLiteral l -> l
-            FormatField leftJustified min max field  -> formatAccount opts accountName depth amount leftJustified min max field
+    s = case fmt of
+         FormatLiteral l -> l
+         FormatField ljust min max field  -> formatField opts accountName depth amount ljust min max field
 
-formatAccount :: ReportOpts -> Maybe AccountName -> Int -> Amount -> Bool -> Maybe Int -> Maybe Int -> Field -> String
-formatAccount opts accountName depth balance leftJustified min max field = case field of
-        Format.Account  -> formatValue leftJustified min max a
-        DepthSpacer     -> case min of
-                               Just m  -> formatValue leftJustified Nothing max $ replicate (depth * m) ' '
-                               Nothing -> formatValue leftJustified Nothing max $ replicate depth ' '
-        Total           -> formatValue leftJustified min max $ showAmountWithoutPrice balance
-        _               -> ""
+formatField :: ReportOpts -> Maybe AccountName -> Int -> Amount -> Bool -> Maybe Int -> Maybe Int -> Field -> String
+formatField opts accountName depth balance ljust min max field = case field of
+        Format.Account     -> formatValue ljust min max a
+        Format.DepthSpacer -> case min of
+                               Just m  -> formatValue ljust Nothing max $ replicate (depth * m) ' '
+                               Nothing -> formatValue ljust Nothing max $ replicate depth ' '
+        Format.Total       -> formatValue ljust min max $ showAmountWithoutPrice balance
+        _                  -> ""
     where
       a = maybe "" (accountNameDrop (drop_ opts)) accountName
 
