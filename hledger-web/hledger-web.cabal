@@ -68,7 +68,7 @@ executable hledger-web
                  ,HUnit
                  ,base >= 4 && < 5
                  ,bytestring
-                 ,cmdargs >= 0.7   && < 0.8
+                 ,cmdargs >= 0.8   && < 0.9
                  -- ,containers
                  -- ,csv
                  ,directory

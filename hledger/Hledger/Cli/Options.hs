@@ -46,7 +46,7 @@ defmode =   Mode {
  ,modeCheck = Right
  ,modeReform = const Nothing
  ,modeGroupFlags = toGroup []
- ,modeArgs = Nothing
+ ,modeArgs = ([], Nothing)
  ,modeGroupModes = toGroup []
  }
 
@@ -59,7 +59,7 @@ mainmode addons = defmode {
     ,groupHidden = [flagNone ["binary-filename"] (setboolopt "binary-filename") "show the download filename for this executable, and exit"]
     ,groupNamed = []
     }
- ,modeArgs = Just mainargsflag
+ ,modeArgs = ([], Just mainargsflag)
  ,modeGroupModes = Group {
      groupUnnamed = [
      ]
@@ -94,7 +94,7 @@ addonmode name = defmode {
     ,groupHidden = []
     ,groupNamed = [(generalflagstitle, generalflags1)]
     }
- ,modeArgs = Just addonargsflag
+ ,modeArgs = ([], Just addonargsflag)
  }
 
 help_postscript = [
@@ -155,7 +155,7 @@ commandmode names = defmode {modeNames=names, modeValue=[("command",headDef "" n
 addmode = (commandmode ["add"]) {
   modeHelp = "prompt for new transactions and append them to the journal"
  ,modeHelpSuffix = ["Defaults come from previous similar transactions; use query patterns to restrict these."]
- ,modeArgs = Just commandargsflag
+ ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagNone ["no-new-accounts"]  (\opts -> setboolopt "no-new-accounts" opts) "don't allow creating new accounts"
@@ -168,7 +168,7 @@ addmode = (commandmode ["add"]) {
 convertmode = (commandmode ["convert"]) {
   modeValue = [("command","convert")]
  ,modeHelp = "show the specified CSV file as hledger journal entries"
- ,modeArgs = Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "[CSVFILE]"
+ ,modeArgs = ([], Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "[CSVFILE]")
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "FILE" "rules file to use (default: CSVFILE.rules)"
@@ -180,7 +180,7 @@ convertmode = (commandmode ["convert"]) {
 
 testmode = (commandmode ["test"]) {
   modeHelp = "run self-tests, or just the ones matching REGEXPS"
- ,modeArgs = Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "[REGEXPS]"
+ ,modeArgs = ([], Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "[REGEXPS]")
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -190,7 +190,7 @@ testmode = (commandmode ["test"]) {
 
 accountsmode = (commandmode ["accounts","balance"]) {
   modeHelp = "(or balance) show matched accounts and their balances"
- ,modeArgs = Just commandargsflag
+ ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
@@ -206,7 +206,7 @@ accountsmode = (commandmode ["accounts","balance"]) {
 
 entriesmode = (commandmode ["entries","print"]) {
   modeHelp = "(or print) show matched journal entries"
- ,modeArgs = Just commandargsflag
+ ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -216,7 +216,7 @@ entriesmode = (commandmode ["entries","print"]) {
 
 postingsmode = (commandmode ["postings","register"]) {
   modeHelp = "(or register) show matched postings and running total"
- ,modeArgs = Just commandargsflag
+ ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -226,7 +226,7 @@ postingsmode = (commandmode ["postings","register"]) {
 
 transactionsmode = (commandmode ["transactions"]) {
   modeHelp = "show matched transactions and balance in some account(s)"
- ,modeArgs = Just commandargsflag
+ ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -237,7 +237,7 @@ transactionsmode = (commandmode ["transactions"]) {
 activitymode = (commandmode ["activity","histogram"]) {
   modeHelp = "show a barchart of transactions per interval"
  ,modeHelpSuffix = ["The default interval is daily."]
- ,modeArgs = Just commandargsflag
+ ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -247,7 +247,7 @@ activitymode = (commandmode ["activity","histogram"]) {
 
 statsmode = (commandmode ["stats"]) {
   modeHelp = "show quick statistics for a journal (or part of it)"
- ,modeArgs = Just commandargsflag
+ ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
