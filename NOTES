@@ -29,22 +29,24 @@ ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 
 * todo
 ** shortlist for next release
-*** redo subcommand detection
-*** fix tests
-*** docs: manual needs updating for 0.15 changes
-*** parsing: alias directives should be modified by account directives
+*** balance: showing wrong precision
+tests/balance-precision.test
+groupPostings
+
+*** prepare for funded binaries
+*** prepare announcement
+
 *** web: should take port from base-url when appropriate
 *** web: --base-url trailing slash gives redirect loop
 hledger-web --port 5001 --base-url http://localhost:5001/
 *** web: account patterns on command line are ignored
 *** web: loses -B after an edit, and/or a filesystem edit
-*** finish release notes
-*** prepare for funded binaries
-*** prepare announcement
+*** parsing: alias directives should be modified by account directives
 
 *** release testing
 *** bump version
 *** release
+
 ** documentation, marketing
 *** developer notes & log
 *** intro brainstorming
