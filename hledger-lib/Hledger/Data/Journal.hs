@@ -415,6 +415,10 @@ postingsByAccount ps = m'
       groupedps = groupBy (\p1 p2 -> paccount p1 == paccount p2) sortedps
       m' = Map.fromList [(paccount $ head g, g) | g <- groupedps]
 
+-- debug helpers
+traceAmountPrecision a = trace (show $ map (precision . commodity) $ amounts a) a
+tracePostingsCommodities ps = trace (show $ map ((map (precision . commodity) . amounts) . pamount) ps) ps
+
 tests_Hledger_Data_Journal = TestList [
  ]
 

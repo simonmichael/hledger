@@ -109,6 +109,7 @@ instance Num MixedAmount where
     negate (Mixed as) = Mixed $ map negateAmountPreservingPrice as
         where negateAmountPreservingPrice a = (-a){price=price a}
     (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ as ++ bs
+    -- (+) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingHighestPrecision $ Mixed $ as ++ bs
     (*)    = error' "programming error, mixed amounts do not support multiplication"
     abs    = error' "programming error, mixed amounts do not support abs"
     signum = error' "programming error, mixed amounts do not support signum"

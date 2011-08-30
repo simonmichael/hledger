@@ -17,7 +17,7 @@ import Hledger.Data.Types
 import Hledger.Utils
 import Hledger.Data.Posting
 import Hledger.Data.Dates (getCurrentYear)
-import Hledger.Data.Journal (nullctx, nulljournal, journalFinalise)
+import Hledger.Data.Journal
 
 
 juSequence :: [JournalUpdate] -> JournalUpdate
