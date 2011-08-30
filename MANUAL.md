@@ -287,18 +287,12 @@ charged to your bank account on monday.  Or you write a cheque to someone
 and they deposit it weeks later.
 
 When you don't care about this, just pick one date for your journal
-transaction; either will do.  This means your hledger reports can be
-slightly out of step with reality (eg your daily bank balance.)
-
-When you need to model reality more accurately, you can write both dates,
-separated by an equals sign.  By default, the first date is used in
-reports; to use the second one instead, run hledger with the `--effective`
-flag.
-
-About the terminology: we follow c++ ledger's usage, calling these the
-*actual date* (on the left) and the *effective date* (on the right).
-hledger doesn't actually care what these terms mean, but here are some
-mnemonics to keep our usage consistent and prevent confusion:
+transaction; either will do. But when you want to model reality more
+accurately (eg: to match your daily bank balance), write both dates,
+separated by an equals sign. Following ledger's convention, the *actual
+date* (or "bank date") goes on the left, and is used by default, the
+*effective date* (or "your date") goes on the right, and is used when the
+`--effective` flag is provided. Here are some mnemonics to prevent confusion:
 
 - ACTUAL=EFFECTIVE. The actual date is (by definition) the one on the left. A before E.
 - BANKDATE=MYDATE. You can usually think "actual is bank's, effective is mine".
@@ -308,7 +302,7 @@ mnemonics to keep our usage consistent and prevent confusion:
 Example:
 
     ; ACTUAL=EFFECTIVE
-    ; The latter's year can be omitted, it will be taken from the former
+    ; The effective date's year is optional, defaulting to the actual date's
     2010/2/23=2/19 movie ticket
       expenses:cinema                   $10
       assets:checking
