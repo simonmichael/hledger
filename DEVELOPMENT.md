@@ -34,14 +34,11 @@ contributors and developers.
   [Get it](#how-to-set-up-for-hledger-development),
   [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
   [hledger-web dev demo](http://demo.hledger.org:5001)
-  <br>[External API haddocks](http://hledger.org/api-doc)
-  (for scripting or building on hledger)
+  <br>[API haddocks](http://hledger.org/api-doc)
   <span style="white-space:nowrap;"
   ><input type="text" name="hoogle" id="hoogle" accesskey="1"
-  /><input type="submit" value="search"
+  /><input type="submit" value="hoogle search"
   /></span>
-  <br>[Internal code haddocks](http://hledger.org/code-doc)
-  (for learning/developing hledger's internals)
   <br>[Developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
   [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),

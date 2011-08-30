@@ -56,14 +56,6 @@ HADDOCKSOURCEFILES:= \
 #	hledger-chart/Hledger/*hs
 #	hledger-chart/Hledger/*/*hs
 
-# just the library-exporting files for haddock, similar to what hackage shows
-HADDOCKLIBSOURCEFILES:= \
-	hledger-lib/*hs \
-	hledger-lib/Hledger/*hs \
-	hledger-lib/Hledger/*/*hs \
-	hledger/Hledger/*hs \
-	hledger/Hledger/*/*hs
-
 VERSIONHS=hledger/Hledger/Cli/Version.hs
 CABALFILES:= \
 	hledger/hledger.cabal \
@@ -530,11 +522,7 @@ savehelp:
 	for e in $(EXES); do $$e --help >.HELP_$$e; done
 
 # generate api & other code docs
-codedocs: hscolour apihaddock internalhaddock coverage #sourcegraph #hoogle
-
-# browse the code docs
-viewcodedocs:
-	$(VIEWHTML) site/code-doc/index.html
+codedocs: haddock hscolour coverage #sourcegraph #hoogle
 
 #http://www.haskell.org/haddock/doc/html/invoking.html
 #$(subst -D,--optghc=-D,$(DEFINEFLAGS))
@@ -547,43 +535,31 @@ HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-packa
 	cat $< | perl -ne 'print if (/^description:/../^$$/)' | sed -e 's/^description: *//' >$@
 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
 
-haddock: apihaddock internalhaddock
-
-# generate external api docs for the whole project
-apihaddock: linkhledgerwebdir .haddockprologue
-	$(HADDOCK) --title "hledger & hledger-lib API docs" \
+# generate api docs for the whole project
+haddock: linkhledgerwebdir .haddockprologue
+	$(HADDOCK) --title "hledger-* API docs" \
 	 -o site/api-doc \
 	 --html \
-	 --source-module=../code-doc/src/%{MODULE/./-}.html \
-	 --source-entity=../code-doc/src/%{MODULE/./-}.html#%N \
-	 $(HADDOCKLIBSOURCEFILES)
-
-# generate internal code docs for the whole project
-# Fragile. Things that may help ?:
-# ln -s hledger-web/routes
-# cabal install hledger-lib hledger
-# ln -s hledger-lib/Hledger.hs; mkdir Hledger; cd Hledger; for f in ../hledger{,-lib}/Hledger/*; do ln -s $f; done
-internalhaddock: linkhledgerwebdir .haddockprologue
-	$(HADDOCK) --title "hledger internal code docs, all packages" \
-	 -o site/code-doc \
-	 --ignore-all-exports \
-	 --html \
-	 --source-module=../code-doc/src/%{MODULE/./-}.html \
-	 --source-entity=../code-doc/src/%{MODULE/./-}.html#%N \
+	 --source-module=src/%{MODULE/./-}.html \
+	 --source-entity=src/%{MODULE/./-}.html#%N \
 	 $(HADDOCKSOURCEFILES)
+
+# browse the api docs
+viewhaddock:
+	$(VIEWHTML) site/api-doc/index.html
 
 # http://www.cs.york.ac.uk/fp/darcs/hscolour/
 HSCOLOUR=HsColour -css
-hscolour: site/code-doc/src site/code-doc/src/hscolour.css
+hscolour: site/api-doc/src site/api-doc/src/hscolour.css
 	for f in $(HADDOCKSOURCEFILES); do \
-		$(HSCOLOUR) -anchor $$f -osite/code-doc/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+		$(HSCOLOUR) -anchor $$f -osite/api-doc/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done
 
-site/code-doc/src/hscolour.css: site/code-doc/src
-	$(HSCOLOUR) -print-css >site/code-doc/src/hscolour.css
+site/api-doc/src/hscolour.css: site/api-doc/src
+	$(HSCOLOUR) -print-css >site/api-doc/src/hscolour.css
 
-site/code-doc/src:
-	mkdir -p site/code-doc/src
+site/api-doc/src:
+	mkdir -p site/api-doc/src
 
 sourcegraph:
 	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
