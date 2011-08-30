@@ -8,7 +8,7 @@ title: hledger user manual
 
 hledger is a program for tracking money, time, or any other commodity,
 using a simple, editable file format and the powerful principles of
-double-entry accounting. It was inspired by [ledger](FAQ.html).
+double-entry accounting. It was inspired by [ledger](http://ledger-cli.org).
 
 hledger's basic function is to read a plain text file describing (eg)
 financial transactions, and quickly generate useful reports via the
@@ -793,11 +793,11 @@ Examples:
 
 #### web
 
-The web command starts a web server providing a web-based user interface.
+The web command runs a HTTP server providing a web-based user interface
+([release demo](http://demo.hledger.org),
+[latest demo](http://demo.hledger.org:5001)).
 The web UI provides reporting, including a more useful account register
-view, and also data entry and modification.  You can see it in action
-here: [current release demo](http://demo.hledger.org),
-[latest development demo](http://demo.hledger.org:5001).
+view, and also data entry and modification.
 
 web-specific options:
 
