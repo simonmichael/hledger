@@ -6,22 +6,23 @@ title: hledger news
 
 ## unreleased hledger 0.15[]()
 
-  * cli: the hledger executable's options are now modal, providing better help (using cmdargs)
-  * cli: case insensitivity of filter patterns has been fixed
+  * hledger's options are now modal, providing better help (using cmdargs)
+  * hledger now lists and runs any hledger-* add-ons found in the user's path
+  * case insensitivity of filter patterns has been fixed
   * parsing: `alias`/`end aliases` directives, for renaming accounts, are supported, like ledger's but a bit more powerful; also an `--alias` option for renaming on the fly
   * parsing: the `account` directive now preserves posting type (normal/virtual/balanced virtual)
   * parsing: the `pop` directive is supported as an alias for `end tag`, like ledger
-  * parsing: `P` (historical price) directives may contain a (ignored) numeric time zone, like ledger
+  * parsing: `P` (historical price) directives can contain a (ignored) numeric time zone, like ledger
   * parsing: the leading `!` in directives is now optional and deprecated, like ledger
   * parsing: entries with a negative amount in the first posting now infer the correct balancing amount
   * parsing: bad date checking is more accurate
-  * balance: `--no-elide` disables collapsing boring accounts to one line
-  * convert: standard input may be converted
-  * convert: an alternate rules file may be specified with `--rules`
+  * balance: collapsing of boring accounts to one line can be disabled with `--no-elide`
+  * convert: standard input can be converted
+  * convert: an alternate rules file can be specified with `--rules`
   * convert: `account2-field` can be used when the CSV file specifies both accounts
   * convert: `description-field` can have a custom format and combine multiple CSV fields
   * convert: `in-field` and `out-field` support CSV files that use two amount columns
-  * scripts: new examples of api use in the scripts/ directory: `equity.hs`, `uniquify.hs`
+  * convert: don't fail when there's no default journal file
   * web: the web interface has been overhauled/cleaned up
   * web: account register views are now transaction-based, like gnucash etc., and show accurate historical balances when possible
   * web: simple balance charts are displayed (using flot)
@@ -32,6 +33,7 @@ title: hledger news
   * api simplifications
   * importable Hledger, Hledger.Web, Hledger.Vty and Hledger.Chart modules
   * the basic reports are now provided by hledger-lib for easier reuse
+  * new api use examples: `equity.hs`, `uniquify.hs`
   * some old base 3 support has been dropped
   * the old -s flag has been dropped
 
