@@ -1,8 +1,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-|
-An 'Amount' is some quantity of money, shares, or anything else.
-
-A simple amount is a 'Commodity', quantity pair:
+A simple "Amount" is some quantity of money, shares, or anything else.
+It has a (possibly null) "Commodity" and a numeric quantity:
 
 @
   $1 
@@ -14,65 +13,72 @@ A simple amount is a 'Commodity', quantity pair:
   0 
 @
 
-An amount may also have a per-unit price, or conversion rate, in terms
-of some other commodity. If present, this is displayed after \@:
+It may also have an assigned unit price, which is another (unpriced)
+simple amount in a different commodity. If present, this is rendered like so:
 
 @
   EUR 3 \@ $1.35
 @
 
-A 'MixedAmount' is zero or more simple amounts.  Mixed amounts are
-usually normalised so that there is no more than one amount in each
-commodity, and no zero amounts (or, there is just a single zero amount
-and no others.):
+A "MixedAmount" is zero or more simple amounts, so can represent multiple
+commodities; this is the type most often used:
 
 @
+  0
   $50 + EUR 3
   16h + $13.55 + AAPL 500 + 6 oranges
-  0
 @
 
-We can do limited arithmetic with simple or mixed amounts: either
-price-preserving arithmetic with similarly-priced amounts, or
-price-discarding arithmetic which ignores and discards prices.
+When a mixed amount has been \"normalised\", it has no more than one amount
+in each commodity and no zero amounts; or it has just a single zero amount
+and no others.
+
+We can do two kinds of limited arithmetic with simple or mixed amounts:
+price-preserving (for amounts with the same prices) or price-ignoring
+(ignores and discards any prices).
 
 -}
 
 -- XXX due for review/rewrite
 
 module Hledger.Data.Amount (
-                            amounts,
-                            canonicaliseAmount,
-                            canonicaliseMixedAmount,
-                            convertMixedAmountToSimilarCommodity,
-                            costOfAmount,
-                            costOfMixedAmount,
-                            divideAmount,
-                            divideMixedAmount,
-                            isNegativeMixedAmount,
-                            isReallyZeroMixedAmountCost,
-                            isZeroMixedAmount,
-                            maxprecision,
-                            maxprecisionwithpoint,
-                            missingamt,
-                            normaliseMixedAmount,
+                            -- * Amount
                             nullamt,
-                            nullmixedamt,
-                            punctuatethousands,
+                            canonicaliseAmountCommodity,
                             setAmountPrecision,
-                            setMixedAmountPrecision,
+                            -- ** arithmetic
+                            costOfAmount,
+                            divideAmount,
+                            -- ** rendering
+                            showAmount,
                             showAmountDebug,
                             showAmountWithoutPrice,
+                            maxprecision,
+                            maxprecisionwithpoint,
+                            -- * MixedAmount
+                            nullmixedamt,
+                            missingamt,
+                            amounts,
+                            normaliseMixedAmount,
+                            canonicaliseMixedAmountCommodity,
+                            setMixedAmountPrecision,
+                            -- ** arithmetic
+                            costOfMixedAmount,
+                            divideMixedAmount,
+                            isNegativeMixedAmount,
+                            isZeroMixedAmount,
+                            isReallyZeroMixedAmountCost,
+                            sumMixedAmountsPreservingHighestPrecision,
+                            -- ** rendering
                             showMixedAmount,
                             showMixedAmountDebug,
                             showMixedAmountOrZero,
                             showMixedAmountOrZeroWithoutPrice,
                             showMixedAmountWithoutPrice,
                             showMixedAmountWithPrecision,
-                            sumMixedAmountsPreservingHighestPrecision,
+                            -- * misc.
                             tests_Hledger_Data_Amount
-                           )
-where
+                           ) where
 import Data.Char (isDigit)
 import Data.List
 import Data.Map (findWithDefault)
@@ -121,13 +127,13 @@ similarAmountsOp op a (Amount bc bq _) =
 convertAmountToSimilarCommodity :: Commodity -> Amount -> Amount
 convertAmountToSimilarCommodity c (Amount _ q _) = Amount c q Nothing
 
--- | Convert a mixed amount to the specified commodity, assuming an exchange rate of 1.
-convertMixedAmountToSimilarCommodity :: Commodity -> MixedAmount -> Amount
-convertMixedAmountToSimilarCommodity c (Mixed as) = Amount c total Nothing
-    where
-      total = sum $ map (quantity . convertAmountToSimilarCommodity c) as
+-- -- | Convert a mixed amount to the specified commodity, assuming an exchange rate of 1.
+-- convertMixedAmountToSimilarCommodity :: Commodity -> MixedAmount -> Amount
+-- convertMixedAmountToSimilarCommodity c (Mixed as) = Amount c total Nothing
+--     where
+--       total = sum $ map (quantity . convertAmountToSimilarCommodity c) as
 
--- | Convert an amount to the commodity of its saved price, if any.  Notes:
+-- | Convert an amount to the commodity of its assigned price, if any.  Notes:
 -- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error)
 -- - price amounts should be positive, though this is not currently enforced
 costOfAmount :: Amount -> Amount
@@ -143,6 +149,8 @@ costOfAmount a@(Amount _ q price) =
 showAmountWithPrecision :: Int -> Amount -> String
 showAmountWithPrecision p = showAmount . setAmountPrecision p
 
+-- | Set the display precision in the amount's commodity.
+setAmountPrecision :: Int -> Amount -> Amount
 setAmountPrecision p a@Amount{commodity=c} = a{commodity=c{precision=p}}
 
 -- XXX refactor
@@ -199,9 +207,12 @@ chopdotzero str = reverse $ case reverse str of
                               '0':'.':s -> s
                               s         -> s
 
--- | A special precision value meaning show all available digits.
+-- | For rendering: a special precision value which means show all available digits.
+maxprecision :: Int
 maxprecision = 999998
--- | Similar, forces display of a decimal point.
+
+-- | For rendering: a special precision value which forces display of a decimal point.
+maxprecisionwithpoint :: Int
 maxprecisionwithpoint = 999999
 
 -- | Replace a number string's decimal point with the specified character,
@@ -247,7 +258,7 @@ isReallyZeroAmount = null . filter (`elem` "123456789") . printf ("%."++show zer
 isNegativeAmount :: Amount -> Bool
 isNegativeAmount Amount{quantity=q} = q < 0
 
--- | Access a mixed amount's components.
+-- | Get a mixed amount's component amounts.
 amounts :: MixedAmount -> [Amount]
 amounts (Mixed as) = as
 
@@ -286,6 +297,7 @@ isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = vConcatRightAligned $ map show $ amounts $ normaliseMixedAmount m
 
+-- | Set the display precision in the amount's commodities.
 setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
 setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 
@@ -326,8 +338,11 @@ showMixedAmountOrZeroWithoutPrice a
     | otherwise = showMixedAmountWithoutPrice a
 
 -- | Simplify a mixed amount by removing redundancy in its component amounts, as follows:
--- 1. sum amounts which have the same commodity (ignoring their price)
+--
+-- 1. combine amounts which have the same commodity, discarding all but the first's price.
+--
 -- 2. remove zero amounts
+--
 -- 3. if there are no amounts at all, add a single zero amount
 normaliseMixedAmount :: MixedAmount -> MixedAmount
 normaliseMixedAmount (Mixed as) = Mixed as''
@@ -339,16 +354,16 @@ normaliseMixedAmount (Mixed as) = Mixed as''
       group = groupBy (\a1 a2 -> sym a1 == sym a2)
       sym = symbol . commodity
 
--- | Set a mixed amount's commodity to the canonicalised commodity from
+-- | Replace a mixed amount's commodity with the canonicalised version from
 -- the provided commodity map.
-canonicaliseMixedAmount :: Maybe (Map.Map String Commodity) -> MixedAmount -> MixedAmount
-canonicaliseMixedAmount canonicalcommoditymap (Mixed as) = Mixed $ map (canonicaliseAmount canonicalcommoditymap) as
+canonicaliseMixedAmountCommodity :: Maybe (Map.Map String Commodity) -> MixedAmount -> MixedAmount
+canonicaliseMixedAmountCommodity canonicalcommoditymap (Mixed as) = Mixed $ map (canonicaliseAmountCommodity canonicalcommoditymap) as
 
--- | Set an amount's commodity to the canonicalised commodity from
+-- | Replace an amount's commodity with the canonicalised version from
 -- the provided commodity map.
-canonicaliseAmount :: Maybe (Map.Map String Commodity) -> Amount -> Amount
-canonicaliseAmount Nothing                      = id
-canonicaliseAmount (Just canonicalcommoditymap) = fixamount
+canonicaliseAmountCommodity :: Maybe (Map.Map String Commodity) -> Amount -> Amount
+canonicaliseAmountCommodity Nothing                      = id
+canonicaliseAmountCommodity (Just canonicalcommoditymap) = fixamount
     where
       -- like journalCanonicaliseAmounts
       fixamount a@Amount{commodity=c} = a{commodity=fixcommodity c}
@@ -377,6 +392,8 @@ normaliseMixedAmountIgnoringPrice (Mixed as) = Mixed as''
           | otherwise = nonzeros
           where (zeros,nonzeros) = partition isZeroAmount as
 
+-- | Add these mixed amounts, preserving prices and preserving the highest
+-- precision in each commodity.
 sumMixedAmountsPreservingHighestPrecision :: [MixedAmount] -> MixedAmount
 sumMixedAmountsPreservingHighestPrecision ms = foldl' (+~) 0 ms
     where (+~) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingHighestPrecision $ Mixed $ as ++ bs
@@ -410,15 +427,15 @@ amountopPreservingHighestPrecision op a@(Amount ac@Commodity{precision=ap} _ _) 
 --
 
 -- | Convert a mixed amount's component amounts to the commodity of their
--- saved price, if any.
+-- assigned price, if any.
 costOfMixedAmount :: MixedAmount -> MixedAmount
 costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
 
--- | Divide a mixed amount's quantities by some constant.
+-- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: MixedAmount -> Double -> MixedAmount
 divideMixedAmount (Mixed as) d = Mixed $ map (flip divideAmount d) as
 
--- | Divide an amount's quantity by some constant.
+-- | Divide an amount's quantity by a constant.
 divideAmount :: Amount -> Double -> Amount
 divideAmount a@Amount{quantity=q} d = a{quantity=q/d}
 

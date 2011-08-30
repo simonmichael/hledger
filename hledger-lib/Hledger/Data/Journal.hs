@@ -309,7 +309,7 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = canonicaliseAmount (Just $ journalCanonicalCommodities j) . costOfAmount
+      fixamount = canonicaliseAmountCommodity (Just $ journalCanonicalCommodities j) . costOfAmount
 
 -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 journalCanonicalCommodities :: Journal -> Map.Map String Commodity

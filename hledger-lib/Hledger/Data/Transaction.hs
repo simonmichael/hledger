@@ -134,8 +134,8 @@ isTransactionBalanced canonicalcommoditymap t =
     isZeroMixedAmount rsum' && isZeroMixedAmount bvsum'
     where
       (rsum, _, bvsum) = transactionPostingBalances t
-      rsum'  = canonicaliseMixedAmount canonicalcommoditymap $ costOfMixedAmount rsum
-      bvsum' = canonicaliseMixedAmount canonicalcommoditymap $ costOfMixedAmount bvsum
+      rsum'  = canonicaliseMixedAmountCommodity canonicalcommoditymap $ costOfMixedAmount rsum
+      bvsum' = canonicaliseMixedAmountCommodity canonicalcommoditymap $ costOfMixedAmount bvsum
 
 -- | Ensure this transaction is balanced, possibly inferring a missing
 -- amount or a conversion price first, or return an error message.
