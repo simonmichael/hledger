@@ -298,20 +298,12 @@ flag.
 About the terminology: we follow c++ ledger's usage, calling these the
 *actual date* (on the left) and the *effective date* (on the right).
 hledger doesn't actually care what these terms mean, but here are some
-mnemonics to help keep our usage consistent and avoid confusion:
+mnemonics to keep our usage consistent and prevent confusion:
 
-- "The movie ticket purchase took EFFECT on friday, but ACTUALLY appeared in my bank balance on monday."
-
-- "The payment by cheque took EFFECT then, but ACTUALLY cleared weeks later."
-
-- ACTUAL=EFFECTIVE. The actual date is by definition the one on the left,
-  the effective date is on the right. A before E.
-
+- ACTUAL=EFFECTIVE. The actual date is (by definition) the one on the left. A before E.
+- BANKDATE=MYDATE. You can usually think "actual is bank's, effective is mine".
 - LATER=EARLIER. The effective date is usually the chronologically earlier one.
-
-- BANKDATE=MYDATE. You can usually think of effective date as "my date" and actual date as "bank's date".
-  If you record a transaction manually, you'll use the effective (your) date.
-  If you convert a transaction from bank data, it will have the actual (bank's) date.
+- "The cheque took EFFECT then, but ACTUALLY cleared weeks later."
 
 Example:
 
@@ -330,8 +322,9 @@ Example:
 ### Default commodity
 
 You can set a default commodity or currency with a D directive. The
-commodity <!-- (and its symbol position and number format settings) --> will be
-used for any subsequent amounts which have no commodity symbol.
+commodity will be used for any subsequent amounts which have no commodity
+symbol. This directive also influences the display format for amounts in
+that commodity.
 
     ; default commodity: british pound, comma thousands separator, two decimal places
     D £1,000.00
