@@ -136,7 +136,7 @@ getPostings st enteredps = do
                 -- force a decimal point in the output in case there's a
                 -- digit group separator that would be mistaken for one
                 historicalamountstr = showMixedAmountWithPrecision maxprecisionwithpoint $ pamount $ fromJust bestmatch'
-                balancingamountstr  = showMixedAmountWithPrecision maxprecisionwithpoint $ negate $ sumMixedAmountsPreservingHighestPrecision $ map pamount enteredrealps
+                balancingamountstr  = showMixedAmountWithPrecision maxprecisionwithpoint $ negate $ sum $ map pamount enteredrealps
       amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
       let amount  = fromparse $ runParser (someamount <|> return missingamt) ctx     "" amountstr
           amount' = fromparse $ runParser (someamount <|> return missingamt) nullctx "" amountstr
