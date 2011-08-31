@@ -69,10 +69,10 @@ data Commodity = Commodity {
       separatorpositions :: [Int]  -- ^ positions of separators, counting leftward from decimal point
     } deriving (Eq,Ord,Show,Read)
 
--- | An amount's price may be written as \@ unit price or \@\@ total price.
--- Note although Price has a MixedAmount, it should hold only
--- single-commodity amounts, cf costOfAmount. Moreover, price should always 
--- be positive, though it is currently not enforced.
+-- | An amount's price in another commodity may be written as \@ unit
+-- price or \@\@ total price.  Note although a MixedAmount is used, it
+-- should be in a single commodity, also the amount should be positive;
+-- these are not enforced currently.
 data Price = UnitPrice MixedAmount | TotalPrice MixedAmount
              deriving (Eq,Ord)
 

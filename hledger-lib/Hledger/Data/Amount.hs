@@ -127,7 +127,9 @@ amountWithCommodity :: Commodity -> Amount -> Amount
 amountWithCommodity c (Amount _ q _) = Amount c q Nothing
 
 -- | Convert an amount to the commodity of its assigned price, if any.  Notes:
+--
 -- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error)
+--
 -- - price amounts should be positive, though this is not currently enforced
 costOfAmount :: Amount -> Amount
 costOfAmount a@(Amount _ q price) =
@@ -186,8 +188,8 @@ showPriceDebug (UnitPrice pa)  = " @ "  ++ showMixedAmountDebug pa
 showPriceDebug (TotalPrice pa) = " @@ " ++ showMixedAmountDebug pa
 
 -- | Get the string representation of an amount, based on its commodity's
--- display settings. Amounts whose string representation would mean zero
--- are rendered as just "0".
+-- display settings. String representations equivalent to zero are
+-- converted to just \"0\".
 showAmount :: Amount -> String
 showAmount (Amount (Commodity {symbol="AUTO"}) _ _) = "" -- can appear in an error message
 showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
@@ -354,8 +356,7 @@ setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 
 -- | Get the string representation of a mixed amount, showing each of its
 -- component amounts with the specified precision, ignoring their
--- commoditys' display precision settings. NB a mixed amount can have an
--- empty amounts list in which case it shows as \"\".
+-- commoditys' display precision settings.
 showMixedAmountWithPrecision :: Int -> MixedAmount -> String
 showMixedAmountWithPrecision p m =
     vConcatRightAligned $ map (showAmountWithPrecision p) $ amounts $ normaliseMixedAmount m
