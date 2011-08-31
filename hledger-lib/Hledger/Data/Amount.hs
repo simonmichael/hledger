@@ -73,8 +73,6 @@ module Hledger.Data.Amount (
   -- ** rendering
   showMixedAmount,
   showMixedAmountDebug,
-  showMixedAmountOrZero,
-  showMixedAmountOrZeroWithoutPrice,
   showMixedAmountWithoutPrice,
   showMixedAmountWithPrecision,
   -- * misc.
@@ -376,20 +374,6 @@ showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth a
       width = maximum $ map (length . show) as
       showfixedwidth = printf (printf "%%%ds" width) . showAmountWithoutPrice
 
--- | Get the string representation of a mixed amount, and if it
--- appears to be all zero just show a bare 0, ledger-style.
-showMixedAmountOrZero :: MixedAmount -> String
-showMixedAmountOrZero a | a == missingamt = ""
-                        | isZeroMixedAmount a = "0"
-                        | otherwise = showMixedAmount a
-
--- | Get the string representation of a mixed amount, or a bare 0,
--- without any \@ prices.
-showMixedAmountOrZeroWithoutPrice :: MixedAmount -> String
-showMixedAmountOrZeroWithoutPrice a
-    | isZeroMixedAmount a = "0"
-    | otherwise = showMixedAmountWithoutPrice a
-
 -- | Replace a mixed amount's commodity with the canonicalised version from
 -- the provided commodity map.
 canonicaliseMixedAmountCommodity :: Maybe (Map.Map String Commodity) -> MixedAmount -> MixedAmount
@@ -462,11 +446,6 @@ tests_Hledger_Data_Amount = TestList [
     showMixedAmount (Mixed [dollars 0]) `is` "0"
     showMixedAmount (Mixed []) `is` "0"
     showMixedAmount missingamt `is` ""
-
-  ,"showMixedAmountOrZero" ~: do
-    showMixedAmountOrZero (Mixed [Amount dollar 0 Nothing]) `is` "0"
-    showMixedAmountOrZero (Mixed []) `is` "0"
-    showMixedAmountOrZero missingamt `is` ""
 
   ,"showMixedAmountWithoutPrice" ~: do
     let a = (dollars 1){price=Just $ UnitPrice $ Mixed [euros 2]}

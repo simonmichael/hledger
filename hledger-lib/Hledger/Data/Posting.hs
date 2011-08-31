@@ -39,7 +39,7 @@ showPosting (Posting{paccount=a,pamount=amt,pcomment=com,ptype=t}) =
                           BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
                           _ -> (id,acctnamewidth)
-      showamount = padleft 12 . showMixedAmountOrZero
+      showamount = padleft 12 . showMixedAmount
       comment = if null com then "" else "  ; " ++ com
 -- XXX refactor
 showPostingForRegister :: Posting -> String
@@ -53,7 +53,7 @@ showPostingForRegister (Posting{paccount=a,pamount=amt,ptype=t}) =
                           BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
                           _ -> (id,acctnamewidth)
-      showamount = padleft 12 . showMixedAmountOrZeroWithoutPrice
+      showamount = padleft 12 . showMixedAmountWithoutPrice
 
 isReal :: Posting -> Bool
 isReal p = ptype p == RegularPosting

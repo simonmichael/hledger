@@ -54,7 +54,7 @@ postingsReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", ba
             datedescwidth = 32
             datewidth = 10
       pstr = showPostingForRegister p
-      bal = padleft 12 (showMixedAmountOrZeroWithoutPrice b)
+      bal = padleft 12 (showMixedAmountWithoutPrice b)
 
 -- XXX
 showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText defreportopts $ mkpostingsReportItem showtxninfo p b

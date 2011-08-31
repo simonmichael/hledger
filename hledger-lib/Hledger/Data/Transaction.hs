@@ -95,7 +95,7 @@ showTransaction' elide effective t =
                 where w = maximum $ map (length . paccount) ps
                       showstatus p = if pstatus p then "* " else ""
             showamt =
-                padleft 12 . showMixedAmountOrZero
+                padleft 12 . showMixedAmount
             showcomment s = if null s then "" else "  ; "++s
 
 -- | Show an account name, clipped to the given width if any, and
