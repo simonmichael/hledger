@@ -17,6 +17,7 @@ title: hledger news
   * parsing: entries with a negative amount in the first posting now infer the correct balancing amount
   * parsing: bad date checking is more accurate
   * balance: collapsing of boring accounts to one line can be disabled with `--no-elide`
+  * balance: fix a wrong precision regression from last release
   * convert: standard input can be converted
   * convert: an alternate rules file can be specified with `--rules`
   * convert: `account2-field` can be used when the CSV file specifies both accounts
