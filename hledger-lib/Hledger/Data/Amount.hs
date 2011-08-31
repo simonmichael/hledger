@@ -1,7 +1,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-|
-A simple "Amount" is some quantity of money, shares, or anything else.
-It has a (possibly null) "Commodity" and a numeric quantity:
+A simple 'Amount' is some quantity of money, shares, or anything else.
+It has a (possibly null) 'Commodity' and a numeric quantity:
 
 @
   $1 
@@ -13,14 +13,16 @@ It has a (possibly null) "Commodity" and a numeric quantity:
   0 
 @
 
-It may also have an assigned unit price, which is another (unpriced)
-simple amount in a different commodity. If present, this is rendered like so:
+It may also have an assigned 'Price', representing this amount's per-unit
+or total cost in a different commodity. If present, this is rendered like
+so:
 
 @
-  EUR 3 \@ $1.35
+  EUR 2 \@ $1.50  (unit price)
+  EUR 2 \@\@ $3   (total price)
 @
 
-A "MixedAmount" is zero or more simple amounts, so can represent multiple
+A 'MixedAmount' is zero or more simple amounts, so can represent multiple
 commodities; this is the type most often used:
 
 @
@@ -33,13 +35,11 @@ When a mixed amount has been \"normalised\", it has no more than one amount
 in each commodity and no zero amounts; or it has just a single zero amount
 and no others.
 
-We can do two kinds of limited arithmetic with simple or mixed amounts:
-price-preserving (for amounts with the same prices) or price-ignoring
-(ignores and discards any prices).
+Limited arithmetic with simple and mixed amounts is supported, best used
+with similar amounts since it mostly ignores assigned prices and commodity
+exchange rates.
 
 -}
-
--- XXX due for review/rewrite
 
 module Hledger.Data.Amount (
   -- * Amount
