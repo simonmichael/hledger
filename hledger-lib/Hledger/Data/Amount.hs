@@ -385,31 +385,39 @@ normaliseMixedAmountIgnoringPrice :: MixedAmount -> MixedAmount
 normaliseMixedAmountIgnoringPrice (Mixed as) = Mixed as''
     where
       as'' = map sumAmountsDiscardingPrice $ group $ sort as'
-      group = groupBy samesymbol where samesymbol a1 a2 = sym a1 == sym a2
-      sort = sortBy (comparing sym)
-      sym = symbol . commodity
+      group = groupBy (same amountSymbol)
+      sort = sortBy (comparing amountSymbol)
       as' | null nonzeros = [head $ zeros ++ [nullamt]]
           | otherwise = nonzeros
           where (zeros,nonzeros) = partition isZeroAmount as
+
+-- | Simplify a mixed amount by combining any component amounts which have
+-- the same commodity, ignoring and discarding their unit prices if any.
+-- Also removes zero amounts, or adds a single zero amount if there are no
+-- amounts at all.
+normaliseMixedAmountPreservingHighestPrecision :: MixedAmount -> MixedAmount
+normaliseMixedAmountPreservingHighestPrecision (Mixed as) = Mixed as''
+    where
+      as'' = map sumSamePricedAmountsPreservingPriceAndHighestPrecision $ group $ sort as'
+      group = groupBy (same amountSymbolAndPrice)
+      sort = sortBy (comparing amountSymbolAndPrice)
+      as' | null nonzeros = [head $ zeros ++ [nullamt]]
+          | otherwise = nonzeros
+      (zeros,nonzeros) = partition isReallyZeroAmount as
+
+same f a b = f a == f b
+
+amountSymbol :: Amount -> String
+amountSymbol = symbol . commodity
+
+amountSymbolAndPrice :: Amount -> (String, Maybe Price)
+amountSymbolAndPrice a = (amountSymbol a, price a)
 
 -- | Add these mixed amounts, preserving prices and preserving the highest
 -- precision in each commodity.
 sumMixedAmountsPreservingHighestPrecision :: [MixedAmount] -> MixedAmount
 sumMixedAmountsPreservingHighestPrecision ms = foldl' (+~) 0 ms
     where (+~) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingHighestPrecision $ Mixed $ as ++ bs
-
-normaliseMixedAmountPreservingHighestPrecision :: MixedAmount -> MixedAmount
-normaliseMixedAmountPreservingHighestPrecision (Mixed as) = Mixed as''
-    where
-      as'' = map sumSamePricedAmountsPreservingPriceAndHighestPrecision $ group $ sort as'
-      sort = sortBy cmpsymbolandprice
-      cmpsymbolandprice a1 a2 = compare (sym a1,price a1) (sym a2,price a2)
-      group = groupBy samesymbolandprice
-      samesymbolandprice a1 a2 = (sym a1 == sym a2) && (price a1 == price a2)
-      sym = symbol . commodity
-      as' | null nonzeros = [head $ zeros ++ [nullamt]]
-          | otherwise = nonzeros
-      (zeros,nonzeros) = partition isReallyZeroAmount as
 
 sumSamePricedAmountsPreservingPriceAndHighestPrecision [] = nullamt
 sumSamePricedAmountsPreservingPriceAndHighestPrecision as = (sumAmountsPreservingHighestPrecision as){price=price $ head as}
@@ -454,39 +462,61 @@ missingamt = Mixed [Amount unknown{symbol="AUTO"} 0 Nothing]
 
 tests_Hledger_Data_Amount = TestList [
 
-   "showAmount" ~: do
-     showAmount (dollars 0 + pounds 0) `is` "0"
+  -- amounts
 
-  ,"showMixedAmount" ~: do
-     showMixedAmount (Mixed [Amount dollar 0 Nothing]) `is` "0"
-     showMixedAmount (Mixed []) `is` "0"
-     showMixedAmount missingamt `is` ""
+   "costOfAmount" ~: do
+    costOfAmount (euros 1) `is` euros 1
+    costOfAmount (euros 2){price=Just $ UnitPrice $ Mixed [dollars 2]} `is` dollars 4
+    costOfAmount (euros 1){price=Just $ TotalPrice $ Mixed [dollars 2]} `is` dollars 2
+    costOfAmount (euros (-1)){price=Just $ TotalPrice $ Mixed [dollars 2]} `is` dollars (-2)
 
-  ,"showMixedAmountOrZero" ~: do
-     showMixedAmountOrZero (Mixed [Amount dollar 0 Nothing]) `is` "0"
-     showMixedAmountOrZero (Mixed []) `is` "0"
-     showMixedAmountOrZero missingamt `is` ""
+  ,"isZeroAmount" ~: do
+    assertBool "" $ isZeroAmount $ Amount unknown 0 Nothing
+    assertBool "" $ isZeroAmount $ dollars 0
 
-  ,"amount arithmetic" ~: do
+  ,"negating amounts" ~: do
+    let a = dollars 1
+    negate a `is` a{quantity=(-1)}
+    let b = (dollars 1){price=Just $ UnitPrice $ Mixed [euros 2]}
+    negate b `is` b{quantity=(-1)} -- XXX failing
+
+  ,"adding amounts" ~: do
     let a1 = dollars 1.23
-    let a2 = Amount (comm "$") (-1.23) Nothing
-    let a3 = Amount (comm "$") (-1.23) Nothing
+    let a2 = dollars (-1.23)
+    let a3 = dollars (-1.23)
     (a1 + a2) `is` Amount (comm "$") 0 Nothing
     (a1 + a3) `is` Amount (comm "$") 0 Nothing
     (a2 + a3) `is` Amount (comm "$") (-2.46) Nothing
     (a3 + a3) `is` Amount (comm "$") (-2.46) Nothing
-    -- arithmetic with different commodities currently assumes conversion rate 1:
-    let a4 = euros (-1.23)
-    assertBool "" $ isZeroAmount (a1 + a4)
-
-    sum [a2,a3] `is` Amount (comm "$") (-2.46) Nothing
-    sum [a3,a3] `is` Amount (comm "$") (-2.46) Nothing
     sum [a1,a2,a3,-a3] `is` Amount (comm "$") 0 Nothing
-    let dollar0 = dollar{precision=0}
-    (sum [Amount dollar 1.25 Nothing, Amount dollar0 (-1) Nothing, Amount dollar (-0.25) Nothing])
-      `is` (Amount dollar 0 Nothing)
+    -- highest precision is preserved
+    (sum [Amount dollar 1.25 Nothing, Amount dollar{precision=0} (-1) Nothing, Amount dollar{precision=3} (-0.25) Nothing])
+      `is` (Amount dollar{precision=3} 0 Nothing)
+    -- adding different commodities assumes conversion rate 1
+    assertBool "" $ isZeroAmount (a1 - euros 1.23)
 
-  ,"mixed amount arithmetic" ~: do
+  ,"showAmount" ~: do
+    showAmount (dollars 0 + pounds 0) `is` "0"
+
+  -- mixed amounts
+
+  ,"normaliseMixedAmount" ~: do
+    normaliseMixedAmount (Mixed []) `is` Mixed [nullamt]
+    assertBool "" $ isZeroMixedAmount $ normaliseMixedAmount (Mixed [Amount {commodity=dollar, quantity=10,    price=Nothing}
+                                                                     ,Amount {commodity=dollar, quantity=10,    price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
+                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Nothing}
+                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
+                                                                     ])
+
+  ,"normaliseMixedAmountIgnoringPrice" ~: do
+    normaliseMixedAmountIgnoringPrice (Mixed []) `is` Mixed [nullamt]
+    (commodity (head (amounts (normaliseMixedAmountIgnoringPrice (Mixed [Amount {commodity=dollar, quantity=10,    price=Nothing}
+                                                                         ,Amount {commodity=dollar, quantity=10,    price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
+                                                                         ,Amount {commodity=dollar, quantity=(-10), price=Nothing}
+                                                                         ,Amount {commodity=dollar, quantity=(-10), price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
+                                                                         ]))))) `is` unknown  -- XXX failing
+
+  ,"adding mixed amounts" ~: do
     let dollar0 = dollar{precision=0}
     (sum $ map (Mixed . (\a -> [a]))
              [Amount dollar 1.25 Nothing,
@@ -494,24 +524,19 @@ tests_Hledger_Data_Amount = TestList [
               Amount dollar (-0.25) Nothing])
       `is` Mixed [Amount unknown 0 Nothing]
 
-  ,"normaliseMixedAmount" ~: do
-     normaliseMixedAmount (Mixed []) `is` Mixed [nullamt]
-     assertBool "" $ isZeroMixedAmount $ normaliseMixedAmount (Mixed [Amount {commodity=dollar, quantity=10,    price=Nothing}
-                                                                     ,Amount {commodity=dollar, quantity=10,    price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
-                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Nothing}
-                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
-                                                                     ])
+  ,"showMixedAmount" ~: do
+    showMixedAmount (Mixed [Amount dollar 0 Nothing]) `is` "0"
+    showMixedAmount (Mixed []) `is` "0"
+    showMixedAmount missingamt `is` ""
 
-  ,"punctuatethousands 1" ~: punctuatethousands "" `is` ""
+  ,"showMixedAmountOrZero" ~: do
+    showMixedAmountOrZero (Mixed [Amount dollar 0 Nothing]) `is` "0"
+    showMixedAmountOrZero (Mixed []) `is` "0"
+    showMixedAmountOrZero missingamt `is` ""
 
-  ,"punctuatethousands 2" ~: punctuatethousands "1234567.8901" `is` "1,234,567.8901"
-
-  ,"punctuatethousands 3" ~: punctuatethousands "-100" `is` "-100"
-
-  ,"costOfAmount" ~: do
-    costOfAmount (euros 1) `is` euros 1
-    costOfAmount (euros 2){price=Just $ UnitPrice $ Mixed [dollars 2]} `is` dollars 4
-    costOfAmount (euros 1){price=Just $ TotalPrice $ Mixed [dollars 2]} `is` dollars 2
-    costOfAmount (euros (-1)){price=Just $ TotalPrice $ Mixed [dollars 2]} `is` dollars (-2)
+  ,"punctuatethousands" ~: do
+    punctuatethousands "" `is` ""
+    punctuatethousands "1234567.8901" `is` "1,234,567.8901"
+    punctuatethousands "-100" `is` "-100"
 
   ]
