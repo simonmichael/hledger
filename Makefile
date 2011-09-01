@@ -440,11 +440,11 @@ data/100000x1000x10.journal: tools/generatejournal
 
 # Documentation source files are UPPERCASE files in the top directory.
 # site/ contains both html generated from these (UPPERCASE.html) and
-# revision-controlled resource files (everything else).  site/api-doc
+# revision-controlled resource files (everything else).  site/api
 # contains only generated files.
 
 cleandocs:
-	rm -rf site/[A-Z]*.html site/api-doc/*
+	rm -rf site/[A-Z]*.html site/api/*
 
 # rebuild all docs
 docs: site codedocs
@@ -538,7 +538,7 @@ HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-packa
 # generate api docs for the whole project
 haddock: linkhledgerwebdir .haddockprologue
 	$(HADDOCK) --title "hledger-* API docs" \
-	 -o site/api-doc \
+	 -o site/api \
 	 --html \
 	 --source-module=src/%{MODULE/./-}.html \
 	 --source-entity=src/%{MODULE/./-}.html#%N \
@@ -546,20 +546,20 @@ haddock: linkhledgerwebdir .haddockprologue
 
 # browse the api docs
 viewhaddock:
-	$(VIEWHTML) site/api-doc/index.html
+	$(VIEWHTML) site/api/index.html
 
 # http://www.cs.york.ac.uk/fp/darcs/hscolour/
 HSCOLOUR=HsColour -css
-hscolour: site/api-doc/src site/api-doc/src/hscolour.css
+hscolour: site/api/src site/api/src/hscolour.css
 	for f in $(HADDOCKSOURCEFILES); do \
-		$(HSCOLOUR) -anchor $$f -osite/api-doc/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+		$(HSCOLOUR) -anchor $$f -osite/api/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done
 
-site/api-doc/src/hscolour.css: site/api-doc/src
-	$(HSCOLOUR) -print-css >site/api-doc/src/hscolour.css
+site/api/src/hscolour.css: site/api/src
+	$(HSCOLOUR) -print-css >site/api/src/hscolour.css
 
-site/api-doc/src:
-	mkdir -p site/api-doc/src
+site/api/src:
+	mkdir -p site/api/src
 
 sourcegraph:
 	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
@@ -577,9 +577,9 @@ sourcegraph:
 ## We munge haddock and hoogle into a rough but useful framed layout.
 ## For this to work the hoogle cgi must be built with base target "main".
 ## XXX move the framed index building into haddock: ?
-# 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' site/api-doc/modules-index.html ; \
-# 	cp site/api-doc-frames.html site/api-doc/index.html ; \
-# # 	cp site/hoogle-small.html site/api-doc
+# 	sed -i -e 's%^></HEAD%><base target="main"></HEAD%' site/api/modules-index.html ; \
+# 	cp site/api-frames.html site/api/index.html ; \
+# # 	cp site/hoogle-small.html site/api
 #
 #uses a hoogle source tree configured with --datadir=., patched to fix haddock urls/target frame
 # HOOGLESRC=/usr/local/src/hoogle
@@ -587,7 +587,7 @@ sourcegraph:
 # HOOGLEVER=`$(HOOGLE) --version |tail -n 1 | sed -e 's/Version /hoogle-/'`
 # hoogle: hoogleindex
 # 	if test -f $(HOOGLE) ; then \
-# 		cd site/api-doc && \
+# 		cd site/api && \
 # 		rm -f $(HOOGLEVER) && \
 # 		ln -s . $(HOOGLEVER) && \
 # 		cp -r $(HOOGLESRC)/src/res/ . && \
@@ -599,8 +599,8 @@ sourcegraph:
 #
 #generate a hoogle index
 # hoogleindex:
-# 	$(HADDOCK) -o site/api-doc --hoogle $(MAIN) && \
-# 	cd site/api-doc && \
+# 	$(HADDOCK) -o site/api --hoogle $(MAIN) && \
+# 	cd site/api && \
 # 	hoogle --convert=main.txt --output=default.hoo
 
 ######################################################################
