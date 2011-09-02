@@ -1,3 +1,21 @@
+I've made a bugfix release of the hledger-web package, to fix build problems.
+
+hledger-web 0.15.1:
+
+  * web: add missing Hledger.Web.Options to cabal file
+  * web: tighten up dependencies to reduce build problems
+
+And here's another new dependency I forgot to mention: flot, the js
+charting library.
+
+The rest of this mail is a repeat of yesterday's announcement, since that
+one seriously confused google groups, gmane, and perhaps your mailreader
+(pro tip: don't re-edit old announcements with Mail.app's cmd-shift-d. :)
+
+-Simon
+
+----
+
 I'm pleased to announce hledger 0.15! This release includes work by
 Trygve Laugstøl, Dmitry Astapov, Clint Adams, Johann Klähn and
 myself.
