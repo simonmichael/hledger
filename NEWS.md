@@ -4,7 +4,12 @@ title: hledger news
 
 # News
 
-## unreleased hledger 0.15[]()
+## [2011/9/2 hledger-web 0.15.1](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/)
+
+  * web: add missing Hledger.Web.Options to cabal file
+  * web: tighten up dependencies to reduce build problems
+
+## [2011/9/1 hledger 0.15](https://groups.google.com/forum/#!topic/hledger/-WCfnRFVaf0/discussion)
 
   * hledger's options are now modal, providing better help (using cmdargs)
   * hledger now lists and runs any hledger-* add-ons found in the user's path
