@@ -98,10 +98,10 @@ endif
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(VERSIONHS) \
-	MANUAL.markdown \
-	DOWNLOAD.markdown \
 	$(CABALFILES) \
 	hledger-web/.hledger/web/.version \
+	MANUAL.md \
+#	DOWNLOAD.md \
 
 # get an accurate binary filename from the current source on the current platform
 # nb not := as that would break the makefile when hledger is not compiling.
