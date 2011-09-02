@@ -34,7 +34,7 @@ contributors and developers.
   [Get it](#how-to-set-up-for-hledger-development),
   [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
   [hledger-web dev demo](http://demo.hledger.org:5001)
-  <br>[API haddocks](http://hledger.org/api-doc)
+  <br>[API haddocks](http://hledger.org/api)
   <span style="white-space:nowrap;"
   ><input type="text" name="hoogle" id="hoogle" accesskey="1"
   /><input type="submit" value="hoogle search"
