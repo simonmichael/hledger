@@ -1,0 +1,120 @@
+I'm pleased to announce hledger 0.15! This release includes work by
+Trygve Laugstøl, Dmitry Astapov, Clint Adams, Johann Klähn and
+myself.
+
+hledger is a library and set of user tools for working with
+financial data (or anything that can be tracked in an accounting
+ledger.) It is a haskell port and friendly fork of John Wiegley's
+Ledger. hledger provides command-line, curses and web interfaces,
+and aims to be a reliable, practical tool for daily use.  Given a
+plain text file describing transactions of money or any other
+commodity, it will print the chart of accounts, account balances, or
+just the transactions you're interested in.  It can also help you
+record new transactions, or convert CSV data from your bank.
+
+Home: http://hledger.org
+
+IRC: irc://irc.freenode.net/#ledger
+
+Install: cabal update; cabal install hledger
+           [hledger-web hledger-vty hledger-chart hledger-interest]
+
+Platform-specific binaries, which are time-consuming to make and
+support, are now provided on request to financial donors - a great
+way to give back and help pay hosting costs!
+
+Best,
+-Simon
+
+Release notes for 0.15:
+
+  * hledger's options are now modal, providing better help (using
+    cmdargs)
+
+  * hledger now lists and runs any hledger-* add-ons found in the
+    user's path
+
+  * case insensitivity of filter patterns has been fixed
+
+  * parsing: `alias`/`end aliases` directives, for renaming
+    accounts, are supported, like ledger's but a bit more powerful;
+    also an `--alias` option for renaming on the fly
+
+  * parsing: the `account` directive now preserves posting type
+    (normal/virtual/balanced virtual)
+
+  * parsing: the `pop` directive is supported as an alias for `end
+    tag`, like ledger
+
+  * parsing: `P` (historical price) directives can contain a
+    (ignored) numeric time zone, like ledger
+
+  * parsing: the leading `!` in directives is now optional and
+    deprecated, like ledger
+
+  * parsing: entries with a negative amount in the first posting now
+    infer the correct balancing amount
+
+  * parsing: bad date checking is more accurate
+
+  * balance: collapsing of boring accounts to one line can be
+    disabled with `--no-elide`
+
+  * balance: fix a wrong precision regression from last release
+
+  * convert: standard input can be converted
+
+  * convert: an alternate rules file can be specified with `--rules`
+
+  * convert: `account2-field` can be used when the CSV file
+    specifies both accounts
+
+  * convert: `description-field` can have a custom format and
+    combine multiple CSV fields
+
+  * convert: `in-field` and `out-field` support CSV files that use
+    two amount columns
+
+  * convert: don't fail when there's no default journal file
+
+  * web: the web interface has been overhauled/cleaned up
+
+  * web: account register views are now transaction-based, like
+    gnucash etc., and show accurate historical balances when
+    possible
+
+  * web: simple balance charts are displayed (using flot)
+
+  * web: more expressive and consistent search patterns, using a new
+    matching engine
+
+  * web: add form uses currently focussed account as default,
+    redirects to itself, formats status messages better
+
+  * web: sidebar now shows empty/boring accounts too
+
+  * web: now uses warp and a newer yesod
+
+  * api simplifications
+
+  * importable Hledger, Hledger.Web, Hledger.Vty and Hledger.Chart
+    modules
+
+  * the basic reports are now provided by hledger-lib for easier
+    reuse
+
+  * new api use examples: `equity.hs`, `uniquify.hs`
+
+  * some old base 3 support has been dropped
+
+  * the old -s flag has been dropped
+
+Stats:
+
+Release contributors: Simon Michael, Trygve Laugstøl, Dmitry Astapov, Clint Adams, Johann Klähn
+
+132 days, 314 commits, 18 end-user features and 6 end-user bugfixes since last release.
+
+210 unit & functional tests and 55% unit test coverage (hledger, hledger-lib packages).
+
+7642 lines of code (all packages).
