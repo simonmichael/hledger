@@ -29,23 +29,6 @@ ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 
 * todo
 ** shortlist for next release
-*** balance: showing wrong precision
-tests/balance-precision.test
-groupPostings
-
-*** prepare for funded binaries
-*** prepare announcement
-
-*** web: should take port from base-url when appropriate
-*** web: --base-url trailing slash gives redirect loop
-hledger-web --port 5001 --base-url http://localhost:5001/
-*** web: account patterns on command line are ignored
-*** web: loses -B after an edit, and/or a filesystem edit
-*** parsing: alias directives should be modified by account directives
-
-*** release testing
-*** bump version
-*** release
 
 ** documentation, marketing
 *** developer notes & log
@@ -561,6 +544,10 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** errors
+*** web: --base-url trailing slash gives redirect loop
+hledger-web --port 5001 --base-url http://localhost:5001/
+*** web: account patterns on command line are ignored
+*** web: loses -B after an edit, and/or a filesystem edit
 *** tools: avoid haskell compiles and compile errors while setting up makefile vars
 joyful$ make help
 GHCi runtime linker: fatal error: I found a duplicate definition for symbol
@@ -1784,6 +1771,10 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** parsing: alias directives should be modified by account directives
+
+*** web: should take port from base-url when appropriate
+*** add: rewrite a short description (trader) to the full description from the matched txn (trader joe's) ?
 *** web: can't find out total income:7th total in june at http://localhost:5005/register?q=inacct%3Aassets%3Atreasury !
 *** web: update/remove browser startup
 *** simple hledger.org/topic help urls, like php.net
