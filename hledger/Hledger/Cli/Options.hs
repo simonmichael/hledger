@@ -17,7 +17,7 @@ import System.Console.CmdArgs.Text
 import System.Directory
 import System.Environment
 import Test.HUnit
-import Text.Parsec
+import Text.ParserCombinators.Parsec
 import Text.Printf
 
 import Hledger
