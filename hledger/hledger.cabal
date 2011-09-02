@@ -1,5 +1,5 @@
 name:           hledger
-version: 0.15
+version: 0.15.1
 category:       Finance
 synopsis:       The main command-line interface for the hledger accounting tool.
 description:
