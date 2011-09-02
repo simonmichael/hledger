@@ -1,10 +1,14 @@
 name:           hledger-chart
 version: 0.15
 category:       Finance
-synopsis:       A pie chart generator for the hledger accounting tool.
+synopsis:       A pie chart image generator for the hledger accounting tool.
 description:
-                hledger is a haskell port and friendly fork of John Wiegley's ledger accounting tool.
-                This package generates simple pie chart graphics showing relative account balances.
+                hledger is a library and set of user tools for working
+                with financial data (or anything that can be tracked in a
+                double-entry accounting ledger.) It is a haskell port and
+                friendly fork of John Wiegley's Ledger. hledger provides
+                command-line, curses and web interfaces, and aims to be a
+                reliable, practical tool for daily use.
 
 license:        GPL
 license-file:   LICENSE

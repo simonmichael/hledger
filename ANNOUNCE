@@ -3,14 +3,15 @@ Trygve Laugstøl, Dmitry Astapov, Clint Adams, Johann Klähn and
 myself.
 
 hledger is a library and set of user tools for working with
-financial data (or anything that can be tracked in an accounting
-ledger.) It is a haskell port and friendly fork of John Wiegley's
-Ledger. hledger provides command-line, curses and web interfaces,
-and aims to be a reliable, practical tool for daily use.  Given a
-plain text file describing transactions of money or any other
-commodity, it will print the chart of accounts, account balances, or
-just the transactions you're interested in.  It can also help you
-record new transactions, or convert CSV data from your bank.
+financial data (or anything that can be tracked in a double-entry
+accounting ledger.) It is a haskell port and friendly fork of John
+Wiegley's Ledger. hledger provides command-line, curses and web
+interfaces, and aims to be a reliable, practical tool for daily use.
+Given a plain text file describing transactions of money or any
+other commodity, it will print the chart of accounts, account
+balances, or just the transactions you're interested in.  It can
+also help you record new transactions, or convert CSV data from your
+bank.
 
 Home: http://hledger.org
 

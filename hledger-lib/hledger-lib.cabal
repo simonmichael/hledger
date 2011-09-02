@@ -1,11 +1,14 @@
 name:           hledger-lib
 version: 0.15
 category:       Finance
-synopsis:       Reusable types and utilities for the hledger accounting tool and financial apps in general.
+synopsis:       Core data types, parsers and utilities for the hledger accounting tool.
 description:
-                hledger is a haskell port and friendly fork of John Wiegley's ledger accounting tool.
-                This package provides core data types, parsers and utilities used by the hledger tools.
-                It also aims to be a useful library for building h/ledger-compatible tools or unrelated financial apps in haskell.
+                hledger is a library and set of user tools for working
+                with financial data (or anything that can be tracked in a
+                double-entry accounting ledger.) It is a haskell port and
+                friendly fork of John Wiegley's Ledger. hledger provides
+                command-line, curses and web interfaces, and aims to be a
+                reliable, practical tool for daily use.
 
 license:        GPL
 license-file:   LICENSE

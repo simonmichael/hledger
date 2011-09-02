@@ -1,13 +1,14 @@
 name:           hledger
 version: 0.15
 category:       Finance
-synopsis:       A robust command-line accounting tool with a simple human-editable data format, similar to ledger.
+synopsis:       The main command-line interface for the hledger accounting tool.
 description:
-                hledger is a haskell port and friendly fork of John Wiegley's ledger accounting tool.
-                This package provides the main hledger command-line tool; see the other hledger-* packages for web and curses interfaces and chart generation.
-                hledger aims to be a reliable, practical financial reporting tool for day-to-day use, and also a useful library for building financial apps in haskell.
-                Given a plain text file describing transactions, of money or any other commodity, hledger will print the chart of accounts, account balances, or transactions you're interested in.
-                It can also help you add transactions to the journal file, or convert CSV data from your bank.
+                hledger is a library and set of user tools for working
+                with financial data (or anything that can be tracked in a
+                double-entry accounting ledger.) It is a haskell port and
+                friendly fork of John Wiegley's Ledger. hledger provides
+                command-line, curses and web interfaces, and aims to be a
+                reliable, practical tool for daily use.
 
 license:        GPL
 license-file:   LICENSE
