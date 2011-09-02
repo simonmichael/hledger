@@ -490,7 +490,7 @@ pdf: docspdf codepdf
 # 	-for d in $(DOCFILES); do (cd site && ln -sf ../$$d && pandoc $$d -w pdf && rm -f $$d); done
 
 # format all code as a pdf for offline reading
-ENSCRIPT=enscript -q --header='$$n|$$D{%+}|Page $$% of $$=' --line-numbers --font=Courier6 --color -o-
+ENSCRIPT=enscript -q --header='$$n|$$D{%+}|Page $$% of $$=' --highlight=haskell --line-numbers --font=Courier6 --color -o-
 codepdf:
 	$(ENSCRIPT) --pretty-print=makefile hledger.cabal >cabal.ps
 	$(ENSCRIPT) --pretty-print=makefile Makefile >make.ps
@@ -755,7 +755,7 @@ pushbinary:
 
 
 # show project stats useful for release notes
-releasestats: \
+showreleasestats stats: \
 	showreleasedays \
 	showunreleasedchangecount \
 	showloc \
