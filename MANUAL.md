@@ -31,7 +31,7 @@ hledger is copyright (c) 2007-2011
 [Simon&nbsp;Michael&nbsp;<simon@joyful.com>](mailto:simon@joyful.com) and
 contributors, and released as Free Software under GPL version 3 or later.
 
-This is the user manual and reference for hledger version 0.15.0.
+This is the user manual and reference for hledger version 0.15.
 
 ## Installing
 

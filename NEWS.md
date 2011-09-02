@@ -4,7 +4,11 @@ title: hledger news
 
 # News
 
-## [2011/9/2 hledger-web 0.15.1](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/)
+## [2011/9/2 hledger 0.15.1]()
+
+  * fix a parsec 2 incompatibility
+
+## [2011/9/2 hledger-web 0.15.1](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/479)
 
   * web: add missing Hledger.Web.Options to cabal file
   * web: tighten up dependencies to reduce build problems
