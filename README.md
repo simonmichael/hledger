@@ -25,7 +25,10 @@ more, including
 also a [demo](http://demo.hledger.org) of hledger's web interface. To get
 started tracking your own numbers, [download](DOWNLOAD.html) a copy.
 
-For support and more technical info, see
-[development](DEVELOPMENT.html) or
-[email me](mailto:simon@joyful.com?subject=hledger:). I appreciate
-feedback on all aspects of hledger. Thanks!
+<a href="https://www.wepay.com/donate/74643?ref=widget&utm_medium=widget&utm_campaign=donation"
+   target="_blank" style="float:right; margin:0 1em;"
+   ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
+For support and more technical info, see [development](DEVELOPMENT.html)
+or [email me](mailto:simon@joyful.com?subject=hledger:). I appreciate
+feedback on all aspects of hledger. And if hledger is helping you, feel
+free to give back and keep it growing! Best -Simon

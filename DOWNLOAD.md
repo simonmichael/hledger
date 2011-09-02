@@ -17,11 +17,21 @@ code {
 }
 </style>
 
-Here are pre-built hledger binaries which you can download. You may need
-to decompress *(gunzip FILE.gz)* and make them executable *(chmod +x
-FILE)* before running them.  For more tips, support, and alternate
-installation methods, please see the <a
-href="../MANUAL.html#installing">installation docs</a>.
+<a href="https://www.wepay.com/donate/74643?ref=widget&utm_medium=widget&utm_campaign=donation"
+   target="_blank" style="float:right;margin:0 1em;"
+   ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
+**2011/9/1 hledger 0.15 binaries**:  
+Ready-to-run binaries are time-consuming to make and support.  From
+release 0.15, I will build them on request for financial donors. This is a
+great way to give back and help the hledger project!  Of course, you can
+also [build them yourself](../MANUAL.html#installing). Thanks for your
+support. -Simon
+
+----
+
+These older hledger binaries are also available. You may need to
+decompress *(gunzip FILE.gz)* and make them executable *(chmod +x FILE)*
+before running them.
     
 <table>
   <tr>
