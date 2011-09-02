@@ -44,6 +44,7 @@ price-preserving (for amounts with the same prices) or price-ignoring
 module Hledger.Data.Amount (
   -- * Amount
   nullamt,
+  amountWithCommodity,
   canonicaliseAmountCommodity,
   setAmountPrecision,
   -- ** arithmetic
@@ -61,6 +62,7 @@ module Hledger.Data.Amount (
   amounts,
   normaliseMixedAmount,
   canonicaliseMixedAmountCommodity,
+  mixedAmountWithCommodity,
   setMixedAmountPrecision,
   -- ** arithmetic
   costOfMixedAmount,
@@ -117,12 +119,12 @@ nullamt = Amount unknown 0 Nothing
 -- The highest precision of either amount is preserved in the result.
 similarAmountsOp :: (Double -> Double -> Double) -> Amount -> Amount -> Amount
 similarAmountsOp op a@(Amount Commodity{precision=ap} _ _) (Amount bc@Commodity{precision=bp} bq _) =
-    Amount bc{precision=max ap bp} (quantity (convertAmountToCommodity bc a) `op` bq) Nothing
+    Amount bc{precision=max ap bp} (quantity (amountWithCommodity bc a) `op` bq) Nothing
 
 -- | Convert an amount to the specified commodity, ignoring and discarding
 -- any assigned prices and assuming an exchange rate of 1.
-convertAmountToCommodity :: Commodity -> Amount -> Amount
-convertAmountToCommodity c (Amount _ q _) = Amount c q Nothing
+amountWithCommodity :: Commodity -> Amount -> Amount
+amountWithCommodity c (Amount _ q _) = Amount c q Nothing
 
 -- | Convert an amount to the commodity of its assigned price, if any.  Notes:
 -- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error)
@@ -327,10 +329,10 @@ isReallyZeroMixedAmountCost :: MixedAmount -> Bool
 isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
 
 -- -- | Convert a mixed amount to the specified commodity, assuming an exchange rate of 1.
--- convertMixedAmountToCommodity :: Commodity -> MixedAmount -> Amount
--- convertMixedAmountToCommodity c (Mixed as) = Amount c total Nothing
---     where
---       total = sum $ map (quantity . convertAmountToCommodity c) as
+mixedAmountWithCommodity :: Commodity -> MixedAmount -> Amount
+mixedAmountWithCommodity c (Mixed as) = Amount c total Nothing
+    where
+      total = sum $ map (quantity . amountWithCommodity c) as
 
 -- -- | MixedAmount derived Eq instance in Types.hs doesn't know that we
 -- -- want $0 = EUR0 = 0. Yet we don't want to drag all this code over there.
