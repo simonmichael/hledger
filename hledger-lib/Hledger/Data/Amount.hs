@@ -262,7 +262,7 @@ instance Show MixedAmount where show = showMixedAmount
 instance Num MixedAmount where
     fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
     negate (Mixed as) = Mixed $ map negate as
-    (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ as ++ bs
+    (+) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingPrice $ Mixed $ as ++ bs
     (*)    = error' "programming error, mixed amounts do not support multiplication"
     abs    = error' "programming error, mixed amounts do not support abs"
     signum = error' "programming error, mixed amounts do not support signum"
@@ -275,26 +275,36 @@ nullmixedamt = Mixed []
 missingamt :: MixedAmount
 missingamt = Mixed [Amount unknown{symbol="AUTO"} 0 Nothing]
 
--- | Simplify a mixed amount by removing redundancy in its component amounts,
--- as follows:
---
--- 1. combine amounts which have the same commodity, discarding all but the first's price.
---
--- 2. remove zero amounts
---
--- 3. if there are no amounts at all, add a single zero amount
+-- | Simplify a mixed amount's component amounts: combine amounts with the
+-- same commodity and price, remove any zero amounts, and replace an empty
+-- amount list with a single zero amount.
+normaliseMixedAmountPreservingPrice :: MixedAmount -> MixedAmount
+normaliseMixedAmountPreservingPrice (Mixed as) = Mixed as''
+    where
+      as'' = if null nonzeros then [nullamt] else nonzeros
+      (_,nonzeros) = partition (\a -> isReallyZeroAmount a && Mixed [a] /= missingamt) as'
+      as' = map sumAmountsUsingFirstPrice $ group $ sort as
+      sort = sortBy (\a1 a2 -> compare (sym a1,price a1) (sym a2,price a2))
+      group = groupBy (\a1 a2 -> sym a1 == sym a2 && price a1 == price a2)
+      sym = symbol . commodity
+
+-- | Simplify a mixed amount's component amounts: combine amounts with the
+-- same commodity, remove any zero amounts, and replace an empty amount
+-- list with a single zero amount. Unlike normaliseMixedAmountPreservingPrice,
+-- this one discards all but the first price encountered in each commodity.
+-- (This is used more for display than arithmetic, but seems a bit odd. XXX)
 normaliseMixedAmount :: MixedAmount -> MixedAmount
 normaliseMixedAmount (Mixed as) = Mixed as''
     where 
       as'' = if null nonzeros then [nullamt] else nonzeros
       (_,nonzeros) = partition (\a -> isReallyZeroAmount a && Mixed [a] /= missingamt) as'
-      as' = map sumAmountsDiscardingAllButFirstPrice $ group $ sort as
+      as' = map sumAmountsUsingFirstPrice $ group $ sort as
       sort = sortBy (\a1 a2 -> compare (sym a1) (sym a2))
       group = groupBy (\a1 a2 -> sym a1 == sym a2)
       sym = symbol . commodity
 
-sumAmountsDiscardingAllButFirstPrice [] = nullamt
-sumAmountsDiscardingAllButFirstPrice as = (sum as){price=price $ head as}
+sumAmountsUsingFirstPrice [] = nullamt
+sumAmountsUsingFirstPrice as = (sum as){price=price $ head as}
 
 -- | Get a mixed amount's component amounts.
 amounts :: MixedAmount -> [Amount]

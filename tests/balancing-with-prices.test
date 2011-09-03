@@ -1,0 +1,9 @@
+# this should balance
+bin/hledger -f - print
+<<<
+2011/1/1
+    a  1h @ $10
+    b  1h @ $20
+    c  $-30
+>>>2 !/could not balance/
+>>>= 0
