@@ -12,17 +12,3 @@ bin/hledger -f - balance
 --------------------
                    0
 >>>=0
-
-# 2. Two commodities. As above, and the final total should be a single commodityless zero.
-bin/hledger -f - balance
-<<<
-2010/1/1
-  a   16$ @@ 10€
-  b   -10€
-2010/1/2
-  a   -16$
-  b   10€ @@ 16$
->>>
---------------------
-                   0
->>>=0
