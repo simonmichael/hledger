@@ -211,9 +211,8 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
      &nbsp;
      <a href=@{JournalEntriesR} title="Show journal entries">entries</a>
      &nbsp;
-     <a href=@{JournalEditR} title="Edit the journal">edit
-     &nbsp;
-     (<a#editformlink href onclick="return editformToggle(event)" title="Edit the journal">edit</a>)
+     <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
+      edit
 
   <tr
    <td colspan=3
@@ -439,14 +438,14 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
 postJournalR :: Handler RepPlain
 postJournalR = handlePost
 
+postJournalEntriesR :: Handler RepPlain
+postJournalEntriesR = handlePost
+
+postJournalEditR :: Handler RepPlain
+postJournalEditR = handlePost
+
 postRegisterR :: Handler RepPlain
 postRegisterR = handlePost
-
-postJournalOnlyR :: Handler RepPlain
-postJournalOnlyR = handlePost
-
-postRegisterOnlyR :: Handler RepPlain
-postRegisterOnlyR = handlePost
 
 -- | Handle a post from any of the edit forms.
 handlePost :: Handler RepPlain
