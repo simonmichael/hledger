@@ -544,6 +544,45 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** errors
+*** install: staticfiles error during install
+<Clint> sm: when i do cabal install hledger-web i get                   [07:46]
+<Clint> Hledger/Web/StaticFiles.hs:1:1:
+<Clint>     Exception when trying to run compile-time code:
+<Clint>       ./.hledger/web/static: getDirectoryContents: does not exist (No                                                                                                                                                               
+        such file or directory)
+<Clint>       Code: staticFiles staticdir
+<Clint> cabal: Error: some packages failed to install:
+*** cli: multiple patterns broken
+$ hledger -f wa.journal  bal assets liabilities
+             $125.00  assets
+              $95.00    literature
+              $20.00      box
+              $30.00    treasury
+--------------------
+             $125.00
+$ hledger-0.14 -f wa.journal  bal assets liabilities
+             $125.00  assets
+              $95.00    literature
+              $20.00      box
+              $30.00    treasury
+            $-173.00  liabilities:ed:literature
+--------------------
+             $-48.00
+
+*** cli: unknown flag -f
+$ hledger -f t.j
+hledger: Unknown flag: -f
+
+*** convert: order is reversed ?
+*** convert: manual needs a rewrite
+*** web: account register bug, wrong balance with virtual postings
+*** web: port argument ignored
+ $ combined web paypal -B -- --port 5003
+Running self-tests...
+Cases: 0  Tried: 0  Errors: 0  Failures: 0
+Using support files in ./.hledger/web/
+Starting http server on port 5000 with base url http://localhost:5000
+
 *** web: --base-url trailing slash gives redirect loop
 hledger-web --port 5001 --base-url http://localhost:5001/
 *** web: account patterns on command line are ignored
@@ -563,7 +602,7 @@ GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
 
 make: *** No rule to make target `help'.  Stop.
 
-*** linux 32 binary fails on ubuntu 11.04 due to libc6 gconv file path change (greenskeleton)
+*** binaries: linux 32 binary fails on ubuntu 11.04 due to libc6 gconv file path change (greenskeleton)
 http://code.google.com/p/hledger/issues/detail?id=43
 *** parsing: balancing fails for a commodityless amount with a price 
 1/1
@@ -616,6 +655,8 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
+*** balance: why is personal hierarchy broken up here ?
+$ hledger -f both.journal bal  --depth 3 -B
 *** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance" --DA
 **** TODO Needs minimal testcase
 *** register: intervals with unspecified from should start from first txn not first matched txn ?
@@ -1771,6 +1812,17 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** parsing: end directive may also be spelled end account; or end ends last directive
+*** convert: clean up default rules file
+*** convert: use default rules when converting stdin with no --rules
+*** convert: consistent multi-field formats allowed for any field
+*** convert: optionally generate single-entry txns
+*** convert: optionally set final amount blank
+*** convert: parse HH:MM[:SS] as an amount, converting to decimal hours
+*** convert: ignore heading row
+*** convert: warn and ignore unparsed rows ?
+*** web: how to find out total spent in an account during a specific month
+*** stats: list all included files
 *** parsing: alias directives should be modified by account directives
 
 *** web: should take port from base-url when appropriate
