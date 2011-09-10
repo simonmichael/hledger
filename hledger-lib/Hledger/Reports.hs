@@ -433,7 +433,7 @@ accountTransactionsReportItems matcher thisacctmatcher bal signfn (t:ts) =
       (psthisacct,psotheracct) = case thisacctmatcher of Just m  -> partition (matchesPosting m) psmatched
                                                          Nothing -> ([],psmatched)
       numotheraccts = length $ nub $ map paccount psotheracct
-      amt = sum $ map pamount psotheracct
+      amt = negate $ sum $ map pamount psthisacct
       acct | isNothing thisacctmatcher = summarisePostings psmatched -- journal register
            | numotheraccts == 0 = "transfer between " ++ summarisePostingAccounts psthisacct
            | otherwise          = prefix              ++ summarisePostingAccounts psotheracct
