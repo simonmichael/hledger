@@ -201,7 +201,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
   <tr
    <td.add colspan=3
     <br>
-    <a#addformlink href onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
+    <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
 
   <tr.item :allaccts:.inacct
    <td.journal colspan=3
@@ -209,7 +209,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
     <a href=@{JournalR} title="Show all transactions in journal format">Journal
     <span.hoverlinks
      &nbsp;
-     <a href=@{JournalEntriesR} title="Show journal entries">entries</a>
+     <a href=@{JournalEntriesR} title="Show journal entries">entries
      &nbsp;
      <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
       edit
@@ -223,10 +223,11 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    ^{itemAsHtml vd i}
 
   <tr.totalrule>
-   <td colspan=2>
+   <td colspan=3>
   <tr>
    <td>
    <td.balance align=right>#{mixedAmountAsHtml total}
+   <td>
 |]
  where
    l = journalToLedger nullfilterspec j
@@ -619,10 +620,10 @@ navlink VD{..} s dest title = [$hamlet|
 -- | Links to the various journal editing forms.
 editlinks :: Hamlet AppRoute
 editlinks = [$hamlet|
-<a#editformlink href onclick="return editformToggle(event)" title="Toggle journal edit form">edit
+<a#editformlink href="#" onclick="return editformToggle(event)" title="Toggle journal edit form">edit
 \ | #
-<a#addformlink href onclick="return addformToggle(event)" title="Toggle transaction add form">add
-<a#importformlink href onclick="return importformToggle(event)" style="display:none;">import transactions
+<a#addformlink href="#" onclick="return addformToggle(event)" title="Toggle transaction add form">add
+<a#importformlink href="#" onclick="return importformToggle(event)" style="display:none;">import transactions
 |]
 
 -- | Link to a topic in the manual.
@@ -727,7 +728,7 @@ addform vd@VD{..} = [$hamlet|
      $if manyfiles
       \ to: ^{journalselect $ files j}
      \ or #
-     <a href onclick="return addformToggle(event)">cancel
+     <a href="#" onclick="return addformToggle(event)">cancel
 |]
  where
   title = "Add transaction" :: String
@@ -795,11 +796,12 @@ editform VD{..} = [$hamlet|
    <td
     <span.help>^{formathelp}
    <td align=right
-    <span.help Are you sure ? This will overwrite the journal. #
+    <span.help
+     Are you sure ? This will overwrite the journal. #
     <input type=hidden name=action value=edit
     <input type=submit name=submit value="save journal"
     \ or #
-    <a href onclick="return editformToggle(event)">cancel
+    <a href="#" onclick="return editformToggle(event)">cancel
 |]
   where
     manyfiles = (length $ files j) > 1
@@ -816,7 +818,7 @@ importform = [$hamlet|
     <input type=hidden name=action value=import
     <input type=submit name=submit value="import from file"
     \ or #
-    <a href onclick="return importformToggle(event)" cancel
+    <a href="#" onclick="return importformToggle(event)" cancel
 |]
 
 journalselect :: [(FilePath,String)] -> Hamlet AppRoute
