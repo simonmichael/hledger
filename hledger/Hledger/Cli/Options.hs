@@ -310,7 +310,7 @@ toCliOpts rawopts = do
                             ,quarterly_ = boolopt "quarterly" rawopts
                             ,yearly_    = boolopt "yearly" rawopts
                             ,format_    = maybestringopt "format" rawopts
-                            ,patterns_  = words'' prefixes $ singleQuoteIfNeeded $ stringopt "args" rawopts
+                            ,patterns_  = listofstringopt "args" rawopts
                             }
              }
 

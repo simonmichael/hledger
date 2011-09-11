@@ -23,3 +23,15 @@ bin/hledger -f- register desc:'x x'
 2010/03/02 x x                  a                                 1            1
                                 b                                -1            0
 >>>=0
+
+#
+# 3. multiple patterns, spaced and punctuated patterns
+bin/hledger -f- register 'a a' "'b"
+<<<
+2011/9/11
+  a a  1
+  'b
+>>>
+2011/09/11                      a a                               1            1
+                                'b                               -1            0
+>>>=0
