@@ -87,7 +87,8 @@ main = do
         showModeHelpOr mode f | "help" `in_` (rawopts_ opts) = putStr $ showModeHelp mode
                               | otherwise = f
         matchedaddon = headDef "" $ filter (cmd `isPrefixOf`) addons
-        shellcmd = printf "%s-%s %s" progname matchedaddon (unwords' args)
+        shellcmd = printf "%s-%s %s" progname matchedaddon (unwords' argswithoutcmd)
+        argswithoutcmd = args1 ++ drop 1 args2 where (args1,args2) = break (== cmd) args
 
 {- tests:
 
