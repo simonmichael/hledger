@@ -53,6 +53,7 @@ mainmode addons = defmode {
  ,modeGroupFlags = Group {
      groupUnnamed = helpflags
     ,groupHidden = [flagNone ["binary-filename"] (setboolopt "binary-filename") "show the download filename for this executable, and exit"]
+                   ++ fileflags -- quietly permit these flags before COMMAND as well
     ,groupNamed = []
     }
  ,modeArgs = ([], Just mainargsflag)
@@ -136,15 +137,9 @@ helpflags = [
  ,flagVersion (setboolopt "version")
  ]
 
-mainargsflag = flagArg f ""
-    where f s opts = let as = words' s
-                         cmd = headDef "" as
-                         args = drop (length cmd + 1) s
-                     in Right $ setopt "command" cmd $ setopt "args" args opts
-
+mainargsflag    = flagArg (\s opts -> Right $ setopt "args" s opts) ""
 commandargsflag = flagArg (\s opts -> Right $ setopt "args" s opts) "[PATTERNS]"
-
-addonargsflag = flagArg (\s opts -> Right $ setopt "args" s opts) "[ARGS]"
+addonargsflag   = flagArg (\s opts -> Right $ setopt "args" s opts) "[ARGS]"
 
 commandmode names = defmode {modeNames=names, modeValue=[("command",headDef "" names)]}
 
