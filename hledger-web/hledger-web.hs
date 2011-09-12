@@ -25,7 +25,6 @@ import Yesod.Logger (makeLogger)
 
 import Hledger
 import Hledger.Cli hiding (progname,progversion)
-import Hledger.Cli.Tests
 import Prelude hiding (putStrLn)
 import Hledger.Utils.UTF8 (putStrLn)
 import Hledger.Web
@@ -54,8 +53,6 @@ withJournalDo' opts cmd = do
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
-  putStrLn $ "Running self-tests..."
-  runTestsOrExit $ cliopts_ opts
   -- unless (debug_ $ cliopts_ opts) $ forkIO (browser baseurl) >> return ()
   server (base_url_ opts) (port_ opts) opts j
 
