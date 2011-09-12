@@ -48,11 +48,11 @@ executable hledger-web
       ghc-options:   -W -threaded
   other-modules:
                      Hledger.Web
-                     Hledger.Web.App
-                     Hledger.Web.AppRun
+                     Hledger.Web.Foundation
+                     Hledger.Web.Application
                      Hledger.Web.Options
                      Hledger.Web.Settings
-                     Hledger.Web.StaticFiles
+                     Hledger.Web.Settings.StaticFiles
                      Hledger.Web.Handlers
   build-depends:
                   hledger == 0.16
@@ -99,11 +99,11 @@ library
     else
         Buildable: False
     exposed-modules: 
-                     Hledger.Web.AppRun
+                     Hledger.Web.Application
     other-modules:
                      Hledger.Web
-                     Hledger.Web.App
+                     Hledger.Web.Foundation
                      Hledger.Web.Options
                      Hledger.Web.Settings
-                     Hledger.Web.StaticFiles
+                     Hledger.Web.Settings.StaticFiles
                      Hledger.Web.Handlers

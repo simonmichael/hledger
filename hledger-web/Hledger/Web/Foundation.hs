@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Hledger.Web.App
+module Hledger.Web.Foundation
     ( App (..)
     , AppRoute (..)
     , resourcesApp
@@ -28,7 +28,7 @@ import qualified Data.Text as T
 import Hledger.Data
 import Hledger.Web.Options
 import Hledger.Web.Settings
-import Hledger.Web.StaticFiles
+import Hledger.Web.Settings.StaticFiles
 
 
 -- | The site argument for your application. This can be a good place to

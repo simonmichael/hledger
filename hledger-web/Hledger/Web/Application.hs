@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Hledger.Web.AppRun (
+module Hledger.Web.Application (
                withApp
               ,withDevelAppPort
               )
@@ -16,7 +16,7 @@ import Yesod.Logger (makeLogger, flushLogger, Logger, logLazyText, logString)
 import Yesod.Static
 
 import Hledger
-import Hledger.Web.App
+import Hledger.Web.Foundation
 import Hledger.Web.Handlers
 import Hledger.Web.Options
 import Hledger.Web.Settings
