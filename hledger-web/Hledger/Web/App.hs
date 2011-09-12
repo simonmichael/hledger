@@ -1,4 +1,5 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Hledger.Web.App
     ( App (..)
     , AppRoute (..)
@@ -6,45 +7,43 @@ module Hledger.Web.App
     , Handler
     , Widget
     , module Yesod.Core
+    -- , module Settings
     , StaticRoute (..)
     , lift
     , liftIO
     ) where
 
-import Control.Monad
-import Control.Monad.Trans.Class (lift)
+import Control.Monad (unless)
 import Control.Monad.IO.Class (liftIO)
-import qualified Data.ByteString.Lazy as L
-import qualified Data.Text as T
+import Control.Monad.Trans.Class (lift)
 import System.Directory
 import Text.Hamlet hiding (hamletFile)
+import Web.ClientSession (getKey)
 import Yesod.Core
-import Yesod.Helpers.Static
+import Yesod.Logger (Logger, logLazyText)
+import Yesod.Static (Static, base64md5, StaticRoute(..))
+import qualified Data.ByteString.Lazy as L
+import qualified Data.Text as T
 
 import Hledger.Data
 import Hledger.Web.Options
 import Hledger.Web.Settings
 import Hledger.Web.StaticFiles
 
+
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
 -- starts running, such as database connections. Every handler will have
 -- access to the data present here.
 data App = App
-    {getStatic :: Static -- ^ Settings for static file serving.
-    ,appRoot    :: T.Text
+    { settings :: Hledger.Web.Settings.AppConfig
+    , getLogger :: Logger
+    , getStatic :: Static -- ^ Settings for static file serving.
+
     ,appOpts    :: WebOpts
     ,appArgs    :: [String]
     ,appJournal :: Journal
     }
-
--- | A useful synonym; most of the handler functions in your application
--- will need to be of this type.
-type Handler = GHandler App App
-
--- | A useful synonym; most of the widgets functions in your application
--- will need to be of this type.
-type Widget = GWidget App App
 
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
@@ -57,7 +56,7 @@ type Widget = GWidget App App
 -- * Creates the associated type:
 --       type instance Route App = AppRoute
 -- * Creates the value resourcesApp which contains information on the
---   resources declared below. This is used in Controller.hs by the call to
+--   resources declared below. This is used in Handler.hs by the call to
 --   mkYesodDispatch
 --
 -- What this function does *not* do is create a YesodSite instance for
@@ -70,13 +69,17 @@ mkYesodData "App" $(parseRoutesFile "routes")
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
 instance Yesod App where
-    approot = appRoot
+    approot = Hledger.Web.Settings.appRoot . settings
+
+    -- Place the session key file in the config folder
+    encryptKey _ = fmap Just $ getKey "client_session_key.aes"
 
     defaultLayout widget = do
         -- mmsg <- getMessage
         pc <- widgetToPageContent $ do
             widget
-            -- addCassius $(Settings.cassiusFile "default-layout")
+        --     addCassius $(cassiusFile "default-layout")
+        -- hamletToRepHtml $(hamletFile "default-layout")
         hamletToRepHtml [$hamlet|
 !!!
 <html
@@ -96,11 +99,14 @@ instance Yesod App where
   ^{pageBody pc}
 |]
 
-    -- -- This is done to provide an optimization for serving static files from
-    -- -- a separate domain. Please see the staticroot setting in Settings.hs
-    -- urlRenderOverride a (StaticR s) =
-    --     Just $ uncurry (joinPath a Settings.staticroot) $ renderRoute s
+    -- This is done to provide an optimization for serving static files from
+    -- a separate domain. Please see the staticroot setting in Settings.hs
+    -- urlRenderOverride y (StaticR s) =
+    --     Just $ uncurry (joinPath y (Settings.staticRoot $ settings y)) $ renderRoute s
     -- urlRenderOverride _ _ = Nothing
+
+    messageLogger y loc level msg =
+      formatLogMessage loc level msg >>= logLazyText (getLogger y)
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -108,10 +114,9 @@ instance Yesod App where
     -- users receiving stale content.
     addStaticContent ext' _ content = do
         let fn = base64md5 content ++ '.' : T.unpack ext'
-        let statictmp = Hledger.Web.Settings.staticdir ++ "/tmp/"
+        let statictmp = Hledger.Web.Settings.staticDir ++ "/tmp/"
         liftIO $ createDirectoryIfMissing True statictmp
         let fn' = statictmp ++ fn
         exists <- liftIO $ doesFileExist fn'
         unless exists $ liftIO $ L.writeFile fn' content
         return $ Just $ Right (StaticR $ StaticRoute ["tmp", T.pack fn] [], [])
-

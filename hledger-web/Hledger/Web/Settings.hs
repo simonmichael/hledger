@@ -1,8 +1,6 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeFamilies #-}
 -- | Settings are centralized, as much as possible, into this file. This
 -- includes database connection settings, static file locations, etc.
 -- In addition, you can configure a number of different aspects of Yesod
@@ -14,30 +12,36 @@ module Hledger.Web.Settings
     , juliusFile
     , luciusFile
     , widgetFile
-    , datadir
-    , staticdir
-    -- , staticroot
+    , staticRoot
+    , staticDir
+    , loadConfig
+    , AppEnvironment(..)
+    , AppConfig(..)
+
     , defhost
     , defport
     , defapproot
-    -- , browserstartdelay
     , hledgerorgurl
     , manualurl
+    , datadir
+
     ) where
 
-import Data.Monoid (mempty) --, mappend)
-import Data.Text (Text,pack)
+import qualified Text.Hamlet as S
+import qualified Text.Cassius as S
+import qualified Text.Julius as S
+import qualified Text.Lucius as S
+import Text.Printf
+import qualified Text.Shakespeare.Text as S
+import Text.Shakespeare.Text (st)
 import Language.Haskell.TH.Syntax
+import Yesod.Widget (addWidget, addCassius, addJulius, addLucius, whamletFile)
+import Data.Monoid (mempty)
 import System.Directory (doesFileExist)
-import Text.Printf (printf)
-import qualified Text.Hamlet as H
-import qualified Text.Cassius as H
-import qualified Text.Julius as H
-import qualified Text.Lucius as H
-import Yesod.Widget (addWidget, addCassius, addJulius, addLucius)
-
-
--- browserstartdelay = 100000 -- microseconds
+import Data.Text (Text, pack)
+import Data.Object
+import qualified Data.Object.Yaml as YAML
+import Control.Monad (join)
 
 hledgerorgurl, manualurl :: String
 hledgerorgurl     = "http://hledger.org"
@@ -50,49 +54,88 @@ defport = 5000
 defhost :: String
 defhost = "localhost"
 
--- | The default base URL for your application. This will usually be different for
--- development and production. Yesod automatically constructs URLs for you,
--- so this value must be accurate to create valid links.
--- For hledger-web this is usually overridden with --base-url.
 defapproot :: Text
 defapproot = pack $ printf "http://%s:%d" defhost defport
--- #ifdef PRODUCTION
--- #else
--- #endif
 
--- | Hard-coded data directory path. This must be in your current dir when
--- you compile. At run time it's also required but we'll auto-create it.
-datadir :: FilePath
-datadir = "./.hledger/web/"
 
--- -- | The base URL for your static files. As you can see by the default
--- -- value, this can simply be "static" appended to your application root.
--- -- A powerful optimization can be serving static files from a separate
--- -- domain name. This allows you to use a web server optimized for static
--- -- files, more easily set expires and cache values, and avoid possibly
--- -- costly transference of cookies on static files. For more information,
--- -- please see:
--- --   http://code.google.com/speed/page-speed/docs/request.html#ServeFromCookielessDomain
--- --
--- -- If you change the resource pattern for StaticR in hledger-web.hs, you will
--- -- have to make a corresponding change here.
--- --
--- -- To see how this value is used, see urlRenderOverride in hledger-web.hs
--- staticroot :: Text
--- staticroot = defapproot `mappend` "/static"
+data AppEnvironment = Test
+                    | Development
+                    | Staging
+                    | Production
+                    deriving (Eq, Show, Read, Enum, Bounded)
+
+-- | Dynamic per-environment configuration loaded from the YAML file Settings.yaml.
+-- Use dynamic settings to avoid the need to re-compile the application (between staging and production environments).
+--
+-- By convention these settings should be overwritten by any command line arguments.
+-- See config/App.hs for command line arguments
+-- Command line arguments provide some convenience but are also required for hosting situations where a setting is read from the environment (appPort on Heroku).
+--
+data AppConfig = AppConfig {
+    appEnv :: AppEnvironment
+
+  , appPort :: Int
+
+    -- | The base URL for your application. This will usually be different for
+    -- development and production. Yesod automatically constructs URLs for you,
+    -- so this value must be accurate to create valid links.
+    -- Please note that there is no trailing slash.
+    --
+    -- You probably want to change this! If your domain name was "yesod.com",
+    -- you would probably want it to be:
+    -- > "http://yesod.com"
+  , appRoot :: Text
+} deriving (Show)
+
+loadConfig :: AppEnvironment -> IO AppConfig
+loadConfig env = do
+    allSettings <- (join $ YAML.decodeFile ("config/settings.yml" :: String)) >>= fromMapping
+    settings <- lookupMapping (show env) allSettings
+    hostS <- lookupScalar "host" settings
+    port <- fmap read $ lookupScalar "port" settings
+    return $ AppConfig {
+      appEnv = env
+    , appPort = port
+    , appRoot = pack $ hostS ++ addPort port
+    }
+    where
+        addPort :: Int -> String
+#ifdef PRODUCTION
+        addPort _ = ""
+#else
+        addPort p = ":" ++ (show p)
+#endif
 
 -- | The location of static files on your system. This is a file system
 -- path. The default value works properly with your scaffolded site.
-staticdir :: FilePath
-staticdir = datadir++"static"
+staticDir :: FilePath
+--staticDir = "static"
+staticDir = datadir++"static"
 
+datadir :: FilePath
+datadir = "./.hledger/web/"
 
+-- | The base URL for your static files. As you can see by the default
+-- value, this can simply be "static" appended to your application root.
+-- A powerful optimization can be serving static files from a separate
+-- domain name. This allows you to use a web server optimized for static
+-- files, more easily set expires and cache values, and avoid possibly
+-- costly transference of cookies on static files. For more information,
+-- please see:
+--   http://code.google.com/speed/page-speed/docs/request.html#ServeFromCookielessDomain
+--
+-- If you change the resource pattern for StaticR in hledger-web.hs, you will
+-- have to make a corresponding change here.
+--
+-- To see how this value is used, see urlRenderOverride in hledger-web.hs
+staticRoot :: AppConfig ->  Text
+staticRoot conf = [st|#{appRoot conf}/static|]
 
 -- The rest of this file contains settings which rarely need changing by a
 -- user.
 
--- The following three functions are used for calling HTML, CSS and
--- Javascript templates from your Haskell code. During development,
+-- The following functions are used for calling HTML, CSS,
+-- Javascript, and plain text templates from your Haskell code. During development,
 -- the "Debug" versions of these functions are used so that changes to
 -- the templates are immediately reflected in an already running
 -- application. When making a production compile, the non-debug version
@@ -104,44 +147,54 @@ staticdir = datadir++"static"
 -- used; to get the same auto-loading effect, it is recommended that you
 -- use the devel server.
 
-toHamletFile, toCassiusFile, toJuliusFile, toLuciusFile :: String -> FilePath
-toHamletFile x  = datadir++"templates/" ++ x ++ ".hamlet"
-toCassiusFile x = datadir++"templates/" ++ x ++ ".cassius"
-toJuliusFile x  = datadir++"templates/" ++ x ++ ".julius"
-toLuciusFile x  = datadir++"templates/" ++ x ++ ".lucius"
+-- | expects a root folder for each type, e.g: hamlet/ lucius/ julius/
+globFile :: String -> String -> FilePath
+-- globFile kind x = kind ++ "/" ++ x ++ "." ++ kind
+globFile kind x = datadir ++ "templates/" ++ x ++ "." ++ kind
 
 hamletFile :: FilePath -> Q Exp
-hamletFile = H.hamletFile . toHamletFile
+hamletFile = S.hamletFile . globFile "hamlet"
 
 cassiusFile :: FilePath -> Q Exp
+cassiusFile =
 #ifdef PRODUCTION
-cassiusFile = H.cassiusFile . toCassiusFile
+  S.cassiusFile . globFile "cassius"
 #else
-cassiusFile = H.cassiusFileDebug . toCassiusFile
+  S.cassiusFileDebug . globFile "cassius"
 #endif
 
 luciusFile :: FilePath -> Q Exp
+luciusFile =
 #ifdef PRODUCTION
-luciusFile = H.luciusFile . toLuciusFile
+  S.luciusFile . globFile "lucius"
 #else
-luciusFile = H.luciusFileDebug . toLuciusFile
+  S.luciusFileDebug . globFile "lucius"
 #endif
 
 juliusFile :: FilePath -> Q Exp
+juliusFile =
 #ifdef PRODUCTION
-juliusFile = H.juliusFile . toJuliusFile
+  S.juliusFile . globFile "julius"
 #else
-juliusFile = H.juliusFileDebug . toJuliusFile
+  S.juliusFileDebug . globFile "julius"
+#endif
+
+textFile :: FilePath -> Q Exp
+textFile =
+#ifdef PRODUCTION
+  S.textFile . globFile "text"
+#else
+  S.textFileDebug . globFile "text"
 #endif
 
 widgetFile :: FilePath -> Q Exp
 widgetFile x = do
-    let h = unlessExists toHamletFile hamletFile
-    let c = unlessExists toCassiusFile cassiusFile
-    let j = unlessExists toJuliusFile juliusFile
-    let l = unlessExists toLuciusFile luciusFile
+    let h = whenExists (globFile "hamlet")  (whamletFile . globFile "hamlet")
+    let c = whenExists (globFile "cassius") cassiusFile
+    let j = whenExists (globFile "julius")  juliusFile
+    let l = whenExists (globFile "lucius")  luciusFile
     [|addWidget $h >> addCassius $c >> addJulius $j >> addLucius $l|]
   where
-    unlessExists tofn f = do
+    whenExists tofn f = do
         e <- qRunIO $ doesFileExist $ tofn x
         if e then f x else [|mempty|]

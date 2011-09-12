@@ -11,8 +11,8 @@ This is a separate module to satisfy template haskell requirements.
 -}
 module Hledger.Web.StaticFiles where
 
-import Yesod.Helpers.Static
+import Yesod.Static
 
-import Hledger.Web.Settings (staticdir)
+import Hledger.Web.Settings (staticDir)
 
-$(staticFiles staticdir)
+$(staticFiles staticDir)

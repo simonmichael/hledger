@@ -17,10 +17,10 @@ import Data.Text(Text,pack,unpack)
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
--- import Safe
 import System.FilePath (takeFileName, (</>))
 import System.IO.Storage (putValue, getValue)
 import System.Locale (defaultTimeLocale)
+import Text.Blaze (preEscapedString, toHtml)
 import Text.Hamlet hiding (hamletFile)
 import Text.Printf
 import Yesod.Form
@@ -34,7 +34,7 @@ import Hledger.Web.Settings
 
 
 getFaviconR :: Handler ()
-getFaviconR = sendFile "image/x-icon" $ Hledger.Web.Settings.staticdir </> "favicon.ico"
+getFaviconR = sendFile "image/x-icon" $ Hledger.Web.Settings.staticDir </> "favicon.ico"
 
 getRobotsR :: Handler RepPlain
 getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)
@@ -187,11 +187,11 @@ getAccountsJsonR = do
 -- view helpers
 
 -- | Render the sidebar used on most views.
-sidebar :: ViewData -> Hamlet AppRoute
+sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j
 
 -- | Render a "AccountsReport" as HTML.
-accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> Hamlet AppRoute
+accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> HtmlUrl AppRoute
 accountsReportAsHtml _ vd@VD{..} (items',total) =
  [$hamlet|
 <div#accountsheading
@@ -234,7 +234,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    inacctmatcher = inAccountMatcher qopts
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
-   itemAsHtml :: ViewData -> AccountsReportItem -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> AccountsReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [$hamlet|
 <tr.item.#{inacctclass}
  <td.account.#{depthclass}
@@ -272,14 +272,14 @@ accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRe
 accountUrl r a = (r, [("q",pack $ accountQuery a)])
 
 -- | Render a "EntriesReport" as HTML for the journal entries view.
-entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> Hamlet AppRoute
+entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> HtmlUrl AppRoute
 entriesReportAsHtml _ vd items = [$hamlet|
 <table.journalreport>
  $forall i <- numbered items
   ^{itemAsHtml vd i}
  |]
  where
-   itemAsHtml :: ViewData -> (Int, EntriesReportItem) -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> (Int, EntriesReportItem) -> HtmlUrl AppRoute
    itemAsHtml _ (n, t) = [$hamlet|
 <tr.item.#{evenodd}>
  <td.transaction>
@@ -290,7 +290,7 @@ entriesReportAsHtml _ vd items = [$hamlet|
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
 -- | Render an "TransactionsReport" as HTML for the formatted journal view.
-journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> Hamlet AppRoute
+journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 journalTransactionsReportAsHtml _ vd (_,items) = [$hamlet|
 <table.journalreport
  <tr.headings
@@ -303,7 +303,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [$hamlet|
  |]
  where
 -- .#{datetransition}
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [$hamlet|
 <tr.item.#{evenodd}.#{firstposting}
  <td.date>#{date}
@@ -328,14 +328,14 @@ $forall p <- tpostings t
        showamt = not split || not (isZeroMixedAmount amt)
 
 -- Generate html for an account register, including a balance chart and transaction list.
-registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> Hamlet AppRoute
+registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerReportHtml opts vd r@(_,items) = [$hamlet|
  ^{registerChartHtml items}
  ^{registerItemsHtml opts vd r}
 |]
 
 -- Generate html for a transaction list from an "TransactionsReport".
-registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> Hamlet AppRoute
+registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
 <table.registerreport
  <tr.headings
@@ -353,7 +353,7 @@ registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
  where
    -- inacct = inAccount qopts
    -- filtering = m /= MatchAny
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> Hamlet AppRoute
+   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
@@ -451,7 +451,7 @@ postRegisterR = handlePost
 -- | Handle a post from any of the edit forms.
 handlePost :: Handler RepPlain
 handlePost = do
-  action <- runFormPost' $ maybeStringInput "action"
+  action <- lookupPostParam  "action"
   case action of Just "add"    -> handleAdd
                  Just "edit"   -> handleEdit
                  Just "import" -> handleImport
@@ -462,15 +462,13 @@ handleAdd :: Handler RepPlain
 handleAdd = do
   VD{..} <- getViewData
   -- get form input values. M means a Maybe value.
-  (dateM, descM, acct1M, amt1M, acct2M, amt2M, journalM) <- runFormPost'
-    $ (,,,,,,)
-    <$> maybeStringInput "date"
-    <*> maybeStringInput "description"
-    <*> maybeStringInput "account1"
-    <*> maybeStringInput "amount1"
-    <*> maybeStringInput "account2"
-    <*> maybeStringInput "amount2"
-    <*> maybeStringInput "journal"
+  dateM <- lookupPostParam  "date"
+  descM <- lookupPostParam  "description"
+  acct1M <- lookupPostParam  "account1"
+  amt1M <- lookupPostParam  "amount1"
+  acct2M <- lookupPostParam  "account2"
+  amt2M <- lookupPostParam  "amount2"
+  journalM <- lookupPostParam  "journal"
   -- supply defaults and parse date and amounts, or get errors.
   let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . unpack) dateM
       descE = Right $ maybe "" unpack descM
@@ -506,7 +504,7 @@ handleAdd = do
    Left errs -> do
     -- save current form values in session
     -- setMessage $ toHtml $ intercalate "; " errs
-    setMessage [$hamlet|
+    setMessage [$shamlet|
                  Errors:<br>
                  $forall e<-errs
                   #{e}<br>
@@ -518,7 +516,7 @@ handleAdd = do
     liftIO $ do ensureJournalFile journalpath
                 appendToJournalFileOrStdout journalpath $ showTransaction t'
     -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
-    setMessage [$hamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
+    setMessage [$shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
     redirectParams RedirectTemporary RegisterR [("add","1")]
 
 chomp :: String -> String
@@ -530,10 +528,8 @@ handleEdit = do
   VD{..} <- getViewData
   -- get form input values, or validation errors.
   -- getRequest >>= liftIO (reqRequestBody req) >>= mtrace
-  (textM, journalM) <- runFormPost'
-    $ (,)
-    <$> maybeStringInput "text"
-    <*> maybeStringInput "journal"
+  textM <- lookupPostParam "text"
+  journalM <- lookupPostParam "journal"
   let textE = maybe (Left "No value provided") (Right . unpack) textM
       journalE = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
@@ -578,7 +574,7 @@ handleImport = do
   setMessage "can't handle file upload yet"
   redirect RedirectTemporary JournalR
   -- -- get form input values, or basic validation errors. E means an Either value.
-  -- fileM <- runFormPost' $ maybeFileInput "file"
+  -- fileM <- runFormPost $ maybeFileInput "file"
   -- let fileE = maybe (Left "No file provided") Right fileM
   -- -- display errors or import transactions
   -- case fileE of
@@ -594,7 +590,7 @@ handleImport = do
 -- | Other view components.
 
 -- | Global toolbar/heading area.
-topbar :: ViewData -> Hamlet AppRoute
+topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [$hamlet|
 <div#topbar
  <a.topleftlink href=#{hledgerorgurl} title="More about hledger"
@@ -610,7 +606,7 @@ $maybe m <- msg
     title = takeFileName $ journalFilePath j
 
 -- | Navigation link, preserving parameters and possibly highlighted.
-navlink :: ViewData -> String -> AppRoute -> String -> Hamlet AppRoute
+navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
 navlink VD{..} s dest title = [$hamlet|
 <a##{s}link.#{style} href=@?{u} title="#{title}">#{s}
 |]
@@ -619,7 +615,7 @@ navlink VD{..} s dest title = [$hamlet|
               | otherwise    = "navlink" :: Text
 
 -- | Links to the various journal editing forms.
-editlinks :: Hamlet AppRoute
+editlinks :: HtmlUrl AppRoute
 editlinks = [$hamlet|
 <a#editformlink href="#" onclick="return editformToggle(event)" title="Toggle journal edit form">edit
 \ | #
@@ -628,14 +624,14 @@ editlinks = [$hamlet|
 |]
 
 -- | Link to a topic in the manual.
-helplink :: String -> String -> Hamlet AppRoute
+helplink :: String -> String -> HtmlUrl AppRoute
 helplink topic label = [$hamlet|
 <a href=#{u} target=hledgerhelp>#{label}
 |]
     where u = manualurl ++ if null topic then "" else '#':topic
 
 -- | Search form for entering custom queries to filter journal data.
-searchform :: ViewData -> Hamlet AppRoute
+searchform :: ViewData -> HtmlUrl AppRoute
 searchform VD{..} = [$hamlet|
 <div#searchformdiv
  <form#searchform.form method=GET
@@ -676,7 +672,7 @@ searchform VD{..} = [$hamlet|
   filtering = not $ null q
 
 -- | Add transaction form.
-addform :: ViewData -> Hamlet AppRoute
+addform :: ViewData -> HtmlUrl AppRoute
 addform vd@VD{..} = [$hamlet|
 <script type=text/javascript>
  $(document).ready(function() {
@@ -779,7 +775,7 @@ addform vd@VD{..} = [$hamlet|
                      )
 
 -- | Edit journal form.
-editform :: ViewData -> Hamlet AppRoute
+editform :: ViewData -> HtmlUrl AppRoute
 editform VD{..} = [$hamlet|
 <form#editform method=POST style=display:none;
  <table.form
@@ -809,7 +805,7 @@ editform VD{..} = [$hamlet|
     formathelp = helplink "file-format" "file format help"
 
 -- | Import journal form.
-importform :: Hamlet AppRoute
+importform :: HtmlUrl AppRoute
 importform = [$hamlet|
 <form#importform method=POST style=display:none;
  <table.form
@@ -822,14 +818,14 @@ importform = [$hamlet|
     <a href="#" onclick="return importformToggle(event)" cancel
 |]
 
-journalselect :: [(FilePath,String)] -> Hamlet AppRoute
+journalselect :: [(FilePath,String)] -> HtmlUrl AppRoute
 journalselect journalfiles = [$hamlet|
 <select id=journalselect name=journal onchange="editformJournalSelect(event)"
  $forall f <- journalfiles
   <option value=#{fst f}>#{fst f}
 |]
 
-nulltemplate :: Hamlet AppRoute
+nulltemplate :: HtmlUrl AppRoute
 nulltemplate = [$hamlet||]
 
 ----------------------------------------------------------------------
