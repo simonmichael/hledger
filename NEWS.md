@@ -36,12 +36,9 @@ title: hledger news
   * web: fix wrong transaction amount in account register with virtual postings
   * web: fix some invalid html
 
-## [2011/9/2 hledger 0.15.1, hledger-web 0.15.2]()
+## [2011/9/2 hledger 0.15.1, hledger-web 0.15.2](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/479)
 
   * fix a parsec 2 incompatibility
-
-## [2011/9/2 hledger-web 0.15.1](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/479)
-
   * web: add missing Hledger.Web.Options to cabal file
   * web: tighten up dependencies to reduce build problems
 
