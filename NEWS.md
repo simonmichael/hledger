@@ -4,6 +4,16 @@ title: hledger news
 
 # News
 
+## [2011/9/12 hledger 0.15.2]()
+
+  * handle multiple filter patterns on the command-line again
+  * don't pass an addon command's name to it as an extra argument
+  * don't give a confusing error with -f and no command
+  * fix a regression balancing a transaction containing different prices
+  * web: fix journal edit form
+  * web: fix wrong transaction amount in account register with virtual postings
+  * web: fix some invalid html
+
 ## [2011/9/2 hledger 0.15.1]()
 
   * fix a parsec 2 incompatibility
