@@ -5,7 +5,6 @@ Re-export the modules of the hledger-web program.
 module Hledger.Web (
                      module Hledger.Web.App,
                      module Hledger.Web.AppRun,
-                     module Hledger.Web.EmbeddedFiles,
                      module Hledger.Web.Handlers,
                      module Hledger.Web.Options,
                      module Hledger.Web.Settings,
@@ -17,7 +16,6 @@ import Test.HUnit
 
 import Hledger.Web.App
 import Hledger.Web.AppRun
-import Hledger.Web.EmbeddedFiles
 import Hledger.Web.Handlers
 import Hledger.Web.Options
 import Hledger.Web.Settings

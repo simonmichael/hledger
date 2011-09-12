@@ -22,7 +22,7 @@ module Hledger.Web.Settings
     , defbaseurl
     , hledgerorgurl
     , manualurl
-    , datadir
+    -- , datadir
 
     ) where
 
@@ -109,7 +109,8 @@ staticDir :: FilePath
 staticDir = datadir++"static"
 
 datadir :: FilePath
-datadir = "./.hledger/web/"
+datadir = "./"
+-- datadir = "./.hledger/web/"
 
 -- | The base URL for your static files. As you can see by the default
 -- value, this can simply be "static" appended to your application root.

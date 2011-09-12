@@ -54,17 +54,10 @@ withJournalDo' opts cmd = do
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
-  created <- createFilesIfMissing
-  if created
-   then do
-     putStrLn $ "Installing support files in "++datadir++" - done, please run again."
-     exitFailure
-   else do
-     putStrLn $ "Running self-tests..."
-     runTestsOrExit $ cliopts_ opts
-     putStrLn $ "Using support files in "++datadir
-     -- unless (debug_ $ cliopts_ opts) $ forkIO (browser baseurl) >> return ()
-     server (base_url_ opts) (port_ opts) opts j
+  putStrLn $ "Running self-tests..."
+  runTestsOrExit $ cliopts_ opts
+  -- unless (debug_ $ cliopts_ opts) $ forkIO (browser baseurl) >> return ()
+  server (base_url_ opts) (port_ opts) opts j
 
 -- browser :: String -> IO ()
 -- browser baseurl = do

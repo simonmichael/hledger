@@ -22,7 +22,6 @@ cabal-version:  >= 1.6
 build-type:     Simple
 extra-tmp-files:
 extra-source-files:
--- included via hamletFile/EmbeddedFiles.hs since yesod needs the paths at compile-time
 -- data-dir:    
 -- data-files:  
 
@@ -51,7 +50,6 @@ executable hledger-web
                      Hledger.Web
                      Hledger.Web.App
                      Hledger.Web.AppRun
-                     Hledger.Web.EmbeddedFiles
                      Hledger.Web.Options
                      Hledger.Web.Settings
                      Hledger.Web.StaticFiles
@@ -105,7 +103,6 @@ library
     other-modules:
                      Hledger.Web
                      Hledger.Web.App
-                     Hledger.Web.EmbeddedFiles
                      Hledger.Web.Options
                      Hledger.Web.Settings
                      Hledger.Web.StaticFiles
