@@ -575,7 +575,6 @@ hledger: Unknown flag: -f
 
 *** convert: order is reversed ?
 *** convert: manual needs a rewrite
-*** web: account register bug, wrong balance with virtual postings
 *** web: port argument ignored
  $ combined web paypal -B -- --port 5003
 Running self-tests...
@@ -1821,6 +1820,7 @@ http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pd
 *** convert: parse HH:MM[:SS] as an amount, converting to decimal hours
 *** convert: ignore heading row
 *** convert: warn and ignore unparsed rows ?
+*** web: should display virtual postings with () or []
 *** web: how to find out total spent in an account during a specific month
 *** stats: list all included files
 *** parsing: alias directives should be modified by account directives

@@ -57,8 +57,8 @@ executable hledger-web
                      Hledger.Web.StaticFiles
                      Hledger.Web.Handlers
   build-depends:
-                  hledger == 0.15.1
-                 ,hledger-lib == 0.15
+                  hledger == 0.15.2
+                 ,hledger-lib == 0.15.2
                  ,HUnit
                  ,base >= 4 && < 5
                  ,bytestring
