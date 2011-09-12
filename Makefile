@@ -47,7 +47,8 @@ SOURCEFILES:= \
 	hledger/Hledger/*/*hs \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
-	hledger-*/Hledger/*/*hs
+	hledger-*/Hledger/*/*hs \
+	hledger-web/Hledger/Web/Settings/*hs
 
 # a more careful list suitable for for haddock
 HADDOCKSOURCEFILES:= \
@@ -58,6 +59,7 @@ HADDOCKSOURCEFILES:= \
 	hledger/Hledger/*/*hs \
 	hledger-web/Hledger/*hs \
 	hledger-web/Hledger/*/*hs \
+	hledger-web/Hledger/Web/Settings/*hs \
 	hledger-vty/Hledger/*hs \
 	hledger-vty/Hledger/*/*hs
 #	hledger-chart/Hledger/*hs
@@ -70,9 +72,9 @@ CABALFILES:= \
 	hledger-*/*.cabal
 
 WEBFILES:= \
-	hledger-web/.hledger/web/static/*.js \
-	hledger-web/.hledger/web/static/*.css
-#	hledger-web/.hledger/web/templates/* \
+	hledger-web/static/*.js \
+	hledger-web/static/*.css
+#	hledger-web/templates/* \
 
 # DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
@@ -99,7 +101,6 @@ endif
 VERSIONSENSITIVEFILES=\
 	$(VERSIONHS) \
 	$(CABALFILES) \
-	hledger-web/.hledger/web/.version \
 	MANUAL.md \
 #	DOWNLOAD.md \
 
@@ -746,9 +747,6 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
-
-hledger-web/.hledger/web/.version: $(VERSIONFILE)
-	cat $(VERSIONFILE) >$@
 
 MANUAL.markdown: $(VERSIONFILE)
 	perl -p -e "s/(^This is the.*?manual for hledger.*?) +[0-9.]+/\1 $(VERSION3)./" -i $@
