@@ -4,7 +4,7 @@ title: hledger news
 
 # News
 
-## [2011/9/12 hledger 0.15.2]()
+## [2011/9/12 hledger 0.15.2, hledger-web 0.15.3]()
 
   * handle multiple filter patterns on the command-line again
   * don't pass an addon command's name to it as an extra argument
@@ -14,7 +14,7 @@ title: hledger news
   * web: fix wrong transaction amount in account register with virtual postings
   * web: fix some invalid html
 
-## [2011/9/2 hledger 0.15.1]()
+## [2011/9/2 hledger 0.15.1, hledger-web 0.15.2]()
 
   * fix a parsec 2 incompatibility
 
