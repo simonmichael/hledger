@@ -232,6 +232,9 @@ bin/hledger:
 bin/hledger-web:
 	ghc --make hledger-web/hledger-web.hs -o bin/hledger-web -ihledger-web -ihledger $(BUILDFLAGS)
 
+bin/hledger-web-production:
+	ghc --make hledger-web/hledger-web.hs -o $@ -ihledger-web -ihledger $(BUILDFLAGS) -DPRODUCTION
+
 bin/hledger-vty:
 	ghc --make hledger-vty/hledger-vty.hs -o bin/hledger-vty -ihledger-vty -ihledger $(BUILDFLAGS)
 
