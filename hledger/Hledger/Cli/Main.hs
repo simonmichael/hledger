@@ -69,7 +69,7 @@ main = do
   run' opts addons args
     where
       run' opts@CliOpts{command_=cmd} addons args
-       -- delicate, eg ADDONCOMMAND --version; add tests before changing
+       -- delicate, add tests before changing (eg --version, ADDONCMD --version, INTERNALCMD --version)
        | (null matchedaddon) && "version" `in_` (rawopts_ opts)         = putStrLn progversion
        | (null matchedaddon) && "binary-filename" `in_` (rawopts_ opts) = putStrLn $ binaryfilename progname
        | null cmd                                        = putStr $ showModeHelp mainmode'
