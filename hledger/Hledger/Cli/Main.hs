@@ -69,8 +69,9 @@ main = do
   run' opts addons args
     where
       run' opts@CliOpts{command_=cmd} addons args
-       | "version" `in_` (rawopts_ opts)                 = putStrLn progversion
-       | "binary-filename" `in_` (rawopts_ opts)         = putStrLn $ binaryfilename progname
+       -- delicate, eg ADDONCOMMAND --version; add tests before changing
+       | (null matchedaddon) && "version" `in_` (rawopts_ opts)         = putStrLn progversion
+       | (null matchedaddon) && "binary-filename" `in_` (rawopts_ opts) = putStrLn $ binaryfilename progname
        | null cmd                                        = putStr $ showModeHelp mainmode'
        | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFile >> withJournalDo opts add
        | cmd `isPrefixOf` "convert"                      = showModeHelpOr convertmode  $ convert opts
@@ -88,7 +89,8 @@ main = do
         mainmode' = mainmode addons
         showModeHelpOr mode f | "help" `in_` (rawopts_ opts) = putStr $ showModeHelp mode
                               | otherwise = f
-        matchedaddon = headDef "" $ filter (cmd `isPrefixOf`) addons
+        matchedaddon | null cmd  = ""
+                     | otherwise = headDef "" $ filter (cmd `isPrefixOf`) addons
         shellcmd = printf "%s-%s %s" progname matchedaddon (unwords' subcmdargs)
         subcmdargs = args1 ++ drop 1 args2 where (args1,args2) = break (== cmd) $ filter (/="--") args
 
