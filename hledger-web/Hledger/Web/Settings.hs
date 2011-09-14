@@ -73,7 +73,7 @@ data AppConfig = AppConfig {
 
   , appPort :: Int
 
-    -- | The base URL for your application. This will usually be different for
+    -- The base URL for your application. This will usually be different for
     -- development and production. Yesod automatically constructs URLs for you,
     -- so this value must be accurate to create valid links.
     -- Please note that there is no trailing slash.
