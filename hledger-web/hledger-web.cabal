@@ -31,11 +31,11 @@ source-repository head
   location: http://joyful.com/repos/hledger
 
 Flag production
-    Description:   Build in production mode, which reads template files only once at startup.
-    Default:       False
+    Description:   Build in production mode, with web files embedded. Otherwise, they will be loaded from ./static/.
+    Default:       True
 
 Flag devel
-    Description:   Build for use with "yesod devel"
+    Description:   Build for use with "yesod devel".
     Default:       False
 
 executable hledger-web

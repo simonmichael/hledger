@@ -584,8 +584,9 @@ Starting http server on port 5000 with base url http://localhost:5000
 
 *** web: --base-url trailing slash gives redirect loop
 hledger-web --port 5001 --base-url http://localhost:5001/
-*** web: account patterns on command line are ignored
 *** web: loses -B after an edit, and/or a filesystem edit
+*** convert: order is reversed ?
+*** convert: manual needs a rewrite
 *** tools: avoid haskell compiles and compile errors while setting up makefile vars
 joyful$ make help
 GHCi runtime linker: fatal error: I found a duplicate definition for symbol
@@ -600,13 +601,6 @@ This could be caused by:
 GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
 
 make: *** No rule to make target `help'.  Stop.
-
-*** binaries: linux 32 binary fails on ubuntu 11.04 due to libc6 gconv file path change (greenskeleton)
-http://code.google.com/p/hledger/issues/detail?id=43
-*** parsing: balancing fails for a commodityless amount with a price 
-1/1
-    a       927.5 @ 2EUR
-    b
 
 *** parsing: strange balancing failure
 2011/01/01 Example 
@@ -1811,6 +1805,10 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** web: hide search form on add/edit form
+*** web: should display virtual postings with () or []
+*** web: how to find out total spent in an account during a specific month
+*** web: how to find out net worth, /register?q=assets+liabilities shows nothing
 *** parsing: end directive may also be spelled end account; or end ends last directive
 *** convert: clean up default rules file
 *** convert: use default rules when converting stdin with no --rules
@@ -1820,8 +1818,6 @@ http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pd
 *** convert: parse HH:MM[:SS] as an amount, converting to decimal hours
 *** convert: ignore heading row
 *** convert: warn and ignore unparsed rows ?
-*** web: should display virtual postings with () or []
-*** web: how to find out total spent in an account during a specific month
 *** stats: list all included files
 *** parsing: alias directives should be modified by account directives
 
