@@ -15,7 +15,6 @@ import Network.Wai.Middleware.Debug (debugHandle)
 import Yesod.Logger (makeLogger, flushLogger, Logger, logLazyText, logString)
 import Yesod.Static
 
-import Hledger
 import Hledger.Web.Foundation
 import Hledger.Web.Handlers
 import Hledger.Web.Options
@@ -30,8 +29,8 @@ mkYesodDispatch "App" resourcesApp
 -- performs initialization and creates a WAI application. This is also the
 -- place to put your migrate statements to have automatic database
 -- migrations handled by Yesod.
-withApp :: AppConfig -> Logger -> (Application -> IO a) -> IO a
-withApp conf logger f = do
+withApp :: AppConfig -> Logger -> WebOpts -> (Application -> IO a) -> IO a
+withApp conf logger opts f = do
 #ifdef PRODUCTION
     putStrLn $ "Production mode, using embedded web files"
     let s = $(embed Hledger.Web.Settings.staticDir)
@@ -42,9 +41,7 @@ withApp conf logger f = do
     let a = App {settings=conf
                 ,getLogger=logger
                 ,getStatic=s
-                ,appOpts=defwebopts
-                ,appArgs=[]
-                ,appJournal=nulljournal
+                ,appOpts=opts
                 }
     toWaiApp a >>= f
 
@@ -58,8 +55,8 @@ withDevelAppPort =
         conf <- Hledger.Web.Settings.loadConfig Hledger.Web.Settings.Development
         let port = appPort conf
         logger <- makeLogger
-        logString logger $ "Devel application launched, listening on port " ++ show port
-        withApp conf logger $ \app -> f (port, debugHandle (logHandle logger) app)
+        logString logger $ "Devel application launched with default options, listening on port " ++ show port
+        withApp conf logger defwebopts $ \app -> f (port, debugHandle (logHandle logger) app)
         flushLogger logger
       where
         logHandle logger msg = logLazyText logger msg >> flushLogger logger

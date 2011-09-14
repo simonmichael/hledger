@@ -7,7 +7,7 @@ hledger-web's request handlers, and helpers.
 
 module Hledger.Web.Handlers where
 
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>))
 import Data.Aeson
 import Data.ByteString (ByteString)
 import Data.Either (lefts,rights)
@@ -857,7 +857,7 @@ viewdataWithDateAndParams d q a p =
     let (querymatcher,queryopts) = parseQuery d q
         (acctsmatcher,acctsopts) = parseQuery d a
     in VD {
-           opts         = defwebopts{cliopts_=defcliopts{reportopts_=defreportopts{no_elide_=True}}}
+           opts         = defwebopts
           ,j            = nulljournal
           ,here         = RootR
           ,msg          = Nothing
@@ -879,9 +879,9 @@ getViewData = do
   msg        <- getMessageOr err
   Just here  <- getCurrentRoute
   today      <- liftIO getCurrentDay
-  q          <- getParameter "q"
-  a          <- getParameter "a"
-  p          <- getParameter "p"
+  q          <- getParameterOrNull "q"
+  a          <- getParameterOrNull "a"
+  p          <- getParameterOrNull "p"
   return (viewdataWithDateAndParams today q a p){
                opts=opts
               ,msg=msg
@@ -905,9 +905,9 @@ getViewData = do
                 Left e  -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
                               return (j, Just e)
 
-      -- | Get the named request parameter.
-      getParameter :: String -> Handler String
-      getParameter p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
+      -- | Get the named request parameter, or the empty string if not present.
+      getParameterOrNull :: String -> Handler String
+      getParameterOrNull p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
 
 -- | Get the message set by the last request, or the newer message provided, if any.
 getMessageOr :: Maybe String -> Handler (Maybe Html)

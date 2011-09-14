@@ -42,6 +42,7 @@ import Data.Object
 import qualified Data.Object.Yaml as YAML
 import Control.Monad (join)
 
+
 hledgerorgurl, manualurl :: String
 hledgerorgurl     = "http://hledger.org"
 manualurl         = hledgerorgurl++"/MANUAL.html"

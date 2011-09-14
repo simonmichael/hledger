@@ -91,12 +91,11 @@ server baseurl port opts j = do
             , appPort = port_ opts
             , appRoot = pack baseurl
             }
-
 #if PRODUCTION
-    withApp c logger $ run (appPort c)
+    withApp c logger opts $ run (appPort c)
 #else
     logString logger $ (show env) ++ " application launched, listening on port " ++ show (appPort c)
-    withApp c logger $ run (appPort c) . debugHandle (logHandle logger)
+    withApp c logger opts $ run (appPort c) . debugHandle (logHandle logger)
     flushLogger logger
 
     where

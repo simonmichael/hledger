@@ -25,7 +25,6 @@ import Yesod.Static (Static, base64md5, StaticRoute(..))
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 
-import Hledger.Data
 import Hledger.Web.Options
 import Hledger.Web.Settings
 import Hledger.Web.Settings.StaticFiles
@@ -41,8 +40,7 @@ data App = App
     , getStatic :: Static -- ^ Settings for static file serving.
 
     ,appOpts    :: WebOpts
-    ,appArgs    :: [String]
-    ,appJournal :: Journal
+    -- ,appJournal :: Journal
     }
 
 -- This is where we define all of the routes in our application. For a full
