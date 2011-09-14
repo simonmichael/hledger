@@ -25,7 +25,7 @@ webflags = [
  
 webmode =  (mode "hledger-web" [("command","web")]
             "start serving the hledger web interface"
-            commandargsflag []){
+            mainargsflag []){
               modeGroupFlags = Group {
                                 groupUnnamed = webflags
                                ,groupHidden = []
