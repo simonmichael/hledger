@@ -261,6 +261,24 @@ Example:
     $ hledger register checking --effective
     2010/02/19 movie ticket         assets:checking                $-10         $-10
 
+### Metadata
+
+Extra metadata (a keyword and value) or tags (just keywords) may be
+attached to transactions and postings by inserting one or more comment
+lines containing KEY:[VALUE]. In the example below, the transaction has a
+`purpose` tag with value "`research`", and the expenses:cinema posting has
+the `fun` and `outing` tags.
+
+    1/1 movie ticket
+      ; purpose: research
+      expenses:cinema       $10
+      ; fun:
+      ; outing:
+      assets:checking
+
+hledger does not yet allow querying on these fields; they are parsed for
+compatibility with ledger, but ignored.
+
 ### Default commodity
 
 You can set a default commodity or currency with a D directive. This will
