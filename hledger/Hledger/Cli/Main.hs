@@ -80,7 +80,9 @@ main = do
        | any (cmd `isPrefixOf`) ["postings","register"]  = showModeHelpOr postingsmode $ withJournalDo opts register
        | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
        | cmd `isPrefixOf` "stats"                        = showModeHelpOr statsmode    $ withJournalDo opts stats
-       | not (null matchedaddon)                           = system shellcmd >>= exitWith
+       | not (null matchedaddon)                           = do
+                                                             when (debug_ opts) $ printf "running %s\n" shellcmd
+                                                             system shellcmd >>= exitWith
        | otherwise                                       = optserror ("command "++cmd++" is not recognized") >> exitFailure
        where
         mainmode' = mainmode addons
