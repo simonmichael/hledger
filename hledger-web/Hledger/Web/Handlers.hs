@@ -23,7 +23,6 @@ import System.Locale (defaultTimeLocale)
 import Text.Blaze (preEscapedString, toHtml)
 import Text.Hamlet hiding (hamletFile)
 import Text.Printf
-import Yesod.Form
 import Yesod.Json
 
 import Hledger hiding (today)
