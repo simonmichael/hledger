@@ -4,6 +4,14 @@ title: hledger news
 
 # News
 
+  * cli: hledger ADDONCOMMAND --version now shows add-on command's version
+  * cli: when running addons with --debug, show the command line
+  * web: production builds (the default with cabal) have all web content embedded (dev builds use ./static/) (#63)
+  * web: update to yesod 0.9
+  * web: obey at least some command-line options, like --cost
+  * web: adjust --help to indicate command-line arguments are not expected
+  * web: don't bother running cli unit tests at startup
+
 ## [2011/9/12 hledger 0.15.2, hledger-web 0.15.3]()
 
   * handle multiple filter patterns on the command-line again
