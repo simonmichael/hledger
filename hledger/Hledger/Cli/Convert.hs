@@ -92,7 +92,7 @@ convert opts = do
   csvparse <- parseCsv csvfile
   let records = case csvparse of
                   Left e -> error' $ show e
-                  Right rs -> reverse $ filter (/= [""]) rs
+                  Right rs -> filter (/= [""]) rs
   exists <- doesFileExist rulesfile
   if (not exists) then do
                   hPrintf stderr "creating conversion rules file %s, edit this file for better results\n" rulesfile

@@ -4,13 +4,13 @@ rm -rf convert.rules$$; printf 'base-account Assets:MyAccount\ndate-field 0\ndat
 10/2009/09,Flubber Co,50,
 11/2009/09,Flubber Co,,50
 >>>
-2009/09/11 Flubber Co
-    expenses:unknown           $50
-    Assets:MyAccount          $-50
-
 2009/09/10 Flubber Co
     income:unknown            $-50
     Assets:MyAccount           $50
+
+2009/09/11 Flubber Co
+    expenses:unknown           $50
+    Assets:MyAccount          $-50
 
 >>>2 /using conversion rules file convert.rules[0-9]*.$/
 >>>=0
