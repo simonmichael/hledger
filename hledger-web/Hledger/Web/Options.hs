@@ -5,7 +5,6 @@
 module Hledger.Web.Options
 where
 import Data.Maybe
-import Data.Text (unpack)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
@@ -17,8 +16,7 @@ import Hledger.Web.Settings
 progname = Hledger.Cli.progname ++ "-web"
 progversion = progversionstr progname
 
-defbaseurl = unpack defapproot
-defbaseurl' = (reverse $ drop 4 $ reverse defbaseurl) ++ "PORT"
+defbaseurl' = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 
 webflags = [
   flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurl'++")")
@@ -55,9 +53,10 @@ defwebopts = WebOpts
 toWebOpts :: RawOpts -> IO WebOpts
 toWebOpts rawopts = do
   cliopts <- toCliOpts rawopts
+  let p = fromMaybe defport $ maybeintopt "port" rawopts
   return defwebopts {
-              base_url_ = fromMaybe defbaseurl $ maybestringopt "base-url" rawopts
-             ,port_ = fromMaybe defport $ maybeintopt "port" rawopts
+              port_ = p
+             ,base_url_ = fromMaybe (defbaseurl p) $ maybestringopt "base-url" rawopts
              ,cliopts_   = cliopts
              }
 

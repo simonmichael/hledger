@@ -18,9 +18,8 @@ module Hledger.Web.Settings
     , AppEnvironment(..)
     , AppConfig(..)
 
-    , defhost
     , defport
-    , defapproot
+    , defbaseurl
     , hledgerorgurl
     , manualurl
     , datadir
@@ -51,11 +50,8 @@ manualurl         = hledgerorgurl++"/MANUAL.html"
 defport :: Int
 defport = 5000
 
-defhost :: String
-defhost = "localhost"
-
-defapproot :: Text
-defapproot = pack $ printf "http://%s:%d" defhost defport
+defbaseurl :: Int -> String
+defbaseurl port = printf "http://localhost:%d" port
 
 
 data AppEnvironment = Test
