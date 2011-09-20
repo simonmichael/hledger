@@ -16,10 +16,10 @@ import Hledger.Web.Settings
 progname = Hledger.Cli.progname ++ "-web"
 progversion = progversionstr progname
 
-defbaseurl' = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
+defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 
 webflags = [
-  flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurl'++")")
+  flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurlexample++")")
  ,flagReq ["port"]  (\s opts -> Right $ setopt "port" s opts) "PORT" ("listen on this tcp port (default: "++show defport++")")
  ]
  
