@@ -56,9 +56,11 @@ toWebOpts rawopts = do
   let p = fromMaybe defport $ maybeintopt "port" rawopts
   return defwebopts {
               port_ = p
-             ,base_url_ = fromMaybe (defbaseurl p) $ maybestringopt "base-url" rawopts
+             ,base_url_ = maybe (defbaseurl p) stripTrailingSlash $ maybestringopt "base-url" rawopts
              ,cliopts_   = cliopts
              }
+  where
+    stripTrailingSlash = reverse . dropWhile (=='/') . reverse -- yesod don't like it
 
 checkWebOpts :: WebOpts -> IO WebOpts
 checkWebOpts opts = do
