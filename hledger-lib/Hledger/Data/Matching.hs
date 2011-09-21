@@ -112,10 +112,13 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
     where
       maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, quotedPattern, pattern] `sepBy` many1 spacenonewline
       prefixedQuotedPattern = do
-        not' <- optionMaybe $ string "not:"
-        prefix <- choice' $ map string prefixes
+        not' <- fromMaybe "" `fmap` (optionMaybe $ string "not:")
+        let allowednexts | null not' = prefixes
+                         | otherwise = prefixes ++ [""]
+        next <- choice' $ map string allowednexts
+        let prefix = not' ++ next
         p <- quotedPattern
-        return $ fromMaybe "" not' ++ prefix ++ stripquotes p
+        return $ prefix ++ stripquotes p
       quotedPattern = do
         p <- between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
         return $ stripquotes p
@@ -309,5 +312,13 @@ tests_Hledger_Data_Matching = TestList
     assertBool "real:1 on real posting" $ (MatchReal True) `matchesPosting` nullposting{ptype=RegularPosting}
     assertBool "real:1 on virtual posting fails" $ not $ (MatchReal True) `matchesPosting` nullposting{ptype=VirtualPosting}
     assertBool "real:1 on balanced virtual posting fails" $ not $ (MatchReal True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+
+  ,"words''" ~: do
+    assertEqual "1" ["a","b"]        (words'' [] "a b")
+    assertEqual "2" ["a b"]          (words'' [] "'a b'")
+    assertEqual "3" ["not:a","b"]    (words'' [] "not:a b")
+    assertEqual "4" ["not:a b"]    (words'' [] "not:'a b'")
+    assertEqual "5" ["not:a b"]    (words'' [] "'not:a b'")
+    assertEqual "6" ["not:desc:a b"]    (words'' ["desc:"] "not:desc:'a b'")
 
  ]
