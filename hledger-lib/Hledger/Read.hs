@@ -137,13 +137,16 @@ readJournal format s = journalFromPathAndString format "(string)" s
 myJournalPath :: IO String
 myJournalPath = do
   s <- envJournalPath
+  errorIfContainsTilde s
   if null s then defaultJournalPath else return s
     where
       envJournalPath = getEnv journalenvvar `catch` (\_ -> getEnv journalenvvar2 `catch` (\_ -> return ""))
       defaultJournalPath = do
                   home <- getHomeDirectory `catch` (\_ -> return "")
                   return $ home </> journaldefaultfilename
-  
+
+errorIfContainsTilde s = when ('~' `elem` s) $ error' "unsupported literal ~ found in environment variable, please adjust"
+
 -- | Get the user's default timelog file path.
 myTimelogPath :: IO String
 myTimelogPath =
