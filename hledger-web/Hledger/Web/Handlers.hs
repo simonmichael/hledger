@@ -70,9 +70,9 @@ getJournalR = do
  <div#sidebar
   ^{sidecontent}
  <div#main.register
-  <h2#contenttitle>#{title}
-  ^{searchform vd}
   <div#maincontent
+   <h2#contenttitle>#{title}
+   ^{searchform vd}
    ^{maincontent}
   ^{addform vd}
   ^{editform vd}
@@ -103,9 +103,9 @@ getJournalEntriesR = do
  <div#sidebar
   ^{sidecontent}
  <div#main.journal
-  <h2#contenttitle>#{title}
-  ^{searchform vd}
   <div#maincontent
+   <h2#contenttitle>#{title}
+   ^{searchform vd}
    ^{maincontent}
   ^{addform vd}
   ^{editform vd}
@@ -143,9 +143,9 @@ getRegisterR = do
  <div#sidebar
   ^{sidecontent}
  <div#main.register
-  <h2#contenttitle>#{title}
-  ^{searchform vd}
   <div#maincontent
+   <h2#contenttitle>#{title}
+   ^{searchform vd}
    ^{maincontent}
   ^{addform vd}
   ^{editform vd}
