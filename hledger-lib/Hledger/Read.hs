@@ -11,9 +11,7 @@ module Hledger.Read (
        journalFromPathAndString,
        ledgeraccountname,
        myJournalPath,
-       myTimelogPath,
        myJournal,
-       myTimelog,
        someamount,
        journalenvvar,
        journaldefaultfilename,
@@ -45,9 +43,7 @@ import Hledger.Utils.UTF8 (getContents, hGetContents, writeFile)
 
 journalenvvar           = "LEDGER_FILE"
 journalenvvar2          = "LEDGER"
-timelogenvvar           = "TIMELOG"
 journaldefaultfilename  = ".hledger.journal"
-timelogdefaultfilename = ".hledger.timelog"
 
 -- Here are the available readers. The first is the default, used for unknown data formats.
 readers :: [Reader]
@@ -144,21 +140,9 @@ myJournalPath = do
                   home <- getHomeDirectory `catch` (\_ -> return "")
                   return $ home </> journaldefaultfilename
 
--- | Get the user's default timelog file path.
-myTimelogPath :: IO String
-myTimelogPath =
-    getEnv timelogenvvar `catch`
-               (\_ -> do
-                  home <- getHomeDirectory
-                  return $ home </> timelogdefaultfilename)
-
 -- | Read the user's default journal file, or give an error.
 myJournal :: IO Journal
 myJournal = myJournalPath >>= readJournalFile Nothing >>= either error' return
-
--- | Read the user's default timelog file, or give an error.
-myTimelog :: IO Journal
-myTimelog = myTimelogPath >>= readJournalFile Nothing >>= either error' return
 
 tests_Hledger_Read = TestList
   [

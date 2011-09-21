@@ -31,7 +31,6 @@ or ghci:
 >                  $-2  income
 >                   $1  liabilities
 > > l <- myLedger
-> > t <- myTimelog
 
 See "Hledger.Data.Ledger" for more examples.
 
