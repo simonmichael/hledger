@@ -5,7 +5,9 @@ format, and print it on stdout. See the manual for more details.
 
 module Hledger.Cli.Convert where
 import Control.Monad (when, guard, liftM)
+import Data.List
 import Data.Maybe
+import Data.Ord
 import Data.Time.Format (parseTime)
 import Safe
 import System.Directory (doesFileExist)
@@ -14,7 +16,7 @@ import System.FilePath (takeBaseName, replaceExtension)
 import System.IO (stderr)
 import System.Locale (defaultTimeLocale)
 import Test.HUnit
-import Text.CSV (parseCSV, parseCSVFromFile, printCSV, CSV)
+import Text.CSV (parseCSV, parseCSVFromFile, CSV)
 import Text.ParserCombinators.Parsec
 import Text.Printf (hPrintf)
 
@@ -104,7 +106,8 @@ convert opts = do
   let requiredfields = max 2 (maxFieldIndex rules + 1)
       badrecords = take 1 $ filter ((< requiredfields).length) records
   if null badrecords
-   then mapM_ (printTxn (debug_ opts) rules) records
+   then do
+     mapM_ (putStr . show) $ sortBy (comparing tdate) $ map (transactionFromCsvRecord rules) records
    else do
      hPrintf stderr (unlines [
                       "Warning, at least one CSV record does not contain a field referenced by the"
@@ -339,11 +342,6 @@ matchreplacepattern = do
   replpat <- optionMaybe $ do {char '='; many $ noneOf "\n"}
   newline
   return (matchpat,replpat)
-
-printTxn :: Bool -> CsvRules -> CsvRecord -> IO ()
-printTxn debug rules rec = do
-  when debug $ hPrintf stderr "record: %s" (printCSV [rec])
-  putStr $ show $ transactionFromCsvRecord rules rec
 
 -- csv record conversion
 formatD :: CsvRecord -> Bool -> Maybe Int -> Maybe Int -> Field -> String
