@@ -778,6 +778,7 @@ addform vd@VD{..} = [$hamlet|
 editform :: ViewData -> HtmlUrl AppRoute
 editform VD{..} = [$hamlet|
 <form#editform method=POST style=display:none;
+ <h2#contenttitle>#{title}
  <table.form
   $if manyfiles
    <tr
@@ -801,6 +802,7 @@ editform VD{..} = [$hamlet|
     <a href="#" onclick="return editformToggle(event)">cancel
 |]
   where
+    title = "Edit journal" :: String
     manyfiles = (length $ files j) > 1
     formathelp = helplink "file-format" "file format help"
 
