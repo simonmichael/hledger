@@ -423,11 +423,15 @@ defaultBalanceFormatString = [
     , FormatField True Nothing Nothing Format.Account
     ]
 
--- | Get the journal file path from options, an environment variable, or a default
+-- | Get the journal file path from options, an environment variable, or a default.
+-- If the path contains a literal tilde raise an error to avoid confusion.
 journalFilePathFromOpts :: CliOpts -> IO String
 journalFilePathFromOpts opts = do
   f <- myJournalPath
-  return $ fromMaybe f $ file_ opts
+  return $ errorIfContainsTilde $ fromMaybe f $ file_ opts
+
+errorIfContainsTilde s |'~' `elem` s = error' "unsupported literal ~ found in environment variable, please adjust"
+                       | otherwise   = s
 
 aliasesFromOpts :: CliOpts -> [(AccountName,AccountName)]
 aliasesFromOpts = map parseAlias . alias_
