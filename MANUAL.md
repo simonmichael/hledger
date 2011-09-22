@@ -170,7 +170,7 @@ Account names may contain single spaces, eg: `assets:accounts receivable`.
 
 ### Amounts
 
-After the account name, separated by *two or more spaces*, there is
+After the account name, separated by ***two or more*** spaces, there is
 usually an amount.  This is a number, optionally with a currency symbol or
 commodity name on either the left or right. Commodity names which contain
 more than just letters should be enclosed in double quotes.
@@ -178,16 +178,31 @@ more than just letters should be enclosed in double quotes.
 Negative amounts usually have the minus sign next to the number: `$-1`.
 Or it may go before the symbol: `-$1`.
 
-The number may optionally have a decimal point, either a period (`.`) or a
-comma (`,`). hledger's reports will generally use the highest precision
-you have used in each commodity.
+hledger supports flexible decimal points and digit group separators so you
+can use your country's convention.  Numbers can use either a period (`.`)
+or a comma (`,`) as decimal point. They can also have digit group
+separators at any position (eg thousands separators) which can be comma or
+period - whichever one you did not use as a decimal point. If you use
+digit group separators, you must also include a decimal point in at least
+one number in the same commodity, so that hledger knows which character is
+which. Eg, write `$1,000.00` or `$1.000,00`.
 
-Numbers may also have digit group separators, eg thousands separators.
-hledger's reports will follow the digit groups you have used.  The
-separator character is either comma or period - whichever one you did not
-use as a decimal point. If using digit group separators you should write
-at least one number with a decimal point, so hledger will know which is
-which. Eg: `1,000.00` or `1.000,00`.
+### Commodity display settings
+
+Based on how you format amounts, hledger will infer canonical display
+settings for each commodity, and use them consistently when displaying
+amounts in that commodity. These settings include:
+
+- the position and spacing of the currency/commodity symbol
+- the digit group separator character and digit group sizes, if any
+- the decimal point character
+- the number of decimal places
+
+The canonical display settings are generally those used in the first
+amount seen, and the number of decimal places is the highest used in all
+amounts, in the given commmodity.
+[Default commodity directives](#default-commodity) can also influence the
+canonical display settings.
 
 ### Simple dates
 
@@ -248,10 +263,8 @@ Example:
 
 ### Default commodity
 
-You can set a default commodity or currency with a D directive. The
-commodity will be used for any subsequent amounts which have no commodity
-symbol. This directive also influences the display format for amounts in
-that commodity.
+You can set a default commodity or currency with a D directive. This will
+be used for any subsequent amounts which have no commodity symbol.
 
     ; default commodity: british pound, comma thousands separator, two decimal places
     D £1,000.00
@@ -259,6 +272,10 @@ that commodity.
     2010/1/1
       a  2340   ; no commodity symbol, will use the above
       b
+
+If such an amount is the first seen in that commodity, the canonical
+[commodity display settings](#commodity-display-settings) will also be
+taken from the directive.
 
 ### Prices
 

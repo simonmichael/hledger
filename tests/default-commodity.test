@@ -1,39 +1,86 @@
 # a default commodity defined with the D directive will be used for any
 # commodity-less amounts in subsequent transactions.
-#
+
+# 1. no default commodity
 bin/hledger -f- print
 <<<
-
-; no default commodity
-2010/1/1 x
+2010/1/1
   a  1000
   b
-
-; pound, two decimal places, no digit group separator
-D £1000.00
-
-2010/1/1 y
-  a  1000
-  b
-
-; dollar, comma decimal point, three decimal places, no digit group separator
-D $1,000
-
-2010/1/1 z
-  a  1000
-  b
-
 >>>
-2010/01/01 x
+2010/01/01
     a          1000
     b         -1000
 
-2010/01/01 y
+>>>=0
+
+# 2. pound, two decimal places, no digit group separator
+bin/hledger -f- print
+<<<
+D £1000.00
+2010/1/1
+  a  1000
+  b
+>>>
+2010/01/01
     a      £1000.00
     b     £-1000.00
 
-2010/01/01 z
+>>>=0
+
+# 3. dollar, comma decimal point, three decimal places, no digit group separator
+bin/hledger -f- print
+<<<
+D $1,000
+2010/1/1
+  a  1000
+  b
+>>>
+2010/01/01
     a     $1000,000
     b    $-1000,000
 
 >>>=0
+
+# 4. dollar, three digit group separator, one decimal place
+bin/hledger -f- print
+<<<
+D $1,000.0
+2010/1/1
+  (a)  1000000
+>>>
+2010/01/01
+    (a)  $1,000,000.0
+
+>>>=0
+
+# 5. as above, sets the commodity of the commodityless amount, but an
+# earlier explicit dollar amount sets the display settings for dollar
+bin/hledger -f- print
+<<<
+D $1,000.0
+2010/1/1
+  (a)  $1000000.00
+  (b)   1000000
+>>>
+2010/01/01
+    (a)   $1000000.00
+    (b)   $1000000.00
+
+>>>=0
+
+# 6. as above, but the commodityless amount is earliest, so it sets the
+# display settings for dollar. The greatest precision is preserved though.
+bin/hledger -f- print
+<<<
+D $1,000.0
+2010/1/1
+  (a)   1000000
+  (b)  $1000000.00
+>>>
+2010/01/01
+    (a)  $1,000,000.00
+    (b)  $1,000,000.00
+
+>>>=0
+
