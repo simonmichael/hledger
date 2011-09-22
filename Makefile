@@ -498,20 +498,20 @@ docs: site codedocs
 # build the hledger.org website
 # Requires hakyll (cabal install hakyll)
 .PHONY: site
-site: site/hakyll
-	cd site; ./hakyll build
+site: site/site
+	cd site; ./site build
 
-cleansite: site/hakyll
-	cd site; ./hakyll clean
+cleansite: site/site
+	cd site; ./site clean
 
-previewsite: site/hakyll
-	cd site; ./hakyll preview
+previewsite: site/site
+	cd site; ./site preview
 
-site/hakyll: site/hakyll.hs
-	cd site; ghc --make hakyll.hs $(PREFERMACUSRLIBFLAGS)
+site/site: site/site.hs
+	cd site; ghc --make site.hs $(PREFERMACUSRLIBFLAGS)
 
 autosite:
-	cd site; $(AUTOBUILD) hakyll.hs -o hakyll $(PREFERMACUSRLIBFLAGS) --run preview
+	cd site; $(AUTOBUILD) site.hs -o site $(PREFERMACUSRLIBFLAGS) --run preview
 
 viewsite: site
 	$(VIEWHTML) site/_site/index.html
