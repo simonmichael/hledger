@@ -539,6 +539,7 @@ isInteresting :: ReportOpts -> Ledger -> AccountName -> Bool
 isInteresting opts l a | flat_ opts = isInterestingFlat opts l a
                        | otherwise = isInterestingIndented opts l a
 
+-- | Determine whether an account should get its own line in the --flat balance report.
 isInterestingFlat :: ReportOpts -> Ledger -> AccountName -> Bool
 isInterestingFlat opts l a = notempty || emptyflag
     where
@@ -546,16 +547,19 @@ isInterestingFlat opts l a = notempty || emptyflag
       notempty = not $ isZeroMixedAmount $ exclusiveBalance acct
       emptyflag = empty_ opts
 
+-- | Determine whether an account should get its own line in the indented
+-- balance report.  Cf Balance module doc.
 isInterestingIndented :: ReportOpts -> Ledger -> AccountName -> Bool
 isInterestingIndented opts l a
-    | numinterestingsubs==1 && not atmaxdepth = notlikesub
-    | otherwise = notzero || emptyflag
+    | numinterestingsubs == 1 && samebalanceassub && not atmaxdepth = False
+    | numinterestingsubs < 2 && zerobalance && not emptyflag = False
+    | otherwise = True
     where
       atmaxdepth = isJust d && Just (accountNameLevel a) == d where d = depth_ opts
       emptyflag = empty_ opts
       acct = ledgerAccount l a
-      notzero = not $ isZeroMixedAmount inclbalance where inclbalance = abalance acct
-      notlikesub = not $ isZeroMixedAmount exclbalance where exclbalance = sumPostings $ apostings acct
+      zerobalance = isZeroMixedAmount inclbalance where inclbalance = abalance acct
+      samebalanceassub = isZeroMixedAmount exclbalance where exclbalance = sumPostings $ apostings acct
       numinterestingsubs = length $ filter isInterestingTree subtrees
           where
             isInterestingTree = treeany (isInteresting opts l . aname)

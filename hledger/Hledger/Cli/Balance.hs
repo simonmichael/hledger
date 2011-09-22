@@ -82,15 +82,14 @@ Also, the balance report shows the total of all displayed accounts, when
 that is non-zero. Here, it is displayed because the accounts shown add up
 to $-1.
 
-Here is a more precise definition of \"interesting\" accounts in ledger's
-balance report:
-
-- an account which has just one interesting subaccount branch, and which
-  is not at the report's maximum depth, is interesting if the balance is
-  different from the subaccount's, and otherwise boring.
-
-- any other account is interesting if it has a non-zero balance, or the -E
-  flag is used.
+Also, non-interesting accounts may be elided.  Here's an imperfect
+description of the ledger balance command's eliding behaviour:
+\"Interesting\" accounts are displayed on their own line. An account less
+deep than the report's max depth, with just one interesting subaccount,
+and the same balance as the subaccount, is non-interesting, and prefixed
+to the subaccount's line, unless (hledger's) --no-elide is in effect.
+An account with a zero inclusive balance and less than two interesting
+subaccounts is not displayed at all, unless --empty is in effect.
 
 -}
 

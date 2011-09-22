@@ -249,20 +249,6 @@ tests_Hledger_Cli = TestList
         ,"                   0"
         ]
 
-   ,"balance report elides zero-balance root account(s)" ~: do
-      j <- readJournal'
-             (unlines
-              ["2008/1/1 one"
-              ,"  test:a  1"
-              ,"  test:b"
-              ])
-      accountsReportAsText defreportopts (accountsReport defreportopts nullfilterspec j) `is`
-        ["                   1  test:a"
-        ,"                  -1  test:b"
-        ,"--------------------"
-        ,"                   0"
-        ]
-
    ]
 
   ,"journalCanonicaliseAmounts" ~:
