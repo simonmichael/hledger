@@ -544,60 +544,11 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** errors
-*** web: inacct:'assets:bank:wells fargo:checking' not:'retainers received' no results
-*** web: hide search form on add/edit form
-*** web: --base-url trailing slash gives redirect loop
-hledger-web --port 5001 --base-url http://localhost:5001/
-*** bal: work bal expenses --depth 3 =B doesn't filter ?
-*** bal: --flat excludes some accounts ?
-$ personal bal expenses --depth 3 -B --flat
-             $134.77  expenses:personal:clothing
-               $1.00  expenses:personal:entertainment
-              $85.14  expenses:personal:gifts
-              $70.10  expenses:personal:misc cash
-             $192.30  expenses:personal:personal care
-              $30.00  expenses:personal:recreation
-               $7.41  expenses:personal:unknown
---------------------
-           $20316.32
-
-*** cli: ~ and ~user in LEDGER_FILE not understood, causing confusing error
+*** balance: --flat with --depth excludes accounts/transactions below depth
+*** register: intervals with unspecified from should start from first txn not first matched txn ?
+*** cli: auto-creating missing journal files - annoying, change it
 *** cli: subcommand options require preceding --, but are then ignored
 *** convert: manual needs a rewrite
-*** tools: avoid haskell compiles and compile errors while setting up makefile vars
-joyful$ make help
-GHCi runtime linker: fatal error: I found a duplicate definition for symbol
-   __hscore_S_IFDIR
-whilst processing object file
-   /usr/local/lib/ghc-7.0.2/directory-1.1.0.0/HSdirectory-1.1.0.0.o
-This could be caused by:
-   * Loading two different object files which export the same symbol
-   * Specifying the same object file twice on the GHCi command line
-   * An incorrect `package.conf' entry, causing some object to be
-     loaded twice.
-GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
-
-make: *** No rule to make target `help'.  Stop.
-
-*** parsing: strange balancing failure
-2011/01/01 Example 
-  Assets:Brokerage:TESTA         188.424 TESTA @      $76.61 
-  Assets:Brokerage:TESTB       1,809.282 TESTB @      $15.60 
-  Assets:Brokerage:TESTC         384.320 TESTC @@  $5,000.00 
-  Assets:Brokerage:TESTC           5.306 TESTC @@     $68.18 
-  Equity:Opening Balances 
-
-
-$ hledger -f t.j bal
-hledger: could not parse journal data in t.j
-could not balance this transaction (real postings are off by $-4,931.82)
-2011/01/01 Example
-    Assets:Brokerage:TESTA   188.424 TESTA @ $76.61
-    Assets:Brokerage:TESTB   1,809.282 TESTB @ $15.60
-    Assets:Brokerage:TESTC   384.320 TESTC @@ $5,000.00
-    Assets:Brokerage:TESTC   5.306 TESTC @@ $68.18
-    Equity:Opening Balances              
-
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print
@@ -625,25 +576,26 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
-*** balance: why is personal hierarchy broken up here ?
-$ hledger -f both.journal bal  --depth 3 -B
-*** balance: sometimes (i suspect multi-currency is to blame) accounts with zero balances show in "balance" --DA
-**** TODO Needs minimal testcase
-*** register: intervals with unspecified from should start from first txn not first matched txn ?
-**** TODO Needs example!
-*** register: with adjacent identical transactions, posting report items don't indicate the change of transaction
-getitems (p:ps) pprev b = i:(getitems ps p b')
-    where
-      i = mkitem isfirst p b'
-      isfirst = ptransaction p /= ptransaction pprev
-      b' = b + pamount p
-
 *** #25 can't print non-ascii in windows console
 http://code.google.com/p/hledger/issues/detail?id=25
 http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
 http://www.burningcutlery.com/derek/winsetup/
 http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
-*** auto-creating missing journal files - annoying or helpful ?
+*** tools: avoid haskell compiles and compile errors while setting up makefile vars
+joyful$ make help
+GHCi runtime linker: fatal error: I found a duplicate definition for symbol
+   __hscore_S_IFDIR
+whilst processing object file
+   /usr/local/lib/ghc-7.0.2/directory-1.1.0.0/HSdirectory-1.1.0.0.o
+This could be caused by:
+   * Loading two different object files which export the same symbol
+   * Specifying the same object file twice on the GHCi command line
+   * An incorrect `package.conf' entry, causing some object to be
+     loaded twice.
+GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
+
+make: *** No rule to make target `help'.  Stop.
+
 ** refactoring, cleanup
 *** use matchers for command line too
 **** design cli, backwards compatibility strategy
