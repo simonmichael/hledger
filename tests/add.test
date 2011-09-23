@@ -5,14 +5,14 @@
  rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
 <<<
 2009/1/32
->>> /date .*: date .*/
+>>> /date, or \. to end.*: date, or \. to end.*/
 >>>=0
 
 # 2. should accept a blank date
  rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
 <<<
 
->>> /date .*: description/
+>>> /date,.*: description/
 >>>=0
 
 ##############################################################################
@@ -28,7 +28,7 @@ a
 b
 
 .
->>> /^date \[.*\]: description \[\]: account 1: amount  1: account 2: amount  2 \[-1000.0\]: account 3: date \[.*\]: $/
+>>> /^date, or \. to end \[.*\]: description \[\]: account 1: amount  1: account 2: amount  2 \[-1000.0\]: account 3, or \. to record: date, or \. to end \[.*\]: $/
 >>>=0
 
 # 4. default commodity with greater precision

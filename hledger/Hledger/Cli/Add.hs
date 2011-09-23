@@ -51,10 +51,10 @@ add :: CliOpts -> Journal -> IO ()
 add opts j
     | f == "-" = return ()
     | otherwise = do
+  hPrintf stderr "Adding transactions to journal file \"%s\".\n" f
   hPutStrLn stderr $
-    "Enter one or more transactions, which will be added to your journal file.\n"
-    ++"To complete a transaction, enter . when prompted for an account.\n"
-    ++"To quit, press control-d or control-c."
+    "To complete a transaction, enter . (period) at an account prompt.\n"
+    ++"To stop adding transactions, enter . at a date prompt, or control-d/control-c."
   today <- getCurrentDay
   getAndAddTransactions j opts today
         `catch` (\e -> unless (isEOFError e) $ ioError e)
@@ -75,10 +75,12 @@ getTransaction :: Journal -> CliOpts -> Day
                     -> IO (Transaction,Day)
 getTransaction j opts defaultDate = do
   today <- getCurrentDay
-  datestr <- runInteractionDefault $ askFor "date" 
+  datestr <- runInteractionDefault $ askFor "date, or . to end"
             (Just $ showDate defaultDate)
-            (Just $ \s -> null s || 
-             isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
+            (Just $ \s -> null s
+                         || s == "."
+                         || isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
+  when (datestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
   description <- runInteractionDefault $ askFor "description" (Just "") Nothing
   let historymatches = transactionsSimilarTo j (patterns_ $ reportopts_ opts) description
       bestmatch | null historymatches = Nothing
@@ -117,9 +119,15 @@ getPostings st enteredps = do
                 | otherwise = Nothing
                 where Just ps = historicalps
       defaultaccount = maybe Nothing (Just . showacctname) bestmatch
-  account <- runInteraction j $ askFor (printf "account %d" n) defaultaccount (Just accept)
+      ordot | null enteredps || length enteredrealps == 1 = ""
+            | otherwise = ", or . to record"
+  account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defaultaccount (Just accept)
   if account=="."
-    then return enteredps
+    then
+     if null enteredps
+      then do hPutStrLn stderr $ "\nPlease enter some postings first."
+              getPostings st enteredps
+      else return enteredps
     else do
       let defaultacctused = Just account == defaultaccount
           historicalps' = if defaultacctused then historicalps else Nothing
