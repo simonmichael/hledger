@@ -550,6 +550,7 @@ using be more place holders?
 *** 33 edit form always displays in non-javascript browsers, like elinks
 *** 25 hledger in windows console does not print non-ascii characters
 *** convert: manual needs a rewrite
+*** web: manual needs update
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print

@@ -146,9 +146,13 @@ clearedValueFromOpts ReportOpts{..} | cleared_   = Just True
                                     | uncleared_ = Just False
                                     | otherwise  = Nothing
 
--- | Detect which date we will report on, based on --effective.
+-- | Report which date we will report on based on --effective.
 whichDateFromOpts :: ReportOpts -> WhichDate
 whichDateFromOpts ReportOpts{..} = if effective_ then EffectiveDate else ActualDate
+
+-- | Select a Transaction date accessor based on --effective.
+transactionDateFn :: ReportOpts -> (Transaction -> Day)
+transactionDateFn ReportOpts{..} = if effective_ then transactionEffectiveDate else transactionActualDate
 
 -- | Convert this journal's transactions' primary date to either the
 -- actual or effective date, as per options.
@@ -197,9 +201,10 @@ type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
 entriesReport :: ReportOpts -> FilterSpec -> Journal -> EntriesReport
-entriesReport opts fspec j = sortBy (comparing tdate) $ jtxns $ filterJournalTransactions fspec j'
+entriesReport opts fspec j = sortBy (comparing f) $ jtxns $ filterJournalTransactions fspec j'
     where
-      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
+      f = transactionDateFn opts
+      j' = journalSelectingAmountFromOpts opts j
 
 -------------------------------------------------------------------------------
 

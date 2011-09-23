@@ -10,6 +10,7 @@ module Hledger.Data.Transaction
 where
 import Data.List
 import Data.Maybe
+import Data.Time.Calendar
 import Test.HUnit
 import Text.Printf
 import qualified Data.Map as Map
@@ -233,10 +234,18 @@ nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rms
             | otherwise = "balanced virtual postings are off by " ++ show (costOfMixedAmount bvsum)
       sep = if not (null rmsg) && not (null bvmsg) then "; " else ""
 
--- | Convert the primary date to either the actual or effective date.
+transactionActualDate :: Transaction -> Day
+transactionActualDate = tdate
+
+-- Get a transaction's effective date, defaulting to the actual date.
+transactionEffectiveDate :: Transaction -> Day
+transactionEffectiveDate t = fromMaybe (tdate t) $ teffectivedate t
+
+-- | Once we no longer need both, set the main transaction date to either
+-- the actual or effective date. A bit hacky.
 journalTransactionWithDate :: WhichDate -> Transaction -> Transaction
 journalTransactionWithDate ActualDate t = t
-journalTransactionWithDate EffectiveDate t = txnTieKnot t{tdate=fromMaybe (tdate t) (teffectivedate t)}
+journalTransactionWithDate EffectiveDate t = txnTieKnot t{tdate=transactionEffectiveDate t}
 
 -- | Ensure a transaction's postings refer back to it.
 txnTieKnot :: Transaction -> Transaction

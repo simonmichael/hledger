@@ -216,10 +216,6 @@ matchesTransaction _ _ = False
 postingEffectiveDate :: Posting -> Maybe Day
 postingEffectiveDate p = maybe Nothing (Just . transactionEffectiveDate) $ ptransaction p
 
-transactionEffectiveDate :: Transaction -> Day
-transactionEffectiveDate t = case teffectivedate t of Just d  -> d
-                                                      Nothing -> tdate t
-
 -- | Does the match expression match this account ?
 -- A matching in: clause is also considered a match.
 matchesAccount :: Matcher -> AccountName -> Bool

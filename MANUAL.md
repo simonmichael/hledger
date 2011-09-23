@@ -1203,9 +1203,13 @@ entries, and the following c++ ledger options and commands:
 - hledger's output follows the decimal point character, digit grouping,
   and digit group separator character used in the journal.
 
-- hledger print shows amounts for all postings, and shows unit
-  prices for amounts which have them. (This currently means that
-  it does not print multi-commodity transactions in valid journal format.)
+- hledger print shows amounts for all postings, and shows unit prices for
+  amounts which have them. (This means that it does not currently print
+  multi-commodity transactions in valid journal format.)
+
+- hledger print ignores the --effective flag, always showing both dates.
+  ledger print shows only the effective date with --effective, but not
+  vice versa.
 
 - hledger's default commodity directive (D) sets the commodity for
   subsequent commodityless amounts, and contributes to that commodity's
