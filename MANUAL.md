@@ -1210,9 +1210,9 @@ entries, and the following c++ ledger options and commands:
   vice versa.
 
 - hledger's default commodity directive (D) sets the commodity for
-  subsequent commodityless amounts, and contributes to that commodity's
-  display settings. ledger uses D only for commodity display settings
-  and for the entry command.
+  subsequent commodityless amounts, and sets that commodity's display
+  settings if such an amount is the first seen. ledger uses D only for
+  commodity display settings and for the entry command.
 
 - hledger generates a description for timelog sessions, instead of
   taking it from the clock-out entry
