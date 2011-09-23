@@ -1,9 +1,9 @@
-bin/hledger -f data/sample.journal balance --depth 1
+# 1
+bin/hledger -f data/sample.journal balance --no-total --depth 1
 >>>
                  $-1  assets
                   $2  expenses
                  $-2  income
                   $1  liabilities
---------------------
-                   0
 >>>=0
+

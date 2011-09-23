@@ -1,3 +1,4 @@
+# 1.
 bin/hledger -f data/sample.journal balance
 >>>
                  $-1  assets
@@ -13,3 +14,15 @@ bin/hledger -f data/sample.journal balance
 --------------------
                    0
 >>>=0
+
+# 2. 
+bin/hledger -f data/sample.journal balance o
+>>>
+                  $1  expenses:food
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+--------------------
+                 $-1
+>>>=0
+
