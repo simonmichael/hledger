@@ -43,7 +43,7 @@ runWith opts = run opts
           | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp webmode) >> exitSuccess
           | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
           | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-          | otherwise                                          = withJournalDo' opts web
+          | otherwise                                          = journalFilePathFromOpts (cliopts_ opts) >>= ensureJournalFile >> withJournalDo' opts web
 
 withJournalDo' :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
