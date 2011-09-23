@@ -25,5 +25,5 @@ showTransactions :: ReportOpts -> FilterSpec -> Journal -> String
 showTransactions opts fspec j = entriesReportAsText opts fspec $ entriesReport opts fspec j
 
 entriesReportAsText :: ReportOpts -> FilterSpec -> EntriesReport -> String
-entriesReportAsText opts _ items = concatMap (showTransactionForPrint (effective_ opts)) items
+entriesReportAsText _ _ items = concatMap showTransactionUnelided items
 

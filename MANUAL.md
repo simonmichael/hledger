@@ -1182,38 +1182,38 @@ entries, and the following c++ ledger options and commands:
 
 #### Other differences
 
--   hledger recognises description and negative patterns by "desc:"
-    and "not:" prefixes, unlike ledger 3's free-form parser
+- hledger recognises description and negative patterns by "desc:"
+  and "not:" prefixes, unlike ledger 3's free-form parser
 
--   hledger doesn't require a space before command-line option
-    values, eg either `-f-` or `-f -` is fine
+- hledger doesn't require a space before command-line option
+  values, eg either `-f-` or `-f -` is fine
 
--   hledger's weekly reporting intervals always start on mondays
+- hledger's weekly reporting intervals always start on mondays
 
--   hledger shows start and end dates of the intervals requested,
-    not just the span containing data
+- hledger shows start and end dates of the intervals requested,
+  not just the span containing data
 
--   hledger always shows timelog balances in hours
+- hledger always shows timelog balances in hours
 
--   hledger splits multi-day timelog sessions at midnight
+- hledger splits multi-day timelog sessions at midnight
 
--   hledger doesn't track the value of commodities with varying
-    price; prices are fixed as of the transaction date
+- hledger doesn't track the value of commodities with varying
+  price; prices are fixed as of the transaction date
 
--   hledger's output follows the decimal point character, digit grouping,
-    and digit group separator character used in the journal.
+- hledger's output follows the decimal point character, digit grouping,
+  and digit group separator character used in the journal.
 
--   hledger print shows amounts for all postings, and shows unit
-    prices for amounts which have them. (This currently means that
-    it does not print multi-commodity transactions in valid journal format.)
+- hledger print shows amounts for all postings, and shows unit
+  prices for amounts which have them. (This currently means that
+  it does not print multi-commodity transactions in valid journal format.)
 
-  - hledger's default commodity directive (D) sets the commodity for
-    subsequent commodityless amounts, and contributes to that commodity's
-    display settings. ledger uses D only for commodity display settings
-    and for the entry command.
+- hledger's default commodity directive (D) sets the commodity for
+  subsequent commodityless amounts, and contributes to that commodity's
+  display settings. ledger uses D only for commodity display settings
+  and for the entry command.
 
--   hledger generates a description for timelog sessions, instead of
-    taking it from the clock-out entry
+- hledger generates a description for timelog sessions, instead of
+  taking it from the clock-out entry
 
 ### Troubleshooting
 

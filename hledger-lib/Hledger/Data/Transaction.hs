@@ -59,27 +59,23 @@ pcommentwidth = no limit -- 22
 @
 -}
 showTransaction :: Transaction -> String
-showTransaction = showTransaction' True False
+showTransaction = showTransaction' True
 
 showTransactionUnelided :: Transaction -> String
-showTransactionUnelided = showTransaction' False False
+showTransactionUnelided = showTransaction' False
 
-showTransactionForPrint :: Bool -> Transaction -> String
-showTransactionForPrint effective = showTransaction' False effective
-
-showTransaction' :: Bool -> Bool -> Transaction -> String
-showTransaction' elide effective t =
+showTransaction' :: Bool -> Transaction -> String
+showTransaction' elide t =
     unlines $ [description] ++ showpostings (tpostings t) ++ [""]
     where
       description = concat [date, status, code, desc, comment]
-      date | effective = showdate $ fromMaybe (tdate t) $ teffectivedate t
-           | otherwise = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
+      date = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
+      showdate = printf "%-10s" . showDate
+      showedate = printf "=%s" . showdate
       status = if tstatus t then " *" else ""
       code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
       desc = if null d then "" else " " ++ d where d = tdescription t
       comment = if null c then "" else "  ; " ++ c where c = tcomment t
-      showdate = printf "%-10s" . showDate
-      showedate = printf "=%s" . showdate
       showpostings ps
           | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]
