@@ -116,6 +116,20 @@ orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
     where a = if isJust a1 then a1 else a2
           b = if isJust b1 then b1 else b2
 
+-- | Calculate the intersection of two datespans.
+spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
+    where
+      b = latest b1 b2
+      e = earliest e1 e2
+
+latest d Nothing = d
+latest Nothing d = d
+latest (Just d1) (Just d2) = Just $ max d1 d2
+
+earliest d Nothing = d
+earliest Nothing d = d
+earliest (Just d1) (Just d2) = Just $ min d1 d2
+
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
 parsePeriodExpr :: Day -> String -> Either ParseError (Interval, DateSpan)

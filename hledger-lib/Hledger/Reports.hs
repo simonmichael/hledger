@@ -224,17 +224,28 @@ postingsReport :: ReportOpts -> FilterSpec -> Journal -> PostingsReport
 postingsReport opts fspec j = (totallabel, postingsReportItems ps nullposting startbal (+))
     where
       ps | interval == NoInterval = displayableps
-         | otherwise              = summarisePostingsByInterval interval depth empty filterspan displayableps
-      (precedingps, displayableps, _) = postingsMatchingDisplayExpr (display_ opts)
+         | otherwise              = summarisePostingsByInterval interval depth empty reportspan displayableps
+      j' =                                journalSelectingDateFromOpts opts
+                                        $ journalSelectingAmountFromOpts opts
+                                        j
+      (precedingps, displayableps, _) =   postingsMatchingDisplayExpr (display_ opts)
                                         $ depthClipPostings depth
                                         $ journalPostings
                                         $ filterJournalPostings fspec{depth=Nothing}
-                                        $ journalSelectingDateFromOpts opts
-                                        $ journalSelectingAmountFromOpts opts
-                                        j
+                                        j'
+      (interval, depth, empty, displayexpr) = (intervalFromOpts opts, depth_ opts, empty_ opts, display_ opts)
+      journalspan = journalDateSpan j'
+      -- requestedspan should be the intersection of any span specified
+      -- with period options and any span specified with display option.
+      -- The latter is not easily available, fake it for now.
+      requestedspan = periodspan `spanIntersect` displayspan
+      periodspan = datespan fspec
+      displayspan = postingsDateSpan ps
+          where (_,ps,_) = postingsMatchingDisplayExpr displayexpr $ journalPostings j'
+      matchedspan = postingsDateSpan displayableps
+      reportspan | empty     = requestedspan `orDatesFrom` journalspan
+                 | otherwise = requestedspan `spanIntersect` matchedspan
       startbal = sumPostings precedingps
-      filterspan = datespan fspec
-      (interval, depth, empty) = (intervalFromOpts opts, depth_ opts, empty_ opts)
 
 totallabel = "Total"
 balancelabel = "Balance"
@@ -309,13 +320,10 @@ depthClipPosting (Just d) p@Posting{paccount=a} = p{paccount=clipAccountName d a
 -- are one per account per interval and aggregated to the specified depth
 -- if any.
 summarisePostingsByInterval :: Interval -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [Posting]
-summarisePostingsByInterval interval depth empty filterspan ps = concatMap summarisespan $ splitSpan interval reportspan
+summarisePostingsByInterval interval depth empty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
     where
       summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
       postingsinspan s = filter (isPostingInDateSpan s) ps
-      dataspan = postingsDateSpan ps
-      reportspan | empty = filterspan `orDatesFrom` dataspan
-                 | otherwise = dataspan
 
 -- | Given a date span (representing a reporting interval) and a list of
 -- postings within it: aggregate the postings so there is only one per
