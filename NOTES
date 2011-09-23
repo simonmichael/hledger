@@ -544,7 +544,11 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** errors
-*** cli: subcommand options require preceding --, but are then ignored
+*** 51 default journal file has wrong line endings on windows
+*** 49 convert should report rules file parse errors better
+*** 46 hledger add adds too much extra space
+*** 33 edit form always displays in non-javascript browsers, like elinks
+*** 25 hledger in windows console does not print non-ascii characters
 *** convert: manual needs a rewrite
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
@@ -573,11 +577,6 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
-*** #25 can't print non-ascii in windows console
-http://code.google.com/p/hledger/issues/detail?id=25
-http://blog.andrewbeacock.com/2008/12/rxvt-better-console-for-cygwin-unix-on.html
-http://www.burningcutlery.com/derek/winsetup/
-http://msdn.microsoft.com/en-us/library/ms714415(v=VS.85).aspx
 *** tools: avoid haskell compiles and compile errors while setting up makefile vars
 joyful$ make help
 GHCi runtime linker: fatal error: I found a duplicate definition for symbol
@@ -1752,8 +1751,8 @@ http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pd
 *** add: rewrite a short description (trader) to the full description from the matched txn (trader joe's) ?
 *** web: can't find out total income:7th total in june at http://localhost:5005/register?q=inacct%3Aassets%3Atreasury !
 *** web: update/remove browser startup
-*** simple hledger.org/topic help urls, like php.net
-*** --help-web and web ui help links that go to online help, with paragraph comments & chat
+*** docs: simple hledger.org/topic help urls, like php.net
+*** docs: --help-web and web ui help links that go to online help, with paragraph comments & chat
 cf clients & profits interactive user guide, php.net, realworldhaskell etc.
 *** parsing: accounts tree & metadata specification
 ; chart of accounts
