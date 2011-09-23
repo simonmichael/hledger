@@ -16,7 +16,9 @@ module Hledger.Read (
        myTimelog,
        someamount,
        journalenvvar,
-       journaldefaultfilename
+       journaldefaultfilename,
+       requireJournalFile,
+       ensureJournalFile,
 )
 where
 import Control.Monad.Error
@@ -25,6 +27,7 @@ import Data.List
 import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
+import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (IOMode(..), withFile, stderr)
 import Test.HUnit
@@ -36,8 +39,8 @@ import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimelogReader as TimelogReader
 import Hledger.Utils
-import Prelude hiding (getContents)
-import Hledger.Utils.UTF8 (getContents, hGetContents)
+import Prelude hiding (getContents, writeFile)
+import Hledger.Utils.UTF8 (getContents, hGetContents, writeFile)
 
 
 journalenvvar           = "LEDGER_FILE"
@@ -91,21 +94,30 @@ journalFromPathAndString format fp s = do
 readJournalFile :: Maybe String -> FilePath -> IO (Either String Journal)
 readJournalFile format "-" = getContents >>= journalFromPathAndString format "(stdin)"
 readJournalFile format f = do
-  ensureJournalFile f
+  requireJournalFile f
   withFile f ReadMode $ \h -> hGetContents h >>= journalFromPathAndString format f
 
--- | Ensure there is a journal at the given file path, creating an empty one if needed.
+-- | If the specified journal file does not exist, give a helpful error and quit.
+requireJournalFile :: FilePath -> IO ()
+requireJournalFile f = do
+  exists <- doesFileExist f
+  when (not exists) $ do
+    hPrintf stderr "The hledger journal file \"%s\" was not found.\n" f
+    hPrintf stderr "Please create it first, eg with hledger add, hledger web, or a text editor.\n"
+    hPrintf stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
+    exitFailure
+
+-- | Ensure there is a journal file at the given path, creating an empty one if needed.
 ensureJournalFile :: FilePath -> IO ()
 ensureJournalFile f = do
   exists <- doesFileExist f
   when (not exists) $ do
-    hPrintf stderr "No journal file \"%s\", creating it.\n" f
-    hPrintf stderr "Edit this file or use \"hledger add\" or \"hledger web\" to add transactions.\n"
-    emptyJournal >>= writeFile f
+    hPrintf stderr "Creating hledger journal file \"%s\".\n" f
+    newJournalContent >>= writeFile f
 
 -- | Give the content for a new auto-created journal file.
-emptyJournal :: IO String
-emptyJournal = do
+newJournalContent :: IO String
+newJournalContent = do
   d <- getCurrentDay
   return $ printf "; journal created %s by hledger\n\n" (show d)
 

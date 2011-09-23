@@ -47,6 +47,7 @@ import System.Exit
 import System.Process
 import Text.Printf
 
+import Hledger (ensureJournalFile)
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Convert
@@ -72,7 +73,7 @@ main = do
        | "version" `in_` (rawopts_ opts)                 = putStrLn progversion
        | "binary-filename" `in_` (rawopts_ opts)         = putStrLn $ binaryfilename progname
        | null cmd                                        = putStr $ showModeHelp mainmode'
-       | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ withJournalDo opts add
+       | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFile >> withJournalDo opts add
        | cmd `isPrefixOf` "convert"                      = showModeHelpOr convertmode  $ convert opts
        | cmd `isPrefixOf` "test"                         = showModeHelpOr testmode     $ runtests opts
        | any (cmd `isPrefixOf`) ["accounts","balance"]   = showModeHelpOr accountsmode $ withJournalDo opts balance

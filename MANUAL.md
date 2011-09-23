@@ -81,9 +81,7 @@ Most [commands](#commands) query or operate on a
 [journal file](#the-journal-file), which by default is `.hledger.journal`
 in your home directory. You can specify a different file with the `-f`
 option or `LEDGER_FILE` environment variable, or standard input with `-f
--`.  If the journal file does not exist, an empty one will be
-created. Aside from this, only the `add` and `web` commands can modify the
-journal.
+-`.
 
 Options are similar across most commands, with some variations; use
 `hledger COMMAND --help` for details. Most options must appear somewhere
@@ -93,13 +91,13 @@ Arguments are also command-specific, but usually they are
 [filter patterns](#filter-patterns) which select a subset of the journal,
 eg transactions in a certain account.
 
-To get started quickly, run `hledger add` and follow the prompts to enter
-some transactions.  Or, save this
+To create an initial journal, run `hledger add` and follow the prompts to
+enter some transactions.  Or, save this
 [sample file](http://joyful.com/repos/hledger/data/sample.journal) as
 `.hledger.journal` in your home directory. Now try commands like these:
 
     $ hledger                               # show available commands
-    $ hledger add                           # add some new transactions to the journal file
+    $ hledger add                           # add more transactions to the journal file
     $ hledger balance                       # all accounts with aggregated balances
     $ hledger balance --help                # show help for balance command
     $ hledger balance --depth 1             # only top-level accounts

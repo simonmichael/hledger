@@ -515,7 +515,8 @@ handleAdd = do
 
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
-    liftIO $ appendToJournalFile journalpath $ showTransaction t'
+    liftIO $ do ensureJournalFile journalpath
+                appendToJournalFile journalpath $ showTransaction t'
     -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
     setMessage [$hamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
     redirectParams RedirectTemporary RegisterR [("add","1")]
