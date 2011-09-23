@@ -544,9 +544,6 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** errors
-*** balance: --flat with --depth excludes accounts/transactions below depth
-*** register: intervals with unspecified from should start from first txn not first matched txn ?
-*** cli: auto-creating missing journal files - annoying, change it
 *** cli: subcommand options require preceding --, but are then ignored
 *** convert: manual needs a rewrite
 *** parsing: recursive file includes cause a hang
