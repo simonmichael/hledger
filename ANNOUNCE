@@ -1,139 +1,82 @@
-I've made a bugfix release of the hledger-web package, to fix build problems.
+I'm pleased to announce version 0.16 of the hledger packages, a bugfix
+and polish release. (This may become the pattern for even-numbered
+releases in future.)
 
-hledger-web 0.15.1:
-
-  * web: add missing Hledger.Web.Options to cabal file
-  * web: tighten up dependencies to reduce build problems
-
-And here's another new dependency I forgot to mention: flot, the js
-charting library.
-
-The rest of this mail is a repeat of yesterday's announcement, since that
-one seriously confused google groups, gmane, and perhaps your mailreader
-(pro tip: don't re-edit old announcements with Mail.app's cmd-shift-d. :)
-
--Simon
-
-----
-
-I'm pleased to announce hledger 0.15! This release includes work by
-Trygve Laugstøl, Dmitry Astapov, Clint Adams, Johann Klähn and
-myself.
-
-hledger is a library and set of user tools for working with
-financial data (or anything that can be tracked in a double-entry
-accounting ledger.) It is a haskell port and friendly fork of John
-Wiegley's Ledger. hledger provides command-line, curses and web
-interfaces, and aims to be a reliable, practical tool for daily use.
-Given a plain text file describing transactions of money or any
-other commodity, it will print the chart of accounts, account
-balances, or just the transactions you're interested in.  It can
-also help you record new transactions, or convert CSV data from your
-bank.
+hledger is a library and set of user tools for working with financial
+data (or anything that can be tracked in a double-entry accounting
+ledger.) It is a haskell port and friendly fork of John Wiegley's
+Ledger. hledger provides command-line, curses and web interfaces, and
+aims to be a reliable, practical tool for daily use.  Given a plain
+text file describing transactions of money or any other commodity, it
+will print the chart of accounts, account balances, or just the
+transactions you're interested in.  It can also help you record new
+transactions, or convert CSV data from your bank.
 
 Home: http://hledger.org
 
-IRC: irc://irc.freenode.net/#ledger
+To install: cabal update, cabal install hledger. Optional add-ons:
+hledger-web hledger-vty hledger-chart hledger-interest.
 
-Install: cabal update; cabal install hledger
-           [hledger-web hledger-vty hledger-chart hledger-interest]
+Pre-built platform-specific binaries, which are time-consuming to make
+and support, are provided on request to financial donors - a great way
+to give back and support the project! http://hledger.org/DOWNLOAD.html
 
-Platform-specific binaries, which are time-consuming to make and
-support, are now provided on request to financial donors - a great
-way to give back and help pay hosting costs!
+Release notes for 0.16:
 
-Best,
--Simon
+  * cli: strip the -- when calling add-on commands, so their options
+    work (#64)
 
-Release notes for 0.15:
+  * cli: hledger ADDONCOMMAND --version now shows add-on command's
+    version
 
-  * hledger's options are now modal, providing better help (using
-    cmdargs)
+  * cli: only the add and web commands auto-create the journal file
 
-  * hledger now lists and runs any hledger-* add-ons found in the
-    user's path
+  * cli: give a less confusing error if LEDGER_FILE contains a literal
+    tilde
 
-  * case insensitivity of filter patterns has been fixed
+  * add: clearer prompts, more validation, use . to end also
 
-  * parsing: `alias`/`end aliases` directives, for renaming
-    accounts, are supported, like ledger's but a bit more powerful;
-    also an `--alias` option for renaming on the fly
+  * add: avoid excess whitespace between transactions (#46)
 
-  * parsing: the `account` directive now preserves posting type
-    (normal/virtual/balanced virtual)
+  * balance: ledger compatibility fix: don't elide parent accounts
+    with multiple displayed subaccounts
 
-  * parsing: the `pop` directive is supported as an alias for `end
-    tag`, like ledger
+  * convert: always order converted transactions by date
 
-  * parsing: `P` (historical price) directives can contain a
-    (ignored) numeric time zone, like ledger
+  * register: show more useful range of intervals with --empty and a
+    query pattern
 
-  * parsing: the leading `!` in directives is now optional and
-    deprecated, like ledger
+  * print, web: always show both dates, ignoring --effective (#42)
 
-  * parsing: entries with a negative amount in the first posting now
-    infer the correct balancing amount
+  * web: production builds (the default with cabal install) now have
+    all content embedded and no longer need to create support files.
+    Dev builds (cabal install -f-production, or make bin/hledger-web)
+    look for the web files at a simpler path, ./static/ (#63)
 
-  * parsing: bad date checking is more accurate
+  * web: update to yesod 0.9
 
-  * balance: collapsing of boring accounts to one line can be
-    disabled with `--no-elide`
+  * web: obey at least some command-line options, like --cost
 
-  * balance: fix a wrong precision regression from last release
+  * web: adjust the default base url when a custom port is specified
 
-  * convert: standard input can be converted
+  * web: prevent an infinite redirect when custom base url has a
+    trailing slash
 
-  * convert: an alternate rules file can be specified with `--rules`
+  * web: fix "not:'multi word'" patterns
 
-  * convert: `account2-field` can be used when the CSV file
-    specifies both accounts
+  * web: hide old title and search form when adding/editing
 
-  * convert: `description-field` can have a custom format and
-    combine multiple CSV fields
+  * web: adjust --help to indicate command-line arguments are not
+    expected
 
-  * convert: `in-field` and `out-field` support CSV files that use
-    two amount columns
-
-  * convert: don't fail when there's no default journal file
-
-  * web: the web interface has been overhauled/cleaned up
-
-  * web: account register views are now transaction-based, like
-    gnucash etc., and show accurate historical balances when
-    possible
-
-  * web: simple balance charts are displayed (using flot)
-
-  * web: more expressive and consistent search patterns, using a new
-    matching engine
-
-  * web: add form uses currently focussed account as default,
-    redirects to itself, formats status messages better
-
-  * web: sidebar now shows empty/boring accounts too
-
-  * web: now uses warp and a newer yesod
-
-  * api simplifications
-
-  * importable Hledger, Hledger.Web, Hledger.Vty and Hledger.Chart
-    modules
-
-  * the basic reports are now provided by hledger-lib for easier
-    reuse
-
-  * new api use examples: `equity.hs`, `uniquify.hs`
-
-  * some old base 3 support has been dropped
-
-  * the old -s flag has been dropped
+  * web: don't bother running cli unit tests at startup
 
 Stats:
 
-Release contributors: Simon Michael, Trygve Laugstøl, Dmitry Astapov, Clint Adams, Johann Klähn
+- Release contributors: Simon Michael
+- 30 days, 77 commits, 4 end-user features and 15 end-user bugfixes since last major release
+- 219 unit & functional tests and 55% unit test coverage (hledger, hledger-lib packages)
+- 7626 lines of code (all packages)
 
-132 days, 314 commits, 18 end-user features and 6 end-user bugfixes since last release.
-
-210 unit & functional tests and 55% unit test coverage (hledger, hledger-lib packages).
-
-7642 lines of code (all packages).
+Best,
+-Simon
