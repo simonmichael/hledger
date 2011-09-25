@@ -4,18 +4,32 @@ title: hledger news
 
 # News
 
+<!-- ## [2011/10/1 (planned) hledger 0.16]() -->
+
+  * cli: strip the -- when calling add-on commands, so their options work (#64)
   * cli: hledger ADDONCOMMAND --version now shows add-on command's version
-  * cli: when running addons with --debug, show the command line
+  * cli: only the add and web commands auto-create the journal file
+  * cli: give a less confusing error if LEDGER_FILE contains a literal tilde
+  * add: clearer prompts, more validation, use . to end also
+  * add: avoid excess whitespace between transactions (#46)
+  * balance: ledger compatibility fix: don't elide parent accounts with multiple displayed subaccounts
+  * convert: always order converted transactions by date
+  * register: show more useful range of intervals with --empty and a query pattern
+  * print, web: always show both dates, ignoring --effective (#42)
   * web: production builds (the default with cabal) have all web content embedded (dev builds use ./static/) (#63)
   * web: update to yesod 0.9
   * web: obey at least some command-line options, like --cost
+  * web: adjust the default base url when a custom port is specified
+  * web: prevent an infinite redirect when custom base url has a trailing slash
+  * web: fix "not:'multi word'" patterns
+  * web: hide old title and search form when adding/editing
   * web: adjust --help to indicate command-line arguments are not expected
   * web: don't bother running cli unit tests at startup
 
 ## [2011/9/12 hledger 0.15.2, hledger-web 0.15.3]()
 
   * handle multiple filter patterns on the command-line again
-  * don't pass an addon command's name to it as an extra argument
+  * don't pass an add-on command's name to it as an extra argument
   * don't give a confusing error with -f and no command
   * fix a regression balancing a transaction containing different prices
   * web: fix journal edit form
