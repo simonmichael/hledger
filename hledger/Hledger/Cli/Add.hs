@@ -197,26 +197,24 @@ askFor prompt def validator = do
 journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
   let f = journalFilePath j
-  appendToJournalFile f $ showTransaction t
+  appendToJournalFileOrStdout f $ showTransaction t
   when (debug_ opts) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
     putStrLn =<< registerFromString (show t)
   return j{jtxns=ts++[t]}
 
--- | Append data to a journal file; or if the file is "-", dump it to stdout.
-appendToJournalFile :: FilePath -> String -> IO ()
-appendToJournalFile f s =
-    if f == "-"
-    then putStr $ sep ++ s
-    else appendFile f $ sep++s
-    where 
-      -- appendFile means we don't need file locking to be
-      -- multi-user-safe, but also that we can't figure out the minimal
-      -- number of newlines needed as separator
-      sep = "\n\n"
-      -- sep | null $ strip t = ""
-      --     | otherwise = replicate (2 - min 2 (length lastnls)) '\n'
-      --     where lastnls = takeWhile (=='\n') $ reverse t
+-- | Append a string, typically one or more transactions, to a journal
+-- file, or if the file is "-", dump it to stdout.  Tries to avoid
+-- excess whitespace.
+appendToJournalFileOrStdout :: FilePath -> String -> IO ()
+appendToJournalFileOrStdout f s
+  | f == "-"  = putStr s'
+  | otherwise = appendFile f s'
+  where s' = "\n" ++ ensureOneNewlineTerminated s
+
+-- | Replace a string's 0 or more terminating newlines with exactly one.
+ensureOneNewlineTerminated :: String -> String
+ensureOneNewlineTerminated = (++"\n") . reverse . dropWhile (=='\n') . reverse
 
 -- | Convert a string of journal data into a register report.
 registerFromString :: String -> IO String
