@@ -806,19 +806,21 @@ showreleasestats stats: \
 #	simplebench
 #	showerrors
 
+FROMTAG=.
+
 showreleasedays:
 	@echo Days since last release:
-	@tools/dayssincerelease.hs | head -1 | cut -d' ' -f-1
+	@tools/dayssincetag.hs $(FROMTAG) | head -1 | cut -d' ' -f-1
 	@echo
 
 showunreleasedchangecount:
 	@echo Commits since last release:
-	@darcs changes --from-tag . --count
+	@darcs changes --from-tag $(FROMTAG) --count
 	@echo
 
 showreleaseauthors:
 	@echo Patch authors since last release:
-	@darcs changes --from-tag . |grep '^\w' |cut -c 31- |sort |uniq
+	@darcs changes --from-tag $(FROMTAG) |grep '^\w' |cut -c 31- |sort |uniq
 	@echo
 
 showloc sloccount:
@@ -850,7 +852,7 @@ showunpushedchanges unpushed:
 
 showunreleasedcodechanges unreleased:
 	@echo "hledger code changes since last release:"
-	@darcs changes --from-tag . --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
+	@darcs changes --from-tag $(FROMTAG) --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
 	@echo
 
 showcodechanges:
