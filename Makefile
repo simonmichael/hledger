@@ -300,6 +300,10 @@ windowsbinaries: install
 	@echo 'Please check the binaries are portable, then make compressbinaries'
 	ls -l bin/*`arch`
 
+# One way to get a wine command prompt
+wine:
+	wineconsole cmd.exe &
+
 compressbinaries:
 	cd bin; for f in *-windows-*.exe ; do echo zipping $$f; rm -f $$f.zip; zip $$f.zip $$f; done
 #	for f in bin/*-{linux,mac-}* ; do echo gzipping $$f; gzip -q $$f >$$f.gz; done
