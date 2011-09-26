@@ -4,10 +4,10 @@ title: hledger news
 
 # News
 
-<!-- ## [2011/10/1 (planned) hledger 0.16]() -->
+## 2011/10/1 (planned) hledger 0.16
 
   * cli: strip the -- when calling add-on commands, so their options work (#64)
-  * cli: hledger ADDONCOMMAND --version now shows add-on command's version
+  * cli: hledger ADDON --version now shows add-on command's version
   * cli: only the add and web commands auto-create the journal file
   * cli: give a less confusing error if LEDGER_FILE contains a literal tilde
   * add: clearer prompts, more validation, use . to end also
@@ -26,7 +26,7 @@ title: hledger news
   * web: adjust --help to indicate command-line arguments are not expected
   * web: don't bother running cli unit tests at startup
 
-## [2011/9/12 hledger 0.15.2, hledger-web 0.15.3]()
+## 2011/9/12 hledger 0.15.2, hledger-web 0.15.3
 
   * handle multiple filter patterns on the command-line again
   * don't pass an add-on command's name to it as an extra argument
@@ -36,13 +36,17 @@ title: hledger news
   * web: fix wrong transaction amount in account register with virtual postings
   * web: fix some invalid html
 
-## [2011/9/2 hledger 0.15.1, hledger-web 0.15.2](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/479)
+## 2011/9/2 hledger 0.15.1, hledger-web 0.15.2
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/479)
 
   * fix a parsec 2 incompatibility
   * web: add missing Hledger.Web.Options to cabal file
   * web: tighten up dependencies to reduce build problems
 
-## [2011/9/1 hledger 0.15](https://groups.google.com/forum/#!topic/hledger/-WCfnRFVaf0/discussion)
+## 2011/9/1 hledger 0.15
+
+[announcement](https://groups.google.com/forum/#!topic/hledger/-WCfnRFVaf0/discussion)
 
   * hledger's options are now modal, providing better help (using cmdargs)
   * hledger now lists and runs any hledger-* add-ons found in the user's path
@@ -76,7 +80,9 @@ title: hledger news
   * some old base 3 support has been dropped
   * the old -s flag has been dropped
 
-## [2011/4/22 hledger 0.14](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/383)
+## 2011/4/22 hledger 0.14
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/383)
 
   * remove the specific process dependency that caused too many cabal install problems
   * treat arguments as possibly-encoded platform strings, do not assume UTF-8
@@ -111,7 +117,9 @@ Stats:
 189 unit & functional tests and 59% unit test coverage (hledger, hledger-lib packages).
 5540 lines of code (all packages).
 
-## [2010/12/6 hledger 0.13](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/296)
+## 2010/12/6 hledger 0.13
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/296)
 
   * move web, vty, chart commands into separate hledger-web, hledger-vty,
     hledger-chart packages. This both simplifies (no more build flags) and
@@ -139,7 +147,9 @@ Stats:
   * transaction balancing is now based on display precision (#23)
   * briefer, more informative usage error messages
 
-## [2010/9/6 hledger 0.12.1](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/272)
+## 2010/9/6 hledger 0.12.1
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/272)
 
   * web: fix account filtering breakage
   * installing: tighten up utf8-string dependency
@@ -169,7 +179,9 @@ lines of code with 136 tests and 41% unit test coverage.
 
   * fix --version output
 
-## [2010/07/17 hledger 0.11](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/253)
+## 2010/07/17 hledger 0.11
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/253)
 
   * split --help, adding --help-options and --help-all/-H, and make
     it the default command
@@ -216,7 +228,9 @@ lines of code with 136 tests and 41% unit test coverage.
 Stats: 55 days and 136 commits since last release. Now at 5552
 lines of code with 132 tests and 54% unit test coverage.
 
-## [2010/05/23 hledger 0.10](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/242)
+## 2010/05/23 hledger 0.10
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/242)
 
   * fix too-loose testpack dependency, missing safe dependency
   * fix ghc 6.12 compatibility with -fweb
@@ -246,7 +260,9 @@ lines of code with 132 tests and 54% unit test coverage.
 Stats: 44 days, 81 commits since last release. Now at 4904 lines of
 code including tests, 144 tests, 53% coverage.
 
-## [2010/04/10 hledger 0.9](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/239)
+## 2010/04/10 hledger 0.9
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/239)
 
   * ghc 6.12 support
   * split off hledger-lib package, containing core types & utils
@@ -296,7 +312,9 @@ code including tests, 144 tests, 53% coverage.
 Stats: 58 days, 2 contributors, 102 commits since last release. Now
 at 3983 lines of non-test code, 139 tests, 53% coverage.
 
-## [2010/02/11 hledger 0.8](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/210)
+## 2010/02/11 hledger 0.8
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/210)
 
   * parsing: in date=date2, use first date's year as a default for
     the second
@@ -326,7 +344,9 @@ at 3983 lines of non-test code, 139 tests, 53% coverage.
 Stats: 62 days, 2 contributors, 76 commits since last release. Now
 at 3464 lines of non-test code, 97 tests, 53% test coverage.
 
-## [2009/12/11 hledger 0.7](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/193)
+## 2009/12/11 hledger 0.7
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/193)
 
   * price history support (first cut): P directives now work,
     though differently from c++ ledger. Each posting amount takes its
@@ -366,12 +386,16 @@ at 3464 lines of non-test code, 97 tests, 53% test coverage.
 Stats: 60 days, 1 contributor, 50 commits since last release. Now
 at 3377 lines of non-test code, 97 tests, 53% test coverage.
 
-## [2009/06/22 hledger 0.6.1](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/156)
+## 2009/06/22 hledger 0.6.1
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/156)
 
   * avoid use of exitSuccess which was breaking ghc 6.8/base 3
     compatibility (issue \#2)
 
-## [2009/06/13 hledger 0.6](http://thread.gmane.org/gmane.comp.finance.ledger.general/1215)
+## 2009/06/13 hledger 0.6
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/1215)
 
   * now cabal-installable on unix, mac, and windows, with Haskell
     Platform
@@ -412,7 +436,9 @@ Release stats:
   * two fixes: really disable vty flag by default, and include
     ConvertCommand in cabal file
 
-## [2009/05/23 hledger 0.5](http://thread.gmane.org/gmane.comp.finance.ledger.general/1181)
+## 2009/05/23 hledger 0.5
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/1181)
 
   * the vty flag is disabled by default again, to ease installation
     on windows
@@ -453,7 +479,9 @@ Release stats:
   * Tests: 76
   * Known errors: 0
 
-## [2009/04/03 hledger 0.4](http://thread.gmane.org/gmane.comp.finance.ledger.general/1097)
+## 2009/04/03 hledger 0.4
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/1097)
 
   * new "web" command serves reports in a web browser (install with
     -f happs to build this)
@@ -499,7 +527,9 @@ Release stats:
   * Tests: 56
   * Known errors: 0
 
-## [2009/01/17 hledger 0.3](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/67)
+## 2009/01/17 hledger 0.3
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/67)
 
   * count timelog sessions on the day they end, like ledger, for
     now
@@ -533,7 +563,9 @@ Release stats:
   * Tests: 58
   * Known errors: 1
 
-## [2008/11/23 hledger 0.2](http://thread.gmane.org/gmane.comp.finance.ledger.general/826)
+## 2008/11/23 hledger 0.2
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/826)
 
   * fix balance report totals when filtering by account
   * fix balance report selection of accounts when filtering by
@@ -581,7 +613,9 @@ Release stats:
   * Tests: 43
   * Known errors: 0
 
-## [2008/10/15 hledger 0.1](http://thread.gmane.org/gmane.comp.finance.ledger.general/775)
+## 2008/10/15 hledger 0.1
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/775)
 
 Release stats:
 
