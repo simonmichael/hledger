@@ -463,43 +463,60 @@ Examples:
 The convert command reads a
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) file you have
 downloaded from your bank, and prints out the transactions in journal
-format, suitable for adding to your journal. It does not alter your journal
-directly.
+format, suitable for adding to your journal. (It does not alter your
+journal directly.) This can be a lot quicker than entering every
+transaction by hand; the downside is that you are less likely to notice if
+your bank makes an error.
 
-This can be a lot quicker than entering every transaction by hand.  (The
-downside is that you are less likely to notice if your bank makes an
-error!) Use it like this:
+Use it like this:
+
+    $ hledger convert FILE.csv
+
+where FILE.csv is your downloaded bank data.
+
+If this is the first time converting FILE.csv, you'll see a very poor
+default conversion.  convert gets the necessary hints from a conversion
+rules file, named FILE.rules by default, which it auto-creates the first
+time. You'll need to add directives to this rules file, described below,
+and convert again, until the conversion is accurate. These rules will be
+reused for FILE.csv in future and should soon require only minor
+adjustments if any.
+
+Finally, copy only the new transactions to your main journal. hledger
+doesn't detect transactions already copied last time, so you'll need to
+skip over those. The converted transactions are always sorted by date. You
+may find it easier to pipe the output into a temporary file and copy/paste
+from there:
 
     $ hledger convert FILE.csv >FILE.journal
 
-where FILE.csv is your downloaded csv file. This will convert the csv data
-using conversion rules defined in FILE.rules (auto-creating this file if
-needed), and save the output into a temporary journal file. Then you should
-review FILE.journal for problems; update the rules and convert again if
-needed; and finally copy/paste transactions which are new into your main
-journal.
+You can also convert standard input by specifying no CSV file (or `-`); in
+this case you must specify the rules file with `--rules-file`. Eg:
 
-<!-- ###### .rules file -->
+    $ cat foo.csv | fixup | hledger convert --rules-file foo.rules
 
-convert requires a \*.rules file containing data definitions and rules for
-assigning destination accounts to transactions; it will be auto-created if
-missing. Typically you will have one csv file and one rules file per bank
-account.
+##### convert rules file
 
-If you have many CSV files for each account, have many accounts in the
-same bank or for any other reason want to re-use the rules file you can
-state it explicitly with the `--rules` argument.
+convert's \*.rules file contains primarily (1) CSV field definitions and
+(2) rules for assigning each transaction's account(s). Typically you will
+have one csv file and one rules file per bank account and rely on the file
+naming convention described above. If you have many CSV files for each
+account, have many accounts in the same bank or for any other reason need
+to re-use the rules file you can specify it explicitly with the
+`--rules-file` option.
 
-Here's an example rules file for converting csv data from a Wells
-Fargo checking account:
+Here's an example rules file for converting csv data from a Wells Fargo
+checking account in the USA:
 
-    base-account assets:bank:checking
+    ; field definitions
+
     date-field 0
     description-field 4
     amount-field 1
     currency $
-    
-    ; account-assigning rules:
+    base-account assets:bank:checking
+
+    ; account-assigning regexps:
     
     SPECTRUM
     expenses:health:gym
@@ -513,99 +530,122 @@ Fargo checking account:
 
 This says:
 
--   the account corresponding to this csv file is
-    assets:bank:checking
 -   the first csv field is the date, the second is the amount, the
     fifth is the description
+
 -   prepend a dollar sign to the amount field
+
+-   the account corresponding to this csv file is
+    assets:bank:checking
+
 -   if description contains SPECTRUM (case-insensitive), the
     transaction is a gym expense
+
 -   if description contains ITUNES or BLKBSTR, the transaction is
     an entertainment expense; also rewrite BLKBSTR as BLOCKBUSTER
+
 -   if description contains TO SAVINGS or FROM SAVINGS, the
     transaction is a savings transfer
 
-If your bank or external system uses two different columns for in and
-out movements, use the `in-field` and `out-field` rules instead of
-`amount-field`.
+Here are the available rules file directives.  All are optional and will
+use defaults if not specified. They are written one per line, at the
+beginning of the rules file. Each directive is a name and a value
+separated by whitespace. Note: watch out for parse errors in directives,
+they may not be reported clearly.
 
-Note that the numbers are assumed to be positive, implying that an "out"
+####### account-field
+
+If the CSV file contains data corresponding to several accounts (for
+example - bulk export from other accounting software), you can use
+account-field to override value of base-account. When account-field value
+is empty, base-account will be used.
+
+####### account2-field
+
+If the CSV file contains fields for both accounts in the transaction, you
+can use account2-field in addition to account-field.  If account2-field is
+unspecified, the [account-assigning rules](#account-assigning-rules) are used.
+
+####### amount-field
+
+This directive specifies the CSV field containing the transaction amount.
+
+As well as a simple number, the amount can be a hledger-style total or
+per-unit price. For example, lets assume that your base account
+"bank-current" is in GBP, and your CSV specifies amount of "10 USD @@ 15
+GBP", and account-assigning rules selected account "travel-expenses" for
+this transaction. As a result, "travel-expenses" would be credited by "10
+USD @@ 15 GBP", and "bank-current" would be debited by "-15 GBP". This way
+you could track the expenses in the currencies there were made, while
+keeping your base account in single currency
+
+####### code-field
+
+####### currency-field
+
+####### date-field
+
+####### date-format
+
+The date-format directive specifies a custom format for the date field, in
+the same way as Haskell's
+[formatTime](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime)
+function. The '%d' and '%m' specifiers expect leading zeroes. The '%y'
+specifier works better when hledger is built with version 1.2.0.5 or
+greater of the time library.
+
+####### description-field
+
+This directive can specify a simple field number like the others, or a
+custom format in order to combine more than one CSV field. For example,
+given the CSV record:
+
+    11/2009/09,"Flubber Co",50,"My comment"
+
+the directive:
+
+    description-field %(1)/%(3)
+
+will generate a transaction with this description:
+
+    Flubber Co/My comment
+
+####### effective-date-field
+
+####### in-field
+
+####### out-field
+
+If the CSV file uses two different columns for in and out movements, use
+the `in-field` and `out-field` directives instead of `amount-field`.  Note
+that the numbers are assumed to be positive, implying that an "out"
 movement gets recorded as a transaction with a negative amount.
 
-Notes:
+####### status-field
 
--   Lines beginning with ; or \# are ignored (but avoid using inside an
-    account rule)
+####### base-account
 
--   Definitions must come first, one per line, all in one
-    paragraph. Each is a name and a value separated by whitespace.
-    Supported names are: base-account, date-field, effective-date-field, date-format, status-field,
-    code-field, description-field, amount-field, currency-field, account-field,
-    account2-field, currency. All are optional and will use defaults if not
-    specified.
+####### currency
 
--   If your file contains data corresponding to several accounts (for example - bulk
-    export from other accounting software), you can use account-field to override
-    value of base-account. When account-field value is empty, base-account will be used.
+###### account-assigning rules
 
--   If your file contains fields for both accounts in the transaction, you
-    can use account2-field in addition to account-field.  If account2-field
-    is unspecified, the account-assigning rules will be used (see below).
+The remainder of the file is account-assigning rules. Each is a paragraph
+consisting of one or more description-matching patterns (case-insensitive
+regular expressions), one per line, followed by the account name to use
+when the transaction's description matches any of these patterns.
 
--   The date-format field contains the expected format for the input dates:
-    this is the same as that accepted by the Haskell
-    [formatTime](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime)
-    function. Notes: the '%d' and '%m' specifiers expect leading zeroes;
-    the '%y' specifier works better when hledger is built with version
-    1.2.0.5 or greater of the time library.
+A match pattern may be followed by a replacement pattern, separated by
+`=`, which rewrites the matched part of the description. Use this if you
+want to clean up messy bank data. To rewrite the entire description, use a
+match pattern like `.*PAT.*=REPL`. Within a replacement pattern, you can
+refer to the matched text with `\0` and any regex groups with `\1`, `\2`
+in the usual way.
 
--   The remainder of the file is account-assigning rules. Each is a
-    paragraph consisting of one or more description-matching patterns
-    (case-insensitive regular expressions), one per line, followed by
-    the account name to use when the transaction's description matches
-    any of these patterns.
+###### comments
 
--   A match pattern may be followed by a replacement pattern,
-    separated by `=`, which rewrites the matched part of the
-    description. Use this if you want to clean up messy bank data. To
-    rewrite the entire description, use a match pattern like
-    `.*PAT.*=REPL`. Within a replacement pattern, you can refer to the
-    matched text with `\0` and any regex groups with `\1`, `\2` in the
-    usual way.
+Lines beginning with ; or \# are ignored (but avoid using comments inside an account rule).
 
--   Amount may contain the total or per-unit price. For example, lets
-    assume that your base account "bank-current" is in GBP, and your CSV specifies amount of "10
-    USD @@ 15 GBP", and account-assigning rules selected account
-    "travel-expenses" for this transaction. As a result,
-    "travel-expenses" would be credited by "10 USD @@ 15 GBP", and
-    "bank-current" would be debited by "-15 GBP". This way you could
-    track the expenses in the currencies there were made, while
-    keeping your base account in single currency
 
-- If you want to combine more than one field from the CVS row into the
-  description field you can use an formatting expression for
-  `description-field`. For example:
-
-    CSV input:
-
-        11/2009/09,Flubber Co,50,My comment
-
-    description-field in rules file:
-
-        $ description-field %(1)/%(3)
-
-    converted output:
-
-        2009/09/11 Flubber Co/My comment
-            income:unknown             $50
-            Assets:MyAccount          $-50
-
-- The convert command also supports converting standard input if you're
-  streaming a CSV file from the web or another tool. Use `-` (or nothing)
-  as the input file and hledger will read from stdin. You must specify the
-  rules file in this case:
-
-        $ cat foo.csv | fixup | hledger convert --rules foo.rules
 
 #### test
 
