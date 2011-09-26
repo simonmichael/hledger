@@ -68,11 +68,21 @@ h6 {
     margin-top: 0.5em;
     /* margin-bottom: 0.2em;  */
 }
-h1, h2, h3, h4, h5, h6 {
+h7 {
+    font-size: 1em;
+    margin-top: 0.5em;
+    /* margin-bottom: 0.2em;  */
+}
+h8 {
+    font-size: 1em;
+    margin-top: 0.5em;
+    /* margin-bottom: 0.2em;  */
+}
+h1, h2, h3, h4, h5, h6, h7, h8 {
     margin-bottom: 0em;
     color:black;
 }
-h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h7 a, h8 a {
     text-decoration:none;
     color:black;
 }
