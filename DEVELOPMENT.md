@@ -16,6 +16,7 @@ contributors and developers.
   <br>IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)
   <br>Mail list: [list.hledger.org](http://list.hledger.org)
   <br>Bug tracker: [bugs.hledger.org](http://bugs.hledger.org)
+  (also `bugs.hledger.org/NNN`, `bugs.hledger.org/new`, `bugs.hledger.org/grid`)
 
 **Released version**<br>
   [Binaries](DOWNLOADS.html), [release notes](NEWS.html), [hledger-web demo](http://demo.hledger.org)<br>
