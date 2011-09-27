@@ -149,7 +149,7 @@ initialRulesFileContent =
     "date-field 0\n" ++
     "description-field 4\n" ++
     "amount-field 1\n" ++
-    "currency $\n" ++
+    "base-currency $\n" ++
     "\n" ++
     "# account-assigning rules\n" ++
     "\n" ++
@@ -300,7 +300,7 @@ account2field = do
   updateState (\r -> r{account2Field=readMay v})
 
 basecurrency = do
-  string "currency"
+  choice [string "base-currency", string "currency"]
   many1 spacenonewline
   v <- restofline
   updateState (\r -> r{baseCurrency=Just v})
