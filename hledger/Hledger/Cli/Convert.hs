@@ -37,8 +37,8 @@ data CsvRules = CsvRules {
       codeField :: Maybe FieldPosition,
       descriptionField :: [FormatString],
       amountField :: Maybe FieldPosition,
-      inField :: Maybe FieldPosition,
-      outField :: Maybe FieldPosition,
+      amountInField :: Maybe FieldPosition,
+      amountOutField :: Maybe FieldPosition,
       currencyField :: Maybe FieldPosition,
       baseCurrency :: Maybe String,
       accountField :: Maybe FieldPosition,
@@ -55,8 +55,8 @@ nullrules = CsvRules {
       codeField=Nothing,
       descriptionField=[],
       amountField=Nothing,
-      inField=Nothing,
-      outField=Nothing,
+      amountInField=Nothing,
+      amountOutField=Nothing,
       currencyField=Nothing,
       baseCurrency=Nothing,
       accountField=Nothing,
@@ -127,8 +127,8 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
                   ,statusField r
                   ,codeField r
                   ,amountField r
-                  ,inField r
-                  ,outField r
+                  ,amountInField r
+                  ,amountOutField r
                   ,currencyField r
                   ,accountField r
                   ,account2Field r
@@ -166,14 +166,14 @@ initialRulesFileContent =
 validateRules :: CsvRules -> Maybe String
 validateRules rules = let
     hasAmount = isJust $ amountField rules
-    hasIn = isJust $ inField rules
-    hasOut = isJust $ outField rules
+    hasIn = isJust $ amountInField rules
+    hasOut = isJust $ amountOutField rules
   in case (hasAmount, hasIn, hasOut) of
-    (True, True, _) -> Just "Don't specify in-field when specifying amount-field"
-    (True, _, True) -> Just "Don't specify out-field when specifying amount-field"
-    (_, False, True) -> Just "Please specify in-field when specifying out-field"
-    (_, True, False) -> Just "Please specify out-field when specifying in-field"
-    (False, False, False) -> Just "Please specify either amount-field, or in-field and out-field"
+    (True, True, _) -> Just "Don't specify amount-in-field when specifying amount-field"
+    (True, _, True) -> Just "Don't specify amount-out-field when specifying amount-field"
+    (_, False, True) -> Just "Please specify amount-in-field when specifying amount-out-field"
+    (_, True, False) -> Just "Please specify amount-out-field when specifying amount-in-field"
+    (False, False, False) -> Just "Please specify either amount-field, or amount-in-field and amount-out-field"
     _ -> Nothing
 
 -- rules file parser
@@ -205,8 +205,8 @@ definitions = do
    ,codefield
    ,descriptionfield
    ,amountfield
-   ,infield
-   ,outfield
+   ,amountinfield
+   ,amountoutfield
    ,currencyfield
    ,accountfield
    ,account2field
@@ -269,17 +269,17 @@ amountfield = do
   x <- updateState (\r -> r{amountField=readMay v})
   return x
 
-infield = do
-  string "in-field"
+amountinfield = do
+  choice [string "amount-in-field", string "in-field"]
   many1 spacenonewline
   v <- restofline
-  updateState (\r -> r{inField=readMay v})
+  updateState (\r -> r{amountInField=readMay v})
 
-outfield = do
-  string "out-field"
+amountoutfield = do
+  choice [string "amount-out-field", string "out-field"]
   many1 spacenonewline
   v <- restofline
-  updateState (\r -> r{outField=readMay v})
+  updateState (\r -> r{amountOutField=readMay v})
 
 currencyfield = do
   string "currency-field"
@@ -478,13 +478,13 @@ getAmount :: CsvRules -> CsvRecord -> String
 getAmount rules fields = case amountField rules of
   Just f  -> maybe "" (atDef "" fields) $ Just f
   Nothing ->
-    case (c, d) of
+    case (i, o) of
       (x, "") -> x
       ("", x) -> "-"++x
       p -> error' $ "using amount-in-field and amount-out-field, found a value in both fields: "++show p
     where
-      c = maybe "" (atDef "" fields) (inField rules)
-      d = maybe "" (atDef "" fields) (outField rules)
+      i = maybe "" (atDef "" fields) (amountInField rules)
+      o = maybe "" (atDef "" fields) (amountOutField rules)
 
 tests_Hledger_Cli_Convert = TestList (test_parser ++ test_description_parsing)
 
