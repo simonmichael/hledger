@@ -426,19 +426,37 @@ transactionFromCsvRecord rules fields =
 -- | Convert some date string with unknown format to YYYY/MM/DD.
 normaliseDate :: Maybe String -- ^ User-supplied date format: this should be tried in preference to all others
               -> String -> String
-normaliseDate mb_user_format s = maybe "0000/00/00" showDate $
-              firstJust $
-              (maybe id (\user_format -> (parseTime defaultTimeLocale user_format s :)) mb_user_format) $
-              [parseTime defaultTimeLocale "%Y/%m/%e" s
-               -- can't parse a month without leading 0, try adding one
-              ,parseTime defaultTimeLocale "%Y/%m/%e" (take 5 s ++ "0" ++ drop 5 s)
-              ,parseTime defaultTimeLocale "%Y-%m-%e" s
-              ,parseTime defaultTimeLocale "%Y-%m-%e" (take 5 s ++ "0" ++ drop 5 s)
-              ,parseTime defaultTimeLocale "%m/%e/%Y" s
-              ,parseTime defaultTimeLocale "%m/%e/%Y" ('0':s)
-              ,parseTime defaultTimeLocale "%m-%e-%Y" s
-              ,parseTime defaultTimeLocale "%m-%e-%Y" ('0':s)
-              ]
+normaliseDate mb_user_format s =
+    let parsewith = flip (parseTime defaultTimeLocale) s in
+    maybe (error' $ "could not parse \""++s++"\" as a date, consider adding a date-format directive or upgrading")
+          showDate $
+          firstJust $ (map parsewith $
+                       maybe [] (:[]) mb_user_format
+                       -- the - modifier requires time-1.2.0.5, released
+                       -- in 2011/5, so for now we emulate it for wider
+                       -- compatibility.  time < 1.2.0.5 also has a buggy
+                       -- %y which we don't do anything about.
+                       -- ++ [
+                       -- "%Y/%m/%d"
+                       -- ,"%Y/%-m/%-d"
+                       -- ,"%Y-%m-%d"
+                       -- ,"%Y-%-m-%-d"
+                       -- ,"%m/%d/%Y"
+                       -- ,"%-m/%-d/%Y"
+                       -- ,"%m-%d-%Y"
+                       -- ,"%-m-%-d-%Y"
+                       -- ]
+                      )
+                      ++ [
+                       parseTime defaultTimeLocale "%Y/%m/%e" s
+                      ,parseTime defaultTimeLocale "%Y-%m-%e" s
+                      ,parseTime defaultTimeLocale "%m/%e/%Y" s
+                      ,parseTime defaultTimeLocale "%m-%e-%Y" s
+                      ,parseTime defaultTimeLocale "%Y/%m/%e" (take 5 s ++ "0" ++ drop 5 s)
+                      ,parseTime defaultTimeLocale "%Y-%m-%e" (take 5 s ++ "0" ++ drop 5 s)
+                      ,parseTime defaultTimeLocale "%m/%e/%Y" ('0':s)
+                      ,parseTime defaultTimeLocale "%m-%e-%Y" ('0':s)
+                      ]
 
 -- | Apply account matching rules to a transaction description to obtain
 -- the most appropriate account and a new description.
