@@ -29,7 +29,9 @@ ABILITY TO SEE.  --Scott McCloud, Understanding Comics
 
 * todo
 ** shortlist for next release
-
+*** fixes
+*** docs
+*** polish
 ** documentation, marketing
 *** developer notes & log
 *** intro brainstorming
@@ -544,13 +546,10 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** errors
-*** 51 default journal file has wrong line endings on windows
 *** 49 convert should report rules file parse errors better
-*** 46 hledger add adds too much extra space
-*** 33 edit form always displays in non-javascript browsers, like elinks
-*** 25 hledger in windows console does not print non-ascii characters
-*** convert: manual needs a rewrite
 *** web: manual needs update
+*** 33 edit form always displays in non-javascript browsers, like elinks
+*** add: default amount has one decimal place when journal contains no decimals ?
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print
@@ -578,6 +577,7 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
+*** site: toc style
 *** tools: avoid haskell compiles and compile errors while setting up makefile vars
 joyful$ make help
 GHCi runtime linker: fatal error: I found a duplicate definition for symbol
@@ -593,6 +593,7 @@ GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
 
 make: *** No rule to make target `help'.  Stop.
 
+*** 25 hledger in windows console does not print non-ascii characters
 ** refactoring, cleanup
 *** use matchers for command line too
 **** design cli, backwards compatibility strategy
@@ -2515,8 +2516,8 @@ HsUnix.c:(.text+0x161): warning: Using 'getpwnam_r' in statically linked applica
 /usr/local/lib/ghc-6.12.3/unix-2.4.0.2/libHSunix-2.4.0.2.a(HsUnix.o): In function `__hsunix_getpwuid_r':
 HsUnix.c:(.text+0x151): warning: Using 'getpwuid_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
 ** windows build issues
-with cygwin 1.7.7, windows xp
-*** process
+*** with cygwin 1.7.7, windows xp
+**** process
 $ (date && ghc --version && cabal update && cabal configure && cabal build) >log 2>&1
 Mon Dec  6 14:23:11 PST 2010
 The Glorious Glasgow Haskell Compilation System, version 6.12.3
@@ -2631,7 +2632,7 @@ cbits\runProcess.c:387:0:
 cbits\runProcess.c:463:0:
      warning: implicit declaration of function `_open_osfhandle'
 
-*** haskeline
+**** haskeline
 $ (date && ghc --version && cabal update && cabal install haskeline) >log 2>&1
 Mon Dec  6 14:39:54 PST 2010
 The Glorious Glasgow Haskell Compilation System, version 6.12.3
@@ -2658,8 +2659,123 @@ cabal.exe: Error: some packages failed to install:
 haskeline-0.6.3.2 failed during the building phase. The exception was:
 ExitFailure 1
 
-*** gtk2hs
+**** gtk2hs
 Eduard_Munteanu> sm: gtk2hs-0.10.1 (binary), HP 2009.2.0.1 (binary too)  -- if you ever need it.
+
+*** wine on osx 10.6
+**** enumerator
+Z:\Users\simon\src\hledger-win\hledger-web>cabal install
+Resolving dependencies...
+Configuring enumerator-0.4.14...
+Preprocessing library enumerator-0.4.14...
+Building enumerator-0.4.14...
+[1 of 8] Compiling Data.Enumerator.Util ( lib\Data\Enumerator\Util.hs, dist\build\Data\Enumerator\Util.o )
+[2 of 8] Compiling Data.Enumerator[boot] ( lib\Data\Enumerator.hs-boot, dist\build\Data\Enumerator.o-boot )
+
+(dialog: The program touchy.exe has encountered a serious problem and needs to close...)
+
+Unhandled exception: page fault on read access to 0x00000000 in 32-bit code (0x406abacb).
+Register dump:
+ CS:0017 SS:001f DS:001f ES:001f FS:1007 GS:0037
+ EIP:406abacb ESP:0060fda0 EBP:0060fdc8 EFLAGS:00010206(  R- --  I   - -P- )
+ EAX:00000000 EBX:00000001 ECX:0060fde0 EDX:00000000
+ ESI:00110449 EDI:00000002
+Stack dump:
+0x0060fda0:  00110428 00000003 40699385 406a7cc2
+0x0060fdb0:  00110449 00111880 40699721 406a837f
+0x0060fdc0:  0060fde0 00110428 0060fdf8 406abb22
+0x0060fdd0:  0000000d 406ec660 40701064 406abb22
+0x0060fde0:  00110449 00000000 0060fe10 00000001
+0x0060fdf0:  00110428 0060fe10 0060fe88 00401492
+0200: sel=1007 base=7ffc0000 limit=00000fff 32-bit rw-
+Backtrace:
+=>0 0x406abacb __utime32+0x1b() in msvcrt (0x0060fdc8)
+  1 0x406abb22 __utime+0x21() in msvcrt (0x0060fdf8)
+  2 0x00401492 in touchy (+0x1491) (0x0060fe88)
+  3 0x0040124b in touchy (+0x124a) (0x0060fec0)
+  4 0x00401298 in touchy (+0x1297) (0x0060fed0)
+  5 0x7b84ecec _call_process_entry+0xb() in kernel32 (0x0060fee8)
+  6 0x7b8517a6 _start_process+0x65() in kernel32 (0x0060ff28)
+  7 0x7bc64eac _call_thread_func+0xb() in ntdll (0x0060ff48)
+  8 0x7bc65b2a _call_thread_entry_point+0x79() in ntdll (0x0060ffc8)
+  9 0x7bc3d98e _start_process+0x1d() in ntdll (0x0060ffe8)
+0x406abacb __utime32+0x1b in msvcrt: movl       0x0(%edx),%eax
+Modules:
+Module  Address                 Debug info      Name (18 modules)
+ELF            0- 6101000       Stabs           <wine-loader>
+PE        400000-  407000       Deferred        touchy
+PE      40000000-40148000       Stabs           libwine.1.dylib
+ELF     40682000-40734000       Stabs           msvcrt<elf>
+  \-PE  40690000-406ed000       \               msvcrt
+ELF     7b800000-7b929000       Stabs           kernel32<elf>
+  \-PE  7b810000-7b8da000       \               kernel32
+ELF     7bc00000-7bce7000       Stabs           ntdll<elf>
+  \-PE  7bc10000-7bc98000       \               ntdll
+PE      912bd000-9137e000       Deferred        libobjc.a.dylib
+PE      92c33000-92c46000       Deferred        libz.1.dylib
+PE      936bb000-93738000       Deferred        iokit
+PE      93c49000-93c9c000       Deferred        libauto.dylib
+PE      93f63000-941d6000       Deferred        corefoundation
+PE      94336000-94346000       Deferred        libkxld.dylib
+PE      945fe000-947e2000       Deferred        libicucore.a.dylib
+PE      988fc000-98902000       Deferred        libmathcommon.a.dylib
+PE      99ada000-99d03000       Deferred        libsystem.b.dylib
+Threads:
+process  tid      prio (all id:s are in hex)
+0000000e services.exe
+        0000001f    0
+        00000016    0
+        00000010    0
+        0000000f    0
+00000011 winedevice.exe
+        0000001b    0
+        00000019    0
+        00000015    0
+        00000012    0
+00000013 explorer.exe
+        00000014    0
+0000001c plugplay.exe
+        00000020    0
+        0000001e    0
+        0000001d    0
+00000043 wineconsole.exe
+        00000042    0
+0000003d cmd.exe
+        00000045    0
+00000035 wineconsole.exe
+        0000000b    0
+0000002f cmd.exe
+        0000002c    0
+00000041 cabal.EXE
+        00000046    0
+        00000033    0
+        0000003b    0
+        00000034    0
+0000001a ghc.exe
+        00000029    0
+        00000024    0
+        00000028    0
+        0000003c    0
+        00000040    0
+        00000022    0
+0000000d (D) C:\HP\lib\touchy.exe
+        00000030    0 <==
+Backtrace:
+=>0 0x406abacb __utime32+0x1b() in msvcrt (0x0060fdc8)
+  1 0x406abb22 __utime+0x21() in msvcrt (0x0060fdf8)
+  2 0x00401492 in touchy (+0x1491) (0x0060fe88)
+  3 0x0040124b in touchy (+0x124a) (0x0060fec0)
+  4 0x00401298 in touchy (+0x1297) (0x0060fed0)
+  5 0x7b84ecec _call_process_entry+0xb() in kernel32 (0x0060fee8)
+  6 0x7b8517a6 _start_process+0x65() in kernel32 (0x0060ff28)
+  7 0x7bc64eac _call_thread_func+0xb() in ntdll (0x0060ff48)
+  8 0x7bc65b2a _call_thread_entry_point+0x79() in ntdll (0x0060ffc8)
+  9 0x7bc3d98e _start_process+0x1d() in ntdll (0x0060ffe8)
+cabal: Error: some packages failed to install:
+enumerator-0.4.14 failed during the building phase. The exception was:
+ExitFailure (-1073741819)
+
+
 * journal
 ** 2010
 *** 5/4
