@@ -481,7 +481,7 @@ getAmount rules fields = case amountField rules of
     case (c, d) of
       (x, "") -> x
       ("", x) -> "-"++x
-      _ -> ""
+      p -> error' $ "using amount-in-field and amount-out-field, found a value in both fields: "++show p
     where
       c = maybe "" (atDef "" fields) (inField rules)
       d = maybe "" (atDef "" fields) (outField rules)
