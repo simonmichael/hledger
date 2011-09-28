@@ -775,11 +775,12 @@ Examples:
 
 #### web
 
-The web command runs a HTTP server providing a web-based user interface
+The web command (an add-on provided by the hledger-web package) runs a web
+server providing a web-based user interface
 ([release demo](http://demo.hledger.org),
-[latest demo](http://demo.hledger.org:5001)).
-The web UI provides reporting, including a more useful account register
-view, and also data entry and modification.
+[latest demo](http://demo.hledger.org:5001)).  The web UI provides
+reporting, including a more useful account register view, and also data
+entry and editing.
 
 web-specific options:
 
@@ -793,55 +794,17 @@ custom url scheme when running hledger-web behind a reverse proxy as part
 of a larger site. Note that the PORT in the base url need not be the same
 as the `--port` argument.
 
-**Warning:**
-Unlike other hledger commands, `web` can alter existing journal data, via
-the edit form.  A numbered backup of the file will be saved on each edit,
-normally (ie if file permissions allow, disk is not full, etc.)  Also,
-there is no built-in access control. So unless you run it behind an
+Warning: unlike other hledger commands, `web` can alter existing journal
+data, via the edit form.  A numbered backup of the file will be saved on
+each edit, normally (ie if file permissions allow, disk is not full, etc.)
+Also, there is no built-in access control. So unless you run it behind an
 authenticating proxy, any visitor to your server will be able to see and
 overwrite the journal file (and included files.)
 
-**Support files**
-
-hledger-web requires certain support files (images, stylesheets,
-javascript etc.) to be present in a particular location when it
-runs. Specifically, they need to be in a `web` directory, under the
-`.hledger` directory, under the current directory when you start
-hledger-web. To make this easy, hledger-web will auto-create these files
-in `./.hledger/web/` if they do not exist. Currently, after doing this
-it will exit, with a notice explaining what happened, and you'll have to
-run it a second time.
-
-The above is a compromise to satisfy certain technical constraints, but
-there is an advantage: you can easily customise the web UI's appearance
-(even while it is running) by editing these files. This is useful eg for
-integrating with an existing site. You can also run with different
-customisations by starting hledger-web from a different current
-directory. Note this means you should be aware of where you start
-hledger-web from, otherwise it may just create a new copy of the support
-files and ignore your stylings. To keep things simple you might choose to
-always run it from the same place, eg your home directory.
-
-Also note that when you upgrade hledger-web in future, these files will
-need to be upgraded too, probably by removing them and letting them be
-recreated.  So if you do customise them, remember what you changed; a
-version control system such as darcs will help here.
-
-**File changes are detected**
-
-As noted, changes to the support files will take effect immediately,
-without a restart.  This applies to the journal data too; you can directly
-edit the journal file(s) (or, eg, commit a change within a version control
-system) while the web UI is running, and the changes will be visible on
-the next page reload.
-
-**Malformed edits are rejected**
-
-The journal file must remain in good [hledger format](#the-journal-file) so
-that hledger can parse it. The web add and edit forms ensure this by not
-allowing edits which would introduce parse errors. If a direct edit makes
-the journal file unparseable, the web UI will show the error instead of
-data, until the file has been fixed.
+hledger-web disallows edits which would leave the journal file not in
+valid [hledger format](#the-journal-file). If the journal file becomes
+unparseable by other means, hledger-web will show an error until the file
+has been fixed.
 
 Examples:
 
