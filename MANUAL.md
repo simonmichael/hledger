@@ -514,10 +514,9 @@ And here's the result:
 
 ##### rules file directives
 
-Here are the available rules file directives. Directives should appear at
-the beginning of the file, before any account-assigning rules. (Note
-directive parse errors may not be reported clearly, so check them for
-typos if you're getting unexpected results.)
+Directives should appear at the beginning of the rules file, before any
+account-assigning rules. (Note directive parse errors may not be reported
+clearly, so check them for typos if you're getting unexpected results.)
 
 `account-field`
 
@@ -570,26 +569,28 @@ typos if you're getting unexpected results.)
 
 `date-field`
 
-> Which field contains the transaction date.
+> Which field contains the transaction date. A number of common
+> four-digit-year date formats are understood by default; other formats
+> will require a `date-format` directive.
 
 `date-format`
 
-> This directive specifies a custom format for the date field,
-> in the same way as Haskell's
-> [formatTime](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime)
-> function. Eg, if the CSV dates are month-first, and non-padded, use:
+> This directive specifies one additional format to try when parsing the
+> date field, using the syntax of Haskell's
+> [formatTime](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
+> Eg, if the CSV dates are non-padded D/M/YY, use:
 >
->     date-format %-m/%-d/%y
+>     date-format %-d/%-m/%y
 >
-> Note the `%y` specifier works best when hledger is built with version
-> 1.2.0.5 or greater of the time library.
+> Note custom date formats work best when hledger is built with version
+> 1.2.0.5 or greater of the [time](http://hackage.haskell.org/package/time) library.
 
 `description-field`
 
 > Which field contains the transaction's description. This can be a simple
-> field number, or a custom format combining multiple fields, like this:
+> field number, or a custom format combining multiple fields, eg:
 > 
->     description-field %(1) %(3)
+>     description-field %(1) - %(3)
 
 `effective-date-field`
 
