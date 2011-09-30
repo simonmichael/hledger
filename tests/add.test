@@ -2,14 +2,14 @@
 # data validation
 #
 # 1. should prompt again for a bad date
- rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
+ rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
 <<<
 2009/1/32
 >>> /date .*: date .*/
 >>>=0
 
 # 2. should accept a blank date
- rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
+ rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
 <<<
 
 >>> /date .*: description/
@@ -19,7 +19,7 @@
 # precision and commodity handling
 #
 # 3. simple add with no existing journal, no commodity entered
- rm -f add-default-commodity-$$.j; bin/hledger -f add-default-commodity-$$.j add; rm -f add-default-commodity-$$.j
+ rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
 <<<
 
 
@@ -32,7 +32,7 @@ b
 >>>=0
 
 # 4. default commodity with greater precision
- printf 'D $1000.00\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf 'D $1000.00\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -45,7 +45,7 @@ b
 >>>=0
 
 # 5. default commodity with less precision
- printf 'D $1000.0\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf 'D $1000.0\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -58,7 +58,7 @@ b
 >>>=0
 
 # 6. existing commodity with greater precision
- printf '2010/1/1\n a  $1000.00\n b\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -71,7 +71,7 @@ b
 >>>=0
 
 # 7. existing commodity with less precision
- printf '2010/1/1\n a  $1000.0\n b\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add >/dev/null; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -84,7 +84,7 @@ b
 >>>=0
 
 # 8. no commodity entered, the (most recent) default commodity should be applied
- printf 'D $1000.0\nD £1,000.00\n' >add-default-commodity-$$.j; bin/hledger -fadd-default-commodity-$$.j add; cat add-default-commodity-$$.j; rm -f add-default-commodity-$$.j
+ printf 'D $1000.0\nD £1,000.00\n' >t$$.j; bin/hledger -f t$$.j add; cat t$$.j; rm -f t$$.j
 <<<
 2010/1/1
 
