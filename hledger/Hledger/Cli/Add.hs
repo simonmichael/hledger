@@ -131,10 +131,16 @@ getPostings st enteredps = do
                            | n > 1             = Just balancingamountstr
                            | otherwise         = Nothing
               where
-                -- force a decimal point in the output in case there's a
-                -- digit group separator that would be mistaken for one
-                historicalamountstr = showMixedAmountWithPrecision maxprecisionwithpoint $ pamount $ fromJust bestmatch'
-                balancingamountstr  = showMixedAmountWithPrecision maxprecisionwithpoint $ negate $ sum $ map pamount enteredrealps
+                historicalamountstr = showMixedAmountWithPrecision p $ pamount $ fromJust bestmatch'
+                balancingamountstr  = showMixedAmountWithPrecision p $ negate $ sum $ map pamount enteredrealps
+                -- what should this be ?
+                -- 1 maxprecision (show all decimal places or none) ?
+                -- 2 maxprecisionwithpoint (show all decimal places or .0 - avoids some but not all confusion with thousands separators) ?
+                -- 3 canonical precision for this commodity in the journal ?
+                -- 4 maximum precision entered so far in this transaction ?
+                -- 5 3 or 4, whichever would show the most decimal places ?
+                -- I think 1 or 4, whichever would show the most decimal places
+                p = maxprecisionwithpoint
       amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
       let amount  = fromparse $ runParser (someamount <|> return missingamt) ctx     "" amountstr
           amount' = fromparse $ runParser (someamount <|> return missingamt) nullctx "" amountstr
