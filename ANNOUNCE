@@ -1,6 +1,6 @@
-I'm pleased to announce version 0.16 of the hledger packages, a bugfix
-and polish release. (This may become the pattern for even-numbered
-releases in future.)
+I'm pleased to announce version 0.16 of the hledger packages. This is a
+stability/bugfix/polish release (which may become the pattern for
+even-numbered releases in future.)
 
 hledger is a library and set of user tools for working with financial
 data (or anything that can be tracked in a double-entry accounting
@@ -14,69 +14,80 @@ transactions, or convert CSV data from your bank.
 
 Home: http://hledger.org
 
-To install: cabal update, cabal install hledger. Optional add-ons:
+To install: cabal update, cabal install hledger. If you have trouble, let
+me know or watch the mail list/bug tracker for updates. Optional add-ons:
 hledger-web hledger-vty hledger-chart hledger-interest.
 
-Pre-built platform-specific binaries, which are time-consuming to make
-and support, are provided on request to financial donors - a great way
-to give back and support the project! http://hledger.org/DOWNLOAD.html
+Pre-built platform-specific binaries, which are time-consuming to make and
+support, are provided on request to anyone who donates. This is a great
+way to give back and support the project! http://hledger.org/DOWNLOAD.html
 
 Release notes for 0.16:
 
-  * cli: strip the -- when calling add-on commands, so their options
-    work (#64)
+  * cli: strip the -- when calling add-on commands, so their options work
+    (#64)
 
-  * cli: hledger ADDONCOMMAND --version now shows add-on command's
-    version
+  * cli: hledger ADDON --version now shows add-on command's version
 
   * cli: only the add and web commands auto-create the journal file
 
-  * cli: give a less confusing error if LEDGER_FILE contains a literal
+  * cli: give a non-confusing error if LEDGER_FILE contains a literal
     tilde
 
   * add: clearer prompts, more validation, use . to end also
 
+  * add: use unix line endings consistently, avoiding parse error on
+    windows (#51)
+
   * add: avoid excess whitespace between transactions (#46)
 
-  * balance: ledger compatibility fix: don't elide parent accounts
-    with multiple displayed subaccounts
+  * balance: ledger compatibility fix: don't elide parent accounts with
+    multiple displayed subaccounts
 
   * convert: always order converted transactions by date
 
-  * register: show more useful range of intervals with --empty and a
-    query pattern
+  * convert: rename currency -> base-currency, in-field, out-field ->
+    amount-in-field, amount-out-field
+
+  * convert: give an error, not a zero when date or
+    amount-in-field/amount-out-field parsing fails
+
+  * register: show more useful range of intervals with --empty and a query
+    pattern
 
   * print, web: always show both dates, ignoring --effective (#42)
 
-  * web: production builds (the default with cabal install) now have
-    all content embedded and no longer need to create support files.
-    Dev builds (cabal install -f-production, or make bin/hledger-web)
-    look for the web files at a simpler path, ./static/ (#63)
+  * web: production builds (the default with cabal) have all web content
+    embedded (dev builds use ./static/) (#63)
 
   * web: update to yesod 0.9
 
-  * web: obey at least some command-line options, like --cost
+  * web: obey at least some of the general reporting options, like --cost
 
   * web: adjust the default base url when a custom port is specified
 
-  * web: prevent an infinite redirect when custom base url has a
-    trailing slash
+  * web: prevent an infinite redirect when custom base url has a trailing
+    slash
 
   * web: fix "not:'multi word'" patterns
 
   * web: hide old title and search form when adding/editing
 
-  * web: adjust --help to indicate command-line arguments are not
-    expected
+  * web: adjust --help to indicate command-line arguments are not expected
 
   * web: don't bother running cli unit tests at startup
 
 Stats:
 
 - Release contributors: Simon Michael
-- 30 days, 77 commits, 4 end-user features and 15 end-user bugfixes since last major release
-- 219 unit & functional tests and 55% unit test coverage (hledger, hledger-lib packages)
-- 7626 lines of code (all packages)
+
+- 30 days, 100 commits, 4 end-user features and 18 end-user bugfixes since
+  last major release
+
+- 219 unit & functional tests and 55% unit test coverage (hledger,
+  hledger-lib packages)
+
+- 7632 lines of code (all packages)
 
 Best,
 -Simon

@@ -4,21 +4,24 @@ title: hledger news
 
 # News
 
-## 2011/10/1 (planned) hledger 0.16
+## 2011/10/1 hledger 0.16
 
   * cli: strip the -- when calling add-on commands, so their options work (#64)
   * cli: hledger ADDON --version now shows add-on command's version
   * cli: only the add and web commands auto-create the journal file
-  * cli: give a less confusing error if LEDGER_FILE contains a literal tilde
+  * cli: give a non-confusing error if LEDGER_FILE contains a literal tilde
   * add: clearer prompts, more validation, use . to end also
+  * add: use unix line endings consistently, avoiding parse error on windows (#51)
   * add: avoid excess whitespace between transactions (#46)
   * balance: ledger compatibility fix: don't elide parent accounts with multiple displayed subaccounts
   * convert: always order converted transactions by date
+  * convert: rename currency -> base-currency, in-field, out-field -> amount-in-field, amount-out-field
+  * convert: give an error, not a zero when date or amount-in-field/amount-out-field parsing fails
   * register: show more useful range of intervals with --empty and a query pattern
   * print, web: always show both dates, ignoring --effective (#42)
   * web: production builds (the default with cabal) have all web content embedded (dev builds use ./static/) (#63)
   * web: update to yesod 0.9
-  * web: obey at least some command-line options, like --cost
+  * web: obey at least some of the general reporting options, like --cost
   * web: adjust the default base url when a custom port is specified
   * web: prevent an infinite redirect when custom base url has a trailing slash
   * web: fix "not:'multi word'" patterns
