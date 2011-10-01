@@ -20,7 +20,7 @@ import Hledger.Utils
 -- version and PATCHLEVEL are set by the make process
 
 version :: String
-version       = "0.15.2"
+version       = "0.16.0"
 
 patchlevel :: String
 #ifdef PATCHLEVEL
