@@ -121,7 +121,8 @@ format readable by both hledger and humans.
 You can use hledger without learning any more about this file; just use
 the [add](#add) or [web](#web) commands. Many users, though, also edit the
 journal file directly with a text editor, perhaps assisted by the helper
-modes for emacs or vi.
+modes for emacs or vi. Note the file uses unix line endings on all
+platforms.
 
 hledger's file format aims to be [compatible](#file-format-compatibility)
 with c++ ledger, so you can use both tools on your journal.
