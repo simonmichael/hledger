@@ -65,19 +65,44 @@ pandocWriterOptions = defaultWriterOptions {
    writerStandalone       = True, -- ^ Include header and footer -- needs to be true to have a toc
    writerTemplate         =  -- ^ Template to use in standalone mode
     unlines
-    [ "$if(title)$"
-    , "<h1 class=\"title\">$title$</h1>"
-    , "$endif$"
-    , "$for(include-before)$"
-    , "$include-before$"
-    , "$endfor$"
-    , "$if(toc)$"
-    , "$toc$"
-    , "$endif$"
-    , "$body$"
-    , "$for(include-after)$"
-    , "$include-after$"
-    , "$endfor$"
+    [
+    "$for(include-before)$",
+    "$include-before$",
+    "$endfor$",
+    "$if(title)$",
+    "$if(html5)$",
+    "<header>",
+    "$else$",
+    "<div id=\"$idprefix$header\">",
+    "$endif$",
+    "<h1 class=\"title\">$title$</h1>",
+    "$for(author)$",
+    "<h3 class=\"author\">$author$</h3>",
+    "$endfor$",
+    "$if(date)$",
+    "<h4 class=\"date\">$date$</h4>",
+    "$endif$",
+    "$if(html5)$",
+    "</header>",
+    "$else$",
+    "</div>",
+    "$endif$",
+    "$endif$",
+    "$if(toc)$",
+    "$if(html5)$",
+    "<nav id=\"$idprefix$TOC\">",
+    "$toc$",
+    "</nav>",
+    "$else$",
+    "<div id=\"$idprefix$TOC\">",
+    "$toc$",
+    "</div>",
+    "$endif$",
+    "$endif$",
+    "$body$",
+    "$for(include-after)$",
+    "$include-after$",
+    "$endfor$"
     ],
    -- writerVariables        = [],    -- ^ Variables to set in template
    -- writerIncludeBefore    = "",    -- ^ Text to include before the body
