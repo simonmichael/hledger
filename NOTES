@@ -547,9 +547,70 @@ using be more place holders?
 **** download & usage stats
 ** errors
 *** 49 convert should report rules file parse errors better
-*** web: manual needs update
 *** 33 edit form always displays in non-javascript browsers, like elinks
-*** add: default amount has one decimal place when journal contains no decimals ?
+*** add: default amount adds one decimal place when journal contains no decimals
+*** add: learn decimal point/thousands separator from the journal and/or add session ?
+Eg: comma is already used as thousands separator in the journal, but add
+interprets it as decimal point giving a wrong default for amount 2 (though
+the correct journal transaction is written in this case)
+
+$ hledger -f t add
+Adding transactions to journal file "t".
+To complete a transaction, enter . (period) at an account prompt.
+To stop adding transactions, enter . at a date prompt, or control-d/control-c.
+date, or . to end [2011/09/30]: 
+description []: z
+account 1: a
+amount  1: 1,000
+account 2: b
+amount  2 [-1,0]: 
+account 3, or . to record: .
+date, or . to end [2011/09/30]: .
+$ cat t
+; journal created 2011-09-30 by hledger
+
+2011/09/30
+    a  $1,000,000.00
+    b
+
+2011/09/30 x
+    a          $1,2
+    b
+
+2011/09/30 y
+    a          $1.2
+    b
+
+2011/09/30 z
+    a         1,000
+    b
+
+*** parsing: decimal point/thousands separator confusion ?
+<<<
+2011/09/30
+    a  $1,000,000.00
+    b
+
+2011/09/30 x
+    a          $1,2
+    b
+
+2011/09/30 y
+    a          $1.2
+    b
+>>> hledger -f t print
+2011/09/30
+    a  $1,000,000.00
+    b  $-1,000,000.00
+
+2011/09/30 x
+    a         $1.20
+    b        $-1.20
+
+2011/09/30 y
+    a         $1.20
+    b        $-1.20
+
 *** parsing: recursive file includes cause a hang
 echo "!include rec" > rec
 hledger -f rec print
@@ -577,7 +638,6 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
-*** site: toc style
 *** tools: avoid haskell compiles and compile errors while setting up makefile vars
 joyful$ make help
 GHCi runtime linker: fatal error: I found a duplicate definition for symbol
@@ -1732,6 +1792,8 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** add: don't offer record txn option in account N prompt if it's not balanced yet
+*** add: would be nice to create the journal file only if a txn is actually recorded
 *** web: lose io-storage
 *** web: use cli args as a permanent additional filter ?
 *** web: should display virtual postings with () or []
