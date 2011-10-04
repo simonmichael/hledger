@@ -22,7 +22,6 @@ module Hledger.Web.Settings
     , defbaseurl
     , hledgerorgurl
     , manualurl
-    -- , datadir
 
     ) where
 
@@ -106,12 +105,7 @@ loadConfig env = do
 -- | The location of static files on your system. This is a file system
 -- path. The default value works properly with your scaffolded site.
 staticDir :: FilePath
---staticDir = "static"
-staticDir = datadir++"static"
-
-datadir :: FilePath
-datadir = "./"
--- datadir = "./.hledger/web/"
+staticDir = "static"
 
 -- | The base URL for your static files. As you can see by the default
 -- value, this can simply be "static" appended to your application root.
@@ -148,7 +142,7 @@ staticRoot conf = [st|#{appRoot conf}/static|]
 -- | expects a root folder for each type, e.g: hamlet/ lucius/ julius/
 globFile :: String -> String -> FilePath
 -- globFile kind x = kind ++ "/" ++ x ++ "." ++ kind
-globFile kind x = datadir ++ "templates/" ++ x ++ "." ++ kind
+globFile kind x = "templates/" ++ x ++ "." ++ kind
 
 hamletFile :: FilePath -> Q Exp
 hamletFile = S.hamletFile . globFile "hamlet"
