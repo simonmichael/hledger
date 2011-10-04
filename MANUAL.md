@@ -67,6 +67,10 @@ Or, you can build the latest [development version](http://joyful.com/darcsweb/da
 
 - When installing with cabal, dependency problems are common. These can often be worked around by making sure to cabal update, using --constraint, and/or ghc-pkg unregister-ing obsolete package versions.
 - If you have non-ascii journal data, you may need to [set a suitable locale](#usage-issues)
+- hledger-web has three optional cabal build flags which you will usually want to leave alone:
+    - `production` (default:true) - Build fully optimised and with web files embedded (not loaded from ./static/)
+    - `threaded` (default:true) - Build with support for multithreaded execution
+    - `devel` (default:false) - Build for auto-recompiling by "yesod devel"
 - hledger-chart requires additional GTK-related libraries, see [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
 - hledger-vty requires curses-related libraries (ubuntu package: `libncurses5-dev`) and is not buildable on microsoft windows (except possibly via cygwin.)
 - If you have trouble, please see [Troubleshooting](#troubleshooting) and ask for [Support](DEVELOPMENT.html#support).

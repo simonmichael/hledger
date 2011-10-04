@@ -30,7 +30,7 @@ source-repository head
   location: http://joyful.com/repos/hledger
 
 Flag production
-    Description:   Build with production-mode tweaks, including full optimisation and embedded web files (not loaded from ./static/)
+    Description:   Build fully optimised and with web files embedded (not loaded from ./static/)
     Default:       True
 
 flag threaded
