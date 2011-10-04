@@ -1,5 +1,5 @@
 name:           hledger-lib
-version: 0.16
+version: 0.16.1
 category:       Finance
 synopsis:       Core data types, parsers and utilities for the hledger accounting tool.
 description:

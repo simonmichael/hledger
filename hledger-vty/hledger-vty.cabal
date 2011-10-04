@@ -1,5 +1,5 @@
 name:           hledger-vty
-version: 0.16
+version: 0.16.1
 category:       Finance
 synopsis:       A curses-style console interface for the hledger accounting tool.
 description:    
@@ -37,8 +37,8 @@ executable hledger-vty
                   Hledger.Vty.Main
                   Hledger.Vty.Options
   build-depends:
-                  hledger == 0.16
-                 ,hledger-lib == 0.16
+                  hledger == 0.16.1
+                 ,hledger-lib == 0.16.1
                  ,HUnit
                  ,base >= 3 && < 5
                  ,cmdargs >= 0.8   && < 0.9
