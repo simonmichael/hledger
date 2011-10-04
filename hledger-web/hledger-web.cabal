@@ -22,8 +22,17 @@ cabal-version:  >= 1.6
 build-type:     Simple
 extra-tmp-files:
 extra-source-files:
--- data-dir:    
--- data-files:  
+                static/
+                static/style.css
+                static/hledger.js
+                static/jquery.js
+                static/jquery.url.js
+                static/jquery.flot.js
+                static/dhtmlxcommon.js
+                static/dhtmlxcombo.js
+                static/excanvas.min.js
+                static/combo_select.gif
+                static/favicon.ico
 
 source-repository head
   type:     darcs
