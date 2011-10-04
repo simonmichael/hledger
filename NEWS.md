@@ -4,6 +4,13 @@ title: hledger news
 
 # News
 
+## 2011/10/4 hledger 0.16.1
+
+  * parsing: show correct line number for posting parse errors (#67)
+  * web: declare static files as extra-source-files to fix cabal install (#63)
+  * web: add a threaded flag for debian (#68)
+  * web: fewer build warnings by default
+
 ## 2011/10/1 hledger 0.16
 
   * cli: strip the -- when calling add-on commands, so their options work (#64)
