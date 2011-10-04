@@ -30,11 +30,15 @@ source-repository head
   location: http://joyful.com/repos/hledger
 
 Flag production
-    Description:   Build in production mode, with web files embedded. Otherwise, they will be loaded from ./static/.
+    Description:   Build with production-mode tweaks, including full optimisation and embedded web files (not loaded from ./static/)
+    Default:       True
+
+flag threaded
+    Description:   Build with support for multithreaded execution
     Default:       True
 
 Flag devel
-    Description:   Build for use with "yesod devel".
+    Description:   Build for auto-recompiling by "yesod devel"
     Default:       False
 
 executable hledger-web
@@ -43,9 +47,11 @@ executable hledger-web
       Buildable: False
   if flag(production)
       cpp-options:   -DPRODUCTION
-      ghc-options:   -Wall -threaded -O2
+      ghc-options:   -O2
   else
-      ghc-options:   -W -threaded
+      ghc-options:   -Wall
+  if flag(threaded)
+      ghc-options:   -threaded
   other-modules:
                      Hledger.Web
                      Hledger.Web.Foundation
