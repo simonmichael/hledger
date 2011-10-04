@@ -463,19 +463,21 @@ ledgermetadataline = do
 ledgerpostings :: GenParser Char JournalContext [Posting]
 ledgerpostings = do
   ctx <- getState
-  -- pass current position to the sub-parses for more useful errors
+  -- we'll set the correct position for sub-parses for more useful errors
   pos <- getPosition
   ls <- many1 $ try linebeginningwithspaces
-  let parses p = isRight . parseWithCtx ctx p
-      postinglines = filter (not . (ledgercommentline `parses`)) ls
+  let lsnumbered = zip ls [0..]
+      parses p = isRight . parseWithCtx ctx p
+      postinglines = filter (not . (ledgercommentline `parses`) . fst) lsnumbered
       -- group any metadata lines with the posting line above
-      postinglinegroups :: [String] -> [String]
+      postinglinegroups :: [(String,Line)] -> [(String,Line)]
       postinglinegroups [] = []
-      postinglinegroups (pline:ls) = (unlines $ pline:mdlines):postinglinegroups rest
-          where (mdlines,rest) = span (ledgermetadataline `parses`) ls
+      postinglinegroups ((pline,num):ls) = (unlines (pline:(map fst mdlines)), num):postinglinegroups rest
+          where (mdlines,rest) = span ((ledgermetadataline `parses`) . fst) ls
       pstrs = postinglinegroups postinglines
+      parseNumberedPostingLine (str,num) = fromparse $ parseWithCtx ctx (setPosition (incSourceLine pos num) >> ledgerposting) str
   when (null pstrs) $ fail "no postings"
-  return $ map (fromparse . parseWithCtx ctx (setPosition pos >> ledgerposting)) pstrs
+  return $ map parseNumberedPostingLine pstrs
   <?> "postings"
             
 linebeginningwithspaces :: GenParser Char JournalContext String
