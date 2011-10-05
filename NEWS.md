@@ -4,6 +4,14 @@ title: hledger news
 
 # News
 
+## 2011/10/4 hledger-web 0.16.3
+
+  * web: another cabal install fix, disable favicon.ico since it's not easily embeddable
+
+## 2011/10/4 hledger-web 0.16.2
+
+  * web: more cabal install fixes (remove bad path, add routes and models) (#63)
+
 ## 2011/10/4 hledger 0.16.1
 
   * parsing: show correct line number for posting parse errors (#67)
