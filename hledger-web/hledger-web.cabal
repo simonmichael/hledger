@@ -22,7 +22,8 @@ cabal-version:  >= 1.6
 build-type:     Simple
 extra-tmp-files:
 extra-source-files:
-                static/
+                models
+                routes
                 static/style.css
                 static/hledger.js
                 static/jquery.js
