@@ -1,5 +1,5 @@
 /static          StaticR         Static getStatic
-/favicon.ico     FaviconR        GET
+-- /favicon.ico     FaviconR        GET
 /robots.txt      RobotsR         GET
 /                RootR           GET
 /journal         JournalR        GET POST
