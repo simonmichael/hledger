@@ -14,7 +14,8 @@ import qualified Hledger.Cli (progname)
 import Hledger.Web.Settings
 
 progname = Hledger.Cli.progname ++ "-web"
-progversion = progversionstr progname
+-- progversion = progversionstr progname
+progversion = progname ++ "-" ++ "0.16.2"
 
 defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 
