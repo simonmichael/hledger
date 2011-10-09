@@ -18,29 +18,31 @@ contributors and developers.
   <br>Bug tracker: [bugs.hledger.org](http://bugs.hledger.org)
   (also `bugs.hledger.org/NNN`, `bugs.hledger.org/new`, `bugs.hledger.org/grid`)
 
-**Released version**<br>
-  [Binaries](DOWNLOADS.html), [release notes](NEWS.html), [hledger-web demo](http://demo.hledger.org)<br>
-  Hackage:
-  [hledger](http://hackage.haskell.org/package/hledger),
-  [hledger-web](http://hackage.haskell.org/package/hledger-web),
-  [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
-  [hledger-chart](http://hackage.haskell.org/package/hledger-chart),
-  [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
-
 <script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
 <script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
 <form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
 <input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
-**Latest development version**<br>
-  [Get it](#how-to-set-up-for-hledger-development),
-  [browse it](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger),
-  [hledger-web dev demo](http://demo.hledger.org:5001)
-  <br>[API haddocks](http://hledger.org/api)
+**Released version**<br>
+  [Binaries](DOWNLOADS.html), [release notes](NEWS.html), [hledger-web demo](http://demo.hledger.org)<br>
+  Hackage packages & API docs:
+  [hledger-lib](http://hackage.haskell.org/package/hledger-lib),
+  [hledger](http://hackage.haskell.org/package/hledger),
+  [hledger-web](http://hackage.haskell.org/package/hledger-web),
+  [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
+  [hledger-chart](http://hackage.haskell.org/package/hledger-chart)
+  <br>
   <span style="white-space:nowrap;"
-  ><input type="text" name="hoogle" id="hoogle" accesskey="1"
-  /><input type="submit" value="hoogle search"
+  ><input type="text" name="hoogle" id="hoogle" accesskey="1" size="30"
+  /><input type="submit" value="hoogle API search"
   /></span>
-  <br>[Developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES),
+
+**Development version**<br>
+  [Get it](#how-to-set-up-for-hledger-development),
+  [browse it](http://joyful.com/repos/hledger),
+  [hledger-web dev demo](http://demo.hledger.org:5001)
+  <br>
+  [latest API docs](http://hledger.org/api),
+  [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
   [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   [benchmark](http://hledger.org/profs/latest.bench),
