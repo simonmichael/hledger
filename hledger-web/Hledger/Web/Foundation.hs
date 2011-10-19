@@ -6,8 +6,6 @@ module Hledger.Web.Foundation
     , resourcesApp
     , Handler
     , Widget
-    , module Yesod.Core
-    -- , module Settings
     , StaticRoute (..)
     , lift
     , liftIO

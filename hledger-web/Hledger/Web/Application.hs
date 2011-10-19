@@ -12,6 +12,7 @@ where
 import Data.Dynamic (Dynamic, toDyn)
 import Network.Wai (Application)
 import Network.Wai.Middleware.Debug (debugHandle)
+import Yesod.Core hiding (AppConfig,loadConfig,appPort)
 import Yesod.Logger (makeLogger, flushLogger, Logger, logLazyText, logString)
 import Yesod.Static
 
@@ -33,10 +34,10 @@ withApp :: AppConfig -> Logger -> WebOpts -> (Application -> IO a) -> IO a
 withApp conf logger opts f = do
 #ifdef PRODUCTION
     putStrLn $ "Production mode, using embedded web files"
-    let s = $(embed Hledger.Web.Settings.staticDir)
+    let s = $(embed staticDir)
 #else
-    putStrLn $ "Not in production mode, using web files from " ++ Hledger.Web.Settings.staticDir ++ "/"
-    s <- staticDevel Hledger.Web.Settings.staticDir
+    putStrLn $ "Not in production mode, using web files from " ++ staticDir ++ "/"
+    s <- staticDevel staticDir
 #endif
     let a = App {settings=conf
                 ,getLogger=logger
@@ -52,7 +53,7 @@ withDevelAppPort =
   where
     go :: ((Int, Application) -> IO ()) -> IO ()
     go f = do
-        conf <- Hledger.Web.Settings.loadConfig Hledger.Web.Settings.Development
+        conf <- loadConfig Development
         let port = appPort conf
         logger <- makeLogger
         logString logger $ "Devel application launched with default options, listening on port " ++ show port
