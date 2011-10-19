@@ -578,7 +578,7 @@ HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-packa
 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
 
 # generate api docs for the whole project
-haddock: linkhledgerwebdir .haddockprologue
+haddock: .haddockprologue
 	$(HADDOCK) --title "hledger-* API docs" \
 	 -o site/api \
 	 --html \
