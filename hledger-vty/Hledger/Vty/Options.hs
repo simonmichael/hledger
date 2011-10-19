@@ -1,17 +1,18 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 -}
 
 module Hledger.Vty.Options
 where
+import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
 import Hledger.Cli hiding (progname,progversion)
-import qualified Hledger.Cli (progname)
 
-progname = Hledger.Cli.progname ++ "-vty"
-progversion = progversionstr progname
+progname    = $(packageVariable (pkgName . package))
+progversion = progname ++ " " ++ $(packageVariable (pkgVersion . package)) :: String
 
 vtyflags = [
   flagNone ["debug-vty"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"

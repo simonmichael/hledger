@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 -}
@@ -5,14 +6,15 @@
 module Hledger.Chart.Options
 where
 import Data.Maybe
+import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
 import Hledger.Cli hiding (progname,progversion)
 import qualified Hledger.Cli (progname)
 
-progname = Hledger.Cli.progname ++ "-chart"
-progversion = progversionstr progname
+progname    = $(packageVariable (pkgName . package))
+progversion = progname ++ " " ++ $(packageVariable (pkgVersion . package)) :: String
 
 defchartoutput   = "hledger.png"
 defchartitems    = 10

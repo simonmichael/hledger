@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 -}
@@ -5,17 +6,15 @@
 module Hledger.Web.Options
 where
 import Data.Maybe
+import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
 import Hledger.Cli hiding (progname,progversion)
-import qualified Hledger.Cli (progname)
-
 import Hledger.Web.Settings
 
-progname = Hledger.Cli.progname ++ "-web"
--- progversion = progversionstr progname
-progversion = progname ++ "-" ++ "0.16.3"
+progname    = $(packageVariable (pkgName . package))
+progversion = progname ++ " " ++ $(packageVariable (pkgVersion . package)) :: String
 
 defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 

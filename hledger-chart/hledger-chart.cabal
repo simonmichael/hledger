@@ -41,6 +41,7 @@ executable hledger-chart
                  ,hledger-lib == 0.16.1
                  ,HUnit
                  ,base >= 3 && < 5
+                 ,cabal-file-th
                  ,cmdargs >= 0.8   && < 0.9
                  ,containers
                  -- ,csv
