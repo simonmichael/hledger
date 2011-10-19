@@ -33,12 +33,12 @@ PACKAGES=\
 	hledger-vty \
 	hledger-chart
 INCLUDEPATHS=\
-	-ihledger-lib \
-	-ihledger \
-	-ihledger-web \
-	-ihledger-vty \
-	-ihledger-chart
-MAIN=hledger/hledger-cli.hs
+	-i../hledger-lib \
+	-i../hledger \
+	-i../hledger-web \
+	-i../hledger-vty \
+	-i../hledger-chart
+MAIN=hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
 SOURCEFILES:= \
@@ -130,6 +130,12 @@ build: allcabalbuild
 # set version numbers and cabal test all hledger packages
 cabaltest: allcabaltest
 
+installdepsdry:
+	for p in $(PACKAGES); do (echo "$$p: cabal install --only-dependencies --dry"; cd $$p; cabal install --only-dependencies --dry); done
+
+installdeps:
+	for p in $(PACKAGES); do (echo "$$p: cabal install --only-dependencies"; cd $$p; cabal install --only-dependencies); done
+
 # run a cabal command in all hledger package dirs
 allcabal%:
 	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
@@ -138,34 +144,118 @@ allcabal%:
 all%:
 	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
 
-# auto-recompile and run (something, eg unit tests) whenever a module changes.
-autotest: sp
-	rm -f bin/hledger
-	$(AUTOBUILD) $(MAIN) -o bin/hledger -ihledger $(BUILDFLAGS) --run test
+# auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
-# as above for add-on programs
-autoweb: sp linkhledgerwebdir
+auto: sp
+	rm -f bin/hledger
+	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test
+
+autoweb: sp
 	rm -f bin/hledger-web
-	$(AUTOBUILD) hledger-web/hledger-web.hs -o bin/hledger-web -ihledger-web -ihledger $(BUILDFLAGS) --run #-f test.journal
+	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DPRODUCTION=1 --run -B #-f test.journal
 
 autovty: sp
 	rm -f bin/hledger-vty
-	$(AUTOBUILD) hledger-vty/hledger-vty.hs -o bin/hledger-vty -ihledger-vty -ihledger $(BUILDFLAGS) --run --help
+	cd hledger-vty; $(AUTOBUILD) hledger-vty.hs -o ../bin/hledger-vty $(BUILDFLAGS) --run --help
 
 autochart: sp
 	rm -f bin/hledger-chart
-	$(AUTOBUILD) hledger-chart/hledger-chart.hs -o bin/hledger-chart -ihledger-chart -ihledger $(BUILDFLAGS) --run --help
+	cd hledger-chart; $(AUTOBUILD) hledger-chart.hs -o ../bin/hledger-chart $(BUILDFLAGS) --run --help
 
 # check for sp and explain how to get it if not found.
 sp:
 	@/usr/bin/env which sp >/dev/null || \
 	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/repos/searchpath, make it and add it to your PATH'; exit 1)
 
-# make symlinks so that running hledger-web from the top directory will
-# use the in-development hledger-web support files. Cf Hledger.Web.Settings:
-HLEDGERDATADIR:=.hledger
-linkhledgerwebdir:
-	mkdir -p $(HLEDGERDATADIR); ln -sf ../hledger-web/$(HLEDGERDATADIR)/web $(HLEDGERDATADIR)/web
+hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
+
+# force a compile even if binary exists, since we don't specify dependencies
+.PHONY: bin/hledger hledger-web hledger-vty hledger-chart
+
+# build hledger binary as quickly as possible
+bin/hledger:
+	cd hledger; ghc --make $(MAIN) -o ../bin/hledger $(BUILDFLAGS)
+
+# build the fastest binary we can
+hledgeropt:
+	cd hledger; ghc --make $(MAIN) -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
+
+# build the time profiling binary. cabal install --reinstall -p some libs may be required.
+hledgerp:
+	cd hledger; ghc --make $(MAIN) -prof -auto-all -o ../bin/hledgerp $(BUILDFLAGS)
+
+# build the heap profiling binary for coverage reports and heap profiles.
+# Keep these .o files separate from the regular ones.
+hledgerhpc:
+	cd hledger; ghc --make $(MAIN) -fhpc -o ../bin/hledgerhpc -outputdir .hledgerhpcobjs $(BUILDFLAGS)
+
+# build other executables quickly
+
+bin/hledger-web:
+	cd hledger-web; ghc --make hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS)
+
+bin/hledger-web-production:
+	cd hledger-web; ghc --make hledger-web.hs -o ../$@ $(BUILDFLAGS) -DPRODUCTION
+
+bin/hledger-vty:
+	cd hledger-vty; ghc --make hledger-vty.hs -o ../bin/hledger-vty $(BUILDFLAGS)
+
+bin/hledger-chart:
+	cd hledger-chart; ghc --make hledger-chart.hs -o ../bin/hledger-chart $(BUILDFLAGS)
+
+# build portable releaseable binaries for gnu/linux
+linuxbinaries: 	linuxbinary-hledger \
+		linuxbinary-hledger-web \
+		linuxbinary-hledger-vty \
+		linuxbinary-hledger-chart
+	@echo 'Please check the binaries look portable, then make compressbinaries:'
+	-file bin/*`arch`
+
+linuxbinary-%:
+	ghc --make $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
+
+# XXX link errors
+linuxbinary-hledger-chart:
+	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS) -lpixman-1 -v
+
+macbinaries:    macbinary-hledger \
+		macbinary-hledger-vty \
+		macbinary-hledger-web \
+		macbinary-hledger-chart
+	@echo 'Please check the binaries are portable, then make compressbinaries'
+	otool -L bin/*`arch`
+
+# build a deployable mac binary for the specified hledger package, munging
+# the link command to use only standard osx libs.  Specifically we link
+# without the non-standard GMP framework, which causes no apparent harm.
+# Clunky, does the link twice.
+macbinary-%:
+	BINARY=`echo $(BINARYFILENAME) | sed -e 's/hledger/$*/'` ; \
+	LINKCMD=`cd $* && ghc -v --make $*.hs $(MACRELEASEBUILDFLAGS) -o ../bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
+	PORTABLELINKCMD=`echo $$LINKCMD | sed -e 's/ -framework GMP//'` ; \
+	echo $$PORTABLELINKCMD; $$PORTABLELINKCMD
+
+# Run this on a windows machine or in a wine session, and probably in a
+# separate copy of the repo (hledger-win).
+# Builds and gather deployable binaries for windows, if cygwin tools are
+# present and all packages are buildable. Otherwise, cabal install each
+# package and gather the binaries by hand.
+windowsbinaries: install
+	cp ~/.cabal/bin/hledger.exe bin/`echo $(BINARYFILENAME) | dos2unix`
+	-cp ~/.cabal/bin/hledger-web.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/' | dos2unix`
+	-cp ~/.cabal/bin/hledger-vty.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/' | dos2unix`
+	-cp ~/.cabal/bin/hledger-chart.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/' | dos2unix`
+	@echo 'Please check the binaries are portable, then make compressbinaries'
+	ls -l bin/*`arch`
+
+# One way to get a wine command prompt
+wine:
+	wineconsole cmd.exe &
+
+compressbinaries:
+	cd bin; for f in *-windows-*.exe ; do echo zipping $$f; rm -f $$f.zip; zip $$f.zip $$f; done
+#	for f in bin/*-{linux,mac-}* ; do echo gzipping $$f; gzip -q $$f >$$f.gz; done
+#	gzip bin/*`arch`
 
 # build the standalone unit test runner. Requires test-framework, which
 # may not work on windows.
@@ -216,108 +306,6 @@ set-up-rc-repo:
 ######################################################################
 # OLD PRE PKG SPLIT
 ######################################################################
-
-######################################################################
-# BUILDING
-
-hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
-
-# force a compile even if binary exists, since we don't specify dependencies
-.PHONY: bin/hledger hledger-web hledger-vty hledger-chart
-
-# build developer binaries, as quickly as possible
-# this one is named bin/ to avoid case clash on mac
-bin/hledger:
-	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
-
-bin/hledger-web:
-	ghc --make hledger-web/hledger-web.hs -o bin/hledger-web -ihledger-web -ihledger $(BUILDFLAGS)
-
-bin/hledger-web-production:
-	ghc --make hledger-web/hledger-web.hs -o $@ -ihledger-web -ihledger $(BUILDFLAGS) -DPRODUCTION
-
-bin/hledger-vty:
-	ghc --make hledger-vty/hledger-vty.hs -o bin/hledger-vty -ihledger-vty -ihledger $(BUILDFLAGS)
-
-bin/hledger-chart:
-	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart -ihledger-chart -ihledger $(BUILDFLAGS)
-
-hledgernowarnings:
-	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS) -Werror -v0
-
-# build the profiling-enabled binary. You may need to cabal install
-# --reinstall -p some libs.
-hledgerp:
-	ghc --make $(MAIN) -prof -auto-all -o bin/hledgerp $(BUILDFLAGS)
-
-# build the -fhpc hledger binary used for coverage reports and heap profiles.
-# The associated .o files are kept separate from the regular ones.
-hledgerhpc:
-	ghc --make $(MAIN) -fhpc -o bin/hledgerhpc -outputdir .hledgerhpcobjs $(BUILDFLAGS)
-
-# build the fastest binary we can
-hledgeropt:
-	ghc --make $(MAIN) -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
-
-# build portable releaseable binaries for gnu/linux
-linuxbinaries: 	linuxbinary-hledger \
-		linuxbinary-hledger-web \
-		linuxbinary-hledger-vty \
-		linuxbinary-hledger-chart
-	@echo 'Please check the binaries look portable, then make compressbinaries:'
-	-file bin/*`arch`
-
-linuxbinary-%:
-	ghc --make $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
-
-# XXX link errors
-linuxbinary-hledger-chart:
-	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS) -lpixman-1 -v
-
-macbinaries:    macbinary-hledger \
-		macbinary-hledger-vty \
-		macbinary-hledger-web \
-		macbinary-hledger-chart
-	@echo 'Please check the binaries are portable, then make compressbinaries'
-	otool -L bin/*`arch`
-
-# build a deployable mac binary for the specified hledger package, munging
-# the link command to use only standard osx libs.  Specifically we link
-# without the non-standard GMP framework, which causes no apparent harm.
-# Clunky, does the link twice.
-macbinary-%:
-	BINARY=`echo $(BINARYFILENAME) | sed -e 's/hledger/$*/'` ; \
-	LINKCMD=`ghc -v --make $*/$*.hs $(MACRELEASEBUILDFLAGS) -o bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
-	PORTABLELINKCMD=`echo $$LINKCMD | sed -e 's/ -framework GMP//'` ; \
-	echo $$PORTABLELINKCMD; $$PORTABLELINKCMD
-
-# Run this on a windows machine or in a wine session, and probably in a
-# separate copy of the repo (hledger-win).
-# Builds and gather deployable binaries for windows, if cygwin tools are
-# present and all packages are buildable. Otherwise, cabal install each
-# package and gather the binaries by hand.
-windowsbinaries: install
-	cp ~/.cabal/bin/hledger.exe bin/`echo $(BINARYFILENAME) | dos2unix`
-	-cp ~/.cabal/bin/hledger-web.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/' | dos2unix`
-	-cp ~/.cabal/bin/hledger-vty.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/' | dos2unix`
-	-cp ~/.cabal/bin/hledger-chart.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/' | dos2unix`
-	@echo 'Please check the binaries are portable, then make compressbinaries'
-	ls -l bin/*`arch`
-
-# One way to get a wine command prompt
-wine:
-	wineconsole cmd.exe &
-
-compressbinaries:
-	cd bin; for f in *-windows-*.exe ; do echo zipping $$f; rm -f $$f.zip; zip $$f.zip $$f; done
-#	for f in bin/*-{linux,mac-}* ; do echo gzipping $$f; gzip -q $$f >$$f.gz; done
-#	gzip bin/*`arch`
-
-# gzip-%:
-# 	gzip $* >$*.gz
-
-# zip-%:
-# 	zip $*.zip $*
 
 ######################################################################
 # TESTING
