@@ -4,6 +4,10 @@ title: hledger news
 
 # News
 
+## 2011/10/24 hledger-web 0.16.4
+
+  * web: yet another cabal install fix, fix AppConfig name clash
+
 ## 2011/10/4 hledger-web 0.16.3
 
   * web: another cabal install fix, disable favicon.ico since it's not easily embeddable
