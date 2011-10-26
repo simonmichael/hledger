@@ -121,7 +121,7 @@ staticDir = "static"
 --
 -- To see how this value is used, see urlRenderOverride in hledger-web.hs
 staticRoot :: AppConfig ->  Text
-staticRoot conf = [st|#{appRoot conf}/static|]
+staticRoot conf = [$st|#{appRoot conf}/static|]
 
 -- The rest of this file contains settings which rarely need changing by a
 -- user.
