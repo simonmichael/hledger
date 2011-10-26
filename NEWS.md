@@ -4,6 +4,10 @@ title: hledger news
 
 # News
 
+## 2011/10/26 hledger-web 0.16.5
+
+  * web: fix a ghc 6.12 incompatibility in Settings.hs
+
 ## 2011/10/24 hledger-web 0.16.4
 
   * web: yet another cabal install fix, fix AppConfig name clash

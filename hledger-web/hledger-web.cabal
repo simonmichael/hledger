@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.16.4
+version: 0.16.5
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
