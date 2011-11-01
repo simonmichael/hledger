@@ -82,6 +82,8 @@ Current plans include:
 
 ## 2011/10/1 hledger 0.16
 
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/521)
+
   * cli: strip the -- when calling add-on commands, so their options work (#64)
   * cli: hledger ADDON --version now shows add-on command's version
   * cli: only the add and web commands auto-create the journal file
