@@ -301,64 +301,70 @@ taken from the directive.
 
 ### Prices
 
-You can specify a commodity's unit price or exchange rate, in terms of
-another commodity. To set the price for a single posting's amount, write
-`@ UNITPRICE` after the amount, where UNITPRICE is the per-unit price in a
-different commodity:
+You can record a commodity's price (also known as cost or exchange rate)
+in terms of another commodity, and see amounts converted to the latter
+with the `--cost/-B` flag.
 
-    2009/1/2
-     assets:cash:foreign currency       €100 @ $1.35  ; one hundred euros priced at $1.35 each
-     assets:cash
+Note hledger assumes prices do not vary over time (unless explicitly
+changed by a later price declaration.)  This makes tracking simple foreign
+currency transactions easy. For more advanced needs such as tracking
+fluctuating-value investments or capital gains, you will probably want to
+run c++ ledger.
 
-Or, you can write `@@ TOTALPRICE`, which is sometimes more convenient:
+There are several ways to specify prices:
 
-    2009/1/2
-     assets:cash:foreign currency       €100 @@ $135  ; one hundred euros priced at $135 for the lot (equivalent to the above)
-     assets:cash
+1. Set the unit price for a single posting by writing `@ UNITPRICE` after
+the amount, where UNITPRICE is the per-unit price in a different
+commodity. Eg:
 
-Or, you can set the price for this commodity as of a certain date, using a
-historical price directive (P) as shown:
+        2009/1/2
+         assets:cash:foreign currency       €100 @ $1.35  ; one hundred euros at $1.35 each
+         assets:cash
 
-    ; the exchange rate for euro is $1.35 on 2009/1/1 (and thereafter, until a newer price directive is found)
-    ; four space-separated fields: P, date, commodity symbol, unit price in 2nd commodity
-    P 2009/1/1 € $1.35  
-    
-    2009/1/2
-     expenses:foreign currency       €100
-     assets
+2. Or specify the total price and let hledger work out the unit price for
+the posting by writing `@@ TOTALPRICE`:
 
-Note: a time and numeric time zone are allowed in historical price directives, but currently ignored.
+        2009/1/2
+         assets:cash:foreign currency       €100 @@ $135  ; one hundred euros at $135 for the lot
+         assets:cash
 
-Or, you can write a transaction in two commodities, without prices but
-with all amounts specified, and a conversion price will be inferred so as
-to balance the transaction:
+3. Or specify all of a transaction's amounts using two commodities, and
+hledger will infer the unit price that balances the transaction:
 
-    2009/1/2
-     expenses:foreign currency       €100
-     assets                         $-135
+        2009/1/2
+         expenses:foreign currency       €100   ; one hundred euros at $135 for the lot
+         assets                         $-135
 
-The print command shows any prices in effect. So the first example above gives:
+4. Or set a price that applies to all transactions after a certain date,
+using the P historical price directive:
+<!-- (Note a time and numeric time zone are allowed but ignored, like ledger.) -->
+
+        ; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
+        ; This one says the euro's exchange rate is $1.35 on or after 2009/1/1
+        ; (unless overridden by a later price directive)
+        P 2009/1/1 € $1.35  
+        
+        2009/1/2
+         expenses:foreign currency       €100   ; one hundred euros at the 2009/1/2 price ($1.35 each)
+         assets
+
+To see any prices that are in effect, use the print command. Eg the first
+example above gives:
 
     $ hledger print
     2009/01/02
         expenses:foreign currency  €100 @ $1.35
         assets                     €-100 @ $1.35
 
-To see amounts converted to their total cost, use the `--cost/-B` flag
-with any command:
+To see amounts converted to their price's commodity (ie, their cost), use
+the `--cost/-B` flag with any reporting command:
 
     $ hledger print --cost
     2009/01/02 x
         expenses:foreign currency       $135.00
         assets                         $-135.00
 
-In other words the `--cost/-B` flag converts amounts to their price's
-commodity. (It will not look up the price of a price.)
-
-Note hledger handles prices differently from c++ ledger in this respect:
-we assume unit prices do not vary over time.  This is good for simple
-reporting of foreign currency transactions, but not for tracking
-fluctuating-value investments or capital gains.
+<!-- (It will not look up the price of a price.) -->
 
 ### Including other files
 
