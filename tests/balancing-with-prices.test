@@ -1,4 +1,4 @@
-# this should balance
+# 1. this should balance
 bin/hledger -f - print
 <<<
 2011/1/1
@@ -7,3 +7,21 @@ bin/hledger -f - print
     c  $-30
 >>>2 !/could not balance/
 >>>= 0
+# 2. When commodity price is specified for the whole transaction, it should still be reported
+# in the balance as a single quantity even when prices change over time
+bin/hledger -f - balance
+<<<
+2011/01/01 conv1
+  expenses   10£ @@ 16$
+  cash       -16$
+
+2011/01/02 conv2
+  expenses   10£ @@ 15$
+  cash       -15$
+>>>
+                -31$  cash
+                 20£  expenses
+--------------------
+                -31$
+                 20£
+>>>=0
