@@ -60,7 +60,7 @@ module Hledger.Data.Amount (
   nullmixedamt,
   missingamt,
   amounts,
-  normaliseMixedAmount,
+  normaliseMixedAmountPreservingFirstPrice,
   canonicaliseMixedAmountCommodity,
   mixedAmountWithCommodity,
   setMixedAmountPrecision,
@@ -262,7 +262,7 @@ instance Show MixedAmount where show = showMixedAmount
 instance Num MixedAmount where
     fromInteger i = Mixed [Amount (comm "") (fromInteger i) Nothing]
     negate (Mixed as) = Mixed $ map negate as
-    (+) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingPrice $ Mixed $ as ++ bs
+    (+) (Mixed as) (Mixed bs) = normaliseMixedAmountPreservingPrices $ Mixed $ as ++ bs
     (*)    = error' "programming error, mixed amounts do not support multiplication"
     abs    = error' "programming error, mixed amounts do not support abs"
     signum = error' "programming error, mixed amounts do not support signum"
@@ -275,11 +275,11 @@ nullmixedamt = Mixed []
 missingamt :: MixedAmount
 missingamt = Mixed [Amount unknown{symbol="AUTO"} 0 Nothing]
 
--- | Simplify a mixed amount's component amounts: combine amounts with the
--- same commodity and price, remove any zero amounts, and replace an empty
--- amount list with a single zero amount.
-normaliseMixedAmountPreservingPrice :: MixedAmount -> MixedAmount
-normaliseMixedAmountPreservingPrice (Mixed as) = Mixed as''
+-- | Simplify a mixed amount's component amounts: combine amounts with
+-- the same commodity and price. Also remove any zero amounts and
+-- replace an empty amount list with a single zero amount.
+normaliseMixedAmountPreservingPrices :: MixedAmount -> MixedAmount
+normaliseMixedAmountPreservingPrices (Mixed as) = Mixed as''
     where
       as'' = if null nonzeros then [nullamt] else nonzeros
       (_,nonzeros) = partition (\a -> isReallyZeroAmount a && Mixed [a] /= missingamt) as'
@@ -288,13 +288,13 @@ normaliseMixedAmountPreservingPrice (Mixed as) = Mixed as''
       group = groupBy (\a1 a2 -> sym a1 == sym a2 && price a1 == price a2)
       sym = symbol . commodity
 
--- | Simplify a mixed amount's component amounts: combine amounts with the
--- same commodity, remove any zero amounts, and replace an empty amount
--- list with a single zero amount. Unlike normaliseMixedAmountPreservingPrice,
--- this one discards all but the first price encountered in each commodity.
--- (This is used more for display than arithmetic, but seems a bit odd. XXX)
-normaliseMixedAmount :: MixedAmount -> MixedAmount
-normaliseMixedAmount (Mixed as) = Mixed as''
+-- | Simplify a mixed amount's component amounts: combine amounts with
+-- the same commodity, using the first amount's price for subsequent
+-- amounts in each commodity (ie, this function alters the amount and
+-- is best used as a rendering helper.). Also remove any zero amounts
+-- and replace an empty amount list with a single zero amount.
+normaliseMixedAmountPreservingFirstPrice :: MixedAmount -> MixedAmount
+normaliseMixedAmountPreservingFirstPrice (Mixed as) = Mixed as''
     where 
       as'' = if null nonzeros then [nullamt] else nonzeros
       (_,nonzeros) = partition (\a -> isReallyZeroAmount a && Mixed [a] /= missingamt) as'
@@ -302,6 +302,12 @@ normaliseMixedAmount (Mixed as) = Mixed as''
       sort = sortBy (\a1 a2 -> compare (sym a1) (sym a2))
       group = groupBy (\a1 a2 -> sym a1 == sym a2)
       sym = symbol . commodity
+
+-- discardPrice :: Amount -> Amount
+-- discardPrice a = a{price=Nothing}
+
+-- discardPrices :: MixedAmount -> MixedAmount
+-- discardPrices (Mixed as) = Mixed $ map discardPrice as
 
 sumAmountsUsingFirstPrice [] = nullamt
 sumAmountsUsingFirstPrice as = (sum as){price=price $ head as}
@@ -323,15 +329,15 @@ divideMixedAmount (Mixed as) d = Mixed $ map (flip divideAmount d) as
 isNegativeMixedAmount :: MixedAmount -> Maybe Bool
 isNegativeMixedAmount m = case as of [a] -> Just $ isNegativeAmount a
                                      _   -> Nothing
-    where as = amounts $ normaliseMixedAmount m
+    where as = amounts $ normaliseMixedAmountPreservingFirstPrice m
 
 -- | Does this mixed amount appear to be zero when displayed with its given precision ?
 isZeroMixedAmount :: MixedAmount -> Bool
-isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmount
+isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmountPreservingFirstPrice
 
 -- | Is this mixed amount "really" zero ? See isReallyZeroAmount.
 isReallyZeroMixedAmount :: MixedAmount -> Bool
-isReallyZeroMixedAmount = all isReallyZeroAmount . amounts . normaliseMixedAmount
+isReallyZeroMixedAmount = all isReallyZeroAmount . amounts . normaliseMixedAmountPreservingFirstPrice
 
 -- | Is this mixed amount "really" zero, after converting to cost
 -- commodities where possible ?
@@ -349,14 +355,14 @@ mixedAmountWithCommodity c (Mixed as) = Amount c total Nothing
 -- -- For now, use this when cross-commodity zero equality is important.
 -- mixedAmountEquals :: MixedAmount -> MixedAmount -> Bool
 -- mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZeroMixedAmount b')
---     where a' = normaliseMixedAmount a
---           b' = normaliseMixedAmount b
+--     where a' = normaliseMixedAmountPreservingFirstPrice a
+--           b' = normaliseMixedAmountPreservingFirstPrice b
 
 -- | Get the string representation of a mixed amount, showing each of
 -- its component amounts. NB a mixed amount can have an empty amounts
 -- list in which case it shows as \"\".
 showMixedAmount :: MixedAmount -> String
-showMixedAmount m = vConcatRightAligned $ map show $ amounts $ normaliseMixedAmount m
+showMixedAmount m = vConcatRightAligned $ map show $ amounts $ normaliseMixedAmountPreservingFirstPrice m
 
 -- | Set the display precision in the amount's commodities.
 setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
@@ -367,19 +373,19 @@ setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 -- commoditys' display precision settings.
 showMixedAmountWithPrecision :: Int -> MixedAmount -> String
 showMixedAmountWithPrecision p m =
-    vConcatRightAligned $ map (showAmountWithPrecision p) $ amounts $ normaliseMixedAmount m
+    vConcatRightAligned $ map (showAmountWithPrecision p) $ amounts $ normaliseMixedAmountPreservingFirstPrice m
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
 showMixedAmountDebug m = printf "Mixed [%s]" as
-    where as = intercalate "\n       " $ map showAmountDebug $ amounts $ normaliseMixedAmount m
+    where as = intercalate "\n       " $ map showAmountDebug $ amounts $ normaliseMixedAmountPreservingFirstPrice m
 
 -- | Get the string representation of a mixed amount, but without
 -- any \@ prices.
 showMixedAmountWithoutPrice :: MixedAmount -> String
 showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth as
     where
-      (Mixed as) = normaliseMixedAmount $ stripPrices m
+      (Mixed as) = normaliseMixedAmountPreservingFirstPrice $ stripPrices m
       stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{price=Nothing}
       width = maximum $ map (length . show) as
       showfixedwidth = printf (printf "%%%ds" width) . showAmountWithoutPrice
@@ -434,9 +440,9 @@ tests_Hledger_Data_Amount = TestList [
 
   -- MixedAmount
 
-  ,"normaliseMixedAmount" ~: do
-    normaliseMixedAmount (Mixed []) `is` Mixed [nullamt]
-    assertBool "" $ isZeroMixedAmount $ normaliseMixedAmount (Mixed [Amount {commodity=dollar, quantity=10,    price=Nothing}
+  ,"normaliseMixedAmountPreservingFirstPrice" ~: do
+    normaliseMixedAmountPreservingFirstPrice (Mixed []) `is` Mixed [nullamt]
+    assertBool "" $ isZeroMixedAmount $ normaliseMixedAmountPreservingFirstPrice (Mixed [Amount {commodity=dollar, quantity=10,    price=Nothing}
                                                                     ,Amount {commodity=dollar, quantity=10,    price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}
                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Nothing}
                                                                     ,Amount {commodity=dollar, quantity=(-10), price=Just (TotalPrice (Mixed [Amount {commodity=euro, quantity=7, price=Nothing}]))}

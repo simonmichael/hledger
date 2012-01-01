@@ -170,3 +170,17 @@ bin/hledger -f - balance
   b  -16$
 >>>
 >>>=1
+
+# 13. Differently-priced lots of a commodity should be merged in balance report
+bin/hledger -f - balance
+<<<
+2011/1/1
+  (a)   £1 @ $2
+
+2011/1/1
+  (a)   £1 @ $3
+>>>
+                  £2  a
+--------------------
+                  £2
+>>>=0
