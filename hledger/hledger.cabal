@@ -35,6 +35,10 @@ source-repository head
   type:     darcs
   location: http://joyful.com/repos/hledger
 
+flag threaded
+    Description:   Build with support for multithreaded execution
+    Default:       True
+
 library
   -- XXX should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
@@ -105,8 +109,10 @@ executable hledger
                   Hledger.Cli.Stats
   -- XXX should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
-  ghc-options:    -threaded -W
-  -- should be the same as above
+  ghc-options:    -W
+  if flag(threaded)
+       ghc-options:   -threaded
+ -- should be the same as above
   build-depends:
                   hledger-lib == 0.17
                  ,base >= 3 && < 5
