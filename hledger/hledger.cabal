@@ -61,7 +61,7 @@ library
                  ,base >= 3 && < 5
                  ,cabal-file-th
                  ,containers
-                 ,cmdargs >= 0.8   && < 0.9
+                 ,cmdargs >= 0.8   && < 0.10
                  ,csv
                  ,directory
                  ,filepath
