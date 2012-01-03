@@ -56,7 +56,7 @@ library
   Build-Depends:
                   base >= 3 && < 5
                  ,bytestring
-                 ,cmdargs >= 0.8   && < 0.9
+                 ,cmdargs >= 0.8   && < 0.10
                  ,containers
                  ,directory
                  ,filepath
