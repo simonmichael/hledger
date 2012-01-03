@@ -426,10 +426,10 @@ defaultBalanceFormatString = [
 journalFilePathFromOpts :: CliOpts -> IO String
 journalFilePathFromOpts opts = do
   f <- myJournalPath
-  return $ errorIfContainsTilde $ fromMaybe f $ file_ opts
-
-errorIfContainsTilde s |'~' `elem` s = error' "unsupported literal ~ found in environment variable, please adjust"
-                       | otherwise   = s
+  let f' = fromMaybe f $ file_ opts
+  if '~' `elem` f'
+   then error' $ printf "~ in the journal file path is not supported, please adjust (%s)" f'
+   else return f'
 
 aliasesFromOpts :: CliOpts -> [(AccountName,AccountName)]
 aliasesFromOpts = map parseAlias . alias_
