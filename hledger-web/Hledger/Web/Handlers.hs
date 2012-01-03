@@ -436,20 +436,20 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
 -------------------------------------------------------------------------------
 -- post handlers
 
-postJournalR :: Handler RepPlain
+postJournalR :: Handler RepHtml
 postJournalR = handlePost
 
-postJournalEntriesR :: Handler RepPlain
+postJournalEntriesR :: Handler RepHtml
 postJournalEntriesR = handlePost
 
-postJournalEditR :: Handler RepPlain
+postJournalEditR :: Handler RepHtml
 postJournalEditR = handlePost
 
-postRegisterR :: Handler RepPlain
+postRegisterR :: Handler RepHtml
 postRegisterR = handlePost
 
 -- | Handle a post from any of the edit forms.
-handlePost :: Handler RepPlain
+handlePost :: Handler RepHtml
 handlePost = do
   action <- lookupPostParam  "action"
   case action of Just "add"    -> handleAdd
@@ -458,7 +458,7 @@ handlePost = do
                  _             -> invalidArgs [pack "invalid action"]
 
 -- | Handle a post from the transaction add form.
-handleAdd :: Handler RepPlain
+handleAdd :: Handler RepHtml
 handleAdd = do
   VD{..} <- getViewData
   -- get form input values. M means a Maybe value.
@@ -509,7 +509,7 @@ handleAdd = do
                  $forall e<-errs
                   #{e}<br>
                |]
-    redirectParams RedirectTemporary RegisterR [("add","1")]
+    getRegisterR
 
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
@@ -517,13 +517,13 @@ handleAdd = do
                 appendToJournalFileOrStdout journalpath $ showTransaction t'
     -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
     setMessage [$shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
-    redirectParams RedirectTemporary RegisterR [("add","1")]
+    getRegisterR
 
 chomp :: String -> String
 chomp = reverse . dropWhile (`elem` "\r\n") . reverse
 
 -- | Handle a post from the journal edit form.
-handleEdit :: Handler RepPlain
+handleEdit :: Handler RepHtml
 handleEdit = do
   VD{..} <- getViewData
   -- get form input values, or validation errors.
@@ -569,7 +569,7 @@ handleEdit = do
        jE
 
 -- | Handle a post from the journal import form.
-handleImport :: Handler RepPlain
+handleImport :: Handler RepHtml
 handleImport = do
   setMessage "can't handle file upload yet"
   redirect RedirectTemporary JournalR
