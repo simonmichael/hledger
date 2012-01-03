@@ -279,11 +279,10 @@ journalBalanceTransactions j@Journal{jtxns=ts} =
                                     Left e    -> Left e
       where balance = balanceTransaction (Just $ journalCanonicalCommodities j)
 
--- | Convert all the journal's amounts to their canonical display
--- settings.  Ie, all amounts in a given commodity will use (a) the
--- display settings of the first, and (b) the greatest precision, of the
--- amounts in that commodity. Prices are canonicalised as well, so consider
--- calling journalApplyHistoricalPrices before this.
+-- | Convert all the journal's posting amounts (not price amounts) to
+-- their canonical display settings. Ie, all amounts in a given
+-- commodity will use (a) the display settings of the first, and (b)
+-- the greatest precision, of the posting amounts in that commodity.
 journalCanonicaliseAmounts :: Journal -> Journal
 journalCanonicaliseAmounts j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
     where
