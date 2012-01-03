@@ -394,7 +394,7 @@ registerChartHtml items =
  -- is hidden, eg with add form toggled
  [$hamlet|
 <script type=text/javascript>
- if (document.getElementById('maincontent').style.display == 'block')
+ if (document.getElementById('maincontent').style.display != 'none')
   \$(document).ready(function() {
     /* render chart */
       \$.plot($('#register-chart'),
