@@ -389,11 +389,14 @@ $forall p <- tpostings t
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
-registerChartHtml items = [$hamlet|
+registerChartHtml items =
+ -- have to make sure plot is not called when our container (maincontent)
+ -- is hidden, eg with add form toggled
+ [$hamlet|
 <script type=text/javascript>
+ if (document.getElementById('maincontent').style.display == 'block')
   \$(document).ready(function() {
     /* render chart */
-    /* if (\$('#register-chart')) */
       \$.plot($('#register-chart'),
              [
               [
