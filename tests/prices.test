@@ -8,7 +8,7 @@ bin/hledger -f- print
 >>>
 2011/01/01
     expenses:foreign currency  €100 @ $1.35
-    assets                     €-100 @ $1.35
+    assets                         $-135.00
 
 >>>=0
 
@@ -50,7 +50,7 @@ bin/hledger -f - print
 >>>
 2011/01/01
     expenses:foreign currency  €100 @@ $135
-    assets                     €-100 @@ $135
+    assets                            $-135
 
 >>>=0
 

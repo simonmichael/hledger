@@ -141,17 +141,20 @@ isTransactionBalanced canonicalcommoditymap t =
       bvsum' = canonicaliseMixedAmountCommodity canonicalcommoditymap $ costOfMixedAmount bvsum
 
 -- | Ensure this transaction is balanced, possibly inferring a missing
--- amount or a conversion price first, or return an error message.
+-- amount or conversion price, or return an error message.
 --
--- Balancing is affected by the provided commodities' display precisions.
+-- Balancing is affected by commodity display precisions, so those may
+-- be provided.
 --
--- We can infer an amount when there are multiple real postings and
--- exactly one of them is amountless; likewise for balanced virtual
--- postings. Inferred amounts are converted to cost basis when possible.
+-- We can infer a missing real amount when there are multiple real
+-- postings and exactly one of them is amountless (likewise for
+-- balanced virtual postings). Inferred amounts are converted to cost
+-- basis when possible.
 --
--- We can infer a price when all amounts were specified and the sum of
--- real postings' amounts is exactly two non-explicitly-priced amounts in
--- different commodities; likewise for balanced virtual postings.
+-- We can infer a conversion price when all real amounts are specified
+-- and the sum of real postings' amounts is exactly two
+-- non-explicitly-priced amounts in different commodities (likewise
+-- for balanced virtual postings).
 balanceTransaction :: Maybe (Map.Map String Commodity) -> Transaction -> Either String Transaction
 balanceTransaction canonicalcommoditymap t@Transaction{tpostings=ps}
     | length rwithoutamounts > 1 || length bvwithoutamounts > 1
@@ -166,8 +169,8 @@ balanceTransaction canonicalcommoditymap t@Transaction{tpostings=ps}
       bvamounts = map pamount bvwithamounts
       t' = t{tpostings=map inferamount ps}
           where 
-            inferamount p | not (hasAmount p) && isReal p            = p{pamount = (- sum ramounts)}
-                          | not (hasAmount p) && isBalancedVirtual p = p{pamount = (- sum bvamounts)}
+            inferamount p | not (hasAmount p) && isReal p            = p{pamount = costOfMixedAmount (- sum ramounts)}
+                          | not (hasAmount p) && isBalancedVirtual p = p{pamount = costOfMixedAmount (- sum bvamounts)}
                           | otherwise                             = p
 
       -- maybe infer conversion prices, for real postings
