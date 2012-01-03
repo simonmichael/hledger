@@ -391,10 +391,10 @@ $forall p <- tpostings t
 -- the provided "TransactionsReportItem"s.
 registerChartHtml items = [$hamlet|
 <script type=text/javascript>
-\  $(document).ready(function() {
+  \$(document).ready(function() {
     /* render chart */
-\    /* if ($('#register-chart')) */
-\      $.plot($('#register-chart'),
+    /* if (\$('#register-chart')) */
+      \$.plot($('#register-chart'),
              [
               [
                $forall i <- items
@@ -676,7 +676,7 @@ searchform VD{..} = [$hamlet|
 addform :: ViewData -> HtmlUrl AppRoute
 addform vd@VD{..} = [$hamlet|
 <script type=text/javascript>
-\ $(document).ready(function() {
+ \$(document).ready(function() {
     /* dhtmlxcombo setup */
     window.dhx_globalImgPath="../static/";
     var desccombo  = new dhtmlXCombo("description");
