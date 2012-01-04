@@ -135,7 +135,7 @@ auto: sp
 
 autoweb: sp
 	rm -f bin/hledger-web
-	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DPRODUCTION=1 --run -B #-f test.journal
+	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DPRODUCTION=1 --run -B --port 5001 --base-url http://demo.hledger.org:5001 -f test.journal
 
 autovty: sp
 	rm -f bin/hledger-vty
@@ -433,7 +433,7 @@ viewcoverage:
 
 # get a debug prompt
 ghci:
-	ghci $(INCLUDEPATHS) $(MAIN)
+	cd hledger; ghci $(INCLUDEPATHS) $(MAIN)
 
 ghci-vty:
 	ghci $(INCLUDEPATHS) hledger-vty/Hledger/Vty/Main.hs
