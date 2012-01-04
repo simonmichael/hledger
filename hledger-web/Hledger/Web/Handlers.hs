@@ -14,6 +14,7 @@ import Data.Either (lefts,rights)
 import Data.List
 import Data.Maybe
 import Data.Text(Text,pack,unpack)
+import qualified Data.Text (null)
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
@@ -472,8 +473,9 @@ handleAdd = do
   -- supply defaults and parse date and amounts, or get errors.
   let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . unpack) dateM
       descE = Right $ maybe "" unpack descM
-      acct1E = maybe (Left "to account required") (Right . unpack) acct1M
-      acct2E = maybe (Left "from account required") (Right . unpack) acct2M
+      maybeNonNull = maybe Nothing (\t -> if Data.Text.null t then Nothing else Just t)
+      acct1E = maybe (Left "to account required") (Right . unpack) $ maybeNonNull acct1M
+      acct2E = maybe (Left "from account required") (Right . unpack) $ maybeNonNull acct2M
       amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount . unpack) amt1M
       amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx someamount . unpack) amt2M
       journalE = maybe (Right $ journalFilePath j)
