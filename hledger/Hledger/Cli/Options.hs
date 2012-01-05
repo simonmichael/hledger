@@ -443,7 +443,7 @@ aliasesFromOpts = map parseAlias . alias_
             alias' = case alias of ('=':rest) -> rest
                                    _ -> orig
 
-showModeHelp = showText defaultWrap . helpText HelpFormatDefault
+showModeHelp = showText defaultWrap . helpText [] HelpFormatDefault
 
 tests_Hledger_Cli_Options = TestList
  [
