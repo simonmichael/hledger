@@ -509,15 +509,14 @@ handleAdd = do
                  $forall e<-errs
                   #{e}<br>
                |]
-    getRegisterR
-
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
     liftIO $ do ensureJournalFile journalpath
                 appendToJournalFileOrStdout journalpath $ showTransaction t'
     -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
     setMessage [$shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
-    getRegisterR
+
+  redirectParams RedirectTemporary RegisterR [("add","1")]
 
 chomp :: String -> String
 chomp = reverse . dropWhile (`elem` "\r\n") . reverse
