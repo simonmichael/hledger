@@ -301,71 +301,54 @@ taken from the directive.
 
 ### Prices
 
-You can record a commodity's price (also known as cost or exchange rate)
-in terms of another commodity, and see amounts converted to the latter
-with the `--cost/-B` flag.
+#### Transaction prices
 
-Note hledger assumes prices do not vary over time (unless explicitly
-changed by a later price declaration.)  This makes tracking simple foreign
-currency transactions easy. For more advanced needs such as tracking
-fluctuating-value investments or capital gains, you will probably want to
-run c++ ledger.
+When recording an amount, you can also record its price in another
+commodity.  This represents the exchange rate that was applied within this
+transaction (or to be precise, within the posting). There are three ways
+to specify a transaction price:
 
-There are several ways to specify prices:
+1. Write the unit price (exchange rate) explicitly as `@ UNITPRICE` after the amount:
 
-1. Set the unit price for a single posting by writing `@ UNITPRICE` after
-the amount, where UNITPRICE is the per-unit price in a different
-commodity. Eg:
-
-        2009/1/2
-         assets:cash:foreign currency       €100 @ $1.35  ; one hundred euros at $1.35 each
+        2009/1/1
+         assets:foreign currency   €100 @ $1.35  ; one hundred euros at $1.35 each
          assets:cash
 
-2. Or specify the total price and let hledger work out the unit price for
-the posting by writing `@@ TOTALPRICE`:
+2. Or write the total price for this amount as `@@ TOTALPRICE`:
 
-        2009/1/2
-         assets:cash:foreign currency       €100 @@ $135  ; one hundred euros at $135 for the lot
+        2009/1/1
+         assets:foreign currency   €100 @@ $135  ; one hundred euros at $135 for the lot
          assets:cash
 
-3. Or specify all of a transaction's amounts using two commodities, and
-hledger will infer the unit price that balances the transaction:
+3. Or fully specify all posting amounts using exactly two commodities:
 
-        2009/1/2
-         expenses:foreign currency       €100   ; one hundred euros at $135 for the lot
-         assets                         $-135
+        2009/1/1
+         assets:foreign currency   €100          ; one hundred euros
+         assets:cash              $-135          ; exchanged for $135
 
-4. Or set a price that applies to all transactions after a certain date,
-using the P historical price directive:
-<!-- (Note a time and numeric time zone are allowed but ignored, like ledger.) -->
-
-        ; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
-        ; This one says the euro's exchange rate is $1.35 on or after 2009/1/1
-        ; (unless overridden by a later price directive)
-        P 2009/1/1 € $1.35  
-        
-        2009/1/2
-         expenses:foreign currency       €100   ; one hundred euros at the 2009/1/2 price ($1.35 each)
-         assets
-
-To see any prices that are in effect, use the print command. Eg the first
-example above gives:
-
-    $ hledger print
-    2009/01/02
-        expenses:foreign currency  €100 @ $1.35
-        assets                     €-100 @ $1.35
-
-To see amounts converted to their price's commodity (ie, their cost), use
-the `--cost/-B` flag with any reporting command:
+You can use the `--cost/-B` flag with reporting commands to see such
+amounts converted to their price's commodity. Eg, using any of the above
+examples we get:
 
     $ hledger print --cost
-    2009/01/02 x
-        expenses:foreign currency       $135.00
-        assets                         $-135.00
+    2009/01/01
+        assets:foreign currency       $135.00
+        assets                       $-135.00
 
-<!-- (It will not look up the price of a price.) -->
+#### Historical prices
 
+You can also record a series of historical prices for a commodity using P
+directives. Typically these are used to record daily market prices or
+exchange rates. ledger uses them to calculate market value with -V, but
+hledger currently ignores them. They look like this:
+<!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
+
+        ; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
+        ; These say the euro's exchange rate is $1.35 during 2009 and
+        ; $1.40 from 2010/1/1 on.
+        P 2009/1/1 € $1.35  
+        P 2010/1/1 € $1.40
+        
 ### Including other files
 
 You can pull in the content of additional journal files, by writing lines like this:
