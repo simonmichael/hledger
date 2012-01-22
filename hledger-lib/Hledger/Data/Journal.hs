@@ -266,7 +266,6 @@ journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContex
 journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =
     journalBalanceTransactions $
     journalCanonicaliseAmounts $
-    journalApplyHistoricalPrices $
     journalCloseTimeLogEntries tlocal
     j{files=(path,txt):fs, filereadtime=tclock, jContext=ctx}
 
