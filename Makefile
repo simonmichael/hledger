@@ -114,34 +114,18 @@ default: tag bin/hledger
 ######################################################################
 # BUILDING
 
-# set version numbers, fetch dependencies, build and install standard binaries
-# and libs from all hledger packages. A good thing to run first; the other
-# allcabal rules require hledger-VERSION and hledger-lib-VERSION installed.
-# You may want to change the version number in VERSION file first.
-install: allcabalinstall
+# cabal install all hledger PACKAGES and dependencies in the proper order
+# (or, as many as possible)
+install:
+	cabal install $(patsubst %,./%,$(PACKAGES))
 
-# set version numbers and configure all hledger packages
-configure: allcabalconfigure
+# # run a cabal command in all hledger package dirs
+# allcabal%:
+# 	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
 
-# set version numbers and build all hledger packages
-build: allcabalbuild
-
-# set version numbers and cabal test all hledger packages
-cabaltest: allcabaltest
-
-installdepsdry:
-	for p in $(PACKAGES); do (echo "$$p: cabal install --only-dependencies --dry"; cd $$p; cabal install --only-dependencies --dry); done
-
-installdeps:
-	for p in $(PACKAGES); do (echo "$$p: cabal install --only-dependencies"; cd $$p; cabal install --only-dependencies); done
-
-# run a cabal command in all hledger package dirs
-allcabal%:
-	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
-
-# run a command in all hledger package dirs
-all%:
-	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
+# # run a command in all hledger package dirs
+# all%:
+# 	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
 
 # auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
