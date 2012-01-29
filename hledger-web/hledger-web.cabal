@@ -89,7 +89,7 @@ executable hledger-web
                  ,io-storage >= 0.3 && < 0.4
                  ,failure >= 0.1 && < 0.2
                  ,file-embed == 0.0.*
-                 ,template-haskell >= 2.4 && < 2.6
+                 ,template-haskell >= 2.4 && < 2.7
 
                  ,yesod >= 0.9.2.1 && < 0.10
                  ,yesod-core
