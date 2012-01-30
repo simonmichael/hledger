@@ -1,10 +1,20 @@
-# Conversion from CSV to Ledger
-rm -rf input.rules; printf 'base-account Assets:MyAccount\ndate-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\n' > input.rules ; printf '10/2009/09,Flubber Co,50' > input.csv$$ ; bin/hledger convert input.csv$$ ; rm -rf input.rules *$$
+# 1. convert from CSV to hledger journal format
+rm -rf t.rules$$; printf 'date-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger convert --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co
-    income:unknown            $-50
-    Assets:MyAccount           $50
+    income:unknown          $-50
+    assets:myacct            $50
 
->>>2
-using conversion rules file input.rules
+>>>2 /using conversion rules file t.rules/
 >>>=0
+
+# 2. report rules parse error
+# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger convert --rules-file t.rules$$; rm -rf t.rules$$
+# >>>
+# 2009/09/10 Flubber Co
+#     income:unknown          $-50
+#     assets:myacct            $50
+
+# >>>2 /using conversion rules file t.rules/
+# >>>=0
+
