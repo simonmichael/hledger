@@ -30,14 +30,14 @@ PACKAGES=\
 	hledger-lib \
 	hledger \
 	hledger-web \
-	hledger-vty \
-	hledger-chart
+#	hledger-vty \
+#	hledger-chart
 INCLUDEPATHS=\
 	-i../hledger-lib \
 	-i../hledger \
 	-i../hledger-web \
-	-i../hledger-vty \
-	-i../hledger-chart
+#	-i../hledger-vty \
+#	-i../hledger-chart
 MAIN=hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
