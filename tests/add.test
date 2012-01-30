@@ -108,3 +108,16 @@ b
 c
 >>> /amount  3 \[-0.75\]/
 >>>=0
+
+## 10. shouldn't add decimals if there aren't any
+## printf '\n\na\n1\nb\n' | bin/hledger -f /dev/null add
+# bin/hledger -f /dev/null add
+# <<<
+
+
+# a
+# 1
+# b
+# >>> /amount  2 \[-1\]/
+# >>>=0
+
