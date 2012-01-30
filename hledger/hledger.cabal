@@ -1,5 +1,5 @@
 name:           hledger
-version: 0.16.1
+version: 0.16.2
 category:       Finance
 synopsis:       The main command-line interface for the hledger accounting tool.
 description:
@@ -17,7 +17,7 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      beta
-tested-with:    GHC==6.12, GHC==7.0
+tested-with:    GHC==7.0, GHC==7.2
 cabal-version:  >= 1.8
 build-type:     Simple
 -- data-dir:       data
@@ -57,7 +57,7 @@ library
                   Hledger.Cli.Stats
   -- should be the same as below
   build-depends:
-                  hledger-lib == 0.16.1
+                  hledger-lib == 0.16.2
                  ,base >= 3 && < 5
                  ,cabal-file-th
                  ,containers
@@ -108,7 +108,7 @@ executable hledger
   ghc-options:    -threaded -W
   -- should be the same as above
   build-depends:
-                  hledger-lib == 0.16.1
+                  hledger-lib == 0.16.2
                  ,base >= 3 && < 5
                  ,cabal-file-th
                  ,containers

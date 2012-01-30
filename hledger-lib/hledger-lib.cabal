@@ -1,5 +1,5 @@
 name:           hledger-lib
-version: 0.16.1
+version: 0.16.2
 category:       Finance
 synopsis:       Core data types, parsers and utilities for the hledger accounting tool.
 description:
@@ -17,7 +17,7 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      beta
-tested-with:    GHC==6.12, GHC==7.0
+tested-with:    GHC==7.0, GHC==7.2
 cabal-version:  >= 1.6
 build-type:     Simple
 -- data-dir:       data

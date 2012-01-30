@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.16.5
+version: 0.16.6
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -17,7 +17,7 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      beta
-tested-with:    GHC==6.12, GHC==7.0
+tested-with:    GHC==7.0, GHC==7.2
 cabal-version:  >= 1.6
 build-type:     Simple
 extra-tmp-files:
@@ -71,8 +71,8 @@ executable hledger-web
                      Hledger.Web.Settings.StaticFiles
                      Hledger.Web.Handlers
   build-depends:
-                  hledger == 0.16.1
-                 ,hledger-lib == 0.16.1
+                  hledger == 0.16.2
+                 ,hledger-lib == 0.16.2
                  ,HUnit
                  ,base >= 4 && < 5
                  ,bytestring
