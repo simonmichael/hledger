@@ -1,39 +1,143 @@
 hledger project notes
-=====================
 
-* inspiration
-"...simplicity of design was the most essential, guiding principle.
-Clarity of concepts, economy of features, efficiency and reliability of
-implementations were its consequences." --Niklaus Wirth
+* backlog
+** cleanup
+*** resolve unrecorded stuff
+*** review/clean up version handling
+*** makefile cleanups
+*** sync repos
+*** fix commit hook docs building
+** release 0.17
+*** ghc 7.2 warnings
+*** deprecate vty, chart
+*** update release notes
+*** review bugs/patches
+** errors
+*** 53 add form completing fields break on second add
+**** debug
+***** try with braces
+****** reinstall virtual env
+**** commit
+*** enter doesn't work in add form completing fields
+**** research this dhtmlxcombo issue
+*** fix version strings on server 
+**** demo
+**** dev demo
+**** cli
+*** 49 convert should report rules file parse errors better
+*** 33 edit form always displays in non-javascript browsers, like elinks
+*** add: default amount adds one decimal place when journal contains no decimals
+*** add: learn decimal point/thousands separator from the journal and/or add session ?
+Eg: comma is already used as thousands separator in the journal, but add
+interprets it as decimal point giving a wrong default for amount 2 (though
+the correct journal transaction is written in this case)
 
-"The competent programmer is fully aware of the limited size of his own
-skull. He therefore approaches his task with full humility, and avoids
-clever tricks like the plague." --Edsger Dijkstra
+$ hledger -f t add
+Adding transactions to journal file "t".
+To complete a transaction, enter . (period) at an account prompt.
+To stop adding transactions, enter . at a date prompt, or control-d/control-c.
+date, or . to end [2011/09/30]: 
+description []: z
+account 1: a
+amount  1: 1,000
+account 2: b
+amount  2 [-1,0]: 
+account 3, or . to record: .
+date, or . to end [2011/09/30]: .
+$ cat t
+; journal created 2011-09-30 by hledger
 
-"I was hesitating to cross the street in Edinburgh one day, and these two
-little old Scottish ladies cried out to me 'LIVE DANGEROUSLY, SON! LIVE
-DANGEROUSLY'" --kowey
+2011/09/30
+    a  $1,000,000.00
+    b
 
-ALL THAT'S NEEDED IS THE DESIRE TO BE HEARD. THE WILL TO LEARN. AND THE
-ABILITY TO SEE.  --Scott McCloud, Understanding Comics
+2011/09/30 x
+    a          $1,2
+    b
 
-* principles
-** we aim to make reliable, maintainable, usable, useful software, sustainably.
-** docs before packaging before tests before fixes before refactoring before features
-** "bugs" are errors, as in the programmers messed up
-** automate
-** measure
-** test continuously, test everything
-** less is more
-** code review/pair programming
+2011/09/30 y
+    a          $1.2
+    b
 
-* todo
-** shortlist for next release
-*** fixes
-*** docs
-*** polish
+2011/09/30 z
+    a         1,000
+    b
+
+*** parsing: decimal point/thousands separator confusion ?
+<<<
+2011/09/30
+    a  $1,000,000.00
+    b
+
+2011/09/30 x
+    a          $1,2
+    b
+
+2011/09/30 y
+    a          $1.2
+    b
+>>> hledger -f t print
+2011/09/30
+    a  $1,000,000.00
+    b  $-1,000,000.00
+
+2011/09/30 x
+    a         $1.20
+    b        $-1.20
+
+2011/09/30 y
+    a         $1.20
+    b        $-1.20
+
+*** parsing: recursive file includes cause a hang
+echo "!include rec" > rec
+hledger -f rec print
+*** parsing: "could not balance" error does not show line number
+*** parsing: extra noise with eg bad date parse errors
+$ cat t.journal
+200/1/99 x
+  a  1
+  b
+$ ./hledger.hs -f t.journal print
+hledger.hs: could not parse journal data in t.journal
+"t.journal" (line 1, column 9):
+unexpected " "                      <- undesired
+expecting digit                     <- noise
+bad year number: 200
+
+*** parsing: confusing error when journal lacks a final newline
+$ cat - >t.j
+2010/1/2
+  a  1
+  b<ctrl-d>
+$ hledger -f t.j bal
+hledger: could not parse journal data in t.j
+"t.j" (line 3, column 3):
+unexpected "b"
+expecting comment or new-line
+
+*** tools: avoid haskell compiles and compile errors while setting up makefile vars
+joyful$ make help
+GHCi runtime linker: fatal error: I found a duplicate definition for symbol
+   __hscore_S_IFDIR
+whilst processing object file
+   /usr/local/lib/ghc-7.0.2/directory-1.1.0.0/HSdirectory-1.1.0.0.o
+This could be caused by:
+   * Loading two different object files which export the same symbol
+   * Specifying the same object file twice on the GHCi command line
+   * An incorrect `package.conf' entry, causing some object to be
+     loaded twice.
+GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
+
+make: *** No rule to make target `help'.  Stop.
+
+*** 25 hledger in windows console does not print non-ascii characters
+*** excessive precision in default balancing amount
+**** shelltest tests/add.test -- -t10
+**** find original justification or drop
 ** documentation, marketing
 *** developer notes & log
+**** clean up backlog
 *** intro brainstorming
 
 hledger is a robust command-line accounting tool with a simple plain text data format.
@@ -65,8 +169,6 @@ hledger helps you track and understand your finances, making calculations based 
 Features: reads transactions in journal, timelog, or CSV format; handles multi-currency/multi-commodity transactions; prints the chart of accounts, account balances, or transactions you're interested in, quickly; scriptable.
 
 *** website
-**** add tables of contents
-**** integrate binaries, demo, pastebin
 *** faq
 **** life cycle of top-level accounts
 For personal ledgers, when you're born, all accounts are at zero (one hopes) and as you live:
@@ -457,8 +559,8 @@ projects or developers (ledger and two others of my choice.)
 This project will go forward if
 
 [1] http://demo.hledger.org:5001
-
 ** packaging, installability
+*** port to http-conduit
 *** linux
 ***** debian/ubuntu packaging
 *** mac
@@ -545,115 +647,6 @@ using be more place holders?
 **** talkback, auto bug reports
 **** usability
 **** download & usage stats
-** errors
-*** 49 convert should report rules file parse errors better
-*** 33 edit form always displays in non-javascript browsers, like elinks
-*** add: default amount adds one decimal place when journal contains no decimals
-*** add: learn decimal point/thousands separator from the journal and/or add session ?
-Eg: comma is already used as thousands separator in the journal, but add
-interprets it as decimal point giving a wrong default for amount 2 (though
-the correct journal transaction is written in this case)
-
-$ hledger -f t add
-Adding transactions to journal file "t".
-To complete a transaction, enter . (period) at an account prompt.
-To stop adding transactions, enter . at a date prompt, or control-d/control-c.
-date, or . to end [2011/09/30]: 
-description []: z
-account 1: a
-amount  1: 1,000
-account 2: b
-amount  2 [-1,0]: 
-account 3, or . to record: .
-date, or . to end [2011/09/30]: .
-$ cat t
-; journal created 2011-09-30 by hledger
-
-2011/09/30
-    a  $1,000,000.00
-    b
-
-2011/09/30 x
-    a          $1,2
-    b
-
-2011/09/30 y
-    a          $1.2
-    b
-
-2011/09/30 z
-    a         1,000
-    b
-
-*** parsing: decimal point/thousands separator confusion ?
-<<<
-2011/09/30
-    a  $1,000,000.00
-    b
-
-2011/09/30 x
-    a          $1,2
-    b
-
-2011/09/30 y
-    a          $1.2
-    b
->>> hledger -f t print
-2011/09/30
-    a  $1,000,000.00
-    b  $-1,000,000.00
-
-2011/09/30 x
-    a         $1.20
-    b        $-1.20
-
-2011/09/30 y
-    a         $1.20
-    b        $-1.20
-
-*** parsing: recursive file includes cause a hang
-echo "!include rec" > rec
-hledger -f rec print
-*** parsing: "could not balance" error does not show line number
-*** parsing: extra noise with eg bad date parse errors
-$ cat t.journal
-200/1/99 x
-  a  1
-  b
-$ ./hledger.hs -f t.journal print
-hledger.hs: could not parse journal data in t.journal
-"t.journal" (line 1, column 9):
-unexpected " "                      <- undesired
-expecting digit                     <- noise
-bad year number: 200
-
-*** parsing: confusing error when journal lacks a final newline
-$ cat - >t.j
-2010/1/2
-  a  1
-  b<ctrl-d>
-$ hledger -f t.j bal
-hledger: could not parse journal data in t.j
-"t.j" (line 3, column 3):
-unexpected "b"
-expecting comment or new-line
-
-*** tools: avoid haskell compiles and compile errors while setting up makefile vars
-joyful$ make help
-GHCi runtime linker: fatal error: I found a duplicate definition for symbol
-   __hscore_S_IFDIR
-whilst processing object file
-   /usr/local/lib/ghc-7.0.2/directory-1.1.0.0/HSdirectory-1.1.0.0.o
-This could be caused by:
-   * Loading two different object files which export the same symbol
-   * Specifying the same object file twice on the GHCi command line
-   * An incorrect `package.conf' entry, causing some object to be
-     loaded twice.
-GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
-
-make: *** No rule to make target `help'.  Stop.
-
-*** 25 hledger in windows console does not print non-ascii characters
 ** refactoring, cleanup
 *** use matchers for command line too
 **** design cli, backwards compatibility strategy
@@ -1792,6 +1785,20 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** ghc 7.4 compatibility
+**** yesod
+***** yesod 0.10 support
+**** cabal-file-th
+**** email-validate
+*** Clint's ofx support
+*** more powerful storage layer
+*** support -V ?
+*** in-place editing
+**** http://stackoverflow.com/questions/640971/setfocus-to-textbox-from-javascript-after-just-creating-the-textbox-with-javascr
+*** measure bug open times
+http://code.google.com/p/support/wiki/IssueTrackerAPI
+http://code.google.com/p/support/wiki/IssueTrackerAPIReference
+*** wai-handler-webkit, wai-handler-launch
 *** add: don't offer record txn option in account N prompt if it's not balanced yet
 *** add: would be nice to create the journal file only if a txn is actually recorded
 *** web: lose io-storage
@@ -2076,7 +2083,34 @@ types need converting, etc.
 plugins may run more slowly
 plugins can be discovered/loaded by module path or by loading files directly
 
+
 * misc
+** inspiration
+"...simplicity of design was the most essential, guiding principle.
+Clarity of concepts, economy of features, efficiency and reliability of
+implementations were its consequences." --Niklaus Wirth
+
+"The competent programmer is fully aware of the limited size of his own
+skull. He therefore approaches his task with full humility, and avoids
+clever tricks like the plague." --Edsger Dijkstra
+
+"I was hesitating to cross the street in Edinburgh one day, and these two
+little old Scottish ladies cried out to me 'LIVE DANGEROUSLY, SON! LIVE
+DANGEROUSLY'" --kowey
+
+ALL THAT'S NEEDED IS THE DESIRE TO BE HEARD. THE WILL TO LEARN. AND THE
+ABILITY TO SEE.  --Scott McCloud, Understanding Comics
+
+** principles
+*** we aim to make reliable, maintainable, usable, useful software, sustainably.
+*** docs before packaging before tests before fixes before refactoring before features
+*** "bugs" are errors, as in the programmers messed up
+*** automate
+*** measure
+*** test continuously, test everything
+*** less is more
+*** code review/pair programming
+
 ** things I want to know
 *** time
 where have I been spending my time in recent weeks ?
@@ -2326,7 +2360,6 @@ itself reembursed by FFIS).
 
 We do not bother with any local tasks like income tax, vat or
 statistical filing, invoicing and the like.
-
 
 ** hamlet feedback
 *** thread data through nested templates with Reader monad
