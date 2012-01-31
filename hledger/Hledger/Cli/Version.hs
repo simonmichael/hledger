@@ -1,61 +1,41 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, TemplateHaskell #-}
 {-
-Version-related utilities. See the Makefile for details of our version
-numbering policy.
+Version number-related utilities. See also the Makefile.
 -}
 
 module Hledger.Cli.Version (
-                            version
-                           ,progversionstr
-                           ,binaryfilename
+  progname,
+  version,
+  prognameandversion,
+  binaryfilename
 )
 where
 import Data.List
+import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Info (os, arch)
 import Text.Printf
 
 import Hledger.Utils
 
 
--- version and PATCHLEVEL are set by the make process
+-- package name and version from the cabal file
+progname, version, prognameandversion :: String
+progname = $(packageVariable (pkgName . package))
+version  = $(packageVariable (pkgVersion . package))
+prognameandversion = progname ++ " " ++ version
 
-version :: String
-version       = "0.16.1"
-
+-- developer build version strings include PATCHLEVEL (number of
+-- patches since the last tag). If defined, it must be a number.
 patchlevel :: String
 #ifdef PATCHLEVEL
-patchlevel = "." ++ show (PATCHLEVEL :: Int) -- must be numeric !
+patchlevel = "." ++ show (PATCHLEVEL :: Int)
 #else
 patchlevel = ""
 #endif
 
+-- the package version plus patchlevel if specified
 buildversion :: String
-buildversion  = version ++ patchlevel :: String
-
--- | Given a program name, return a human-readable version string.  For
--- development builds, at least non-cabal builds, the patch level (ie the
--- number of patches applied since last release tag) will also be
--- included.
-progversionstr :: String -> String
-progversionstr progname = progname ++ "-" ++ versionstr ++ configmsg
-    where
-      versionstr = prettify $ splitAtElement '.' buildversion
-          where
-            prettify (major:minor:bugfix:patches:[]) =
-                printf "%s.%s%s%s" major minor bugfix' patches'
-                    where
-                      bugfix'
-                          | bugfix `elem` ["0"{-,"98","99"-}] = ""
-                          | otherwise = '.' : bugfix
-                      patches'
-                          | patches/="0" = "+"++patches
-                          | otherwise = ""
-            prettify s = intercalate "." s
-
-      configmsg | null buildflags = ""
-                | otherwise       = " with " ++ intercalate ", " buildflags
-
-      buildflags = []
+buildversion  = version ++ patchlevel
 
 -- | Given a program name, return a precise platform-specific executable
 -- name suitable for naming downloadable binaries.  Can raise an error if

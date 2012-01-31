@@ -10,11 +10,13 @@ import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pk
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
-import Hledger.Cli hiding (progname,progversion)
+import Hledger.Cli hiding (progname,version,prognameandversion)
 import Hledger.Web.Settings
 
-progname    = $(packageVariable (pkgName . package))
-progversion = progname ++ " " ++ $(packageVariable (pkgVersion . package)) :: String
+progname, version :: String
+progname = $(packageVariable (pkgName . package))
+version  = $(packageVariable (pkgVersion . package))
+prognameandversion = progname ++ " " ++ version :: String
 
 defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 
@@ -28,7 +30,7 @@ webmode =  (mode "hledger-web" [("command","web")]
             mainargsflag []){
               modeGroupFlags = Group {
                                 groupUnnamed = webflags
-                               ,groupHidden = []
+                               ,groupHidden = [flagNone ["binary-filename"] (setboolopt "binary-filename") "show the download filename for this executable, and exit"]
                                ,groupNamed = [(generalflagstitle, generalflags1)]
                                }
              ,modeHelpSuffix=[

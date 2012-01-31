@@ -27,7 +27,7 @@ import Yesod.Core
 import Yesod.Json
 
 import Hledger hiding (today)
-import Hledger.Cli
+import Hledger.Cli hiding (version)
 import Hledger.Web.Foundation
 import Hledger.Web.Options
 import Hledger.Web.Settings

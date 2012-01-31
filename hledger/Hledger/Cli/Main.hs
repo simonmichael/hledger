@@ -65,12 +65,12 @@ main = do
   args <- getArgs
   addons <- getHledgerAddonCommands
   opts <- getHledgerCliOpts addons
-  when (debug_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  when (debug_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   run' opts addons args
     where
       run' opts@CliOpts{command_=cmd} addons args
        -- delicate, add tests before changing (eg --version, ADDONCMD --version, INTERNALCMD --version)
-       | (null matchedaddon) && "version" `in_` (rawopts_ opts)         = putStrLn progversion
+       | (null matchedaddon) && "version" `in_` (rawopts_ opts)         = putStrLn prognameandversion
        | (null matchedaddon) && "binary-filename" `in_` (rawopts_ opts) = putStrLn $ binaryfilename progname
        | null cmd                                        = putStr $ showModeHelp mainmode'
        | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFile >> withJournalDo opts add

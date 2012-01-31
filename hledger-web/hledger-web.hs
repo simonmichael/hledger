@@ -24,7 +24,7 @@ import Yesod.Logger (makeLogger)
 #endif
 
 import Hledger
-import Hledger.Cli hiding (progname,progversion)
+import Hledger.Cli hiding (progname,prognameandversion)
 import Prelude hiding (putStrLn)
 import Hledger.Utils.UTF8 (putStrLn)
 import Hledger.Web
@@ -33,7 +33,7 @@ import Hledger.Web
 main :: IO ()
 main = do
   opts <- getHledgerWebOpts
-  when (debug_ $ cliopts_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   runWith opts
 
 runWith :: WebOpts -> IO ()
@@ -41,7 +41,7 @@ runWith opts = run opts
     where
       run opts
           | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp webmode) >> exitSuccess
-          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
+          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
           | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
           | otherwise                                          = journalFilePathFromOpts (cliopts_ opts) >>= ensureJournalFile >> withJournalDo' opts web
 

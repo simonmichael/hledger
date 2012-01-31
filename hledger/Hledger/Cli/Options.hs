@@ -11,7 +11,6 @@ import Data.List
 import Data.List.Split
 import Data.Maybe
 import Data.Time.Calendar
-import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import Safe
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
@@ -24,10 +23,8 @@ import Text.Printf
 
 import Hledger
 import Hledger.Cli.Format as Format
+import Hledger.Cli.Version
 
-
-progname    = $(packageVariable (pkgName . package))
-progversion = progname ++ " " ++ $(packageVariable (pkgVersion . package)) :: String
 
 -- 1. cmdargs mode and flag definitions, for the main and subcommand modes.
 -- Flag values are parsed initially to simple RawOpts to permit reuse.

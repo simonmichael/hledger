@@ -65,8 +65,6 @@ HADDOCKSOURCEFILES:= \
 #	hledger-chart/Hledger/*hs
 #	hledger-chart/Hledger/*/*hs
 
-VERSIONHS=hledger/Hledger/Cli/Version.hs
-
 CABALFILES:= \
 	hledger/hledger.cabal \
 	hledger-*/*.cabal
@@ -99,10 +97,11 @@ VERSION3:=$(VERSION)
 endif
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
-	$(VERSIONHS) \
 	$(CABALFILES) \
 	MANUAL.md \
 #	DOWNLOAD.md \
+# source file which should be touched to ensure up to date version string
+VERSIONHS=hledger/Hledger/Cli/Version.hs
 
 # get an accurate binary filename from the current source on the current platform
 # nb not := as that would break the makefile when hledger is not compiling.
