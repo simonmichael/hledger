@@ -735,10 +735,10 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
 
-MANUAL.markdown: $(VERSIONFILE)
-	perl -p -e "s/(^This is the.*?manual for hledger.*?) +[0-9.]+/\1 $(VERSION3)./" -i $@
+MANUAL.md: $(VERSIONFILE)
+	perl -p -e "s/(^This is the.*?manual.*? for hledger.*?) +[0-9.]+/\1 $(VERSION3)./" -i $@
 
-DOWNLOAD.markdown: $(VERSIONFILE)
+DOWNLOAD.md: $(VERSIONFILE)
 	perl -p -e "s/hledger(|-chart|-web|-vty)-[0-9.]+-/hledger\1-$(VERSION)-/g" -i $@
 
 tagrelease:
