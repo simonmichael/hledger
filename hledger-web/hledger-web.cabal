@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.16.6
+version: 0.16.98
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -71,8 +71,8 @@ executable hledger-web
                      Hledger.Web.Settings.StaticFiles
                      Hledger.Web.Handlers
   build-depends:
-                  hledger == 0.16.2
-                 ,hledger-lib == 0.16.2
+                  hledger == 0.16.98
+                 ,hledger-lib == 0.16.98
                  ,HUnit
                  ,base >= 4 && < 5
                  ,bytestring
