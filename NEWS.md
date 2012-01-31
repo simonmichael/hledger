@@ -4,6 +4,22 @@ title: hledger news
 
 # News
 
+## 2012/2/x hledger 0.x
+
+  * tested with GHC 7.2
+  * support HP 2011.4.0.0
+  * support and require cmdargs 0.9
+  * allow non-threaded builds, supporting more debian architectures
+  * parsing: give a clearer error when journal file path contains ~
+  * parsing: -B/--cost now ignores P historical prices, like ledger
+  * parsing: inferred amounts now use the cost commodity if known, like ledger (#69)
+  * balance: report differently-priced lots in an account as a single amount, like ledger
+  * web: support and require yesod >= 0.9.4
+  * web: use the main aeson package again
+  * web: fix a regression with dollar signs in hamlet templates
+  * web: add form allowed blank account names (#81)
+  * chart, vty: hledger-chart and hledger-vty demoted to non-maintained extras for now
+
 ## 2011/11/1 Haskell Communities and Activities Report
 
 hledger is a library and end-user tool (with command-line, curses and web
