@@ -10,7 +10,6 @@ module Hledger.Cli.Version (
   binaryfilename
 )
 where
-import Data.List
 import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Info (os, arch)
 import Text.Printf
