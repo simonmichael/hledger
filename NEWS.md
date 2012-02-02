@@ -4,9 +4,8 @@ title: hledger news
 
 # News
 
-## 2012/2/x hledger 0.x
+## 2012/2/1 hledger 0.17
 
-  * tested with GHC 7.2
   * support HP 2011.4.0.0
   * support and require cmdargs 0.9
   * allow non-threaded builds, supporting more debian architectures
