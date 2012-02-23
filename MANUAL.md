@@ -304,9 +304,9 @@ taken from the directive.
 #### Transaction prices
 
 When recording an amount, you can also record its price in another
-commodity.  This represents the exchange rate that was applied within this
-transaction (or to be precise, within the posting). There are three ways
-to specify a transaction price:
+commodity. This documents an exchange rate that was applied within
+this transaction (or to be precise, within the posting). There are
+three ways to specify a transaction price:
 
 1. Write the unit price (exchange rate) explicitly as `@ UNITPRICE` after the amount:
 
