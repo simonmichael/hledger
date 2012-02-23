@@ -2,67 +2,447 @@ hledger project notes
 
 * backlog
 ** cleanup
-*** resolve unrecorded stuff
-*** review/clean up version handling
-*** makefile cleanups
-*** sync repos
+*** deprecate vty, chart in manual
 *** fix commit hook docs building
-** release 0.17
-*** ghc 7.2 warnings
-*** deprecate vty, chart
-*** update release notes
-*** review bugs/patches
+*** makefile cleanups
+*** unicode-error.test failure with 7.2
+**** understand
+error UNICODE works, error' UNICODE doesn't
+UNICODE renders as space in mac emacs
+** ghc 7.2 warnings
+*** utf8
+**** [ 2 of 36] Compiling Hledger.Utils.UTF8 ( ../hledger-lib/Hledger/Utils/UTF8.hs, ../hledger-lib/Hledger/Utils/UTF8.o )
+
+../hledger-lib/Hledger/Utils/UTF8.hs:49:1:
+    Warning: In the use of `B.putStrLn'
+             (imported from Data.ByteString.Lazy):
+             Deprecated: "Use Data.ByteString.Lazy.Char8.putStrLn instead. (Functions that rely on ASCII encodings belong in Data.ByteString.Lazy.Char8)"
+*** hledger
+cd hledger; sp --no-exts --no-default-map ghc --make hledger-cli.hs -o ../bin/hledger -DMAKE -W -fwarn-tabs  -i../hledger-lib -i../hledger -i../hledger-web  -L/usr/lib -DPATCHLEVEL=38 --run test
+[ 1 of 36] Compiling Hledger.Cli.Format ( Hledger/Cli/Format.hs, Hledger/Cli/Format.o )
+[ 2 of 36] Compiling Hledger.Utils.UTF8 ( ../hledger-lib/Hledger/Utils/UTF8.hs, ../hledger-lib/Hledger/Utils/UTF8.o )
+
+../hledger-lib/Hledger/Utils/UTF8.hs:49:1:
+    Warning: In the use of `B.putStrLn'
+             (imported from Data.ByteString.Lazy):
+             Deprecated: "Use Data.ByteString.Lazy.Char8.putStrLn instead. (Functions that rely on ASCII encodings belong in Data.ByteString.Lazy.Char8)"
+[ 3 of 36] Compiling Hledger.Utils    ( ../hledger-lib/Hledger/Utils.hs, ../hledger-lib/Hledger/Utils.o )
+[ 4 of 36] Compiling Hledger.Cli.Version ( Hledger/Cli/Version.hs, Hledger/Cli/Version.o )
+Loading package ghc-prim ... linking ... done.
+Loading package integer-gmp ... linking ... done.
+Loading package base ... linking ... done.
+Loading package ffi-1.0 ... linking ... done.
+Loading package array-0.3.0.3 ... linking ... done.
+Loading package containers-0.4.1.0 ... linking ... done.
+Loading package filepath-1.2.0.1 ... linking ... done.
+Loading package old-locale-1.0.0.3 ... linking ... done.
+Loading package old-time-1.0.0.7 ... linking ... done.
+Loading package unix-2.5.0.0 ... linking ... done.
+Loading package directory-1.1.0.1 ... linking ... done.
+Loading package pretty-1.1.0.0 ... linking ... done.
+Loading package process-1.1.0.0 ... linking ... done.
+Loading package Cabal-1.12.0 ... linking ... done.
+Loading package template-haskell ... linking ... done.
+Loading package cabal-file-th-0.2.1 ... linking ... done.
+[ 5 of 36] Compiling Hledger.Data.Types ( ../hledger-lib/Hledger/Data/Types.hs, ../hledger-lib/Hledger/Data/Types.o )
+[ 6 of 36] Compiling Hledger.Data.Dates ( ../hledger-lib/Hledger/Data/Dates.hs, ../hledger-lib/Hledger/Data/Dates.o )
+[ 7 of 36] Compiling Hledger.Data.Commodity ( ../hledger-lib/Hledger/Data/Commodity.hs, ../hledger-lib/Hledger/Data/Commodity.o )
+[ 8 of 36] Compiling Hledger.Data.Amount ( ../hledger-lib/Hledger/Data/Amount.hs, ../hledger-lib/Hledger/Data/Amount.o )
+[ 9 of 36] Compiling Hledger.Data.AccountName ( ../hledger-lib/Hledger/Data/AccountName.hs, ../hledger-lib/Hledger/Data/AccountName.o )
+[10 of 36] Compiling Hledger.Data.Posting ( ../hledger-lib/Hledger/Data/Posting.hs, ../hledger-lib/Hledger/Data/Posting.o )
+[11 of 36] Compiling Hledger.Data.Transaction ( ../hledger-lib/Hledger/Data/Transaction.hs, ../hledger-lib/Hledger/Data/Transaction.o )
+[12 of 36] Compiling Hledger.Data.TimeLog ( ../hledger-lib/Hledger/Data/TimeLog.hs, ../hledger-lib/Hledger/Data/TimeLog.o )
+[13 of 36] Compiling Hledger.Data.Matching ( ../hledger-lib/Hledger/Data/Matching.hs, ../hledger-lib/Hledger/Data/Matching.o )
+[14 of 36] Compiling Hledger.Data.Journal ( ../hledger-lib/Hledger/Data/Journal.hs, ../hledger-lib/Hledger/Data/Journal.o )
+[15 of 36] Compiling Hledger.Read.Utils ( ../hledger-lib/Hledger/Read/Utils.hs, ../hledger-lib/Hledger/Read/Utils.o )
+[16 of 36] Compiling Hledger.Data.Account ( ../hledger-lib/Hledger/Data/Account.hs, ../hledger-lib/Hledger/Data/Account.o )
+[17 of 36] Compiling Hledger.Data.Ledger ( ../hledger-lib/Hledger/Data/Ledger.hs, ../hledger-lib/Hledger/Data/Ledger.o )
+[18 of 36] Compiling Hledger.Data     ( ../hledger-lib/Hledger/Data.hs, ../hledger-lib/Hledger/Data.o )
+[19 of 36] Compiling Hledger.Read.JournalReader ( ../hledger-lib/Hledger/Read/JournalReader.hs, ../hledger-lib/Hledger/Read/JournalReader.o )
+
+../hledger-lib/Hledger/Read/JournalReader.hs:138:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[20 of 36] Compiling Hledger.Read.TimelogReader ( ../hledger-lib/Hledger/Read/TimelogReader.hs, ../hledger-lib/Hledger/Read/TimelogReader.o )
+[21 of 36] Compiling Hledger.Read     ( ../hledger-lib/Hledger/Read.hs, ../hledger-lib/Hledger/Read.o )
+
+../hledger-lib/Hledger/Read.hs:40:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[22 of 36] Compiling Hledger.Reports  ( ../hledger-lib/Hledger/Reports.hs, ../hledger-lib/Hledger/Reports.o )
+[23 of 36] Compiling Hledger          ( ../hledger-lib/Hledger.hs, ../hledger-lib/Hledger.o )
+[24 of 36] Compiling Hledger.Cli.Options ( Hledger/Cli/Options.hs, Hledger/Cli/Options.o )
+
+Implicit import declaration:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[25 of 36] Compiling Hledger.Cli.Utils ( Hledger/Cli/Utils.hs, Hledger/Cli/Utils.o )
+
+Implicit import declaration:
+    Warning: In the use of `Prelude.catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[26 of 36] Compiling Hledger.Cli.Histogram ( Hledger/Cli/Histogram.hs, Hledger/Cli/Histogram.o )
+[27 of 36] Compiling Hledger.Cli.Balance ( Hledger/Cli/Balance.hs, Hledger/Cli/Balance.o )
+[28 of 36] Compiling Hledger.Cli.Convert ( Hledger/Cli/Convert.hs, Hledger/Cli/Convert.o )
+[29 of 36] Compiling Hledger.Cli.Print ( Hledger/Cli/Print.hs, Hledger/Cli/Print.o )
+[30 of 36] Compiling Hledger.Cli.Register ( Hledger/Cli/Register.hs, Hledger/Cli/Register.o )
+[31 of 36] Compiling Hledger.Cli.Add  ( Hledger/Cli/Add.hs, Hledger/Cli/Add.o )
+
+Hledger/Cli/Add.hs:31:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[32 of 36] Compiling Hledger.Cli.Stats ( Hledger/Cli/Stats.hs, Hledger/Cli/Stats.o )
+[33 of 36] Compiling Hledger.Cli      ( Hledger/Cli.hs, Hledger/Cli.o )
+[34 of 36] Compiling Hledger.Cli.Tests ( Hledger/Cli/Tests.hs, Hledger/Cli/Tests.o )
+[35 of 36] Compiling Hledger.Cli.Main ( Hledger/Cli/Main.hs, Hledger/Cli/Main.o )
+[36 of 36] Compiling Main             ( hledger-cli.hs, hledger-cli.o )
+Linking ../bin/hledger.sp.new ...
+New executable. (Re-) starting
+Cases: 106  Tried: 106  Errors: 0  Failures: 0
+
+*** hledger-web
+(ghc7.2-hledger)simon@white:~/src/hledger$ make bin/hledger-web
+cd hledger-web; ghc --make hledger-web.hs -o ../bin/hledger-web -DMAKE -W -fwarn-tabs  -i../hledger-lib -i../hledger -i../hledger-web  -L/usr/lib -DPATCHLEVEL=39
+[ 1 of 41] Compiling Hledger.Cli.Format ( ../hledger/Hledger/Cli/Format.hs, ../hledger/Hledger/Cli/Format.o )
+[ 2 of 41] Compiling Hledger.Data.Types ( ../hledger-lib/Hledger/Data/Types.hs, ../hledger-lib/Hledger/Data/Types.o )
+[ 3 of 41] Compiling Hledger.Web.Settings ( Hledger/Web/Settings.hs, Hledger/Web/Settings.o )
+Loading package ghc-prim ... linking ... done.
+Loading package integer-gmp ... linking ... done.
+Loading package base ... linking ... done.
+Loading package ffi-1.0 ... linking ... done.
+Loading package bytestring-0.9.2.0 ... linking ... done.
+Loading package transformers-0.2.2.0 ... linking ... done.
+Loading package mtl-2.0.1.0 ... linking ... done.
+Loading package array-0.3.0.3 ... linking ... done.
+Loading package deepseq-1.2.0.1 ... linking ... done.
+Loading package text-0.11.1.13 ... linking ... done.
+Loading package parsec-3.1.2 ... linking ... done.
+Loading package containers-0.4.1.0 ... linking ... done.
+Loading package pretty-1.1.0.0 ... linking ... done.
+Loading package template-haskell ... linking ... done.
+Loading package shakespeare-0.10.2 ... linking ... done.
+Loading package shakespeare-text-0.10.3 ... linking ... done.
+
+Hledger/Web/Settings.hs:124:19:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $st
+[ 4 of 41] Compiling Hledger.Web.Settings.StaticFiles ( Hledger/Web/Settings/StaticFiles.hs, Hledger/Web/Settings/StaticFiles.o )
+Loading package base64-bytestring-0.1.1.0 ... linking ... done.
+Loading package cereal-0.3.5.1 ... linking ... done.
+Loading package filepath-1.2.0.1 ... linking ... done.
+Loading package old-locale-1.0.0.3 ... linking ... done.
+Loading package old-time-1.0.0.7 ... linking ... done.
+Loading package unix-2.5.0.0 ... linking ... done.
+Loading package directory-1.1.0.1 ... linking ... done.
+Loading package enumerator-0.4.18 ... linking ... done.
+Loading package file-embed-0.0.4.1 ... linking ... done.
+Loading package blaze-builder-0.3.1.0 ... linking ... done.
+Loading package hashable-1.1.2.2 ... linking ... done.
+Loading package case-insensitive-0.4.0.1 ... linking ... done.
+Loading package http-types-0.6.8 ... linking ... done.
+Loading package binary-0.5.0.2 ... linking ... done.
+Loading package entropy-0.2.1 ... linking ... done.
+Loading package largeword-1.0.1 ... linking ... done.
+Loading package dlist-0.5 ... linking ... done.
+Loading package data-default-0.3.0 ... linking ... done.
+Loading package semigroups-0.8 ... linking ... done.
+Loading package tagged-0.2.3.1 ... linking ... done.
+Loading package crypto-api-0.8 ... linking ... done.
+Loading package pureMD5-2.1.0.3 ... linking ... done.
+Loading package unix-compat-0.3.0.1 ... linking ... done.
+Loading package network-2.3.0.8 ... linking ... done.
+Loading package wai-0.4.3 ... linking ... done.
+Loading package blaze-html-0.4.3.1 ... linking ... done.
+Loading package cryptohash-0.7.4 ... linking ... done.
+Loading package attoparsec-0.10.1.0 ... linking ... done.
+Loading package http-date-0.0.1 ... linking ... done.
+Loading package time-1.2.0.5 ... linking ... done.
+Loading package wai-app-static-0.3.5.1 ... linking ... done.
+Loading package syb-0.3.6 ... linking ... done.
+Loading package unordered-containers-0.1.4.6 ... linking ... done.
+Loading package primitive-0.4.1 ... linking ... done.
+Loading package vector-0.9.1 ... linking ... done.
+Loading package aeson-0.6.0.0 ... linking ... done.
+Loading package crypto-pubkey-types-0.1.0 ... linking ... done.
+Loading package cryptocipher-0.3.0 ... linking ... done.
+Loading package random-1.0.1.1 ... linking ... done.
+Loading package cprng-aes-0.2.3 ... linking ... done.
+Loading package skein-0.1.0.4 ... linking ... done.
+Loading package clientsession-0.7.3.6 ... linking ... done.
+Loading package cookie-0.3.0.2 ... linking ... done.
+Loading package failure-0.1.2 ... linking ... done.
+Loading package data-object-0.3.1.9 ... linking ... done.
+Loading package base-unicode-symbols-0.2.2.3 ... linking ... done.
+Loading package transformers-base-0.4.1 ... linking ... done.
+Loading package monad-control-0.3.1 ... linking ... done.
+Loading package lifted-base-0.1.0.3 ... linking ... done.
+Loading package conduit-0.1.1.1 ... linking ... done.
+Loading package attempt-0.3.1.1 ... linking ... done.
+Loading package convertible-text-0.4.0.2 ... linking ... done.
+Loading package yaml-0.5.1.2 ... linking ... done.
+Loading package data-object-yaml-0.3.4.1 ... linking ... done.
+Loading package fast-logger-0.0.1 ... linking ... done.
+Loading package process-1.1.0.0 ... linking ... done.
+Loading package hamlet-0.10.7.1 ... linking ... done.
+Loading package path-pieces-0.0.0 ... linking ... done.
+Loading package shakespeare-css-0.10.6 ... linking ... done.
+Loading package shakespeare-i18n-0.0.0 ... linking ... done.
+Loading package shakespeare-js-0.10.4 ... linking ... done.
+Loading package blaze-builder-enumerator-0.2.0.3 ... linking ... done.
+Loading package zlib-0.5.3.2 ... linking ... done.
+Loading package zlib-bindings-0.0.3 ... linking ... done.
+Loading package zlib-enum-0.2.1 ... linking ... done.
+Loading package wai-extra-0.4.6 ... linking ... done.
+Loading package byteorder-1.0.3 ... linking ... done.
+Loading package wai-logger-0.1.2 ... linking ... done.
+Loading package yesod-core-0.9.4.1 ... linking ... done.
+Loading package yesod-static-0.3.2.1 ... linking ... done.
+[ 5 of 41] Compiling Hledger.Utils.UTF8 ( ../hledger-lib/Hledger/Utils/UTF8.hs, ../hledger-lib/Hledger/Utils/UTF8.o )
+
+../hledger-lib/Hledger/Utils/UTF8.hs:49:1:
+    Warning: In the use of `B.putStrLn'
+             (imported from Data.ByteString.Lazy):
+             Deprecated: "Use Data.ByteString.Lazy.Char8.putStrLn instead. (Functions that rely on ASCII encodings belong in Data.ByteString.Lazy.Char8)"
+[ 6 of 41] Compiling Hledger.Utils    ( ../hledger-lib/Hledger/Utils.hs, ../hledger-lib/Hledger/Utils.o )
+[ 7 of 41] Compiling Hledger.Data.AccountName ( ../hledger-lib/Hledger/Data/AccountName.hs, ../hledger-lib/Hledger/Data/AccountName.o )
+[ 8 of 41] Compiling Hledger.Data.Commodity ( ../hledger-lib/Hledger/Data/Commodity.hs, ../hledger-lib/Hledger/Data/Commodity.o )
+[ 9 of 41] Compiling Hledger.Data.Amount ( ../hledger-lib/Hledger/Data/Amount.hs, ../hledger-lib/Hledger/Data/Amount.o )
+[10 of 41] Compiling Hledger.Data.Account ( ../hledger-lib/Hledger/Data/Account.hs, ../hledger-lib/Hledger/Data/Account.o )
+[11 of 41] Compiling Hledger.Data.Dates ( ../hledger-lib/Hledger/Data/Dates.hs, ../hledger-lib/Hledger/Data/Dates.o )
+[12 of 41] Compiling Hledger.Data.Posting ( ../hledger-lib/Hledger/Data/Posting.hs, ../hledger-lib/Hledger/Data/Posting.o )
+[13 of 41] Compiling Hledger.Data.Transaction ( ../hledger-lib/Hledger/Data/Transaction.hs, ../hledger-lib/Hledger/Data/Transaction.o )
+[14 of 41] Compiling Hledger.Data.Matching ( ../hledger-lib/Hledger/Data/Matching.hs, ../hledger-lib/Hledger/Data/Matching.o )
+[15 of 41] Compiling Hledger.Data.TimeLog ( ../hledger-lib/Hledger/Data/TimeLog.hs, ../hledger-lib/Hledger/Data/TimeLog.o )
+[16 of 41] Compiling Hledger.Data.Journal ( ../hledger-lib/Hledger/Data/Journal.hs, ../hledger-lib/Hledger/Data/Journal.o )
+[17 of 41] Compiling Hledger.Data.Ledger ( ../hledger-lib/Hledger/Data/Ledger.hs, ../hledger-lib/Hledger/Data/Ledger.o )
+[18 of 41] Compiling Hledger.Data     ( ../hledger-lib/Hledger/Data.hs, ../hledger-lib/Hledger/Data.o )
+[19 of 41] Compiling Hledger.Read.Utils ( ../hledger-lib/Hledger/Read/Utils.hs, ../hledger-lib/Hledger/Read/Utils.o )
+[20 of 41] Compiling Hledger.Read.JournalReader ( ../hledger-lib/Hledger/Read/JournalReader.hs, ../hledger-lib/Hledger/Read/JournalReader.o )
+
+../hledger-lib/Hledger/Read/JournalReader.hs:138:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[21 of 41] Compiling Hledger.Read.TimelogReader ( ../hledger-lib/Hledger/Read/TimelogReader.hs, ../hledger-lib/Hledger/Read/TimelogReader.o )
+[22 of 41] Compiling Hledger.Read     ( ../hledger-lib/Hledger/Read.hs, ../hledger-lib/Hledger/Read.o )
+
+../hledger-lib/Hledger/Read.hs:40:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[23 of 41] Compiling Hledger.Reports  ( ../hledger-lib/Hledger/Reports.hs, ../hledger-lib/Hledger/Reports.o )
+[24 of 41] Compiling Hledger.Cli.Version ( ../hledger/Hledger/Cli/Version.hs, ../hledger/Hledger/Cli/Version.o )
+Loading package Cabal-1.12.0 ... linking ... done.
+Loading package cabal-file-th-0.2.1 ... linking ... done.
+[25 of 41] Compiling Hledger          ( ../hledger-lib/Hledger.hs, ../hledger-lib/Hledger.o )
+[26 of 41] Compiling Hledger.Cli.Options ( ../hledger/Hledger/Cli/Options.hs, ../hledger/Hledger/Cli/Options.o )
+
+Implicit import declaration:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[27 of 41] Compiling Hledger.Cli.Utils ( ../hledger/Hledger/Cli/Utils.hs, ../hledger/Hledger/Cli/Utils.o )
+
+Implicit import declaration:
+    Warning: In the use of `Prelude.catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[28 of 41] Compiling Hledger.Cli.Histogram ( ../hledger/Hledger/Cli/Histogram.hs, ../hledger/Hledger/Cli/Histogram.o )
+[29 of 41] Compiling Hledger.Cli.Balance ( ../hledger/Hledger/Cli/Balance.hs, ../hledger/Hledger/Cli/Balance.o )
+[30 of 41] Compiling Hledger.Cli.Convert ( ../hledger/Hledger/Cli/Convert.hs, ../hledger/Hledger/Cli/Convert.o )
+[31 of 41] Compiling Hledger.Cli.Print ( ../hledger/Hledger/Cli/Print.hs, ../hledger/Hledger/Cli/Print.o )
+[32 of 41] Compiling Hledger.Cli.Register ( ../hledger/Hledger/Cli/Register.hs, ../hledger/Hledger/Cli/Register.o )
+[33 of 41] Compiling Hledger.Cli.Add  ( ../hledger/Hledger/Cli/Add.hs, ../hledger/Hledger/Cli/Add.o )
+
+../hledger/Hledger/Cli/Add.hs:31:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[34 of 41] Compiling Hledger.Cli.Stats ( ../hledger/Hledger/Cli/Stats.hs, ../hledger/Hledger/Cli/Stats.o )
+[35 of 41] Compiling Hledger.Cli      ( ../hledger/Hledger/Cli.hs, ../hledger/Hledger/Cli.o )
+[36 of 41] Compiling Hledger.Web.Options ( Hledger/Web/Options.hs, Hledger/Web/Options.o )
+[37 of 41] Compiling Hledger.Web.Foundation ( Hledger/Web/Foundation.hs, Hledger/Web/Foundation.o )
+
+Hledger/Web/Foundation.hs:79:25:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+[38 of 41] Compiling Hledger.Web.Handlers ( Hledger/Web/Handlers.hs, Hledger/Web/Handlers.o )
+
+Hledger/Web/Handlers.hs:68:17:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:101:17:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:141:17:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:197:2:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:239:51:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:277:34:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:284:26:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:295:50:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:308:63:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:333:42:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:340:47:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:358:74:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:395:2:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:512:16:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $shamlet
+
+Hledger/Web/Handlers.hs:522:16:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $shamlet
+
+Hledger/Web/Handlers.hs:598:17:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:614:31:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:623:13:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:632:24:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:639:21:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:680:21:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:741:28:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:767:23:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:783:19:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:815:14:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:828:30:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+
+Hledger/Web/Handlers.hs:835:16:
+    Warning: Deprecated syntax:
+               quasiquotes no longer need a dollar sign: $hamlet
+[39 of 41] Compiling Hledger.Web.Application ( Hledger/Web/Application.hs, Hledger/Web/Application.o )
+Loading package extensible-exceptions-0.1.1.3 ... linking ... done.
+Loading package terminfo-0.3.2.3 ... linking ... done.
+Loading package utf8-string-0.3.7 ... linking ... done.
+Loading package haskeline-0.6.4.6 ... linking ... done.
+Loading package HUnit-1.2.4.2 ... linking ... done.
+Loading package mtlparse-0.1.2 ... linking ... done.
+Loading package regexpr-0.5.4 ... linking ... done.
+Loading package csv-0.1.2 ... linking ... done.
+Loading package cmdargs-0.9.2 ... linking ... done.
+Loading package safe-0.3.3 ... linking ... done.
+Loading package split-0.1.4.2 ... linking ... done.
+
+Hledger/Web/Application.hs:14:1:
+    Warning: Module `Network.Wai.Middleware.Debug' is deprecated:
+               functionality has been moved to the better named Network.Wai.Middleware.RequestLogger. Network.Wai.Middleware.Debug will be removed.
+
+Hledger/Web/Application.hs:14:38:
+    Warning: In the use of `debugHandle'
+             (imported from Network.Wai.Middleware.Debug):
+             Deprecated: "functionality has been moved to the better named Network.Wai.Middleware.RequestLogger. Network.Wai.Middleware.Debug will be removed."
+
+Hledger/Web/Application.hs:16:22:
+    Warning: In the use of `makeLogger'
+             (imported from Yesod.Logger):
+             Deprecated: "Use makeDefaultLogger instead"
+[40 of 41] Compiling Hledger.Web      ( Hledger/Web.hs, Hledger/Web.o )
+[41 of 41] Compiling Main             ( hledger-web.hs, hledger-web.o )
+
+hledger-web.hs:20:1:
+    Warning: Module `Network.Wai.Middleware.Debug' is deprecated:
+               functionality has been moved to the better named Network.Wai.Middleware.RequestLogger. Network.Wai.Middleware.Debug will be removed.
+
+hledger-web.hs:20:38:
+    Warning: In the use of `debugHandle'
+             (imported from Network.Wai.Middleware.Debug):
+             Deprecated: "functionality has been moved to the better named Network.Wai.Middleware.RequestLogger. Network.Wai.Middleware.Debug will be removed."
+
+hledger-web.hs:21:59:
+    Warning: In the use of `makeLogger'
+             (imported from Yesod.Logger):
+             Deprecated: "Use makeDefaultLogger instead"
+Linking ../bin/hledger-web ...
+
+** ghc 7.4 support
+*** cabal-file-th update
+*** haskeline iconv error
+*** old
+**** yesod
+***** yesod 0.10 support
+**** email-validate
 ** errors
-*** 53 add form completing fields break on second add
-**** debug
-***** try with braces
-****** reinstall virtual env
-**** commit
-*** enter doesn't work in add form completing fields
-**** research this dhtmlxcombo issue
 *** fix version strings on server 
 **** demo
 **** dev demo
 **** cli
-*** 49 convert should report rules file parse errors better
-*** 33 edit form always displays in non-javascript browsers, like elinks
-*** add: default amount adds one decimal place when journal contains no decimals
-*** add: learn decimal point/thousands separator from the journal and/or add session ?
-Eg: comma is already used as thousands separator in the journal, but add
-interprets it as decimal point giving a wrong default for amount 2 (though
-the correct journal transaction is written in this case)
-
-$ hledger -f t add
-Adding transactions to journal file "t".
-To complete a transaction, enter . (period) at an account prompt.
-To stop adding transactions, enter . at a date prompt, or control-d/control-c.
-date, or . to end [2011/09/30]: 
-description []: z
-account 1: a
-amount  1: 1,000
-account 2: b
-amount  2 [-1,0]: 
-account 3, or . to record: .
-date, or . to end [2011/09/30]: .
-$ cat t
-; journal created 2011-09-30 by hledger
-
-2011/09/30
-    a  $1,000,000.00
-    b
-
-2011/09/30 x
-    a          $1,2
-    b
-
-2011/09/30 y
-    a          $1.2
-    b
-
-2011/09/30 z
-    a         1,000
-    b
-
+*** web: 53 add form completing fields break on second add
+**** debug
+***** try with braces
+****** reinstall virtual env
+**** commit
+*** web: enter doesn't work in add form completing fields
+**** research this dhtmlxcombo issue
 *** parsing: decimal point/thousands separator confusion ?
 <<<
 2011/09/30
@@ -116,26 +496,50 @@ hledger: could not parse journal data in t.j
 unexpected "b"
 expecting comment or new-line
 
-*** tools: avoid haskell compiles and compile errors while setting up makefile vars
-joyful$ make help
-GHCi runtime linker: fatal error: I found a duplicate definition for symbol
-   __hscore_S_IFDIR
-whilst processing object file
-   /usr/local/lib/ghc-7.0.2/directory-1.1.0.0/HSdirectory-1.1.0.0.o
-This could be caused by:
-   * Loading two different object files which export the same symbol
-   * Specifying the same object file twice on the GHCi command line
-   * An incorrect `package.conf' entry, causing some object to be
-     loaded twice.
-GHCi cannot safely continue in this situation.  Exiting now.  Sorry.
-
-make: *** No rule to make target `help'.  Stop.
-
-*** 25 hledger in windows console does not print non-ascii characters
-*** excessive precision in default balancing amount
+*** add: default amount adds one decimal place when journal contains no decimals
+*** add: excessive precision in default balancing amount
 **** shelltest tests/add.test -- -t10
 **** find original justification or drop
+*** add: learn decimal point/thousands separator from the journal and/or add session ?
+Eg: comma is already used as thousands separator in the journal, but add
+interprets it as decimal point giving a wrong default for amount 2 (though
+the correct journal transaction is written in this case)
+
+$ hledger -f t add
+Adding transactions to journal file "t".
+To complete a transaction, enter . (period) at an account prompt.
+To stop adding transactions, enter . at a date prompt, or control-d/control-c.
+date, or . to end [2011/09/30]: 
+description []: z
+account 1: a
+amount  1: 1,000
+account 2: b
+amount  2 [-1,0]: 
+account 3, or . to record: .
+date, or . to end [2011/09/30]: .
+$ cat t
+; journal created 2011-09-30 by hledger
+
+2011/09/30
+    a  $1,000,000.00
+    b
+
+2011/09/30 x
+    a          $1,2
+    b
+
+2011/09/30 y
+    a          $1.2
+    b
+
+2011/09/30 z
+    a         1,000
+    b
+
+*** convert: 49 convert should report rules file parse errors better
+*** 25 hledger in windows console does not print non-ascii characters
 ** documentation, marketing
+*** 2012 survey
 *** developer notes & log
 **** clean up backlog
 *** intro brainstorming
@@ -560,7 +964,6 @@ This project will go forward if
 
 [1] http://demo.hledger.org:5001
 ** packaging, installability
-*** port to http-conduit
 *** linux
 ***** debian/ubuntu packaging
 *** mac
@@ -648,1128 +1051,21 @@ using be more place holders?
 **** usability
 **** download & usage stats
 ** refactoring, cleanup
+*** abstract DataSource
 *** use matchers for command line too
 **** design cli, backwards compatibility strategy
 **** replace optsToFilterSpec
-*** optionsgeddon oh my god
-**** old help
-Usage: hledger [OPTIONS] COMMAND [PATTERNS]
-       hledger [OPTIONS] convert CSVFILE
-
-Reads your ~/.journal file, or another specified by $LEDGER or -f, and
-runs the specified command (may be abbreviated):
-
-  add       - prompt for new transactions and add them to the journal
-  balance   - show accounts, with balances
-  convert   - show the specified CSV file as a hledger journal
-  histogram - show a barchart of transactions per day or other interval
-  print     - show transactions in journal format
-  register  - show transactions as a register with running balance
-  stats     - show various statistics for a journal
-  test      - run self-tests
-
-hledger options:
-  -f FILE  --file=FILE        use a different journal/timelog file; - means stdin
-           --no-new-accounts  don't allow to create new accounts
-  -b DATE  --begin=DATE       report on transactions on or after this date
-  -e DATE  --end=DATE         report on transactions before this date
-  -p EXPR  --period=EXPR      report on transactions during the specified period
-                              and/or with the specified reporting interval
-  -C       --cleared          report only on cleared transactions
-  -U       --uncleared        report only on uncleared transactions
-  -B       --cost, --basis    report cost of commodities
-           --depth=N          hide accounts/transactions deeper than this
-  -d EXPR  --display=EXPR     show only transactions matching EXPR (where
-                              EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
-           --effective        use transactions' effective dates, if any
-  -E       --empty            show empty/zero things which are normally elided
-  -R       --real             report only on real (non-virtual) transactions
-           --flat             balance: show full account names, unindented
-           --drop=N           balance: with --flat, elide first N account name components
-           --no-total         balance: hide the final total
-  -D       --daily            register, stats: report by day
-  -W       --weekly           register, stats: report by week
-  -M       --monthly          register, stats: report by month
-  -Q       --quarterly        register, stats: report by quarter
-  -Y       --yearly           register, stats: report by year
-  -v       --verbose          show more verbose output
-           --debug            show extra debug output; implies verbose
-           --binary-filename  show the download filename for this hledger build
-  -V       --version          show version information
-  -h       --help             show command-line usage
-
-DATES can be y/m/d or smart dates like "last month".  PATTERNS are regular
-expressions which filter by account name.  Prefix a pattern with desc: to
-filter by transaction description instead, prefix with not: to negate it.
-When using both, not: comes last.
-
-**** attempts
-***** original getopts
-progname_cli = "hledger"
-
--- | The program name which, if we are invoked as (via symlink or
--- renaming), causes us to default to reading the user's time log instead
--- of their journal.
-progname_cli_time  = "hours"
-
-usage_preamble_cli =
-  "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
-  "       hledger [OPTIONS] convert CSVFILE\n" ++
-  "\n" ++
-  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
-  "runs the specified command (may be abbreviated):\n" ++
-  "\n" ++
-  "  add       - prompt for new transactions and add them to the journal\n" ++
-  "  balance   - show accounts, with balances\n" ++
-  "  convert   - show the specified CSV file as a hledger journal\n" ++
-  "  histogram - show a barchart of transactions per day or other interval\n" ++
-  "  print     - show transactions in journal format\n" ++
-  "  register  - show transactions as a register with running balance\n" ++
-  "  stats     - show various statistics for a journal\n" ++
-  "  test      - run self-tests\n" ++
-  "\n"
-
-usage_options_cli = usageInfo "hledger options:" options_cli
-
-usage_postscript_cli =
- "\n" ++
- "DATES can be y/m/d or smart dates like \"last month\".  PATTERNS are regular\n" ++
- "expressions which filter by account name.  Prefix a pattern with desc: to\n" ++
- "filter by transaction description instead, prefix with not: to negate it.\n" ++
- "When using both, not: comes last.\n"
-
-usage_cli = concat [
-             usage_preamble_cli
-            ,usage_options_cli
-            ,usage_postscript_cli
-            ]
-
--- | Command-line options we accept.
-options_cli :: [OptDescr Opt]
-options_cli = [
-  Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
- ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
- ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
- ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
-                                                      "and/or with the specified reporting interval\n")
- ,Option "C" ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
- ,Option "U" ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
- ,Option "B" ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
- ,Option ""  ["alias"]        (ReqArg Alias "ACCT=ALIAS")  "display ACCT's name as ALIAS in reports"
- ,Option ""  ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
- ,Option "d" ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
-                                                       "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
- ,Option ""  ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
- ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
- ,Option ""  ["no-elide"]     (NoArg  NoElide)       "no eliding at all, stronger than -E (eg for balance report)"
- ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
- ,Option ""  ["flat"]         (NoArg  Flat)          "balance: show full account names, unindented"
- ,Option ""  ["drop"]         (ReqArg Drop "N")      "balance: with --flat, elide first N account name components"
- ,Option ""  ["no-total"]     (NoArg  NoTotal)       "balance: hide the final total"
- ,Option "D" ["daily"]        (NoArg  DailyOpt)      "register, stats: report by day"
- ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register, stats: report by week"
- ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
- ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
- ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register, stats: report by year"
- ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "add: don't allow creating new accounts"
- ,Option "r" ["rules"]        (ReqArg RulesFile "FILE") "convert: rules file to use (default:JOURNAL.rules)"
- ,Option "F" ["format"]       (ReqArg ReportFormat "STR") "use STR as the format"
- ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
- ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
- ,Option ""  ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
- ,Option "V" ["version"]      (NoArg  Version)       "show version information"
- ,Option "h" ["help"]         (NoArg  Help)          "show command-line usage"
- ]
-
--- | An option value from a command-line flag.
-data Opt = 
-    File          {value::String}
-    | NoNewAccts
-    | Begin       {value::String}
-    | End         {value::String}
-    | Period      {value::String}
-    | Cleared
-    | UnCleared
-    | CostBasis
-    | Alias       {value::String}
-    | Depth       {value::String}
-    | Display     {value::String}
-    | Effective
-    | Empty
-    | NoElide
-    | Real
-    | Flat
-    | Drop        {value::String}
-    | NoTotal
-    | DailyOpt
-    | WeeklyOpt
-    | MonthlyOpt
-    | QuarterlyOpt
-    | YearlyOpt
-    | RulesFile   {value::String}
-    | ReportFormat {value::String}
-    | Help
-    | Verbose
-    | Version
-    | BinaryFilename
-    | Debug
-    -- XXX add-on options, must be defined here for now
-    -- vty
-    | DebugVty
-    -- web
-    | BaseUrl     {value::String}
-    | Port        {value::String}
-    -- chart
-    | ChartOutput {value::String}
-    | ChartItems  {value::String}
-    | ChartSize   {value::String}
-    deriving (Show,Eq)
-
--- these make me nervous
-optsWithConstructor f opts = concatMap get opts
-    where get o = [o | f v == o] where v = value o
-
-optsWithConstructors fs opts = concatMap get opts
-    where get o = [o | any (== o) fs]
-
-optValuesForConstructor f opts = concatMap get opts
-    where get o = [v | f v == o] where v = value o
-
-optValuesForConstructors fs opts = concatMap get opts
-    where get o = [v | any (\f -> f v == o) fs] where v = value o
-
--- | Parse the command-line arguments into options and arguments using the
--- specified option descriptors. Any smart dates in the options are
--- converted to explicit YYYY/MM/DD format based on the current time. If
--- parsing fails, raise an error, displaying the problem along with the
--- provided usage string.
-parseArgumentsWith :: [OptDescr Opt] -> IO ([Opt], [String])
-parseArgumentsWith options = do
-  rawargs <- map fromPlatformString `fmap` getArgs
-  parseArgumentsWith' options rawargs
-
-parseArgumentsWith' options rawargs = do
-  let (opts,args,errs) = getOpt Permute options rawargs
-  opts' <- fixOptDates opts
-  let opts'' = if Debug `elem` opts' then Verbose:opts' else opts'
-  if null errs
-   then return (opts'',args)
-   else argsError (concat errs) >> return ([],[])
-
-argsError :: String -> IO ()
-argsError = ioError . userError' . (++ " Run with --help to see usage.")
-
--- | Convert any fuzzy dates within these option values to explicit ones,
--- based on today's date.
-fixOptDates :: [Opt] -> IO [Opt]
-fixOptDates opts = do
-  d <- getCurrentDay
-  return $ map (fixopt d) opts
-  where
-    fixopt d (Begin s)   = Begin $ fixSmartDateStr d s
-    fixopt d (End s)     = End $ fixSmartDateStr d s
-    fixopt d (Display s) = -- hacky
-        Display $ regexReplaceBy "\\[.+?\\]" fixbracketeddatestr s
-        where fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
-    fixopt _ o            = o
-
--- | Figure out the overall date span we should report on, based on any
--- begin/end/period options provided. If there is a period option, the
--- others are ignored.
-dateSpanFromOpts :: Day -> [Opt] -> DateSpan
-dateSpanFromOpts refdate opts
-    | not (null popts) = case parsePeriodExpr refdate $ last popts of
-                         Right (_, s) -> s
-                         Left e       -> parseerror e
-    | otherwise = DateSpan lastb laste
-    where
-      popts = optValuesForConstructor Period opts
-      bopts = optValuesForConstructor Begin opts
-      eopts = optValuesForConstructor End opts
-      lastb = listtomaybeday bopts
-      laste = listtomaybeday eopts
-      listtomaybeday vs = if null vs then Nothing else Just $ parse $ last vs
-          where parse = parsedate . fixSmartDateStr refdate
-
--- | Figure out the reporting interval, if any, specified by the options.
--- If there is a period option, the others are ignored.
-intervalFromOpts :: [Opt] -> Interval
-intervalFromOpts opts =
-    case (periodopts, intervalopts) of
-      ((p:_), _)            -> case parsePeriodExpr (parsedate "0001/01/01") p of
-                                Right (i, _) -> i
-                                Left e       -> parseerror e
-      (_, (DailyOpt:_))     -> Days 1
-      (_, (WeeklyOpt:_))    -> Weeks 1
-      (_, (MonthlyOpt:_))   -> Months 1
-      (_, (QuarterlyOpt:_)) -> Quarters 1
-      (_, (YearlyOpt:_))    -> Years 1
-      (_, _)                -> NoInterval
-    where
-      periodopts   = reverse $ optValuesForConstructor Period opts
-      intervalopts = reverse $ filter (`elem` [DailyOpt,WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
-
-rulesFileFromOpts :: [Opt] -> Maybe FilePath
-rulesFileFromOpts opts = listtomaybe $ optValuesForConstructor RulesFile opts
-    where
-      listtomaybe [] = Nothing
-      listtomaybe vs = Just $ head vs
-
--- | Default balance format string: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceFormatString :: [FormatString]
-defaultBalanceFormatString = [
-      FormatField False (Just 20) Nothing Total
-    , FormatLiteral "  "
-    , FormatField True (Just 2) Nothing DepthSpacer
-    , FormatField True Nothing Nothing Format.Account
-    ]
-
--- | Parses the --format string to either an error message or a format string.
-parseFormatFromOpts :: [Opt] -> Either String [FormatString]
-parseFormatFromOpts opts = listtomaybe $ optValuesForConstructor ReportFormat opts
-    where
-      listtomaybe :: [String] -> Either String [FormatString]
-      listtomaybe [] = Right defaultBalanceFormatString
-      listtomaybe vs = parseFormatString $ head vs
-
--- | Returns the format string. If the string can't be parsed it fails with error'.
-formatFromOpts :: [Opt] -> [FormatString]
-formatFromOpts opts = case parseFormatFromOpts opts of
-    Left err -> error' err
-    Right format -> format
-
--- | Get the value of the (last) depth option, if any.
-depthFromOpts :: [Opt] -> Maybe Int
-depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
-    where
-      listtomaybeint [] = Nothing
-      listtomaybeint vs = Just $ read $ last vs
-
--- | Get the value of the (last) drop option, if any, otherwise 0.
-dropFromOpts :: [Opt] -> Int
-dropFromOpts opts = fromMaybe 0 $ listtomaybeint $ optValuesForConstructor Drop opts
-    where
-      listtomaybeint [] = Nothing
-      listtomaybeint vs = Just $ read $ last vs
-
--- | Get the value of the (last) display option, if any.
-displayExprFromOpts :: [Opt] -> Maybe String
-displayExprFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
-    where
-      listtomaybe [] = Nothing
-      listtomaybe vs = Just $ last vs
-
--- | Get the value of the (last) baseurl option, if any.
-baseUrlFromOpts :: [Opt] -> Maybe String
-baseUrlFromOpts opts = listtomaybe $ optValuesForConstructor BaseUrl opts
-    where
-      listtomaybe [] = Nothing
-      listtomaybe vs = Just $ last vs
-
--- | Get the value of the (last) port option, if any.
-portFromOpts :: [Opt] -> Maybe Int
-portFromOpts opts = listtomaybeint $ optValuesForConstructor Port opts
-    where
-      listtomaybeint [] = Nothing
-      listtomaybeint vs = Just $ read $ last vs
-
-
--- | Get a maybe boolean representing the last cleared/uncleared option if any.
-clearedValueFromOpts opts | null os = Nothing
-                          | last os == Cleared = Just True
-                          | otherwise = Just False
-    where os = optsWithConstructors [Cleared,UnCleared] opts
-
--- | Detect which date we will report on, based on --effective.
-whichDateFromOpts :: [Opt] -> WhichDate
-whichDateFromOpts opts = if Effective `elem` opts then EffectiveDate else ActualDate
-
--- | Were we invoked as \"hours\" ?
-usingTimeProgramName :: IO Bool
-usingTimeProgramName = do
-  progname <- getProgName
-  return $ map toLower progname == progname_cli_time
-
--- | Get the journal file path from options, an environment variable, or a default
-journalFilePathFromOpts :: [Opt] -> IO String
-journalFilePathFromOpts opts = do
-  istimequery <- usingTimeProgramName
-  f <- if istimequery then myTimelogPath else myJournalPath
-  return $ last $ f : optValuesForConstructor File opts
-
-aliasesFromOpts :: [Opt] -> [(AccountName,AccountName)]
-aliasesFromOpts opts = map parseAlias $ optValuesForConstructor Alias opts
-    where
-      -- similar to ledgerAlias
-      parseAlias :: String -> (AccountName,AccountName)
-      parseAlias s = (accountNameWithoutPostingType $ strip orig
-                     ,accountNameWithoutPostingType $ strip alias')
-          where
-            (orig, alias) = break (=='=') s
-            alias' = case alias of ('=':rest) -> rest
-                                   _ -> orig
-
--- | Gather filter pattern arguments into a list of account patterns and a
--- list of description patterns. We interpret pattern arguments as
--- follows: those prefixed with "desc:" are description patterns, all
--- others are account patterns; also patterns prefixed with "not:" are
--- negated. not: should come after desc: if both are used.
-parsePatternArgs :: [String] -> ([String],[String])
-parsePatternArgs args = (as, ds')
-    where
-      descprefix = "desc:"
-      (ds, as) = partition (descprefix `isPrefixOf`) args
-      ds' = map (drop (length descprefix)) ds
-
--- | Convert application options to the library's generic filter specification.
-optsToFilterSpec :: [Opt] -> [String] -> Day -> FilterSpec
-optsToFilterSpec opts args d = FilterSpec {
-                                datespan=dateSpanFromOpts d opts
-                               ,cleared=clearedValueFromOpts opts
-                               ,real=Real `elem` opts
-                               ,empty=Empty `elem` opts
-                               ,acctpats=apats
-                               ,descpats=dpats
-                               ,depth = depthFromOpts opts
-                               }
-    where (apats,dpats) = parsePatternArgs args
-
--- currentLocalTimeFromOpts opts = listtomaybe $ optValuesForConstructor CurrentLocalTime opts
---     where
---       listtomaybe [] = Nothing
---       listtomaybe vs = Just $ last vs
-
-tests_Hledger_Cli_Options = TestList
- [
-  "dateSpanFromOpts" ~: do
-    let todaysdate = parsedate "2008/11/26"
-    let gives = is . show . dateSpanFromOpts todaysdate
-    [] `gives` "DateSpan Nothing Nothing"
-    [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-
-  ,"intervalFromOpts" ~: do
-    let gives = is . intervalFromOpts
-    [] `gives` NoInterval
-    [DailyOpt] `gives` Days 1
-    [WeeklyOpt] `gives` Weeks 1
-    [MonthlyOpt] `gives` Months 1
-    [QuarterlyOpt] `gives` Quarters 1
-    [YearlyOpt] `gives` Years 1
-    [Period "weekly"] `gives` Weeks 1
-    [Period "monthly"] `gives` Months 1
-    [Period "quarterly"] `gives` Quarters 1
-    [WeeklyOpt, Period "yearly"] `gives` Years 1
-
- ]
-
-***** cmdargs implicit ADT with ifdefs
-progname = "hledger"
-progversion = progversionstr progname
-
-progname_cli = progname
-
--- | The program name which, if we are invoked as (via symlink or
--- renaming), causes us to default to reading the user's time log instead
--- of their journal.
-progname_cli_time  = "hours"
-
-usage_preamble =
-  "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
-  "       hledger [OPTIONS] convert CSVFILE\n" ++
-  "\n" ++
-  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
-  "runs the specified command (may be abbreviated):\n" ++
-  "\n" ++
-  "  add       - prompt for new transactions and add them to the journal\n" ++
-  "  balance   - show accounts, with balances\n" ++
-  "  convert   - show the specified CSV file as a hledger journal\n" ++
-  "  histogram - show a barchart of transactions per day or other interval\n" ++
-  "  print     - show transactions in journal format\n" ++
-  "  register  - show transactions as a register with running balance\n" ++
-  "  stats     - show various statistics for a journal\n" ++
-  "  test      - run self-tests\n" ++
-  "\n"
-
-usage_postscript = [
-  "DATES can be y/m/d or smart dates like \"last month\".  PATTERNS are regular"
- ,"expressions which filter by account name.  Prefix a pattern with desc: to"
- ,"filter by transaction description instead, prefix with not: to negate it."
- ,"When using both, not: comes last."
- ]
-
--- | Command-line options & arguments we accept.
--- data Opts =
---  Add {
---  } |
---  Balance {
---  }
---  Convert {
---  }
---  Histogram {
---  }
---  Print {
---  }
---  Register {
---  }
---  Stats {
---  }
---  Test {
---  }
-data Opts = Opts {
-    -- :: -- hledger options
-     file            :: Maybe FilePath
-    -- :: -- hledger-lib options
-    ,begin           :: Maybe String
-    ,end             :: Maybe String
-    ,period          :: Maybe String
-    ,cleared_        :: Bool
-    ,uncleared       :: Bool
-    ,cost            :: Bool
-    ,depth_          :: Maybe Int
-    ,display         :: Maybe String
-    ,effective       :: Bool
-    ,empty_          :: Bool
-    ,no_elide        :: Bool
-    ,real_           :: Bool
-    ,flat            :: Bool
-    ,drop_           :: Int
-    ,no_total        :: Bool
-    ,daily           :: Bool
-    ,weekly          :: Bool
-    ,monthly         :: Bool
-    ,quarterly       :: Bool
-    ,yearly          :: Bool
-    ,format          :: Maybe String
-    -- :: -- hledger options
-    ,alias           :: [String]
-    ,no_new_accounts :: Bool
-    ,rules_file      :: Maybe String
-    ,binary_filename :: Bool
-    ,debug           :: Bool
-
-    -- :: -- add-ons' options, must be defined here for now
-#ifdef HLEDGERVTY
-    ,debug_vty       :: Bool
-#endif
-#ifdef HLEDGERWEB
-    ,base_url        :: Maybe String
-    ,port            :: Maybe Int
-#endif
-#ifdef HLEDGERCHART
-    ,chart_output    :: Maybe String
-    ,chart_items     :: Maybe Int
-    ,chart_size      :: Maybe String
-#endif
-
-    ,args_           :: [String]
-
-    } deriving (Show, Data, Typeable)
-
--- deriving instance Default Day
--- instance Default DateSpan where def = nulldatespan
--- instance Default Interval where def = NoInterval
-
-defopts = Opts {
-  -- = -- hledger options
-  file            = def &= name "f" &= typFile &= help "use a different journal file; - means stdin"
-  -- = -- hledger-lib options
- ,begin           = def &= name "b" &= typ "DATE" &= help "report on transactions on or after this date"
- ,end             = def &= name "e" &= typ "DATE" &= help "report on transactions before this date"
- ,period          = def &= typ "PERIODEXPR" &= help "report on transactions during the specified period and/or with the specified reporting interval"
- ,cleared_        = def &= name "c" &= help "report only on cleared transactions"
- ,uncleared       = def &= name "u" &= help "report only on uncleared transactions"
- ,cost            = def &= name "B" &= help "report cost of commodities"
- ,depth_          = def &= typ "N" &= help "hide accounts/transactions deeper than this"
- ,display         = def &= typ "DISPLAYEXPR" &= name "d" &= help "show only transactions matching expr (where expr is 'dop[date]' and op is <, <=, =, >=, >)"
- ,effective       = def &= help "use transactions' effective dates, if any"
- ,empty_          = def &= name "E" &= help "show empty/zero things which are normally elided"
- ,no_elide        = def &= help "no eliding at all, stronger than -e (eg for balance report)"
- ,real_           = def &= name "r" &= help "report only on real (non-virtual) transactions"
- ,flat            = def &= help "balance: show full account names, unindented"
- ,drop_           = def &= typ "N" &= help "balance: with --flat, omit this many leading account name components"
- ,no_total        = def &= help "balance: hide the final total"
- ,daily           = def &= name "D" &= help "register, stats: report by day"
- ,weekly          = def &= name "W" &= help "register, stats: report by week"
- ,monthly         = def &= name "M" &= help "register, stats: report by month"
- ,quarterly       = def &= name "Q" &= help "register, stats: report by quarter"
- ,yearly          = def &= name "Y" &= help "register, stats: report by year"
- ,format          = def &= typ "FORMATSTR" &= name "F" &= help "use this custom line format in reports"
-  -- = -- hledger options
- ,alias           = def &= typ "ACCT=ALIAS" &= help "display ACCT's name as ALIAS in reports"
- ,no_new_accounts = def &= help "add: don't allow creating new accounts"
- ,rules_file      = def &= typFile &= help "convert: rules file to use (default: CSVFILE.rules)"
- ,binary_filename = def &= help "show the download filename for this hledger build, and exit"
- ,debug           = def &= help "show extra debug output; implies verbose"
- ,args_           = def &= args &= typ "COMMAND [PATTERNS]"
-  -- = -- add-ons' options, must be defined here for now
-#ifdef HLEDGERVTY
- ,debug_vty       = def
-#endif
-#ifdef HLEDGERWEB
- ,base_url        = def
- ,port            = def
-#endif
-#ifdef HLEDGERCHART
- ,chart_output    = def
- ,chart_items     = def
- ,chart_size      = def
-#endif
- }
- &= verbosity
- &= program progname
- &= summary progversion
- &= details usage_postscript
-
--- pre-decoding would be easier but doesn't work at least with ghc 6.12/cmdargs 0.7/unix:
--- getArgsDecoded = map fromPlatformString `fmap` getArgs
--- getHledgerOpts = getArgsDecoded >>= flip withArgs (cmdArgs defopts) >>= processOpts >>= checkOpts
-getHledgerOpts :: IO Opts
-getHledgerOpts = cmdArgs defopts >>= processOpts >>= checkOpts
-
-processOpts :: Opts -> IO Opts
-processOpts opts = do
-  let opts' = decodeOpts opts
-  fixMostOptDates opts'
-
--- | Convert possibly encoded option values to regular unicode strings.
-decodeOpts :: Opts -> Opts
-decodeOpts opts@Opts{..} = opts {
-                             file       = maybe Nothing (Just . fromPlatformString) file
-                            ,begin      = maybe Nothing (Just . fromPlatformString) begin
-                            ,end        = maybe Nothing (Just . fromPlatformString) end
-                            ,period     = maybe Nothing (Just . fromPlatformString) period
-                            ,display    = maybe Nothing (Just . fromPlatformString) display
-                            ,format     = maybe Nothing (Just . fromPlatformString) format
-                            ,alias      = map fromPlatformString alias
-                            ,rules_file = maybe Nothing (Just . fromPlatformString) rules_file
-                            ,args_      = map fromPlatformString args_
-                           }
-
--- | Convert any relative dates within these options, except for the
--- period option, to fixed dates, based on today's date. Note this means
--- the dates specified by a period expression can change if the date
--- changes during a program run, whereas begin, end, display option dates
--- are fixed at startup.
-fixMostOptDates :: Opts -> IO Opts
-fixMostOptDates opts@Opts{..} = do
-  d <- getCurrentDay
-  let fixbracketeddatestr "" = ""
-      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
-  return $ opts {
-               begin = maybe Nothing (Just . fixSmartDateStr d) begin
-              ,end = maybe Nothing (Just . fixSmartDateStr d) end
-              ,display = maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) display
-              }
-
-checkOpts :: Opts -> IO Opts
-checkOpts opts = do
-  case formatFromOpts opts of
-    Left err -> optsError err
-    Right _ -> return ()
-  d <- getCurrentDay
-  case maybe Nothing (Just . parsePeriodExpr d) $ period opts of
-    Just (Left perr) -> optsError $ show perr
-    _ -> return ()
-  when (null $ args_ opts) $ optsError "a command is required."
-  return opts
-
-optsError :: String -> IO ()
--- optsError s = putStrLn s >> exitWith (ExitFailure 1)
-optsError = ioError . userError' . (++ " Run with --help to see usage.")
-
--- | Figure out the overall date span we should report on, based on any
--- begin/end/period options provided and a reference date. If there is a
--- period option, the others are ignored.
-dateSpanFromOpts :: Day -> Opts -> DateSpan
-dateSpanFromOpts d Opts{period=Just p} =
-    case parsePeriodExpr d p of
-      Right (_, span) -> span
-      Left e       -> error' $ "could not parse period option: "++show e
-dateSpanFromOpts d Opts{..} = DateSpan (maybeday begin) (maybeday end)
-    where
-      maybeday  = maybe Nothing (Just . parsedate . fixSmartDateStr d)
-
--- | Figure out the reporting interval, if any, specified by the options.
--- --period overrides --daily overrides --weekly overrides --monthly etc.
-intervalFromOpts :: Opts -> Interval
-intervalFromOpts Opts{period=Just p} =
-    case parsePeriodExpr (parsedate "0001/01/01") p of
-      Right (interval, _) -> interval
-      Left e       -> error' $ "could not parse period option: "++show e
-intervalFromOpts Opts{..} =
-    if daily then Days 1
-    else if weekly then Weeks 1
-    else if monthly then Months 1
-    else if quarterly then Quarters 1
-    else if yearly then Years 1
-    else NoInterval
-
--- | Parse the format option if any, or raise an error if parsing fails.
-formatFromOpts :: Opts -> Either String [FormatString]
-formatFromOpts opts = maybe (Right defaultBalanceFormatString) parseFormatString $ format opts
-
--- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceFormatString :: [FormatString]
-defaultBalanceFormatString = [
-      FormatField False (Just 20) Nothing Total
-    , FormatLiteral "  "
-    , FormatField True (Just 2) Nothing DepthSpacer
-    , FormatField True Nothing Nothing Format.Account
-    ]
-
--- | Get the value of the baseurl option, if any.
-baseUrlFromOpts :: Opts -> Maybe String
-baseUrlFromOpts = const Nothing  -- base_url
-
--- | Get the value of the (last) port option, if any.
-portFromOpts :: Opts -> Maybe Int
-portFromOpts = const Nothing -- port
-
--- | Get a maybe boolean representing the last cleared/uncleared option if any.
-clearedValueFromOpts :: Opts -> Maybe Bool
-clearedValueFromOpts Opts{..} | cleared_  = Just True
-                              | uncleared = Just False
-                              | otherwise = Nothing
-
--- | Detect which date we will report on, based on --effective.
-whichDateFromOpts :: Opts -> WhichDate
-whichDateFromOpts opts = if effective opts then EffectiveDate else ActualDate
-
--- | Get the journal file path from options, an environment variable, or a default
-journalFilePathFromOpts :: Opts -> IO String
-journalFilePathFromOpts opts = do
-  istimequery <- usingTimeProgramName
-  f <- if istimequery then myTimelogPath else myJournalPath
-  return $ fromMaybe f $ file opts
-
--- | Were we invoked as \"hours\" ?
-usingTimeProgramName :: IO Bool
-usingTimeProgramName = do
-  progname <- getProgName
-  return $ map toLower progname == progname_cli_time
-
-aliasesFromOpts :: Opts -> [(AccountName,AccountName)]
-aliasesFromOpts = map parseAlias . alias
-    where
-      -- similar to ledgerAlias
-      parseAlias :: String -> (AccountName,AccountName)
-      parseAlias s = (accountNameWithoutPostingType $ strip orig
-                     ,accountNameWithoutPostingType $ strip alias')
-          where
-            (orig, alias) = break (=='=') s
-            alias' = case alias of ('=':rest) -> rest
-                                   _ -> orig
-
-command :: Opts -> String
-command = headDef "" . args_
-
-patterns :: Opts -> [String]
-patterns = tailDef [] . args_
-
--- | Gather filter pattern arguments into a list of account patterns and a
--- list of description patterns. We interpret pattern arguments as
--- follows: those prefixed with "desc:" are description patterns, all
--- others are account patterns; also patterns prefixed with "not:" are
--- negated. not: should come after desc: if both are used.
-parsePatternArgs :: [String] -> ([String],[String])
-parsePatternArgs args = (as, ds')
-    where
-      descprefix = "desc:"
-      (ds, as) = partition (descprefix `isPrefixOf`) args
-      ds' = map (drop (length descprefix)) ds
-
--- | Convert application options to the library's generic filter specification.
-optsToFilterSpec :: Opts -> Day -> FilterSpec
-optsToFilterSpec opts d = FilterSpec {
-                                datespan=dateSpanFromOpts d opts
-                               ,cleared=clearedValueFromOpts opts
-                               ,real=real_ opts
-                               ,empty=empty_ opts
-                               ,acctpats=apats
-                               ,descpats=dpats
-                               ,depth = depth_ opts
-                               }
-    where (apats,dpats) = parsePatternArgs $ patterns opts
-
-tests_Hledger_Cli_Options = TestList
- [
-  "dateSpanFromOpts" ~: do
-    let todaysdate = parsedate "2008/11/26"
-        gives = is . show . dateSpanFromOpts todaysdate
-    defopts `gives` "DateSpan Nothing Nothing"
-    defopts{begin=Just "2008",end=Just "2009"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    defopts{period=Just "in 2008"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    defopts{begin=Just "2005",end=Just "2007",period=Just "in 2008"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-
-  ,"intervalFromOpts" ~: do
-    let gives = is . intervalFromOpts
-    defopts `gives` NoInterval
-    defopts{daily=True} `gives` Days 1
-    defopts{weekly=True} `gives` Weeks 1
-    defopts{monthly=True} `gives` Months 1
-    defopts{quarterly=True} `gives` Quarters 1
-    defopts{yearly=True} `gives` Years 1
-    defopts{period=Just "weekly"} `gives` Weeks 1
-    defopts{period=Just "monthly"} `gives` Months 1
-    defopts{period=Just "quarterly"} `gives` Quarters 1
-    defopts{weekly=True,period=Just "yearly"} `gives` Years 1
-
- ]
-***** cmdargs implicit ADT with extra options map
-data Opts = Opts {
-    -- :: -- hledger options
-     file            :: Maybe FilePath
-    -- :: -- hledger-lib options
-    ,begin           :: Maybe String
-    ,end             :: Maybe String
-    ,period          :: Maybe String
-    ,cleared_        :: Bool
-    ,uncleared       :: Bool
-    ,cost            :: Bool
-    ,depth_          :: Maybe Int
-    ,display         :: Maybe String
-    ,effective       :: Bool
-    ,empty_          :: Bool
-    ,no_elide        :: Bool
-    ,real_           :: Bool
-    ,flat            :: Bool
-    ,drop_           :: Int
-    ,no_total        :: Bool
-    ,daily           :: Bool
-    ,weekly          :: Bool
-    ,monthly         :: Bool
-    ,quarterly       :: Bool
-    ,yearly          :: Bool
-    ,format          :: Maybe String
-    -- :: -- hledger options
-    ,alias           :: [String]
-    ,no_new_accounts :: Bool
-    ,rules_file      :: Maybe String
-    ,binary_filename :: Bool
-    ,debug           :: Bool
-
-    -- :: -- add-ons' extra options
-    ,extra_opts      :: M.Map String String
--- #ifdef HLEDGERVTY
---     ,debug_vty       :: Bool
--- #endif
--- #ifdef HLEDGERWEB
---     ,base_url        :: Maybe String
---     ,port            :: Maybe Int
--- #endif
--- #ifdef HLEDGERCHART
---     ,chart_output    :: Maybe String
---     ,chart_items     :: Maybe Int
---     ,chart_size      :: Maybe String
--- #endif
-
-    ,args_           :: [String]
-
-    } deriving (Show, Data, Typeable)
-
-***** cmdargs explicit string map
-progname = Hledger.Cli.progname ++ "-vty"
-progversion = progversionstr progname
-
--- usage_preamble =
---   "Usage: hledger-vty [OPTIONS] [PATTERNS]\n" ++
---   "\n" ++
---   "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and\n" ++
---   "starts the full-window curses ui.\n" ++
---   "\n"
-
-type Opts = Map String String
-
-vtymode :: Mode Opts
-vtymode =  mode "hledger-vty options" M.empty "general and hledger-vty-specific options" vtyargs vtyflags
-vtyargs = flagArg (\v opts -> Right $ M.insert "dummy args flag" v opts) "DUMMY"
-vtyflags = [
-   flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
-  ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
-  ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
-  ,flagHelpSimple id
-  ]
-
--- defopts = Hledger.Cli.defopts {
---   debug_vty       = def &= help "run with no terminal output, showing console"
---  ,args_           = def &= args &= typ "PATTERNS"
---  }
---  &= program progname
---  &= summary progversion
-
-getHledgerVtyOpts :: IO Opts
-getHledgerVtyOpts = processArgs vtymode -- >>= processOpts >>= checkOpts
-
--- processOpts :: Opts -> IO Opts
--- processOpts = Hledger.Cli.processOpts
-
--- checkOpts :: Opts -> IO Opts
--- checkOpts = Hledger.Cli.checkOpts
-
-main :: IO ()
-main = do
-  opts <- getHledgerVtyOpts
-  when ("debug" `M.member` opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
-  return () -- runWith opts
-
-runWith :: Opts -> IO ()
-runWith opts
-    | "binary_filename" `M.member` opts = putStrLn (binaryfilename progname_cli)
-    | otherwise            = withJournalDo opts vty
- 
-***** cmdargs very explicit string map
-import Control.Monad
-import Data.Map as M
-import Data.Time.Calendar
-import System.Console.CmdArgs
-import System.Console.CmdArgs.Explicit
-import System.Console.CmdArgs.Text
-
-in_ = M.member
-
-type Opts = Map String String
-
-vtyargs = flagArg (\v opts -> Right $ M.insert "PATTERNS" v opts) "query patterns"
-
-vtyflags = [
-  flagNone ["debug-vty"]  (\opts -> M.insert "debug-vty" "" opts) "run with no terminal output, showing console"
- ]
-
-commonflags = [
-   flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
-  ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
-  ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
-  ,flagHelpSimple (M.insert "help" "")
-  ,flagVersion (M.insert "version" "")
-  ]
-
-vtymode :: Mode Opts
-vtymode =   Mode {
-  modeGroupModes = toGroup []
- ,modeNames = ["vty"]
- ,modeValue = M.empty
- ,modeCheck = Right
- ,modeReform = const Nothing
- ,modeHelp = ""
- ,modeHelpSuffix = []
- ,modeArgs = ([], Nothing)
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [
-       ("vty options", vtyflags)
-      ,("general options", commonflags)
-      ]
-    }
- }
-
-main = do
-  opts <- processArgs vtymode
-  print opts
-  when ("help" `in_` opts) $ putStr $ showText defaultWrap $ helpText HelpFormatDefault vtymode
-
-optsToFilterSpec :: Opts -> Day -> FilterSpec
-optsToFilterSpec opts d = FilterSpec {
-                                datespan=nulldatespan -- dateSpanFromOpts d opts
-                               ,cleared=clearedValueFromOpts opts
-                               ,real="real" `in_` opts
-                               ,empty="empty" `in_` opts
-                               ,acctpats=[] --apats
-                               ,descpats=[] -- dpats
-                               ,depth = maybe Nothing (Just . read) $ M.lookup "depth" opts
-                               }
-    where (apats,dpats) = parsePatternArgs $ patterns opts
-
-clearedValueFromOpts opts | "cleared" `in_` opts = Just True
-                          | "uncleared" `in_` opts = Just False
-                          | otherwise = Nothing
-
--- dateSpanFromOpts :: Day -> Opts -> DateSpan
--- dateSpanFromOpts d Opts{period=Just p} =
---     case parsePeriodExpr d p of
---       Right (_, span) -> span
---       Left e       -> error' $ "could not parse period option: "++show e
--- dateSpanFromOpts d Opts{..} = DateSpan (maybeday begin) (maybeday end)
---     where
---       maybeday  = maybe Nothing (Just . parsedate . fixSmartDateStr d)
-
-***** cmdargs explicit string map -> separate ADTs
--- 1. option values for use in this and maybe other packages. These are the data we want to collect.
-
--- report options, used in hledger-lib and above
-data ReportOpts = ReportOpts {
-     begin_          :: Maybe Day
-    ,end_            :: Maybe Day
-    ,period_         :: Maybe (DateSpan,Interval)
-    ,cleared_        :: Bool
-    ,uncleared_      :: Bool
-    ,cost_           :: Bool
-    ,depth_          :: Maybe Int
-    ,display_        :: Maybe String
-    ,effective_      :: Bool
-    ,empty_          :: Bool
-    ,no_elide_       :: Bool
-    ,real_           :: Bool
-    ,flat_           :: Bool
-    ,drop_           :: Int
-    ,no_total_       :: Bool
-    ,daily_          :: Bool
-    ,weekly_         :: Bool
-    ,monthly_        :: Bool
-    ,quarterly_      :: Bool
-    ,yearly_         :: Bool
-    ,format_         :: Maybe String
- } deriving (Show) --, Data, Typeable)
-
-defreportopts = ReportOpts
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-
-instance Default ReportOpts where def = defreportopts
-
--- cli options, used in hledger and above
-data CliOpts = CliOpts {
-     file_           :: Maybe FilePath
-    ,alias_          :: [String]
-    ,binary_filename :: Bool
-    ,debug_          :: Bool
-    ,command_        :: String
-    ,patterns_       :: [String]
-     -- add
-    ,no_new_accounts_ :: Bool
-     -- convert
-    ,rules_file_     :: Maybe FilePath
-
-    ,reportopts_     :: ReportOpts
- } deriving (Show) --, Data, Typeable)
-
-defcliopts = CliOpts
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-
-instance Default CliOpts where def = defcliopts
-
--- 2. reusable/extensible command-line flags, help and initial parsing for the above.
-
-generalflags = [
-  flagReq ["file","f"]  (\v opts -> Right $ M.insert "file" "" opts) "FILE" "use a different journal file; - means stdin"
- ,flagHelpSimple (M.insert "help" "")
- ,flagVersion (M.insert "version" "")
- ,flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
- ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
- ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
- ]
-
-addflags = [
-  flagNone ["no-new-accounts"]  (\opts -> M.insert "no-new-accounts" "" opts) ""
- ]
-
-convertflags = [
-  flagReq ["rules-file"]  (\v opts -> Right $ M.insert "rules-file" v opts) "FILE" ""
- ]
-
-cliargs = flagArg (\v opts -> Right $ M.insert "args" v opts) "COMMAND [PATTERNS]"
-
-type RawOpts = Map String String
-
-progmode :: Mode RawOpts
-progmode =   Mode {
-  modeGroupModes = toGroup []
- ,modeNames = ["hledger"]
- ,modeValue = M.empty
- ,modeCheck = Right
- ,modeReform = const Nothing
- ,modeHelp = "hledger options test"
- ,modeHelpSuffix = []
- ,modeArgs = ([], Just cliargs)
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [("general options", generalflags)
-                  ,("add options",     addflags)
-                  ,("convert options", convertflags)
-                  ]
-    }
- }
-
--- 3. post-processing, additional checking and conversion of raw options
--- data Opts = Opts { cliopts :: CliOpts, reportopts :: ReportOpts } deriving (Show)
--- defopts = Opts defcliopts defreportopts
-
-processOpts :: RawOpts -> CliOpts
-processOpts rawopts = defcliopts {
-                        file_  = stringopt "file" rawopts
-                       ,debug_ = boolopt "debug" rawopts
-                       ,reportopts_ = defreportopts {
-                         begin_ = maybedateopt "begin" rawopts
-                        ,end_   = maybedateopt "end" rawopts
-                       }
-                      }
-  where
-    optserror = error'
-    boolopt = M.member
-    stringopt = M.lookup
-    maybedateopt name rawopts = 
-        case M.lookup name rawopts of
-          Nothing -> Nothing
-          Just s -> Just $ fromMaybe (optserror $ "could not parse "++name++" date: "++s) $ parsedateM s
-
-
-
-testmain = do
-  rawopts <- processArgs progmode
-  print rawopts
-  print $ processOpts rawopts
-  when ("help" `in_` rawopts) $ putStr $ showText defaultWrap $ helpText HelpFormatDefault progmode
-
-***** other things to try:
-http://www.haskell.org/haskellwiki/Heterogenous_collections
-make cmdargs generate flat help from nested ADTs
-make cmdargs pass through extra opts without --
-**** still to do
-move *FromOpts into toOpts
-
 *** review/simplify apis
-simplify option types ?
-
-*** include latest jquery, jquery-url, minified and non
-http://ajaxcssblog.com/jquery/url-read-request-variables/
+**** simplify option types
 *** more modularity
 **** packages/namespace
-***** more package splits ?
-****** hledger-web
-****** hledger-vty
+***** hledger-datasource?
 **** plugin strategy
 **** export lists
 **** graph and reduce dependencies
+*** switch to http-conduit
+*** include latest jquery, jquery-url, minified and non
+http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** clarify levels of abstraction
 **** web ui balance sheet view - data model, view layout
 **** hledger web framework - define routes, handlers/views/actions/controllers/presenters, skins/styles..
@@ -1785,13 +1081,10 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
-*** ghc 7.4 compatibility
-**** yesod
-***** yesod 0.10 support
-**** cabal-file-th
-**** email-validate
 *** Clint's ofx support
 *** more powerful storage layer
+*** web api
+*** client-side ui
 *** support -V ?
 *** in-place editing
 **** http://stackoverflow.com/questions/640971/setfocus-to-textbox-from-javascript-after-just-creating-the-textbox-with-javascr
@@ -2917,3 +2210,1110 @@ released 0.10
 implemented --flat, --drop
 *** 5/25
 support, investigated rounding issue
+** 2011
+*** optionsgeddon oh my god
+**** old help
+Usage: hledger [OPTIONS] COMMAND [PATTERNS]
+       hledger [OPTIONS] convert CSVFILE
+
+Reads your ~/.journal file, or another specified by $LEDGER or -f, and
+runs the specified command (may be abbreviated):
+
+  add       - prompt for new transactions and add them to the journal
+  balance   - show accounts, with balances
+  convert   - show the specified CSV file as a hledger journal
+  histogram - show a barchart of transactions per day or other interval
+  print     - show transactions in journal format
+  register  - show transactions as a register with running balance
+  stats     - show various statistics for a journal
+  test      - run self-tests
+
+hledger options:
+  -f FILE  --file=FILE        use a different journal/timelog file; - means stdin
+           --no-new-accounts  don't allow to create new accounts
+  -b DATE  --begin=DATE       report on transactions on or after this date
+  -e DATE  --end=DATE         report on transactions before this date
+  -p EXPR  --period=EXPR      report on transactions during the specified period
+                              and/or with the specified reporting interval
+  -C       --cleared          report only on cleared transactions
+  -U       --uncleared        report only on uncleared transactions
+  -B       --cost, --basis    report cost of commodities
+           --depth=N          hide accounts/transactions deeper than this
+  -d EXPR  --display=EXPR     show only transactions matching EXPR (where
+                              EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
+           --effective        use transactions' effective dates, if any
+  -E       --empty            show empty/zero things which are normally elided
+  -R       --real             report only on real (non-virtual) transactions
+           --flat             balance: show full account names, unindented
+           --drop=N           balance: with --flat, elide first N account name components
+           --no-total         balance: hide the final total
+  -D       --daily            register, stats: report by day
+  -W       --weekly           register, stats: report by week
+  -M       --monthly          register, stats: report by month
+  -Q       --quarterly        register, stats: report by quarter
+  -Y       --yearly           register, stats: report by year
+  -v       --verbose          show more verbose output
+           --debug            show extra debug output; implies verbose
+           --binary-filename  show the download filename for this hledger build
+  -V       --version          show version information
+  -h       --help             show command-line usage
+
+DATES can be y/m/d or smart dates like "last month".  PATTERNS are regular
+expressions which filter by account name.  Prefix a pattern with desc: to
+filter by transaction description instead, prefix with not: to negate it.
+When using both, not: comes last.
+
+**** attempts
+***** original getopts
+progname_cli = "hledger"
+
+-- | The program name which, if we are invoked as (via symlink or
+-- renaming), causes us to default to reading the user's time log instead
+-- of their journal.
+progname_cli_time  = "hours"
+
+usage_preamble_cli =
+  "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
+  "       hledger [OPTIONS] convert CSVFILE\n" ++
+  "\n" ++
+  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
+  "runs the specified command (may be abbreviated):\n" ++
+  "\n" ++
+  "  add       - prompt for new transactions and add them to the journal\n" ++
+  "  balance   - show accounts, with balances\n" ++
+  "  convert   - show the specified CSV file as a hledger journal\n" ++
+  "  histogram - show a barchart of transactions per day or other interval\n" ++
+  "  print     - show transactions in journal format\n" ++
+  "  register  - show transactions as a register with running balance\n" ++
+  "  stats     - show various statistics for a journal\n" ++
+  "  test      - run self-tests\n" ++
+  "\n"
+
+usage_options_cli = usageInfo "hledger options:" options_cli
+
+usage_postscript_cli =
+ "\n" ++
+ "DATES can be y/m/d or smart dates like \"last month\".  PATTERNS are regular\n" ++
+ "expressions which filter by account name.  Prefix a pattern with desc: to\n" ++
+ "filter by transaction description instead, prefix with not: to negate it.\n" ++
+ "When using both, not: comes last.\n"
+
+usage_cli = concat [
+             usage_preamble_cli
+            ,usage_options_cli
+            ,usage_postscript_cli
+            ]
+
+-- | Command-line options we accept.
+options_cli :: [OptDescr Opt]
+options_cli = [
+  Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
+ ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
+ ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
+ ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
+                                                      "and/or with the specified reporting interval\n")
+ ,Option "C" ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
+ ,Option "U" ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
+ ,Option "B" ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
+ ,Option ""  ["alias"]        (ReqArg Alias "ACCT=ALIAS")  "display ACCT's name as ALIAS in reports"
+ ,Option ""  ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
+ ,Option "d" ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
+                                                       "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
+ ,Option ""  ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
+ ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
+ ,Option ""  ["no-elide"]     (NoArg  NoElide)       "no eliding at all, stronger than -E (eg for balance report)"
+ ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
+ ,Option ""  ["flat"]         (NoArg  Flat)          "balance: show full account names, unindented"
+ ,Option ""  ["drop"]         (ReqArg Drop "N")      "balance: with --flat, elide first N account name components"
+ ,Option ""  ["no-total"]     (NoArg  NoTotal)       "balance: hide the final total"
+ ,Option "D" ["daily"]        (NoArg  DailyOpt)      "register, stats: report by day"
+ ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register, stats: report by week"
+ ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
+ ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
+ ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register, stats: report by year"
+ ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "add: don't allow creating new accounts"
+ ,Option "r" ["rules"]        (ReqArg RulesFile "FILE") "convert: rules file to use (default:JOURNAL.rules)"
+ ,Option "F" ["format"]       (ReqArg ReportFormat "STR") "use STR as the format"
+ ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
+ ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
+ ,Option ""  ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
+ ,Option "V" ["version"]      (NoArg  Version)       "show version information"
+ ,Option "h" ["help"]         (NoArg  Help)          "show command-line usage"
+ ]
+
+-- | An option value from a command-line flag.
+data Opt = 
+    File          {value::String}
+    | NoNewAccts
+    | Begin       {value::String}
+    | End         {value::String}
+    | Period      {value::String}
+    | Cleared
+    | UnCleared
+    | CostBasis
+    | Alias       {value::String}
+    | Depth       {value::String}
+    | Display     {value::String}
+    | Effective
+    | Empty
+    | NoElide
+    | Real
+    | Flat
+    | Drop        {value::String}
+    | NoTotal
+    | DailyOpt
+    | WeeklyOpt
+    | MonthlyOpt
+    | QuarterlyOpt
+    | YearlyOpt
+    | RulesFile   {value::String}
+    | ReportFormat {value::String}
+    | Help
+    | Verbose
+    | Version
+    | BinaryFilename
+    | Debug
+    -- XXX add-on options, must be defined here for now
+    -- vty
+    | DebugVty
+    -- web
+    | BaseUrl     {value::String}
+    | Port        {value::String}
+    -- chart
+    | ChartOutput {value::String}
+    | ChartItems  {value::String}
+    | ChartSize   {value::String}
+    deriving (Show,Eq)
+
+-- these make me nervous
+optsWithConstructor f opts = concatMap get opts
+    where get o = [o | f v == o] where v = value o
+
+optsWithConstructors fs opts = concatMap get opts
+    where get o = [o | any (== o) fs]
+
+optValuesForConstructor f opts = concatMap get opts
+    where get o = [v | f v == o] where v = value o
+
+optValuesForConstructors fs opts = concatMap get opts
+    where get o = [v | any (\f -> f v == o) fs] where v = value o
+
+-- | Parse the command-line arguments into options and arguments using the
+-- specified option descriptors. Any smart dates in the options are
+-- converted to explicit YYYY/MM/DD format based on the current time. If
+-- parsing fails, raise an error, displaying the problem along with the
+-- provided usage string.
+parseArgumentsWith :: [OptDescr Opt] -> IO ([Opt], [String])
+parseArgumentsWith options = do
+  rawargs <- map fromPlatformString `fmap` getArgs
+  parseArgumentsWith' options rawargs
+
+parseArgumentsWith' options rawargs = do
+  let (opts,args,errs) = getOpt Permute options rawargs
+  opts' <- fixOptDates opts
+  let opts'' = if Debug `elem` opts' then Verbose:opts' else opts'
+  if null errs
+   then return (opts'',args)
+   else argsError (concat errs) >> return ([],[])
+
+argsError :: String -> IO ()
+argsError = ioError . userError' . (++ " Run with --help to see usage.")
+
+-- | Convert any fuzzy dates within these option values to explicit ones,
+-- based on today's date.
+fixOptDates :: [Opt] -> IO [Opt]
+fixOptDates opts = do
+  d <- getCurrentDay
+  return $ map (fixopt d) opts
+  where
+    fixopt d (Begin s)   = Begin $ fixSmartDateStr d s
+    fixopt d (End s)     = End $ fixSmartDateStr d s
+    fixopt d (Display s) = -- hacky
+        Display $ regexReplaceBy "\\[.+?\\]" fixbracketeddatestr s
+        where fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
+    fixopt _ o            = o
+
+-- | Figure out the overall date span we should report on, based on any
+-- begin/end/period options provided. If there is a period option, the
+-- others are ignored.
+dateSpanFromOpts :: Day -> [Opt] -> DateSpan
+dateSpanFromOpts refdate opts
+    | not (null popts) = case parsePeriodExpr refdate $ last popts of
+                         Right (_, s) -> s
+                         Left e       -> parseerror e
+    | otherwise = DateSpan lastb laste
+    where
+      popts = optValuesForConstructor Period opts
+      bopts = optValuesForConstructor Begin opts
+      eopts = optValuesForConstructor End opts
+      lastb = listtomaybeday bopts
+      laste = listtomaybeday eopts
+      listtomaybeday vs = if null vs then Nothing else Just $ parse $ last vs
+          where parse = parsedate . fixSmartDateStr refdate
+
+-- | Figure out the reporting interval, if any, specified by the options.
+-- If there is a period option, the others are ignored.
+intervalFromOpts :: [Opt] -> Interval
+intervalFromOpts opts =
+    case (periodopts, intervalopts) of
+      ((p:_), _)            -> case parsePeriodExpr (parsedate "0001/01/01") p of
+                                Right (i, _) -> i
+                                Left e       -> parseerror e
+      (_, (DailyOpt:_))     -> Days 1
+      (_, (WeeklyOpt:_))    -> Weeks 1
+      (_, (MonthlyOpt:_))   -> Months 1
+      (_, (QuarterlyOpt:_)) -> Quarters 1
+      (_, (YearlyOpt:_))    -> Years 1
+      (_, _)                -> NoInterval
+    where
+      periodopts   = reverse $ optValuesForConstructor Period opts
+      intervalopts = reverse $ filter (`elem` [DailyOpt,WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
+
+rulesFileFromOpts :: [Opt] -> Maybe FilePath
+rulesFileFromOpts opts = listtomaybe $ optValuesForConstructor RulesFile opts
+    where
+      listtomaybe [] = Nothing
+      listtomaybe vs = Just $ head vs
+
+-- | Default balance format string: "%20(total)  %2(depth_spacer)%-(account)"
+defaultBalanceFormatString :: [FormatString]
+defaultBalanceFormatString = [
+      FormatField False (Just 20) Nothing Total
+    , FormatLiteral "  "
+    , FormatField True (Just 2) Nothing DepthSpacer
+    , FormatField True Nothing Nothing Format.Account
+    ]
+
+-- | Parses the --format string to either an error message or a format string.
+parseFormatFromOpts :: [Opt] -> Either String [FormatString]
+parseFormatFromOpts opts = listtomaybe $ optValuesForConstructor ReportFormat opts
+    where
+      listtomaybe :: [String] -> Either String [FormatString]
+      listtomaybe [] = Right defaultBalanceFormatString
+      listtomaybe vs = parseFormatString $ head vs
+
+-- | Returns the format string. If the string can't be parsed it fails with error'.
+formatFromOpts :: [Opt] -> [FormatString]
+formatFromOpts opts = case parseFormatFromOpts opts of
+    Left err -> error' err
+    Right format -> format
+
+-- | Get the value of the (last) depth option, if any.
+depthFromOpts :: [Opt] -> Maybe Int
+depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
+    where
+      listtomaybeint [] = Nothing
+      listtomaybeint vs = Just $ read $ last vs
+
+-- | Get the value of the (last) drop option, if any, otherwise 0.
+dropFromOpts :: [Opt] -> Int
+dropFromOpts opts = fromMaybe 0 $ listtomaybeint $ optValuesForConstructor Drop opts
+    where
+      listtomaybeint [] = Nothing
+      listtomaybeint vs = Just $ read $ last vs
+
+-- | Get the value of the (last) display option, if any.
+displayExprFromOpts :: [Opt] -> Maybe String
+displayExprFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
+    where
+      listtomaybe [] = Nothing
+      listtomaybe vs = Just $ last vs
+
+-- | Get the value of the (last) baseurl option, if any.
+baseUrlFromOpts :: [Opt] -> Maybe String
+baseUrlFromOpts opts = listtomaybe $ optValuesForConstructor BaseUrl opts
+    where
+      listtomaybe [] = Nothing
+      listtomaybe vs = Just $ last vs
+
+-- | Get the value of the (last) port option, if any.
+portFromOpts :: [Opt] -> Maybe Int
+portFromOpts opts = listtomaybeint $ optValuesForConstructor Port opts
+    where
+      listtomaybeint [] = Nothing
+      listtomaybeint vs = Just $ read $ last vs
+
+
+-- | Get a maybe boolean representing the last cleared/uncleared option if any.
+clearedValueFromOpts opts | null os = Nothing
+                          | last os == Cleared = Just True
+                          | otherwise = Just False
+    where os = optsWithConstructors [Cleared,UnCleared] opts
+
+-- | Detect which date we will report on, based on --effective.
+whichDateFromOpts :: [Opt] -> WhichDate
+whichDateFromOpts opts = if Effective `elem` opts then EffectiveDate else ActualDate
+
+-- | Were we invoked as \"hours\" ?
+usingTimeProgramName :: IO Bool
+usingTimeProgramName = do
+  progname <- getProgName
+  return $ map toLower progname == progname_cli_time
+
+-- | Get the journal file path from options, an environment variable, or a default
+journalFilePathFromOpts :: [Opt] -> IO String
+journalFilePathFromOpts opts = do
+  istimequery <- usingTimeProgramName
+  f <- if istimequery then myTimelogPath else myJournalPath
+  return $ last $ f : optValuesForConstructor File opts
+
+aliasesFromOpts :: [Opt] -> [(AccountName,AccountName)]
+aliasesFromOpts opts = map parseAlias $ optValuesForConstructor Alias opts
+    where
+      -- similar to ledgerAlias
+      parseAlias :: String -> (AccountName,AccountName)
+      parseAlias s = (accountNameWithoutPostingType $ strip orig
+                     ,accountNameWithoutPostingType $ strip alias')
+          where
+            (orig, alias) = break (=='=') s
+            alias' = case alias of ('=':rest) -> rest
+                                   _ -> orig
+
+-- | Gather filter pattern arguments into a list of account patterns and a
+-- list of description patterns. We interpret pattern arguments as
+-- follows: those prefixed with "desc:" are description patterns, all
+-- others are account patterns; also patterns prefixed with "not:" are
+-- negated. not: should come after desc: if both are used.
+parsePatternArgs :: [String] -> ([String],[String])
+parsePatternArgs args = (as, ds')
+    where
+      descprefix = "desc:"
+      (ds, as) = partition (descprefix `isPrefixOf`) args
+      ds' = map (drop (length descprefix)) ds
+
+-- | Convert application options to the library's generic filter specification.
+optsToFilterSpec :: [Opt] -> [String] -> Day -> FilterSpec
+optsToFilterSpec opts args d = FilterSpec {
+                                datespan=dateSpanFromOpts d opts
+                               ,cleared=clearedValueFromOpts opts
+                               ,real=Real `elem` opts
+                               ,empty=Empty `elem` opts
+                               ,acctpats=apats
+                               ,descpats=dpats
+                               ,depth = depthFromOpts opts
+                               }
+    where (apats,dpats) = parsePatternArgs args
+
+-- currentLocalTimeFromOpts opts = listtomaybe $ optValuesForConstructor CurrentLocalTime opts
+--     where
+--       listtomaybe [] = Nothing
+--       listtomaybe vs = Just $ last vs
+
+tests_Hledger_Cli_Options = TestList
+ [
+  "dateSpanFromOpts" ~: do
+    let todaysdate = parsedate "2008/11/26"
+    let gives = is . show . dateSpanFromOpts todaysdate
+    [] `gives` "DateSpan Nothing Nothing"
+    [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+
+  ,"intervalFromOpts" ~: do
+    let gives = is . intervalFromOpts
+    [] `gives` NoInterval
+    [DailyOpt] `gives` Days 1
+    [WeeklyOpt] `gives` Weeks 1
+    [MonthlyOpt] `gives` Months 1
+    [QuarterlyOpt] `gives` Quarters 1
+    [YearlyOpt] `gives` Years 1
+    [Period "weekly"] `gives` Weeks 1
+    [Period "monthly"] `gives` Months 1
+    [Period "quarterly"] `gives` Quarters 1
+    [WeeklyOpt, Period "yearly"] `gives` Years 1
+
+ ]
+
+***** cmdargs implicit ADT with ifdefs
+progname = "hledger"
+progversion = progversionstr progname
+
+progname_cli = progname
+
+-- | The program name which, if we are invoked as (via symlink or
+-- renaming), causes us to default to reading the user's time log instead
+-- of their journal.
+progname_cli_time  = "hours"
+
+usage_preamble =
+  "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
+  "       hledger [OPTIONS] convert CSVFILE\n" ++
+  "\n" ++
+  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
+  "runs the specified command (may be abbreviated):\n" ++
+  "\n" ++
+  "  add       - prompt for new transactions and add them to the journal\n" ++
+  "  balance   - show accounts, with balances\n" ++
+  "  convert   - show the specified CSV file as a hledger journal\n" ++
+  "  histogram - show a barchart of transactions per day or other interval\n" ++
+  "  print     - show transactions in journal format\n" ++
+  "  register  - show transactions as a register with running balance\n" ++
+  "  stats     - show various statistics for a journal\n" ++
+  "  test      - run self-tests\n" ++
+  "\n"
+
+usage_postscript = [
+  "DATES can be y/m/d or smart dates like \"last month\".  PATTERNS are regular"
+ ,"expressions which filter by account name.  Prefix a pattern with desc: to"
+ ,"filter by transaction description instead, prefix with not: to negate it."
+ ,"When using both, not: comes last."
+ ]
+
+-- | Command-line options & arguments we accept.
+-- data Opts =
+--  Add {
+--  } |
+--  Balance {
+--  }
+--  Convert {
+--  }
+--  Histogram {
+--  }
+--  Print {
+--  }
+--  Register {
+--  }
+--  Stats {
+--  }
+--  Test {
+--  }
+data Opts = Opts {
+    -- :: -- hledger options
+     file            :: Maybe FilePath
+    -- :: -- hledger-lib options
+    ,begin           :: Maybe String
+    ,end             :: Maybe String
+    ,period          :: Maybe String
+    ,cleared_        :: Bool
+    ,uncleared       :: Bool
+    ,cost            :: Bool
+    ,depth_          :: Maybe Int
+    ,display         :: Maybe String
+    ,effective       :: Bool
+    ,empty_          :: Bool
+    ,no_elide        :: Bool
+    ,real_           :: Bool
+    ,flat            :: Bool
+    ,drop_           :: Int
+    ,no_total        :: Bool
+    ,daily           :: Bool
+    ,weekly          :: Bool
+    ,monthly         :: Bool
+    ,quarterly       :: Bool
+    ,yearly          :: Bool
+    ,format          :: Maybe String
+    -- :: -- hledger options
+    ,alias           :: [String]
+    ,no_new_accounts :: Bool
+    ,rules_file      :: Maybe String
+    ,binary_filename :: Bool
+    ,debug           :: Bool
+
+    -- :: -- add-ons' options, must be defined here for now
+#ifdef HLEDGERVTY
+    ,debug_vty       :: Bool
+#endif
+#ifdef HLEDGERWEB
+    ,base_url        :: Maybe String
+    ,port            :: Maybe Int
+#endif
+#ifdef HLEDGERCHART
+    ,chart_output    :: Maybe String
+    ,chart_items     :: Maybe Int
+    ,chart_size      :: Maybe String
+#endif
+
+    ,args_           :: [String]
+
+    } deriving (Show, Data, Typeable)
+
+-- deriving instance Default Day
+-- instance Default DateSpan where def = nulldatespan
+-- instance Default Interval where def = NoInterval
+
+defopts = Opts {
+  -- = -- hledger options
+  file            = def &= name "f" &= typFile &= help "use a different journal file; - means stdin"
+  -- = -- hledger-lib options
+ ,begin           = def &= name "b" &= typ "DATE" &= help "report on transactions on or after this date"
+ ,end             = def &= name "e" &= typ "DATE" &= help "report on transactions before this date"
+ ,period          = def &= typ "PERIODEXPR" &= help "report on transactions during the specified period and/or with the specified reporting interval"
+ ,cleared_        = def &= name "c" &= help "report only on cleared transactions"
+ ,uncleared       = def &= name "u" &= help "report only on uncleared transactions"
+ ,cost            = def &= name "B" &= help "report cost of commodities"
+ ,depth_          = def &= typ "N" &= help "hide accounts/transactions deeper than this"
+ ,display         = def &= typ "DISPLAYEXPR" &= name "d" &= help "show only transactions matching expr (where expr is 'dop[date]' and op is <, <=, =, >=, >)"
+ ,effective       = def &= help "use transactions' effective dates, if any"
+ ,empty_          = def &= name "E" &= help "show empty/zero things which are normally elided"
+ ,no_elide        = def &= help "no eliding at all, stronger than -e (eg for balance report)"
+ ,real_           = def &= name "r" &= help "report only on real (non-virtual) transactions"
+ ,flat            = def &= help "balance: show full account names, unindented"
+ ,drop_           = def &= typ "N" &= help "balance: with --flat, omit this many leading account name components"
+ ,no_total        = def &= help "balance: hide the final total"
+ ,daily           = def &= name "D" &= help "register, stats: report by day"
+ ,weekly          = def &= name "W" &= help "register, stats: report by week"
+ ,monthly         = def &= name "M" &= help "register, stats: report by month"
+ ,quarterly       = def &= name "Q" &= help "register, stats: report by quarter"
+ ,yearly          = def &= name "Y" &= help "register, stats: report by year"
+ ,format          = def &= typ "FORMATSTR" &= name "F" &= help "use this custom line format in reports"
+  -- = -- hledger options
+ ,alias           = def &= typ "ACCT=ALIAS" &= help "display ACCT's name as ALIAS in reports"
+ ,no_new_accounts = def &= help "add: don't allow creating new accounts"
+ ,rules_file      = def &= typFile &= help "convert: rules file to use (default: CSVFILE.rules)"
+ ,binary_filename = def &= help "show the download filename for this hledger build, and exit"
+ ,debug           = def &= help "show extra debug output; implies verbose"
+ ,args_           = def &= args &= typ "COMMAND [PATTERNS]"
+  -- = -- add-ons' options, must be defined here for now
+#ifdef HLEDGERVTY
+ ,debug_vty       = def
+#endif
+#ifdef HLEDGERWEB
+ ,base_url        = def
+ ,port            = def
+#endif
+#ifdef HLEDGERCHART
+ ,chart_output    = def
+ ,chart_items     = def
+ ,chart_size      = def
+#endif
+ }
+ &= verbosity
+ &= program progname
+ &= summary progversion
+ &= details usage_postscript
+
+-- pre-decoding would be easier but doesn't work at least with ghc 6.12/cmdargs 0.7/unix:
+-- getArgsDecoded = map fromPlatformString `fmap` getArgs
+-- getHledgerOpts = getArgsDecoded >>= flip withArgs (cmdArgs defopts) >>= processOpts >>= checkOpts
+getHledgerOpts :: IO Opts
+getHledgerOpts = cmdArgs defopts >>= processOpts >>= checkOpts
+
+processOpts :: Opts -> IO Opts
+processOpts opts = do
+  let opts' = decodeOpts opts
+  fixMostOptDates opts'
+
+-- | Convert possibly encoded option values to regular unicode strings.
+decodeOpts :: Opts -> Opts
+decodeOpts opts@Opts{..} = opts {
+                             file       = maybe Nothing (Just . fromPlatformString) file
+                            ,begin      = maybe Nothing (Just . fromPlatformString) begin
+                            ,end        = maybe Nothing (Just . fromPlatformString) end
+                            ,period     = maybe Nothing (Just . fromPlatformString) period
+                            ,display    = maybe Nothing (Just . fromPlatformString) display
+                            ,format     = maybe Nothing (Just . fromPlatformString) format
+                            ,alias      = map fromPlatformString alias
+                            ,rules_file = maybe Nothing (Just . fromPlatformString) rules_file
+                            ,args_      = map fromPlatformString args_
+                           }
+
+-- | Convert any relative dates within these options, except for the
+-- period option, to fixed dates, based on today's date. Note this means
+-- the dates specified by a period expression can change if the date
+-- changes during a program run, whereas begin, end, display option dates
+-- are fixed at startup.
+fixMostOptDates :: Opts -> IO Opts
+fixMostOptDates opts@Opts{..} = do
+  d <- getCurrentDay
+  let fixbracketeddatestr "" = ""
+      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
+  return $ opts {
+               begin = maybe Nothing (Just . fixSmartDateStr d) begin
+              ,end = maybe Nothing (Just . fixSmartDateStr d) end
+              ,display = maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) display
+              }
+
+checkOpts :: Opts -> IO Opts
+checkOpts opts = do
+  case formatFromOpts opts of
+    Left err -> optsError err
+    Right _ -> return ()
+  d <- getCurrentDay
+  case maybe Nothing (Just . parsePeriodExpr d) $ period opts of
+    Just (Left perr) -> optsError $ show perr
+    _ -> return ()
+  when (null $ args_ opts) $ optsError "a command is required."
+  return opts
+
+optsError :: String -> IO ()
+-- optsError s = putStrLn s >> exitWith (ExitFailure 1)
+optsError = ioError . userError' . (++ " Run with --help to see usage.")
+
+-- | Figure out the overall date span we should report on, based on any
+-- begin/end/period options provided and a reference date. If there is a
+-- period option, the others are ignored.
+dateSpanFromOpts :: Day -> Opts -> DateSpan
+dateSpanFromOpts d Opts{period=Just p} =
+    case parsePeriodExpr d p of
+      Right (_, span) -> span
+      Left e       -> error' $ "could not parse period option: "++show e
+dateSpanFromOpts d Opts{..} = DateSpan (maybeday begin) (maybeday end)
+    where
+      maybeday  = maybe Nothing (Just . parsedate . fixSmartDateStr d)
+
+-- | Figure out the reporting interval, if any, specified by the options.
+-- --period overrides --daily overrides --weekly overrides --monthly etc.
+intervalFromOpts :: Opts -> Interval
+intervalFromOpts Opts{period=Just p} =
+    case parsePeriodExpr (parsedate "0001/01/01") p of
+      Right (interval, _) -> interval
+      Left e       -> error' $ "could not parse period option: "++show e
+intervalFromOpts Opts{..} =
+    if daily then Days 1
+    else if weekly then Weeks 1
+    else if monthly then Months 1
+    else if quarterly then Quarters 1
+    else if yearly then Years 1
+    else NoInterval
+
+-- | Parse the format option if any, or raise an error if parsing fails.
+formatFromOpts :: Opts -> Either String [FormatString]
+formatFromOpts opts = maybe (Right defaultBalanceFormatString) parseFormatString $ format opts
+
+-- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
+defaultBalanceFormatString :: [FormatString]
+defaultBalanceFormatString = [
+      FormatField False (Just 20) Nothing Total
+    , FormatLiteral "  "
+    , FormatField True (Just 2) Nothing DepthSpacer
+    , FormatField True Nothing Nothing Format.Account
+    ]
+
+-- | Get the value of the baseurl option, if any.
+baseUrlFromOpts :: Opts -> Maybe String
+baseUrlFromOpts = const Nothing  -- base_url
+
+-- | Get the value of the (last) port option, if any.
+portFromOpts :: Opts -> Maybe Int
+portFromOpts = const Nothing -- port
+
+-- | Get a maybe boolean representing the last cleared/uncleared option if any.
+clearedValueFromOpts :: Opts -> Maybe Bool
+clearedValueFromOpts Opts{..} | cleared_  = Just True
+                              | uncleared = Just False
+                              | otherwise = Nothing
+
+-- | Detect which date we will report on, based on --effective.
+whichDateFromOpts :: Opts -> WhichDate
+whichDateFromOpts opts = if effective opts then EffectiveDate else ActualDate
+
+-- | Get the journal file path from options, an environment variable, or a default
+journalFilePathFromOpts :: Opts -> IO String
+journalFilePathFromOpts opts = do
+  istimequery <- usingTimeProgramName
+  f <- if istimequery then myTimelogPath else myJournalPath
+  return $ fromMaybe f $ file opts
+
+-- | Were we invoked as \"hours\" ?
+usingTimeProgramName :: IO Bool
+usingTimeProgramName = do
+  progname <- getProgName
+  return $ map toLower progname == progname_cli_time
+
+aliasesFromOpts :: Opts -> [(AccountName,AccountName)]
+aliasesFromOpts = map parseAlias . alias
+    where
+      -- similar to ledgerAlias
+      parseAlias :: String -> (AccountName,AccountName)
+      parseAlias s = (accountNameWithoutPostingType $ strip orig
+                     ,accountNameWithoutPostingType $ strip alias')
+          where
+            (orig, alias) = break (=='=') s
+            alias' = case alias of ('=':rest) -> rest
+                                   _ -> orig
+
+command :: Opts -> String
+command = headDef "" . args_
+
+patterns :: Opts -> [String]
+patterns = tailDef [] . args_
+
+-- | Gather filter pattern arguments into a list of account patterns and a
+-- list of description patterns. We interpret pattern arguments as
+-- follows: those prefixed with "desc:" are description patterns, all
+-- others are account patterns; also patterns prefixed with "not:" are
+-- negated. not: should come after desc: if both are used.
+parsePatternArgs :: [String] -> ([String],[String])
+parsePatternArgs args = (as, ds')
+    where
+      descprefix = "desc:"
+      (ds, as) = partition (descprefix `isPrefixOf`) args
+      ds' = map (drop (length descprefix)) ds
+
+-- | Convert application options to the library's generic filter specification.
+optsToFilterSpec :: Opts -> Day -> FilterSpec
+optsToFilterSpec opts d = FilterSpec {
+                                datespan=dateSpanFromOpts d opts
+                               ,cleared=clearedValueFromOpts opts
+                               ,real=real_ opts
+                               ,empty=empty_ opts
+                               ,acctpats=apats
+                               ,descpats=dpats
+                               ,depth = depth_ opts
+                               }
+    where (apats,dpats) = parsePatternArgs $ patterns opts
+
+tests_Hledger_Cli_Options = TestList
+ [
+  "dateSpanFromOpts" ~: do
+    let todaysdate = parsedate "2008/11/26"
+        gives = is . show . dateSpanFromOpts todaysdate
+    defopts `gives` "DateSpan Nothing Nothing"
+    defopts{begin=Just "2008",end=Just "2009"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    defopts{period=Just "in 2008"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+    defopts{begin=Just "2005",end=Just "2007",period=Just "in 2008"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
+
+  ,"intervalFromOpts" ~: do
+    let gives = is . intervalFromOpts
+    defopts `gives` NoInterval
+    defopts{daily=True} `gives` Days 1
+    defopts{weekly=True} `gives` Weeks 1
+    defopts{monthly=True} `gives` Months 1
+    defopts{quarterly=True} `gives` Quarters 1
+    defopts{yearly=True} `gives` Years 1
+    defopts{period=Just "weekly"} `gives` Weeks 1
+    defopts{period=Just "monthly"} `gives` Months 1
+    defopts{period=Just "quarterly"} `gives` Quarters 1
+    defopts{weekly=True,period=Just "yearly"} `gives` Years 1
+
+ ]
+***** cmdargs implicit ADT with extra options map
+data Opts = Opts {
+    -- :: -- hledger options
+     file            :: Maybe FilePath
+    -- :: -- hledger-lib options
+    ,begin           :: Maybe String
+    ,end             :: Maybe String
+    ,period          :: Maybe String
+    ,cleared_        :: Bool
+    ,uncleared       :: Bool
+    ,cost            :: Bool
+    ,depth_          :: Maybe Int
+    ,display         :: Maybe String
+    ,effective       :: Bool
+    ,empty_          :: Bool
+    ,no_elide        :: Bool
+    ,real_           :: Bool
+    ,flat            :: Bool
+    ,drop_           :: Int
+    ,no_total        :: Bool
+    ,daily           :: Bool
+    ,weekly          :: Bool
+    ,monthly         :: Bool
+    ,quarterly       :: Bool
+    ,yearly          :: Bool
+    ,format          :: Maybe String
+    -- :: -- hledger options
+    ,alias           :: [String]
+    ,no_new_accounts :: Bool
+    ,rules_file      :: Maybe String
+    ,binary_filename :: Bool
+    ,debug           :: Bool
+
+    -- :: -- add-ons' extra options
+    ,extra_opts      :: M.Map String String
+-- #ifdef HLEDGERVTY
+--     ,debug_vty       :: Bool
+-- #endif
+-- #ifdef HLEDGERWEB
+--     ,base_url        :: Maybe String
+--     ,port            :: Maybe Int
+-- #endif
+-- #ifdef HLEDGERCHART
+--     ,chart_output    :: Maybe String
+--     ,chart_items     :: Maybe Int
+--     ,chart_size      :: Maybe String
+-- #endif
+
+    ,args_           :: [String]
+
+    } deriving (Show, Data, Typeable)
+
+***** cmdargs explicit string map
+progname = Hledger.Cli.progname ++ "-vty"
+progversion = progversionstr progname
+
+-- usage_preamble =
+--   "Usage: hledger-vty [OPTIONS] [PATTERNS]\n" ++
+--   "\n" ++
+--   "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and\n" ++
+--   "starts the full-window curses ui.\n" ++
+--   "\n"
+
+type Opts = Map String String
+
+vtymode :: Mode Opts
+vtymode =  mode "hledger-vty options" M.empty "general and hledger-vty-specific options" vtyargs vtyflags
+vtyargs = flagArg (\v opts -> Right $ M.insert "dummy args flag" v opts) "DUMMY"
+vtyflags = [
+   flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
+  ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
+  ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
+  ,flagHelpSimple id
+  ]
+
+-- defopts = Hledger.Cli.defopts {
+--   debug_vty       = def &= help "run with no terminal output, showing console"
+--  ,args_           = def &= args &= typ "PATTERNS"
+--  }
+--  &= program progname
+--  &= summary progversion
+
+getHledgerVtyOpts :: IO Opts
+getHledgerVtyOpts = processArgs vtymode -- >>= processOpts >>= checkOpts
+
+-- processOpts :: Opts -> IO Opts
+-- processOpts = Hledger.Cli.processOpts
+
+-- checkOpts :: Opts -> IO Opts
+-- checkOpts = Hledger.Cli.checkOpts
+
+main :: IO ()
+main = do
+  opts <- getHledgerVtyOpts
+  when ("debug" `M.member` opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  return () -- runWith opts
+
+runWith :: Opts -> IO ()
+runWith opts
+    | "binary_filename" `M.member` opts = putStrLn (binaryfilename progname_cli)
+    | otherwise            = withJournalDo opts vty
+ 
+***** cmdargs very explicit string map
+import Control.Monad
+import Data.Map as M
+import Data.Time.Calendar
+import System.Console.CmdArgs
+import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Text
+
+in_ = M.member
+
+type Opts = Map String String
+
+vtyargs = flagArg (\v opts -> Right $ M.insert "PATTERNS" v opts) "query patterns"
+
+vtyflags = [
+  flagNone ["debug-vty"]  (\opts -> M.insert "debug-vty" "" opts) "run with no terminal output, showing console"
+ ]
+
+commonflags = [
+   flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
+  ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
+  ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
+  ,flagHelpSimple (M.insert "help" "")
+  ,flagVersion (M.insert "version" "")
+  ]
+
+vtymode :: Mode Opts
+vtymode =   Mode {
+  modeGroupModes = toGroup []
+ ,modeNames = ["vty"]
+ ,modeValue = M.empty
+ ,modeCheck = Right
+ ,modeReform = const Nothing
+ ,modeHelp = ""
+ ,modeHelpSuffix = []
+ ,modeArgs = ([], Nothing)
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [
+       ("vty options", vtyflags)
+      ,("general options", commonflags)
+      ]
+    }
+ }
+
+main = do
+  opts <- processArgs vtymode
+  print opts
+  when ("help" `in_` opts) $ putStr $ showText defaultWrap $ helpText HelpFormatDefault vtymode
+
+optsToFilterSpec :: Opts -> Day -> FilterSpec
+optsToFilterSpec opts d = FilterSpec {
+                                datespan=nulldatespan -- dateSpanFromOpts d opts
+                               ,cleared=clearedValueFromOpts opts
+                               ,real="real" `in_` opts
+                               ,empty="empty" `in_` opts
+                               ,acctpats=[] --apats
+                               ,descpats=[] -- dpats
+                               ,depth = maybe Nothing (Just . read) $ M.lookup "depth" opts
+                               }
+    where (apats,dpats) = parsePatternArgs $ patterns opts
+
+clearedValueFromOpts opts | "cleared" `in_` opts = Just True
+                          | "uncleared" `in_` opts = Just False
+                          | otherwise = Nothing
+
+-- dateSpanFromOpts :: Day -> Opts -> DateSpan
+-- dateSpanFromOpts d Opts{period=Just p} =
+--     case parsePeriodExpr d p of
+--       Right (_, span) -> span
+--       Left e       -> error' $ "could not parse period option: "++show e
+-- dateSpanFromOpts d Opts{..} = DateSpan (maybeday begin) (maybeday end)
+--     where
+--       maybeday  = maybe Nothing (Just . parsedate . fixSmartDateStr d)
+
+***** cmdargs explicit string map -> separate ADTs
+-- 1. option values for use in this and maybe other packages. These are the data we want to collect.
+
+-- report options, used in hledger-lib and above
+data ReportOpts = ReportOpts {
+     begin_          :: Maybe Day
+    ,end_            :: Maybe Day
+    ,period_         :: Maybe (DateSpan,Interval)
+    ,cleared_        :: Bool
+    ,uncleared_      :: Bool
+    ,cost_           :: Bool
+    ,depth_          :: Maybe Int
+    ,display_        :: Maybe String
+    ,effective_      :: Bool
+    ,empty_          :: Bool
+    ,no_elide_       :: Bool
+    ,real_           :: Bool
+    ,flat_           :: Bool
+    ,drop_           :: Int
+    ,no_total_       :: Bool
+    ,daily_          :: Bool
+    ,weekly_         :: Bool
+    ,monthly_        :: Bool
+    ,quarterly_      :: Bool
+    ,yearly_         :: Bool
+    ,format_         :: Maybe String
+ } deriving (Show) --, Data, Typeable)
+
+defreportopts = ReportOpts
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+
+instance Default ReportOpts where def = defreportopts
+
+-- cli options, used in hledger and above
+data CliOpts = CliOpts {
+     file_           :: Maybe FilePath
+    ,alias_          :: [String]
+    ,binary_filename :: Bool
+    ,debug_          :: Bool
+    ,command_        :: String
+    ,patterns_       :: [String]
+     -- add
+    ,no_new_accounts_ :: Bool
+     -- convert
+    ,rules_file_     :: Maybe FilePath
+
+    ,reportopts_     :: ReportOpts
+ } deriving (Show) --, Data, Typeable)
+
+defcliopts = CliOpts
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+    def
+
+instance Default CliOpts where def = defcliopts
+
+-- 2. reusable/extensible command-line flags, help and initial parsing for the above.
+
+generalflags = [
+  flagReq ["file","f"]  (\v opts -> Right $ M.insert "file" "" opts) "FILE" "use a different journal file; - means stdin"
+ ,flagHelpSimple (M.insert "help" "")
+ ,flagVersion (M.insert "version" "")
+ ,flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
+ ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
+ ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
+ ]
+
+addflags = [
+  flagNone ["no-new-accounts"]  (\opts -> M.insert "no-new-accounts" "" opts) ""
+ ]
+
+convertflags = [
+  flagReq ["rules-file"]  (\v opts -> Right $ M.insert "rules-file" v opts) "FILE" ""
+ ]
+
+cliargs = flagArg (\v opts -> Right $ M.insert "args" v opts) "COMMAND [PATTERNS]"
+
+type RawOpts = Map String String
+
+progmode :: Mode RawOpts
+progmode =   Mode {
+  modeGroupModes = toGroup []
+ ,modeNames = ["hledger"]
+ ,modeValue = M.empty
+ ,modeCheck = Right
+ ,modeReform = const Nothing
+ ,modeHelp = "hledger options test"
+ ,modeHelpSuffix = []
+ ,modeArgs = ([], Just cliargs)
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [("general options", generalflags)
+                  ,("add options",     addflags)
+                  ,("convert options", convertflags)
+                  ]
+    }
+ }
+
+-- 3. post-processing, additional checking and conversion of raw options
+-- data Opts = Opts { cliopts :: CliOpts, reportopts :: ReportOpts } deriving (Show)
+-- defopts = Opts defcliopts defreportopts
+
+processOpts :: RawOpts -> CliOpts
+processOpts rawopts = defcliopts {
+                        file_  = stringopt "file" rawopts
+                       ,debug_ = boolopt "debug" rawopts
+                       ,reportopts_ = defreportopts {
+                         begin_ = maybedateopt "begin" rawopts
+                        ,end_   = maybedateopt "end" rawopts
+                       }
+                      }
+  where
+    optserror = error'
+    boolopt = M.member
+    stringopt = M.lookup
+    maybedateopt name rawopts = 
+        case M.lookup name rawopts of
+          Nothing -> Nothing
+          Just s -> Just $ fromMaybe (optserror $ "could not parse "++name++" date: "++s) $ parsedateM s
+
+
+
+testmain = do
+  rawopts <- processArgs progmode
+  print rawopts
+  print $ processOpts rawopts
+  when ("help" `in_` rawopts) $ putStr $ showText defaultWrap $ helpText HelpFormatDefault progmode
+
+***** other things to try:
+http://www.haskell.org/haskellwiki/Heterogenous_collections
+make cmdargs generate flat help from nested ADTs
+make cmdargs pass through extra opts without --
+**** still to do
+move *FromOpts into toOpts
+
