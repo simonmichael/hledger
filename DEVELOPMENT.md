@@ -42,7 +42,7 @@ contributors and developers.
   [hledger-web dev demo](http://demo.hledger.org:5001)
   <br>
   [latest API docs](http://hledger.org/api),
-  [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES),
+  [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES.org),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
   [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   [benchmark](http://hledger.org/profs/latest.bench),

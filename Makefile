@@ -814,7 +814,7 @@ showunittestcoverage:
 
 # showerrors:
 # 	@echo Known errors:
-# 	@awk '/^** errors/, /^** / && !/^** errors/' NOTES | grep '^\*\*\* ' | tail +1
+# 	@awk '/^** errors/, /^** / && !/^** errors/' NOTES.org | grep '^\*\*\* ' | tail +1
 # 	@echo
 
 showunpushedchanges unpushed:
