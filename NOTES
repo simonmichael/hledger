@@ -5,19 +5,258 @@ hledger project notes
 *** deprecate vty, chart in manual
 *** fix commit hook docs building
 *** makefile cleanups
-*** unicode-error.test failure with 7.2
-**** understand
-error UNICODE works, error' UNICODE doesn't
-UNICODE renders as space in mac emacs
-** ghc 7.2 warnings
-*** utf8
-**** [ 2 of 36] Compiling Hledger.Utils.UTF8 ( ../hledger-lib/Hledger/Utils/UTF8.hs, ../hledger-lib/Hledger/Utils/UTF8.o )
+*** ghc 7.4 warnings
+ cabal build
+Building hledger-lib-0.17...
+Preprocessing library hledger-lib-0.17...
+[ 1 of 21] Compiling Hledger.Utils.UTF8 ( Hledger/Utils/UTF8.hs, dist/build/Hledger/Utils/UTF8.o )
+
+Hledger/Utils/UTF8.hs:49:1:
+    Warning: In the use of `B.putStrLn'
+             (imported from Data.ByteString.Lazy):
+             Deprecated: "Use Data.ByteString.Lazy.Char8.putStrLn instead. (Functions that rely on ASCII encodings belong in Data.ByteString.Lazy.Char8)"
+[ 2 of 21] Compiling Hledger.Data.Types ( Hledger/Data/Types.hs, dist/build/Hledger/Data/Types.o )
+[ 3 of 21] Compiling Hledger.Utils    ( Hledger/Utils.hs, dist/build/Hledger/Utils.o )
+[ 4 of 21] Compiling Hledger.Data.AccountName ( Hledger/Data/AccountName.hs, dist/build/Hledger/Data/AccountName.o )
+[ 5 of 21] Compiling Hledger.Data.Commodity ( Hledger/Data/Commodity.hs, dist/build/Hledger/Data/Commodity.o )
+[ 6 of 21] Compiling Hledger.Data.Amount ( Hledger/Data/Amount.hs, dist/build/Hledger/Data/Amount.o )
+[ 7 of 21] Compiling Hledger.Data.Account ( Hledger/Data/Account.hs, dist/build/Hledger/Data/Account.o )
+[ 8 of 21] Compiling Hledger.Data.Dates ( Hledger/Data/Dates.hs, dist/build/Hledger/Data/Dates.o )
+[ 9 of 21] Compiling Hledger.Data.Posting ( Hledger/Data/Posting.hs, dist/build/Hledger/Data/Posting.o )
+[10 of 21] Compiling Hledger.Data.Transaction ( Hledger/Data/Transaction.hs, dist/build/Hledger/Data/Transaction.o )
+[11 of 21] Compiling Hledger.Data.Matching ( Hledger/Data/Matching.hs, dist/build/Hledger/Data/Matching.o )
+[12 of 21] Compiling Hledger.Data.TimeLog ( Hledger/Data/TimeLog.hs, dist/build/Hledger/Data/TimeLog.o )
+[13 of 21] Compiling Hledger.Data.Journal ( Hledger/Data/Journal.hs, dist/build/Hledger/Data/Journal.o )
+[14 of 21] Compiling Hledger.Data.Ledger ( Hledger/Data/Ledger.hs, dist/build/Hledger/Data/Ledger.o )
+[15 of 21] Compiling Hledger.Read.Utils ( Hledger/Read/Utils.hs, dist/build/Hledger/Read/Utils.o )
+[16 of 21] Compiling Hledger.Data     ( Hledger/Data.hs, dist/build/Hledger/Data.o )
+[17 of 21] Compiling Hledger.Reports  ( Hledger/Reports.hs, dist/build/Hledger/Reports.o )
+[18 of 21] Compiling Hledger.Read.JournalReader ( Hledger/Read/JournalReader.hs, dist/build/Hledger/Read/JournalReader.o )
+
+Hledger/Read/JournalReader.hs:138:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[19 of 21] Compiling Hledger.Read.TimelogReader ( Hledger/Read/TimelogReader.hs, dist/build/Hledger/Read/TimelogReader.o )
+[20 of 21] Compiling Hledger.Read     ( Hledger/Read.hs, dist/build/Hledger/Read.o )
+
+Hledger/Read.hs:40:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[21 of 21] Compiling Hledger          ( Hledger.hs, dist/build/Hledger.o )
+Registering hledger-lib-0.17...
+simon@white:~/src/hledger/hledger-lib$ cd ..
+simon@white:~/src/hledger$ cd hledger
+simon@white:~/src/hledger/hledger$ cabal configure
+Resolving dependencies...
+Configuring hledger-0.17...
+cabal build
+simon@white:~/src/hledger/hledger$ Building hledger-0.17...
+Preprocessing library hledger-0.17...
+[ 1 of 14] Compiling Hledger.Cli.Format ( Hledger/Cli/Format.hs, dist/build/Hledger/Cli/Format.o )
+[ 2 of 14] Compiling Hledger.Cli.Version ( Hledger/Cli/Version.hs, dist/build/Hledger/Cli/Version.o )
+Loading package ghc-prim ... linking ... done.
+Loading package integer-gmp ... linking ... done.
+Loading package base ... linking ... done.
+Loading package HUnit-1.2.4.2 ... linking ... done.
+Loading package bytestring-0.9.2.1 ... linking ... done.
+Loading package filepath-1.3.0.0 ... linking ... done.
+Loading package old-locale-1.0.0.4 ... linking ... done.
+Loading package old-time-1.1.0.0 ... linking ... done.
+Loading package unix-2.5.1.0 ... linking ... done.
+Loading package directory-1.1.0.2 ... linking ... done.
+Loading package process-1.1.0.1 ... linking ... done.
+Loading package array-0.4.0.0 ... linking ... done.
+Loading package deepseq-1.3.0.0 ... linking ... done.
+Loading package containers-0.4.2.1 ... linking ... done.
+Loading package pretty-1.1.1.0 ... linking ... done.
+Loading package template-haskell ... linking ... done.
+Loading package transformers-0.2.2.0 ... linking ... done.
+Loading package cmdargs-0.9.2 ... linking ... done.
+Loading package mtl-2.0.1.0 ... linking ... done.
+Loading package text-0.11.1.13 ... linking ... done.
+Loading package parsec-3.1.2 ... linking ... done.
+Loading package mtlparse-0.1.2 ... linking ... done.
+Loading package regexpr-0.5.4 ... linking ... done.
+Loading package safe-0.3.3 ... linking ... done.
+Loading package split-0.1.4.2 ... linking ... done.
+Loading package time-1.4 ... linking ... done.
+Loading package utf8-string-0.3.7 ... linking ... done.
+Loading package hledger-lib-0.17 ... linking ... done.
+Loading package extensible-exceptions-0.1.1.4 ... linking ... done.
+Loading package terminfo-0.3.2.3 ... linking ... done.
+Loading package haskeline-0.6.4.6 ... linking ... done.
+Loading package csv-0.1.2 ... linking ... done.
+Loading package Cabal-1.14.0 ... linking ... done.
+Loading package cabal-file-th-0.2.2 ... linking ... done.
+[ 3 of 14] Compiling Hledger.Cli.Options ( Hledger/Cli/Options.hs, dist/build/Hledger/Cli/Options.o )
+
+Hledger/Cli/Options.hs:8:8:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[ 4 of 14] Compiling Hledger.Cli.Utils ( Hledger/Cli/Utils.hs, dist/build/Hledger/Cli/Utils.o )
+
+Hledger/Cli/Utils.hs:8:8:
+    Warning: In the use of `Prelude.catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[ 5 of 14] Compiling Hledger.Cli.Stats ( Hledger/Cli/Stats.hs, dist/build/Hledger/Cli/Stats.o )
+[ 6 of 14] Compiling Hledger.Cli.Register ( Hledger/Cli/Register.hs, dist/build/Hledger/Cli/Register.o )
+[ 7 of 14] Compiling Hledger.Cli.Print ( Hledger/Cli/Print.hs, dist/build/Hledger/Cli/Print.o )
+[ 8 of 14] Compiling Hledger.Cli.Histogram ( Hledger/Cli/Histogram.hs, dist/build/Hledger/Cli/Histogram.o )
+[ 9 of 14] Compiling Hledger.Cli.Convert ( Hledger/Cli/Convert.hs, dist/build/Hledger/Cli/Convert.o )
+[10 of 14] Compiling Hledger.Cli.Balance ( Hledger/Cli/Balance.hs, dist/build/Hledger/Cli/Balance.o )
+[11 of 14] Compiling Hledger.Cli.Add  ( Hledger/Cli/Add.hs, dist/build/Hledger/Cli/Add.o )
+
+Hledger/Cli/Add.hs:31:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[12 of 14] Compiling Hledger.Cli      ( Hledger/Cli.hs, dist/build/Hledger/Cli.o )
+[13 of 14] Compiling Hledger.Cli.Tests ( Hledger/Cli/Tests.hs, dist/build/Hledger/Cli/Tests.o )
+[14 of 14] Compiling Hledger.Cli.Main ( Hledger/Cli/Main.hs, dist/build/Hledger/Cli/Main.o )
+[ 1 of 14] Compiling Hledger.Cli.Format ( Hledger/Cli/Format.hs, dist/build/Hledger/Cli/Format.p_o )
+[ 2 of 14] Compiling Hledger.Cli.Version ( Hledger/Cli/Version.hs, dist/build/Hledger/Cli/Version.p_o )
+Loading package ghc-prim ... linking ... done.
+Loading package integer-gmp ... linking ... done.
+Loading package base ... linking ... done.
+Loading package HUnit-1.2.4.2 ... linking ... done.
+Loading package bytestring-0.9.2.1 ... linking ... done.
+Loading package filepath-1.3.0.0 ... linking ... done.
+Loading package old-locale-1.0.0.4 ... linking ... done.
+Loading package old-time-1.1.0.0 ... linking ... done.
+Loading package unix-2.5.1.0 ... linking ... done.
+Loading package directory-1.1.0.2 ... linking ... done.
+Loading package process-1.1.0.1 ... linking ... done.
+Loading package array-0.4.0.0 ... linking ... done.
+Loading package deepseq-1.3.0.0 ... linking ... done.
+Loading package containers-0.4.2.1 ... linking ... done.
+Loading package pretty-1.1.1.0 ... linking ... done.
+Loading package template-haskell ... linking ... done.
+Loading package transformers-0.2.2.0 ... linking ... done.
+Loading package cmdargs-0.9.2 ... linking ... done.
+Loading package mtl-2.0.1.0 ... linking ... done.
+Loading package text-0.11.1.13 ... linking ... done.
+Loading package parsec-3.1.2 ... linking ... done.
+Loading package mtlparse-0.1.2 ... linking ... done.
+Loading package regexpr-0.5.4 ... linking ... done.
+Loading package safe-0.3.3 ... linking ... done.
+Loading package split-0.1.4.2 ... linking ... done.
+Loading package time-1.4 ... linking ... done.
+Loading package utf8-string-0.3.7 ... linking ... done.
+Loading package hledger-lib-0.17 ... linking ... done.
+Loading package extensible-exceptions-0.1.1.4 ... linking ... done.
+Loading package terminfo-0.3.2.3 ... linking ... done.
+Loading package haskeline-0.6.4.6 ... linking ... done.
+Loading package csv-0.1.2 ... linking ... done.
+Loading package Cabal-1.14.0 ... linking ... done.
+Loading package cabal-file-th-0.2.2 ... linking ... done.
+[ 3 of 14] Compiling Hledger.Cli.Options ( Hledger/Cli/Options.hs, dist/build/Hledger/Cli/Options.p_o )
+
+Hledger/Cli/Options.hs:8:8:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[ 4 of 14] Compiling Hledger.Cli.Utils ( Hledger/Cli/Utils.hs, dist/build/Hledger/Cli/Utils.p_o )
+
+Hledger/Cli/Utils.hs:8:8:
+    Warning: In the use of `Prelude.catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[ 5 of 14] Compiling Hledger.Cli.Stats ( Hledger/Cli/Stats.hs, dist/build/Hledger/Cli/Stats.p_o )
+[ 6 of 14] Compiling Hledger.Cli.Register ( Hledger/Cli/Register.hs, dist/build/Hledger/Cli/Register.p_o )
+[ 7 of 14] Compiling Hledger.Cli.Print ( Hledger/Cli/Print.hs, dist/build/Hledger/Cli/Print.p_o )
+[ 8 of 14] Compiling Hledger.Cli.Histogram ( Hledger/Cli/Histogram.hs, dist/build/Hledger/Cli/Histogram.p_o )
+[ 9 of 14] Compiling Hledger.Cli.Convert ( Hledger/Cli/Convert.hs, dist/build/Hledger/Cli/Convert.p_o )
+[10 of 14] Compiling Hledger.Cli.Balance ( Hledger/Cli/Balance.hs, dist/build/Hledger/Cli/Balance.p_o )
+[11 of 14] Compiling Hledger.Cli.Add  ( Hledger/Cli/Add.hs, dist/build/Hledger/Cli/Add.p_o )
+
+Hledger/Cli/Add.hs:31:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[12 of 14] Compiling Hledger.Cli      ( Hledger/Cli.hs, dist/build/Hledger/Cli.p_o )
+[13 of 14] Compiling Hledger.Cli.Tests ( Hledger/Cli/Tests.hs, dist/build/Hledger/Cli/Tests.p_o )
+[14 of 14] Compiling Hledger.Cli.Main ( Hledger/Cli/Main.hs, dist/build/Hledger/Cli/Main.p_o )
+Registering hledger-0.17...
+Preprocessing executable 'hledger' for hledger-0.17...
+[ 1 of 15] Compiling Hledger.Cli.Version ( Hledger/Cli/Version.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Version.o )
+Loading package ghc-prim ... linking ... done.
+Loading package integer-gmp ... linking ... done.
+Loading package base ... linking ... done.
+Loading package HUnit-1.2.4.2 ... linking ... done.
+Loading package bytestring-0.9.2.1 ... linking ... done.
+Loading package filepath-1.3.0.0 ... linking ... done.
+Loading package old-locale-1.0.0.4 ... linking ... done.
+Loading package old-time-1.1.0.0 ... linking ... done.
+Loading package unix-2.5.1.0 ... linking ... done.
+Loading package directory-1.1.0.2 ... linking ... done.
+Loading package process-1.1.0.1 ... linking ... done.
+Loading package array-0.4.0.0 ... linking ... done.
+Loading package deepseq-1.3.0.0 ... linking ... done.
+Loading package containers-0.4.2.1 ... linking ... done.
+Loading package pretty-1.1.1.0 ... linking ... done.
+Loading package template-haskell ... linking ... done.
+Loading package transformers-0.2.2.0 ... linking ... done.
+Loading package cmdargs-0.9.2 ... linking ... done.
+Loading package mtl-2.0.1.0 ... linking ... done.
+Loading package text-0.11.1.13 ... linking ... done.
+Loading package parsec-3.1.2 ... linking ... done.
+Loading package mtlparse-0.1.2 ... linking ... done.
+Loading package regexpr-0.5.4 ... linking ... done.
+Loading package safe-0.3.3 ... linking ... done.
+Loading package split-0.1.4.2 ... linking ... done.
+Loading package time-1.4 ... linking ... done.
+Loading package utf8-string-0.3.7 ... linking ... done.
+Loading package hledger-lib-0.17 ... linking ... done.
+Loading package extensible-exceptions-0.1.1.4 ... linking ... done.
+Loading package terminfo-0.3.2.3 ... linking ... done.
+Loading package haskeline-0.6.4.6 ... linking ... done.
+Loading package csv-0.1.2 ... linking ... done.
+Loading package Cabal-1.14.0 ... linking ... done.
+Loading package cabal-file-th-0.2.2 ... linking ... done.
+[ 2 of 15] Compiling Hledger.Cli.Format ( Hledger/Cli/Format.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Format.o )
+[ 3 of 15] Compiling Hledger.Cli.Options ( Hledger/Cli/Options.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Options.o )
+
+Hledger/Cli/Options.hs:8:8:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[ 4 of 15] Compiling Hledger.Cli.Utils ( Hledger/Cli/Utils.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Utils.o )
+
+Hledger/Cli/Utils.hs:8:8:
+    Warning: In the use of `Prelude.catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[ 5 of 15] Compiling Hledger.Cli.Histogram ( Hledger/Cli/Histogram.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Histogram.o )
+[ 6 of 15] Compiling Hledger.Cli.Print ( Hledger/Cli/Print.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Print.o )
+[ 7 of 15] Compiling Hledger.Cli.Register ( Hledger/Cli/Register.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Register.o )
+[ 8 of 15] Compiling Hledger.Cli.Add  ( Hledger/Cli/Add.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Add.o )
+
+Hledger/Cli/Add.hs:31:1:
+    Warning: In the use of `catch'
+             (imported from Prelude, but defined in System.IO.Error):
+             Deprecated: "Please use the new exceptions variant, Control.Exception.catch"
+[ 9 of 15] Compiling Hledger.Cli.Stats ( Hledger/Cli/Stats.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Stats.o )
+[10 of 15] Compiling Hledger.Cli.Balance ( Hledger/Cli/Balance.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Balance.o )
+[11 of 15] Compiling Hledger.Cli.Convert ( Hledger/Cli/Convert.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Convert.o )
+[12 of 15] Compiling Hledger.Cli      ( Hledger/Cli.hs, dist/build/hledger/hledger-tmp/Hledger/Cli.o )
+[13 of 15] Compiling Hledger.Cli.Tests ( Hledger/Cli/Tests.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Tests.o )
+[14 of 15] Compiling Hledger.Cli.Main ( Hledger/Cli/Main.hs, dist/build/hledger/hledger-tmp/Hledger/Cli/Main.o )
+[15 of 15] Compiling Main             ( hledger-cli.hs, dist/build/hledger/hledger-tmp/Main.o )
+Linking dist/build/hledger/hledger ...
+
+*** ghc 7.2 warnings
+**** utf8
+***** [ 2 of 36] Compiling Hledger.Utils.UTF8 ( ../hledger-lib/Hledger/Utils/UTF8.hs, ../hledger-lib/Hledger/Utils/UTF8.o )
 
 ../hledger-lib/Hledger/Utils/UTF8.hs:49:1:
     Warning: In the use of `B.putStrLn'
              (imported from Data.ByteString.Lazy):
              Deprecated: "Use Data.ByteString.Lazy.Char8.putStrLn instead. (Functions that rely on ASCII encodings belong in Data.ByteString.Lazy.Char8)"
-*** hledger
+**** hledger
 cd hledger; sp --no-exts --no-default-map ghc --make hledger-cli.hs -o ../bin/hledger -DMAKE -W -fwarn-tabs  -i../hledger-lib -i../hledger -i../hledger-web  -L/usr/lib -DPATCHLEVEL=38 --run test
 [ 1 of 36] Compiling Hledger.Cli.Format ( Hledger/Cli/Format.hs, Hledger/Cli/Format.o )
 [ 2 of 36] Compiling Hledger.Utils.UTF8 ( ../hledger-lib/Hledger/Utils/UTF8.hs, ../hledger-lib/Hledger/Utils/UTF8.o )
@@ -105,7 +344,7 @@ Linking ../bin/hledger.sp.new ...
 New executable. (Re-) starting
 Cases: 106  Tried: 106  Errors: 0  Failures: 0
 
-*** hledger-web
+**** hledger-web
 (ghc7.2-hledger)simon@white:~/src/hledger$ make bin/hledger-web
 cd hledger-web; ghc --make hledger-web.hs -o ../bin/hledger-web -DMAKE -W -fwarn-tabs  -i../hledger-lib -i../hledger -i../hledger-web  -L/usr/lib -DPATCHLEVEL=39
 [ 1 of 41] Compiling Hledger.Cli.Format ( ../hledger/Hledger/Cli/Format.hs, ../hledger/Hledger/Cli/Format.o )
@@ -424,14 +663,11 @@ hledger-web.hs:21:59:
              Deprecated: "Use makeDefaultLogger instead"
 Linking ../bin/hledger-web ...
 
-** ghc 7.4 support
-*** cabal-file-th update
-*** haskeline iconv error
-*** old
-**** yesod
-***** yesod 0.10 support
-**** email-validate
 ** errors
+*** unicode-error.test failure with 7.2
+**** understand
+error UNICODE works, error' UNICODE doesn't
+UNICODE renders as space in mac emacs
 *** fix version strings on server 
 **** demo
 **** dev demo
@@ -1081,6 +1317,7 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** yesod 0.10 support
 *** Clint's ofx support
 *** more powerful storage layer
 *** web api
