@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.17
+version: 0.17.1
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -89,13 +89,13 @@ executable hledger-web
                  ,io-storage >= 0.3 && < 0.4
                  ,failure >= 0.1 && < 0.2
                  ,file-embed == 0.0.*
-                 ,template-haskell >= 2.4 && < 2.7
+                 ,template-haskell >= 2.4 && < 2.8
 
-                 ,yesod >= 0.9.2.1 && < 0.10
-                 ,yesod-core >= 0.9.4.1 && < 0.10
+                 ,yesod == 0.9.4.1
+                 ,yesod-core
                  ,yesod-form
                  ,yesod-json
-                 ,yesod-static >= 0.3
+                 ,yesod-static >= 0.3 && < 0.10
                  ,aeson >= 0.3.2.13
                  ,blaze-html
                  ,clientsession
@@ -106,9 +106,11 @@ executable hledger-web
                  ,shakespeare-js
                  ,shakespeare-text
                  ,transformers
-                 ,wai
-                 ,wai-extra
-                 ,warp
+                 ,wai < 1.0
+                 ,wai-extra < 1.0
+                 ,warp < 1.0
+                 ,http-enumerator < 0.7.3
+                 ,tls-extra < 0.4.3
 
 library
     if flag(devel)

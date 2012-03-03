@@ -4,6 +4,10 @@ title: hledger news
 
 # News
 
+## 2012/3/3 hledger-web 0.17.1
+
+  * set more upper bounds to fix cabal install issues with latest packages
+
 ## 2012/2/1 hledger 0.17
 
   * support HP 2011.4.0.0
