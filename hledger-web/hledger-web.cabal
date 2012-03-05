@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.17.1
+version: 0.17.98
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -39,90 +39,128 @@ source-repository head
   type:     darcs
   location: http://joyful.com/repos/hledger
 
-Flag production
-    Description:   Build fully optimised and with web files embedded (not loaded from ./static/)
-    Default:       True
+-- Flag production
+--     Description:   Build fully optimised and with web files embedded (not loaded from ./static/)
+--     Default:       True
 
 flag threaded
-    Description:   Build with support for multithreaded execution
+    Description:   Build with support for multithreaded execution.
     Default:       True
 
-Flag devel
-    Description:   Build for auto-recompiling by "yesod devel"
+flag dev
+    Description:   Turn on development settings, like auto-reload templates.
     Default:       False
 
-executable hledger-web
-  main-is:        hledger-web.hs
-  if flag(devel)
-      Buildable: False
-  if flag(production)
-      cpp-options:   -DPRODUCTION
-      ghc-options:   -O2
-  else
-      ghc-options:   -Wall
-  if flag(threaded)
-      ghc-options:   -threaded
-  other-modules:
-                     Hledger.Web
-                     Hledger.Web.Foundation
-                     Hledger.Web.Application
-                     Hledger.Web.Options
-                     Hledger.Web.Settings
-                     Hledger.Web.Settings.StaticFiles
-                     Hledger.Web.Handlers
-  build-depends:
-                  hledger == 0.17
-                 ,hledger-lib == 0.17
-                 ,HUnit
-                 ,base >= 4 && < 5
-                 ,bytestring
-                 ,cabal-file-th
-                 ,cmdargs >= 0.9.1   && < 0.10
-                 ,directory
-                 ,filepath
-                 ,old-locale
-                 ,parsec
-                 ,regexpr >= 0.5.1
-                 ,safe >= 0.2
-                 ,text
-                 ,time
-                 ,io-storage >= 0.3 && < 0.4
-                 ,failure >= 0.1 && < 0.2
-                 ,file-embed == 0.0.*
-                 ,template-haskell >= 2.4 && < 2.8
-
-                 ,yesod == 0.9.4.1
-                 ,yesod-core
-                 ,yesod-form
-                 ,yesod-json
-                 ,yesod-static >= 0.3 && < 0.10
-                 ,aeson >= 0.3.2.13
-                 ,blaze-html
-                 ,clientsession
-                 ,data-object
-                 ,data-object-yaml
-                 ,hamlet
-                 ,shakespeare-css
-                 ,shakespeare-js
-                 ,shakespeare-text
-                 ,transformers
-                 ,wai < 1.0
-                 ,wai-extra < 1.0
-                 ,warp < 1.0
-                 ,http-enumerator < 0.7.3
-                 ,tls-extra < 0.4.3
+flag library-only
+    Description:   Build for use with "yesod devel"
+    Default:       False
 
 library
-    if flag(devel)
+    if flag(library-only)
         Buildable: True
     else
         Buildable: False
+
+    if flag(threaded)
+        ghc-options:   -threaded
+
     exposed-modules: 
                      Hledger.Web.Application
     other-modules:
                      Hledger.Web
                      Hledger.Web.Foundation
+                     Hledger.Web.Import
                      Hledger.Web.Options
                      Hledger.Web.Settings
                      Hledger.Web.Settings.StaticFiles
                      Hledger.Web.Handlers
+
+    ghc-options:   -Wall -O0 -fno-warn-unused-do-bind
+    cpp-options:   -DDEVELOPMENT
+
+    extensions: TemplateHaskell
+                QuasiQuotes
+                OverloadedStrings
+                NoImplicitPrelude
+                CPP
+                OverloadedStrings
+                MultiParamTypeClasses
+                TypeFamilies
+
+executable         hledger-web
+    if flag(library-only)
+        Buildable: False
+
+    if flag(dev)
+        cpp-options:   -DDEVELOPMENT
+        ghc-options:   -Wall -O0 -fno-warn-unused-do-bind
+    else
+        ghc-options:   -Wall -O2 -fno-warn-unused-do-bind
+
+    if flag(threaded)
+        ghc-options:   -threaded
+
+    extensions: TemplateHaskell
+                QuasiQuotes
+                OverloadedStrings
+                NoImplicitPrelude
+                CPP
+                OverloadedStrings
+                MultiParamTypeClasses
+                TypeFamilies
+
+    main-is:       hledger-web.hs
+
+    other-modules:
+                     Hledger.Web
+                     Hledger.Web.Foundation
+                     Hledger.Web.Application
+                     Hledger.Web.Import
+                     Hledger.Web.Options
+                     Hledger.Web.Settings
+                     Hledger.Web.Settings.StaticFiles
+                     Hledger.Web.Handlers
+
+    build-depends:
+                   hledger == 0.17
+                 , hledger-lib == 0.17
+
+                 , cabal-file-th
+                 , cmdargs >= 0.9.1   && < 0.10
+                 , directory
+                 , filepath
+                 , HUnit
+                 , old-locale
+                 , parsec
+                 , regexpr >= 0.5.1
+                 , safe >= 0.2
+                 , time
+                 , io-storage >= 0.3 && < 0.4
+                 , file-embed == 0.0.*
+
+                 , base                          >= 4          && < 5
+                 , blaze-html                    >= 0.4.3.1    && < 0.5
+                 , yesod-core                    >= 0.10       && < 0.11
+                 , yesod-static                  >= 0.10       && < 0.11
+                 , yesod-default                 >= 0.6        && < 0.7
+                 , clientsession                 >= 0.7.3      && < 0.8
+                 , bytestring                    >= 0.9        && < 0.10
+                 , text                          >= 0.11       && < 0.12
+                 , template-haskell
+                 , hamlet                        >= 0.10       && < 0.11
+                 , shakespeare-text              >= 0.10       && < 0.11
+                 , wai                           >= 1.1        && < 1.2
+                 , wai-extra                     >= 1.1        && < 1.2
+                 , transformers                  >= 0.2        && < 0.3
+                 , monad-control                 >= 0.3        && < 0.4
+                 , yaml                          >= 0.5        && < 0.6
+                 , warp                          >= 1.1.0.1    && < 1.2
+
+
+  -- if flag(production)
+  --     cpp-options:   -DPRODUCTION
+  --     ghc-options:   -O2
+  -- else
+  --     ghc-options:   -Wall
+  -- if flag(threaded)
+  --     ghc-options:   -threaded

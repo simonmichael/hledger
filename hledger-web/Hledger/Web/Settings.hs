@@ -7,17 +7,18 @@
 -- by overriding methods in the Yesod typeclass. That instance is
 -- declared in the hledger-web.hs file.
 module Hledger.Web.Settings
-    ( hamletFile
-    , cassiusFile
-    , juliusFile
-    , luciusFile
-    , widgetFile
+    ( widgetFile
     , staticRoot
     , staticDir
-    , loadConfig
-    , AppEnvironment(..)
-    , AppConfig(..)
+    , Extra (..)
+    , parseExtra
 
+    -- , hamletFile
+    -- , cassiusFile
+    -- , juliusFile
+    -- , luciusFile
+    -- , AppEnvironment(..)
+    -- , AppConfig(..)
     , defport
     , defbaseurl
     , hledgerorgurl
@@ -25,20 +26,26 @@ module Hledger.Web.Settings
 
     ) where
 
-import qualified Text.Hamlet as S
-import qualified Text.Cassius as S
-import qualified Text.Julius as S
-import qualified Text.Lucius as S
+import Prelude
+import Text.Shakespeare.Text (st)
+import Language.Haskell.TH.Syntax
+import Yesod.Default.Config
+import qualified Yesod.Default.Util
+import Data.Text (Text)
+import Data.Yaml
+import Control.Applicative
+
+-- import qualified Text.Hamlet as S
+-- import qualified Text.Cassius as S
+-- import qualified Text.Julius as S
+-- import qualified Text.Lucius as S
 import Text.Printf
 import qualified Text.Shakespeare.Text as S
 import Text.Shakespeare.Text (st)
-import Language.Haskell.TH.Syntax
 import Yesod.Widget (addWidget, addCassius, addJulius, addLucius, whamletFile)
 import Data.Monoid (mempty)
 import System.Directory (doesFileExist)
-import Data.Text (Text, pack)
-import Data.Object
-import qualified Data.Object.Yaml as YAML
+import Data.Text (pack)
 import Control.Monad (join)
 
 
@@ -54,54 +61,8 @@ defbaseurl :: Int -> String
 defbaseurl port = printf "http://localhost:%d" port
 
 
-data AppEnvironment = Test
-                    | Development
-                    | Staging
-                    | Production
-                    deriving (Eq, Show, Read, Enum, Bounded)
-
 -- | Dynamic per-environment configuration loaded from the YAML file Settings.yaml.
 -- Use dynamic settings to avoid the need to re-compile the application (between staging and production environments).
---
--- By convention these settings should be overwritten by any command line arguments.
--- See config/App.hs for command line arguments
--- Command line arguments provide some convenience but are also required for hosting situations where a setting is read from the environment (appPort on Heroku).
---
-data AppConfig = AppConfig {
-    appEnv :: AppEnvironment
-
-  , appPort :: Int
-
-    -- The base URL for your application. This will usually be different for
-    -- development and production. Yesod automatically constructs URLs for you,
-    -- so this value must be accurate to create valid links.
-    -- Please note that there is no trailing slash.
-    --
-    -- You probably want to change this! If your domain name was "yesod.com",
-    -- you would probably want it to be:
-    -- > "http://yesod.com"
-  , appRoot :: Text
-} deriving (Show)
-
-loadConfig :: AppEnvironment -> IO AppConfig
-loadConfig env = do
-    allSettings <- (join $ YAML.decodeFile ("config/settings.yml" :: String)) >>= fromMapping
-    settings <- lookupMapping (show env) allSettings
-    hostS <- lookupScalar "host" settings
-    port <- fmap read $ lookupScalar "port" settings
-    return $ AppConfig {
-      appEnv = env
-    , appPort = port
-    , appRoot = pack $ hostS ++ addPort port
-    }
-    where
-        addPort :: Int -> String
-#ifdef PRODUCTION
-        addPort _ = ""
-#else
-        addPort p = ":" ++ (show p)
-#endif
-
 -- | The location of static files on your system. This is a file system
 -- path. The default value works properly with your scaffolded site.
 staticDir :: FilePath
@@ -120,9 +81,27 @@ staticDir = "static"
 -- have to make a corresponding change here.
 --
 -- To see how this value is used, see urlRenderOverride in hledger-web.hs
-staticRoot :: AppConfig ->  Text
-staticRoot conf = [$st|#{appRoot conf}/static|]
+staticRoot :: AppConfig DefaultEnv a ->  Text
+staticRoot conf = [st|#{appRoot conf}/static|]
 
+widgetFile :: String -> Q Exp
+#if DEVELOPMENT
+widgetFile = Yesod.Default.Util.widgetFileReload
+#else
+widgetFile = Yesod.Default.Util.widgetFileNoReload
+#endif
+
+data Extra = Extra
+    { extraCopyright :: Text
+    , extraAnalytics :: Maybe Text -- ^ Google Analytics
+    }
+
+parseExtra :: DefaultEnv -> Object -> Parser Extra
+parseExtra _ o = Extra
+    <$> o .:  "copyright"
+    <*> o .:? "analytics"
+
+{-
 -- The rest of this file contains settings which rarely need changing by a
 -- user.
 
@@ -190,3 +169,4 @@ widgetFile x = do
     whenExists tofn f = do
         e <- qRunIO $ doesFileExist $ tofn x
         if e then f x else [|mempty|]
+-}

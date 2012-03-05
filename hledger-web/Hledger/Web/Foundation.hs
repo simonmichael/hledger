@@ -1,30 +1,30 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+
 module Hledger.Web.Foundation
     ( App (..)
-    , AppRoute (..)
+    , Route (..)
+    -- , AppMessage (..)
     , resourcesApp
     , Handler
     , Widget
-    , StaticRoute (..)
-    , lift
+    , module Yesod.Core
+    , module Hledger.Web.Settings
     , liftIO
     ) where
 
-import Control.Monad (unless)
+import Prelude
+import Yesod.Core hiding (Route)
+import Yesod.Default.Config
+import Yesod.Default.Util (addStaticContentExternal)
+import Yesod.Static
+import Yesod.Logger (Logger, logMsg, formatLogText)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Class (lift)
-import System.Directory
-import Text.Hamlet hiding (hamletFile)
 import Web.ClientSession (getKey)
-import Yesod.Core
-import Yesod.Logger (Logger, logLazyText)
-import Yesod.Static (Static, base64md5, StaticRoute(..))
-import qualified Data.ByteString.Lazy as L
-import qualified Data.Text as T
+import Text.Hamlet
 
 import Hledger.Web.Options
-import Hledger.Web.Settings
+import qualified Hledger.Web.Settings
+import Hledger.Web.Settings (Extra (..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 
 
@@ -33,13 +33,16 @@ import Hledger.Web.Settings.StaticFiles
 -- starts running, such as database connections. Every handler will have
 -- access to the data present here.
 data App = App
-    { settings :: Hledger.Web.Settings.AppConfig
+    { settings :: AppConfig DefaultEnv Extra
     , getLogger :: Logger
     , getStatic :: Static -- ^ Settings for static file serving.
 
     ,appOpts    :: WebOpts
     -- ,appJournal :: Journal
     }
+
+-- Set up i18n messages. See the message folder.
+-- mkMessage "App" "messages" "en"
 
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
@@ -65,14 +68,27 @@ mkYesodData "App" $(parseRoutesFile "routes")
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
 instance Yesod App where
-    approot = Hledger.Web.Settings.appRoot . settings
+    -- approot = Hledger.Web.Settings.appRoot . settings
+    approot = ApprootMaster $ appRoot . settings
 
     -- Place the session key file in the config folder
     encryptKey _ = fmap Just $ getKey "client_session_key.aes"
 
     defaultLayout widget = do
-        -- mmsg <- getMessage
+        master <- getYesod
+        mmsg <- getMessage
+
+        -- We break up the default layout into two components:
+        -- default-layout is the contents of the body tag, and
+        -- default-layout-wrapper is the entire page. Since the final
+        -- value passed to hamletToRepHtml cannot be a widget, this allows
+        -- you to use normal widget features in default-layout.
+
         pc <- widgetToPageContent $ do
+            -- $(widgetFile "normalize")
+            -- $(widgetFile "default-layout")
+        -- hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
+
             widget
         --     addCassius $(cassiusFile "default-layout")
         -- hamletToRepHtml $(hamletFile "default-layout")
@@ -102,17 +118,13 @@ instance Yesod App where
     -- urlRenderOverride _ _ = Nothing
 
     messageLogger y loc level msg =
-      formatLogMessage loc level msg >>= logLazyText (getLogger y)
+      formatLogText (getLogger y) loc level msg >>= logMsg (getLogger y)
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
     -- users receiving stale content.
-    addStaticContent ext' _ content = do
-        let fn = base64md5 content ++ '.' : T.unpack ext'
-        let statictmp = Hledger.Web.Settings.staticDir ++ "/tmp/"
-        liftIO $ createDirectoryIfMissing True statictmp
-        let fn' = statictmp ++ fn
-        exists <- liftIO $ doesFileExist fn'
-        unless exists $ liftIO $ L.writeFile fn' content
-        return $ Just $ Right (StaticR $ StaticRoute ["tmp", T.pack fn] [], [])
+    addStaticContent = addStaticContentExternal (const $ Left ()) base64md5 Hledger.Web.Settings.staticDir (StaticR . flip StaticRoute [])
+
+    -- Place Javascript at bottom of the body tag so the rest of the page loads first
+    jsLoader _ = BottomOfBody

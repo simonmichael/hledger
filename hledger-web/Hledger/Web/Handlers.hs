@@ -7,8 +7,9 @@ hledger-web's request handlers, and helpers.
 
 module Hledger.Web.Handlers where
 
+import Prelude
 import Control.Applicative ((<$>))
-import Data.Aeson
+-- import Data.Aeson
 import Data.ByteString (ByteString)
 import Data.Either (lefts,rights)
 import Data.List
@@ -25,7 +26,7 @@ import Text.Blaze (preEscapedString, toHtml)
 import Text.Hamlet hiding (hamletFile)
 import Text.Printf
 import Yesod.Core
-import Yesod.Json
+-- import Yesod.Json
 
 import Hledger hiding (today)
 import Hledger.Cli hiding (version)
@@ -34,14 +35,16 @@ import Hledger.Web.Options
 import Hledger.Web.Settings
 
 
-getFaviconR :: Handler ()
-getFaviconR = sendFile "image/x-icon" $ Hledger.Web.Settings.staticDir </> "favicon.ico"
+-- getFaviconR :: Handler ()
+-- getFaviconR = sendFile "image/x-icon" $ Hledger.Web.Settings.staticDir </> "favicon.ico"
 
-getRobotsR :: Handler RepPlain
-getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)
+-- getRobotsR :: Handler RepPlain
+-- getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)
 
 getRootR :: Handler RepHtml
-getRootR = redirect RedirectTemporary defaultroute where defaultroute = RegisterR
+getRootR = redirect defaultroute where defaultroute = RegisterR
+
+type AppRoute = Route App
 
 ----------------------------------------------------------------------
 -- main views:
@@ -165,6 +168,7 @@ getRegisterOnlyR = do
 
 ----------------------------------------------------------------------
 
+{-
 -- | A simple accounts view. This one is json-capable, returning the chart
 -- of accounts as json if the Accept header specifies json.
 getAccountsR :: Handler RepHtmlJson
@@ -183,6 +187,7 @@ getAccountsJsonR = do
   VD{..} <- getViewData
   let j' = filterJournalPostings2 m j
   jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j')]
+-}
 
 ----------------------------------------------------------------------
 -- view helpers
@@ -521,7 +526,7 @@ handleAdd = do
     -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
     setMessage [$shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
 
-  redirectParams RedirectTemporary RegisterR [("add","1")]
+  redirect (RegisterR, [("add","1")])
 
 chomp :: String -> String
 chomp = reverse . dropWhile (`elem` "\r\n") . reverse
@@ -548,7 +553,7 @@ handleEdit = do
   if not $ null errs
    then do
     setMessage $ toHtml (intercalate "; " errs :: String)
-    redirect RedirectTemporary JournalR
+    redirect JournalR
 
    else do
     -- try to avoid unnecessary backups or saving invalid data
@@ -559,24 +564,24 @@ handleEdit = do
     if not changed
      then do
        setMessage "No change"
-       redirect RedirectTemporary JournalR
+       redirect JournalR
      else do
       jE <- liftIO $ readJournal Nothing Nothing (Just journalpath) tnew
       either
        (\e -> do
           setMessage $ toHtml e
-          redirect RedirectTemporary JournalR)
+          redirect JournalR)
        (const $ do
           liftIO $ writeFileWithBackup journalpath tnew
           setMessage $ toHtml (printf "Saved journal %s\n" (show journalpath) :: String)
-          redirect RedirectTemporary JournalR)
+          redirect JournalR)
        jE
 
 -- | Handle a post from the journal import form.
 handleImport :: Handler RepHtml
 handleImport = do
   setMessage "can't handle file upload yet"
-  redirect RedirectTemporary JournalR
+  redirect JournalR
   -- -- get form input values, or basic validation errors. E means an Either value.
   -- fileM <- runFormPost $ maybeFileInput "file"
   -- let fileE = maybe (Left "No file provided") Right fileM
@@ -584,11 +589,11 @@ handleImport = do
   -- case fileE of
   --  Left errs -> do
   --   setMessage errs
-  --   redirect RedirectTemporary JournalR
+  --   redirect JournalR
 
   --  Right s -> do
   --    setMessage s
-  --    redirect RedirectTemporary JournalR
+  --    redirect JournalR
 
 ----------------------------------------------------------------------
 -- | Other view components.

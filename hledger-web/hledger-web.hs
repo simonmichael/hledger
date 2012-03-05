@@ -1,31 +1,32 @@
 {-# LANGUAGE CPP #-}
 {-|
+
 hledger-web - a hledger add-on providing a web interface.
-Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2012 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
+
 -}
 
 module Main
 where
 
--- import Control.Concurrent (forkIO, threadDelay)
+import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
+import Yesod.Default.Config
+import Yesod.Default.Main   (defaultMain)
+import Yesod.Logger (Logger, defaultDevelopmentLogger) --, logString)
+
+import Prelude hiding (putStrLn)
+-- -- import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad
-import Data.Maybe
+-- import Data.Maybe
 import Data.Text(pack)
-import Network.Wai.Handler.Warp (run)
 import System.Exit
 import System.IO.Storage (withStore, putValue)
 import Text.Printf
-#ifndef PRODUCTION
-import Network.Wai.Middleware.Debug (debugHandle)
-import Yesod.Logger (logString, logLazyText, flushLogger, makeLogger)
-#else
-import Yesod.Logger (makeLogger)
-#endif
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Prelude hiding (putStrLn)
+import Hledger.Web.Settings (parseExtra)
 import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Web
 
@@ -74,61 +75,19 @@ server baseurl port opts j = do
   withStore "hledger" $ do
     putValue "hledger" "journal" j
 
-    -- yesod main
-    logger <- makeLogger
-    -- args   <- cmdArgs argConfig
-    -- env    <- getAppEnv args
-    let env = Development
-    -- c <- loadConfig env
-    -- let c' = if port_ opts /= 0
-    --         then c{ appPort = port args }
-    --         else c
-    let c = AppConfig {
-              appEnv = env
+-- defaultMain :: (Show env, Read env)
+--             => IO (AppConfig env extra)
+--             -> (AppConfig env extra -> Logger -> IO Application)
+--             -> IO ()
+-- defaultMain load getApp = do
+    -- config <- fromArgs parseExtra
+    let config = AppConfig {
+              appEnv = Development
             , appPort = port_ opts
             , appRoot = pack baseurl
             }
-#if PRODUCTION
-    withApp c logger opts $ run (appPort c)
-#else
-    logString logger $ (show env) ++ " application launched, listening on port " ++ show (appPort c)
-    withApp c logger opts $ run (appPort c) . debugHandle (logHandle logger)
-    flushLogger logger
-
-    where
-        logHandle logger msg = logLazyText logger msg >> flushLogger logger
-#endif
-
--- data ArgConfig = ArgConfig
---     { environment :: String
---     , port        :: Int
---     } deriving (Show, Data, Typeable)
-
--- argConfig :: ArgConfig
--- argConfig = ArgConfig
---     { environment = def 
---         &= help ("application environment, one of: " ++ (foldl1 (\a b -> a ++ ", " ++ b) environments))
---         &= typ "ENVIRONMENT"
---     , port = def
---         &= typ "PORT"
---     }
-
--- environments :: [String]
--- environments = map ((map toLower) . show) ([minBound..maxBound] :: [AppEnvironment])
-
--- | retrieve the -e environment option
--- getAppEnv :: ArgConfig -> IO AppEnvironment
--- getAppEnv cfg = do
---     let e = if environment cfg /= ""
---             then environment cfg
---             else
--- #if PRODUCTION
---                 "production"
--- #else
---                 "development"
--- #endif
---     return $ read $ capitalize e
-
---     where
---         capitalize [] = []
---         capitalize (x:xs) = toUpper x : map toLower xs
+    logger <- defaultDevelopmentLogger
+    app <- getApplication config logger
+    runSettings defaultSettings
+        { settingsPort = appPort config
+        } app

@@ -5,6 +5,7 @@
 
 module Hledger.Web.Options
 where
+import Prelude
 import Data.Maybe
 import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Console.CmdArgs
