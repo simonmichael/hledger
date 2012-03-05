@@ -39,29 +39,30 @@ hledger works on linux, mac and windows. You can download and run current releas
 binaries from the [download page](DOWNLOAD.html).
 
 Or, you can build the current release from source using cabal-install.
-Ensure you have [GHC](http://hackage.haskell.org/ghc/) (6.12 or greater)
+Ensure you have [GHC](http://hackage.haskell.org/ghc/) (6.12.3 or greater)
 or the [Haskell Platform](http://hackage.haskell.org/platform/) installed,
 then:
 
     $ cabal update
     $ cabal install hledger
 
-You can also install some optional [add-ons](#add-on-commands) providing
-extra features. These vary in maturity and supportedness and may not be
-available on all platforms (check the download page to see platform
-support).
+or
 
     $ cabal install hledger-web
-    $ cabal install hledger-vty
-    $ cabal install hledger-chart
-    $ cabal install hledger-interest
 
-Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger) of (most of) these like so:
+Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger):
 
     $ cabal update
     $ darcs get --lazy http://joyful.com/repos/hledger
     $ cd hledger
     $ make install
+
+You can also (try to) install these unmaintained, platform-limited
+[add-on commands](#add-on-commands):
+
+    $ cabal install hledger-vty
+    $ cabal install hledger-chart
+    $ cabal install hledger-interest
 
 **Installation notes:**
 
