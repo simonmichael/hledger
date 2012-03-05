@@ -116,12 +116,13 @@ default: tag bin/hledger
 
 # cabal install all hledger PACKAGES and dependencies in the proper order
 # (or, as many as possible)
+EXTRAINSTALLARGS=
 install:
-	cabal install $(patsubst %,./%,$(PACKAGES))
+	cabal install $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS)
 
-# # run a cabal command in all hledger package dirs
-# allcabal%:
-# 	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
+# run a cabal command in all hledger package dirs
+allcabal%:
+	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
 
 # # run a command in all hledger package dirs
 # all%:
@@ -135,7 +136,7 @@ auto: sp
 
 autoweb: sp
 	rm -f bin/hledger-web
-	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DPRODUCTION=1 --run -B --port 5001 --base-url http://demo.hledger.org:5001 -f test.journal
+	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) --run -B --port 5001 --base-url http://demo.hledger.org:5001 -f test.journal
 
 autovty: sp
 	rm -f bin/hledger-vty
@@ -729,9 +730,6 @@ setversion: $(VERSIONSENSITIVEFILES)
 # re-update version string even if it seems unchanged
 Setversion:
 	touch $(VERSIONFILE); make setversion
-
-hledger/Hledger/Cli/Version.hs: $(VERSIONFILE)
-	perl -p -e "s/(^version *= *)\".*?\"/\1\"$(VERSION3)\"/" -i $@
 
 hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
