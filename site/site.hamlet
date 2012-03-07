@@ -1,0 +1,40 @@
+!!!
+<html
+ <head
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>#{title}
+  <link rel="stylesheet" type="text/css" href="/css/style.css" />
+  <style
+  <link rel="stylesheet" type="text/css" href="/js/highslide/highslide.css" />
+  <script type="text/javascript" src="/js/highslide/highslide.js"></script>
+  <script type="text/javascript">
+   hs.graphicsDir = '/js/highslide/graphics/';
+   hs.outlineType = 'rounded-black';
+   hs.captionEval = 'this.thumb.title';
+
+ <body
+  <div style="text-align:center;"
+      <!-- <a href="/"><img src="/logo.jpg" border="0" ALT="" /></a> -->
+  <div#navigation
+   <a href="/README.html">Home</a>
+   <a href="/DOWNLOAD.html">Download</a>
+   <a href="/MANUAL.html">Docs</a>
+   <a href="/DEVELOPMENT.html">Development</a>
+   <a href="/NEWS.html">News</a>
+   <a href="/SCREENSHOTS.html">Screenshots</a>
+   <a href="http://demo.hledger.org">Demo</a>
+
+  #{body}
+
+  <div#footer
+   <hr />
+   &copy; 2007-2011 <a href="http://joyful.com/">Simon Michael</a> and contributors
+
+  <script type="text/javascript">
+   var gaJsHost = (('https:' == document.location.protocol) ? 'https://ssl.' : 'http://www.');
+   document.write(unescape('%3Cscript src=\'' + gaJsHost + 'google-analytics.com/ga.js\' type=\'text/javascript\'%3E%3C/script%3E'));
+  <script type="text/javascript">
+   try {
+    var pageTracker = _gat._getTracker('UA-3456280-3');
+    pageTracker._trackPageview();
+   } catch(err) {}

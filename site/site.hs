@@ -22,12 +22,12 @@ main = do
   symlinkIndexHtml
   symlinkProfsDir
   hakyll $ do
-    match "templates/*" $ compile templateCompiler
-    match "css/*" css
-    match "images/*" file
-    match "js/**" file
+    match "*.hamlet"   hamlet
+    match "*.md"       page
+    match "css/*"      css
+    match "images/*"   file
+    match "js/**"      file
     match "robots.txt" file
-    match "*.md" page
 
 symlinkPagesFromParentDir = do
   fs <- filter (".md" `isSuffixOf`) `fmap` getDirectoryContents ".."
@@ -35,11 +35,12 @@ symlinkPagesFromParentDir = do
 symlinkIndexHtml = ensureSiteDir >> system "ln -sf README.html _site/index.html"
 symlinkProfsDir = ensureSiteDir >> system "ln -sf ../../profs _site/profs"
 ensureSiteDir = system "mkdir -p _site"
+hamlet = compile templateCompiler
 file = route idRoute >> compile copyFileCompiler
 css = route idRoute >> compile compressCssCompiler
 page = do
   route $ setExtension "html"
-  compile $ pageCompilerWith pandocParserState pandocWriterOptions >>> applyTemplateCompiler "templates/default.html" >>> relativizeUrlsCompiler
+  compile $ pageCompilerWith pandocParserState pandocWriterOptions >>> applyTemplateCompiler "site.hamlet" >>> relativizeUrlsCompiler
 
 pandocParserState = defaultParserState {-
    -- stateParseRaw        = False, -- ^ Parse raw HTML and LaTeX?
