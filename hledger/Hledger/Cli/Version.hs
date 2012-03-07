@@ -19,8 +19,13 @@ import Hledger.Utils
 
 -- package name and version from the cabal file
 progname, version, prognameandversion :: String
+#if HADDOCK
+progname = ""
+version  = ""
+#else
 progname = $(packageVariable (pkgName . package))
 version  = $(packageVariable (pkgVersion . package))
+#endif
 prognameandversion = progname ++ " " ++ version
 
 -- developer build version strings include PATCHLEVEL (number of

@@ -77,21 +77,17 @@ instance Yesod App where
     defaultLayout widget = do
         master <- getYesod
         mmsg <- getMessage
-
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
         -- default-layout-wrapper is the entire page. Since the final
         -- value passed to hamletToRepHtml cannot be a widget, this allows
         -- you to use normal widget features in default-layout.
-
-        pc <- widgetToPageContent $ do
-            -- $(widgetFile "normalize")
-            -- $(widgetFile "default-layout")
+        -- pc <- widgetToPageContent $ do
+        --     $(widgetFile "normalize")
+        --     $(widgetFile "default-layout")
         -- hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
-
-            widget
-        --     addCassius $(cassiusFile "default-layout")
-        -- hamletToRepHtml $(hamletFile "default-layout")
+        pc <- widgetToPageContent $ do
+          widget
         hamletToRepHtml [$hamlet|
 !!!
 <html

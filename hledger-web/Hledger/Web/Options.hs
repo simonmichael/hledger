@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, CPP #-}
 {-|
 
 -}
@@ -15,8 +15,13 @@ import Hledger.Cli hiding (progname,version,prognameandversion)
 import Hledger.Web.Settings
 
 progname, version :: String
+#if HADDOCK
+progname = ""
+version  = ""
+#else
 progname = $(packageVariable (pkgName . package))
 version  = $(packageVariable (pkgVersion . package))
+#endif
 prognameandversion = progname ++ " " ++ version :: String
 
 defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"

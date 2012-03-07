@@ -60,8 +60,8 @@ HADDOCKSOURCEFILES:= \
 	hledger-web/Hledger/*hs \
 	hledger-web/Hledger/*/*hs \
 	hledger-web/Hledger/Web/Settings/*hs \
-	hledger-vty/Hledger/*hs \
-	hledger-vty/Hledger/*/*hs
+#	hledger-vty/Hledger/*hs \
+#	hledger-vty/Hledger/*/*hs
 #	hledger-chart/Hledger/*hs
 #	hledger-chart/Hledger/*/*hs
 
@@ -549,8 +549,10 @@ HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-packa
 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
 
 # generate api docs for the whole project
+# we define HADDOCK to disable cabal-file-th code which requires a cabal file in the current dir
 haddock: .haddockprologue
 	$(HADDOCK) --title "hledger-* API docs" \
+	 --optghc '-DHADDOCK' \
 	 -o site/api \
 	 --html \
 	 --source-module=src/%{MODULE/./-}.html \
