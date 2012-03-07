@@ -9,6 +9,7 @@ module Hledger.Web.Application
     )
 where
 
+import Prelude
 import Yesod.Default.Config
 import Yesod.Default.Main (defaultDevelApp)
 import Yesod.Default.Handlers (getRobotsR)
