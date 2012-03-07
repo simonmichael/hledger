@@ -21,7 +21,6 @@
    <a href="/MANUAL.html">Docs</a>
    <a href="/DEVELOPMENT.html">Development</a>
    <a href="/NEWS.html">News</a>
-   <a href="/SCREENSHOTS.html">Screenshots</a>
    <a href="http://demo.hledger.org">Demo</a>
 
   #{body}
