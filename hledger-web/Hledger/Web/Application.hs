@@ -55,12 +55,3 @@ getApplicationDev =
     loader = loadConfig (configSettings Development)
         { csParseExtra = parseExtra
         }
-
--- #ifdef PRODUCTION
---     putStrLn $ "Production mode, using embedded web files"
---     let s = $(embed staticDir)
--- #else
---     putStrLn $ "Not in production mode, using web files from " ++ staticDir ++ "/"
---     s <- staticDevel staticDir
--- #endif
-

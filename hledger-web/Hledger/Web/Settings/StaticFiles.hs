@@ -12,19 +12,24 @@ This is a separate module to satisfy template haskell requirements.
 module Hledger.Web.Settings.StaticFiles where
 
 import Prelude (IO)
+import System.IO
 import Yesod.Static
 import qualified Yesod.Static as Static
 
+import Prelude
 import Hledger.Web.Settings (staticDir)
 
 -- | use this to create your static file serving site
 staticSite :: IO Static.Static
-staticSite =
+staticSite = do
 #ifdef DEVELOPMENT
+  putStrLn ("using web files from: " ++ staticDir ++ "/") >> hFlush stdout
   Static.staticDevel staticDir
 #else
-  Static.static staticDir
+  putStrLn "using embedded web files" >> hFlush stdout
+  return $(Static.embed staticDir)
 #endif
+
 
 -- | This generates easy references to files in the static directory at compile time,
 --   giving you compile-time verification that referenced files exist.
