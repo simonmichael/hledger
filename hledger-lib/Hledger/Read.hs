@@ -36,6 +36,7 @@ import Hledger.Data.Types (Journal(..), Reader(..))
 import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimelogReader as TimelogReader
+import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
 import Hledger.Utils.UTF8 (getContents, hGetContents, writeFile)
@@ -51,6 +52,7 @@ readers :: [Reader]
 readers = [
   JournalReader.reader
  ,TimelogReader.reader
+ -- ,CsvReader.reader
  ]
 
 -- | All the data formats we can read.
@@ -74,18 +76,22 @@ journalFromPathAndString format fp s = do
   let readerstotry = case format of Nothing -> readers
                                     Just f -> case readerForFormat f of Just r -> [r]
                                                                         Nothing -> []
-  (errors, journals) <- partitionEithers `fmap` mapM tryReader readerstotry
+  (errors, journals) <- partitionEithers `fmap` mapM (tryReader fp s) readerstotry
   case journals of j:_ -> return $ Right j
-                   _   -> return $ Left $ bestErrorMsg errors
-    where
-      tryReader r = (runErrorT . (rParser r) fp) s
+                   _   -> return $ Left $ bestErrorMsg errors fp s
+    -- where
+
+tryReader :: FilePath -> String -> Reader -> IO (Either String Journal)
+tryReader fp s r = do -- printf "trying to read %s format\n" (rFormat r)
+                      (runErrorT . (rParser r) fp) s
+
       -- unknown format
-      bestErrorMsg [] = printf "could not parse %sdata in %s" (fmt formats) fp
+bestErrorMsg [] fp _ = printf "could not parse %sdata in %s" (fmt formats) fp
           where fmt [] = ""
                 fmt [f] = f ++ " "
                 fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
       -- one or more errors - report (the most appropriate ?) one
-      bestErrorMsg es = printf "could not parse %s data in %s\n%s" (rFormat r) fp e
+bestErrorMsg es fp s = printf "could not parse %s data in %s\n%s" (rFormat r) fp e
           where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
                 detects (r,_) = (rDetector r) fp s
 
@@ -152,6 +158,7 @@ tests_Hledger_Read = TestList
   [
    tests_Hledger_Read_JournalReader,
    tests_Hledger_Read_TimelogReader,
+   tests_Hledger_Read_CsvReader,
 
    "journalFile" ~: do
     assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx nullctx JournalReader.journalFile "")
