@@ -23,8 +23,8 @@ import Text.Printf (hPrintf)
 import Prelude hiding (getContents)
 import Hledger.Utils.UTF8 (getContents)
 import Hledger
-import Hledger.Cli.Format
-import qualified Hledger.Cli.Format as Format
+import Hledger.Data.FormatStrings
+import qualified Hledger.Data.FormatStrings as Format
 import Hledger.Cli.Options
 import Hledger.Cli.Version
 

@@ -1,4 +1,4 @@
-module Hledger.Cli.Format (
+module Hledger.Data.FormatStrings (
           parseFormatString
         , formatStrings
         , formatValue

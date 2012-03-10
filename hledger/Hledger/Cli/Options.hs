@@ -22,7 +22,7 @@ import Text.ParserCombinators.Parsec
 import Text.Printf
 
 import Hledger
-import Hledger.Cli.Format as Format
+import Hledger.Data.FormatStrings as Format
 import Hledger.Cli.Version
 
 
