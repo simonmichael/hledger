@@ -45,44 +45,49 @@ journalenvvar           = "LEDGER_FILE"
 journalenvvar2          = "LEDGER"
 journaldefaultfilename  = ".hledger.journal"
 
--- Here are the available readers. The first is the default, used for unknown data formats.
+-- The available data file readers, each one handling a particular data
+-- format. The first is also used as the default for unknown formats.
 readers :: [Reader]
 readers = [
   JournalReader.reader
  ,TimelogReader.reader
  ]
 
-formats   = map rFormat readers
+-- | All the data formats we can read.
+formats = map rFormat readers
 
+-- | Find the reader which can handle the given format, if any.
+-- Typically there is just one; only the first is returned.
 readerForFormat :: String -> Maybe Reader
 readerForFormat s | null rs = Nothing
                   | otherwise = Just $ head rs
     where 
       rs = filter ((s==).rFormat) readers :: [Reader]
 
--- | Read a Journal from this string (and file path), auto-detecting the
--- data format, or give a useful error string. Tries to parse each known
--- data format in turn. If none succeed, gives the error message specific
--- to the intended data format, which if not specified is guessed from the
--- file suffix and possibly the data.
+-- | Do our best to read a Journal from this string using the specified
+-- data format, or if unspecified, trying all supported formats until one
+-- succeeds. The file path is provided as an extra hint. Returns an error
+-- message if the format is unsupported or if it is supported but parsing
+-- fails.
 journalFromPathAndString :: Maybe String -> FilePath -> String -> IO (Either String Journal)
 journalFromPathAndString format fp s = do
-  let readers' = case format of Just f -> case readerForFormat f of Just r -> [r]
-                                                                    Nothing -> []
-                                Nothing -> readers
-  (errors, journals) <- partitionEithers `fmap` mapM tryReader readers'
+  let readerstotry = case format of Nothing -> readers
+                                    Just f -> case readerForFormat f of Just r -> [r]
+                                                                        Nothing -> []
+  (errors, journals) <- partitionEithers `fmap` mapM tryReader readerstotry
   case journals of j:_ -> return $ Right j
-                   _   -> return $ Left $ errMsg errors
+                   _   -> return $ Left $ bestErrorMsg errors
     where
       tryReader r = (runErrorT . (rParser r) fp) s
-      errMsg [] = unknownFormatMsg
-      errMsg es = printf "could not parse %s data in %s\n%s" (rFormat r) fp e
-          where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
-                detects (r,_) = (rDetector r) fp s
-      unknownFormatMsg = printf "could not parse %sdata in %s" (fmt formats) fp
+      -- unknown format
+      bestErrorMsg [] = printf "could not parse %sdata in %s" (fmt formats) fp
           where fmt [] = ""
                 fmt [f] = f ++ " "
                 fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
+      -- one or more errors - report (the most appropriate ?) one
+      bestErrorMsg es = printf "could not parse %s data in %s\n%s" (rFormat r) fp e
+          where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
+                detects (r,_) = (rDetector r) fp s
 
 -- | Read a journal from this file, using the specified data format or
 -- trying all known formats, or give an error string.

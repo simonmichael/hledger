@@ -175,11 +175,14 @@ type JournalUpdate = ErrorT String IO (Journal -> Journal)
 
 -- | A hledger journal reader is a triple of format name, format-detecting
 -- predicate, and a parser to Journal.
-data Reader = Reader {rFormat   :: String
-                     ,rDetector :: FilePath -> String -> Bool
-                     ,rParser   :: FilePath -> String -> ErrorT String IO Journal
+data Reader = Reader {
+     -- name of the format this reader handles
+     rFormat   :: String
+     -- quickly check if this reader can probably handle the given file path and file content
+    ,rDetector :: FilePath -> String -> Bool
+     -- really parse the given file path and file content, returning a journal or error
+    ,rParser   :: FilePath -> String -> ErrorT String IO Journal
                      }
-
 data Ledger = Ledger {
       journal :: Journal,
       accountnametree :: Tree AccountName,
