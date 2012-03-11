@@ -7,58 +7,56 @@ title: hledger contributor guide
 ## Quick links
 
 **Support**<br>
-  Users and developers: [how to get help](#how-to-get-help)
-  <br>IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)
+  IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)
   <br>Mail list: [list.hledger.org](http://list.hledger.org)
   <br>Bug tracker: [bugs.hledger.org](http://bugs.hledger.org)
-  (also `bugs.hledger.org/NNN`, `bugs.hledger.org/new`, `bugs.hledger.org/grid`)
+  <br>Tips: [how to get help](#how-to-get-help)
 
-<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
-<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
-<form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
-<input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
 **Released version**<br>
-  [Binaries](DOWNLOADS.html), [release notes](NEWS.html), [hledger-web demo](http://demo.hledger.org)<br>
-  Hackage packages & API docs:
-  [hledger-lib](http://hackage.haskell.org/package/hledger-lib),
+  [release notes](NEWS.html),
+  [hledger-web demo](http://demo.hledger.org)
+  <br>
+  [ready-to-run binaries](DOWNLOADS.html)
+  <br>
   [hledger](http://hackage.haskell.org/package/hledger),
   [hledger-web](http://hackage.haskell.org/package/hledger-web),
   [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
-  [hledger-chart](http://hackage.haskell.org/package/hledger-chart)
-  <br>
-  <span style="white-space:nowrap;"
-  ><input type="text" name="hoogle" id="hoogle" accesskey="1" size="30"
-  /><input type="submit" value="hoogle API search"
-  /></span>
+  [hledger-chart](http://hackage.haskell.org/package/hledger-chart),
+  [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
+  packages
 
 **Development version**<br>
   [Get it](#how-to-set-up-for-hledger-development),
-  [browse it](http://joyful.com/repos/hledger),
-  [hledger-web dev demo](http://demo.hledger.org:5001)
+  [browse it](http://joyful.com/repos/hledger)
+  <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
   <br>
-  [latest API docs](http://hledger.org/api),
   [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES.org),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
-  [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html)
+  [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   <!-- [benchmark](http://hledger.org/profs/latest.bench), -->
   <!-- [profile](http://hledger.org/profs/latest.prof), -->
   <!-- [heap](http://hledger.org/profs/latest.ps) -->
-<!--   [hledger dependencies](http://packdeps.haskellers.com/feed/?needle=hledger), -->
-<!--   [hledger-lib dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-lib), -->
-<!--   [hledger-chart dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-chart), -->
-<!--   [hledger-vty dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-vty), -->
-<!--   [hledger-web dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-web) -->
-reports
+  [stale dependencies](http://packdeps.haskellers.com/feed/?needle=hledger)
+  reports
+<br>
+<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
+<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
+<form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
+[browse dev API docs](http://hledger.org/api/frames.html)
+or
+<input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
+<span style="white-space:nowrap;"
+><input type="text" name="hoogle" id="hoogle" accesskey="1" size="30"
+/><input type="submit" value="search released API docs"
+/></span>
 </form>
+
 
 ## How to..
 
 ### how to get help
 
-- <form action="http://groups.google.com/group/hledger/boxsubscribe" >
-  join and use the [hledger mail list](http://list.hledger.org). Your email:
-  <input type=text name=email><input type=submit name="sub" value="Subscribe">
-  </form>
+- join and use the [hledger mail list](http://list.hledger.org)
 - chat Simon (sm) on the
   [\#ledger](irc://irc.freenode.net/#ledger) irc channel which we
   share, or [send email](mailto:simon@joyful.com?subject=hledger:)
@@ -67,7 +65,7 @@ reports
 
 ### how to report problems
 
-- check for related issues at [bugs.hledger.org](http://bugs.hledger.org) ([view all](http://bugs.hledger.org/grid)) or in the [list archive](http://groups.google.com/group/hledger/topics)
+- check for related issues at [bugs.hledger.org](http://bugs.hledger.org) ([view all](http://bugs.hledger.org/grid)) or in the [list archive](https://groups.google.com/d/forum/hledger)
 - discuss/confirm the issue on irc or list
 - [report](http://code.google.com/p/hledger/issues/entry) new issues in the bug tracker
 <!-- - test and share problem journal snippets at paste . hledger.org -->
@@ -84,9 +82,14 @@ reports
 
 ### how to help with bug tracking
 
-- get to know the bug tracker and its contents
-- join its google project for more access
+- get to know the [bug tracker](http://bugs.hledger.org) and its contents
+- join the [hledger google project](http://code.google.com/p/hledger/) to get more access
 - research and update issues
+- use these convenience urls:  
+  [`bugs.hledger.org`](http://bugs.hledger.org)  
+  [`bugs.hledger.org/grid`](http://bugs.hledger.org/grid)  
+  [`bugs.hledger.org/new`](http://bugs.hledger.org/new)  
+  `bugs.hledger.org/NNN`
 
 ### how to set up for hledger development
 
