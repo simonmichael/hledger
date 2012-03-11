@@ -16,7 +16,7 @@ BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14-ghc6.12.3 ledger
 #BENCHEXES=hledger
 
 # searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
-AUTOBUILD=sp --no-exts --no-default-map ghc --make
+AUTOBUILD=sp --no-exts --no-default-map ghc --make -O0
 
 # misc. tools
 BROWSE=google-chrome
