@@ -39,10 +39,10 @@ title: hledger contributor guide
   [latest API docs](http://hledger.org/api),
   [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES.org),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
-  [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
-  [benchmark](http://hledger.org/profs/latest.bench),
-  [profile](http://hledger.org/profs/latest.prof),
-  [heap](http://hledger.org/profs/latest.ps)
+  [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html)
+  <!-- [benchmark](http://hledger.org/profs/latest.bench), -->
+  <!-- [profile](http://hledger.org/profs/latest.prof), -->
+  <!-- [heap](http://hledger.org/profs/latest.ps) -->
 <!--   [hledger dependencies](http://packdeps.haskellers.com/feed/?needle=hledger), -->
 <!--   [hledger-lib dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-lib), -->
 <!--   [hledger-chart dependencies](http://packdeps.haskellers.com/feed/?needle=hledger-chart), -->
