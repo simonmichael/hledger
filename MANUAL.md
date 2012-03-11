@@ -50,10 +50,10 @@ or
 
     $ cabal install hledger-web
 
-Or, you can build the latest [development version](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger):
+Or, you can build the latest [development version](DEVELOPMENT.html):
 
     $ cabal update
-    $ darcs get --lazy http://joyful.com/repos/hledger
+    $ darcs get --lazy http://joyful.com/darcsden/simon/hledger
     $ cd hledger
     $ make install
 
@@ -1408,7 +1408,7 @@ Here are some issues you might encounter when you run hledger:
 
         $ chart food --depth 2 -p jan
 
-See also the [examples](http://joyful.com/repos/hledger/examples) directory.
+See also the [extra](http://joyful.com/repos/hledger/extra) directory.
 
 ### Other resources
 

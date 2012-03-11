@@ -102,7 +102,7 @@ reports
 
 - get the hledger repo:
   
-        darcs get --lazy http://joyful.com/repos/hledger
+        darcs get --lazy http://joyful.com/darcsden/simon/hledger
         cd hledger
         
 - install packages required to build hledger and add-ons, or as many of them as possible:
@@ -257,7 +257,8 @@ The hledger project aims to produce:
 
 ### code
 
-- main darcs repo is http://joyful.com/repos/hledger, browse with [darcsweb](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger)
+- the main darcs repo is [http://joyful.com/darcsden/simon/hledger](http://joyful.com/darcsden/simon/hledger)
+  (alternate [darcsweb interface](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger)
 
 <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
 
