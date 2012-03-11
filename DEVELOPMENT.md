@@ -28,6 +28,7 @@ title: hledger contributor guide
 **Development version**<br>
   [Get it](#how-to-set-up-for-hledger-development),
   [browse it](http://joyful.com/repos/hledger)
+  (or via [darcsweb](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog))
   <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
   <br>
   [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES.org),
@@ -120,12 +121,10 @@ or
 
 - try auto-building with sp:
 
-        darcs get http://joyful.com/repos/searchpath
-        searchpath$ make, add sp to your path
-        hledger$ make autotest
+        make auto
 
+    You'll need to follow the instructions to install `sp`.
     This is how I do most hledger development. It will recompile whenever you save changes to source files.
-    You'll need to install `sp` as shown.
         
 - test patch sending. Make a dummy change:
 

@@ -153,7 +153,7 @@ autochart: sp
 # check for sp and explain how to get it if not found.
 sp:
 	@/usr/bin/env which sp >/dev/null || \
-	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/repos/searchpath, make it and add it to your PATH'; exit 1)
+	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/darcsden/simon/searchpath, make it (cabal install-ing any needed packages) and add it to your PATH'; exit 1)
 
 hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
 
