@@ -85,8 +85,7 @@ journalFromPathAndString format fp s = do
                 fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
 
 -- | Read a journal from this file, using the specified data format or
--- trying all known formats, or give an error string; also create the file
--- if it doesn't exist.
+-- trying all known formats, or give an error string.
 readJournalFile :: Maybe String -> FilePath -> IO (Either String Journal)
 readJournalFile format "-" = getContents >>= journalFromPathAndString format "(stdin)"
 readJournalFile format f = do
