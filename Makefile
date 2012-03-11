@@ -71,7 +71,9 @@ WEBFILES:= \
 	hledger-web/static/*.css
 #	hledger-web/templates/* \
 
-# DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
+DOCFILES:= \
+	*.md
+
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
 DEFINEFLAGS:=
@@ -883,7 +885,7 @@ fixperms:
 tag: emacstags
 
 emacstags:
-	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(CABALFILES) $(WEBFILES) Makefile
+	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(DOCFILES) Makefile
 
 clean:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*" | grep -v .virthualenv`
