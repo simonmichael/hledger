@@ -11,8 +11,6 @@ hledger project notes
 **** absorb its directives into journal format ?
 ** cleanup
 *** deprecate vty, chart in manual
-*** fix commit hook docs building
-*** makefile cleanups
 *** ghc 7.4 warnings
  cabal build
 Building hledger-lib-0.17...
@@ -671,8 +669,9 @@ hledger-web.hs:21:59:
              Deprecated: "Use makeDefaultLogger instead"
 Linking ../bin/hledger-web ...
 
+*** makefile cleanups
 ** errors
-*** unicode-error.test failure with 7.2
+*** unicode-error.test failure with >=7.2
 **** understand
 error UNICODE works, error' UNICODE doesn't
 UNICODE renders as space in mac emacs
@@ -783,7 +782,8 @@ $ cat t
 *** convert: 49 convert should report rules file parse errors better
 *** 25 hledger in windows console does not print non-ascii characters
 ** documentation, marketing
-*** 2012 survey
+*** fix darcs repo redirect ?
+*** finalise/link 2012 survey
 *** developer notes & log
 **** clean up backlog
 *** intro brainstorming
@@ -1325,7 +1325,8 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
-*** yesod 0.10 support
+*** support apostrophe digit group separator
+*** detect .hs plugins
 *** Clint's ofx support
 *** more powerful storage layer
 *** web api
