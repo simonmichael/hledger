@@ -23,10 +23,8 @@ module Hledger.Read (
 )
 where
 import Control.Monad.Error
-import Data.Either (partitionEithers)
 import Data.List
 import Data.Maybe
-import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
@@ -60,7 +58,7 @@ readers = [
  ]
 
 -- | All the data formats we can read.
-formats = map rFormat readers
+-- formats = map rFormat readers
 
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment
@@ -96,36 +94,47 @@ readerForFormat s | null rs = Nothing
 -- conversion rules may be provided for better conversion of that
 -- format, and/or a file path for better error messages.
 readJournal :: Maybe Format -> Maybe CsvReader.CsvRules -> Maybe FilePath -> String -> IO (Either String Journal)
-readJournal format rules path s = do
+readJournal format _ path s =
   let readerstotry = case format of Nothing -> readers
                                     Just f -> case readerForFormat f of Just r -> [r]
                                                                         Nothing -> []
-  (errors, journals) <- partitionEithers `fmap` mapM (tryReader s path) readerstotry -- XXX lazify
-  case journals of j:_ -> return $ Right j
-                   _   -> return $ Left $ bestErrorMsg errors s path
-    where
-      path' = fromMaybe "(string)" path
-      tryReader :: String -> Maybe FilePath -> Reader -> IO (Either String Journal)
-      tryReader s path r = do -- printf "trying to read %s format\n" (rFormat r)
-                      (runErrorT . (rParser r) path') s
+  in firstSuccessOrBestError $ map tryReader readerstotry
+  where
+    path' = fromMaybe "(string)" path
+    tryReader :: Reader -> IO (Either String Journal)
+    tryReader r = do -- printf "trying %s reader\n" (rFormat r)
+                     (runErrorT . (rParser r) path') s
 
-      -- unknown format
-      bestErrorMsg :: [String] -> String -> Maybe FilePath -> String
-      bestErrorMsg [] _ path = printf "could not parse %sdata%s" fmts pathmsg
-          where fmts = case formats of
-                         [] -> ""
-                         [f] -> f ++ " "
-                         fs -> intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
-                pathmsg = case path of
-                            Nothing -> ""
-                            Just p -> " in "++p
-      -- one or more errors - report (the most appropriate ?) one
-      bestErrorMsg es s path = printf "could not parse %s data%s\n%s" (rFormat r) pathmsg e
-          where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
-                detects (r,_) = (rDetector r) path' s
-                pathmsg = case path of
-                            Nothing -> ""
-                            Just p -> " in "++p
+    -- if no reader succeeds, we return the error of the first;
+    -- ideally it would be the error of the most likely intended
+    -- reader, based on file suffix and/or data sniffing.
+    firstSuccessOrBestError :: [IO (Either String Journal)] -> IO (Either String Journal)
+    firstSuccessOrBestError []       = return $ Left "no readers found"
+    firstSuccessOrBestError attempts = firstSuccessOrBestError' attempts
+      where
+        firstSuccessOrBestError' [] = head attempts
+        firstSuccessOrBestError' (a:as) = do
+          r <- a
+          case r of Right j -> return $ Right j
+                    Left _  -> firstSuccessOrBestError' as
+
+    -- -- unknown format
+    -- bestErrorMsg :: [String] -> String -> Maybe FilePath -> String
+    -- bestErrorMsg [] _ path = printf "could not parse %sdata%s" fmts pathmsg
+    --     where fmts = case formats of
+    --                    [] -> ""
+    --                    [f] -> f ++ " "
+    --                    fs -> intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
+    --           pathmsg = case path of
+    --                       Nothing -> ""
+    --                       Just p -> " in "++p
+    -- -- one or more errors - report (the most appropriate ?) one
+    -- bestErrorMsg es s path = printf "could not parse %s data%s\n%s" (rFormat r) pathmsg e
+    --     where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
+    --           detects (r,_) = (rDetector r) path' s
+    --           pathmsg = case path of
+    --                       Nothing -> ""
+    --                       Just p -> " in "++p
 
 -- | Read a Journal from this file (or stdin if the filename is -) or
 -- give an error message, using the specified data format or trying
