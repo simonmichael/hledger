@@ -1,27 +1,31 @@
 {-| 
 
-Read hledger data from various data formats, and related utilities.
+This is the entry point to hledger's reading system, which can read
+Journals from various data formats. Use this module if you want to
+parse journal data or read journal files; it should not be necessary
+to import modules below this one.
 
 -}
 
 module Hledger.Read (
-       tests_Hledger_Read,
-       readJournalFile,
+       -- * Journal reading utilities
+       defaultJournalPath,
+       defaultJournal,
        readJournal,
-       journalFromPathAndString,
+       readJournalFile,
+       requireJournalFileExists,
+       ensureJournalFileExists,
+       -- * Temporary parser exports for Convert
        ledgeraccountname,
-       myJournalPath,
-       myJournal,
        someamount,
-       journalenvvar,
-       journaldefaultfilename,
-       requireJournalFile,
-       ensureJournalFile,
+       -- * Tests
+       tests_Hledger_Read,
 )
 where
 import Control.Monad.Error
 import Data.Either (partitionEithers)
 import Data.List
+import Data.Maybe
 import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
@@ -32,7 +36,7 @@ import Test.HUnit
 import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.Types (Journal(..), Reader(..))
+import Hledger.Data.Types (Journal(..), Reader(..), Format)
 import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimelogReader as TimelogReader
@@ -42,9 +46,9 @@ import Prelude hiding (getContents, writeFile)
 import Hledger.Utils.UTF8 (getContents, hGetContents, writeFile)
 
 
-journalenvvar           = "LEDGER_FILE"
-journalenvvar2          = "LEDGER"
-journaldefaultfilename  = ".hledger.journal"
+journalEnvVar           = "LEDGER_FILE"
+journalEnvVar2          = "LEDGER"
+journalDefaultFilename  = ".hledger.journal"
 
 -- The available data file readers, each one handling a particular data
 -- format. The first is also used as the default for unknown formats.
@@ -58,54 +62,84 @@ readers = [
 -- | All the data formats we can read.
 formats = map rFormat readers
 
+-- | Get the default journal file path specified by the environment.
+-- Like ledger, we look first for the LEDGER_FILE environment
+-- variable, and if that does not exist, for the legacy LEDGER
+-- environment variable. If neither is set, or the value is blank,
+-- return the hard-coded default, which is @.hledger.journal@ in the
+-- users's home directory (or in the current directory, if we cannot
+-- determine a home directory).
+defaultJournalPath :: IO String
+defaultJournalPath = do
+  s <- envJournalPath
+  if null s then defaultJournalPath else return s
+    where
+      envJournalPath = getEnv journalEnvVar `catch` (\_ -> getEnv journalEnvVar2 `catch` (\_ -> return ""))
+      defaultJournalPath = do
+                  home <- getHomeDirectory `catch` (\_ -> return "")
+                  return $ home </> journalDefaultFilename
+
+-- | Read the default journal file specified by the environment, or raise an error.
+defaultJournal :: IO Journal
+defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing >>= either error' return
+
 -- | Find the reader which can handle the given format, if any.
 -- Typically there is just one; only the first is returned.
-readerForFormat :: String -> Maybe Reader
+readerForFormat :: Format -> Maybe Reader
 readerForFormat s | null rs = Nothing
                   | otherwise = Just $ head rs
     where 
       rs = filter ((s==).rFormat) readers :: [Reader]
 
--- | Do our best to read a Journal from this string using the specified
--- data format, or if unspecified, trying all supported formats until one
--- succeeds. The file path is provided as an extra hint. Returns an error
--- message if the format is unsupported or if it is supported but parsing
--- fails.
-journalFromPathAndString :: Maybe String -> FilePath -> String -> IO (Either String Journal)
-journalFromPathAndString format fp s = do
+-- | Read a Journal from this string or give an error message, using
+-- the specified data format or trying all known formats. CSV
+-- conversion rules may be provided for better conversion of that
+-- format, and/or a file path for better error messages.
+readJournal :: Maybe Format -> Maybe CsvReader.CsvRules -> Maybe FilePath -> String -> IO (Either String Journal)
+readJournal format rules path s = do
   let readerstotry = case format of Nothing -> readers
                                     Just f -> case readerForFormat f of Just r -> [r]
                                                                         Nothing -> []
-  (errors, journals) <- partitionEithers `fmap` mapM (tryReader fp s) readerstotry
+  (errors, journals) <- partitionEithers `fmap` mapM (tryReader s path) readerstotry -- XXX lazify
   case journals of j:_ -> return $ Right j
-                   _   -> return $ Left $ bestErrorMsg errors fp s
-    -- where
-
-tryReader :: FilePath -> String -> Reader -> IO (Either String Journal)
-tryReader fp s r = do -- printf "trying to read %s format\n" (rFormat r)
-                      (runErrorT . (rParser r) fp) s
+                   _   -> return $ Left $ bestErrorMsg errors s path
+    where
+      path' = fromMaybe "(string)" path
+      tryReader :: String -> Maybe FilePath -> Reader -> IO (Either String Journal)
+      tryReader s path r = do -- printf "trying to read %s format\n" (rFormat r)
+                      (runErrorT . (rParser r) path') s
 
       -- unknown format
-bestErrorMsg [] fp _ = printf "could not parse %sdata in %s" (fmt formats) fp
-          where fmt [] = ""
-                fmt [f] = f ++ " "
-                fmt fs = intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
+      bestErrorMsg :: [String] -> String -> Maybe FilePath -> String
+      bestErrorMsg [] _ path = printf "could not parse %sdata%s" fmts pathmsg
+          where fmts = case formats of
+                         [] -> ""
+                         [f] -> f ++ " "
+                         fs -> intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
+                pathmsg = case path of
+                            Nothing -> ""
+                            Just p -> " in "++p
       -- one or more errors - report (the most appropriate ?) one
-bestErrorMsg es fp s = printf "could not parse %s data in %s\n%s" (rFormat r) fp e
+      bestErrorMsg es s path = printf "could not parse %s data%s\n%s" (rFormat r) pathmsg e
           where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
-                detects (r,_) = (rDetector r) fp s
+                detects (r,_) = (rDetector r) path' s
+                pathmsg = case path of
+                            Nothing -> ""
+                            Just p -> " in "++p
 
--- | Read a journal from this file, using the specified data format or
--- trying all known formats, or give an error string.
-readJournalFile :: Maybe String -> FilePath -> IO (Either String Journal)
-readJournalFile format "-" = getContents >>= journalFromPathAndString format "(stdin)"
-readJournalFile format f = do
-  requireJournalFile f
-  withFile f ReadMode $ \h -> hGetContents h >>= journalFromPathAndString format f
+-- | Read a Journal from this file (or stdin if the filename is -) or
+-- give an error message, using the specified data format or trying
+-- all known formats. CSV conversion rules may be provided for better
+-- conversion of that format.
+readJournalFile :: Maybe Format -> Maybe CsvReader.CsvRules -> FilePath -> IO (Either String Journal)
+readJournalFile format rules "-" = getContents >>= readJournal format rules (Just "(stdin)")
+readJournalFile format rules f = do
+  requireJournalFileExists f
+  withFile f ReadMode $ \h -> hGetContents h >>= readJournal format rules (Just f)
 
 -- | If the specified journal file does not exist, give a helpful error and quit.
-requireJournalFile :: FilePath -> IO ()
-requireJournalFile f = do
+requireJournalFileExists :: FilePath -> IO ()
+requireJournalFileExists f = do
   exists <- doesFileExist f
   when (not exists) $ do
     hPrintf stderr "The hledger journal file \"%s\" was not found.\n" f
@@ -114,8 +148,8 @@ requireJournalFile f = do
     exitFailure
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
-ensureJournalFile :: FilePath -> IO ()
-ensureJournalFile f = do
+ensureJournalFileExists :: FilePath -> IO ()
+ensureJournalFileExists f = do
   exists <- doesFileExist f
   when (not exists) $ do
     hPrintf stderr "Creating hledger journal file \"%s\".\n" f
@@ -129,31 +163,6 @@ newJournalContent = do
   d <- getCurrentDay
   return $ printf "; journal created %s by hledger\n" (show d)
 
--- | Read a Journal from this string, using the specified data format or
--- trying all known formats, or give an error string.
-readJournal :: Maybe String -> String -> IO (Either String Journal)
-readJournal format s = journalFromPathAndString format "(string)" s
-
--- | Get the user's journal file path. Like ledger, we look first for the
--- LEDGER_FILE environment variable, and if that does not exist, for the
--- legacy LEDGER environment variable. If neither is set, or the value is
--- blank, return the default journal file path, which is
--- ".hledger.journal" in the users's home directory, or if we cannot
--- determine that, in the current directory.
-myJournalPath :: IO String
-myJournalPath = do
-  s <- envJournalPath
-  if null s then defaultJournalPath else return s
-    where
-      envJournalPath = getEnv journalenvvar `catch` (\_ -> getEnv journalenvvar2 `catch` (\_ -> return ""))
-      defaultJournalPath = do
-                  home <- getHomeDirectory `catch` (\_ -> return "")
-                  return $ home </> journaldefaultfilename
-
--- | Read the user's default journal file, or give an error.
-myJournal :: IO Journal
-myJournal = myJournalPath >>= readJournalFile Nothing >>= either error' return
-
 tests_Hledger_Read = TestList
   [
    tests_Hledger_Read_JournalReader,
@@ -162,7 +171,7 @@ tests_Hledger_Read = TestList
 
    "journalFile" ~: do
     assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx nullctx JournalReader.journalFile "")
-    jE <- readJournal Nothing "" -- don't know how to get it from journalFile
+    jE <- readJournal Nothing Nothing Nothing "" -- don't know how to get it from journalFile
     either error' (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
 
   ]

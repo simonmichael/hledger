@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-|
-Utilities common to hledger journal readers.
+
+Utilities used throughout hledger's read system.
+
 -}
 
 module Hledger.Read.Utils

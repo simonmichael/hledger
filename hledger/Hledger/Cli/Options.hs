@@ -422,10 +422,10 @@ defaultBalanceFormatString = [
     ]
 
 -- | Get the journal file path from options, an environment variable, or a default.
--- If the path contains a literal tilde raise an error to avoid confusion.
+-- If the path contains a literal tilde raise an error to avoid confusion. XXX
 journalFilePathFromOpts :: CliOpts -> IO String
 journalFilePathFromOpts opts = do
-  f <- myJournalPath
+  f <- defaultJournalPath
   let f' = fromMaybe f $ file_ opts
   if '~' `elem` f'
    then error' $ printf "~ in the journal file path is not supported, please adjust (%s)" f'

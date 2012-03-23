@@ -173,11 +173,14 @@ data Journal = Journal {
 -- raise an error.
 type JournalUpdate = ErrorT String IO (Journal -> Journal)
 
+-- | The id of a data format understood by hledger, eg @journal@ or @csv@.
+type Format = String
+
 -- | A hledger journal reader is a triple of format name, format-detecting
 -- predicate, and a parser to Journal.
 data Reader = Reader {
      -- name of the format this reader handles
-     rFormat   :: String
+     rFormat   :: Format
      -- quickly check if this reader can probably handle the given file path and file content
     ,rDetector :: FilePath -> String -> Bool
      -- really parse the given file path and file content, returning a journal or error

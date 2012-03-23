@@ -516,7 +516,7 @@ handleAdd = do
                |]
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
-    liftIO $ do ensureJournalFile journalpath
+    liftIO $ do ensureJournalFileExists journalpath
                 appendToJournalFileOrStdout journalpath $ showTransaction t'
     -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
     setMessage [$shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
@@ -561,7 +561,7 @@ handleEdit = do
        setMessage "No change"
        redirect RedirectTemporary JournalR
      else do
-      jE <- liftIO $ journalFromPathAndString Nothing journalpath tnew
+      jE <- liftIO $ readJournal Nothing Nothing (Just journalpath) tnew
       either
        (\e -> do
           setMessage $ toHtml e

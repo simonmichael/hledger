@@ -48,20 +48,20 @@ withJournalDo opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  journalFilePathFromOpts opts >>= readJournalFile Nothing >>=
+  journalFilePathFromOpts opts >>= readJournalFile Nothing Nothing >>=
     either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts))
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournalWithOpts :: CliOpts -> String -> IO Journal
--- readJournalWithOpts opts s = readJournal Nothing s >>= either error' return
+-- readJournalWithOpts opts s = readJournal Nothing Nothing Nothing s >>= either error' return
 
 -- | Get a journal from the given string, or throw an error.
 readJournal' :: String -> IO Journal
-readJournal' s = readJournal Nothing s >>= either error' return
+readJournal' s = readJournal Nothing Nothing Nothing s >>= either error' return
 
 -- | Re-read a journal from its data file, or return an error string.
 journalReload :: Journal -> IO (Either String Journal)
-journalReload j = readJournalFile Nothing $ journalFilePath j
+journalReload j = readJournalFile Nothing Nothing $ journalFilePath j
 
 -- | Re-read a journal from its data file mostly, only if the file has
 -- changed since last read (or if there is no file, ie data read from

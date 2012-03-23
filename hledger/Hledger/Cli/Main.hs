@@ -19,7 +19,7 @@ You can use the command line:
 or ghci:
 
 > $ ghci hledger
-> > j <- readJournalFile "data/sample.journal"
+> > j <- readJournalFile Nothing Nothing "data/sample.journal"
 > > register [] ["income","expenses"] j
 > 2008/01/01 income               income:salary                   $-1          $-1
 > 2008/06/01 gift                 income:gifts                    $-1          $-2
@@ -46,7 +46,7 @@ import System.Exit
 import System.Process
 import Text.Printf
 
-import Hledger (ensureJournalFile)
+import Hledger (ensureJournalFileExists)
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Convert
@@ -73,7 +73,7 @@ main = do
        | (null matchedaddon) && "version" `in_` (rawopts_ opts)         = putStrLn prognameandversion
        | (null matchedaddon) && "binary-filename" `in_` (rawopts_ opts) = putStrLn $ binaryfilename progname
        | null cmd                                        = putStr $ showModeHelp mainmode'
-       | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFile >> withJournalDo opts add
+       | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add
        | cmd `isPrefixOf` "convert"                      = showModeHelpOr convertmode  $ convert opts
        | cmd `isPrefixOf` "test"                         = showModeHelpOr testmode     $ runtests opts
        | any (cmd `isPrefixOf`) ["accounts","balance"]   = showModeHelpOr accountsmode $ withJournalDo opts balance

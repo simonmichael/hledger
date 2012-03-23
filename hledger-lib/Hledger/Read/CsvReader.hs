@@ -6,8 +6,10 @@ data, like the convert command.
 -}
 
 module Hledger.Read.CsvReader (
-       reader,
-       tests_Hledger_Read_CsvReader
+  CsvRules(..),
+  nullrules,
+  reader,
+  tests_Hledger_Read_CsvReader
 )
 where
 import Control.Monad
