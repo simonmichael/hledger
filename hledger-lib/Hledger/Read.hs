@@ -59,7 +59,7 @@ readers :: [Reader]
 readers = [
   JournalReader.reader
  ,TimelogReader.reader
- -- ,CsvReader.reader
+ ,CsvReader.reader
  ]
 
 -- | All the data formats we can read.
