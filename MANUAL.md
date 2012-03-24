@@ -4,11 +4,15 @@ title: hledger user manual
 
 # User manual
 
+Version: 0.18-unreleased
+
 ## Introduction
 
-hledger is a program for tracking money, time, or any other commodity,
-using a simple, editable file format and the powerful principles of
-double-entry accounting. It was inspired by [ledger](http://ledger-cli.org).
+[hledger](http://hledger.org) is a program for tracking money, time, or
+any other commodity, using a simple, editable file format and the powerful
+principles of double-entry accounting. It was inspired by
+[ledger](http://ledger-cli.org).  hledger is Free Software released under
+GPL version 3 or later.
 
 hledger's basic function is to read a plain text file describing (eg)
 financial transactions, and quickly generate useful reports via the
@@ -23,51 +27,40 @@ You can use it to, eg:
 - track time and report by day/week/month/project
 - get accurate numbers for client billing and tax filing
 
-hledger is copyright (c) 2007-2011
-[Simon&nbsp;Michael&nbsp;<simon@joyful.com>](mailto:simon@joyful.com) and
-contributors, and released as Free Software under GPL version 3 or later.
-
-This is the user manual and reference for hledger version 0.18-unreleased.
-
 ## Installing
 
-hledger works on linux, mac and windows. You can download and run current release
-binaries from the [download page](DOWNLOAD.html).
+hledger works on linux, mac and windows. You can fund ready-to-run
+binaries of the latest release - see the [download page](DOWNLOAD.html).
 
-Or, you can build the current release from source using cabal-install.
-Ensure you have [GHC](http://hackage.haskell.org/ghc/) (6.12.3 or greater)
-or the [Haskell Platform](http://hackage.haskell.org/platform/) installed,
+Otherwise, build the latest release from Hackage using cabal-install.
+Ensure you have [GHC](http://hackage.haskell.org/ghc/) (7.0 or greater) or
+the [Haskell Platform](http://hackage.haskell.org/platform/) installed,
 then:
 
     $ cabal update
     $ cabal install hledger
 
-or
+To also install the web interface (which can be a bit harder) do:
 
     $ cabal install hledger-web
 
-Or, you can build the latest [development version](DEVELOPMENT.html):
+To build the latest [development version](DEVELOPMENT.html) do:
 
     $ cabal update
     $ darcs get --lazy http://joyful.com/darcsden/simon/hledger
     $ cd hledger
-    $ make install
+    $ make install (or do cabal install inside hledger-lib/, hledger/ etc.)
 
-You can also (try to) install these unmaintained, platform-limited
-[add-on commands](#add-on-commands):
+Some add-on packages are available on Hackage:
+[hledger-vty](http://hackage.haskell.org/package/hledger-vty),
+[hledger-chart](http://hackage.haskell.org/package/hledger-chart),
+[hledger-interest](http://hackage.haskell.org/package/hledger-interest).
+These are without an active maintainer, and/or platform-specific, so installing them may be harder.
 
-    $ cabal install hledger-vty
-    $ cabal install hledger-chart
-    $ cabal install hledger-interest
+**Tips:**
 
-**Installation notes:**
-
-- When installing with cabal, dependency problems are common. These can often be worked around by making sure to cabal update, using --constraint, and/or ghc-pkg unregister-ing obsolete package versions.
+- When installing with cabal, dependency problems are common. The easy workarounds are: be sure to cabal update, use [virthualenv](http://hackage.haskell.org/package/virthualenv) (or [cabal-dev](http://hackage.haskell.org/package/cabal-dev)), or just [reset your packages](https://gist.github.com/1185421).
 - If you have non-ascii journal data, you may need to [set a suitable locale](#usage-issues)
-- hledger-web has three optional cabal build flags which you will usually want to leave alone:
-    - `production` (default:true) - Build fully optimised and with web files embedded (not loaded from ./static/)
-    - `threaded` (default:true) - Build with support for multithreaded execution
-    - `devel` (default:false) - Build for auto-recompiling by "yesod devel"
 - hledger-chart requires additional GTK-related libraries, see [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
 - hledger-vty requires curses-related libraries (ubuntu package: `libncurses5-dev`) and is not buildable on microsoft windows (except possibly via cygwin.)
 - If you have trouble, please see [Troubleshooting](#troubleshooting) and ask for [Support](DEVELOPMENT.html#support).
