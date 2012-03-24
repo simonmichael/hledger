@@ -1,6 +1,14 @@
 hledger project notes
 
 * backlog
+** replace convert with native csv reading
+*** get --rules-file working
+**** make readers use parse rules (or rules file path ?)
+*** replace convert with a backwards compatibility alias
+*** update docs
+*** generalise rules file
+**** make it applicable to all formats ?
+**** absorb its directives into journal format ?
 ** cleanup
 *** deprecate vty, chart in manual
 *** fix commit hook docs building
