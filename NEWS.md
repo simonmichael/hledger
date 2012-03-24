@@ -4,6 +4,15 @@ title: hledger news
 
 # News
 
+## (unreleased) hledger 0.18
+
+  * CSV is now treated as a native data format, and the convert command
+    has been dropped. Instead of `hledger convert FILE.csv`, do `hledger
+    -f FILE.csv print`.
+  * the [`Hledger.Read` API](http://hledger.org/api/Hledger-Read.html) has
+    been cleaned up.
+  * web: hledger-web is now based on yesod 0.10.
+
 ## 2012/3/3 hledger-web 0.17.1
 
   * set more upper bounds to fix cabal install issues with latest packages
