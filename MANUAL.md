@@ -113,8 +113,14 @@ enter some transactions.  Or, save this
     
 ## The journal file
 
-hledger reads data from a plain text file, called a *journal* because it
-represents a standard accounting
+hledger normally reads data from a plain text file in hledger journal
+format.  hledger can read some [other file formats](#other-file-formats)
+as well, but first we'll discuss hledger's journal format. Note this is
+compatible subset of
+[c++ ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
+so hledger can work with many c++ ledger journal files as well.
+
+The journal file is so called because it represents a standard accounting
 [general journal](http://en.wikipedia.org/wiki/General_journal).  It
 contains a number of transaction entries, each describing a transfer of
 money (or any commodity) between two or more named accounts, in a simple
@@ -125,6 +131,8 @@ the [add](#add) or [web](#web) commands. Many users, though, also edit the
 journal file directly with a text editor, perhaps assisted by the helper
 modes for emacs or vi. Note the file uses unix line endings on all
 platforms.
+
+
 
 hledger's file format aims to be [compatible](#file-format-compatibility)
 with c++ ledger, so you can use both tools on your journal.
@@ -438,111 +446,57 @@ Command-line alias options are applied after any alias directives in the
 journal.  At most one alias directive and one alias option will be applied
 to each account name.
 
-## Commands
+## Other file formats
 
-hledger provides a number of subcommands, in the style of git or darcs.
-Run `hledger` with no arguments to see a list.  Most are built in to the
-core hledger package, while [add-on commands](#add-on-commands) will
-appear if you install additional hledger-* packages. You can also install
-your own subcommands by putting programs or scripts named `hledger-NAME`
-in your PATH.
+In addition to the usual [journal files](#the-journal-file), hledger can
+read [timelog files](#timelog-reporting).  hledger 0.18 can also read
+[CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files natively
+(the old `convert` command is no longer needed.)
 
-### Misc commands
+An arbitrary CSV file does not provide enough information to be parsed as
+a journal. So when reading CSV, hledger first reads an additional file
+called the [rules file](#the-rules-file), which identifies the CSV fields
+and assigns accounts. For reading `FILE.csv`, hledger uses a rules file in
+the same directory called `FILE.rules`, auto-creating it if needed. You
+should configure the rules to best match your CSV file. You can specify a
+different rules file with `--rules-file` (useful when reading from
+standard input).
 
-Here are some miscellaneous commands you might use to get started:
+An example - sample.csv:
 
-#### add
+    sample.csv:
+    "2012/3/22","TRANSFER TO SAVINGS","-10.00"
+    "2012/3/23","SOMETHING ELSE","5.50"
 
-The add command prompts interactively for new transactions, and appends
-them to the journal file. Each transaction is appended when you complete
-it by entering `.` (period) at the account prompt.  Enter control-D or
-control-C when you are done.
-
-The add command tries to be helpful, providing:
-
-- Sensible defaults
-
-- History awareness: if there are existing transactions approximately
-  matching the description you enter, they will be displayed and the best
-  match will provide defaults for the other fields. If you specify
-  [filter pattern(s)](#filter-patterns) on the command line, only matching
-  transactions will be considered as history.
-
-- Readline-style input: during data entry, the usual editing keys should
-  work.
-
-- Auto-completion for account names: while entering account names, the tab
-  key will auto-complete as far as possible, or list the available
-  options.
-
-- Default commodity awareness: if the journal has a
-  [default commodity directive](#default-commodity), that will be applied
-  to any bare numbers entered.
-
-Examples:
-
-    $ hledger add
-    $ hledger -f home.journal add equity:bob
-
-#### convert
-
-The convert command reads a
-[CSV](http://en.wikipedia.org/wiki/Comma-separated_values) file - perhaps
-downloaded from your bank - and prints out the transactions in date-sorted
-hledger journal format. You can copy these into your journal (taking care
-to ignore old transactions that you added previously, if any). A temporary
-file may be helpful if the output is large. Eg:
-
-    $ hledger convert FILE.csv [>temp.journal]
-
-hledger convert looks for conversion hints in a rules file, named
-`FILE.rules` by default (or specify it with `--rules-file`).  This file
-will be auto-created if it does not exist. An empty rules file is valid,
-but you'll probably need to add at least a few
-[directives](#rules-file-directives) for a useful conversion.
-
-You can also convert standard input by specifying no CSV file, or `-`, in
-which case `--rules-file` is required.
-
-An example: here's a trimmed `wf.csv` file, downloaded from a Wells Fargo
-checking account:
-
-    "07/11/2011","-0.99","*","","CHECK CRD PURCHASE 07/09 APL*ITUNES"
-
-Here's a `wf.rules` file which identifes some fields by their zero-based
-position, sets a default account and currency symbol, and declares a
-couple of account-assigning rules:
+sample.rules:
 
     date-field 0
-    amount-field 1
-    description-field 4
+    description-field 1
+    amount-field 2
+    currency $
     base-account assets:bank:checking
-    base-currency $
 
-    ; the rest of the file is account-assigning rules
-
-    ; if description contains ITUNES, use transfer account expenses:entertainment
-    ITUNES
-    expenses:entertainment
-    
-    ; if description contains TO SAVINGS or FROM SAVINGS, use transfer account assets:bank:savings
-    (TO|FROM) SAVINGS
+    SAVINGS
     assets:bank:savings
 
-And here's the result:
+the resulting journal:
 
-    $ hledger convert wf.csv
-    using conversion rules file wf.rules
-    2011/07/11 CHECK CRD PURCHASE 07/09 APL*ITUNES
-        expenses:entertainment         $0.99
-        assets:bank:checking          $-0.99
+    $ hledger -f sample.csv print
+    using conversion rules file sample.rules
+    2012/03/22 TRANSFER TO SAVINGS
+        assets:bank:savings         $10.00
+        assets:bank:checking       $-10.00
 
+    2012/03/23 SOMETHING ELSE
+        income:unknown              $-5.50
+        assets:bank:checking         $5.50
 
-##### rules file directives
+### The rules file
 
-Directives should appear at the beginning of the rules file, before any
-account-assigning rules. (Note directive parse errors may not be reported
-clearly, so check them for typos if you're getting unexpected results.)
+A rules file consists of the following optional directives, followed by
+account-assigning rules.  (Tip: rules file parse errors are not the
+greatest, so check your rules file format if you're getting unexpected
+results.)
 
 `account-field`
 
@@ -626,11 +580,9 @@ clearly, so check them for typos if you're getting unexpected results.)
 
 > Which field contains the transaction cleared status (`*`).
 
-##### account-assigning rules
-
-The rest of the file is account-assigning rules, which select a transfer
-account based on the transaction's description (unless `account2-field` is
-used.) Each of these is a paragraph consisting of one or more
+Account-assigning rules select an account to transfer to based on the
+description field (unless `account2-field` is used.) Each
+account-assigning rule is a paragraph consisting of one or more
 case-insensitive regular expressions), one per line, followed by the
 account name to use when the transaction's description matches any of
 these patterns. Eg:
@@ -647,11 +599,55 @@ groups in the usual way with `\0` etc. Eg:
     BLKBSTR=BLOCKBUSTER
     expenses:entertainment
 
-##### comment lines
-
 Lines beginning with `;` or `#` are ignored - just don't use them in the
 middle of an account-assigning rule.
 
+
+## Commands
+
+hledger provides a number of subcommands, in the style of git or darcs.
+Run `hledger` with no arguments to see a list.  Most are built in to the
+core hledger package, while [add-on commands](#add-on-commands) will
+appear if you install additional hledger-* packages. You can also install
+your own subcommands by putting programs or scripts named `hledger-NAME`
+in your PATH.
+
+### Misc commands
+
+Here are some miscellaneous commands you might use to get started:
+
+#### add
+
+The add command prompts interactively for new transactions, and appends
+them to the journal file. Each transaction is appended when you complete
+it by entering `.` (period) at the account prompt.  Enter control-D or
+control-C when you are done.
+
+The add command tries to be helpful, providing:
+
+- Sensible defaults
+
+- History awareness: if there are existing transactions approximately
+  matching the description you enter, they will be displayed and the best
+  match will provide defaults for the other fields. If you specify
+  [filter pattern(s)](#filter-patterns) on the command line, only matching
+  transactions will be considered as history.
+
+- Readline-style input: during data entry, the usual editing keys should
+  work.
+
+- Auto-completion for account names: while entering account names, the tab
+  key will auto-complete as far as possible, or list the available
+  options.
+
+- Default commodity awareness: if the journal has a
+  [default commodity directive](#default-commodity), that will be applied
+  to any bare numbers entered.
+
+Examples:
+
+    $ hledger add
+    $ hledger -f home.journal add equity:bob
 
 #### test
 
