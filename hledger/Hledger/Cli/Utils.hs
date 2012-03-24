@@ -48,7 +48,7 @@ withJournalDo opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  journalFilePathFromOpts opts >>= readJournalFile Nothing Nothing >>=
+  journalFilePathFromOpts opts >>= readJournalFile Nothing (rulesFilePathFromOpts opts) >>=
     either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts))
 
 -- -- | Get a journal from the given string and options, or throw an error.

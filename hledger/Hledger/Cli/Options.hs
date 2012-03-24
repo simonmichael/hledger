@@ -124,7 +124,7 @@ generalflags3 = helpflags
 
 fileflags = [
   flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different journal file; - means stdin"
- ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "FILE" "conversion rules file for CSV (default: FILE.rules)"
+ ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RULESFILE" "conversion rules for CSV (default: FILE.rules)"
  ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "ACCT=ALIAS" "display ACCT's name as ALIAS in reports"
  ]
 
@@ -465,6 +465,16 @@ journalFilePathFromOpts opts = do
   if '~' `elem` f'
    then error' $ printf "~ in the journal file path is not supported, please adjust (%s)" f'
    else return f'
+
+-- | Get the rules file path from options, if any.
+-- If the path contains a literal tilde raise an error to avoid confusion. XXX
+rulesFilePathFromOpts :: CliOpts -> Maybe FilePath
+rulesFilePathFromOpts opts =
+  case rules_file_ opts of
+    Nothing -> Nothing
+    Just f -> if '~' `elem` f
+               then error' $ printf "~ in file paths is not supported, please adjust (%s)" f
+               else Just f
 
 aliasesFromOpts :: CliOpts -> [(AccountName,AccountName)]
 aliasesFromOpts = map parseAlias . alias_
