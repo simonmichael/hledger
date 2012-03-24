@@ -25,6 +25,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           )
 where
 import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
+import Control.Monad.Error
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -32,6 +33,8 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Tree
 import Debug.Trace
+import System.Directory (getHomeDirectory)
+import System.FilePath(takeDirectory,combine)
 import System.Info (os)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
@@ -425,3 +428,13 @@ isRight = not . isLeft
 -- | Apply a function the specified number of times. Possibly uses O(n) stack ?
 applyN :: Int -> (a -> a) -> a -> a
 applyN n f = (!! n) . iterate f
+
+-- | Convert a possibly relative, possibly tilde-containing file path to an absolute one.
+-- using the current directory from a parsec source position. ~username is not supported.
+expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
+expandPath pos fp = liftM mkAbsolute (expandHome fp)
+  where
+    mkAbsolute = combine (takeDirectory (sourceName pos))
+    expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
+                                                      return $ homedir ++ drop 1 inname
+                      | otherwise                = return inname

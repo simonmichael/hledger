@@ -1,119 +1,36 @@
+{-# LANGUAGE RecordWildCards #-}
 {-|
 
-A reader for hledger's (and c++ ledger's) journal file format.
-
-From the ledger 2.5 manual:
+A reader for hledger's journal file format
+(<http://hledger.org/MANUAL.html#the-journal-file>).  hledger's journal
+format is a compatible subset of c++ ledger's
+(<http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format>), so this
+reader should handle many ledger files as well. Example:
 
 @
-The ledger file format is quite simple, but also very flexible. It supports
-many options, though typically the user can ignore most of them. They are
-summarized below.  The initial character of each line determines what the
-line means, and how it should be interpreted. Allowable initial characters
-are:
-
-NUMBER      A line beginning with a number denotes an entry. It may be followed by any
-            number of lines, each beginning with whitespace, to denote the entry’s account
-            transactions. The format of the first line is:
-
-                    DATE[=EDATE] [*|!] [(CODE)] DESC
-
-            If ‘*’ appears after the date (with optional eﬀective date), it indicates the entry
-            is “cleared”, which can mean whatever the user wants it t omean. If ‘!’ appears
-            after the date, it indicates d the entry is “pending”; i.e., tentatively cleared from
-            the user’s point of view, but not yet actually cleared. If a ‘CODE’ appears in
-            parentheses, it may be used to indicate a check number, or the type of the
-            transaction. Following these is the payee, or a description of the transaction.
-            The format of each following transaction is:
-
-                      ACCOUNT     AMOUNT    [; NOTE]
-
-            The ‘ACCOUNT’ may be surrounded by parentheses if it is a virtual
-            transactions, or square brackets if it is a virtual transactions that must
-            balance. The ‘AMOUNT’ can be followed by a per-unit transaction cost,
-            by specifying ‘ AMOUNT’, or a complete transaction cost with ‘\@ AMOUNT’.
-            Lastly, the ‘NOTE’ may specify an actual and/or eﬀective date for the
-            transaction by using the syntax ‘[ACTUAL_DATE]’ or ‘[=EFFECTIVE_DATE]’ or
-            ‘[ACTUAL_DATE=EFFECtIVE_DATE]’.
-
-=           An automated entry. A value expression must appear after the equal sign.
-            After this initial line there should be a set of one or more transactions, just as
-            if it were normal entry. If the amounts of the transactions have no commodity,
-            they will be applied as modifiers to whichever real transaction is matched by
-            the value expression.
- 
-~           A period entry. A period expression must appear after the tilde.
-            After this initial line there should be a set of one or more transactions, just as
-            if it were normal entry.
-
-!           A line beginning with an exclamation mark denotes a command directive. It
-            must be immediately followed by the command word. The supported commands
-            are:
-
-           ‘!include’
-                        Include the stated ledger file.
-           ‘!account’
-                        The account name is given is taken to be the parent of all transac-
-                        tions that follow, until ‘!end’ is seen.
-           ‘!end’       Ends an account block.
- 
-;          A line beginning with a colon indicates a comment, and is ignored.
- 
-Y          If a line begins with a capital Y, it denotes the year used for all subsequent
-           entries that give a date without a year. The year should appear immediately
-           after the Y, for example: ‘Y2004’. This is useful at the beginning of a file, to
-           specify the year for that file. If all entries specify a year, however, this command
-           has no eﬀect.
-           
- 
-P          Specifies a historical price for a commodity. These are usually found in a pricing
-           history file (see the ‘-Q’ option). The syntax is:
-
-                  P DATE SYMBOL PRICE
-
-N SYMBOL   Indicates that pricing information is to be ignored for a given symbol, nor will
-           quotes ever be downloaded for that symbol. Useful with a home currency, such
-           as the dollar ($). It is recommended that these pricing options be set in the price
-           database file, which defaults to ‘~/.pricedb’. The syntax for this command is:
-
-                  N SYMBOL
-
-        
-D AMOUNT   Specifies the default commodity to use, by specifying an amount in the expected
-           format. The entry command will use this commodity as the default when none
-           other can be determined. This command may be used multiple times, to set
-           the default flags for diﬀerent commodities; whichever is seen last is used as the
-           default commodity. For example, to set US dollars as the default commodity,
-           while also setting the thousands flag and decimal flag for that commodity, use:
-
-                  D $1,000.00
-
-C AMOUNT1 = AMOUNT2
-           Specifies a commodity conversion, where the first amount is given to be equiv-
-           alent to the second amount. The first amount should use the decimal precision
-           desired during reporting:
-
-                  C 1.00 Kb = 1024 bytes
-
-i, o, b, h
-           These four relate to timeclock support, which permits ledger to read timelog
-           files. See the timeclock’s documentation for more info on the syntax of its
-           timelog files.
+2012\/3\/24 gift
+    expenses:gifts  $10
+    assets:cash
 @
 
 -}
 
 module Hledger.Read.JournalReader (
-       emptyLine,
-       journalAddFile,
-       journalFile,
-       ledgeraccountname,
-       ledgerdatetime,
-       ledgerDefaultYear,
-       ledgerDirective,
-       ledgerHistoricalPrice,
-       reader,
-       someamount,
-       tests_Hledger_Read_JournalReader
+  -- * Reader
+  reader,
+  -- * Parsers used elsewhere
+  emptyLine,
+  journalFile,
+  ledgeraccountname,
+  ledgerdatetime,
+  ledgerDefaultYear,
+  ledgerDirective,
+  ledgerHistoricalPrice,
+  someamount,
+  parseJournalWith,
+  getParentAccount,
+  -- * Tests
+  tests_Hledger_Read_JournalReader
 )
 where
 import Control.Monad
@@ -131,9 +48,10 @@ import Safe (headDef)
 import Test.HUnit
 import Text.ParserCombinators.Parsec hiding (parse)
 import Text.Printf
+import System.FilePath
+import System.Time (getClockTime)
 
 import Hledger.Data
-import Hledger.Read.Utils
 import Hledger.Utils
 import Prelude hiding (readFile)
 import Hledger.Utils.UTF8 (readFile)
@@ -149,12 +67,69 @@ format = "journal"
 
 -- | Does the given file path and data provide hledger's journal file format ?
 detect :: FilePath -> String -> Bool
-detect f _ = fileSuffix f == format
+detect f _ = takeExtension f == format
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
-parse :: Maybe ParseRules -> FilePath -> String -> ErrorT String IO Journal
+parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
 parse _ = parseJournalWith journalFile
+
+-- parsing utils
+
+-- | Flatten a list of JournalUpdate's into a single equivalent one.
+combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
+combineJournalUpdates us = liftM (foldr (.) id) $ sequence us
+
+-- | Given a JournalUpdate-generating parsec parser, file path and data string,
+-- parse and post-process a Journal so that it's ready to use, or give an error.
+parseJournalWith :: (GenParser Char JournalContext (JournalUpdate,JournalContext)) -> FilePath -> String -> ErrorT String IO Journal
+parseJournalWith p f s = do
+  tc <- liftIO getClockTime
+  tl <- liftIO getCurrentLocalTime
+  y <- liftIO getCurrentYear
+  case runParser p nullctx{ctxYear=Just y} f s of
+    Right (updates,ctx) -> do
+                           j <- updates `ap` return nulljournal
+                           case journalFinalise tc tl f s ctx j of
+                             Right j'  -> return j'
+                             Left estr -> throwError estr
+    Left e -> throwError $ show e
+
+setYear :: Integer -> GenParser tok JournalContext ()
+setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
+
+getYear :: GenParser tok JournalContext (Maybe Integer)
+getYear = liftM ctxYear getState
+
+setCommodity :: Commodity -> GenParser tok JournalContext ()
+setCommodity c = updateState (\ctx -> ctx{ctxCommodity=Just c})
+
+getCommodity :: GenParser tok JournalContext (Maybe Commodity)
+getCommodity = liftM ctxCommodity getState
+
+pushParentAccount :: String -> GenParser tok JournalContext ()
+pushParentAccount parent = updateState addParentAccount
+    where addParentAccount ctx0 = ctx0 { ctxAccount = parent : ctxAccount ctx0 }
+
+popParentAccount :: GenParser tok JournalContext ()
+popParentAccount = do ctx0 <- getState
+                      case ctxAccount ctx0 of
+                        [] -> unexpected "End of account block with no beginning"
+                        (_:rest) -> setState $ ctx0 { ctxAccount = rest }
+
+getParentAccount :: GenParser tok JournalContext String
+getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) getState
+
+addAccountAlias :: (AccountName,AccountName) -> GenParser tok JournalContext ()
+addAccountAlias a = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
+
+getAccountAliases :: GenParser tok JournalContext [(AccountName,AccountName)]
+getAccountAliases = liftM ctxAliases getState
+
+clearAccountAliases :: GenParser tok JournalContext ()
+clearAccountAliases = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
+
+--
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
@@ -164,7 +139,7 @@ journalFile = do
   journalupdates <- many journalItem
   eof
   finalctx <- getState
-  return $ (juSequence journalupdates, finalctx)
+  return $ (combineJournalUpdates journalupdates, finalctx)
     where 
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
@@ -228,7 +203,7 @@ ledgerInclude = do
               txt <- readFileOrError outerPos filepath
               let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
               case runParser journalFile outerState filepath txt of
-                Right (ju,_) -> juSequence [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
+                Right (ju,_) -> combineJournalUpdates [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
                 Left err     -> throwError $ inIncluded ++ show err
       where readFileOrError pos fp =
                 ErrorT $ liftM Right (readFile fp) `catch`

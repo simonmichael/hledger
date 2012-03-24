@@ -1,71 +1,79 @@
 {-|
 
-A reader for CSV files. Uses optional extra rules to help interpret the
-data, like the convert command.
+A reader for the CSV data format. Uses an extra rules file
+(<http://hledger.org/MANUAL.html#rules-file-directives>) to help interpret
+the data. Example:
+
+@
+\"2012\/3\/22\",\"something\",\"10.00\"
+\"2012\/3\/23\",\"another\",\"5.50\"
+@
+
+and rules file:
+
+@
+date-field 0
+description-field 1
+amount-field 2
+base-account assets:bank:checking
+
+SAVINGS
+assets:bank:savings
+@
 
 -}
 
 module Hledger.Read.CsvReader (
-  CsvRules(..),
-  nullrules,
+  -- * Reader
   reader,
+  -- * Tests
   tests_Hledger_Read_CsvReader
 )
 where
 import Control.Monad
 import Control.Monad.Error
-import Test.HUnit
--- import Text.ParserCombinators.Parsec hiding (parse)
+-- import Test.HUnit
 import Data.List
 import Data.Maybe
 import Data.Ord
 import Data.Time.Format (parseTime)
 import Safe
 import System.Directory (doesFileExist)
-import System.Exit (exitFailure)
-import System.FilePath (takeBaseName, replaceExtension)
+import System.FilePath
 import System.IO (stderr)
 import System.Locale (defaultTimeLocale)
 import Test.HUnit
-import Text.CSV (parseCSV, parseCSVFromFile, CSV)
-import Text.ParserCombinators.Parsec
+import Text.CSV (parseCSV, CSV)
+import Text.ParserCombinators.Parsec hiding (parse)
+import Text.ParserCombinators.Parsec.Error
+import Text.ParserCombinators.Parsec.Pos
 import Text.Printf (hPrintf)
 
 import Hledger.Data
-import Hledger.Read.Utils
 import Prelude hiding (getContents)
 import Hledger.Utils.UTF8 (getContents)
 import Hledger.Utils
 import Hledger.Data.FormatStrings as FormatStrings
 import Hledger.Read.JournalReader (ledgeraccountname, someamount)
--- import Hledger.Read.JournalReader (ledgerDirective, ledgerHistoricalPrice,
---                                    ledgerDefaultYear, emptyLine, ledgerdatetime)
+
 
 reader :: Reader
-reader = Reader format detect parse_
+reader = Reader format detect parse
 
 format :: String
 format = "csv"
 
 -- | Does the given file path and data look like CSV ?
 detect :: FilePath -> String -> Bool
-detect f _ = fileSuffix f == format
+detect f _ = takeExtension f == format
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
-parse_ :: Maybe ParseRules -> FilePath -> String -> ErrorT String IO Journal
-parse_ rules f s = do
-  r <- liftIO $ journalFromCsv rules f s
+parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
+parse rulesfile f s = do
+  r <- liftIO $ readJournalFromCsv rulesfile f s
   case r of Left e -> throwError e
             Right j -> return j
-
--- csvFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
--- csvFile = do items <- many timelogItem
---              eof
---              ctx <- getState
---              return (liftM (foldr (.) id) $ sequence items, ctx)
-
-
 
 nullrules = CsvRules {
       dateField=Nothing,
@@ -88,32 +96,32 @@ nullrules = CsvRules {
 type CsvRecord = [String]
 
 
--- | Read the CSV file named as an argument and print equivalent journal transactions,
--- using/creating a .rules file.
-journalFromCsv :: Maybe CsvRules -> FilePath -> String -> IO (Either String Journal)
-journalFromCsv csvrules csvfile content = do
+-- | Read a Journal or an error message from the given CSV data (and
+-- filename, used for error messages.)  To do this we read a CSV
+-- conversion rules file, or auto-create a default one if it does not
+-- exist.  The rules filename may be specified, otherwise it will be
+-- derived from the CSV filename (unless the filename is - in which case
+-- an error will be raised.)
+readJournalFromCsv :: Maybe FilePath -> FilePath -> String -> IO (Either String Journal)
+readJournalFromCsv rulesfile csvfile csvdata = do
   let usingStdin = csvfile == "-"
-      -- rulesFileSpecified = isJust $ rules_file_ opts
-  -- when (usingStdin && (not rulesFileSpecified)) $ error' "please use --rules-file to specify a rules file when converting stdin"
-  csvparse <- parseCsv csvfile content
+      rulesfile' = case rulesfile of
+          Just f -> f
+          Nothing -> if usingStdin
+                      then error' "please use --rules-file to specify a rules file when converting stdin"
+                      else rulesFileFor csvfile
+  created <- ensureRulesFileExists rulesfile'
+  if created
+   then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile'
+   else hPrintf stderr "using conversion rules file %s\n" rulesfile'
+  rules <- liftM (either (error'.show) id) $ parseCsvRulesFile rulesfile'
+
+
+  csvparse <- parseCsv csvfile csvdata
   let records = case csvparse of
                   Left e -> error' $ show e
                   Right rs -> filter (/= [""]) rs
-  rules <- case csvrules of
-    Nothing -> do
-      let rulesfile = rulesFileFor csvfile
-      exists <- doesFileExist rulesfile
-      if (not exists)
-       then do
-        hPrintf stderr "creating conversion rules file %s, edit this file for better results\n" rulesfile
-        writeFile rulesfile initialRulesFileContent
-       else
-        hPrintf stderr "using conversion rules file %s\n" rulesfile
-      liftM (either (error'.show) id) $ parseCsvRulesFile rulesfile
-    Just r -> return r
-  let invalid = validateRules rules
-  -- when (debug_ opts) $ hPrintf stderr "rules: %s\n" (show rules)
-  when (isJust invalid) $ error (fromJust invalid)
+
   let requiredfields = max 2 (maxFieldIndex rules + 1)
       badrecords = take 1 $ filter ((< requiredfields).length) records
   if null badrecords
@@ -127,11 +135,24 @@ journalFromCsv csvrules csvfile content = do
                      , show $ head badrecords
                      ])
 
+-- | Ensure there is a conversion rules file at the given path, creating a
+-- default one if needed and returning True in this case.
+ensureRulesFileExists :: FilePath -> IO Bool
+ensureRulesFileExists f = do
+  exists <- doesFileExist f
+  if exists
+   then return False
+   else do
+     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
+     -- we currently require unix line endings on all platforms.
+     writeFile f newRulesFileContent
+     return True
+
 parseCsv :: FilePath -> String -> IO (Either ParseError CSV)
-parseCsv path content =
+parseCsv path csvdata =
   case path of
     "-" -> liftM (parseCSV "(stdin)") getContents
-    _   -> return $ parseCSV path content
+    _   -> return $ parseCSV path csvdata
 
 -- | The highest (0-based) field index referenced in the field
 -- definitions, or -1 if no fields are defined.
@@ -155,8 +176,8 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
 rulesFileFor :: FilePath -> FilePath
 rulesFileFor = flip replaceExtension ".rules"
 
-initialRulesFileContent :: String
-initialRulesFileContent = let prognameandversion = "hledger" in
+newRulesFileContent :: String
+newRulesFileContent = let prognameandversion = "hledger" in
     "# csv conversion rules file generated by " ++ prognameandversion ++ "\n" ++
     "# Add rules to this file for more accurate conversion, see\n"++
     "# http://hledger.org/MANUAL.html#convert\n" ++
@@ -179,25 +200,19 @@ initialRulesFileContent = let prognameandversion = "hledger" in
     "(TO|FROM) SAVINGS\n" ++
     "assets:bank:savings\n"
 
-validateRules :: CsvRules -> Maybe String
-validateRules rules = let
-    hasAmount = isJust $ amountField rules
-    hasIn = isJust $ amountInField rules
-    hasOut = isJust $ amountOutField rules
-  in case (hasAmount, hasIn, hasOut) of
-    (True, True, _) -> Just "Don't specify amount-in-field when specifying amount-field"
-    (True, _, True) -> Just "Don't specify amount-out-field when specifying amount-field"
-    (_, False, True) -> Just "Please specify amount-in-field when specifying amount-out-field"
-    (_, True, False) -> Just "Please specify amount-out-field when specifying amount-in-field"
-    (False, False, False) -> Just "Please specify either amount-field, or amount-in-field and amount-out-field"
-    _ -> Nothing
-
 -- rules file parser
 
 parseCsvRulesFile :: FilePath -> IO (Either ParseError CsvRules)
 parseCsvRulesFile f = do
   s <- readFile f
-  return $ parseCsvRules f s
+  let rules = parseCsvRules f s
+  return $ case rules of
+             Left e -> Left e
+             Right r -> case validateRules r of
+                          Left e -> Left $ toParseError e
+                          Right r -> Right r
+  where
+    toParseError s = newErrorMessage (Message s) (initialPos "")
 
 parseCsvRules :: FilePath -> String -> Either ParseError CsvRules
 parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
@@ -339,8 +354,6 @@ accountrule = do
   return (pats',acct)
  <?> "account rule"
 
-blanklines = many1 blankline
-
 blankline = many spacenonewline >> newline >> return () <?> "blank line"
 
 commentchar = oneOf ";#"
@@ -355,6 +368,19 @@ matchreplacepattern = do
   replpat <- optionMaybe $ do {char '='; many $ noneOf "\n"}
   newline
   return (matchpat,replpat)
+
+validateRules :: CsvRules -> Either String CsvRules
+validateRules rules =
+ let hasAmount = isJust $ amountField rules
+     hasIn = isJust $ amountInField rules
+     hasOut = isJust $ amountOutField rules
+ in case (hasAmount, hasIn, hasOut) of
+    (True, True, _) -> Left "Don't specify amount-in-field when specifying amount-field"
+    (True, _, True) -> Left "Don't specify amount-out-field when specifying amount-field"
+    (_, False, True) -> Left "Please specify amount-in-field when specifying amount-out-field"
+    (_, True, False) -> Left "Please specify amount-out-field when specifying amount-in-field"
+    (False, False, False) -> Left "Please specify either amount-field, or amount-in-field and amount-out-field"
+    _ -> Right rules
 
 -- csv record conversion
 formatD :: CsvRecord -> Bool -> Maybe Int -> Maybe Int -> HledgerFormatField -> String
@@ -482,8 +508,6 @@ identify rules defacct desc | null matchingrules = (defacct,desc)
       (p,_,r) = head p_ms_r
       newdesc = case r of Just repl -> regexReplaceCI p repl desc
                           Nothing   -> desc
-
-caseinsensitive = ("(?i)"++)
 
 getAmount :: CsvRules -> CsvRecord -> String
 getAmount rules fields = case amountField rules of

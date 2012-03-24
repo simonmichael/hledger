@@ -183,8 +183,8 @@ data Reader = Reader {
      rFormat   :: Format
      -- quickly check if this reader can probably handle the given file path and file content
     ,rDetector :: FilePath -> String -> Bool
-     -- parse the given string, using the given parsing rules if any, returning a journal or error aware of the given file path
-    ,rParser   :: Maybe ParseRules -> FilePath -> String -> ErrorT String IO Journal
+     -- parse the given string, using the given parse rules file if any, returning a journal or error aware of the given file path
+    ,rParser   :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
     }
 
 -- data format parse/conversion rules

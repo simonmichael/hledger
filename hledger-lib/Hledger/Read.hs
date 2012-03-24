@@ -1,21 +1,21 @@
 {-| 
 
 This is the entry point to hledger's reading system, which can read
-Journals from various data formats. Use this module if you want to
-parse journal data or read journal files; it should not be necessary
+Journals from various data formats. Use this module if you want to parse
+journal data or read journal files. Generally it should not be necessary
 to import modules below this one.
 
 -}
 
 module Hledger.Read (
-       -- * Journal reading utilities
+       -- * Journal reading API
        defaultJournalPath,
        defaultJournal,
        readJournal,
        readJournalFile,
        requireJournalFileExists,
        ensureJournalFileExists,
-       -- * Temporary parser exports for Convert
+       -- * Parsers used elsewhere
        ledgeraccountname,
        someamount,
        -- * Tests
@@ -89,12 +89,12 @@ readerForFormat s | null rs = Nothing
     where 
       rs = filter ((s==).rFormat) readers :: [Reader]
 
--- | Read a Journal from this string or give an error message, using
--- the specified data format or trying all known formats. CSV
--- conversion rules may be provided for better conversion of that
--- format, and/or a file path for better error messages.
-readJournal :: Maybe Format -> Maybe ParseRules -> Maybe FilePath -> String -> IO (Either String Journal)
-readJournal format rules path s =
+-- | Read a Journal from this string or give an error message, using the
+-- specified data format or trying all known formats. A CSV conversion
+-- rules file may be specified for better conversion of that format,
+-- and/or a file path for better error messages.
+readJournal :: Maybe Format -> Maybe FilePath -> Maybe FilePath -> String -> IO (Either String Journal)
+readJournal format rulesfile path s =
   let readerstotry = case format of Nothing -> readers
                                     Just f -> case readerForFormat f of Just r -> [r]
                                                                         Nothing -> []
@@ -103,7 +103,7 @@ readJournal format rules path s =
     path' = fromMaybe "(string)" path
     tryReader :: Reader -> IO (Either String Journal)
     tryReader r = do -- printf "trying %s reader\n" (rFormat r)
-                     (runErrorT . (rParser r) rules path') s
+                     (runErrorT . (rParser r) rulesfile path') s
 
     -- if no reader succeeds, we return the error of the first;
     -- ideally it would be the error of the most likely intended
@@ -136,15 +136,15 @@ readJournal format rules path s =
     --                       Nothing -> ""
     --                       Just p -> " in "++p
 
--- | Read a Journal from this file (or stdin if the filename is -) or
--- give an error message, using the specified data format or trying
--- all known formats. CSV conversion rules may be provided for better
+-- | Read a Journal from this file (or stdin if the filename is -) or give
+-- an error message, using the specified data format or trying all known
+-- formats. A CSV conversion rules file may be specified for better
 -- conversion of that format.
-readJournalFile :: Maybe Format -> Maybe CsvReader.CsvRules -> FilePath -> IO (Either String Journal)
-readJournalFile format rules "-" = getContents >>= readJournal format rules (Just "(stdin)")
-readJournalFile format rules f = do
+readJournalFile :: Maybe Format -> Maybe FilePath -> FilePath -> IO (Either String Journal)
+readJournalFile format rulesfile "-" = getContents >>= readJournal format rulesfile (Just "(stdin)")
+readJournalFile format rulesfile f = do
   requireJournalFileExists f
-  withFile f ReadMode $ \h -> hGetContents h >>= readJournal format rules (Just f)
+  withFile f ReadMode $ \h -> hGetContents h >>= readJournal format rulesfile (Just f)
 
 -- | If the specified journal file does not exist, give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
