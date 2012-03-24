@@ -6,7 +6,7 @@ title: hledger news
 
 ## (unreleased) hledger 0.18
 
-  * CSV is now treated as a native data format, and the convert command
+  * CSV is now handled as a native data format, and the convert command
     has been dropped. Instead of `hledger convert FILE.csv`, do `hledger
     -f FILE.csv print`.
   * the [`Hledger.Read` API](http://hledger.org/api/Hledger-Read.html) has

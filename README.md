@@ -20,7 +20,7 @@ suited to techies. I use it every day to:
 -   track invoices
 
 hledger is first a command-line tool, but also provides a web interface
-(try the [demo](http://demo.hledger.org)). Read the [docs](MANUAL.html) to
+(try the [demo](http://demo.hledger.org)). Read the [manual](MANUAL.html) to
 learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
@@ -28,7 +28,7 @@ and get started tracking your numbers!
 <a href="https://www.wepay.com/donate/74643?ref=widget&utm_medium=widget&utm_campaign=donation"
    target="_blank" style="float:right; margin:0 1em;"
    ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
-For support and more technical info, see [development](DEVELOPMENT.html)
+For support and more technical info, see the [contributor guide](DEVELOPMENT.html)
 or [email me](mailto:simon@joyful.com?subject=hledger:). I appreciate
-feedback on and help with all aspects of hledger. Please give it a try and
+feedback and help with all aspects of hledger. Please give it a try and
 let me know how we're doing. Best -Simon

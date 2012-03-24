@@ -1,13 +1,8 @@
 ---
-title: hledger contributors' guide
+title: hledger contributor guide
 ---
 
-# Contributors' guide
-
-Quick links for everyone, plus a rough guide mostly for hledger
-contributors and developers.
-
-<a name="support" />
+# Contributor guide
 
 ## Quick links
 

@@ -451,13 +451,12 @@ read [timelog files](#timelog-reporting).  hledger 0.18 can also read
 (the old `convert` command is no longer needed.)
 
 An arbitrary CSV file does not provide enough information to be parsed as
-a journal. So when reading CSV, hledger first reads an additional file
-called the [rules file](#the-rules-file), which identifies the CSV fields
-and assigns accounts. For reading `FILE.csv`, hledger uses a rules file in
-the same directory called `FILE.rules`, auto-creating it if needed. You
-should configure the rules to best match your CSV file. You can specify a
-different rules file with `--rules-file` (useful when reading from
-standard input).
+a journal. So when reading CSV, hledger looks for an additional
+[rules file](#the-rules-file), which identifies the CSV fields and assigns
+accounts. For reading `FILE.csv`, hledger uses `FILE.rules` in the same
+directory, auto-creating it if needed. You should configure the rules file
+to get the best data from your CSV file. You can specify a different rules
+file with `--rules-file` (useful when reading from standard input).
 
 An example - sample.csv:
 
@@ -648,10 +647,10 @@ Examples:
 
 #### test
 
-This command runs hledger's internal self-tests and displays a quick
-report. The -v option shows more detail, and a pattern can be provided to
-filter tests by name. It's mainly used in development, but it's also nice
-to be able to test for smoke at any time.
+This command runs hledger's built-in unit tests and displays a quick
+report. A pattern can be provided to filter tests by name. It's mainly
+used in development, but it's also nice to be able to check hledger for
+smoke at any time.
 
 Examples:
 
@@ -754,12 +753,68 @@ Examples:
 The following extra commands will be available if they have been
 [installed](#installing) (run `hledger` by itself to find out):
 
+#### web
+
+The web command (provided by the hledger-web package) runs a web
+server providing a web-based user interface
+([release demo](http://demo.hledger.org),
+[latest demo](http://demo.hledger.org:5001)).  The web UI provides
+reporting, including a more useful account register view, and also data
+entry and editing.
+
+web-specific options:
+
+    --port=N           serve on tcp port N (default 5000)
+    --base-url=URL     use this base url (default http://localhost:PORT)
+
+If you want to visit the web UI from other machines, you'll need to use
+this option to fix the hyperlinks. Just give your machine's host name or
+ip address instead of localhost. This option is also lets you conform to a
+custom url scheme when running hledger-web behind a reverse proxy as part
+of a larger site. Note that the PORT in the base url need not be the same
+as the `--port` argument.
+
+Warning: unlike other hledger commands, `web` can alter existing journal
+data, via the edit form.  A numbered backup of the file will be saved on
+each edit, normally (ie if file permissions allow, disk is not full, etc.)
+Also, there is no built-in access control. So unless you run it behind an
+authenticating proxy, any visitor to your server will be able to see and
+overwrite the journal file (and included files.)
+
+hledger-web disallows edits which would leave the journal file not in
+valid [journal format](#the-journal-file). If the file becomes unparseable
+by other means, hledger-web will show an error until the file has been
+fixed.
+
+Examples:
+
+    $ hledger-web
+    $ hledger-web -E -B --depth 2 -f some.journal
+    $ hledger-web --port 5010 --base-url http://some.vhost.com --debug
+
+#### vty
+
+The vty command (provided by the hledger-vty package) starts a simple
+curses-style (full-screen, text) user interface, which allows interactive
+navigation of the print/register/balance reports. This lets you browse
+around and explore your numbers quickly with less typing.
+
+vty-specific options:
+
+    --debug-vty  run with no terminal output, showing console
+
+Examples:
+
+    $ hledger vty
+    $ hledger vty -BE food
+
 #### chart
 
-The chart command saves an image file, by default "hledger.png", showing a
-basic pie chart of your top account balances. Note that positive and
-negative balances will not be displayed together in the same chart; any
-balances not matching the sign of the first one will be ignored.
+The chart command (provided by the hledger-chart package) saves an image
+file, by default "hledger.png", showing a basic pie chart of your top
+account balances. Note that positive and negative balances will not be
+displayed together in the same chart; any balances not matching the sign
+of the first one will be ignored.
 
 chart-specific options:
 
@@ -787,61 +842,6 @@ Examples:
     $ hledger chart liabilities --depth 2
     $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
-
-#### vty
-
-The vty command starts a simple curses-style (full-screen, text) user
-interface, which allows interactive navigation of the
-print/register/balance reports. This lets you browse around and explore
-your numbers quickly with less typing.
-
-vty-specific options:
-
-    --debug-vty  run with no terminal output, showing console
-
-Examples:
-
-    $ hledger vty
-    $ hledger vty -BE food
-
-#### web
-
-The web command (an add-on provided by the hledger-web package) runs a web
-server providing a web-based user interface
-([release demo](http://demo.hledger.org),
-[latest demo](http://demo.hledger.org:5001)).  The web UI provides
-reporting, including a more useful account register view, and also data
-entry and editing.
-
-web-specific options:
-
-    --port=N           serve on tcp port N (default 5000)
-    --base-url=URL     use this base url (default http://localhost:PORT)
-
-If you want to visit the web UI from other machines, you'll need to use
-this option to fix the hyperlinks. Just give your machine's host name or
-ip address instead of localhost. This option is also lets you conform to a
-custom url scheme when running hledger-web behind a reverse proxy as part
-of a larger site. Note that the PORT in the base url need not be the same
-as the `--port` argument.
-
-Warning: unlike other hledger commands, `web` can alter existing journal
-data, via the edit form.  A numbered backup of the file will be saved on
-each edit, normally (ie if file permissions allow, disk is not full, etc.)
-Also, there is no built-in access control. So unless you run it behind an
-authenticating proxy, any visitor to your server will be able to see and
-overwrite the journal file (and included files.)
-
-hledger-web disallows edits which would leave the journal file not in
-valid [hledger format](#the-journal-file). If the journal file becomes
-unparseable by other means, hledger-web will show an error until the file
-has been fixed.
-
-Examples:
-
-    $ hledger-web
-    $ hledger-web -E -B --depth 2 -f some.journal
-    $ hledger-web --port 5010 --base-url http://some.vhost.com --debug
 
 ## Reporting options
 
