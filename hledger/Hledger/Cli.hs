@@ -6,7 +6,6 @@ hledger command-line program.
 module Hledger.Cli (
                      module Hledger.Cli.Add,
                      module Hledger.Cli.Balance,
-                     module Hledger.Cli.Convert,
                      module Hledger.Cli.Histogram,
                      module Hledger.Cli.Print,
                      module Hledger.Cli.Register,
@@ -26,7 +25,6 @@ import Test.HUnit
 import Hledger
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
-import Hledger.Cli.Convert
 import Hledger.Cli.Histogram
 import Hledger.Cli.Print
 import Hledger.Cli.Register
@@ -44,7 +42,6 @@ tests_Hledger_Cli = TestList
    ,tests_Hledger_Read
    -- ,tests_Hledger_Cli_Add
    -- ,tests_Hledger_Cli_Balance
-   ,tests_Hledger_Cli_Convert
    -- ,tests_Hledger_Cli_Histogram
    ,tests_Hledger_Cli_Options
    -- ,tests_Hledger_Cli_Print

@@ -59,11 +59,11 @@ mainmode addons = defmode {
      groupUnnamed = [
      ]
     ,groupHidden = [
+        convertmode
      ]
     ,groupNamed = [
       ("Misc commands", [
         addmode
-       ,convertmode
        ,testmode
        ])
      ,("\nReport commands", [
@@ -79,6 +79,19 @@ mainmode addons = defmode {
                        cs -> [("\nAdd-on commands found", map addonmode cs)]
     }
  }
+
+-- backwards compatibility - allow cmdargs to recognise this command so we can detect and warn
+convertmode = (commandmode ["convert"]) {
+  modeValue = [("command","convert")]
+ ,modeHelp = ""
+ ,modeArgs = ([], Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "[CSVFILE]")
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = []
+    }
+ }
+--
 
 addonmode name = defmode {
   modeNames = [name]
@@ -107,6 +120,7 @@ generalflags3 = helpflags
 
 fileflags = [
   flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different journal file; - means stdin"
+ ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "FILE" "conversion rules file for CSV (default: FILE.rules)"
  ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "ACCT=ALIAS" "display ACCT's name as ALIAS in reports"
  ]
 
@@ -151,19 +165,6 @@ addmode = (commandmode ["add"]) {
      ]
     ,groupHidden = []
     ,groupNamed = [(generalflagstitle, generalflags2)]
-    }
- }
-
-convertmode = (commandmode ["convert"]) {
-  modeValue = [("command","convert")]
- ,modeHelp = "show the specified CSV file as hledger journal entries"
- ,modeArgs = ([], Just $ flagArg (\s opts -> Right $ setopt "args" s opts) "[CSVFILE]")
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "FILE" "rules file to use (default: CSVFILE.rules)"
-     ]
-    ,groupHidden = []
-    ,groupNamed = [(generalflagstitle, generalflags3)]
     }
  }
 
@@ -253,10 +254,10 @@ data CliOpts = CliOpts {
      rawopts_         :: RawOpts
     ,command_         :: String
     ,file_            :: Maybe FilePath
+    ,rules_file_      :: Maybe FilePath
     ,alias_           :: [String]
     ,debug_           :: Bool
     ,no_new_accounts_ :: Bool           -- add
-    ,rules_file_      :: Maybe FilePath -- convert
     ,reportopts_      :: ReportOpts
  } deriving (Show)
 
@@ -282,10 +283,10 @@ toCliOpts rawopts = do
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
              ,file_            = maybestringopt "file" rawopts
+             ,rules_file_      = maybestringopt "rules-file" rawopts
              ,alias_           = listofstringopt "alias" rawopts
              ,debug_           = boolopt "debug" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
-             ,rules_file_      = maybestringopt "rules-file" rawopts -- convert
              ,reportopts_ = defreportopts {
                              begin_     = maybesmartdateopt d "begin" rawopts
                             ,end_       = maybesmartdateopt d "end" rawopts

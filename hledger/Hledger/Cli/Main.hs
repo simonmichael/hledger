@@ -49,7 +49,6 @@ import Text.Printf
 import Hledger (ensureJournalFileExists)
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
-import Hledger.Cli.Convert
 import Hledger.Cli.Histogram
 import Hledger.Cli.Print
 import Hledger.Cli.Register
@@ -74,7 +73,6 @@ main = do
        | (null matchedaddon) && "binary-filename" `in_` (rawopts_ opts) = putStrLn $ binaryfilename progname
        | null cmd                                        = putStr $ showModeHelp mainmode'
        | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add
-       | cmd `isPrefixOf` "convert"                      = showModeHelpOr convertmode  $ convert opts
        | cmd `isPrefixOf` "test"                         = showModeHelpOr testmode     $ runtests opts
        | any (cmd `isPrefixOf`) ["accounts","balance"]   = showModeHelpOr accountsmode $ withJournalDo opts balance
        | any (cmd `isPrefixOf`) ["entries","print"]      = showModeHelpOr entriesmode  $ withJournalDo opts print'
@@ -84,6 +82,7 @@ main = do
        | not (null matchedaddon)                           = do
                                                              when (debug_ opts) $ printf "running %s\n" shellcmd
                                                              system shellcmd >>= exitWith
+       | cmd == "convert"                                = optserror ("convert is no longer needed, just use -f FILE.csv") >> exitFailure
        | otherwise                                       = optserror ("command "++cmd++" is not recognized") >> exitFailure
        where
         mainmode' = mainmode addons
