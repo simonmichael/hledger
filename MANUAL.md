@@ -23,15 +23,11 @@ You can use it to, eg:
 - track time and report by day/week/month/project
 - get accurate numbers for client billing and tax filing
 
-hledger aims to help both computer experts and regular folks gain clarity
-in their finances. For the moment, it may be a little more suited to
-techies.  Please give it a try and let me know how we're doing.
-
 hledger is copyright (c) 2007-2011
 [Simon&nbsp;Michael&nbsp;<simon@joyful.com>](mailto:simon@joyful.com) and
 contributors, and released as Free Software under GPL version 3 or later.
 
-This is the user manual and reference for hledger version 0.17.0.
+This is the user manual and reference for hledger version 0.18-unreleased.
 
 ## Installing
 

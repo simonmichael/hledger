@@ -17,17 +17,17 @@
       <!-- <a href="/"><img src="/logo.jpg" border="0" ALT="" /></a> -->
   <div#navigation
    <a href="/README.html">Home</a>
-   <a href="/DOWNLOAD.html">Download</a>
    <a href="/MANUAL.html">Docs</a>
-   <a href="/DEVELOPMENT.html">Development</a>
+   <a href="/DEVELOPMENT.html">Contribute</a>
    <a href="/NEWS.html">News</a>
+   <a href="/DOWNLOAD.html">Download</a>
    <a href="http://demo.hledger.org">Demo</a>
 
   #{body}
 
   <div#footer
    <hr />
-   &copy; 2007-2011 <a href="http://joyful.com/">Simon Michael</a> and contributors
+   &copy; 2007-2012 <a href="http://joyful.com/">Simon Michael</a> and contributors
 
   <script type="text/javascript">
    var gaJsHost = (('https:' == document.location.protocol) ? 'https://ssl.' : 'http://www.');

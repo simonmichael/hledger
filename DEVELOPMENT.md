@@ -1,8 +1,8 @@
 ---
-title: hledger developers' guide
+title: hledger contributors' guide
 ---
 
-# Developers' guide
+# Contributors' guide
 
 Quick links for everyone, plus a rough guide mostly for hledger
 contributors and developers.
@@ -209,9 +209,9 @@ reports
 - marketing, communication, outreach
 - release management, roadmap planning
 
-## Project notes
+## Project overview
 
-This will grow into an overall description/blueprint for the hledger project.
+A rough overview/blueprint for the hledger project.
 
 ### mission, principles, goals
 
@@ -257,10 +257,10 @@ The hledger project aims to produce:
 
 ### code
 
-- the main darcs repo is [http://joyful.com/darcsden/simon/hledger](http://joyful.com/darcsden/simon/hledger)
-  (alternate [darcsweb interface](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger)
+- the main repo is served from a private darcsden instance on joyful.com
+- darcsweb is also available as an alternate browsing UI
 
-<a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger"><img src=http://joyful.com/repos/hledger/commits.png border=0></a>
+<!-- <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger"><img src=http://joyful.com/repos/hledger/commits.png border=0></a> -->
 
 <!-- ### release process -->
 
