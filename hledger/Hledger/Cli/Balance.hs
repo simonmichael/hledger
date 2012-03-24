@@ -170,13 +170,13 @@ formatAccountsReportItem opts accountName depth amount (fmt:fmts) =
          FormatLiteral l -> l
          FormatField ljust min max field  -> formatField opts accountName depth amount ljust min max field
 
-formatField :: ReportOpts -> Maybe AccountName -> Int -> Amount -> Bool -> Maybe Int -> Maybe Int -> Field -> String
+formatField :: ReportOpts -> Maybe AccountName -> Int -> Amount -> Bool -> Maybe Int -> Maybe Int -> HledgerFormatField -> String
 formatField opts accountName depth total ljust min max field = case field of
-        Format.Account     -> formatValue ljust min max $ maybe "" (accountNameDrop (drop_ opts)) accountName
-        Format.DepthSpacer -> case min of
+        AccountField     -> formatValue ljust min max $ maybe "" (accountNameDrop (drop_ opts)) accountName
+        DepthSpacerField -> case min of
                                Just m  -> formatValue ljust Nothing max $ replicate (depth * m) ' '
                                Nothing -> formatValue ljust Nothing max $ replicate depth ' '
-        Format.Total       -> formatValue ljust min max $ showAmountWithoutPrice total
+        TotalField       -> formatValue ljust min max $ showAmountWithoutPrice total
         _                  -> ""
 
 tests_Hledger_Cli_Balance = TestList

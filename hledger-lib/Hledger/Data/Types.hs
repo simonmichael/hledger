@@ -183,9 +183,65 @@ data Reader = Reader {
      rFormat   :: Format
      -- quickly check if this reader can probably handle the given file path and file content
     ,rDetector :: FilePath -> String -> Bool
-     -- really parse the given file path and file content, returning a journal or error
-    ,rParser   :: FilePath -> String -> ErrorT String IO Journal
-                     }
+     -- parse the given string, using the given parsing rules if any, returning a journal or error aware of the given file path
+    ,rParser   :: Maybe ParseRules -> FilePath -> String -> ErrorT String IO Journal
+    }
+
+-- data format parse/conversion rules
+
+-- currently the only parse (conversion) rules are those for the CSV format
+type ParseRules = CsvRules
+
+-- XXX copied from Convert.hs
+{- |
+A set of data definitions and account-matching patterns sufficient to
+convert a particular CSV data file into meaningful journal transactions. See above.
+-}
+data CsvRules = CsvRules {
+      dateField :: Maybe FieldPosition,
+      dateFormat :: Maybe String,
+      statusField :: Maybe FieldPosition,
+      codeField :: Maybe FieldPosition,
+      descriptionField :: [FormatString],
+      amountField :: Maybe FieldPosition,
+      amountInField :: Maybe FieldPosition,
+      amountOutField :: Maybe FieldPosition,
+      currencyField :: Maybe FieldPosition,
+      baseCurrency :: Maybe String,
+      accountField :: Maybe FieldPosition,
+      account2Field :: Maybe FieldPosition,
+      effectiveDateField :: Maybe FieldPosition,
+      baseAccount :: AccountName,
+      accountRules :: [AccountRule]
+} deriving (Show, Eq)
+
+type FieldPosition = Int
+
+type AccountRule = (
+   [(String, Maybe String)] -- list of regex match patterns with optional replacements
+  ,AccountName              -- account name to use for a transaction matching this rule
+  )
+
+-- format strings
+
+data HledgerFormatField =
+    AccountField
+  | DefaultDateField
+  | DescriptionField
+  | TotalField
+  | DepthSpacerField
+  | FieldNo Int
+    deriving (Show, Eq)
+
+data FormatString =
+    FormatLiteral String
+  | FormatField Bool        -- Left justified ?
+                (Maybe Int) -- Min width
+                (Maybe Int) -- Max width
+                HledgerFormatField       -- Field
+  deriving (Show, Eq)
+
+
 data Ledger = Ledger {
       journal :: Journal,
       accountnametree :: Tree AccountName,

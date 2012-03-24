@@ -1325,6 +1325,7 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** don't moan about ~
 *** support apostrophe digit group separator
 *** detect .hs plugins
 *** Clint's ofx support

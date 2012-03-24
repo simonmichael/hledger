@@ -28,28 +28,6 @@ import qualified Hledger.Cli.Format as Format
 import Hledger.Cli.Options
 import Hledger.Cli.Version
 
-{- |
-A set of data definitions and account-matching patterns sufficient to
-convert a particular CSV data file into meaningful journal transactions. See above.
--}
-data CsvRules = CsvRules {
-      dateField :: Maybe FieldPosition,
-      dateFormat :: Maybe String,
-      statusField :: Maybe FieldPosition,
-      codeField :: Maybe FieldPosition,
-      descriptionField :: [FormatString],
-      amountField :: Maybe FieldPosition,
-      amountInField :: Maybe FieldPosition,
-      amountOutField :: Maybe FieldPosition,
-      currencyField :: Maybe FieldPosition,
-      baseCurrency :: Maybe String,
-      accountField :: Maybe FieldPosition,
-      account2Field :: Maybe FieldPosition,
-      effectiveDateField :: Maybe FieldPosition,
-      baseAccount :: AccountName,
-      accountRules :: [AccountRule]
-} deriving (Show, Eq)
-
 nullrules = CsvRules {
       dateField=Nothing,
       dateFormat=Nothing,
@@ -67,13 +45,6 @@ nullrules = CsvRules {
       baseAccount="unknown",
       accountRules=[]
 }
-
-type FieldPosition = Int
-
-type AccountRule = (
-   [(String, Maybe String)] -- list of regex match patterns with optional replacements
-  ,AccountName              -- account name to use for a transaction matching this rule
-  )
 
 type CsvRecord = [String]
 
@@ -344,15 +315,15 @@ matchreplacepattern = do
   return (matchpat,replpat)
 
 -- csv record conversion
-formatD :: CsvRecord -> Bool -> Maybe Int -> Maybe Int -> Field -> String
+formatD :: CsvRecord -> Bool -> Maybe Int -> Maybe Int -> HledgerFormatField -> String
 formatD record leftJustified min max f = case f of 
   FieldNo n       -> maybe "" show $ atMay record n
   -- Some of these might in theory in read from fields
-  Format.Account  -> ""
-  DepthSpacer     -> ""
-  Total           -> ""
-  DefaultDate     -> ""
-  Description     -> ""
+  AccountField  -> ""
+  DepthSpacerField     -> ""
+  TotalField           -> ""
+  DefaultDateField     -> ""
+  DescriptionField     -> ""
  where
    show = formatValue leftJustified min max
 

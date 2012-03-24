@@ -71,8 +71,8 @@ detect f _ = fileSuffix f == format
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an
 -- error.
-parse :: FilePath -> String -> ErrorT String IO Journal
-parse = parseJournalWith timelogFile
+parse :: Maybe ParseRules -> FilePath -> String -> ErrorT String IO Journal
+parse _ = parseJournalWith timelogFile
 
 timelogFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
 timelogFile = do items <- many timelogItem

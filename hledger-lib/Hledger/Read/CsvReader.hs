@@ -53,9 +53,9 @@ detect f _ = fileSuffix f == format
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
-parse_ :: FilePath -> String -> ErrorT String IO Journal
-parse_ f s = do
-  r <- liftIO $ journalFromCsv f s
+parse_ :: Maybe ParseRules -> FilePath -> String -> ErrorT String IO Journal
+parse_ rules f s = do
+  r <- liftIO $ journalFromCsv rules f s
   case r of Left e -> throwError e
             Right j -> return j
 
@@ -66,30 +66,6 @@ parse_ f s = do
 --              return (liftM (foldr (.) id) $ sequence items, ctx)
 
 
-
--- XXX copied from Convert.hs
-
-{- |
-A set of data definitions and account-matching patterns sufficient to
-convert a particular CSV data file into meaningful journal transactions. See above.
--}
-data CsvRules = CsvRules {
-      dateField :: Maybe FieldPosition,
-      dateFormat :: Maybe String,
-      statusField :: Maybe FieldPosition,
-      codeField :: Maybe FieldPosition,
-      descriptionField :: [FormatString],
-      amountField :: Maybe FieldPosition,
-      amountInField :: Maybe FieldPosition,
-      amountOutField :: Maybe FieldPosition,
-      currencyField :: Maybe FieldPosition,
-      baseCurrency :: Maybe String,
-      accountField :: Maybe FieldPosition,
-      account2Field :: Maybe FieldPosition,
-      effectiveDateField :: Maybe FieldPosition,
-      baseAccount :: AccountName,
-      accountRules :: [AccountRule]
-} deriving (Show, Eq)
 
 nullrules = CsvRules {
       dateField=Nothing,
@@ -109,35 +85,32 @@ nullrules = CsvRules {
       accountRules=[]
 }
 
-type FieldPosition = Int
-
-type AccountRule = (
-   [(String, Maybe String)] -- list of regex match patterns with optional replacements
-  ,AccountName              -- account name to use for a transaction matching this rule
-  )
-
 type CsvRecord = [String]
 
 
 -- | Read the CSV file named as an argument and print equivalent journal transactions,
 -- using/creating a .rules file.
-journalFromCsv :: FilePath -> String -> IO (Either String Journal)
-journalFromCsv csvfile content = do
+journalFromCsv :: Maybe CsvRules -> FilePath -> String -> IO (Either String Journal)
+journalFromCsv csvrules csvfile content = do
   let usingStdin = csvfile == "-"
       -- rulesFileSpecified = isJust $ rules_file_ opts
-      rulesfile = rulesFileFor csvfile
   -- when (usingStdin && (not rulesFileSpecified)) $ error' "please use --rules-file to specify a rules file when converting stdin"
   csvparse <- parseCsv csvfile content
   let records = case csvparse of
                   Left e -> error' $ show e
                   Right rs -> filter (/= [""]) rs
-  exists <- doesFileExist rulesfile
-  if (not exists) then do
-                  hPrintf stderr "creating conversion rules file %s, edit this file for better results\n" rulesfile
-                  writeFile rulesfile initialRulesFileContent
-   else
-      hPrintf stderr "using conversion rules file %s\n" rulesfile
-  rules <- liftM (either (error'.show) id) $ parseCsvRulesFile rulesfile
+  rules <- case csvrules of
+    Nothing -> do
+      let rulesfile = rulesFileFor csvfile
+      exists <- doesFileExist rulesfile
+      if (not exists)
+       then do
+        hPrintf stderr "creating conversion rules file %s, edit this file for better results\n" rulesfile
+        writeFile rulesfile initialRulesFileContent
+       else
+        hPrintf stderr "using conversion rules file %s\n" rulesfile
+      liftM (either (error'.show) id) $ parseCsvRulesFile rulesfile
+    Just r -> return r
   let invalid = validateRules rules
   -- when (debug_ opts) $ hPrintf stderr "rules: %s\n" (show rules)
   when (isJust invalid) $ error (fromJust invalid)
@@ -384,15 +357,15 @@ matchreplacepattern = do
   return (matchpat,replpat)
 
 -- csv record conversion
-formatD :: CsvRecord -> Bool -> Maybe Int -> Maybe Int -> Field -> String
+formatD :: CsvRecord -> Bool -> Maybe Int -> Maybe Int -> HledgerFormatField -> String
 formatD record leftJustified min max f = case f of 
   FieldNo n       -> maybe "" show $ atMay record n
   -- Some of these might in theory in read from fields
-  FormatStrings.Account  -> ""
-  DepthSpacer     -> ""
-  Total           -> ""
-  DefaultDate     -> ""
-  Description     -> ""
+  AccountField         -> ""
+  DepthSpacerField     -> ""
+  TotalField           -> ""
+  DefaultDateField     -> ""
+  DescriptionField     -> ""
  where
    show = formatValue leftJustified min max
 

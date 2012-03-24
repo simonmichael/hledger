@@ -3,7 +3,7 @@ module Hledger.Cli.Format (
         , formatStrings
         , formatValue
         , FormatString(..)
-        , Field(..)
+        , HledgerFormatField(..)
         , tests
         ) where
 
@@ -14,23 +14,8 @@ import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
 
+import Hledger.Data.Types
 
-data Field =
-    Account
-  | DefaultDate
-  | Description
-  | Total
-  | DepthSpacer
-  | FieldNo Int
-    deriving (Show, Eq)
-
-data FormatString =
-    FormatLiteral String
-  | FormatField Bool        -- Left justified ?
-                (Maybe Int) -- Min width
-                (Maybe Int) -- Max width
-                Field       -- Field
-  deriving (Show, Eq)
 
 formatValue :: Bool -> Maybe Int -> Maybe Int -> String -> String
 formatValue leftJustified min max value = printf formatS value
@@ -49,13 +34,13 @@ parseFormatString input = case (runParser formatStrings () "(unknown)") input of
 Parsers
 -}
 
-field :: GenParser Char st Field
+field :: GenParser Char st HledgerFormatField
 field = do
-        try (string "account" >> return Account)
-    <|> try (string "depth_spacer" >> return DepthSpacer)
-    <|> try (string "date" >> return Description)
-    <|> try (string "description" >> return Description)
-    <|> try (string "total" >> return Total)
+        try (string "account" >> return AccountField)
+    <|> try (string "depth_spacer" >> return DepthSpacerField)
+    <|> try (string "date" >> return DescriptionField)
+    <|> try (string "description" >> return DescriptionField)
+    <|> try (string "total" >> return TotalField)
     <|> try (many1 digit >>= (\s -> return $ FieldNo $ read s))
 
 formatField :: GenParser Char st FormatString
@@ -106,28 +91,28 @@ tests = test [ formattingTests ++ parserTests ]
 
 formattingTests = [
       testFormat (FormatLiteral " ")                                ""            " "
-    , testFormat (FormatField False Nothing Nothing Description)    "description" "description"
-    , testFormat (FormatField False (Just 20) Nothing Description)  "description" "         description"
-    , testFormat (FormatField False Nothing (Just 20) Description)  "description" "description"
-    , testFormat (FormatField True Nothing (Just 20) Description)   "description" "description"
-    , testFormat (FormatField True (Just 20) Nothing Description)   "description" "description         "
-    , testFormat (FormatField True (Just 20) (Just 20) Description) "description" "description         "
-    , testFormat (FormatField True Nothing (Just 3) Description)    "description" "des"
+    , testFormat (FormatField False Nothing Nothing DescriptionField)    "description" "description"
+    , testFormat (FormatField False (Just 20) Nothing DescriptionField)  "description" "         description"
+    , testFormat (FormatField False Nothing (Just 20) DescriptionField)  "description" "description"
+    , testFormat (FormatField True Nothing (Just 20) DescriptionField)   "description" "description"
+    , testFormat (FormatField True (Just 20) Nothing DescriptionField)   "description" "description         "
+    , testFormat (FormatField True (Just 20) (Just 20) DescriptionField) "description" "description         "
+    , testFormat (FormatField True Nothing (Just 3) DescriptionField)    "description" "des"
     ]
 
 parserTests = [
       testParser ""                             []
     , testParser "D"                            [FormatLiteral "D"]
-    , testParser "%(date)"                      [FormatField False Nothing Nothing Description]
-    , testParser "%(total)"                     [FormatField False Nothing Nothing Total]
-    , testParser "Hello %(date)!"               [FormatLiteral "Hello ", FormatField False Nothing Nothing Description, FormatLiteral "!"]
-    , testParser "%-(date)"                     [FormatField True Nothing Nothing Description]
-    , testParser "%20(date)"                    [FormatField False (Just 20) Nothing Description]
-    , testParser "%.10(date)"                   [FormatField False Nothing (Just 10) Description]
-    , testParser "%20.10(date)"                 [FormatField False (Just 20) (Just 10) Description]
-    , testParser "%20(account) %.10(total)\n"   [ FormatField False (Just 20) Nothing Account
+    , testParser "%(date)"                      [FormatField False Nothing Nothing DescriptionField]
+    , testParser "%(total)"                     [FormatField False Nothing Nothing TotalField]
+    , testParser "Hello %(date)!"               [FormatLiteral "Hello ", FormatField False Nothing Nothing DescriptionField, FormatLiteral "!"]
+    , testParser "%-(date)"                     [FormatField True Nothing Nothing DescriptionField]
+    , testParser "%20(date)"                    [FormatField False (Just 20) Nothing DescriptionField]
+    , testParser "%.10(date)"                   [FormatField False Nothing (Just 10) DescriptionField]
+    , testParser "%20.10(date)"                 [FormatField False (Just 20) (Just 10) DescriptionField]
+    , testParser "%20(account) %.10(total)\n"   [ FormatField False (Just 20) Nothing AccountField
                                                 , FormatLiteral " "
-                                                , FormatField False Nothing (Just 10) Total
+                                                , FormatField False Nothing (Just 10) TotalField
                                                 , FormatLiteral "\n"
                                                 ]
   ]

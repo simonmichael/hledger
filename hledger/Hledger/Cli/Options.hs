@@ -415,10 +415,10 @@ formatFromOpts = maybe (Right defaultBalanceFormatString) parseFormatString . fo
 -- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
 defaultBalanceFormatString :: [FormatString]
 defaultBalanceFormatString = [
-      FormatField False (Just 20) Nothing Total
+      FormatField False (Just 20) Nothing TotalField
     , FormatLiteral "  "
-    , FormatField True (Just 2) Nothing DepthSpacer
-    , FormatField True Nothing Nothing Format.Account
+    , FormatField True (Just 2) Nothing DepthSpacerField
+    , FormatField True Nothing Nothing AccountField
     ]
 
 -- | Get the journal file path from options, an environment variable, or a default.

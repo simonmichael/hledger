@@ -153,8 +153,8 @@ detect f _ = fileSuffix f == format
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
-parse :: FilePath -> String -> ErrorT String IO Journal
-parse = parseJournalWith journalFile
+parse :: Maybe ParseRules -> FilePath -> String -> ErrorT String IO Journal
+parse _ = parseJournalWith journalFile
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be

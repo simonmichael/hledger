@@ -34,7 +34,7 @@ import Test.HUnit
 import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.Types (Journal(..), Reader(..), Format)
+import Hledger.Data.Types
 import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimelogReader as TimelogReader
@@ -93,8 +93,8 @@ readerForFormat s | null rs = Nothing
 -- the specified data format or trying all known formats. CSV
 -- conversion rules may be provided for better conversion of that
 -- format, and/or a file path for better error messages.
-readJournal :: Maybe Format -> Maybe CsvReader.CsvRules -> Maybe FilePath -> String -> IO (Either String Journal)
-readJournal format _ path s =
+readJournal :: Maybe Format -> Maybe ParseRules -> Maybe FilePath -> String -> IO (Either String Journal)
+readJournal format rules path s =
   let readerstotry = case format of Nothing -> readers
                                     Just f -> case readerForFormat f of Just r -> [r]
                                                                         Nothing -> []
@@ -103,7 +103,7 @@ readJournal format _ path s =
     path' = fromMaybe "(string)" path
     tryReader :: Reader -> IO (Either String Journal)
     tryReader r = do -- printf "trying %s reader\n" (rFormat r)
-                     (runErrorT . (rParser r) path') s
+                     (runErrorT . (rParser r) rules path') s
 
     -- if no reader succeeds, we return the error of the first;
     -- ideally it would be the error of the most likely intended
