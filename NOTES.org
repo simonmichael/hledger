@@ -1,16 +1,7 @@
 hledger project notes
 
 * backlog
-** replace convert with native csv reading
-*** get --rules-file working
-**** make readers use parse rules (or rules file path ?)
-*** replace convert with a backwards compatibility alias
-*** update docs
-*** generalise rules file
-**** make it applicable to all formats ?
-**** absorb its directives into journal format ?
 ** cleanup
-*** deprecate vty, chart in manual
 *** ghc 7.4 warnings
  cabal build
 Building hledger-lib-0.17...
@@ -669,6 +660,7 @@ hledger-web.hs:21:59:
              Deprecated: "Use makeDefaultLogger instead"
 Linking ../bin/hledger-web ...
 
+*** drop ghc 6.12 support
 *** makefile cleanups
 ** errors
 *** unicode-error.test failure with >=7.2
@@ -1326,6 +1318,9 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
 *** don't moan about ~
+*** generalise rules file ?
+**** make it applicable to all formats ?
+**** absorb its directives into journal format ?
 *** support apostrophe digit group separator
 *** detect .hs plugins
 *** Clint's ofx support
