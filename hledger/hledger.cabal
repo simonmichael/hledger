@@ -47,14 +47,12 @@ library
   exposed-modules:
                   Hledger.Cli
                   Hledger.Cli.Main
-                  Hledger.Cli.Format
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
                   Hledger.Cli.Utils
                   Hledger.Cli.Version
                   Hledger.Cli.Add
                   Hledger.Cli.Balance
-                  Hledger.Cli.Convert
                   Hledger.Cli.Histogram
                   Hledger.Cli.Print
                   Hledger.Cli.Register
@@ -66,7 +64,6 @@ library
                  ,cabal-file-th
                  ,containers
                  ,cmdargs >= 0.9.1   && < 0.10
-                 ,csv
                  ,directory
                  ,filepath
                  ,haskeline == 0.6.*
@@ -95,14 +92,12 @@ executable hledger
   other-modules:
                   Hledger.Cli
                   Hledger.Cli.Main
-                  Hledger.Cli.Format
                   Hledger.Cli.Options
                   Hledger.Cli.Tests
                   Hledger.Cli.Utils
                   Hledger.Cli.Version
                   Hledger.Cli.Add
                   Hledger.Cli.Balance
-                  Hledger.Cli.Convert
                   Hledger.Cli.Histogram
                   Hledger.Cli.Print
                   Hledger.Cli.Register
@@ -119,7 +114,6 @@ executable hledger
                  ,cabal-file-th
                  ,containers
                  ,cmdargs >= 0.9.1   && < 0.10
-                 ,csv
                  ,directory
                  ,filepath
                  ,haskeline == 0.6.*

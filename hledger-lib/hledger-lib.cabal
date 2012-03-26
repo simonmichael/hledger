@@ -39,6 +39,7 @@ library
                   Hledger.Data.Amount
                   Hledger.Data.Commodity
                   Hledger.Data.Dates
+                  Hledger.Data.FormatStrings
                   Hledger.Data.Transaction
                   Hledger.Data.Journal
                   Hledger.Data.Ledger
@@ -47,9 +48,9 @@ library
                   Hledger.Data.Types
                   Hledger.Data.Matching
                   Hledger.Read
+                  Hledger.Read.CsvReader
                   Hledger.Read.JournalReader
                   Hledger.Read.TimelogReader
-                  Hledger.Read.Utils
                   Hledger.Reports
                   Hledger.Utils
                   Hledger.Utils.UTF8IOCompat
@@ -58,6 +59,7 @@ library
                  ,bytestring
                  ,cmdargs >= 0.9.1   && < 0.10
                  ,containers
+                 ,csv
                  ,directory
                  ,filepath
                  ,mtl
