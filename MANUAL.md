@@ -57,13 +57,7 @@ Some add-on packages are available on Hackage:
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest).
 These are without an active maintainer, and/or platform-specific, so installing them may be harder.
 
-**Tips:**
-
-- When installing with cabal, dependency problems are common. The easy workarounds are: be sure to cabal update, use [virthualenv](http://hackage.haskell.org/package/virthualenv) (or [cabal-dev](http://hackage.haskell.org/package/cabal-dev)), or just [reset your packages](https://gist.github.com/1185421).
-- If you have non-ascii journal data, you may need to [set a suitable locale](#usage-issues)
-- hledger-chart requires additional GTK-related libraries, see [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL). On ubuntu, install the `libghc6-gtk-dev` package.
-- hledger-vty requires curses-related libraries (ubuntu package: `libncurses5-dev`) and is not buildable on microsoft windows (except possibly via cygwin.)
-- If you have trouble, please see [Troubleshooting](#troubleshooting) and ask for [Support](DEVELOPMENT.html#support).
+Trouble with any of the above ? Please proceed to [Troubleshooting](#troubleshooting).
 
 ## Usage
 
@@ -1245,35 +1239,62 @@ entries, and the following c++ ledger options and commands:
 
 ### Troubleshooting
 
+Sorry you're here! There are a lot of ways things can go wrong. Here are
+some known issues and things to try. You can also get
+[support](DEVELOPMENT.html#support) from the IRC channel, mail list or bug
+tracker.
+
 #### Installation issues
 
-cabal builds a lot of fast-evolving software, and it's not always smooth
-sailing.  Here are some known issues and things to try:
+- **Did you cabal update ?** If not, `cabal update` and try again.
 
-- **Ask for help on [#hledger](irc://freenode.net/#hledger) or [#haskell](irc://freenode.net/#haskell).**
-  Eg: join the #hledger channel with your IRC client and type: "sm: I did ... and ... happened", then leave
-  that window open until you get helped.
+- **Do you have a new enough version of GHC ?** hledger requires at least
+  GHC 6.12.3 - or possibly 7.0 - and on some platforms, 7.2.1 (see
+  below).
 
-- **Did you cabal update ?** If you didn't already, `cabal update` and try again.
+- **Do you have a new enough version of cabal-install ?** Avoid ancient
+  versions. <span style="white-space:nowrap">`cabal --version`</span>
+  should report at least 0.10. You may be able to upgrade with:
+  
+        $ cabal update
+        $ cabal install cabal-install
+        
+    then try installing hledger again.
 
-- **Do you have a new enough version of GHC ?** hledger supports GHC 6.10
-  and 6.12. Building with the `-fweb` flag requires 6.12 or greater.
+- **A dependency or compilation error with a hledger package.** The
+  current hledger release might have an error in its code or package
+  dependencies. Ask for help, or try installing the
+  [latest development version](#installing).
 
-- **An error while building non-hledger packages.**
-  Resolve these problem packages one at a time. Eg, cabal install pkg1.
-  Look for the cause of the failure near the end of the output. If it's
-  not apparent, try again with `-v2` or `-v3` for more verbose output.
+- **Some other build error.** Look at the output carefully and identify
+  the problem package(s).  Try installing each one individually, eg `cabal
+  install pkg1`. Look for the cause of the failure near the end of the
+  output. If necessary, add `-v2` or `-v3` for more verbose output.  Often
+  the problem is that you need to install some C library that the haskell
+  package depends on, using your platform's package management system.
 
-- **ExitFailure 11 from cabal**
-  Probably http://hackage.haskell.org/trac/hackage/ticket/777
+- **cabal fails to resolve dependencies that should work**
+  Cabal dependency problems become more likely as your haskell
+  installation ages. If you have this problem, there are two easy
+  workarounds: 1. use
+  [virthualenv](http://hackage.haskell.org/package/virthualenv) (or
+  [cabal-dev](http://hackage.haskell.org/package/cabal-dev)), or 2. just
+  [reset your packages](https://gist.github.com/1185421).
 
-- **Could not run happy.**
-  A package (eg haskell-src-exts) needs to run the `happy` executable.
-  If not using the haskell platform, install the appropriate platform
-  package which provides it (eg apt-get install happy).
+- **can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**
+  (or similar): cf [GHC bug #5551](http://hackage.haskell.org/trac/ghc/ticket/5551).
+  Upgrade your GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
 
-- <a name="iconv" />**Undefined symbols: ... _iconv ...**
-  If cabal gives this error:
+- **ExitFailure 11** See
+  [http://hackage.haskell.org/trac/hackage/ticket/777](http://hackage.haskell.org/trac/hackage/ticket/777).
+  This means that a build process has been killed, usually because it grew
+  too large.  This is common on memory-limited VPS's and with GHC 7.4.1.
+  Look for some memory-hogging processes you can kill, increase your RAM,
+  or limit GHC's heap size by doing `cabal install ... --ghc-options='+RTS -M400m'`
+  (400 megabytes works well on my 1G VPS, adjust up or down..)
+
+- <a name="iconv" />**Undefined symbols: ... _iconv ... on OS X**
+  This kind of error:
 
         Linking dist/build/hledger/hledger ...
         Undefined symbols:
@@ -1284,8 +1305,8 @@ sailing.  Here are some known issues and things to try:
           "_iconv_open", referenced from:
               _hs_iconv_open in libHSbase-4.2.0.2.a(iconv.o)
 
-    you are probably on a mac with macports libraries installed, causing
-    [this issue](http://hackage.haskell.org/trac/ghc/ticket/4068).
+    probably means you are on a mac with macports libraries installed, cf
+    [http://hackage.haskell.org/trac/ghc/ticket/4068](http://hackage.haskell.org/trac/ghc/ticket/4068).
     To work around temporarily, add this --extra-lib-dirs flag:
 
         $ cabal install hledger --extra-lib-dirs=/usr/lib
@@ -1294,47 +1315,12 @@ sailing.  Here are some known issues and things to try:
     
         extra-lib-dirs: /usr/lib
 
-- **A ghc: panic! (the 'impossible' happened)** might be
-    [this issue](http://hackage.haskell.org/trac/ghc/ticket/3862)
+- **hledger-vty requires curses-related libraries**
+  On Ubuntu, eg, you'll need the `libncurses5-dev` package. On Windows,
+  these are not available (unless perhaps via Cygwin.)
 
-- **This package indirectly depends on multiple versions of the same package.**
-  You may have previously installed some of hledger's dependencies
-  depending on different versions of (eg) parsec. Then cabal install hledger gives
-  an error like this:
-
-        Warning: This package indirectly depends on multiple versions of the same
-        package. This is highly likely to cause a compile failure.
-        package yesod-0.5.0.3 requires parsec-2.1.0.1
-        package csv-0.1.1 requires parsec-3.1.0
-        ...
-
-    The above example could be resolved by, eg:
-
-        $ cabal install yesod --reinstall --constraint 'parsec == 3.1.0"
-
-- **Another error while building a hledger package.**
-    The current hledger release might have an error in its code or package
-    dependencies. You could try [installing](#installing) the latest
-    development version.
-
-- **Do you have a new enough version of cabal-install ?**
-  Recent versions tend to be better at resolving dependencies.  The error
-  `setup: failed to parse output of 'ghc-pkg dump'` is another symptom of
-  this.  To update, do:
-  
-        $ cabal update
-        $ cabal install cabal-install
-        $ cabal clean
-        
-    then try installing hledger again.
-
-- **cabal fails to resolve dependencies.**
-  It's possible for cabal to get confused, eg if you have
-  installed/updated many cabal package versions or GHC itself. You can
-  sometimes work around this by using cabal install's `--constraint`
-  option. Another (drastic) way is to purge all unnecessary package
-  versions by removing (or renaming) ~/.ghc, then trying cabal install
-  again.
+- **hledger-chart requires GTK-related libraries**
+  On Ubuntu, eg, install the `libghc6-gtk-dev` package. See also [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL).
 
 #### Usage issues
 
