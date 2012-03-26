@@ -159,6 +159,16 @@ hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
 bin/hledger:
 	cd hledger; ghc --make $(MAIN) -o ../bin/hledger $(BUILDFLAGS)
 
+# build a GHC-version-specific hledger binary without disturbing with other GHC version builds
+bin/hledger.ghc-%:
+	cd hledger; ghc-$* --make $(MAIN) -o ../$@ $(BUILDFLAGS)  -outputdir .ghc-$*
+
+# build hledger with the main supported GHC versions
+hledger-all-ghcs: \
+	bin/hledger.ghc-7.0.4 \
+	bin/hledger.ghc-7.2.2 \
+	bin/hledger.ghc-7.4.1 \
+
 # build the fastest binary we can
 hledgeropt:
 	cd hledger; ghc --make $(MAIN) -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
@@ -312,24 +322,40 @@ hlinttest hlint:
 unittest: unittest-builtin
 
 unittest-builtin: bin/hledger
+	@echo unit tests:
 	@(bin/hledger test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # XXX doesn't rebuild on hledger source changes
 unittest-standalone: tools/unittest
+	@echo unit tests (standalone):
 	@(tools/unittest \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit tests without waiting for compilation
-unittesths:
+unittest-interpreted:
+	@echo unit tests (interpreted):
 	@(runghc $(MAIN) test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run functional tests, requires shelltestrunner >= 0.9 from hackage
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledger
+	@echo functional tests:
 	(shelltest tests -- --threads=16 --hide-successes \
 		&& echo $@ PASSED) || echo $@ FAILED
+
+# run unit and functional tests with a specific GHC version
+test-ghc-%: # bin/hledger.ghc-$*
+	@echo testing with ghc version $*
+	@(echo unit tests: \
+	&& bin/hledger.ghc-$* test \
+	&& echo functional tests: \
+	&& shelltest tests -w bin/hledger.ghc-$* -- --threads=16 --hide-successes \
+	&& echo $@ PASSED) || echo $@ FAILED
+
+# run unit and functional tests with main supported GHC versions
+test-ghc-all: test-ghc-7.0.4 test-ghc-7.2.2 test-ghc-7.4.1
 
 # run doc tests
 DOCTESTFILES=\
