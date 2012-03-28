@@ -164,7 +164,7 @@ bin/hledger.ghc-%:
 	cd hledger; ghc-$* --make $(MAIN) -o ../$@ $(BUILDFLAGS)  -outputdir .ghc-$*
 
 # build hledger with the main supported GHC versions
-hledger-all-ghcs: \
+bin/hledger-ghc-all: \
 	bin/hledger.ghc-7.0.4 \
 	bin/hledger.ghc-7.2.2 \
 	bin/hledger.ghc-7.4.1 \
@@ -303,6 +303,8 @@ set-up-rc-repo:
 ######################################################################
 # TESTING
 
+SHELLTEST=shelltest-1.2.1.ghc-7.0.4
+
 test: codetest
 
 # quick code tests - run all the time
@@ -342,16 +344,16 @@ unittest-interpreted:
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledger
 	@echo functional tests:
-	(shelltest tests -- --threads=16 --hide-successes \
+	($(SHELLTEST) tests -- --threads=16 --hide-successes \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with a specific GHC version
 test-ghc-%: # bin/hledger.ghc-$*
-	@echo testing with ghc version $*
+	@echo; echo testing hledger built with ghc-$*
 	@(echo unit tests: \
 	&& bin/hledger.ghc-$* test \
 	&& echo functional tests: \
-	&& shelltest tests -w bin/hledger.ghc-$* -- --threads=16 --hide-successes \
+	&& $(SHELLTEST) tests -w bin/hledger.ghc-$* -- --threads=16 --hide-successes \
 	&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with main supported GHC versions
