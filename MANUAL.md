@@ -57,6 +57,8 @@ Some add-on packages are available on Hackage:
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest).
 These are without an active maintainer, and/or platform-specific, so installing them may be harder.
 
+Note to use non-ascii characters in journal files, you must have a [suitable locale configured](#locale).
+
 Trouble with any of the above ? Please proceed to [Troubleshooting](#troubleshooting).
 
 ## Usage
@@ -1240,60 +1242,73 @@ entries, and the following c++ ledger options and commands:
 ### Troubleshooting
 
 Sorry you're here! There are a lot of ways things can go wrong. Here are
-some known issues and things to try. You can also get
-[support](DEVELOPMENT.html#support) from the IRC channel, mail list or bug
-tracker.
+some known issues and things to try. Please also seek
+[support](DEVELOPMENT.html#support) from the
+[IRC channel](irc://irc.freenode.net/#ledger),
+[mail list](http://list.hledger.org) or
+[bug tracker](http://bugs.hledger.org).
 
 #### Installation issues
 
-- **Did you cabal update ?** If not, `cabal update` and try again.
+Starting from the top, consider whether each of these might apply to
+you. Tip: blindly reinstalling/upgrading everything in sight probably
+won't work, it's better to go in small steps and understand the problem,
+or get help.
 
-- **Do you have a new enough version of GHC ?** hledger requires at least
-  GHC 6.12.3 - or possibly 7.0 - and on some platforms, 7.2.1 (see
-  below).
+- **Did you cabal update ?**  
+  If not, `cabal update` and try again.
 
-- **Do you have a new enough version of cabal-install ?** Avoid ancient
-  versions. <span style="white-space:nowrap">`cabal --version`</span>
-  should report at least 0.10. You may be able to upgrade with:
+- **Do you have a new enough version of GHC ?**  
+  Run `ghc --version`. hledger requires at least GHC 6.12.3 - or possibly
+  7.0 - and on [some platforms](#5551), 7.2.1.
+
+- **Do you have a new enough version of cabal ?**  
+  Avoid ancient versions.  `cabal --version` should report at least
+  0.10. You may be able to upgrade it with:
   
         $ cabal update
         $ cabal install cabal-install
-        
-    then try installing hledger again.
 
-- **A dependency or compilation error with a hledger package.** The
-  current hledger release might have an error in its code or package
-  dependencies. Ask for help, or try installing the
-  [latest development version](#installing).
+- **There might be a dependency or compilation error with a hledger package**  
+  The current hledger release might have an error in its code, or its
+  package dependencies may have become out of date. 
+  Ask for help, and check the
+  [recent changes](http://joyful.com/darcsden/simon/hledger/changes) to
+  see if the [latest development version](#installing) might have a fix.
 
-- **Some other build error.** Look at the output carefully and identify
-  the problem package(s).  Try installing each one individually, eg `cabal
-  install pkg1`. Look for the cause of the failure near the end of the
-  output. If necessary, add `-v2` or `-v3` for more verbose output.  Often
-  the problem is that you need to install some C library that the haskell
-  package depends on, using your platform's package management system.
+    This issue should be uncommon. It's not always easy to distinguish it
+    from...
 
-- **cabal fails to resolve dependencies that should work**
-  Cabal dependency problems become more likely as your haskell
-  installation ages. If you have this problem, there are two easy
-  workarounds: 1. use
+- **cabal can't satisfy the new dependencies due to old installed packages**  
+  Cabal dependency failures become more likely as you install more
+  packages over time. If you have this problem, there are two easy
+  workarounds: 1. build hledger in an isolated package environment with
   [virthualenv](http://hackage.haskell.org/package/virthualenv) (or
   [cabal-dev](http://hackage.haskell.org/package/cabal-dev)), or 2. just
   [reset your packages](https://gist.github.com/1185421).
 
-- **can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**
+- **An error involving some other package**  
+  Look at the output carefully and identify the problem package(s).  Try
+  installing each one individually, eg `cabal install pkg1`. Look for the
+  cause of the failure near the end of the output. If necessary, add `-v2`
+  or `-v3` for more verbose output.  Often the problem is that you need to
+  install some C library that the haskell package depends on, using your
+  platform's package management system.
+
+- <a name="5551" />**can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**  
   (or similar): cf [GHC bug #5551](http://hackage.haskell.org/trac/ghc/ticket/5551).
   Upgrade your GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
 
-- **ExitFailure 11** See
+- **ExitFailure 11**  
+  See
   [http://hackage.haskell.org/trac/hackage/ticket/777](http://hackage.haskell.org/trac/hackage/ticket/777).
   This means that a build process has been killed, usually because it grew
   too large.  This is common on memory-limited VPS's and with GHC 7.4.1.
   Look for some memory-hogging processes you can kill, increase your RAM,
-  or limit GHC's heap size by doing `cabal install ... --ghc-options='+RTS -M400m'`
-  (400 megabytes works well on my 1G VPS, adjust up or down..)
+  or limit GHC's heap size by doing `cabal install ... --ghc-options='+RTS
+  -M400m'` (400 megabytes works well on my 1G VPS, adjust up or down..)
 
-- <a name="iconv" />**Undefined symbols: ... _iconv ... on OS X**
+- <a name="iconv" />**Undefined symbols: ... _iconv ... on OS X**  
   This kind of error:
 
         Linking dist/build/hledger/hledger ...
@@ -1315,37 +1330,43 @@ tracker.
     
         extra-lib-dirs: /usr/lib
 
-- **hledger-vty requires curses-related libraries**
+- **hledger-vty requires curses-related libraries**  
   On Ubuntu, eg, you'll need the `libncurses5-dev` package. On Windows,
   these are not available (unless perhaps via Cygwin.)
 
-- **hledger-chart requires GTK-related libraries**
+- **hledger-chart requires GTK-related libraries**  
   On Ubuntu, eg, install the `libghc6-gtk-dev` package. See also [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL).
 
 #### Usage issues
 
 Here are some issues you might encounter when you run hledger:
 
-- <a name="locale" />**non-ascii data gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**
+- **hledger fails to parse some valid ledger files**  
+  See [file format compatibility](#file-format-compatibility).
 
-    hledger and other executables produced by GHC will give this error if
-    asked to read a non-ascii file when a proper system locale is not
-    configured. Eg, it's common for journal files to be UTF-8-encoded, in
-    which case the system must have a UTF-8-aware locale installed and
-    selected.  You can also select such a locale temporarily by setting
-    the LANG environment variable on the command line. Here's an example,
-    using ubuntu:
+- <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
+  hledger, like all GHC executables, requires an appropriate system locale
+  in order to handle non-ascii data.  Eg, it's common for journal files to
+  contain UTF8-encoded text, and in this case you would need to have a
+  UTF8-aware locale configured.
+  
+    Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
     
         $ file my.journal
-        my.journal: UTF-8 Unicode text
+        my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
         $ locale -a
         C
-        en_US.utf8
+        en_US.utf8                             # <- a UTF8-aware locale is available
         POSIX
-        $ LANG=en_US.utf8 hledger -f my.journal print
-  
-    If we prefer, say, fr_FR.utf8, we'd better make sure it's installed:
-    
+        $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+
+    Here's one way to set it permanently, there may be better ways:
+
+        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+        $ bash --login
+
+    If we preferred to use eg `fr_FR.utf8` here, we'd have to install it first:
+
         $ apt-get install language-pack-fr
         $ locale -a
         C
@@ -1358,17 +1379,8 @@ Here are some issues you might encounter when you run hledger:
         POSIX
         $ LANG=fr_FR.utf8 hledger -f my.journal print
 
-    Also note that on ubuntu variant spellings of "utf8", like "fr_FR.UTF8", are allowed,
-    while on mac osx it must be exactly "fr_FR.UTF-8".
-
-    Here's one way to set LANG permanently:
-  
-        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
-        $ bash --login
-
-- **hledger fails to parse some valid ledger files**
-
-    See [file format compatibility](#file-format-compatibility).
+    Note some platforms allow variant locale spellings, but not all
+    (ubuntu accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 ### Examples and recipes
 
