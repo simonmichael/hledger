@@ -148,7 +148,7 @@ executable         hledger-web
                  , text                          >= 0.11       && < 0.12
                  , template-haskell
                  , hamlet                        >= 0.10       && < 0.11
-                 , shakespeare-text              >= 0.10       && < 0.11
+                 , shakespeare-text              >= 0.10       && < 0.12
                  , wai                           >= 1.1        && < 1.2
                  , wai-extra                     >= 1.1        && < 1.2
                  , transformers                  >= 0.2        && < 0.3
