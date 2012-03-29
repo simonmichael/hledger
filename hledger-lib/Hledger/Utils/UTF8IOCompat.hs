@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
-{-
+{- |
 
 UTF-8 aware string IO functions that will work across multiple platforms
 and GHC versions. Includes code from Text.Pandoc.UTF8 ((C) 2010 John
-MacFarlane <jgm@berkeley.edu>).
+MacFarlane).
 
 Example usage:
 
