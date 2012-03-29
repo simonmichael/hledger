@@ -32,11 +32,12 @@ module Hledger.Utils.UTF8IOCompat (
 )
 where
 
+import Control.Monad (liftM)
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Lazy.UTF8 (toString, fromString)
+import qualified Data.ByteString.Lazy.Char8 as B8
+import qualified Data.ByteString.Lazy.UTF8 as U8 (toString, fromString)
 import Prelude hiding (readFile, writeFile, appendFile, getContents, putStr, putStrLn)
 import System.IO (Handle)
-import Control.Monad (liftM)
 #if __GLASGOW_HASKELL__ < 702
 import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
 import System.Info (os)
@@ -50,31 +51,38 @@ stripBOM s | bom `B.isPrefixOf` s = B.drop 3 s
 stripBOM s = s
 
 readFile :: FilePath -> IO String
-readFile = liftM (toString . stripBOM) . B.readFile
+readFile = liftM (U8.toString . stripBOM) . B.readFile
 
 writeFile :: FilePath -> String -> IO ()
-writeFile f = B.writeFile f . fromString
+writeFile f = B.writeFile f . U8.fromString
 
 appendFile :: FilePath -> String -> IO ()
-appendFile f = B.appendFile f . fromString
+appendFile f = B.appendFile f . U8.fromString
 
 getContents :: IO String
-getContents = liftM (toString . stripBOM) B.getContents
+getContents = liftM (U8.toString . stripBOM) B.getContents
 
 hGetContents :: Handle -> IO String
-hGetContents h = liftM (toString . stripBOM) (B.hGetContents h)
+hGetContents h = liftM (U8.toString . stripBOM) (B.hGetContents h)
 
 putStr :: String -> IO ()
-putStr = B.putStr . fromString
+putStr = bs_putStr . U8.fromString
 
 putStrLn :: String -> IO ()
-putStrLn = B.putStrLn . fromString
+putStrLn = bs_putStrLn . U8.fromString
 
 hPutStr :: Handle -> String -> IO ()
-hPutStr h = B.hPutStr h . fromString
+hPutStr h = bs_hPutStr h . U8.fromString
 
 hPutStrLn :: Handle -> String -> IO ()
-hPutStrLn h s = hPutStr h (s ++ "\n")
+hPutStrLn h = bs_hPutStrLn h . U8.fromString
+
+-- span GHC versions including 6.12.3 - 7.4.1:
+bs_putStr         = B8.putStr
+bs_putStrLn       = B8.putStrLn
+bs_hPutStr        = B8.hPut
+bs_hPutStrLn h bs = B8.hPut h bs >> B8.hPut h (B.singleton 0x0a)
+
 
 -- | A string received from or being passed to the operating system, such
 -- as a file path, command-line argument, or environment variable name or
