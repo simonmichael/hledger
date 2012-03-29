@@ -160,14 +160,15 @@ bin/hledger:
 	cd hledger; ghc --make $(MAIN) -o ../bin/hledger $(BUILDFLAGS)
 
 # build a GHC-version-specific hledger binary without disturbing with other GHC version builds
-bin/hledger.ghc-%:
+bin/hledger.ghc-%: $(SOURCEFILES)
 	cd hledger; ghc-$* --make $(MAIN) -o ../$@ $(BUILDFLAGS)  -outputdir .ghc-$*
 
 # build hledger with the main supported GHC versions
-bin/hledger-ghc-all: \
-	bin/hledger.ghc-7.0.4 \
-	bin/hledger.ghc-7.2.2 \
+bin/hledger.ghcall: \
 	bin/hledger.ghc-7.4.1 \
+	bin/hledger.ghc-7.2.2 \
+	bin/hledger.ghc-7.0.4 \
+	bin/hledger.ghc-6.12.3 \
 
 # build the fastest binary we can
 hledgeropt:
@@ -303,7 +304,7 @@ set-up-rc-repo:
 ######################################################################
 # TESTING
 
-SHELLTEST=shelltest-1.2.1.ghc-7.0.4
+SHELLTEST=shelltest
 
 test: codetest
 
@@ -348,6 +349,7 @@ functest: bin/hledger
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with a specific GHC version
+# some functional tests (add, include, read-csv..) have bin/hledger hard coded - might need to symlink it
 test-ghc-%: # bin/hledger.ghc-$*
 	@echo; echo testing hledger built with ghc-$*
 	@(echo unit tests: \
@@ -357,7 +359,11 @@ test-ghc-%: # bin/hledger.ghc-$*
 	&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with main supported GHC versions
-test-ghc-all: test-ghc-7.0.4 test-ghc-7.2.2 test-ghc-7.4.1
+test-ghcall: bin/hledger.ghcall \
+	test-ghc-7.4.1 \
+	test-ghc-7.2.2 \
+	test-ghc-7.0.4 \
+	test-ghc-6.12.3 \
 
 # run doc tests
 DOCTESTFILES=\
@@ -877,6 +883,9 @@ emacstags:
 clean:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*" | grep -v .virthualenv`
 
-Clean: clean cleandocs
-	rm -f bin/hledger TAGS tags
+cleanbin:
+	rm -f bin/hledger bin/hledger.ghc*
+
+Clean: clean cleanbin cleandocs
+	rm -f TAGS tags
 
