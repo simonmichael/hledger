@@ -191,18 +191,19 @@ which. Eg, write `$1,000.00` or `$1.000,00`.
 
 Based on how you format amounts, hledger will infer canonical display
 settings for each commodity, and use them consistently when displaying
-amounts in that commodity. These settings include:
+amounts in that commodity. Display settings include:
 
 - the position and spacing of the currency/commodity symbol
 - the digit group separator character and digit group sizes, if any
 - the decimal point character
 - the number of decimal places
 
-The canonical display settings are generally those used in the first
-amount seen, and the number of decimal places is the highest used in all
-amounts, in the given commmodity.
-[Default commodity directives](#default-commodity) can also influence the
-canonical display settings.
+The canonical settings are those of the first amount seen in the
+commodity, with the decimal places adjusted upward to the highest
+precision seen in the commodity.
+
+[Default commodity](#default-commodity) directives also influence the
+commodity display settings (note: only if they have a commodity symbol).
 
 ### Simple dates
 
@@ -275,7 +276,7 @@ be used for any subsequent amounts which have no commodity symbol.
 
 If such an amount is the first seen in that commodity, the canonical
 [commodity display settings](#commodity-display-settings) will also be
-taken from the directive.
+taken from the directive (note: only if it includes a commodity symbol).
 
 ### Prices
 
