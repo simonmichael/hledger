@@ -10,7 +10,7 @@ informational messages are mostly written to stderr rather than stdout.
 
 module Hledger.Cli.Add
 where
-import Control.Exception (throw)
+import Control.Exception as C
 import Control.Monad
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper)
@@ -56,7 +56,7 @@ add opts j
     ++"To stop adding transactions, enter . at a date prompt, or control-d/control-c."
   today <- getCurrentDay
   getAndAddTransactions j opts today
-        `catch` (\e -> unless (isEOFError e) $ ioError e)
+        `C.catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
 
 -- | Read a number of transactions from the command line, prompting,
@@ -197,7 +197,7 @@ askFor prompt def validator = do
     Nothing -> return input
     where
         showdef s = " [" ++ s ++ "]"
-        eofErr = throw $ mkIOError eofErrorType "end of input" Nothing Nothing
+        eofErr = C.throw $ mkIOError eofErrorType "end of input" Nothing Nothing
 
 -- | Append this transaction to the journal's file, and to the journal's
 -- transaction list.

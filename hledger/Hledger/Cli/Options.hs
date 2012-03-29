@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, ScopedTypeVariables #-}
 {-|
 
 Command-line options for the hledger program, and option-parsing utilities.
@@ -7,6 +7,7 @@ Command-line options for the hledger program, and option-parsing utilities.
 
 module Hledger.Cli.Options
 where
+import Control.Exception as C
 import Data.List
 import Data.List.Split
 import Data.Maybe
@@ -370,8 +371,8 @@ getHledgerProgramsInPath = do
     where
       hledgerprog = string progname >> char '-' >> many1 (letter <|> char '-') >> eof
 
-getEnvSafe v = getEnv v `catch` (\_ -> return "")
-getDirectoryContentsSafe d = getDirectoryContents d `catch` (\_ -> return [])
+getEnvSafe v = getEnv v `C.catch` (\(_::C.IOException) -> return "")
+getDirectoryContentsSafe d = getDirectoryContents d `C.catch` (\(_::C.IOException) -> return [])
 
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts = map (\(name,val) -> (name, fromSystemString val))

@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-| 
 
 This is the entry point to hledger's reading system, which can read
@@ -25,6 +26,7 @@ module Hledger.Read (
        tests_Hledger_Read,
 )
 where
+import qualified Control.Exception as C
 import Control.Monad.Error
 import Data.List
 import Data.Maybe
@@ -75,9 +77,12 @@ defaultJournalPath = do
   s <- envJournalPath
   if null s then defaultJournalPath else return s
     where
-      envJournalPath = getEnv journalEnvVar `catch` (\_ -> getEnv journalEnvVar2 `catch` (\_ -> return ""))
+      envJournalPath =
+        getEnv journalEnvVar
+         `C.catch` (\(_::C.IOException) -> getEnv journalEnvVar2
+                                            `C.catch` (\(_::C.IOException) -> return ""))
       defaultJournalPath = do
-                  home <- getHomeDirectory `catch` (\_ -> return "")
+                  home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
                   return $ home </> journalDefaultFilename
 
 -- | Read the default journal file specified by the environment, or raise an error.

@@ -34,6 +34,7 @@ module Hledger.Read.JournalReader (
   tests_Hledger_Read_JournalReader
 )
 where
+import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Error
 import Data.Char (isNumber)
@@ -185,8 +186,8 @@ includedirective = do
                 Right (ju,_) -> combineJournalUpdates [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
                 Left err     -> throwError $ inIncluded ++ show err
       where readFileOrError pos fp =
-                ErrorT $ liftM Right (readFile fp) `catch`
-                  \err -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show err)
+                ErrorT $ liftM Right (readFile fp) `C.catch`
+                  \e -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show (e::C.IOException))
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}

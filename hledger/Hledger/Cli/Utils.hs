@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and
@@ -20,7 +21,7 @@ module Hledger.Cli.Utils
      Test(TestList),
     )
 where
-import Control.Exception
+import Control.Exception as C
 import Data.List
 import Data.Maybe
 import Safe (readMay)
@@ -95,7 +96,7 @@ journalSpecifiedFileIsNewer Journal{filereadtime=tread} f = do
 fileModificationTime :: FilePath -> IO ClockTime
 fileModificationTime f
     | null f = getClockTime
-    | otherwise = getModificationTime f `Prelude.catch` \_ -> getClockTime
+    | otherwise = getModificationTime f `C.catch` \(_::C.IOException) -> getClockTime
 
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode
@@ -135,7 +136,7 @@ writeFileWithBackup :: FilePath -> String -> IO ()
 writeFileWithBackup f t = backUpFile f >> writeFile f t
 
 readFileStrictly :: FilePath -> IO String
-readFileStrictly f = readFile f >>= \s -> Control.Exception.evaluate (length s) >> return s
+readFileStrictly f = readFile f >>= \s -> C.evaluate (length s) >> return s
 
 -- | Back up this file with a (incrementing) numbered suffix, or give an error.
 backUpFile :: FilePath -> IO ()
