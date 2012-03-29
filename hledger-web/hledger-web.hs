@@ -26,7 +26,7 @@ import Yesod.Logger (makeLogger)
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
 import Prelude hiding (putStrLn)
-import Hledger.Utils.UTF8 (putStrLn)
+import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Web
 
 

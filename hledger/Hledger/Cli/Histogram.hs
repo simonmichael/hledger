@@ -15,7 +15,7 @@ import Hledger.Cli.Options
 import Hledger.Data
 import Hledger.Reports
 import Prelude hiding (putStr)
-import Hledger.Utils.UTF8 (putStr)
+import Hledger.Utils.UTF8IOCompat (putStr)
 
 
 barchar = '*'

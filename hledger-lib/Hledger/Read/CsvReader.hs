@@ -51,7 +51,7 @@ import Text.Printf (hPrintf)
 
 import Hledger.Data
 import Prelude hiding (getContents)
-import Hledger.Utils.UTF8 (getContents)
+import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Data.FormatStrings as FormatStrings
 import Hledger.Read.JournalReader (ledgeraccountname, someamount)

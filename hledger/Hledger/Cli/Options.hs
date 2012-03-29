@@ -363,7 +363,7 @@ getEnvSafe v = getEnv v `catch` (\_ -> return "")
 getDirectoryContentsSafe d = getDirectoryContents d `catch` (\_ -> return [])
 
 -- | Convert possibly encoded option values to regular unicode strings.
-decodeRawOpts = map (\(name,val) -> (name, fromPlatformString val))
+decodeRawOpts = map (\(name,val) -> (name, fromSystemString val))
 
 -- A hacky workaround for http://code.google.com/p/ndmitchell/issues/detail?id=470 :
 -- we'd like to permit options before COMMAND as well as after it.

@@ -52,7 +52,7 @@ library
                   Hledger.Read.Utils
                   Hledger.Reports
                   Hledger.Utils
-                  Hledger.Utils.UTF8
+                  Hledger.Utils.UTF8IOCompat
   Build-Depends:
                   base >= 3 && < 5
                  ,bytestring

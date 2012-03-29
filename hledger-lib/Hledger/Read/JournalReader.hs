@@ -54,7 +54,7 @@ import System.Time (getClockTime)
 import Hledger.Data
 import Hledger.Utils
 import Prelude hiding (readFile)
-import Hledger.Utils.UTF8 (readFile)
+import Hledger.Utils.UTF8IOCompat (readFile)
 
 
 -- let's get to it

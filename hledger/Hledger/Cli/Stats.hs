@@ -16,7 +16,7 @@ import qualified Data.Map as Map
 import Hledger
 import Hledger.Cli.Options
 import Prelude hiding (putStr)
-import Hledger.Utils.UTF8 (putStr)
+import Hledger.Utils.UTF8IOCompat (putStr)
 
 
 -- like Register.summarisePostings

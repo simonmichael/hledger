@@ -12,7 +12,7 @@ import Data.List
 
 import Hledger
 import Prelude hiding (putStr)
-import Hledger.Utils.UTF8 (putStr)
+import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Cli.Options
 
 -- | Print journal transactions in standard format.

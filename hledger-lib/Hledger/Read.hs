@@ -41,7 +41,7 @@ import Hledger.Read.TimelogReader as TimelogReader
 import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
-import Hledger.Utils.UTF8 (getContents, hGetContents, writeFile)
+import Hledger.Utils.UTF8IOCompat (getContents, hGetContents, writeFile)
 
 
 journalEnvVar           = "LEDGER_FILE"

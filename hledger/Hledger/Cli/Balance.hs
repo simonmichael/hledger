@@ -105,7 +105,7 @@ import Test.HUnit
 
 import Hledger
 import Prelude hiding (putStr)
-import Hledger.Utils.UTF8 (putStr)
+import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Data.FormatStrings
 import qualified Hledger.Data.FormatStrings as Format
 import Hledger.Cli.Options

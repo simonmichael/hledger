@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 Standard imports and utilities which are useful everywhere, or needed low
@@ -19,12 +20,12 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- module Text.Printf,
                           ---- all of this one:
                           module Hledger.Utils,
-                          Debug.Trace.trace
-                          ---- and this for i18n - needs to be done in each module I think:
-                          -- module Hledger.Utils.UTF8
+                          Debug.Trace.trace,
+                          -- module Hledger.Utils.UTF8IOCompat
+                          SystemString,fromSystemString,toSystemString,error',userError'
+                          -- the rest need to be done in each module I think
                           )
 where
-import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
 import Control.Monad.Error
 import Data.Char
 import Data.List
@@ -35,15 +36,15 @@ import Data.Tree
 import Debug.Trace
 import System.Directory (getHomeDirectory)
 import System.FilePath(takeDirectory,combine)
-import System.Info (os)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
 import Text.RegexPR
 -- import qualified Data.Map as Map
 -- 
--- import Prelude hiding (readFile,writeFile,getContents,putStr,putStrLn)
--- import Hledger.Utils.UTF8
+-- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
+-- import Hledger.Utils.UTF8IOCompat   (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
+import Hledger.Utils.UTF8IOCompat (SystemString,fromSystemString,toSystemString,error',userError')
 
 -- strings
 
@@ -182,41 +183,6 @@ fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
       rows = map (fit w) $ lines s
       fit w = take w . (++ repeat ' ')
       blankline = replicate w ' '
-
--- encoded platform strings
-
--- | A platform string is a string value from or for the operating system,
--- such as a file path or command-line argument (or environment variable's
--- name or value ?). On some platforms (such as unix) these are not real
--- unicode strings but have some encoding such as UTF-8. This alias does
--- no type enforcement but aids code clarity.
-type PlatformString = String
-
--- | Convert a possibly encoded platform string to a real unicode string.
--- We decode the UTF-8 encoding recommended for unix systems
--- (cf http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html)
--- and leave anything else unchanged.
-fromPlatformString :: PlatformString -> String
-fromPlatformString s = if UTF8.isUTF8Encoded s then UTF8.decodeString s else s
-
--- | Convert a unicode string to a possibly encoded platform string.
--- On unix we encode with the recommended UTF-8
--- (cf http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html)
--- and elsewhere we leave it unchanged.
-toPlatformString :: String -> PlatformString
-toPlatformString = case os of
-                     "unix" -> UTF8.encodeString
-                     "linux" -> UTF8.encodeString
-                     "darwin" -> UTF8.encodeString
-                     _ -> id
-
--- | A version of error that's better at displaying unicode.
-error' :: String -> a
-error' = error . toPlatformString
-
--- | A version of userError that's better at displaying unicode.
-userError' :: String -> IOError
-userError' = userError . toPlatformString
 
 -- math
 
