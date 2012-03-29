@@ -12,8 +12,8 @@ where
 
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
 import Yesod.Default.Config
-import Yesod.Default.Main   (defaultMain)
-import Yesod.Logger (Logger, defaultDevelopmentLogger) --, logString)
+-- import Yesod.Default.Main   (defaultMain)
+import Yesod.Logger ({- Logger,-} defaultDevelopmentLogger) --, logString)
 
 import Prelude hiding (putStrLn)
 -- -- import Control.Concurrent (forkIO, threadDelay)
@@ -26,9 +26,8 @@ import Text.Printf
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.Web.Settings (parseExtra)
 import Hledger.Utils.UTF8IOCompat (putStrLn)
-import Hledger.Web
+import Hledger.Web hiding (opts,j)
 
 
 main :: IO ()
@@ -38,13 +37,11 @@ main = do
   runWith opts
 
 runWith :: WebOpts -> IO ()
-runWith opts = run opts
-    where
-      run opts
-          | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp webmode) >> exitSuccess
-          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
-          | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-          | otherwise                                          = journalFilePathFromOpts (cliopts_ opts) >>= ensureJournalFileExists >> withJournalDo' opts web
+runWith opts
+  | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp webmode) >> exitSuccess
+  | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
+  | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+  | otherwise                                          = journalFilePathFromOpts (cliopts_ opts) >>= ensureJournalFileExists >> withJournalDo' opts web
 
 withJournalDo' :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
@@ -85,6 +82,7 @@ server baseurl port opts j = do
               appEnv = Development
             , appPort = port_ opts
             , appRoot = pack baseurl
+            , appExtra = Extra "" Nothing
             }
     logger <- defaultDevelopmentLogger
     app <- getApplication config logger

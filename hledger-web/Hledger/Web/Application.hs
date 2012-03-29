@@ -24,7 +24,7 @@ import Network.Wai (Application)
 import Hledger.Web.Foundation
 import Hledger.Web.Handlers
 import Hledger.Web.Options
-import Hledger.Web.Settings (parseExtra)
+import Hledger.Web.Settings (Extra(..), parseExtra)
 import Hledger.Web.Settings.StaticFiles (staticSite)
 
 -- This line actually creates our YesodSite instance. It is the second half

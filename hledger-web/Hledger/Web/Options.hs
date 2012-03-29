@@ -22,15 +22,19 @@ version  = ""
 progname = $(packageVariable (pkgName . package))
 version  = $(packageVariable (pkgVersion . package))
 #endif
+prognameandversion :: String
 prognameandversion = progname ++ " " ++ version :: String
 
+defbaseurlexample :: String
 defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 
+webflags :: [Flag [([Char], [Char])]]
 webflags = [
   flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurlexample++")")
  ,flagReq ["port"]  (\s opts -> Right $ setopt "port" s opts) "PORT" ("listen on this tcp port (default: "++show defport++")")
  ]
  
+webmode :: Mode [([Char], [Char])]
 webmode =  (mode "hledger-web" [("command","web")]
             "start serving the hledger web interface"
             mainargsflag []){
@@ -51,6 +55,7 @@ data WebOpts = WebOpts {
     ,cliopts_  :: CliOpts
  } deriving (Show)
 
+defwebopts :: WebOpts
 defwebopts = WebOpts
     def
     def

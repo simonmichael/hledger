@@ -8,7 +8,6 @@ module Hledger.Web.Foundation
     , Handler
     , Widget
     , module Yesod.Core
-    , module Hledger.Web.Settings
     , liftIO
     ) where
 
@@ -24,7 +23,7 @@ import Text.Hamlet
 
 import Hledger.Web.Options
 import qualified Hledger.Web.Settings
-import Hledger.Web.Settings (Extra (..), widgetFile)
+import Hledger.Web.Settings (Extra (..))
 import Hledger.Web.Settings.StaticFiles
 
 
@@ -75,8 +74,8 @@ instance Yesod App where
     encryptKey _ = fmap Just $ getKey "client_session_key.aes"
 
     defaultLayout widget = do
-        master <- getYesod
-        mmsg <- getMessage
+        -- master <- getYesod
+        -- mmsg <- getMessage
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
         -- default-layout-wrapper is the entire page. Since the final
@@ -88,7 +87,7 @@ instance Yesod App where
         -- hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
         pc <- widgetToPageContent $ do
           widget
-        hamletToRepHtml [$hamlet|
+        hamletToRepHtml [hamlet|
 !!!
 <html
  <head

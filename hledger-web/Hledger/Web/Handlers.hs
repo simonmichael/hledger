@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, RecordWildCards  #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, RecordWildCards #-}
 {-
 
 hledger-web's request handlers, and helpers.
@@ -9,8 +9,6 @@ module Hledger.Web.Handlers where
 
 import Prelude
 import Control.Applicative ((<$>))
--- import Data.Aeson
-import Data.ByteString (ByteString)
 import Data.Either (lefts,rights)
 import Data.List
 import Data.Maybe
@@ -19,7 +17,7 @@ import qualified Data.Text (null)
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
-import System.FilePath (takeFileName, (</>))
+import System.FilePath (takeFileName)
 import System.IO.Storage (putValue, getValue)
 import System.Locale (defaultTimeLocale)
 import Text.Blaze (preEscapedString, toHtml)
@@ -28,7 +26,7 @@ import Text.Printf
 import Yesod.Core
 -- import Yesod.Json
 
-import Hledger hiding (today)
+import Hledger hiding (today,subs,is,d)
 import Hledger.Cli hiding (version)
 import Hledger.Web.Foundation
 import Hledger.Web.Options
@@ -60,15 +58,15 @@ getJournalR = do
       filtering = m /= Any
       -- showlastcolumn = if injournal && not filtering then False else True
       title = case inacct of
-                Nothing       -> "Journal"++filter
-                Just (a,subs) -> "Transactions in "++a++andsubs++filter
-                                  where andsubs = if subs then " (and subaccounts)" else ""
+                Nothing       -> "Journal"++s2
+                Just (a,subs) -> "Transactions in "++a++s1++s2
+                                  where s1 = if subs then " (and subaccounts)" else ""
                 where
-                  filter = if filtering then ", filtered" else ""
+                  s2 = if filtering then ", filtered" else ""
       maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   defaultLayout $ do
       setTitle "hledger-web journal"
-      addHamlet [$hamlet|
+      addHamlet [hamlet|
 ^{topbar vd}
 <div#content
  <div#sidebar
@@ -101,7 +99,7 @@ getJournalEntriesR = do
       maincontent = entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
-      addHamlet [$hamlet|
+      addHamlet [hamlet|
 ^{topbar vd}
 <div#content
  <div#sidebar
@@ -133,15 +131,15 @@ getRegisterR = do
   let sidecontent = sidebar vd
       -- injournal = isNothing inacct
       filtering = m /= Any
-      title = "Transactions in "++a++andsubs++filter
+      title = "Transactions in "++a++s1++s2
                where
                  (a,subs) = fromMaybe ("all accounts",False) $ inAccount qopts
-                 andsubs = if subs then " (and subaccounts)" else ""
-                 filter = if filtering then ", filtered" else ""
+                 s1 = if subs then " (and subaccounts)" else ""
+                 s2 = if filtering then ", filtered" else ""
       maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   defaultLayout $ do
       setTitle "hledger-web register"
-      addHamlet [$hamlet|
+      addHamlet [hamlet|
 ^{topbar vd}
 <div#content
  <div#sidebar
@@ -199,7 +197,7 @@ sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ 
 -- | Render a "AccountsReport" as HTML.
 accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> HtmlUrl AppRoute
 accountsReportAsHtml _ vd@VD{..} (items',total) =
- [$hamlet|
+ [hamlet|
 <div#accountsheading
  <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
 <div#accounts
@@ -241,7 +239,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> AccountsReportItem -> HtmlUrl AppRoute
-   itemAsHtml _ (acct, adisplay, aindent, abal) = [$hamlet|
+   itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
 <tr.item.#{inacctclass}
  <td.account.#{depthclass}
   #{indent}
@@ -262,7 +260,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
        numpostings = length $ apostings $ ledgerAccount l acct
        depthclass = "depth"++show aindent
        inacctclass = case inacctmatcher of
-                       Just m -> if m `matchesAccount` acct then "inacct" else "notinacct"
+                       Just m' -> if m' `matchesAccount` acct then "inacct" else "notinacct"
                        Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * (1+aindent)) "&nbsp;"
        acctquery = (RegisterR, [("q", pack $ accountQuery acct)])
@@ -274,19 +272,19 @@ accountQuery a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 accountOnlyQuery :: AccountName -> String
 accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
 
--- accountUrl :: AppRoute -> AccountName -> (AppRoute,[(String,ByteString)])
-accountUrl r a = (r, [("q",pack $ accountQuery a)])
+accountUrl :: AppRoute -> AccountName -> (AppRoute, [(Text, Text)])
+accountUrl r a = (r, [("q", pack $ accountQuery a)])
 
 -- | Render a "EntriesReport" as HTML for the journal entries view.
 entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> HtmlUrl AppRoute
-entriesReportAsHtml _ vd items = [$hamlet|
+entriesReportAsHtml _ vd items = [hamlet|
 <table.journalreport>
  $forall i <- numbered items
   ^{itemAsHtml vd i}
  |]
  where
    itemAsHtml :: ViewData -> (Int, EntriesReportItem) -> HtmlUrl AppRoute
-   itemAsHtml _ (n, t) = [$hamlet|
+   itemAsHtml _ (n, t) = [hamlet|
 <tr.item.#{evenodd}>
  <td.transaction>
   <pre>#{txn}
@@ -297,7 +295,7 @@ entriesReportAsHtml _ vd items = [$hamlet|
 
 -- | Render an "TransactionsReport" as HTML for the formatted journal view.
 journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-journalTransactionsReportAsHtml _ vd (_,items) = [$hamlet|
+journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 <table.journalreport
  <tr.headings
   <th.date align=left>Date
@@ -310,19 +308,19 @@ journalTransactionsReportAsHtml _ vd (_,items) = [$hamlet|
  where
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [$hamlet|
+   itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [hamlet|
 <tr.item.#{evenodd}.#{firstposting}
  <td.date>#{date}
  <td.description colspan=2 title="#{show t}">#{elideRight 60 desc}
  <td.amount align=right>
   $if showamt
    #{mixedAmountAsHtml amt}
-$forall p <- tpostings t
+$forall p' <- tpostings t
   <tr.item.#{evenodd}.posting
    <td.date
    <td.description
-   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
-   <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
+   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
+   <td.amount align=right>#{mixedAmountAsHtml $ pamount p'}
 |]
      where
        evenodd = if even n then "even" else "odd" :: String
@@ -335,14 +333,14 @@ $forall p <- tpostings t
 
 -- Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerReportHtml opts vd r@(_,items) = [$hamlet|
+registerReportHtml opts vd r@(_,items) = [hamlet|
  ^{registerChartHtml items}
  ^{registerItemsHtml opts vd r}
 |]
 
 -- Generate html for a transaction list from an "TransactionsReport".
 registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
+registerItemsHtml _ vd (balancelabel,items) = [hamlet|
 <table.registerreport
  <tr.headings
   <th.date align=left>Date
@@ -360,7 +358,7 @@ registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
    -- inacct = inAccount qopts
    -- filtering = m /= Any
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
+   itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [hamlet|
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
  <td.date>#{date}
  <td.description title="#{show t}">#{elideRight 30 desc}
@@ -374,12 +372,12 @@ registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
   $if showamt
    #{mixedAmountAsHtml amt}
  <td.balance align=right>#{mixedAmountAsHtml bal}
-$forall p <- tpostings t
+$forall p' <- tpostings t
  <tr.item.#{evenodd}.posting style=#{postingsdisplaystyle}
    <td.date
    <td.description
-   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p}" title="Show transactions in #{paccount p}">#{elideRight 40 $ paccount p}
-   <td.amount align=right>#{mixedAmountAsHtml $ pamount p}
+   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
+   <td.amount align=right>#{mixedAmountAsHtml $ pamount p'}
    <td.balance align=right>
 |]
      where
@@ -394,10 +392,15 @@ $forall p <- tpostings t
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
+               -- registerChartHtml :: forall t (t1 :: * -> *) t2 t3 t4 t5.
+               --                      Data.Foldable.Foldable t1 =>
+               --                      t1 (Transaction, t2, t3, t4, t5, MixedAmount)
+               --                      -> t -> Text.Blaze.Internal.HtmlM ()
+registerChartHtml :: [TransactionsReportItem] -> HtmlUrl AppRoute
 registerChartHtml items =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
- [$hamlet|
+ [hamlet|
 <script type=text/javascript>
  if (document.getElementById('maincontent').style.display != 'none')
   \$(document).ready(function() {
@@ -425,7 +428,7 @@ stringIfLongerThan n s = if length s > n then s else ""
 
 numberTransactionsReportItems :: [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
 numberTransactionsReportItems [] = []
-numberTransactionsReportItems is = number 0 nulldate is
+numberTransactionsReportItems items = number 0 nulldate items
   where
     number :: Int -> Day -> [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
     number _ _ [] = []
@@ -437,6 +440,7 @@ numberTransactionsReportItems is = number 0 nulldate is
           (dy,dm,_) = toGregorian d
           (prevdy,prevdm,_) = toGregorian prevd
 
+mixedAmountAsHtml :: MixedAmount -> Html
 mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ show b
     where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
           c = case isNegativeMixedAmount b of Just True -> "negative amount"
@@ -511,12 +515,12 @@ handleAdd = do
                           })
   -- display errors or add transaction
   case tE of
-   Left errs -> do
+   Left errs' -> do
     -- save current form values in session
     -- setMessage $ toHtml $ intercalate "; " errs
-    setMessage [$shamlet|
+    setMessage [shamlet|
                  Errors:<br>
-                 $forall e<-errs
+                 $forall e<-errs'
                   #{e}<br>
                |]
    Right t -> do
@@ -524,7 +528,7 @@ handleAdd = do
     liftIO $ do ensureJournalFileExists journalpath
                 appendToJournalFileOrStdout journalpath $ showTransaction t'
     -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
-    setMessage [$shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
+    setMessage [shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
 
   redirect (RegisterR, [("add","1")])
 
@@ -600,7 +604,7 @@ handleImport = do
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
-topbar VD{..} = [$hamlet|
+topbar VD{..} = [hamlet|
 <div#topbar
  <a.topleftlink href=#{hledgerorgurl} title="More about hledger"
   hledger-web
@@ -608,24 +612,24 @@ topbar VD{..} = [$hamlet|
   #{version}
  <a.toprightlink href=#{manualurl} target=hledgerhelp title="User manual">manual
  <h1>#{title}
-$maybe m <- msg
- <div#message>#{m}
+$maybe m' <- msg
+ <div#message>#{m'}
 |]
   where
     title = takeFileName $ journalFilePath j
 
 -- | Navigation link, preserving parameters and possibly highlighted.
 navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
-navlink VD{..} s dest title = [$hamlet|
-<a##{s}link.#{style} href=@?{u} title="#{title}">#{s}
+navlink VD{..} s dest title = [hamlet|
+<a##{s}link.#{style} href=@?{u'} title="#{title}">#{s}
 |]
-  where u = (dest, if null q then [] else [("q", pack q)])
+  where u' = (dest, if null q then [] else [("q", pack q)])
         style | dest == here = "navlinkcurrent"
               | otherwise    = "navlink" :: Text
 
 -- | Links to the various journal editing forms.
 editlinks :: HtmlUrl AppRoute
-editlinks = [$hamlet|
+editlinks = [hamlet|
 <a#editformlink href="#" onclick="return editformToggle(event)" title="Toggle journal edit form">edit
 \ | #
 <a#addformlink href="#" onclick="return addformToggle(event)" title="Toggle transaction add form">add
@@ -634,14 +638,14 @@ editlinks = [$hamlet|
 
 -- | Link to a topic in the manual.
 helplink :: String -> String -> HtmlUrl AppRoute
-helplink topic label = [$hamlet|
+helplink topic label = [hamlet|
 <a href=#{u} target=hledgerhelp>#{label}
 |]
     where u = manualurl ++ if null topic then "" else '#':topic
 
 -- | Search form for entering custom queries to filter journal data.
 searchform :: ViewData -> HtmlUrl AppRoute
-searchform VD{..} = [$hamlet|
+searchform VD{..} = [hamlet|
 <div#searchformdiv
  <form#searchform.form method=GET
   <table
@@ -682,7 +686,7 @@ searchform VD{..} = [$hamlet|
 
 -- | Add transaction form.
 addform :: ViewData -> HtmlUrl AppRoute
-addform vd@VD{..} = [$hamlet|
+addform vd@VD{..} = [hamlet|
 <script type=text/javascript>
  \$(document).ready(function() {
     /* dhtmlxcombo setup */
@@ -743,7 +747,8 @@ addform vd@VD{..} = [$hamlet|
   date = "today" :: String
   descriptions = sort $ nub $ map tdescription $ jtxns j
   manyfiles = (length $ files j) > 1
-  postingfields VD{..} n = [$hamlet|
+  postingfields :: ViewData -> Int -> HtmlUrl AppRoute
+  postingfields _ n = [hamlet|
 <tr#postingrow
  <td align=right>#{acctlabel}:
  <td
@@ -762,14 +767,14 @@ addform vd@VD{..} = [$hamlet|
 |]
    where
     shouldselect a = n == 2 && maybe False ((a==).fst) (inAccount qopts)
-    numbered = (++ show n)
-    acctvar = numbered "account"
-    amtvar = numbered "amount"
+    withnumber = (++ show n)
+    acctvar = withnumber "account"
+    amtvar = withnumber "amount"
     acctnames = sort $ journalAccountNamesUsed j
     (acctlabel, accthelp, amtfield, amthelp)
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
-                     ,[$hamlet|
+                     ,[hamlet|
 <td style=padding-left:1em;
  Amount:
 <td
@@ -785,7 +790,7 @@ addform vd@VD{..} = [$hamlet|
 
 -- | Edit journal form.
 editform :: ViewData -> HtmlUrl AppRoute
-editform VD{..} = [$hamlet|
+editform VD{..} = [hamlet|
 <form#editform method=POST style=display:none;
  <h2#contenttitle>#{title}
  <table.form
@@ -817,7 +822,7 @@ editform VD{..} = [$hamlet|
 
 -- | Import journal form.
 importform :: HtmlUrl AppRoute
-importform = [$hamlet|
+importform = [hamlet|
 <form#importform method=POST style=display:none;
  <table.form
   <tr
@@ -830,14 +835,14 @@ importform = [$hamlet|
 |]
 
 journalselect :: [(FilePath,String)] -> HtmlUrl AppRoute
-journalselect journalfiles = [$hamlet|
+journalselect journalfiles = [hamlet|
 <select id=journalselect name=journal onchange="editformJournalSelect(event)"
  $forall f <- journalfiles
   <option value=#{fst f}>#{fst f}
 |]
 
 nulltemplate :: HtmlUrl AppRoute
-nulltemplate = [$hamlet||]
+nulltemplate = [hamlet||]
 
 ----------------------------------------------------------------------
 -- utilities
@@ -925,6 +930,7 @@ getMessageOr mnewmsg = do
   oldmsg <- getMessage
   return $ maybe oldmsg (Just . toHtml) mnewmsg
 
+numbered :: [a] -> [(Int,a)]
 numbered = zip [1..]
 
 dayToJsTimestamp :: Day -> Integer

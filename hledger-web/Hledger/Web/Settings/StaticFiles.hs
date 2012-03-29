@@ -11,7 +11,6 @@ This is a separate module to satisfy template haskell requirements.
 -}
 module Hledger.Web.Settings.StaticFiles where
 
-import Prelude (IO)
 import System.IO
 import Yesod.Static
 import qualified Yesod.Static as Static
