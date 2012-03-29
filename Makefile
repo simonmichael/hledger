@@ -600,7 +600,7 @@ haddock: .haddockprologue
 
 # browse the api docs
 viewhaddock:
-	$(VIEWHTML) site/api/index.html
+	$(VIEWHTML) site/api/frames.html
 
 # http://www.cs.york.ac.uk/fp/darcs/hscolour/
 HSCOLOUR=HsColour -css
