@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, OverloadedStrings #-}
 {-|
 
 hledger-web - a hledger add-on providing a web interface.
