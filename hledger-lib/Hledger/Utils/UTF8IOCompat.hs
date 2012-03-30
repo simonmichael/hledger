@@ -80,7 +80,7 @@ hPutStrLn h s = hPutStr h (s ++ "\n")
 -- as a file path, command-line argument, or environment variable name or
 -- value. With GHC versions before 7.2 on some platforms (posix) these are
 -- typically encoded. When converting, we assume the encoding is UTF-8 (cf
--- http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html#UTF8).
+-- <http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html#UTF8>).
 type SystemString = String
 
 -- | Convert a system string to an ordinary string, decoding from UTF-8 if
