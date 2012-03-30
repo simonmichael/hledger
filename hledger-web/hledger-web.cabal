@@ -122,8 +122,8 @@ executable         hledger-web
                      Hledger.Web.Handlers
 
     build-depends:
-                   hledger == 0.17
-                 , hledger-lib == 0.17
+                   hledger == 0.17.98
+                 , hledger-lib == 0.17.98
 
                  , cabal-file-th
                  , cmdargs >= 0.9.1   && < 0.10
