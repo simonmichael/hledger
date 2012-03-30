@@ -57,9 +57,11 @@ Some add-on packages are available on Hackage:
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest).
 These are without an active maintainer, and/or platform-specific, so installing them may be harder.
 
-Note to use non-ascii characters in journal files, you must have a [suitable locale configured](#locale).
+Note: to use non-ascii characters like £, you might need to [configure a suitable locale](#locale).
 
-Trouble with any of the above ? Please proceed to [Troubleshooting](#troubleshooting).
+<span style="color:red; font-style:italic;">
+Trouble with any of the above ? Proceed to [Troubleshooting](#troubleshooting).
+</span>
 
 ## Usage
 
@@ -1365,7 +1367,7 @@ or get help.
 
 - <a name="5551" />**can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**  
   (or similar): cf [GHC bug #5551](http://hackage.haskell.org/trac/ghc/ticket/5551).
-  Upgrade your GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
+  Upgrade GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
 
 - **ExitFailure 11**  
   See
@@ -1413,10 +1415,11 @@ Here are some issues you might encounter when you run hledger:
   See [file format compatibility](#file-format-compatibility).
 
 - <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
-  hledger, like all GHC executables, requires an appropriate system locale
-  in order to handle non-ascii data.  Eg, it's common for journal files to
-  contain UTF8-encoded text, and in this case you would need to have a
-  UTF8-aware locale configured.
+  In order to handle non-ascii letters and symbols (like £), hledger needs
+  an appropriate locale. This is usually configured system-wide; you can
+  also configure it temporarily.  The locale may need to be one that
+  supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
+  I'm not sure yet).
   
     Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
     
@@ -1428,12 +1431,12 @@ Here are some issues you might encounter when you run hledger:
         POSIX
         $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
 
-    Here's one way to set it permanently, there may be better ways:
+     Here's one way to set it permanently, there are probably better ways:
 
         $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
         $ bash --login
 
-    If we preferred to use eg `fr_FR.utf8` here, we'd have to install it first:
+     If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
 
         $ apt-get install language-pack-fr
         $ locale -a
@@ -1447,8 +1450,8 @@ Here are some issues you might encounter when you run hledger:
         POSIX
         $ LANG=fr_FR.utf8 hledger -f my.journal print
 
-    Note some platforms allow variant locale spellings, but not all
-    (ubuntu accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
+    Note some platforms allow variant locale spellings, but not all (ubuntu
+    accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 ### Examples and recipes
 
