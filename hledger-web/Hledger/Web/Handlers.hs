@@ -5,7 +5,39 @@ hledger-web's request handlers, and helpers.
 
 -}
 
-module Hledger.Web.Handlers where
+module Hledger.Web.Handlers
+(
+  -- * GET handlers
+  getRootR,
+  getJournalR,
+  getJournalEntriesR,
+  getJournalEditR,
+  getRegisterR,
+  -- ** helpers
+  -- sidebar,
+  -- accountsReportAsHtml,
+  -- accountQuery,
+  -- accountOnlyQuery,
+  -- accountUrl,
+  -- entriesReportAsHtml,
+  -- journalTransactionsReportAsHtml,
+  -- registerReportHtml,
+  -- registerItemsHtml,
+  -- registerChartHtml,
+  -- stringIfLongerThan,
+  -- numberTransactionsReportItems,
+  -- mixedAmountAsHtml,
+  -- * POST handlers
+  postJournalR,
+  postJournalEntriesR,
+  postJournalEditR,
+  postRegisterR,
+  -- * Common page components
+  -- * Utilities
+  ViewData(..),
+  nullviewdata,
+)
+where
 
 import Prelude
 import Control.Applicative ((<$>))
@@ -32,20 +64,23 @@ import Hledger.Web.Foundation
 import Hledger.Web.Options
 import Hledger.Web.Settings
 
+-- routes:
+-- /static          StaticR         Static getStatic
+-- -- /favicon.ico     FaviconR        GET
+-- /robots.txt      RobotsR         GET
+-- /                RootR           GET
+-- /journal         JournalR        GET POST
+-- /journal/entries JournalEntriesR GET POST
+-- /journal/edit    JournalEditR    GET POST
+-- /register        RegisterR       GET POST
+-- -- /accounts        AccountsR       GET
+-- -- /api/accounts    AccountsJsonR   GET
 
--- getFaviconR :: Handler ()
--- getFaviconR = sendFile "image/x-icon" $ Hledger.Web.Settings.staticDir </> "favicon.ico"
-
--- getRobotsR :: Handler RepPlain
--- getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)
+----------------------------------------------------------------------
+-- GET handlers
 
 getRootR :: Handler RepHtml
 getRootR = redirect defaultroute where defaultroute = RegisterR
-
-type AppRoute = Route App
-
-----------------------------------------------------------------------
--- main views:
 
 -- | The formatted journal view, with sidebar.
 getJournalR :: Handler RepHtml
@@ -81,14 +116,6 @@ getJournalR = do
   ^{importform}
 |]
 
--- | The journal editform, no sidebar.
-getJournalEditR :: Handler RepHtml
-getJournalEditR = do
-  vd <- getViewData
-  defaultLayout $ do
-      setTitle "hledger-web journal edit form"
-      addHamlet $ editform vd
-
 -- | The journal entries view, with sidebar.
 getJournalEntriesR :: Handler RepHtml
 getJournalEntriesR = do
@@ -114,15 +141,21 @@ getJournalEntriesR = do
   ^{importform}
 |]
 
--- | The journal entries view, no sidebar.
-getJournalOnlyR :: Handler RepHtml
-getJournalOnlyR = do
-  vd@VD{..} <- getViewData
+-- | The journal editform, no sidebar.
+getJournalEditR :: Handler RepHtml
+getJournalEditR = do
+  vd <- getViewData
   defaultLayout $ do
-      setTitle "hledger-web journal only"
-      addHamlet $ entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
+      setTitle "hledger-web journal edit form"
+      addHamlet $ editform vd
 
-----------------------------------------------------------------------
+-- -- | The journal entries view, no sidebar.
+-- getJournalOnlyR :: Handler RepHtml
+-- getJournalOnlyR = do
+--   vd@VD{..} <- getViewData
+--   defaultLayout $ do
+--       setTitle "hledger-web journal only"
+--       addHamlet $ entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
@@ -154,17 +187,15 @@ getRegisterR = do
   ^{importform}
 |]
 
--- | The register view, no sidebar.
-getRegisterOnlyR :: Handler RepHtml
-getRegisterOnlyR = do
-  vd@VD{..} <- getViewData
-  defaultLayout $ do
-      setTitle "hledger-web register only"
-      addHamlet $
-          case inAccountQuery qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m m'
-                                         Nothing -> registerReportHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
-
-----------------------------------------------------------------------
+-- -- | The register view, no sidebar.
+-- getRegisterOnlyR :: Handler RepHtml
+-- getRegisterOnlyR = do
+--   vd@VD{..} <- getViewData
+--   defaultLayout $ do
+--       setTitle "hledger-web register only"
+--       addHamlet $
+--           case inAccountQuery qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m m'
+--                                          Nothing -> registerReportHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
 
 {-
 -- | A simple accounts view. This one is json-capable, returning the chart
@@ -187,14 +218,13 @@ getAccountsJsonR = do
   jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j')]
 -}
 
-----------------------------------------------------------------------
--- view helpers
+-- helpers
 
 -- | Render the sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j
 
--- | Render a "AccountsReport" as HTML.
+-- | Render an "AccountsReport" as html.
 accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> HtmlUrl AppRoute
 accountsReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
@@ -275,7 +305,7 @@ accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRe
 accountUrl :: AppRoute -> AccountName -> (AppRoute, [(Text, Text)])
 accountUrl r a = (r, [("q", pack $ accountQuery a)])
 
--- | Render a "EntriesReport" as HTML for the journal entries view.
+-- | Render an "EntriesReport" as html for the journal entries view.
 entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> HtmlUrl AppRoute
 entriesReportAsHtml _ vd items = [hamlet|
 <table.journalreport>
@@ -293,7 +323,7 @@ entriesReportAsHtml _ vd items = [hamlet|
        evenodd = if even n then "even" else "odd" :: String
        txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 
--- | Render an "TransactionsReport" as HTML for the formatted journal view.
+-- | Render a "TransactionsReport" as html for the formatted journal view.
 journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 <table.journalreport
@@ -423,8 +453,8 @@ registerChartHtml items =
 <div#register-chart style="width:600px;height:100px; margin-bottom:1em;"
 |]
 
-stringIfLongerThan :: Int -> String -> String
-stringIfLongerThan n s = if length s > n then s else ""
+-- stringIfLongerThan :: Int -> String -> String
+-- stringIfLongerThan n s = if length s > n then s else ""
 
 numberTransactionsReportItems :: [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
 numberTransactionsReportItems [] = []
@@ -447,7 +477,7 @@ mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $
                                               _         -> "positive amount"
 
 -------------------------------------------------------------------------------
--- post handlers
+-- POST handlers
 
 postJournalR :: Handler RepHtml
 postJournalR = handlePost
@@ -600,7 +630,7 @@ handleImport = do
   --    redirect JournalR
 
 ----------------------------------------------------------------------
--- | Other view components.
+-- Common page components.
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
@@ -618,23 +648,23 @@ $maybe m' <- msg
   where
     title = takeFileName $ journalFilePath j
 
--- | Navigation link, preserving parameters and possibly highlighted.
-navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
-navlink VD{..} s dest title = [hamlet|
-<a##{s}link.#{style} href=@?{u'} title="#{title}">#{s}
-|]
-  where u' = (dest, if null q then [] else [("q", pack q)])
-        style | dest == here = "navlinkcurrent"
-              | otherwise    = "navlink" :: Text
+-- -- | Navigation link, preserving parameters and possibly highlighted.
+-- navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
+-- navlink VD{..} s dest title = [hamlet|
+-- <a##{s}link.#{style} href=@?{u'} title="#{title}">#{s}
+-- |]
+--   where u' = (dest, if null q then [] else [("q", pack q)])
+--         style | dest == here = "navlinkcurrent"
+--               | otherwise    = "navlink" :: Text
 
--- | Links to the various journal editing forms.
-editlinks :: HtmlUrl AppRoute
-editlinks = [hamlet|
-<a#editformlink href="#" onclick="return editformToggle(event)" title="Toggle journal edit form">edit
-\ | #
-<a#addformlink href="#" onclick="return addformToggle(event)" title="Toggle transaction add form">add
-<a#importformlink href="#" onclick="return importformToggle(event)" style="display:none;">import transactions
-|]
+-- -- | Links to the various journal editing forms.
+-- editlinks :: HtmlUrl AppRoute
+-- editlinks = [hamlet|
+-- <a#editformlink href="#" onclick="return editformToggle(event)" title="Toggle journal edit form">edit
+-- \ | #
+-- <a#addformlink href="#" onclick="return addformToggle(event)" title="Toggle transaction add form">add
+-- <a#importformlink href="#" onclick="return importformToggle(event)" style="display:none;">import transactions
+-- |]
 
 -- | Link to a topic in the manual.
 helplink :: String -> String -> HtmlUrl AppRoute
@@ -845,7 +875,7 @@ nulltemplate :: HtmlUrl AppRoute
 nulltemplate = [hamlet||]
 
 ----------------------------------------------------------------------
--- utilities
+-- Utilities
 
 -- | A bundle of data useful for hledger-web request handlers and templates.
 data ViewData = VD {

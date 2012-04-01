@@ -1,8 +1,15 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+{-
+
+Define the web application's foundation, in the usual Yesod style.
+See a default Yesod app's comments for more details of each part.
+
+-}
 
 module Hledger.Web.Foundation
     ( App (..)
     , Route (..)
+    , AppRoute
     -- , AppMessage (..)
     , resourcesApp
     , Handler
@@ -26,46 +33,25 @@ import qualified Hledger.Web.Settings
 import Hledger.Web.Settings (Extra (..))
 import Hledger.Web.Settings.StaticFiles
 
-
--- | The site argument for your application. This can be a good place to
--- keep settings and values requiring initialization before your application
--- starts running, such as database connections. Every handler will have
--- access to the data present here.
+-- | The web application's configuration and data, available to all request handlers.
 data App = App
     { settings :: AppConfig DefaultEnv Extra
     , getLogger :: Logger
     , getStatic :: Static -- ^ Settings for static file serving.
-
-    ,appOpts    :: WebOpts
-    -- ,appJournal :: Journal
+    , appOpts    :: WebOpts
+    -- , appJournal :: Journal
     }
 
--- Set up i18n messages. See the message folder.
+-- Set up i18n messages.
 -- mkMessage "App" "messages" "en"
 
--- This is where we define all of the routes in our application. For a full
--- explanation of the syntax, please see:
--- http://docs.yesodweb.com/book/web-routes-quasi/
---
--- This function does three things:
---
--- * Creates the route datatype AppRoute. Every valid URL in your
---   application can be represented as a value of this type.
--- * Creates the associated type:
---       type instance Route App = AppRoute
--- * Creates the value resourcesApp which contains information on the
---   resources declared below. This is used in Handler.hs by the call to
---   mkYesodDispatch
---
--- What this function does *not* do is create a YesodSite instance for
--- App. Creating that instance requires all of the handler functions
--- for our application to be in scope. However, the handler functions
--- usually require access to the AppRoute datatype. Therefore, we
--- split these actions into two functions and place them in separate files.
+-- The web application's routes (urls).
 mkYesodData "App" $(parseRoutesFile "routes")
 
--- Please see the documentation for the Yesod typeclass. There are a number
--- of settings which can be configured by overriding methods here.
+-- | A convenience alias.
+type AppRoute = Route App
+
+-- More configuration, including the default page layout.
 instance Yesod App where
     -- approot = Hledger.Web.Settings.appRoot . settings
     approot = ApprootMaster $ appRoot . settings
