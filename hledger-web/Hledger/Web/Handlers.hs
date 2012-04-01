@@ -431,11 +431,13 @@ registerChartHtml items =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  [hamlet|
+<div#register-chart style="width:600px;height:100px; margin-bottom:1em;">
 <script type=text/javascript>
- if (document.getElementById('maincontent').style.display != 'none')
-  \$(document).ready(function() {
-    /* render chart */
-      \$.plot($('#register-chart'),
+ \$(document).ready(function() {
+   /* render chart with flot, if visible */
+   var chartdiv = $('#register-chart');
+   if (chartdiv.is(':visible'))
+     \$.plot(chartdiv,
              [
               [
                $forall i <- items
@@ -450,7 +452,6 @@ registerChartHtml items =
              }
              );
   });
-<div#register-chart style="width:600px;height:100px; margin-bottom:1em;">
 |]
 
 -- stringIfLongerThan :: Int -> String -> String
