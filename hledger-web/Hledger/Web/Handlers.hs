@@ -103,11 +103,11 @@ getJournalR = do
       setTitle "hledger-web journal"
       addWidget $ toWidget [hamlet|
 ^{topbar vd}
-<div#content
- <div#sidebar
+<div#content>
+ <div#sidebar>
   ^{sidecontent}
- <div#main.register
-  <div#maincontent
+ <div#main.register>
+  <div#maincontent>
    <h2#contenttitle>#{title}
    ^{searchform vd}
    ^{maincontent}
@@ -128,11 +128,11 @@ getJournalEntriesR = do
       setTitle "hledger-web journal"
       addWidget $ toWidget [hamlet|
 ^{topbar vd}
-<div#content
- <div#sidebar
+<div#content>
+ <div#sidebar>
   ^{sidecontent}
- <div#main.journal
-  <div#maincontent
+ <div#main.journal>
+  <div#maincontent>
    <h2#contenttitle>#{title}
    ^{searchform vd}
    ^{maincontent}
@@ -174,11 +174,11 @@ getRegisterR = do
       setTitle "hledger-web register"
       addWidget $ toWidget [hamlet|
 ^{topbar vd}
-<div#content
- <div#sidebar
+<div#content>
+ <div#sidebar>
   ^{sidecontent}
- <div#main.register
-  <div#maincontent
+ <div#main.register>
+  <div#maincontent>
    <h2#contenttitle>#{title}
    ^{searchform vd}
    ^{maincontent}
@@ -228,28 +228,28 @@ sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport (reportopts_ $
 accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> HtmlUrl AppRoute
 accountsReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
-<div#accountsheading
+<div#accountsheading>
  <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
-<div#accounts
+<div#accounts>
  <table.balancereport>
-  <tr
-   <td.add colspan=3
+  <tr>
+   <td.add colspan=3>
     <br>
     <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
 
-  <tr.item :allaccts:.inacct
-   <td.journal colspan=3
+  <tr.item :allaccts:.inacct>
+   <td.journal colspan=3>
     <br>
     <a href=@{JournalR} title="Show all transactions in journal format">Journal
-    <span.hoverlinks
+    <span.hoverlinks>
      &nbsp;
      <a href=@{JournalEntriesR} title="Show journal entries">entries
      &nbsp;
      <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
       edit
 
-  <tr
-   <td colspan=3
+  <tr>
+   <td colspan=3>
     <br>
     Accounts
 
@@ -270,11 +270,11 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> AccountsReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
-<tr.item.#{inacctclass}
- <td.account.#{depthclass}
+<tr.item.#{inacctclass}>
+ <td.account.#{depthclass}>
   #{indent}
   <a href="@?{acctquery}" title="Show transactions in this account, including subaccounts">#{adisplay}
-  <span.hoverlinks
+  <span.hoverlinks>
    $if hassubs
     &nbsp;
     <a href="@?{acctonlyquery}" title="Show transactions in this account only">only
@@ -326,8 +326,8 @@ entriesReportAsHtml _ vd items = [hamlet|
 -- | Render a "TransactionsReport" as html for the formatted journal view.
 journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
-<table.journalreport
- <tr.headings
+<table.journalreport>
+ <tr.headings>
   <th.date align=left>Date
   <th.description align=left>Description
   <th.account align=left>Accounts
@@ -339,16 +339,16 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [hamlet|
-<tr.item.#{evenodd}.#{firstposting}
+<tr.item.#{evenodd}.#{firstposting}>
  <td.date>#{date}
  <td.description colspan=2 title="#{show t}">#{elideRight 60 desc}
  <td.amount align=right>
   $if showamt
    #{mixedAmountAsHtml amt}
 $forall p' <- tpostings t
-  <tr.item.#{evenodd}.posting
-   <td.date
-   <td.description
+  <tr.item.#{evenodd}.posting>
+   <td.date>
+   <td.description>
    <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
    <td.amount align=right>#{mixedAmountAsHtml $ pamount p'}
 |]
@@ -371,8 +371,8 @@ registerReportHtml opts vd r@(_,items) = [hamlet|
 -- Generate html for a transaction list from an "TransactionsReport".
 registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerItemsHtml _ vd (balancelabel,items) = [hamlet|
-<table.registerreport
- <tr.headings
+<table.registerreport>
+ <tr.headings>
   <th.date align=left>Date
   <th.description align=left>Description
   <th.account align=left>To/From Account
@@ -389,23 +389,23 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    -- filtering = m /= Any
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [hamlet|
-<tr.item.#{evenodd}.#{firstposting}.#{datetransition}
+<tr.item.#{evenodd}.#{firstposting}.#{datetransition}>
  <td.date>#{date}
  <td.description title="#{show t}">#{elideRight 30 desc}
- <td.account title="#{show t}"
-  <a
+ <td.account title="#{show t}">
+  <a>
    #{elideRight 40 acct}
   &nbsp;
-  <a.postings-toggle-link.togglelink href="#" title="Toggle all postings"
+  <a.postings-toggle-link.togglelink href="#" title="Toggle all postings">
    [+]
  <td.amount align=right>
   $if showamt
    #{mixedAmountAsHtml amt}
  <td.balance align=right>#{mixedAmountAsHtml bal}
 $forall p' <- tpostings t
- <tr.item.#{evenodd}.posting style=#{postingsdisplaystyle}
-   <td.date
-   <td.description
+ <tr.item.#{evenodd}.posting style=#{postingsdisplaystyle}>
+   <td.date>
+   <td.description>
    <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
    <td.amount align=right>#{mixedAmountAsHtml $ pamount p'}
    <td.balance align=right>
@@ -450,7 +450,7 @@ registerChartHtml items =
              }
              );
   });
-<div#register-chart style="width:600px;height:100px; margin-bottom:1em;"
+<div#register-chart style="width:600px;height:100px; margin-bottom:1em;">
 |]
 
 -- stringIfLongerThan :: Int -> String -> String
@@ -635,8 +635,8 @@ handleImport = do
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [hamlet|
-<div#topbar
- <a.topleftlink href=#{hledgerorgurl} title="More about hledger"
+<div#topbar>
+ <a.topleftlink href=#{hledgerorgurl} title="More about hledger">
   hledger-web
   <br />
   #{version}
@@ -676,26 +676,26 @@ helplink topic label = [hamlet|
 -- | Search form for entering custom queries to filter journal data.
 searchform :: ViewData -> HtmlUrl AppRoute
 searchform VD{..} = [hamlet|
-<div#searchformdiv
- <form#searchform.form method=GET
-  <table
-   <tr
-    <td
+<div#searchformdiv>
+ <form#searchform.form method=GET>
+  <table>
+   <tr>
+    <td>
      Search:
      \ #
-    <td
-     <input name=q size=70 value=#{q}
-     <input type=submit value="Search"
+    <td>
+     <input name=q size=70 value=#{q}>
+     <input type=submit value="Search">
      $if filtering
       \ #
-      <span.showall
+      <span.showall>
        <a href=@{here}>clear search
      \ #
      <a#search-help-link href="#" title="Toggle search help">help
-   <tr
-    <td
-    <td
-     <div#search-help.help style="display:none;"
+   <tr>
+    <td>
+    <td>
+     <div#search-help.help style="display:none;">
       Leave blank to see journal (all transactions), or click account links to see transactions under that account.
       <br>
       Transactions/postings may additionally be filtered by:
@@ -734,37 +734,37 @@ addform vd@VD{..} = [hamlet|
     /* desccombo.setOptionHeight(200); */
  });
 
-<form#addform method=POST style=display:none;
+<form#addform method=POST style=display:none;>
   <h2#contenttitle>#{title}
-  <table.form
-   <tr
-    <td colspan=4
-     <table
-      <tr#descriptionrow
-       <td
+  <table.form>
+   <tr>
+    <td colspan=4>
+     <table>
+      <tr#descriptionrow>
+       <td>
         Date:
-       <td
-        <input.textinput size=15 name=date value=#{date}
-       <td style=padding-left:1em;
+       <td>
+        <input.textinput size=15 name=date value=#{date}>
+       <td style=padding-left:1em;>
         Description:
-       <td
-        <select id=description name=description
-         <option
+       <td>
+        <select id=description name=description>
+         <option>
          $forall d <- descriptions
           <option value=#{d}>#{d}
-      <tr.helprow
-       <td
-       <td
+      <tr.helprow>
+       <td>
+       <td>
         <span.help>#{datehelp} #
-       <td
-       <td
+       <td>
+       <td>
         <span.help>#{deschelp}
    ^{postingfields vd 1}
    ^{postingfields vd 2}
-   <tr#addbuttonrow
-    <td colspan=4
-     <input type=hidden name=action value=add
-     <input type=submit name=submit value="add transaction"
+   <tr#addbuttonrow>
+    <td colspan=4>
+     <input type=hidden name=action value=add>
+     <input type=submit name=submit value="add transaction">
      $if manyfiles
       \ to: ^{journalselect $ files j}
      \ or #
@@ -779,20 +779,20 @@ addform vd@VD{..} = [hamlet|
   manyfiles = (length $ files j) > 1
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
   postingfields _ n = [hamlet|
-<tr#postingrow
+<tr#postingrow>
  <td align=right>#{acctlabel}:
- <td
-  <select id=#{acctvar} name=#{acctvar}
-   <option
+ <td>
+  <select id=#{acctvar} name=#{acctvar}>
+   <option>
    $forall a <- acctnames
-    <option value=#{a} :shouldselect a:selected>#{a}
+    <option value=#{a} :shouldselect a:selected>#{a}>
  ^{amtfield}
-<tr.helprow
- <td
- <td
+<tr.helprow>
+ <td>
+ <td>
   <span.help>#{accthelp}
- <td
- <td
+ <td>
+ <td>
   <span.help>#{amthelp}
 |]
    where
@@ -805,10 +805,10 @@ addform vd@VD{..} = [hamlet|
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
                      ,[hamlet|
-<td style=padding-left:1em;
+<td style=padding-left:1em;>
  Amount:
-<td
- <input.textinput size=15 name=#{amtvar} value=""
+<td>
+ <input.textinput size=15 name=#{amtvar} value="">
 |]
                      ,"eg: $6"
                      )
@@ -821,27 +821,27 @@ addform vd@VD{..} = [hamlet|
 -- | Edit journal form.
 editform :: ViewData -> HtmlUrl AppRoute
 editform VD{..} = [hamlet|
-<form#editform method=POST style=display:none;
- <h2#contenttitle>#{title}
- <table.form
+<form#editform method=POST style=display:none;>
+ <h2#contenttitle>#{title}>
+ <table.form>
   $if manyfiles
-   <tr
-    <td colspan=2
+   <tr>
+    <td colspan=2>
      Editing ^{journalselect $ files j}
-  <tr
-   <td colspan=2
+  <tr>
+   <td colspan=2>
     <!-- XXX textarea ids are unquoted journal file paths here, not valid html -->
     $forall f <- files j
-     <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled
+     <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled>
       #{snd f}
-  <tr#addbuttonrow
-   <td
+  <tr#addbuttonrow>
+   <td>
     <span.help>^{formathelp}
-   <td align=right
-    <span.help
+   <td align=right>
+    <span.help>
      Are you sure ? This will overwrite the journal. #
-    <input type=hidden name=action value=edit
-    <input type=submit name=submit value="save journal"
+    <input type=hidden name=action value=edit>
+    <input type=submit name=submit value="save journal">
     \ or #
     <a href="#" onclick="return editformToggle(event)">cancel
 |]
@@ -853,20 +853,20 @@ editform VD{..} = [hamlet|
 -- | Import journal form.
 importform :: HtmlUrl AppRoute
 importform = [hamlet|
-<form#importform method=POST style=display:none;
- <table.form
-  <tr
-   <td
-    <input type=file name=file
-    <input type=hidden name=action value=import
-    <input type=submit name=submit value="import from file"
+<form#importform method=POST style=display:none;>
+ <table.form>
+  <tr>
+   <td>
+    <input type=file name=file>
+    <input type=hidden name=action value=import>
+    <input type=submit name=submit value="import from file">
     \ or #
-    <a href="#" onclick="return importformToggle(event)" cancel
+    <a href="#" onclick="return importformToggle(event)">cancel
 |]
 
 journalselect :: [(FilePath,String)] -> HtmlUrl AppRoute
 journalselect journalfiles = [hamlet|
-<select id=journalselect name=journal onchange="editformJournalSelect(event)"
+<select id=journalselect name=journal onchange="editformJournalSelect(event)">
  $forall f <- journalfiles
   <option value=#{fst f}>#{fst f}
 |]
