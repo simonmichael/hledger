@@ -10,6 +10,7 @@ module Hledger.Web.Settings
     , staticDir
     , Extra (..)
     , parseExtra
+    , hamlet
     , defport
     , defbaseurl
     , hledgerorgurl
@@ -20,11 +21,13 @@ import Control.Applicative
 import Data.Text (Text)
 import Data.Yaml
 import Language.Haskell.TH.Syntax
+import Language.Haskell.TH.Quote
 import Prelude
 import Text.Printf
 import Text.Shakespeare.Text (st)
 import Yesod.Default.Config
 import qualified Yesod.Default.Util
+import qualified Text.Hamlet (hamlet)
 
 
 hledgerorgurl, manualurl :: String
@@ -78,3 +81,10 @@ parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
     <$> o .:  "copyright"
     <*> o .:? "analytics"
+
+hamlet :: QuasiQuoter
+#if DEVELOPMENT
+hamlet = Text.Hamlet.hamlet -- Text.Hamlet.hamlet' when available
+#else
+hamlet = Text.Hamlet.hamlet
+#endif

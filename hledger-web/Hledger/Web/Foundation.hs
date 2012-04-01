@@ -26,11 +26,10 @@ import Yesod.Static
 import Yesod.Logger (Logger, logMsg, formatLogText)
 import Control.Monad.IO.Class (liftIO)
 import Web.ClientSession (getKey)
-import Text.Hamlet
 
 import Hledger.Web.Options
-import qualified Hledger.Web.Settings
-import Hledger.Web.Settings (Extra (..))
+import qualified Hledger.Web.Settings (staticDir)
+import Hledger.Web.Settings (Extra (..), hamlet)
 import Hledger.Web.Settings.StaticFiles
 
 -- | The web application's configuration and data, available to all request handlers.

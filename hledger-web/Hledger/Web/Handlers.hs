@@ -53,7 +53,7 @@ import System.FilePath (takeFileName)
 import System.IO.Storage (putValue, getValue)
 import System.Locale (defaultTimeLocale)
 import Text.Blaze (preEscapedString, toHtml)
-import Text.Hamlet hiding (hamletFile)
+import Text.Hamlet hiding (hamlet)
 import Text.Printf
 import Yesod.Core
 -- import Yesod.Json
