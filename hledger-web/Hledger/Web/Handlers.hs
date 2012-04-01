@@ -786,7 +786,7 @@ addform vd@VD{..} = [hamlet|
   <select id=#{acctvar} name=#{acctvar}>
    <option>
    $forall a <- acctnames
-    <option value=#{a} :shouldselect a:selected>#{a}>
+    <option value=#{a} :shouldselect a:selected>#{a}
  ^{amtfield}
 <tr.helprow>
  <td>
