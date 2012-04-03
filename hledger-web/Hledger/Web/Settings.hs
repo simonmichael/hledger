@@ -28,6 +28,8 @@ import Text.Shakespeare.Text (st)
 import Yesod.Default.Config
 import qualified Yesod.Default.Util
 import qualified Text.Hamlet (hamlet)
+-- when available:
+-- import Text.Hamlet (HamletSettings(..), hamletWithSettings, defaultHamletSettings, hamletRules)
 
 
 hledgerorgurl, manualurl :: String
@@ -83,8 +85,5 @@ parseExtra _ o = Extra
     <*> o .:? "analytics"
 
 hamlet :: QuasiQuoter
-#if DEVELOPMENT
-hamlet = Text.Hamlet.hamlet -- Text.Hamlet.hamlet' when available
-#else
 hamlet = Text.Hamlet.hamlet
-#endif
+-- hamlet = hamletWithSettings hamletRules defaultHamletSettings{hamletNewlines=True}
