@@ -194,7 +194,7 @@ bin/hledger-web:
 	cd hledger-web; ghc --make hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS)
 
 bin/hledger-web-production:
-	cd hledger-web; ghc --make hledger-web.hs -o ../$@ $(BUILDFLAGS) -DPRODUCTION
+	cd hledger-web; ghc --make hledger-web.hs -o ../$@ $(BUILDFLAGS)
 
 bin/hledger-vty:
 	cd hledger-vty; ghc --make hledger-vty.hs -o ../bin/hledger-vty $(BUILDFLAGS)
