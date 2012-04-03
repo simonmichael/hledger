@@ -3,15 +3,7 @@ hledger project notes
 * backlog
 ** cleanup
 ** errors
-*** fix version strings on server 
-**** demo
-**** dev demo
-**** cli
-*** web: 53 add form completing fields break on second add
-**** debug
-***** try with braces
-****** reinstall virtual env
-**** commit
+*** web: add form completing fields don't
 *** web: enter doesn't work in add form completing fields
 **** research this dhtmlxcombo issue
 *** parsing: decimal point/thousands separator confusion ?
