@@ -15,9 +15,6 @@ COVCMD=test
 BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14-ghc6.12.3 ledger
 #BENCHEXES=hledger
 
-# searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
-AUTOBUILD=sp --no-exts --no-default-map ghc --make -O0
-
 # misc. tools
 BROWSE=google-chrome
 BROWSE=open -a 'Google Chrome'
@@ -79,11 +76,15 @@ PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
 DEFINEFLAGS:=
 PREFERMACUSRLIBFLAGS=-L/usr/lib
-BUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -DPATCHLEVEL=$(PATCHLEVEL)
+GHCMEMFLAGS=+RTS -M200m -RTS
+BUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) $(GHCMEMFLAGS)
 LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-static -optl-pthread
 MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -O2 # -optl-L/usr/lib
 #WINDOWSRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS)
 TIME:=$(shell date +"%Y%m%d%H%M")
+
+# searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
+AUTOBUILD=sp --no-exts --no-default-map ghc --make -O0 $(GHCMEMFLAGS)
 
 # file defining the current release version
 VERSIONFILE=VERSION
@@ -134,16 +135,13 @@ auto: sp
 	rm -f bin/hledger
 	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test
 
-autoweb: sp
-	rm -f bin/hledger-web
-	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) --run -B --port 5001 --base-url http://demo.hledger.org:5001 -f test.journal
+autoweb: sp bin/hledger-web
+	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
 
-autovty: sp
-	rm -f bin/hledger-vty
+autovty: sp bin/hledger-vty
 	cd hledger-vty; $(AUTOBUILD) hledger-vty.hs -o ../bin/hledger-vty $(BUILDFLAGS) --run --help
 
-autochart: sp
-	rm -f bin/hledger-chart
+autochart: sp bin/hledger-chart
 	cd hledger-chart; $(AUTOBUILD) hledger-chart.hs -o ../bin/hledger-chart $(BUILDFLAGS) --run --help
 
 # check for sp and explain how to get it if not found.

@@ -84,7 +84,7 @@ parseExtra _ o = Extra
 
 hamlet :: QuasiQuoter
 #if DEVELOPMENT
-hamlet = Text.Hamlet.hamlet -- Text.Hamlet.hamlet' when available
+hamlet = hamletWithSettings hamletRules defaultHamletSettings{hamletNewlines=True}
 #else
-hamlet = Text.Hamlet.hamlet
+hamlet = hamletWithSettings hamletRules defaultHamletSettings
 #endif
