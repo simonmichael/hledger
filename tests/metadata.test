@@ -13,6 +13,8 @@ bin/hledger -f - print
 ; non-metadata:
 >>>
 2010/01/01
+  ; txndata1:txn val 1
+  ; txndata2:txn val 2
     a             1
     b            -1
 

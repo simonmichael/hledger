@@ -93,7 +93,7 @@ showTransactionUnelided = showTransaction' False
 
 showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
-    unlines $ [description] ++ showpostings (tpostings t) ++ [""]
+    unlines $ [description] ++ metadata ++ showpostings (tpostings t) ++ [""]
     where
       description = concat [date, status, code, desc, comment]
       date = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
@@ -103,6 +103,8 @@ showTransaction' elide t =
       code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
       desc = if null d then "" else " " ++ d where d = tdescription t
       comment = if null c then "" else "  ; " ++ c where c = tcomment t
+      metadata = if null md then [] else showmetadata md where md = tmetadata t
+      showmetadata md = map (\(k,v) -> "  ; " ++ k++":"++v) md
       showpostings ps
           | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
               = map showposting (init ps) ++ [showpostingnoamt (last ps)]

@@ -415,7 +415,7 @@ ledgercode :: GenParser Char JournalContext String
 ledgercode = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 ledgermetadata :: GenParser Char JournalContext [(String,String)]
-ledgermetadata = many ledgermetadataline
+ledgermetadata = many $ try ledgermetadataline
 
 -- a comment line containing a metadata declaration, eg:
 -- ; name: value
