@@ -177,8 +177,9 @@ filterSpecFromOpts opts@ReportOpts{..} d = FilterSpec {
                                ,acctpats=apats
                                ,descpats=dpats
                                ,depth = depth_
+                               ,metadata = mds
                                }
-    where (apats,dpats) = parsePatternArgs patterns_
+    where (apats,dpats,mds) = parsePatternArgs patterns_
 
 -- | Convert report options to a (new) query.
 queryFromOpts :: ReportOpts -> Day -> Query
@@ -200,12 +201,21 @@ queryFromOpts opts@ReportOpts{..} d = -- strace $
 -- follows: those prefixed with "desc:" are description patterns, all
 -- others are account patterns; also patterns prefixed with "not:" are
 -- negated. not: should come after desc: if both are used.
-parsePatternArgs :: [String] -> ([String],[String])
-parsePatternArgs args = (as, ds')
+-- pattern "tag" means the word after it should be interpreted as metadata
+-- constraint.
+parsePatternArgs :: [String] -> ([String],[String],[(String,String)])
+parsePatternArgs args = (as, ds', mds)
     where
+      (tags, args') = filterOutTags False [] [] args
       descprefix = "desc:"
-      (ds, as) = partition (descprefix `isPrefixOf`) args
+      (ds, as) = partition (descprefix `isPrefixOf`) args'
       ds' = map (drop (length descprefix)) ds
+      mds = map (\(a,b)->(a,tail b)) $ map (\t->span (/='=') t) tags
+
+      filterOutTags _ tags args' [] = (reverse tags, reverse args')
+      filterOutTags False tags args' ("tag":xs) = filterOutTags True tags args' xs
+      filterOutTags False tags args' (x:xs) = filterOutTags False tags (x:args') xs
+      filterOutTags True tags args' (x:xs) = filterOutTags False (x:tags) args' xs
 
 -------------------------------------------------------------------------------
 

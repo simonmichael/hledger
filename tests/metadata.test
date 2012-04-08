@@ -18,3 +18,28 @@ bin/hledger -f - print
 
 >>>2
 >>>=0
+
+bin/hledger -f - print tag key1=value
+<<<
+2010/01/01
+  ; key:value
+    a             1
+    b            -1
+>>>
+>>>2
+>>>=0
+
+bin/hledger -f - print tag key=value
+<<<
+2010/01/01
+  ; key:value
+    a             1
+    b            -1
+>>>
+2010/01/01
+  ; key:value
+    a             1
+    b            -1
+
+>>>2
+>>>=0

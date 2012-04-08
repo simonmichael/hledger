@@ -123,6 +123,7 @@ nullfilterspec = FilterSpec {
     ,acctpats=[]
     ,descpats=[]
     ,depth=Nothing
+    ,metadata=[]
     }
 
 journalFilePath :: Journal -> FilePath
@@ -234,10 +235,12 @@ filterJournalTransactions FilterSpec{datespan=datespan
                                     ,acctpats=apats
                                     ,descpats=dpats
                                     ,depth=depth
+                                    ,metadata=md
                                     } =
     filterJournalTransactionsByClearedStatus cleared .
     filterJournalPostingsByDepth depth .
     filterJournalTransactionsByAccount apats .
+    filterJournalTransactionsByMetadata md .
     filterJournalTransactionsByDescription dpats .
     filterJournalTransactionsByDate datespan
 
@@ -251,14 +254,21 @@ filterJournalPostings FilterSpec{datespan=datespan
                                 ,acctpats=apats
                                 ,descpats=dpats
                                 ,depth=depth
+                                ,metadata=md
                                 } =
     filterJournalPostingsByRealness real .
     filterJournalPostingsByClearedStatus cleared .
     filterJournalPostingsByEmpty empty .
     filterJournalPostingsByDepth depth .
     filterJournalPostingsByAccount apats .
+    filterJournalTransactionsByMetadata md .
     filterJournalTransactionsByDescription dpats .
     filterJournalTransactionsByDate datespan
+
+-- | Keep only transactions whose metadata matches all metadata specifications.
+filterJournalTransactionsByMetadata :: [(String,String)] -> Journal -> Journal
+filterJournalTransactionsByMetadata pats j@Journal{jtxns=ts} = j{jtxns=filter matchmd ts}
+    where matchmd t = all (`elem` tmetadata t) pats
 
 -- | Keep only transactions whose description matches the description patterns.
 filterJournalTransactionsByDescription :: [String] -> Journal -> Journal

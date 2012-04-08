@@ -263,5 +263,6 @@ data FilterSpec = FilterSpec {
     ,acctpats  :: [String]   -- ^ only include if matching these account patterns
     ,descpats  :: [String]   -- ^ only include if matching these description patterns
     ,depth     :: Maybe Int
+    ,metadata  :: [(String,String)] -- ^ only include if matching these metadata
     } deriving (Show)
 
