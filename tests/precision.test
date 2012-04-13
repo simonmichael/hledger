@@ -95,7 +95,7 @@ bin/hledger -f - balance --cost
 #                   0
 ## 6. with a default commodity.. XXX should observe it
 
- bin/hledger -f - balance --cost
+bin/hledger -f - balance --cost
 <<<
 D $1000.0
 2001/01/01 * ACME fund

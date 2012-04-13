@@ -1,5 +1,5 @@
 # 1. read CSV to hledger journal format
-rm -rf t.rules$$; printf 'date-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'date-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co
     income:unknown          $-50

@@ -2,14 +2,14 @@
 # data validation
 #
 # 1. should prompt again for a bad date
- rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
+bin/hledger -f $$-add.j add; rm -f $$-add.j
 <<<
 2009/1/32
 >>> /date, or \. to end.*: date, or \. to end.*/
 >>>=0
 
 # 2. should accept a blank date
- rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
+bin/hledger -f $$-add.j add; rm -f $$-add.j
 <<<
 
 >>> /date,.*: description/
@@ -19,7 +19,7 @@
 # precision and commodity handling
 #
 # 3. simple add with no existing journal, no commodity entered
- rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
+bin/hledger -f $$-add.j add; rm -f $$-add.j
 <<<
 
 
