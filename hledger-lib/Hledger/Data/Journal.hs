@@ -1,12 +1,48 @@
 {-|
 
-A 'Journal' is a set of 'Transaction's and related data, usually parsed
-from a hledger/ledger journal file or timelog. This is the primary hledger
-data object.
+A 'Journal' is a set of transactions, plus optional related data.  This is
+hledger's primary data object. It is usually parsed from a journal file or
+other data format (see "Hledger.Read").
 
 -}
 
-module Hledger.Data.Journal
+module Hledger.Data.Journal (
+  -- * Parsing helpers
+  addHistoricalPrice,
+  addModifierTransaction,
+  addPeriodicTransaction,
+  addTimeLogEntry,
+  addTransaction,
+  journalApplyAliases,
+  journalCanonicaliseAmounts,
+  journalConvertAmountsToCost,
+  journalFinalise,
+  journalSelectingDate,
+  -- * Filtering
+  filterJournalPostings,
+  filterJournalPostings2,
+  filterJournalTransactions,
+  filterJournalTransactions2,
+  filterJournalTransactionsByAccount,
+  -- * Querying
+  journalAccountInfo,
+  journalAccountNamesUsed,
+  journalAmountAndPriceCommodities,
+  journalAmounts,
+  journalCanonicalCommodities,
+  journalDateSpan,
+  journalFilePath,
+  journalFilePaths,
+  journalPostings,
+  -- * Misc
+  groupPostings,
+  matchpats,
+  nullctx,
+  nullfilterspec,
+  nulljournal,
+  -- * Tests
+  tests_Hledger_Data_Journal,
+)
 where
 import Data.List
 import Data.Map (findWithDefault, (!))
@@ -43,17 +79,17 @@ instance Show Journal where
              -- ++ (show $ journalTransactions l)
              where accounts = flatten $ journalAccountNameTree j
 
-showJournalDebug j = unlines [
-                      show j
-                     ,show (jtxns j)
-                     ,show (jmodifiertxns j)
-                     ,show (jperiodictxns j)
-                     ,show $ open_timelog_entries j
-                     ,show $ historical_prices j
-                     ,show $ final_comment_lines j
-                     ,show $ jContext j
-                     ,show $ map fst $ files j
-                     ]
+-- showJournalDebug j = unlines [
+--                       show j
+--                      ,show (jtxns j)
+--                      ,show (jmodifiertxns j)
+--                      ,show (jperiodictxns j)
+--                      ,show $ open_timelog_entries j
+--                      ,show $ historical_prices j
+--                      ,show $ final_comment_lines j
+--                      ,show $ jContext j
+--                      ,show $ map fst $ files j
+--                      ]
 
 nulljournal :: Journal
 nulljournal = Journal { jmodifiertxns = []
@@ -108,6 +144,7 @@ addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries 
 journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
 
+-- | All account names used in this journal.
 journalAccountNamesUsed :: Journal -> [AccountName]
 journalAccountNamesUsed = sort . accountNamesFromPostings . journalPostings
 
@@ -212,11 +249,11 @@ filterJournalPostingsByEmpty True l = l
 filterJournalPostingsByEmpty False j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
     where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (not . isEmptyPosting) ps}
 
--- | Keep only transactions which affect accounts deeper than the specified depth.
-filterJournalTransactionsByDepth :: Maybe Int -> Journal -> Journal
-filterJournalTransactionsByDepth Nothing j = j
-filterJournalTransactionsByDepth (Just d) j@Journal{jtxns=ts} =
-    j{jtxns=(filter (any ((<= d+1) . accountNameLevel . paccount) . tpostings) ts)}
+-- -- | Keep only transactions which affect accounts deeper than the specified depth.
+-- filterJournalTransactionsByDepth :: Maybe Int -> Journal -> Journal
+-- filterJournalTransactionsByDepth Nothing j = j
+-- filterJournalTransactionsByDepth (Just d) j@Journal{jtxns=ts} =
+--     j{jtxns=(filter (any ((<= d+1) . accountNameLevel . paccount) . tpostings) ts)}
 
 -- | Strip out any postings to accounts deeper than the specified depth
 -- (and any transactions which have no postings as a result).
@@ -293,25 +330,25 @@ journalCanonicaliseAmounts j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
       canonicalcommoditymap = journalCanonicalCommodities j
 
--- | Apply this journal's historical price records to unpriced amounts where possible.
-journalApplyHistoricalPrices :: Journal -> Journal
-journalApplyHistoricalPrices j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
-    where
-      fixtransaction t@Transaction{tdate=d, tpostings=ps} = t{tpostings=map fixposting ps}
-       where
-        fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
-        fixmixedamount (Mixed as) = Mixed $ map fixamount as
-        fixamount = fixprice
-        fixprice a@Amount{price=Just _} = a
-        fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalHistoricalPriceFor j d c}
+-- -- | Apply this journal's historical price records to unpriced amounts where possible.
+-- journalApplyHistoricalPrices :: Journal -> Journal
+-- journalApplyHistoricalPrices j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+--     where
+--       fixtransaction t@Transaction{tdate=d, tpostings=ps} = t{tpostings=map fixposting ps}
+--        where
+--         fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
+--         fixmixedamount (Mixed as) = Mixed $ map fixamount as
+--         fixamount = fixprice
+--         fixprice a@Amount{price=Just _} = a
+--         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalHistoricalPriceFor j d c}
 
--- | Get the price for a commodity on the specified day from the price database, if known.
--- Does only one lookup step, ie will not look up the price of a price.
-journalHistoricalPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
-journalHistoricalPriceFor j d Commodity{symbol=s} = do
-  let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices j
-  case ps of (HistoricalPrice{hamount=a}:_) -> Just a
-             _ -> Nothing
+-- -- | Get the price for a commodity on the specified day from the price database, if known.
+-- -- Does only one lookup step, ie will not look up the price of a price.
+-- journalHistoricalPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
+-- journalHistoricalPriceFor j d Commodity{symbol=s} = do
+--   let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices j
+--   case ps of (HistoricalPrice{hamount=a}:_) -> Just a
+--              _ -> Nothing
 
 -- | Close any open timelog sessions in this journal using the provided current time.
 journalCloseTimeLogEntries :: LocalTime -> Journal -> Journal
@@ -426,8 +463,8 @@ postingsByAccount ps = m'
       m' = Map.fromList [(paccount $ head g, g) | g <- groupedps]
 
 -- debug helpers
-traceAmountPrecision a = trace (show $ map (precision . commodity) $ amounts a) a
-tracePostingsCommodities ps = trace (show $ map ((map (precision . commodity) . amounts) . pamount) ps) ps
+-- traceAmountPrecision a = trace (show $ map (precision . commodity) $ amounts a) a
+-- tracePostingsCommodities ps = trace (show $ map ((map (precision . commodity) . amounts) . pamount) ps) ps
 
 tests_Hledger_Data_Journal = TestList [
  ]
