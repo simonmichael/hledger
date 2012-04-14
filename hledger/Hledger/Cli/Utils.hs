@@ -8,7 +8,6 @@ Hledger.Utils.
 module Hledger.Cli.Utils
     (
      withJournalDo,
-     readJournal',
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -54,10 +53,6 @@ withJournalDo opts cmd = do
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournalWithOpts :: CliOpts -> String -> IO Journal
 -- readJournalWithOpts opts s = readJournal Nothing Nothing Nothing s >>= either error' return
-
--- | Get a journal from the given string, or throw an error.
-readJournal' :: String -> IO Journal
-readJournal' s = readJournal Nothing Nothing Nothing s >>= either error' return
 
 -- | Re-read a journal from its data file, or return an error string.
 journalReload :: Journal -> IO (Either String Journal)

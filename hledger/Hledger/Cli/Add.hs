@@ -32,7 +32,6 @@ import Prelude hiding (putStr, putStrLn, appendFile)
 import Hledger.Utils.UTF8IOCompat (putStr, putStrLn, appendFile)
 import Hledger.Cli.Options
 import Hledger.Cli.Register (postingsReportAsText)
-import Hledger.Cli.Utils
 
 
 {- | Information used as the basis for suggested account names, amounts,

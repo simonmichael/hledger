@@ -12,6 +12,7 @@ module Hledger.Read (
        defaultJournalPath,
        defaultJournal,
        readJournal,
+       readJournal',
        readJournalFile,
        requireJournalFileExists,
        ensureJournalFileExists,
@@ -88,6 +89,10 @@ readerForFormat s | null rs = Nothing
                   | otherwise = Just $ head rs
     where 
       rs = filter ((s==).rFormat) readers :: [Reader]
+
+-- | Read a journal from the given string, trying all known formats, or simply throw an error.
+readJournal' :: String -> IO Journal
+readJournal' s = readJournal Nothing Nothing Nothing s >>= either error' return
 
 -- | Read a Journal from this string or give an error message, using the
 -- specified data format or trying all known formats. A CSV conversion
