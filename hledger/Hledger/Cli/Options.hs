@@ -72,6 +72,8 @@ mainmode addons = defmode {
        ,postingsmode
        -- ,transactionsmode
        ,activitymode
+       ,incomestatementmode
+       ,balancesheetmode
        ,statsmode
        ])
      ]
@@ -227,6 +229,26 @@ transactionsmode = (commandmode ["transactions"]) {
 activitymode = (commandmode ["activity","histogram"]) {
   modeHelp = "show a barchart of transactions per interval"
  ,modeHelpSuffix = ["The default interval is daily."]
+ ,modeArgs = ([], Just commandargsflag)
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [(generalflagstitle, generalflags1)]
+    }
+ }
+
+incomestatementmode = (commandmode ["incomestatement"]) {
+  modeHelp = "show a standard income statement"
+ ,modeArgs = ([], Just commandargsflag)
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [(generalflagstitle, generalflags1)]
+    }
+ }
+
+balancesheetmode = (commandmode ["balancesheet","bs"]) {
+  modeHelp = "show a standard balance sheet"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []

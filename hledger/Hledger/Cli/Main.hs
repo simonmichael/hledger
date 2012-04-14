@@ -49,7 +49,9 @@ import Text.Printf
 import Hledger (ensureJournalFileExists)
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
+import Hledger.Cli.Balancesheet
 import Hledger.Cli.Histogram
+import Hledger.Cli.Incomestatement
 import Hledger.Cli.Print
 import Hledger.Cli.Register
 import Hledger.Cli.Stats
@@ -78,6 +80,8 @@ main = do
        | any (cmd `isPrefixOf`) ["entries","print"]      = showModeHelpOr entriesmode  $ withJournalDo opts print'
        | any (cmd `isPrefixOf`) ["postings","register"]  = showModeHelpOr postingsmode $ withJournalDo opts register
        | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
+       | cmd `isPrefixOf` "incomestatement"              = showModeHelpOr activitymode $ withJournalDo opts incomestatement
+       | any (cmd `isPrefixOf`) ["balancesheet","bs"]    = showModeHelpOr activitymode $ withJournalDo opts balancesheet
        | cmd `isPrefixOf` "stats"                        = showModeHelpOr statsmode    $ withJournalDo opts stats
        | not (null matchedaddon)                           = do
                                                              when (debug_ opts) $ printf "running %s\n" shellcmd

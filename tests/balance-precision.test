@@ -1,5 +1,5 @@
 #
-bin/hledger -f- bal
+bin/hledger -f- balance
 <<<
 1/1
   a   1.00

@@ -734,6 +734,18 @@ Examples:
 
     $ hledger activity -p weekly dining
 
+#### incomestatement
+
+This is intended to display a standard-looking
+[income statement](http://en.wikipedia.org/wiki/Income_statement). Currently
+it is similar to doing `hledger balance '^(income|expenses?|profits?|loss(es)?)(:|$)'`.
+
+#### balancesheet
+
+This is intended to display a standard-looking
+[balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). Currently
+it is similar to doing `hledger balance '^(assets?|liabilit(y|ies)|equity)(:|$)'`.
+
 #### stats
 
 The stats command displays summary information for the whole journal, or
