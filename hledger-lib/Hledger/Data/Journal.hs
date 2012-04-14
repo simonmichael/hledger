@@ -34,6 +34,9 @@ module Hledger.Data.Journal (
   journalFilePath,
   journalFilePaths,
   journalPostings,
+  -- * Standard account types
+  journalBalanceSheetAccountMatcher,
+  journalProfitAndLossAccountMatcher,
   -- * Misc
   groupPostings,
   matchpats,
@@ -62,7 +65,7 @@ import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Commodity (canonicaliseCommodities)
 import Hledger.Data.Dates (nulldatespan)
-import Hledger.Data.Transaction (journalTransactionWithDate,balanceTransaction)
+import Hledger.Data.Transaction (journalTransactionWithDate,balanceTransaction) -- nulltransaction,
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
 import Hledger.Data.Query
@@ -153,6 +156,24 @@ journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
 
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNames
+
+-- standard account types
+
+balanceSheetAccountRegex, profitAndLossAccountRegex :: String
+balanceSheetAccountRegex  = "^(assets?|liabilit(y|ies)|equity)(:|$)"
+profitAndLossAccountRegex = "^(income|expenses?|profits?|loss(es)?)(:|$)"
+
+-- | A matcher for Asset, Liability & Equity accounts in this journal.
+-- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
+-- This is currently hard-coded to the case-insensitive regex @^(assets?|liabilit(y|ies)|equity)(:|$)@.
+journalBalanceSheetAccountMatcher  :: Journal -> Matcher
+journalBalanceSheetAccountMatcher _ = MatchAcct balanceSheetAccountRegex
+
+-- | A matcher for Profit & Loss accounts in this journal.
+-- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
+-- This is currently hard-coded to the case-insensitive regex @^(income|expenses?|profits?|loss(es)?)(:|$)@.
+journalProfitAndLossAccountMatcher  :: Journal -> Matcher
+journalProfitAndLossAccountMatcher _ = MatchAcct profitAndLossAccountRegex
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
@@ -298,7 +319,9 @@ journalApplyAliases aliases j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{paccount=a} = p{paccount=accountNameApplyAliases aliases a}
 
--- | Do post-parse processing on a journal, to make it ready for use.
+-- | Do post-parse processing on a journal to make it ready for use: check
+-- all transactions balance, canonicalise amount formats, close any open
+-- timelog entries and so on.
 journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Journal -> Either String Journal
 journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =
     journalBalanceTransactions $
@@ -397,6 +420,8 @@ journalDateSpan j
     where
       ts = sortBy (comparing tdate) $ jtxns j
 
+-- Misc helpers
+
 -- | Check if a set of hledger account/description filter patterns matches the
 -- given account name or entry description.  Patterns are case-insensitive
 -- regular expressions. Prefixed with not:, they become anti-patterns.
@@ -466,6 +491,39 @@ postingsByAccount ps = m'
 -- traceAmountPrecision a = trace (show $ map (precision . commodity) $ amounts a) a
 -- tracePostingsCommodities ps = trace (show $ map ((map (precision . commodity) . amounts) . pamount) ps) ps
 
+-- tests
+
 tests_Hledger_Data_Journal = TestList [
+  -- "query standard account types" ~:
+  --  do
+  --   let j = journal1
+  --   journalBalanceSheetAccountNames j `is` ["assets","assets:a","equity","equity:q","equity:q:qq","liabilities","liabilities:l"]
+  --   journalProfitAndLossAccountNames j `is` ["expenses","expenses:e","income","income:i"]
+
  ]
 
+-- journal1 =
+--   Journal
+--   []
+--   []
+--   [
+--    nulltransaction{
+--     tpostings=[
+--       nullposting{paccount="liabilities:l"}
+--      ,nullposting{paccount="expenses:e"}
+--      ]
+--    }
+--   ,nulltransaction{
+--     tpostings=[
+--       nullposting{paccount="income:i"}
+--      ,nullposting{paccount="assets:a"}
+--      ,nullposting{paccount="equity:q:qq"}
+--      ]
+--    }
+--   ]
+--   []
+--   []
+--   ""
+--   nullctx
+--   []
+--   (TOD 0 0)
