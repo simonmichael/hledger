@@ -1347,7 +1347,7 @@ or get help.
     This issue should be uncommon. It's not always easy to distinguish it
     from...
 
-- **cabal can't satisfy the new dependencies due to old installed packages**  
+- <a name="cabaldeps" />**cabal can't satisfy the new dependencies due to old installed packages**  
   Cabal dependency failures become more likely as you install more
   packages over time. If you have this problem, there are two easy
   workarounds: 1. build hledger in an isolated package environment with
