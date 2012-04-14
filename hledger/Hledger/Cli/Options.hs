@@ -181,7 +181,7 @@ testmode = (commandmode ["test"]) {
     }
  }
 
-accountsmode = (commandmode ["balance","accounts"]) {
+accountsmode = (commandmode ["balance","bal","accounts"]) {
   modeHelp = "(or accounts) show matched accounts and their balances"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
