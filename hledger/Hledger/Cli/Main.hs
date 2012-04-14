@@ -88,8 +88,8 @@ main = do
        | any (cmd `isPrefixOf`) ["entries","print"]      = showModeHelpOr entriesmode  $ withJournalDo opts print'
        | any (cmd `isPrefixOf`) ["postings","register"]  = showModeHelpOr postingsmode $ withJournalDo opts register
        | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
-       | cmd `isPrefixOf` "incomestatement"              = showModeHelpOr activitymode $ withJournalDo opts incomestatement
-       | any (cmd `isPrefixOf`) ["balancesheet","bs"]    = showModeHelpOr activitymode $ withJournalDo opts balancesheet
+       | cmd `isPrefixOf` "incomestatement"              = showModeHelpOr incomestatementmode $ withJournalDo opts incomestatement
+       | any (cmd `isPrefixOf`) ["balancesheet","bs"]    = showModeHelpOr balancesheetmode $ withJournalDo opts balancesheet
        | cmd `isPrefixOf` "stats"                        = showModeHelpOr statsmode    $ withJournalDo opts stats
        | not (null matchedaddon)                           = do
                                                              when (debug_ opts) $ printf "running %s\n" shellcmd
