@@ -183,7 +183,7 @@ accountNameToAccountRegex :: String -> String
 accountNameToAccountRegex "" = ""
 accountNameToAccountRegex a = printf "^%s(:|$)" a
 
--- | Convert an account name to a regular expression matching it and its subaccounts.
+-- | Convert an account name to a regular expression matching it but not its subaccounts.
 accountNameToAccountOnlyRegex :: String -> String
 accountNameToAccountOnlyRegex "" = ""
 accountNameToAccountOnlyRegex a = printf "^%s$" a
