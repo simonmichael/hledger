@@ -37,6 +37,11 @@ module Hledger.Data.Journal (
   -- * Standard account types
   journalBalanceSheetAccountQuery,
   journalProfitAndLossAccountQuery,
+  journalIncomeAccountQuery,
+  journalExpenseAccountQuery,
+  journalAssetAccountQuery,
+  journalLiabilityAccountQuery,
+  journalEquityAccountQuery,
   -- * Misc
   groupPostings,
   matchpats,
@@ -159,21 +164,45 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
 -- standard account types
 
-balanceSheetAccountRegex, profitAndLossAccountRegex :: String
-balanceSheetAccountRegex  = "^(assets?|liabilit(y|ies)|equity)(:|$)"
-profitAndLossAccountRegex = "^(income|expenses?|profits?|loss(es)?)(:|$)"
+-- | A query for Profit & Loss accounts in this journal.
+-- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
+journalProfitAndLossAccountQuery  :: Journal -> Matcher
+journalProfitAndLossAccountQuery j = MatchOr [journalIncomeAccountQuery j
+                                               ,journalExpenseAccountQuery j
+                                               ]
+
+-- | A query for Income (Revenue) accounts in this journal.
+-- This is currently hard-coded to the case-insensitive regex @^(income|revenue)s?(:|$)@.
+journalIncomeAccountQuery  :: Journal -> Matcher
+journalIncomeAccountQuery _ = MatchAcct "^(income|revenue)s?(:|$)"
+
+-- | A query for Expense accounts in this journal.
+-- This is currently hard-coded to the case-insensitive regex @^expenses?(:|$)@.
+journalExpenseAccountQuery  :: Journal -> Matcher
+journalExpenseAccountQuery _ = MatchAcct "^expenses?(:|$)"
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
--- This is currently hard-coded to the case-insensitive regex @^(assets?|liabilit(y|ies)|equity)(:|$)@.
 journalBalanceSheetAccountQuery  :: Journal -> Matcher
-journalBalanceSheetAccountQuery _ = MatchAcct balanceSheetAccountRegex
+journalBalanceSheetAccountQuery j = MatchOr [journalAssetAccountQuery j
+                                              ,journalLiabilityAccountQuery j
+                                              ,journalEquityAccountQuery j
+                                              ]
 
--- | A query for Profit & Loss accounts in this journal.
--- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
--- This is currently hard-coded to the case-insensitive regex @^(income|expenses?|profits?|loss(es)?)(:|$)@.
-journalProfitAndLossAccountQuery  :: Journal -> Matcher
-journalProfitAndLossAccountQuery _ = MatchAcct profitAndLossAccountRegex
+-- | A query for Asset accounts in this journal.
+-- This is currently hard-coded to the case-insensitive regex @^assets?(:|$)@.
+journalAssetAccountQuery  :: Journal -> Matcher
+journalAssetAccountQuery _ = MatchAcct "^assets?(:|$)"
+
+-- | A query for Liability accounts in this journal.
+-- This is currently hard-coded to the case-insensitive regex @^liabilit(y|ies)(:|$)@.
+journalLiabilityAccountQuery  :: Journal -> Matcher
+journalLiabilityAccountQuery _ = MatchAcct "^liabilit(y|ies)(:|$)"
+
+-- | A query for Equity accounts in this journal.
+-- This is currently hard-coded to the case-insensitive regex @^equity(:|$)@.
+journalEquityAccountQuery  :: Journal -> Matcher
+journalEquityAccountQuery _ = MatchAcct "^equity(:|$)"
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
