@@ -296,13 +296,13 @@ filterJournalPostingsByClearedStatus (Just c) j@Journal{jtxns=ts} = j{jtxns=map 
 -- | Strip out any virtual postings, if the flag is true, otherwise do
 -- no filtering.
 filterJournalPostingsByRealness :: Bool -> Journal -> Journal
-filterJournalPostingsByRealness False l = l
+filterJournalPostingsByRealness False j = j
 filterJournalPostingsByRealness True j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
     where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter isReal ps}
 
 -- | Strip out any postings with zero amount, unless the flag is true.
 filterJournalPostingsByEmpty :: Bool -> Journal -> Journal
-filterJournalPostingsByEmpty True l = l
+filterJournalPostingsByEmpty True j = j
 filterJournalPostingsByEmpty False j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
     where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (not . isEmptyPosting) ps}
 
