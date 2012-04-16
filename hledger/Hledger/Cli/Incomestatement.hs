@@ -33,7 +33,9 @@ Revenues:
 Expenses:
 #{unlines $ accountsReportAsText ropts expensereport}
 
-Total: #{show total}
+Total:
+--------------------
+#{padleft 20 $ showMixedAmountWithoutPrice total}
 |]
 
 tests_Hledger_Cli_Incomestatement :: Test
