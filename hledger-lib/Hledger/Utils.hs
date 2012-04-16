@@ -404,3 +404,8 @@ expandPath pos fp = liftM mkAbsolute (expandHome fp)
     expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
                                                       return $ homedir ++ drop 1 inname
                       | otherwise                = return inname
+
+firstJust ms = case dropWhile (==Nothing) ms of
+    [] -> Nothing
+    (md:_) -> md
+

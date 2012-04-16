@@ -20,7 +20,33 @@ quarterly, etc.
 
 -- XXX fromGregorian silently clips bad dates, use fromGregorianValid instead ?
 
-module Hledger.Data.Dates
+module Hledger.Data.Dates (
+  -- * Misc date handling utilities
+  getCurrentDay,
+  getCurrentMonth,
+  getCurrentYear,
+  nulldate,
+  spanContainsDate,
+  parsedate,
+  showDate,
+  elapsedSeconds,
+  prevday,
+  parsePeriodExpr,
+  nulldatespan,
+  tests_Hledger_Data_Dates,
+  failIfInvalidYear,
+  datesepchar,
+  datesepchars,
+  spanIntersect,
+  orDatesFrom,
+  smartdate,
+  splitSpan,
+  fixSmartDate,
+  fixSmartDateStr,
+  fixSmartDateStrEither',
+  daysInSpan,
+  maybePeriod,
+)
 where
 
 import Control.Monad
@@ -279,10 +305,6 @@ nthdayofweekcontaining n d | d1 >= d    = d1
 
 ----------------------------------------------------------------------
 -- parsing
-
-firstJust ms = case dropWhile (==Nothing) ms of
-    [] -> Nothing
-    (md:_) -> md
 
 -- | Parse a couple of date-time string formats to a time type.
 parsedatetimeM :: String -> Maybe LocalTime
