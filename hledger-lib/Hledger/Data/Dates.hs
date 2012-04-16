@@ -43,6 +43,7 @@ module Hledger.Data.Dates (
   splitSpan,
   fixSmartDate,
   fixSmartDateStr,
+  fixSmartDateStrEither,
   fixSmartDateStrEither',
   daysInSpan,
   maybePeriod,
