@@ -754,15 +754,17 @@ Examples:
 
 #### incomestatement
 
-This is intended to display a standard-looking
-[income statement](http://en.wikipedia.org/wiki/Income_statement). Currently
-it is similar to doing `hledger balance '^(income|expenses?|profits?|loss(es)?)(:|$)'`.
+This command displays a standard
+[income statement](http://en.wikipedia.org/wiki/Income_statement).  It
+currently assumes that you have top-level accounts named `income` (or
+`revenue`) and `expense` (plural forms also allowed.)
 
 #### balancesheet
 
-This is intended to display a standard-looking
-[balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). Currently
-it is similar to doing `hledger balance '^(assets?|liabilit(y|ies)|equity)(:|$)'`.
+This command displays a standard
+[balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently
+assumes that you have top-level accounts named `asset`, `liability` and
+`equity` (plural forms also allowed.)
 
 #### cashflow
 
