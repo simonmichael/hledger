@@ -21,6 +21,7 @@ module Hledger.Reports (
   journalSelectingDateFromOpts,
   journalSelectingAmountFromOpts,
   filterSpecFromOpts,
+  queryFromOpts,
   -- * Entries report
   EntriesReport,
   EntriesReportItem,
@@ -63,7 +64,7 @@ import Text.Printf
 import Hledger.Data
 import Hledger.Utils
 
--- report options, used in hledger-lib and above
+       -- standard report options, used in hledger-lib and above
 data ReportOpts = ReportOpts {
      begin_          :: Maybe Day
     ,end_            :: Maybe Day
@@ -166,7 +167,7 @@ journalSelectingAmountFromOpts opts
     | cost_ opts = journalConvertAmountsToCost
     | otherwise = id
 
--- | Convert application options to the library's generic filter specification.
+-- | Convert report options to a (old) filter specification.
 filterSpecFromOpts :: ReportOpts -> Day -> FilterSpec
 filterSpecFromOpts opts@ReportOpts{..} d = FilterSpec {
                                 datespan=dateSpanFromOpts d opts
@@ -178,6 +179,21 @@ filterSpecFromOpts opts@ReportOpts{..} d = FilterSpec {
                                ,depth = depth_
                                }
     where (apats,dpats) = parsePatternArgs patterns_
+
+-- | Convert report options to a (new) query.
+queryFromOpts :: ReportOpts -> Day -> Matcher
+queryFromOpts opts@ReportOpts{..} d = -- strace $
+    MatchAnd $
+      [MatchDate $ dateSpanFromOpts d opts]
+      ++ (if null apats then [] else [MatchOr $ map MatchAcct apats])
+      ++ (if null dpats then [] else [MatchOr $ map MatchDesc dpats])
+      -- ++ (if null mds then [] else [MatchOr $ map MatchMetadata mds])
+      ++ (if real_ then [MatchReal True] else [])
+      ++ (if empty_ then [MatchEmpty True] else [])
+      ++ (maybe [] ((:[]) . MatchStatus) (clearedValueFromOpts opts))
+      ++ (maybe [] ((:[]) . MatchDepth) depth_)
+    where
+      (apats,dpats,mds) = parsePatternArgs patterns_
 
 -- | Gather filter pattern arguments into a list of account patterns and a
 -- list of description patterns. We interpret pattern arguments as
