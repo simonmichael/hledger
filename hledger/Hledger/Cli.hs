@@ -11,6 +11,7 @@ module Hledger.Cli (
                      module Hledger.Cli.Add,
                      module Hledger.Cli.Balance,
                      module Hledger.Cli.Balancesheet,
+                     module Hledger.Cli.Cashflow,
                      module Hledger.Cli.Histogram,
                      module Hledger.Cli.Incomestatement,
                      module Hledger.Cli.Print,
@@ -31,6 +32,7 @@ import Hledger
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
+import Hledger.Cli.Cashflow
 import Hledger.Cli.Histogram
 import Hledger.Cli.Incomestatement
 import Hledger.Cli.Print
@@ -48,6 +50,7 @@ tests_Hledger_Cli = TestList
    -- ,tests_Hledger_Cli_Add
    -- ,tests_Hledger_Cli_Balance
    ,tests_Hledger_Cli_Balancesheet
+   ,tests_Hledger_Cli_Cashflow
    -- ,tests_Hledger_Cli_Histogram
    ,tests_Hledger_Cli_Incomestatement
    ,tests_Hledger_Cli_Options

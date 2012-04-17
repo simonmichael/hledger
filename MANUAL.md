@@ -764,6 +764,16 @@ This is intended to display a standard-looking
 [balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). Currently
 it is similar to doing `hledger balance '^(assets?|liabilit(y|ies)|equity)(:|$)'`.
 
+#### cashflow
+
+This command displays a simplified
+[cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement),
+showing the change in all "cash" accounts for the period (without the
+traditional segmentation into operating, investing, and financing cash
+flows.) It currently assumes that cash accounts are under a top-level
+account named `asset` and do not contain `receivable` or `A/R` (plural
+forms also allowed.)
+
 #### stats
 
 The stats command displays summary information for the whole journal, or

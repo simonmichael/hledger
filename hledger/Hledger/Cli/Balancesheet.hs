@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, RecordWildCards #-}
 {-|
 
-The @balancesheet@ command prints a fairly standard balance sheet.
+The @balancesheet@ command prints a simple balance sheet.
 
 -}
 
@@ -21,7 +21,7 @@ import Hledger.Cli.Options
 import Hledger.Cli.Balance
 
 
--- | Print a standard balancesheet.
+-- | Print a simple balance sheet.
 balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet CliOpts{reportopts_=ropts} j = do
   -- let lines = case formatFromOpts ropts of Left err, Right ...

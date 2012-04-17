@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, OverloadedStrings #-}
 {-|
 
-The @incomestatement@ command prints a fairly standard income statement (profit & loss) report.
+The @incomestatement@ command prints a simple income statement (profit & loss) report.
 
 -}
 
@@ -18,7 +18,7 @@ import Hledger
 import Hledger.Cli.Options
 import Hledger.Cli.Balance
 
--- | Print a standard income statement.
+-- | Print a simple income statement.
 incomestatement :: CliOpts -> Journal -> IO ()
 incomestatement CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay

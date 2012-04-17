@@ -74,6 +74,7 @@ mainmode addons = defmode {
        ,activitymode
        ,incomestatementmode
        ,balancesheetmode
+       ,cashflowmode
        ,statsmode
        ])
      ]
@@ -237,7 +238,7 @@ activitymode = (commandmode ["activity","histogram"]) {
     }
  }
 
-incomestatementmode = (commandmode ["incomestatement"]) {
+incomestatementmode = (commandmode ["incomestatement","is"]) {
   modeHelp = "show a standard income statement"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
@@ -249,6 +250,16 @@ incomestatementmode = (commandmode ["incomestatement"]) {
 
 balancesheetmode = (commandmode ["balancesheet","bs"]) {
   modeHelp = "show a standard balance sheet"
+ ,modeArgs = ([], Just commandargsflag)
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [(generalflagstitle, generalflags1)]
+    }
+ }
+
+cashflowmode = (commandmode ["cashflow","cf"]) {
+  modeHelp = "show a simple cashflow statement"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
      groupUnnamed = []
