@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes, RecordWildCards #-}
 {-|
 
 The @balancesheet@ command prints a fairly standard balance sheet.
@@ -27,7 +27,7 @@ balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet CliOpts{reportopts_=ropts} j = do
   -- let lines = case formatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
-  let m = queryFromOpts ropts d
+  let m = queryFromOpts (withoutBeginDate ropts) d
       assetreport@(_,assets)          = accountsReport2 ropts (And [m, journalAssetAccountQuery j]) j
       liabilityreport@(_,liabilities) = accountsReport2 ropts (And [m, journalLiabilityAccountQuery j]) j
       equityreport@(_,equity)         = accountsReport2 ropts (And [m, journalEquityAccountQuery j]) j
@@ -45,6 +45,11 @@ Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}
 |]
+
+withoutBeginDate :: ReportOpts -> ReportOpts
+withoutBeginDate ropts@ReportOpts{..} = ropts{begin_=Nothing, period_=p}
+  where p = case period_ of Nothing -> Nothing
+                            Just (i, DateSpan _ e) -> Just (i, DateSpan Nothing e)
 
 tests_Hledger_Cli_Balancesheet = TestList
  [
