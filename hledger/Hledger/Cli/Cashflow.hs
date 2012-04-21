@@ -18,8 +18,6 @@ import Test.HUnit
 import Text.Shakespeare.Text
 
 import Hledger
-import Prelude hiding (putStr)
-import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Cli.Options
 import Hledger.Cli.Balance
 
