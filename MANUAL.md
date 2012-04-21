@@ -686,32 +686,12 @@ Examples:
 
 These are the commands for querying your ledger.
 
-#### balance
-
-The balance command displays accounts and their balances, indented to show the account hierarchy.
-Examples:
-
-    $ hledger balance
-    $ hledger balance food -p 'last month'
-
-A final total is displayed, use `--no-total` to suppress this. Also, the
-`--depth N` option shows accounts only to the specified depth, useful for
-an overview:
-
-    $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done
-
-With `--flat`, a non-hierarchical list of full account names is displayed
-instead. This mode shows just the accounts actually contributing to the
-balance, making the arithmetic a little more obvious to non-hledger users.
-In this mode you can also use `--drop N` to elide the first few account
-name components. Note `--depth` doesn't work too well with `--flat` currently;
-it hides deeper accounts rather than aggregating them.
-
 #### print
 
 The print command displays full transactions from the journal file, tidily
 formatted and showing all amounts explicitly. The output of print is
-always a valid hledger journal.
+always a valid hledger journal, but it might not preserve the original
+content absolutely intact (eg comments.)
 
 hledger's print command also shows all unit prices in effect, or (with
 -B/--cost) shows cost amounts.
@@ -743,25 +723,37 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
-#### activity
+#### balance
 
-The activity command displays a quick textual bar chart showing
-transaction counts by day, week, month or other reporting interval.
-
+The balance command displays accounts and their balances, indented to show the account hierarchy.
 Examples:
 
-    $ hledger activity -p weekly dining
+    $ hledger balance
+    $ hledger balance food -p 'last month'
+
+A final total is displayed, use `--no-total` to suppress this. Also, the
+`--depth N` option shows accounts only to the specified depth, useful for
+an overview:
+
+    $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done
+
+With `--flat`, a non-hierarchical list of full account names is displayed
+instead. This mode shows just the accounts actually contributing to the
+balance, making the arithmetic a little more obvious to non-hledger users.
+In this mode you can also use `--drop N` to elide the first few account
+name components. Note `--depth` doesn't work too well with `--flat` currently;
+it hides deeper accounts rather than aggregating them.
 
 #### incomestatement
 
-This command displays a standard
+This command displays a simple
 [income statement](http://en.wikipedia.org/wiki/Income_statement).  It
 currently assumes that you have top-level accounts named `income` (or
 `revenue`) and `expense` (plural forms also allowed.)
 
 #### balancesheet
 
-This command displays a standard
+This command displays a simple
 [balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently
 assumes that you have top-level accounts named `asset`, `liability` and
 `equity` (plural forms also allowed.)
@@ -769,12 +761,21 @@ assumes that you have top-level accounts named `asset`, `liability` and
 #### cashflow
 
 This command displays a simplified
-[cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement),
-showing the change in all "cash" accounts for the period (without the
-traditional segmentation into operating, investing, and financing cash
-flows.) It currently assumes that cash accounts are under a top-level
+[cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement)
+(without the traditional segmentation into operating, investing, and
+financing cash flows.) It shows the change in all "cash" accounts for the
+period. It currently assumes that cash accounts are under a top-level
 account named `asset` and do not contain `receivable` or `A/R` (plural
 forms also allowed.)
+
+#### activity
+
+The activity command displays a simplistic textual bar chart showing
+transaction counts by day, week, month or other reporting interval.
+
+Examples:
+
+    $ hledger activity -p weekly dining
 
 #### stats
 
