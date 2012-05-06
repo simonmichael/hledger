@@ -84,7 +84,8 @@ MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS)
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 # searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
-AUTOBUILD=sp --no-exts --no-default-map ghc --make -O0 $(GHCMEMFLAGS)
+GHC=ghc-7.4.1
+AUTOBUILD=sp --no-exts --no-default-map $(GHC) --make -O0 $(GHCMEMFLAGS)
 
 # file defining the current release version
 VERSIONFILE=VERSION
@@ -131,7 +132,7 @@ allcabal%:
 
 # auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
-auto: sp
+autotest auto: sp
 	rm -f bin/hledger
 	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test
 
