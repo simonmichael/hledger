@@ -10,7 +10,6 @@ module Hledger.Cli.Balancesheet (
  ,tests_Hledger_Cli_Balancesheet
 ) where
 
-import Data.List
 import qualified Data.Text.Lazy.IO as LT
 import Test.HUnit
 import Text.Shakespeare.Text

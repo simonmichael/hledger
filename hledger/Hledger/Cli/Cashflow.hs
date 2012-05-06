@@ -13,7 +13,6 @@ module Hledger.Cli.Cashflow (
  ,tests_Hledger_Cli_Cashflow
 ) where
 
-import Data.List
 import qualified Data.Text.Lazy.IO as LT
 import Test.HUnit
 import Text.Shakespeare.Text
