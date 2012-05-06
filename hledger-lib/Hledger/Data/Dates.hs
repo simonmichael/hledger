@@ -165,18 +165,18 @@ maybePeriod :: Day -> String -> Maybe (Interval,DateSpan)
 maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
 
 -- | Show a DateSpan as a human-readable pseudo-period-expression string.
-dateSpanAsText :: DateSpan -> String
-dateSpanAsText (DateSpan Nothing Nothing)   = "all"
-dateSpanAsText (DateSpan Nothing (Just e))  = printf "to %s" (show e)
-dateSpanAsText (DateSpan (Just b) Nothing)  = printf "from %s" (show b)
-dateSpanAsText (DateSpan (Just b) (Just e)) = printf "%s to %s" (show b) (show e)
+-- dateSpanAsText :: DateSpan -> String
+-- dateSpanAsText (DateSpan Nothing Nothing)   = "all"
+-- dateSpanAsText (DateSpan Nothing (Just e))  = printf "to %s" (show e)
+-- dateSpanAsText (DateSpan (Just b) Nothing)  = printf "from %s" (show b)
+-- dateSpanAsText (DateSpan (Just b) (Just e)) = printf "%s to %s" (show b) (show e)
     
 -- | Convert a single smart date string to a date span using the provided
 -- reference date, or raise an error.
-spanFromSmartDateString :: Day -> String -> DateSpan
-spanFromSmartDateString refdate s = spanFromSmartDate refdate sdate
-    where
-      sdate = fromparse $ parsewith smartdateonly s
+-- spanFromSmartDateString :: Day -> String -> DateSpan
+-- spanFromSmartDateString refdate s = spanFromSmartDate refdate sdate
+--     where
+--       sdate = fromparse $ parsewith smartdateonly s
 
 spanFromSmartDate :: Day -> SmartDate -> DateSpan
 spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
@@ -209,8 +209,8 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       span (y,m,"")              = (startofmonth day, nextmonth day) where day = fromGregorian (read y) (read m) 1
       span (y,m,d)               = (day, nextday day) where day = fromGregorian (read y) (read m) (read d)
 
-showDay :: Day -> String
-showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
+-- showDay :: Day -> String
+-- showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
 
 -- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
 -- the provided reference date, or raise an error.
@@ -306,12 +306,12 @@ nthdayofweekcontaining n d | d1 >= d    = d1
 ----------------------------------------------------------------------
 -- parsing
 
--- | Parse a couple of date-time string formats to a time type.
-parsedatetimeM :: String -> Maybe LocalTime
-parsedatetimeM s = firstJust [
-    parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
-    parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
-    ]
+-- -- | Parse a couple of date-time string formats to a time type.
+-- parsedatetimeM :: String -> Maybe LocalTime
+-- parsedatetimeM s = firstJust [
+--     parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
+--     parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
+--     ]
 
 -- | Parse a couple of date string formats to a time type.
 parsedateM :: String -> Maybe Day
@@ -320,10 +320,10 @@ parsedateM s = firstJust [
      parseTime defaultTimeLocale "%Y-%m-%d" s 
      ]
 
--- | Parse a date-time string to a time type, or raise an error.
-parsedatetime :: String -> LocalTime
-parsedatetime s = fromMaybe (error' $ "could not parse timestamp \"" ++ s ++ "\"")
-                            (parsedatetimeM s)
+-- -- | Parse a date-time string to a time type, or raise an error.
+-- parsedatetime :: String -> LocalTime
+-- parsedatetime s = fromMaybe (error' $ "could not parse timestamp \"" ++ s ++ "\"")
+--                             (parsedatetimeM s)
 
 -- | Parse a date string to a time type, or raise an error.
 parsedate :: String -> Day
@@ -432,8 +432,8 @@ md = do
 months         = ["january","february","march","april","may","june",
                   "july","august","september","october","november","december"]
 monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
-weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
-weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
+-- weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+-- weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
 monthIndex s = maybe 0 (+1) $ lowercase s `elemIndex` months
 monIndex s   = maybe 0 (+1) $ lowercase s `elemIndex` monthabbrevs
