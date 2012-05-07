@@ -6,7 +6,33 @@ plus a date and optional metadata like description and cleared status.
 
 -}
 
-module Hledger.Data.Transaction
+module Hledger.Data.Transaction (
+  -- * Transaction
+  nulltransaction,
+  txnTieKnot,
+  -- settxn,
+  -- * operations
+  showAccountName,
+  hasRealPostings,
+  realPostings,
+  virtualPostings,
+  balancedVirtualPostings,
+  transactionsPostings,
+  isTransactionBalanced,
+  -- nonzerobalanceerror,
+  -- * date operations
+  transactionActualDate,
+  transactionEffectiveDate,
+  journalTransactionWithDate,
+  -- * arithmetic
+  transactionPostingBalances,
+  balanceTransaction,
+  -- * rendering
+  showTransaction,
+  showTransactionUnelided,
+  -- * misc.
+  tests_Hledger_Data_Transaction
+)
 where
 import Data.List
 import Data.Maybe

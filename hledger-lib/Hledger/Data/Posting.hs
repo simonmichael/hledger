@@ -8,7 +8,36 @@ Strictly speaking, \"entry\" is probably a better name for these.
 
 -}
 
-module Hledger.Data.Posting
+module Hledger.Data.Posting (
+  -- * Posting
+  nullposting,
+  -- * operations
+  postingCleared,
+  isReal,
+  isVirtual,
+  isBalancedVirtual,
+  isEmptyPosting,
+  hasAmount,
+  -- * date operations
+  postingDate,
+  isPostingInDateSpan,
+  postingsDateSpan,
+  -- * account name operations that depend on posting type
+  accountNamesFromPostings,
+  accountNamePostingType,
+  accountNameWithoutPostingType,
+  accountNameWithPostingType,
+  joinAccountNames,
+  concatAccountNames,
+  accountNameApplyAliases,
+  -- * arithmetic
+  sumPostings,
+  -- * rendering
+  showPosting,
+  showPostingForRegister,
+  -- * misc.
+  tests_Hledger_Data_Posting
+)
 where
 import Data.List
 import Data.Ord
