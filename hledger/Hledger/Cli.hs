@@ -1,6 +1,10 @@
 {-| 
-Hledger.Cli re-exports the options, utilities and commands provided by the
-hledger command-line program.
+
+Hledger.Cli re-exports the options, utilities and commands provided by
+the hledger command-line program. This module also aggregates the
+built-in unit tests defined throughout hledger and hledger-lib, and
+adds some more which are easier to define here.
+
 -}
 
 module Hledger.Cli (
@@ -36,8 +40,7 @@ import Hledger.Cli.Options
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 
--- | hledger and hledger-lib's unit tests aggregated from all modules
--- plus some more which are easier to define here for now.
+
 tests_Hledger_Cli :: Test
 tests_Hledger_Cli = TestList
  [

@@ -1,28 +1,6 @@
 {- |
 
-This module contains hledger's unit tests. These are built in to hledger,
-and can be run at any time by doing @hledger test@ (or, with a few more
-options, by doing @make unittest@ in the hledger source tree.)
-
-Other kinds of tests:
-
-hledger's functional tests are a set of shell/command-line tests defined
-by .test files in the tests\/ subdirectory. These can be run by doing
-@make functest@ in the hledger source tree.
-
-hledger's doctests are shell commands with expected output in literal
-blocks in the haddock documentation, run by doing @make doctest@ in the
-hledger source tree. They are hardly used, but here is an example:
-
-@
-$ bin\/hledger -f data\/sample.journal balance o
-                  $1  expenses:food
-                 $-2  income
-                 $-1    gifts
-                 $-1    salary
---------------------
-                 $-1
-@
+A simple test runner for hledger's built-in unit tests.
 
 -}
 
