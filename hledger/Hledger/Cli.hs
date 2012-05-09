@@ -105,6 +105,10 @@ tests_Hledger_Cli = TestList
       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
 
+  ,"sample journal parses" ~: do
+     _ <- samplejournal
+     assertBool "" True
+
   ,"balance report tests" ~:
    let opts `gives` es = do
         j <- samplejournal
