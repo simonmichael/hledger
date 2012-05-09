@@ -101,45 +101,6 @@ ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan = postingsDateSpan . ledgerPostings
 
--- | Convenience aliases.
-accountnames :: Ledger -> [AccountName]
-accountnames = ledgerAccountNames
-
-account :: Ledger -> AccountName -> Account
-account = ledgerAccount
-
-accounts :: Ledger -> [Account]
-accounts = ledgerAccounts
-
-topaccounts :: Ledger -> [Account]
-topaccounts = ledgerTopAccounts
-
-accountsmatching :: [String] -> Ledger -> [Account]
-accountsmatching = ledgerAccountsMatching
-
-subaccounts :: Ledger -> Account -> [Account]
-subaccounts = ledgerSubAccounts
-
-postings :: Ledger -> [Posting]
-postings = ledgerPostings
-
-commodities :: Ledger -> Map String Commodity
-commodities = journalCanonicalCommodities . journal
-
-accounttree :: Int -> Ledger -> Tree Account
-accounttree = ledgerAccountTree
-
-accounttreeat :: Ledger -> Account -> Maybe (Tree Account)
-accounttreeat = ledgerAccountTreeAt
-
--- datespan :: Ledger -> DateSpan
--- datespan = ledgerDateSpan
-
-rawdatespan :: Ledger -> DateSpan
-rawdatespan = journalDateSpan . journal
-
-ledgeramounts :: Ledger -> [MixedAmount]
-ledgeramounts = journalAmounts . journal
 
 tests_Hledger_Data_Ledger = TestList
  [
