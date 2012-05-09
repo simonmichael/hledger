@@ -123,7 +123,7 @@ nullfilterspec = FilterSpec {
     ,acctpats=[]
     ,descpats=[]
     ,depth=Nothing
-    ,metadata=[]
+    ,fMetadata=[]
     }
 
 journalFilePath :: Journal -> FilePath
@@ -235,7 +235,7 @@ filterJournalTransactions FilterSpec{datespan=datespan
                                     ,acctpats=apats
                                     ,descpats=dpats
                                     ,depth=depth
-                                    ,metadata=md
+                                    ,fMetadata=md
                                     } =
     filterJournalTransactionsByClearedStatus cleared .
     filterJournalPostingsByDepth depth .
@@ -254,7 +254,7 @@ filterJournalPostings FilterSpec{datespan=datespan
                                 ,acctpats=apats
                                 ,descpats=dpats
                                 ,depth=depth
-                                ,metadata=md
+                                ,fMetadata=md
                                 } =
     filterJournalPostingsByRealness real .
     filterJournalPostingsByClearedStatus cleared .

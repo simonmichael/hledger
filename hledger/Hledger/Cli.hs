@@ -259,7 +259,7 @@ tests_Hledger_Cli = TestList
     (map precision $ journalAmountAndPriceCommodities $ journalCanonicaliseAmounts $ journalWithAmounts ["1","2.00"]) `is` [2,2]
 
   ,"commodities" ~:
-    Map.elems (commodities ledger7) `is` [Commodity {symbol="$", side=L, spaced=False, decimalpoint='.', precision=2, separator=',', separatorpositions=[]}]
+    Map.elems (ledgerCommodities ledger7) `is` [Commodity {symbol="$", side=L, spaced=False, decimalpoint='.', precision=2, separator=',', separatorpositions=[]}]
 
   -- don't know what this should do
   -- ,"elideAccountName" ~: do
@@ -910,4 +910,4 @@ journalWithAmounts as =
         nullctx
         []
         (TOD 0 0)
-    where parse = fromparse . parseWithCtx nullctx someamount
+    where parse = fromparse . parseWithCtx nullctx amount

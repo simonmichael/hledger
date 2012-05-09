@@ -69,6 +69,8 @@ data Commodity = Commodity {
       separatorpositions :: [Int]  -- ^ positions of separators, counting leftward from decimal point
     } deriving (Eq,Ord,Show,Read)
 
+type Quantity = Double
+
 -- | An amount's price in another commodity may be written as \@ unit
 -- price or \@\@ total price.  Note although a MixedAmount is used, it
 -- should be in a single commodity, also the amount should be positive;
@@ -78,7 +80,7 @@ data Price = UnitPrice MixedAmount | TotalPrice MixedAmount
 
 data Amount = Amount {
       commodity :: Commodity,
-      quantity :: Double,
+      quantity :: Quantity,
       price :: Maybe Price  -- ^ the price for this amount at posting time
     } deriving (Eq,Ord)
 
@@ -243,9 +245,9 @@ data FormatString =
 
 
 data Ledger = Ledger {
-      journal :: Journal,
-      accountnametree :: Tree AccountName,
-      accountmap :: Map.Map AccountName Account
+      ledgerJournal :: Journal,
+      ledgerAccountNameTree :: Tree AccountName,
+      ledgerAccountMap :: Map.Map AccountName Account
     }
 
 data Account = Account {
@@ -263,6 +265,6 @@ data FilterSpec = FilterSpec {
     ,acctpats  :: [String]   -- ^ only include if matching these account patterns
     ,descpats  :: [String]   -- ^ only include if matching these description patterns
     ,depth     :: Maybe Int
-    ,metadata  :: [(String,String)] -- ^ only include if matching these metadata
+    ,fMetadata  :: [(String,String)] -- ^ only include if matching these metadata
     } deriving (Show)
 

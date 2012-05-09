@@ -54,7 +54,7 @@ import Prelude hiding (getContents)
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Data.FormatStrings as FormatStrings
-import Hledger.Read.JournalReader (ledgeraccountname, someamount)
+import Hledger.Read.JournalReader (accountname, amount)
 
 
 reader :: Reader
@@ -339,7 +339,7 @@ basecurrency = do
 baseaccount = do
   string "base-account"
   many1 spacenonewline
-  v <- ledgeraccountname
+  v <- accountname
   optional newline
   updateState (\r -> r{baseAccount=v})
 
@@ -349,7 +349,7 @@ accountrule = do
   pats <- many1 matchreplacepattern
   guard $ length pats >= 2
   let pats' = init pats
-      acct = either (fail.show) id $ runParser ledgeraccountname () "" $ fst $ last pats
+      acct = either (fail.show) id $ runParser accountname () "" $ fst $ last pats
   many blankorcommentline
   return (pats',acct)
  <?> "account rule"
@@ -419,11 +419,11 @@ transactionFromCsvRecord rules fields =
                                              strnegate s = '-':s
       currency = maybe (fromMaybe "" $ baseCurrency rules) (atDef "" fields) (currencyField rules)
       amountstr'' = currency ++ amountstr'
-      amountparse = runParser someamount nullctx "" amountstr''
-      amount = either (const nullmixedamt) id amountparse
+      amountparse = runParser amount nullctx "" amountstr''
+      a = either (const nullmixedamt) id amountparse
       -- Using costOfMixedAmount here to allow complex costs like "10 GBP @@ 15 USD".
       -- Aim is to have "10 GBP @@ 15 USD" applied to account "acct", but have "-15USD" applied to "baseacct"
-      baseamount = costOfMixedAmount amount
+      baseamount = costOfMixedAmount a
       unknownacct | (readDef 0 amountstr' :: Double) < 0 = "income:unknown"
                   | otherwise = "expenses:unknown"
       (acct',newdesc) = identify (accountRules rules) unknownacct desc
@@ -441,7 +441,7 @@ transactionFromCsvRecord rules fields =
                    Posting {
                      pstatus=False,
                      paccount=acct,
-                     pamount=amount,
+                     pamount=a,
                      pcomment="",
                      ptype=RegularPosting,
                      pmetadata=[],

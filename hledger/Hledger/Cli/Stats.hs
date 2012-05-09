@@ -40,7 +40,7 @@ showLedgerStats l today span =
       w1 = maximum $ map (length . fst) stats
       w2 = maximum $ map (length . show . snd) stats
       stats = [
-         ("Journal file", journalFilePath $ journal l)
+         ("Journal file", journalFilePath $ ledgerJournal l)
         ,("Transactions span", printf "%s to %s (%d days)" (start span) (end span) days)
         ,("Last transaction", maybe "none" show lastdate ++ showelapsed lastelapsed)
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
@@ -55,7 +55,7 @@ showLedgerStats l today span =
       -- Days since last transaction : %(recentelapsed)s
        ]
            where
-             ts = sortBy (comparing tdate) $ filter (spanContainsDate span . tdate) $ jtxns $ journal l
+             ts = sortBy (comparing tdate) $ filter (spanContainsDate span . tdate) $ jtxns $ ledgerJournal l
              as = nub $ map paccount $ concatMap tpostings ts
              cs = Map.keys $ canonicaliseCommodities $ nub $ map commodity $ concatMap amounts $ map pamount $ concatMap tpostings ts
              lastdate | null ts = Nothing

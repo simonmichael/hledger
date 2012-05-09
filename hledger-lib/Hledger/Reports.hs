@@ -177,7 +177,7 @@ filterSpecFromOpts opts@ReportOpts{..} d = FilterSpec {
                                ,acctpats=apats
                                ,descpats=dpats
                                ,depth = depth_
-                               ,metadata = mds
+                               ,fMetadata = mds
                                }
     where (apats,dpats,mds) = parsePatternArgs patterns_
 

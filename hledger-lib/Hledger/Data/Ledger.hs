@@ -25,24 +25,24 @@ import Hledger.Data.Query
 
 instance Show Ledger where
     show l = printf "Ledger with %d transactions, %d accounts\n%s"
-             (length (jtxns $ journal l) +
-              length (jmodifiertxns $ journal l) +
-              length (jperiodictxns $ journal l))
-             (length $ accountnames l)
-             (showtree $ accountnametree l)
+             (length (jtxns $ ledgerJournal l) +
+              length (jmodifiertxns $ ledgerJournal l) +
+              length (jperiodictxns $ ledgerJournal l))
+             (length $ ledgerAccountNames l)
+             (showtree $ ledgerAccountNameTree l)
 
 nullledger :: Ledger
 nullledger = Ledger{
-      journal = nulljournal,
-      accountnametree = nullaccountnametree,
-      accountmap = fromList []
+      ledgerJournal = nulljournal,
+      ledgerAccountNameTree = nullaccountnametree,
+      ledgerAccountMap = fromList []
     }
 
 -- | Filter a journal's transactions as specified, and then process them
 -- to derive a ledger containing all balances, the chart of accounts,
 -- canonicalised commodities etc.
 journalToLedger :: FilterSpec -> Journal -> Ledger
-journalToLedger fs j = nullledger{journal=j',accountnametree=t,accountmap=m}
+journalToLedger fs j = nullledger{ledgerJournal=j',ledgerAccountNameTree=t,ledgerAccountMap=m}
     where j' = filterJournalPostings fs{depth=Nothing} j
           (t, m) = journalAccountInfo j'
 
@@ -51,17 +51,17 @@ journalToLedger fs j = nullledger{journal=j',accountnametree=t,accountmap=m}
 -- canonicalised commodities etc.
 -- Like journalToLedger but uses the new queries.
 journalToLedger2 :: Query -> Journal -> Ledger
-journalToLedger2 m j = nullledger{journal=j',accountnametree=t,accountmap=amap}
+journalToLedger2 m j = nullledger{ledgerJournal=j',ledgerAccountNameTree=t,ledgerAccountMap=amap}
     where j' = filterJournalPostings2 m j
           (t, amap) = journalAccountInfo j'
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]
-ledgerAccountNames = drop 1 . flatten . accountnametree
+ledgerAccountNames = drop 1 . flatten . ledgerAccountNameTree
 
 -- | Get the named account from a ledger.
 ledgerAccount :: Ledger -> AccountName -> Account
-ledgerAccount l a = findWithDefault nullacct a $ accountmap l
+ledgerAccount l a = findWithDefault nullacct a $ ledgerAccountMap l
 
 -- | List a ledger's accounts, in tree order
 ledgerAccounts :: Ledger -> [Account]
@@ -77,20 +77,20 @@ ledgerLeafAccounts = leaves . ledgerAccountTree 9999
 
 -- | Accounts in ledger whose name matches the pattern, in tree order.
 ledgerAccountsMatching :: [String] -> Ledger -> [Account]
-ledgerAccountsMatching pats = filter (matchpats pats . aname) . accounts
+ledgerAccountsMatching pats = filter (matchpats pats . aname) . ledgerAccounts
 
 -- | List a ledger account's immediate subaccounts
 ledgerSubAccounts :: Ledger -> Account -> [Account]
 ledgerSubAccounts l Account{aname=a} = 
-    map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ accountnames l
+    map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ ledgerAccountNames l
 
 -- | List a ledger's postings, in the order parsed.
 ledgerPostings :: Ledger -> [Posting]
-ledgerPostings = journalPostings . journal
+ledgerPostings = journalPostings . ledgerJournal
 
 -- | Get a ledger's tree of accounts to the specified depth.
 ledgerAccountTree :: Int -> Ledger -> Tree Account
-ledgerAccountTree depth l = treemap (ledgerAccount l) $ treeprune depth $ accountnametree l
+ledgerAccountTree depth l = treemap (ledgerAccount l) $ treeprune depth $ ledgerAccountNameTree l
 
 -- | Get a ledger's tree of accounts rooted at the specified account.
 ledgerAccountTreeAt :: Ledger -> Account -> Maybe (Tree Account)
@@ -101,6 +101,9 @@ ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
 ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan = postingsDateSpan . ledgerPostings
 
+-- | All commodities used in this ledger, as a map keyed by symbol.
+ledgerCommodities :: Ledger -> Map String Commodity
+ledgerCommodities = journalCanonicalCommodities . ledgerJournal
 
 tests_Hledger_Data_Ledger = TestList
  [

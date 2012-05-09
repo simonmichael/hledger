@@ -19,16 +19,16 @@ module Hledger.Read.JournalReader (
   -- * Reader
   reader,
   -- * Parsers used elsewhere
-  emptyLine,
-  journalFile,
-  ledgeraccountname,
-  ledgerdatetime,
-  ledgerDefaultYear,
-  ledgerDirective,
-  ledgerHistoricalPrice,
-  someamount,
   parseJournalWith,
   getParentAccount,
+  journal,
+  directive,
+  defaultyeardirective,
+  historicalpricedirective,
+  datetime,
+  accountname,
+  amount,
+  emptyline,
   -- * Tests
   tests_Hledger_Read_JournalReader
 )
@@ -40,11 +40,8 @@ import Data.List
 import Data.List.Split (wordsBy)
 import Data.Maybe
 import Data.Time.Calendar
--- import Data.Time.Clock
--- import Data.Time.Format
 import Data.Time.LocalTime
 import Safe (headDef)
--- import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Text.ParserCombinators.Parsec hiding (parse)
 import Text.Printf
@@ -57,7 +54,7 @@ import Prelude hiding (readFile)
 import Hledger.Utils.UTF8IOCompat (readFile)
 
 
--- let's get to it
+-- standard reader exports
 
 reader :: Reader
 reader = Reader format detect parse
@@ -72,7 +69,7 @@ detect f _ = takeExtension f == format
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse _ = parseJournalWith journalFile
+parse _ = parseJournalWith journal
 
 -- parsing utils
 
@@ -129,13 +126,13 @@ getAccountAliases = liftM ctxAliases getState
 clearAccountAliases :: GenParser tok JournalContext ()
 clearAccountAliases = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
---
+-- parsers
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
 -- applied to an empty journal to get the final result.
-journalFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
-journalFile = do
+journal :: GenParser Char JournalContext (JournalUpdate,JournalContext)
+journal = do
   journalupdates <- many journalItem
   eof
   finalctx <- getState
@@ -144,56 +141,57 @@ journalFile = do
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      journalItem = choice [ ledgerDirective
-                           , liftM (return . addTransaction) ledgerTransaction
-                           , liftM (return . addModifierTransaction) ledgerModifierTransaction
-                           , liftM (return . addPeriodicTransaction) ledgerPeriodicTransaction
-                           , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
-                           , emptyLine >> return (return id)
+      journalItem = choice [ directive
+                           , liftM (return . addTransaction) transaction
+                           , liftM (return . addModifierTransaction) modifiertransaction
+                           , liftM (return . addPeriodicTransaction) periodictransaction
+                           , liftM (return . addHistoricalPrice) historicalpricedirective
+                           , emptyline >> return (return id)
                            ] <?> "journal transaction or directive"
 
-emptyLine :: GenParser Char JournalContext ()
-emptyLine = do many spacenonewline
+emptyline :: GenParser Char JournalContext ()
+emptyline = do many spacenonewline
                optional $ (char ';' <?> "comment") >> many (noneOf "\n")
                newline
                return ()
 
-ledgercomment :: GenParser Char JournalContext String
-ledgercomment = do
+comment :: GenParser Char JournalContext String
+comment = do
   many1 $ char ';'
   many spacenonewline
   many (noneOf "\n")
   <?> "comment"
 
-ledgercommentline :: GenParser Char JournalContext String
-ledgercommentline = do
+commentline :: GenParser Char JournalContext String
+commentline = do
   many spacenonewline
-  s <- ledgercomment
+  s <- comment
   optional newline
   eof
   return s
   <?> "comment"
 
-ledgerDirective :: GenParser Char JournalContext JournalUpdate
-ledgerDirective = do
+-- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
+directive :: GenParser Char JournalContext JournalUpdate
+directive = do
   optional $ char '!'
   choice' [
-    ledgerInclude
-   ,ledgerAlias
-   ,ledgerEndAliases
-   ,ledgerAccountBegin
-   ,ledgerAccountEnd
-   ,ledgerTagDirective
-   ,ledgerEndTagDirective
-   ,ledgerDefaultYear
-   ,ledgerDefaultCommodity
-   ,ledgerCommodityConversion
-   ,ledgerIgnoredPriceCommodity
+    includedirective
+   ,aliasdirective
+   ,endaliasesdirective
+   ,accountdirective
+   ,enddirective
+   ,tagdirective
+   ,endtagdirective
+   ,defaultyeardirective
+   ,defaultcommoditydirective
+   ,commodityconversiondirective
+   ,ignoredpricecommoditydirective
    ]
   <?> "directive"
 
-ledgerInclude :: GenParser Char JournalContext JournalUpdate
-ledgerInclude = do
+includedirective :: GenParser Char JournalContext JournalUpdate
+includedirective = do
   string "include"
   many1 spacenonewline
   filename <- restofline
@@ -202,7 +200,7 @@ ledgerInclude = do
   return $ do filepath <- expandPath outerPos filename
               txt <- readFileOrError outerPos filepath
               let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-              case runParser journalFile outerState filepath txt of
+              case runParser journal outerState filepath txt of
                 Right (ju,_) -> combineJournalUpdates [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
                 Left err     -> throwError $ inIncluded ++ show err
       where readFileOrError pos fp =
@@ -212,23 +210,23 @@ ledgerInclude = do
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
 
-ledgerAccountBegin :: GenParser Char JournalContext JournalUpdate
-ledgerAccountBegin = do
+accountdirective :: GenParser Char JournalContext JournalUpdate
+accountdirective = do
   string "account"
   many1 spacenonewline
-  parent <- ledgeraccountname
+  parent <- accountname
   newline
   pushParentAccount parent
   return $ return id
 
-ledgerAccountEnd :: GenParser Char JournalContext JournalUpdate
-ledgerAccountEnd = do
+enddirective :: GenParser Char JournalContext JournalUpdate
+enddirective = do
   string "end"
   popParentAccount
   return (return id)
 
-ledgerAlias :: GenParser Char JournalContext JournalUpdate
-ledgerAlias = do
+aliasdirective :: GenParser Char JournalContext JournalUpdate
+aliasdirective = do
   string "alias"
   many1 spacenonewline
   orig <- many1 $ noneOf "="
@@ -238,28 +236,28 @@ ledgerAlias = do
                   ,accountNameWithoutPostingType $ strip alias)
   return $ return id
 
-ledgerEndAliases :: GenParser Char JournalContext JournalUpdate
-ledgerEndAliases = do
+endaliasesdirective :: GenParser Char JournalContext JournalUpdate
+endaliasesdirective = do
   string "end aliases"
   clearAccountAliases
   return (return id)
 
-ledgerTagDirective :: GenParser Char JournalContext JournalUpdate
-ledgerTagDirective = do
+tagdirective :: GenParser Char JournalContext JournalUpdate
+tagdirective = do
   string "tag" <?> "tag directive"
   many1 spacenonewline
   _ <- many1 nonspace
   restofline
   return $ return id
 
-ledgerEndTagDirective :: GenParser Char JournalContext JournalUpdate
-ledgerEndTagDirective = do
+endtagdirective :: GenParser Char JournalContext JournalUpdate
+endtagdirective = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
   return $ return id
 
-ledgerDefaultYear :: GenParser Char JournalContext JournalUpdate
-ledgerDefaultYear = do
+defaultyeardirective :: GenParser Char JournalContext JournalUpdate
+defaultyeardirective = do
   char 'Y' <?> "default year"
   many spacenonewline
   y <- many1 digit
@@ -268,84 +266,84 @@ ledgerDefaultYear = do
   setYear y'
   return $ return id
 
-ledgerDefaultCommodity :: GenParser Char JournalContext JournalUpdate
-ledgerDefaultCommodity = do
+defaultcommoditydirective :: GenParser Char JournalContext JournalUpdate
+defaultcommoditydirective = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
-  a <- someamount
-  -- someamount always returns a MixedAmount containing one Amount, but let's be safe
+  a <- amount
+  -- amount always returns a MixedAmount containing one Amount, but let's be safe
   let as = amounts a
   when (not $ null as) $ setCommodity $ commodity $ head as
   restofline
   return $ return id
 
-ledgerHistoricalPrice :: GenParser Char JournalContext HistoricalPrice
-ledgerHistoricalPrice = do
+historicalpricedirective :: GenParser Char JournalContext HistoricalPrice
+historicalpricedirective = do
   char 'P' <?> "historical price"
   many spacenonewline
-  date <- try (do {LocalTime d _ <- ledgerdatetime; return d}) <|> ledgerdate -- a time is ignored
+  date <- try (do {LocalTime d _ <- datetime; return d}) <|> date -- a time is ignored
   many1 spacenonewline
   symbol <- commoditysymbol
   many spacenonewline
-  price <- someamount
+  price <- amount
   restofline
   return $ HistoricalPrice date symbol price
 
-ledgerIgnoredPriceCommodity :: GenParser Char JournalContext JournalUpdate
-ledgerIgnoredPriceCommodity = do
+ignoredpricecommoditydirective :: GenParser Char JournalContext JournalUpdate
+ignoredpricecommoditydirective = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
   commoditysymbol
   restofline
   return $ return id
 
-ledgerCommodityConversion :: GenParser Char JournalContext JournalUpdate
-ledgerCommodityConversion = do
+commodityconversiondirective :: GenParser Char JournalContext JournalUpdate
+commodityconversiondirective = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
-  someamount
+  amount
   many spacenonewline
   char '='
   many spacenonewline
-  someamount
+  amount
   restofline
   return $ return id
 
-ledgerModifierTransaction :: GenParser Char JournalContext ModifierTransaction
-ledgerModifierTransaction = do
+modifiertransaction :: GenParser Char JournalContext ModifierTransaction
+modifiertransaction = do
   char '=' <?> "modifier transaction"
   many spacenonewline
   valueexpr <- restofline
-  postings <- ledgerpostings
+  postings <- postings
   return $ ModifierTransaction valueexpr postings
 
-ledgerPeriodicTransaction :: GenParser Char JournalContext PeriodicTransaction
-ledgerPeriodicTransaction = do
+periodictransaction :: GenParser Char JournalContext PeriodicTransaction
+periodictransaction = do
   char '~' <?> "periodic transaction"
   many spacenonewline
   periodexpr <- restofline
-  postings <- ledgerpostings
+  postings <- postings
   return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) ledger transaction.
-ledgerTransaction :: GenParser Char JournalContext Transaction
-ledgerTransaction = do
-  date <- ledgerdate <?> "transaction"
-  edate <- optionMaybe (ledgereffectivedate date) <?> "effective date"
-  status <- ledgerstatus <?> "cleared flag"
-  code <- ledgercode <?> "transaction code"
+transaction :: GenParser Char JournalContext Transaction
+transaction = do
+  date <- date <?> "transaction"
+  edate <- optionMaybe (effectivedate date) <?> "effective date"
+  status <- status <?> "cleared flag"
+  code <- code <?> "transaction code"
   (description, comment) <-
-      (do {many1 spacenonewline; d <- liftM rstrip (many (noneOf ";\n")); c <- ledgercomment <|> return ""; newline; return (d, c)} <|>
-       do {many spacenonewline; c <- ledgercomment <|> return ""; newline; return ("", c)}
+      (do {many1 spacenonewline; d <- liftM rstrip (many (noneOf ";\n")); c <- comment <|> return ""; newline; return (d, c)} <|>
+       do {many spacenonewline; c <- comment <|> return ""; newline; return ("", c)}
       ) <?> "description and/or comment"
-  md <- try ledgermetadata <|> return []
-  postings <- ledgerpostings
+  md <- try metadata <|> return []
+  postings <- postings
   return $ txnTieKnot $ Transaction date edate status code description comment md postings ""
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
 -- may be omitted if a default year has already been set.
-ledgerdate :: GenParser Char JournalContext Day
-ledgerdate = do
+date :: GenParser Char JournalContext Day
+date = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
   -- pos <- getPosition
@@ -367,9 +365,9 @@ ledgerdate = do
 -- timezone will be ignored; the time is treated as local time.  Fewer
 -- digits are allowed, except in the timezone. The year may be omitted if
 -- a default year has already been set.
-ledgerdatetime :: GenParser Char JournalContext LocalTime
-ledgerdatetime = do 
-  day <- ledgerdate
+datetime :: GenParser Char JournalContext LocalTime
+datetime = do
+  day <- date
   many1 spacenonewline
   h <- many1 digit
   let h' = read h
@@ -395,8 +393,8 @@ ledgerdatetime = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-ledgereffectivedate :: Day -> GenParser Char JournalContext Day
-ledgereffectivedate actualdate = do
+effectivedate :: Day -> GenParser Char JournalContext Day
+effectivedate actualdate = do
   char '='
   -- kludgy way to use actual date for default year
   let withDefaultYear d p = do
@@ -405,22 +403,22 @@ ledgereffectivedate actualdate = do
         r <- p
         when (isJust y) $ setYear $ fromJust y
         return r
-  edate <- withDefaultYear actualdate ledgerdate
+  edate <- withDefaultYear actualdate date
   return edate
 
-ledgerstatus :: GenParser Char JournalContext Bool
-ledgerstatus = try (do { many spacenonewline; char '*' <?> "status"; return True } ) <|> return False
+status :: GenParser Char JournalContext Bool
+status = try (do { many spacenonewline; char '*' <?> "status"; return True } ) <|> return False
 
-ledgercode :: GenParser Char JournalContext String
-ledgercode = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
+code :: GenParser Char JournalContext String
+code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
-ledgermetadata :: GenParser Char JournalContext [(String,String)]
-ledgermetadata = many $ try ledgermetadataline
+metadata :: GenParser Char JournalContext [(String,String)]
+metadata = many $ try metadataline
 
 -- a comment line containing a metadata declaration, eg:
 -- ; name: value
-ledgermetadataline :: GenParser Char JournalContext (String,String)
-ledgermetadataline = do
+metadataline :: GenParser Char JournalContext (String,String)
+metadataline = do
   many1 spacenonewline
   many1 $ char ';'
   many spacenonewline
@@ -435,22 +433,22 @@ ledgermetadataline = do
 
 -- Parse the following whitespace-beginning lines as postings, posting metadata, and/or comments.
 -- complicated to handle intermixed comment and metadata lines.. make me better ?
-ledgerpostings :: GenParser Char JournalContext [Posting]
-ledgerpostings = do
+postings :: GenParser Char JournalContext [Posting]
+postings = do
   ctx <- getState
   -- we'll set the correct position for sub-parses for more useful errors
   pos <- getPosition
   ls <- many1 $ try linebeginningwithspaces
   let lsnumbered = zip ls [0..]
       parses p = isRight . parseWithCtx ctx p
-      postinglines = filter (not . (ledgercommentline `parses`) . fst) lsnumbered
+      postinglines = filter (not . (commentline `parses`) . fst) lsnumbered
       -- group any metadata lines with the posting line above
       postinglinegroups :: [(String,Line)] -> [(String,Line)]
       postinglinegroups [] = []
       postinglinegroups ((pline,num):ls) = (unlines (pline:(map fst mdlines)), num):postinglinegroups rest
-          where (mdlines,rest) = span ((ledgermetadataline `parses`) . fst) ls
+          where (mdlines,rest) = span ((metadataline `parses`) . fst) ls
       pstrs = postinglinegroups postinglines
-      parseNumberedPostingLine (str,num) = fromparse $ parseWithCtx ctx (setPosition (incSourceLine pos num) >> ledgerposting) str
+      parseNumberedPostingLine (str,num) = fromparse $ parseWithCtx ctx (setPosition (incSourceLine pos num) >> posting) str
   when (null pstrs) $ fail "no postings"
   return $ map parseNumberedPostingLine pstrs
   <?> "postings"
@@ -462,24 +460,24 @@ linebeginningwithspaces = do
   cs <- restofline
   return $ sp ++ (c:cs) ++ "\n"
 
-ledgerposting :: GenParser Char JournalContext Posting
-ledgerposting = do
+posting :: GenParser Char JournalContext Posting
+posting = do
   many1 spacenonewline
-  status <- ledgerstatus
+  status <- status
   many spacenonewline
   account <- modifiedaccountname
   let (ptype, account') = (accountNamePostingType account, unbracket account)
-  amount <- postingamount
+  amount <- spaceandamountormissing
   many spacenonewline
-  comment <- ledgercomment <|> return ""
+  comment <- comment <|> return ""
   newline
-  md <- ledgermetadata
+  md <- metadata
   return (Posting status account' amount comment ptype md Nothing)
 
--- Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
+-- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountname :: GenParser Char JournalContext AccountName
 modifiedaccountname = do
-  a <- ledgeraccountname
+  a <- accountname
   prefix <- getParentAccount
   let prefixed = prefix `joinAccountNames` a
   aliases <- getAccountAliases
@@ -489,8 +487,8 @@ modifiedaccountname = do
 -- them, and are terminated by two or more spaces. They should have one or
 -- more components of at least one character, separated by the account
 -- separator char.
-ledgeraccountname :: GenParser Char st AccountName
-ledgeraccountname = do
+accountname :: GenParser Char st AccountName
+accountname = do
     a <- many1 (nonspace <|> singlespace)
     let a' = striptrailingspace a
     when (accountNameFromComponents (accountNameComponents a') /= a')
@@ -504,17 +502,51 @@ ledgeraccountname = do
 -- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
 --     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
--- | Parse an amount, with an optional left or right currency symbol and
--- optional price.
-postingamount :: GenParser Char JournalContext MixedAmount
-postingamount =
+-- | Parse whitespace then an amount, with an optional left or right
+-- currency symbol and optional price, or return the special
+-- "missing"" marker amount.
+spaceandamountormissing :: GenParser Char JournalContext MixedAmount
+spaceandamountormissing =
   try (do
         many1 spacenonewline
-        someamount <|> return missingamt
+        amount <|> return missingamt
       ) <|> return missingamt
 
-someamount :: GenParser Char JournalContext MixedAmount
-someamount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount 
+tests_spaceandamountormissing = [
+   "spaceandamountormissing" ~: do
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " $47.18") (Mixed [dollars 47.18])
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "$47.18") missingamt
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " ") missingamt
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "") missingamt
+ ]
+
+-- | Parse an amount, with an optional left or right currency symbol and
+-- optional price.
+amount :: GenParser Char JournalContext MixedAmount
+amount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
+
+tests_amount = [
+   "amount" ~: do
+    assertParseEqual (parseWithCtx nullctx amount "$47.18") (Mixed [dollars 47.18])
+    assertParseEqual (parseWithCtx nullctx amount "$1.")
+                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} 1 Nothing])
+  ,"amount with unit price" ~: do
+    assertParseEqual
+     (parseWithCtx nullctx amount "$10 @ €0.5")
+     (Mixed [Amount{commodity=dollar{precision=0},
+                    quantity=10,
+                    price=(Just $ UnitPrice $ Mixed [Amount{commodity=euro{precision=1},
+                                                            quantity=0.5,
+                                                            price=Nothing}])}])
+  ,"amount with total price" ~: do
+    assertParseEqual
+     (parseWithCtx nullctx amount "$10 @@ €5")
+     (Mixed [Amount{commodity=dollar{precision=0},
+                    quantity=10,
+                    price=(Just $ TotalPrice $ Mixed [Amount{commodity=euro{precision=0},
+                                                             quantity=5,
+                                                             price=Nothing}])}])
+ ]
 
 leftsymbolamount :: GenParser Char JournalContext MixedAmount
 leftsymbolamount = do
@@ -568,55 +600,13 @@ priceamount =
           try (do
                 char '@'
                 many spacenonewline
-                a <- someamount -- XXX can parse more prices ad infinitum, shouldn't
+                a <- amount -- XXX can parse more prices ad infinitum, shouldn't
                 return $ Just $ TotalPrice a)
            <|> (do
             many spacenonewline
-            a <- someamount -- XXX can parse more prices ad infinitum, shouldn't
+            a <- amount -- XXX can parse more prices ad infinitum, shouldn't
             return $ Just $ UnitPrice a))
          <|> return Nothing
-
--- gawd.. trying to parse a ledger number without error:
-
-type Quantity = Double
-
--- -- | Parse a ledger-style numeric quantity and also return the number of
--- -- digits to the right of the decimal point and whether thousands are
--- -- separated by comma.
--- amountquantity :: GenParser Char JournalContext (Quantity, Int, Bool)
--- amountquantity = do
---   sign <- optionMaybe $ string "-"
---   (intwithcommas,frac) <- numberparts
---   let comma = ',' `elem` intwithcommas
---   let precision = length frac
---   -- read the actual value. We expect this read to never fail.
---   let int = filter (/= ',') intwithcommas
---   let int' = if null int then "0" else int
---   let frac' = if null frac then "0" else frac
---   let sign' = fromMaybe "" sign
---   let quantity = read $ sign'++int'++"."++frac'
---   return (quantity, precision, comma)
---   <?> "commodity quantity"
-
--- -- | parse the two strings of digits before and after a possible decimal
--- -- point.  The integer part may contain commas, or either part may be
--- -- empty, or there may be no point.
--- numberparts :: GenParser Char JournalContext (String,String)
--- numberparts = numberpartsstartingwithdigit <|> numberpartsstartingwithpoint
-
--- numberpartsstartingwithdigit :: GenParser Char JournalContext (String,String)
--- numberpartsstartingwithdigit = do
---   let digitorcomma = digit <|> char ','
---   first <- digit
---   rest <- many digitorcomma
---   frac <- try (do {char '.'; many digit}) <|> return ""
---   return (first:rest,frac)
-                     
--- numberpartsstartingwithpoint :: GenParser Char JournalContext (String,String)
--- numberpartsstartingwithpoint = do
---   char '.'
---   frac <- many1 digit
---   return ("",frac)
 
 -- | Parse a numeric quantity for its value and display attributes.  Some
 -- international number formats (cf
@@ -667,8 +657,10 @@ number = do
   return (quantity,precision,decimalpoint,separator,separatorpositions)
   <?> "number"
 
-tests_Hledger_Read_JournalReader = TestList [
-
+tests_Hledger_Read_JournalReader = TestList $ concat [
+    tests_amount,
+    tests_spaceandamountormissing,
+    [
     "number" ~: do
       let s `is` n = assertParseEqual (parseWithCtx nullctx number s) n
           assertFails = assertBool "" . isLeft . parseWithCtx nullctx number 
@@ -691,39 +683,39 @@ tests_Hledger_Read_JournalReader = TestList [
       assertFails ".1,"
       assertFails ",1."
 
-   ,"ledgerTransaction" ~: do
-    assertParseEqual (parseWithCtx nullctx ledgerTransaction entry1_str) entry1
-    assertBool "ledgerTransaction should not parse just a date"
-                   $ isLeft $ parseWithCtx nullctx ledgerTransaction "2009/1/1\n"
-    assertBool "ledgerTransaction should require some postings"
-                   $ isLeft $ parseWithCtx nullctx ledgerTransaction "2009/1/1 a\n"
-    let t = parseWithCtx nullctx ledgerTransaction "2009/1/1 a ;comment\n b 1\n"
-    assertBool "ledgerTransaction should not include a comment in the description"
+   ,"transaction" ~: do
+    assertParseEqual (parseWithCtx nullctx transaction entry1_str) entry1
+    assertBool "transaction should not parse just a date"
+                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1\n"
+    assertBool "transaction should require some postings"
+                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1 a\n"
+    let t = parseWithCtx nullctx transaction "2009/1/1 a ;comment\n b 1\n"
+    assertBool "transaction should not include a comment in the description"
                    $ either (const False) ((== "a") . tdescription) t
 
-  ,"ledgerModifierTransaction" ~: do
-     assertParse (parseWithCtx nullctx ledgerModifierTransaction "= (some value expr)\n some:postings  1\n")
+  ,"modifiertransaction" ~: do
+     assertParse (parseWithCtx nullctx modifiertransaction "= (some value expr)\n some:postings  1\n")
 
-  ,"ledgerPeriodicTransaction" ~: do
-     assertParse (parseWithCtx nullctx ledgerPeriodicTransaction "~ (some period expr)\n some:postings  1\n")
+  ,"periodictransaction" ~: do
+     assertParse (parseWithCtx nullctx periodictransaction "~ (some period expr)\n some:postings  1\n")
 
-  ,"ledgerDirective" ~: do
-     assertParse (parseWithCtx nullctx ledgerDirective "!include /some/file.x\n")
-     assertParse (parseWithCtx nullctx ledgerDirective "account some:account\n")
-     assertParse (parseWithCtx nullctx (ledgerDirective >> ledgerDirective) "!account a\nend\n")
+  ,"directive" ~: do
+     assertParse (parseWithCtx nullctx directive "!include /some/file.x\n")
+     assertParse (parseWithCtx nullctx directive "account some:account\n")
+     assertParse (parseWithCtx nullctx (directive >> directive) "!account a\nend\n")
 
-  ,"ledgercommentline" ~: do
-     assertParse (parseWithCtx nullctx ledgercommentline "; some comment \n")
-     assertParse (parseWithCtx nullctx ledgercommentline " \t; x\n")
-     assertParse (parseWithCtx nullctx ledgercommentline ";x")
+  ,"commentline" ~: do
+     assertParse (parseWithCtx nullctx commentline "; some comment \n")
+     assertParse (parseWithCtx nullctx commentline " \t; x\n")
+     assertParse (parseWithCtx nullctx commentline ";x")
 
-  ,"ledgerdate" ~: do
-     assertParse (parseWithCtx nullctx ledgerdate "2011/1/1")
-     assertParseFailure (parseWithCtx nullctx ledgerdate "1/1")
-     assertParse (parseWithCtx nullctx{ctxYear=Just 2011} ledgerdate "1/1")
+  ,"date" ~: do
+     assertParse (parseWithCtx nullctx date "2011/1/1")
+     assertParseFailure (parseWithCtx nullctx date "1/1")
+     assertParse (parseWithCtx nullctx{ctxYear=Just 2011} date "1/1")
 
-  ,"ledgerdatetime" ~: do
-      let p = do {t <- ledgerdatetime; eof; return t}
+  ,"datetime" ~: do
+      let p = do {t <- datetime; eof; return t}
           bad = assertParseFailure . parseWithCtx nullctx p
           good = assertParse . parseWithCtx nullctx p
       bad "2011/1/1"
@@ -738,69 +730,48 @@ tests_Hledger_Read_JournalReader = TestList [
       assertParseEqual (parseWithCtx nullctx p "2011/1/1 00:00-0800") startofday
       assertParseEqual (parseWithCtx nullctx p "2011/1/1 00:00+1234") startofday
 
-  ,"ledgerDefaultYear" ~: do
-     assertParse (parseWithCtx nullctx ledgerDefaultYear "Y 2010\n")
-     assertParse (parseWithCtx nullctx ledgerDefaultYear "Y 10001\n")
+  ,"defaultyeardirective" ~: do
+     assertParse (parseWithCtx nullctx defaultyeardirective "Y 2010\n")
+     assertParse (parseWithCtx nullctx defaultyeardirective "Y 10001\n")
 
-  ,"ledgerHistoricalPrice" ~:
-    assertParseEqual (parseWithCtx nullctx ledgerHistoricalPrice "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55])
+  ,"historicalpricedirective" ~:
+    assertParseEqual (parseWithCtx nullctx historicalpricedirective "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55])
 
-  ,"ledgerIgnoredPriceCommodity" ~: do
-     assertParse (parseWithCtx nullctx ledgerIgnoredPriceCommodity "N $\n")
+  ,"ignoredpricecommoditydirective" ~: do
+     assertParse (parseWithCtx nullctx ignoredpricecommoditydirective "N $\n")
 
-  ,"ledgerDefaultCommodity" ~: do
-     assertParse (parseWithCtx nullctx ledgerDefaultCommodity "D $1,000.0\n")
+  ,"defaultcommoditydirective" ~: do
+     assertParse (parseWithCtx nullctx defaultcommoditydirective "D $1,000.0\n")
 
-  ,"ledgerCommodityConversion" ~: do
-     assertParse (parseWithCtx nullctx ledgerCommodityConversion "C 1h = $50.00\n")
+  ,"commodityconversiondirective" ~: do
+     assertParse (parseWithCtx nullctx commodityconversiondirective "C 1h = $50.00\n")
 
-  ,"ledgerTagDirective" ~: do
-     assertParse (parseWithCtx nullctx ledgerTagDirective "tag foo \n")
+  ,"tagdirective" ~: do
+     assertParse (parseWithCtx nullctx tagdirective "tag foo \n")
 
-  ,"ledgerEndTagDirective" ~: do
-     assertParse (parseWithCtx nullctx ledgerEndTagDirective "end tag \n")
-  ,"ledgerEndTagDirective" ~: do
-     assertParse (parseWithCtx nullctx ledgerEndTagDirective "pop \n")
+  ,"endtagdirective" ~: do
+     assertParse (parseWithCtx nullctx endtagdirective "end tag \n")
+  ,"endtagdirective" ~: do
+     assertParse (parseWithCtx nullctx endtagdirective "pop \n")
 
-  ,"ledgeraccountname" ~: do
-    assertBool "ledgeraccountname parses a normal accountname" (isRight $ parsewith ledgeraccountname "a:b:c")
-    assertBool "ledgeraccountname rejects an empty inner component" (isLeft $ parsewith ledgeraccountname "a::c")
-    assertBool "ledgeraccountname rejects an empty leading component" (isLeft $ parsewith ledgeraccountname ":b:c")
-    assertBool "ledgeraccountname rejects an empty trailing component" (isLeft $ parsewith ledgeraccountname "a:b:")
+  ,"accountname" ~: do
+    assertBool "accountname parses a normal accountname" (isRight $ parsewith accountname "a:b:c")
+    assertBool "accountname rejects an empty inner component" (isLeft $ parsewith accountname "a::c")
+    assertBool "accountname rejects an empty leading component" (isLeft $ parsewith accountname ":b:c")
+    assertBool "accountname rejects an empty trailing component" (isLeft $ parsewith accountname "a:b:")
 
- ,"ledgerposting" ~: do
-    assertParseEqual (parseWithCtx nullctx ledgerposting "  expenses:food:dining  $10.00\n")
+ ,"posting" ~: do
+    assertParseEqual (parseWithCtx nullctx posting "  expenses:food:dining  $10.00\n")
                      (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting [] Nothing)
-    assertBool "ledgerposting parses a quoted commodity with numbers"
-                   (isRight $ parseWithCtx nullctx ledgerposting "  a  1 \"DE123\"\n")
+    assertBool "posting parses a quoted commodity with numbers"
+                   (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
 
-  ,"someamount" ~: do
+  ,"amount" ~: do
      let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
          assertMixedAmountParse parseresult mixedamount =
              (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-     assertMixedAmountParse (parseWithCtx nullctx someamount "1 @ $2")
+     assertMixedAmountParse (parseWithCtx nullctx amount "1 @ $2")
                             (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])])
-
-  ,"postingamount" ~: do
-    assertParseEqual (parseWithCtx nullctx postingamount " $47.18") (Mixed [dollars 47.18])
-    assertParseEqual (parseWithCtx nullctx postingamount " $1.")
-                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} 1 Nothing])
-  ,"postingamount with unit price" ~: do
-    assertParseEqual
-     (parseWithCtx nullctx postingamount " $10 @ €0.5")
-     (Mixed [Amount{commodity=dollar{precision=0},
-                    quantity=10,
-                    price=(Just $ UnitPrice $ Mixed [Amount{commodity=euro{precision=1},
-                                                            quantity=0.5,
-                                                            price=Nothing}])}])
-  ,"postingamount with total price" ~: do
-    assertParseEqual
-     (parseWithCtx nullctx postingamount " $10 @@ €5")
-     (Mixed [Amount{commodity=dollar{precision=0},
-                    quantity=10,
-                    price=(Just $ TotalPrice $ Mixed [Amount{commodity=euro{precision=0},
-                                                             quantity=5,
-                                                             price=Nothing}])}])
 
   ,"leftsymbolamount" ~: do
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")
@@ -810,7 +781,7 @@ tests_Hledger_Read_JournalReader = TestList [
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1")
                      (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} (-1) Nothing])
 
- ]
+ ]]
 
 entry1_str = unlines
  ["2007/01/28 coopportunity"

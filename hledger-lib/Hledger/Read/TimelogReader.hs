@@ -54,8 +54,9 @@ import Text.ParserCombinators.Parsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
+-- XXX too much reuse ?
 import Hledger.Read.JournalReader (
-  ledgerDirective, ledgerHistoricalPrice, ledgerDefaultYear, emptyLine, ledgerdatetime,
+  directive, historicalpricedirective, defaultyeardirective, emptyline, datetime,
   parseJournalWith, getParentAccount
   )
 import Hledger.Utils
@@ -86,10 +87,10 @@ timelogFile = do items <- many timelogItem
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      timelogItem = choice [ ledgerDirective
-                          , liftM (return . addHistoricalPrice) ledgerHistoricalPrice
-                          , ledgerDefaultYear
-                          , emptyLine >> return (return id)
+      timelogItem = choice [ directive
+                          , liftM (return . addHistoricalPrice) historicalpricedirective
+                          , defaultyeardirective
+                          , emptyline >> return (return id)
                           , liftM (return . addTimeLogEntry)  timelogentry
                           ] <?> "timelog entry, or default year or historical price directive"
 
@@ -98,7 +99,7 @@ timelogentry :: GenParser Char JournalContext TimeLogEntry
 timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline
-  datetime <- ledgerdatetime
+  datetime <- datetime
   comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
   return $ TimeLogEntry (read [code]) datetime (maybe "" rstrip comment)
 

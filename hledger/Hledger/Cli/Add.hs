@@ -150,16 +150,16 @@ getPostings st enteredps = do
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
       amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
-      let amount  = fromparse $ runParser (someamount <|> return missingamt) ctx     "" amountstr
-          amount' = fromparse $ runParser (someamount <|> return missingamt) nullctx "" amountstr
-          defaultamtused = Just (showMixedAmount amount) == defaultamountstr
+      let a  = fromparse $ runParser (amount <|> return missingamt) ctx     "" amountstr
+          a' = fromparse $ runParser (amount <|> return missingamt) nullctx "" amountstr
+          defaultamtused = Just (showMixedAmount a) == defaultamountstr
           commodityadded | c == cwithnodef = Nothing
                          | otherwise       = c
-              where c          = maybemixedamountcommodity amount
-                    cwithnodef = maybemixedamountcommodity amount'
+              where c          = maybemixedamountcommodity a
+                    cwithnodef = maybemixedamountcommodity a'
                     maybemixedamountcommodity = maybe Nothing (Just . commodity) . headMay . amounts
           p = nullposting{paccount=stripbrackets account,
-                          pamount=amount,
+                          pamount=a,
                           ptype=postingtype account}
           st' = if defaultamtused then st
                    else st{psHistory = historicalps',
@@ -181,7 +181,7 @@ getPostings st enteredps = do
       postingtype _ = RegularPosting
       stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
-                                   || isRight (runParser (someamount>>many spacenonewline>>eof) ctx "" s)
+                                   || isRight (runParser (amount>>many spacenonewline>>eof) ctx "" s)
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the

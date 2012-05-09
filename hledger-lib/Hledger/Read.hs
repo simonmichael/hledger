@@ -16,8 +16,8 @@ module Hledger.Read (
        requireJournalFileExists,
        ensureJournalFileExists,
        -- * Parsers used elsewhere
-       ledgeraccountname,
-       someamount,
+       accountname,
+       amount,
        -- * Tests
        tests_Hledger_Read,
 )
@@ -178,9 +178,9 @@ tests_Hledger_Read = TestList
    tests_Hledger_Read_TimelogReader,
    tests_Hledger_Read_CsvReader,
 
-   "journalFile" ~: do
-    assertBool "journalFile should parse an empty file" (isRight $ parseWithCtx nullctx JournalReader.journalFile "")
-    jE <- readJournal Nothing Nothing Nothing "" -- don't know how to get it from journalFile
-    either error' (assertBool "journalFile parsing an empty file should give an empty journal" . null . jtxns) jE
+   "journal" ~: do
+    assertBool "journal should parse an empty file" (isRight $ parseWithCtx nullctx JournalReader.journal "")
+    jE <- readJournal Nothing Nothing Nothing "" -- don't know how to get it from journal
+    either error' (assertBool "journal parsing an empty file should give an empty journal" . null . jtxns) jE
 
   ]
