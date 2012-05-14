@@ -262,39 +262,46 @@ Example:
 ### Comments
 
 A semicolon in the journal file marks the start of a comment. You can
-write general comments between transactions like so:
+write comments on their own line between transactions, like so:
 
-    ; a comment line. Whitespace before the ; is allowed.
+    ; Also known as a "journal comment". Whitespace before the ; is allowed.
 
-Or, you can write transaction- or posting-specific comments following the
-transaction's first line or the posting, on the same line and/or the
-immediately following lines (indented). Some examples:
+You can also write transaction- or posting-specific comments following the
+transaction's first line or the posting, on the same line and/or indented
+on following lines. Some examples:
 
-    2012/5/14 a transaction  ; a transaction comment
+    ; a journal comment
+    2012/5/14 something  ; and now a transaction comment
       ; another comment for this transaction
-      posting1  ; a comment for posting 1
+      posting1  1  ; a comment for posting 1
       posting2
       ; a comment for posting 2
-      ; another one
+      ; another comment for posting 2
+    ; another journal comment (because not indented)
 
-A "metadata comment" is a comment containing a metadata key-value pair (tag), explained in the next section.
+Currently `print` preserves transaction and posting comments but not
+journal comments. (And currently the output is a bit broken..)
 
-### Tags (metadata)
+A "tag comment" is a transaction or posting comment containing a tag,
+explained in the next section.
 
-You can attach any extra data you like to transactions and postings, as
-key-value pairs within a transaction or posting comment. Ledger calls
-these metadata, in hledger land I like to call them tags; they are the
-same thing. Here's how they work in hledger: the format is
+### Tags
+
+You can attach arbitrary extra data tags to transactions and postings, and
+then filter reports by tag (this is the same as Ledger's
+[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata) feature,
+except our tag values are simple strings.) Here's how it works: each tag
+is a key-value pair within its own transaction or posting comment.  The
+format is
 
     ; NAME: VALUE
 
 where NAME is a word with no spaces in it and VALUE is the rest of the
-line, with leading and trailing whitespace trimmed (and it can be empty).
+line, with leading and trailing whitespace trimmed (or it can be empty).
+Here's an example:
 
-In the example below, the transaction has a `purpose` tag with value
-`research`, and the expenses:cinema posting has the `fun` and `outing`
-tags.
-
+    ; this transaction has a "purpose" tag with value "research",
+    ; and its expenses:cinema posting has "fun" and "outing" tags
     1/1 movie ticket
       ; purpose: research
       expenses:cinema       $10
@@ -303,10 +310,10 @@ tags.
       assets:checking
 
 Filtering reports by tag is work in progress. For the moment, you can
-match transactions or postings' tag values by adding `tag NAME=VALUE` on
-the command line. Limitations: VALUE must be exact, you can't test for a
-tag's existence, postings don't inherit their transaction's tags and this
-isn't supported in the web interface yet.
+match transactions' or postings' tag values by adding `tag NAME=VALUE` on
+the command line. VALUE must be exact, you can't test for a tag's
+existence, postings don't inherit their transaction's tags and this isn't
+yet supported in the web interface.
 
 ### Default commodity
 
