@@ -73,7 +73,7 @@ WEBFILES:= \
 
 # DOCFILES:=README DOWNLOAD MANUAL DEVELOPMENT NEWS SCREENSHOTS CONTRIBUTORS
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
-WARNINGS:=-W -fwarn-tabs #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction -fwarn-name-shadowing
+WARNINGS:=-W -fwarn-tabs -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
 DEFINEFLAGS:=
 PREFERMACUSRLIBFLAGS=-L/usr/lib
 GHCMEMFLAGS=+RTS -M200m -RTS
@@ -132,17 +132,19 @@ allcabal%:
 
 # auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
-autotest auto: sp
-	rm -f bin/hledger
+auto: sp
+	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run --version
+
+autotest: sp
 	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test
 
-autoweb: sp bin/hledger-web
+autoweb: sp
 	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
 
-autovty: sp bin/hledger-vty
+autovty: sp
 	cd hledger-vty; $(AUTOBUILD) hledger-vty.hs -o ../bin/hledger-vty $(BUILDFLAGS) --run --help
 
-autochart: sp bin/hledger-chart
+autochart: sp
 	cd hledger-chart; $(AUTOBUILD) hledger-chart.hs -o ../bin/hledger-chart $(BUILDFLAGS) --run --help
 
 # check for sp and explain how to get it if not found.
@@ -612,6 +614,9 @@ site/api/src:
 
 sourcegraph:
 	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
+
+patchdeps:
+	darcs2dot > patchdeps.dot && dot -Tpng -O patchdeps.dot
 
 # # generate external api docs for each package
 # allhaddock: allcabalhaddock\ --hyperlink-source\ --executables
