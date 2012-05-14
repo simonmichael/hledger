@@ -15,10 +15,10 @@ title: hledger news
 
   * new commands `incomestatement`, `balancesheet`, `cashflow` provide
     these standard financial statements, under certain [conditions](http://hledger.org/MANUAL.html#incomestatement)
-  * hledger now calls metadata "tags".  Parsing and display (with `print`)
-    of comments and tags is more robust, and per-posting tags are
-    supported.  Reports can be filtered by tag value by adding `tag
-    TAG=VALUE` (see [manual](http://hledger.org/MANUAL.html#tags-metadata)
+  * hledger now supports "tags", aka metadata, on transactions and
+    postings.  Parsing and display (with `print`) of tags and comments
+    generally is more robust.  Reports can be filtered by tag value by
+    adding `tag TAG=VALUE` (see [manual](http://hledger.org/MANUAL.html#tags-metadata)
     for limitations)
   * the convert command has been dropped; instead of:
 
@@ -27,9 +27,9 @@ title: hledger news
       do:
 
         hledger -f FILE.csv print
+  * unicode is now handled properly on all supported GHC versions
   * hledger no longer supports GHC 6.12 (due to use of modern QQ syntax for report templates).
     This release has been tested with GHC 7.0.4, 7.2.2, and 7.4.1.
-  * unicode is now handled properly on all supported GHC versions
   * fix build warnings in all GHC versions
   * API & haddock cleanups
 
