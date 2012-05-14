@@ -78,7 +78,9 @@ library
                  ,process
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
+                 ,shakespeare-text == 1.0.*
                  ,split == 0.1.*
+                 ,text == 0.11.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
 
@@ -131,6 +133,8 @@ executable hledger
                  ,process
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
+                 ,shakespeare-text == 1.0.*
                  ,split == 0.1.*
+                 ,text == 0.11.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
