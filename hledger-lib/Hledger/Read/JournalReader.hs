@@ -36,6 +36,7 @@ where
 import Control.Monad
 import Control.Monad.Error
 import Data.Char (isNumber)
+import Data.Either (partitionEithers)
 import Data.List
 import Data.List.Split (wordsBy)
 import Data.Maybe
@@ -332,13 +333,20 @@ transaction = do
   edate <- optionMaybe (effectivedate date) <?> "effective date"
   status <- status <?> "cleared flag"
   code <- code <?> "transaction code"
-  (description, comment) <-
-      (do {many1 spacenonewline; d <- liftM rstrip (many (noneOf ";\n")); c <- comment <|> return ""; newline; return (d, c)} <|>
-       do {many spacenonewline; c <- comment <|> return ""; newline; return ("", c)}
-      ) <?> "description and/or comment"
-  md <- try metadata <|> return []
+  -- now there can be whitespace followed by a description and/or comment/metadata comment
+  let pdescription = many (noneOf ";\n") >>= return . strip
+  (description, inlinecomment, inlinemd) <-
+    try (do many1 spacenonewline
+            d <- pdescription
+            (c, m) <- ledgerInlineCommentOrMetadata
+            return (d,c,m))
+    <|> (newline >> return ("", [], []))
+  (nextlinecomments, nextlinemds) <- ledgerCommentsAndMetadata
+  let comment = intercalate "\n" $ inlinecomment ++ map ("    ; "++) nextlinecomments
+      mds = inlinemd ++ nextlinemds
+
   postings <- postings
-  return $ txnTieKnot $ Transaction date edate status code description comment md postings ""
+  return $ txnTieKnot $ Transaction date edate status code description comment mds postings ""
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
 -- may be omitted if a default year has already been set.
@@ -412,53 +420,53 @@ status = try (do { many spacenonewline; char '*' <?> "status"; return True } ) <
 code :: GenParser Char JournalContext String
 code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
-metadata :: GenParser Char JournalContext [(String,String)]
-metadata = many $ try metadataline
+type Tag = (String, String)
+
+ledgerInlineCommentOrMetadata :: GenParser Char JournalContext ([String],[Tag])
+ledgerInlineCommentOrMetadata = try (do {md <- metadatacomment; newline; return ([], [md])})
+                               <|> (do {c <- comment; newline; return ([c], [])})
+                               <|> (newline >> return ([], []))
+
+ledgerCommentsAndMetadata :: GenParser Char JournalContext ([String],[Tag])
+ledgerCommentsAndMetadata = do
+  comormds <- many $ choice' [(liftM Right metadataline)
+                             ,(do {many1 spacenonewline; c <- comment; newline; return $ Left c }) -- XXX fix commentnewline
+                             ]
+  return $ partitionEithers comormds
 
 -- a comment line containing a metadata declaration, eg:
 -- ; name: value
 metadataline :: GenParser Char JournalContext (String,String)
 metadataline = do
   many1 spacenonewline
+  md <- metadatacomment
+  newline
+  return md
+
+-- a comment containing a ledger-style metadata declaration, like:
+-- ; name: some value
+metadatacomment :: GenParser Char JournalContext (String,String)
+metadatacomment = do
   many1 $ char ';'
   many spacenonewline
   name <- many1 $ noneOf ": \t"
   char ':'
   many spacenonewline
   value <- many (noneOf "\n")
-  optional newline
---  eof
   return (name,value)
-  <?> "metadata line"
+  <?> "metadata comment"
 
 -- Parse the following whitespace-beginning lines as postings, posting metadata, and/or comments.
 -- complicated to handle intermixed comment and metadata lines.. make me better ?
 postings :: GenParser Char JournalContext [Posting]
-postings = do
-  ctx <- getState
-  -- we'll set the correct position for sub-parses for more useful errors
-  pos <- getPosition
-  ls <- many1 $ try linebeginningwithspaces
-  let lsnumbered = zip ls [0..]
-      parses p = isRight . parseWithCtx ctx p
-      postinglines = filter (not . (commentline `parses`) . fst) lsnumbered
-      -- group any metadata lines with the posting line above
-      postinglinegroups :: [(String,Line)] -> [(String,Line)]
-      postinglinegroups [] = []
-      postinglinegroups ((pline,num):ls) = (unlines (pline:(map fst mdlines)), num):postinglinegroups rest
-          where (mdlines,rest) = span ((metadataline `parses`) . fst) ls
-      pstrs = postinglinegroups postinglines
-      parseNumberedPostingLine (str,num) = fromparse $ parseWithCtx ctx (setPosition (incSourceLine pos num) >> posting) str
-  when (null pstrs) $ fail "no postings"
-  return $ map parseNumberedPostingLine pstrs
-  <?> "postings"
+postings = many1 posting <?> "postings"
             
-linebeginningwithspaces :: GenParser Char JournalContext String
-linebeginningwithspaces = do
-  sp <- many1 spacenonewline
-  c <- nonspace
-  cs <- restofline
-  return $ sp ++ (c:cs) ++ "\n"
+-- linebeginningwithspaces :: GenParser Char JournalContext String
+-- linebeginningwithspaces = do
+--   sp <- many1 spacenonewline
+--   c <- nonspace
+--   cs <- restofline
+--   return $ sp ++ (c:cs) ++ "\n"
 
 posting :: GenParser Char JournalContext Posting
 posting = do
@@ -469,10 +477,12 @@ posting = do
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
   many spacenonewline
-  comment <- comment <|> return ""
-  newline
-  md <- metadata
-  return (Posting status account' amount comment ptype md Nothing)
+  (inlinecomment, inlinemd) <- ledgerInlineCommentOrMetadata
+  (nextlinecomments, nextlinemds) <- ledgerCommentsAndMetadata
+  let comment = intercalate "\n" $ inlinecomment ++ map ("    ; "++) nextlinecomments
+      mds = inlinemd ++ nextlinemds
+
+  return (Posting status account' amount comment ptype mds Nothing)
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountname :: GenParser Char JournalContext AccountName
@@ -761,8 +771,8 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     assertBool "accountname rejects an empty trailing component" (isLeft $ parsewith accountname "a:b:")
 
  ,"posting" ~: do
-    assertParseEqual (parseWithCtx nullctx posting "  expenses:food:dining  $10.00\n")
-                     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting [] Nothing)
+    assertParseEqual (parseWithCtx nullctx posting "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n")
+                     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting [("a","a a "), ("b","b b ")] Nothing)
     assertBool "posting parses a quoted commodity with numbers"
                    (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
 

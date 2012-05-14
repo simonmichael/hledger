@@ -259,13 +259,41 @@ Example:
     $ hledger register checking --effective
     2010/02/19 movie ticket         assets:checking                $-10         $-10
 
-### Metadata
+### Comments
 
-Extra metadata (a keyword and value) or tags (just keywords) may be
-attached to transactions and postings by inserting one or more comment
-lines containing KEY:[VALUE]. In the example below, the transaction has a
-`purpose` tag with value "`research`", and the expenses:cinema posting has
-the `fun` and `outing` tags.
+A semicolon in the journal file marks the start of a comment. You can
+write general comments between transactions like so:
+
+    ; a comment line. Whitespace before the ; is allowed.
+
+Or, you can write transaction- or posting-specific comments following the
+transaction's first line or the posting, on the same line and/or the
+immediately following lines (indented). Some examples:
+
+    2012/5/14 a transaction  ; a transaction comment
+      ; another comment for this transaction
+      posting1  ; a comment for posting 1
+      posting2
+      ; a comment for posting 2
+      ; another one
+
+A "metadata comment" is a comment containing a metadata key-value pair (tag), explained in the next section.
+
+### Tags (metadata)
+
+You can attach any extra data you like to transactions and postings, as
+key-value pairs within a transaction or posting comment. Ledger calls
+these metadata, in hledger land I like to call them tags; they are the
+same thing. Here's how they work in hledger: the format is
+
+    ; NAME: VALUE
+
+where NAME is a word with no spaces in it and VALUE is the rest of the
+line, with leading and trailing whitespace trimmed (and it can be empty).
+
+In the example below, the transaction has a `purpose` tag with value
+`research`, and the expenses:cinema posting has the `fun` and `outing`
+tags.
 
     1/1 movie ticket
       ; purpose: research
@@ -274,8 +302,11 @@ the `fun` and `outing` tags.
       ; outing:
       assets:checking
 
-hledger does not yet allow querying on these fields; they are parsed for
-compatibility with ledger, but ignored.
+Filtering reports by tag is work in progress. For the moment, you can
+match transactions or postings' tag values by adding `tag NAME=VALUE` on
+the command line. Limitations: VALUE must be exact, you can't test for a
+tag's existence, postings don't inherit their transaction's tags and this
+isn't supported in the web interface yet.
 
 ### Default commodity
 

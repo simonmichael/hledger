@@ -96,7 +96,7 @@ tests_Hledger_Cli = TestList
    ]
 
    ,"account aliases" ~: do
-      Right j <- readJournal Nothing Nothing Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n"
+      j <- readJournal Nothing Nothing Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
       let p = head $ tpostings $ head $ jtxns j
       assertBool "" $ paccount p == "equity:draw:personal:food"
 

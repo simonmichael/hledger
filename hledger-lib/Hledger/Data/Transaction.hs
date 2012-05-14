@@ -1,8 +1,9 @@
 {-|
 
-A 'Transaction' consists of two or more related 'Posting's which balance
-to zero, representing a movement of some commodity(ies) between accounts,
-plus a date and optional metadata like description and cleared status.
+A 'Transaction' represents a movement of some commodity(ies) between two
+or more accounts. It consists of multiple account 'Posting's which balance
+to zero, a date, and optional metadata like description and cleared
+status.
 
 -}
 
@@ -91,9 +92,10 @@ showTransaction = showTransaction' True
 showTransactionUnelided :: Transaction -> String
 showTransactionUnelided = showTransaction' False
 
+-- XXX similar to showPosting, refactor
 showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
-    unlines $ [description] ++ metadata ++ showpostings (tpostings t) ++ [""]
+    unlines $ [description] ++ (metadataAsLines $ tmetadata t) ++ (postingsAsLines (tpostings t)) ++ [""]
     where
       description = concat [date, status, code, desc, comment]
       date = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
@@ -103,25 +105,20 @@ showTransaction' elide t =
       code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
       desc = if null d then "" else " " ++ d where d = tdescription t
       comment = if null c then "" else "  ; " ++ c where c = tcomment t
-      metadata = if null md then [] else showmetadata md where md = tmetadata t
-      showmetadata md = map (\(k,v) -> "  ; " ++ k++":"++v) md
-      showpostings ps
+      postingsAsLines ps
           | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
-              = map showposting (init ps) ++ [showpostingnoamt (last ps)]
-          | otherwise = map showposting ps
+              = (concatMap postingAsLines $ init ps) ++ postingNoAmtAsLines (last ps)
+          | otherwise = concatMap postingAsLines ps
           where
-            showpostingnoamt p = rstrip $ showacct p ++ "              " ++ showcomment (pcomment p)
-            showposting p = concatTopPadded [showacct p
-                                            ,"  "
-                                            ,showamt (pamount p)
-                                            ,showcomment (pcomment p)
-                                            ]
-            showacct p = "    " ++ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
-                where w = maximum $ map (length . paccount) ps
-                      showstatus p = if pstatus p then "* " else ""
+            postingAsLines p = [concatTopPadded [showacct p, "  ", showamt (pamount p), showComment (pcomment p)]] ++ postingMetadataAsLines p
+            postingNoAmtAsLines p = [rstrip $ showacct p ++ "              " ++ showComment (pcomment p)] ++ postingMetadataAsLines p
+            showacct p =
+              "    " ++ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
+                where
+                  showstatus p = if pstatus p then "* " else ""
+                  w = maximum $ map (length . paccount) ps
             showamt =
                 padleft 12 . showMixedAmount
-            showcomment s = if null s then "" else "  ; "++s
 
 -- | Show an account name, clipped to the given width if any, and
 -- appropriately bracketed/parenthesised for the given posting type.

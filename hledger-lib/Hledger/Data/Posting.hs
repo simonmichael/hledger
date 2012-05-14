@@ -1,10 +1,9 @@
 {-|
 
-A 'Posting' represents a 'MixedAmount' being added to or subtracted from a
-single 'Account'.  Each 'Transaction' contains two or more postings which
-should add up to 0. Postings also reference their parent transaction, so
-we can get a date or description for a posting (from the transaction).
-Strictly speaking, \"entry\" is probably a better name for these.
+A 'Posting' represents a change (by some 'MixedAmount') of the balance in
+some 'Account'.  Each 'Transaction' contains two or more postings which
+should add up to 0. Postings reference their parent transaction, so we can
+look up the date or description there.
 
 -}
 
@@ -22,7 +21,7 @@ module Hledger.Data.Posting (
   postingDate,
   isPostingInDateSpan,
   postingsDateSpan,
-  -- * account name operations that depend on posting type
+  -- * account name operations
   accountNamesFromPostings,
   accountNamePostingType,
   accountNameWithoutPostingType,
@@ -36,6 +35,9 @@ module Hledger.Data.Posting (
   showPosting,
   showPostingForRegister,
   -- * misc.
+  postingMetadataAsLines,
+  metadataAsLines,
+  showComment,
   tests_Hledger_Data_Posting
 )
 where
@@ -59,8 +61,8 @@ nullposting :: Posting
 nullposting = Posting False "" nullmixedamt "" RegularPosting [] Nothing
 
 showPosting :: Posting -> String
-showPosting (Posting{paccount=a,pamount=amt,pcomment=com,ptype=t}) =
-    concatTopPadded [showaccountname a ++ " ", showamount amt, comment]
+showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
+    unlines $ [concatTopPadded [showaccountname a ++ " ", showamount amt, showComment (pcomment p)]] ++ postingMetadataAsLines p
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
@@ -70,7 +72,17 @@ showPosting (Posting{paccount=a,pamount=amt,pcomment=com,ptype=t}) =
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
                           _ -> (id,acctnamewidth)
       showamount = padleft 12 . showMixedAmount
-      comment = if null com then "" else "  ; " ++ com
+
+
+postingMetadataAsLines :: Posting -> [String]
+postingMetadataAsLines = metadataAsLines . pmetadata
+
+metadataAsLines :: [(String, String)] -> [String]
+metadataAsLines mds = map (\(k,v) -> "    ; " ++ k++": "++v) mds
+
+showComment :: String -> String
+showComment s = if null s then "" else "  ; " ++ s
+
 -- XXX refactor
 showPostingForRegister :: Posting -> String
 showPostingForRegister (Posting{paccount=a,pamount=amt,ptype=t}) =
@@ -122,8 +134,8 @@ isPostingInDateSpan s = spanContainsDate s . postingDate
 isEmptyPosting :: Posting -> Bool
 isEmptyPosting = isZeroMixedAmount . pamount
 
--- | Get the minimal date span which contains all the postings, or
--- DateSpan Nothing Nothing if there are none.
+-- | Get the minimal date span which contains all the postings, or the
+-- null date span if there are none.
 postingsDateSpan :: [Posting] -> DateSpan
 postingsDateSpan [] = DateSpan Nothing Nothing
 postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
