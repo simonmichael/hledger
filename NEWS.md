@@ -4,14 +4,34 @@ title: hledger news
 
 # News
 
+## (unreleased) hledger-web 0.18
+
+  * web: fix js error breaking second use of add form (#72)
+  * web: make `yesod devel` work
+  * web: officially drop GHC 6.12 support, fix build warnings with 7.0, 7.2, 7.4
+  * web: hledger-web is now based on yesod 0.10
+
 ## (unreleased) hledger 0.18
 
-  * CSV is now handled as a native data format, and the convert command
-    has been dropped. Instead of `hledger convert FILE.csv`, do `hledger
-    -f FILE.csv print`.
-  * the [`Hledger.Read` API](http://hledger.org/api/Hledger-Read.html) has
-    been cleaned up.
-  * web: hledger-web is now based on yesod 0.10.
+  * new commands `incomestatement`, `balancesheet`, `cashflow` provide
+    these standard financial statements, under certain [conditions](http://hledger.org/MANUAL.html#incomestatement)
+  * hledger now calls metadata "tags".  Parsing and display (with `print`)
+    of comments and tags is more robust, and per-posting tags are
+    supported.  Reports can be filtered by tag value by adding `tag
+    TAG=VALUE` (see [manual](http://hledger.org/MANUAL.html#tags-metadata)
+    for limitations)
+  * the convert command has been dropped; instead of:
+
+        hledger convert FILE.csv
+
+      do:
+
+        hledger -f FILE.csv print
+  * hledger no longer supports GHC 6.12 (due to use of modern QQ syntax for report templates).
+    This release has been tested with GHC 7.0.4, 7.2.2, and 7.4.1.
+  * unicode is now handled properly on all supported GHC versions
+  * fix build warnings in all GHC versions
+  * API & haddock cleanups
 
 ## 2012/3/3 hledger-web 0.17.1
 
