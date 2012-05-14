@@ -1,8 +1,58 @@
 hledger project notes
 
 * backlog
-** cleanup
+** hledger release
+*** clarify/fix comment parsing/printing
+*** better tag matching
+**** consistent tag pattern syntax
+***** 'tag ' -> 'tag:' ?
+**** web support
+**** tag existence match
+**** tag value regexp match
+*** test rules file (mis)creation
+*** compilation/dependency testing
+**** 7.4.1
+**** 7.2.2
+**** 7.0.4
 ** errors
+*** hledger incomestatement --depth shows nothing
+*** duplicate test runs
+$ hledger test 'showTransaction$'
+Cases: 6  Tried: 0  Errors: 0  Failures: 0([],"")
+### Failure in: 0:showTransaction
+show a balanced transaction, eliding last amount
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking        \n\n\n"
+Cases: 6  Tried: 1  Errors: 0  Failures: 1([],"")
+### Failure in: 1:showTransaction
+show a balanced transaction, no eliding
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking               $-47.18\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking               $-47.18\n([],"")
+\n\n"
+Cases: 6  Tried: 2  Errors: 0  Failures: 2([],"")
+### Failure in: 2:showTransaction
+show an unbalanced transaction, should not elide
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking               $-47.19\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking               $-47.19\n([],"")
+\n\n"
+Cases: 6  Tried: 3  Errors: 0  Failures: 3([],"")
+### Failure in: 3:showTransaction
+show an unbalanced transaction with one posting, should not elide
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n\n"
+Cases: 6  Tried: 4  Errors: 0  Failures: 4([],"")
+### Failure in: 4:showTransaction
+show a transaction with one posting and a missing amount
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries              \n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries              \n\n\n"
+Cases: 6  Tried: 5  Errors: 0  Failures: 5([],"")
+### Failure in: 5:showTransaction
+show a transaction with a priced commodityless amount
+expected: "2010/01/01 x\n    a        1 @ $2\n    b              \n\n"
+ but got: "2010/01/01 x\n    a        1 @ $2\n\n    b              \n([],"")
+\n\n"
+Cases: 6  Tried: 6  Errors: 0  Failures: 6
+
 *** web: add form completing fields don't
 *** web: enter doesn't work in add form completing fields
 **** research this dhtmlxcombo issue
@@ -102,10 +152,9 @@ $ cat t
 *** convert: 49 convert should report rules file parse errors better
 *** 25 hledger in windows console does not print non-ascii characters
 ** documentation, marketing
-*** fix darcs repo redirect ?
 *** finalise/link 2012 survey
 *** developer notes & log
-**** clean up backlog
+**** prune backlog
 *** intro brainstorming
 
 hledger is a robust command-line accounting tool with a simple plain text data format.
@@ -137,6 +186,7 @@ hledger helps you track and understand your finances, making calculations based 
 Features: reads transactions in journal, timelog, or CSV format; handles multi-currency/multi-commodity transactions; prints the chart of accounts, account balances, or transactions you're interested in, quickly; scriptable.
 
 *** website
+**** 2012 refresh
 *** faq
 **** life cycle of top-level accounts
 For personal ledgers, when you're born, all accounts are at zero (one hopes) and as you live:
@@ -245,6 +295,40 @@ hledger.org/{list,bugs}/* also works
 
 ****** issue tracking
 ****** testing
+
+hledger's unit tests and a simple test runner are built in. They can
+be run several ways:
+
+$ hledger test [PAT]
+$ make unittest
+$ make autotest
+
+They can also be built as a separate executable, in case needed for
+cabal test. (?) This requires test-framework, which may not work on
+windows.
+
+$ make unittest-standalone
+
+hledger's functional tests are a set of @shelltestrunner@ tests defined
+by .test files in the tests\/ subdirectory.
+
+$ make functest
+
+Shell tests can also be defined as doctests, literal blocks embedded
+in modules' haddock docs, though this is hardly used. For example:
+
+@
+$ bin\/hledger -f data\/sample.journal balance o
+                  $1  expenses:food
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+--------------------
+                 $-1
+@
+
+$ make doctest
+
 ****** coding
 ****** funding process
 ******* donation blurb
@@ -527,16 +611,16 @@ projects or developers (ledger and two others of my choice.)
 This project will go forward if
 
 [1] http://demo.hledger.org:5001
-** packaging, installability
-*** linux
-***** debian/ubuntu packaging
-*** mac
-***** easy installer
-***** easy startup
-*** windows
-***** easy installer
-***** easy startup
 ** testing
+*** test running improvements
+**** stop on first failure
+**** run tests in bottom up order
+*** envision better test setup
+**** every parser has a test and is easy to test
+**** easy to run any single test or module's tests
+**** tests run bottom up by default
+**** test runner stops at first failure by default
+
 *** documentation
 **** site up, current ?
 **** demo up, current ?
@@ -614,6 +698,15 @@ using be more place holders?
 **** talkback, auto bug reports
 **** usability
 **** download & usage stats
+** packaging, installability
+*** linux
+***** debian/ubuntu packaging
+*** mac
+***** easy installer
+***** easy startup
+*** windows
+***** easy installer
+***** easy startup
 ** refactoring
 *** makefile cleanups
 *** make shell tests version independent
@@ -676,6 +769,12 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
 *** yesod 1.0 support
+**** figure out latest yesod deps
+*** hledger-web release
+*** stats: list all journal files
+*** search by commodity
+*** account types
+*** runtime templates for reports
 *** don't moan about ~
 *** generalise rules file ?
 **** make it applicable to all formats ?
@@ -1766,6 +1865,7 @@ ExitFailure (-1073741819)
 
 
 * journal
+partial
 ** 2010
 *** 5/4
 **** balance sheet pomodoro 1
@@ -2918,3 +3018,6 @@ make cmdargs pass through extra opts without --
 **** still to do
 move *FromOpts into toOpts
 
+** 2012
+*** 2012/5/5 release prep
+*** 5/14 finish parsing, tests changes
