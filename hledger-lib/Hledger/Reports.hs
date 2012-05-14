@@ -195,7 +195,7 @@ queryFromOpts opts@ReportOpts{..} d = -- strace $
       ++ (maybe [] ((:[]) . Depth) depth_)
     ,[])
     where
-      (apats,dpats,_{-* mds *-}) = parsePatternArgs patterns_
+      (apats,dpats,_) = parsePatternArgs patterns_
 
 -- queryFromOpts :: ReportOpts -> Day -> (Query, [QueryOpt])
 -- queryFromOpts opts d = parseQuery d (unwords $ patterns_ opts)
