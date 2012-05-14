@@ -75,7 +75,7 @@ main = do
        | (null matchedaddon) && "binary-filename" `in_` (rawopts_ opts) = putStrLn $ binaryfilename progname
        | null cmd                                        = putStr $ showModeHelp mainmode'
        | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add
-       | cmd `isPrefixOf` "test"                         = showModeHelpOr testmode     $ runtests opts
+       | cmd `isPrefixOf` "test"                         = showModeHelpOr testmode     $ test' opts
        | any (cmd `isPrefixOf`) ["accounts","balance"]   = showModeHelpOr accountsmode $ withJournalDo opts balance
        | any (cmd `isPrefixOf`) ["entries","print"]      = showModeHelpOr entriesmode  $ withJournalDo opts print'
        | any (cmd `isPrefixOf`) ["postings","register"]  = showModeHelpOr postingsmode $ withJournalDo opts register

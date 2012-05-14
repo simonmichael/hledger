@@ -347,21 +347,21 @@ getCurrentLocalTime = do
 -- testing
 
 -- | Get a Test's label, or the empty string.
-tname :: Test -> String
-tname (TestLabel n _) = n
-tname _ = ""
+testName :: Test -> String
+testName (TestLabel n _) = n
+testName _ = ""
 
 -- | Flatten a Test containing TestLists into a list of single tests.
-tflatten :: Test -> [Test]
-tflatten (TestLabel _ t@(TestList _)) = tflatten t
-tflatten (TestList ts) = concatMap tflatten ts
-tflatten t = [t]
+flattenTests :: Test -> [Test]
+flattenTests (TestLabel _ t@(TestList _)) = flattenTests t
+flattenTests (TestList ts) = concatMap flattenTests ts
+flattenTests t = [t]
 
 -- | Filter TestLists in a Test, recursively, preserving the structure.
-tfilter :: (Test -> Bool) -> Test -> Test
-tfilter p (TestLabel l ts) = TestLabel l (tfilter p ts)
-tfilter p (TestList ts) = TestList $ filter (any p . tflatten) $ map (tfilter p) ts
-tfilter _ t = t
+filterTests :: (Test -> Bool) -> Test -> Test
+filterTests p (TestLabel l ts) = TestLabel l (filterTests p ts)
+filterTests p (TestList ts) = TestList $ filter (any p . flattenTests) $ map (filterTests p) ts
+filterTests _ t = t
 
 -- | Simple way to assert something is some expected value, with no label.
 is :: (Eq a, Show a) => a -> a -> Assertion

@@ -37,22 +37,29 @@ import Hledger.Cli
 
 
 -- | Run unit tests and exit with success or failure.
-runtests :: CliOpts -> IO ()
-runtests opts = do
-  (hunitcounts,_) <- runtests' opts
-  if errors hunitcounts > 0 || (failures hunitcounts > 0)
+test' :: CliOpts -> IO ()
+test' opts = do
+  results <- runTests opts
+  if errors results > 0 || failures results > 0
    then exitFailure
    else exitWith ExitSuccess
 
--- | Run unit tests and exit on failure.
-runTestsOrExit :: CliOpts -> IO ()
-runTestsOrExit opts = do
-  (hunitcounts,_) <- runtests' opts
-  when (errors hunitcounts > 0 || (failures hunitcounts > 0)) $ exitFailure
+-- | Run all or just the matched unit tests and return their HUnit result counts.
+runTests :: CliOpts -> IO Counts
+runTests = liftM (fst . flip (,) 0) . runTestTT . flatTests
 
-runtests' :: Num b => CliOpts -> IO (Counts, b)
-runtests' opts = liftM (flip (,) 0) $ runTestTT ts
-    where
-      ts = TestList $ filter matchname $ tflatten tests_Hledger_Cli  -- show flat test names
-      -- ts = tfilter matchname $ TestList tests -- show hierarchical test names
-      matchname = matchpats (patterns_ $ reportopts_ opts) . tname
+-- | Run all or just the matched unit tests until the first failure or
+-- error, returning the name of the problem test if any.
+runTestsTillFailure :: CliOpts -> IO (Maybe String)
+runTestsTillFailure opts = undefined -- do
+  -- let ts = flatTests opts
+  --     results = liftM (fst . flip (,) 0) $ runTestTT $
+  --     firstproblem = find (\counts -> )
+
+-- | All or pattern-matched tests, as a flat list to show simple names.
+flatTests opts = TestList $ filter (matcherFromOpts opts) $ flattenTests tests_Hledger_Cli
+
+-- | All or pattern-matched tests, in the original suites to show hierarchical names.
+hierarchicalTests opts = filterTests (matcherFromOpts opts) tests_Hledger_Cli
+
+matcherFromOpts opts = matchpats (patterns_ $ reportopts_ opts) . testName
