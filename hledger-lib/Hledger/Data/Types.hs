@@ -93,7 +93,7 @@ data Posting = Posting {
       pstatus :: Bool,
       paccount :: AccountName,
       pamount :: MixedAmount,
-      pcomment :: String,
+      pcomment :: String, -- ^ this posting's non-tag comment lines, as a single non-indented string
       ptype :: PostingType,
       pmetadata :: [(String,String)],
       ptransaction :: Maybe Transaction  -- ^ this posting's parent transaction (co-recursive types).
@@ -111,7 +111,7 @@ data Transaction = Transaction {
       tstatus :: Bool,  -- XXX tcleared ?
       tcode :: String,
       tdescription :: String,
-      tcomment :: String,
+      tcomment :: String, -- ^ this transaction's non-tag comment lines, as a single non-indented string
       tmetadata :: [(String,String)],
       tpostings :: [Posting],            -- ^ this transaction's postings (co-recursive types).
       tpreceding_comment_lines :: String

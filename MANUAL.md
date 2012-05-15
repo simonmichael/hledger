@@ -259,62 +259,6 @@ Example:
     $ hledger register checking --effective
     2010/02/19 movie ticket         assets:checking                $-10         $-10
 
-### Comments
-
-A semicolon in the journal file marks the start of a comment. You can
-write comments on their own line between transactions, like so:
-
-    ; Also known as a "journal comment". Whitespace before the ; is allowed.
-
-You can also write transaction- or posting-specific comments following the
-transaction's first line or the posting, on the same line and/or indented
-on following lines. Some examples:
-
-    ; a journal comment
-    2012/5/14 something  ; and now a transaction comment
-      ; another comment for this transaction
-      posting1  1  ; a comment for posting 1
-      posting2
-      ; a comment for posting 2
-      ; another comment for posting 2
-    ; another journal comment (because not indented)
-
-Currently `print` preserves transaction and posting comments but not
-journal comments. (And currently the output is a bit broken..)
-
-A "tag comment" is a transaction or posting comment containing a tag,
-explained in the next section.
-
-### Tags
-
-You can attach arbitrary extra data tags to transactions and postings, and
-then filter reports by tag (this is the same as Ledger's
-[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata) feature,
-except our tag values are simple strings.) Here's how it works: each tag
-is a key-value pair within its own transaction or posting comment.  The
-format is
-
-    ; NAME: VALUE
-
-where NAME is a word with no spaces in it and VALUE is the rest of the
-line, with leading and trailing whitespace trimmed (or it can be empty).
-Here's an example:
-
-    ; this transaction has a "purpose" tag with value "research",
-    ; and its expenses:cinema posting has "fun" and "outing" tags
-    1/1 movie ticket
-      ; purpose: research
-      expenses:cinema       $10
-      ; fun:
-      ; outing:
-      assets:checking
-
-Filtering reports by tag is work in progress. For the moment, you can
-match transactions' or postings' tag values by adding `tag NAME=VALUE` on
-the command line. VALUE must be exact, you can't test for a tag's
-existence, postings don't inherit their transaction's tags and this isn't
-yet supported in the web interface.
-
 ### Default commodity
 
 You can set a default commodity or currency with a D directive. This will
@@ -381,6 +325,60 @@ hledger currently ignores them. They look like this:
         P 2009/1/1 € $1.35  
         P 2010/1/1 € $1.40
         
+### Comments
+
+A semicolon in the journal file marks the start of a comment. You can
+write comments on their own line between transactions, like so:
+
+    ; Also known as a "journal comment". Whitespace before the ; is allowed.
+
+You can also write transaction- or posting-specific comments following the
+transaction's first line or the posting, on the same line and/or indented
+on following lines. Some examples:
+
+    ; a journal comment
+    2012/5/14 something  ; and now a transaction comment
+      ; another comment for this transaction
+      posting1  1  ; a comment for posting 1
+      posting2
+      ; a comment for posting 2
+      ; another comment for posting 2
+    ; another journal comment (because not indented)
+
+Currently `print` preserves transaction and posting comments but not
+journal comments.
+
+A "tag comment" is a transaction or posting comment containing a tag,
+explained in the next section.
+
+### Tags
+
+You can attach arbitrary extra data tags to transactions and postings, and
+then filter reports by tag (this is the same as Ledger's
+[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata) feature,
+except our tag values are simple strings.) Here's how it works: each tag
+is a key-value pair within its own transaction or posting comment.  The
+format is
+
+    ; NAME: VALUE
+
+where NAME is a word with no spaces in it and VALUE is the rest of the
+line, with leading and trailing whitespace trimmed (or it can be empty).
+Here's an example:
+
+    ; this transaction has a "purpose" tag with value "research",
+    ; and its expenses:cinema posting has "fun" and "outing" tags
+    1/1 movie ticket
+      ; purpose: research
+      expenses:cinema       $10
+      ; fun:
+      ; outing:
+      assets:checking
+
+Filtering reports by tag is work in progress. For the moment, you can
+match transactions' or postings' tag values by adding `tag
+NAME=EXACTVALUE` on the command line.
+
 ### Including other files
 
 You can pull in the content of additional journal files, by writing lines like this:

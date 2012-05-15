@@ -150,28 +150,6 @@ journal = do
                            , emptyline >> return (return id)
                            ] <?> "journal transaction or directive"
 
-emptyline :: GenParser Char JournalContext ()
-emptyline = do many spacenonewline
-               optional $ (char ';' <?> "comment") >> many (noneOf "\n")
-               newline
-               return ()
-
-comment :: GenParser Char JournalContext String
-comment = do
-  many1 $ char ';'
-  many spacenonewline
-  many (noneOf "\n")
-  <?> "comment"
-
-commentline :: GenParser Char JournalContext String
-commentline = do
-  many spacenonewline
-  s <- comment
-  optional newline
-  eof
-  return s
-  <?> "comment"
-
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
 directive :: GenParser Char JournalContext JournalUpdate
 directive = do
@@ -326,7 +304,7 @@ periodictransaction = do
   postings <- postings
   return $ PeriodicTransaction periodexpr postings
 
--- | Parse a (possibly unbalanced) ledger transaction.
+-- | Parse a (possibly unbalanced) transaction.
 transaction :: GenParser Char JournalContext Transaction
 transaction = do
   date <- date <?> "transaction"
@@ -338,15 +316,75 @@ transaction = do
   (description, inlinecomment, inlinemd) <-
     try (do many1 spacenonewline
             d <- pdescription
-            (c, m) <- ledgerInlineCommentOrMetadata
+            (c, m) <- inlinecomment
             return (d,c,m))
     <|> (newline >> return ("", [], []))
-  (nextlinecomments, nextlinemds) <- ledgerCommentsAndMetadata
-  let comment = intercalate "\n" $ inlinecomment ++ map ("    ; "++) nextlinecomments
+  (nextlinecomments, nextlinemds) <- commentlines
+  let comment = unlines $ inlinecomment ++ nextlinecomments
       mds = inlinemd ++ nextlinemds
-
   postings <- postings
   return $ txnTieKnot $ Transaction date edate status code description comment mds postings ""
+
+tests_transaction = [
+   "transaction" ~: do
+    -- let s `gives` t = assertParseEqual (parseWithCtx nullctx transaction s) t
+    let s `gives` t = do
+                        let p = parseWithCtx nullctx transaction s
+                        assertBool "transaction parser failed" $ isRight p
+                        let Right t2 = p
+                            same f = assertEqual "" (f t) (f t2)
+                        same tdate
+                        same teffectivedate
+                        same tstatus
+                        same tcode
+                        same tdescription
+                        same tcomment
+                        same tmetadata
+                        same tpreceding_comment_lines
+                        same tpostings
+    -- "0000/01/01\n\n" `gives` nulltransaction 
+    unlines [
+      "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
+      "    ; tcomment2",
+      "    ; ttag1: val1",
+      "    * a         $1.00  ; pcomment1",
+      "    ; pcomment2",
+      "    ; ptag1: val1",
+      "    ; ptag2: val2"
+      ]
+     `gives`
+     nulltransaction{
+      tdate=parsedate "2012/05/14",
+      teffectivedate=Just $ parsedate "2012/05/15",
+      tstatus=False,
+      tcode="code",
+      tdescription="desc",
+      tcomment="tcomment1\ntcomment2\n",
+      tmetadata=[("ttag1","val1")],
+      tpostings=[
+        nullposting{
+          pstatus=True,
+          paccount="a",
+          pamount=Mixed [dollars 1],
+          pcomment="pcomment1\npcomment2\n",
+          ptype=RegularPosting,
+          pmetadata=[("ptag1","val1"),("ptag2","val2")],
+          ptransaction=Nothing
+          }
+        ],
+      tpreceding_comment_lines=""
+      }
+
+    assertParseEqual (parseWithCtx nullctx transaction entry1_str) entry1
+    assertBool "transaction should not parse just a date"
+                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1\n"
+    assertBool "transaction should require some postings"
+                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1 a\n"
+    let t = parseWithCtx nullctx transaction "2009/1/1 a ;comment\n b 1\n"
+    assertBool "transaction should not include a comment in the description"
+                   $ either (const False) ((== "a") . tdescription) t
+
+ ]
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
 -- may be omitted if a default year has already been set.
@@ -420,42 +458,6 @@ status = try (do { many spacenonewline; char '*' <?> "status"; return True } ) <
 code :: GenParser Char JournalContext String
 code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
-type Tag = (String, String)
-
-ledgerInlineCommentOrMetadata :: GenParser Char JournalContext ([String],[Tag])
-ledgerInlineCommentOrMetadata = try (do {md <- metadatacomment; newline; return ([], [md])})
-                               <|> (do {c <- comment; newline; return ([c], [])})
-                               <|> (newline >> return ([], []))
-
-ledgerCommentsAndMetadata :: GenParser Char JournalContext ([String],[Tag])
-ledgerCommentsAndMetadata = do
-  comormds <- many $ choice' [(liftM Right metadataline)
-                             ,(do {many1 spacenonewline; c <- comment; newline; return $ Left c }) -- XXX fix commentnewline
-                             ]
-  return $ partitionEithers comormds
-
--- a comment line containing a metadata declaration, eg:
--- ; name: value
-metadataline :: GenParser Char JournalContext (String,String)
-metadataline = do
-  many1 spacenonewline
-  md <- metadatacomment
-  newline
-  return md
-
--- a comment containing a ledger-style metadata declaration, like:
--- ; name: some value
-metadatacomment :: GenParser Char JournalContext (String,String)
-metadatacomment = do
-  many1 $ char ';'
-  many spacenonewline
-  name <- many1 $ noneOf ": \t"
-  char ':'
-  many spacenonewline
-  value <- many (noneOf "\n")
-  return (name,value)
-  <?> "metadata comment"
-
 -- Parse the following whitespace-beginning lines as postings, posting metadata, and/or comments.
 -- complicated to handle intermixed comment and metadata lines.. make me better ?
 postings :: GenParser Char JournalContext [Posting]
@@ -477,12 +479,34 @@ posting = do
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
   many spacenonewline
-  (inlinecomment, inlinemd) <- ledgerInlineCommentOrMetadata
-  (nextlinecomments, nextlinemds) <- ledgerCommentsAndMetadata
-  let comment = intercalate "\n" $ inlinecomment ++ map ("    ; "++) nextlinecomments
+  (inlinecomment, inlinemd) <- inlinecomment
+  (nextlinecomments, nextlinemds) <- commentlines
+  let comment = unlines $ inlinecomment ++ nextlinecomments
       mds = inlinemd ++ nextlinemds
-
   return (Posting status account' amount comment ptype mds Nothing)
+
+tests_posting = [
+  "posting" ~: do
+    -- let s `gives` r = assertParseEqual (parseWithCtx nullctx posting s) r
+    let s `gives` p = do
+                         let parse = parseWithCtx nullctx posting s
+                         assertBool "posting parser" $ isRight parse
+                         let Right p2 = parse
+                             same f = assertEqual "" (f p) (f p2)
+                         same pstatus
+                         same paccount
+                         same pamount
+                         same pcomment
+                         same ptype
+                         same pmetadata
+                         same ptransaction
+    "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
+     `gives`
+     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting [("a","a a"), ("b","b b")] Nothing)
+
+    assertBool "posting parses a quoted commodity with numbers"
+      (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
+ ]
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountname :: GenParser Char JournalContext AccountName
@@ -667,10 +691,7 @@ number = do
   return (quantity,precision,decimalpoint,separator,separatorpositions)
   <?> "number"
 
-tests_Hledger_Read_JournalReader = TestList $ concat [
-    tests_amount,
-    tests_spaceandamountormissing,
-    [
+tests_number = [
     "number" ~: do
       let s `is` n = assertParseEqual (parseWithCtx nullctx number s) n
           assertFails = assertBool "" . isLeft . parseWithCtx nullctx number 
@@ -692,18 +713,101 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
       assertFails "1..1"
       assertFails ".1,"
       assertFails ",1."
+ ]
 
-   ,"transaction" ~: do
-    assertParseEqual (parseWithCtx nullctx transaction entry1_str) entry1
-    assertBool "transaction should not parse just a date"
-                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1\n"
-    assertBool "transaction should require some postings"
-                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1 a\n"
-    let t = parseWithCtx nullctx transaction "2009/1/1 a ;comment\n b 1\n"
-    assertBool "transaction should not include a comment in the description"
-                   $ either (const False) ((== "a") . tdescription) t
+-- older comment parsers
 
-  ,"modifiertransaction" ~: do
+emptyline :: GenParser Char JournalContext ()
+emptyline = do many spacenonewline
+               optional $ (char ';' <?> "comment") >> many (noneOf "\n")
+               newline
+               return ()
+
+comment :: GenParser Char JournalContext String
+comment = do
+  many1 $ char ';'
+  many spacenonewline
+  c <- many (noneOf "\n")
+  return $ rstrip c
+  <?> "comment"
+
+commentline :: GenParser Char JournalContext String
+commentline = do
+  many spacenonewline
+  c <- comment
+  optional newline
+  eof
+  return c
+  <?> "comment"
+
+-- newer comment parsers
+
+type Tag = (String, String)
+
+inlinecomment :: GenParser Char JournalContext ([String],[Tag])
+inlinecomment = try (do {md <- tagcomment; newline; return ([], [md])})
+                    <|> (do {c <- comment; newline; return ([rstrip c], [])})
+                    <|> (newline >> return ([], []))
+
+tests_inlinecomment = [
+   "inlinecomment" ~: do
+    let s `gives` r = assertParseEqual (parseWithCtx nullctx inlinecomment s) r
+    ";  comment \n" `gives` (["comment"],[])
+    ";tag: a value \n" `gives` ([],[("tag","a value")])
+ ]
+
+commentlines :: GenParser Char JournalContext ([String],[Tag])
+commentlines = do
+  comormds <- many $ choice' [(liftM Right metadataline)
+                             ,(do {many1 spacenonewline; c <- comment; newline; return $ Left c }) -- XXX fix commentnewline
+                             ]
+  return $ partitionEithers comormds
+
+tests_commentlines = [
+   "commentlines" ~: do
+    let s `gives` r = assertParseEqual (parseWithCtx nullctx commentlines s) r
+    "    ;  comment 1 \n ; tag1:  val1 \n ;comment 2\n;unindented comment\n"
+     `gives` (["comment 1","comment 2"],[("tag1","val1")])
+ ]
+
+-- a comment line containing a metadata declaration, eg:
+-- ; name: value
+metadataline :: GenParser Char JournalContext (String,String)
+metadataline = do
+  many1 spacenonewline
+  md <- tagcomment
+  newline
+  return md
+
+-- a comment containing a tag, like  "; name: some value"
+tagcomment :: GenParser Char JournalContext (String,String)
+tagcomment = do
+  many1 $ char ';'
+  many spacenonewline
+  name <- many1 $ noneOf ": \t"
+  char ':'
+  many spacenonewline
+  value <- many (noneOf "\n")
+  return (name, rstrip value)
+  <?> "metadata comment"
+
+tests_tagcomment = [
+   "tagcomment" ~: do
+    let s `gives` r = assertParseEqual (parseWithCtx nullctx tagcomment s) r
+    ";tag: a value \n" `gives` ("tag","a value")
+ ]
+
+tests_Hledger_Read_JournalReader = TestList $ concat [
+    tests_number,
+    tests_amount,
+    tests_spaceandamountormissing,
+    tests_tagcomment,
+    tests_inlinecomment,
+    tests_commentlines,
+    tests_posting,
+    tests_transaction,
+    [
+   "modifiertransaction" ~: do
      assertParse (parseWithCtx nullctx modifiertransaction "= (some value expr)\n some:postings  1\n")
 
   ,"periodictransaction" ~: do
@@ -769,12 +873,6 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     assertBool "accountname rejects an empty inner component" (isLeft $ parsewith accountname "a::c")
     assertBool "accountname rejects an empty leading component" (isLeft $ parsewith accountname ":b:c")
     assertBool "accountname rejects an empty trailing component" (isLeft $ parsewith accountname "a:b:")
-
- ,"posting" ~: do
-    assertParseEqual (parseWithCtx nullctx posting "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n")
-                     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting [("a","a a "), ("b","b b ")] Nothing)
-    assertBool "posting parses a quoted commodity with numbers"
-                   (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
 
   ,"amount" ~: do
      let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity

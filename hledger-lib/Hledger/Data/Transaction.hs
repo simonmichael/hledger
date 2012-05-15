@@ -92,33 +92,113 @@ showTransaction = showTransaction' True
 showTransactionUnelided :: Transaction -> String
 showTransactionUnelided = showTransaction' False
 
--- XXX similar to showPosting, refactor
+tests_showTransactionUnelided = [
+   "showTransactionUnelided" ~: do
+    let t `gives` s = assertEqual "" s (showTransactionUnelided t)
+    nulltransaction `gives` "0000/01/01\n\n"
+    nulltransaction{
+      tdate=parsedate "2012/05/14",
+      teffectivedate=Just $ parsedate "2012/05/15",
+      tstatus=False,
+      tcode="code",
+      tdescription="desc",
+      tcomment="tcomment1\ntcomment2\n",
+      tmetadata=[("ttag1","val1")],
+      tpostings=[
+        nullposting{
+          pstatus=True,
+          paccount="a",
+          pamount=Mixed [dollars 1, hours 2],
+          pcomment="pcomment1\npcomment2\n",
+          ptype=RegularPosting,
+          pmetadata=[("ptag1","val1"),("ptag2","val2")]
+          }
+       ]
+      }
+      `gives` unlines [
+      "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
+      "    ; tcomment2",
+      "    ; ttag1: val1",
+      "                $1.00",
+      "    * a          2.0h  ; pcomment1",
+      "    ; pcomment2",
+      "    ; ptag1: val1",
+      "    ; ptag2: val2",
+      ""
+      ]
+ ]
+
+-- XXX overlaps showPosting
 showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
-    unlines $ [description] ++ (metadataAsLines $ tmetadata t) ++ (postingsAsLines (tpostings t)) ++ [""]
+    unlines $ [descriptionline]
+              ++ commentlines
+              ++ (metadataAsLines $ tmetadata t)
+              ++ (postingsAsLines elide t (tpostings t))
+              ++ [""]
     where
-      description = concat [date, status, code, desc, comment]
+      descriptionline = rstrip $ concat [date, status, code, desc, firstcomment]
       date = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       status = if tstatus t then " *" else ""
       code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
       desc = if null d then "" else " " ++ d where d = tdescription t
-      comment = if null c then "" else "  ; " ++ c where c = tcomment t
-      postingsAsLines ps
-          | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
-              = (concatMap postingAsLines $ init ps) ++ postingNoAmtAsLines (last ps)
-          | otherwise = concatMap postingAsLines ps
-          where
-            postingAsLines p = [concatTopPadded [showacct p, "  ", showamt (pamount p), showComment (pcomment p)]] ++ postingMetadataAsLines p
-            postingNoAmtAsLines p = [rstrip $ showacct p ++ "              " ++ showComment (pcomment p)] ++ postingMetadataAsLines p
-            showacct p =
-              "    " ++ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
-                where
-                  showstatus p = if pstatus p then "* " else ""
-                  w = maximum $ map (length . paccount) ps
-            showamt =
-                padleft 12 . showMixedAmount
+      (firstcomment, commentlines) = commentLines $ tcomment t
+
+-- Render a transaction or posting's comment as indented & prefixed comment lines.
+commentLines :: String -> (String, [String])
+commentLines s
+    | null s = ("", [])
+    | otherwise = ("  ; " ++ first, map (indent . ("; "++)) rest)
+    where (first:rest) = lines s
+
+postingsAsLines :: Bool -> Transaction -> [Posting] -> [String]
+postingsAsLines elide t ps
+    | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
+       = (concatMap (postingAsLines False ps) $ init ps) ++ postingAsLines True ps (last ps)
+    | otherwise = concatMap (postingAsLines False ps) ps
+
+postingAsLines :: Bool -> [Posting] -> Posting -> [String]
+postingAsLines elideamount ps p =
+    postinglines
+    ++ commentlines
+    ++ metadataAsLines (pmetadata p)
+  where
+    postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, firstcomment]
+    amount = if elideamount then "" else showamt (pamount p)
+    (firstcomment, commentlines) = commentLines $ pcomment p
+    showacct p =
+      indent $ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
+        where
+          showstatus p = if pstatus p then "* " else ""
+          w = maximum $ map (length . paccount) ps
+    showamt =
+        padleft 12 . showMixedAmount
+
+tests_postingAsLines = [
+   "postingAsLines" ~: do
+    let p `gives` ls = assertEqual "" ls (postingAsLines False [p] p)
+    nullposting `gives` ["                 0"]
+    nullposting{
+      pstatus=True,
+      paccount="a",
+      pamount=Mixed [dollars 1, hours 2],
+      pcomment="pcomment1\npcomment2\n",
+      ptype=RegularPosting,
+      pmetadata=[("ptag1","val1"),("ptag2","val2")]
+      }
+     `gives` [
+      "                $1.00",
+      "    * a          2.0h  ; pcomment1",
+      "    ; pcomment2",
+      "    ; ptag1: val1",
+      "    ; ptag2: val2"
+      ]      
+ ]
+
+indent :: String -> String
+indent = ("    "++)
 
 -- | Show an account name, clipped to the given width if any, and
 -- appropriately bracketed/parenthesised for the given posting type.
@@ -283,7 +363,10 @@ txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
 settxn :: Transaction -> Posting -> Posting
 settxn t p = p{ptransaction=Just t}
 
-tests_Hledger_Data_Transaction = TestList [
+tests_Hledger_Data_Transaction = TestList $ concat [
+  tests_postingAsLines,
+  tests_showTransactionUnelided,
+  [
   "showTransaction" ~: do
      assertEqual "show a balanced transaction, eliding last amount"
        (unlines
@@ -343,7 +426,7 @@ tests_Hledger_Data_Transaction = TestList [
      assertEqual "show a transaction with one posting and a missing amount"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries              "
+        ,"    expenses:food:groceries"
         ,""
         ])
        (showTransaction
@@ -356,7 +439,7 @@ tests_Hledger_Data_Transaction = TestList [
        (unlines
         ["2010/01/01 x"
         ,"    a        1 @ $2"
-        ,"    b              "
+        ,"    b"
         ,""
         ])
        (showTransaction
@@ -442,4 +525,4 @@ tests_Hledger_Data_Transaction = TestList [
              ] ""
      assertBool "balanced virtual postings need to balance among themselves (2)" (isTransactionBalanced Nothing t)
 
-  ]
+  ]]
