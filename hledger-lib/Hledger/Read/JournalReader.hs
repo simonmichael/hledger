@@ -545,7 +545,7 @@ accountname = do
 
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
--- "missing"" marker amount.
+-- "missing" marker amount.
 spaceandamountormissing :: GenParser Char JournalContext MixedAmount
 spaceandamountormissing =
   try (do
