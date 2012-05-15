@@ -883,6 +883,45 @@ two kinds of pattern:
     when negating a desc: pattern, not: goes last, eg:
     `desc:not:someregexp`.
 
+<!--
+New:
+
+Most commands accept one or more filter pattern arguments after the
+command name, to select a subset of the data. There are several kinds
+of filter pattern:
+
+- `acct:ACCTREGEX` - match account names by regular expression
+
+- `desc:DESCREGEX` - match transaction descriptions by regular expression
+
+- `tag:TAGNAMEREGEX[:TAGVALUEREGEX]` - match a [tag](#tags) name, and
+  optionally the value, by regular expression
+
+- `TAGNAME:[TAGVALUEREGEX]` - match a tag name exactly, and optionally
+  the value by regular expression.
+
+- `ACCTREGEX` - match account names by regular expression
+
+Later:
+
+- `status:[*]`
+
+- `code:CODEREGEX`
+
+- `date:DATEEXPR`
+
+- `edate:DATEEXPR`
+
+- `type:regular|virtual|balancedvirtual`
+
+- `comment:COMMENTREGEX`
+
+- `amount:AMOUNTEXPR`
+
+- `commodity:COMMODITYSYMBOLREGEX`
+
+Any of these can be prefixed with `not:` or `!` to negate the match.
+-->
 
 When you specify multiple filter patterns, hledger generally selects the
 transactions or postings which match (or negatively match)
