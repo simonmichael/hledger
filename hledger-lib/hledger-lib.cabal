@@ -46,7 +46,7 @@ library
                   Hledger.Data.TimeLog
                   Hledger.Data.Transaction
                   Hledger.Data.Types
-                  Hledger.Data.Matching
+                  Hledger.Data.Query
                   Hledger.Read
                   Hledger.Read.CsvReader
                   Hledger.Read.JournalReader
