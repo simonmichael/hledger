@@ -5,7 +5,7 @@ Currently used only by hledger-web.
 
 -}
 
-module Hledger.Data.Matching
+module Hledger.Data.Query
 where
 import Data.Either
 import Data.List
@@ -273,8 +273,8 @@ compareMaybeDates Nothing (Just _) = LT
 compareMaybeDates (Just _) Nothing = GT
 compareMaybeDates (Just a) (Just b) = compare a b
 
-tests_Hledger_Data_Matching :: Test
-tests_Hledger_Data_Matching = TestList
+tests_Hledger_Data_Query :: Test
+tests_Hledger_Data_Query = TestList
  [
 
   "parseQuery" ~: do

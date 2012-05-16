@@ -15,7 +15,7 @@ module Hledger.Data (
                module Hledger.Data.Dates,
                module Hledger.Data.Journal,
                module Hledger.Data.Ledger,
-               module Hledger.Data.Matching,
+               module Hledger.Data.Query,
                module Hledger.Data.Posting,
                module Hledger.Data.TimeLog,
                module Hledger.Data.Transaction,
@@ -32,7 +32,7 @@ import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Ledger
-import Hledger.Data.Matching
+import Hledger.Data.Query
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
 import Hledger.Data.Transaction
@@ -47,7 +47,7 @@ tests_Hledger_Data = TestList
     ,tests_Hledger_Data_Dates
     ,tests_Hledger_Data_Journal
     ,tests_Hledger_Data_Ledger
-    ,tests_Hledger_Data_Matching
+    ,tests_Hledger_Data_Query
     ,tests_Hledger_Data_Posting
     ,tests_Hledger_Data_TimeLog
     ,tests_Hledger_Data_Transaction

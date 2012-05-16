@@ -29,7 +29,7 @@ import Hledger.Data.Dates (nulldatespan)
 import Hledger.Data.Transaction (journalTransactionWithDate,balanceTransaction)
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
-import Hledger.Data.Matching
+import Hledger.Data.Query
 
 
 instance Show Journal where

@@ -20,7 +20,7 @@ import Hledger.Data.Account (nullacct)
 import Hledger.Data.AccountName
 import Hledger.Data.Journal
 import Hledger.Data.Posting
-import Hledger.Data.Matching
+import Hledger.Data.Query
 
 
 instance Show Ledger where
