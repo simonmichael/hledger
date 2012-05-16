@@ -166,43 +166,43 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
 -- | A query for Profit & Loss accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
-journalProfitAndLossAccountQuery  :: Journal -> Matcher
-journalProfitAndLossAccountQuery j = MatchOr [journalIncomeAccountQuery j
+journalProfitAndLossAccountQuery  :: Journal -> Query
+journalProfitAndLossAccountQuery j = Or [journalIncomeAccountQuery j
                                                ,journalExpenseAccountQuery j
                                                ]
 
 -- | A query for Income (Revenue) accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^(income|revenue)s?(:|$)@.
-journalIncomeAccountQuery  :: Journal -> Matcher
-journalIncomeAccountQuery _ = MatchAcct "^(income|revenue)s?(:|$)"
+journalIncomeAccountQuery  :: Journal -> Query
+journalIncomeAccountQuery _ = Acct "^(income|revenue)s?(:|$)"
 
 -- | A query for Expense accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^expenses?(:|$)@.
-journalExpenseAccountQuery  :: Journal -> Matcher
-journalExpenseAccountQuery _ = MatchAcct "^expenses?(:|$)"
+journalExpenseAccountQuery  :: Journal -> Query
+journalExpenseAccountQuery _ = Acct "^expenses?(:|$)"
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
-journalBalanceSheetAccountQuery  :: Journal -> Matcher
-journalBalanceSheetAccountQuery j = MatchOr [journalAssetAccountQuery j
+journalBalanceSheetAccountQuery  :: Journal -> Query
+journalBalanceSheetAccountQuery j = Or [journalAssetAccountQuery j
                                               ,journalLiabilityAccountQuery j
                                               ,journalEquityAccountQuery j
                                               ]
 
 -- | A query for Asset accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^assets?(:|$)@.
-journalAssetAccountQuery  :: Journal -> Matcher
-journalAssetAccountQuery _ = MatchAcct "^assets?(:|$)"
+journalAssetAccountQuery  :: Journal -> Query
+journalAssetAccountQuery _ = Acct "^assets?(:|$)"
 
 -- | A query for Liability accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^liabilit(y|ies)(:|$)@.
-journalLiabilityAccountQuery  :: Journal -> Matcher
-journalLiabilityAccountQuery _ = MatchAcct "^liabilit(y|ies)(:|$)"
+journalLiabilityAccountQuery  :: Journal -> Query
+journalLiabilityAccountQuery _ = Acct "^liabilit(y|ies)(:|$)"
 
 -- | A query for Equity accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^equity(:|$)@.
-journalEquityAccountQuery  :: Journal -> Matcher
-journalEquityAccountQuery _ = MatchAcct "^equity(:|$)"
+journalEquityAccountQuery  :: Journal -> Query
+journalEquityAccountQuery _ = Acct "^equity(:|$)"
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
@@ -212,13 +212,13 @@ journalEquityAccountQuery _ = MatchAcct "^equity(:|$)"
 
 -- | Keep only postings matching the query expression.
 -- This can leave unbalanced transactions.
-filterJournalPostings2 :: Matcher -> Journal -> Journal
+filterJournalPostings2 :: Query -> Journal -> Journal
 filterJournalPostings2 m j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
     where
       filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
 
 -- | Keep only transactions matching the query expression.
-filterJournalTransactions2 :: Matcher -> Journal -> Journal
+filterJournalTransactions2 :: Query -> Journal -> Journal
 filterJournalTransactions2 m j@Journal{jtxns=ts} = j{jtxns=filter (m `matchesTransaction`) ts}
 
 -------------------------------------------------------------------------------

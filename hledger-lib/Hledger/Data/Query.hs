@@ -6,7 +6,7 @@ Currently used only by hledger-web.
 -}
 
 module Hledger.Data.Query (
-  Matcher(..),
+  Query(..),
   queryIsNull,
   queryIsStartDateOnly,
   queryStartDate,
@@ -44,20 +44,20 @@ import Hledger.Data.Transaction
 
 -- | A query is a composition of search criteria, which can be used to
 -- match postings, transactions, accounts and more.
-data Matcher = MatchAny              -- ^ always match
-             | MatchNone             -- ^ never match
-             | MatchNot Matcher      -- ^ negate this match
-             | MatchOr [Matcher]     -- ^ match if any of these match
-             | MatchAnd [Matcher]    -- ^ match if all of these match
-             | MatchDesc String      -- ^ match if description matches this regexp
-             | MatchAcct String      -- ^ match postings whose account matches this regexp
-             | MatchDate DateSpan    -- ^ match if actual date in this date span
-             | MatchEDate DateSpan   -- ^ match if effective date in this date span
-             | MatchStatus Bool      -- ^ match if cleared status has this value
-             | MatchReal Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
-             | MatchEmpty Bool       -- ^ match if "emptiness" (from the --empty command-line flag) has this value.
-                                     --   Currently this means a posting with zero amount.
-             | MatchDepth Int        -- ^ match if account depth is less than or equal to this value
+data Query = Any              -- ^ always match
+           | None             -- ^ never match
+           | Not Query        -- ^ negate this match
+           | Or [Query]       -- ^ match if any of these match
+           | And [Query]      -- ^ match if all of these match
+           | Desc String      -- ^ match if description matches this regexp
+           | Acct String      -- ^ match postings whose account matches this regexp
+           | Date DateSpan    -- ^ match if actual date in this date span
+           | EDate DateSpan   -- ^ match if effective date in this date span
+           | Status Bool      -- ^ match if cleared status has this value
+           | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
+           | Empty Bool       -- ^ match if "emptiness" (from the --empty command-line flag) has this value.
+                              --   Currently this means a posting with zero amount.
+           | Depth Int        -- ^ match if account depth is less than or equal to this value
     deriving (Show, Eq)
 
 -- | A query option changes a query's/report's behaviour and output in some way.
@@ -78,15 +78,15 @@ inAccount (QueryOptInAcct a:_) = Just (a,True)
 
 -- | A query for the account(s) we are currently focussed on, if any.
 -- Just looks at the first query option.
-inAccountQuery :: [QueryOpt] -> Maybe Matcher
+inAccountQuery :: [QueryOpt] -> Maybe Query
 inAccountQuery [] = Nothing
-inAccountQuery (QueryOptInAcctOnly a:_) = Just $ MatchAcct $ accountNameToAccountOnlyRegex a
-inAccountQuery (QueryOptInAcct a:_) = Just $ MatchAcct $ accountNameToAccountRegex a
+inAccountQuery (QueryOptInAcctOnly a:_) = Just $ Acct $ accountNameToAccountOnlyRegex a
+inAccountQuery (QueryOptInAcct a:_) = Just $ Acct $ accountNameToAccountRegex a
 
 -- -- | A query restricting the account(s) to be shown in the sidebar, if any.
 -- -- Just looks at the first query option.
--- showAccountMatcher :: [QueryOpt] -> Maybe Matcher
--- showAccountMatcher (QueryOptInAcctSubsOnly a:_) = Just $ MatchAcct True $ accountNameToAccountRegex a
+-- showAccountMatcher :: [QueryOpt] -> Maybe Query
+-- showAccountMatcher (QueryOptInAcctSubsOnly a:_) = Just $ Acct True $ accountNameToAccountRegex a
 -- showAccountMatcher _ = Nothing
 
 -- | Convert a query expression containing zero or more space-separated
@@ -104,14 +104,14 @@ inAccountQuery (QueryOptInAcct a:_) = Just $ MatchAcct $ accountNameToAccountReg
 -- When a pattern contains spaces, it or the whole term should be enclosed in single or double quotes.
 -- A reference date is required to interpret relative dates in period expressions.
 --
-parseQuery :: Day -> String -> (Matcher,[QueryOpt])
+parseQuery :: Day -> String -> (Query,[QueryOpt])
 parseQuery d s = (m,qopts)
   where
     terms = words'' prefixes s
     (queries, qopts) = partitionEithers $ map (parseQueryTerm d) terms
-    m = case queries of []      -> MatchAny
+    m = case queries of []      -> Any
                         (m':[]) -> m'
-                        ms      -> MatchAnd ms
+                        ms      -> And ms
 
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
@@ -134,13 +134,13 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
       pattern = many (noneOf " \n\r\"")
 
 -- -- | Parse the query string as a boolean tree of match patterns.
--- parseQueryTerm :: String -> Matcher
--- parseQueryTerm s = either (const (MatchAny)) id $ runParser query () "" $ lexmatcher s
+-- parseQueryTerm :: String -> Query
+-- parseQueryTerm s = either (const (Any)) id $ runParser query () "" $ lexmatcher s
 
 -- lexmatcher :: String -> [String]
 -- lexmatcher s = words' s
 
--- query :: GenParser String () Matcher
+-- query :: GenParser String () Query
 -- query = undefined
 
 -- keep synced with patterns below, excluding "not"
@@ -151,25 +151,25 @@ prefixes = map (++":") [
 defaultprefix = "acct"
 
 -- | Parse a single query term as either a query or a query option.
-parseQueryTerm :: Day -> String -> Either Matcher QueryOpt
+parseQueryTerm :: Day -> String -> Either Query QueryOpt
 parseQueryTerm _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly s
 parseQueryTerm _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
 parseQueryTerm d ('n':'o':'t':':':s) = case parseQueryTerm d s of
-                                       Left m  -> Left $ MatchNot m
-                                       Right _ -> Left MatchAny -- not:somequeryoption will be ignored
-parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ MatchDesc s
-parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ MatchAcct s
+                                       Left m  -> Left $ Not m
+                                       Right _ -> Left Any -- not:somequeryoption will be ignored
+parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ Desc s
+parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ Acct s
 parseQueryTerm d ('d':'a':'t':'e':':':s) =
-        case parsePeriodExpr d s of Left _ -> Left MatchNone -- XXX should warn
-                                    Right (_,span) -> Left $ MatchDate span
+        case parsePeriodExpr d s of Left _ -> Left None -- XXX should warn
+                                    Right (_,span) -> Left $ Date span
 parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
-        case parsePeriodExpr d s of Left _ -> Left MatchNone -- XXX should warn
-                                    Right (_,span) -> Left $ MatchEDate span
-parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ MatchStatus $ parseStatus s
-parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ MatchReal $ parseBool s
-parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ MatchEmpty $ parseBool s
-parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ MatchDepth $ readDef 0 s
-parseQueryTerm _ "" = Left $ MatchAny
+        case parsePeriodExpr d s of Left _ -> Left None -- XXX should warn
+                                    Right (_,span) -> Left $ EDate span
+parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
+parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
+parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
+parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
+parseQueryTerm _ "" = Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix++":"++s
 
 -- | Parse the boolean value part of a "status:" query, allowing "*" as
@@ -186,43 +186,43 @@ truestrings :: [String]
 truestrings = ["1","t","true"]
 
 -- -- | Convert a query to its inverse.
--- negateQuery :: Matcher -> Matcher
--- negateQuery =  MatchNot
+-- negateQuery :: Query -> Query
+-- negateQuery =  Not
 
 -- | Does the match expression match this posting ?
-matchesPosting :: Matcher -> Posting -> Bool
-matchesPosting (MatchNot m) p = not $ matchesPosting m p
-matchesPosting (MatchAny) _ = True
-matchesPosting (MatchNone) _ = False
-matchesPosting (MatchOr ms) p = any (`matchesPosting` p) ms
-matchesPosting (MatchAnd ms) p = all (`matchesPosting` p) ms
-matchesPosting (MatchDesc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
-matchesPosting (MatchAcct r) p = regexMatchesCI r $ paccount p
-matchesPosting (MatchDate span) p =
+matchesPosting :: Query -> Posting -> Bool
+matchesPosting (Not m) p = not $ matchesPosting m p
+matchesPosting (Any) _ = True
+matchesPosting (None) _ = False
+matchesPosting (Or ms) p = any (`matchesPosting` p) ms
+matchesPosting (And ms) p = all (`matchesPosting` p) ms
+matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
+matchesPosting (Acct r) p = regexMatchesCI r $ paccount p
+matchesPosting (Date span) p =
     case d of Just d'  -> spanContainsDate span d'
               Nothing -> False
     where d = maybe Nothing (Just . tdate) $ ptransaction p
-matchesPosting (MatchEDate span) p =
+matchesPosting (EDate span) p =
     case postingEffectiveDate p of Just d  -> spanContainsDate span d
                                    Nothing -> False
-matchesPosting (MatchStatus v) p = v == postingCleared p
-matchesPosting (MatchReal v) p = v == isReal p
-matchesPosting (MatchEmpty v) Posting{pamount=a} = v == isZeroMixedAmount a
+matchesPosting (Status v) p = v == postingCleared p
+matchesPosting (Real v) p = v == isReal p
+matchesPosting (Empty v) Posting{pamount=a} = v == isZeroMixedAmount a
 matchesPosting _ _ = False
 
 -- | Does the match expression match this transaction ?
-matchesTransaction :: Matcher -> Transaction -> Bool
-matchesTransaction (MatchNot m) t = not $ matchesTransaction m t
-matchesTransaction (MatchAny) _ = True
-matchesTransaction (MatchNone) _ = False
-matchesTransaction (MatchOr ms) t = any (`matchesTransaction` t) ms
-matchesTransaction (MatchAnd ms) t = all (`matchesTransaction` t) ms
-matchesTransaction (MatchDesc r) t = regexMatchesCI r $ tdescription t
-matchesTransaction m@(MatchAcct _) t = any (m `matchesPosting`) $ tpostings t
-matchesTransaction (MatchDate span) t = spanContainsDate span $ tdate t
-matchesTransaction (MatchEDate span) t = spanContainsDate span $ transactionEffectiveDate t
-matchesTransaction (MatchStatus v) t = v == tstatus t
-matchesTransaction (MatchReal v) t = v == hasRealPostings t
+matchesTransaction :: Query -> Transaction -> Bool
+matchesTransaction (Not m) t = not $ matchesTransaction m t
+matchesTransaction (Any) _ = True
+matchesTransaction (None) _ = False
+matchesTransaction (Or ms) t = any (`matchesTransaction` t) ms
+matchesTransaction (And ms) t = all (`matchesTransaction` t) ms
+matchesTransaction (Desc r) t = regexMatchesCI r $ tdescription t
+matchesTransaction m@(Acct _) t = any (m `matchesPosting`) $ tpostings t
+matchesTransaction (Date span) t = spanContainsDate span $ tdate t
+matchesTransaction (EDate span) t = spanContainsDate span $ transactionEffectiveDate t
+matchesTransaction (Status v) t = v == tstatus t
+matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction _ _ = False
 
 postingEffectiveDate :: Posting -> Maybe Day
@@ -230,41 +230,41 @@ postingEffectiveDate p = maybe Nothing (Just . transactionEffectiveDate) $ ptran
 
 -- | Does the match expression match this account ?
 -- A matching in: clause is also considered a match.
-matchesAccount :: Matcher -> AccountName -> Bool
-matchesAccount (MatchNot m) a = not $ matchesAccount m a
-matchesAccount (MatchAny) _ = True
-matchesAccount (MatchNone) _ = False
-matchesAccount (MatchOr ms) a = any (`matchesAccount` a) ms
-matchesAccount (MatchAnd ms) a = all (`matchesAccount` a) ms
-matchesAccount (MatchAcct r) a = regexMatchesCI r a
+matchesAccount :: Query -> AccountName -> Bool
+matchesAccount (Not m) a = not $ matchesAccount m a
+matchesAccount (Any) _ = True
+matchesAccount (None) _ = False
+matchesAccount (Or ms) a = any (`matchesAccount` a) ms
+matchesAccount (And ms) a = all (`matchesAccount` a) ms
+matchesAccount (Acct r) a = regexMatchesCI r a
 matchesAccount _ _ = False
 
 -- | What start date does this query specify, if any ?
 -- If the query is an OR expression, returns the earliest of the alternatives.
 -- When the flag is true, look for a starting effective date instead.
-queryStartDate :: Bool -> Matcher -> Maybe Day
-queryStartDate effective (MatchOr ms) = earliestMaybeDate $ map (queryStartDate effective) ms
-queryStartDate effective (MatchAnd ms) = latestMaybeDate $ map (queryStartDate effective) ms
-queryStartDate False (MatchDate (DateSpan (Just d) _)) = Just d
-queryStartDate True (MatchEDate (DateSpan (Just d) _)) = Just d
+queryStartDate :: Bool -> Query -> Maybe Day
+queryStartDate effective (Or ms) = earliestMaybeDate $ map (queryStartDate effective) ms
+queryStartDate effective (And ms) = latestMaybeDate $ map (queryStartDate effective) ms
+queryStartDate False (Date (DateSpan (Just d) _)) = Just d
+queryStartDate True (EDate (DateSpan (Just d) _)) = Just d
 queryStartDate _ _ = Nothing
 
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
 -- When the flag is true, look for a starting effective date instead.
-queryIsStartDateOnly :: Bool -> Matcher -> Bool
-queryIsStartDateOnly _ MatchAny = False
-queryIsStartDateOnly _ MatchNone = False
-queryIsStartDateOnly effective (MatchOr ms) = and $ map (queryIsStartDateOnly effective) ms
-queryIsStartDateOnly effective (MatchAnd ms) = and $ map (queryIsStartDateOnly effective) ms
-queryIsStartDateOnly False (MatchDate (DateSpan (Just _) _)) = True
-queryIsStartDateOnly True (MatchEDate (DateSpan (Just _) _)) = True
+queryIsStartDateOnly :: Bool -> Query -> Bool
+queryIsStartDateOnly _ Any = False
+queryIsStartDateOnly _ None = False
+queryIsStartDateOnly effective (Or ms) = and $ map (queryIsStartDateOnly effective) ms
+queryIsStartDateOnly effective (And ms) = and $ map (queryIsStartDateOnly effective) ms
+queryIsStartDateOnly False (Date (DateSpan (Just _) _)) = True
+queryIsStartDateOnly True (EDate (DateSpan (Just _) _)) = True
 queryIsStartDateOnly _ _ = False
 
 -- | Does this query match everything ?
-queryIsNull MatchAny = True
-queryIsNull (MatchAnd []) = True
-queryIsNull (MatchNot (MatchOr [])) = True
+queryIsNull Any = True
+queryIsNull (And []) = True
+queryIsNull (Not (Or [])) = True
 queryIsNull _ = False
 
 -- | What is the earliest of these dates, where Nothing is earliest ?
@@ -288,39 +288,39 @@ tests_Hledger_Data_Query = TestList
 
   "parseQuery" ~: do
     let d = parsedate "2011/1/1"
-    parseQuery d "a" `is` (MatchAcct "a", [])
-    parseQuery d "acct:a" `is` (MatchAcct "a", [])
-    parseQuery d "acct:a desc:b" `is` (MatchAnd [MatchAcct "a", MatchDesc "b"], [])
-    parseQuery d "\"acct:expenses:autres d\233penses\"" `is` (MatchAcct "expenses:autres d\233penses", [])
-    parseQuery d "not:desc:'a b'" `is` (MatchNot $ MatchDesc "a b", [])
+    parseQuery d "a" `is` (Acct "a", [])
+    parseQuery d "acct:a" `is` (Acct "a", [])
+    parseQuery d "acct:a desc:b" `is` (And [Acct "a", Desc "b"], [])
+    parseQuery d "\"acct:expenses:autres d\233penses\"" `is` (Acct "expenses:autres d\233penses", [])
+    parseQuery d "not:desc:'a b'" `is` (Not $ Desc "a b", [])
 
-    parseQuery d "inacct:a desc:b" `is` (MatchDesc "b", [QueryOptInAcct "a"])
-    parseQuery d "inacct:a inacct:b" `is` (MatchAny, [QueryOptInAcct "a", QueryOptInAcct "b"])
+    parseQuery d "inacct:a desc:b" `is` (Desc "b", [QueryOptInAcct "a"])
+    parseQuery d "inacct:a inacct:b" `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
 
-    parseQuery d "status:1" `is` (MatchStatus True, [])
-    parseQuery d "status:0" `is` (MatchStatus False, [])
-    parseQuery d "status:" `is` (MatchStatus False, [])
-    parseQuery d "real:1" `is` (MatchReal True, [])
+    parseQuery d "status:1" `is` (Status True, [])
+    parseQuery d "status:0" `is` (Status False, [])
+    parseQuery d "status:" `is` (Status False, [])
+    parseQuery d "real:1" `is` (Real True, [])
 
   ,"matchesAccount" ~: do
-    assertBool "positive acct match" $ matchesAccount (MatchAcct "b:c") "a:bb:c:d"
-    -- assertBool "acct should match at beginning" $ not $ matchesAccount (MatchAcct True "a:b") "c:a:b"
+    assertBool "positive acct match" $ matchesAccount (Acct "b:c") "a:bb:c:d"
+    -- assertBool "acct should match at beginning" $ not $ matchesAccount (Acct True "a:b") "c:a:b"
 
   ,"matchesPosting" ~: do
     -- matching posting status..
     assertBool "positive match on true posting status"  $
-                   (MatchStatus True)  `matchesPosting` nullposting{pstatus=True}
+                   (Status True)  `matchesPosting` nullposting{pstatus=True}
     assertBool "negative match on true posting status"  $
-               not $ (MatchNot $ MatchStatus True)  `matchesPosting` nullposting{pstatus=True}
+               not $ (Not $ Status True)  `matchesPosting` nullposting{pstatus=True}
     assertBool "positive match on false posting status" $
-                   (MatchStatus False) `matchesPosting` nullposting{pstatus=False}
+                   (Status False) `matchesPosting` nullposting{pstatus=False}
     assertBool "negative match on false posting status" $
-               not $ (MatchNot $ MatchStatus False) `matchesPosting` nullposting{pstatus=False}
+               not $ (Not $ Status False) `matchesPosting` nullposting{pstatus=False}
     assertBool "positive match on true posting status acquired from transaction" $
-                   (MatchStatus True) `matchesPosting` nullposting{pstatus=False,ptransaction=Just nulltransaction{tstatus=True}}
-    assertBool "real:1 on real posting" $ (MatchReal True) `matchesPosting` nullposting{ptype=RegularPosting}
-    assertBool "real:1 on virtual posting fails" $ not $ (MatchReal True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    assertBool "real:1 on balanced virtual posting fails" $ not $ (MatchReal True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+                   (Status True) `matchesPosting` nullposting{pstatus=False,ptransaction=Just nulltransaction{tstatus=True}}
+    assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
+    assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
 
   ,"words''" ~: do
     assertEqual "1" ["a","b"]        (words'' [] "a b")

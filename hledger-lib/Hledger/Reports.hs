@@ -181,17 +181,17 @@ filterSpecFromOpts opts@ReportOpts{..} d = FilterSpec {
     where (apats,dpats) = parsePatternArgs patterns_
 
 -- | Convert report options to a (new) query.
-queryFromOpts :: ReportOpts -> Day -> Matcher
+queryFromOpts :: ReportOpts -> Day -> Query
 queryFromOpts opts@ReportOpts{..} d = -- strace $
-    MatchAnd $
-      [MatchDate $ dateSpanFromOpts d opts]
-      ++ (if null apats then [] else [MatchOr $ map MatchAcct apats])
-      ++ (if null dpats then [] else [MatchOr $ map MatchDesc dpats])
-      -- ++ (if null mds then [] else [MatchOr $ map MatchMetadata mds])
-      ++ (if real_ then [MatchReal True] else [])
-      ++ (if empty_ then [MatchEmpty True] else [])
-      ++ (maybe [] ((:[]) . MatchStatus) (clearedValueFromOpts opts))
-      ++ (maybe [] ((:[]) . MatchDepth) depth_)
+    And $
+      [Date $ dateSpanFromOpts d opts]
+      ++ (if null apats then [] else [Or $ map Acct apats])
+      ++ (if null dpats then [] else [Or $ map Desc dpats])
+      -- ++ (if null mds then [] else [Or $ map MatchMetadata mds])
+      ++ (if real_ then [Real True] else [])
+      ++ (if empty_ then [Empty True] else [])
+      ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
+      ++ (maybe [] ((:[]) . Depth) depth_)
     where
       (apats,dpats,mds) = parsePatternArgs patterns_
 
@@ -403,7 +403,7 @@ triBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
 -- "postingsReport" except it uses queries and transaction-based report
 -- items and the items are most recent first. Used by eg hledger-web's
 -- journal view.
-journalTransactionsReport :: ReportOpts -> Journal -> Matcher -> TransactionsReport
+journalTransactionsReport :: ReportOpts -> Journal -> Query -> TransactionsReport
 journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
    where
      ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
@@ -426,7 +426,7 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 -- Currently, reporting intervals are not supported, and report items are
 -- most recent first. Used by eg hledger-web's account register view.
 --
-accountTransactionsReport :: ReportOpts -> Journal -> Matcher -> Matcher -> TransactionsReport
+accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> TransactionsReport
 accountTransactionsReport opts j m thisacctquery = (label, items)
  where
      -- transactions affecting this account, in date order
@@ -441,16 +441,16 @@ accountTransactionsReport opts j m thisacctquery = (label, items)
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
                                           (-- ltrace "priormatcher" $
-                                           MatchAnd [thisacctquery, tostartdatequery]))
+                                           And [thisacctquery, tostartdatequery]))
                                          $ transactionsPostings ts
-                        tostartdatequery = MatchDate (DateSpan Nothing startdate)
+                        tostartdatequery = Date (DateSpan Nothing startdate)
                         startdate = queryStartDate (effective_ opts) m
      items = reverse $ accountTransactionsReportItems m (Just thisacctquery) startbal negate ts
 
 -- | Generate transactions report items from a list of transactions,
 -- using the provided query and current account queries, starting balance,
 -- sign-setting function and balance-summing function.
-accountTransactionsReportItems :: Matcher -> Maybe Matcher -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [TransactionsReportItem]
+accountTransactionsReportItems :: Query -> Maybe Query -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [TransactionsReportItem]
 accountTransactionsReportItems _ _ _ _ [] = []
 accountTransactionsReportItems query thisacctquery bal signfn (t:ts) =
     -- This is used for both accountTransactionsReport and journalTransactionsReport,
@@ -490,7 +490,7 @@ summarisePostings ps =
 summarisePostingAccounts :: [Posting] -> String
 summarisePostingAccounts = intercalate ", " . map accountLeafName . nub . map paccount
 
-filterTransactionPostings :: Matcher -> Transaction -> Transaction
+filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
 
 -------------------------------------------------------------------------------
@@ -516,7 +516,7 @@ accountsReport opts filterspec j = accountsReport' opts j (journalToLedger filte
 -- period, and misc. display information, for an accounts report. Like
 -- "accountsReport" but uses the new queries. Used by eg hledger-web's
 -- accounts sidebar.
-accountsReport2 :: ReportOpts -> Matcher -> Journal -> AccountsReport
+accountsReport2 :: ReportOpts -> Query -> Journal -> AccountsReport
 accountsReport2 opts query j = accountsReport' opts j (journalToLedger2 query)
 
 -- Accounts report helper.

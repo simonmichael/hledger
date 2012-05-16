@@ -57,7 +57,7 @@ getJournalR = do
       -- XXX like registerReportAsHtml
       inacct = inAccount qopts
       -- injournal = isNothing inacct
-      filtering = m /= MatchAny
+      filtering = m /= Any
       -- showlastcolumn = if injournal && not filtering then False else True
       title = case inacct of
                 Nothing       -> "Journal"++filter
@@ -97,7 +97,7 @@ getJournalEntriesR = do
   vd@VD{..} <- getViewData
   let
       sidecontent = sidebar vd
-      title = "Journal entries" ++ if m /= MatchAny then ", filtered" else "" :: String
+      title = "Journal entries" ++ if m /= Any then ", filtered" else "" :: String
       maincontent = entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
   defaultLayout $ do
       setTitle "hledger-web journal"
@@ -132,13 +132,13 @@ getRegisterR = do
   vd@VD{..} <- getViewData
   let sidecontent = sidebar vd
       -- injournal = isNothing inacct
-      filtering = m /= MatchAny
+      filtering = m /= Any
       title = "Transactions in "++a++andsubs++filter
                where
                  (a,subs) = fromMaybe ("all accounts",False) $ inAccount qopts
                  andsubs = if subs then " (and subaccounts)" else ""
                  filter = if filtering then ", filtered" else ""
-      maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe MatchAny $ inAccountQuery qopts
+      maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   defaultLayout $ do
       setTitle "hledger-web register"
       addHamlet [$hamlet|
@@ -358,7 +358,7 @@ registerItemsHtml _ vd (balancelabel,items) = [$hamlet|
  |]
  where
    -- inacct = inAccount qopts
-   -- filtering = m /= MatchAny
+   -- filtering = m /= Any
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [$hamlet|
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}
@@ -850,9 +850,9 @@ data ViewData = VD {
     ,today        :: Day        -- ^ today's date (for queries containing relative dates)
     ,j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
     ,q            :: String     -- ^ the current q parameter, the main query expression
-    ,m            :: Matcher    -- ^ a query parsed from the q parameter
+    ,m            :: Query    -- ^ a query parsed from the q parameter
     ,qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
-    ,am           :: Matcher    -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
+    ,am           :: Query    -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
     ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
     ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
     }

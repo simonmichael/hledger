@@ -50,7 +50,7 @@ journalToLedger fs j = nullledger{journal=j',accountnametree=t,accountmap=m}
 -- to derive a ledger containing all balances, the chart of accounts,
 -- canonicalised commodities etc.
 -- Like journalToLedger but uses the new queries.
-journalToLedger2 :: Matcher -> Journal -> Ledger
+journalToLedger2 :: Query -> Journal -> Ledger
 journalToLedger2 m j = nullledger{journal=j',accountnametree=t,accountmap=amap}
     where j' = filterJournalPostings2 m j
           (t, amap) = journalAccountInfo j'
