@@ -42,10 +42,10 @@ library
                   Hledger.Data.Transaction
                   Hledger.Data.Journal
                   Hledger.Data.Ledger
-                  Hledger.Data.Matching
                   Hledger.Data.Posting
                   Hledger.Data.TimeLog
                   Hledger.Data.Types
+                  Hledger.Data.Matching
                   Hledger.Read
                   Hledger.Read.JournalReader
                   Hledger.Read.TimelogReader

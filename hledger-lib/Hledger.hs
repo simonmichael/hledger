@@ -1,5 +1,6 @@
 module Hledger (
                 module Hledger.Data
+               ,module Hledger.Data.Query
                ,module Hledger.Read
                ,module Hledger.Reports
                ,module Hledger.Utils
@@ -9,6 +10,7 @@ where
 import Test.HUnit
 
 import Hledger.Data
+import Hledger.Data.Query
 import Hledger.Read
 import Hledger.Reports
 import Hledger.Utils
