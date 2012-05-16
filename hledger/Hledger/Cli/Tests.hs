@@ -51,7 +51,7 @@ runTests = liftM (fst . flip (,) 0) . runTestTT . flatTests
 -- | Run all or just the matched unit tests until the first failure or
 -- error, returning the name of the problem test if any.
 runTestsTillFailure :: CliOpts -> IO (Maybe String)
-runTestsTillFailure opts = undefined -- do
+runTestsTillFailure _ = undefined -- do
   -- let ts = flatTests opts
   --     results = liftM (fst . flip (,) 0) $ runTestTT $
   --     firstproblem = find (\counts -> )
