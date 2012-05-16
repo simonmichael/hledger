@@ -7,13 +7,13 @@ Currently used only by hledger-web.
 
 module Hledger.Data.Query (
   Matcher(..),
-  matcherIsNull,
-  matcherIsStartDateOnly,
-  matcherStartDate,
+  queryIsNull,
+  queryIsStartDateOnly,
+  queryStartDate,
   matchesTransaction,
   matchesPosting,
   inAccount,
-  inAccountMatcher,
+  inAccountQuery,
   tests_Hledger_Data_Query
 )
 where
@@ -42,9 +42,8 @@ import Hledger.Data.Posting
 import Hledger.Data.Transaction
 -- import Hledger.Data.TimeLog
 
--- | A matcher is a single, or boolean composition of, search criteria,
--- which can be used to match postings, transactions, accounts and more.
--- Currently used by hledger-web, will likely replace FilterSpec at some point.
+-- | A query is a composition of search criteria, which can be used to
+-- match postings, transactions, accounts and more.
 data Matcher = MatchAny              -- ^ always match
              | MatchNone             -- ^ never match
              | MatchNot Matcher      -- ^ negate this match
@@ -77,21 +76,21 @@ inAccount [] = Nothing
 inAccount (QueryOptInAcctOnly a:_) = Just (a,False)
 inAccount (QueryOptInAcct a:_) = Just (a,True)
 
--- | A matcher for the account(s) we are currently focussed on, if any.
+-- | A query for the account(s) we are currently focussed on, if any.
 -- Just looks at the first query option.
-inAccountMatcher :: [QueryOpt] -> Maybe Matcher
-inAccountMatcher [] = Nothing
-inAccountMatcher (QueryOptInAcctOnly a:_) = Just $ MatchAcct $ accountNameToAccountOnlyRegex a
-inAccountMatcher (QueryOptInAcct a:_) = Just $ MatchAcct $ accountNameToAccountRegex a
+inAccountQuery :: [QueryOpt] -> Maybe Matcher
+inAccountQuery [] = Nothing
+inAccountQuery (QueryOptInAcctOnly a:_) = Just $ MatchAcct $ accountNameToAccountOnlyRegex a
+inAccountQuery (QueryOptInAcct a:_) = Just $ MatchAcct $ accountNameToAccountRegex a
 
--- -- | A matcher restricting the account(s) to be shown in the sidebar, if any.
+-- -- | A query restricting the account(s) to be shown in the sidebar, if any.
 -- -- Just looks at the first query option.
 -- showAccountMatcher :: [QueryOpt] -> Maybe Matcher
 -- showAccountMatcher (QueryOptInAcctSubsOnly a:_) = Just $ MatchAcct True $ accountNameToAccountRegex a
 -- showAccountMatcher _ = Nothing
 
 -- | Convert a query expression containing zero or more space-separated
--- terms to a matcher and zero or more query options. A query term is either:
+-- terms to a query and zero or more query options. A query term is either:
 --
 -- 1. a search criteria, used to match transactions. This is usually a prefixed pattern such as:
 --    acct:REGEXP
@@ -109,10 +108,10 @@ parseQuery :: Day -> String -> (Matcher,[QueryOpt])
 parseQuery d s = (m,qopts)
   where
     terms = words'' prefixes s
-    (matchers, qopts) = partitionEithers $ map (parseMatcher d) terms
-    m = case matchers of []      -> MatchAny
-                         (m':[]) -> m'
-                         ms      -> MatchAnd ms
+    (queries, qopts) = partitionEithers $ map (parseQueryTerm d) terms
+    m = case queries of []      -> MatchAny
+                        (m':[]) -> m'
+                        ms      -> MatchAnd ms
 
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
@@ -135,14 +134,14 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
       pattern = many (noneOf " \n\r\"")
 
 -- -- | Parse the query string as a boolean tree of match patterns.
--- parseMatcher :: String -> Matcher
--- parseMatcher s = either (const (MatchAny)) id $ runParser matcher () "" $ lexmatcher s
+-- parseQueryTerm :: String -> Matcher
+-- parseQueryTerm s = either (const (MatchAny)) id $ runParser query () "" $ lexmatcher s
 
 -- lexmatcher :: String -> [String]
 -- lexmatcher s = words' s
 
--- matcher :: GenParser String () Matcher
--- matcher = undefined
+-- query :: GenParser String () Matcher
+-- query = undefined
 
 -- keep synced with patterns below, excluding "not"
 prefixes = map (++":") [
@@ -151,34 +150,34 @@ prefixes = map (++":") [
            ]
 defaultprefix = "acct"
 
--- | Parse a single query term as either a matcher or a query option.
-parseMatcher :: Day -> String -> Either Matcher QueryOpt
-parseMatcher _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly s
-parseMatcher _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
-parseMatcher d ('n':'o':'t':':':s) = case parseMatcher d s of
+-- | Parse a single query term as either a query or a query option.
+parseQueryTerm :: Day -> String -> Either Matcher QueryOpt
+parseQueryTerm _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly s
+parseQueryTerm _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
+parseQueryTerm d ('n':'o':'t':':':s) = case parseQueryTerm d s of
                                        Left m  -> Left $ MatchNot m
                                        Right _ -> Left MatchAny -- not:somequeryoption will be ignored
-parseMatcher _ ('d':'e':'s':'c':':':s) = Left $ MatchDesc s
-parseMatcher _ ('a':'c':'c':'t':':':s) = Left $ MatchAcct s
-parseMatcher d ('d':'a':'t':'e':':':s) =
+parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ MatchDesc s
+parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ MatchAcct s
+parseQueryTerm d ('d':'a':'t':'e':':':s) =
         case parsePeriodExpr d s of Left _ -> Left MatchNone -- XXX should warn
                                     Right (_,span) -> Left $ MatchDate span
-parseMatcher d ('e':'d':'a':'t':'e':':':s) =
+parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
         case parsePeriodExpr d s of Left _ -> Left MatchNone -- XXX should warn
                                     Right (_,span) -> Left $ MatchEDate span
-parseMatcher _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ MatchStatus $ parseStatus s
-parseMatcher _ ('r':'e':'a':'l':':':s) = Left $ MatchReal $ parseBool s
-parseMatcher _ ('e':'m':'p':'t':'y':':':s) = Left $ MatchEmpty $ parseBool s
-parseMatcher _ ('d':'e':'p':'t':'h':':':s) = Left $ MatchDepth $ readDef 0 s
-parseMatcher _ "" = Left $ MatchAny
-parseMatcher d s = parseMatcher d $ defaultprefix++":"++s
+parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ MatchStatus $ parseStatus s
+parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ MatchReal $ parseBool s
+parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ MatchEmpty $ parseBool s
+parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ MatchDepth $ readDef 0 s
+parseQueryTerm _ "" = Left $ MatchAny
+parseQueryTerm d s = parseQueryTerm d $ defaultprefix++":"++s
 
--- | Parse the boolean value part of a "status:" matcher, allowing "*" as
+-- | Parse the boolean value part of a "status:" query, allowing "*" as
 -- another way to spell True, similar to the journal file format.
 parseStatus :: String -> Bool
 parseStatus s = s `elem` (truestrings ++ ["*"])
 
--- | Parse the boolean value part of a "status:" matcher. A true value can
+-- | Parse the boolean value part of a "status:" query. A true value can
 -- be spelled as "1", "t" or "true".
 parseBool :: String -> Bool
 parseBool s = s `elem` truestrings
@@ -186,9 +185,9 @@ parseBool s = s `elem` truestrings
 truestrings :: [String]
 truestrings = ["1","t","true"]
 
--- -- | Convert a match expression to its inverse.
--- negateMatcher :: Matcher -> Matcher
--- negateMatcher =  MatchNot
+-- -- | Convert a query to its inverse.
+-- negateQuery :: Matcher -> Matcher
+-- negateQuery =  MatchNot
 
 -- | Does the match expression match this posting ?
 matchesPosting :: Matcher -> Posting -> Bool
@@ -240,33 +239,33 @@ matchesAccount (MatchAnd ms) a = all (`matchesAccount` a) ms
 matchesAccount (MatchAcct r) a = regexMatchesCI r a
 matchesAccount _ _ = False
 
--- | What start date does this matcher specify, if any ?
--- If the matcher is an OR expression, returns the earliest of the alternatives.
+-- | What start date does this query specify, if any ?
+-- If the query is an OR expression, returns the earliest of the alternatives.
 -- When the flag is true, look for a starting effective date instead.
-matcherStartDate :: Bool -> Matcher -> Maybe Day
-matcherStartDate effective (MatchOr ms) = earliestMaybeDate $ map (matcherStartDate effective) ms
-matcherStartDate effective (MatchAnd ms) = latestMaybeDate $ map (matcherStartDate effective) ms
-matcherStartDate False (MatchDate (DateSpan (Just d) _)) = Just d
-matcherStartDate True (MatchEDate (DateSpan (Just d) _)) = Just d
-matcherStartDate _ _ = Nothing
+queryStartDate :: Bool -> Matcher -> Maybe Day
+queryStartDate effective (MatchOr ms) = earliestMaybeDate $ map (queryStartDate effective) ms
+queryStartDate effective (MatchAnd ms) = latestMaybeDate $ map (queryStartDate effective) ms
+queryStartDate False (MatchDate (DateSpan (Just d) _)) = Just d
+queryStartDate True (MatchEDate (DateSpan (Just d) _)) = Just d
+queryStartDate _ _ = Nothing
 
--- | Does this matcher specify a start date and nothing else (that would
+-- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
 -- When the flag is true, look for a starting effective date instead.
-matcherIsStartDateOnly :: Bool -> Matcher -> Bool
-matcherIsStartDateOnly _ MatchAny = False
-matcherIsStartDateOnly _ MatchNone = False
-matcherIsStartDateOnly effective (MatchOr ms) = and $ map (matcherIsStartDateOnly effective) ms
-matcherIsStartDateOnly effective (MatchAnd ms) = and $ map (matcherIsStartDateOnly effective) ms
-matcherIsStartDateOnly False (MatchDate (DateSpan (Just _) _)) = True
-matcherIsStartDateOnly True (MatchEDate (DateSpan (Just _) _)) = True
-matcherIsStartDateOnly _ _ = False
+queryIsStartDateOnly :: Bool -> Matcher -> Bool
+queryIsStartDateOnly _ MatchAny = False
+queryIsStartDateOnly _ MatchNone = False
+queryIsStartDateOnly effective (MatchOr ms) = and $ map (queryIsStartDateOnly effective) ms
+queryIsStartDateOnly effective (MatchAnd ms) = and $ map (queryIsStartDateOnly effective) ms
+queryIsStartDateOnly False (MatchDate (DateSpan (Just _) _)) = True
+queryIsStartDateOnly True (MatchEDate (DateSpan (Just _) _)) = True
+queryIsStartDateOnly _ _ = False
 
--- | Does this matcher match everything ?
-matcherIsNull MatchAny = True
-matcherIsNull (MatchAnd []) = True
-matcherIsNull (MatchNot (MatchOr [])) = True
-matcherIsNull _ = False
+-- | Does this query match everything ?
+queryIsNull MatchAny = True
+queryIsNull (MatchAnd []) = True
+queryIsNull (MatchNot (MatchOr [])) = True
+queryIsNull _ = False
 
 -- | What is the earliest of these dates, where Nothing is earliest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day

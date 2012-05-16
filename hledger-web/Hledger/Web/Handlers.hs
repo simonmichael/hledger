@@ -138,7 +138,7 @@ getRegisterR = do
                  (a,subs) = fromMaybe ("all accounts",False) $ inAccount qopts
                  andsubs = if subs then " (and subaccounts)" else ""
                  filter = if filtering then ", filtered" else ""
-      maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe MatchAny $ inAccountMatcher qopts
+      maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe MatchAny $ inAccountQuery qopts
   defaultLayout $ do
       setTitle "hledger-web register"
       addHamlet [$hamlet|
@@ -163,7 +163,7 @@ getRegisterOnlyR = do
   defaultLayout $ do
       setTitle "hledger-web register only"
       addHamlet $
-          case inAccountMatcher qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m m'
+          case inAccountQuery qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m m'
                                          Nothing -> registerReportHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
 
 ----------------------------------------------------------------------
@@ -237,7 +237,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
 |]
  where
    l = journalToLedger nullfilterspec j
-   inacctmatcher = inAccountMatcher qopts
+   inacctmatcher = inAccountQuery qopts
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> AccountsReportItem -> HtmlUrl AppRoute
@@ -850,9 +850,9 @@ data ViewData = VD {
     ,today        :: Day        -- ^ today's date (for queries containing relative dates)
     ,j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
     ,q            :: String     -- ^ the current q parameter, the main query expression
-    ,m            :: Matcher    -- ^ a matcher parsed from the q parameter
+    ,m            :: Matcher    -- ^ a query parsed from the q parameter
     ,qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
-    ,am           :: Matcher    -- ^ a matcher parsed from the accounts sidebar query expr ("a" parameter)
+    ,am           :: Matcher    -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
     ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
     ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
     }

@@ -24,7 +24,7 @@ balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet CliOpts{reportopts_=ropts} j = do
   let lines = case formatFromOpts ropts of
             Left err -> [err]
-            Right _ -> accountsReportAsText ropts $ accountsReport2 ropts (journalBalanceSheetAccountMatcher j) j
+            Right _ -> accountsReportAsText ropts $ accountsReport2 ropts (journalBalanceSheetAccountQuery j) j
   putStr $ unlines lines
 
 tests_Hledger_Cli_Balancesheet = TestList

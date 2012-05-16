@@ -35,8 +35,8 @@ module Hledger.Data.Journal (
   journalFilePaths,
   journalPostings,
   -- * Standard account types
-  journalBalanceSheetAccountMatcher,
-  journalProfitAndLossAccountMatcher,
+  journalBalanceSheetAccountQuery,
+  journalProfitAndLossAccountQuery,
   -- * Misc
   groupPostings,
   matchpats,
@@ -163,17 +163,17 @@ balanceSheetAccountRegex, profitAndLossAccountRegex :: String
 balanceSheetAccountRegex  = "^(assets?|liabilit(y|ies)|equity)(:|$)"
 profitAndLossAccountRegex = "^(income|expenses?|profits?|loss(es)?)(:|$)"
 
--- | A matcher for Asset, Liability & Equity accounts in this journal.
+-- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
 -- This is currently hard-coded to the case-insensitive regex @^(assets?|liabilit(y|ies)|equity)(:|$)@.
-journalBalanceSheetAccountMatcher  :: Journal -> Matcher
-journalBalanceSheetAccountMatcher _ = MatchAcct balanceSheetAccountRegex
+journalBalanceSheetAccountQuery  :: Journal -> Matcher
+journalBalanceSheetAccountQuery _ = MatchAcct balanceSheetAccountRegex
 
--- | A matcher for Profit & Loss accounts in this journal.
+-- | A query for Profit & Loss accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
 -- This is currently hard-coded to the case-insensitive regex @^(income|expenses?|profits?|loss(es)?)(:|$)@.
-journalProfitAndLossAccountMatcher  :: Journal -> Matcher
-journalProfitAndLossAccountMatcher _ = MatchAcct profitAndLossAccountRegex
+journalProfitAndLossAccountQuery  :: Journal -> Matcher
+journalProfitAndLossAccountQuery _ = MatchAcct profitAndLossAccountRegex
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.

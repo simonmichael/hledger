@@ -229,7 +229,7 @@ registerFromString :: String -> IO String
 registerFromString s = do
   d <- getCurrentDay
   j <- readJournal' s
-  return $ postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts d) j
+  return $ postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts d) j
       where opts = defreportopts{empty_=True}
 
 -- | Return a similarity measure, from 0 to 1, for two strings.

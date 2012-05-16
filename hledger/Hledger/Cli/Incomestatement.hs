@@ -24,7 +24,7 @@ incomestatement :: CliOpts -> Journal -> IO ()
 incomestatement CliOpts{reportopts_=ropts} j = do
   let lines = case formatFromOpts ropts of
             Left err -> [err]
-            Right _ -> accountsReportAsText ropts $ accountsReport2 ropts (journalProfitAndLossAccountMatcher j) j
+            Right _ -> accountsReportAsText ropts $ accountsReport2 ropts (journalProfitAndLossAccountQuery j) j
   putStr $ unlines lines
 
 tests_Hledger_Cli_Incomestatement = TestList

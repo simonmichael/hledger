@@ -25,7 +25,7 @@ barchar = '*'
 histogram :: CliOpts -> Journal -> IO ()
 histogram CliOpts{reportopts_=reportopts_} j = do
   d <- getCurrentDay
-  putStr $ showHistogram reportopts_ (optsToFilterSpec reportopts_ d) j
+  putStr $ showHistogram reportopts_ (filterSpecFromOpts reportopts_ d) j
 
 showHistogram :: ReportOpts -> FilterSpec -> Journal -> String
 showHistogram opts filterspec j = concatMap (printDayWith countBar) spanps

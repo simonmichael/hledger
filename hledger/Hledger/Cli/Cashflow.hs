@@ -30,8 +30,8 @@ cashflow :: CliOpts -> Journal -> IO ()
 cashflow CliOpts{reportopts_=ropts} j = do
   -- let lines = case formatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
-  let m = optsToMatcher (withoutBeginDate ropts) d
-      cashreport@(_,total) = accountsReport2 ropts (MatchAnd [m, journalCashAccountMatcher j]) j
+  let m = queryFromOpts (withoutBeginDate ropts) d
+      cashreport@(_,total) = accountsReport2 ropts (MatchAnd [m, journalCashAccountQuery j]) j
       -- operatingreport@(_,operating) = accountsReport2 ropts (MatchAnd [m, journalOperatingAccountMatcher j]) j
       -- investingreport@(_,investing) = accountsReport2 ropts (MatchAnd [m, journalInvestingAccountMatcher j]) j
       -- financingreport@(_,financing) = accountsReport2 ropts (MatchAnd [m, journalFinancingAccountMatcher j]) j

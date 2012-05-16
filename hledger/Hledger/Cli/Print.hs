@@ -19,7 +19,7 @@ import Hledger.Cli.Options
 print' :: CliOpts -> Journal -> IO ()
 print' CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ showTransactions ropts (optsToFilterSpec ropts d) j
+  putStr $ showTransactions ropts (filterSpecFromOpts ropts d) j
 
 showTransactions :: ReportOpts -> FilterSpec -> Journal -> String
 showTransactions opts fspec j = entriesReportAsText opts fspec $ entriesReport opts fspec j

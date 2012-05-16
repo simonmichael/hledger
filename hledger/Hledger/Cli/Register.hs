@@ -26,7 +26,7 @@ import Hledger.Cli.Options
 register :: CliOpts -> Journal -> IO ()
 register CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ postingsReportAsText ropts $ postingsReport ropts (optsToFilterSpec ropts d) j
+  putStr $ postingsReportAsText ropts $ postingsReport ropts (filterSpecFromOpts ropts d) j
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: ReportOpts -> PostingsReport -> String

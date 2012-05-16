@@ -20,7 +20,7 @@ module Hledger.Reports (
   whichDateFromOpts,
   journalSelectingDateFromOpts,
   journalSelectingAmountFromOpts,
-  optsToFilterSpec,
+  filterSpecFromOpts,
   -- * Entries report
   EntriesReport,
   EntriesReportItem,
@@ -167,8 +167,8 @@ journalSelectingAmountFromOpts opts
     | otherwise = id
 
 -- | Convert application options to the library's generic filter specification.
-optsToFilterSpec :: ReportOpts -> Day -> FilterSpec
-optsToFilterSpec opts@ReportOpts{..} d = FilterSpec {
+filterSpecFromOpts :: ReportOpts -> Day -> FilterSpec
+filterSpecFromOpts opts@ReportOpts{..} d = FilterSpec {
                                 datespan=dateSpanFromOpts d opts
                                ,cleared= clearedValueFromOpts opts
                                ,real=real_
@@ -384,7 +384,7 @@ triBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
 
 -- | Select transactions from the whole journal for a transactions report,
 -- with no \"current\" account. The end result is similar to
--- "postingsReport" except it uses matchers and transaction-based report
+-- "postingsReport" except it uses queries and transaction-based report
 -- items and the items are most recent first. Used by eg hledger-web's
 -- journal view.
 journalTransactionsReport :: ReportOpts -> Journal -> Matcher -> TransactionsReport
@@ -411,43 +411,43 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 -- most recent first. Used by eg hledger-web's account register view.
 --
 accountTransactionsReport :: ReportOpts -> Journal -> Matcher -> Matcher -> TransactionsReport
-accountTransactionsReport opts j m thisacctmatcher = (label, items)
+accountTransactionsReport opts j m thisacctquery = (label, items)
  where
      -- transactions affecting this account, in date order
-     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctmatcher) $ jtxns $
+     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctquery) $ jtxns $
           journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label) | matcherIsNull m                           = (nullmixedamt,        balancelabel)
-                      | matcherIsStartDateOnly (effective_ opts) m = (sumPostings priorps, balancelabel)
+     (startbal,label) | queryIsNull m                           = (nullmixedamt,        balancelabel)
+                      | queryIsStartDateOnly (effective_ opts) m = (sumPostings priorps, balancelabel)
                       | otherwise                                 = (nullmixedamt,        totallabel)
                       where
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
                                           (-- ltrace "priormatcher" $
-                                           MatchAnd [thisacctmatcher, tostartdatematcher]))
+                                           MatchAnd [thisacctquery, tostartdatequery]))
                                          $ transactionsPostings ts
-                        tostartdatematcher = MatchDate (DateSpan Nothing startdate)
-                        startdate = matcherStartDate (effective_ opts) m
-     items = reverse $ accountTransactionsReportItems m (Just thisacctmatcher) startbal negate ts
+                        tostartdatequery = MatchDate (DateSpan Nothing startdate)
+                        startdate = queryStartDate (effective_ opts) m
+     items = reverse $ accountTransactionsReportItems m (Just thisacctquery) startbal negate ts
 
 -- | Generate transactions report items from a list of transactions,
--- using the provided query and current account matchers, starting balance,
+-- using the provided query and current account queries, starting balance,
 -- sign-setting function and balance-summing function.
 accountTransactionsReportItems :: Matcher -> Maybe Matcher -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [TransactionsReportItem]
 accountTransactionsReportItems _ _ _ _ [] = []
-accountTransactionsReportItems matcher thisacctmatcher bal signfn (t:ts) =
+accountTransactionsReportItems query thisacctquery bal signfn (t:ts) =
     -- This is used for both accountTransactionsReport and journalTransactionsReport,
     -- which makes it a bit overcomplicated
     case i of Just i' -> i':is
               Nothing -> is
     where
-      tmatched@Transaction{tpostings=psmatched} = filterTransactionPostings matcher t
-      (psthisacct,psotheracct) = case thisacctmatcher of Just m  -> partition (matchesPosting m) psmatched
-                                                         Nothing -> ([],psmatched)
+      tmatched@Transaction{tpostings=psmatched} = filterTransactionPostings query t
+      (psthisacct,psotheracct) = case thisacctquery of Just m  -> partition (matchesPosting m) psmatched
+                                                       Nothing -> ([],psmatched)
       numotheraccts = length $ nub $ map paccount psotheracct
       amt = negate $ sum $ map pamount psthisacct
-      acct | isNothing thisacctmatcher = summarisePostings psmatched -- journal register
+      acct | isNothing thisacctquery = summarisePostings psmatched -- journal register
            | numotheraccts == 0 = "transfer between " ++ summarisePostingAccounts psthisacct
            | otherwise          = prefix              ++ summarisePostingAccounts psotheracct
            where prefix = maybe "" (\b -> if b then "from " else "to ") $ isNegativeMixedAmount amt
@@ -457,7 +457,7 @@ accountTransactionsReportItems matcher thisacctmatcher bal signfn (t:ts) =
                  where
                   a = signfn amt
                   b = bal + a
-      is = accountTransactionsReportItems matcher thisacctmatcher bal' signfn ts
+      is = accountTransactionsReportItems query thisacctquery bal' signfn ts
 
 -- | Generate a short readable summary of some postings, like
 -- "from (negatives) to (positives)".
@@ -498,10 +498,10 @@ accountsReport opts filterspec j = accountsReport' opts j (journalToLedger filte
 
 -- | Select accounts, and get their balances at the end of the selected
 -- period, and misc. display information, for an accounts report. Like
--- "accountsReport" but uses the new matchers. Used by eg hledger-web's
+-- "accountsReport" but uses the new queries. Used by eg hledger-web's
 -- accounts sidebar.
 accountsReport2 :: ReportOpts -> Matcher -> Journal -> AccountsReport
-accountsReport2 opts matcher j = accountsReport' opts j (journalToLedger2 matcher)
+accountsReport2 opts query j = accountsReport' opts j (journalToLedger2 query)
 
 -- Accounts report helper.
 accountsReport' :: ReportOpts -> Journal -> (Journal -> Ledger) -> AccountsReport

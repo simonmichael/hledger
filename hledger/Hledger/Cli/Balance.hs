@@ -117,7 +117,7 @@ balance CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let lines = case formatFromOpts ropts of
             Left err -> [err]
-            Right _ -> accountsReportAsText ropts $ accountsReport ropts (optsToFilterSpec ropts d) j
+            Right _ -> accountsReportAsText ropts $ accountsReport ropts (filterSpecFromOpts ropts d) j
   putStr $ unlines lines
 
 -- | Render a balance report as plain text suitable for console output.

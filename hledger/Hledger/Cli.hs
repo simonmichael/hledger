@@ -110,7 +110,7 @@ tests_Hledger_Cli = TestList
    let opts `gives` es = do
         j <- samplejournal
         d <- getCurrentDay
-        accountsReportAsText opts (accountsReport opts (optsToFilterSpec opts d) j) `is` es
+        accountsReportAsText opts (accountsReport opts (filterSpecFromOpts opts d) j) `is` es
    in TestList
    [
     "balance report with no args" ~:
@@ -281,7 +281,7 @@ tests_Hledger_Cli = TestList
     let opts = defreportopts{patterns_=["expenses"]}
     j <- samplejournal
     d <- getCurrentDay
-    showTransactions opts (optsToFilterSpec opts d) j `is` unlines
+    showTransactions opts (filterSpecFromOpts opts d) j `is` unlines
      ["2008/06/03 * eat & shop"
      ,"    expenses:food                $1"
      ,"    expenses:supplies            $1"
@@ -294,7 +294,7 @@ tests_Hledger_Cli = TestList
     let opts = defreportopts{depth_=Just 2}
     j <- samplejournal
     d <- getCurrentDay
-    showTransactions opts (optsToFilterSpec opts d) j `is` unlines
+    showTransactions opts (filterSpecFromOpts opts d) j `is` unlines
       ["2008/01/01 income"
       ,"    income:salary           $-1"
       ,""
@@ -323,7 +323,7 @@ tests_Hledger_Cli = TestList
    do 
     j <- samplejournal
     let opts = defreportopts
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -341,7 +341,7 @@ tests_Hledger_Cli = TestList
    do 
     let opts = defreportopts{cleared_=True}
     j <- readJournal' sample_journal_str
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
      ["2008/06/03 eat & shop           expenses:food                    $1           $1"
      ,"                                expenses:supplies                $1           $2"
      ,"                                assets:cash                     $-2            0"
@@ -353,7 +353,7 @@ tests_Hledger_Cli = TestList
    do 
     let opts = defreportopts{uncleared_=True}
     j <- readJournal' sample_journal_str
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
      ["2008/01/01 income               assets:bank:checking             $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
@@ -374,13 +374,13 @@ tests_Hledger_Cli = TestList
         ,"  f"
         ]
     let opts = defreportopts
-    registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` ["2008/01/01","2008/02/02"]
+    registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` ["2008/01/01","2008/02/02"]
 
   ,"register report with account pattern" ~:
    do
     j <- samplejournal
     let opts = defreportopts{patterns_=["cash"]}
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
@@ -388,7 +388,7 @@ tests_Hledger_Cli = TestList
    do 
     j <- samplejournal
     let opts = defreportopts{patterns_=["cAsH"]}
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
      ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
      ]
 
@@ -396,7 +396,7 @@ tests_Hledger_Cli = TestList
    do 
     j <- samplejournal
     let gives displayexpr = 
-            (registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is`)
+            (registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is`)
                 where opts = defreportopts{display_=Just displayexpr}
     "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
     "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
@@ -409,7 +409,7 @@ tests_Hledger_Cli = TestList
     j <- samplejournal
     let periodexpr `gives` dates = do
           j' <- samplejournal
-          registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j') `is` dates
+          registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j') `is` dates
               where opts = defreportopts{period_=maybePeriod date1 periodexpr}
     ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
     "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
@@ -418,7 +418,7 @@ tests_Hledger_Cli = TestList
     "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
     "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
     let opts = defreportopts{period_=maybePeriod date1 "yearly"}
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
      ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
      ,"                                assets:cash                     $-2          $-1"
      ,"                                expenses:food                    $1            0"
@@ -428,9 +428,9 @@ tests_Hledger_Cli = TestList
      ,"                                liabilities:debts                $1            0"
      ]
     let opts = defreportopts{period_=maybePeriod date1 "quarterly"}
-    registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
+    registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
     let opts = defreportopts{period_=maybePeriod date1 "quarterly",empty_=True}
-    registerdates (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
+    registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
 
   ]
 
@@ -438,7 +438,7 @@ tests_Hledger_Cli = TestList
    do 
     j <- samplejournal
     let opts = defreportopts{depth_=Just 2}
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
      ["2008/01/01 income               assets:bank                      $1           $1"
      ,"                                income:salary                   $-1            0"
      ,"2008/06/01 gift                 assets:bank                      $1           $1"
@@ -460,7 +460,7 @@ tests_Hledger_Cli = TestList
     j <- readJournal'
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     let opts = defreportopts
-    accountsReportAsText opts (accountsReport opts (optsToFilterSpec opts date1) j) `is`
+    accountsReportAsText opts (accountsReport opts (filterSpecFromOpts opts date1) j) `is`
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"
       ,"--------------------"
@@ -471,7 +471,7 @@ tests_Hledger_Cli = TestList
     j <- readJournal'
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     let opts = defreportopts
-    (postingsReportAsText opts $ postingsReport opts (optsToFilterSpec opts date1) j) `is` unlines
+    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
       ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
       ,"                                актив:наличные                 -100            0"]
 
