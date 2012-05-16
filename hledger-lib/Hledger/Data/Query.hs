@@ -9,13 +9,14 @@ module Hledger.Data.Query (
   -- * Query and QueryOpt
   Query(..),
   QueryOpt(..),
+  -- * parsing
+  parseQuery,
+  -- * accessors
   queryIsNull,
   queryStartDate,
   queryIsStartDateOnly,
   inAccount,
   inAccountQuery,
-  -- * parsing
-  parseQuery,
   -- * matching
   matchesTransaction,
   matchesPosting,
@@ -35,11 +36,9 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
--- import Hledger.Data.Commodity (canonicaliseCommodities)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
--- import Hledger.Data.TimeLog
 
 
 -- | A query is a composition of search criteria, which can be used to
@@ -69,68 +68,7 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
            -- | QueryOptEffectiveDate  -- ^ show effective dates instead of actual dates
     deriving (Show, Eq)
 
--- | Does this query match everything ?
-queryIsNull Any = True
-queryIsNull (And []) = True
-queryIsNull (Not (Or [])) = True
-queryIsNull _ = False
-
--- | What start date does this query specify, if any ?
--- If the query is an OR expression, returns the earliest of the alternatives.
--- When the flag is true, look for a starting effective date instead.
-queryStartDate :: Bool -> Query -> Maybe Day
-queryStartDate effective (Or ms) = earliestMaybeDate $ map (queryStartDate effective) ms
-queryStartDate effective (And ms) = latestMaybeDate $ map (queryStartDate effective) ms
-queryStartDate False (Date (DateSpan (Just d) _)) = Just d
-queryStartDate True (EDate (DateSpan (Just d) _)) = Just d
-queryStartDate _ _ = Nothing
-
--- | Does this query specify a start date and nothing else (that would
--- filter postings prior to the date) ?
--- When the flag is true, look for a starting effective date instead.
-queryIsStartDateOnly :: Bool -> Query -> Bool
-queryIsStartDateOnly _ Any = False
-queryIsStartDateOnly _ None = False
-queryIsStartDateOnly effective (Or ms) = and $ map (queryIsStartDateOnly effective) ms
-queryIsStartDateOnly effective (And ms) = and $ map (queryIsStartDateOnly effective) ms
-queryIsStartDateOnly False (Date (DateSpan (Just _) _)) = True
-queryIsStartDateOnly True (EDate (DateSpan (Just _) _)) = True
-queryIsStartDateOnly _ _ = False
-
--- | What is the earliest of these dates, where Nothing is earliest ?
-earliestMaybeDate :: [Maybe Day] -> Maybe Day
-earliestMaybeDate = headDef Nothing . sortBy compareMaybeDates
-
--- | What is the latest of these dates, where Nothing is earliest ?
-latestMaybeDate :: [Maybe Day] -> Maybe Day
-latestMaybeDate = headDef Nothing . sortBy (flip compareMaybeDates)
-
--- | Compare two maybe dates, Nothing is earliest.
-compareMaybeDates :: Maybe Day -> Maybe Day -> Ordering
-compareMaybeDates Nothing Nothing = EQ
-compareMaybeDates Nothing (Just _) = LT
-compareMaybeDates (Just _) Nothing = GT
-compareMaybeDates (Just a) (Just b) = compare a b
-
--- | The account we are currently focussed on, if any, and whether subaccounts are included.
--- Just looks at the first query option.
-inAccount :: [QueryOpt] -> Maybe (AccountName,Bool)
-inAccount [] = Nothing
-inAccount (QueryOptInAcctOnly a:_) = Just (a,False)
-inAccount (QueryOptInAcct a:_) = Just (a,True)
-
--- | A query for the account(s) we are currently focussed on, if any.
--- Just looks at the first query option.
-inAccountQuery :: [QueryOpt] -> Maybe Query
-inAccountQuery [] = Nothing
-inAccountQuery (QueryOptInAcctOnly a:_) = Just $ Acct $ accountNameToAccountOnlyRegex a
-inAccountQuery (QueryOptInAcct a:_) = Just $ Acct $ accountNameToAccountRegex a
-
--- -- | Convert a query to its inverse.
--- negateQuery :: Query -> Query
--- negateQuery =  Not
-
--- query parsing
+-- parsing
 
 -- -- | A query restricting the account(s) to be shown in the sidebar, if any.
 -- -- Just looks at the first query option.
@@ -269,7 +207,70 @@ parseBool s = s `elem` truestrings
 truestrings :: [String]
 truestrings = ["1","t","true"]
 
--- query matching
+-- * accessors
+
+-- | Does this query match everything ?
+queryIsNull Any = True
+queryIsNull (And []) = True
+queryIsNull (Not (Or [])) = True
+queryIsNull _ = False
+
+-- | What start date does this query specify, if any ?
+-- If the query is an OR expression, returns the earliest of the alternatives.
+-- When the flag is true, look for a starting effective date instead.
+queryStartDate :: Bool -> Query -> Maybe Day
+queryStartDate effective (Or ms) = earliestMaybeDate $ map (queryStartDate effective) ms
+queryStartDate effective (And ms) = latestMaybeDate $ map (queryStartDate effective) ms
+queryStartDate False (Date (DateSpan (Just d) _)) = Just d
+queryStartDate True (EDate (DateSpan (Just d) _)) = Just d
+queryStartDate _ _ = Nothing
+
+-- | Does this query specify a start date and nothing else (that would
+-- filter postings prior to the date) ?
+-- When the flag is true, look for a starting effective date instead.
+queryIsStartDateOnly :: Bool -> Query -> Bool
+queryIsStartDateOnly _ Any = False
+queryIsStartDateOnly _ None = False
+queryIsStartDateOnly effective (Or ms) = and $ map (queryIsStartDateOnly effective) ms
+queryIsStartDateOnly effective (And ms) = and $ map (queryIsStartDateOnly effective) ms
+queryIsStartDateOnly False (Date (DateSpan (Just _) _)) = True
+queryIsStartDateOnly True (EDate (DateSpan (Just _) _)) = True
+queryIsStartDateOnly _ _ = False
+
+-- | What is the earliest of these dates, where Nothing is earliest ?
+earliestMaybeDate :: [Maybe Day] -> Maybe Day
+earliestMaybeDate = headDef Nothing . sortBy compareMaybeDates
+
+-- | What is the latest of these dates, where Nothing is earliest ?
+latestMaybeDate :: [Maybe Day] -> Maybe Day
+latestMaybeDate = headDef Nothing . sortBy (flip compareMaybeDates)
+
+-- | Compare two maybe dates, Nothing is earliest.
+compareMaybeDates :: Maybe Day -> Maybe Day -> Ordering
+compareMaybeDates Nothing Nothing = EQ
+compareMaybeDates Nothing (Just _) = LT
+compareMaybeDates (Just _) Nothing = GT
+compareMaybeDates (Just a) (Just b) = compare a b
+
+-- | The account we are currently focussed on, if any, and whether subaccounts are included.
+-- Just looks at the first query option.
+inAccount :: [QueryOpt] -> Maybe (AccountName,Bool)
+inAccount [] = Nothing
+inAccount (QueryOptInAcctOnly a:_) = Just (a,False)
+inAccount (QueryOptInAcct a:_) = Just (a,True)
+
+-- | A query for the account(s) we are currently focussed on, if any.
+-- Just looks at the first query option.
+inAccountQuery :: [QueryOpt] -> Maybe Query
+inAccountQuery [] = Nothing
+inAccountQuery (QueryOptInAcctOnly a:_) = Just $ Acct $ accountNameToAccountOnlyRegex a
+inAccountQuery (QueryOptInAcct a:_) = Just $ Acct $ accountNameToAccountRegex a
+
+-- -- | Convert a query to its inverse.
+-- negateQuery :: Query -> Query
+-- negateQuery =  Not
+
+-- matching
 
 -- | Does the match expression match this posting ?
 matchesPosting :: Query -> Posting -> Bool
