@@ -182,9 +182,9 @@ filterSpecFromOpts opts@ReportOpts{..} d = FilterSpec {
     where (apats,dpats,mds) = parsePatternArgs patterns_
 
 -- | Convert report options to a (new) query.
-queryFromOpts :: ReportOpts -> Day -> Query
+queryFromOpts :: ReportOpts -> Day -> (Query, [QueryOpt])
 queryFromOpts opts@ReportOpts{..} d = -- strace $
-    And $
+    (And $
       [Date $ dateSpanFromOpts d opts]
       ++ (if null apats then [] else [Or $ map Acct apats])
       ++ (if null dpats then [] else [Or $ map Desc dpats])
@@ -193,8 +193,12 @@ queryFromOpts opts@ReportOpts{..} d = -- strace $
       ++ (if empty_ then [Empty True] else [])
       ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
       ++ (maybe [] ((:[]) . Depth) depth_)
+    ,[])
     where
       (apats,dpats,mds) = parsePatternArgs patterns_
+
+-- queryFromOpts :: ReportOpts -> Day -> (Query, [QueryOpt])
+-- queryFromOpts opts d = parseQuery d (unwords $ patterns_ opts)
 
 -- | Gather filter pattern arguments into a list of account patterns and a
 -- list of description patterns. We interpret pattern arguments as

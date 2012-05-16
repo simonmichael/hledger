@@ -27,7 +27,7 @@ balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet CliOpts{reportopts_=ropts} j = do
   -- let lines = case formatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
-  let m = queryFromOpts (withoutBeginDate ropts) d
+  let (m,_) = queryFromOpts (withoutBeginDate ropts) d
       assetreport@(_,assets)          = accountsReport2 ropts (And [m, journalAssetAccountQuery j]) j
       liabilityreport@(_,liabilities) = accountsReport2 ropts (And [m, journalLiabilityAccountQuery j]) j
       equityreport@(_,equity)         = accountsReport2 ropts (And [m, journalEquityAccountQuery j]) j
