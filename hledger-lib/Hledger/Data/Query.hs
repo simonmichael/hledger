@@ -5,7 +5,17 @@ Currently used only by hledger-web.
 
 -}
 
-module Hledger.Data.Query
+module Hledger.Data.Query (
+  Matcher(..),
+  matcherIsNull,
+  matcherIsStartDateOnly,
+  matcherStartDate,
+  matchesTransaction,
+  matchesPosting,
+  inAccount,
+  inAccountMatcher,
+  tests_Hledger_Data_Query
+)
 where
 import Data.Either
 import Data.List
@@ -176,9 +186,9 @@ parseBool s = s `elem` truestrings
 truestrings :: [String]
 truestrings = ["1","t","true"]
 
--- | Convert a match expression to its inverse.
-negateMatcher :: Matcher -> Matcher
-negateMatcher =  MatchNot
+-- -- | Convert a match expression to its inverse.
+-- negateMatcher :: Matcher -> Matcher
+-- negateMatcher =  MatchNot
 
 -- | Does the match expression match this posting ?
 matchesPosting :: Matcher -> Posting -> Bool
