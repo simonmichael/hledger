@@ -73,7 +73,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Transaction
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
-import Hledger.Data.Query
+import Hledger.Query
 
 
 instance Show Journal where

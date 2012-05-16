@@ -5,7 +5,7 @@ transactions..)  by various criteria, and a parser for query expressions.
 
 -}
 
-module Hledger.Data.Query (
+module Hledger.Query (
   -- * Query and QueryOpt
   Query(..),
   QueryOpt(..),
@@ -29,7 +29,7 @@ module Hledger.Data.Query (
   matchesPosting,
   matchesTransaction,
   -- * tests
-  tests_Hledger_Data_Query
+  tests_Hledger_Query
 )
 where
 import Data.Either
@@ -561,8 +561,8 @@ postingEffectiveDate p = maybe Nothing (Just . transactionEffectiveDate) $ ptran
 
 -- tests
 
-tests_Hledger_Data_Query :: Test
-tests_Hledger_Data_Query = TestList $
+tests_Hledger_Query :: Test
+tests_Hledger_Query = TestList $
     tests_simplifyQuery
  ++ tests_words''
  ++ tests_filterQuery

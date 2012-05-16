@@ -14,7 +14,7 @@ import Text.Printf
 import Hledger.Cli.Options
 import Hledger.Data
 import Hledger.Reports
-import Hledger.Data.Query
+import Hledger.Query
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 

@@ -63,7 +63,7 @@ import Text.Printf
 
 import Hledger.Data
 import Hledger.Read (amount')
-import Hledger.Data.Query
+import Hledger.Query
 import Hledger.Utils
 
 -- | Standard options for customising report filtering and output,
