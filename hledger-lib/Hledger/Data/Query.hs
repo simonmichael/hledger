@@ -162,6 +162,21 @@ parseQuery d s = (m,qopts)
                         (m':[]) -> m'
                         ms      -> And ms
 
+tests_parseQuery = [
+  "parseQuery" ~: do
+    let d = parsedate "2011/1/1"
+    parseQuery d "acct:'expenses:autres d\233penses' desc:b" `is` (And [Acct "expenses:autres d\233penses", Desc "b"], [])
+    parseQuery d "inacct:a desc:\"b b\"" `is` (Desc "b b", [QueryOptInAcct "a"])
+    parseQuery d "inacct:a inacct:b" `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
+ ]
+
+-- keep synced with patterns below, excluding "not"
+prefixes = map (++":") [
+            "inacct","inacctonly",
+            "desc","acct","date","edate","status","real","empty","depth"
+           ]
+defaultprefix = "acct"
+
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
 -- prefixes in front, and maybe an additional not: prefix in front of that.
@@ -182,6 +197,18 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
         return $ stripquotes p
       pattern = many (noneOf " \n\r\"")
 
+tests_words'' = [
+   "words''" ~: do
+    assertEqual "1" ["a","b"]        (words'' [] "a b")
+    assertEqual "2" ["a b"]          (words'' [] "'a b'")
+    assertEqual "3" ["not:a","b"]    (words'' [] "not:a b")
+    assertEqual "4" ["not:a b"]    (words'' [] "not:'a b'")
+    assertEqual "5" ["not:a b"]    (words'' [] "'not:a b'")
+    assertEqual "6" ["not:desc:a b"]    (words'' ["desc:"] "not:desc:'a b'")
+    let s `gives` r = assertEqual "" r (words'' prefixes s)
+    "\"acct:expenses:autres d\233penses\"" `gives` ["acct:expenses:autres d\233penses"]
+ ]
+
 -- -- | Parse the query string as a boolean tree of match patterns.
 -- parseQueryTerm :: String -> Query
 -- parseQueryTerm s = either (const (Any)) id $ runParser query () "" $ lexmatcher s
@@ -191,13 +218,6 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
 
 -- query :: GenParser String () Query
 -- query = undefined
-
--- keep synced with patterns below, excluding "not"
-prefixes = map (++":") [
-            "inacct","inacctonly",
-            "desc","acct","date","edate","status","real","empty","depth"
-           ]
-defaultprefix = "acct"
 
 -- | Parse a single query term as either a query or a query option.
 parseQueryTerm :: Day -> String -> Either Query QueryOpt
@@ -220,6 +240,21 @@ parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
 parseQueryTerm _ "" = Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix++":"++s
+
+tests_parseQueryTerm = [
+  "parseQueryTerm" ~: do
+    let s `gives` r = parseQueryTerm nulldate s `is` r
+    "a" `gives` (Left $ Acct "a")
+    "acct:expenses:autres d\233penses" `gives` (Left $ Acct "expenses:autres d\233penses")
+    "not:desc:a b" `gives` (Left $ Not $ Desc "a b")
+    "status:1" `gives` (Left $ Status True)
+    "status:0" `gives` (Left $ Status False)
+    "status:" `gives` (Left $ Status False)
+    "real:1" `gives` (Left $ Real True)
+    "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
+    "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
+    "inacct:a" `gives` (Right $ QueryOptInAcct "a")
+ ]
 
 -- | Parse the boolean value part of a "status:" query, allowing "*" as
 -- another way to spell True, similar to the journal file format.
@@ -257,6 +292,24 @@ matchesPosting (Real v) p = v == isReal p
 matchesPosting (Empty v) Posting{pamount=a} = v == isZeroMixedAmount a
 matchesPosting _ _ = False
 
+tests_matchesPosting = [
+   "matchesPosting" ~: do
+    -- matching posting status..
+    assertBool "positive match on true posting status"  $
+                   (Status True)  `matchesPosting` nullposting{pstatus=True}
+    assertBool "negative match on true posting status"  $
+               not $ (Not $ Status True)  `matchesPosting` nullposting{pstatus=True}
+    assertBool "positive match on false posting status" $
+                   (Status False) `matchesPosting` nullposting{pstatus=False}
+    assertBool "negative match on false posting status" $
+               not $ (Not $ Status False) `matchesPosting` nullposting{pstatus=False}
+    assertBool "positive match on true posting status acquired from transaction" $
+                   (Status True) `matchesPosting` nullposting{pstatus=False,ptransaction=Just nulltransaction{tstatus=True}}
+    assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
+    assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+ ]
+
 -- | Does the match expression match this transaction ?
 matchesTransaction :: Query -> Transaction -> Bool
 matchesTransaction (Not m) t = not $ matchesTransaction m t
@@ -286,54 +339,19 @@ matchesAccount (And ms) a = all (`matchesAccount` a) ms
 matchesAccount (Acct r) a = regexMatchesCI r a
 matchesAccount _ _ = False
 
+tests_matchesAccount = [
+   "matchesAccount" ~: do
+    assertBool "positive acct match" $ matchesAccount (Acct "b:c") "a:bb:c:d"
+    -- assertBool "acct should match at beginning" $ not $ matchesAccount (Acct True "a:b") "c:a:b"
+ ]
+
 -- tests
 
 tests_Hledger_Data_Query :: Test
-tests_Hledger_Data_Query = TestList
- [
+tests_Hledger_Data_Query = TestList $
+ tests_words''
+ ++ tests_parseQueryTerm
+ ++ tests_parseQuery
+ ++ tests_matchesAccount
+ ++ tests_matchesPosting
 
-  "parseQuery" ~: do
-    let d = parsedate "2011/1/1"
-    parseQuery d "a" `is` (Acct "a", [])
-    parseQuery d "acct:a" `is` (Acct "a", [])
-    parseQuery d "acct:a desc:b" `is` (And [Acct "a", Desc "b"], [])
-    parseQuery d "\"acct:expenses:autres d\233penses\"" `is` (Acct "expenses:autres d\233penses", [])
-    parseQuery d "not:desc:'a b'" `is` (Not $ Desc "a b", [])
-
-    parseQuery d "inacct:a desc:b" `is` (Desc "b", [QueryOptInAcct "a"])
-    parseQuery d "inacct:a inacct:b" `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
-
-    parseQuery d "status:1" `is` (Status True, [])
-    parseQuery d "status:0" `is` (Status False, [])
-    parseQuery d "status:" `is` (Status False, [])
-    parseQuery d "real:1" `is` (Real True, [])
-
-  ,"matchesAccount" ~: do
-    assertBool "positive acct match" $ matchesAccount (Acct "b:c") "a:bb:c:d"
-    -- assertBool "acct should match at beginning" $ not $ matchesAccount (Acct True "a:b") "c:a:b"
-
-  ,"matchesPosting" ~: do
-    -- matching posting status..
-    assertBool "positive match on true posting status"  $
-                   (Status True)  `matchesPosting` nullposting{pstatus=True}
-    assertBool "negative match on true posting status"  $
-               not $ (Not $ Status True)  `matchesPosting` nullposting{pstatus=True}
-    assertBool "positive match on false posting status" $
-                   (Status False) `matchesPosting` nullposting{pstatus=False}
-    assertBool "negative match on false posting status" $
-               not $ (Not $ Status False) `matchesPosting` nullposting{pstatus=False}
-    assertBool "positive match on true posting status acquired from transaction" $
-                   (Status True) `matchesPosting` nullposting{pstatus=False,ptransaction=Just nulltransaction{tstatus=True}}
-    assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
-    assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
-
-  ,"words''" ~: do
-    assertEqual "1" ["a","b"]        (words'' [] "a b")
-    assertEqual "2" ["a b"]          (words'' [] "'a b'")
-    assertEqual "3" ["not:a","b"]    (words'' [] "not:a b")
-    assertEqual "4" ["not:a b"]    (words'' [] "not:'a b'")
-    assertEqual "5" ["not:a b"]    (words'' [] "'not:a b'")
-    assertEqual "6" ["not:desc:a b"]    (words'' ["desc:"] "not:desc:'a b'")
-
- ]

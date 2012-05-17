@@ -14,6 +14,7 @@ hledger project notes
 **** 7.4.1
 **** 7.2.2
 **** 7.0.4
+*** release 0.18
 ** errors
 *** hledger incomestatement --depth shows nothing
 *** duplicate test runs
@@ -619,6 +620,7 @@ This project will go forward if
 **** every parser has a test and is easy to test
 **** easy to run any single test or module's tests
 **** tests run bottom up by default
+**** test runner can select tests precisely eg by regexp
 **** test runner stops at first failure by default
 
 *** documentation
@@ -1865,7 +1867,7 @@ ExitFailure (-1073741819)
 
 
 * journal
-partial
+(partial)
 ** 2010
 *** 5/4
 **** balance sheet pomodoro 1
@@ -3021,3 +3023,5 @@ move *FromOpts into toOpts
 ** 2012
 *** 2012/5/5 release prep
 *** 5/14 finish parsing, tests changes
+*** 5/15 matcher -> query, cleanup
+*** 5/16 tests, using query consistently

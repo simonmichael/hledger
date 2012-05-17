@@ -47,7 +47,6 @@ tests_Hledger_Data = TestList
     ,tests_Hledger_Data_Dates
     ,tests_Hledger_Data_Journal
     ,tests_Hledger_Data_Ledger
-    ,tests_Hledger_Data_Query
     ,tests_Hledger_Data_Posting
     ,tests_Hledger_Data_TimeLog
     ,tests_Hledger_Data_Transaction
