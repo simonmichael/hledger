@@ -232,6 +232,19 @@ entriesReport opts fspec j = sortBy (comparing f) $ jtxns $ filterJournalTransac
       f = transactionDateFn opts
       j' = journalSelectingAmountFromOpts opts j
 
+-- | Select transactions for an entries report.
+entriesReport2 :: ReportOpts -> Query -> Journal -> EntriesReport
+entriesReport2 opts q j =
+    sortBy (comparing f) $ filter (not . null . tpostings) $ map (filterTransactionPostings q) $ jtxns j'
+    where
+      f = transactionDateFn opts
+      j' = journalSelectingAmountFromOpts opts j
+
+tests_entriesReport2 = [
+  "entriesReport2" ~: do
+    assertEqual "" [] (entriesReport2 defreportopts Any nulljournal)
+ ]
+
 -------------------------------------------------------------------------------
 
 -- | A postings report is a list of postings with a running total, a label
@@ -594,7 +607,8 @@ isInterestingIndented opts l a
 -------------------------------------------------------------------------------
 
 tests_Hledger_Reports :: Test
-tests_Hledger_Reports = TestList
+tests_Hledger_Reports = TestList $
+ tests_entriesReport2 ++
  [
 
   "summarisePostingsByInterval" ~: do

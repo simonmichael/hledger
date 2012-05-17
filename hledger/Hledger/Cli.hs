@@ -42,8 +42,7 @@ import Hledger.Cli.Version
 tests_Hledger_Cli :: Test
 tests_Hledger_Cli = TestList
  [
-    tests_Hledger_Data
-   ,tests_Hledger_Read
+    tests_Hledger
    -- ,tests_Hledger_Cli_Add
    -- ,tests_Hledger_Cli_Balance
    ,tests_Hledger_Cli_Balancesheet
