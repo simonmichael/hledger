@@ -15,7 +15,6 @@ module Hledger.Data (
                module Hledger.Data.Dates,
                module Hledger.Data.Journal,
                module Hledger.Data.Ledger,
-               module Hledger.Data.Query,
                module Hledger.Data.Posting,
                module Hledger.Data.TimeLog,
                module Hledger.Data.Transaction,
@@ -32,7 +31,6 @@ import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Ledger
-import Hledger.Data.Query
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
 import Hledger.Data.Transaction

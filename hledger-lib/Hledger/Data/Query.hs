@@ -11,6 +11,7 @@ module Hledger.Data.Query (
   QueryOpt(..),
   -- * parsing
   parseQuery,
+  simplifyQuery,
   -- * accessors
   queryIsNull,
   queryStartDate,
@@ -206,6 +207,10 @@ parseBool s = s `elem` truestrings
 
 truestrings :: [String]
 truestrings = ["1","t","true"]
+
+simplifyQuery :: Query -> Query
+simplifyQuery (And [q]) = q
+simplifyQuery q = q
 
 -- * accessors
 
