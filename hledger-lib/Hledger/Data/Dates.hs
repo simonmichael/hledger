@@ -38,6 +38,9 @@ module Hledger.Data.Dates (
   datesepchar,
   datesepchars,
   spanIntersect,
+  spansIntersect,
+  spanUnion,
+  spansUnion,
   orDatesFrom,
   smartdate,
   splitSpan,
@@ -47,6 +50,7 @@ module Hledger.Data.Dates (
   fixSmartDateStrEither',
   daysInSpan,
   maybePeriod,
+  mkdatespan,
 )
 where
 
@@ -143,11 +147,27 @@ orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
     where a = if isJust a1 then a1 else a2
           b = if isJust b1 then b1 else b2
 
+-- | Calculate the intersection of a number of datespans.
+spansIntersect [] = nulldatespan
+spansIntersect [d] = d
+spansIntersect (d:ds) = d `spanIntersect` (spansIntersect ds)
+
 -- | Calculate the intersection of two datespans.
 spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
     where
       b = latest b1 b2
       e = earliest e1 e2
+
+-- | Calculate the union of a number of datespans.
+spansUnion [] = nulldatespan
+spansUnion [d] = d
+spansUnion (d:ds) = d `spanUnion` (spansUnion ds)
+
+-- | Calculate the union of two datespans.
+spanUnion (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
+    where
+      b = earliest b1 b2
+      e = latest e1 e2
 
 latest d Nothing = d
 latest Nothing d = d
