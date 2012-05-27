@@ -516,7 +516,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars 1]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   },
                   Posting {
@@ -525,7 +525,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars 1]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   },
                   Posting {
@@ -534,7 +534,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars (-1)]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   },
                   Posting {
@@ -543,7 +543,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars (-1)]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                   ] (Mixed [nullamt]))
@@ -554,7 +554,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars 1]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                   ] (Mixed [dollars 1]))
@@ -565,7 +565,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars (-2)]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                 ] (Mixed [dollars (-2)]))
@@ -577,7 +577,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars 1]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                 ] (Mixed [dollars 1]))
@@ -588,7 +588,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars 1]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                 ] (Mixed [dollars 1]))
@@ -600,7 +600,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars (-1)]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                 ] (Mixed [dollars (-1)]))
@@ -611,7 +611,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars (-1)]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                   ] (Mixed [dollars (-1)]))
@@ -623,7 +623,7 @@ tests_journalAccountInfo = [
                     pamount=(Mixed [dollars 1]),
                     pcomment="",
                     ptype=RegularPosting,
-                    pmetadata=[],
+                    ptags=[],
                     ptransaction=Nothing
                   }
                 ] (Mixed [dollars 1]))
@@ -712,7 +712,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
              tcode="",
              tdescription="income",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -720,7 +720,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars 1]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -729,7 +729,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(missingmixedamt),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -743,7 +743,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
              tcode="",
              tdescription="gift",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -751,7 +751,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars 1]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -760,7 +760,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(missingmixedamt),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -774,7 +774,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
              tcode="",
              tdescription="save",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -782,7 +782,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars 1]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -791,7 +791,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars (-1)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -805,7 +805,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
              tcode="",
              tdescription="eat & shop",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -813,7 +813,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars 1]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -822,7 +822,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars 1]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -831,7 +831,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(missingmixedamt),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -845,7 +845,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
              tcode="",
              tdescription="pay off",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -853,7 +853,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars 1]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -862,7 +862,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars (-1)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],

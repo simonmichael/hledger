@@ -81,7 +81,7 @@ entryFromTimeLogInOut i o
             tcode         = "",
             tdescription  = showtime itod ++ "-" ++ showtime otod,
             tcomment      = "",
-            tmetadata     = [],
+            ttags     = [],
             tpostings = ps,
             tpreceding_comment_lines=""
           }
@@ -95,7 +95,7 @@ entryFromTimeLogInOut i o
       hrs      = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       amount   = Mixed [hours hrs]
       ps       = [Posting{pstatus=False,paccount=acctname,pamount=amount,
-                          pcomment="",ptype=VirtualPosting,pmetadata=[],ptransaction=Just t}]
+                          pcomment="",ptype=VirtualPosting,ptags=[],ptransaction=Just t}]
 
 tests_Hledger_Data_TimeLog = TestList [
 

@@ -914,7 +914,7 @@ Right samplejournal2 = journalBalanceTransactions $ Journal
              tcode="",
              tdescription="income",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -922,7 +922,7 @@ Right samplejournal2 = journalBalanceTransactions $ Journal
                 pamount=(Mixed [dollars 1]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -931,7 +931,7 @@ Right samplejournal2 = journalBalanceTransactions $ Journal
                 pamount=(missingmixedamt),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],

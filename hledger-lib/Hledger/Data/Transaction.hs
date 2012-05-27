@@ -2,8 +2,8 @@
 
 A 'Transaction' represents a movement of some commodity(ies) between two
 or more accounts. It consists of multiple account 'Posting's which balance
-to zero, a date, and optional metadata like description and cleared
-status.
+to zero, a date, and optional extras like description, cleared status, and
+tags.
 
 -}
 
@@ -65,7 +65,7 @@ nulltransaction = Transaction {
                     tcode="", 
                     tdescription="", 
                     tcomment="",
-                    tmetadata=[],
+                    ttags=[],
                     tpostings=[],
                     tpreceding_comment_lines=""
                   }
@@ -103,7 +103,7 @@ tests_showTransactionUnelided = [
       tcode="code",
       tdescription="desc",
       tcomment="tcomment1\ntcomment2\n",
-      tmetadata=[("ttag1","val1")],
+      ttags=[("ttag1","val1")],
       tpostings=[
         nullposting{
           pstatus=True,
@@ -111,7 +111,7 @@ tests_showTransactionUnelided = [
           pamount=Mixed [dollars 1, hours 2],
           pcomment="pcomment1\npcomment2\n",
           ptype=RegularPosting,
-          pmetadata=[("ptag1","val1"),("ptag2","val2")]
+          ptags=[("ptag1","val1"),("ptag2","val2")]
           }
        ]
       }
@@ -133,7 +133,7 @@ showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
     unlines $ [descriptionline]
               ++ commentlines
-              ++ (metadataAsLines $ tmetadata t)
+              ++ (tagsAsLines $ ttags t)
               ++ (postingsAsLines elide t (tpostings t))
               ++ [""]
     where
@@ -163,7 +163,7 @@ postingAsLines :: Bool -> [Posting] -> Posting -> [String]
 postingAsLines elideamount ps p =
     postinglines
     ++ commentlines
-    ++ metadataAsLines (pmetadata p)
+    ++ tagsAsLines (ptags p)
   where
     postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, firstcomment]
     amount = if elideamount then "" else showamt (pamount p)
@@ -186,7 +186,7 @@ tests_postingAsLines = [
       pamount=Mixed [dollars 1, hours 2],
       pcomment="pcomment1\npcomment2\n",
       ptype=RegularPosting,
-      pmetadata=[("ptag1","val1"),("ptag2","val2")]
+      ptags=[("ptag1","val1"),("ptag2","val2")]
       }
      `gives` [
       "                $1.00",

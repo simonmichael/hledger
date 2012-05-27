@@ -95,7 +95,7 @@ data Posting = Posting {
       pamount :: MixedAmount,
       pcomment :: String, -- ^ this posting's non-tag comment lines, as a single non-indented string
       ptype :: PostingType,
-      pmetadata :: [(String,String)],
+      ptags :: [(String,String)],
       ptransaction :: Maybe Transaction  -- ^ this posting's parent transaction (co-recursive types).
                                         -- Tying this knot gets tedious, Maybe makes it easier/optional.
     }
@@ -112,7 +112,7 @@ data Transaction = Transaction {
       tcode :: String,
       tdescription :: String,
       tcomment :: String, -- ^ this transaction's non-tag comment lines, as a single non-indented string
-      tmetadata :: [(String,String)],
+      ttags :: [(String,String)],
       tpostings :: [Posting],            -- ^ this transaction's postings (co-recursive types).
       tpreceding_comment_lines :: String
     } deriving (Eq)

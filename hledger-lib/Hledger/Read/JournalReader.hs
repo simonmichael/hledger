@@ -312,7 +312,7 @@ transaction = do
   edate <- optionMaybe (effectivedate date) <?> "effective date"
   status <- status <?> "cleared flag"
   code <- code <?> "transaction code"
-  -- now there can be whitespace followed by a description and/or comment/metadata comment
+  -- now there can be whitespace followed by a description and/or comment/tag comment
   let pdescription = many (noneOf ";\n") >>= return . strip
   (description, inlinecomment, inlinemd) <-
     try (do many1 spacenonewline
@@ -340,7 +340,7 @@ tests_transaction = [
                         same tcode
                         same tdescription
                         same tcomment
-                        same tmetadata
+                        same ttags
                         same tpreceding_comment_lines
                         same tpostings
     -- "0000/01/01\n\n" `gives` nulltransaction 
@@ -361,7 +361,7 @@ tests_transaction = [
       tcode="code",
       tdescription="desc",
       tcomment="tcomment1\ntcomment2\n",
-      tmetadata=[("ttag1","val1")],
+      ttags=[("ttag1","val1")],
       tpostings=[
         nullposting{
           pstatus=True,
@@ -369,7 +369,7 @@ tests_transaction = [
           pamount=Mixed [dollars 1],
           pcomment="pcomment1\npcomment2\n",
           ptype=RegularPosting,
-          pmetadata=[("ptag1","val1"),("ptag2","val2")],
+          ptags=[("ptag1","val1"),("ptag2","val2")],
           ptransaction=Nothing
           }
         ],
@@ -465,8 +465,7 @@ status = try (do { many spacenonewline; char '*' <?> "status"; return True } ) <
 code :: GenParser Char JournalContext String
 code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
--- Parse the following whitespace-beginning lines as postings, posting metadata, and/or comments.
--- complicated to handle intermixed comment and metadata lines.. make me better ?
+-- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
 postings :: GenParser Char JournalContext [Posting]
 postings = many1 (try posting) <?> "postings"
             
@@ -505,7 +504,7 @@ tests_posting = [
                          same pamount
                          same pcomment
                          same ptype
-                         same pmetadata
+                         same ptags
                          same ptransaction
     "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
      `gives`
@@ -769,7 +768,7 @@ tests_inlinecomment = [
 
 commentlines :: GenParser Char JournalContext ([String],[Tag])
 commentlines = do
-  comormds <- many $ choice' [(liftM Right metadataline)
+  comormds <- many $ choice' [(liftM Right tagline)
                              ,(do {many1 spacenonewline; c <- comment; newline; return $ Left c }) -- XXX fix commentnewline
                              ]
   return $ partitionEithers comormds
@@ -781,10 +780,10 @@ tests_commentlines = [
      `gives` (["comment 1","comment 2"],[("tag1","val1")])
  ]
 
--- a comment line containing a metadata declaration, eg:
+-- a comment line containing a tag declaration, eg:
 -- ; name: value
-metadataline :: GenParser Char JournalContext (String,String)
-metadataline = do
+tagline :: GenParser Char JournalContext (String,String)
+tagline = do
   many1 spacenonewline
   md <- tagcomment
   newline
@@ -800,7 +799,7 @@ tagcomment = do
   many spacenonewline
   value <- many (noneOf "\n")
   return (name, rstrip value)
-  <?> "metadata comment"
+  <?> "tag comment"
 
 tests_tagcomment = [
    "tagcomment" ~: do

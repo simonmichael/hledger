@@ -347,7 +347,7 @@ journal7 = Journal
              tcode="*",
              tdescription="opening balance",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -355,7 +355,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -364,7 +364,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -378,7 +378,7 @@ journal7 = Journal
              tcode="*",
              tdescription="ayres suites",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -386,7 +386,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 179.92]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -395,7 +395,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-179.92)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -409,7 +409,7 @@ journal7 = Journal
              tcode="*",
              tdescription="auto transfer to savings",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -417,7 +417,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 200]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -426,7 +426,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-200)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -440,7 +440,7 @@ journal7 = Journal
              tcode="*",
              tdescription="poquito mas",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -448,7 +448,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 4.82]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -457,7 +457,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -471,7 +471,7 @@ journal7 = Journal
              tcode="*",
              tdescription="verizon",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -479,7 +479,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 95.11]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -488,7 +488,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-95.11)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],
@@ -502,7 +502,7 @@ journal7 = Journal
              tcode="*",
              tdescription="discover",
              tcomment="",
-             tmetadata=[],
+             ttags=[],
              tpostings=[
               Posting {
                 pstatus=False,
@@ -510,7 +510,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars 80]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               },
               Posting {
@@ -519,7 +519,7 @@ journal7 = Journal
                 pamount=(Mixed [dollars (-80)]),
                 pcomment="",
                 ptype=RegularPosting,
-                pmetadata=[],
+                ptags=[],
                 ptransaction=Nothing
               }
              ],

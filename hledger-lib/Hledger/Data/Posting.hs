@@ -35,8 +35,8 @@ module Hledger.Data.Posting (
   showPosting,
   showPostingForRegister,
   -- * misc.
-  postingMetadataAsLines,
-  metadataAsLines,
+  postingTagsAsLines,
+  tagsAsLines,
   showComment,
   tests_Hledger_Data_Posting
 )
@@ -62,7 +62,7 @@ nullposting = Posting False "" nullmixedamt "" RegularPosting [] Nothing
 
 showPosting :: Posting -> String
 showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
-    unlines $ [concatTopPadded [showaccountname a ++ " ", showamount amt, showComment (pcomment p)]] ++ postingMetadataAsLines p
+    unlines $ [concatTopPadded [showaccountname a ++ " ", showamount amt, showComment (pcomment p)]] ++ postingTagsAsLines p
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
@@ -74,11 +74,11 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
       showamount = padleft 12 . showMixedAmount
 
 
-postingMetadataAsLines :: Posting -> [String]
-postingMetadataAsLines = metadataAsLines . pmetadata
+postingTagsAsLines :: Posting -> [String]
+postingTagsAsLines = tagsAsLines . ptags
 
-metadataAsLines :: [(String, String)] -> [String]
-metadataAsLines mds = map (\(k,v) -> "    ; " ++ k++": "++v) mds
+tagsAsLines :: [(String, String)] -> [String]
+tagsAsLines mds = map (\(k,v) -> "    ; " ++ k++": "++v) mds
 
 showComment :: String -> String
 showComment s = if null s then "" else "  ; " ++ s

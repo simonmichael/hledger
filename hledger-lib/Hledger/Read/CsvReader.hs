@@ -436,7 +436,7 @@ transactionFromCsvRecord rules fields =
               tdescription=newdesc,
               tcomment=comment,
               tpreceding_comment_lines=precomment,
-              tmetadata=[],
+              ttags=[],
               tpostings=[
                    Posting {
                      pstatus=False,
@@ -444,7 +444,7 @@ transactionFromCsvRecord rules fields =
                      pamount=a,
                      pcomment="",
                      ptype=RegularPosting,
-                     pmetadata=[],
+                     ptags=[],
                      ptransaction=Just t
                    },
                    Posting {
@@ -453,7 +453,7 @@ transactionFromCsvRecord rules fields =
                      pamount=(-baseamount),
                      pcomment="",
                      ptype=RegularPosting,
-                     pmetadata=[],
+                     ptags=[],
                      ptransaction=Just t
                    }
                   ]
