@@ -77,9 +77,9 @@ Options are similar across most commands, with some variations; use
 `hledger COMMAND --help` for details. Most options must appear somewhere
 after COMMAND, not before it. The `-f` option can appear anywhere.
 
-Arguments are also command-specific, but usually they are
-[filter patterns](#filter-patterns) which select a subset of the journal,
-eg transactions in a certain account.
+Arguments are also command-specific, but usually they form a
+[query](#queries) which selects a subset of the journal, eg transactions
+in a certain account.
 
 To create an initial journal, run `hledger add` and follow the prompts to
 enter some transactions.  Or, save this
@@ -650,9 +650,9 @@ The add command tries to be helpful, providing:
 
 - History awareness: if there are existing transactions approximately
   matching the description you enter, they will be displayed and the best
-  match will provide defaults for the other fields. If you specify
-  [filter pattern(s)](#filter-patterns) on the command line, only matching
-  transactions will be considered as history.
+  match will provide defaults for the other fields. If you specify a
+  [query](#queries) on the command line, only matching transactions will
+  be considered as history.
 
 - Readline-style input: during data entry, the usual editing keys should
   work.
@@ -723,8 +723,9 @@ Examples:
 
 #### register
 
-The register command displays postings, one per line, and their running total.
-With no [filter patterns](#filter-patterns), this is not all that different from [print](#print):
+The register command displays postings, one per line, and their running
+total.  With no [query terms](#queries), this is not all that different
+from [print](#print):
 
     $ hledger register
 
