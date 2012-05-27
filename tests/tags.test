@@ -26,29 +26,29 @@ bin/hledger -f - print
 >>>=0
 
 # 2. print (and a few other commands) can filter by tag value
-bin/hledger -f - print tag foo=bar
-<<<
-2010/01/01
-  ; foo:bar
-  a             1
-  b            -1
+# bin/hledger -f - print tag foo=bar
+# <<<
+# 2010/01/01
+#   ; foo:bar
+#   a             1
+#   b            -1
 
-2010/01/02
-  ; foo:baz
-  c             1
-  d            -1
+# 2010/01/02
+#   ; foo:baz
+#   c             1
+#   d            -1
 
-2010/01/03
-    e             1
-    f            -1
->>>
-2010/01/01
-    ; foo: bar
-    a             1
-    b            -1
+# 2010/01/03
+#     e             1
+#     f            -1
+# >>>
+# 2010/01/01
+#     ; foo: bar
+#     a             1
+#     b            -1
 
->>>2
->>>=0
+# >>>2
+# >>>=0
 
 # # 3. or tag existence ? not yet
 # bin/hledger -f - print tag foo
