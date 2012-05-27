@@ -22,9 +22,9 @@ import Hledger.Cli.Balance
 incomestatement :: CliOpts -> Journal -> IO ()
 incomestatement CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  let (m,_) = queryFromOpts ropts d
-      incomereport@(_,income)    = accountsReport2 ropts (And [m, journalIncomeAccountQuery j]) j
-      expensereport@(_,expenses) = accountsReport2 ropts (And [m, journalExpenseAccountQuery j]) j
+  let q = queryFromOpts d ropts
+      incomereport@(_,income)    = accountsReport ropts (And [q, journalIncomeAccountQuery j]) j
+      expensereport@(_,expenses) = accountsReport ropts (And [q, journalExpenseAccountQuery j]) j
       total = income + expenses
   LT.putStr $ [lt|Income Statement
 

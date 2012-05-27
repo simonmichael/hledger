@@ -14,18 +14,17 @@ module Hledger.Data.Journal (
   addTimeLogEntry,
   addTransaction,
   journalApplyAliases,
+  journalBalanceTransactions,
   journalCanonicaliseAmounts,
   journalConvertAmountsToCost,
   journalFinalise,
   journalSelectingDate,
   -- * Filtering
   filterJournalPostings,
-  filterJournalPostings2,
   filterJournalTransactions,
-  filterJournalTransactions2,
-  filterJournalTransactionsByAccount,
   -- * Querying
   journalAccountInfo,
+  journalAccountNames,
   journalAccountNamesUsed,
   journalAmountAndPriceCommodities,
   journalAmounts,
@@ -46,14 +45,14 @@ module Hledger.Data.Journal (
   groupPostings,
   matchpats,
   nullctx,
-  nullfilterspec,
   nulljournal,
   -- * Tests
+  samplejournal,
   tests_Hledger_Data_Journal,
 )
 where
 import Data.List
-import Data.Map (findWithDefault, (!))
+import Data.Map (findWithDefault, (!), toAscList)
 import Data.Ord
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -67,10 +66,11 @@ import qualified Data.Map as Map
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
+import Hledger.Data.Account()
 import Hledger.Data.Amount
-import Hledger.Data.Commodity (canonicaliseCommodities)
-import Hledger.Data.Dates (nulldatespan)
-import Hledger.Data.Transaction (journalTransactionWithDate,balanceTransaction) -- nulltransaction,
+import Hledger.Data.Commodity
+import Hledger.Data.Dates
+import Hledger.Data.Transaction
 import Hledger.Data.Posting
 import Hledger.Data.TimeLog
 import Hledger.Data.Query
@@ -113,18 +113,6 @@ nulljournal = Journal { jmodifiertxns = []
 
 nullctx :: JournalContext
 nullctx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [], ctxAliases = [] }
-
-nullfilterspec :: FilterSpec
-nullfilterspec = FilterSpec {
-     datespan=nulldatespan
-    ,cleared=Nothing
-    ,real=False
-    ,empty=False
-    ,acctpats=[]
-    ,descpats=[]
-    ,depth=Nothing
-    ,fMetadata=[]
-    }
 
 journalFilePath :: Journal -> FilePath
 journalFilePath = fst . mainfile
@@ -213,15 +201,16 @@ journalEquityAccountQuery _ = Acct "^equity(:|$)"
 
 -- | Keep only postings matching the query expression.
 -- This can leave unbalanced transactions.
-filterJournalPostings2 :: Query -> Journal -> Journal
-filterJournalPostings2 m j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
+filterJournalPostings :: Query -> Journal -> Journal
+filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
     where
-      filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
+      filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
 
 -- | Keep only transactions matching the query expression.
-filterJournalTransactions2 :: Query -> Journal -> Journal
-filterJournalTransactions2 m j@Journal{jtxns=ts} = j{jtxns=filter (m `matchesTransaction`) ts}
+filterJournalTransactions :: Query -> Journal -> Journal
+filterJournalTransactions q j@Journal{jtxns=ts} = j{jtxns=filter (q `matchesTransaction`) ts}
 
+{-
 -------------------------------------------------------------------------------
 -- filtering V1
 
@@ -324,6 +313,12 @@ filterJournalPostingsByDepth (Just d) j@Journal{jtxns=ts} =
     where filtertxns t@Transaction{tpostings=ps} =
               t{tpostings=filter ((<= d) . accountNameLevel . paccount) ps}
 
+-- | Keep only postings which affect accounts matched by the account patterns.
+-- This can leave transactions unbalanced.
+filterJournalPostingsByAccount :: [String] -> Journal -> Journal
+filterJournalPostingsByAccount apats j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
+    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (matchpats apats . paccount) ps}
+
 -- | Keep only transactions which affect accounts matched by the account patterns.
 -- More precisely: each positive account pattern excludes transactions
 -- which do not contain a posting to a matched account, and each negative
@@ -338,11 +333,7 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
       amatch pat a = regexMatchesCI (abspat pat) a
       (negatives,positives) = partition isnegativepat apats
 
--- | Keep only postings which affect accounts matched by the account patterns.
--- This can leave transactions unbalanced.
-filterJournalPostingsByAccount :: [String] -> Journal -> Journal
-filterJournalPostingsByAccount apats j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
-    where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter (matchpats apats . paccount) ps}
+-}
 
 -- | Convert this journal's transactions' primary date to either the
 -- actual or effective date.
@@ -487,13 +478,168 @@ journalAccountInfo j = (ant, amap)
       amap = Map.fromList [(a, acctinfo a) | a <- flatten ant]
       acctinfo a = Account a (psof a) (inclbalof a)
 
+tests_journalAccountInfo = [
+ "journalAccountInfo" ~: do
+   let (t,m) = journalAccountInfo samplejournal
+   assertEqual "account tree"
+    (Node "top" [
+      Node "assets" [
+       Node "assets:bank" [
+        Node "assets:bank:checking" [],
+        Node "assets:bank:saving" []
+        ],
+       Node "assets:cash" []
+       ],
+      Node "expenses" [
+       Node "expenses:food" [],
+       Node "expenses:supplies" []
+       ],
+      Node "income" [
+       Node "income:gifts" [],
+       Node "income:salary" []
+       ],
+      Node "liabilities" [
+       Node "liabilities:debts" []
+       ]
+      ]
+     )
+    t
+   mapM_ 
+         (\(e,a) -> assertEqual "" e a)
+         (zip [
+               ("assets",Account "assets" [] (Mixed [dollars (-1)]))
+              ,("assets:bank",Account "assets:bank" [] (Mixed [dollars 1]))
+              ,("assets:bank:checking",Account "assets:bank:checking" [
+                  Posting {
+                    pstatus=False,
+                    paccount="assets:bank:checking",
+                    pamount=(Mixed [dollars 1]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  },
+                  Posting {
+                    pstatus=False,
+                    paccount="assets:bank:checking",
+                    pamount=(Mixed [dollars 1]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  },
+                  Posting {
+                    pstatus=False,
+                    paccount="assets:bank:checking",
+                    pamount=(Mixed [dollars (-1)]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  },
+                  Posting {
+                    pstatus=False,
+                    paccount="assets:bank:checking",
+                    pamount=(Mixed [dollars (-1)]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                  ] (Mixed [nullamt]))
+              ,("assets:bank:saving",Account "assets:bank:saving" [
+                  Posting {
+                    pstatus=False,
+                    paccount="assets:bank:saving",
+                    pamount=(Mixed [dollars 1]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                  ] (Mixed [dollars 1]))
+              ,("assets:cash",Account "assets:cash" [
+                  Posting {
+                    pstatus=False,
+                    paccount="assets:cash",
+                    pamount=(Mixed [dollars (-2)]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                ] (Mixed [dollars (-2)]))
+              ,("expenses",Account "expenses" [] (Mixed [dollars 2]))
+              ,("expenses:food",Account "expenses:food" [
+                  Posting {
+                    pstatus=False,
+                    paccount="expenses:food",
+                    pamount=(Mixed [dollars 1]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                ] (Mixed [dollars 1]))
+              ,("expenses:supplies",Account "expenses:supplies" [
+                  Posting {
+                    pstatus=False,
+                    paccount="expenses:supplies",
+                    pamount=(Mixed [dollars 1]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                ] (Mixed [dollars 1]))
+              ,("income",Account "income" [] (Mixed [dollars (-2)]))
+              ,("income:gifts",Account "income:gifts" [
+                  Posting {
+                    pstatus=False,
+                    paccount="income:gifts",
+                    pamount=(Mixed [dollars (-1)]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                ] (Mixed [dollars (-1)]))
+              ,("income:salary",Account "income:salary" [
+                  Posting {
+                    pstatus=False,
+                    paccount="income:salary",
+                    pamount=(Mixed [dollars (-1)]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                  ] (Mixed [dollars (-1)]))
+              ,("liabilities",Account "liabilities" [] (Mixed [dollars 1]))
+              ,("liabilities:debts",Account "liabilities:debts" [
+                  Posting {
+                    pstatus=False,
+                    paccount="liabilities:debts",
+                    pamount=(Mixed [dollars 1]),
+                    pcomment="",
+                    ptype=RegularPosting,
+                    pmetadata=[],
+                    ptransaction=Nothing
+                  }
+                ] (Mixed [dollars 1]))
+              ,("top",Account "top" [] (Mixed [nullamt]))
+             ]
+             (toAscList m)
+         )
+ ]
+
 -- | Given a list of postings, return an account name tree and three query
 -- functions that fetch postings, subaccount-excluding-balance and
 -- subaccount-including-balance by account name.
 groupPostings :: [Posting] -> (Tree AccountName,
-                             (AccountName -> [Posting]),
-                             (AccountName -> MixedAmount),
-                             (AccountName -> MixedAmount))
+                               (AccountName -> [Posting]),
+                               (AccountName -> MixedAmount),
+                               (AccountName -> MixedAmount))
 groupPostings ps = (ant, psof, exclbalof, inclbalof)
     where
       anames = sort $ nub $ map paccount ps
@@ -532,37 +678,210 @@ postingsByAccount ps = m'
 
 -- tests
 
-tests_Hledger_Data_Journal = TestList [
+-- A sample journal for testing, similar to data/sample.journal:
+--
+-- 2008/01/01 income
+--     assets:bank:checking  $1
+--     income:salary
+--
+-- 2008/06/01 gift
+--     assets:bank:checking  $1
+--     income:gifts
+--
+-- 2008/06/02 save
+--     assets:bank:saving  $1
+--     assets:bank:checking
+--
+-- 2008/06/03 * eat & shop
+--     expenses:food      $1
+--     expenses:supplies  $1
+--     assets:cash
+--
+-- 2008/12/31 * pay off
+--     liabilities:debts  $1
+--     assets:bank:checking
+--
+Right samplejournal = journalBalanceTransactions $ Journal
+          [] 
+          [] 
+          [
+           txnTieKnot $ Transaction {
+             tdate=parsedate "2008/01/01",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="",
+             tdescription="income",
+             tcomment="",
+             tmetadata=[],
+             tpostings=[
+              Posting {
+                pstatus=False,
+                paccount="assets:bank:checking",
+                pamount=(Mixed [dollars 1]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              },
+              Posting {
+                pstatus=False,
+                paccount="income:salary",
+                pamount=(missingmixedamt),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              }
+             ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tdate=parsedate "2008/06/01",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="",
+             tdescription="gift",
+             tcomment="",
+             tmetadata=[],
+             tpostings=[
+              Posting {
+                pstatus=False,
+                paccount="assets:bank:checking",
+                pamount=(Mixed [dollars 1]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              },
+              Posting {
+                pstatus=False,
+                paccount="income:gifts",
+                pamount=(missingmixedamt),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              }
+             ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tdate=parsedate "2008/06/02",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="",
+             tdescription="save",
+             tcomment="",
+             tmetadata=[],
+             tpostings=[
+              Posting {
+                pstatus=False,
+                paccount="assets:bank:saving",
+                pamount=(Mixed [dollars 1]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              },
+              Posting {
+                pstatus=False,
+                paccount="assets:bank:checking",
+                pamount=(Mixed [dollars (-1)]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              }
+             ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tdate=parsedate "2008/06/03",
+             teffectivedate=Nothing,
+             tstatus=True,
+             tcode="",
+             tdescription="eat & shop",
+             tcomment="",
+             tmetadata=[],
+             tpostings=[
+              Posting {
+                pstatus=False,
+                paccount="expenses:food",
+                pamount=(Mixed [dollars 1]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              },
+              Posting {
+                pstatus=False,
+                paccount="expenses:supplies",
+                pamount=(Mixed [dollars 1]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              },
+              Posting {
+                pstatus=False,
+                paccount="assets:cash",
+                pamount=(missingmixedamt),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              }
+             ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tdate=parsedate "2008/12/31",
+             teffectivedate=Nothing,
+             tstatus=False,
+             tcode="",
+             tdescription="pay off",
+             tcomment="",
+             tmetadata=[],
+             tpostings=[
+              Posting {
+                pstatus=False,
+                paccount="liabilities:debts",
+                pamount=(Mixed [dollars 1]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              },
+              Posting {
+                pstatus=False,
+                paccount="assets:bank:checking",
+                pamount=(Mixed [dollars (-1)]),
+                pcomment="",
+                ptype=RegularPosting,
+                pmetadata=[],
+                ptransaction=Nothing
+              }
+             ],
+             tpreceding_comment_lines=""
+           }
+          ]
+          []
+          []
+          ""
+          nullctx
+          []
+          (TOD 0 0)
+
+tests_Hledger_Data_Journal = TestList $
+    tests_journalAccountInfo
+  -- [
   -- "query standard account types" ~:
   --  do
   --   let j = journal1
   --   journalBalanceSheetAccountNames j `is` ["assets","assets:a","equity","equity:q","equity:q:qq","liabilities","liabilities:l"]
   --   journalProfitAndLossAccountNames j `is` ["expenses","expenses:e","income","income:i"]
-
- ]
-
--- journal1 =
---   Journal
---   []
---   []
---   [
---    nulltransaction{
---     tpostings=[
---       nullposting{paccount="liabilities:l"}
---      ,nullposting{paccount="expenses:e"}
---      ]
---    }
---   ,nulltransaction{
---     tpostings=[
---       nullposting{paccount="income:i"}
---      ,nullposting{paccount="assets:a"}
---      ,nullposting{paccount="equity:q:qq"}
---      ]
---    }
---   ]
---   []
---   []
---   ""
---   nullctx
---   []
---   (TOD 0 0)
+ -- ]

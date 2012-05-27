@@ -14,6 +14,7 @@ import Text.Printf
 import Hledger.Cli.Options
 import Hledger.Data
 import Hledger.Reports
+import Hledger.Data.Query
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
@@ -23,30 +24,26 @@ barchar = '*'
 -- | Print a histogram of some statistic per reporting interval, such as
 -- number of postings per day.
 histogram :: CliOpts -> Journal -> IO ()
-histogram CliOpts{reportopts_=reportopts_} j = do
+histogram CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ showHistogram reportopts_ (filterSpecFromOpts reportopts_ d) j
+  putStr $ showHistogram ropts (queryFromOpts d ropts) j
 
-showHistogram :: ReportOpts -> FilterSpec -> Journal -> String
-showHistogram opts filterspec j = concatMap (printDayWith countBar) spanps
+showHistogram :: ReportOpts -> Query -> Journal -> String
+showHistogram opts q j = concatMap (printDayWith countBar) spanps
     where
       i = intervalFromOpts opts
       interval | i == NoInterval = Days 1
                | otherwise = i
-      span = datespan filterspec `orDatesFrom` journalDateSpan j
+      span = queryDateSpan (effective_ opts) q `orDatesFrom` journalDateSpan j
       spans = filter (DateSpan Nothing Nothing /=) $ splitSpan interval span
       spanps = [(s, filter (isPostingInDateSpan s) ps) | s <- spans]
       -- same as Register
       -- should count transactions, not postings ?
-      ps = sortBy (comparing postingDate) $ filterempties $ filter matchapats $ filterdepth $ journalPostings j
+      -- ps = sortBy (comparing postingDate) $ filterempties $ filter matchapats $ filterdepth $ journalPostings j
+      ps = sortBy (comparing postingDate) $ filterempties $ filter (q `matchesPosting`) $ journalPostings j
       filterempties
-          | empty_ opts = id
+          | queryEmpty q = id
           | otherwise = filter (not . isZeroMixedAmount . pamount)
-      matchapats = matchpats apats . paccount
-      apats = acctpats filterspec
-      filterdepth | interval == NoInterval = filter (\p -> accountNameLevel (paccount p) <= depth)
-                  | otherwise = id
-      depth = fromMaybe 99999 $ depth_ opts
 
 printDayWith f (DateSpan b _, ts) = printf "%s %s\n" (show $ fromJust b) (f ts)
 

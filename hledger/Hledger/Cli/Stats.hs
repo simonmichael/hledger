@@ -24,9 +24,9 @@ import Hledger.Utils.UTF8IOCompat (putStr)
 stats :: CliOpts -> Journal -> IO ()
 stats CliOpts{reportopts_=reportopts_} j = do
   d <- getCurrentDay
-  let filterspec = filterSpecFromOpts reportopts_ d
-      l = journalToLedger filterspec j
-      reportspan = (ledgerDateSpan l) `orDatesFrom` (datespan filterspec)
+  let q = queryFromOpts d reportopts_
+      l = journalToLedger q j
+      reportspan = (ledgerDateSpan l) `orDatesFrom` (queryDateSpan False q)
       intervalspans = splitSpan (intervalFromOpts reportopts_) reportspan
       showstats = showLedgerStats l d
       s = intercalate "\n" $ map showstats intervalspans

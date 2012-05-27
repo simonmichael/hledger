@@ -41,19 +41,17 @@ nullledger = Ledger{
 -- | Filter a journal's transactions as specified, and then process them
 -- to derive a ledger containing all balances, the chart of accounts,
 -- canonicalised commodities etc.
-journalToLedger :: FilterSpec -> Journal -> Ledger
-journalToLedger fs j = nullledger{ledgerJournal=j',ledgerAccountNameTree=t,ledgerAccountMap=m}
-    where j' = filterJournalPostings fs{depth=Nothing} j
-          (t, m) = journalAccountInfo j'
-
--- | Filter a journal's transactions as specified, and then process them
--- to derive a ledger containing all balances, the chart of accounts,
--- canonicalised commodities etc.
--- Like journalToLedger but uses the new queries.
-journalToLedger2 :: Query -> Journal -> Ledger
-journalToLedger2 m j = nullledger{ledgerJournal=j',ledgerAccountNameTree=t,ledgerAccountMap=amap}
-    where j' = filterJournalPostings2 m j
+journalToLedger :: Query -> Journal -> Ledger
+journalToLedger q j = nullledger{ledgerJournal=j',ledgerAccountNameTree=t,ledgerAccountMap=amap}
+    where j' = filterJournalPostings q j
           (t, amap) = journalAccountInfo j'
+
+tests_journalToLedger = [
+ "journalToLedger" ~: do
+  assertEqual "" (0) (length $ ledgerPostings $ journalToLedger Any nulljournal)
+  assertEqual "" (11) (length $ ledgerPostings $ journalToLedger Any samplejournal)
+  assertEqual "" (6) (length $ ledgerPostings $ journalToLedger (Depth 2) samplejournal)
+ ]
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]
@@ -105,7 +103,6 @@ ledgerDateSpan = postingsDateSpan . ledgerPostings
 ledgerCommodities :: Ledger -> Map String Commodity
 ledgerCommodities = journalCanonicalCommodities . ledgerJournal
 
-tests_Hledger_Data_Ledger = TestList
- [
- ]
+tests_Hledger_Data_Ledger = TestList $
+    tests_journalToLedger
 

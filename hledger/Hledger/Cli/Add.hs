@@ -81,7 +81,7 @@ getTransaction j opts defaultDate = do
                          || isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
   when (datestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
   description <- runInteractionDefault $ askFor "description" (Just "") Nothing
-  let historymatches = transactionsSimilarTo j (patterns_ $ reportopts_ opts) description
+  let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
@@ -149,8 +149,8 @@ getPostings st enteredps = do
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
       amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
-      let a  = fromparse $ runParser (amount <|> return missingamt) ctx     "" amountstr
-          a' = fromparse $ runParser (amount <|> return missingamt) nullctx "" amountstr
+      let a  = fromparse $ runParser (amount <|> return missingmixedamt) ctx     "" amountstr
+          a' = fromparse $ runParser (amount <|> return missingmixedamt) nullctx "" amountstr
           defaultamtused = Just (showMixedAmount a) == defaultamountstr
           commodityadded | c == cwithnodef = Nothing
                          | otherwise       = c
@@ -228,7 +228,7 @@ registerFromString :: String -> IO String
 registerFromString s = do
   d <- getCurrentDay
   j <- readJournal' s
-  return $ postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts d) j
+  return $ postingsReportAsText opts $ postingsReport opts (queryFromOpts d opts) j
       where opts = defreportopts{empty_=True}
 
 -- | Return a similarity measure, from 0 to 1, for two strings.
@@ -256,14 +256,14 @@ compareDescriptions s t = compareStrings s' t'
           t' = simplify t
           simplify = filter (not . (`elem` "0123456789"))
 
-transactionsSimilarTo :: Journal -> [String] -> String -> [(Double,Transaction)]
-transactionsSimilarTo j apats s =
+transactionsSimilarTo :: Journal -> Query -> String -> [(Double,Transaction)]
+transactionsSimilarTo j q s =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
                [(compareDescriptions s $ tdescription t, t) | t <- ts]
     where
       compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
-      ts = jtxns $ filterJournalTransactionsByAccount apats j
+      ts = filter (q `matchesTransaction`) $ jtxns j
       threshold = 0
 
 runInteraction :: Journal -> InputT IO a -> IO a

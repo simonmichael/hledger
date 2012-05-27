@@ -27,7 +27,7 @@ import Hledger.Cli.Version
 
 
 -- 1. cmdargs mode and flag definitions, for the main and subcommand modes.
--- Flag values are parsed initially to simple RawOpts to permit reuse.
+-- Flag values are parsed initially to a simple association list to allow reuse.
 
 type RawOpts = [(String,String)]
 
@@ -306,7 +306,7 @@ toCliOpts rawopts = do
              ,command_         = stringopt "command" rawopts
              ,file_            = maybestringopt "file" rawopts
              ,rules_file_      = maybestringopt "rules-file" rawopts
-             ,alias_           = listofstringopt "alias" rawopts
+             ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
              ,debug_           = boolopt "debug" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
              ,reportopts_ = defreportopts {
@@ -331,7 +331,7 @@ toCliOpts rawopts = do
                             ,quarterly_ = boolopt "quarterly" rawopts
                             ,yearly_    = boolopt "yearly" rawopts
                             ,format_    = maybestringopt "format" rawopts
-                            ,patterns_  = listofstringopt "args" rawopts
+                            ,query_     = unwords $ listofstringopt "args" rawopts
                             }
              }
 
@@ -387,7 +387,7 @@ maybestringopt name = maybe Nothing (Just . stripquotes) . lookup name
 
 stringopt name = fromMaybe "" . maybestringopt name
 
-listofstringopt name rawopts = [stripquotes v | (n,v) <- rawopts, n==name]
+listofstringopt name rawopts = [v | (k,v) <- rawopts, k==name]
 
 maybeintopt :: String -> RawOpts -> Maybe Int
 maybeintopt name rawopts =

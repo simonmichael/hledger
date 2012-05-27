@@ -337,9 +337,9 @@ nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rms
     where
       (rsum, _, bvsum) = transactionPostingBalances t
       rmsg | isReallyZeroMixedAmountCost rsum = ""
-           | otherwise = "real postings are off by " ++ show (costOfMixedAmount rsum)
+           | otherwise = "real postings are off by " ++ showMixedAmount (costOfMixedAmount rsum)
       bvmsg | isReallyZeroMixedAmountCost bvsum = ""
-            | otherwise = "balanced virtual postings are off by " ++ show (costOfMixedAmount bvsum)
+            | otherwise = "balanced virtual postings are off by " ++ showMixedAmount (costOfMixedAmount bvsum)
       sep = if not (null rmsg) && not (null bvmsg) then "; " else ""
 
 transactionActualDate :: Transaction -> Day
@@ -431,7 +431,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ])
        (showTransaction
         (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
-         [Posting False "expenses:food:groceries" missingamt "" RegularPosting [] Nothing
+         [Posting False "expenses:food:groceries" missingmixedamt "" RegularPosting [] Nothing
          ] ""))
 
   ,"showTransaction" ~: do
@@ -445,7 +445,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
        (showTransaction
         (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" "" []
          [Posting False "a" (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])]) "" RegularPosting [] Nothing
-         ,Posting False "b" missingamt "" RegularPosting [] Nothing
+         ,Posting False "b" missingmixedamt "" RegularPosting [] Nothing
          ] ""))
 
   ,"balanceTransaction" ~: do
@@ -458,12 +458,12 @@ tests_Hledger_Data_Transaction = TestList $ concat [
      assertBool "detect unbalanced entry, multiple missing amounts"
                     (isLeft $ balanceTransaction Nothing
                            (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
-                            [Posting False "a" missingamt "" RegularPosting [] Nothing,
-                             Posting False "b" missingamt "" RegularPosting [] Nothing
+                            [Posting False "a" missingmixedamt "" RegularPosting [] Nothing,
+                             Posting False "b" missingmixedamt "" RegularPosting [] Nothing
                             ] ""))
      let e = balanceTransaction Nothing (Transaction (parsedate "2007/01/28") Nothing False "" "" "" []
                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing,
-                            Posting False "b" missingamt "" RegularPosting [] Nothing
+                            Posting False "b" missingmixedamt "" RegularPosting [] Nothing
                            ] "")
      assertBool "balanceTransaction allows one missing amount" (isRight e)
      assertEqual "balancing amount is inferred"

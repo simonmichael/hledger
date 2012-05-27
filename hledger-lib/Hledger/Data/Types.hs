@@ -254,17 +254,5 @@ data Account = Account {
       aname :: AccountName,
       apostings :: [Posting],    -- ^ postings in this account
       abalance :: MixedAmount    -- ^ sum of postings in this account and subaccounts
-    }
-
--- | A generic, pure specification of how to filter (or search) transactions and postings.
-data FilterSpec = FilterSpec {
-     datespan  :: DateSpan   -- ^ only include if in this date span
-    ,cleared   :: Maybe Bool -- ^ only include if cleared\/uncleared\/don't care
-    ,real      :: Bool       -- ^ only include if real\/don't care
-    ,empty     :: Bool       -- ^ include if empty (ie amount is zero)
-    ,acctpats  :: [String]   -- ^ only include if matching these account patterns
-    ,descpats  :: [String]   -- ^ only include if matching these description patterns
-    ,depth     :: Maybe Int
-    ,fMetadata  :: [(String,String)] -- ^ only include if matching these metadata
-    } deriving (Show)
+    } -- deriving (Eq)  XXX
 

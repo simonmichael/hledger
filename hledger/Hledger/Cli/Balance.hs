@@ -117,7 +117,7 @@ balance CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let lines = case formatFromOpts ropts of
             Left err -> [err]
-            Right _ -> accountsReportAsText ropts $ accountsReport ropts (filterSpecFromOpts ropts d) j
+            Right _ -> accountsReportAsText ropts $ accountsReport ropts (queryFromOpts d ropts) j
   putStr $ unlines lines
 
 -- | Render a balance report as plain text suitable for console output.
@@ -133,6 +133,20 @@ accountsReportAsText opts (items, total) = concat lines ++ t
                  -- TODO: This must use the format somehow
                 ,padleft 20 $ showMixedAmountWithoutPrice total
                 ]
+
+tests_accountsReportAsText = [
+  "accountsReportAsText" ~: do
+  -- "unicode in balance layout" ~: do
+    j <- readJournal'
+      "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+    let opts = defreportopts
+    accountsReportAsText opts (accountsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is`
+      ["                -100  актив:наличные"
+      ,"                 100  расходы:покупки"
+      ,"--------------------"
+      ,"                   0"
+      ]
+ ]
 
 {-
 This implementation turned out to be a bit convoluted but implements the following algorithm for formatting:
@@ -180,5 +194,4 @@ formatField opts accountName depth total ljust min max field = case field of
         _                  -> ""
 
 tests_Hledger_Cli_Balance = TestList
- [
- ]
+  tests_accountsReportAsText

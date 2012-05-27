@@ -873,73 +873,53 @@ Examples:
 The following additional features and options allow for fine-grained
 reporting. They are common to most commands, where applicable.
 
-### Filter patterns
+### Queries
 
-Most commands accept one or more filter pattern arguments after the
-command name, to select a subset of transactions or postings. There are
-two kinds of pattern:
+Most commands accept an optional query expression, written as arguments
+after the command name (or entered in the hledger-web search field), to
+filter the data. The syntax is similar a Google search expression: one or
+more space separated search terms, optional prefixes to match specific
+fields, quotes to enclose whitespace etc. Here are the kinds of query term
+currently supported:
 
--   an account pattern, which is a regular expression. This is
-    matched against postings' accounts. Optionally, it may be prefixed
-    with `not:` in which case the match is negated.
-
--   a description pattern, like the above but prefixed with
-    `desc:`. This is matched against transactions' descriptions. Note,
-    when negating a desc: pattern, not: goes last, eg:
-    `desc:not:someregexp`.
+- `REGEX` (no prefix) - match account names by this regular expression
+- `acct:REGEX` - same as above
+- `desc:REGEX` - match transaction descriptions by regular expression
+- `date:PERIODEXPR` - match dates within the specified [period] (which may not contain a reporting interval)
+- `edate:DATEEXPR` - as above, but match the effective date
+- `status:1` or `status:0` - match cleared/uncleared transactions
+- `depth:N` - match (or display, depending on command) accounts at or above this depth
+- `not:` before any of the above negates the match
 
 <!--
-New:
-
-Most commands accept one or more filter pattern arguments after the
-command name, to select a subset of the data. There are several kinds
-of filter pattern:
-
-- `acct:ACCTREGEX` - match account names by regular expression
-
-- `desc:DESCREGEX` - match transaction descriptions by regular expression
-
 - `tag:TAGNAMEREGEX[:TAGVALUEREGEX]` - match a [tag](#tags) name, and
   optionally the value, by regular expression
-
 - `TAGNAME:[TAGVALUEREGEX]` - match a tag name exactly, and optionally
   the value by regular expression.
-
-- `ACCTREGEX` - match account names by regular expression
-
-Later:
-
-- `status:[*]`
-
-- `code:CODEREGEX`
-
-- `date:DATEEXPR`
-
-- `edate:DATEEXPR`
-
+- `code:CODEREGEX` -->
 - `type:regular|virtual|balancedvirtual`
-
 - `comment:COMMENTREGEX`
-
 - `amount:AMOUNTEXPR`
-
 - `commodity:COMMODITYSYMBOLREGEX`
-
 Any of these can be prefixed with `not:` or `!` to negate the match.
 -->
 
-When you specify multiple filter patterns, hledger generally selects the
-transactions or postings which match (or negatively match)
+Note these query terms can also be expressed as command-line flags; you
+can use either, or both.
 
-> *any of the account patterns* AND
-> *any of the description patterns*
+With multiple query terms, most commands select the
+transactions/postings/accounts which match (or negatively match)
+
+> *any of the account terms* AND
+> *any of the description terms* AND
+> *all the other terms*
 
 The [print](#print) command selects transactions which
 
-> *match any of the description patterns* AND
-> *have any postings matching any of the positive account patterns*
-> AND
-> *have no postings matching any of the negative account patterns*
+> *match any of the description terms* AND
+> *have any postings matching any of the positive account terms* AND
+> *have no postings matching any of the negative account terms* AND
+> *match all the other terms*
 
 ### Smart dates
 

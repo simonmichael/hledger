@@ -60,13 +60,21 @@ import Hledger.Cli.Tests
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 import Hledger.Utils
+import Hledger.Reports
+import Hledger.Data.Dates
 
 main :: IO ()
 main = do
   args <- getArgs
   addons <- getHledgerAddonCommands
   opts <- getHledgerCliOpts addons
-  when (debug_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
+  when (debug_ opts) $ do
+    printf "%s\n" prognameandversion
+    printf "args: %s\n" (show args)
+    printf "opts: %s\n" (show opts)
+    d <- getCurrentDay
+    printf "query: %s\n" (show $ queryFromOpts d $ reportopts_ opts)
+
   run' opts addons args
     where
       run' opts@CliOpts{command_=cmd} addons args

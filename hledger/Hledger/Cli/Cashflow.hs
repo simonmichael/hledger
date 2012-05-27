@@ -30,11 +30,11 @@ cashflow :: CliOpts -> Journal -> IO ()
 cashflow CliOpts{reportopts_=ropts} j = do
   -- let lines = case formatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
-  let (m,_) = queryFromOpts (withoutBeginDate ropts) d
-      cashreport@(_,total) = accountsReport2 ropts (And [m, journalCashAccountQuery j]) j
-      -- operatingreport@(_,operating) = accountsReport2 ropts (And [m, journalOperatingAccountMatcher j]) j
-      -- investingreport@(_,investing) = accountsReport2 ropts (And [m, journalInvestingAccountMatcher j]) j
-      -- financingreport@(_,financing) = accountsReport2 ropts (And [m, journalFinancingAccountMatcher j]) j
+  let q = queryFromOpts d (withoutBeginDate ropts)
+      cashreport@(_,total) = accountsReport ropts (And [q, journalCashAccountQuery j]) j
+      -- operatingreport@(_,operating) = accountsReport ropts (And [q, journalOperatingAccountMatcher j]) j
+      -- investingreport@(_,investing) = accountsReport ropts (And [q, journalInvestingAccountMatcher j]) j
+      -- financingreport@(_,financing) = accountsReport ropts (And [q, journalFinancingAccountMatcher j]) j
       -- total = operating + investing + financing
   LT.putStr $ [lt|Cashflow Statement
 

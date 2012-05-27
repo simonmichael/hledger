@@ -20,7 +20,7 @@ import Hledger.Data.Types
 
 
 instance Show Account where
-    show (Account a ts b) = printf "Account %s with %d txns and %s balance" a (length ts) (showMixedAmount b)
+    show (Account a ps b) = printf "Account %s with %d postings and %s balance" a (length ps) (showMixedAmountDebug b)
 
 instance Eq Account where
     (==) (Account n1 t1 b1) (Account n2 t2 b2) = n1 == n2 && t1 == t2 && b1 == b2

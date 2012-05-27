@@ -57,9 +57,7 @@ runTestsTillFailure opts = undefined -- do
   --     firstproblem = find (\counts -> )
 
 -- | All or pattern-matched tests, as a flat list to show simple names.
-flatTests opts = TestList $ filter (matcherFromOpts opts) $ flattenTests tests_Hledger_Cli
+flatTests opts = TestList $ filter (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . testName) $ flattenTests tests_Hledger_Cli
 
 -- | All or pattern-matched tests, in the original suites to show hierarchical names.
-hierarchicalTests opts = filterTests (matcherFromOpts opts) tests_Hledger_Cli
-
-matcherFromOpts opts = matchpats (patterns_ $ reportopts_ opts) . testName
+hierarchicalTests opts = filterTests (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . testName) tests_Hledger_Cli

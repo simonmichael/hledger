@@ -26,11 +26,22 @@ import Hledger.Cli.Options
 register :: CliOpts -> Journal -> IO ()
 register CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ postingsReportAsText ropts $ postingsReport ropts (filterSpecFromOpts ropts d) j
+  putStr $ postingsReportAsText ropts $ postingsReport ropts (queryFromOpts d ropts) j
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: ReportOpts -> PostingsReport -> String
 postingsReportAsText opts = unlines . map (postingsReportItemAsText opts) . snd
+
+tests_postingsReportAsText = [
+  "postingsReportAsText" ~: do
+  -- "unicode in register layout" ~: do
+    j <- readJournal'
+      "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+    let opts = defreportopts
+    (postingsReportAsText opts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is` unlines
+      ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
+      ,"                                актив:наличные                 -100            0"]
+ ]
 
 -- | Render one register report line item as plain text. Eg:
 -- @
@@ -59,6 +70,4 @@ showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText defrepor
 
 tests_Hledger_Cli_Register :: Test
 tests_Hledger_Cli_Register = TestList
- [
-
- ]
+  tests_postingsReportAsText

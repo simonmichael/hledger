@@ -11,7 +11,7 @@ import Test.HUnit
 
 import Hledger.Data
 import Hledger.Data.Query
-import Hledger.Read
+import Hledger.Read hiding (samplejournal)
 import Hledger.Reports
 import Hledger.Utils
 

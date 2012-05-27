@@ -7,8 +7,10 @@ A ledger-compatible @print@ command.
 module Hledger.Cli.Print (
   print'
  ,showTransactions
+ ,tests_Hledger_Cli_Print
 ) where
 import Data.List
+import Test.HUnit
 
 import Hledger
 import Prelude hiding (putStr)
@@ -19,11 +21,53 @@ import Hledger.Cli.Options
 print' :: CliOpts -> Journal -> IO ()
 print' CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ showTransactions ropts (filterSpecFromOpts ropts d) j
+  putStr $ showTransactions ropts (queryFromOpts d ropts) j
 
-showTransactions :: ReportOpts -> FilterSpec -> Journal -> String
-showTransactions opts fspec j = entriesReportAsText opts fspec $ entriesReport opts fspec j
+showTransactions :: ReportOpts -> Query -> Journal -> String
+showTransactions opts q j = entriesReportAsText opts q $ entriesReport opts q j
 
-entriesReportAsText :: ReportOpts -> FilterSpec -> EntriesReport -> String
+tests_showTransactions = [
+  "showTransactions" ~: do
+
+   -- "print expenses" ~:
+   do 
+    let opts = defreportopts{query_="expenses"}
+    d <- getCurrentDay
+    showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines
+     ["2008/06/03 * eat & shop"
+     ,"    expenses:food                $1"
+     ,"    expenses:supplies            $1"
+     ,"    assets:cash                 $-2"
+     ,""
+     ]
+
+  -- , "print report with depth arg" ~:
+   do 
+    let opts = defreportopts{depth_=Just 2}
+    d <- getCurrentDay
+    showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines
+      ["2008/01/01 income"
+      ,"    assets:bank:checking            $1"
+      ,"    income:salary                  $-1"
+      ,""
+      ,"2008/06/01 gift"
+      ,"    assets:bank:checking            $1"
+      ,"    income:gifts                   $-1"
+      ,""
+      ,"2008/06/03 * eat & shop"
+      ,"    expenses:food                $1"
+      ,"    expenses:supplies            $1"
+      ,"    assets:cash                 $-2"
+      ,""
+      ,"2008/12/31 * pay off"
+      ,"    liabilities:debts               $1"
+      ,"    assets:bank:checking           $-1"
+      ,""
+      ]
+ ]
+
+entriesReportAsText :: ReportOpts -> Query -> EntriesReport -> String
 entriesReportAsText _ _ items = concatMap showTransactionUnelided items
 
+tests_Hledger_Cli_Print = TestList
+  tests_showTransactions

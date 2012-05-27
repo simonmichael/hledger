@@ -107,7 +107,7 @@ isBalancedVirtual :: Posting -> Bool
 isBalancedVirtual p = ptype p == BalancedVirtualPosting
 
 hasAmount :: Posting -> Bool
-hasAmount = (/= missingamt) . pamount
+hasAmount = (/= missingmixedamt) . pamount
 
 accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nub . map paccount

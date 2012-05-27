@@ -28,6 +28,7 @@ module Hledger.Read.JournalReader (
   datetime,
   accountname,
   amount,
+  amount',
   emptyline,
   -- * Tests
   tests_Hledger_Read_JournalReader
@@ -383,7 +384,13 @@ tests_transaction = [
     let t = parseWithCtx nullctx transaction "2009/1/1 a ;comment\n b 1\n"
     assertBool "transaction should not include a comment in the description"
                    $ either (const False) ((== "a") . tdescription) t
-
+    assertBool "parse transaction with following whitespace line" $
+       isRight $ parseWithCtx nullctx transaction $ unlines [
+         "2012/1/1"
+        ,"  a  1"
+        ,"  b"
+        ," "
+        ]
  ]
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
@@ -461,7 +468,7 @@ code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `man
 -- Parse the following whitespace-beginning lines as postings, posting metadata, and/or comments.
 -- complicated to handle intermixed comment and metadata lines.. make me better ?
 postings :: GenParser Char JournalContext [Posting]
-postings = many1 posting <?> "postings"
+postings = many1 (try posting) <?> "postings"
             
 -- linebeginningwithspaces :: GenParser Char JournalContext String
 -- linebeginningwithspaces = do
@@ -543,15 +550,15 @@ spaceandamountormissing :: GenParser Char JournalContext MixedAmount
 spaceandamountormissing =
   try (do
         many1 spacenonewline
-        amount <|> return missingamt
-      ) <|> return missingamt
+        amount <|> return missingmixedamt
+      ) <|> return missingmixedamt
 
 tests_spaceandamountormissing = [
    "spaceandamountormissing" ~: do
     assertParseEqual (parseWithCtx nullctx spaceandamountormissing " $47.18") (Mixed [dollars 47.18])
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "$47.18") missingamt
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " ") missingamt
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "") missingamt
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "$47.18") missingmixedamt
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " ") missingmixedamt
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
  ]
 
 -- | Parse an amount, with an optional left or right currency symbol and
@@ -581,6 +588,10 @@ tests_amount = [
                                                              quantity=5,
                                                              price=Nothing}])}])
  ]
+
+-- | Run the amount parser on a string to get the result or an error.
+amount' :: String -> MixedAmount
+amount' s = either (error' . show) id $ parseWithCtx nullctx amount s
 
 leftsymbolamount :: GenParser Char JournalContext MixedAmount
 leftsymbolamount = do
@@ -865,7 +876,6 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
 
   ,"endtagdirective" ~: do
      assertParse (parseWithCtx nullctx endtagdirective "end tag \n")
-  ,"endtagdirective" ~: do
      assertParse (parseWithCtx nullctx endtagdirective "pop \n")
 
   ,"accountname" ~: do
@@ -874,13 +884,6 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     assertBool "accountname rejects an empty leading component" (isLeft $ parsewith accountname ":b:c")
     assertBool "accountname rejects an empty trailing component" (isLeft $ parsewith accountname "a:b:")
 
-  ,"amount" ~: do
-     let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
-         assertMixedAmountParse parseresult mixedamount =
-             (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-     assertMixedAmountParse (parseWithCtx nullctx amount "1 @ $2")
-                            (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])])
-
   ,"leftsymbolamount" ~: do
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")
                      (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} 1 Nothing])
@@ -888,6 +891,13 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
                      (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} (-1) Nothing])
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1")
                      (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} (-1) Nothing])
+
+  ,"amount" ~: do
+     let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
+         assertMixedAmountParse parseresult mixedamount =
+             (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
+     assertMixedAmountParse (parseWithCtx nullctx amount "1 @ $2")
+                            (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])])
 
  ]]
 

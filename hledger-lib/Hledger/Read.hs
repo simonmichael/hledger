@@ -19,7 +19,9 @@ module Hledger.Read (
        -- * Parsers used elsewhere
        accountname,
        amount,
+       amount',
        -- * Tests
+       samplejournal,
        tests_Hledger_Read,
 )
 where
@@ -93,6 +95,13 @@ readerForFormat s | null rs = Nothing
 -- | Read a journal from the given string, trying all known formats, or simply throw an error.
 readJournal' :: String -> IO Journal
 readJournal' s = readJournal Nothing Nothing Nothing s >>= either error' return
+
+tests_readJournal' = [
+  "readJournal' parses sample journal" ~: do
+     _ <- samplejournal
+     assertBool "" True
+ ]
+
 
 -- | Read a Journal from this string or give an error message, using the
 -- specified data format or trying all known formats. A CSV conversion
@@ -177,8 +186,34 @@ newJournalContent = do
   d <- getCurrentDay
   return $ printf "; journal created %s by hledger\n" (show d)
 
-tests_Hledger_Read = TestList
-  [
+-- tests
+
+samplejournal = readJournal' $ unlines
+ ["2008/01/01 income"
+ ,"    assets:bank:checking  $1"
+ ,"    income:salary"
+ ,""
+ ,"2008/06/01 gift"
+ ,"    assets:bank:checking  $1"
+ ,"    income:gifts"
+ ,""
+ ,"2008/06/02 save"
+ ,"    assets:bank:saving  $1"
+ ,"    assets:bank:checking"
+ ,""
+ ,"2008/06/03 * eat & shop"
+ ,"    expenses:food      $1"
+ ,"    expenses:supplies  $1"
+ ,"    assets:cash"
+ ,""
+ ,"2008/12/31 * pay off"
+ ,"    liabilities:debts  $1"
+ ,"    assets:bank:checking"
+ ]
+
+tests_Hledger_Read = TestList $
+  tests_readJournal'
+  ++ [
    tests_Hledger_Read_JournalReader,
    tests_Hledger_Read_TimelogReader,
    tests_Hledger_Read_CsvReader,

@@ -18,7 +18,6 @@ module Hledger.Cli (
                      tests_Hledger_Cli
               )
 where
-import Control.Monad
 import qualified Data.Map as Map
 import Data.Time.Calendar
 import System.Time (ClockTime(TOD))
@@ -105,158 +104,6 @@ tests_Hledger_Cli = TestList
       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
 
-  ,"sample journal parses" ~: do
-     _ <- samplejournal
-     assertBool "" True
-
-  ,"balance report tests" ~:
-   let opts `gives` es = do
-        j <- samplejournal
-        d <- getCurrentDay
-        accountsReportAsText opts (accountsReport opts (filterSpecFromOpts opts d) j) `is` es
-   in TestList
-   [
-    "balance report with no args" ~:
-    defreportopts `gives`
-    ["                 $-1  assets"
-    ,"                  $1    bank:saving"
-    ,"                 $-2    cash"
-    ,"                  $2  expenses"
-    ,"                  $1    food"
-    ,"                  $1    supplies"
-    ,"                 $-2  income"
-    ,"                 $-1    gifts"
-    ,"                 $-1    salary"
-    ,"                  $1  liabilities:debts"
-    ,"--------------------"
-    ,"                   0"
-    ]
-
-   ,"balance report can be limited with --depth" ~:
-    defreportopts{depth_=Just 1} `gives`
-    ["                 $-1  assets"
-    ,"                  $2  expenses"
-    ,"                 $-2  income"
-    ,"                  $1  liabilities"
-    ,"--------------------"
-    ,"                   0"
-    ]
-    
-   ,"balance report with account pattern o" ~:
-    defreportopts{patterns_=["o"]} `gives`
-    ["                  $1  expenses:food"
-    ,"                 $-2  income"
-    ,"                 $-1    gifts"
-    ,"                 $-1    salary"
-    ,"--------------------"
-    ,"                 $-1"
-    ]
-
-   ,"balance report with account pattern o and --depth 1" ~:
-    defreportopts{patterns_=["o"],depth_=Just 1} `gives`
-    ["                  $1  expenses"
-    ,"                 $-2  income"
-    ,"--------------------"
-    ,"                 $-1"
-    ]
-
-   ,"balance report with account pattern a" ~:
-    defreportopts{patterns_=["a"]} `gives`
-    ["                 $-1  assets"
-    ,"                  $1    bank:saving"
-    ,"                 $-2    cash"
-    ,"                 $-1  income:salary"
-    ,"                  $1  liabilities:debts"
-    ,"--------------------"
-    ,"                 $-1"
-    ]
-
-   ,"balance report with account pattern e" ~:
-    defreportopts{patterns_=["e"]} `gives`
-    ["                 $-1  assets"
-    ,"                  $1    bank:saving"
-    ,"                 $-2    cash"
-    ,"                  $2  expenses"
-    ,"                  $1    food"
-    ,"                  $1    supplies"
-    ,"                 $-2  income"
-    ,"                 $-1    gifts"
-    ,"                 $-1    salary"
-    ,"                  $1  liabilities:debts"
-    ,"--------------------"
-    ,"                   0"
-    ]
-
-   ,"balance report with unmatched parent of two matched subaccounts" ~: 
-    defreportopts{patterns_=["cash","saving"]} `gives`
-    ["                 $-1  assets"
-    ,"                  $1    bank:saving"
-    ,"                 $-2    cash"
-    ,"--------------------"
-    ,"                 $-1"
-    ]
-
-   ,"balance report with multi-part account name" ~: 
-    defreportopts{patterns_=["expenses:food"]} `gives`
-    ["                  $1  expenses:food"
-    ,"--------------------"
-    ,"                  $1"
-    ]
-
-   ,"balance report with negative account pattern" ~:
-    defreportopts{patterns_=["not:assets"]} `gives`
-    ["                  $2  expenses"
-    ,"                  $1    food"
-    ,"                  $1    supplies"
-    ,"                 $-2  income"
-    ,"                 $-1    gifts"
-    ,"                 $-1    salary"
-    ,"                  $1  liabilities:debts"
-    ,"--------------------"
-    ,"                  $1"
-    ]
-
-   ,"balance report negative account pattern always matches full name" ~: 
-    defreportopts{patterns_=["not:e"]} `gives`
-    ["--------------------"
-    ,"                   0"
-    ]
-
-   ,"balance report negative patterns affect totals" ~: 
-    defreportopts{patterns_=["expenses","not:food"]} `gives`
-    ["                  $1  expenses:supplies"
-    ,"--------------------"
-    ,"                  $1"
-    ]
-
-   ,"balance report with -E shows zero-balance accounts" ~:
-    defreportopts{patterns_=["assets"],empty_=True} `gives`
-    ["                 $-1  assets"
-    ,"                  $1    bank"
-    ,"                   0      checking"
-    ,"                  $1      saving"
-    ,"                 $-2    cash"
-    ,"--------------------"
-    ,"                 $-1"
-    ]
-
-   ,"balance report with cost basis" ~: do
-      j <- (readJournal Nothing Nothing Nothing $ unlines
-             [""
-             ,"2008/1/1 test           "
-             ,"  a:b          10h @ $50"
-             ,"  c:d                   "
-             ]) >>= either error' return
-      let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
-      accountsReportAsText defreportopts (accountsReport defreportopts nullfilterspec j') `is`
-        ["                $500  a:b"
-        ,"               $-500  c:d"
-        ,"--------------------"
-        ,"                   0"
-        ]
-
-   ]
-
   ,"journalCanonicaliseAmounts" ~:
    "use the greatest precision" ~:
     (map precision $ journalAmountAndPriceCommodities $ journalCanonicaliseAmounts $ journalWithAmounts ["1","2.00"]) `is` [2,2]
@@ -276,211 +123,13 @@ tests_Hledger_Cli = TestList
     tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
     return ()
 
-  ,"print report tests" ~: TestList
-  [
+  ,"show dollars" ~: showAmount (dollars 1) ~?= "$1.00"
 
-   "print expenses" ~:
-   do 
-    let opts = defreportopts{patterns_=["expenses"]}
-    j <- samplejournal
-    d <- getCurrentDay
-    showTransactions opts (filterSpecFromOpts opts d) j `is` unlines
-     ["2008/06/03 * eat & shop"
-     ,"    expenses:food                $1"
-     ,"    expenses:supplies            $1"
-     ,"    assets:cash                 $-2"
-     ,""
-     ]
-
-  , "print report with depth arg" ~:
-   do 
-    let opts = defreportopts{depth_=Just 2}
-    j <- samplejournal
-    d <- getCurrentDay
-    showTransactions opts (filterSpecFromOpts opts d) j `is` unlines
-      ["2008/01/01 income"
-      ,"    income:salary           $-1"
-      ,""
-      ,"2008/06/01 gift"
-      ,"    income:gifts           $-1"
-      ,""
-      ,"2008/06/03 * eat & shop"
-      ,"    expenses:food                $1"
-      ,"    expenses:supplies            $1"
-      ,"    assets:cash                 $-2"
-      ,""
-      ,"2008/12/31 * pay off"
-      ,"    liabilities:debts            $1"
-      ,""
-      ]
-
-  ]
-
-  ,"register report tests" ~:
-  let registerdates = filter (not . null) .  map (strip . take 10) . lines
-  in
-  TestList
-  [
-
-   "register report with no args" ~:
-   do 
-    j <- samplejournal
-    let opts = defreportopts
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-     ["2008/01/01 income               assets:bank:checking             $1           $1"
-     ,"                                income:salary                   $-1            0"
-     ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"2008/06/02 save                 assets:bank:saving               $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
-     ,"                                expenses:supplies                $1           $2"
-     ,"                                assets:cash                     $-2            0"
-     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ]
-
-  ,"register report with cleared option" ~:
-   do 
-    let opts = defreportopts{cleared_=True}
-    j <- readJournal' sample_journal_str
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-     ["2008/06/03 eat & shop           expenses:food                    $1           $1"
-     ,"                                expenses:supplies                $1           $2"
-     ,"                                assets:cash                     $-2            0"
-     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ]
-
-  ,"register report with uncleared option" ~:
-   do 
-    let opts = defreportopts{uncleared_=True}
-    j <- readJournal' sample_journal_str
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-     ["2008/01/01 income               assets:bank:checking             $1           $1"
-     ,"                                income:salary                   $-1            0"
-     ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"2008/06/02 save                 assets:bank:saving               $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ]
-
-  ,"register report sorts by date" ~:
-   do 
-    j <- readJournal' $ unlines
-        ["2008/02/02 a"
-        ,"  b  1"
-        ,"  c"
-        ,""
-        ,"2008/01/01 d"
-        ,"  e  1"
-        ,"  f"
-        ]
-    let opts = defreportopts
-    registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` ["2008/01/01","2008/02/02"]
-
-  ,"register report with account pattern" ~:
-   do
-    j <- samplejournal
-    let opts = defreportopts{patterns_=["cash"]}
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-     ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
-     ]
-
-  ,"register report with account pattern, case insensitive" ~:
-   do 
-    j <- samplejournal
-    let opts = defreportopts{patterns_=["cAsH"]}
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-     ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
-     ]
-
-  ,"register report with display expression" ~:
-   do 
-    j <- samplejournal
-    let gives displayexpr = 
-            (registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is`)
-                where opts = defreportopts{display_=Just displayexpr}
-    "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
-    "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
-    "d=[2008/6/2]"  `gives` ["2008/06/02"]
-    "d>=[2008/6/2]" `gives` ["2008/06/02","2008/06/03","2008/12/31"]
-    "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
-
-  ,"register report with period expression" ~:
-   do 
-    j <- samplejournal
-    let periodexpr `gives` dates = do
-          j' <- samplejournal
-          registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j') `is` dates
-              where opts = defreportopts{period_=maybePeriod date1 periodexpr}
-    ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
-    "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
-    "2007" `gives` []
-    "june" `gives` ["2008/06/01","2008/06/02","2008/06/03"]
-    "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
-    "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
-    let opts = defreportopts{period_=maybePeriod date1 "yearly"}
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-     ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
-     ,"                                assets:cash                     $-2          $-1"
-     ,"                                expenses:food                    $1            0"
-     ,"                                expenses:supplies                $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"                                income:salary                   $-1          $-1"
-     ,"                                liabilities:debts                $1            0"
-     ]
-    let opts = defreportopts{period_=maybePeriod date1 "quarterly"}
-    registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
-    let opts = defreportopts{period_=maybePeriod date1 "quarterly",empty_=True}
-    registerdates (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
-
-  ]
-
-  , "register report with depth arg" ~:
-   do 
-    j <- samplejournal
-    let opts = defreportopts{depth_=Just 2}
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-     ["2008/01/01 income               assets:bank                      $1           $1"
-     ,"                                income:salary                   $-1            0"
-     ,"2008/06/01 gift                 assets:bank                      $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"2008/06/02 save                 assets:bank                      $1           $1"
-     ,"                                assets:bank                     $-1            0"
-     ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
-     ,"                                expenses:supplies                $1           $2"
-     ,"                                assets:cash                     $-2            0"
-     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
-     ,"                                assets:bank                     $-1            0"
-     ]
-
-  ,"show dollars" ~: show (dollars 1) ~?= "$1.00"
-
-  ,"show hours" ~: show (hours 1) ~?= "1.0h"
-
-  ,"unicode in balance layout" ~: do
-    j <- readJournal'
-      "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    let opts = defreportopts
-    accountsReportAsText opts (accountsReport opts (filterSpecFromOpts opts date1) j) `is`
-      ["                -100  актив:наличные"
-      ,"                 100  расходы:покупки"
-      ,"--------------------"
-      ,"                   0"
-      ]
-
-  ,"unicode in register layout" ~: do
-    j <- readJournal'
-      "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    let opts = defreportopts
-    (postingsReportAsText opts $ postingsReport opts (filterSpecFromOpts opts date1) j) `is` unlines
-      ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
-      ,"                                актив:наличные                 -100            0"]
+  ,"show hours" ~: showAmount (hours 1) ~?= "1.0h"
 
   ,"subAccounts" ~: do
-    l <- liftM (journalToLedger nullfilterspec) samplejournal
-    let a = ledgerAccount l "assets"
+    let l = journalToLedger Any samplejournal
+        a = ledgerAccount l "assets"
     map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
 
  ]
@@ -488,9 +137,10 @@ tests_Hledger_Cli = TestList
   
 -- fixtures/test data
 
-date1 = parsedate "2008/11/26"
+-- date1 = parsedate "2008/11/26"
 -- t1 = LocalTime date1 midday
 
+{-
 samplejournal = readJournal' sample_journal_str
 
 sample_journal_str = unlines
@@ -535,6 +185,7 @@ sample_journal_str = unlines
  ,""
  ,";final comment"
  ]
+-}
 
 defaultyear_journal_str = unlines
  ["Y2009"
@@ -882,7 +533,7 @@ journal7 = Journal
           []
           (TOD 0 0)
 
-ledger7 = journalToLedger nullfilterspec journal7
+ledger7 = journalToLedger Any journal7
 
 -- journal8_str = unlines
 --  ["2008/1/1 test           "
