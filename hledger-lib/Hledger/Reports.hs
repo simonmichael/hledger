@@ -223,12 +223,6 @@ type EntriesReport = [EntriesReportItem]
 type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
--- "The print command selects transactions which
--- @
--- match any of the description patterns
--- and have any postings matching any of the positive account patterns
--- and have no postings matching any of the negative account patterns"
--- @
 entriesReport :: ReportOpts -> Query -> Journal -> EntriesReport
 entriesReport opts q j =
   sortBy (comparing date) $ filter (q `matchesTransaction`) ts

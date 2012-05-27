@@ -148,13 +148,13 @@ isNegativeAmount Amount{quantity=q} = q < 0
 
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
-isZeroAmount a -- | a==missingamt = False
+isZeroAmount a --  a==missingamt = False
                | otherwise     = (null . filter (`elem` "123456789") . showAmountWithoutPriceOrCommodity) a
 
 -- | Is this amount "really" zero, regardless of the display precision ?
 -- Since we are using floating point, for now just test to some high precision.
 isReallyZeroAmount :: Amount -> Bool
-isReallyZeroAmount a -- | a==missingamt = False
+isReallyZeroAmount a --  a==missingamt = False
                      | otherwise     = (null . filter (`elem` "123456789") . printf ("%."++show zeroprecision++"f") . quantity) a
     where zeroprecision = 8
 
@@ -392,7 +392,7 @@ showMixedAmountWithPrecision p m =
 showMixedAmountDebug :: MixedAmount -> String
 showMixedAmountDebug m | m == missingmixedamt = "(missing)"
                        | otherwise       = printf "Mixed [%s]" as
-    where as = intercalate "\n       " $ map showAmountDebug $ amounts m -- $ normaliseMixedAmountPreservingFirstPrice m
+    where as = intercalate "\n       " $ map showAmountDebug $ amounts m -- normaliseMixedAmountPreservingFirstPrice m
 
 -- | Get the string representation of a mixed amount, but without
 -- any \@ prices.
