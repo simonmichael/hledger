@@ -138,6 +138,9 @@ auto: sp
 autotest: sp
 	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test
 
+autotest-%: sp
+	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test $*
+
 autoweb: sp
 	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
 
