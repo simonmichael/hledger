@@ -752,8 +752,6 @@ commentline = do
 
 -- newer comment parsers
 
-type Tag = (String, String)
-
 inlinecomment :: GenParser Char JournalContext ([String],[Tag])
 inlinecomment = try (do {md <- tagcomment; newline; return ([], [md])})
                     <|> (do {c <- comment; newline; return ([rstrip c], [])})

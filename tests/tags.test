@@ -25,57 +25,80 @@ bin/hledger -f - print
 >>>2
 >>>=0
 
-# 2. print (and a few other commands) can filter by tag value
-# bin/hledger -f - print tag foo=bar
-# <<<
-# 2010/01/01
-#   ; foo:bar
-#   a             1
-#   b            -1
+# 2. reports can filter by tag existence
+bin/hledger -f - print tag:foo
+<<<
+2010/01/01 ; foo:bar
+  a             1
+  b            -1
 
-# 2010/01/02
-#   ; foo:baz
-#   c             1
-#   d            -1
+2010/01/02
+  ; foo:baz
+  c             1
+  d            -1
 
-# 2010/01/03
-#     e             1
-#     f            -1
-# >>>
-# 2010/01/01
-#     ; foo: bar
-#     a             1
-#     b            -1
+2010/01/03
+    e             1
+    f            -1
+>>>
+2010/01/01
+    ; foo: bar
+    a             1
+    b            -1
 
-# >>>2
-# >>>=0
+2010/01/02
+    ; foo: baz
+    c             1
+    d            -1
 
-# # 3. or tag existence ? not yet
-# bin/hledger -f - print tag foo
-# <<<
-# 2010/01/01
-#   ; foo:bar
-#   a             1
-#   b            -1
+>>>2
+>>>=0
 
-# 2010/01/02
-#   ; foo:baz
-#   c             1
-#   d            -1
+# 3. or tag value
+bin/hledger -f - print tag:foo=bar
+<<<
+2010/01/01
+  ; foo:bar
+  a             1
+  b            -1
 
-# 2010/01/03
-#     e             1
-#     f            -1
-# >>>
-# 2010/01/01
-#   ; foo:bar
-#     a             1
-#     b            -1
+2010/01/02
+  ; foo:baz
+  c             1
+  d            -1
 
-# 2010/01/02
-#   ; foo:baz
-#     c             1
-#     d            -1
+2010/01/03
+    e             1
+    f            -1
+>>>
+2010/01/01
+    ; foo: bar
+    a             1
+    b            -1
 
-# >>>2
-# >>>=0
+>>>2
+>>>=0
+
+# 4. postings inherit their transaction's tags
+bin/hledger -f - register tag:foo=bar
+<<<
+2010/01/01
+  a             1  ; foo:bar
+  b            -1
+
+2010/01/02
+  ; foo:baz
+  c             1
+  d            -1
+
+2010/01/03
+  ; foo:bar
+  e             1
+  f            -1
+>>>
+2010/01/01                      a                                 1            1
+2010/01/03                      e                                 1            2
+                                f                                -1            1
+>>>2
+>>>=0
+

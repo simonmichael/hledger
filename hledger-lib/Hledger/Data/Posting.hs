@@ -17,6 +17,8 @@ module Hledger.Data.Posting (
   isBalancedVirtual,
   isEmptyPosting,
   hasAmount,
+  postingAllTags,
+  transactionAllTags,
   -- * date operations
   postingDate,
   isPostingInDateSpan,
@@ -126,6 +128,14 @@ postingCleared :: Posting -> Bool
 postingCleared p = if pstatus p
                     then True
                     else maybe False tstatus $ ptransaction p
+
+-- | Tags for this posting including any inherited from its parent transaction.
+postingAllTags :: Posting -> [Tag]
+postingAllTags p = ptags p ++ maybe [] transactionAllTags (ptransaction p)
+
+-- | Tags for this transaction including any inherited from above, when that is implemented.
+transactionAllTags :: Transaction -> [Tag]
+transactionAllTags t = ttags t
 
 -- | Does this posting fall within the given date span ?
 isPostingInDateSpan :: DateSpan -> Posting -> Bool

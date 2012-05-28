@@ -89,13 +89,15 @@ newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord)
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
                    deriving (Eq,Show)
 
+type Tag = (String, String)
+
 data Posting = Posting {
       pstatus :: Bool,
       paccount :: AccountName,
       pamount :: MixedAmount,
       pcomment :: String, -- ^ this posting's non-tag comment lines, as a single non-indented string
       ptype :: PostingType,
-      ptags :: [(String,String)],
+      ptags :: [Tag],
       ptransaction :: Maybe Transaction  -- ^ this posting's parent transaction (co-recursive types).
                                         -- Tying this knot gets tedious, Maybe makes it easier/optional.
     }
@@ -112,7 +114,7 @@ data Transaction = Transaction {
       tcode :: String,
       tdescription :: String,
       tcomment :: String, -- ^ this transaction's non-tag comment lines, as a single non-indented string
-      ttags :: [(String,String)],
+      ttags :: [Tag],
       tpostings :: [Posting],            -- ^ this transaction's postings (co-recursive types).
       tpreceding_comment_lines :: String
     } deriving (Eq)

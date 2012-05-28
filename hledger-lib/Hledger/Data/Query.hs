@@ -36,14 +36,13 @@ import Data.Either
 import Data.List
 import Data.Maybe
 import Data.Time.Calendar
-import Safe (readDef, headDef)
+import Safe (readDef, headDef, headMay)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
-import Hledger.Data.Amount
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
@@ -65,6 +64,8 @@ data Query = Any              -- ^ always match
            | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
                               --   more of a query option than a query criteria ?
            | Depth Int        -- ^ match if account depth is less than or equal to this value
+           | Tag String (Maybe String)  -- ^ match if a tag with this exact name, and with value
+                                        -- matching the regexp if provided, exists
     deriving (Show, Eq)
 
 -- | A query option changes a query's/report's behaviour and output in some way.
@@ -128,8 +129,6 @@ tests_parseQuery = [
     parseQuery d "inacct:a inacct:b" `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
     parseQuery d "desc:'x x'" `is` (Desc "x x", [])
     parseQuery d "'a a' 'b" `is` (Or [Acct "a a",Acct "'b"], [])
-    -- parseQuery d "a b desc:x desc:y status:1" `is` 
-    --   (And [Or [Acct "a", Acct "b"], Or [Desc "x", Desc "y"], Status True], [])
  ]
 
 -- keep synced with patterns below, excluding "not"
@@ -200,6 +199,7 @@ parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
+parseQueryTerm _ ('t':'a':'g':':':s) = Left $ Tag n v where (n,v) = parseTag s
 parseQueryTerm _ "" = Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix++":"++s
 
@@ -216,7 +216,14 @@ tests_parseQueryTerm = [
     "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
     "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
     "inacct:a" `gives` (Right $ QueryOptInAcct "a")
+    "tag:a" `gives` (Left $ Tag "a" Nothing)
+    "tag:a=some value" `gives` (Left $ Tag "a" (Just "some value"))
  ]
+
+parseTag :: String -> (String, Maybe String)
+parseTag s | '=' `elem` s = (n, Just $ tail v)
+           | otherwise    = (s, Nothing)
+           where (n,v) = break (=='=') s
 
 -- | Parse the boolean value part of a "status:" query, allowing "*" as
 -- another way to spell True, similar to the journal file format.
@@ -419,6 +426,7 @@ matchesAccount (Or ms) a = any (`matchesAccount` a) ms
 matchesAccount (And ms) a = all (`matchesAccount` a) ms
 matchesAccount (Acct r) a = regexMatchesCI r a
 matchesAccount (Depth d) a = accountNameLevel a <= d
+matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
 
 tests_matchesAccount = [
@@ -432,6 +440,7 @@ tests_matchesAccount = [
     assertBool "" $ not $ Depth 2 `matchesAccount` "a:b:c"
     assertBool "" $ Date nulldatespan `matchesAccount` "a"
     assertBool "" $ EDate nulldatespan `matchesAccount` "a"
+    assertBool "" $ not $ (Tag "a" Nothing) `matchesAccount` "a"
  ]
 
 -- | Does the match expression match this posting ?
@@ -457,6 +466,8 @@ matchesPosting (Depth d) Posting{paccount=a} = Depth d `matchesAccount` a
 -- matchesPosting (Empty False) Posting{pamount=a} = True
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
 matchesPosting (Empty _) _ = True
+matchesPosting (Tag n Nothing) p = isJust $ lookupTagByName n $ postingAllTags p
+matchesPosting (Tag n (Just v)) p = isJust $ lookupTagByNameAndValue (n,v) $ postingAllTags p
 -- matchesPosting _ _ = False
 
 tests_matchesPosting = [
@@ -476,6 +487,15 @@ tests_matchesPosting = [
     assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
     assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
     assertBool "" $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
+    assertBool "" $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
+    assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
+    assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
+    assertBool "" $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    assertBool "" $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    assertBool "" $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    assertBool "" $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
+    -- a tag match on a posting also sees inherited tags
+    assertBool "" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
  ]
 
 -- | Does the match expression match this transaction ?
@@ -493,6 +513,9 @@ matchesTransaction (Status v) t = v == tstatus t
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction (Empty _) _ = True
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
+matchesTransaction (Tag n Nothing) t = isJust $ lookupTagByName n $ transactionAllTags t
+matchesTransaction (Tag n (Just v)) t = isJust $ lookupTagByNameAndValue (n,v) $ transactionAllTags t
+
 -- matchesTransaction _ _ = False
 
 tests_matchesTransaction = [
@@ -501,7 +524,23 @@ tests_matchesTransaction = [
    Any `matches` nulltransaction
    assertBool "" $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
    assertBool "" $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
+   -- see posting for more tag tests
+   assertBool "" $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
+   -- a tag match on a transaction usually ignores posting tags
+   assertBool "" $ not $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
  ]
+
+lookupTagByName :: String -> [Tag] -> Maybe Tag
+lookupTagByName namepat tags = headMay [(n,v) | (n,v) <- tags, matchTagName namepat n]
+
+lookupTagByNameAndValue :: Tag -> [Tag] -> Maybe Tag
+lookupTagByNameAndValue (namepat, valpat) tags = headMay [(n,v) | (n,v) <- tags, matchTagName namepat n, matchTagValue valpat v]
+
+matchTagName :: String -> String -> Bool
+matchTagName pat name = pat == name
+
+matchTagValue :: String -> String -> Bool
+matchTagValue pat value = regexMatchesCI pat value
 
 postingEffectiveDate :: Posting -> Maybe Day
 postingEffectiveDate p = maybe Nothing (Just . transactionEffectiveDate) $ ptransaction p

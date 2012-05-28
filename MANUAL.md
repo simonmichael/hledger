@@ -890,10 +890,9 @@ currently supported:
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `depth:N` - match (or display, depending on command) accounts at or above this depth
 - `not:` before any of the above negates the match
+- `tag:NAME[=VALUEREGEX]` - match by exact [tag](#tags) name, and optionally match the tag value by regular expression
 
 <!--
-- `tag:TAGNAMEREGEX[:TAGVALUEREGEX]` - match a [tag](#tags) name, and
-  optionally the value, by regular expression
 - `TAGNAME:[TAGVALUEREGEX]` - match a tag name exactly, and optionally
   the value by regular expression.
 - `code:CODEREGEX` -->
