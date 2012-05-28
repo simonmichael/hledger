@@ -315,17 +315,17 @@ transaction = do
   code <- code <?> "transaction code"
   -- now there can be whitespace followed by a description and/or comment/tag comment
   let pdescription = many (noneOf ";\n") >>= return . strip
-  (description, inlinecomment, inlinemd) <-
+  (description, inlinecomment, inlinetag) <-
     try (do many1 spacenonewline
             d <- pdescription
             (c, m) <- inlinecomment
             return (d,c,m))
     <|> (newline >> return ("", [], []))
-  (nextlinecomments, nextlinemds) <- commentlines
+  (nextlinecomments, nextlinetags) <- commentlines
   let comment = unlines $ inlinecomment ++ nextlinecomments
-      mds = inlinemd ++ nextlinemds
+      tags = inlinetag ++ nextlinetags
   postings <- postings
-  return $ txnTieKnot $ Transaction date edate status code description comment mds postings ""
+  return $ txnTieKnot $ Transaction date edate status code description comment tags postings ""
 
 tests_transaction = [
    "transaction" ~: do
@@ -486,11 +486,11 @@ posting = do
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
   many spacenonewline
-  (inlinecomment, inlinemd) <- inlinecomment
-  (nextlinecomments, nextlinemds) <- commentlines
+  (inlinecomment, inlinetag) <- inlinecomment
+  (nextlinecomments, nextlinetags) <- commentlines
   let comment = unlines $ inlinecomment ++ nextlinecomments
-      mds = inlinemd ++ nextlinemds
-  return (Posting status account' amount comment ptype mds Nothing)
+      tags = inlinetag ++ nextlinetags
+  return (Posting status account' amount comment ptype tags Nothing)
 
 tests_posting = [
   "posting" ~: do
@@ -754,7 +754,7 @@ commentline = do
 -- newer comment parsers
 
 inlinecomment :: GenParser Char JournalContext ([String],[Tag])
-inlinecomment = try (do {md <- tagcomment; newline; return ([], [md])})
+inlinecomment = try (do {tag <- tagcomment; newline; return ([], [tag])})
                     <|> (do {c <- comment; newline; return ([rstrip c], [])})
                     <|> (newline >> return ([], []))
 
@@ -767,10 +767,10 @@ tests_inlinecomment = [
 
 commentlines :: GenParser Char JournalContext ([String],[Tag])
 commentlines = do
-  comormds <- many $ choice' [(liftM Right tagline)
+  comortags <- many $ choice' [(liftM Right tagline)
                              ,(do {many1 spacenonewline; c <- comment; newline; return $ Left c }) -- XXX fix commentnewline
                              ]
-  return $ partitionEithers comormds
+  return $ partitionEithers comortags
 
 tests_commentlines = [
    "commentlines" ~: do
@@ -781,15 +781,15 @@ tests_commentlines = [
 
 -- a comment line containing a tag declaration, eg:
 -- ; name: value
-tagline :: GenParser Char JournalContext (String,String)
+tagline :: GenParser Char JournalContext Tag
 tagline = do
   many1 spacenonewline
-  md <- tagcomment
+  tag <- tagcomment
   newline
-  return md
+  return tag
 
 -- a comment containing a tag, like  "; name: some value"
-tagcomment :: GenParser Char JournalContext (String,String)
+tagcomment :: GenParser Char JournalContext Tag
 tagcomment = do
   many1 $ char ';'
   many spacenonewline
