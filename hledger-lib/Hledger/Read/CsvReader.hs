@@ -30,6 +30,7 @@ module Hledger.Read.CsvReader (
   tests_Hledger_Read_CsvReader
 )
 where
+import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Error
 -- import Test.HUnit
@@ -44,7 +45,7 @@ import System.IO (stderr)
 import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Text.CSV (parseCSV, CSV)
-import Text.ParserCombinators.Parsec hiding (parse)
+import Text.ParserCombinators.Parsec  hiding (parse)
 import Text.ParserCombinators.Parsec.Error
 import Text.ParserCombinators.Parsec.Pos
 import Text.Printf (hPrintf)
@@ -65,12 +66,13 @@ format = "csv"
 
 -- | Does the given file path and data look like CSV ?
 detect :: FilePath -> String -> Bool
-detect f _ = takeExtension f == format
+detect f _ = takeExtension f == '.':format
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
 parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse rulesfile f s = do
+parse rulesfile f s = -- trace ("running "++format++" reader") $
+ do
   r <- liftIO $ readJournalFromCsv rulesfile f s
   case r of Left e -> throwError e
             Right j -> return j
@@ -96,44 +98,43 @@ nullrules = CsvRules {
 type CsvRecord = [String]
 
 
--- | Read a Journal or an error message from the given CSV data (and
--- filename, used for error messages.)  To do this we read a CSV
--- conversion rules file, or auto-create a default one if it does not
--- exist.  The rules filename may be specified, otherwise it will be
--- derived from the CSV filename (unless the filename is - in which case
--- an error will be raised.)
+-- | Read a Journal from the given CSV data (and filename, used for error
+-- messages), or return an error. Proceed as follows:
+-- @
+-- 1. parse the CSV data
+-- 2. identify the name of a file specifying conversion rules: either use
+-- the name provided, derive it from the CSV filename, or raise an error
+-- if the CSV filename is -.
+-- 3. auto-create the rules file with default rules if it doesn't exist
+-- 4. parse the rules file
+-- 5. convert the CSV records to a journal using the rules
+-- @
 readJournalFromCsv :: Maybe FilePath -> FilePath -> String -> IO (Either String Journal)
-readJournalFromCsv rulesfile csvfile csvdata = do
-  let usingStdin = csvfile == "-"
-      rulesfile' = case rulesfile of
-          Just f -> f
-          Nothing -> if usingStdin
-                      then error' "please use --rules-file to specify a rules file when converting stdin"
-                      else rulesFileFor csvfile
-  created <- ensureRulesFileExists rulesfile'
-  if created
-   then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile'
-   else hPrintf stderr "using conversion rules file %s\n" rulesfile'
-  rules <- liftM (either (error'.show) id) $ parseCsvRulesFile rulesfile'
-
-
+readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when converting stdin"
+readJournalFromCsv mrulesfile csvfile csvdata =
+ handle (\e -> return $ Left $ show (e :: IOException)) $ do
   csvparse <- parseCsv csvfile csvdata
-  let records = case csvparse of
-                  Left e -> error' $ show e
+  let rs = case csvparse of
+                  Left e -> throw $ userError $ show e
                   Right rs -> filter (/= [""]) rs
+      badrecords = take 1 $ filter ((< 2).length) rs
+      records = case badrecords of
+                 []    -> rs
+                 (_:_) -> throw $ userError $ "Parse error: at least one CSV record has less than two fields:\n"++(show $ head badrecords)
 
-  let requiredfields = max 2 (maxFieldIndex rules + 1)
+  let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
+  created <- records `seq` (trace "ensureRulesFile" $ ensureRulesFileExists rulesfile)
+  if created
+   then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
+   else hPrintf stderr "using conversion rules file %s\n" rulesfile
+
+  rules <- liftM (either (throw.userError.show) id) $ parseCsvRulesFile rulesfile
+
+  let requiredfields = (maxFieldIndex rules + 1)
       badrecords = take 1 $ filter ((< requiredfields).length) records
-  if null badrecords
-   then do
-     return $ Right nulljournal{jtxns=sortBy (comparing tdate) $ map (transactionFromCsvRecord rules) records}
-   else
-     return $ Left (unlines [
-                      "Warning, at least one CSV record does not contain a field referenced by the"
-                     ,"conversion rules file, or has less than two fields. Are you converting a"
-                     ,"valid CSV file ? First bad record:"
-                     , show $ head badrecords
-                     ])
+  return $ case badrecords of
+            []    -> Right nulljournal{jtxns=sortBy (comparing tdate) $ map (transactionFromCsvRecord rules) records}
+            (_:_) -> Left $ "Parse error: at least one CSV record does not contain a field referenced by the conversion rules file:\n"++(show $ head badrecords)
 
 -- | Ensure there is a conversion rules file at the given path, creating a
 -- default one if needed and returning True in this case.

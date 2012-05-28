@@ -70,13 +70,14 @@ format = "timelog"
 
 -- | Does the given file path and data provide timeclock.el's timelog format ?
 detect :: FilePath -> String -> Bool
-detect f _ = takeExtension f == format
+detect f _ = takeExtension f == '.':format
 
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse _ = parseJournalWith timelogFile
+parse _ = -- trace ("running "++format++" reader") .
+          parseJournalWith timelogFile
 
 timelogFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
 timelogFile = do items <- many timelogItem

@@ -66,12 +66,13 @@ format = "journal"
 
 -- | Does the given file path and data provide hledger's journal file format ?
 detect :: FilePath -> String -> Bool
-detect f _ = takeExtension f == format
+detect f _ = takeExtension f `elem` ['.':format, ".j"]
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse _ = parseJournalWith journal
+parse _ = -- trace ("running "++format++" reader") .
+          parseJournalWith journal
 
 -- parsing utils
 

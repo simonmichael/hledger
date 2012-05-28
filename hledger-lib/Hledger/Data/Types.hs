@@ -191,6 +191,8 @@ data Reader = Reader {
     ,rParser   :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
     }
 
+instance Show Reader where show r = "Reader for "++rFormat r
+
 -- data format parse/conversion rules
 
 -- currently the only parse (conversion) rules are those for the CSV format

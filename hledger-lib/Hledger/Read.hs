@@ -84,14 +84,6 @@ defaultJournalPath = do
 defaultJournal :: IO Journal
 defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing >>= either error' return
 
--- | Find the reader which can handle the given format, if any.
--- Typically there is just one; only the first is returned.
-readerForFormat :: Format -> Maybe Reader
-readerForFormat s | null rs = Nothing
-                  | otherwise = Just $ head rs
-    where 
-      rs = filter ((s==).rFormat) readers :: [Reader]
-
 -- | Read a journal from the given string, trying all known formats, or simply throw an error.
 readJournal' :: String -> IO Journal
 readJournal' s = readJournal Nothing Nothing Nothing s >>= either error' return
@@ -103,52 +95,56 @@ tests_readJournal' = [
  ]
 
 
--- | Read a Journal from this string or give an error message, using the
--- specified data format or trying all known formats. A CSV conversion
--- rules file may be specified for better conversion of that format,
--- and/or a file path for better error messages.
+
+-- | Read a journal from this string, trying whatever readers seem appropriate:
+--
+-- - if a format is specified, try that reader only
+--
+-- - or if one or more readers recognises the file path and data, try those
+--
+-- - otherwise, try them all.
+--
+-- A CSV conversion rules file may also be specified for use by the CSV reader.
 readJournal :: Maybe Format -> Maybe FilePath -> Maybe FilePath -> String -> IO (Either String Journal)
 readJournal format rulesfile path s =
-  let readerstotry = case format of Nothing -> readers
-                                    Just f -> case readerForFormat f of Just r -> [r]
-                                                                        Nothing -> []
-  in firstSuccessOrBestError $ map tryReader readerstotry
+  -- trace (show (format, rulesfile, path)) $
+  tryReaders $ readersFor (format, path, s)
   where
-    path' = fromMaybe "(string)" path
-    tryReader :: Reader -> IO (Either String Journal)
-    tryReader r = do -- printf "trying %s reader\n" (rFormat r)
-                     (runErrorT . (rParser r) rulesfile path') s
-
-    -- if no reader succeeds, we return the error of the first;
-    -- ideally it would be the error of the most likely intended
-    -- reader, based on file suffix and/or data sniffing.
-    firstSuccessOrBestError :: [IO (Either String Journal)] -> IO (Either String Journal)
-    firstSuccessOrBestError []       = return $ Left "no readers found"
-    firstSuccessOrBestError attempts = firstSuccessOrBestError' attempts
+    -- try each reader in turn, returning the error of the first if all fail
+    tryReaders :: [Reader] -> IO (Either String Journal)
+    tryReaders = firstSuccessOrBestError []
       where
-        firstSuccessOrBestError' [] = head attempts
-        firstSuccessOrBestError' (a:as) = do
-          r <- a
-          case r of Right j -> return $ Right j
-                    Left _  -> firstSuccessOrBestError' as
+        firstSuccessOrBestError :: [String] -> [Reader] -> IO (Either String Journal)
+        firstSuccessOrBestError [] []        = return $ Left "no readers found"
+        firstSuccessOrBestError errs (r:rs) = do
+          -- printf "trying %s reader\n" (rFormat r)
+          result <- (runErrorT . (rParser r) rulesfile path') s
+          case result of Right j -> return $ Right j                       -- success!
+                         Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
+        firstSuccessOrBestError (e:_) []    = return $ Left e              -- none left, return first error
+        path' = fromMaybe "(string)" path
 
-    -- -- unknown format
-    -- bestErrorMsg :: [String] -> String -> Maybe FilePath -> String
-    -- bestErrorMsg [] _ path = printf "could not parse %sdata%s" fmts pathmsg
-    --     where fmts = case formats of
-    --                    [] -> ""
-    --                    [f] -> f ++ " "
-    --                    fs -> intercalate ", " (init fs) ++ " or " ++ last fs ++ " "
-    --           pathmsg = case path of
-    --                       Nothing -> ""
-    --                       Just p -> " in "++p
-    -- -- one or more errors - report (the most appropriate ?) one
-    -- bestErrorMsg es s path = printf "could not parse %s data%s\n%s" (rFormat r) pathmsg e
-    --     where (r,e) = headDef (head readers, head es) $ filter detects $ zip readers es
-    --           detects (r,_) = (rDetector r) path' s
-    --           pathmsg = case path of
-    --                       Nothing -> ""
-    --                       Just p -> " in "++p
+-- | Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
+readersFor :: (Maybe Format, Maybe FilePath, String) -> [Reader]
+readersFor (format,path,s) =
+    case format of 
+     Just f  -> case readerForFormat f of Just r  -> [r]
+                                          Nothing -> []
+     Nothing -> case path of Nothing  -> readers
+                             Just "-" -> readers
+                             Just p   -> case readersForPathAndData (p,s) of [] -> readers
+                                                                             rs -> rs
+
+-- | Find the (first) reader which can handle the given format, if any.
+readerForFormat :: Format -> Maybe Reader
+readerForFormat s | null rs = Nothing
+                  | otherwise = Just $ head rs
+    where 
+      rs = filter ((s==).rFormat) readers :: [Reader]
+
+-- | Find the readers which think they can handle the given file path and data, if any.
+readersForPathAndData :: (FilePath,String) -> [Reader]
+readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
 
 -- | Read a Journal from this file (or stdin if the filename is -) or give
 -- an error message, using the specified data format or trying all known
