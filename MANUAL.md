@@ -876,26 +876,26 @@ reporting. They are common to most commands, where applicable.
 ### Queries
 
 Most commands accept an optional query expression, written as arguments
-after the command name (or entered in the hledger-web search field), to
-filter the data. The syntax is similar a Google search expression: one or
-more space separated search terms, optional prefixes to match specific
-fields, quotes to enclose whitespace etc. Here are the kinds of query term
-currently supported:
+after the command name, to filter the data (or in some cases, to modify
+the output). The syntax is similar to a Google search expression: one or
+more space-separated search terms, optional prefixes to match specific
+fields, quotes to enclose whitespace etc. Each query term can be any of
+the following:
 
-- `REGEX` (no prefix) - match account names by this regular expression
+- `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
 - `desc:REGEX` - match transaction descriptions by regular expression
-- `date:PERIODEXPR` - match dates within the specified [period] (which may not contain a reporting interval)
-- `edate:DATEEXPR` - as above, but match the effective date
+- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions) (which may not contain a reporting interval)
+- `edate:PERIODEXPR` - as above, but match effective dates
 - `status:1` or `status:0` - match cleared/uncleared transactions
+- `tag:NAME[=REGEX]` - match by exact [tag](#tags) name, and optionally match the tag value by regular expression
 - `depth:N` - match (or display, depending on command) accounts at or above this depth
 - `not:` before any of the above negates the match
-- `tag:NAME[=VALUEREGEX]` - match by exact [tag](#tags) name, and optionally match the tag value by regular expression
 
 <!--
 - `TAGNAME:[TAGVALUEREGEX]` - match a tag name exactly, and optionally
   the value by regular expression.
-- `code:CODEREGEX` -->
+- `code:CODEREGEX`
 - `type:regular|virtual|balancedvirtual`
 - `comment:COMMENTREGEX`
 - `amount:AMOUNTEXPR`
@@ -903,22 +903,22 @@ currently supported:
 Any of these can be prefixed with `not:` or `!` to negate the match.
 -->
 
-Note these query terms can also be expressed as command-line flags; you
-can use either, or both.
+Multiple query terms will select transactions/postings/accounts which match
+(or negatively match)
 
-With multiple query terms, most commands select the
-transactions/postings/accounts which match (or negatively match)
-
-> *any of the account terms* AND
-> *any of the description terms* AND
+> *any of the description terms AND*  
+> *any of the account terms AND*  
 > *all the other terms*
 
-The [print](#print) command selects transactions which
+With the [print](#print) command, they select transactions which
 
-> *match any of the description terms* AND
-> *have any postings matching any of the positive account terms* AND
-> *have no postings matching any of the negative account terms* AND
+> *match any of the description terms AND*  
+> *have any postings matching any of the positive account terms AND*  
+> *have no postings matching any of the negative account terms AND*  
 > *match all the other terms*
+
+Note many of the above query terms can also be expressed as command-line
+flags; you can use either, or both at once.
 
 ### Smart dates
 
