@@ -132,13 +132,7 @@ tests_parseQuery = [
     parseQuery d "\"" `is` (Acct "\"", [])
  ]
 
--- keep synced with patterns below, excluding "not"
-prefixes = map (++":") [
-            "inacct","inacctonly",
-            "desc","acct","date","edate","status","real","empty","depth"
-           ]
-defaultprefix = "acct"
-
+-- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
 -- prefixes in front, and maybe an additional not: prefix in front of that.
@@ -171,6 +165,24 @@ tests_words'' = [
     "\"acct:expenses:autres d\233penses\"" `gives` ["acct:expenses:autres d\233penses"]
     "\"" `gives` ["\""]
  ]
+
+-- XXX
+-- keep synced with patterns below, excluding "not"
+prefixes = map (++":") [
+     "inacctonly"
+    ,"inacct"
+    ,"desc"
+    ,"acct"
+    ,"date"
+    ,"edate"
+    ,"status"
+    ,"real"
+    ,"empty"
+    ,"depth"
+    ,"tag"
+    ]
+
+defaultprefix = "acct"
 
 -- -- | Parse the query string as a boolean tree of match patterns.
 -- parseQueryTerm :: String -> Query
