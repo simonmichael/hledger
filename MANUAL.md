@@ -4,7 +4,7 @@ title: hledger user manual
 
 # User manual
 
-Version: 0.18-unreleased
+Version: 0.18
 
 ## Introduction
 
@@ -33,16 +33,16 @@ hledger works on linux, mac and windows. You can fund ready-to-run
 binaries of the latest release - see the [download page](DOWNLOAD.html).
 
 Otherwise, build the latest release from Hackage using cabal-install.
-Ensure you have [GHC](http://hackage.haskell.org/ghc/) (6.12.3 or greater;
-7.0 or greater for hledger-web) or the
-[Haskell Platform](http://hackage.haskell.org/platform/) installed, then:
+Ensure you have [GHC](http://hackage.haskell.org/ghc/) 7.0 or greater or
+the [Haskell Platform](http://hackage.haskell.org/platform/) installed,
+then:
 
     $ cabal update
     $ cabal install hledger
 
 To also install the web interface, do:
 
-    $ cabal install hledger-web
+    $ cabal install hledger hledger-web
 
 To build the latest [development version](DEVELOPMENT.html) do:
 
@@ -1259,13 +1259,12 @@ or get help.
   If not, `cabal update` and try again.
 
 - **Do you have a new enough version of GHC ?**  
-  Run `ghc --version`. hledger requires GHC 6.12.3 or greater
-  (on [some platforms](#5551), 7.2.1 can be helpful) and hledger-web
-  requires 7.0 or greater.
+  Run `ghc --version`. hledger requires GHC 7.0 or greater
+  (on [some platforms](#5551), 7.2.1 can be helpful).
 
 - **Do you have a new enough version of cabal ?**  
   Avoid ancient versions.  `cabal --version` should report at least
-  0.10. You may be able to upgrade it with:
+  0.10 (and 0.14 is much better). You may be able to upgrade it with:
   
         $ cabal update
         $ cabal install cabal-install

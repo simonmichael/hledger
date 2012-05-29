@@ -1,93 +1,52 @@
-I'm pleased to announce version 0.16 of the hledger packages. This is a
-stability/bugfix/polish release (which may become the pattern for
-even-numbered releases in future.)
+I'm pleased to announce version 0.18 of hledger.
 
-hledger is a library and set of user tools for working with financial
-data (or anything that can be tracked in a double-entry accounting
-ledger.) It is a haskell port and friendly fork of John Wiegley's
-Ledger. hledger provides command-line, curses and web interfaces, and
-aims to be a reliable, practical tool for daily use.  Given a plain
-text file describing transactions of money or any other commodity, it
-will print the chart of accounts, account balances, or just the
-transactions you're interested in.  It can also help you record new
+hledger (http://hledger.org) is a haskell library, command-line tool and
+web application for working with financial data (or anything that can be
+tracked numerically in an accounting journal). It is inspired by and
+compatible with John Wiegley's Ledger. hledger reads a plain text file
+describing transactions and lets you query account balances or transaction
+details by various criteria.  It can also help you record new
 transactions, or convert CSV data from your bank.
 
-Home: http://hledger.org
+Release notes (http://hledger.org/NEWS.html):
 
-To install: cabal update, cabal install hledger. If you have trouble, let
-me know or watch the mail list/bug tracker for updates. Optional add-ons:
-hledger-web hledger-vty hledger-chart hledger-interest.
+  * web: hledger-web is now based on yesod 1.0
 
-Pre-built platform-specific binaries, which are time-consuming to make and
-support, are provided on request to anyone who donates. This is a great
-way to give back and support the project! http://hledger.org/DOWNLOAD.html
+  * web: fix js error breaking second use of add form (#72)
 
-Release notes for 0.16:
+  * web: make `yesod devel` work
 
-  * cli: strip the -- when calling add-on commands, so their options work
-    (#64)
+  * the command-line now supports a more powerful query language, consistent with the web UI
 
-  * cli: hledger ADDON --version now shows add-on command's version
+  * hledger now fully supports tags (aka metadata) on both transactions and postings, and querying by tag or tag value
 
-  * cli: only the add and web commands auto-create the journal file
+  * new commands `incomestatement`, `balancesheet`, and `cashflow` provide basic financial statements under certain conditions
 
-  * cli: give a non-confusing error if LEDGER_FILE contains a literal
-    tilde
+  * format conversion is now done on demand, and the convert command has been dropped. So instead of
+    `hledger convert FILE.csv` just do `hledger -f FILE.csv print` or any other command.
+    You can also pipe any supported format into `hledger -f- CMD` and hledger will try to do the right thing.
 
-  * add: clearer prompts, more validation, use . to end also
+  * support for GHC 6.12 has been dropped; this release has been tested with GHC 7.0.4, 7.2.2, and 7.4.1
 
-  * add: use unix line endings consistently, avoiding parse error on
-    windows (#51)
+  * unicode is now handled properly on all supported GHC versions
 
-  * add: avoid excess whitespace between transactions (#46)
-
-  * balance: ledger compatibility fix: don't elide parent accounts with
-    multiple displayed subaccounts
-
-  * convert: always order converted transactions by date
-
-  * convert: rename currency -> base-currency, in-field, out-field ->
-    amount-in-field, amount-out-field
-
-  * convert: give an error, not a zero when date or
-    amount-in-field/amount-out-field parsing fails
-
-  * register: show more useful range of intervals with --empty and a query
-    pattern
-
-  * print, web: always show both dates, ignoring --effective (#42)
-
-  * web: production builds (the default with cabal) have all web content
-    embedded (dev builds use ./static/) (#63)
-
-  * web: update to yesod 0.9
-
-  * web: obey at least some of the general reporting options, like --cost
-
-  * web: adjust the default base url when a custom port is specified
-
-  * web: prevent an infinite redirect when custom base url has a trailing
-    slash
-
-  * web: fix "not:'multi word'" patterns
-
-  * web: hide old title and search form when adding/editing
-
-  * web: adjust --help to indicate command-line arguments are not expected
-
-  * web: don't bother running cli unit tests at startup
+  * API and internal cleanups
 
 Stats:
 
-- Release contributors: Simon Michael
+- Release contributors: Simon Michael, xiaoruoruo
 
-- 30 days, 100 commits, 4 end-user features and 18 end-user bugfixes since
+- 87 days, 155 commits, 6 end-user features and 3 end-user bugfixes since
   last major release
 
-- 219 unit & functional tests and 55% unit test coverage (hledger,
-  hledger-lib packages)
+- 216 unit & functional tests (hledger-lib & hledger)
 
-- 7632 lines of code (all packages)
+- 7836 lines of code (hledger-lib, hledger & hledger-web)
 
-Best,
--Simon
+Install it: 
+
+  cabal update; cabal install hledger [hledger-web]
+
+If you have trouble, see http://hledger.org/MANUAL.html#installing .
+You can fund a ready-to-run binary for your platform with a donation at
+http://hledger.org/DOWNLOAD.html .
