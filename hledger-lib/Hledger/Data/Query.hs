@@ -129,6 +129,7 @@ tests_parseQuery = [
     parseQuery d "inacct:a inacct:b" `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
     parseQuery d "desc:'x x'" `is` (Desc "x x", [])
     parseQuery d "'a a' 'b" `is` (Or [Acct "a a",Acct "'b"], [])
+    parseQuery d "\"" `is` (Acct "\"", [])
  ]
 
 -- keep synced with patterns below, excluding "not"
@@ -156,7 +157,7 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
       quotedPattern = do
         p <- between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
         return $ stripquotes p
-      pattern = many (noneOf " \n\r\"")
+      pattern = many (noneOf " \n\r")
 
 tests_words'' = [
    "words''" ~: do
@@ -168,6 +169,7 @@ tests_words'' = [
     assertEqual "6" ["not:desc:a b"]    (words'' ["desc:"] "not:desc:'a b'")
     let s `gives` r = assertEqual "" r (words'' prefixes s)
     "\"acct:expenses:autres d\233penses\"" `gives` ["acct:expenses:autres d\233penses"]
+    "\"" `gives` ["\""]
  ]
 
 -- -- | Parse the query string as a boolean tree of match patterns.
