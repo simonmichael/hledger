@@ -101,16 +101,11 @@ instance Yesod App where
     messageLogger y loc level msg =
       formatLogText (getLogger y) loc level msg >>= logMsg (getLogger y)
 
+#ifndef DEVELOPMENT
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
     -- users receiving stale content.
-#if DEVELOPMENT
-    -- in dev builds, skip this for easier debugging
-    addStaticContent _ _ _ = return Nothing
-#else
-    -- in non-dev builds, do the optimisation
-    -- doesn't seem to be much different at the moment
     addStaticContent = addStaticContentExternal (const $ Left ()) base64md5 Hledger.Web.Settings.staticDir (StaticR . flip StaticRoute [])
 #endif
 
