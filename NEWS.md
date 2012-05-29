@@ -11,27 +11,18 @@ title: hledger news
   * web: officially drop GHC 6.12 support, fix build warnings with 7.0, 7.2, 7.4
   * web: hledger-web is now based on yesod 0.10
 
-## (unreleased) hledger 0.18
+## 2012/5/28 hledger 0.18
 
-  * new commands `incomestatement`, `balancesheet`, `cashflow` provide
-    these standard financial statements, under certain [conditions](http://hledger.org/MANUAL.html#incomestatement)
-  * hledger now supports "tags", aka metadata, on transactions and
-    postings.  Parsing and display (with `print`) of tags and comments
-    generally is more robust.  Reports can be filtered by tag value by
-    adding `tag TAG=VALUE` (see [manual](http://hledger.org/MANUAL.html#tags-metadata)
-    for limitations)
-  * the convert command has been dropped; instead of:
-
-        hledger convert FILE.csv
-
-      do:
-
-        hledger -f FILE.csv print
+  * the command-line now supports a more powerful query language, consistent with the web UI
+  * hledger now fully supports tags (aka metadata) on both transactions and postings, and querying by tag or tag value
+  * new commands `incomestatement`, `balancesheet`, and `cashflow` provide basic financial statements under certain [conditions](http://hledger.org/MANUAL.html#incomestatement)
+  * support for GHC 6.12 has been dropped; this release has been tested with GHC 7.0.4, 7.2.2, and 7.4.1
   * unicode is now handled properly on all supported GHC versions
-  * hledger no longer supports GHC 6.12 (due to use of modern QQ syntax for report templates).
-    This release has been tested with GHC 7.0.4, 7.2.2, and 7.4.1.
+  * format conversion is now done on demand, and the convert command has been dropped. So instead of
+    `hledger convert FILE.csv` just do `hledger -f FILE.csv print` or any other command.
+    You can also pipe any supported format into `hledger -f- CMD` and hledger will try to do the right thing.
   * fix build warnings in all GHC versions
-  * API & haddock cleanups
+  * API and internal cleanups
 
 ## 2012/3/3 hledger-web 0.17.1
 
