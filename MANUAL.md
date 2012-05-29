@@ -889,7 +889,7 @@ the following:
 - `edate:PERIODEXPR` - as above, but match effective dates
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `tag:NAME[=REGEX]` - match by exact [tag](#tags) name, and optionally match the tag value by regular expression
-- `depth:N` - match (or display, depending on command) accounts at or above this depth
+- `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 - `not:` before any of the above negates the match
 
 <!--
