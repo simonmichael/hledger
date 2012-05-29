@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, OverloadedStrings, CPP #-}
 {-
 
 Define the web application's foundation, in the usual Yesod style.
@@ -21,15 +21,16 @@ module Hledger.Web.Foundation
 import Prelude
 import Yesod.Core hiding (Route)
 import Yesod.Default.Config
+#ifndef DEVELOPMENT
 import Yesod.Default.Util (addStaticContentExternal)
+#endif
 import Yesod.Static
 import Yesod.Logger (Logger, logMsg, formatLogText)
 import Control.Monad.IO.Class (liftIO)
 import Web.ClientSession (getKey)
 
 import Hledger.Web.Options
-import qualified Hledger.Web.Settings (staticDir)
-import Hledger.Web.Settings (Extra (..), hamlet)
+import Hledger.Web.Settings
 import Hledger.Web.Settings.StaticFiles
 
 -- | The web application's configuration and data, available to all request handlers.
@@ -104,7 +105,14 @@ instance Yesod App where
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
     -- users receiving stale content.
+#if DEVELOPMENT
+    -- in dev builds, skip this for easier debugging
+    addStaticContent _ _ _ = return Nothing
+#else
+    -- in non-dev builds, do the optimisation
+    -- doesn't seem to be much different at the moment
     addStaticContent = addStaticContentExternal (const $ Left ()) base64md5 Hledger.Web.Settings.staticDir (StaticR . flip StaticRoute [])
+#endif
 
     -- Place Javascript at bottom of the body tag so the rest of the page loads first
     jsLoader _ = BottomOfBody
