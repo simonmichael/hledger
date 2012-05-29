@@ -141,7 +141,7 @@ executable         hledger-web
                    , yesod-core
                    , yesod-default
                    , yesod-static
-                   , blaze-html
+                   , blaze-html                    < 0.5
                    , clientsession
                    , hamlet
                    , network-conduit
