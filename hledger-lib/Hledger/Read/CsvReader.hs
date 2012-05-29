@@ -26,6 +26,12 @@ assets:bank:savings
 module Hledger.Read.CsvReader (
   -- * Reader
   reader,
+  -- * Misc.
+  CsvRecord,
+  nullrules,
+  rulesFileFor,
+  parseCsvRulesFile,
+  transactionFromCsvRecord,
   -- * Tests
   tests_Hledger_Read_CsvReader
 )
