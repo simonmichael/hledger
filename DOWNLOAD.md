@@ -17,18 +17,17 @@ code {
 }
 </style>
 
-The last binaries prepared were these pretty out of date ones. You may
-need to decompress *(gunzip FILE.gz)* and make them executable *(chmod +x
-FILE)* before running them.
-
+<br>
 <a href="https://www.wepay.com/donate/74643?ref=widget&utm_medium=widget&utm_campaign=donation"
    target="_blank" style="float:right;margin:0 1em;"
    ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
-Remember you can always [build hledger yourself](../MANUAL.html#installing).
-Binaries you can download and run can save you a lot of hassle, but
-they are time-consuming to make and support so I now build them for
-financial donors on request. This is a great way to give back and help the
-hledger project! -Simon
+
+Here are some old binaries, all lagging sadly behing the
+[current release](NEWS.html).  You can donate to fund the tedious work of
+producing a portable up-to-date binary for your platform, which will then
+be available to all. This is a quick way to help the project and your
+fellow users! If you don't want to do that, you can of course build your
+own: see [Installing](../MANUAL.html#installing).
 
 <table>
   <tr>
@@ -132,4 +131,7 @@ hledger project! -Simon
   <!-- </tr> -->
 
 </table>
+
+Note you may need to decompress *(eg: gunzip FILE.gz)* and make these
+executable *(eg: chmod +x FILE)* after downloading.
 
