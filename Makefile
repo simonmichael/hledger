@@ -168,7 +168,7 @@ bin/hledger.ghcall: \
 	bin/hledger.ghc-7.4.1 \
 	bin/hledger.ghc-7.2.2 \
 	bin/hledger.ghc-7.0.4 \
-	bin/hledger.ghc-6.12.3 \
+#	bin/hledger.ghc-6.12.3 \
 
 # build the fastest binary we can
 hledgeropt:
