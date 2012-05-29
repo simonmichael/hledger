@@ -10,6 +10,7 @@ Released under GPL version 3 or later.
 module Main
 where
 
+import Data.Conduit.Network (HostPreference(..))
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
 import Yesod.Default.Config
 -- import Yesod.Default.Main   (defaultMain)
@@ -82,6 +83,7 @@ server baseurl port opts j = do
               appEnv = Development
             , appPort = port_ opts
             , appRoot = pack baseurl
+            , appHost = HostIPv4
             , appExtra = Extra "" Nothing
             }
     logger <- defaultDevelopmentLogger

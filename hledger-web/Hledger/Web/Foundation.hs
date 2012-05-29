@@ -27,7 +27,6 @@ import Yesod.Default.Util (addStaticContentExternal)
 import Yesod.Static
 import Yesod.Logger (Logger, logMsg, formatLogText)
 import Control.Monad.IO.Class (liftIO)
-import Web.ClientSession (getKey)
 
 import Hledger.Web.Options
 import Hledger.Web.Settings
@@ -56,9 +55,6 @@ instance Yesod App where
     -- approot = Hledger.Web.Settings.appRoot . settings
     approot = ApprootMaster $ appRoot . settings
 
-    -- Place the session key file in the config folder
-    encryptKey _ = fmap Just $ getKey "client_session_key.aes"
-
     defaultLayout widget = do
         -- master <- getYesod
         -- mmsg <- getMessage
@@ -74,7 +70,7 @@ instance Yesod App where
         pc <- widgetToPageContent $ do
           widget
         hamletToRepHtml [hamlet|
-!!!
+$doctype 5
 <html
  <head
   <title>#{pageTitle pc}

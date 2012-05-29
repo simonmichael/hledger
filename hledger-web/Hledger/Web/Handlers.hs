@@ -58,7 +58,7 @@ import Text.Printf
 import Yesod.Core
 -- import Yesod.Json
 
-import Hledger hiding (today)
+import Hledger hiding (is)
 import Hledger.Cli hiding (version)
 import Hledger.Web.Foundation
 import Hledger.Web.Options
@@ -94,14 +94,14 @@ getJournalR = do
       -- showlastcolumn = if injournal && not filtering then False else True
       title = case inacct of
                 Nothing       -> "Journal"++s2
-                Just (a,subs) -> "Transactions in "++a++s1++s2
-                                  where s1 = if subs then " (and subaccounts)" else ""
+                Just (a,inclsubs) -> "Transactions in "++a++s1++s2
+                                      where s1 = if inclsubs then " (and subaccounts)" else ""
                 where
                   s2 = if filtering then ", filtered" else ""
       maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   defaultLayout $ do
       setTitle "hledger-web journal"
-      addHamlet [hamlet|
+      addWidget $ toWidget [hamlet|
 ^{topbar vd}
 <div#content
  <div#sidebar
@@ -123,10 +123,10 @@ getJournalEntriesR = do
   let
       sidecontent = sidebar vd
       title = "Journal entries" ++ if m /= Any then ", filtered" else "" :: String
-      maincontent = entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
+      maincontent = entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) Any $ filterJournalTransactions m j
   defaultLayout $ do
       setTitle "hledger-web journal"
-      addHamlet [hamlet|
+      addWidget $ toWidget [hamlet|
 ^{topbar vd}
 <div#content
  <div#sidebar
@@ -147,7 +147,7 @@ getJournalEditR = do
   vd <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal edit form"
-      addHamlet $ editform vd
+      addWidget $ toWidget $ editform vd
 
 -- -- | The journal entries view, no sidebar.
 -- getJournalOnlyR :: Handler RepHtml
@@ -155,7 +155,7 @@ getJournalEditR = do
 --   vd@VD{..} <- getViewData
 --   defaultLayout $ do
 --       setTitle "hledger-web journal only"
---       addHamlet $ entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
+--       addWidget $ toWidget $ entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
@@ -166,13 +166,13 @@ getRegisterR = do
       filtering = m /= Any
       title = "Transactions in "++a++s1++s2
                where
-                 (a,subs) = fromMaybe ("all accounts",False) $ inAccount qopts
-                 s1 = if subs then " (and subaccounts)" else ""
+                 (a,inclsubs) = fromMaybe ("all accounts",False) $ inAccount qopts
+                 s1 = if inclsubs then " (and subaccounts)" else ""
                  s2 = if filtering then ", filtered" else ""
       maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   defaultLayout $ do
       setTitle "hledger-web register"
-      addHamlet [hamlet|
+      addWidget $ toWidget [hamlet|
 ^{topbar vd}
 <div#content
  <div#sidebar
@@ -193,7 +193,7 @@ getRegisterR = do
 --   vd@VD{..} <- getViewData
 --   defaultLayout $ do
 --       setTitle "hledger-web register only"
---       addHamlet $
+--       addWidget $ toWidget $
 --           case inAccountQuery qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m m'
 --                                          Nothing -> registerReportHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
 
@@ -206,7 +206,7 @@ getAccountsR = do
   let j' = filterJournalPostings2 m j
       html = do
         setTitle "hledger-web accounts"
-        addHamlet $ accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j'
+        addWidget $ toWidget $ accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j'
       json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
   defaultLayoutJson html json
 
@@ -222,7 +222,7 @@ getAccountsJsonR = do
 
 -- | Render the sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
-sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j
+sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport (reportopts_ $ cliopts_ opts) am j
 
 -- | Render an "AccountsReport" as html.
 accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> HtmlUrl AppRoute
@@ -264,7 +264,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    <td>
 |]
  where
-   l = journalToLedger nullfilterspec j
+   l = journalToLedger Any j
    inacctmatcher = inAccountQuery qopts
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
@@ -519,7 +519,7 @@ handleAdd = do
       acct1E = maybe (Left "to account required") (Right . unpack) $ maybeNonNull acct1M
       acct2E = maybe (Left "from account required") (Right . unpack) $ maybeNonNull acct2M
       amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amount . unpack) amt1M
-      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amount . unpack) amt2M
+      amt2E = maybe (Right missingmixedamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amount . unpack) amt2M
       journalE = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j

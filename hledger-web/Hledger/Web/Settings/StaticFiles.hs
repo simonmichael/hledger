@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, CPP #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, CPP, OverloadedStrings #-}
 {-| 
 
 This module exports routes for all the files in the static directory at

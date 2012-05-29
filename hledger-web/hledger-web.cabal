@@ -122,39 +122,37 @@ executable         hledger-web
                      Hledger.Web.Handlers
 
     build-depends:
-                   hledger == 0.18
-                 , hledger-lib == 0.18
+                     hledger == 0.18
+                   , hledger-lib == 0.18
+                   , base                          >= 4          && < 5
+                   , cabal-file-th
+                   , cmdargs >= 0.9.1   && < 0.10
+                   , directory
+                   , filepath
+                   , HUnit
+                   , io-storage >= 0.3 && < 0.4
+                   , old-locale
+                   , parsec
+                   , regexpr >= 0.5.1
+                   , safe >= 0.2
+                   , time
 
-                 , cabal-file-th
-                 , cmdargs >= 0.9.1   && < 0.10
-                 , directory
-                 , filepath
-                 , HUnit
-                 , old-locale
-                 , parsec
-                 , regexpr >= 0.5.1
-                 , safe >= 0.2
-                 , time
-                 , io-storage >= 0.3 && < 0.4
-                 , file-embed == 0.0.*
-
-                 , base                          >= 4          && < 5
-                 , blaze-html                    >= 0.4.3.1    && < 0.5
-                 , yesod-core                    >= 0.10       && < 0.11
-                 , yesod-static                  >= 0.10       && < 0.11
-                 , yesod-default                 >= 0.6        && < 0.7
-                 , clientsession                 >= 0.7.3      && < 0.8
-                 , bytestring                    >= 0.9        && < 0.10
-                 , text                          >= 0.11       && < 0.12
-                 , template-haskell
-                 , hamlet                        >= 0.10       && < 0.11
-                 , shakespeare-text              >= 0.10       && < 0.12
-                 , wai                           >= 1.1        && < 1.2
-                 , wai-extra                     >= 1.1        && < 1.2
-                 , transformers                  >= 0.2        && < 0.3
-                 , monad-control                 >= 0.3        && < 0.4
-                 , yaml                          >= 0.5        && < 0.6
-                 , warp                          >= 1.1.0.1    && < 1.2
+                   , yesod                         == 1.0.*
+                   , yesod-core
+                   , yesod-default
+                   , yesod-static
+                   , blaze-html
+                   , clientsession
+                   , hamlet
+                   , network-conduit
+                   , shakespeare-text
+                   , template-haskell
+                   , text                          >= 0.11       && < 0.12
+                   , transformers                  >= 0.2        && < 0.4
+                   , wai
+                   , wai-extra
+                   , warp
+                   , yaml
 
 
   -- if flag(production)
