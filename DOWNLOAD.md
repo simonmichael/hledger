@@ -22,7 +22,7 @@ code {
    target="_blank" style="float:right;margin:0 1em;"
    ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
 
-Here are some old binaries, all lagging sadly behing the
+Here are some old binaries, all lagging sadly behind the
 [current release](NEWS.html).  You can donate to fund the tedious work of
 producing a portable up-to-date binary for your platform, which will then
 be available to all. This is a quick way to help the project and your
