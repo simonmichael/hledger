@@ -53,7 +53,10 @@ library
                   Hledger.Cli.Version
                   Hledger.Cli.Add
                   Hledger.Cli.Balance
+                  Hledger.Cli.Balancesheet
+                  Hledger.Cli.Cashflow
                   Hledger.Cli.Histogram
+                  Hledger.Cli.Incomestatement
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
@@ -98,7 +101,10 @@ executable hledger
                   Hledger.Cli.Version
                   Hledger.Cli.Add
                   Hledger.Cli.Balance
+                  Hledger.Cli.Balancesheet
+                  Hledger.Cli.Cashflow
                   Hledger.Cli.Histogram
+                  Hledger.Cli.Incomestatement
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats

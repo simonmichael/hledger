@@ -40,11 +40,11 @@ library
                   Hledger.Data.Commodity
                   Hledger.Data.Dates
                   Hledger.Data.FormatStrings
-                  Hledger.Data.Transaction
                   Hledger.Data.Journal
                   Hledger.Data.Ledger
                   Hledger.Data.Posting
                   Hledger.Data.TimeLog
+                  Hledger.Data.Transaction
                   Hledger.Data.Types
                   Hledger.Data.Matching
                   Hledger.Read
