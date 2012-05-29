@@ -1,21 +1,13 @@
 hledger project notes
 
 * backlog
-** hledger release
-*** clarify/fix comment parsing/printing
-*** better tag matching
-**** consistent tag pattern syntax
-***** 'tag ' -> 'tag:' ?
-**** web support
-**** tag existence match
-**** tag value regexp match
-*** test rules file (mis)creation
-*** compilation/dependency testing
-**** 7.4.1
-**** 7.2.2
-**** 7.0.4
-*** release 0.18
+
 ** errors
+*** wrong ~ error
+ $ hledger <t.j print
+ hledger: ~ in the journal file path is not supported, please adjust (~/personal/current.journal)
+
+*** double quote matches everything ?
 *** hledger incomestatement --depth shows nothing
 *** duplicate test runs
 $ hledger test 'showTransaction$'
@@ -770,9 +762,16 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
-*** yesod 1.0 support
-**** figure out latest yesod deps
+*** inacct: on command line
+hledger -f demo.journal reg inacct:expenses:food:pets date:2010/8/25
+2010/08/25 catfood              expenses:food:pets           $10.00       $10.00
+                                assets:cash                 $-10.00            0
+*** support - in period expressions
+*** more useful show instances
+**** use simple derived show instances for Amount & above ?
+**** show no of postings in account tree for Ledger ?
 *** hledger-web release
+*** don't recompile between autotest & functest
 *** stats: list all journal files
 *** search by commodity
 *** account types
@@ -1372,6 +1371,23 @@ statistical filing, invoicing and the like.
 **** why !: : for conditional attributes ? How about !? ?
 
 ** code snippets
+
+   let assertAccountsReportItemEqual ((ea1,ea2,ei,eamt), (aa1,aa2,ai,aamt)) = do
+         assertEqual "full account name" ea1 aa1
+         assertEqual "short account name" ea2 aa2
+         assertEqual "indent" ei ai
+         assertEqual "amount" eamt aamt --(showMixedAmountDebug eamt) (showMixedAmountDebug aamt)
+
+assertEqualAccount eacct@Account{aname=eaname,apostings=eapostings,abalance=eabalance}
+                   aacct@Account{aname=aaname,apostings=aapostings,abalance=aabalance}
+  = do
+         assertEqual "account name" eaname aaname
+         assertEqual "account postings" eapostings aapostings
+         assertEqual "account balance" eabalance aabalance
+         -- let (Mixed eamts, Mixed aamts) = (eabalance, aabalance)
+         -- -- mapM_ (\(e,a) -> assertEqual "account balance amount" e a) $ zip eamts aamts
+         -- assertEqual "account balance amount lists" (eamts) (aamts)
+         -- assertEqual "account balance mixed amounts" (Mixed eamts) (Mixed aamts)
 
 fromOfxTransaction :: StatementTransaction -> LedgerTransaction
 fromOfxTransaction StatementTransaction {
@@ -3025,3 +3041,4 @@ move *FromOpts into toOpts
 *** 5/14 finish parsing, tests changes
 *** 5/15 matcher -> query, cleanup
 *** 5/16 tests, using query consistently
+*** 5/17 tests, porting entriesReport to query
