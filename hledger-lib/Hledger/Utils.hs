@@ -26,7 +26,9 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- the rest need to be done in each module I think
                           )
 where
-import Control.Monad.Error
+import Control.Monad (liftM)
+import Control.Monad.Error (MonadIO)
+import Control.Monad.IO.Class (liftIO)
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -35,7 +37,7 @@ import Data.Time.LocalTime
 import Data.Tree
 import Debug.Trace
 import System.Directory (getHomeDirectory)
-import System.FilePath(takeDirectory,combine)
+import System.FilePath((</>), isRelative)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
@@ -401,15 +403,16 @@ isRight = not . isLeft
 applyN :: Int -> (a -> a) -> a -> a
 applyN n f = (!! n) . iterate f
 
--- | Convert a possibly relative, possibly tilde-containing file path to an absolute one.
--- using the current directory from a parsec source position. ~username is not supported.
-expandPath :: (MonadIO m) => SourcePos -> FilePath -> m FilePath
-expandPath pos fp = liftM mkAbsolute (expandHome fp)
+-- | Convert a possibly relative, possibly tilde-containing file path to an absolute one,
+-- given the current directory. ~username is not supported. Leave "-" unchanged. 
+expandPath :: MonadIO m => FilePath -> FilePath -> m FilePath -- general type sig for use in reader parsers
+expandPath _ "-" = return "-"
+expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandPath' p
   where
-    mkAbsolute = combine (takeDirectory (sourceName pos))
-    expandHome inname | "~/" `isPrefixOf` inname = do homedir <- liftIO getHomeDirectory
-                                                      return $ homedir ++ drop 1 inname
-                      | otherwise                = return inname
+    expandPath' ('~':'/':p)  = liftIO $ (</> p) `fmap` getHomeDirectory
+    expandPath' ('~':'\\':p) = liftIO $ (</> p) `fmap` getHomeDirectory
+    expandPath' ('~':_)      = error' "~USERNAME in paths is not supported"
+    expandPath' p            = return p
 
 firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing

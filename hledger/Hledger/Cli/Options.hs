@@ -456,25 +456,18 @@ defaultBalanceFormatString = [
     , FormatField True Nothing Nothing AccountField
     ]
 
--- | Get the journal file path from options, an environment variable, or a default.
--- If the path contains a literal tilde raise an error to avoid confusion. XXX
+-- | Get the (tilde-expanded, absolute) journal file path from options, an environment variable, or a default.
 journalFilePathFromOpts :: CliOpts -> IO String
 journalFilePathFromOpts opts = do
   f <- defaultJournalPath
-  let f' = fromMaybe f $ file_ opts
-  if '~' `elem` f'
-   then error' $ printf "~ in the journal file path is not supported, please adjust (%s)" f'
-   else return f'
+  d <- getCurrentDirectory
+  expandPath d $ fromMaybe f $ file_ opts
 
--- | Get the rules file path from options, if any.
--- If the path contains a literal tilde raise an error to avoid confusion. XXX
-rulesFilePathFromOpts :: CliOpts -> Maybe FilePath
-rulesFilePathFromOpts opts =
-  case rules_file_ opts of
-    Nothing -> Nothing
-    Just f -> if '~' `elem` f
-               then error' $ printf "~ in file paths is not supported, please adjust (%s)" f
-               else Just f
+-- | Get the (tilde-expanded) rules file path from options, if any.
+rulesFilePathFromOpts :: CliOpts -> IO (Maybe FilePath)
+rulesFilePathFromOpts opts = do
+  d <- getCurrentDirectory
+  maybe (return Nothing) (fmap Just . expandPath d) $ rules_file_ opts
 
 aliasesFromOpts :: CliOpts -> [(AccountName,AccountName)]
 aliasesFromOpts = map parseAlias . alias_

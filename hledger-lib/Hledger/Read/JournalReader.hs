@@ -179,7 +179,8 @@ includedirective = do
   filename <- restofline
   outerState <- getState
   outerPos <- getPosition
-  return $ do filepath <- expandPath outerPos filename
+  let curdir = takeDirectory (sourceName outerPos)
+  return $ do filepath <- expandPath curdir filename
               txt <- readFileOrError outerPos filepath
               let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
               case runParser journal outerState filepath txt of

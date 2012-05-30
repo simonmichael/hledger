@@ -5,7 +5,7 @@
     income:unknown          $-50
     assets:myacct            $50
 
->>>2 /using conversion rules file t.rules/
+>>>2 /using conversion rules file.*t.rules/
 >>>=0
 
 # 2. reading CSV with in-field and out-field
@@ -22,7 +22,7 @@
     expenses:unknown           $50
     Assets:MyAccount          $-50
 
->>>2 /using conversion rules file [0-9]+\.rules/
+>>>2 /using conversion rules file.*[0-9]+\.rules/
 >>>=0
 
 # 3. report rules parse error
@@ -32,6 +32,6 @@
 #     income:unknown          $-50
 #     assets:myacct            $50
 
-# >>>2 /using conversion rules file t.rules/
+# >>>2 /using conversion rules file.*t.rules/
 # >>>=0
 
