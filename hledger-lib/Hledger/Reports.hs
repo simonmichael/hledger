@@ -701,12 +701,13 @@ type AccountsReportItem = (AccountName  -- full account name
 -- | Select accounts, and get their balances at the end of the selected
 -- period, and misc. display information, for an accounts report.
 accountsReport :: ReportOpts -> Query -> Journal -> AccountsReport
-accountsReport opts query j = (items, total) 
+accountsReport opts q j = (items, total)
     where
       -- don't do depth filtering until the end
-      q' = filterQuery (not . queryIsDepth) query
-      l =  journalToLedger q' $ journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
-      acctnames = filter (query `matchesAccount`) $ journalAccountNames j
+      q1 = filterQuery (not . queryIsDepth) q
+      q2 = filterQuery queryIsDepth q
+      l =  journalToLedger q1 $ journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
+      acctnames = filter (q2 `matchesAccount`) $ ledgerAccountNames l
       interestingaccts | no_elide_ opts = acctnames
                        | otherwise = filter (isInteresting opts l) acctnames
       items = map mkitem interestingaccts
@@ -782,6 +783,30 @@ tests_accountsReport = [
     ([
       ("assets:bank:checking","assets:bank:checking",0,amount' "$1.00")
      ,("income:salary","income:salary",0,amount' "$-1.00")
+     ],
+     Mixed [nullamt])
+
+  ,"accountsReport with desc:" ~: do
+   (defreportopts{query_="desc:income"}, samplejournal) `gives`
+    ([
+      ("assets:bank:checking","assets:bank:checking",0,amount' "$1.00")
+     ,("income:salary","income:salary",0, amount' "$-1.00")
+     ],
+     Mixed [nullamt])
+
+  ,"accountsReport with not:desc:" ~: do
+   (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
+    ([
+      ("assets","assets",0, amount' "$-2.00")
+     ,("assets:bank","bank",1, Mixed [nullamt])
+     ,("assets:bank:checking","checking",2,amount' "$-1.00")
+     ,("assets:bank:saving","saving",2, amount' "$1.00")
+     ,("assets:cash","cash",1, amount' "$-2.00")
+     ,("expenses","expenses",0, amount' "$2.00")
+     ,("expenses:food","food",1, amount' "$1.00")
+     ,("expenses:supplies","supplies",1, amount' "$1.00")
+     ,("income:gifts","income:gifts",0, amount' "$-1.00")
+     ,("liabilities:debts","liabilities:debts",0, amount' "$1.00")
      ],
      Mixed [nullamt])
 
