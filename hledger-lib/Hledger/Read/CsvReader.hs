@@ -123,7 +123,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
                  (_:_) -> throw $ userError $ "Parse error: at least one CSV record has less than two fields:\n"++(show $ head badrecords)
 
   let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
-  created <- records `seq` (trace "ensureRulesFile" $ ensureRulesFileExists rulesfile)
+  created <- records `seq` ensureRulesFileExists rulesfile
   if created
    then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
    else hPrintf stderr "using conversion rules file %s\n" rulesfile
