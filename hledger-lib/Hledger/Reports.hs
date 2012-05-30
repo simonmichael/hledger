@@ -728,18 +728,20 @@ accountsReport opts q j = (items, total)
                  | otherwise = abalance acct
                  where acct = ledgerAccount l a
 
-tests_accountsReport = [
-  "accountsReport" ~: do
-   let (opts,journal) `gives` r = do
+tests_accountsReport =
+  let (opts,journal) `gives` r = do
          let (eitems, etotal) = r
              (aitems, atotal) = accountsReport opts (queryFromOpts nulldate opts) journal
          assertEqual "items" eitems aitems
          -- assertEqual "" (length eitems) (length aitems)
          -- mapM (\(e,a) -> assertEqual "" e a) $ zip eitems aitems
          assertEqual "total" etotal atotal
-          
-   -- "accounts report with no args" ~:
+  in [
+
+   "accountsReport with no args on null journal" ~: do
    (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
+
+  ,"accountsReport with no args on sample journal" ~: do
    (defreportopts, samplejournal) `gives`
     ([
       ("assets","assets",0, amount' "$-1.00")
@@ -755,7 +757,7 @@ tests_accountsReport = [
      ],
      Mixed [nullamt])
 
-   -- "accounts report can be limited with --depth=N" ~:
+  ,"accountsReport with --depth=N" ~: do
    (defreportopts{depth_=Just 1}, samplejournal) `gives`
     ([
       ("assets",      "assets",      0, amount' "$-1.00")
@@ -765,7 +767,7 @@ tests_accountsReport = [
      ],
      Mixed [nullamt])
 
-   -- or with depth:N
+  ,"accountsReport with depth:N" ~: do
    (defreportopts{query_="depth:1"}, samplejournal) `gives`
     ([
       ("assets",      "assets",      0, amount' "$-1.00")
@@ -775,7 +777,7 @@ tests_accountsReport = [
      ],
      Mixed [nullamt])
 
-   -- with a date span
+  ,"accountsReport with a date or effective date span" ~: do
    (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
     ([],
      Mixed [nullamt])
