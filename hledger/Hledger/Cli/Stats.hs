@@ -34,13 +34,15 @@ stats CliOpts{reportopts_=reportopts_} j = do
 
 showLedgerStats :: Ledger -> Day -> DateSpan -> String
 showLedgerStats l today span =
-    unlines (map (uncurry (printf fmt)) stats)
+    unlines $ map (\(label,value) -> concatBottomPadded [printf fmt1 label, value]) stats
     where
-      fmt = "%-" ++ show w1 ++ "s: %-" ++ show w2 ++ "s"
+      fmt1 = "%-" ++ show w1 ++ "s: "
+      -- fmt2 = "%-" ++ show w2 ++ "s"
       w1 = maximum $ map (length . fst) stats
-      w2 = maximum $ map (length . show . snd) stats
+      -- w2 = maximum $ map (length . show . snd) stats
       stats = [
-         ("Journal file", journalFilePath $ ledgerJournal l)
+         ("Main journal file", path) -- ++ " (from " ++ source ++ ")")
+        ,("Included journal files", unlines $ drop 1 $ journalFilePaths j)
         ,("Transactions span", printf "%s to %s (%d days)" (start span) (end span) days)
         ,("Last transaction", maybe "none" show lastdate ++ showelapsed lastelapsed)
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
@@ -55,7 +57,9 @@ showLedgerStats l today span =
       -- Days since last transaction : %(recentelapsed)s
        ]
            where
-             ts = sortBy (comparing tdate) $ filter (spanContainsDate span . tdate) $ jtxns $ ledgerJournal l
+             j = ledgerJournal l
+             path = journalFilePath j
+             ts = sortBy (comparing tdate) $ filter (spanContainsDate span . tdate) $ jtxns j
              as = nub $ map paccount $ concatMap tpostings ts
              cs = Map.keys $ canonicaliseCommodities $ nub $ map commodity $ concatMap amounts $ map pamount $ concatMap tpostings ts
              lastdate | null ts = Nothing

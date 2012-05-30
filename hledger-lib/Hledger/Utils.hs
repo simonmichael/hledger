@@ -135,8 +135,8 @@ concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
       lss = map lines strs
       h = maximum $ map length lss
       ypad ls = ls ++ replicate (difforzero h (length ls)) ""
-      xpad ls = map (padleft w) ls where w | null ls = 0
-                                           | otherwise = maximum $ map length ls
+      xpad ls = map (padright w) ls where w | null ls = 0
+                                            | otherwise = maximum $ map length ls
       padded = map (xpad . ypad) lss
 
 -- | Compose strings vertically and right-aligned.
