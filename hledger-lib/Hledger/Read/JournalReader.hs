@@ -79,7 +79,7 @@ parse _ = -- trace ("running "++format++" reader") .
 
 -- | Flatten a list of JournalUpdate's into a single equivalent one.
 combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
-combineJournalUpdates us = liftM (foldr (.) id) $ sequence us
+combineJournalUpdates us = liftM (foldr (flip (.)) id) $ sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
