@@ -79,7 +79,7 @@ parse _ = -- trace ("running "++format++" reader") .
 
 -- | Flatten a list of JournalUpdate's into a single equivalent one.
 combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
-combineJournalUpdates us = liftM (foldl' (flip (.)) id) $ sequence us
+combineJournalUpdates us = liftM (foldl' (.) id) $ sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
@@ -191,6 +191,7 @@ includedirective = do
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
+  -- XXX currently called in reverse order of includes, I can't see why
 
 accountdirective :: GenParser Char JournalContext JournalUpdate
 accountdirective = do

@@ -167,9 +167,9 @@ data Journal = Journal {
       final_comment_lines :: String,        -- ^ any trailing comments from the journal file
       jContext :: JournalContext,           -- ^ the context (parse state) at the end of parsing
       files :: [(FilePath, String)],        -- ^ the file path and raw text of the main and
-                                           -- any included journal files. The main file is
-                                           -- first followed by any included files in the
-                                           -- order encountered.
+                                            -- any included journal files. The main file is
+                                            -- first followed by any included files in the
+                                            -- order encountered (XXX reversed, cf journalAddFile).
       filereadtime :: ClockTime             -- ^ when this journal was last read from its file(s)
     } deriving (Eq, Typeable)
 

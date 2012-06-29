@@ -42,7 +42,8 @@ showLedgerStats l today span =
       -- w2 = maximum $ map (length . show . snd) stats
       stats = [
          ("Main journal file", path) -- ++ " (from " ++ source ++ ")")
-        ,("Included journal files", unlines $ drop 1 $ journalFilePaths j)
+        ,("Included journal files", unlines $ reverse $ -- cf journalAddFile
+                                    drop 1 $ journalFilePaths j)
         ,("Transactions span", printf "%s to %s (%d days)" (start span) (end span) days)
         ,("Last transaction", maybe "none" show lastdate ++ showelapsed lastelapsed)
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
