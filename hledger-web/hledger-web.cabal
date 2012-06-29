@@ -47,6 +47,10 @@ flag threaded
     Description:   Build with support for multithreaded execution.
     Default:       True
 
+flag blaze_html_0_5
+    description:   Use the newer 0.5 version of blaze-html and blaze-markup.
+    default:       False
+
 flag dev
     Description:   Turn on development settings, like auto-reload templates.
     Default:       False
@@ -141,7 +145,6 @@ executable         hledger-web
                    , yesod-core
                    , yesod-default
                    , yesod-static
-                   , blaze-html                    < 0.5
                    , clientsession
                    , hamlet
                    , network-conduit
@@ -153,6 +156,13 @@ executable         hledger-web
                    , wai-extra
                    , warp
                    , yaml
+    if flag(blaze_html_0_5)
+      build-depends:
+                     blaze-html               >= 0.5     && < 0.6
+                   , blaze-markup             >= 0.5.1   && < 0.6
+    else
+      build-depends:
+                     blaze-html               >= 0.4     && < 0.5
 
 
   -- if flag(production)
