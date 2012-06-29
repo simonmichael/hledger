@@ -3,83 +3,9 @@ hledger project notes
 * backlog
 
 ** release 0.18.1
-*** reverse order within date
-
-** balancesheet real-world testing
+*** docs, release  .5h
 ** errors
-*** print, reg: each day's transactions are reversed
-*** clarify include parse order issue
-**** t.j
-2012/01/01 Inital
-    accounts:bank           100 EUR
-    equity:initial
-
-include a
-
-2012/04/21 Second
-    expenses:test1        1.78 EUR
-    expenses:test2      $44.00
-    accounts:bank        -5.00 EUR
-
-include ./b
-**** a
-2012/01/01 a one
-  (a)   0
-**** b
-**** $ hledger -f t.j stat
-"parsing transaction Inital"
-"parsing transaction Second"
-"parsing transaction a one"
-adding transaction "Second"
-adding transaction "a one"
-adding transaction "Inital"
-Main journal file        : /Users/simon/src/hledger/t.j
-Included journal files   : /Users/simon/src/hledger/./b
-                           /Users/simon/src/hledger/a  
-Transactions span        : 2012-01-01 to 2012-04-22 (112 days)
-Last transaction         : 2012-04-21 (69 days ago)
-Transactions             : 3 (0.0 per day)
-Transactions last 30 days: 0 (0.0 per day)
-Transactions last 7 days : 0 (0.0 per day)
-Payees/descriptions      : 3
-Accounts                 : 5 (depth 2)
-Commodities              : 3 (, $, EUR)
-
-*** clarify white & red shelltestrunner output difference
-*** reg: --depth + reporting interval regression
-hledger      register 'wells fargo:checking' --period 'daily to tomorrow' --depth 4 -> 1
-hledger-0.17 register 'wells fargo:checking' --period 'daily to tomorrow' --depth 4 -> many
-
-*** reg: --cleared wrong output
-$ hledger register --depth 4 'wells fargo:checking' --cleared
-2012/04/19 Jane Thomas          as:ba:we:checking          $-200.00     $-200.00
-$ hledger-0.17 register --depth 4 'wells fargo:checking' --cleared --period 'daily to tomorrow' --display 'd>=[lastmonth]' 
-2012/05/01 - 2012/05/01         as:ba:we:checking          $1146.12     $1705.81
-2012/05/02 - 2012/05/02         as:ba:we:checking         $-1063.05      $642.76
-2012/05/03 - 2012/05/03         as:ba:we:checking           $-10.00      $632.76
-2012/05/04 - 2012/05/04         as:ba:we:checking           $-19.00      $613.76
-2012/05/07 - 2012/05/07         as:ba:we:checking          $-307.33      $306.43
-2012/05/08 - 2012/05/08         as:ba:we:checking          $7467.64     $7774.07
-2012/05/09 - 2012/05/09         as:ba:we:checking          $-182.05     $7592.02
-2012/05/11 - 2012/05/11         as:ba:we:checking           $-76.05     $7515.97
-2012/05/14 - 2012/05/14         as:ba:we:checking          $-167.05     $7348.92
-2012/05/15 - 2012/05/15         as:ba:we:checking          $-247.24     $7101.68
-2012/05/16 - 2012/05/16         as:ba:we:checking          $-105.00     $6996.68
-2012/05/17 - 2012/05/17         as:ba:we:checking           $-43.86     $6952.82
-2012/05/18 - 2012/05/18         as:ba:we:checking           $-14.07     $6938.75
-2012/05/21 - 2012/05/21         as:ba:we:checking           $-65.39     $6873.36
-2012/05/22 - 2012/05/22         as:ba:we:checking          $-444.59     $6428.77
-2012/05/23 - 2012/05/23         as:ba:we:checking           $-73.70     $6355.07
-2012/05/25 - 2012/05/25         as:ba:we:checking            $-7.99     $6347.08
-2012/05/29 - 2012/05/29         as:ba:we:checking          $-105.13     $6241.95
-2012/05/30 - 2012/05/30         as:ba:we:checking          $-173.44     $6068.51
-
-*** wrong ~ error
- $ hledger <t.j print
- hledger: ~ in the journal file path is not supported, please adjust (~/personal/current.journal)
-
-*** double quote matches everything ?
-*** hledger incomestatement --depth shows nothing
+*** double quote matches everything ?  1h
 *** duplicate test runs
 $ hledger test 'showTransaction$'
 Cases: 6  Tried: 0  Errors: 0  Failures: 0([],"")
@@ -117,7 +43,6 @@ expected: "2010/01/01 x\n    a        1 @ $2\n    b              \n\n"
 \n\n"
 Cases: 6  Tried: 6  Errors: 0  Failures: 6
 
-*** web: add form completing fields don't
 *** web: enter doesn't work in add form completing fields
 **** research this dhtmlxcombo issue
 *** parsing: decimal point/thousands separator confusion ?
@@ -215,7 +140,9 @@ $ cat t
 
 *** convert: 49 convert should report rules file parse errors better
 *** 25 hledger in windows console does not print non-ascii characters
+*** journalAddFile is called in reverse order of includes
 ** documentation, marketing
+*** document status flag better
 *** finalise/link 2012 survey
 *** developer notes & log
 **** prune backlog
@@ -833,6 +760,7 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** balancesheet real-world testing
 *** narrow (editable) view to selected txns
 *** optimise balance report
 *** IIF/quickbooks writer
