@@ -71,6 +71,7 @@ library
                  ,shakespeare-text >= 1.0 && < 1.1
                  ,split == 0.1.*
                  ,time
+                 ,transformers >= 0.2 && < 0.4
                  ,utf8-string >= 0.3.5 && < 0.4
                  ,HUnit
 
