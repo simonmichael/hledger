@@ -300,6 +300,7 @@ tests_postingsReport = [
    assertEqual "" 11 (length $ snd $ postingsReport defreportopts Any samplejournal)
    assertEqual ""  9 (length $ snd $ postingsReport defreportopts{monthly_=True} Any samplejournal)
    assertEqual "" 19 (length $ snd $ postingsReport defreportopts{monthly_=True} (Empty True) samplejournal)
+   assertEqual ""  4 (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal)
 
    -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
    -- [(Just (parsedate "2008-01-01","income"),assets:bank:checking             $1,$1)
