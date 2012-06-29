@@ -65,9 +65,6 @@ library
     else
         Buildable: False
 
-    if flag(threaded)
-        ghc-options:   -threaded
-
     exposed-modules: 
                      Hledger.Web.Application
     other-modules:
