@@ -293,16 +293,20 @@ same (a:as) = all (a==) as
 -- | Remove query terms (or whole sub-expressions) not matching the given
 -- predicate from this query.  XXX Semantics not yet clear.
 filterQuery :: (Query -> Bool) -> Query -> Query
-filterQuery p (And qs) = And $ filter p qs
-filterQuery p (Or qs) = Or $ filter p qs
--- filterQuery p (Not q) = Not $ filterQuery p q
-filterQuery p q = if p q then q else Any
+filterQuery p = simplifyQuery . filterQuery' p
+
+filterQuery' :: (Query -> Bool) -> Query -> Query
+filterQuery' p (And qs) = And $ map (filterQuery p) qs
+filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
+-- filterQuery' p (Not q) = Not $ filterQuery p q
+filterQuery' p q = if p q then q else Any
 
 tests_filterQuery = [
  "filterQuery" ~: do
   let (q,p) `gives` r = assertEqual "" r (filterQuery p q)
   (Any, queryIsDepth) `gives` Any
   (Depth 1, queryIsDepth) `gives` Depth 1
+  (And [And [Status True,Depth 1]], not . queryIsDepth) `gives` Status True
   -- (And [Date nulldatespan, Not (Or [Any, Depth 1])], queryIsDepth) `gives` And [Not (Or [Depth 1])]
  ]
 

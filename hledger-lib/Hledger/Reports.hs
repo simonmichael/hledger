@@ -252,7 +252,8 @@ type PostingsReportItem = (Maybe (Day, String) -- transaction date and descripti
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
-postingsReport opts q j = (totallabel, postingsReportItems ps nullposting depth startbal (+))
+postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
+                          (totallabel, postingsReportItems ps nullposting depth startbal (+))
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty reportspan displayableps
@@ -285,14 +286,17 @@ postingsReport opts q j = (totallabel, postingsReportItems ps nullposting depth 
 
 tests_postingsReport = [
   "postingsReport" ~: do
+
+   -- with the query specified explicitly
    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) `is` n
    (Any, nulljournal) `gives` 0
    (Any, samplejournal) `gives` 11
    -- register --depth just clips account names
    (Depth 2, samplejournal) `gives` 11
-   -- (Depth 2, samplejournal) `gives` 6
-   -- (Depth 1, samplejournal) `gives` 4
+   (And [Depth 1, Status True, Acct "expenses"], samplejournal) `gives` 2
+   (And [And [Depth 1, Status True], Acct "expenses"], samplejournal) `gives` 2
 
+   -- with query and/or command-line options
    assertEqual "" 11 (length $ snd $ postingsReport defreportopts Any samplejournal)
    assertEqual ""  9 (length $ snd $ postingsReport defreportopts{monthly_=True} Any samplejournal)
    assertEqual "" 19 (length $ snd $ postingsReport defreportopts{monthly_=True} (Empty True) samplejournal)
