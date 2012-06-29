@@ -2,8 +2,6 @@ hledger project notes
 
 * backlog
 
-** release 0.18.1
-*** docs, release  .5h
 ** errors
 *** double quote matches everything ?  1h
 *** text: duplicate runs
