@@ -5,10 +5,10 @@ bin/hledger -f- stats
 >>>=0
 
 # 2. included files should be listed in parse order
- touch a b; bin/hledger -f- stats; rm -f a b
+ touch a.j b.j; bin/hledger -f- stats; rm -f a.j b.j
 <<<
-include a
-include b
+include a.j
+include b.j
 >>> /Included journal files *: *\.\/a/
 >>>2
 >>>=0
