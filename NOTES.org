@@ -2,6 +2,10 @@ hledger project notes
 
 * backlog
 
+** release 0.18.1
+*** reverse order within date
+
+** balancesheet real-world testing
 ** errors
 *** print, reg: each day's transactions are reversed
 *** clarify include parse order issue
@@ -830,6 +834,8 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
 *** narrow (editable) view to selected txns
+*** optimise balance report
+*** IIF/quickbooks writer
 *** inacct: on command line
 hledger -f demo.journal reg inacct:expenses:food:pets date:2010/8/25
 2010/08/25 catfood              expenses:food:pets           $10.00       $10.00
@@ -844,7 +850,6 @@ hledger -f demo.journal reg inacct:expenses:food:pets date:2010/8/25
 *** search by commodity
 *** account types
 *** runtime templates for reports
-*** don't moan about ~
 *** generalise rules file ?
 **** make it applicable to all formats ?
 **** absorb its directives into journal format ?
@@ -1040,6 +1045,7 @@ hunk ./hledger/Hledger/Cli/Utils.hs 125
 *** web api
 *** client-side ui
 *** support -V ?
+*** print: shouldn't support -M and --depth ?
 *** in-place editing
 **** http://stackoverflow.com/questions/640971/setfocus-to-textbox-from-javascript-after-just-creating-the-textbox-with-javascr
 *** measure bug open times
