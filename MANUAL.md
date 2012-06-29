@@ -42,7 +42,7 @@ then:
 
 To also install the web interface, do:
 
-    $ cabal install hledger hledger-web
+    $ cabal install hledger-web
 
 To build the latest [development version](DEVELOPMENT.html) do:
 
@@ -1326,51 +1326,56 @@ you. Tip: blindly reinstalling/upgrading everything in sight probably
 won't work, it's better to go in small steps and understand the problem,
 or get help.
 
-- **Did you cabal update ?**  
+#. **Did you cabal update ?**  
   If not, `cabal update` and try again.
 
-- **Do you have a new enough version of GHC ?**  
+#. **Do you have a new enough version of GHC ?**  
   Run `ghc --version`. hledger requires GHC 7.0 or greater
   (on [some platforms](#5551), 7.2.1 can be helpful).
 
-- **Do you have a new enough version of cabal ?**  
+#. **Do you have a new enough version of cabal ?**  
   Avoid ancient versions.  `cabal --version` should report at least
   0.10 (and 0.14 is much better). You may be able to upgrade it with:
   
         $ cabal update
-        $ cabal install cabal-install
+        $ cabal install cabal-install-0.14
 
-- **There might be a dependency or compilation error with a hledger package**  
-  The current hledger release might have an error in its code, or its
-  package dependencies may have become out of date. 
-  Ask for help, and check the
-  [recent changes](http://joyful.com/darcsden/simon/hledger/changes) to
-  see if the [latest development version](#installing) might have a fix.
+#. **Are your installed GHC/cabal packages in good repair ?**  
+  Run `ghc-pkg check`. If it reports problems, some of your packages have
+  become inconsistent, and you should fix these first. 
+  [ghc-pkg-clean](https://gist.github.com/1185421) is an easy way.
 
-    This issue should be uncommon. It's not always easy to distinguish it
-    from...
-
-- <a name="cabaldeps" />**cabal can't satisfy the new dependencies due to old installed packages**  
+#. <a name="cabaldeps" />**cabal can't satisfy the new dependencies due to old installed packages**  
   Cabal dependency failures become more likely as you install more
-  packages over time. If you have this problem, there are two easy
-  workarounds: 1. build hledger in an isolated package environment with
-  [virthualenv](http://hackage.haskell.org/package/virthualenv) (or
-  [cabal-dev](http://hackage.haskell.org/package/cabal-dev)), or 2. just
-  [reset your packages](https://gist.github.com/1185421).
+  packages over time. If `cabal install hledger-web --dry` says it can't
+  satisfy dependencies, you have this problem. You can:
+  
+    a. try to understand which packages to remove (with `ghc-pkg unregister`)
+       or which constraints to add (with `--constraint 'PKG == ...'`) to help cabal
+       find a solution
 
-- **An error involving some other package**  
-  Look at the output carefully and identify the problem package(s).  Try
-  installing each one individually, eg `cabal install pkg1`. Look for the
-  cause of the failure near the end of the output. If necessary, add `-v2`
-  or `-v3` for more verbose output.  Often the problem is that you need to
-  install some C library that the haskell package depends on, using your
-  platform's package management system.
+    b. install into a fresh environment created with
+       [virthualenv](http://hackage.haskell.org/package/virthualenv) or
+       [cabal-dev](http://hackage.haskell.org/package/cabal-dev)
 
-- <a name="5551" />**can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**  
-  (or similar): cf [GHC bug #5551](http://hackage.haskell.org/trac/ghc/ticket/5551).
-  Upgrade GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
+    c. or (easiest) erase your installed packages with
+       [ghc-pkg-reset](https://gist.github.com/1185421) and try again.
 
-- **ExitFailure 11**  
+#. **Dependency or compilation error in one of the new packages ?**  
+   If cabal starts downloading and building packages and then terminates
+   with an error, look at the output carefully and identify the problem
+   package(s).  If necessary, add `-v2` or `-v3` for more verbose
+   output. You can install the new packages one at a time to troubleshoot,
+   but remember cabal is smarter when installing all packages at once.
+
+    Often the problem is that you need to install a particular C library
+   using your platform's package management system. Or the dependencies
+   specified on a package may need updating. Or there may be a compilation
+   error.  If you find an error in a hledger package, check the
+   [recent commits](http://joyful.com/darcsden/simon/hledger/changes) to
+   see if the [latest development version](#installing) might have a fix.
+
+#. **ExitFailure 11**  
   See
   [http://hackage.haskell.org/trac/hackage/ticket/777](http://hackage.haskell.org/trac/hackage/ticket/777).
   This means that a build process has been killed, usually because it grew
@@ -1379,8 +1384,12 @@ or get help.
   or limit GHC's heap size by doing `cabal install ... --ghc-options='+RTS
   -M400m'` (400 megabytes works well on my 1G VPS, adjust up or down..)
 
-- <a name="iconv" />**Undefined symbols: ... _iconv ... on OS X**  
-  This kind of error:
+#. <a name="5551" />**Can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**  
+  (or similar): cf [GHC bug #5551](http://hackage.haskell.org/trac/ghc/ticket/5551).
+  Upgrade GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
+
+#. <a name="iconv" />**Undefined iconv symbols on OS X**  
+   This kind of error:
 
         Linking dist/build/hledger/hledger ...
         Undefined symbols:
@@ -1401,21 +1410,21 @@ or get help.
     
         extra-lib-dirs: /usr/lib
 
-- **hledger-vty requires curses-related libraries**  
+#. **hledger-vty requires curses-related libraries**  
   On Ubuntu, eg, you'll need the `libncurses5-dev` package. On Windows,
   these are not available (unless perhaps via Cygwin.)
 
-- **hledger-chart requires GTK-related libraries**  
+#. **hledger-chart requires GTK-related libraries**  
   On Ubuntu, eg, install the `libghc6-gtk-dev` package. See also [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL).
 
 #### Usage issues
 
 Here are some issues you might encounter when you run hledger:
 
-- **hledger fails to parse some valid ledger files**  
+12. **hledger fails to parse some valid ledger files**  
   See [file format compatibility](#file-format-compatibility).
 
-- <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
+#. <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
   In order to handle non-ascii letters and symbols (like £), hledger needs
   an appropriate locale. This is usually configured system-wide; you can
   also configure it temporarily.  The locale may need to be one that
