@@ -4,6 +4,17 @@ title: hledger news
 
 # News
 
+## 2012/6/29 hledger 0.18.1
+
+  * register, print: fix reverse ordering of same-day transactions
+  * balance: respect all query terms, not just acct
+  * combine command-line flags like --depth properly with non-flag query patterns
+  * web: don't auto-create a missing journal file at startup
+  * stats: list included journal files
+  * support tilde (~) in journal and rules file paths
+  * expose more utilities from CsvReader
+  * remove ensureRulesFile debug trace
+
 ## 2012/5/29 hledger 0.18
 
   * web: hledger-web is now based on yesod 1.0
