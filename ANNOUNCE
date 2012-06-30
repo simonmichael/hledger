@@ -1,52 +1,43 @@
-I'm pleased to announce version 0.18 of hledger.
+I'm pleased to announce the release of hledger and hledger-web 0.18.1 (in
+time for Debian wheezy!)
 
 hledger (http://hledger.org) is a haskell library, command-line tool and
-web application for working with financial data (or anything that can be
-tracked numerically in an accounting journal). It is inspired by and
-compatible with John Wiegley's Ledger. hledger reads a plain text file
-describing transactions and lets you query account balances or transaction
-details by various criteria.  It can also help you record new
-transactions, or convert CSV data from your bank.
+web application for tracking and analyzing financial transactions.  It
+reads a plain text file describing transactions and lets you query account
+balances or activity by various criteria.  It can also help you record new
+transactions, or convert CSV data from your bank. hledger is inspired by
+and compatible with John Wiegley's Ledger.
 
-Release notes (http://hledger.org/NEWS.html):
-
-  * web: hledger-web is now based on yesod 1.0
-
-  * web: fix js error breaking second use of add form (#72)
-
-  * web: make `yesod devel` work
-
-  * the command-line now supports a more powerful query language, consistent with the web UI
-
-  * hledger now fully supports tags (aka metadata) on both transactions and postings, and querying by tag or tag value
-
-  * new commands `incomestatement`, `balancesheet`, and `cashflow` provide basic financial statements under certain conditions
-
-  * format conversion is now done on demand, and the convert command has been dropped. So instead of
-    `hledger convert FILE.csv` just do `hledger -f FILE.csv print` or any other command.
-    You can also pipe any supported format into `hledger -f- CMD` and hledger will try to do the right thing.
-
-  * support for GHC 6.12 has been dropped; this release has been tested with GHC 7.0.4, 7.2.2, and 7.4.1
-
-  * unicode is now handled properly on all supported GHC versions
-
-  * API and internal cleanups
-
-Stats:
-
-- Release contributors: Simon Michael, xiaoruoruo
-
-- 87 days, 155 commits, 6 end-user features and 3 end-user bugfixes since
-  last major release
-
-- 216 unit & functional tests (hledger-lib & hledger)
-
-- 7836 lines of code (hledger-lib, hledger & hledger-web)
-
-Install it: 
+Installation:
 
   cabal update; cabal install hledger [hledger-web]
 
-If you have trouble, see http://hledger.org/MANUAL.html#installing .
-You can fund a ready-to-run binary for your platform with a donation at
-http://hledger.org/DOWNLOAD.html .
+For more help, see http://hledger.org/MANUAL.html#installing .  Or, fund a
+ready-to-run binary for your platform: http://hledger.org/DOWNLOAD.html
+
+Release notes for 0.18.1:
+
+  * register, print: fix reverse ordering of same-day transactions
+
+  * balance: respect all query terms, not just acct
+
+  * combine command-line flags like --depth properly with non-flag query
+    patterns
+
+  * web: don't auto-create a missing journal file at startup
+
+  * stats: list included journal files
+
+  * support tilde (~) in journal and rules file paths
+
+  * expose more utilities from CsvReader
+
+  * remove ensureRulesFile debug trace
+
+Release contributors: Simon Michael, Clint Adams
+
+Release stats: 30 days, 27 commits, 6 end-user fixes, 2 end-user features
+since last release
+
+Project stats: 225 unit & functional tests, 7879 lines of code including
+hledger-web, 19 committers

@@ -59,9 +59,9 @@ These are without an active maintainer, and/or platform-specific, so installing 
 
 Note: to use non-ascii characters like £, you might need to [configure a suitable locale](#locale).
 
-<span style="color:red; font-style:italic;">
-Trouble with any of the above ? Proceed to [Troubleshooting](#troubleshooting).
-</span>
+<div class="alert">
+If you have trouble, see [Troubleshooting](#troubleshooting).
+</div>
 
 ## Usage
 

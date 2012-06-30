@@ -147,3 +147,13 @@ img {
     list-style-type: none;
     padding:0 1em 0 1em;
 }
+
+.alert {
+    width:50%; 
+    margin:1em; 
+    padding:1em; 
+    font-size:smaller; 
+    border:thin solid hsl(0,100%,50%); 
+    background-color:hsl(0,100%,95%); 
+    font-style:italic;"
+}
