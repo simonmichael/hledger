@@ -6,7 +6,7 @@ hledger project notes
 *** docs, release  .5h
 ** errors
 *** double quote matches everything ?  1h
-*** duplicate test runs
+*** text: duplicate runs
 $ hledger test 'showTransaction$'
 Cases: 6  Tried: 0  Errors: 0  Failures: 0([],"")
 ### Failure in: 0:showTransaction
@@ -43,6 +43,7 @@ expected: "2010/01/01 x\n    a        1 @ $2\n    b              \n\n"
 \n\n"
 Cases: 6  Tried: 6  Errors: 0  Failures: 6
 
+*** web: stray bracket in journal edit form title
 *** web: enter doesn't work in add form completing fields
 **** research this dhtmlxcombo issue
 *** parsing: decimal point/thousands separator confusion ?
@@ -141,6 +142,10 @@ $ cat t
 *** convert: 49 convert should report rules file parse errors better
 *** 25 hledger in windows console does not print non-ascii characters
 *** journalAddFile is called in reverse order of includes
+*** darcs show authors cleanup
+**** trygve
+**** encoding
+eg in text-mode emacs 24
 ** documentation, marketing
 *** document status flag better
 *** finalise/link 2012 survey
@@ -1558,7 +1563,7 @@ are there any cashflow, tax, budgetary problems looming ?
 *** http://www.n-heptane.com/nhlab/repos/Decimal/
 *** http://www.n-heptane.com/nhlab/repos/Decimal/Money.hs
 *** http://www2.hursley.ibm.com/decimal/
-** docs
+** other docs
 *** http://en.wikibooks.org/wiki/Accounting
 *** http://books.google.com/books?id=4V8pZmpwmBYC&lpg=PP1&dq=analysis%20patterns&pg=PA95#v=onepage&q&f=false
 *** lwn grumpy editor articles
@@ -2291,8 +2296,8 @@ enumerator-0.4.14 failed during the building phase. The exception was:
 ExitFailure (-1073741819)
 
 
-* journal
-(partial)
+* log
+partial activity log
 ** 2010
 *** 5/4
 **** balance sheet pomodoro 1
@@ -3451,3 +3456,5 @@ move *FromOpts into toOpts
 *** 5/15 matcher -> query, cleanup
 *** 5/16 tests, using query consistently
 *** 5/17 tests, porting entriesReport to query
+*** 5/29 release
+*** 6/29 release
