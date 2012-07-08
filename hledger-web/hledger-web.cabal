@@ -154,6 +154,7 @@ executable         hledger-web
                    , warp
                    , yaml
     if flag(blaze_html_0_5)
+      cpp-options:   -DBLAZE_HTML_0_5
       build-depends:
                      blaze-html               >= 0.5     && < 0.6
                    , blaze-markup             >= 0.5.1   && < 0.6

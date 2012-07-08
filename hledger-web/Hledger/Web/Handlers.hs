@@ -52,7 +52,12 @@ import Data.Time.Format
 import System.FilePath (takeFileName)
 import System.IO.Storage (putValue, getValue)
 import System.Locale (defaultTimeLocale)
+#if BLAZE_HTML_0_5
+import Text.Blaze.Internal (preEscapedString)
+import Text.Blaze.Html (toHtml)
+#else
 import Text.Blaze (preEscapedString, toHtml)
+#endif
 import Text.Hamlet hiding (hamlet)
 import Text.Printf
 import Yesod.Core
