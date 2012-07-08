@@ -55,7 +55,7 @@ library
                   Hledger.Utils
                   Hledger.Utils.UTF8IOCompat
   Build-Depends:
-                  base >= 3 && < 5
+                  base >= 4.3 && < 5
                  ,bytestring
                  ,cmdargs >= 0.9.1   && < 0.10
                  ,containers
