@@ -4,6 +4,11 @@ title: hledger news
 
 # News
 
+## 2012/7/7 hledger 0.18.2
+
+  * web: fix compilation error with -fblaze_html_0_5 flag
+  * bump base lower bound to 4.3 to enforce GHC 7 requirement
+
 ## 2012/6/29 hledger 0.18.1
 
   * register, print: fix reverse ordering of same-day transactions
