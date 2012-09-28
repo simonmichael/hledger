@@ -765,9 +765,10 @@ compressbinary:
 compressbinarywin:
 	cd bin; zip -9 $(BINARYFILENAME).zip $(BINARYFILENAME)
 
+RSYNC=rsync -e 'ssh -p 5022'
 # push the last-updated platform binary to the public download directory
 pushlatestbinary:
-	cd bin; rsync -aP `ls -t | head -1` simon@joyful.com:/repos/hledger/site/download/
+	cd bin; $(RSYNC) -aP `ls -t | head -2` simon@joyful.com:/repos/hledger/site/download/
 
 
 # show project stats useful for release notes
