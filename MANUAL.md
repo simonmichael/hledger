@@ -44,6 +44,17 @@ To also install the web interface, do:
 
     $ cabal install hledger-web
 
+Then try it:
+
+    $ hledger
+
+If you get "hledger not found" or similar, you should add cabal's bin
+directory to your PATH environment variable. Eg on unix-like systems,
+something like:
+
+    $ echo 'export PATH=$PATH:~/cabal/bin' >> ~/.bash_profile
+    $ source ~/.bash_profile
+
 To build the latest [development version](DEVELOPMENT.html) do:
 
     $ cabal update
@@ -902,7 +913,7 @@ the following:
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
 - `desc:REGEX` - match transaction descriptions by regular expression
-- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions) (which may not contain a reporting interval)
+- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
 - `edate:PERIODEXPR` - as above, but match effective dates
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `tag:NAME[=REGEX]` - match by exact [tag](#tags) name, and optionally match the tag value by regular expression
@@ -1325,6 +1336,11 @@ Starting from the top, consider whether each of these might apply to
 you. Tip: blindly reinstalling/upgrading everything in sight probably
 won't work, it's better to go in small steps and understand the problem,
 or get help.
+
+#. **Running hledger says something like No command 'hledger' found**  
+  cabal installs binaries into a special directory, which should be added
+  to your PATH environment variable.  On unix-like systems, it is
+  ~/.cabal/bin.
 
 #. **Did you cabal update ?**  
   If not, `cabal update` and try again.
