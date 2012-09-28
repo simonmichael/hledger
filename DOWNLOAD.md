@@ -22,27 +22,31 @@ code {
    target="_blank" style="float:right;margin:0 1em;"
    ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
 
-Here are some old binaries, all lagging sadly behind the
-[current release](NEWS.html).  You can donate to fund the tedious work of
-producing a portable up-to-date binary for your platform, which will then
-be available to all. This is a quick way to help the project and your
-fellow users! If you don't want to do that, you can of course build your
-own: see [Installing](../MANUAL.html#installing).
+Generating and supporting portable binaries costs time and effort that can
+be better used elsewhere. So, I do it when stimulated by donations.
+Binaries funded in this way will then be available to all - a quick way to
+help the project and your fellow users!
+
+My latest available platform binaries are below. On some platforms, such
+as Debian, your packaging system will have more up-to-date and convenient
+ones.  Otherwise, you can of course build your own: see
+[Installing](../MANUAL.html#installing).
 
 <table>
   <tr>
-    <th width="34%" colspan=2><img src="images/linux.png" /><br />GNU/Linux</th>
-    <th width="33%"><img src="images/mac.png" border=0 /><br />Mac</th>
-    <th width="33%"><img src="images/windows.png" border=0 /><br />Windows</th>
+    <th width="40%" colspan=2><img src="images/linux.png" /><br />GNU/Linux</th>
+    <th width="40%" colspan=2><img src="images/mac.png" border=0 /><br />Mac</th>
+    <th width="20%"><img src="images/windows.png" border=0 /><br />Windows</th>
   </tr>
   <tr style="text-align:center; white-space:nowrap;">
-    <td width="25%">**32-bit**</td>
-    <td width="25%">**64-bit**</td>
-    <td width="25%">**10.5**</td>
-    <td width="25%"></td>
+    <td width="20%">**32-bit**</td>
+    <td width="20%">**64-bit**</td>
+    <td width="20%">**10.5**</td>
+    <td width="20%">**10.7**</td>
+    <td width="20%"></td>
   </tr>
 
-  <tr class="heading"><td colspan=4>**hledger** (command-line interface):</td></tr>
+  <tr class="heading"><td colspan=5>**hledger** (command-line interface):</td></tr>
   <tr align="center">
     <td>
       [hledger-0.14-linux-i686.gz](download/hledger-0.14-linux-i686.gz)<br><br>
@@ -54,12 +58,15 @@ own: see [Installing](../MANUAL.html#installing).
       [hledger-0.14-mac-i386.gz](download/hledger-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
+      **[hledger-0.18.2-mac-x86_64.gz](download/hledger-0.18.2-mac-x86_64.gz)**<br><br>
+    </td>
+    <td>
       [hledger-0.14-windows-i386.exe.zip](download/hledger-0.14-windows-i386.exe.zip)
     </td>
   </tr>
 
   <!-- <tr><td colspan=4>optional add-ons:</td></tr> -->
-  <tr class="heading"><td colspan=4>**hledger-web** (web interface):</td></tr>
+  <tr class="heading"><td colspan=5>**hledger-web** (web interface):</td></tr>
   <tr align="center">
     <td>
       [hledger-web-0.14-linux-i686.gz](download/hledger-web-0.14-linux-i686.gz)<br><br>
@@ -71,11 +78,14 @@ own: see [Installing](../MANUAL.html#installing).
       [hledger-web-0.14-mac-i386.gz](download/hledger-web-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
+      **[hledger-web-0.18.2-mac-x86_64.gz](download/hledger-web-0.18.2-mac-x86_64.gz)**<br><br>
+    </td>
+    <td>
       [hledger-web-0.14-windows-i386.exe.zip](download/hledger-web-0.14-windows-i386.exe.zip)
     </td>
   </tr>
 
-  <tr class="heading"><td colspan=4>**hledger-vty** (curses interface):</td></tr>
+  <tr class="heading"><td colspan=5>**hledger-vty** (curses interface):</td></tr>
   <tr align="center">
     <td>
       [hledger-vty-0.14-linux-i686.gz](download/hledger-vty-0.14-linux-i686.gz)<br><br>
@@ -87,24 +97,29 @@ own: see [Installing](../MANUAL.html#installing).
       [hledger-vty-0.14-mac-i386.gz](download/hledger-vty-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
+    </td>
+    <td>
       not supported
     </td>
   </tr>
-  <tr class="heading"><td colspan=4>**hledger-chart** (pie chart generator):</td></tr>
-  <tr align="center">
-    <td>
-      <!-- [hledger-chart-0.14-linux-i686.gz](download/hledger-chart-0.14-linux-i686.gz)<br><br> -->
-      &nbsp;
-    </td>
-    <td>
-      <!-- [hledger-chart-0.14-linux-x86_64.gz](download/hledger-chart-0.14-linux-x86_64.gz)<br><br> -->
-    </td>
-    <td>
-      <!-- [hledger-chart-0.14-mac-i386.gz](download/hledger-chart-0.14-mac-i386.gz)<br><br> -->
-    </td>
-    <td>
-    </td>
-  </tr>
+
+  <!-- <tr class="heading"><td colspan=5>**hledger-chart** (pie chart generator):</td></tr> -->
+  <!-- <tr align="center"> -->
+  <!--   <td> -->
+  <!--     <\!-- [hledger-chart-0.14-linux-i686.gz](download/hledger-chart-0.14-linux-i686.gz)<br><br> -\-> -->
+  <!--     &nbsp; -->
+  <!--   </td> -->
+  <!--   <td> -->
+  <!--     <\!-- [hledger-chart-0.14-linux-x86_64.gz](download/hledger-chart-0.14-linux-x86_64.gz)<br><br> -\-> -->
+  <!--   </td> -->
+  <!--   <td> -->
+  <!--     <\!-- [hledger-chart-0.14-mac-i386.gz](download/hledger-chart-0.14-mac-i386.gz)<br><br> -\-> -->
+  <!--   </td> -->
+  <!--   <td> -->
+  <!--   </td> -->
+  <!--   <td> -->
+  <!--   </td> -->
+  <!-- </tr> -->
 
   <!-- <tr> -->
   <!--   <td colspan=2> -->
@@ -132,6 +147,5 @@ own: see [Installing](../MANUAL.html#installing).
 
 </table>
 
-Note you may need to decompress *(eg: gunzip FILE.gz)* and make these
-executable *(eg: chmod +x FILE)* after downloading.
-
+Note you may need to decompress (eg: `gunzip FILE.gz`) and make these
+executable (eg: `chmod +x FILE`) after downloading.
