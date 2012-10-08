@@ -66,10 +66,10 @@ library
                  ,base >= 4.3 && < 5
                  ,cabal-file-th
                  ,containers
-                 ,cmdargs >= 0.9.1   && < 0.10
+                 ,cmdargs >= 0.10 && < 0.11
                  ,directory
                  ,filepath
-                 ,haskeline == 0.6.*
+                 ,haskeline >= 0.6 && <= 0.8
                  ,HUnit
                  ,mtl
                  ,old-locale
@@ -79,7 +79,7 @@ library
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,shakespeare-text == 1.0.*
-                 ,split == 0.1.*
+                 ,split >= 0.1 && < 0.3
                  ,text == 0.11.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
@@ -121,10 +121,10 @@ executable hledger
                  ,base >= 4.3 && < 5
                  ,cabal-file-th
                  ,containers
-                 ,cmdargs >= 0.9.1   && < 0.10
+                 ,cmdargs >= 0.10 && < 0.11
                  ,directory
                  ,filepath
-                 ,haskeline == 0.6.*
+                 ,haskeline >= 0.6 && <= 0.8
                  ,HUnit
                  ,mtl
                  ,old-locale
@@ -134,7 +134,7 @@ executable hledger
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,shakespeare-text == 1.0.*
-                 ,split == 0.1.*
+                 ,split >= 0.1 && < 0.3
                  ,text == 0.11.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4

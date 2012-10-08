@@ -127,7 +127,7 @@ executable         hledger-web
                    , hledger-lib == 0.18.2
                    , base                          >= 4.3        && < 5
                    , cabal-file-th
-                   , cmdargs >= 0.9.1   && < 0.10
+                   , cmdargs >= 0.10 && < 0.11
                    , directory
                    , filepath
                    , HUnit

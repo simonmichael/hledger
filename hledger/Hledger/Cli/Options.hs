@@ -40,6 +40,7 @@ defmode =   Mode {
  ,modeValue = []
  ,modeCheck = Right
  ,modeReform = const Nothing
+ ,modeExpandAt = True
  ,modeGroupFlags = toGroup []
  ,modeArgs = ([], Nothing)
  ,modeGroupModes = toGroup []
@@ -481,7 +482,11 @@ aliasesFromOpts = map parseAlias . alias_
             alias' = case alias of ('=':rest) -> rest
                                    _ -> orig
 
-showModeHelp = showText defaultWrap . helpText [] HelpFormatDefault
+showModeHelp :: Mode a -> String
+showModeHelp =
+  (showText defaultWrap :: [Text] -> String)
+  .
+  (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
 tests_Hledger_Cli_Options = TestList
  [
