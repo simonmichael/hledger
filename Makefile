@@ -4,7 +4,11 @@
 export LANG=en_US.UTF-8
 
 # command line to run during "make prof" and "make heap"
-PROFCMD=bin/hledgerp -f data/1000x1000x10.journal balance >/dev/null
+PROFCMD=bin/hledgerp balance -f data/100x100x10.journal >/dev/null
+#PROFCMD=bin/hledgerp balance >/dev/null
+
+#PROFRTSFLAGS=-p
+PROFRTSFLAGS=-P
 
 # command to run during "make coverage"
 COVCMD=test
@@ -12,7 +16,7 @@ COVCMD=test
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
-BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14-ghc6.12.3 ledger
+BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14 hledger-0.15 hledger-0.16 hledger-0.17 hledger-0.18 hledgeropt ledger
 #BENCHEXES=hledger
 
 # misc. tools
@@ -78,15 +82,16 @@ PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
 DEFINEFLAGS:=
 PREFERMACUSRLIBFLAGS=-L/usr/lib
-GHCMEMFLAGS=+RTS -M200m -RTS
-BUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) $(GHCMEMFLAGS) $(HCFLAGS)
+GHCMEMFLAGS= #+RTS -M200m -RTS
+BUILDFLAGS:=-rtsopts -DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) $(GHCMEMFLAGS) $(HCFLAGS)
+PROFBUILDFLAGS:=-prof -osuf hs_p #-prof-auto
 LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-static -optl-pthread
 MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -O2 # -optl-L/usr/lib
 #WINDOWSRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS)
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 # searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
-GHC=ghc-7.4.1
+GHC=ghc
 AUTOBUILD=sp --no-exts --no-default-map $(GHC) --make -O0 $(GHCMEMFLAGS)
 
 # file defining the current release version
@@ -172,18 +177,19 @@ bin/hledger.ghc-%: $(SOURCEFILES)
 
 # build hledger with the main supported GHC versions
 bin/hledger.ghcall: \
+	bin/hledger.ghc-7.6.1 \
 	bin/hledger.ghc-7.4.1 \
 	bin/hledger.ghc-7.2.2 \
 	bin/hledger.ghc-7.0.4 \
 #	bin/hledger.ghc-6.12.3 \
 
 # build the fastest binary we can
-hledgeropt:
-	cd hledger; ghc --make $(MAIN) -o bin/hledgeropt $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
+bin/hledgeropt:
+	cd hledger; ghc --make $(MAIN) -o ../$@ $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build the time profiling binary. cabal install --reinstall -p some libs may be required.
-hledgerp:
-	cd hledger; ghc --make $(MAIN) -prof -auto-all -o ../bin/hledgerp $(BUILDFLAGS)
+bin/hledgerp:
+	cd hledger; ghc --make $(MAIN) -o ../$@ $(BUILDFLAGS) $(PROFBUILDFLAGS)
 
 # build the heap profiling binary for coverage reports and heap profiles.
 # Keep these .o files separate from the regular ones.
@@ -367,10 +373,11 @@ test-ghc-%: # bin/hledger.ghc-$*
 
 # run unit and functional tests with main supported GHC versions
 test-ghcall: bin/hledger.ghcall \
+	test-ghc-7.6.1 \
 	test-ghc-7.4.1 \
 	test-ghc-7.2.2 \
 	test-ghc-7.0.4 \
-	test-ghc-6.12.3 \
+#	test-ghc-6.12.3 \
 
 # run doc tests
 DOCTESTFILES=\
@@ -423,9 +430,9 @@ progressionbench: samplejournals tools/progressionbench
 	tools/progressionbench -- -t png -k png
 
 # generate and archive an execution profile
-prof: samplejournals hledgerp
+prof: samplejournals bin/hledgerp
 	@echo "Profiling: $(PROFCMD)"
-	-$(PROFCMD) +RTS -p -RTS
+	-$(PROFCMD) +RTS $(PROFRTSFLAGS) -RTS
 	mv hledgerp.prof profs/$(TIME).prof
 	(cd profs; rm -f latest*.prof; ln -s $(TIME).prof latest.prof)
 
@@ -434,13 +441,13 @@ viewprof: prof
 	tools/simplifyprof.hs profs/latest.prof
 
 # generate and display an execution profile, don't save or simplify
-quickprof: samplejournals hledgerp
+quickprof: samplejournals bin/hledgerp
 	@echo "Profiling: $(PROFCMD)"
-	-$(PROFCMD) +RTS -p -RTS
+	-$(PROFCMD) +RTS $(PROFRTSFLAGS) -RTS
 	echo; cat hledgerp.prof
 
 # generate and archive a graphical heap profile
-heap: samplejournals hledgerp
+heap: samplejournals bin/hledgerp
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
 	mv hledgerp.hp profs/$(TIME).hp
@@ -451,7 +458,7 @@ viewheap: heap
 	$(VIEWPS) profs/latest.ps
 
 # generate and display a graphical heap profile, don't save
-quickheap: samplejournals hledgerp
+quickheap: samplejournals bin/hledgerp
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
 	hp2ps hledgerp.hp
