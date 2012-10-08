@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, CPP #-}
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and
@@ -34,6 +34,10 @@ import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Test.HUnit
 import Text.Printf
+#if __GLASGOW_HASKELL__ >= 706
+import System.Time (ClockTime(TOD))
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+#endif
 
 import Hledger.Cli.Options
 import Hledger.Data
@@ -98,8 +102,17 @@ journalSpecifiedFileIsNewer Journal{filereadtime=tread} f = do
 fileModificationTime :: FilePath -> IO ClockTime
 fileModificationTime f
     | null f = getClockTime
-    | otherwise = getModificationTime f `C.catch` \(_::C.IOException) -> getClockTime
-
+    | otherwise = (do
+#if __GLASGOW_HASKELL__ < 706
+        clo <- getModificationTime f
+#else
+        utc <- getModificationTime f
+        let nom = utcTimeToPOSIXSeconds utc
+        let clo = TOD (read $ show nom) 0 -- XXX
+#endif
+        return clo
+        )
+        `C.catch` \(_::C.IOException) -> getClockTime
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode
 openBrowserOn u = trybrowsers browsers u
