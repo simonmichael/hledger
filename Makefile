@@ -462,7 +462,7 @@ ghci:
 	ghci $(INCLUDEPATHS) $(MAIN)
 
 # generate standard sample journals
-samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/10000x1000x10.journal data/100000x1000x10.journal
+samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal
 
 data/sample.journal:
 	true # XXX should probably regenerate this
@@ -473,8 +473,14 @@ data/100x100x10.journal: tools/generatejournal
 data/1000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 1000 1000 10 >$@
 
+data/1000x10000x10.journal: tools/generatejournal
+	tools/generatejournal 1000 10000 10 >$@
+
 data/10000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 10000 1000 10 >$@
+
+data/10000x10000x10.journal: tools/generatejournal
+	tools/generatejournal 10000 10000 10 >$@
 
 data/100000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 100000 1000 10 >$@
