@@ -17,7 +17,7 @@ COVCMD=test
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
 BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14 hledger-0.15 hledger-0.16 hledger-0.17 hledger-0.18 hledgeropt ledger
-#BENCHEXES=hledger
+BENCHEXES=hledger-0.18 hledger ledger
 
 # misc. tools
 BROWSE=google-chrome
@@ -30,16 +30,12 @@ PRINT=lpr
 PACKAGES=\
 	hledger-lib \
 	hledger \
-	hledger-web \
-#	hledger-vty \
-#	hledger-chart
+	hledger-web
 INCLUDEPATHS=\
-	-i../hledger-lib \
-	-i../hledger \
-	-i../hledger-web \
-#	-i../hledger-vty \
-#	-i../hledger-chart
-MAIN=hledger-cli.hs
+	-ihledger-lib \
+	-ihledger \
+	-ihledger-web
+MAIN=hledger/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
 SOURCEFILES:= \
@@ -60,11 +56,7 @@ HADDOCKSOURCEFILES:= \
 	hledger/Hledger/*/*hs \
 	hledger-web/Hledger/*hs \
 	hledger-web/Hledger/*/*hs \
-	hledger-web/Hledger/Web/Settings/*hs \
-#	hledger-vty/Hledger/*hs \
-#	hledger-vty/Hledger/*/*hs
-#	hledger-chart/Hledger/*hs
-#	hledger-chart/Hledger/*/*hs
+	hledger-web/Hledger/Web/Settings/*hs
 
 CABALFILES:= \
 	hledger/hledger.cabal \
@@ -73,7 +65,6 @@ CABALFILES:= \
 WEBFILES:= \
 	hledger-web/static/*.js \
 	hledger-web/static/*.css
-#	hledger-web/templates/* \
 
 DOCFILES:= \
 	*.md
@@ -151,23 +142,17 @@ autotest-%: sp
 	$(AUTOBUILD) $(MAIN) -o bin/hledger $(AUTOBUILDFLAGS) --run test $*
 
 autoweb: sp
-	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o bin/hledger-web $(AUTOBUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
-
-autovty: sp
-	cd hledger-vty; $(AUTOBUILD) hledger-vty.hs -o bin/hledger-vty $(AUTOBUILDFLAGS) --run --help
-
-autochart: sp
-	cd hledger-chart; $(AUTOBUILD) hledger-chart.hs -o bin/hledger-chart $(AUTOBUILDFLAGS) --run --help
+	$(AUTOBUILD) hledger-web/hledger-web.hs -o bin/hledger-web $(AUTOBUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
 
 # check for sp and explain how to get it if not found.
 sp:
 	@/usr/bin/env which sp >/dev/null || \
 	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/darcsden/simon/searchpath, make it (cabal install-ing any needed packages) and add it to your PATH'; exit 1)
 
-hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
+hledgerall: bin/hledger hledger-web
 
 # force a compile even if binary exists, since we don't specify dependencies
-.PHONY: bin/hledger hledger-web hledger-vty hledger-chart
+.PHONY: bin/hledger hledger-web
 
 # build hledger binary as quickly as possible
 bin/hledger:
@@ -201,36 +186,22 @@ hledgerhpc:
 # build other executables quickly
 
 bin/hledger-web:
-	cd hledger-web; ghc --make hledger-web.hs -o bin/hledger-web $(BUILDFLAGS)
+	ghc --make -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
 
 bin/hledger-web-production:
-	cd hledger-web; ghc --make hledger-web.hs -o $@ $(BUILDFLAGS)
-
-bin/hledger-vty:
-	cd hledger-vty; ghc --make hledger-vty.hs -o bin/hledger-vty $(BUILDFLAGS)
-
-bin/hledger-chart:
-	cd hledger-chart; ghc --make hledger-chart.hs -o bin/hledger-chart $(BUILDFLAGS)
+	ghc --make -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
 
 # build portable releaseable binaries for gnu/linux
 linuxbinaries: 	linuxbinary-hledger \
-		linuxbinary-hledger-web \
-		linuxbinary-hledger-vty \
-		linuxbinary-hledger-chart
+		linuxbinary-hledger-web
 	@echo 'Please check the binaries look portable, then make compressbinaries:'
 	-file bin/*`arch`
 
 linuxbinary-%:
 	ghc --make $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
 
-# XXX link errors
-linuxbinary-hledger-chart:
-	ghc --make hledger-chart/hledger-chart.hs -o bin/hledger-chart$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS) -lpixman-1 -v
-
 macbinaries:    macbinary-hledger \
-		macbinary-hledger-vty \
-		macbinary-hledger-web \
-		macbinary-hledger-chart
+		macbinary-hledger-web
 	@echo 'Please check the binaries are portable, then make compressbinaries'
 	otool -L bin/*`arch`
 
@@ -240,7 +211,7 @@ macbinaries:    macbinary-hledger \
 # Clunky, does the link twice.
 macbinary-%:
 	BINARY=`echo $(BINARYFILENAME) | sed -e 's/hledger/$*/'` ; \
-	LINKCMD=`cd $* && ghc -v --make $*.hs $(MACRELEASEBUILDFLAGS) -o bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
+	LINKCMD=`ghc -v --make $*/$*.hs $(MACRELEASEBUILDFLAGS) -o bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
 	PORTABLELINKCMD=`echo $$LINKCMD | sed -e 's/ -framework GMP//'` ; \
 	echo $$PORTABLELINKCMD; $$PORTABLELINKCMD
 
@@ -252,8 +223,6 @@ macbinary-%:
 windowsbinaries: install
 	cp ~/.cabal/bin/hledger.exe bin/`echo $(BINARYFILENAME) | dos2unix`
 	-cp ~/.cabal/bin/hledger-web.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-web/' | dos2unix`
-	-cp ~/.cabal/bin/hledger-vty.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-vty/' | dos2unix`
-	-cp ~/.cabal/bin/hledger-chart.exe bin/`echo $(BINARYFILENAME) | sed -e 's/hledger/hledger-chart/' | dos2unix`
 	@echo 'Please check the binaries are portable, then make compressbinaries'
 	ls -l bin/*`arch`
 
@@ -485,9 +454,6 @@ viewcoverage:
 ghci:
 	ghci $(INCLUDEPATHS) $(MAIN)
 
-ghci-vty:
-	ghci $(INCLUDEPATHS) hledger-vty/Hledger/Vty/Main.hs
-
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/10000x1000x10.journal data/100000x1000x10.journal
 
@@ -580,7 +546,7 @@ pushdocs: push
 	ssh simon@joyful.com 'make -C/repos/hledger docs'
 
 # dump all executables' command line help into files for review
-EXES=hledger hledger-vty hledger-web hledger-chart
+EXES=hledger hledger-vty hledger-web
 savehelp:
 	for e in $(EXES); do $$e --help >.HELP_$$e; done
 
@@ -753,16 +719,6 @@ hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 
 hledger/hledger.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
-
-hledger-chart/hledger-chart.cabal: $(VERSIONFILE)
-	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
-
-hledger-vty/hledger-vty.cabal: $(VERSIONFILE)
-	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
 
 hledger-web/hledger-web.cabal: $(VERSIONFILE)
