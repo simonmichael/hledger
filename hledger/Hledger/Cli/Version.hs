@@ -10,7 +10,6 @@ module Hledger.Cli.Version (
   binaryfilename
 )
 where
-import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Info (os, arch)
 import Text.Printf
 
@@ -19,12 +18,11 @@ import Hledger.Utils
 
 -- package name and version from the cabal file
 progname, version, prognameandversion :: String
-#if HADDOCK
-progname = ""
-version  = ""
+progname = "hledger"
+#ifdef VERSION
+version = VERSION
 #else
-progname = $(packageVariable (pkgName . package))
-version  = $(packageVariable (pkgVersion . package))
+version = ""
 #endif
 prognameandversion = progname ++ " " ++ version
 

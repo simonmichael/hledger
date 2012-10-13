@@ -1,4 +1,5 @@
 name:           hledger
+-- also in cpp-options below
 version: 0.18.2
 category:       Finance
 synopsis:       The main command-line interface for the hledger accounting tool.
@@ -40,8 +41,7 @@ flag threaded
     Default:       True
 
 library
-  -- XXX should set patchlevel here as in Makefile
-  cpp-options:    -DPATCHLEVEL=0
+  cpp-options:    -DVERSION="0.18.2"
   ghc-options:    -W
   -- should be the same as below
   exposed-modules:
@@ -64,7 +64,7 @@ library
   build-depends:
                   hledger-lib == 0.18.2
                  ,base >= 4.3 && < 5
-                 ,cabal-file-th
+                 -- ,cabal-file-th
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
                  ,directory
@@ -110,8 +110,7 @@ executable hledger
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
-  -- XXX should set patchlevel here as in Makefile
-  cpp-options:    -DPATCHLEVEL=0
+  cpp-options:    -DVERSION="0.18.2"
   ghc-options:    -W
   if flag(threaded)
        ghc-options:   -threaded
@@ -119,7 +118,6 @@ executable hledger
   build-depends:
                   hledger-lib == 0.18.2
                  ,base >= 4.3 && < 5
-                 ,cabal-file-th
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
                  ,directory

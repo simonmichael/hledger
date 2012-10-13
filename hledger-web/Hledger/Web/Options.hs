@@ -7,7 +7,6 @@ module Hledger.Web.Options
 where
 import Prelude
 import Data.Maybe
-import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
@@ -15,12 +14,11 @@ import Hledger.Cli hiding (progname,version,prognameandversion)
 import Hledger.Web.Settings
 
 progname, version :: String
-#if HADDOCK
-progname = ""
-version  = ""
+progname = "hledger-web"
+#ifdef VERSION
+version = VERSION
 #else
-progname = $(packageVariable (pkgName . package))
-version  = $(packageVariable (pkgVersion . package))
+version = ""
 #endif
 prognameandversion :: String
 prognameandversion = progname ++ " " ++ version :: String

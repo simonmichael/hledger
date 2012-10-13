@@ -78,12 +78,14 @@ WEBFILES:= \
 DOCFILES:= \
 	*.md
 
+LASTTAG:=$(shell darcs show tags | head -1)
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 WARNINGS:=-W -fwarn-tabs -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
-DEFINEFLAGS:=
 PREFERMACUSRLIBFLAGS=-L/usr/lib
 GHCMEMFLAGS= #+RTS -M200m -RTS
-BUILDFLAGS:=-rtsopts -DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) $(GHCMEMFLAGS) $(HCFLAGS)
+BUILDFLAGS1:=-rtsopts -DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) $(HCFLAGS)
+BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(LASTTAG)"'
+AUTOBUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='\"$(LASTTAG)\"'  # different quoting for sp
 PROFBUILDFLAGS:=-prof -osuf hs_p #-prof-auto
 LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-static -optl-pthread
 MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -O2 # -optl-L/usr/lib
@@ -140,22 +142,22 @@ allcabal%:
 # auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
 auto: sp
-	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run --version
+	$(AUTOBUILD) $(MAIN) -o bin/hledger $(AUTOBUILDFLAGS) --run --version
 
 autotest: sp
-	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test
+	$(AUTOBUILD) $(MAIN) -o bin/hledger $(AUTOBUILDFLAGS) --run test
 
 autotest-%: sp
-	cd hledger; $(AUTOBUILD) $(MAIN) -o ../bin/hledger $(BUILDFLAGS) --run test $*
+	$(AUTOBUILD) $(MAIN) -o bin/hledger $(AUTOBUILDFLAGS) --run test $*
 
 autoweb: sp
-	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
+	cd hledger-web; $(AUTOBUILD) hledger-web.hs -o bin/hledger-web $(AUTOBUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
 
 autovty: sp
-	cd hledger-vty; $(AUTOBUILD) hledger-vty.hs -o ../bin/hledger-vty $(BUILDFLAGS) --run --help
+	cd hledger-vty; $(AUTOBUILD) hledger-vty.hs -o bin/hledger-vty $(AUTOBUILDFLAGS) --run --help
 
 autochart: sp
-	cd hledger-chart; $(AUTOBUILD) hledger-chart.hs -o ../bin/hledger-chart $(BUILDFLAGS) --run --help
+	cd hledger-chart; $(AUTOBUILD) hledger-chart.hs -o bin/hledger-chart $(AUTOBUILDFLAGS) --run --help
 
 # check for sp and explain how to get it if not found.
 sp:
@@ -169,11 +171,11 @@ hledgerall: bin/hledger hledger-web hledger-vty hledger-chart
 
 # build hledger binary as quickly as possible
 bin/hledger:
-	cd hledger; ghc --make $(MAIN) -o ../bin/hledger $(BUILDFLAGS)
+	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
 
 # build a GHC-version-specific hledger binary without disturbing with other GHC version builds
 bin/hledger.ghc-%: $(SOURCEFILES)
-	cd hledger; ghc-$* --make $(MAIN) -o ../$@ $(BUILDFLAGS)  -outputdir .ghc-$*
+	ghc-$* --make $(MAIN) -o $@ $(BUILDFLAGS)  -outputdir .ghc-$*
 
 # build hledger with the main supported GHC versions
 bin/hledger.ghcall: \
@@ -185,30 +187,30 @@ bin/hledger.ghcall: \
 
 # build the fastest binary we can
 bin/hledgeropt:
-	cd hledger; ghc --make $(MAIN) -o ../$@ $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
+	ghc --make $(MAIN) -o $@ $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build the time profiling binary. cabal install --reinstall -p some libs may be required.
 bin/hledgerp:
-	cd hledger; ghc --make $(MAIN) -o ../$@ $(BUILDFLAGS) $(PROFBUILDFLAGS)
+	ghc --make $(MAIN) -o $@ $(BUILDFLAGS) $(PROFBUILDFLAGS)
 
 # build the heap profiling binary for coverage reports and heap profiles.
 # Keep these .o files separate from the regular ones.
 hledgerhpc:
-	cd hledger; ghc --make $(MAIN) -fhpc -o ../bin/hledgerhpc -outputdir .hledgerhpcobjs $(BUILDFLAGS)
+	ghc --make $(MAIN) -fhpc -o bin/hledgerhpc -outputdir .hledgerhpcobjs $(BUILDFLAGS)
 
 # build other executables quickly
 
 bin/hledger-web:
-	cd hledger-web; ghc --make hledger-web.hs -o ../bin/hledger-web $(BUILDFLAGS)
+	cd hledger-web; ghc --make hledger-web.hs -o bin/hledger-web $(BUILDFLAGS)
 
 bin/hledger-web-production:
-	cd hledger-web; ghc --make hledger-web.hs -o ../$@ $(BUILDFLAGS)
+	cd hledger-web; ghc --make hledger-web.hs -o $@ $(BUILDFLAGS)
 
 bin/hledger-vty:
-	cd hledger-vty; ghc --make hledger-vty.hs -o ../bin/hledger-vty $(BUILDFLAGS)
+	cd hledger-vty; ghc --make hledger-vty.hs -o bin/hledger-vty $(BUILDFLAGS)
 
 bin/hledger-chart:
-	cd hledger-chart; ghc --make hledger-chart.hs -o ../bin/hledger-chart $(BUILDFLAGS)
+	cd hledger-chart; ghc --make hledger-chart.hs -o bin/hledger-chart $(BUILDFLAGS)
 
 # build portable releaseable binaries for gnu/linux
 linuxbinaries: 	linuxbinary-hledger \
@@ -238,7 +240,7 @@ macbinaries:    macbinary-hledger \
 # Clunky, does the link twice.
 macbinary-%:
 	BINARY=`echo $(BINARYFILENAME) | sed -e 's/hledger/$*/'` ; \
-	LINKCMD=`cd $* && ghc -v --make $*.hs $(MACRELEASEBUILDFLAGS) -o ../bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
+	LINKCMD=`cd $* && ghc -v --make $*.hs $(MACRELEASEBUILDFLAGS) -o bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
 	PORTABLELINKCMD=`echo $$LINKCMD | sed -e 's/ -framework GMP//'` ; \
 	echo $$PORTABLELINKCMD; $$PORTABLELINKCMD
 
@@ -481,7 +483,7 @@ viewcoverage:
 
 # get a debug prompt
 ghci:
-	cd hledger; ghci $(INCLUDEPATHS) $(MAIN)
+	ghci $(INCLUDEPATHS) $(MAIN)
 
 ghci-vty:
 	ghci $(INCLUDEPATHS) hledger-vty/Hledger/Vty/Main.hs
@@ -600,7 +602,6 @@ HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-packa
 # we define HADDOCK to disable cabal-file-th code which requires a cabal file in the current dir
 haddock: .haddockprologue
 	$(HADDOCK) --title "hledger-* API docs" \
-	 --optghc '-DHADDOCK' \
 	 -o site/api \
 	 --html \
 	 --source-module=src/%{MODULE/./-}.html \
