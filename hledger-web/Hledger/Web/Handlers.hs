@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, RecordWildCards, CPP #-}
 {-
 
 hledger-web's request handlers, and helpers.
