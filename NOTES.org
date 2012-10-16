@@ -1,9 +1,9 @@
 hledger project notes
 
 * about
-Simon keeps developer notes in this emacs org-mode outline, NOTES.org.
-Currently it contains my backlog, activity log, and random notes and only
-I use this file, though anyone may send a patch.
+This emacs org-mode outline contains Simon's project backlog, activity
+log, and random developer notes.  Currently only I use this file, but
+anyone can send a patch.
 ** backlog
 Todos and wishlist items, roughly grouped by category and ordered by (my)
 priority. Used for planning, and often as a more lightweight bug
@@ -37,6 +37,9 @@ DANGEROUSLY'" --kowey
 
 ALL THAT'S NEEDED IS THE DESIRE TO BE HEARD. THE WILL TO LEARN. AND THE
 ABILITY TO SEE.  --Scott McCloud, Understanding Comics
+
+"I kept account of every farthing I spent..." --Gandhi, Autobiography
+http://books.google.com/books?id=OXoRs7Kxs_YC&lpg=PA47&ots=Q-JUe-6Rq5&dq=%22I%20kept%20account%20of%20every%20farthing%20I%20spent%22&pg=PA47#v=onepage&q=%22I%20kept%20account%20of%20every%20farthing%20I%20spent%22&f=false
 
 ** principles
 *** we aim to make reliable, maintainable, usable, useful software, sustainably.
@@ -255,6 +258,7 @@ http://stackoverflow.com/questions/6398996/good-haskell-source-to-read-and-learn
 *** selinger article on currency & capital gains accounting
 http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
 ** other software
+*** http://easybooksapp.com/
 *** http://gnucash.org
 *** http://www.xtuple.com/postbooks
 *** http://weberp.org
@@ -1993,6 +1997,7 @@ move *FromOpts into toOpts
 
 
 * backlog
+** 0.18.2
 ** errors
 *** double quote matches everything ?  1
 *** web: stray bracket in journal edit form title  1
@@ -2781,6 +2786,7 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** payees
 *** register: for the love of god, show full descriptions
 *** add: try wizards lib
 *** separate --display and --limit expressions, eg for --depth
@@ -2798,6 +2804,11 @@ hledger -f demo.journal reg inacct:expenses:food:pets date:2010/8/25
 **** show no of postings in account tree for Ledger ?
 *** hledger-web release
 *** don't recompile between autotest & functest
+*** parsing: parse YNAB export
+$ tail -n +2  YNAB/Exports/personal-Register.csv | hledger -f-  print --rules-file YNAB/Exports/personal-Register.rules
+using conversion rules file /Users/simon/personal/YNAB/Exports/personal-Register.rules
+hledger: using amount-in-field and amount-out-field, found a value in both fiel
+ds: ("$0.00","$4.68")
 *** stats: list all journal files
 *** search by commodity
 *** account types
