@@ -23,7 +23,6 @@ module Hledger.Data.Journal (
   filterJournalPostings,
   filterJournalTransactions,
   -- * Querying
-  journalAccountInfo,
   journalAccountNames,
   journalAccountNamesUsed,
   journalAmountAndPriceCommodities,
@@ -43,7 +42,6 @@ module Hledger.Data.Journal (
   journalEquityAccountQuery,
   journalCashAccountQuery,
   -- * Misc
-  groupPostings,
   matchpats,
   nullctx,
   nulljournal,
@@ -53,7 +51,7 @@ module Hledger.Data.Journal (
 )
 where
 import Data.List
-import Data.Map (findWithDefault, (!), toAscList)
+import Data.Map (findWithDefault)
 import Data.Ord
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -67,7 +65,6 @@ import qualified Data.Map as Map
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
-import Hledger.Data.Account()
 import Hledger.Data.Amount
 import Hledger.Data.Commodity
 import Hledger.Data.Dates
@@ -477,209 +474,6 @@ isnegativepat = (negateprefix `isPrefixOf`)
 
 abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 
--- | Calculate the account tree and all account balances from a journal's
--- postings, returning the results for efficient lookup.
-journalAccountInfo :: Journal -> (Tree AccountName, Map.Map AccountName Account)
-journalAccountInfo j = (ant, amap)
-    where
-      (ant, psof, _, inclbalof) = (groupPostings . journalPostings) j
-      amap = Map.fromList [(a, acctinfo a) | a <- flatten ant]
-      acctinfo a = Account a (psof a) (inclbalof a)
-
-tests_journalAccountInfo = [
- "journalAccountInfo" ~: do
-   let (t,m) = journalAccountInfo samplejournal
-   assertEqual "account tree"
-    (Node "top" [
-      Node "assets" [
-       Node "assets:bank" [
-        Node "assets:bank:checking" [],
-        Node "assets:bank:saving" []
-        ],
-       Node "assets:cash" []
-       ],
-      Node "expenses" [
-       Node "expenses:food" [],
-       Node "expenses:supplies" []
-       ],
-      Node "income" [
-       Node "income:gifts" [],
-       Node "income:salary" []
-       ],
-      Node "liabilities" [
-       Node "liabilities:debts" []
-       ]
-      ]
-     )
-    t
-   mapM_ 
-         (\(e,a) -> assertEqual "" e a)
-         (zip [
-               ("assets",Account "assets" [] (Mixed [dollars (-1)]))
-              ,("assets:bank",Account "assets:bank" [] (Mixed [dollars 1]))
-              ,("assets:bank:checking",Account "assets:bank:checking" [
-                  Posting {
-                    pstatus=False,
-                    paccount="assets:bank:checking",
-                    pamount=(Mixed [dollars 1]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  },
-                  Posting {
-                    pstatus=False,
-                    paccount="assets:bank:checking",
-                    pamount=(Mixed [dollars 1]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  },
-                  Posting {
-                    pstatus=False,
-                    paccount="assets:bank:checking",
-                    pamount=(Mixed [dollars (-1)]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  },
-                  Posting {
-                    pstatus=False,
-                    paccount="assets:bank:checking",
-                    pamount=(Mixed [dollars (-1)]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                  ] (Mixed [nullamt]))
-              ,("assets:bank:saving",Account "assets:bank:saving" [
-                  Posting {
-                    pstatus=False,
-                    paccount="assets:bank:saving",
-                    pamount=(Mixed [dollars 1]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                  ] (Mixed [dollars 1]))
-              ,("assets:cash",Account "assets:cash" [
-                  Posting {
-                    pstatus=False,
-                    paccount="assets:cash",
-                    pamount=(Mixed [dollars (-2)]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                ] (Mixed [dollars (-2)]))
-              ,("expenses",Account "expenses" [] (Mixed [dollars 2]))
-              ,("expenses:food",Account "expenses:food" [
-                  Posting {
-                    pstatus=False,
-                    paccount="expenses:food",
-                    pamount=(Mixed [dollars 1]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                ] (Mixed [dollars 1]))
-              ,("expenses:supplies",Account "expenses:supplies" [
-                  Posting {
-                    pstatus=False,
-                    paccount="expenses:supplies",
-                    pamount=(Mixed [dollars 1]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                ] (Mixed [dollars 1]))
-              ,("income",Account "income" [] (Mixed [dollars (-2)]))
-              ,("income:gifts",Account "income:gifts" [
-                  Posting {
-                    pstatus=False,
-                    paccount="income:gifts",
-                    pamount=(Mixed [dollars (-1)]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                ] (Mixed [dollars (-1)]))
-              ,("income:salary",Account "income:salary" [
-                  Posting {
-                    pstatus=False,
-                    paccount="income:salary",
-                    pamount=(Mixed [dollars (-1)]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                  ] (Mixed [dollars (-1)]))
-              ,("liabilities",Account "liabilities" [] (Mixed [dollars 1]))
-              ,("liabilities:debts",Account "liabilities:debts" [
-                  Posting {
-                    pstatus=False,
-                    paccount="liabilities:debts",
-                    pamount=(Mixed [dollars 1]),
-                    pcomment="",
-                    ptype=RegularPosting,
-                    ptags=[],
-                    ptransaction=Nothing
-                  }
-                ] (Mixed [dollars 1]))
-              ,("top",Account "top" [] (Mixed [nullamt]))
-             ]
-             (toAscList m)
-         )
- ]
-
--- | Given a list of postings, return an account name tree and three query
--- functions that fetch postings, subaccount-excluding-balance and
--- subaccount-including-balance by account name.
-groupPostings :: [Posting] -> (Tree AccountName,
-                               (AccountName -> [Posting]),
-                               (AccountName -> MixedAmount),
-                               (AccountName -> MixedAmount))
-groupPostings ps = (ant, psof, exclbalof, inclbalof)
-    where
-      anames = sort $ nub $ map paccount ps
-      ant = accountNameTreeFrom $ expandAccountNames anames
-      allanames = flatten ant
-      pmap = Map.union (postingsByAccount ps) (Map.fromList [(a,[]) | a <- allanames])
-      psof = (pmap !)
-      balmap = Map.fromList $ flatten $ calculateBalances ant psof
-      exclbalof = fst . (balmap !)
-      inclbalof = snd . (balmap !)
-
--- | Add subaccount-excluding and subaccount-including balances to a tree
--- of account names somewhat efficiently, given a function that looks up
--- transactions by account name.
-calculateBalances :: Tree AccountName -> (AccountName -> [Posting]) -> Tree (AccountName, (MixedAmount, MixedAmount))
-calculateBalances ant psof = addbalances ant
-    where
-      addbalances (Node a subs) = Node (a,(bal,bal+subsbal)) subs'
-          where
-            bal         = sumPostings $ psof a
-            subsbal     = sum $ map (snd . snd . root) subs'
-            subs'       = map addbalances subs
-
--- | Convert a list of postings to a map from account name to that
--- account's postings.
-postingsByAccount :: [Posting] -> Map.Map AccountName [Posting]
-postingsByAccount ps = m'
-    where
-      sortedps = sortBy (comparing paccount) ps
-      groupedps = groupBy (\p1 p2 -> paccount p1 == paccount p2) sortedps
-      m' = Map.fromList [(paccount $ head g, g) | g <- groupedps]
-
 -- debug helpers
 -- traceAmountPrecision a = trace (show $ map (precision . commodity) $ amounts a) a
 -- tracePostingsCommodities ps = trace (show $ map ((map (precision . commodity) . amounts) . pamount) ps) ps
@@ -885,11 +679,10 @@ Right samplejournal = journalBalanceTransactions $ Journal
           (TOD 0 0)
 
 tests_Hledger_Data_Journal = TestList $
-    tests_journalAccountInfo
-  -- [
+ [
   -- "query standard account types" ~:
   --  do
   --   let j = journal1
   --   journalBalanceSheetAccountNames j `is` ["assets","assets:a","equity","equity:q","equity:q:qq","liabilities","liabilities:l"]
   --   journalProfitAndLossAccountNames j `is` ["expenses","expenses:e","income","income:i"]
- -- ]
+ ]

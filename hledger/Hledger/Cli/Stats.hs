@@ -25,7 +25,7 @@ stats :: CliOpts -> Journal -> IO ()
 stats CliOpts{reportopts_=reportopts_} j = do
   d <- getCurrentDay
   let q = queryFromOpts d reportopts_
-      l = journalToLedger q j
+      l = ledgerFromJournal q j
       reportspan = (ledgerDateSpan l) `orDatesFrom` (queryDateSpan False q)
       intervalspans = splitSpan (intervalFromOpts reportopts_) reportspan
       showstats = showLedgerStats l d
@@ -58,7 +58,7 @@ showLedgerStats l today span =
       -- Days since last transaction : %(recentelapsed)s
        ]
            where
-             j = ledgerJournal l
+             j = ljournal l
              path = journalFilePath j
              ts = sortBy (comparing tdate) $ filter (spanContainsDate span . tdate) $ jtxns j
              as = nub $ map paccount $ concatMap tpostings ts

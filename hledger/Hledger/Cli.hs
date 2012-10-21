@@ -133,11 +133,6 @@ tests_Hledger_Cli = TestList
 
   ,"show hours" ~: showAmount (hours 1) ~?= "1.0h"
 
-  ,"subAccounts" ~: do
-    let l = journalToLedger Any samplejournal
-        a = ledgerAccount l "assets"
-    map aname (ledgerSubAccounts l a) `is` ["assets:bank","assets:cash"]
-
  ]
 
   
@@ -539,7 +534,7 @@ journal7 = Journal
           []
           (TOD 0 0)
 
-ledger7 = journalToLedger Any journal7
+ledger7 = ledgerFromJournal Any journal7
 
 -- journal8_str = unlines
 --  ["2008/1/1 test           "

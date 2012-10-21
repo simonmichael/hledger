@@ -9,90 +9,73 @@ balances, and postings in each account.
 
 module Hledger.Data.Ledger
 where
-import Data.Map (Map, findWithDefault, fromList)
-import Data.Tree
+import qualified Data.Map as M
+import Safe (headDef)
 import Test.HUnit
 import Text.Printf
 
-import Hledger.Utils
 import Hledger.Data.Types
-import Hledger.Data.Account (nullacct)
-import Hledger.Data.AccountName
+import Hledger.Data.Account
 import Hledger.Data.Journal
 import Hledger.Data.Posting
 import Hledger.Query
 
 
 instance Show Ledger where
-    show l = printf "Ledger with %d transactions, %d accounts\n%s"
-             (length (jtxns $ ledgerJournal l) +
-              length (jmodifiertxns $ ledgerJournal l) +
-              length (jperiodictxns $ ledgerJournal l))
+    show l = printf "Ledger with %d transactions, %d accounts\n" --"%s"
+             (length (jtxns $ ljournal l) +
+              length (jmodifiertxns $ ljournal l) +
+              length (jperiodictxns $ ljournal l))
              (length $ ledgerAccountNames l)
-             (showtree $ ledgerAccountNameTree l)
+             -- (showtree $ ledgerAccountNameTree l)
 
 nullledger :: Ledger
-nullledger = Ledger{
-      ledgerJournal = nulljournal,
-      ledgerAccountNameTree = nullaccountnametree,
-      ledgerAccountMap = fromList []
-    }
+nullledger = Ledger {
+  ljournal = nulljournal,
+  laccounts = []
+  }
 
--- | Filter a journal's transactions as specified, and then process them
--- to derive a ledger containing all balances, the chart of accounts,
--- canonicalised commodities etc.
-journalToLedger :: Query -> Journal -> Ledger
-journalToLedger q j = nullledger{ledgerJournal=j',ledgerAccountNameTree=t,ledgerAccountMap=amap}
-    where j' = filterJournalPostings q j
-          (t, amap) = journalAccountInfo j'
-
-tests_journalToLedger = [
- "journalToLedger" ~: do
-  assertEqual "" (0) (length $ ledgerPostings $ journalToLedger Any nulljournal)
-  assertEqual "" (11) (length $ ledgerPostings $ journalToLedger Any samplejournal)
-  assertEqual "" (6) (length $ ledgerPostings $ journalToLedger (Depth 2) samplejournal)
- ]
+-- | Filter a journal's transactions with the given query, then derive a
+-- ledger containing the chart of accounts and balances. If the query
+-- includes a depth limit, that will affect the ledger's journal but not
+-- the account tree.
+ledgerFromJournal :: Query -> Journal -> Ledger
+ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
+  where
+    (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
+    j' = filterJournalPostings q' j
+    as = accountsFromPostings $ journalPostings j'
+    j'' = filterJournalPostings depthq j'
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]
-ledgerAccountNames = drop 1 . flatten . ledgerAccountNameTree
+ledgerAccountNames = drop 1 . map aname . laccounts
 
 -- | Get the named account from a ledger.
-ledgerAccount :: Ledger -> AccountName -> Account
-ledgerAccount l a = findWithDefault nullacct a $ ledgerAccountMap l
+ledgerAccount :: Ledger -> AccountName -> Maybe Account
+ledgerAccount l a = lookupAccount a $ laccounts l
 
--- | List a ledger's accounts, in tree order
-ledgerAccounts :: Ledger -> [Account]
-ledgerAccounts = drop 1 . flatten . ledgerAccountTree 9999
+-- | Get this ledger's root account, which is a dummy "root" account
+-- above all others. This should always be first in the account list,
+-- if somehow not this returns a null account.
+ledgerRootAccount :: Ledger -> Account
+ledgerRootAccount = headDef nullacct . laccounts
 
--- | List a ledger's top-level accounts, in tree order
+-- | List a ledger's top-level accounts (the ones below the root), in tree order.
 ledgerTopAccounts :: Ledger -> [Account]
-ledgerTopAccounts = map root . branches . ledgerAccountTree 9999
+ledgerTopAccounts = asubs . head . laccounts
 
--- | List a ledger's bottom-level (subaccount-less) accounts, in tree order
+-- | List a ledger's bottom-level (subaccount-less) accounts, in tree order.
 ledgerLeafAccounts :: Ledger -> [Account]
-ledgerLeafAccounts = leaves . ledgerAccountTree 9999
+ledgerLeafAccounts = filter (null.asubs) . laccounts
 
 -- | Accounts in ledger whose name matches the pattern, in tree order.
 ledgerAccountsMatching :: [String] -> Ledger -> [Account]
-ledgerAccountsMatching pats = filter (matchpats pats . aname) . ledgerAccounts
-
--- | List a ledger account's immediate subaccounts
-ledgerSubAccounts :: Ledger -> Account -> [Account]
-ledgerSubAccounts l Account{aname=a} = 
-    map (ledgerAccount l) $ filter (`isSubAccountNameOf` a) $ ledgerAccountNames l
+ledgerAccountsMatching pats = filter (matchpats pats . aname) . laccounts
 
 -- | List a ledger's postings, in the order parsed.
 ledgerPostings :: Ledger -> [Posting]
-ledgerPostings = journalPostings . ledgerJournal
-
--- | Get a ledger's tree of accounts to the specified depth.
-ledgerAccountTree :: Int -> Ledger -> Tree Account
-ledgerAccountTree depth l = treemap (ledgerAccount l) $ treeprune depth $ ledgerAccountNameTree l
-
--- | Get a ledger's tree of accounts rooted at the specified account.
-ledgerAccountTreeAt :: Ledger -> Account -> Maybe (Tree Account)
-ledgerAccountTreeAt l acct = subtreeat acct $ ledgerAccountTree 9999 l
+ledgerPostings = journalPostings . ljournal
 
 -- | The (fully specified) date span containing all the ledger's (filtered) transactions,
 -- or DateSpan Nothing Nothing if there are none.
@@ -100,9 +83,16 @@ ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan = postingsDateSpan . ledgerPostings
 
 -- | All commodities used in this ledger, as a map keyed by symbol.
-ledgerCommodities :: Ledger -> Map String Commodity
-ledgerCommodities = journalCanonicalCommodities . ledgerJournal
+ledgerCommodities :: Ledger -> M.Map String Commodity
+ledgerCommodities = journalCanonicalCommodities . ljournal
+
+
+tests_ledgerFromJournal = [
+ "ledgerFromJournal" ~: do
+  assertEqual "" (0) (length $ ledgerPostings $ ledgerFromJournal Any nulljournal)
+  assertEqual "" (11) (length $ ledgerPostings $ ledgerFromJournal Any samplejournal)
+  assertEqual "" (6) (length $ ledgerPostings $ ledgerFromJournal (Depth 2) samplejournal)
+ ]
 
 tests_Hledger_Data_Ledger = TestList $
-    tests_journalToLedger
-
+    tests_ledgerFromJournal

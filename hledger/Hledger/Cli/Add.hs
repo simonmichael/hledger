@@ -24,7 +24,6 @@ import System.IO ( stderr, hPutStrLn, hPutStr )
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Text.Printf
-import qualified Data.Foldable as Foldable (find)
 import qualified Data.Set as Set
 
 import Hledger
@@ -88,9 +87,9 @@ getTransaction j opts defaultDate = do
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
       accept x = x == "." || (not . null) x &&
         if no_new_accounts_ opts
-            then isJust $ Foldable.find (== x) ant
+            then x `elem` existingaccts
             else True
-        where (ant,_,_,_) = groupPostings $ journalPostings j
+      existingaccts = journalAccountNames j
       getpostingsandvalidate = do
         ps <- getPostings (PostingState j accept True bestmatchpostings) []
         let t = nulltransaction{tdate=date

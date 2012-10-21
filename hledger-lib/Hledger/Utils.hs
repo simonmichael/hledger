@@ -31,6 +31,7 @@ import Control.Monad.Error (MonadIO)
 import Control.Monad.IO.Class (liftIO)
 import Data.Char
 import Data.List
+import qualified Data.Map as M
 import Data.Maybe
 import Data.Time.Clock
 import Data.Time.LocalTime
@@ -237,6 +238,8 @@ splitAtElement e l =
 
 -- trees
 
+-- standard tree helpers
+
 root = rootLabel
 subs = subForest
 branches = subForest
@@ -290,6 +293,25 @@ showtree = unlines . filter (regexMatches "[^ \\|]") . lines . drawTree . treema
 -- | show a compact ascii representation of a forest
 showforest :: Show a => Forest a -> String
 showforest = concatMap showtree
+
+
+-- | An efficient-to-build tree suggested by Cale Gibbard, probably
+-- better than accountNameTreeFrom.
+newtype FastTree a = T (M.Map a (FastTree a))
+  deriving (Show, Eq, Ord)
+
+emptyTree = T M.empty
+
+mergeTrees :: (Ord a) => FastTree a -> FastTree a -> FastTree a
+mergeTrees (T m) (T m') = T (M.unionWith mergeTrees m m')
+
+treeFromPath :: [a] -> FastTree a
+treeFromPath []     = T M.empty
+treeFromPath (x:xs) = T (M.singleton x (treeFromPath xs))
+
+treeFromPaths :: (Ord a) => [[a]] -> FastTree a
+treeFromPaths = foldl' mergeTrees emptyTree . map treeFromPath
+
 
 -- debugging
 

@@ -11,22 +11,9 @@ Here is an overview of the hledger data model:
 >
 > Ledger                   -- a ledger is derived from a journal, by applying a filter specification and doing some further processing. It contains..
 >  Journal                 -- a filtered copy of the original journal, containing only the transactions and postings we are interested in
->  Tree AccountName        -- all accounts named by the journal's transactions, as a hierarchy
->  Map AccountName Account -- the postings, and resulting balances, in each account
+>  [Account]               -- all accounts, in tree order beginning with a "root" account", with their balances and sub/parent accounts
 
 For more detailed documentation on each type, see the corresponding modules.
-
-Evolution of transaction\/entry\/posting terminology:
-
-  - ledger 2:    entries contain transactions
-
-  - hledger 0.4: Entrys contain RawTransactions (which are flattened to Transactions)
-
-  - ledger 3:    transactions contain postings
-
-  - hledger 0.5: LedgerTransactions contain Postings (which are flattened to Transactions)
-
-  - hledger 0.8: Transactions contain Postings (referencing Transactions..)
 
 -}
 
@@ -35,9 +22,7 @@ where
 import Control.Monad.Error (ErrorT)
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import Data.Tree
 import Data.Typeable
-import qualified Data.Map as Map
 import System.Time (ClockTime)
 
 
@@ -99,7 +84,7 @@ data Posting = Posting {
       ptype :: PostingType,
       ptags :: [Tag],
       ptransaction :: Maybe Transaction  -- ^ this posting's parent transaction (co-recursive types).
-                                        -- Tying this knot gets tedious, Maybe makes it easier/optional.
+                                         -- Tying this knot gets tedious, Maybe makes it easier/optional.
     }
 
 -- The equality test for postings ignores the parent transaction's
@@ -115,7 +100,7 @@ data Transaction = Transaction {
       tdescription :: String,
       tcomment :: String, -- ^ this transaction's non-tag comment lines, as a single non-indented string
       ttags :: [Tag],
-      tpostings :: [Posting],            -- ^ this transaction's postings (co-recursive types).
+      tpostings :: [Posting],            -- ^ this transaction's postings
       tpreceding_comment_lines :: String
     } deriving (Eq)
 
@@ -248,15 +233,23 @@ data FormatString =
   deriving (Show, Eq)
 
 
-data Ledger = Ledger {
-      ledgerJournal :: Journal,
-      ledgerAccountNameTree :: Tree AccountName,
-      ledgerAccountMap :: Map.Map AccountName Account
-    }
-
+-- | An account, with name, balances and links to parent/subaccounts
+-- which let you walk up or down the account tree.
 data Account = Account {
-      aname :: AccountName,
-      apostings :: [Posting],    -- ^ postings in this account
-      abalance :: MixedAmount    -- ^ sum of postings in this account and subaccounts
-    } -- deriving (Eq)  XXX
+  aname :: AccountName,     -- ^ this account's full name
+  aebalance :: MixedAmount, -- ^ this account's balance, excluding subaccounts
+  asubs :: [Account],       -- ^ sub-accounts
+  -- derived from the above:
+  aibalance :: MixedAmount, -- ^ this account's balance, including subaccounts
+  aparent :: Maybe Account, -- ^ parent account
+  aboring :: Bool           -- ^ used in the accounts report to label elidable parents
+  }
 
+-- | A Ledger has the journal it derives from, and the accounts
+-- derived from that. Accounts are accessible both list-wise and
+-- tree-wise, since each one knows its parent and subs; the first
+-- account is the root of the tree and always exists.
+data Ledger = Ledger {
+  ljournal :: Journal,
+  laccounts :: [Account]
+}

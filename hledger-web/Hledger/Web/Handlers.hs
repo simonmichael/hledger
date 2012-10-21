@@ -269,7 +269,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    <td>
 |]
  where
-   l = journalToLedger Any j
+   l = ledgerFromJournal Any j
    inacctmatcher = inAccountQuery qopts
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
