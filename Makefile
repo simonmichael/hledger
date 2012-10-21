@@ -763,13 +763,13 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
 
 MANUAL.md: $(VERSIONFILE)
-	perl -p -e "s/(^This is the.*?manual.*? for hledger.*?) +[0-9.]+/\1 $(VERSION3)./" -i $@
+	perl -p -e "s/(^This is the.*?manual.*? for hledger.*?) +[0-9.]+/\1 $(VERSION)./" -i $@
 
 DOWNLOAD.md: $(VERSIONFILE)
 	perl -p -e "s/hledger(|-chart|-web|-vty)-[0-9.]+-/hledger\1-$(VERSION)-/g" -i $@
 
 tagrelease:
-	darcs tag $(VERSION3)
+	darcs tag $(VERSION)
 
 # display a hackage upload command reminder
 hackageupload:
