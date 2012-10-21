@@ -27,6 +27,11 @@ VIEWPS=$(BROWSE)
 VIEWPDF=$(BROWSE)
 PRINT=lpr
 
+GHC=ghc
+HADDOCK=haddock
+# used for make auto, http://joyful.com/repos/searchpath
+SP=sp
+
 PACKAGES=\
 	hledger-lib \
 	hledger \
@@ -99,9 +104,7 @@ LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-sta
 MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -O2 # -optl-L/usr/lib
 #WINDOWSRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS)
 
-# searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
-AUTOBUILD=sp --no-exts --no-default-map $(GHC) --make -O0 $(GHCMEMFLAGS)
-GHC=ghc
+AUTOBUILD=$(SP) --no-exts --no-default-map $(GHC)  -O0 $(GHCMEMFLAGS)
 
 # get an accurate binary filename for the current source and platform, slow but reliable. Avoid := here.
 BINARYFILENAME=$(shell touch $(VERSIONSOURCEFILE); runhaskell -ihledger -ihledger-lib $(MAIN) --binary-filename)
@@ -156,11 +159,11 @@ sp:
 
 # build hledger binary as quickly as possible
 bin/hledgerdev:
-	ghc --make $(MAIN) -o bin/hledgerdev $(BUILDFLAGS)
+	$(GHC) $(MAIN) -o bin/hledgerdev $(BUILDFLAGS)
 
 # build a GHC-version-specific hledger binary without disturbing with other GHC version builds
 bin/hledgerdev.ghc-%: $(SOURCEFILES)
-	ghc-$* --make $(MAIN) -o $@ $(BUILDFLAGS)  -outputdir .ghc-$*
+	ghc-$*  $(MAIN) -o $@ $(BUILDFLAGS)  -outputdir .ghc-$*
 
 # build hledger with the main supported GHC versions
 bin/hledgerdev.ghcall: \
@@ -172,24 +175,24 @@ bin/hledgerdev.ghcall: \
 
 # build the fastest binary we can
 bin/hledgeropt:
-	ghc --make $(MAIN) -o $@ $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
+	$(GHC) $(MAIN) -o $@ $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
 # build the time profiling binary. cabal install --reinstall -p some libs may be required.
 bin/hledgerprof:
-	ghc --make $(BUILDFLAGS) $(PROFBUILDFLAGS) $(MAIN) -o $@
+	$(GHC) $(BUILDFLAGS) $(PROFBUILDFLAGS) $(MAIN) -o $@
 
 # build the heap profiling binary for coverage reports and heap profiles.
 # Keep these .o files separate from the regular ones.
 hledgerhpc:
-	ghc --make $(MAIN) -fhpc -o bin/hledgerhpc -outputdir .hledgerhpcobjs $(BUILDFLAGS)
+	$(GHC) $(MAIN) -fhpc -o bin/hledgerhpc -outputdir .hledgerhpcobjs $(BUILDFLAGS)
 
 # build other executables quickly
 
 bin/hledger-webdev:
-	ghc --make -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
+	$(GHC) -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
 
 bin/hledger-web-production:
-	ghc --make -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
+	$(GHC) -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
 
 # build portable releaseable binaries for gnu/linux
 linuxbinaries: 	linuxbinary-hledger \
@@ -199,10 +202,10 @@ linuxbinaries: 	linuxbinary-hledger \
 
 # work around for inconsistently-named (why ?) hledger/hledger-cli.hs
 linuxbinary-hledger:
-	ghc --make hledger/hledger-cli.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
+	$(GHC) hledger/hledger-cli.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
 
 linuxbinary-%:
-	ghc --make $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
+	$(GHC) $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
 
 macbinaries:    macbinary-hledger \
 		macbinary-hledger-web
@@ -215,7 +218,7 @@ macbinaries:    macbinary-hledger \
 # Clunky, does the link twice.
 macbinary-%:
 	BINARY=`echo $(BINARYFILENAME) | sed -e 's/hledger/$*/'` ; \
-	LINKCMD=`ghc -v --make $*/$*.hs $(MACRELEASEBUILDFLAGS) -o bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
+	LINKCMD=`$(GHC) -v  $*/$*.hs $(MACRELEASEBUILDFLAGS) -o bin/$$BINARY 2>&1 | egrep "bin/gcc.*bin/$$BINARY"` ; \
 	PORTABLELINKCMD=`echo $$LINKCMD | sed -e 's/ -framework GMP//'` ; \
 	echo $$PORTABLELINKCMD; $$PORTABLELINKCMD
 
@@ -242,27 +245,27 @@ compressbinaries:
 # build the standalone unit test runner. Requires test-framework, which
 # may not work on windows.
 tools/unittest: tools/unittest.hs
-	ghc --make -threaded -O2 tools/unittest.hs
+	$(GHC) -threaded -O2 tools/unittest.hs
 
 # build the doctest runner
 tools/doctest: tools/doctest.hs
-	ghc --make tools/doctest.hs
+	$(GHC) tools/doctest.hs
 
 # build the simple benchmark runner. Requires tabular.
 tools/simplebench: tools/simplebench.hs
-	ghc --make tools/simplebench.hs
+	$(GHC) tools/simplebench.hs
 
 # build the criterion-based benchmark runner. Requires criterion.
 tools/criterionbench: tools/criterionbench.hs
-	ghc --make tools/criterionbench.hs
+	$(GHC) tools/criterionbench.hs
 
 # build the progression-based benchmark runner. Requires progression.
 tools/progressionbench: tools/progressionbench.hs
-	ghc --make tools/progressionbench.hs
+	$(GHC) tools/progressionbench.hs
 
 # build the generatejournal tool
 tools/generatejournal: tools/generatejournal.hs
-	ghc --make tools/generatejournal.hs
+	$(GHC) tools/generatejournal.hs
 
 ######################################################################
 # TESTING
@@ -325,8 +328,8 @@ unittest-standalone: tools/unittest
 
 # run unit tests without waiting for compilation
 unittest-interpreted:
-	@echo unit tests (interpreted):
-	@(runghc $(MAIN) test \
+	@echo "unit tests (interpreted)":
+	@(run$(GHC) $(MAIN) test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run functional tests, requires shelltestrunner >= 0.9 from hackage
@@ -503,7 +506,7 @@ previewsite: site/site
 	cd site; ./site preview
 
 site/site: site/site.hs
-	cd site; ghc --make site.hs $(PREFERMACUSRLIBFLAGS)
+	cd site; $(GHC) site.hs $(PREFERMACUSRLIBFLAGS)
 
 autosite:
 	cd site; $(AUTOBUILD) site.hs -o site $(PREFERMACUSRLIBFLAGS) --run preview
@@ -559,7 +562,7 @@ codedocs: haddock hscolour coverage #sourcegraph #hoogle
 
 #http://www.haskell.org/haddock/doc/html/invoking.html
 #$(subst -D,--optghc=-D,$(DEFINEFLAGS))
-HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-package monads-tf' 
+HADDOCKFLAGS= --no-warnings --prologue .haddockprologue #--optghc='-hide-package monads-tf' 
 
 .haddocksynopsis: hledger/hledger.cabal
 	grep synopsis $< | sed -e 's/synopsis: *//' >$@
@@ -571,7 +574,7 @@ HADDOCK=haddock --no-warnings --prologue .haddockprologue #--optghc='-hide-packa
 # generate api docs for the whole project
 # we define HADDOCK to disable cabal-file-th code which requires a cabal file in the current dir
 haddock: .haddockprologue
-	$(HADDOCK) --title "hledger-* API docs" \
+	$(HADDOCK) $(HADDOCKFLAGS) --title "hledger-* API docs" \
 	 -o site/api \
 	 --html \
 	 --source-module=src/%{MODULE/./-}.html \
@@ -636,7 +639,7 @@ patchdeps:
 #
 #generate a hoogle index
 # hoogleindex:
-# 	$(HADDOCK) -o site/api --hoogle $(MAIN) && \
+# 	$(HADDOCK) $(HADDOCKFLAGS) -o site/api --hoogle $(MAIN) && \
 # 	cd site/api && \
 # 	hoogle --convert=main.txt --output=default.hoo
 
