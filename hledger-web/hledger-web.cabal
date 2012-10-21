@@ -1,6 +1,6 @@
 name:           hledger-web
 -- also in cpp-options below
-version: 0.18.2
+version: 0.19
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -78,7 +78,7 @@ library
                      Hledger.Web.Handlers
 
     ghc-options:   -Wall -O0 -fno-warn-unused-do-bind
-    cpp-options:   -DVERSION="0.18.2" -DDEVELOPMENT
+    cpp-options:   -DVERSION="0.19" -DDEVELOPMENT
 
     extensions: TemplateHaskell
                 QuasiQuotes
@@ -94,7 +94,7 @@ executable         hledger-web
         Buildable: False
 
     if flag(dev)
-        cpp-options:   -DVERSION="0.18.2" -DDEVELOPMENT
+        cpp-options:   -DVERSION="0.19" -DDEVELOPMENT
         ghc-options:   -Wall -O0 -fno-warn-unused-do-bind
     else
         ghc-options:   -Wall -O2 -fno-warn-unused-do-bind
@@ -124,8 +124,8 @@ executable         hledger-web
                      Hledger.Web.Handlers
 
     build-depends:
-                     hledger == 0.18.2
-                   , hledger-lib == 0.18.2
+                     hledger == 0.19
+                   , hledger-lib == 0.19
                    , base                          >= 4.3        && < 5
                    , cmdargs >= 0.10 && < 0.11
                    , directory
