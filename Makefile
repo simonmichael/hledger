@@ -3,8 +3,8 @@
 # ghc 6.12 executables need a locale
 export LANG=en_US.UTF-8
 
-# command line to run during "make prof" and "make heap"
-PROFCMD=bin/hledgerp balance -f data/100x100x10.journal >/dev/null
+# command to run during "make prof" and "make heap"
+PROFCMD=bin/hledgerp balance -f data/1000x1000x10.journal >/dev/null
 #PROFCMD=bin/hledgerp balance >/dev/null
 
 #PROFRTSFLAGS=-p
@@ -17,7 +17,7 @@ COVCMD=test
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
 BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14 hledger-0.15 hledger-0.16 hledger-0.17 hledger-0.18 hledgeropt ledger
-BENCHEXES=hledger-0.18 hledger ledger
+BENCHEXES=hledger-0.18 hledgeropt ledger
 
 # misc. tools
 BROWSE=google-chrome
@@ -69,49 +69,51 @@ WEBFILES:= \
 DOCFILES:= \
 	*.md
 
-LASTTAG:=$(shell darcs show tags | head -1)
-PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
-WARNINGS:=-W -fwarn-tabs -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
-PREFERMACUSRLIBFLAGS=-L/usr/lib
-GHCMEMFLAGS= #+RTS -M200m -RTS
-BUILDFLAGS1:=-rtsopts -DMAKE -DPATCHLEVEL=$(PATCHLEVEL) $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) $(HCFLAGS)
-BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(LASTTAG)"'
-AUTOBUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='\"$(LASTTAG)\"'  # different quoting for sp
-PROFBUILDFLAGS:=-prof -osuf hs_p #-prof-auto
-LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-static -optl-pthread
-MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -O2 # -optl-L/usr/lib
-#WINDOWSRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS)
-TIME:=$(shell date +"%Y%m%d%H%M")
-
-# searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
-GHC=ghc
-AUTOBUILD=sp --no-exts --no-default-map $(GHC) --make -O0 $(GHCMEMFLAGS)
-
-# file defining the current release version
-VERSIONFILE=VERSION
-# two or three-part version string, whatever's in VERSION
-VERSION:=$(shell grep -v '^--' $(VERSIONFILE))
-# three-part version string, 0-padded if necessary
-ifeq ($(shell ghc -e "length (filter (=='.') \"$(VERSION)\")"), 1)
-VERSION3:=$(VERSION).0
-else
-VERSION3:=$(VERSION)
-endif
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(CABALFILES) \
 	MANUAL.md \
 #	DOWNLOAD.md \
-# source file which should be touched to ensure up to date version string
-VERSIONHS=hledger/Hledger/Cli/Version.hs
 
-# get an accurate binary filename from the current source on the current platform
-# nb not := as that would break the makefile when hledger is not compiling.
-BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell -ihledger -ihledger-lib $(MAIN) --binary-filename)
+# file(s) which require recompilation for a build to have an up-to-date version string
+VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
 
-RELEASEBINARYSUFFIX:=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '[:lower:]')
+# master file defining the current release/build version
+VERSIONFILE=VERSION
 
-default: bin/hledgerdev
+# two or three-part version string, whatever's in VERSION
+VERSION:=$(shell cat $(VERSIONFILE))
+
+# the number of changes recorded since last tag in this repo
+PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
+
+# build flags
+WARNINGS:=-W -fwarn-tabs -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
+PREFERMACUSRLIBFLAGS=-L/usr/lib
+GHCMEMFLAGS= #+RTS -M200m -RTS
+BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) -DPATCHLEVEL=$(PATCHLEVEL)
+BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)"'
+AUTOBUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='\"$(VERSION)\"'  # different quoting for sp
+PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
+LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-static -optl-pthread
+MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -O2 # -optl-L/usr/lib
+#WINDOWSRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS)
+
+# searchpath executable used for automatic recompilation, http://joyful.com/repos/searchpath
+AUTOBUILD=sp --no-exts --no-default-map $(GHC) --make -O0 $(GHCMEMFLAGS)
+GHC=ghc
+
+# get an accurate binary filename for the current source and platform, slow but reliable. Avoid := here.
+BINARYFILENAME=$(shell touch $(VERSIONSOURCEFILE); runhaskell -ihledger -ihledger-lib $(MAIN) --binary-filename)
+
+# some other thing for linux binary filenames
+RELEASEBINARYSUFFIX=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '[:lower:]')
+
+TIME:=$(shell date +"%Y%m%d%H%M")
+
+
+
+defaulttarget: bin/hledgerdev
 
 ######################################################################
 # BUILDING
@@ -174,7 +176,7 @@ bin/hledgeropt:
 
 # build the time profiling binary. cabal install --reinstall -p some libs may be required.
 bin/hledgerp:
-	ghc --make $(MAIN) -o $@ $(BUILDFLAGS) $(PROFBUILDFLAGS)
+	ghc --make $(BUILDFLAGS) $(PROFBUILDFLAGS) $(MAIN) -o $@
 
 # build the heap profiling binary for coverage reports and heap profiles.
 # Keep these .o files separate from the regular ones.
@@ -194,6 +196,10 @@ linuxbinaries: 	linuxbinary-hledger \
 		linuxbinary-hledger-web
 	@echo 'Please check the binaries look portable, then make compressbinaries:'
 	-file bin/*`arch`
+
+# work around for inconsistently-named (why ?) hledger/hledger-cli.hs
+linuxbinary-hledger:
+	ghc --make hledger/hledger-cli.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
 
 linuxbinary-%:
 	ghc --make $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
@@ -385,7 +391,7 @@ quickbench: samplejournals bench.tests tools/simplebench
 
 # run simple performance benchmarks and archive results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
-simplebench: samplejournals bench.tests tools/simplebench
+bench: samplejournals bench.tests tools/simplebench
 	tools/simplebench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
@@ -718,11 +724,13 @@ hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 hledger/hledger.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 MANUAL.md: $(VERSIONFILE)
 	perl -p -e "s/(^This is the.*?manual.*? for hledger.*?) +[0-9.]+/\1 $(VERSION)./" -i $@
@@ -749,14 +757,16 @@ push: pushprofs # pushlatestbinary
 pull: pullprofs
 	darcs pull -a simon@joyful.com:/repos/hledger
 
+RSYNC=rsync
+
 # push any new profiles and benchmark results to the public site
 # beware, results will vary depending on which machine generated them
 pushprofs:
-	rsync -azP profs/ simon@joyful.com:/repos/hledger/profs/
+	$(RSYNC) -azP profs/ simon@joyful.com:/repos/hledger/profs/
 
 # fetch any new profiles and benchmark results from the public site
 pullprofs:
-	rsync -azP simon@joyful.com:/repos/hledger/profs/ profs/
+	$(RSYNC) -azP simon@joyful.com:/repos/hledger/profs/ profs/
 
 # compress the just-built platform binary. make hledgerPLATFORM first. Use
 # the win variant on windows.
@@ -765,7 +775,6 @@ compressbinary:
 compressbinarywin:
 	cd bin; zip -9 $(BINARYFILENAME).zip $(BINARYFILENAME)
 
-RSYNC=rsync -e 'ssh -p 5022'
 # push the last-updated platform binary to the public download directory
 pushlatestbinary:
 	cd bin; $(RSYNC) -aP `ls -t | head -2` simon@joyful.com:/repos/hledger/site/download/
@@ -823,12 +832,12 @@ showunittestcoverage:
 # 	@awk '/^** errors/, /^** / && !/^** errors/' NOTES.org | grep '^\*\*\* ' | tail +1
 # 	@echo
 
-showunpushedchanges unpushed:
+showunpushedchanges showunpushed:
 	@echo "Changes not yet pushed upstream (to `darcs show repo | grep 'Default Remote' | cut -c 17-`):"
 	@-darcs push simon@joyful.com:/repos/hledger --dry-run | grep '*' | tac
 	@echo
 
-showunreleasedcodechanges unreleased:
+showunreleasedcodechanges showunreleased showchanges:
 	@echo "hledger code changes since last release:"
 	@darcs changes --from-tag $(FROMTAG) --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
 	@echo
