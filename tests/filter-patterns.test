@@ -1,5 +1,5 @@
 # 1. account pattern with space
-bin/hledger -f- register 'a a'
+hledgerdev -f- register 'a a'
 <<<
 2010/3/1 x
   a a  1
@@ -10,7 +10,7 @@ bin/hledger -f- register 'a a'
 
 #
 # 2. description pattern with space
-bin/hledger -f- register desc:'x x'
+hledgerdev -f- register desc:'x x'
 <<<
 2010/3/1 x
   a  1
@@ -26,7 +26,7 @@ bin/hledger -f- register desc:'x x'
 
 #
 # 3. multiple patterns, spaced and punctuated patterns
-bin/hledger -f- register 'a a' "'b"
+hledgerdev -f- register 'a a' "'b"
 <<<
 2011/9/11
   a a  1

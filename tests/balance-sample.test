@@ -1,5 +1,5 @@
 # 1.
-bin/hledger -f data/sample.journal balance
+hledgerdev -f data/sample.journal balance
 >>>
                  $-1  assets
                   $1    bank:saving
@@ -16,7 +16,7 @@ bin/hledger -f data/sample.journal balance
 >>>=0
 
 # 2. 
-bin/hledger -f data/sample.journal balance o
+hledgerdev -f data/sample.journal balance o
 >>>
                   $1  expenses:food
                  $-2  income

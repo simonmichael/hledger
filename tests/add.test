@@ -2,14 +2,14 @@
 # data validation
 #
 # 1. should prompt again for a bad date
-bin/hledger -f $$-add.j add; rm -f $$-add.j
+hledgerdev -f $$-add.j add; rm -f $$-add.j
 <<<
 2009/1/32
 >>> /date, or \. to end.*: date, or \. to end.*/
 >>>=0
 
 # 2. should accept a blank date
-bin/hledger -f $$-add.j add; rm -f $$-add.j
+hledgerdev -f $$-add.j add; rm -f $$-add.j
 <<<
 
 >>> /date,.*: description/
@@ -19,7 +19,7 @@ bin/hledger -f $$-add.j add; rm -f $$-add.j
 # precision and commodity handling
 #
 # 3. simple add with no existing journal, no commodity entered
-bin/hledger -f $$-add.j add; rm -f $$-add.j
+hledgerdev -f $$-add.j add; rm -f $$-add.j
 <<<
 
 
@@ -32,7 +32,7 @@ b
 >>>=0
 
 # 4. default commodity with greater precision
- printf 'D $1000.00\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+ printf 'D $1000.00\n' >t$$.j; hledgerdev -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -45,7 +45,7 @@ b
 >>>=0
 
 # 5. default commodity with less precision
- printf 'D $1000.0\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+ printf 'D $1000.0\n' >t$$.j; hledgerdev -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -58,7 +58,7 @@ b
 >>>=0
 
 # 6. existing commodity with greater precision
- printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+ printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; hledgerdev -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -71,7 +71,7 @@ b
 >>>=0
 
 # 7. existing commodity with less precision
- printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+ printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; hledgerdev -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
 <<<
 
 
@@ -85,7 +85,7 @@ b
 
 # 8. no commodity entered, the (most recent) default commodity should be applied
 # (and a non-ascii commodity symbol should work)
- printf 'D $1000.0\nD £1,000.00\n' >t$$.j; bin/hledger -f t$$.j add; cat t$$.j; rm -f t$$.j
+ printf 'D $1000.0\nD £1,000.00\n' >t$$.j; hledgerdev -f t$$.j add; cat t$$.j; rm -f t$$.j
 <<<
 2010/1/1
 
@@ -98,7 +98,7 @@ b
 >>>=0
 
 # 9. default amounts should not fail to balance due to precision
-rm -f nosuch.journal; bin/hledger -f nosuch.journal add; rm -f nosuch.journal
+rm -f nosuch.journal; hledgerdev -f nosuch.journal add; rm -f nosuch.journal
 <<<
 2010/1/1
 x
@@ -111,8 +111,8 @@ c
 >>>=0
 
 ## 10. shouldn't add decimals if there aren't any
-## printf '\n\na\n1\nb\n' | bin/hledger -f /dev/null add
-# bin/hledger -f /dev/null add
+## printf '\n\na\n1\nb\n' | hledgerdev -f /dev/null add
+# hledgerdev -f /dev/null add
 # <<<
 
 

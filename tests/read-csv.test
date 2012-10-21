@@ -1,5 +1,5 @@
 # 1. read CSV to hledger journal format
- rm -rf t.rules$$; printf 'date-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'date-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | hledgerdev -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co
     income:unknown          $-50
@@ -9,7 +9,7 @@
 >>>=0
 
 # 2. reading CSV with in-field and out-field
- printf 'base-account Assets:MyAccount\ndate-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\nin-field 2\nout-field 3\ncurrency $\n' >$$.rules ; bin/hledger -f- print --rules-file $$.rules; rm -rf $$.rules
+ printf 'base-account Assets:MyAccount\ndate-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\nin-field 2\nout-field 3\ncurrency $\n' >$$.rules ; hledgerdev -f- print --rules-file $$.rules; rm -rf $$.rules
 <<<
 10/2009/09,Flubber Co,50,
 11/2009/09,Flubber Co,,50
@@ -26,7 +26,7 @@
 >>>=0
 
 # 3. report rules parse error
-# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger convert --rules-file t.rules$$; rm -rf t.rules$$
+# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | hledgerdev convert --rules-file t.rules$$; rm -rf t.rules$$
 # >>>
 # 2009/09/10 Flubber Co
 #     income:unknown          $-50

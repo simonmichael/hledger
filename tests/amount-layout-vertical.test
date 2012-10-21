@@ -1,6 +1,6 @@
 # amount layout tests, using default vertical layout
 # 1. print
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2010/1/1
     a  EUR 1  ; a euro
@@ -16,7 +16,7 @@ bin/hledger -f - print
 >>>=0
 
 # 2. register
-bin/hledger -f - register
+hledgerdev -f - register
 <<<
 2010/1/1
     a  EUR 1  ; a euro
@@ -31,7 +31,7 @@ bin/hledger -f - register
 >>>=0
 
 # 3. balance
-bin/hledger -f - balance
+hledgerdev -f - balance
 <<<
 2010/1/1
     a  EUR 1  ; a euro
@@ -48,7 +48,7 @@ bin/hledger -f - balance
 
 # 4. mixed amounts with prices
 # XXX
-# bin/hledger -f - print
+# hledgerdev -f - print
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro
@@ -70,7 +70,7 @@ bin/hledger -f - balance
 #>>>=0
 #
 # #
-# bin/hledger -f - register
+# hledgerdev -f - register
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro
@@ -85,7 +85,7 @@ bin/hledger -f - balance
 #>>>=0
 #
 # #
-# bin/hledger -f - balance
+# hledgerdev -f - balance
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro

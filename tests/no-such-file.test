@@ -1,12 +1,12 @@
 # commands should generally autocreate an empty journal when missing, see also add*.test
 # $$ used for safe concurrent test running, may be a bash-ism
 
-bin/hledger register -f no-such-file-$$; rm -f no-such-file-$$
+hledgerdev register -f no-such-file-$$; rm -f no-such-file-$$
 >>>
 >>>2 /journal file.*not found/
 >>>=0
 
-bin/hledger balance --no-total -f no-such-file-$$; rm -f no-such-file-$$
+hledgerdev balance --no-total -f no-such-file-$$; rm -f no-such-file-$$
 >>>
 >>>2 /journal file.*not found/
 >>>=0

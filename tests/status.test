@@ -1,7 +1,7 @@
 # filtering by transaction status
 
 # 1. with --cleared, print shows cleared transactions only
-bin/hledger -f- print --cleared
+hledgerdev -f- print --cleared
 <<<
 2010/1/1 x
   a  1
@@ -26,7 +26,7 @@ bin/hledger -f- print --cleared
 >>>=0
 
 # 2. with --uncleared, shows uncleared transactions only
-bin/hledger -f- print --uncleared
+hledgerdev -f- print --uncleared
 <<<
 2010/1/1 x
   a  1
@@ -47,7 +47,7 @@ bin/hledger -f- print --uncleared
 >>>=0
 
 # 2. can also have per-posting cleared status
-bin/hledger -f- register --cleared
+hledgerdev -f- register --cleared
 <<<
 2012/1/1
   a  1
@@ -61,7 +61,7 @@ bin/hledger -f- register --cleared
 
 
 # 3. also works with balance as shown, same as ledger. Hmm.
-bin/hledger -f- balance --uncleared
+hledgerdev -f- balance --uncleared
 <<<
 2012/1/1
   a  1

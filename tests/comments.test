@@ -1,7 +1,7 @@
 # comment tests
 
 # 1. 
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2009/01/01 x  ; transaction comment 1
     ; transaction comment 2
@@ -16,7 +16,7 @@ bin/hledger -f - print
 >>>=0
 
 # 2. 
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2009/01/01 x
     a  1
@@ -30,7 +30,7 @@ bin/hledger -f - print
 >>>=0
 
 # 3. print should preserve comments
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 ; isolated journal comment
 
@@ -50,7 +50,7 @@ bin/hledger -f - print
 >>>=0
 
 # 4. a posting comment should appear in print
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2010/01/01 x
     a             1  ; comment
@@ -65,7 +65,7 @@ bin/hledger -f - print
 >>>=0
 
 # 5. a posting comment should not appear in register
-bin/hledger -f - register
+hledgerdev -f - register
 <<<
 2010/1/1 x
     a  1 ; comment

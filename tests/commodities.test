@@ -1,6 +1,6 @@
 # a commodity may contain/end with numbers, if double quoted
 # 1. without quotes, fail. XXX parse error should be clearer here
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 2010-04-05 x
    a   10 DE0002635307
@@ -8,7 +8,7 @@ bin/hledger -f- print
 >>>2 /unexpected "0"/
 >>>= 1
 # 2. with quotes, ok; quotes appear in print output
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 2010-04-05 x
    a   10 "DE 0002 635307"
@@ -21,7 +21,7 @@ bin/hledger -f- print
 >>>=0
 
 # 3. and in other reports too, I guess
-bin/hledger -f- balance
+hledgerdev -f- balance
 <<<
 2010-04-05 x
    a   10 "DE0002635307"

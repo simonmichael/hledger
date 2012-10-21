@@ -111,7 +111,7 @@ BINARYFILENAME=$(shell touch $(VERSIONHS); runhaskell -ihledger -ihledger-lib $(
 
 RELEASEBINARYSUFFIX:=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '[:lower:]')
 
-default: tag bin/hledger
+default: bin/hledgerdev
 
 ######################################################################
 # BUILDING
@@ -133,42 +133,40 @@ allcabal%:
 # auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
 auto: sp
-	$(AUTOBUILD) $(MAIN) -o bin/hledger $(AUTOBUILDFLAGS) --run --version
+	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run --version
 
 autotest: sp
-	$(AUTOBUILD) $(MAIN) -o bin/hledger $(AUTOBUILDFLAGS) --run test
+	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run test
 
 autotest-%: sp
-	$(AUTOBUILD) $(MAIN) -o bin/hledger $(AUTOBUILDFLAGS) --run test $*
+	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run test $*
 
 autoweb: sp
-	$(AUTOBUILD) hledger-web/hledger-web.hs -o bin/hledger-web $(AUTOBUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
+	$(AUTOBUILD) hledger-web/hledger-web.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
 
 # check for sp and explain how to get it if not found.
 sp:
 	@/usr/bin/env which sp >/dev/null || \
 	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/darcsden/simon/searchpath, make it (cabal install-ing any needed packages) and add it to your PATH'; exit 1)
 
-hledgerall: bin/hledger hledger-web
-
-# force a compile even if binary exists, since we don't specify dependencies
-.PHONY: bin/hledger hledger-web
+# force a compile even if binary exists, since we don't specify dependencies for these
+.PHONY: bin/hledgerdev bin/hledgerp bin/hledgeropt bin/hledger-webdev
 
 # build hledger binary as quickly as possible
-bin/hledger:
-	ghc --make $(MAIN) -o bin/hledger $(BUILDFLAGS)
+bin/hledgerdev:
+	ghc --make $(MAIN) -o bin/hledgerdev $(BUILDFLAGS)
 
 # build a GHC-version-specific hledger binary without disturbing with other GHC version builds
-bin/hledger.ghc-%: $(SOURCEFILES)
+bin/hledgerdev.ghc-%: $(SOURCEFILES)
 	ghc-$* --make $(MAIN) -o $@ $(BUILDFLAGS)  -outputdir .ghc-$*
 
 # build hledger with the main supported GHC versions
-bin/hledger.ghcall: \
-	bin/hledger.ghc-7.6.1 \
-	bin/hledger.ghc-7.4.1 \
-	bin/hledger.ghc-7.2.2 \
-	bin/hledger.ghc-7.0.4 \
-#	bin/hledger.ghc-6.12.3 \
+bin/hledgerdev.ghcall: \
+	bin/hledgerdev.ghc-7.6.1 \
+	bin/hledgerdev.ghc-7.4.1 \
+	bin/hledgerdev.ghc-7.2.2 \
+	bin/hledgerdev.ghc-7.0.4 \
+#	bin/hledgerdev.ghc-6.12.3 \
 
 # build the fastest binary we can
 bin/hledgeropt:
@@ -185,7 +183,7 @@ hledgerhpc:
 
 # build other executables quickly
 
-bin/hledger-web:
+bin/hledger-webdev:
 	ghc --make -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
 
 bin/hledger-web-production:
@@ -308,9 +306,9 @@ hlinttest hlint:
 # run unit tests
 unittest: unittest-builtin
 
-unittest-builtin: bin/hledger
+unittest-builtin: bin/hledgerdev
 	@echo unit tests:
-	@(bin/hledger test \
+	@(bin/hledgerdev test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # XXX doesn't rebuild on hledger source changes
@@ -327,23 +325,23 @@ unittest-interpreted:
 
 # run functional tests, requires shelltestrunner >= 0.9 from hackage
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
-functest: bin/hledger
+functest: bin/hledgerdev
 	@echo functional tests:
 	($(SHELLTEST) tests -- --threads=16 --hide-successes \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with a specific GHC version
-# some functional tests (add, include, read-csv..) have bin/hledger hard coded - might need to symlink it
-test-ghc-%: # bin/hledger.ghc-$*
+# some functional tests (add, include, read-csv..) have bin/hledgerdev hard coded - might need to symlink it
+test-ghc-%: # bin/hledgerdev.ghc-$*
 	@echo; echo testing hledger built with ghc-$*
 	@(echo unit tests: \
-	&& bin/hledger.ghc-$* test \
+	&& bin/hledgerdev.ghc-$* test \
 	&& echo functional tests: \
-	&& $(SHELLTEST) tests -w bin/hledger.ghc-$* -- --threads=16 --hide-successes \
+	&& $(SHELLTEST) tests -w bin/hledgerdev.ghc-$* -- --threads=16 --hide-successes \
 	&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with main supported GHC versions
-test-ghcall: bin/hledger.ghcall \
+test-ghcall: bin/hledgerdev.ghcall \
 	test-ghc-7.6.1 \
 	test-ghc-7.4.1 \
 	test-ghc-7.2.2 \
@@ -855,7 +853,7 @@ clean:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*" | grep -v .virthualenv`
 
 cleanbin:
-	rm -f bin/hledger bin/hledger.ghc*
+	rm -f bin/hledgerdev bin/hledgerdev.ghc*
 
 Clean: clean cleanbin cleandocs
 	rm -f TAGS tags

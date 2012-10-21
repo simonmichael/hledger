@@ -2,7 +2,7 @@
 #
 # 1. original test case, this should balance since price precisions do
 # not affect the canonical display precisions used for display and balancing
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2010/1/1 x
    A  55.3653 C @ 30.92189512 D
@@ -16,7 +16,7 @@ bin/hledger -f - print
 
 ## 1b. here $'s canonical display precision should be 2 not 4
 ## XXX no, because the inferred amount $1.0049 is observed
-# bin/hledger -f - print --cost
+# hledgerdev -f - print --cost
 # <<<
 # 2010/1/1
 #    a  $0.00
@@ -32,7 +32,7 @@ bin/hledger -f - print
 
 # 2. and here the price should be printed with its original precision, not
 # the canonical display precision
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2010/1/1
    a  $0.00
@@ -48,7 +48,7 @@ bin/hledger -f - print
 
 # 3. with $'s display precision at 3 or more, this txn should not balance.
 # The error message shows the difference with full precision.
-bin/hledger -f - balance --no-total --cost --empty
+hledgerdev -f - balance --no-total --cost --empty
 <<<
 2010/1/1
    a  1C @ $1.0049
@@ -57,7 +57,7 @@ bin/hledger -f - balance --no-total --cost --empty
 >>>= 1
 
 # 4. with $'s display precision at 2 or less, this txn should balance
-bin/hledger -f - balance --no-total --cost --empty
+hledgerdev -f - balance --no-total --cost --empty
 <<<
 2010/1/1
    a  1C @ $1.0049
@@ -67,7 +67,7 @@ bin/hledger -f - balance --no-total --cost --empty
 >>>=0
 
 # 5. avamk's 2011/1/19 example
-bin/hledger -f - balance --cost
+hledgerdev -f - balance --cost
 <<<
 2001/01/01 * ACME fund
            assets:investment:ACME     203.890 ACME @ $16.02
@@ -95,7 +95,7 @@ bin/hledger -f - balance --cost
 #                   0
 ## 6. with a default commodity.. XXX should observe it
 
-bin/hledger -f - balance --cost
+hledgerdev -f - balance --cost
 <<<
 D $1000.0
 2001/01/01 * ACME fund

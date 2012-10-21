@@ -2,7 +2,7 @@
 # 1. as in ledger, historical prices may contain a time and timezone.
 # hledger ignores them and uses 00:00 local time instead.
 # XXX needs --value not --cost
-# bin/hledger -f - balance --no-total --cost
+# hledgerdev -f - balance --no-total --cost
 # <<<
 # P 2011/01/01 00:00:00      A $1
 # P 2011/01/01 15:00:00-0100 A $2

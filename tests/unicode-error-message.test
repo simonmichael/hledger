@@ -1,4 +1,4 @@
-bin/hledger -f - balance
+hledgerdev -f - balance
 <<<
 2009-01-01 broken entry
   дебит    1

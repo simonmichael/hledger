@@ -1,5 +1,5 @@
 # 1. virtual posting shouldn't affect balance
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 2009/1/1 x
   (virtual)  100
@@ -8,7 +8,7 @@ bin/hledger -f- print
 >>>=0
 #
 # 2. balanced virtual postings should be required to balance (themselves)
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 2010/1/1 x
   [balanced virtual]  10
@@ -17,7 +17,7 @@ bin/hledger -f- print
 >>>= !0
 #
 # 3. balanced virtual postings should be required to balance (themselves)
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 2010/1/1 x
   [balanced virtual]  10
@@ -27,7 +27,7 @@ bin/hledger -f- print
 >>>=0
 #
 # 4. a virtual posting with implicit amount should be handled correctly
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 2010/1/1 x
   [a]    10
@@ -35,7 +35,7 @@ bin/hledger -f- print
 >>>=0
 #
 # 5. real and balanced virtual postings are balanced separately, and multiple blank virtuals are ok
-bin/hledger -f- balance
+hledgerdev -f- balance
 <<<
 2010/1/1 x
   a  1

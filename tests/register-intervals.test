@@ -1,5 +1,5 @@
 # 1. monthly reporting interval, no end dates, shows just the intervals with data:
-bin/hledger -f- register --period 'monthly'
+hledgerdev -f- register --period 'monthly'
 <<<
 2011/2/1
   (a)  1
@@ -8,7 +8,7 @@ bin/hledger -f- register --period 'monthly'
 >>>=0
 
 # 2. or with a query pattern, just the intervals with matched data:
-bin/hledger -f- register --period 'monthly' b
+hledgerdev -f- register --period 'monthly' b
 <<<
 2011/1/1
   (a)  1
@@ -21,7 +21,7 @@ bin/hledger -f- register --period 'monthly' b
 
 # 3. with --empty, show all intervals spanned by the journal
 # (unlike current ledger, but more useful)
-bin/hledger -f- register --period 'monthly' b --empty
+hledgerdev -f- register --period 'monthly' b --empty
 <<<
 2011/1/1
   (a)  1
@@ -38,7 +38,7 @@ bin/hledger -f- register --period 'monthly' b --empty
 >>>=0
 
 # 4. any specified begin/end dates limit the intervals reported
-bin/hledger -f- register --period 'monthly to 2011/3/1' b --empty
+hledgerdev -f- register --period 'monthly to 2011/3/1' b --empty
 <<<
 2011/1/1
   (a)  1
@@ -54,7 +54,7 @@ bin/hledger -f- register --period 'monthly to 2011/3/1' b --empty
 >>>=0
 
 # 5. likewise for date-restricting display expressions
-bin/hledger -f- register --period 'monthly to 2011/2/1' b --empty --display 'd<[2011/2/1]'
+hledgerdev -f- register --period 'monthly to 2011/2/1' b --empty --display 'd<[2011/2/1]'
 <<<
 2011/1/1
   (a)  1

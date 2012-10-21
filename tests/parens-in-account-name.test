@@ -1,4 +1,4 @@
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2009-01-01 x
   a  2

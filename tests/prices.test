@@ -1,6 +1,6 @@
 # price-related tests
 # 1. print a transaction with an explicit unit price
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -13,7 +13,7 @@ bin/hledger -f- print
 >>>=0
 
 # 2. -B/--cost converts to the price's commodity ("cost")
-bin/hledger -f- print --cost
+hledgerdev -f- print --cost
 <<<
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -26,7 +26,7 @@ bin/hledger -f- print --cost
 >>>=0
 
 # 3. -B should ignore historical price directives
-bin/hledger -f- print -B
+hledgerdev -f- print -B
 <<<
 P 2011/01/01 € $1.35
 
@@ -42,7 +42,7 @@ P 2011/01/01 € $1.35
 >>>=0
 
 # 4. print a transaction with a total price
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2011/01/01
     expenses:foreign currency       €100 @@ $135
@@ -56,7 +56,7 @@ bin/hledger -f - print
 
 # 5. when the balance has exactly two commodities, both unpriced, infer an
 # implicit conversion price for the first one in terms of the second.
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2011/01/01
     expenses:foreign currency       €100
@@ -79,7 +79,7 @@ bin/hledger -f - print
 # # 6. when the *cost-basis* balance has exactly two commodities, both
 # # unpriced, infer an implicit conversion price for the first one in terms
 # # of the second.
-# bin/hledger -f - print
+# hledgerdev -f - print
 # <<<
 # 2011/01/01
 #     expenses:foreign currency       €100
@@ -98,7 +98,7 @@ bin/hledger -f - print
 #     misc                         £-1 @@ 2 shekels
 #
 ## 7. another, from ledger tests. Just one posting to price so uses @@.
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
     c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG
@@ -111,7 +111,7 @@ bin/hledger -f - print
 >>>=0
 
 # 8. when the balance has more than two commodities, don't bother
-bin/hledger -f - print
+hledgerdev -f - print
 <<<
 2011/01/01
     expenses:foreign currency       €100
@@ -119,7 +119,7 @@ bin/hledger -f - print
     expenses:other                  £200
 >>>= !0
 # 9. another
-bin/hledger -f - balance -B
+hledgerdev -f - balance -B
 <<<
 2011/01/01
     expenses:foreign currency        €99
@@ -133,7 +133,7 @@ bin/hledger -f - balance -B
                    0
 >>>=0
 # 10. transaction in two commodities should balance out properly
-bin/hledger -f - balance --cost
+hledgerdev -f - balance --cost
 <<<
 2011/01/01 x
   a  10£ @@ 16$
@@ -147,7 +147,7 @@ bin/hledger -f - balance --cost
 # 11. When commodity price is specified implicitly, transaction should
 #     be considered balanced out even when first amount is negative
 #     (that is, price for it should be determined properly, with proper sign)
-bin/hledger -f - balance
+hledgerdev -f - balance
 <<<
 2011/01/01 x
   a  -10£
@@ -161,7 +161,7 @@ bin/hledger -f - balance
 >>>=0
 # 12. When commodity price is specified implicitly, transaction should
 #     NOT be considered balanced out when BOTH amounts are negative
-bin/hledger -f - balance
+hledgerdev -f - balance
 <<<
 2011/01/01 x
   a  -10£
@@ -170,7 +170,7 @@ bin/hledger -f - balance
 >>>=1
 
 # 13. Differently-priced lots of a commodity should be merged in balance report
-bin/hledger -f - balance
+hledgerdev -f - balance
 <<<
 2011/1/1
   (a)   £1 @ $2
@@ -184,7 +184,7 @@ bin/hledger -f - balance
 >>>=0
 
 # 14. this should balance
-bin/hledger -f - balance
+hledgerdev -f - balance
 <<<
 2011/1/1
     a  1h @ $10
@@ -193,7 +193,7 @@ bin/hledger -f - balance
 >>>= 0
 
 # 15. this should balance, ignoring the P
-bin/hledger -f - balance
+hledgerdev -f - balance
 <<<
 P 2011/11/15 EUR CHF 1.234
 2011/11/19

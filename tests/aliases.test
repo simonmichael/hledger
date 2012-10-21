@@ -2,7 +2,7 @@
 
 # 1. command-line --alias option.  Note multiple applicable aliases, but
 # only one is applied per account name.  Spaces are allowed if quoted.
-bin/hledger -f- print --alias 'a a=A' --alias b=B
+hledgerdev -f- print --alias 'a a=A' --alias b=B
 <<<
 2011/01/01
     a a  1
@@ -16,7 +16,7 @@ bin/hledger -f- print --alias 'a a=A' --alias b=B
 >>>=0
 
 # 2. alias directive, and an account with unbalanced posting indicators.
-bin/hledger -f- print
+hledgerdev -f- print
 <<<
 alias b=B
 
@@ -32,7 +32,7 @@ alias b=B
 # 3. --alias options run after alias directives. Subaccounts are also
 # matched and rewritten. Accounts with an internal part matching the alias
 # are ignored.
-bin/hledger -f- print --alias a=A --alias B=C
+hledgerdev -f- print --alias a=A --alias B=C
 <<<
 alias a=B
 

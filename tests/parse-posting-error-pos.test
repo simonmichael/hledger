@@ -1,5 +1,5 @@
 # should give an accurate parse error location
-# bin/hledger -f- stat
+# hledgerdev -f- stat
 # <<<
 # 2010/1/1 x
 #   a  1

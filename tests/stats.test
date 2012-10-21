@@ -1,11 +1,11 @@
 # 1. empty file
-bin/hledger -f- stats
+hledgerdev -f- stats
 <<<
 >>> /Accounts.* 0 \(depth 0\)/
 >>>=0
 
 # 2. included files should be listed in parse order
- touch a.j b.j; bin/hledger -f- stats; rm -f a.j b.j
+ touch a.j b.j; hledgerdev -f- stats; rm -f a.j b.j
 <<<
 include a.j
 include b.j

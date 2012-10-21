@@ -1,5 +1,5 @@
 # print shows both dates. The second's year defaults to the first's.
-bin/hledger -f - print --effective
+hledgerdev -f - print --effective
 <<<
 2009/1/1=1/2 x
   a  1
@@ -13,7 +13,7 @@ bin/hledger -f - print --effective
 >>>= 0
 
 # Effective date of 29 Feb on leap year should be valid
-bin/hledger -f - print --effective
+hledgerdev -f - print --effective
 <<<
 2001/2/27=2000/2/29 x
   a  1
