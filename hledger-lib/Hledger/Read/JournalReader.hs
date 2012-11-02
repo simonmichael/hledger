@@ -488,6 +488,7 @@ posting = do
   account <- modifiedaccountname
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
+  _ <- balanceassertion
   many spacenonewline
   (inlinecomment, inlinetag) <- inlinecomment
   (nextlinecomments, nextlinetags) <- commentlines
@@ -516,6 +517,9 @@ tests_posting = [
 
     assertBool "posting parses a quoted commodity with numbers"
       (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
+
+  ,"posting parses a balance assertion" ~: do
+    assertBool "" (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\" =$1\n")
  ]
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
@@ -564,8 +568,8 @@ tests_spaceandamountormissing = [
     assertParseEqual (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
  ]
 
--- | Parse an amount, with an optional left or right currency symbol and
--- optional price.
+-- | Parse an amount, optionally with a left or right currency symbol,
+-- price, and/or (ignored) ledger-style balance assertion.
 amount :: GenParser Char JournalContext MixedAmount
 amount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 
@@ -654,6 +658,16 @@ priceamount =
             many spacenonewline
             a <- amount -- XXX can parse more prices ad infinitum, shouldn't
             return $ Just $ UnitPrice a))
+         <|> return Nothing
+
+balanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
+balanceassertion =
+    try (do
+          many spacenonewline
+          char '='
+          many spacenonewline
+          a <- amount -- XXX should restrict to a simple amount
+          return $ Just a)
          <|> return Nothing
 
 -- | Parse a numeric quantity for its value and display attributes.  Some
