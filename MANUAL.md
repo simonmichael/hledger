@@ -339,6 +339,15 @@ hledger currently ignores them. They look like this:
         P 2009/1/1 € $1.35  
         P 2010/1/1 € $1.40
         
+### Balance Assertions
+
+ledger supports
+[balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions):
+following a posting's amount, an equals sign and another amount which
+is the expected balance in this account at this point. hledger does
+not support this feature, but will parse and ignore such assertions,
+so you can put them in your journal and test with ledger if needed.
+
 ### Comments
 
 A semicolon in the journal file marks the start of a comment. You can
