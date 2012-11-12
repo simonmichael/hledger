@@ -76,7 +76,179 @@ hledgerdev -f - print
 
 >>>=0
 
-# # 6. when the *cost-basis* balance has exactly two commodities, both
+## 6. another, from ledger tests. Just one posting to price so uses @@.
+hledgerdev -f - print
+<<<
+2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
+    c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG
+    a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
+>>>
+2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
+    c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG @@ $17,783.72
+    a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
+
+>>>=0
+
+# 7. when the balance has more than two commodities, don't bother
+hledgerdev -f - print
+<<<
+2011/01/01
+    expenses:foreign currency       €100
+    assets                         $-135
+    expenses:other                  £200
+>>>= !0
+
+# 8. another
+hledgerdev -f - balance -B
+<<<
+2011/01/01
+    expenses:foreign currency        €99
+    assets                         $-130
+    expenses:foreign currency         €1
+    assets                           $-5
+>>>
+               $-135  assets
+                $135  expenses:foreign currency
+--------------------
+                   0
+>>>=0
+
+# 9. transaction in two commodities should balance out properly
+hledgerdev -f - balance --cost
+<<<
+2011/01/01 x
+  a  10£ @@ 16$
+  b
+>>>
+                 16$  a
+                -16$  b
+--------------------
+                   0
+>>>=0
+
+# 10. When commodity price is specified implicitly, transaction should
+#     be considered balanced out even when first amount is negative
+#     (that is, price for it should be determined properly, with proper sign)
+hledgerdev -f - balance
+<<<
+2011/01/01 x
+  a  -10£
+  b  16$
+>>>
+                -10£  a
+                 16$  b
+--------------------
+                 16$
+                -10£
+>>>=0
+
+# 11. When commodity price is specified implicitly, transaction should
+#     NOT be considered balanced out when BOTH amounts are negative
+hledgerdev -f - balance
+<<<
+2011/01/01 x
+  a  -10£
+  b  -16$
+>>>
+>>>=1
+
+# 12. Differently-priced lots of a commodity should be merged in balance report
+hledgerdev -f - balance
+<<<
+2011/1/1
+  (a)   £1 @ $2
+
+2011/1/1
+  (a)   £1 @ $3
+>>>
+                  £2  a
+--------------------
+                  £2
+>>>=0
+
+# 13. this should balance
+hledgerdev -f - balance
+<<<
+2011/1/1
+    a  1h @ $10
+    b  1h @ $20
+    c  $-30
+>>>= 0
+
+# 14. this should balance, ignoring the P
+hledgerdev -f - balance
+<<<
+P 2011/11/15 EUR CHF 1.234
+2011/11/19
+    a                             EUR 1000.00
+    b                             CHF -1254
+>>>= 0
+
+# 15. these balance because of the unit prices, and should parse successfully
+hledgerdev -f - balance --no-total
+<<<
+1/1
+    a   1X @ 2Y
+    a  -2X @ 1Y
+>>>
+                 -1X  a
+>>>= 0
+
+# 16.
+hledgerdev -f - balance --no-total -B
+<<<
+1/1
+    a   1X @ 2Y
+    a  -2X @ 1Y
+>>>
+>>>= 0
+
+# 17. likewise with total prices. Note how the primary amount's sign is used.
+hledgerdev -f - balance --no-total
+<<<
+1/1
+    a   1X @@ 1Y
+    a  -2X @@ 1Y
+>>>
+                 -1X  a
+>>>= 0
+
+# 18. 
+hledgerdev -f - balance --no-total -B
+<<<
+1/1
+    a   1X @@ 1Y
+    a  -2X @@ 1Y
+>>>
+>>>= 0
+
+# 19. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
+hledgerdev -f - balance --no-total -E
+<<<
+1/1
+    a   1X @@ 1Y
+    a   1X @@ 1Y
+    a  -2X @@ 1Y
+    b
+>>>
+                   0  a
+                 -1Y  b
+>>>= 0
+
+# 20. the above with -B
+hledgerdev -f - balance --no-total -E -B
+<<<
+1/1
+    a   1X @@ 1Y
+    a   1X @@ 1Y
+    a  -2X @@ 1Y
+    b
+>>>
+                  1Y  a
+                 -1Y  b
+>>>= 0
+
+# # when the *cost-basis* balance has exactly two commodities, both
 # # unpriced, infer an implicit conversion price for the first one in terms
 # # of the second.
 # hledgerdev -f - print
@@ -97,106 +269,3 @@ hledgerdev -f - print
 #     misc                          £1 @@ 2 shekels
 #     misc                         £-1 @@ 2 shekels
 #
-## 7. another, from ledger tests. Just one posting to price so uses @@.
-hledgerdev -f - print
-<<<
-2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
-    c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG
-    a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
->>>
-2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
-    c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG @@ $17,783.72
-    a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
-
->>>=0
-
-# 8. when the balance has more than two commodities, don't bother
-hledgerdev -f - print
-<<<
-2011/01/01
-    expenses:foreign currency       €100
-    assets                         $-135
-    expenses:other                  £200
->>>= !0
-# 9. another
-hledgerdev -f - balance -B
-<<<
-2011/01/01
-    expenses:foreign currency        €99
-    assets                         $-130
-    expenses:foreign currency         €1
-    assets                           $-5
->>>
-               $-135  assets
-                $135  expenses:foreign currency
---------------------
-                   0
->>>=0
-# 10. transaction in two commodities should balance out properly
-hledgerdev -f - balance --cost
-<<<
-2011/01/01 x
-  a  10£ @@ 16$
-  b
->>>
-                 16$  a
-                -16$  b
---------------------
-                   0
->>>=0
-# 11. When commodity price is specified implicitly, transaction should
-#     be considered balanced out even when first amount is negative
-#     (that is, price for it should be determined properly, with proper sign)
-hledgerdev -f - balance
-<<<
-2011/01/01 x
-  a  -10£
-  b  16$
->>>
-                -10£  a
-                 16$  b
---------------------
-                 16$
-                -10£
->>>=0
-# 12. When commodity price is specified implicitly, transaction should
-#     NOT be considered balanced out when BOTH amounts are negative
-hledgerdev -f - balance
-<<<
-2011/01/01 x
-  a  -10£
-  b  -16$
->>>
->>>=1
-
-# 13. Differently-priced lots of a commodity should be merged in balance report
-hledgerdev -f - balance
-<<<
-2011/1/1
-  (a)   £1 @ $2
-
-2011/1/1
-  (a)   £1 @ $3
->>>
-                  £2  a
---------------------
-                  £2
->>>=0
-
-# 14. this should balance
-hledgerdev -f - balance
-<<<
-2011/1/1
-    a  1h @ $10
-    b  1h @ $20
-    c  $-30
->>>= 0
-
-# 15. this should balance, ignoring the P
-hledgerdev -f - balance
-<<<
-P 2011/11/15 EUR CHF 1.234
-2011/11/19
-    a                             EUR 1000.00
-    b                             CHF -1254
->>>= 0

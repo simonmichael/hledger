@@ -51,6 +51,7 @@ module Hledger.Data.Amount (
   -- ** arithmetic
   costOfAmount,
   divideAmount,
+  sumAmounts,
   -- ** rendering
   showAmount,
   showAmountDebug,
@@ -62,6 +63,7 @@ module Hledger.Data.Amount (
   missingmixedamt,
   amounts,
   normaliseMixedAmountPreservingFirstPrice,
+  normaliseMixedAmountPreservingPrices,
   canonicaliseMixedAmountCommodity,
   mixedAmountWithCommodity,
   setMixedAmountPrecision,
@@ -77,6 +79,7 @@ module Hledger.Data.Amount (
   showMixedAmountWithoutPrice,
   showMixedAmountWithPrecision,
   -- * misc.
+  ltraceamount,
   tests_Hledger_Data_Amount
 ) where
 
@@ -124,6 +127,24 @@ similarAmountsOp op a@(Amount Commodity{precision=ap} _ _) (Amount bc@Commodity{
 -- any assigned prices and assuming an exchange rate of 1.
 amountWithCommodity :: Commodity -> Amount -> Amount
 amountWithCommodity c (Amount _ q _) = Amount c q Nothing
+
+-- | A more complete amount adding operation.
+sumAmounts :: [Amount] -> MixedAmount
+sumAmounts = normaliseMixedAmountPreservingPrices . Mixed
+
+tests_sumAmounts = [
+  "sumAmounts" ~: do
+    -- when adding, we don't convert to the price commodity - just
+    -- combine what amounts we can.
+    -- amounts with same unit price
+    (sumAmounts [(Amount dollar 1 (Just $ UnitPrice $ Mixed [euros 1])), (Amount dollar 1 (Just $ UnitPrice $ Mixed [euros 1]))])
+     `is` (Mixed [Amount dollar 2 (Just $ UnitPrice $ Mixed [euros 1])])
+    -- amounts with different unit prices
+    -- amounts with total prices
+    (sumAmounts  [(Amount dollar 1 (Just $ TotalPrice $ Mixed [euros 1])), (Amount dollar 1 (Just $ TotalPrice $ Mixed [euros 1]))])
+     `is` (Mixed [(Amount dollar 1 (Just $ TotalPrice $ Mixed [euros 1])), (Amount dollar 1 (Just $ TotalPrice $ Mixed [euros 1]))])
+    -- amounts with no, unit, and/or total prices
+ ]
 
 -- | Convert an amount to the commodity of its assigned price, if any.  Notes:
 --
@@ -284,9 +305,9 @@ missingamt = Amount unknown{symbol="AUTO"} 0 Nothing
 missingmixedamt :: MixedAmount
 missingmixedamt = Mixed [missingamt]
 
--- | Simplify a mixed amount's component amounts: combine amounts with the
--- same commodity and price. Also remove any zero or missing amounts and
--- replace an empty amount list with a single zero amount.
+-- | Simplify a mixed amount's component amounts: we can combine amounts
+-- with the same commodity and unit price. Also remove any zero or missing
+-- amounts and replace an empty amount list with a single zero amount.
 normaliseMixedAmountPreservingPrices :: MixedAmount -> MixedAmount
 normaliseMixedAmountPreservingPrices (Mixed as) = Mixed as''
     where
@@ -294,13 +315,29 @@ normaliseMixedAmountPreservingPrices (Mixed as) = Mixed as''
       (_,nonzeros) = partition isReallyZeroAmount $ filter (/= missingamt) as'
       as' = map sumAmountsUsingFirstPrice $ group $ sort as
       sort = sortBy (\a1 a2 -> compare (sym a1,price a1) (sym a2,price a2))
-      group = groupBy (\a1 a2 -> sym a1 == sym a2 && price a1 == price a2)
       sym = symbol . commodity
+      group = groupBy (\a1 a2 -> sym a1 == sym a2 && sameunitprice a1 a2)
+        where
+          sameunitprice a1 a2 =
+            case (price a1, price a2) of
+              (Nothing, Nothing) -> True
+              (Just (UnitPrice p1), Just (UnitPrice p2)) -> p1 == p2
+              _ -> False
 
 tests_normaliseMixedAmountPreservingPrices = [
   "normaliseMixedAmountPreservingPrices" ~: do
-   -- assertEqual "" (Mixed [dollars 2]) (normaliseMixedAmountPreservingPrices $ Mixed [dollars 0, dollars 2])
-   assertEqual "" (Mixed [nullamt]) (normaliseMixedAmountPreservingPrices $ Mixed [dollars 0, missingamt])
+   assertEqual "discard missing amount" (Mixed [nullamt]) (normaliseMixedAmountPreservingPrices $ Mixed [dollars 0, missingamt])
+   assertEqual "combine unpriced same-commodity amounts" (Mixed [dollars 2]) (normaliseMixedAmountPreservingPrices $ Mixed [dollars 0, dollars 2])
+   assertEqual "don't combine total-priced amounts"
+     (Mixed
+      [Amount dollar 1    (Just $ TotalPrice $ Mixed [euros 1])
+      ,Amount dollar (-2) (Just $ TotalPrice $ Mixed [euros 1])
+      ])
+     (normaliseMixedAmountPreservingPrices $ Mixed
+      [Amount dollar 1    (Just $ TotalPrice $ Mixed [euros 1])
+      ,Amount dollar (-2) (Just $ TotalPrice $ Mixed [euros 1])
+      ])
+
  ]
 
 -- | Simplify a mixed amount's component amounts: combine amounts with
@@ -379,6 +416,10 @@ mixedAmountWithCommodity c (Mixed as) = Amount c total Nothing
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = vConcatRightAligned $ map showAmount $ amounts $ normaliseMixedAmountPreservingFirstPrice m
 
+-- | Compact labelled trace of a mixed amount.
+ltraceamount :: String -> MixedAmount -> MixedAmount
+ltraceamount s = tracewith (((s ++ ": ") ++).showMixedAmount)
+
 -- | Set the display precision in the amount's commodities.
 setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
 setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
@@ -416,6 +457,7 @@ canonicaliseMixedAmountCommodity canonicalcommoditymap (Mixed as) = Mixed $ map 
 
 tests_Hledger_Data_Amount = TestList $
      tests_normaliseMixedAmountPreservingPrices
+  ++ tests_sumAmounts
   ++ [
 
   -- Amount
@@ -436,7 +478,7 @@ tests_Hledger_Data_Amount = TestList $
     let b = (dollars 1){price=Just $ UnitPrice $ Mixed [euros 2]}
     negate b `is` b{quantity=(-1)}
 
-  ,"adding amounts" ~: do
+  ,"adding amounts without prices" ~: do
     let a1 = dollars 1.23
     let a2 = dollars (-1.23)
     let a3 = dollars (-1.23)
@@ -473,6 +515,15 @@ tests_Hledger_Data_Amount = TestList $
               Amount dollar0 (-1) Nothing,
               Amount dollar (-0.25) Nothing])
       `is` Mixed [Amount unknown 0 Nothing]
+
+  ,"adding mixed amounts with total prices" ~: do
+    (sum $ map (Mixed . (\a -> [a]))
+     [Amount dollar 1    (Just $ TotalPrice $ Mixed [euros 1])
+     ,Amount dollar (-2) (Just $ TotalPrice $ Mixed [euros 1])
+     ])
+      `is` (Mixed [Amount dollar 1    (Just $ TotalPrice $ Mixed [euros 1])
+                  ,Amount dollar (-2) (Just $ TotalPrice $ Mixed [euros 1])
+                  ])
 
   ,"showMixedAmount" ~: do
     showMixedAmount (Mixed [dollars 1]) `is` "$1.00"

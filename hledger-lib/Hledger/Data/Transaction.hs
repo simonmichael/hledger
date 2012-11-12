@@ -455,12 +455,14 @@ tests_Hledger_Data_Transaction = TestList $ concat [
                             [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing,
                              Posting False "b" (Mixed [dollars 1]) "" RegularPosting [] Nothing
                             ] ""))
+
      assertBool "detect unbalanced entry, multiple missing amounts"
                     (isLeft $ balanceTransaction Nothing
                            (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
                             [Posting False "a" missingmixedamt "" RegularPosting [] Nothing,
                              Posting False "b" missingmixedamt "" RegularPosting [] Nothing
                             ] ""))
+
      let e = balanceTransaction Nothing (Transaction (parsedate "2007/01/28") Nothing False "" "" "" []
                            [Posting False "a" (Mixed [dollars 1]) "" RegularPosting [] Nothing,
                             Posting False "b" missingmixedamt "" RegularPosting [] Nothing
@@ -471,6 +473,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
                      (case e of
                         Right e' -> (pamount $ last $ tpostings e')
                         Left _ -> error' "should not happen")
+
      let e = balanceTransaction Nothing (Transaction (parsedate "2011/01/01") Nothing False "" "" "" []
                            [Posting False "a" (Mixed [dollars 1.35]) "" RegularPosting [] Nothing,
                             Posting False "b" (Mixed [euros   (-1)]) "" RegularPosting [] Nothing
@@ -485,6 +488,18 @@ tests_Hledger_Data_Transaction = TestList $ concat [
                      (case e of
                         Right e' -> (pamount $ head $ tpostings e')
                         Left _ -> error' "should not happen")
+
+     assertBool "balanceTransaction balances based on cost if there are unit prices" (isRight $
+       balanceTransaction Nothing (Transaction (parsedate "2011/01/01") Nothing False "" "" "" []
+                           [Posting False "a" (Mixed [Amount dollar 1    (Just $ UnitPrice $ Mixed [euros 2])]) "" RegularPosting [] Nothing
+                           ,Posting False "a" (Mixed [Amount dollar (-2) (Just $ UnitPrice $ Mixed [euros 1])]) "" RegularPosting [] Nothing
+                           ] ""))
+
+     assertBool "balanceTransaction balances based on cost if there are total prices" (isRight $
+       balanceTransaction Nothing (Transaction (parsedate "2011/01/01") Nothing False "" "" "" []
+                           [Posting False "a" (Mixed [Amount dollar 1    (Just $ TotalPrice $ Mixed [euros 1])]) "" RegularPosting [] Nothing
+                           ,Posting False "a" (Mixed [Amount dollar (-2) (Just $ TotalPrice $ Mixed [euros 1])]) "" RegularPosting [] Nothing
+                           ] ""))
 
   ,"isTransactionBalanced" ~: do
      let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
