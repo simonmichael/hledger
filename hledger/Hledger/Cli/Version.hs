@@ -55,7 +55,7 @@ binaryfilename progname = prettify $ splitAtElement '.' buildversion
                                 | patches/="0" = '+' : patches
                                 | otherwise = ""
                             (os',suffix)
-                                | os == "darwin"  = ("mac","")
+                                | os == "darwin"  = ("mac","" :: String)
                                 | os == "mingw32" = ("windows",".exe")
                                 | otherwise       = (os,"")
                   prettify (major:minor:bugfix:[]) = prettify [major,minor,bugfix,"0"]

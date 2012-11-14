@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, NoMonoLocalBinds #-}
 {-|
 
 A reader for hledger's journal file format

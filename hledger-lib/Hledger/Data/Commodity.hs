@@ -18,7 +18,7 @@ import Hledger.Data.Types
 import Hledger.Utils
 
 
-nonsimplecommoditychars = "0123456789-.@;\n \""
+nonsimplecommoditychars = "0123456789-.@;\n \"" :: String
 
 quoteCommoditySymbolIfNeeded s | any (`elem` nonsimplecommoditychars) s = "\"" ++ s ++ "\""
                                | otherwise = s

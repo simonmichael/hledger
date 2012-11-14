@@ -41,7 +41,7 @@ showLedgerStats l today span =
       w1 = maximum $ map (length . fst) stats
       -- w2 = maximum $ map (length . show . snd) stats
       stats = [
-         ("Main journal file", path) -- ++ " (from " ++ source ++ ")")
+         ("Main journal file" :: String, path) -- ++ " (from " ++ source ++ ")")
         ,("Included journal files", unlines $ reverse $ -- cf journalAddFile
                                     drop 1 $ journalFilePaths j)
         ,("Transactions span", printf "%s to %s (%d days)" (start span) (end span) days)
@@ -69,7 +69,7 @@ showLedgerStats l today span =
              showelapsed Nothing = ""
              showelapsed (Just days) = printf " (%d %s)" days' direction
                                        where days' = abs days
-                                             direction | days >= 0 = "days ago"
+                                             direction | days >= 0 = "days ago" :: String
                                                        | otherwise = "days from now"
              tnum = length ts
              start (DateSpan (Just d) _) = show d

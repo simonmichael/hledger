@@ -117,7 +117,7 @@ getPostings st enteredps = do
                 | otherwise = Nothing
                 where Just ps = historicalps
       defaultaccount = maybe Nothing (Just . showacctname) bestmatch
-      ordot | null enteredps || length enteredrealps == 1 = ""
+      ordot | null enteredps || length enteredrealps == 1 = "" :: String
             | otherwise = ", or . to record"
   account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defaultaccount (Just accept)
   if account=="."

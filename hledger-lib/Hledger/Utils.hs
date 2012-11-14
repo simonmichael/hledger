@@ -55,7 +55,7 @@ lowercase = map toLower
 uppercase = map toUpper
 
 strip = lstrip . rstrip
-lstrip = dropWhile (`elem` " \t")
+lstrip = dropWhile (`elem` " \t") :: String -> String
 rstrip = reverse . lstrip . reverse
 
 elideLeft width s =

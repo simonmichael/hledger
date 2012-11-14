@@ -26,7 +26,7 @@ import Hledger.Utils
 instance Show Account where
     show Account{..} = printf "Account %s (boring:%s, ebalance:%s, ibalance:%s)"
                        aname  
-                       (if aboring then "y" else "n")
+                       (if aboring then "y" else "n" :: String)
                        (showMixedAmount aebalance)
                        (showMixedAmount aibalance)
 
@@ -159,7 +159,7 @@ showAccountDebug a = printf "%-25s %4s %4s %s"
                      (aname a)
                      (showMixedAmount $ aebalance a)
                      (showMixedAmount $ aibalance a)
-                     (if aboring a then "b" else " ")
+                     (if aboring a then "b" else " " :: String)
 
 
 tests_Hledger_Data_Account = TestList [

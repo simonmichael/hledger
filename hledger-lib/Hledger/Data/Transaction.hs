@@ -340,7 +340,7 @@ nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rms
            | otherwise = "real postings are off by " ++ showMixedAmount (costOfMixedAmount rsum)
       bvmsg | isReallyZeroMixedAmountCost bvsum = ""
             | otherwise = "balanced virtual postings are off by " ++ showMixedAmount (costOfMixedAmount bvsum)
-      sep = if not (null rmsg) && not (null bvmsg) then "; " else ""
+      sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
 transactionActualDate :: Transaction -> Day
 transactionActualDate = tdate

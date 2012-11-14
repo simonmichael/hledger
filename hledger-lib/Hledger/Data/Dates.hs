@@ -1,3 +1,4 @@
+{-# LANGUAGE NoMonoLocalBinds #-}
 {-|
 
 Date parsing and utilities for hledger.

@@ -146,16 +146,18 @@ divideAmount a@Amount{quantity=q} d = a{quantity=q/d}
 isNegativeAmount :: Amount -> Bool
 isNegativeAmount Amount{quantity=q} = q < 0
 
+digits = "123456789" :: String
+
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
 isZeroAmount a --  a==missingamt = False
-               | otherwise     = (null . filter (`elem` "123456789") . showAmountWithoutPriceOrCommodity) a
+               | otherwise     = (null . filter (`elem` digits) . showAmountWithoutPriceOrCommodity) a
 
 -- | Is this amount "really" zero, regardless of the display precision ?
 -- Since we are using floating point, for now just test to some high precision.
 isReallyZeroAmount :: Amount -> Bool
 isReallyZeroAmount a --  a==missingamt = False
-                     | otherwise     = (null . filter (`elem` "123456789") . printf ("%."++show zeroprecision++"f") . quantity) a
+                     | otherwise     = (null . filter (`elem` digits) . printf ("%."++show zeroprecision++"f") . quantity) a
     where zeroprecision = 8
 
 -- | Get the string representation of an amount, based on its commodity's
@@ -200,10 +202,10 @@ showAmount a@(Amount (Commodity {symbol=sym,side=side,spaced=spaced}) _ pri) =
       R -> printf "%s%s%s%s" quantity' space sym' price
     where
       quantity = showamountquantity a
-      displayingzero = null $ filter (`elem` "123456789") $ quantity
+      displayingzero = null $ filter (`elem` digits) $ quantity
       (quantity',sym') | displayingzero = ("0","")
                        | otherwise      = (quantity,quoteCommoditySymbolIfNeeded sym)
-      space = if (not (null sym') && spaced) then " " else ""
+      space = if (not (null sym') && spaced) then " " else "" :: String
       price = maybe "" showPrice pri
 
 -- | Get the string representation of the number part of of an amount,
