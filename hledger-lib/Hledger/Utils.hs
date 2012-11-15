@@ -315,6 +315,12 @@ treeFromPaths = foldl' mergeTrees emptyTree . map treeFromPath
 
 -- debugging
 
+-- more:
+-- http://hackage.haskell.org/packages/archive/TraceUtils/0.1.0.2/doc/html/Debug-TraceUtils.html
+-- http://hackage.haskell.org/packages/archive/trace-call/0.1/doc/html/Debug-TraceCall.html
+-- http://hackage.haskell.org/packages/archive/htrace/0.1/doc/html/Debug-HTrace.html
+-- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
+
 -- | trace (print on stdout at runtime) a showable expression
 -- (for easily tracing in the middle of a complex expression)
 strace :: Show a => a -> a
