@@ -11,7 +11,7 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
 import Hledger.Cli hiding (progname,version,prognameandversion)
-import Hledger.Web.Settings
+import Settings
 
 progname, version :: String
 progname = "hledger-web"
@@ -75,7 +75,7 @@ toWebOpts rawopts = do
 
 checkWebOpts :: WebOpts -> IO WebOpts
 checkWebOpts opts = do
-  checkCliOpts $ cliopts_ opts
+  _ <- checkCliOpts $ cliopts_ opts
   return opts
 
 getHledgerWebOpts :: IO WebOpts

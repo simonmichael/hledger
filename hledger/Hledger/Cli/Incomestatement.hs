@@ -29,13 +29,13 @@ incomestatement CliOpts{reportopts_=ropts} j = do
   LT.putStr $ [lt|Income Statement
 
 Revenues:
-#{unlines $ accountsReportAsText ropts incomereport}
+-{unlines $ accountsReportAsText ropts incomereport}
 Expenses:
-#{unlines $ accountsReportAsText ropts expensereport}
+-{unlines $ accountsReportAsText ropts expensereport}
 
 Total:
 --------------------
-#{padleft 20 $ showMixedAmountWithoutPrice total}
+-{padleft 20 $ showMixedAmountWithoutPrice total}
 |]
 
 tests_Hledger_Cli_Incomestatement :: Test

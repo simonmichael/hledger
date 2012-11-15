@@ -1,11 +1,11 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, RecordWildCards, CPP #-}
+{-# LANGUAGE RecordWildCards #-}
 {-
 
 hledger-web's request handlers, and helpers.
 
 -}
 
-module Hledger.Web.Handlers
+module Handler.Handlers
 (
   -- * GET handlers
   getRootR,
@@ -41,6 +41,7 @@ where
 
 import Prelude
 import Control.Applicative ((<$>))
+import Control.Monad.IO.Class (liftIO)
 import Data.Either (lefts,rights)
 import Data.List
 import Data.Maybe
@@ -58,16 +59,17 @@ import Text.Blaze.Html (toHtml)
 #else
 import Text.Blaze (preEscapedString, toHtml)
 #endif
-import Text.Hamlet hiding (hamlet)
+import Text.Hamlet -- hiding (hamlet)
 import Text.Printf
 import Yesod.Core
 -- import Yesod.Json
 
+import Foundation
+import Settings
+
 import Hledger hiding (is)
 import Hledger.Cli hiding (version)
-import Hledger.Web.Foundation
 import Hledger.Web.Options
-import Hledger.Web.Settings
 
 -- routes:
 -- /static          StaticR         Static getStatic
@@ -106,7 +108,7 @@ getJournalR = do
       maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   defaultLayout $ do
       setTitle "hledger-web journal"
-      addWidget $ toWidget [hamlet|
+      toWidget [hamlet|
 ^{topbar vd}
 <div#content>
  <div#sidebar>
@@ -131,7 +133,7 @@ getJournalEntriesR = do
       maincontent = entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) Any $ filterJournalTransactions m j
   defaultLayout $ do
       setTitle "hledger-web journal"
-      addWidget $ toWidget [hamlet|
+      toWidget [hamlet|
 ^{topbar vd}
 <div#content>
  <div#sidebar>
@@ -152,7 +154,7 @@ getJournalEditR = do
   vd <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal edit form"
-      addWidget $ toWidget $ editform vd
+      toWidget $ editform vd
 
 -- -- | The journal entries view, no sidebar.
 -- getJournalOnlyR :: Handler RepHtml
@@ -160,7 +162,7 @@ getJournalEditR = do
 --   vd@VD{..} <- getViewData
 --   defaultLayout $ do
 --       setTitle "hledger-web journal only"
---       addWidget $ toWidget $ entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
+--       toWidget $ entriesReportAsHtml opts vd $ entriesReport (reportopts_ $ cliopts_ opts) nullfilterspec $ filterJournalTransactions2 m j
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler RepHtml
@@ -177,7 +179,7 @@ getRegisterR = do
       maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   defaultLayout $ do
       setTitle "hledger-web register"
-      addWidget $ toWidget [hamlet|
+      toWidget [hamlet|
 ^{topbar vd}
 <div#content>
  <div#sidebar>
@@ -198,7 +200,7 @@ getRegisterR = do
 --   vd@VD{..} <- getViewData
 --   defaultLayout $ do
 --       setTitle "hledger-web register only"
---       addWidget $ toWidget $
+--       toWidget $
 --           case inAccountQuery qopts of Just m' -> registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m m'
 --                                          Nothing -> registerReportHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
 
@@ -211,7 +213,7 @@ getAccountsR = do
   let j' = filterJournalPostings2 m j
       html = do
         setTitle "hledger-web accounts"
-        addWidget $ toWidget $ accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j'
+        toWidget $ accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j'
       json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
   defaultLayoutJson html json
 
@@ -288,11 +290,11 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
     <a href="@?{acctsonlyquery}" title="Focus on this account and sub-accounts and hide others">-others -->
 
  <td.balance align=right>#{mixedAmountAsHtml abal}
- <td.numpostings align=right title="#{numpostings} transactions in this account">(#{numpostings})
 |]
      where
-       hassubs = not $ null $ ledgerSubAccounts l $ ledgerAccount l acct
-       numpostings = length $ apostings $ ledgerAccount l acct
+       hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
+ -- <td.numpostings align=right title="#{numpostings} transactions in this account">(#{numpostings})
+       -- numpostings = maybe 0 (length.apostings) $ ledgerAccount l acct
        depthclass = "depth"++show aindent
        inacctclass = case inacctmatcher of
                        Just m' -> if m' `matchesAccount` acct then "inacct" else "notinacct"

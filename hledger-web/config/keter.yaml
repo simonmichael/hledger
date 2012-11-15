@@ -1,0 +1,8 @@
+exec: ../dist/build/hledger-web/hledger-web
+args:
+    - production
+host: <<HOST-NOT-SET>>
+
+# Use the following to automatically copy your bundle upon creation via `yesod
+# keter`. Uses `scp` internally, so you can set it to a remote destination
+# copy-to: user@host:/opt/keter/incoming

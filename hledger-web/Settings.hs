@@ -1,35 +1,23 @@
-{-# LANGUAGE CPP, TemplateHaskell, QuasiQuotes, OverloadedStrings #-}
 -- | Settings are centralized, as much as possible, into this file. This
 -- includes database connection settings, static file locations, etc.
 -- In addition, you can configure a number of different aspects of Yesod
 -- by overriding methods in the Yesod typeclass. That instance is
--- declared in the hledger-web.hs file.
-module Hledger.Web.Settings
-    ( widgetFile
-    , staticRoot
-    , staticDir
-    , Extra (..)
-    , parseExtra
-    , hamlet
-    , defport
-    , defbaseurl
-    , hledgerorgurl
-    , manualurl
-    ) where
+-- declared in the Foundation.hs file.
+module Settings where
 
-import Control.Applicative
+import Prelude
+import Text.Shakespeare.Text (st)
+import Language.Haskell.TH.Syntax
+import Yesod.Default.Config
+import Yesod.Default.Util
 import Data.Text (Text)
 import Data.Yaml
-import Language.Haskell.TH.Syntax
-import Language.Haskell.TH.Quote
-import Prelude
-import Text.Printf
-import Text.Shakespeare.Text (st)
-import Yesod.Default.Config
-import qualified Yesod.Default.Util
-import qualified Text.Hamlet (hamlet)
--- when available:
--- import Text.Hamlet (HamletSettings(..), hamletWithSettings, defaultHamletSettings, hamletRules)
+import Control.Applicative
+import Settings.Development
+import Data.Default (def)
+import Text.Hamlet
+
+import Text.Printf (printf)
 
 
 hledgerorgurl, manualurl :: String
@@ -44,8 +32,10 @@ defbaseurl :: Int -> String
 defbaseurl port = printf "http://localhost:%d" port
 
 
--- | Dynamic per-environment configuration loaded from the YAML file Settings.yaml.
--- Use dynamic settings to avoid the need to re-compile the application (between staging and production environments).
+
+
+-- Static setting below. Changing these requires a recompile
+
 -- | The location of static files on your system. This is a file system
 -- path. The default value works properly with your scaffolded site.
 staticDir :: FilePath
@@ -60,30 +50,36 @@ staticDir = "static"
 -- please see:
 --   http://code.google.com/speed/page-speed/docs/request.html#ServeFromCookielessDomain
 --
--- If you change the resource pattern for StaticR in hledger-web.hs, you will
+-- If you change the resource pattern for StaticR in Foundation.hs, you will
 -- have to make a corresponding change here.
 --
--- To see how this value is used, see urlRenderOverride in hledger-web.hs
-staticRoot :: AppConfig DefaultEnv a ->  Text
+-- To see how this value is used, see urlRenderOverride in Foundation.hs
+staticRoot :: AppConfig DefaultEnv x -> Text
 staticRoot conf = [st|#{appRoot conf}/static|]
 
+-- | Settings for 'widgetFile', such as which template languages to support and
+-- default Hamlet settings.
+widgetFileSettings :: WidgetFileSettings
+widgetFileSettings = def
+    { wfsHamletSettings = defaultHamletSettings
+        { hamletNewlines = AlwaysNewlines
+        }
+    }
+
+-- The rest of this file contains settings which rarely need changing by a
+-- user.
+
 widgetFile :: String -> Q Exp
-#if DEVELOPMENT
-widgetFile = Yesod.Default.Util.widgetFileReload
-#else
-widgetFile = Yesod.Default.Util.widgetFileNoReload
-#endif
+widgetFile = (if development then widgetFileReload
+                             else widgetFileNoReload)
+              widgetFileSettings
 
 data Extra = Extra
     { extraCopyright :: Text
     , extraAnalytics :: Maybe Text -- ^ Google Analytics
-    }
+    } deriving Show
 
 parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
     <$> o .:  "copyright"
     <*> o .:? "analytics"
-
-hamlet :: QuasiQuoter
-hamlet = Text.Hamlet.hamlet
--- hamlet = hamletWithSettings hamletRules defaultHamletSettings{hamletNewlines=True}
