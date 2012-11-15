@@ -55,7 +55,9 @@ withJournalDo' opts cmd = do
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
   -- unless (debug_ $ cliopts_ opts) $ forkIO (browser baseurl) >> return ()
-  server (base_url_ opts) (port_ opts) opts j
+  d <- getCurrentDay
+  let j' = filterJournalTransactions (queryFromOpts d $ reportopts_ $ cliopts_ opts) j
+  server (base_url_ opts) (port_ opts) opts j'
 
 -- browser :: String -> IO ()
 -- browser baseurl = do
