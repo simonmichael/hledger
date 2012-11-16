@@ -49,8 +49,7 @@ SOURCEFILES:= \
 	hledger/Hledger/*/*hs \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
-	hledger-*/Hledger/*/*hs \
-	hledger-web/Hledger/Web/Settings/*hs
+	hledger-*/Hledger/*/*hs
 
 # a more careful list suitable for for haddock
 HADDOCKSOURCEFILES:= \
@@ -60,8 +59,7 @@ HADDOCKSOURCEFILES:= \
 	hledger/Hledger/*hs \
 	hledger/Hledger/*/*hs \
 	hledger-web/Hledger/*hs \
-	hledger-web/Hledger/*/*hs \
-	hledger-web/Hledger/Web/Settings/*hs
+	hledger-web/Hledger/*/*hs
 
 CABALFILES:= \
 	hledger/hledger.cabal \
@@ -93,10 +91,23 @@ VERSION:=$(shell cat $(VERSIONFILE))
 PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 
 # build flags
-WARNINGS:=-W -fwarn-tabs -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
+WARNINGS:=-W -fwarn-tabs -fno-warn-unused-do-bind -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
+WEBLANGEXTS:=\
+	-XTemplateHaskell \
+	-XQuasiQuotes \
+	-XCPP \
+	-XMultiParamTypeClasses \
+	-XTypeFamilies \
+	-XGADTs \
+	-XGeneralizedNewtypeDeriving \
+	-XFlexibleContexts \
+	-XEmptyDataDecls \
+	-XOverloadedStrings
+#	-XNoMonomorphismRestriction
+#	-XNoImplicitPrelude
 PREFERMACUSRLIBFLAGS=-L/usr/lib
 GHCMEMFLAGS= #+RTS -M200m -RTS
-BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) -DPATCHLEVEL=$(PATCHLEVEL)
+BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) -DBLAZE_HTML_0_5 -DDEVELOPMENT
 BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)"'
 AUTOBUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='\"$(VERSION)\"'  # different quoting for sp
 PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
@@ -146,8 +157,12 @@ autotest: sp
 autotest-%: sp
 	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run test $*
 
-autoweb: sp
-	$(AUTOBUILD) hledger-web/hledger-web.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) -DDEVELOPMENT --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
+autoweb: sp web-build-links
+	$(AUTOBUILD) hledger-web/app/main.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) $(WEBLANGEXTS) --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
+
+web-build-links:
+	ln -sf hledger-web/config
+	ln -sf hledger-web/messages
 
 # check for sp and explain how to get it if not found.
 sp:
@@ -443,7 +458,7 @@ quickheap: samplejournals bin/hledgerprof
 	$(VIEWPS) hledger.ps
 
 # display a code coverage text report from running hledger COVCMD
-quickcoverage:
+quickcoverage: hledgerhpc
 	@echo "Generating code coverage text report for hledger command: $(COVCMD)"
 	tools/runhledgerhpc "report" $(COVCMD)
 
