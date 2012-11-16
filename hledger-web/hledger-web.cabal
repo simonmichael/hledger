@@ -23,8 +23,8 @@ cabal-version:  >= 1.8
 build-type:     Simple
 extra-tmp-files:
 extra-source-files:
-                -- config/models
-                -- config/routes
+                messages/en.msg
+                config/routes
                 static/style.css
                 static/hledger.js
                 static/jquery.js
