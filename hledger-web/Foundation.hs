@@ -17,8 +17,9 @@ import Network.HTTP.Conduit (Manager)
 -- import qualified Settings
 import Settings.Development (development)
 import Settings.StaticFiles
-import Settings ({-widgetFile,-} Extra (..), staticDir)
+import Settings ({-widgetFile,-} Extra (..))
 #ifndef DEVELOPMENT
+import Settings (staticDir)
 import Text.Jasmine (minifym)
 #endif
 import Web.ClientSession (getKey)

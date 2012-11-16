@@ -77,19 +77,15 @@ library
                       Hledger.Web.Main
                       Hledger.Web.Options
 
-    -- ghc-options:   -Wall -O0 -fno-warn-unused-do-bind
-    cpp-options:   -DVERSION="0.19" -DDEVELOPMENT
-
     -- if flag(library-only)
     --     Buildable: True
     -- else
     --     Buildable: False
 
+    ghc-options:   -Wall -fno-warn-unused-do-bind
+    cpp-options:   -DVERSION="0.19"
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
-        ghc-options:   -Wall -O0
-    else
-        ghc-options:   -Wall -O2
 
     extensions: TemplateHaskell
                 QuasiQuotes
