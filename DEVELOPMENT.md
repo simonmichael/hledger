@@ -94,7 +94,7 @@ or
 
 ### how to set up for hledger development
 
-1. get an up-to-date [ghc](http://haskell.org/ghc), at least 6.12.3 but preferably 7
+1. get an up-to-date [ghc](http://haskell.org/ghc), at least 7.0 and preferably 7.6
 2. there's probably no need to install the [haskell platform](http://haskell.org/platform) now, but you could
 3. it's probably worth getting the latest and best cabal: `cabal update; cabal install cabal-install`
 4. get an up-to-date [darcs](http://darcs.net), at least 2.x and preferably newer: use a binary package or `cabal install darcs`
