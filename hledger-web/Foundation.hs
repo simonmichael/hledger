@@ -78,7 +78,7 @@ instance Yesod App where
     -- Store session data on the client in encrypted cookies,
     -- default session idle timeout is 120 minutes
     makeSessionBackend _ = do
-        key <- getKey "config/client_session_key.aes"
+        key <- getKey ".hledger-web_client_session_key.aes"
         return . Just $ clientSessionBackend key 120
 
     -- defaultLayout widget = do
