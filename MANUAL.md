@@ -343,10 +343,16 @@ hledger currently ignores them. They look like this:
 
 ledger supports
 [balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions):
-following a posting's amount, an equals sign and another amount which
-is the expected balance in this account at this point. hledger does
-not support this feature, but will parse and ignore such assertions,
-so you can put them in your journal and test with ledger if needed.
+following a posting's amount, an equals sign and another amount which is
+the expected balance in this account at this point. hledger does not
+currently enforce these but will ignore them, so you can put them in your
+journal and test with ledger if needed.
+
+### Fixed Lot Prices
+
+Similarly, we ignore ledger's 
+[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices).
+hledger's [prices](#transaction-prices) always work like ledger's fixed lot prices.
 
 ### Comments
 

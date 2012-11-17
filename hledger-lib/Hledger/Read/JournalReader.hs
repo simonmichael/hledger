@@ -489,6 +489,7 @@ posting = do
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
   _ <- balanceassertion
+  _ <- fixedlotprice
   many spacenonewline
   (inlinecomment, inlinetag) <- inlinecomment
   (nextlinecomments, nextlinetags) <- commentlines
@@ -518,8 +519,8 @@ tests_posting = [
     assertBool "posting parses a quoted commodity with numbers"
       (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
 
-  ,"posting parses a balance assertion" ~: do
-    assertBool "" (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\" =$1\n")
+  ,"posting parses balance assertions and fixed lot prices" ~: do
+    assertBool "" (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
  ]
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
@@ -667,6 +668,21 @@ balanceassertion =
           char '='
           many spacenonewline
           a <- amount -- XXX should restrict to a simple amount
+          return $ Just a)
+         <|> return Nothing
+
+-- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
+fixedlotprice :: GenParser Char JournalContext (Maybe MixedAmount)
+fixedlotprice =
+    try (do
+          many spacenonewline
+          char '{'
+          many spacenonewline
+          char '='
+          many spacenonewline
+          a <- amount -- XXX should restrict to a simple amount
+          many spacenonewline
+          char '}'
           return $ Just a)
          <|> return Nothing
 

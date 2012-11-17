@@ -18,7 +18,8 @@ import Hledger.Data.Types
 import Hledger.Utils
 
 
-nonsimplecommoditychars = "0123456789-.@;\n \"" :: String
+-- characters than can't be in a non-quoted commodity symbol
+nonsimplecommoditychars = "0123456789-.@;\n \"{}" :: String
 
 quoteCommoditySymbolIfNeeded s | any (`elem` nonsimplecommoditychars) s = "\"" ++ s ++ "\""
                                | otherwise = s
