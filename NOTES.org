@@ -1997,50 +1997,7 @@ move *FromOpts into toOpts
 
 
 * in progress
-** sync repos
-** 87 wrong balance amounts with prices
-*** shelltest tests/87-wrong-balance.test
-**** debug logging
-*** balance based on total price                                                                                                                                                                                                            
-**** shelltest tests/prices.test -- -t15 -t16 -t17 -t18
-** johnw installation support
-
 * next up
-** hledger-web update
-*** update to yesod 1.1
-**** re-scaffold
-Generating deploy/Procfile
-Generating config/sqlite.yml
-Generating config/settings.yml
-Generating config/keter.yaml
-Generating app/main.hs
-Generating devel.hs
-Generating hledger-web.cabal
-Generating .ghci
-Generating LICENSE
-Generating Foundation.hs
-Generating Import.hs
-Generating Application.hs
-Generating Handler/Home.hs
-Generating Model.hs
-Generating Settings.hs
-Generating Settings/StaticFiles.hs
-Generating Settings/Development.hs
-Generating static/css/bootstrap.css
-Generating templates/default-layout.hamlet
-Generating templates/default-layout-wrapper.hamlet
-Generating templates/normalize.lucius
-Generating templates/homepage.hamlet
-Generating config/routes
-Generating templates/homepage.lucius
-Generating templates/homepage.julius
-Generating config/models
-Generating messages/en.msg
-Generating tests/main.hs
-Generating tests/HomeTest.hs
-Generating tests/TestImport.hs
-*** explore new yesod scaffold ?
-** hledger bugfix release
 
 * backlog
 ** errors
@@ -2831,6 +2788,7 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
 ** features/wishlist
+*** debug logging
 *** payees
 *** register: for the love of god, show full descriptions
 *** add: try wizards lib
