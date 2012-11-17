@@ -26,7 +26,7 @@ staticSite =
             putStrLn ("using web files from: " ++ staticDir ++ "/") >> hFlush stdout
             Static.staticDevel staticDir)
    else (do
-            putStrLn "using embedded web files" >> hFlush stdout
+            putStrLn "using built-in web files" >> hFlush stdout
             return $(Static.embed staticDir))
 
 $(publicFiles staticDir)
