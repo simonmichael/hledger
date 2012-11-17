@@ -76,7 +76,7 @@ library
 
 source-repository head
   type:     darcs
-  location: http://joyful.com/repos/hledger
+  location: http://hub.darcs.net/simon/hledger
 
 -- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
 

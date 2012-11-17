@@ -58,7 +58,7 @@ something like:
 To build the latest [development version](DEVELOPMENT.html) do:
 
     $ cabal update
-    $ darcs get --lazy http://joyful.com/darcsden/simon/hledger
+    $ darcs get --lazy http://hub.darcs.net/simon/hledger
     $ cd hledger
     $ make install (or do cabal install inside hledger-lib/, hledger/ etc.)
 
@@ -96,7 +96,7 @@ in a certain account.
 
 To create an initial journal, run `hledger add` and follow the prompts to
 enter some transactions.  Or, save this
-[sample file](http://joyful.com/repos/hledger/data/sample.journal) as
+[sample file](http://hub.darcs.net/simon/hledger/data/sample.journal) as
 `.hledger.journal` in your home directory. Now try commands like these:
 
     $ hledger                               # show available commands
@@ -1099,7 +1099,7 @@ appropriate amount of hours. From the time log above, hledger print gives:
         (projects:A)          2.0h
 
 Here is a
-[sample.timelog](http://joyful.com/repos/hledger/data/sample.timelog) to
+[sample.timelog](http://hub.darcs.net/simon/hledger/data/sample.timelog) to
 download and some queries to try:
 
     hledger -f sample.timelog balance                               # current time balances
@@ -1110,7 +1110,7 @@ To generate time logs, ie to clock in and clock out, you could:
 
 - use emacs and the built-in timeclock.el, or
   the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el)
-  and perhaps the extras in [ledgerutils.el](http://joyful.com/repos/ledgertools/ledgerutils.el)
+  and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
 
 - at the command line, use these bash aliases:
 
@@ -1412,7 +1412,7 @@ or get help.
    using your platform's package management system. Or the dependencies
    specified on a package may need updating. Or there may be a compilation
    error.  If you find an error in a hledger package, check the
-   [recent commits](http://joyful.com/darcsden/simon/hledger/changes) to
+   [recent commits](http://hub.darcs.net/simon/hledger/changes) to
    see if the [latest development version](#installing) might have a fix.
 
 #. **ExitFailure 11**  
@@ -1516,14 +1516,12 @@ Here are some issues you might encounter when you run hledger:
 
         $ chart food --depth 2 -p jan
 
-See also the [extra](http://joyful.com/repos/hledger/extra) directory.
+See also the [extra](http://hub.darcs.net/simon//hledger/extra) directory.
 
 ### Other resources
 
 - The rest of the [hledger.org](http://hledger.org) site.
 
-- The [c++ ledger site](https://github.com/jwiegley/ledger/wiki).
-  Also the [c++ ledger 2.x manual](http://joyful.com/repos/ledger/doc/ledger.html)
-  is slightly outdated but informative.
+- The [c++ ledger site](http://ledger-cli.org) and highly informative [manual](http://ledger-cli.org/3.0/doc/ledger3.html).
 
 - [Why you need accounting](http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons)

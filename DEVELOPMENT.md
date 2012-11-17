@@ -27,7 +27,7 @@ title: hledger contributor guide
 
 **Development version**<br>
   [Get it](#how-to-set-up-for-hledger-development),
-  [browse it](http://joyful.com/repos/hledger)
+  [browse it](http://hub.darcs.net/simon/hledger)
   (or via [darcsweb](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog))
   <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
   <br>
@@ -101,7 +101,7 @@ or
 
 - get the hledger repo:
   
-        darcs get --lazy http://joyful.com/darcsden/simon/hledger
+        darcs get --lazy http://hub.darcs.net/simon/hledger
         cd hledger
         
 - install packages required to build hledger and add-ons, or as many of them as possible:
@@ -186,7 +186,7 @@ or
 
 ### how to do code review
 
-- watch for and read new patches on the mail list, irc, darcsweb patch feed, or [darcsweb patch log](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog)
+- watch for and read new patches on the mail list, irc, or [darcs hub](http://hub.darcs.net/simon/hledger/changes) ([feed](http://hub.darcs.net/simon/hledger/changes/atom))
 - set up for development and test new patches in your own repo
 - read the existing [code docs and source](#quick-links)
 - send feedback or discuss via irc or list
@@ -254,10 +254,9 @@ The hledger project aims to produce:
 
 ### code
 
-- the main repo is served from a private darcsden instance on joyful.com
-- darcsweb is also available as an alternate browsing UI
+- the hledger repo is hosted on hub.darcs.net
 
-<!-- <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger"><img src=http://joyful.com/repos/hledger/commits.png border=0></a> -->
+<!-- <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger"><img src=http://hub.darcs.net/simon/hledger/commits.png border=0></a> -->
 
 <!-- ### release process -->
 
