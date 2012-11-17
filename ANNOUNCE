@@ -1,7 +1,13 @@
-I'm pleased to announce the release of hledger 0.19.
-This release has just two visible changes: a much faster balance
-command, and support for the latest GHC and libs. (A hledger-web
-update will follow.)
+I have released hledger 0.19.1 to fix an arithmetic bug with total prices
+(thanks to Thierry Daucourt for reporting it).
+
+Release notes:
+
+  * 87: fix an arithmetic and transaction balancing bug with multiple
+    total-priced amounts ( @@ PRICE )
+
+  * parsing: ignore ledger-style balance assertions ( = BAL ) and fixed
+    lot price declarations ( {= PRICE} )
 
 hledger is a command-line tool and haskell library for tracking
 financial transactions, which are stored in a human-readable plain
@@ -15,30 +21,3 @@ Install it:
 cabal update; cabal install hledger .
 For installation help, see http://hledger.org/MANUAL.html#installing .
 Or, sponsor a ready-to-run binary for your platform: http://hledger.org/DOWNLOAD.html .
-
-Release notes:
-
-  * hledger, hledger-lib: support GHC 7.6 and latest cmdargs, haskeline, split
-
-  * balance report no longer has an O(n^2) slowdown with large numbers of accounts,
-    and is generally more speedy. Benchmark on a 2010 macbook:
-
-        +-------------------------------------------++--------------+--------------+--------+
-        |                                           || hledger-0.18 | hledger-0.19 | ledger |
-        +===========================================++==============+==============+========+
-        | -f data/100x100x10.journal     balance    ||         0.21 |         0.07 |   0.09 |
-        | -f data/1000x1000x10.journal   balance    ||        10.13 |         0.47 |   0.62 |
-        | -f data/1000x10000x10.journal  balance    ||        40.67 |         0.67 |   1.01 |
-        | -f data/10000x1000x10.journal  balance    ||        15.01 |         3.22 |   2.36 |
-        | -f data/10000x1000x10.journal  balance aa ||         4.77 |         4.40 |   2.33 |
-        +-------------------------------------------++--------------+--------------+--------+
-
-  * build version is set with CPP instead of cabal-file-th
-
-Release contributors: Simon Michael, Sergei Trofimovich
-
-Release stats: 106 days, 21 commits, 1 end-user fix, 0 end-user features
-since last release
-
-Project stats: 222 unit & functional tests, 7740 lines of code
-including hledger-web, 21 committers
