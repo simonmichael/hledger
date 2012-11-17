@@ -22,7 +22,7 @@ title: hledger news
 ## 2012/11/16 hledger 0.19.1
 
 
-  * 87: fix an arithmetic and transaction balancing bug with multiple
+  * [87](http://bugs.hledger.org/87): fix an arithmetic and transaction balancing bug with multiple
     total-priced amounts ( @@ PRICE )
 
   * parsing: ignore ledger-style balance assertions ( = BAL ) and fixed
