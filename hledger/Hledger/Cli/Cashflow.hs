@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE QuasiQuotes, RecordWildCards, NoCPP #-}
 {-|
 
 The @cashflow@ command prints a simplified cashflow statement.  It just
@@ -36,11 +36,11 @@ cashflow CliOpts{reportopts_=ropts} j = do
   LT.putStr $ [lt|Cashflow Statement
 
 Cash flows:
--{unlines $ accountsReportAsText ropts cashreport}
+#{unlines $ accountsReportAsText ropts cashreport}
 
 Total:
 --------------------
--{padleft 20 $ showMixedAmountWithoutPrice total}
+#{padleft 20 $ showMixedAmountWithoutPrice total}
 |]
 
 withoutBeginDate :: ReportOpts -> ReportOpts
