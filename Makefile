@@ -310,6 +310,9 @@ tools/generatejournal: tools/generatejournal.hs
 set-up-rc-repo:
 	cd site/_site; ln -s ../download
 
+checkdeps packdeps:
+	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
+
 ######################################################################
 # MISCELLANEOUS
 
