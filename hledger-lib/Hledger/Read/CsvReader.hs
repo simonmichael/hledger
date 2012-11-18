@@ -98,7 +98,8 @@ nullrules = CsvRules {
       account2Field=Nothing,
       effectiveDateField=Nothing,
       baseAccount="unknown",
-      accountRules=[]
+      accountRules=[],
+      skipLines=0
 }
 
 type CsvRecord = [String]
@@ -137,9 +138,10 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   rules <- liftM (either (throw.userError.show) id) $ parseCsvRulesFile rulesfile
 
   let requiredfields = (maxFieldIndex rules + 1)
-      badrecords = take 1 $ filter ((< requiredfields).length) records
+      realrecords = drop (skipLines rules) records
+      badrecords = take 1 $ filter ((< requiredfields).length) realrecords
   return $ case badrecords of
-            []    -> Right nulljournal{jtxns=sortBy (comparing tdate) $ map (transactionFromCsvRecord rules) records}
+            []    -> Right nulljournal{jtxns=sortBy (comparing tdate) $ map (transactionFromCsvRecord rules) realrecords}
             (_:_) -> Left $ "Parse error: at least one CSV record does not contain a field referenced by the conversion rules file:\n"++(show $ head badrecords)
 
 -- | Ensure there is a conversion rules file at the given path, creating a
@@ -189,6 +191,7 @@ newRulesFileContent = let prognameandversion = "hledger" in
     "# Add rules to this file for more accurate conversion, see\n"++
     "# http://hledger.org/MANUAL.html#convert\n" ++
     "\n" ++
+    "skip-lines 0\n" ++
     "base-account assets:bank:checking\n" ++
     "date-field 0\n" ++
     "description-field 4\n" ++
@@ -251,6 +254,7 @@ definitions = do
    ,effectivedatefield
    ,basecurrency
    ,baseaccount
+   ,skiplines
    ,commentline
    ] <?> "definition"
   return ()
@@ -349,6 +353,12 @@ baseaccount = do
   v <- accountname
   optional newline
   updateState (\r -> r{baseAccount=v})
+
+skiplines = do
+  string "skip-lines"
+  many1 spacenonewline
+  v <- restofline
+  updateState (\r -> r{skipLines=read v})
 
 accountrule :: GenParser Char CsvRules AccountRule
 accountrule = do

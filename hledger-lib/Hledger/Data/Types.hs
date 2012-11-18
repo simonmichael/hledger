@@ -203,7 +203,8 @@ data CsvRules = CsvRules {
       account2Field :: Maybe FieldPosition,
       effectiveDateField :: Maybe FieldPosition,
       baseAccount :: AccountName,
-      accountRules :: [AccountRule]
+      accountRules :: [AccountRule],
+      skipLines :: Int
 } deriving (Show, Eq)
 
 type FieldPosition = Int

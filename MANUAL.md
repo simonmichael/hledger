@@ -517,11 +517,13 @@ file with `--rules-file` (useful when reading from standard input).
 An example - sample.csv:
 
     sample.csv:
+    "Date","Note","Amount"
     "2012/3/22","TRANSFER TO SAVINGS","-10.00"
     "2012/3/23","SOMETHING ELSE","5.50"
 
 sample.rules:
 
+    skip-lines 1
     date-field 0
     description-field 1
     amount-field 2
@@ -631,6 +633,11 @@ results.)
 `status-field`
 
 > Which field contains the transaction cleared status (`*`).
+
+`skip-lines`
+
+> How many lines to skip in the beginning of the file, e.g. to skip a
+> line of column headings.
 
 Account-assigning rules select an account to transfer to based on the
 description field (unless `account2-field` is used.) Each
