@@ -526,8 +526,8 @@ handleAdd = do
       maybeNonNull = maybe Nothing (\t -> if Data.Text.null t then Nothing else Just t)
       acct1E = maybe (Left "to account required") (Right . unpack) $ maybeNonNull acct1M
       acct2E = maybe (Left "from account required") (Right . unpack) $ maybeNonNull acct2M
-      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amount . unpack) amt1M
-      amt2E = maybe (Right missingmixedamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amount . unpack) amt2M
+      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amountp . unpack) amt1M
+      amt2E = maybe (Right missingmixedamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amountp . unpack) amt2M
       journalE = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
