@@ -500,9 +500,11 @@ to each account name.
 ## Other file formats
 
 In addition to the usual [journal files](#the-journal-file), hledger can
-read [timelog files](#timelog-reporting).  hledger 0.18 can also read
+read [timelog files](#timelog-reporting).
+
+Since version 0.18, hledger can also read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files natively
-(the old `convert` command is no longer needed.)
+(previous versions provided a special `convert` command.)
 
 An arbitrary CSV file does not provide enough information to be parsed as
 a journal. So when reading CSV, hledger looks for an additional
