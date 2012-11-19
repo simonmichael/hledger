@@ -82,9 +82,9 @@ ledgerPostings = journalPostings . ljournal
 ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan = postingsDateSpan . ledgerPostings
 
--- | All commodities used in this ledger, as a map keyed by symbol.
-ledgerCommodities :: Ledger -> M.Map String Commodity
-ledgerCommodities = journalCanonicalCommodities . ljournal
+-- | All commodities used in this ledger.
+ledgerCommodities :: Ledger -> [Commodity]
+ledgerCommodities = M.keys . jcommoditystyles . ljournal
 
 
 tests_ledgerFromJournal = [

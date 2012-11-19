@@ -27,8 +27,8 @@ module Hledger.Read.JournalReader (
   historicalpricedirective,
   datetime,
   accountname,
-  amount,
-  amount',
+  amountp,
+  amountp',
   emptyline,
   -- * Tests
   tests_Hledger_Read_JournalReader
@@ -102,11 +102,11 @@ setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 getYear :: GenParser tok JournalContext (Maybe Integer)
 getYear = liftM ctxYear getState
 
-setCommodity :: Commodity -> GenParser tok JournalContext ()
-setCommodity c = updateState (\ctx -> ctx{ctxCommodity=Just c})
+setCommodityAndStyle :: (Commodity,AmountStyle) -> GenParser tok JournalContext ()
+setCommodityAndStyle cs = updateState (\ctx -> ctx{ctxCommodityAndStyle=Just cs})
 
-getCommodity :: GenParser tok JournalContext (Maybe Commodity)
-getCommodity = liftM ctxCommodity getState
+getCommodityAndStyle :: GenParser tok JournalContext (Maybe (Commodity,AmountStyle))
+getCommodityAndStyle = ctxCommodityAndStyle `fmap` getState
 
 pushParentAccount :: String -> GenParser tok JournalContext ()
 pushParentAccount parent = updateState addParentAccount
@@ -254,10 +254,11 @@ defaultcommoditydirective :: GenParser Char JournalContext JournalUpdate
 defaultcommoditydirective = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
-  a <- amount
+  a <- amountp
   -- amount always returns a MixedAmount containing one Amount, but let's be safe
-  let as = amounts a
-  when (not $ null as) $ setCommodity $ commodity $ head as
+  let as = amounts a 
+  when (not $ null as) $
+    let Amount{..} = head as in setCommodityAndStyle (acommodity, astyle)
   restofline
   return $ return id
 
@@ -269,7 +270,7 @@ historicalpricedirective = do
   many1 spacenonewline
   symbol <- commoditysymbol
   many spacenonewline
-  price <- amount
+  price <- amountp
   restofline
   return $ HistoricalPrice date symbol price
 
@@ -285,11 +286,11 @@ commodityconversiondirective :: GenParser Char JournalContext JournalUpdate
 commodityconversiondirective = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
-  amount
+  amountp
   many spacenonewline
   char '='
   many spacenonewline
-  amount
+  amountp
   restofline
   return $ return id
 
@@ -370,7 +371,7 @@ tests_transaction = [
         nullposting{
           pstatus=True,
           paccount="a",
-          pamount=Mixed [dollars 1],
+          pamount=Mixed [usd 1],
           pcomment="pcomment1\npcomment2\n",
           ptype=RegularPosting,
           ptags=[("ptag1","val1"),("ptag2","val2")],
@@ -514,7 +515,7 @@ tests_posting = [
                          same ptransaction
     "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
      `gives`
-     (Posting False "expenses:food:dining" (Mixed [dollars 10]) "" RegularPosting [("a","a a"), ("b","b b")] Nothing)
+     (Posting False "expenses:food:dining" (Mixed [usd 10]) "" RegularPosting [("a","a a"), ("b","b b")] Nothing)
 
     assertBool "posting parses a quoted commodity with numbers"
       (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
@@ -558,12 +559,12 @@ spaceandamountormissing :: GenParser Char JournalContext MixedAmount
 spaceandamountormissing =
   try (do
         many1 spacenonewline
-        amount <|> return missingmixedamt
+        amountp <|> return missingmixedamt
       ) <|> return missingmixedamt
 
 tests_spaceandamountormissing = [
    "spaceandamountormissing" ~: do
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " $47.18") (Mixed [dollars 47.18])
+    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " $47.18") (Mixed [usd 47.18])
     assertParseEqual (parseWithCtx nullctx spaceandamountormissing "$47.18") missingmixedamt
     assertParseEqual (parseWithCtx nullctx spaceandamountormissing " ") missingmixedamt
     assertParseEqual (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
@@ -571,65 +572,58 @@ tests_spaceandamountormissing = [
 
 -- | Parse an amount, optionally with a left or right currency symbol,
 -- price, and/or (ignored) ledger-style balance assertion.
-amount :: GenParser Char JournalContext MixedAmount
-amount = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
+amountp :: GenParser Char JournalContext MixedAmount
+amountp = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 
-tests_amount = [
-   "amount" ~: do
-    assertParseEqual (parseWithCtx nullctx amount "$47.18") (Mixed [dollars 47.18])
-    assertParseEqual (parseWithCtx nullctx amount "$1.")
-                (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} 1 Nothing])
+tests_amountp = [
+   "amountp" ~: do
+    assertParseEqual (parseWithCtx nullctx amountp "$47.18") (Mixed [usd 47.18])
+    assertParseEqual (parseWithCtx nullctx amountp "$1.") (Mixed [setAmountPrecision 0 $ usd 1])
   ,"amount with unit price" ~: do
     assertParseEqual
-     (parseWithCtx nullctx amount "$10 @ €0.5")
-     (Mixed [Amount{commodity=dollar{precision=0},
-                    quantity=10,
-                    price=(Just $ UnitPrice $ Mixed [Amount{commodity=euro{precision=1},
-                                                            quantity=0.5,
-                                                            price=Nothing}])}])
+     (parseWithCtx nullctx amountp "$10 @ €0.5")
+     (Mixed [usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)])
   ,"amount with total price" ~: do
     assertParseEqual
-     (parseWithCtx nullctx amount "$10 @@ €5")
-     (Mixed [Amount{commodity=dollar{precision=0},
-                    quantity=10,
-                    price=(Just $ TotalPrice $ Mixed [Amount{commodity=euro{precision=0},
-                                                             quantity=5,
-                                                             price=Nothing}])}])
+     (parseWithCtx nullctx amountp "$10 @@ €5")
+     (Mixed [usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0)])
  ]
 
 -- | Run the amount parser on a string to get the result or an error.
-amount' :: String -> MixedAmount
-amount' s = either (error' . show) id $ parseWithCtx nullctx amount s
+amountp' :: String -> MixedAmount
+amountp' s = either (error' . show) id $ parseWithCtx nullctx amountp s
 
 leftsymbolamount :: GenParser Char JournalContext MixedAmount
 leftsymbolamount = do
   sign <- optionMaybe $ string "-"
   let applysign = if isJust sign then negate else id
-  sym <- commoditysymbol 
+  c <- commoditysymbol 
   sp <- many spacenonewline
-  (q,p,d,s,spos) <- number
-  pri <- priceamount
-  let c = Commodity {symbol=sym,side=L,spaced=not $ null sp,decimalpoint=d,precision=p,separator=s,separatorpositions=spos}
-  return $ applysign $ Mixed [Amount c q pri]
+  (q,prec,dec,sep,seppos) <- number
+  let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
+  p <- priceamount
+  return $ applysign $ Mixed [Amount c q p s]
   <?> "left-symbol amount"
 
 rightsymbolamount :: GenParser Char JournalContext MixedAmount
 rightsymbolamount = do
-  (q,p,d,s,spos) <- number
+  (q,prec,dec,sep,seppos) <- number
   sp <- many spacenonewline
-  sym <- commoditysymbol
-  pri <- priceamount
-  let c = Commodity {symbol=sym,side=R,spaced=not $ null sp,decimalpoint=d,precision=p,separator=s,separatorpositions=spos}
-  return $ Mixed [Amount c q pri]
+  c <- commoditysymbol
+  p <- priceamount
+  let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
+  return $ Mixed [Amount c q p s]
   <?> "right-symbol amount"
 
 nosymbolamount :: GenParser Char JournalContext MixedAmount
 nosymbolamount = do
-  (q,p,d,s,spos) <- number
-  pri <- priceamount
-  defc <- getCommodity
-  let c = fromMaybe Commodity{symbol="",side=L,spaced=False,decimalpoint=d,precision=p,separator=s,separatorpositions=spos} defc
-  return $ Mixed [Amount c q pri]
+  (q,prec,dec,sep,seppos) <- number
+  p <- priceamount
+  defcs <- getCommodityAndStyle
+  let (c,s) = case defcs of
+        Just (c',s') -> (c',s')
+        Nothing -> ("", amountstyle{asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos})
+  return $ Mixed [Amount c q p s]
   <?> "no-symbol amount"
 
 commoditysymbol :: GenParser Char JournalContext String
@@ -653,11 +647,11 @@ priceamount =
           try (do
                 char '@'
                 many spacenonewline
-                a <- amount -- XXX can parse more prices ad infinitum, shouldn't
+                a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
                 return $ Just $ TotalPrice a)
            <|> (do
             many spacenonewline
-            a <- amount -- XXX can parse more prices ad infinitum, shouldn't
+            a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
             return $ Just $ UnitPrice a))
          <|> return Nothing
 
@@ -667,7 +661,7 @@ balanceassertion =
           many spacenonewline
           char '='
           many spacenonewline
-          a <- amount -- XXX should restrict to a simple amount
+          a <- amountp -- XXX should restrict to a simple amount
           return $ Just a)
          <|> return Nothing
 
@@ -680,7 +674,7 @@ fixedlotprice =
           many spacenonewline
           char '='
           many spacenonewline
-          a <- amount -- XXX should restrict to a simple amount
+          a <- amountp -- XXX should restrict to a simple amount
           many spacenonewline
           char '}'
           return $ Just a)
@@ -841,7 +835,7 @@ tests_tagcomment = [
 
 tests_Hledger_Read_JournalReader = TestList $ concat [
     tests_number,
-    tests_amount,
+    tests_amountp,
     tests_spaceandamountormissing,
     tests_tagcomment,
     tests_inlinecomment,
@@ -891,7 +885,7 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
      assertParse (parseWithCtx nullctx defaultyeardirective "Y 10001\n")
 
   ,"historicalpricedirective" ~:
-    assertParseEqual (parseWithCtx nullctx historicalpricedirective "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [dollars 55])
+    assertParseEqual (parseWithCtx nullctx historicalpricedirective "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [usd 55])
 
   ,"ignoredpricecommoditydirective" ~: do
      assertParse (parseWithCtx nullctx ignoredpricecommoditydirective "N $\n")
@@ -916,19 +910,16 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     assertBool "accountname rejects an empty trailing component" (isLeft $ parsewith accountname "a:b:")
 
   ,"leftsymbolamount" ~: do
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")
-                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} 1 Nothing])
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$-1")
-                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} (-1) Nothing])
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1")
-                     (Mixed [Amount Commodity {symbol="$",side=L,spaced=False,decimalpoint='.',precision=0,separator=',',separatorpositions=[]} (-1) Nothing])
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")  (Mixed [usd 1 `withPrecision` 0])
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$-1") (Mixed [usd (-1) `withPrecision` 0])
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1") (Mixed [usd (-1) `withPrecision` 0])
 
   ,"amount" ~: do
      let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
          assertMixedAmountParse parseresult mixedamount =
              (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-     assertMixedAmountParse (parseWithCtx nullctx amount "1 @ $2")
-                            (Mixed [Amount unknown 1 (Just $ UnitPrice $ Mixed [Amount dollar{precision=0} 2 Nothing])])
+     assertMixedAmountParse (parseWithCtx nullctx amountp "1 @ $2")
+                            (Mixed [amt 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0)])
 
  ]]
 
@@ -941,6 +932,6 @@ entry1_str = unlines
 
 entry1 =
     txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
-     [Posting False "expenses:food:groceries" (Mixed [dollars 47.18]) "" RegularPosting [] Nothing, 
-      Posting False "assets:checking" (Mixed [dollars (-47.18)]) "" RegularPosting [] Nothing] ""
+     [Posting False "expenses:food:groceries" (Mixed [usd 47.18]) "" RegularPosting [] Nothing, 
+      Posting False "assets:checking" (Mixed [usd (-47.18)]) "" RegularPosting [] Nothing] ""
 

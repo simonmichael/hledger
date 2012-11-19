@@ -56,13 +56,12 @@ import Data.Time.Calendar
 -- import Data.Tree
 import Safe (headMay, lastMay)
 import System.Console.CmdArgs  -- for defaults support
-import System.Time (ClockTime(TOD))
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
 
 import Hledger.Data
-import Hledger.Read (amount')
+import Hledger.Read (amountp')
 import Hledger.Query
 import Hledger.Utils
 
@@ -425,7 +424,7 @@ type TransactionsReportItem = (Transaction -- the corresponding transaction
 
 triDate (t,_,_,_,_,_) = tdate t
 triBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
-                                           (Amount{quantity=q}):_ -> show q
+                                           (Amount{aquantity=q}):_ -> show q
 
 -- | Select transactions from the whole journal for a transactions report,
 -- with no \"current\" account. The end result is similar to
@@ -760,36 +759,36 @@ tests_accountsReport =
   ,"accountsReport with no args on sample journal" ~: do
    (defreportopts, samplejournal) `gives`
     ([
-      ("assets","assets",0, amount' "$-1.00")
-     ,("assets:bank:saving","bank:saving",1, amount' "$1.00")
-     ,("assets:cash","cash",1, amount' "$-2.00")
-     ,("expenses","expenses",0, amount' "$2.00")
-     ,("expenses:food","food",1, amount' "$1.00")
-     ,("expenses:supplies","supplies",1, amount' "$1.00")
-     ,("income","income",0, amount' "$-2.00")
-     ,("income:gifts","gifts",1, amount' "$-1.00")
-     ,("income:salary","salary",1, amount' "$-1.00")
-     ,("liabilities:debts","liabilities:debts",0, amount' "$1.00")
+      ("assets","assets",0, amountp' "$-1.00")
+     ,("assets:bank:saving","bank:saving",1, amountp' "$1.00")
+     ,("assets:cash","cash",1, amountp' "$-2.00")
+     ,("expenses","expenses",0, amountp' "$2.00")
+     ,("expenses:food","food",1, amountp' "$1.00")
+     ,("expenses:supplies","supplies",1, amountp' "$1.00")
+     ,("income","income",0, amountp' "$-2.00")
+     ,("income:gifts","gifts",1, amountp' "$-1.00")
+     ,("income:salary","salary",1, amountp' "$-1.00")
+     ,("liabilities:debts","liabilities:debts",0, amountp' "$1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with --depth=N" ~: do
    (defreportopts{depth_=Just 1}, samplejournal) `gives`
     ([
-      ("assets",      "assets",      0, amount' "$-1.00")
-     ,("expenses",    "expenses",    0, amount'  "$2.00")
-     ,("income",      "income",      0, amount' "$-2.00")
-     ,("liabilities", "liabilities", 0, amount'  "$1.00")
+      ("assets",      "assets",      0, amountp' "$-1.00")
+     ,("expenses",    "expenses",    0, amountp'  "$2.00")
+     ,("income",      "income",      0, amountp' "$-2.00")
+     ,("liabilities", "liabilities", 0, amountp'  "$1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with depth:N" ~: do
    (defreportopts{query_="depth:1"}, samplejournal) `gives`
     ([
-      ("assets",      "assets",      0, amount' "$-1.00")
-     ,("expenses",    "expenses",    0, amount'  "$2.00")
-     ,("income",      "income",      0, amount' "$-2.00")
-     ,("liabilities", "liabilities", 0, amount'  "$1.00")
+      ("assets",      "assets",      0, amountp' "$-1.00")
+     ,("expenses",    "expenses",    0, amountp'  "$2.00")
+     ,("income",      "income",      0, amountp' "$-2.00")
+     ,("liabilities", "liabilities", 0, amountp'  "$1.00")
      ],
      Mixed [nullamt])
 
@@ -799,32 +798,32 @@ tests_accountsReport =
      Mixed [nullamt])
    (defreportopts{query_="edate:'in 2009'"}, samplejournal2) `gives`
     ([
-      ("assets:bank:checking","assets:bank:checking",0,amount' "$1.00")
-     ,("income:salary","income:salary",0,amount' "$-1.00")
+      ("assets:bank:checking","assets:bank:checking",0,amountp' "$1.00")
+     ,("income:salary","income:salary",0,amountp' "$-1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with desc:" ~: do
    (defreportopts{query_="desc:income"}, samplejournal) `gives`
     ([
-      ("assets:bank:checking","assets:bank:checking",0,amount' "$1.00")
-     ,("income:salary","income:salary",0, amount' "$-1.00")
+      ("assets:bank:checking","assets:bank:checking",0,amountp' "$1.00")
+     ,("income:salary","income:salary",0, amountp' "$-1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with not:desc:" ~: do
    (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
     ([
-      ("assets","assets",0, amount' "$-2.00")
+      ("assets","assets",0, amountp' "$-2.00")
      ,("assets:bank","bank",1, Mixed [nullamt])
-     ,("assets:bank:checking","checking",2,amount' "$-1.00")
-     ,("assets:bank:saving","saving",2, amount' "$1.00")
-     ,("assets:cash","cash",1, amount' "$-2.00")
-     ,("expenses","expenses",0, amount' "$2.00")
-     ,("expenses:food","food",1, amount' "$1.00")
-     ,("expenses:supplies","supplies",1, amount' "$1.00")
-     ,("income:gifts","income:gifts",0, amount' "$-1.00")
-     ,("liabilities:debts","liabilities:debts",0, amount' "$1.00")
+     ,("assets:bank:checking","checking",2,amountp' "$-1.00")
+     ,("assets:bank:saving","saving",2, amountp' "$1.00")
+     ,("assets:cash","cash",1, amountp' "$-2.00")
+     ,("expenses","expenses",0, amountp' "$2.00")
+     ,("expenses:food","food",1, amountp' "$1.00")
+     ,("expenses:supplies","supplies",1, amountp' "$1.00")
+     ,("income:gifts","income:gifts",0, amountp' "$-1.00")
+     ,("liabilities:debts","liabilities:debts",0, amountp' "$1.00")
      ],
      Mixed [nullamt])
 
@@ -945,10 +944,9 @@ tests_accountsReport =
 -}
  ]
 
-Right samplejournal2 = journalBalanceTransactions $ Journal
-          [] 
-          [] 
-          [
+Right samplejournal2 = journalBalanceTransactions $ 
+         nulljournal
+         {jtxns = [
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/01/01",
              teffectivedate=Just $ parsedate "2009/01/01",
@@ -961,7 +959,7 @@ Right samplejournal2 = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="assets:bank:checking",
-                pamount=(Mixed [dollars 1]),
+                pamount=(Mixed [usd 1]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -980,13 +978,8 @@ Right samplejournal2 = journalBalanceTransactions $ Journal
              tpreceding_comment_lines=""
            }
           ]
-          []
-          []
-          ""
-          nullctx
-          []
-          (TOD 0 0)
-
+         }
+         
 -- tests_isInterestingIndented = [
 --   "isInterestingIndented" ~: do 
 --    let (opts, journal, acctname) `gives` r = isInterestingIndented opts l acctname `is` r
@@ -1010,10 +1003,10 @@ tests_Hledger_Reports = TestList $
   --           (summarisePostingsInDateSpan (mkdatespan b e) depth showempty ps `is`)
   --   let ps =
   --           [
-  --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
-  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 2]}
-  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
-  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 8]}
+  --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
+  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 2]}
+  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
+  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 8]}
   --           ]
   --   ("2008/01/01","2009/01/01",0,9999,False,[]) `gives`
   --    []
@@ -1023,21 +1016,21 @@ tests_Hledger_Reports = TestList $
   --    ]
   --   ("2008/01/01","2009/01/01",0,9999,False,ts) `gives`
   --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [dollars 4]}
-  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [dollars 10]}
-  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [dollars 1]}
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
+  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 10]}
+  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
   --    ]
   --   ("2008/01/01","2009/01/01",0,2,False,ts) `gives`
   --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [dollars 15]}
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [usd 15]}
   --    ]
   --   ("2008/01/01","2009/01/01",0,1,False,ts) `gives`
   --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [dollars 15]}
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [usd 15]}
   --    ]
   --   ("2008/01/01","2009/01/01",0,0,False,ts) `gives`
   --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [dollars 15]}
+  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [usd 15]}
   --    ]
 
  ]

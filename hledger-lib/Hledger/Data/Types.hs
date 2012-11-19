@@ -20,6 +20,7 @@ For more detailed documentation on each type, see the corresponding modules.
 module Hledger.Data.Types
 where
 import Control.Monad.Error (ErrorT)
+import qualified Data.Map as M
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Typeable
@@ -42,31 +43,32 @@ type AccountName = String
 
 data Side = L | R deriving (Eq,Show,Read,Ord)
 
-data Commodity = Commodity {
-      symbol :: String,            -- ^ the commodity's symbol
-      -- display preferences for amounts of this commodity
-      side :: Side,                -- ^ should the symbol appear on the left or the right
-      spaced :: Bool,              -- ^ should there be a space between symbol and quantity
-      precision :: Int,            -- ^ number of decimal places to display
-      -- XXX these three might be better belonging to Journal
-      decimalpoint :: Char,        -- ^ character to use as decimal point
-      separator :: Char,           -- ^ character to use for separating digit groups (eg thousands)
-      separatorpositions :: [Int]  -- ^ positions of separators, counting leftward from decimal point
-    } deriving (Eq,Ord,Show,Read)
-
+type Commodity = String
+      
 type Quantity = Double
 
 -- | An amount's price in another commodity may be written as \@ unit
 -- price or \@\@ total price.  Note although a MixedAmount is used, it
 -- should be in a single commodity, also the amount should be positive;
 -- these are not enforced currently.
-data Price = UnitPrice MixedAmount | TotalPrice MixedAmount
+data Price = {- NoPrice | -} UnitPrice MixedAmount | TotalPrice MixedAmount
              deriving (Eq,Ord)
 
+-- | Display style for an amount.
+data AmountStyle = AmountStyle {
+      ascommodityside :: Side,       -- ^ does the symbol appear on the left or the right ?
+      ascommodityspaced :: Bool,     -- ^ space between symbol and quantity ?
+      asprecision :: Int,            -- ^ number of digits displayed after the decimal point
+      asdecimalpoint :: Char,        -- ^ character used as decimal point
+      asseparator :: Char,           -- ^ character used for separating digit groups (eg thousands)
+      asseparatorpositions :: [Int]  -- ^ positions of digit group separators, counting leftward from decimal point
+} deriving (Eq,Ord,Show,Read)
+
 data Amount = Amount {
-      commodity :: Commodity,
-      quantity :: Quantity,
-      price :: Maybe Price  -- ^ the price for this amount at posting time
+      acommodity :: Commodity,
+      aquantity :: Quantity,
+      aprice :: Maybe Price,  -- ^ the price for this amount, fixed at posting time
+      astyle :: AmountStyle
     } deriving (Eq,Ord)
 
 newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord)
@@ -136,7 +138,7 @@ type Year = Integer
 -- is saved for later use by eg the add command.
 data JournalContext = Ctx {
       ctxYear      :: !(Maybe Year)      -- ^ the default year most recently specified with Y
-    , ctxCommodity :: !(Maybe Commodity) -- ^ the default commodity most recently specified with D
+    , ctxCommodityAndStyle :: !(Maybe (Commodity,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
     , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts/account name components
                                         --   specified with "account" directive(s). Concatenated, these
                                         --   are the account prefix prepended to parsed account names.
@@ -155,7 +157,8 @@ data Journal = Journal {
                                             -- any included journal files. The main file is
                                             -- first followed by any included files in the
                                             -- order encountered (XXX reversed, cf journalAddFile).
-      filereadtime :: ClockTime             -- ^ when this journal was last read from its file(s)
+      filereadtime :: ClockTime,            -- ^ when this journal was last read from its file(s)
+      jcommoditystyles :: M.Map Commodity AmountStyle  -- ^ how to display amounts in each commodity
     } deriving (Eq, Typeable)
 
 -- | A JournalUpdate is some transformation of a Journal. It can do I/O or
@@ -239,6 +242,7 @@ data Account = Account {
   aname :: AccountName,     -- ^ this account's full name
   aebalance :: MixedAmount, -- ^ this account's balance, excluding subaccounts
   asubs :: [Account],       -- ^ sub-accounts
+  -- anumpostings :: Int       -- ^ number of postings to this account
   -- derived from the above:
   aibalance :: MixedAmount, -- ^ this account's balance, including subaccounts
   aparent :: Maybe Account, -- ^ parent account

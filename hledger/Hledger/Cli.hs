@@ -23,9 +23,7 @@ module Hledger.Cli (
                      tests_Hledger_Cli
               )
 where
-import qualified Data.Map as Map
 import Data.Time.Calendar
-import System.Time (ClockTime(TOD))
 import Test.HUnit
 
 import Hledger
@@ -110,12 +108,9 @@ tests_Hledger_Cli = TestList
       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
 
-  ,"journalCanonicaliseAmounts" ~:
-   "use the greatest precision" ~:
-    (map precision $ journalAmountAndPriceCommodities $ journalCanonicaliseAmounts $ journalWithAmounts ["1","2.00"]) `is` [2,2]
-
-  ,"commodities" ~:
-    Map.elems (ledgerCommodities ledger7) `is` [Commodity {symbol="$", side=L, spaced=False, decimalpoint='.', precision=2, separator=',', separatorpositions=[]}]
+  -- ,"journalCanonicaliseAmounts" ~:
+  --  "use the greatest precision" ~:
+  --   (map asprecision $ journalAmountAndPriceCommodities $ journalCanonicaliseAmounts $ journalWithAmounts ["1","2.00"]) `is` [2,2]
 
   -- don't know what this should do
   -- ,"elideAccountName" ~: do
@@ -129,9 +124,9 @@ tests_Hledger_Cli = TestList
     tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
     return ()
 
-  ,"show dollars" ~: showAmount (dollars 1) ~?= "$1.00"
+  ,"show dollars" ~: showAmount (usd 1) ~?= "$1.00"
 
-  ,"show hours" ~: showAmount (hours 1) ~?= "1.0h"
+  ,"show hours" ~: showAmount (hrs 1) ~?= "1.0h"
 
  ]
 
@@ -337,9 +332,7 @@ defaultyear_journal_str = unlines
 --  ,""
 --  ]
 
-journal7 = Journal
-          [] 
-          [] 
+journal7 = nulljournal {jtxns = 
           [
            txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/01",
@@ -353,7 +346,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="assets:cash",
-                pamount=(Mixed [dollars 4.82]),
+                pamount=(Mixed [usd 4.82]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -362,7 +355,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="equity:opening balances",
-                pamount=(Mixed [dollars (-4.82)]),
+                pamount=(Mixed [usd (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -384,7 +377,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="expenses:vacation",
-                pamount=(Mixed [dollars 179.92]),
+                pamount=(Mixed [usd 179.92]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -393,7 +386,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
-                pamount=(Mixed [dollars (-179.92)]),
+                pamount=(Mixed [usd (-179.92)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -415,7 +408,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="assets:saving",
-                pamount=(Mixed [dollars 200]),
+                pamount=(Mixed [usd 200]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -424,7 +417,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
-                pamount=(Mixed [dollars (-200)]),
+                pamount=(Mixed [usd (-200)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -446,7 +439,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="expenses:food:dining",
-                pamount=(Mixed [dollars 4.82]),
+                pamount=(Mixed [usd 4.82]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -455,7 +448,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="assets:cash",
-                pamount=(Mixed [dollars (-4.82)]),
+                pamount=(Mixed [usd (-4.82)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -477,7 +470,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="expenses:phone",
-                pamount=(Mixed [dollars 95.11]),
+                pamount=(Mixed [usd 95.11]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -486,7 +479,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
-                pamount=(Mixed [dollars (-95.11)]),
+                pamount=(Mixed [usd (-95.11)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -508,7 +501,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="liabilities:credit cards:discover",
-                pamount=(Mixed [dollars 80]),
+                pamount=(Mixed [usd 80]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -517,7 +510,7 @@ journal7 = Journal
               Posting {
                 pstatus=False,
                 paccount="assets:checking",
-                pamount=(Mixed [dollars (-80)]),
+                pamount=(Mixed [usd (-80)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -527,12 +520,7 @@ journal7 = Journal
              tpreceding_comment_lines=""
            }
           ]
-          []
-          []
-          ""
-          nullctx
-          []
-          (TOD 0 0)
+         }
 
 ledger7 = ledgerFromJournal Any journal7
 
@@ -549,20 +537,13 @@ ledger7 = ledgerFromJournal Any journal7
 -- timelogentry2_str  = "o 2007/03/11 16:30:00\n"
 -- timelogentry2 = TimeLogEntry Out (parsedatetime "2007/03/11 16:30:00") ""
 
--- a1 = Mixed [(hours 1){price=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
--- a2 = Mixed [(hours 2){price=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
+-- a1 = Mixed [(hrs 1){aprice=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
+-- a2 = Mixed [(hrs 2){aprice=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
 -- a3 = Mixed $ amounts a1 ++ amounts a2
 
-journalWithAmounts :: [String] -> Journal
-journalWithAmounts as =
-        Journal
-        []
-        []
-        [t | a <- as, let t = nulltransaction{tdescription=a,tpostings=[nullposting{pamount=parse a,ptransaction=Just t}]}]
-        []
-        []
-        ""
-        nullctx
-        []
-        (TOD 0 0)
-    where parse = fromparse . parseWithCtx nullctx amount
+-- journalWithAmounts :: [String] -> Journal
+-- journalWithAmounts as =
+--        nulljournal{jtxns=
+--         [t | a <- as, let t = nulltransaction{tdescription=a,tpostings=[nullposting{pamount=parse a,ptransaction=Just t}]}]
+--         }
+--     where parse = fromparse . parseWithCtx nullctx amountp

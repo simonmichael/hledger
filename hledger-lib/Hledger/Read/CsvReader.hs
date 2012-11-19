@@ -61,7 +61,7 @@ import Prelude hiding (getContents)
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Data.FormatStrings as FormatStrings
-import Hledger.Read.JournalReader (accountname, amount)
+import Hledger.Read.JournalReader (accountname, amountp)
 
 
 reader :: Reader
@@ -426,7 +426,7 @@ transactionFromCsvRecord rules fields =
                                              strnegate s = '-':s
       currency = maybe (fromMaybe "" $ baseCurrency rules) (atDef "" fields) (currencyField rules)
       amountstr'' = currency ++ amountstr'
-      amountparse = runParser amount nullctx "" amountstr''
+      amountparse = runParser amountp nullctx "" amountstr''
       a = either (const nullmixedamt) id amountparse
       -- Using costOfMixedAmount here to allow complex costs like "10 GBP @@ 15 USD".
       -- Aim is to have "10 GBP @@ 15 USD" applied to account "acct", but have "-15USD" applied to "baseacct"

@@ -25,9 +25,9 @@ module Hledger.Data.Journal (
   -- * Querying
   journalAccountNames,
   journalAccountNamesUsed,
-  journalAmountAndPriceCommodities,
+  -- journalAmountAndPriceCommodities,
   journalAmounts,
-  journalCanonicalCommodities,
+  -- journalCanonicalCommodities,
   journalDateSpan,
   journalFilePath,
   journalFilePaths,
@@ -51,7 +51,7 @@ module Hledger.Data.Journal (
 )
 where
 import Data.List
-import Data.Map (findWithDefault)
+-- import Data.Map (findWithDefault)
 import Data.Ord
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -60,13 +60,13 @@ import Safe (headDef)
 import System.Time (ClockTime(TOD))
 import Test.HUnit
 import Text.Printf
-import qualified Data.Map as Map
+import qualified Data.Map as M
 
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
-import Hledger.Data.Commodity
+-- import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Transaction
 import Hledger.Data.Posting
@@ -75,13 +75,14 @@ import Hledger.Query
 
 
 instance Show Journal where
-    show j = printf "Journal %s with %d transactions, %d accounts: %s"
+    show j = printf "Journal %s with %d transactions, %d accounts: %s, commodity styles: %s"
              (journalFilePath j)
              (length (jtxns j) +
               length (jmodifiertxns j) +
               length (jperiodictxns j))
              (length accounts)
              (show accounts)
+             (show $ jcommoditystyles j)
              -- ++ (show $ journalTransactions l)
              where accounts = flatten $ journalAccountNameTree j
 
@@ -107,10 +108,11 @@ nulljournal = Journal { jmodifiertxns = []
                       , jContext = nullctx
                       , files = []
                       , filereadtime = TOD 0 0
+                      , jcommoditystyles = M.fromList []
                       }
 
 nullctx :: JournalContext
-nullctx = Ctx { ctxYear = Nothing, ctxCommodity = Nothing, ctxAccount = [], ctxAliases = [] }
+nullctx = Ctx { ctxYear = Nothing, ctxCommodityAndStyle = Nothing, ctxAccount = [], ctxAliases = [] }
 
 journalFilePath :: Journal -> FilePath
 journalFilePath = fst . mainfile
@@ -369,24 +371,28 @@ journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =
 -- amounts and working out the canonical commodities, since balancing
 -- depends on display precision. Reports only the first error encountered.
 journalBalanceTransactions :: Journal -> Either String Journal
-journalBalanceTransactions j@Journal{jtxns=ts} =
+journalBalanceTransactions j@Journal{jtxns=ts, jcommoditystyles=ss} =
   case sequence $ map balance ts of Right ts' -> Right j{jtxns=ts'}
                                     Left e    -> Left e
-      where balance = balanceTransaction (Just $ journalCanonicalCommodities j)
+      where balance = balanceTransaction (Just ss)
 
 -- | Convert all the journal's posting amounts (not price amounts) to
 -- their canonical display settings. Ie, all amounts in a given
 -- commodity will use (a) the display settings of the first, and (b)
 -- the greatest precision, of the posting amounts in that commodity.
 journalCanonicaliseAmounts :: Journal -> Journal
-journalCanonicaliseAmounts j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+journalCanonicaliseAmounts j@Journal{jtxns=ts} = j''
     where
+      j'' = j'{jtxns=map fixtransaction ts}
+      j' = j{jcommoditystyles = canonicalStyles $ journalAmounts j}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount a@Amount{commodity=c} = a{commodity=fixcommodity c}
-      fixcommodity c@Commodity{symbol=s} = findWithDefault c s canonicalcommoditymap
-      canonicalcommoditymap = journalCanonicalCommodities j
+      fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
+
+-- | Get this journal's canonical amount style for the given commodity, or the null style.
+journalCommodityStyle :: Journal -> Commodity -> AmountStyle
+journalCommodityStyle j c = M.findWithDefault amountstyle c $ jcommoditystyles j
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyHistoricalPrices :: Journal -> Journal
@@ -421,30 +427,34 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = canonicaliseAmountCommodity (Just $ journalCanonicalCommodities j) . costOfAmount
+      fixamount = canonicaliseAmount (jcommoditystyles j) . costOfAmount
 
--- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
-journalCanonicalCommodities :: Journal -> Map.Map String Commodity
-journalCanonicalCommodities j = canonicaliseCommodities $ journalAmountCommodities j
+-- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
+-- journalCanonicalCommodities :: Journal -> M.Map String Commodity
+-- journalCanonicalCommodities j = canonicaliseCommodities $ journalAmountCommodities j
 
--- | Get all this journal's amounts' commodities, in the order parsed.
-journalAmountCommodities :: Journal -> [Commodity]
-journalAmountCommodities = map commodity . concatMap amounts . journalAmounts
+-- -- | Get all this journal's amounts' commodities, in the order parsed.
+-- journalAmountCommodities :: Journal -> [Commodity]
+-- journalAmountCommodities = map acommodity . concatMap amounts . journalAmounts
 
--- | Get all this journal's amount and price commodities, in the order parsed.
-journalAmountAndPriceCommodities :: Journal -> [Commodity]
-journalAmountAndPriceCommodities = concatMap amountCommodities . concatMap amounts . journalAmounts
+-- -- | Get all this journal's amount and price commodities, in the order parsed.
+-- journalAmountAndPriceCommodities :: Journal -> [Commodity]
+-- journalAmountAndPriceCommodities = concatMap amountCommodities . concatMap amounts . journalAmounts
 
--- | Get this amount's commodity and any commodities referenced in its price.
-amountCommodities :: Amount -> [Commodity]
-amountCommodities Amount{commodity=c,price=p} =
-    case p of Nothing -> [c]
-              Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
-              Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
+-- -- | Get this amount's commodity and any commodities referenced in its price.
+-- amountCommodities :: Amount -> [Commodity]
+-- amountCommodities Amount{acommodity=c,aprice=p} =
+--     case p of Nothing -> [c]
+--               Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
+--               Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
 
--- | Get all this journal's amounts, in the order parsed.
-journalAmounts :: Journal -> [MixedAmount]
-journalAmounts = map pamount . journalPostings
+-- | Get all this journal's (mixed) amounts, in the order parsed.
+journalMixedAmounts :: Journal -> [MixedAmount]
+journalMixedAmounts = map pamount . journalPostings
+
+-- | Get all this journal's component amounts, roughly in the order parsed.
+journalAmounts :: Journal -> [Amount]
+journalAmounts = concatMap flatten . journalMixedAmounts where flatten (Mixed as) = as
 
 -- | The (fully specified) date span containing this journal's transactions,
 -- or DateSpan Nothing Nothing if there are none.
@@ -475,8 +485,8 @@ isnegativepat = (negateprefix `isPrefixOf`)
 abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 
 -- debug helpers
--- traceAmountPrecision a = trace (show $ map (precision . commodity) $ amounts a) a
--- tracePostingsCommodities ps = trace (show $ map ((map (precision . commodity) . amounts) . pamount) ps) ps
+-- traceAmountPrecision a = trace (show $ map (precision . acommodity) $ amounts a) a
+-- tracePostingsCommodities ps = trace (show $ map ((map (precision . acommodity) . amounts) . pamount) ps) ps
 
 -- tests
 
@@ -503,10 +513,9 @@ abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 --     liabilities:debts  $1
 --     assets:bank:checking
 --
-Right samplejournal = journalBalanceTransactions $ Journal
-          [] 
-          [] 
-          [
+Right samplejournal = journalBalanceTransactions $ 
+         nulljournal
+         {jtxns = [
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/01/01",
              teffectivedate=Nothing,
@@ -519,7 +528,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="assets:bank:checking",
-                pamount=(Mixed [dollars 1]),
+                pamount=(Mixed [usd 1]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -550,7 +559,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="assets:bank:checking",
-                pamount=(Mixed [dollars 1]),
+                pamount=(Mixed [usd 1]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -581,7 +590,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="assets:bank:saving",
-                pamount=(Mixed [dollars 1]),
+                pamount=(Mixed [usd 1]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -590,7 +599,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="assets:bank:checking",
-                pamount=(Mixed [dollars (-1)]),
+                pamount=(Mixed [usd (-1)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -612,7 +621,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="expenses:food",
-                pamount=(Mixed [dollars 1]),
+                pamount=(Mixed [usd 1]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -621,7 +630,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="expenses:supplies",
-                pamount=(Mixed [dollars 1]),
+                pamount=(Mixed [usd 1]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -652,7 +661,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="liabilities:debts",
-                pamount=(Mixed [dollars 1]),
+                pamount=(Mixed [usd 1]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -661,7 +670,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
               Posting {
                 pstatus=False,
                 paccount="assets:bank:checking",
-                pamount=(Mixed [dollars (-1)]),
+                pamount=(Mixed [usd (-1)]),
                 pcomment="",
                 ptype=RegularPosting,
                 ptags=[],
@@ -671,12 +680,7 @@ Right samplejournal = journalBalanceTransactions $ Journal
              tpreceding_comment_lines=""
            }
           ]
-          []
-          []
-          ""
-          nullctx
-          []
-          (TOD 0 0)
+         }
 
 tests_Hledger_Data_Journal = TestList $
  [
