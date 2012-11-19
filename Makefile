@@ -215,10 +215,10 @@ hledgerhpc:
 # build other executables quickly
 
 bin/hledger-webdev:
-	$(GHC) -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
+	$(GHC) -o $@ $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
 bin/hledger-web-production:
-	$(GHC) -o $@ $(BUILDFLAGS) hledger-web/hledger-web.hs
+	$(GHC) -o $@ $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
 # build portable releaseable binaries for gnu/linux
 linuxbinaries: 	linuxbinary-hledger \
