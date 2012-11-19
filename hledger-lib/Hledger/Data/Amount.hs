@@ -149,8 +149,8 @@ similarAmountsOp op Amount{acommodity=_,  aquantity=aq, astyle=AmountStyle{aspre
                     Amount{acommodity=bc, aquantity=bq, astyle=bs@AmountStyle{asprecision=bp}} =
    -- trace ("a:"++showAmount a) $ trace ("b:"++showAmount b++"\n") $ tracewith (("=:"++).showAmount)
    amount{acommodity=bc, aquantity=aq `op` bq, astyle=bs{asprecision=max ap bp}}
-  -- | ac==bc    = amount{acommodity=ac, aquantity=aq `op` bq, astyle=as{asprecision=max ap bp}}
-  -- | otherwise = error "tried to do simple arithmetic with amounts in different commodities"
+  --  ac==bc    = amount{acommodity=ac, aquantity=aq `op` bq, astyle=as{asprecision=max ap bp}}
+  --  otherwise = error "tried to do simple arithmetic with amounts in different commodities"
 
 -- | Convert an amount to the specified commodity, ignoring and discarding
 -- any assigned prices and assuming an exchange rate of 1.

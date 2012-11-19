@@ -56,15 +56,15 @@ SOURCEFILES:= \
 
 # a more careful list suitable for for haddock
 HADDOCKSOURCEFILES:= \
-	hledger-lib/*hs \
+	hledger-lib/Hledger.hs \
 	hledger-lib/Hledger/*hs \
 	hledger-lib/Hledger/*/*hs \
 	hledger/Hledger/*hs \
 	hledger/Hledger/*/*hs \
-	hledger-web/Hledger/*hs \
-	hledger-web/Hledger/*/*hs \
-	hledger-web/app/*.hs \
-	hledger-web/Settings/*.hs
+	# hledger-web/Hledger/*hs \
+	# hledger-web/Hledger/*/*hs \
+	# hledger-web/app/*.hs \
+	# hledger-web/Settings/*.hs
 
 CABALFILES:= \
 	hledger/hledger.cabal \
