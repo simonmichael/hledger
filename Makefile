@@ -52,6 +52,7 @@ SOURCEFILES:= \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs \
 	hledger-web/app/*.hs \
+	hledger-web/Handler/*.hs \
 	hledger-web/Settings/*.hs
 
 # a more careful list suitable for for haddock
