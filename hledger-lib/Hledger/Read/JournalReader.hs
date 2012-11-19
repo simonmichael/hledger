@@ -639,7 +639,7 @@ quotedcommoditysymbol = do
 simplecommoditysymbol :: GenParser Char JournalContext String
 simplecommoditysymbol = many1 (noneOf nonsimplecommoditychars)
 
-priceamount :: GenParser Char JournalContext (Maybe Price)
+priceamount :: GenParser Char JournalContext Price
 priceamount =
     try (do
           many spacenonewline
@@ -648,12 +648,12 @@ priceamount =
                 char '@'
                 many spacenonewline
                 a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
-                return $ Just $ TotalPrice a)
+                return $ TotalPrice a)
            <|> (do
             many spacenonewline
             a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
-            return $ Just $ UnitPrice a))
-         <|> return Nothing
+            return $ UnitPrice a))
+         <|> return NoPrice
 
 balanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
 balanceassertion =

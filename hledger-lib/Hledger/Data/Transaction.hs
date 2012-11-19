@@ -284,21 +284,21 @@ balanceTransaction styles t@Transaction{tpostings=ps}
       rcommoditiesinorder  = map acommodity ramountsinorder
       rsumamounts  = amounts $ sum rmixedamountsinorder
       -- assumption: the sum of mixed amounts is normalised (one simple amount per commodity)
-      t'' = if length rsumamounts == 2 && all (isNothing.aprice) rsumamounts && t'==t
+      t'' = if length rsumamounts == 2 && all ((==NoPrice).aprice) rsumamounts && t'==t
              then t'{tpostings=map inferprice ps}
              else t'
           where
             -- assumption: a posting's mixed amount contains one simple amount
-            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=Nothing}], ptype=RegularPosting}
+            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=RegularPosting}
                 = p{pamount=Mixed [a{aprice=conversionprice c}]}
                 where
                   conversionprice c | c == unpricedcommodity
                                         -- assign a balancing price. Use @@ for more exact output when possible.
                                         -- invariant: prices should always be positive. Enforced with "abs"
                                         = if length ramountsinunpricedcommodity == 1
-                                           then Just $ TotalPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount]
-                                           else Just $ UnitPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (aquantity unpricedamount)]
-                                    | otherwise = Nothing
+                                           then TotalPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount]
+                                           else UnitPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (aquantity unpricedamount)]
+                                    | otherwise = NoPrice
                       where
                         unpricedcommodity     = head $ filter (`elem` (map acommodity rsumamounts)) rcommoditiesinorder
                         unpricedamount        = head $ filter ((==unpricedcommodity).acommodity) rsumamounts
@@ -311,18 +311,18 @@ balanceTransaction styles t@Transaction{tpostings=ps}
       bvamountsinorder = concatMap amounts bvmixedamountsinorder
       bvcommoditiesinorder  = map acommodity bvamountsinorder
       bvsumamounts  = amounts $ sum bvmixedamountsinorder
-      t''' = if length bvsumamounts == 2 && all (isNothing.aprice) bvsumamounts && t'==t -- XXX could check specifically for bv amount inferring
+      t''' = if length bvsumamounts == 2 && all ((==NoPrice).aprice) bvsumamounts && t'==t -- XXX could check specifically for bv amount inferring
              then t''{tpostings=map inferprice ps}
              else t''
           where
-            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=Nothing}], ptype=BalancedVirtualPosting}
+            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=BalancedVirtualPosting}
                 = p{pamount=Mixed [a{aprice=conversionprice c}]}
                 where
                   conversionprice c | c == unpricedcommodity
                                         = if length bvamountsinunpricedcommodity == 1
-                                           then Just $ TotalPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount]
-                                           else Just $ UnitPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (aquantity unpricedamount)]
-                                    | otherwise = Nothing
+                                           then TotalPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount]
+                                           else UnitPrice $ Mixed [setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (aquantity unpricedamount)]
+                                    | otherwise = NoPrice
                       where
                         unpricedcommodity     = head $ filter (`elem` (map acommodity bvsumamounts)) bvcommoditiesinorder
                         unpricedamount        = head $ filter ((==unpricedcommodity).acommodity) bvsumamounts

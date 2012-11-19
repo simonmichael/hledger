@@ -47,11 +47,11 @@ type Commodity = String
       
 type Quantity = Double
 
--- | An amount's price in another commodity may be written as \@ unit
--- price or \@\@ total price.  Note although a MixedAmount is used, it
--- should be in a single commodity, also the amount should be positive;
--- these are not enforced currently.
-data Price = {- NoPrice | -} UnitPrice MixedAmount | TotalPrice MixedAmount
+-- | An amount's price (none, per unit, or total) in another commodity.
+-- Note although a MixedAmount is used, it should be in a single
+-- commodity, also the amount should be positive; these are not enforced
+-- currently.
+data Price = NoPrice | UnitPrice MixedAmount | TotalPrice MixedAmount
              deriving (Eq,Ord)
 
 -- | Display style for an amount.
@@ -67,7 +67,7 @@ data AmountStyle = AmountStyle {
 data Amount = Amount {
       acommodity :: Commodity,
       aquantity :: Quantity,
-      aprice :: Maybe Price,  -- ^ the price for this amount, fixed at posting time
+      aprice :: Price,                -- ^ the (fixed) price for this amount, if any
       astyle :: AmountStyle
     } deriving (Eq,Ord)
 
