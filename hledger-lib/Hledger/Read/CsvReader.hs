@@ -427,7 +427,7 @@ transactionFromCsvRecord rules fields =
       currency = maybe (fromMaybe "" $ baseCurrency rules) (atDef "" fields) (currencyField rules)
       amountstr'' = currency ++ amountstr'
       amountparse = runParser amountp nullctx "" amountstr''
-      a = either (const nullmixedamt) id amountparse
+      a = either (const nullmixedamt) mixed amountparse
       -- Using costOfMixedAmount here to allow complex costs like "10 GBP @@ 15 USD".
       -- Aim is to have "10 GBP @@ 15 USD" applied to account "acct", but have "-15USD" applied to "baseacct"
       baseamount = costOfMixedAmount a

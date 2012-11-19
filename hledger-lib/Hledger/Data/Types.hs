@@ -48,11 +48,8 @@ type Commodity = String
 type Quantity = Double
 
 -- | An amount's price (none, per unit, or total) in another commodity.
--- Note although a MixedAmount is used, it should be in a single
--- commodity, also the amount should be positive; these are not enforced
--- currently.
-data Price = NoPrice | UnitPrice MixedAmount | TotalPrice MixedAmount
-             deriving (Eq,Ord)
+-- Note the price should be a positive number, although this is not enforced.
+data Price = NoPrice | UnitPrice Amount | TotalPrice Amount deriving (Eq,Ord)
 
 -- | Display style for an amount.
 data AmountStyle = AmountStyle {
@@ -127,7 +124,7 @@ data TimeLogEntry = TimeLogEntry {
 data HistoricalPrice = HistoricalPrice {
       hdate :: Day,
       hsymbol :: String,
-      hamount :: MixedAmount
+      hamount :: Amount
     } deriving (Eq) -- & Show (in Amount.hs)
 
 type Year = Integer

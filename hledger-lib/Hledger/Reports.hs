@@ -61,7 +61,7 @@ import Text.ParserCombinators.Parsec
 import Text.Printf
 
 import Hledger.Data
-import Hledger.Read (amountp')
+import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils
 
@@ -759,36 +759,36 @@ tests_accountsReport =
   ,"accountsReport with no args on sample journal" ~: do
    (defreportopts, samplejournal) `gives`
     ([
-      ("assets","assets",0, amountp' "$-1.00")
-     ,("assets:bank:saving","bank:saving",1, amountp' "$1.00")
-     ,("assets:cash","cash",1, amountp' "$-2.00")
-     ,("expenses","expenses",0, amountp' "$2.00")
-     ,("expenses:food","food",1, amountp' "$1.00")
-     ,("expenses:supplies","supplies",1, amountp' "$1.00")
-     ,("income","income",0, amountp' "$-2.00")
-     ,("income:gifts","gifts",1, amountp' "$-1.00")
-     ,("income:salary","salary",1, amountp' "$-1.00")
-     ,("liabilities:debts","liabilities:debts",0, amountp' "$1.00")
+      ("assets","assets",0, mamountp' "$-1.00")
+     ,("assets:bank:saving","bank:saving",1, mamountp' "$1.00")
+     ,("assets:cash","cash",1, mamountp' "$-2.00")
+     ,("expenses","expenses",0, mamountp' "$2.00")
+     ,("expenses:food","food",1, mamountp' "$1.00")
+     ,("expenses:supplies","supplies",1, mamountp' "$1.00")
+     ,("income","income",0, mamountp' "$-2.00")
+     ,("income:gifts","gifts",1, mamountp' "$-1.00")
+     ,("income:salary","salary",1, mamountp' "$-1.00")
+     ,("liabilities:debts","liabilities:debts",0, mamountp' "$1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with --depth=N" ~: do
    (defreportopts{depth_=Just 1}, samplejournal) `gives`
     ([
-      ("assets",      "assets",      0, amountp' "$-1.00")
-     ,("expenses",    "expenses",    0, amountp'  "$2.00")
-     ,("income",      "income",      0, amountp' "$-2.00")
-     ,("liabilities", "liabilities", 0, amountp'  "$1.00")
+      ("assets",      "assets",      0, mamountp' "$-1.00")
+     ,("expenses",    "expenses",    0, mamountp'  "$2.00")
+     ,("income",      "income",      0, mamountp' "$-2.00")
+     ,("liabilities", "liabilities", 0, mamountp'  "$1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with depth:N" ~: do
    (defreportopts{query_="depth:1"}, samplejournal) `gives`
     ([
-      ("assets",      "assets",      0, amountp' "$-1.00")
-     ,("expenses",    "expenses",    0, amountp'  "$2.00")
-     ,("income",      "income",      0, amountp' "$-2.00")
-     ,("liabilities", "liabilities", 0, amountp'  "$1.00")
+      ("assets",      "assets",      0, mamountp' "$-1.00")
+     ,("expenses",    "expenses",    0, mamountp'  "$2.00")
+     ,("income",      "income",      0, mamountp' "$-2.00")
+     ,("liabilities", "liabilities", 0, mamountp'  "$1.00")
      ],
      Mixed [nullamt])
 
@@ -798,32 +798,32 @@ tests_accountsReport =
      Mixed [nullamt])
    (defreportopts{query_="edate:'in 2009'"}, samplejournal2) `gives`
     ([
-      ("assets:bank:checking","assets:bank:checking",0,amountp' "$1.00")
-     ,("income:salary","income:salary",0,amountp' "$-1.00")
+      ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
+     ,("income:salary","income:salary",0,mamountp' "$-1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with desc:" ~: do
    (defreportopts{query_="desc:income"}, samplejournal) `gives`
     ([
-      ("assets:bank:checking","assets:bank:checking",0,amountp' "$1.00")
-     ,("income:salary","income:salary",0, amountp' "$-1.00")
+      ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
+     ,("income:salary","income:salary",0, mamountp' "$-1.00")
      ],
      Mixed [nullamt])
 
   ,"accountsReport with not:desc:" ~: do
    (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
     ([
-      ("assets","assets",0, amountp' "$-2.00")
+      ("assets","assets",0, mamountp' "$-2.00")
      ,("assets:bank","bank",1, Mixed [nullamt])
-     ,("assets:bank:checking","checking",2,amountp' "$-1.00")
-     ,("assets:bank:saving","saving",2, amountp' "$1.00")
-     ,("assets:cash","cash",1, amountp' "$-2.00")
-     ,("expenses","expenses",0, amountp' "$2.00")
-     ,("expenses:food","food",1, amountp' "$1.00")
-     ,("expenses:supplies","supplies",1, amountp' "$1.00")
-     ,("income:gifts","income:gifts",0, amountp' "$-1.00")
-     ,("liabilities:debts","liabilities:debts",0, amountp' "$1.00")
+     ,("assets:bank:checking","checking",2,mamountp' "$-1.00")
+     ,("assets:bank:saving","saving",2, mamountp' "$1.00")
+     ,("assets:cash","cash",1, mamountp' "$-2.00")
+     ,("expenses","expenses",0, mamountp' "$2.00")
+     ,("expenses:food","food",1, mamountp' "$1.00")
+     ,("expenses:supplies","supplies",1, mamountp' "$1.00")
+     ,("income:gifts","income:gifts",0, mamountp' "$-1.00")
+     ,("liabilities:debts","liabilities:debts",0, mamountp' "$1.00")
      ],
      Mixed [nullamt])
 

@@ -527,7 +527,7 @@ handleAdd = do
       acct1E = maybe (Left "to account required") (Right . unpack) $ maybeNonNull acct1M
       acct2E = maybe (Left "from account required") (Right . unpack) $ maybeNonNull acct2M
       amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amountp . unpack) amt1M
-      amt2E = maybe (Right missingmixedamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amountp . unpack) amt2M
+      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amountp . unpack) amt2M
       journalE = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
@@ -547,8 +547,8 @@ handleAdd = do
                            tdate=parsedate date
                           ,tdescription=desc
                           ,tpostings=[
-                            Posting False acct1 amt1 "" RegularPosting [] Nothing
-                           ,Posting False acct2 amt2 "" RegularPosting [] Nothing
+                            Posting False acct1 (mixed amt1) "" RegularPosting [] Nothing
+                           ,Posting False acct2 (mixed amt2) "" RegularPosting [] Nothing
                            ]
                           })
   -- display errors or add transaction

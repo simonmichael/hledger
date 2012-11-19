@@ -29,6 +29,7 @@ module Hledger.Read.JournalReader (
   accountname,
   amountp,
   amountp',
+  mamountp',
   emptyline,
   -- * Tests
   tests_Hledger_Read_JournalReader
@@ -254,11 +255,8 @@ defaultcommoditydirective :: GenParser Char JournalContext JournalUpdate
 defaultcommoditydirective = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
-  a <- amountp
-  -- amount always returns a MixedAmount containing one Amount, but let's be safe
-  let as = amounts a 
-  when (not $ null as) $
-    let Amount{..} = head as in setCommodityAndStyle (acommodity, astyle)
+  Amount{..} <- amountp
+  setCommodityAndStyle (acommodity, astyle)
   restofline
   return $ return id
 
@@ -559,7 +557,7 @@ spaceandamountormissing :: GenParser Char JournalContext MixedAmount
 spaceandamountormissing =
   try (do
         many1 spacenonewline
-        amountp <|> return missingmixedamt
+        (Mixed . (:[])) `fmap` amountp <|> return missingmixedamt
       ) <|> return missingmixedamt
 
 tests_spaceandamountormissing = [
@@ -570,30 +568,35 @@ tests_spaceandamountormissing = [
     assertParseEqual (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
  ]
 
--- | Parse an amount, optionally with a left or right currency symbol,
--- price, and/or (ignored) ledger-style balance assertion.
-amountp :: GenParser Char JournalContext MixedAmount
+-- | Parse a single-commodity amount, with optional symbol on the left or
+-- right, optional unit or total price, and optional (ignored)
+-- ledger-style balance assertion or fixed lot price declaration.
+amountp :: GenParser Char JournalContext Amount
 amountp = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 
 tests_amountp = [
    "amountp" ~: do
-    assertParseEqual (parseWithCtx nullctx amountp "$47.18") (Mixed [usd 47.18])
-    assertParseEqual (parseWithCtx nullctx amountp "$1.") (Mixed [setAmountPrecision 0 $ usd 1])
+    assertParseEqual (parseWithCtx nullctx amountp "$47.18") (usd 47.18)
+    assertParseEqual (parseWithCtx nullctx amountp "$1.") (setAmountPrecision 0 $ usd 1)
   ,"amount with unit price" ~: do
     assertParseEqual
      (parseWithCtx nullctx amountp "$10 @ €0.5")
-     (Mixed [usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)])
+     (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1))
   ,"amount with total price" ~: do
     assertParseEqual
      (parseWithCtx nullctx amountp "$10 @@ €5")
-     (Mixed [usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0)])
+     (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
  ]
 
--- | Run the amount parser on a string to get the result or an error.
-amountp' :: String -> MixedAmount
+-- | Parse an amount from a string, or get an error.
+amountp' :: String -> Amount
 amountp' s = either (error' . show) id $ parseWithCtx nullctx amountp s
 
-leftsymbolamount :: GenParser Char JournalContext MixedAmount
+-- | Parse a mixed amount from a string, or get an error.
+mamountp' :: String -> MixedAmount
+mamountp' = mixed . amountp'
+
+leftsymbolamount :: GenParser Char JournalContext Amount
 leftsymbolamount = do
   sign <- optionMaybe $ string "-"
   let applysign = if isJust sign then negate else id
@@ -602,20 +605,20 @@ leftsymbolamount = do
   (q,prec,dec,sep,seppos) <- number
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
   p <- priceamount
-  return $ applysign $ Mixed [Amount c q p s]
+  return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
-rightsymbolamount :: GenParser Char JournalContext MixedAmount
+rightsymbolamount :: GenParser Char JournalContext Amount
 rightsymbolamount = do
   (q,prec,dec,sep,seppos) <- number
   sp <- many spacenonewline
   c <- commoditysymbol
   p <- priceamount
   let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
-  return $ Mixed [Amount c q p s]
+  return $ Amount c q p s
   <?> "right-symbol amount"
 
-nosymbolamount :: GenParser Char JournalContext MixedAmount
+nosymbolamount :: GenParser Char JournalContext Amount
 nosymbolamount = do
   (q,prec,dec,sep,seppos) <- number
   p <- priceamount
@@ -623,7 +626,7 @@ nosymbolamount = do
   let (c,s) = case defcs of
         Just (c',s') -> (c',s')
         Nothing -> ("", amountstyle{asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos})
-  return $ Mixed [Amount c q p s]
+  return $ Amount c q p s
   <?> "no-symbol amount"
 
 commoditysymbol :: GenParser Char JournalContext String
@@ -655,7 +658,7 @@ priceamount =
             return $ UnitPrice a))
          <|> return NoPrice
 
-balanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
+balanceassertion :: GenParser Char JournalContext (Maybe Amount)
 balanceassertion =
     try (do
           many spacenonewline
@@ -666,7 +669,7 @@ balanceassertion =
          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotprice :: GenParser Char JournalContext (Maybe MixedAmount)
+fixedlotprice :: GenParser Char JournalContext (Maybe Amount)
 fixedlotprice =
     try (do
           many spacenonewline
@@ -885,7 +888,7 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
      assertParse (parseWithCtx nullctx defaultyeardirective "Y 10001\n")
 
   ,"historicalpricedirective" ~:
-    assertParseEqual (parseWithCtx nullctx historicalpricedirective "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ Mixed [usd 55])
+    assertParseEqual (parseWithCtx nullctx historicalpricedirective "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
 
   ,"ignoredpricecommoditydirective" ~: do
      assertParse (parseWithCtx nullctx ignoredpricecommoditydirective "N $\n")
@@ -910,16 +913,16 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     assertBool "accountname rejects an empty trailing component" (isLeft $ parsewith accountname "a:b:")
 
   ,"leftsymbolamount" ~: do
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")  (Mixed [usd 1 `withPrecision` 0])
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$-1") (Mixed [usd (-1) `withPrecision` 0])
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1") (Mixed [usd (-1) `withPrecision` 0])
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")  (usd 1 `withPrecision` 0)
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$-1") (usd (-1) `withPrecision` 0)
+    assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1") (usd (-1) `withPrecision` 0)
 
   ,"amount" ~: do
-     let -- | compare a parse result with a MixedAmount, showing the debug representation for clarity
-         assertMixedAmountParse parseresult mixedamount =
-             (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-     assertMixedAmountParse (parseWithCtx nullctx amountp "1 @ $2")
-                            (Mixed [amt 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0)])
+     let -- | compare a parse result with an expected amount, showing the debug representation for clarity
+         assertAmountParse parseresult amount =
+             (either (const "parse error") showAmountDebug parseresult) ~?= (showAmountDebug amount)
+     assertAmountParse (parseWithCtx nullctx amountp "1 @ $2")
+       (amt 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
 
  ]]
 

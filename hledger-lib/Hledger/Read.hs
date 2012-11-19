@@ -21,6 +21,7 @@ module Hledger.Read (
        accountname,
        amountp,
        amountp',
+       mamountp',
        -- * Tests
        samplejournal,
        tests_Hledger_Read,

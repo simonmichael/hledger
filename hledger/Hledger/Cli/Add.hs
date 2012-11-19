@@ -17,7 +17,6 @@ import Data.Char (toUpper)
 import Data.List
 import Data.Maybe
 import Data.Time.Calendar
-import Safe (headMay)
 import System.Console.Haskeline (InputT, runInputT, defaultSettings, setComplete, getInputLine)
 import System.Console.Haskeline.Completion
 import System.IO ( stderr, hPutStrLn, hPutStr )
@@ -148,22 +147,20 @@ getPostings st enteredps = do
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
       amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
-      let a  = fromparse $ runParser (amountp <|> return missingmixedamt) ctx     "" amountstr
-          a' = fromparse $ runParser (amountp <|> return missingmixedamt) nullctx "" amountstr
-          defaultamtused = Just (showMixedAmount a) == defaultamountstr
-          commodityadded | c == cwithnodef = Nothing
-                         | otherwise       = c
-              where c          = maybemixedamountcommodity a
-                    cwithnodef = maybemixedamountcommodity a'
-                    maybemixedamountcommodity = maybe Nothing (Just . acommodity) . headMay . amounts
-          p = nullposting{paccount=stripbrackets account,
-                          pamount=a,
-                          ptype=postingtype account}
-          st' = if defaultamtused then st
-                   else st{psHistory = historicalps',
-                           psSuggestHistoricalAmount = False}
-      when (isJust commodityadded) $
-           liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust commodityadded)
+      let a  = fromparse $ runParser (amountp <|> return missingamt) ctx     "" amountstr
+          a' = fromparse $ runParser (amountp <|> return missingamt) nullctx "" amountstr
+          wasdefaultamtused = Just (showAmount a) == defaultamountstr
+          defaultcommodityadded | acommodity a == acommodity a' = Nothing
+                                | otherwise                     = Just $ acommodity a
+          p = nullposting{paccount=stripbrackets account
+                         ,pamount=mixed a
+                         ,ptype=postingtype account
+                         }
+          st' = if wasdefaultamtused
+                 then st
+                 else st{psHistory=historicalps', psSuggestHistoricalAmount=False}
+      when (isJust defaultcommodityadded) $
+           liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust defaultcommodityadded)
       getPostings st' (enteredps ++ [p])
     where
       j = psJournal st

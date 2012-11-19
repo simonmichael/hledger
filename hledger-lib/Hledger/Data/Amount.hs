@@ -72,6 +72,7 @@ module Hledger.Data.Amount (
   -- * MixedAmount
   nullmixedamt,
   missingmixedamt,
+  mixed,
   amounts,
   normaliseMixedAmountPreservingFirstPrice,
   normaliseMixedAmountPreservingPrices,
@@ -162,11 +163,11 @@ sumAmounts = normaliseMixedAmountPreservingPrices . Mixed
 
 -- | Set an amount's unit price.
 at :: Amount -> Amount -> Amount
-amt `at` priceamt = amt{aprice=UnitPrice $ Mixed [priceamt]}
+amt `at` priceamt = amt{aprice=UnitPrice priceamt}
 
 -- | Set an amount's total price.
 (@@) :: Amount -> Amount -> Amount
-amt @@ priceamt = amt{aprice=TotalPrice $ Mixed [priceamt]}
+amt @@ priceamt = amt{aprice=TotalPrice priceamt}
 
 tests_sumAmounts = [
   "sumAmounts" ~: do
@@ -189,9 +190,8 @@ costOfAmount :: Amount -> Amount
 costOfAmount a@Amount{aquantity=q, aprice=price} =
     case price of
       NoPrice -> a
-      UnitPrice  (Mixed [p@Amount{aquantity=pq}]) -> p{aquantity=pq * q}
-      TotalPrice (Mixed [p@Amount{aquantity=pq}]) -> p{aquantity=pq * signum q}
-      _ -> error' "costOfAmount: Malformed price encountered, programmer error"
+      UnitPrice  p@Amount{aquantity=pq} -> p{aquantity=pq * q}
+      TotalPrice p@Amount{aquantity=pq} -> p{aquantity=pq * signum q}
 
 -- | Divide an amount's quantity by a constant.
 divideAmount :: Amount -> Double -> Amount
@@ -244,13 +244,13 @@ showAmountWithoutPriceOrCommodity a = showAmount a{acommodity="", aprice=NoPrice
 
 showPrice :: Price -> String
 showPrice NoPrice         = ""
-showPrice (UnitPrice pa)  = " @ "  ++ showMixedAmount pa
-showPrice (TotalPrice pa) = " @@ " ++ showMixedAmount pa
+showPrice (UnitPrice pa)  = " @ "  ++ showAmount pa
+showPrice (TotalPrice pa) = " @@ " ++ showAmount pa
 
 showPriceDebug :: Price -> String
 showPriceDebug NoPrice         = ""
-showPriceDebug (UnitPrice pa)  = " @ "  ++ showMixedAmountDebug pa
-showPriceDebug (TotalPrice pa) = " @@ " ++ showMixedAmountDebug pa
+showPriceDebug (UnitPrice pa)  = " @ "  ++ showAmountDebug pa
+showPriceDebug (TotalPrice pa) = " @@ " ++ showAmountDebug pa
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings. String representations equivalent to zero are
@@ -343,6 +343,9 @@ missingamt = amount{acommodity="AUTO"}
 missingmixedamt :: MixedAmount
 missingmixedamt = Mixed [missingamt]
 
+mixed :: Amount -> MixedAmount
+mixed a = Mixed [a]
+  
 -- | Simplify a mixed amount's component amounts: we can combine amounts
 -- with the same commodity and unit price. Also remove any zero or missing
 -- amounts and replace an empty amount list with a single zero amount.
@@ -510,9 +513,9 @@ tests_Hledger_Data_Amount = TestList $
 
    "costOfAmount" ~: do
     costOfAmount (eur 1) `is` eur 1
-    costOfAmount (eur 2){aprice=UnitPrice $ Mixed [usd 2]} `is` usd 4
-    costOfAmount (eur 1){aprice=TotalPrice $ Mixed [usd 2]} `is` usd 2
-    costOfAmount (eur (-1)){aprice=TotalPrice $ Mixed [usd 2]} `is` usd (-2)
+    costOfAmount (eur 2){aprice=UnitPrice $ usd 2} `is` usd 4
+    costOfAmount (eur 1){aprice=TotalPrice $ usd 2} `is` usd 2
+    costOfAmount (eur (-1)){aprice=TotalPrice $ usd 2} `is` usd (-2)
 
   ,"isZeroAmount" ~: do
     assertBool "" $ isZeroAmount $ amount
@@ -521,7 +524,7 @@ tests_Hledger_Data_Amount = TestList $
   ,"negating amounts" ~: do
     let a = usd 1
     negate a `is` a{aquantity=(-1)}
-    let b = (usd 1){aprice=UnitPrice $ Mixed [eur 2]}
+    let b = (usd 1){aprice=UnitPrice $ eur 2}
     negate b `is` b{aquantity=(-1)}
 
   ,"adding amounts without prices" ~: do
