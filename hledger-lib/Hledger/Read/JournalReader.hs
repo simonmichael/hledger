@@ -577,7 +577,7 @@ amountp = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 tests_amountp = [
    "amountp" ~: do
     assertParseEqual (parseWithCtx nullctx amountp "$47.18") (usd 47.18)
-    assertParseEqual (parseWithCtx nullctx amountp "$1.") (setAmountPrecision 0 $ usd 1)
+    assertParseEqual (parseWithCtx nullctx amountp "$1.") (usd 1 `withPrecision` 0)
   ,"amount with unit price" ~: do
     assertParseEqual
      (parseWithCtx nullctx amountp "$10 @ €0.5")

@@ -296,8 +296,8 @@ balanceTransaction styles t@Transaction{tpostings=ps}
                                         -- assign a balancing price. Use @@ for more exact output when possible.
                                         -- invariant: prices should always be positive. Enforced with "abs"
                                         = if length ramountsinunpricedcommodity == 1
-                                           then TotalPrice $ setAmountPrecision maxprecision $ abs $ targetcommodityamount
-                                           else UnitPrice $ setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (aquantity unpricedamount)
+                                           then TotalPrice $ abs targetcommodityamount `withPrecision` maxprecision
+                                           else UnitPrice $ abs (targetcommodityamount `divideAmount` (aquantity unpricedamount)) `withPrecision` maxprecision
                                     | otherwise = NoPrice
                       where
                         unpricedcommodity     = head $ filter (`elem` (map acommodity rsumamounts)) rcommoditiesinorder
@@ -320,8 +320,8 @@ balanceTransaction styles t@Transaction{tpostings=ps}
                 where
                   conversionprice c | c == unpricedcommodity
                                         = if length bvamountsinunpricedcommodity == 1
-                                           then TotalPrice $ setAmountPrecision maxprecision $ abs $ targetcommodityamount
-                                           else UnitPrice $ setAmountPrecision maxprecision $ abs $ targetcommodityamount `divideAmount` (aquantity unpricedamount)
+                                           then TotalPrice $ abs targetcommodityamount `withPrecision` maxprecision
+                                           else UnitPrice $ abs (targetcommodityamount `divideAmount` (aquantity unpricedamount)) `withPrecision` maxprecision
                                     | otherwise = NoPrice
                       where
                         unpricedcommodity     = head $ filter (`elem` (map acommodity bvsumamounts)) bvcommoditiesinorder
@@ -444,7 +444,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ])
        (showTransaction
         (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" "" []
-         [Posting False "a" (Mixed [amt 1 `at` (setAmountPrecision 0 $ usd 2)]) "" RegularPosting [] Nothing
+         [Posting False "a" (Mixed [amt 1 `at` (usd 2 `withPrecision` 0)]) "" RegularPosting [] Nothing
          ,Posting False "b" missingmixedamt "" RegularPosting [] Nothing
          ] ""))
 
@@ -480,7 +480,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
                            ] "")
      assertBool "balanceTransaction can infer conversion price" (isRight e)
      assertEqual "balancing conversion price is inferred"
-                     (Mixed [usd 1.35 @@ (setAmountPrecision maxprecision $ eur 1)])
+                     (Mixed [usd 1.35 @@ (eur 1 `withPrecision` maxprecision)])
                      (case e of
                         Right e' -> (pamount $ head $ tpostings e')
                         Left _ -> error' "should not happen")

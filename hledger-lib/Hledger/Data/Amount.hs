@@ -537,8 +537,8 @@ tests_Hledger_Data_Amount = TestList $
     (a3 + a3) `is` usd (-2.46)
     sum [a1,a2,a3,-a3] `is` usd 0
     -- highest precision is preserved
-    let ap1 = setAmountPrecision 1 $ usd 1
-        ap3 = setAmountPrecision 3 $ usd 1
+    let ap1 = usd 1 `withPrecision` 1
+        ap3 = usd 1 `withPrecision` 3
     (asprecision $ astyle $ sum [ap1,ap3]) `is` 3
     (asprecision $ astyle $ sum [ap3,ap1]) `is` 3
     -- adding different commodities assumes conversion rate 1
@@ -561,7 +561,7 @@ tests_Hledger_Data_Amount = TestList $
   ,"adding mixed amounts" ~: do
     (sum $ map (Mixed . (\a -> [a]))
              [usd 1.25
-             ,setAmountPrecision 0 $ usd (-1)
+             ,usd (-1) `withPrecision` 0
              ,usd (-0.25)
              ])
       `is` Mixed [amount{aquantity=0}]
