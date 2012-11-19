@@ -326,9 +326,9 @@ treeFromPaths = foldl' mergeTrees emptyTree . map treeFromPath
 strace :: Show a => a -> a
 strace a = trace (show a) a
 
--- | labelled trace - like strace, with a label prepended
-ltrace :: Show a => String -> a -> a
-ltrace l a = trace (l ++ ": " ++ show a) a
+-- | labelled trace showable - like strace, with a label prepended
+lstrace :: Show a => String -> a -> a
+lstrace l a = trace (l ++ ": " ++ show a) a
 
 -- | monadic trace - like strace, but works as a standalone line in a monad
 mtrace :: (Monad m, Show a) => a -> m a
