@@ -123,7 +123,7 @@ data TimeLogEntry = TimeLogEntry {
 
 data HistoricalPrice = HistoricalPrice {
       hdate :: Day,
-      hsymbol :: String,
+      hcommodity :: Commodity,
       hamount :: Amount
     } deriving (Eq) -- & Show (in Amount.hs)
 

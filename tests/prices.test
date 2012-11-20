@@ -175,14 +175,24 @@ hledgerdev -f - balance
     c  $-30
 >>>= 0
 
-# 14. this should balance, ignoring the P
+# 14. we ignore P, so this should balance
 hledgerdev -f - balance
 <<<
-P 2011/11/15 EUR CHF 1.234
+P 2011/11/15 EUR CHF 1
 2011/11/19
     a                             EUR 1000.00
     b                             CHF -1254
 >>>= 0
+
+# # 14b. if P worked, this should balance
+# hledgerdev -f - balance
+# <<<
+# P 2011/11/15 EUR CHF 1.234
+# 2011/11/19
+#     a                             EUR 1000.00
+#     b                             USD 1000.00
+#     c                             CHF -1254
+# >>>= 0
 
 # 15. these balance because of the unit prices, and should parse successfully
 hledgerdev -f - balance --no-total
