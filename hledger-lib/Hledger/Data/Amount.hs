@@ -46,7 +46,7 @@ module Hledger.Data.Amount (
   amount,
   nullamt,
   missingamt,
-  amt,
+  num,
   usd,
   eur,
   gbp,
@@ -131,7 +131,7 @@ amount = Amount{acommodity="", aquantity=0, aprice=NoPrice, astyle=amountstyle}
 nullamt = amount
 
 -- handy amount constructors for tests
-amt n = amount{acommodity="",  aquantity=n}
+num n = amount{acommodity="",  aquantity=n}
 usd n = amount{acommodity="$", aquantity=n, astyle=amountstyle{asprecision=2}}
 eur n = amount{acommodity="€", aquantity=n, astyle=amountstyle{asprecision=2}}
 gbp n = amount{acommodity="£", aquantity=n, astyle=amountstyle{asprecision=2}}

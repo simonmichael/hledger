@@ -922,7 +922,7 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
          assertAmountParse parseresult amount =
              (either (const "parse error") showAmountDebug parseresult) ~?= (showAmountDebug amount)
      assertAmountParse (parseWithCtx nullctx amountp "1 @ $2")
-       (amt 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
+       (num 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
 
  ]]
 

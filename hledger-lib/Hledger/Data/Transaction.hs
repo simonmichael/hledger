@@ -444,7 +444,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ])
        (showTransaction
         (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" "" []
-         [Posting False "a" (Mixed [amt 1 `at` (usd 2 `withPrecision` 0)]) "" RegularPosting [] Nothing
+         [Posting False "a" (Mixed [num 1 `at` (usd 2 `withPrecision` 0)]) "" RegularPosting [] Nothing
          ,Posting False "b" missingmixedamt "" RegularPosting [] Nothing
          ] ""))
 
