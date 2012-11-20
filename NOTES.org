@@ -1997,7 +1997,145 @@ move *FromOpts into toOpts
 
 
 * in progress
+
 * next up
+** web: code review/refactor
+** web: use bootstrap
+** more powerful csv conversion
+** formats: ofx reader
+*** clint's code
+Date: Sun, 18 Sep 2011 12:26:16 -0400
+From: Clint Adams <clint@softwarefreedom.org>
+To: hledger@googlegroups.com
+Subject: OFX conversion
+Message-ID: <20110918162616.GA18874@softwarefreedom.org>
+MIME-Version: 1.0
+User-Agent: Mutt/1.5.20 (2009-06-14)
+X-Original-Sender: clint@softwarefreedom.org
+X-Original-Authentication-Results: gmr-mx.google.com; spf=pass (google.com:
+ domain of clint@softwarefreedom.org designates 216.27.154.199 as permitted
+ sender) smtp.mail=clint@softwarefreedom.org
+Reply-To: hledger@googlegroups.com
+Precedence: list
+Mailing-list: list hledger@googlegroups.com; contact hledger+owners@googlegroups.com
+List-ID: <hledger.googlegroups.com>
+X-Google-Group-Id: 895107692464
+List-Post: <http://groups.google.com/group/hledger/post?hl=en_US>, <mailto:hledger@googlegroups.com>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:hledger+help@googlegroups.com>
+List-Archive: <http://groups.google.com/group/hledger?hl=en_US>
+Sender: hledger@googlegroups.com
+List-Subscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+subscribe@googlegroups.com>
+List-Unsubscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+unsubscribe@googlegroups.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+
+This is definitely suboptimal but it seems to work on
+the OFX 1.0.2 output from AmEx.
+
+
+
+{-# LANGUAGE Arrows, NoMonomorphismRestriction #-}
+import Text.XML.HXT.Core
+import Text.Printf (printf)
+
+import Data.List (groupBy)
+import Data.List.Split (splitOn)
+
+import Data.Maybe (fromMaybe)
+
+import Data.Time.Calendar (Day (ModifiedJulianDay))
+import Data.Time.Format (formatTime)
+import Data.Time.LocalTime (LocalTime (LocalTime), TimeOfDay (TimeOfDay))
+import Data.Time.Parse (strptime)
+
+import System.Locale (defaultTimeLocale)
+import System.Process (readProcessWithExitCode)
+
+import Hledger.Cli.Format (FormatString (FormatField), Field (FieldNo))
+import Hledger.Cli.Convert
+
+normAmount :: String -> String
+normAmount amt | amt == "" = ""
+    | otherwise = printf "%.2f" (read amt :: Double)
+
+compressWhitespace :: String -> String
+compressWhitespace x = map head $ groupSpaces x
+        where groupSpaces "" = [""]
+              groupSpaces x = groupBy (\x y -> x==' ' && y==' ') x
+
+data Transaction = Transaction
+  { trnType, dtUser, dtPosted, trnAmt, fitId, refNum, name, memo :: String }
+  deriving (Show, Eq)
+
+-- this doesn't get the timezone right
+ofxDateParse :: String -> String
+ofxDateParse x = formatTime defaultTimeLocale "%Y-%m-%d" (fst (fromMaybe (LocalTime (ModifiedJulianDay 100) (TimeOfDay 0 0 0), "") (strptime "%Y%m%d%H%M%S.%OS" x)))
+
+parseFakeXML string = readString [ withValidate no
+                             , withRemoveWS yes
+                             ] string
+
+atTag tag = deep (isElem >>> hasName tag)
+text = getChildren >>> getText
+textAtTag tag = atTag tag >>> text
+
+getTransactions = atTag "STMTTRN" >>>
+  proc l -> do
+    trnType  <- textAtTag "TRNTYPE" -< l
+    dtUser   <- textAtTag "DTUSER"         -< l
+    dtPosted <- textAtTag "DTPOSTED" -< l
+    trnAmt <- textAtTag "TRNAMT" -< l
+    fitId <- textAtTag "FITID" -< l
+    refNum <- textAtTag "REFNUM" -< l
+    name <- textAtTag "NAME" -< l
+    memo <- textAtTag "MEMO" -< l
+    returnA -< Transaction
+      { trnType   = trnType,
+        dtUser = ofxDateParse dtUser,
+        dtPosted = ofxDateParse dtPosted,
+        trnAmt     = trnAmt,
+        fitId     = fitId,
+        refNum     = refNum,
+        name     = name,
+        memo  = memo }
+
+ofxrules = CsvRules {
+      dateField=Just 0,
+      dateFormat=Nothing,
+      statusField=Nothing,
+      codeField=Nothing,
+      descriptionField=[FormatField False Nothing Nothing (FieldNo 2)],
+      amountField=Just 1,
+      inField=Nothing,
+      outField=Nothing,
+      currencyField=Nothing,
+      baseCurrency=Nothing,
+      accountField=Nothing,
+      account2Field=Nothing,
+      effectiveDateField=Nothing,
+      baseAccount="Liabilities:American Express",
+      accountRules=[]
+}
+
+txnToCsvRecord :: Transaction -> CsvRecord
+txnToCsvRecord x = [dtUser x, normAmount (trnAmt x), compressWhitespace (name x) ++ "(" ++ refNum x ++ ")", fitId x, memo x]
+
+printTxnWithComment :: CsvRecord -> IO ()
+printTxnWithComment x = putStrLn ("; " ++ x !! 3 ++ " - " ++ x !! 4) >> printTxn False ofxrules x
+
+main = do
+  filecontents <- readFile "/tmp/ofx.ofx"
+  let splitfilecontents = splitOn "\n\n" filecontents
+  let ofxheader = head splitfilecontents
+  let ofxsgml = splitfilecontents !! 1
+  (_, fakexml, _) <- readProcessWithExitCode "/usr/bin/sgml2xml" [] ofxsgml
+
+  transes <- runX (parseFakeXML fakexml >>> getTransactions)
+
+  let records = map txnToCsvRecord transes
+  mapM_ (printTxnWithComment) records
+
 
 * backlog
 ** errors
@@ -2759,9 +2897,6 @@ tests/read-csv.test:# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y
 tests/prices.test:# bin/hledger -f - print
 
 *** abstract DataSource
-*** use matchers for command line too
-**** design cli, backwards compatibility strategy
-**** replace optsToFilterSpec
 *** review/simplify apis
 **** simplify option types
 *** more modularity
@@ -2787,40 +2922,374 @@ http://ajaxcssblog.com/jquery/url-read-request-variables/
 **** unix/windows/mac platform
 *** inspiration
 http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
-** features/wishlist
-*** debug logging
-*** payees
-*** register: for the love of god, show full descriptions
-*** add: try wizards lib
-*** separate --display and --limit expressions, eg for --depth
-*** balancesheet real-world testing
-*** narrow (editable) view to selected txns
-*** optimise balance report
-*** IIF/quickbooks writer
-*** inacct: on command line
+** features
+*** add: don't offer record txn option in account N prompt if it's not balanced yet
+*** add: rewrite a short description (trader) to the full description from the matched txn (trader joe's) ?
+*** add: try wizards, vty-ui libs ?
+*** add: would be nice to create the journal file only if a txn is actually recorded
+
+*** balance: --depth with --flat should show aggregate balances including the non-displayed deeper accounts
+*** balance: try indenting amounts
+             $260.00    expenses
+               $260.00    rent
+*** balancesheet, incomestatement, cashflow: real-world testing
+
+*** cli, web: consistent query language with grouping and nesting
+ledger's query syntax: http://ledger-cli.org/3.0/doc/ledger.1.html
+**** draft 1:
+
+Filter patterns restrict the postings/transactions that are displayed.
+(They often reduce the amount of processing work hledger has to do, as well.)
+A pattern is a string or regular expression, usually with a prefix specifying the type of match to do.
+The supported prefixes are:
+
+acct:PAT        match postings affecting accounts whose name matches PAT
+otheracct:PAT   match the other postings in transactions with an acct match (like ledger's --related)
+anyacct:PAT     match all postings in transactions with an acct match (union of acct and otheracct)
+desc:PAT        match postings whose description matches PAT
+status:PAT      match postings whose cleared status matches PAT
+code:PAT        match postings whose transaction code matches PAT
+tag:PAT         match postings with a metadata tag whose name matches PAT
+tag:TAG=PAT     match postings with a metadata tag named TAG whose value matches PAT
+from:DATE       match postings on or after DATE (like --begin)
+to:DATE         match postings before DATE (like --end)
+in:PERIOD       match postings during PERIOD (like --period)
+(or ?
+begin:DATE       match postings on or after DATE (like --begin)
+end:DATE         match postings before DATE (like --end)
+period:PERIOD    match postings during PERIOD (like --period)
+)
+
+Prefixes have a short form which is their first letter, except for tag and anyacct.
+
+Prefix-less patterns are treated like acct: patterns, except by the
+register command which treats them as otheracct: .
+
+Patterns containing whitespace must be enclosed in quotes.
+
+Matches are always case-insensitive.
+
+Matches are always substring matches (except for TAG); to match exactly,
+wrap the pattern in ^ and $.
+
+A posting's date, status, code, etc. is usually (but not always) that of
+its containing transaction.
+
+Any of these may be further prefixed with not: for an inverse match.
+
+Filter patterns may be combined with AND, OR, and parentheses.  OR is
+assumed by default.
+(previously:
+When you specify multiple filter patterns, hledger generally selects the
+items which match:
+
+  any of the account patterns AND any of the description patterns
+
+The print command selects transactions which
+
+  match any of the description patterns AND have any postings matching any
+  of the positive account patterns AND have no postings matching any of
+  the negative account patterns
+)
+
+*** cli: --empty -> --show-zero-accounts, --show-empty-parents ? Make it default ?
+*** cli: --no-elide -> --empty-parents ? Make it the default ?
+             $260.00  expenses
+             $260.00    rent
+*** cli: --related
+*** cli: -X/--show-in-commodity
+cf http://bugs.ledger-cli.org/show_bug.cgi?id=538
+*** cli: accept multiple journal file options
+*** cli: better control of output format/layout
+**** register --format, generalise --format
+**** --wide ? window width sensitive ?
+**** more tidy/consistent layout from print
+**** --output-layout=ledger|traditional
+**** --output-format=text|html|pdf
+*** cli: inacct: on command line
 hledger -f demo.journal reg inacct:expenses:food:pets date:2010/8/25
 2010/08/25 catfood              expenses:food:pets           $10.00       $10.00
                                 assets:cash                 $-10.00            0
-*** support - in period expressions
-*** more useful show instances
-**** use simple derived show instances for Amount & above ?
-**** show no of postings in account tree for Ledger ?
-*** hledger-web release
-*** don't recompile between autotest & functest
+
+*** docs: --help-web and web ui help links that go to online help, with paragraph comments & chat
+cf clients & profits interactive user guide, php.net, realworldhaskell etc.
+*** docs: better intro, less wall-of-text, separate tutorial & reference sections
+*** docs: easy hledger.org/topic help urls, like php.net
+
+*** formats: easier timelog formats
+*** formats: better csv conversion
+**** better default rules file
+**** consistent multi-field formats allowed for any field
+**** optionally generate single-entry txns
+**** optionally set final amount blank
+**** parse amounts like ($nnn.nn)
+**** parse HH:MM[:SS] as an amount, converting to decimal hours
+**** reuse add's history awareness
+**** select one or both accounts based on csv fields
+**** use default rules when converting stdin with no --rules
+**** warn and ignore unparsed rows ?
+*** formats: ofx protocol downloader
+*** formats: IIF/quickbooks writer
+*** formats: gnucash reader
+*** formats: qif reader
+**** clint's code
+Date: Tue, 25 Oct 2011 11:46:24 -0400
+From: Clint Adams <clint@softwarefreedom.org>
+To: hledger@googlegroups.com
+Cc: thomas@marketpsychdata.com, jjenning@fastmail.fm
+Subject: Re: QIF parsing
+Message-ID: <20111025154624.GA3097@softwarefreedom.org>
+References: <20111006164952.GA734@softwarefreedom.org>
+MIME-Version: 1.0
+In-Reply-To: <20111006164952.GA734@softwarefreedom.org>
+User-Agent: Mutt/1.5.21 (2010-09-15)
+X-Original-Sender: clint@softwarefreedom.org
+X-Original-Authentication-Results: gmr-mx.google.com; spf=pass (google.com:
+ domain of clint@softwarefreedom.org designates 207.86.247.70 as permitted
+ sender) smtp.mail=clint@softwarefreedom.org
+Reply-To: hledger@googlegroups.com
+Precedence: list
+Mailing-list: list hledger@googlegroups.com; contact hledger+owners@googlegroups.com
+List-ID: <hledger.googlegroups.com>
+X-Google-Group-Id: 895107692464
+List-Post: <http://groups.google.com/group/hledger/post?hl=en_US>, <mailto:hledger@googlegroups.com>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:hledger+help@googlegroups.com>
+List-Archive: <http://groups.google.com/group/hledger?hl=en_US>
+Sender: hledger@googlegroups.com
+List-Subscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+subscribe@googlegroups.com>
+List-Unsubscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+unsubscribe@googlegroups.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+X-Truedomain-Domain: googlegroups.com
+X-Truedomain-SPF: Neutral (mx4: 173.255.219.222 is neither permitted nor denied by domain of googlegroups.com)
+X-Truedomain-DKIM: Pass
+X-Truedomain-ID: 16FADD416626EE6BDC6CCBB61A94EA31
+X-Truedomain: Neutral
+
+I had to update my QIF converter for modern hledger; included below.
+
+Thomas, I didn't see your reply because I'm not subscribed to
+this Google Group.  I believe that QuickBooks uses OFX, not QIF,
+so you'd be more interested in
+
+http://groups.google.com/group/hledger/browse_thread/thread/e03ccc655347ba72
+
+or
+
+http://www.dingoskidneys.com/~jaredj/
+
+------8<-------
+
+import Text.Parsec
+import Text.Parsec.String
+
+import Control.Monad.State as State
+
+import System (getArgs)
+import Data.List (groupBy)
+import Data.Maybe (fromMaybe)
+import qualified Data.Map as Map
+import Text.Printf (printf)
+
+import Hledger.Cli.Format (FormatString (FormatField), Field (FieldNo)) 
+import Hledger.Cli.Convert 
+
+qifFile :: GenParser Char st (String,[[TransactionDetail]])
+qifFile = do
+        skipMany newline
+        dtype <- typeHeader
+        newline
+        trans <- endBy1 transaction recordSep
+        return $ (dtype,trans)
+
+typeHeader :: GenParser Char st String
+typeHeader = do
+        string "!Type:"
+        dataType
+
+dataType :: GenParser Char st String
+dataType = do string "Cash"
+          <|> string "Bank"
+          <|> string "CCard"
+          <|> string "Invst"
+          <|> string "Oth A"
+          <|> string "Oth L"
+          <|> string "Invoice"
+
+transaction :: GenParser Char st [TransactionDetail]
+
+
+*** parsing: accept all real-world ledger files
+As far as I know it currently accepts all ledger 2.6-era files.
+Add support for ledger 3 file format as/when that stabilises.
+It would be nice to optionally semi/automatically submit parse error reports when they happen
+*** parsing: alias directives should be modified by account directives
+*** parsing: allow price record for null commodity, eg with quotes
+P 2009/1/1 "" 0.5h
+and why doesn't this work ? time.journal:
+P 2010/9/27 h 1
+$ hledger -f time.journal bal -p aug -B
+                   1           
+              17.75h  work:jobs
+                   1             
+              17.50h    clearview
+                   1      60 clear glass thermal data
+               0.25h      admin:cheque issue
+              12.75h      backups/hosting
+               2.00h        cleanup
+               1.00h        move plan
+               2.25h        move prep
+               4.00h        testing
+               3.50h          speed
+               1.50h      barbara spellcheck issue
+               0.50h      installation report dates
+               0.25h      plan change issue
+               1.00h      planning/discussion
+               0.50h      speed issue
+               0.25h      tina quote low-e layout
+               0.50h      tina title 24 issue
+               0.25h    kcrw:admin:contract update:unbilled
+--------------------
+                   1
+              17.75h
+
+*** parsing: canonicalise account names to be case-insensitive ?
+*** parsing: end directive may also be spelled end account; or end ends last directive
+*** parsing: enforce positive price amounts, like ledger
+eg 1€ @@ $-2 is not allowed
+*** parsing: ignore/support all ledger assert directives ?
+ ; Assertion directives Options
+ ; These can occur in many places: 
+ ;
+ ;       ; Within an automated transaction, the assert is evaluated every time 
+ ;       ; a posting is matched, with the expression context set to the 
+ ;       ; matched posting. 
+ ;       = /Food/ 
+ ;         assert account("Expenses:Food").total >= $100 
+ ;       2010-06-12 Sample 
+ ;         Expenses:Food                $100 
+ ;         Assets:Checking 
+ ;
+ ;       ; At file scope, the expression is evaluated within "global" scope. 
+ ;       assert account("Expenses:Food").total == $100 
+ ;
+ ;       ; At the top of a transction, the assertion's scope is the 
+ ;       ; transaction.  After a posting, the scope is that posting.  Note 
+ ;       ; however that account totals are only adjusted after successful 
+ ;       ; parsing of a transaction, which means that all the assertions below 
+ ;       ; are true, even though it appears as though the first posting should 
+ ;       ; affect the total immediately, which is not the case. 
+ ;       2010-06-12 Sample 2 
+ ;         assert account("Expenses:Food").total == $100 
+ ;         Expenses:Food                $50 
+ ;         assert account("Expenses:Food").total == $100 
+ ;         Assets:Checking 
+ ;         assert account("Expenses:Food").total == $100 
+
+*** parsing: more date syntax ? last nov, next friday, optional this, week of
+*** parsing: more flexible file including
+currently only journals (not timelog files) can include, and only another journal
+*** parsing: more period syntax ? every N days, biweekly
 *** parsing: parse YNAB export
 $ tail -n +2  YNAB/Exports/personal-Register.csv | hledger -f-  print --rules-file YNAB/Exports/personal-Register.rules
 using conversion rules file /Users/simon/personal/YNAB/Exports/personal-Register.rules
 hledger: using amount-in-field and amount-out-field, found a value in both fiel
 ds: ("$0.00","$4.68")
-*** stats: list all journal files
-*** search by commodity
-*** account types
-*** runtime templates for reports
+*** parsing: per-posting effective/actual dates
+*** parsing: period expressions should allow interval at the end
+eg support -p 'from 1/1 to 2/1 weekly'
+
+*** parsing: safety check that effective date > actual (to catch eg 2009/12/30=1/4)
+*** parsing: support apostrophe digit group separator
+
+*** print: shouldn't support -M and --depth ?
+
+*** register: for the love of god, show full descriptions
+
+*** web: api
+*** web: auto-complete accounts & amount as well as description
+*** web: auto-complete from substrings, not just prefixes
+*** web: better web ui/gui
+*** web: completes one account name component in add form account fields
+*** web: how to find out net worth, /register?q=assets+liabilities shows nothing
+*** web: how to find out total spent in an account during a specific month
+*** web: in-place editing
+**** http://stackoverflow.com/questions/640971/setfocus-to-textbox-from-javascript-after-just-creating-the-textbox-with-javascr
+*** web: lose io-storage
+*** web: should display virtual postings with () or []
+*** web: should take port from base-url when appropriate
+*** web: update/remove browser startup
+*** web: wai-handler-webkit, wai-handler-launch
+
+
+*** account types & metadata
+; chart of accounts
+; defines allowed account names, hierarchy, default sort order, 
+; and some metadata (account numbers, cf http://www.netmba.com/accounting/fin/accounts/chart/)
+ACCOUNTS
+ assets                       ; :number: 1000
+  cash                        ; :number: 1010
+   HT7                        ; :number: 1011
+    jan                       ; :number: 1011.01
+    feb                       ; :number: 1011.02
+    mar                       ; :number: 1011.03
+   RSG                        ; :number: 1012
+    jan                       ; :number: 1012.01
+    feb                       ; :number: 1012.02
+    mar                       ; :number: 1012.03
+  bank                        ; :number: 1020
+   HT7                        ; :number: 1021
+   RSG                        ; :number: 1022
+   reserve                    ; :number: 1023
+ liabilities                  ; :number: 2000
+  accounts payable            ; :number: 2010
+   BSG/GI/RSG                 ; :number: 2011
+ equity                       ; :number: 3000
+  opening balances            ; :number: 3010
+ income                       ; :number: 4000
+  HT7                         ; :number: 4010
+  RSG                         ; :number: 4020
+ expenses                     ; :number: 6000
+  rent                        ; :number: 6010
+
+or: http://furius.ca/beancount/examples/demo.ledger
+
+*** anonymisation
+**** payees
+**** account names
+**** amounts
+**** dates
+
+*** balance setting
+ledger: You can accomplish "setting to the bank's view" with a transaction like this:
+
+2011-08-12 Sample
+  Assets:Checking    = $200.00
+  Equity:Adjustments
+
+This tells Ledger (Git/3.0) that your checking account's balance must be $200
+after this transaction is completed.  It will put whatever amounts are
+required to accomplish this into the Equity:Adjustments account.
+
+what about balance assertions ?
+
+*** clear, documented interfaces
+*** client-side ui
+*** debug logging
+*** detect .hs plugins
+*** don't recompile between autotest & functest
+*** Double -> Decimal
+*** query by commodity
 *** generalise rules file ?
 **** make it applicable to all formats ?
 **** absorb its directives into journal format ?
-*** support apostrophe digit group separator
-*** detect .hs plugins
+*** i18n
+*** journalAddTransaction should check txn balances
+*** make generatejournal.hs script a sub-command
+*** measure bug open times
+http://code.google.com/p/support/wiki/IssueTrackerAPI
+http://code.google.com/p/support/wiki/IssueTrackerAPIReference
 *** more powerful storage layer
 **** Clint's filestore_proof_of_concept.dpatch
 
@@ -3008,487 +3477,7 @@ hunk ./hledger/Hledger/Cli/Utils.hs 125
 -                        Just (_, ((_,suffix):_)) -> readMay suffix
 -                        _ -> Nothing
 
-*** web api
-*** client-side ui
-*** support -V ?
-*** print: shouldn't support -M and --depth ?
-*** in-place editing
-**** http://stackoverflow.com/questions/640971/setfocus-to-textbox-from-javascript-after-just-creating-the-textbox-with-javascr
-*** measure bug open times
-http://code.google.com/p/support/wiki/IssueTrackerAPI
-http://code.google.com/p/support/wiki/IssueTrackerAPIReference
-*** wai-handler-webkit, wai-handler-launch
-*** add: don't offer record txn option in account N prompt if it's not balanced yet
-*** add: would be nice to create the journal file only if a txn is actually recorded
-*** web: lose io-storage
-*** web: use cli args as a permanent additional filter ?
-*** web: should display virtual postings with () or []
-*** web: how to find out total spent in an account during a specific month
-*** web: how to find out net worth, /register?q=assets+liabilities shows nothing
-*** parsing: end directive may also be spelled end account; or end ends last directive
-*** convert: clean up default rules file
-*** convert: use default rules when converting stdin with no --rules
-*** convert: consistent multi-field formats allowed for any field
-*** convert: optionally generate single-entry txns
-*** convert: optionally set final amount blank
-*** convert: parse HH:MM[:SS] as an amount, converting to decimal hours
-*** convert: ignore heading row
-*** convert: warn and ignore unparsed rows ?
-*** stats: list all included files
-*** parsing: alias directives should be modified by account directives
-
-*** web: should take port from base-url when appropriate
-*** add: rewrite a short description (trader) to the full description from the matched txn (trader joe's) ?
-*** web: can't find out total income:7th total in june at http://localhost:5005/register?q=inacct%3Aassets%3Atreasury !
-*** web: update/remove browser startup
-*** docs: simple hledger.org/topic help urls, like php.net
-*** docs: --help-web and web ui help links that go to online help, with paragraph comments & chat
-cf clients & profits interactive user guide, php.net, realworldhaskell etc.
-*** parsing: accounts tree & metadata specification
-; chart of accounts
-; defines allowed account names, hierarchy, default sort order, 
-; and some metadata (account numbers, cf http://www.netmba.com/accounting/fin/accounts/chart/)
-ACCOUNTS
- assets                       ; :number: 1000
-  cash                        ; :number: 1010
-   HT7                        ; :number: 1011
-    jan                       ; :number: 1011.01
-    feb                       ; :number: 1011.02
-    mar                       ; :number: 1011.03
-   RSG                        ; :number: 1012
-    jan                       ; :number: 1012.01
-    feb                       ; :number: 1012.02
-    mar                       ; :number: 1012.03
-  bank                        ; :number: 1020
-   HT7                        ; :number: 1021
-   RSG                        ; :number: 1022
-   reserve                    ; :number: 1023
- liabilities                  ; :number: 2000
-  accounts payable            ; :number: 2010
-   BSG/GI/RSG                 ; :number: 2011
- equity                       ; :number: 3000
-  opening balances            ; :number: 3010
- income                       ; :number: 4000
-  HT7                         ; :number: 4010
-  RSG                         ; :number: 4020
- expenses                     ; :number: 6000
-  rent                        ; :number: 6010
-
-or: http://furius.ca/beancount/examples/demo.ledger
-
-*** -X/--show-in-commodity
-cf http://bugs.ledger-cli.org/show_bug.cgi?id=538
-*** cli, web: consistent rich query language, including and/or/parentheses
-ledger's query syntax: http://ledger-cli.org/3.0/doc/ledger.1.html
-**** draft 1:
-
-Filter patterns restrict the postings/transactions that are displayed.
-(They often reduce the amount of processing work hledger has to do, as well.)
-A pattern is a string or regular expression, usually with a prefix specifying the type of match to do.
-The supported prefixes are:
-
-acct:PAT        match postings affecting accounts whose name matches PAT
-otheracct:PAT   match the other postings in transactions with an acct match (like ledger's --related)
-anyacct:PAT     match all postings in transactions with an acct match (union of acct and otheracct)
-desc:PAT        match postings whose description matches PAT
-status:PAT      match postings whose cleared status matches PAT
-code:PAT        match postings whose transaction code matches PAT
-tag:PAT         match postings with a metadata tag whose name matches PAT
-tag:TAG=PAT     match postings with a metadata tag named TAG whose value matches PAT
-from:DATE       match postings on or after DATE (like --begin)
-to:DATE         match postings before DATE (like --end)
-in:PERIOD       match postings during PERIOD (like --period)
-(or ?
-begin:DATE       match postings on or after DATE (like --begin)
-end:DATE         match postings before DATE (like --end)
-period:PERIOD    match postings during PERIOD (like --period)
-)
-
-Prefixes have a short form which is their first letter, except for tag and anyacct.
-
-Prefix-less patterns are treated like acct: patterns, except by the
-register command which treats them as otheracct: .
-
-Patterns containing whitespace must be enclosed in quotes.
-
-Matches are always case-insensitive.
-
-Matches are always substring matches (except for TAG); to match exactly,
-wrap the pattern in ^ and $.
-
-A posting's date, status, code, etc. is usually (but not always) that of
-its containing transaction.
-
-Any of these may be further prefixed with not: for an inverse match.
-
-Filter patterns may be combined with AND, OR, and parentheses.  OR is
-assumed by default.
-(previously:
-When you specify multiple filter patterns, hledger generally selects the
-items which match:
-
-  any of the account patterns AND any of the description patterns
-
-The print command selects transactions which
-
-  match any of the description patterns AND have any postings matching any
-  of the positive account patterns AND have no postings matching any of
-  the negative account patterns
-)
-
-*** journalAddTransaction should check txn balances
-*** balance setting
-ledger: You can accomplish "setting to the bank's view" with a transaction like this:
-
-2011-08-12 Sample
-  Assets:Checking    = $200.00
-  Equity:Adjustments
-
-This tells Ledger (Git/3.0) that your checking account's balance must be $200
-after this transaction is completed.  It will put whatever amounts are
-required to accomplish this into the Equity:Adjustments account.
-
-what about balance assertions ?
-
-*** web: optional fully self-contained production build (all support files embedded)
-*** tools: fix slow make startup
-*** tools: better ghci setup
-*** docs: better intro, less wall-of-text, separate tutorial & reference sections
-*** balance: --depth with --flat should show aggregate balances including the non-displayed deeper accounts
-*** parsing: let's enforce positive price amounts for clarity, like ledger
-eg 1€ @@ $-2 is not allowed
-*** parsing: canonicalise account names to be case-insensitive ?
-*** parsing: period expressions should allow interval at the end
-eg support -p 'from 1/1 to 2/1 weekly'
-
-*** parsing: more flexible file including
-currently only journals (not timelog files) can include, and only another journal
-*** --no-elide -> --empty-parents ? Make it the default ?
-             $260.00  expenses
-             $260.00    rent
-*** --empty -> --show-zero-accounts, --show-empty-parents ? Make it default ?
-*** cli: better control of output format/layout
-**** register --format, generalise --format
-**** --wide ? window width sensitive ?
-**** more tidy/consistent layout from print
-**** --output-layout=ledger|traditional
-**** --output-format=text|html|pdf
-*** balance: try indenting amounts
-             $260.00    expenses
-               $260.00    rent
-*** parsing: ignore/support ledger assert statements
- ; Assertion directives Options
- ; These can occur in many places: 
- ;       ; Within an automated transaction, the assert is evaluated every time 
- ;       ; a posting is matched, with the expression context set to the 
- ;       ; matched posting. 
- ;       = /Food/ 
- ;         assert account("Expenses:Food").total >= $100 
- ;       2010-06-12 Sample 
- ;         Expenses:Food                $100 
- ;         Assets:Checking 
- ;       ; At file scope, the expression is evaluated within "global" scope. 
- ;       assert account("Expenses:Food").total == $100 
- ;       ; At the top of a transction, the assertion's scope is the 
- ;       ; transaction.  After a posting, the scope is that posting.  Note 
- ;       ; however that account totals are only adjusted after successful 
- ;       ; parsing of a transaction, which means that all the assertions below 
- ;       ; are true, even though it appears as though the first posting should 
- ;       ; affect the total immediately, which is not the case. 
- ;       2010-06-12 Sample 2 
- ;         assert account("Expenses:Food").total == $100 
- ;         Expenses:Food                $50 
- ;         assert account("Expenses:Food").total == $100 
- ;         Assets:Checking 
- ;         assert account("Expenses:Food").total == $100 
-
-*** parsing: better international number format support (#32)
-*** web: : completes one account name component in add form account fields
-*** web: auto-complete from substrings, not just prefixes
-*** web: auto-complete accounts & amount as well as description
-*** parsing: allow price record for null commodity, eg with quotes
-P 2009/1/1 "" 0.5h
-and why doesn't this work ? time.journal:
-P 2010/9/27 h 1
-$ hledger -f time.journal bal -p aug -B
-                   1           
-              17.75h  work:jobs
-                   1             
-              17.50h    clearview
-                   1      60 clear glass thermal data
-               0.25h      admin:cheque issue
-              12.75h      backups/hosting
-               2.00h        cleanup
-               1.00h        move plan
-               2.25h        move prep
-               4.00h        testing
-               3.50h          speed
-               1.50h      barbara spellcheck issue
-               0.50h      installation report dates
-               0.25h      plan change issue
-               1.00h      planning/discussion
-               0.50h      speed issue
-               0.25h      tina quote low-e layout
-               0.50h      tina title 24 issue
-               0.25h    kcrw:admin:contract update:unbilled
---------------------
-                   1
-              17.75h
-
-*** --related
-*** Double -> Decimal
-*** parsing: safety check that effective date > actual (to catch eg 2009/12/30=1/4)
-*** parsing: accept all real-world ledger files
-As far as I know it currently accepts all ledger 2.6-era files.
-Add support for ledger 3 file format as/when that stabilises.
-It would be nice to optionally semi/automatically submit parse error reports when they happen
-*** talkback feature
-gather data on real-world installation & usage issues
-simplify bug reporting/handling
-improve reliability
-*** upload feature
-*** generation
-**** move generatejournal.hs to a subcommand
-*** anonymisation
-**** payees
-**** accounts
-*** easier timelog formats
-*** convert: generalise/reuse add's history awareness
-*** parsing: per-posting effective/actual dates
-*** web: better web ui/gui
 *** nice standard financial reports
-*** more automated bank data conversion
-*** parse more file formats - gnucash, qif, ofx, csv, etc.
-**** ofx reader
-***** clint's code
-Date: Sun, 18 Sep 2011 12:26:16 -0400
-From: Clint Adams <clint@softwarefreedom.org>
-To: hledger@googlegroups.com
-Subject: OFX conversion
-Message-ID: <20110918162616.GA18874@softwarefreedom.org>
-MIME-Version: 1.0
-User-Agent: Mutt/1.5.20 (2009-06-14)
-X-Original-Sender: clint@softwarefreedom.org
-X-Original-Authentication-Results: gmr-mx.google.com; spf=pass (google.com:
- domain of clint@softwarefreedom.org designates 216.27.154.199 as permitted
- sender) smtp.mail=clint@softwarefreedom.org
-Reply-To: hledger@googlegroups.com
-Precedence: list
-Mailing-list: list hledger@googlegroups.com; contact hledger+owners@googlegroups.com
-List-ID: <hledger.googlegroups.com>
-X-Google-Group-Id: 895107692464
-List-Post: <http://groups.google.com/group/hledger/post?hl=en_US>, <mailto:hledger@googlegroups.com>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:hledger+help@googlegroups.com>
-List-Archive: <http://groups.google.com/group/hledger?hl=en_US>
-Sender: hledger@googlegroups.com
-List-Subscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+subscribe@googlegroups.com>
-List-Unsubscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+unsubscribe@googlegroups.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-This is definitely suboptimal but it seems to work on
-the OFX 1.0.2 output from AmEx.
-
-
-
-{-# LANGUAGE Arrows, NoMonomorphismRestriction #-}
-import Text.XML.HXT.Core
-import Text.Printf (printf)
-
-import Data.List (groupBy)
-import Data.List.Split (splitOn)
-
-import Data.Maybe (fromMaybe)
-
-import Data.Time.Calendar (Day (ModifiedJulianDay))
-import Data.Time.Format (formatTime)
-import Data.Time.LocalTime (LocalTime (LocalTime), TimeOfDay (TimeOfDay))
-import Data.Time.Parse (strptime)
-
-import System.Locale (defaultTimeLocale)
-import System.Process (readProcessWithExitCode)
-
-import Hledger.Cli.Format (FormatString (FormatField), Field (FieldNo))
-import Hledger.Cli.Convert
-
-normAmount :: String -> String
-normAmount amt | amt == "" = ""
-    | otherwise = printf "%.2f" (read amt :: Double)
-
-compressWhitespace :: String -> String
-compressWhitespace x = map head $ groupSpaces x
-        where groupSpaces "" = [""]
-              groupSpaces x = groupBy (\x y -> x==' ' && y==' ') x
-
-data Transaction = Transaction
-  { trnType, dtUser, dtPosted, trnAmt, fitId, refNum, name, memo :: String }
-  deriving (Show, Eq)
-
--- this doesn't get the timezone right
-ofxDateParse :: String -> String
-ofxDateParse x = formatTime defaultTimeLocale "%Y-%m-%d" (fst (fromMaybe (LocalTime (ModifiedJulianDay 100) (TimeOfDay 0 0 0), "") (strptime "%Y%m%d%H%M%S.%OS" x)))
-
-parseFakeXML string = readString [ withValidate no
-                             , withRemoveWS yes
-                             ] string
-
-atTag tag = deep (isElem >>> hasName tag)
-text = getChildren >>> getText
-textAtTag tag = atTag tag >>> text
-
-getTransactions = atTag "STMTTRN" >>>
-  proc l -> do
-    trnType  <- textAtTag "TRNTYPE" -< l
-    dtUser   <- textAtTag "DTUSER"         -< l
-    dtPosted <- textAtTag "DTPOSTED" -< l
-    trnAmt <- textAtTag "TRNAMT" -< l
-    fitId <- textAtTag "FITID" -< l
-    refNum <- textAtTag "REFNUM" -< l
-    name <- textAtTag "NAME" -< l
-    memo <- textAtTag "MEMO" -< l
-    returnA -< Transaction
-      { trnType   = trnType,
-        dtUser = ofxDateParse dtUser,
-        dtPosted = ofxDateParse dtPosted,
-        trnAmt     = trnAmt,
-        fitId     = fitId,
-        refNum     = refNum,
-        name     = name,
-        memo  = memo }
-
-ofxrules = CsvRules {
-      dateField=Just 0,
-      dateFormat=Nothing,
-      statusField=Nothing,
-      codeField=Nothing,
-      descriptionField=[FormatField False Nothing Nothing (FieldNo 2)],
-      amountField=Just 1,
-      inField=Nothing,
-      outField=Nothing,
-      currencyField=Nothing,
-      baseCurrency=Nothing,
-      accountField=Nothing,
-      account2Field=Nothing,
-      effectiveDateField=Nothing,
-      baseAccount="Liabilities:American Express",
-      accountRules=[]
-}
-
-txnToCsvRecord :: Transaction -> CsvRecord
-txnToCsvRecord x = [dtUser x, normAmount (trnAmt x), compressWhitespace (name x) ++ "(" ++ refNum x ++ ")", fitId x, memo x]
-
-printTxnWithComment :: CsvRecord -> IO ()
-printTxnWithComment x = putStrLn ("; " ++ x !! 3 ++ " - " ++ x !! 4) >> printTxn False ofxrules x
-
-main = do
-  filecontents <- readFile "/tmp/ofx.ofx"
-  let splitfilecontents = splitOn "\n\n" filecontents
-  let ofxheader = head splitfilecontents
-  let ofxsgml = splitfilecontents !! 1
-  (_, fakexml, _) <- readProcessWithExitCode "/usr/bin/sgml2xml" [] ofxsgml
-
-  transes <- runX (parseFakeXML fakexml >>> getTransactions)
-
-  let records = map txnToCsvRecord transes
-  mapM_ (printTxnWithComment) records
-
-**** qif reader
-***** clint's code
-Date: Tue, 25 Oct 2011 11:46:24 -0400
-From: Clint Adams <clint@softwarefreedom.org>
-To: hledger@googlegroups.com
-Cc: thomas@marketpsychdata.com, jjenning@fastmail.fm
-Subject: Re: QIF parsing
-Message-ID: <20111025154624.GA3097@softwarefreedom.org>
-References: <20111006164952.GA734@softwarefreedom.org>
-MIME-Version: 1.0
-In-Reply-To: <20111006164952.GA734@softwarefreedom.org>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-Original-Sender: clint@softwarefreedom.org
-X-Original-Authentication-Results: gmr-mx.google.com; spf=pass (google.com:
- domain of clint@softwarefreedom.org designates 207.86.247.70 as permitted
- sender) smtp.mail=clint@softwarefreedom.org
-Reply-To: hledger@googlegroups.com
-Precedence: list
-Mailing-list: list hledger@googlegroups.com; contact hledger+owners@googlegroups.com
-List-ID: <hledger.googlegroups.com>
-X-Google-Group-Id: 895107692464
-List-Post: <http://groups.google.com/group/hledger/post?hl=en_US>, <mailto:hledger@googlegroups.com>
-List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:hledger+help@googlegroups.com>
-List-Archive: <http://groups.google.com/group/hledger?hl=en_US>
-Sender: hledger@googlegroups.com
-List-Subscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+subscribe@googlegroups.com>
-List-Unsubscribe: <http://groups.google.com/group/hledger/subscribe?hl=en_US>, <mailto:hledger+unsubscribe@googlegroups.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-X-Truedomain-Domain: googlegroups.com
-X-Truedomain-SPF: Neutral (mx4: 173.255.219.222 is neither permitted nor denied by domain of googlegroups.com)
-X-Truedomain-DKIM: Pass
-X-Truedomain-ID: 16FADD416626EE6BDC6CCBB61A94EA31
-X-Truedomain: Neutral
-
-I had to update my QIF converter for modern hledger; included below.
-
-Thomas, I didn't see your reply because I'm not subscribed to
-this Google Group.  I believe that QuickBooks uses OFX, not QIF,
-so you'd be more interested in
-
-http://groups.google.com/group/hledger/browse_thread/thread/e03ccc655347ba72
-
-or
-
-http://www.dingoskidneys.com/~jaredj/
-
-------8<-------
-
-import Text.Parsec
-import Text.Parsec.String
-
-import Control.Monad.State as State
-
-import System (getArgs)
-import Data.List (groupBy)
-import Data.Maybe (fromMaybe)
-import qualified Data.Map as Map
-import Text.Printf (printf)
-
-import Hledger.Cli.Format (FormatString (FormatField), Field (FieldNo)) 
-import Hledger.Cli.Convert 
-
-qifFile :: GenParser Char st (String,[[TransactionDetail]])
-qifFile = do
-        skipMany newline
-        dtype <- typeHeader
-        newline
-        trans <- endBy1 transaction recordSep
-        return $ (dtype,trans)
-
-typeHeader :: GenParser Char st String
-typeHeader = do
-        string "!Type:"
-        dataType
-
-dataType :: GenParser Char st String
-dataType = do string "Cash"
-          <|> string "Bank"
-          <|> string "CCard"
-          <|> string "Invst"
-          <|> string "Oth A"
-          <|> string "Oth L"
-          <|> string "Invoice"
-
-transaction :: GenParser Char st [TransactionDetail]
-
-*** download via ofx protocol
-*** parsing: more date syntax ? last nov, next friday, optional this, week of
-*** parsing: more period syntax ? every N days, biweekly
-*** cli: accept multiple journal file options
-*** i18n
-*** speed, memory usage
-**** simple/more frequent benchmarking
-*** clear, documented interfaces/surfaces
 *** plugin architecture/modular packaging
 **** goals
 ***** allow separately-packaged functionality to be discovered at run-time and integrated within the hledger ui.
@@ -3524,4 +3513,13 @@ types need converting, etc.
 plugins may run more slowly
 plugins can be discovered/loaded by module path or by loading files directly
 
-
+*** runtime report templates
+*** separate --display and --limit expressions, eg for --depth
+*** perf: more speed, memory optimisation
+*** support - in period expressions
+*** support -V ?
+*** talkback feature
+gather data on real-world installation & usage issues
+simplify bug reporting/handling
+improve reliability
+*** upload feature
