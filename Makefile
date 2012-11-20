@@ -106,7 +106,8 @@ WEBLANGEXTS:=\
 	-XGeneralizedNewtypeDeriving \
 	-XFlexibleContexts \
 	-XEmptyDataDecls \
-	-XOverloadedStrings
+	-XOverloadedStrings \
+	-XRecordWildCards
 #	-XNoMonomorphismRestriction
 #	-XNoImplicitPrelude
 PREFERMACUSRLIBFLAGS=-L/usr/lib
