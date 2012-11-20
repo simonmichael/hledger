@@ -5,7 +5,7 @@ module Handler.Post where
 import Import
 
 import Data.Either (lefts,rights)
-import Data.List (head, intercalate)
+import Data.List (intercalate)
 import Data.Text (unpack)
 import qualified Data.Text as T (null)
 import Text.Hamlet (shamlet)
