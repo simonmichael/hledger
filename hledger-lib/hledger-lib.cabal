@@ -68,7 +68,6 @@ library
                  ,parsec
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
-                 ,shakespeare-text >= 1.0 && < 1.1
                  ,split >= 0.1 && < 0.3
                  ,time
                  ,transformers >= 0.2 && < 0.4
