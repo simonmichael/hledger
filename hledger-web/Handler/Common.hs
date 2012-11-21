@@ -16,7 +16,6 @@ import Text.Blaze (preEscapedString)
 #endif
 import Text.Printf
 
-import Handler.Utils
 import Hledger.Utils
 import Hledger.Data
 import Hledger.Query
@@ -24,6 +23,7 @@ import Hledger.Reports
 import Hledger.Cli.Options
 import Hledger.Web.Options
 
+import Handler.Utils
 
 -------------------------------------------------------------------------------
 -- Page components
@@ -517,7 +517,7 @@ numberTransactionsReportItems items = number 0 nulldate items
   where
     number :: Int -> Day -> [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
     number _ _ [] = []
-    number n prevd (i@(Transaction{tdate=d},_,_,_,_,_):is)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d is)
+    number n prevd (i@(Transaction{tdate=d},_,_,_,_,_):rest)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d rest)
         where
           newday = d/=prevd
           newmonth = dm/=prevdm || dy/=prevdy
