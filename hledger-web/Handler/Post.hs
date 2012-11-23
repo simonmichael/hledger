@@ -5,7 +5,8 @@ module Handler.Post where
 import Import
 
 import Data.Either (lefts,rights)
-import Data.List (head, intercalate)
+import Data.List (intercalate)
+import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
 import Data.Text (unpack)
 import qualified Data.Text as T (null)
 import Text.Hamlet (shamlet)
@@ -61,7 +62,7 @@ handleAdd = do
       [amt1,amt2] = rights amtEs
       -- if no errors so far, generate a transaction and balance it or get the error.
       tE | not $ null errs = Left errs
-         | otherwise = either (\e -> Left ["unbalanced postings: " ++ (head $ lines e)]) Right
+         | otherwise = either (\e -> Left ["unbalanced postings: " ++ (L.head $ lines e)]) Right
                         (balanceTransaction Nothing $ nulltransaction { -- imprecise balancing
                            tdate=parsedate date
                           ,tdescription=desc
