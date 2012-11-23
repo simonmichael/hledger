@@ -39,7 +39,8 @@ PACKAGES=\
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger \
-	-ihledger-web
+	-ihledger-web \
+	-ihledger-web/app
 MAIN=hledger/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
@@ -96,6 +97,11 @@ PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
 
 # build flags
 WARNINGS:=-W -fwarn-tabs -fno-warn-unused-do-bind -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
+# Language extensions similar to the ones enabled by yesod in hledger-web.cabal,
+# so that we can do full dev builds of  hledger-web. Warning, they are not
+# exactly the same, in particular NoImplicitPrelude is not enabled since
+# hledger and hledger-lib won't build with that. So don't rely on the dev
+# build to show all compilation warnings and errors, do a cabal build as well.
 WEBLANGEXTS:=\
 	-XTemplateHaskell \
 	-XQuasiQuotes \
@@ -108,8 +114,8 @@ WEBLANGEXTS:=\
 	-XEmptyDataDecls \
 	-XOverloadedStrings \
 	-XRecordWildCards
-#	-XNoMonomorphismRestriction
 #	-XNoImplicitPrelude
+#	-XNoMonomorphismRestriction
 PREFERMACUSRLIBFLAGS=-L/usr/lib
 GHCMEMFLAGS= #+RTS -M200m -RTS
 BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) -DBLAZE_HTML_0_5 -DDEVELOPMENT
@@ -480,6 +486,9 @@ viewcoverage:
 # get a debug prompt
 ghci:
 	ghci $(INCLUDEPATHS) $(MAIN)
+
+ghciweb:
+	ghci $(BUILDFLAGS) $(WEBLANGEXTS)  #hledger-web/app/main.hs
 
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal
