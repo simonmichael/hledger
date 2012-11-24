@@ -761,7 +761,7 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 MANUAL.md: $(VERSIONFILE)
-	perl -p -e "s/(^This is the.*?manual.*? for hledger.*?) +[0-9.]+/\1 $(VERSION)./" -i $@
+	perl -p -e "s/(^Version:) +[0-9.]+/\1 $(VERSION)/" -i $@
 
 DOWNLOAD.md: $(VERSIONFILE)
 	perl -p -e "s/hledger(|-chart|-web|-vty)-[0-9.]+-/hledger\1-$(VERSION)-/g" -i $@
