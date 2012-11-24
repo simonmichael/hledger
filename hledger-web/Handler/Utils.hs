@@ -122,7 +122,7 @@ numbered :: [a] -> [(Int,a)]
 numbered = zip [1..]
 
 dayToJsTimestamp :: Day -> Integer
-dayToJsTimestamp d = read (formatTime defaultTimeLocale "%s" t) * 1000
+dayToJsTimestamp d = read (formatTime defaultTimeLocale "%s" t) * 1000 -- XXX read
                      where t = UTCTime d (secondsToDiffTime 0)
 
 chomp :: String -> String

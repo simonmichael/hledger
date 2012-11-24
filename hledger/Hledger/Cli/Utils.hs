@@ -103,12 +103,13 @@ fileModificationTime :: FilePath -> IO ClockTime
 fileModificationTime f
     | null f = getClockTime
     | otherwise = (do
+-- getModificationTime returned a ClockTime till GHC 7.6 (directory 1.2), now it's UTCTime
 #if __GLASGOW_HASKELL__ < 706
         clo <- getModificationTime f
 #else
         utc <- getModificationTime f
         let nom = utcTimeToPOSIXSeconds utc
-        let clo = TOD (read $ show nom) 0 -- XXX
+        let clo = TOD (read $ takeWhile (`elem` "0123456789") $ show nom) 0 -- XXX read
 #endif
         return clo
         )
