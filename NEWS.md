@@ -4,6 +4,10 @@ title: hledger news
 
 # News
 
+## 2012/11/24 hledger-web 0.19.1, hledger 0.19.2
+
+  * web: fix "Prelude.read: no parse" errors with GHC >= 7.6
+
 ## 2012/11/16 hledger-web 0.19
 
   * builds with yesod 1.1.3
