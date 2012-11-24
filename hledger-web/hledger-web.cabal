@@ -1,6 +1,6 @@
 name:           hledger-web
 -- also in cpp-options below
-version: 0.19
+version: 0.19.1
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -83,7 +83,7 @@ library
     --     Buildable: False
 
     ghc-options:   -Wall -fno-warn-unused-do-bind
-    cpp-options:   -DVERSION="0.19"
+    cpp-options:   -DVERSION="0.19.1"
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
 
@@ -124,7 +124,7 @@ library
                  , warp                          >= 1.3        && < 1.4
                  , data-default
 
-                   , hledger == 0.19.1
+                   , hledger == 0.19.2
                    , hledger-lib == 0.19.1
                    , cmdargs >= 0.10 && < 0.11
                    , directory
@@ -154,7 +154,7 @@ library
 
 
 executable         hledger-web
-    cpp-options:   -DVERSION="0.19"
+    cpp-options:   -DVERSION="0.19.1"
 
     if flag(library-only)
         Buildable: False
@@ -194,7 +194,7 @@ executable         hledger-web
 
     build-depends:
                      hledger-web
-                   , hledger == 0.19.1
+                   , hledger == 0.19.2
                    , hledger-lib == 0.19.1
                    , base                          >= 4.3        && < 5
                    , cmdargs >= 0.10 && < 0.11
