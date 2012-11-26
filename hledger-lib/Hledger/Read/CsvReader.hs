@@ -432,7 +432,9 @@ transactionFromCsvRecord rules fields =
       precomment = ""
       baseacc = maybe (baseAccount rules) (atDef "" fields) (accountField rules)
       amountstr = getAmount rules fields
-      amountstr' = strnegate amountstr where strnegate ('-':s) = s
+      -- "negate" an amount string. An amount beginning with - or enclosed in parentheses is negative.
+      amountstr' = strnegate amountstr where strnegate ('(':s) | not (null s) && last s == ')' = init s
+                                             strnegate ('-':s) = s
                                              strnegate s = '-':s
       currency = maybe (fromMaybe "" $ baseCurrency rules) (atDef "" fields) (currencyField rules)
       amountstr'' = currency ++ amountstr'
