@@ -183,7 +183,7 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
 -- rulesFileFor CliOpts{rules_file_=Just f} _ = f
 -- rulesFileFor CliOpts{rules_file_=Nothing} csvfile = replaceExtension csvfile ".rules"
 rulesFileFor :: FilePath -> FilePath
-rulesFileFor = flip replaceExtension ".rules"
+rulesFileFor = (++ ".rules")
 
 newRulesFileContent :: String
 newRulesFileContent = let prognameandversion = "hledger" in
