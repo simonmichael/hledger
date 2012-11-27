@@ -175,6 +175,8 @@ autoweb: sp web-build-links
 web-build-links:
 	ln -sf hledger-web/config
 	ln -sf hledger-web/messages
+	ln -sf hledger-web/static
+	ln -sf hledger-web/templates
 
 # check for sp and explain how to get it if not found.
 sp:
