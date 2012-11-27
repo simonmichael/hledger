@@ -17,13 +17,13 @@ import Network.HTTP.Conduit (Manager)
 -- import qualified Settings
 import Settings.Development (development)
 import Settings.StaticFiles
-import Settings ({-widgetFile,-} Extra (..))
+import Settings (widgetFile, Extra (..))
 #ifndef DEVELOPMENT
 import Settings (staticDir)
 import Text.Jasmine (minifym)
 #endif
 import Web.ClientSession (getKey)
--- import Text.Hamlet (hamletFile)
+import Text.Hamlet (hamletFile)
 
 import Hledger.Web.Options
 -- import Hledger.Web.Settings
@@ -82,15 +82,15 @@ instance Yesod App where
         key <- getKey ".hledger-web_client_session_key.aes"
         return . Just $ clientSessionBackend key 120
 
-    -- defaultLayout widget = do
-    --     master <- getYesod
-    --     mmsg <- getMessage
+    defaultLayout widget = do
+        master <- getYesod
+        mmsg <- getMessage
 
-    --     -- We break up the default layout into two components:
-    --     -- default-layout is the contents of the body tag, and
-    --     -- default-layout-wrapper is the entire page. Since the final
-    --     -- value passed to hamletToRepHtml cannot be a widget, this allows
-    --     -- you to use normal widget features in default-layout.
+        -- We break up the default layout into two components:
+        -- default-layout is the contents of the body tag, and
+        -- default-layout-wrapper is the entire page. Since the final
+        -- value passed to hamletToRepHtml cannot be a widget, this allows
+        -- you to use normal widget features in default-layout.
 
     --     pc <- widgetToPageContent $ do
     --         $(widgetFile "normalize")
@@ -98,27 +98,21 @@ instance Yesod App where
     --         $(widgetFile "default-layout")
     --     hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-    defaultLayout widget = do 
         pc <- widgetToPageContent $ do
-          widget
-        hamletToRepHtml [hamlet|
-$doctype 5
-<html>
- <head>
-  <title>#{pageTitle pc}
-  ^{pageHead pc}
-  <meta http-equiv=Content-Type content="text/html; charset=utf-8">
-  <script type=text/javascript src=@{StaticR jquery_js}>
-  <script type=text/javascript src=@{StaticR jquery_url_js}>
-  <script type=text/javascript src=@{StaticR jquery_flot_js}>
-  <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
-  <script type=text/javascript src=@{StaticR dhtmlxcommon_js}>
-  <script type=text/javascript src=@{StaticR dhtmlxcombo_js}>
-  <script type=text/javascript src=@{StaticR hledger_js}>
-  <link rel=stylesheet type=text/css media=all href=@{StaticR style_css}>
- <body>
-  ^{pageBody pc}
-|]
+            $(widgetFile "normalize")
+            addStylesheet $ StaticR css_bootstrap_css
+            -- load jquery early:
+            toWidgetHead [hamlet| <script type="text/javascript" src="/static/jquery.js"></script> |]
+            addScript $ StaticR jquery_url_js
+            addScript $ StaticR jquery_flot_js
+            toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="excanvas.min.js"></script> <![endif]--> |]
+            addScript $ StaticR dhtmlxcommon_js
+            addScript $ StaticR dhtmlxcombo_js
+            addStylesheet $ StaticR style_css
+            addScript $ StaticR hledger_js
+            $(widgetFile "default-layout")
+
+        hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- -- This is done to provide an optimization for serving static files from
     -- -- a separate domain. Please see the staticRoot setting in Settings.hs
