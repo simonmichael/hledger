@@ -17,10 +17,11 @@
       <!-- <a href="/"><img src="/logo.jpg" border="0" ALT="" /></a> -->
   <div#navigation
    <a href="/README.html">Home</a>
+   <a href="/DOWNLOAD.html">Download</a>
+   <a href="/NEWS.html">News</a>
    <a href="/MANUAL.html">Docs</a>
    <a href="/DEVELOPMENT.html">Contribute</a>
-   <a href="/NEWS.html">News</a>
-   <a href="/DOWNLOAD.html">Download</a>
+   <a href="http://wiki.hledger.org">Wiki</a>
    <a href="http://demo.hledger.org">Demo</a>
 
   #{body}
