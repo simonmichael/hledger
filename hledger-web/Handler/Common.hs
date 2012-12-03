@@ -1,4 +1,5 @@
 -- | Common page components and rendering helpers.
+-- For global page layout, see Application.hs.
 
 module Handler.Common where
 
@@ -362,7 +363,7 @@ accountUrl r a = (r, [("q", pack $ accountQuery a)])
 -- | Render an "EntriesReport" as html for the journal entries view.
 entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> HtmlUrl AppRoute
 entriesReportAsHtml _ vd items = [hamlet|
-<table.journalreport>
+<table.entriesreport>
  $forall i <- numbered items
   ^{itemAsHtml vd i}
  |]
@@ -380,7 +381,7 @@ entriesReportAsHtml _ vd items = [hamlet|
 -- | Render a "TransactionsReport" as html for the formatted journal view.
 journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
-<table.journalreport>
+<table.transactionsreport>
  <tr.headings>
   <th.date align=left>Date
   <th.description align=left>Description
