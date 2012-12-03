@@ -463,7 +463,7 @@ effectivedate actualdate = do
   return edate
 
 status :: GenParser Char JournalContext Bool
-status = try (do { many spacenonewline; char '*' <?> "status"; return True } ) <|> return False
+status = try (do { many spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
 
 code :: GenParser Char JournalContext String
 code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
