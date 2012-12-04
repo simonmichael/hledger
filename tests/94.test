@@ -1,0 +1,31 @@
+# issue 94: total balance should be that of top-level accounts, with and without --flat
+# 1. 
+hledgerdev -f - balance
+<<<
+1/1
+    (a)     1
+
+1/1
+    (a:aa)  1
+>>>
+                   2  a
+                   1    aa
+--------------------
+                   2
+>>>= 0
+
+# 2. 
+hledgerdev -f - balance --flat
+<<<
+1/1
+    (a)     1
+
+1/1
+    (a:aa)  1
+>>>
+                   2  a
+                   1  a:aa
+--------------------
+                   2
+>>>= 0
+

@@ -531,7 +531,7 @@ type AccountsReport = ([AccountsReportItem] -- line items, one per account
                       )
 type AccountsReportItem = (AccountName  -- full account name
                           ,AccountName  -- short account name for display (the leaf name, prefixed by any boring parents immediately above)
-                          ,Int          -- how many steps to indent this account (0-based account depth excluding boring parents)
+                          ,Int          -- how many steps to indent this account (0 with --flat, otherwise the 0-based account depth excluding boring parents)
                           ,MixedAmount) -- account balance, includes subs unless --flat is present
 
 -- | Select accounts, and get their balances at the end of the selected
@@ -552,7 +552,7 @@ accountsReport opts q j = (items, total)
             markboring | no_elide_ opts = id
                        | otherwise      = markBoringParentAccounts
       items = map (accountsReportItem opts) accts'
-      total = sum [amt | (_,_,depth,amt) <- items, depth==0]
+      total = sum [amt | (a,_,_,amt) <- items, accountNameLevel a == 1]
 
 -- | In an account tree with zero-balance leaves removed, mark the
 -- elidable parent accounts (those with one subaccount and no balance
@@ -565,12 +565,12 @@ markBoringParentAccounts = tieAccountParents . mapAccounts mark
 
 accountsReportItem :: ReportOpts -> Account -> AccountsReportItem
 accountsReportItem opts a@Account{aname=name, aibalance=ibal}
-  | flat_ opts = (name, name,       0,     ibal)
-  | otherwise  = (name, elidedname, depth, ibal)
+  | flat_ opts = (name, name,       0,      ibal)
+  | otherwise  = (name, elidedname, indent, ibal)
   where
     elidedname = accountNameFromComponents (adjacentboringparentnames ++ [accountLeafName name])
     adjacentboringparentnames = reverse $ map (accountLeafName.aname) $ takeWhile aboring $ parents
-    depth = length $ filter (not.aboring) parents
+    indent = length $ filter (not.aboring) parents
     parents = init $ parentAccounts a
 
 
