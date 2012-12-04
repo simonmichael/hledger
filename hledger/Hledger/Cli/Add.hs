@@ -174,7 +174,6 @@ getPostings st enteredps = do
       postingtype ('[':_) = BalancedVirtualPosting
       postingtype ('(':_) = VirtualPosting
       postingtype _ = RegularPosting
-      stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
                                    || isRight (runParser (amountp >> many spacenonewline >> eof) ctx "" s)
 

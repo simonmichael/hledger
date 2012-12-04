@@ -58,6 +58,8 @@ strip = lstrip . rstrip
 lstrip = dropWhile (`elem` " \t") :: String -> String
 rstrip = reverse . lstrip . reverse
 
+stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
+
 elideLeft width s =
     if length s > width then ".." ++ reverse (take (width - 2) $ reverse s) else s
 
@@ -445,4 +447,3 @@ expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expand
 firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
-
