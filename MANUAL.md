@@ -509,7 +509,7 @@ Since version 0.18, hledger can also read
 An arbitrary CSV file does not provide enough information to be parsed as
 a journal. So when reading CSV, hledger looks for an additional
 [rules file](#the-rules-file), which identifies the CSV fields and assigns
-accounts. For reading `FILE.csv`, hledger uses `FILE.rules` in the same
+accounts. For reading `FILE.csv`, hledger uses `FILE.csv.rules` in the same
 directory, auto-creating it if needed. You should configure the rules file
 to get the best data from your CSV file. You can specify a different rules
 file with `--rules-file` (useful when reading from standard input).
