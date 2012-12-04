@@ -157,7 +157,7 @@ Here's an example:
         expenses:supplies     $1    ; <- this transaction debits two expense accounts
         assets:cash                 ; <- $-2 inferred
     
-    2008/12/31 * pay off            ; <- an optional * after the date means "cleared" (or anything you want)
+    2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
         liabilities:debts     $1
         assets:bank:checking
 
