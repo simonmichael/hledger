@@ -228,6 +228,9 @@ regexReplaceBy r replfn s = gsubRegexPRBy r replfn s
 regexToCaseInsensitive :: String -> String
 regexToCaseInsensitive r = "(?i)"++ r
 
+regexSplit :: String -> String -> [String]
+regexSplit = splitRegexPR
+
 -- lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
@@ -339,6 +342,26 @@ mtrace a = strace a `seq` return a
 -- | trace an expression using a custom show function
 tracewith :: (a -> String) -> a -> a
 tracewith f e = trace (f e) e
+
+-- | Parsec trace - show the current parsec position and next input,
+-- prefixed by the specified label if it's non-null.
+ptrace :: String -> GenParser Char st ()
+ptrace label = do
+  let label' = if null label then "" else label ++ ": "
+  pos <- getPosition
+  let (line,col) = (sourceLine pos, sourceColumn pos)
+  next <- take 20 `fmap` getInput
+  mtrace (printf "%-10sat line %2d col %2d looking at >>>%s<<<" label' line col next :: String)
+  return ()
+
+ptrace' :: (Show a) => String -> GenParser a st ()
+ptrace' label = do
+  let label' = if null label then "" else label ++ ": "
+  pos <- getPosition
+  let (line,col) = (sourceLine pos, sourceColumn pos)
+  next <- take 20 `fmap` getInput
+  mtrace (printf "%-10sat line %2d col %2d looking at %s" label' line col (show next) :: String)
+  return ()
 
 -- parsing
 
