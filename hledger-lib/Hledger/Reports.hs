@@ -575,6 +575,20 @@ accountsReportItem opts a@Account{aname=name, aibalance=ibal}
 
 
 -------------------------------------------------------------------------------
+
+-- | Get the historical running inclusive balance of a particular account,
+-- from earliest to latest posting date.
+-- XXX Accounts should know the Ledger & Journal they came from
+accountBalanceHistory :: ReportOpts -> Journal -> Account -> [(Day, MixedAmount)]
+accountBalanceHistory ropts j a = [(getdate t, bal) | (t,_,_,_,_,bal) <- items]
+  where
+    (_,items) = journalTransactionsReport ropts j acctquery
+    inclusivebal = True
+    acctquery = Acct $ (if inclusivebal then accountNameToAccountRegex else accountNameToAccountOnlyRegex) $ aname a
+    getdate = if effective_ ropts then transactionEffectiveDate else transactionActualDate
+
+
+-------------------------------------------------------------------------------
 -- TESTS
 
 tests_postingsReport = [
