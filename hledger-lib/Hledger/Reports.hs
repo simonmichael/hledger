@@ -552,7 +552,7 @@ accountsReport opts q j = (items, total)
             markboring | no_elide_ opts = id
                        | otherwise      = markBoringParentAccounts
       items = map (accountsReportItem opts) accts'
-      total = sum [amt | (a,_,_,amt) <- items, accountNameLevel a == 1]
+      total = sum [amt | (a,_,indent,amt) <- items, if flat_ opts then accountNameLevel a == 1 else indent == 0]
 
 -- | In an account tree with zero-balance leaves removed, mark the
 -- elidable parent accounts (those with one subaccount and no balance
