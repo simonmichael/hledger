@@ -1,9 +1,0 @@
-# an extra slash before [ silently disables the effective date in 0.6.1
-hledgerdev -f - print --effective -p 2009/1/2
-<<<
-2009/1/1/[=2009/1/2] x
-    a  1
-    b
-
->>>2 /unexpected/
->>>= 1
