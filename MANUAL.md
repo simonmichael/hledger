@@ -238,31 +238,26 @@ transactions, like so:
     1/31  ; equivalent to 2010/1/31
       ...
 
-### Actual & effective dates
+### Primary & secondary dates
 
 Most of the time, a simple transaction date is all you need. However
-real-life transactions sometimes involve more than one date.  For example,
-you buy a movie ticket on friday with a debit card, and the transaction is
-charged to your bank account on monday.  Or you write a cheque to someone
-and they deposit it weeks later.
+real-life transactions sometimes involve more than one date. Eg, cheque
+writing and clearing dates. When you want to model this, eg so that your
+daily checking account balance is more accurate, write both dates,
+separated by an equals sign. The *primary date* goes on the left, and is
+used by default; the *secondary date* goes on the right, and is used when
+the `--date2` flag is provided. (You can also spell this `--aux-date`,
+like ledger, or `--effective` like older versions).
 
-When you don't care about this, just pick one date for your journal
-transaction; either will do. But when you want to model reality more
-accurately (eg: to match your daily bank balance), write both dates,
-separated by an equals sign. Following ledger's convention, the *actual
-date* (or "bank date") goes on the left, and is used by default, the
-*effective date* (or "your date") goes on the right, and is used when the
-`--effective` flag is provided. Here are some mnemonics to prevent confusion:
-
-- ACTUAL=EFFECTIVE. The actual date is (by definition) the one on the left. A before E.
-- BANKDATE=MYDATE. You can usually think "actual is bank's, effective is mine".
-- LATER=EARLIER. The effective date is usually the chronologically earlier one.
-- "The cheque took EFFECT then, but ACTUALLY cleared weeks later."
+These used to be called "actual" and "effective" dates. Their meaning is
+up to you, but it's best to follow a consistent rule. I write the bank's
+clearing date as primary, and the date I initiated the transaction as
+secondary (if needed).
 
 Example:
 
-    ; ACTUAL=EFFECTIVE
-    ; The effective date's year is optional, defaulting to the actual date's
+    ; PRIMARY=SECONDARY
+    ; The secondary date's year is optional, defaulting to the primary's
     2010/2/23=2/19 movie ticket
       expenses:cinema                   $10
       assets:checking
@@ -270,7 +265,7 @@ Example:
     $ hledger register checking
     2010/02/23 movie ticket         assets:checking                $-10         $-10
 
-    $ hledger register checking --effective
+    $ hledger register checking --date2
     2010/02/19 movie ticket         assets:checking                $-10         $-10
 
 ### Default commodity
@@ -404,12 +399,12 @@ a tag with `tag:NAME`.
 
 You can give individual postings a different date from their parent
 transaction, by adding a [posting tag]("tags") like `date:DATE` where
-DATE is a [simple date](#simple-dates). The effective date can be set
-with `date2:DATE`. If present, these dates will take precedence in
+DATE is a [simple date](#simple-dates). The secondary date can be set
+with `date2:DATE2`. If present, these dates will take precedence in
 reports.
 
-Ledger's bracketed posting date syntax (`[ACTUALDATE]`,
-`[ACTUALDATE=EFFECTIVEDATE]` or `[=EFFECTIVEDATE]` in a posting comment)
+Ledger's bracketed posting date syntax (`[DATE]`,
+`[DATE=DATE2]` or `[=DATE2]` in a posting comment)
 is also supported, as an alternate spelling of the date tags.
 
 ### Including other files
@@ -630,9 +625,9 @@ results.)
 > 
 >     description-field %(1) - %(3)
 
-`effective-date-field`
+`date2-field`
 
-> Which field contains the transaction's [effective date](#actual-effective-dates).
+> Which field contains the transaction's [secondary date](#primary-secondary-dates).
 
 `status-field`
 
@@ -942,7 +937,7 @@ the following:
 - `acct:REGEX` - same as above
 - `desc:REGEX` - match transaction descriptions by regular expression
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
-- `edate:PERIODEXPR` - as above, but match effective dates
+- `edate:PERIODEXPR` - as above, but match secondary dates
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `tag:NAME[=REGEX]` - match by exact [tag](#tags) name, and optionally match the tag value by regular expression
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
@@ -1337,8 +1332,8 @@ entries, and the following c++ ledger options and commands:
   amounts which have them. (This means that it does not currently print
   multi-commodity transactions in valid journal format.)
 
-- hledger print ignores the --effective flag, always showing both dates.
-  ledger print shows only the effective date with --effective, but not
+- hledger print ignores the --date2 flag, always showing both dates.
+  ledger print shows only the secondary date with --aux-date, but not
   vice versa.
 
 - hledger's default commodity directive (D) sets the commodity for
