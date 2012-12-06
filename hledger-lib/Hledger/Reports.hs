@@ -248,7 +248,7 @@ tests_entriesReport = [
 type PostingsReport = (String               -- label for the running balance column XXX remove
                       ,[PostingsReportItem] -- line items, one per posting
                       )
-type PostingsReportItem = (Maybe (Day, String) -- transaction date and description if this is the first posting
+type PostingsReportItem = (Maybe (Day, String) -- posting date and description if this is the first posting
                           ,Posting             -- the posting, possibly with account name depth-clipped
                           ,MixedAmount         -- the running total after this posting
                           )
@@ -296,9 +296,9 @@ postingsReportItems :: [Posting] -> Posting -> Int -> MixedAmount -> (MixedAmoun
 postingsReportItems [] _ _ _ _ = []
 postingsReportItems (p:ps) pprev d b sumfn = i:(postingsReportItems ps p d b' sumfn)
     where
-      i = mkpostingsReportItem isfirst p' b'
+      i = mkpostingsReportItem isfirstintxn p' b'
       p' = p{paccount=clipAccountName d $ paccount p}
-      isfirst = ptransaction p /= ptransaction pprev
+      isfirstintxn = ptransaction p /= ptransaction pprev
       b' = b `sumfn` pamount p
 
 -- | Generate one postings report line item, given a flag indicating
@@ -306,9 +306,10 @@ postingsReportItems (p:ps) pprev d b sumfn = i:(postingsReportItems ps p d b' su
 -- running balance.
 mkpostingsReportItem :: Bool -> Posting -> MixedAmount -> PostingsReportItem
 mkpostingsReportItem False p b = (Nothing, p, b)
-mkpostingsReportItem True p b = (ds, p, b)
-    where ds = case ptransaction p of Just (Transaction{tdate=da,tdescription=de}) -> Just (da,de)
-                                      Nothing -> Just (nulldate,"")
+mkpostingsReportItem True p b = (Just (date,desc), p, b)
+    where
+      date = postingDate p
+      desc = maybe "" tdescription $ ptransaction p
 
 -- | Date-sort and split a list of postings into three spans - postings matched
 -- by the given display expression, and the preceding and following postings.

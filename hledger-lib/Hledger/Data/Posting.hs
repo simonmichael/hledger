@@ -23,6 +23,7 @@ module Hledger.Data.Posting (
   transactionAllTags,
   -- * date operations
   postingDate,
+  postingEffectiveDate,
   isPostingInDateSpan,
   postingsDateSpan,
   -- * account name operations
@@ -140,6 +141,14 @@ postingDate :: Posting -> Day
 postingDate p = fromMaybe txndate $ pdate p
     where 
       txndate = maybe nulldate tdate $ ptransaction p
+
+-- | Get a posting's secondary (effective) date - it's own primary date if
+-- specified (can't access posting secondary dates yet), otherwise the
+-- parent transaction's effective date, otherwise the null date.
+postingEffectiveDate :: Posting -> Day
+postingEffectiveDate p = maybe nulldate transactionEffectiveDate $ ptransaction p
+  where
+    transactionEffectiveDate t = fromMaybe (tdate t) $ teffectivedate t
 
 -- |Is this posting cleared? If this posting was individually marked
 -- as cleared, returns True. Otherwise, return the parent

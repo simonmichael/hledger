@@ -76,7 +76,7 @@ data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
 type Tag = (String, String)
 
 data Posting = Posting {
-      pdate :: Maybe Day,  -- ^ this posting's clearing date, if different from the transaction's
+      pdate :: Maybe Day,  -- ^ this posting's date, if different from the transaction's
       pstatus :: Bool,
       paccount :: AccountName,
       pamount :: MixedAmount,

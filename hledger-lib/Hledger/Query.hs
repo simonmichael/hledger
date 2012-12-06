@@ -470,13 +470,8 @@ matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
 matchesPosting (Acct r) p = regexMatchesCI r $ paccount p
-matchesPosting (Date span) p =
-    case d of Just d'  -> spanContainsDate span d'
-              Nothing -> False
-    where d = maybe Nothing (Just . tdate) $ ptransaction p
-matchesPosting (EDate span) p =
-    case postingEffectiveDate p of Just d  -> spanContainsDate span d
-                                   Nothing -> False
+matchesPosting (Date span) p = span `spanContainsDate` postingDate p
+matchesPosting (EDate span) p = span `spanContainsDate` postingEffectiveDate p
 matchesPosting (Status v) p = v == postingCleared p
 matchesPosting (Real v) p = v == isReal p
 matchesPosting (Depth d) Posting{paccount=a} = Depth d `matchesAccount` a
@@ -559,9 +554,6 @@ matchTagName pat name = pat == name
 
 matchTagValue :: String -> String -> Bool
 matchTagValue pat value = regexMatchesCI pat value
-
-postingEffectiveDate :: Posting -> Maybe Day
-postingEffectiveDate p = maybe Nothing (Just . transactionEffectiveDate) $ ptransaction p
 
 -- tests
 
