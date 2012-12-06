@@ -1,0 +1,99 @@
+Name:                   hledger-irr
+Version:                1.0
+Synopsis:               computes the internal rate of return of an investment
+License:                BSD3
+License-file:           LICENSE
+Author:                 Joachim Breitner <mail@joachim-breitner.de>
+Maintainer:             Joachim Breitner <mail@joachim-breitner.de>
+Category:               Finance
+Build-type:             Simple
+Cabal-version:          >= 1.6
+Tested-with:            GHC >= 7.4.1 && <= 7.4.1
+Description:
+ hledger-irr is a small command-line utility based on Simon
+ Michael's hleder library. Its purpose is to compute the internal rate of
+ return, also known as the effective interest rate, of a given investment.
+ After specifying what account holds the investment, and what account stores
+ the gains (or losses, or fees, or cost), it calculates the hypothetical
+ annualy rate of fixed rate investment that would have provided the exact same
+ cash flow.
+ .
+ As an example, consider the following irregular investment stored in a file
+ called @test.ledger@. The account “Speculation” holds the investment which
+ could be, for example, a stock. Regularly, we make sure that the value of the
+ account matches the value of the stock, by moving money from or to the account
+ “Rate Gain”. It does not really matter when we adjust the price, as long as it
+ is correct at the end.
+ .
+ > 2011-01-01 Some wild speculation – I wonder if it pays off
+ >   Speculation  €100.00
+ >   Cash
+ > 
+ > 2011-02-01 More speculation (and adjustment of value)
+ >   Cash        -€10.00
+ >   Rate Gain    -€1.00 
+ >   Speculation
+ > 
+ > 2011-02-01 Lets pull out some money (and adjustment of value)
+ >   Cash        €30.00
+ >   Rate Gain    -€3.00 
+ >   Speculation
+ > 
+ > 2011-03-01 More speculation (and it lost some money!)
+ >   Cash       -€50.00
+ >   Rate Gain    € 5.00
+ >   Speculation
+ > 
+ > 2011-04-01 More speculation (and adjustment of value)
+ >   Cash       €100.00
+ >   Rate Gain   -€ 2.00
+ >   Cash
+ > 
+ > 2011-06-01 Emptying the account (after adjusting the value)
+ >   Speculation  -€75.00
+ >   Cash          €80.00
+ >   Rate Gain     -€ 5.00
+ .
+ We can now calculate the rate of return for the whole time or just for parts of it:
+ .
+ > $ hledger-irr -f test.ledger  -t Rate Gain -i Speculation -c 
+ > 2011/01/01: €-100.00
+ > 2011/02/01: €-10.00
+ > 2011/02/01: €30.00
+ > 2011/03/01: €-50.00
+ > 2011/06/01: €80.00
+ > 2012/12/06: €54.00
+ > 3.18%
+ > $ hledger-irr -f test.ledger  -t "Rate Gain" -i Speculation -e 2011-03-01
+ > -6.64%
+ > $ hledger-irr -f test.ledger  -t "Rate Gain" -i Speculation -b 2011-03-01
+ > 4.57%
+ .
+ Running the utility with @--help@ gives a brief overview over the
+ available options:
+ .
+ > $ hledger-irr --help
+ > Usage: hledger-irr [OPTION...]
+ >   -h          --help                        print this message and exit
+ >   -V          --version                     show version number and exit
+ >   -c          --cashflow                    also show all revant transactions
+ >   -f FILE     --file=FILE                   input ledger file (pass '-' for stdin)
+ >   -i ACCOUNT  --investment-account=ACCOUNT  investment account
+ >   -t ACCOUNT  --interest-account=ACCOUNT    interest/gain/fees/losses account
+ >   -b DATE     --begin=DATE                  calculate interest from this date
+ >   -e DATE     --end=DATE                    calculate interest until this date
+ .
+ Known bugs and issues: Currenlty, hledger-irr does not cope well with multiple
+ commodities (e.g. Euro and Dollar, or shares). Also, interest or fees that do
+ not pass through the account selected by @--investment-account@ are not taken
+ into consideration.
+
+
+Source-Repository head
+  Type:                 git
+  Location:             git://github.com/peti/hledger-interest.git
+
+Executable hledger-irr
+  Main-is:              Main.hs
+  Build-depends:        base >= 3 && < 5, hledger-lib >= 0.19.3, time, Cabal, statistics >= 0.10
+  Ghc-Options:          -Wall
