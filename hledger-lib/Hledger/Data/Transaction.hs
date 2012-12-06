@@ -131,7 +131,6 @@ showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
     unlines $ [descriptionline]
               ++ multilinecomment
-              -- ++ (tagsAsLines $ ttags t)
               ++ (postingsAsLines elide t (tpostings t))
               ++ [""]
     where
@@ -165,7 +164,6 @@ postingAsLines :: Bool -> [Posting] -> Posting -> [String]
 postingAsLines elideamount ps p =
     postinglines
     ++ multilinecomment
-    -- ++ tagsAsLines (ptags p)
   where
     postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, inlinecomment]
     amount = if elideamount then "" else showamt (pamount p)
