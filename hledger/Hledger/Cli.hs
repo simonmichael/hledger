@@ -427,27 +427,3 @@ journal7 = nulljournal {jtxns =
          }
 
 ledger7 = ledgerFromJournal Any journal7
-
--- journal8_str = unlines
---  ["2008/1/1 test           "
---  ,"  a:b          10h @ $40"
---  ,"  c:d                   "
---  ,""
---  ]
-
--- timelogentry1_str  = "i 2007/03/11 16:19:00 hledger\n"
--- timelogentry1 = TimeLogEntry In (parsedatetime "2007/03/11 16:19:00") "hledger"
-
--- timelogentry2_str  = "o 2007/03/11 16:30:00\n"
--- timelogentry2 = TimeLogEntry Out (parsedatetime "2007/03/11 16:30:00") ""
-
--- a1 = Mixed [(hrs 1){aprice=Just $ Mixed [Amount (comm "$") 10 Nothing]}]
--- a2 = Mixed [(hrs 2){aprice=Just $ Mixed [Amount (comm "EUR") 10 Nothing]}]
--- a3 = Mixed $ amounts a1 ++ amounts a2
-
--- journalWithAmounts :: [String] -> Journal
--- journalWithAmounts as =
---        nulljournal{jtxns=
---         [t | a <- as, let t = nulltransaction{tdescription=a,tpostings=[nullposting{pamount=parse a,ptransaction=Just t}]}]
---         }
---     where parse = fromparse . parseWithCtx nullctx amountp
