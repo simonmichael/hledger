@@ -511,11 +511,13 @@ postingp = do
   _ <- balanceassertion
   _ <- fixedlotprice
   many spacenonewline
+  ctx <- getState
   comment <- try followingcomment <|> (newline >> return "")
   let tags = tagsInComment comment
-      date = dateFromTags tags
-      date2 = date2FromTags tags
-  return posting{pdate=date, pdate2=date2, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags}
+  -- oh boy
+  d  <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx date `fmap` dateValueFromTags tags)
+  d2 <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx date `fmap` date2ValueFromTags tags)
+  return posting{pdate=d, pdate2=d2, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags}
 
 #ifdef TESTS
 test_postingp = do
@@ -886,11 +888,9 @@ test_ledgerDateSyntaxToTags = do
      assertEqual "date2:2012/11/28, " $ ledgerDateSyntaxToTags "[=2012/11/28]"
 #endif       
   
-dateFromTags :: [Tag] -> Maybe Day
-dateFromTags = maybe Nothing parsedateM . fmap snd . find ((=="date").fst)
-
-date2FromTags :: [Tag] -> Maybe Day
-date2FromTags = maybe Nothing parsedateM . fmap snd . find ((=="date2").fst)
+dateValueFromTags, date2ValueFromTags :: [Tag] -> Maybe String
+dateValueFromTags  ts = maybe Nothing (Just . snd) $ find ((=="date") . fst) ts
+date2ValueFromTags ts = maybe Nothing (Just . snd) $ find ((=="date2") . fst) ts
 
     
 {- old hunit tests
