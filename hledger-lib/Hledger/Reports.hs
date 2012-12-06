@@ -42,6 +42,8 @@ module Hledger.Reports (
   AccountsReport,
   AccountsReportItem,
   accountsReport,
+  -- * Other "reports"
+  accountBalanceHistory,
   -- * Tests
   tests_Hledger_Reports
 )
