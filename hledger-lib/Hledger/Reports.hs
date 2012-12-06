@@ -969,26 +969,10 @@ Right samplejournal2 = journalBalanceTransactions $
              tdescription="income",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="assets:bank:checking",
-                pamount=(Mixed [usd 1]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="income:salary",
-                pamount=(missingmixedamt),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 [posting {paccount="assets:bank:checking", pamount=Mixed [usd 1]}
+                 ,posting {paccount="income:salary", pamount=missingmixedamt}
+                 ],
              tpreceding_comment_lines=""
            }
           ]

@@ -524,26 +524,10 @@ Right samplejournal = journalBalanceTransactions $
              tdescription="income",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="assets:bank:checking",
-                pamount=(Mixed [usd 1]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="income:salary",
-                pamount=(missingmixedamt),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["assets:bank:checking" `post` usd 1
+                 ,"income:salary" `post` missingamt
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -555,26 +539,10 @@ Right samplejournal = journalBalanceTransactions $
              tdescription="gift",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="assets:bank:checking",
-                pamount=(Mixed [usd 1]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="income:gifts",
-                pamount=(missingmixedamt),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["assets:bank:checking" `post` usd 1
+                 ,"income:gifts" `post` missingamt
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -586,26 +554,10 @@ Right samplejournal = journalBalanceTransactions $
              tdescription="save",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="assets:bank:saving",
-                pamount=(Mixed [usd 1]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:bank:checking",
-                pamount=(Mixed [usd (-1)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["assets:bank:saving" `post` usd 1
+                 ,"assets:bank:checking" `post` usd (-1)
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -617,35 +569,10 @@ Right samplejournal = journalBalanceTransactions $
              tdescription="eat & shop",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="expenses:food",
-                pamount=(Mixed [usd 1]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="expenses:supplies",
-                pamount=(Mixed [usd 1]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:cash",
-                pamount=(missingmixedamt),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=["expenses:food" `post` usd 1
+                       ,"expenses:supplies" `post` usd 1
+                       ,"assets:cash" `post` missingamt
+                       ],
              tpreceding_comment_lines=""
            }
           ,
@@ -657,26 +584,9 @@ Right samplejournal = journalBalanceTransactions $
              tdescription="pay off",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="liabilities:debts",
-                pamount=(Mixed [usd 1]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:bank:checking",
-                pamount=(Mixed [usd (-1)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=["liabilities:debts" `post` usd 1
+                       ,"assets:bank:checking" `post` usd (-1)
+                       ],
              tpreceding_comment_lines=""
            }
           ]

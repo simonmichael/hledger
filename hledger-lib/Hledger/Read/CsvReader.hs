@@ -456,25 +456,9 @@ transactionFromCsvRecord rules fields =
               tcomment=comment,
               tpreceding_comment_lines=precomment,
               ttags=[],
-              tpostings=[
-                   Posting {
-                     pstatus=False,
-                     paccount=acct,
-                     pamount=a,
-                     pcomment="",
-                     ptype=RegularPosting,
-                     ptags=[],
-                     ptransaction=Just t
-                   },
-                   Posting {
-                     pstatus=False,
-                     paccount=baseacc,
-                     pamount=(-baseamount),
-                     pcomment="",
-                     ptype=RegularPosting,
-                     ptags=[],
-                     ptransaction=Just t
-                   }
+              tpostings=
+                  [posting {paccount=acct, pamount=a, ptransaction=Just t}
+                  ,posting {paccount=baseacc, pamount=(-baseamount), ptransaction=Just t}
                   ]
             }
   in t

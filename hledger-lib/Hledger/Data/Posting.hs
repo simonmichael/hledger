@@ -10,6 +10,8 @@ look up the date or description there.
 module Hledger.Data.Posting (
   -- * Posting
   nullposting,
+  posting,
+  post,
   -- * operations
   postingCleared,
   isReal,
@@ -44,6 +46,7 @@ module Hledger.Data.Posting (
 )
 where
 import Data.List
+import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
 import Safe
@@ -59,8 +62,20 @@ import Hledger.Data.Dates (nulldate, spanContainsDate)
 
 instance Show Posting where show = showPosting
 
-nullposting :: Posting
-nullposting = Posting False "" nullmixedamt "" RegularPosting [] Nothing
+nullposting, posting :: Posting
+nullposting = Posting
+                {pstatus=False
+                ,paccount=""
+                ,pamount=nullmixedamt
+                ,pcomment=""
+                ,ptype=RegularPosting
+                ,ptags=[]
+                ,ptransaction=Nothing
+                }
+posting = nullposting
+
+post :: AccountName -> Amount -> Posting
+post acct amt = posting {paccount=acct, pamount=mixed amt}
 
 showPosting :: Posting -> String
 showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =

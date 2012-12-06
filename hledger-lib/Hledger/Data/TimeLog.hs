@@ -21,6 +21,7 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
+import Hledger.Data.Posting
 import Hledger.Data.Transaction
 
 instance Show TimeLogEntry where 
@@ -94,8 +95,8 @@ entryFromTimeLogInOut i o
       idate    = localDay itime
       hours    = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       amount   = Mixed [hrs hours]
-      ps       = [Posting{pstatus=False,paccount=acctname,pamount=amount,
-                          pcomment="",ptype=VirtualPosting,ptags=[],ptransaction=Just t}]
+      ps       = [posting{paccount=acctname, pamount=amount, ptype=VirtualPosting, ptransaction=Just t}]
+
 
 tests_Hledger_Data_TimeLog = TestList [
 

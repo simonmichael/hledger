@@ -342,26 +342,10 @@ journal7 = nulljournal {jtxns =
              tdescription="opening balance",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="assets:cash",
-                pamount=(Mixed [usd 4.82]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="equity:opening balances",
-                pamount=(Mixed [usd (-4.82)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["assets:cash" `post` usd 4.82
+                 ,"equity:opening balances" `post` usd (-4.82)
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -373,26 +357,10 @@ journal7 = nulljournal {jtxns =
              tdescription="ayres suites",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="expenses:vacation",
-                pamount=(Mixed [usd 179.92]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:checking",
-                pamount=(Mixed [usd (-179.92)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["expenses:vacation" `post` usd 179.92
+                 ,"assets:checking" `post` usd (-179.92)
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -404,26 +372,10 @@ journal7 = nulljournal {jtxns =
              tdescription="auto transfer to savings",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="assets:saving",
-                pamount=(Mixed [usd 200]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:checking",
-                pamount=(Mixed [usd (-200)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["assets:saving" `post` usd 200
+                 ,"assets:checking" `post` usd (-200)
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -435,26 +387,10 @@ journal7 = nulljournal {jtxns =
              tdescription="poquito mas",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="expenses:food:dining",
-                pamount=(Mixed [usd 4.82]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:cash",
-                pamount=(Mixed [usd (-4.82)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["expenses:food:dining" `post` usd 4.82
+                 ,"assets:cash" `post` usd (-4.82)
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -466,26 +402,10 @@ journal7 = nulljournal {jtxns =
              tdescription="verizon",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="expenses:phone",
-                pamount=(Mixed [usd 95.11]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:checking",
-                pamount=(Mixed [usd (-95.11)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["expenses:phone" `post` usd 95.11
+                 ,"assets:checking" `post` usd (-95.11)
+                 ],
              tpreceding_comment_lines=""
            }
           ,
@@ -497,26 +417,10 @@ journal7 = nulljournal {jtxns =
              tdescription="discover",
              tcomment="",
              ttags=[],
-             tpostings=[
-              Posting {
-                pstatus=False,
-                paccount="liabilities:credit cards:discover",
-                pamount=(Mixed [usd 80]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              },
-              Posting {
-                pstatus=False,
-                paccount="assets:checking",
-                pamount=(Mixed [usd (-80)]),
-                pcomment="",
-                ptype=RegularPosting,
-                ptags=[],
-                ptransaction=Nothing
-              }
-             ],
+             tpostings=
+                 ["liabilities:credit cards:discover" `post` usd 80
+                 ,"assets:checking" `post` usd (-80)
+                 ],
              tpreceding_comment_lines=""
            }
           ]
