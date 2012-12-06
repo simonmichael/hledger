@@ -7,7 +7,7 @@ A ledger-compatible @register@ command.
 module Hledger.Cli.Register (
   register
  ,postingsReportAsText
- ,showPostingWithBalanceForVty
+ -- ,showPostingWithBalanceForVty
  ,tests_Hledger_Cli_Register
 ) where
 
@@ -66,7 +66,7 @@ postingsReportItemAsText _ (dd, p, b) = concatTopPadded [datedesc, pstr, " ", ba
       bal = padleft 12 (showMixedAmountWithoutPrice b)
 
 -- XXX
-showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText defreportopts $ mkpostingsReportItem showtxninfo p b
+-- showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText defreportopts $ mkpostingsReportItem showtxninfo p b
 
 tests_Hledger_Cli_Register :: Test
 tests_Hledger_Cli_Register = TestList

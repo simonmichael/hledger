@@ -24,7 +24,7 @@ module Hledger.Data.Transaction (
   -- * date operations
   transactionActualDate,
   transactionEffectiveDate,
-  journalTransactionWithDate,
+  transactionWithDate,
   -- * arithmetic
   transactionPostingBalances,
   balanceTransaction,
@@ -352,9 +352,14 @@ transactionEffectiveDate t = fromMaybe (tdate t) $ teffectivedate t
 
 -- | Once we no longer need both, set the main transaction date to either
 -- the actual or effective date. A bit hacky.
-journalTransactionWithDate :: WhichDate -> Transaction -> Transaction
-journalTransactionWithDate ActualDate t = t
-journalTransactionWithDate EffectiveDate t = txnTieKnot t{tdate=transactionEffectiveDate t}
+transactionWithDate :: WhichDate -> Transaction -> Transaction
+transactionWithDate ActualDate t = t
+transactionWithDate EffectiveDate t =
+  txnTieKnot t{tdate=transactionEffectiveDate t, tpostings=map (postingWithDate EffectiveDate) $ tpostings t}
+
+postingWithDate :: WhichDate -> Posting -> Posting
+postingWithDate ActualDate p = p
+postingWithDate EffectiveDate p = p{pdate=pdate2 p}
 
 -- | Ensure a transaction's postings refer back to it.
 txnTieKnot :: Transaction -> Transaction

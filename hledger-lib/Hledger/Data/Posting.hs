@@ -64,6 +64,7 @@ instance Show Posting where show = showPosting
 nullposting, posting :: Posting
 nullposting = Posting
                 {pdate=Nothing
+                ,pdate2=Nothing
                 ,pstatus=False
                 ,paccount=""
                 ,pamount=nullmixedamt
@@ -126,21 +127,25 @@ accountNamesFromPostings = nub . map paccount
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = sum . map pamount
 
--- | Get a posting's (primary) date - it's own date if specified,
--- otherwise the parent transaction's primary date (otherwise the null
--- date).
+-- | Get a posting's (primary) date - it's own primary date if specified,
+-- otherwise the parent transaction's primary date, or the null date if
+-- there is no parent transaction.
 postingDate :: Posting -> Day
 postingDate p = fromMaybe txndate $ pdate p
     where 
       txndate = maybe nulldate tdate $ ptransaction p
 
--- | Get a posting's secondary (effective) date - it's own primary date if
--- specified (can't access posting secondary dates yet), otherwise the
--- parent transaction's effective date, otherwise the null date.
+-- | Get a posting's secondary (effective) date, which is the first of:
+-- posting's secondary date, transaction's secondary date, posting's
+-- primary date, transaction's primary date, or the null date if there is
+-- no parent transaction.
 postingEffectiveDate :: Posting -> Day
-postingEffectiveDate p = maybe nulldate transactionEffectiveDate $ ptransaction p
-  where
-    transactionEffectiveDate t = fromMaybe (tdate t) $ teffectivedate t
+postingEffectiveDate p = headDef nulldate $ catMaybes dates
+  where dates = [pdate2 p
+                ,maybe Nothing teffectivedate $ ptransaction p
+                ,pdate p
+                ,maybe Nothing (Just . tdate) $ ptransaction p
+                ]
 
 -- |Is this posting cleared? If this posting was individually marked
 -- as cleared, returns True. Otherwise, return the parent

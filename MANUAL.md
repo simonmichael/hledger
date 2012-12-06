@@ -411,13 +411,13 @@ NAME=EXACTVALUE` on the command line.
 ### Posting dates
 
 You can give individual postings a different date from their parent
-transaction, by adding posting tag `date:ACTUALDATE`. If present, this
-date will be used by the register and balance reports.
+transaction, by adding posting tag `date:ACTUALDATE`. The effective date
+can be set similarly: `date2:EFFECTIVEDATE`. If present, these dates will
+take precedence in register and balance reports.
 
 For compatibility, ledger's posting date syntax is also supported
 (`[ACTUALDATE]`, `[ACTUALDATE=EFFECTIVEDATE]` or `[=EFFECTIVEDATE]` in a
-posting comment) and treated as an alterate spelling of the date: tag.
-Note effective dates are not csurrently here are ignored, currently.
+posting comment) and treated as an alterate spelling of the date tags.
 
 ### Including other files
 

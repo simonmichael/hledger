@@ -514,7 +514,8 @@ postingp = do
   comment <- try followingcomment <|> (newline >> return "")
   let tags = tagsInComment comment
       date = dateFromTags tags
-  return posting{pdate=date, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags}
+      date2 = date2FromTags tags
+  return posting{pdate=date, pdate2=date2, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags}
 
 #ifdef TESTS
 test_postingp = do
@@ -887,6 +888,9 @@ test_ledgerDateSyntaxToTags = do
   
 dateFromTags :: [Tag] -> Maybe Day
 dateFromTags = maybe Nothing parsedateM . fmap snd . find ((=="date").fst)
+
+date2FromTags :: [Tag] -> Maybe Day
+date2FromTags = maybe Nothing parsedateM . fmap snd . find ((=="date2").fst)
 
     
 {- old hunit tests

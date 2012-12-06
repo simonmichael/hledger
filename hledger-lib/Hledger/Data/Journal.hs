@@ -18,7 +18,6 @@ module Hledger.Data.Journal (
   journalCanonicaliseAmounts,
   journalConvertAmountsToCost,
   journalFinalise,
-  journalSelectingDate,
   -- * Filtering
   filterJournalPostings,
   filterJournalTransactions,
@@ -341,13 +340,6 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
       (negatives,positives) = partition isnegativepat apats
 
 -}
-
--- | Convert this journal's transactions' primary date to either the
--- actual or effective date.
-journalSelectingDate :: WhichDate -> Journal -> Journal
-journalSelectingDate ActualDate j = j
-journalSelectingDate EffectiveDate j =
-    j{jtxns=map (journalTransactionWithDate EffectiveDate) $ jtxns j}
 
 -- | Apply additional account aliases (eg from the command-line) to all postings in a journal.
 journalApplyAliases :: [(AccountName,AccountName)] -> Journal -> Journal

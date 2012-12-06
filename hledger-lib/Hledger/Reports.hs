@@ -18,7 +18,6 @@ module Hledger.Reports (
   intervalFromOpts,
   clearedValueFromOpts,
   whichDateFromOpts,
-  journalSelectingDateFromOpts,
   journalSelectingAmountFromOpts,
   queryFromOpts,
   queryOptsFromOpts,
@@ -163,11 +162,6 @@ whichDateFromOpts ReportOpts{..} = if effective_ then EffectiveDate else ActualD
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
 transactionDateFn ReportOpts{..} = if effective_ then transactionEffectiveDate else transactionActualDate
 
--- | Convert this journal's transactions' primary date to either the
--- actual or effective date, as per options.
-journalSelectingDateFromOpts :: ReportOpts -> Journal -> Journal
-journalSelectingDateFromOpts opts = journalSelectingDate (whichDateFromOpts opts)
-
 -- | Convert this journal's postings' amounts to the cost basis amounts if
 -- specified by options.
 journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
@@ -180,7 +174,7 @@ queryFromOpts :: Day -> ReportOpts -> Query
 queryFromOpts d opts@ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
   where
     flagsq = And $
-              [Date $ dateSpanFromOpts d opts]
+              [(if effective_ then EDate else Date) $ dateSpanFromOpts d opts]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
               ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
@@ -257,19 +251,20 @@ type PostingsReportItem = (Maybe (Day, String) -- posting date and description i
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
 postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
-                          (totallabel, postingsReportItems ps nullposting depth startbal (+))
+                          (totallabel, postingsReportItems ps nullposting wd depth startbal (+))
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty reportspan displayableps
-      j' = journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
-      -- don't do depth filtering until the end
+      j' = journalSelectingAmountFromOpts opts j
+      wd = whichDateFromOpts opts
+      -- delay depth filtering until the end
       (depth, q') = (queryDepth q, filterQuery (not . queryIsDepth) q)
       (precedingps, displayableps, _) =   dbg "ps3" $ postingsMatchingDisplayExpr (display_ opts)
                                         $ dbg "ps2" $ filter (q' `matchesPosting`)
                                         $ dbg "ps1" $ journalPostings j'
       dbg :: Show a => String -> a -> a
-      -- dbg = ltrace
       dbg = flip const
+      -- dbg = lstrace
 
       empty = queryEmpty q
       displayexpr = display_ opts  -- XXX
@@ -292,11 +287,11 @@ totallabel = "Total"
 balancelabel = "Balance"
 
 -- | Generate postings report line items.
-postingsReportItems :: [Posting] -> Posting -> Int -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [PostingsReportItem]
-postingsReportItems [] _ _ _ _ = []
-postingsReportItems (p:ps) pprev d b sumfn = i:(postingsReportItems ps p d b' sumfn)
+postingsReportItems :: [Posting] -> Posting -> WhichDate -> Int -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [PostingsReportItem]
+postingsReportItems [] _ _ _ _ _ = []
+postingsReportItems (p:ps) pprev wd d b sumfn = i:(postingsReportItems ps p wd d b' sumfn)
     where
-      i = mkpostingsReportItem isfirstintxn p' b'
+      i = mkpostingsReportItem isfirstintxn wd p' b'
       p' = p{paccount=clipAccountName d $ paccount p}
       isfirstintxn = ptransaction p /= ptransaction pprev
       b' = b `sumfn` pamount p
@@ -304,15 +299,17 @@ postingsReportItems (p:ps) pprev d b sumfn = i:(postingsReportItems ps p d b' su
 -- | Generate one postings report line item, given a flag indicating
 -- whether to include transaction info, the posting, and the current
 -- running balance.
-mkpostingsReportItem :: Bool -> Posting -> MixedAmount -> PostingsReportItem
-mkpostingsReportItem False p b = (Nothing, p, b)
-mkpostingsReportItem True p b = (Just (date,desc), p, b)
+mkpostingsReportItem :: Bool -> WhichDate -> Posting -> MixedAmount -> PostingsReportItem
+mkpostingsReportItem False _ p b = (Nothing, p, b)
+mkpostingsReportItem True wd p b = (Just (date,desc), p, b)
     where
-      date = postingDate p
+      date = case wd of ActualDate    -> postingDate p
+                        EffectiveDate -> postingEffectiveDate p
       desc = maybe "" tdescription $ ptransaction p
 
 -- | Date-sort and split a list of postings into three spans - postings matched
 -- by the given display expression, and the preceding and following postings.
+-- XXX always sorts by primary date, should sort by effective date if expression is about that
 postingsMatchingDisplayExpr :: Maybe String -> [Posting] -> ([Posting],[Posting],[Posting])
 postingsMatchingDisplayExpr d ps = (before, matched, after)
     where
@@ -462,7 +459,7 @@ accountTransactionsReport opts j m thisacctquery = (label, items)
  where
      -- transactions affecting this account, in date order
      ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctquery) $ jtxns $
-          journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
+          journalSelectingAmountFromOpts opts j
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
      (startbal,label) | queryIsNull m                           = (nullmixedamt,        balancelabel)
@@ -542,7 +539,7 @@ type AccountsReportItem = (AccountName  -- full account name
 accountsReport :: ReportOpts -> Query -> Journal -> AccountsReport
 accountsReport opts q j = (items, total)
     where
-      l =  ledgerFromJournal q $ journalSelectingDateFromOpts opts $ journalSelectingAmountFromOpts opts j
+      l =  ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
       accts = clipAccounts (queryDepth q) $ ledgerRootAccount l
       accts'
           | flat_ opts = filterzeros $ tail $ flattenAccounts accts
