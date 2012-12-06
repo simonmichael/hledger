@@ -382,31 +382,23 @@ explained in the next section.
 
 ### Tags
 
-You can attach arbitrary extra data tags to transactions and postings, and
-then filter reports by tag (this is the same as Ledger's
+You can attach named tags, optionally with values, to transactions and
+postings, and then filter reports by tag (this is the same as Ledger's
 [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata) feature,
-except our tag values are simple strings.) Here's how it works: each tag
-is a key-value pair within its own transaction or posting comment.  The
-format is
+except our tag values are just strings.)
 
-    ; NAME: VALUE
+Tags names are unspaced words followed by a colon, anywhere within a
+transaction or posting comment. Tag values are the (whitespace-trimmed)
+text after a tag name, up to the next newline or comma (allowing multiple
+tags on one line). For example:
 
-where NAME is a word with no spaces in it and VALUE is the rest of the
-line, with leading and trailing whitespace trimmed (or it can be empty).
-Here's an example:
+    1/1 a transaction    ; TAG1: , TAG2: tag2's value
+        ; TAG3: a third transaction tag
+        a  $1  ; TAG4: a posting tag
 
-    ; this transaction has a "purpose" tag with value "research",
-    ; and its expenses:cinema posting has "fun" and "outing" tags
-    1/1 movie ticket
-      ; purpose: research
-      expenses:cinema       $10
-      ; fun:
-      ; outing:
-      assets:checking
-
-Filtering reports by tag is work in progress. For the moment, you can
-match transactions' or postings' tag values by adding `tag
-NAME=EXACTVALUE` on the command line.
+Querying by tag is work in progress; for now you can test for existence of
+a tag with `tag:NAME`.
+<!-- tag:NAME=EXACTVALUE` -->
 
 ### Posting dates
 
@@ -416,9 +408,9 @@ DATE is a [simple date](#simple-dates). The effective date can be set
 with `date2:DATE`. If present, these dates will take precedence in
 reports.
 
-Ledger's posting date syntax is also supported (`[ACTUALDATE]`,
+Ledger's bracketed posting date syntax (`[ACTUALDATE]`,
 `[ACTUALDATE=EFFECTIVEDATE]` or `[=EFFECTIVEDATE]` in a posting comment)
-and treated as an alternate spelling of the date tags.
+is also supported, as an alternate spelling of the date tags.
 
 ### Including other files
 
