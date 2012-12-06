@@ -78,7 +78,7 @@ data ReportOpts = ReportOpts {
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp
-    ,effective_      :: Bool
+    ,date2_      :: Bool
     ,empty_          :: Bool
     ,no_elide_       :: Bool
     ,real_           :: Bool
@@ -154,13 +154,13 @@ clearedValueFromOpts ReportOpts{..} | cleared_   = Just True
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
 
--- | Report which date we will report on based on --effective.
+-- | Report which date we will report on based on --date2.
 whichDateFromOpts :: ReportOpts -> WhichDate
-whichDateFromOpts ReportOpts{..} = if effective_ then EffectiveDate else ActualDate
+whichDateFromOpts ReportOpts{..} = if date2_ then SecondaryDate else PrimaryDate
 
--- | Select a Transaction date accessor based on --effective.
+-- | Select a Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
-transactionDateFn ReportOpts{..} = if effective_ then transactionEffectiveDate else transactionActualDate
+transactionDateFn ReportOpts{..} = if date2_ then transactionDate2 else tdate
 
 -- | Convert this journal's postings' amounts to the cost basis amounts if
 -- specified by options.
@@ -174,7 +174,7 @@ queryFromOpts :: Day -> ReportOpts -> Query
 queryFromOpts d opts@ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
   where
     flagsq = And $
-              [(if effective_ then EDate else Date) $ dateSpanFromOpts d opts]
+              [(if date2_ then Date2 else Date) $ dateSpanFromOpts d opts]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
               ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
@@ -190,7 +190,7 @@ tests_queryFromOpts = [
                  (queryFromOpts nulldate defreportopts{begin_=Just (parsedate "2012/01/01")
                                                       ,query_="date:'to 2013'"
                                                       })
-  assertEqual "" (EDate $ mkdatespan "2012/01/01" "2013/01/01")
+  assertEqual "" (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
                  (queryFromOpts nulldate defreportopts{query_="edate:'in 2012'"})
   assertEqual "" (Or [Acct "a a", Acct "'b"])
                  (queryFromOpts nulldate defreportopts{query_="'a a' 'b"})
@@ -274,8 +274,8 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       -- with period options and any span specified with display option.
       -- The latter is not easily available, fake it for now.
       requestedspan = periodspan `spanIntersect` displayspan
-      periodspan = queryDateSpan effectivedate q
-      effectivedate = whichDateFromOpts opts == EffectiveDate
+      periodspan = queryDateSpan secondarydate q
+      secondarydate = whichDateFromOpts opts == SecondaryDate
       displayspan = postingsDateSpan ps
           where (_,ps,_) = postingsMatchingDisplayExpr displayexpr $ journalPostings j'
       matchedspan = postingsDateSpan displayableps
@@ -303,13 +303,13 @@ mkpostingsReportItem :: Bool -> WhichDate -> Posting -> MixedAmount -> PostingsR
 mkpostingsReportItem False _ p b = (Nothing, p, b)
 mkpostingsReportItem True wd p b = (Just (date,desc), p, b)
     where
-      date = case wd of ActualDate    -> postingDate p
-                        EffectiveDate -> postingEffectiveDate p
+      date = case wd of PrimaryDate    -> postingDate p
+                        SecondaryDate -> postingDate2 p
       desc = maybe "" tdescription $ ptransaction p
 
 -- | Date-sort and split a list of postings into three spans - postings matched
 -- by the given display expression, and the preceding and following postings.
--- XXX always sorts by primary date, should sort by effective date if expression is about that
+-- XXX always sorts by primary date, should sort by secondary date if expression is about that
 postingsMatchingDisplayExpr :: Maybe String -> [Posting] -> ([Posting],[Posting],[Posting])
 postingsMatchingDisplayExpr d ps = (before, matched, after)
     where
@@ -463,7 +463,7 @@ accountTransactionsReport opts j m thisacctquery = (label, items)
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
      (startbal,label) | queryIsNull m                           = (nullmixedamt,        balancelabel)
-                      | queryIsStartDateOnly (effective_ opts) m = (sumPostings priorps, balancelabel)
+                      | queryIsStartDateOnly (date2_ opts) m = (sumPostings priorps, balancelabel)
                       | otherwise                                 = (nullmixedamt,        totallabel)
                       where
                         priorps = -- ltrace "priorps" $
@@ -472,7 +472,7 @@ accountTransactionsReport opts j m thisacctquery = (label, items)
                                            And [thisacctquery, tostartdatequery]))
                                          $ transactionsPostings ts
                         tostartdatequery = Date (DateSpan Nothing startdate)
-                        startdate = queryStartDate (effective_ opts) m
+                        startdate = queryStartDate (date2_ opts) m
      items = reverse $ accountTransactionsReportItems m (Just thisacctquery) startbal negate ts
 
 -- | Generate transactions report items from a list of transactions,
@@ -585,7 +585,7 @@ accountBalanceHistory ropts j a = [(getdate t, bal) | (t,_,_,_,_,bal) <- items]
     (_,items) = journalTransactionsReport ropts j acctquery
     inclusivebal = True
     acctquery = Acct $ (if inclusivebal then accountNameToAccountRegex else accountNameToAccountOnlyRegex) $ aname a
-    getdate = if effective_ ropts then transactionEffectiveDate else transactionActualDate
+    getdate = if date2_ ropts then transactionDate2 else tdate
 
 
 -------------------------------------------------------------------------------
@@ -806,7 +806,7 @@ tests_accountsReport =
      ],
      Mixed [nullamt])
 
-  ,"accountsReport with a date or effective date span" ~: do
+  ,"accountsReport with a date or secondary date span" ~: do
    (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
     ([],
      Mixed [nullamt])
@@ -963,7 +963,7 @@ Right samplejournal2 = journalBalanceTransactions $
          {jtxns = [
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/01/01",
-             teffectivedate=Just $ parsedate "2009/01/01",
+             tdate2=Just $ parsedate "2009/01/01",
              tstatus=False,
              tcode="",
              tdescription="income",

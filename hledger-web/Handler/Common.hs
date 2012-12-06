@@ -97,7 +97,7 @@ searchform VD{..} = [hamlet|
       acct:REGEXP (target account), #
       desc:REGEXP (description), #
       date:PERIODEXP (date), #
-      edate:PERIODEXP (effective date), #
+      edate:PERIODEXP (secondary date), #
       <br>
       status:BOOL (cleared status), #
       real:BOOL (real/virtual-ness), #

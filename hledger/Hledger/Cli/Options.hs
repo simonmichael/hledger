@@ -143,7 +143,7 @@ reportflags = [
  ,flagNone ["cost","B"]      (\opts -> setboolopt "cost" opts) "report cost of commodities"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/transactions deeper than this"
  ,flagReq  ["display","d"]   (\s opts -> Right $ setopt "display" s opts) "DISPLAYEXP" "show only transactions matching the expression, which is 'dOP[DATE]' where OP is <, <=, =, >=, >"
- ,flagNone ["effective"]     (\opts -> setboolopt "effective" opts) "use transactions' effective dates, if any"
+ ,flagNone ["date2","aux-date","effective"]     (\opts -> setboolopt "date2" opts) "use transactions' secondary dates, if any"
  ,flagNone ["empty","E"]     (\opts -> setboolopt "empty" opts) "show empty/zero things which are normally elided"
  ,flagNone ["real","R"]      (\opts -> setboolopt "real" opts) "report only on real (non-virtual) transactions"
  ]
@@ -331,7 +331,7 @@ toCliOpts rawopts = do
                             ,cost_      = boolopt "cost" rawopts
                             ,depth_     = maybeintopt "depth" rawopts
                             ,display_   = maybedisplayopt d rawopts
-                            ,effective_ = boolopt "effective" rawopts
+                            ,date2_ = boolopt "date2" rawopts
                             ,empty_     = boolopt "empty" rawopts
                             ,no_elide_  = boolopt "no-elide" rawopts
                             ,real_      = boolopt "real" rawopts

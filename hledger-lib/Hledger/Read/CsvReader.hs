@@ -96,7 +96,7 @@ nullrules = CsvRules {
       baseCurrency=Nothing,
       accountField=Nothing,
       account2Field=Nothing,
-      effectiveDateField=Nothing,
+      date2Field=Nothing,
       baseAccount="unknown",
       accountRules=[],
       skipLines=0
@@ -176,7 +176,7 @@ maxFieldIndex r = maximumDef (-1) $ catMaybes [
                   ,currencyField r
                   ,accountField r
                   ,account2Field r
-                  ,effectiveDateField r
+                  ,date2Field r
                   ]
 
 -- rulesFileFor :: CliOpts -> FilePath -> FilePath
@@ -251,7 +251,7 @@ definitions = do
    ,currencyfield
    ,accountfield
    ,account2field
-   ,effectivedatefield
+   ,date2field
    ,basecurrency
    ,baseaccount
    ,skiplines
@@ -265,11 +265,11 @@ datefield = do
   v <- restofline
   updateState (\r -> r{dateField=readMay v})
 
-effectivedatefield = do
-  string "effective-date-field"
+date2field = do
+  string "date2-field"
   many1 spacenonewline
   v <- restofline
-  updateState (\r -> r{effectiveDateField=readMay v})
+  updateState (\r -> r{date2Field=readMay v})
 
 dateformat = do
   string "date-format"
@@ -423,7 +423,7 @@ transactionFromCsvRecord :: CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord rules fields =
   let 
       date = parsedate $ normaliseDate (dateFormat rules) $ maybe "1900/1/1" (atDef "" fields) (dateField rules)
-      effectivedate = do idx <- effectiveDateField rules
+      secondarydate = do idx <- date2Field rules
                          return $ parsedate $ normaliseDate (dateFormat rules) $ (atDef "" fields) idx
       status = maybe False (null . strip . (atDef "" fields)) (statusField rules)
       code = maybe "" (atDef "" fields) (codeField rules)
@@ -449,7 +449,7 @@ transactionFromCsvRecord rules fields =
       acct = maybe acct' (atDef "" fields) (account2Field rules)
       t = Transaction {
               tdate=date,
-              teffectivedate=effectivedate,
+              tdate2=secondarydate,
               tstatus=status,
               tcode=code,
               tdescription=newdesc,

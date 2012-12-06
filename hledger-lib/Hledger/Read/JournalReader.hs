@@ -320,7 +320,7 @@ transaction :: GenParser Char JournalContext Transaction
 transaction = do
   -- ptrace "transaction"
   date <- date <?> "transaction"
-  edate <- optionMaybe (effectivedate date) <?> "effective date"
+  edate <- optionMaybe (secondarydate date) <?> "secondary date"
   status <- status <?> "cleared flag"
   code <- code <?> "transaction code"
   description <- descriptionp >>= return . strip
@@ -339,7 +339,7 @@ test_transaction = do
                         let Right t2 = p
                             -- same f = assertEqual (f t) (f t2)
                         assertEqual (tdate t) (tdate t2)
-                        assertEqual (teffectivedate t) (teffectivedate t2)
+                        assertEqual (tdate2 t) (tdate2 t2)
                         assertEqual (tstatus t) (tstatus t2)
                         assertEqual (tcode t) (tcode t2)
                         assertEqual (tdescription t) (tdescription t2)
@@ -360,7 +360,7 @@ test_transaction = do
      `gives`
      nulltransaction{
       tdate=parsedate "2012/05/14",
-      teffectivedate=Just $ parsedate "2012/05/15",
+      tdate2=Just $ parsedate "2012/05/15",
       tstatus=False,
       tcode="code",
       tdescription="desc",
@@ -470,17 +470,17 @@ datetime = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-effectivedate :: Day -> GenParser Char JournalContext Day
-effectivedate actualdate = do
+secondarydate :: Day -> GenParser Char JournalContext Day
+secondarydate primarydate = do
   char '='
-  -- kludgy way to use actual date for default year
+  -- kludgy way to use primary date for default year
   let withDefaultYear d p = do
         y <- getYear
         let (y',_,_) = toGregorian d in setYear y'
         r <- p
         when (isJust y) $ setYear $ fromJust y
         return r
-  edate <- withDefaultYear actualdate date
+  edate <- withDefaultYear primarydate date
   return edate
 
 status :: GenParser Char JournalContext Bool

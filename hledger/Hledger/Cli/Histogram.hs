@@ -34,7 +34,7 @@ showHistogram opts q j = concatMap (printDayWith countBar) spanps
       i = intervalFromOpts opts
       interval | i == NoInterval = Days 1
                | otherwise = i
-      span = queryDateSpan (effective_ opts) q `orDatesFrom` journalDateSpan j
+      span = queryDateSpan (date2_ opts) q `orDatesFrom` journalDateSpan j
       spans = filter (DateSpan Nothing Nothing /=) $ splitSpan interval span
       spanps = [(s, filter (isPostingInDateSpan s) ps) | s <- spans]
       -- same as Register

@@ -29,7 +29,7 @@ import System.Time (ClockTime)
 
 type SmartDate = (String,String,String)
 
-data WhichDate = ActualDate | EffectiveDate deriving (Eq,Show)
+data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 
 data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord)
 
@@ -77,7 +77,7 @@ type Tag = (String, String)
 
 data Posting = Posting {
       pdate :: Maybe Day,  -- ^ this posting's date, if different from the transaction's
-      pdate2 :: Maybe Day,  -- ^ this posting's secondary (effective) date, if different from the transaction's
+      pdate2 :: Maybe Day,  -- ^ this posting's secondary date, if different from the transaction's
       pstatus :: Bool,
       paccount :: AccountName,
       pamount :: MixedAmount,
@@ -95,7 +95,7 @@ instance Eq Posting where
 
 data Transaction = Transaction {
       tdate :: Day,
-      teffectivedate :: Maybe Day,
+      tdate2 :: Maybe Day,
       tstatus :: Bool,  -- XXX tcleared ?
       tcode :: String,
       tdescription :: String,
@@ -203,7 +203,7 @@ data CsvRules = CsvRules {
       baseCurrency :: Maybe String,
       accountField :: Maybe FieldPosition,
       account2Field :: Maybe FieldPosition,
-      effectiveDateField :: Maybe FieldPosition,
+      date2Field :: Maybe FieldPosition,
       baseAccount :: AccountName,
       accountRules :: [AccountRule],
       skipLines :: Int

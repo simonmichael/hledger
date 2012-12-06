@@ -57,8 +57,8 @@ data Query = Any              -- ^ always match
            | And [Query]      -- ^ match if all of these match
            | Desc String      -- ^ match if description matches this regexp
            | Acct String      -- ^ match postings whose account matches this regexp
-           | Date DateSpan    -- ^ match if actual date in this date span
-           | EDate DateSpan   -- ^ match if effective date in this date span
+           | Date DateSpan    -- ^ match if primary date in this date span
+           | Date2 DateSpan   -- ^ match if secondary date in this date span
            | Status Bool      -- ^ match if cleared status has this value
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
@@ -72,7 +72,7 @@ data Query = Any              -- ^ always match
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
               | QueryOptInAcct AccountName      -- ^ as above but include sub-accounts in the account register
            -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
-           -- | QueryOptEffectiveDate  -- ^ show effective dates instead of actual dates
+           -- | QueryOptDate2  -- ^ show secondary dates instead of primary dates
     deriving (Show, Eq)
 
 -- parsing
@@ -208,7 +208,7 @@ parseQueryTerm d ('d':'a':'t':'e':':':s) =
                                     Right (_,span) -> Left $ Date span
 parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
         case parsePeriodExpr d s of Left _ -> Left None -- XXX should warn
-                                    Right (_,span) -> Left $ EDate span
+                                    Right (_,span) -> Left $ Date2 span
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
@@ -337,40 +337,40 @@ queryIsAcct _ = False
 
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
--- When the flag is true, look for a starting effective date instead.
+-- When the flag is true, look for a starting secondary date instead.
 queryIsStartDateOnly :: Bool -> Query -> Bool
 queryIsStartDateOnly _ Any = False
 queryIsStartDateOnly _ None = False
-queryIsStartDateOnly effective (Or ms) = and $ map (queryIsStartDateOnly effective) ms
-queryIsStartDateOnly effective (And ms) = and $ map (queryIsStartDateOnly effective) ms
+queryIsStartDateOnly secondary (Or ms) = and $ map (queryIsStartDateOnly secondary) ms
+queryIsStartDateOnly secondary (And ms) = and $ map (queryIsStartDateOnly secondary) ms
 queryIsStartDateOnly False (Date (DateSpan (Just _) _)) = True
-queryIsStartDateOnly True (EDate (DateSpan (Just _) _)) = True
+queryIsStartDateOnly True (Date2 (DateSpan (Just _) _)) = True
 queryIsStartDateOnly _ _ = False
 
--- | What start date (or effective date) does this query specify, if any ?
+-- | What start date (or secondary date) does this query specify, if any ?
 -- For OR expressions, use the earliest of the dates. NOT is ignored.
 queryStartDate :: Bool -> Query -> Maybe Day
-queryStartDate effective (Or ms) = earliestMaybeDate $ map (queryStartDate effective) ms
-queryStartDate effective (And ms) = latestMaybeDate $ map (queryStartDate effective) ms
+queryStartDate secondary (Or ms) = earliestMaybeDate $ map (queryStartDate secondary) ms
+queryStartDate secondary (And ms) = latestMaybeDate $ map (queryStartDate secondary) ms
 queryStartDate False (Date (DateSpan (Just d) _)) = Just d
-queryStartDate True (EDate (DateSpan (Just d) _)) = Just d
+queryStartDate True (Date2 (DateSpan (Just d) _)) = Just d
 queryStartDate _ _ = Nothing
 
 queryTermDateSpan (Date span) = Just span
 queryTermDateSpan _ = Nothing
 
--- | What date span (or effective date span) does this query specify ?
+-- | What date span (or secondary date span) does this query specify ?
 -- For OR expressions, use the widest possible span. NOT is ignored.
 queryDateSpan :: Bool -> Query -> DateSpan
-queryDateSpan effective q = spansUnion $ queryDateSpans effective q
+queryDateSpan secondary q = spansUnion $ queryDateSpans secondary q
 
--- | Extract all date (or effective date) spans specified in this query.
+-- | Extract all date (or secondary date) spans specified in this query.
 -- NOT is ignored.
 queryDateSpans :: Bool -> Query -> [DateSpan]
-queryDateSpans effective (Or qs) = concatMap (queryDateSpans effective) qs
-queryDateSpans effective (And qs) = concatMap (queryDateSpans effective) qs
+queryDateSpans secondary (Or qs) = concatMap (queryDateSpans secondary) qs
+queryDateSpans secondary (And qs) = concatMap (queryDateSpans secondary) qs
 queryDateSpans False (Date span) = [span]
-queryDateSpans True (EDate span) = [span]
+queryDateSpans True (Date2 span) = [span]
 queryDateSpans _ _ = []
 
 -- | What is the earliest of these dates, where Nothing is earliest ?
@@ -457,7 +457,7 @@ tests_matchesAccount = [
     assertBool "" $ Depth 2 `matchesAccount` "a:b"
     assertBool "" $ not $ Depth 2 `matchesAccount` "a:b:c"
     assertBool "" $ Date nulldatespan `matchesAccount` "a"
-    assertBool "" $ EDate nulldatespan `matchesAccount` "a"
+    assertBool "" $ Date2 nulldatespan `matchesAccount` "a"
     assertBool "" $ not $ (Tag "a" Nothing) `matchesAccount` "a"
  ]
 
@@ -471,7 +471,7 @@ matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
 matchesPosting (Acct r) p = regexMatchesCI r $ paccount p
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
-matchesPosting (EDate span) p = span `spanContainsDate` postingEffectiveDate p
+matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (Status v) p = v == postingCleared p
 matchesPosting (Real v) p = v == isReal p
 matchesPosting (Depth d) Posting{paccount=a} = Depth d `matchesAccount` a
@@ -521,7 +521,7 @@ matchesTransaction (And qs) t = all (`matchesTransaction` t) qs
 matchesTransaction (Desc r) t = regexMatchesCI r $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Date span) t = spanContainsDate span $ tdate t
-matchesTransaction (EDate span) t = spanContainsDate span $ transactionEffectiveDate t
+matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
 matchesTransaction (Status v) t = v == tstatus t
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction (Empty _) _ = True

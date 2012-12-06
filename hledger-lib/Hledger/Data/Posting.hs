@@ -23,7 +23,7 @@ module Hledger.Data.Posting (
   transactionAllTags,
   -- * date operations
   postingDate,
-  postingEffectiveDate,
+  postingDate2,
   isPostingInDateSpan,
   postingsDateSpan,
   -- * account name operations
@@ -135,14 +135,14 @@ postingDate p = fromMaybe txndate $ pdate p
     where 
       txndate = maybe nulldate tdate $ ptransaction p
 
--- | Get a posting's secondary (effective) date, which is the first of:
+-- | Get a posting's secondary (secondary) date, which is the first of:
 -- posting's secondary date, transaction's secondary date, posting's
 -- primary date, transaction's primary date, or the null date if there is
 -- no parent transaction.
-postingEffectiveDate :: Posting -> Day
-postingEffectiveDate p = headDef nulldate $ catMaybes dates
+postingDate2 :: Posting -> Day
+postingDate2 p = headDef nulldate $ catMaybes dates
   where dates = [pdate2 p
-                ,maybe Nothing teffectivedate $ ptransaction p
+                ,maybe Nothing tdate2 $ ptransaction p
                 ,pdate p
                 ,maybe Nothing (Just . tdate) $ ptransaction p
                 ]

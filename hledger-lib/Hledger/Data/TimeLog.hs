@@ -77,7 +77,7 @@ entryFromTimeLogInOut i o
     where
       t = Transaction {
             tdate         = idate,
-            teffectivedate = Nothing,
+            tdate2 = Nothing,
             tstatus       = True,
             tcode         = "",
             tdescription  = showtime itod ++ "-" ++ showtime otod,

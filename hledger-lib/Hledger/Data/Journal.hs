@@ -510,7 +510,7 @@ Right samplejournal = journalBalanceTransactions $
          {jtxns = [
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/01/01",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="",
              tdescription="income",
@@ -525,7 +525,7 @@ Right samplejournal = journalBalanceTransactions $
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/06/01",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="",
              tdescription="gift",
@@ -540,7 +540,7 @@ Right samplejournal = journalBalanceTransactions $
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/06/02",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="",
              tdescription="save",
@@ -555,7 +555,7 @@ Right samplejournal = journalBalanceTransactions $
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/06/03",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=True,
              tcode="",
              tdescription="eat & shop",
@@ -570,7 +570,7 @@ Right samplejournal = journalBalanceTransactions $
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2008/12/31",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="",
              tdescription="pay off",

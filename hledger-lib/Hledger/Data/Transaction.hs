@@ -22,8 +22,7 @@ module Hledger.Data.Transaction (
   isTransactionBalanced,
   -- nonzerobalanceerror,
   -- * date operations
-  transactionActualDate,
-  transactionEffectiveDate,
+  transactionDate2,
   -- * arithmetic
   transactionPostingBalances,
   balanceTransaction,
@@ -58,7 +57,7 @@ instance Show PeriodicTransaction where
 nulltransaction :: Transaction
 nulltransaction = Transaction {
                     tdate=nulldate,
-                    teffectivedate=Nothing, 
+                    tdate2=Nothing,
                     tstatus=False, 
                     tcode="", 
                     tdescription="", 
@@ -96,7 +95,7 @@ tests_showTransactionUnelided = [
     nulltransaction `gives` "0000/01/01\n\n"
     nulltransaction{
       tdate=parsedate "2012/05/14",
-      teffectivedate=Just $ parsedate "2012/05/15",
+      tdate2=Just $ parsedate "2012/05/15",
       tstatus=False,
       tcode="code",
       tdescription="desc",
@@ -134,7 +133,7 @@ showTransaction' elide t =
               ++ [""]
     where
       descriptionline = rstrip $ concat [date, status, code, desc, inlinecomment]
-      date = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
+      date = showdate (tdate t) ++ maybe "" showedate (tdate2 t)
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       status = if tstatus t then " *" else ""
@@ -342,12 +341,9 @@ nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rms
             | otherwise = "balanced virtual postings are off by " ++ showMixedAmount (costOfMixedAmount bvsum)
       sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
-transactionActualDate :: Transaction -> Day
-transactionActualDate = tdate
-
--- Get a transaction's effective date, defaulting to the actual date.
-transactionEffectiveDate :: Transaction -> Day
-transactionEffectiveDate t = fromMaybe (tdate t) $ teffectivedate t
+-- Get a transaction's secondary date, defaulting to the primary date.
+transactionDate2 :: Transaction -> Day
+transactionDate2 t = fromMaybe (tdate t) $ tdate2 t
 
 -- | Ensure a transaction's postings refer back to it.
 txnTieKnot :: Transaction -> Transaction

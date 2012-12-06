@@ -1,5 +1,5 @@
 # print shows both dates. The second's year defaults to the first's.
-hledgerdev -f - print --effective
+hledgerdev -f - print --date2
 <<<
 2009/1/1=1/2 x
   a  1
@@ -12,8 +12,8 @@ hledgerdev -f - print --effective
 >>>2
 >>>= 0
 
-# Effective date of 29 Feb on leap year should be valid
-hledgerdev -f - print --effective
+# Secondary date of 29 Feb on leap year should be valid
+hledgerdev -f - print --date2
 <<<
 2001/2/27=2000/2/29 x
   a  1

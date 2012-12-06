@@ -336,7 +336,7 @@ journal7 = nulljournal {jtxns =
           [
            txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/01",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="*",
              tdescription="opening balance",
@@ -351,7 +351,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2007/02/01",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="*",
              tdescription="ayres suites",
@@ -366,7 +366,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/02",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="*",
              tdescription="auto transfer to savings",
@@ -381,7 +381,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/03",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="*",
              tdescription="poquito mas",
@@ -396,7 +396,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/03",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="*",
              tdescription="verizon",
@@ -411,7 +411,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot $ Transaction {
              tdate=parsedate "2007/01/03",
-             teffectivedate=Nothing,
+             tdate2=Nothing,
              tstatus=False,
              tcode="*",
              tdescription="discover",
