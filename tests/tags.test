@@ -20,7 +20,7 @@ hledgerdev -f - print
     ; posting1tag2: 
     b            -1
     ; posting-2-tag-1: posting 2 val 1
-    ; posting-2-tag-2: 
+    ; posting-2-tag-2:
 
 >>>2
 >>>=0
@@ -28,12 +28,11 @@ hledgerdev -f - print
 # 2. reports can filter by tag existence
 hledgerdev -f - print tag:foo
 <<<
-2010/01/01 ; foo:bar
+2010/01/01    ; foo:bar
   a             1
   b            -1
 
-2010/01/02
-  ; foo:baz
+2010/01/02    ; foo:baz
   c             1
   d            -1
 
@@ -41,13 +40,11 @@ hledgerdev -f - print tag:foo
     e             1
     f            -1
 >>>
-2010/01/01
-    ; foo: bar
+2010/01/01    ; foo:bar
     a             1
     b            -1
 
-2010/01/02
-    ; foo: baz
+2010/01/02    ; foo:baz
     c             1
     d            -1
 
@@ -57,8 +54,7 @@ hledgerdev -f - print tag:foo
 # 3. or tag value
 hledgerdev -f - print tag:foo=bar
 <<<
-2010/01/01
-  ; foo:bar
+2010/01/01    ; foo:bar
   a             1
   b            -1
 
@@ -71,8 +67,7 @@ hledgerdev -f - print tag:foo=bar
     e             1
     f            -1
 >>>
-2010/01/01
-    ; foo: bar
+2010/01/01    ; foo:bar
     a             1
     b            -1
 
@@ -83,16 +78,14 @@ hledgerdev -f - print tag:foo=bar
 hledgerdev -f - register tag:foo=bar
 <<<
 2010/01/01
-  a             1  ; foo:bar
+  a             1    ; foo:bar
   b            -1
 
-2010/01/02
-  ; foo:baz
+2010/01/02    ; foo:baz
   c             1
   d            -1
 
-2010/01/03
-  ; foo:bar
+2010/01/03    ; foo:bar
   e             1
   f            -1
 >>>

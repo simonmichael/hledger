@@ -1,4 +1,5 @@
-{-# LANGUAGE RecordWildCards, NoMonoLocalBinds #-}
+-- {-# OPTIONS_GHC -F -pgmF htfpp #-}
+{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds #-}
 {-|
 
 A reader for hledger's journal file format
@@ -30,23 +31,29 @@ module Hledger.Read.JournalReader (
   amountp,
   amountp',
   mamountp',
-  emptyline,
+  emptyline
+#ifdef TESTS
   -- * Tests
-  tests_Hledger_Read_JournalReader
+  -- disabled by default, HTF not available on windows
+  ,htf_thisModulesTests
+  ,htf_Hledger_Read_JournalReader_importedTests
+#endif
 )
 where
 import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Error
 import Data.Char (isNumber)
-import Data.Either (partitionEithers)
 import Data.List
 import Data.List.Split (wordsBy)
 import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import Safe (headDef)
-import Test.HUnit
+import Safe (headDef, lastDef)
+#ifdef TESTS
+import Test.Framework
+import Text.Parsec.Error
+#endif
 import Text.ParserCombinators.Parsec hiding (parse)
 import Text.Printf
 import System.FilePath
@@ -311,41 +318,35 @@ periodictransaction = do
 -- | Parse a (possibly unbalanced) transaction.
 transaction :: GenParser Char JournalContext Transaction
 transaction = do
+  -- ptrace "transaction"
   date <- date <?> "transaction"
   edate <- optionMaybe (effectivedate date) <?> "effective date"
   status <- status <?> "cleared flag"
   code <- code <?> "transaction code"
-  -- now there can be whitespace followed by a description and/or comment/tag comment
-  let pdescription = many (noneOf ";\n") >>= return . strip
-  (description, inlinecomment, inlinetag) <-
-    try (do many1 spacenonewline
-            d <- pdescription
-            (c, m) <- inlinecomment
-            return (d,c,m))
-    <|> (newline >> return ("", [], []))
-  (nextlinecomments, nextlinetags) <- commentlines
-  let comment = unlines $ inlinecomment ++ nextlinecomments
-      tags = inlinetag ++ nextlinetags
+  description <- descriptionp >>= return . strip
+  comment <- try followingcomment <|> (newline >> return "")
+  let tags = tagsInComment comment
   postings <- postings
   return $ txnTieKnot $ Transaction date edate status code description comment tags postings ""
 
-tests_transaction = [
-   "transaction" ~: do
-    -- let s `gives` t = assertParseEqual (parseWithCtx nullctx transaction s) t
+descriptionp = many (noneOf ";\n")
+
+#ifdef TESTS
+test_transaction = do
     let s `gives` t = do
                         let p = parseWithCtx nullctx transaction s
-                        assertBool "transaction parser failed" $ isRight p
+                        assertBool $ isRight p
                         let Right t2 = p
-                            same f = assertEqual "" (f t) (f t2)
-                        same tdate
-                        same teffectivedate
-                        same tstatus
-                        same tcode
-                        same tdescription
-                        same tcomment
-                        same ttags
-                        same tpreceding_comment_lines
-                        same tpostings
+                            -- same f = assertEqual (f t) (f t2)
+                        assertEqual (tdate t) (tdate t2)
+                        assertEqual (teffectivedate t) (teffectivedate t2)
+                        assertEqual (tstatus t) (tstatus t2)
+                        assertEqual (tcode t) (tcode t2)
+                        assertEqual (tdescription t) (tdescription t2)
+                        assertEqual (tcomment t) (tcomment t2)
+                        assertEqual (ttags t) (ttags t2)
+                        assertEqual (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
+                        assertEqual (show $ tpostings t) (show $ tpostings t2)
     -- "0000/01/01\n\n" `gives` nulltransaction 
     unlines [
       "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
@@ -363,14 +364,14 @@ tests_transaction = [
       tstatus=False,
       tcode="code",
       tdescription="desc",
-      tcomment="tcomment1\ntcomment2\n",
+      tcomment=" tcomment1\n tcomment2\n ttag1: val1\n",
       ttags=[("ttag1","val1")],
       tpostings=[
         nullposting{
           pstatus=True,
           paccount="a",
           pamount=Mixed [usd 1],
-          pcomment="pcomment1\npcomment2\n",
+          pcomment=" pcomment1\n pcomment2\n ptag1: val1\n  ptag2: val2\n",
           ptype=RegularPosting,
           ptags=[("ptag1","val1"),("ptag2","val2")],
           ptransaction=Nothing
@@ -379,22 +380,42 @@ tests_transaction = [
       tpreceding_comment_lines=""
       }
 
-    assertParseEqual (parseWithCtx nullctx transaction entry1_str) entry1
-    assertBool "transaction should not parse just a date"
-                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1\n"
-    assertBool "transaction should require some postings"
-                   $ isLeft $ parseWithCtx nullctx transaction "2009/1/1 a\n"
-    let t = parseWithCtx nullctx transaction "2009/1/1 a ;comment\n b 1\n"
-    assertBool "transaction should not include a comment in the description"
-                   $ either (const False) ((== "a") . tdescription) t
-    assertBool "parse transaction with following whitespace line" $
-       isRight $ parseWithCtx nullctx transaction $ unlines [
-         "2012/1/1"
+    assertRight $ parseWithCtx nullctx transaction $ unlines
+      ["2007/01/28 coopportunity"
+      ,"    expenses:food:groceries                   $47.18"
+      ,"    assets:checking                          $-47.18"
+      ,""
+      ]
+
+    -- transaction should not parse just a date
+    assertLeft $ parseWithCtx nullctx transaction "2009/1/1\n"
+
+    -- transaction should not parse just a date and description
+    assertLeft $ parseWithCtx nullctx transaction "2009/1/1 a\n"
+
+    -- transaction should not parse a following comment as part of the description
+    let p = parseWithCtx nullctx transaction "2009/1/1 a ;comment\n b 1\n"
+    assertRight p
+    assertEqual "a" (let Right p' = p in tdescription p')
+
+    -- parse transaction with following whitespace line
+    assertRight $ parseWithCtx nullctx transaction $ unlines
+        ["2012/1/1"
         ,"  a  1"
         ,"  b"
         ," "
         ]
- ]
+                    
+    let p = parseWithCtx nullctx transaction $ unlines
+             ["2009/1/1 x  ; transaction comment"
+             ," a  1  ; posting 1 comment"
+             ," ; posting 1 comment 2"
+             ," b"
+             ," ; posting 2 comment"
+             ]
+    assertRight p
+    assertEqual 2 (let Right t = p in length $ tpostings t)
+#endif       
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
 -- may be omitted if a default year has already been set.
@@ -470,7 +491,7 @@ code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `man
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
 postings :: GenParser Char JournalContext [Posting]
-postings = many1 (try posting) <?> "postings"
+postings = many1 (try postingp) <?> "postings"
             
 -- linebeginningwithspaces :: GenParser Char JournalContext String
 -- linebeginningwithspaces = do
@@ -479,8 +500,8 @@ postings = many1 (try posting) <?> "postings"
 --   cs <- restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-posting :: GenParser Char JournalContext Posting
-posting = do
+postingp :: GenParser Char JournalContext Posting
+postingp = do
   many1 spacenonewline
   status <- status
   many spacenonewline
@@ -490,20 +511,20 @@ posting = do
   _ <- balanceassertion
   _ <- fixedlotprice
   many spacenonewline
-  (inlinecomment, inlinetag) <- inlinecomment
-  (nextlinecomments, nextlinetags) <- commentlines
-  let comment = unlines $ inlinecomment ++ nextlinecomments
-      tags = inlinetag ++ nextlinetags
-  return (Posting status account' amount comment ptype tags Nothing)
+  comment <- try followingcomment <|> (newline >> return "")
+  let tags = tagsInComment comment
+      date = dateFromTags tags
+  return posting{pdate=date, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags}
 
-tests_posting = [
-  "posting" ~: do
-    -- let s `gives` r = assertParseEqual (parseWithCtx nullctx posting s) r
-    let s `gives` p = do
-                         let parse = parseWithCtx nullctx posting s
-                         assertBool "posting parser" $ isRight parse
-                         let Right p2 = parse
-                             same f = assertEqual "" (f p) (f p2)
+#ifdef TESTS
+test_postingp = do
+    let s `gives` ep = do
+                         let parse = parseWithCtx nullctx postingp s
+                         assertBool -- "postingp parser" 
+                           $ isRight parse
+                         let Right ap = parse
+                             same f = assertEqual (f ep) (f ap)
+                         same pdate
                          same pstatus
                          same paccount
                          same pamount
@@ -511,16 +532,34 @@ tests_posting = [
                          same ptype
                          same ptags
                          same ptransaction
-    "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
-     `gives`
-     (Posting False "expenses:food:dining" (Mixed [usd 10]) "" RegularPosting [("a","a a"), ("b","b b")] Nothing)
+    "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n" `gives`
+      posting{paccount="expenses:food:dining", pamount=Mixed [usd 10], pcomment=" a: a a \n b: b b \n", ptags=[("a","a a"), ("b","b b")]}
 
-    assertBool "posting parses a quoted commodity with numbers"
-      (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\"\n")
+    " a  1 ; [2012/11/28]\n" `gives` 
+      ("a" `post` num 1){pcomment=" [2012/11/28]\n"
+                        ,ptags=[("date","2012/11/28")]
+                        ,pdate=parsedateM "2012/11/28"}
 
-  ,"posting parses balance assertions and fixed lot prices" ~: do
-    assertBool "" (isRight $ parseWithCtx nullctx posting "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
- ]
+    " a  1 ; a:a, [=2012/11/28]\n" `gives` 
+      ("a" `post` num 1){pcomment=" a:a, [=2012/11/28]\n"
+                        ,ptags=[("a","a"), ("date2","2012/11/28")]
+                        ,pdate=Nothing}
+
+    " a  1 ; a:a\n  ; [2012/11/28=2012/11/29],b:b\n" `gives` 
+      ("a" `post` num 1){pcomment=" a:a\n [2012/11/28=2012/11/29],b:b\n"
+                        ,ptags=[("a","a"), ("date","2012/11/28"), ("date2","2012/11/29"), ("b","b")]
+                        ,pdate=parsedateM "2012/11/28"}
+     
+    assertBool -- "postingp parses a quoted commodity with numbers"
+      (isRight $ parseWithCtx nullctx postingp "  a  1 \"DE123\"\n")
+
+  -- ,"postingp parses balance assertions and fixed lot prices" ~: do
+    assertBool (isRight $ parseWithCtx nullctx postingp "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
+
+    let parse = parseWithCtx nullctx postingp " a\n ;next-line comment\n"
+    assertRight parse
+    assertEqual "next-line comment\n" (let Right p = parse in pcomment p)
+#endif       
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountname :: GenParser Char JournalContext AccountName
@@ -560,13 +599,19 @@ spaceandamountormissing =
         (Mixed . (:[])) `fmap` amountp <|> return missingmixedamt
       ) <|> return missingmixedamt
 
-tests_spaceandamountormissing = [
-   "spaceandamountormissing" ~: do
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " $47.18") (Mixed [usd 47.18])
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "$47.18") missingmixedamt
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing " ") missingmixedamt
-    assertParseEqual (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
- ]
+#ifdef TESTS
+assertParseEqual' :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+assertParseEqual' parse expected = either (assertFailure.show) (`is'` expected) parse
+
+is' :: (Eq a, Show a) => a -> a -> Assertion
+a `is'` e = assertEqual e a
+
+test_spaceandamountormissing = do
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing " $47.18") (Mixed [usd 47.18])
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing "$47.18") missingmixedamt
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing " ") missingmixedamt
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
+#endif       
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
@@ -574,19 +619,19 @@ tests_spaceandamountormissing = [
 amountp :: GenParser Char JournalContext Amount
 amountp = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 
-tests_amountp = [
-   "amountp" ~: do
-    assertParseEqual (parseWithCtx nullctx amountp "$47.18") (usd 47.18)
-    assertParseEqual (parseWithCtx nullctx amountp "$1.") (usd 1 `withPrecision` 0)
-  ,"amount with unit price" ~: do
-    assertParseEqual
+#ifdef TESTS
+test_amountp = do
+    assertParseEqual' (parseWithCtx nullctx amountp "$47.18") (usd 47.18)
+    assertParseEqual' (parseWithCtx nullctx amountp "$1.") (usd 1 `withPrecision` 0)
+  -- ,"amount with unit price" ~: do
+    assertParseEqual'
      (parseWithCtx nullctx amountp "$10 @ €0.5")
      (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1))
-  ,"amount with total price" ~: do
-    assertParseEqual
+  -- ,"amount with total price" ~: do
+    assertParseEqual'
      (parseWithCtx nullctx amountp "$10 @@ €5")
      (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
- ]
+#endif       
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
@@ -732,10 +777,10 @@ number = do
   return (quantity,precision,decimalpoint,separator,separatorpositions)
   <?> "number"
 
-tests_number = [
-    "number" ~: do
-      let s `is` n = assertParseEqual (parseWithCtx nullctx number s) n
-          assertFails = assertBool "" . isLeft . parseWithCtx nullctx number 
+#ifdef TESTS
+test_number = do
+      let s `is` n = assertParseEqual' (parseWithCtx nullctx number s) n
+          assertFails = assertBool . isLeft . parseWithCtx nullctx number 
       assertFails ""
       "0"          `is` (0, 0, '.', ',', [])
       "1"          `is` (1, 0, '.', ',', [])
@@ -754,9 +799,9 @@ tests_number = [
       assertFails "1..1"
       assertFails ".1,"
       assertFails ",1."
- ]
+#endif       
 
--- older comment parsers
+-- comment parsers
 
 emptyline :: GenParser Char JournalContext ()
 emptyline = do many spacenonewline
@@ -764,87 +809,98 @@ emptyline = do many spacenonewline
                newline
                return ()
 
-comment :: GenParser Char JournalContext String
-comment = do
-  many1 $ char ';'
-  many spacenonewline
-  c <- many (noneOf "\n")
-  return $ rstrip c
-  <?> "comment"
+followingcomment :: GenParser Char JournalContext String
+followingcomment =
+  -- ptrace "followingcomment"
+  (do first <- many spacenonewline >> followingcommentline
+      rest <- many (try (many1 spacenonewline >> followingcommentline))
+      return $ unlines $ first:rest
+  ) <|>
+  do
+    many spacenonewline >> newline
+    rest <- many (try (many1 spacenonewline >> followingcommentline))    
+    return $ unlines rest
 
-commentline :: GenParser Char JournalContext String
-commentline = do
-  many spacenonewline
-  c <- comment
+followingcommentline :: GenParser Char JournalContext String
+followingcommentline = do
+  -- ptrace "followingcommentline"
+  char ';'
+  l <- anyChar `manyTill` eolof
   optional newline
-  eof
-  return c
-  <?> "comment"
+  return l
 
--- newer comment parsers
+eolof = (newline >> return ()) <|> eof
 
-inlinecomment :: GenParser Char JournalContext ([String],[Tag])
-inlinecomment = try (do {tag <- tagcomment; newline; return ([], [tag])})
-                    <|> (do {c <- comment; newline; return ([rstrip c], [])})
-                    <|> (newline >> return ([], []))
+tagsInComment :: String -> [Tag]
+tagsInComment c = concatMap tagsInCommentLine $ lines c'
+  where
+    c' = ledgerDateSyntaxToTags c
+    
+tagsInCommentLine :: String -> [Tag]
+tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
+  where
+    maybetag s = case parseWithCtx nullctx tag s of
+                  Right t -> Just t
+                  Left _ -> Nothing
 
-tests_inlinecomment = [
-   "inlinecomment" ~: do
-    let s `gives` r = assertParseEqual (parseWithCtx nullctx inlinecomment s) r
-    ";  comment \n" `gives` (["comment"],[])
-    ";tag: a value \n" `gives` ([],[("tag","a value")])
- ]
+tag = do
+  -- ptrace "tag"
+  n <- tagname
+  v <- tagvalue
+  return (n,v)
 
-commentlines :: GenParser Char JournalContext ([String],[Tag])
-commentlines = do
-  comortags <- many $ choice' [(liftM Right tagline)
-                             ,(do {many1 spacenonewline; c <- comment; newline; return $ Left c }) -- XXX fix commentnewline
-                             ]
-  return $ partitionEithers comortags
-
-tests_commentlines = [
-   "commentlines" ~: do
-    let s `gives` r = assertParseEqual (parseWithCtx nullctx commentlines s) r
-    "    ;  comment 1 \n ; tag1:  val1 \n ;comment 2\n;unindented comment\n"
-     `gives` (["comment 1","comment 2"],[("tag1","val1")])
- ]
-
--- a comment line containing a tag declaration, eg:
--- ; name: value
-tagline :: GenParser Char JournalContext Tag
-tagline = do
-  many1 spacenonewline
-  tag <- tagcomment
-  newline
-  return tag
-
--- a comment containing a tag, like  "; name: some value"
-tagcomment :: GenParser Char JournalContext Tag
-tagcomment = do
-  many1 $ char ';'
-  many spacenonewline
-  name <- many1 $ noneOf ": \t"
+tagname = do
+  -- ptrace "tagname"
+  n <- many1 $ noneOf ": \t"
   char ':'
-  many spacenonewline
-  value <- many (noneOf "\n")
-  return (name, rstrip value)
-  <?> "tag comment"
+  return n
 
-tests_tagcomment = [
-   "tagcomment" ~: do
-    let s `gives` r = assertParseEqual (parseWithCtx nullctx tagcomment s) r
-    ";tag: a value \n" `gives` ("tag","a value")
- ]
+tagvalue = do
+  -- ptrace "tagvalue"
+  v <- anyChar `manyTill` ((char ',' >> return ()) <|> eolof)
+  return $ strip $ reverse $ dropWhile (==',') $ reverse $ strip v
 
-tests_Hledger_Read_JournalReader = TestList $ concat [
-    tests_number,
-    tests_amountp,
-    tests_spaceandamountormissing,
-    tests_tagcomment,
-    tests_inlinecomment,
-    tests_commentlines,
-    tests_posting,
-    tests_transaction,
+ledgerDateSyntaxToTags :: String -> String
+ledgerDateSyntaxToTags = regexReplaceBy "\\[[-.\\/0-9=]+\\]" replace
+  where
+    replace ('[':s) | lastDef ' ' s == ']' = replace' $ init s
+    replace s = s
+
+    replace' s | isdate s = datetag s
+    replace' ('=':s) | isdate s = date2tag s
+    replace' s | last s =='=' && isdate (init s) = datetag (init s)
+    replace' s | length ds == 2 && isdate d1 && isdate d1 = datetag d1 ++ date2tag d2
+      where 
+        ds = splitAtElement '=' s
+        d1 = headDef "" ds
+        d2 = lastDef "" ds
+    replace' s = s
+
+    isdate = isJust . parsedateM
+    datetag s = "date:"++s++", "
+    date2tag s = "date2:"++s++", "
+    
+#ifdef TESTS
+test_ledgerDateSyntaxToTags = do
+     assertEqual "date2:2012/11/28, " $ ledgerDateSyntaxToTags "[=2012/11/28]"
+#endif       
+  
+dateFromTags :: [Tag] -> Maybe Day
+dateFromTags = maybe Nothing parsedateM . fmap snd . find ((=="date").fst)
+
+    
+{- old hunit tests
+
+test_Hledger_Read_JournalReader = TestList $ concat [
+    test_number,
+    test_amountp,
+    test_spaceandamountormissing,
+    test_tagcomment,
+    test_inlinecomment,
+    test_commentlines,
+    test_ledgerDateSyntaxToTags,
+    test_postingp,
+    test_transaction,
     [
    "modifiertransaction" ~: do
      assertParse (parseWithCtx nullctx modifiertransaction "= (some value expr)\n some:postings  1\n")
@@ -925,16 +981,5 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
        (num 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
 
  ]]
-
-entry1_str = unlines
- ["2007/01/28 coopportunity"
- ,"    expenses:food:groceries                   $47.18"
- ,"    assets:checking                          $-47.18"
- ,""
- ]
-
-entry1 =
-    txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
-     [Posting False "expenses:food:groceries" (Mixed [usd 47.18]) "" RegularPosting [] Nothing, 
-      Posting False "assets:checking" (Mixed [usd (-47.18)]) "" RegularPosting [] Nothing] ""
+-}
 

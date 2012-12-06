@@ -3,15 +3,15 @@
 hledgerdev -f - print
 <<<
 2010/1/1
-    a  EUR 1  ; a euro
-    b  USD 1  ; a dollar
-    c         ; a euro and a dollar
+    a  EUR 1    ; a euro
+    b  USD 1    ; a dollar
+    c           ; a euro and a dollar
 >>>
 2010/01/01
-    a         EUR 1  ; a euro
-    b         USD 1  ; a dollar
+    a         EUR 1    ; a euro
+    b         USD 1    ; a dollar
              EUR -1
-    c        USD -1  ; a euro and a dollar
+    c        USD -1    ; a euro and a dollar
 
 >>>=0
 
@@ -19,9 +19,9 @@ hledgerdev -f - print
 hledgerdev -f - register
 <<<
 2010/1/1
-    a  EUR 1  ; a euro
-    b  USD 1  ; a dollar
-    c         ; a euro and a dollar
+    a  EUR 1    ; a euro
+    b  USD 1    ; a dollar
+    c           ; a euro and a dollar
 >>>
 2010/01/01                      a                             EUR 1        EUR 1
                                                                            EUR 1
@@ -34,9 +34,9 @@ hledgerdev -f - register
 hledgerdev -f - balance
 <<<
 2010/1/1
-    a  EUR 1  ; a euro
-    b  USD 1  ; a dollar
-    c         ; a euro and a dollar
+    a  EUR 1    ; a euro
+    b  USD 1    ; a dollar
+    c           ; a euro and a dollar
 >>>
                EUR 1  a
                USD 1  b
@@ -52,20 +52,20 @@ hledgerdev -f - balance
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro
-#     b  USD 1  ; a dollar
-#     c         ; a euro and a dollar
+#     b  USD 1    ; a dollar
+#     c           ; a euro and a dollar
 # >>>
 # 2010/01/01
-#     a  EUR 1 @ USD 1.1  ; a euro
-#     b         USD 1  ; a dollar
+#     a  EUR 1 @ USD 1.1    ; a euro
+#     b         USD 1    ; a dollar
 #        EUR -1 @ USD 1.1                       
-#     c            USD -1  ; a euro and a dollar
+#     c            USD -1    ; a euro and a dollar
 #
 ##
 # 2010/01/01
-#     a  EUR 1 @ USD 1.1  ; a euro
-#     b       USD 1.0  ; a dollar
-#     c      USD -2.1  ; a euro and a dollar
+#     a  EUR 1 @ USD 1.1    ; a euro
+#     b       USD 1.0    ; a dollar
+#     c      USD -2.1    ; a euro and a dollar
 #
 #>>>=0
 #
@@ -74,8 +74,8 @@ hledgerdev -f - balance
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro
-#     b  USD 1  ; a dollar
-#     c         ; a euro and a dollar
+#     b  USD 1    ; a dollar
+#     c           ; a euro and a dollar
 # >>>
 # 2010/01/01                      a                             EUR 1        EUR 1
 #                                                                            EUR 1
@@ -89,8 +89,8 @@ hledgerdev -f - balance
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro
-#     b  USD 1  ; a dollar
-#     c         ; a euro and a dollar
+#     b  USD 1    ; a dollar
+#     c           ; a euro and a dollar
 # >>>
 #                EUR 1  a
 #              USD 1.0  b

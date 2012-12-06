@@ -1,3 +1,5 @@
+-- {-# OPTIONS_GHC -F -pgmF htfpp #-}
+{-# LANGUAGE CPP #-}
 {- |
 
 A simple test runner for hledger's built-in unit tests.
@@ -13,8 +15,18 @@ import Test.HUnit
 import Hledger
 import Hledger.Cli
 
+#ifdef TESTS
 
--- | Run unit tests and exit with success or failure.
+import Test.Framework
+import {-@ HTF_TESTS @-} Hledger.Read.JournalReader
+
+-- | Run HTF unit tests and exit with success or failure.
+test' :: CliOpts -> IO ()
+test' _opts = htfMain htf_importedTests
+
+#else
+
+-- | Run HUnit unit tests and exit with success or failure.
 test' :: CliOpts -> IO ()
 test' opts = do
   results <- runTests opts
@@ -39,3 +51,5 @@ flatTests opts = TestList $ filter (matchesAccount (queryFromOpts nulldate $ rep
 
 -- | All or pattern-matched tests, in the original suites to show hierarchical names.
 hierarchicalTests opts = filterTests (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . testName) tests_Hledger_Cli
+
+#endif

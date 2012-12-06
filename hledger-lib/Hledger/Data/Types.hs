@@ -76,6 +76,7 @@ data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
 type Tag = (String, String)
 
 data Posting = Posting {
+      pdate :: Maybe Day,  -- ^ this posting's clearing date, if different from the transaction's
       pstatus :: Bool,
       paccount :: AccountName,
       pamount :: MixedAmount,
@@ -89,7 +90,7 @@ data Posting = Posting {
 -- The equality test for postings ignores the parent transaction's
 -- identity, to avoid infinite loops.
 instance Eq Posting where
-    (==) (Posting a1 b1 c1 d1 e1 f1 _) (Posting a2 b2 c2 d2 e2 f2 _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2
+    (==) (Posting a1 b1 c1 d1 e1 f1 g1 _) (Posting a2 b2 c2 d2 e2 f2 g2 _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2
 
 data Transaction = Transaction {
       tdate :: Day,
@@ -246,6 +247,8 @@ data Account = Account {
   aparent :: Maybe Account, -- ^ parent account
   aboring :: Bool           -- ^ used in the accounts report to label elidable parents
   }
+
+
 
 -- | A Ledger has the journal it derives from, and the accounts
 -- derived from that. Accounts are accessible both list-wise and

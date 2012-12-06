@@ -28,6 +28,7 @@ module Hledger.Data.Dates (
   getCurrentYear,
   nulldate,
   spanContainsDate,
+  parsedateM,
   parsedate,
   showDate,
   elapsedSeconds,

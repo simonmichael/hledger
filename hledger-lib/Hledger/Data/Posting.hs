@@ -64,7 +64,8 @@ instance Show Posting where show = showPosting
 
 nullposting, posting :: Posting
 nullposting = Posting
-                {pstatus=False
+                {pdate=Nothing
+                ,pstatus=False
                 ,paccount=""
                 ,pamount=nullmixedamt
                 ,pcomment=""
@@ -98,7 +99,7 @@ tagsAsLines :: [(String, String)] -> [String]
 tagsAsLines mds = map (\(k,v) -> "    ; " ++ k++": "++v) mds
 
 showComment :: String -> String
-showComment s = if null s then "" else "  ; " ++ s
+showComment s = if null s then "" else "  ;" ++ s
 
 -- XXX refactor
 showPostingForRegister :: Posting -> String
@@ -132,8 +133,13 @@ accountNamesFromPostings = nub . map paccount
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = sum . map pamount
 
+-- | Get a posting's (primary) date - it's own date if specified,
+-- otherwise the parent transaction's primary date (otherwise the null
+-- date).
 postingDate :: Posting -> Day
-postingDate p = maybe nulldate tdate $ ptransaction p
+postingDate p = fromMaybe txndate $ pdate p
+    where 
+      txndate = maybe nulldate tdate $ ptransaction p
 
 -- |Is this posting cleared? If this posting was individually marked
 -- as cleared, returns True. Otherwise, return the parent
@@ -231,4 +237,4 @@ tests_Hledger_Data_Posting = TestList [
     concatAccountNames ["a","(b)","[c:d]"] `is` "(a:b:c:d)"
 
  ]
-
+ 

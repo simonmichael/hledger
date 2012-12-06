@@ -408,6 +408,16 @@ Filtering reports by tag is work in progress. For the moment, you can
 match transactions' or postings' tag values by adding `tag
 NAME=EXACTVALUE` on the command line.
 
+### Posting dates
+
+You can give individual postings a different date (or dates) from their parent transaction,
+by adding posting tags `date:ACTUALDATE` and/or `date2:EFFECTIVEDATE`.
+
+For compatibility, ledger's posting date syntax is also supported
+(`[ACTUALDATE]`, `[=EFFECTIVEDATE]` or `[ACTUALDATE=EFFECTIVEDATE]` in a
+posting comment), and treated as an alterate spelling of the date and
+date2 tags.
+
 ### Including other files
 
 You can pull in the content of additional journal files, by writing lines like this:
@@ -1312,7 +1322,7 @@ entries, and the following c++ ledger options and commands:
   and "not:" prefixes, unlike ledger 3's free-form parser
 
 - hledger doesn't require a space before command-line option
-  values, eg either `-f-` or `-f -` is fine
+  values, eg `-fFILE` or `-f FILE` works
 
 - hledger's weekly reporting intervals always start on mondays
 

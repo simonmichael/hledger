@@ -115,14 +115,13 @@ tests_showTransactionUnelided = [
        ]
       }
       `gives` unlines [
-      "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
-      "    ; tcomment2",
-      "    ; ttag1: val1",
+      "2012/05/14=2012/05/15 (code) desc",
+      "    ;tcomment1",
+      "    ;tcomment2",
       "                $1.00",
-      "    * a          2.0h  ; pcomment1",
-      "    ; pcomment2",
-      "    ; ptag1: val1",
-      "    ; ptag2: val2",
+      "    * a          2.0h",
+      "    ;pcomment1",
+      "    ;pcomment2",
       ""
       ]
  ]
@@ -131,26 +130,30 @@ tests_showTransactionUnelided = [
 showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
     unlines $ [descriptionline]
-              ++ commentlines
-              ++ (tagsAsLines $ ttags t)
+              ++ multilinecomment
+              -- ++ (tagsAsLines $ ttags t)
               ++ (postingsAsLines elide t (tpostings t))
               ++ [""]
     where
-      descriptionline = rstrip $ concat [date, status, code, desc, firstcomment]
+      descriptionline = rstrip $ concat [date, status, code, desc, inlinecomment]
       date = showdate (tdate t) ++ maybe "" showedate (teffectivedate t)
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       status = if tstatus t then " *" else ""
       code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
       desc = if null d then "" else " " ++ d where d = tdescription t
-      (firstcomment, commentlines) = commentLines $ tcomment t
+      (inlinecomment, multilinecomment) = commentLines $ tcomment t
 
--- Render a transaction or posting's comment as indented & prefixed comment lines.
+-- Render a transaction or posting's comment as indented, semicolon-prefixed comment lines -
+-- an inline comment (when it's a single line) or multiple lines.
 commentLines :: String -> (String, [String])
 commentLines s
     | null s = ("", [])
-    | otherwise = ("  ; " ++ first, map (indent . ("; "++)) rest)
-    where (first:rest) = lines s
+    | length ls == 1 = (prefix $ head ls, [])
+    | otherwise = ("", (prefix $ head ls):(map prefix $ tail ls))
+    where
+      ls = lines s
+      prefix = indent . (";"++)
 
 postingsAsLines :: Bool -> Transaction -> [Posting] -> [String]
 postingsAsLines elide t ps
@@ -161,12 +164,12 @@ postingsAsLines elide t ps
 postingAsLines :: Bool -> [Posting] -> Posting -> [String]
 postingAsLines elideamount ps p =
     postinglines
-    ++ commentlines
-    ++ tagsAsLines (ptags p)
+    ++ multilinecomment
+    -- ++ tagsAsLines (ptags p)
   where
-    postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, firstcomment]
+    postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, inlinecomment]
     amount = if elideamount then "" else showamt (pamount p)
-    (firstcomment, commentlines) = commentLines $ pcomment p
+    (inlinecomment, multilinecomment) = commentLines $ pcomment p
     showacct p =
       indent $ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
         where
@@ -178,22 +181,22 @@ postingAsLines elideamount ps p =
 tests_postingAsLines = [
    "postingAsLines" ~: do
     let p `gives` ls = assertEqual "" ls (postingAsLines False [p] p)
-    nullposting `gives` ["                 0"]
-    nullposting{
+    posting `gives` ["                 0"]
+    posting{
       pstatus=True,
       paccount="a",
       pamount=Mixed [usd 1, hrs 2],
-      pcomment="pcomment1\npcomment2\n",
+      pcomment="pcomment1\npcomment2\n  tag3: val3  \n",
       ptype=RegularPosting,
       ptags=[("ptag1","val1"),("ptag2","val2")]
       }
      `gives` [
       "                $1.00",
-      "    * a          2.0h  ; pcomment1",
-      "    ; pcomment2",
-      "    ; ptag1: val1",
-      "    ; ptag2: val2"
-      ]      
+      "    * a          2.0h",
+      "    ;pcomment1",
+      "    ;pcomment2",
+      "    ;  tag3: val3  "
+      ]
  ]
 
 indent :: String -> String

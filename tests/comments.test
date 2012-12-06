@@ -3,12 +3,14 @@
 # 1. 
 hledgerdev -f - print
 <<<
-2009/01/01 x  ; transaction comment 1
+2009/01/01 x
+    ; transaction comment 1
     ; transaction comment 2
     a  1
     b
 >>>
-2009/01/01 x  ; transaction comment 1
+2009/01/01 x
+    ; transaction comment 1
     ; transaction comment 2
     a             1
     b            -1
@@ -35,30 +37,32 @@ hledgerdev -f - print
 ; isolated journal comment
 
 ; pre-transaction journal comment
-2009/1/1 x  ; transaction comment
-    a  1  ; posting 1 comment
+2009/1/1 x    ; transaction comment
+    a  1    ; posting 1 comment
     ; posting 1 comment 2
     b
     ; posting 2 comment
 ; post-transaction journal comment
 >>>
-2009/01/01 x  ; transaction comment
-    a             1  ; posting 1 comment
+2009/01/01 x    ; transaction comment
+    a             1
+    ; posting 1 comment
     ; posting 1 comment 2
-    b            -1  ; posting 2 comment
+    b            -1    ; posting 2 comment
 
+>>>2
 >>>=0
 
 # 4. a posting comment should appear in print
 hledgerdev -f - print
 <<<
 2010/01/01 x
-    a             1  ; comment
+    a             1    ; comment
     b            -1
 
 >>>
 2010/01/01 x
-    a             1  ; comment
+    a             1    ; comment
     b            -1
 
 >>>2
