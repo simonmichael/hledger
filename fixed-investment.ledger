@@ -1,0 +1,25 @@
+2009-01-01 Initial saving into a fixed-rate investment (10%)
+  FixedInvestment  €100.00
+  Cash
+  
+2010-01-01 First interest
+  FixedInvestment  €10.00
+  Interest
+
+2011-01-01 Second interest
+  FixedInvestment  €11.00
+  Interest
+
+2011-01-01 Partial withdrawal
+  FixedInvestment  -€71.00
+  Cash
+
+2012-01-01 Third interest
+  FixedInvestment  €5.00
+  Interest
+
+; $ hledger-interest -f test.ledger  -t Interest -i FixedInvestment -c -b 2009 -e 2012
+; 2009/01/01: €-100.00
+; 2011/01/01: €71.00
+; 2012/01/01: €55.00
+; 10.00%
