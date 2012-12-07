@@ -36,12 +36,12 @@ Description:
  annualy rate of fixed rate investment that would have provided the exact same
  cash flow.
  .
- As an example, consider the following irregular investment stored in a file
+ As an example, consider the following irregular investment recorded in a file
  called @speculation.ledger@. The account “Speculation” holds the investment which
  could be, for example, a stock. Regularly, we make sure that the value of the
  account matches the value of the stock, by moving money from or to the account
  “Rate Gain”. It does not really matter when we adjust the price, as long as it
- is correct at the end.
+ is correct at the end of our reporting period.
  .
 __END__
 cat speculation.ledger | sed -e 's/^/ > /'
@@ -64,10 +64,13 @@ __END__
 cmd '--help'
 cat <<__END__
  .
- Known bugs and issues: Currenlty, hledger-irr does not cope well with multiple
- commodities (e.g. Euro and Dollar, or shares). Also, interest or fees that do
- not pass through the account selected by @--investment-account@ are not taken
- into consideration.
+ Known bugs and issues:
+ .
+ * Currenlty, hledger-irr does not cope well with multiple commodities (e.g.
+   Euro and Dollar, or shares).
+ .
+ * Also, interest or fees that do not pass through the account selected by
+   @--investment-account@ are not taken into consideration.
 
 Executable hledger-irr
   Main-is:              Main.hs
