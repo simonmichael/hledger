@@ -11,13 +11,12 @@ function cmd {
 }
 
 VERSION="$(darcs show tag | head -n 1)"
-${VERSION:=0.0}
 
 exec >hledger-irr.cabal
 
 cat <<__END__
 Name:                   hledger-irr
-Version:                $VERSION
+Version:                ${VERSION:-0.0}
 Synopsis:               computes the internal rate of return of an investment
 License:                BSD3
 License-file:           LICENSE
@@ -76,4 +75,9 @@ Executable hledger-irr
   Main-is:              Main.hs
   Build-depends:        base >= 3 && < 5, hledger-lib >= 0.19.3, time, Cabal, statistics >= 0.10
   Ghc-Options:          -Wall
+
+source-repository head
+    type:     darcs
+    location: http://darcs.nomeata.de/hledger-irr
+
 __END__
