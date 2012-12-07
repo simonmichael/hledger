@@ -27,6 +27,7 @@ data Options = Options
   , optInterestAcc  :: String
   , optBegin        :: Maybe String
   , optEnd          :: Maybe String
+  , optInterval     :: Maybe Interval
   }
 
 defaultOptions :: Options
@@ -39,6 +40,7 @@ defaultOptions = Options
   , optInterestAcc  = ""
   , optBegin        = Nothing
   , optEnd          = Nothing
+  , optInterval     = Nothing
   }
 
 options :: [OptDescr (Options -> Options)]
@@ -67,6 +69,18 @@ options =
  , Option "e" ["end"]
               (ReqArg (\d o -> o { optEnd = Just d }) "DATE")
               "calculate interest until this date"
+ , Option "D" ["daily"]
+              (NoArg (\o -> o { optInterval = Just (Days 1) }))
+              "calculate intereste for each day"
+ , Option "W" ["weekly"]
+              (NoArg (\o -> o { optInterval = Just (Weeks 1) }))
+              "calculate intereste for each week"
+ , Option "M" ["monthly"]
+              (NoArg (\o -> o { optInterval = Just (Months 1) }))
+              "calculate intereste for each month"
+ , Option "Y" ["yearly"]
+              (NoArg (\o -> o { optInterval = Just (Years 1) }))
+              "calculate intereste for each year"
  ]
 
 usageMessage :: String
@@ -94,35 +108,45 @@ main = bracket (return ()) (\() -> hFlush stdout >> hFlush stderr) $ \() -> do
   jnl' <- readJournalFile Nothing Nothing (optInput opts) >>= either fail return
 
   let ts = jtxns $ filterJournalTransactions (Acct (optInvAcc opts)) jnl'
+  when (null ts) $ do
+    putStrLn "No relevant transactions found. Did you mis-spell your accounts?"
+    exitFailure
+
   thisDay <- getCurrentDay
+  let firstDay = minimum $ map transactionEffectiveDate ts
 
-  let begin = fmap (fixSmartDateStr' thisDay) (optBegin opts)
-  let end = maybe thisDay (fixSmartDateStr' thisDay) (optEnd opts)
+  let begin = maybe firstDay (fixSmartDateStr' thisDay) (optBegin opts)
+  let end =   maybe thisDay  (fixSmartDateStr' thisDay) (optEnd opts)
 
-  let prefix = case begin of
-        Nothing -> id
-        Just bday -> let preQuery = And [ Acct (optInvAcc opts),
-                                          EDate (openClosedSpan Nothing (Just bday))]
-                         pre_amount = negate $ unMix $ accountAmount preQuery ts
-                     in  ((bday, pre_amount) :)
+  let wholeSpan = DateSpan (Just begin) (Just end)
+  let spans = case optInterval opts of
+        Nothing -> [wholeSpan]
+        Just interval -> splitSpan interval wholeSpan
 
-  let eQuery = And [Acct (optInvAcc opts), EDate (openClosedSpan Nothing (Just end))]
-  let final = unMix $ accountAmount eQuery ts
-  let postfix = ((end, final) :)
+  forM_ spans $ \(DateSpan (Just ibegin) (Just iend)) -> do
+      let preQuery = And [ Acct (optInvAcc opts),
+                           EDate (openClosedSpan Nothing (Just ibegin))]
+          pre_amount = negate $ unMix $ accountAmount preQuery ts
+      let prefix = (ibegin, pre_amount)
 
-  let cfQuery = And [ Not (Or [Acct (optInvAcc opts), Acct (optInterestAcc opts)]), 
-                      EDate (openClosedSpan begin (Just end)) ] 
-  let cf = calculateCashFlow cfQuery ts
+      let eQuery = And [Acct (optInvAcc opts), EDate (openClosedSpan Nothing (Just iend))]
+      let final = unMix $ accountAmount eQuery ts
+      let postfix = (iend, final)
 
-  let totalCF = sortBy (comparing fst) $ filter ((/=0) . aquantity . snd) $ prefix $ postfix $ cf
+      let cfQuery = And [ Not (Or [Acct (optInvAcc opts), Acct (optInterestAcc opts)]), 
+                          EDate (openClosedSpan (Just ibegin) (Just iend)) ] 
+      let cf = calculateCashFlow cfQuery ts
 
-  when (optCashFlow opts) $ do
-      mapM_ (putStrLn . showCashFlowEntry) totalCF
+      let totalCF = sortBy (comparing fst) $ filter ((/=0) . aquantity . snd) $ prefix : postfix : cf
 
-  -- 0% is always a solution, so require at least something here
-  case ridders 0.00001 (0.000001,1000) (aquantity . interestSum end totalCF) of
-    Root rate -> putStrLn (printf "%0.2f%%" ((rate-1)*100))
-    _ -> putStrLn "Error: Failed to find solution."
+      when (optCashFlow opts) $ do
+          mapM_ (putStrLn . showCashFlowEntry) totalCF
+
+      -- 0% is always a solution, so require at least something here
+      putStr $ printf "%s - %s: " (showDate ibegin) (showDate iend)
+      case ridders 0.00001 (0.000001,1000) (aquantity . interestSum iend totalCF) of
+        Root rate -> putStrLn (printf "%0.2f%%" ((rate-1)*100))
+        _ -> putStrLn "Error: Failed to find solution."
 
 openClosedSpan :: Maybe Day -> Maybe Day -> DateSpan
 openClosedSpan md1 md2 = DateSpan (fmap (addDays 1) md1) (fmap (addDays 1) md2)
