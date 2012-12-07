@@ -88,11 +88,6 @@ Description:
  not pass through the account selected by @--investment-account@ are not taken
  into consideration.
 
-
-Source-Repository head
-  Type:                 git
-  Location:             git://github.com/peti/hledger-interest.git
-
 Executable hledger-irr
   Main-is:              Main.hs
   Build-depends:        base >= 3 && < 5, hledger-lib >= 0.19.3, time, Cabal, statistics >= 0.10
