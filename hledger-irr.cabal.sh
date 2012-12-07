@@ -1,12 +1,12 @@
 #!/bin/bash
 
 function cmd {
-    if [ -x dist/build/hledger-interest/hledger-interest ]
+    if [ -x dist/build/hledger-irr/hledger-irr ]
     then
         echo ' > $ hledger-irr' $1
-        eval dist/build/hledger-interest/hledger-interest $1 | sed -e 's/^/ > /'
+        eval dist/build/hledger-irr/hledger-irr $1 | sed -e 's/^/ > /'
     else
-        echo "dist/build/hledger-interest/hledger-interest missing, rerun $0 to update description" >&2
+        echo "dist/build/hledger-irr/hledger-irr missing, rerun $0 to update description" >&2
     fi
 }
 
@@ -47,12 +47,14 @@ __END__
 cat speculation.ledger | sed -e 's/^/ > /'
 cat <<__END__
  .
- We can now calculate the rate of return for the whole time or just for parts of it:
+ We can now calculate the rate of return for the whole time or just for parts
+ of it (and be freaked out by the volatility of the investment):
  .
 __END__
 cmd '-f speculation.ledger -t "Rate Gain" -i Speculation -c'
 cmd '-f speculation.ledger -t "Rate Gain" -i Speculation -e 2011-03-01'
 cmd '-f speculation.ledger -t "Rate Gain" -i Speculation -b 2011-03-01'
+cmd '-f speculation.ledger -t "Rate Gain" -i Speculation --monthly'
 cat <<__END__
  .
  Running the utility with @--help@ gives a brief overview over the

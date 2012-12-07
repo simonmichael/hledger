@@ -114,14 +114,18 @@ main = bracket (return ()) (\() -> hFlush stdout >> hFlush stderr) $ \() -> do
 
   thisDay <- getCurrentDay
   let firstDay = minimum $ map transactionEffectiveDate ts
+  let lastDay = maximum $ map transactionEffectiveDate ts
+  let existingSpan = DateSpan (Just firstDay) (Just lastDay)
 
   let begin = maybe firstDay (fixSmartDateStr' thisDay) (optBegin opts)
   let end =   maybe thisDay  (fixSmartDateStr' thisDay) (optEnd opts)
-
   let wholeSpan = DateSpan (Just begin) (Just end)
+
   let spans = case optInterval opts of
         Nothing -> [wholeSpan]
-        Just interval -> splitSpan interval wholeSpan
+        Just interval ->
+            splitSpan interval $
+            spanIntersect existingSpan wholeSpan
 
   forM_ spans $ \(DateSpan (Just ibegin) (Just iend)) -> do
       let preQuery = And [ Acct (optInvAcc opts),
@@ -137,7 +141,7 @@ main = bracket (return ()) (\() -> hFlush stdout >> hFlush stderr) $ \() -> do
                           EDate (openClosedSpan (Just ibegin) (Just iend)) ] 
       let cf = calculateCashFlow cfQuery ts
 
-      let totalCF = sortBy (comparing fst) $ filter ((/=0) . aquantity . snd) $ prefix : postfix : cf
+      let totalCF = sortBy (comparing fst) $ filter ((/=0) . aquantity . snd) $ prefix : cf ++ [postfix]
 
       when (optCashFlow opts) $ do
           mapM_ (putStrLn . showCashFlowEntry) totalCF
