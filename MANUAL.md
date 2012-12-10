@@ -198,23 +198,20 @@ digit group separators, you must also include a decimal point in at least
 one number in the same commodity, so that hledger knows which character is
 which. Eg, write `$1,000.00` or `$1.000,00`.
 
-### Commodity display settings
+### Amount styles
 
 Based on how you format amounts, hledger will infer canonical display
-settings for each commodity, and use them consistently when displaying
-amounts in that commodity. Display settings include:
+styles for each commodity, and use these when displaying amounts in that
+commodity. Amount styles include:
 
-- the position and spacing of the currency/commodity symbol
-- the digit group separator character and digit group sizes, if any
-- the decimal point character
-- the number of decimal places
+- the position (left or right) and spacing (space or no separator) of the commodity symbol
+- the digit group separator character (comma or period) and digit group sizes, if any
+- the decimal point character (period or comma)
+- the display precision (number of decimal places displayed)
 
-The canonical settings are those of the first amount seen in the
-commodity, with the decimal places adjusted upward to the highest
-precision seen in the commodity.
-
-[Default commodity](#default-commodity) directives also influence the
-commodity display settings (note: only if they have a commodity symbol).
+The canonical style is generally the style of the first amount seen in a commodity
+(which may be in a [default commodity directive](#default-commodity).
+The precision is the highest precision seen among all amounts in the commmodity.
 
 ### Simple dates
 
@@ -238,21 +235,18 @@ transactions, like so:
     1/31  ; equivalent to 2010/1/31
       ...
 
-### Primary & secondary dates
+### Secondary dates
 
-Most of the time, a simple transaction date is all you need. However
-real-life transactions sometimes involve more than one date. Eg, cheque
-writing and clearing dates. When you want to model this, eg so that your
-daily checking account balance is more accurate, write both dates,
-separated by an equals sign. The *primary date* goes on the left, and is
-used by default; the *secondary date* goes on the right, and is used when
-the `--date2` flag is provided. (You can also spell this `--aux-date`,
-like ledger, or `--effective` like older versions).
+Real-life transactions sometimes involve more than one date - eg the date
+you write a cheque, and the date it clears in your bank.  When you want to
+model this, eg for more accurate balances, write both dates separated by
+an equals sign. The *primary date*, on the left, is used by default; the
+*secondary date*, on the right, is used when the `--date2` flag is specified
+(`--aux-date` or `--effective` will also work).
 
-These used to be called "actual" and "effective" dates. Their meaning is
-up to you, but it's best to follow a consistent rule. I write the bank's
-clearing date as primary, and the date I initiated the transaction as
-secondary (if needed).
+Their meaning is up to you, but it's best to follow a consistent rule. I
+write the bank's clearing date as primary, and the date I initiated the
+transaction as secondary (if needed).
 
 Example:
 
@@ -268,21 +262,34 @@ Example:
     $ hledger register checking --date2
     2010/02/19 movie ticket         assets:checking                $-10         $-10
 
+### Posting dates
+
+[Comments and tags](#comments) are covered below, but while we are talking
+about dates: you can give individual postings a different date from their
+parent transaction, by adding a posting tag like `date:DATE`, where DATE is
+a [simple date](#simple-dates). The secondary date can be set with
+`date2:DATE2`. If present, these dates will take precedence in reports.
+
+Ledger's bracketed posting date syntax (`[DATE]`,
+`[DATE=DATE2]` or `[=DATE2]` in a posting comment)
+is also supported, as an alternate spelling of the date tags.
+
 ### Default commodity
 
-You can set a default commodity or currency with a D directive. This will
-be used for any subsequent amounts which have no commodity symbol.
+You can set a default commodity, to be used for any subsequent amounts
+which have no commodity symbol, with the D directive:
 
-    ; default commodity: british pound, comma thousands separator, two decimal places
+    ; set british pound as default commodity
+    ; also sets canonical style for pound amounts, since it's the first one
+    ; (pound symbol on left, comma thousands separator, two decimal places)
     D £1,000.00
     
     2010/1/1
-      a  2340   ; no commodity symbol, will use the above
+      a  2340    ; no symbol, will use pound
       b
 
-If such an amount is the first seen in that commodity, the canonical
-[commodity display settings](#commodity-display-settings) will also be
-taken from the directive (note: only if it includes a commodity symbol).
+A default commodity directive may also influence the canonical
+[amount style](#commodity-display-settings) for the commodity.
 
 ### Prices
 
@@ -394,18 +401,6 @@ tags on one line). For example:
 Querying by tag is work in progress; for now you can test for existence of
 a tag with `tag:NAME`.
 <!-- tag:NAME=EXACTVALUE` -->
-
-### Posting dates
-
-You can give individual postings a different date from their parent
-transaction, by adding a [posting tag]("tags") like `date:DATE` where
-DATE is a [simple date](#simple-dates). The secondary date can be set
-with `date2:DATE2`. If present, these dates will take precedence in
-reports.
-
-Ledger's bracketed posting date syntax (`[DATE]`,
-`[DATE=DATE2]` or `[=DATE2]` in a posting comment)
-is also supported, as an alternate spelling of the date tags.
 
 ### Including other files
 
