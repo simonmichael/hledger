@@ -24,7 +24,7 @@ td strong a:link {
 </style>
 
 <br>
-<a href="https://www.wepay.com/donate/74643?ref=widget&utm_medium=widget&utm_campaign=donation"
+<a href="https://www.wepay.com/donate/hledger?ref=widget&utm_medium=widget&utm_campaign=donation"
    target="_blank" style="float:right;margin:1em;"
    ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
 
