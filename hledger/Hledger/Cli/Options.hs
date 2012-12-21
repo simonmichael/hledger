@@ -7,7 +7,7 @@ Command-line options for the hledger program, and option-parsing utilities.
 
 module Hledger.Cli.Options
 where
-import Control.Exception as C
+import qualified Control.Exception as C
 import Data.List
 import Data.List.Split
 import Data.Maybe
@@ -19,7 +19,7 @@ import System.Console.CmdArgs.Text
 import System.Directory
 import System.Environment
 import Test.HUnit
-import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec as P
 import Text.Printf
 
 import Hledger
@@ -189,7 +189,7 @@ accountsmode = (commandmode ["balance","bal","accounts"]) {
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
-     ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
      ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
@@ -213,7 +213,9 @@ postingsmode = (commandmode ["register","postings"]) {
   modeHelp = "(or postings) show matched postings and running total"
  ,modeArgs = ([], Just commandargsflag)
  ,modeGroupFlags = Group {
-     groupUnnamed = []
+     groupUnnamed = [
+      flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "increase or set the output width (default: 80)"
+     ]
     ,groupHidden = []
     ,groupNamed = [(generalflagstitle, generalflags1)]
     }
@@ -293,10 +295,12 @@ data CliOpts = CliOpts {
     ,alias_           :: [String]
     ,debug_           :: Bool
     ,no_new_accounts_ :: Bool           -- add
+    ,width_           :: Maybe String   -- register
     ,reportopts_      :: ReportOpts
  } deriving (Show)
 
 defcliopts = CliOpts
+    def
     def
     def
     def
@@ -322,6 +326,7 @@ toCliOpts rawopts = do
              ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
              ,debug_           = boolopt "debug" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
+             ,width_           = maybestringopt "width" rawopts    -- register
              ,reportopts_ = defreportopts {
                              begin_     = maybesmartdateopt d "begin" rawopts
                             ,end_       = maybesmartdateopt d "end" rawopts
@@ -441,10 +446,13 @@ checkCliOpts opts@CliOpts{reportopts_=ropts} = do
   case formatFromOpts ropts of
     Left err -> optserror $ "could not parse format option: "++err
     Right _ -> return ()
+  case widthFromOpts opts of
+    Left err -> optserror $ "could not parse width option: "++err
+    Right _ -> return ()
   return opts
 
--- | Parse any format option provided, possibly raising an error, or get
--- the default value.
+-- | Parse the format option if provided, possibly returning an error,
+-- otherwise get the default value.
 formatFromOpts :: ReportOpts -> Either String [FormatString]
 formatFromOpts = maybe (Right defaultBalanceFormatString) parseFormatString . format_
 
@@ -456,6 +464,35 @@ defaultBalanceFormatString = [
     , FormatField True (Just 2) Nothing DepthSpacerField
     , FormatField True Nothing Nothing AccountField
     ]
+
+data OutputWidth = TotalWidth Width | FieldWidths [Width] deriving Show
+data Width = Width Int | Auto deriving Show
+
+defaultWidth         = 80
+defaultWidthWithFlag = 120
+
+-- | Parse the width option if provided, possibly returning an error,
+-- otherwise get the default value.
+widthFromOpts :: CliOpts -> Either String OutputWidth
+widthFromOpts CliOpts{width_=Nothing} = Right $ TotalWidth $ Width defaultWidth
+widthFromOpts CliOpts{width_=Just ""} = Right $ TotalWidth $ Width defaultWidthWithFlag
+widthFromOpts CliOpts{width_=Just s}  = parseWidth s
+
+parseWidth :: String -> Either String OutputWidth
+parseWidth s = case (runParser outputwidth () "(unknown)") s of
+    Left  e -> Left $ show e
+    Right x -> Right x
+
+outputwidth :: GenParser Char st OutputWidth
+outputwidth =
+  try (do w <- width
+          ws <- many1 (char ',' >> width)
+          return $ FieldWidths $ w:ws)
+  <|> TotalWidth `fmap` width
+
+width :: GenParser Char st Width
+width = (string "auto" >> return Auto)
+    <|> (Width . read) `fmap` many1 digit
 
 -- | Get the (tilde-expanded, absolute) journal file path from options, an environment variable, or a default.
 journalFilePathFromOpts :: CliOpts -> IO String

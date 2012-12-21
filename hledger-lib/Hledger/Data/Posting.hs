@@ -38,7 +38,6 @@ module Hledger.Data.Posting (
   sumPostings,
   -- * rendering
   showPosting,
-  showPostingForRegister,
   -- * misc.
   showComment,
   tests_Hledger_Data_Posting
@@ -94,20 +93,6 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
 
 showComment :: String -> String
 showComment s = if null s then "" else "  ;" ++ s
-
--- XXX refactor
-showPostingForRegister :: Posting -> String
-showPostingForRegister (Posting{paccount=a,pamount=amt,ptype=t}) =
-    concatTopPadded [showaccountname a ++ " ", showamount amt]
-    where
-      ledger3ishlayout = False
-      acctnamewidth = if ledger3ishlayout then 25 else 22
-      showaccountname = printf ("%-"++(show acctnamewidth)++"s") . bracket . elideAccountName width
-      (bracket,width) = case t of
-                          BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
-                          VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
-                          _ -> (id,acctnamewidth)
-      showamount = padleft 12 . showMixedAmountWithoutPrice
 
 isReal :: Posting -> Bool
 isReal p = ptype p == RegularPosting

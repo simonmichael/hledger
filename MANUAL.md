@@ -755,6 +755,11 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
+The `--width`/`-w` option adjusts the width of the output. By default,
+this is 80 characters. To allow more space for descriptions and account
+names, use `-w` to increase the width to 120 characters, or `-wN` to set
+any desired width (at least 50 recommended).
+
 #### balance
 
 The balance command displays accounts and their balances, indented to show the account hierarchy.

@@ -223,8 +223,10 @@ registerFromString :: String -> IO String
 registerFromString s = do
   d <- getCurrentDay
   j <- readJournal' s
-  return $ postingsReportAsText opts $ postingsReport opts (queryFromOpts d opts) j
-      where opts = defreportopts{empty_=True}
+  return $ postingsReportAsText opts $ postingsReport ropts (queryFromOpts d ropts) j
+      where
+        ropts = defreportopts{empty_=True}
+        opts = defcliopts{reportopts_=ropts}
 
 -- | Return a similarity measure, from 0 to 1, for two strings.
 -- This is Simon White's letter pairs algorithm from
