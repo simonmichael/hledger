@@ -760,6 +760,9 @@ this is 80 characters. To allow more space for descriptions and account
 names, use `-w` to increase the width to 120 characters, or `-wN` to set
 any desired width (at least 50 recommended).
 
+The `--related`/`-r` flag shows the *other* postings in the transactions
+of the postings which would normally be shown.
+
 #### balance
 
 The balance command displays accounts and their balances, indented to show the account hierarchy.

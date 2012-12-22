@@ -91,6 +91,7 @@ data ReportOpts = ReportOpts {
     ,quarterly_      :: Bool
     ,yearly_         :: Bool
     ,format_         :: Maybe FormatStr
+    ,related_        :: Bool
     ,query_          :: String -- all arguments, as a string
  } deriving (Show)
 
@@ -98,6 +99,7 @@ type DisplayExp = String
 type FormatStr = String
 
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -259,7 +261,8 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       wd = whichDateFromOpts opts
       -- delay depth filtering until the end
       (depth, q') = (queryDepth q, filterQuery (not . queryIsDepth) q)
-      (precedingps, displayableps, _) =   dbg "ps3" $ postingsMatchingDisplayExpr (display_ opts)
+      (precedingps, displayableps, _) =   dbg "ps4" $ postingsMatchingDisplayExpr displayexpr
+                                        $ dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id)
                                         $ dbg "ps2" $ filter (q' `matchesPosting`)
                                         $ dbg "ps1" $ journalPostings j'
       dbg :: Show a => String -> a -> a

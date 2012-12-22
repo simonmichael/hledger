@@ -364,7 +364,7 @@ journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =
 -- depends on display precision. Reports only the first error encountered.
 journalBalanceTransactions :: Journal -> Either String Journal
 journalBalanceTransactions j@Journal{jtxns=ts, jcommoditystyles=ss} =
-  case sequence $ map balance ts of Right ts' -> Right j{jtxns=ts'}
+  case sequence $ map balance ts of Right ts' -> Right j{jtxns=map txnTieKnot ts'}
                                     Left e    -> Left e
       where balance = balanceTransaction (Just ss)
 

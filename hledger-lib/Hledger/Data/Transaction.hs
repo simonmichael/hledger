@@ -264,7 +264,7 @@ balanceTransaction styles t@Transaction{tpostings=ps}
     | length rwithoutamounts > 1 || length bvwithoutamounts > 1
         = Left $ printerr "could not balance this transaction (too many missing amounts)"
     | not $ isTransactionBalanced styles t''' = Left $ printerr $ nonzerobalanceerror t'''
-    | otherwise = Right t'''
+    | otherwise = Right t''''
     where
       -- maybe infer missing amounts
       (rwithamounts, rwithoutamounts)   = partition hasAmount $ realPostings t
@@ -328,6 +328,9 @@ balanceTransaction styles t@Transaction{tpostings=ps}
                         targetcommodityamount = head $ filter ((/=unpricedcommodity).acommodity) bvsumamounts
                         bvamountsinunpricedcommodity = filter ((==unpricedcommodity).acommodity) bvamountsinorder
             inferprice p = p
+
+      -- tie the knot so eg relatedPostings works right
+      t'''' = txnTieKnot t'''
 
       printerr s = intercalate "\n" [s, showTransactionUnelided t]
 

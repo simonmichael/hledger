@@ -215,6 +215,7 @@ postingsmode = (commandmode ["register","postings"]) {
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "increase or set the output width (default: 80)"
+     ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show the other postings in the transactions of those that would have been shown"
      ]
     ,groupHidden = []
     ,groupNamed = [(generalflagstitle, generalflags1)]
@@ -336,7 +337,7 @@ toCliOpts rawopts = do
                             ,cost_      = boolopt "cost" rawopts
                             ,depth_     = maybeintopt "depth" rawopts
                             ,display_   = maybedisplayopt d rawopts
-                            ,date2_ = boolopt "date2" rawopts
+                            ,date2_     = boolopt "date2" rawopts
                             ,empty_     = boolopt "empty" rawopts
                             ,no_elide_  = boolopt "no-elide" rawopts
                             ,real_      = boolopt "real" rawopts
@@ -349,6 +350,7 @@ toCliOpts rawopts = do
                             ,quarterly_ = boolopt "quarterly" rawopts
                             ,yearly_    = boolopt "yearly" rawopts
                             ,format_    = maybestringopt "format" rawopts
+                            ,related_   = boolopt "related" rawopts  -- register
                             ,query_     = unwords $ listofstringopt "args" rawopts
                             }
              }

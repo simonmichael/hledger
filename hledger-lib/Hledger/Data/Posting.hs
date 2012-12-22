@@ -21,6 +21,7 @@ module Hledger.Data.Posting (
   hasAmount,
   postingAllTags,
   transactionAllTags,
+  relatedPostings,
   -- * date operations
   postingDate,
   postingDate2,
@@ -148,6 +149,11 @@ postingAllTags p = ptags p ++ maybe [] transactionAllTags (ptransaction p)
 -- | Tags for this transaction including any inherited from above, when that is implemented.
 transactionAllTags :: Transaction -> [Tag]
 transactionAllTags t = ttags t
+
+-- Get the other postings from this posting's transaction.
+relatedPostings :: Posting -> [Posting]
+relatedPostings p@Posting{ptransaction=Just t} = filter (/= p) $ tpostings t
+relatedPostings _ = []
 
 -- | Does this posting fall within the given date span ?
 isPostingInDateSpan :: DateSpan -> Posting -> Bool
