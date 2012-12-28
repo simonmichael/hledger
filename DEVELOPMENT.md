@@ -115,9 +115,11 @@ or
 
 - try building with make:
 
-        make bin/hledger
+        make bin/hledgerdev
 
     This is usually quicker and simpler than fiddling with multiple cabal packages during development.
+    Note this executable will not be as optimised as the normal cabal build, and has the "dev" suffix
+    as a reminder of this.
 
 - try auto-building with sp:
 
