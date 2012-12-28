@@ -98,6 +98,7 @@ or
 2. there's probably no need to install the [haskell platform](http://haskell.org/platform) now, but you could
 3. it's probably worth getting the latest and best cabal: `cabal update; cabal install cabal-install`
 4. get an up-to-date [darcs](http://darcs.net), at least 2.x and preferably newer: use a binary package or `cabal install darcs`
+5. the hledger Makefile assumes GNU Make, so on some platforms you may need to spell "make" as "gmake"
 
 - get the hledger repo:
   
