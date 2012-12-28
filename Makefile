@@ -35,12 +35,12 @@ SP=sp
 PACKAGES=\
 	hledger-lib \
 	hledger \
-	hledger-web
+#	hledger-web
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger \
-	-ihledger-web \
-	-ihledger-web/app
+#	-ihledger-web \
+#	-ihledger-web/app
 MAIN=hledger/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
