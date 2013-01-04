@@ -1348,6 +1348,9 @@ entries, and the following c++ ledger options and commands:
 - hledger generates a description for timelog sessions, instead of
   taking it from the clock-out entry
 
+- hledger's [include directive](including-other-files) does not support
+  shell glob patterns (eg `include *.journal` ), which ledger does.
+
 ### Troubleshooting
 
 Sorry you're here! There are a lot of ways things can go wrong. Here are
