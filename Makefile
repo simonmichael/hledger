@@ -802,6 +802,9 @@ tagrelease:
 hackageupload:
 	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2; done
 
+hackageupload-dry:
+	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2; done
+
 # send unpushed patches to the mail list
 send:
 	darcs send http://joyful.com/repos/hledger --to=hledger@googlegroups.com --edit-description  
