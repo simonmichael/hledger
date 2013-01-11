@@ -58,7 +58,7 @@ strip = lstrip . rstrip
 lstrip = dropWhile (`elem` " \t") :: String -> String
 rstrip = reverse . lstrip . reverse
 
-stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse
+stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String
 
 elideLeft width s =
     if length s > width then ".." ++ reverse (take (width - 2) $ reverse s) else s

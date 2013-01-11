@@ -109,12 +109,12 @@ searchform VD{..} = [hamlet|
   filtering = not $ null q
 
 -- | Add transaction form.
-addform :: ViewData -> HtmlUrl AppRoute
-addform vd@VD{..} = [hamlet|
+addform :: Text -> ViewData -> HtmlUrl AppRoute
+addform staticRootUrl vd@VD{..} = [hamlet|
 <script type=text/javascript>
  \$(document).ready(function() {
     /* dhtmlxcombo setup */
-    window.dhx_globalImgPath="../static/";
+    window.dhx_globalImgPath="#{staticRootUrl}/";
     var desccombo  = new dhtmlXCombo("description");
     var acct1combo = new dhtmlXCombo("account1");
     var acct2combo = new dhtmlXCombo("account2");

@@ -17,6 +17,7 @@ import Hledger.Web.Options
 getJournalR :: Handler RepHtml
 getJournalR = do
   vd@VD{..} <- getViewData
+  staticRootUrl <- (staticRoot . settings) <$> getYesod
   let sidecontent = sidebar vd
       -- XXX like registerReportAsHtml
       inacct = inAccount qopts
@@ -42,7 +43,7 @@ getJournalR = do
    <h2#contenttitle>#{title}
    ^{searchform vd}
    ^{maincontent}
-  ^{addform vd}
+  ^{addform staticRootUrl vd}
   ^{editform vd}
   ^{importform}
 |]

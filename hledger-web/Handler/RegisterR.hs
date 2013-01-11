@@ -19,6 +19,7 @@ import Hledger.Web.Options
 getRegisterR :: Handler RepHtml
 getRegisterR = do
   vd@VD{..} <- getViewData
+  staticRootUrl <- (staticRoot . settings) <$> getYesod
   let sidecontent = sidebar vd
       -- injournal = isNothing inacct
       filtering = m /= Any
@@ -40,7 +41,7 @@ getRegisterR = do
    <h2#contenttitle>#{title}
    ^{searchform vd}
    ^{maincontent}
-  ^{addform vd}
+  ^{addform staticRootUrl vd}
   ^{editform vd}
   ^{importform}
 |]

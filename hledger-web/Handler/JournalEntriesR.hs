@@ -19,6 +19,7 @@ import Hledger.Web.Options
 getJournalEntriesR :: Handler RepHtml
 getJournalEntriesR = do
   vd@VD{..} <- getViewData
+  staticRootUrl <- (staticRoot . settings) <$> getYesod
   let
       sidecontent = sidebar vd
       title = "Journal entries" ++ if m /= Any then ", filtered" else "" :: String
@@ -35,7 +36,7 @@ getJournalEntriesR = do
    <h2#contenttitle>#{title}
    ^{searchform vd}
    ^{maincontent}
-  ^{addform vd}
+  ^{addform staticRootUrl vd}
   ^{editform vd}
   ^{importform}
 |]
