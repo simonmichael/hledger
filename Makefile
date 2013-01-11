@@ -169,14 +169,22 @@ autotest: sp
 autotest-%: sp
 	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run test $*
 
-autoweb: sp web-build-links
+autoweb: sp link-web-dirs
 	$(AUTOBUILD) hledger-web/app/main.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) $(WEBLANGEXTS) --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
 
-web-build-links:
-	ln -sf hledger-web/config
-	ln -sf hledger-web/messages
-	ln -sf hledger-web/static
-	ln -sf hledger-web/templates
+link-web-dirs: config messages static templates
+
+config:
+	ln -sf hledger-web/$@
+
+messages:
+	ln -sf hledger-web/$@
+
+static:
+	ln -sf hledger-web/$@
+
+templates:
+	ln -sf hledger-web/$@
 
 # check for sp and explain how to get it if not found.
 sp:
@@ -217,7 +225,7 @@ hledgerhpc:
 
 # build other executables quickly
 
-bin/hledger-webdev:
+bin/hledger-webdev: link-web-dirs
 	$(GHC) -o $@ $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
 bin/hledger-web-production:
