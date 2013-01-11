@@ -360,6 +360,11 @@ unittest-builtin: bin/hledgerdev
 	@(bin/hledgerdev test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
+unittest-%: bin/hledgerdev
+	@echo unit tests:
+	@(bin/hledgerdev test $* \
+		&& echo $@ PASSED) || echo $@ FAILED
+
 # XXX doesn't rebuild on hledger source changes
 unittest-standalone: tools/unittest
 	@echo unit tests (standalone):
