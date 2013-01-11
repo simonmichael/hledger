@@ -25,16 +25,19 @@ extra-tmp-files:
 extra-source-files:
                 messages/en.msg
                 config/routes
-                static/style.css
+                static/combo_select.gif
+                static/css/bootstrap.css
+                static/dhtmlxcombo.js
+                static/dhtmlxcommon.js
+                static/excanvas.min.js
+                static/favicon.ico
                 static/hledger.js
+                static/img/glyphicons-halflings-white.png
+                static/img/glyphicons-halflings.png
+                static/jquery.flot.js
                 static/jquery.js
                 static/jquery.url.js
-                static/jquery.flot.js
-                static/dhtmlxcommon.js
-                static/dhtmlxcombo.js
-                static/excanvas.min.js
-                static/combo_select.gif
-                static/favicon.ico
+                static/style.css
 
 source-repository head
   type:     darcs
