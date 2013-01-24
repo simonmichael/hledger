@@ -38,6 +38,12 @@ extra-source-files:
                 static/jquery.js
                 static/jquery.url.js
                 static/style.css
+                templates/default-layout.hamlet
+                templates/default-layout-wrapper.hamlet
+                templates/homepage.hamlet
+                templates/homepage.julius
+                templates/homepage.lucius
+                templates/normalize.lucius
 
 source-repository head
   type:     darcs
