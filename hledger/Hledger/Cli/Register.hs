@@ -52,7 +52,7 @@ tests_postingsReportAsText = [
 -- date and description are shown for the first posting of a transaction only.
 -- @
 postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
-postingsReportItemAsText opts (dd, p, b) =
+postingsReportItemAsText opts (mdate, mdesc, p, b) =
   concatTopPadded [date, "  ", desc, "  ", acct, "  ", amt, "  ", bal]
     where
       totalwidth = case widthFromOpts opts of
@@ -68,11 +68,8 @@ postingsReportItemAsText opts (dd, p, b) =
                              | otherwise = (r', r'+1)
         where r = remaining - 2
               r' = r `div` 2
-      (date, desc) = case dd of
-        Just (da, de) -> (printf ("%-"++show datewidth++"s") (showDate da)
-                         ,printf ("%-"++show descwidth++"s") (take descwidth $ elideRight descwidth de :: String)
-                         )
-        Nothing -> (replicate datewidth ' ', replicate descwidth ' ')
+      date = maybe (replicate datewidth ' ') (printf ("%-"++show datewidth++"s") . showDate) mdate
+      desc = maybe (replicate descwidth ' ') (printf ("%-"++show descwidth++"s") . take descwidth . elideRight descwidth) mdesc
       acct = printf ("%-"++(show acctwidth)++"s") a
         where
           a = bracket $ elideAccountName awidth $ paccount p

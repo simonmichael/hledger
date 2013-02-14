@@ -160,9 +160,14 @@ clearedValueFromOpts ReportOpts{..} | cleared_   = Just True
 whichDateFromOpts :: ReportOpts -> WhichDate
 whichDateFromOpts ReportOpts{..} = if date2_ then SecondaryDate else PrimaryDate
 
--- | Select a Transaction date accessor based on --date2.
+-- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
 transactionDateFn ReportOpts{..} = if date2_ then transactionDate2 else tdate
+
+-- | Select the Posting date accessor based on --date2.
+postingDateFn :: ReportOpts -> (Posting -> Day)
+postingDateFn ReportOpts{..} = if date2_ then postingDate2 else postingDate
+
 
 -- | Convert this journal's postings' amounts to the cost basis amounts if
 -- specified by options.
@@ -244,9 +249,10 @@ tests_entriesReport = [
 type PostingsReport = (String               -- label for the running balance column XXX remove
                       ,[PostingsReportItem] -- line items, one per posting
                       )
-type PostingsReportItem = (Maybe (Day, String) -- posting date and description if this is the first posting
-                          ,Posting             -- the posting, possibly with account name depth-clipped
-                          ,MixedAmount         -- the running total after this posting
+type PostingsReportItem = (Maybe Day    -- posting date, if this is the first posting in a transaction or if it's different from the previous posting's date
+                          ,Maybe String -- transaction description, if this is the first posting in a transaction
+                          ,Posting      -- the posting, possibly with account name depth-clipped
+                          ,MixedAmount  -- the running total after this posting
                           )
 
 -- | Select postings from the journal and add running balance and other
@@ -261,7 +267,7 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       wd = whichDateFromOpts opts
       -- delay depth filtering until the end
       (depth, q') = (queryDepth q, filterQuery (not . queryIsDepth) q)
-      (precedingps, displayableps, _) =   dbg "ps4" $ postingsMatchingDisplayExpr displayexpr
+      (precedingps, displayableps, _) =   dbg "ps4" $ postingsMatchingDisplayExpr displayexpr opts
                                         $ dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id)
                                         $ dbg "ps2" $ filter (q' `matchesPosting`)
                                         $ dbg "ps1" $ journalPostings j'
@@ -280,7 +286,7 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       periodspan = queryDateSpan secondarydate q
       secondarydate = whichDateFromOpts opts == SecondaryDate
       displayspan = postingsDateSpan ps
-          where (_,ps,_) = postingsMatchingDisplayExpr displayexpr $ journalPostings j'
+          where (_,ps,_) = postingsMatchingDisplayExpr displayexpr opts $ journalPostings j'
       matchedspan = postingsDateSpan displayableps
       reportspan | empty     = requestedspan `orDatesFrom` journalspan
                  | otherwise = requestedspan `spanIntersect` matchedspan
@@ -294,29 +300,32 @@ postingsReportItems :: [Posting] -> Posting -> WhichDate -> Int -> MixedAmount -
 postingsReportItems [] _ _ _ _ _ = []
 postingsReportItems (p:ps) pprev wd d b sumfn = i:(postingsReportItems ps p wd d b' sumfn)
     where
-      i = mkpostingsReportItem isfirstintxn wd p' b'
-      p' = p{paccount=clipAccountName d $ paccount p}
+      i = mkpostingsReportItem showdate showdesc wd p' b'
+      showdate = isfirstintxn || isdifferentdate
+      showdesc = isfirstintxn
       isfirstintxn = ptransaction p /= ptransaction pprev
+      isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
+                                   SecondaryDate -> postingDate2 p /= postingDate2 pprev
+      p' = p{paccount=clipAccountName d $ paccount p}
       b' = b `sumfn` pamount p
 
--- | Generate one postings report line item, given a flag indicating
--- whether to include transaction info, the posting, and the current
--- running balance.
-mkpostingsReportItem :: Bool -> WhichDate -> Posting -> MixedAmount -> PostingsReportItem
-mkpostingsReportItem False _ p b = (Nothing, p, b)
-mkpostingsReportItem True wd p b = (Just (date,desc), p, b)
+-- | Generate one postings report line item, containing the posting,
+-- the current running balance, and optionally the posting date and/or
+-- the transaction description.
+mkpostingsReportItem :: Bool -> Bool -> WhichDate -> Posting -> MixedAmount -> PostingsReportItem
+mkpostingsReportItem showdate showdesc wd p b = (if showdate then Just date else Nothing, if showdesc then Just desc else Nothing, p, b)
     where
-      date = case wd of PrimaryDate    -> postingDate p
+      date = case wd of PrimaryDate   -> postingDate p
                         SecondaryDate -> postingDate2 p
       desc = maybe "" tdescription $ ptransaction p
 
 -- | Date-sort and split a list of postings into three spans - postings matched
 -- by the given display expression, and the preceding and following postings.
 -- XXX always sorts by primary date, should sort by secondary date if expression is about that
-postingsMatchingDisplayExpr :: Maybe String -> [Posting] -> ([Posting],[Posting],[Posting])
-postingsMatchingDisplayExpr d ps = (before, matched, after)
+postingsMatchingDisplayExpr :: Maybe String -> ReportOpts -> [Posting] -> ([Posting],[Posting],[Posting])
+postingsMatchingDisplayExpr d opts ps = (before, matched, after)
     where
-      sorted = sortBy (comparing postingDate) ps
+      sorted = sortBy (comparing (postingDateFn opts)) ps
       (before, rest) = break (displayExprMatches d) sorted
       (matched, after) = span (displayExprMatches d) rest
 
