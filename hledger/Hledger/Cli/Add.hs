@@ -48,10 +48,14 @@ add :: CliOpts -> Journal -> IO ()
 add opts j
     | f == "-" = return ()
     | otherwise = do
-  hPrintf stderr "Adding transactions to journal file \"%s\".\n" f
-  hPutStrLn stderr $
-    "To complete a transaction, enter . (period) at an account prompt.\n"
-    ++"To stop adding transactions, enter . at a date prompt, or control-d/control-c."
+  hPutStrLn stderr $ unlines [
+     "Adding transactions to journal file "++f
+    ,"Provide field values at the prompts, or press enter to accept defaults."
+    ,"Use readline keys to edit, use tab key to complete account names."
+    -- ,"If you make a mistake, enter < at any prompt to restart the transaction."
+    ,"To record a transaction, enter . when prompted."
+    ,"To quit, press control-d or control-c."
+    ]
   today <- getCurrentDay
   getAndAddTransactions j opts today
         `C.catch` (\e -> unless (isEOFError e) $ ioError e)
@@ -65,6 +69,7 @@ getAndAddTransactions :: Journal -> CliOpts -> Day -> IO ()
 getAndAddTransactions j opts defaultDate = do
   (t, d) <- getTransaction j opts defaultDate
   j <- journalAddTransaction j opts t
+  hPrintf stderr "\nRecorded transaction:\n%s" (show t)
   getAndAddTransactions j opts d
 
 -- | Read a transaction from the command line, with history-aware prompting.
@@ -72,7 +77,7 @@ getTransaction :: Journal -> CliOpts -> Day
                     -> IO (Transaction,Day)
 getTransaction j opts defaultDate = do
   today <- getCurrentDay
-  datestr <- runInteractionDefault $ askFor "date, or . to end"
+  datestr <- runInteractionDefault $ askFor "date"
             (Just $ showDate defaultDate)
             (Just $ \s -> null s
                          || s == "."
@@ -97,14 +102,19 @@ getTransaction j opts defaultDate = do
                                ,tpostings=ps
                                }
             retry msg = do
-              liftIO $ hPutStrLn stderr $ "\n" ++ msg ++ "please re-enter."
+              let msg' = capitalize msg
+              liftIO $ hPutStrLn stderr $ "\n" ++ msg' ++ "please re-enter."
               getpostingsandvalidate
         either retry (return . flip (,) date) $ balanceTransaction Nothing t -- imprecise balancing
-  unless (null historymatches) 
-       (liftIO $ do
-         hPutStrLn stderr "Similar transactions found, using the first for defaults:\n"
-         hPutStr stderr $ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) $ take 3 historymatches)
+  unless (null historymatches) $
+    liftIO $ hPutStr stderr $
+              "\nSimilar transactions found, using the first for defaults:\n"
+              ++ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) (take 3 historymatches)
   getpostingsandvalidate
+
+capitalize :: String -> String
+capitalize "" = ""
+capitalize (c:cs) = toUpper c : cs
 
 -- fragile
 -- | Read postings from the command line until . is entered, using any
@@ -117,7 +127,7 @@ getPostings st enteredps = do
                 where Just ps = historicalps
       defaultaccount = maybe Nothing (Just . showacctname) bestmatch
       ordot | null enteredps || length enteredrealps == 1 = "" :: String
-            | otherwise = ", or . to record"
+            | otherwise = " (or . to record)"
   account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defaultaccount (Just accept)
   if account=="."
     then
@@ -175,7 +185,8 @@ getPostings st enteredps = do
       postingtype ('(':_) = VirtualPosting
       postingtype _ = RegularPosting
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
-                                   || isRight (runParser (amountp >> many spacenonewline >> eof) ctx "" s)
+                                    || (s /= "."
+                                        && isRight (runParser (amountp >> many spacenonewline >> eof) ctx "" s))
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
@@ -183,7 +194,7 @@ getPostings st enteredps = do
 askFor :: String -> Maybe String -> Maybe (String -> Bool) -> InputT IO String
 askFor prompt def validator = do
   l <- fmap (maybe eofErr id)
-            $ getInputLine $ prompt ++ maybe "" showdef def ++ ": "
+            $ getInputLine $ prompt ++ " ? " ++ maybe "" showdef def ++ ": "
   let input = if null l then fromMaybe l def else l
   case validator of
     Just valid -> if valid input
@@ -191,7 +202,8 @@ askFor prompt def validator = do
                    else askFor prompt def validator
     Nothing -> return input
     where
-        showdef s = " [" ++ s ++ "]"
+        showdef "" = ""
+        showdef s = "[" ++ s ++ "]"
         eofErr = C.throw $ mkIOError eofErrorType "end of input" Nothing Nothing
 
 -- | Append this transaction to the journal's file, and to the journal's

@@ -5,14 +5,14 @@
 hledgerdev -f $$-add.j add; rm -f $$-add.j
 <<<
 2009/1/32
->>> /date, or \. to end.*: date, or \. to end.*/
+>>> /date .*: date .*/
 >>>=0
 
 # 2. should accept a blank date
 hledgerdev -f $$-add.j add; rm -f $$-add.j
 <<<
 
->>> /date,.*: description/
+>>> /date .*: description /
 >>>=0
 
 ##############################################################################
@@ -28,7 +28,7 @@ a
 b
 
 .
->>> /^date, or \. to end \[.*\]: description \[\]: account 1: amount  1: account 2: amount  2 \[-1000.0\]: account 3, or \. to record: date, or \. to end \[.*\]: $/
+>>> /^date.*: description.*: account 1.*: amount  1.*: account 2.*: amount  2.*: account 3.*or \. to record.*: date.*: $/
 >>>=0
 
 # 4. default commodity with greater precision
@@ -107,7 +107,7 @@ a
 b
 0.5
 c
->>> /amount  3 \[-0.75\]/
+>>> /amount  3 \? \[-0.75\]/
 >>>=0
 
 ## 10. shouldn't add decimals if there aren't any
