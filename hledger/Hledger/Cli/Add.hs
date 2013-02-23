@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable #-}
 {-| 
 
 A history-aware add command to help with data entry.
@@ -17,6 +18,7 @@ import Data.Char (toUpper)
 import Data.List
 import Data.Maybe
 import Data.Time.Calendar
+import Data.Typeable (Typeable)
 import System.Console.Haskeline (InputT, runInputT, defaultSettings, setComplete, getInputLine)
 import System.Console.Haskeline.Completion
 import System.IO ( stderr, hPutStrLn, hPutStr )
@@ -52,7 +54,7 @@ add opts j
      "Adding transactions to journal file "++f
     ,"Provide field values at the prompts, or press enter to accept defaults."
     ,"Use readline keys to edit, use tab key to complete account names."
-    -- ,"If you make a mistake, enter < at any prompt to restart the transaction."
+    ,"If you make a mistake, enter < at any prompt to restart the transaction."
     ,"To record a transaction, enter . when prompted."
     ,"To quit, press control-d or control-c."
     ]
@@ -73,10 +75,8 @@ getAndAddTransactions j opts defaultDate = do
   getAndAddTransactions j opts d
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Journal -> CliOpts -> Day
-                    -> IO (Transaction,Day)
+getTransaction :: Journal -> CliOpts -> Day -> IO (Transaction,Day)
 getTransaction j opts defaultDate = do
-  today <- getCurrentDay
   datestr <- runInteractionDefault $ askFor "date"
             (Just $ showDate defaultDate)
             (Just $ \s -> null s
@@ -84,6 +84,19 @@ getTransaction j opts defaultDate = do
                          || isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
   when (datestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
   description <- runInteractionDefault $ askFor "description" (Just "") Nothing
+  let restart = do hPrintf stderr "\nRestarting this transaction..\n\n"
+                   getTransaction j opts defaultDate
+  if description == "<"
+   then restart
+   else do
+    mr <- getPostingsAndValidateTransaction j opts datestr description
+    case mr of
+      Nothing -> restart
+      Just r  -> return r
+
+getPostingsAndValidateTransaction :: Journal -> CliOpts -> String -> String -> IO (Maybe (Transaction,Day))
+getPostingsAndValidateTransaction j opts datestr description = do
+  today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
       bestmatch | null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
@@ -95,7 +108,7 @@ getTransaction j opts defaultDate = do
             else True
       existingaccts = journalAccountNames j
       getpostingsandvalidate = do
-        ps <- getPostings (PostingState j accept True bestmatchpostings) []
+        ps <- getPostingsWithState (PostingState j accept True bestmatchpostings) []
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
@@ -105,22 +118,20 @@ getTransaction j opts defaultDate = do
               let msg' = capitalize msg
               liftIO $ hPutStrLn stderr $ "\n" ++ msg' ++ "please re-enter."
               getpostingsandvalidate
-        either retry (return . flip (,) date) $ balanceTransaction Nothing t -- imprecise balancing
-  unless (null historymatches) $
-    liftIO $ hPutStr stderr $
-              "\nSimilar transactions found, using the first for defaults:\n"
-              ++ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) (take 3 historymatches)
-  getpostingsandvalidate
+        either retry (return . Just . flip (,) date) $ balanceTransaction Nothing t -- imprecise balancing
+  unless (null historymatches) $ liftIO $ hPutStr stderr $
+    "\nSimilar transactions found, using the first for defaults:\n"
+    ++ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) (take 3 historymatches)
+  getpostingsandvalidate `catch` \(_::RestartEntryException) -> return Nothing
 
-capitalize :: String -> String
-capitalize "" = ""
-capitalize (c:cs) = toUpper c : cs
+data RestartEntryException = RestartEntryException deriving (Typeable,Show)
+instance Exception RestartEntryException
 
 -- fragile
 -- | Read postings from the command line until . is entered, using any
 -- provided historical postings and the journal context to guess defaults.
-getPostings :: PostingState -> [Posting] -> IO [Posting]
-getPostings st enteredps = do
+getPostingsWithState :: PostingState -> [Posting] -> IO [Posting]
+getPostingsWithState st enteredps = do
   let bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
@@ -129,11 +140,12 @@ getPostings st enteredps = do
       ordot | null enteredps || length enteredrealps == 1 = "" :: String
             | otherwise = " (or . to record)"
   account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defaultaccount (Just accept)
+  when (account=="<") $ throwIO RestartEntryException
   if account=="."
     then
      if null enteredps
       then do hPutStrLn stderr $ "\nPlease enter some postings first."
-              getPostings st enteredps
+              getPostingsWithState st enteredps
       else return enteredps
     else do
       let defaultacctused = Just account == defaultaccount
@@ -157,6 +169,7 @@ getPostings st enteredps = do
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
       amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
+      when (amountstr=="<") $ throwIO RestartEntryException
       let a  = fromparse $ runParser (amountp <|> return missingamt) ctx     "" amountstr
           a' = fromparse $ runParser (amountp <|> return missingamt) nullctx "" amountstr
           wasdefaultamtused = Just (showAmount a) == defaultamountstr
@@ -171,7 +184,7 @@ getPostings st enteredps = do
                  else st{psHistory=historicalps', psSuggestHistoricalAmount=False}
       when (isJust defaultcommodityadded) $
            liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust defaultcommodityadded)
-      getPostings st' (enteredps ++ [p])
+      getPostingsWithState st' (enteredps ++ [p])
     where
       j = psJournal st
       historicalps = psHistory st
@@ -185,8 +198,9 @@ getPostings st enteredps = do
       postingtype ('(':_) = VirtualPosting
       postingtype _ = RegularPosting
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
-                                    || (s /= "."
-                                        && isRight (runParser (amountp >> many spacenonewline >> eof) ctx "" s))
+                                    || s == "<"
+                                    || (isRight (runParser (amountp >> many spacenonewline >> eof) ctx "" s)
+                                        && s /= ".")
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
@@ -298,3 +312,7 @@ accountCompletion cc = completeWord Nothing
                            -- can contain spaces.
                         $ \s -> return $ map simpleCompletion
                                         $ filter (s `isPrefixOf`) cc
+
+capitalize :: String -> String
+capitalize "" = ""
+capitalize (c:cs) = toUpper c : cs
