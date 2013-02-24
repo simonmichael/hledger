@@ -34,15 +34,6 @@ import Hledger.Cli.Options
 import Hledger.Cli.Register (postingsReportAsText)
 
 
-{- | Information used as the basis for suggested account names, amounts,
-     etc in add prompt
--}
-data PostingState = PostingState {
-      psJournal :: Journal,
-      psAccept  :: AccountName -> Bool,
-      psSuggestHistoricalAmount :: Bool,
-      psHistory :: Maybe [Posting]}
-
 -- | Read multiple transactions from the console, prompting for each
 -- field, and append them to the journal file.  If the journal came
 -- from stdin, this command has no effect.
@@ -59,9 +50,9 @@ add opts j
     ,"To quit, press control-d or control-c."
     ]
   today <- showDate `fmap` getCurrentDay
-  let args = words' $ query_ $ reportopts_ opts
+  let args                = words' $ query_ $ reportopts_ opts
       (defdate, moredefs) = headTailDef today args
-  getAndAddTransactions j opts defdate moredefs
+  getAndAddTransactionsLoop j opts defdate moredefs
         `C.catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
 
@@ -70,14 +61,14 @@ add opts j
 -- until end of input or ctrl-c (then raise an EOF exception).
 -- If provided, command-line arguments are used as defaults for the
 -- first transaction; otherwise defaults come from the most similar
--- recent transaction.
-getAndAddTransactions :: Journal -> CliOpts -> String -> [String] -> IO ()
-getAndAddTransactions j opts defdate moredefs = do
+-- recent transaction in the journal.
+getAndAddTransactionsLoop :: Journal -> CliOpts -> String -> [String] -> IO ()
+getAndAddTransactionsLoop j opts defdate moredefs = do
   t <- getTransaction j opts defdate moredefs
   j <- journalAddTransaction j opts t
   hPrintf stderr "\nRecorded transaction:\n%s" (show t)
   let defdate' = showDate $ tdate t
-  getAndAddTransactions j opts defdate' []
+  getAndAddTransactionsLoop j opts defdate' []
 
 -- | Read a single transaction from the console, with history-aware prompting.
 -- A default date, and zero or more defaults for subsequent fields, are provided.
@@ -96,15 +87,27 @@ getTransaction j opts defdate moredefs = do
   if description == "<"
    then restart
    else do
-    mt <- getPostingsAndValidateTransaction j opts datestr description moredefs'
+    mt <- getPostingsForTransactionWithHistory j opts datestr description moredefs'
     case mt of
       Nothing -> restart
       Just t  -> return t
 
--- | Loop reading postings from the console, until two or more valid balanced
--- postings have been entered, then return the final transaction.
-getPostingsAndValidateTransaction :: Journal -> CliOpts -> String -> String -> [String] -> IO (Maybe Transaction)
-getPostingsAndValidateTransaction j opts datestr description defargs = do
+data RestartEntryException = RestartEntryException deriving (Typeable,Show)
+instance Exception RestartEntryException
+
+-- | Information used as the basis for suggested account names, amounts etc. in add prompt.
+data PostingsState = PostingsState {
+   psJournal                 :: Journal
+  ,psAccept                  :: AccountName -> Bool
+  ,psSuggestHistoricalAmount :: Bool
+  ,psHistory                 :: Maybe [Posting]
+  }
+
+-- | Loop reading postings from the console, until a valid balanced
+-- set of postings has been entered, then return the final transaction,
+-- or nothing indicating that the user wants to restart entering this transaction.
+getPostingsForTransactionWithHistory :: Journal -> CliOpts -> String -> String -> [String] -> IO (Maybe Transaction)
+getPostingsForTransactionWithHistory j opts datestr description defargs = do
   today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
       bestmatch | not (null defargs) || null historymatches = Nothing
@@ -116,28 +119,24 @@ getPostingsAndValidateTransaction j opts datestr description defargs = do
             then x `elem` existingaccts
             else True
       existingaccts = journalAccountNames j
-      getpostingsandvalidate = do
-        ps <- getPostingsWithState (PostingState j accept True bestmatchpostings) [] defargs
+      getvalidpostings = do
+        ps <- getPostingsLoop (PostingsState j accept True bestmatchpostings) [] defargs
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
                                ,tpostings=ps
                                }
-            retry msg = do
-              let msg' = capitalize msg
-              liftIO $ hPutStrLn stderr $ "\n" ++ msg' ++ "please re-enter."
-              getpostingsandvalidate
         either retry (return . Just) $ balanceTransaction Nothing t -- imprecise balancing
+          where
+            retry msg = liftIO (hPutStrLn stderr $ "\n" ++ (capitalize msg) ++ "please re-enter.") >> getvalidpostings
+
   when (isJust bestmatch) $ liftIO $ hPrintf stderr "\nUsing this similar transaction for defaults:\n%s" (show $ fromJust bestmatch)
-  getpostingsandvalidate `catch` \(_::RestartEntryException) -> return Nothing
+  getvalidpostings `catch` \(_::RestartEntryException) -> return Nothing
 
-data RestartEntryException = RestartEntryException deriving (Typeable,Show)
-instance Exception RestartEntryException
-
--- | Read postings from the command line until . is entered, using any
--- provided historical postings and the journal context to guess defaults.
-getPostingsWithState :: PostingState -> [Posting] -> [String] -> IO [Posting]
-getPostingsWithState st enteredps defargs = do
+-- | Read postings from the command line until . is entered, generating
+-- useful defaults based on historical context and postings entered so far.
+getPostingsLoop :: PostingsState -> [Posting] -> [String] -> IO [Posting]
+getPostingsLoop st enteredps defargs = do
   let bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
@@ -153,7 +152,7 @@ getPostingsWithState st enteredps defargs = do
     then
      if null enteredps
       then do hPutStrLn stderr $ "\nPlease enter some postings first."
-              getPostingsWithState st enteredps defargs
+              getPostingsLoop st enteredps defargs
       else return enteredps
     else do
       let defacctused = Just account == defacct
@@ -195,7 +194,7 @@ getPostingsWithState st enteredps defargs = do
                  else st{psHistory=historicalps', psSuggestHistoricalAmount=False}
       when (isJust defcommodityadded) $
            liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust defcommodityadded)
-      getPostingsWithState st' (enteredps ++ [p]) defargs''
+      getPostingsLoop st' (enteredps ++ [p]) defargs''
     where
       j = psJournal st
       historicalps = psHistory st
@@ -215,7 +214,7 @@ getPostingsWithState st enteredps defargs = do
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
--- input is valid. May also raise an EOF exception if control-d is pressed.
+-- input is valid. May also raise an EOF exception if control-d or control-c is pressed.
 askFor :: String -> Maybe String -> Maybe (String -> Bool) -> InputT IO String
 askFor prompt def validator = do
   l <- fmap (maybe eofErr id)
