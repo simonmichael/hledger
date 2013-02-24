@@ -27,6 +27,7 @@ module Hledger.Read.JournalReader (
   defaultyeardirective,
   historicalpricedirective,
   datetime,
+  code,
   accountname,
   amountp,
   amountp',
