@@ -45,6 +45,8 @@ add opts j
      "Adding transactions to journal file "++f
     ,"Provide field values at the prompts, or press enter to accept defaults."
     ,"Use readline keys to edit, use tab key to complete account names."
+    ,"A code (in parentheses) may be entered following transaction dates."
+    ,"A comment may be entered following descriptions or amounts."
     ,"If you make a mistake, enter < at any prompt to restart the transaction."
     ,"To record a transaction, enter . when prompted."
     ,"To quit, press control-d or control-c."
