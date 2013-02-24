@@ -74,20 +74,25 @@ getAndAddTransactionsLoop j opts defdate moredefs = do
 -- A default date, and zero or more defaults for subsequent fields, are provided.
 getTransaction :: Journal -> CliOpts -> String -> [String] -> IO Transaction
 getTransaction j opts defdate moredefs = do
-  datestr <- runInteractionDefault $ askFor "date"
+  let dateandcodep = do {d <- smartdate; c <- optionMaybe code; many spacenonewline; eof; return (d, fromMaybe "" c)}
+  datecodestr <- runInteractionDefault $ askFor "date"
             (Just defdate)
             (Just $ \s -> null s
                          || s == "."
-                         || isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
-  when (datestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
+                         || isRight (parseWithCtx nullctx dateandcodep $ lowercase s))
+  when (datecodestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
+  let (sdate,code) = fromparse $ parseWithCtx nullctx dateandcodep datecodestr
+      datestr = showDate $ fixSmartDate (parsedate defdate) sdate
+
   let (defdesc, moredefs') = headTailDef "" moredefs
-  description <- runInteractionDefault $ askFor "description" (Just defdesc) Nothing
+  desc <- runInteractionDefault $ askFor "description" (Just defdesc) Nothing
   let restart = do hPrintf stderr "\nRestarting this transaction..\n\n"
                    getTransaction j opts defdate moredefs'
-  if description == "<"
+  if desc == "<"
    then restart
    else do
-    mt <- getPostingsForTransactionWithHistory j opts datestr description moredefs'
+    let (description,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') desc
+    mt <- getPostingsForTransactionWithHistory j opts datestr code description comment moredefs'
     case mt of
       Nothing -> restart
       Just t  -> return t
@@ -106,8 +111,8 @@ data PostingsState = PostingsState {
 -- | Loop reading postings from the console, until a valid balanced
 -- set of postings has been entered, then return the final transaction,
 -- or nothing indicating that the user wants to restart entering this transaction.
-getPostingsForTransactionWithHistory :: Journal -> CliOpts -> String -> String -> [String] -> IO (Maybe Transaction)
-getPostingsForTransactionWithHistory j opts datestr description defargs = do
+getPostingsForTransactionWithHistory :: Journal -> CliOpts -> String -> String -> String -> String -> [String] -> IO (Maybe Transaction)
+getPostingsForTransactionWithHistory j opts datestr code description comment defargs = do
   today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
       bestmatch | not (null defargs) || null historymatches = Nothing
@@ -123,7 +128,9 @@ getPostingsForTransactionWithHistory j opts datestr description defargs = do
         ps <- getPostingsLoop (PostingsState j accept True bestmatchpostings) [] defargs
         let t = nulltransaction{tdate=date
                                ,tstatus=False
+                               ,tcode=code
                                ,tdescription=description
+                               ,tcomment=comment
                                ,tpostings=ps
                                }
         either retry (return . Just) $ balanceTransaction Nothing t -- imprecise balancing
@@ -178,8 +185,9 @@ getPostingsLoop st enteredps defargs = do
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
           defargs'' = tailDef [] defargs'
-      amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defamountstr validateamount
-      when (amountstr=="<") $ throwIO RestartEntryException
+      amt <- runInteractionDefault $ askFor (printf "amount  %d" n) defamountstr validateamount
+      when (amt=="<") $ throwIO RestartEntryException
+      let (amountstr,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amt
       let a  = fromparse $ runParser (amountp <|> return missingamt) ctx     "" amountstr
           a' = fromparse $ runParser (amountp <|> return missingamt) nullctx "" amountstr
           wasdefamtused = Just (showAmount a) == defamountstr
@@ -187,6 +195,7 @@ getPostingsLoop st enteredps defargs = do
                                 | otherwise                     = Just $ acommodity a
           p = nullposting{paccount=stripbrackets account
                          ,pamount=mixed a
+                         ,pcomment=comment
                          ,ptype=postingtype account
                          }
           st' = if wasdefamtused
@@ -209,7 +218,7 @@ getPostingsLoop st enteredps defargs = do
       postingtype _ = RegularPosting
       validateamount = Just $ \s -> (null s && not (null enteredrealps))
                                     || s == "<"
-                                    || (isRight (runParser (amountp >> many spacenonewline >> eof) ctx "" s)
+                                    || (isRight (runParser (amountp >> many spacenonewline >> optional (char ';' >> many anyChar) >> eof) ctx "" s)
                                         && s /= ".")
 
 -- | Prompt for and read a string value, optionally with a default value
