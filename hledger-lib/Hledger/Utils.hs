@@ -87,9 +87,10 @@ escapeQuotes :: String -> String
 escapeQuotes = regexReplace "([\"'])" "\\1"
 
 -- | Quote-aware version of words - don't split on spaces which are inside quotes.
--- NB correctly handles "a'b" but not "''a''".
+-- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
 words' :: String -> [String]
-words' = map stripquotes . fromparse . parsewith p
+words' "" = []
+words' s  = map stripquotes $ fromparse $ parsewith p s
     where
       p = do ss <- (quotedPattern <|> pattern) `sepBy` many1 spacenonewline
              -- eof
