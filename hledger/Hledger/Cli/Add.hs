@@ -43,9 +43,9 @@ data PostingState = PostingState {
       psSuggestHistoricalAmount :: Bool,
       psHistory :: Maybe [Posting]}
 
--- | Read transactions from the terminal, prompting for each field,
--- and append them to the journal file. If the journal came from stdin, this
--- command has no effect.
+-- | Read multiple transactions from the console, prompting for each
+-- field, and append them to the journal file.  If the journal came
+-- from stdin, this command has no effect.
 add :: CliOpts -> Journal -> IO ()
 add opts j
     | f == "-" = return ()
@@ -65,23 +65,23 @@ add opts j
         `C.catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
 
-headTailDef :: a -> [a] -> (a,[a])
-headTailDef defhead as = (headDef defhead as, tailDef [] as)
-
--- | Read a number of transactions from the command line, prompting,
--- validating, displaying and appending them to the journal file, until
--- end of input (then raise an EOF exception). Any command-line arguments
--- are used as the first transaction's description.
+-- | Loop reading transactions from the console, prompting for,
+-- validating, displaying and appending each one to the journal file,
+-- until end of input or ctrl-c (then raise an EOF exception).
+-- If provided, command-line arguments are used as defaults for the
+-- first transaction; otherwise defaults come from the most similar
+-- recent transaction.
 getAndAddTransactions :: Journal -> CliOpts -> String -> [String] -> IO ()
 getAndAddTransactions j opts defdate moredefs = do
-  (t, defdate') <- getTransaction j opts defdate moredefs
+  t <- getTransaction j opts defdate moredefs
   j <- journalAddTransaction j opts t
   hPrintf stderr "\nRecorded transaction:\n%s" (show t)
+  let defdate' = showDate $ tdate t
   getAndAddTransactions j opts defdate' []
 
--- | Read a transaction from the command line, with history-aware prompting.
+-- | Read a single transaction from the console, with history-aware prompting.
 -- A default date, and zero or more defaults for subsequent fields, are provided.
-getTransaction :: Journal -> CliOpts -> String -> [String] -> IO (Transaction,String)
+getTransaction :: Journal -> CliOpts -> String -> [String] -> IO Transaction
 getTransaction j opts defdate moredefs = do
   datestr <- runInteractionDefault $ askFor "date"
             (Just defdate)
@@ -96,12 +96,14 @@ getTransaction j opts defdate moredefs = do
   if description == "<"
    then restart
    else do
-    mr <- getPostingsAndValidateTransaction j opts datestr description moredefs'
-    case mr of
+    mt <- getPostingsAndValidateTransaction j opts datestr description moredefs'
+    case mt of
       Nothing -> restart
-      Just r  -> return r
+      Just t  -> return t
 
-getPostingsAndValidateTransaction :: Journal -> CliOpts -> String -> String -> [String] -> IO (Maybe (Transaction,String))
+-- | Loop reading postings from the console, until two or more valid balanced
+-- postings have been entered, then return the final transaction.
+getPostingsAndValidateTransaction :: Journal -> CliOpts -> String -> String -> [String] -> IO (Maybe Transaction)
 getPostingsAndValidateTransaction j opts datestr description defargs = do
   today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
@@ -125,14 +127,13 @@ getPostingsAndValidateTransaction j opts datestr description defargs = do
               let msg' = capitalize msg
               liftIO $ hPutStrLn stderr $ "\n" ++ msg' ++ "please re-enter."
               getpostingsandvalidate
-        either retry (return . Just . flip (,) (showDate date)) $ balanceTransaction Nothing t -- imprecise balancing
+        either retry (return . Just) $ balanceTransaction Nothing t -- imprecise balancing
   when (isJust bestmatch) $ liftIO $ hPrintf stderr "\nUsing this similar transaction for defaults:\n%s" (show $ fromJust bestmatch)
   getpostingsandvalidate `catch` \(_::RestartEntryException) -> return Nothing
 
 data RestartEntryException = RestartEntryException deriving (Typeable,Show)
 instance Exception RestartEntryException
 
--- fragile
 -- | Read postings from the command line until . is entered, using any
 -- provided historical postings and the journal context to guess defaults.
 getPostingsWithState :: PostingState -> [Posting] -> [String] -> IO [Posting]
@@ -326,3 +327,7 @@ accountCompletion cc = completeWord Nothing
 capitalize :: String -> String
 capitalize "" = ""
 capitalize (c:cs) = toUpper c : cs
+
+headTailDef :: a -> [a] -> (a,[a])
+headTailDef defhead as = (headDef defhead as, tailDef [] as)
+
