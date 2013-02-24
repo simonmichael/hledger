@@ -17,8 +17,8 @@ import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper)
 import Data.List
 import Data.Maybe
-import Data.Time.Calendar
 import Data.Typeable (Typeable)
+import Safe (headDef, tailDef, headMay)
 import System.Console.Haskeline (InputT, runInputT, defaultSettings, setComplete, getInputLine)
 import System.Console.Haskeline.Completion
 import System.IO ( stderr, hPutStrLn )
@@ -58,44 +58,51 @@ add opts j
     ,"To record a transaction, enter . when prompted."
     ,"To quit, press control-d or control-c."
     ]
-  today <- getCurrentDay
-  getAndAddTransactions j opts today
+  today <- showDate `fmap` getCurrentDay
+  let args = words' $ query_ $ reportopts_ opts
+      (defdate, moredefs) = headTailDef today args
+  getAndAddTransactions j opts defdate moredefs
         `C.catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
+
+headTailDef :: a -> [a] -> (a,[a])
+headTailDef defhead as = (headDef defhead as, tailDef [] as)
 
 -- | Read a number of transactions from the command line, prompting,
 -- validating, displaying and appending them to the journal file, until
 -- end of input (then raise an EOF exception). Any command-line arguments
 -- are used as the first transaction's description.
-getAndAddTransactions :: Journal -> CliOpts -> Day -> IO ()
-getAndAddTransactions j opts defaultDate = do
-  (t, d) <- getTransaction j opts defaultDate
+getAndAddTransactions :: Journal -> CliOpts -> String -> [String] -> IO ()
+getAndAddTransactions j opts defdate moredefs = do
+  (t, defdate') <- getTransaction j opts defdate moredefs
   j <- journalAddTransaction j opts t
   hPrintf stderr "\nRecorded transaction:\n%s" (show t)
-  getAndAddTransactions j opts d
+  getAndAddTransactions j opts defdate' []
 
 -- | Read a transaction from the command line, with history-aware prompting.
-getTransaction :: Journal -> CliOpts -> Day -> IO (Transaction,Day)
-getTransaction j opts defaultDate = do
+-- A default date, and zero or more defaults for subsequent fields, are provided.
+getTransaction :: Journal -> CliOpts -> String -> [String] -> IO (Transaction,String)
+getTransaction j opts defdate moredefs = do
   datestr <- runInteractionDefault $ askFor "date"
-            (Just $ showDate defaultDate)
+            (Just defdate)
             (Just $ \s -> null s
                          || s == "."
                          || isRight (parse (smartdate >> many spacenonewline >> eof) "" $ lowercase s))
   when (datestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
-  description <- runInteractionDefault $ askFor "description" (Just "") Nothing
+  let (defdesc, moredefs') = headTailDef "" moredefs
+  description <- runInteractionDefault $ askFor "description" (Just defdesc) Nothing
   let restart = do hPrintf stderr "\nRestarting this transaction..\n\n"
-                   getTransaction j opts defaultDate
+                   getTransaction j opts defdate moredefs'
   if description == "<"
    then restart
    else do
-    mr <- getPostingsAndValidateTransaction j opts datestr description
+    mr <- getPostingsAndValidateTransaction j opts datestr description moredefs'
     case mr of
       Nothing -> restart
       Just r  -> return r
 
-getPostingsAndValidateTransaction :: Journal -> CliOpts -> String -> String -> IO (Maybe (Transaction,Day))
-getPostingsAndValidateTransaction j opts datestr description = do
+getPostingsAndValidateTransaction :: Journal -> CliOpts -> String -> String -> [String] -> IO (Maybe (Transaction,String))
+getPostingsAndValidateTransaction j opts datestr description defargs = do
   today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
       bestmatch | not (null defargs) || null historymatches = Nothing
@@ -108,7 +115,7 @@ getPostingsAndValidateTransaction j opts datestr description = do
             else True
       existingaccts = journalAccountNames j
       getpostingsandvalidate = do
-        ps <- getPostingsWithState (PostingState j accept True bestmatchpostings) []
+        ps <- getPostingsWithState (PostingState j accept True bestmatchpostings) [] defargs
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tdescription=description
@@ -118,10 +125,8 @@ getPostingsAndValidateTransaction j opts datestr description = do
               let msg' = capitalize msg
               liftIO $ hPutStrLn stderr $ "\n" ++ msg' ++ "please re-enter."
               getpostingsandvalidate
-        either retry (return . Just . flip (,) date) $ balanceTransaction Nothing t -- imprecise balancing
-  unless (null historymatches) $ liftIO $ hPutStr stderr $
-    "\nSimilar transactions found, using the first for defaults:\n"
-    ++ concatMap (\(n,t) -> printf "[%3d%%] %s" (round $ n*100 :: Int) (show t)) (take 3 historymatches)
+        either retry (return . Just . flip (,) (showDate date)) $ balanceTransaction Nothing t -- imprecise balancing
+  when (isJust bestmatch) $ liftIO $ hPrintf stderr "\nUsing this similar transaction for defaults:\n%s" (show $ fromJust bestmatch)
   getpostingsandvalidate `catch` \(_::RestartEntryException) -> return Nothing
 
 data RestartEntryException = RestartEntryException deriving (Typeable,Show)
