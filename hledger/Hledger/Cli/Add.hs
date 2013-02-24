@@ -21,7 +21,7 @@ import Data.Time.Calendar
 import Data.Typeable (Typeable)
 import System.Console.Haskeline (InputT, runInputT, defaultSettings, setComplete, getInputLine)
 import System.Console.Haskeline.Completion
-import System.IO ( stderr, hPutStrLn, hPutStr )
+import System.IO ( stderr, hPutStrLn )
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Text.Printf
@@ -98,7 +98,7 @@ getPostingsAndValidateTransaction :: Journal -> CliOpts -> String -> String -> I
 getPostingsAndValidateTransaction j opts datestr description = do
   today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
-      bestmatch | null historymatches = Nothing
+      bestmatch | not (null defargs) || null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
@@ -130,34 +130,38 @@ instance Exception RestartEntryException
 -- fragile
 -- | Read postings from the command line until . is entered, using any
 -- provided historical postings and the journal context to guess defaults.
-getPostingsWithState :: PostingState -> [Posting] -> IO [Posting]
-getPostingsWithState st enteredps = do
+getPostingsWithState :: PostingState -> [Posting] -> [String] -> IO [Posting]
+getPostingsWithState st enteredps defargs = do
   let bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
                 where Just ps = historicalps
-      defaultaccount = maybe Nothing (Just . showacctname) bestmatch
+      bestmatchacct = maybe Nothing (Just . showacctname) bestmatch
+      defacct  = maybe bestmatchacct Just $ headMay defargs
+      defargs' = tailDef [] defargs
       ordot | null enteredps || length enteredrealps == 1 = "" :: String
             | otherwise = " (or . to record)"
-  account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defaultaccount (Just accept)
+  account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defacct (Just accept)
   when (account=="<") $ throwIO RestartEntryException
   if account=="."
     then
      if null enteredps
       then do hPutStrLn stderr $ "\nPlease enter some postings first."
-              getPostingsWithState st enteredps
+              getPostingsWithState st enteredps defargs
       else return enteredps
     else do
-      let defaultacctused = Just account == defaultaccount
-          historicalps' = if defaultacctused then historicalps else Nothing
+      let defacctused = Just account == defacct
+          historicalps' = if defacctused then historicalps else Nothing
           bestmatch' | isNothing historicalps' = Nothing
                      | n <= length ps = Just $ ps !! (n-1)
                      | otherwise = Nothing
                      where Just ps = historicalps'
-          defaultamountstr | isJust bestmatch' && suggesthistorical = Just historicalamountstr
-                           | n > 1             = Just balancingamountstr
-                           | otherwise         = Nothing
+          defamountstr | isJust commandlineamt                  = commandlineamt
+                       | isJust bestmatch' && suggesthistorical = Just historicalamountstr
+                       | n > 1                                  = Just balancingamountstr
+                       | otherwise                              = Nothing
               where
+                commandlineamt      = headMay defargs'
                 historicalamountstr = showMixedAmountWithPrecision p $ pamount $ fromJust bestmatch'
                 balancingamountstr  = showMixedAmountWithPrecision p $ negate $ sum $ map pamount enteredrealps
                 -- what should this be ?
@@ -168,23 +172,24 @@ getPostingsWithState st enteredps = do
                 -- 5 3 or 4, whichever would show the most decimal places ?
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
-      amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defaultamountstr validateamount
+          defargs'' = tailDef [] defargs'
+      amountstr <- runInteractionDefault $ askFor (printf "amount  %d" n) defamountstr validateamount
       when (amountstr=="<") $ throwIO RestartEntryException
       let a  = fromparse $ runParser (amountp <|> return missingamt) ctx     "" amountstr
           a' = fromparse $ runParser (amountp <|> return missingamt) nullctx "" amountstr
-          wasdefaultamtused = Just (showAmount a) == defaultamountstr
-          defaultcommodityadded | acommodity a == acommodity a' = Nothing
+          wasdefamtused = Just (showAmount a) == defamountstr
+          defcommodityadded | acommodity a == acommodity a' = Nothing
                                 | otherwise                     = Just $ acommodity a
           p = nullposting{paccount=stripbrackets account
                          ,pamount=mixed a
                          ,ptype=postingtype account
                          }
-          st' = if wasdefaultamtused
+          st' = if wasdefamtused
                  then st
                  else st{psHistory=historicalps', psSuggestHistoricalAmount=False}
-      when (isJust defaultcommodityadded) $
-           liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust defaultcommodityadded)
-      getPostingsWithState st' (enteredps ++ [p])
+      when (isJust defcommodityadded) $
+           liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust defcommodityadded)
+      getPostingsWithState st' (enteredps ++ [p]) defargs''
     where
       j = psJournal st
       historicalps = psHistory st
