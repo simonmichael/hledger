@@ -22,6 +22,7 @@ module Hledger.Read (
        amountp,
        amountp',
        mamountp',
+       code,
        -- * Tests
        samplejournal,
        tests_Hledger_Read,
