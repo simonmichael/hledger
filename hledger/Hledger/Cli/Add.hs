@@ -11,7 +11,7 @@ informational messages are mostly written to stderr rather than stdout.
 
 module Hledger.Cli.Add
 where
-import Control.Exception as C
+import Control.Exception as E
 import Control.Monad
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper)
@@ -55,7 +55,7 @@ add opts j
   let args                = words' $ query_ $ reportopts_ opts
       (defdate, moredefs) = headTailDef today args
   getAndAddTransactionsLoop j opts defdate moredefs
-        `C.catch` (\e -> unless (isEOFError e) $ ioError e)
+        `E.catch` (\e -> unless (isEOFError e) $ ioError e)
       where f = journalFilePath j
 
 -- | Loop reading transactions from the console, prompting for,
@@ -140,7 +140,7 @@ getPostingsForTransactionWithHistory j opts datestr code description comment def
             retry msg = liftIO (hPutStrLn stderr $ "\n" ++ (capitalize msg) ++ "please re-enter.") >> getvalidpostings
 
   when (isJust bestmatch) $ liftIO $ hPrintf stderr "\nUsing this similar transaction for defaults:\n%s" (show $ fromJust bestmatch)
-  getvalidpostings `catch` \(_::RestartEntryException) -> return Nothing
+  getvalidpostings `E.catch` \(_::RestartEntryException) -> return Nothing
 
 -- | Read postings from the command line until . is entered, generating
 -- useful defaults based on historical context and postings entered so far.
@@ -239,7 +239,7 @@ askFor prompt def validator = do
     where
         showdef "" = ""
         showdef s = "[" ++ s ++ "]"
-        eofErr = C.throw $ mkIOError eofErrorType "end of input" Nothing Nothing
+        eofErr = E.throw $ mkIOError eofErrorType "end of input" Nothing Nothing
 
 -- | Append this transaction to the journal's file, and to the journal's
 -- transaction list.
