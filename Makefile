@@ -160,14 +160,10 @@ allcabal%:
 
 # auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
-auto: sp
-	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run --version
+auto: auto---version
 
-autotest: sp
-	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run test
-
-autotest-%: sp
-	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run test $*
+auto-%: sp
+	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run $*
 
 autoweb: sp link-web-dirs
 	$(AUTOBUILD) hledger-web/app/main.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) $(WEBLANGEXTS) --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
