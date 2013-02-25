@@ -14,14 +14,14 @@ where
 import Control.Exception as E
 import Control.Monad
 import Control.Monad.Trans (liftIO)
-import Data.Char (toUpper)
+import Data.Char (toUpper, toLower)
 import Data.List
 import Data.Maybe
 import Data.Typeable (Typeable)
 import Safe (headDef, tailDef, headMay)
 import System.Console.Haskeline (InputT, runInputT, defaultSettings, setComplete, getInputLine)
 import System.Console.Haskeline.Completion
-import System.IO ( stderr, hPutStrLn )
+import System.IO ( stderr, hPutStr, hPutStrLn )
 import System.IO.Error
 import Text.ParserCombinators.Parsec
 import Text.Printf
@@ -41,14 +41,14 @@ add :: CliOpts -> Journal -> IO ()
 add opts j
     | f == "-" = return ()
     | otherwise = do
-  hPutStrLn stderr $ unlines [
+  hPutStr stderr $ unlines [
      "Adding transactions to journal file "++f
     ,"Provide field values at the prompts, or press enter to accept defaults."
     ,"Use readline keys to edit, use tab key to complete account names."
     ,"A code (in parentheses) may be entered following transaction dates."
     ,"A comment may be entered following descriptions or amounts."
     ,"If you make a mistake, enter < at any prompt to restart the transaction."
-    ,"To record a transaction, enter . when prompted."
+    ,"To complete a transaction, enter . when prompted."
     ,"To quit, press control-d or control-c."
     ]
   today <- showDate `fmap` getCurrentDay
@@ -66,16 +66,36 @@ add opts j
 -- recent transaction in the journal.
 getAndAddTransactionsLoop :: Journal -> CliOpts -> String -> [String] -> IO ()
 getAndAddTransactionsLoop j opts defdate moredefs = do
+  hPrintf stderr "\nStarting a new transaction.\n"
   t <- getTransaction j opts defdate moredefs
-  j <- journalAddTransaction j opts t
-  hPrintf stderr "\nRecorded transaction:\n%s" (show t)
+  j' <- journalAddTransaction j opts t
+  hPrintf stderr "\nAdded to the journal.\n"
   let defdate' = showDate $ tdate t
-  getAndAddTransactionsLoop j opts defdate' []
+  getAndAddTransactionsLoop j' opts defdate' []
 
--- | Read a single transaction from the console, with history-aware prompting.
+-- | Read a single transaction from the console, with history-aware prompting,
+-- allowing the user to restart and confirm at the end.
 -- A default date, and zero or more defaults for subsequent fields, are provided.
 getTransaction :: Journal -> CliOpts -> String -> [String] -> IO Transaction
 getTransaction j opts defdate moredefs = do
+  mt <- getTransactionOrRestart j opts defdate moredefs
+  let restart = do
+        hPrintf stderr "\nRestarting this transaction.\n"
+        getTransaction j opts defdate moredefs
+  case mt of
+    Nothing -> restart
+    Just t  -> do
+      hPrintf stderr "\nTransaction entered:\n%s" (show t)
+      yn <- runInteractionDefault $ askFor "Accept this transaction" (Just "y") (Just $ \s -> map toLower s `elem` ["<","y","yes","n","no"])
+      case headMay $ map toLower yn of
+        Just 'y' -> return t
+        _        -> restart
+
+-- | Read a single transaction from the console, with history-aware prompting,
+-- or return nothing indicating that the user wants to restart entering this transaction.
+-- A default date, and zero or more defaults for subsequent fields, are provided.
+getTransactionOrRestart :: Journal -> CliOpts -> String -> [String] -> IO (Maybe Transaction)
+getTransactionOrRestart j opts defdate moredefs = do
   let dateandcodep = do {d <- smartdate; c <- optionMaybe code; many spacenonewline; eof; return (d, fromMaybe "" c)}
   datecodestr <- runInteractionDefault $ askFor "date"
             (Just defdate)
@@ -88,16 +108,11 @@ getTransaction j opts defdate moredefs = do
 
   let (defdesc, moredefs') = headTailDef "" moredefs
   desc <- runInteractionDefault $ askFor "description" (Just defdesc) Nothing
-  let restart = do hPrintf stderr "\nRestarting this transaction..\n\n"
-                   getTransaction j opts defdate moredefs'
   if desc == "<"
-   then restart
+   then return Nothing
    else do
     let (description,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') desc
-    mt <- getPostingsForTransactionWithHistory j opts datestr code description comment moredefs'
-    case mt of
-      Nothing -> restart
-      Just t  -> return t
+    getPostingsForTransactionWithHistory j opts datestr code description comment moredefs'
 
 data RestartEntryException = RestartEntryException deriving (Typeable,Show)
 instance Exception RestartEntryException
@@ -139,7 +154,7 @@ getPostingsForTransactionWithHistory j opts datestr code description comment def
           where
             retry msg = liftIO (hPutStrLn stderr $ "\n" ++ (capitalize msg) ++ "please re-enter.") >> getvalidpostings
 
-  when (isJust bestmatch) $ liftIO $ hPrintf stderr "\nUsing this similar transaction for defaults:\n%s" (show $ fromJust bestmatch)
+  when (isJust bestmatch) $ liftIO $ hPrintf stderr "\nUsing this existing transaction for defaults:\n%s" (show $ fromJust bestmatch)
   getvalidpostings `E.catch` \(_::RestartEntryException) -> return Nothing
 
 -- | Read postings from the command line until . is entered, generating
@@ -154,7 +169,7 @@ getPostingsLoop st enteredps defargs = do
       defacct  = maybe bestmatchacct Just $ headMay defargs
       defargs' = tailDef [] defargs
       ordot | null enteredps || length enteredrealps == 1 = "" :: String
-            | otherwise = " (or . to record)"
+            | otherwise = " (or . to complete this transaction)"
   account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defacct (Just accept)
   when (account=="<") $ throwIO RestartEntryException
   if account=="."
