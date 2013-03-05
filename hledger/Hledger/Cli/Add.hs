@@ -103,8 +103,10 @@ getTransactionOrRestart j opts defdate moredefs = do
                          || s == "."
                          || isRight (parseWithCtx nullctx dateandcodep $ lowercase s))
   when (datecodestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
+  today <- getCurrentDay
   let (sdate,code) = fromparse $ parseWithCtx nullctx dateandcodep datecodestr
-      datestr = showDate $ fixSmartDate (parsedate defdate) sdate
+      defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
+      datestr = showDate $ fixSmartDate defday sdate
 
   let (defdesc, moredefs') = headTailDef "" moredefs
   desc <- runInteractionDefault $ askFor "description" (Just defdesc) Nothing
