@@ -69,7 +69,7 @@ getAndAddTransactionsLoop j opts defdate moredefs = do
   hPrintf stderr "\nStarting a new transaction.\n"
   t <- getTransaction j opts defdate moredefs
   j' <- journalAddTransaction j opts t
-  hPrintf stderr "\nAdded to the journal.\n"
+  hPrintf stderr "Added to the journal.\n"
   let defdate' = showDate $ tdate t
   getAndAddTransactionsLoop j' opts defdate' []
 
