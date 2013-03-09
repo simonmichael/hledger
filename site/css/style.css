@@ -1,3 +1,7 @@
+html {
+  overflow-y:scroll;
+}
+
 body {
     margin: auto;
     max-width: 42em;
