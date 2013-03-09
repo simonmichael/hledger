@@ -24,6 +24,16 @@ div#navigation a {
     background-color: #226600;
     padding: 3px 10px 3px 10px;
     margin: 0 5px 0 0;
+	border-radius:.3em;
+}
+
+div#navigation a.offsite {
+    background-color: #113300;
+}
+
+div#navigation a:active {
+  position:relative;
+  top:1px;
 }
 
 #footer {
