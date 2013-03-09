@@ -1,125 +1,46 @@
 #!/usr/bin/env runhaskell
 {-# LANGUAGE OverloadedStrings #-}
-{-
-hakyll (3.2) build script for hledger.org
--}
+import           Control.Applicative ((<$>))
+import           Data.Monoid         (mappend)
+import           Hakyll
 
-
-import Prelude hiding (id)
-import Control.Arrow ((>>>)) --, (***), arr)
--- import Control.Category (id)
-import Control.Monad
-import Data.List
--- import Data.Monoid (mempty, mconcat)
-import Hakyll
-import System.Directory
-import System.Process (system)
-import Text.Pandoc
-import Text.Printf
+import           Control.Monad
+import           Data.List
+import           System.Directory
+import           System.Process
+import           Text.Pandoc.Options
+import           Text.Printf
 
 main = do
   symlinkPagesFromParentDir
   symlinkIndexHtml
   symlinkProfsDir
   hakyll $ do
-    match "*.hamlet"   hamlet
-    match "*.md"       page
-    match "css/*"      css
-    match "images/*"   file
-    match "js/**"      file
-    match "robots.txt" file
+    match ("images/*" .||. "js/**" .||. "robots.txt") $ do
+        route   idRoute
+        compile copyFileCompiler
+    match "css/*" $ do
+        route   idRoute
+        compile compressCssCompiler
+    match "templates/*" $ compile templateCompiler
+    match "*.md" $ do
+        route   $ setExtension "html"
+        compile $
+          pandocCompilerWith
+            def
+            def{writerTableOfContents=True
+               ,writerStandalone=True
+               ,writerTemplate="<div id=toc>$toc$</div>\n$body$"
+               }
+          >>= loadAndApplyTemplate "templates/default.html" defaultContext
+          >>= relativizeUrls
 
 symlinkPagesFromParentDir = do
   fs <- filter (".md" `isSuffixOf`) `fmap` getDirectoryContents ".."
   forM_ fs $ \f -> system $ printf "[ -f %s ] || ln -s ../%s" f f
+
 symlinkIndexHtml = ensureSiteDir >> system "ln -sf README.html _site/index.html"
+
 symlinkProfsDir = ensureSiteDir >> system "ln -sf ../../profs _site/profs"
+
 ensureSiteDir = system "mkdir -p _site"
-hamlet = compile templateCompiler
-file = route idRoute >> compile copyFileCompiler
-css = route idRoute >> compile compressCssCompiler
-page = do
-  route $ setExtension "html"
-  compile $ pageCompilerWith pandocParserState pandocWriterOptions >>> applyTemplateCompiler "site.hamlet" >>> relativizeUrlsCompiler
-
-pandocParserState = defaultParserState {-
-   -- stateParseRaw        = False, -- ^ Parse raw HTML and LaTeX?
-   -- stateParserContext   = NullState, -- ^ Inside list?
-   -- stateQuoteContext    = NoQuote,   -- ^ Inside quoted environment?
-   -- stateSanitizeHTML    = False,     -- ^ Sanitize HTML?
-   -- stateKeys            = [],        -- ^ List of reference keys
-   -- stateNotes           = [],        -- ^ List of notes
-   -- stateTabStop         = 4,         -- ^ Tab stop
-   -- stateStandalone      = False,     -- ^ Parse bibliographic info?
-   -- stateTitle           = [],        -- ^ Title of document
-   -- stateAuthors         = [],        -- ^ Authors of document
-   -- stateDate            = [],        -- ^ Date of document
-   -- stateStrict          = False,     -- ^ Use strict markdown syntax?
-   -- stateSmart           = False     -- ^ Use smart typography?
-   -- stateLiterateHaskell = False,     -- ^ Treat input as literate haskell
-   -- stateColumns         = 80,        -- ^ Number of columns in terminal
-   -- stateHeaderTable     = [],        -- ^ Ordered list of header types used
-   -- stateIndentedCodeClasses = []     -- ^ Classes to use for indented code blocks
- -}
-
-pandocWriterOptions = defaultWriterOptions {
-   writerStandalone       = True, -- ^ Include header and footer -- needs to be true to have a toc
-   writerTemplate         =  -- ^ Template to use in standalone mode
-    unlines
-    [
-    "$for(include-before)$",
-    "$include-before$",
-    "$endfor$",
-    "$if(title)$",
-    "$if(html5)$",
-    "<header>",
-    "$else$",
-    "<div id=\"$idprefix$header\">",
-    "$endif$",
-    "<h1 class=\"title\">$title$</h1>",
-    "$for(author)$",
-    "<h3 class=\"author\">$author$</h3>",
-    "$endfor$",
-    "$if(date)$",
-    "<h4 class=\"date\">$date$</h4>",
-    "$endif$",
-    "$if(html5)$",
-    "</header>",
-    "$else$",
-    "</div>",
-    "$endif$",
-    "$endif$",
-    "$if(toc)$",
-    "$if(html5)$",
-    "<nav id=\"$idprefix$TOC\">",
-    "$toc$",
-    "</nav>",
-    "$else$",
-    "<div id=\"$idprefix$TOC\">",
-    "$toc$",
-    "</div>",
-    "$endif$",
-    "$endif$",
-    "$body$",
-    "$for(include-after)$",
-    "$include-after$",
-    "$endfor$"
-    ],
-   -- writerVariables        = [],    -- ^ Variables to set in template
-   -- writerIncludeBefore    = "",    -- ^ Text to include before the body
-   -- writerIncludeAfter     = "",    -- ^ Text to include after the body
-   -- writerTabStop          = 4,     -- ^ Tabstop for conversion btw spaces and tabs
-   writerTableOfContents  = True -- ^ Include table of contents
-   -- writerS5               = False, -- ^ We're writing S5
-   -- writerXeTeX            = False, -- ^ Create latex suitable for use by xetex
-   -- writerHTMLMathMethod   = PlainMath, -- ^ How to print math in HTML
-   -- writerIgnoreNotes      = False,     -- ^ Ignore footnotes (used in making toc)
-   -- writerIncremental      = False,     -- ^ Incremental S5 lists
-   -- writerNumberSections   = False,     -- ^ Number sections in LaTeX
-   -- writerStrictMarkdown   = False,     -- ^ Use strict markdown syntax
-   -- writerReferenceLinks   = False,     -- ^ Use reference links in writing markdown, rst
-   -- writerWrapText         = True,      -- ^ Wrap text to line length
-   -- writerLiterateHaskell  = False,     -- ^ Write as literate haskell
-   -- writerEmailObfuscation = JavascriptObfuscation, -- ^ How to obfuscate emails
-   -- writerIdentifierPrefix = "",                    -- ^ Prefix for section & note ids in HTML
-  }
