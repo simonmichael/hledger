@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, CPP #-}
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and
@@ -34,8 +34,10 @@ import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Test.HUnit
 import Text.Printf
+#if MIN_VERSION_directory(1,2,0)
 import System.Time (ClockTime(TOD))
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+#endif
 
 import Hledger.Cli.Options
 import Hledger.Data
@@ -101,9 +103,13 @@ fileModificationTime :: FilePath -> IO ClockTime
 fileModificationTime f
     | null f = getClockTime
     | otherwise = (do
+#if MIN_VERSION_directory(1,2,0)
         utc <- getModificationTime f
         let nom = utcTimeToPOSIXSeconds utc
         let clo = TOD (read $ takeWhile (`elem` "0123456789") $ show nom) 0 -- XXX read
+#else
+        clo <- getModificationTime f
+#endif
         return clo
         )
         `C.catch` \(_::C.IOException) -> getClockTime
