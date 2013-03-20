@@ -43,6 +43,7 @@ import Text.ParserCombinators.Parsec
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
+import Hledger.Data.Amount (nullamt)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
@@ -61,6 +62,7 @@ data Query = Any              -- ^ always match
            | Date2 DateSpan   -- ^ match if secondary date in this date span
            | Status Bool      -- ^ match if cleared status has this value
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
+           | Amt Ordering Quantity   -- ^ match if the amount's numeric quantity is less than/greater than/equal to some value
            | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
                               --   more of a query option than a query criteria ?
            | Depth Int        -- ^ match if account depth is less than or equal to this value
@@ -211,6 +213,7 @@ parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
                                     Right (_,span) -> Left $ Date2 span
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
+parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt op q where (op, q) = parseAmountTest s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
 parseQueryTerm _ ('t':'a':'g':':':s) = Left $ Tag n v where (n,v) = parseTag s
@@ -232,7 +235,29 @@ tests_parseQueryTerm = [
     "inacct:a" `gives` (Right $ QueryOptInAcct "a")
     "tag:a" `gives` (Left $ Tag "a" Nothing)
     "tag:a=some value" `gives` (Left $ Tag "a" (Just "some value"))
+    -- "amt:<0" `gives` (Left $ Amt LT 0)
+    -- "amt:=.23" `gives` (Left $ Amt EQ 0.23)
+    -- "amt:>10000.10" `gives` (Left $ Amt GT 10000.1)
  ]
+
+-- can fail
+parseAmountTest :: String -> (Ordering, Quantity)
+parseAmountTest s =
+  case s of
+    ""     -> err
+    '<':s' -> (LT, readDef err s')
+    '=':s' -> (EQ, readDef err s')
+    '>':s' -> (GT, readDef err s')
+    _      -> err
+  where err = error' $ "could not parse as operator followed by numeric quantity: "++s
+
+tests_parseAmountTest = [
+  "parseAmountTest" ~: do
+    let s `gives` r = parseAmountTest s `is` r
+    "<0" `gives` (LT,0)
+    "=0.23" `gives` (EQ,0.23)
+    ">10000.10" `gives` (GT,10000.1)
+  ]
 
 parseTag :: String -> (String, Maybe String)
 parseTag s | '=' `elem` s = (n, Just $ tail v)
@@ -475,6 +500,7 @@ matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (Status v) p = v == postingCleared p
 matchesPosting (Real v) p = v == isReal p
 matchesPosting (Depth d) Posting{paccount=a} = Depth d `matchesAccount` a
+matchesPosting (Amt op n) Posting{pamount=a} = compareMixedAmount op n a
 -- matchesPosting (Empty v) Posting{pamount=a} = v == isZeroMixedAmount a
 -- matchesPosting (Empty False) Posting{pamount=a} = True
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
@@ -482,6 +508,14 @@ matchesPosting (Empty _) _ = True
 matchesPosting (Tag n Nothing) p = isJust $ lookupTagByName n $ postingAllTags p
 matchesPosting (Tag n (Just v)) p = isJust $ lookupTagByNameAndValue (n,v) $ postingAllTags p
 -- matchesPosting _ _ = False
+
+-- | Is this simple mixed amount's quantity less than, equal to, or greater than this number ?
+-- For complext mixed amounts (with multiple commodities), this is always true.
+compareMixedAmount :: Ordering -> Quantity -> MixedAmount -> Bool
+compareMixedAmount op q (Mixed [])  = compareMixedAmount op q (Mixed [nullamt])
+-- compareMixedAmount op q (Mixed [a]) = strace (compare (strace $ aquantity a) (strace q)) == op
+compareMixedAmount op q (Mixed [a]) = compare (aquantity a) q == op
+compareMixedAmount _ _ _            = True
 
 tests_matchesPosting = [
    "matchesPosting" ~: do
@@ -524,6 +558,7 @@ matchesTransaction (Date span) t = spanContainsDate span $ tdate t
 matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
 matchesTransaction (Status v) t = v == tstatus t
 matchesTransaction (Real v) t = v == hasRealPostings t
+matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Empty _) _ = True
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
 matchesTransaction (Tag n Nothing) t = isJust $ lookupTagByName n $ transactionAllTags t
@@ -563,6 +598,7 @@ tests_Hledger_Query = TestList $
  ++ tests_words''
  ++ tests_filterQuery
  ++ tests_parseQueryTerm
+ ++ tests_parseAmountTest
  ++ tests_parseQuery
  ++ tests_matchesAccount
  ++ tests_matchesPosting
