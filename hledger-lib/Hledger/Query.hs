@@ -56,6 +56,7 @@ data Query = Any              -- ^ always match
            | Not Query        -- ^ negate this match
            | Or [Query]       -- ^ match if any of these match
            | And [Query]      -- ^ match if all of these match
+           | Code String      -- ^ match if code matches this regexp
            | Desc String      -- ^ match if description matches this regexp
            | Acct String      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
@@ -173,6 +174,7 @@ tests_words'' = [
 prefixes = map (++":") [
      "inacctonly"
     ,"inacct"
+    ,"code"
     ,"desc"
     ,"acct"
     ,"date"
@@ -203,6 +205,7 @@ parseQueryTerm _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
 parseQueryTerm d ('n':'o':'t':':':s) = case parseQueryTerm d s of
                                        Left m  -> Left $ Not m
                                        Right _ -> Left Any -- not:somequeryoption will be ignored
+parseQueryTerm _ ('c':'o':'d':'e':':':s) = Left $ Code s
 parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ Desc s
 parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ Acct s
 parseQueryTerm d ('d':'a':'t':'e':':':s) =
@@ -493,6 +496,7 @@ matchesPosting (Any) _ = True
 matchesPosting (None) _ = False
 matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
+matchesPosting (Code r) p = regexMatchesCI r $ maybe "" tcode $ ptransaction p
 matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
 matchesPosting (Acct r) p = regexMatchesCI r $ paccount p
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
@@ -552,6 +556,7 @@ matchesTransaction (Any) _ = True
 matchesTransaction (None) _ = False
 matchesTransaction (Or qs) t = any (`matchesTransaction` t) qs
 matchesTransaction (And qs) t = all (`matchesTransaction` t) qs
+matchesTransaction (Code r) t = regexMatchesCI r $ tcode t
 matchesTransaction (Desc r) t = regexMatchesCI r $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Date span) t = spanContainsDate span $ tdate t
