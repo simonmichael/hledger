@@ -1,5 +1,5 @@
-; hledger journal entry template experiments
-;
+; experimental hledger journal entry templates for some common transactions
+
 ; These are sketches, don't expect them to be sensible.
 ; A few different events are noted:
 ; accrued   = when the revenue was earned
@@ -14,7 +14,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; a client job, paid immediately
 
-2010/12/31 * (imm) bill client1 for december               ; accrued, date:2010/12
+2010/12/31 * (1-imm) bill client1 for december               ; accrued, date:2010/12
     assets:bank:bank1:checking                      $5000  ; received, deposited
     revenue:consulting:client1                     $-5000  ; invoiced, reported
     (liabilities:tax:federal:2010)                 $-1250  ; us tax
@@ -25,50 +25,50 @@
 
 ; cash basis accounting
 
-; single entry
+; separate entries
 
-2011/01/01 * (inv-cash-1) bill client1 for december        ; accrued,   date:2010/12
-    assets:accounts receivable:client1:20110101     $5000  ; invoiced,  date:2011/01/01
-    assets:accounts receivable:client1:20110101    $-5000  ; received,  date:2011/02/17
-    assets:bank:bank1:checking                      $5000  ; deposited, date:2011/02/18
-    revenue:consulting:client1                     $-5000  ; reported,  date:2011/02/18
-    (liabilities:tax:federal:2011)                 $-1250  ; us tax,    date:2011/02/18
-    (liabilities:tax:state:2011)                    $-300  ; ca tax,    date:2011/02/18
-
-; multiple entries
-
-2011/01/01 * (inv-cash-2a) bill client1 for december       ; accrued,   date:2010/12
+2011/01/01 * (2a-inv-cash) bill client1 for december       ; accrued,   date:2010/12
     (assets:accounts receivable:client1:20110101)   $5000  ; invoiced
 
-2011/2/17 * (inv-cash-2b) receive payment
-    assets:accounts receivable:client1:20110101    $-5000  ; received
+2011/2/17 * (2b-inv-cash) receive payment
+    (assets:accounts receivable:client1:20110101)  $-5000  ; received
+    revenue:consulting:client1                     $-5000  ; reported
+    (liabilities:tax:federal:2011)                 $-1250  ; us tax
+    (liabilities:tax:state:2011)                    $-300  ; ca tax
     assets:bank:bank1:checking                      $5000  ; deposited, date:2011/02/18
-    (revenue:consulting:client1)                   $-5000  ; reported,  date:2011/02/18
-    (liabilities:tax:federal:2011)                 $-1250  ; us tax,    date:2011/02/18
-    (liabilities:tax:state:2011)                    $-300  ; ca tax,    date:2011/02/18
+
+; single entry
+
+2011/01/01 * (3-inv-cash) bill client1 for december        ; accrued,   date:2010/12
+    assets:accounts receivable:client1:20110101     $5000  ; invoiced,  date:2011/01/01
+    assets:accounts receivable:client1:20110101    $-5000  ; received,  date:2011/02/17
+    revenue:consulting:client1                     $-5000  ; reported,  date:2011/02/17
+    (liabilities:tax:federal:2011)                 $-1250  ; us tax,    date:2011/02/17
+    (liabilities:tax:state:2011)                    $-300  ; ca tax,    date:2011/02/17
+    assets:bank:bank1:checking                      $5000  ; deposited, date:2011/02/18
 
 ; accrual basis accounting
 
-; single entry
+; separate entries
 
-2011/01/01 * (inv-acc-1) bill client1 for december         ; accrued,   date:2010/12
-    revenue:consulting:client1                     $-5000  ; reported,  date:2010/12/31
-    (liabilities:tax:federal:2010)                 $-1250  ; us tax,    date:2010/12/31
-    (liabilities:tax:state:2010)                    $-300  ; ca tax,    date:2010/12/31
-    assets:accounts receivable:client1:20110101     $5000  ; invoiced,  date:2011/01/01
-    assets:accounts receivable:client1:20110101    $-5000  ; received,  date:2011/02/17
-    assets:bank:bank1:checking                      $5000  ; deposited, date:2011/02/18
-
-; multiple entries
-
-2011/01/01 * (inv-acc-2a) bill client1 for december        ; accrued,   date:2010/12
+2011/01/01 * (4a-inv-accrual) bill client1 for december        ; accrued,   date:2010/12
     assets:accounts receivable:client1:20110101     $5000  ; invoiced
     revenue:consulting:client1                     $-5000  ; reported,  date:2010/12/31
     (liabilities:tax:federal:2010)                 $-1250  ; us tax,    date:2010/12/31
     (liabilities:tax:state:2010)                    $-300  ; ca tax,    date:2010/12/31
 
-2011/2/17 * (inv-acc-2b) receive payment
+2011/2/17 * (4b-inv-accrual) receive payment
     assets:accounts receivable:client1:20110101    $-5000  ; received
+    assets:bank:bank1:checking                      $5000  ; deposited, date:2011/02/18
+
+; single entry
+
+2011/01/01 * (5-inv-accrual) bill client1 for december         ; accrued,   date:2010/12
+    revenue:consulting:client1                     $-5000  ; reported,  date:2010/12/31
+    (liabilities:tax:federal:2010)                 $-1250  ; us tax,    date:2010/12/31
+    (liabilities:tax:state:2010)                    $-300  ; ca tax,    date:2010/12/31
+    assets:accounts receivable:client1:20110101     $5000  ; invoiced,  date:2011/01/01
+    assets:accounts receivable:client1:20110101    $-5000  ; received,  date:2011/02/17
     assets:bank:bank1:checking                      $5000  ; deposited, date:2011/02/18
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,25 +76,25 @@
 
 ; cash basis
 
-2013/1/1 * (pre-cash-1a) client1 prepayment
+2013/1/1 * (6a-pre-cash) client1 prepayment
     assets:bank:bank1:prepaid revenue:client1       $5000  ; received, deposited
     revenue:consulting:client1                     $-5000  ; reported
     (liabilities:tax:federal:2011)                 $-1250  ; us tax
     (liabilities:tax:state:2011)                    $-300  ; ca tax
     (liabilities:prepaid revenue:client1)          $-5000  ; also track as a client liability
 
-2013/1/31 * (pre-cash-1b) draw from client1 prepayment      ; accrued, date:2013/01
+2013/1/31 * (6b-pre-cash) draw from client1 prepayment      ; accrued, date:2013/01
     assets:bank:bank1:prepaid revenue:client1      $-1000  ; draw
     assets:bank:bank1:checking                      $1000
     (liabilities:prepaid revenue:client1)           $1000  ; reduce client liability
 
 ; accrual basis
 
-2013/1/1 * (pre-acc-1a) client1 prepayment
+2013/1/1 * (7a-pre-accrual) client1 prepayment
     assets:bank:bank1:prepaid revenue:client1       $5000  ; received, deposited
     liabilities:prepaid revenue:client1            $-5000  ; track client liability
 
-2013/1/31 * (pre-acc-1b) draw from client1 prepayment       ; accrued, date:2013/01
+2013/1/31 * (7b-pre-accrual) draw from client1 prepayment       ; accrued, date:2013/01
     assets:bank:bank1:prepaid revenue:client1      $-1000  ; draw
     assets:bank:bank1:checking                      $1000
     liabilities:prepaid revenue:client1             $1000  ; reduce client liability
@@ -102,3 +102,11 @@
     (liabilities:tax:federal:2011)                 $-1250  ; us tax
     (liabilities:tax:state:2011)                    $-300  ; ca tax
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; tax payments
+
+2013/1/1 * (8-pay-tax) pay estimated federal tax
+    (liabilities:tax:federal:2011)                  $1250
+    expenses:personal:tax:federal:2011              $1250
+    assets:bank:bank1:checking                     $-1250
+    
