@@ -11,11 +11,11 @@ hledger is brought to you by:
 -   Nick Ingolia - parser improvements
 -   Roman Cheplyaka - "chart" command, "add" command improvements
 -   Michael Snoyman - some additions to the Yesod web interface
+-   Marko Kocić - hlint cleanup
 
 Developers who have not yet signed the contributor agreement:
 
 -   Tim Docker - parser improvements
--   Marko Kocić - hlint cleanup
 -   Oliver Braun - GHC 6.12 compatibility
 -   Gwern Branwen - cleanups
 
