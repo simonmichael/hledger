@@ -42,6 +42,7 @@ import System.FilePath((</>), isRelative)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
+import Text.Regex
 import Text.RegexPR
 -- import qualified Data.Map as Map
 -- 
@@ -202,6 +203,7 @@ difforzero :: (Num a, Ord a) => a -> a -> a
 difforzero a b = maximum [(a - b), 0]
 
 -- regexps
+-- Note many of these will die on malformed regexps.
 
 -- regexMatch :: String -> String -> MatchFun Maybe
 regexMatch r s = matchRegexPR r s
@@ -231,6 +233,13 @@ regexToCaseInsensitive r = "(?i)"++ r
 
 regexSplit :: String -> String -> [String]
 regexSplit = splitRegexPR
+
+-- regex-compat (regex-posix) functions that perform better than regexpr.
+regexMatchesRegexCompat :: String -> String -> Bool
+regexMatchesRegexCompat r = isJust . matchRegex (mkRegex r)
+
+regexMatchesCIRegexCompat :: String -> String -> Bool
+regexMatchesCIRegexCompat r = isJust . matchRegex (mkRegexWithOpts r True False)
 
 -- lists
 
