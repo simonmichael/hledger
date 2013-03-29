@@ -492,161 +492,123 @@ to each account name.
 
 ### CSV files
 
-Since version 0.18, hledger can also read
-[CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files natively
-(previous versions provided a special `convert` command.)
+hledger can also read
+[CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,
+translating the CSV records into journal entries on the fly. In this
+case, we must provide an additional "rules file", which is a file
+named like the CSV file with an extra `.rules` suffix, containing
+rules specifying things like:
 
-An arbitrary CSV file does not provide enough information to be parsed as
-a journal. So when reading CSV, hledger looks for an additional
-[rules file](#the-rules-file), which identifies the CSV fields and assigns
-accounts. For reading `FILE.csv`, hledger uses `FILE.csv.rules` in the same
-directory, auto-creating it if needed. You should configure the rules file
-to get the best data from your CSV file. You can specify a different rules
-file with `--rules-file` (useful when reading from standard input).
+- which CSV fields correspond to which journal entry fields
+- which date format is being used
+- which account name(s) to use
 
-An example - sample.csv:
+Typically you'll keep one rules file for each account which you
+download as CSV. A default rules file will be created if it doesn't
+exist, in which case you'll need to refine it to get the best results.
+You can override the default rules file name with `--rules-file`.
 
-    sample.csv:
+Here's a quick example.  Say we have downloaded `checking.csv` from a
+bank for the first time:
+
     "Date","Note","Amount"
-    "2012/3/22","TRANSFER TO SAVINGS","-10.00"
-    "2012/3/23","SOMETHING ELSE","5.50"
+    "2012/3/22","DEPOSIT","50.00"
+    "2012/3/23","TRANSFER TO SAVINGS","-10.00"
 
-sample.rules:
+We could create `checking.csv.rules` containing:
 
-    skip-lines 1
-    date-field 0
-    description-field 1
-    amount-field 2
+    account1 assets:bank:checking
+    skip     1
+    fields   date, description, amount
     currency $
-    base-account assets:bank:checking
 
-    SAVINGS
-    assets:bank:savings
+    if ~ SAVINGS
+     account2 assets:bank:savings
 
-the resulting journal:
+This says:
+"always use assets:bank:checking as the first account;
+ignore the first line;
+use the first, second and third CSV fields as the entry date, description and amount respectively;
+always prepend $ to the amount value;
+if the CSV record contains 'SAVINGS', use assets:bank:savings as the second account".
+Now hledger can read this CSV file:
 
-    $ hledger -f sample.csv print
-    using conversion rules file sample.rules
-    2012/03/22 TRANSFER TO SAVINGS
+    $ hledger -f checking.csv print
+    using conversion rules file checking.csv.rules
+    2012/03/22 DEPOSIT
+        income:unknown             $-50.00
+        assets:bank:checking        $50.00
+
+    2012/03/23 TRANSFER TO SAVINGS
         assets:bank:savings         $10.00
         assets:bank:checking       $-10.00
 
-    2012/03/23 SOMETHING ELSE
-        income:unknown              $-5.50
-        assets:bank:checking         $5.50
+We might save this output as `checking.journal`, and/or merge it (manually) into the main journal file.
 
-### The rules file
+#### Rules syntax
 
-A rules file consists of the following optional directives, followed by
-account-assigning rules.  (Tip: rules file parse errors are not the
-greatest, so check your rules file format if you're getting unexpected
-results.)
+The rules file is simple. Lines beginning with `#` or `;` and blank lines are ignored.
+The only requirement is that we specify how to fill journal entries' date and amount fields (at least),
+using a *field list*, or individual *field assignments*, or both:
 
-`account-field`
-
-> If the CSV file contains data corresponding to several accounts (for
-> example - bulk export from other accounting software), the specified
-> field's value, if non-empty, will override the value of `base-account`.
-
-`account2-field`
-
-> If the CSV file contains fields for both accounts in the transaction,
-> you can use this in addition to `account-field`.  If `account2-field` is
-> unspecified, the [account-assigning rules](#account-assigning-rules) are
-> used.
-
-`amount-field`
-
-> This directive specifies the CSV field containing the transaction
-> amount.  The field may contain a simple number or an hledger-style
-> [amount](#amounts), perhaps with a [price](#prices). See also
-> `amount-in-field`, `amount-out-field`, `currency-field` and
-> `base-currency`.
-
-`amount-in-field`
-
-`amount-out-field`
-
-> If the CSV file uses two different columns for in and out movements, use
-> these directives instead of `amount-field`.  Note these expect each
-> record to have a positive number in one of these fields and nothing in
-> the other.
-
-`base-account`
-
-> A default account to use in all transactions. May be overridden by
-> `account1-field` and `account2-field`.
-
-`base-currency`
-
-> A default currency symbol which will be prepended to all amounts.
-> See also `currency-field`.
-
-`code-field`
-
-> Which field contains the transaction code or check number (`(NNN)`).
-
-`currency-field`
-
-> The currency symbol in this field will be prepended to all amounts. This
-> overrides `base-currency`.
-
-`date-field`
-
-> Which field contains the transaction date. A number of common
-> four-digit-year date formats are understood by default; other formats
-> will require a `date-format` directive.
-
-`date-format`
-
-> This directive specifies one additional format to try when parsing the
-> date field, using the syntax of Haskell's
-> [formatTime](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
-> Eg, if the CSV dates are non-padded D/M/YY, use:
+> **fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...
+> :   This (a field list) names the CSV fields (names may not contain whitespace or `;` or `#`),
+>     and also assigns them to journal entry fields when you use any of these names:
 >
->     date-format %-d/%-m/%y
+> :   `date`
+> :   `date2`
+> :   `status`
+> :   `code`
+> :   `description`
+> :   `comment`
+> :   `account1`
+> :   `account2`
+> :   `currency`
+> :   `amount`
+> :   `amount-in`
+> :   `amount-out`
+> :   
 >
-> Note custom date formats work best when hledger is built with version
-> 1.2.0.5 or greater of the [time](http://hackage.haskell.org/package/time) library.
+> <!--  -->
+>
+> *JOURNALFIELDNAME* *FIELDVALUE*
+> :   This (a field assignment) assigns the given text value,
+>     which can have CSV field values interpolated via `%name` or `%1`,
+>     to a journal entry field (one of the field names above).
+>     Field assignments may be used in addition to or instead of a field list.
+>
+> :   &nbsp;
 
-`description-field`
+We can also have conditional field assignments which apply only to certain CSV records:
 
-> Which field contains the transaction's description. This can be a simple
-> field number, or a custom format combining multiple fields, eg:
+> **if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
+> :   PATTERNS is one or more regular expressions on the same or following lines.
+>     <!-- then an optional `~` (indicating case-insensitive infix regular expression matching),\ -->
+>     These are followed by one or more indented field assignment lines.\
+>     In this example, any CSV record containing "groc" (case insensitive, anywhere within the whole record)
+>     will have its account2 and comment set as shown:
 > 
->     description-field %(1) - %(3)
+>         if groc
+>          account2 expenses:groceries
+>          comment  household stuff
 
-`date2-field`
+And we may sometimes need these as well:
 
-> Which field contains the transaction's [secondary date](#primary-secondary-dates).
-
-`status-field`
-
-> Which field contains the transaction cleared status (`*`).
-
-`skip-lines`
-
-> How many lines to skip in the beginning of the file, e.g. to skip a
-> line of column headings.
-
-Account-assigning rules select an account to transfer to based on the
-description field (unless `account2-field` is used.) Each
-account-assigning rule is a paragraph consisting of one or more
-case-insensitive regular expressions), one per line, followed by the
-account name to use when the transaction's description matches any of
-these patterns. Eg:
-
-    WHOLE FOODS
-    SUPERMARKET
-    expenses:food:groceries
-
-If you want to clean up messy bank data, you can add `=` and a replacement
-pattern, which rewrites the matched part of the description. (To rewrite
-the entire description, use `.*PAT.*=REPL`). You can also refer to matched
-groups in the usual way with `\0` etc. Eg:
-
-    BLKBSTR=BLOCKBUSTER
-    expenses:entertainment
+> **skip** [*N*]
+> :   Skip this number of CSV lines (1 by default).
+>     Use this to skip the initial CSV header line(s).
+>     <!-- hledger tries to skip initial CSV header lines automatically. -->
+>     <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
+>     <!-- This can also be used in a conditional block to ignore certain CSV records. -->
+>
+> **date-format** *DATEFMT*
+> :   This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
+>     DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
+>     Some common values:
+>
+>         %-d/%-m/%Y
+>         %-m/%-d/%Y
+>         %Y-%h-%d
 
 ### Timelog files
 
