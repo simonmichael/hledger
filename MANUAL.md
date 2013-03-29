@@ -547,35 +547,33 @@ We might save this output as `checking.journal`, and/or merge it (manually) into
 
 #### Rules syntax
 
-The rules file is simple. At minimum it must specify how to fill journal entries' date and amount fields.
 Lines beginning with `#` or `;` and blank lines are ignored,
-and the following kinds of rule can appear in any order.
+and the following kinds of rule can appear in any order:
 
 **fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...
 :   (Field list) This names the CSV fields (names may not contain whitespace or `;` or `#`),
     and also assigns them to journal entry fields when you use any of these names:
 
-:   `date`
-:   `date2`
-:   `status`
-:   `code`
-:   `description`
-:   `comment`
-:   `account1`
-:   `account2`
-:   `currency`
-:   `amount`
-:   `amount-in`
-:   `amount-out`
-:   
-
-<!--  -->
-
+        date
+        date2
+        status
+        code
+        description
+        comment
+        account1
+        account2
+        currency
+        amount
+        amount-in
+        amount-out
+   
 *JOURNALFIELDNAME* *FIELDVALUE*
-:   (Field assignment) This assigns the given text value,
-    which can have CSV field values interpolated via `%name` or `%1`,
+:   (Field assignment) This assigns the given text value
     to a journal entry field (one of the field names above).
-    Field assignments may be used in addition to or instead of a field list.
+    CSV fields can be referenced with `%CSVFIELDNAME` or `%N` (N starts at 1) and will be interpolated.
+
+    You can use a field list, field assignments, or both.
+    At least the `date` and `amount` fields must be assigned.
 
 **if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
 :   (Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
@@ -590,8 +588,8 @@ and the following kinds of rule can appear in any order.
          comment  household stuff
 
 **skip** [*N*]
-:   Skip this number of CSV lines (1 by default).
-    Use this to skip the initial CSV header line(s).
+:   Skip this number of CSV records (1 by default).
+    Use this to skip CSV header lines.
     <!-- hledger tries to skip initial CSV header lines automatically. -->
     <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
     <!-- This can also be used in a conditional block to ignore certain CSV records. -->
