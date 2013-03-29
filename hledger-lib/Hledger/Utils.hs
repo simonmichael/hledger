@@ -40,6 +40,7 @@ import Data.Tree
 import Debug.Trace
 import System.Directory (getHomeDirectory)
 import System.FilePath((</>), isRelative)
+import System.IO
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
@@ -490,3 +491,10 @@ expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expand
 firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
+
+-- | Read a file in universal newline mode, handling whatever newline convention it may contain.
+readFile' :: FilePath -> IO String
+readFile' name =  do
+  h <- openFile name ReadMode
+  hSetNewlineMode h universalNewlineMode
+  hGetContents h

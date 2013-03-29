@@ -141,7 +141,7 @@ openBrowserOn u = trybrowsers browsers u
 -- indicating whether we did anything.
 writeFileWithBackupIfChanged :: FilePath -> String -> IO Bool
 writeFileWithBackupIfChanged f t = do
-  s <- readFile f
+  s <- readFile' f
   if t == s then return False
             else backUpFile f >> writeFile f t >> return True
 
@@ -151,7 +151,7 @@ writeFileWithBackup :: FilePath -> String -> IO ()
 writeFileWithBackup f t = backUpFile f >> writeFile f t
 
 readFileStrictly :: FilePath -> IO String
-readFileStrictly f = readFile f >>= \s -> C.evaluate (length s) >> return s
+readFileStrictly f = readFile' f >>= \s -> C.evaluate (length s) >> return s
 
 -- | Back up this file with a (incrementing) numbered suffix, or give an error.
 backUpFile :: FilePath -> IO ()

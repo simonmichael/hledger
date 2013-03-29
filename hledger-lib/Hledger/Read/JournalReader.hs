@@ -63,7 +63,6 @@ import System.Time (getClockTime)
 import Hledger.Data
 import Hledger.Utils
 import Prelude hiding (readFile)
-import Hledger.Utils.UTF8IOCompat (readFile)
 
 
 -- standard reader exports
@@ -196,7 +195,7 @@ includedirective = do
                 Right (ju,_) -> combineJournalUpdates [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
                 Left err     -> throwError $ inIncluded ++ show err
       where readFileOrError pos fp =
-                ErrorT $ liftM Right (readFile fp) `C.catch`
+                ErrorT $ liftM Right (readFile' fp) `C.catch`
                   \e -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show (e::C.IOException))
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
