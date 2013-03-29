@@ -180,42 +180,6 @@ data Reader = Reader {
 
 instance Show Reader where show r = "Reader for "++rFormat r
 
--- data format parse/conversion rules
-
--- currently the only parse (conversion) rules are those for the CSV format
-type ParseRules = CsvRules
-
--- XXX copied from Convert.hs
-{- |
-A set of data definitions and account-matching patterns sufficient to
-convert a particular CSV data file into meaningful journal transactions. See above.
--}
-data CsvRules = CsvRules {
-      dateField :: Maybe FieldPosition,
-      dateFormat :: Maybe String,
-      statusField :: Maybe FieldPosition,
-      codeField :: Maybe FieldPosition,
-      descriptionField :: [FormatString],
-      amountField :: Maybe FieldPosition,
-      amountInField :: Maybe FieldPosition,
-      amountOutField :: Maybe FieldPosition,
-      currencyField :: Maybe FieldPosition,
-      baseCurrency :: Maybe String,
-      accountField :: Maybe FieldPosition,
-      account2Field :: Maybe FieldPosition,
-      date2Field :: Maybe FieldPosition,
-      baseAccount :: AccountName,
-      accountRules :: [AccountRule],
-      skipLines :: Int
-} deriving (Show, Eq)
-
-type FieldPosition = Int
-
-type AccountRule = (
-   [(String, Maybe String)] -- list of regex match patterns with optional replacements
-  ,AccountName              -- account name to use for a transaction matching this rule
-  )
-
 -- format strings
 
 data HledgerFormatField =
