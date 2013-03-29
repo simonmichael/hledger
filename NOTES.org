@@ -321,6 +321,34 @@ statistical filing, invoicing and the like.
 
 ** snippets
 
+-- type Regexp = String
+
+-- regexMatchesRegexCompat :: Regexp -> String -> Bool
+-- regexMatchesRegexCompat = flip (=~)
+
+
+{-
+-- | A simple accounts view. This one is json-capable, returning the chart
+-- of accounts as json if the Accept header specifies json.
+getAccountsR :: Handler RepHtmlJson
+getAccountsR = do
+  vd@VD{..} <- getViewData
+  let j' = filterJournalPostings2 m j
+      html = do
+        setTitle "hledger-web accounts"
+        toWidget $ accountsReportAsHtml opts vd $ accountsReport2 (reportopts_ $ cliopts_ opts) am j'
+      json = jsonMap [("accounts", toJSON $ journalAccountNames j')]
+  defaultLayoutJson html json
+
+-- | A json-only version of "getAccountsR", does not require the special Accept header.
+getAccountsJsonR :: Handler RepJson
+getAccountsJsonR = do
+  VD{..} <- getViewData
+  let j' = filterJournalPostings2 m j
+  jsonToRepJson $ jsonMap [("accounts", toJSON $ journalAccountNames j')]
+-}
+
+
    let assertAccountsReportItemEqual ((ea1,ea2,ei,eamt), (aa1,aa2,ai,aamt)) = do
          assertEqual "full account name" ea1 aa1
          assertEqual "short account name" ea2 aa2
