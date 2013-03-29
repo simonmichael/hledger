@@ -74,7 +74,7 @@ Note: to use non-ascii characters like £, you might need to [configure a suitab
 If you have trouble, see [Troubleshooting](#troubleshooting).
 </div>
 
-## Usage
+## Basic Usage
 
 Basic usage is:
 
@@ -110,31 +110,27 @@ enter some transactions.  Or, save this
     $ hledger reg desc:shop                 # show postings with shop in the description
     $ hledger activity                      # show transactions per day as a bar chart
     
-## The journal file
+## Reading data
 
-hledger normally reads data from a plain text file in hledger journal
-format.  hledger can read some [other file formats](#other-file-formats)
-as well, but first we'll discuss hledger's journal format. Note this is
-compatible subset of
-[c++ ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with many c++ ledger journal files as well.
+### Journal files
 
-The journal file is so called because it represents a standard accounting
-[general journal](http://en.wikipedia.org/wiki/General_journal).  It
-contains a number of transaction entries, each describing a transfer of
-money (or any commodity) between two or more named accounts, in a simple
-format readable by both hledger and humans.
+hledger's usual data source is a plain text file containing journal entries in hledger journal format.
+This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).
+I use file names ending in `.journal`, but that's not required.
+The journal file contains a number of transaction entries, 
+each describing a transfer of money (or any commodity) between two or more named accounts,
+in a simple format readable by both hledger and humans.
 
-You can use hledger without learning any more about this file; just use
-the [add](#add) or [web](#web) commands. Many users, though, also edit the
-journal file directly with a text editor, perhaps assisted by the helper
-modes for emacs or vi. Note the file uses unix line endings on all
-platforms.
+hledger's journal format is a compatible subset, mostly,
+of [c++ ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
+so hledger can work with [compatible](#file-format-compatibility) c++ ledger journal files as well.
+It's safe, and encouraged, to run both hledger and ledger on the same journal file,
+eg to validate the results you're getting.
 
-
-
-hledger's file format aims to be [compatible](#file-format-compatibility)
-with c++ ledger, so you can use both tools on your journal.
+You can use hledger without learning any more about this file; 
+just use the [add](#add) or [web](#web) commands to create and update it. 
+Many users, though, also edit the journal file directly with a text editor, perhaps assisted by the helper modes for emacs or vim.
+Note the file uses unix line endings on all platforms. <!-- XXX retest & remove -->
 
 Here's an example:
 
@@ -161,7 +157,9 @@ Here's an example:
         liabilities:debts     $1
         assets:bank:checking
 
-### Transactions
+Now let's explore the available journal file syntax in detail.
+
+#### Transactions
 
 Each transaction begins with a date in column 0, followed by an optional
 description, then two or more postings (of some amount to some account),
@@ -170,7 +168,7 @@ each on their own line.
 The posting amounts within a transaction must always balance, ie add up to
 0.  You can leave one amount blank and it will be inferred.
 
-### Account names
+#### Account names
 
 Account names typically have several parts separated by a full colon, from
 which hledger derives a hierarchical chart of accounts. They can be
@@ -179,7 +177,7 @@ accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
 
 Account names may contain single spaces, eg: `assets:accounts receivable`.
 
-### Amounts
+#### Amounts
 
 After the account name, separated by ***two or more*** spaces, there is
 usually an amount.  This is a number, optionally with a currency symbol or
@@ -198,7 +196,7 @@ digit group separators, you must also include a decimal point in at least
 one number in the same commodity, so that hledger knows which character is
 which. Eg, write `$1,000.00` or `$1.000,00`.
 
-### Amount styles
+#### Amount styles
 
 Based on how you format amounts, hledger will infer canonical display
 styles for each commodity, and use these when displaying amounts in that
@@ -213,7 +211,7 @@ The canonical style is generally the style of the first amount seen in a commodi
 (which may be in a [default commodity directive](#default-commodity).
 The precision is the highest precision seen among all amounts in the commmodity.
 
-### Simple dates
+#### Simple dates
 
 Within a journal file, transaction dates always follow a year/month/day
 format, although several different separator characters are accepted. Some
@@ -235,7 +233,7 @@ transactions, like so:
     1/31  ; equivalent to 2010/1/31
       ...
 
-### Secondary dates
+#### Secondary dates
 
 Real-life transactions sometimes involve more than one date - eg the date
 you write a cheque, and the date it clears in your bank.  When you want to
@@ -262,7 +260,7 @@ Example:
     $ hledger register checking --date2
     2010/02/19 movie ticket         assets:checking                $-10         $-10
 
-### Posting dates
+#### Posting dates
 
 [Comments and tags](#comments) are covered below, but while we are talking
 about dates: you can give individual postings a different date from their
@@ -274,7 +272,7 @@ Ledger's bracketed posting date syntax (`[DATE]`,
 `[DATE=DATE2]` or `[=DATE2]` in a posting comment)
 is also supported, as an alternate spelling of the date tags.
 
-### Default commodity
+#### Default commodity
 
 You can set a default commodity, to be used for any subsequent amounts
 which have no commodity symbol, with the D directive:
@@ -291,9 +289,9 @@ which have no commodity symbol, with the D directive:
 A default commodity directive may also influence the canonical
 [amount style](#commodity-display-settings) for the commodity.
 
-### Prices
+#### Prices
 
-#### Transaction prices
+##### Transaction prices
 
 When recording an amount, you can also record its price in another
 commodity. This documents an exchange rate that was applied within
@@ -327,7 +325,7 @@ examples we get:
         assets:foreign currency       $135.00
         assets                       $-135.00
 
-#### Historical prices
+##### Historical prices
 
 You can also record a series of historical prices for a commodity using P
 directives. Typically these are used to record daily market prices or
@@ -341,7 +339,7 @@ hledger currently ignores them. They look like this:
         P 2009/1/1 € $1.35  
         P 2010/1/1 € $1.40
         
-### Balance Assertions
+#### Balance Assertions
 
 ledger supports
 [balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions):
@@ -350,13 +348,13 @@ the expected balance in this account at this point. hledger does not
 currently enforce these but will ignore them, so you can put them in your
 journal and test with ledger if needed.
 
-### Fixed Lot Prices
+#### Fixed Lot Prices
 
 Similarly, we ignore ledger's 
 [fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices).
 hledger's [prices](#transaction-prices) always work like ledger's fixed lot prices.
 
-### Comments
+#### Comments
 
 A semicolon in the journal file marks the start of a comment. You can
 write comments on their own line between transactions, like so:
@@ -382,7 +380,7 @@ journal comments.
 A "tag comment" is a transaction or posting comment containing a tag,
 explained in the next section.
 
-### Tags
+#### Tags
 
 You can attach named tags, optionally with values, to transactions and
 postings, and then filter reports by tag (this is the same as Ledger's
@@ -402,7 +400,7 @@ Querying by tag is work in progress; for now you can test for existence of
 a tag with `tag:NAME`.
 <!-- tag:NAME=EXACTVALUE` -->
 
-### Including other files
+#### Including other files
 
 You can pull in the content of additional journal files, by writing lines like this:
 
@@ -411,7 +409,7 @@ You can pull in the content of additional journal files, by writing lines like t
 The `!include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not timelog files.)
 
-### Default parent account
+#### Default parent account
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal. Use the `!account` directive like so:
@@ -440,7 +438,7 @@ Included files are also affected, eg:
     !include personal.journal
     !end
 
-### Account aliases
+#### Account aliases
 
 You can define account aliases to rewrite certain account names (and their subaccounts).
 This tends to be a little more reliable than post-processing with sed or similar.
@@ -491,10 +489,8 @@ Command-line alias options are applied after any alias directives in the
 journal.  At most one alias directive and one alias option will be applied
 to each account name.
 
-## Other file formats
 
-In addition to the usual [journal files](#the-journal-file), hledger can
-read [timelog files](#timelog-reporting).
+### CSV files
 
 Since version 0.18, hledger can also read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files natively
@@ -652,9 +648,10 @@ groups in the usual way with `\0` etc. Eg:
     BLKBSTR=BLOCKBUSTER
     expenses:entertainment
 
-Lines beginning with `;` or `#` are ignored - just don't use them in the
-middle of an account-assigning rule.
+### Timelog files
 
+hledger can also read [timelog files](#timelog-reporting),
+interpreting each logged time session as an expenditure of hours.
 
 ## Commands
 
@@ -700,7 +697,6 @@ The add command tries to be helpful, providing:
 Examples:
 
     $ hledger add
-    $ hledger -f home.journal add equity:bob
 
 #### test
 
