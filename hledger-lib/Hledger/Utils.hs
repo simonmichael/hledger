@@ -414,6 +414,9 @@ spacenonewline = satisfy (`elem` " \v\f\t")
 restofline :: GenParser Char st String
 restofline = anyChar `manyTill` newline
 
+eolof :: GenParser Char st ()
+eolof = (newline >> return ()) <|> eof
+
 -- time
 
 getCurrentLocalTime :: IO LocalTime

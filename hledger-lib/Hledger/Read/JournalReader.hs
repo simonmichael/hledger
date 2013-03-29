@@ -833,8 +833,6 @@ followingcommentline = do
   optional newline
   return l
 
-eolof = (newline >> return ()) <|> eof
-
 tagsInComment :: String -> [Tag]
 tagsInComment c = concatMap tagsInCommentLine $ lines c'
   where
