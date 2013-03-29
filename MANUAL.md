@@ -547,68 +547,63 @@ We might save this output as `checking.journal`, and/or merge it (manually) into
 
 #### Rules syntax
 
-The rules file is simple. Lines beginning with `#` or `;` and blank lines are ignored.
-The only requirement is that we specify how to fill journal entries' date and amount fields (at least),
-using a *field list*, or individual *field assignments*, or both:
+The rules file is simple. At minimum it must specify how to fill journal entries' date and amount fields.
+Lines beginning with `#` or `;` and blank lines are ignored,
+and the following kinds of rule can appear in any order.
 
-> **fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...
-> :   This (a field list) names the CSV fields (names may not contain whitespace or `;` or `#`),
->     and also assigns them to journal entry fields when you use any of these names:
->
-> :   `date`
-> :   `date2`
-> :   `status`
-> :   `code`
-> :   `description`
-> :   `comment`
-> :   `account1`
-> :   `account2`
-> :   `currency`
-> :   `amount`
-> :   `amount-in`
-> :   `amount-out`
-> :   
->
-> <!--  -->
->
-> *JOURNALFIELDNAME* *FIELDVALUE*
-> :   This (a field assignment) assigns the given text value,
->     which can have CSV field values interpolated via `%name` or `%1`,
->     to a journal entry field (one of the field names above).
->     Field assignments may be used in addition to or instead of a field list.
->
-> :   &nbsp;
+**fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...
+:   (Field list) This names the CSV fields (names may not contain whitespace or `;` or `#`),
+    and also assigns them to journal entry fields when you use any of these names:
 
-We can also have conditional field assignments which apply only to certain CSV records:
+:   `date`
+:   `date2`
+:   `status`
+:   `code`
+:   `description`
+:   `comment`
+:   `account1`
+:   `account2`
+:   `currency`
+:   `amount`
+:   `amount-in`
+:   `amount-out`
+:   
 
-> **if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
-> :   PATTERNS is one or more regular expressions on the same or following lines.
->     <!-- then an optional `~` (indicating case-insensitive infix regular expression matching),\ -->
->     These are followed by one or more indented field assignment lines.\
->     In this example, any CSV record containing "groc" (case insensitive, anywhere within the whole record)
->     will have its account2 and comment set as shown:
-> 
->         if groc
->          account2 expenses:groceries
->          comment  household stuff
+<!--  -->
 
-And we may sometimes need these as well:
+*JOURNALFIELDNAME* *FIELDVALUE*
+:   (Field assignment) This assigns the given text value,
+    which can have CSV field values interpolated via `%name` or `%1`,
+    to a journal entry field (one of the field names above).
+    Field assignments may be used in addition to or instead of a field list.
 
-> **skip** [*N*]
-> :   Skip this number of CSV lines (1 by default).
->     Use this to skip the initial CSV header line(s).
->     <!-- hledger tries to skip initial CSV header lines automatically. -->
->     <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
->     <!-- This can also be used in a conditional block to ignore certain CSV records. -->
->
-> **date-format** *DATEFMT*
-> :   This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
->     DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
->     Some common values:
->
->         %-d/%-m/%Y
->         %-m/%-d/%Y
->         %Y-%h-%d
+**if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
+:   (Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
+    PATTERNS is one or more regular expressions on the same or following lines.
+    <!-- then an optional `~` (indicating case-insensitive infix regular expression matching),\ -->
+    These are followed by one or more indented field assignment lines.\
+    In this example, any CSV record containing "groc" (case insensitive, anywhere within the whole record)
+    will have its account2 and comment set as shown:
+
+        if groc
+         account2 expenses:groceries
+         comment  household stuff
+
+**skip** [*N*]
+:   Skip this number of CSV lines (1 by default).
+    Use this to skip the initial CSV header line(s).
+    <!-- hledger tries to skip initial CSV header lines automatically. -->
+    <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
+    <!-- This can also be used in a conditional block to ignore certain CSV records. -->
+
+**date-format** *DATEFMT*
+:   This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
+    DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
+    Some common values:
+
+        %-d/%-m/%Y
+        %-m/%-d/%Y
+        %Y-%h-%d
 
 ### Timelog files
 
