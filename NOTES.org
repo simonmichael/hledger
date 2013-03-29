@@ -264,7 +264,8 @@ http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
 *** http://weberp.org
 **** http://www.weberp.org/weberp/doc/Manual/ManualContents.php
 *** http://www.clientsandprofits.com
-*** YNAB
+*** http://www.youneedabudget.com/
+*** https://indinero.com/
 ** hledger feedback
 *** fabrice niessen
 +For me, what would be very useful for a 1.0 version would be:
@@ -829,7 +830,101 @@ cabal: Error: some packages failed to install:
 enumerator-0.4.14 failed during the building phase. The exception was:
 ExitFailure (-1073741819)
 
+** performance tuning
+http://stackoverflow.com/questions/3276240/tools-for-analyzing-performance-of-a-haskell-program/3276557#3276557
 
+** good list of cost of ownership questions
+http://felixge.de/2013/03/07/open-source-and-responsibility.html
+** writing tips
+*** tekmo
+**** orig
+http://www.reddit.com/r/haskell/comments/19jbz5/how_to_cabal_install_a_new_tutorial/
+
+Since you're practicing your writing, I'll give some tips:
+
+> cabal is a command-line program for downloading and building
+> software written in Haskell. It can install all kinds of fascinating
+> and useful software packages from the Hackage repository. It is
+> excellent and indispensable, but it currently has a troublesome
+> flaw: it sometimes mysteriously refuses to install things, leading
+> to cries of "Aaagh! cabal hell!!".
+
+The above paragraph keeps referring back to cabal as it, which
+increases the reader's cognitive load. The reader must retain the
+first sentence in memory to understand the rest of the paragraph,
+perhaps referring back to it if they already flushed the first
+sentence from memory. A well-written article resembles an efficient
+program: you strive to stream all the information in as little memory
+as possible so that the reader can ideally use the smallest and most
+efficient cache while reading.
+
+> A little extra know-how prevents this. This tutorial aims to show
+> you how to install cabal packages with confidence, especially if you
+> are new to Cabal and Haskell. Welcome and let's get started!
+
+The second paragraph repeats the same error as the first
+paragraph. Your first this refers to something in the previous
+paragraph, which prevents the user from mentally freeing the former
+paragraph. Every paragraph should make sense in isolation if you want
+to improve readability.
+
+> Your system may have a package manager, like apt-get, yum, or
+> macports, and it might offer packages for the Haskell software you
+> want to install. In this case you may save time by using it instead
+> of cabal. It probably offers more stable, better-integrated
+> packages, and they may be pre-compiled.
+
+Every paragraph's first sentence should serve as an abstract for that
+paragraph. Readers use the first sentence of each paragraph to judge
+whether or not to read it. In fact, well-written essays will still
+read well if you just replace each paragraph with its first sentence.
+
+> In short: this tutorial is about using cabal-install, which is cabal
+> on the command line.
+
+Your summary sentence belongs in your first paragraph. The first
+paragraph behaves like an abstract for the rest of the article.
+
+> It is often available as a system package, otherwise get it by
+> installing the Haskell Platform, or just GHC.
+
+Avoid passive tense as much as possible, because it requires the
+reader to infer the actor in the sentence, increasing their cognitive
+load. For example, you could rephrase the above sentence as "System
+package managers often provide cabal, but you can also obtain it from
+the Haskell Platform".
+
+> To check that it's installed, at a command prompt do:
+
+Get to the verb of a sentence within about 7-ish words, the earlier
+the better. Sentences resemble thunks, and you cannot force the thunk
+until you get to the verb. You actually stick to this rule pretty
+well, although you lapse a few times throughout the article.
+
+You also do several things very well:
+
+- You motivate everything you teach by introducing each topic as the
+  solution to a specific, practical problem.
+
+- You emphasize showing the reader rather than telling them.
+
+Finally, spend lots of time rewriting for articles that you care a lot
+about. I find that my most well-received posts are the ones I rewrite
+repeatedly over a week. You always view your own writing with fresh
+eyes after every full night's rest.
+
+**** summary
+***** The above paragraph keeps referring back to cabal as it, which increases the reader's cognitive load.
+***** Every paragraph should make sense in isolation if you want to improve readability.
+***** Every paragraph's first sentence should serve as an abstract for that paragraph.
+***** The first paragraph behaves like an abstract for the rest of the article.
+***** Avoid passive tense as much as possible, because it requires the reader to infer the actor in the sentence, increasing their cognitive load.
+***** Get to the verb of a sentence within about 7-ish words, the earlier the better.
+***** Spend lots of time rewriting for articles that you care a lot about
+***** You always view your own writing with fresh eyes after every full night's rest.
+
+** good list of cost of ownership questions
+http://felixge.de/2013/03/07/open-source-and-responsibility.html
 * log
 partial activity log
 ** 2010
