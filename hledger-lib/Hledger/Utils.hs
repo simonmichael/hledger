@@ -26,7 +26,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- the rest need to be done in each module I think
                           )
 where
-import Control.Monad (liftM)
+import Control.Monad (liftM, when)
 import Control.Monad.Error (MonadIO)
 import Control.Monad.IO.Class (liftIO)
 import Data.Char
