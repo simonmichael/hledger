@@ -22,7 +22,8 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           module Hledger.Utils,
                           Debug.Trace.trace,
                           -- module Hledger.Utils.UTF8IOCompat
-                          SystemString,fromSystemString,toSystemString,error',userError'
+                          SystemString,fromSystemString,toSystemString,error',userError',
+                          ppShow
                           -- the rest need to be done in each module I think
                           )
 where
@@ -44,6 +45,7 @@ import Text.ParserCombinators.Parsec
 import Text.Printf
 import Text.Regex
 import Text.RegexPR
+import Text.Show.Pretty
 -- import qualified Data.Map as Map
 -- 
 -- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
@@ -354,24 +356,29 @@ tracewith :: (a -> String) -> a -> a
 tracewith f e = trace (f e) e
 
 -- | Parsec trace - show the current parsec position and next input,
--- prefixed by the specified label if it's non-null.
+-- and the provided string if it's non-null.
 ptrace :: String -> GenParser Char st ()
-ptrace label = do
-  let label' = if null label then "" else label ++ ": "
+ptrace msg = do
   pos <- getPosition
-  let (line,col) = (sourceLine pos, sourceColumn pos)
-  next <- take 20 `fmap` getInput
-  mtrace (printf "%-10sat line %2d col %2d looking at >>>%s<<<" label' line col next :: String)
-  return ()
+  next <- take peeklength `fmap` getInput
+  let (l,c) = (sourceLine pos, sourceColumn pos)
+      s  = printf "at line %2d col %2d: %s" l c (show next) :: String
+      s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
+  trace s' $ return ()
+  where
+    peeklength = 30
 
-ptrace' :: (Show a) => String -> GenParser a st ()
-ptrace' label = do
-  let label' = if null label then "" else label ++ ": "
-  pos <- getPosition
-  let (line,col) = (sourceLine pos, sourceColumn pos)
-  next <- take 20 `fmap` getInput
-  mtrace (printf "%-10sat line %2d col %2d looking at %s" label' line col (show next) :: String)
-  return ()
+debugLevel = 0
+
+-- | Print a message to the console if the global debugLevel is
+-- greater than the level we are called with.
+dbg :: Monad m => Float -> String -> m ()
+dbg  level msg = when (level <= debugLevel) $ trace msg $ return ()
+
+-- | Print a message and parsec position info to the console if the
+-- global debugLevel is greater than the level we are called with.
+-- pdbg :: GenParser m => Float -> String -> m ()
+pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
 -- parsing
 
