@@ -4,6 +4,82 @@ title: hledger news
 
 # News
 
+## dev version
+
+  * CSV conversion rules have a [new format](MANUAL.html#rules-syntax) that aims to be more
+  intuitive, powerful and extensible.  Existing rules files will need
+  to be updated manually, here are some upgrade tips:
+
+    - `FIELD-field N` -> `FIELD %N+1` (or set them all at once with a `fields` rule)
+    - `base-currency` -> `currency`
+    - `base-account` -> `account1`
+    - account-assigning rules:
+      add `if` before the regexps,
+      add indented `account2 ` before the account name
+
+  * Non-unix-style line endings should now be accepted in journal and rules files.
+
+  * Querying by the code field (check number) is now supported using the `code:` prefix.
+
+  * Querying by amount is now supported using the `amt:` prefix.
+  It should be followed by `<`, `=` or `>`, and a number N, eg `amt:<0` or `amt:=100`.
+  For simple (single commodity) amounts, this matches if the amount's quantity has the specified relationship to N.
+  For multi-commodity amounts, it always matches.
+  If parsing fails, an error is raised.
+  This has not been tested for floating-point precision.
+
+  * *actual* & *effective* dates are now called *primary* & *secondary* dates.
+    Use --date2 to select the secondary date for reports (--effective or --aux-date are also accepted for compatibility).
+
+  * add: allow transaction codes or comments/tags to be entered (following a date or amount, respectively) (#45)
+
+  * add: entering < at any prompt restarts the current transaction (#47)
+
+  * add: show and confirm the entry before adding it to the journal
+
+  * add: use command line arguments as defaults for the first entry
+
+  * add: misc. ui cleanups
+
+  * balance: fix a 0.19 regression showing wrong total balance with balance --flat (#94)
+
+  * csv reader: rules files are now named "FILE.csv.rules" (instead of "FILE.rules")
+
+  * csv reader: parenthesised amounts as are parsed as negative
+
+  * journal reader: accept ! in the status field, as well as *
+
+  * journal reader: support per-posting dates
+
+  * journal reader: better comment & tag handling
+
+  * register: support the --related/-r flag to show other postings in the transaction
+
+  * register: support the --width/-w option to adjust register overall output width
+
+  * register: when --date2 is in effect, sort by that date
+
+  * web: add missing static & template files to package fixing cabal-dev and hackage builds (#97, #98)
+
+  * web: fix some hardcoded static urls
+
+  * web: dependency updates, build fixes, GHC 7.6 compatibility
+
+  * web: serve a favicon (Yesod's)
+
+  * web: use normalise, bootstrap, and widgets
+
+Release contributors:
+
+- Sascha Welter commissioned register enhancements (--related and --width)
+- David Patrick contributed a bounty for add enhancements
+- Joachim Breitner added support for ! in status field
+- Xinruo Sun provided hledger-web build fixes
+
+<!-- Days since last release: 109\ -->
+<!-- Commits since last release: 105 -->
+
+
 ## 2012/11/24 hledger-web 0.19.3
 
   * web: fix "Prelude.read: no parse" errors with GHC >= 7.6
