@@ -5,13 +5,14 @@
 
 # command to run during "make prof" and "make heap"
 PROFCMD=bin/hledgerprof balance -f data/1000x1000x10.journal >/dev/null
-#PROFCMD=bin/hledgerprof balance >/dev/null
+PROFCMD=bin/hledgerprof -f test-wf.csv print
 
 #PROFRTSFLAGS=-p
 PROFRTSFLAGS=-P
 
 # command to run during "make coverage"
 COVCMD=test
+COVCMD=-f test-wf.csv print
 
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
@@ -35,12 +36,12 @@ SP=sp
 PACKAGES=\
 	hledger-lib \
 	hledger \
-#	hledger-web
+	hledger-web
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger \
-#	-ihledger-web \
-#	-ihledger-web/app
+	-ihledger-web \
+	-ihledger-web/app
 MAIN=hledger/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
@@ -122,7 +123,8 @@ GHCMEMFLAGS= #+RTS -M200m -RTS
 BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) -DBLAZE_HTML_0_5 -DDEVELOPMENT
 BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)dev"'
 PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
-AUTOBUILDFLAGS:=$(BUILDFLAGS1) $(PROFBUILDFLAGS) -DVERSION='\"$(VERSION)dev\"'  # different quoting for sp
+# different quoting, & cabal macros, for auto builds:
+AUTOBUILDFLAGS:=$(BUILDFLAGS1) $(PROFBUILDFLAGS) -DVERSION='\"$(VERSION)dev\"' -optP-include -optPhledger/dist/build/autogen/cabal_macros.h
 LINUXRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) -O2 -static -optl-static -optl-pthread
 MACRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) -O2 # -optl-L/usr/lib
 #WINDOWSRELEASEBUILDFLAGS:=-DMAKE $(WARNINGS) $(INCLUDEPATHS)
@@ -563,6 +565,13 @@ autosite:
 
 viewsite: site
 	$(VIEWHTML) site/_site/index.html
+
+oldsource:
+	-cd site; darcs get --lazy -t 0.19.3 .. 0.19
+	-cd site; darcs get --lazy -t 0.18.2 .. 0.18
+
+cleanoldsource:
+	cd site; rm -rf 0.19 0.18
 
 # generate html versions of docs (and the hledger.org website)
 # work around pandoc not handling full rst image directive
