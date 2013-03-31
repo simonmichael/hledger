@@ -29,6 +29,7 @@ main = do
           pandocCompilerWith
             def
             def{writerTableOfContents=True
+               ,writerTOCDepth=4
                ,writerStandalone=True
                ,writerTemplate="<div id=toc>$toc$</div>\n$body$"
                }
