@@ -4,17 +4,17 @@ title: hledger docs
 
 # Docs
 
-Docs for the latest developer version:
-
-[User Manual](MANUAL.html)
+Latest:
 
 [Release Notes](NEWS.html)
+
+[User Manual](MANUAL.html)
 
 [Contributor Guide](DEVELOPMENT.html)
 
 [FAQ](FAQ.html)
 
-Docs for past releases:
+For past releases:
 
 [0.19 User Manual](0.19/MANUAL.html)
 
