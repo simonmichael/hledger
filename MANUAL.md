@@ -27,52 +27,18 @@ You can use it to, eg:
 - track time and report by day/week/month/project
 - get accurate numbers for client billing and tax filing
 
-## Installing
-
 hledger works on linux, mac and windows. You can fund ready-to-run
 binaries of the latest release - see the [download page](DOWNLOAD.html).
-
-Otherwise, build the latest release from Hackage using cabal-install.
-Ensure you have [GHC](http://hackage.haskell.org/ghc/) 7.0 or greater or
-the [Haskell Platform](http://hackage.haskell.org/platform/) installed,
-then:
+Otherwise, fetch and build the latest release from Hackage with cabal-install.
+Eg:
 
     $ cabal update
-    $ cabal install hledger
-
-To also install the web interface, do:
-
-    $ cabal install hledger-web
-
-Then try it:
-
-    $ hledger
-
-If you get "hledger not found" or similar, you should add cabal's bin
-directory to your PATH environment variable. Eg on unix-like systems,
-something like:
-
-    $ echo 'export PATH=$PATH:~/cabal/bin' >> ~/.bash_profile
-    $ source ~/.bash_profile
-
-To build the latest [development version](DEVELOPMENT.html) do:
-
-    $ cabal update
-    $ darcs get --lazy http://hub.darcs.net/simon/hledger
-    $ cd hledger
-    $ make install (or do cabal install inside hledger-lib/, hledger/ etc.)
-
-Some add-on packages are available on Hackage:
-[hledger-vty](http://hackage.haskell.org/package/hledger-vty),
-[hledger-chart](http://hackage.haskell.org/package/hledger-chart),
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest).
-These are without an active maintainer, and/or platform-specific, so installing them may be harder.
-
-Note: to use non-ascii characters like £, you might need to [configure a suitable locale](#locale).
-
-<div class="alert">
-If you have trouble, see [Troubleshooting](#troubleshooting).
-</div>
+    $ cabal install hledger [hledger-web]
+    ...
+    $ hledger --version
+    hledger 0.19.4
+    
+For more help with this, see the [Installation Guide](INSTALL.html).
 
 ## Basic Usage
 
@@ -110,7 +76,7 @@ enter some transactions.  Or, save this
     $ hledger reg desc:shop                 # show postings with shop in the description
     $ hledger activity                      # show transactions per day as a bar chart
     
-## Reading data
+## Data formats
 
 ### Journal files
 
@@ -605,8 +571,43 @@ and the following kinds of rule can appear in any order:
 
 ### Timelog files
 
-hledger can also read [timelog files](#timelog-reporting),
-interpreting each logged time session as an expenditure of hours.
+hledger can also read time log files. These are (a subset of) timeclock.el's
+format, containing clock-in and clock-out entries like so:
+
+    i 2009/03/31 22:21:45 projects:A
+    o 2009/04/01 02:00:34
+
+hledger treats the clock-in description ("projects:A") as an account name,
+and creates a virtual transaction (or several - one per day) with the
+appropriate amount of hours. From the time log above, hledger print gives:
+
+    2009/03/31 * 22:21-23:59
+        (projects:A)          1.6h
+    
+    2009/04/01 * 00:00-02:00
+        (projects:A)          2.0h
+
+Here is a
+[sample.timelog](http://hub.darcs.net/simon/hledger/data/sample.timelog) to
+download and some queries to try:
+
+    hledger -f sample.timelog balance                               # current time balances
+    hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
+    hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
+
+To generate time logs, ie to clock in and clock out, you could:
+
+- use emacs and the built-in timeclock.el, or
+  the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el)
+  and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
+
+- at the command line, use these bash aliases:
+
+        alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
+        alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
+
+- or use the old `ti` and `to` scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
+  These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ## Commands
 
@@ -1034,46 +1035,6 @@ With the `--depth N` option, reports will show only the uppermost accounts
 in the account tree, down to level N. See the [balance](#balance),
 [register](#register) and [chart](#chart) examples.
 
-### Timelog reporting
-
-hledger can also read time log files in (a subset of) timeclock.el's
-format, containing clock-in and clock-out entries like so:
-
-    i 2009/03/31 22:21:45 projects:A
-    o 2009/04/01 02:00:34
-
-hledger treats the clock-in description ("projects:A") as an account name,
-and creates a virtual transaction (or several - one per day) with the
-appropriate amount of hours. From the time log above, hledger print gives:
-
-    2009/03/31 * 22:21-23:59
-        (projects:A)          1.6h
-    
-    2009/04/01 * 00:00-02:00
-        (projects:A)          2.0h
-
-Here is a
-[sample.timelog](http://hub.darcs.net/simon/hledger/data/sample.timelog) to
-download and some queries to try:
-
-    hledger -f sample.timelog balance                               # current time balances
-    hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
-    hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
-
-To generate time logs, ie to clock in and clock out, you could:
-
-- use emacs and the built-in timeclock.el, or
-  the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el)
-  and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
-
-- at the command line, use these bash aliases:
-
-        alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
-        alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
-
-- or use the old `ti` and `to` scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
-  These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
-
 ### Custom output formats
 
 The `--format FMT` option will customize the line format of the balance
@@ -1141,6 +1102,62 @@ The default output format is `%20(total)  %2(depth_spacer)%-(account)`
 
 
 ## Appendices
+
+### Troubleshooting
+
+Here are some issues you might encounter when you run hledger:
+Please also seek
+[support](DEVELOPMENT.html#support) from the
+[IRC channel](irc://irc.freenode.net/#ledger),
+[mail list](http://list.hledger.org) or
+[bug tracker](http://bugs.hledger.org).
+
+#. **hledger installed, but running hledger says something like No command 'hledger' found**  
+  cabal installs binaries into a special directory, which should be added
+  to your PATH environment variable.  On unix-like systems, it is
+  ~/.cabal/bin.
+
+#. **hledger fails to parse some valid ledger files**  
+  See [file format compatibility](#file-format-compatibility).
+
+#. <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
+  In order to handle non-ascii letters and symbols (like £), hledger needs
+  an appropriate locale. This is usually configured system-wide; you can
+  also configure it temporarily.  The locale may need to be one that
+  supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
+  I'm not sure yet).
+  
+    Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
+    
+        $ file my.journal
+        my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
+        $ locale -a
+        C
+        en_US.utf8                             # <- a UTF8-aware locale is available
+        POSIX
+        $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+
+     Here's one way to set it permanently, there are probably better ways:
+
+        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+        $ bash --login
+
+     If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
+
+        $ apt-get install language-pack-fr
+        $ locale -a
+        C
+        en_US.utf8
+        fr_BE.utf8
+        fr_CA.utf8
+        fr_CH.utf8
+        fr_FR.utf8
+        fr_LU.utf8
+        POSIX
+        $ LANG=fr_FR.utf8 hledger -f my.journal print
+
+    Note some platforms allow variant locale spellings, but not all (ubuntu
+    accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 ### Compatibility with c++ ledger
 
@@ -1260,7 +1277,7 @@ entries, and the following c++ ledger options and commands:
     prices   [REGEXP]...   display price history for matching commodities
     entry DATE PAYEE AMT   output a derived entry, based on the arguments
 
-#### Other differences
+#### Functionality differences
 
 - hledger recognises description and negative patterns by "desc:"
   and "not:" prefixes, unlike ledger 3's free-form parser
@@ -1301,164 +1318,6 @@ entries, and the following c++ ledger options and commands:
 
 - hledger's [include directive](including-other-files) does not support
   shell glob patterns (eg `include *.journal` ), which ledger does.
-
-### Troubleshooting
-
-Sorry you're here! There are a lot of ways things can go wrong. Here are
-some known issues and things to try. Please also seek
-[support](DEVELOPMENT.html#support) from the
-[IRC channel](irc://irc.freenode.net/#ledger),
-[mail list](http://list.hledger.org) or
-[bug tracker](http://bugs.hledger.org).
-
-#### Installation issues
-
-Starting from the top, consider whether each of these might apply to
-you. Tip: blindly reinstalling/upgrading everything in sight probably
-won't work, it's better to go in small steps and understand the problem,
-or get help.
-
-#. **Running hledger says something like No command 'hledger' found**  
-  cabal installs binaries into a special directory, which should be added
-  to your PATH environment variable.  On unix-like systems, it is
-  ~/.cabal/bin.
-
-#. **Did you cabal update ?**  
-  If not, `cabal update` and try again.
-
-#. **Do you have a new enough version of GHC ?**  
-  Run `ghc --version`. hledger requires GHC 7.0 or greater
-  (on [some platforms](#5551), 7.2.1 can be helpful).
-
-#. **Do you have a new enough version of cabal ?**  
-  Avoid ancient versions.  `cabal --version` should report at least
-  0.10 (and 0.14 is much better). You may be able to upgrade it with:
-  
-        $ cabal update
-        $ cabal install cabal-install-0.14
-
-#. **Are your installed GHC/cabal packages in good repair ?**  
-  Run `ghc-pkg check`. If it reports problems, some of your packages have
-  become inconsistent, and you should fix these first. 
-  [ghc-pkg-clean](https://gist.github.com/1185421) is an easy way.
-
-#. <a name="cabaldeps" />**cabal can't satisfy the new dependencies due to old installed packages**  
-  Cabal dependency failures become more likely as you install more
-  packages over time. If `cabal install hledger-web --dry` says it can't
-  satisfy dependencies, you have this problem. You can:
-  
-    a. try to understand which packages to remove (with `ghc-pkg unregister`)
-       or which constraints to add (with `--constraint 'PKG == ...'`) to help cabal
-       find a solution
-
-    b. install into a fresh environment created with
-       [virthualenv](http://hackage.haskell.org/package/virthualenv) or
-       [cabal-dev](http://hackage.haskell.org/package/cabal-dev)
-
-    c. or (easiest) erase your installed packages with
-       [ghc-pkg-reset](https://gist.github.com/1185421) and try again.
-
-#. **Dependency or compilation error in one of the new packages ?**  
-   If cabal starts downloading and building packages and then terminates
-   with an error, look at the output carefully and identify the problem
-   package(s).  If necessary, add `-v2` or `-v3` for more verbose
-   output. You can install the new packages one at a time to troubleshoot,
-   but remember cabal is smarter when installing all packages at once.
-
-    Often the problem is that you need to install a particular C library
-   using your platform's package management system. Or the dependencies
-   specified on a package may need updating. Or there may be a compilation
-   error.  If you find an error in a hledger package, check the
-   [recent commits](http://hub.darcs.net/simon/hledger/changes) to
-   see if the [latest development version](#installing) might have a fix.
-
-#. **ExitFailure 11**  
-  See
-  [http://hackage.haskell.org/trac/hackage/ticket/777](http://hackage.haskell.org/trac/hackage/ticket/777).
-  This means that a build process has been killed, usually because it grew
-  too large.  This is common on memory-limited VPS's and with GHC 7.4.1.
-  Look for some memory-hogging processes you can kill, increase your RAM,
-  or limit GHC's heap size by doing `cabal install ... --ghc-options='+RTS
-  -M400m'` (400 megabytes works well on my 1G VPS, adjust up or down..)
-
-#. <a name="5551" />**Can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**  
-  (or similar): cf [GHC bug #5551](http://hackage.haskell.org/trac/ghc/ticket/5551).
-  Upgrade GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
-
-#. <a name="iconv" />**Undefined iconv symbols on OS X**  
-   This kind of error:
-
-        Linking dist/build/hledger/hledger ...
-        Undefined symbols:
-          "_iconv_close", referenced from:
-              _hs_iconv_close in libHSbase-4.2.0.2.a(iconv.o)
-          "_iconv", referenced from:
-              _hs_iconv in libHSbase-4.2.0.2.a(iconv.o)
-          "_iconv_open", referenced from:
-              _hs_iconv_open in libHSbase-4.2.0.2.a(iconv.o)
-
-    probably means you are on a mac with macports libraries installed, cf
-    [http://hackage.haskell.org/trac/ghc/ticket/4068](http://hackage.haskell.org/trac/ghc/ticket/4068).
-    To work around temporarily, add this --extra-lib-dirs flag:
-
-        $ cabal install hledger --extra-lib-dirs=/usr/lib
-
-    or permanently, add this to ~/.cabal/config:
-    
-        extra-lib-dirs: /usr/lib
-
-#. **hledger-vty requires curses-related libraries**  
-  On Ubuntu, eg, you'll need the `libncurses5-dev` package. On Windows,
-  these are not available (unless perhaps via Cygwin.)
-
-#. **hledger-chart requires GTK-related libraries**  
-  On Ubuntu, eg, install the `libghc6-gtk-dev` package. See also [Gtk2Hs installation notes](http://code.haskell.org/gtk2hs/INSTALL).
-
-#### Usage issues
-
-Here are some issues you might encounter when you run hledger:
-
-12. **hledger fails to parse some valid ledger files**  
-  See [file format compatibility](#file-format-compatibility).
-
-#. <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
-  In order to handle non-ascii letters and symbols (like £), hledger needs
-  an appropriate locale. This is usually configured system-wide; you can
-  also configure it temporarily.  The locale may need to be one that
-  supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
-  I'm not sure yet).
-  
-    Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
-    
-        $ file my.journal
-        my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
-        $ locale -a
-        C
-        en_US.utf8                             # <- a UTF8-aware locale is available
-        POSIX
-        $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
-
-     Here's one way to set it permanently, there are probably better ways:
-
-        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
-        $ bash --login
-
-     If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
-
-        $ apt-get install language-pack-fr
-        $ locale -a
-        C
-        en_US.utf8
-        fr_BE.utf8
-        fr_CA.utf8
-        fr_CH.utf8
-        fr_FR.utf8
-        fr_LU.utf8
-        POSIX
-        $ LANG=fr_FR.utf8 hledger -f my.journal print
-
-    Note some platforms allow variant locale spellings, but not all (ubuntu
-    accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 ### Examples and recipes
 

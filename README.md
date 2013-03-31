@@ -20,7 +20,7 @@ suited to techies. I use it every day to:
 -   track invoices
 
 hledger is first a command-line tool, but also provides a web interface
-(try the [demo](http://demo.hledger.org)). Read the [manual](MANUAL.html) to
+(try the [demo](http://demo.hledger.org)). Read the [docs](DOCS.html) to
 learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
