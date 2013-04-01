@@ -14,7 +14,7 @@ title: hledger news
     - `base-currency` -> `currency`
     - `base-account` -> `account1`
     - account-assigning rules:
-      add `if` before the regexps,
+      add `if` before the list of regexps,
       add indented `account2 ` before the account name
 
   * Non-unix-style line endings should now be accepted in journal and rules files.
@@ -28,7 +28,7 @@ title: hledger news
   If parsing fails, an error is raised.
   This has not been tested for floating-point precision.
 
-  * *actual* & *effective* dates are now called *primary* & *secondary* dates.
+  * *actual* & *effective dates* are now called *primary* & *secondary dates*.
     Use --date2 to select the secondary date for reports (--effective or --aux-date are also accepted for compatibility).
 
   * add: allow transaction codes or comments/tags to be entered (following a date or amount, respectively) (#45)
