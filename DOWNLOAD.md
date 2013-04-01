@@ -53,7 +53,7 @@ see the [Installation Guide](INSTALL.html).
     <td width="20%"></td>
     <td width="20%"></td>
     <td width="20%"></td>
-    <td width="20%">Sponsor: **Jon&nbsp;Hancock**!</td>
+    <td width="20%">Sponsored by **Jon&nbsp;Hancock**</td>
     <td width="20%"></td>
   </tr>
 
@@ -69,7 +69,7 @@ see the [Installation Guide](INSTALL.html).
       [hledger-0.14-mac-i386.gz](download/hledger-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
-      **[hledger-0.18.2-mac-x86_64.gz](download/hledger-0.18.2-mac-x86_64.gz)**<br><br>
+      [hledger-0.18.2-mac-x86_64.gz](download/hledger-0.18.2-mac-x86_64.gz)<br><br>
     </td>
     <td>
       [hledger-0.14-windows-i386.exe.zip](download/hledger-0.14-windows-i386.exe.zip)
@@ -89,7 +89,7 @@ see the [Installation Guide](INSTALL.html).
       [hledger-web-0.14-mac-i386.gz](download/hledger-web-0.14-mac-i386.gz)<br><br>
     </td>
     <td>
-      **[hledger-web-0.18.2-mac-x86_64.gz](download/hledger-web-0.18.2-mac-x86_64.gz)**<br><br>
+      [hledger-web-0.18.2-mac-x86_64.gz](download/hledger-web-0.18.2-mac-x86_64.gz)<br><br>
     </td>
     <td>
       [hledger-web-0.14-windows-i386.exe.zip](download/hledger-web-0.14-windows-i386.exe.zip)
