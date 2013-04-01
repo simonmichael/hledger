@@ -1018,9 +1018,7 @@ Or, if you'd like to export the balance sheet:
 The default output format is `%20(total)  %2(depth_spacer)%-(account)`
 
 
-## Appendices
-
-### Troubleshooting
+## Troubleshooting
 
 Here are some issues you might encounter when you run hledger:
 Please also seek
@@ -1076,25 +1074,3 @@ Please also seek
     Note some platforms allow variant locale spellings, but not all (ubuntu
     accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
-### Examples and recipes
-
--   Here's a bash function that will run hledger chart and display
-    the image in your (graphical) emacs:
-
-        function chart () {
-          hledger chart $* && emacsclient -n hledger.png
-        }
-
-    Example:
-
-        $ chart food --depth 2 -p jan
-
-See also the [extra](http://hub.darcs.net/simon//hledger/extra) directory.
-
-### Other resources
-
-- The rest of the [hledger.org](http://hledger.org) site.
-
-- The [c++ ledger site](http://ledger-cli.org) and highly informative [manual](http://ledger-cli.org/3.0/doc/ledger3.html).
-
-- [Why you need accounting](http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons)
