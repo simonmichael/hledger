@@ -4,48 +4,80 @@ title: hledger Installation Guide
 
 # Installation Guide
 
-hledger works on linux, mac and windows. You can fund ready-to-run
-binaries of the latest release - see the [download page](DOWNLOAD.html).
+hledger works on GNU/linux, mac and windows.
+Here are several ways to install it.
 
-Otherwise, build the latest release from Hackage using cabal-install.
-Ensure you have [GHC](http://hackage.haskell.org/ghc/) 7.0 or greater or
-the [Haskell Platform](http://hackage.haskell.org/platform/) installed,
-then:
+## Install with your system package manager
+
+If you have a system package manager that includes hledger,
+this will be the quickest and easiest way to install,
+if you don't need the very latest version.
+
+Debian, Ubuntu:    `apt-get install hledger [hledger-web]`
+
+Red Hat, Fedora:    `yum install hledger`
+
+
+## Install binaries from hledger.org
+
+[Ready-to-run binaries](DOWNLOAD.html) for each platform can be downloaded from this site.
+They are out of date, but you can fund new ones with a donation of any size.
+See the page for more.
+
+After downloading you may need to decompress, make executable, and/or rename the file. Eg:
+
+    $ gunzip hledger-web-0.18.2-mac-x86_64.gz
+    $ chmod +x hledger-web-0.18.2-mac-x86_64
+    $ mv hledger-web-0.18.2-mac-x86_64 /usr/local/bin/hledger-web
+    $ /usr/local/bin/hledger-web --version
+
+## Install from hackage with cabal
+
+You can download and build the latest release yourself using cabal, the standard installer for Haskell software.
+This is the most common way to install hledger, but not always the easiest;
+use the troubleshooting tips below if needed.
+
+Ensure you have [GHC](http://hackage.haskell.org/ghc/) or
+the [Haskell Platform](http://hackage.haskell.org/platform/) installed
+(GHC 7.0 or greater)
+then install the hledger command-line tool:
 
     $ cabal update
-    $ cabal install hledger
+    $ cabal install hledger [--dry-run]
+    $ hledger --version
 
-To also install the web interface, do:
+You should see the proper version reported.
+If you get "could not resolve dependencies", "hledger not found",
+or any other problem, see [troubleshooting](#troubleshooting).
+Also note, to use non-ascii characters like £ in your data, you might need to [configure a suitable locale](MANUAL.html#locale).
 
-    $ cabal install hledger-web
+To also install the web interface (slightly harder), do:
 
-Then try it:
+    $ cabal install hledger-web [--dry-run]
+    $ hledger-web --version
 
-    $ hledger
+This also installs hledger if not already installed, and the hledger-web command
+will also be available as hledger's `web` subcommand.
 
-If you get "hledger not found" or similar, you should add cabal's bin
-directory to your PATH environment variable. Eg on unix-like systems,
-something like:
+Other add-on packages are available on Hackage, although some of these are
+unmaintained or work only on certain platforms:
 
-    $ echo 'export PATH=$PATH:~/cabal/bin' >> ~/.bash_profile
-    $ source ~/.bash_profile
+- [hledger-vty](http://hackage.haskell.org/package/hledger-vty)
+- [hledger-chart](http://hackage.haskell.org/package/hledger-chart)
+- [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
+- [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
 
-To build the latest [development version](DEVELOPMENT.html) do:
+## Install the latest development version
 
-    $ cabal update
-    $ darcs get --lazy http://hub.darcs.net/simon/hledger
+To download and build the latest development version of hledger, ensure you have
+[darcs](http://darcs.net) installed, then:
+
+    $ darcs get http://hub.darcs.net/simon/hledger [--lazy]
     $ cd hledger
-    $ make install (or do cabal install inside hledger-lib/, hledger/ etc.)
-
-Some add-on packages are available on Hackage:
-[hledger-vty](http://hackage.haskell.org/package/hledger-vty),
-[hledger-chart](http://hackage.haskell.org/package/hledger-chart),
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest).
-These are without an active maintainer, and/or platform-specific, so installing them may be harder.
-
-Note: to use non-ascii characters like £, you might need to [configure a suitable locale](MANUAL.html#locale).
-
-### Troubleshooting
+    $ cabal update
+    $ cabal install ./hledger-lib ./hledger [./hledger-web]
+    
+## Troubleshooting
 
 There are a lot of ways things can go wrong. Here are
 some known issues and things to try. Please also seek
@@ -58,6 +90,14 @@ Starting from the top, consider whether each of these might apply to
 you. Tip: blindly reinstalling/upgrading everything in sight probably
 won't work, it's better to go in small steps and understand the problem,
 or get help.
+
+#. **hledger not found ?**  
+  If cabal install succeeded but you get a message like "hledger not found" when you run hledger,
+  you should add cabal's bin directory to your PATH environment variable.
+  Eg on unix-like systems, something like:
+
+      $ echo 'export PATH=$PATH:~/cabal/bin' >> ~/.bash_profile
+      $ source ~/.bash_profile
 
 #. **Did you cabal update ?**  
   If not, `cabal update` and try again.

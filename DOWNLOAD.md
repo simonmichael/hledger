@@ -33,10 +33,8 @@ be better used elsewhere. So, I do it when stimulated by donations.
 Binaries funded in this way will then be available to all - a quick way to
 help the project and your fellow users!
 
-Our latest available platform binaries are below. On some platforms, such
-as Debian, your packaging system will have more up-to-date and convenient
-ones.  Otherwise, you can of course build your own: see
-[Installing](../MANUAL.html#installing).
+The available binaries are below. For additional help, and other install options,
+see the [Installation Guide](INSTALL.html).
 
 <table>
   <tr>
@@ -162,8 +160,3 @@ ones.  Otherwise, you can of course build your own: see
 
 </table>
 
-After downloading you may need/want to decompress, make executable, and/or rename. Eg:
-
-    gunzip hledger-web-0.18.2-mac-x86_64.gz
-    chmod +x hledger-web-0.18.2-mac-x86_64
-    mv hledger-web-0.18.2-mac-x86_64 /usr/local/bin/hledger-web
