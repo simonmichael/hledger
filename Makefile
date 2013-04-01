@@ -83,7 +83,7 @@ DOCFILES:= \
 VERSIONSENSITIVEFILES=\
 	$(CABALFILES) \
 	MANUAL.md \
-#	DOWNLOAD.md \
+	DOWNLOAD.md \
 
 # file(s) which require recompilation for a build to have an up-to-date version string
 VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
