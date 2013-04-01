@@ -36,7 +36,7 @@ Eg:
     $ cabal install hledger [hledger-web]
     ...
     $ hledger --version
-    hledger 0.19.4
+    hledger 0.19.3
     
 For more help with this, see the [Installation Guide](INSTALL.html).
 
