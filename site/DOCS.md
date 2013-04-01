@@ -13,3 +13,10 @@ title: hledger docs
 [Contributor Guide](DEVELOPMENT.html)
 
 [FAQ](FAQ.html)
+
+[Compatibility with ledger](LEDGER.html)
+
+[How to read CSV files](CSV.html)
+
+[How to use account aliases](ALIASES.html)
+

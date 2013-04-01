@@ -8,11 +8,11 @@ For: latest developer version
 
 ## Introduction
 
-[hledger](http://hledger.org) is a program for tracking money, time, or
-any other commodity, using a simple, editable file format and the powerful
-principles of double-entry accounting. It was inspired by
-[ledger](http://ledger-cli.org).  hledger is Free Software released under
-GPL version 3 or later.
+[hledger](http://hledger.org) is a program for tracking money, time,
+or any other commodity, using a simple, editable file format and
+double-entry accounting, inspired by and largely compatible with
+[ledger](http://ledger-cli.org).  hledger is Free Software released
+under GPL version 3 or later.
 
 hledger's basic function is to read a plain text file describing (eg)
 financial transactions, and quickly generate useful reports via the
@@ -89,7 +89,7 @@ in a simple format readable by both hledger and humans.
 
 hledger's journal format is a compatible subset, mostly,
 of [c++ ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with [compatible](#file-format-compatibility) c++ ledger journal files as well.
+so hledger can work with [compatible](LEDGER.html) c++ ledger journal files as well.
 It's safe, and encouraged, to run both hledger and ledger on the same journal file,
 eg to validate the results you're getting.
 
@@ -410,111 +410,25 @@ You can define account aliases to rewrite certain account names (and their subac
 This tends to be a little more reliable than post-processing with sed or similar.
 The directive is `alias ORIG = ALIAS`, where ORIG and ALIAS are full account names.
 To forget all aliases defined to this point, use `end aliases`.
-
-Here's an example: say a sole proprietor has a personal.journal:
-
-    1/1
-        expenses:food  $1
-        assets:cash
-
-and a business.journal:
-
-    1/1
-        expenses:office supplies  $1
-        assets:business checking
-
-Here each entity has a simple journal with its own simple chart of
-accounts.  But at tax reporting time, we need to view these as a single
-entity.  So in unified.journal we adjust the personal account names to fit
-within the business chart of accounts:
-
-    alias expenses    = equity:draw:personal
-    alias assets:cash = assets:personal cash
-    include personal.journal
-    end aliases
-    include business.journal
-
-giving:
-
-    $ hledger -f unified.journal print
-    2011/01/01
-        equity:draw:personal:food            $1
-        assets:personal cash                $-1
-    
-    2011/01/01
-        expenses:office supplies            $1
-        assets:business checking           $-1
-
-You can also specify aliases on the command line. This could be useful to
-rewrite account names when sharing a report with someone else, such as
-your accountant:
-
-    $ hledger --alias 'my earning=income:business'
-
-Command-line alias options are applied after any alias directives in the
-journal.  At most one alias directive and one alias option will be applied
-to each account name.
+For an example, see [How to use account aliases](ALIASES.html).
 
 
 ### CSV files
 
 hledger can also read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,
-translating the CSV records into journal entries on the fly. In this
-case, we must provide an additional "rules file", which is a file
-named like the CSV file with an extra `.rules` suffix, containing
-rules specifying things like:
+translating the CSV records into journal entries on the fly. 
+We must provide some some conversion hints in a "rules file", named
+like the CSV file with an extra `.rules` suffix (you can choose another name with `--rules-file`).  
 
-- which CSV fields correspond to which journal entry fields
-- which date format is being used
-- which account name(s) to use
+If the rules file does not exist, it will be created with default rules, which you'll need to tweak.
+Here's a minimal rules file. It says that the first and second CSV fields
+are the journal entry's date and amount:
 
-Typically you'll keep one rules file for each account which you
-download as CSV. A default rules file will be created if it doesn't
-exist, in which case you'll need to refine it to get the best results.
-You can override the default rules file name with `--rules-file`.
+    fields date, amount
 
-Here's a quick example.  Say we have downloaded `checking.csv` from a
-bank for the first time:
-
-    "Date","Note","Amount"
-    "2012/3/22","DEPOSIT","50.00"
-    "2012/3/23","TRANSFER TO SAVINGS","-10.00"
-
-We could create `checking.csv.rules` containing:
-
-    account1 assets:bank:checking
-    skip     1
-    fields   date, description, amount
-    currency $
-
-    if ~ SAVINGS
-     account2 assets:bank:savings
-
-This says:
-"always use assets:bank:checking as the first account;
-ignore the first line;
-use the first, second and third CSV fields as the entry date, description and amount respectively;
-always prepend $ to the amount value;
-if the CSV record contains 'SAVINGS', use assets:bank:savings as the second account".
-Now hledger can read this CSV file:
-
-    $ hledger -f checking.csv print
-    using conversion rules file checking.csv.rules
-    2012/03/22 DEPOSIT
-        income:unknown             $-50.00
-        assets:bank:checking        $50.00
-
-    2012/03/23 TRANSFER TO SAVINGS
-        assets:bank:savings         $10.00
-        assets:bank:checking       $-10.00
-
-We might save this output as `checking.journal`, and/or merge it (manually) into the main journal file.
-
-#### Rules syntax
-
-Lines beginning with `#` or `;` and blank lines are ignored,
-and the following kinds of rule can appear in any order:
+Lines beginning with `#` or `;` and blank lines are ignored.
+The following kinds of rule can appear in any order:
 
 **fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...
 :   (Field list) This names the CSV fields (names may not contain whitespace or `;` or `#`),
@@ -568,6 +482,9 @@ and the following kinds of rule can appear in any order:
         %-d/%-m/%Y
         %-m/%-d/%Y
         %Y-%h-%d
+
+Typically you'll keep one rules file for each account which you
+download as CSV. For an example, see [How to read CSV files](CSV.html).
 
 ### Timelog files
 
@@ -1158,166 +1075,6 @@ Please also seek
 
     Note some platforms allow variant locale spellings, but not all (ubuntu
     accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
-
-### Compatibility with c++ ledger
-
-hledger mimics a subset of ledger 3.x, and adds some features of its own.
-We currently support:
-
-- regular journal transactions
-- journal format (we should be able to parse most ledger journals)
-- timelog format
-- multiple commodities
-- prices and price history (with non-changing prices)
-- virtual postings
-- filtering by account and description
-- print, register & balance commands
-- period expressions quite similar to ledger's
-- display expressions containing just a simple date predicate
-- basic support (read: incomplete) for display formatting
-
-We do not support:
-
-- periodic and modifier transactions
-- fluctuating prices
-- display formats (actually, a small subset is supported)
-- budget reports
-
-And we add these commands:
-
-- add
-- chart
-- vty
-- web
-
-#### Implementation
-
-Unlike c++ ledger, hledger is written in the Haskell programming
-language. Haskell enables a coding style known as pure lazy functional
-programming, which holds the promise of more robust and maintainable
-software built with fewer lines of code. Haskell also provides a more
-abstracted, portable platform which can make deployment and installation
-easier in some cases. Haskell also brings some new challenges such as
-managing memory growth.
-
-#### File format compatibility
-
-hledger's file format is mostly identical with that of c++ ledger, with
-some features being accepted but ignored (eg, modifier entries and
-periodic entries). There are subtle differences in parser behaviour, eg
-comments may be permissible in different places. hledger does not allow
-separate dates for individual postings, or AMT1=AMT2 or { } syntax.
-
-Generally, it's easy to keep a journal file that works with both hledger
-and c++ ledger if you avoid these.  Occasionally you'll need to make small
-adjustments to restore compatibility for one or the other.
-
-See also:
-[other differences](#other-differences),
-[usage issues](#usage-issues).
-
-#### Features not supported
-
-c++ ledger features not currently supported include: modifier and periodic
-entries, and the following c++ ledger options and commands:
-
-    Basic options:
-    -o, --output FILE      write output to FILE
-    -i, --init-file FILE   initialize ledger using FILE (default: ~/.ledgerrc)
-    -a, --account NAME     use NAME for the default account (useful with QIF)
-    
-    Report filtering:
-    -c, --current          show only current and past entries (not future)
-        --period-sort EXPR sort each report period's entries by EXPR
-    -L, --actual           consider only actual (non-automated) transactions
-    -r, --related          calculate report using related transactions
-        --budget           generate budget entries based on periodic entries
-        --add-budget       show all transactions plus the budget
-        --unbudgeted       show only unbudgeted transactions
-        --forecast EXPR    generate forecast entries while EXPR is true
-    -l, --limit EXPR       calculate only transactions matching EXPR
-    -t, --amount EXPR      use EXPR to calculate the displayed amount
-    -T, --total EXPR       use EXPR to calculate the displayed total
-    
-    Output customization:
-    -n, --collapse         Only show totals in the top-most accounts.
-    -s, --subtotal         other: show subtotals
-    -P, --by-payee         show summarized totals by payee
-    -x, --comm-as-payee    set commodity name as the payee, for reporting
-        --dow              show a days-of-the-week report
-    -S, --sort EXPR        sort report according to the value expression EXPR
-    -w, --wide             for the default register report, use 132 columns
-        --head COUNT       show only the first COUNT entries (negative inverts)
-        --tail COUNT       show only the last COUNT entries (negative inverts)
-        --pager PAGER      send all output through the given PAGER program
-    -A, --average          report average transaction amount
-    -D, --deviation        report deviation from the average
-    -%, --percentage       report balance totals as a percentile of the parent
-        --totals           in the "xml" report, include running total
-    -j, --amount-data      print only raw amount data (useful for scripting)
-    -J, --total-data       print only raw total data
-    -y, --date-format STR  use STR as the date format (default: %Y/%m/%d)
-    -F, --format STR       use STR as the format; for each report type, use:
-        --balance-format      --register-format       --print-format
-        --plot-amount-format  --plot-total-format     --equity-format
-        --prices-format       --wide-register-format
-    
-    Commodity reporting:
-        --price-db FILE    sets the price database to FILE (def: ~/.pricedb)
-    -L, --price-exp MINS   download quotes only if newer than MINS (def: 1440)
-    -Q, --download         download price information when needed
-    -O, --quantity         report commodity totals (this is the default)
-    -V, --market           report last known market value
-    -g, --performance      report gain/loss for each displayed transaction
-    -G, --gain             report net gain/loss
-    
-    Commands:
-    xml      [REGEXP]...   print matching entries in XML format
-    equity   [REGEXP]...   output equity entries for matching accounts
-    prices   [REGEXP]...   display price history for matching commodities
-    entry DATE PAYEE AMT   output a derived entry, based on the arguments
-
-#### Functionality differences
-
-- hledger recognises description and negative patterns by "desc:"
-  and "not:" prefixes, unlike ledger 3's free-form parser
-
-- hledger doesn't require a space before command-line option
-  values, eg `-fFILE` or `-f FILE` works
-
-- hledger's weekly reporting intervals always start on mondays
-
-- hledger shows start and end dates of the intervals requested,
-  not just the span containing data
-
-- hledger always shows timelog balances in hours
-
-- hledger splits multi-day timelog sessions at midnight
-
-- hledger doesn't track the value of commodities with varying
-  price; prices are fixed as of the transaction date
-
-- hledger's output follows the decimal point character, digit grouping,
-  and digit group separator character used in the journal.
-
-- hledger print shows amounts for all postings, and shows unit prices for
-  amounts which have them. (This means that it does not currently print
-  multi-commodity transactions in valid journal format.)
-
-- hledger print ignores the --date2 flag, always showing both dates.
-  ledger print shows only the secondary date with --aux-date, but not
-  vice versa.
-
-- hledger's default commodity directive (D) sets the commodity for
-  subsequent commodityless amounts, and sets that commodity's display
-  settings if such an amount is the first seen. ledger uses D only for
-  commodity display settings and for the entry command.
-
-- hledger generates a description for timelog sessions, instead of
-  taking it from the clock-out entry
-
-- hledger's [include directive](including-other-files) does not support
-  shell glob patterns (eg `include *.journal` ), which ledger does.
 
 ### Examples and recipes
 

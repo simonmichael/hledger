@@ -32,8 +32,8 @@ separate mail lists
 to give back by providing infrastructure
 ([ledger-cli.org](http://ledger-cli.org)) and IRC support.
 hledger stays compatible with ledger wherever possible, so that you
-can often use both tools on the same data file. Here is
-[more about compatibility](MANUAL.html#compatibility-with-c-ledger).
+can often use both tools on the same data file. Here is more about
+[compatibility](LEDGER.html).
 
 Summary: hledger is a friendly, co-evolving, compatible rewrite of ledger
 in Haskell, lacking some of ledger's power features and raw performance,

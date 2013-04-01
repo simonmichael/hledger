@@ -33,8 +33,9 @@ be better used elsewhere. So, I do it when stimulated by donations.
 Binaries funded in this way will then be available to all - a quick way to
 help the project and your fellow users!
 
-The available binaries are below. For additional help, and other install options,
-see the [Installation Guide](INSTALL.html).
+The available binaries are below.
+The current hledger release is 0.19.3.
+For additional help, and other install options, see the [Installation Guide](INSTALL.html).
 
 <table>
   <tr>
