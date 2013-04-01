@@ -20,11 +20,12 @@ Red Hat, Fedora:    `yum install hledger`
 
 ## Install binaries from hledger.org
 
-[Ready-to-run binaries](DOWNLOAD.html) for each platform can be downloaded from this site.
-They are out of date, but you can fund new ones with a donation of any size.
-See the page for more.
+[Ready-to-run binaries](DOWNLOAD.html) for GNU/Linux, Mac OSX, and Microsoft Windows can be downloaded from this site.
+They are out of date, but you can fund new ones with a donation of any size (see the page for more).
+This is probably the easiest way to install hledger on windows and mac.
 
-After downloading you may need to decompress, make executable, and/or rename the file. Eg:
+The binaries do not currently include installers, so after downloading
+you may need to decompress, make executable, and/or rename the file. Eg:
 
     $ gunzip hledger-web-0.18.2-mac-x86_64.gz
     $ chmod +x hledger-web-0.18.2-mac-x86_64
