@@ -1024,8 +1024,8 @@ Here are some issues you might encounter when you run hledger:
 Please also seek
 [support](DEVELOPMENT.html#support) from the
 [IRC channel](irc://irc.freenode.net/#ledger),
-[mail list](http://list.hledger.org) or
-[bug tracker](http://bugs.hledger.org).
+[mail list](http://hledger.org/list) or
+[bug tracker](http://hledger.org/bugs).
 
 #. **hledger installed, but running hledger says something like No command 'hledger' found**  
   cabal installs binaries into a special directory, which should be added

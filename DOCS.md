@@ -27,7 +27,7 @@ title: hledger docs
 
 **More docs:**
 
-[wiki.hledger.org](http://wiki.hledger.org) *links, examples...*
+[hledger.org/wiki](http://hledger.org/wiki)
 
 **Related:**
 

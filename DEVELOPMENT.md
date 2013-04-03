@@ -8,9 +8,8 @@ title: hledger contributor guide
 
 **Support**<br>
   IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)
-  <br>Mail list: [list.hledger.org](http://list.hledger.org)
-  <br>Bug tracker: [bugs.hledger.org](http://bugs.hledger.org)
-  <br>Tips: [how to get help](#how-to-get-help)
+  <br>Mail list: [hledger.org/list](http://hledger.org/list)
+  <br>Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)
 
 **Released version**<br>
   [release notes](NEWS.html),
@@ -57,16 +56,16 @@ or
 
 ### how to get help
 
-- join and use the [hledger mail list](http://list.hledger.org)
+- join and use the [hledger mail list](http://hledger.org/list)
 - chat Simon (sm) on the
   [\#ledger](irc://irc.freenode.net/#ledger) irc channel which we
   share, or [send email](mailto:simon@joyful.com?subject=hledger:)
 - for issues relevant to the wider *ledger community, you can also use or cc [ledger's mail list](http://list.ledger-cli.org)
-- don't forget the [installation tips](MANUAL.html#installing), [Troubleshooting](MANUAL.html#troubleshooting) section, and [bug tracker](http://bugs.hledger.org)
+- don't forget the [installation tips](MANUAL.html#installing), [Troubleshooting](MANUAL.html#troubleshooting) section, and [bug tracker](http://hledger.org/bugs)
 
 ### how to report problems
 
-- check for related issues at [bugs.hledger.org](http://bugs.hledger.org) ([view all](http://bugs.hledger.org/grid)) or in the [list archive](https://groups.google.com/d/forum/hledger)
+- check for related issues at [hledger.org/bugs](http://hledger.org/bugs) ([view all](http://hledger.org/bugs/grid)) or in the [list archive](https://groups.google.com/d/forum/hledger)
 - discuss/confirm the issue on irc or list
 - [report](http://code.google.com/p/hledger/issues/entry) new issues in the bug tracker
 <!-- - test and share problem journal snippets at paste . hledger.org -->
@@ -83,14 +82,14 @@ or
 
 ### how to help with bug tracking
 
-- get to know the [bug tracker](http://bugs.hledger.org) and its contents
+- get to know the [bug tracker](http://hledger.org/bugs) and its contents
 - join the [hledger google project](http://code.google.com/p/hledger/) to get more access
 - research and update issues
 - use these convenience urls:  
-  [`bugs.hledger.org`](http://bugs.hledger.org)  
-  [`bugs.hledger.org/grid`](http://bugs.hledger.org/grid)  
-  [`bugs.hledger.org/new`](http://bugs.hledger.org/new)  
-  `bugs.hledger.org/NNN`
+  [`hledger.org/bugs`](http://hledger.org/bugs)  
+  [`hledger.org/bugs/grid`](http://hledger.org/bugs/grid)  
+  [`hledger.org/bugs/new`](http://hledger.org/bugs/new)  
+  `hledger.org/bugs/N`
 
 ### how to set up for hledger development
 
