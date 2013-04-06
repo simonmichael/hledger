@@ -7,9 +7,9 @@ title: hledger contributor guide
 ## Quick links
 
 **Support**<br>
-  IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)
-  <br>Mail list: [hledger.org/list](http://hledger.org/list)
-  <br>Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)
+  IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)\
+  Mail list: [hledger.org/list](http://hledger.org/list)\
+  Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)
 
 **Released version**<br>
   [release notes](NEWS.html),
