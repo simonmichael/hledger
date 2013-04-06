@@ -6,7 +6,7 @@ title: hledger news
 
 ## dev version
 
-  * CSV conversion rules have a [new format](MANUAL.html#rules-syntax) that aims to be more
+  * CSV conversion rules have a [new format](MANUAL.html#csv-files) that aims to be more
   intuitive, powerful and extensible.  Existing rules files will need
   to be updated manually, here are some upgrade tips:
 
