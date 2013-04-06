@@ -2165,6 +2165,39 @@ move *FromOpts into toOpts
 **** DONE add to release notes
      CLOSED: [2013-03-09 Sat 07:57]
 
+*** DONE update release notes
+    CLOSED: [2013-03-30 Sat 11:00]
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2013-03-30 Sat 11:02
+    :END:
+*** DONE fix site tocs
+    CLOSED: [2013-03-30 Sat 11:11]
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2013-03-30 Sat 11:11
+    :END:
+*** DONE split up docs
+    CLOSED: [2013-04-02 Tue 11:17]
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2013-04-02 Tue 11:17
+    :END:
+*** DONE publish multiple doc versions
+    CLOSED: [2013-04-02 Tue 11:17]
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2013-04-02 Tue 11:17
+    :END:
+
+** TODO issue tracking/project hosting spring cleaning
+*** TODO clarify wish tracking
+*** TODO try trello boards
+*** TODO clarify code hosting - github ?
+*** clean up wrong/missing issue fields
+**** component
+**** type
+*** prune/update field values
+*** link useful tracker views
+**** issues by type grid            https://code.google.com/p/hledger/issues/list?q=&colspec=ID+Type+Status+Summary+Reporter+Opened+Stars&sort=&groupby=&mode=grid&y=Type&x=Status&cells=tiles&nobtn=Update
+**** enhancements by component grid https://code.google.com/p/hledger/issues/list?can=2&q=type%3Aenhancement&colspec=ID+Type+Status+Summary+Reporter+Opened+Stars&sort=&groupby=&mode=grid&y=Component&x=Status&cells=tiles&nobtn=Update
+**** enhancements by reporter grid  https://code.google.com/p/hledger/issues/list?can=2&q=type%3Aenhancement&colspec=ID+Type+Status+Summary+Reporter+Opened+Stars&sort=&groupby=&mode=grid&y=Reporter&x=Status&cells=tiles&nobtn=Update
 ** TODO more powerful csv reading
 *** DONE v2 rules file mockup showing new syntax
     CLOSED: [2013-01-11 Fri 20:27]
@@ -2360,15 +2393,9 @@ rules:
      CLOSED: [2013-03-29 Fri 15:16]
 **** DONE clarify optional syntax (:, if, fields)
      CLOSED: [2013-03-29 Fri 15:16]
-**** clarify upgrade process
-***** base-currency -> default-currency
-***** base-account -> default-account1
-***** FIELDNAME-field N -> FIELDNAME %N+1
-***** update each account-assigning rule
-****** add a line containing ~ before the regexps
-****** add account2: before the account name
-**** set up versioned manual
-**** update/add examples
+**** DONE clarify upgrade process
+     CLOSED: [2013-03-30 Sat 10:35]
+**** TODO update/add examples
      https://gist.github.com/simonmichael/5153401 bofi example
 
 ***** no rules file example
@@ -2411,9 +2438,9 @@ rules:
     posting:
 
          %date %description
-           %account                   %amount
-           %default-account
-           (some special account)     %amount
+           %account1                   %amount
+           %account2
+           (some special account)      %amount
 
 
 thai
@@ -2430,19 +2457,6 @@ desc~thai
 *** TODO command-line rules
 *** TODO smarter default rules
 *** TODO generalise rules to non csv ?
-
-** TODO issue tracking/roadmap cleanup
-*** clarify wish tracking, project hosting
-*** clean up wrong/missing issue fields
-**** component
-**** type
-*** prune/update field values
-*** link useful tracker views
-**** issues by type grid            https://code.google.com/p/hledger/issues/list?q=&colspec=ID+Type+Status+Summary+Reporter+Opened+Stars&sort=&groupby=&mode=grid&y=Type&x=Status&cells=tiles&nobtn=Update
-**** enhancements by component grid https://code.google.com/p/hledger/issues/list?can=2&q=type%3Aenhancement&colspec=ID+Type+Status+Summary+Reporter+Opened+Stars&sort=&groupby=&mode=grid&y=Component&x=Status&cells=tiles&nobtn=Update
-**** enhancements by reporter grid  https://code.google.com/p/hledger/issues/list?can=2&q=type%3Aenhancement&colspec=ID+Type+Status+Summary+Reporter+Opened+Stars&sort=&groupby=&mode=grid&y=Reporter&x=Status&cells=tiles&nobtn=Update
-*** try trello boards
-
 ** TODO fix tests
 *** unit
 *** func
@@ -2539,6 +2553,8 @@ hledger: Unknown flag: --port
 *** web: stray bracket in journal edit form title  1
 *** web: enter doesn't work in add form completing fields  1d
 **** research this dhtmlxcombo issue
+*** parsing: balance assertion doesn't work without a commodity symbol (takes = as one)
+*** parsing: is = B an assertion or an assignment ?
 *** parsing: decimal point/thousands separator confusion ?  1d
 <<<
 2011/09/30
@@ -3531,6 +3547,10 @@ transaction :: GenParser Char st [TransactionDetail]
 As far as I know it currently accepts all ledger 2.6-era files.
 Add support for ledger 3 file format as/when that stabilises.
 It would be nice to optionally semi/automatically submit parse error reports when they happen
+**** things to ignore
+***** https://gist.github.com/adamgibbins/278e8b1db58a809da1b3
+***** https://gist.github.com/adamgibbins/08f8c8adb7f74c16c508
+***** https://gist.github.com/adamgibbins/62f10122eea1442a7e9e
 *** parsing: alias directives should be modified by account directives
 *** parsing: allow price record for null commodity, eg with quotes
 P 2009/1/1 "" 0.5h
