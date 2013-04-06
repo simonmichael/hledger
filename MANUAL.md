@@ -96,7 +96,6 @@ eg to validate the results you're getting.
 You can use hledger without learning any more about this file; 
 just use the [add](#add) or [web](#web) commands to create and update it. 
 Many users, though, also edit the journal file directly with a text editor, perhaps assisted by the helper modes for emacs or vim.
-Note the file uses unix line endings on all platforms. <!-- XXX retest & remove -->
 
 Here's an example:
 
@@ -528,12 +527,10 @@ To generate time logs, ie to clock in and clock out, you could:
 
 ## Commands
 
-hledger provides a number of subcommands, in the style of git or darcs.
-Run `hledger` with no arguments to see a list.  Most are built in to the
-core hledger package, while [add-on commands](#add-on-commands) will
-appear if you install additional hledger-* packages. You can also install
-your own subcommands by putting programs or scripts named `hledger-NAME`
-in your PATH.
+hledger provides a number of subcommands; run `hledger` with no arguments to see a list.
+Most subcommands are built in to the core hledger package;
+more [add-on commands](#add-on-commands) will appear if you install additional hledger-* packages.
+You can also install your own subcommands by putting programs or scripts named `hledger-NAME` in your PATH.
 
 ### Misc commands
 
@@ -808,6 +805,8 @@ the following:
 
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
+- `amt:<N`, `amt:=N`, `amt:>N` - match postings with a single-commodity amount less than, greater than or equal to N. (Multi-commodity amounts are always matched.)
+- `code:REGEX` - match by transaction code (eg check number)
 - `desc:REGEX` - match transaction descriptions by regular expression
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
 - `edate:PERIODEXPR` - as above, but match secondary dates
