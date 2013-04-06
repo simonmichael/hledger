@@ -25,10 +25,13 @@ learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
 
-**Support:**  
+**Quick links:**  
 Mail list: [hledger.org/list](http://hledger.org/list)  
 IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)  
-Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)
+Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)  
+Wishlist/planning: [hledger.org/plan](http://hledger.org/plan)  
+Code: [hledger.org/code](http://hledger.org/code)
+
 <!--  
 For support and more technical info, see the [contributor guide](DEVELOPMENT.html)
 or [email me](mailto:simon@joyful.com?subject=hledger:). I appreciate
