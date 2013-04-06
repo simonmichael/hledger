@@ -554,13 +554,13 @@ docs: site codedocs
 site: site/site
 	cd site; ./site build
 
-cleansite: site/site
+cleansite: site/site cleanoldsource
 	cd site; ./site clean
 
 previewsite: site/site
 	cd site; ./site preview
 
-site/site: site/site.hs
+site/site: site/site.hs oldsource
 	cd site; $(GHC) site.hs $(PREFERMACUSRLIBFLAGS)
 
 autosite:
@@ -569,9 +569,15 @@ autosite:
 viewsite: site
 	$(VIEWHTML) site/_site/index.html
 
-oldsource:
-	-cd site; darcs get --lazy -t 0.19.3 .. 0.19
-	-cd site; darcs get --lazy -t 0.18.2 .. 0.18
+# ensure some old doc versions are in place:
+
+oldsource: site/0.19 site/0.18
+
+site/0.19:
+	git archive --prefix site/0.19/ tags/0_19_3 '*.md' | tar xf -
+
+site/0.18:
+	git archive --prefix site/0.18/ tags/0_18_2 '*.md' | tar xf -
 
 cleanoldsource:
 	cd site; rm -rf 0.19 0.18
