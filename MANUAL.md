@@ -62,7 +62,7 @@ in a certain account.
 
 To create an initial journal, run `hledger add` and follow the prompts to
 enter some transactions.  Or, save this
-[sample file](http://hub.darcs.net/simon/hledger/data/sample.journal) as
+[sample file](https://raw.github.com/simonmichael/hledger/master/data/sample.journal) as
 `.hledger.journal` in your home directory. Now try commands like these:
 
     $ hledger                               # show available commands
@@ -505,7 +505,7 @@ appropriate amount of hours. From the time log above, hledger print gives:
         (projects:A)          2.0h
 
 Here is a
-[sample.timelog](http://hub.darcs.net/simon/hledger/data/sample.timelog) to
+[sample.timelog](https://raw.github.com/simonmichael/hledger/master/data/sample.timelog) to
 download and some queries to try:
 
     hledger -f sample.timelog balance                               # current time balances

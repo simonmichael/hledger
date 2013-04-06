@@ -71,9 +71,9 @@ unmaintained or work only on certain platforms:
 ## Install the latest development version
 
 To download and build the latest development version of hledger, ensure you have
-[darcs](http://darcs.net) installed, then:
+[git](http://git-scm.com) installed, then:
 
-    $ darcs get http://hub.darcs.net/simon/hledger [--lazy]
+    $ git clone http://github.com/simonmichael/hledger.git  # or git@github.com:simonmichael/hledger.git
     $ cd hledger
     $ cabal update
     $ cabal install ./hledger-lib ./hledger [./hledger-web]
@@ -146,7 +146,7 @@ or get help.
    using your platform's package management system. Or the dependencies
    specified on a package may need updating. Or there may be a compilation
    error.  If you find an error in a hledger package, check the
-   [recent commits](http://hub.darcs.net/simon/hledger/changes) to
+   [recent commits](http://github.com/simonmichael/hledger/commits) to
    see if the [latest development version](#installing) might have a fix.
 
 #. **ExitFailure 11**  

@@ -26,11 +26,10 @@ title: hledger contributor guide
 
 **Development version**<br>
   [Get it](#how-to-set-up-for-hledger-development),
-  [browse it](http://hub.darcs.net/simon/hledger)
-  (or via [darcsweb](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=shortlog))
+  [browse it](http://github.com/simonmichael/hledger)
   <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
   <br>
-  [developer notes](http://joyful.com/darcsweb/darcsweb.cgi?r=hledger;a=plainblob;f=/NOTES.org),
+  [developer notes](http://github.com/simonmichael/hledger/NOTES.org),
   [haddock coverage](http://hledger.org/profs/haddock-coverage),
   [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
   [benchmark](http://hledger.org/profs/latest.bench),
@@ -96,12 +95,12 @@ or
 1. get an up-to-date [ghc](http://haskell.org/ghc), at least 7.0 and preferably 7.6
 2. there's probably no need to install the [haskell platform](http://haskell.org/platform) now, but you could
 3. it's probably worth getting the latest and best cabal: `cabal update; cabal install cabal-install`
-4. get an up-to-date [darcs](http://darcs.net), at least 2.x and preferably newer: use a binary package or `cabal install darcs`
+4. ensure you have [git](http://git-scm.com) installed
 5. the hledger Makefile assumes GNU Make, so on some platforms you may need to spell "make" as "gmake"
 
 - get the hledger repo:
   
-        darcs get --lazy http://hub.darcs.net/simon/hledger
+        git clone git@github.com:simonmichael/hledger.git
         cd hledger
         
 - install packages required to build hledger and add-ons, or as many of them as possible:
@@ -123,32 +122,23 @@ or
 
 - try auto-building with sp:
 
-        make auto
+        make auto   # or autoweb
 
     You'll need to follow the instructions to install `sp`.
     This is how I do most hledger development. It will recompile whenever you save changes to source files.
         
-- test patch sending. Make a dummy change:
-
-        echo >>README.markdown; darcs record README.markdown -a -m 'my test patch'
-        
-    send it to yourself:
-    
-        darcs send --to me@my.address
-        
-    and make sure you receive it. If not, your system may not be
-    configured to send email from the command line. Try to fix that. As a
-    last resort, you can `darcs send -O` and mail the resulting patch file
-    to the list. Finally, clean up:
-    
-        darcs obliterate -p 'my test patch'
-
 ### how to get your patch committed
 
-- [send it](#how-to-set-up-for-hledger-development)
-- you should receive a reply shortly. If in doubt, [follow up](#how-to-get-help) at any time.
-- respond to any code review feedback, submitting new patches if needed, until you receive a "patch applied" acknowledgement
-- to verify the patch is in the main repo: listen for it on irc or look for it in darcsweb
+Follow the usual github workflow:
+
+- fork the main hledger repo on github,
+- git clone it to your local machine,
+- git commit, after (?) pulling and merging the latest upstream changes
+- git push back to github,
+- open a pull request on github,
+- follow up on any discussion there.
+  
+If you're new to this process, [help.github.com](http://help.github.com) may be useful.
 
 ### how to improve the documentation
 
@@ -188,8 +178,8 @@ or
 
 ### how to do code review
 
-- watch for and read new patches on the mail list, irc, or [darcs hub](http://hub.darcs.net/simon/hledger/changes) ([feed](http://hub.darcs.net/simon/hledger/changes/atom))
-- set up for development and test new patches in your own repo
+- review and discuss new pull requests and commits on github
+- set up for development and test the latest changes in your own repo
 - read the existing [code docs and source](#quick-links)
 - send feedback or discuss via irc or list
 
@@ -256,9 +246,11 @@ The hledger project aims to produce:
 
 ### code
 
-- the hledger repo is hosted on hub.darcs.net
+- the hledger repo is hosted on github.com:
 
-<!-- <a href="http://joyful.com/darcsweb/darcsweb.cgi?r=hledger"><img src=http://hub.darcs.net/simon/hledger/commits.png border=0></a> -->
+  [http://github.com/simonmichael/hledger](http://github.com/simonmichael/hledger)
+  
+  You can also jump there by entering hledger.org/code or code.hledger.org .
 
 <!-- ### release process -->
 
