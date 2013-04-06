@@ -95,7 +95,8 @@ VERSIONFILE=VERSION
 VERSION:=$(shell cat $(VERSIONFILE))
 
 # the number of changes recorded since last tag in this repo
-PATCHLEVEL:=$(shell expr `darcs changes --count --from-tag=\\\\\.` - 1)
+#PATCHLEVEL:=$(shell expr `git describe --long | awk -F - '{print $$2}' `)
+PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
 
 # build flags
 WARNINGS:=-W -fwarn-tabs -fno-warn-unused-do-bind -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
