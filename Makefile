@@ -94,9 +94,10 @@ VERSIONFILE=VERSION
 # two or three-part version string, whatever's in VERSION
 VERSION:=$(shell cat $(VERSIONFILE))
 
-# the number of changes recorded since last tag in this repo
-#PATCHLEVEL:=$(shell expr `git describe --long | awk -F - '{print $$2}' `)
-PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
+# the number of commits since the last tag
+PATCHLEVEL:=$(shell expr `git describe --long | awk -F - '{print $$2}' `)
+# the number of commits since the last_release tag
+#PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
 
 # build flags
 WARNINGS:=-W -fwarn-tabs -fno-warn-unused-do-bind -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
