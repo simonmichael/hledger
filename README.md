@@ -29,7 +29,7 @@ and get started tracking your numbers!
 Mail list: [hledger.org/list](http://hledger.org/list)  
 IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)  
 Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)  
-Wishlist/planning: [hledger.org/plan](http://hledger.org/plan)  
+Wishlist/planning: [hledger.org/trello](http://hledger.org/trello)  
 Code: [hledger.org/code](http://hledger.org/code)
 
 <!--  
