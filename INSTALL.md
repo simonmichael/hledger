@@ -84,8 +84,8 @@ There are a lot of ways things can go wrong. Here are
 some known issues and things to try. Please also seek
 [support](DEVELOPMENT.html#support) from the
 [IRC channel](irc://irc.freenode.net/#ledger),
-[mail list](http://list.hledger.org) or
-[bug tracker](http://bugs.hledger.org).
+[mail list](http://hledger.org/list) or
+[bug tracker](http://hledger.org/bugs).
 
 Starting from the top, consider whether each of these might apply to
 you. Tip: blindly reinstalling/upgrading everything in sight probably

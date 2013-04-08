@@ -66,9 +66,9 @@ or
 
 ### how to report problems
 
-- check for related issues at [hledger.org/bugs](http://hledger.org/bugs) ([view all](http://hledger.org/bugs/grid)) or in the [list archive](https://groups.google.com/d/forum/hledger)
+- check for related issues in the [bug tracker](http://hledger.org/bugs) or in the [mail list archive](http://hledger.org/list)
 - discuss/confirm the issue on irc or list
-- [report](http://code.google.com/p/hledger/issues/entry) new issues in the bug tracker
+- report new issues in the bug tracker
 <!-- - test and share problem journal snippets at paste . hledger.org -->
 
 ### how to help with testing
@@ -84,11 +84,9 @@ or
 ### how to help with bug tracking
 
 - get to know the [bug tracker](http://hledger.org/bugs) and its contents
-- join the [hledger google project](http://code.google.com/p/hledger/) to get more access
 - research and update issues
-- use these convenience urls:  
+- some convenient url shortcuts:  
   [`hledger.org/bugs`](http://hledger.org/bugs)  
-  [`hledger.org/bugs/grid`](http://hledger.org/bugs/grid)  
   [`hledger.org/bugs/new`](http://hledger.org/bugs/new)  
   `hledger.org/bugs/N`
 
