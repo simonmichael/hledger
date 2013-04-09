@@ -347,23 +347,22 @@ explained in the next section.
 
 #### Tags
 
-You can attach named tags, optionally with values, to transactions and
-postings, and then filter reports by tag (this is the same as Ledger's
-[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata) feature,
-except our tag values are just strings.)
+You can include *tags* (labels), optionally with values,
+in transaction and posting comments, and then [query by tag](#queries).
+This is like Ledger's [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
+feature, except hledger's tag values are simple strings.
 
-Tags names are unspaced words followed by a colon, anywhere within a
-transaction or posting comment. Tag values are the (whitespace-trimmed)
-text after a tag name, up to the next newline or comma (allowing multiple
-tags on one line). For example:
+A tag is any unspaced word immediately followed by a full colon, eg: `sometag:` .
+A tag's *value* is the text following the colon, if any, until the next newline or comma,
+with leading and trailing whitespace removed. Comma may be used to write multiple
+tags on one line.
 
-    1/1 a transaction    ; TAG1: , TAG2: tag2's value
+For example, here is a transaction with three tags, the posting has
+one, and all tags have values except TAG1:
+
+    1/1 a transaction    ; TAG1:, TAG2: tag2's value
         ; TAG3: a third transaction tag
         a  $1  ; TAG4: a posting tag
-
-Querying by tag is work in progress; for now you can test for existence of
-a tag with `tag:NAME`.
-<!-- tag:NAME=EXACTVALUE` -->
 
 #### Including other files
 
