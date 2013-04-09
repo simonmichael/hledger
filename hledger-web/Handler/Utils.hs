@@ -5,12 +5,13 @@ module Handler.Utils where
 import Prelude
 import Control.Applicative ((<$>))
 import Control.Monad.IO.Class (liftIO)
+import Data.IORef
 import Data.Maybe
 import Data.Text(pack,unpack)
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
-import System.IO.Storage (putValue, getValue)
+-- import System.IO.Storage (putValue, getValue)
 import System.Locale (defaultTimeLocale)
 #if BLAZE_HTML_0_5
 import Text.Blaze.Html (toHtml)
@@ -70,7 +71,7 @@ getViewData :: Handler ViewData
 getViewData = do
   app        <- getYesod
   let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
-  (j, err)   <- getCurrentJournal $ copts{reportopts_=ropts{no_elide_=True}}
+  (j, err)   <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}}
   msg        <- getMessageOr err
   Just here  <- getCurrentRoute
   today      <- liftIO getCurrentDay
@@ -88,17 +89,18 @@ getViewData = do
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
       -- ui message.
-      getCurrentJournal :: CliOpts -> Handler (Journal, Maybe String)
-      getCurrentJournal opts = do
-        j <- liftIO $ fromJust `fmap` getValue "hledger" "journal"
+      getCurrentJournal :: App -> CliOpts -> Handler (Journal, Maybe String)
+      getCurrentJournal app opts = do
+        -- XXX put this inside atomicModifyIORef' for thread safety
+        j <- liftIO $ readIORef $ appJournal app
         (jE, changed) <- liftIO $ journalReloadIfChanged opts j
         if not changed
          then return (j,Nothing)
          else case jE of
-                Right j' -> do liftIO $ putValue "hledger" "journal" j'
+                Right j' -> do liftIO $ writeIORef (appJournal app) j'
                                return (j',Nothing)
-                Left e  -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
-                              return (j, Just e)
+                Left e   -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
+                               return (j, Just e)
 
       -- | Get the named request parameter, or the empty string if not present.
       getParameterOrNull :: String -> Handler String

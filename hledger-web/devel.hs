@@ -6,17 +6,12 @@ import Control.Concurrent (forkIO)
 import System.Directory (doesFileExist, removeFile)
 import System.Exit (exitSuccess)
 import Control.Concurrent (threadDelay)
-import System.IO.Storage (withStore, putValue)
-
-import Hledger (readJournalFile)
 
 main :: IO ()
 main = do
     putStrLn "Starting devel application"
     (port, app) <- getApplicationDev
     forkIO $
-      withStore "hledger" $ do
-        readJournalFile Nothing Nothing "dev.journal" >>= putValue "hledger" "journal"
         runSettings defaultSettings
           { settingsPort = port
           } app

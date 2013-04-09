@@ -5,6 +5,7 @@ module Application
     , makeFoundation
     ) where
 
+import Data.IORef
 import Import
 import Yesod.Default.Config
 import Yesod.Default.Main
@@ -21,6 +22,10 @@ import Handler.JournalEntriesR
 import Handler.RegisterR
 
 import Hledger.Web.Options (defwebopts)
+import Hledger.Data (Journal, nulljournal)
+import Hledger.Read (readJournalFile)
+import Hledger.Utils (error')
+import Hledger.Cli.Options (defcliopts, journalFilePathFromOpts)
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -31,9 +36,10 @@ mkYesodDispatch "App" resourcesApp
 -- performs initialization and creates a WAI application. This is also the
 -- place to put your migrate statements to have automatic database
 -- migrations handled by Yesod.
-makeApplication :: AppConfig DefaultEnv Extra -> IO Application
-makeApplication conf = do
+makeApplication :: Journal -> AppConfig DefaultEnv Extra -> IO Application
+makeApplication j conf = do
     foundation <- makeFoundation conf
+    writeIORef (appJournal foundation) j
     app <- toWaiAppPlain foundation
     return $ logWare app
   where
@@ -44,13 +50,16 @@ makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
     manager <- newManager def
     s <- staticSite
-    return $ App conf s manager
-      defwebopts
+    jref <- newIORef nulljournal
+    return $ App conf s manager defwebopts jref
 
 -- for yesod devel
+-- uses the journal specified by the LEDGER_FILE env var, or ~/.hledger.journal
 getApplicationDev :: IO (Int, Application)
-getApplicationDev =
-    defaultDevelApp loader makeApplication
+getApplicationDev = do
+  f <- journalFilePathFromOpts defcliopts
+  j <- either error' id `fmap` readJournalFile Nothing Nothing f
+  defaultDevelApp loader (makeApplication j)
   where
     loader = loadConfig (configSettings Development)
         { csParseExtra = parseExtra

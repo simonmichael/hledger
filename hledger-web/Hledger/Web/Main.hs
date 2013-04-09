@@ -22,7 +22,7 @@ import Prelude hiding (putStrLn)
 import Control.Monad (when)
 import Data.Text (pack)
 import System.Exit (exitSuccess)
-import System.IO.Storage (withStore, putValue)
+-- import System.IO.Storage (withStore, putValue)
 import Text.Printf
 
 import Hledger
@@ -67,18 +67,8 @@ web opts j = do
 
 server :: String -> Int -> WebOpts -> Journal -> IO ()
 server baseurl port opts j = do
-  _ <- printf "Starting http server on port %d with base url %s\n" port baseurl
-  -- let a = App{getStatic=static staticdir
-  --            ,appRoot=pack baseurl
-  --            ,appOpts=opts
-  --            ,appArgs=patterns_ $ reportopts_ $ cliopts_ opts
-  --            ,appJournal=j
-  --            }
-  withStore "hledger" $ do
-    putValue "hledger" "journal" j
-
--- defaultMain (fromArgs parseExtra) makeApplication
-    app <- makeApplication (AppConfig {
+    _ <- printf "Starting http server on port %d with base url %s\n" port baseurl
+    app <- makeApplication j (AppConfig {
               appEnv = Development
             , appPort = port_ opts
             , appRoot = pack baseurl

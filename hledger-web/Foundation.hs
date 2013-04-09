@@ -7,6 +7,7 @@ See a default Yesod app's comments for more details of each part.
 module Foundation where
 
 import Prelude
+import Data.IORef
 import Yesod
 import Yesod.Static
 import Yesod.Default.Config
@@ -26,6 +27,7 @@ import Web.ClientSession (getKey)
 import Text.Hamlet (hamletFile)
 
 import Hledger.Web.Options
+import Hledger.Data.Types
 -- import Hledger.Web.Settings
 -- import Hledger.Web.Settings.StaticFiles
 
@@ -40,6 +42,7 @@ data App = App
     , httpManager :: Manager
       --
     , appOpts    :: WebOpts
+    , appJournal :: IORef Journal
     }
 
 -- Set up i18n messages. See the message folder.
