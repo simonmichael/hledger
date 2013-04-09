@@ -1,0 +1,6 @@
+*.aes
+*/dist/
+cabal-dev
+hledger-web/static/tmp/
+hledger-web/yesod-devel/
+
