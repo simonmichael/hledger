@@ -22,7 +22,6 @@ import Prelude hiding (putStrLn)
 import Control.Monad (when)
 import Data.Text (pack)
 import System.Exit (exitSuccess)
--- import System.IO.Storage (withStore, putValue)
 import Text.Printf
 
 import Hledger

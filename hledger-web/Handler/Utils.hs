@@ -11,7 +11,6 @@ import Data.Text(pack,unpack)
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
--- import System.IO.Storage (putValue, getValue)
 import System.Locale (defaultTimeLocale)
 #if BLAZE_HTML_0_5
 import Text.Blaze.Html (toHtml)

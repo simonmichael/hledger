@@ -147,7 +147,6 @@ library
                    , directory
                    , filepath
                    , HUnit
-                   , io-storage >= 0.3 && < 0.4
                    , network-conduit
                    , old-locale
                    , parsec
@@ -226,7 +225,6 @@ executable         hledger-web
                    , directory
                    , filepath
                    , HUnit
-                   , io-storage >= 0.3 && < 0.4
                    , old-locale
                    , parsec
                    , regexpr >= 0.5.1

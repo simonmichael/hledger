@@ -59,6 +59,8 @@ title: hledger news
 
   * register: when --date2 is in effect, sort by that date
 
+  * web: yesod devel now works; it uses $LEDGER_FILE or ~/.hledger.journal
+
   * web: add missing static & template files to package fixing cabal-dev and hackage builds (#97, #98)
 
   * web: fix some hardcoded static urls
