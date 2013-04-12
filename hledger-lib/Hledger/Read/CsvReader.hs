@@ -708,10 +708,10 @@ test_parser =  [
   --                ([("A",Nothing)], "a")
 
   ,"convert rules parsing: trailing comments" ~: do
-     assertParse (parseWithCtx rules rulesp "A\na\n# \n#\n")
+     assertParse (parseWithCtx rules rulesp "skip\n# \n#\n")
 
   ,"convert rules parsing: trailing blank lines" ~: do
-     assertParse (parseWithCtx rules rulesp "A\na\n\n  \n")
+     assertParse (parseWithCtx rules rulesp "skip\n\n  \n")
 
   -- not supported
   -- ,"convert rules parsing: no final newline" ~: do
