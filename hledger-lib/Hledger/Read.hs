@@ -36,7 +36,7 @@ import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
-import System.IO (IOMode(..), withFile, stderr)
+import System.IO (IOMode(..), withFile, stdin, stderr, hSetNewlineMode, universalNewlineMode)
 import Test.HUnit
 import Text.Printf
 
@@ -158,10 +158,14 @@ readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
 -- formats. A CSV conversion rules file may be specified for better
 -- conversion of that format.
 readJournalFile :: Maybe Format -> Maybe FilePath -> FilePath -> IO (Either String Journal)
-readJournalFile format rulesfile "-" = getContents >>= readJournal format rulesfile (Just "(stdin)")
+readJournalFile format rulesfile "-" = do
+  hSetNewlineMode stdin universalNewlineMode
+  getContents >>= readJournal format rulesfile (Just "(stdin)")
 readJournalFile format rulesfile f = do
   requireJournalFileExists f
-  withFile f ReadMode $ \h -> hGetContents h >>= readJournal format rulesfile (Just f)
+  withFile f ReadMode $ \h -> do
+    hSetNewlineMode h universalNewlineMode
+    hGetContents h >>= readJournal format rulesfile (Just f)
 
 -- | If the specified journal file does not exist, give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
