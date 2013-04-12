@@ -347,23 +347,22 @@ explained in the next section.
 
 #### Tags
 
-You can attach named tags, optionally with values, to transactions and
-postings, and then filter reports by tag (this is the same as Ledger's
-[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata) feature,
-except our tag values are just strings.)
+You can include *tags* (labels), optionally with values,
+in transaction and posting comments, and then [query by tag](#queries).
+This is like Ledger's [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
+feature, except hledger's tag values are simple strings.
 
-Tags names are unspaced words followed by a colon, anywhere within a
-transaction or posting comment. Tag values are the (whitespace-trimmed)
-text after a tag name, up to the next newline or comma (allowing multiple
-tags on one line). For example:
+A tag is any unspaced word immediately followed by a full colon, eg: `sometag:` .
+A tag's *value* is the text following the colon, if any, until the next newline or comma,
+with leading and trailing whitespace removed. Comma may be used to write multiple
+tags on one line.
 
-    1/1 a transaction    ; TAG1: , TAG2: tag2's value
+For example, here is a transaction with three tags, the posting has
+one, and all tags have values except TAG1:
+
+    1/1 a transaction    ; TAG1:, TAG2: tag2's value
         ; TAG3: a third transaction tag
         a  $1  ; TAG4: a posting tag
-
-Querying by tag is work in progress; for now you can test for existence of
-a tag with `tag:NAME`.
-<!-- tag:NAME=EXACTVALUE` -->
 
 #### Including other files
 
@@ -539,35 +538,61 @@ Here are some miscellaneous commands you might use to get started:
 #### add
 
 The add command prompts interactively for new transactions, and appends
-them to the journal file. Each transaction is appended when you complete
-it by entering `.` (period) at the account prompt.  Enter control-D or
-control-C when you are done.
+them to the journal file. Just run `hledger add` and follow the prompts.
+You can add as many transactions as you like; when you are finished,
+press control-d or control-c to exit.
 
-The add command tries to be helpful, providing:
+Additional convenience features:
 
-- Sensible defaults
+- Sensible defaults are provided where possible.
+  You can set the initial defaults by providing them as command line arguments.
+  If there is a recent transaction with a description similar
+  to the one you entered, it will be displayed and used for defaults.
 
-- History awareness: if there are existing transactions approximately
-  matching the description you enter, they will be displayed and the best
-  match will provide defaults for the other fields. If you specify a
-  [query](#queries) on the command line, only matching transactions will
-  be considered as history.
+- Readline-style edit keys may be used during data entry.
 
-- Readline-style input: during data entry, the usual editing keys should
-  work.
+- While entering account names, the tab key will auto-complete or list
+  the available completions, based on the existing transactions.
 
-- Auto-completion for account names: while entering account names, the tab
-  key will auto-complete as far as possible, or list the available
-  options.
+- If the journal defines a [default commodity](#default-commodity),
+  it will be added to any bare numbers entered.
 
-- Default commodity awareness: if the journal has a
-  [default commodity directive](#default-commodity), that will be applied
-  to any bare numbers entered.
+- A code (in parentheses) may be entered at the Date: prompt, following the date.
+  Comments and/or tags may be entered following a date or amount.
 
-Examples:
+- If you make a mistake, enter `<` at any prompt to restart the transaction.
+
+An example:
 
     $ hledger add
+    (...)
+    Starting a new transaction.
+    date ? [2013/04/09]: 
+    description ? : starbucks
 
+    Using this existing transaction for defaults:
+    2012/04/19 * starbucks
+    expenses:personal:food:snacks         $3.70
+    assets:cash:wallet                   $-3.70
+
+    account 1 ? [expenses:personal:food:snacks]: 
+    amount  1 ? [$3.7]: 
+    account 2 ? [assets:cash:wallet]: 
+    amount  2 ? [$-3.7]: 
+    account 3 (or . to complete this transaction) ? : .
+
+    Transaction entered:
+    2013/04/09 starbucks
+    expenses:personal:food:snacks          $7.7
+    assets:cash:wallet                    $-7.7
+
+    Accept this transaction ? [y]: 
+    Added to the journal.
+
+    Starting a new transaction.
+    date ? [2013/04/09]: <CTRL-D>
+    $
+    
 #### test
 
 This command runs hledger's built-in unit tests and displays a quick
