@@ -36,10 +36,10 @@ module Hledger.Utils.UTF8IOCompat (
 )
 where
 
-import Control.Monad (liftM)
-import qualified Data.ByteString.Lazy as B
-import qualified Data.ByteString.Lazy.Char8 as B8
-import qualified Data.ByteString.Lazy.UTF8 as U8 (toString, fromString)
+-- import Control.Monad (liftM)
+-- import qualified Data.ByteString.Lazy as B
+-- import qualified Data.ByteString.Lazy.Char8 as B8
+-- import qualified Data.ByteString.Lazy.UTF8 as U8 (toString, fromString)
 import Prelude hiding (readFile, writeFile, appendFile, getContents, putStr, putStrLn)
 import System.IO -- (Handle)
 -- #if __GLASGOW_HASKELL__ < 702
