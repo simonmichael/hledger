@@ -28,7 +28,9 @@ title: hledger contributor guide
 
 **Development version**<br>
   [Get it](#how-to-set-up-for-hledger-development),
-  [browse it](http://github.com/simonmichael/hledger)
+  [browse it](http://github.com/simonmichael/hledger),
+  [changes](http://github.com/simonmichael/hledger/commits),
+  [CHANGES!](http://starlogs.net/#simonmichael/hledger) (turn up your volume first)
   <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
   <br>
   [developer notes](http://github.com/simonmichael/hledger/NOTES.org),
