@@ -4,7 +4,7 @@ hledgerdev -f- register --period 'monthly'
 2011/2/1
   (a)  1
 >>>
-2011/02/01 - 2011/02/28         a                                 1            1
+2011/02/01 - 2011/02/28         a                                1             1
 >>>=0
 
 # 2. or with a query pattern, just the intervals with matched data:
@@ -16,7 +16,7 @@ hledgerdev -f- register --period 'monthly' b
 2011/2/1
   (b)  1
 >>>
-2011/02/01 - 2011/02/28         b                                 1            1
+2011/02/01 - 2011/02/28         b                                1             1
 >>>=0
 
 # 3. with --empty, show all intervals spanned by the journal
@@ -32,9 +32,9 @@ hledgerdev -f- register --period 'monthly' b --empty
 2011/3/1
   (c)  1
 >>>
-2011/01/01 - 2011/01/31                                           0            0
-2011/02/01 - 2011/02/28         b                                 1            1
-2011/03/01 - 2011/03/31                                           0            1
+2011/01/01 - 2011/01/31                                          0             0
+2011/02/01 - 2011/02/28         b                                1             1
+2011/03/01 - 2011/03/31                                          0             1
 >>>=0
 
 # 4. any specified begin/end dates limit the intervals reported
@@ -49,8 +49,8 @@ hledgerdev -f- register --period 'monthly to 2011/3/1' b --empty
 2011/3/1
   (c)  1
 >>>
-2011/01/01 - 2011/01/31                                           0            0
-2011/02/01 - 2011/02/28         b                                 1            1
+2011/01/01 - 2011/01/31                                          0             0
+2011/02/01 - 2011/02/28         b                                1             1
 >>>=0
 
 # 5. likewise for date-restricting display expressions
@@ -65,6 +65,6 @@ hledgerdev -f- register --period 'monthly to 2011/2/1' b --empty --display 'd<[2
 2011/3/1
   (c)  1
 >>>
-2011/01/01 - 2011/01/31                                           0            0
+2011/01/01 - 2011/01/31                                          0             0
 >>>=0
 

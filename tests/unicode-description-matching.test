@@ -7,6 +7,6 @@ hledgerdev -f - register desc:аура
   bank  20
   cash
 >>>
-2009/01/01 аура (cyrillic let.. bank                             10           10
-                                cash                            -10            0
+2009/01/01 аура (cyrillic le..  bank                            10            10
+                                cash                           -10             0
 >>>=0

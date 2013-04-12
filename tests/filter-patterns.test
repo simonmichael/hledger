@@ -5,7 +5,7 @@ hledgerdev -f- register 'a a'
   a a  1
   b
 >>>
-2010/03/01 x                    a a                               1            1
+2010/03/01 x                    a a                              1             1
 >>>=0
 
 #
@@ -20,8 +20,8 @@ hledgerdev -f- register desc:'x x'
   a  1
   b
 >>>
-2010/03/02 x x                  a                                 1            1
-                                b                                -1            0
+2010/03/02 x x                  a                                1             1
+                                b                               -1             0
 >>>=0
 
 #
@@ -32,6 +32,6 @@ hledgerdev -f- register 'a a' "'b"
   a a  1
   'b
 >>>
-2011/09/11                      a a                               1            1
-                                'b                               -1            0
+2011/09/11                      a a                              1             1
+                                'b                              -1             0
 >>>=0

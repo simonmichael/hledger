@@ -4,6 +4,6 @@ hledgerdev -f - register --date2
   a  1
   b
 >>>
-2010/01/01 x                    a                                 1            1
-                                b                                -1            0
+2010/01/01 x                    a                                1             1
+                                b                               -1             0
 >>>=0

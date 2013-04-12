@@ -55,8 +55,8 @@ hledgerdev -f- register --cleared
   * c  4
   d
 >>>
-2012/01/01                      b                                 2            2
-                                c                                 4            6
+2012/01/01                      b                                2             2
+                                c                                4             6
 >>>= 0
 
 

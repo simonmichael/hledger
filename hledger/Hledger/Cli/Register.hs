@@ -39,21 +39,21 @@ tests_postingsReportAsText = [
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     let opts = defreportopts
     (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is` unlines
-      ["2009/01/01 медвежья шкура       расходы:покупки                 100          100"
-      ,"                                актив:наличные                 -100            0"]
+      ["2009/01/01 медвежья шкура       расходы:покупки                100           100"
+      ,"                                актив:наличные                -100             0"]
  ]
 
 -- | Render one register report line item as plain text. Layout is like so:
 -- @
--- <----------------------------- width (default: 80) ----------------------------->
--- date (10)   description (50%)     account (50%)         amount (12)  balance (12)
--- DDDDDDDDDD  dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+-- <----------------------------- width (default: 80) ---------------------------->
+-- date (10)  description (50%)     account (50%)         amount (12)  balance (12)
+-- DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
 --
 -- date and description are shown for the first posting of a transaction only.
 -- @
 postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
 postingsReportItemAsText opts (mdate, mdesc, p, b) =
-  concatTopPadded [date, "  ", desc, "  ", acct, "  ", amt, "  ", bal]
+  concatTopPadded [date, " ", desc, "  ", acct, "  ", amt, "  ", bal]
     where
       totalwidth = case widthFromOpts opts of
            Left _                       -> defaultWidth -- shouldn't happen
@@ -63,7 +63,7 @@ postingsReportItemAsText opts (mdate, mdesc, p, b) =
       datewidth = 10
       amtwidth = 12
       balwidth = 12
-      remaining = totalwidth - (datewidth + 2 + 2 + amtwidth + 2 + balwidth)
+      remaining = totalwidth - (datewidth + 1 + 2 + amtwidth + 2 + balwidth)
       (descwidth, acctwidth) | even r    = (r', r')
                              | otherwise = (r', r'+1)
         where r = remaining - 2
