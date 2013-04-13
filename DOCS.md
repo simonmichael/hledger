@@ -13,7 +13,7 @@ title: hledger docs
 [0.19.x User Manual](0.19/MANUAL.html),
 [0.18.x User Manual](0.18/MANUAL.html))
 
-[Contributor Guide](DEVELOPMENT.html) *support, community and developer resources*
+[Developer Guide](DEVELOP.html)
 
 [Compatibility with ledger](LEDGER.html)
 

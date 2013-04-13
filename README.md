@@ -25,15 +25,16 @@ learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
 
-**Quick links:**  
-Mail list: [hledger.org/list](http://hledger.org/list)  
-IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)  
-Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)  
-Wishlist/planning: [hledger.org/trello](http://hledger.org/trello)  
-Code: [hledger.org/code](http://hledger.org/code)
+**Community**
+
+**IRC (chat):** [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger) (shared with ledger, I am "sm" there)  
+**Mail list:** [hledger.org/list](http://hledger.org/list). (or for general *ledger issues, you can use or cc [ledger's list](http://list.ledger-cli.org))  
+**Bug tracker:** [hledger.org/bugs](http://hledger.org/bugs)  
+**Wishlist/planning:** [hledger.org/trello](http://hledger.org/trello)  
+**Code:** [hledger.org/code](http://hledger.org/code)  
+**Docs:** [Installation Guide](INSTALL.html), **[User Manual](MANUAL.html)**, [Release Notes](NEWS.html) and [more](DOCS.html).
 
 <!--  
-For support and more technical info, see the [contributor guide](DEVELOPMENT.html)
-or [email me](mailto:simon@joyful.com?subject=hledger:). I appreciate
-feedback and help with all aspects of hledger.
+or [email me](mailto:simon@joyful.com?subject=hledger:).
+I appreciate feedback and help with all aspects of hledger.
 -->

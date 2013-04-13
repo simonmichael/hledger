@@ -1,19 +1,12 @@
 ---
-title: hledger contributor guide
+title: hledger Developer Guide
 ---
 
-# Contributor guide
+# Developer guide
 
 ## Quick links
 
-**Support**<br>
-  IRC channel: [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger)\
-  Mail list: [hledger.org/list](http://hledger.org/list)\
-  Bug tracker: [hledger.org/bugs](http://hledger.org/bugs)\
-  Wishlist/planning: [hledger.org/plan](http://hledger.org/plan)\
-  Code: [hledger.org/code](http://hledger.org/code)
-
-**Released version**<br>
+**hledger released version**<br>
   [release notes](NEWS.html),
   [hledger-web demo](http://demo.hledger.org)
   <br>
@@ -26,11 +19,11 @@ title: hledger contributor guide
   [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
   packages
 
-**Development version**<br>
+**hledger development version**<br>
   [Get it](#how-to-set-up-for-hledger-development),
   [browse it](http://github.com/simonmichael/hledger),
   [changes](http://github.com/simonmichael/hledger/commits),
-  [CHANGES!](http://starlogs.net/#simonmichael/hledger) (turn up your volume first)
+  [CHANGES!](http://starlogs.net/#simonmichael/hledger) (turn up your volume)
   <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
   <br>
   [developer notes](http://github.com/simonmichael/hledger/NOTES.org),
@@ -57,14 +50,31 @@ or
 
 ## How to..
 
-### how to get help
+### how to report problems
 
-- join and use the [hledger mail list](http://hledger.org/list)
-- chat Simon (sm) on the
-  [\#ledger](irc://irc.freenode.net/#ledger) irc channel which we
-  share, or [send email](mailto:simon@joyful.com?subject=hledger:)
-- for issues relevant to the wider *ledger community, you can also use or cc [ledger's mail list](http://list.ledger-cli.org)
-- don't forget the [installation tips](MANUAL.html#installing), [Troubleshooting](MANUAL.html#troubleshooting) section, and [bug tracker](http://hledger.org/bugs)
+- check for related issues in the [bug tracker](http://hledger.org/bugs) or in the [mail list archive](http://hledger.org/list)
+- discuss/confirm the issue on irc or list
+- report new issues in the bug tracker
+<!-- - test and share problem journal snippets at paste . hledger.org -->
+
+### how to help with testing
+
+- review and test our documentation and web presence
+- download and test the binaries on your platform
+- test installing via cabal
+- use the tools and test functionality, usability, browser compatibility, ui layout etc.
+- check that `hledger test` reports no failures
+- [run the developer tests](#how-to-run-the-tests)
+- discuss/report problems via irc/mail list/bug tracker
+
+### how to help with bug tracking
+
+- get to know the [bug tracker](http://hledger.org/bugs) and its contents
+- research and update issues
+- some convenient url shortcuts:  
+  [`hledger.org/bugs`](http://hledger.org/bugs)  
+  [`hledger.org/bugs/new`](http://hledger.org/bugs/new)  
+  `hledger.org/bugs/N`
 
 ### how to report problems
 
