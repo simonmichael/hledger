@@ -17,7 +17,7 @@ title: hledger news
       add `if` before the list of regexps,
       add indented `account2 ` before the account name
 
-  * Non-unix-style line endings should now be accepted in journal and rules files.
+  * Non-unix-style line endings in journal and rules files are now supported.
 
   * Querying by the code field (check number) is now supported using the `code:` prefix.
 

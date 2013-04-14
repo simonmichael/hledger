@@ -126,9 +126,11 @@ Now let's explore the available journal file syntax in detail.
 
 #### Transactions
 
-Each transaction begins with a date in column 0, followed by an optional
-description, then two or more postings (of some amount to some account),
-each on their own line.
+Each transaction begins with a date in column 0, followed by three
+optional fields with spaces between them: a status flag (`*` or `!` or
+nothing), a transaction code (eg a check number), and/or a description;
+then two or more postings (of some amount to some account), each on their
+own line.
 
 The posting amounts within a transaction must always balance, ie add up to
 0.  You can leave one amount blank and it will be inferred.
@@ -484,6 +486,10 @@ The following kinds of rule can appear in any order:
 Typically you'll keep one rules file for each account which you
 download as CSV. For an example, see [How to read CSV files](CSV.html).
 
+Other features:
+
+A CSV amount value that is parenthesised will have the parentheses stripped and its sign flipped.
+
 ### Timelog files
 
 hledger can also read time log files. These are (a subset of) timeclock.el's
@@ -727,23 +733,21 @@ The following extra commands will be available if they have been
 #### web
 
 The web command (provided by the hledger-web package) runs a web
-server providing a web-based user interface
-([release demo](http://demo.hledger.org),
-[latest demo](http://demo.hledger.org:5001)).  The web UI provides
-reporting, including a more useful account register view, and also data
-entry and editing.
+server providing a web-based user interface ([demo](http://demo.hledger.org)).
+The web UI provides reporting, including a more useful account
+register view, and also basic data entry and editing.
 
 web-specific options:
 
     --port=N           serve on tcp port N (default 5000)
-    --base-url=URL     use this base url (default http://localhost:PORT)
+    --base-url=URL     use this base url (default http://localhost:PORT/PATH)
 
-If you want to visit the web UI from other machines, you'll need to use
-this option to fix the hyperlinks. Just give your machine's host name or
-ip address instead of localhost. This option is also lets you conform to a
-custom url scheme when running hledger-web behind a reverse proxy as part
-of a larger site. Note that the PORT in the base url need not be the same
-as the `--port` argument.
+If you want to visit the web UI from other machines, you'll need
+`--base-url` to specify the protocol/hostname/port/path to use in
+hyperlinks. This also lets you conform to a custom url scheme when
+running hledger-web behind a reverse proxy as part of a larger
+site. Note that PORT in the base url need not be the same as the
+`--port` argument.
 
 Warning: unlike other hledger commands, `web` can alter existing journal
 data, via the edit form.  A numbered backup of the file will be saved on
@@ -836,7 +840,7 @@ the following:
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
 - `edate:PERIODEXPR` - as above, but match secondary dates
 - `status:1` or `status:0` - match cleared/uncleared transactions
-- `tag:NAME[=REGEX]` - match by exact [tag](#tags) name, and optionally match the tag value by regular expression
+- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 - `not:` before any of the above negates the match
 
@@ -857,6 +861,8 @@ Multiple query terms will select transactions/postings/accounts which match
 > *any of the description terms AND*  
 > *any of the account terms AND*  
 > *all the other terms*
+
+
 
 With the [print](#print) command, they select transactions which
 
