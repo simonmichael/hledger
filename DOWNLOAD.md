@@ -28,14 +28,13 @@ td strong a:link {
    target="_blank" style="float:right;margin:1em;"
    ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
 
-Generating and supporting portable binaries costs time and effort that can
-be better used elsewhere. So, I do it when stimulated by donations.
-Binaries funded in this way will then be available to all - a quick way to
-help the project and your fellow users!
+Generating, testing and supporting platform binaries takes time away from development, documentation, project management, etc. 
+So I now do it lazily, when stimulated by project donations.
+Binaries funded in this way will then be available to all.
+This is a quick way to help the project and your fellow users!
+For other install options, and more installation help, see the [Installation Guide](INSTALL.html).
 
-The available binaries are below.
-The current hledger release is 0.19.3.
-For additional help, and other install options, see the [Installation Guide](INSTALL.html).
+The current hledger release is 0.19.3. Here are the available binaries:
 
 <table>
   <tr>
