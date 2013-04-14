@@ -25,7 +25,7 @@ learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
 
-**Community**
+**Community & support:**
 
 **IRC (chat):** [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger) (shared with ledger, I am "sm" there)  
 **Mail list:** [hledger.org/list](http://hledger.org/list). (or for general *ledger issues, you can use or cc [ledger's list](http://list.ledger-cli.org))  
