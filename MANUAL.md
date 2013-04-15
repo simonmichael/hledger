@@ -88,8 +88,8 @@ each describing a transfer of money (or any commodity) between two or more named
 in a simple format readable by both hledger and humans.
 
 hledger's journal format is a compatible subset, mostly,
-of [c++ ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with [compatible](LEDGER.html) c++ ledger journal files as well.
+of [ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
+so hledger can work with [compatible](FAQ.html#file-format-differences) ledger journal files as well.
 It's safe, and encouraged, to run both hledger and ledger on the same journal file,
 eg to validate the results you're getting.
 
@@ -527,7 +527,7 @@ To generate time logs, ie to clock in and clock out, you could:
         alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
         alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
 
-- or use the old `ti` and `to` scripts in the [c++ ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
+- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ## Commands
@@ -899,7 +899,7 @@ Spaces in smart dates are optional, so eg: `-b lastmonth` is valid.
 hledger supports flexible "period expressions" with the `-p/--period`
 option to select transactions within a period of time (eg in 2009) and/or
 with a reporting interval (eg weekly). hledger period expressions are
-similar but not identical to c++ ledger's.
+similar but not identical to ledger's.
 
 Here is a basic period expression specifying the first quarter of 2009.
 Note the start date is always included and the end date is always excluded:

@@ -605,7 +605,7 @@ at 3464 lines of non-test code, 97 tests, 53% test coverage.
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/193)
 
   * price history support (first cut): P directives now work,
-    though differently from c++ ledger. Each posting amount takes its
+    though differently from ledger. Each posting amount takes its
     fixed unit price from the price history (or
     @) when available. This is simple and useful for things like
     foreign currency expenses (but not investment tracking). Like
@@ -850,7 +850,7 @@ Release stats:
   * don't require quickcheck
   * priced amounts (eg "10h @ $50") and ..basis/..cost/-B flag to
     show them with cost basis
-  * easy ..depth option, equivalent to c++ ledger's -d 'l<=N'
+  * easy ..depth option, equivalent to ledger's -d 'l<=N'
   * smarter y/m/d date parsing for -b and -e (any number of digits,
     month and day default to 1, separator can be / - or .)
   * -n flag for balance command
@@ -858,7 +858,7 @@ Release stats:
   * build a library, as well as the exe
   * new home page url (http://joyful.com/hledger)
   * publish html and pdf versions of README
-  * detect display preferences for each commodity like c++ ledger
+  * detect display preferences for each commodity like ledger
   * support amounts with multiple currencies/commodities
   * support ..real/-R flag
   * support -C/..cleared flag to filter by entry status (not
@@ -891,7 +891,7 @@ interest. It can be used for generating simple balance and transaction
 reports from a plain-text general ledger. A home page and mail list has
 also been created.
 
-Immediate plans are to add some more of the most useful features from c++
+Immediate plans are to add some more of the most useful features from 
 ledger, so that hledger can be used for day-to-day finances, and to grow
 the community of contributors.
 
