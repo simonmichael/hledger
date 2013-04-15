@@ -7,12 +7,11 @@ title: hledger docs
 **Official hledger docs:**
 
 [Installation Guide](INSTALL.html) and [Release Notes](NEWS.html)\
-**[User Manual](MANUAL.html)** (past releases:
-[0.19.x User Manual](0.19/MANUAL.html),
-[0.18.x User Manual](0.18/MANUAL.html))\
+**[User Manual](MANUAL.html)** (past versions:
+[0.19.x manual](0.19/MANUAL.html),
+[0.18.x manual](0.18/MANUAL.html))\
 [Developer Guide](DEVELOP.html)\
-[FAQ](FAQ.html) *in progress*\
-[Compatibility with ledger](LEDGER.html)\
+[FAQ](FAQ.html)\
 
 
 **Tutorials:**
