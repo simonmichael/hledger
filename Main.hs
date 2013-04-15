@@ -113,8 +113,8 @@ main = bracket (return ()) (\() -> hFlush stdout >> hFlush stderr) $ \() -> do
     exitFailure
 
   thisDay <- getCurrentDay
-  let firstDay = minimum $ map transactionEffectiveDate ts
-  let lastDay = maximum $ map transactionEffectiveDate ts
+  let firstDay = minimum $ map transactionDate2 ts
+  let lastDay = maximum $ map transactionDate2 ts
   let existingSpan = DateSpan (Just firstDay) (Just lastDay)
 
   let begin = maybe firstDay (fixSmartDateStr' thisDay) (optBegin opts)
@@ -129,16 +129,16 @@ main = bracket (return ()) (\() -> hFlush stdout >> hFlush stderr) $ \() -> do
 
   forM_ spans $ \(DateSpan (Just ibegin) (Just iend)) -> do
       let preQuery = And [ Acct (optInvAcc opts),
-                           EDate (openClosedSpan Nothing (Just ibegin))]
+                           Date (openClosedSpan Nothing (Just ibegin))]
           pre_amount = negate $ unMix $ accountAmount preQuery ts
       let prefix = (ibegin, pre_amount)
 
-      let eQuery = And [Acct (optInvAcc opts), EDate (openClosedSpan Nothing (Just iend))]
+      let eQuery = And [Acct (optInvAcc opts), Date (openClosedSpan Nothing (Just iend))]
       let final = unMix $ accountAmount eQuery ts
       let postfix = (iend, final)
 
       let cfQuery = And [ Not (Or [Acct (optInvAcc opts), Acct (optInterestAcc opts)]), 
-                          EDate (openClosedSpan (Just ibegin) (Just iend)) ] 
+                          Date (openClosedSpan (Just ibegin) (Just iend)) ] 
       let cf = calculateCashFlow cfQuery ts
 
       let totalCF = sortBy (comparing fst) $ filter ((/=0) . aquantity . snd) $ prefix : cf ++ [postfix]
@@ -180,7 +180,7 @@ interestSum referenceDay cf rate = sum $ map go cf
 calculateCashFlow :: Query -> [Transaction] -> CashFlow
 calculateCashFlow query = map go
     where
-    go t = (transactionEffectiveDate t, amt)
+    go t = (transactionDate2 t, amt)
         where
         amt = sum $
               map (unMix . pamount) $ filter (matchesPosting query) $

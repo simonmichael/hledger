@@ -73,7 +73,7 @@ cat <<__END__
 
 Executable hledger-irr
   Main-is:              Main.hs
-  Build-depends:        base >= 3 && < 5, hledger-lib >= 0.19.3, time, Cabal, statistics >= 0.10
+  Build-depends:        base >= 3 && < 5, hledger-lib == 0.19.4.*, time, Cabal, statistics >= 0.10
   Ghc-Options:          -Wall
 
 source-repository head
@@ -81,3 +81,5 @@ source-repository head
     location: http://darcs.nomeata.de/hledger-irr
 
 __END__
+
+chmod -w hledger-irr.cabal
