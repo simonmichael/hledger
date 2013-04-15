@@ -122,61 +122,20 @@ Here's an example:
 
 Now let's explore the available journal file syntax in detail.
 
-#### Transactions
+#### Entries
 
-Each transaction begins with a date in column 0, followed by three
-optional fields with spaces between them: a status flag (`*` or `!` or
-nothing), a transaction code (eg a check number), and/or a description;
-then two or more postings (of some amount to some account), each on their
-own line.
+Each journal entry begins with a [simple date](#simple-dates) in
+column 0, followed by three optional fields with spaces between them:
+a status flag (`*` or `!` or nothing), a transaction code (eg a check
+number), and/or a description; then two or more postings (of some
+amount to some account), each on their own line.
 
 The posting amounts within a transaction must always balance, ie add up to
 0.  You can leave one amount blank and it will be inferred.
 
-#### Account names
+#### Dates
 
-Account names typically have several parts separated by a full colon, from
-which hledger derives a hierarchical chart of accounts. They can be
-anything you like, but in finance there are traditionally five top-level
-accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
-
-Account names may contain single spaces, eg: `assets:accounts receivable`.
-
-#### Amounts
-
-After the account name, separated by ***two or more*** spaces, there is
-usually an amount.  This is a number, optionally with a currency symbol or
-commodity name on either the left or right. Commodity names which contain
-more than just letters should be enclosed in double quotes.
-
-Negative amounts usually have the minus sign next to the number: `$-1`.
-Or it may go before the symbol: `-$1`.
-
-hledger supports flexible decimal points and digit group separators so you
-can use your country's convention.  Numbers can use either a period (`.`)
-or a comma (`,`) as decimal point. They can also have digit group
-separators at any position (eg thousands separators) which can be comma or
-period - whichever one you did not use as a decimal point. If you use
-digit group separators, you must also include a decimal point in at least
-one number in the same commodity, so that hledger knows which character is
-which. Eg, write `$1,000.00` or `$1.000,00`.
-
-#### Amount styles
-
-Based on how you format amounts, hledger will infer canonical display
-styles for each commodity, and use these when displaying amounts in that
-commodity. Amount styles include:
-
-- the position (left or right) and spacing (space or no separator) of the commodity symbol
-- the digit group separator character (comma or period) and digit group sizes, if any
-- the decimal point character (period or comma)
-- the display precision (number of decimal places displayed)
-
-The canonical style is generally the style of the first amount seen in a commodity
-(which may be in a [default commodity directive](#default-commodity).
-The precision is the highest precision seen among all amounts in the commmodity.
-
-#### Simple dates
+##### Simple dates
 
 Within a journal file, transaction dates always follow a year/month/day
 format, although several different separator characters are accepted. Some
@@ -198,7 +157,7 @@ transactions, like so:
     1/31  ; equivalent to 2010/1/31
       ...
 
-#### Secondary dates
+##### Secondary dates
 
 Real-life transactions sometimes involve more than one date - eg the date
 you write a cheque, and the date it clears in your bank.  When you want to
@@ -225,7 +184,7 @@ Example:
     $ hledger register checking --date2
     2010/02/19 movie ticket         assets:checking                $-10         $-10
 
-#### Posting dates
+##### Posting dates
 
 [Comments and tags](#comments) are covered below, but while we are talking
 about dates: you can give individual postings a different date from their
@@ -235,28 +194,61 @@ a [simple date](#simple-dates). The secondary date can be set with
 
 Ledger's bracketed posting date syntax (`[DATE]`,
 `[DATE=DATE2]` or `[=DATE2]` in a posting comment)
-is also supported, as an alternate spelling of the date tags.
+is also supported, as an alternate spelling of the date and date2 tags.
 
-#### Default commodity
+#### Accounts
 
-You can set a default commodity, to be used for any subsequent amounts
-which have no commodity symbol, with the D directive:
+Account names typically have several parts separated by a full colon, from
+which hledger derives a hierarchical chart of accounts. They can be
+anything you like, but in finance there are traditionally five top-level
+accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
 
-    ; set british pound as default commodity
-    ; also sets canonical style for pound amounts, since it's the first one
-    ; (pound symbol on left, comma thousands separator, two decimal places)
-    D £1,000.00
-    
-    2010/1/1
-      a  2340    ; no symbol, will use pound
-      b
+Account names may contain single spaces, eg: `assets:accounts receivable`.
 
-A default commodity directive may also influence the canonical
-[amount style](#commodity-display-settings) for the commodity.
+#### Amounts
+
+After the account name, there is usually an amount.
+Important: between account name and amount, there must be **two or more** spaces.
+
+The amount is a number, optionally with a currency symbol or commodity name on either the left or right.
+Negative amounts may have the minus sign either before or after the currency symbol (`-$1` or `$-1`).
+Commodity names which contain more than just letters should be enclosed in double quotes (`1 "person hours"`).
+
+##### Decimal points and digit groups
+
+hledger supports flexible decimal point and digit group separator styles,
+to support international variations. Numbers can use either a period (`.`)
+or a comma (`,`) as decimal point. They can also have digit group
+separators at any position (eg thousands separators) which can be comma or
+period - whichever one you did not use as a decimal point. If you use
+digit group separators, you must also include a decimal point in at least
+one number in the same commodity, so that hledger knows which character is
+which. Eg, write `$1,000.00` or `$1.000,00`.
+
+##### Canonical amount styles
+
+Based on how you format amounts, hledger will infer canonical display
+styles for each commodity, and use these when displaying amounts in that
+commodity. Amount styles include:
+
+- the position (left or right) and spacing (space or no separator) of the commodity symbol
+- the digit group separator character (comma or period) and digit group sizes, if any
+- the decimal point character (period or comma)
+- the display precision (number of decimal places displayed)
+
+The canonical style is generally the style of the first amount seen in a commodity
+(which may be in a [default commodity directive](#default-commodity).
+The precision is the highest precision seen among all amounts in the commmodity.
+
+##### Balance Assertions
+
+hledger will parse and ignore ledger-style
+[balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions).
+These look like `=CURRENTBALANCE` following a posting's amount.
 
 #### Prices
 
-##### Transaction prices
+<!-- ##### Transaction prices -->
 
 When recording an amount, you can also record its price in another
 commodity. This documents an exchange rate that was applied within
@@ -290,12 +282,16 @@ examples we get:
         assets:foreign currency       $135.00
         assets                       $-135.00
 
+##### Fixed Lot Prices
+
+hledger will parse and ignore ledger-style
+[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices)
+(`{=PRICE}` following an amount).
+hledger's prices always work like ledger's fixed lot prices.
+
 ##### Historical prices
 
-You can also record a series of historical prices for a commodity using P
-directives. Typically these are used to record daily market prices or
-exchange rates. ledger uses them to calculate market value with -V, but
-hledger currently ignores them. They look like this:
+hledger will parse and ignore ledger-style historical price directives:
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
 
         ; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
@@ -304,21 +300,6 @@ hledger currently ignores them. They look like this:
         P 2009/1/1 € $1.35  
         P 2010/1/1 € $1.40
         
-#### Balance Assertions
-
-ledger supports
-[balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions):
-following a posting's amount, an equals sign and another amount which is
-the expected balance in this account at this point. hledger does not
-currently enforce these but will ignore them, so you can put them in your
-journal and test with ledger if needed.
-
-#### Fixed Lot Prices
-
-Similarly, we ignore ledger's 
-[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices).
-hledger's [prices](#transaction-prices) always work like ledger's fixed lot prices.
-
 #### Comments
 
 A semicolon in the journal file marks the start of a comment. You can
@@ -342,8 +323,7 @@ on following lines. Some examples:
 Currently `print` preserves transaction and posting comments but not
 journal comments.
 
-A "tag comment" is a transaction or posting comment containing a tag,
-explained in the next section.
+Comments may contain [tags](#tags).
 
 #### Tags
 
@@ -364,27 +344,52 @@ one, and all tags have values except TAG1:
         ; TAG3: a third transaction tag
         a  $1  ; TAG4: a posting tag
 
-#### Including other files
+#### Directives
 
-You can pull in the content of additional journal files, by writing lines like this:
+##### Account aliases
 
-    !include path/to/file.journal
+You can define account aliases to rewrite certain account names (and their subaccounts).
+This tends to be a little more reliable than post-processing with sed or similar.
+The directive is `alias ORIG = ALIAS`, where ORIG and ALIAS are full account names.
+Eg:
 
-The `!include` directive may only be used in journal files, and currently
-it may only include other journal files (eg, not timelog files.)
+    alias expenses = equity:draw:personal
 
-#### Default parent account
+To forget all aliases defined to this point, use:
+
+    end aliases
+   
+See also [How to use account aliases](ALIASES.html).
+
+##### Default commodity
+
+You can set a default commodity, to be used for any subsequent amounts
+which have no commodity symbol, with the D directive:
+
+    ; set british pound as default commodity
+    ; also sets canonical style for pound amounts, since it's the first one
+    ; (pound symbol on left, comma thousands separator, two decimal places)
+    D £1,000.00
+    
+    2010/1/1
+      a  2340    ; no symbol, will use pound
+      b
+
+A default commodity directive may also influence the canonical
+[amount style](#commodity-display-settings) for the commodity.
+
+##### Default parent account
 
 You can specify a parent account which will be prepended to all accounts
-within a section of the journal. Use the `!account` directive like so:
+within a section of the journal. Use the `account` directive like so:
 
-    !account home
+    account home
     
     2010/1/1
         food    $10
         cash
     
-    !end
+    end
 
 If `!end` is omitted, the effect lasts to the end of the file.
 The above is equivalent to:
@@ -395,20 +400,21 @@ The above is equivalent to:
 
 Included files are also affected, eg:
 
-    !account business
-    !include biz.journal
-    !end
-    !account personal
-    !include personal.journal
-    !end
+    account business
+    include biz.journal
+    end
+    account personal
+    include personal.journal
+    end
 
-#### Account aliases
+##### Including other files
 
-You can define account aliases to rewrite certain account names (and their subaccounts).
-This tends to be a little more reliable than post-processing with sed or similar.
-The directive is `alias ORIG = ALIAS`, where ORIG and ALIAS are full account names.
-To forget all aliases defined to this point, use `end aliases`.
-For an example, see [How to use account aliases](ALIASES.html).
+You can pull in the content of additional journal files, by writing lines like this:
+
+    include path/to/file.journal
+
+The `include` directive may only be used in journal files, and currently
+it may only include other journal files (eg, not CSV or timelog files.)
 
 
 ### CSV files
@@ -538,7 +544,7 @@ To generate time logs, ie to clock in and clock out, you could:
 
 hledger provides a number of subcommands; run `hledger` with no arguments to see a list.
 Most subcommands are built in to the core hledger package;
-more [add-on commands](#add-on-commands) will appear if you install additional hledger-* packages.
+more [add-on commands](#add-on-commands) will appear if you install additional `hledger-*` packages.
 You can also install your own subcommands by putting programs or scripts named `hledger-NAME` in your PATH.
 
 ### Data entry
@@ -606,7 +612,8 @@ An example:
 
 ### Reporting
 
-These are the commands for querying your ledger.
+These are the commands for actually querying your ledger.
+The most basic reporting commands are `print`, `register` and `balance`:
 
 #### print
 
@@ -849,8 +856,10 @@ Examples:
 
 ## Reporting options
 
-The following additional features and options allow for fine-grained
-reporting. They are common to most commands, where applicable.
+Part of hledger's usefulness is being able to report on just a precise
+subset of your data.  The following common features and options work
+with most subcommands, allowing you to specify search criteria and
+adjust the output.
 
 ### Queries
 
@@ -900,12 +909,14 @@ With the [print](#print) command, they select transactions which
 > *have no postings matching any of the negative account terms AND*  
 > *match all the other terms*
 
-Note many of the above query terms can also be expressed as command-line
-flags; you can use either, or both at once.
+Query expressions (mostly) work the same way on the command line and [web](#web) interfaces.
+Note that many query terms have equivalent (older) command-line flags.
+You can mix and match query arguments and flags, but note that 
+[period expressions](#period-expressions) override other date queries.
 
 ### Smart dates
 
-Unlike the journal file, hledger's user interface accepts more flexible
+Unlike the journal file format, hledger's user interface accepts flexible
 "smart dates", for example in the `-b` and `-e` options, period
 expressions, display expressions, the add command and the web add form.
 Smart dates allow some natural english words, will assume 1 where
@@ -921,7 +932,7 @@ today's date. Examples:
 - `last week` (the monday of the week before this one)
 - `today`, `yesterday`, `tomorrow`
 
-Spaces in smart dates are optional, so eg: `-b lastmonth` is valid.
+Spaces in smart dates are optional, so eg `-b lastmonth` or `date:fromlastmonth` are valid.
 
 ### Period expressions
 
@@ -992,18 +1003,23 @@ options. But as noted above, a --period option will override these.
 
 ### Display expressions
 
-Unlike a [period expression](#period-expressions), which selects the
-transactions to be used for calculation, a display expression (specified
-with `-d/--display`) selects which transactions will be displayed. This
-useful, say, if you want to see your checking register just for this
-month, but with an accurate running balance based on all transactions. Eg:
+A [period expression](#period-expressions) or other [query](#queries)
+selects the transactions to be used for calculation. A display
+expression, specified with `-d/--display`, selects a more limited
+subset of transactions to be displayed in the report output. 
+
+This useful, say, if you want to see your checking register just for
+this month, but with an accurate running balance based on all
+transactions. Eg:
 
     $ hledger register checking --display "d>=[1]"
 
-meaning "make a register report of all checking transactions, but display
-only the ones with date on or after the 1st of this month." This the only
-kind of display expression we currently support, ie transactions before or
-after a given (smart) date.
+meaning "make a register report of all checking transactions, but
+display only the ones with date on or after the 1st of this month."
+Any [smart date](#smart-dates) can appear inside the brackets.
+
+The above the only kind of display expression we currently support:
+transactions before or after a given date.
 
 ### Depth limiting
 
