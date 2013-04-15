@@ -417,7 +417,7 @@ For an example, see [How to use account aliases](ALIASES.html).
 
 hledger can also read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,
-translating the CSV records into journal entries on the fly. 
+translating the CSV records into journal entries on the fly.
 We must provide some some conversion hints in a "rules file", named
 like the CSV file with an extra `.rules` suffix (you can choose another name with `--rules-file`).  
 
@@ -486,9 +486,15 @@ The following kinds of rule can appear in any order:
 Typically you'll keep one rules file for each account which you
 download as CSV. For an example, see [How to read CSV files](CSV.html).
 
-Other features:
+Other notes:
 
-A CSV amount value that is parenthesised will have the parentheses stripped and its sign flipped.
+An amount value that is parenthesised will have the parentheses stripped and its sign flipped.
+
+If the `currency` pseudo field is assigned, its value will be prepended to every amount.
+
+If the CSV has debit/credit amounts in separate fields, assign the `amount-in` and `amount-out` pseudo fields instead of `amount`.
+
+Generating entries with three or more postings is not supported at present.
 
 ### Timelog files
 
