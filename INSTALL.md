@@ -63,17 +63,17 @@ will also be available as hledger's `web` subcommand.
 Other add-on packages are available on Hackage, although some of these are
 unmaintained or work only on certain platforms:
 
-- [hledger-vty](http://hackage.haskell.org/package/hledger-vty)
 - [hledger-chart](http://hackage.haskell.org/package/hledger-chart)
 - [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 - [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
+- [hledger-vty](http://hackage.haskell.org/package/hledger-vty)
 
 ## Install the latest development version
 
 To download and build the latest development version of hledger, ensure you have
 [git](http://git-scm.com) installed, then:
 
-    $ git clone http://github.com/simonmichael/hledger.git  # or git@github.com:simonmichael/hledger.git
+    $ git clone http://github.com/simonmichael/hledger.git
     $ cd hledger
     $ cabal update
     $ cabal install ./hledger-lib ./hledger [./hledger-web]

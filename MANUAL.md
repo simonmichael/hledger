@@ -27,10 +27,8 @@ You can use it to, eg:
 - track time and report by day/week/month/project
 - get accurate numbers for client billing and tax filing
 
-hledger works on linux, mac and windows. You can fund ready-to-run
-binaries of the latest release - see the [download page](DOWNLOAD.html).
-Otherwise, fetch and build the latest release from Hackage with cabal-install.
-Eg:
+hledger works on linux, mac and windows. People most often build the
+latest release with cabal-install, like so:
 
     $ cabal update
     $ cabal install hledger [hledger-web]
@@ -38,7 +36,7 @@ Eg:
     $ hledger --version
     hledger 0.19.3
     
-For more help with this, see the [Installation Guide](INSTALL.html).
+For more help with this, and other install options, see the [Installation Guide](INSTALL.html).
 
 ## Basic Usage
 
@@ -76,7 +74,7 @@ enter some transactions.  Or, save this
     $ hledger reg desc:shop                 # show postings with shop in the description
     $ hledger activity                      # show transactions per day as a bar chart
     
-## Data formats
+## Data format
 
 ### Journal files
 
@@ -543,9 +541,10 @@ Most subcommands are built in to the core hledger package;
 more [add-on commands](#add-on-commands) will appear if you install additional hledger-* packages.
 You can also install your own subcommands by putting programs or scripts named `hledger-NAME` in your PATH.
 
-### Misc commands
+### Data entry
 
-Here are some miscellaneous commands you might use to get started:
+Many hledger users edit their journals directly with a text editor, or generate them from CSV.
+For more interactive data entry, there is the `add` command and also the `web` add-on (below).
 
 #### add
 
@@ -604,20 +603,8 @@ An example:
     Starting a new transaction.
     date ? [2013/04/09]: <CTRL-D>
     $
-    
-#### test
 
-This command runs hledger's built-in unit tests and displays a quick
-report. A pattern can be provided to filter tests by name. It's mainly
-used in development, but it's also nice to be able to check hledger for
-smoke at any time.
-
-Examples:
-
-    $ hledger test
-    $ hledger test -v balance
-
-### Reporting commands
+### Reporting
 
 These are the commands for querying your ledger.
 
@@ -731,10 +718,25 @@ Examples:
     $ hledger stats
     $ hledger stats -p 'monthly in 2009'
 
-### Add-on commands
+### Utility
+
+#### test
+
+This command runs hledger's built-in unit tests and displays a quick
+report. A pattern can be provided to filter tests by name. It's mainly
+used in development, but it's also nice to be able to check hledger for
+smoke at any time.
+
+Examples:
+
+    $ hledger test
+    $ hledger test -v balance
+
+### Add-ons
 
 The following extra commands will be available if they have been
-[installed](#installing) (run `hledger` by itself to find out):
+[installed](INSTALL.html) (run `hledger --help` to find out).  Some of
+these add-on packages may be out of date or may not work on all platforms.
 
 #### web
 
@@ -773,21 +775,25 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --port 5010 --base-url http://some.vhost.com --debug
 
-#### vty
+#### interest
 
-The vty command (provided by the hledger-vty package) starts a simple
-curses-style (full-screen, text) user interface, which allows interactive
-navigation of the print/register/balance reports. This lets you browse
-around and explore your numbers quickly with less typing.
+[hledger-interest](http://hackage.haskell.org/package/hledger-interest)
+computes interests for a given account. Using command line flags,
+the program can be configured to use various schemes for day-counting,
+such as act/act, 30/360, 30E/360, and 30/360isda. Furthermore, it
+supports a (small) number of interest schemes, i.e. annual interest
+with a fixed rate and the scheme mandated by the German BGB288
+(Basiszins für Verbrauchergeschäfte). See the package page for more.
 
-vty-specific options:
+#### irr
 
-    --debug-vty  run with no terminal output, showing console
-
-Examples:
-
-    $ hledger vty
-    $ hledger vty -BE food
+[hledger-irr](http://hackage.haskell.org/package/hledger-irr)
+computes the internal rate of return, also known as the effective
+interest rate, of a given investment. After specifying what account
+holds the investment, and what account stores the gains (or losses, or
+fees, or cost), it calculates the hypothetical annual rate of fixed
+rate investment that would have provided the exact same cash flow.
+See the package page for more.
 
 #### chart
 
@@ -823,6 +829,23 @@ Examples:
     $ hledger chart liabilities --depth 2
     $ hledger chart ^expenses -o balance.png --size 1000x600 --items 20
     $ for m in 01 02 03 04 05 06 07 08 09 10 11 12; do hledger chart -p 2009/$m ^expenses --depth 2 -o expenses-2009$m.png --size 400x300; done
+
+#### vty
+
+The vty command (provided by the hledger-vty package) starts a simple
+curses-style (full-screen, text) user interface, which allows interactive
+navigation of the print/register/balance reports. This lets you browse
+around and explore your numbers quickly with less typing.
+
+vty-specific options:
+
+    --debug-vty  run with no terminal output, showing console
+
+Examples:
+
+    $ hledger vty
+    $ hledger vty -BE food
+
 
 ## Reporting options
 
@@ -1056,12 +1079,11 @@ The default output format is `%20(total)  %2(depth_spacer)%-(account)`
 
 ## Troubleshooting
 
-Here are some issues you might encounter when you run hledger:
-Please also seek
-[support](DEVELOPMENT.html#support) from the
+Here are some issues you might encounter when you run hledger
+(and remember you can also seek help from the
 [IRC channel](irc://irc.freenode.net/#ledger),
 [mail list](http://hledger.org/list) or
-[bug tracker](http://hledger.org/bugs).
+[bug tracker](http://hledger.org/bugs)):
 
 #. **hledger installed, but running hledger says something like No command 'hledger' found**  
   cabal installs binaries into a special directory, which should be added
@@ -1069,7 +1091,7 @@ Please also seek
   ~/.cabal/bin.
 
 #. **hledger fails to parse some valid ledger files**  
-  See [file format compatibility](#file-format-compatibility).
+  See [file format differences](FAQ.html#what-are-the-file-format-differences).
 
 #. <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
   In order to handle non-ascii letters and symbols (like £), hledger needs
