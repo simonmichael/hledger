@@ -27,8 +27,8 @@ and get started tracking your numbers!
 
 **Community & support:**
 
-**IRC (chat):** [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger) (shared with ledger, I am "sm" there)  
-**Mail list:** [hledger.org/list](http://hledger.org/list). (or for general *ledger issues, you can use or cc [ledger's list](http://list.ledger-cli.org))  
+**IRC (chat):** [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger) (shared with ledger)  
+**Mail list:** [hledger.org/list](http://hledger.org/list) (for broader topics, you can also use [ledger's list](http://list.ledger-cli.org))  
 **Bug tracker:** [hledger.org/bugs](http://hledger.org/bugs)  
 **Wishlist/planning:** [hledger.org/trello](http://hledger.org/trello)  
 **Code:** [hledger.org/code](http://hledger.org/code)  
