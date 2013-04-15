@@ -124,7 +124,7 @@ library
                    , yesod-static                  >= 1.1        && < 1.2
                    , yesod-default                 >= 1.1        && < 1.2
                    , yesod-form                    >= 1.1        && < 1.3
-                   , clientsession                 >= 0.8        && < 0.9
+                   , clientsession
                    , bytestring                    >= 0.9        && < 0.11
                    , text                          >= 0.11       && < 0.12
                    , template-haskell
@@ -136,7 +136,7 @@ library
                    , monad-control                 >= 0.3        && < 0.4
                    , wai-extra                     >= 1.3        && < 1.4
                    , yaml                          >= 0.8        && < 0.9
-                   , http-conduit                  >= 1.8        && < 1.9
+                   , http-conduit                  >= 1.8        && < 1.10
                    , directory                     >= 1.1        && < 1.3
                    , warp                          >= 1.3        && < 1.4
                    , data-default
@@ -248,7 +248,7 @@ executable         hledger-web
                    , warp
                    , yaml
                    , hjsmin                        >= 0.1        && < 0.2
-                   , http-conduit                  >= 1.8        && < 1.9
+                   , http-conduit                  >= 1.8        && < 1.10
                    , data-default
 
     if flag(blaze_html_0_5)
