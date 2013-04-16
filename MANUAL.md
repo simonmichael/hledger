@@ -743,8 +743,9 @@ Examples:
 
 Add-on packages are usually named `hledger-SOMETHING` and provide one
 or more `hledger-*` executables. These can be run directly, or via
-the `hledger` command. Eg `hledger --help` will list any installed add-ons,
-and `hledger web` will run `hledger-web` if it is installed.
+the `hledger` command (eg `hledger web` will run `hledger-web`).
+`hledger --help` will list any installed add-ons (or any hledger-*
+executable in your PATH).
 
 Here are some current add-ons. Note hledger-web is released along with
 hledger and supported on all the major platforms, while other add-ons
@@ -752,7 +753,7 @@ may or may not be.
 
 #### web
 
-The web command (provided by the hledger-web package) runs a web
+The web command (provided by the [hledger-web](http://hackage.haskell.org/package/hledger-web) package) runs a web
 server providing a web-based user interface ([demo](http://demo.hledger.org)).
 The web UI provides reporting, including a more useful account
 register view, and also basic data entry and editing.
