@@ -741,9 +741,14 @@ Examples:
 
 ### Add-ons
 
-The following extra commands will be available if they have been
-[installed](INSTALL.html) (run `hledger --help` to find out).  Some of
-these add-on packages may be out of date or may not work on all platforms.
+Add-on packages are usually named `hledger-SOMETHING` and provide one
+or more `hledger-*` executables. These can be run directly, or via
+the `hledger` command. Eg `hledger --help` will list any installed add-ons,
+and `hledger web` will run `hledger-web` if it is installed.
+
+Here are some current add-ons. Note hledger-web is released along with
+hledger and supported on all the major platforms, while other add-ons
+may or may not be.
 
 #### web
 
@@ -802,6 +807,8 @@ fees, or cost), it calculates the hypothetical annual rate of fixed
 rate investment that would have provided the exact same cash flow.
 See the package page for more.
 
+<!-- unmaintained:
+
 #### chart
 
 The chart command (provided by the hledger-chart package) saves an image
@@ -852,6 +859,8 @@ Examples:
 
     $ hledger vty
     $ hledger vty -BE food
+
+-->
 
 
 ## Reporting options
