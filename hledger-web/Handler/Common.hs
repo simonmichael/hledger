@@ -72,38 +72,39 @@ searchform :: ViewData -> HtmlUrl AppRoute
 searchform VD{..} = [hamlet|
 <div#searchformdiv>
  <form#searchform.form method=GET>
-  <table>
+  <table width="100%">
    <tr>
-    <td>
-     Search:
-     \ #
-    <td>
-     <input name=q size=70 value=#{q}>
+    <td width="99%">
+     <input name=q value=#{q} style="width:98%;">
+    <td width="1%">
      <input type=submit value="Search">
+   <tr valign=top>
+    <td colspan=2 style="text-align:right;">
      $if filtering
       \ #
       <span.showall>
-       <a href=@{here}>clear search
+       <a href=@{here}>clear
      \ #
      <a#search-help-link href="#" title="Toggle search help">help
    <tr>
-    <td>
-    <td>
+    <td colspan=2>
      <div#search-help.help style="display:none;">
       Leave blank to see journal (all transactions), or click account links to see transactions under that account.
       <br>
-      Transactions/postings may additionally be filtered by:
-      <br>
+      Transactions/postings may additionally be filtered by
       acct:REGEXP (target account), #
+      code:REGEXP (transaction code), #
       desc:REGEXP (description), #
       date:PERIODEXP (date), #
-      edate:PERIODEXP (secondary date), #
-      <br>
-      status:BOOL (cleared status), #
+      date2:PERIODEXP (secondary date), #
+      tag:TAG[=REGEX] (tag and optionally tag value), #
+      depth:N (accounts at or above this depth), #
+      status:*, status:!, status:  (cleared status), #
       real:BOOL (real/virtual-ness), #
-      empty:BOOL (posting amount = 0).
+      empty:BOOL (is amount zero), #
+      amt:<N, amt:=N, amt:>N (test magnitude of single-commodity amount).
       <br>
-      not: to negate, enclose space-containing patterns in quotes, multiple filters are AND'ed.
+      Prepend not: to negate, enclose multi-word patterns in quotes, multiple search terms are AND'ed.
 |]
  where
   filtering = not $ null q
