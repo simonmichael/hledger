@@ -865,21 +865,20 @@ Examples:
 -->
 
 
-## Reporting options
+## Common options
 
-Part of hledger's usefulness is being able to report on just a precise
-subset of your data.  The following common features and options work
-with most subcommands, allowing you to specify search criteria and
-adjust the output.
+The following common features and options work with most subcommands.
 
 ### Queries
 
-Most commands accept an optional query expression, written as arguments
-after the command name, to filter the data (or in some cases, to modify
-the output). The syntax is similar to a Google search expression: one or
+Part of hledger's usefulness is being able to report on just a precise subset of your data.  
+Most commands accept an optional query expression, written as arguments after the command name,
+to filter the data by date, account name or other criteria. 
+
+The query syntax is similar to a Google search expression: one or
 more space-separated search terms, optional prefixes to match specific
-fields, quotes to enclose whitespace etc. Each query term can be any of
-the following:
+fields, quotes to enclose whitespace, etc.
+A query term can be any of the following:
 
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
