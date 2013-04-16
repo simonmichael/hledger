@@ -872,14 +872,16 @@ the following:
 
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
-- `amt:<N`, `amt:=N`, `amt:>N` - match postings with a single-commodity amount less than, greater than or equal to N. (Multi-commodity amounts are always matched.)
 - `code:REGEX` - match by transaction code (eg check number)
 - `desc:REGEX` - match transaction descriptions by regular expression
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
-- `edate:PERIODEXPR` - as above, but match secondary dates
-- `status:1` or `status:0` - match cleared/uncleared transactions
+- `date2:PERIODEXPR` - as above, but match secondary dates
 - `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
+- `status:1` or `status:0` - match cleared/uncleared transactions
+- `real:1` or `real:0` - match real/virtual-ness
+- `empty:1` or `empty:0` - match if amount is/is not zero
+- `amt:<N`, `amt:=N`, `amt:>N` - match postings with a single-commodity amount less than, greater than or equal to N. (Multi-commodity amounts are always matched.)
 - `not:` before any of the above negates the match
 
 <!--
@@ -909,10 +911,12 @@ With the [print](#print) command, they select transactions which
 > *have no postings matching any of the negative account terms AND*  
 > *match all the other terms*
 
-Query expressions (mostly) work the same way on the command line and [web](#web) interfaces.
-Note that many query terms have equivalent (older) command-line flags.
-You can mix and match query arguments and flags, but note that 
-[period expressions](#period-expressions) override other date queries.
+Many of the query terms above have equivalent command-line flags which predate them.
+You can mix and match query arguments and flags, just note that a
+[period expression](#period-expressions) overrides any other date terms.
+
+The same query syntax should work in both the command line and [web](#web) interfaces.
+
 
 ### Smart dates
 
