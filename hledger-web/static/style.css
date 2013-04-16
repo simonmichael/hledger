@@ -87,7 +87,7 @@ body                        { margin:0; }
 .navlinkcurrent             { font-weight:bold; }
 .form                       { margin:0em; }
 
-#searchformdiv              { margin:0 0 1em 0; white-space:nowrap; }
+#searchformdiv              { margin:0 0 1em 0; }
 #searchform                 { margin:0; }
 #searchform span            { padding:4px; }
 #stopfilterlink             { font-weight:bold; }
