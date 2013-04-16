@@ -542,10 +542,12 @@ To generate time logs, ie to clock in and clock out, you could:
 
 ## Commands
 
-hledger provides a number of subcommands; run `hledger` with no arguments to see a list.
-Most subcommands are built in to the core hledger package;
-more [add-on commands](#add-on-commands) will appear if you install additional `hledger-*` packages.
-You can also install your own subcommands by putting programs or scripts named `hledger-NAME` in your PATH.
+hledger provides a number of subcommands out of the box; run `hledger` with no arguments to see a list.
+More [add-on commands](#add-ons) will appear if you install additional `hledger-*` packages,
+or if you put programs or scripts named `hledger-NAME` in your PATH.
+
+To run a command, you just need to type its unique prefix, eg `hledger reg` is a shortcut for `hledger register`.
+(Also, `hledger bs` is  short for `hledger balancesheet`.)
 
 ### Data entry
 
