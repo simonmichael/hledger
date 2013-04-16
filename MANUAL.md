@@ -742,14 +742,13 @@ Examples:
 ### Add-ons
 
 Add-on packages are usually named `hledger-SOMETHING` and provide one
-or more `hledger-*` executables. These can be run directly, or via
-the `hledger` command (eg `hledger web` will run `hledger-web`).
-`hledger --help` will list any installed add-ons (or any hledger-*
-executable in your PATH).
+or more `hledger-*` executables. hledger will detect these
+(or any `hledger-*` executable in your PATH) and offer
+them as extra commands; use `hledger --help` to see a list.
 
-Here are some current add-ons. Note hledger-web is released along with
-hledger and supported on all the major platforms, while other add-ons
-may or may not be.
+Here are some current add-ons.
+hledger-web is released along with hledger and supported on all the
+major platforms, while other add-ons may or may not be.
 
 #### web
 
