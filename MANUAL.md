@@ -196,6 +196,9 @@ Ledger's bracketed posting date syntax (`[DATE]`,
 `[DATE=DATE2]` or `[=DATE2]` in a posting comment)
 is also supported, as an alternate spelling of the date and date2 tags.
 
+Note: if you do use either of these forms, be sure to give them a valid DATE
+or you'll get a parse error, eg an empty `date:` tag is not allowed.
+
 #### Accounts
 
 Account names typically have several parts separated by a full colon, from
