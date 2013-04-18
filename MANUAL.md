@@ -545,10 +545,12 @@ To generate time logs, ie to clock in and clock out, you could:
 
 ## Commands
 
-hledger provides a number of subcommands; run `hledger` with no arguments to see a list.
-Most subcommands are built in to the core hledger package;
-more [add-on commands](#add-on-commands) will appear if you install additional `hledger-*` packages.
-You can also install your own subcommands by putting programs or scripts named `hledger-NAME` in your PATH.
+hledger provides a number of subcommands out of the box; run `hledger` with no arguments to see a list.
+More [add-on commands](#add-ons) will appear if you install additional `hledger-*` packages,
+or if you put programs or scripts named `hledger-NAME` in your PATH.
+
+To run a command, you just need to type its unique prefix, eg `hledger reg` is a shortcut for `hledger register`.
+(Also, `hledger bs` is  short for `hledger balancesheet`.)
 
 ### Data entry
 
@@ -744,13 +746,18 @@ Examples:
 
 ### Add-ons
 
-The following extra commands will be available if they have been
-[installed](INSTALL.html) (run `hledger --help` to find out).  Some of
-these add-on packages may be out of date or may not work on all platforms.
+Add-on packages are usually named `hledger-SOMETHING` and provide one
+or more `hledger-*` executables. hledger will detect these
+(or any `hledger-*` executable in your PATH) and offer
+them as extra commands; use `hledger --help` to see a list.
+
+Here are some current add-ons.
+hledger-web is released along with hledger and supported on all the
+major platforms, while other add-ons may or may not be.
 
 #### web
 
-The web command (provided by the hledger-web package) runs a web
+The web command (provided by the [hledger-web](http://hackage.haskell.org/package/hledger-web) package) runs a web
 server providing a web-based user interface ([demo](http://demo.hledger.org)).
 The web UI provides reporting, including a more useful account
 register view, and also basic data entry and editing.
@@ -805,6 +812,8 @@ fees, or cost), it calculates the hypothetical annual rate of fixed
 rate investment that would have provided the exact same cash flow.
 See the package page for more.
 
+<!-- unmaintained:
+
 #### chart
 
 The chart command (provided by the hledger-chart package) saves an image
@@ -856,22 +865,23 @@ Examples:
     $ hledger vty
     $ hledger vty -BE food
 
+-->
 
-## Reporting options
 
-Part of hledger's usefulness is being able to report on just a precise
-subset of your data.  The following common features and options work
-with most subcommands, allowing you to specify search criteria and
-adjust the output.
+## Common options
+
+The following common features and options work with most subcommands.
 
 ### Queries
 
-Most commands accept an optional query expression, written as arguments
-after the command name, to filter the data (or in some cases, to modify
-the output). The syntax is similar to a Google search expression: one or
+Part of hledger's usefulness is being able to report on just a precise subset of your data.  
+Most commands accept an optional query expression, written as arguments after the command name,
+to filter the data by date, account name or other criteria. 
+
+The query syntax is similar to a Google search expression: one or
 more space-separated search terms, optional prefixes to match specific
-fields, quotes to enclose whitespace etc. Each query term can be any of
-the following:
+fields, quotes to enclose whitespace, etc.
+A query term can be any of the following:
 
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
