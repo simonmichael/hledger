@@ -6,77 +6,89 @@ title: hledger news
 
 ## dev version
 
-  * CSV conversion rules have a [new format](MANUAL.html#csv-files) that aims to be more
-  intuitive, powerful and extensible.  Existing rules files will need
-  to be updated manually, here are some upgrade tips:
+**Fixes:**
 
-    - `FIELD-field N` -> `FIELD %N+1` (or set them all at once with a `fields` rule)
-    - `base-currency` -> `currency`
-    - `base-account` -> `account1`
+  * balance: fix a 0.19 regression showing wrong total balance with `--flat` (#94)
+  * register:  when `--date2` is used, sort by that date
+  * web: add missing static & template files to package fixing cabal-dev and hackage builds (#97, #98)
+  * web: fix some hardcoded static urls
+  * web: dependency updates, build fixes, GHC 7.6 compatibility
+
+**Journal reading:**
+
+  - DOS-style line-endings are now also supported in journal and rules files.
+  - `!` is now accepted in the status field as well as `*`, like ledger
+  - The *actual date* and *effective date* terminology has changed to *primary date* and *secondary date*.
+    Use `--date2` to select the secondary date for reports. (`--aux-date` or `--effective` are also accepted
+    for ledger and backwards compatibility).
+  - Per-posting dates are supported, using hledger tags or ledger's posting date syntax
+  - Comment and tag handling has been improved
+
+**CSV reading:**
+
+  - CSV conversion rules have a simpler, more flexible [syntax](MANUAL.html#csv-files).
+    Existing rules files will need to be updated manually:
+    - the filename is now `FILE.csv.rules` instead of `FILE.rules`
+    - `FIELD-field N` is now `FIELD %N+1` (or set them all at once with a `fields` rule)
+    - `base-currency` is now `currency`
+    - `base-account` is now `account1`
     - account-assigning rules:
       add `if` before the list of regexps,
       add indented `account2 ` before the account name
+  - parenthesised amounts are parsed as negative
 
-  * Non-unix-style line endings in journal and rules files are now supported.
+**Querying:**
 
-  * Querying by the code field (check number) is now supported using the `code:` prefix.
+  - Use `code:` to match the transaction code (check number) field
+  - Use `amt:` followed by `<`, `=` or `>` and a number N to match
+    amounts by magnitude. Eg `amt:<0` or `amt:=100`. This works only
+    with single-commodity amounts (multi-commodity amounts are
+    always matched).
+  - `tag:` can now match (exact, case sensitive) tag values. Eg `tag:TAG=REGEXP`.
 
-  * Querying by amount is now supported using the `amt:` prefix.
-  It should be followed by `<`, `=` or `>`, and a number N, eg `amt:<0` or `amt:=100`.
-  For simple (single commodity) amounts, this matches if the amount's quantity has the specified relationship to N.
-  For multi-commodity amounts, it always matches.
-  If parsing fails, an error is raised.
-  This has not been tested for floating-point precision.
+**add comand:**
 
-  * *actual* & *effective dates* are now called *primary* & *secondary dates*.
-    Use --date2 to select the secondary date for reports (--effective or --aux-date are also accepted for compatibility).
+  - Transaction codes and comments (which may contain tags) can now be entered, following a date or amount respectively. (#45)
+  - The current entry may be restarted by entering `<` at any prompt. (#47)
+  - Entries are displayed and confirmed before they are written to the journal.
+  - Default values may be specified for the first entry by providing them as command line arguments.
+  - Miscellaneous UI cleanups
 
-  * add: allow transaction codes or comments/tags to be entered (following a date or amount, respectively) (#45)
+**register command:**
 
-  * add: entering < at any prompt restarts the current transaction (#47)
+  - The `--related`/`-r` flag shows the other postings in each transaction, like ledger.
+  - The `--width`/`-w` option increases or sets the output width.
 
-  * add: show and confirm the entry before adding it to the journal
+**web command:**
 
-  * add: use command line arguments as defaults for the first entry
+  - Bootstrap is now used for styling and layout
+  - A favicon is served
+  - The search field is wider
+  - yesod devel is now supported; it uses `$LEDGER_FILE` or `~/.hledger.journal`
 
-  * add: misc. ui cleanups
+**Add-ons:**
 
-  * balance: fix a 0.19 regression showing wrong total balance with balance --flat (#94)
+  - The hledger-interest and hledger-irr commands have been released/updated.
+  - hledger-chart and hledger-vty remain unmaintained and deprecated.
 
-  * csv reader: rules files are now named "FILE.csv.rules" (instead of "FILE.rules")
+**Documentation:**
 
-  * csv reader: parenthesised amounts as are parsed as negative
+  - The hledger docs and website have been reorganised and updated
+  - Manuals for past releases are provided as well as the latest dev version
 
-  * journal reader: accept ! in the status field, as well as *
+**Other notes:**
 
-  * journal reader: support per-posting dates
+  - hledger has moved from darcs and darcs hub to git and github (!)
+  - the bug tracker has moved from google code to github
+  - feature requests and project planning are now managed on trello
 
-  * journal reader: better comment & tag handling
-
-  * register: support the --related/-r flag to show other postings in the transaction
-
-  * register: support the --width/-w option to adjust register overall output width
-
-  * register: when --date2 is in effect, sort by that date
-
-  * web: yesod devel now works; it uses $LEDGER_FILE or ~/.hledger.journal
-
-  * web: add missing static & template files to package fixing cabal-dev and hackage builds (#97, #98)
-
-  * web: fix some hardcoded static urls
-
-  * web: dependency updates, build fixes, GHC 7.6 compatibility
-
-  * web: serve a favicon (Yesod's)
-
-  * web: use normalise, bootstrap, and widgets
-
-Release contributors:
+**Release contributors:**
 
 - Sascha Welter commissioned register enhancements (--related and --width)
 - David Patrick contributed a bounty for add enhancements
 - Joachim Breitner added support for ! in status field
 - Xinruo Sun provided hledger-web build fixes
+- Marko Kocić provided hledger-web fixes
 
 <!-- Days since last release: 109\ -->
 <!-- Commits since last release: 105 -->
