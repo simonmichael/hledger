@@ -12,10 +12,10 @@ import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
 import System.Locale (defaultTimeLocale)
-#if BLAZE_HTML_0_5
-import Text.Blaze.Html (toHtml)
-#else
+#if BLAZE_HTML_0_4
 import Text.Blaze (toHtml)
+#else
+import Text.Blaze.Html (toHtml)
 #endif
 import Text.Hamlet
 import Yesod.Core

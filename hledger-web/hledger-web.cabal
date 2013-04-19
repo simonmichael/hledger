@@ -57,9 +57,9 @@ flag threaded
     Description:   Build with support for multithreaded execution.
     Default:       True
 
-flag blaze_html_0_5
-    description:   Use the newer 0.5 version of blaze-html and blaze-markup.
-    default:       True
+flag blaze_html_0_4
+    description:   Use the older 0.4 version of blaze-html.
+    default:       False
 
 
 flag dev
@@ -159,14 +159,14 @@ library
                    , warp
                    , yaml
 
-    if flag(blaze_html_0_5)
-      cpp-options:   -DBLAZE_HTML_0_5
+    if flag(blaze_html_0_4)
+      cpp-options:   -DBLAZE_HTML_0_4
+      build-depends:
+                     blaze-html               >= 0.4     && < 0.5
+    else
       build-depends:
                      blaze-html               >= 0.5     && < 0.7
                    , blaze-markup             >= 0.5.1   && < 0.7
-    else
-      build-depends:
-                     blaze-html               >= 0.4     && < 0.5
 
 
 executable         hledger-web
@@ -251,14 +251,14 @@ executable         hledger-web
                    , http-conduit                  >= 1.8        && < 1.10
                    , data-default
 
-    if flag(blaze_html_0_5)
-      cpp-options:   -DBLAZE_HTML_0_5
+    if flag(blaze_html_0_4)
+      cpp-options:   -DBLAZE_HTML_0_4
+      build-depends:
+                     blaze-html               >= 0.4     && < 0.5
+    else
       build-depends:
                      blaze-html               >= 0.5     && < 0.7
                    , blaze-markup             >= 0.5.1   && < 0.7
-    else
-      build-depends:
-                     blaze-html               >= 0.4     && < 0.5
 
 
 test-suite test

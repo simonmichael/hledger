@@ -10,10 +10,10 @@ import Data.Maybe
 import Data.Text(pack)
 import Data.Time.Calendar
 import System.FilePath (takeFileName)
-#if BLAZE_HTML_0_5
-import Text.Blaze.Internal (preEscapedString)
-#else
+#if BLAZE_HTML_0_4
 import Text.Blaze (preEscapedString)
+#else
+import Text.Blaze.Internal (preEscapedString)
 #endif
 import Text.Printf
 

@@ -66,18 +66,19 @@ title: hledger news
   - The search field is wider
   - yesod devel is now supported; it uses `$LEDGER_FILE` or `~/.hledger.journal`
 
+**Misc:**
+
+  * the `blaze_html_0_5` build flag has been reversed and renamed to `blaze_html_0_4`
+
 **Add-ons:**
 
   - The hledger-interest and hledger-irr commands have been released/updated.
   - hledger-chart and hledger-vty remain unmaintained and deprecated.
 
-**Documentation:**
+**Documentation and infrastructure:**
 
   - The hledger docs and website have been reorganised and updated
   - Manuals for past releases are provided as well as the latest dev version
-
-**Other notes:**
-
   - hledger has moved from darcs and darcs hub to git and github (!)
   - the bug tracker has moved from google code to github
   - feature requests and project planning are now managed on trello
