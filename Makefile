@@ -54,6 +54,7 @@ SOURCEFILES:= \
 	hledger-*/Hledger/*/*hs \
 	hledger-web/app/*.hs \
 	hledger-web/Handler/*.hs \
+	hledger-web/Hledger/*.hs \
 	hledger-web/Settings/*.hs
 
 # a more careful list suitable for for haddock
@@ -508,7 +509,7 @@ ghci:
 	ghci $(INCLUDEPATHS) $(MAIN)
 
 ghciweb:
-	ghci $(BUILDFLAGS) $(WEBLANGEXTS)  #hledger-web/app/main.hs
+	ghci $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal
