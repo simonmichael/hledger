@@ -67,6 +67,7 @@ input.textinput, .dhx_combo_input, .dhx_combo_list { font-size:small; }
 body                        { margin:0; }
 #content                    { padding:1em 0 0 0.5em; }
 
+
 #topbar                     { padding:2px; }
 .topleftlink                { float:left; margin-right:1em; padding:2px; }
 .toprightlink               { float:right; margin-left:1em; padding:2px; }
@@ -78,9 +79,10 @@ body                        { margin:0; }
 .help                       { font-style: italic; }
 .helprow td                 { padding-bottom:8px; }
 
-#sidebar { float:left; padding-right:1em; margin-bottom:5em; }
+#outermain { overflow:auto; }
+#main { overflow:auto; padding-left:1em; }
 
-#main { overflow:auto; border-left:thin solid #ded; padding-left:1em; }
+#sidebar { float:left; padding-right:1em; border-right:thin solid #ded; margin-bottom:5em; }
 
 #navlinks                   { margin-bottom:1em; }
 .navlink                    { }
