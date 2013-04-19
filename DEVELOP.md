@@ -261,10 +261,8 @@ The hledger project aims to produce:
 ### code
 
 - the hledger repo is hosted on github.com:
-
-  [http://github.com/simonmichael/hledger](http://github.com/simonmichael/hledger)
-  
-  You can also jump there by entering hledger.org/code or code.hledger.org .
+  [http://github.com/simonmichael/hledger](http://github.com/simonmichael/hledger).
+  (You can also jump there via [hledger.org/code](http://hledger.org/code) or code.hledger.org).
 
 <!-- ### release process -->
 
