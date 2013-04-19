@@ -6,13 +6,15 @@ title: hledger news
 
 ## dev version
 
-**Fixes:**
+**Bugs fixed:**
 
-  * balance: fix a 0.19 regression showing wrong total balance with `--flat` (#94)
-  * register:  when `--date2` is used, sort by that date
-  * web: add missing static & template files to package fixing cabal-dev and hackage builds (#97, #98)
-  * web: fix some hardcoded static urls
-  * web: dependency updates, build fixes, GHC 7.6 compatibility
+  * balance: a 0.19 regression which showed wrong total balance with `--flat` has been fixed (#94)
+  * register: when `--date2` is used, the register is now sorted by the secondary date
+  * web: some missing static & template files have been added to the package, fixing cabal-dev and hackage builds (#97, #98)
+  * web: some hardcoded static urls have been fixed
+  * Dependencies and code have been updated to support the latest
+    libraries and GHC versions.  For now, hledger requires GHC 7.2+
+    and hledger-web requires GHC 7.4+.
 
 **Journal reading:**
 
@@ -64,10 +66,8 @@ title: hledger news
   - Bootstrap is now used for styling and layout
   - A favicon is served
   - The search field is wider
+  - Requests are no longer logged to the console, except in development builds
   - yesod devel is now supported; it uses `$LEDGER_FILE` or `~/.hledger.journal`
-
-**Misc:**
-
   * the `blaze_html_0_5` build flag has been reversed and renamed to `blaze_html_0_4`
 
 **Add-ons:**
@@ -80,8 +80,9 @@ title: hledger news
   - The hledger docs and website have been reorganised and updated
   - Manuals for past releases are provided as well as the latest dev version
   - hledger has moved from darcs and darcs hub to git and github (!)
-  - the bug tracker has moved from google code to github
-  - feature requests and project planning are now managed on trello
+  - The bug tracker has moved from google code to github
+  - Feature requests and project planning are now managed on trello
+  - A build bot builds against multiple GHC versions on each commit
 
 **Release contributors:**
 
@@ -89,6 +90,7 @@ title: hledger news
 - David Patrick contributed a bounty for add enhancements
 - Joachim Breitner added support for ! in status field
 - Xinruo Sun provided hledger-web build fixes
+- Peter Simons provided hledger-web build fixes, and a build bot
 - Marko Kocić provided hledger-web fixes
 
 <!-- Days since last release: 109\ -->
