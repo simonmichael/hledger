@@ -6,46 +6,45 @@ title: hledger Developer Guide
 
 **Quick links:**
 
-**hledger released version**<br>
-  [release notes](NEWS.html),
-  [hledger-web demo](http://demo.hledger.org)
-  <br>
-  [ready-to-run binaries](DOWNLOADS.html)
-  <br>
-  [hledger](http://hackage.haskell.org/package/hledger),
-  [hledger-web](http://hackage.haskell.org/package/hledger-web),
-  [hledger-vty](http://hackage.haskell.org/package/hledger-vty),
-  [hledger-chart](http://hackage.haskell.org/package/hledger-chart),
-  [hledger-lib](http://hackage.haskell.org/package/hledger-lib)
-  packages
-
-**hledger development version**<br>
-  [Get it](#how-to-set-up-for-development),
-  [browse it](http://github.com/simonmichael/hledger),
-  [changes](http://github.com/simonmichael/hledger/commits),
-  [CHANGES!](http://starlogs.net/#simonmichael/hledger) (turn up your volume)
-  <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
-  <br>
-  [developer notes](http://github.com/simonmichael/hledger/NOTES.org),
-  [haddock coverage](http://hledger.org/profs/haddock-coverage),
-  [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html),
-  [benchmark](http://hledger.org/profs/latest.bench),
-  <!-- [profile](http://hledger.org/profs/latest.prof), -->
-  <!-- [heap](http://hledger.org/profs/latest.ps) -->
-  [stale dependencies](http://packdeps.haskellers.com/feed/?needle=hledger)
-  reports
-<br>
-<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
+**hledger released version**\
+[release notes](NEWS.html)\
+[hledger](http://hackage.haskell.org/package/hledger),
+[hledger-web](http://hackage.haskell.org/package/hledger-web),
+[hledger-interest](http://hackage.haskell.org/package/hledger-interest),
+[hledger-irr](http://hackage.haskell.org/package/hledger-irr),
+[hledger-vty](http://hackage.haskell.org/package/hledger-vty),
+[hledger-chart](http://hackage.haskell.org/package/hledger-chart),
+[hledger-lib](http://hackage.haskell.org/package/hledger-lib)
+packages\
+<!-- [hledger-web demo](http://demo.hledger.org) -->
+<!-- <script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script> -->
 <script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
 <form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
-[browse dev API docs](http://hledger.org/api/frames.html)
-or
 <input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
 <span style="white-space:nowrap;"
 ><input type="text" name="hoogle" id="hoogle" accesskey="1" size="30"
-/><input type="submit" value="search released API docs"
+/><input type="submit" value="search API with hoogle"
 /></span>
 </form>
+
+**hledger development version**<br>
+[Get it](#how-to-set-up-for-development),
+[browse it](http://github.com/simonmichael/hledger),
+[changes](http://github.com/simonmichael/hledger/commits),
+[CHANGES](http://starlogs.net/#simonmichael/hledger) (turn up your volume!)
+<!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
+<br>
+[build](http://hydra.cryp.to:8080/project/hledger),
+[dependencies](http://packdeps.haskellers.com/feed/?needle=hledger)
+<!-- [haddock coverage](http://hledger.org/profs/haddock-coverage), -->
+<!-- [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html), -->
+<!-- [benchmark](http://hledger.org/profs/latest.bench) -->
+<!-- [profile](http://hledger.org/profs/latest.prof), -->
+<!-- [heap](http://hledger.org/profs/latest.ps) -->
+reports\
+<!-- [developer notes](http://github.com/simonmichael/hledger/NOTES.org)\ -->
+<!-- [browse dev API docs](http://hledger.org/api/frames.html) -->
+
 \
 
 
