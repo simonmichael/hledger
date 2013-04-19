@@ -18,7 +18,7 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      beta
-tested-with:    GHC==7.4.1, GHC==7.6.1
+tested-with:    GHC==7.2.2, GHC==7.4.2, GHC==7.6.1
 cabal-version:  >= 1.8
 build-type:     Simple
 -- data-dir:       data
