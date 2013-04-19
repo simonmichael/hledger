@@ -39,9 +39,9 @@ This is the most common way to install hledger, but not always the easiest;
 use the troubleshooting tips below if needed.
 
 Ensure you have [GHC](http://hackage.haskell.org/ghc/) or
-the [Haskell Platform](http://hackage.haskell.org/platform/) installed
-(GHC 7.0 or greater)
-then install the hledger command-line tool:
+the [Haskell Platform](http://hackage.haskell.org/platform/) installed.
+hledger currently requires GHC 7.2 or greater, and hledger-web requires GHC 7.4 or greater.
+Then install the hledger command-line tool:
 
     $ cabal update
     $ cabal install hledger [--dry-run]
