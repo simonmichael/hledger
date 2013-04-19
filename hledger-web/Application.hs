@@ -10,7 +10,7 @@ import Import
 import Yesod.Default.Config
 import Yesod.Default.Main
 import Yesod.Default.Handlers
-import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
+import Network.Wai.Middleware.RequestLogger (logStdoutDev) -- , logStdout
 import Network.HTTP.Conduit (newManager, def)
 
 -- Import all relevant handler modules here.
@@ -44,7 +44,7 @@ makeApplication j conf = do
     return $ logWare app
   where
     logWare   = if development then logStdoutDev
-                               else logStdout
+                               else id -- logStdout
 
 makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
