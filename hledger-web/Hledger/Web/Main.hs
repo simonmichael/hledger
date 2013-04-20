@@ -17,6 +17,7 @@ import Settings            --  (parseExtra)
 import Application          (makeApplication)
 import Data.Conduit.Network (HostPreference(HostIPv4))
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
+import Network.Wai.Handler.Launch (run, runUrl, runUrlPort)
 --
 import Prelude hiding (putStrLn)
 import Control.Monad (when)
@@ -74,6 +75,7 @@ server baseurl port opts j = do
             , appHost = HostIPv4
             , appExtra = Extra "" Nothing
             })
-    runSettings defaultSettings
-        { settingsPort = port_ opts
-        } app
+    -- runSettings defaultSettings
+    --     { settingsPort = port_ opts
+    --     } app
+    run app

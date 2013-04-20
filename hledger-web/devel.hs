@@ -1,7 +1,7 @@
 {-# LANGUAGE PackageImports #-}
 import "hledger-web" Application (getApplicationDev)
-import Network.Wai.Handler.Warp
-    (runSettings, defaultSettings, settingsPort)
+import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
+import Network.Wai.Handler.Launch (run, runUrl, runUrlPort)
 import Control.Concurrent (forkIO)
 import System.Directory (doesFileExist, removeFile)
 import System.Exit (exitSuccess)
@@ -12,9 +12,10 @@ main = do
     putStrLn "Starting devel application"
     (port, app) <- getApplicationDev
     forkIO $
-        runSettings defaultSettings
-          { settingsPort = port
-          } app
+        -- runSettings defaultSettings
+        --   { settingsPort = port
+        --   } app
+        run app
     loop
 
 loop :: IO ()
