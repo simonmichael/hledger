@@ -17,12 +17,14 @@ import Settings            --  (parseExtra)
 import Application          (makeApplication)
 import Data.Conduit.Network (HostPreference(HostIPv4))
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
-import Network.Wai.Handler.Launch (run, runUrl, runUrlPort)
+import Network.Wai.Handler.Launch (runUrlPort)
 --
 import Prelude hiding (putStrLn)
+import Control.Concurrent (forkIO)
 import Control.Monad (when)
 import Data.Text (pack)
 import System.Exit (exitSuccess)
+import System.IO (hFlush, stdout)
 import Text.Printf
 
 import Hledger
@@ -54,28 +56,23 @@ withJournalDo' opts cmd = do
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
-  -- unless (debug_ $ cliopts_ opts) $ forkIO (browser baseurl) >> return ()
   d <- getCurrentDay
   let j' = filterJournalTransactions (queryFromOpts d $ reportopts_ $ cliopts_ opts) j
-  server (base_url_ opts) (port_ opts) opts j'
-
--- browser :: String -> IO ()
--- browser baseurl = do
---   threadDelay $ fromIntegral browserstartdelay
---   putStrLn "Attempting to start a web browser"
---   openBrowserOn baseurl >> return ()
-
-server :: String -> Int -> WebOpts -> Journal -> IO ()
-server baseurl port opts j = do
-    _ <- printf "Starting http server on port %d with base url %s\n" port baseurl
-    app <- makeApplication j (AppConfig {
-              appEnv = Development
-            , appPort = port_ opts
-            , appRoot = pack baseurl
-            , appHost = HostIPv4
-            , appExtra = Extra "" Nothing
-            })
-    -- runSettings defaultSettings
-    --     { settingsPort = port_ opts
-    --     } app
-    run app
+      p = port_ opts
+      u = base_url_ opts
+  _ <- printf "Starting http server on port %d with base url %s\n" p u
+  app <- makeApplication j' AppConfig{appEnv = Development
+                                    ,appPort = p
+                                    ,appRoot = pack u
+                                    ,appHost = HostIPv4
+                                    ,appExtra = Extra "" Nothing
+                                    }
+  if False
+   then
+    runSettings defaultSettings{settingsPort=p} app
+   else do
+    putStrLn "Launching web browser" >> hFlush stdout
+    forkIO $ runUrlPort p "" app
+    putStrLn "Press ENTER to quit (or close browser windows for 2 minutes)" >> hFlush stdout
+    getLine >> exitSuccess
+    
