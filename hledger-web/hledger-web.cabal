@@ -24,10 +24,11 @@ extra-tmp-files:
 extra-source-files:
                 messages/en.msg
                 config/routes
-                static/combo_select.gif
                 static/css/bootstrap.css
-                static/dhtmlxcombo.js
-                static/dhtmlxcommon.js
+                static/select2.css
+                static/select2.min.js
+                static/select2-spinner.gif
+                static/select2.png
                 static/excanvas.min.js
                 static/favicon.ico
                 static/hledger.js
@@ -138,6 +139,8 @@ library
                    , yesod-core
                    , yesod-platform       >= 1.2.0.1 && < 1.3
                    , yesod-static
+                   , json
+
     if flag(blaze_html_0_4)
       cpp-options:   -DBLAZE_HTML_0_4
       build-depends:
@@ -228,6 +231,7 @@ executable         hledger-web
                    , yesod-core
                    , yesod-platform       >= 1.2.0.1 && < 1.3
                    , yesod-static
+                   , json
 
     if flag(blaze_html_0_4)
       cpp-options:   -DBLAZE_HTML_0_4

@@ -108,8 +108,8 @@ instance Yesod App where
             addScript $ StaticR jquery_url_js
             addScript $ StaticR jquery_flot_js
             toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR excanvas_min_js}"></script> <![endif]--> |]
-            addScript $ StaticR dhtmlxcommon_js
-            addScript $ StaticR dhtmlxcombo_js
+            addScript $ StaticR select2_min_js
+            addStylesheet $ StaticR select2_css
             addStylesheet $ StaticR style_css
             addScript $ StaticR hledger_js
             $(widgetFile "default-layout")
