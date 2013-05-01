@@ -23,10 +23,10 @@ staticSite :: IO Static.Static
 staticSite =
   if development
    then (do
-            putStrLn ("using web files from: " ++ staticDir ++ "/") >> hFlush stdout
+            putStrLn ("Using web files from: " ++ staticDir ++ "/") >> hFlush stdout
             Static.staticDevel staticDir)
    else (do
-            putStrLn "using built-in web files" >> hFlush stdout
+            -- putStrLn "Using built-in web files" >> hFlush stdout
             return $(Static.embed staticDir))
 
 $(publicFiles staticDir)
