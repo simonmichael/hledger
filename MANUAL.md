@@ -764,15 +764,19 @@ register view, and also basic data entry and editing.
 
 web-specific options:
 
+    --server           log requests, don't exit on inactivity
     --port=N           serve on tcp port N (default 5000)
     --base-url=URL     use this base url (default http://localhost:PORT/PATH)
 
-If you want to visit the web UI from other machines, you'll need
+By default, the web command starts a transient local web app and 
+launches a web browser window to view it.
+To run it as a long-running web app, with requests logged, use `--server`.
+Typically in this case you'll also want to use use
 `--base-url` to specify the protocol/hostname/port/path to use in
 hyperlinks. This also lets you conform to a custom url scheme when
 running hledger-web behind a reverse proxy as part of a larger
-site. Note that PORT in the base url need not be the same as the
-`--port` argument.
+site. You may also need `--port`, eg if you are running multiple hledger-web instances.
+Note `--port`'s argument need not be the same as the PORT in the base url.
 
 Warning: unlike other hledger commands, `web` can alter existing journal
 data, via the edit form.  A numbered backup of the file will be saved on
@@ -790,7 +794,7 @@ Examples:
 
     $ hledger-web
     $ hledger-web -E -B --depth 2 -f some.journal
-    $ hledger-web --port 5010 --base-url http://some.vhost.com --debug
+    $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug
 
 #### interest
 

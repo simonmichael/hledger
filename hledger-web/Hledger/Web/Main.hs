@@ -60,19 +60,19 @@ web opts j = do
   let j' = filterJournalTransactions (queryFromOpts d $ reportopts_ $ cliopts_ opts) j
       p = port_ opts
       u = base_url_ opts
-  _ <- printf "Starting http server on port %d with base url %s\n" p u
-  app <- makeApplication j' AppConfig{appEnv = Development
-                                    ,appPort = p
-                                    ,appRoot = pack u
-                                    ,appHost = HostIPv4
-                                    ,appExtra = Extra "" Nothing
-                                    }
-  if False
+  _ <- printf "Starting web app on port %d with base url %s\n" p u
+  app <- makeApplication opts j' AppConfig{appEnv = Development
+                                          ,appPort = p
+                                          ,appRoot = pack u
+                                          ,appHost = HostIPv4
+                                          ,appExtra = Extra "" Nothing
+                                          }
+  if server_ opts
    then
     runSettings defaultSettings{settingsPort=p} app
    else do
     putStrLn "Launching web browser" >> hFlush stdout
     forkIO $ runUrlPort p "" app
-    putStrLn "Press ENTER to quit (or close browser windows for 2 minutes)" >> hFlush stdout
+    putStrLn "Press ENTER, or close browser windows for 2 minutes, to quit web app" >> hFlush stdout
     getLine >> exitSuccess
     

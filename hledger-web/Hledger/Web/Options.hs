@@ -28,7 +28,8 @@ defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 
 webflags :: [Flag [([Char], [Char])]]
 webflags = [
-  flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurlexample++")")
+  flagNone ["server"]  (setboolopt "server") ("log requests, don't auto-exit")
+ ,flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurlexample++")")
  ,flagReq ["port"]  (\s opts -> Right $ setopt "port" s opts) "PORT" ("listen on this tcp port (default: "++show defport++")")
  ]
  
@@ -48,13 +49,15 @@ webmode =  (mode "hledger-web" [("command","web")]
 
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts {
-     base_url_ :: String
+     server_   :: Bool
+    ,base_url_ :: String
     ,port_     :: Int
     ,cliopts_  :: CliOpts
  } deriving (Show)
 
 defwebopts :: WebOpts
 defwebopts = WebOpts
+    def
     def
     def
     def
@@ -67,6 +70,7 @@ toWebOpts rawopts = do
   let p = fromMaybe defport $ maybeintopt "port" rawopts
   return defwebopts {
               port_ = p
+             ,server_ = boolopt "server" rawopts
              ,base_url_ = maybe (defbaseurl p) stripTrailingSlash $ maybestringopt "base-url" rawopts
              ,cliopts_   = cliopts
              }

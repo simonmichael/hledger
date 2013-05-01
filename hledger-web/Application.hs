@@ -10,7 +10,7 @@ import Import
 import Yesod.Default.Config
 import Yesod.Default.Main
 import Yesod.Default.Handlers
-import Network.Wai.Middleware.RequestLogger (logStdoutDev) -- , logStdout
+import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
 import Network.HTTP.Conduit (newManager, def)
 
 -- Import all relevant handler modules here.
@@ -21,7 +21,7 @@ import Handler.JournalEditR
 import Handler.JournalEntriesR
 import Handler.RegisterR
 
-import Hledger.Web.Options (defwebopts)
+import Hledger.Web.Options (WebOpts(..), defwebopts)
 import Hledger.Data (Journal, nulljournal)
 import Hledger.Read (readJournalFile)
 import Hledger.Utils (error')
@@ -36,15 +36,16 @@ mkYesodDispatch "App" resourcesApp
 -- performs initialization and creates a WAI application. This is also the
 -- place to put your migrate statements to have automatic database
 -- migrations handled by Yesod.
-makeApplication :: Journal -> AppConfig DefaultEnv Extra -> IO Application
-makeApplication j conf = do
+makeApplication :: WebOpts -> Journal -> AppConfig DefaultEnv Extra -> IO Application
+makeApplication opts j conf = do
     foundation <- makeFoundation conf
     writeIORef (appJournal foundation) j
     app <- toWaiAppPlain foundation
     return $ logWare app
   where
-    logWare   = if development then logStdoutDev
-                               else id -- logStdout
+    logWare | development  = logStdoutDev
+            | server_ opts = logStdout
+            | otherwise    = id
 
 makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
@@ -59,7 +60,7 @@ getApplicationDev :: IO (Int, Application)
 getApplicationDev = do
   f <- journalFilePathFromOpts defcliopts
   j <- either error' id `fmap` readJournalFile Nothing Nothing f
-  defaultDevelApp loader (makeApplication j)
+  defaultDevelApp loader (makeApplication defwebopts j)
   where
     loader = loadConfig (configSettings Development)
         { csParseExtra = parseExtra
