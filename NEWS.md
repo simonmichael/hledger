@@ -4,7 +4,7 @@ title: hledger news
 
 # News
 
-## dev version
+## 2013/5/1 hledger 0.20
 
 **Bugs fixed:**
 
