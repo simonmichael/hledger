@@ -20,7 +20,6 @@ import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
 import Network.Wai.Handler.Launch (runUrlPort)
 --
 import Prelude hiding (putStrLn)
-import Control.Concurrent (forkIO)
 import Control.Monad (when)
 import Data.Text (pack)
 import System.Exit (exitSuccess)
@@ -68,11 +67,12 @@ web opts j = do
                                           ,appExtra = Extra "" Nothing
                                           }
   if server_ opts
-   then
+   then do
+    putStrLn "Press ctrl-c to quit"
+    hFlush stdout
     runSettings defaultSettings{settingsPort=p} app
    else do
-    putStrLn "Launching web browser" >> hFlush stdout
-    forkIO $ runUrlPort p "" app
-    putStrLn "Press ENTER, or close browser windows for 2 minutes, to quit web app" >> hFlush stdout
-    getLine >> exitSuccess
-    
+    putStrLn "Starting web browser"
+    putStrLn "Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)"
+    hFlush stdout
+    runUrlPort p "" app
