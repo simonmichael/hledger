@@ -4,7 +4,7 @@ title: hledger user manual
 
 # User manual
 
-For: latest developer version
+For: hledger 0.20
 
 ## Introduction
 
