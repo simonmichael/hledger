@@ -63,12 +63,13 @@ title: hledger news
 
 **web command:**
 
+  - The web command now also starts a browser, and auto-exits when unused, by default ("local ui mode").
+    With `--server`, it keeps running and logs requests to the console ("server mode").
   - Bootstrap is now used for styling and layout
   - A favicon is served
   - The search field is wider
-  - Requests are no longer logged to the console, except in development builds
   - yesod devel is now supported; it uses `$LEDGER_FILE` or `~/.hledger.journal`
-  * the `blaze_html_0_5` build flag has been reversed and renamed to `blaze_html_0_4`
+  - the `blaze_html_0_5` build flag has been reversed and renamed to `blaze_html_0_4`
 
 **Add-ons:**
 
