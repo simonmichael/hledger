@@ -757,10 +757,9 @@ major platforms, while other add-ons may or may not be.
 
 #### web
 
-The web command (provided by the [hledger-web](http://hackage.haskell.org/package/hledger-web) package) runs a web
-server providing a web-based user interface ([demo](http://demo.hledger.org)).
-The web UI provides reporting, including a more useful account
-register view, and also basic data entry and editing.
+The web command (provided by the [hledger-web](http://hackage.haskell.org/package/hledger-web) package)
+provides a web-based user interface for viewing and modifying your ledger ([demo](http://demo.hledger.org)).
+It includes a more realistic account register view, and basic data entry and editing.
 
 web-specific options:
 
@@ -768,18 +767,19 @@ web-specific options:
     --port=N           serve on tcp port N (default 5000)
     --base-url=URL     use this base url (default http://localhost:PORT/PATH)
 
-By default, the web command starts a transient local web app and 
-launches a web browser window to view it.
-To run it as a long-running web app, with requests logged, use `--server`.
-Typically in this case you'll also want to use use
-`--base-url` to specify the protocol/hostname/port/path to use in
-hyperlinks. This also lets you conform to a custom url scheme when
-running hledger-web behind a reverse proxy as part of a larger
-site. You may also need `--port`, eg if you are running multiple hledger-web instances.
-Note `--port`'s argument need not be the same as the PORT in the base url.
+By default, the web command starts a transient local web app and displays it in your default web browser ("local ui mode").
+With `--server`, it starts the web app, leaves it running, and also logs requests to the console ("server mode").
 
-Warning: unlike other hledger commands, `web` can alter existing journal
-data, via the edit form.  A numbered backup of the file will be saved on
+Typically in server mode you'll also want to use use
+`--base-url` to set the protocol/hostname/port/path to be used in
+hyperlinks.
+
+You can use `--port` to listen on a different TCP port, eg if you are running multiple hledger-web
+instances.  Note `--port`'s argument need not be the same as the PORT
+in the base url.
+
+**Note:** unlike any other hledger command, `web` can alter existing journal
+data, via the edit form.  A numbered backup of the file is saved on
 each edit, normally (ie if file permissions allow, disk is not full, etc.)
 Also, there is no built-in access control. So unless you run it behind an
 authenticating proxy, any visitor to your server will be able to see and
