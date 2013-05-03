@@ -940,3 +940,4 @@ cleanbin:
 Clean: clean cleanbin cleandocs
 	rm -f TAGS tags
 
+-include Makefile.local
