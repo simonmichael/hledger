@@ -17,8 +17,7 @@ COVCMD=-f test-wf.csv print
 # executables to run during "make simplebench". They should be on the path
 # or in the current directory. hledger executables for benchmarking should
 # generally be the standard optimised cabal build, constrained to parsec 2.
-BENCHEXES=hledger-0.12.1 hledger-0.13 hledger-0.14 hledger-0.15 hledger-0.16 hledger-0.17 hledger-0.18 hledgeropt ledger
-BENCHEXES=hledger-0.18 hledgeropt ledger
+BENCHEXES=hledger-0.18 hledger-0.19 hledger-0.20 ledger-3.0-20130215
 
 # misc. tools
 BROWSE=google-chrome
@@ -436,7 +435,7 @@ fullcabaltest:
 # run simple performance benchmarks without saving results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
 quickbench: samplejournals bench.tests tools/simplebench
-	tools/simplebench -fbench.tests $(BENCHEXES)
+	tools/simplebench -v -fbench.tests $(BENCHEXES)
 	@rm -f benchresults.*
 
 # run simple performance benchmarks and archive results
