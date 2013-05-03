@@ -628,7 +628,9 @@ codedocs: haddock hscolour coverage #sourcegraph #hoogle
 
 #http://www.haskell.org/haddock/doc/html/invoking.html
 #$(subst -D,--optghc=-D,$(DEFINEFLAGS))
-HADDOCKFLAGS= --no-warnings --prologue .haddockprologue #--optghc='-hide-package monads-tf' 
+HADDOCKFLAGS= --no-warnings --prologue .haddockprologue \
+	--optghc='-optP-include' --optghc='-optPhledger/dist/build/autogen/cabal_macros.h'
+	#--optghc='-hide-package monads-tf' 
 
 .haddocksynopsis: hledger/hledger.cabal
 	grep synopsis $< | sed -e 's/synopsis: *//' >$@
