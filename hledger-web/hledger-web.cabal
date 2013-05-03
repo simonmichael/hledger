@@ -16,7 +16,7 @@ license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
-bug-reports:    http://code.google.com/p/hledger/issues
+bug-reports:    http://hledger.org/bugs
 stability:      beta
 tested-with:    GHC==7.4.2, GHC==7.6.1
 cabal-version:  >= 1.8
@@ -46,8 +46,8 @@ extra-source-files:
                 templates/normalize.lucius
 
 source-repository head
-  type:     darcs
-  location: http://hub.darcs.net/simon/hledger
+  type:     git
+  location: https://github.com/simonmichael/hledger
 
 -- Flag production
 --     Description:   Build fully optimised and with web files embedded (not loaded from ./static/)
