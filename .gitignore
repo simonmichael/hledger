@@ -3,7 +3,7 @@
 *.hi
 *.o
 _*
-cabal-dev
+cabal-dev*
 hledger-web/static/tmp/
 hledger-web/yesod-devel/
 TAGS
@@ -16,3 +16,5 @@ site/[0-9]*
 /messages
 /static
 /templates
+profs/profs
+t.*
