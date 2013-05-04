@@ -1,7 +1,8 @@
 #!/usr/bin/env runhaskell
 {- 
-bench.hs - simple benchmarking of command-line programs. Requires tabular >= 0.2.2.
-Simon Michael 2008-2010
+bench.hs - simple benchmarking of command-line programs.
+Requires html and tabular.
+Simon Michael 2008-2013
 
 Example:
 

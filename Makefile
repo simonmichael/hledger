@@ -289,7 +289,7 @@ tools/unittest: tools/unittest.hs
 tools/doctest: tools/doctest.hs
 	$(GHC) tools/doctest.hs
 
-# build the simple benchmark runner. Requires tabular.
+# build the simple benchmark runner. Requires html and tabular.
 tools/simplebench: tools/simplebench.hs
 	$(GHC) tools/simplebench.hs
 
