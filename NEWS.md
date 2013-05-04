@@ -4,6 +4,11 @@ title: hledger news
 
 # News
 
+## 2013/5/4 hledger 0.20.0.1
+
+  * web: require at least version 1.1.7 of yesod-core to avoid a potential build error
+  * Update the bug tracker and source repository links on hackage
+
 ## 2013/5/1 hledger 0.20
 
 **Bugs fixed:**
