@@ -441,7 +441,7 @@ quickbench: samplejournals bench.tests tools/simplebench
 # run simple performance benchmarks and archive results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
 bench: samplejournals bench.tests tools/simplebench
-	tools/simplebench -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
+	tools/simplebench -v -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
 
