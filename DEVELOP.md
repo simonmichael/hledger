@@ -285,7 +285,8 @@ The hledger project aims to produce:
 - Tim Docker's [ledger-reports](http://dockerz.net/repos/ledger-reports) builds on hledger to generate
   [html reports](http://dockerz.net/software/hledger_report_sample/report.html)
 - [beancount](https://furius.ca/beancount/) is another ledger clone, in python
-- h/ledger inspired Uwe Hollerbach's [umm](http://www.korgwal.com/umm/)
+- h/ledger inspired Omari Norman's [penny](https://github.com/massysett/penny)
+- and Uwe Hollerbach's [umm](http://hackage.haskell.org/package/UMM)
 - [http://darcsden.com/alex/bill](http://darcsden.com/alex/bill), [http://darcsden.com/alex/bill-atomo](http://darcsden.com/alex/bill-atomo), [http://darcsden.com/alex/bill-scheme](http://darcsden.com/alex/bill-scheme) - a time-tracking and billing app
 - [http://darcsden.com/ozamosi/debts](http://darcsden.com/ozamosi/debts) - Silly debt tracking webapp
 - [http://darcsden.com/housetab-multi](http://darcsden.com/dbp/housetab-multi), [housetab.org](http://housetab.org) - a webapp to manage expenses between a group of friends.
