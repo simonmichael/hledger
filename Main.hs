@@ -71,16 +71,16 @@ options =
               "calculate interest until this date"
  , Option "D" ["daily"]
               (NoArg (\o -> o { optInterval = Just (Days 1) }))
-              "calculate intereste for each day"
+              "calculate interest for each day"
  , Option "W" ["weekly"]
               (NoArg (\o -> o { optInterval = Just (Weeks 1) }))
-              "calculate intereste for each week"
+              "calculate interest for each week"
  , Option "M" ["monthly"]
               (NoArg (\o -> o { optInterval = Just (Months 1) }))
-              "calculate intereste for each month"
+              "calculate interest for each month"
  , Option "Y" ["yearly"]
               (NoArg (\o -> o { optInterval = Just (Years 1) }))
-              "calculate intereste for each year"
+              "calculate interest for each year"
  ]
 
 usageMessage :: String
