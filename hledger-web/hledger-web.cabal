@@ -1,6 +1,6 @@
 name:           hledger-web
 -- also in cpp-options below
-version: 0.20.0.1
+version: 0.20.98
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -99,7 +99,7 @@ library
     --     Buildable: False
 
     ghc-options:   -Wall -fno-warn-unused-do-bind
-    cpp-options:   -DVERSION="0.20.0.1"
+    cpp-options:   -DVERSION="0.20.98"
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
 
@@ -118,31 +118,31 @@ library
                 RecordWildCards
 
     build-depends:   base                          >= 4          && < 5
-                   -- , yesod-platform                >= 1.1        && < 1.2
-                   , yesod                         >= 1.1.3      && < 1.2
-                   , yesod-core                    >= 1.1.7      && < 1.2
-                   , yesod-static                  >= 1.1        && < 1.2
-                   , yesod-default                 >= 1.1        && < 1.2
-                   , yesod-form                    >= 1.1        && < 1.3
-                   , clientsession
-                   , bytestring                    >= 0.9        && < 0.11
-                   , text                          >= 0.11       && < 0.12
-                   , template-haskell
-                   , hamlet                        >= 1.1        && < 1.2
-                   , shakespeare-css               >= 1.0        && < 1.1
-                   , shakespeare-js                >= 1.0        && < 1.2
-                   , shakespeare-text              >= 1.0        && < 1.1
-                   , hjsmin                        >= 0.1        && < 0.2
-                   , monad-control                 >= 0.3        && < 0.4
-                   , wai-extra                     >= 1.3        && < 1.4
-                   , yaml                          >= 0.8        && < 0.9
-                   , http-conduit                  >= 1.8        && < 1.10
-                   , directory                     >= 1.1        && < 1.3
-                   , warp                          >= 1.3        && < 1.4
-                   , data-default
+                   , yesod-platform                >= 1.2        && < 1.3
+                   -- , yesod                         >= 1.1.3      && < 1.2
+                   -- , yesod-core                    >= 1.1.7      && < 1.2
+                   -- , yesod-static                  >= 1.1        && < 1.2
+                   -- , yesod-default                 >= 1.1        && < 1.2
+                   -- , yesod-form                    >= 1.1        && < 1.3
+                   -- , clientsession
+                   -- , bytestring                    >= 0.9        && < 0.11
+                   -- , text                          >= 0.11       && < 0.12
+                   -- , template-haskell
+                   -- , hamlet                        >= 1.1        && < 1.2
+                   -- , shakespeare-css               >= 1.0        && < 1.1
+                   -- , shakespeare-js                >= 1.0        && < 1.2
+                   -- , shakespeare-text              >= 1.0        && < 1.1
+                   -- , hjsmin                        >= 0.1        && < 0.2
+                   -- , monad-control                 >= 0.3        && < 0.4
+                   -- , wai-extra                     >= 1.3        && < 1.4
+                   -- , yaml                          >= 0.8        && < 0.9
+                   -- , http-conduit                  >= 1.8        && < 1.10
+                   -- , directory                     >= 1.1        && < 1.3
+                   -- , warp                          >= 1.3        && < 1.4
+                   -- , data-default
 
-                   , hledger == 0.20.0.1
-                   , hledger-lib == 0.20.0.1
+                   , hledger == 0.20.98
+                   , hledger-lib == 0.20.98
                    , cmdargs >= 0.10 && < 0.11
                    , directory
                    , filepath
@@ -160,118 +160,118 @@ library
                    , warp
                    , yaml
 
-    if flag(blaze_html_0_4)
-      cpp-options:   -DBLAZE_HTML_0_4
-      build-depends:
-                     blaze-html               >= 0.4     && < 0.5
-    else
-      build-depends:
-                     blaze-html               >= 0.5     && < 0.7
-                   , blaze-markup             >= 0.5.1   && < 0.7
-
-
-executable         hledger-web
-    cpp-options:   -DVERSION="0.20.0.1"
-
-    if flag(library-only)
-        Buildable: False
-
-    if flag(dev)
-        cpp-options:   -DDEVELOPMENT
-        ghc-options:   -O0 -Wall -fno-warn-unused-do-bind
-    else
-        ghc-options:   -O2 -Wall -fno-warn-unused-do-bind
-
-    if flag(threaded)
-        ghc-options:   -threaded
-
-    extensions: TemplateHaskell
-                QuasiQuotes
-                OverloadedStrings
-                NoImplicitPrelude
-                CPP
-                OverloadedStrings
-                MultiParamTypeClasses
-                TypeFamilies
-                RecordWildCards
-
-    hs-source-dirs:  . app
-
-    main-is:       main.hs
-    other-modules:
-                     Application
-                     Foundation
-                     Import
-                     Settings
-                     Settings.StaticFiles
-                     Settings.Development
-                     Handler.Common
-                     Handler.JournalEditR
-                     Handler.JournalEntriesR
-                     Handler.JournalR
-                     Handler.Post
-                     Handler.RegisterR
-                     Handler.RootR
-                     Handler.Utils
-                     Hledger.Web
-                     Hledger.Web.Main
-                     Hledger.Web.Options
-
+    -- if flag(blaze_html_0_4)
+    --   cpp-options:   -DBLAZE_HTML_0_4
+    --   build-depends:
+    --                  blaze-html               >= 0.4     && < 0.5
+    -- else
     build-depends:
-                     hledger-web
-                   , hledger == 0.20.0.1
-                   , hledger-lib == 0.20.0.1
-                   , base                          >= 4.3        && < 5
-                   , cmdargs >= 0.10 && < 0.11
-                   , directory
-                   , filepath
-                   , HUnit
-                   , old-locale
-                   , parsec
-                   , regexpr >= 0.5.1
-                   , safe >= 0.2
-                   , time
-
-                   -- , yesod-platform                == 1.1.*
-                   , yesod >= 1.1.3 && < 1.2
-                   , yesod-core >= 1.1.7      && < 1.2
-                   , yesod-default
-                   , yesod-static
-                   , clientsession
-                   , hamlet
-                   , network-conduit
-                   , shakespeare-text
-                   , template-haskell
-                   , text
-                   , transformers
-                   , wai
-                   , wai-extra
-                   , wai-handler-launch       >= 1.3 && < 1.4
-                   , warp
-                   , yaml
-                   , hjsmin                        >= 0.1        && < 0.2
-                   , http-conduit                  >= 1.8        && < 1.10
-                   , data-default
-
-    if flag(blaze_html_0_4)
-      cpp-options:   -DBLAZE_HTML_0_4
-      build-depends:
-                     blaze-html               >= 0.4     && < 0.5
-    else
-      build-depends:
                      blaze-html               >= 0.5     && < 0.7
                    , blaze-markup             >= 0.5.1   && < 0.7
 
 
-test-suite test
-    type:              exitcode-stdio-1.0
-    main-is:           main.hs
-    hs-source-dirs:    tests
-    ghc-options:       -Wall
+-- executable         hledger-web
+--     cpp-options:   -DVERSION="0.20.98"
 
-    build-depends: 
-                   base
-                 , hledger-web
-                 , yesod-test >= 0.3 && < 0.4
-                 , yesod-default
-                 , yesod-core >= 1.1.7      && < 1.2
+--     if flag(library-only)
+--         Buildable: False
+
+--     if flag(dev)
+--         cpp-options:   -DDEVELOPMENT
+--         ghc-options:   -O0 -Wall -fno-warn-unused-do-bind
+--     else
+--         ghc-options:   -O2 -Wall -fno-warn-unused-do-bind
+
+--     if flag(threaded)
+--         ghc-options:   -threaded
+
+--     extensions: TemplateHaskell
+--                 QuasiQuotes
+--                 OverloadedStrings
+--                 NoImplicitPrelude
+--                 CPP
+--                 OverloadedStrings
+--                 MultiParamTypeClasses
+--                 TypeFamilies
+--                 RecordWildCards
+
+--     hs-source-dirs:  . app
+
+--     main-is:       main.hs
+--     other-modules:
+--                      Application
+--                      Foundation
+--                      Import
+--                      Settings
+--                      Settings.StaticFiles
+--                      Settings.Development
+--                      Handler.Common
+--                      Handler.JournalEditR
+--                      Handler.JournalEntriesR
+--                      Handler.JournalR
+--                      Handler.Post
+--                      Handler.RegisterR
+--                      Handler.RootR
+--                      Handler.Utils
+--                      Hledger.Web
+--                      Hledger.Web.Main
+--                      Hledger.Web.Options
+
+--     build-depends:
+--                      hledger-web
+--                    , hledger == 0.20.0.1
+--                    , hledger-lib == 0.20.0.1
+--                    , base                          >= 4.3        && < 5
+--                    , cmdargs >= 0.10 && < 0.11
+--                    , directory
+--                    , filepath
+--                    , HUnit
+--                    , old-locale
+--                    , parsec
+--                    , regexpr >= 0.5.1
+--                    , safe >= 0.2
+--                    , time
+
+--                    -- , yesod-platform                == 1.1.*
+--                    , yesod >= 1.1.3 && < 1.2
+--                    , yesod-core >= 1.1.7      && < 1.2
+--                    , yesod-default
+--                    , yesod-static
+--                    , clientsession
+--                    , hamlet
+--                    , network-conduit
+--                    , shakespeare-text
+--                    , template-haskell
+--                    , text
+--                    , transformers
+--                    , wai
+--                    , wai-extra
+--                    , wai-handler-launch       >= 1.3 && < 1.4
+--                    , warp
+--                    , yaml
+--                    , hjsmin                        >= 0.1        && < 0.2
+--                    , http-conduit                  >= 1.8        && < 1.10
+--                    , data-default
+
+--     if flag(blaze_html_0_4)
+--       cpp-options:   -DBLAZE_HTML_0_4
+--       build-depends:
+--                      blaze-html               >= 0.4     && < 0.5
+--     else
+--       build-depends:
+--                      blaze-html               >= 0.5     && < 0.7
+--                    , blaze-markup             >= 0.5.1   && < 0.7
+
+
+-- test-suite test
+--     type:              exitcode-stdio-1.0
+--     main-is:           main.hs
+--     hs-source-dirs:    tests
+--     ghc-options:       -Wall
+
+--     build-depends: 
+--                    base
+--                  , hledger-web
+--                  , yesod-test >= 0.3 && < 0.4
+--                  , yesod-default
+--                  , yesod-core >= 1.1.7      && < 1.2
