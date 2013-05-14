@@ -4,7 +4,9 @@ title: hledger news
 
 # News
 
-<!-- ## unreleased -->
+## unreleased
+
+  * web: requires yesod 1.2
 
 ## 2013/5/4 hledger 0.20.0.1
 
