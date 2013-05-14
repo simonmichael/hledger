@@ -62,6 +62,6 @@ getApplicationDev = do
   j <- either error' id `fmap` readJournalFile Nothing Nothing f
   defaultDevelApp loader (makeApplication defwebopts j)
   where
-    loader = loadConfig (configSettings Development)
+    loader = Yesod.Default.Config.loadConfig (configSettings Development)
         { csParseExtra = parseExtra
         }

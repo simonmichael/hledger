@@ -4,7 +4,6 @@ module Handler.Utils where
 
 import Prelude
 import Control.Applicative ((<$>))
-import Control.Monad.IO.Class (liftIO)
 import Data.IORef
 import Data.Maybe
 import Data.Text(pack,unpack)
@@ -12,11 +11,6 @@ import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
 import System.Locale (defaultTimeLocale)
-#if BLAZE_HTML_0_4
-import Text.Blaze (toHtml)
-#else
-import Text.Blaze.Html (toHtml)
-#endif
 import Text.Hamlet
 import Yesod.Core
 

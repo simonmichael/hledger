@@ -23,7 +23,6 @@ import Settings (widgetFile, Extra (..))
 import Settings (staticDir)
 import Text.Jasmine (minifym)
 #endif
-import Web.ClientSession (getKey)
 import Text.Hamlet (hamletFile)
 
 import Hledger.Web.Options
@@ -72,7 +71,7 @@ mkYesodData "App" $(parseRoutesFile "config/routes")
 -- | A convenience alias.
 type AppRoute = Route App
 
-type Form x = Html -> MForm App App (FormResult x, Widget)
+type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
@@ -81,11 +80,9 @@ instance Yesod App where
 
     -- Store session data on the client in encrypted cookies,
     -- default session idle timeout is 120 minutes
-    makeSessionBackend _ = do
-        key <- getKey ".hledger-web_client_session_key.aes"
-        let timeout = fromIntegral (120 * 60 :: Int) -- 120 minutes
-        (getCachedDate, _closeDateCacher) <- clientSessionDateCacher timeout
-        return . Just $ clientSessionBackend2 key getCachedDate
+    makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
+                             (120 * 60)
+                             ".hledger-web_client_session_key.aes"
 
     defaultLayout widget = do
         master <- getYesod

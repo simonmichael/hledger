@@ -7,11 +7,12 @@ import TestImport
 
 homeSpecs :: Specs
 homeSpecs =
-  describe "These are some example tests" $
-    it "loads the index and checks it looks right" $ do
-      get_ "/register"
+  ydescribe "Some hledger-web tests" $
+
+    yit "serves a reasonable-looking register page" $ do
+      get RegisterR
       statusIs 200
-      -- htmlAllContain "h1" "hledger"
+      bodyContains "accounts"
 
       -- post "/" $ do
       --   addNonce

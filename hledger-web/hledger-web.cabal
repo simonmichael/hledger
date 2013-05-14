@@ -1,6 +1,5 @@
 name:           hledger-web
--- also in cpp-options below
-version: 0.20.98
+version:        0.20.98
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    
@@ -46,21 +45,16 @@ extra-source-files:
                 templates/normalize.lucius
 
 source-repository head
-  type:     git
-  location: https://github.com/simonmichael/hledger
-
--- Flag production
---     Description:   Build fully optimised and with web files embedded (not loaded from ./static/)
---     Default:       True
+    type:     git
+    location: https://github.com/simonmichael/hledger
 
 flag threaded
     Description:   Build with support for multithreaded execution.
     Default:       True
 
 flag blaze_html_0_4
-    description:   Use the older 0.4 version of blaze-html.
+    description:   Use the older 0.4 version of blaze-html. No longer well tested.
     default:       False
-
 
 flag dev
     Description:   Turn on development settings, like auto-reload templates.
@@ -70,39 +64,13 @@ flag library-only
     Description:   Build for use with "yesod devel"
     Default:       False
 
-
 library
-    hs-source-dirs:  . app
-
-    exposed-modules: Application
-                     Foundation
-                     Import
-                     Settings
-                     Settings.StaticFiles
-                     Settings.Development
-                     Handler.Common
-                     Handler.JournalEditR
-                     Handler.JournalEntriesR
-                     Handler.JournalR
-                     Handler.Post
-                     Handler.RegisterR
-                     Handler.RootR
-                     Handler.Utils
-    other-modules:
-                      Hledger.Web
-                      Hledger.Web.Main
-                      Hledger.Web.Options
-
-    -- if flag(library-only)
-    --     Buildable: True
-    -- else
-    --     Buildable: False
-
-    ghc-options:   -Wall -fno-warn-unused-do-bind
     cpp-options:   -DVERSION="0.20.98"
     if flag(dev) || flag(library-only)
-        cpp-options:   -DDEVELOPMENT
-
+        cpp-options: -DDEVELOPMENT
+ 
+    ghc-options:   -Wall -fno-warn-unused-do-bind
+ 
     extensions: TemplateHaskell
                 QuasiQuotes
                 OverloadedStrings
@@ -117,161 +85,167 @@ library
                 NoMonomorphismRestriction
                 RecordWildCards
 
-    build-depends:   base                          >= 4          && < 5
-                   , yesod-platform                >= 1.2        && < 1.3
-                   -- , yesod                         >= 1.1.3      && < 1.2
-                   -- , yesod-core                    >= 1.1.7      && < 1.2
-                   -- , yesod-static                  >= 1.1        && < 1.2
-                   -- , yesod-default                 >= 1.1        && < 1.2
-                   -- , yesod-form                    >= 1.1        && < 1.3
-                   -- , clientsession
-                   -- , bytestring                    >= 0.9        && < 0.11
-                   -- , text                          >= 0.11       && < 0.12
-                   -- , template-haskell
-                   -- , hamlet                        >= 1.1        && < 1.2
-                   -- , shakespeare-css               >= 1.0        && < 1.1
-                   -- , shakespeare-js                >= 1.0        && < 1.2
-                   -- , shakespeare-text              >= 1.0        && < 1.1
-                   -- , hjsmin                        >= 0.1        && < 0.2
-                   -- , monad-control                 >= 0.3        && < 0.4
-                   -- , wai-extra                     >= 1.3        && < 1.4
-                   -- , yaml                          >= 0.8        && < 0.9
-                   -- , http-conduit                  >= 1.8        && < 1.10
-                   -- , directory                     >= 1.1        && < 1.3
-                   -- , warp                          >= 1.3        && < 1.4
-                   -- , data-default
-
-                   , hledger == 0.20.98
-                   , hledger-lib == 0.20.98
-                   , cmdargs >= 0.10 && < 0.11
+    hs-source-dirs:  . app
+    exposed-modules:  Application
+                     Foundation
+                     Import
+                     Settings
+                     Settings.StaticFiles
+                     Settings.Development
+                     Handler.Common
+                     Handler.JournalEditR
+                     Handler.JournalEntriesR
+                     Handler.JournalR
+                     Handler.Post
+                     Handler.RegisterR
+                     Handler.RootR
+                     Handler.Utils
+    other-modules:
+                     Hledger.Web
+                     Hledger.Web.Main
+                     Hledger.Web.Options
+                     -- Setup -- stops yesod devel complaining, requires build-depends: Cabal
+    build-depends:
+                     hledger              == 0.20.98
+                   , hledger-lib          == 0.20.98
+                   , base                 >= 4 && < 5
+                   , bytestring
+                   , clientsession
+                   , cmdargs              >= 0.10 && < 0.11
+                   , data-default
                    , directory
                    , filepath
+                   , hamlet
+                   , hjsmin
+                   , http-conduit
                    , HUnit
                    , network-conduit
                    , old-locale
                    , parsec
-                   , regexpr >= 0.5.1
-                   , safe >= 0.2
+                   , regexpr              >= 0.5.1
+                   , safe                 >= 0.2
+                   , shakespeare-text
+                   , template-haskell
+                   , text
                    , time
                    , transformers
                    , wai
                    , wai-extra
-                   , wai-handler-launch       >= 1.3 && < 1.4
+                   , wai-handler-launch   >= 1.3 && < 1.4
                    , warp
                    , yaml
-
-    -- if flag(blaze_html_0_4)
-    --   cpp-options:   -DBLAZE_HTML_0_4
-    --   build-depends:
-    --                  blaze-html               >= 0.4     && < 0.5
-    -- else
-    build-depends:
+                   , yesod
+                   , yesod-core
+                   , yesod-platform       >= 1.2 && < 1.3
+                   , yesod-static
+    if flag(blaze_html_0_4)
+      cpp-options:   -DBLAZE_HTML_0_4
+      build-depends:
+                     blaze-html               >= 0.4     && < 0.5
+    else
+      build-depends:
                      blaze-html               >= 0.5     && < 0.7
                    , blaze-markup             >= 0.5.1   && < 0.7
 
 
--- executable         hledger-web
---     cpp-options:   -DVERSION="0.20.98"
+executable         hledger-web
+    if flag(library-only)
+        Buildable: False
 
---     if flag(library-only)
---         Buildable: False
+    cpp-options:   -DVERSION="0.20.98"
+    if flag(dev)
+        cpp-options:   -DDEVELOPMENT
 
---     if flag(dev)
---         cpp-options:   -DDEVELOPMENT
---         ghc-options:   -O0 -Wall -fno-warn-unused-do-bind
---     else
---         ghc-options:   -O2 -Wall -fno-warn-unused-do-bind
+    ghc-options:   -Wall -fno-warn-unused-do-bind
+    if flag(threaded)
+        ghc-options:   -threaded
+    if flag(dev)
+        ghc-options:   -O0
+    else
+        ghc-options:   -O2
 
---     if flag(threaded)
---         ghc-options:   -threaded
+    extensions: TemplateHaskell
+                QuasiQuotes
+                OverloadedStrings
+                NoImplicitPrelude
+                CPP
+                OverloadedStrings
+                MultiParamTypeClasses
+                TypeFamilies
+                RecordWildCards
 
---     extensions: TemplateHaskell
---                 QuasiQuotes
---                 OverloadedStrings
---                 NoImplicitPrelude
---                 CPP
---                 OverloadedStrings
---                 MultiParamTypeClasses
---                 TypeFamilies
---                 RecordWildCards
+    hs-source-dirs:  . app
+    main-is:         main.hs
+    other-modules:
+                     Application
+                     Foundation
+                     Import
+                     Settings
+                     Settings.StaticFiles
+                     Settings.Development
+                     Handler.Common
+                     Handler.JournalEditR
+                     Handler.JournalEntriesR
+                     Handler.JournalR
+                     Handler.Post
+                     Handler.RegisterR
+                     Handler.RootR
+                     Handler.Utils
+                     Hledger.Web
+                     Hledger.Web.Main
+                     Hledger.Web.Options
 
---     hs-source-dirs:  . app
+    build-depends:
+                     hledger              == 0.20.98
+                   , hledger-lib          == 0.20.98
+                   , base                 >= 4 && < 5
+                   , bytestring
+                   , clientsession
+                   , cmdargs              >= 0.10 && < 0.11
+                   , data-default
+                   , directory
+                   , filepath
+                   , hamlet
+                   , hjsmin
+                   , http-conduit
+                   , HUnit
+                   , network-conduit
+                   , old-locale
+                   , parsec
+                   , regexpr              >= 0.5.1
+                   , safe                 >= 0.2
+                   , shakespeare-text
+                   , template-haskell
+                   , text
+                   , time
+                   , transformers
+                   , wai
+                   , wai-extra
+                   , wai-handler-launch   >= 1.3 && < 1.4
+                   , warp
+                   , yaml
+                   , yesod
+                   , yesod-core
+                   , yesod-platform       >= 1.2 && < 1.3
+                   , yesod-static
 
---     main-is:       main.hs
---     other-modules:
---                      Application
---                      Foundation
---                      Import
---                      Settings
---                      Settings.StaticFiles
---                      Settings.Development
---                      Handler.Common
---                      Handler.JournalEditR
---                      Handler.JournalEntriesR
---                      Handler.JournalR
---                      Handler.Post
---                      Handler.RegisterR
---                      Handler.RootR
---                      Handler.Utils
---                      Hledger.Web
---                      Hledger.Web.Main
---                      Hledger.Web.Options
+    if flag(blaze_html_0_4)
+      cpp-options:   -DBLAZE_HTML_0_4
+      build-depends:
+                     blaze-html               >= 0.4     && < 0.5
+    else
+      build-depends:
+                     blaze-html               >= 0.5     && < 0.7
+                   , blaze-markup             >= 0.5.1   && < 0.7
 
---     build-depends:
---                      hledger-web
---                    , hledger == 0.20.0.1
---                    , hledger-lib == 0.20.0.1
---                    , base                          >= 4.3        && < 5
---                    , cmdargs >= 0.10 && < 0.11
---                    , directory
---                    , filepath
---                    , HUnit
---                    , old-locale
---                    , parsec
---                    , regexpr >= 0.5.1
---                    , safe >= 0.2
---                    , time
-
---                    -- , yesod-platform                == 1.1.*
---                    , yesod >= 1.1.3 && < 1.2
---                    , yesod-core >= 1.1.7      && < 1.2
---                    , yesod-default
---                    , yesod-static
---                    , clientsession
---                    , hamlet
---                    , network-conduit
---                    , shakespeare-text
---                    , template-haskell
---                    , text
---                    , transformers
---                    , wai
---                    , wai-extra
---                    , wai-handler-launch       >= 1.3 && < 1.4
---                    , warp
---                    , yaml
---                    , hjsmin                        >= 0.1        && < 0.2
---                    , http-conduit                  >= 1.8        && < 1.10
---                    , data-default
-
---     if flag(blaze_html_0_4)
---       cpp-options:   -DBLAZE_HTML_0_4
---       build-depends:
---                      blaze-html               >= 0.4     && < 0.5
---     else
---       build-depends:
---                      blaze-html               >= 0.5     && < 0.7
---                    , blaze-markup             >= 0.5.1   && < 0.7
-
-
--- test-suite test
---     type:              exitcode-stdio-1.0
---     main-is:           main.hs
---     hs-source-dirs:    tests
---     ghc-options:       -Wall
-
---     build-depends: 
---                    base
---                  , hledger-web
---                  , yesod-test >= 0.3 && < 0.4
---                  , yesod-default
---                  , yesod-core >= 1.1.7      && < 1.2
+test-suite test
+    type:              exitcode-stdio-1.0
+    ghc-options:       -Wall
+    hs-source-dirs:    tests
+    main-is:           main.hs
+    build-depends: 
+                     hledger-web
+                   , base
+                   , hspec
+                   , yesod                >= 1.2 && < 1.3
+                   , yesod-test           >= 1.2 && < 1.3
