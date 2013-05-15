@@ -18,12 +18,12 @@ homepage:       http://hledger.org
 bug-reports:    http://hledger.org/bugs
 stability:      beta
 tested-with:    GHC==7.2.2, GHC==7.4.2, GHC==7.6.1
-cabal-version:  >= 1.8
+cabal-version:  >= 1.10
 build-type:     Simple
 -- data-dir:       data
 -- data-files:
 -- extra-tmp-files:
--- extra-source-files:
+extra-source-files: tests/suite.hs
 --   README
 --   sample.ledger
 --   sample.timelog
@@ -75,10 +75,38 @@ library
                  ,transformers >= 0.2 && < 0.4
                  ,utf8-string >= 0.3.5 && < 0.4
                  ,HUnit
+  default-language: Haskell2010
 
 source-repository head
   type:     git
   location: https://github.com/simonmichael/hledger
+
+test-suite tests
+  type:     exitcode-stdio-1.0
+  main-is:  tests/suite.hs
+  ghc-options: -Wall
+  build-depends: hledger-lib
+               , base >= 4.3 && < 5
+               , cmdargs
+               , containers
+               , csv
+               , directory
+               , filepath
+               , HUnit
+               , mtl
+               , old-locale
+               , old-time
+               , parsec
+               , pretty-show
+               , regex-compat
+               , regexpr
+               , safe
+               , split
+               , test-framework
+               , test-framework-hunit
+               , time
+               , transformers
+  default-language: Haskell2010
 
 -- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
 
