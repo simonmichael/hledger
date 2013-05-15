@@ -19,12 +19,12 @@ homepage:       http://hledger.org
 bug-reports:    http://hledger.org/bugs
 stability:      beta
 tested-with:    GHC==7.2.2, GHC==7.4.2, GHC==7.6.1
-cabal-version:  >= 1.8
+cabal-version:  >= 1.10
 build-type:     Simple
 -- data-dir:       data
 -- data-files:
 extra-tmp-files:
-extra-source-files:
+extra-source-files: tests/suite.hs
 
 -- Cabal-Version:  >= 1.9.2
 -- Test-Suite test-hledger
@@ -83,6 +83,7 @@ library
                  ,text == 0.11.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
+  default-language: Haskell2010
 
 -- should depend on the above to avoid double compilation but this is
 -- still too complicated as of 2011/6/1 because:
@@ -136,3 +137,36 @@ executable hledger
                  ,text == 0.11.*
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
+  default-language: Haskell2010
+
+test-suite tests
+  type:     exitcode-stdio-1.0
+  main-is:  tests/suite.hs
+  ghc-options: -Wall
+  build-depends: hledger-lib
+               , hledger
+               , base >= 4.3 && < 5
+               , cmdargs
+               , containers
+               , csv
+               , directory
+               , filepath
+               , haskeline
+               , HUnit
+               , mtl
+               , old-locale
+               , old-time
+               , parsec
+               , pretty-show
+               , process
+               , regex-compat
+               , regexpr
+               , safe
+               , shakespeare-text
+               , split
+               , test-framework
+               , test-framework-hunit
+               , text
+               , time
+               , transformers
+  default-language: Haskell2010
