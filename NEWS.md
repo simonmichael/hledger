@@ -6,6 +6,7 @@ title: hledger news
 
 ## unreleased
 
+  * parsing: balance assertions are now checked when reading journal files
   * web: requires yesod 1.2
 
 ## 2013/5/4 hledger 0.20.0.1

@@ -245,9 +245,26 @@ The precision is the highest precision seen among all amounts in the commmodity.
 
 ##### Balance Assertions
 
-hledger will parse and ignore ledger-style
-[balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions).
-These look like `=CURRENTBALANCE` following a posting's amount.
+hledger supports ledger-style
+[balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
+in journal files.
+These look like `=EXPECTEDBALANCE` following a posting's amount. Eg in
+this example we assert the expected balance in accounts a and after
+each posting:
+
+    2013/1/1
+      a   $1  =$1
+      b       =$-1
+
+    2013/1/2
+      a   $1  =$2
+      b  $-1  =$-2
+
+After reading a journal file, hledger will check all balance
+assertions and report an error if any of them fail. Balance assertions
+can protect you from, eg, inadvertently disrupting reconciled balances
+while cleaning up old entries. Be aware that they may have some impact
+on parsing performance.
 
 #### Prices
 
