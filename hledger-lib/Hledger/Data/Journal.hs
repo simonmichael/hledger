@@ -49,8 +49,10 @@ module Hledger.Data.Journal (
   tests_Hledger_Data_Journal,
 )
 where
+import Control.Monad
 import Data.List
 -- import Data.Map (findWithDefault)
+import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -352,12 +354,66 @@ journalApplyAliases aliases j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 -- all transactions balance, canonicalise amount formats, close any open
 -- timelog entries and so on.
 journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Journal -> Either String Journal
-journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} =
-    journalBalanceTransactions $
+journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} = do
+  (journalBalanceTransactions $
     journalCanonicaliseAmounts $
     journalCloseTimeLogEntries tlocal
-    j{files=(path,txt):fs, filereadtime=tclock, jContext=ctx}
+    j{files=(path,txt):fs, filereadtime=tclock, jContext=ctx})
+  >>= journalCheckBalanceAssertions
 
+-- | Check any balance assertions in the journal and return an error
+-- message if any of them fail.
+journalCheckBalanceAssertions :: Journal -> Either String Journal
+journalCheckBalanceAssertions j = do
+  let postingsByAccount = groupBy (\p1 p2 -> paccount p1 == paccount p2) $
+                          sortBy (comparing paccount) $
+                          journalPostings j
+  forM_ postingsByAccount checkBalanceAssertionsForAccount
+  Right j
+
+-- Check any balance assertions in this sequence of postings to a single account.
+checkBalanceAssertionsForAccount :: [Posting] -> Either String ()
+checkBalanceAssertionsForAccount ps
+  | null errs = Right ()
+  | otherwise = Left $ head errs
+  where
+    errs = fst $ foldl' checkBalanceAssertion ([],nullmixedamt) $ splitAssertions ps
+
+-- Given a starting balance, accumulated errors, and a non-null sequence of
+-- postings to a single account with a balance assertion in the last:
+-- check that the final balance matches the balance assertion.
+-- If it does, return the new balance, otherwise add an error to the
+-- error list. Intended to be called from a fold.
+checkBalanceAssertion :: ([String],MixedAmount) -> [Posting] -> ([String],MixedAmount)
+checkBalanceAssertion (errs,bal) ps
+  | null ps = (errs,bal)
+  | isNothing assertion = (errs,bal)
+  | bal' /= assertedbal = (errs++[err], bal')
+  | otherwise = (errs,bal')
+  where
+    p = last ps
+    assertion = pbalanceassertion p
+    Just assertedbal = assertion
+    bal' = sum $ [bal] ++ map pamount ps
+    err = printf "Balance assertion failed for account %s on %s\n%safter\n   %s\nexpected balance is %s, actual balance was %s."
+                 (paccount p)
+                 (show $ postingDate p)
+                 (maybe "" (("In\n"++).show) $ ptransaction p)
+                 (show p)
+                 (showMixedAmount assertedbal)
+                 (showMixedAmount bal')
+
+-- Given a sequence of postings to a single account, split it into
+-- sub-sequences consisting of ordinary postings followed by a single
+-- balance-asserting posting. Postings not followed by a balance
+-- assertion are discarded.
+splitAssertions :: [Posting] -> [[Posting]]
+splitAssertions ps
+  | null rest = [[]]
+  | otherwise = (ps'++[head rest]):splitAssertions (tail rest)
+  where
+    (ps',rest) = break (isJust . pbalanceassertion) ps
+    
 -- | Fill in any missing amounts and check that all journal transactions
 -- balance, or return an error message. This is done after parsing all
 -- amounts and working out the canonical commodities, since balancing
