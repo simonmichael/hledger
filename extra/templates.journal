@@ -110,3 +110,12 @@
     expenses:personal:tax:federal:2011              $1250
     assets:bank:bank1:checking                     $-1250
     
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; a paypal payment funded from bank account
+
+2013/1/1 * something
+    expenses:unknown                           $50
+    assets:online:paypal                      $-50
+    assets:online:paypal                       $50
+    assets:bank:checking                      $-50
+
