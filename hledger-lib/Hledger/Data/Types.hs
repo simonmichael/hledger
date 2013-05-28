@@ -84,14 +84,15 @@ data Posting = Posting {
       pcomment :: String, -- ^ this posting's non-tag comment lines, as a single non-indented string
       ptype :: PostingType,
       ptags :: [Tag],
-      ptransaction :: Maybe Transaction  -- ^ this posting's parent transaction (co-recursive types).
-                                         -- Tying this knot gets tedious, Maybe makes it easier/optional.
+      pbalanceassertion :: Maybe MixedAmount,  -- ^ optional: the expected balance in the account after this posting
+      ptransaction :: Maybe Transaction    -- ^ this posting's parent transaction (co-recursive types).
+                                           -- Tying this knot gets tedious, Maybe makes it easier/optional.
     }
 
 -- The equality test for postings ignores the parent transaction's
 -- identity, to avoid infinite loops.
 instance Eq Posting where
-    (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2
+    (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
 
 data Transaction = Transaction {
       tdate :: Day,

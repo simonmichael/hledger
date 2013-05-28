@@ -71,6 +71,7 @@ nullposting = Posting
                 ,pcomment=""
                 ,ptype=RegularPosting
                 ,ptags=[]
+                ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
                 }
 posting = nullposting
