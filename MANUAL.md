@@ -249,7 +249,7 @@ hledger supports ledger-style
 [balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
 in journal files.
 These look like `=EXPECTEDBALANCE` following a posting's amount. Eg in
-this example we assert the expected balance in accounts a and after
+this example we assert the expected balance in accounts a and b after
 each posting:
 
     2013/1/1
