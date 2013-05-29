@@ -263,9 +263,11 @@ each posting:
 After reading a journal file, hledger will check all balance
 assertions and report an error if any of them fail. Balance assertions
 can protect you from, eg, inadvertently disrupting reconciled balances
-while cleaning up old entries. Be aware that they may have some impact
-on parsing performance. Also note, balance assertion amounts currently
-must have a commodity symbol.
+while cleaning up old entries. Some tips:
+
+- balance assertions depend on the order postings are parsed from the file(s). The posting's date is ignored, currently.
+- balance assertion amounts currently must have a commodity symbol.
+- balance assertions' impact on parsing time for large files is not yet known.
 
 #### Prices
 
