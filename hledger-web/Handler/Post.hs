@@ -67,8 +67,8 @@ handleAdd = do
                            tdate=parsedate date
                           ,tdescription=desc
                           ,tpostings=[
-                            Posting Nothing Nothing False acct1 (mixed amt1) "" RegularPosting [] Nothing
-                           ,Posting Nothing Nothing False acct2 (mixed amt2) "" RegularPosting [] Nothing
+                            nullposting{paccount=acct1, pamount=mixed amt1}
+                           ,nullposting{paccount=acct2, pamount=mixed amt2}
                            ]
                           })
   -- display errors or add transaction
