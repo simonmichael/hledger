@@ -136,7 +136,7 @@ library
                    , yaml
                    , yesod
                    , yesod-core
-                   , yesod-platform       >= 1.2 && < 1.3
+                   , yesod-platform       >= 1.2.0.1 && < 1.3
                    , yesod-static
     if flag(blaze_html_0_4)
       cpp-options:   -DBLAZE_HTML_0_4
@@ -226,7 +226,7 @@ executable         hledger-web
                    , yaml
                    , yesod
                    , yesod-core
-                   , yesod-platform       >= 1.2 && < 1.3
+                   , yesod-platform       >= 1.2.0.1 && < 1.3
                    , yesod-static
 
     if flag(blaze_html_0_4)
