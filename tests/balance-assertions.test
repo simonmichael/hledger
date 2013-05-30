@@ -1,0 +1,71 @@
+#!/usr/bin/env shelltest
+# 1. test some balance assertions
+hledgerdev -f - stats
+<<<
+2013/1/1
+  a    $1  =$1
+  b        =-$1
+
+2013/1/2
+  a    $1  =$2
+  b   $-1  =$-2
+
+2013/1/3
+  a    $1  = $3
+  b   $-1  = $-3
+  (b)  $1  = $-2
+
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 2. same entries as 1 but different parse order, assertion should still pass based on date
+hledgerdev -f - stats
+<<<
+2013/1/1
+  a    $1  =$1
+  b        =-$1
+
+2013/1/3
+  a    $1  = $3
+  b   $-1  = $-3
+  (b)  $1  = $-2
+
+2013/1/2
+  a    $1  =$2
+  b   $-1  =$-2
+
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 3. like 1 but switch order of postings in last entry,
+# assertion should fail and exit code should be non zero
+hledgerdev -f - stats
+<<<
+2013/1/1
+  a    $1  =$1
+  b        =-$1
+
+2013/1/2
+  a    $1  =$2
+  b   $-1  =$-2
+
+2013/1/3
+  a    $1  = $3
+  (b)  $1  = $-2
+  b   $-1  = $-3
+
+>>>
+>>>2 /Balance assertion failed for account b on 2013-01-03/
+>>>=1
+
+# 4. should also work without commodity symbols
+hledgerdev -f - stats
+<<<
+2013/1/1
+  (a)    1  =1
+
+>>> /Transactions/
+>>>2
+>>>=0
