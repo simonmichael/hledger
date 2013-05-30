@@ -377,7 +377,10 @@ checkBalanceAssertionsForAccount ps
   | null errs = Right ()
   | otherwise = Left $ head errs
   where
-    errs = fst $ foldl' checkBalanceAssertion ([],nullmixedamt) $ splitAssertions ps
+    errs = fst $
+           foldl' checkBalanceAssertion ([],nullmixedamt) $
+           splitAssertions $
+           sortBy (comparing postingDate) ps
 
 -- Given a starting balance, accumulated errors, and a non-null sequence of
 -- postings to a single account with a balance assertion in the last:
