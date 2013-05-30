@@ -508,7 +508,7 @@ postingp = do
   account <- modifiedaccountname
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
-  mBalanceAssertion <- balanceassertion
+  massertion <- balanceassertion
   _ <- fixedlotprice
   many spacenonewline
   ctx <- getState
@@ -517,7 +517,7 @@ postingp = do
   -- oh boy
   d  <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx date `fmap` dateValueFromTags tags)
   d2 <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx date `fmap` date2ValueFromTags tags)
-  return posting{pdate=d, pdate2=d2, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags, pbalanceassertion=mBalanceAssertion}
+  return posting{pdate=d, pdate2=d2, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags, pbalanceassertion=massertion}
 
 #ifdef TESTS
 test_postingp = do
