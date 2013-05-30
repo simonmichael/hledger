@@ -195,6 +195,11 @@ comments may be permissible in different places.
 - hledger's [include directive](MANUAL.html#including-other-files) does not support
   shell glob patterns (eg `include *.journal` ), which ledger does.
 
+- when checking [balance assertions](MANUAL.html#balance-assertions)
+  hledger sorts the account's postings first by date and then (for
+  postings with the same date) by parse order. ledger goes strictly by
+  parse order.
+
 ### How are the implementations different ?
 
 ledger is written in C++, whereas hledger is written in the
