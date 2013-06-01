@@ -112,7 +112,7 @@ searchform VD{..} = [hamlet|
 
 -- | Add transaction form.
 addform :: Text -> ViewData -> HtmlUrl AppRoute
-addform staticRootUrl vd@VD{..} = [hamlet|
+addform _ vd@VD{..} = [hamlet|
 <script type=text/javascript>
  \$(document).ready(function() {
     /* select2 setup */
