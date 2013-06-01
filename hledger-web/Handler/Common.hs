@@ -16,6 +16,7 @@ import Text.Blaze (preEscapedString)
 import Text.Blaze.Internal (preEscapedString)
 #endif
 import Text.Printf
+import Text.JSON
 
 import Hledger.Utils
 import Hledger.Data
@@ -114,19 +115,27 @@ addform :: Text -> ViewData -> HtmlUrl AppRoute
 addform staticRootUrl vd@VD{..} = [hamlet|
 <script type=text/javascript>
  \$(document).ready(function() {
-    /* dhtmlxcombo setup */
-    window.dhx_globalImgPath="#{staticRootUrl}/";
-    var desccombo  = new dhtmlXCombo("description");
-    var acct1combo = new dhtmlXCombo("account1");
-    var acct2combo = new dhtmlXCombo("account2");
-    desccombo.enableFilteringMode(true);
-    acct1combo.enableFilteringMode(true);
-    acct2combo.enableFilteringMode(true);
-    desccombo.setSize(300);
-    acct1combo.setSize(300);
-    acct2combo.setSize(300);
-    /* desccombo.enableOptionAutoHeight(true, 20); */
-    /* desccombo.setOptionHeight(200); */
+    /* select2 setup */
+    var param = {
+      "width": "250px",
+      "openOnEnter": false,
+      // createSearchChoice allows to create new values not in the options
+      "createSearchChoice":function(term, data) {
+        if ( $(data).filter( function() {
+                return this.text.localeCompare(term)===0;
+                }).length===0) {
+          return {text:term};
+        }
+      },
+      // id is what is passed during post
+      "id": function(object) {
+        return object.text;
+      }
+    };
+    \$("#description").select2($.extend({}, param, {data: #{toSelectData descriptions} }));
+    var accountData = $.extend({}, param, {data: #{toSelectData acctnames} });
+    \$("#account1").select2(accountData);
+    \$("#account2").select2(accountData);
  });
 
 <form#addform method=POST style=display:none;>
@@ -143,10 +152,7 @@ addform staticRootUrl vd@VD{..} = [hamlet|
        <td style=padding-left:1em;>
         Description:
        <td>
-        <select id=description name=description>
-         <option>
-         $forall d <- descriptions
-          <option value=#{d}>#{d}
+        <input type=hidden id=description name=description>
       <tr.helprow>
        <td>
        <td>
@@ -171,16 +177,16 @@ addform staticRootUrl vd@VD{..} = [hamlet|
   deschelp = "eg: supermarket (optional)" :: String
   date = "today" :: String
   descriptions = sort $ nub $ map tdescription $ jtxns j
+  acctnames = sort $ journalAccountNamesUsed j
+  -- Construct data for select2. Text must be quoted in a json string.
+  toSelectData as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("text", showJSON a)]) as
   manyfiles = (length $ files j) > 1
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
   postingfields _ n = [hamlet|
 <tr#postingrow>
  <td align=right>#{acctlabel}:
  <td>
-  <select id=#{acctvar} name=#{acctvar}>
-   <option>
-   $forall a <- acctnames
-    <option value=#{a} :shouldselect a:selected>#{a}
+  <input type=hidden id=#{acctvar} name=#{acctvar}>
  ^{amtfield}
 <tr.helprow>
  <td>
@@ -191,11 +197,9 @@ addform staticRootUrl vd@VD{..} = [hamlet|
   <span.help>#{amthelp}
 |]
    where
-    shouldselect a = n == 2 && maybe False ((a==).fst) (inAccount qopts)
     withnumber = (++ show n)
     acctvar = withnumber "account"
     amtvar = withnumber "amount"
-    acctnames = sort $ journalAccountNamesUsed j
     (acctlabel, accthelp, amtfield, amthelp)
        | n == 1     = ("To account"
                      ,"eg: expenses:food"
