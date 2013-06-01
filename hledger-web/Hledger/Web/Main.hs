@@ -72,7 +72,7 @@ web opts j = do
     hFlush stdout
     runSettings defaultSettings{settingsPort=p} app
    else do
-    putStrLn "Starting web browser"
+    putStrLn "Starting web browser if possible"
     putStrLn "Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)"
     hFlush stdout
     runUrlPort p "" app
