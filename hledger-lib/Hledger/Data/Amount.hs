@@ -81,6 +81,7 @@ module Hledger.Data.Amount (
   divideMixedAmount,
   isNegativeMixedAmount,
   isZeroMixedAmount,
+  isReallyZeroMixedAmount,
   isReallyZeroMixedAmountCost,
   -- ** rendering
   showMixedAmount,

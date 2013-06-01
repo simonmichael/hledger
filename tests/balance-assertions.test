@@ -69,3 +69,45 @@ hledgerdev -f - stats
 >>> /Transactions/
 >>>2
 >>>=0
+
+# 5. should work for fractional amount with trailing zeros
+hledgerdev -f - stats
+<<<
+2013/1/1
+  a    $1.20  =$1.20
+  b           =-$1.20
+
+2013/1/2
+  a    $0.10  =$1.3
+  b           =-$1.3
+
+2013/1/3
+  a    $0.7   =$2
+  b           =-$2
+
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 6. what should happen here ? Currently,
+# in a, 3.4 EUR @@ $5.6 and -3.4 EUR cancel out (wrong ?)
+# in b, 
+# 
+# hledgerdev -f - stats
+# <<<
+# 2013/1/1
+#   a    $1.20
+#   a    3.4 EUR @@ $5.6
+#   b  
+
+# 2013/1/2
+#   a    -3.4 EUR
+#   b
+
+# 2013/1/3
+#   a    $0.1   =$1.30
+#   b           =-$1.30
+
+# >>> /Transactions/
+# >>>2
+# >>>=0
