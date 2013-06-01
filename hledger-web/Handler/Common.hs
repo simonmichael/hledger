@@ -532,7 +532,7 @@ numberTransactionsReportItems items = number 0 nulldate items
           (prevdy,prevdm,_) = toGregorian prevd
 
 mixedAmountAsHtml :: MixedAmount -> Html
-mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ showMixedAmount b
+mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ showMixedAmountWithoutPrice b
     where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
           c = case isNegativeMixedAmount b of Just True -> "negative amount"
                                               _         -> "positive amount"
