@@ -557,7 +557,7 @@ transactionFromCsvRecord rules record = t
       ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
       ,"the parse error is:      "++show err
       ,"you may need to "
-       ++"change your amount, currency or default-currency rules, "
+       ++"change your amount or currency rules, "
        ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
       ]
     -- Using costOfMixedAmount here to allow complex costs like "10 GBP @@ 15 USD".
