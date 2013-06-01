@@ -391,8 +391,9 @@ checkBalanceAssertion :: ([String],MixedAmount) -> [Posting] -> ([String],MixedA
 checkBalanceAssertion (errs,bal) ps
   | null ps = (errs,bal)
   | isNothing assertion = (errs,bal)
-  -- | bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
-  | not $ isReallyZeroMixedAmount (bal' - assertedbal)
+  |
+    -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
+    not $ isReallyZeroMixedAmount (bal' - assertedbal)
       = (errs++[err], bal')
   | otherwise = (errs,bal')
   where
