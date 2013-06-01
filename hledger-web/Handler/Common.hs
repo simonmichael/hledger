@@ -48,7 +48,7 @@ $maybe m' <- msg
 
 -- | The sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
-sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport (reportopts_ $ cliopts_ opts) am j
+sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport (reportopts_ $ cliopts_ opts){empty_=True} am j
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
 -- navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
