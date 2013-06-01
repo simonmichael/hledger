@@ -593,7 +593,7 @@ getAmountStr rules record =
    mamount    = getEffectiveAssignment rules record "amount"
    mamountin  = getEffectiveAssignment rules record "amount-in"
    mamountout = getEffectiveAssignment rules record "amount-out"
-   render     = fmap (renderTemplate rules record)
+   render     = fmap (strip . renderTemplate rules record)
  in
   case (render mamount, render mamountin, render mamountout) of
     (Just "", Nothing, Nothing) -> error' $ "amount has no value\n"++showRecord record
