@@ -34,7 +34,8 @@ module Hledger.Reports (
   TransactionsReport,
   TransactionsReportItem,
   triDate,
-  triBalance,
+  triSimpleBalance,
+  transactionsReportByCommodity,
   journalTransactionsReport,
   accountTransactionsReport,
   -- * Accounts report
@@ -435,8 +436,38 @@ type TransactionsReportItem = (Transaction -- the corresponding transaction
                               )
 
 triDate (t,_,_,_,_,_) = tdate t
-triBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
-                                           (Amount{aquantity=q}):_ -> show q
+triAmount (_,_,_,_,a,_) = a
+triSimpleBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
+                                                 (Amount{aquantity=q}):_ -> show q
+
+-- Split a transactions report whose items may involve several commodities,
+-- into one or more single-commodity transactions reports.
+transactionsReportByCommodity :: TransactionsReport -> [TransactionsReport]
+transactionsReportByCommodity tr =
+  [filterTransactionsReportByCommodity c tr | c <- transactionsReportCommodities tr]
+  where
+    transactionsReportCommodities (_,items) =
+      nub $ sort $ map acommodity $ concatMap (amounts . triAmount) items
+
+-- Remove transaction report items and item amount components that
+-- don't involve the specified commodity. Other item fields like the
+-- running balance and the transaction are left unchanged.
+filterTransactionsReportByCommodity :: Commodity -> TransactionsReport -> TransactionsReport
+filterTransactionsReportByCommodity c (label,items) =
+  (label, fixTransactionsReportItemBalances $ concat [filterTransactionsReportItemByCommodity c i | i <- items])
+  where
+    filterTransactionsReportItemByCommodity c (t,t2,s,o,Mixed as,bal)
+      | c `elem` cs = [item']
+      | otherwise   = []
+      where
+        cs = map acommodity as
+        item' = (t,t2,s,o,Mixed as',bal)
+        as' = filter ((==c).acommodity) as
+    fixTransactionsReportItemBalances is = reverse $ go nullmixedamt $ reverse is
+      where
+        go _ [] = []
+        go bal ((t,t2,s,o,amt,_):is) = (t,t2,s,o,amt,bal'):go bal' is
+          where bal' = bal + amt
 
 -- | Select transactions from the whole journal for a transactions report,
 -- with no \"current\" account. The end result is similar to

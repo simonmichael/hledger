@@ -423,8 +423,8 @@ $forall p' <- tpostings t
 
 -- Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerReportHtml opts vd r@(_,items) = [hamlet|
- ^{registerChartHtml items}
+registerReportHtml opts vd r = [hamlet|
+ ^{registerChartHtml $ map snd $ transactionsReportByCommodity r}
  ^{registerItemsHtml opts vd r}
 |]
 
@@ -486,8 +486,8 @@ $forall p' <- tpostings t
                --                      Data.Foldable.Foldable t1 =>
                --                      t1 (Transaction, t2, t3, t4, t5, MixedAmount)
                --                      -> t -> Text.Blaze.Internal.HtmlM ()
-registerChartHtml :: [TransactionsReportItem] -> HtmlUrl AppRoute
-registerChartHtml items =
+registerChartHtml :: [[TransactionsReportItem]] -> HtmlUrl AppRoute
+registerChartHtml itemss =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  [hamlet|
@@ -499,10 +499,11 @@ registerChartHtml items =
    if (chartdiv.is(':visible'))
      \$.plot(chartdiv,
              [
-              [
-               $forall i <- items
-                [#{dayToJsTimestamp $ triDate i}, #{triBalance i}],
-              ]
+              $forall items <- itemss
+               [
+                $forall i <- items
+                 [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
+               ],
              ],
              {
                xaxis: {
