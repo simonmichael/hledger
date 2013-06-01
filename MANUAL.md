@@ -271,6 +271,9 @@ parse order. This is different from ledger, which currently goes
 strictly by parse order. Sorting by date means balance assertions will
 still work if you reorder your entries.
 
+Also note the asserted balance must be a simple amount - it's not
+currently possible to assert a balance containing multiple commodities.
+
 The impact of balance assertions on parsing time for large files is
 not yet known.
 
