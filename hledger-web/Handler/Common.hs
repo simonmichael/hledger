@@ -401,7 +401,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
    itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [hamlet|
 <tr.item.#{evenodd}.#{firstposting}>
  <td.date>#{date}
- <td.description colspan=2 title="#{show t}">#{elideRight 60 desc}
+ <td.description colspan=2>#{elideRight 60 desc}
  <td.amount align=right>
   $if showamt
    #{mixedAmountAsHtml amt}
