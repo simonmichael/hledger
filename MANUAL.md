@@ -312,10 +312,13 @@ examples we get:
 
 ##### Fixed Lot Prices
 
-hledger will parse and ignore ledger-style
-[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices)
-(`{=PRICE}` following an amount).
-hledger's prices always work like ledger's fixed lot prices.
+ledger has another syntax for
+[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices).
+(`{=PRICE}`). In ledger, this is equivalent to `@ PRICE`, except you
+can provide both and then ledger generates an automatic Capital Losses
+posting covering the difference.
+
+hledger will parse this syntax, but ignore it.
 
 ##### Historical prices
 
