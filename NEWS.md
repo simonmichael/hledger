@@ -4,10 +4,28 @@ title: hledger news
 
 # News
 
-## unreleased
+## 2013/6/1 hledger 0.21
 
-  * parsing: balance assertions are now checked when reading journal files
-  * web: requires yesod 1.2
+**Bugs fixed:**
+
+  - parsing: don't fail when a csv amount has trailing whitespace (fixes #113)
+  - web: don't show prices in the accounts sidebar (fixes #114)
+  - web: show one line per commodity in charts. Needs more polish, but fixes #109.
+  - web: bump yesod-platform dependency to avoid a cabal install failure
+
+**Journal reading:**
+
+  - balance assertions are now checked after reading a journal
+
+**web command:**
+
+  - web: support/require yesod 1.2
+  - web: show zero-balance accounts in the sidebar (fixes #106)
+  - web: use nicer select2 autocomplete widgets in the add form
+
+**Documentation and infrastructure:**
+
+  - add basic cabal test suites for hledger-lib and hledger
 
 ## 2013/5/4 hledger 0.20.0.1
 
