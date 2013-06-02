@@ -23,7 +23,7 @@ main = do
         route   idRoute
         compile compressCssCompiler
     match "templates/*" $ compile templateCompiler
-    match ("*.md" .||. "0.19/*.md" .||. "0.18/*.md") $ do
+    match ("*.md" .||. "0.20/*.md" .||. "0.19/*.md" .||. "0.18/*.md") $ do
         route   $ setExtension "html"
         compile $
           pandocCompilerWith
