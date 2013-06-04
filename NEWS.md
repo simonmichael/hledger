@@ -4,6 +4,11 @@ title: hledger news
 
 # News
 
+## 2013/6/3 hledger 0.21.1
+
+  - web: show proper Y-values in register chart (fixes #122)
+  - web: avoid trailing commas in register chart values, in case of trouble with IE
+
 ## 2013/6/1 hledger 0.21
 
 **Bugs fixed:**
