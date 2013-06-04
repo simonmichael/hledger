@@ -503,7 +503,9 @@ registerChartHtml itemss =
                [
                 $forall i <- reverse items
                  [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
+                []
                ],
+              []
              ],
              {
                xaxis: {
