@@ -462,7 +462,7 @@ filterTransactionsReportByCommodity c (label,items) =
       | c `elem` cs = [item']
       | otherwise   = []
       where
-        cs = map acommodity as
+        cs = map acommodity $ amounts a
         item' = (t,t2,s,o,a',bal)
         a' = filterMixedAmountByCommodity c a
 
