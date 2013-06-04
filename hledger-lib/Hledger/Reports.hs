@@ -34,6 +34,7 @@ module Hledger.Reports (
   TransactionsReport,
   TransactionsReportItem,
   triDate,
+  triBalance,
   triSimpleBalance,
   transactionsReportByCommodity,
   journalTransactionsReport,
@@ -437,6 +438,7 @@ type TransactionsReportItem = (Transaction -- the corresponding transaction
 
 triDate (t,_,_,_,_,_) = tdate t
 triAmount (_,_,_,_,a,_) = a
+triBalance (_,_,_,_,_,a) = a
 triSimpleBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
                                                  (Amount{aquantity=q}):_ -> show q
 
@@ -449,25 +451,34 @@ transactionsReportByCommodity tr =
     transactionsReportCommodities (_,items) =
       nub $ sort $ map acommodity $ concatMap (amounts . triAmount) items
 
--- Remove transaction report items and item amount components that
--- don't involve the specified commodity. Other item fields like the
--- running balance and the transaction are left unchanged.
+-- Remove transaction report items and item amount (and running
+-- balance amount) components that don't involve the specified
+-- commodity. Other item fields such as the transaction are left unchanged.
 filterTransactionsReportByCommodity :: Commodity -> TransactionsReport -> TransactionsReport
 filterTransactionsReportByCommodity c (label,items) =
   (label, fixTransactionsReportItemBalances $ concat [filterTransactionsReportItemByCommodity c i | i <- items])
   where
-    filterTransactionsReportItemByCommodity c (t,t2,s,o,Mixed as,bal)
+    filterTransactionsReportItemByCommodity c (t,t2,s,o,a,bal)
       | c `elem` cs = [item']
       | otherwise   = []
       where
         cs = map acommodity as
-        item' = (t,t2,s,o,Mixed as',bal)
-        as' = filter ((==c).acommodity) as
-    fixTransactionsReportItemBalances is = reverse $ go nullmixedamt $ reverse is
+        item' = (t,t2,s,o,a',bal)
+        a' = filterMixedAmountByCommodity c a
+
+    fixTransactionsReportItemBalances [] = []
+    fixTransactionsReportItemBalances [i] = [i]
+    fixTransactionsReportItemBalances items = reverse $ i:(go startbal is)
       where
+        i:is = reverse items
+        startbal = filterMixedAmountByCommodity c $ triBalance i
         go _ [] = []
         go bal ((t,t2,s,o,amt,_):is) = (t,t2,s,o,amt,bal'):go bal' is
           where bal' = bal + amt
+
+-- | Filter out all but the specified commodity from this amount.
+filterMixedAmountByCommodity :: Commodity -> MixedAmount -> MixedAmount
+filterMixedAmountByCommodity c (Mixed as) = Mixed $ filter ((==c). acommodity) as
 
 -- | Select transactions from the whole journal for a transactions report,
 -- with no \"current\" account. The end result is similar to
