@@ -1,8 +1,3 @@
-{-# LANGUAGE TemplateHaskell, CPP #-}
-{-|
-
--}
-
 module Hledger.Web.Options
 where
 import Prelude

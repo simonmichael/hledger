@@ -101,25 +101,27 @@ PATCHLEVEL:=$(shell git describe --long | awk -F - '{print $$2}')
 
 # build flags
 WARNINGS:=-W -fwarn-tabs -fno-warn-unused-do-bind -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
-# Language extensions similar to the ones enabled by yesod in hledger-web.cabal,
-# so that we can do full dev builds of  hledger-web. Warning, they are not
-# exactly the same, in particular NoImplicitPrelude is not enabled since
-# hledger and hledger-lib won't build with that. So don't rely on the dev
-# build to show all compilation warnings and errors, do a cabal build as well.
+
+# For ghc-only dev builds of hledger-web: enable the language
+# extensions specified in hledger-web.cabal, except for some which are
+# not compatible with hledger-lib and hledger, or little-used; those
+# are enabled with source file pragmas instead. Note: compilation
+# warnings and errors might differ between ghc-only and cabal builds.
 WEBLANGEXTS:=\
-	-XTemplateHaskell \
-	-XQuasiQuotes \
 	-XCPP \
 	-XMultiParamTypeClasses \
-	-XTypeFamilies \
-	-XGADTs \
-	-XGeneralizedNewtypeDeriving \
-	-XFlexibleContexts \
-	-XEmptyDataDecls \
 	-XOverloadedStrings \
-	-XRecordWildCards
-#	-XNoImplicitPrelude
+	-XQuasiQuotes \
+	-XRecordWildCards \
+	-XTemplateHaskell \
+#	-XNoImplicitPrelude \
+#	-XTypeFamilies \
+#	-XGADTs \
+#	-XGeneralizedNewtypeDeriving \
+#	-XFlexibleContexts \
+#	-XEmptyDataDecls \
 #	-XNoMonomorphismRestriction
+
 PREFERMACUSRLIBFLAGS=-L/usr/lib
 GHCMEMFLAGS= #+RTS -M200m -RTS
 CABALMACROSFLAGS=-optP-include -optPhledger/dist/build/autogen/cabal_macros.h
@@ -171,7 +173,7 @@ auto-%: sp
 	$(AUTOBUILD) $(MAIN) -o bin/hledgerdev $(AUTOBUILDFLAGS) --run $*
 
 autoweb: sp link-web-dirs
-	$(AUTOBUILD) hledger-web/app/main.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) $(WEBLANGEXTS) --run -B --port 5001 --base-url http://localhost:5001 -f test.journal
+	$(AUTOBUILD) hledger-web/app/main.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) $(WEBLANGEXTS) --run -B --port 5001 --base-url http://localhost:5001 -f webtest.j
 
 link-web-dirs: config messages static templates
 

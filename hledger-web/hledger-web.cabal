@@ -72,19 +72,21 @@ library
  
     ghc-options:   -Wall -fno-warn-unused-do-bind
  
-    extensions: TemplateHaskell
-                QuasiQuotes
-                OverloadedStrings
-                NoImplicitPrelude
+    extensions:
                 CPP
                 MultiParamTypeClasses
-                TypeFamilies
-                GADTs
-                GeneralizedNewtypeDeriving
-                FlexibleContexts
-                EmptyDataDecls
-                NoMonomorphismRestriction
+                NoImplicitPrelude
+                OverloadedStrings
+                QuasiQuotes
                 RecordWildCards
+                TemplateHaskell
+                TypeFamilies
+                -- seem to not be needed at present:
+                -- GADTs
+                -- GeneralizedNewtypeDeriving
+                -- FlexibleContexts
+                -- EmptyDataDecls
+                -- NoMonomorphismRestriction
 
     hs-source-dirs:  . app
     exposed-modules:  Application
@@ -167,15 +169,15 @@ executable         hledger-web
     else
         ghc-options:   -O2
 
-    extensions: TemplateHaskell
-                QuasiQuotes
-                OverloadedStrings
-                NoImplicitPrelude
+    extensions: 
                 CPP
-                OverloadedStrings
                 MultiParamTypeClasses
-                TypeFamilies
+                NoImplicitPrelude
+                OverloadedStrings
+                QuasiQuotes
                 RecordWildCards
+                TemplateHaskell
+                TypeFamilies
 
     hs-source-dirs:  . app
     main-is:         main.hs

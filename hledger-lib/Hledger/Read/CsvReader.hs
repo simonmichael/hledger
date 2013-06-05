@@ -1,4 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
 A reader for CSV data, using an extra rules file to help interpret the data.

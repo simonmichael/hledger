@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-
 
 Define the web application's foundation, in the usual Yesod style.
