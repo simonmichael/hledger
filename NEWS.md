@@ -4,6 +4,10 @@ title: hledger news
 
 # News
 
+## 2013/6/4 hledger 0.21.2
+
+  - web: fix a build failure
+
 ## 2013/6/3 hledger 0.21.1
 
   - web: show proper Y-values in register chart (fixes #122)
