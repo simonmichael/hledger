@@ -34,7 +34,7 @@ Binaries funded in this way will then be available to all.
 This is a quick way to help the project and your fellow users!
 For other install options, and more installation help, see the [Installation Guide](INSTALL.html).
 
-The current hledger release is 0.21.1.
+The current hledger release is 0.21.
 Here are the available binaries (but they're out of date.. you don't want
 them.. see the [Installation Guide](INSTALL.html)..):
 
