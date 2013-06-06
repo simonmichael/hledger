@@ -34,7 +34,18 @@ import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Test.HUnit
 import Text.Printf
+
+-- kludge - adapt to whichever directory version is installed, or when
+-- cabal macros aren't available, assume the new directory
+#ifdef MIN_VERSION_directory
 #if MIN_VERSION_directory(1,2,0)
+#define directory_1_2
+#endif
+#else
+#define directory_1_2
+#endif
+
+#ifdef directory_1_2
 import System.Time (ClockTime(TOD))
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 #endif
@@ -103,7 +114,7 @@ fileModificationTime :: FilePath -> IO ClockTime
 fileModificationTime f
     | null f = getClockTime
     | otherwise = (do
-#if MIN_VERSION_directory(1,2,0)
+#ifdef directory_1_2
         utc <- getModificationTime f
         let nom = utcTimeToPOSIXSeconds utc
         let clo = TOD (read $ takeWhile (`elem` "0123456789") $ show nom) 0 -- XXX read
