@@ -38,3 +38,4 @@ and get started tracking your numbers!
 or [email me](mailto:simon@joyful.com?subject=hledger:).
 I appreciate feedback and help with all aspects of hledger.
 -->
+
