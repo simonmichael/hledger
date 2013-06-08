@@ -200,6 +200,11 @@ comments may be permissible in different places.
   postings with the same date) by parse order. ledger goes strictly by
   parse order.
 
+- ledger allows amounts to have a
+  [fixed lot price](MANUAL.html#prices) and a regular price in any
+  order (and uses whichever appears first). hledger requires the fixed
+  lot price to come last (and ignores it).
+
 ### How are the implementations different ?
 
 ledger is written in C++, whereas hledger is written in the

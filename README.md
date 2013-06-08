@@ -5,7 +5,7 @@ title: hledger
 # hledger
 
 hledger is a computer program for easily tracking money, time, or other
-commodities, inspired by [ledger](http://ledger-cli.org). It is quite
+commodities, inspired by and compatible with [ledger](http://ledger-cli.org). It is quite
 limited in features, but lightweight and reliable. For some, it is a
 bare-bones, simpler, less expensive alternative to Quicken or GnuCash.  It
 is available for free under the GNU General Public License.
@@ -25,7 +25,7 @@ learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
 
-**Community & support:**
+**Community & support**
 
 **IRC (chat):** [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger) (shared with ledger)  
 **Mail list:** [hledger.org/list](http://hledger.org/list) (for broader topics, you can also use [ledger's list](http://list.ledger-cli.org))  
@@ -38,3 +38,5 @@ and get started tracking your numbers!
 or [email me](mailto:simon@joyful.com?subject=hledger:).
 I appreciate feedback and help with all aspects of hledger.
 -->
+
+

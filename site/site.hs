@@ -45,3 +45,5 @@ symlinkIndexHtml = ensureSiteDir >> system "ln -sf README.html _site/index.html"
 symlinkProfsDir = ensureSiteDir >> system "ln -sf ../../profs _site/profs"
 
 ensureSiteDir = system "mkdir -p _site"
+
+
