@@ -623,9 +623,9 @@ showRecord r = "the CSV record is:       "++intercalate ", " (map show r)
 getEffectiveAssignment :: CsvRules -> CsvRecord -> JournalFieldName -> Maybe FieldTemplate
 getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
   where
-    assignmentsFor f = map snd $ toplevelassignments ++ conditionalassignments
+    assignmentsFor f = map snd $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
       where
-        toplevelassignments    = filter ((==f).fst) $ rassignments rules
+        toplevelassignments    = rassignments rules
         conditionalassignments = concatMap snd $ filter blockMatches $ blocksAssigning f
           where
             blocksAssigning f = filter (any ((==f).fst) . snd) $ rconditionalblocks rules
