@@ -4,6 +4,10 @@ title: hledger news
 
 # News
 
+## 2013/6/23 hledger 0.21.3
+
+  - csv: fix wrong application of multiple assignments in a conditional block
+
 ## 2013/6/4 hledger 0.21.2
 
   - web: fix a build failure
