@@ -18,5 +18,9 @@ site/[0-9]*
 /templates
 profs/profs
 t.*
+tt.*
+ttt.*
+tttt.*
+ttttt.*
 site/api
 .haddockprologue
