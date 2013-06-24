@@ -814,7 +814,7 @@ DOWNLOAD.md: $(VERSIONFILE)
 	perl -p -e "s/hledger(|-chart|-web|-vty)-[0-9.]+-/hledger\1-$(VERSION)-/g" -i $@
 
 tagrelease:
-	darcs tag $(VERSION)
+	git tag -a $(VERSION)
 
 # display a hackage upload command reminder
 hackageupload:
