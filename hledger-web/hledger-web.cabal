@@ -230,7 +230,6 @@ executable         hledger-web
                    , yaml
                    , yesod
                    , yesod-core
-                   , yesod-platform       >= 1.2.0.1 && < 1.3
                    , yesod-static
                    , json
 
