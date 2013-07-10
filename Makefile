@@ -887,10 +887,26 @@ showreleaseauthors:
 	@darcs changes --from-tag $(FROMTAG) |grep '^\w' |cut -c 31- |sort |uniq
 	@echo
 
-showloc sloccount:
+showloc:
 	@echo Current lines of code including tests:
 	@sloccount `ls $(SOURCEFILES)` | grep haskell:
 	@echo
+
+sloc:
+	@sloccount hledger-lib hledger hledger-web
+
+cloc:
+	@echo
+	@echo "Lines of code as of `date`:"
+	@echo
+	@echo "hledger-lib, hledger"
+	@cloc -q hledger-lib hledger             2>&1 | grep -v 'defined('
+	@echo
+	@echo "hledger-web"
+	@cloc -q hledger-web                     2>&1 | grep -v 'defined('
+	@echo
+	@echo "hledger-lib, hledger, hledger-web"
+	@cloc -q hledger-lib hledger hledger-web 2>&1 | grep -v 'defined('
 
 showtestcount:
 	@echo "Unit tests:"
