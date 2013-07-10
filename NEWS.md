@@ -4,6 +4,12 @@ title: hledger news
 
 # News
 
+## 2013/7/10 hledger-web 0.21.3
+
+  - drop yesod-platform dependency, it is not worthwhile. The other
+    yesod dependencies are currently without version ranges, so cabal
+    install might require --constraint to restrict them in some cases.
+
 ## 2013/6/23 hledger 0.21.3
 
   - csv: fix wrong application of multiple assignments in a conditional block
