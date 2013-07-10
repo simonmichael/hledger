@@ -816,11 +816,10 @@ DOWNLOAD.md: $(VERSIONFILE)
 tagrelease:
 	git tag -a $(VERSION)
 
-# display a hackage upload command reminder
-hackageupload:
-	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2; done
-
 hackageupload-dry:
+	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2 --check; done
+
+hackageupload:
 	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2; done
 
 # send unpushed patches to the mail list
