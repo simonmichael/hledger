@@ -729,8 +729,8 @@ currently assumes that you have top-level accounts named `income` (or
 
 This command displays a simple
 [balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently
-assumes that you have top-level accounts named `asset`, `liability` and
-`equity` (plural forms also allowed.)
+assumes that you have top-level accounts named `asset` and `liability`
+(plural forms also allowed.)
 
 #### cashflow
 

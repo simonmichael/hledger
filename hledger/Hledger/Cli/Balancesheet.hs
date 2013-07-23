@@ -27,16 +27,13 @@ balancesheet CliOpts{reportopts_=ropts} j = do
   let q = queryFromOpts d (withoutBeginDate ropts)
       assetreport@(_,assets)          = accountsReport ropts (And [q, journalAssetAccountQuery j]) j
       liabilityreport@(_,liabilities) = accountsReport ropts (And [q, journalLiabilityAccountQuery j]) j
-      equityreport@(_,equity)         = accountsReport ropts (And [q, journalEquityAccountQuery j]) j
-      total = assets + liabilities + equity
+      total = assets + liabilities
   LT.putStr $ [lt|Balance Sheet
 
 Assets:
 #{unlines $ accountsReportAsText ropts assetreport}
 Liabilities:
 #{unlines $ accountsReportAsText ropts liabilityreport}
-Equity:
-#{unlines $ accountsReportAsText ropts equityreport}
 
 Total:
 --------------------
