@@ -26,6 +26,7 @@ module Hledger.Data.Transaction (
   -- * arithmetic
   transactionPostingBalances,
   balanceTransaction,
+  balanceTransactionWithAccountMap,
   -- * rendering
   showTransaction,
   showTransactionUnelided,
@@ -33,6 +34,7 @@ module Hledger.Data.Transaction (
   tests_Hledger_Data_Transaction
 )
 where
+import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Time.Calendar
@@ -244,6 +246,36 @@ isTransactionBalanced styles t =
       bvsum' = canonicalise $ costOfMixedAmount bvsum
       canonicalise = maybe id canonicaliseMixedAmount styles
 
+
+-- | For balance assertions, check that asserted amount is correct.
+-- For balance assignments, fill in the missed amount.
+checkBalanceAssertions :: Map.Map AccountName MixedAmount -> Transaction -> Either String Transaction
+checkBalanceAssertions account_map t = do
+    updated_ps <- forM (tpostings t) checkPosting
+    Right $ t {tpostings=updated_ps}
+        where
+          checkPosting p@Posting{pbalanceassertion=ba} = checkPosting' p ba
+          checkPosting' p Nothing = Right p
+          checkPosting' p@Posting{pamount=amount} (Just asserted_amount)
+            | hasAmount p && isReallyZeroMixedAmount (amount-inferred_amount) = Right p
+            | hasAmount p = Left $ printf "Balance assertion failed for account %s on %s\n%safter\n   %s\nexpected balance is %s, actual balance was %s."
+                 (paccount p)
+                 (show $ postingDate p)
+                 (maybe "" (("In\n"++).show) $ ptransaction p)
+                 (show p)
+                 (showMixedAmount inferred_amount)
+                 (showMixedAmount amount)
+            | otherwise   = Right p{pamount=inferred_amount}
+            where
+              inferred_amount = asserted_amount - Map.findWithDefault nullmixedamt (paccount p) account_map
+
+updateAccountAmountMap :: Transaction -> Map.Map AccountName MixedAmount -> Map.Map AccountName MixedAmount
+updateAccountAmountMap Transaction{tpostings=ps} m = foldr fun m ps
+    where
+      fun Posting{paccount=account, pamount=amount} m
+        | Map.member account m = Map.adjust (amount+) account m
+        | otherwise            = Map.insert account amount m
+
 -- | Ensure this transaction is balanced, possibly inferring a missing
 -- amount or conversion price, or return an error message.
 --
@@ -333,6 +365,13 @@ balanceTransaction styles t@Transaction{tpostings=ps}
       t'''' = txnTieKnot t'''
 
       printerr s = intercalate "\n" [s, showTransactionUnelided t]
+
+balanceTransactionWithAccountMap :: Maybe (Map.Map Commodity AmountStyle) -> Map.Map AccountName MixedAmount -> Transaction -> Either String (Map.Map AccountName MixedAmount, Transaction)
+balanceTransactionWithAccountMap styles accountmap t = do
+    t_checked <- checkBalanceAssertions accountmap t
+    t_balanced <- balanceTransaction styles t_checked
+    let new_accountmap = updateAccountAmountMap t_balanced accountmap
+    return (new_accountmap, t_balanced)
 
 nonzerobalanceerror :: Transaction -> String
 nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
