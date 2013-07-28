@@ -520,7 +520,7 @@ The following kinds of rule can appear in any order:
     capitalisation is not required, that's just how I copied them from
     my bank's CSV.
 
-		if ~
+		if
 		MONTHLY SERVICE FEE
 		ATM TRANSACTION FEE
 		FOREIGN CURR CONV
