@@ -495,15 +495,39 @@ The following kinds of rule can appear in any order:
 
 **if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
 :   (Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
-    PATTERNS is one or more regular expressions on the same or following lines.
-    <!-- then an optional `~` (indicating case-insensitive infix regular expression matching),\ -->
-    These are followed by one or more indented field assignment lines.\
-    In this example, any CSV record containing "groc" (case insensitive, anywhere within the whole record)
-    will have its account2 and comment set as shown:
 
-        if groc
+    PATTERNS is one or more regular expressions, each on its own line starting in column 0.
+	(As a special case, the first pattern may be written on the same line as `if`.)
+    <!-- then an optional `~` (indicating case-insensitive infix regular expression matching),\ -->
+
+    FIELDASSIGNMENTS is one ore more indented field assignments, one per line.
+
+    Example 1. The simplest conditional block has a single pattern and
+    a single field assignment. Here, any CSV record containing the
+    pattern "groceries" (anywhere within the whole record; case
+    insensitive) will have its account2 field set to
+    "expenses:groceries".
+
+        if groceries
          account2 expenses:groceries
-         comment  household stuff
+
+    Example 2. Here, CSV records containing any of these patterns will
+    have their account2 and comment fields set as shown. Note the
+    patterns are not indented, while the assignments are indented by
+    at least one space - this is required for successful parsing.
+
+		if ~
+		MONTHLY SERVICE FEE
+		ATM TRANSACTION FEE
+		FOREIGN CURR CONV
+		OVERDRAFT TRANSFER FEE
+		BANKING THRU SOFTWARE:FEE
+		INTERNATIONAL PURCHASE TRANSACTION FEE
+		WIRE TRANS SVC CHARGE
+		FEE FOR TRANSFER
+		VISA ISA FEE
+		 account2 expenses:business:banking
+         comment  XXX probably deductible, check
 
 **skip** [*N*]
 :   Skip this number of CSV records (1 by default).
