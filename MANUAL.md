@@ -496,25 +496,29 @@ The following kinds of rule can appear in any order:
 **if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
 :   (Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
 
-    PATTERNS is one or more regular expressions, each on its own line starting in column 0.
-	(As a special case, the first pattern may be written on the same line as `if`.)
-    <!-- then an optional `~` (indicating case-insensitive infix regular expression matching),\ -->
+    PATTERNS is one or more regular expressions, each on its own line.
+    The first pattern can optionally be written on the same line as
+    the `if`; patterns on the following lines must start in column 0
+    (no indenting).  The regular expressions are case insensitive, and
+    can match anywhere within the whole CSV record.  (It's not yet
+    possible to match within a specific field.)
 
-    FIELDASSIGNMENTS is one ore more indented field assignments, one per line.
+    FIELDASSIGNMENTS is one or more field assignments (described
+    above), each on its own line and indented by at least one
+    space. (The indent is required for successful parsing.)
 
     Example 1. The simplest conditional block has a single pattern and
     a single field assignment. Here, any CSV record containing the
-    pattern "groceries" (anywhere within the whole record; case
-    insensitive) will have its account2 field set to
-    "expenses:groceries".
+    pattern `groceries` will have its account2 field set to
+    `expenses:groceries`.
 
         if groceries
          account2 expenses:groceries
 
     Example 2. Here, CSV records containing any of these patterns will
-    have their account2 and comment fields set as shown. Note the
-    patterns are not indented, while the assignments are indented by
-    at least one space - this is required for successful parsing.
+    have their account2 and comment fields set as shown. The
+    capitalisation is not required, that's just how I copied them from
+    my bank's CSV.
 
 		if ~
 		MONTHLY SERVICE FEE
