@@ -549,8 +549,12 @@ The following kinds of rule can appear in any order:
         %-m/%-d/%Y
         %Y-%h-%d
 
+**include** *RULESFILE*
+:   Include another rules file at this point. Useful for common rules shared across multiple CSV files.
+
 Typically you'll keep one rules file for each account which you
-download as CSV. For an example, see [How to read CSV files](CSV.html).
+download as CSV. For an example, see [How to read CSV
+files](CSV.html).
 
 Other notes:
 

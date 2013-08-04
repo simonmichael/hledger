@@ -22,7 +22,7 @@ import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Error
 -- import Test.HUnit
-import Data.Char (toLower, isDigit)
+import Data.Char (toLower, isDigit, isSpace)
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -319,7 +319,7 @@ getDirective directivename = lookup directivename . rdirectives
 
 parseRulesFile :: FilePath -> IO (Either ParseError CsvRules)
 parseRulesFile f = do
-  s <- readFile' f
+  s <- readFile' f >>= expandIncludes
   let rules = parseCsvRules f s
   return $ case rules of
              Left e -> Left e
@@ -328,6 +328,19 @@ parseRulesFile f = do
                           Right r -> Right r
   where
     toParseError s = newErrorMessage (Message s) (initialPos "")
+
+-- | Pre-parse csv rules to interpolate included files, recursively.
+-- This is a cheap hack to avoid rewriting the existing parser.
+expandIncludes :: String -> IO String
+expandIncludes s = do
+  let (ls,rest) = break (isPrefixOf "include") $ lines s
+  case rest of
+    [] -> return $ unlines ls
+    (('i':'n':'c':'l':'u':'d':'e':f):ls') -> do
+      let f' = dropWhile isSpace f
+      included <- readFile f' >>= expandIncludes
+      return $ unlines [unlines ls, included, unlines ls']
+    ls' -> return $ unlines $ ls ++ ls'   -- should never get here
 
 parseCsvRules :: FilePath -> String -> Either ParseError CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
