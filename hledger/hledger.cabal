@@ -159,7 +159,7 @@ test-suite tests
                , parsec
                , pretty-show
                , process
-               , regex-compat
+               , regex-compat-tdfa
                , regexpr
                , safe
                , shakespeare-text
