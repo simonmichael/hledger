@@ -4,6 +4,12 @@ title: hledger news
 
 # News
 
+## unreleased
+
+- don't break when there are non-ascii characters in CSV files
+- csv: add the `include` directive, useful for factoring out common rules used with multiple CSV files
+- balancesheet: don't bother showing equity, it won't be useful for most of us
+
 ## 2013/7/10 hledger-web 0.21.3
 
   - drop yesod-platform dependency, it is not worthwhile. The other
