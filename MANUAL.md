@@ -953,8 +953,7 @@ A query term can be any of the following:
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
 - `code:REGEX` - match by transaction code (eg check number)
-- `comm:REGEX` - match by commodity symbol
-- `desc:REGEX` - match transaction descriptions by regular expression
+- `desc:REGEX` - match transaction descriptions
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
 - `date2:PERIODEXPR` - as above, but match secondary dates
 - `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression
@@ -963,6 +962,7 @@ A query term can be any of the following:
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
 - `amt:N` or `amt:=N`, `amt:<N`, `amt:>N` - match postings with a single-commodity amount equal to, less than, or greater than N. (Multi-commodity amounts are always matched.)
+- `sym:REGEX` - match (whole) commodity symbols
 - `not:` before any of the above negates the match
 
 <!--

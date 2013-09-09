@@ -6,7 +6,7 @@ title: hledger news
 
 ## unreleased
 
-- queries: `comm:REGEXP` matches commodity symbols which match REGEXP
+- queries: `sym:REGEXP` matches (whole) commodity symbols
 - queries: `amt` now uses the = operator by default, eg amt:50 finds amounts equal to 50
 - don't break when there are non-ascii characters in CSV files
 - csv: add the `include` directive, useful for factoring out common rules used with multiple CSV files
