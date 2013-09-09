@@ -962,7 +962,13 @@ A query term can be any of the following:
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
 - `amt:N` or `amt:=N`, `amt:<N`, `amt:>N` - match postings with a single-commodity amount equal to, less than, or greater than N. (Multi-commodity amounts are always matched.)
-- `sym:REGEX` - match (whole) commodity symbols
+- `sym:REGEX` - match postings or transactions including any amounts
+  whose commodity symbol is fully matched by REGEX. (For a partial
+  match, use `.*REGEX.*`). Note, to match the dollar sign (`$`) you
+  need to prepend `\` so it's not interpreted as the regular
+  expression metacharacter.  And when running hledger from the
+  command-line, you may need one more level of quoting to hide it from
+  the shell, eg: `hledger print sym:\\$` or `hledger print sym:'\$'`.
 - `not:` before any of the above negates the match
 
 <!--
