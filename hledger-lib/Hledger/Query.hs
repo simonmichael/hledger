@@ -43,7 +43,7 @@ import Text.ParserCombinators.Parsec
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
-import Hledger.Data.Amount (nullamt)
+import Hledger.Data.Amount (nullamt, usd)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
@@ -57,6 +57,7 @@ data Query = Any              -- ^ always match
            | Or [Query]       -- ^ match if any of these match
            | And [Query]      -- ^ match if all of these match
            | Code String      -- ^ match if code matches this regexp
+           | Comm String      -- ^ match if the commodity symbol matches this regexp
            | Desc String      -- ^ match if description matches this regexp
            | Acct String      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
@@ -174,7 +175,9 @@ tests_words'' = [
 prefixes = map (++":") [
      "inacctonly"
     ,"inacct"
+    ,"amt"
     ,"code"
+    ,"comm"
     ,"desc"
     ,"acct"
     ,"date"
@@ -206,6 +209,7 @@ parseQueryTerm d ('n':'o':'t':':':s) = case parseQueryTerm d s of
                                        Left m  -> Left $ Not m
                                        Right _ -> Left Any -- not:somequeryoption will be ignored
 parseQueryTerm _ ('c':'o':'d':'e':':':s) = Left $ Code s
+parseQueryTerm _ ('c':'o':'m':'m':':':s) = Left $ Comm s
 parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ Desc s
 parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ Acct s
 parseQueryTerm d ('d':'a':'t':'e':':':s) =
@@ -499,6 +503,7 @@ matchesPosting (None) _ = False
 matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Code r) p = regexMatchesCI r $ maybe "" tcode $ ptransaction p
+matchesPosting (Comm r) Posting{pamount=Mixed as} = any (regexMatchesCI r) $ map acommodity as
 matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
 matchesPosting (Acct r) p = regexMatchesCI r $ paccount p
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
@@ -549,6 +554,7 @@ tests_matchesPosting = [
     assertBool "" $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
     -- a tag match on a posting also sees inherited tags
     assertBool "" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    assertBool "" $ (Comm "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]}
  ]
 
 -- | Does the match expression match this transaction ?
@@ -559,6 +565,7 @@ matchesTransaction (None) _ = False
 matchesTransaction (Or qs) t = any (`matchesTransaction` t) qs
 matchesTransaction (And qs) t = all (`matchesTransaction` t) qs
 matchesTransaction (Code r) t = regexMatchesCI r $ tcode t
+matchesTransaction q@(Comm _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Desc r) t = regexMatchesCI r $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Date span) t = spanContainsDate span $ tdate t

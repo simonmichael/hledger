@@ -95,6 +95,7 @@ searchform VD{..} = [hamlet|
       Transactions/postings may additionally be filtered by
       acct:REGEXP (target account), #
       code:REGEXP (transaction code), #
+      comm:REGEXP (commodity symbol), #
       desc:REGEXP (description), #
       date:PERIODEXP (date), #
       date2:PERIODEXP (secondary date), #
@@ -103,7 +104,7 @@ searchform VD{..} = [hamlet|
       status:*, status:!, status:  (cleared status), #
       real:BOOL (real/virtual-ness), #
       empty:BOOL (is amount zero), #
-      amt:<N, amt:=N, amt:>N (test magnitude of single-commodity amount).
+      amt:N, amt:<N, amt:>N (test magnitude of single-commodity amount).
       <br>
       Prepend not: to negate, enclose multi-word patterns in quotes, multiple search terms are AND'ed.
 |]

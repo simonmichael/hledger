@@ -6,7 +6,8 @@ title: hledger news
 
 ## unreleased
 
-- parsing: amt queries use the = operator by default, eg amt:50 finds amounts equal to 50
+- queries: `comm:REGEXP` matches commodity symbols which match REGEXP
+- queries: `amt` now uses the = operator by default, eg amt:50 finds amounts equal to 50
 - don't break when there are non-ascii characters in CSV files
 - csv: add the `include` directive, useful for factoring out common rules used with multiple CSV files
 - balancesheet: don't bother showing equity, it won't be useful for most of us

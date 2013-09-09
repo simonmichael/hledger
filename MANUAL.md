@@ -953,6 +953,7 @@ A query term can be any of the following:
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
 - `code:REGEX` - match by transaction code (eg check number)
+- `comm:REGEX` - match by commodity symbol
 - `desc:REGEX` - match transaction descriptions by regular expression
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
 - `date2:PERIODEXPR` - as above, but match secondary dates
