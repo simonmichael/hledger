@@ -251,14 +251,16 @@ parseAmountTest s =
     '<':s' -> (LT, readDef err s')
     '=':s' -> (EQ, readDef err s')
     '>':s' -> (GT, readDef err s')
-    _      -> err
-  where err = error' $ "could not parse as operator followed by numeric quantity: "++s
+    s'     -> (EQ, readDef err s')
+  where
+    err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a numeric quantity: " ++ s
 
 tests_parseAmountTest = [
   "parseAmountTest" ~: do
     let s `gives` r = parseAmountTest s `is` r
     "<0" `gives` (LT,0)
     "=0.23" `gives` (EQ,0.23)
+    "0.23" `gives` (EQ,0.23)
     ">10000.10" `gives` (GT,10000.1)
   ]
 
