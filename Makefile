@@ -20,8 +20,7 @@ COVCMD=-f test-wf.csv print
 BENCHEXES=hledger-0.18 hledger-0.19 hledger-0.20 ledger-3.0-20130215
 
 # misc. tools
-BROWSE=google-chrome
-BROWSE=open -a 'Google Chrome'
+BROWSE=open -a Firefox
 VIEWHTML=$(BROWSE)
 VIEWPS=$(BROWSE)
 VIEWPDF=$(BROWSE)
