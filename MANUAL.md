@@ -685,10 +685,10 @@ The most basic reporting commands are `print`, `register` and `balance`:
 
 #### print
 
-The print command displays full transactions from the journal file, tidily
-formatted and showing all amounts explicitly. The output of print is
-always a valid hledger journal, but it might not preserve the original
-content absolutely intact (eg comments.)
+The print command displays full transactions from the journal file,
+tidily formatted and showing all amounts explicitly. The output of
+print is always a valid hledger journal, but it does always not
+preserve all original content exactly (eg directives).
 
 hledger's print command also shows all unit prices in effect, or (with
 -B/--cost) shows cost amounts.

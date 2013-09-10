@@ -73,7 +73,7 @@ newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord)
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
                    deriving (Eq,Show)
 
-type Tag = (String, String)
+type Tag = (String, String)  -- ^ A tag name and (possibly empty) value.
 
 data Posting = Posting {
       pdate :: Maybe Day,  -- ^ this posting's date, if different from the transaction's
@@ -81,9 +81,9 @@ data Posting = Posting {
       pstatus :: Bool,
       paccount :: AccountName,
       pamount :: MixedAmount,
-      pcomment :: String, -- ^ this posting's non-tag comment lines, as a single non-indented string
+      pcomment :: String, -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype :: PostingType,
-      ptags :: [Tag],
+      ptags :: [Tag], -- ^ tag names and values, extracted from the comment
       pbalanceassertion :: Maybe MixedAmount,  -- ^ optional: the expected balance in the account after this posting
       ptransaction :: Maybe Transaction    -- ^ this posting's parent transaction (co-recursive types).
                                            -- Tying this knot gets tedious, Maybe makes it easier/optional.
@@ -100,10 +100,10 @@ data Transaction = Transaction {
       tstatus :: Bool,  -- XXX tcleared ?
       tcode :: String,
       tdescription :: String,
-      tcomment :: String, -- ^ this transaction's non-tag comment lines, as a single non-indented string
-      ttags :: [Tag],
+      tcomment :: String, -- ^ this transaction's comment lines, as a single non-indented multi-line string
+      ttags :: [Tag], -- ^ tag names and values, extracted from the comment
       tpostings :: [Posting],            -- ^ this transaction's postings
-      tpreceding_comment_lines :: String
+      tpreceding_comment_lines :: String -- ^ any comment lines immediately preceding this transaction
     } deriving (Eq)
 
 data ModifierTransaction = ModifierTransaction {

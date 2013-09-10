@@ -106,20 +106,18 @@ tests_showTransactionUnelided = [
           pstatus=True,
           paccount="a",
           pamount=Mixed [usd 1, hrs 2],
-          pcomment="pcomment1\npcomment2\n",
+          pcomment="\npcomment2\n",
           ptype=RegularPosting,
           ptags=[("ptag1","val1"),("ptag2","val2")]
           }
        ]
       }
       `gives` unlines [
-      "2012/05/14=2012/05/15 (code) desc",
-      "    ;tcomment1",
-      "    ;tcomment2",
+      "2012/05/14=2012/05/15 (code) desc    ; tcomment1",
+      "    ; tcomment2",
       "                $1.00",
       "    * a          2.0h",
-      "    ;pcomment1",
-      "    ;pcomment2",
+      "    ; pcomment2",
       ""
       ]
  ]
@@ -128,29 +126,38 @@ tests_showTransactionUnelided = [
 showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
     unlines $ [descriptionline]
-              ++ multilinecomment
+              ++ newlinecomments
               ++ (postingsAsLines elide t (tpostings t))
               ++ [""]
     where
-      descriptionline = rstrip $ concat [date, status, code, desc, inlinecomment]
+      descriptionline = rstrip $ concat [date, status, code, desc, samelinecomment]
       date = showdate (tdate t) ++ maybe "" showedate (tdate2 t)
       showdate = printf "%-10s" . showDate
       showedate = printf "=%s" . showdate
       status = if tstatus t then " *" else ""
       code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
       desc = if null d then "" else " " ++ d where d = tdescription t
-      (inlinecomment, multilinecomment) = commentLines $ tcomment t
+      (samelinecomment, newlinecomments) =
+        case renderCommentLines (tcomment t) of []   -> ("",[])
+                                                c:cs -> (c,cs)
 
--- Render a transaction or posting's comment as indented, semicolon-prefixed comment lines -
--- an inline comment (when it's a single line) or multiple lines.
-commentLines :: String -> (String, [String])
-commentLines s
-    | null s = ("", [])
-    | length ls == 1 = (prefix $ head ls, [])
-    | otherwise = ("", (prefix $ head ls):(map prefix $ tail ls))
+-- Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
+renderCommentLines :: String -> [String]
+renderCommentLines s  = case lines s of ("":ls) -> "":map commentprefix ls
+                                        ls      -> map commentprefix ls
     where
-      ls = lines s
-      prefix = indent . (";"++)
+      commentprefix = indent . ("; "++)
+
+-- -- Render a transaction or posting's comment as semicolon-prefixed comment lines -
+-- -- an inline (same-line) comment if it's a single line, otherwise multiple indented lines.
+-- commentLines' :: String -> (String, [String])
+-- commentLines' s
+--     | null s = ("", [])
+--     | length ls == 1 = (prefix $ head ls, [])
+--     | otherwise = ("", (prefix $ head ls):(map prefix $ tail ls))
+--     where
+--       ls = lines s
+--       prefix = indent . (";"++)
 
 postingsAsLines :: Bool -> Transaction -> [Posting] -> [String]
 postingsAsLines elide t ps
@@ -161,11 +168,13 @@ postingsAsLines elide t ps
 postingAsLines :: Bool -> [Posting] -> Posting -> [String]
 postingAsLines elideamount ps p =
     postinglines
-    ++ multilinecomment
+    ++ newlinecomments
   where
-    postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, inlinecomment]
+    postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, samelinecomment]
     amount = if elideamount then "" else showamt (pamount p)
-    (inlinecomment, multilinecomment) = commentLines $ pcomment p
+    (samelinecomment, newlinecomments) =
+      case renderCommentLines (pcomment p) of []   -> ("",[])
+                                              c:cs -> (c,cs)
     showacct p =
       indent $ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
         where
@@ -188,10 +197,9 @@ tests_postingAsLines = [
       }
      `gives` [
       "                $1.00",
-      "    * a          2.0h",
-      "    ;pcomment1",
-      "    ;pcomment2",
-      "    ;  tag3: val3  "
+      "    * a          2.0h    ; pcomment1",
+      "    ; pcomment2",
+      "    ;   tag3: val3  "
       ]
  ]
 

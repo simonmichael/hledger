@@ -31,24 +31,28 @@ hledgerdev -f - print
 
 >>>=0
 
-# 3. print should preserve comments
+# 3. print should preserve transaction (entry) comments and which line they're on
 hledgerdev -f - print
 <<<
-; isolated journal comment
+; leading journal comment, not preserved
 
-; pre-transaction journal comment
-2009/1/1 x    ; transaction comment
-    a  1    ; posting 1 comment
-    ; posting 1 comment 2
+; transaction preceding comment, not preserved
+2009/1/1 x ; transaction same line comment
+    ; transaction new line comment
+    a  1    ; posting 1 same line comment
+    ; posting 1 new line comment
     b
-    ; posting 2 comment
-; post-transaction journal comment
+      ; posting 2 new line comment
+; journal comment right after the transaction, not preserved
+
+; trailing journal comment, not preserved
 >>>
-2009/01/01 x    ; transaction comment
-    a             1
-    ; posting 1 comment
-    ; posting 1 comment 2
-    b            -1    ; posting 2 comment
+2009/01/01 x    ; transaction same line comment
+    ; transaction new line comment
+    a             1    ; posting 1 same line comment
+    ; posting 1 new line comment
+    b            -1
+    ; posting 2 new line comment
 
 >>>2
 >>>=0

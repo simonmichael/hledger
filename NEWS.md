@@ -6,6 +6,7 @@ title: hledger news
 
 ## unreleased
 
+- print: comment positions (same line or next line) are now preserved
 - register: `--average/-A` shows a running average, like ledger
 - queries: `sym:REGEXP` matches (whole) commodity symbols
 - queries: `amt` now uses the = operator by default, eg amt:50 finds amounts equal to 50

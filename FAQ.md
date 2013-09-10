@@ -141,17 +141,12 @@ and ledger if you avoid ledger's most advanced features.
 Some ledger features are parsed but ignored, eg:
 
 - automated transactions ( = ... , ~ ... )
-- balance assertions ( AMT1=AMT2 )
 - fixed lot prices ( {...} )
 - historical prices ( P ... )
 
-Some features are not currently parsed and will cause an error, eg:
-
-- balance assignments
-- some top level directives like "account"
-
-There can also be subtle differences in parser behaviour, eg
-comments may be permissible in different places. 
+Some features are not currently parsed and will cause an error, eg
+ledger's more recent top-level directives. There can also be subtle
+differences in parser behaviour.
 
 ### What other functionality differences are there ?
 
@@ -184,10 +179,11 @@ comments may be permissible in different places.
   ledger print shows only the secondary date with --aux-date, but not
   vice versa.
 
-- hledger's default commodity directive (D) sets the commodity for
-  subsequent commodityless amounts, and sets that commodity's display
-  settings if such an amount is the first seen. ledger uses D only for
-  commodity display settings and for the entry command.
+- hledger's default commodity directive (D) sets the commodity to be
+  used for subsequent commodityless amounts, and also sets that
+  commodity's display settings if such an amount is the first
+  seen. ledger uses D only for commodity display settings and for the
+  entry command.
 
 - hledger generates a description for timelog sessions, instead of
   taking it from the clock-out entry

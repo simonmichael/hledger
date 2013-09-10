@@ -38,7 +38,7 @@
 # 4. handle conditions assigning multiple fields
  rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.rules$$; echo '10/2009/09,Flubber Co,50' | hledgerdev -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
-2009/09/10 Flubber Co    ;cmt
+2009/09/10 Flubber Co    ; cmt
     acct                   $-50
     assets:myacct           $50
 
