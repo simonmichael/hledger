@@ -94,6 +94,7 @@ data ReportOpts = ReportOpts {
     ,yearly_         :: Bool
     ,format_         :: Maybe FormatStr
     ,related_        :: Bool
+    ,average_        :: Bool
     ,query_          :: String -- all arguments, as a string
  } deriving (Show)
 
@@ -101,6 +102,7 @@ type DisplayExp = String
 type FormatStr = String
 
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -254,14 +256,14 @@ type PostingsReport = (String               -- label for the running balance col
 type PostingsReportItem = (Maybe Day    -- posting date, if this is the first posting in a transaction or if it's different from the previous posting's date
                           ,Maybe String -- transaction description, if this is the first posting in a transaction
                           ,Posting      -- the posting, possibly with account name depth-clipped
-                          ,MixedAmount  -- the running total after this posting
+                          ,MixedAmount  -- the running total after this posting (or with --average, the running average)
                           )
 
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
 postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
-                          (totallabel, postingsReportItems ps nullposting wd depth startbal (+))
+                          (totallabel, postingsReportItems ps nullposting wd depth startbal runningcalcfn 1)
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty reportspan displayableps
@@ -293,14 +295,16 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       reportspan | empty     = requestedspan `orDatesFrom` journalspan
                  | otherwise = requestedspan `spanIntersect` matchedspan
       startbal = sumPostings precedingps
+      runningcalcfn | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i)
+                    | otherwise     = \_ bal amt -> bal + amt
 
 totallabel = "Total"
 balancelabel = "Balance"
 
 -- | Generate postings report line items.
-postingsReportItems :: [Posting] -> Posting -> WhichDate -> Int -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [PostingsReportItem]
-postingsReportItems [] _ _ _ _ _ = []
-postingsReportItems (p:ps) pprev wd d b sumfn = i:(postingsReportItems ps p wd d b' sumfn)
+postingsReportItems :: [Posting] -> Posting -> WhichDate -> Int -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
+postingsReportItems [] _ _ _ _ _ _ = []
+postingsReportItems (p:ps) pprev wd d b runningcalcfn itemnum = i:(postingsReportItems ps p wd d b' runningcalcfn (itemnum+1))
     where
       i = mkpostingsReportItem showdate showdesc wd p' b'
       showdate = isfirstintxn || isdifferentdate
@@ -309,7 +313,7 @@ postingsReportItems (p:ps) pprev wd d b sumfn = i:(postingsReportItems ps p wd d
       isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
                                    SecondaryDate -> postingDate2 p /= postingDate2 pprev
       p' = p{paccount=clipAccountName d $ paccount p}
-      b' = b `sumfn` pamount p
+      b' = runningcalcfn itemnum b (pamount p)
 
 -- | Generate one postings report line item, containing the posting,
 -- the current running balance, and optionally the posting date and/or

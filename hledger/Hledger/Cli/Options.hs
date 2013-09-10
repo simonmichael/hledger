@@ -215,6 +215,7 @@ postingsmode = (commandmode ["register","postings"]) {
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "increase or set the output width (default: 80)"
+     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show the running average instead of the running total"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show the other postings in the transactions of those that would have been shown"
      ]
     ,groupHidden = []
@@ -350,6 +351,7 @@ toCliOpts rawopts = do
                             ,quarterly_ = boolopt "quarterly" rawopts
                             ,yearly_    = boolopt "yearly" rawopts
                             ,format_    = maybestringopt "format" rawopts
+                            ,average_   = boolopt "average" rawopts  -- register
                             ,related_   = boolopt "related" rawopts  -- register
                             ,query_     = unwords $ listofstringopt "args" rawopts
                             }

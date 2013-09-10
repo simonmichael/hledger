@@ -720,14 +720,16 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
+The `--average`/`-A` flag shows a running average instead of the running total.
+
+The `--related`/`-r` flag shows the *other* postings in the transactions
+of the postings which would normally be shown.
+
 The `--width`/`-w` option adjusts the width of the output. By default,
 this is 80 characters. To allow more space for descriptions and account
 names, use `-w` to increase the width to 120 characters, or `-wN` to set
 any desired width (at least 50 recommended, with no space before the N -
 eg `-w200` or `--width=200`,
-
-The `--related`/`-r` flag shows the *other* postings in the transactions
-of the postings which would normally be shown.
 
 #### balance
 
