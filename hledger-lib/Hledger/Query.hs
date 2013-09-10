@@ -219,7 +219,7 @@ parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
                                     Right (_,span) -> Left $ Date2 span
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
-parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt op q where (op, q) = parseAmountTest s
+parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt op q where (op, q) = parseAmountQueryTerm s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
 parseQueryTerm _ ('s':'y':'m':':':s) = Left $ Sym s
@@ -248,8 +248,8 @@ tests_parseQueryTerm = [
  ]
 
 -- can fail
-parseAmountTest :: String -> (Ordering, Quantity)
-parseAmountTest s =
+parseAmountQueryTerm :: String -> (Ordering, Quantity)
+parseAmountQueryTerm s =
   case s of
     ""     -> err
     '<':s' -> (LT, readDef err s')
@@ -259,9 +259,9 @@ parseAmountTest s =
   where
     err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a numeric quantity: " ++ s
 
-tests_parseAmountTest = [
-  "parseAmountTest" ~: do
-    let s `gives` r = parseAmountTest s `is` r
+tests_parseAmountQueryTerm = [
+  "parseAmountQueryTerm" ~: do
+    let s `gives` r = parseAmountQueryTerm s `is` r
     "<0" `gives` (LT,0)
     "=0.23" `gives` (EQ,0.23)
     "0.23" `gives` (EQ,0.23)
@@ -615,7 +615,7 @@ tests_Hledger_Query = TestList $
  ++ tests_words''
  ++ tests_filterQuery
  ++ tests_parseQueryTerm
- ++ tests_parseAmountTest
+ ++ tests_parseAmountQueryTerm
  ++ tests_parseQuery
  ++ tests_matchesAccount
  ++ tests_matchesPosting
