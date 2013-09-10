@@ -68,6 +68,9 @@ import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils
 
+------------------------------------------------------------------------------
+-- report options handling
+
 -- | Standard options for customising report filtering and output,
 -- corresponding to hledger's command-line options and query language
 -- arguments. Used in hledger-lib and above.
@@ -226,8 +229,8 @@ tests_queryOptsFromOpts = [
 -------------------------------------------------------------------------------
 
 -- | A journal entries report is a list of whole transactions as
--- originally entered in the journal (mostly). Used by eg hledger's print
--- command and hledger-web's journal entries view.
+-- originally entered in the journal (mostly). This is used by eg
+-- hledger's print command and hledger-web's journal entries view.
 type EntriesReport = [EntriesReportItem]
 type EntriesReportItem = Transaction
 
@@ -250,6 +253,7 @@ tests_entriesReport = [
 
 -- | A postings report is a list of postings with a running total, a label
 -- for the total field, and a little extra transaction info to help with rendering.
+-- This is used eg for the register command.
 type PostingsReport = (String               -- label for the running balance column XXX remove
                       ,[PostingsReportItem] -- line items, one per posting
                       )
@@ -429,6 +433,8 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
 -- other information helpful for rendering a register view (a flag
 -- indicating multiple other accounts and a display string describing
 -- them) with or without a notion of current account(s).
+-- Two kinds of report use this data structure, see journalTransactionsReport
+-- and accountTransactionsReport below for detais.
 type TransactionsReport = (String                   -- label for the balance column, eg "balance" or "total"
                           ,[TransactionsReportItem] -- line items, one per transaction
                           )
@@ -484,11 +490,9 @@ filterTransactionsReportByCommodity c (label,items) =
 filterMixedAmountByCommodity :: Commodity -> MixedAmount -> MixedAmount
 filterMixedAmountByCommodity c (Mixed as) = Mixed $ filter ((==c). acommodity) as
 
--- | Select transactions from the whole journal for a transactions report,
--- with no \"current\" account. The end result is similar to
--- "postingsReport" except it uses queries and transaction-based report
--- items and the items are most recent first. Used by eg hledger-web's
--- journal view.
+-- | Select transactions from the whole journal. This is similar to a
+-- "postingsReport" except with transaction-based report items which
+-- are ordered most recent first. This is used by eg hledger-web's journal view.
 journalTransactionsReport :: ReportOpts -> Journal -> Query -> TransactionsReport
 journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
    where
@@ -498,7 +502,7 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 
 -------------------------------------------------------------------------------
 
--- | Select transactions within one or more \"current\" accounts, and make a
+-- | Select transactions within one or more current accounts, and make a
 -- transactions report relative to those account(s). This means:
 --
 -- 1. it shows transactions from the point of view of the current account(s).
@@ -509,9 +513,9 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 --    shows the accurate historical running balance for the current account(s).
 --    Otherwise it shows a running total starting at 0.
 --
--- Currently, reporting intervals are not supported, and report items are
--- most recent first. Used by eg hledger-web's account register view.
---
+-- This is used by eg hledger-web's account register view. Currently,
+-- reporting intervals are not supported, and report items are most
+-- recent first.
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> TransactionsReport
 accountTransactionsReport opts j m thisacctquery = (label, items)
  where
@@ -583,7 +587,7 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -- | An accounts report is a list of account names (full and short
 -- variants) with their balances, appropriate indentation for rendering as
--- a hierarchy, and grand total.
+-- a hierarchy, and grand total. This is used eg by the balance command.
 type AccountsReport = ([AccountsReportItem] -- line items, one per account
                       ,MixedAmount          -- total balance of all accounts
                       )
