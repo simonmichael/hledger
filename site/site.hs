@@ -1,11 +1,11 @@
 #!/usr/bin/env runhaskell
 {-# LANGUAGE OverloadedStrings #-}
-import           Control.Applicative ((<$>))
-import           Data.Monoid         (mappend)
-import           Hakyll
 
+import           Control.Applicative ((<$>))
 import           Control.Monad
 import           Data.List
+import           Data.Monoid         (mappend)
+import           Hakyll
 import           System.Directory
 import           System.Process
 import           Text.Pandoc.Options
