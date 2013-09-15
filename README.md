@@ -4,6 +4,8 @@ title: hledger
 
 # hledger
 
+## command-line and web accounting tools
+
 hledger is a computer program for easily tracking money, time, or other
 commodities, inspired by and compatible with [ledger](http://ledger-cli.org). It is quite
 limited in features, but lightweight and reliable. For some, it is a
@@ -19,21 +21,20 @@ suited to techies. I use it every day to:
 -   get accurate numbers for client billing and tax filing
 -   track invoices
 
-hledger is first a command-line tool, but also provides a web interface
-(try the [demo](http://demo.hledger.org)). Read the [docs](DOCS.html) to
-learn more, including
+hledger is first a command-line tool, but also provides a web
+interface (try the [hledger-web demo](http://demo.hledger.org)). Read
+the [documentation](DOCS.html) to learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
 
-**Community & support**
-
-**IRC (chat):** [irc.freenode.net/#ledger](irc://irc.freenode.net/#ledger) (shared with ledger)  
-**Mail list:** [hledger.org/list](http://hledger.org/list) (for broader topics, you can also use [ledger's list](http://list.ledger-cli.org))  
-**Bug tracker:** [hledger.org/bugs](http://hledger.org/bugs)  
-**Wishlist/planning:** [hledger.org/trello](http://hledger.org/trello)  
-**Code:** [hledger.org/code](http://hledger.org/code)  
-**Docs:** [Installation Guide](INSTALL.html), **[User Manual](MANUAL.html)**, [Release Notes](NEWS.html) and [more](DOCS.html)  
-**Blog:** [joyful.com/blog](http://joyful.com/blog).
+**Docs:**
+ **[installing](INSTALL.html)**, **[using](MANUAL.html)**, **[developing](DEVELOP.html)**,
+ [release notes](NEWS.html), [all docs](DOCS.html), [blog](http://joyful.com/blog) \
+**Mail list:** [hledger.org/list](http://hledger.org/list). For general topics, there's also [ledger's list](http://list.ledger-cli.org) \
+**IRC (chat):** [#ledger on irc.freenode.net](irc://irc.freenode.net/#ledger), shared with ledger \
+**Bugs:** [hledger.org/bugs](http://hledger.org/bugs) \
+**Planning:** [hledger.org/trello](http://hledger.org/trello) \
+**Code:** [hledger.org/code](http://hledger.org/code) \
 
 <!--  
 or [email me](mailto:simon@joyful.com?subject=hledger:).
