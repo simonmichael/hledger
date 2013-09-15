@@ -13,7 +13,6 @@ import           Text.Printf
 
 main = do
   symlinkPagesFromParentDir
-  symlinkIndexHtml
   symlinkProfsDir
   hakyll $ do
     match ("images/*" .||. "js/**" .||. "robots.txt") $ do
@@ -23,7 +22,13 @@ main = do
         route   idRoute
         compile compressCssCompiler
     match "templates/*" $ compile templateCompiler
-    match ("*.md" .||. "0.21/*.md" .||. "0.20/*.md" .||. "0.19/*.md" .||. "0.18/*.md") $ do
+    match ("README.md") $ do
+        route $ constRoute "index.html"
+        compile $
+          pandocCompilerWith def def
+          >>= loadAndApplyTemplate "templates/frontpage.html" defaultContext
+          >>= relativizeUrls
+    match (("*.md" .&&. complement "README.md") .||. "0.21/*.md" .||. "0.20/*.md" .||. "0.19/*.md" .||. "0.18/*.md") $ do
         route   $ setExtension "html"
         compile $
           pandocCompilerWith
@@ -39,8 +44,6 @@ main = do
 symlinkPagesFromParentDir = do
   fs <- filter (".md" `isSuffixOf`) `fmap` getDirectoryContents ".."
   forM_ fs $ \f -> system $ printf "[ -f %s ] || ln -s ../%s" f f
-
-symlinkIndexHtml = ensureSiteDir >> system "ln -sf README.html _site/index.html"
 
 symlinkProfsDir = ensureSiteDir >> system "ln -sf ../../profs _site/profs"
 
