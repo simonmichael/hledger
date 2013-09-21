@@ -646,7 +646,6 @@ HADDOCKFLAGS= --no-warnings --prologue .haddockprologue \
 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
 
 # generate api docs for the whole project
-# we define HADDOCK to disable cabal-file-th code which requires a cabal file in the current dir
 haddock: .haddockprologue
 	$(HADDOCK) $(HADDOCKFLAGS) --title "hledger-* API docs" \
 	 -o site/api \
