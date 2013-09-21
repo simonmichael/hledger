@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, DeriveDataTypeable #-}
 {-|
 
 Generate several common kinds of report from a journal, as \"*Report\" -
@@ -99,7 +99,7 @@ data ReportOpts = ReportOpts {
     ,related_        :: Bool
     ,average_        :: Bool
     ,query_          :: String -- all arguments, as a string
- } deriving (Show)
+ } deriving (Show, Data, Typeable)
 
 type DisplayExp = String
 type FormatStr = String
