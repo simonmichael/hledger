@@ -6,6 +6,11 @@ title: hledger news
 
 ## unreleased
 
+- command line processing has been overhauled and made more
+  consistent, and now has tests and extensive debug output.  More
+  flags now work both before and after COMMAND: -f, --rule-file,
+  --alias, --help, --debug, --version.  Command line help, command
+  aliases, API docs and code have been improved.
 - print: comment positions (same line or next line) are now preserved
 - register: `--average/-A` shows a running average, like ledger
 - queries: `sym:REGEXP` matches commodity symbols

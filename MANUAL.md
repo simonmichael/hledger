@@ -47,12 +47,13 @@ Basic usage is:
 Most [commands](#commands) query or operate on a
 [journal file](#the-journal-file), which by default is `.hledger.journal`
 in your home directory. You can specify a different file with the `-f`
-option or `LEDGER_FILE` environment variable, or standard input with `-f
--`.
+option or `LEDGER_FILE` environment variable, or standard input with `-f-`.
 
 Options are similar across most commands, with some variations; use
-`hledger COMMAND --help` for details. Most options must appear somewhere
-after COMMAND, not before it. The `-f` option can appear anywhere.
+`hledger COMMAND --help` for details. Most options must appear
+somewhere after COMMAND, not before it. These input and help-related
+options can appear anywhere: `-f`, `--rules-file`, `--alias`,
+`--help`, `--debug`, `--version`.
 
 Arguments are also command-specific, but usually they form a
 [query](#queries) which selects a subset of the journal, eg transactions

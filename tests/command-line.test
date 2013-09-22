@@ -1,0 +1,137 @@
+# hledger command line processing
+#
+# Quick guide to terms used here:
+#
+# - flag: generally a synonym for option. Or sometimes, just the first
+#   part of an option: a hyphen followed by a letter (short flag) or a
+#   word (long flag).
+#
+# - option: a command modifier. An option consists of a short flag, a
+#   long flag, or both, and possibly an optional or required value.
+#   Each option has some effect on program execution, and is described
+#   in the command line help.
+#
+# - argument:
+#   - raw command line arguments: everything following the program
+#     name on the command line, ie what is returned by getArgs
+#   - parsed arguments: all raw command line arguments that are not
+#     options (flags or values).
+#   - (sub)command arguments: all parsed arguments except the first
+#     (which is the subcommand's name)
+#
+# - RawOpts: the command, options and arguments as parsed by cmdargs,
+#   as an assocation list. Eg:
+#   [("command","register"),("args","a"),("debug",""),("help","")]
+#
+# - CliOpts: the command, options and arguments from cmdargs, plus
+#   additional cleanup, in a more convenient data structure used
+#   throughout the hledger CLI code.
+#
+# - command:
+#   - command line, shell command: what you type in the shell/terminal window to start a program
+#   - hledger command, subcommand: one of hledger's several modes of operation,
+#     usually selected by the first command-line argument that isn't an option.
+#     Commands are listed in the general command line help. There are two kinds:
+#     - internal commands: built in to the main hledger executable
+#     - external commands, or add-ons: any other hledger-* executables in the users's PATH
+#
+# Description of existing/expected behaviour as of 2013/9/16:
+#
+# - general usage is hledger [COMMAND] [OPTIONS] [ARGS]
+#
+# - commands are internal (built in to the main hledger executable) or external (any hledger-* executables found in the PATH)
+# - some internal commands have aliases, which are displayed in the general help
+# - there are also a few hidden internal commands
+# - COMMAND is an exact command or alias name, or any unique prefix of one (eg reg for register)
+# - when COMMAND is a non-unique prefix, matching commands will be listed, including hidden ones (eg hledger c)
+# - an unrecognised command shows an error and gives non-zero exit status
+#
+# - usually the command must come first, followed by options and arguments in any order
+# - a few options may also go before the command: -f, --rules-file, --alias, --help, --version, --debug.
+# - option flags may be written in full or as a unique prefix, eg --rules for --rules-file
+# - if the command is external, options and arguments after the command are handled by that executable, not hledger
+#
+# - the --help flag has highest priority
+# - --help before the command, or no command, shows general help, including available commands
+# - --help after an internal command shows command-specific help, including command and general flags
+# - there is no built-in "help" command
+# - the --version flag has second highest priority, and shows the program version
+
+# version 
+
+# 1. --version shows version
+hledgerdev --version
+>>> /^hledger [0-9]/
+>>>=0
+
+# 2. --version also works after a command, if it's internal
+hledgerdev balance --version
+>>> /^hledger [0-9]/
+>>>=0
+
+# help
+
+# 3. with no command, show general help
+hledgerdev
+>>> /^hledger \[COMMAND\]/
+>>>=0
+
+# 4. no-command help still works if there are flags, at least the common ones
+hledgerdev -fsomefile
+>>> /^hledger \[COMMAND\]/
+>>>=0
+
+# 5. and also with a space between flag and value
+hledgerdev -f somefile
+>>> /^hledger \[COMMAND\]/
+>>>=0
+
+# 6. with --help, and possibly other common flags present, show general help
+hledgerdev --help --version -f /dev/null
+>>> /^hledger \[COMMAND\]/
+>>>=0
+
+# 7. with --help before COMMAND, show general help
+hledgerdev --help balance --cost
+>>> /^hledger \[COMMAND\]/
+>>>=0
+
+# 8. with --help after command, show command help
+hledgerdev balance --help
+>>> /^balance \[OPTIONS\]/
+>>>=0
+
+# 9. should work with deprecated commands too
+hledgerdev convert --help
+>>>
+>>>2 /no longer needed/
+>>>=1
+
+# 10. with an unrecognised command, give general help and non-zero exit status
+hledgerdev nosuchcommand
+>>>
+>>>2 /not recognized/
+>>>=1
+
+# flag positions
+
+# 11. most flags can not go before command
+hledgerdev --daily register
+>>>
+>>>2 /Unknown flag: --daily/
+>>>=1
+
+# 12. help and input flags can go before command
+hledgerdev -f /dev/null --alias somealiases --rules-file -? -h --help --version --debug register --daily
+>>> /^hledger \[COMMAND\]/
+>>>=0
+
+# 13. or after it, and spaces in options are optional
+hledgerdev register -f/dev/null --alias=somealiases --rules-file -? -h --help --version --debug --daily
+>>> /^register \[OPTIONS\]/
+>>>=0
+
+# 14. flags after and add-command are handled by the add-on
+hledgerdev accountnames.hs --help
+>>> /^assets$/
+>>>=0
