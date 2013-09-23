@@ -812,20 +812,48 @@ Examples:
 
 ### Add-ons
 
-Add-on packages are usually named `hledger-SOMETHING` and provide one
-or more `hledger-*` executables. hledger will detect these
-(or any `hledger-*` executable in your PATH) and offer
-them as extra commands; use `hledger --help` to see a list.
+Add-on commands are executables named `hledger-*` installed in your
+PATH.  hledger will detect these at startup and offer them as extra
+commands. Run `hledger` without a command to see a list.
 
-Here are some current add-ons.
 hledger-web is released along with hledger and supported on all the
 major platforms, while other add-ons may or may not be.
 
+#### autosync
+
+[ledger-autosync](https://bitbucket.org/egh/ledger-autosync/commits/all),
+which includes a `hledger-autosync` alias, downloads transactions
+from your bank(s) via OFX, and prints just the new ones as journal
+entries which you can add to your journal. It can also operate on .OFX
+files which you've downloaded manually. It can be a nice alternative
+to hledger's built-in CSV reader, especially if your bank supports OFX
+download.
+
+#### interest
+
+[hledger-interest](http://hackage.haskell.org/package/hledger-interest)
+computes interests for a given account. Using command line flags,
+the program can be configured to use various schemes for day-counting,
+such as act/act, 30/360, 30E/360, and 30/360isda. Furthermore, it
+supports a (small) number of interest schemes, i.e. annual interest
+with a fixed rate and the scheme mandated by the German BGB288
+(Basiszins für Verbrauchergeschäfte). See the package page for more.
+
+#### irr
+
+[hledger-irr](http://hackage.haskell.org/package/hledger-irr)
+computes the internal rate of return, also known as the effective
+interest rate, of a given investment. After specifying what account
+holds the investment, and what account stores the gains (or losses, or
+fees, or cost), it calculates the hypothetical annual rate of fixed
+rate investment that would have provided the exact same cash flow.
+See the package page for more.
+
 #### web
 
-The web command (provided by the [hledger-web](http://hackage.haskell.org/package/hledger-web) package)
+[hledger-web](http://hackage.haskell.org/package/hledger-web)
 provides a web-based user interface for viewing and modifying your ledger ([demo](http://demo.hledger.org)).
-It includes a more realistic account register view, and basic data entry and editing.
+It includes an account register view that is more useful than the command-line register, and basic data entry and editing.
 
 web-specific options:
 
@@ -862,25 +890,46 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug
 
-#### interest
+\
+\
+\
+The following add-ons are examples and experiments provided in the
+[extra](https://github.com/simonmichael/hledger/tree/master/extra)
+directory in the hledger source.  Add this directory to your PATH to
+make them available. The scripts are designed to run interpreted on
+unix systems (for tweaking), or you can compile them (for speed and
+robustness).
 
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-computes interests for a given account. Using command line flags,
-the program can be configured to use various schemes for day-counting,
-such as act/act, 30/360, 30E/360, and 30/360isda. Furthermore, it
-supports a (small) number of interest schemes, i.e. annual interest
-with a fixed rate and the scheme mandated by the German BGB288
-(Basiszins für Verbrauchergeschäfte). See the package page for more.
+#### accountnames.hs
 
-#### irr
+Prints all account names in the default journal.
 
-[hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-computes the internal rate of return, also known as the effective
-interest rate, of a given investment. After specifying what account
-holds the investment, and what account stores the gains (or losses, or
-fees, or cost), it calculates the hypothetical annual rate of fixed
-rate investment that would have provided the exact same cash flow.
-See the package page for more.
+#### balance-csv.hs
+
+Like the balance command, but with CSV output.
+
+#### equity.hs
+
+Like ledger's equity command, this prints a single journal entry with
+postings matching the current balance in each account (or the
+specified accounts) in the default journal. An entry like this is
+useful to carry over asset and liability balances when beginning a new
+journal file, eg at the start of the year.
+
+You can also use the same entry with signs reversed to close out the
+old file, resetting balances to 0. This means you'll see the correct
+asset/liability balances whether you use one file or a whole sequence
+of files as input to hledger.
+
+#### print-unique.hs
+
+Prints only journal entries which are unique (by description).
+
+#### register-csv.hs
+
+Like the register command, but with CSV output.
+
+
 
 <!-- unmaintained:
 
