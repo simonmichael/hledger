@@ -32,7 +32,7 @@ title: hledger docs
 [Accounting For Dragons](http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons) *informative!*\
 [ledger](http://ledger-cli.org) and its [manual](http://ledger-cli.org/3.0/doc/ledger3.html) *explanatory!*\
 [beancount](http://furius.ca/beancount/),
-[penny](https://github.com/massysett/penny),
 [UMM](http://hackage.haskell.org/package/UMM)
+[penny](http://hackage.haskell.org/package/penny),
 *more ledger-likes!*\
 
