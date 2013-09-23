@@ -11,14 +11,12 @@ import Data.List
 import Data.Ord
 import Hledger
 import Hledger.Cli
-import Hledger.Cli.Print (print')
 
 main = do
-  opts <- getHledgerCliOpts []
+  opts <- getCliOpts (defCommandMode ["hledger-print-unique"])
   withJournalDo opts $
     \opts j@Journal{jtxns=ts} -> print' opts j{jtxns=uniquify ts}
     where 
       uniquify = nubBy (\t1 t2 -> thingToCompare t1 == thingToCompare t2) . sortBy (comparing thingToCompare)
-
-thingToCompare = tdescription
--- thingToCompare = tdate
+      thingToCompare = tdescription
+      -- thingToCompare = tdate

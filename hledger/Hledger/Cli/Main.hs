@@ -99,7 +99,7 @@ main = do
   addons <- getHledgerAddonCommands
 
   -- parse arguments with cmdargs
-  opts <- getHledgerCliOpts addons
+  opts <- argsToCliOpts args addons
 
   -- select an action and run it.
   let

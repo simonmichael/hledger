@@ -40,9 +40,9 @@ main = do
 
 runWith :: WebOpts -> IO ()
 runWith opts
-  | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp webmode) >> exitSuccess
-  | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
-  | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+  | "help" `inRawOpts` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp webmode) >> exitSuccess
+  | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
+  | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
   | otherwise = do
     requireJournalFileExists =<< journalFilePathFromOpts (cliopts_ opts)
     withJournalDo' opts web

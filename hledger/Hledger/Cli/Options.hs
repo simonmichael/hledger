@@ -7,7 +7,7 @@ Command-line options for the hledger program, and related utilities.
 
 module Hledger.Cli.Options (
 
-  -- * cmdargs modes
+  -- * cmdargs modes & flags
   -- | These tell cmdargs how to parse the command line arguments.
   -- There's one mode for each internal subcommand, plus a main mode.
   mainmode,
@@ -22,7 +22,15 @@ module Hledger.Cli.Options (
   statsmode,
   testmode,
   convertmode,
-
+  defCommandMode,
+  argsFlag,
+  helpflags,
+  inputflags,
+  reportflags,
+  generalflagsgroup1,
+  generalflagsgroup2,
+  generalflagsgroup3,
+  
   -- * raw options
   -- | To allow the cmdargs modes to be reused and extended by other
   -- packages (eg, add-ons which want to mimic the standard hledger
@@ -30,6 +38,14 @@ module Hledger.Cli.Options (
   -- association list, not a fixed ADT.
   RawOpts,
   inRawOpts,
+  boolopt,
+  intopt,
+  maybeintopt,
+  stringopt,
+  maybestringopt,
+  listofstringopt,
+  setopt,
+  setboolopt,
 
   -- * CLI options
   -- | Raw options are converted to a more convenient,
@@ -37,10 +53,9 @@ module Hledger.Cli.Options (
   -- throughout hledger CLI code.
   CliOpts(..),
   defcliopts,
-  toCliOpts,
 
   -- * CLI option accessors
-  -- | Some options require more processing. Possibly these should be merged into toCliOpts.
+  -- | Some options require more processing. Possibly these should be merged into argsToCliOpts.
   aliasesFromOpts,
   formatFromOpts,
   journalFilePathFromOpts,
@@ -53,10 +68,15 @@ module Hledger.Cli.Options (
 
   -- * utilities
   getHledgerAddonCommands,
-  getHledgerCliOpts,
+  argsToCliOpts,
   moveFlagsAfterCommand,
+  decodeRawOpts,
+  checkCliOpts,
+  rawOptsToCliOpts,
   optserror,
   showModeHelp,
+  debugArgs,
+  getCliOpts,
 
   -- * tests
   tests_Hledger_Cli_Options
@@ -66,9 +86,11 @@ where
   
 import qualified Control.Exception as C
 -- import Control.Monad (filterM)
+import Control.Monad (when)
 import Data.List
 import Data.List.Split
 import Data.Maybe
+import Data.PPrint (pprint)
 import Data.Time.Calendar
 import Safe
 import System.Console.CmdArgs
@@ -76,6 +98,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
 import System.Directory
 import System.Environment
+import System.Exit
 import Test.HUnit
 import Text.ParserCombinators.Parsec as P
 import Text.Printf
@@ -107,7 +130,7 @@ helpflags = [
 inputflags = [
   flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different journal file; - means stdin"
  ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RULESFILE" "conversion rules for CSV (default: FILE.rules)"
- ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "ACCT=ALIAS" "display ACCT's name as ALIAS in reports"
+ ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "ACCT=ALIAS" "convert ACCT's name to ALIAS"
  ]
 
 -- | Common report-related flags: --period, --cost, --display etc.
@@ -137,7 +160,9 @@ generalflagsgroup1 = (generalflagstitle, inputflags ++ reportflags ++ helpflags)
 generalflagsgroup2 = (generalflagstitle, inputflags ++ helpflags)
 generalflagsgroup3 = (generalflagstitle, helpflags)
 
--- | Template for creating our modes.
+-- cmdargs modes
+
+-- | A basic mode template.
 defMode :: Mode RawOpts
 defMode =   Mode {
   modeNames = []
@@ -147,10 +172,43 @@ defMode =   Mode {
  ,modeCheck = Right
  ,modeReform = const Nothing
  ,modeExpandAt = True
- ,modeGroupFlags = toGroup []
+ ,modeGroupFlags = Group {
+     groupNamed = []
+    ,groupUnnamed = [
+        flagNone ["help","h","?"] (setboolopt "help") "Display command help."
+        ]
+    ,groupHidden = []
+    }
  ,modeArgs = ([], Nothing)
  ,modeGroupModes = toGroup []
  }
+
+-- | A basic subcommand mode with the given command name(s).
+defCommandMode names = defMode {
+   modeNames=names
+  ,modeValue=[("command", headDef "" names)]
+  ,modeArgs = ([], Just $ argsFlag "[PATTERNS]")
+  }
+
+-- | A basic subcommand mode suitable for an add-on command.
+defAddonCommandMode addon = defMode {
+   modeNames = [addon]
+  ,modeHelp = printf "run %s-%s" progname addon
+  ,modeValue=[("command",addon)]
+  ,modeGroupFlags = Group {
+      groupUnnamed = []
+     ,groupHidden = []
+     ,groupNamed = [generalflagsgroup1]
+     }
+  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
+  }
+
+-- | Add command aliases to the command's help string.
+withAliases :: String -> [String] -> String
+s `withAliases` []     = s
+s `withAliases` (a:[]) = s ++ " (alias: " ++ a ++ ")"
+s `withAliases` as     = s ++ " (aliases: " ++ intercalate ", " as ++ ")"
+
 
 -- | The top-level cmdargs mode for hledger.
 mainmode addons = defMode {
@@ -211,49 +269,7 @@ mainmode addons = defMode {
 --   -- ,"When using both, not: comes last."
 --  ]
 
---
--- cmdargs modes for subcommands
---
-
--- | Make a basic command mode given the command's name and any aliases.
-defCommandMode names = defMode {
-   modeNames=names
-  ,modeValue=[("command", headDef "" names)]
-  ,modeArgs = ([], Just $ argsFlag "[PATTERNS]")
-  }
-
--- | Make a basic command mode suitable for an add-on command.
-defAddonCommandMode addon = defMode {
-   modeNames = [addon]
-  ,modeHelp = printf "run %s-%s" progname addon
-  ,modeValue=[("command",addon)]
-  ,modeGroupFlags = Group {
-      groupUnnamed = []
-     ,groupHidden = []
-     ,groupNamed = [generalflagsgroup1]
-     }
-  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
-  }
-
-withAliases :: String -> [String] -> String
-s `withAliases` []     = s
-s `withAliases` (a:[]) = s ++ " (alias: " ++ a ++ ")"
-s `withAliases` as     = s ++ " (aliases: " ++ intercalate ", " as ++ ")"
-
--- hidden commands
-
-convertmode = (defCommandMode ["convert"]) {
-  modeValue = [("command","convert")]
- ,modeHelp = "convert is no longer needed, just use -f FILE.csv"
- ,modeArgs = ([], Just $ argsFlag "[CSVFILE]")
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = helpflags
-    ,groupNamed = []
-    }
- }
-
--- visible commands
+-- visible subcommand modes
 
 addmode = (defCommandMode ["add"]) {
   modeHelp = "prompt for new transaction entries and add them to the journal"
@@ -375,6 +391,19 @@ testmode = (defCommandMode ["test"]) {
     }
  }
 
+-- hidden commands
+
+convertmode = (defCommandMode ["convert"]) {
+  modeValue = [("command","convert")]
+ ,modeHelp = "convert is no longer needed, just use -f FILE.csv"
+ ,modeArgs = ([], Just $ argsFlag "[CSVFILE]")
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = helpflags
+    ,groupNamed = []
+    }
+ }
+
 --
 -- 2. A package-specific data structure holding options used in this
 -- package and above, parsed from RawOpts.  This represents the
@@ -411,8 +440,8 @@ instance Default CliOpts where def = defcliopts
 -- | Parse raw option string values to the desired final data types.
 -- Any relative smart dates will be converted to fixed dates based on
 -- today's date. Parsing failures will raise an error.
-toCliOpts :: RawOpts -> IO CliOpts
-toCliOpts rawopts = do
+rawOptsToCliOpts :: RawOpts -> IO CliOpts
+rawOptsToCliOpts rawopts = do
   d <- getCurrentDay
   return defcliopts {
               rawopts_         = rawopts
@@ -451,16 +480,15 @@ toCliOpts rawopts = do
                             }
              }
 
--- | Parse hledger CLI options from the command line arguments and
--- specified add-on command names, or raise any error.
-getHledgerCliOpts :: [String] -> IO CliOpts
-getHledgerCliOpts addons = do
-  args <- getArgs
+-- | Parse hledger CLI options from these command line arguments and
+-- add-on command names, or raise any error.
+argsToCliOpts :: [String] -> [String] -> IO CliOpts
+argsToCliOpts args addons = do
   let
     args'        = moveFlagsAfterCommand args
     cmdargsopts  = System.Console.CmdArgs.Explicit.processValue (mainmode addons) args'
     cmdargsopts' = decodeRawOpts cmdargsopts
-  toCliOpts cmdargsopts' >>= checkCliOpts
+  rawOptsToCliOpts cmdargsopts' >>= checkCliOpts
 
 -- | A hacky workaround for cmdargs not accepting flags before the
 -- subcommand name: try to detect and move such flags after the
@@ -505,7 +533,9 @@ checkCliOpts opts@CliOpts{reportopts_=ropts} = do
     Right _ -> return ()
   return opts
 
+--
 -- utils
+--
 
 -- | Get the unique suffixes (without hledger-) of hledger-* executables
 -- found in the current user's PATH, or the empty list if there is any
@@ -677,6 +707,31 @@ showModeHelp =
   .
   (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
+-- | Print debug info about arguments and options if --debug is present.
+debugArgs :: [String] -> CliOpts -> IO ()
+debugArgs args opts =
+  when ("--debug" `elem` args) $ do
+    progname <- getProgName
+    putStrLn $ "running: " ++ progname
+    putStrLn $ "raw args: " ++ show args
+    putStrLn $ "processed opts:\n" ++ show opts
+    putStrLn . show =<< pprint opts
+    d <- getCurrentDay
+    putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
+
+-- | Parse hledger CLI options from the command line using the given
+-- cmdargs mode, and either return them or, if a help flag is present,
+-- print the mode help and exit the program.
+getCliOpts :: Mode RawOpts -> IO CliOpts
+getCliOpts mode = do
+  args <- getArgs
+  let rawopts = decodeRawOpts $ processValue mode args
+  opts <- rawOptsToCliOpts rawopts >>= checkCliOpts
+  debugArgs args opts
+  -- if any (`elem` args) ["--help","-h","-?"]
+  when ("help" `inRawOpts` rawopts_ opts) $
+    putStr (showModeHelp mode) >> exitSuccess
+  return opts
 
 tests_Hledger_Cli_Options = TestList
  [
