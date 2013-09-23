@@ -7,17 +7,33 @@ title: hledger news
 ## unreleased
 
 - command line processing has been overhauled and made more
-  consistent, and now has tests and extensive debug output.  More
-  flags now work both before and after COMMAND: -f, --rule-file,
-  --alias, --help, --debug, --version.  Command line help, command
+  consistent, and now has tests and debug output.  More flags now work
+  both before and after COMMAND: `-f`, `--rule-file`, `--alias`,
+  `--help`, `--debug`, `--version`.  Command line help, command
   aliases, API docs and code have been improved.
+
+- the example add-on scripts in extra/ have been updated; get the
+  hledger source and add extra/ to your PATH to make them available.
+  They include:
+
+        hledger-accountnames.hs - print account names
+        hledger-balance-csv.hs  - print a balance report as CSV
+        hledger-equity.hs       - print an entry matching all account balances (like ledger)
+        hledger-print-unique.hs - print only journal entries unique descriptions
+        hledger-register-csv.hs - print a register report as CSV
+
+
+- csv: don't break when there are non-ascii characters in CSV files
+- csv: rules files can now `include` other rules files, useful for factoring out common rules
+
+- balancesheet: equity is no longer shown, just assets and liabilities
+
 - print: comment positions (same line or next line) are now preserved
+
 - register: `--average/-A` shows a running average, like ledger
-- queries: `sym:REGEXP` matches commodity symbols
+
 - queries: `amt` now uses the = operator by default, eg `amt:50` finds amounts equal to 50
-- don't break when there are non-ascii characters in CSV files
-- csv: add the `include` directive, useful for factoring out common rules used with multiple CSV files
-- balancesheet: don't bother showing equity, it won't be useful for most of us
+- queries: `sym:REGEXP` matches commodity symbols
 
 ## 2013/7/10 hledger-web 0.21.3
 
