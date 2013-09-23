@@ -67,7 +67,7 @@ library
                  -- ,cabal-file-th
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
-                 ,data-pprint >= 0.2.2 && < 0.3
+                 ,data-pprint >= 0.2.1 && < 0.3
                  ,directory
                  ,filepath
                  ,haskeline >= 0.6 && <= 0.8
@@ -122,7 +122,7 @@ executable hledger
                  ,base >= 4.3 && < 5
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
-                 ,data-pprint >= 0.2.2 && < 0.3
+                 ,data-pprint >= 0.2.1 && < 0.3
                  ,directory
                  ,filepath
                  ,haskeline >= 0.6 && <= 0.8
@@ -151,7 +151,7 @@ test-suite tests
                , cmdargs
                , containers
                , csv
-               , data-pprint >= 0.2.2 && < 0.3
+               , data-pprint >= 0.2.1 && < 0.3
                , directory
                , filepath
                , haskeline
