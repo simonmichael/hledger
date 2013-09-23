@@ -70,7 +70,27 @@ data Query = Any              -- ^ always match
            | Depth Int        -- ^ match if account depth is less than or equal to this value
            | Tag String (Maybe String)  -- ^ match if a tag with this exact name, and with value
                                         -- matching the regexp if provided, exists
-    deriving (Show, Eq)
+    deriving (Eq)
+
+-- custom Show implementation to show strings more accurately, eg for debugging regexps
+instance Show Query where
+  show Any           = "Any"
+  show None          = "None"
+  show (Not q)       = "Not ("   ++ show q  ++ ")"
+  show (Or qs)       = "Or ("    ++ show qs ++ ")"
+  show (And qs)      = "And ("   ++ show qs ++ ")"
+  show (Code r)      = "Code "   ++ show r
+  show (Desc r)      = "Desc "   ++ show r
+  show (Acct r)      = "Acct "   ++ show r
+  show (Date ds)     = "Date ("  ++ show ds ++ ")"
+  show (Date2 ds)    = "Date2 (" ++ show ds ++ ")"
+  show (Status b)    = "Status " ++ show b
+  show (Real b)      = "Real "   ++ show b
+  show (Amt ord qty) = "Amt "    ++ show ord ++ " " ++ show qty
+  show (Sym r)       = "Sym "    ++ show r
+  show (Empty b)     = "Empty "  ++ show b
+  show (Depth n)     = "Depth "  ++ show n
+  show (Tag s ms)    = "Tag "    ++ show s ++ " (" ++ show ms ++ ")"
 
 -- | A query option changes a query's/report's behaviour and output in some way.
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
