@@ -27,7 +27,7 @@ cashflow :: CliOpts -> Journal -> IO ()
 cashflow CliOpts{reportopts_=ropts} j = do
   -- let lines = case formatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
-  let q = queryFromOpts d (withoutBeginDate ropts)
+  let q = queryFromOpts d ropts
       cashreport@(_,total) = accountsReport ropts (And [q, journalCashAccountQuery j]) j
       -- operatingreport@(_,operating) = accountsReport ropts (And [q, journalOperatingAccountMatcher j]) j
       -- investingreport@(_,investing) = accountsReport ropts (And [q, journalInvestingAccountMatcher j]) j
@@ -42,11 +42,6 @@ Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}
 |]
-
-withoutBeginDate :: ReportOpts -> ReportOpts
-withoutBeginDate ropts@ReportOpts{..} = ropts{begin_=Nothing, period_=p}
-  where p = case period_ of Nothing -> Nothing
-                            Just (i, DateSpan _ e) -> Just (i, DateSpan Nothing e)
 
 tests_Hledger_Cli_Cashflow = TestList
  [
