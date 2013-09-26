@@ -55,7 +55,6 @@
 # - --help before the command, or no command, shows general help, including available commands
 # - --help after an internal command shows command-specific help, including command and general flags
 # - there is no built-in "help" command
-# - the --version flag has second highest priority, and shows the program version
 
 # version 
 
