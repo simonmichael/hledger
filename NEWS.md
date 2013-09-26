@@ -13,7 +13,7 @@ title: hledger news
   aliases, API docs and code have been improved.
 
 - `-` (hyphen) can now be used as a more compact synonym for `from` and `to` in period expressions.
-  Eg: `-p '2012/12/1 - 2013/2/1'`, `date:aug-nov`.
+  Eg: `-p 2012/12/1-2013/2/1`, `date:aug-`.
 
 - csv: don't break when there are non-ascii characters in CSV files
 - csv: rules files can now `include` other rules files, useful for factoring out common rules
