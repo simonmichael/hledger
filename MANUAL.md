@@ -753,6 +753,13 @@ In this mode you can also use `--drop N` to elide the first few account
 name components. Note `--depth` doesn't work too well with `--flat` currently;
 it hides deeper accounts rather than aggregating them.
 
+With a [reporting interval](#reporting-interval), multiple columns
+will be shown.  Note the values in each cell are the sum of postings
+in that period, equivalent to change of balance.  This is good for a
+multi-column cashflow report or income statement. Eg:
+
+    $ hledger balance ^income ^expense --monthly --depth 3
+
 #### incomestatement
 
 This command displays a simple

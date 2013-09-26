@@ -31,6 +31,7 @@ module Hledger.Data.Dates (
   parsedateM,
   parsedate,
   showDate,
+  showDateSpan,
   elapsedSeconds,
   prevday,
   parsePeriodExpr,
@@ -76,6 +77,15 @@ import Hledger.Utils
 
 showDate :: Day -> String
 showDate = formatTime defaultTimeLocale "%C%y/%m/%d"
+
+showDateSpan (DateSpan from to) =
+  concat
+    [maybe "" showdate from
+    ,"-"
+    ,maybe "" (showdate . prevday) to
+    ]
+  where
+    showdate = formatTime defaultTimeLocale "%C%y/%m/%d"
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
@@ -598,19 +608,27 @@ doubledatespan rdate = do
   optional (string "from" >> many spacenonewline)
   b <- smartdate
   many spacenonewline
-  optional (string "to" >> many spacenonewline)
+  optional (choice [string "to", string "-"] >> many spacenonewline)
   e <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
 fromdatespan :: Day -> GenParser Char st DateSpan
 fromdatespan rdate = do
-  string "from" >> many spacenonewline
-  b <- smartdate
+  b <- choice [
+    do
+      string "from" >> many spacenonewline
+      smartdate
+    ,
+    do
+      d <- smartdate
+      string "-"
+      return d
+    ]
   return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
 todatespan :: Day -> GenParser Char st DateSpan
 todatespan rdate = do
-  string "to" >> many spacenonewline
+  choice [string "to", string "-"] >> many spacenonewline
   e <- smartdate
   return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
 

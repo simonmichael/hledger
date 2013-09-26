@@ -22,9 +22,11 @@ title: hledger news
         hledger-print-unique.hs - print only journal entries unique descriptions
         hledger-register-csv.hs - print a register report as CSV
 
-
 - csv: don't break when there are non-ascii characters in CSV files
 - csv: rules files can now `include` other rules files, useful for factoring out common rules
+
+- balance: with a reporting interval (monthly, yearly etc.), the
+  balance report will now show multiple columns
 
 - balancesheet: equity is no longer shown, just assets and liabilities
 

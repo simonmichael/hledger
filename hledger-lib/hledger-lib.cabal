@@ -54,12 +54,13 @@ library
                   Hledger.Reports
                   Hledger.Utils
                   Hledger.Utils.UTF8IOCompat
-  Build-Depends:
+  build-depends:
                   base >= 4.3 && < 5
                  ,bytestring
                  ,cmdargs >= 0.10 && < 0.11
                  ,containers
                  ,csv
+                 ,data-pprint
                  ,directory
                  ,filepath
                  ,mtl
@@ -90,6 +91,7 @@ test-suite tests
                , cmdargs
                , containers
                , csv
+               , data-pprint
                , directory
                , filepath
                , HUnit

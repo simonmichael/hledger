@@ -43,6 +43,10 @@ module Hledger.Reports (
   AccountsReport,
   AccountsReportItem,
   accountsReport,
+  -- * Accounts report
+  FlowReport,
+  FlowReportItem,
+  flowReport,
   -- * Other "reports"
   accountBalanceHistory,
   -- * Tests
@@ -55,6 +59,7 @@ import Data.List
 import Data.Maybe
 -- import qualified Data.Map as M
 import Data.Ord
+import Data.PPrint
 import Data.Time.Calendar
 -- import Data.Tree
 import Safe (headMay, lastMay)
@@ -83,7 +88,7 @@ data ReportOpts = ReportOpts {
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp
-    ,date2_      :: Bool
+    ,date2_          :: Bool
     ,empty_          :: Bool
     ,no_elide_       :: Bool
     ,real_           :: Bool
@@ -594,7 +599,7 @@ type AccountsReport = ([AccountsReportItem] -- line items, one per account
 type AccountsReportItem = (AccountName  -- full account name
                           ,AccountName  -- short account name for display (the leaf name, prefixed by any boring parents immediately above)
                           ,Int          -- how many steps to indent this account (0 with --flat, otherwise the 0-based account depth excluding boring parents)
-                          ,MixedAmount) -- account balance, includes subs unless --flat is present
+                          ,MixedAmount) -- account balance, includes subs  -- XXX unless --flat is present
 
 -- | Select accounts, and get their balances at the end of the selected
 -- period, and misc. display information, for an accounts report.
@@ -635,6 +640,114 @@ accountsReportItem opts a@Account{aname=name, aibalance=ibal}
     indent = length $ filter (not.aboring) parents
     parents = init $ parentAccounts a
 
+
+-------------------------------------------------------------------------------
+
+-- There are two kinds of report we want here. A "periodic flow"
+-- report shows the change of account balance in each period, or
+-- equivalently (assuming accurate postings) the sum of postings in
+-- each period. Eg below, 20 is the sum of income postings in
+-- Jan. This is like a periodic income statement or (with cash
+-- accounts) cashflow statement.
+--
+-- Account   Jan   Feb   Mar
+-- income     20    10    -5
+--
+-- A "periodic balance" report shows the final account balance in each
+-- period, equivalent to the sum of all postings before the end of the
+-- period. Eg below, 120 is the sum of all asset postings before the
+-- end of Jan, including postings before january (or perhaps an
+-- "opening balance" posting). This is like a periodic balance sheet.
+--
+-- Acct      Jan   Feb   Mar
+-- asset     120   130   125
+--
+-- If the columns are consecutive periods, balances can be calculated
+-- from flows by beginning with the start-of-period balance (above,
+-- 100) and summing the flows rightward.
+    
+-- | A flow report is a list of account names (and associated
+-- rendering info), plus their change in balance during one or more
+-- periods (date spans). The periods are included, and also an overall
+-- total for each one.
+--
+type FlowReport =
+  ([DateSpan]               -- ^ the date span for each report column
+  ,[FlowReportItem]         -- ^ line items, one per account
+  ,[MixedAmount]            -- ^ the final total for each report column
+  )
+
+type FlowReportItem =
+--  (RenderableAccountName    -- ^ the account name and rendering hints
+  (AccountName
+  ,[MixedAmount]            -- ^ the account's change of (inclusive) balance in each of the report's periods
+  )
+
+type RenderableAccountName =
+  (AccountName              -- ^ full account name
+  ,AccountName              -- ^ ledger-style short account name (the leaf name, prefixed by any boring parents immediately above)
+  ,Int                      -- ^ indentation (in steps) to use when rendering a ledger-style account tree
+                            --   (the 0-based depth of this account excluding boring parents; or with --flat, 0)
+  )
+
+-- | Select accounts and get their flows (change of balance) in each
+-- period, plus misc. display information, for a flow report.
+flowReport :: ReportOpts -> Query -> Journal -> FlowReport
+flowReport opts q j = (spans, items, totals)
+    where
+      (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
+      clip = filter (depthq `matchesAccount`)
+      j' = filterJournalPostings q' $ journalSelectingAmountFromOpts opts j
+      ps = journalPostings j'
+
+      -- the requested span is the span of the query (which is
+      -- based on -b/-e/-p opts and query args IIRC).
+      requestedspan = queryDateSpan (date2_ opts) q
+
+      -- the report's span will be the requested span intersected with
+      -- the selected data's span; or with -E, the requested span
+      -- limited by the journal's overall span.
+      reportspan | empty_ opts = requestedspan `orDatesFrom` journalspan
+                 | otherwise   = requestedspan `spanIntersect` matchedspan
+        where
+          journalspan = journalDateSpan j'
+          matchedspan = postingsDateSpan ps
+
+      -- first implementation, probably inefficient
+      spans               = dbg "1 " $ splitSpan (intervalFromOpts opts) reportspan
+      psPerSpan           = dbg "3"  $ [filter (isPostingInDateSpan s) ps | s <- spans]
+      acctnames           = dbg "4"  $ sort $ clip $ expandAccountNames $ accountNamesFromPostings ps
+      allAcctsZeros       = dbg "5"  $ [(a, nullmixedamt) | a <- acctnames]
+      someAcctBalsPerSpan = dbg "6"  $ [[(aname a, aibalance a) | a <- drop 1 $ accountsFromPostings ps, depthq `matchesAccount` aname a] | ps <- psPerSpan]
+      balsPerSpan         = dbg "7"  $ [sortBy (comparing fst) $ unionBy (\(a,_) (a',_) -> a == a') acctbals allAcctsZeros | acctbals <- someAcctBalsPerSpan]
+      balsPerAcct         = dbg "8"  $ transpose balsPerSpan
+      items               = dbg "9"  $ zip acctnames $ map (map snd) balsPerAcct
+      totals              = dbg "10" $ [sum [b | (a,b) <- bals, accountNameLevel a == 1] | bals <- balsPerSpan]
+
+      dbg,dbg' :: Show a => String -> a -> a
+      dbg  = flip const
+      dbg' = lstrace
+        
+      -- accts'
+      --     | flat_ opts = filterzeros $ tail $ flattenAccounts accts
+      --     | otherwise  = filter (not.aboring) $ tail $ flattenAccounts $ markboring $ prunezeros accts
+      --     where
+      --       filterzeros | empty_ opts = id
+      --                   | otherwise = filter (not . isZeroMixedAmount . aebalance)
+      --       prunezeros | empty_ opts = id
+      --                  | otherwise   = fromMaybe nullacct . pruneAccounts (isZeroMixedAmount.aibalance)
+      --       markboring | no_elide_ opts = id
+      --                  | otherwise      = markBoringParentAccounts
+
+-- flowReportItem :: ReportOpts -> Account -> FlowReportItem
+-- flowReportItem opts a@Account{aname=name, aibalance=ibal}
+--   | flat_ opts = (name, name,       0,      ibal)
+--   | otherwise  = (name, elidedname, indent, ibal)
+--   where
+--     elidedname = accountNameFromComponents (adjacentboringparentnames ++ [accountLeafName name])
+--     adjacentboringparentnames = reverse $ map (accountLeafName.aname) $ takeWhile aboring $ parents
+--     indent = length $ filter (not.aboring) parents
+--     parents = init $ parentAccounts a
 
 -------------------------------------------------------------------------------
 

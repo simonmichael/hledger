@@ -102,6 +102,8 @@ module Hledger.Cli.Balance (
 import Data.List
 import Data.Maybe
 import Test.HUnit
+import Text.Tabular
+import Text.Tabular.AsciiArt
 
 import Hledger
 import Prelude hiding (putStr)
@@ -116,13 +118,15 @@ balance CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let lines = case formatFromOpts ropts of
             Left err -> [err]
-            Right _ -> accountsReportAsText ropts $ accountsReport ropts (queryFromOpts d ropts) j
+            Right _ -> case intervalFromOpts ropts of
+                         NoInterval -> accountsReportAsText ropts $ accountsReport ropts (queryFromOpts d ropts) j
+                         _          -> flowReportAsText ropts     $ flowReport     ropts (queryFromOpts d ropts) j
   putStr $ unlines lines
 
--- | Render a balance report as plain text suitable for console output.
+-- | Render an old-style balance report (single-column balance/balance change report) as plain text.
 accountsReportAsText :: ReportOpts -> AccountsReport -> [String]
-accountsReportAsText opts (items, total) = concat lines ++ t
-    where
+accountsReportAsText opts ((items, total)) = concat lines ++ t
+  where
       lines = case formatFromOpts opts of
                 Right f -> map (accountsReportItemAsText opts f) items
                 Left err -> [[err]]
@@ -157,7 +161,7 @@ This implementation turned out to be a bit convoluted but implements the followi
               EUR -1
     b         USD -1  ; Account 'b' has two amounts. The account name is printed on the last line.
 -}
--- | Render one balance report line item as plain text.
+-- | Render one balance report line item as plain text suitable for console output.
 accountsReportItemAsText :: ReportOpts -> [FormatString] -> AccountsReportItem -> [String]
 accountsReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
     -- 'amounts' could contain several quantities of the same commodity with different price.
@@ -191,6 +195,25 @@ formatField opts accountName depth total ljust min max field = case field of
                                Nothing -> formatValue ljust Nothing max $ replicate depth ' '
         TotalField       -> formatValue ljust min max $ showAmountWithoutPrice total
         _                  -> ""
+
+-- | Render a flow report (multi-column balance change report) as plain text suitable for console output.
+flowReportAsText :: ReportOpts -> FlowReport -> [String]
+flowReportAsText opts (colspans, items, coltotals) =
+  trimborder $ lines $
+   render id ((" "++) . showDateSpan) showMixedAmountWithoutPrice $
+    Table
+      (Group NoLine $ map (Header . padright acctswidth) accts)
+      (Group NoLine $ map Header colspans)
+      (map snd items)
+    +----+
+    totalrow
+  where
+    trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
+    accts = map fst items
+    acctswidth = maximum $ map length $ accts
+    totalrow | no_total_ opts = row "" []
+             | otherwise      = row "" coltotals
+
 
 tests_Hledger_Cli_Balance = TestList
   tests_accountsReportAsText

@@ -49,8 +49,8 @@ nullacct = Account
   , aboring = False
   }
 
--- | Derive an account tree with balances from a set of postings.
--- (*ledger's core feature.) The accounts are returned in a list, but
+-- | Derive 1. an account tree and 2. their balances from a list of postings.
+-- (ledger's core feature). The accounts are returned in a list, but
 -- retain their tree structure; the first one is the root of the tree.
 accountsFromPostings :: [Posting] -> [Account]
 accountsFromPostings ps =
@@ -58,10 +58,9 @@ accountsFromPostings ps =
     acctamts = [(paccount p,pamount p) | p <- ps]
     grouped = groupBy (\a b -> fst a == fst b) $ sort $ acctamts
     summed = map (\as@((aname,_):_) -> (aname, sum $ map snd as)) grouped -- always non-empty
-    setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
     nametree = treeFromPaths $ map (expandAccountName . fst) summed
     acctswithnames = nameTreeToAccount "root" nametree
-    acctswithebals = mapAccounts setebalance acctswithnames
+    acctswithebals = mapAccounts setebalance acctswithnames where setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
     acctswithibals = sumAccounts acctswithebals
     acctswithparents = tieAccountParents acctswithibals
     acctsflattened = flattenAccounts acctswithparents
@@ -101,9 +100,6 @@ anyAccounts p a
     | otherwise = any (anyAccounts p) $ asubs a
 
 -- | Add subaccount-inclusive balances to an account tree.
--- -- , also noting
--- -- whether it has an interesting balance or interesting subs to help
--- -- with eliding later.
 sumAccounts :: Account -> Account
 sumAccounts a
   | null $ asubs a = a{aibalance=aebalance a}

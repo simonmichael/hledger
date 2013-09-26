@@ -117,13 +117,15 @@ main = do
   when (debug_ opts) $ do
     putStrLn $ "processed opts:\n" ++ show opts
     putStrLn . show =<< pprint opts
-    d <- getCurrentDay
-    putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
     putStrLn $ "command matched: " ++ show cmd
     putStrLn $ "isNullCommand: " ++ show isNullCommand
     putStrLn $ "isInternalCommand: " ++ show isInternalCommand
     putStrLn $ "isExternalCommand: " ++ show isExternalCommand
     putStrLn $ "isBadCommand: " ++ show isBadCommand
+    d <- getCurrentDay
+    putStrLn $ "date span from opts: " ++ (show $ dateSpanFromOpts d $ reportopts_ opts)
+    putStrLn $ "interval from opts: " ++ (show $ intervalFromOpts $ reportopts_ opts)
+    putStrLn $ "query from opts & args: " ++ (show $ queryFromOpts d $ reportopts_ opts)
   let
     dbg s = if debug_ opts then trace s else id
     runHledgerCommand
