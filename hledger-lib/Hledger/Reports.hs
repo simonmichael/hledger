@@ -672,21 +672,21 @@ accountsReportItem opts a@Account{aname=name, aibalance=ibal}
 -- total for each one.
 --
 type FlowReport =
-  ([DateSpan]               -- ^ the date span for each report column
-  ,[FlowReportItem]         -- ^ line items, one per account
-  ,[MixedAmount]            -- ^ the final total for each report column
+  ([DateSpan]               --  the date span for each report column
+  ,[FlowReportItem]         --  line items, one per account
+  ,[MixedAmount]            --  the final total for each report column
   )
 
 type FlowReportItem =
---  (RenderableAccountName    -- ^ the account name and rendering hints
+--  (RenderableAccountName    --  the account name and rendering hints
   (AccountName
-  ,[MixedAmount]            -- ^ the account's change of (inclusive) balance in each of the report's periods
+  ,[MixedAmount]            --  the account's change of (inclusive) balance in each of the report's periods
   )
 
 type RenderableAccountName =
-  (AccountName              -- ^ full account name
-  ,AccountName              -- ^ ledger-style short account name (the leaf name, prefixed by any boring parents immediately above)
-  ,Int                      -- ^ indentation (in steps) to use when rendering a ledger-style account tree
+  (AccountName              --  full account name
+  ,AccountName              --  ledger-style short account name (the leaf name, prefixed by any boring parents immediately above)
+  ,Int                      --  indentation (in steps) to use when rendering a ledger-style account tree
                             --   (the 0-based depth of this account excluding boring parents; or with --flat, 0)
   )
 
