@@ -1020,7 +1020,11 @@ A query term can be any of the following:
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
-- `amt:N` or `amt:=N`, `amt:<N`, `amt:>N` - match postings with a single-commodity amount equal to, less than, or greater than N. (Multi-commodity amounts are always matched.)
+- `amt:N` or `amt:=N`, `amt:<N`, `amt:>N` - match postings with a
+  single-commodity amount equal to, less than, or greater than
+  N. (Multi-commodity amounts are always matched.) Be warned, the
+  match is sensitive to the sign of N - this can be used to search for
+  inflows or outflows.
 - `sym:REGEX` - match postings or transactions including any amounts
   whose commodity symbol is fully matched by REGEX. (For a partial
   match, use `.*REGEX.*`). Note, to match the dollar sign (`$`) you
