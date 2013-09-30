@@ -6,8 +6,8 @@ title: hledger docs
 
 **Official hledger docs:**
 
-[Installation Guide](INSTALL.html)\
 [Release Notes](NEWS.html)\
+[Installation Guide](INSTALL.html)\
 **[User Manual](MANUAL.html)** (and past versions:
 [0.21](0.21/MANUAL.html),
 [0.20](0.20/MANUAL.html),
