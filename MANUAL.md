@@ -604,7 +604,7 @@ To generate time logs, ie to clock in and clock out, you could:
         alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
         alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
 
-- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
+- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ## Commands
@@ -754,9 +754,9 @@ name components. Note `--depth` doesn't work too well with `--flat` currently;
 it hides deeper accounts rather than aggregating them.
 
 With a [reporting interval](#reporting-interval), multiple columns
-will be shown.  Note the values in each cell are the sum of postings
-in that period, equivalent to change of balance.  This is good for a
-multi-column cashflow report or income statement. Eg:
+will be shown, one for each period. By default each column shows the
+sum of postings in that period, equivalent to change of balance.  This
+is good for a multi-column income statement:
 
     $ hledger balance ^income ^expense --monthly --depth 3
 
