@@ -12,7 +12,10 @@ import           Text.Pandoc.Options
 import           Text.Printf
 
 main = do
+  -- preview doesn't detect changes in symlinked files
   symlinkPagesFromParentDir
+  -- copyPagesFromParentDir
+
   symlinkProfsDir
   hakyll $ do
     match ("images/*" .||. "js/**" .||. "robots.txt") $ do
@@ -42,8 +45,12 @@ main = do
           >>= relativizeUrls
 
 symlinkPagesFromParentDir = do
+  filter (".md" `isSuffixOf`) `fmap` getDirectoryContents ".."
+    >>= mapM_ (\f -> system $ printf "[ -f %s ] || ln -s ../%s" f f)
+
+copyPagesFromParentDir = do
   fs <- filter (".md" `isSuffixOf`) `fmap` getDirectoryContents ".."
-  forM_ fs $ \f -> system $ printf "[ -f %s ] || ln -s ../%s" f f
+  forM_ fs $ \f -> system $ printf "cp ../%s ." f
 
 symlinkProfsDir = ensureSiteDir >> system "ln -sf ../../profs _site/profs"
 
