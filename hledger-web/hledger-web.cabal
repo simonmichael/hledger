@@ -137,7 +137,7 @@ library
                    , wai-handler-launch   >= 1.3 && < 1.4
                    , warp
                    , yaml
-                   , yesod
+                   , yesod                >= 1.2 && < 1.3
                    , yesod-core
                    , yesod-static
                    , json
@@ -228,7 +228,7 @@ executable         hledger-web
                    , wai-handler-launch   >= 1.3 && < 1.4
                    , warp
                    , yaml
-                   , yesod
+                   , yesod                >= 1.2 && < 1.3
                    , yesod-core
                    , yesod-static
                    , json
