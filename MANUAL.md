@@ -635,7 +635,8 @@ Additional convenience features:
   If there is a recent transaction with a description similar
   to the one you entered, it will be displayed and used for defaults.
 
-- Readline-style edit keys may be used during data entry.
+- [Readline-style edit keys](http://tiswww.case.edu/php/chet/readline/rluserman.html#SEC3)
+  may be used during data entry. Eg control-p recalls previous entries.
 
 - While entering account names, the tab key will auto-complete or list
   the available completions, based on the existing transactions.
