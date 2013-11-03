@@ -659,8 +659,8 @@ An example:
 
     Using this existing transaction for defaults:
     2012/04/19 * starbucks
-    expenses:personal:food:snacks         $3.70
-    assets:cash:wallet                   $-3.70
+		expenses:personal:food:snacks         $3.70
+		assets:cash:wallet                   $-3.70
 
     account 1 ? [expenses:personal:food:snacks]: 
     amount  1 ? [$3.7]: 
@@ -670,8 +670,8 @@ An example:
 
     Transaction entered:
     2013/04/09 starbucks
-    expenses:personal:food:snacks          $7.7
-    assets:cash:wallet                    $-7.7
+		expenses:personal:food:snacks          $7.7
+		assets:cash:wallet                    $-7.7
 
     Accept this transaction ? [y]: 
     Added to the journal.
