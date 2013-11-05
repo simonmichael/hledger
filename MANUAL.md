@@ -601,8 +601,8 @@ To generate time logs, ie to clock in and clock out, you could:
 
 - at the command line, use these bash aliases:
 
-        alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
-        alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
+        alias ti="echo i \`date '+%Y-%m-%d %H:%M:%S'\` \$* >>$TIMELOG"
+        alias to="echo o \`date '+%Y-%m-%d %H:%M:%S'\` >>$TIMELOG"
 
 - or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
