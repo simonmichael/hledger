@@ -97,8 +97,8 @@ or get help.
   you should add cabal's bin directory to your PATH environment variable.
   Eg on unix-like systems, something like:
 
-      $ echo 'export PATH=$PATH:~/cabal/bin' >> ~/.bash_profile
-      $ source ~/.bash_profile
+        $ echo 'export PATH=$PATH:~/cabal/bin' >> ~/.bash_profile
+        $ source ~/.bash_profile
 
 #. **Did you cabal update ?**  
   If not, `cabal update` and try again.
