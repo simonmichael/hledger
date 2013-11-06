@@ -317,7 +317,7 @@ examples we get:
 ##### Fixed Lot Prices
 
 ledger has another syntax for
-[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices).
+[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices).
 (`{=PRICE}`). In ledger, this is equivalent to `@ PRICE`, except you
 can provide both and then ledger generates an automatic Capital Losses
 posting covering the difference.
