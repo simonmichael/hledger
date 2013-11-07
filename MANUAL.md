@@ -544,11 +544,19 @@ The following kinds of rule can appear in any order:
 **date-format** *DATEFMT*
 :   This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
     DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
-    Some common values:
+    Note the pattern must parse the CSV date value completely. Some examples:
 
-        %-d/%-m/%Y
-        %-m/%-d/%Y
-        %Y-%h-%d
+		# "6/11/2013"
+        date-format %-d/%-m/%Y
+
+		# "11/06/2013"
+        date-format %m/%d/%Y
+		
+		# "2013-Nov-06"
+        date-format %Y-%h-%d
+
+        # "11/6/2013 11:32 PM"
+		date-format %-m/%-d/%Y %l:%M %p
 
 **include** *RULESFILE*
 :   Include another rules file at this point. Useful for common rules shared across multiple CSV files.
