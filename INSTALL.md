@@ -86,7 +86,7 @@ To download and build the latest development version of hledger, ensure you have
     $ cabal update
     $ cabal install ./hledger-lib ./hledger [./hledger-web]
 
-The same [notes about C libs etc.](#install-from-hackage-with-cabal) apply.
+The same [notes above](#install-from-hackage-with-cabal) about requirements and checking your installation apply.
 
 ## Troubleshooting
 
