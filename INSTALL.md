@@ -110,6 +110,11 @@ or get help.
         $ echo 'export PATH=$PATH:~/cabal/bin' >> ~/.bash_profile
         $ source ~/.bash_profile
 
+#. **hledger --version shows unexpected version ?**
+  Perhaps you have multiple versions of hledger in your PATH. Eg you installed with the system package manager 
+  (to get C libs) and then with cabal (to get the latest version), but cabal's bin directory appears too late
+  in the PATH. Move it closer to the front.
+
 #. **Did you cabal update ?**
   If not, `cabal update` and try again.
 
