@@ -29,6 +29,8 @@ hledger's wiki: [hledger.org/wiki](http://hledger.org/wiki)
 
 ledger's informative [manual](http://ledger-cli.org/3.0/doc/ledger3.html)
 
+[Non-Profit Accounting With Ledger CLI, A Tutorial](https://gitorious.org/ledger/npo-ledger-cli/source/npo-ledger-cli-tutorial.md)
+
 [Accounting For Dragons](http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons) - essential tips
 
 Wikipedia:\
@@ -48,4 +50,3 @@ Similar software:
 [penny](http://hackage.haskell.org/package/penny),
 [beancount](http://furius.ca/beancount/),
 and [more](https://github.com/ledger/ledger/wiki/Ports)
-
