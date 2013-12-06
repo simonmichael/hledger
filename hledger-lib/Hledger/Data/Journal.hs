@@ -76,7 +76,21 @@ import Hledger.Query
 
 
 instance Show Journal where
-    show j = printf "Journal %s with %d transactions, %d accounts: %s, commodity styles: %s"
+  show j
+    | debugLevel < 3 = printf "Journal %s with %d transactions, %d accounts"
+             (journalFilePath j)
+             (length (jtxns j) +
+              length (jmodifiertxns j) +
+              length (jperiodictxns j))
+             (length accounts)
+    | debugLevel < 6 = printf "Journal %s with %d transactions, %d accounts: %s"
+             (journalFilePath j)
+             (length (jtxns j) +
+              length (jmodifiertxns j) +
+              length (jperiodictxns j))
+             (length accounts)
+             (show accounts)
+    | otherwise = printf "Journal %s with %d transactions, %d accounts: %s, commodity styles: %s"
              (journalFilePath j)
              (length (jtxns j) +
               length (jmodifiertxns j) +
