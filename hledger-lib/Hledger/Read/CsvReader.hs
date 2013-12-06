@@ -85,7 +85,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   -- parse csv
   records <- (either throwerr id . validateCsv) `fmap` parseCsv csvfile csvdata
-  dbg 1 $ ppShow $ take 3 records
+  return $ dbg "" $ take 3 records
 
   -- identify header lines
   -- let (headerlines, datalines) = identifyHeaderLines records
@@ -98,7 +98,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
    then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
    else hPrintf stderr "using conversion rules file %s\n" rulesfile
   rules <- either (throwerr.show) id `fmap` parseRulesFile rulesfile
-  dbg 1 $ ppShow rules
+  return $ dbg "" rules
 
   -- apply skip directive
   let headerlines = maybe 0 oneorerror $ getDirective "skip" rules
