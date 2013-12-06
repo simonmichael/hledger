@@ -106,7 +106,6 @@ import Hledger
 import Hledger.Data.FormatStrings as Format
 import Hledger.Cli.Version
 
-
 -- 
 -- 1. cmdargs mode and flag (option) definitions for the hledger CLI,
 -- can be reused by other packages as well.
@@ -121,7 +120,7 @@ type RawOpts = [(String,String)]
 helpflags = [
   flagNone ["help","h","?"] (setboolopt "help") "Display general help or (with --help after COMMAND) command help."
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
- ,flagNone ["debug"] (setboolopt "debug") "Show extra debug output"
+ ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "N" "Show debug output (optional argument sets debug level)"
  ,flagNone ["version","V"] (setboolopt "version") "Print version information"
  ]
 
@@ -410,14 +409,14 @@ convertmode = (defCommandMode ["convert"]) {
 -- completed, but before adding defaults or derived values (XXX add)
 --
 
--- cli options, used in hledger and above
+-- | Command line options. Used in the @hledger@ package and above.
 data CliOpts = CliOpts {
      rawopts_         :: RawOpts
     ,command_         :: String
     ,file_            :: Maybe FilePath
     ,rules_file_      :: Maybe FilePath
     ,alias_           :: [String]
-    ,debug_           :: Bool
+    ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
     ,no_new_accounts_ :: Bool           -- add
     ,width_           :: Maybe String   -- register
     ,reportopts_      :: ReportOpts
@@ -448,7 +447,7 @@ rawOptsToCliOpts rawopts = do
              ,file_            = maybestringopt "file" rawopts
              ,rules_file_      = maybestringopt "rules-file" rawopts
              ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
-             ,debug_           = boolopt "debug" rawopts
+             ,debug_           = intopt "debug" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
              ,width_           = maybestringopt "width" rawopts    -- register
              ,reportopts_ = defreportopts {

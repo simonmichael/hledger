@@ -264,7 +264,7 @@ journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
   let f = journalFilePath j
   appendToJournalFileOrStdout f $ showTransaction t
-  when (debug_ opts) $ do
+  when (debug_ opts > 0) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
     putStrLn =<< registerFromString (show t)
   return j{jtxns=ts++[t]}

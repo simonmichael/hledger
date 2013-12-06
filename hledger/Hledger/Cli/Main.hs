@@ -125,7 +125,7 @@ main = do
     putStrLn $ "interval from opts: " ++ (show $ intervalFromOpts $ reportopts_ opts)
     putStrLn $ "query from opts & args: " ++ (show $ queryFromOpts d $ reportopts_ opts)
   let
-    dbg s = if debug_ opts then trace s else id
+    dbg s = if debug_ opts > 0 then trace s else id
     runHledgerCommand
       -- high priority flags and situations. --help should be highest priority.
       | hasHelp argsbeforecmd    = dbg "--help before command, showing general help" generalHelp
@@ -151,7 +151,7 @@ main = do
       -- an external command
       | isExternalCommand = do
           let shellcmd = printf "%s-%s %s" progname cmd (unwords' argsaftercmd)
-          when (debug_ opts) $ do
+          when (debug_ opts > 0) $ do
             printf "external command selected: %s\n" cmd
             printf "external command arguments: %s\n" (show argsaftercmd)
             printf "running shell command: %s\n" (show shellcmd)
