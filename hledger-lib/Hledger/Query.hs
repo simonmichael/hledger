@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-|
 
 A general query system for matching things (accounts, postings,
@@ -32,6 +33,7 @@ module Hledger.Query (
   tests_Hledger_Query
 )
 where
+import Data.Data
 import Data.Either
 import Data.List
 import Data.Maybe
@@ -70,7 +72,7 @@ data Query = Any              -- ^ always match
            | Depth Int        -- ^ match if account depth is less than or equal to this value
            | Tag String (Maybe String)  -- ^ match if a tag with this exact name, and with value
                                         -- matching the regexp if provided, exists
-    deriving (Eq)
+    deriving (Eq,Data,Typeable)
 
 -- custom Show implementation to show strings more accurately, eg for debugging regexps
 instance Show Query where
@@ -97,7 +99,7 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
               | QueryOptInAcct AccountName      -- ^ as above but include sub-accounts in the account register
            -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
            -- | QueryOptDate2  -- ^ show secondary dates instead of primary dates
-    deriving (Show, Eq)
+    deriving (Show, Eq, Data, Typeable)
 
 -- parsing
 
