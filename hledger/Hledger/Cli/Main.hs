@@ -40,7 +40,6 @@ module Hledger.Cli.Main where
 
 import Control.Monad
 import Data.List
-import Data.PPrint
 import Safe
 import System.Console.CmdArgs.Explicit (modeHelp)
 -- import System.Console.CmdArgs.Helper
@@ -114,9 +113,8 @@ main = do
     version              = putStrLn prognameandversion
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     f `orShowHelp` mode  = if hasHelp args then putStr (showModeHelp mode) else f
-  when (debug_ opts) $ do
-    putStrLn $ "processed opts:\n" ++ show opts
-    putStrLn . show =<< pprint opts
+  when (debug_ opts > 0) $ do
+    putStrLn $ "processed opts:\n" ++ ppShow opts
     putStrLn $ "command matched: " ++ show cmd
     putStrLn $ "isNullCommand: " ++ show isNullCommand
     putStrLn $ "isInternalCommand: " ++ show isInternalCommand

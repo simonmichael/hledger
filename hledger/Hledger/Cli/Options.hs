@@ -90,7 +90,6 @@ import Control.Monad (when)
 import Data.List
 import Data.List.Split
 import Data.Maybe
-import Data.PPrint (pprint)
 import Data.Time.Calendar
 import Safe
 import System.Console.CmdArgs
@@ -715,7 +714,6 @@ debugArgs args opts =
     putStrLn $ "running: " ++ progname
     putStrLn $ "raw args: " ++ show args
     putStrLn $ "processed opts:\n" ++ show opts
-    putStrLn . show =<< pprint opts
     d <- getCurrentDay
     putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
 
