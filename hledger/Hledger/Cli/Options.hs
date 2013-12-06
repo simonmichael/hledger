@@ -285,7 +285,9 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) {
   modeHelp = "show matched accounts and their balances" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
-      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
+      flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "with a reporting interval, show accumulated totals starting from 0"
+     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "with a reporting interval, show accurate historical ending balances"
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
@@ -463,6 +465,7 @@ rawOptsToCliOpts rawopts = do
                             ,empty_     = boolopt "empty" rawopts
                             ,no_elide_  = boolopt "no-elide" rawopts
                             ,real_      = boolopt "real" rawopts
+                            ,balancetype_ = balancetypeopt rawopts -- balance
                             ,flat_      = boolopt "flat" rawopts -- balance
                             ,drop_      = intopt "drop" rawopts -- balance
                             ,no_total_  = boolopt "no-total" rawopts -- balance
@@ -615,6 +618,16 @@ maybeperiodopt d rawopts =
                 (\e -> optserror $ "could not parse period option: "++show e)
                 Just
                 $ parsePeriodExpr d s
+
+balancetypeopt :: RawOpts -> BalanceType
+balancetypeopt rawopts
+    | length [o | o <- ["cumulative","historical"], isset o] > 1
+                         = optserror "please specify at most one of --cumulative and --historical"
+    | isset "cumulative" = CumulativeBalance
+    | isset "historical" = HistoricalBalance
+    | otherwise          = PeriodBalance
+    where
+      isset = flip boolopt rawopts
 
 -- | Parse the format option if provided, possibly returning an error,
 -- otherwise get the default value.
