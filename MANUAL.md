@@ -55,6 +55,10 @@ somewhere after COMMAND, not before it. These input and help-related
 options can appear anywhere: `-f`, `--rules-file`, `--alias`,
 `--help`, `--debug`, `--version`.
 
+Note: at present there is an issue with hledger's command-line option handling:
+there can not be a space between a flag and its value. So eg you must
+use `-w100` or `--width=100`, not `-w 100` or `--width 100`.
+
 Arguments are also command-specific, but usually they form a
 [query](#queries) which selects a subset of the journal, eg transactions
 in a certain account.
