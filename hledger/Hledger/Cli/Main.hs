@@ -86,7 +86,7 @@ main = do
     isNullCommand        = null rawcmd
     (argsbeforecmd, argsaftercmd') = break (==rawcmd) args
     argsaftercmd         = drop 1 argsaftercmd'
-  when ("--debug" `elem` args) $ do
+  when (debugLevel > 0) $ do
     printf "running: %s\n" prognameandversion
     printf "raw args: %s\n" (show args)
     printf "raw args rearranged for cmdargs: %s\n" (show args')

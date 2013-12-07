@@ -510,6 +510,7 @@ moveFlagsAfterCommand args = move args
     move (fv:a:as)          | isMovableReqArgFlagAndValue fv = (move $ a:as) ++ [fv]
     move ("--debug":v:a:as) | not (null v) && all isDigit v  = (move $ a:as) ++ ["--debug",v]
     move ("--debug":a:as)                                    = (move $ a:as) ++ ["--debug"]
+    move (fv@('-':'-':'d':'e':'b':'u':'g':'=':_):a:as)       = (move $ a:as) ++ [fv]
     move as = as
 
     isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove

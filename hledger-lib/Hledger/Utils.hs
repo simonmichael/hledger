@@ -379,15 +379,19 @@ ptrace msg = do
 -- | Global debug level, which controls the verbosity of debug output
 -- on the console. The default is 0 meaning no debug output. The
 -- @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
--- a higher value (note: not @--debug N@).  This uses unsafePerformIO
--- and can be accessed from anywhere and before normal command-line
--- processing. After command-line processing, it is also available as
--- the @debug_@ field of 'Hledger.Cli.Options.CliOpts'.
+-- a higher value (note: not @--debug N@ for some reason).  This uses
+-- unsafePerformIO and can be accessed from anywhere and before normal
+-- command-line processing. After command-line processing, it is also
+-- available as the @debug_@ field of 'Hledger.Cli.Options.CliOpts'.
 debugLevel :: Int
 debugLevel = case snd $ break (=="--debug") args of
                "--debug":[]  -> 1
                "--debug":n:_ -> readDef 1 n
-               _             -> 0
+               _             ->
+                 case take 1 $ filter ("--debug" `isPrefixOf`) args of
+                   ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
+                   _                                   -> 0
+
     where
       args = unsafePerformIO getArgs
 
