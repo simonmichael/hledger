@@ -763,11 +763,27 @@ name components. Note `--depth` doesn't work too well with `--flat` currently;
 it hides deeper accounts rather than aggregating them.
 
 With a [reporting interval](#reporting-interval), multiple columns
-will be shown, one for each period. By default each column shows the
-sum of postings in that period, equivalent to change of balance.  This
-is good for a multi-column income statement:
+will be shown, one for each period. There are three modes available:
 
-    $ hledger balance ^income ^expense --monthly --depth 3
+1. By default each column shows the sum of postings in that period, ie
+the account's change of balance in that period.  This is good for a
+multi-column income statement:
+
+    $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
+
+or cashflow statement:
+
+    $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
+
+2. With `--cumulative`, the report shows the ending balance for each
+account at the end of each period, starting from zero at the report
+start date.
+
+3. With `--historical/-H`, it shows the actual ending balance at the
+end of each period, including any balance from postings before the
+report start date.  This is good for historical balance sheets:
+
+    $ hledger balance ^assets ^liabilities -YH
 
 #### incomestatement
 
