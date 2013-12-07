@@ -87,6 +87,7 @@ where
 import qualified Control.Exception as C
 -- import Control.Monad (filterM)
 import Control.Monad (when)
+import Data.Char (isDigit)
 import Data.List
 import Data.List.Split
 import Data.Maybe
@@ -504,9 +505,11 @@ argsToCliOpts args addons = do
 moveFlagsAfterCommand :: [String] -> [String]
 moveFlagsAfterCommand args = move args
   where
-    move (f:a:as)   | isMovableNoArgFlag f           = (move $ a:as) ++ [f]
-    move (f:v:a:as) | isMovableReqArgFlag f          = (move $ a:as) ++ [f,v]
-    move (fv:a:as)  | isMovableReqArgFlagAndValue fv = (move $ a:as) ++ [fv]
+    move (f:a:as)           | isMovableNoArgFlag f           = (move $ a:as) ++ [f]
+    move (f:v:a:as)         | isMovableReqArgFlag f          = (move $ a:as) ++ [f,v]
+    move (fv:a:as)          | isMovableReqArgFlagAndValue fv = (move $ a:as) ++ [fv]
+    move ("--debug":v:a:as) | not (null v) && all isDigit v  = (move $ a:as) ++ ["--debug",v]
+    move ("--debug":a:as)                                    = (move $ a:as) ++ ["--debug"]
     move as = as
 
     isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove
