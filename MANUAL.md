@@ -773,11 +773,11 @@ will be shown, one for each period. There are three modes available:
 the account's change of balance in that period.  This is good for a
 multi-column income statement:
 
-    $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
+        $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
 
-or cashflow statement:
+    or cashflow statement:
 
-    $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
+        $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
 
 2. With `--cumulative`, the report shows the ending balance for each
 account at the end of each period, starting from zero at the report
@@ -787,7 +787,7 @@ start date.
 end of each period, including any balance from postings before the
 report start date.  This is good for historical balance sheets:
 
-    $ hledger balance ^assets ^liabilities -YH
+        $ hledger balance ^assets ^liabilities -YH
 
 #### incomestatement
 
@@ -1182,7 +1182,7 @@ Examples:
 
 A reporting interval may also be specified with the `-D/--daily`,
 `-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`
-options. But as noted above, a --period option will override these.
+options. But as noted above, a `-p/--period` option will override these.
 
 ### Display expressions
 
