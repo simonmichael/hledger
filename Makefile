@@ -383,7 +383,7 @@ unittest-interpreted:
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledgerdev
 	@echo functional tests:
-	($(SHELLTEST) tests -- --threads=16 --hide-successes \
+	@($(SHELLTEST) tests -- --threads=16 --hide-successes \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with a specific GHC version
