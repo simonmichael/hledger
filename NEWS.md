@@ -12,23 +12,30 @@ title: hledger news
   `--help`, `--debug`, `--version`.  Command line help, command
   aliases, API docs and code have been improved.
 
-- `-` (hyphen) can now be used as a more compact synonym for `from` and `to` in period expressions.
-  Eg: `-p 2012/12/1-2013/2/1`, `date:aug-`.
-
-- csv: don't break when there are non-ascii characters in CSV files
-- csv: rules files can now `include` other rules files, useful for factoring out common rules
+- `-` (hyphen) can now be used as a more compact synonym for `from`
+  and `to` in period expressions.  Eg: `date:aug-`, `-p 2012/12/1-2013/2/1`.
 
 - balance: with a reporting interval (monthly, yearly etc.), the
-  balance report will now show multiple columns
+  balance command will now show a multi-column report, showing either
+  the per-period changes in balance (by default),
+  the period ending balances starting from zero (`--cumulative`),
+  or the actual period ending balances (`--historical`).
+  A more detailed specification of the balance command's behaviour
+  has been added to [Hledger.Cli.Balance](http://hackage.haskell.org/package/hledger/docs/Hledger-Cli-Balance.html).
 
-- balancesheet: equity is no longer shown, just assets and liabilities
+- balancesheet: now shows just assets and liabilities, not equity
+
+- csv: CSV data containing non-ascii characters is now supported
+
+- csv: rules files can now `include` other rules files, useful for factoring out common rules
 
 - print: comment positions (same line or next line) are now preserved
 
-- register: `--average/-A` shows a running average, like ledger
-
 - queries: `amt` now uses the = operator by default, eg `amt:50` finds amounts equal to 50
+
 - queries: `sym:REGEXP` matches commodity symbols
+
+- register: `--average/-A` shows a running average, like ledger
 
 - the example add-on scripts in extra/ have been updated; get the
   hledger source and add extra/ to your PATH to make them available.
@@ -39,6 +46,9 @@ title: hledger news
         hledger-equity.hs       - print an entry matching all account balances (like ledger)
         hledger-print-unique.hs - print only journal entries unique descriptions
         hledger-register-csv.hs - print a register report as CSV
+
+- `--debug` now takes an optional numeric argument to set the debug level
+  higher than 1, for more verbose debug output in a few cases.
 
 ## 2013/7/10 hledger-web 0.21.3
 
