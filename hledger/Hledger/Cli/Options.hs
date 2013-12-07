@@ -122,7 +122,7 @@ helpflags = [
   flagNone ["help","h","?"] (setboolopt "help") "Display general help or (with --help after COMMAND) command help."
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "N" "Show debug output (optional argument sets debug level)"
- ,flagNone ["version","V"] (setboolopt "version") "Print version information"
+ ,flagNone ["version"] (setboolopt "version") "Print version information"
  ]
 
 -- | Common input-related flags: --file, --rules-file, --alias...
