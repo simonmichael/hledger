@@ -722,6 +722,8 @@ showModeHelp =
   .
   (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
+-- not used:
+
 -- | Print debug info about arguments and options if --debug is present.
 debugArgs :: [String] -> CliOpts -> IO ()
 debugArgs args opts =
@@ -732,6 +734,8 @@ debugArgs args opts =
     putStrLn $ "processed opts:\n" ++ show opts
     d <- getCurrentDay
     putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
+
+-- not used:
 
 -- | Parse hledger CLI options from the command line using the given
 -- cmdargs mode, and either return them or, if a help flag is present,
