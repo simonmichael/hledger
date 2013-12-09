@@ -120,6 +120,7 @@ library
                    , filepath
                    , hamlet
                    , hjsmin
+                   , http-client
                    , http-conduit
                    , HUnit
                    , network-conduit
@@ -211,6 +212,7 @@ executable         hledger-web
                    , filepath
                    , hamlet
                    , hjsmin
+                   , http-client
                    , http-conduit
                    , HUnit
                    , network-conduit

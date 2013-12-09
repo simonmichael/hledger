@@ -35,7 +35,7 @@ import Hledger.Web.Options
 main :: IO ()
 main = do
   opts <- getHledgerWebOpts
-  when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
+  when (debug_ (cliopts_ opts) > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   runWith opts
 
 runWith :: WebOpts -> IO ()
