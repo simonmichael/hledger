@@ -11,7 +11,8 @@ import Yesod.Default.Config
 import Yesod.Default.Main
 import Yesod.Default.Handlers
 import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
-import Network.HTTP.Conduit (newManager, def)
+import Network.HTTP.Conduit (newManager)
+import Network.HTTP.Client (defaultManagerSettings)
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -49,7 +50,7 @@ makeApplication opts j conf = do
 
 makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
-    manager <- newManager def
+    manager <- newManager defaultManagerSettings
     s <- staticSite
     jref <- newIORef nulljournal
     return $ App conf s manager defwebopts jref
