@@ -572,9 +572,9 @@ viewsite: site
 
 # ensure some old doc versions are in place:
 
-oldsource: site/0.21 site/0.20 site/0.19 site/0.18
+oldsource: site/0.22 site/0.21 site/0.20 site/0.19 site/0.18
 
-site/0.21:
+site/0.22:
 	git archive --prefix site/0.21/ tags/0.21.3 '*.md' | tar xf -
 
 site/0.20:

@@ -1,6 +1,7 @@
 name:           hledger
 -- also in cpp-options below
-version: 0.21.98
+version: 0.22
+stability:      beta
 category:       Finance
 synopsis:       The main command-line interface for the hledger accounting tool.
 description:
@@ -17,8 +18,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://hledger.org/bugs
-stability:      beta
-tested-with:    GHC==7.2.2, GHC==7.4.2, GHC==7.6.1
+tested-with:    GHC==7.4.2, GHC==7.6.3
 cabal-version:  >= 1.10
 build-type:     Simple
 -- data-dir:       data
@@ -41,7 +41,7 @@ flag threaded
     Default:       True
 
 library
-  cpp-options:    -DVERSION="0.21.98"
+  cpp-options:    -DVERSION="0.22"
   ghc-options:    -W
   -- should be the same as below
   exposed-modules:
@@ -62,7 +62,7 @@ library
                   Hledger.Cli.Stats
   -- should be the same as below
   build-depends:
-                  hledger-lib == 0.21.98
+                  hledger-lib == 0.22
                  ,base >= 4.3 && < 5
                  -- ,cabal-file-th
                  ,containers
@@ -113,13 +113,13 @@ executable hledger
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
-  cpp-options:    -DVERSION="0.21.98"
+  cpp-options:    -DVERSION="0.22"
   ghc-options:    -W
   if flag(threaded)
        ghc-options:   -threaded
  -- should be the same as above
   build-depends:
-                  hledger-lib == 0.21.98
+                  hledger-lib == 0.22
                  ,base >= 4.3 && < 5
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
