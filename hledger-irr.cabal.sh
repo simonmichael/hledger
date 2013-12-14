@@ -25,7 +25,7 @@ Author:                 Joachim Breitner <mail@joachim-breitner.de>
 Maintainer:             Joachim Breitner <mail@joachim-breitner.de>
 Category:               Finance
 Build-type:             Simple
-Cabal-version:          >= 1.6
+Cabal-version:          >= 1.8
 Tested-with:            GHC >= 7.4.1 && <= 7.4.1
 Description:
  hledger-irr is a small command-line utility based on Simon
