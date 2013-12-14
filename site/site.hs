@@ -31,7 +31,7 @@ main = do
           pandocCompilerWith def def
           >>= loadAndApplyTemplate "templates/frontpage.html" defaultContext
           >>= relativizeUrls
-    match (("*.md" .&&. complement "README.md") .||. "0.21/*.md" .||. "0.20/*.md" .||. "0.19/*.md" .||. "0.18/*.md") $ do
+    match (("*.md" .&&. complement "README.md") .||. "0.22/*.md" .||. "0.21/*.md" .||. "0.20/*.md" .||. "0.19/*.md" .||. "0.18/*.md") $ do
         route   $ setExtension "html"
         compile $
           pandocCompilerWith
