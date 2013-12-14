@@ -9,6 +9,7 @@ title: hledger docs
 [Release Notes](NEWS.html)\
 [Installation Guide](INSTALL.html)\
 **[User Manual](MANUAL.html)** (and past versions:
+[0.22](0.21/MANUAL.html),
 [0.21](0.21/MANUAL.html),
 [0.20](0.20/MANUAL.html),
 [0.19](0.19/MANUAL.html),
