@@ -4,7 +4,7 @@ title: hledger user manual
 
 # User manual
 
-For: hledger trunk
+For: hledger 0.22
 
 ## Introduction
 
