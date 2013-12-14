@@ -9,14 +9,14 @@ title: hledger news
 **New:**
 
 - balance: with a reporting interval (monthly, yearly etc.), the
-  balance command will now show a multi-column report, showing either
+  [balance command](MANUAL.html#balance) will now show a multi-column report, showing either
   the per-period changes in balance (by default),
   the period ending balances starting from zero (`--cumulative`),
   or the actual period ending balances (`--historical`).
   A more detailed specification of the balance command's behaviour
   has been added to [Hledger.Cli.Balance](http://hackage.haskell.org/package/hledger/docs/Hledger-Cli-Balance.html).
 
-- csv: rules files can now `include` other rules files, useful for factoring out common rules
+- csv: rules files can now include other rules files, useful for factoring out common rules
 
 - queries: `sym:REGEXP` matches commodity symbols
 
