@@ -55,10 +55,6 @@ somewhere after COMMAND, not before it. These input and help-related
 options can appear anywhere: `-f`, `--rules-file`, `--alias`,
 `--help`, `--debug`, `--version`.
 
-Note: at present there is an issue with hledger's command-line option handling:
-there can not be a space between a flag and its value. So eg you must
-use `-w100` or `--width=100`, not `-w 100` or `--width 100`.
-
 Arguments are also command-specific, but usually they form a
 [query](#queries) which selects a subset of the journal, eg transactions
 in a certain account.
@@ -742,8 +738,8 @@ of the postings which would normally be shown.
 The `--width`/`-w` option adjusts the width of the output. By default,
 this is 80 characters. To allow more space for descriptions and account
 names, use `-w` to increase the width to 120 characters, or `-wN` to set
-any desired width (at least 50 recommended, with no space before the N -
-eg `-w200` or `--width=200`,
+any desired width (at least 50 recommended).
+Note, currently -w/--width can not have a space between flag and value ([#149](https://github.com/simonmichael/hledger/issues/149)).
 
 #### balance
 
