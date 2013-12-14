@@ -590,7 +590,7 @@ site/0.18:
 	git archive --prefix site/0.18/ tags/0_18_2 '*.md' | tar xf -
 
 cleanoldsource:
-	cd site; rm -rf 0.19 0.18
+	cd site; rm -rf 0.22 0.21 0.20 0.19 0.18
 
 # generate html versions of docs (and the hledger.org website)
 # work around pandoc not handling full rst image directive
