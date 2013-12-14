@@ -26,7 +26,7 @@ main = getCliOpts argsmode >>= printBalanceCsv
 printBalanceCsv opts = withJournalDo opts $
   \CliOpts{reportopts_=ropts} j -> do
     d <- getCurrentDay
-    let (items,_) = accountsReport ropts (queryFromOpts d ropts) j
+    let (items,_) = balanceReport ropts (queryFromOpts d ropts) j
     putStrLn $ printCSV $
       ["account","balance"] :
       [[a, showMixedAmountWithoutPrice b] | (a, _, _, b) <- items]

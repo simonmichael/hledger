@@ -13,6 +13,7 @@ import Hledger
 import Hledger.Cli
 
 main = do
+  putStrLn "(-f option not supported)"
   opts <- getCliOpts (defCommandMode ["hledger-print-unique"])
   withJournalDo opts $
     \opts j@Journal{jtxns=ts} -> print' opts j{jtxns=uniquify ts}

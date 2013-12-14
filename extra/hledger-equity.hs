@@ -17,12 +17,13 @@ import Hledger.Cli
 import System.Environment
 
 main = do
+  putStrLn "(-f option not supported, see hledger-accountnames.hs for how to add it)"
   j <- defaultJournal
   d <- getCurrentDay
   args <- getArgs
   let query = Or $ map Acct args
       ropts = defreportopts{flat_=True}
-      (acctbals,_) = accountsReport ropts query j
+      (acctbals,_) = balanceReport ropts query j
       balancingamt = negate $ sum $ map (\(_,_,_,b) -> b) acctbals
       ps = [posting{paccount=a, pamount=b} | (a,_,_,b) <- acctbals]
            ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
