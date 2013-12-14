@@ -131,6 +131,7 @@ hledgerdev register -f/dev/null --alias=somealiases --rules-file -? -h --help --
 >>>=0
 
 # 14. flags after and add-command are handled by the add-on
-hledgerdev accountnames.hs --help
->>> /^assets$/
->>>=0
+# needs updating
+#hledgerdev accountnames.hs --help
+#>>> /^assets$/
+#>>>=0
