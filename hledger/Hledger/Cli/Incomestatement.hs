@@ -23,15 +23,15 @@ incomestatement :: CliOpts -> Journal -> IO ()
 incomestatement CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-      incomereport@(_,income)    = accountsReport ropts (And [q, journalIncomeAccountQuery j]) j
-      expensereport@(_,expenses) = accountsReport ropts (And [q, journalExpenseAccountQuery j]) j
+      incomereport@(_,income)    = balanceReport ropts (And [q, journalIncomeAccountQuery j]) j
+      expensereport@(_,expenses) = balanceReport ropts (And [q, journalExpenseAccountQuery j]) j
       total = income + expenses
   LT.putStr $ [lt|Income Statement
 
 Revenues:
-#{unlines $ accountsReportAsText ropts incomereport}
+#{unlines $ balanceReportAsText ropts incomereport}
 Expenses:
-#{unlines $ accountsReportAsText ropts expensereport}
+#{unlines $ balanceReportAsText ropts expensereport}
 
 Total:
 --------------------

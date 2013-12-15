@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-|
 
 A general query system for matching things (accounts, postings,
@@ -32,6 +33,7 @@ module Hledger.Query (
   tests_Hledger_Query
 )
 where
+import Data.Data
 import Data.Either
 import Data.List
 import Data.Maybe
@@ -43,7 +45,7 @@ import Text.ParserCombinators.Parsec
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
-import Hledger.Data.Amount (nullamt)
+import Hledger.Data.Amount (amount, usd)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
@@ -64,19 +66,40 @@ data Query = Any              -- ^ always match
            | Status Bool      -- ^ match if cleared status has this value
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt Ordering Quantity   -- ^ match if the amount's numeric quantity is less than/greater than/equal to some value
+           | Sym String       -- ^ match if the entire commodity symbol is matched by this regexp
            | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
                               --   more of a query option than a query criteria ?
            | Depth Int        -- ^ match if account depth is less than or equal to this value
            | Tag String (Maybe String)  -- ^ match if a tag with this exact name, and with value
                                         -- matching the regexp if provided, exists
-    deriving (Show, Eq)
+    deriving (Eq,Data,Typeable)
+
+-- custom Show implementation to show strings more accurately, eg for debugging regexps
+instance Show Query where
+  show Any           = "Any"
+  show None          = "None"
+  show (Not q)       = "Not ("   ++ show q  ++ ")"
+  show (Or qs)       = "Or ("    ++ show qs ++ ")"
+  show (And qs)      = "And ("   ++ show qs ++ ")"
+  show (Code r)      = "Code "   ++ show r
+  show (Desc r)      = "Desc "   ++ show r
+  show (Acct r)      = "Acct "   ++ show r
+  show (Date ds)     = "Date ("  ++ show ds ++ ")"
+  show (Date2 ds)    = "Date2 (" ++ show ds ++ ")"
+  show (Status b)    = "Status " ++ show b
+  show (Real b)      = "Real "   ++ show b
+  show (Amt ord qty) = "Amt "    ++ show ord ++ " " ++ show qty
+  show (Sym r)       = "Sym "    ++ show r
+  show (Empty b)     = "Empty "  ++ show b
+  show (Depth n)     = "Depth "  ++ show n
+  show (Tag s ms)    = "Tag "    ++ show s ++ " (" ++ show ms ++ ")"
 
 -- | A query option changes a query's/report's behaviour and output in some way.
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
               | QueryOptInAcct AccountName      -- ^ as above but include sub-accounts in the account register
            -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
            -- | QueryOptDate2  -- ^ show secondary dates instead of primary dates
-    deriving (Show, Eq)
+    deriving (Show, Eq, Data, Typeable)
 
 -- parsing
 
@@ -174,12 +197,14 @@ tests_words'' = [
 prefixes = map (++":") [
      "inacctonly"
     ,"inacct"
+    ,"amt"
     ,"code"
     ,"desc"
     ,"acct"
     ,"date"
     ,"edate"
     ,"status"
+    ,"sym"
     ,"real"
     ,"empty"
     ,"depth"
@@ -216,9 +241,10 @@ parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
                                     Right (_,span) -> Left $ Date2 span
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
-parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt op q where (op, q) = parseAmountTest s
+parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt op q where (op, q) = parseAmountQueryTerm s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
+parseQueryTerm _ ('s':'y':'m':':':s) = Left $ Sym s
 parseQueryTerm _ ('t':'a':'g':':':s) = Left $ Tag n v where (n,v) = parseTag s
 parseQueryTerm _ "" = Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix++":"++s
@@ -244,21 +270,23 @@ tests_parseQueryTerm = [
  ]
 
 -- can fail
-parseAmountTest :: String -> (Ordering, Quantity)
-parseAmountTest s =
+parseAmountQueryTerm :: String -> (Ordering, Quantity)
+parseAmountQueryTerm s =
   case s of
     ""     -> err
     '<':s' -> (LT, readDef err s')
     '=':s' -> (EQ, readDef err s')
     '>':s' -> (GT, readDef err s')
-    _      -> err
-  where err = error' $ "could not parse as operator followed by numeric quantity: "++s
+    s'     -> (EQ, readDef err s')
+  where
+    err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a numeric quantity: " ++ s
 
-tests_parseAmountTest = [
-  "parseAmountTest" ~: do
-    let s `gives` r = parseAmountTest s `is` r
+tests_parseAmountQueryTerm = [
+  "parseAmountQueryTerm" ~: do
+    let s `gives` r = parseAmountQueryTerm s `is` r
     "<0" `gives` (LT,0)
     "=0.23" `gives` (EQ,0.23)
+    "0.23" `gives` (EQ,0.23)
     ">10000.10" `gives` (GT,10000.1)
   ]
 
@@ -509,6 +537,7 @@ matchesPosting (Amt op n) Posting{pamount=a} = compareMixedAmount op n a
 -- matchesPosting (Empty False) Posting{pamount=a} = True
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
 matchesPosting (Empty _) _ = True
+matchesPosting (Sym r) Posting{pamount=Mixed as} = any (regexMatchesCI $ "^" ++ r ++ "$") $ map acommodity as
 matchesPosting (Tag n Nothing) p = isJust $ lookupTagByName n $ postingAllTags p
 matchesPosting (Tag n (Just v)) p = isJust $ lookupTagByNameAndValue (n,v) $ postingAllTags p
 -- matchesPosting _ _ = False
@@ -516,7 +545,7 @@ matchesPosting (Tag n (Just v)) p = isJust $ lookupTagByNameAndValue (n,v) $ pos
 -- | Is this simple mixed amount's quantity less than, equal to, or greater than this number ?
 -- For complext mixed amounts (with multiple commodities), this is always true.
 compareMixedAmount :: Ordering -> Quantity -> MixedAmount -> Bool
-compareMixedAmount op q (Mixed [])  = compareMixedAmount op q (Mixed [nullamt])
+compareMixedAmount op q (Mixed [])  = compareMixedAmount op q (Mixed [amount])
 -- compareMixedAmount op q (Mixed [a]) = strace (compare (strace $ aquantity a) (strace q)) == op
 compareMixedAmount op q (Mixed [a]) = compare (aquantity a) q == op
 compareMixedAmount _ _ _            = True
@@ -537,16 +566,20 @@ tests_matchesPosting = [
     assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
     assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
     assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
-    assertBool "" $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
-    assertBool "" $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
-    assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
-    assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
-    assertBool "" $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    assertBool "" $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    assertBool "" $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    assertBool "" $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
+    assertBool "a" $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
+    assertBool "b" $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
+    assertBool "c" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
+    assertBool "d" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
+    assertBool "e" $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    assertBool "f" $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    assertBool "g" $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    assertBool "h" $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
     -- a tag match on a posting also sees inherited tags
-    assertBool "" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    assertBool "i" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    assertBool "j" $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
+    assertBool "k" $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
+    assertBool "l" $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [amount{acommodity="shekels"}]}
+    assertBool "m" $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [amount{acommodity="shekels"}]}
  ]
 
 -- | Does the match expression match this transaction ?
@@ -566,6 +599,7 @@ matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Empty _) _ = True
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
+matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Tag n Nothing) t = isJust $ lookupTagByName n $ transactionAllTags t
 matchesTransaction (Tag n (Just v)) t = isJust $ lookupTagByNameAndValue (n,v) $ transactionAllTags t
 
@@ -603,7 +637,7 @@ tests_Hledger_Query = TestList $
  ++ tests_words''
  ++ tests_filterQuery
  ++ tests_parseQueryTerm
- ++ tests_parseAmountTest
+ ++ tests_parseAmountQueryTerm
  ++ tests_parseQuery
  ++ tests_matchesAccount
  ++ tests_matchesPosting

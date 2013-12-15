@@ -12,14 +12,12 @@ hledgerdev -f - print
   ; posting-2-tag-2:
 ; non-metadata:
 >>>
-2010/01/01
-    ; txntag1: txn val 1
+2010/01/01    ; txntag1: txn val 1
     ; txntag2: txn val 2
     a             1
     ; posting1tag1: posting 1 val 1
     ; posting1tag2: 
-    b            -1
-    ; posting-2-tag-1: posting 2 val 1
+    b            -1    ; posting-2-tag-1: posting 2 val 1
     ; posting-2-tag-2:
 
 >>>2

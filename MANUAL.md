@@ -4,7 +4,7 @@ title: hledger user manual
 
 # User manual
 
-For: hledger 0.21
+For: hledger 0.22
 
 ## Introduction
 
@@ -47,12 +47,13 @@ Basic usage is:
 Most [commands](#commands) query or operate on a
 [journal file](#the-journal-file), which by default is `.hledger.journal`
 in your home directory. You can specify a different file with the `-f`
-option or `LEDGER_FILE` environment variable, or standard input with `-f
--`.
+option or `LEDGER_FILE` environment variable, or standard input with `-f-`.
 
 Options are similar across most commands, with some variations; use
-`hledger COMMAND --help` for details. Most options must appear somewhere
-after COMMAND, not before it. The `-f` option can appear anywhere.
+`hledger COMMAND --help` for details. Most options must appear
+somewhere after COMMAND, not before it. These input and help-related
+options can appear anywhere: `-f`, `--rules-file`, `--alias`,
+`--help`, `--debug`, `--version`.
 
 Arguments are also command-specific, but usually they form a
 [query](#queries) which selects a subset of the journal, eg transactions
@@ -316,7 +317,7 @@ examples we get:
 ##### Fixed Lot Prices
 
 ledger has another syntax for
-[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-lot-prices).
+[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices).
 (`{=PRICE}`). In ledger, this is equivalent to `@ PRICE`, except you
 can provide both and then ledger generates an automatic Capital Losses
 posting covering the difference.
@@ -495,15 +496,43 @@ The following kinds of rule can appear in any order:
 
 **if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
 :   (Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
-    PATTERNS is one or more regular expressions on the same or following lines.
-    <!-- then an optional `~` (indicating case-insensitive infix regular expression matching),\ -->
-    These are followed by one or more indented field assignment lines.\
-    In this example, any CSV record containing "groc" (case insensitive, anywhere within the whole record)
-    will have its account2 and comment set as shown:
 
-        if groc
+    PATTERNS is one or more regular expressions, each on its own line.
+    The first pattern can optionally be written on the same line as
+    the `if`; patterns on the following lines must start in column 0
+    (no indenting).  The regular expressions are case insensitive, and
+    can match anywhere within the whole CSV record.  (It's not yet
+    possible to match within a specific field.)
+
+    FIELDASSIGNMENTS is one or more field assignments (described
+    above), each on its own line and indented by at least one
+    space. (The indent is required for successful parsing.)
+
+    Example 1. The simplest conditional block has a single pattern and
+    a single field assignment. Here, any CSV record containing the
+    pattern `groceries` will have its account2 field set to
+    `expenses:groceries`.
+
+        if groceries
          account2 expenses:groceries
-         comment  household stuff
+
+    Example 2. Here, CSV records containing any of these patterns will
+    have their account2 and comment fields set as shown. The
+    capitalisation is not required, that's just how I copied them from
+    my bank's CSV.
+
+		if
+		MONTHLY SERVICE FEE
+		ATM TRANSACTION FEE
+		FOREIGN CURR CONV
+		OVERDRAFT TRANSFER FEE
+		BANKING THRU SOFTWARE:FEE
+		INTERNATIONAL PURCHASE TRANSACTION FEE
+		WIRE TRANS SVC CHARGE
+		FEE FOR TRANSFER
+		VISA ISA FEE
+		 account2 expenses:business:banking
+         comment  XXX probably deductible, check
 
 **skip** [*N*]
 :   Skip this number of CSV records (1 by default).
@@ -515,14 +544,26 @@ The following kinds of rule can appear in any order:
 **date-format** *DATEFMT*
 :   This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
     DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
-    Some common values:
+    Note the pattern must parse the CSV date value completely. Some examples:
 
-        %-d/%-m/%Y
-        %-m/%-d/%Y
-        %Y-%h-%d
+		# "6/11/2013"
+        date-format %-d/%-m/%Y
+
+		# "11/06/2013"
+        date-format %m/%d/%Y
+		
+		# "2013-Nov-06"
+        date-format %Y-%h-%d
+
+        # "11/6/2013 11:32 PM"
+		date-format %-m/%-d/%Y %l:%M %p
+
+**include** *RULESFILE*
+:   Include another rules file at this point. Useful for common rules shared across multiple CSV files.
 
 Typically you'll keep one rules file for each account which you
-download as CSV. For an example, see [How to read CSV files](CSV.html).
+download as CSV. For an example, see [How to read CSV
+files](CSV.html).
 
 Other notes:
 
@@ -568,10 +609,10 @@ To generate time logs, ie to clock in and clock out, you could:
 
 - at the command line, use these bash aliases:
 
-        alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
-        alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
+        alias ti="echo i \`date '+%Y-%m-%d %H:%M:%S'\` \$* >>$TIMELOG"
+        alias to="echo o \`date '+%Y-%m-%d %H:%M:%S'\` >>$TIMELOG"
 
-- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/jwiegley/ledger/tree/maint/scripts).
+- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ## Commands
@@ -602,7 +643,8 @@ Additional convenience features:
   If there is a recent transaction with a description similar
   to the one you entered, it will be displayed and used for defaults.
 
-- Readline-style edit keys may be used during data entry.
+- [Readline-style edit keys](http://tiswww.case.edu/php/chet/readline/rluserman.html#SEC3)
+  may be used during data entry. Eg control-p recalls previous entries.
 
 - While entering account names, the tab key will auto-complete or list
   the available completions, based on the existing transactions.
@@ -625,8 +667,8 @@ An example:
 
     Using this existing transaction for defaults:
     2012/04/19 * starbucks
-    expenses:personal:food:snacks         $3.70
-    assets:cash:wallet                   $-3.70
+        expenses:personal:food:snacks         $3.70
+        assets:cash:wallet                   $-3.70
 
     account 1 ? [expenses:personal:food:snacks]: 
     amount  1 ? [$3.7]: 
@@ -636,8 +678,8 @@ An example:
 
     Transaction entered:
     2013/04/09 starbucks
-    expenses:personal:food:snacks          $7.7
-    assets:cash:wallet                    $-7.7
+        expenses:personal:food:snacks          $7.7
+        assets:cash:wallet                    $-7.7
 
     Accept this transaction ? [y]: 
     Added to the journal.
@@ -653,10 +695,10 @@ The most basic reporting commands are `print`, `register` and `balance`:
 
 #### print
 
-The print command displays full transactions from the journal file, tidily
-formatted and showing all amounts explicitly. The output of print is
-always a valid hledger journal, but it might not preserve the original
-content absolutely intact (eg comments.)
+The print command displays full transactions from the journal file,
+tidily formatted and showing all amounts explicitly. The output of
+print is always a valid hledger journal, but it does always not
+preserve all original content exactly (eg directives).
 
 hledger's print command also shows all unit prices in effect, or (with
 -B/--cost) shows cost amounts.
@@ -688,14 +730,16 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
-The `--width`/`-w` option adjusts the width of the output. By default,
-this is 80 characters. To allow more space for descriptions and account
-names, use `-w` to increase the width to 120 characters, or `-wN` to set
-any desired width (at least 50 recommended, with no space before the N -
-eg `-w200` or `--width=200`,
+The `--average`/`-A` flag shows a running average instead of the running total.
 
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
+
+The `--width`/`-w` option adjusts the width of the output. By default,
+this is 80 characters. To allow more space for descriptions and account
+names, use `-w` to increase the width to 120 characters, or `-wN` to set
+any desired width (at least 50 recommended).
+Note, currently -w/--width can not have a space between flag and value ([#149](https://github.com/simonmichael/hledger/issues/149)).
 
 #### balance
 
@@ -717,6 +761,29 @@ balance, making the arithmetic a little more obvious to non-hledger users.
 In this mode you can also use `--drop N` to elide the first few account
 name components. Note `--depth` doesn't work too well with `--flat` currently;
 it hides deeper accounts rather than aggregating them.
+
+With a [reporting interval](#reporting-interval), multiple columns
+will be shown, one for each period. There are three modes available:
+
+1. By default each column shows the sum of postings in that period, ie
+the account's change of balance in that period.  This is good for a
+multi-column income statement:
+
+        $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
+
+    or cashflow statement:
+
+        $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
+
+2. With `--cumulative`, the report shows the ending balance for each
+account at the end of each period, starting from zero at the report
+start date.
+
+3. With `--historical/-H`, it shows the actual ending balance at the
+end of each period, including any balance from postings before the
+report start date.  This is good for historical balance sheets:
+
+        $ hledger balance ^assets ^liabilities -YH
 
 #### incomestatement
 
@@ -777,20 +844,48 @@ Examples:
 
 ### Add-ons
 
-Add-on packages are usually named `hledger-SOMETHING` and provide one
-or more `hledger-*` executables. hledger will detect these
-(or any `hledger-*` executable in your PATH) and offer
-them as extra commands; use `hledger --help` to see a list.
+Add-on commands are executables named `hledger-*` installed in your
+PATH.  hledger will detect these at startup and offer them as extra
+commands. Run `hledger` without a command to see a list.
 
-Here are some current add-ons.
 hledger-web is released along with hledger and supported on all the
 major platforms, while other add-ons may or may not be.
 
+#### autosync
+
+[ledger-autosync](https://bitbucket.org/egh/ledger-autosync/commits/all),
+which includes a `hledger-autosync` alias, downloads transactions
+from your bank(s) via OFX, and prints just the new ones as journal
+entries which you can add to your journal. It can also operate on .OFX
+files which you've downloaded manually. It can be a nice alternative
+to hledger's built-in CSV reader, especially if your bank supports OFX
+download.
+
+#### interest
+
+[hledger-interest](http://hackage.haskell.org/package/hledger-interest)
+computes interests for a given account. Using command line flags,
+the program can be configured to use various schemes for day-counting,
+such as act/act, 30/360, 30E/360, and 30/360isda. Furthermore, it
+supports a (small) number of interest schemes, i.e. annual interest
+with a fixed rate and the scheme mandated by the German BGB288
+(Basiszins für Verbrauchergeschäfte). See the package page for more.
+
+#### irr
+
+[hledger-irr](http://hackage.haskell.org/package/hledger-irr)
+computes the internal rate of return, also known as the effective
+interest rate, of a given investment. After specifying what account
+holds the investment, and what account stores the gains (or losses, or
+fees, or cost), it calculates the hypothetical annual rate of fixed
+rate investment that would have provided the exact same cash flow.
+See the package page for more.
+
 #### web
 
-The web command (provided by the [hledger-web](http://hackage.haskell.org/package/hledger-web) package)
+[hledger-web](http://hackage.haskell.org/package/hledger-web)
 provides a web-based user interface for viewing and modifying your ledger ([demo](http://demo.hledger.org)).
-It includes a more realistic account register view, and basic data entry and editing.
+It includes an account register view that is more useful than the command-line register, and basic data entry and editing.
 
 web-specific options:
 
@@ -827,25 +922,46 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug
 
-#### interest
+\
+\
+\
+The following add-ons are examples and experiments provided in the
+[extra](https://github.com/simonmichael/hledger/tree/master/extra)
+directory in the hledger source.  Add this directory to your PATH to
+make them available. The scripts are designed to run interpreted on
+unix systems (for tweaking), or you can compile them (for speed and
+robustness).
 
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-computes interests for a given account. Using command line flags,
-the program can be configured to use various schemes for day-counting,
-such as act/act, 30/360, 30E/360, and 30/360isda. Furthermore, it
-supports a (small) number of interest schemes, i.e. annual interest
-with a fixed rate and the scheme mandated by the German BGB288
-(Basiszins für Verbrauchergeschäfte). See the package page for more.
+#### accountnames.hs
 
-#### irr
+Prints all account names in the default journal.
 
-[hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-computes the internal rate of return, also known as the effective
-interest rate, of a given investment. After specifying what account
-holds the investment, and what account stores the gains (or losses, or
-fees, or cost), it calculates the hypothetical annual rate of fixed
-rate investment that would have provided the exact same cash flow.
-See the package page for more.
+#### balance-csv.hs
+
+Like the balance command, but with CSV output.
+
+#### equity.hs
+
+Like ledger's equity command, this prints a single journal entry with
+postings matching the current balance in each account (or the
+specified accounts) in the default journal. An entry like this is
+useful to carry over asset and liability balances when beginning a new
+journal file, eg at the start of the year.
+
+You can also use the same entry with signs reversed to close out the
+old file, resetting balances to 0. This means you'll see the correct
+asset/liability balances whether you use one file or a whole sequence
+of files as input to hledger.
+
+#### print-unique.hs
+
+Prints only journal entries which are unique (by description).
+
+#### register-csv.hs
+
+Like the register command, but with CSV output.
+
+
 
 <!-- unmaintained:
 
@@ -921,7 +1037,7 @@ A query term can be any of the following:
 - `REGEX` - match account names by this regular expression
 - `acct:REGEX` - same as above
 - `code:REGEX` - match by transaction code (eg check number)
-- `desc:REGEX` - match transaction descriptions by regular expression
+- `desc:REGEX` - match transaction descriptions
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
 - `date2:PERIODEXPR` - as above, but match secondary dates
 - `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression
@@ -929,7 +1045,18 @@ A query term can be any of the following:
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
-- `amt:<N`, `amt:=N`, `amt:>N` - match postings with a single-commodity amount less than, greater than or equal to N. (Multi-commodity amounts are always matched.)
+- `amt:N` or `amt:=N`, `amt:<N`, `amt:>N` - match postings with a
+  single-commodity amount equal to, less than, or greater than
+  N. (Multi-commodity amounts are always matched.) Be warned, the
+  match is sensitive to the sign of N - this can be used to search for
+  inflows or outflows.
+- `sym:REGEX` - match postings or transactions including any amounts
+  whose commodity symbol is fully matched by REGEX. (For a partial
+  match, use `.*REGEX.*`). Note, to match the dollar sign (`$`) you
+  need to prepend `\` so it's not interpreted as the regular
+  expression metacharacter.  And when running hledger from the
+  command-line, you may need one more level of quoting to hide it from
+  the shell, eg: `hledger print sym:\\$` or `hledger print sym:'\$'`.
 - `not:` before any of the above negates the match
 
 <!--
@@ -1051,7 +1178,7 @@ Examples:
 
 A reporting interval may also be specified with the `-D/--daily`,
 `-W/--weekly`, `-M/--monthly`, `-Q/--quarterly`, and `-Y/--yearly`
-options. But as noted above, a --period option will override these.
+options. But as noted above, a `-p/--period` option will override these.
 
 ### Display expressions
 

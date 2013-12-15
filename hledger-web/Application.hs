@@ -11,7 +11,21 @@ import Yesod.Default.Config
 import Yesod.Default.Main
 import Yesod.Default.Handlers
 import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
-import Network.HTTP.Conduit (newManager, def)
+import Network.HTTP.Conduit (newManager)
+
+-- adapt to http-conduit 1.x or 2.x when cabal macros are available, otherwise assume 2.x
+#ifdef MIN_VERSION_http_conduit
+#if MIN_VERSION_http_conduit(2,0,0)
+#define http_conduit_2
+#endif
+#else
+#define http_conduit_2
+#endif
+#ifdef http_conduit_2
+import Network.HTTP.Client (defaultManagerSettings)
+#else
+import Network.HTTP.Conduit (def)
+#endif
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -49,7 +63,12 @@ makeApplication opts j conf = do
 
 makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
-    manager <- newManager def
+    manager <- newManager
+#ifdef http_conduit_2
+               defaultManagerSettings
+#else
+               def
+#endif
     s <- staticSite
     jref <- newIORef nulljournal
     return $ App conf s manager defwebopts jref

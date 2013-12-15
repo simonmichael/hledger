@@ -1,7 +1,7 @@
 # hledger project makefile
 
 # ghc 6.12 executables need a locale
-#export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 # command to run during "make prof" and "make heap"
 PROFCMD=bin/hledgerprof balance -f data/1000x1000x10.journal >/dev/null
@@ -20,8 +20,7 @@ COVCMD=-f test-wf.csv print
 BENCHEXES=hledger-0.18 hledger-0.19 hledger-0.20 ledger-3.0-20130215
 
 # misc. tools
-BROWSE=google-chrome
-BROWSE=open -a 'Google Chrome'
+BROWSE=open -a Firefox
 VIEWHTML=$(BROWSE)
 VIEWPS=$(BROWSE)
 VIEWPDF=$(BROWSE)
@@ -384,7 +383,7 @@ unittest-interpreted:
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledgerdev
 	@echo functional tests:
-	($(SHELLTEST) tests -- --threads=16 --hide-successes \
+	@($(SHELLTEST) tests -- --threads=16 --hide-successes \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with a specific GHC version
@@ -573,7 +572,13 @@ viewsite: site
 
 # ensure some old doc versions are in place:
 
-oldsource: site/0.20 site/0.19 site/0.18
+oldsource: site/0.22 site/0.21 site/0.20 site/0.19 site/0.18
+
+site/0.22:
+	git archive --prefix site/0.22/ tags/0.22 '*.md' | tar xf -
+
+site/0.21:
+	git archive --prefix site/0.21/ tags/0.21.3 '*.md' | tar xf -
 
 site/0.20:
 	git archive --prefix site/0.20/ tags/0.20 '*.md' | tar xf -
@@ -585,7 +590,7 @@ site/0.18:
 	git archive --prefix site/0.18/ tags/0_18_2 '*.md' | tar xf -
 
 cleanoldsource:
-	cd site; rm -rf 0.19 0.18
+	cd site; rm -rf 0.22 0.21 0.20 0.19 0.18
 
 # generate html versions of docs (and the hledger.org website)
 # work around pandoc not handling full rst image directive
@@ -644,7 +649,6 @@ HADDOCKFLAGS= --no-warnings --prologue .haddockprologue \
 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
 
 # generate api docs for the whole project
-# we define HADDOCK to disable cabal-file-th code which requires a cabal file in the current dir
 haddock: .haddockprologue
 	$(HADDOCK) $(HADDOCKFLAGS) --title "hledger-* API docs" \
 	 -o site/api \

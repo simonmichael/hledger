@@ -282,6 +282,7 @@ The hledger project aims to produce:
 
 - I have a few older bits and pieces [here](http://joyful.com/Ledger)
 - John Wiegley's [ledger](http://wiki.github.com/jwiegley/ledger) inspired hledger.
+- [ledger-autosync](https://bitbucket.org/egh/ledger-autosync) downloads and converts bank OFX data for ledger or hledger
 - Tim Docker's [ledger-reports](http://dockerz.net/repos/ledger-reports) builds on hledger to generate
   [html reports](http://dockerz.net/software/hledger_report_sample/report.html)
 - [beancount](https://furius.ca/beancount/) is another ledger clone, in python

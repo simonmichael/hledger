@@ -817,19 +817,15 @@ emptyline = do many spacenonewline
 followingcomment :: GenParser Char JournalContext String
 followingcomment =
   -- ptrace "followingcomment"
-  (do first <- many spacenonewline >> followingcommentline
-      rest <- many (try (many1 spacenonewline >> followingcommentline))
-      return $ unlines $ first:rest
-  ) <|>
-  do
-    many spacenonewline >> newline
-    rest <- many (try (many1 spacenonewline >> followingcommentline))    
-    return $ unlines rest
+  do samelinecomment <- many spacenonewline >> (try commentline <|> (newline >> return ""))
+     newlinecomments <- many (try (many1 spacenonewline >> commentline))
+     return $ unlines $ samelinecomment:newlinecomments
 
-followingcommentline :: GenParser Char JournalContext String
-followingcommentline = do
-  -- ptrace "followingcommentline"
+commentline :: GenParser Char JournalContext String
+commentline = do
+  -- ptrace "commentline"
   char ';'
+  many spacenonewline
   l <- anyChar `manyTill` eolof
   optional newline
   return l

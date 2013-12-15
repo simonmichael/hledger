@@ -115,7 +115,14 @@ amountstyle = AmountStyle L False 0 '.' ',' []
 -------------------------------------------------------------------------------
 -- Amount
 
-instance Show Amount where show = showAmountDebug
+instance Show Amount where
+  show _a@Amount{..}
+    --  debugLevel < 3 = showAmountWithoutPrice a
+    --  debugLevel < 6 = showAmount a
+    | debugLevel < 9 =
+       printf "Amount {acommodity=%s, aquantity=%s, ..}" (show acommodity) (show aquantity)
+    | otherwise      = --showAmountDebug a
+       printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showPriceDebug aprice) (show astyle)
 
 instance Num Amount where
     abs a@Amount{aquantity=q}    = a{aquantity=abs q}
@@ -229,11 +236,11 @@ setAmountPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 withPrecision :: Amount -> Int -> Amount
 withPrecision = flip setAmountPrecision
 
--- | Get the unambiguous string representation of an amount, for debugging.
+-- | Get a string representation of an amount for debugging,
+-- appropriate to the current debug level. 9 shows maximum detail.
 showAmountDebug :: Amount -> String
 showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
-showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}"
-                                   (show acommodity) (show aquantity) (showPriceDebug aprice) (show astyle)
+showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showPriceDebug aprice) (show astyle)
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
@@ -323,7 +330,11 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
 -------------------------------------------------------------------------------
 -- MixedAmount
 
-instance Show MixedAmount where show = showMixedAmountDebug
+instance Show MixedAmount where
+  show
+    --  debugLevel < 3 = intercalate "\\n" . lines . showMixedAmountWithoutPrice
+    --  debugLevel < 6 = intercalate "\\n" . lines . showMixedAmount
+    | otherwise      = showMixedAmountDebug
 
 instance Num MixedAmount where
     fromInteger i = Mixed [fromInteger i]
@@ -450,9 +461,9 @@ isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
 showMixedAmount :: MixedAmount -> String
 showMixedAmount m = vConcatRightAligned $ map showAmount $ amounts $  normaliseMixedAmountPreservingFirstPrice m
 
--- | Compact labelled trace of a mixed amount.
+-- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount
-ltraceamount s = tracewith (((s ++ ": ") ++).showMixedAmount)
+ltraceamount s = traceWith (((s ++ ": ") ++).showMixedAmount)
 
 -- | Set the display precision in the amount's commodities.
 setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount

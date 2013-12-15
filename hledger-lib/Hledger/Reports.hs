@@ -1,16 +1,18 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
 {-|
 
 Generate several common kinds of report from a journal, as \"*Report\" -
 simple intermediate data structures intended to be easily rendered as
 text, html, json, csv etc. by hledger commands, hamlet templates,
-javascript, or whatever. This is under Hledger.Cli since it depends
-on the command-line options, should move to hledger-lib later.
+javascript, or whatever.
 
 -}
 
 module Hledger.Reports (
+  -- * Report options
+  -- | 
   ReportOpts(..),
+  BalanceType(..),
   DisplayExp,
   FormatStr,
   defreportopts,
@@ -21,16 +23,20 @@ module Hledger.Reports (
   journalSelectingAmountFromOpts,
   queryFromOpts,
   queryOptsFromOpts,
+  reportSpans,
   -- * Entries report
+  -- | 
   EntriesReport,
   EntriesReportItem,
   entriesReport,
   -- * Postings report
+  -- | 
   PostingsReport,
   PostingsReportItem,
   postingsReport,
   mkpostingsReportItem, -- XXX for showPostingWithBalanceForVty in Hledger.Cli.Register
   -- * Transactions report
+  -- | 
   TransactionsReport,
   TransactionsReportItem,
   triDate,
@@ -39,12 +45,25 @@ module Hledger.Reports (
   transactionsReportByCommodity,
   journalTransactionsReport,
   accountTransactionsReport,
-  -- * Accounts report
-  AccountsReport,
-  AccountsReportItem,
-  accountsReport,
-  -- * Other "reports"
+
+  -- * Balance reports
+  {-|
+  These are used for the various modes of the balance command
+  (see "Hledger.Cli.Balance").
+  -}
+  BalanceReport,
+  BalanceReportItem,
+  balanceReport,
+  MultiBalanceReport(..),
+  MultiBalanceReportItem,
+  RenderableAccountName,
+  periodBalanceReport,
+  cumulativeOrHistoricalBalanceReport,
+
+  -- * Other reports
+  -- | 
   accountBalanceHistory,
+
   -- * Tests
   tests_Hledger_Reports
 )
@@ -68,6 +87,9 @@ import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils
 
+------------------------------------------------------------------------------
+-- report options handling
+
 -- | Standard options for customising report filtering and output,
 -- corresponding to hledger's command-line options and query language
 -- arguments. Used in hledger-lib and above.
@@ -80,10 +102,11 @@ data ReportOpts = ReportOpts {
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp
-    ,date2_      :: Bool
+    ,date2_          :: Bool
     ,empty_          :: Bool
     ,no_elide_       :: Bool
     ,real_           :: Bool
+    ,balancetype_    :: BalanceType -- for balance command
     ,flat_           :: Bool -- for balance command
     ,drop_           :: Int  -- "
     ,no_total_       :: Bool -- "
@@ -94,13 +117,23 @@ data ReportOpts = ReportOpts {
     ,yearly_         :: Bool
     ,format_         :: Maybe FormatStr
     ,related_        :: Bool
+    ,average_        :: Bool
     ,query_          :: String -- all arguments, as a string
- } deriving (Show)
+ } deriving (Show, Data, Typeable)
 
 type DisplayExp = String
 type FormatStr = String
 
+-- | Which balance is being shown in a multi-column balance report.
+data BalanceType = PeriodBalance     -- ^ The change of balance in each period.
+                 | CumulativeBalance -- ^ The accumulated balance at each period's end, starting from zero at the report start date.
+                 | HistoricalBalance -- ^ The historical balance at each period's end, starting from the account balances at the report start date.
+  deriving (Eq,Show,Data,Typeable)
+instance Default BalanceType where def = PeriodBalance
+
 defreportopts = ReportOpts
+    def
+    def
     def
     def
     def
@@ -224,8 +257,8 @@ tests_queryOptsFromOpts = [
 -------------------------------------------------------------------------------
 
 -- | A journal entries report is a list of whole transactions as
--- originally entered in the journal (mostly). Used by eg hledger's print
--- command and hledger-web's journal entries view.
+-- originally entered in the journal (mostly). This is used by eg
+-- hledger's print command and hledger-web's journal entries view.
 type EntriesReport = [EntriesReportItem]
 type EntriesReportItem = Transaction
 
@@ -248,20 +281,21 @@ tests_entriesReport = [
 
 -- | A postings report is a list of postings with a running total, a label
 -- for the total field, and a little extra transaction info to help with rendering.
+-- This is used eg for the register command.
 type PostingsReport = (String               -- label for the running balance column XXX remove
                       ,[PostingsReportItem] -- line items, one per posting
                       )
 type PostingsReportItem = (Maybe Day    -- posting date, if this is the first posting in a transaction or if it's different from the previous posting's date
                           ,Maybe String -- transaction description, if this is the first posting in a transaction
                           ,Posting      -- the posting, possibly with account name depth-clipped
-                          ,MixedAmount  -- the running total after this posting
+                          ,MixedAmount  -- the running total after this posting (or with --average, the running average)
                           )
 
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
 postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
-                          (totallabel, postingsReportItems ps nullposting wd depth startbal (+))
+                          (totallabel, postingsReportItems ps nullposting wd depth startbal runningcalcfn 1)
     where
       ps | interval == NoInterval = displayableps
          | otherwise              = summarisePostingsByInterval interval depth empty reportspan displayableps
@@ -273,8 +307,8 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
                                         $ dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id)
                                         $ dbg "ps2" $ filter (q' `matchesPosting`)
                                         $ dbg "ps1" $ journalPostings j'
-      dbg :: Show a => String -> a -> a
-      dbg = flip const
+      -- enable to debug just this function
+      -- dbg :: Show a => String -> a -> a
       -- dbg = lstrace
 
       empty = queryEmpty q
@@ -293,14 +327,16 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       reportspan | empty     = requestedspan `orDatesFrom` journalspan
                  | otherwise = requestedspan `spanIntersect` matchedspan
       startbal = sumPostings precedingps
+      runningcalcfn | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i)
+                    | otherwise     = \_ bal amt -> bal + amt
 
 totallabel = "Total"
 balancelabel = "Balance"
 
 -- | Generate postings report line items.
-postingsReportItems :: [Posting] -> Posting -> WhichDate -> Int -> MixedAmount -> (MixedAmount -> MixedAmount -> MixedAmount) -> [PostingsReportItem]
-postingsReportItems [] _ _ _ _ _ = []
-postingsReportItems (p:ps) pprev wd d b sumfn = i:(postingsReportItems ps p wd d b' sumfn)
+postingsReportItems :: [Posting] -> Posting -> WhichDate -> Int -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
+postingsReportItems [] _ _ _ _ _ _ = []
+postingsReportItems (p:ps) pprev wd d b runningcalcfn itemnum = i:(postingsReportItems ps p wd d b' runningcalcfn (itemnum+1))
     where
       i = mkpostingsReportItem showdate showdesc wd p' b'
       showdate = isfirstintxn || isdifferentdate
@@ -309,7 +345,7 @@ postingsReportItems (p:ps) pprev wd d b sumfn = i:(postingsReportItems ps p wd d
       isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
                                    SecondaryDate -> postingDate2 p /= postingDate2 pprev
       p' = p{paccount=clipAccountName d $ paccount p}
-      b' = b `sumfn` pamount p
+      b' = runningcalcfn itemnum b (pamount p)
 
 -- | Generate one postings report line item, containing the posting,
 -- the current running balance, and optionally the posting date and/or
@@ -425,6 +461,8 @@ summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
 -- other information helpful for rendering a register view (a flag
 -- indicating multiple other accounts and a display string describing
 -- them) with or without a notion of current account(s).
+-- Two kinds of report use this data structure, see journalTransactionsReport
+-- and accountTransactionsReport below for detais.
 type TransactionsReport = (String                   -- label for the balance column, eg "balance" or "total"
                           ,[TransactionsReportItem] -- line items, one per transaction
                           )
@@ -480,11 +518,9 @@ filterTransactionsReportByCommodity c (label,items) =
 filterMixedAmountByCommodity :: Commodity -> MixedAmount -> MixedAmount
 filterMixedAmountByCommodity c (Mixed as) = Mixed $ filter ((==c). acommodity) as
 
--- | Select transactions from the whole journal for a transactions report,
--- with no \"current\" account. The end result is similar to
--- "postingsReport" except it uses queries and transaction-based report
--- items and the items are most recent first. Used by eg hledger-web's
--- journal view.
+-- | Select transactions from the whole journal. This is similar to a
+-- "postingsReport" except with transaction-based report items which
+-- are ordered most recent first. This is used by eg hledger-web's journal view.
 journalTransactionsReport :: ReportOpts -> Journal -> Query -> TransactionsReport
 journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
    where
@@ -494,7 +530,7 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 
 -------------------------------------------------------------------------------
 
--- | Select transactions within one or more \"current\" accounts, and make a
+-- | Select transactions within one or more current accounts, and make a
 -- transactions report relative to those account(s). This means:
 --
 -- 1. it shows transactions from the point of view of the current account(s).
@@ -505,9 +541,9 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 --    shows the accurate historical running balance for the current account(s).
 --    Otherwise it shows a running total starting at 0.
 --
--- Currently, reporting intervals are not supported, and report items are
--- most recent first. Used by eg hledger-web's account register view.
---
+-- This is used by eg hledger-web's account register view. Currently,
+-- reporting intervals are not supported, and report items are most
+-- recent first.
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> TransactionsReport
 accountTransactionsReport opts j m thisacctquery = (label, items)
  where
@@ -577,21 +613,28 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -------------------------------------------------------------------------------
 
--- | An accounts report is a list of account names (full and short
--- variants) with their balances, appropriate indentation for rendering as
--- a hierarchy, and grand total.
-type AccountsReport = ([AccountsReportItem] -- line items, one per account
+-- | A list of account names plus rendering info, along with their
+-- balances as of the end of the reporting period, and the grand
+-- total. Used for the balance command's single-column mode.
+type BalanceReport = ([BalanceReportItem] -- line items, one per account
                       ,MixedAmount          -- total balance of all accounts
                       )
-type AccountsReportItem = (AccountName  -- full account name
-                          ,AccountName  -- short account name for display (the leaf name, prefixed by any boring parents immediately above)
-                          ,Int          -- how many steps to indent this account (0 with --flat, otherwise the 0-based account depth excluding boring parents)
-                          ,MixedAmount) -- account balance, includes subs unless --flat is present
+-- | * Full account name,
+--
+-- * short account name for display (the leaf name, prefixed by any boring parents immediately above),
+--
+-- * how many steps to indent this account (the 0-based account depth excluding boring parents, or 0 with --flat),
+-- 
+-- * account balance (including subaccounts (XXX unless --flat)).
+type BalanceReportItem = (AccountName
+                          ,AccountName
+                          ,Int
+                          ,MixedAmount)
 
 -- | Select accounts, and get their balances at the end of the selected
 -- period, and misc. display information, for an accounts report.
-accountsReport :: ReportOpts -> Query -> Journal -> AccountsReport
-accountsReport opts q j = (items, total)
+balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
+balanceReport opts q j = (items, total)
     where
       l =  ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
       accts = clipAccounts (queryDepth q) $ ledgerRootAccount l
@@ -605,8 +648,9 @@ accountsReport opts q j = (items, total)
                        | otherwise   = fromMaybe nullacct . pruneAccounts (isZeroMixedAmount.aibalance)
             markboring | no_elide_ opts = id
                        | otherwise      = markBoringParentAccounts
-      items = map (accountsReportItem opts) accts'
+      items = map (balanceReportItem opts) accts'
       total = sum [amt | (a,_,indent,amt) <- items, if flat_ opts then accountNameLevel a == 1 else indent == 0]
+              -- XXX check account level == 1 is valid when top-level accounts excluded
 
 -- | In an account tree with zero-balance leaves removed, mark the
 -- elidable parent accounts (those with one subaccount and no balance
@@ -617,8 +661,8 @@ markBoringParentAccounts = tieAccountParents . mapAccounts mark
     mark a | length (asubs a) == 1 && isZeroMixedAmount (aebalance a) = a{aboring=True}
            | otherwise = a
 
-accountsReportItem :: ReportOpts -> Account -> AccountsReportItem
-accountsReportItem opts a@Account{aname=name, aibalance=ibal}
+balanceReportItem :: ReportOpts -> Account -> BalanceReportItem
+balanceReportItem opts a@Account{aname=name, aibalance=ibal}
   | flat_ opts = (name, name,       0,      ibal)
   | otherwise  = (name, elidedname, indent, ibal)
   where
@@ -628,6 +672,171 @@ accountsReportItem opts a@Account{aname=name, aibalance=ibal}
     parents = init $ parentAccounts a
 
 
+-------------------------------------------------------------------------------
+
+-- | A multi(column) balance report is a list of accounts, each with a list of
+-- balances corresponding to the report's column periods. The balances' meaning depends
+-- on the type of balance report (see 'BalanceType' and "Hledger.Cli.Balance").
+-- Also included are the overall total for each period, the date span for each period,
+-- and some additional rendering info for the accounts.
+--
+-- * The date span for each report column,
+-- 
+-- * line items (one per account),
+-- 
+-- * the final total for each report column.
+newtype MultiBalanceReport = MultiBalanceReport
+  ([DateSpan]
+  ,[MultiBalanceReportItem]
+  ,[MixedAmount]
+  )
+
+-- | * The account name with rendering hints,
+--
+-- * the account's balance (per-period balance, cumulative ending
+-- balance, or historical ending balance) in each of the report's
+-- periods.
+type MultiBalanceReportItem =
+  (RenderableAccountName
+  ,[MixedAmount]
+  )
+
+-- | * Full account name,
+-- 
+-- * ledger-style short account name (the leaf name, prefixed by any boring parents immediately above),
+-- 
+-- * indentation steps to use when rendering a ledger-style account tree
+-- (the 0-based depth of this account excluding boring parents; or with --flat, 0)
+type RenderableAccountName =
+  (AccountName
+  ,AccountName
+  ,Int
+  )
+
+instance Show MultiBalanceReport where
+    -- use ppShow to break long lists onto multiple lines
+    -- we have to add some bogus extra shows here to help ppShow parse the output
+    -- and wrap tuples and lists properly
+    show (MultiBalanceReport (spans, items, totals)) =
+        "MultiBalanceReport (ignore extra quotes):\n" ++ ppShow (show spans, map show items, totals)
+
+-- | Select accounts and get their period balance (change of balance) in each
+-- period, plus misc. display information, for a period balance report.
+periodBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
+periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
+    where
+      (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
+      clip = filter (depthq `matchesAccount`)
+      j' = filterJournalPostings q' $ journalSelectingAmountFromOpts opts j
+      ps = journalPostings j'
+
+      -- the requested span is the span of the query (which is
+      -- based on -b/-e/-p opts and query args IIRC).
+      requestedspan = queryDateSpan (date2_ opts) q
+
+      -- the report's span will be the requested span intersected with
+      -- the selected data's span; or with -E, the requested span
+      -- limited by the journal's overall span.
+      reportspan | empty_ opts = requestedspan `orDatesFrom` journalspan
+                 | otherwise   = requestedspan `spanIntersect` matchedspan
+        where
+          journalspan = journalDateSpan j'
+          matchedspan = postingsDateSpan ps
+
+      -- first implementation, probably inefficient
+      spans               = dbg "1 " $ splitSpan (intervalFromOpts opts) reportspan
+      psPerSpan           = dbg "3"  $ [filter (isPostingInDateSpan s) ps | s <- spans]
+      acctnames           = dbg "4"  $ sort $ clip $ 
+                            -- expandAccountNames $ 
+                            accountNamesFromPostings ps
+      allAcctsZeros       = dbg "5"  $ [(a, nullmixedamt) | a <- acctnames]
+      someAcctBalsPerSpan = dbg "6"  $ [[(aname a, aibalance a) | a <- drop 1 $ accountsFromPostings ps, depthq `matchesAccount` aname a, aname a `elem` acctnames] | ps <- psPerSpan]
+      balsPerSpan         = dbg "7"  $ [sortBy (comparing fst) $ unionBy (\(a,_) (a',_) -> a == a') acctbals allAcctsZeros | acctbals <- someAcctBalsPerSpan]
+      balsPerAcct         = dbg "8"  $ transpose balsPerSpan
+      acctsAndBals        = dbg "8.5" $ zip acctnames (map (map snd) balsPerAcct)
+      items               = dbg "9"  $ [((a, a, accountNameLevel a), bs) | (a,bs) <- acctsAndBals, empty_ opts || any (not . isZeroMixedAmount) bs]
+      highestLevelBalsPerSpan =
+                            dbg "9.5" $ [[b | (a,b) <- spanbals, not $ any (`elem` acctnames) $ init $ expandAccountName a] | spanbals <- balsPerSpan]
+      totals              = dbg "10" $ map sum highestLevelBalsPerSpan
+
+-------------------------------------------------------------------------------
+
+-- | Calculate the overall span and per-period date spans for a report
+-- based on command-line options, the parsed search query, and the
+-- journal data. If a reporting interval is specified, the report span
+-- will be enlarged to include a whole number of report periods.
+-- Reports will sometimes trim these spans further when appropriate.
+reportSpans ::  ReportOpts -> Query -> Journal -> (DateSpan, [DateSpan])
+reportSpans opts q j = (reportspan, spans)
+  where
+    -- get the requested span from the query, which is based on
+    -- -b/-e/-p opts and query args.
+    requestedspan = queryDateSpan (date2_ opts) q
+
+    -- set the start and end date to the journal's if not specified
+    requestedspan' = requestedspan `orDatesFrom` journalDateSpan j
+
+    -- if there's a reporting interval, calculate the report periods
+    -- which enclose the requested span
+    spans = dbg "spans" $ splitSpan (intervalFromOpts opts) requestedspan'
+
+    -- the overall report span encloses the periods
+    reportspan = DateSpan
+                 (maybe Nothing spanStart $ headMay spans)
+                 (maybe Nothing spanEnd   $ lastMay spans)
+
+-- | Select accounts and get their ending balance in each period, plus
+-- account name display information, for a cumulative or historical balance report.
+cumulativeOrHistoricalBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
+cumulativeOrHistoricalBalanceReport opts q j = MultiBalanceReport (periodbalancespans, items, totals)
+    where
+      -- select/adjust basic report dates
+      (reportspan, _) = reportSpans opts q j
+
+      -- rewrite query to use adjusted dates
+      dateless  = filterQuery (not . queryIsDate)
+      depthless = filterQuery (not . queryIsDepth)
+      q' = dateless $ depthless q
+      -- reportq = And [q', Date reportspan]
+
+      -- get starting balances and accounts from preceding txns
+      precedingq = And [q', Date $ DateSpan Nothing (spanStart reportspan)]
+      (startbalanceitems,_) = balanceReport opts{flat_=True,empty_=True} precedingq j
+      startacctbals = dbg "startacctbals"   $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
+      -- acctsWithStartingBalance = map fst $ filter (not . isZeroMixedAmount . snd) startacctbals
+      startingBalanceFor a | balancetype_ opts == HistoricalBalance = fromMaybe nullmixedamt $ lookup a startacctbals
+                           | otherwise = nullmixedamt
+
+      -- get balance changes by period
+      MultiBalanceReport (periodbalancespans,periodbalanceitems,_) = dbg "changes" $ periodBalanceReport opts q j
+      balanceChangesByAcct = map (\((a,_,_),bs) -> (a,bs)) periodbalanceitems
+      acctsWithBalanceChanges = map fst $ filter ((any (not . isZeroMixedAmount)) . snd) balanceChangesByAcct
+      balanceChangesFor a = fromMaybe (error $ "no data for account: a") $ -- XXX
+                            lookup a balanceChangesByAcct
+
+      -- accounts to report on
+      reportaccts -- = dbg' "reportaccts" $ (dbg' "acctsWithStartingBalance" acctsWithStartingBalance) `union` (dbg' "acctsWithBalanceChanges" acctsWithBalanceChanges)
+                  = acctsWithBalanceChanges
+
+      -- sum balance changes to get ending balances for each period
+      endingBalancesFor a = 
+          dbg "ending balances" $ drop 1 $ scanl (+) (startingBalanceFor a) $
+          dbg "balance changes" $ balanceChangesFor a
+
+      items  = dbg "items"  $ [((a,a,0), endingBalancesFor a) | a <- reportaccts]
+
+      -- sum highest-level account balances in each column for column totals
+      totals = dbg "totals" $ map sum highestlevelbalsbycol
+          where
+            highestlevelbalsbycol = transpose $ map endingBalancesFor highestlevelaccts
+            highestlevelaccts =
+                dbg "highestlevelaccts" $
+                [a | a <- reportaccts, not $ any (`elem` reportaccts) $ init $ expandAccountName a]
+
+      -- enable to debug just this function
+      -- dbg :: Show a => String -> a -> a
+      -- dbg = lstrace
+        
 -------------------------------------------------------------------------------
 
 -- | Get the historical running inclusive balance of a particular account,
@@ -811,20 +1020,20 @@ tests_postingsReport = [
 -}
  ]
 
-tests_accountsReport =
+tests_balanceReport =
   let (opts,journal) `gives` r = do
          let (eitems, etotal) = r
-             (aitems, atotal) = accountsReport opts (queryFromOpts nulldate opts) journal
+             (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
          assertEqual "items" eitems aitems
          -- assertEqual "" (length eitems) (length aitems)
          -- mapM (\(e,a) -> assertEqual "" e a) $ zip eitems aitems
          assertEqual "total" etotal atotal
   in [
 
-   "accountsReport with no args on null journal" ~: do
+   "balanceReport with no args on null journal" ~: do
    (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
 
-  ,"accountsReport with no args on sample journal" ~: do
+  ,"balanceReport with no args on sample journal" ~: do
    (defreportopts, samplejournal) `gives`
     ([
       ("assets","assets",0, mamountp' "$-1.00")
@@ -840,7 +1049,7 @@ tests_accountsReport =
      ],
      Mixed [nullamt])
 
-  ,"accountsReport with --depth=N" ~: do
+  ,"balanceReport with --depth=N" ~: do
    (defreportopts{depth_=Just 1}, samplejournal) `gives`
     ([
       ("assets",      "assets",      0, mamountp' "$-1.00")
@@ -850,7 +1059,7 @@ tests_accountsReport =
      ],
      Mixed [nullamt])
 
-  ,"accountsReport with depth:N" ~: do
+  ,"balanceReport with depth:N" ~: do
    (defreportopts{query_="depth:1"}, samplejournal) `gives`
     ([
       ("assets",      "assets",      0, mamountp' "$-1.00")
@@ -860,7 +1069,7 @@ tests_accountsReport =
      ],
      Mixed [nullamt])
 
-  ,"accountsReport with a date or secondary date span" ~: do
+  ,"balanceReport with a date or secondary date span" ~: do
    (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
     ([],
      Mixed [nullamt])
@@ -871,7 +1080,7 @@ tests_accountsReport =
      ],
      Mixed [nullamt])
 
-  ,"accountsReport with desc:" ~: do
+  ,"balanceReport with desc:" ~: do
    (defreportopts{query_="desc:income"}, samplejournal) `gives`
     ([
       ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
@@ -879,7 +1088,7 @@ tests_accountsReport =
      ],
      Mixed [nullamt])
 
-  ,"accountsReport with not:desc:" ~: do
+  ,"balanceReport with not:desc:" ~: do
    (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
     ([
       ("assets","assets",0, mamountp' "$-2.00")
@@ -1003,7 +1212,7 @@ tests_accountsReport =
               ,"  c:d                   "
               ]) >>= either error' return
        let j' = journalCanonicaliseAmounts $ journalConvertAmountsToCost j -- enable cost basis adjustment
-       accountsReportAsText defreportopts (accountsReport defreportopts Any j') `is`
+       balanceReportAsText defreportopts (balanceReport defreportopts Any j') `is`
          ["                $500  a:b"
          ,"               $-500  c:d"
          ,"--------------------"
@@ -1048,7 +1257,7 @@ tests_Hledger_Reports = TestList $
  ++ tests_summarisePostingsByInterval
  ++ tests_postingsReport
  -- ++ tests_isInterestingIndented
- ++ tests_accountsReport
+ ++ tests_balanceReport
  ++ [
   -- ,"summarisePostingsInDateSpan" ~: do
   --   let gives (b,e,depth,showempty,ps) =

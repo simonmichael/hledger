@@ -31,11 +31,11 @@ webflags = [
 webmode :: Mode [([Char], [Char])]
 webmode =  (mode "hledger-web" [("command","web")]
             "start serving the hledger web interface"
-            mainargsflag []){
+            (argsFlag "[PATTERNS]") []){
               modeGroupFlags = Group {
                                 groupUnnamed = webflags
                                ,groupHidden = [flagNone ["binary-filename"] (setboolopt "binary-filename") "show the download filename for this executable, and exit"]
-                               ,groupNamed = [(generalflagstitle, generalflags1)]
+                               ,groupNamed = [generalflagsgroup1]
                                }
              ,modeHelpSuffix=[
                   -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
@@ -61,7 +61,7 @@ defwebopts = WebOpts
 
 toWebOpts :: RawOpts -> IO WebOpts
 toWebOpts rawopts = do
-  cliopts <- toCliOpts rawopts
+  cliopts <- rawOptsToCliOpts rawopts
   let p = fromMaybe defport $ maybeintopt "port" rawopts
   return defwebopts {
               port_ = p

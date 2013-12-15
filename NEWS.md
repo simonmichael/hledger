@@ -4,6 +4,65 @@ title: hledger news
 
 # News
 
+## 2013/12/13 hledger 0.22
+
+**New:**
+
+- balance: with a reporting interval (monthly, yearly etc.), the
+  [balance command](MANUAL.html#balance) will now show a multi-column report, showing either
+  the per-period changes in balance (by default),
+  the period ending balances starting from zero (`--cumulative`),
+  or the actual period ending balances (`--historical`).
+  A more detailed specification of the balance command's behaviour
+  has been added to [Hledger.Cli.Balance](http://hackage.haskell.org/package/hledger/docs/Hledger-Cli-Balance.html).
+
+- csv: rules files can now include other rules files, useful for factoring out common rules
+
+- queries: `sym:REGEXP` matches commodity symbols
+
+- register: `--average/-A` shows a running average, like ledger
+
+- in period expressions, `-` (hyphen) can be used as a more compact
+  synonym for `from` and `to`.  Eg: `-p 2012/12/1-2013/2/1` or `date:aug-`.
+
+- the add-on script examples in extra/ have been updated; get the
+  hledger source and add .../hledger/extra/ to your PATH to make them
+  available.  They include:
+
+        hledger-accountnames.hs - print account names
+        hledger-balance-csv.hs  - print a balance report as CSV
+        hledger-equity.hs       - print an entry matching all account balances (like ledger)
+        hledger-print-unique.hs - print only journal entries unique descriptions
+        hledger-register-csv.hs - print a register report as CSV
+
+**Improved:**
+
+- balancesheet: now shows just assets and liabilities, not equity
+
+- print: comment positions (same line or next line) are now preserved
+
+- queries: `amt` now uses the = operator by default, eg `amt:50` is
+  equivalent to `amt:=50`
+
+- command line processing has been overhauled and made more
+  consistent, and now has tests and debug output.  More flags now work
+  both before and after COMMAND: `-f`, `--rule-file`, `--alias`,
+  `--help`, `--debug`, `--version`.  Command line help, command
+  aliases, API docs and code have been improved.
+
+- `--debug` now takes an optional numeric argument to set the debug level
+  higher than 1, for more verbose debug output in a few cases.
+
+**Fixed:**
+
+- csv: CSV data containing non-ascii characters is now supported
+
+- build with latest versions of dependencies (text, warp, http-conduit etc.)
+
+**Release contributors:**
+
+Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wiegley! :)
+
 ## 2013/7/10 hledger-web 0.21.3
 
   - drop yesod-platform dependency, it is not worthwhile. The other

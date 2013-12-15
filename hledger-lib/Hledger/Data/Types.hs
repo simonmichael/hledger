@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving #-}
 {-|
 
 Most data types are defined here to avoid import cycles.
@@ -20,28 +20,28 @@ For more detailed documentation on each type, see the corresponding modules.
 module Hledger.Data.Types
 where
 import Control.Monad.Error (ErrorT)
+import Data.Data
 import qualified Data.Map as M
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import Data.Typeable
-import System.Time (ClockTime)
+import System.Time (ClockTime(..))
 
 
 type SmartDate = (String,String,String)
 
 data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 
-data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord)
+data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord,Data,Typeable)
 
 data Interval = NoInterval
               | Days Int | Weeks Int | Months Int | Quarters Int | Years Int
               | DayOfMonth Int | DayOfWeek Int
               -- WeekOfYear Int | MonthOfYear Int | QuarterOfYear Int
-                deriving (Eq,Show,Ord)
+                deriving (Eq,Show,Ord,Data,Typeable)
 
 type AccountName = String
 
-data Side = L | R deriving (Eq,Show,Read,Ord)
+data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data)
 
 type Commodity = String
       
@@ -49,7 +49,7 @@ type Quantity = Double
 
 -- | An amount's price (none, per unit, or total) in another commodity.
 -- Note the price should be a positive number, although this is not enforced.
-data Price = NoPrice | UnitPrice Amount | TotalPrice Amount deriving (Eq,Ord)
+data Price = NoPrice | UnitPrice Amount | TotalPrice Amount deriving (Eq,Ord,Typeable,Data)
 
 -- | Display style for an amount.
 data AmountStyle = AmountStyle {
@@ -59,21 +59,21 @@ data AmountStyle = AmountStyle {
       asdecimalpoint :: Char,        -- ^ character used as decimal point
       asseparator :: Char,           -- ^ character used for separating digit groups (eg thousands)
       asseparatorpositions :: [Int]  -- ^ positions of digit group separators, counting leftward from decimal point
-} deriving (Eq,Ord,Show,Read)
+} deriving (Eq,Ord,Read,Show,Typeable,Data)
 
 data Amount = Amount {
       acommodity :: Commodity,
       aquantity :: Quantity,
       aprice :: Price,                -- ^ the (fixed) price for this amount, if any
       astyle :: AmountStyle
-    } deriving (Eq,Ord)
+    } deriving (Eq,Ord,Typeable,Data)
 
-newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord)
+newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Typeable,Data)
 
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
-                   deriving (Eq,Show)
+                   deriving (Eq,Show,Typeable,Data)
 
-type Tag = (String, String)
+type Tag = (String, String)  -- ^ A tag name and (possibly empty) value.
 
 data Posting = Posting {
       pdate :: Maybe Day,  -- ^ this posting's date, if different from the transaction's
@@ -81,13 +81,13 @@ data Posting = Posting {
       pstatus :: Bool,
       paccount :: AccountName,
       pamount :: MixedAmount,
-      pcomment :: String, -- ^ this posting's non-tag comment lines, as a single non-indented string
+      pcomment :: String, -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype :: PostingType,
-      ptags :: [Tag],
+      ptags :: [Tag], -- ^ tag names and values, extracted from the comment
       pbalanceassertion :: Maybe MixedAmount,  -- ^ optional: the expected balance in the account after this posting
       ptransaction :: Maybe Transaction    -- ^ this posting's parent transaction (co-recursive types).
                                            -- Tying this knot gets tedious, Maybe makes it easier/optional.
-    }
+    } deriving (Typeable,Data)
 
 -- The equality test for postings ignores the parent transaction's
 -- identity, to avoid infinite loops.
@@ -100,35 +100,35 @@ data Transaction = Transaction {
       tstatus :: Bool,  -- XXX tcleared ?
       tcode :: String,
       tdescription :: String,
-      tcomment :: String, -- ^ this transaction's non-tag comment lines, as a single non-indented string
-      ttags :: [Tag],
+      tcomment :: String, -- ^ this transaction's comment lines, as a single non-indented multi-line string
+      ttags :: [Tag], -- ^ tag names and values, extracted from the comment
       tpostings :: [Posting],            -- ^ this transaction's postings
-      tpreceding_comment_lines :: String
-    } deriving (Eq)
+      tpreceding_comment_lines :: String -- ^ any comment lines immediately preceding this transaction
+    } deriving (Eq,Typeable,Data)
 
 data ModifierTransaction = ModifierTransaction {
       mtvalueexpr :: String,
       mtpostings :: [Posting]
-    } deriving (Eq)
+    } deriving (Eq,Typeable,Data)
 
 data PeriodicTransaction = PeriodicTransaction {
       ptperiodicexpr :: String,
       ptpostings :: [Posting]
-    } deriving (Eq)
+    } deriving (Eq,Typeable,Data)
 
-data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord) 
+data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Typeable,Data)
 
 data TimeLogEntry = TimeLogEntry {
       tlcode :: TimeLogCode,
       tldatetime :: LocalTime,
       tlcomment :: String
-    } deriving (Eq,Ord)
+    } deriving (Eq,Ord,Typeable,Data)
 
 data HistoricalPrice = HistoricalPrice {
       hdate :: Day,
       hcommodity :: Commodity,
       hamount :: Amount
-    } deriving (Eq) -- & Show (in Amount.hs)
+    } deriving (Eq,Typeable,Data) -- & Show (in Amount.hs)
 
 type Year = Integer
 
@@ -143,7 +143,10 @@ data JournalContext = Ctx {
                                         --   specified with "account" directive(s). Concatenated, these
                                         --   are the account prefix prepended to parsed account names.
     , ctxAliases   :: ![(AccountName,AccountName)] -- ^ the current list of account name aliases in effect
-    } deriving (Read, Show, Eq)
+    } deriving (Read, Show, Eq, Data, Typeable)
+
+deriving instance Data (ClockTime)
+deriving instance Typeable (ClockTime)
 
 data Journal = Journal {
       jmodifiertxns :: [ModifierTransaction],
@@ -159,7 +162,7 @@ data Journal = Journal {
                                             -- order encountered (XXX reversed, cf journalAddFile).
       filereadtime :: ClockTime,            -- ^ when this journal was last read from its file(s)
       jcommoditystyles :: M.Map Commodity AmountStyle  -- ^ how to display amounts in each commodity
-    } deriving (Eq, Typeable)
+    } deriving (Eq, Typeable, Data)
 
 -- | A JournalUpdate is some transformation of a Journal. It can do I/O or
 -- raise an error.

@@ -31,6 +31,7 @@ module Hledger.Data.Dates (
   parsedateM,
   parsedate,
   showDate,
+  showDateSpan,
   elapsedSeconds,
   prevday,
   parsePeriodExpr,
@@ -39,6 +40,9 @@ module Hledger.Data.Dates (
   failIfInvalidYear,
   datesepchar,
   datesepchars,
+  spanStart,
+  spanEnd,
+  spansSpan,
   spanIntersect,
   spansIntersect,
   spanUnion,
@@ -64,7 +68,7 @@ import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Clock
 import Data.Time.LocalTime
-import Safe (readMay)
+import Safe (headMay, lastMay, readMay)
 import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
@@ -76,6 +80,15 @@ import Hledger.Utils
 
 showDate :: Day -> String
 showDate = formatTime defaultTimeLocale "%C%y/%m/%d"
+
+showDateSpan (DateSpan from to) =
+  concat
+    [maybe "" showdate from
+    ,"-"
+    ,maybe "" (showdate . prevday) to
+    ]
+  where
+    showdate = formatTime defaultTimeLocale "%C%y/%m/%d"
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
@@ -97,6 +110,16 @@ getCurrentYear = do
 
 elapsedSeconds :: Fractional a => UTCTime -> UTCTime -> a
 elapsedSeconds t1 = realToFrac . diffUTCTime t1
+
+spanStart :: DateSpan -> Maybe Day
+spanStart (DateSpan d _) = d
+
+spanEnd :: DateSpan -> Maybe Day
+spanEnd (DateSpan _ d) = d
+
+-- | Get overall span enclosing multiple sequentially ordered spans.
+spansSpan :: [DateSpan] -> DateSpan
+spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Nothing spanEnd $ lastMay spans)
 
 -- | Split a DateSpan into one or more consecutive spans at the specified interval.
 splitSpan :: Interval -> DateSpan -> [DateSpan]
@@ -144,7 +167,9 @@ spanContainsDate (DateSpan (Just b) Nothing)  d = d >= b
 spanContainsDate (DateSpan (Just b) (Just e)) d = d >= b && d < e
     
 -- | Combine two datespans, filling any unspecified dates in the first
--- with dates from the second.
+-- with dates from the second. Not a clip operation, just uses the
+-- second's start/end dates as defaults when the first does not
+-- specify them.
 orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
     where a = if isJust a1 then a1 else a2
           b = if isJust b1 then b1 else b2
@@ -598,19 +623,27 @@ doubledatespan rdate = do
   optional (string "from" >> many spacenonewline)
   b <- smartdate
   many spacenonewline
-  optional (string "to" >> many spacenonewline)
+  optional (choice [string "to", string "-"] >> many spacenonewline)
   e <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
 fromdatespan :: Day -> GenParser Char st DateSpan
 fromdatespan rdate = do
-  string "from" >> many spacenonewline
-  b <- smartdate
+  b <- choice [
+    do
+      string "from" >> many spacenonewline
+      smartdate
+    ,
+    do
+      d <- smartdate
+      string "-"
+      return d
+    ]
   return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
 todatespan :: Day -> GenParser Char st DateSpan
 todatespan rdate = do
-  string "to" >> many spacenonewline
+  choice [string "to", string "-"] >> many spacenonewline
   e <- smartdate
   return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
 

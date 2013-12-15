@@ -21,6 +21,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           ---- all of this one:
                           module Hledger.Utils,
                           Debug.Trace.trace,
+                          module Data.PPrint,
                           -- module Hledger.Utils.UTF8IOCompat
                           SystemString,fromSystemString,toSystemString,error',userError',
                           ppShow
@@ -31,16 +32,22 @@ import Control.Monad (liftM, when)
 import Control.Monad.Error (MonadIO)
 import Control.Monad.IO.Class (liftIO)
 import Data.Char
+import Data.Data
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
+import Data.PPrint
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Tree
 import Debug.Trace
+import Safe (readDef)
 import System.Directory (getHomeDirectory)
+import System.Environment (getArgs)
+import System.Exit
 import System.FilePath((</>), isRelative)
 import System.IO
+import System.IO.Unsafe (unsafePerformIO)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
@@ -339,25 +346,25 @@ treeFromPaths = foldl' mergeTrees emptyTree . map treeFromPath
 -- http://hackage.haskell.org/packages/archive/htrace/0.1/doc/html/Debug-HTrace.html
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 
--- | trace (print on stdout at runtime) a showable expression
+-- | Trace (print on stdout at runtime) a showable value.
 -- (for easily tracing in the middle of a complex expression)
 strace :: Show a => a -> a
 strace a = trace (show a) a
 
--- | labelled trace showable - like strace, with a label prepended
-lstrace :: Show a => String -> a -> a
-lstrace l a = trace (l ++ ": " ++ show a) a
+-- | Labelled trace - like strace, with a label prepended.
+ltrace :: Show a => String -> a -> a
+ltrace l a = trace (l ++ ": " ++ show a) a
 
--- | monadic trace - like strace, but works as a standalone line in a monad
+-- | Monadic trace - like strace, but works as a standalone line in a monad.
 mtrace :: (Monad m, Show a) => a -> m a
 mtrace a = strace a `seq` return a
 
--- | trace an expression using a custom show function
-tracewith :: (a -> String) -> a -> a
-tracewith f e = trace (f e) e
+-- | Custom trace - like strace, with a custom show function.
+traceWith :: (a -> String) -> a -> a
+traceWith f e = trace (f e) e
 
 -- | Parsec trace - show the current parsec position and next input,
--- and the provided string if it's non-null.
+-- and the provided label if it's non-null.
 ptrace :: String -> GenParser Char st ()
 ptrace msg = do
   pos <- getPosition
@@ -369,17 +376,72 @@ ptrace msg = do
   where
     peeklength = 30
 
-debugLevel = 0
+-- | Global debug level, which controls the verbosity of debug output
+-- on the console. The default is 0 meaning no debug output. The
+-- @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
+-- a higher value (note: not @--debug N@ for some reason).  This uses
+-- unsafePerformIO and can be accessed from anywhere and before normal
+-- command-line processing. After command-line processing, it is also
+-- available as the @debug_@ field of 'Hledger.Cli.Options.CliOpts'.
+debugLevel :: Int
+debugLevel = case snd $ break (=="--debug") args of
+               "--debug":[]  -> 1
+               "--debug":n:_ -> readDef 1 n
+               _             ->
+                 case take 1 $ filter ("--debug" `isPrefixOf`) args of
+                   ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
+                   _                                   -> 0
 
--- | Print a message to the console if the global debugLevel is
--- greater than the level we are called with.
-dbg :: Monad m => Float -> String -> m ()
-dbg  level msg = when (level <= debugLevel) $ trace msg $ return ()
+    where
+      args = unsafePerformIO getArgs
 
--- | Print a message and parsec position info to the console if the
--- global debugLevel is greater than the level we are called with.
--- pdbg :: GenParser m => Float -> String -> m ()
+-- | Print a message and a showable value to the console if the global
+-- debug level is non-zero.  Uses unsafePerformIO.
+dbg :: Show a => String -> a -> a
+dbg = dbgppshow 1
+
+-- | Print a showable value to the console, with a message, if the
+-- debug level is at or above the specified level (uses
+-- unsafePerformIO).
+-- Values are displayed with show, all on one line, which is hard to read.
+dbgshow :: Show a => Int -> String -> a -> a
+dbgshow level
+    | debugLevel >= level = ltrace
+    | otherwise           = flip const
+
+-- | Print a showable value to the console, with a message, if the
+-- debug level is at or above the specified level (uses
+-- unsafePerformIO).
+-- Values are displayed with ppShow, each field/constructor on its own line.
+dbgppshow :: Show a => Int -> String -> a -> a
+dbgppshow level
+    | debugLevel >= level = \s -> traceWith (((s++": ")++) . ppShow)
+    | otherwise           = flip const
+
+-- | Print a showable value to the console, with a message, if the
+-- debug level is at or above the specified level (uses
+-- unsafePerformIO).
+-- Values are displayed with pprint. Field names are not shown, but the
+-- output is compact with smart line wrapping, long data elided,
+-- and slow calculations timed out.
+dbgpprint :: Data a => Int -> String -> a -> a
+dbgpprint level msg a
+    | debugLevel >= level = unsafePerformIO $ do
+                              pprint a >>= putStrLn . ((msg++": \n") ++) . show
+                              return a
+    | otherwise           = a
+
+
+-- | Like dbg, then exit the program. Uses unsafePerformIO.
+dbgExit :: Show a => String -> a -> a
+dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
+
+-- | Print a message and parsec debug info (parse position and next
+-- input) to the console when the debug level is at or above
+-- this level. Uses unsafePerformIO.
+-- pdbgAt :: GenParser m => Float -> String -> m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
+
 
 -- parsing
 

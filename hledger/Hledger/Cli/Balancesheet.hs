@@ -25,15 +25,15 @@ balancesheet CliOpts{reportopts_=ropts} j = do
   -- let lines = case formatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
   let q = queryFromOpts d (withoutBeginDate ropts)
-      assetreport@(_,assets)          = accountsReport ropts (And [q, journalAssetAccountQuery j]) j
-      liabilityreport@(_,liabilities) = accountsReport ropts (And [q, journalLiabilityAccountQuery j]) j
+      assetreport@(_,assets)          = balanceReport ropts (And [q, journalAssetAccountQuery j]) j
+      liabilityreport@(_,liabilities) = balanceReport ropts (And [q, journalLiabilityAccountQuery j]) j
       total = assets + liabilities
   LT.putStr $ [lt|Balance Sheet
 
 Assets:
-#{unlines $ accountsReportAsText ropts assetreport}
+#{unlines $ balanceReportAsText ropts assetreport}
 Liabilities:
-#{unlines $ accountsReportAsText ropts liabilityreport}
+#{unlines $ balanceReportAsText ropts liabilityreport}
 
 Total:
 --------------------

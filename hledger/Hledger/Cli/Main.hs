@@ -41,6 +41,8 @@ module Hledger.Cli.Main where
 import Control.Monad
 import Data.List
 import Safe
+import System.Console.CmdArgs.Explicit (modeHelp)
+-- import System.Console.CmdArgs.Helper
 import System.Environment
 import System.Exit
 import System.Process
@@ -66,62 +68,110 @@ import Hledger.Data.Dates
 
 main :: IO ()
 main = do
+
+  -- Choose and run the appropriate internal or external command based
+  -- on the raw command-line arguments, cmdarg's interpretation of
+  -- same, and hledger-* executables in the user's PATH. A somewhat
+  -- complex mishmash of cmdargs and custom processing, hence all the
+  -- debugging support and tests. See also Hledger.Cli.Options and
+  -- command-line.test.
+
+  -- some preliminary (imperfect) argument parsing to supplement cmdargs
   args <- getArgs
+  let
+    args'                = moveFlagsAfterCommand args
+    isFlag               = ("-" `isPrefixOf`)
+    isNonEmptyNonFlag s  = not (isFlag s) && not (null s)
+    rawcmd               = headDef "" $ takeWhile isNonEmptyNonFlag args'
+    isNullCommand        = null rawcmd
+    (argsbeforecmd, argsaftercmd') = break (==rawcmd) args
+    argsaftercmd         = drop 1 argsaftercmd'
+  when (debugLevel > 0) $ do
+    printf "running: %s\n" prognameandversion
+    printf "raw args: %s\n" (show args)
+    printf "raw args rearranged for cmdargs: %s\n" (show args')
+    printf "raw command might be: %s\n" (show rawcmd)
+    printf "raw args before command: %s\n" (show argsbeforecmd)
+    printf "raw args after command: %s\n" (show argsaftercmd)
+
+  -- search PATH for add-ons
   addons <- getHledgerAddonCommands
-  opts <- getHledgerCliOpts addons
-  when (debug_ opts) $ do
-    printf "%s\n" prognameandversion
-    printf "args: %s\n" (show args)
-    printf "opts: %s\n" (show opts)
+
+  -- parse arguments with cmdargs
+  opts <- argsToCliOpts args addons
+
+  -- select an action and run it.
+  let
+    cmd                  = command_ opts -- the full matched internal or external command name, if any
+    isInternalCommand    = not (null cmd) && not (cmd `elem` addons) -- probably
+    isExternalCommand    = not (null cmd) && cmd `elem` addons -- probably
+    isBadCommand         = not (null rawcmd) && null cmd
+    hasHelp args         = any (`elem` args) ["--help","-h","-?"]
+    hasVersion           = ("--version" `elem`)
+    mainmode'            = mainmode addons
+    generalHelp          = putStr $ showModeHelp mainmode'
+    version              = putStrLn prognameandversion
+    badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
+    f `orShowHelp` mode  = if hasHelp args then putStr (showModeHelp mode) else f
+  when (debug_ opts > 0) $ do
+    putStrLn $ "processed opts:\n" ++ ppShow opts
+    putStrLn $ "command matched: " ++ show cmd
+    putStrLn $ "isNullCommand: " ++ show isNullCommand
+    putStrLn $ "isInternalCommand: " ++ show isInternalCommand
+    putStrLn $ "isExternalCommand: " ++ show isExternalCommand
+    putStrLn $ "isBadCommand: " ++ show isBadCommand
     d <- getCurrentDay
-    printf "query: %s\n" (show $ queryFromOpts d $ reportopts_ opts)
+    putStrLn $ "date span from opts: " ++ (show $ dateSpanFromOpts d $ reportopts_ opts)
+    putStrLn $ "interval from opts: " ++ (show $ intervalFromOpts $ reportopts_ opts)
+    putStrLn $ "query from opts & args: " ++ (show $ queryFromOpts d $ reportopts_ opts)
+  let
+    dbg s = if debug_ opts > 0 then trace s else id
+    runHledgerCommand
+      -- high priority flags and situations. --help should be highest priority.
+      | hasHelp argsbeforecmd    = dbg "--help before command, showing general help" generalHelp
+      | not (hasHelp argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
+                                 = version
+      -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
+      -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
+      | isNullCommand            = dbg "no command, showing general help" generalHelp
+      | isBadCommand             = badCommandError
 
-  run' opts addons args
-    where
-      run' opts@CliOpts{command_=cmd} addons args
-       -- delicate, add tests before changing (eg --version, ADDONCMD --version, INTERNALCMD --version)
-       | (null matchedaddon) && "version" `in_` (rawopts_ opts)         = putStrLn prognameandversion
-       | (null matchedaddon) && "binary-filename" `in_` (rawopts_ opts) = putStrLn $ binaryfilename progname
-       | null cmd                                        = putStr $ showModeHelp mainmode'
-       | cmd `isPrefixOf` "add"                          = showModeHelpOr addmode      $ journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add
-       | cmd `isPrefixOf` "test"                         = showModeHelpOr testmode     $ test' opts
-       | any (cmd `isPrefixOf`) ["accounts","balance"]   = showModeHelpOr accountsmode $ withJournalDo opts balance
-       | any (cmd `isPrefixOf`) ["entries","print"]      = showModeHelpOr entriesmode  $ withJournalDo opts print'
-       | any (cmd `isPrefixOf`) ["postings","register"]  = showModeHelpOr postingsmode $ withJournalDo opts register
-       | any (cmd `isPrefixOf`) ["activity","histogram"] = showModeHelpOr activitymode $ withJournalDo opts histogram
-       | any (cmd `isPrefixOf`) ["incomestatement","is"] = showModeHelpOr incomestatementmode $ withJournalDo opts incomestatement
-       | any (cmd `isPrefixOf`) ["balancesheet","bs"]    = showModeHelpOr balancesheetmode $ withJournalDo opts balancesheet
-       | any (cmd `isPrefixOf`) ["cashflow","cf"]        = showModeHelpOr cashflowmode $ withJournalDo opts cashflow
-       | cmd `isPrefixOf` "stats"                        = showModeHelpOr statsmode    $ withJournalDo opts stats
-       | not (null matchedaddon)                           = do
-                                                             when (debug_ opts) $ printf "running %s\n" shellcmd
-                                                             system shellcmd >>= exitWith
-       | cmd == "convert"                                = optserror ("convert is no longer needed, just use -f FILE.csv") >> exitFailure
-       | otherwise                                       = optserror ("command "++cmd++" is not recognized") >> exitFailure
-       where
-        mainmode' = mainmode addons
-        showModeHelpOr mode f | "help" `in_` (rawopts_ opts) = putStr $ showModeHelp mode
-                              | otherwise = f
-        matchedaddon | null cmd  = ""
-                     | otherwise = headDef "" $ filter (cmd `isPrefixOf`) addons
-        shellcmd = printf "%s-%s %s" progname matchedaddon (unwords' subcmdargs)
-        subcmdargs = args1 ++ drop 1 args2 where (args1,args2) = break (== cmd) $ filter (/="--") args
+      -- internal commands
+      | cmd == "activity"        = withJournalDo opts histogram       `orShowHelp` activitymode
+      | cmd == "add"             = (journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add) `orShowHelp` addmode
+      | cmd == "balance"         = withJournalDo opts balance         `orShowHelp` balancemode
+      | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowHelp` balancesheetmode
+      | cmd == "cashflow"        = withJournalDo opts cashflow        `orShowHelp` cashflowmode
+      | cmd == "incomestatement" = withJournalDo opts incomestatement `orShowHelp` incomestatementmode
+      | cmd == "print"           = withJournalDo opts print'          `orShowHelp` printmode
+      | cmd == "register"        = withJournalDo opts register        `orShowHelp` registermode
+      | cmd == "stats"           = withJournalDo opts stats           `orShowHelp` statsmode
+      | cmd == "test"            = test' opts                         `orShowHelp` testmode
 
-{- tests:
+      -- an external command
+      | isExternalCommand = do
+          let shellcmd = printf "%s-%s %s" progname cmd (unwords' argsaftercmd)
+          when (debug_ opts > 0) $ do
+            printf "external command selected: %s\n" cmd
+            printf "external command arguments: %s\n" (show argsaftercmd)
+            printf "running shell command: %s\n" (show shellcmd)
+          system shellcmd >>= exitWith
 
-hledger -> main help
-hledger --help -> main help
-hledger --help command -> command help
-hledger command --help -> command help
-hledger badcommand -> unrecognized command, try --help (non-zero exit)
-hledger badcommand --help -> main help
-hledger --help badcommand -> main help
-hledger --mainflag command -> works
-hledger command --mainflag -> works
-hledger command --commandflag -> works
-hledger command --mainflag --commandflag -> works
-XX hledger --mainflag command --commandflag -> works
-XX hledger --commandflag command -> works
-XX hledger --commandflag command --mainflag -> works
+      -- deprecated commands
+      | cmd == "convert"         = error' (modeHelp convertmode) >> exitFailure
 
--}
+      -- shouldn't reach here
+      | otherwise                = optserror ("could not understand the arguments "++show args) >> exitFailure
+
+  runHledgerCommand
+
+
+-- tests_runHledgerCommand = [
+--   -- "runHledgerCommand" ~: do
+--   --   let opts = defreportopts{query_="expenses"}
+--   --   d <- getCurrentDay
+--   --   runHledgerCommand addons opts@CliOpts{command_=cmd} args
+
+--  ]
+
+

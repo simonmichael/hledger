@@ -48,7 +48,7 @@ $maybe m' <- msg
 
 -- | The sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
-sidebar vd@VD{..} = accountsReportAsHtml opts vd $ accountsReport (reportopts_ $ cliopts_ opts){empty_=True} am j
+sidebar vd@VD{..} = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
 -- navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
@@ -103,7 +103,8 @@ searchform VD{..} = [hamlet|
       status:*, status:!, status:  (cleared status), #
       real:BOOL (real/virtual-ness), #
       empty:BOOL (is amount zero), #
-      amt:<N, amt:=N, amt:>N (test magnitude of single-commodity amount).
+      amt:N, amt:<N, amt:>N (test magnitude of single-commodity amount).
+      sym:REGEXP (commodity symbol), #
       <br>
       Prepend not: to negate, enclose multi-word patterns in quotes, multiple search terms are AND'ed.
 |]
@@ -284,9 +285,9 @@ nulltemplate = [hamlet||]
 ----------------------------------------------------------------------
 -- hledger report renderers
 
--- | Render an "AccountsReport" as html.
-accountsReportAsHtml :: WebOpts -> ViewData -> AccountsReport -> HtmlUrl AppRoute
-accountsReportAsHtml _ vd@VD{..} (items',total) =
+-- | Render an "BalanceReport" as html.
+balanceReportAsHtml :: WebOpts -> ViewData -> BalanceReport -> HtmlUrl AppRoute
+balanceReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
 <div#accountsheading>
  <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
@@ -328,7 +329,7 @@ accountsReportAsHtml _ vd@VD{..} (items',total) =
    inacctmatcher = inAccountQuery qopts
    allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
-   itemAsHtml :: ViewData -> AccountsReportItem -> HtmlUrl AppRoute
+   itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
 <tr.item.#{inacctclass}>
  <td.account.#{depthclass}>
