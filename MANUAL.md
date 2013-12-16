@@ -889,20 +889,27 @@ It includes an account register view that is more useful than the command-line r
 
 web-specific options:
 
-    --server           log requests, don't exit on inactivity
-    --port=N           serve on tcp port N (default 5000)
-    --base-url=URL     use this base url (default http://localhost:PORT/PATH)
+    --server            log requests, don't exit on inactivity
+    --port=N            serve on tcp port N (default 5000)
+    --base-url=URL      use this base url (default http://localhost:PORT/)
+    --static-root=URL   use this base url for static files (default http://localhost:PORT/static)
 
 By default, the web command starts a transient local web app and displays it in your default web browser ("local ui mode").
 With `--server`, it starts the web app, leaves it running, and also logs requests to the console ("server mode").
 
-Typically in server mode you'll also want to use use
+Typically in server mode you'll also want to use
 `--base-url` to set the protocol/hostname/port/path to be used in
 hyperlinks.
 
 You can use `--port` to listen on a different TCP port, eg if you are running multiple hledger-web
 instances.  Note `--port`'s argument need not be the same as the PORT
 in the base url.
+
+The more advanced option `--static-root` allows the static files served from a
+separate base url.  This enables the optimization that the static files can be
+served from a generic web server like apache, which is good at handling static
+files and caching. One can also serve the files in a separate domain to reduce
+cookies overhead.
 
 **Note:** unlike any other hledger command, `web` can alter existing journal
 data, via the edit form.  A numbered backup of the file is saved on

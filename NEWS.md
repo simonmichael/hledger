@@ -4,6 +4,10 @@ title: hledger news
 
 # News
 
+## unreleased
+
+- web: new option `--static-root` to set the base url for static files
+
 ## 2013/12/13 hledger 0.22
 
 **New:**
