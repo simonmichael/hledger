@@ -54,8 +54,10 @@ staticDir = "static"
 -- have to make a corresponding change here.
 --
 -- To see how this value is used, see urlRenderOverride in Foundation.hs
-staticRoot :: AppConfig DefaultEnv x -> Text
-staticRoot conf = [st|#{appRoot conf}/static|]
+staticRoot :: AppConfig DefaultEnv Extra -> Text
+staticRoot conf = case extraStaticRoot $ appExtra conf of
+                    Just root -> root
+                    Nothing -> [st|#{appRoot conf}/static|]
 
 -- | Settings for 'widgetFile', such as which template languages to support and
 -- default Hamlet settings.
@@ -75,11 +77,13 @@ widgetFile = (if development then widgetFileReload
               widgetFileSettings
 
 data Extra = Extra
-    { extraCopyright :: Text
-    , extraAnalytics :: Maybe Text -- ^ Google Analytics
+    { extraCopyright  :: Text
+    , extraAnalytics  :: Maybe Text -- ^ Google Analytics
+    , extraStaticRoot :: Maybe Text
     } deriving Show
 
 parseExtra :: DefaultEnv -> Object -> Parser Extra
 parseExtra _ o = Extra
     <$> o .:  "copyright"
     <*> o .:? "analytics"
+    <*> o .:? "staticRoot"

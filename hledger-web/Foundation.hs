@@ -19,7 +19,7 @@ import Network.HTTP.Conduit (Manager)
 -- import qualified Settings
 import Settings.Development (development)
 import Settings.StaticFiles
-import Settings (widgetFile, Extra (..))
+import Settings (staticRoot, widgetFile, Extra (..))
 #ifndef DEVELOPMENT
 import Settings (staticDir)
 import Text.Jasmine (minifym)
@@ -117,11 +117,11 @@ instance Yesod App where
 
         hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-    -- -- This is done to provide an optimization for serving static files from
-    -- -- a separate domain. Please see the staticRoot setting in Settings.hs
-    -- urlRenderOverride y (StaticR s) =
-    --     Just $ uncurry (joinPath y (Settings.staticRoot $ settings y)) $ renderRoute s
-    -- urlRenderOverride _ _ = Nothing
+    -- This is done to provide an optimization for serving static files from
+    -- a separate domain. Please see the staticRoot setting in Settings.hs
+    urlRenderOverride y (StaticR s) =
+        Just $ uncurry (joinPath y (Settings.staticRoot $ settings y)) $ renderRoute s
+    urlRenderOverride _ _ = Nothing
 
 #ifndef DEVELOPMENT
     -- This function creates static content files in the static folder

@@ -1,6 +1,7 @@
 module Hledger.Web.Options
 where
 import Prelude
+import Control.Applicative ((<$>))
 import Data.Maybe
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
@@ -26,6 +27,7 @@ webflags = [
   flagNone ["server"]  (setboolopt "server") ("log requests, don't auto-exit")
  ,flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurlexample++")")
  ,flagReq ["port"]  (\s opts -> Right $ setopt "port" s opts) "PORT" ("listen on this tcp port (default: "++show defport++")")
+ ,flagReq ["static-root"]  (\s opts -> Right $ setopt "static-root" s opts) "Static Root" ("The root url from which the static files will be loaded (default: BASE_URL/static)")
  ]
  
 webmode :: Mode [([Char], [Char])]
@@ -47,11 +49,13 @@ data WebOpts = WebOpts {
      server_   :: Bool
     ,base_url_ :: String
     ,port_     :: Int
+    ,static_root_ :: Maybe String
     ,cliopts_  :: CliOpts
  } deriving (Show)
 
 defwebopts :: WebOpts
 defwebopts = WebOpts
+    def
     def
     def
     def
@@ -67,6 +71,7 @@ toWebOpts rawopts = do
               port_ = p
              ,server_ = boolopt "server" rawopts
              ,base_url_ = maybe (defbaseurl p) stripTrailingSlash $ maybestringopt "base-url" rawopts
+             ,static_root_ = stripTrailingSlash <$> maybestringopt "static-root" rawopts
              ,cliopts_   = cliopts
              }
   where
