@@ -4,6 +4,8 @@
 *.o
 _*
 cabal-dev*
+.cabal-sandbox/
+cabal.sandbox.config
 hledger-web/static/tmp/
 hledger-web/yesod-devel/
 TAGS
