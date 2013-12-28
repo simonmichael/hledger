@@ -51,7 +51,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
-import Text.Regex
+import Text.Regex.TDFA
 import Text.RegexPR
 import Text.Show.Pretty
 -- import qualified Data.Map as Map
@@ -246,10 +246,10 @@ regexSplit = splitRegexPR
 
 -- regex-compat (regex-posix) functions that perform better than regexpr.
 regexMatchesRegexCompat :: String -> String -> Bool
-regexMatchesRegexCompat r = isJust . matchRegex (mkRegex r)
+regexMatchesRegexCompat = flip (=~)
 
 regexMatchesCIRegexCompat :: String -> String -> Bool
-regexMatchesCIRegexCompat r = isJust . matchRegex (mkRegexWithOpts r True False)
+regexMatchesCIRegexCompat r = match (makeRegexOpts defaultCompOpt { multiline = True, caseSensitive = False, newSyntax = True } defaultExecOpt r)
 
 -- lists
 
