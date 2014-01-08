@@ -4,6 +4,14 @@ title: hledger news
 
 # News
 
+## 2014/1/6 hledger 0.22.1
+
+- require the latest pretty-show so hledger installation no longer
+  needs an upgraded version of happy, and the docs build on hackage
+
+- require regex-tdfa directly instead of regex-compat-tdfa,
+  simplifying Debian packaging
+
 ## 2013/12/13 hledger 0.22
 
 **New:**
