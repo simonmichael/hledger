@@ -134,6 +134,11 @@ or get help.
   become inconsistent, and you should fix these first.
   [ghc-pkg-clean](https://gist.github.com/1185421) is an easy way.
 
+#. **cabal says "rejecting: system-fileio-0.3.11, 0.3.10 (conflict: blah blah blah.."**
+  system-fileio does not yet allow text 1.x, making cabal sweat.
+  If your cabal is modern enough, adding `--max-backjumps=10000` should help.
+  ([more](https://groups.google.com/d/topic/hledger/FdWGTSAVzYU/discussion)).
+
 #. <a name="cabaldeps" />**cabal can't satisfy the new dependencies due to old installed packages**
   Cabal dependency failures become more likely as you install more
   packages over time. If `cabal install hledger-web --dry` says it can't
