@@ -1,6 +1,6 @@
 name:           hledger
 -- also in cpp-options below
-version: 0.22
+version: 0.22.1
 stability:      beta
 category:       Finance
 synopsis:       The main command-line interface for the hledger accounting tool.
@@ -41,7 +41,7 @@ flag threaded
     Default:       True
 
 library
-  cpp-options:    -DVERSION="0.22"
+  cpp-options:    -DVERSION="0.22.1"
   ghc-options:    -W
   -- should be the same as below
   exposed-modules:
@@ -62,7 +62,7 @@ library
                   Hledger.Cli.Stats
   -- should be the same as below
   build-depends:
-                  hledger-lib == 0.22
+                  hledger-lib == 0.22.1
                  ,base >= 4.3 && < 5
                  -- ,cabal-file-th
                  ,containers
@@ -113,13 +113,13 @@ executable hledger
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
-  cpp-options:    -DVERSION="0.22"
+  cpp-options:    -DVERSION="0.22.1"
   ghc-options:    -W
   if flag(threaded)
        ghc-options:   -threaded
  -- should be the same as above
   build-depends:
-                  hledger-lib == 0.22
+                  hledger-lib == 0.22.1
                  ,base >= 4.3 && < 5
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
@@ -162,9 +162,8 @@ test-suite tests
                , old-locale
                , old-time
                , parsec
-               , pretty-show
+               , pretty-show >= 1.6.4
                , process
-               , regex-compat-tdfa
                , regexpr
                , safe
                , shakespeare-text
