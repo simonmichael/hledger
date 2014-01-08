@@ -124,10 +124,10 @@ or get help.
 
 #. **Do you have a new enough version of cabal ?**
   Avoid ancient versions.  `cabal --version` should report at least
-  0.10 (and 0.14 is much better). You may be able to upgrade it with:
+  0.10 (and 0.16 or greater is much better). You may be able to upgrade it with:
 
         $ cabal update
-        $ cabal install cabal-install-0.14
+        $ cabal install cabal-install
 
 #. **Are your installed GHC/cabal packages in good repair ?**
   Run `ghc-pkg check`. If it reports problems, some of your packages have
