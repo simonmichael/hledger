@@ -67,7 +67,7 @@ library
                  ,old-locale
                  ,old-time
                  ,parsec
-                 ,pretty-show
+                 ,pretty-show >= 1.6.4
                  ,regex-tdfa
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
@@ -99,7 +99,7 @@ test-suite tests
                , old-locale
                , old-time
                , parsec
-               , pretty-show
+               , pretty-show >= 1.6.4
                , regex-tdfa
                , regexpr
                , safe

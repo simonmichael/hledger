@@ -162,7 +162,7 @@ test-suite tests
                , old-locale
                , old-time
                , parsec
-               , pretty-show
+               , pretty-show >= 1.6.4
                , process
                , regexpr
                , safe
