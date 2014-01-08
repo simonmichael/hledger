@@ -349,7 +349,7 @@ committest: hlinttest unittest doctest functest haddocktest warningstest quickca
 
 # thorough pre-release tests - run before release
 # consider hiding dev-build symlinks in Hledger/ first
-releasetest: Clean unittest doctest functest warningstest fullcabaltest haddocktest
+releasetest: Clean unittest functest fullcabaltest haddocktest #warningstest doctest
 
 hlinttest hlint:
 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
@@ -430,8 +430,16 @@ quickcabaltest:
 
 # make sure cabal is happy in all possible ways
 fullcabaltest:
-	(for p in $(PACKAGES); do (echo "testing $$p package" && cd $$p && cabal clean && cabal check && cabal install && cabal sdist && cabal upload dist/$$p-$(VERSION).tar.gz --check -v3); done \
+	(for p in $(PACKAGES); do ( \
+		printf "\ntesting $$p package\n" \
+		&& cd $$p \
+		&& cabal clean \
+		&& cabal check \
+		&& cabal install \
+		&& cabal sdist \
+		); done \
 		&& echo $@ PASSED) || echo $@ FAILED
+#		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
 # run simple performance benchmarks without saving results
 # Requires some commands defined in bench.tests and some BENCHEXES defined above.
