@@ -120,11 +120,12 @@ or get help.
 
 #. **Do you have a new enough version of GHC ?**
   Run `ghc --version`. hledger requires GHC 7.0 or greater
-  (on [some platforms](#5551), 7.2.1 can be helpful).
+  (and on [some platforms](#5551), 7.2.1+ can be helpful).
 
 #. **Do you have a new enough version of cabal ?**
-  Avoid ancient versions.  `cabal --version` should report at least
-  0.10 (and 0.16 or greater is much better). You may be able to upgrade it with:
+  Avoid ancient versions, which are less capable and more confusing.
+  `cabal --version` should probably report at least 1.16 (and for sandboxed
+  installs, 1.18+). You may be able to upgrade it with:
 
         $ cabal update
         $ cabal install cabal-install
