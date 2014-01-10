@@ -67,13 +67,13 @@ formatLiteral = do
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatString :: GenParser Char st FormatString
-formatString =
+formatStr :: GenParser Char st FormatString
+formatStr =
         formatField
     <|> formatLiteral
 
 formatStrings :: GenParser Char st [FormatString]
-formatStrings = many formatString
+formatStrings = many formatStr
 
 testFormat :: FormatString -> String -> String -> Assertion
 testFormat fs value expected = assertEqual name expected actual
