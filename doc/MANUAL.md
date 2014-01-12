@@ -1059,11 +1059,12 @@ A query term can be any of the following:
   inflows or outflows.
 - `sym:REGEX` - match postings or transactions including any amounts
   whose commodity symbol is fully matched by REGEX. (For a partial
-  match, use `.*REGEX.*`). Note, to match the dollar sign (`$`) you
-  need to prepend `\` so it's not interpreted as the regular
-  expression metacharacter.  And when running hledger from the
-  command-line, you may need one more level of quoting to hide it from
-  the shell, eg: `hledger print sym:\\$` or `hledger print sym:'\$'`.
+  match, use `.*REGEX.*`). To match the dollar sign (`$`): you
+  need to prepend `\` so it's not interpreted as a regular
+  expression metacharacter, at the command line you need one more level
+  of quoting to hide it from the shell, so eg do: `hledger print sym:'\$'`.
+  To strictly limit reports to a single commodity, it may work better
+  to exclude the others, eg: `hledger bal not:sym:'(EUR|¥|£)'.
 - `not:` before any of the above negates the match
 
 <!--
