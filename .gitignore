@@ -30,3 +30,7 @@ site/api
 tools/generatejournal
 tools/simplebench
 Makefile.local
+old
+log
+.ghci*
+doc/[0-9]*
