@@ -76,13 +76,13 @@ WEBFILES:= \
 	hledger-web/static/*.css
 
 DOCFILES:= \
-	*.md
+	doc/*.md
 
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(CABALFILES) \
-	MANUAL.md \
-#	DOWNLOAD.md \
+	doc/MANUAL.md \
+#	doc/DOWNLOAD.md \
 
 # file(s) which require recompilation for a build to have an up-to-date version string
 VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -563,13 +563,13 @@ docs: site codedocs
 site: site/site
 	cd site; ./site build
 
-cleansite: site/site cleanoldsource
+cleansite: site/site cleanolddocs
 	cd site; ./site clean
 
 previewsite: site/site
 	cd site; ./site preview
 
-site/site: site/site.hs oldsource
+site/site: site/site.hs olddocs
 	cd site; $(GHC) site.hs $(PREFERMACUSRLIBFLAGS)
 
 autosite:
@@ -580,24 +580,24 @@ viewsite: site
 
 # ensure some old doc versions are in place:
 
-oldsource: site/0.22 site/0.21 site/0.20 site/0.19 site/0.18
+olddocs: site/0.22 site/0.21 #site/0.20 site/0.19 site/0.18
 
 site/0.22:
-	git archive --prefix site/0.22/ tags/0.22 '*.md' | tar xf -
+	git archive --prefix site/0.22/ tags/0.22 'doc/*.md' | tar xf -
 
 site/0.21:
-	git archive --prefix site/0.21/ tags/0.21.3 '*.md' | tar xf -
+	git archive --prefix site/0.21/ tags/0.21.3 'doc/*.md' | tar xf -
 
 site/0.20:
-	git archive --prefix site/0.20/ tags/0.20 '*.md' | tar xf -
+	git archive --prefix site/0.20/ tags/0.20 'doc/*.md' | tar xf -
 
 site/0.19:
-	git archive --prefix site/0.19/ tags/0_19_3 '*.md' | tar xf -
+	git archive --prefix site/0.19/ tags/0_19_3 'doc/*.md' | tar xf -
 
 site/0.18:
-	git archive --prefix site/0.18/ tags/0_18_2 '*.md' | tar xf -
+	git archive --prefix site/0.18/ tags/0_18_2 'doc/*.md' | tar xf -
 
-cleanoldsource:
+cleanolddocs:
 	cd site; rm -rf 0.22 0.21 0.20 0.19 0.18
 
 # generate html versions of docs (and the hledger.org website)
@@ -819,10 +819,10 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
-MANUAL.md: $(VERSIONFILE)
+doc/MANUAL.md: $(VERSIONFILE)
 	perl -p -e "s/(^Version:) +[0-9.]+/\1 $(VERSION)/" -i $@
 
-DOWNLOAD.md: $(VERSIONFILE)
+doc/DOWNLOAD.md: $(VERSIONFILE)
 	perl -p -e "s/hledger(|-chart|-web|-vty)-[0-9.]+-/hledger\1-$(VERSION)-/g" -i $@
 
 tagrelease:
