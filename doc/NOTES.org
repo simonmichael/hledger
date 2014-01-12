@@ -2172,6 +2172,9 @@ hledger: Unknown flag: --port
 *** web: stray bracket in journal edit form title  1
 *** web: enter doesn't work in add form completing fields  1d
 **** research this dhtmlxcombo issue
+*** parsing: assertion claiming wrong actual balance
+expected balance is $136.03, actual balance was $-1163.97.
+
 *** parsing: balance assertion doesn't work without a commodity symbol (takes = as one)
 *** parsing: is = B an assertion or an assignment ?
 *** parsing: decimal point/thousands separator confusion ?  1d
