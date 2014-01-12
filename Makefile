@@ -88,7 +88,7 @@ VERSIONSENSITIVEFILES=\
 VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
 
 # master file defining the current release/build version
-VERSIONFILE=VERSION
+VERSIONFILE=.version
 
 # two or three-part version string, whatever's in VERSION
 VERSION:=$(shell cat $(VERSIONFILE))
@@ -730,7 +730,7 @@ patchdeps:
 ######################################################################
 # RELEASING
 
-# Version numbering. See also VERSION and Version.hs.
+# Version numbering. See also .version and Version.hs.
 #
 # hledger's version number appears in:
 #  hledger --version
@@ -769,7 +769,7 @@ patchdeps:
 # - hledger --version shows the release version or build version as
 #   appropriate.
 #
-# - The VERSION file must be updated manually before a release.
+# - The .version file must be updated manually before a release.
 #
 # - "make simplebench" depends on version numbers in BENCHEXES, these also
 #   must be updated manually.
@@ -781,9 +781,9 @@ patchdeps:
 #   files, and tags the repo with the release tag.
 
 # Build a release, tag the repo, prepare a cabal package
-# First update VERSION. Eg:
-# a normal release: echo 0.7   >VERSION; make release
-# a bugfix release: echo 0.7.1 >VERSION; make release
+# First update .version. Eg:
+# a normal release: echo 0.7   >.version; make release
+# a bugfix release: echo 0.7.1 >.version; make release
 release: releasetest setandrecordversion tagrelease
 
 # Upload the latest cabal package and update hledger.org
