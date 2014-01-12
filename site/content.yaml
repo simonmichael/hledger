@@ -1,0 +1,62 @@
+- title    : Home
+  url      : index.html
+  source   : README.md
+  data:
+    home: true
+
+- title    : Installation
+  url      : INSTALL.html
+  source   : INSTALL.md
+  
+# - title    : Downloads
+#   url      : DOWNLOAD.html
+#   source   : DOWNLOAD.md
+
+- title    : Release Notes
+  url      : NEWS.html
+  source   : NEWS.md
+
+- title    : FAQ
+  url      : FAQ.html
+  source   : FAQ.md
+
+- Manual:
+
+  - title    : Latest Manual
+    url      : MANUAL.html
+    source   : MANUAL.md
+  
+  - title    : 0.22 Manual
+    url      : 0.22/MANUAL.html
+    source   : 0.22/MANUAL.md
+
+  - title    : 0.21 Manual
+    url      : 0.21/MANUAL.html
+    source   : 0.21/MANUAL.md
+
+- How-tos:
+
+  - title    : How to read CSV files
+    url      : CSV.html
+    source   : CSV.md
+
+  - title    : How to use account aliases
+    url      : ALIASES.html
+    source   : ALIASES.md
+
+- title    : More docs
+  url      : DOCS.html
+  source   : DOCS.md
+
+- title    : Wiki
+  url      : wiki
+  template : null.st
+
+- title    : Developer Guide
+  url      : DEVELOP.html
+  source   : DEVELOP.md
+
+- title    : hledger-web demo
+  url      : demo
+  template : null.st
+

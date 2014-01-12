@@ -1,0 +1,85 @@
+/* ul > li > ul > li { */
+/*   list-style-type:none; */
+/* } */
+
+/* div#nav { margin-top: 2em; } */
+/* div#nav ul { margin-top: 0; margin-left: 1em; margin-bottom: 0; } */
+/* div#nav ul li { list-style: none; padding-bottom: 0.1em; } */
+div#nav ul li.current { list-style: square; }
+
+div#nav a:active {
+  position:relative;
+  top:1px;
+}
+
+code {
+    color: #226600;
+    font-weight:bold;
+}
+
+pre {
+    background: #F8F8F8; /* The same as the GitHub background color since I'm using their syntax.css */
+    padding: 0 2em 0 2em;
+}
+
+.description {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+    margin-top: 30px;
+    font-style: italic;
+}
+
+.download {
+    float: right;
+}
+.downloadoption {
+    background: #eee;
+    padding: 10px 0 10px 0; /* Keep image and text away from top and bottom */
+    margin-bottom: 10px; /* Ensure there is some whitespace between options */
+}
+.downloadoptionimage {
+    float: left;
+    width: 90px;
+    margin-left: 10px; /* Offset from left border a little */
+}
+.downloadoptiontext {
+    padding-left: 110px; /* Offset from image */
+    padding-right: 10px; /* Offset from right border of the download option */
+}
+
+.screenshotframe {
+    text-align: center; /* The screenshot and it's border should be in the center of the page */
+}
+.screenshot {
+    border: 10px solid #F8F8F8; /* Soft grey border */
+}
+
+#toc {
+    float:right;
+    font-size:small;
+    margin:2em 0 1em 1em;
+    border:thin solid #ddd;
+    background-color:#f0f0f0;
+}
+#toc ul {
+    list-style-type: none;
+    padding:0 1em 0 1em;
+}
+
+#footer {
+    padding-top: 1em;
+    /* font-size: 70%; */
+    color: gray;
+    text-align: center;
+}
+
+/* .alert { */
+/*     width:50%;  */
+/*     margin:1em;  */
+/*     padding:1em;  */
+/*     font-size:smaller;  */
+/*     border:thin solid hsl(0,100%,50%);  */
+/*     background-color:hsl(0,100%,95%);  */
+/*     font-style:italic;" */
+/* } */
+

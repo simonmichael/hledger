@@ -319,8 +319,8 @@ tools/generatejournal: tools/generatejournal.hs
 
 # set up this repo copy for previewing a release:
 # ensure download links work
-set-up-rc-repo:
-	cd site/_site; ln -s ../download
+# set-up-rc-repo:
+# 	cd site/_site; ln -s ../download
 
 checkdeps packdeps:
 	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
@@ -546,28 +546,19 @@ data/100000x1000x10.journal: tools/generatejournal
 ######################################################################
 # DOCUMENTATION
 
-# Documentation source files are UPPERCASE files in the top directory.
-# site/ contains both html generated from these (UPPERCASE.html) and
-# revision-controlled resource files (everything else).  site/api
-# contains only generated files.
-
-cleandocs:
-	rm -rf site/[A-Z]*.html site/api/*
-
 # rebuild all docs
 docs: site codedocs
 
+cleandocs: cleansite
+
 # build the hledger.org website
-# Requires hakyll (cabal install hakyll)
+# Requires yst (cabal install yst)
 .PHONY: site
-site: site/site
-	cd site; ./site build
+site: olddocs
+	cd site; yst
 
-site/site: site/site.hs olddocs
-	cd site; $(GHC) site.hs $(PREFERMACUSRLIBFLAGS)
-
-siteclean: site/site cleanolddocs
-	cd site; ./site clean
+cleansite: cleanolddocs
+	rm -rf site/site/*
 
 sitepreview: site/site
 	cd site; ./site preview
@@ -580,59 +571,43 @@ autosite:
 
 # ensure some old doc versions are in place:
 
-olddocs: site/0.22 site/0.21 #site/0.20 site/0.19 site/0.18
+olddocs: doc/0.22 doc/0.21
 
-#site/0.23:
-#	(cd doc; git archive --prefix site/0.23/ tags/0.23 '*.md') | tar xf -
+#doc/0.23:
+#	(cd doc; git archive --prefix doc/0.23/ tags/0.23 'doc/MANUAL.md') | tar xf -
 
-site/0.22:
-	git archive --prefix site/0.22/ tags/0.22 '*.md' | tar xf -
+doc/0.22:
+	git archive --prefix doc/0.22/ tags/0.22 'MANUAL.md' | tar xf -
 
-site/0.21:
-	git archive --prefix site/0.21/ tags/0.21.3 '*.md' | tar xf -
-
-site/0.20:
-	git archive --prefix site/0.20/ tags/0.20 '*.md' | tar xf -
-
-site/0.19:
-	git archive --prefix site/0.19/ tags/0_19_3 '*.md' | tar xf -
-
-site/0.18:
-	git archive --prefix site/0.18/ tags/0_18_2 '*.md' | tar xf -
+doc/0.21:
+	git archive --prefix doc/0.21/ tags/0.21.3 'MANUAL.md' | tar xf -
 
 cleanolddocs:
-	cd site; rm -rf 0.22 0.21 0.20 0.19 0.18
-
-# generate html versions of docs (and the hledger.org website)
-# work around pandoc not handling full rst image directive
-# html:
-# 	for d in $(DOCFILES); do $(PANDOC) --toc -s -H site/header.html -A site/footer.html -r rst $$d >site/$$d.html; done
-# 	cd site && ln -sf ../SCREENSHOTS && $(RST2HTML) SCREENSHOTS >SCREENSHOTS.html && rm -f SCREENSHOTS
-# 	cd site; rm -f index.html; ln -s README.html index.html; rm -f profs; ln -s ../profs
+	cd doc; rm -rf 0.22 0.21
 
 
-pdf: docspdf codepdf
+pdf: codepdf #docspdf
 
 # generate pdf versions of main docs
 # docspdf:
 # 	-for d in $(DOCFILES); do (cd site && ln -sf ../$$d && pandoc $$d -w pdf && rm -f $$d); done
 
-# format all code as a pdf for offline reading
-ENSCRIPT=enscript -q --header='$$n|$$D{%+}|Page $$% of $$=' --highlight=haskell --line-numbers --font=Courier6 --color -o-
-codepdf:
-	$(ENSCRIPT) --pretty-print=makefile hledger.cabal >cabal.ps
-	$(ENSCRIPT) --pretty-print=makefile Makefile >make.ps
-	$(ENSCRIPT) --pretty-print=haskell $(SOURCEFILES) >haskell.ps
-	cat cabal.ps make.ps haskell.ps | ps2pdf - >code.pdf
+# # format all code as a pdf for offline reading
+# ENSCRIPT=enscript -q --header='$$n|$$D{%+}|Page $$% of $$=' --highlight=haskell --line-numbers --font=Courier6 --color -o-
+# codepdf:
+# 	$(ENSCRIPT) --pretty-print=makefile hledger.cabal >cabal.ps
+# 	$(ENSCRIPT) --pretty-print=makefile Makefile >make.ps
+# 	$(ENSCRIPT) --pretty-print=haskell $(SOURCEFILES) >haskell.ps
+# 	cat cabal.ps make.ps haskell.ps | ps2pdf - >code.pdf
 
-# view all docs and code as pdf
-PDFS=site/{README,README2,MANUAL,NEWS,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
-viewall: pdf
-	$(VIEWPDF) $(PDFS)
+# # view all docs and code as pdf
+# PDFS=site/{README,README2,MANUAL,NEWS,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
+# viewall: pdf
+# 	$(VIEWPDF) $(PDFS)
 
-# print all docs and code for offline reading
-printall: pdf
-	$(PRINT) $(PDFS)
+# # print all docs and code for offline reading
+# printall: pdf
+# 	$(PRINT) $(PDFS)
 
 # push latest docs etc. and update the hledger.org site
 pushdocs: push
@@ -868,8 +843,8 @@ compressbinarywin:
 	cd bin; zip -9 $(BINARYFILENAME).zip $(BINARYFILENAME)
 
 # push the last-updated platform binary to the public download directory
-pushlatestbinary:
-	cd bin; $(RSYNC) -aP `ls -t | head -2` simon@joyful.com:/repos/hledger/site/download/
+# pushlatestbinary:
+# 	cd bin; $(RSYNC) -aP `ls -t | head -2` simon@joyful.com:/repos/hledger/site/download/
 
 
 # show project stats useful for release notes

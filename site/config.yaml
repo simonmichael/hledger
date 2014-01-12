@@ -1,0 +1,6 @@
+indexfile : content.yaml
+title     : hledger.org
+sourcedir : [., .., ../doc]
+datadir   : .
+filesdir  : [files]
+layout    : layout.html.st
