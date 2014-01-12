@@ -582,20 +582,23 @@ viewsite: site
 
 olddocs: site/0.22 site/0.21 #site/0.20 site/0.19 site/0.18
 
+#site/0.23:
+#	(cd doc; git archive --prefix site/0.23/ tags/0.23 '*.md') | tar xf -
+
 site/0.22:
-	git archive --prefix site/0.22/ tags/0.22 'doc/*.md' | tar xf -
+	git archive --prefix site/0.22/ tags/0.22 '*.md' | tar xf -
 
 site/0.21:
-	git archive --prefix site/0.21/ tags/0.21.3 'doc/*.md' | tar xf -
+	git archive --prefix site/0.21/ tags/0.21.3 '*.md' | tar xf -
 
 site/0.20:
-	git archive --prefix site/0.20/ tags/0.20 'doc/*.md' | tar xf -
+	git archive --prefix site/0.20/ tags/0.20 '*.md' | tar xf -
 
 site/0.19:
-	git archive --prefix site/0.19/ tags/0_19_3 'doc/*.md' | tar xf -
+	git archive --prefix site/0.19/ tags/0_19_3 '*.md' | tar xf -
 
 site/0.18:
-	git archive --prefix site/0.18/ tags/0_18_2 'doc/*.md' | tar xf -
+	git archive --prefix site/0.18/ tags/0_18_2 '*.md' | tar xf -
 
 cleanolddocs:
 	cd site; rm -rf 0.22 0.21 0.20 0.19 0.18
