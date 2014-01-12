@@ -563,20 +563,20 @@ docs: site codedocs
 site: site/site
 	cd site; ./site build
 
-cleansite: site/site cleanolddocs
-	cd site; ./site clean
-
-previewsite: site/site
-	cd site; ./site preview
-
 site/site: site/site.hs olddocs
 	cd site; $(GHC) site.hs $(PREFERMACUSRLIBFLAGS)
 
+siteclean: site/site cleanolddocs
+	cd site; ./site clean
+
+sitepreview: site/site
+	cd site; ./site preview
+
+siteview: site
+	$(VIEWHTML) site/_site/index.html
+
 autosite:
 	cd site; $(AUTOBUILD) site.hs -o site $(PREFERMACUSRLIBFLAGS) --run preview
-
-viewsite: site
-	$(VIEWHTML) site/_site/index.html
 
 # ensure some old doc versions are in place:
 
