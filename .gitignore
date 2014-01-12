@@ -26,3 +26,6 @@ tttt.*
 ttttt.*
 site/api
 .haddockprologue
+tools/generatejournal
+tools/simplebench
+Makefile.local
