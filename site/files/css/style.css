@@ -5,7 +5,10 @@
 /* div#nav { margin-top: 2em; } */
 /* div#nav ul { margin-top: 0; margin-left: 1em; margin-bottom: 0; } */
 /* div#nav ul li { list-style: none; padding-bottom: 0.1em; } */
-div#nav ul li.current { list-style: square; }
+div#nav ul li.current {
+  /* list-style: square; */
+  font-weight:bold;
+}
 
 div#nav a:active {
   position:relative;

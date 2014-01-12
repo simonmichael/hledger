@@ -23,18 +23,13 @@ suited to techies. I use it every day to:
 -   get accurate numbers for client billing and tax filing
 -   track invoices
 
-Read on to learn more, including
+Read the docs to learn more, including
 [how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
 and get started tracking your numbers!
 
-<!-- --------------- ------------------------------------------------------------------------------------ -->
-**Docs:**       [all docs](DOCS.html), 
-				[installing](INSTALL.html),
-				[using](MANUAL.html),
-				[developing](DEVELOP.html),
-				[release notes](NEWS.html),
-				[blog](http://joyful.com/blog)
+<!-- [blog](http://joyful.com/blog) -->
 
+\
 **Mail list:**	[hledger.org/list](http://hledger.org/list). For general *ledger topics,
                 there's also [ledger's list](http://list.ledger-cli.org)
 

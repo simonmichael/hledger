@@ -22,7 +22,7 @@
 
 - Manual:
 
-  - title    : Latest Manual
+  - title    : Latest
     url      : MANUAL.html
     source   : MANUAL.md
   
@@ -48,13 +48,13 @@
   url      : DOCS.html
   source   : DOCS.md
 
-- title    : Wiki
-  url      : wiki
-  template : null.st
-
 - title    : Developer Guide
   url      : DEVELOP.html
   source   : DEVELOP.md
+
+# - title    : Wiki
+#   url      : wiki
+#   template : null.st
 
 - title    : hledger-web demo
   url      : demo
