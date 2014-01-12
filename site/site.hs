@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- hakyll script to build hledger.org -}
 
+import Data.Monoid
 import Hakyll
 import System.Process
 import Text.Pandoc.Options
@@ -34,7 +35,7 @@ main = do
           >>= relativizeUrls
 
     match (("doc/*.md" .&&. complement "doc/README.md") .||. "0.22/*.md" .||. "0.21/*.md" .||. "0.20/*.md" .||. "0.19/*.md" .||. "0.18/*.md") $ do
-        route   $ setExtension "html"
+        route   $ gsubRoute "doc/" (const "") `mappend` setExtension "html"
         compile $
           pandocCompilerWith
             def
