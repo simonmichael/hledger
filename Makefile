@@ -442,15 +442,15 @@ fullcabaltest:
 #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
 # run simple performance benchmarks without saving results
-# Requires some commands defined in bench.tests and some BENCHEXES defined above.
-quickbench: samplejournals bench.tests tools/simplebench
-	tools/simplebench -v -fbench.tests $(BENCHEXES)
+# Requires some commands defined in tests/bench.tests and some BENCHEXES defined above.
+quickbench: samplejournals tests/bench.tests tools/simplebench
+	tools/simplebench -v -ftests/bench.tests $(BENCHEXES)
 	@rm -f benchresults.*
 
 # run simple performance benchmarks and archive results
-# Requires some commands defined in bench.tests and some BENCHEXES defined above.
-bench: samplejournals bench.tests tools/simplebench
-	tools/simplebench -v -fbench.tests $(BENCHEXES) | tee profs/$(TIME).bench
+# Requires some commands defined in tests/bench.tests and some BENCHEXES defined above.
+bench: samplejournals tests/bench.tests tools/simplebench
+	tools/simplebench -v -ftests/bench.tests $(BENCHEXES) | tee profs/$(TIME).bench
 	@rm -f benchresults.*
 	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
 
