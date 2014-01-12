@@ -19,6 +19,7 @@ site/[0-9]*
 /static
 /templates
 profs/profs
+profs/[0-9]*
 t.*
 tt.*
 ttt.*
