@@ -35,12 +35,9 @@ and get started tracking your numbers!
 **and planning board:**	[hledger.org/trello](http://hledger.org/trello)
 
 **Code:**		[hledger.org/code](http://hledger.org/code)
-<!-- --------------- ------------------------------------------------------------------------------------ -->
+                ([recent commits](https://github.com/simonmichael/hledger/commits/master),
+				 [all activity](https://github.com/simonmichael/hledger/graphs/contributors))
 
-<!-- | a             | b                                                 | -->
-<!-- |:--------------|:--------------------------------------------------| -->
-<!-- | **Planning:** | [hledger.org/trello](http://hledger.org/trello)   | -->
-<!-- | **Code:**     | [hledger.org/code](http://hledger.org/code)       | -->
 
 <!--  
 or [email me](mailto:simon@joyful.com?subject=hledger:).
