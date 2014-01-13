@@ -35,9 +35,8 @@ and get started tracking your numbers!
 
 **IRC (chat):** [#ledger on irc.freenode.net](irc://irc.freenode.net/#ledger), shared with ledger
 
-**Bugs:**		[hledger.org/bugs](http://hledger.org/bugs)
-
-**Planning:**	[hledger.org/trello](http://hledger.org/trello)
+**Bug tracker:**		[hledger.org/bugs](http://hledger.org/bugs)
+**and planning board:**	[hledger.org/trello](http://hledger.org/trello)
 
 **Code:**		[hledger.org/code](http://hledger.org/code)
 <!-- --------------- ------------------------------------------------------------------------------------ -->
