@@ -136,7 +136,7 @@ or get help.
   If your cabal is modern enough, adding `--max-backjumps=10000` should help.
   ([more](https://groups.google.com/d/topic/hledger/FdWGTSAVzYU/discussion)).
 
-#. <a name="cabaldeps" />**cabal can't satisfy the new dependencies due to old installed packages**
+#. **cabal can't satisfy the new dependencies due to old installed packages**
   Cabal dependency failures become more likely as you install more
   packages over time. If `cabal install hledger-web --dry` says it can't
   satisfy dependencies, you have this problem. You can:
@@ -145,12 +145,14 @@ or get help.
        or which constraints to add (with `--constraint 'PKG == ...'`) to help cabal
        find a solution
 
-    b. install into a fresh environment created with
-       [virthualenv](http://hackage.haskell.org/package/virthualenv) or
-       [cabal-dev](http://hackage.haskell.org/package/cabal-dev)
+    b. install into a fresh cabal sandbox, created with `cabal sandbox init`.
+       ([virthualenv](http://hackage.haskell.org/package/virthualenv) or
+       [cabal-dev](http://hackage.haskell.org/package/cabal-dev) also work).
 
     c. or (easiest) erase your installed packages with
        [ghc-pkg-reset](https://gist.github.com/1185421) and try again.
+
+    For more detail, see [How to cabal install](https://www.fpcomplete.com/user/simonmichael/how-to-cabal-install).
 
 #. **Dependency or compilation error in one of the new packages ?**
    If cabal starts downloading and building packages and then terminates
@@ -175,11 +177,11 @@ or get help.
   or limit GHC's heap size by doing `cabal install ... --ghc-options='+RTS
   -M400m'` (400 megabytes works well on my 1G VPS, adjust up or down..)
 
-#. <a name="5551" />**Can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**
+#. **Can't load .so/.DLL for: ncursesw (/usr/lib/libncursesw.so: file too short)**
   (or similar): cf [GHC bug #5551](http://hackage.haskell.org/trac/ghc/ticket/5551).
   Upgrade GHC to 7.2.1, or try your luck with [this workaround](http://eclipsefp.github.com/faq.html).
 
-#. <a name="iconv" />**Undefined iconv symbols on OS X**
+#. **Undefined iconv symbols on OS X**
    This kind of error:
 
         Linking dist/build/hledger/hledger ...
