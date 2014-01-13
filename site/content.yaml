@@ -12,7 +12,7 @@
 #   url      : DOWNLOAD.html
 #   source   : DOWNLOAD.md
 
-- title    : Release Notes
+- title    : Release notes
   url      : NEWS.html
   source   : NEWS.md
 
@@ -48,7 +48,7 @@
   url      : DOCS.html
   source   : DOCS.md
 
-- title    : Developer Guide
+- title    : Developer guide
   url      : DEVELOP.html
   source   : DEVELOP.md
 
