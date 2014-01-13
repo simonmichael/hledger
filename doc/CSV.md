@@ -10,20 +10,23 @@ Say we have downloaded `checking.csv` from a bank for the first time:
 
 We could create `checking.csv.rules` containing:
 
-    account1 assets:bank:checking
-    skip     1
-    fields   date, description, amount
-    currency $
+	# skip the first CSV line (headings)
+	skip 1
 
-    if ~ SAVINGS
-     account2 assets:bank:savings
+	# use the first three fields in each CSV record as transaction date, description and amount respectively
+	fields   date, description, amount
 
-This says:
-"always use assets:bank:checking as the first account;
-ignore the first line;
-use the first, second and third CSV fields as the entry date, description and amount respectively;
-always prepend $ to the amount value;
-if the CSV record contains 'SAVINGS', use assets:bank:savings as the second account".
+	# prepend $ to CSV amounts
+	currency $
+
+	# always set the first account to assets:bank:checking
+	account1 assets:bank:checking
+
+	# if the CSV record contains ‘SAVINGS’, set the second account to assets:bank:savings
+	# (if not set, it will be expenses:unknown or income:unknown)
+	if ~ SAVINGS
+	 account2 assets:bank:savings
+
 [CSV files](MANUAL.html#csv-files) in the manual describes the syntax.
 
 Now hledger can read this CSV file:
