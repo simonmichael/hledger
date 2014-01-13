@@ -1,7 +1,3 @@
----
-title: hledger downloads
----
-
 # Downloads
 
 <style>

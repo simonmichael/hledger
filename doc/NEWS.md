@@ -1,7 +1,3 @@
----
-title: hledger news
----
-
 # News
 
 ## unreleased

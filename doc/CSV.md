@@ -1,7 +1,3 @@
----
-title: hledger How to read CSV files
----
-
 # How to read CSV files
 
 Here's a quick example of [converting a CSV file](MANUAL.html#csv-files).

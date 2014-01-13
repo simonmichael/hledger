@@ -1,7 +1,3 @@
----
-title: hledger frequently asked questions
----
-
 # Frequently asked questions
 
 ## hledger and ledger

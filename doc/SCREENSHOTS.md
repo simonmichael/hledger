@@ -1,7 +1,3 @@
----
-title: hledger screenshots
----
-
 # Screenshots
 
 

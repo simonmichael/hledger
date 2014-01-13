@@ -1,7 +1,3 @@
----
-title: hledger Installation Guide
----
-
 # Installation Guide
 
 hledger works on GNU/linux, mac and windows.

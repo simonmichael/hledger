@@ -1,7 +1,3 @@
----
-title: hledger Contributor List and Agreement
----
-
 # hledger Contributors
 
 hledger is brought to you by:

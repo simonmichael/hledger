@@ -1,7 +1,3 @@
----
-title: hledger user manual
----
-
 # User manual
 
 For: hledger 0.22.1

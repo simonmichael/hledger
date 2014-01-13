@@ -1,7 +1,3 @@
----
-title: hledger How to use account aliases
----
-
 # How to use account aliases
 
 Here's an example of using [account aliases](MANUAL.html#account-aliases).

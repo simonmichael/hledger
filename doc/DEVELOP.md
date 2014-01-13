@@ -1,7 +1,3 @@
----
-title: hledger Developer Guide
----
-
 # Developer guide
 
 **Quick links:**

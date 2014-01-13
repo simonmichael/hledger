@@ -1,7 +1,3 @@
----
-title: hledger
----
-
 # hledger
 
 ## command-line and web accounting tools

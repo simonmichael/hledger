@@ -1,7 +1,3 @@
----
-title: hledger docs
----
-
 # More Docs
 
 See also:
