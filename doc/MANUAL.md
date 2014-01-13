@@ -1292,7 +1292,7 @@ Here are some issues you might encounter when you run hledger
 #. **hledger fails to parse some valid ledger files**  
   See [file format differences](FAQ.html#what-are-the-file-format-differences).
 
-#. <a name="locale" />**hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
+#. **hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**
   In order to handle non-ascii letters and symbols (like £), hledger needs
   an appropriate locale. This is usually configured system-wide; you can
   also configure it temporarily.  The locale may need to be one that
