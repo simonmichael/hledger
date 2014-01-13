@@ -33,7 +33,7 @@ and get started tracking your numbers!
 **Mail list:**	[hledger.org/list](http://hledger.org/list). For general *ledger topics,
                 there's also [ledger's list](http://list.ledger-cli.org)
 
-**IRC (chat):** [#ledger on irc.freenode.net](irc://irc.freenode.net/#ledger), shared with ledger
+**IRC chat:** [#ledger on irc.freenode.net](irc://irc.freenode.net/#ledger), shared with ledger
 
 **Bug tracker:**		[hledger.org/bugs](http://hledger.org/bugs)
 **and planning board:**	[hledger.org/trello](http://hledger.org/trello)
@@ -51,7 +51,7 @@ or [email me](mailto:simon@joyful.com?subject=hledger:).
 I appreciate feedback and help with all aspects of hledger.
 -->
 
-<div style="text-align:center; margin:0 0 0 0;">
-<a href="https://gnu.org/gnu30"><img src="https://static.fsf.org/nosvn/misc/GNU_30th_badge.png" alt="[ Celebrate 30 years of GNU! ]"
-   style="height:160px; width:auto;" /></a>
-</div>
+<!-- <div style="text-align:center; margin:0 0 0 0;"> -->
+<!-- <a href="https://gnu.org/gnu30"><img src="https://static.fsf.org/nosvn/misc/GNU_30th_badge.png" alt="[ Celebrate 30 years of GNU! ]" -->
+<!--    style="height:160px; width:auto;" /></a> -->
+<!-- </div> -->
