@@ -745,6 +745,12 @@ Examples:
     $ hledger balance
     $ hledger balance food -p 'last month'
 
+Accounts which have zero balance (and no non-zero subaccounts) will be
+omitted by default; use `-E/--empty` to show them. "Boring parent"
+accounts, which contain a single interesting subaccount and no balance
+of their own, are elided into the subaccount's line for more compact output;
+use `--no-elide` to prevent this.
+
 A final total is displayed, use `--no-total` to suppress this. Also, the
 `--depth N` option shows accounts only to the specified depth, useful for
 an overview:
