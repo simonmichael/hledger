@@ -52,9 +52,9 @@
   url      : DEVELOP.html
   source   : DEVELOP.md
 
-# - title    : Wiki
-#   url      : wiki
-#   template : null.st
+- title    : Wiki
+  url      : wiki
+  template : null.st
 
 - title    : hledger-web demo
   url      : demo
