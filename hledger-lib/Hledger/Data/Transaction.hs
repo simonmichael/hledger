@@ -270,7 +270,7 @@ isTransactionBalanced styles t =
 balanceTransaction :: Maybe (Map.Map Commodity AmountStyle) -> Transaction -> Either String Transaction
 balanceTransaction styles t@Transaction{tpostings=ps}
     | length rwithoutamounts > 1 || length bvwithoutamounts > 1
-        = Left $ printerr "could not balance this transaction (too many missing amounts)"
+        = Left $ printerr "could not balance this transaction (can't have more than one missing amount; remember to put 2 or more spaces before amounts)"
     | not $ isTransactionBalanced styles t''' = Left $ printerr $ nonzerobalanceerror t'''
     | otherwise = Right t''''
     where
