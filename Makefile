@@ -601,7 +601,7 @@ pdf: codepdf #docspdf
 # 	cat cabal.ps make.ps haskell.ps | ps2pdf - >code.pdf
 
 # # view all docs and code as pdf
-# PDFS=site/{README,README2,MANUAL,NEWS,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
+# PDFS=site/{README,README2,MANUAL,CHANGES,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
 # viewall: pdf
 # 	$(VIEWPDF) $(PDFS)
 
