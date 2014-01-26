@@ -555,7 +555,7 @@ cleandocs: cleansite
 # Requires yst (cabal install yst)
 .PHONY: site
 site: olddocs
-	cd site; yst
+	-cd site; yst
 
 cleansite: cleanolddocs
 	rm -rf site/site/*

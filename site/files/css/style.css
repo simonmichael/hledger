@@ -2,7 +2,7 @@
 /*   list-style-type:none; */
 /* } */
 
-/* div#nav { margin-top: 2em; } */
+div#nav { padding-top: 2em; }
 /* div#nav ul { margin-top: 0; margin-left: 1em; margin-bottom: 0; } */
 /* div#nav ul li { list-style: none; padding-bottom: 0.1em; } */
 div#nav ul li.current {
@@ -10,10 +10,17 @@ div#nav ul li.current {
   font-weight:bold;
 }
 
-div#nav a:active {
-  position:relative;
-  top:1px;
+div#nav ul li.current {
+  /* list-style: square; */
+  font-weight:bold;
 }
+
+ul.nav ul {
+  padding-left:30px;
+}
+/* ul.nav ul li { */
+/*   list-style:none; */
+/* } */
 
 code {
     color: #226600;
