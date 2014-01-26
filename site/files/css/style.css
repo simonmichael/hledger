@@ -1,3 +1,5 @@
+div.container { max-width: 75em; }
+
 /* ul > li > ul > li { */
 /*   list-style-type:none; */
 /* } */
@@ -21,6 +23,10 @@ ul.nav ul {
 /* ul.nav ul li { */
 /*   list-style:none; */
 /* } */
+
+ul.nav li a {
+  padding:4px 10px;
+}
 
 code {
     color: #226600;

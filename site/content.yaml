@@ -9,8 +9,8 @@
 #   source   : DOWNLOAD.md
 
 - title    : Release notes
-  url      : NEWS.html
-  source   : NEWS.md
+  url      : CHANGES.html
+  source   : CHANGES.md
 
 - User Manual:
 
@@ -26,29 +26,29 @@
     url      : 0.21/MANUAL.html
     source   : 0.21/MANUAL.md
 
-- Wiki:
+- title    : Wiki
+  url      : wiki
+  template : null.st
 
-  - title    : Installing
-    url      : wiki/installing
-    template : null.st
+- title    : Installing
+  url      : wiki/installing
+  template : null.st
 
-  - title    : FAQ
-    url      : wiki/faq
-    template : null.st
+- title    : FAQ
+  url      : wiki/faq
+  template : null.st
 
-#  - How-tos:
+- title    : How to read CSV files
+  url      : wiki/how_to_read_csv_files
+  template : null.st
 
-  - title    : How to read CSV files
-    url      : wiki/how_to_read_csv_files
-    template : null.st
+- title    : How to use account aliases
+  url      : wiki/how_to_use_account_aliases
+  template : null.st
 
-  - title    : How to use account aliases
-    url      : wiki/how_to_use_account_aliases
-    template : null.st
-
-  - title    : Developer Guide
-    url      : wiki/developer_guide
-    template : null.st
+- title    : Developer Guide
+  url      : wiki/developer_guide
+  template : null.st
 
 - title    : hledger-web demo
   url      : demo
