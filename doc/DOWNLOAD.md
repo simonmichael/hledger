@@ -24,15 +24,13 @@ td strong a:link {
    target="_blank" style="float:right;margin:1em;"
    ><img src="https://www.wepay.com/img/widgets/donate_with_wepay.png" alt="Donate with WePay" /></a>
 
-Generating, testing and supporting platform binaries takes time away from development, documentation, project management, etc. 
-So I now do it lazily, when stimulated by project donations.
-Binaries funded in this way will then be available to all.
+Generating, testing and supporting platform binaries takes time away from development, documentation and project management.
+So I do it when I receive a project donation and a [request](mailto:simon@joyful.com).
+Binaries funded in this way will be added to this page.
 This is a quick way to help the project and your fellow users!
-For other install options, and more installation help, see the [Installation Guide](INSTALL.html).
 
-The current hledger release is 0.21.
-Here are the available binaries (but they're out of date.. you don't want
-them.. see the [Installation Guide](INSTALL.html)..):
+The available binaries are below, but they are very old.
+See [Installing](INSTALL.html) for other install options and for more help.
 
 <table>
   <tr>
@@ -47,11 +45,11 @@ them.. see the [Installation Guide](INSTALL.html)..):
     <td width="20%">**10.7**</td>
     <td width="20%"></td>
   </tr>
-  <tr style="text-align:center;color:green;">
+  <tr style="text-align:center;">
     <td width="20%"></td>
     <td width="20%"></td>
     <td width="20%"></td>
-    <td width="20%">Sponsored by **Jon&nbsp;Hancock**</td>
+    <td width="20%">Sponsor: **Jon&nbsp;Hancock**</td>
     <td width="20%"></td>
   </tr>
 

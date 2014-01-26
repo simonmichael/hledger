@@ -4,10 +4,6 @@
   data:
     home: true
 
-# - title    : Downloads
-#   url      : DOWNLOAD.html
-#   source   : DOWNLOAD.md
-
 - title    : Release notes
   url      : CHANGES.html
   source   : CHANGES.md
@@ -49,6 +45,10 @@
 - title    : Developer Guide
   url      : wiki/developer_guide
   template : null.st
+
+- title    : Old downloads
+  url      : DOWNLOAD.html
+  source   : DOWNLOAD.md
 
 - title    : hledger-web demo
   url      : demo
