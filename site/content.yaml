@@ -35,15 +35,15 @@
   template : null.st
 
 - title    : How to read CSV files
-  url      : wiki/how_to_read_csv_files
+  url      : wiki/how-to-read-csv-files
   template : null.st
 
 - title    : How to use account aliases
-  url      : wiki/how_to_use_account_aliases
+  url      : wiki/how-to-use-account-aliases
   template : null.st
 
 - title    : Developer Guide
-  url      : wiki/developer_guide
+  url      : wiki/developer-guide
   template : null.st
 
 - title    : Old downloads
