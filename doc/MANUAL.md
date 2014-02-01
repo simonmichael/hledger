@@ -726,7 +726,7 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
-The `--average`/`-A` flag shows a running average instead of the running total.
+The `--average`/`-A` flag shows the running average posting amount instead of the running total.
 
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
