@@ -10,7 +10,6 @@ Tested-with: hledger 0.22.2
 
 |-}
 
-import Hledger.Data.Types (Journal(..))
 import Hledger
 import Hledger.Cli
 
