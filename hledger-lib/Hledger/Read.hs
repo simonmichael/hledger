@@ -18,6 +18,7 @@ module Hledger.Read (
        requireJournalFileExists,
        ensureJournalFileExists,
        -- * Parsers used elsewhere
+       postingp,
        accountname,
        amountp,
        amountp',
