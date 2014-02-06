@@ -19,11 +19,12 @@ module Hledger.Read (
        ensureJournalFileExists,
        -- * Parsers used elsewhere
        postingp,
-       accountname,
+       accountnamep,
        amountp,
        amountp',
        mamountp',
-       code,
+       numberp,
+       codep,
        -- * Tests
        samplejournal,
        tests_Hledger_Read,

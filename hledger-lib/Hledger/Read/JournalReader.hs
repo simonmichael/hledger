@@ -26,13 +26,14 @@ module Hledger.Read.JournalReader (
   directive,
   defaultyeardirective,
   historicalpricedirective,
-  datetime,
-  code,
-  accountname,
+  datetimep,
+  codep,
+  accountnamep,
   postingp,
   amountp,
   amountp',
   mamountp',
+  numberp,
   emptyline
 #ifdef TESTS
   -- * Tests
@@ -207,7 +208,7 @@ accountdirective :: GenParser Char JournalContext JournalUpdate
 accountdirective = do
   string "account"
   many1 spacenonewline
-  parent <- accountname
+  parent <- accountnamep
   newline
   pushParentAccount parent
   return $ return id
@@ -272,7 +273,7 @@ historicalpricedirective :: GenParser Char JournalContext HistoricalPrice
 historicalpricedirective = do
   char 'P' <?> "historical price"
   many spacenonewline
-  date <- try (do {LocalTime d _ <- datetime; return d}) <|> date -- a time is ignored
+  date <- try (do {LocalTime d _ <- datetimep; return d}) <|> date -- a time is ignored
   many1 spacenonewline
   symbol <- commoditysymbol
   many spacenonewline
@@ -323,7 +324,7 @@ transaction = do
   date <- date <?> "transaction"
   edate <- optionMaybe (secondarydate date) <?> "secondary date"
   status <- status <?> "cleared flag"
-  code <- code <?> "transaction code"
+  code <- codep <?> "transaction code"
   description <- descriptionp >>= return . strip
   comment <- try followingcomment <|> (newline >> return "")
   let tags = tagsInComment comment
@@ -443,8 +444,8 @@ date = do
 -- timezone will be ignored; the time is treated as local time.  Fewer
 -- digits are allowed, except in the timezone. The year may be omitted if
 -- a default year has already been set.
-datetime :: GenParser Char JournalContext LocalTime
-datetime = do
+datetimep :: GenParser Char JournalContext LocalTime
+datetimep = do
   day <- date
   many1 spacenonewline
   h <- many1 digit
@@ -487,8 +488,8 @@ secondarydate primarydate = do
 status :: GenParser Char JournalContext Bool
 status = try (do { many spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
 
-code :: GenParser Char JournalContext String
-code = try (do { many1 spacenonewline; char '(' <?> "code"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
+codep :: GenParser Char JournalContext String
+codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
 postings :: GenParser Char JournalContext [Posting]
@@ -570,7 +571,7 @@ test_postingp = do
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountname :: GenParser Char JournalContext AccountName
 modifiedaccountname = do
-  a <- accountname
+  a <- accountnamep
   prefix <- getParentAccount
   let prefixed = prefix `joinAccountNames` a
   aliases <- getAccountAliases
@@ -580,12 +581,12 @@ modifiedaccountname = do
 -- them, and are terminated by two or more spaces. They should have one or
 -- more components of at least one character, separated by the account
 -- separator char.
-accountname :: GenParser Char st AccountName
-accountname = do
+accountnamep :: GenParser Char st AccountName
+accountnamep = do
     a <- many1 (nonspace <|> singlespace)
     let a' = striptrailingspace a
     when (accountNameFromComponents (accountNameComponents a') /= a')
-         (fail $ "accountname seems ill-formed: "++a')
+         (fail $ "account name seems ill-formed: "++a')
     return a'
     where 
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
@@ -653,7 +654,7 @@ leftsymbolamount = do
   let applysign = if isJust sign then negate else id
   c <- commoditysymbol 
   sp <- many spacenonewline
-  (q,prec,dec,sep,seppos) <- number
+  (q,prec,dec,sep,seppos) <- numberp
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
   p <- priceamount
   return $ applysign $ Amount c q p s
@@ -661,7 +662,7 @@ leftsymbolamount = do
 
 rightsymbolamount :: GenParser Char JournalContext Amount
 rightsymbolamount = do
-  (q,prec,dec,sep,seppos) <- number
+  (q,prec,dec,sep,seppos) <- numberp
   sp <- many spacenonewline
   c <- commoditysymbol
   p <- priceamount
@@ -671,7 +672,7 @@ rightsymbolamount = do
 
 nosymbolamount :: GenParser Char JournalContext Amount
 nosymbolamount = do
-  (q,prec,dec,sep,seppos) <- number
+  (q,prec,dec,sep,seppos) <- numberp
   p <- priceamount
   defcs <- getCommodityAndStyle
   let (c,s) = case defcs of
@@ -744,8 +745,8 @@ fixedlotprice =
 -- and separator characters (defaulting to . and ,), and the positions of
 -- separators (counting leftward from the decimal point, the last is
 -- assumed to repeat).
-number :: GenParser Char JournalContext (Quantity, Int, Char, Char, [Int])
-number = do
+numberp :: GenParser Char JournalContext (Quantity, Int, Char, Char, [Int])
+numberp = do
   sign <- optionMaybe $ string "-"
   parts <- many1 $ choice' [many1 digit, many1 $ char ',', many1 $ char '.']
   let numeric = isNumber . headDef '_'
@@ -781,12 +782,12 @@ number = do
                                                                       (Nothing, Just ',') -> ('.',',')
                                                                       _                   -> ('.',',')
   return (quantity,precision,decimalpoint,separator,separatorpositions)
-  <?> "number"
+  <?> "numberp"
 
 #ifdef TESTS
-test_number = do
-      let s `is` n = assertParseEqual' (parseWithCtx nullctx number s) n
-          assertFails = assertBool . isLeft . parseWithCtx nullctx number 
+test_numberp = do
+      let s `is` n = assertParseEqual' (parseWithCtx nullctx numberp s) n
+          assertFails = assertBool . isLeft . parseWithCtx nullctx numberp 
       assertFails ""
       "0"          `is` (0, 0, '.', ',', [])
       "1"          `is` (1, 0, '.', ',', [])
@@ -893,7 +894,7 @@ date2ValueFromTags ts = maybe Nothing (Just . snd) $ find ((=="date2") . fst) ts
 {- old hunit tests
 
 test_Hledger_Read_JournalReader = TestList $ concat [
-    test_number,
+    test_numberp,
     test_amountp,
     test_spaceandamountormissing,
     test_tagcomment,
@@ -924,8 +925,8 @@ test_Hledger_Read_JournalReader = TestList $ concat [
      assertParseFailure (parseWithCtx nullctx date "1/1")
      assertParse (parseWithCtx nullctx{ctxYear=Just 2011} date "1/1")
 
-  ,"datetime" ~: do
-      let p = do {t <- datetime; eof; return t}
+  ,"datetimep" ~: do
+      let p = do {t <- datetimep; eof; return t}
           bad = assertParseFailure . parseWithCtx nullctx p
           good = assertParse . parseWithCtx nullctx p
       bad "2011/1/1"
@@ -963,11 +964,11 @@ test_Hledger_Read_JournalReader = TestList $ concat [
      assertParse (parseWithCtx nullctx endtagdirective "end tag \n")
      assertParse (parseWithCtx nullctx endtagdirective "pop \n")
 
-  ,"accountname" ~: do
-    assertBool "accountname parses a normal accountname" (isRight $ parsewith accountname "a:b:c")
-    assertBool "accountname rejects an empty inner component" (isLeft $ parsewith accountname "a::c")
-    assertBool "accountname rejects an empty leading component" (isLeft $ parsewith accountname ":b:c")
-    assertBool "accountname rejects an empty trailing component" (isLeft $ parsewith accountname "a:b:")
+  ,"accountnamep" ~: do
+    assertBool "accountnamep parses a normal account name" (isRight $ parsewith accountnamep "a:b:c")
+    assertBool "accountnamep rejects an empty inner component" (isLeft $ parsewith accountnamep "a::c")
+    assertBool "accountnamep rejects an empty leading component" (isLeft $ parsewith accountnamep ":b:c")
+    assertBool "accountnamep rejects an empty trailing component" (isLeft $ parsewith accountnamep "a:b:")
 
   ,"leftsymbolamount" ~: do
     assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")  (usd 1 `withPrecision` 0)
