@@ -20,10 +20,13 @@ module Hledger.Cli (
                      module Hledger.Cli.Options,
                      module Hledger.Cli.Utils,
                      module Hledger.Cli.Version,
-                     tests_Hledger_Cli
+                     tests_Hledger_Cli,
+                     module Hledger,
+                     module System.Console.CmdArgs.Explicit
               )
 where
 import Data.Time.Calendar
+import System.Console.CmdArgs.Explicit
 import Test.HUnit
 
 import Hledger
