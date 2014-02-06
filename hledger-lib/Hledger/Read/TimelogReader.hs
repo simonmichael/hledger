@@ -56,7 +56,7 @@ import System.FilePath
 import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
-  directive, historicalpricedirective, defaultyeardirective, emptyline, datetime,
+  directive, historicalpricedirective, defaultyeardirective, emptyline, datetimep,
   parseJournalWith, getParentAccount
   )
 import Hledger.Utils
@@ -100,7 +100,7 @@ timelogentry :: GenParser Char JournalContext TimeLogEntry
 timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline
-  datetime <- datetime
+  datetime <- datetimep
   comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
   return $ TimeLogEntry (read [code]) datetime (maybe "" rstrip comment)
 

@@ -96,7 +96,7 @@ getTransaction j opts defdate moredefs = do
 -- A default date, and zero or more defaults for subsequent fields, are provided.
 getTransactionOrRestart :: Journal -> CliOpts -> String -> [String] -> IO (Maybe Transaction)
 getTransactionOrRestart j opts defdate moredefs = do
-  let dateandcodep = do {d <- smartdate; c <- optionMaybe code; many spacenonewline; eof; return (d, fromMaybe "" c)}
+  let dateandcodep = do {d <- smartdate; c <- optionMaybe codep; many spacenonewline; eof; return (d, fromMaybe "" c)}
   datecodestr <- runInteractionDefault $ askFor "date"
             (Just defdate)
             (Just $ \s -> null s
