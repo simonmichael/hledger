@@ -12,7 +12,7 @@ on either file, and when including both files at once.
 
 Usage: hledger-equity [ACCTPAT]
 -}
-import Hledger
+
 import Hledger.Cli
 import System.Environment
 

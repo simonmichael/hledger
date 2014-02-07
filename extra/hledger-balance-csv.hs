@@ -5,9 +5,7 @@ hledger-balance-csv [OPTIONS] [ARGS]
 Show a balance report as CSV.
 -}
 
-import Hledger
 import Hledger.Cli
-import System.Console.CmdArgs.Explicit
 import Text.CSV
 
 

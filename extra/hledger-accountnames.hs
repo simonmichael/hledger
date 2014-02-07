@@ -1,8 +1,7 @@
 #!/usr/bin/env runhaskell
 -- Show all account names used in the default journal.
 
-import Hledger
-import Hledger.Cli (getCliOpts, mainmode, withJournalDo)
+import Hledger.Cli
 
 main = do
   -- simple way to read ~/.hledger.journal or $LEDGER_FILE

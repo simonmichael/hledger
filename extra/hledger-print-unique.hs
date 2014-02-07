@@ -9,7 +9,6 @@ something else). Reads the default or specified journal, or stdin.
 
 import Data.List
 import Data.Ord
-import Hledger
 import Hledger.Cli
 
 main = do

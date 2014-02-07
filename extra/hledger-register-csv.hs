@@ -8,9 +8,7 @@ Show a register report as CSV.
 module Main
 where
 
-import Hledger
 import Hledger.Cli
-import System.Console.CmdArgs.Explicit
 import Text.CSV
 
 
