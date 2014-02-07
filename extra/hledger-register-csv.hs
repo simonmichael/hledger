@@ -10,6 +10,7 @@ where
 
 import Hledger
 import Hledger.Cli
+import Hledger.Cli.Options
 import System.Console.CmdArgs.Explicit
 import Text.CSV
 
