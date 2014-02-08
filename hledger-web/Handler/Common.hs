@@ -37,7 +37,7 @@ topbar VD{..} = [hamlet|
  <a.topleftlink href=#{hledgerorgurl} title="More about hledger">
   hledger-web
   <br />
-  #{version}
+  \#{version}
  <a.toprightlink href=#{manualurl} target=hledgerhelp title="User manual">manual
  <h1>#{title}
 $maybe m' <- msg
@@ -233,7 +233,7 @@ editform VD{..} = [hamlet|
     <!-- XXX textarea ids are unquoted journal file paths here, not valid html -->
     $forall f <- files j
      <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled>
-      #{snd f}
+      \#{snd f}
   <tr#addbuttonrow>
    <td>
     <span.help>^{formathelp}
@@ -333,7 +333,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
 <tr.item.#{inacctclass}>
  <td.account.#{depthclass}>
-  #{indent}
+  \#{indent}
   <a href="@?{acctquery}" title="Show transactions in this account, including subaccounts">#{adisplay}
   <span.hoverlinks>
    $if hassubs
@@ -405,7 +405,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
  <td.description colspan=2>#{elideRight 60 desc}
  <td.amount align=right>
   $if showamt
-   #{mixedAmountAsHtml amt}
+   \#{mixedAmountAsHtml amt}
 $forall p' <- tpostings t
   <tr.item.#{evenodd}.posting>
    <td.date>
@@ -455,13 +455,13 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
  <td.description title="#{show t}">#{elideRight 30 desc}
  <td.account title="#{show t}">
   <a>
-   #{elideRight 40 acct}
+   \#{elideRight 40 acct}
   &nbsp;
   <a.postings-toggle-link.togglelink href="#" title="Toggle all postings">
    [+]
  <td.amount align=right>
   $if showamt
-   #{mixedAmountAsHtml amt}
+   \#{mixedAmountAsHtml amt}
  <td.balance align=right>#{mixedAmountAsHtml bal}
 $forall p' <- tpostings t
  <tr.item.#{evenodd}.posting style=#{postingsdisplaystyle}>

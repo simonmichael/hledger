@@ -79,7 +79,7 @@ handleAdd = do
     setMessage [shamlet|
                  Errors:<br>
                  $forall e<-errs'
-                  #{e}<br>
+                  \#{e}<br>
                |]
    Right t -> do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
