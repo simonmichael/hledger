@@ -1,3 +1,7 @@
+## 2014/2/10 hledger-web 0.22.3
+
+* web: fix version number reported by --version
+
 ## 2014/2/10 hledger-web 0.22.2
 
 New:
