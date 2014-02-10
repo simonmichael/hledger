@@ -105,9 +105,9 @@ instance Yesod App where
             $(widgetFile "normalize")
             addStylesheet $ StaticR css_bootstrap_css
             -- load jquery early:
-            toWidgetHead [hamlet| <script type="text/javascript" src="@{StaticR jquery_js}"></script> |]
+            toWidgetHead [hamlet| <script type="text/javascript" src="@{StaticR jquery_min_js}"></script> |]
             addScript $ StaticR jquery_url_js
-            addScript $ StaticR jquery_flot_js
+            addScript $ StaticR jquery_flot_min_js
             toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR excanvas_min_js}"></script> <![endif]--> |]
             addScript $ StaticR select2_min_js
             addStylesheet $ StaticR select2_css

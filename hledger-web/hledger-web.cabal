@@ -26,16 +26,20 @@ extra-source-files:
                 config/routes
                 static/css/bootstrap.css
                 static/select2.css
+                static/select2.js
                 static/select2.min.js
                 static/select2-spinner.gif
                 static/select2.png
+                static/excanvas.js
                 static/excanvas.min.js
                 static/favicon.ico
                 static/hledger.js
                 static/img/glyphicons-halflings-white.png
                 static/img/glyphicons-halflings.png
                 static/jquery.flot.js
+                static/jquery.flot.min.js
                 static/jquery.js
+                static/jquery.min.js
                 static/jquery.url.js
                 static/style.css
                 templates/default-layout.hamlet
