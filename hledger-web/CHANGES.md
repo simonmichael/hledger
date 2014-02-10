@@ -1,3 +1,7 @@
+## 2014/2/10 hledger-web 0.22.4
+
+* web: include the right unminified version of jquery.url.js (1.1) to avoid js breakage
+
 ## 2014/2/10 hledger-web 0.22.3
 
 * web: fix version number reported by --version
