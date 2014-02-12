@@ -175,7 +175,7 @@ requireJournalFileExists f = do
   exists <- doesFileExist f
   when (not exists) $ do
     hPrintf stderr "The hledger journal file \"%s\" was not found.\n" f
-    hPrintf stderr "Please create it first, eg with hledger add or a text editor.\n"
+    hPrintf stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
     hPrintf stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
     exitFailure
 
