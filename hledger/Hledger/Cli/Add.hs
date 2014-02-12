@@ -55,7 +55,7 @@ add opts j
   let args                = words' $ query_ $ reportopts_ opts
       (defdate, moredefs) = headTailDef today args
   getAndAddTransactionsLoop j opts defdate moredefs
-        `E.catch` (\e -> unless (isEOFError e) $ ioError e)
+        `E.catch` (\e -> if isEOFError e then putStr "\n" else ioError e)
       where f = journalFilePath j
 
 -- | Loop reading transactions from the console, prompting for,
