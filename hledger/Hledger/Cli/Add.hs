@@ -86,7 +86,7 @@ getTransaction j opts defdate moredefs = do
     Nothing -> restart
     Just t  -> do
       hPrintf stderr "\nTransaction entered:\n%s" (show t)
-      yn <- runInteractionDefault $ askFor "Accept this transaction" (Just "y") (Just $ \s -> map toLower s `elem` ["<","y","yes","n","no"])
+      yn <- runInteraction $ askFor "Accept this transaction" (Just "y") (Just $ \s -> map toLower s `elem` ["<","y","yes","n","no"])
       case headMay $ map toLower yn of
         Just 'y' -> return t
         _        -> restart
@@ -97,7 +97,7 @@ getTransaction j opts defdate moredefs = do
 getTransactionOrRestart :: Journal -> CliOpts -> String -> [String] -> IO (Maybe Transaction)
 getTransactionOrRestart j opts defdate moredefs = do
   let dateandcodep = do {d <- smartdate; c <- optionMaybe codep; many spacenonewline; eof; return (d, fromMaybe "" c)}
-  datecodestr <- runInteractionDefault $ askFor "date"
+  datecodestr <- runInteraction $ askFor "date"
             (Just defdate)
             (Just $ \s -> null s
                          || s == "."
@@ -109,7 +109,7 @@ getTransactionOrRestart j opts defdate moredefs = do
       datestr = showDate $ fixSmartDate defday sdate
 
   let (defdesc, moredefs') = headTailDef "" moredefs
-  desc <- runInteractionDefault $ askFor "description" (Just defdesc) Nothing
+  desc <- runInteraction $ askFor "description" (Just defdesc) Nothing
   if desc == "<"
    then return Nothing
    else do
@@ -172,7 +172,7 @@ getPostingsLoop st enteredps defargs = do
       defargs' = tailDef [] defargs
       ordot | null enteredps || length enteredrealps == 1 = "" :: String
             | otherwise = " (or . to complete this transaction)"
-  account <- runInteraction j $ askFor (printf "account %d%s" n ordot) defacct (Just accept)
+  account <- runInteractionWithAccountCompletion j $ askFor (printf "account %d%s" n ordot) defacct (Just accept)
   when (account=="<") $ throwIO RestartEntryException
   if account=="."
     then
@@ -204,7 +204,7 @@ getPostingsLoop st enteredps defargs = do
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
           defargs'' = tailDef [] defargs'
-      amt <- runInteractionDefault $ askFor (printf "amount  %d" n) defamountstr validateamount
+      amt <- runInteraction $ askFor (printf "amount  %d" n) defamountstr validateamount
       when (amt=="<") $ throwIO RestartEntryException
       let (amountstr,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amt
       let a  = fromparse $ runParser (amountp <|> return missingamt) ctx     "" amountstr
@@ -327,14 +327,14 @@ transactionsSimilarTo j q s =
       ts = filter (q `matchesTransaction`) $ jtxns j
       threshold = 0
 
-runInteraction :: Journal -> InputT IO a -> IO a
-runInteraction j m = do
+runInteraction :: InputT IO a -> IO a
+runInteraction m = do
+    runInputT (setComplete noCompletion defaultSettings) m
+
+runInteractionWithAccountCompletion :: Journal -> InputT IO a -> IO a
+runInteractionWithAccountCompletion j m = do
     let cc = completionCache j
     runInputT (setComplete (accountCompletion cc) defaultSettings) m
-
-runInteractionDefault :: InputT IO a -> IO a
-runInteractionDefault m = do
-    runInputT (setComplete noCompletion defaultSettings) m
 
 -- A precomputed list of all accounts previously entered into the journal.
 type CompletionCache = [AccountName]
