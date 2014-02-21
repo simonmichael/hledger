@@ -122,7 +122,7 @@ instance Exception RestartEntryException
 -- | Information used as the basis for suggested account names, amounts etc. in add prompt.
 data PostingsState = PostingsState {
    psJournal                 :: Journal
-  ,psAccept                  :: AccountName -> Bool
+  ,psValidateAccount         :: AccountName -> Bool
   ,psSuggestHistoricalAmount :: Bool
   ,psHistory                 :: Maybe [Posting]
   }
@@ -138,13 +138,13 @@ getPostingsForTransactionWithHistory j opts datestr code description comment def
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
-      accept x = x == "." || (not . null) x &&
+      validateaccount x = x == "." || (not . null) x &&
         if no_new_accounts_ opts
             then x `elem` existingaccts
             else True
       existingaccts = journalAccountNames j
       getvalidpostings = do
-        ps <- getPostingsLoop (PostingsState j accept True bestmatchpostings) [] defargs
+        ps <- getPostingsLoop (PostingsState j validateaccount True bestmatchpostings) [] defargs
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tcode=code
@@ -172,7 +172,7 @@ getPostingsLoop st enteredps defargs = do
       defargs' = tailDef [] defargs
       ordot | null enteredps || length enteredrealps == 1 = "" :: String
             | otherwise = " (or . to complete this transaction)"
-  account <- runInteractionWithAccountCompletion j $ askFor (printf "account %d%s" n ordot) defacct (Just accept)
+  account <- runInteractionWithAccountCompletion j $ askFor (printf "account %d%s" n ordot) defacct (Just validateaccount)
   when (account=="<") $ throwIO RestartEntryException
   if account=="."
     then
@@ -227,7 +227,7 @@ getPostingsLoop st enteredps defargs = do
       j = psJournal st
       historicalps = psHistory st
       ctx = jContext j
-      accept = psAccept st
+      validateaccount = psValidateAccount st
       suggesthistorical = psSuggestHistoricalAmount st
       n = length enteredps + 1
       enteredrealps = filter isReal enteredps
