@@ -53,8 +53,8 @@ add opts j
     ]
   today <- showDate `fmap` getCurrentDay
   let args                = words' $ query_ $ reportopts_ opts
-      (defdate, moredefs) = headTailDef today args
-  getAndAddTransactionsLoop j opts defdate moredefs
+      (defdate, defs) = headTailDef today args
+  getAndAddTransactionsLoop j opts defdate defs
         `E.catch` (\e -> if isEOFError e then putStr "\n" else ioError e)
       where f = journalFilePath j
 
@@ -65,9 +65,9 @@ add opts j
 -- first transaction; otherwise defaults come from the most similar
 -- recent transaction in the journal.
 getAndAddTransactionsLoop :: Journal -> CliOpts -> String -> [String] -> IO ()
-getAndAddTransactionsLoop j opts defdate moredefs = do
+getAndAddTransactionsLoop j opts defdate defs = do
   hPrintf stderr "\nStarting a new transaction.\n"
-  t <- getTransaction j opts defdate moredefs
+  t <- getTransaction j opts defdate defs
   j' <- journalAddTransaction j opts t
   hPrintf stderr "Added to the journal.\n"
   let defdate' = showDate $ tdate t
@@ -77,11 +77,11 @@ getAndAddTransactionsLoop j opts defdate moredefs = do
 -- allowing the user to restart and confirm at the end.
 -- A default date, and zero or more defaults for subsequent fields, are provided.
 getTransaction :: Journal -> CliOpts -> String -> [String] -> IO Transaction
-getTransaction j opts defdate moredefs = do
-  mt <- getTransactionOrRestart j opts defdate moredefs
+getTransaction j opts defdate defs = do
+  mt <- getTransactionOrRestart j opts defdate defs
   let restart = do
         hPrintf stderr "\nRestarting this transaction.\n"
-        getTransaction j opts defdate moredefs
+        getTransaction j opts defdate defs
   case mt of
     Nothing -> restart
     Just t  -> do
@@ -95,7 +95,7 @@ getTransaction j opts defdate moredefs = do
 -- or return nothing indicating that the user wants to restart entering this transaction.
 -- A default date, and zero or more defaults for subsequent fields, are provided.
 getTransactionOrRestart :: Journal -> CliOpts -> String -> [String] -> IO (Maybe Transaction)
-getTransactionOrRestart j opts defdate moredefs = do
+getTransactionOrRestart j opts defdate defs = do
   let dateandcodep = do {d <- smartdate; c <- optionMaybe codep; many spacenonewline; eof; return (d, fromMaybe "" c)}
   datecodestr <- runInteraction $ askFor "date"
             (Just defdate)
@@ -108,43 +108,58 @@ getTransactionOrRestart j opts defdate moredefs = do
       defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
       datestr = showDate $ fixSmartDate defday sdate
 
-  let (defdesc, moredefs') = headTailDef "" moredefs
+  let (defdesc, defs') = headTailDef "" defs
   desc <- runInteraction $ askFor "description" (Just defdesc) Nothing
   if desc == "<"
    then return Nothing
    else do
     let (description,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') desc
-    getPostingsForTransactionWithHistory j opts datestr code description comment moredefs'
+    getPostingsForTransactionWithHistory j opts datestr code description comment defs'
 
 data RestartEntryException = RestartEntryException deriving (Typeable,Show)
 instance Exception RestartEntryException
 
--- | Information used as the basis for suggested account names, amounts etc. in add prompt.
-data PostingsState = PostingsState {
-   psJournal                 :: Journal
-  ,psValidateAccount         :: AccountName -> Bool
-  ,psSuggestHistoricalAmount :: Bool
-  ,psHistory                 :: Maybe [Posting]
+-- | State used while entering a single transaction.
+data EntryState = EntryState {
+   esJournal                 :: Journal              -- ^ the journal we are adding to
+  ,esDefaultsRemaining       :: [String]             -- ^ command line arguments not yet used as defaults
+  ,esValidateAccount         :: AccountName -> Bool  -- ^ validator for entered account names
+  ,esSuggestHistoricalAmount :: Bool                 -- ^ should the amount from a similar past txn be suggested
+  ,esHistoricalPostings      :: Maybe [Posting]      -- ^ the postings of the most similar past txn
+  ,esEnteredPostings         :: [Posting]            -- ^ postings entered so far
   }
+
+defEntryState = EntryState {
+   esJournal = nulljournal
+  ,esDefaultsRemaining = []
+  ,esValidateAccount = const True
+  ,esSuggestHistoricalAmount = True
+  ,esHistoricalPostings = Nothing
+  ,esEnteredPostings = []
+}
 
 -- | Loop reading postings from the console, until a valid balanced
 -- set of postings has been entered, then return the final transaction,
 -- or nothing indicating that the user wants to restart entering this transaction.
 getPostingsForTransactionWithHistory :: Journal -> CliOpts -> String -> String -> String -> String -> [String] -> IO (Maybe Transaction)
-getPostingsForTransactionWithHistory j opts datestr code description comment defargs = do
+getPostingsForTransactionWithHistory j opts datestr code description comment defs = do
   today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
-      bestmatch | not (null defargs) || null historymatches = Nothing
+      bestmatch | not (null defs) || null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
       validateaccount x = x == "." || (not . null) x &&
         if no_new_accounts_ opts
-            then x `elem` existingaccts
+            then x `elem` journalAccountNames j
             else True
-      existingaccts = journalAccountNames j
       getvalidpostings = do
-        ps <- getPostingsLoop (PostingsState j validateaccount True bestmatchpostings) [] defargs
+        let st = defEntryState{esJournal=j
+                              ,esDefaultsRemaining=defs
+                              ,esValidateAccount=validateaccount
+                              ,esHistoricalPostings=bestmatchpostings
+                              }
+        ps <- getPostingsLoop st
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tcode=code
@@ -161,15 +176,15 @@ getPostingsForTransactionWithHistory j opts datestr code description comment def
 
 -- | Read postings from the command line until . is entered, generating
 -- useful defaults based on historical context and postings entered so far.
-getPostingsLoop :: PostingsState -> [Posting] -> [String] -> IO [Posting]
-getPostingsLoop st enteredps defargs = do
+getPostingsLoop :: EntryState -> IO [Posting]
+getPostingsLoop st = do
   let bestmatch | isNothing historicalps = Nothing
                 | n <= length ps = Just $ ps !! (n-1)
                 | otherwise = Nothing
                 where Just ps = historicalps
       bestmatchacct = maybe Nothing (Just . showacctname) bestmatch
-      defacct  = maybe bestmatchacct Just $ headMay defargs
-      defargs' = tailDef [] defargs
+      defs = esDefaultsRemaining st
+      (defacct, defs') = (maybe bestmatchacct Just $ headMay defs, tailDef [] defs)
       ordot | null enteredps || length enteredrealps == 1 = "" :: String
             | otherwise = " (or . to complete this transaction)"
   account <- runInteractionWithAccountCompletion j $ askFor (printf "account %d%s" n ordot) defacct (Just validateaccount)
@@ -178,21 +193,21 @@ getPostingsLoop st enteredps defargs = do
     then
      if null enteredps
       then do hPutStrLn stderr $ "\nPlease enter some postings first."
-              getPostingsLoop st enteredps defargs
+              getPostingsLoop st
       else return enteredps
     else do
-      let defacctused = Just account == defacct
-          historicalps' = if defacctused then historicalps else Nothing
+      let defacctaccepted = Just account == defacct
+          historicalps' = if defacctaccepted then historicalps else Nothing
           bestmatch' | isNothing historicalps' = Nothing
                      | n <= length ps = Just $ ps !! (n-1)
                      | otherwise = Nothing
                      where Just ps = historicalps'
-          defamountstr | isJust commandlineamt                  = commandlineamt
+          (amtfromdefs, defs'') = (headMay defs', tailDef [] defs')
+          defamountstr | isJust amtfromdefs                     = amtfromdefs
                        | isJust bestmatch' && suggesthistorical = Just historicalamountstr
                        | n > 1                                  = Just balancingamountstr
                        | otherwise                              = Nothing
               where
-                commandlineamt      = headMay defargs'
                 historicalamountstr = showMixedAmountWithPrecision p $ pamount $ fromJust bestmatch'
                 balancingamountstr  = showMixedAmountWithPrecision p $ negate $ sum $ map pamount enteredrealps
                 -- what should this be ?
@@ -203,32 +218,35 @@ getPostingsLoop st enteredps defargs = do
                 -- 5 3 or 4, whichever would show the most decimal places ?
                 -- I think 1 or 4, whichever would show the most decimal places
                 p = maxprecisionwithpoint
-          defargs'' = tailDef [] defargs'
       amt <- runInteraction $ askFor (printf "amount  %d" n) defamountstr validateamount
       when (amt=="<") $ throwIO RestartEntryException
       let (amountstr,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amt
       let a  = fromparse $ runParser (amountp <|> return missingamt) ctx     "" amountstr
           a' = fromparse $ runParser (amountp <|> return missingamt) nullctx "" amountstr
-          wasdefamtused = Just (showAmount a) == defamountstr
+          defamtaccepted = Just (showAmount a) == defamountstr
           defcommodityadded | acommodity a == acommodity a' = Nothing
-                                | otherwise                     = Just $ acommodity a
+                            | otherwise                     = Just $ acommodity a
           p = nullposting{paccount=stripbrackets account
                          ,pamount=mixed a
                          ,pcomment=comment
                          ,ptype=postingtype account
                          }
-          st' = if wasdefamtused
-                 then st
-                 else st{psHistory=historicalps', psSuggestHistoricalAmount=False}
+          st' = st{esEnteredPostings=esEnteredPostings st ++ [p]
+                  ,esDefaultsRemaining=defs''
+                  }
+          st'' = if defamtaccepted
+                 then st'
+                 else st'{esHistoricalPostings=historicalps', esSuggestHistoricalAmount=False}
       when (isJust defcommodityadded) $
            liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust defcommodityadded)
-      getPostingsLoop st' (enteredps ++ [p]) defargs''
+      getPostingsLoop st''
     where
-      j = psJournal st
-      historicalps = psHistory st
+      j = esJournal st
+      historicalps = esHistoricalPostings st
       ctx = jContext j
-      validateaccount = psValidateAccount st
-      suggesthistorical = psSuggestHistoricalAmount st
+      validateaccount = esValidateAccount st
+      suggesthistorical = esSuggestHistoricalAmount st
+      enteredps = esEnteredPostings st
       n = length enteredps + 1
       enteredrealps = filter isReal enteredps
       showacctname p = showAccountName Nothing (ptype p) $ paccount p
