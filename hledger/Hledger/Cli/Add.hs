@@ -67,7 +67,7 @@ add opts j
 getAndAddTransactionsLoop :: Journal -> CliOpts -> String -> [String] -> IO ()
 getAndAddTransactionsLoop j opts defdate defs = do
   hPrintf stderr "\nStarting a new transaction.\n"
-  t <- getTransaction j opts defdate defs
+  t <- getTransactionAndConfirm j opts defdate defs
   j' <- journalAddTransaction j opts t
   hPrintf stderr "Added to the journal.\n"
   let defdate' = showDate $ tdate t
@@ -76,12 +76,12 @@ getAndAddTransactionsLoop j opts defdate defs = do
 -- | Read a single transaction from the console, with history-aware prompting,
 -- allowing the user to restart and confirm at the end.
 -- A default date, and zero or more defaults for subsequent fields, are provided.
-getTransaction :: Journal -> CliOpts -> String -> [String] -> IO Transaction
-getTransaction j opts defdate defs = do
-  mt <- getTransactionOrRestart j opts defdate defs
+getTransactionAndConfirm :: Journal -> CliOpts -> String -> [String] -> IO Transaction
+getTransactionAndConfirm j opts defdate defs = do
+  mt <- getTransaction j opts defdate defs
   let restart = do
         hPrintf stderr "\nRestarting this transaction.\n"
-        getTransaction j opts defdate defs
+        getTransactionAndConfirm j opts defdate defs
   case mt of
     Nothing -> restart
     Just t  -> do
@@ -94,27 +94,30 @@ getTransaction j opts defdate defs = do
 -- | Read a single transaction from the console, with history-aware prompting,
 -- or return nothing indicating that the user wants to restart entering this transaction.
 -- A default date, and zero or more defaults for subsequent fields, are provided.
-getTransactionOrRestart :: Journal -> CliOpts -> String -> [String] -> IO (Maybe Transaction)
-getTransactionOrRestart j opts defdate defs = do
-  let dateandcodep = do {d <- smartdate; c <- optionMaybe codep; many spacenonewline; eof; return (d, fromMaybe "" c)}
-  datecodestr <- runInteraction $ askFor "date"
-            (Just defdate)
-            (Just $ \s -> null s
-                         || s == "."
-                         || isRight (parseWithCtx nullctx dateandcodep $ lowercase s))
-  when (datecodestr == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
+getTransaction :: Journal -> CliOpts -> String -> [String] -> IO (Maybe Transaction)
+getTransaction j opts defdate defs = do
+  let dateandcodep = do
+        d <- smartdate
+        c <- optionMaybe codep
+        many spacenonewline
+        eof
+        return (d, fromMaybe "" c)
+      validate s = null s
+                       || s == "."
+                       || isRight (parseWithCtx nullctx dateandcodep $ lowercase s)
+  dateandcode <- runInteraction $ askFor "date" (Just defdate) (Just validate)
+  when (dateandcode == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
   today <- getCurrentDay
-  let (sdate,code) = fromparse $ parseWithCtx nullctx dateandcodep datecodestr
+  let (smtdate,code) = fromparse $ parseWithCtx nullctx dateandcodep dateandcode
       defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
-      datestr = showDate $ fixSmartDate defday sdate
-
+      datestr = showDate $ fixSmartDate defday smtdate
   let (defdesc, defs') = headTailDef "" defs
   desc <- runInteraction $ askFor "description" (Just defdesc) Nothing
   if desc == "<"
    then return Nothing
    else do
     let (description,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') desc
-    getPostingsForTransactionWithHistory j opts datestr code description comment defs'
+    getPostingsForTransaction j opts datestr code description comment defs'
 
 data RestartEntryException = RestartEntryException deriving (Typeable,Show)
 instance Exception RestartEntryException
@@ -122,39 +125,35 @@ instance Exception RestartEntryException
 -- | State used while entering a single transaction.
 data EntryState = EntryState {
    esJournal                 :: Journal              -- ^ the journal we are adding to
+  ,esOpts                    :: CliOpts              -- ^ command line options
   ,esDefaultsRemaining       :: [String]             -- ^ command line arguments not yet used as defaults
-  ,esValidateAccount         :: AccountName -> Bool  -- ^ validator for entered account names
   ,esHistoricalPostings      :: Maybe [Posting]      -- ^ postings of the most similar past txn, if applicable
   ,esEnteredPostings         :: [Posting]            -- ^ postings entered so far
   }
 
 defEntryState = EntryState {
-   esJournal = nulljournal
-  ,esDefaultsRemaining = []
-  ,esValidateAccount = const True
+   esJournal            = nulljournal
+  ,esOpts               = defcliopts
+  ,esDefaultsRemaining  = []
   ,esHistoricalPostings = Nothing
-  ,esEnteredPostings = []
+  ,esEnteredPostings    = []
 }
 
 -- | Loop reading postings from the console, until a valid balanced
 -- set of postings has been entered, then return the final transaction,
 -- or nothing indicating that the user wants to restart entering this transaction.
-getPostingsForTransactionWithHistory :: Journal -> CliOpts -> String -> String -> String -> String -> [String] -> IO (Maybe Transaction)
-getPostingsForTransactionWithHistory j opts datestr code description comment defs = do
+getPostingsForTransaction :: Journal -> CliOpts -> String -> String -> String -> String -> [String] -> IO (Maybe Transaction)
+getPostingsForTransaction j opts datestr code description comment defs = do
   today <- getCurrentDay
   let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
       bestmatch | not (null defs) || null historymatches = Nothing
                 | otherwise = Just $ snd $ head historymatches
       bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
       date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
-      validateaccount x = x == "." || (not . null) x &&
-        if no_new_accounts_ opts
-            then x `elem` journalAccountNames j
-            else True
       getvalidpostings = do
         let st = defEntryState{esJournal=j
+                              ,esOpts=opts
                               ,esDefaultsRemaining=defs
-                              ,esValidateAccount=validateaccount
                               ,esHistoricalPostings=bestmatchpostings
                               }
         ps <- getPostingsLoop st
@@ -206,8 +205,11 @@ getAccount st@EntryState{..} = do
       endmsg | null esEnteredPostings || numenteredrealps == 1 = "" :: String
              | otherwise                                       = " (or . to complete this transaction)"
              where numenteredrealps = length $ filter isReal esEnteredPostings
+      validate s = s == "."
+                   || (not . null) s
+                      && (not (no_new_accounts_ esOpts) || s `elem` journalAccountNames esJournal)
   account <- runInteractionWithAccountCompletion esJournal $
-             askFor (printf "account %d%s" pnum endmsg) mdefacct (Just esValidateAccount)
+             askFor (printf "account %d%s" pnum endmsg) mdefacct (Just validate)
   if (account=="<")
   then throwIO RestartEntryException
   else let defacctaccepted = Just account == mdefacct
@@ -261,6 +263,8 @@ getAmountAndComment st@EntryState{..} = do
   when (isJust mdefaultcommodityapplied) $
        liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust mdefaultcommodityapplied)
   return (st2, a, comment)
+
+-- utilities
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
