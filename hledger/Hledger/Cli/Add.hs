@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable #-}
+{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards #-}
 {-| 
 
 A history-aware add command to help with data entry.
@@ -124,8 +124,7 @@ data EntryState = EntryState {
    esJournal                 :: Journal              -- ^ the journal we are adding to
   ,esDefaultsRemaining       :: [String]             -- ^ command line arguments not yet used as defaults
   ,esValidateAccount         :: AccountName -> Bool  -- ^ validator for entered account names
-  ,esSuggestHistoricalAmount :: Bool                 -- ^ should the amount from a similar past txn be suggested
-  ,esHistoricalPostings      :: Maybe [Posting]      -- ^ the postings of the most similar past txn
+  ,esHistoricalPostings      :: Maybe [Posting]      -- ^ postings of the most similar past txn, if applicable
   ,esEnteredPostings         :: [Posting]            -- ^ postings entered so far
   }
 
@@ -133,7 +132,6 @@ defEntryState = EntryState {
    esJournal = nulljournal
   ,esDefaultsRemaining = []
   ,esValidateAccount = const True
-  ,esSuggestHistoricalAmount = True
   ,esHistoricalPostings = Nothing
   ,esEnteredPostings = []
 }
@@ -178,85 +176,91 @@ getPostingsForTransactionWithHistory j opts datestr code description comment def
 -- useful defaults based on historical context and postings entered so far.
 getPostingsLoop :: EntryState -> IO [Posting]
 getPostingsLoop st = do
-  let bestmatch | isNothing historicalps = Nothing
-                | n <= length ps = Just $ ps !! (n-1)
-                | otherwise = Nothing
-                where Just ps = historicalps
-      bestmatchacct = maybe Nothing (Just . showacctname) bestmatch
-      defs = esDefaultsRemaining st
-      (defacct, defs') = (maybe bestmatchacct Just $ headMay defs, tailDef [] defs)
-      ordot | null enteredps || length enteredrealps == 1 = "" :: String
-            | otherwise = " (or . to complete this transaction)"
-  account <- runInteractionWithAccountCompletion j $ askFor (printf "account %d%s" n ordot) defacct (Just validateaccount)
-  when (account=="<") $ throwIO RestartEntryException
+  (st1,account) <- getAccount st
   if account=="."
-    then
-     if null enteredps
-      then do hPutStrLn stderr $ "\nPlease enter some postings first."
-              getPostingsLoop st
-      else return enteredps
+    then case esEnteredPostings st of
+           [] -> hPutStrLn stderr "\nPlease enter some postings first." >> getPostingsLoop st
+           ps -> return ps
     else do
-      let defacctaccepted = Just account == defacct
-          historicalps' = if defacctaccepted then historicalps else Nothing
-          bestmatch' | isNothing historicalps' = Nothing
-                     | n <= length ps = Just $ ps !! (n-1)
-                     | otherwise = Nothing
-                     where Just ps = historicalps'
-          (amtfromdefs, defs'') = (headMay defs', tailDef [] defs')
-          defamountstr | isJust amtfromdefs                     = amtfromdefs
-                       | isJust bestmatch' && suggesthistorical = Just historicalamountstr
-                       | n > 1                                  = Just balancingamountstr
-                       | otherwise                              = Nothing
-              where
-                historicalamountstr = showMixedAmountWithPrecision p $ pamount $ fromJust bestmatch'
-                balancingamountstr  = showMixedAmountWithPrecision p $ negate $ sum $ map pamount enteredrealps
-                -- what should this be ?
-                -- 1 maxprecision (show all decimal places or none) ?
-                -- 2 maxprecisionwithpoint (show all decimal places or .0 - avoids some but not all confusion with thousands separators) ?
-                -- 3 canonical precision for this commodity in the journal ?
-                -- 4 maximum precision entered so far in this transaction ?
-                -- 5 3 or 4, whichever would show the most decimal places ?
-                -- I think 1 or 4, whichever would show the most decimal places
-                p = maxprecisionwithpoint
-      amt <- runInteraction $ askFor (printf "amount  %d" n) defamountstr validateamount
-      when (amt=="<") $ throwIO RestartEntryException
-      let (amountstr,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amt
-      let a  = fromparse $ runParser (amountp <|> return missingamt) ctx     "" amountstr
-          a' = fromparse $ runParser (amountp <|> return missingamt) nullctx "" amountstr
-          defamtaccepted = Just (showAmount a) == defamountstr
-          defcommodityadded | acommodity a == acommodity a' = Nothing
-                            | otherwise                     = Just $ acommodity a
-          p = nullposting{paccount=stripbrackets account
-                         ,pamount=mixed a
+      (st2,amt,comment) <- getAmountAndComment st1
+      let p = nullposting{paccount=stripbrackets account
+                         ,pamount=mixed amt
                          ,pcomment=comment
-                         ,ptype=postingtype account
+                         ,ptype=accountNamePostingType account
                          }
-          st' = st{esEnteredPostings=esEnteredPostings st ++ [p]
-                  ,esDefaultsRemaining=defs''
-                  }
-          st'' = if defamtaccepted
-                 then st'
-                 else st'{esHistoricalPostings=historicalps', esSuggestHistoricalAmount=False}
-      when (isJust defcommodityadded) $
-           liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust defcommodityadded)
-      getPostingsLoop st''
-    where
-      j = esJournal st
-      historicalps = esHistoricalPostings st
-      ctx = jContext j
-      validateaccount = esValidateAccount st
-      suggesthistorical = esSuggestHistoricalAmount st
-      enteredps = esEnteredPostings st
-      n = length enteredps + 1
-      enteredrealps = filter isReal enteredps
-      showacctname p = showAccountName Nothing (ptype p) $ paccount p
-      postingtype ('[':_) = BalancedVirtualPosting
-      postingtype ('(':_) = VirtualPosting
-      postingtype _ = RegularPosting
-      validateamount = Just $ \s -> (null s && not (null enteredrealps))
-                                    || s == "<"
-                                    || (isRight (runParser (amountp >> many spacenonewline >> optional (char ';' >> many anyChar) >> eof) ctx "" s)
-                                        && s /= ".")
+      getPostingsLoop st2{esEnteredPostings=esEnteredPostings st2 ++ [p]}
+
+getAccount :: EntryState -> IO (EntryState,AccountName)
+getAccount st@EntryState{..} = do
+  let pnum = length esEnteredPostings + 1
+      mhistoricalacct = maybe Nothing (Just . showacctname) mhistoricalp
+          where
+            mhistoricalp | isNothing esHistoricalPostings = Nothing
+                         | pnum <= length historicalps = Just $ historicalps !! (pnum-1)
+                         | otherwise = Nothing
+                         where Just historicalps = esHistoricalPostings
+            showacctname p = showAccountName Nothing (ptype p) $ paccount p
+      (mdefacct, st1) = case esDefaultsRemaining of
+                          d:ds -> (Just d, st{esDefaultsRemaining=ds})
+                          []   -> (mhistoricalacct, st)
+      endmsg | null esEnteredPostings || numenteredrealps == 1 = "" :: String
+             | otherwise                                       = " (or . to complete this transaction)"
+             where numenteredrealps = length $ filter isReal esEnteredPostings
+  account <- runInteractionWithAccountCompletion esJournal $
+             askFor (printf "account %d%s" pnum endmsg) mdefacct (Just esValidateAccount)
+  if (account=="<")
+  then throwIO RestartEntryException
+  else let defacctaccepted = Just account == mdefacct
+           st2 = if defacctaccepted then st1 else st1{esHistoricalPostings=Nothing}
+       in return (st2, account)
+
+getAmountAndComment :: EntryState -> IO (EntryState,Amount,String)
+getAmountAndComment st@EntryState{..} = do
+  let pnum = length esEnteredPostings + 1
+      showamt = showMixedAmountWithPrecision
+                  -- what should this be ?
+                  -- 1 maxprecision (show all decimal places or none) ?
+                  -- 2 maxprecisionwithpoint (show all decimal places or .0 - avoids some but not all confusion with thousands separators) ?
+                  -- 3 canonical precision for this commodity in the journal ?
+                  -- 4 maximum precision entered so far in this transaction ?
+                  -- 5 3 or 4, whichever would show the most decimal places ?
+                  -- I think 1 or 4, whichever would show the most decimal places
+                  maxprecisionwithpoint
+      mhistoricalamt = maybe Nothing (Just . showamt . pamount) mhistoricalp
+          where
+            mhistoricalp | isNothing esHistoricalPostings = Nothing
+                         | pnum <= length historicalps    = Just $ historicalps !! (pnum-1)
+                         | otherwise                      = Nothing
+                         where Just historicalps = esHistoricalPostings
+      enteredrealps = filter isReal esEnteredPostings
+      (mdefamt, st1) = case esDefaultsRemaining of
+                         d:ds                      -> (Just d, st{esDefaultsRemaining=ds})
+                         _ | isJust mhistoricalamt -> (mhistoricalamt, st)
+                         _ | pnum > 1              -> (Just balancingamt, st)
+                         _                         -> (Nothing, st)
+                         where
+                           balancingamt  = showamt $ negate $ sum $ map pamount enteredrealps
+      validateamount = Just $ \s ->
+                         (null s && not (null enteredrealps))
+                         || s == "<"
+                         || (s /= "." && isRight (runParser amountandoptionalcommentp (jContext esJournal) "" s))
+                         where
+                           amountandoptionalcommentp = do
+                             amountp
+                             many spacenonewline
+                             optional (char ';' >> many anyChar)
+                             eof
+  amtcmt <- runInteraction $ askFor (printf "amount  %d" pnum) mdefamt validateamount
+  when (amtcmt=="<") $ throwIO RestartEntryException
+  let (amt,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amtcmt
+      a           = fromparse $ runParser (amountp <|> return missingamt) (jContext esJournal) "" amt
+      awithoutctx = fromparse $ runParser (amountp <|> return missingamt) nullctx              "" amt
+      defamtaccepted = Just (showAmount a) == mdefamt
+      st2 = if defamtaccepted then st1 else st1{esHistoricalPostings=Nothing}
+      mdefaultcommodityapplied = if acommodity a == acommodity awithoutctx then Nothing else Just $ acommodity a
+  when (isJust mdefaultcommodityapplied) $
+       liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust mdefaultcommodityapplied)
+  return (st2, a, comment)
 
 -- | Prompt for and read a string value, optionally with a default value
 -- and a validator. A validator causes the prompt to repeat until the
