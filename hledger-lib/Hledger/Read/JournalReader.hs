@@ -34,7 +34,8 @@ module Hledger.Read.JournalReader (
   amountp',
   mamountp',
   numberp,
-  emptyline
+  emptyorcommentlinep,
+  followingcommentp
 #ifdef TESTS
   -- * Tests
   -- disabled by default, HTF not available on windows
@@ -160,7 +161,7 @@ journal = do
                            , liftM (return . addModifierTransaction) modifiertransaction
                            , liftM (return . addPeriodicTransaction) periodictransaction
                            , liftM (return . addHistoricalPrice) historicalpricedirective
-                           , emptyline >> return (return id)
+                           , emptyorcommentlinep >> return (return id)
                            ] <?> "journal transaction or directive"
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
@@ -326,7 +327,7 @@ transaction = do
   status <- status <?> "cleared flag"
   code <- codep <?> "transaction code"
   description <- descriptionp >>= return . strip
-  comment <- try followingcomment <|> (newline >> return "")
+  comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   postings <- postings
   return $ txnTieKnot $ Transaction date edate status code description comment tags postings ""
@@ -514,7 +515,7 @@ postingp = do
   _ <- fixedlotprice
   many spacenonewline
   ctx <- getState
-  comment <- try followingcomment <|> (newline >> return "")
+  comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   -- oh boy
   d  <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx date `fmap` dateValueFromTags tags)
@@ -810,23 +811,28 @@ test_numberp = do
 
 -- comment parsers
 
-emptyline :: GenParser Char JournalContext ()
-emptyline = do many spacenonewline
-               optional $ (char ';' <?> "comment") >> many (noneOf "\n")
-               newline
-               return ()
+emptyorcommentlinep :: GenParser Char JournalContext ()
+emptyorcommentlinep = do
+  many spacenonewline >> (comment <|> (many spacenonewline >> newline >> return ""))
+  return ()
 
-followingcomment :: GenParser Char JournalContext String
-followingcomment =
-  -- ptrace "followingcomment"
-  do samelinecomment <- many spacenonewline >> (try commentline <|> (newline >> return ""))
-     newlinecomments <- many (try (many1 spacenonewline >> commentline))
+followingcommentp :: GenParser Char JournalContext String
+followingcommentp =
+  -- ptrace "followingcommentp"
+  do samelinecomment <- many spacenonewline >> (try semicoloncomment <|> (newline >> return ""))
+     newlinecomments <- many (try (many1 spacenonewline >> semicoloncomment))
      return $ unlines $ samelinecomment:newlinecomments
 
-commentline :: GenParser Char JournalContext String
-commentline = do
-  -- ptrace "commentline"
-  char ';'
+comment :: GenParser Char JournalContext String
+comment = commentStartingWith "#;"
+
+semicoloncomment :: GenParser Char JournalContext String
+semicoloncomment = commentStartingWith ";"
+
+commentStartingWith :: String -> GenParser Char JournalContext String
+commentStartingWith cs = do
+  -- ptrace "commentStartingWith"
+  oneOf cs
   many spacenonewline
   l <- anyChar `manyTill` eolof
   optional newline
@@ -899,7 +905,7 @@ test_Hledger_Read_JournalReader = TestList $ concat [
     test_spaceandamountormissing,
     test_tagcomment,
     test_inlinecomment,
-    test_commentlines,
+    test_comments,
     test_ledgerDateSyntaxToTags,
     test_postingp,
     test_transaction,
@@ -915,10 +921,10 @@ test_Hledger_Read_JournalReader = TestList $ concat [
      assertParse (parseWithCtx nullctx directive "account some:account\n")
      assertParse (parseWithCtx nullctx (directive >> directive) "!account a\nend\n")
 
-  ,"commentline" ~: do
-     assertParse (parseWithCtx nullctx commentline "; some comment \n")
-     assertParse (parseWithCtx nullctx commentline " \t; x\n")
-     assertParse (parseWithCtx nullctx commentline ";x")
+  ,"comment" ~: do
+     assertParse (parseWithCtx nullctx comment "; some comment \n")
+     assertParse (parseWithCtx nullctx comment " \t; x\n")
+     assertParse (parseWithCtx nullctx comment "#x")
 
   ,"date" ~: do
      assertParse (parseWithCtx nullctx date "2011/1/1")

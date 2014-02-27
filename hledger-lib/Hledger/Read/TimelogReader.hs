@@ -56,7 +56,7 @@ import System.FilePath
 import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
-  directive, historicalpricedirective, defaultyeardirective, emptyline, datetimep,
+  directive, historicalpricedirective, defaultyeardirective, emptyorcommentlinep, datetimep,
   parseJournalWith, getParentAccount
   )
 import Hledger.Utils
@@ -91,7 +91,7 @@ timelogFile = do items <- many timelogItem
       timelogItem = choice [ directive
                           , liftM (return . addHistoricalPrice) historicalpricedirective
                           , defaultyeardirective
-                          , emptyline >> return (return id)
+                          , emptyorcommentlinep >> return (return id)
                           , liftM (return . addTimeLogEntry)  timelogentry
                           ] <?> "timelog entry, or default year or historical price directive"
 
