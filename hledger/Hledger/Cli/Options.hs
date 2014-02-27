@@ -554,22 +554,25 @@ getHledgerExesInPath :: IO [String]
 getHledgerExesInPath = do
   pathdirs <- splitOn ":" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  let hledgernamed = nub $ sort $ filter isHledgerNamed pathfiles
+  let hledgernamed = nub $ sort $ filter isHledgerExeName pathfiles
   -- hledgerexes <- filterM isExecutable hledgernamed
   return hledgernamed
 
 -- isExecutable f = getPermissions f >>= (return . executable)
 
-isHledgerNamed = isRight . parsewith (do
+isHledgerExeName = isRight . parsewith hledgerexenamep
+    where
+      hledgerexenamep = do
         string progname
         char '-'
-        many1 (letter <|> char '-')
-        optional $ (string ".hs" <|> string ".lhs")
+        many1 (noneOf ".")
+        optional (string ".hs" <|> string ".lhs")
         eof
-        )
 
 getEnvSafe v = getEnv v `C.catch` (\(_::C.IOException) -> return "")
-getDirectoryContentsSafe d = getDirectoryContents d `C.catch` (\(_::C.IOException) -> return [])
+
+getDirectoryContentsSafe d =
+    (filter (not . (`elem` [".",".."])) `fmap` getDirectoryContents d) `C.catch` (\(_::C.IOException) -> return [])
 
 -- | Raise an error, showing the specified message plus a hint about --help.
 optserror = error' . (++ " (run with --help for usage)")
