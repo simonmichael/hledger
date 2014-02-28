@@ -22,6 +22,7 @@ module Hledger.Reports (
   whichDateFromOpts,
   journalSelectingAmountFromOpts,
   queryFromOpts,
+  queryFromOptsOnly,
   queryOptsFromOpts,
   reportSpans,
   -- * Entries report
@@ -222,6 +223,17 @@ queryFromOpts d opts@ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
               ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
               ++ (maybe [] ((:[]) . Depth) depth_)
     argsq = fst $ parseQuery d query_
+
+-- | Convert report options to a query, ignoring any non-flag command line arguments.
+queryFromOptsOnly :: Day -> ReportOpts -> Query
+queryFromOptsOnly d opts@ReportOpts{..} = simplifyQuery flagsq
+  where
+    flagsq = And $
+              [(if date2_ then Date2 else Date) $ dateSpanFromOpts d opts]
+              ++ (if real_ then [Real True] else [])
+              ++ (if empty_ then [Empty True] else []) -- ?
+              ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
+              ++ (maybe [] ((:[]) . Depth) depth_)
 
 tests_queryFromOpts = [
  "queryFromOpts" ~: do
