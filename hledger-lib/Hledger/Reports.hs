@@ -315,11 +315,19 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       wd = whichDateFromOpts opts
       -- delay depth filtering until the end
       (depth, q') = (queryDepth q, filterQuery (not . queryIsDepth) q)
-      (precedingps, displayableps, _) =   dbg "ps4" $ postingsMatchingDisplayExpr displayexpr opts
-                                        $ dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id)
-                                        $ dbg "ps2" $ filter (q' `matchesPosting`)
-                                        $ dbg "ps1" $ journalPostings j'
-      -- enable to debug just this function
+      (precedingps, displayableps, _) =
+          dbg "ps5" $
+          postingsMatchingDisplayExpr displayexpr opts $ -- filter and group by the -d display expression
+          dbg "ps4" $
+          map (filterPostingAmount (filterQuery queryIsSym q)) $ -- remove amount parts which the query's sym: terms would exclude
+          dbg "ps3" $
+          (if related_ opts then concatMap relatedPostings else id) $ -- with --related, replace each with its sibling postings
+          dbg "ps2" $ 
+          filter (q' `matchesPosting`) $ -- filter postings by the query, ignoring depth
+          dbg "ps1" $ 
+          journalPostings j'
+
+      -- to debug just this function without the noise of --debug, uncomment:
       -- dbg :: Show a => String -> a -> a
       -- dbg = lstrace
 
@@ -530,6 +538,10 @@ filterTransactionsReportByCommodity c (label,items) =
 filterMixedAmountByCommodity :: Commodity -> MixedAmount -> MixedAmount
 filterMixedAmountByCommodity c (Mixed as) = Mixed $ filter ((==c). acommodity) as
 
+-- -- | Filter out all parts of this amount which do not match the query.
+-- filterMixedAmount :: Query -> MixedAmount -> MixedAmount
+-- filterMixedAmount q (Mixed as) = Mixed $ filter (q `matchesAmount`) as
+
 -- | Select transactions from the whole journal. This is similar to a
 -- "postingsReport" except with transaction-based report items which
 -- are ordered most recent first. This is used by eg hledger-web's journal view.
@@ -649,7 +661,10 @@ balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport opts q j = (items, total)
     where
       l =  ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
-      accts = clipAccounts (queryDepth q) $ ledgerRootAccount l
+      accts =
+          dbg "accts1" $ 
+          clipAccounts (queryDepth q) $ -- exclude accounts deeper than specified depth
+          ledgerRootAccount l
       accts'
           | flat_ opts = filterzeros $ tail $ flattenAccounts accts
           | otherwise  = filter (not.aboring) $ tail $ flattenAccounts $ markboring $ prunezeros accts
@@ -663,6 +678,11 @@ balanceReport opts q j = (items, total)
       items = map (balanceReportItem opts) accts'
       total = sum [amt | (a,_,indent,amt) <- items, if flat_ opts then accountNameLevel a == 1 else indent == 0]
               -- XXX check account level == 1 is valid when top-level accounts excluded
+
+-- -- | Filter out parts of this accounts balance amounts which do not match the query.
+-- filterAccountAmounts :: Query -> Account -> Account
+-- filterAccountAmounts q acc@Account{..} =
+--     acc{aebalance=filterMixedAmount q aebalance, aibalance=filterMixedAmount q aibalance}
 
 -- | In an account tree with zero-balance leaves removed, mark the
 -- elidable parent accounts (those with one subaccount and no balance

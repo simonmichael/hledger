@@ -16,9 +16,11 @@ module Hledger.Query (
   filterQuery,
   -- * accessors
   queryIsNull,
+  queryIsAcct,
   queryIsDepth,
   queryIsDate,
   queryIsStartDateOnly,
+  queryIsSym,
   queryStartDate,
   queryDateSpan,
   queryDepth,
@@ -26,9 +28,10 @@ module Hledger.Query (
   inAccount,
   inAccountQuery,
   -- * matching
-  matchesAccount,
-  matchesPosting,
   matchesTransaction,
+  matchesPosting,
+  matchesAccount,
+  matchesAmount,
   -- * tests
   tests_Hledger_Query
 )
@@ -391,6 +394,10 @@ queryIsAcct :: Query -> Bool
 queryIsAcct (Acct _) = True
 queryIsAcct _ = False
 
+queryIsSym :: Query -> Bool
+queryIsSym (Sym _) = True
+queryIsSym _ = False
+
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
 -- When the flag is true, look for a starting secondary date instead.
@@ -517,6 +524,25 @@ tests_matchesAccount = [
     assertBool "" $ not $ (Tag "a" Nothing) `matchesAccount` "a"
  ]
 
+-- | Does the match expression match this (simple) amount ?
+matchesAmount :: Query -> Amount -> Bool
+matchesAmount (Not q) a = not $ q `matchesAmount` a
+matchesAmount (Any) _ = True
+matchesAmount (None) _ = False
+matchesAmount (Or qs) a = any (`matchesAmount` a) qs
+matchesAmount (And qs) a = all (`matchesAmount` a) qs
+matchesAmount (Amt op n) a = compareMixedAmount op n (Mixed [a])
+matchesAmount (Sym r) a = regexMatchesCI ("^" ++ r ++ "$") $ acommodity a
+matchesAmount _ _ = True
+
+-- | Is this simple mixed amount's quantity less than, equal to, or greater than this number ?
+-- For complext mixed amounts (with multiple commodities), this is always true.
+compareMixedAmount :: Ordering -> Quantity -> MixedAmount -> Bool
+compareMixedAmount op q (Mixed [])  = compareMixedAmount op q (Mixed [amount])
+-- compareMixedAmount op q (Mixed [a]) = strace (compare (strace $ aquantity a) (strace q)) == op
+compareMixedAmount op q (Mixed [a]) = compare (aquantity a) q == op
+compareMixedAmount _ _ _            = True
+
 -- | Does the match expression match this posting ?
 matchesPosting :: Query -> Posting -> Bool
 matchesPosting (Not q) p = not $ q `matchesPosting` p
@@ -541,14 +567,6 @@ matchesPosting (Sym r) Posting{pamount=Mixed as} = any (regexMatchesCI $ "^" ++ 
 matchesPosting (Tag n Nothing) p = isJust $ lookupTagByName n $ postingAllTags p
 matchesPosting (Tag n (Just v)) p = isJust $ lookupTagByNameAndValue (n,v) $ postingAllTags p
 -- matchesPosting _ _ = False
-
--- | Is this simple mixed amount's quantity less than, equal to, or greater than this number ?
--- For complext mixed amounts (with multiple commodities), this is always true.
-compareMixedAmount :: Ordering -> Quantity -> MixedAmount -> Bool
-compareMixedAmount op q (Mixed [])  = compareMixedAmount op q (Mixed [amount])
--- compareMixedAmount op q (Mixed [a]) = strace (compare (strace $ aquantity a) (strace q)) == op
-compareMixedAmount op q (Mixed [a]) = compare (aquantity a) q == op
-compareMixedAmount _ _ _            = True
 
 tests_matchesPosting = [
    "matchesPosting" ~: do

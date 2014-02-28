@@ -19,8 +19,10 @@ module Hledger.Data.Journal (
   journalConvertAmountsToCost,
   journalFinalise,
   -- * Filtering
-  filterJournalPostings,
   filterJournalTransactions,
+  filterJournalPostings,
+  filterJournalPostingAmounts,
+  filterPostingAmount,
   -- * Querying
   journalAccountNames,
   journalAccountNamesUsed,
@@ -28,6 +30,7 @@ module Hledger.Data.Journal (
   journalAmounts,
   -- journalCanonicalCommodities,
   journalDateSpan,
+  journalDescriptions,
   journalFilePath,
   journalFilePaths,
   journalPostings,
@@ -153,13 +156,19 @@ addHistoricalPrice h l0 = l0 { historical_prices = h : historical_prices l0 }
 addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
 addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries l0 }
 
+-- | Unique transaction descriptions used in this journal.
+journalDescriptions :: Journal -> [String]
+journalDescriptions = nub . sort . map tdescription . jtxns
+
+-- | All postings from this journal's transactions, in order.
 journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
 
--- | All account names used in this journal.
+-- | Unique account names posted to in this journal.
 journalAccountNamesUsed :: Journal -> [AccountName]
 journalAccountNamesUsed = sort . accountNamesFromPostings . journalPostings
 
+-- | Unique account names in this journal, including parent accounts containing no postings.
 journalAccountNames :: Journal -> [AccountName]
 journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
 
@@ -227,6 +236,17 @@ filterJournalPostings :: Query -> Journal -> Journal
 filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
     where
       filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
+
+-- Within each posting's amount, keep only the parts matching the query.
+-- This can leave unbalanced transactions.
+filterJournalPostingAmounts :: Query -> Journal -> Journal
+filterJournalPostingAmounts q j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
+    where
+      filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=map (filterPostingAmount q) ps}
+
+-- | Filter out all parts of this posting's amount which do not match the query.
+filterPostingAmount :: Query -> Posting -> Posting
+filterPostingAmount q p@Posting{pamount=Mixed as} = p{pamount=Mixed $ filter (q `matchesAmount`) as}
 
 -- | Keep only transactions matching the query expression.
 filterJournalTransactions :: Query -> Journal -> Journal
