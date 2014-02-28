@@ -478,7 +478,7 @@ rawOptsToCliOpts rawopts = do
                             ,format_    = maybestringopt "format" rawopts
                             ,average_   = boolopt "average" rawopts  -- register
                             ,related_   = boolopt "related" rawopts  -- register
-                            ,query_     = unwords $ listofstringopt "args" rawopts
+                            ,query_     = unwords $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
                             }
              }
 
