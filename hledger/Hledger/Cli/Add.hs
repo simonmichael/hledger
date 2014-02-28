@@ -1,224 +1,256 @@
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards #-}
-{-| 
-
+{-|
 A history-aware add command to help with data entry.
+|-}
 
-Note: this might not be sensible, but add has some aspirations of being
-both user-friendly and pipeable/scriptable and for this reason
-informational messages are mostly written to stderr rather than stdout.
-
--}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
+{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts #-}
 
 module Hledger.Cli.Add
 where
+
 import Control.Exception as E
 import Control.Monad
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.List
 import Data.Maybe
+import Data.Time.Calendar (Day)
 import Data.Typeable (Typeable)
-import Safe (headDef, tailDef, headMay)
-import System.Console.Haskeline (InputT, runInputT, defaultSettings, setComplete, getInputLine)
+import Safe (headDef, headMay)
+import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
 import System.Console.Haskeline.Completion
+import System.Console.Wizard  
+import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
-import System.IO.Error
-import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec hiding (Line)
 import Text.Printf
-import qualified Data.Set as Set
 
 import Hledger
-import Prelude hiding (putStr, putStrLn, appendFile)
-import Hledger.Utils.UTF8IOCompat (putStr, putStrLn, appendFile)
 import Hledger.Cli.Options
 import Hledger.Cli.Register (postingsReportAsText)
 
+-- | State used while entering transactions.
+data EntryState = EntryState {
+   esOpts               :: CliOpts           -- ^ command line options
+  ,esArgs               :: [String]          -- ^ command line arguments remaining to be used as defaults
+  ,esToday              :: Day               -- ^ today's date
+  ,esDefDate            :: Day               -- ^ the default date for next transaction
+  ,esJournal            :: Journal           -- ^ the journal we are adding to
+  ,esSimilarTransaction :: Maybe Transaction -- ^ the most similar historical txn
+  ,esPostings           :: [Posting]         -- ^ postings entered so far in the current txn
+  } deriving (Show,Typeable)
+
+defEntryState = EntryState {
+   esOpts               = defcliopts
+  ,esArgs               = []
+  ,esToday              = nulldate
+  ,esDefDate            = nulldate
+  ,esJournal            = nulljournal
+  ,esSimilarTransaction = Nothing
+  ,esPostings           = []
+}
+
+data RestartTransactionException = RestartTransactionException deriving (Typeable,Show)
+instance Exception RestartTransactionException
+
+-- data ShowHelpException = ShowHelpException deriving (Typeable,Show)
+-- instance Exception ShowHelpException
 
 -- | Read multiple transactions from the console, prompting for each
 -- field, and append them to the journal file.  If the journal came
 -- from stdin, this command has no effect.
 add :: CliOpts -> Journal -> IO ()
 add opts j
-    | f == "-" = return ()
+    | journalFilePath j == "-" = return ()
     | otherwise = do
-  hPutStr stderr $ unlines [
-     "Adding transactions to journal file "++f
-    ,"Provide field values at the prompts, or press enter to accept defaults."
-    ,"Use readline keys to edit, use tab key to complete account names."
-    ,"A code (in parentheses) may be entered following transaction dates."
-    ,"A comment may be entered following descriptions or amounts."
-    ,"If you make a mistake, enter < at any prompt to restart the transaction."
-    ,"To complete a transaction, enter . when prompted."
-    ,"To quit, press control-d or control-c."
-    ]
-  today <- showDate `fmap` getCurrentDay
-  let args                = words' $ query_ $ reportopts_ opts
-      (defdate, defs) = headTailDef today args
-  getAndAddTransactionsLoop j opts defdate defs
-        `E.catch` (\e -> if isEOFError e then putStr "\n" else ioError e)
-      where f = journalFilePath j
-
--- | Loop reading transactions from the console, prompting for,
--- validating, displaying and appending each one to the journal file,
--- until end of input or ctrl-c (then raise an EOF exception).
--- If provided, command-line arguments are used as defaults for the
--- first transaction; otherwise defaults come from the most similar
--- recent transaction in the journal.
-getAndAddTransactionsLoop :: Journal -> CliOpts -> String -> [String] -> IO ()
-getAndAddTransactionsLoop j opts defdate defs = do
-  hPrintf stderr "\nStarting a new transaction.\n"
-  t <- getTransactionAndConfirm j opts defdate defs
-  j' <- journalAddTransaction j opts t
-  hPrintf stderr "Added to the journal.\n"
-  let defdate' = showDate $ tdate t
-  getAndAddTransactionsLoop j' opts defdate' []
-
--- | Read a single transaction from the console, with history-aware prompting,
--- allowing the user to restart and confirm at the end.
--- A default date, and zero or more defaults for subsequent fields, are provided.
-getTransactionAndConfirm :: Journal -> CliOpts -> String -> [String] -> IO Transaction
-getTransactionAndConfirm j opts defdate defs = do
-  mt <- getTransaction j opts defdate defs
-  let restart = do
-        hPrintf stderr "\nRestarting this transaction.\n"
-        getTransactionAndConfirm j opts defdate defs
-  case mt of
-    Nothing -> restart
-    Just t  -> do
-      hPrintf stderr "\nTransaction entered:\n%s" (show t)
-      yn <- runInteraction $ askFor "Accept this transaction" (Just "y") (Just $ \s -> map toLower s `elem` ["<","y","yes","n","no"])
-      case headMay $ map toLower yn of
-        Just 'y' -> return t
-        _        -> restart
-
--- | Read a single transaction from the console, with history-aware prompting,
--- or return nothing indicating that the user wants to restart entering this transaction.
--- A default date, and zero or more defaults for subsequent fields, are provided.
-getTransaction :: Journal -> CliOpts -> String -> [String] -> IO (Maybe Transaction)
-getTransaction j opts defdate defs = do
-  let dateandcodep = do
-        d <- smartdate
-        c <- optionMaybe codep
-        many spacenonewline
-        eof
-        return (d, fromMaybe "" c)
-      validate s = null s
-                       || s == "."
-                       || isRight (parseWithCtx nullctx dateandcodep $ lowercase s)
-  dateandcode <- runInteraction $ askFor "date" (Just defdate) (Just validate)
-  when (dateandcode == ".") $ ioError $ mkIOError eofErrorType "" Nothing Nothing
-  today <- getCurrentDay
-  let (smtdate,code) = fromparse $ parseWithCtx nullctx dateandcodep dateandcode
-      defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
-      datestr = showDate $ fixSmartDate defday smtdate
-  let (defdesc, defs') = headTailDef "" defs
-  desc <- runInteraction $ askFor "description" (Just defdesc) Nothing
-  if desc == "<"
-   then return Nothing
-   else do
-    let (description,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') desc
-    getPostingsForTransaction j opts datestr code description comment defs'
-
-data RestartEntryException = RestartEntryException deriving (Typeable,Show)
-instance Exception RestartEntryException
-
--- | State used while entering a single transaction.
-data EntryState = EntryState {
-   esJournal                 :: Journal              -- ^ the journal we are adding to
-  ,esOpts                    :: CliOpts              -- ^ command line options
-  ,esDefaultsRemaining       :: [String]             -- ^ command line arguments not yet used as defaults
-  ,esHistoricalPostings      :: Maybe [Posting]      -- ^ postings of the most similar past txn, if applicable
-  ,esEnteredPostings         :: [Posting]            -- ^ postings entered so far
-  }
-
-defEntryState = EntryState {
-   esJournal            = nulljournal
-  ,esOpts               = defcliopts
-  ,esDefaultsRemaining  = []
-  ,esHistoricalPostings = Nothing
-  ,esEnteredPostings    = []
-}
-
--- | Loop reading postings from the console, until a valid balanced
--- set of postings has been entered, then return the final transaction,
--- or nothing indicating that the user wants to restart entering this transaction.
-getPostingsForTransaction :: Journal -> CliOpts -> String -> String -> String -> String -> [String] -> IO (Maybe Transaction)
-getPostingsForTransaction j opts datestr code description comment defs = do
-  today <- getCurrentDay
-  let historymatches = transactionsSimilarTo j (queryFromOpts today $ reportopts_ opts) description
-      bestmatch | not (null defs) || null historymatches = Nothing
-                | otherwise = Just $ snd $ head historymatches
-      bestmatchpostings = maybe Nothing (Just . tpostings) bestmatch
-      date = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) datestr
-      getvalidpostings = do
-        let st = defEntryState{esJournal=j
-                              ,esOpts=opts
-                              ,esDefaultsRemaining=defs
-                              ,esHistoricalPostings=bestmatchpostings
+        hPrintf stderr "Adding transactions to journal file %s\n" (journalFilePath j)
+        showHelp
+        today <- getCurrentDay
+        let es = defEntryState{esOpts=opts
+                              ,esArgs=listofstringopt "args" $ rawopts_ opts
+                              ,esToday=today
+                              ,esDefDate=today
+                              ,esJournal=j
                               }
-        ps <- getPostingsLoop st
+        getAndAddTransactions es `E.catch` (\(_::UnexpectedEOF) -> putStr "\n")
+
+showHelp = hPutStr stderr $ unlines [
+     "Any command line arguments will be used as defaults."
+    ,"Use tab key to complete, readline keys to edit, enter to accept defaults."
+    ,"An optional (CODE) may follow transaction dates."
+    ,"An optional ; COMMENT may follow descriptions or amounts."
+    ,"If you make a mistake, enter < at any prompt to restart the transaction."
+    ,"To finish and save a transaction, enter . when prompted."
+    ,"To end, press control-d or control-c."
+    ]
+
+-- | Loop reading transactions from the console, prompting, validating
+-- and appending each one to the journal file, until end of input or
+-- ctrl-c (then raise an EOF exception).  If provided, command-line
+-- arguments are used as defaults; otherwise defaults come from the
+-- most similar recent transaction in the journal.
+getAndAddTransactions :: EntryState -> IO ()
+getAndAddTransactions es@EntryState{..} = (do
+  mt <- runInputT (setComplete noCompletion defaultSettings) (run $ haskeline $ confirmedTransactionWizard es)
+  case mt of
+    Nothing -> fail "urk ?"
+    Just t -> do
+      j <- if debug_ esOpts > 0
+           then hPrintf stderr "Skipping journal add due to debug mode.\n" >> return esJournal
+           else journalAddTransaction esJournal esOpts t >> hPrintf stderr "Saved.\n"
+      hPrintf stderr "Starting the next transaction (or ctrl-D/ctrl-C to end)\n"
+      getAndAddTransactions es{esJournal=j, esDefDate=tdate t}
+  )
+  `E.catch` (\(_::RestartTransactionException) ->
+                 hPrintf stderr "Restarting this transaction.\n" >> getAndAddTransactions es)
+
+-- confirmedTransactionWizard :: (ArbitraryIO :<: b, OutputLn :<: b, Line :<: b) => EntryState -> Wizard b Transaction
+-- confirmedTransactionWizard :: EntryState -> Wizard Haskeline Transaction
+confirmedTransactionWizard es@EntryState{..} = do
+  t <- transactionWizard es
+  -- liftIO $ hPrintf stderr {- "Transaction entered:\n%s" -} (show t)
+  output $ show t
+  y <- let def = "y" in
+       retryMsg "Please enter y or n." $ 
+        parser ((fmap ('y' ==)) . headMay . map toLower . strip) $ 
+        defaultTo' def $ nonEmpty $ 
+        maybeRestartTransaction $
+        line $ printf "Save this transaction to the journal ?%s: " (showDefault def)
+  if y then return t else throw RestartTransactionException
+
+transactionWizard es@EntryState{..} = do
+  (date,code)    <- dateAndCodeWizard es
+  let es1@EntryState{esArgs=args1} = es{esArgs=drop 1 esArgs, esDefDate=date}
+  (desc,comment) <- descriptionAndCommentWizard es1
+  let mbaset = similarTransaction es1 desc
+  when (isJust mbaset) $ liftIO $ hPrintf stderr "Using this similar transaction for defaults:\n%s" (show $ fromJust mbaset)
+  let es2 = es1{esArgs=drop 1 args1, esSimilarTransaction=mbaset}
+      balancedPostingsWizard = do
+        ps <- postingsWizard es2{esPostings=[]}
         let t = nulltransaction{tdate=date
                                ,tstatus=False
                                ,tcode=code
-                               ,tdescription=description
+                               ,tdescription=desc
                                ,tcomment=comment
                                ,tpostings=ps
                                }
-        either retry (return . Just) $ balanceTransaction Nothing t -- imprecise balancing
+        case balanceTransaction Nothing t of -- imprecise balancing (?)
+          Right t' -> return t'
+          Left err -> liftIO (hPutStrLn stderr $ "\n" ++ (capitalize err) ++ "please re-enter.") >> balancedPostingsWizard
+  balancedPostingsWizard
+
+-- Identify the closest recent match for this description in past transactions.
+similarTransaction :: EntryState -> String -> Maybe Transaction
+similarTransaction EntryState{..} desc =
+  let q = queryFromOptsOnly esToday $ reportopts_ esOpts
+      historymatches = transactionsSimilarTo esJournal q desc
+      bestmatch | null historymatches = Nothing
+                | otherwise           = Just $ snd $ head historymatches
+  in bestmatch
+
+dateAndCodeWizard EntryState{..} = do
+  let def = headDef (showDate esDefDate) esArgs
+  retryMsg "A valid hledger smart date is required. Eg: 2014/2/14, 14, yesterday." $ 
+   parser (parseSmartDateAndCode esToday) $ 
+   withCompletion (dateCompleter def) $
+   defaultTo' def $ nonEmpty $ 
+   maybeRestartTransaction $
+   -- maybeShowHelp $
+   line $ printf "Date%s: " (showDefault def)
+    where
+      parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
-            retry msg = liftIO (hPutStrLn stderr $ "\n" ++ (capitalize msg) ++ "please re-enter.") >> getvalidpostings
+            edc = parseWithCtx nullctx dateandcodep $ lowercase s
+            dateandcodep = do
+                d <- smartdate
+                c <- optionMaybe codep
+                many spacenonewline
+                eof
+                return (d, fromMaybe "" c)
+      -- defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
+      -- datestr = showDate $ fixSmartDate defday smtdate
 
-  when (isJust bestmatch) $ liftIO $ hPrintf stderr "\nUsing this existing transaction for defaults:\n%s" (show $ fromJust bestmatch)
-  getvalidpostings `E.catch` \(_::RestartEntryException) -> return Nothing
+descriptionAndCommentWizard EntryState{..} = do
+  let def = headDef "" esArgs
+  s <- withCompletion (descriptionCompleter esJournal def) $
+       defaultTo' def $ nonEmpty $ 
+       maybeRestartTransaction $
+       line $ printf "Description%s: " (showDefault def)
+  let (desc,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') s
+  return (desc,comment)
 
--- | Read postings from the command line until . is entered, generating
--- useful defaults based on historical context and postings entered so far.
-getPostingsLoop :: EntryState -> IO [Posting]
-getPostingsLoop st = do
-  (st1,account) <- getAccount st
-  if account=="."
-    then case esEnteredPostings st of
-           [] -> hPutStrLn stderr "\nPlease enter some postings first." >> getPostingsLoop st
-           ps -> return ps
-    else do
-      (st2,amt,comment) <- getAmountAndComment st1
-      let p = nullposting{paccount=stripbrackets account
-                         ,pamount=mixed amt
-                         ,pcomment=comment
-                         ,ptype=accountNamePostingType account
-                         }
-      getPostingsLoop st2{esEnteredPostings=esEnteredPostings st2 ++ [p]}
+postingsWizard es@EntryState{..} = do
+  mp <- postingWizard es
+  case mp of Nothing -> return esPostings
+             Just p  -> postingsWizard es{esArgs=drop 2 esArgs, esPostings=esPostings++[p]}
 
-getAccount :: EntryState -> IO (EntryState,AccountName)
-getAccount st@EntryState{..} = do
-  let pnum = length esEnteredPostings + 1
-      mhistoricalacct = maybe Nothing (Just . showacctname) mhistoricalp
-          where
-            mhistoricalp | isNothing esHistoricalPostings = Nothing
-                         | pnum <= length historicalps = Just $ historicalps !! (pnum-1)
-                         | otherwise = Nothing
-                         where Just historicalps = esHistoricalPostings
-            showacctname p = showAccountName Nothing (ptype p) $ paccount p
-      (mdefacct, st1) = case esDefaultsRemaining of
-                          d:ds -> (Just d, st{esDefaultsRemaining=ds})
-                          []   -> (mhistoricalacct, st)
-      endmsg | null esEnteredPostings || numenteredrealps == 1 = "" :: String
-             | otherwise                                       = " (or . to complete this transaction)"
-             where numenteredrealps = length $ filter isReal esEnteredPostings
-      validate s = s == "."
-                   || (not . null) s
-                      && (not (no_new_accounts_ esOpts) || s `elem` journalAccountNames esJournal)
-  account <- runInteractionWithAccountCompletion esJournal $
-             askFor (printf "account %d%s" pnum endmsg) mdefacct (Just validate)
-  if (account=="<")
-  then throwIO RestartEntryException
-  else let defacctaccepted = Just account == mdefacct
-           st2 = if defacctaccepted then st1 else st1{esHistoricalPostings=Nothing}
-       in return (st2, account)
+postingWizard es@EntryState{..} = do
+  acct <- accountWizard es
+  if acct == "."
+  then case (esPostings, postingsBalanced esPostings) of
+         ([],_)    -> liftIO (hPutStrLn stderr "Please enter some postings first.") >> postingWizard es
+         (_,False) -> liftIO (hPutStrLn stderr "Please enter more postings to balance the transaction.") >> postingWizard es
+         (_,True)  -> return Nothing
+  else do
+    let es1 = es{esArgs=drop 1 esArgs}
+    (amt,comment)  <- amountAndCommentWizard es1
+    return $ Just nullposting{paccount=stripbrackets acct
+                             ,pamount=mixed amt
+                             ,pcomment=comment
+                             ,ptype=accountNamePostingType acct
+                             }
 
-getAmountAndComment :: EntryState -> IO (EntryState,Amount,String)
-getAmountAndComment st@EntryState{..} = do
-  let pnum = length esEnteredPostings + 1
+postingsBalanced :: [Posting] -> Bool
+postingsBalanced ps = isRight $ balanceTransaction Nothing nulltransaction{tpostings=ps}
+
+accountWizard EntryState{..} = do
+  let pnum = length esPostings + 1
+      historicalp = maybe Nothing (Just . (!! (pnum-1)) . (++ (repeat nullposting)) . tpostings) esSimilarTransaction
+      historicalacct = case historicalp of Just p  -> showAccountName Nothing (ptype p) (paccount p)
+                                           Nothing -> ""
+      def = headDef historicalacct esArgs
+  retryMsg "A valid hledger account name is required. Eg: assets:cash, expenses:food:eating out." $
+   parser parseAccount $
+   withCompletion (accountCompleter esJournal def) $
+   defaultTo' def $ nonEmpty $ 
+   maybeRestartTransaction $
+   line $ printf "Account %d%s%s: " pnum endmsg (showDefault def)
+    where
+      canfinish = not (null esPostings) && postingsBalanced esPostings
+      endmsg | canfinish = " (or . to finish this transaction)"
+             | otherwise = ""
+      parseAccount s = either (const Nothing) validateAccount $ parseWithCtx (jContext esJournal) accountnamep s
+      validateAccount s | null s                  = Nothing
+                        | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
+                        | otherwise               = Just s
+
+amountAndCommentWizard EntryState{..} = do
+  let pnum = length esPostings + 1
+      (mhistoricalp,followedhistoricalsofar) =
+          case esSimilarTransaction of
+            Nothing                        -> (Nothing,False)
+            Just Transaction{tpostings=ps} -> (if length ps >= pnum then Just (ps !! (pnum-1)) else Nothing
+                                              ,all (\(a,b) -> paccount a == paccount b && pamount a == pamount b) $ zip esPostings ps)
+      def = case (esArgs, mhistoricalp, followedhistoricalsofar) of
+              (d:_,_,_)                                             -> d
+              (_,Just hp,True)                                      -> showamt $ pamount hp
+              _  | pnum > 1 && not (isZeroMixedAmount balancingamt) -> showamt balancingamt
+              _                                                     -> ""
+  retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
+   parser parseAmountAndComment $ 
+   withCompletion (amountCompleter def) $
+   defaultTo' def $ nonEmpty $ 
+   maybeRestartTransaction $
+   line $ printf "Amount  %d%s: " pnum (showDefault def)
+    where  
+      parseAmountAndComment = either (const Nothing) Just . parseWithCtx (jContext esJournal) amountandcommentp
+      amountandcommentp = do
+        a <- amountp
+        many spacenonewline
+        c <- fromMaybe "" `fmap` optionMaybe (char ';' >> many anyChar)
+        -- eof
+        return (a,c)
+      balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings
       showamt = showMixedAmountWithPrecision
                   -- what should this be ?
                   -- 1 maxprecision (show all decimal places or none) ?
@@ -228,64 +260,61 @@ getAmountAndComment st@EntryState{..} = do
                   -- 5 3 or 4, whichever would show the most decimal places ?
                   -- I think 1 or 4, whichever would show the most decimal places
                   maxprecisionwithpoint
-      mhistoricalamt = maybe Nothing (Just . showamt . pamount) mhistoricalp
-          where
-            mhistoricalp | isNothing esHistoricalPostings = Nothing
-                         | pnum <= length historicalps    = Just $ historicalps !! (pnum-1)
-                         | otherwise                      = Nothing
-                         where Just historicalps = esHistoricalPostings
-      enteredrealps = filter isReal esEnteredPostings
-      (mdefamt, st1) = case esDefaultsRemaining of
-                         d:ds                      -> (Just d, st{esDefaultsRemaining=ds})
-                         _ | isJust mhistoricalamt -> (mhistoricalamt, st)
-                         _ | pnum > 1              -> (Just balancingamt, st)
-                         _                         -> (Nothing, st)
-                         where
-                           balancingamt  = showamt $ negate $ sum $ map pamount enteredrealps
-      validateamount = Just $ \s ->
-                         (null s && not (null enteredrealps))
-                         || s == "<"
-                         || (s /= "." && isRight (runParser amountandoptionalcommentp (jContext esJournal) "" s))
-                         where
-                           amountandoptionalcommentp = do
-                             amountp
-                             many spacenonewline
-                             optional (char ';' >> many anyChar)
-                             eof
-  amtcmt <- runInteraction $ askFor (printf "amount  %d" pnum) mdefamt validateamount
-  when (amtcmt=="<") $ throwIO RestartEntryException
-  let (amt,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amtcmt
-      a           = fromparse $ runParser (amountp <|> return missingamt) (jContext esJournal) "" amt
-      awithoutctx = fromparse $ runParser (amountp <|> return missingamt) nullctx              "" amt
-      defamtaccepted = Just (showAmount a) == mdefamt
-      st2 = if defamtaccepted then st1 else st1{esHistoricalPostings=Nothing}
-      mdefaultcommodityapplied = if acommodity a == acommodity awithoutctx then Nothing else Just $ acommodity a
-  when (isJust mdefaultcommodityapplied) $
-       liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust mdefaultcommodityapplied)
-  return (st2, a, comment)
+  --
+  -- let -- (amt,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amtcmt
+      -- a           = fromparse $ runParser (amountp <|> return missingamt) (jContext esJournal) "" amt
+  --     awithoutctx = fromparse $ runParser (amountp <|> return missingamt) nullctx              "" amt
+  --     defamtaccepted = Just (showAmount a) == mdefamt
+  --     es2 = if defamtaccepted then es1 else es1{esHistoricalPostings=Nothing}
+  --     mdefaultcommodityapplied = if acommodity a == acommodity awithoutctx then Nothing else Just $ acommodity a
+  -- when (isJust mdefaultcommodityapplied) $
+  --      liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust mdefaultcommodityapplied)
+
+maybeRestartTransaction = parser (\s -> if s=="<" then throw RestartTransactionException else Just s)
+
+-- maybeShowHelp :: Wizard Haskeline String -> Wizard Haskeline String
+-- maybeShowHelp wizard = maybe (liftIO showHelp >> wizard) return $ 
+--                        parser (\s -> if s=="?" then Nothing else Just s) wizard
+
+simpleCompletion' s = (simpleCompletion s){isFinished=False}
+
+dateCompleter :: String -> CompletionFunc IO
+dateCompleter def = completeWord Nothing "" f
+    where
+      f "" = return [simpleCompletion' def]
+      f s  = return $ map simpleCompletion' $ filter (s `isPrefixOf`) cs
+      cs = ["today","tomorrow","yesterday"]
+
+descriptionCompleter j def = completeWord Nothing "" f
+    where
+      f "" = return [simpleCompletion' def]
+      f s  = return $ map simpleCompletion' $ filter (s `isPrefixOf`) cs
+      -- f s  = return $ map simpleCompletion' $ filter ((lowercase s `isPrefixOf`) . lowercase) cs
+      cs = journalDescriptions j
+
+accountCompleter j def = completeWord Nothing "" f
+    where
+      f "" = return [simpleCompletion' def]
+      f s  = return $ map simpleCompletion' $ filter (s `isPrefixOf`) cs
+      cs = journalAccountNamesUsed j
+
+amountCompleter def = completeWord Nothing "" f
+    where
+      f "" = return [simpleCompletion' def]
+      f _  = return []
+
+--------------------------------------------------------------------------------
 
 -- utilities
 
--- | Prompt for and read a string value, optionally with a default value
--- and a validator. A validator causes the prompt to repeat until the
--- input is valid. May also raise an EOF exception if control-d or control-c is pressed.
-askFor :: String -> Maybe String -> Maybe (String -> Bool) -> InputT IO String
-askFor prompt def validator = do
-  l <- fmap (maybe eofErr id)
-            $ getInputLine $ prompt ++ " ? " ++ maybe "" showdef def ++ ": "
-  let input = if null l then fromMaybe l def else l
-  case validator of
-    Just valid -> if valid input
-                   then return input
-                   else askFor prompt def validator
-    Nothing -> return input
-    where
-        showdef "" = ""
-        showdef s = "[" ++ s ++ "]"
-        eofErr = E.throw $ mkIOError eofErrorType "end of input" Nothing Nothing
+defaultTo' = flip defaultTo
 
--- | Append this transaction to the journal's file, and to the journal's
--- transaction list.
+withCompletion f = withSettings (setComplete f defaultSettings)
+
+showDefault "" = ""
+showDefault s = " [" ++ s ++ "]"
+
+-- | Append this transaction to the journal's file and transaction list.
 journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
   let f = journalFilePath j
@@ -318,6 +347,28 @@ registerFromString s = do
         ropts = defreportopts{empty_=True}
         opts = defcliopts{reportopts_=ropts}
 
+capitalize :: String -> String
+capitalize "" = ""
+capitalize (c:cs) = toUpper c : cs
+
+-- Find the most similar and recent transactions matching the given transaction description and report query.
+-- Transactions are listed with their "relevancy" score, most relevant first.
+transactionsSimilarTo :: Journal -> Query -> String -> [(Double,Transaction)]
+transactionsSimilarTo j q desc =
+    sortBy compareRelevanceAndRecency
+               $ filter ((> threshold).fst)
+               [(compareDescriptions desc $ tdescription t, t) | t <- ts]
+    where
+      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
+      ts = filter (q `matchesTransaction`) $ jtxns j
+      threshold = 0
+
+compareDescriptions :: [Char] -> [Char] -> Double
+compareDescriptions s t = compareStrings s' t'
+    where s' = simplify s
+          t' = simplify t
+          simplify = filter (not . (`elem` "0123456789"))
+
 -- | Return a similarity measure, from 0 to 1, for two strings.
 -- This is Simon White's letter pairs algorithm from
 -- http://www.catalysoft.com/articles/StrikeAMatch.html
@@ -333,54 +384,8 @@ compareStrings s1 s2 = 2.0 * fromIntegral i / fromIntegral u
       u = length pairs1 + length pairs2
       pairs1 = wordLetterPairs $ uppercase s1
       pairs2 = wordLetterPairs $ uppercase s2
+
 wordLetterPairs = concatMap letterPairs . words
+
 letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
 letterPairs _ = []
-
-compareDescriptions :: [Char] -> [Char] -> Double
-compareDescriptions s t = compareStrings s' t'
-    where s' = simplify s
-          t' = simplify t
-          simplify = filter (not . (`elem` "0123456789"))
-
-transactionsSimilarTo :: Journal -> Query -> String -> [(Double,Transaction)]
-transactionsSimilarTo j q s =
-    sortBy compareRelevanceAndRecency
-               $ filter ((> threshold).fst)
-               [(compareDescriptions s $ tdescription t, t) | t <- ts]
-    where
-      compareRelevanceAndRecency (n1,t1) (n2,t2) = compare (n2,tdate t2) (n1,tdate t1)
-      ts = filter (q `matchesTransaction`) $ jtxns j
-      threshold = 0
-
-runInteraction :: InputT IO a -> IO a
-runInteraction m = do
-    runInputT (setComplete noCompletion defaultSettings) m
-
-runInteractionWithAccountCompletion :: Journal -> InputT IO a -> IO a
-runInteractionWithAccountCompletion j m = do
-    let cc = completionCache j
-    runInputT (setComplete (accountCompletion cc) defaultSettings) m
-
--- A precomputed list of all accounts previously entered into the journal.
-type CompletionCache = [AccountName]
-
-completionCache :: Journal -> CompletionCache
-completionCache j = -- Only keep unique account names.
-                    Set.toList $ Set.fromList
-                        [paccount p | t <- jtxns j, p <- tpostings t]
-
-accountCompletion :: CompletionCache -> CompletionFunc IO
-accountCompletion cc = completeWord Nothing
-                        "" -- don't break words on whitespace, since account names
-                           -- can contain spaces.
-                        $ \s -> return $ map simpleCompletion
-                                        $ filter (s `isPrefixOf`) cc
-
-capitalize :: String -> String
-capitalize "" = ""
-capitalize (c:cs) = toUpper c : cs
-
-headTailDef :: a -> [a] -> (a,[a])
-headTailDef defhead as = (headDef defhead as, tailDef [] as)
-

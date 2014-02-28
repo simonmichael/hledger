@@ -142,6 +142,7 @@ executable hledger
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
   default-language: Haskell2010
+                 ,wizards == 1.0.*
 
 test-suite tests
   type:     exitcode-stdio-1.0
