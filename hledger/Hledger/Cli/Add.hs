@@ -72,7 +72,7 @@ add opts j
                               ,esDefDate=today
                               ,esJournal=j
                               }
-        getAndAddTransactions es `E.catch` (\(_::UnexpectedEOF) -> putStr "\n")
+        getAndAddTransactions es `E.catch` (\(_::UnexpectedEOF) -> putStr "")
 
 showHelp = hPutStr stderr $ unlines [
      "Any command line arguments will be used as defaults."
