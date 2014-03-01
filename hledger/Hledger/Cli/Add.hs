@@ -115,7 +115,7 @@ confirmedTransactionWizard es@EntryState{..} = do
         parser ((fmap ('y' ==)) . headMay . map toLower . strip) $ 
         defaultTo' def $ nonEmpty $ 
         maybeRestartTransaction $
-        line $ printf "Save this transaction to the journal ?%s: " (showDefault def)
+        line $ green $ printf "Save this transaction to the journal ?%s: " (showDefault def)
   if y then return t else throw RestartTransactionException
 
 transactionWizard es@EntryState{..} = do
@@ -157,7 +157,7 @@ dateAndCodeWizard EntryState{..} = do
    maybeExit $
    maybeRestartTransaction $
    -- maybeShowHelp $
-   line $ printf "Date%s: " (showDefault def)
+   line $ green $ printf "Date%s: " (showDefault def)
     where
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
@@ -176,7 +176,7 @@ descriptionAndCommentWizard EntryState{..} = do
   s <- withCompletion (descriptionCompleter esJournal def) $
        defaultTo' def $ nonEmpty $ 
        maybeRestartTransaction $
-       line $ printf "Description%s: " (showDefault def)
+       line $ green $ printf "Description%s: " (showDefault def)
   let (desc,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') s
   return (desc,comment)
 
@@ -215,7 +215,7 @@ accountWizard EntryState{..} = do
    withCompletion (accountCompleter esJournal def) $
    defaultTo' def $ nonEmpty $ 
    maybeRestartTransaction $
-   line $ printf "Account %d%s%s: " pnum endmsg (showDefault def)
+   line $ green $ printf "Account %d%s%s: " pnum endmsg (showDefault def)
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
       endmsg | canfinish = " (or . to finish this transaction)"
@@ -242,7 +242,7 @@ amountAndCommentWizard EntryState{..} = do
    withCompletion (amountCompleter def) $
    defaultTo' def $ nonEmpty $ 
    maybeRestartTransaction $
-   line $ printf "Amount  %d%s: " pnum (showDefault def)
+   line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where  
       parseAmountAndComment = either (const Nothing) Just . parseWithCtx (jContext esJournal) amountandcommentp
       amountandcommentp = do
@@ -313,6 +313,8 @@ amountCompleter def = completeWord Nothing "" f
 defaultTo' = flip defaultTo
 
 withCompletion f = withSettings (setComplete f defaultSettings)
+
+green s = "\ESC[1;32m\STX"++s++"\ESC[0m\STX"
 
 showDefault "" = ""
 showDefault s = " [" ++ s ++ "]"
