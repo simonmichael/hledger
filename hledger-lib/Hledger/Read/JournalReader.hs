@@ -751,20 +751,21 @@ numberp = do
   sign <- optionMaybe $ string "-"
   parts <- many1 $ choice' [many1 digit, many1 $ char ',', many1 $ char '.']
   let numeric = isNumber . headDef '_'
-      (_, puncparts) = partition numeric parts
+      (numparts, puncparts) = partition numeric parts
       (ok,decimalpoint',separator') =
-          case puncparts of
-            []     -> (True, Nothing, Nothing)  -- no punctuation chars
-            [d:""] -> (True, Just d, Nothing)   -- just one punctuation char, assume it's a decimal point
-            [_]    -> (False, Nothing, Nothing) -- adjacent punctuation chars, not ok
-            _:_:_  -> let (s:ss, d) = (init puncparts, last puncparts) -- two or more punctuation chars
-                     in if (any ((/=1).length) puncparts  -- adjacent punctuation chars, not ok
-                            || any (s/=) ss                -- separator chars differ, not ok
-                            || head parts == s)            -- number begins with a separator char, not ok
-                         then (False, Nothing, Nothing)
-                         else if s == d
-                               then (True, Nothing, Just $ head s) -- just one kind of punctuation, assume separator chars
-                               else (True, Just $ head d, Just $ head s) -- separators and a decimal point
+          case (numparts,puncparts) of
+            ([],_)     -> (False, Nothing, Nothing)  -- no digits
+            (_,[])     -> (True, Nothing, Nothing)  -- no punctuation chars
+            (_,[d:""]) -> (True, Just d, Nothing)   -- just one punctuation char, assume it's a decimal point
+            (_,[_])    -> (False, Nothing, Nothing) -- adjacent punctuation chars, not ok
+            (_,_:_:_)  -> let (s:ss, d) = (init puncparts, last puncparts) -- two or more punctuation chars
+                          in if (any ((/=1).length) puncparts  -- adjacent punctuation chars, not ok
+                                 || any (s/=) ss                -- separator chars differ, not ok
+                                 || head parts == s)            -- number begins with a separator char, not ok
+                              then (False, Nothing, Nothing)
+                              else if s == d
+                                    then (True, Nothing, Just $ head s) -- just one kind of punctuation, assume separator chars
+                                    else (True, Just $ head d, Just $ head s) -- separators and a decimal point
   when (not ok) (fail $ "number seems ill-formed: "++concat parts)
   let (intparts',fracparts') = span ((/= decimalpoint') . Just . head) parts
       (intparts, fracpart) = (filter numeric intparts', filter numeric fracparts')
