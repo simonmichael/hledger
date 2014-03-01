@@ -80,8 +80,8 @@ showHelp = hPutStr stderr $ unlines [
     ,"An optional (CODE) may follow transaction dates."
     ,"An optional ; COMMENT may follow descriptions or amounts."
     ,"If you make a mistake, enter < at any prompt to restart the transaction."
-    ,"To finish and save a transaction, enter . when prompted."
-    ,"To end, press control-d or control-c."
+    ,"To end a transaction, enter . when prompted."
+    ,"To quit, enter . at a date prompt or press control-d or control-c."
     ]
 
 -- | Loop reading transactions from the console, prompting, validating
@@ -98,7 +98,7 @@ getAndAddTransactions es@EntryState{..} = (do
       j <- if debug_ esOpts > 0
            then hPrintf stderr "Skipping journal add due to debug mode.\n" >> return esJournal
            else journalAddTransaction esJournal esOpts t >> hPrintf stderr "Saved.\n"
-      hPrintf stderr "Starting the next transaction (or ctrl-D/ctrl-C to end)\n"
+      hPrintf stderr "Starting the next transaction (. or ctrl-D/ctrl-C to quit)\n"
       getAndAddTransactions es{esJournal=j, esDefDate=tdate t}
   )
   `E.catch` (\(_::RestartTransactionException) ->
@@ -154,6 +154,7 @@ dateAndCodeWizard EntryState{..} = do
    parser (parseSmartDateAndCode esToday) $ 
    withCompletion (dateCompleter def) $
    defaultTo' def $ nonEmpty $ 
+   maybeExit $
    maybeRestartTransaction $
    -- maybeShowHelp $
    line $ printf "Date%s: " (showDefault def)
@@ -269,6 +270,8 @@ amountAndCommentWizard EntryState{..} = do
   --     mdefaultcommodityapplied = if acommodity a == acommodity awithoutctx then Nothing else Just $ acommodity a
   -- when (isJust mdefaultcommodityapplied) $
   --      liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust mdefaultcommodityapplied)
+
+maybeExit = parser (\s -> if s=="." then throw UnexpectedEOF else Just s)
 
 maybeRestartTransaction = parser (\s -> if s=="<" then throw RestartTransactionException else Just s)
 
