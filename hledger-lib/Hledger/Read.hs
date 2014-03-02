@@ -114,7 +114,7 @@ tests_readJournal' = [
 -- - otherwise, try them all.
 --
 -- A CSV conversion rules file may also be specified for use by the CSV reader.
-readJournal :: Maybe Format -> Maybe FilePath -> Maybe FilePath -> String -> IO (Either String Journal)
+readJournal :: Maybe StorageFormat -> Maybe FilePath -> Maybe FilePath -> String -> IO (Either String Journal)
 readJournal format rulesfile path s =
   -- trace (show (format, rulesfile, path)) $
   tryReaders $ readersFor (format, path, s)
@@ -134,19 +134,19 @@ readJournal format rulesfile path s =
         path' = fromMaybe "(string)" path
 
 -- | Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
-readersFor :: (Maybe Format, Maybe FilePath, String) -> [Reader]
+readersFor :: (Maybe StorageFormat, Maybe FilePath, String) -> [Reader]
 readersFor (format,path,s) =
     case format of 
-     Just f  -> case readerForFormat f of Just r  -> [r]
-                                          Nothing -> []
+     Just f  -> case readerForStorageFormat f of Just r  -> [r]
+                                                 Nothing -> []
      Nothing -> case path of Nothing  -> readers
                              Just "-" -> readers
                              Just p   -> case readersForPathAndData (p,s) of [] -> readers
                                                                              rs -> rs
 
 -- | Find the (first) reader which can handle the given format, if any.
-readerForFormat :: Format -> Maybe Reader
-readerForFormat s | null rs = Nothing
+readerForStorageFormat :: StorageFormat -> Maybe Reader
+readerForStorageFormat s | null rs = Nothing
                   | otherwise = Just $ head rs
     where 
       rs = filter ((s==).rFormat) readers :: [Reader]
@@ -159,7 +159,7 @@ readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
 -- an error message, using the specified data format or trying all known
 -- formats. A CSV conversion rules file may be specified for better
 -- conversion of that format.
-readJournalFile :: Maybe Format -> Maybe FilePath -> FilePath -> IO (Either String Journal)
+readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> FilePath -> IO (Either String Journal)
 readJournalFile format rulesfile "-" = do
   hSetNewlineMode stdin universalNewlineMode
   getContents >>= readJournal format rulesfile (Just "(stdin)")
