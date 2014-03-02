@@ -147,9 +147,9 @@ postingCleared p = if pstatus p
 postingAllTags :: Posting -> [Tag]
 postingAllTags p = ptags p ++ maybe [] transactionAllTags (ptransaction p)
 
--- | Tags for this transaction including any inherited from above, when that is implemented.
+-- | Tags for this transaction including any from its postings.
 transactionAllTags :: Transaction -> [Tag]
-transactionAllTags t = ttags t
+transactionAllTags t = ttags t ++ concatMap ptags (tpostings t)
 
 -- Get the other postings from this posting's transaction.
 relatedPostings :: Posting -> [Posting]

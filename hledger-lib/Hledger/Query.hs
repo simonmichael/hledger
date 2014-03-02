@@ -631,8 +631,8 @@ tests_matchesTransaction = [
    assertBool "" $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
    -- see posting for more tag tests
    assertBool "" $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
-   -- a tag match on a transaction usually ignores posting tags
-   assertBool "" $ not $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
+   -- a tag match on a transaction also matches posting tags
+   assertBool "" $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
  ]
 
 lookupTagByName :: String -> [Tag] -> Maybe Tag
