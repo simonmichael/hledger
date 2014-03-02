@@ -104,7 +104,7 @@ import Text.ParserCombinators.Parsec as P
 import Text.Printf
 
 import Hledger
-import Hledger.Data.FormatStrings as Format
+import Hledger.Data.OutputFormat as OutputFormat
 import Hledger.Cli.Version
 
 -- 
@@ -638,12 +638,12 @@ balancetypeopt rawopts
 
 -- | Parse the format option if provided, possibly returning an error,
 -- otherwise get the default value.
-formatFromOpts :: ReportOpts -> Either String [FormatString]
-formatFromOpts = maybe (Right defaultBalanceFormatString) parseFormatString . format_
+formatFromOpts :: ReportOpts -> Either String [OutputFormat]
+formatFromOpts = maybe (Right defaultBalanceFormat) parseStringFormat . format_
 
 -- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceFormatString :: [FormatString]
-defaultBalanceFormatString = [
+defaultBalanceFormat :: [OutputFormat]
+defaultBalanceFormat = [
       FormatField False (Just 20) Nothing TotalField
     , FormatLiteral "  "
     , FormatField True (Just 2) Nothing DepthSpacerField

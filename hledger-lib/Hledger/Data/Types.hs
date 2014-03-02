@@ -195,7 +195,7 @@ data HledgerFormatField =
   | FieldNo Int
     deriving (Show, Eq)
 
-data FormatString =
+data OutputFormat =
     FormatLiteral String
   | FormatField Bool        -- Left justified ?
                 (Maybe Int) -- Min width

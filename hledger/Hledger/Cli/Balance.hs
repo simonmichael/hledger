@@ -250,7 +250,7 @@ import Text.Tabular.AsciiArt
 import Hledger
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
-import Hledger.Data.FormatStrings
+import Hledger.Data.OutputFormat
 import Hledger.Cli.Options
 
 
@@ -309,7 +309,7 @@ This implementation turned out to be a bit convoluted but implements the followi
     b         USD -1  ; Account 'b' has two amounts. The account name is printed on the last line.
 -}
 -- | Render one balance report line item as plain text suitable for console output.
-balanceReportItemAsText :: ReportOpts -> [FormatString] -> BalanceReportItem -> [String]
+balanceReportItemAsText :: ReportOpts -> [OutputFormat] -> BalanceReportItem -> [String]
 balanceReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
     -- 'amounts' could contain several quantities of the same commodity with different price.
     -- In order to combine them into single value (which is expected) we take the first price and
@@ -325,7 +325,7 @@ balanceReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
       multiline [a]    = [formatBalanceReportItem opts (Just accountName) depth a format]
       multiline (a:as) = (formatBalanceReportItem opts Nothing depth a format) : multiline as
 
-formatBalanceReportItem :: ReportOpts -> Maybe AccountName -> Int -> Amount -> [FormatString] -> String
+formatBalanceReportItem :: ReportOpts -> Maybe AccountName -> Int -> Amount -> [OutputFormat] -> String
 formatBalanceReportItem _ _ _ _ [] = ""
 formatBalanceReportItem opts accountName depth amount (fmt:fmts) =
   s ++ (formatBalanceReportItem opts accountName depth amount fmts)

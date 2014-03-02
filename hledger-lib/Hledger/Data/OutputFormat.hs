@@ -1,8 +1,8 @@
-module Hledger.Data.FormatStrings (
-          parseFormatString
-        , formatStrings
+module Hledger.Data.OutputFormat (
+          parseStringFormat
+        , formatsp
         , formatValue
-        , FormatString(..)
+        , OutputFormat(..)
         , HledgerFormatField(..)
         , tests
         ) where
@@ -25,8 +25,8 @@ formatValue leftJustified min max value = printf formatS value
       max' = maybe "" (\i -> "." ++ (show i)) max
       formatS = "%" ++ l ++ min' ++ max' ++ "s"
 
-parseFormatString :: String -> Either String [FormatString]
-parseFormatString input = case (runParser formatStrings () "(unknown)") input of
+parseStringFormat :: String -> Either String [OutputFormat]
+parseStringFormat input = case (runParser formatsp () "(unknown)") input of
     Left y -> Left $ show y
     Right x -> Right x
 
@@ -43,7 +43,7 @@ field = do
     <|> try (string "total" >> return TotalField)
     <|> try (many1 digit >>= (\s -> return $ FieldNo $ read s))
 
-formatField :: GenParser Char st FormatString
+formatField :: GenParser Char st OutputFormat
 formatField = do
     char '%'
     leftJustified <- optionMaybe (char '-')
@@ -58,7 +58,7 @@ formatField = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-formatLiteral :: GenParser Char st FormatString
+formatLiteral :: GenParser Char st OutputFormat
 formatLiteral = do
     s <- many1 c
     return $ FormatLiteral s
@@ -67,23 +67,23 @@ formatLiteral = do
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatStr :: GenParser Char st FormatString
-formatStr =
+formatp :: GenParser Char st OutputFormat
+formatp =
         formatField
     <|> formatLiteral
 
-formatStrings :: GenParser Char st [FormatString]
-formatStrings = many formatStr
+formatsp :: GenParser Char st [OutputFormat]
+formatsp = many formatp
 
-testFormat :: FormatString -> String -> String -> Assertion
+testFormat :: OutputFormat -> String -> String -> Assertion
 testFormat fs value expected = assertEqual name expected actual
     where
         (name, actual) = case fs of
             FormatLiteral l -> ("literal", formatValue False Nothing Nothing l)
             FormatField leftJustify min max _ -> ("field", formatValue leftJustify min max value)
 
-testParser :: String -> [FormatString] -> Assertion
-testParser s expected = case (parseFormatString s) of
+testParser :: String -> [OutputFormat] -> Assertion
+testParser s expected = case (parseStringFormat s) of
     Left  error -> assertFailure $ show error
     Right actual -> assertEqual ("Input: " ++ s) expected actual
 

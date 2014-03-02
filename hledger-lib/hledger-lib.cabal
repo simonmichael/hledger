@@ -39,7 +39,7 @@ library
                   Hledger.Data.Amount
                   Hledger.Data.Commodity
                   Hledger.Data.Dates
-                  Hledger.Data.FormatStrings
+                  Hledger.Data.OutputFormat
                   Hledger.Data.Journal
                   Hledger.Data.Ledger
                   Hledger.Data.Posting
