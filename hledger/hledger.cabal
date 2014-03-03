@@ -85,6 +85,7 @@ library
                  ,tabular >= 0.2 && < 0.3
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
+                 ,wizards == 1.0.*
   default-language: Haskell2010
 
 -- should depend on the above to avoid double compilation but this is
