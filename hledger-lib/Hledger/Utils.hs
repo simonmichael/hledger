@@ -560,3 +560,11 @@ readFile' name =  do
   h <- openFile name ReadMode
   hSetNewlineMode h universalNewlineMode
   hGetContents h
+
+-- | Scans a list with a function that takes a state and an object and return an updated state and updated object.
+scanStateUpdate f s (x:xs) =
+    case f s x of
+      Right (s', x') -> Right x' : (scanStateUpdate f s' xs)
+      Left e -> [Left e]
+scanStateUpdate _ _ [] = []
+
