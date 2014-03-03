@@ -231,7 +231,7 @@ amountAndCommentWizard EntryState{..} = do
           case esSimilarTransaction of
             Nothing                        -> (Nothing,False)
             Just Transaction{tpostings=ps} -> (if length ps >= pnum then Just (ps !! (pnum-1)) else Nothing
-                                              ,all (\(a,b) -> paccount a == paccount b && pamount a == pamount b) $ zip esPostings ps)
+                                              ,all (\(a,b) -> pamount a == pamount b) $ zip esPostings ps)
       def = case (esArgs, mhistoricalp, followedhistoricalsofar) of
               (d:_,_,_)                                             -> d
               (_,Just hp,True)                                      -> showamt $ pamount hp
