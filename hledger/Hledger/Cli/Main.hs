@@ -90,7 +90,7 @@ main = do
     printf "running: %s\n" prognameandversion
     printf "raw args: %s\n" (show args)
     printf "raw args rearranged for cmdargs: %s\n" (show args')
-    printf "raw command might be: %s\n" (show rawcmd)
+    printf "raw command is probably: %s\n" (show rawcmd)
     printf "raw args before command: %s\n" (show argsbeforecmd)
     printf "raw args after command: %s\n" (show argsaftercmd)
 
