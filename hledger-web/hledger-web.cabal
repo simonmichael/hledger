@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.22.4
+version: 0.22.98
 stability:      beta
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
@@ -71,7 +71,7 @@ flag library-only
     Default:       False
 
 library
-    cpp-options:   -DVERSION="0.22.4"
+    cpp-options:   -DVERSION="0.22.98"
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
  
@@ -114,8 +114,8 @@ library
                      Hledger.Web.Options
                      -- Setup -- stops yesod devel complaining, requires build-depends: Cabal
     build-depends:
-                     hledger              == 0.22.1
-                   , hledger-lib          == 0.22.1
+                     hledger              == 0.22.98
+                   , hledger-lib          == 0.22.98
                    , base                 >= 4 && < 5
                    , bytestring
                    , clientsession
@@ -162,7 +162,7 @@ executable         hledger-web
     if flag(library-only)
         Buildable: False
 
-    cpp-options:   -DVERSION="0.22.4"
+    cpp-options:   -DVERSION="0.22.98"
     if flag(dev)
         cpp-options:   -DDEVELOPMENT
 
@@ -206,8 +206,8 @@ executable         hledger-web
                      Hledger.Web.Options
 
     build-depends:
-                     hledger              == 0.22.1
-                   , hledger-lib          == 0.22.1
+                     hledger              == 0.22.98
+                   , hledger-lib          == 0.22.98
                    , base                 >= 4 && < 5
                    , bytestring
                    , clientsession
