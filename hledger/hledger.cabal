@@ -176,5 +176,5 @@ test-suite tests
                , text
                , time
                , transformers
-  default-language: Haskell2010
                , wizards == 1.0.*
+  default-language: Haskell2010
