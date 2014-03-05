@@ -145,7 +145,7 @@ postingCleared p = if pstatus p
 
 -- | Tags for this posting including any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]
-postingAllTags p = ptags p ++ maybe [] transactionAllTags (ptransaction p)
+postingAllTags p = ptags p ++ maybe [] ttags (ptransaction p)
 
 -- | Tags for this transaction including any from its postings.
 transactionAllTags :: Transaction -> [Tag]
