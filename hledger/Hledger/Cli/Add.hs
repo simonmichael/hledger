@@ -96,8 +96,11 @@ getAndAddTransactions es@EntryState{..} = (do
     Nothing -> fail "urk ?"
     Just t -> do
       j <- if debug_ esOpts > 0
-           then hPrintf stderr "Skipping journal add due to debug mode.\n" >> return esJournal
-           else journalAddTransaction esJournal esOpts t >> hPrintf stderr "Saved.\n"
+           then do hPrintf stderr "Skipping journal add due to debug mode.\n"
+                   return esJournal
+           else do j' <- journalAddTransaction esJournal esOpts t
+                   hPrintf stderr "Saved.\n"
+                   return j'
       hPrintf stderr "Starting the next transaction (. or ctrl-D/ctrl-C to quit)\n"
       getAndAddTransactions es{esJournal=j, esDefDate=tdate t}
   )
