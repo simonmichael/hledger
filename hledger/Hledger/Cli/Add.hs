@@ -282,32 +282,34 @@ maybeRestartTransaction = parser (\s -> if s=="<" then throw RestartTransactionE
 -- maybeShowHelp wizard = maybe (liftIO showHelp >> wizard) return $ 
 --                        parser (\s -> if s=="?" then Nothing else Just s) wizard
 
-simpleCompletion' s = (simpleCompletion s){isFinished=False}
+-- Completion helpers
 
 dateCompleter :: String -> CompletionFunc IO
-dateCompleter def = completeWord Nothing "" f
-    where
-      f "" = return [simpleCompletion' def]
-      f s  = return $ map simpleCompletion' $ filter (s `isPrefixOf`) cs
-      cs = ["today","tomorrow","yesterday"]
+dateCompleter = completer ["today","tomorrow","yesterday"]
 
-descriptionCompleter j def = completeWord Nothing "" f
-    where
-      f "" = return [simpleCompletion' def]
-      f s  = return $ map simpleCompletion' $ filter (s `isPrefixOf`) cs
-      -- f s  = return $ map simpleCompletion' $ filter ((lowercase s `isPrefixOf`) . lowercase) cs
-      cs = journalDescriptions j
+descriptionCompleter :: Journal -> String -> CompletionFunc IO
+descriptionCompleter j = completer (journalDescriptions j)
 
-accountCompleter j def = completeWord Nothing "" f
-    where
-      f "" = return [simpleCompletion' def]
-      f s  = return $ map simpleCompletion' $ filter (s `isPrefixOf`) cs
-      cs = journalAccountNamesUsed j
+accountCompleter :: Journal -> String -> CompletionFunc IO
+accountCompleter j = completer (journalAccountNamesUsed j)
 
-amountCompleter def = completeWord Nothing "" f
+amountCompleter :: String -> CompletionFunc IO
+amountCompleter = completer []
+
+-- | Generate a haskeline completion function from the given
+-- completions and default, that case insensitively completes with
+-- prefix matches, or infix matches above a minimum length, or
+-- completes the null string with the default.
+completer :: [String] -> String -> CompletionFunc IO
+completer completions def = completeWord Nothing "" completionsFor
     where
-      f "" = return [simpleCompletion' def]
-      f _  = return []
+      completionsFor "" = return [simpleCompletion' def]
+      completionsFor i  = return (map simpleCompletion' ciprefixmatches)
+          where
+            simpleCompletion' s = (simpleCompletion s){isFinished=False}
+            ciprefixmatches = [c | c <- completions, i `isPrefixOf` c]
+            -- mixed-case completions require haskeline > 0.7.1.2
+            -- ciprefixmatches = [c | c <- completions, lowercase i `isPrefixOf` lowercase c]
 
 --------------------------------------------------------------------------------
 
