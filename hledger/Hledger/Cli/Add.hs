@@ -303,6 +303,7 @@ amountCompleter = completer []
 completer :: [String] -> String -> CompletionFunc IO
 completer completions def = completeWord Nothing "" completionsFor
     where
+      simpleCompletion' s = (simpleCompletion s){isFinished=False}
       completionsFor "" = return [simpleCompletion' def]
       completionsFor i  = return (map simpleCompletion' ciprefixmatches)
           where
