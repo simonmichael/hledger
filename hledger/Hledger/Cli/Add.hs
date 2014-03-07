@@ -307,7 +307,6 @@ completer completions def = completeWord Nothing "" completionsFor
       completionsFor "" = return [simpleCompletion' def]
       completionsFor i  = return (map simpleCompletion' ciprefixmatches)
           where
-            simpleCompletion' s = (simpleCompletion s){isFinished=False}
             ciprefixmatches = [c | c <- completions, i `isPrefixOf` c]
             -- mixed-case completions require haskeline > 0.7.1.2
             -- ciprefixmatches = [c | c <- completions, lowercase i `isPrefixOf` lowercase c]
