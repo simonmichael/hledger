@@ -192,7 +192,7 @@ defCommandMode names = defMode {
 -- | A basic subcommand mode suitable for an add-on command.
 defAddonCommandMode addon = defMode {
    modeNames = [addon]
-  ,modeHelp = printf "run %s-%s" progname addon
+  ,modeHelp = fromMaybe "" $ lookup (striphs addon) standardAddonsHelp
   ,modeValue=[("command",addon)]
   ,modeGroupFlags = Group {
       groupUnnamed = []
@@ -202,46 +202,57 @@ defAddonCommandMode addon = defMode {
   ,modeArgs = ([], Just $ argsFlag "[ARGS]")
   }
 
+striphs = regexReplace "\\.l?hs$" ""
+
+standardAddonsHelp :: [(String,String)]
+standardAddonsHelp = [
+   ("chart", "generate simple balance pie charts")
+  ,("interest", "generate interest transaction entries")
+  ,("irr", "calculate internal rate of return")
+  ,("vty", "start the curses-style interface")
+  ,("web", "start the web interface")
+  ,("accounts", "list account names")
+  ,("balance-csv", "output a balance report as CSV")
+  ,("equity", "show a transaction entry zeroing all accounts")
+  ,("print-unique", "print only transactions with unique descriptions")
+  ,("register-csv", "output a register report as CSV")
+  ,("rewrite", "add specified postings to matched transaction entries")
+  ]
+
 -- | Add command aliases to the command's help string.
 withAliases :: String -> [String] -> String
-s `withAliases` []     = s
-s `withAliases` (a:[]) = s ++ " (alias: " ++ a ++ ")"
-s `withAliases` as     = s ++ " (aliases: " ++ intercalate ", " as ++ ")"
+s `withAliases` as = s ++ " (" ++ intercalate ", " as ++ ")"
+-- s `withAliases` []     = s
+-- s `withAliases` (a:[]) = s ++ " (alias: " ++ a ++ ")"
+-- s `withAliases` as     = s ++ " (aliases: " ++ intercalate ", " as ++ ")"
 
 
 -- | The top-level cmdargs mode for hledger.
 mainmode addons = defMode {
   modeNames = [progname]
  ,modeHelp = unlines [
-      "run the specified hledger command. Commands:"
      ]
  ,modeHelpSuffix = [""]
  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
  ,modeGroupModes = Group {
     -- modes (commands) in named groups:
     groupNamed = [
-      ("Adding data", [
+      ("Data entry commands", [
         addmode
        ])
-     ,("\nBasic reports", [
+     ,("\nReporting commands", [
         printmode
        ,balancemode
        ,registermode
-       -- ,transactionsmode
-       ])
-     ,("\nMore reports", [
-        activitymode
        ,incomestatementmode
        ,balancesheetmode
        ,cashflowmode
+       ,activitymode
        ,statsmode
-       ])
-     ,("\nMiscellaneous", [
-        testmode
        ])
      ]
      ++ case addons of [] -> []
-                       cs -> [("\nAdd-on commands found", map defAddonCommandMode cs)]
+                       cs -> [("\nAdd-on commands", map defAddonCommandMode cs)]
     -- modes in the unnamed group, shown first without a heading:
    ,groupUnnamed = [
      ]
@@ -271,7 +282,7 @@ mainmode addons = defMode {
 -- visible subcommand modes
 
 addmode = (defCommandMode ["add"]) {
-  modeHelp = "prompt for new transaction entries and add them to the journal"
+  modeHelp = "prompt for transactions and add them to the journal"
  ,modeHelpSuffix = ["Defaults come from previous similar transactions; use query patterns to restrict these."]
  ,modeGroupFlags = Group {
      groupUnnamed = [
@@ -283,7 +294,7 @@ addmode = (defCommandMode ["add"]) {
  }
 
 balancemode = (defCommandMode $ ["balance"] ++ aliases) {
-  modeHelp = "show matched accounts and their balances" `withAliases` aliases
+  modeHelp = "show accounts and balances" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "with a reporting interval, show accumulated totals starting from 0"
@@ -298,10 +309,10 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["b","bal"]
+  where aliases = ["b"]
 
 printmode = (defCommandMode $ ["print"] ++ aliases) {
-  modeHelp = "show matched journal entries" `withAliases` aliases
+  modeHelp = "show transaction entries" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -311,7 +322,7 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
   where aliases = ["p"]
 
 registermode = (defCommandMode $ ["register"] ++ aliases) {
-  modeHelp = "show matched postings and running total" `withAliases` aliases
+  modeHelp = "show postings and running total" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "increase or set the output width (default: 80)"
@@ -322,7 +333,7 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["r","reg"]
+  where aliases = ["r"]
 
 -- transactionsmode = (defCommandMode ["transactions"]) {
 --   modeHelp = "show matched transactions and balance in some account(s)"
@@ -344,17 +355,17 @@ activitymode = (defCommandMode ["activity"]) {
  }
 
 incomestatementmode = (defCommandMode $ ["incomestatement"]++aliases) {
-  modeHelp = "show a simple income statement" `withAliases` aliases
+  modeHelp = "show an income statement" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["is","pl"]
+  where aliases = ["is"]
 
 balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
-  modeHelp = "show a simple balance sheet" `withAliases` aliases
+  modeHelp = "show a balance sheet" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -364,7 +375,7 @@ balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
   where aliases = ["bs"]
 
 cashflowmode = (defCommandMode ["cashflow","cf"]) {
-  modeHelp = "show a simple cashflow statement" `withAliases` ["cf"]
+  modeHelp = "show a cashflow statement" `withAliases` ["cf"]
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -373,7 +384,7 @@ cashflowmode = (defCommandMode ["cashflow","cf"]) {
  }
 
 statsmode = (defCommandMode $ ["stats"] ++ aliases) {
-  modeHelp = "show quick statistics for a journal" `withAliases` aliases
+  modeHelp = "show quick journal statistics" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -721,8 +732,7 @@ rulesFilePathFromOpts opts = do
 -- | Get a mode's help message as a nicely wrapped string.
 showModeHelp :: Mode a -> String
 showModeHelp =
-  (showText defaultWrap :: [Text] -> String)
-  .
+  (showText defaultWrap :: [Text] -> String) . 
   (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
 -- not used:
