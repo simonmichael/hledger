@@ -760,7 +760,9 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
       (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
       clip = filter (depthq `matchesAccount`)
       j' = filterJournalPostings q' $ journalSelectingAmountFromOpts opts j
-      ps = journalPostings j'
+      ps = journalPostings $
+           filterJournalPostingAmounts (filterQuery queryIsSym q) -- remove amount parts which the query's sym: terms would exclude
+           j'
 
       -- the requested span is the span of the query (which is
       -- based on -b/-e/-p opts and query args IIRC).
