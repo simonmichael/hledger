@@ -190,11 +190,11 @@ postingsWizard es@EntryState{..} = do
 
 postingWizard es@EntryState{..} = do
   acct <- accountWizard es
-  if acct == "."
+  if acct `elem` [".",""]
   then case (esPostings, postingsBalanced esPostings) of
          ([],_)    -> liftIO (hPutStrLn stderr "Please enter some postings first.") >> postingWizard es
          (_,False) -> liftIO (hPutStrLn stderr "Please enter more postings to balance the transaction.") >> postingWizard es
-         (_,True)  -> return Nothing
+         (_,True)  -> return Nothing -- no more postings, end of transaction
   else do
     let es1 = es{esArgs=drop 1 esArgs}
     (amt,comment)  <- amountAndCommentWizard es1
@@ -213,20 +213,24 @@ accountWizard EntryState{..} = do
       historicalacct = case historicalp of Just p  -> showAccountName Nothing (ptype p) (paccount p)
                                            Nothing -> ""
       def = headDef historicalacct esArgs
+      endmsg | canfinish && null def = " (or . or enter to finish this transaction)"
+             | canfinish             = " (or . to finish this transaction)"
+             | otherwise             = ""
   retryMsg "A valid hledger account name is required. Eg: assets:cash, expenses:food:eating out." $
-   parser parseAccount $
+   parser (parseAccountOrDotOrNull def canfinish) $
    withCompletion (accountCompleter esJournal def) $
-   defaultTo' def $ nonEmpty $ 
+   defaultTo' def $ -- nonEmpty $ 
    maybeRestartTransaction $
    line $ green $ printf "Account %d%s%s: " pnum endmsg (showDefault def)
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
-      endmsg | canfinish = " (or . to finish this transaction)"
-             | otherwise = ""
-      parseAccount s = either (const Nothing) validateAccount $ parseWithCtx (jContext esJournal) accountnamep s
-      validateAccount s | null s                  = Nothing
-                        | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
-                        | otherwise               = Just s
+      parseAccountOrDotOrNull _  _ "."       = dbg $ Just "." -- . always signals end of txn
+      parseAccountOrDotOrNull "" True ""     = dbg $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
+      parseAccountOrDotOrNull def@(_:_) _ "" = dbg $ Just def -- when there's a default, "" means use that
+      parseAccountOrDotOrNull _ _ s          = dbg $ either (const Nothing) validateAccount $ parseWithCtx (jContext esJournal) accountnamep s -- otherwise, try to parse the input as an accountname
+      dbg = id -- strace
+      validateAccount s | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
+                        | otherwise = Just s
 
 amountAndCommentWizard EntryState{..} = do
   let pnum = length esPostings + 1
