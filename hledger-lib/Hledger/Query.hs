@@ -208,6 +208,7 @@ prefixes = map (++":") [
     ,"edate"
     ,"status"
     ,"sym"
+    ,"cur"
     ,"real"
     ,"empty"
     ,"depth"
@@ -248,6 +249,7 @@ parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt op q where (op, q) = parseAmou
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
 parseQueryTerm _ ('s':'y':'m':':':s) = Left $ Sym s
+parseQueryTerm _ ('c':'u':'r':':':s) = Left $ Sym s -- support cur: as an alias
 parseQueryTerm _ ('t':'a':'g':':':s) = Left $ Tag n v where (n,v) = parseTag s
 parseQueryTerm _ "" = Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix++":"++s
