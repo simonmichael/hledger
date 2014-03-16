@@ -565,7 +565,8 @@ getHledgerExesInPath :: IO [String]
 getHledgerExesInPath = do
   pathdirs <- splitOn ":" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  let hledgernamed = nub $ sort $ filter isHledgerExeName pathfiles
+  let hledgernamed = nubBy (\a b -> striphs a == striphs b) $ sort $ filter isHledgerExeName pathfiles
+                       where striphs = regexReplace "\\.l?hs$" ""
   -- hledgerexes <- filterM isExecutable hledgernamed
   return hledgernamed
 
