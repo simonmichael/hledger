@@ -1,16 +1,12 @@
 - title    : Home
-  url      : index.html
+  url      : start
   source   : README.md
   data:
     home: true
 
-- title    : Release notes
-  url      : CHANGES.html
-  source   : CHANGES.md
-
 - User Manual:
 
-  - title    : Latest Manual
+  - title    : Latest
     url      : MANUAL.html
     source   : MANUAL.md
   
@@ -22,28 +18,32 @@
     url      : 0.21/MANUAL.html
     source   : 0.21/MANUAL.md
 
-- title    : Wiki
-  url      : wiki
-  template : null.st
+- title    : Release notes
+  url      : CHANGES.html
+  source   : CHANGES.md
 
 - title    : Installing
-  url      : wiki/installing
+  url      : installing
   template : null.st
 
 - title    : FAQ
-  url      : wiki/faq
+  url      : faq
   template : null.st
 
 - title    : How to read CSV files
-  url      : wiki/how-to-read-csv-files
+  url      : how-to-read-csv-files
   template : null.st
 
 - title    : How to use account aliases
-  url      : wiki/how-to-use-account-aliases
+  url      : how-to-use-account-aliases
   template : null.st
 
 - title    : Developer Guide
-  url      : wiki/developer-guide
+  url      : developer-guide
+  template : null.st
+
+- title    : More docs
+  url      : start#documentation
   template : null.st
 
 - title    : Old downloads
