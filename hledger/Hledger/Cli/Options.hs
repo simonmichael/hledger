@@ -292,7 +292,7 @@ addmode = (defCommandMode ["add"]) {
     }
  }
 
-balancemode = (defCommandMode $ ["balance"] ++ aliases) {
+balancemode = (defCommandMode $ ["balance"] ++ aliases ++ ["bal"]) { -- also accept but don't show the common bal alias
   modeHelp = "show accounts and balances" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
@@ -320,7 +320,7 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
  }
   where aliases = ["p"]
 
-registermode = (defCommandMode $ ["register"] ++ aliases) {
+registermode = (defCommandMode $ ["register"] ++ aliases ++ ["reg"]) {
   modeHelp = "show postings and running total" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
