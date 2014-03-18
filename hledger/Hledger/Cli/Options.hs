@@ -257,7 +257,8 @@ mainmode addons = defMode {
      ]
     -- modes handled but not shown
    ,groupHidden = [
-        convertmode
+        testmode
+       ,convertmode
      ]
    }
  ,modeGroupFlags = Group {
@@ -392,8 +393,10 @@ statsmode = (defCommandMode $ ["stats"] ++ aliases) {
  }
   where aliases = ["s"]
 
+-- hidden commands
+
 testmode = (defCommandMode ["test"]) {
-  modeHelp = "run self-tests, or just the ones matching REGEXPS"
+  modeHelp = "run built-in self-tests"
  ,modeArgs = ([], Just $ argsFlag "[REGEXPS]")
  ,modeGroupFlags = Group {
      groupUnnamed = []
@@ -401,8 +404,6 @@ testmode = (defCommandMode ["test"]) {
     ,groupNamed = [generalflagsgroup3]
     }
  }
-
--- hidden commands
 
 convertmode = (defCommandMode ["convert"]) {
   modeValue = [("command","convert")]
