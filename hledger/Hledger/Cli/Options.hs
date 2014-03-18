@@ -101,7 +101,6 @@ import System.Environment
 import System.Exit
 import Test.HUnit
 import Text.ParserCombinators.Parsec as P
-import Text.Printf
 
 import Hledger
 import Hledger.Data.OutputFormat as OutputFormat
