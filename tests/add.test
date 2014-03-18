@@ -28,7 +28,7 @@ a
 b
 
 .
->>> /Date.*Description.*Account 1.*Amount  1.*Account 2.*Amount  2.*Account 3.*or \. to finish.*/
+>>> /Date.*Description.*Account 1.*Amount  1.*Account 2.*Amount  2.*Account 3.*or \. or enter to finish.*/
 >>>=0
 
 # 4. default commodity with greater precision
