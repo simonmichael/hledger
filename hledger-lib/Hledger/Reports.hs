@@ -656,8 +656,10 @@ type BalanceReportItem = (RenderableAccountName, MixedAmount)
 --   (normally the 0-based depth of this account excluding boring parents, or 0 with --flat).
 type RenderableAccountName = (AccountName, AccountName, Int)
 
--- | Select accounts, and get their balances at the end of the selected
--- period, and misc. display information, for an accounts report.
+-- | Generate a simple balance report, containing the matched accounts and
+-- their balances (change of balance) during the specified period.
+-- This is like periodBalanceReport with a single column (but more mature,
+-- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport opts q j = (items, total)
     where
@@ -737,8 +739,10 @@ instance Show MultiBalanceReport where
     show (MultiBalanceReport (spans, items, totals)) =
         "MultiBalanceReport (ignore extra quotes):\n" ++ ppShow (show spans, map show items, totals)
 
--- | Select accounts and get their period balance (change of balance) in each
--- period, plus misc. display information, for a period balance report.
+-- | Generate a multi balance report for the matched accounts, showing
+-- their change of balance in each of the specified periods.
+-- Currently has some limitations compared to the simple balance report,
+-- eg always displays accounts in --flat mode.
 periodBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
     where
@@ -804,8 +808,9 @@ reportSpans opts q j = (reportspan, spans)
                  (maybe Nothing spanStart $ headMay spans)
                  (maybe Nothing spanEnd   $ lastMay spans)
 
--- | Select accounts and get their ending balance in each period, plus
--- account name display information, for a cumulative or historical balance report.
+-- | Generate a multi balance report for the matched accounts, showing
+-- their cumulative or (with -H) historical balance in each of the specified periods.
+-- Has the same limitations as periodBalanceReport.
 cumulativeOrHistoricalBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 cumulativeOrHistoricalBalanceReport opts q j = MultiBalanceReport (periodbalancespans, items, totals)
     where
