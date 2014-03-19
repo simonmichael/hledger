@@ -221,7 +221,7 @@ accountWizard EntryState{..} = do
    withCompletion (accountCompleter esJournal def) $
    defaultTo' def $ -- nonEmpty $ 
    maybeRestartTransaction $
-   line $ green $ printf "Account %d%s%s: " pnum endmsg (showDefault def)
+   line $ green $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
       parseAccountOrDotOrNull _  _ "."       = dbg $ Just "." -- . always signals end of txn
