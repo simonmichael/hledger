@@ -21,7 +21,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           ---- all of this one:
                           module Hledger.Utils,
                           Debug.Trace.trace,
-                          module Data.PPrint,
+                          -- module Data.PPrint,
                           -- module Hledger.Utils.UTF8IOCompat
                           SystemString,fromSystemString,toSystemString,error',userError',
                           ppShow
@@ -36,7 +36,7 @@ import Data.Data
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
-import Data.PPrint
+-- import Data.PPrint
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Tree
@@ -418,18 +418,18 @@ dbgppshow level
     | debugLevel >= level = \s -> traceWith (((s++": ")++) . ppShow)
     | otherwise           = flip const
 
--- | Print a showable value to the console, with a message, if the
--- debug level is at or above the specified level (uses
--- unsafePerformIO).
--- Values are displayed with pprint. Field names are not shown, but the
--- output is compact with smart line wrapping, long data elided,
--- and slow calculations timed out.
-dbgpprint :: Data a => Int -> String -> a -> a
-dbgpprint level msg a
-    | debugLevel >= level = unsafePerformIO $ do
-                              pprint a >>= putStrLn . ((msg++": \n") ++) . show
-                              return a
-    | otherwise           = a
+-- -- | Print a showable value to the console, with a message, if the
+-- -- debug level is at or above the specified level (uses
+-- -- unsafePerformIO).
+-- -- Values are displayed with pprint. Field names are not shown, but the
+-- -- output is compact with smart line wrapping, long data elided,
+-- -- and slow calculations timed out.
+-- dbgpprint :: Data a => Int -> String -> a -> a
+-- dbgpprint level msg a
+--     | debugLevel >= level = unsafePerformIO $ do
+--                               pprint a >>= putStrLn . ((msg++": \n") ++) . show
+--                               return a
+--     | otherwise           = a
 
 
 -- | Like dbg, then exit the program. Uses unsafePerformIO.

@@ -60,7 +60,7 @@ library
                  ,cmdargs >= 0.10 && < 0.11
                  ,containers
                  ,csv
-                 ,data-pprint >= 0.2.3 && < 0.3
+                 -- ,data-pprint >= 0.2.3 && < 0.3
                  ,directory
                  ,filepath
                  ,mtl
@@ -91,7 +91,7 @@ test-suite tests
                , cmdargs
                , containers
                , csv
-               , data-pprint >= 0.2.3 && < 0.3
+               -- , data-pprint >= 0.2.3 && < 0.3
                , directory
                , filepath
                , HUnit
