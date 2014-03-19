@@ -310,7 +310,7 @@ This implementation turned out to be a bit convoluted but implements the followi
 -}
 -- | Render one balance report line item as plain text suitable for console output.
 balanceReportItemAsText :: ReportOpts -> [OutputFormat] -> BalanceReportItem -> [String]
-balanceReportItemAsText opts format (_, accountName, depth, Mixed amounts) =
+balanceReportItemAsText opts format ((_, accountName, depth), Mixed amounts) =
     -- 'amounts' could contain several quantities of the same commodity with different price.
     -- In order to combine them into single value (which is expected) we take the first price and
     -- use it for the whole mixed amount. This could be suboptimal. XXX
