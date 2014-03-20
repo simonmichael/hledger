@@ -52,6 +52,13 @@ library
                   Hledger.Read.JournalReader
                   Hledger.Read.TimelogReader
                   Hledger.Reports
+                  Hledger.Reports.ReportOptions
+                  Hledger.Reports.BalanceHistoryReport
+                  Hledger.Reports.BalanceReport
+                  Hledger.Reports.EntriesReport
+                  Hledger.Reports.MultiBalanceReports
+                  Hledger.Reports.PostingsReport
+                  Hledger.Reports.TransactionsReports
                   Hledger.Utils
                   Hledger.Utils.UTF8IOCompat
   build-depends:
