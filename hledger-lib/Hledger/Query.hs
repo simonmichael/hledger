@@ -68,7 +68,7 @@ data Query = Any              -- ^ always match
            | Date2 DateSpan   -- ^ match if secondary date in this date span
            | Status Bool      -- ^ match if cleared status has this value
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
-           | Amt Ordering Quantity   -- ^ match if the amount's numeric quantity is less than/greater than/equal to some value
+           | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
            | Sym String       -- ^ match if the entire commodity symbol is matched by this regexp
            | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
                               --   more of a query option than a query criteria ?
@@ -245,7 +245,7 @@ parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
                                     Right (_,span) -> Left $ Date2 span
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
-parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt op q where (op, q) = parseAmountQueryTerm s
+parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
 parseQueryTerm _ ('s':'y':'m':':':s) = Left $ Sym s
@@ -274,25 +274,40 @@ tests_parseQueryTerm = [
     -- "amt:>10000.10" `gives` (Left $ Amt GT 10000.1)
  ]
 
+
+data OrdPlus = Lt | Gt | Eq | AbsLt | AbsGt | AbsEq
+ deriving (Show,Eq,Data,Typeable)
+
 -- can fail
-parseAmountQueryTerm :: String -> (Ordering, Quantity)
-parseAmountQueryTerm s =
-  case s of
-    ""     -> err
-    '<':s' -> (LT, readDef err s')
-    '=':s' -> (EQ, readDef err s')
-    '>':s' -> (GT, readDef err s')
-    s'     -> (EQ, readDef err s')
+parseAmountQueryTerm :: String -> (OrdPlus, Quantity)
+parseAmountQueryTerm s' =
+  case s' of
+    -- feel free to do this a smarter way
+    ""        -> err
+    '<':'+':s -> (Lt, readDef err s)
+    '>':'+':s -> (Gt, readDef err s)
+    '=':'+':s -> (Eq, readDef err s)
+    '+':s     -> (Eq, readDef err s)
+    '<':'-':s -> (Lt, negate $ readDef err s)
+    '>':'-':s -> (Gt, negate $ readDef err s)
+    '=':'-':s -> (Eq, negate $ readDef err s)
+    '-':s     -> (Eq, negate $ readDef err s)
+    '<':s     -> (AbsLt, readDef err s)
+    '>':s     -> (AbsGt, readDef err s)
+    '=':s     -> (AbsEq, readDef err s)
+    s         -> (AbsEq, readDef err s)
   where
-    err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a numeric quantity: " ++ s
+    err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a (optionally signed) numeric quantity: " ++ s'
 
 tests_parseAmountQueryTerm = [
   "parseAmountQueryTerm" ~: do
     let s `gives` r = parseAmountQueryTerm s `is` r
-    "<0" `gives` (LT,0)
-    "=0.23" `gives` (EQ,0.23)
-    "0.23" `gives` (EQ,0.23)
-    ">10000.10" `gives` (GT,10000.1)
+    "<0" `gives` (AbsLt,0) -- would be always false
+    ">10000.10" `gives` (AbsGt,10000.1)
+    "=0.23" `gives` (AbsEq,0.23)
+    "0.23" `gives` (AbsEq,0.23)
+    "=+0.23" `gives` (Eq,0.23)
+    "-0.23" `gives` (Eq,(-0.23))
   ]
 
 parseTag :: String -> (String, Maybe String)
@@ -533,16 +548,22 @@ matchesAmount (Any) _ = True
 matchesAmount (None) _ = False
 matchesAmount (Or qs) a = any (`matchesAmount` a) qs
 matchesAmount (And qs) a = all (`matchesAmount` a) qs
-matchesAmount (Amt op n) a = compareMixedAmount op n (Mixed [a])
+matchesAmount (Amt ord n) a = compareMixedAmount ord n (Mixed [a])
 matchesAmount (Sym r) a = regexMatchesCI ("^" ++ r ++ "$") $ acommodity a
 matchesAmount _ _ = True
 
--- | Is this simple mixed amount's quantity less than, equal to, or greater than this number ?
--- For complext mixed amounts (with multiple commodities), this is always true.
-compareMixedAmount :: Ordering -> Quantity -> MixedAmount -> Bool
-compareMixedAmount op q (Mixed [])  = compareMixedAmount op q (Mixed [amount])
--- compareMixedAmount op q (Mixed [a]) = strace (compare (strace $ aquantity a) (strace q)) == op
-compareMixedAmount op q (Mixed [a]) = compare (aquantity a) q == op
+-- | Is this simple (single-amount) mixed amount's quantity less than, greater than, equal to, or unsignedly equal to this number ?
+-- For multi-amount (multiple commodities, or just unsimplified) mixed amounts this is always true.
+compareMixedAmount :: OrdPlus -> Quantity -> MixedAmount -> Bool
+compareMixedAmount ord q (Mixed [])  = compareMixedAmount ord q (Mixed [amount])
+-- compareMixedAmount ord q (Mixed [a]) = strace (compare (strace $ aquantity a) (strace q)) == ord
+compareMixedAmount ord q (Mixed [Amount{aquantity=aq}]) = case ord of
+                                                            Lt    -> aq <  q
+                                                            Gt    -> aq >  q
+                                                            Eq    -> aq == q
+                                                            AbsLt -> abs aq <  abs q
+                                                            AbsGt -> abs aq >  abs q
+                                                            AbsEq -> abs aq == abs q
 compareMixedAmount _ _ _            = True
 
 -- | Does the match expression match this posting ?
@@ -560,7 +581,7 @@ matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (Status v) p = v == postingCleared p
 matchesPosting (Real v) p = v == isReal p
 matchesPosting (Depth d) Posting{paccount=a} = Depth d `matchesAccount` a
-matchesPosting (Amt op n) Posting{pamount=a} = compareMixedAmount op n a
+matchesPosting (Amt ord n) Posting{pamount=a} = compareMixedAmount ord n a
 -- matchesPosting (Empty v) Posting{pamount=a} = v == isZeroMixedAmount a
 -- matchesPosting (Empty False) Posting{pamount=a} = True
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
