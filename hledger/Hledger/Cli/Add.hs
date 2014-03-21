@@ -17,6 +17,7 @@ import Data.Maybe
 import Data.Time.Calendar (Day)
 import Data.Typeable (Typeable)
 import Safe (headDef, headMay)
+import System.Console.CmdArgs.Explicit
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
 import System.Console.Haskeline.Completion
 import System.Console.Wizard  
@@ -28,6 +29,19 @@ import Text.Printf
 import Hledger
 import Hledger.Cli.Options
 import Hledger.Cli.Register (postingsReportAsText)
+
+
+addmode = (defCommandMode ["add"]) {
+  modeHelp = "prompt for transactions and add them to the journal"
+ ,modeHelpSuffix = ["Defaults come from previous similar transactions; use query patterns to restrict these."]
+ ,modeGroupFlags = Group {
+     groupUnnamed = [
+      flagNone ["no-new-accounts"]  (\opts -> setboolopt "no-new-accounts" opts) "don't allow creating new accounts"
+     ]
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup2]
+    }
+ }
 
 -- | State used while entering transactions.
 data EntryState = EntryState {

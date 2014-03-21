@@ -5,7 +5,8 @@ A ledger-compatible @register@ command.
 -}
 
 module Hledger.Cli.Register (
-  register
+  registermode
+ ,register
  ,postingsReportAsText
  -- ,showPostingWithBalanceForVty
  ,tests_Hledger_Cli_Register
@@ -13,6 +14,7 @@ module Hledger.Cli.Register (
 
 import Data.List
 import Data.Maybe
+import System.Console.CmdArgs.Explicit
 import Test.HUnit
 import Text.Printf
 
@@ -21,6 +23,20 @@ import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Cli.Options
 
+
+registermode = (defCommandMode $ ["register"] ++ aliases ++ ["reg"]) {
+  modeHelp = "show postings and running total" `withAliases` aliases
+ ,modeGroupFlags = Group {
+     groupUnnamed = [
+      flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "increase or set the output width (default: 80)"
+     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show the running average instead of the running total"
+     ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show the other postings in the transactions of those that would have been shown"
+     ]
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
+  where aliases = ["r"]
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()

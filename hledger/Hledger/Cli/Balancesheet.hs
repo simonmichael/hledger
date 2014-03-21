@@ -6,11 +6,13 @@ The @balancesheet@ command prints a simple balance sheet.
 -}
 
 module Hledger.Cli.Balancesheet (
-  balancesheet
+  balancesheetmode
+ ,balancesheet
  ,tests_Hledger_Cli_Balancesheet
 ) where
 
 import qualified Data.Text.Lazy.IO as LT
+import System.Console.CmdArgs.Explicit
 import Test.HUnit
 import Text.Shakespeare.Text
 
@@ -18,6 +20,16 @@ import Hledger
 import Hledger.Cli.Options
 import Hledger.Cli.Balance
 
+
+balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
+  modeHelp = "show a balance sheet" `withAliases` aliases
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
+  where aliases = ["bs"]
 
 -- | Print a simple balance sheet.
 balancesheet :: CliOpts -> Journal -> IO ()

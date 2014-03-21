@@ -5,17 +5,32 @@ A ledger-compatible @print@ command.
 -}
 
 module Hledger.Cli.Print (
-  print'
+  printmode
+ ,print'
  ,showTransactions
  ,tests_Hledger_Cli_Print
-) where
+)
+where
+
 import Data.List
+import System.Console.CmdArgs.Explicit
 import Test.HUnit
 
 import Hledger
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Cli.Options
+
+
+printmode = (defCommandMode $ ["print"] ++ aliases) {
+  modeHelp = "show transaction entries" `withAliases` aliases
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
+  where aliases = ["p"]
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()

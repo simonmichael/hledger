@@ -233,7 +233,8 @@ Currently, empty cells show 0.
 -}
 
 module Hledger.Cli.Balance (
-  balance
+  balancemode
+ ,balance
  ,balanceReportAsText
  ,periodBalanceReportAsText
  ,cumulativeBalanceReportAsText
@@ -243,8 +244,11 @@ module Hledger.Cli.Balance (
 
 import Data.List
 import Data.Maybe
+-- import System.Console.CmdArgs
+import System.Console.CmdArgs.Explicit as C
+-- import System.Console.CmdArgs.Text
 import Test.HUnit
-import Text.Tabular
+import Text.Tabular as T
 import Text.Tabular.AsciiArt
 
 import Hledger
@@ -254,7 +258,26 @@ import Hledger.Data.OutputFormat
 import Hledger.Cli.Options
 
 
--- | Print a balance report.
+-- | Command line options for this command.
+balancemode = (defCommandMode $ ["balance"] ++ aliases ++ ["bal"]) { -- also accept but don't show the common bal alias
+  modeHelp = "show accounts and balances" `withAliases` aliases
+ ,modeGroupFlags = C.Group {
+     groupUnnamed = [
+      flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "with a reporting interval, show accumulated totals starting from 0"
+     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "with a reporting interval, show accurate historical ending balances"
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
+     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
+     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
+     ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
+     ]
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
+  where aliases = ["b"]
+
+-- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
 balance CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
@@ -353,8 +376,8 @@ periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals))
     ((" "++) . showDateSpan)
     showMixedAmountWithoutPrice
     $ Table
-      (Group NoLine $ map (Header . padright acctswidth) accts)
-      (Group NoLine $ map Header colspans)
+      (T.Group NoLine $ map (Header . padright acctswidth) accts)
+      (T.Group NoLine $ map Header colspans)
       (map snd items')
     +----+
     totalrow
@@ -378,8 +401,8 @@ cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountWithoutPrice $
     addtotalrow $ 
      Table
-       (Group NoLine $ map (Header . padright acctswidth) accts)
-       (Group NoLine $ map Header colspans)
+       (T.Group NoLine $ map (Header . padright acctswidth) accts)
+       (T.Group NoLine $ map Header colspans)
        (map snd items)
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
@@ -399,8 +422,8 @@ historicalBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountWithoutPrice $
     addtotalrow $ 
      Table
-       (Group NoLine $ map (Header . padright acctswidth) accts)
-       (Group NoLine $ map Header colspans)
+       (T.Group NoLine $ map (Header . padright acctswidth) accts)
+       (T.Group NoLine $ map Header colspans)
        (map snd items)
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)

@@ -1,51 +1,40 @@
 {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, DeriveDataTypeable #-}
 {-|
 
-Command-line options for the hledger program, and related utilities.
+Common command-line options and utilities used by hledger's subcommands and addons.
 
 -}
 
 module Hledger.Cli.Options (
 
   -- * cmdargs modes & flags
-  -- | These tell cmdargs how to parse the command line arguments.
-  -- There's one mode for each internal subcommand, plus a main mode.
-  mainmode,
-  activitymode,
-  addmode,
-  balancemode,
-  balancesheetmode,
-  cashflowmode,
-  incomestatementmode,
-  printmode,
-  registermode,
-  statsmode,
-  testmode,
-  convertmode,
-  defCommandMode,
+  -- | These tell cmdargs how to parse the command line arguments for each hledger subcommand.
   argsFlag,
-  helpflags,
-  inputflags,
-  reportflags,
+  defAddonCommandMode,
+  defCommandMode,
+  defMode,
   generalflagsgroup1,
   generalflagsgroup2,
   generalflagsgroup3,
+  helpflags,
+  inputflags,
+  reportflags,
   
-  -- * raw options
+  -- * Raw options
   -- | To allow the cmdargs modes to be reused and extended by other
   -- packages (eg, add-ons which want to mimic the standard hledger
-  -- options), we parse the command-line arguments to a simple
-  -- association list, not a fixed ADT.
+  -- options), our cmdargs modes parse to an extensible association
+  -- list (RawOpts) rather than a closed ADT like CliOpts.
   RawOpts,
-  inRawOpts,
   boolopt,
+  inRawOpts,
   intopt,
-  maybeintopt,
-  stringopt,
-  maybestringopt,
   listofstringopt,
-  setopt,
+  maybeintopt,
+  maybestringopt,
   setboolopt,
+  setopt,
+  stringopt,
 
   -- * CLI options
   -- | Raw options are converted to a more convenient,
@@ -56,27 +45,26 @@ module Hledger.Cli.Options (
 
   -- * CLI option accessors
   -- | Some options require more processing. Possibly these should be merged into argsToCliOpts.
+  OutputWidth(..),
+  Width(..),
   aliasesFromOpts,
+  defaultWidth,
+  defaultWidthWithFlag,
   formatFromOpts,
   journalFilePathFromOpts,
   rulesFilePathFromOpts,
-  OutputWidth(..),
-  Width(..),
-  defaultWidth,
-  defaultWidthWithFlag,
   widthFromOpts,
 
   -- * utilities
-  getHledgerAddonCommands,
-  argsToCliOpts,
-  moveFlagsAfterCommand,
-  decodeRawOpts,
   checkCliOpts,
-  rawOptsToCliOpts,
-  optserror,
-  showModeHelp,
   debugArgs,
+  decodeRawOpts,
   getCliOpts,
+  getHledgerAddonCommands,
+  optserror,
+  rawOptsToCliOpts,
+  showModeHelp,
+  withAliases,
 
   -- * tests
   tests_Hledger_Cli_Options
@@ -87,7 +75,6 @@ where
 import qualified Control.Exception as C
 -- import Control.Monad (filterM)
 import Control.Monad (when)
-import Data.Char (isDigit)
 import Data.List
 import Data.List.Split
 import Data.Maybe
@@ -158,7 +145,7 @@ generalflagsgroup1 = (generalflagstitle, inputflags ++ reportflags ++ helpflags)
 generalflagsgroup2 = (generalflagstitle, inputflags ++ helpflags)
 generalflagsgroup3 = (generalflagstitle, helpflags)
 
--- cmdargs modes
+-- cmdargs mode constructors
 
 -- | A basic mode template.
 defMode :: Mode RawOpts
@@ -203,6 +190,8 @@ defAddonCommandMode addon = defMode {
 
 striphs = regexReplace "\\.l?hs$" ""
 
+-- | Built-in descriptions for some of the known external addons,
+-- since we don't currently have any way to ask them.
 standardAddonsHelp :: [(String,String)]
 standardAddonsHelp = [
    ("chart", "generate simple balance pie charts")
@@ -226,51 +215,6 @@ s `withAliases` as = s ++ " (" ++ intercalate ", " as ++ ")"
 -- s `withAliases` as     = s ++ " (aliases: " ++ intercalate ", " as ++ ")"
 
 
--- | The top-level cmdargs mode for hledger.
-mainmode addons = defMode {
-  modeNames = [progname]
- ,modeHelp = unlines [
-     ]
- ,modeHelpSuffix = [""]
- ,modeArgs = ([], Just $ argsFlag "[ARGS]")
- ,modeGroupModes = Group {
-    -- modes (commands) in named groups:
-    groupNamed = [
-      ("Data entry commands", [
-        addmode
-       ])
-     ,("\nReporting commands", [
-        printmode
-       ,balancemode
-       ,registermode
-       ,incomestatementmode
-       ,balancesheetmode
-       ,cashflowmode
-       ,activitymode
-       ,statsmode
-       ])
-     ]
-     ++ case addons of [] -> []
-                       cs -> [("\nAdd-on commands", map defAddonCommandMode cs)]
-    -- modes in the unnamed group, shown first without a heading:
-   ,groupUnnamed = [
-     ]
-    -- modes handled but not shown
-   ,groupHidden = [
-        testmode
-       ,convertmode
-     ]
-   }
- ,modeGroupFlags = Group {
-     -- flags in named groups:
-     groupNamed = [generalflagsgroup3]
-     -- flags in the unnamed group, shown last without a heading:
-    ,groupUnnamed = []
-     -- flags accepted but not shown in the help:
-    ,groupHidden = inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
-    }
- }
-
 -- help_postscript = [
 --   -- "DATES can be Y/M/D or smart dates like \"last month\"."
 --   -- ,"PATTERNS are regular"
@@ -278,143 +222,6 @@ mainmode addons = defMode {
 --   -- ,"filter by transaction description instead, prefix with not: to negate it."
 --   -- ,"When using both, not: comes last."
 --  ]
-
--- visible subcommand modes
-
-addmode = (defCommandMode ["add"]) {
-  modeHelp = "prompt for transactions and add them to the journal"
- ,modeHelpSuffix = ["Defaults come from previous similar transactions; use query patterns to restrict these."]
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagNone ["no-new-accounts"]  (\opts -> setboolopt "no-new-accounts" opts) "don't allow creating new accounts"
-     ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup2]
-    }
- }
-
-balancemode = (defCommandMode $ ["balance"] ++ aliases ++ ["bal"]) { -- also accept but don't show the common bal alias
-  modeHelp = "show accounts and balances" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "with a reporting interval, show accumulated totals starting from 0"
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "with a reporting interval, show accurate historical ending balances"
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
-     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
-     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
-     ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
-     ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["b"]
-
-printmode = (defCommandMode $ ["print"] ++ aliases) {
-  modeHelp = "show transaction entries" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["p"]
-
-registermode = (defCommandMode $ ["register"] ++ aliases ++ ["reg"]) {
-  modeHelp = "show postings and running total" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "increase or set the output width (default: 80)"
-     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show the running average instead of the running total"
-     ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show the other postings in the transactions of those that would have been shown"
-     ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["r"]
-
--- transactionsmode = (defCommandMode ["transactions"]) {
---   modeHelp = "show matched transactions and balance in some account(s)"
---  ,modeGroupFlags = Group {
---      groupUnnamed = []
---     ,groupHidden = []
---     ,groupNamed = [generalflagsgroup1]
---     }
---  }
-
-activitymode = (defCommandMode ["activity"]) {
-  modeHelp = "show a barchart of transactions per interval"
- ,modeHelpSuffix = ["The default interval is daily."]
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-
-incomestatementmode = (defCommandMode $ ["incomestatement"]++aliases) {
-  modeHelp = "show an income statement" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["is"]
-
-balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
-  modeHelp = "show a balance sheet" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["bs"]
-
-cashflowmode = (defCommandMode ["cashflow","cf"]) {
-  modeHelp = "show a cashflow statement" `withAliases` ["cf"]
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-
-statsmode = (defCommandMode $ ["stats"] ++ aliases) {
-  modeHelp = "show quick journal statistics" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["s"]
-
--- hidden commands
-
-testmode = (defCommandMode ["test"]) {
-  modeHelp = "run built-in self-tests"
- ,modeArgs = ([], Just $ argsFlag "[REGEXPS]")
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup3]
-    }
- }
-
-convertmode = (defCommandMode ["convert"]) {
-  modeValue = [("command","convert")]
- ,modeHelp = "convert is no longer needed, just use -f FILE.csv"
- ,modeArgs = ([], Just $ argsFlag "[CSVFILE]")
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = helpflags
-    ,groupNamed = []
-    }
- }
 
 --
 -- 2. A package-specific data structure holding options used in this
@@ -492,48 +299,6 @@ rawOptsToCliOpts rawopts = do
                             ,query_     = unwords $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
                             }
              }
-
--- | Parse hledger CLI options from these command line arguments and
--- add-on command names, or raise any error.
-argsToCliOpts :: [String] -> [String] -> IO CliOpts
-argsToCliOpts args addons = do
-  let
-    args'        = moveFlagsAfterCommand args
-    cmdargsopts  = System.Console.CmdArgs.Explicit.processValue (mainmode addons) args'
-    cmdargsopts' = decodeRawOpts cmdargsopts
-  rawOptsToCliOpts cmdargsopts' >>= checkCliOpts
-
--- | A hacky workaround for cmdargs not accepting flags before the
--- subcommand name: try to detect and move such flags after the
--- command.  This allows the user to put them in either position.
--- The order of options is not preserved, but this should be ok.
---
--- Since we're not parsing flags as precisely as cmdargs here, this is
--- imperfect. We make a decent effort to:
--- - move all no-argument help and input flags
--- - move all required-argument help and input flags along with their values, space-separated or not
--- - not confuse things further or cause misleading errors.
-moveFlagsAfterCommand :: [String] -> [String]
-moveFlagsAfterCommand args = move args
-  where
-    move (f:a:as)           | isMovableNoArgFlag f           = (move $ a:as) ++ [f]
-    move (f:v:a:as)         | isMovableReqArgFlag f          = (move $ a:as) ++ [f,v]
-    move (fv:a:as)          | isMovableReqArgFlagAndValue fv = (move $ a:as) ++ [fv]
-    move ("--debug":v:a:as) | not (null v) && all isDigit v  = (move $ a:as) ++ ["--debug",v]
-    move ("--debug":a:as)                                    = (move $ a:as) ++ ["--debug"]
-    move (fv@('-':'-':'d':'e':'b':'u':'g':'=':_):a:as)       = (move $ a:as) ++ [fv]
-    move as = as
-
-    isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove
-    isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargflagstomove
-    isMovableReqArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of (f:fs,_) -> (f:fs) `elem` reqargflagstomove
-                                                                               _        -> False
-    isMovableReqArgFlagAndValue ('-':f:_:_) = [f] `elem` reqargflagstomove
-    isMovableReqArgFlagAndValue _ = False
-
-    noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
-    reqargflagstomove = concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
-    flagstomove = inputflags ++ helpflags
 
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts = map (\(name,val) -> (name, fromSystemString val))

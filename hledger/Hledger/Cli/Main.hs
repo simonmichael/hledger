@@ -39,10 +39,10 @@ See "Hledger.Data.Ledger" for more examples.
 module Hledger.Cli.Main where
 
 import Control.Monad
+import Data.Char (isDigit)
 import Data.List
 import Safe
-import System.Console.CmdArgs.Explicit (modeHelp)
--- import System.Console.CmdArgs.Helper
+import System.Console.CmdArgs.Explicit as C
 import System.Environment
 import System.Exit
 import System.Process
@@ -66,6 +66,106 @@ import Hledger.Utils
 import Hledger.Reports
 import Hledger.Data.Dates
 
+
+-- | The overall cmdargs mode describing command-line options for hledger.
+mainmode addons = defMode {
+  modeNames = [progname]
+ ,modeHelp = unlines [
+     ]
+ ,modeHelpSuffix = [""]
+ ,modeArgs = ([], Just $ argsFlag "[ARGS]")
+ ,modeGroupModes = Group {
+    -- modes (commands) in named groups:
+    groupNamed = [
+      ("Data entry commands", [
+        addmode
+       ])
+     ,("\nReporting commands", [
+        printmode
+       ,balancemode
+       ,registermode
+       ,incomestatementmode
+       ,balancesheetmode
+       ,cashflowmode
+       ,activitymode
+       ,statsmode
+       ])
+     ]
+     ++ case addons of [] -> []
+                       cs -> [("\nAdd-on commands", map defAddonCommandMode cs)]
+    -- modes in the unnamed group, shown first without a heading:
+   ,groupUnnamed = [
+     ]
+    -- modes handled but not shown
+   ,groupHidden = [
+        testmode
+       ,oldconvertmode
+     ]
+   }
+ ,modeGroupFlags = Group {
+     -- flags in named groups:
+     groupNamed = [generalflagsgroup3]
+     -- flags in the unnamed group, shown last without a heading:
+    ,groupUnnamed = []
+     -- flags accepted but not shown in the help:
+    ,groupHidden = inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
+    }
+ }
+
+oldconvertmode = (defCommandMode ["convert"]) {
+  modeValue = [("command","convert")]
+ ,modeHelp = "convert is no longer needed, just use -f FILE.csv"
+ ,modeArgs = ([], Just $ argsFlag "[CSVFILE]")
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = helpflags
+    ,groupNamed = []
+    }
+ }
+
+-- | Parse hledger CLI options from these command line arguments and
+-- add-on command names, or raise any error.
+argsToCliOpts :: [String] -> [String] -> IO CliOpts
+argsToCliOpts args addons = do
+  let
+    args'        = moveFlagsAfterCommand args
+    cmdargsopts  = processValue (mainmode addons) args'
+    cmdargsopts' = decodeRawOpts cmdargsopts
+  rawOptsToCliOpts cmdargsopts' >>= checkCliOpts
+
+-- | A hacky workaround for cmdargs not accepting flags before the
+-- subcommand name: try to detect and move such flags after the
+-- command.  This allows the user to put them in either position.
+-- The order of options is not preserved, but this should be ok.
+--
+-- Since we're not parsing flags as precisely as cmdargs here, this is
+-- imperfect. We make a decent effort to:
+-- - move all no-argument help and input flags
+-- - move all required-argument help and input flags along with their values, space-separated or not
+-- - not confuse things further or cause misleading errors.
+moveFlagsAfterCommand :: [String] -> [String]
+moveFlagsAfterCommand args = move args
+  where
+    move (f:a:as)           | isMovableNoArgFlag f           = (move $ a:as) ++ [f]
+    move (f:v:a:as)         | isMovableReqArgFlag f          = (move $ a:as) ++ [f,v]
+    move (fv:a:as)          | isMovableReqArgFlagAndValue fv = (move $ a:as) ++ [fv]
+    move ("--debug":v:a:as) | not (null v) && all isDigit v  = (move $ a:as) ++ ["--debug",v]
+    move ("--debug":a:as)                                    = (move $ a:as) ++ ["--debug"]
+    move (fv@('-':'-':'d':'e':'b':'u':'g':'=':_):a:as)       = (move $ a:as) ++ [fv]
+    move as = as
+
+    isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove
+    isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargflagstomove
+    isMovableReqArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of (f:fs,_) -> (f:fs) `elem` reqargflagstomove
+                                                                               _        -> False
+    isMovableReqArgFlagAndValue ('-':f:_:_) = [f] `elem` reqargflagstomove
+    isMovableReqArgFlagAndValue _ = False
+
+    noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
+    reqargflagstomove = concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
+    flagstomove = inputflags ++ helpflags
+
+-- | Let's go.
 main :: IO ()
 main = do
 
@@ -158,7 +258,7 @@ main = do
           system shellcmd >>= exitWith
 
       -- deprecated commands
-      | cmd == "convert"         = error' (modeHelp convertmode) >> exitFailure
+      | cmd == "convert"         = error' (modeHelp oldconvertmode) >> exitFailure
 
       -- shouldn't reach here
       | otherwise                = optserror ("could not understand the arguments "++show args) >> exitFailure

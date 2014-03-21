@@ -1,6 +1,6 @@
 {-| 
 
-Print a histogram report.
+Print a histogram report. (The "activity" command).
 
 -}
 
@@ -9,6 +9,7 @@ where
 import Data.List
 import Data.Maybe
 import Data.Ord
+import System.Console.CmdArgs.Explicit
 import Text.Printf
 
 import Hledger.Cli.Options
@@ -18,6 +19,16 @@ import Hledger.Query
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
+
+activitymode = (defCommandMode ["activity"]) {
+  modeHelp = "show a barchart of transactions per interval"
+ ,modeHelpSuffix = ["The default interval is daily."]
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
 
 barchar = '*'
 

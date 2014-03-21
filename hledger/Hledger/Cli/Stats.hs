@@ -4,12 +4,17 @@ Print some statistics for the journal.
 
 -}
 
-module Hledger.Cli.Stats
+module Hledger.Cli.Stats (
+  statsmode
+ ,stats
+)
 where
+
 import Data.List
 import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
+import System.Console.CmdArgs.Explicit
 import Text.Printf
 import qualified Data.Map as Map
 
@@ -18,6 +23,16 @@ import Hledger.Cli.Options
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
+
+statsmode = (defCommandMode $ ["stats"] ++ aliases) {
+  modeHelp = "show quick journal statistics" `withAliases` aliases
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
+  where aliases = ["s"]
 
 -- like Register.summarisePostings
 -- | Print various statistics for the journal.

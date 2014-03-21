@@ -9,11 +9,13 @@ cash flows.)
 -}
 
 module Hledger.Cli.Cashflow (
-  cashflow
+  cashflowmode
+ ,cashflow
  ,tests_Hledger_Cli_Cashflow
 ) where
 
 import qualified Data.Text.Lazy.IO as LT
+import System.Console.CmdArgs.Explicit
 import Test.HUnit
 import Text.Shakespeare.Text
 
@@ -21,6 +23,15 @@ import Hledger
 import Hledger.Cli.Options
 import Hledger.Cli.Balance
 
+
+cashflowmode = (defCommandMode ["cashflow","cf"]) {
+  modeHelp = "show a cashflow statement" `withAliases` ["cf"]
+ ,modeGroupFlags = Group {
+     groupUnnamed = []
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
 
 -- | Print a simple cashflow statement.
 cashflow :: CliOpts -> Journal -> IO ()
