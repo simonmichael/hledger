@@ -77,9 +77,8 @@ import Text.Printf
 import Hledger.Data.Types
 import Hledger.Utils
 
-
 showDate :: Day -> String
-showDate = formatTime defaultTimeLocale "%C%y/%m/%d"
+showDate = formatTime defaultTimeLocale "%0C%y/%m/%d"
 
 showDateSpan (DateSpan from to) =
   concat
@@ -727,6 +726,7 @@ tests_Hledger_Data_Dates = TestList
 
   ,"fixSmartDateStr" ~: do
     let gives = is . fixSmartDateStr (parsedate "2008/11/26")
+    "0000-01-01"   `gives` "0000/01/01"
     "1999-12-02"   `gives` "1999/12/02"
     "1999.12.02"   `gives` "1999/12/02"
     "1999/3/2"     `gives` "1999/03/02"
