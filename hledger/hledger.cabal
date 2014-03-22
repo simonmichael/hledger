@@ -81,7 +81,7 @@ library
                  ,safe >= 0.2
                  ,shakespeare-text == 1.0.*
                  ,split >= 0.1 && < 0.3
-                 ,text >= 0.11 && < 1.1
+                 ,text >= 0.11 && < 1.2
                  ,tabular >= 0.2 && < 0.3
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
@@ -139,7 +139,7 @@ executable hledger
                  ,shakespeare-text == 1.0.*
                  ,split >= 0.1 && < 0.3
                  ,tabular >= 0.2 && < 0.3
-                 ,text >= 0.11 && < 1.1
+                 ,text >= 0.11 && < 1.2
                  ,time
                  ,utf8-string >= 0.3.5 && < 0.4
                  ,wizards == 1.0.*
