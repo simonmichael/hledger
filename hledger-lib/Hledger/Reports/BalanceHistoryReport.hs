@@ -14,7 +14,7 @@ module Hledger.Reports.BalanceHistoryReport (
 where
 
 import Data.Time.Calendar
-import Test.HUnit
+-- import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query

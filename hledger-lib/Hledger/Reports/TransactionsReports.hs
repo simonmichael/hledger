@@ -23,7 +23,7 @@ where
 import Data.List
 import Data.Maybe
 import Data.Ord
-import Test.HUnit
+-- import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query
