@@ -24,7 +24,10 @@ import Hledger.Cli.Balance
 incomestatementmode = (defCommandMode $ ["incomestatement"]++aliases) {
   modeHelp = "show an income statement" `withAliases` aliases
  ,modeGroupFlags = Group {
-     groupUnnamed = []
+     groupUnnamed = [
+      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
+     ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
     }
