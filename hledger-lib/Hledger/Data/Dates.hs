@@ -82,12 +82,10 @@ showDate = formatTime defaultTimeLocale "%0C%y/%m/%d"
 
 showDateSpan (DateSpan from to) =
   concat
-    [maybe "" showdate from
+    [maybe "" showDate from
     ,"-"
-    ,maybe "" (showdate . prevday) to
+    ,maybe "" (showDate . prevday) to
     ]
-  where
-    showdate = formatTime defaultTimeLocale "%C%y/%m/%d"
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
