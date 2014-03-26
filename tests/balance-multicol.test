@@ -11,14 +11,14 @@ hledgerdev -f data/balance-multicol.journal register
 2013/03/01                      (assets:checking)                1            13
 >>>=0
 
-# 2. A period balance (flow) report.
+# 2. A period balance (flow) report. --no-total also works but isn't pretty.
 hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --no-total
 >>>
 Change of balance (flow):
 
                  ||  2013/01/01-2013/01/31  2013/02/01-2013/02/28  2013/03/01-2013/03/31 
 =================++======================================================================
- assets          ||                      0                      2                      1 
+ assets          ||                      0                      1                      0 
  assets:cash     ||                      0                      1                      0 
  assets:checking ||                      0                      0                      1 
 -----------------++----------------------------------------------------------------------
@@ -55,7 +55,7 @@ Ending balance (cumulative):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
- assets          ||           0           2           3 
+ assets          ||           0           1           1 
  assets:cash     ||           0           1           1 
  assets:checking ||           0           0           1 
 -----------------++-------------------------------------
@@ -72,7 +72,7 @@ Ending balance (cumulative):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
- assets          ||           0           1           2 
+ assets          ||           0           1           1 
  assets:checking ||           0           0           1 
 -----------------++-------------------------------------
                  ||           0           1           2 
@@ -86,7 +86,7 @@ Ending balance (historical):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
- assets          ||          10          12          13 
+ assets          ||           0           1           1 
  assets:cash     ||           0           1           1 
  assets:checking ||          10          10          11 
 -----------------++-------------------------------------
@@ -124,15 +124,70 @@ Ending balance (cumulative):
 >>>=0
 
 # 9. historical
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' not:assets$ --historical
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --historical
 >>>
 Ending balance (historical):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
+ assets          ||           0           1           1 
  assets:cash     ||           0           1           1 
  assets:checking ||          10          10          11 
 -----------------++-------------------------------------
-                 ||          10          11          12 
+                 ||          10          12          13 
+
+>>>=0
+
+# --depth
+
+# 10. A flow report with depth limiting. The depth limit aggregates the three accounts as "assets".
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1
+>>>
+Change of balance (flow):
+
+        ||  2013/01/01-2013/01/31  2013/02/01-2013/02/28  2013/03/01-2013/03/31 
+========++======================================================================
+ assets ||                      0                      2                      1 
+--------++----------------------------------------------------------------------
+        ||                      0                      2                      1 
+
+>>>=0
+
+# 11. As above, but postings in the top-level assets account have been excluded.
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1 assets:
+>>>
+Change of balance (flow):
+
+        ||  2013/01/01-2013/01/31  2013/02/01-2013/02/28  2013/03/01-2013/03/31 
+========++======================================================================
+ assets ||                      0                      1                      1 
+--------++----------------------------------------------------------------------
+        ||                      0                      1                      1 
+
+>>>=0
+
+# 12. A cumulative balance report with depth limiting.
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --cumulative
+>>>
+Ending balance (cumulative):
+
+        ||  2013/01/31  2013/02/28  2013/03/31 
+========++=====================================
+ assets ||           0           2           3 
+--------++-------------------------------------
+        ||           0           2           3 
+
+>>>=0
+
+# 13. A historical balance report with depth limiting.
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --historical
+>>>
+Ending balance (historical):
+
+        ||  2013/01/31  2013/02/28  2013/03/31 
+========++=====================================
+ assets ||          10          12          13 
+--------++-------------------------------------
+        ||          10          12          13 
 
 >>>=0

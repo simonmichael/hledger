@@ -120,6 +120,43 @@ clipAccounts d a = a{asubs=subs}
     where
       subs = map (clipAccounts (d-1)) $ asubs a
 
+-- | Remove subaccounts below the specified depth, aggregating their balance at the depth limit
+-- (accounts at the depth limit will have any sub-balances merged into their exclusive balance).
+-- XXX may be incorrect in some cases.
+clipAccountsAndAggregate :: Int -> [Account] -> [Account]
+clipAccountsAndAggregate d as = combined
+    where
+      clipped  = [a{aname=clipAccountName d $ aname a} | a <- as]
+      combined = [a{aebalance=sum (map aebalance same)}
+                  | same@(a:_) <- groupBy (\a1 a2 -> aname a1 == aname a2) clipped]
+{-
+test cases, assuming d=1:
+
+assets:cash 1 1
+assets:checking 1 1
+->
+as:       [assets:cash 1 1, assets:checking 1 1]
+clipped:  [assets 1 1, assets 1 1]
+combined: [assets 2 2]
+
+assets 0 2
+ assets:cash 1 1
+ assets:checking 1 1
+->
+as:       [assets 0 2, assets:cash 1 1, assets:checking 1 1]
+clipped:  [assets 0 2, assets 1 1, assets 1 1]
+combined: [assets 2 2]
+
+assets 0 2
+ assets:bank 1 2
+  assets:bank:checking 1 1
+->
+as:       [assets 0 2, assets:bank 1 2, assets:bank:checking 1 1]
+clipped:  [assets 0 2, assets 1 2, assets 1 1]
+combined: [assets 2 2]
+
+-}
+
 -- | Remove all leaf accounts and subtrees matching a predicate.
 pruneAccounts :: (Account -> Bool) -> Account -> Maybe Account
 pruneAccounts p = headMay . prune

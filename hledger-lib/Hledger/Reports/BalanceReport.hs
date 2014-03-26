@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances, ScopedTypeVariables #-}
 {-|
 
 Balance report, used by the balance command.
@@ -10,6 +10,7 @@ module Hledger.Reports.BalanceReport (
   BalanceReportItem,
   RenderableAccountName,
   balanceReport,
+  flatShowsExclusiveBalance,
 
   -- * Tests
   tests_Hledger_Reports_BalanceReport
@@ -45,6 +46,15 @@ type BalanceReportItem = (RenderableAccountName, MixedAmount)
 --   (normally the 0-based depth of this account excluding boring parents, or 0 with --flat).
 type RenderableAccountName = (AccountName, AccountName, Int)
 
+-- | When true (the default), this makes balance --flat reports and their implementation clearer.
+-- Single/multi-col balance reports currently aren't all correct if this is false.
+flatShowsExclusiveBalance    = True
+
+-- | Enabling this makes balance --flat --empty also show parent accounts without postings,
+-- in addition to those with postings and a zero balance. Disabling it shows only the latter.
+-- No longer supported, but leave this here for a bit.
+-- flatShowsPostinglessAccounts = True
+
 -- | Generate a simple balance report, containing the matched accounts and
 -- their balances (change of balance) during the specified period.
 -- This is like periodBalanceReport with a single column (but more mature,
@@ -52,24 +62,32 @@ type RenderableAccountName = (AccountName, AccountName, Int)
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport opts q j = (items, total)
     where
-      l =  ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
-      accts =
-          dbg "accts1" $ 
-          clipAccounts (queryDepth q) $ -- exclude accounts deeper than specified depth
-          ledgerRootAccount l
-      accts'
-          | flat_ opts = filterzeros $ tail $ flattenAccounts accts
-          | otherwise  = filter (not.aboring) $ tail $ flattenAccounts $ markboring $ prunezeros accts
+      -- dbg = const id -- exclude from debug output
+      dbg s = let p = "balanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
+
+      accts = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
+      accts' :: [Account]
+          | flat_ opts = dbg "accts" $ 
+                         filterzeros $
+                         filterempty $
+                         drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
+          | otherwise  = dbg "accts" $ 
+                         filter (not.aboring) $
+                         drop 1 $ flattenAccounts $
+                         markboring $ 
+                         prunezeros $ clipAccounts (queryDepth q) accts
           where
-            filterzeros | empty_ opts = id
-                        | otherwise = filter (not . isZeroMixedAmount . aebalance)
-            prunezeros | empty_ opts = id
-                       | otherwise   = fromMaybe nullacct . pruneAccounts (isZeroMixedAmount.aibalance)
-            markboring | no_elide_ opts = id
-                       | otherwise      = markBoringParentAccounts
-      items = map (balanceReportItem opts) accts'
-      total = sum [amt | ((a,_,indent),amt) <- items, if flat_ opts then accountNameLevel a == 1 else indent == 0]
-              -- XXX check account level == 1 is valid when top-level accounts excluded
+            balance     = if flat_ opts then aebalance else aibalance
+            filterzeros = if empty_ opts then id else filter (not . isZeroMixedAmount . balance)
+            filterempty = filter (\a -> anumpostings a > 0 || not (isZeroMixedAmount (balance a)))
+            prunezeros  = if empty_ opts then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
+            markboring  = if no_elide_ opts then id else markBoringParentAccounts
+      items = dbg "items" $ map (balanceReportItem opts q) accts'
+      total | not (flat_ opts) = dbg "total" $ sum [amt | ((_,_,indent),amt) <- items, indent == 0]
+            | otherwise        = dbg "total" $
+                                 if flatShowsExclusiveBalance
+                                 then sum $ map snd items
+                                 else sum $ map aebalance $ clipAccountsAndAggregate 1 accts'
 
 -- | In an account tree with zero-balance leaves removed, mark the
 -- elidable parent accounts (those with one subaccount and no balance
@@ -80,10 +98,10 @@ markBoringParentAccounts = tieAccountParents . mapAccounts mark
     mark a | length (asubs a) == 1 && isZeroMixedAmount (aebalance a) = a{aboring=True}
            | otherwise = a
 
-balanceReportItem :: ReportOpts -> Account -> BalanceReportItem
-balanceReportItem opts a@Account{aname=name, aibalance=ibal}
-  | flat_ opts = ((name, name,       0),      ibal)
-  | otherwise  = ((name, elidedname, indent), ibal)
+balanceReportItem :: ReportOpts -> Query -> Account -> BalanceReportItem
+balanceReportItem opts _ a@Account{aname=name}
+  | flat_ opts = ((name, name,       0),      (if flatShowsExclusiveBalance then aebalance else aibalance) a)
+  | otherwise  = ((name, elidedname, indent), aibalance a)
   where
     elidedname = accountNameFromComponents (adjacentboringparentnames ++ [accountLeafName name])
     adjacentboringparentnames = reverse $ map (accountLeafName.aname) $ takeWhile aboring $ parents

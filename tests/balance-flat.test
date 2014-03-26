@@ -1,0 +1,51 @@
+# --flat shows inclusive balances; total balance should be that of top-level accounts (issue 94)
+# # 1. 
+# hledgerdev -f - balance --flat
+# <<<
+# 1/1
+#     (a)     1
+#     (a:aa)  1
+# >>>
+#                    2  a
+#                    1  a:aa
+# --------------------
+#                    2
+# >>>= 0
+
+# --flat shows exclusive balances
+# 1. 
+hledgerdev -f - balance --flat
+<<<
+1/1
+ (a:aa)       1
+ (a:aa:aaa)   1
+ (a:aa:bbb)   1
+ (b)          1
+ (b:bb:bbb)   1
+>>>
+                   1  a:aa
+                   1  a:aa:aaa
+                   1  a:aa:bbb
+                   1  b
+                   1  b:bb:bbb
+--------------------
+                   5
+>>>= 0
+
+# --flat --depth shows the same accounts, but clipped and aggregated at the depth limit
+# 2. 
+hledgerdev -f - balance --flat --depth 2
+<<<
+1/1
+ (a:aa)       1
+ (a:aa:aaa)   1
+ (a:aa:bbb)   1
+ (b)          1
+ (b:bb:bbb)   1
+>>>
+                   3  a:aa
+                   1  b
+                   1  b:bb
+--------------------
+                   5
+>>>= 0
