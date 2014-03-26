@@ -10,6 +10,7 @@ account, and subaccounting-excluding and -including balances.
 module Hledger.Data.Account
 where
 import Data.List
+import Data.Maybe
 import qualified Data.Map as M
 import Safe (headMay, lookupJustDef)
 import Test.HUnit
@@ -44,6 +45,7 @@ nullacct = Account
   { aname = ""
   , aparent = Nothing
   , asubs = []
+  , anumpostings = 0
   , aebalance = nullmixedamt
   , aibalance = nullmixedamt
   , aboring = False
@@ -57,10 +59,12 @@ accountsFromPostings ps =
   let
     acctamts = [(paccount p,pamount p) | p <- ps]
     grouped = groupBy (\a b -> fst a == fst b) $ sort $ acctamts
+    counted = [(a, length acctamts) | acctamts@((a,_):_) <- grouped]
     summed = map (\as@((aname,_):_) -> (aname, sum $ map snd as)) grouped -- always non-empty
     nametree = treeFromPaths $ map (expandAccountName . fst) summed
     acctswithnames = nameTreeToAccount "root" nametree
-    acctswithebals = mapAccounts setebalance acctswithnames where setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
+    acctswithnumps = mapAccounts setnumps    acctswithnames where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
+    acctswithebals = mapAccounts setebalance acctswithnumps where setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
     acctswithibals = sumAccounts acctswithebals
     acctswithparents = tieAccountParents acctswithibals
     acctsflattened = flattenAccounts acctswithparents

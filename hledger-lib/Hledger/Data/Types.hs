@@ -210,7 +210,7 @@ data Account = Account {
   aname :: AccountName,     -- ^ this account's full name
   aebalance :: MixedAmount, -- ^ this account's balance, excluding subaccounts
   asubs :: [Account],       -- ^ sub-accounts
-  -- anumpostings :: Int       -- ^ number of postings to this account
+  anumpostings :: Int,      -- ^ number of postings to this account
   -- derived from the above:
   aibalance :: MixedAmount, -- ^ this account's balance, including subaccounts
   aparent :: Maybe Account, -- ^ parent account
