@@ -215,6 +215,23 @@ fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
       fit w = take w . (++ repeat ' ')
       blankline = replicate w ' '
 
+-- tuples
+
+first3  (x,_,_) = x
+second3 (_,x,_) = x
+third3  (_,_,x) = x
+
+first4  (x,_,_,_) = x
+second4 (_,x,_,_) = x
+third4  (_,_,x,_) = x
+fourth4 (_,_,_,x) = x
+
+first5  (x,_,_,_,_) = x
+second5 (_,x,_,_,_) = x
+third5  (_,_,x,_,_) = x
+fourth5 (_,_,_,x,_) = x
+fifth5  (_,_,_,_,x) = x
+
 -- math
 
 difforzero :: (Num a, Ord a) => a -> a -> a
