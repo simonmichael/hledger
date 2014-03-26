@@ -24,6 +24,7 @@ import Hledger.Cli.Options
 import Hledger.Cli.Balance
 
 
+cashflowmode :: Mode RawOpts
 cashflowmode = (defCommandMode ["cashflow","cf"]) {
   modeHelp = "show a cashflow statement" `withAliases` ["cf"]
  ,modeGroupFlags = Group {
@@ -57,6 +58,7 @@ Total:
 #{padleft 20 $ showMixedAmountWithoutPrice total}
 |]
 
+tests_Hledger_Cli_Cashflow :: Test
 tests_Hledger_Cli_Cashflow = TestList
  [
  ]

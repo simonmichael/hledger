@@ -21,6 +21,7 @@ import Hledger.Cli.Options
 import Hledger.Cli.Balance
 
 
+incomestatementmode :: Mode RawOpts
 incomestatementmode = (defCommandMode $ ["incomestatement"]++aliases) {
   modeHelp = "show an income statement" `withAliases` aliases
  ,modeGroupFlags = Group {
