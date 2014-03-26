@@ -1,16 +1,16 @@
 {-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
 {-|
 
-Reusable report-related options.
+Options common to most hledger reports.
 
 -}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
   BalanceType(..),
-  DisplayExp,
   FormatStr,
   defreportopts,
+  rawOptsToReportOpts,
   dateSpanFromOpts,
   intervalFromOpts,
   clearedValueFromOpts,
@@ -23,20 +23,31 @@ module Hledger.Reports.ReportOptions (
   transactionDateFn,
   postingDateFn,
 
-  -- * Tests
   tests_Hledger_Reports_ReportOptions
 )
 where
 
+import Data.Data (Data)
+import Data.Typeable (Typeable)
 import Data.Time.Calendar
 import Safe (headMay, lastMay)
-import System.Console.CmdArgs  -- for defaults support
+import System.Console.CmdArgs.Default  -- some additional default stuff
 import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query
 import Hledger.Utils
 
+
+type FormatStr = String
+
+-- | Which balance is being shown in a multi-column balance report.
+data BalanceType = PeriodBalance     -- ^ The change of balance in each period.
+                 | CumulativeBalance -- ^ The accumulated balance at each period's end, starting from zero at the report start date.
+                 | HistoricalBalance -- ^ The historical balance at each period's end, starting from the account balances at the report start date.
+  deriving (Eq,Show,Data,Typeable)
+
+instance Default BalanceType where def = PeriodBalance
 
 -- | Standard options for customising report filtering and output,
 -- corresponding to hledger's command-line options and query language
@@ -54,31 +65,26 @@ data ReportOpts = ReportOpts {
     ,empty_          :: Bool
     ,no_elide_       :: Bool
     ,real_           :: Bool
-    ,balancetype_    :: BalanceType -- for balance command
-    ,flat_           :: Bool -- for balance command
-    ,drop_           :: Int  -- "
-    ,no_total_       :: Bool -- "
     ,daily_          :: Bool
     ,weekly_         :: Bool
     ,monthly_        :: Bool
     ,quarterly_      :: Bool
     ,yearly_         :: Bool
     ,format_         :: Maybe FormatStr
-    ,related_        :: Bool
-    ,average_        :: Bool
     ,query_          :: String -- all arguments, as a string
+    -- register
+    ,average_        :: Bool
+    ,related_        :: Bool
+    -- balance
+    ,balancetype_    :: BalanceType
+    ,flat_           :: Bool
+    ,drop_           :: Int
+    ,no_total_       :: Bool
  } deriving (Show, Data, Typeable)
 
-type DisplayExp = String
-type FormatStr = String
+instance Default ReportOpts where def = defreportopts
 
--- | Which balance is being shown in a multi-column balance report.
-data BalanceType = PeriodBalance     -- ^ The change of balance in each period.
-                 | CumulativeBalance -- ^ The accumulated balance at each period's end, starting from zero at the report start date.
-                 | HistoricalBalance -- ^ The historical balance at each period's end, starting from the account balances at the report start date.
-  deriving (Eq,Show,Data,Typeable)
-instance Default BalanceType where def = PeriodBalance
-
+defreportopts :: ReportOpts
 defreportopts = ReportOpts
     def
     def
@@ -106,7 +112,73 @@ defreportopts = ReportOpts
     def
     def
 
-instance Default ReportOpts where def = defreportopts
+rawOptsToReportOpts :: RawOpts -> IO ReportOpts
+rawOptsToReportOpts rawopts = do
+  d <- getCurrentDay
+  return defreportopts{
+     begin_       = maybesmartdateopt d "begin" rawopts
+    ,end_         = maybesmartdateopt d "end" rawopts
+    ,period_      = maybeperiodopt d rawopts
+    ,cleared_     = boolopt "cleared" rawopts
+    ,uncleared_   = boolopt "uncleared" rawopts
+    ,cost_        = boolopt "cost" rawopts
+    ,depth_       = maybeintopt "depth" rawopts
+    ,display_     = maybedisplayopt d rawopts
+    ,date2_       = boolopt "date2" rawopts
+    ,empty_       = boolopt "empty" rawopts
+    ,no_elide_    = boolopt "no-elide" rawopts
+    ,real_        = boolopt "real" rawopts
+    ,daily_       = boolopt "daily" rawopts
+    ,weekly_      = boolopt "weekly" rawopts
+    ,monthly_     = boolopt "monthly" rawopts
+    ,quarterly_   = boolopt "quarterly" rawopts
+    ,yearly_      = boolopt "yearly" rawopts
+    ,format_      = maybestringopt "format" rawopts
+    ,query_       = unwords $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
+    ,average_     = boolopt "average" rawopts
+    ,related_     = boolopt "related" rawopts
+    ,balancetype_ = balancetypeopt rawopts
+    ,flat_        = boolopt "flat" rawopts
+    ,drop_        = intopt "drop" rawopts
+    ,no_total_    = boolopt "no-total" rawopts
+    }
+
+balancetypeopt :: RawOpts -> BalanceType
+balancetypeopt rawopts
+    | length [o | o <- ["cumulative","historical"], isset o] > 1
+                         = optserror "please specify at most one of --cumulative and --historical"
+    | isset "cumulative" = CumulativeBalance
+    | isset "historical" = HistoricalBalance
+    | otherwise          = PeriodBalance
+    where
+      isset = flip boolopt rawopts
+
+maybesmartdateopt :: Day -> String -> RawOpts -> Maybe Day
+maybesmartdateopt d name rawopts =
+        case maybestringopt name rawopts of
+          Nothing -> Nothing
+          Just s -> either
+                    (\e -> optserror $ "could not parse "++name++" date: "++show e)
+                    Just
+                    $ fixSmartDateStrEither' d s
+
+type DisplayExp = String
+
+maybedisplayopt :: Day -> RawOpts -> Maybe DisplayExp
+maybedisplayopt d rawopts =
+    maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) $ maybestringopt "display" rawopts
+    where
+      fixbracketeddatestr "" = ""
+      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
+
+maybeperiodopt :: Day -> RawOpts -> Maybe (Interval,DateSpan)
+maybeperiodopt d rawopts =
+    case maybestringopt "period" rawopts of
+      Nothing -> Nothing
+      Just s -> either
+                (\e -> optserror $ "could not parse period option: "++show e)
+                Just
+                $ parsePeriodExpr d s
 
 -- | Figure out the date span we should report on, based on any
 -- begin/end/period options provided. A period option will cause begin and
@@ -182,6 +254,7 @@ queryFromOptsOnly d opts@ReportOpts{..} = simplifyQuery flagsq
               ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
               ++ (maybe [] ((:[]) . Depth) depth_)
 
+tests_queryFromOpts :: [Test]
 tests_queryFromOpts = [
  "queryFromOpts" ~: do
   assertEqual "" Any (queryFromOpts nulldate defreportopts)
@@ -204,6 +277,7 @@ queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
     flagsqopts = []
     argsqopts = snd $ parseQuery d query_
 
+tests_queryOptsFromOpts :: [Test]
 tests_queryOptsFromOpts = [
  "queryOptsFromOpts" ~: do
   assertEqual "" [] (queryOptsFromOpts nulldate defreportopts)

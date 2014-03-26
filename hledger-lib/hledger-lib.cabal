@@ -43,6 +43,7 @@ library
                   Hledger.Data.Journal
                   Hledger.Data.Ledger
                   Hledger.Data.Posting
+                  Hledger.Data.RawOptions
                   Hledger.Data.TimeLog
                   Hledger.Data.Transaction
                   Hledger.Data.Types

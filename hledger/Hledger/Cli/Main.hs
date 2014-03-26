@@ -62,16 +62,16 @@ import Hledger.Cli.Options
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
+import Hledger.Data.Dates (getCurrentDay)
+import Hledger.Data.RawOptions (optserror)
+import Hledger.Reports.ReportOptions (dateSpanFromOpts, intervalFromOpts, queryFromOpts)
 import Hledger.Utils
-import Hledger.Reports
-import Hledger.Data.Dates
 
 
 -- | The overall cmdargs mode describing command-line options for hledger.
 mainmode addons = defMode {
   modeNames = [progname]
- ,modeHelp = unlines [
-     ]
+ ,modeHelp = unlines []
  ,modeHelpSuffix = [""]
  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
  ,modeGroupModes = Group {

@@ -16,6 +16,7 @@ module Hledger.Data (
                module Hledger.Data.Journal,
                module Hledger.Data.Ledger,
                module Hledger.Data.Posting,
+               module Hledger.Data.RawOptions,
                module Hledger.Data.TimeLog,
                module Hledger.Data.Transaction,
                module Hledger.Data.Types,
@@ -32,10 +33,12 @@ import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Ledger
 import Hledger.Data.Posting
+import Hledger.Data.RawOptions
 import Hledger.Data.TimeLog
 import Hledger.Data.Transaction
 import Hledger.Data.Types
 
+tests_Hledger_Data :: Test
 tests_Hledger_Data = TestList
     [
      tests_Hledger_Data_Account
