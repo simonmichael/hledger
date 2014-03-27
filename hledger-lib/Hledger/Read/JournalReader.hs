@@ -677,8 +677,8 @@ nosymbolamount = do
   p <- priceamount
   defcs <- getCommodityAndStyle
   let (c,s) = case defcs of
-        Just (c',s') -> (c',s')
-        Nothing -> ("", amountstyle{asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos})
+        Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
+        Nothing          -> ("", amountstyle{asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos})
   return $ Amount c q p s
   <?> "no-symbol amount"
 
