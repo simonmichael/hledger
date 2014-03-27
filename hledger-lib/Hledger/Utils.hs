@@ -24,7 +24,9 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- module Data.PPrint,
                           -- module Hledger.Utils.UTF8IOCompat
                           SystemString,fromSystemString,toSystemString,error',userError',
+#if __GLASGOW_HASKELL__ >= 704
                           ppShow
+#endif
                           -- the rest need to be done in each module I think
                           )
 where
@@ -53,12 +55,19 @@ import Text.ParserCombinators.Parsec
 import Text.Printf
 import Text.Regex.TDFA
 import Text.RegexPR
-import Text.Show.Pretty
 -- import qualified Data.Map as Map
 -- 
 -- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
 -- import Hledger.Utils.UTF8IOCompat   (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
 import Hledger.Utils.UTF8IOCompat (SystemString,fromSystemString,toSystemString,error',userError')
+
+#if __GLASGOW_HASKELL__ >= 704
+import Text.Show.Pretty (ppShow)
+#else
+-- the required pretty-show version requires GHC >= 7.4
+ppShow :: Show a => a -> String
+ppShow = show
+#endif
 
 -- strings
 
