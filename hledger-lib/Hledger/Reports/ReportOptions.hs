@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards, DeriveDataTypeable #-}
 {-|
 
 Options common to most hledger reports.

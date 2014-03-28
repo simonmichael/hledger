@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell, ScopedTypeVariables, DeriveDataTypeable #-}
 {-|
 
 hledger's cmdargs modes parse command-line arguments to an
