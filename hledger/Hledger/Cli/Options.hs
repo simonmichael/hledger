@@ -25,7 +25,7 @@ module Hledger.Cli.Options (
   -- * CLI options
   CliOpts(..),
   defcliopts,
-  -- getCliOpts,
+  getCliOpts,
   decodeRawOpts,
   rawOptsToCliOpts,
   checkCliOpts,
@@ -56,7 +56,7 @@ where
   
 import qualified Control.Exception as C
 -- import Control.Monad (filterM)
--- import Control.Monad (when)
+import Control.Monad (when)
 import Data.List
 import Data.List.Split
 import Data.Maybe
@@ -66,7 +66,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
 import System.Directory
 import System.Environment
--- import System.Exit
+import System.Exit (exitSuccess)
 import Test.HUnit
 import Text.ParserCombinators.Parsec as P
 
@@ -278,20 +278,31 @@ checkCliOpts opts@CliOpts{reportopts_=ropts} = do
     Right _ -> return ()
   return opts
 
--- not used:
--- -- | Parse hledger CLI options from the command line using the given
--- -- cmdargs mode, and either return them or, if a help flag is present,
--- -- print the mode help and exit the program.
--- getCliOpts :: Mode RawOpts -> IO CliOpts
--- getCliOpts mode = do
---   args <- getArgs
---   let rawopts = decodeRawOpts $ processValue mode args
---   opts <- rawOptsToCliOpts rawopts >>= checkCliOpts
---   debugArgs args opts
---   -- if any (`elem` args) ["--help","-h","-?"]
---   when ("help" `inRawOpts` rawopts_ opts) $
---     putStr (showModeHelp mode) >> exitSuccess
---   return opts
+-- Currently only used by some extras/ scripts:
+-- | Parse hledger CLI options from the command line using the given
+-- cmdargs mode, and either return them or, if a help flag is present,
+-- print the mode help and exit the program.
+getCliOpts :: Mode RawOpts -> IO CliOpts
+getCliOpts mode = do
+  args <- getArgs
+  let rawopts = decodeRawOpts $ processValue mode args
+  opts <- rawOptsToCliOpts rawopts >>= checkCliOpts
+  debugArgs args opts
+  -- if any (`elem` args) ["--help","-h","-?"]
+  when ("help" `inRawOpts` rawopts_ opts) $
+    putStr (showModeHelp mode) >> exitSuccess
+  return opts
+  where
+    -- | Print debug info about arguments and options if --debug is present.
+    debugArgs :: [String] -> CliOpts -> IO ()
+    debugArgs args opts =
+      when ("--debug" `elem` args) $ do
+        progname <- getProgName
+        putStrLn $ "running: " ++ progname
+        putStrLn $ "raw args: " ++ show args
+        putStrLn $ "processed opts:\n" ++ show opts
+        d <- getCurrentDay
+        putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
 
 -- CliOpts accessors
 

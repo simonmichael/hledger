@@ -27,4 +27,4 @@ printBalanceCsv opts = withJournalDo opts $
     let (items,_) = balanceReport ropts (queryFromOpts d ropts) j
     putStrLn $ printCSV $
       ["account","balance"] :
-      [[a, showMixedAmountWithoutPrice b] | (a, _, _, b) <- items]
+      [[a, showMixedAmountWithoutPrice b] | ((a, _, _), b) <- items]
