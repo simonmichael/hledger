@@ -440,8 +440,14 @@ dbgshow level
 -- Values are displayed with ppShow, each field/constructor on its own line.
 dbgppshow :: Show a => Int -> String -> a -> a
 dbgppshow level
-    | debugLevel >= level = \s -> traceWith (((s++": ")++) . ppShow)
-    | otherwise           = flip const
+    | debugLevel < level = flip const
+    | otherwise = \s a -> let p = ppShow a
+                              ls = lines p
+                              nlorspace | length ls > 1 = "\n"
+                                        | otherwise     = " " ++ take (10 - length s) (repeat ' ')
+                              ls' | length ls > 1 = map (" "++) ls
+                                  | otherwise     = ls
+                          in trace (s++":"++nlorspace++intercalate "\n" ls') a
 
 -- -- | Print a showable value to the console, with a message, if the
 -- -- debug level is at or above the specified level (uses
