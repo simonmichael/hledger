@@ -1,4 +1,3 @@
-{-# LANGUAGE NoMonomorphismRestriction #-} -- for dbgM
 {-|
 hledger - a ledger-compatible accounting tool.
 Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
@@ -187,10 +186,8 @@ main = do
     isNullCommand        = null rawcmd
     (argsbeforecmd, argsaftercmd') = break (==rawcmd) args
     argsaftercmd         = drop 1 argsaftercmd'
-
-    dbglevel = 2
-    dbg      = dbgAt dbglevel
-    dbgM     = \a b -> dbg a b `seq` return () -- requires NoMonomorphismRestriction
+    dbgM :: Show a => String -> a -> IO ()
+    dbgM = dbgAtM 2
 
   dbgM "running" prognameandversion
   dbgM "raw args" args
