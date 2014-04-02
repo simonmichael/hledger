@@ -1,3 +1,4 @@
+{-# LANGUAGE NoMonomorphismRestriction #-} -- for dbgM
 {-|
 hledger - a ledger-compatible accounting tool.
 Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
@@ -38,7 +39,7 @@ See "Hledger.Data.Ledger" for more examples.
 
 module Hledger.Cli.Main where
 
-import Control.Monad
+-- import Control.Monad
 import Data.Char (isDigit)
 import Data.List
 import Safe
@@ -186,13 +187,17 @@ main = do
     isNullCommand        = null rawcmd
     (argsbeforecmd, argsaftercmd') = break (==rawcmd) args
     argsaftercmd         = drop 1 argsaftercmd'
-  when (debugLevel > 0) $ do
-    printf "running: %s\n" prognameandversion
-    printf "raw args: %s\n" (show args)
-    printf "raw args rearranged for cmdargs: %s\n" (show args')
-    printf "raw command is probably: %s\n" (show rawcmd)
-    printf "raw args before command: %s\n" (show argsbeforecmd)
-    printf "raw args after command: %s\n" (show argsaftercmd)
+
+    dbglevel = 2
+    dbg      = dbgAt dbglevel
+    dbgM     = \a b -> dbg a b `seq` return () -- requires NoMonomorphismRestriction
+
+  dbgM "running" prognameandversion
+  dbgM "raw args" args
+  dbgM "raw args rearranged for cmdargs" args'
+  dbgM "raw command is probably" rawcmd
+  dbgM "raw args before command" argsbeforecmd
+  dbgM "raw args after command" argsaftercmd
 
   -- search PATH for add-ons
   addons <- getHledgerAddonCommands
@@ -213,27 +218,25 @@ main = do
     version              = putStrLn prognameandversion
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     f `orShowHelp` mode  = if hasHelp args then putStr (showModeHelp mode) else f
-  when (debug_ opts > 0) $ do
-    putStrLn $ "processed opts:\n" ++ ppShow opts
-    putStrLn $ "command matched: " ++ show cmd
-    putStrLn $ "isNullCommand: " ++ show isNullCommand
-    putStrLn $ "isInternalCommand: " ++ show isInternalCommand
-    putStrLn $ "isExternalCommand: " ++ show isExternalCommand
-    putStrLn $ "isBadCommand: " ++ show isBadCommand
-    d <- getCurrentDay
-    putStrLn $ "date span from opts: " ++ (show $ dateSpanFromOpts d $ reportopts_ opts)
-    putStrLn $ "interval from opts: " ++ (show $ intervalFromOpts $ reportopts_ opts)
-    putStrLn $ "query from opts & args: " ++ (show $ queryFromOpts d $ reportopts_ opts)
+  dbgM "processed opts" opts
+  dbgM "command matched" cmd
+  dbgM "isNullCommand" isNullCommand
+  dbgM "isInternalCommand" isInternalCommand
+  dbgM "isExternalCommand" isExternalCommand
+  dbgM "isBadCommand" isBadCommand
+  d <- getCurrentDay
+  dbgM "date span from opts" (dateSpanFromOpts d $ reportopts_ opts)
+  dbgM "interval from opts" (intervalFromOpts $ reportopts_ opts)
+  dbgM "query from opts & args" (queryFromOpts d $ reportopts_ opts)
   let
-    dbg s = if debug_ opts > 0 then trace s else id
     runHledgerCommand
       -- high priority flags and situations. --help should be highest priority.
-      | hasHelp argsbeforecmd    = dbg "--help before command, showing general help" generalHelp
+      | hasHelp argsbeforecmd    = dbgM "" "--help before command, showing general help" >> generalHelp
       | not (hasHelp argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = version
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
-      | isNullCommand            = dbg "no command, showing general help" generalHelp
+      | isNullCommand            = dbgM "" "no command, showing general help" >> generalHelp
       | isBadCommand             = badCommandError
 
       -- internal commands
@@ -250,11 +253,10 @@ main = do
 
       -- an external command
       | isExternalCommand = do
-          let shellcmd = printf "%s-%s %s" progname cmd (unwords' argsaftercmd)
-          when (debug_ opts > 0) $ do
-            printf "external command selected: %s\n" cmd
-            printf "external command arguments: %s\n" (show argsaftercmd)
-            printf "running shell command: %s\n" (show shellcmd)
+          let shellcmd = printf "%s-%s %s" progname cmd (unwords' argsaftercmd) :: String
+          dbgM "external command selected" cmd
+          dbgM "external command arguments" argsaftercmd
+          dbgM "running shell command" shellcmd
           system shellcmd >>= exitWith
 
       -- deprecated commands
