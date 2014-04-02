@@ -117,9 +117,9 @@ amountstyle = AmountStyle L False 0 '.' ',' []
 
 instance Show Amount where
   show _a@Amount{..}
-    --  debugLevel < 3 = showAmountWithoutPrice a
-    --  debugLevel < 6 = showAmount a
-    | debugLevel < 9 =
+    --  debugLevel < 2 = showAmountWithoutPrice a
+    --  debugLevel < 3 = showAmount a
+    | debugLevel < 6 =
        printf "Amount {acommodity=%s, aquantity=%s, ..}" (show acommodity) (show aquantity)
     | otherwise      = --showAmountDebug a
        printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showPriceDebug aprice) (show astyle)
