@@ -425,6 +425,11 @@ debugLevel = case snd $ break (=="--debug") args of
 dbg :: Show a => String -> a -> a
 dbg = dbgppshow 1
 
+-- | Print a message and a showable value to the console if the global
+-- debug level is at or above the specified level.  Uses unsafePerformIO.
+dbgAt :: Show a => Int -> String -> a -> a
+dbgAt lvl = dbgppshow lvl
+
 -- | Print a showable value to the console, with a message, if the
 -- debug level is at or above the specified level (uses
 -- unsafePerformIO).
