@@ -332,7 +332,7 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
 
 instance Show MixedAmount where
   show
-    --  debugLevel < 3 = intercalate "\\n" . lines . showMixedAmountWithoutPrice
+    | debugLevel < 3 = intercalate "\\n" . lines . showMixedAmountWithoutPrice
     --  debugLevel < 6 = intercalate "\\n" . lines . showMixedAmount
     | otherwise      = showMixedAmountDebug
 
