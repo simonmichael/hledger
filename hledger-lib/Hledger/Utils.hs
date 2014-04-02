@@ -430,6 +430,9 @@ dbg = dbgppshow 1
 dbgAt :: Show a => Int -> String -> a -> a
 dbgAt lvl = dbgppshow lvl
 
+dbgAtM :: Show a => Int -> String -> a -> IO ()
+dbgAtM lvl lbl x = dbgAt lvl lbl x `seq` return ()
+
 -- | Print a showable value to the console, with a message, if the
 -- debug level is at or above the specified level (uses
 -- unsafePerformIO).
