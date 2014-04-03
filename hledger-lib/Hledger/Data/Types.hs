@@ -31,7 +31,7 @@ type SmartDate = (String,String,String)
 
 data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 
-data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Show,Ord,Data,Typeable)
+data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Ord,Data,Typeable)
 
 data Interval = NoInterval
               | Days Int | Weeks Int | Months Int | Quarters Int | Years Int
