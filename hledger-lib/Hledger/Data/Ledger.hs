@@ -19,7 +19,6 @@ import Hledger.Data.Account
 import Hledger.Data.Journal
 import Hledger.Data.Posting
 import Hledger.Query
-import Hledger.Utils
 
 
 instance Show Ledger where
@@ -44,10 +43,8 @@ ledgerFromJournal :: Query -> Journal -> Ledger
 ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
   where
     (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
-    j'  = 
-        dbg "ledgerFromJournal1" $
-        filterJournalPostingAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
-        filterJournalPostings q' j
+    j'  = filterJournalPostingAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
+          filterJournalPostings q' j
     as  = accountsFromPostings $ journalPostings j'
     j'' = filterJournalPostings depthq j'
 

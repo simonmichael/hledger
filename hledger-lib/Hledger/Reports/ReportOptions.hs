@@ -304,7 +304,7 @@ reportSpans opts q j = (reportspan, spans)
 
     -- if there's a reporting interval, calculate the report periods
     -- which enclose the requested span
-    spans = dbg "spans" $ splitSpan (intervalFromOpts opts) requestedspan'
+    spans = splitSpan (intervalFromOpts opts) requestedspan'
 
     -- the overall report span encloses the periods
     reportspan = DateSpan
