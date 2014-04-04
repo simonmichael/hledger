@@ -122,7 +122,6 @@ clipAccounts d a = a{asubs=subs}
 
 -- | Remove subaccounts below the specified depth, aggregating their balance at the depth limit
 -- (accounts at the depth limit will have any sub-balances merged into their exclusive balance).
--- XXX may be incorrect in some cases.
 clipAccountsAndAggregate :: Int -> [Account] -> [Account]
 clipAccountsAndAggregate d as = combined
     where
