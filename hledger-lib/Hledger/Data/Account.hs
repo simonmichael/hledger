@@ -125,10 +125,11 @@ pruneAccounts :: (Account -> Bool) -> Account -> Maybe Account
 pruneAccounts p = headMay . prune
   where
     prune a
-      | null prunedsubs = if p a then [] else [a]
-      | otherwise       = [a{asubs=prunedsubs}]
+      | null prunedsubs = if p a then [] else [a']
+      | otherwise       = [a']
       where
         prunedsubs = concatMap prune $ asubs a
+        a' = a{asubs=prunedsubs}
 
 -- | Flatten an account tree into a list, which is sometimes
 -- convenient. Note since accounts link to their parents/subs, the
