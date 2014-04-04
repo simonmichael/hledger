@@ -25,9 +25,10 @@ import Hledger.Utils
 
 -- deriving instance Show Account
 instance Show Account where
-    show Account{..} = printf "Account %s (boring:%s, ebalance:%s, ibalance:%s)"
-                       aname  
+    show Account{..} = printf "Account %s (boring:%s, postings:%d, ebalance:%s, ibalance:%s)"
+                       aname
                        (if aboring then "y" else "n" :: String)
+                       anumpostings
                        (showMixedAmount aebalance)
                        (showMixedAmount aibalance)
 
