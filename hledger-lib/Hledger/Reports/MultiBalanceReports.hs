@@ -227,7 +227,7 @@ cumulativeOrHistoricalBalanceReport opts q j = MultiBalanceReport (periodbalance
       -- accounts to report on
       reportaccts = dbg "reportaccts"
                     acctsWithBalanceChanges
-                    -- $ (dbg' "acctsWithStartingBalance" acctsWithStartingBalance) `union` (dbg' "acctsWithBalanceChanges" acctsWithBalanceChanges)
+                    -- (dbg' "acctsWithStartingBalance" acctsWithStartingBalance) `union` (dbg' "acctsWithBalanceChanges" acctsWithBalanceChanges)
 
       -- ending balances in each period (starting balance plus balance changes) for an account
       endingBalancesFor a = 
