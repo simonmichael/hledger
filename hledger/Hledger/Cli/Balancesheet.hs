@@ -50,7 +50,6 @@ Assets:
 #{unlines $ balanceReportAsText ropts assetreport}
 Liabilities:
 #{unlines $ balanceReportAsText ropts liabilityreport}
-
 Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}

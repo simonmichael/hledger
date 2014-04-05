@@ -52,7 +52,6 @@ cashflow CliOpts{reportopts_=ropts} j = do
 
 Cash flows:
 #{unlines $ balanceReportAsText ropts cashreport}
-
 Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}

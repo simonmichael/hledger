@@ -49,7 +49,6 @@ Revenues:
 #{unlines $ balanceReportAsText ropts incomereport}
 Expenses:
 #{unlines $ balanceReportAsText ropts expensereport}
-
 Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}
