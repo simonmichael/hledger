@@ -257,7 +257,7 @@ updateData d a@AppState{aopts=opts,ajournal=j} =
     case screen a of
       BalanceScreen  -> a{abuf=accountsReportAsText ropts $ accountsReport ropts fspec j}
       RegisterScreen -> a{abuf=lines $ postingsReportAsText ropts $ postingsReport ropts fspec j}
-      PrintScreen    -> a{abuf=lines $ showTransactions ropts fspec j}
+      PrintScreen    -> a{abuf=lines $ showTransactions ropts fspec j} -- XXX use entriesReport/entriesReportAsText now
     where fspec = optsToFilterSpec ropts{patterns_=currentArgs a} d
           ropts = reportopts_ $ cliopts_ opts
 
