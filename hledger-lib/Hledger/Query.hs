@@ -31,6 +31,7 @@ module Hledger.Query (
   matchesTransaction,
   matchesPosting,
   matchesAccount,
+  matchesMixedAmount,
   matchesAmount,
   -- * tests
   tests_Hledger_Query
@@ -541,6 +542,10 @@ tests_matchesAccount = [
     assertBool "" $ not $ (Tag "a" Nothing) `matchesAccount` "a"
  ]
 
+matchesMixedAmount :: Query -> MixedAmount -> Bool
+matchesMixedAmount q (Mixed []) = q `matchesAmount` nullamt
+matchesMixedAmount q (Mixed as) = any (q `matchesAmount`) as
+
 -- | Does the match expression match this (simple) amount ?
 matchesAmount :: Query -> Amount -> Bool
 matchesAmount (Not q) a = not $ q `matchesAmount` a
@@ -548,23 +553,23 @@ matchesAmount (Any) _ = True
 matchesAmount (None) _ = False
 matchesAmount (Or qs) a = any (`matchesAmount` a) qs
 matchesAmount (And qs) a = all (`matchesAmount` a) qs
-matchesAmount (Amt ord n) a = compareMixedAmount ord n (Mixed [a])
+--
+matchesAmount (Amt ord n) a = compareAmount ord n a
 matchesAmount (Sym r) a = regexMatchesCI ("^" ++ r ++ "$") $ acommodity a
+--
 matchesAmount _ _ = True
 
 -- | Is this simple (single-amount) mixed amount's quantity less than, greater than, equal to, or unsignedly equal to this number ?
 -- For multi-amount (multiple commodities, or just unsimplified) mixed amounts this is always true.
-compareMixedAmount :: OrdPlus -> Quantity -> MixedAmount -> Bool
-compareMixedAmount ord q (Mixed [])  = compareMixedAmount ord q (Mixed [amount])
--- compareMixedAmount ord q (Mixed [a]) = strace (compare (strace $ aquantity a) (strace q)) == ord
-compareMixedAmount ord q (Mixed [Amount{aquantity=aq}]) = case ord of
-                                                            Lt    -> aq <  q
-                                                            Gt    -> aq >  q
-                                                            Eq    -> aq == q
-                                                            AbsLt -> abs aq <  abs q
-                                                            AbsGt -> abs aq >  abs q
-                                                            AbsEq -> abs aq == abs q
-compareMixedAmount _ _ _            = True
+
+-- | Is this amount's quantity less than, greater than, equal to, or unsignedly equal to this number ?
+compareAmount :: OrdPlus -> Quantity -> Amount -> Bool
+compareAmount ord q Amount{aquantity=aq} = case ord of Lt    -> aq <  q
+                                                       Gt    -> aq >  q
+                                                       Eq    -> aq == q
+                                                       AbsLt -> abs aq <  abs q
+                                                       AbsGt -> abs aq >  abs q
+                                                       AbsEq -> abs aq == abs q
 
 -- | Does the match expression match this posting ?
 matchesPosting :: Query -> Posting -> Bool
@@ -580,8 +585,9 @@ matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (Status v) p = v == postingCleared p
 matchesPosting (Real v) p = v == isReal p
-matchesPosting (Depth d) Posting{paccount=a} = Depth d `matchesAccount` a
-matchesPosting (Amt ord n) Posting{pamount=a} = compareMixedAmount ord n a
+matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
+matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
+-- matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
 -- matchesPosting (Empty v) Posting{pamount=a} = v == isZeroMixedAmount a
 -- matchesPosting (Empty False) Posting{pamount=a} = True
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
