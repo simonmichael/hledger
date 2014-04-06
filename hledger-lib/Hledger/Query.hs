@@ -49,7 +49,7 @@ import Text.ParserCombinators.Parsec
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
-import Hledger.Data.Amount (amount, usd)
+import Hledger.Data.Amount (amount, nullamt, usd)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
