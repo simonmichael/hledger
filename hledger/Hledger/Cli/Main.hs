@@ -50,6 +50,7 @@ import Text.Printf
 
 import Hledger (ensureJournalFileExists)
 import Hledger.Cli.Add
+import Hledger.Cli.Accounts
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
 import Hledger.Cli.Cashflow
@@ -82,6 +83,7 @@ mainmode addons = defMode {
        ])
      ,("\nReporting commands", [
         printmode
+       ,accountsmode
        ,balancemode
        ,registermode
        ,incomestatementmode
@@ -239,6 +241,7 @@ main = do
       -- internal commands
       | cmd == "activity"        = withJournalDo opts histogram       `orShowHelp` activitymode
       | cmd == "add"             = (journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add) `orShowHelp` addmode
+      | cmd == "accounts"        = withJournalDo opts accounts        `orShowHelp` accountsmode
       | cmd == "balance"         = withJournalDo opts balance         `orShowHelp` balancemode
       | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowHelp` balancesheetmode
       | cmd == "cashflow"        = withJournalDo opts cashflow        `orShowHelp` cashflowmode

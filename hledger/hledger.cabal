@@ -53,6 +53,7 @@ library
                   Hledger.Cli.Utils
                   Hledger.Cli.Version
                   Hledger.Cli.Add
+                  Hledger.Cli.Accounts
                   Hledger.Cli.Balance
                   Hledger.Cli.Balancesheet
                   Hledger.Cli.Cashflow
@@ -108,6 +109,7 @@ executable hledger
                   Hledger.Cli.Utils
                   Hledger.Cli.Version
                   Hledger.Cli.Add
+                  Hledger.Cli.Accounts
                   Hledger.Cli.Balance
                   Hledger.Cli.Balancesheet
                   Hledger.Cli.Cashflow
