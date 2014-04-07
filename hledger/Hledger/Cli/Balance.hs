@@ -388,7 +388,7 @@ periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals))
     accts = map renderacct items'
     renderacct ((a,a',i),_)
       | tree_ opts = replicate (i*2) ' ' ++ a'
-      | otherwise  = a
+      | otherwise  = accountNameDrop (drop_ opts) a
     acctswidth = maximum $ map length $ accts
     totalrow | no_total_ opts = row "" []
              | otherwise      = row "" coltotals
@@ -409,7 +409,7 @@ cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
     accts = map renderacct items
     renderacct ((a,a',i),_)
       | tree_ opts = replicate (i*2) ' ' ++ a'
-      | otherwise  = a
+      | otherwise  = accountNameDrop (drop_ opts) a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ row "" coltotals)
@@ -430,7 +430,7 @@ historicalBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
     accts = map renderacct items
     renderacct ((a,a',i),_)
       | tree_ opts = replicate (i*2) ' ' ++ a'
-      | otherwise  = a
+      | otherwise  = accountNameDrop (drop_ opts) a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ row "" coltotals)
