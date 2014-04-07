@@ -265,7 +265,8 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases ++ ["bal"]) { -- also acc
      groupUnnamed = [
       flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "with a reporting interval, show accumulated totals starting from 0"
      ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "with a reporting interval, show accurate historical ending balances"
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list"
+     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
@@ -286,11 +287,10 @@ balance CliOpts{reportopts_=ropts} j = do
          Left err -> [err]
          Right _ ->
           case (intervalFromOpts ropts, balancetype_ ropts) of
-            (NoInterval,_)        -> balanceReportAsText           ropts $ balanceReport ropts (queryFromOpts d ropts) j
+            (NoInterval,_)        -> balanceReportAsText           ropts  $ balanceReport ropts (queryFromOpts d ropts) j
             (_,PeriodBalance)     -> periodBalanceReportAsText     ropts $ periodBalanceReport                 ropts (queryFromOpts d ropts) j
             (_,CumulativeBalance) -> cumulativeBalanceReportAsText ropts $ cumulativeOrHistoricalBalanceReport ropts (queryFromOpts d ropts) j
             (_,HistoricalBalance) -> historicalBalanceReportAsText ropts $ cumulativeOrHistoricalBalanceReport ropts (queryFromOpts d ropts) j
-
   putStr $ unlines output
 
 -- | Render an old-style single-column balance report as plain text.
@@ -386,9 +386,9 @@ periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals))
     items' | empty_ opts = items
            | otherwise   = items -- dbg "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg "1" items
     accts = map renderacct items'
-    renderacct ((a,a',_i),_)
-      | flat_ opts = a
-      | otherwise  = a' -- replicate i ' ' ++ 
+    renderacct ((a,a',i),_)
+      | tree_ opts = replicate (i*2) ' ' ++ a'
+      | otherwise  = a
     acctswidth = maximum $ map length $ accts
     totalrow | no_total_ opts = row "" []
              | otherwise      = row "" coltotals
@@ -407,9 +407,9 @@ cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
     accts = map renderacct items
-    renderacct ((a,a',_),_)
-      | flat_ opts = a
-      | otherwise  = a' -- replicate i ' ' ++ 
+    renderacct ((a,a',i),_)
+      | tree_ opts = replicate (i*2) ' ' ++ a'
+      | otherwise  = a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ row "" coltotals)
@@ -428,9 +428,9 @@ historicalBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
     accts = map renderacct items
-    renderacct ((a,a',_),_)
-      | flat_ opts = a
-      | otherwise  = a' -- replicate i ' ' ++ 
+    renderacct ((a,a',i),_)
+      | tree_ opts = replicate (i*2) ' ' ++ a'
+      | otherwise  = a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ row "" coltotals)

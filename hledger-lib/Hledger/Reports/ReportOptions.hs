@@ -77,7 +77,8 @@ data ReportOpts = ReportOpts {
     ,related_        :: Bool
     -- balance
     ,balancetype_    :: BalanceType
-    ,flat_           :: Bool
+    ,flat_           :: Bool -- mutually
+    ,tree_           :: Bool -- exclusive
     ,drop_           :: Int
     ,no_total_       :: Bool
  } deriving (Show, Data, Typeable)
@@ -86,6 +87,7 @@ instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -139,6 +141,7 @@ rawOptsToReportOpts rawopts = do
     ,related_     = boolopt "related" rawopts
     ,balancetype_ = balancetypeopt rawopts
     ,flat_        = boolopt "flat" rawopts
+    ,tree_        = boolopt "tree" rawopts
     ,drop_        = intopt "drop" rawopts
     ,no_total_    = boolopt "no-total" rawopts
     }

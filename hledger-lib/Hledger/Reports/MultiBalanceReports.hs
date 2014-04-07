@@ -129,6 +129,7 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
 
       displayedAccts :: [ClippedAccountName] =
           dbg "displayedAccts" $
+          (if tree_ opts then expandAccountNames else id) $
           nub $ map (clipAccountName depth) postedAccts
           -- [ "assets" ]
 
@@ -142,14 +143,14 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
           [postingAcctBals ps | ps <- psBySpan]
           where
             postingAcctBals :: [Posting] -> [(ClippedAccountName, MixedAmount)]
-            postingAcctBals ps = [(aname a, (if flatShowsExclusiveBalance then aebalance else aibalance) a) | a <- as]
+            postingAcctBals ps = [(aname a, (if tree_ opts then aibalance else aebalance) a) | a <- as]
                 where
                   as = depthLimit $ 
-                       filter ((>0).anumpostings) $
+                       (if tree_ opts then id else filter ((>0).anumpostings)) $
                        drop 1 $ accountsFromPostings ps
                   depthLimit
-                      | flatShowsExclusiveBalance = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
-                      | otherwise                 = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
+                      | tree_ opts = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
+                      | otherwise  = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
           -- [ [ ( "assets" , 0 ) ]
           -- , [ ( "assets" , 1 ) ]
           -- , [ ( "assets" , 1 ) ]
@@ -179,7 +180,7 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
 
       items :: [MultiBalanceReportRow] =
           dbg "items" $
-          [((a, a, accountNameLevel a), bs) | (a,bs) <- acctBalsAlist, empty_ opts || any (not . isZeroMixedAmount) bs]
+          [((a, accountLeafName a, accountNameLevel a), bs) | (a,bs) <- acctBalsAlist, empty_ opts || any (not . isZeroMixedAmount) bs]
           -- [ ( ( "assets" , "assets" , 1 ) , [ 0 , 1 , 1 ] ) ]
 
       -- highestLevelBalsBySpan :: [[MixedAmount]] =
@@ -188,9 +189,9 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
 
       totals :: [MixedAmount] =
           dbg "totals" $
-          if flatShowsExclusiveBalance
-          then map (sum . map snd) displayedBalsBySpan
-          else map (sum . map pamount) psBySpan
+          if tree_ opts
+          then map (sum . map pamount) psBySpan
+          else map (sum . map snd) displayedBalsBySpan
           -- else map sum highestLevelBalsBySpan
           -- [ 0 , 1 , 1 ]
 
@@ -211,7 +212,7 @@ cumulativeOrHistoricalBalanceReport opts q j = MultiBalanceReport (periodbalance
           where
             dateless              = filterQuery (not . queryIsDate)
             precedingq            = dbg "precedingq" $ And [dateless q, Date $ DateSpan Nothing (spanStart reportspan)]
-            (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts{flat_=True,empty_=True} precedingq j
+            (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts{flat_=True,empty_=True} precedingq j -- XXX
       -- acctsWithStartingBalance = map fst $ filter (not . isZeroMixedAmount . snd) startacctbals
       startingBalanceFor a
           | balancetype_ opts == HistoricalBalance = fromMaybe nullmixedamt $ lookup a startacctbals
@@ -237,9 +238,9 @@ cumulativeOrHistoricalBalanceReport opts q j = MultiBalanceReport (periodbalance
       items  = dbg "items"  $ [((a,a,0), endingBalancesFor a) | a <- reportaccts]
 
       totals = dbg "totals" $ 
-          if flatShowsExclusiveBalance
-          then map sum balsbycol
-          else map sum highestlevelbalsbycol
+          if tree_ opts
+          then map sum highestlevelbalsbycol
+          else map sum balsbycol
           where
             balsbycol             = transpose $ map endingBalancesFor reportaccts
             highestlevelbalsbycol = transpose $ map endingBalancesFor highestlevelaccts
