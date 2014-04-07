@@ -265,9 +265,9 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases ++ ["bal"]) { -- also acc
      groupUnnamed = [
       flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "with a reporting interval, show accumulated totals starting from 0"
      ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "with a reporting interval, show accurate historical ending balances"
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list"
-     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default in multicolumn reports)"
+     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree (default in simple reports)"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in flat mode, omit this many leading account name components"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
      ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"

@@ -1,7 +1,12 @@
 {-|
 
-The @accounts@ command lists the full names of the (query-restricted)
-accounts posted to . This is similar to ledger accounts -E.
+The @accounts@ command lists account names:
+
+- in flat mode (default), it lists the full names of accounts posted to by matched postings,
+  clipped to the specified depth, possibly with leading components dropped.
+
+- in tree mode, it shows the indented short names of accounts posted to by matched postings,
+  and their parents, to the specified depth.
 
 -}
 
@@ -23,10 +28,12 @@ import Hledger.Cli.Options
 
 -- | Command line options for this command.
 accountsmode = (defCommandMode $ ["accounts"] ++ aliases ++ hiddenaliases) {
-  modeHelp = "show names of accounts posted to" `withAliases` aliases
+  modeHelp = "show account names" `withAliases` aliases
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
-      flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
+      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
+     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in flat mode, omit this many leading account name components"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -39,6 +46,14 @@ accounts :: CliOpts -> Journal -> IO ()
 accounts CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-  mapM_ putStrLn $ filter (q `matchesAccount`) $ nub $ sort $ map paccount $ journalPostings j
+      nodepthq = dbg "nodepthq" $ filterQuery (not . queryIsDepth) q
+      depth    = dbg "depth" $ queryDepth $ filterQuery queryIsDepth q
+      ps = dbg "ps" $ journalPostings $ filterJournalPostings nodepthq j
+      as = dbg "as" $ nub $ filter (not . null) $ map (clipAccountName depth) $ sort $ map paccount ps
+      as' | tree_ ropts = expandAccountNames as
+          | otherwise   = as
+      render a | tree_ ropts = replicate (2 * (accountNameLevel a - 1)) ' ' ++ accountLeafName a
+               | otherwise   = accountNameDrop (drop_ ropts) a
+  mapM_ (putStrLn . render) as'
 
 tests_Hledger_Cli_Accounts = TestList []
