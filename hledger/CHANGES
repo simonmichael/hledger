@@ -1,3 +1,58 @@
+(unreleased)
+
+CLI: 
+- Commands list cleanups; descriptions are shown for known hledger-* add-ons.
+- If both source and compiled version of a haskell add-on are found, only the latter is shown.
+- Fix: add-ons with digits in the name are now found.
+
+Journal format:
+- A # (hash) in column 0 is now also supported for starting a top-level journal comment, like Ledger.
+- The "too many missing amounts" error now reminds about the 2-space rule.
+- Fix: . (period) is no longer parsed as a valid amount.
+- Fix: default commodity directives no longer limit the maximum display precision (#169).
+
+Queries:
+- The currency/commodity query prefix (sym:) has been renamed to cur:.
+- Currency/commodity queries are applied more strongly in register and
+  balance reports, filtering out unwanted currencies entirely. Eg
+  hledger balance cur:'\$' now reports only the dollar amounts even if
+  there are multi-currency transactions or postings.
+- Amount queries (like amt:N) now ignore sign by default. To do a signed comparison,
+  write N with its sign (eg amt:+N, amt:=-N, amt:<+N, amt:>-N).
+- Fix: amount queries no longer give false positives on multi-commodity amounts.
+
+accounts:
+- An accounts command has been added, similar to Ledger's, for listing account names.
+
+add:
+- Tab completion now works at all prompts, and will insert the default if there's no input.
+- Account and amount defaults are more robust and useful.
+- The enter key can also be used to end transactions, if there are no more default postings.
+- Input prompts are displayed in green, when supported.
+
+balance:
+- Balance reports in flat mode now always show exclusive (subaccount-excluding) balances.
+- Balance reports in flat mode with --depth now aggregate deeper accounts at the depth limit instead of excluding them.
+- Multicolumn balance reports can now show the account hierarchy with --tree.
+- Multicolumn reports in flat mode now support --drop.
+- Fix: zero-balance leaf accounts below a non-zero-balance parent are no longer always shown (#170).
+
+balancesheet, cashflow, incomestatement:
+- These commands now support --flat and --drop.
+
+print:
+- Tag queries (tag:) will now match a transaction if any of its postings match.
+
+register:
+- Tag queries no longer give false positives for a matched posting's siblings.
+
+Miscellaneous:
+- Compatible with GHC 7.8, text 1.1
+- Compatible with GHC 7.2 (#155)
+- Debug output improvements.
+- extra/hledger-rewrite.hs, adds postings to matched entries.
+
+
 0.22.1 (2014/1/6) and older
 
 See http://hledger.org/release-notes or doc/CHANGES.md.
