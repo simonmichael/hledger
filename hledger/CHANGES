@@ -33,8 +33,8 @@ add:
 balance:
 - Balance reports in flat mode now always show exclusive (subaccount-excluding) balances.
 - Balance reports in flat mode with --depth now aggregate deeper accounts at the depth limit instead of excluding them.
-- Multicolumn balance reports can now show the account hierarchy with --tree.
 - Multicolumn reports in flat mode now support --drop.
+- Multicolumn balance reports can now show the account hierarchy with --tree.
 - Fix: zero-balance leaf accounts below a non-zero-balance parent are no longer always shown (#170).
 
 balancesheet, cashflow, incomestatement:
@@ -42,9 +42,6 @@ balancesheet, cashflow, incomestatement:
 
 print:
 - Tag queries (tag:) will now match a transaction if any of its postings match.
-
-register:
-- Tag queries no longer give false positives for a matched posting's siblings.
 
 Miscellaneous:
 - Compatible with GHC 7.8, text 1.1
