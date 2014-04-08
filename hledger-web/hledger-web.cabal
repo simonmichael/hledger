@@ -48,7 +48,7 @@ extra-source-files:
                 templates/homepage.julius
                 templates/homepage.lucius
                 templates/normalize.lucius
-                CHANGES.md
+                CHANGES
 
 source-repository head
     type:     git
