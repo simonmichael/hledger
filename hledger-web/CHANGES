@@ -1,0 +1,22 @@
+(unreleased)
+
+- allow warp 2.1
+
+0.22.4 (2014/2/10)
+
+- Fix: include the right unminified version of jquery.url.js (1.1) to avoid js breakage
+
+0.22.3 (2014/2/10)
+
+- Fix: version number reported by --version
+
+0.22.2 (2014/2/10)
+
+- new option --static-root to set the base url for static files
+- allow blaze-html 0.7 (#159)
+- Fix: include unminified source of all javascript to help packagers (#161)
+- Fix: work around clang-related build failures with OS X mavericks/XCode 5
+
+0.22.1 (2014/1/6) and older
+
+See http://hledger.org/release-notes or doc/CHANGES.md.
