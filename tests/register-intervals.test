@@ -68,3 +68,15 @@ hledgerdev -f- register --period 'monthly to 2011/2/1' b --empty --display 'd<[2
 2011/01/01 - 2011/01/31                                          0             0
 >>>=0
 
+# 6. --date2 should work with intervals
+hledgerdev -f- register --monthly --date2
+<<<
+2014/1/1
+  (a)  1
+
+2014/2/1=2014/1/31
+  (b)  1
+>>>
+2014/01/01 - 2014/01/31         a                                1             1
+                                b                                1             2
+>>>=0
