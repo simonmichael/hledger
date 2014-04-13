@@ -51,7 +51,7 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
                           (totallabel, postingsReportItems ps nullposting wd depth startbal runningcalcfn 1)
     where
       ps | interval == NoInterval = displayableps
-         | otherwise              = summarisePostingsByInterval interval depth empty reportspan displayableps
+         | otherwise              = summarisePostingsByInterval interval wd depth empty reportspan displayableps
       j' = journalSelectingAmountFromOpts opts j
       wd = whichDateFromOpts opts
       -- delay depth filtering until the end
@@ -81,7 +81,7 @@ postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
       -- The latter is not easily available, fake it for now.
       requestedspan = periodspan `spanIntersect` displayspan
       periodspan = queryDateSpan secondarydate q
-      secondarydate = whichDateFromOpts opts == SecondaryDate
+      secondarydate = wd == SecondaryDate
       displayspan = postingsDateSpan ps
           where (_,ps,_) = postingsMatchingDisplayExpr displayexpr opts $ journalPostings j'
       matchedspan = postingsDateSpan displayableps
@@ -169,15 +169,15 @@ datedisplayexpr = do
 -- | Convert a list of postings into summary postings. Summary postings
 -- are one per account per interval and aggregated to the specified depth
 -- if any.
-summarisePostingsByInterval :: Interval -> Int -> Bool -> DateSpan -> [Posting] -> [Posting]
-summarisePostingsByInterval interval depth empty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
+summarisePostingsByInterval :: Interval -> WhichDate -> Int -> Bool -> DateSpan -> [Posting] -> [Posting]
+summarisePostingsByInterval interval wd depth empty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
     where
-      summarisespan s = summarisePostingsInDateSpan s depth empty (postingsinspan s)
-      postingsinspan s = filter (isPostingInDateSpan s) ps
+      summarisespan s = summarisePostingsInDateSpan s wd depth empty (postingsinspan s)
+      postingsinspan s = filter (isPostingInDateSpan' wd s) ps
 
 tests_summarisePostingsByInterval = [
   "summarisePostingsByInterval" ~: do
-    summarisePostingsByInterval (Quarters 1) 99999 False (DateSpan Nothing Nothing) [] ~?= []
+    summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] ~?= []
  ]
 
 -- | Given a date span (representing a reporting interval) and a list of
@@ -193,15 +193,16 @@ tests_summarisePostingsByInterval = [
 --
 -- The showempty flag includes spans with no postings and also postings
 -- with 0 amount.
-summarisePostingsInDateSpan :: DateSpan -> Int -> Bool -> [Posting] -> [Posting]
-summarisePostingsInDateSpan (DateSpan b e) depth showempty ps
+summarisePostingsInDateSpan :: DateSpan -> WhichDate -> Int -> Bool -> [Posting] -> [Posting]
+summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
     | null ps && (isNothing b || isNothing e) = []
     | null ps && showempty = [summaryp]
     | otherwise = summaryps'
     where
       summaryp = summaryPosting b' ("- "++ showDate (addDays (-1) e'))
-      b' = fromMaybe (maybe nulldate postingDate $ headMay ps) b
-      e' = fromMaybe (maybe (addDays 1 nulldate) postingDate $ lastMay ps) e
+      b' = fromMaybe (maybe nulldate postingdate $ headMay ps) b
+      e' = fromMaybe (maybe (addDays 1 nulldate) postingdate $ lastMay ps) e
+      postingdate = if wd == PrimaryDate then postingDate else postingDate2
       summaryPosting date desc = nullposting{ptransaction=Just nulltransaction{tdate=date,tdescription=desc}}
       summaryps' = (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
       summaryps = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]

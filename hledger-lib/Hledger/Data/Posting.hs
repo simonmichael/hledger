@@ -26,6 +26,7 @@ module Hledger.Data.Posting (
   postingDate,
   postingDate2,
   isPostingInDateSpan,
+  isPostingInDateSpan',
   postingsDateSpan,
   -- * account name operations
   accountNamesFromPostings,
@@ -159,6 +160,11 @@ relatedPostings _ = []
 -- | Does this posting fall within the given date span ?
 isPostingInDateSpan :: DateSpan -> Posting -> Bool
 isPostingInDateSpan s = spanContainsDate s . postingDate
+
+-- --date2-sensitive version, separate for now to avoid disturbing multiBalanceReport.
+isPostingInDateSpan' :: WhichDate -> DateSpan -> Posting -> Bool
+isPostingInDateSpan' PrimaryDate   s = spanContainsDate s . postingDate
+isPostingInDateSpan' SecondaryDate s = spanContainsDate s . postingDate2
 
 isEmptyPosting :: Posting -> Bool
 isEmptyPosting = isZeroMixedAmount . pamount
