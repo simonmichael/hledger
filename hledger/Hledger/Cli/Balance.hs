@@ -387,7 +387,7 @@ periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals))
            | otherwise   = items -- dbg "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg "1" items
     accts = map renderacct items'
     renderacct ((a,a',i),_)
-      | tree_ opts = replicate (i*2) ' ' ++ a'
+      | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = accountNameDrop (drop_ opts) a
     acctswidth = maximum $ map length $ accts
     totalrow | no_total_ opts = row "" []
@@ -408,7 +408,7 @@ cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
     accts = map renderacct items
     renderacct ((a,a',i),_)
-      | tree_ opts = replicate (i*2) ' ' ++ a'
+      | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = accountNameDrop (drop_ opts) a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
@@ -429,7 +429,7 @@ historicalBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
     accts = map renderacct items
     renderacct ((a,a',i),_)
-      | tree_ opts = replicate (i*2) ' ' ++ a'
+      | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = accountNameDrop (drop_ opts) a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
