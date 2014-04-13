@@ -191,3 +191,49 @@ Ending balance (historical):
         ||          10          12          13 
 
 >>>=0
+
+# 14. The three multicol balance report types again, this time with --tree
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --tree
+>>>
+Change of balance (flow):
+
+            ||  2013/01/01-2013/01/31  2013/02/01-2013/02/28  2013/03/01-2013/03/31 
+============++======================================================================
+ assets     ||                      0                      2                      1 
+   cash     ||                      0                      1                      0 
+   checking ||                      0                      0                      1 
+------------++----------------------------------------------------------------------
+            ||                      0                      2                      1 
+
+>>>=0
+
+# 15.
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --cumulative --tree
+>>>
+Ending balance (cumulative):
+
+            ||  2013/01/31  2013/02/28  2013/03/31 
+============++=====================================
+ assets     ||           0           2           3 
+   cash     ||           0           1           1 
+   checking ||           0           0           1 
+------------++-------------------------------------
+            ||           0           2           3 
+
+>>>=0
+
+# 16.
+hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --historical --tree
+>>>
+Ending balance (historical):
+
+            ||  2013/01/31  2013/02/28  2013/03/31 
+============++=====================================
+ assets     ||          10          12          13 
+   cash     ||           0           1           1 
+   checking ||          10          10          11 
+------------++-------------------------------------
+            ||          10          12          13 
+
+>>>=0
+

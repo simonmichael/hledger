@@ -8,8 +8,7 @@ Multi-column balance reports, used by the balance command.
 module Hledger.Reports.MultiBalanceReports (
   MultiBalanceReport(..),
   MultiBalanceReportRow,
-  periodBalanceReport,
-  cumulativeOrHistoricalBalanceReport,
+  multiBalanceReport
 
   -- -- * Tests
   -- tests_Hledger_Reports_MultiBalanceReport
@@ -36,8 +35,9 @@ import Hledger.Reports.BalanceReport
 --
 -- 3. a list of each column's final total
 --
--- The meaning of the amounts depends on the type of balance report (see
--- 'BalanceType' and "Hledger.Cli.Balance").
+-- The meaning of the amounts depends on the type of multi balance
+-- report, of which there are three: periodic, cumulative and historical
+-- (see 'BalanceType' and "Hledger.Cli.Balance").
 newtype MultiBalanceReport = MultiBalanceReport ([DateSpan]
                                                 ,[MultiBalanceReportRow]
                                                 ,[MixedAmount]
@@ -60,29 +60,19 @@ instance Show MultiBalanceReport where
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
 
--- | Generate a multi balance report for the matched accounts, showing
--- their change of balance in each of the specified periods.
--- Currently has some limitations compared to the simple balance report,
--- eg always displays accounts in --flat mode.
-periodBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
+-- | Generate a multicolumn balance report for the matched accounts,
+-- showing the change of balance, accumulated balance, or historical balance
+-- in each of the specified periods.
+multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
+multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
     where
       -- dbg = const id                                   -- exclude from debug output
-      dbg s = let p = "periodBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
-
-      -- Example data below is from
-      -- hledger -f data/balance-multicol.journal balance -p 'monthly2013' assets: --depth=1 --debug=1
-      -- with flatShowsExclusiveBalance=True. To see more, run other commands from
-      -- tests/balance-multicol.test with --debug=1.
+      -- dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
 
       nodepthq = dbg "nodepthq" $ filterQuery (not . queryIsDepth) q
-                 -- And ([Date (DateSpan (Just 2013-01-01) (Just 2014-01-01)),Acct "assets:"])
       depthq   = dbg "depthq"   $ filterQuery queryIsDepth q
-                 -- Any
       depth    = queryDepth depthq
-                 -- Depth 1
       symq     = dbg "symq"     $ filterQuery queryIsSym q
-                 -- Any
 
       ps :: [Posting] =
            dbg "ps" $
@@ -90,12 +80,6 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
            filterJournalPostingAmounts symq $     -- exclude amount parts excluded by cur:
            filterJournalPostings nodepthq $       -- exclude unmatched postings, but include all depths
            journalSelectingAmountFromOpts opts j
-           -- 
-           -- [(assets:checking)                 1
-           -- ,(assets:checking)                -1
-           -- ,(assets:cash)                     1
-           -- ,(assets:checking)                 1
-           -- ]
 
       -- the report's span will be the requested span intersected with
       -- the selected data's span; or with -E, the requested span
@@ -106,41 +90,18 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
           requestedspan = queryDateSpan (date2_ opts) q -- based on -b/-e/-p opts and query args IIRC
           journalspan   = journalDateSpan j
           matchedspan   = postingsDateSpan ps
-
       spans :: [DateSpan] =
           dbg "spans" $
           splitSpan (intervalFromOpts opts) reportspan
-          -- [DateSpan (Just 2013-01-01) (Just 2013-02-01)
-          -- ,DateSpan (Just 2013-02-01) (Just 2013-03-01)
-          -- ,DateSpan (Just 2013-03-01) (Just 2013-04-01)
-          -- ]
+      -- (reportspan, spans) = dbg "report spans" $ reportSpans opts q j
 
-      psBySpan :: [[Posting]] =
-          dbg "psBySpan" $
+      psPerSpan :: [[Posting]] =
+          dbg "psPerSpan" $
           [filter (isPostingInDateSpan s) ps | s <- spans]
-          -- [[(assets:checking)                 1, (assets:checking)                -1]
-          -- ,[(assets:cash)                     1]
-          -- ,[(assets:checking)                 1]
 
-      postedAccts :: [AccountName] =
-          dbg "postedAccts" $
-          sort $ accountNamesFromPostings ps
-          -- [ "assets:cash" , "assets:checking" ]
-
-      displayedAccts :: [ClippedAccountName] =
-          dbg "displayedAccts" $
-          (if tree_ opts then expandAccountNames else id) $
-          nub $ map (clipAccountName depth) postedAccts
-          -- [ "assets" ]
-
-      zeroes :: [(ClippedAccountName, MixedAmount)] =
-          dbg "zeroes" $
-          [(a, nullmixedamt) | a <- displayedAccts]
-          -- [ ( "assets" , 0 ) ]
-
-      postedAcctBalsBySpan :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg "postedAcctBalsBySpan" $
-          [postingAcctBals ps | ps <- psBySpan]
+      postedAcctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
+          dbg "postedAcctBalChangesPerSpan" $
+          map postingAcctBals psPerSpan
           where
             postingAcctBals :: [Posting] -> [(ClippedAccountName, MixedAmount)]
             postingAcctBals ps = [(aname a, (if tree_ opts then aibalance else aebalance) a) | a <- as]
@@ -151,100 +112,53 @@ periodBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
                   depthLimit
                       | tree_ opts = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
                       | otherwise  = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
-          -- [ [ ( "assets" , 0 ) ]
-          -- , [ ( "assets" , 1 ) ]
-          -- , [ ( "assets" , 1 ) ]
-          -- ]
 
-      displayedBalsBySpan :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg "displayedBalsBySpan" $
+      postedAccts :: [AccountName] =
+          dbg "postedAccts" $
+          sort $ accountNamesFromPostings ps
+
+      displayedAccts :: [ClippedAccountName] =
+          dbg "displayedAccts" $
+          (if tree_ opts then expandAccountNames else id) $
+          nub $ map (clipAccountName depth) postedAccts
+
+      acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
+          dbg "acctBalChangesPerSpan" $
           [sortBy (comparing fst) $ unionBy (\(a,_) (a',_) -> a == a') postedacctbals zeroes
-           | postedacctbals <- postedAcctBalsBySpan]
-          --
-          -- [ [ ( "assets" , 0 ) ]
-          -- , [ ( "assets" , 1 ) ]
-          -- , [ ( "assets" , 1 ) ]
-          -- ]
+           | postedacctbals <- postedAcctBalChangesPerSpan]
+          where zeroes = [(a, nullmixedamt) | a <- displayedAccts]
 
-      displayedBalsByAcct :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg "displayedBalsByAcct" $
-          transpose displayedBalsBySpan
-          -- [ [ ( "assets" , 0 ) , ( "assets" , 1 ) , ( "assets" , 1 ) ] ]
-
-      acctBalsAlist :: [(ClippedAccountName, [MixedAmount])] =
-          dbg "acctBalsAlist" $
-          zip displayedAccts (map (map snd) [bs | bs <- displayedBalsByAcct
-                                             -- , maybe False ((`elem` postedAccts).fst) $ headMay bs
-                                            ])
-          -- [ ( "assets" , [ 0 , 1 , 1 ] ) ]
-
-      items :: [MultiBalanceReportRow] =
-          dbg "items" $
-          [((a, accountLeafName a, accountNameLevel a), bs) | (a,bs) <- acctBalsAlist, empty_ opts || any (not . isZeroMixedAmount) bs]
-          -- [ ( ( "assets" , "assets" , 1 ) , [ 0 , 1 , 1 ] ) ]
-
-      -- highestLevelBalsBySpan :: [[MixedAmount]] =
-      --     dbg "highestLevelBalsBySpan" $
-      --     [[b | (a,b) <- spanbals, not $ any (`elem` postedAccts) $ init $ expandAccountName a] | spanbals <- displayedBalsBySpan]
-
-      totals :: [MixedAmount] =
-          dbg "totals" $
-          if tree_ opts
-          then map (sum . map pamount) psBySpan
-          else map (sum . map snd) displayedBalsBySpan
-          -- else map sum highestLevelBalsBySpan
-          -- [ 0 , 1 , 1 ]
-
--- | Generate a multi balance report for the matched accounts, showing
--- their cumulative or (with -H) historical balance in each of the specified periods.
--- Has the same limitations as periodBalanceReport.
-cumulativeOrHistoricalBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-cumulativeOrHistoricalBalanceReport opts q j = MultiBalanceReport (periodbalancespans, items, totals)
-    where
-      -- dbg = const id                                   -- exclude from debug output
-      dbg s = let p = "cumulativeOrHistoricalBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
-
-      -- select/adjust basic report dates
-      (reportspan, _) = dbg "report spans" $ reportSpans opts q j
+      acctBalChanges :: [(ClippedAccountName, [MixedAmount])] =
+          dbg "acctBalChanges" $
+          [(a, map snd abs) | abs@((a,_):_) <- transpose acctBalChangesPerSpan] -- never null, or used when null...
 
       -- starting balances and accounts from transactions before the report start date
       startacctbals = dbg "startacctbals" $ map (\((a,_,_),b) -> (a,b)) $ startbalanceitems
           where
             dateless              = filterQuery (not . queryIsDate)
             precedingq            = dbg "precedingq" $ And [dateless q, Date $ DateSpan Nothing (spanStart reportspan)]
-            (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts{flat_=True,empty_=True} precedingq j -- XXX
-      -- acctsWithStartingBalance = map fst $ filter (not . isZeroMixedAmount . snd) startacctbals
-      startingBalanceFor a
-          | balancetype_ opts == HistoricalBalance = fromMaybe nullmixedamt $ lookup a startacctbals
-          | otherwise                              = nullmixedamt
+            (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts' precedingq j
+                                    where
+                                      opts' | tree_ opts = opts{no_elide_=True}
+                                            | otherwise  = opts{flat_=True}
+      startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startacctbals
 
-      -- balance changes in each period for each account
-      MultiBalanceReport (periodbalancespans,periodbalanceitems,_) = dbg "balance changes report" $ periodBalanceReport opts q j
-      balanceChangesByAcct    = map (\((a,_,_),bs) -> (a,bs)) periodbalanceitems
-      acctsWithBalanceChanges = map fst $ filter ((any (not . isZeroMixedAmount)) . snd) balanceChangesByAcct
-      balanceChangesFor a     = fromMaybe (error $ "no data for account: a") $ -- XXX
-                                lookup a balanceChangesByAcct
+      items :: [MultiBalanceReportRow] =
+          dbg "items" $
+          [((a, accountLeafName a, accountNameLevel a), displayedBals)
+           | (a,changes) <- acctBalChanges
+           , let displayedBals = case balancetype_ opts of
+                                  HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
+                                  CumulativeBalance -> drop 1 $ scanl (+) nullmixedamt changes
+                                  _                 -> changes
+           , empty_ opts || any (not . isZeroMixedAmount) displayedBals
+           ]
 
-      -- accounts to report on
-      reportaccts = dbg "reportaccts"
-                    acctsWithBalanceChanges
-                    -- (dbg' "acctsWithStartingBalance" acctsWithStartingBalance) `union` (dbg' "acctsWithBalanceChanges" acctsWithBalanceChanges)
-
-      -- ending balances in each period (starting balance plus balance changes) for an account
-      endingBalancesFor a = 
-          dbg "ending balances" $ drop 1 $ scanl (+) (startingBalanceFor a) $
-          dbg ("balance changes for "++a) $ balanceChangesFor a
-
-      items  = dbg "items"  $ [((a,a,0), endingBalancesFor a) | a <- reportaccts]
-
-      totals = dbg "totals" $ 
-          if tree_ opts
-          then map sum highestlevelbalsbycol
-          else map sum balsbycol
+      totals :: [MixedAmount] =
+          dbg "totals" $
+          map sum balsbycol
           where
-            balsbycol             = transpose $ map endingBalancesFor reportaccts
-            highestlevelbalsbycol = transpose $ map endingBalancesFor highestlevelaccts
+            balsbycol = transpose [bs | ((a,_,_),bs) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
             highestlevelaccts     =
                 dbg "highestlevelaccts" $
-                [a | a <- reportaccts, not $ any (`elem` reportaccts) $ init $ expandAccountName a]
-
+                [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]

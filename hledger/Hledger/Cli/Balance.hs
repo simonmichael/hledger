@@ -288,9 +288,9 @@ balance CliOpts{reportopts_=ropts} j = do
          Right _ ->
           case (intervalFromOpts ropts, balancetype_ ropts) of
             (NoInterval,_)        -> balanceReportAsText           ropts  $ balanceReport ropts (queryFromOpts d ropts) j
-            (_,PeriodBalance)     -> periodBalanceReportAsText     ropts $ periodBalanceReport                 ropts (queryFromOpts d ropts) j
-            (_,CumulativeBalance) -> cumulativeBalanceReportAsText ropts $ cumulativeOrHistoricalBalanceReport ropts (queryFromOpts d ropts) j
-            (_,HistoricalBalance) -> historicalBalanceReportAsText ropts $ cumulativeOrHistoricalBalanceReport ropts (queryFromOpts d ropts) j
+            (_,PeriodBalance)     -> periodBalanceReportAsText     ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
+            (_,CumulativeBalance) -> cumulativeBalanceReportAsText ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
+            (_,HistoricalBalance) -> historicalBalanceReportAsText ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
   putStr $ unlines output
 
 -- | Render an old-style single-column balance report as plain text.
