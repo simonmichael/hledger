@@ -24,8 +24,8 @@ main = do
   let query = Or $ map Acct args
       ropts = defreportopts{flat_=True}
       (acctbals,_) = balanceReport ropts query j
-      balancingamt = negate $ sum $ map (\(_,_,_,b) -> b) acctbals
-      ps = [posting{paccount=a, pamount=b} | (a,_,_,b) <- acctbals]
+      balancingamt = negate $ sum $ map (\((_,_,_),b) -> b) acctbals
+      ps = [posting{paccount=a, pamount=b} | ((a,_,_),b) <- acctbals]
            ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
       txn = nulltransaction{tdate=d, tpostings=ps}
   putStr $ showTransactionUnelided txn
