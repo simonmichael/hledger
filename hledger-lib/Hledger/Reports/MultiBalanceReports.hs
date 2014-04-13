@@ -89,7 +89,7 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
         where
           requestedspan = queryDateSpan (date2_ opts) q -- based on -b/-e/-p opts and query args IIRC
           journalspan   = journalDateSpan j
-          matchedspan   = postingsDateSpan ps
+          matchedspan   = postingsDateSpan' (whichDateFromOpts opts) ps
       spans :: [DateSpan] =
           dbg "spans" $
           splitSpan (intervalFromOpts opts) reportspan
@@ -97,7 +97,7 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
 
       psPerSpan :: [[Posting]] =
           dbg "psPerSpan" $
-          [filter (isPostingInDateSpan s) ps | s <- spans]
+          [filter (isPostingInDateSpan' (whichDateFromOpts opts) s) ps | s <- spans]
 
       postedAcctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg "postedAcctBalChangesPerSpan" $

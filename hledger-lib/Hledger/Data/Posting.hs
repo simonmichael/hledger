@@ -28,6 +28,7 @@ module Hledger.Data.Posting (
   isPostingInDateSpan,
   isPostingInDateSpan',
   postingsDateSpan,
+  postingsDateSpan',
   -- * account name operations
   accountNamesFromPostings,
   accountNamePostingType,
@@ -175,6 +176,14 @@ postingsDateSpan :: [Posting] -> DateSpan
 postingsDateSpan [] = DateSpan Nothing Nothing
 postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
     where ps' = sortBy (comparing postingDate) ps
+
+-- --date2-sensitive version, as above.
+postingsDateSpan' :: WhichDate -> [Posting] -> DateSpan
+postingsDateSpan' wd [] = DateSpan Nothing Nothing
+postingsDateSpan' wd ps = DateSpan (Just $ postingdate $ head ps') (Just $ addDays 1 $ postingdate $ last ps')
+    where
+      ps' = sortBy (comparing postingdate) ps
+      postingdate = if wd == PrimaryDate then postingDate else postingDate2
 
 -- AccountName stuff that depends on PostingType
 
