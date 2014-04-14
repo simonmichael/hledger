@@ -16,16 +16,31 @@ Usage: hledger-equity [ACCTPAT]
 import Hledger.Cli
 import System.Environment
 
+argsmode :: Mode RawOpts
+argsmode = (defCommandMode ["equity"])
+  { modeHelp = "print a journal entry posting the total balance of all accounts"
+    ++ " (or the specified account and its subaccounts)"
+    , modeGroupFlags = Group
+      { groupNamed =
+         [ ("Input",inputflags)
+         , ("Reporting",reportflags)
+         , ("Misc",helpflags)
+         ]
+      , groupUnnamed = []
+      , groupHidden = []
+      }
+    }
+
+main :: IO ()
 main = do
-  putStrLn "(-f option not supported, see hledger-accountnames.hs for how to add it)"
-  j <- defaultJournal
-  d <- getCurrentDay
-  args <- getArgs
-  let query = Or $ map Acct args
-      ropts = defreportopts{flat_=True}
-      (acctbals,_) = balanceReport ropts query j
-      balancingamt = negate $ sum $ map (\((_,_,_),b) -> b) acctbals
-      ps = [posting{paccount=a, pamount=b} | ((a,_,_),b) <- acctbals]
-           ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
-      txn = nulltransaction{tdate=d, tpostings=ps}
-  putStr $ showTransactionUnelided txn
+  opts <- getCliOpts argsmode
+  withJournalDo opts $
+   \CliOpts{reportopts_=ropts} j -> do
+        d <- getCurrentDay
+        let ropts_ = ropts{flat_=True}
+        let (acctbals,_) = balanceReport ropts_ (queryFromOpts d ropts_) j
+        let balancingamt = negate $ sum $ map (\((_,_,_),b) -> b) acctbals
+        let ps = [posting{paccount=a, pamount=b} | ((a,_,_),b) <- acctbals]
+                 ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
+        let txn = nulltransaction{tdate=d, tpostings=ps}
+        putStr $ showTransactionUnelided txn
