@@ -69,17 +69,20 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
       -- dbg = const id                                   -- exclude from debug output
       dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
 
-      nodepthq = dbg "nodepthq" $ filterQuery (not . queryIsDepth) q
-      depthq   = dbg "depthq"   $ filterQuery queryIsDepth q
-      depth    = queryDepth depthq
-      symq     = dbg "symq"     $ filterQuery queryIsSym q
+      symq       = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
+      depthq     = dbg "depthq" $ filterQuery queryIsDepth q
+      depth      = queryDepth depthq
+      depthless  = dbg "depthless" . filterQuery (not . queryIsDepth)
+      datelessq  = dbg "datelessq"  $ filterQuery (not . queryIsDate) q
+      precedingq = dbg "precedingq" $ And [datelessq, Date $ DateSpan Nothing (spanStart reportspan)]
+      reportq    = dbg "reportq"    $ depthless $ And [datelessq, Date reportspan] -- laziness at work
 
       ps :: [Posting] =
-           dbg "ps" $
-           journalPostings $
-           filterJournalPostingAmounts symq $     -- exclude amount parts excluded by cur:
-           filterJournalPostings nodepthq $       -- exclude unmatched postings, but include all depths
-           journalSelectingAmountFromOpts opts j
+          dbg "ps" $
+          journalPostings $
+          filterJournalPostingAmounts symq $     -- remove amount parts excluded by cur:
+          filterJournalPostings reportq $        -- remove postings not matched by (adjusted) query
+          journalSelectingAmountFromOpts opts j
 
       (reportspan, spans) = dbg "report spans" $ reportSpans opts q j ps
 
@@ -123,8 +126,6 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
       -- starting balances and accounts from transactions before the report start date
       startacctbals = dbg "startacctbals" $ map (\((a,_,_),b) -> (a,b)) $ startbalanceitems
           where
-            dateless              = filterQuery (not . queryIsDate)
-            precedingq            = dbg "precedingq" $ And [dateless q, Date $ DateSpan Nothing (spanStart reportspan)]
             (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts' precedingq j
                                     where
                                       opts' | tree_ opts = opts{no_elide_=True}
