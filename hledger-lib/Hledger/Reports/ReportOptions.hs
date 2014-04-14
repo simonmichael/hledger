@@ -290,29 +290,45 @@ tests_queryOptsFromOpts = [
                                                              })
  ]
 
--- | Calculate the overall span and per-period date spans for a report
--- based on command-line options, the parsed search query, and the
--- journal data. If a reporting interval is specified, the report span
--- will be enlarged to include a whole number of report periods.
--- Reports will sometimes trim these spans further when appropriate.
-reportSpans ::  ReportOpts -> Query -> Journal -> (DateSpan, [DateSpan])
-reportSpans opts q j = (reportspan, spans)
+-- | Calculate the overall and (if a reporting interval is specified)
+-- per-interval date spans for a report, based on command-line
+-- options, the search query, and the journal data.
+--
+-- The basic overall report span is:
+-- without -E: the intersection of the requested span and the matched data's span.
+-- with -E:    the full requested span, including leading/trailing intervals that are empty.
+--             If the begin or end date is not specified, those of the journal are used.
+--
+-- The report span will be enlarged if necessary to include a whole
+-- number of report periods, when a reporting interval is specified.
+--
+reportSpans ::  ReportOpts -> Query -> Journal -> [Posting] -> (DateSpan, [DateSpan])
+reportSpans opts q j matchedps = (reportspan, spans)
   where
-    -- get the requested span from the query, which is based on
-    -- -b/-e/-p opts and query args.
-    requestedspan = queryDateSpan (date2_ opts) q
+    (reportspan, spans)
+      | empty_ opts = (dbg "reportspan1" $ enlargedrequestedspan, sps)
+      | otherwise   = (dbg "reportspan2" $ requestedspan `spanIntersect` matchedspan, sps)
+      where
+        sps = dbg "spans" $ splitSpan (intervalFromOpts opts) reportspan
 
-    -- set the start and end date to the journal's if not specified
-    requestedspan' = requestedspan `orDatesFrom` journalDateSpan j
+    -- the requested span specified by the query (-b/-e/-p options and query args);
+    -- might be open-ended
+    requestedspan = dbg "requestedspan" $ queryDateSpan (date2_ opts) q
 
-    -- if there's a reporting interval, calculate the report periods
-    -- which enclose the requested span
-    spans = splitSpan (intervalFromOpts opts) requestedspan'
+    -- the requested span with unspecified dates filled from the journal data
+    finiterequestedspan = dbg "finiterequestedspan" $ requestedspan `orDatesFrom` journalDateSpan j
 
-    -- the overall report span encloses the periods
-    reportspan = DateSpan
-                 (maybe Nothing spanStart $ headMay spans)
-                 (maybe Nothing spanEnd   $ lastMay spans)
+    -- enlarge the requested span to a whole number of periods
+    enlargedrequestedspan = dbg "enlargedrequestedspan" $
+                            DateSpan (maybe Nothing spanStart $ headMay requestedspans)
+                                     (maybe Nothing spanEnd   $ lastMay requestedspans)
+      where
+        -- spans of the requested report interval which enclose the requested span
+        requestedspans = dbg "requestedspans" $ splitSpan (intervalFromOpts opts) finiterequestedspan
+
+    -- earliest and latest dates of matched postings
+    matchedspan = dbg "matchedspan" $ postingsDateSpan' (whichDateFromOpts opts) matchedps
+
 
 tests_Hledger_Reports_ReportOptions :: Test
 tests_Hledger_Reports_ReportOptions = TestList $

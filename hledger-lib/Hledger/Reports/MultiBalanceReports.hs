@@ -81,19 +81,7 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
            filterJournalPostings nodepthq $       -- exclude unmatched postings, but include all depths
            journalSelectingAmountFromOpts opts j
 
-      -- the report's span will be the requested span intersected with
-      -- the selected data's span; or with -E, the requested span
-      -- limited by the journal's overall span.
-      reportspan | empty_ opts = requestedspan `orDatesFrom` journalspan
-                 | otherwise   = requestedspan `spanIntersect` matchedspan
-        where
-          requestedspan = queryDateSpan (date2_ opts) q -- based on -b/-e/-p opts and query args IIRC
-          journalspan   = journalDateSpan j
-          matchedspan   = postingsDateSpan' (whichDateFromOpts opts) ps
-      spans :: [DateSpan] =
-          dbg "spans" $
-          splitSpan (intervalFromOpts opts) reportspan
-      -- (reportspan, spans) = dbg "report spans" $ reportSpans opts q j
+      (reportspan, spans) = dbg "report spans" $ reportSpans opts q j ps
 
       psPerSpan :: [[Posting]] =
           dbg "psPerSpan" $
