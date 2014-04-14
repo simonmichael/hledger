@@ -67,7 +67,7 @@ multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
     where
       -- dbg = const id                                   -- exclude from debug output
-      -- dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
+      dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
 
       nodepthq = dbg "nodepthq" $ filterQuery (not . queryIsDepth) q
       depthq   = dbg "depthq"   $ filterQuery queryIsDepth q
