@@ -123,7 +123,8 @@ spanEnd (DateSpan _ d) = d
 spansSpan :: [DateSpan] -> DateSpan
 spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Nothing spanEnd $ lastMay spans)
 
--- | Split a DateSpan into one or more consecutive spans at the specified interval.
+-- | Split a DateSpan into one or more consecutive whole spans of the specified length which enclose it.
+-- If no interval is specified, the original span is returned.
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
 splitSpan NoInterval     s = [s]
