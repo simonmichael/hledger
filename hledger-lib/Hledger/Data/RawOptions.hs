@@ -32,7 +32,7 @@ import Hledger.Utils
 type RawOpts = [(String,String)]
 
 setopt :: String -> String -> RawOpts -> RawOpts
-setopt name val = (++ [(name,singleQuoteIfNeeded val)])
+setopt name val = (++ [(name, quoteIfNeeded val)])
 
 setboolopt :: String -> RawOpts -> RawOpts
 setboolopt name = (++ [(name,"")])

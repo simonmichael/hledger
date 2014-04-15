@@ -91,13 +91,29 @@ underline s = s' ++ replicate (length s) '-' ++ "\n"
             | last s == '\n' = s
             | otherwise = s ++ "\n"
 
--- | Wrap a string in single quotes, and \-prefix any embedded single
+-- | Wrap a string in double quotes, and \-prefix any embedded single
 -- quotes, if it contains whitespace and is not already single- or
 -- double-quoted.
 quoteIfSpaced :: String -> String
 quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
                 | not $ any (`elem` s) whitespacechars = s
                 | otherwise = "'"++escapeSingleQuotes s++"'"
+
+-- | Double-quote this string if it contains whitespace, single quotes
+-- or double-quotes, escaping the quotes as needed.
+quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = "\"" ++ escapeDoubleQuotes s ++ "\""
+                | otherwise = s
+
+-- | Single-quote this string if it contains whitespace or double-quotes.
+-- No good for strings containing single quotes.
+singleQuoteIfNeeded s | any (`elem` s) whitespacechars = "'"++s++"'"
+                      | otherwise = s
+
+quotechars      = "'\""
+whitespacechars = " \t\n\r"
+
+escapeDoubleQuotes :: String -> String
+escapeDoubleQuotes = regexReplace "\"" "\""
 
 escapeSingleQuotes :: String -> String
 escapeSingleQuotes = regexReplace "'" "\'"
@@ -111,21 +127,16 @@ words' :: String -> [String]
 words' "" = []
 words' s  = map stripquotes $ fromparse $ parsewith p s
     where
-      p = do ss <- (quotedPattern <|> pattern) `sepBy` many1 spacenonewline
+      p = do ss <- (singleQuotedPattern <|> doubleQuotedPattern <|> pattern) `sepBy` many1 spacenonewline
              -- eof
              return ss
       pattern = many (noneOf whitespacechars)
-      quotedPattern = between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
+      singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf "'")
+      doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf "\"")
 
 -- | Quote-aware version of unwords - single-quote strings which contain whitespace
 unwords' :: [String] -> String
 unwords' = unwords . map singleQuoteIfNeeded
-
--- | Single-quote this string if it contains whitespace or double-quotes
-singleQuoteIfNeeded s | any (`elem` s) whitespacechars = "'"++s++"'"
-                      | otherwise = s
-
-whitespacechars = " \t\n\r"
 
 -- | Strip one matching pair of single or double quotes on the ends of a string.
 stripquotes :: String -> String

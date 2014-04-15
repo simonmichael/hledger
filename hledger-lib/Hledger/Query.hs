@@ -33,6 +33,7 @@ module Hledger.Query (
   matchesAccount,
   matchesMixedAmount,
   matchesAmount,
+  words'',
   -- * tests
   tests_Hledger_Query
 )
@@ -169,18 +170,17 @@ tests_parseQuery = [
 words'' :: [String] -> String -> [String]
 words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
     where
-      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, quotedPattern, pattern] `sepBy` many1 spacenonewline
+      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` many1 spacenonewline
       prefixedQuotedPattern = do
         not' <- fromMaybe "" `fmap` (optionMaybe $ string "not:")
         let allowednexts | null not' = prefixes
                          | otherwise = prefixes ++ [""]
         next <- choice' $ map string allowednexts
         let prefix = not' ++ next
-        p <- quotedPattern
+        p <- singleQuotedPattern <|> doubleQuotedPattern
         return $ prefix ++ stripquotes p
-      quotedPattern = do
-        p <- between (oneOf "'\"") (oneOf "'\"") $ many $ noneOf "'\""
-        return $ stripquotes p
+      singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf "'") >>= return . stripquotes
+      doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf "\"") >>= return . stripquotes
       pattern = many (noneOf " \n\r")
 
 tests_words'' = [
