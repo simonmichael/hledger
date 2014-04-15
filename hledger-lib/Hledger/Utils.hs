@@ -136,7 +136,7 @@ words' s  = map stripquotes $ fromparse $ parsewith p s
 
 -- | Quote-aware version of unwords - single-quote strings which contain whitespace
 unwords' :: [String] -> String
-unwords' = unwords . map singleQuoteIfNeeded
+unwords' = unwords . map quoteIfNeeded
 
 -- | Strip one matching pair of single or double quotes on the ends of a string.
 stripquotes :: String -> String

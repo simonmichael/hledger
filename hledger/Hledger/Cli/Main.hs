@@ -255,7 +255,7 @@ main = do
       | isExternalCommand = do
           let shellcmd = printf "%s-%s %s" progname cmd (unwords' argsaftercmd) :: String
           dbgM "external command selected" cmd
-          dbgM "external command arguments" argsaftercmd
+          dbgM "external command arguments" (map quoteIfNeeded argsaftercmd)
           dbgM "running shell command" shellcmd
           system shellcmd >>= exitWith
 
