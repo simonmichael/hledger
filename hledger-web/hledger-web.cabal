@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.22.4
+version: 0.22.5
 stability:      beta
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
@@ -71,7 +71,7 @@ flag library-only
     Default:       False
 
 library
-    cpp-options:   -DVERSION="0.22.4"
+    cpp-options:   -DVERSION="0.22.5"
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
  
@@ -162,7 +162,7 @@ executable         hledger-web
     if flag(library-only)
         Buildable: False
 
-    cpp-options:   -DVERSION="0.22.4"
+    cpp-options:   -DVERSION="0.22.5"
     if flag(dev)
         cpp-options:   -DDEVELOPMENT
 
