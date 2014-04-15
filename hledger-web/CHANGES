@@ -1,6 +1,8 @@
-(unreleased)
+0.22.5 (2014/4/15)
 
-- allow warp 2.1
+- allow http-client 0.3.*, fixing cabal install again with GHC <= 7.6 (not yet 7.8)
+- use pretty-show only with GHC 7.4+, fixing GHC 7.2 (fixes #155)
+- allow warp 2.1, fixing cabal install
 
 0.22.4 (2014/2/10)
 
