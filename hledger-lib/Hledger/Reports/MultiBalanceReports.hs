@@ -75,7 +75,7 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
       depthless  = dbg "depthless" . filterQuery (not . queryIsDepth)
       datelessq  = dbg "datelessq"  $ filterQuery (not . queryIsDate) q
       precedingq = dbg "precedingq" $ And [datelessq, Date $ DateSpan Nothing (spanStart reportspan)]
-      reportq    = dbg "reportq"    $ depthless $ And [datelessq, Date reportspan] -- laziness at work
+      reportq    = dbg "reportq"    $ depthless q --  $ And [datelessq, Date reportspan] -- laziness at work -- XXX no good, works only in GHCI
 
       ps :: [Posting] =
           dbg "ps" $
