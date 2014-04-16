@@ -435,10 +435,10 @@ checkBalanceAssertion (errs,bal) ps
     assertion = pbalanceassertion p
     Just assertedbal = assertion
     bal' = sum $ [bal] ++ map pamount ps
-    err = printf "Balance assertion failed for account %s on %s\n%safter\n   %s\nexpected balance is %s, actual balance was %s."
+    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected balance is %s, actual balance was %s."
                  (paccount p)
                  (show $ postingDate p)
-                 (maybe "" (("In\n"++).show) $ ptransaction p)
+                 (maybe "" (("In transaction:\n"++).show) $ ptransaction p)
                  (show p)
                  (showMixedAmount assertedbal)
                  (showMixedAmount bal')
