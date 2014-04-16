@@ -1,15 +1,16 @@
 (unreleased)
 
-CLI: 
-- Commands list cleanups; descriptions are shown for known hledger-* add-ons.
-- If both source and compiled version of a haskell add-on are found, only the latter is shown.
-- Fix: add-ons with digits in the name are now found.
-
 Journal format:
 - A # (hash) in column 0 is now also supported for starting a top-level journal comment, like Ledger.
 - The "too many missing amounts" error now reminds about the 2-space rule.
 - Fix: . (period) is no longer parsed as a valid amount.
 - Fix: default commodity directives no longer limit the maximum display precision (#169).
+
+CLI:
+- Commands list cleanups; descriptions are shown for known hledger-* add-ons.
+- If both source and compiled version of a haskell add-on are found, only the latter is shown.
+- Fix: add-ons with digits in the name are now found.
+- Fix: add-on arguments containing a single quote now work.
 
 Queries:
 - The currency/commodity query prefix (sym:) has been renamed to cur:.
@@ -35,13 +36,18 @@ balance:
 - Balance reports in flat mode with --depth now aggregate deeper accounts at the depth limit instead of excluding them.
 - Multicolumn reports in flat mode now support --drop.
 - Multicolumn balance reports can now show the account hierarchy with --tree.
+- Multicolumn reports now use all data in the displayed periods
 - Fix: zero-balance leaf accounts below a non-zero-balance parent are no longer always shown (#170).
+- Fix: multicolumn reports now support --date2 (cf #174)
 
 balancesheet, cashflow, incomestatement:
 - These commands now support --flat and --drop.
 
 print:
 - Tag queries (tag:) will now match a transaction if any of its postings match.
+
+register:
+- Fix: --date2 now works with report intervals (fixes #174)
 
 Miscellaneous:
 - Compatible with GHC 7.8, text 1.1
