@@ -1,5 +1,6 @@
 0.22.2 (2014/4/16)
 
+- display years before 1000 with four digits, not three
 - avoid pretty-show to build with GHC < 7.4
 - allow text 1.1, drop data-pprint to build with GHC 7.8.x
 
