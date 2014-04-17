@@ -1,3 +1,7 @@
+0.22.7 (2014/4/17)
+
+- add Peter Simons' patch fixing Data.Conduit.Network HostIPv4 error (#171)
+
 0.22.6 (2014/4/16)
 
 - depend on hledger[-lib] 0.22.2
