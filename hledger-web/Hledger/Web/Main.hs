@@ -15,7 +15,8 @@ import Yesod.Default.Config --(fromArgs)
 -- import Yesod.Default.Main   (defaultMain)
 import Settings            --  (parseExtra)
 import Application          (makeApplication)
-import Data.Conduit.Network (HostPreference(HostIPv4))
+import Data.String
+import Data.Conduit.Network
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
 import Network.Wai.Handler.Launch (runUrlPort)
 --
@@ -63,7 +64,7 @@ web opts j = do
   app <- makeApplication opts j' AppConfig{appEnv = Development
                                           ,appPort = p
                                           ,appRoot = pack u
-                                          ,appHost = HostIPv4
+                                          ,appHost = fromString "*4"
                                           ,appExtra = Extra "" Nothing
                                           }
   if server_ opts
