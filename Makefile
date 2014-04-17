@@ -273,8 +273,10 @@ windowsbinaries: install
 	@echo 'Please check the binaries are portable, then make compressbinaries'
 	ls -l bin/*`arch`
 
-# One way to get a wine command prompt
-wine:
+wine-bash wine:
+	wine c:/mingw/msys/1.0/bin/mintty.exe - &
+
+wine-cmd:
 	wineconsole cmd.exe &
 
 compressbinaries:
