@@ -1,3 +1,7 @@
+0.22.6 (2014/4/16)
+
+- depend on hledger[-lib] 0.22.2
+
 0.22.5 (2014/4/15)
 
 - allow http-client 0.3.*, fixing cabal install again with GHC <= 7.6 (not yet 7.8)
