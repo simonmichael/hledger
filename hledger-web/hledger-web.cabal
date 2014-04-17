@@ -129,6 +129,7 @@ library
                    , http-client          >= 0.2 && < 0.4
                    , HUnit
                    , network-conduit
+                   , conduit-extra
                    , old-locale
                    , parsec
                    , regexpr              >= 0.5.1
@@ -221,6 +222,7 @@ executable         hledger-web
                    , http-client          >= 0.2 && < 0.4
                    , HUnit
                    , network-conduit
+                   , conduit-extra
                    , old-locale
                    , parsec
                    , regexpr              >= 0.5.1
