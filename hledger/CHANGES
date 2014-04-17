@@ -56,6 +56,11 @@ Miscellaneous:
 - extra/hledger-rewrite.hs, adds postings to matched entries.
 
 
-0.22.1 (2014/1/6) and older
+0.22.2 (2014/4/16)
 
-See http://hledger.org/release-notes or doc/RELNOTES.md.
+- display years before 1000 with four digits, not three
+- avoid pretty-show to build with GHC < 7.4
+- allow text 1.1, drop data-pprint to build with GHC 7.8.x
+
+
+0.22.1 (2014/1/6) and older: see http://hledger.org/release-notes or doc/CHANGES.md.
