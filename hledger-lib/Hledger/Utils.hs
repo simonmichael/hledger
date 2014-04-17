@@ -34,7 +34,6 @@ import Control.Monad (liftM, when)
 import Control.Monad.Error (MonadIO)
 import Control.Monad.IO.Class (liftIO)
 import Data.Char
-import Data.Data
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
