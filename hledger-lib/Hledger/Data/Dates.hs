@@ -45,9 +45,9 @@ module Hledger.Data.Dates (
   spansSpan,
   spanIntersect,
   spansIntersect,
+  spanDefaultsFrom,
   spanUnion,
   spansUnion,
-  orDatesFrom,
   smartdate,
   splitSpan,
   fixSmartDate,
@@ -169,14 +169,6 @@ spanContainsDate (DateSpan Nothing (Just e))  d = d < e
 spanContainsDate (DateSpan (Just b) Nothing)  d = d >= b
 spanContainsDate (DateSpan (Just b) (Just e)) d = d >= b && d < e
     
--- | Combine two datespans, filling any unspecified dates in the first
--- with dates from the second. Not a clip operation, just uses the
--- second's start/end dates as defaults when the first does not
--- specify them.
-orDatesFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
-    where a = if isJust a1 then a1 else a2
-          b = if isJust b1 then b1 else b2
-
 -- | Calculate the intersection of a number of datespans.
 spansIntersect [] = nulldatespan
 spansIntersect [d] = d
@@ -187,6 +179,12 @@ spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
     where
       b = latest b1 b2
       e = earliest e1 e2
+
+-- | Fill any unspecified dates in the first span with the dates from
+-- the second one. Sort of a one-way spanIntersect.
+spanDefaultsFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
+    where a = if isJust a1 then a1 else a2
+          b = if isJust b1 then b1 else b2
 
 -- | Calculate the union of a number of datespans.
 spansUnion [] = nulldatespan
