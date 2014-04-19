@@ -29,6 +29,8 @@ PRINT=lpr
 GHC=ghc
 GHCI=ghci
 HADDOCK=haddock
+CABAL=cabal
+CABALINSTALL=cabal install -w $(GHC)
 # used for make auto, http://joyful.com/repos/searchpath
 SP=sp
 
@@ -155,7 +157,7 @@ defaulttarget: bin/hledgerdev
 # (or, as many as possible)
 EXTRAINSTALLARGS=
 install:
-	cabal install $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS)
+	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS)
 
 # run a cabal command in all hledger package dirs
 allcabal%:
@@ -449,7 +451,7 @@ fullcabaltest:
 		&& cd $$p \
 		&& cabal clean \
 		&& cabal check \
-		&& cabal install \
+		&& $(CABALINSTALL) \
 		&& cabal sdist \
 		); done \
 		&& echo $@ PASSED) || echo $@ FAILED
