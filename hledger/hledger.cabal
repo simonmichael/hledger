@@ -83,7 +83,16 @@ library
                  ,process
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
-                 ,shakespeare-text == 1.0.*
+-- http://www.yesodweb.com/blog/2014/04/consolidation-progress
+-- in order to support both the old and new versions of shakespeare,
+-- you just need to ensure that you have both the shakespeare and
+-- deprecated packages listed in your cabal file. In other words, if
+-- previously you depended on hamlet, now you should depend on hamlet
+-- and shakespeare. When you're ready to drop backwards compatibility,
+-- simply put a lower bound of >= 2.0 on shakespeare and remove the
+-- deprecated packages.
+                 ,shakespeare-text >= 1.0 && < 1.2
+                 ,shakespeare      >= 1.0 && < 2.1
                  ,split >= 0.1 && < 0.3
                  ,text >= 0.11 && < 1.2
                  ,tabular >= 0.2 && < 0.3
@@ -143,7 +152,8 @@ executable hledger
                  ,process
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
-                 ,shakespeare-text == 1.0.*
+                 ,shakespeare-text >= 1.0 && < 1.2
+                 ,shakespeare      >= 1.0 && < 2.1
                  ,split >= 0.1 && < 0.3
                  ,tabular >= 0.2 && < 0.3
                  ,text >= 0.11 && < 1.2
@@ -176,7 +186,8 @@ test-suite tests
                , process
                , regexpr
                , safe
-               , shakespeare-text
+               , shakespeare-text >= 1.0 && < 1.2
+               , shakespeare      >= 1.0 && < 2.1
                , split
                ,tabular >= 0.2 && < 0.3
                , test-framework
