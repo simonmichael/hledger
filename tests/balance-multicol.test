@@ -257,3 +257,28 @@ Change of balance (flow):
    ||                      2 
 
 >>>=0
+
+# 18. All matched postings in the displayed intervals should be reported on.
+hledgerdev -f- balance -p 'monthly 2014/1/10-2014/2/20'
+<<<
+2014/1/5
+ (before)  1
+
+2014/2/1
+ (within)  1
+
+2014/2/25
+ (after)  1
+
+>>>
+Change of balance (flow):
+
+        ||  2014/01/01-2014/01/31  2014/02/01-2014/02/28 
+========++===============================================
+ after  ||                      0                      1 
+ before ||                      1                      0 
+ within ||                      0                      1 
+--------++-----------------------------------------------
+        ||                      1                      2 
+
+>>>=0

@@ -19,7 +19,6 @@ module Hledger.Reports.ReportOptions (
   queryFromOpts,
   queryFromOptsOnly,
   queryOptsFromOpts,
-  reportSpans,
   transactionDateFn,
   postingDateFn,
 
@@ -289,45 +288,6 @@ tests_queryOptsFromOpts = [
                                                              ,query_="date:'to 2013'"
                                                              })
  ]
-
--- | Calculate the overall and (if a reporting interval is specified)
--- per-interval date spans for a report, based on command-line
--- options, the search query, and the journal data.
---
--- The basic overall report span is:
--- without -E: the intersection of the requested span and the matched data's span.
--- with -E:    the full requested span, including leading/trailing intervals that are empty.
---             If the begin or end date is not specified, those of the journal are used.
---
--- The report span will be enlarged if necessary to include a whole
--- number of report periods, when a reporting interval is specified.
---
-reportSpans ::  ReportOpts -> Query -> Journal -> [Posting] -> (DateSpan, [DateSpan])
-reportSpans opts q j matchedps = (reportspan, spans)
-  where
-    (reportspan, spans)
-      | empty_ opts = (dbg "reportspan1" $ enlargedrequestedspan, sps)
-      | otherwise   = (dbg "reportspan2" $ requestedspan `spanIntersect` matchedspan, sps)
-      where
-        sps = dbg "spans" $ splitSpan (intervalFromOpts opts) reportspan
-
-    -- the requested span specified by the query (-b/-e/-p options and query args);
-    -- might be open-ended
-    requestedspan = dbg "requestedspan" $ queryDateSpan (date2_ opts) q
-
-    -- the requested span with unspecified dates filled from the journal data
-    finiterequestedspan = dbg "finiterequestedspan" $ requestedspan `orDatesFrom` journalDateSpan j
-
-    -- enlarge the requested span to a whole number of periods
-    enlargedrequestedspan = dbg "enlargedrequestedspan" $
-                            DateSpan (maybe Nothing spanStart $ headMay requestedspans)
-                                     (maybe Nothing spanEnd   $ lastMay requestedspans)
-      where
-        -- spans of the requested report interval which enclose the requested span
-        requestedspans = dbg "requestedspans" $ splitSpan (intervalFromOpts opts) finiterequestedspan
-
-    -- earliest and latest dates of matched postings
-    matchedspan = dbg "matchedspan" $ postingsDateSpan' (whichDateFromOpts opts) matchedps
 
 
 tests_Hledger_Reports_ReportOptions :: Test

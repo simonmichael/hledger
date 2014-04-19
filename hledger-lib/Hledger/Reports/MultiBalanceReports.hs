@@ -18,6 +18,7 @@ where
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Safe
 -- import Test.HUnit
 
 import Hledger.Data
@@ -64,7 +65,7 @@ type ClippedAccountName = AccountName
 -- showing the change of balance, accumulated balance, or historical balance
 -- in each of the specified periods.
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
+multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
     where
       -- dbg = const id                                   -- exclude from debug output
       dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
@@ -75,7 +76,12 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
       depthless  = dbg "depthless" . filterQuery (not . queryIsDepth)
       datelessq  = dbg "datelessq"  $ filterQuery (not . queryIsDate) q
       precedingq = dbg "precedingq" $ And [datelessq, Date $ DateSpan Nothing (spanStart reportspan)]
-      reportq    = dbg "reportq"    $ depthless q --  $ And [datelessq, Date reportspan] -- laziness at work -- XXX no good, works only in GHCI
+      requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
+      requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan j         -- if open-ended, close it using the journal's end dates
+      intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
+      reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
+                                                       (maybe Nothing spanEnd   $ lastMay intervalspans)
+      reportq    = dbg "reportq" $ depthless $ And [datelessq, Date reportspan] -- user's query enlarged to whole intervals and with no depth limit
 
       ps :: [Posting] =
           dbg "ps" $
@@ -84,11 +90,16 @@ multiBalanceReport opts q j = MultiBalanceReport (spans, items, totals)
           filterJournalPostings reportq $        -- remove postings not matched by (adjusted) query
           journalSelectingAmountFromOpts opts j
 
-      (reportspan, spans) = dbg "report spans" $ reportSpans opts q j ps
+      displayspans = dbg "displayspans" $ splitSpan (intervalFromOpts opts) displayspan
+        where
+          displayspan
+            | empty_ opts = dbg "displayspan (-E)" $ reportspan                                -- all the requested intervals
+            | otherwise   = dbg "displayspan"      $ requestedspan `spanIntersect` matchedspan -- exclude leading/trailing empty intervals
+          matchedspan = dbg "matchedspan" $ postingsDateSpan' (whichDateFromOpts opts) ps
 
       psPerSpan :: [[Posting]] =
           dbg "psPerSpan" $
-          [filter (isPostingInDateSpan' (whichDateFromOpts opts) s) ps | s <- spans]
+          [filter (isPostingInDateSpan' (whichDateFromOpts opts) s) ps | s <- displayspans]
 
       postedAcctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg "postedAcctBalChangesPerSpan" $
