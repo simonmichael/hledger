@@ -530,7 +530,7 @@ viewcoverage:
 
 # get a debug prompt
 ghci:
-	$(GHCI) $(INCLUDEPATHS) $(MAIN)
+	$(GHCI) $(WARNINGS) $(INCLUDEPATHS) $(MAIN)
 
 ghciweb:
 	$(GHCI) $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
