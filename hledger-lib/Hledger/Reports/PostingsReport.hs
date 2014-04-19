@@ -21,7 +21,7 @@ import Data.List
 import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
-import Safe ({- headDef, -} headMay, lastMay)
+import Safe (headMay, lastMay)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
@@ -47,49 +47,42 @@ type PostingsReportItem = (Maybe Day    -- posting date, if this is the first po
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
-postingsReport opts q j = -- trace ("q: "++show q++"\nq': "++show q') $
-                          (totallabel, postingsReportItems ps nullposting wd depth startbal runningcalcfn 1)
+postingsReport opts q j = (totallabel, items)
     where
-      ps | interval == NoInterval = displayableps
-         | otherwise              = summarisePostingsByInterval interval wd depth empty reportspan displayableps
-      j' = journalSelectingAmountFromOpts opts j
-      wd = whichDateFromOpts opts
-      -- delay depth filtering until the end
-      (depth, q') = (queryDepth q, filterQuery (not . queryIsDepth) q)
-      (precedingps, displayableps, _) =
-          dbg "ps5" $
-          postingsMatchingDisplayExpr displayexpr opts $ -- filter and group by the -d display expression
-          dbg "ps4" $
-          map (filterPostingAmount (filterQuery queryIsSym q)) $ -- remove amount parts which the query's sym: terms would exclude
-          dbg "ps3" $
-          (if related_ opts then concatMap relatedPostings else id) $ -- with --related, replace each with its sibling postings
-          dbg "ps2" $ 
-          filter (q' `matchesPosting`) $ -- filter postings by the query, ignoring depth
-          dbg "ps1" $ 
-          journalPostings j'
+      -- figure out adjusted queries & spans like multiBalanceReport
+      symq = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
+      depth = queryDepth q
+      depthless = filterQuery (not . queryIsDepth)
+      dateless = filterQuery (not . queryIsDate)
+      -- precedingq = dbg "precedingq" $ And [datelessq, Date $ DateSpan Nothing (spanStart reportspan)]
+      requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
+      requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan j         -- if open-ended, close it using the journal's end dates
+      intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
+      reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
+                                                       (maybe Nothing spanEnd   $ lastMay intervalspans)
+      reportq    = dbg "reportq" $ depthless $ And [dateless q, Date reportspan] -- user's query enlarged to whole intervals and with no depth limit
 
-      -- to debug just this function without the noise of --debug, uncomment:
-      -- dbg :: Show a => String -> a -> a
-      -- dbg = lstrace
+      (precedingps, displayableps, _) =
+          dbg "ps5" $ postingsMatchingDisplayExpr displayexpr opts $              -- filter and group by the -d display expression
+          dbg "ps4" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's sym: terms would exclude
+          dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
+          dbg "ps2" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, ignoring depth
+          dbg "ps1" $ journalPostings $ journalSelectingAmountFromOpts opts j
 
       empty = queryEmpty q
       displayexpr = display_ opts  -- XXX
       interval = intervalFromOpts opts -- XXX
-      journalspan = journalDateSpan j'
-      -- requestedspan should be the intersection of any span specified
-      -- with period options and any span specified with display option.
-      -- The latter is not easily available, fake it for now.
-      requestedspan = periodspan `spanIntersect` displayspan
-      periodspan = queryDateSpan secondarydate q
-      secondarydate = wd == SecondaryDate
-      displayspan = postingsDateSpan ps
-          where (_,ps,_) = postingsMatchingDisplayExpr displayexpr opts $ journalPostings j'
-      matchedspan = postingsDateSpan displayableps
-      reportspan | empty     = requestedspan `spanDefaultsFrom` journalspan
-                 | otherwise = requestedspan `spanIntersect` matchedspan
+
+      whichdate = whichDateFromOpts opts
+      ps | interval == NoInterval = displayableps
+         | otherwise              = summarisePostingsByInterval interval whichdate depth empty reportspan displayableps
       startbal = sumPostings precedingps
       runningcalcfn | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i)
                     | otherwise     = \_ bal amt -> bal + amt
+      items = postingsReportItems ps nullposting whichdate depth startbal runningcalcfn 1
+
+      dbg s = let p = "postingsReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
+      -- dbg = const id  -- exclude from debug output
 
 totallabel = "Total"
 
