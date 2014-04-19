@@ -2122,7 +2122,17 @@ move *FromOpts into toOpts
 
 * old/dev/project backlog - see also trello
 ** errors
-*** add: should not accept . as an amount
+*** balance: --drop without --flat should only drop top-level account name parts (or be ignored)
+*** balance (flow): show today as end date instead of end of current period ?
+*** cli: -p 'weekly in jan-feb' confusion, it should mean the same as 'weekly from jan to feb'
+*** cli: aliasing an account prefix to '' should work
+*** cli: don't list directories as addons (hledger-chart)
+*** csv: rule not setting comment
+if
+EDISON
+GAS COMPANY
+ account2 expenses:personal:home:utilities
+ comment household:
 *** add: default amount adds one decimal place when journal contains no decimals  2d
 *** add: excessive precision in default balancing amount  1d
 **** shelltest tests/add.test -- -t10
@@ -2236,8 +2246,8 @@ expecting comment or new-line
 http://stackoverflow.com/questions/10779149/unicode-console-i-o-in-haskell-on-windows
 http://hackage.haskell.org/trac/ghc/ticket/4471
 *** journalAddFile is called in reverse order of includes  2
-*** cli: short flags not passed through to subcommand
 *** irr: flags require preceding --
+*** cli: not always possible to pass flags to subcommand
 ** documentation
 *** hledger intro tutorial:
 **** what problem did ledger solve when I started ?
