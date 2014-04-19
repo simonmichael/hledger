@@ -401,6 +401,7 @@ queryIsDepth _ = False
 
 queryIsDate :: Query -> Bool
 queryIsDate (Date _) = True
+queryIsDate (Date2 _) = True
 queryIsDate _ = False
 
 queryIsDesc :: Query -> Bool

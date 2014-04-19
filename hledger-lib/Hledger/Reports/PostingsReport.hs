@@ -60,7 +60,8 @@ postingsReport opts q j = (totallabel, items)
       intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
       reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
                                                        (maybe Nothing spanEnd   $ lastMay intervalspans)
-      reportq    = dbg "reportq" $ depthless $ And [dateless q, Date reportspan] -- user's query enlarged to whole intervals and with no depth limit
+      newdatesq = dbg "newdateq" $ (if date2_ opts then Date2 else Date) reportspan
+      reportq  = dbg "reportq" $ depthless $ And [dateless q, newdatesq] -- user's query enlarged to whole intervals and with no depth limit
 
       (precedingps, displayableps, _) =
           dbg "ps5" $ postingsMatchingDisplayExpr displayexpr opts $              -- filter and group by the -d display expression

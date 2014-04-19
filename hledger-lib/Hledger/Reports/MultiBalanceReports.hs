@@ -78,7 +78,8 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
       intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
       reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
                                                        (maybe Nothing spanEnd   $ lastMay intervalspans)
-      reportq    = dbg "reportq" $ depthless $ And [datelessq, Date reportspan] -- user's query enlarged to whole intervals and with no depth limit
+      newdatesq = dbg "newdateq" $ (if date2_ opts then Date2 else Date) reportspan
+      reportq  = dbg "reportq" $ depthless $ And [datelessq, newdatesq] -- user's query enlarged to whole intervals and with no depth limit
 
       ps :: [Posting] =
           dbg "ps" $
