@@ -119,6 +119,8 @@ spanStart (DateSpan d _) = d
 spanEnd :: DateSpan -> Maybe Day
 spanEnd (DateSpan _ d) = d
 
+-- might be useful later: http://en.wikipedia.org/wiki/Allen%27s_interval_algebra 
+
 -- | Get overall span enclosing multiple sequentially ordered spans.
 spansSpan :: [DateSpan] -> DateSpan
 spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Nothing spanEnd $ lastMay spans)
