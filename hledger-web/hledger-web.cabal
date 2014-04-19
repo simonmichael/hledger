@@ -17,7 +17,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://hledger.org/bugs
-tested-with:    GHC==7.6.3
+tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.2
 cabal-version:  >= 1.8
 build-type:     Simple
 extra-tmp-files:
