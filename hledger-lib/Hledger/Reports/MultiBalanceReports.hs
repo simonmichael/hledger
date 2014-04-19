@@ -67,9 +67,6 @@ type ClippedAccountName = AccountName
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
     where
-      -- dbg = const id                                   -- exclude from debug output
-      dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
-
       symq       = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
       depthq     = dbg "depthq" $ filterQuery queryIsDepth q
       depth      = queryDepth depthq
@@ -162,3 +159,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
             highestlevelaccts     =
                 dbg "highestlevelaccts" $
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]
+
+      dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
+      -- dbg = const id  -- exclude from debug output
+
