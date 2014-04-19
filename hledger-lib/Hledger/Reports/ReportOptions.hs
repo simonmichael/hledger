@@ -29,7 +29,6 @@ where
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import Data.Time.Calendar
-import Safe (headMay, lastMay)
 import System.Console.CmdArgs.Default  -- some additional default stuff
 import Test.HUnit
 
