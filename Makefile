@@ -273,11 +273,22 @@ windowsbinaries: install
 	@echo 'Please check the binaries are portable, then make compressbinaries'
 	ls -l bin/*`arch`
 
-wine-bash wine:
-	wine c:/mingw/msys/1.0/bin/mintty.exe - &
-
+# various ways of getting a wine shell
+# command-line windows command prompt. Works eg in an emacs shell buffer.
 wine-cmd:
-	wineconsole cmd.exe &
+	wine cmd
+
+# as above but try to cd somewhere useful (doesn't work), also ctrl-d exits quickly
+wine-cmd2:
+	(echo c:; echo cd \\mingw\\msys\\1.0; cat) | wine cmd
+
+# windows command prompt in a new window
+wine-cmd-window:
+	wineconsole cmd &
+
+# msys bash shell in a mintty window
+wine-mintty:
+	wine c:/mingw/msys/1.0/bin/mintty - &
 
 compressbinaries:
 	cd bin; for f in *-windows-*.exe ; do echo zipping $$f; rm -f $$f.zip; zip $$f.zip $$f; done
