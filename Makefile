@@ -85,7 +85,6 @@ DOCFILES:= \
 VERSIONSENSITIVEFILES=\
 	$(CABALFILES) \
 	doc/MANUAL.md \
-#	doc/DOWNLOAD.md \
 
 # file(s) which require recompilation for a build to have an up-to-date version string
 VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -617,7 +616,7 @@ pdf: codepdf #docspdf
 # 	cat cabal.ps make.ps haskell.ps | ps2pdf - >code.pdf
 
 # # view all docs and code as pdf
-# PDFS=site/{README,README2,MANUAL,CHANGES,CONTRIBUTORS,SCREENSHOTS}.pdf code.pdf
+# PDFS=site/{README,README2,MANUAL,CHANGES,CONTRIBUTORS}.pdf code.pdf
 # viewall: pdf
 # 	$(VIEWPDF) $(PDFS)
 
@@ -815,9 +814,6 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE)
 
 doc/MANUAL.md: $(VERSIONFILE)
 	perl -p -e "s/(^Version:) +[0-9.]+/\1 $(VERSION)/" -i $@
-
-doc/DOWNLOAD.md: $(VERSIONFILE)
-	perl -p -e "s/hledger(|-chart|-web|-vty)-[0-9.]+-/hledger\1-$(VERSION)-/g" -i $@
 
 tagrelease:
 	git tag $(VERSION)
