@@ -1,3 +1,5 @@
+<!-- hledger repo and http://hledger.org versions of this document are periodically bidirectionally synced -->
+
 # User manual
 
 For: hledger 0.22.1
