@@ -1,0 +1,12 @@
+2008/11 HCAR
+
+hledger is a command-line accounting tool similar to John Wiegley’s ledger tool.
+
+The first release has been published on Hackage, and has attracted some
+interest. It can be used for generating simple balance and transaction
+reports from a plain-text general ledger. A home page and mail list has
+also been created.
+
+Immediate plans are to add some more of the most useful features from 
+ledger, so that hledger can be used for day-to-day finances, and to grow
+the community of contributors.

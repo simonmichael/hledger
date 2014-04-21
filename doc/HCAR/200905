@@ -1,0 +1,12 @@
+2009/05 HCAR
+
+hledger is a (primarily) command-line accounting tool similar to John
+Wiegley's "ledger".  It reads a plain text journal file describing money
+or commodity transactions, or timelog entries, and generates precise
+activity and balance reports.
+
+Since the last report, hledger has reached release 0.4 on Hackage. It has
+60 test cases, new features such as basic curses and web-based interfaces,
+and has had some performance tuning. It is now quite useful for day to day
+reporting of money and time. Also, the project has a new web address
+(hledger.org), and has attracted two new committers.
