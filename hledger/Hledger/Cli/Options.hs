@@ -55,7 +55,6 @@ module Hledger.Cli.Options (
 where
   
 import qualified Control.Exception as C
--- import Control.Monad (filterM)
 import Control.Monad (when)
 import Data.List
 import Data.List.Split
@@ -161,7 +160,7 @@ defCommandMode names = defMode {
 defAddonCommandMode :: Name -> Mode RawOpts
 defAddonCommandMode addon = defMode {
    modeNames = [addon]
-  ,modeHelp = fromMaybe "" $ lookup (striphs addon) standardAddonsHelp
+  ,modeHelp = fromMaybe "" $ lookup (stripAddonExtension addon) standardAddonsHelp
   ,modeValue=[("command",addon)]
   ,modeGroupFlags = Group {
       groupUnnamed = []
@@ -170,9 +169,6 @@ defAddonCommandMode addon = defMode {
      }
   ,modeArgs = ([], Just $ argsFlag "[ARGS]")
   }
-
-striphs :: String -> String
-striphs = regexReplace "\\.l?hs$" ""
 
 -- | Built-in descriptions for some of the known external addons,
 -- since we don't currently have any way to ask them.
@@ -189,6 +185,7 @@ standardAddonsHelp = [
   ,("print-unique", "print only transactions with unique descriptions")
   ,("register-csv", "output a register report as CSV")
   ,("rewrite", "add specified postings to matched transaction entries")
+  ,("addon", "dummy add-on command for testing")
   ]
 
 -- | Get a mode's help message as a nicely wrapped string.
@@ -402,15 +399,25 @@ widthp = (string "auto" >> return Auto)
 getHledgerAddonCommands :: IO [String]
 getHledgerAddonCommands = map (drop (length progname + 1)) `fmap` getHledgerExesInPath
 
--- | Get the unique names of hledger-*{,.hs} executables found in the current
--- user's PATH, or the empty list if there is any problem.
+-- | Get the unique names (including extension) of hledger add-ons
+-- (executables, named hledger-*, with no extension or one of the
+-- addonExtensions) found in the current user's PATH, or the empty
+-- list if there is a problem.
 getHledgerExesInPath :: IO [String]
 getHledgerExesInPath = do
   pathdirs <- splitOn ":" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  let hledgernamed = nubBy (\a b -> striphs a == striphs b) $ sort $ filter isHledgerExeName pathfiles
-  -- hledgerexes <- filterM isExecutable hledgernamed
+  let hledgernamed =
+        -- nubBy (\a b -> stripAddonExtension a == stripAddonExtension b) $
+        nub $
+        sort $ filter isHledgerExeName pathfiles
   return hledgernamed
+  -- Exclude directories and files without execute permission.
+  -- These will do a stat for each hledger-*, probably ok.
+  -- They also need the path..
+  -- hledgerexes  <- filterM doesFileExist hledgernamed
+  -- hledgerexes' <- filterM isExecutable hledgerexes
+  -- return hledgerexes
 
 -- isExecutable f = getPermissions f >>= (return . executable)
 
@@ -421,8 +428,26 @@ isHledgerExeName = isRight . parsewith hledgerexenamep
         string progname
         char '-'
         many1 (noneOf ".")
-        optional (string ".hs" <|> string ".lhs")
+        optional (string "." >> choice' (map string addonExtensions))
         eof
+
+stripAddonExtension :: String -> String
+stripAddonExtension = regexReplace re "" where re = "\\.(" ++ intercalate "|" addonExtensions ++ ")$"
+
+addonExtensions :: [String]
+addonExtensions =
+  ["bat"
+  ,"com"
+  ,"exe"
+  ,"hs"
+  ,"lhs"
+  ,"pl"
+  ,"py"
+  ,"rb"
+  ,"rkt"
+  ,"sh"
+  -- ,""
+  ]
 
 getEnvSafe :: String -> IO String
 getEnvSafe v = getEnv v `C.catch` (\(_::C.IOException) -> return "")
