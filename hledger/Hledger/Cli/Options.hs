@@ -57,7 +57,6 @@ where
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.List
-import Data.List.Split
 import Data.Maybe
 import Safe
 import System.Console.CmdArgs
