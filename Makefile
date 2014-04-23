@@ -558,6 +558,15 @@ data/10000x10000x10.journal: tools/generatejournal
 data/100000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 100000 1000 10 >$@
 
+TESTADDONS=bin/test-addons
+ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
+test-addons:
+	for E in '' $(ADDONEXTS); do printf '#!/bin/sh\necho $$0\n' >$(TESTADDONS)/hledger-addon.$$E; done
+	#cp $(TESTADDONS)/hledger-addon. $(TESTADDONS)/hledger-addon
+	rm -rf $(TESTADDONS)/hledger-addon
+	mkdir $(TESTADDONS)/hledger-addon
+	chmod +x $(TESTADDONS)/hledger-*
+
 ######################################################################
 # DOCUMENTATION
 
