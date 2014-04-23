@@ -405,7 +405,7 @@ getHledgerAddonCommands = map (drop (length progname + 1)) `fmap` getHledgerExes
 -- list if there is a problem.
 getHledgerExesInPath :: IO [String]
 getHledgerExesInPath = do
-  pathdirs <- splitOn ":" `fmap` getEnvSafe "PATH"
+  pathdirs <- regexSplit "[:;]" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
   let hledgernamed =
         -- nubBy (\a b -> stripAddonExtension a == stripAddonExtension b) $
