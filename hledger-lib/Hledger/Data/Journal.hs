@@ -545,32 +545,32 @@ journalMixedAmounts = map pamount . journalPostings
 journalAmounts :: Journal -> [Amount]
 journalAmounts = concatMap flatten . journalMixedAmounts where flatten (Mixed as) = as
 
--- | The fully specified date span enclosing the primary dates of all
--- this journal's transactions and postings, or DateSpan Nothing Nothing
+-- | The fully specified date span enclosing the dates (primary or secondary)
+-- of all this journal's transactions and postings, or DateSpan Nothing Nothing
 -- if there are none.
-journalDateSpan :: Journal -> DateSpan
-journalDateSpan j
+journalDateSpan :: Bool -> Journal -> DateSpan
+journalDateSpan secondary j
     | null ts   = DateSpan Nothing Nothing
     | otherwise = DateSpan (Just earliest) (Just $ addDays 1 latest)
     where
       earliest = minimum dates
       latest   = maximum dates
       dates    = pdates ++ tdates
-      tdates   = map tdate ts
-      pdates   = concatMap (catMaybes . map pdate . tpostings) ts
+      tdates   = map (if secondary then transactionDate2 else tdate) ts
+      pdates   = concatMap (catMaybes . map (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
       ts       = jtxns j
 
 -- #ifdef TESTS
 test_journalDateSpan = do
  "journalDateSpan" ~: do
   assertEqual "" (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
-                 (journalDateSpan j)
+                 (journalDateSpan True j)
   where
     j = nulljournal{jtxns = [nulltransaction{tdate = parsedate "2014/02/01"
                                             ,tpostings = [posting{pdate=Just (parsedate "2014/01/10")}]
                                             }
                             ,nulltransaction{tdate = parsedate "2014/09/01"
-                                            ,tpostings = [posting{pdate=Just (parsedate "2014/10/10")}]
+                                            ,tpostings = [posting{pdate2=Just (parsedate "2014/10/10")}]
                                             }
                             ]}
 -- #endif
