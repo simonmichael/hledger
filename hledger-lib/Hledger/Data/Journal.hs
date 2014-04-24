@@ -1,3 +1,4 @@
+-- {-# LANGUAGE CPP #-}
 {-|
 
 A 'Journal' is a set of transactions, plus optional related data.  This is
@@ -544,14 +545,35 @@ journalMixedAmounts = map pamount . journalPostings
 journalAmounts :: Journal -> [Amount]
 journalAmounts = concatMap flatten . journalMixedAmounts where flatten (Mixed as) = as
 
--- | The (fully specified) date span containing this journal's transactions,
--- or DateSpan Nothing Nothing if there are none.
+-- | The fully specified date span enclosing the primary dates of all
+-- this journal's transactions and postings, or DateSpan Nothing Nothing
+-- if there are none.
 journalDateSpan :: Journal -> DateSpan
 journalDateSpan j
-    | null ts = DateSpan Nothing Nothing
-    | otherwise = DateSpan (Just $ tdate $ head ts) (Just $ addDays 1 $ tdate $ last ts)
+    | null ts   = DateSpan Nothing Nothing
+    | otherwise = DateSpan (Just earliest) (Just $ addDays 1 latest)
     where
-      ts = sortBy (comparing tdate) $ jtxns j
+      earliest = minimum dates
+      latest   = maximum dates
+      dates    = pdates ++ tdates
+      tdates   = map tdate ts
+      pdates   = concatMap (catMaybes . map pdate . tpostings) ts
+      ts       = jtxns j
+
+-- #ifdef TESTS
+test_journalDateSpan = do
+ "journalDateSpan" ~: do
+  assertEqual "" (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
+                 (journalDateSpan j)
+  where
+    j = nulljournal{jtxns = [nulltransaction{tdate = parsedate "2014/02/01"
+                                            ,tpostings = [posting{pdate=Just (parsedate "2014/01/10")}]
+                                            }
+                            ,nulltransaction{tdate = parsedate "2014/09/01"
+                                            ,tpostings = [posting{pdate=Just (parsedate "2014/10/10")}]
+                                            }
+                            ]}
+-- #endif
 
 -- Misc helpers
 
@@ -682,6 +704,7 @@ Right samplejournal = journalBalanceTransactions $
 
 tests_Hledger_Data_Journal = TestList $
  [
+  test_journalDateSpan
   -- "query standard account types" ~:
   --  do
   --   let j = journal1
