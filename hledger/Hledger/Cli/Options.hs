@@ -185,7 +185,9 @@ standardAddonsHelp = [
   ,("print-unique", "print only transactions with unique descriptions")
   ,("register-csv", "output a register report as CSV")
   ,("rewrite", "add specified postings to matched transaction entries")
-  ,("addon", "dummy add-on command for testing")
+  ,("addon",  "dummy add-on command for testing")
+  ,("addon2", "dummy add-on command for testing")
+  ,("addon3", "dummy add-on command for testing")
   ]
 
 -- | Get a mode's help message as a nicely wrapped string.
