@@ -569,6 +569,7 @@ test-addons:
 	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-addon2.hs
 	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-addon3.exe
 	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-addon3.lhs
+	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-add
 	chmod +x $(TESTADDONS)/hledger-*
 
 ######################################################################

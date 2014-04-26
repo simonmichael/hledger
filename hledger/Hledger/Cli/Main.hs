@@ -199,6 +199,14 @@ main = do
   dbgM "raw args after command" argsaftercmd
 
   -- search PATH for add-ons
+  -- XXX
+  -- disallow addons matching builtin commands ?
+  -- $ hledger print
+  -- hledger: Ambiguous mode 'print', could be any of: print print
+  -- allow invocation with extension even when it's hidden ?
+  -- $ hledger print.hs
+  -- hledger: command print.hs is not recognized, run with no command to see a list
+
   addons <- getHledgerAddonCommands
 
   -- parse arguments with cmdargs
