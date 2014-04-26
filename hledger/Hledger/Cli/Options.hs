@@ -65,6 +65,7 @@ import System.Console.CmdArgs.Text
 import System.Directory
 import System.Environment
 import System.Exit (exitSuccess)
+import System.FilePath (takeExtension)
 import Test.HUnit
 import Text.ParserCombinators.Parsec as P
 
@@ -392,28 +393,36 @@ widthp = (string "auto" >> return Auto)
 
 -- Other utils
 
--- | Get the unique suffixes (without hledger-) of hledger-* executables
--- found in the current user's PATH, or the empty list if there is any
--- problem.
+-- | Like getHledgerExesInPath, but convert the filenames to unique add-on names for the commands list.
+-- An add-on name is the filename without the "hledger-" prefix, and usually without the file extension.
+-- Exceptions:
+-- - when there are multiple filenames differing only by file extension, their extensions are preserved
+-- - when there are two variants, one with .[l]hs extension and one with none or .exe, omit the former.
+--
 getHledgerAddonCommands :: IO [String]
-getHledgerAddonCommands = map (drop (length progname + 1)) `fmap` getHledgerExesInPath
+getHledgerAddonCommands = do
+  exes <- getHledgerExesInPath
+  let stripprefix = drop (length progname + 1)
+      addons = map stripprefix exes
+      groups = groupBy (\a b -> stripAddonExtension a == stripAddonExtension b) addons
+      stripext [f] = [stripAddonExtension f]
+      stripext [f,f2] | takeExtension f `elem` ["",".exe"] && takeExtension f2 `elem` [".hs",".lhs"] = [stripAddonExtension f]
+      stripext fs = fs
+      addons' = concatMap stripext groups
+  return addons'
 
--- | Get the unique names (including extension) of hledger add-ons
--- (executables, named hledger-*, with no extension or one of the
--- addonExtensions) found in the current user's PATH, or the empty
--- list if there is a problem.
+-- | Get the sorted unique filenames of all hledger executables
+-- in the current user's PATH (files, named hledger-*, with either no
+-- extension (and no periods in the name) or one of the addonExtensions).
+-- If there is any problem, return the empty list.
 getHledgerExesInPath :: IO [String]
 getHledgerExesInPath = do
   pathdirs <- regexSplit "[:;]" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  let hledgernamed =
-        -- nubBy (\a b -> stripAddonExtension a == stripAddonExtension b) $
-        nub $
-        sort $ filter isHledgerExeName pathfiles
-  return hledgernamed
-  -- Exclude directories and files without execute permission.
+  return $ nub $ sort $ filter isHledgerExeName pathfiles
+  -- XXX should exclude directories and files without execute permission.
   -- These will do a stat for each hledger-*, probably ok.
-  -- They also need the path..
+  -- But they need paths, not just filenames
   -- hledgerexes  <- filterM doesFileExist hledgernamed
   -- hledgerexes' <- filterM isExecutable hledgerexes
   -- return hledgerexes
