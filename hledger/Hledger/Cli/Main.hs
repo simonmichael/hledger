@@ -45,6 +45,7 @@ import Safe
 import System.Console.CmdArgs.Explicit as C
 import System.Environment
 import System.Exit
+import System.FilePath
 import System.Process
 import Text.Printf
 
@@ -64,7 +65,7 @@ import Hledger.Cli.Tests
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.RawOptions (optserror)
+import Hledger.Data.RawOptions (RawOpts, optserror)
 import Hledger.Reports.ReportOptions (dateSpanFromOpts, intervalFromOpts, queryFromOpts)
 import Hledger.Utils
 
@@ -124,6 +125,16 @@ oldconvertmode = (defCommandMode ["convert"]) {
     ,groupNamed = []
     }
  }
+
+builtinCommands :: [Mode RawOpts]
+builtinCommands =
+  let gs = modeGroupModes $ mainmode []
+  in concatMap snd (groupNamed gs)
+     ++ groupUnnamed gs
+     ++ groupHidden gs
+
+builtinCommandNames :: [String]
+builtinCommandNames = concatMap modeNames builtinCommands
 
 -- | Parse hledger CLI options from these command line arguments and
 -- add-on command names, or raise any error.
@@ -198,30 +209,25 @@ main = do
   dbgM "raw args before command" argsbeforecmd
   dbgM "raw args after command" argsaftercmd
 
-  -- search PATH for add-ons
-  -- XXX
-  -- disallow addons matching builtin commands ?
-  -- $ hledger print
-  -- hledger: Ambiguous mode 'print', could be any of: print print
-  -- allow invocation with extension even when it's hidden ?
-  -- $ hledger print.hs
-  -- hledger: command print.hs is not recognized, run with no command to see a list
-
-  addons <- getHledgerAddonCommands
+  -- Search PATH for add-ons, excluding any that match built-in names.
+  -- The precise addon names (including file extension) are used for command
+  -- parsing, and the display names are used for displaying the commands list.
+  (addonPreciseNames', addonDisplayNames') <- hledgerAddons
+  let addonPreciseNames = filter (not . (`elem` builtinCommandNames) . dropExtension) addonPreciseNames'
+  let addonDisplayNames = filter (not . (`elem` builtinCommandNames)) addonDisplayNames'
 
   -- parse arguments with cmdargs
-  opts <- argsToCliOpts args addons
+  opts <- argsToCliOpts args addonPreciseNames
 
   -- select an action and run it.
   let
     cmd                  = command_ opts -- the full matched internal or external command name, if any
-    isInternalCommand    = not (null cmd) && not (cmd `elem` addons) -- probably
-    isExternalCommand    = not (null cmd) && cmd `elem` addons -- probably
+    isInternalCommand    = cmd `elem` builtinCommandNames -- not (null cmd) && not (cmd `elem` addons)
+    isExternalCommand    = not (null cmd) && cmd `elem` addonPreciseNames -- probably
     isBadCommand         = not (null rawcmd) && null cmd
     hasHelp args         = any (`elem` args) ["--help","-h","-?"]
     hasVersion           = ("--version" `elem`)
-    mainmode'            = mainmode addons
-    generalHelp          = putStr $ showModeHelp mainmode'
+    generalHelp          = putStr $ showModeHelp $ mainmode addonDisplayNames
     version              = putStrLn prognameandversion
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     f `orShowHelp` mode  = if hasHelp args then putStr (showModeHelp mode) else f

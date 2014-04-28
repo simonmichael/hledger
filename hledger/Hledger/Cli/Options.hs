@@ -46,7 +46,7 @@ module Hledger.Cli.Options (
   formatFromOpts,
 
   -- * Other utils
-  getHledgerAddonCommands,
+  hledgerAddons,
 
   -- * Tests
   tests_Hledger_Cli_Options
@@ -65,7 +65,7 @@ import System.Console.CmdArgs.Text
 import System.Directory
 import System.Environment
 import System.Exit (exitSuccess)
-import System.FilePath (takeExtension)
+import System.FilePath
 import Test.HUnit
 import Text.ParserCombinators.Parsec as P
 
@@ -197,8 +197,8 @@ showModeHelp = (showText defaultWrap :: [Text] -> String) .
 
 -- | Add command aliases to the command's help string.
 withAliases :: String -> [String] -> String
+s `withAliases` []     = s
 s `withAliases` as = s ++ " (" ++ intercalate ", " as ++ ")"
--- s `withAliases` []     = s
 -- s `withAliases` (a:[]) = s ++ " (alias: " ++ a ++ ")"
 -- s `withAliases` as     = s ++ " (aliases: " ++ intercalate ", " as ++ ")"
 
@@ -395,30 +395,45 @@ widthp = (string "auto" >> return Auto)
 
 -- Other utils
 
--- | Like getHledgerExesInPath, but convert the filenames to unique add-on names for the commands list.
--- An add-on name is the filename without the "hledger-" prefix, and usually without the file extension.
--- Exceptions:
--- - when there are multiple filenames differing only by file extension, their extensions are preserved
--- - when there are two variants, one with .[l]hs extension and one with none or .exe, omit the former.
+-- | Get the sorted unique precise names and display names of hledger
+-- add-ons found in the current user's PATH. The precise names are the
+-- add-on's filename with the "hledger-" prefix removed. The display
+-- names have the file extension removed also, except when it's needed
+-- for disambiguation.
 --
-getHledgerAddonCommands :: IO [String]
-getHledgerAddonCommands = do
-  exes <- getHledgerExesInPath
-  let stripprefix = drop (length progname + 1)
-      addons = map stripprefix exes
-      groups = groupBy (\a b -> stripAddonExtension a == stripAddonExtension b) addons
-      stripext [f] = [stripAddonExtension f]
-      stripext [f,f2] | takeExtension f `elem` ["",".exe"] && takeExtension f2 `elem` [".hs",".lhs"] = [stripAddonExtension f]
-      stripext fs = fs
-      addons' = concatMap stripext groups
-  return addons'
+-- -- Also when there are exactly two similar names, one with the .hs or
+-- -- .lhs extension and the other with the .exe extension or no
+-- -- extension - presumably source and compiled versions of a haskell
+-- -- script - we exclude the source version.
+--
+-- This function can return add-on names which shadow built-in command
+-- names, but hledger will ignore these.
+--
+hledgerAddons :: IO ([String],[String])
+hledgerAddons = do
+  exes <- hledgerExecutablesInPath
+  let precisenames = -- concatMap dropRedundant $
+                     -- groupBy (\a b -> dropExtension a == dropExtension b) $
+                     map stripprefix exes
+  let displaynames = concatMap stripext $
+                     groupBy (\a b -> dropExtension a == dropExtension b) $
+                     precisenames
+  return (precisenames, displaynames)
+  where
+    stripprefix = drop (length progname + 1)
+    -- dropRedundant [f,f2] | takeExtension f `elem` ["",".exe"] && takeExtension f2 `elem` [".hs",".lhs"] = [f]
+    -- dropRedundant fs = fs
+    stripext [f] = [dropExtension f]
+    stripext fs  = fs
 
--- | Get the sorted unique filenames of all hledger executables
--- in the current user's PATH (files, named hledger-*, with either no
--- extension (and no periods in the name) or one of the addonExtensions).
--- If there is any problem, return the empty list.
-getHledgerExesInPath :: IO [String]
-getHledgerExesInPath = do
+-- | Get the sorted unique filenames of all hledger-* executables in
+-- the current user's PATH. Currently these are: files in any of the
+-- PATH directories, named hledger-*, with either no extension (and no
+-- periods in the name) or one of the addonExtensions.  Limitations:
+-- we do not currently check that the file is really a file (not eg a
+-- directory) or whether it has execute permission.
+hledgerExecutablesInPath :: IO [String]
+hledgerExecutablesInPath = do
   pathdirs <- regexSplit "[:;]" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
   return $ nub $ sort $ filter isHledgerExeName pathfiles
