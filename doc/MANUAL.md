@@ -1,12 +1,18 @@
 <!-- hledger repo and http://hledger.org versions of this document are periodically bidirectionally synced -->
 
-# User manual
+# User Manual
 
-For: hledger 0.22.1
+This manual is for
+<!-- [hledger 0.22.1](http://hackage.haskell.org/package/hledger-0.22.1) -->
+<!-- (and [hledger-web 0.22.4](http://hackage.haskell.org/package/hledger-web-0.22.4)). -->
+hledger 0.22.98 (the latest pre-0.23 HEAD).
+<!-- See also: [[0.22/manual|0.22 Manual]]. -->
 
+It is partly an introduction, but mainly a reference manual for hledger.
+For a more gradual introduction, see [[step-by-step]] and [[more docs]].
 ## Introduction
 
-[hledger](http://hledger.org) is a program for tracking money, time,
+[[home|hledger]] is a program for tracking money, time,
 or any other commodity, using a simple, editable file format and
 double-entry accounting, inspired by and largely compatible with
 [ledger](http://ledger-cli.org).  hledger is Free Software released
@@ -32,9 +38,9 @@ latest release with cabal-install, like so:
     $ cabal install hledger [hledger-web]
     ...
     $ hledger --version
-    hledger 0.19.3
+    hledger 0.22.1
     
-For more help with this, and other install options, see the [Installation Guide](INSTALL.html).
+For more help with this, and other install options, see the [[installing|Installation Guide]].
 
 ## Basic Usage
 
@@ -62,17 +68,17 @@ enter some transactions.  Or, save this
 [sample file](https://raw.github.com/simonmichael/hledger/master/data/sample.journal) as
 `.hledger.journal` in your home directory. Now try commands like these:
 
-    $ hledger                               # show available commands
-    $ hledger add                           # add more transactions to the journal file
-    $ hledger balance                       # all accounts with aggregated balances
-    $ hledger balance --help                # show help for balance command
-    $ hledger balance --depth 1             # only top-level accounts
-    $ hledger register                      # show a register of postings from all transactions
-    $ hledger reg income                    # show postings to/from income accounts
-    $ hledger reg checking                  # show postings to/from checking account
-    $ hledger reg desc:shop                 # show postings with shop in the description
-    $ hledger activity                      # show transactions per day as a bar chart
-    
+	$ hledger                               # show available commands
+	$ hledger add                           # add more transactions to the journal file
+	$ hledger balance                       # all accounts with aggregated balances
+	$ hledger balance --help                # show help for balance command
+	$ hledger balance --depth 1             # only top-level accounts
+	$ hledger register                      # show a register of postings from all transactions
+	$ hledger reg income                    # show postings to/from income accounts
+	$ hledger reg checking                  # show postings to/from checking account
+	$ hledger reg desc:shop                 # show postings with shop in the description
+	$ hledger activity                      # show transactions per day as a bar chart
+
 ## Data format
 
 ### Journal files
@@ -138,9 +144,7 @@ The posting amounts within a transaction must always balance, ie add up to
 
 Within a journal file, transaction dates always follow a year/month/day
 format, although several different separator characters are accepted. Some
-examples:
-
-> `2010/01/31`, `2010/1/31`, `2010-1-31`, `2010.1.31`
+examples: `2010/01/31`, `2010/1/31`, `2010-1-31`, `2010.1.31`.
 
 Writing the year is optional if you set a default year with a Y directive.
 This is a line containing `Y` and the year; it affects subsequent
@@ -270,11 +274,17 @@ parse order. This is different from ledger, which currently goes
 strictly by parse order. Sorting by date means balance assertions will
 still work if you reorder your entries.
 
+With included files, things are a little more complicated. Including
+preserves the ordering of postings and assertions. If you have multiple
+postings to an account on the same day, split across different files,
+and you also want to assert the account's balance on the same day,
+you can run into trouble depending on where the assertion is located.
+
 Also note the asserted balance must be a simple amount - it's not
 currently possible to assert a balance containing multiple commodities.
 
-The impact of balance assertions on parsing time for large files is
-not yet known.
+The impact of many balance assertions on parsing time for large files is
+unknown.
 
 #### Prices
 
@@ -332,31 +342,31 @@ hledger will parse and ignore ledger-style historical price directives:
         ; $1.40 from 2010/1/1 on.
         P 2009/1/1 € $1.35  
         P 2010/1/1 € $1.40
-        
+
 #### Comments
 
-A semicolon in the journal file marks the start of a comment. You can
-write comments on their own line between transactions, like so:
+- A semicolon (`;`) or hash (`#`) in column 0 starts a journal comment line, which hledger will ignore.
 
-    ; Also known as a "journal comment". Whitespace before the ; is allowed.
+- A semicolon after a transaction's description and/or indented on the following lines
+starts a transaction comment.
 
-You can also write transaction- or posting-specific comments following the
-transaction's first line or the posting, on the same line and/or indented
-on following lines. Some examples:
+- A semicolon after a posting's amount and/or indented on the following lines starts a posting comment.
 
-    ; a journal comment
-    2012/5/14 something  ; and now a transaction comment
-      ; another comment for this transaction
-      posting1  1  ; a comment for posting 1
-      posting2
-      ; a comment for posting 2
-      ; another comment for posting 2
-    ; another journal comment (because not indented)
+Transaction and posting comments are displayed by [[#print]], can contain [[#tags]] and can be [[#queries|queried]].
 
-Currently `print` preserves transaction and posting comments but not
-journal comments.
+Some examples:
 
-Comments may contain [tags](#tags).
+    # a journal comment
+    
+    ; also a journal comment
+    2012/5/14 something  ; a transaction comment
+        ; the transaction comment, continued
+        posting1  1  ; a comment for posting 1
+        posting2
+        ; a comment for posting 2
+        ; another comment line for posting 2
+    ; a journal comment (because not indented)
+
 
 #### Tags
 
@@ -391,25 +401,33 @@ Eg:
 To forget all aliases defined to this point, use:
 
     end aliases
-   
-See also [How to use account aliases](ALIASES.html).
+
+You can also specify aliases on the command line:
+
+    $ hledger --alias 'my earning=income:business' ...
+
+Journal directive aliases are applied first, then command-line aliases,
+and at most one of each will be applied to each account name.
+
+See also [[How to use account aliases]].
 
 ##### Default commodity
 
 You can set a default commodity, to be used for any subsequent amounts
-which have no commodity symbol, with the D directive:
+which have no commodity symbol (including [[#add|added]] amounts), with the D directive:
 
     ; set british pound as default commodity
     ; also sets canonical style for pound amounts, since it's the first one
-    ; (pound symbol on left, comma thousands separator, two decimal places)
     D £1,000.00
     
     2010/1/1
-      a  2340    ; no symbol, will use pound
+      a  2340    ; no symbol, will use default commodity and style
+                 ; (pound symbol on left, comma thousands separator, two decimal places) 
       b
 
-A default commodity directive may also influence the canonical
-[amount style](#commodity-display-settings) for the commodity.
+A default commodity directive can also influence the 
+[[#canonical-amount-styles|canonical amount style]] for the commodity,
+as in the example above.
 
 ##### Default parent account
 
@@ -467,9 +485,9 @@ are the journal entry's date and amount:
 Lines beginning with `#` or `;` and blank lines are ignored.
 The following kinds of rule can appear in any order:
 
-**fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...
-:   (Field list) This names the CSV fields (names may not contain whitespace or `;` or `#`),
-    and also assigns them to journal entry fields when you use any of these names:
+**fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...\\
+(Field list) This names the CSV fields (names may not contain whitespace or `;` or `#`),
+and also assigns them to journal entry fields when you use any of these names:
 
         date
         date2
@@ -484,80 +502,80 @@ The following kinds of rule can appear in any order:
         amount-in
         amount-out
    
-*JOURNALFIELDNAME* *FIELDVALUE*
-:   (Field assignment) This assigns the given text value
-    to a journal entry field (one of the field names above).
-    CSV fields can be referenced with `%CSVFIELDNAME` or `%N` (N starts at 1) and will be interpolated.
+*JOURNALFIELDNAME* *FIELDVALUE*\\
+(Field assignment) This assigns the given text value
+to a journal entry field (one of the field names above).
+CSV fields can be referenced with `%CSVFIELDNAME` or `%N` (N starts at 1) and will be interpolated.
 
-    You can use a field list, field assignments, or both.
-    At least the `date` and `amount` fields must be assigned.
+You can use a field list, field assignments, or both.
+At least the `date` and `amount` fields must be assigned.
 
-**if** *PATTERNS*<br>&nbsp;&nbsp;*FIELDASSIGNMENTS*
-:   (Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
+**if** *PATTERNS*\\ (*INDENT*)*FIELDASSIGNMENTS*\\
+(Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
 
-    PATTERNS is one or more regular expressions, each on its own line.
-    The first pattern can optionally be written on the same line as
-    the `if`; patterns on the following lines must start in column 0
-    (no indenting).  The regular expressions are case insensitive, and
-    can match anywhere within the whole CSV record.  (It's not yet
-    possible to match within a specific field.)
+PATTERNS is one or more regular expressions, each on its own line.
+The first pattern can optionally be written on the same line as
+the `if`; patterns on the following lines must start in column 0
+(no indenting).  The regular expressions are case insensitive, and
+can match anywhere within the whole CSV record.  (It's not yet
+possible to match within a specific field.)
 
-    FIELDASSIGNMENTS is one or more field assignments (described
-    above), each on its own line and indented by at least one
-    space. (The indent is required for successful parsing.)
+FIELDASSIGNMENTS is one or more field assignments (described
+above), each on its own line and indented by at least one
+space. (The indent is required for successful parsing.)
 
-    Example 1. The simplest conditional block has a single pattern and
-    a single field assignment. Here, any CSV record containing the
-    pattern `groceries` will have its account2 field set to
-    `expenses:groceries`.
+Example 1. The simplest conditional block has a single pattern and
+a single field assignment. Here, any CSV record containing the
+pattern `groceries` will have its account2 field set to
+`expenses:groceries`.
 
-        if groceries
-         account2 expenses:groceries
+	if groceries
+	 account2 expenses:groceries
 
-    Example 2. Here, CSV records containing any of these patterns will
-    have their account2 and comment fields set as shown. The
-    capitalisation is not required, that's just how I copied them from
-    my bank's CSV.
+Example 2. Here, CSV records containing any of these patterns will
+have their account2 and comment fields set as shown. The
+capitalisation is not required, that's just how I copied them from
+my bank's CSV.
 
-		if
-		MONTHLY SERVICE FEE
-		ATM TRANSACTION FEE
-		FOREIGN CURR CONV
-		OVERDRAFT TRANSFER FEE
-		BANKING THRU SOFTWARE:FEE
-		INTERNATIONAL PURCHASE TRANSACTION FEE
-		WIRE TRANS SVC CHARGE
-		FEE FOR TRANSFER
-		VISA ISA FEE
-		 account2 expenses:business:banking
-         comment  XXX probably deductible, check
+	if
+	MONTHLY SERVICE FEE
+	ATM TRANSACTION FEE
+	FOREIGN CURR CONV
+	OVERDRAFT TRANSFER FEE
+	BANKING THRU SOFTWARE:FEE
+	INTERNATIONAL PURCHASE TRANSACTION FEE
+	WIRE TRANS SVC CHARGE
+	FEE FOR TRANSFER
+	VISA ISA FEE
+	 account2 expenses:business:banking
+	 comment  XXX probably deductible, check
 
-**skip** [*N*]
-:   Skip this number of CSV records (1 by default).
-    Use this to skip CSV header lines.
-    <!-- hledger tries to skip initial CSV header lines automatically. -->
-    <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
-    <!-- This can also be used in a conditional block to ignore certain CSV records. -->
+**skip** [*N*]\\
+Skip this number of CSV records (1 by default).
+Use this to skip CSV header lines.
+<!-- hledger tries to skip initial CSV header lines automatically. -->
+<!-- If it guesses wrong, use this directive to skip exactly N lines. -->
+<!-- This can also be used in a conditional block to ignore certain CSV records. -->
 
-**date-format** *DATEFMT*
-:   This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
-    DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
-    Note the pattern must parse the CSV date value completely. Some examples:
+**date-format** *DATEFMT*\\
+This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
+DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
+Note the pattern must parse the CSV date value completely. Some examples:
 
-		# "6/11/2013"
-        date-format %-d/%-m/%Y
+	# "6/11/2013"
+	date-format %-d/%-m/%Y
 
-		# "11/06/2013"
-        date-format %m/%d/%Y
-		
-		# "2013-Nov-06"
-        date-format %Y-%h-%d
+	# "11/06/2013"
+	date-format %m/%d/%Y
 
-        # "11/6/2013 11:32 PM"
-		date-format %-m/%-d/%Y %l:%M %p
+	# "2013-Nov-06"
+	date-format %Y-%h-%d
 
-**include** *RULESFILE*
-:   Include another rules file at this point. Useful for common rules shared across multiple CSV files.
+	# "11/6/2013 11:32 PM"
+	date-format %-m/%-d/%Y %l:%M %p
+
+**include** *RULESFILE*\\
+Include another rules file at this point. Useful for common rules shared across multiple CSV files.
 
 Typically you'll keep one rules file for each account which you
 download as CSV. For an example, see [How to read CSV
@@ -606,10 +624,10 @@ To generate time logs, ie to clock in and clock out, you could:
   and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
 
 - at the command line, use these bash aliases:
-
-        alias ti="echo i \`date '+%Y-%m-%d %H:%M:%S'\` \$* >>$TIMELOG"
-        alias to="echo o \`date '+%Y-%m-%d %H:%M:%S'\` >>$TIMELOG"
-
+  ```
+  alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
+  alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
+  ```
 - or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
@@ -759,12 +777,9 @@ an overview:
 
     $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done
 
-With `--flat`, a non-hierarchical list of full account names is displayed
-instead. This mode shows just the accounts actually contributing to the
-balance, making the arithmetic a little more obvious to non-hledger users.
-In this mode you can also use `--drop N` to elide the first few account
-name components. Note `--depth` doesn't work too well with `--flat` currently;
-it hides deeper accounts rather than aggregating them.
+With `--flat`, a simple list of full account names is displayed instead, each with it's inclusive balance (including any subaccount balances).
+In this mode you can use `--drop N` to elide the first few account name components.
+The `--depth` flag also works.
 
 With a [reporting interval](#reporting-interval), multiple columns
 will be shown, one for each period. There are three modes available:
@@ -933,9 +948,9 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug
 
-\
-\
-\
+\\
+\\
+\\
 The following add-ons are examples and experiments provided in the
 [extra](https://github.com/simonmichael/hledger/tree/master/extra)
 directory in the hledger source.  Add this directory to your PATH to
@@ -1038,7 +1053,8 @@ The following common features and options work with most subcommands.
 
 Part of hledger's usefulness is being able to report on just a precise subset of your data.  
 Most commands accept an optional query expression, written as arguments after the command name,
-to filter the data by date, account name or other criteria. 
+to filter the data by date, account name or other criteria. Query expressions are also used
+in the [[#web|web ui]]'s search form.
 
 The query syntax is similar to a Google search expression: one or
 more space-separated search terms, optional prefixes to match specific
@@ -1049,61 +1065,50 @@ A query term can be any of the following:
 - `acct:REGEX` - same as above
 - `code:REGEX` - match by transaction code (eg check number)
 - `desc:REGEX` - match transaction descriptions
-- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
+- `date:PERIODEXPR` - match dates within the specified [[#period-expressions|period]]. *Actually, full period syntax is [[https://github.com/simonmichael/hledger/issues/141|not yet supported]].*
 - `date2:PERIODEXPR` - as above, but match secondary dates
-- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression
-- `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
+- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [[#tags|tag]] name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match posting if it or its parent transaction has the tag.
+- `depth:N` - match (or display, depending on command) accounts at or above this [[#depth-limiting|depth]]
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
 - `amt:N` or `amt:=N`, `amt:<N`, `amt:>N` - match postings with a
-  single-commodity amount equal to, less than, or greater than
-  N. (Multi-commodity amounts are always matched.) Be warned, the
-  match is sensitive to the sign of N - this can be used to search for
-  inflows or outflows.
-- `sym:REGEX` - match postings or transactions including any amounts
-  whose commodity symbol is fully matched by REGEX. (For a partial
-  match, use `.*REGEX.*`). To match the dollar sign (`$`): you
-  need to prepend `\` so it's not interpreted as a regular
-  expression metacharacter, at the command line you need one more level
-  of quoting to hide it from the shell, so eg do: `hledger print sym:'\$'`.
-  To strictly limit reports to a single commodity, it may work better
-  to exclude the others, eg: `hledger bal not:sym:'(EUR|¥|£)'.
+  single-commodity amount equal to, less than, or greater than N.
+  (Multi-commodity amounts are not tested, and always match.)
+  This has two modes of operation: if N is preceded by a `+` or `-` sign, the
+  actual signed numbers are compared; otherwise the unsigned absolute values are compared.
+- `cur:REGEX` - match postings or transactions including any amounts
+  whose currency/commodity symbol is fully matched by REGEX. (For a
+  partial match, use `.*REGEX.*`). Note, to match characters which are
+  regex-significant, like the dollar sign (`$`), you need to prepend `\`.
+  And when using the command line you need to add one more level
+  of quoting to hide it from the shell, so eg do: `hledger print cur:'\$'`
+  or `hledger print cur:\\$`.
 - `not:` before any of the above negates the match
 
-<!--
-- `TAGNAME:[TAGVALUEREGEX]` - match a tag name exactly, and optionally
-  the value by regular expression.
-- `code:CODEREGEX`
-- `type:regular|virtual|balancedvirtual`
-- `comment:COMMENTREGEX`
-- `amount:AMOUNTEXPR`
-- `commodity:COMMODITYSYMBOLREGEX`
-Any of these can be prefixed with `not:` or `!` to negate the match.
--->
+#### How query terms combine
 
-Multiple query terms will select transactions/postings/accounts which match
-(or negatively match)
+hledger query expressions don't support full boolean logic. Instead, multiple query terms
+are combined as follows:
 
-> *any of the description terms AND*  
-> *any of the account terms AND*  
-> *all the other terms*
+- The [[#print]] command selects transactions which:
+  - match any of the description terms AND
+  - have any postings matching any of the positive account terms AND
+  - have no postings matching any of the negative account terms AND
+  - match all the other terms.
+
+<!-- -->
+
+- Other reporting commands (eg [[#register]] and [[#balance]]) select transactions/postings/accounts which match (or negatively match):
+  - any of the description terms AND
+  - any of the account terms AND
+  - all the other terms.
 
 
+#### Query options vs query arguments
 
-With the [print](#print) command, they select transactions which
-
-> *match any of the description terms AND*  
-> *have any postings matching any of the positive account terms AND*  
-> *have no postings matching any of the negative account terms AND*  
-> *match all the other terms*
-
-Many of the query terms above have equivalent command-line flags which predate them.
-You can mix and match query arguments and flags, just note that a
-[period expression](#period-expressions) overrides any other date terms.
-
-The same query syntax should work in both the command line and [web](#web) interfaces.
-
+On the command line, some of the query terms above can also be expressed as command-line flags. 
+Generally you can mix and match query arguments and flags, and the resulting query will be their intersection. Note within the command-line flags, a `-p` [[#period-expressions|period]] flag causes any `-b` or `-e` flags, and any preceding `-p` flags, to be ignored.
 
 ### Smart dates
 
@@ -1292,50 +1297,51 @@ Here are some issues you might encounter when you run hledger
 [mail list](http://hledger.org/list) or
 [bug tracker](http://hledger.org/bugs)):
 
-#. **hledger installed, but running hledger says something like No command 'hledger' found**  
-  cabal installs binaries into a special directory, which should be added
-  to your PATH environment variable.  On unix-like systems, it is
-  ~/.cabal/bin.
+### Successfully installed, but "No command 'hledger' found"
+cabal installs binaries into a special directory, which should be added
+to your PATH environment variable.  On unix-like systems, it is
+~/.cabal/bin.
 
-#. **hledger fails to parse some valid ledger files**  
-  See [file format differences](FAQ.html#what-are-the-file-format-differences).
+### Fails to parse some valid Ledger files  
+See [[faq#file-format-differences|file format differences]].
 
-#. **hledger gives "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**
-  In order to handle non-ascii letters and symbols (like £), hledger needs
-  an appropriate locale. This is usually configured system-wide; you can
-  also configure it temporarily.  The locale may need to be one that
-  supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
-  I'm not sure yet).
-  
-    Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
-    
-        $ file my.journal
-        my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
-        $ locale -a
-        C
-        en_US.utf8                             # <- a UTF8-aware locale is available
-        POSIX
-        $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+### "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors
+In order to handle non-ascii letters and symbols (like £), hledger needs
+an appropriate locale. This is usually configured system-wide; you can
+also configure it temporarily.  The locale may need to be one that
+supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
+I'm not sure yet).
 
-     Here's one way to set it permanently, there are probably better ways:
+Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
 
-        $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
-        $ bash --login
+	$ file my.journal
+	my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
+	$ locale -a
+	C
+	en_US.utf8                             # <- a UTF8-aware locale is available
+	POSIX
+	$ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
 
-     If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
+Here's one way to set it permanently, there are probably better ways:
 
-        $ apt-get install language-pack-fr
-        $ locale -a
-        C
-        en_US.utf8
-        fr_BE.utf8
-        fr_CA.utf8
-        fr_CH.utf8
-        fr_FR.utf8
-        fr_LU.utf8
-        POSIX
-        $ LANG=fr_FR.utf8 hledger -f my.journal print
+	$ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+	$ bash --login
 
-    Note some platforms allow variant locale spellings, but not all (ubuntu
-    accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
+If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
+
+	$ apt-get install language-pack-fr
+	$ locale -a
+	C
+	en_US.utf8
+	fr_BE.utf8
+	fr_CA.utf8
+	fr_CH.utf8
+	fr_FR.utf8
+	fr_LU.utf8
+	POSIX
+	$ LANG=fr_FR.utf8 hledger -f my.journal print
+
+Note some platforms allow variant locale spellings, but not all (ubuntu
+accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
+
 
