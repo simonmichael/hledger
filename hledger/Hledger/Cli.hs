@@ -8,6 +8,7 @@ adds some more which are easier to define here.
 -}
 
 module Hledger.Cli (
+                     module Hledger.Cli.Accounts,
                      module Hledger.Cli.Add,
                      module Hledger.Cli.Balance,
                      module Hledger.Cli.Balancesheet,
@@ -30,6 +31,7 @@ import System.Console.CmdArgs.Explicit
 import Test.HUnit
 
 import Hledger
+import Hledger.Cli.Accounts
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
