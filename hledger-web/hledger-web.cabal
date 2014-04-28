@@ -181,8 +181,6 @@ executable         hledger-web
         ghc-options:   -threaded
     if flag(dev)
         ghc-options:   -O0
-    else
-        ghc-options:   -O2
 
     extensions: 
                 CPP
