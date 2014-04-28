@@ -129,9 +129,7 @@ oldconvertmode = (defCommandMode ["convert"]) {
 builtinCommands :: [Mode RawOpts]
 builtinCommands =
   let gs = modeGroupModes $ mainmode []
-  in concatMap snd (groupNamed gs)
-     ++ groupUnnamed gs
-     ++ groupHidden gs
+  in concatMap snd (groupNamed gs) ++ groupUnnamed gs ++ groupHidden gs
 
 builtinCommandNames :: [String]
 builtinCommandNames = concatMap modeNames builtinCommands
