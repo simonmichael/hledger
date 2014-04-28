@@ -2,38 +2,39 @@
 #
 # Quick guide to terms used here:
 #
-# - flag: generally a synonym for option. Or sometimes, just the first
-#   part of an option: a hyphen followed by a letter (short flag) or a
-#   word (long flag).
+# - flag: a synonym for option. Or, just the first part of an option,
+#   which can be either a short flag (hyphen followed by a letter) or
+#   a long flag (double hyphen followed by a word).
 #
 # - option: a command modifier. An option consists of a short flag, a
 #   long flag, or both, and possibly an optional or required value.
 #   Each option has some effect on program execution, and is described
 #   in the command line help.
 #
-# - argument:
-#   - raw command line arguments: everything following the program
-#     name on the command line, ie what is returned by getArgs
-#   - parsed arguments: all raw command line arguments that are not
-#     options (flags or values).
-#   - (sub)command arguments: all parsed arguments except the first
-#     (which is the subcommand's name)
+# - raw arguments: everything following the program name on the
+#   command line, ie what is returned by getArgs.
 #
-# - RawOpts: the command, options and arguments as parsed by cmdargs,
-#   as an assocation list. Eg:
+# - parsed arguments: all raw arguments that are not options.
+#
+# - command arguments: all parsed arguments after the first, which is
+#   the command name.
+#
+# - RawOpts: the command name, options, and arguments parsed by cmdargs,
+#   as an assocation list of strings. Eg:
 #   [("command","register"),("args","a"),("debug",""),("help","")]
 #
-# - CliOpts: the command, options and arguments from cmdargs, plus
-#   additional cleanup, in a more convenient data structure used
-#   throughout the hledger CLI code.
+# - CliOpts: a RawOpts, plus the same information with some additional
+#   cleanup in a more convenient data structure. Used throughout the
+#   hledger CLI code.
 #
-# - command:
-#   - command line, shell command: what you type in the shell/terminal window to start a program
-#   - hledger command, subcommand: one of hledger's several modes of operation,
-#     usually selected by the first command-line argument that isn't an option.
-#     Commands are listed in the general command line help. There are two kinds:
-#     - internal commands: built in to the main hledger executable
-#     - external commands, or add-ons: any other hledger-* executables in the users's PATH
+# - command line, shell command: what you type in the shell or
+#   terminal window to start a program.
+#
+# - hledger command, subcommand: one of hledger's modes of operation,
+#   named and selected by the first parsed argument. There are two kinds:
+#   - internal or built-in commands are part of the main hledger executable.
+#   - external or add-on commands are provided by hledger-* executables in
+#     the PATH.
 #
 # Description of existing/expected behaviour as of 2013/9/16:
 #
@@ -42,8 +43,8 @@
 # - commands are internal (built in to the main hledger executable) or external (any hledger-* executables found in the PATH)
 # - some internal commands have aliases, which are displayed in the general help
 # - there are also a few hidden internal commands
-# - COMMAND is an exact command or alias name, or any unique prefix of one (eg reg for register)
-# - when COMMAND is a non-unique prefix, matching commands will be listed, including hidden ones (eg hledger c)
+# - COMMAND is an exact command (balance), an alias (bal), or any unique command prefix (inc)
+# - when COMMAND is a non-unique prefix, all matched commands will be listed, including hidden ones (eg hledger c)
 # - an unrecognised command shows an error and gives non-zero exit status
 #
 # - usually the command must come first, followed by options and arguments in any order
@@ -52,9 +53,9 @@
 # - if the command is external, options and arguments after the command are handled by that executable, not hledger
 #
 # - the --help flag has highest priority
-# - --help before the command, or no command, shows general help, including available commands
+# - --help before the command (or no command) shows general help, including the commands list
 # - --help after an internal command shows command-specific help, including command and general flags
-# - there is no built-in "help" command
+# - there is no internal "help" command
 
 # version 
 
