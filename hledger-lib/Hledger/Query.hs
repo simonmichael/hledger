@@ -293,7 +293,8 @@ parseAmountQueryTerm s' =
     '-':s     -> (Eq, negate $ readDef err s)
     '<':s     -> let n = readDef err s in case n of 0 -> (Lt, 0)
                                                     _ -> (AbsLt, n)
-    '>':s     -> (AbsGt, readDef err s)
+    '>':s     -> let n = readDef err s in case n of 0 -> (Gt, 0)
+                                                    _ -> (AbsGt, n)
     '=':s     -> (AbsEq, readDef err s)
     s         -> (AbsEq, readDef err s)
   where
@@ -302,7 +303,8 @@ parseAmountQueryTerm s' =
 tests_parseAmountQueryTerm = [
   "parseAmountQueryTerm" ~: do
     let s `gives` r = parseAmountQueryTerm s `is` r
-    "<0" `gives` (Lt,0) -- special case, AbsLt 0 would be always false
+    "<0" `gives` (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
+    ">0" `gives` (Gt,0) -- special case for convenience and consistency with above
     ">10000.10" `gives` (AbsGt,10000.1)
     "=0.23" `gives` (AbsEq,0.23)
     "0.23" `gives` (AbsEq,0.23)
