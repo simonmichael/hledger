@@ -265,9 +265,10 @@ main = do
 
       -- an external command
       | isExternalCommand = do
-          let shellcmd = printf "%s-%s %s" progname cmd (unwords' $ filter (not.(=="--")) argsaftercmd) :: String
+          let externalargs = filter (not.(=="--")) argsaftercmd
+          let shellcmd = printf "%s-%s %s" progname cmd (unwords' externalargs) :: String
           dbgM "external command selected" cmd
-          dbgM "external command arguments" (map quoteIfNeeded argsaftercmd)
+          dbgM "external command arguments" (map quoteIfNeeded externalargs)
           dbgM "running shell command" shellcmd
           system shellcmd >>= exitWith
 
