@@ -32,7 +32,7 @@ statsmode = (defCommandMode $ ["stats"] ++ aliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["s"]
+  where aliases = []
 
 -- like Register.summarisePostings
 -- | Print various statistics for the journal.

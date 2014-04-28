@@ -27,7 +27,7 @@ import Hledger.Cli.Options
 
 
 -- | Command line options for this command.
-accountsmode = (defCommandMode $ ["accounts"] ++ aliases ++ hiddenaliases) {
+accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
   modeHelp = "show account names" `withAliases` aliases
  ,modeHelpSuffix = [
     "This command lists the accounts referenced by matched postings (and in tree mode, their parents as well). The accounts can be depth-clipped (--depth N or depth:N) or have their leading components dropped (--drop N)."
@@ -42,7 +42,7 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases ++ hiddenaliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where (aliases, hiddenaliases) = (["a"],["acc"])
+  where aliases = []
 
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()

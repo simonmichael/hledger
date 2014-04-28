@@ -20,8 +20,8 @@ import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
 
-activitymode = (defCommandMode ["activity"]) {
-  modeHelp = "show a barchart of transactions per interval"
+activitymode = (defCommandMode $ ["activity"] ++ aliases) {
+  modeHelp = "show a barchart of transactions per interval" `withAliases` aliases
  ,modeHelpSuffix = ["The default interval is daily."]
  ,modeGroupFlags = Group {
      groupUnnamed = []
@@ -29,6 +29,7 @@ activitymode = (defCommandMode ["activity"]) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
+  where aliases = []
 
 barchar = '*'
 

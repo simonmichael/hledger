@@ -259,7 +259,7 @@ import Hledger.Cli.Options
 
 
 -- | Command line options for this command.
-balancemode = (defCommandMode $ ["balance"] ++ aliases ++ ["bal"]) { -- also accept but don't show the common bal alias
+balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don't show the common bal alias
   modeHelp = "show accounts and balances" `withAliases` aliases
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
@@ -276,7 +276,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases ++ ["bal"]) { -- also acc
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["b"]
+  where aliases = ["bal"]
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()

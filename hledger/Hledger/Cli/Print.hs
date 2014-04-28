@@ -29,7 +29,7 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["p"]
+  where aliases = []
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()

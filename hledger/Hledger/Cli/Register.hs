@@ -24,7 +24,7 @@ import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Cli.Options
 
 
-registermode = (defCommandMode $ ["register"] ++ aliases ++ ["reg"]) {
+registermode = (defCommandMode $ ["register"] ++ aliases) {
   modeHelp = "show postings and running total" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
@@ -36,7 +36,7 @@ registermode = (defCommandMode $ ["register"] ++ aliases ++ ["reg"]) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["r"]
+  where aliases = ["reg"]
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()
