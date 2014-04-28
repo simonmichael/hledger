@@ -8,9 +8,15 @@ Journal format:
 
 CLI:
 - Commands list cleanups; descriptions are shown for known hledger-* add-ons.
-- If both source and compiled version of a haskell add-on are found, only the latter is shown.
+- Single-letter aliases have been dropped, some familiar three-letter ones remain.
+- Add-ons can now have several other common executable file extensions (.exe, .bat, .sh, .py, .rb etc.)
+- Add-on names are displayed without file extensions when possible.
+- Add-ons with the same name as a built-in command or alias are ignored.
+- Fix: addon detection and invocation now works on windows.
 - Fix: add-ons with digits in the name are now found.
 - Fix: add-on arguments containing a single quote now work.
+- Fix: when -- is used to hide add-on options from the main program,
+  it is no longer passed through as an add-on argument.
 
 Queries:
 - The currency/commodity query prefix (sym:) has been renamed to cur:.
@@ -18,27 +24,30 @@ Queries:
   balance reports, filtering out unwanted currencies entirely. Eg
   hledger balance cur:'\$' now reports only the dollar amounts even if
   there are multi-currency transactions or postings.
-- Amount queries (like amt:N) now ignore sign by default. To do a signed comparison,
-  write N with its sign (eg amt:+N, amt:=-N, amt:<+N, amt:>-N).
+- Amount queries like amt:N, amt:<N and amt:>N, where N is not 0, now do an unsigned
+  comparison of the amount and N. That is, they compare the absolute magnitude.
+  To do a signed comparison instead, write N with its sign (eg amt:+N, amt:<+N, amt:>-N).
 - Fix: amount queries no longer give false positives on multi-commodity amounts.
 
 accounts:
-- An accounts command has been added, similar to Ledger's, for listing account names.
+- An accounts command has been added, similar to Ledger's, for listing account names
+  in flat or hierarchical mode.
 
 add:
-- Tab completion now works at all prompts, and will insert the default if there's no input.
+- Tab completion now works at all prompts, and will insert the default if the input area is empty.
 - Account and amount defaults are more robust and useful.
-- The enter key can also be used to end transactions, if there are no more default postings.
-- Input prompts are displayed in green, when supported.
+- Transactions may also be completed by the enter key, when there are no more default postings.
+- Input prompts are displayed in a different colour when supported.
 
 balance:
 - Balance reports in flat mode now always show exclusive (subaccount-excluding) balances.
 - Balance reports in flat mode with --depth now aggregate deeper accounts at the depth limit instead of excluding them.
 - Multicolumn reports in flat mode now support --drop.
 - Multicolumn balance reports can now show the account hierarchy with --tree.
-- Multicolumn reports now use all data in the displayed periods
+- Multicolumn report start/end dates are adjusted to encompass the displayed
+  report periods, so the first and last periods are "full" and comparable to the others.
 - Fix: zero-balance leaf accounts below a non-zero-balance parent are no longer always shown (#170).
-- Fix: multicolumn reports now support --date2 (cf #174)
+- Fix: multicolumn reports now support --date2 (cf #174).
 
 balancesheet, cashflow, incomestatement:
 - These commands now support --flat and --drop.
@@ -47,13 +56,16 @@ print:
 - Tag queries (tag:) will now match a transaction if any of its postings match.
 
 register:
-- Fix: --date2 now works with report intervals (fixes #174)
+- With a report interval, report start/end dates are adjusted to encompass the displayed
+  periods, so the first and last periods are "full" and comparable to the others.
+- Fix: --date2 now works with report intervals (fixes #174).
 
 Miscellaneous:
-- Compatible with GHC 7.8, text 1.1
-- Compatible with GHC 7.2 (#155)
+- Default report dates now derive from the secondary dates when --date2 is in effect.
+- Default report dates now notice any posting dates outside the transaction dates' span.
 - Debug output improvements.
-- extra/hledger-rewrite.hs, adds postings to matched entries.
+- New add-on example: extra/hledger-rewrite.hs, adds postings to matched entries.
+- Compatible with GHC 7.2 (#155) - GHC 7.8, shakespeare 2
 
 
 0.22.2 (2014/4/16)

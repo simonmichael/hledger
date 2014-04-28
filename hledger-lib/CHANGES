@@ -1,3 +1,9 @@
+See also the hledger changelog.
+
+(unreleased)
+
+- orDatesFrom -> spanDefaultsFrom
+
 0.22.2 (2014/4/16)
 
 - display years before 1000 with four digits, not three
