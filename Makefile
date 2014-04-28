@@ -558,19 +558,17 @@ data/10000x10000x10.journal: tools/generatejournal
 data/100000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 100000 1000 10 >$@
 
-TESTADDONS=bin/test-addons
+ADDONS=tests/addons
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
-test-addons:
-	for E in '' $(ADDONEXTS); do printf '#!/bin/sh\necho $$0\n' >$(TESTADDONS)/hledger-addon.$$E; done
-	#cp $(TESTADDONS)/hledger-addon. $(TESTADDONS)/hledger-addon
-	rm -rf $(TESTADDONS)/hledger-addon
-	mkdir $(TESTADDONS)/hledger-addon
-	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-addon2
-	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-addon2.hs
-	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-addon3.exe
-	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-addon3.lhs
-	cp $(TESTADDONS)/hledger-addon.hs $(TESTADDONS)/hledger-add
-	chmod +x $(TESTADDONS)/hledger-*
+addons:
+	rm -rf $(ADDONS)/hledger-*
+	printf '#!/bin/sh\necho $$0\n' >$(ADDONS)/hledger-addon
+	for E in '' $(ADDONEXTS); do \
+		cp $(ADDONS)/hledger-addon $(ADDONS)/hledger-addon.$$E; done
+	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
+		cp $(ADDONS)/hledger-addon $(ADDONS)/hledger-$$F; done
+	mkdir $(ADDONS)/hledger-addondir
+	chmod +x $(ADDONS)/hledger-*
 
 ######################################################################
 # DOCUMENTATION
