@@ -1,0 +1,4 @@
+An old prototype of a pie chart image generator for hledger.
+IIRC it rendered a pie chart of the biggest N account balances with similar sign.
+
+Warning, this package has been unmaintained since 2011 and will not install.

@@ -1,0 +1,5 @@
+A curses-style console interface for the hledger accounting tool.
+It allows browsing the balance, register and print reports with cursor keys and scrolling,
+and was actually quite useful.
+
+Warning, this package has been unmaintained since 2011 and will not install.
