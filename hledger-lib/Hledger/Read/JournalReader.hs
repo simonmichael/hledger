@@ -658,12 +658,12 @@ signp = do
 leftsymbolamount :: GenParser Char JournalContext Amount
 leftsymbolamount = do
   sign <- signp
-  let applysign = if sign=="-" then negate else id
   c <- commoditysymbol 
   sp <- many spacenonewline
   (q,prec,dec,sep,seppos) <- numberp
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
   p <- priceamount
+  let applysign = if sign=="-" then negate else id
   return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
