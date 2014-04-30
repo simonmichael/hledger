@@ -134,17 +134,17 @@ hledgerdev register -f/dev/null --alias=somealiases --rules-file -? -h --help --
 # do "make addons" to set up for these:
 
 # 14. flags after an add-command are handled by the add-on
-hledgerdev addon --help
->>> /args: --help/
+PATH=$PATH:tests/addons hledgerdev addon --help
+>>> /hledger-addon/
 >>>=0
 
 # 15. add-on flags which are not also defined in the main executable are a problem
-hledgerdev addon --addonflag
+PATH=$PATH:tests/addons hledgerdev addon --addonflag
 >>>2 /Unknown flag: --addonflag/
 >>>=1
 
 # 16. hledger main executable ignores anything after -- (and hides the -- from the add-on)
-hledgerdev addon --help -- --addonflag
->>> /args: --help --addonflag/
+PATH=$PATH:tests/addons hledgerdev addon --help -- --addonflag
+>>> /hledger-addon/
 >>>=0
 
