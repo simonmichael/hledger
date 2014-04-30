@@ -42,7 +42,7 @@ executable hledger-vty
                  ,HUnit
                  ,base >= 3 && < 5
                  ,cabal-file-th
-                 ,cmdargs >= 0.9.1   && < 0.10
+                 ,cmdargs == 0.8.*
                  -- ,containers
                  -- ,csv
                  -- ,directory
