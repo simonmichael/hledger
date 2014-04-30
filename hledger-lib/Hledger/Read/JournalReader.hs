@@ -649,10 +649,16 @@ amountp' s = either (error' . show) id $ parseWithCtx nullctx amountp s
 mamountp' :: String -> MixedAmount
 mamountp' = mixed . amountp'
 
+signp :: GenParser Char JournalContext String
+signp = do
+  sign <- optionMaybe $ oneOf "+-"
+  return $ case sign of Just '-' -> "-"
+                        _        -> ""
+
 leftsymbolamount :: GenParser Char JournalContext Amount
 leftsymbolamount = do
-  sign <- optionMaybe $ string "-"
-  let applysign = if isJust sign then negate else id
+  sign <- signp
+  let applysign = if sign=="-" then negate else id
   c <- commoditysymbol 
   sp <- many spacenonewline
   (q,prec,dec,sep,seppos) <- numberp
@@ -748,7 +754,7 @@ fixedlotprice =
 -- assumed to repeat).
 numberp :: GenParser Char JournalContext (Quantity, Int, Char, Char, [Int])
 numberp = do
-  sign <- optionMaybe $ string "-"
+  sign <- signp
   parts <- many1 $ choice' [many1 digit, many1 $ char ',', many1 $ char '.']
   let numeric = isNumber . headDef '_'
       (numparts, puncparts) = partition numeric parts
@@ -775,8 +781,7 @@ numberp = do
       precision = length frac
       int' = if null int then "0" else int
       frac' = if null frac then "0" else frac
-      sign' = fromMaybe "" sign
-      quantity = read $ sign'++int'++"."++frac' -- this read should never fail
+      quantity = read $ sign++int'++"."++frac' -- this read should never fail
       (decimalpoint, separator) = case (decimalpoint', separator') of (Just d,  Just s)   -> (d,s)
                                                                       (Just '.',Nothing)  -> ('.',',')
                                                                       (Just ',',Nothing)  -> (',','.')
