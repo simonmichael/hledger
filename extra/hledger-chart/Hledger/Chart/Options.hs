@@ -6,38 +6,33 @@
 module Hledger.Chart.Options
 where
 import Data.Maybe
-import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
-import Hledger.Cli hiding (progname,progversion)
-import qualified Hledger.Cli (progname)
+import Hledger.Cli hiding (progname)
+--import qualified Hledger.Cli (progname)
 
-progname    = $(packageVariable (pkgName . package))
-progversion = progname ++ " " ++ $(packageVariable (pkgVersion . package)) :: String
+progname    = "hledger-chart"
+progversion = progname ++ " dev"
 
 defchartoutput   = "hledger.png"
 defchartitems    = 10
 defchartsize     = "600x400"
 
-chartflags = [
-  flagReq ["chart-output","o"]  (\s opts -> Right $ setopt "chart-output" s opts) "IMGFILE" ("output filename (default: "++defchartoutput++")")
- ,flagReq ["chart-items"]  (\s opts -> Right $ setopt "chart-items" s opts) "N" ("number of accounts to show (default: "++show defchartitems++")")
- ,flagReq ["chart-size"]  (\s opts -> Right $ setopt "chart-size" s opts) "WIDTHxHEIGHT" ("image size (default: "++defchartsize++")")
- ]
- 
-chartmode =  (mode "hledger-chart" [("command","chart")]
-            "generate a pie chart image for the top account balances (of one sign only)"
-            commandargsflag []){
-              modeGroupFlags = Group {
-                                groupUnnamed = chartflags
-                               ,groupHidden = []
-                               ,groupNamed = [(generalflagstitle, generalflags1)]
-                               }
-             ,modeHelpSuffix=[
-                  -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
-                 ]
-           }
+chartmode = (defCommandMode ["hledger-chart"]) {
+   modeArgs = ([], Just $ argsFlag "[PATTERNS] --add-posting \"ACCT  AMTEXPR\" ...")
+  ,modeHelp = "generate a pie chart image for the top account balances (of one sign only)"
+  ,modeHelpSuffix=[]
+  ,modeGroupFlags = Group {
+     groupNamed = [generalflagsgroup1]
+    ,groupUnnamed = [
+         flagReq ["chart-output","o"]  (\s opts -> Right $ setopt "chart-output" s opts) "IMGFILE" ("output filename (default: "++defchartoutput++")")
+        ,flagReq ["chart-items"]  (\s opts -> Right $ setopt "chart-items" s opts) "N" ("number of accounts to show (default: "++show defchartitems++")")
+        ,flagReq ["chart-size"]  (\s opts -> Right $ setopt "chart-size" s opts) "WIDTHxHEIGHT" ("image size (default: "++defchartsize++")")
+        ]
+    ,groupHidden = []
+    }
+  }
 
 -- hledger-chart options, used in hledger-chart and above
 data ChartOpts = ChartOpts {
@@ -57,7 +52,7 @@ defchartopts = ChartOpts
 
 toChartOpts :: RawOpts -> IO ChartOpts
 toChartOpts rawopts = do
-  cliopts <- toCliOpts rawopts
+  cliopts <- rawOptsToCliOpts rawopts
   return defchartopts {
               chart_output_ = fromMaybe defchartoutput $ maybestringopt "debug-chart" rawopts
              ,chart_items_ = fromMaybe defchartitems $ maybeintopt "debug-items" rawopts

@@ -22,8 +22,6 @@ import Text.Printf
 
 import Hledger
 import Hledger.Cli hiding (progname,progversion)
-import Prelude hiding (putStrLn)
-import Hledger.Utils.UTF8 (putStrLn)
 
 import Hledger.Chart.Options
 
@@ -37,9 +35,9 @@ runWith :: ChartOpts -> IO ()
 runWith opts = run opts
     where
       run opts
-          | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp chartmode) >> exitSuccess
-          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
-          | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+          | "--help" `elem` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp chartmode) >> exitSuccess
+          | "--version" `elem` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
+          | "--binary-filename" `elem` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
           | otherwise                                          = withJournalDo' opts chart
 
 withJournalDo' :: ChartOpts -> (ChartOpts -> Journal -> IO ()) -> IO ()
@@ -54,7 +52,7 @@ chart opts j = do
   if null $ jtxns j
    then putStrLn "This journal has no transactions, can't make a chart." >> exitFailure
    else do
-     let chart = genPie opts (optsToFilterSpec ropts d) j
+     let chart = genPie opts (queryFromOpts d ropts) j
      renderableToPNGFile (toRenderable chart) w h filename
      return ()
       where
@@ -70,9 +68,9 @@ parseSize str = (read w, read h)
     (w,_:h) = splitAt x str
 
 -- | Generate pie chart
-genPie :: ChartOpts -> FilterSpec -> Journal -> PieLayout
-genPie opts filterspec j = defaultPieLayout { pie_background_ = solidFillStyle $ opaque $ white
-                                            , pie_plot_ = pie_chart }
+genPie :: ChartOpts -> Query -> Journal -> PieLayout
+genPie opts q j = defaultPieLayout { pie_background_ = solidFillStyle $ opaque $ white
+                                   , pie_plot_ = pie_chart }
     where
       pie_chart = defaultPieChart { pie_data_ = map (uncurry accountPieItem) chartitems
                                   , pie_start_angle_ = (-90)
@@ -82,7 +80,7 @@ genPie opts filterspec j = defaultPieLayout { pie_background_ = solidFillStyle $
       chartitems = debug "chart" $ top num samesignitems
       (samesignitems, sign) = sameSignNonZero rawitems
       rawitems = debug "raw" $ flatten $ balances $
-                 ledgerAccountTree (fromMaybe 99999 $ depth_ ropts) $ journalToLedger filterspec j
+                 ledgerAccountTree (fromMaybe 99999 $ depth_ ropts) $ ledgerFromJournal q j
       top n t = topn ++ [other]
           where
             (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) t
@@ -116,7 +114,7 @@ balances (Node rootAcc subAccs) = Node newroot newsubs
     where
       newroot = (aname rootAcc,
                  amountValue $
-                 abalance rootAcc - (sum . map (abalance . root)) subAccs)
+                 aibalance rootAcc - (sum . map (aibalance . root)) subAccs)
       newsubs = map balances subAccs
 
 -- | Build a single pie chart item
