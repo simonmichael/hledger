@@ -24,10 +24,10 @@ defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
 
 webflags :: [Flag [([Char], [Char])]]
 webflags = [
-  flagNone ["server"]  (setboolopt "server") ("log requests, don't auto-exit")
- ,flagReq ["base-url"]  (\s opts -> Right $ setopt "base-url" s opts) "URL" ("set the base url (default: "++defbaseurlexample++")")
- ,flagReq ["port"]  (\s opts -> Right $ setopt "port" s opts) "PORT" ("listen on this tcp port (default: "++show defport++")")
- ,flagReq ["static-root"]  (\s opts -> Right $ setopt "static-root" s opts) "Static Root" ("The root url from which the static files will be loaded (default: BASE_URL/static)")
+  flagNone ["server"]   (setboolopt "server") ("log requests, don't browse or auto-exit")
+ ,flagReq  ["port"]     (\s opts -> Right $ setopt "port" s opts) "PORT" ("listen on this tcp port (default: "++show defport++")")
+ ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "BASEURL" ("set the base url (default: "++defbaseurlexample++")")
+ ,flagReq  ["file-url"] (\s opts -> Right $ setopt "file-url" s opts) "FILEURL" ("set the url for static files (default: BASEURL/static)")
  ]
  
 webmode :: Mode [([Char], [Char])]
