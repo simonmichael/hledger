@@ -1,5 +1,5 @@
 name:           hledger-chart
-version: 0.16.1
+version:        201404dev
 category:       Finance
 synopsis:       A pie chart image generator for the hledger accounting tool.
 description:
@@ -17,8 +17,8 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      experimental
-tested-with:    GHC==6.10, GHC==6.12
-cabal-version:  >= 1.6
+tested-with:    GHC==7.8.2
+cabal-version:  >= 1.16
 build-type:     Simple
 -- data-dir:       data
 -- data-files:
@@ -37,12 +37,11 @@ executable hledger-chart
                   Hledger.Chart.Main
                   Hledger.Chart.Options
   build-depends:
-                  hledger == 0.16.1
-                 ,hledger-lib == 0.16.1
+                  hledger
+                 ,hledger-lib
                  ,HUnit
                  ,base >= 3 && < 5
-                 ,cabal-file-th
-                 ,cmdargs == 0.8.*
+                 ,cmdargs
                  ,containers
                  -- ,csv
                  -- ,directory
@@ -53,9 +52,9 @@ executable hledger-chart
                  -- ,parsec
                  -- ,process
                  -- ,regexpr >= 0.5.1
-                 ,safe >= 0.2
+                 ,safe
                  -- ,split == 0.1.*
                  ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
-                 ,Chart >= 0.11 && < 0.15
+                 ,Chart
                  ,colour
