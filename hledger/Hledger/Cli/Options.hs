@@ -109,7 +109,7 @@ reportflags = [
  ,flagNone ["cost","B"]      (\opts -> setboolopt "cost" opts) "report cost of commodities"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/transactions deeper than this"
  ,flagReq  ["display","d"]   (\s opts -> Right $ setopt "display" s opts) "DISPLAYEXP" "show only transactions matching the expression, which is 'dOP[DATE]' where OP is <, <=, =, >=, >"
- ,flagNone ["date2","aux-date","effective"]     (\opts -> setboolopt "date2" opts) "use transactions' secondary dates, if any"
+ ,flagNone ["date2","aux-date"] (\opts -> setboolopt "date2" opts) "use transactions' secondary dates, if any"
  ,flagNone ["empty","E"]     (\opts -> setboolopt "empty" opts) "show empty/zero things which are normally elided"
  ,flagNone ["real","R"]      (\opts -> setboolopt "real" opts) "report only on real (non-virtual) transactions"
  ]
@@ -188,6 +188,12 @@ standardAddonsHelp = [
   ,("addon",  "dummy add-on command for testing")
   ,("addon2", "dummy add-on command for testing")
   ,("addon3", "dummy add-on command for testing")
+  ,("addon4", "dummy add-on command for testing")
+  ,("addon5", "dummy add-on command for testing")
+  ,("addon6", "dummy add-on command for testing")
+  ,("addon7", "dummy add-on command for testing")
+  ,("addon8", "dummy add-on command for testing")
+  ,("addon9", "dummy add-on command for testing")
   ]
 
 -- | Get a mode's help message as a nicely wrapped string.
