@@ -1,18 +1,21 @@
-(unreleased)
+0.23 (2014/5/1)
 
 Journal format:
 - A # (hash) in column 0 is now also supported for starting a top-level journal comment, like Ledger.
 - The "too many missing amounts" error now reminds about the 2-space rule.
 - Fix: . (period) is no longer parsed as a valid amount.
 - Fix: default commodity directives no longer limit the maximum display precision (#169).
+- Fix: + before an amount is no longer parsed as part of the commodity (#181).
 
 CLI:
-- Commands list cleanups; descriptions are shown for known hledger-* add-ons.
-- Single-letter aliases have been dropped, some familiar three-letter ones remain.
-- Add-ons can now have several other common executable file extensions (.exe, .bat, .sh, .py, .rb etc.)
-- Add-on names are displayed without file extensions when possible.
+- Command-line help cleanups, layout improvements.
+- Descriptions are shown for known add-ons in the command list.
+- Command aliases have been simplified.
+- Add-ons can now have any of these file extensions:
+  none, hs, lhs, pl, py, rb, rkt, sh, bat, com, exe.
+- Add-ons are displayed without their file extensions when possible.
 - Add-ons with the same name as a built-in command or alias are ignored.
-- Fix: addon detection and invocation now works on windows.
+- Fix: add-on detection and invocation now works on windows.
 - Fix: add-ons with digits in the name are now found.
 - Fix: add-on arguments containing a single quote now work.
 - Fix: when -- is used to hide add-on options from the main program,
@@ -56,6 +59,8 @@ print:
 - Tag queries (tag:) will now match a transaction if any of its postings match.
 
 register:
+- The --display option has been dropped. To see an accurate running total which
+  includes the prior starting balance, use --historical/-H (like balance). 
 - With a report interval, report start/end dates are adjusted to encompass the displayed
   periods, so the first and last periods are "full" and comparable to the others.
 - Fix: --date2 now works with report intervals (fixes #174).

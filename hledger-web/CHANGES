@@ -1,8 +1,14 @@
 See also the hledger changelog.
 
-(unreleased)
+0.23 (2014/5/1)
 
-- allow shakespeare 2.*
+- The --static-root flag has been renamed to --file-url.
+- hledger-web now builds with Cabal's default -O, not -O2,
+  so may be a little quicker/less memory-hungry to install.
+  
+0.22.8 (2014/4/29)
+
+- allow shakespeare 2.* (#179)
 
 0.22.7 (2014/4/17)
 

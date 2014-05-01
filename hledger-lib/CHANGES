@@ -1,6 +1,6 @@
-See also the hledger changelog.
+API-ish changes in hledger-lib. For user-visible changes, see the hledger changelog.
 
-(unreleased)
+0.23 (2014/5/1)
 
 - orDatesFrom -> spanDefaultsFrom
 
