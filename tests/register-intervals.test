@@ -53,21 +53,6 @@ hledgerdev -f- register --period 'monthly to 2011/3/1' b --empty
 2011/02/01 - 2011/02/28         b                                1             1
 >>>=0
 
-# 5. likewise for date-restricting display expressions
-hledgerdev -f- register --period 'monthly to 2011/2/1' b --empty --display 'd<[2011/2/1]'
-<<<
-2011/1/1
-  (a)  1
-
-2011/2/1
-  (b)  1
-
-2011/3/1
-  (c)  1
->>>
-2011/01/01 - 2011/01/31                                          0             0
->>>=0
-
 # 6. --date2 should work with intervals
 hledgerdev -f- register --monthly --date2
 <<<
