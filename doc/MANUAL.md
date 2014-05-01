@@ -1,15 +1,15 @@
-<!-- hledger repo and http://hledger.org versions of this document are periodically bidirectionally synced -->
+<!-- hledger.org and hledger repo versions last synced: 2014/5/1 -->
 
 # User Manual
 
 This manual is for
-<!-- [hledger 0.22.1](http://hackage.haskell.org/package/hledger-0.22.1) -->
-<!-- (and [hledger-web 0.22.4](http://hackage.haskell.org/package/hledger-web-0.22.4)). -->
-hledger 0.22.98 (the latest pre-0.23 HEAD).
-<!-- See also: [[0.22/manual|0.22 Manual]]. -->
+ <!-- hledger 0.23.98 (the latest pre-0.23 HEAD). -->
+ [hledger 0.23](http://hackage.haskell.org/package/hledger-0.23).
+ <!-- Other versions: [[0.22/manual|0.22 Manual]]. -->
 
 It is partly an introduction, but mainly a reference manual for hledger.
 For a more gradual introduction, see [[step-by-step]] and [[more docs]].
+
 ## Introduction
 
 [[home|hledger]] is a program for tracking money, time,
@@ -421,8 +421,8 @@ which have no commodity symbol (including [[#add|added]] amounts), with the D di
     D £1,000.00
     
     2010/1/1
-      a  2340    ; no symbol, will use default commodity and style
-                 ; (pound symbol on left, comma thousands separator, two decimal places) 
+      a  2340    ; no symbol, so will use the default commodity above, and its style
+                 ; (pound symbol on left, comma thousands separator, at least two decimal places) 
       b
 
 A default commodity directive can also influence the 
@@ -637,8 +637,10 @@ hledger provides a number of subcommands out of the box; run `hledger` with no a
 More [add-on commands](#add-ons) will appear if you install additional `hledger-*` packages,
 or if you put programs or scripts named `hledger-NAME` in your PATH.
 
-To run a command, you just need to type its unique prefix, eg `hledger reg` is a shortcut for `hledger register`.
-(Also, `hledger bs` is  short for `hledger balancesheet`.)
+To select which command to run, write it as the first command-line
+argument.  You can write its full name (eg `balance`), or one of the
+standard short aliases displayed in parentheses in the command list
+(eg `bs`), or any unambiguous prefix of a command (eg `inc`).
 
 ### Data entry
 
@@ -650,31 +652,35 @@ For more interactive data entry, there is the `add` command and also the `web` a
 The add command prompts interactively for new transactions, and appends
 them to the journal file. Just run `hledger add` and follow the prompts.
 You can add as many transactions as you like; when you are finished,
-press control-d or control-c to exit.
+enter `.` or press control-d or control-c to exit.
 
 Additional convenience features:
 
-- Sensible defaults are provided where possible.
-  You can set the initial defaults by providing them as command line arguments.
-  If there is a recent transaction with a description similar
-  to the one you entered, it will be displayed and used for defaults.
+- add tries to provide useful defaults, using the most similar recent
+  transaction (by description) as a template.
+
+- You can also set the initial defaults with command line arguments.
 
 - [Readline-style edit keys](http://tiswww.case.edu/php/chet/readline/rluserman.html#SEC3)
-  may be used during data entry. Eg control-p recalls previous entries.
+  can be used during data entry.
 
-- While entering account names, the tab key will auto-complete or list
-  the available completions, based on the existing transactions.
+- The tab key will auto-complete whenever possible - accounts,
+  descriptions, dates (`yesterday`, `today`, `tomorrow`). If the input
+  area is empty, it will insert the default value.
 
-- If the journal defines a [default commodity](#default-commodity),
+- If the journal defines a [[#default-commodity|default commodity]],
   it will be added to any bare numbers entered.
 
-- A code (in parentheses) may be entered at the Date: prompt, following the date.
-  Comments and/or tags may be entered following a date or amount.
+- A parenthesised transaction [[#entries|code]] may be entered following a date.
+
+- [[#comments|Comments]] and tags may be entered following a description or amount.
 
 - If you make a mistake, enter `<` at any prompt to restart the transaction.
 
-An example:
+- Input prompts are displayed in a different colour when the terminal supports it.
 
+Here's [[step-by-step#record-a-transaction-with-hledger-add|an example]].
+<!--
     $ hledger add
     (...)
     Starting a new transaction.
@@ -703,11 +709,16 @@ An example:
     Starting a new transaction.
     date ? [2013/04/09]: <CTRL-D>
     $
-
+-->
+	
 ### Reporting
 
 These are the commands for actually querying your ledger.
-The most basic reporting commands are `print`, `register` and `balance`:
+
+#### accounts
+
+This command lists matched account names, in a flat list by default, or in hierarchy
+with the `--tree` flag. With no query arguments, all account names are listed.
 
 #### print
 
@@ -746,6 +757,10 @@ summary postings within each interval:
     $ hledger register --monthly rent
     $ hledger register --monthly -E food --depth 4
 
+Note that the report start/end dates will be "enlarged" in this case
+so that they encompass the displayed intervals. This is so that the
+first and last intervals will be "full" and comparable to the others.
+
 The `--average`/`-A` flag shows the running average posting amount instead of the running total.
 
 The `--related`/`-r` flag shows the *other* postings in the transactions
@@ -759,50 +774,84 @@ Note, currently -w/--width can not have a space between flag and value ([#149](h
 
 #### balance
 
-The balance command displays accounts and their balances, indented to show the account hierarchy.
-Examples:
+The balance command displays accounts and their balances.
+
+##### Simple balance reports
+
+Simple balance reports have no [[#reporting-interval|reporting interval]].
+They show the sum of matched postings in each account.
+(If postings are not date-restricted, this is usually the same as the ending balance).
 
     $ hledger balance
-    $ hledger balance food -p 'last month'
+    $ hledger balance -p 'last month' expenses:food
 
-Accounts which have zero balance (and no non-zero subaccounts) will be
-omitted by default; use `-E/--empty` to show them. "Boring parent"
-accounts, which contain a single interesting subaccount and no balance
-of their own, are elided into the subaccount's line for more compact output;
-use `--no-elide` to prevent this.
+By default, simple balance reports display the accounts as a
+hierarchy, with subaccounts indented below their parent. Each
+account's balance is the "inclusive" balance - it includes the
+balances of any subaccounts.
 
-A final total is displayed, use `--no-total` to suppress this. Also, the
-`--depth N` option shows accounts only to the specified depth, useful for
-an overview:
+"Boring parent accounts" (containing a single interesting subaccount
+and no balance of their own) are elided into the following line for
+more compact output. Use `--no-elide` to prevent this.
 
-    $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done
+Accounts which have zero balance (and no non-zero subaccounts) are
+omitted. Use `-E/--empty` to show them.
 
-With `--flat`, a simple list of full account names is displayed instead, each with it's inclusive balance (including any subaccount balances).
-In this mode you can use `--drop N` to elide the first few account name components.
-The `--depth` flag also works.
+A final total is displayed by default; use `--no-total` to suppress it.
 
-With a [reporting interval](#reporting-interval), multiple columns
-will be shown, one for each period. There are three modes available:
+##### Flat mode
 
-1. By default each column shows the sum of postings in that period, ie
-the account's change of balance in that period.  This is good for a
-multi-column income statement:
+To see a flat list of full account names instead of the hierarchy, use `--flat`.
+In this mode, each account's balance is the "exclusive" balance - it excludes subaccount balances
+(except when aggregating deeper accounts at the depth limit, see below).
+Also, you can use `--drop N` to omit the first few account name components.
 
-        $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
+##### Depth limiting
 
-    or cashflow statement:
+With `--depth N`, balance shows accounts only to the specified depth.
+In flat mode, it also aggregates and summarises deeper accounts at the depth limit.
+This is very useful to summarise complex charts of accounts.
 
-        $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
+<!-- $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done -->
 
-2. With `--cumulative`, the report shows the ending balance for each
-account at the end of each period, starting from zero at the report
-start date.
+##### Multi balance reports
 
-3. With `--historical/-H`, it shows the actual ending balance at the
-end of each period, including any balance from postings before the
-report start date.  This is good for historical balance sheets:
+With a [[#reporting-interval|reporting interval]], multiple balance
+columns will be shown, one for each report period.
+There are three types of multi-column balance report, showing different information:
 
-        $ hledger balance ^assets ^liabilities -YH
+1. By default: each column shows the sum of postings in that period,
+ie the account's change of balance in that period. This is useful eg
+for a monthly income statement.
+<!--
+multi-column income statement: 
+
+   $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
+
+or cashflow statement:
+
+   $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
+-->
+
+2. With `--cumulative`: each column shows the ending balance for that
+period, accumulating the changes across periods, starting from 0 at
+the report start date. This mode is not often used.
+
+3. With `--historical/-H`: each column shows the actual historical
+ending balance for that period, accumulating the changes across
+periods, starting from the actual balance at the report start date.
+This is useful eg for a multi-year balance sheet.
+<!--
+    $ hledger balance ^assets ^liabilities -YH
+-->
+
+Multi-column balance reports display accounts in flat mode by default;
+to see the hierarchy, use `--tree`.
+
+Note that with a reporting interval, the report start/end dates will
+be "enlarged" if necessary so that they encompass the displayed report
+periods. This is so that the first and last periods will be "full" and
+comparable to the others.
 
 #### incomestatement
 
@@ -863,12 +912,26 @@ Examples:
 
 ### Add-ons
 
-Add-on commands are executables named `hledger-*` installed in your
-PATH.  hledger will detect these at startup and offer them as extra
-commands. Run `hledger` without a command to see a list.
+Add-on commands are executables in your PATH whose name starts with
+`hledger-` and ends with no file extension or one of these common
+executable extensions:
+`.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh`,`.bat`,`.com`,`.exe`.
+(Also, add-on names may not be the same as any built-in command or alias).
 
-hledger-web is released along with hledger and supported on all the
-major platforms, while other add-ons may or may not be.
+hledger will detect these and act as a convenient front end, displaying them in
+the command list and letting you invoke them with `hledger ADDON`.
+There are some tricks when specifying options:
+
+- Options appearing before ADDON will be visible only to hledger and not be passed to the add-on.
+  Eg: `hledger --help web` shows hledger's help, `hledger web --help` shows hledger-web's help.
+- Options understood only by the add-on must go after a `--` argument so that hledger does not reject them.
+  Eg: `hledger web -- --server`.
+
+Add-ons which are written in haskell can take advantage of hledger's library API
+for journal parsing, reports, consistent command-line options etc.
+One notable add-on is [[#web|hledger-web]], which is maintained along with
+hledger and supported on the same major platforms. Other add-ons may
+have different release schedules and platform support.
 
 #### autosync
 
@@ -958,10 +1021,6 @@ make them available. The scripts are designed to run interpreted on
 unix systems (for tweaking), or you can compile them (for speed and
 robustness).
 
-#### accountnames.hs
-
-Prints all account names in the default journal.
-
 #### balance-csv.hs
 
 Like the balance command, but with CSV output.
@@ -987,6 +1046,9 @@ Prints only journal entries which are unique (by description).
 
 Like the register command, but with CSV output.
 
+#### rewrite.hs
+
+Prints all journal entries, adding specified custom postings to matched entries.
 
 
 <!-- unmaintained:
@@ -1072,11 +1134,12 @@ A query term can be any of the following:
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
-- `amt:N` or `amt:=N`, `amt:<N`, `amt:>N` - match postings with a
-  single-commodity amount equal to, less than, or greater than N.
-  (Multi-commodity amounts are not tested, and always match.)
-  This has two modes of operation: if N is preceded by a `+` or `-` sign, the
-  actual signed numbers are compared; otherwise the unsigned absolute values are compared.
+- `amt:N`, `amt:<N`, `amt:>N` - match postings with a single-commodity
+  amount that is equal to, less than, or greater than N.
+  (Multi-commodity amounts are not tested, and will always match.)
+  The comparison has two modes: if N is preceded by a `+` or `-` sign
+  (or is 0), the two signed numbers are compared. Otherwise, the
+  absolute magnitudes are compared, ignoring sign.
 - `cur:REGEX` - match postings or transactions including any amounts
   whose currency/commodity symbol is fully matched by REGEX. (For a
   partial match, use `.*REGEX.*`). Note, to match characters which are
