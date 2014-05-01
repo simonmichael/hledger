@@ -29,9 +29,9 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "increase or set the output width (default: 80)"
-     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show the running average instead of the running total"
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "with a reporting interval, show accurate historical running balance"
-     ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show the other postings in the transactions of those that would have been shown"
+     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "include prior postings in the running total"
+     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a running average instead of the running total"
+     ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show the sibling postings of those that would have been shown"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]

@@ -79,7 +79,7 @@ import Hledger.Cli.Version
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["help","h","?"] (setboolopt "help") "Display general help or (with --help after COMMAND) command help."
+  flagNone ["help","h"] (setboolopt "help") "Display general help or (with --help after COMMAND) command help."
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "N" "Show debug output (optional argument sets debug level)"
  ,flagNone ["version"] (setboolopt "version") "Print version information"
@@ -89,8 +89,8 @@ helpflags = [
 inputflags :: [Flag RawOpts]
 inputflags = [
   flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different journal file; - means stdin"
- ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RULESFILE" "conversion rules for CSV (default: FILE.rules)"
- ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "ACCT=ALIAS" "convert ACCT's name to ALIAS"
+ ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "FILE" "conversion rules for CSV (default: FILE.rules)"
+ ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "display accounts named OLD as NEW"
  ]
 
 -- | Common report-related flags: --period, --cost, etc.
