@@ -72,13 +72,14 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
       depth      = queryDepth depthq
       depthless  = dbg "depthless" . filterQuery (not . queryIsDepth)
       datelessq  = dbg "datelessq"  $ filterQuery (not . queryIsDate) q
-      precedingq = dbg "precedingq" $ And [datelessq, Date $ DateSpan Nothing (spanStart reportspan)]
+      dateqcons  = if date2_ opts then Date2 else Date
+      precedingq = dbg "precedingq" $ And [datelessq, dateqcons $ DateSpan Nothing (spanStart reportspan)]
       requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
       requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
       intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
       reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
                                                        (maybe Nothing spanEnd   $ lastMay intervalspans)
-      newdatesq = dbg "newdateq" $ (if date2_ opts then Date2 else Date) reportspan
+      newdatesq = dbg "newdateq" $ dateqcons reportspan
       reportq  = dbg "reportq" $ depthless $ And [datelessq, newdatesq] -- user's query enlarged to whole intervals and with no depth limit
 
       ps :: [Posting] =
