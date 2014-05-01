@@ -25,7 +25,7 @@ import Hledger.Utils.UTF8IOCompat (putStr)
 
 
 statsmode = (defCommandMode $ ["stats"] ++ aliases) {
-  modeHelp = "show quick journal statistics" `withAliases` aliases
+  modeHelp = "show some journal statistics" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []

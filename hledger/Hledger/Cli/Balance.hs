@@ -263,14 +263,14 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
   modeHelp = "show accounts and balances" `withAliases` aliases
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
-      flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "with a reporting interval, show accumulated totals starting from 0"
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "with a reporting interval, show accurate historical ending balances"
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default in multicolumn reports)"
-     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree (default in simple reports)"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in flat mode, omit this many leading account name components"
-     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
-     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
+      flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree (default in simple reports)"
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list (default in multicolumn)"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "tree mode: use this custom line format"
+     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "tree mode: don't squash boring parent accounts"
      ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
+     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "multicolumn mode: show accumulated ending balances"
+     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "multicolumn mode: show historical ending balances"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]

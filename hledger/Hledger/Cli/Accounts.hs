@@ -30,13 +30,13 @@ import Hledger.Cli.Options
 accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
   modeHelp = "show account names" `withAliases` aliases
  ,modeHelpSuffix = [
-    "This command lists the accounts referenced by matched postings (and in tree mode, their parents as well). The accounts can be depth-clipped (--depth N or depth:N) or have their leading components dropped (--drop N)."
+    "This command lists the accounts referenced by matched postings (and in tree mode, their parents as well). The accounts can be depth-clipped (--depth N) or have their leading parts trimmed (--drop N)."
    ]
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
-      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
-     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in flat mode, omit this many leading account name components"
+      flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]

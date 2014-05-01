@@ -79,38 +79,39 @@ import Hledger.Cli.Version
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["help","h"] (setboolopt "help") "Display general help or (with --help after COMMAND) command help."
+  flagNone ["help","h"] (setboolopt "help") "show general help or (after command) command help"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
- ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "N" "Show debug output (optional argument sets debug level)"
- ,flagNone ["version"] (setboolopt "version") "Print version information"
+ ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "N" "show debug output (increase N for more)"
+ ,flagNone ["version"] (setboolopt "version") "show version information"
  ]
 
 -- | Common input-related flags: --file, --rules-file, --alias...
 inputflags :: [Flag RawOpts]
 inputflags = [
-  flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different journal file; - means stdin"
- ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "FILE" "conversion rules for CSV (default: FILE.rules)"
+  flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use -"
+ ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
  ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "display accounts named OLD as NEW"
  ]
 
 -- | Common report-related flags: --period, --cost, etc.
 reportflags :: [Flag RawOpts]
 reportflags = [
-  flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "report on transactions on or after this date"
- ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "report on transactions before this date"
- ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "report on transactions during the specified period and/or with the specified reporting interval"
- ,flagNone ["daily","D"]     (\opts -> setboolopt "daily" opts) "report by day"
- ,flagNone ["weekly","W"]    (\opts -> setboolopt "weekly" opts) "report by week"
- ,flagNone ["monthly","M"]   (\opts -> setboolopt "monthly" opts) "report by month"
- ,flagNone ["quarterly","Q"] (\opts -> setboolopt "quarterly" opts) "report by quarter"
- ,flagNone ["yearly","Y"]    (\opts -> setboolopt "yearly" opts) "report by year"
- ,flagNone ["cleared","C"]   (\opts -> setboolopt "cleared" opts) "report only on cleared transactions"
- ,flagNone ["uncleared","U"] (\opts -> setboolopt "uncleared" opts) "report only on uncleared transactions"
- ,flagNone ["cost","B"]      (\opts -> setboolopt "cost" opts) "report cost of commodities"
- ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/transactions deeper than this"
- ,flagNone ["date2","aux-date"] (\opts -> setboolopt "date2" opts) "use transactions' secondary dates, if any"
- ,flagNone ["empty","E"]     (\opts -> setboolopt "empty" opts) "show empty/zero things which are normally elided"
- ,flagNone ["real","R"]      (\opts -> setboolopt "real" opts) "report only on real (non-virtual) transactions"
+  flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/txns on or after this date"
+ ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/txns before this date"
+ ,flagNone ["daily","D"]     (\opts -> setboolopt "daily" opts) "multiperiod/multicolumn report by day"
+ ,flagNone ["weekly","W"]    (\opts -> setboolopt "weekly" opts) "multiperiod/multicolumn report by week"
+ ,flagNone ["monthly","M"]   (\opts -> setboolopt "monthly" opts) "multiperiod/multicolumn report by month"
+ ,flagNone ["quarterly","Q"] (\opts -> setboolopt "quarterly" opts) "multiperiod/multicolumn report by quarter"
+ ,flagNone ["yearly","Y"]    (\opts -> setboolopt "yearly" opts) "multiperiod/multicolumn report by year"
+ ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or reporting interval all at once (overrides the flags above)"
+ ,flagNone ["date2","aux-date"] (\opts -> setboolopt "date2" opts) "use postings/txns' secondary dates instead"
+
+ ,flagNone ["cleared","C"]   (\opts -> setboolopt "cleared" opts) "include only cleared postings/txns"
+ ,flagNone ["uncleared","U"] (\opts -> setboolopt "uncleared" opts) "include only uncleared postings/txns"
+ ,flagNone ["real","R"]      (\opts -> setboolopt "real" opts) "include only non-virtual postings"
+ ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
+ ,flagNone ["empty","E"]     (\opts -> setboolopt "empty" opts) "show empty/zero things which are normally omitted"
+ ,flagNone ["cost","B"]      (\opts -> setboolopt "cost" opts) "show amounts in their cost price's commodity"
  ]
 
 argsFlag :: FlagHelp -> Arg RawOpts
@@ -139,7 +140,7 @@ defMode =   Mode {
  ,modeGroupFlags = Group {
      groupNamed = []
     ,groupUnnamed = [
-        flagNone ["help","h","?"] (setboolopt "help") "Display command help."
+        flagNone ["help","h","?"] (setboolopt "help") "Show command help."
         ]
     ,groupHidden = []
     }

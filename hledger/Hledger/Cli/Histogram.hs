@@ -21,8 +21,8 @@ import Hledger.Utils.UTF8IOCompat (putStr)
 
 
 activitymode = (defCommandMode $ ["activity"] ++ aliases) {
-  modeHelp = "show a barchart of transactions per interval" `withAliases` aliases
- ,modeHelpSuffix = ["The default interval is daily."]
+  modeHelp = "show an ascii barchart of posting counts per interval (default: daily)" `withAliases` aliases
+ ,modeHelpSuffix = []
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -57,6 +57,6 @@ showHistogram opts q j = concatMap (printDayWith countBar) spanps
           | queryEmpty q = id
           | otherwise = filter (not . isZeroMixedAmount . pamount)
 
-printDayWith f (DateSpan b _, ts) = printf "%s %s\n" (show $ fromJust b) (f ts)
+printDayWith f (DateSpan b _, ps) = printf "%s %s\n" (show $ fromJust b) (f ps)
 
 countBar ps = replicate (length ps) barchar

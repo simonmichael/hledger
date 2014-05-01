@@ -26,8 +26,8 @@ balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
   modeHelp = "show a balance sheet" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
-      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
+      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
