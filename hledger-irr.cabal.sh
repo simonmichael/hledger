@@ -74,7 +74,7 @@ cat <<__END__
 
 Executable hledger-irr
   Main-is:              Main.hs
-  Build-depends:        base >= 3 && < 5, hledger-lib == 0.20.* || == 0.21.* || == 0.22.*, time, Cabal, statistics >= 0.10
+  Build-depends:        base >= 3 && < 5, hledger-lib == 0.20.* || == 0.21.* || == 0.22.* || == 0.23.*, time, Cabal, statistics >= 0.10
   Ghc-Options:          -Wall
 
 source-repository head
