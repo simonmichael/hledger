@@ -1,6 +1,6 @@
 name:           hledger-web
-version: 0.23
-stability:      beta
+version:        0.23
+stability:      stable
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
 description:    

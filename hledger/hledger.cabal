@@ -1,8 +1,7 @@
 name:           hledger
--- also in cpp-options below
-version: 0.23
-stability:      beta
-category:       Finance
+version:        0.23
+stability:      stable
+category:       Finance, Console
 synopsis:       The main command-line interface for the hledger accounting tool.
 description:
                 hledger is a library and set of user tools for working
