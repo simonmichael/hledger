@@ -16,15 +16,11 @@ module Hledger.Reports.PostingsReport (
 )
 where
 
-import Control.Monad
 import Data.List
 import Data.Maybe
-import Data.Ord
 import Data.Time.Calendar
 import Safe (headMay, lastMay)
 import Test.HUnit
-import Text.ParserCombinators.Parsec
-import Text.Printf
 
 import Hledger.Data
 import Hledger.Query
@@ -53,34 +49,37 @@ postingsReport opts q j = (totallabel, items)
       symq = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
       depth = queryDepth q
       depthless = filterQuery (not . queryIsDepth)
-      dateless = filterQuery (not . queryIsDate)
-      -- precedingq = dbg "precedingq" $ And [datelessq, Date $ DateSpan Nothing (spanStart reportspan)]
+      datelessq = filterQuery (not . queryIsDate) q
+      dateqcons  = if date2_ opts then Date2 else Date
       requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
       requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
-      intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
-      reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
-                                                       (maybe Nothing spanEnd   $ lastMay intervalspans)
-      newdatesq = dbg "newdateq" $ (if date2_ opts then Date2 else Date) reportspan
-      reportq  = dbg "reportq" $ depthless $ And [dateless q, newdatesq] -- user's query enlarged to whole intervals and with no depth limit
+      intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan' -- interval spans enclosing it
+      reportstart    = dbg "reportstart"    $ maybe Nothing spanStart $ headMay intervalspans
+      reportend      = dbg "reportend"      $ maybe Nothing spanEnd   $ lastMay intervalspans
+      reportspan     = dbg "reportspan"     $ DateSpan reportstart reportend  -- the requested span enlarged to a whole number of intervals
+      beforestartq   = dbg "beforestartq"   $ dateqcons $ DateSpan Nothing reportstart
+      beforeendq     = dbg "beforeendq"     $ dateqcons $ DateSpan Nothing reportend
+      reportq        = dbg "reportq"        $ depthless $ And [datelessq, beforeendq] -- user's query with no start date, end date on an interval boundary and no depth limit
 
-      (precedingps, displayableps, _) =
-          dbg "ps5" $ postingsMatchingDisplayExpr displayexpr opts $              -- filter and group by the -d display expression
-          dbg "ps4" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's sym: terms would exclude
+      pstoend = 
+          dbg "ps4" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
           dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
-          dbg "ps2" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, ignoring depth
+          dbg "ps2" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, including before the report start date, ignoring depth
           dbg "ps1" $ journalPostings $ journalSelectingAmountFromOpts opts j
+      (precedingps, reportps) = dbg "precedingps, reportps" $ span (beforestartq `matchesPosting`) pstoend
 
       empty = queryEmpty q
-      displayexpr = display_ opts  -- XXX
+      -- displayexpr = display_ opts  -- XXX
       interval = intervalFromOpts opts -- XXX
 
       whichdate = whichDateFromOpts opts
-      ps | interval == NoInterval = displayableps
-         | otherwise              = summarisePostingsByInterval interval whichdate depth empty reportspan displayableps
-      startbal = sumPostings precedingps
-      runningcalcfn | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i)
-                    | otherwise     = \_ bal amt -> bal + amt
-      items = postingsReportItems ps nullposting whichdate depth startbal runningcalcfn 1
+      itemps | interval == NoInterval = reportps
+             | otherwise              = summarisePostingsByInterval interval whichdate depth empty reportspan reportps
+      items = postingsReportItems itemps nullposting whichdate depth startbal runningcalc 1
+        where
+          startbal = if balancetype_ opts == HistoricalBalance then sumPostings precedingps else 0
+          runningcalc | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i) -- running average
+                      | otherwise     = \_ bal amt -> bal + amt                                              -- running total
 
       dbg s = let p = "postingsReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
       -- dbg = const id  -- exclude from debug output
@@ -110,55 +109,6 @@ mkpostingsReportItem showdate showdesc wd p b = (if showdate then Just date else
       date = case wd of PrimaryDate   -> postingDate p
                         SecondaryDate -> postingDate2 p
       desc = maybe "" tdescription $ ptransaction p
-
--- | Date-sort and split a list of postings into three spans - postings matched
--- by the given display expression, and the preceding and following postings.
--- XXX always sorts by primary date, should sort by secondary date if expression is about that
-postingsMatchingDisplayExpr :: Maybe String -> ReportOpts -> [Posting] -> ([Posting],[Posting],[Posting])
-postingsMatchingDisplayExpr d opts ps = (before, matched, after)
-    where
-      sorted = sortBy (comparing (postingDateFn opts)) ps
-      (before, rest) = break (displayExprMatches d) sorted
-      (matched, after) = span (displayExprMatches d) rest
-
--- | Does this display expression allow this posting to be displayed ?
--- Raises an error if the display expression can't be parsed.
-displayExprMatches :: Maybe String -> Posting -> Bool
-displayExprMatches Nothing  _ = True
-displayExprMatches (Just d) p = (fromparse $ parsewith datedisplayexpr d) p
-
--- | Parse a hledger display expression, which is a simple date test like
--- "d>[DATE]" or "d<=[DATE]", and return a "Posting"-matching predicate.
-datedisplayexpr :: GenParser Char st (Posting -> Bool)
-datedisplayexpr = do
-  char 'd'
-  op <- compareop
-  char '['
-  (y,m,d) <- smartdate
-  char ']'
-  let date    = parsedate $ printf "%04s/%02s/%02s" y m d
-      test op = return $ (`op` date) . postingDate
-  case op of
-    "<"  -> test (<)
-    "<=" -> test (<=)
-    "="  -> test (==)
-    "==" -> test (==)
-    ">=" -> test (>=)
-    ">"  -> test (>)
-    _    -> mzero
- where
-  compareop = choice $ map (try . string) ["<=",">=","==","<","=",">"]
-
--- -- | Clip the account names to the specified depth in a list of postings.
--- depthClipPostings :: Maybe Int -> [Posting] -> [Posting]
--- depthClipPostings depth = map (depthClipPosting depth)
-
--- -- | Clip a posting's account name to the specified depth.
--- depthClipPosting :: Maybe Int -> Posting -> Posting
--- depthClipPosting Nothing p = p
--- depthClipPosting (Just d) p@Posting{paccount=a} = p{paccount=clipAccountName d a}
-
--- XXX confusing, refactor
 
 -- | Convert a list of postings into summary postings. Summary postings
 -- are one per account per interval and aggregated to the specified depth
