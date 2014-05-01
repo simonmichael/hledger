@@ -93,7 +93,7 @@ inputflags = [
  ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "ACCT=ALIAS" "convert ACCT's name to ALIAS"
  ]
 
--- | Common report-related flags: --period, --cost, --display etc.
+-- | Common report-related flags: --period, --cost, etc.
 reportflags :: [Flag RawOpts]
 reportflags = [
   flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "report on transactions on or after this date"
@@ -108,7 +108,6 @@ reportflags = [
  ,flagNone ["uncleared","U"] (\opts -> setboolopt "uncleared" opts) "report only on uncleared transactions"
  ,flagNone ["cost","B"]      (\opts -> setboolopt "cost" opts) "report cost of commodities"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/transactions deeper than this"
- ,flagReq  ["display","d"]   (\s opts -> Right $ setopt "display" s opts) "DISPLAYEXP" "show only transactions matching the expression, which is 'dOP[DATE]' where OP is <, <=, =, >=, >"
  ,flagNone ["date2","aux-date"] (\opts -> setboolopt "date2" opts) "use transactions' secondary dates, if any"
  ,flagNone ["empty","E"]     (\opts -> setboolopt "empty" opts) "show empty/zero things which are normally elided"
  ,flagNone ["real","R"]      (\opts -> setboolopt "real" opts) "report only on real (non-virtual) transactions"
