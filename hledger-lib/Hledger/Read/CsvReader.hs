@@ -408,8 +408,8 @@ fieldnamelist = (do
   string "fields"
   optional $ char ':'
   many1 spacenonewline
-  f <- fieldname
   let separator = many spacenonewline >> char ',' >> many spacenonewline
+  f <- fromMaybe "" <$> optionMaybe fieldname
   fs <- many1 $ (separator >> fromMaybe "" <$> optionMaybe fieldname)
   restofline
   return $ map (map toLower) $ f:fs
