@@ -83,17 +83,9 @@ readJournalFromCsv mrulesfile csvfile csvdata =
  handle (\e -> return $ Left $ show (e :: IOException)) $ do
   let throwerr = throw.userError
 
-  -- parse csv
-  records <- (either throwerr id . validateCsv) `fmap` parseCsv csvfile csvdata
-  return $ dbg "" $ take 3 records
-
-  -- identify header lines
-  -- let (headerlines, datalines) = identifyHeaderLines records
-  --     mfieldnames = lastMay headerlines
-
   -- parse rules
   let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
-  created <- records `seq` ensureRulesFileExists rulesfile
+  created <- ensureRulesFileExists rulesfile
   if created
    then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
    else hPrintf stderr "using conversion rules file %s\n" rulesfile
@@ -101,14 +93,21 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   return $ dbg "" rules
 
   -- apply skip directive
-  let headerlines = maybe 0 oneorerror $ getDirective "skip" rules
+  let skip = maybe 0 oneorerror $ getDirective "skip" rules
         where
           oneorerror "" = 1
           oneorerror s  = readDef (throwerr $ "could not parse skip value: " ++ show s) s
-      records' = drop headerlines records
+
+  -- parse csv
+  records <- (either throwerr id . validateCsv skip) `fmap` parseCsv csvfile csvdata
+  dbgAtM 1 "" $ take 3 records
+
+  -- identify header lines
+  -- let (headerlines, datalines) = identifyHeaderLines records
+  --     mfieldnames = lastMay headerlines
 
   -- convert to transactions and return as a journal
-  let txns = map (transactionFromCsvRecord rules) records'
+  let txns = map (transactionFromCsvRecord rules) records
   return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns}
 
 parseCsv :: FilePath -> String -> IO (Either ParseError CSV)
@@ -118,9 +117,9 @@ parseCsv path csvdata =
     _   -> return $ parseCSV path csvdata
 
 -- | Return the cleaned up and validated CSV data, or an error.
-validateCsv :: Either ParseError CSV -> Either String [CsvRecord]
-validateCsv (Left e) = Left $ show e
-validateCsv (Right rs) = validate $ filternulls rs
+validateCsv :: Int -> Either ParseError CSV -> Either String [CsvRecord]
+validateCsv _ (Left e) = Left $ show e
+validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
   where
     filternulls = filter (/=[""])
     validate [] = Left "no CSV records found"
