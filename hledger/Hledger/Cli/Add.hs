@@ -265,7 +265,8 @@ amountAndCommentWizard EntryState{..} = do
    maybeRestartTransaction $
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where  
-      parseAmountAndComment = either (const Nothing) Just . parseWithCtx (jContext esJournal) amountandcommentp
+      parseAmountAndComment = either (const Nothing) Just . parseWithCtx nodefcommodityctx amountandcommentp
+      nodefcommodityctx = (jContext esJournal){ctxCommodityAndStyle=Nothing}
       amountandcommentp = do
         a <- amountp
         many spacenonewline
