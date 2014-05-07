@@ -46,7 +46,21 @@ hledgerdev -f - balance
                    0
 >>>=0
 
-# 4. mixed amounts with prices
+# 4. a zero amount is always displayed as just "0", regardless of any commodity/decimal places/price (like ledger)
+#
+hledgerdev -f- print --empty
+<<<
+2010/3/1 x
+  a  $0.00 @ 3EUR
+  b
+>>>
+2010/03/01 x
+    a             0
+    b             0
+
+>>>=0
+
+# 5. mixed amounts with prices
 # XXX
 # hledgerdev -f - print
 # <<<

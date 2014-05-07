@@ -1,5 +1,5 @@
 # 1
-hledgerdev -f data/sample.journal balance --no-total --depth 1
+hledgerdev -f sample.journal balance --no-total --depth 1
 >>>
                  $-1  assets
                   $2  expenses
