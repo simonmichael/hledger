@@ -1,3 +1,15 @@
+0.23.1 (2014/5/7)
+
+- register: fix a refactoring-related regression that the tests
+  missed: if transactions were not ordered by date in the journal,
+  register could include postings before the report start date in the
+  output. (#184)
+- add: don't apply a default commodity to amounts on entry (#138)
+- cli: options before the add-on command name are now also passed to it (#182)
+- csv: allow the first name in a fields list to be empty (#178)
+- csv: don't validate fields count in skipped lines (#177)
+
+
 0.23 (2014/5/1)
 
 Journal format:
