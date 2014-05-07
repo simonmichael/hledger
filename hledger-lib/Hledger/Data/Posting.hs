@@ -81,9 +81,10 @@ posting = nullposting
 post :: AccountName -> Amount -> Posting
 post acct amt = posting {paccount=acct, pamount=mixed amt}
 
+-- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
 showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
-    unlines $ [concatTopPadded [showaccountname a ++ " ", showamount amt, showComment (pcomment p)]]
+    unlines $ [concatTopPadded [show (postingDate p) ++ " ", showaccountname a ++ " ", showamount amt, showComment (pcomment p)]]
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22

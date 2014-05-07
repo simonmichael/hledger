@@ -122,7 +122,7 @@ tests_showTransactionUnelided = [
       ]
  ]
 
--- XXX overlaps showPosting
+-- cf showPosting
 showTransaction' :: Bool -> Transaction -> String
 showTransaction' elide t =
     unlines $ [descriptionline]
