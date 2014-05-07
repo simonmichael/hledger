@@ -66,7 +66,7 @@ postingsReport opts q j = (totallabel, items)
           dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
           dbg "ps2" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, including before the report start date, ignoring depth
           dbg "ps1" $ journalPostings $ journalSelectingAmountFromOpts opts j
-      (precedingps, reportps) = dbg "precedingps, reportps" $ span (beforestartq `matchesPosting`) pstoend
+      (precedingps, reportps) = dbg "precedingps, reportps" $ partition (beforestartq `matchesPosting`) pstoend
 
       empty = queryEmpty q
       -- displayexpr = display_ opts  -- XXX
