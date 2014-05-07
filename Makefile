@@ -562,7 +562,7 @@ ADDONS=tests/addons
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
 addons:
 	rm -rf $(ADDONS)/hledger-*
-	printf '#!/bin/sh\necho $$0\n' >$(ADDONS)/hledger-addon
+	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >$(ADDONS)/hledger-addon
 	for E in '' $(ADDONEXTS); do \
 		cp $(ADDONS)/hledger-addon $(ADDONS)/hledger-addon.$$E; done
 	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
