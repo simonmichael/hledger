@@ -1,7 +1,7 @@
 # multi-column balance reports
 
 # 1. Here are the postings used in most tests below:
-hledgerdev -f data/balance-multicol.journal register
+hledgerdev -f balance-multicol.journal register
 >>>
 2012/12/31                      (assets:checking)               10            10
 2013/01/01                      (assets:checking)                1            11
@@ -12,7 +12,7 @@ hledgerdev -f data/balance-multicol.journal register
 >>>=0
 
 # 2. A period balance (flow) report. --no-total also works but isn't pretty.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --no-total
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --no-total
 >>>
 Change of balance (flow):
 
@@ -27,7 +27,7 @@ Change of balance (flow):
 >>>=0
 
 # 3. With --empty, includes leading/trailing empty periods
-#hledgerdev -f data/balance-multicol.journal balance -p 'quarterly in 2013' --empty
+#hledgerdev -f balance-multicol.journal balance -p 'quarterly in 2013' --empty
 hledgerdev -f - balance -p 'quarterly in 2013' --empty
 <<<
 2012/12/31
@@ -49,7 +49,7 @@ Change of balance (flow):
 
 # 4. A cumulative ending balance report. Column totals are the sum of
 # the highest-level displayed accounts (here, assets).
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --cumulative
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --cumulative
 >>>
 Ending balance (cumulative):
 
@@ -66,7 +66,7 @@ Ending balance (cumulative):
 # 5. With the assets:cash account excluded.  As with a single-column
 # balance --flat report, or ledger's balance --flat, assets' balance
 # includes the displayed subaccount and not the excluded one.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --cumulative not:cash
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --cumulative not:cash
 >>>
 Ending balance (cumulative):
 
@@ -80,7 +80,7 @@ Ending balance (cumulative):
 >>>=0
 
 # 6. A historical ending balance report.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --historical
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --historical
 >>>
 Ending balance (historical):
 
@@ -96,7 +96,7 @@ Ending balance (historical):
 
 # 7. With top-level accounts excluded. As always, column totals are the sum of
 # the highest-level displayed accounts, now assets:cash and assets:checking.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' not:assets$
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' not:assets$
 >>>
 Change of balance (flow):
 
@@ -110,7 +110,7 @@ Change of balance (flow):
 >>>=0
 
 # 8. cumulative:
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' not:assets$ --cumulative
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' not:assets$ --cumulative
 >>>
 Ending balance (cumulative):
 
@@ -124,7 +124,7 @@ Ending balance (cumulative):
 >>>=0
 
 # 9. historical
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --historical
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --historical
 >>>
 Ending balance (historical):
 
@@ -141,7 +141,7 @@ Ending balance (historical):
 # --depth
 
 # 10. A flow report with depth limiting. The depth limit aggregates the three accounts as "assets".
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1
 >>>
 Change of balance (flow):
 
@@ -154,7 +154,7 @@ Change of balance (flow):
 >>>=0
 
 # 11. As above, but postings in the top-level assets account have been excluded.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1 assets:
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1 assets:
 >>>
 Change of balance (flow):
 
@@ -167,7 +167,7 @@ Change of balance (flow):
 >>>=0
 
 # 12. A cumulative balance report with depth limiting.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --cumulative
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --cumulative
 >>>
 Ending balance (cumulative):
 
@@ -180,7 +180,7 @@ Ending balance (cumulative):
 >>>=0
 
 # 13. A historical balance report with depth limiting.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --historical
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --historical
 >>>
 Ending balance (historical):
 
@@ -193,7 +193,7 @@ Ending balance (historical):
 >>>=0
 
 # 14. The three multicol balance report types again, this time with --tree
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --tree
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --tree
 >>>
 Change of balance (flow):
 
@@ -208,7 +208,7 @@ Change of balance (flow):
 >>>=0
 
 # 15.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --cumulative --tree
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --cumulative --tree
 >>>
 Ending balance (cumulative):
 
@@ -223,7 +223,7 @@ Ending balance (cumulative):
 >>>=0
 
 # 16.
-hledgerdev -f data/balance-multicol.journal balance -p 'monthly in 2013' --historical --tree
+hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --historical --tree
 >>>
 Ending balance (historical):
 

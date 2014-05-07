@@ -1,0 +1,17 @@
+# "make test" sets up the dummy add-on scripts required for these tests
+
+# 14. flags after an add-command are handled by the add-on
+PATH=$PATH:. hledgerdev addon --help
+>>> /hledger-addon/
+>>>=0
+
+# 15. add-on flags which are not also defined in the main executable are a problem
+PATH=$PATH:. hledgerdev addon --addonflag
+>>>2 /Unknown flag: --addonflag/
+>>>=1
+
+# 16. hledger main executable ignores anything after -- (and hides the -- from the add-on)
+PATH=$PATH:. hledgerdev addon --help -- --addonflag
+>>> /hledger-addon/
+>>>=0
+

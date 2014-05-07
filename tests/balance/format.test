@@ -1,4 +1,4 @@
-hledgerdev -f data/sample.journal balance --format="%30(account) %-.20(total)"
+hledgerdev -f sample.journal balance --format="%30(account) %-.20(total)"
 >>>
                         assets $-1
                    bank:saving $1

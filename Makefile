@@ -396,10 +396,22 @@ unittest-interpreted:
 
 # run functional tests, requires shelltestrunner >= 0.9 from hackage
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
-functest: bin/hledgerdev
+functest: bin/hledgerdev tests/addons/hledger-addon
 	@echo functional tests:
-	@($(SHELLTEST) tests -- --threads=16 --hide-successes \
+	@($(SHELLTEST) --execdir tests -- --threads=16 --hide-successes \
 		&& echo $@ PASSED) || echo $@ FAILED
+
+# generate dummy add-ons for testing (hledger-addon the rest)
+ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
+tests/addons/hledger-addon:
+	rm -rf tests/addons/hledger-*
+	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >tests/ADDONS/hledger-addon
+	for E in '' $(ADDONEXTS); do \
+		cp tests/ADDONS/hledger-addon tests/ADDONS/hledger-addon.$$E; done
+	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
+		cp tests/ADDONS/hledger-addon tests/ADDONS/hledger-$$F; done
+	mkdir tests/ADDONS/hledger-addondir
+	chmod +x tests/ADDONS/hledger-*
 
 # run unit and functional tests with a specific GHC version
 # some functional tests (add, include, read-csv..) have bin/hledgerdev hard coded - might need to symlink it
@@ -557,18 +569,6 @@ data/10000x10000x10.journal: tools/generatejournal
 
 data/100000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 100000 1000 10 >$@
-
-ADDONS=tests/addons
-ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
-addons:
-	rm -rf $(ADDONS)/hledger-*
-	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >$(ADDONS)/hledger-addon
-	for E in '' $(ADDONEXTS); do \
-		cp $(ADDONS)/hledger-addon $(ADDONS)/hledger-addon.$$E; done
-	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
-		cp $(ADDONS)/hledger-addon $(ADDONS)/hledger-$$F; done
-	mkdir $(ADDONS)/hledger-addondir
-	chmod +x $(ADDONS)/hledger-*
 
 ######################################################################
 # DOCUMENTATION
