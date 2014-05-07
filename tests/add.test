@@ -86,22 +86,7 @@ b
 >>> /a  +\$1000\.00/
 >>>=0
 
-# 8. no commodity entered, the (most recent) default commodity should be applied
-# (and a non-ascii commodity symbol should work)
- printf 'D $1000.0\nD £1,000.00\n' >t$$.j; hledgerdev -f t$$.j add; cat t$$.j; rm -f t$$.j
-<<<
-2010/1/1
-
-a
-1000
-b
-
-.
-
->>> /a  +£1,000.00/
->>>=0
-
-# 9. default amounts should not fail to balance due to precision
+# 8. default amounts should not fail to balance due to precision
 rm -f nosuch.journal; hledgerdev -f nosuch.journal add; rm -f nosuch.journal
 <<<
 2010/1/1
@@ -114,7 +99,7 @@ c
 >>> /Amount  3 \[-0.75\]:/
 >>>=0
 
-## 10. shouldn't add decimals if there aren't any
+## 9. shouldn't add decimals if there aren't any
 ## printf '\n\na\n1\nb\n' | hledgerdev -f /dev/null add
 # hledgerdev -f /dev/null add
 # <<<
