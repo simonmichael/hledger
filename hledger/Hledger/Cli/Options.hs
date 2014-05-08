@@ -98,20 +98,20 @@ reportflags :: [Flag RawOpts]
 reportflags = [
   flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/txns on or after this date"
  ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/txns before this date"
- ,flagNone ["daily","D"]     (\opts -> setboolopt "daily" opts) "multiperiod/multicolumn report by day"
- ,flagNone ["weekly","W"]    (\opts -> setboolopt "weekly" opts) "multiperiod/multicolumn report by week"
- ,flagNone ["monthly","M"]   (\opts -> setboolopt "monthly" opts) "multiperiod/multicolumn report by month"
- ,flagNone ["quarterly","Q"] (\opts -> setboolopt "quarterly" opts) "multiperiod/multicolumn report by quarter"
- ,flagNone ["yearly","Y"]    (\opts -> setboolopt "yearly" opts) "multiperiod/multicolumn report by year"
+ ,flagNone ["daily","D"]     (setboolopt "daily") "multiperiod/multicolumn report by day"
+ ,flagNone ["weekly","W"]    (setboolopt "weekly") "multiperiod/multicolumn report by week"
+ ,flagNone ["monthly","M"]   (setboolopt "monthly") "multiperiod/multicolumn report by month"
+ ,flagNone ["quarterly","Q"] (setboolopt "quarterly") "multiperiod/multicolumn report by quarter"
+ ,flagNone ["yearly","Y"]    (setboolopt "yearly") "multiperiod/multicolumn report by year"
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or reporting interval all at once (overrides the flags above)"
- ,flagNone ["date2","aux-date"] (\opts -> setboolopt "date2" opts) "use postings/txns' secondary dates instead"
+ ,flagNone ["date2","aux-date"] (setboolopt "date2") "use postings/txns' secondary dates instead"
 
- ,flagNone ["cleared","C"]   (\opts -> setboolopt "cleared" opts) "include only cleared postings/txns"
- ,flagNone ["uncleared","U"] (\opts -> setboolopt "uncleared" opts) "include only uncleared postings/txns"
- ,flagNone ["real","R"]      (\opts -> setboolopt "real" opts) "include only non-virtual postings"
+ ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
+ ,flagNone ["uncleared","U"] (setboolopt "uncleared") "include only uncleared postings/txns"
+ ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
- ,flagNone ["empty","E"]     (\opts -> setboolopt "empty" opts) "show empty/zero things which are normally omitted"
- ,flagNone ["cost","B"]      (\opts -> setboolopt "cost" opts) "show amounts in their cost price's commodity"
+ ,flagNone ["empty","E"]     (setboolopt "empty") "show empty/zero things which are normally omitted"
+ ,flagNone ["cost","B"]      (setboolopt "cost") "show amounts in their cost price's commodity"
  ]
 
 argsFlag :: FlagHelp -> Arg RawOpts
@@ -252,7 +252,7 @@ defcliopts = CliOpts
 
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts :: RawOpts -> RawOpts
-decodeRawOpts = map (\(name,val) -> (name, fromSystemString val))
+decodeRawOpts = map (\(name',val) -> (name', fromSystemString val))
 
 -- | Parse raw option string values to the desired final data types.
 -- Any relative smart dates will be converted to fixed dates based on
@@ -288,26 +288,26 @@ checkCliOpts opts@CliOpts{reportopts_=ropts} = do
 -- cmdargs mode, and either return them or, if a help flag is present,
 -- print the mode help and exit the program.
 getCliOpts :: Mode RawOpts -> IO CliOpts
-getCliOpts mode = do
-  args <- getArgs
-  let rawopts = decodeRawOpts $ processValue mode args
+getCliOpts mode' = do
+  args' <- getArgs
+  let rawopts = decodeRawOpts $ processValue mode' args'
   opts <- rawOptsToCliOpts rawopts >>= checkCliOpts
-  debugArgs args opts
+  debugArgs args' opts
   -- if any (`elem` args) ["--help","-h","-?"]
   when ("help" `inRawOpts` rawopts_ opts) $
-    putStr (showModeHelp mode) >> exitSuccess
+    putStr (showModeHelp mode') >> exitSuccess
   return opts
   where
     -- | Print debug info about arguments and options if --debug is present.
     debugArgs :: [String] -> CliOpts -> IO ()
-    debugArgs args opts =
-      when ("--debug" `elem` args) $ do
-        progname <- getProgName
-        putStrLn $ "running: " ++ progname
-        putStrLn $ "raw args: " ++ show args
+    debugArgs args' opts =
+      when ("--debug" `elem` args') $ do
+        progname' <- getProgName
+        putStrLn $ "running: " ++ progname'
+        putStrLn $ "raw args: " ++ show args'
         putStrLn $ "processed opts:\n" ++ show opts
         d <- getCurrentDay
-        putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
+        putStrLn $ "search query: " ++ show (queryFromOpts d $ reportopts_ opts)
 
 -- CliOpts accessors
 
@@ -422,8 +422,7 @@ hledgerAddons = do
                      -- groupBy (\a b -> dropExtension a == dropExtension b) $
                      map stripprefix exes
   let displaynames = concatMap stripext $
-                     groupBy (\a b -> dropExtension a == dropExtension b) $
-                     precisenames
+                     groupBy (\a b -> dropExtension a == dropExtension b) precisenames
   return (precisenames, displaynames)
   where
     stripprefix = drop (length progname + 1)
@@ -456,9 +455,9 @@ isHledgerExeName :: String -> Bool
 isHledgerExeName = isRight . parsewith hledgerexenamep
     where
       hledgerexenamep = do
-        string progname
-        char '-'
-        many1 (noneOf ".")
+        _ <- string progname
+        _ <- char '-'
+        _ <- many1 (noneOf ".")
         optional (string "." >> choice' (map string addonExtensions))
         eof
 
