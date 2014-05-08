@@ -18,6 +18,7 @@ where
 
 import Data.List
 import Data.Maybe
+import Data.Ord (comparing)
 import Data.Time.Calendar
 import Safe (headMay, lastMay)
 import Test.HUnit
@@ -50,7 +51,8 @@ postingsReport opts q j = (totallabel, items)
       depth = queryDepth q
       depthless = filterQuery (not . queryIsDepth)
       datelessq = filterQuery (not . queryIsDate) q
-      dateqcons  = if date2_ opts then Date2 else Date
+      (dateqcons,pdate) | date2_ opts = (Date2, postingDate2)
+                        | otherwise   = (Date, postingDate)
       requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
       requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
       intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan' -- interval spans enclosing it
@@ -62,11 +64,12 @@ postingsReport opts q j = (totallabel, items)
       reportq        = dbg "reportq"        $ depthless $ And [datelessq, beforeendq] -- user's query with no start date, end date on an interval boundary and no depth limit
 
       pstoend = 
-          dbg "ps4" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
-          dbg "ps3" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
-          dbg "ps2" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, including before the report start date, ignoring depth
-          dbg "ps1" $ journalPostings $ journalSelectingAmountFromOpts opts j
-      (precedingps, reportps) = dbg "precedingps, reportps" $ partition (beforestartq `matchesPosting`) pstoend
+          dbg "ps4" $ sortBy (comparing pdate) $                                  -- sort postings by date (or date2)
+          dbg "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
+          dbg "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
+          dbg "ps1" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, including before the report start date, ignoring depth
+                      journalPostings $ journalSelectingAmountFromOpts opts j
+      (precedingps, reportps) = dbg "precedingps, reportps" $ span (beforestartq `matchesPosting`) pstoend
 
       empty = queryEmpty q
       -- displayexpr = display_ opts  -- XXX
