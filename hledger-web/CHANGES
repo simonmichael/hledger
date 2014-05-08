@@ -1,5 +1,13 @@
 See also the hledger changelog.
 
+0.23.2 (2014/5/8)
+
+- depend on latest hledger
+
+0.23.1 (2014/5/7)
+
+- depend on latest hledger
+
 0.23 (2014/5/1)
 
 - The --static-root flag has been renamed to --file-url.
