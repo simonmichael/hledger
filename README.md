@@ -8,7 +8,7 @@ on unix, mac and windows (and web-capable mobile devices, to some extent).
 It is first a command-line tool, but there is also a web interface
 and a Haskell library (http://hackage.haskell.org/package/hledger-lib) for
 building your own programs and scripts (hledger is written in Haskell).
-hledger was inspired by and is largely compatible with [[FAQ#hledger-and-ledger|Ledger]].
+hledger was inspired by and is largely compatible with Ledger.
 hledger is free software available under the GNU General Public License v3+.
 
 hledger aims to help both computer experts and regular folks
