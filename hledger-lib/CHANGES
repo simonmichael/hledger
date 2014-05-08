@@ -1,5 +1,14 @@
 API-ish changes in hledger-lib. For user-visible changes, see the hledger changelog.
 
+0.23.2 (2014/5/8)
+
+- postingsReport: also fix date sorting of displayed postings (#184)
+
+0.23.1 (2014/5/7)
+
+- postingsReport: with disordered journal entries, postings before the
+  report start date could get wrongly included. (#184)
+
 0.23 (2014/5/1)
 
 - orDatesFrom -> spanDefaultsFrom

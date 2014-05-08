@@ -1,3 +1,7 @@
+0.23.2 (2014/5/8)
+
+- register: also fix date sorting of postings (#184)
+
 0.23.1 (2014/5/7)
 
 - register: fix a refactoring-related regression that the tests
