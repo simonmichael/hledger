@@ -20,7 +20,7 @@ suited to techies. I use it every day to:
 -   track invoices
 
 Read the docs to learn more, including
-[how we are different from ledger](FAQ.html#how-does-hledger-relate-to-ledger),
+[how we are different from ledger](http://hledger.org/faq),
 and get started tracking your numbers!
 
 <!-- [blog](http://joyful.com/blog) -->
