@@ -453,6 +453,13 @@ dbgAt lvl = dbgppshow lvl
 dbgAtM :: Show a => Int -> String -> a -> IO ()
 dbgAtM lvl lbl x = dbgAt lvl lbl x `seq` return ()
 
+-- | Print this string to the console before evaluating the expression,
+-- if the global debug level is non-zero.  Uses unsafePerformIO.
+dbgtrace :: String -> a -> a
+dbgtrace
+    | debugLevel > 0 = trace
+    | otherwise      = flip const
+
 -- | Print a showable value to the console, with a message, if the
 -- debug level is at or above the specified level (uses
 -- unsafePerformIO).
