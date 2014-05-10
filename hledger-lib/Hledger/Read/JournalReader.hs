@@ -76,15 +76,17 @@ reader = Reader format detect parse
 format :: String
 format = "journal"
 
--- | Does the given file path and data provide hledger's journal file format ?
+-- | Does the given file path and data look like it might be hledger's journal format ?
 detect :: FilePath -> String -> Bool
-detect f _ = takeExtension f `elem` ['.':format, ".j"]
+detect f s
+  | f /= "-"  = takeExtension f `elem` ['.':format, ".j"]  -- from a file: yes if the extension is .journal or .j
+  -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
+  | otherwise = isJust $ regexMatch "^[0-9]+.*\n[ \t]+" s
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse _ = -- trace ("running "++format++" reader") .
-          parseJournalWith journal
+parse _ = parseJournalWith journal
 
 -- parsing utils
 

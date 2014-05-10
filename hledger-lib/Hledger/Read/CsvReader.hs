@@ -53,15 +53,16 @@ reader = Reader format detect parse
 format :: String
 format = "csv"
 
--- | Does the given file path and data look like CSV ?
+-- | Does the given file path and data look like it might be CSV ?
 detect :: FilePath -> String -> Bool
-detect f _ = takeExtension f == '.':format
+detect f s
+  | f /= "-"  = takeExtension f == '.':format  -- from a file: yes if the extension is .csv
+  | otherwise = length (filter (==',') s) >= 2 -- from stdin: yes if there are two or more commas
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
 parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse rulesfile f s = -- trace ("running "++format++" reader") $
- do
+parse rulesfile f s = do
   r <- liftIO $ readJournalFromCsv rulesfile f s
   case r of Left e -> throwError e
             Right j -> return j
@@ -78,7 +79,7 @@ parse rulesfile f s = -- trace ("running "++format++" reader") $
 -- 5. convert the CSV records to a journal using the rules
 -- @
 readJournalFromCsv :: Maybe FilePath -> FilePath -> String -> IO (Either String Journal)
-readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when converting stdin"
+readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
 readJournalFromCsv mrulesfile csvfile csvdata =
  handle (\e -> return $ Left $ show (e :: IOException)) $ do
   let throwerr = throw.userError
@@ -90,7 +91,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
    then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
    else hPrintf stderr "using conversion rules file %s\n" rulesfile
   rules <- either (throwerr.show) id `fmap` parseRulesFile rulesfile
-  return $ dbg "" rules
+  dbgAtM 2 "rules" rules
 
   -- apply skip directive
   let skip = maybe 0 oneorerror $ getDirective "skip" rules
@@ -99,8 +100,13 @@ readJournalFromCsv mrulesfile csvfile csvdata =
           oneorerror s  = readDef (throwerr $ "could not parse skip value: " ++ show s) s
 
   -- parse csv
-  records <- (either throwerr id . validateCsv skip) `fmap` parseCsv csvfile csvdata
-  dbgAtM 1 "" $ take 3 records
+  -- parsec seems to fail if you pass it "-" here
+  let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
+  records <- (either throwerr id .
+              dbgAt 2 "validateCsv" . validateCsv skip .
+              dbgAt 2 "parseCsv")
+             `fmap` parseCsv parsecfilename csvdata
+  dbgAtM 1 "first 3 csv records" $ take 3 records
 
   -- identify header lines
   -- let (headerlines, datalines) = identifyHeaderLines records
@@ -378,13 +384,13 @@ rulesp = do
           ,rconditionalblocks=reverse $ rconditionalblocks r
           }
 
-blankorcommentline = pdbg 1 "trying blankorcommentline" >> choice' [blankline, commentline]
+blankorcommentline = pdbg 3 "trying blankorcommentline" >> choice' [blankline, commentline]
 blankline = many spacenonewline >> newline >> return () <?> "blank line"
 commentline = many spacenonewline >> commentchar >> restofline >> return () <?> "comment line"
 commentchar = oneOf ";#"
 
 directive = do
-  pdbg 1 "trying directive"
+  pdbg 3 "trying directive"
   d <- choice' $ map string directives
   v <- (((char ':' >> many spacenonewline) <|> many1 spacenonewline) >> directiveval)
        <|> (optional (char ':') >> many spacenonewline >> eolof >> return "")
@@ -404,7 +410,7 @@ directives =
 directiveval = anyChar `manyTill` eolof
 
 fieldnamelist = (do
-  pdbg 1 "trying fieldnamelist"
+  pdbg 3 "trying fieldnamelist"
   string "fields"
   optional $ char ':'
   many1 spacenonewline
@@ -426,7 +432,7 @@ quotedfieldname = do
 barefieldname = many1 $ noneOf " \t\n,;#~"
 
 fieldassignment = do
-  pdbg 1 "trying fieldassignment"
+  pdbg 3 "trying fieldassignment"
   f <- journalfieldname
   assignmentseparator
   v <- fieldval
@@ -466,7 +472,7 @@ fieldval = do
   anyChar `manyTill` eolof
 
 conditionalblock = do
-  pdbg 1 "trying conditionalblock"
+  pdbg 3 "trying conditionalblock"
   string "if" >> many spacenonewline >> optional newline
   ms <- many1 recordmatcher
   as <- many (many1 spacenonewline >> fieldassignment)

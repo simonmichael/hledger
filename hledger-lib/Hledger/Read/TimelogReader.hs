@@ -49,6 +49,7 @@ module Hledger.Read.TimelogReader (
 where
 import Control.Monad
 import Control.Monad.Error
+import Data.List (isPrefixOf)
 import Test.HUnit
 import Text.ParserCombinators.Parsec hiding (parse)
 import System.FilePath
@@ -68,16 +69,17 @@ reader = Reader format detect parse
 format :: String
 format = "timelog"
 
--- | Does the given file path and data provide timeclock.el's timelog format ?
+-- | Does the given file path and data look like it might be timeclock.el's timelog format ?
 detect :: FilePath -> String -> Bool
-detect f _ = takeExtension f == '.':format
+detect f s
+  | f /= "-"  = takeExtension f == '.':format               -- from a file: yes if the extension is .timelog
+  | otherwise = "i " `isPrefixOf` s || "o " `isPrefixOf` s  -- from stdin: yes if it starts with "i " or "o "
 
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse _ = -- trace ("running "++format++" reader") .
-          parseJournalWith timelogFile
+parse _ = parseJournalWith timelogFile
 
 timelogFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
 timelogFile = do items <- many timelogItem

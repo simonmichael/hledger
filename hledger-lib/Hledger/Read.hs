@@ -116,7 +116,6 @@ tests_readJournal' = [
 -- A CSV conversion rules file may also be specified for use by the CSV reader.
 readJournal :: Maybe StorageFormat -> Maybe FilePath -> Maybe FilePath -> String -> IO (Either String Journal)
 readJournal format rulesfile path s =
-  -- trace (show (format, rulesfile, path)) $
   tryReaders $ readersFor (format, path, s)
   where
     -- try each reader in turn, returning the error of the first if all fail
@@ -126,8 +125,9 @@ readJournal format rulesfile path s =
         firstSuccessOrBestError :: [String] -> [Reader] -> IO (Either String Journal)
         firstSuccessOrBestError [] []        = return $ Left "no readers found"
         firstSuccessOrBestError errs (r:rs) = do
-          -- printf "trying %s reader\n" (rFormat r)
+          dbgAtM 1 "trying reader" (rFormat r)
           result <- (runErrorT . (rParser r) rulesfile path') s
+          dbgAtM 1 "reader result" $ either id show result
           case result of Right j -> return $ Right j                       -- success!
                          Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
         firstSuccessOrBestError (e:_) []    = return $ Left e              -- none left, return first error
@@ -136,11 +136,11 @@ readJournal format rulesfile path s =
 -- | Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
 readersFor :: (Maybe StorageFormat, Maybe FilePath, String) -> [Reader]
 readersFor (format,path,s) =
+    dbg ("possible readers for "++show (format,path,elideRight 30 s)) $
     case format of 
      Just f  -> case readerForStorageFormat f of Just r  -> [r]
                                                  Nothing -> []
      Nothing -> case path of Nothing  -> readers
-                             Just "-" -> readers
                              Just p   -> case readersForPathAndData (p,s) of [] -> readers
                                                                              rs -> rs
 
@@ -162,7 +162,7 @@ readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
 readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> FilePath -> IO (Either String Journal)
 readJournalFile format rulesfile "-" = do
   hSetNewlineMode stdin universalNewlineMode
-  getContents >>= readJournal format rulesfile (Just "(stdin)")
+  getContents >>= readJournal format rulesfile (Just "-")
 readJournalFile format rulesfile f = do
   requireJournalFileExists f
   withFile f ReadMode $ \h -> do

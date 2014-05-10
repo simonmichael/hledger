@@ -182,7 +182,7 @@ data Reader = Reader {
     ,rParser   :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
     }
 
-instance Show Reader where show r = "Reader for "++rFormat r
+instance Show Reader where show r = rFormat r ++ " reader"
 
 -- format strings
 
