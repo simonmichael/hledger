@@ -6,6 +6,7 @@ Print a histogram report. (The "activity" command).
 
 module Hledger.Cli.Histogram
 where
+
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -19,8 +20,8 @@ import Hledger.Query
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
-
-activitymode = (defCommandMode $ ["activity"] ++ aliases) {
+activitymode :: Mode RawOpts
+activitymode = (defCommandMode $ ["activity"] : aliases) {
   modeHelp = "show an ascii barchart of posting counts per interval (default: daily)" `withAliases` aliases
  ,modeHelpSuffix = []
  ,modeGroupFlags = Group {
@@ -31,6 +32,7 @@ activitymode = (defCommandMode $ ["activity"] ++ aliases) {
  }
   where aliases = []
 
+barchar :: Char
 barchar = '*'
 
 -- | Print a histogram of some statistic per reporting interval, such as
@@ -46,8 +48,8 @@ showHistogram opts q j = concatMap (printDayWith countBar) spanps
       i = intervalFromOpts opts
       interval | i == NoInterval = Days 1
                | otherwise = i
-      span = queryDateSpan (date2_ opts) q `spanDefaultsFrom` journalDateSpan (date2_ opts) j
-      spans = filter (DateSpan Nothing Nothing /=) $ splitSpan interval span
+      span' = queryDateSpan (date2_ opts) q `spanDefaultsFrom` journalDateSpan (date2_ opts) j
+      spans = filter (DateSpan Nothing Nothing /=) $ splitSpan interval span'
       spanps = [(s, filter (isPostingInDateSpan s) ps) | s <- spans]
       -- same as Register
       -- should count transactions, not postings ?
