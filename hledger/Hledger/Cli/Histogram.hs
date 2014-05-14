@@ -21,7 +21,7 @@ import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
 activitymode :: Mode RawOpts
-activitymode = (defCommandMode $ ["activity"] : aliases) {
+activitymode = (defCommandMode $ ["activity"] ++ aliases) {
   modeHelp = "show an ascii barchart of posting counts per interval (default: daily)" `withAliases` aliases
  ,modeHelpSuffix = []
  ,modeGroupFlags = Group {
