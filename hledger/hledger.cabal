@@ -197,3 +197,21 @@ test-suite tests
                , wizards == 1.0.*
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
+
+benchmark bench
+  type:             exitcode-stdio-1.0
+--  hs-source-dirs:   src
+  main-is:          ../tools/simplebench.hs
+  ghc-options:      -Wall
+  default-language: Haskell2010
+  build-depends:    hledger-lib,
+                    hledger,
+                    base >= 4.3 && < 5,
+                    old-locale,
+                    time,
+                    html,
+                    tabular >= 0.2 && < 0.3,
+                    process,
+                    filepath,
+                    directory
+  

@@ -16,8 +16,8 @@ import Yesod.Default.Config --(fromArgs)
 import Settings            --  (parseExtra)
 import Application          (makeApplication)
 import Data.String
-import Data.Conduit.Network
-import Network.Wai.Handler.Warp (runSettings, defaultSettings, settingsPort)
+import Data.Conduit.Network hiding (setPort)
+import Network.Wai.Handler.Warp (runSettings, defaultSettings, setPort)
 import Network.Wai.Handler.Launch (runUrlPort)
 --
 import Prelude hiding (putStrLn)
@@ -61,19 +61,19 @@ web opts j = do
   let j' = filterJournalTransactions (queryFromOpts d $ reportopts_ $ cliopts_ opts) j
       p = port_ opts
       u = base_url_ opts
-      staticRoot = pack <$> static_root_ opts
+      staticRoot' = pack <$> static_root_ opts
   _ <- printf "Starting web app on port %d with base url %s\n" p u
   app <- makeApplication opts j' AppConfig{appEnv = Development
                                           ,appPort = p
                                           ,appRoot = pack u
                                           ,appHost = fromString "*4"
-                                          ,appExtra = Extra "" Nothing staticRoot
+                                          ,appExtra = Extra "" Nothing staticRoot'
                                           }
   if server_ opts
    then do
     putStrLn "Press ctrl-c to quit"
     hFlush stdout
-    runSettings defaultSettings{settingsPort=p} app
+    runSettings (setPort p defaultSettings) app
    else do
     putStrLn "Starting web browser if possible"
     putStrLn "Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)"

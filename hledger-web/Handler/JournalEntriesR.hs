@@ -16,7 +16,7 @@ import Hledger.Web.Options
 
 
 -- | The journal entries view, with sidebar.
-getJournalEntriesR :: Handler RepHtml
+getJournalEntriesR :: Handler Html
 getJournalEntriesR = do
   vd@VD{..} <- getViewData
   staticRootUrl <- (staticRoot . settings) <$> getYesod
@@ -41,6 +41,6 @@ getJournalEntriesR = do
   ^{importform}
 |]
 
-postJournalEntriesR :: Handler RepHtml
+postJournalEntriesR :: Handler Html
 postJournalEntriesR = handlePost
 
