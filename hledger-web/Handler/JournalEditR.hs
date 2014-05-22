@@ -10,12 +10,12 @@ import Handler.Utils
 
 
 -- | The journal editform, no sidebar.
-getJournalEditR :: Handler RepHtml
+getJournalEditR :: Handler Html
 getJournalEditR = do
   vd <- getViewData
   defaultLayout $ do
       setTitle "hledger-web journal edit form"
       toWidget $ editform vd
 
-postJournalEditR :: Handler RepHtml
+postJournalEditR :: Handler Html
 postJournalEditR = handlePost

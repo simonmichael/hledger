@@ -16,7 +16,7 @@ import Hledger.Cli.Options
 import Hledger.Web.Options
 
 -- | The main journal/account register view, with accounts sidebar.
-getRegisterR :: Handler RepHtml
+getRegisterR :: Handler Html
 getRegisterR = do
   vd@VD{..} <- getViewData
   staticRootUrl <- (staticRoot . settings) <$> getYesod
@@ -46,5 +46,5 @@ getRegisterR = do
   ^{importform}
 |]
 
-postRegisterR :: Handler RepHtml
+postRegisterR :: Handler Html
 postRegisterR = handlePost

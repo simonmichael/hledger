@@ -97,8 +97,8 @@ tests_Hledger_Cli = TestList
    ,"account directive should preserve \"virtual\" posting type" ~: do
       j <- readJournal Nothing Nothing Nothing "!account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
       let p = head $ tpostings $ head $ jtxns j
-      assertBool "" $ (paccount p) == "test:from"
-      assertBool "" $ (ptype p) == VirtualPosting
+      assertBool "" $ paccount p == "test:from"
+      assertBool "" $ ptype p == VirtualPosting
 
    ]
 
@@ -188,6 +188,7 @@ sample_journal_str = unlines
  ]
 -}
 
+defaultyear_journal_str :: String
 defaultyear_journal_str = unlines
  ["Y2009"
  ,""
@@ -337,9 +338,10 @@ defaultyear_journal_str = unlines
 --  ,""
 --  ]
 
+journal7 :: Journal
 journal7 = nulljournal {jtxns = 
           [
-           txnTieKnot $ Transaction {
+           txnTieKnot Transaction {
              tdate=parsedate "2007/01/01",
              tdate2=Nothing,
              tstatus=False,
@@ -354,7 +356,7 @@ journal7 = nulljournal {jtxns =
              tpreceding_comment_lines=""
            }
           ,
-           txnTieKnot $ Transaction {
+           txnTieKnot Transaction {
              tdate=parsedate "2007/02/01",
              tdate2=Nothing,
              tstatus=False,
@@ -369,7 +371,7 @@ journal7 = nulljournal {jtxns =
              tpreceding_comment_lines=""
            }
           ,
-           txnTieKnot $ Transaction {
+           txnTieKnot Transaction {
              tdate=parsedate "2007/01/02",
              tdate2=Nothing,
              tstatus=False,
@@ -384,7 +386,7 @@ journal7 = nulljournal {jtxns =
              tpreceding_comment_lines=""
            }
           ,
-           txnTieKnot $ Transaction {
+           txnTieKnot Transaction {
              tdate=parsedate "2007/01/03",
              tdate2=Nothing,
              tstatus=False,
@@ -399,7 +401,7 @@ journal7 = nulljournal {jtxns =
              tpreceding_comment_lines=""
            }
           ,
-           txnTieKnot $ Transaction {
+           txnTieKnot Transaction {
              tdate=parsedate "2007/01/03",
              tdate2=Nothing,
              tstatus=False,
@@ -414,7 +416,7 @@ journal7 = nulljournal {jtxns =
              tpreceding_comment_lines=""
            }
           ,
-           txnTieKnot $ Transaction {
+           txnTieKnot Transaction {
              tdate=parsedate "2007/01/03",
              tdate2=Nothing,
              tstatus=False,
@@ -431,4 +433,5 @@ journal7 = nulljournal {jtxns =
           ]
          }
 
+ledger7 :: Ledger
 ledger7 = ledgerFromJournal Any journal7
