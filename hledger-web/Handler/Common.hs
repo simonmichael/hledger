@@ -57,16 +57,16 @@ sidebar vd@VD{..} =
    <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction..
 
   <p style="margin-top:1em;">
-   <a href=@{JournalR} title="Show all transactions in journal format">Journal
+   <a href=@{JournalR} title="Show general journal entries, most recent first">Journal
    <span.hoverlinks>
     &nbsp;
-    <a href=@{JournalEntriesR} title="Show journal entries">entries
+    <a href=@{JournalEntriesR} title="Show raw journal entries, in file order">raw
     &nbsp;
     <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
      edit
 
   <p style="margin-top:1em;">
-   <a href=@{RegisterR} title="Show current register">Register
+   <a href=@{RegisterR} title="Show transactions in all accounts, most recent first">Register
 
   <div#accounts style="margin-top:.5em;">
    ^{accounts}
@@ -337,10 +337,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
   <span.hoverlinks>
    $if hassubs
     &nbsp;
-    <a href="@?{acctonlyquery}" title="Show transactions in this account only">only
-   <!--
-    &nbsp;
-    <a href="@?{acctsonlyquery}" title="Focus on this account and sub-accounts and hide others">-others -->
+    <a href="@?{acctonlyquery}" title="Show transactions in this account, excluding subaccounts">only
 
  <td.balance align=right>#{mixedAmountAsHtml abal}
 |]
