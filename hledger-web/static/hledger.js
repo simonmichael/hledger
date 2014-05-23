@@ -9,8 +9,8 @@ $(document).ready(function() {
     if ($.url.param('accounts')=='0') $('#accounts').hide();
 
     /* set up sidebar account mouse-over handlers */
-    $('#sidebar p a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
-    $('#sidebar p').mouseleave(function(){ $(this).removeClass('mouseover'); });
+    $('#sidebar p a, #sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
+    $('#sidebar p, #sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
     /* set up various show/hide toggles */
     $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); event.preventDefault(); });
