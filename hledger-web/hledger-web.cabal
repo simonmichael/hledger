@@ -24,24 +24,33 @@ extra-tmp-files:
 extra-source-files:
                 messages/en.msg
                 config/routes
+                static/css/bootstrap-theme.css
+                static/css/bootstrap-theme.css.map
+                static/css/bootstrap-theme.min.css
                 static/css/bootstrap.css
-                static/select2.css
-                static/select2.js
-                static/select2.min.js
-                static/select2-spinner.gif
-                static/select2.png
+                static/css/bootstrap.css.map
+                static/css/bootstrap.min.css
+                static/fonts/glyphicons-halflings-regular.eot
+                static/fonts/glyphicons-halflings-regular.svg
+                static/fonts/glyphicons-halflings-regular.ttf
+                static/fonts/glyphicons-halflings-regular.woff
+                static/js/bootstrap.js
+                static/js/bootstrap.min.js
+                static/js/jquery.min.js
                 static/excanvas.js
                 static/excanvas.min.js
                 static/favicon.ico
+                static/hledger.css
                 static/hledger.js
-                static/img/glyphicons-halflings-white.png
-                static/img/glyphicons-halflings.png
                 static/jquery.flot.js
                 static/jquery.flot.min.js
                 static/jquery.js
-                static/jquery.min.js
                 static/jquery.url.js
-                static/style.css
+                static/select2-spinner.gif
+                static/select2.css
+                static/select2.js
+                static/select2.min.js
+                static/select2.png
                 templates/default-layout.hamlet
                 templates/default-layout-wrapper.hamlet
                 templates/homepage.hamlet
