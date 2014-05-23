@@ -36,16 +36,14 @@ extra-source-files:
                 static/fonts/glyphicons-halflings-regular.woff
                 static/js/bootstrap.js
                 static/js/bootstrap.min.js
+                static/js/excanvas.js
+                static/js/excanvas.min.js
+                static/js/jquery.flot.js
+                static/js/jquery.flot.min.js
                 static/js/jquery.min.js
-                static/excanvas.js
-                static/excanvas.min.js
-                static/favicon.ico
+                static/js/jquery.url.js
                 static/hledger.css
                 static/hledger.js
-                static/jquery.flot.js
-                static/jquery.flot.min.js
-                static/jquery.js
-                static/jquery.url.js
                 static/select2-spinner.gif
                 static/select2.css
                 static/select2.js
