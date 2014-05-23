@@ -48,7 +48,31 @@ $maybe m' <- msg
 
 -- | The sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
-sidebar vd@VD{..} = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
+sidebar vd@VD{..} =
+ [hamlet|
+ <a#sidebar-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
+
+ <div#sidebar-content>
+  <p style="margin-top:1em;">
+   <a href=@{RegisterR} title="Show current register">Register
+
+  <p style="margin-top:1em;">
+   <a href=@{JournalR} title="Show all transactions in journal format">Journal
+   <span.hoverlinks>
+    &nbsp;
+    <a href=@{JournalEntriesR} title="Show journal entries">entries
+    &nbsp;
+    <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
+     edit
+
+  <p style="margin-top:1em;">
+   <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction..
+
+  <div#accounts>
+   ^{accounts}
+|]
+ where
+  accounts = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
 -- navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
@@ -285,35 +309,11 @@ nulltemplate = [hamlet||]
 ----------------------------------------------------------------------
 -- hledger report renderers
 
--- | Render an "BalanceReport" as html.
+-- | Render a "BalanceReport" as html.
 balanceReportAsHtml :: WebOpts -> ViewData -> BalanceReport -> HtmlUrl AppRoute
 balanceReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
-<div#accountsheading>
- <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
-<div#accounts>
  <table.balancereport>
-  <tr.item :allaccts:.inacct>
-   <td.register colspan=3>
-    <br>
-    <a href=@{RegisterR} title="Show current register">Register
-
-  <tr.item :allaccts:.inacct>
-   <td.journal colspan=3>
-    <br>
-    <a href=@{JournalR} title="Show all transactions in journal format">Journal
-    <span.hoverlinks>
-     &nbsp;
-     <a href=@{JournalEntriesR} title="Show journal entries">entries
-     &nbsp;
-     <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
-      edit
-
-  <tr>
-   <td.add colspan=3>
-    <br>
-    <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
-
   <tr>
    <td colspan=3>
     <br>

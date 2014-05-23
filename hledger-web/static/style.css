@@ -24,18 +24,16 @@ body                                                                 { backgroun
 .negative                                                            { color:#800; }
 .help                                                                {  }
 
-.balancereport .inacct                                               { /*background-color:#ddd;*/ font-weight:bold; }
-.notinacct, .notinacct :link, .notinacct :visited { color:#888; }
-.notinacct .negative { color:#b77; }
-.balancereport .numpostings                                          { padding-left:1em; color:#aaa; }
-.balancereport td.add.mouseover { background-color:rgba(208,208,208,0.5); }
-.balancereport td.journal.mouseover { background-color:rgba(208,208,208,0.5); }
-.balancereport td.journal.mouseover .hoverlinks { visibility:visible; }
-.balancereport td.account.mouseover { background-color:rgba(208,208,208,0.5); }
-.balancereport td.account.mouseover .hoverlinks { visibility:visible; }
-.balancereport .hoverlinks { visibility:hidden; }
-.balancereport .hoverlinks { margin-left:0em; font-weight:normal; /*font-size:smaller;*/ display:inline-block; text-align:right; }
-.balancereport .hoverlinks a { margin-left:0.5em; }
+#sidebar .hoverlinks { visibility:hidden; }
+#sidebar .mouseover { background-color:rgba(208,208,208,0.5); }
+#sidebar .mouseover .hoverlinks { visibility:visible; }
+
+#sidebar .balancereport .hoverlinks { margin-left:0em; font-weight:normal; /*font-size:smaller;*/ display:inline-block; text-align:right; }
+#sidebar .balancereport .hoverlinks a { margin-left:0.5em; }
+#sidebar .notinacct, .notinacct :link, .notinacct :visited { color:#888; }
+#sidebar .notinacct .negative { color:#b77; }
+#sidebar .balancereport .inacct                                               { /*background-color:#ddd;*/ font-weight:bold; }
+#sidebar .balancereport .numpostings                                          { padding-left:1em; color:#aaa; }
 
 /*------------------------------------------------------------------------------------------*/
 /* 2. font families & sizes */

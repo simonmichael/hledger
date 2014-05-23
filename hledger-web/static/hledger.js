@@ -9,12 +9,12 @@ $(document).ready(function() {
     if ($.url.param('accounts')=='0') $('#accounts').hide();
 
     /* set up sidebar account mouse-over handlers */
-    $('.balancereport td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
-    $('.balancereport td').mouseleave(function(){ $(this).removeClass('mouseover'); });
+    $('#sidebar p a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
+    $('#sidebar p').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
     /* set up various show/hide toggles */
     $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); event.preventDefault(); });
-    $('#accounts-toggle-link').click(function() { $('#accounts').slideToggle('fast'); event.preventDefault(); });
+    $('#sidebar-toggle-link').click(function() { $('#sidebar-content').slideToggle('fast'); event.preventDefault(); });
     $('#all-postings-toggle-link').click(function() { $('.posting').toggle(); event.preventDefault(); });
     $('.postings-toggle-link').click(function() { $(this).parent().parent().nextUntil(':not(.posting)').toggle(); event.preventDefault(); });
 
