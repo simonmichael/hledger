@@ -111,7 +111,7 @@ instance Yesod App where
             toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR excanvas_min_js}"></script> <![endif]--> |]
             addScript $ StaticR select2_min_js
             addStylesheet $ StaticR select2_css
-            addStylesheet $ StaticR style_css
+            addStylesheet $ StaticR hledger_css
             addScript $ StaticR hledger_js
             $(widgetFile "default-layout")
 
