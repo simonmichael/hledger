@@ -10,13 +10,11 @@ module Hledger.Web.Main
 where
 
 -- yesod scaffold imports
-import Prelude              (IO)
 import Yesod.Default.Config --(fromArgs)
 -- import Yesod.Default.Main   (defaultMain)
 import Settings            --  (parseExtra)
 import Application          (makeApplication)
 import Data.String
-import Data.Conduit.Network hiding (setPort)
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setPort)
 import Network.Wai.Handler.Launch (runUrlPort)
 --

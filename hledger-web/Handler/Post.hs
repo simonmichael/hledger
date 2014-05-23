@@ -9,7 +9,6 @@ import Data.List (intercalate)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
 import Data.Text (unpack)
 import qualified Data.Text as T (null)
-import Text.Hamlet (shamlet)
 import Text.Printf (printf)
 
 import Handler.Utils

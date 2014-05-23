@@ -6,7 +6,6 @@ module Handler.Common where
 import Import
 
 import Data.List
-import Data.Maybe
 import Data.Text(pack)
 import Data.Time.Calendar
 import System.FilePath (takeFileName)
@@ -326,7 +325,6 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
  where
    l = ledgerFromJournal Any j
    inacctmatcher = inAccountQuery qopts
-   allaccts = isNothing inacctmatcher
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
    itemAsHtml _ ((acct, adisplay, aindent), abal) = [hamlet|
