@@ -22,7 +22,8 @@ module Hledger.Data.Journal (
   -- * Filtering
   filterJournalTransactions,
   filterJournalPostings,
-  filterJournalPostingAmounts,
+  filterJournalAmounts,
+  filterTransactionAmounts,
   filterPostingAmount,
   -- * Querying
   journalAccountNames,
@@ -231,6 +232,10 @@ journalCashAccountQuery j = And [journalAssetAccountQuery j, Not $ Acct "(receiv
 -------------------------------------------------------------------------------
 -- filtering V2
 
+-- | Keep only transactions matching the query expression.
+filterJournalTransactions :: Query -> Journal -> Journal
+filterJournalTransactions q j@Journal{jtxns=ts} = j{jtxns=filter (q `matchesTransaction`) ts}
+
 -- | Keep only postings matching the query expression.
 -- This can leave unbalanced transactions.
 filterJournalPostings :: Query -> Journal -> Journal
@@ -238,20 +243,19 @@ filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map filtertransactionposti
     where
       filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
 
--- Within each posting's amount, keep only the parts matching the query.
+-- | Within each posting's amount, keep only the parts matching the query.
 -- This can leave unbalanced transactions.
-filterJournalPostingAmounts :: Query -> Journal -> Journal
-filterJournalPostingAmounts q j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
-    where
-      filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=map (filterPostingAmount q) ps}
+filterJournalAmounts :: Query -> Journal -> Journal
+filterJournalAmounts q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionAmounts q) ts}
+
+-- | Filter out all parts of this transaction's amounts which do not match the query.
+-- This can leave the transaction unbalanced.
+filterTransactionAmounts :: Query -> Transaction -> Transaction
+filterTransactionAmounts q t@Transaction{tpostings=ps} = t{tpostings=map (filterPostingAmount q) ps}
 
 -- | Filter out all parts of this posting's amount which do not match the query.
 filterPostingAmount :: Query -> Posting -> Posting
 filterPostingAmount q p@Posting{pamount=Mixed as} = p{pamount=Mixed $ filter (q `matchesAmount`) as}
-
--- | Keep only transactions matching the query expression.
-filterJournalTransactions :: Query -> Journal -> Journal
-filterJournalTransactions q j@Journal{jtxns=ts} = j{jtxns=filter (q `matchesTransaction`) ts}
 
 {-
 -------------------------------------------------------------------------------

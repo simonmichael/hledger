@@ -85,7 +85,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
       ps :: [Posting] =
           dbg "ps" $
           journalPostings $
-          filterJournalPostingAmounts symq $     -- remove amount parts excluded by cur:
+          filterJournalAmounts symq $     -- remove amount parts excluded by cur:
           filterJournalPostings reportq $        -- remove postings not matched by (adjusted) query
           journalSelectingAmountFromOpts opts j
 

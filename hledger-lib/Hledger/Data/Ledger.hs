@@ -43,7 +43,7 @@ ledgerFromJournal :: Query -> Journal -> Ledger
 ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
   where
     (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
-    j'  = filterJournalPostingAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
+    j'  = filterJournalAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
           filterJournalPostings q' j
     as  = accountsFromPostings $ journalPostings j'
     j'' = filterJournalPostings depthq j'
