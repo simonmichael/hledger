@@ -51,10 +51,10 @@ sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
  <a#sidebar-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
-
  <div#sidebar-content>
+
   <p style="margin-top:1em;">
-   <a href=@{RegisterR} title="Show current register">Register
+   <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction..
 
   <p style="margin-top:1em;">
    <a href=@{JournalR} title="Show all transactions in journal format">Journal
@@ -66,9 +66,9 @@ sidebar vd@VD{..} =
      edit
 
   <p style="margin-top:1em;">
-   <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction..
+   <a href=@{RegisterR} title="Show current register">Register
 
-  <div#accounts>
+  <div#accounts style="margin-top:.5em;">
    ^{accounts}
 |]
  where
@@ -314,14 +314,8 @@ balanceReportAsHtml :: WebOpts -> ViewData -> BalanceReport -> HtmlUrl AppRoute
 balanceReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
  <table.balancereport>
-  <tr>
-   <td colspan=3>
-    <br>
-    Accounts
-
   $forall i <- items
    ^{itemAsHtml vd i}
-
   <tr.totalrule>
    <td colspan=3>
   <tr>

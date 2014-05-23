@@ -116,7 +116,7 @@ body                        { margin:0; }
 .balancereport tr           { vertical-align:bottom; border-spacing:0; }
 .balancereport .title       { white-space:nowrap; }
 .balancereport .item        { }
-.balancereport .depth0      { padding-top:1em; }
+/* .balancereport .depth0      { padding-top:1em; } */
 .balancereport td           { padding:0; }
 .totalrule td               { border-top:thin solid black; }
 .balancereport .account     { white-space:nowrap; }
