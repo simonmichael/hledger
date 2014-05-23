@@ -103,7 +103,7 @@ instance Yesod App where
 
         pc <- widgetToPageContent $ do
             $(widgetFile "normalize")
-            addStylesheet $ StaticR css_bootstrap_css
+            addStylesheet $ StaticR css_bootstrap_min_css
             -- load jquery early:
             toWidgetHead [hamlet| <script type="text/javascript" src="@{StaticR jquery_min_js}"></script> |]
             addScript $ StaticR jquery_url_js
