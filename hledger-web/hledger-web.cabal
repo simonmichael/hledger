@@ -119,6 +119,7 @@ library
                      Hledger.Web
                      Hledger.Web.Main
                      Hledger.Web.Options
+                     -- Setup -- stops yesod devel complaining, requires build-depends: Cabal
     build-depends:
                      hledger              == 0.23.98
                    , hledger-lib          == 0.23.98
