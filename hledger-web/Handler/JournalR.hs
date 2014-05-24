@@ -25,9 +25,9 @@ getJournalR = do
       filtering = m /= Any
       -- showlastcolumn = if injournal && not filtering then False else True
       title = case inacct of
-                Nothing       -> "Journal"++s2
+                Nothing       -> "General Journal"++s2
                 Just (a,inclsubs) -> "Transactions in "++a++s1++s2
-                                      where s1 = if inclsubs then " (and subaccounts)" else ""
+                                      where s1 = if inclsubs then " including subs" else " excluding subs"
                 where
                   s2 = if filtering then ", filtered" else ""
       maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m

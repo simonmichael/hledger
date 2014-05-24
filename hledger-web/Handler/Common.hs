@@ -6,6 +6,7 @@ module Handler.Common where
 import Import
 
 import Data.List
+import Data.Maybe
 import Data.Text(pack)
 import Data.Time.Calendar
 import System.FilePath (takeFileName)
@@ -56,16 +57,7 @@ sidebar vd@VD{..} =
    <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction..
 
   <p style="margin-top:1em;">
-   <a href=@{JournalR} title="Show general journal entries, most recent first">Journal
-   <span.hoverlinks>
-    &nbsp;
-    <a href=@{JournalEntriesR} title="Show raw journal entries, in file order">raw
-    &nbsp;
-    <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
-     edit
-
-  <p style="margin-top:1em;">
-   <a href=@{RegisterR} title="Show transactions in all accounts, most recent first">Register
+   <a href=@{JournalR} title="Show transactions in all accounts, most recent first">All accounts
 
   <div#accounts style="margin-top:.5em;">
    ^{accounts}
@@ -404,8 +396,13 @@ $forall p' <- tpostings t
   <tr.item.#{evenodd}.posting>
    <td.date>
    <td.description>
-   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
+   <td.account>&nbsp;#{elideRight 40 $ paccount p'}
    <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
+<tr>
+ <td>&nbsp;
+ <td>
+ <td>
+ <td>
 |]
      where
        evenodd = if even n then "even" else "odd" :: String
@@ -433,37 +430,39 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
   <th.account style="text-align:left;">To/From Account(s)
     <!-- \ #
     <a#all-postings-toggle-link.togglelink href="#" title="Toggle all split postings">[+] -->
-  <th.amount style="text-align:right;">Amount
-  <th.balance style="text-align:right;">#{balancelabel}
+  $if inacct
+   <th.amount style="text-align:right;">Amount
+   <th.balance style="text-align:right;">#{balancelabel}
 
  $forall i <- numberTransactionsReportItems items
   ^{itemAsHtml vd i}
+
  |]
  where
-   -- inacct = inAccount qopts
+   inacct = isJust $ inAccount $ qopts vd
    -- filtering = m /= Any
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [hamlet|
+
 <tr.item.#{evenodd}.#{firstposting}.#{datetransition}>
  <td.date>#{date}
  <td.description title="#{show t}">#{elideRight 30 desc}
  <td.account title="#{show t}">
-  <a>
-   \#{elideRight 40 acct}
-  &nbsp;
-  <a.postings-toggle-link.togglelink href="#" title="Toggle all postings">
-   [+]
- <td.amount style="text-align:right; white-space:nowrap;">
-  $if showamt
-   \#{mixedAmountAsHtml amt}
- <td.balance style="text-align:right;">#{mixedAmountAsHtml bal}
-$forall p' <- tpostings t
- <tr.item.#{evenodd}.posting style=#{postingsdisplaystyle}>
+  \#{elideRight 40 acct}
+ $if inacct
+  <td.amount style="text-align:right; white-space:nowrap;">
+   $if showamt
+    \#{mixedAmountAsHtml amt}
+  <td.balance style="text-align:right;">#{mixedAmountAsHtml bal}
+ $else
+  $forall p' <- tpostings t
+   <tr.item.#{evenodd}.posting>
    <td.date>
    <td.description>
    <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
-   <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
-   <td.balance style="text-align:right;">
+    <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
+    <td.balance style="text-align:right;">
+
 |]
      where
        evenodd = if even n then "even" else "odd" :: String
@@ -473,7 +472,6 @@ $forall p' <- tpostings t
        (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
        -- acctquery = (here, [("q", pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
-       postingsdisplaystyle = if showpostings then "" else "display:none;" :: String
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.

@@ -26,7 +26,7 @@ getRegisterR = do
       title = "Transactions in "++a++s1++s2
                where
                  (a,inclsubs) = fromMaybe ("all accounts",False) $ inAccount qopts
-                 s1 = if inclsubs then " (and subaccounts)" else ""
+                 s1 = if inclsubs then " including subs" else " excluding subs"
                  s2 = if filtering then ", filtered" else ""
       maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   defaultLayout $ do
