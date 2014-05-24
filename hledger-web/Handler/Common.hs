@@ -383,10 +383,10 @@ journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> 
 journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 <table.transactionsreport>
  <tr.headings>
-  <th.date align=left>Date
-  <th.description align=left>Description
-  <th.account align=left>Accounts
-  <th.amount align=right>Amount
+  <th.date style="text-align:left;">Date
+  <th.description style="text-align:left;">Description
+  <th.account style="text-align:left;">Accounts
+  <th.amount style="text-align:right;">Amount
  $forall i <- numberTransactionsReportItems items
   ^{itemAsHtml vd i}
  |]
@@ -397,7 +397,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 <tr.item.#{evenodd}.#{firstposting}>
  <td.date>#{date}
  <td.description colspan=2>#{elideRight 60 desc}
- <td.amount align=right>
+ <td.amount style="text-align:right;">
   $if showamt
    \#{mixedAmountAsHtml amt}
 $forall p' <- tpostings t
@@ -405,7 +405,7 @@ $forall p' <- tpostings t
    <td.date>
    <td.description>
    <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
-   <td.amount align=right>#{mixedAmountAsHtml $ pamount p'}
+   <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
 |]
      where
        evenodd = if even n then "even" else "odd" :: String
@@ -428,13 +428,13 @@ registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRou
 registerItemsHtml _ vd (balancelabel,items) = [hamlet|
 <table.registerreport>
  <tr.headings>
-  <th.date align=left>Date
-  <th.description align=left>Description
-  <th.account align=left>To/From Account
+  <th.date style="text-align:left;">Date
+  <th.description style="text-align:left;">Description
+  <th.account style="text-align:left;">To/From Account(s)
     <!-- \ #
     <a#all-postings-toggle-link.togglelink href="#" title="Toggle all split postings">[+] -->
-  <th.amount align=right>Amount
-  <th.balance align=right>#{balancelabel}
+  <th.amount style="text-align:right;">Amount
+  <th.balance style="text-align:right;">#{balancelabel}
 
  $forall i <- numberTransactionsReportItems items
   ^{itemAsHtml vd i}
@@ -453,17 +453,17 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
   &nbsp;
   <a.postings-toggle-link.togglelink href="#" title="Toggle all postings">
    [+]
- <td.amount align=right>
+ <td.amount style="text-align:right; white-space:nowrap;">
   $if showamt
    \#{mixedAmountAsHtml amt}
- <td.balance align=right>#{mixedAmountAsHtml bal}
+ <td.balance style="text-align:right;">#{mixedAmountAsHtml bal}
 $forall p' <- tpostings t
  <tr.item.#{evenodd}.posting style=#{postingsdisplaystyle}>
    <td.date>
    <td.description>
    <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
-   <td.amount align=right>#{mixedAmountAsHtml $ pamount p'}
-   <td.balance align=right>
+   <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
+   <td.balance style="text-align:right;">
 |]
      where
        evenodd = if even n then "even" else "odd" :: String
