@@ -57,22 +57,22 @@ $newline never
                 <div .row>
                   <div .col-xs-6>
                     <p>
-                      <b>General
-                      <ul>
-                        <li> Journal shows general journal entries, representing zero-sum transactions between hierarchical accounts
-                        <li> The resulting accounts and their final balances appear in the sidebar
-                        <li> Parent account balances include subaccount balances
-                        <li> Multiple currencies in balances are displayed one above the other
-                        <li> Click account names to see transactions affecting that account, with running balance
-                        <!-- <li> Click dates to see journal entries on that date -->
-                    <p>
                       <b>Keyboard shortcuts
                       <ul>
-                        <li> <b><tt>?, h</tt></b> - view this help; escape or click to exit
+                        <li> <b><tt>h</tt></b> or <b><tt>?</tt></b> - view this help (escape or click to exit)
+                        <li> <b><tt>j</tt></b> - go to the Journal view (home)
+                        <li> <b><tt>a</tt></b> - add a transaction (escape to cancel)
                         <li> <b><tt>s</tt></b> - toggle sidebar
-                        <li> <b><tt>j</tt></b> - go to journal view
-                        <li> <b><tt>ctrl-s, /</tt></b> - focus search form
-                        <li> <b><tt>a</tt></b> - add a transaction; escape to cancel
+                        <li> <b><tt>/</tt></b> or <b><tt>ctrl-s</tt></b> - focus search form
+                    <p>
+                      <b>General
+                      <ul>
+                        <li> The Journal view shows general journal entries, representing zero-sum movements of money (or other commodity) between hierarchical accounts
+                        <li> The sidebar shows the resulting accounts and their final balances
+                        <li> Parent account balances include subaccount balances
+                        <li> Multiple currencies in balances are displayed one above the other
+                        <li> Click account name links to see transactions affecting that account, with running balance
+                        <li> Click date links to see journal entries on that date
                   <div .col-xs-6>
                     <p>
                       <b>Search
