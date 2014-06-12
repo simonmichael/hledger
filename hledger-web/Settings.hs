@@ -22,7 +22,7 @@ import Text.Printf (printf)
 
 hledgerorgurl, manualurl :: String
 hledgerorgurl     = "http://hledger.org"
-manualurl         = hledgerorgurl++"/MANUAL.html"
+manualurl         = hledgerorgurl++"/manual"
 
 -- | The default TCP port to listen on. May be overridden with --port.
 defport :: Int
