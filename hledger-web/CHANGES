@@ -1,5 +1,17 @@
 See also the hledger changelog.
 
+- the web UI has been streamlined; edit form, raw & entries views have been dropped
+- we now remember whether sidebar is open or closed
+- better help dialog
+- keyboard shortcuts are now available
+- better add form
+- more bootstrap styling
+- static file cleanups
+- report filtering fixes
+- upgrade jquery to 2.1.1, bootstrap to 3.1.1, drop select2, add typeahead, cookie, hotkeys
+- clarify debug helpers a little
+- refactoring
+
 0.23.2 (2014/5/8)
 
 - depend on latest hledger
