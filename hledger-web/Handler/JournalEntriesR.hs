@@ -33,8 +33,8 @@ getJournalEntriesR = do
   ^{sidecontent}
  <div#main.journal>
   <div#maincontent>
-   <h2#contenttitle>#{title}
    ^{searchform vd}
+   <h2#contenttitle>#{title}
    ^{maincontent}
   ^{addform staticRootUrl vd}
   ^{editform vd}
@@ -43,4 +43,22 @@ getJournalEntriesR = do
 
 postJournalEntriesR :: Handler Html
 postJournalEntriesR = handlePost
+
+-- | Render an "EntriesReport" as html for the journal entries view.
+entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> HtmlUrl AppRoute
+entriesReportAsHtml _ vd items = [hamlet|
+<table.entriesreport>
+ $forall i <- numbered items
+  ^{itemAsHtml vd i}
+ |]
+ where
+   itemAsHtml :: ViewData -> (Int, EntriesReportItem) -> HtmlUrl AppRoute
+   itemAsHtml _ (n, t) = [hamlet|
+<tr.item.#{evenodd}>
+ <td.transaction>
+  <pre>#{txn}
+ |]
+     where
+       evenodd = if even n then "even" else "odd" :: String
+       txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
 

@@ -1,126 +1,123 @@
-/* hledger web ui javascripts */
-/* depends on jquery, other support libs, and additional js inserted inline */
+/* hledger web ui javascript */
+/* depends on jquery etc. */
+
+// /* show/hide things based on locally-saved state */
+// happens too late with large main content in chrome, visible glitch
+// if (localStorage.getItem('sidebarVisible') == "false")
+// 	$('#sidebar').hide();
+// /* or request parameters */
+// if ($.url.param('sidebar')=='' || $.url.param('sidebar')=='0')
+//   $('#sidebar').hide();
+// else if ($.url.param('sidebar')=='1')
+//   $('#sidebar').show();
+
+if ($.url.param('add')) {
+  $('#addform').collapse('show');
+  $('#addform input[name=description]').focus();
+}
 
 $(document).ready(function() {
 
-    /* show/hide things based on request parameters */
-    if ($.url.param('add')) addformToggle();
-    else if ($.url.param('edit')) editformToggle();
-    if ($.url.param('accounts')=='0') $('#accounts').hide();
+    /* sidebar account hover handlers */
+    $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
+    $('#sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
-    /* set up sidebar account mouse-over handlers */
-    $('#sidebar p a, #sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
-    $('#sidebar p, #sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
-
-    /* set up various show/hide toggles */
-    $('#search-help-link').click(function() { $('#search-help').slideToggle('fast'); event.preventDefault(); });
-    $('#sidebar-toggle-link').click(function() { $('#sidebar-content').slideToggle('fast'); event.preventDefault(); });
-    $('#all-postings-toggle-link').click(function() { $('.posting').toggle(); event.preventDefault(); });
-    $('.postings-toggle-link').click(function() { $(this).parent().parent().nextUntil(':not(.posting)').toggle(); event.preventDefault(); });
+    /* keyboard shortcuts */
+    $(document).bind('keydown', 'shift+/', function(){ $('#searchhelpmodal').modal('toggle'); return false; });
+    $(document).bind('keydown', 'h',       function(){ $('#searchhelpmodal').modal('toggle'); return false; });
+    $(document).bind('keydown', 'j',       function(){ location.href = '/journal'; return false; });
+    $(document).bind('keydown', 's',       function(){ sidebarToggle(); return false; });
+    $(document).bind('keydown', 'a',       function(){ addformFocus(); return false; });
+    $('#addform input,#addform button,#addformlink').bind('keydown', 'esc', addformCancel);
+    $(document).bind('keydown', '/',       function(){ $('#searchform input').focus(); return false; });
+    $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+shift+=', addformAddPosting);
+    $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+=', addformAddPosting);
+    $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+-', addformDeletePosting);
 
 });
 
-function searchformToggle() {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var f = document.getElementById('searchform');
- var i = document.getElementById('importform');
- var c = document.getElementById('maincontent');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('searchformlink');
- var ilink = document.getElementById('importformlink');
- var tlink = document.getElementById('transactionslink');
-
- if (f.style.display == 'none') {
-  flink.style['font-weight'] = 'bold';
-  f.style.display = 'block';
- } else {
-  flink.style['font-weight'] = 'normal';
-  f.style.display = 'none';
- }
- return false;
+function sidebarToggle() {
+  console.log('sidebarToggle');
+  var visible = $('#sidebar').is(':visible');
+  console.log('sidebar visibility was',visible);
+  // if opening sidebar, start an ajax fetch of its content
+  if (!visible) {
+    //console.log('getting sidebar content');
+    $.get("sidebar"
+         ,null
+         ,function(data) {
+					  //console.log( "success" );
+            $("#sidebar-body" ).html(data);
+          })
+					.done(function() {
+					  //console.log( "success 2" );
+					})
+					.fail(function() {
+					  //console.log( "error" );
+					});
+  }
+	// localStorage.setItem('sidebarVisible', !visible);
+  // set a cookie to communicate the new sidebar state to the server
+  $.cookie('showsidebar', visible ? '0' : '1');
+  // horizontally slide the sidebar in or out
+  // how to make it smooth, without delayed content pop-in ?
+  //$('#sidebar').animate({'width': 'toggle'});
+  //$('#sidebar').animate({'width': visible ? 'hide' : '+=20m'});
+  //$('#sidebar-spacer').width(200);
+  $('#sidebar').animate({'width': visible ? 'hide' : 'show'});
 }
 
-function addformToggle(ev) {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var f = document.getElementById('searchform');
- var i = document.getElementById('importform');
- var c = document.getElementById('maincontent');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('searchformlink');
- var ilink = document.getElementById('importformlink');
- var tlink = document.getElementById('transactionslink');
-
- if (a.style.display == 'none') {
-   if (alink) alink.style['font-weight'] = 'bold';
-   if (elink) elink.style['font-weight'] = 'normal';
-   if (ilink) ilink.style['font-weight'] = 'normal';
-   if (tlink) tlink.style['font-weight'] = 'normal';
-   if (a) a.style.display = 'block';
-   if (e) e.style.display = 'none';
-   if (i) i.style.display = 'none';
-   if (c) c.style.display = 'none';
- } else {
-   if (alink) alink.style['font-weight'] = 'normal';
-   if (elink) elink.style['font-weight'] = 'normal';
-   if (ilink) ilink.style['font-weight'] = 'normal';
-   if (tlink) tlink.style['font-weight'] = 'bold';
-   if (a) a.style.display = 'none';
-   if (e) e.style.display = 'none';
-   if (i) i.style.display = 'none';
-   if (c) c.style.display = 'block';
- }
- return false;
+function addformToggle() {
+  if (location.pathname != '/journal') {
+    location.href = '/journal?add=1';
+  }
+  else {
+    $('#addform').collapse('toggle');
+    $('#addform input[name=description]').focus();
+  }
 }
 
-function editformToggle(ev) {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var ej = document.getElementById('journalselect');
- var f = document.getElementById('searchform');
- var i = document.getElementById('importform');
- var c = document.getElementById('maincontent');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('searchformlink');
- var ilink = document.getElementById('importformlink');
- var tlink = document.getElementById('transactionslink');
-
- if (e.style.display == 'none') {
-  if (alink) alink.style['font-weight'] = 'normal';
-  if (elink) elink.style['font-weight'] = 'bold';
-  if (ilink) ilink.style['font-weight'] = 'normal';
-  if (tlink) tlink.style['font-weight'] = 'normal';
-  if (a) a.style.display = 'none';
-  if (i) i.style.display = 'none';
-  if (c) c.style.display = 'none';
-  if (e) e.style.display = 'block';
-  editformJournalSelect(ev);
- } else {
-  if (alink) alink.style['font-weight'] = 'normal';
-  if (elink) elink.style['font-weight'] = 'normal';
-  if (ilink) ilink.style['font-weight'] = 'normal';
-   if (tlink) tlink.style['font-weight'] = 'bold';
-  if (a) a.style.display = 'none';
-  if (e) e.style.display = 'none';
-  if (i) i.style.display = 'none';
-  if (c) c.style.display = 'block';
- }
- return false;
+function addformFocus() {
+  if (location.pathname != '/journal') {
+    location.href = '/journal?add=1';
+  }
+  else {
+    $('#addform').collapse('show');
+    $('#addform input[name=description]').focus();
+  }
 }
 
-// Get the current event's target in a robust way.
-// http://www.quirksmode.org/js/events_properties.html
-function getTarget(ev) {
-  var targ;
-  if (!ev) var ev = window.event;
-  if (ev.target) targ = ev.target;
-  else if (ev.srcElement) targ = ev.srcElement;
-  if (targ.nodeType == 3) targ = targ.parentNode;
-  return targ;
+function addformCancel() {
+  $('#addform input[type=text]').typeahead('val','');
+  $('#addform')
+    .each( function(){ this.reset();} )
+    .collapse('hide');
+  // try to keep keybindings working in safari
+  //$('#addformlink').focus();
+}
+
+function addformAddPosting() {
+  var rownum = $('#addform tr.posting').length + 1;
+  // XXX duplicates markup in Common.hs
+  // duplicate last row
+  $('#addform > table').append($('#addform > table tr:last').clone());
+  // fix up second-last row
+  $('#addform > table > tr.lastrow:first > td:last').html('');
+  $('#addform > table > tr.lastrow:first').removeClass('lastrow');
+
+  // fix up last row
+  $('#addform table').append($('#addform table tr:last').clone());
+  //     '<tr class="posting">' +
+  //     '<td style="padding-left:2em;">' +
+  //     '<input id="account'+rownum+'" class="form-control input-lg" style="width:100%;" type="text"' +
+  //     ' name=account'+rownum+'" placeholder="Account '+rownum+'">'
+  // );
+
+  // $('#addbtncell').appendTo($('#addform table tr:last'))
+  //                  );
+}
+
+function addformDeletePosting() {
 }
 
 function editformJournalSelect(ev) {
@@ -142,36 +139,15 @@ function editformJournalSelect(ev) {
  return true;
 }
 
-function importformToggle(ev) {
- var a = document.getElementById('addform');
- var e = document.getElementById('editform');
- var f = document.getElementById('searchform');
- var i = document.getElementById('importform');
- var c = document.getElementById('maincontent');
- var alink = document.getElementById('addformlink');
- var elink = document.getElementById('editformlink');
- var flink = document.getElementById('searchformlink');
- var ilink = document.getElementById('importformlink');
- var tlink = document.getElementById('transactionslink');
-
- if (i.style.display == 'none') {
-   if (alink) alink.style['font-weight'] = 'normal';
-   if (elink) elink.style['font-weight'] = 'normal';
-   if (ilink) ilink.style['font-weight'] = 'bold';
-   if (tlink) tlink.style['font-weight'] = 'normal';
-   if (a) a.style.display = 'none';
-   if (e) e.style.display = 'none';
-   if (i) i.style.display = 'block';
-   if (c) c.style.display = 'none';
- } else {
-   if (alink) alink.style['font-weight'] = 'normal';
-   if (elink) elink.style['font-weight'] = 'normal';
-   if (ilink) ilink.style['font-weight'] = 'normal';
-   if (tlink) tlink.style['font-weight'] = 'bold';
-   if (a) a.style.display = 'none';
-   if (e) e.style.display = 'none';
-   if (i) i.style.display = 'none';
-   if (c) c.style.display = 'block';
- }
- return false;
+/*
+// Get the current event's target in a robust way.
+// http://www.quirksmode.org/js/events_properties.html
+function getTarget(ev) {
+  var targ;
+  if (!ev) var ev = window.event;
+  if (ev.target) targ = ev.target;
+  else if (ev.srcElement) targ = ev.srcElement;
+  if (targ.nodeType == 3) targ = targ.parentNode;
+  return targ;
 }
+*/

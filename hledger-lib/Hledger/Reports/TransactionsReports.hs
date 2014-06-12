@@ -1,7 +1,10 @@
 {-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
 {-|
 
-Whole-journal, account-centric, and per-commodity transactions reports, used by hledger-web.
+Here are several variants of a transactions report.
+Transactions reports are like a postings report, but more
+transaction-oriented, and (in the account-centric variant) relative to
+a some base account.  They are used by hledger-web.
 
 -}
 
@@ -58,13 +61,15 @@ triSimpleBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
 
 -- | Select transactions from the whole journal. This is similar to a
 -- "postingsReport" except with transaction-based report items which
--- are ordered most recent first. This is used by eg hledger-web's journal view.
+-- are ordered most recent first. XXX Or an EntriesReport - use that instead ?
+-- This is used by hledger-web's journal view.
 journalTransactionsReport :: ReportOpts -> Journal -> Query -> TransactionsReport
-journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
+journalTransactionsReport opts j q = (totallabel, items)
    where
-     ts' = sortBy (comparing tdate) $ filter (not . null . tpostings) $ map (filterTransactionPostings m) ts
-     items = reverse $ accountTransactionsReportItems m Nothing nullmixedamt id ts'
      -- XXX items' first element should be the full transaction with all postings
+     items = reverse $ accountTransactionsReportItems q Nothing nullmixedamt id ts
+     ts    = sortBy (comparing date) $ filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts opts j
+     date  = transactionDateFn opts
 
 -------------------------------------------------------------------------------
 
@@ -83,16 +88,20 @@ journalTransactionsReport _ Journal{jtxns=ts} m = (totallabel, items)
 -- reporting intervals are not supported, and report items are most
 -- recent first.
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> TransactionsReport
-accountTransactionsReport opts j m thisacctquery = (label, items)
+accountTransactionsReport opts j q thisacctquery = (label, items)
  where
      -- transactions affecting this account, in date order
-     ts = sortBy (comparing tdate) $ filter (matchesTransaction thisacctquery) $ jtxns $
+     curq = filterQuery queryIsSym q
+     ts = sortBy (comparing tdate) $
+          filter (matchesTransaction thisacctquery) $
+          jtxns $
+          filterJournalAmounts curq $
           journalSelectingAmountFromOpts opts j
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label) | queryIsNull m                           = (nullmixedamt,        balancelabel)
-                      | queryIsStartDateOnly (date2_ opts) m = (sumPostings priorps, balancelabel)
-                      | otherwise                                 = (nullmixedamt,        totallabel)
+     (startbal,label) | queryIsNull q                        = (nullmixedamt,        balancelabel)
+                      | queryIsStartDateOnly (date2_ opts) q = (sumPostings priorps, balancelabel)
+                      | otherwise                            = (nullmixedamt,        totallabel)
                       where
                         priorps = -- ltrace "priorps" $
                                   filter (matchesPosting
@@ -100,8 +109,8 @@ accountTransactionsReport opts j m thisacctquery = (label, items)
                                            And [thisacctquery, tostartdatequery]))
                                          $ transactionsPostings ts
                         tostartdatequery = Date (DateSpan Nothing startdate)
-                        startdate = queryStartDate (date2_ opts) m
-     items = reverse $ accountTransactionsReportItems m (Just thisacctquery) startbal negate ts
+                        startdate = queryStartDate (date2_ opts) q
+     items = reverse $ accountTransactionsReportItems q (Just thisacctquery) startbal negate ts
 
 totallabel = "Total"
 balancelabel = "Balance"
@@ -122,10 +131,9 @@ accountTransactionsReportItems query thisacctquery bal signfn (t:ts) =
                                                        Nothing -> ([],psmatched)
       numotheraccts = length $ nub $ map paccount psotheracct
       amt = negate $ sum $ map pamount psthisacct
-      acct | isNothing thisacctquery = summarisePostings psmatched -- journal register
-           | numotheraccts == 0 = "transfer between " ++ summarisePostingAccounts psthisacct
-           | otherwise          = prefix              ++ summarisePostingAccounts psotheracct
-           where prefix = maybe "" (\b -> if b then "from " else "to ") $ isNegativeMixedAmount amt
+      acct | isNothing thisacctquery = summarisePostingAccounts psmatched
+           | numotheraccts == 0      = summarisePostingAccounts psthisacct
+           | otherwise               = summarisePostingAccounts psotheracct
       (i,bal') = case psmatched of
            [] -> (Nothing,bal)
            _  -> (Just (t, tmatched, numotheraccts > 1, acct, a, b), b)

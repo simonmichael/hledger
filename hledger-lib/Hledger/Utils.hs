@@ -450,10 +450,16 @@ dbg2 = dbgAt 2
 dbgAt :: Show a => Int -> String -> a -> a
 dbgAt lvl = dbgppshow lvl
 
+-- dbgAtM :: (Monad m, Show a) => Int -> String -> a -> m a
+-- dbgAtM lvl lbl x = dbgAt lvl lbl x `seq` return x
+-- XXX
 dbgAtM :: Show a => Int -> String -> a -> IO ()
-dbgAtM lvl lbl x = dbgAt lvl lbl x `seq` return ()
+dbgAtM = dbgAtIO
 
--- | Print this string to the console before evaluating the expression,
+dbgAtIO :: Show a => Int -> String -> a -> IO ()
+dbgAtIO lvl lbl x = dbgAt lvl lbl x `seq` return ()
+
+-- | print this string to the console before evaluating the expression,
 -- if the global debug level is non-zero.  Uses unsafePerformIO.
 dbgtrace :: String -> a -> a
 dbgtrace

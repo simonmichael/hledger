@@ -46,3 +46,49 @@ $newline never
             <script>
                 window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})
         \<![endif]-->
+
+        <div .modal.fade #searchhelpmodal tabindex="-1" role="dialog" aria-labelledby="searchHelpLabel" aria-hidden="true">
+          <div .modal-dialog .modal-lg>
+            <div .modal-content>
+              <div .modal-header>
+                <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+                <h3 .modal-title #searchHelpLabel>Help
+              <div .modal-body>
+                <div .row>
+                  <div .col-xs-6>
+                    <p>
+                      <b>General
+                      <ul>
+                        <li> Journal shows general journal entries, representing zero-sum transactions between hierarchical accounts
+                        <li> The resulting accounts and their final balances appear in the sidebar
+                        <li> Parent account balances include subaccount balances
+                        <li> Multiple currencies in balances are displayed one above the other
+                        <li> Click account names to see transactions affecting that account, with running balance
+                        <!-- <li> Click dates to see journal entries on that date -->
+                    <p>
+                      <b>Keyboard shortcuts
+                      <ul>
+                        <li> <b><tt>?, h</tt></b> - view this help; escape or click to exit
+                        <li> <b><tt>s</tt></b> - toggle sidebar
+                        <li> <b><tt>j</tt></b> - go to journal view
+                        <li> <b><tt>ctrl-s, /</tt></b> - focus search form
+                        <li> <b><tt>a</tt></b> - add a transaction; escape to cancel
+                  <div .col-xs-6>
+                    <p>
+                      <b>Search
+                      <ul>
+                        <li> <b><tt>acct:REGEXP</tt></b> - filter on to/from account
+                        <li> <b><tt>desc:REGEXP</tt></b> - filter on description
+                        <li> <b><tt>date:PERIODEXP</tt></b>, <b><tt>date2:PERIODEXP</tt></b> - filter on date or secondary date
+                        <li> <b><tt>code:REGEXP</tt></b> - filter on transaction's code (eg check number)
+                        <li> <b><tt>status:*</tt></b>, <b><tt>status:!</tt></b>, <b><tt>status:</tt></b> - filter on transaction's status flag (eg cleared status)
+                        <!-- <li> <b><tt>empty:BOOL</tt></b> - filter on whether amount is zero -->
+                        <li> <b><tt>amt:N</tt></b>, <b><tt>amt:&lt;N</tt></b>, <b><tt>amt:&gt;N</tt></b> - filter on the unsigned amount magnitude. Or with a sign before N, filter on the signed value. (Single-commodity amounts only.)
+                        <li> <b><tt>cur:REGEXP</tt></b> - filter on the currency/commodity symbol (must match all of it). Dollar sign must be written as <tt>\$</tt>
+                        <li> <b><tt>tag:NAME</tt></b>, <b><tt>tag:NAME=REGEX</tt></b> - filter on tag name, or tag name and value
+                        <!-- <li> <b><tt>depth:N</tt></b> - filter out accounts below this depth -->
+                        <li> <b><tt>real:BOOL</tt></b> - filter on postings' real/virtual-ness
+                        <li> Search patterns containing spaces must be enclosed in single or double quotes
+                        <li> Prepend <b><tt>not:</tt></b> to negate a search term
+                        <li> Multiple search terms on different fields are AND'ed, multiple search terms on the same field are OR'ed
+                        <li> These search terms also work with command-line hledger

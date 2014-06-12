@@ -114,6 +114,7 @@ library
                      Handler.Post
                      Handler.RegisterR
                      Handler.RootR
+                     Handler.SidebarR
                      Handler.Utils
     other-modules:
                      Hledger.Web
@@ -215,6 +216,7 @@ executable         hledger-web
                      Handler.Post
                      Handler.RegisterR
                      Handler.RootR
+                     Handler.SidebarR
                      Handler.Utils
                      Hledger.Web
                      Hledger.Web.Main

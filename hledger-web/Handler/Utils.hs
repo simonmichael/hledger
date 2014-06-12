@@ -34,6 +34,7 @@ data ViewData = VD {
     ,am           :: Query    -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
     ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
     ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
+    ,showsidebar  :: Bool       -- ^ current showsidebar cookie value
     }
 
 -- | Make a default ViewData, using day 0 as today's date.
@@ -57,6 +58,7 @@ viewdataWithDateAndParams d q a p =
           ,am           = acctsmatcher
           ,aopts        = acctsopts
           ,showpostings = p == "1"
+          ,showsidebar  = False
           }
 
 -- | Gather data used by handlers and templates in the current request.
@@ -71,12 +73,15 @@ getViewData = do
   q          <- getParameterOrNull "q"
   a          <- getParameterOrNull "a"
   p          <- getParameterOrNull "p"
+  cookies <- reqCookies <$> getRequest
+  let showsidebar = maybe False (=="1") $ lookup "showsidebar" cookies
   return (viewdataWithDateAndParams today q a p){
                opts=opts
               ,msg=msg
               ,here=here
               ,today=today
               ,j=j
+              ,showsidebar=showsidebar
               }
     where
       -- | Update our copy of the journal if the file changed. If there is an

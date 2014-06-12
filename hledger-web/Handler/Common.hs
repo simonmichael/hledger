@@ -6,7 +6,6 @@ module Handler.Common where
 import Import
 
 import Data.List
-import Data.Maybe
 import Data.Text(pack)
 import Data.Time.Calendar
 import System.FilePath (takeFileName)
@@ -28,20 +27,39 @@ import Hledger.Web.Options
 import Handler.Utils
 
 -------------------------------------------------------------------------------
--- Page components
+-- Common page layout
+
+-- | Standard hledger-web page layout.
+hledgerLayout :: ViewData -> String -> HtmlUrl AppRoute -> HandlerT App IO Html
+hledgerLayout vd title content = do
+  defaultLayout $ do
+      setTitle $ toHtml $ title ++ " - hledger-web"
+      toWidget [hamlet|
+        <div#content>
+         $if showsidebar vd
+          <div#sidebar>
+           <div#sidebar-spacer>
+           <div#sidebar-body>
+            ^{sidebar vd}
+         $else
+          <div#sidebar style="display:none;">
+           <div#sidebar-spacer>
+           <div#sidebar-body>
+         <div#main>
+          ^{topbar vd}
+          <div#maincontent>
+           ^{searchform vd}
+           ^{content}
+      |]
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [hamlet|
-<div#topbar>
- <a.topleftlink href=#{hledgerorgurl} title="More about hledger">
-  hledger-web
-  <br />
-  \#{version}
- <a.toprightlink href=#{manualurl} target=hledgerhelp title="User manual">manual
- <h1>#{title}
-$maybe m' <- msg
- <div#message>#{m'}
+<nav class="navbar" role="navigation">
+ <div#topbar>
+  <h1>#{title}
+ $maybe m' <- msg
+  <div#message>#{m'}
 |]
   where
     title = takeFileName $ journalFilePath j
@@ -50,19 +68,24 @@ $maybe m' <- msg
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
- <a#sidebar-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
+ <a.btn .btn-default role=button href=@{JournalR} title="Go back to top">
+  hledger-web
+  <br />
+  \#{version}
+ <p>
+ <!--
+ <a#sidebartogglebtn role="button" style="cursor:pointer;" onclick="sidebarToggle()" title="Show/hide sidebar">
+  <span class="glyphicon glyphicon-expand"></span>
+ -->
+ <br>
  <div#sidebar-content>
-
   <p style="margin-top:1em;">
-   <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction..
-
-  <p style="margin-top:1em;">
-   <a href=@{JournalR} title="Show transactions in all accounts, most recent first">All accounts
-
-  <div#accounts style="margin-top:.5em;">
+   <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first" style="white-space:nowrap;">Journal
+  <div#accounts style="margin-top:1em;">
    ^{accounts}
 |]
  where
+  journalcurrent = if here == JournalR then "current" else "" :: String
   accounts = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
@@ -90,38 +113,13 @@ searchform VD{..} = [hamlet|
  <form#searchform.form method=GET>
   <table width="100%">
    <tr>
-    <td width="99%">
-     <input name=q value=#{q} style="width:98%;">
-    <td width="1%">
-     <input type=submit value="Search">
-   <tr valign=top>
-    <td colspan=2 style="text-align:right;">
+    <td width="99%" style="position:relative;">
      $if filtering
-      \ #
-      <span.showall>
-       <a href=@{here}>clear
-     \ #
-     <a#search-help-link href="#" title="Toggle search help">help
-   <tr>
-    <td colspan=2>
-     <div#search-help.help style="display:none;">
-      Leave blank to see journal (all transactions), or click account links to see transactions under that account.
-      <br>
-      Transactions/postings may additionally be filtered by
-      acct:REGEXP (target account), #
-      code:REGEXP (transaction code), #
-      desc:REGEXP (description), #
-      date:PERIODEXP (date), #
-      date2:PERIODEXP (secondary date), #
-      tag:TAG[=REGEX] (tag and optionally tag value), #
-      depth:N (accounts at or above this depth), #
-      status:*, status:!, status:  (cleared status), #
-      real:BOOL (real/virtual-ness), #
-      empty:BOOL (is amount zero), #
-      amt:N, amt:<N, amt:>N (test magnitude of single-commodity amount).
-      sym:REGEXP (commodity symbol), #
-      <br>
-      Prepend not: to negate, enclose multi-word patterns in quotes, multiple search terms are AND'ed.
+      <a role=button .btn .close style="position:absolute; right:0; padding-right:.1em; padding-left:.1em; margin-right:.1em; margin-left:.1em; font-size:24px;" href="@{here}" title="Clear search terms">&times;
+     <input .form-control style="font-size:18px; padding-bottom:2px;" name=q value=#{q} title="Enter hledger search patterns to filter the data below">
+    <td width="1%" style="white-space:nowrap;">
+     <button .btn style="font-size:18px;" type=submit title="Apply search terms">Search
+     <button .btn style="font-size:18px;" type=button data-toggle="modal" data-target="#searchhelpmodal" title="Show search and general help">?
 |]
  where
   filtering = not $ null q
@@ -129,109 +127,117 @@ searchform VD{..} = [hamlet|
 -- | Add transaction form.
 addform :: Text -> ViewData -> HtmlUrl AppRoute
 addform _ vd@VD{..} = [hamlet|
-<script type=text/javascript>
- \$(document).ready(function() {
-    /* select2 setup */
-    var param = {
-      "width": "250px",
-      "openOnEnter": false,
-      // createSearchChoice allows to create new values not in the options
-      "createSearchChoice":function(term, data) {
-        if ( $(data).filter( function() {
-                return this.text.localeCompare(term)===0;
-                }).length===0) {
-          return {text:term};
-        }
-      },
-      // id is what is passed during post
-      "id": function(object) {
-        return object.text;
-      }
-    };
-    \$("#description").select2($.extend({}, param, {data: #{toSelectData descriptions} }));
-    var accountData = $.extend({}, param, {data: #{toSelectData acctnames} });
-    \$("#account1").select2(accountData);
-    \$("#account2").select2(accountData);
- });
+<script language="javascript">
+  jQuery(document).ready(function() {
 
-<form#addform method=POST style=display:none;>
-  <h2#contenttitle>#{title}
-  <table.form>
+    /* set up type-ahead fields */
+
+    datesSuggester = new Bloodhound({
+        local:#{listToJsonValueObjArrayStr dates},
+        limit:100,
+        datumTokenizer: function(d) { return [d.value]; },
+        queryTokenizer: function(q) { return [q]; }
+    });
+    datesSuggester.initialize();
+    jQuery('#date').typeahead(
+        {
+         highlight: true
+        },
+        {
+         source: datesSuggester.ttAdapter()
+        }
+    );
+
+    accountsSuggester = new Bloodhound({
+        local:#{listToJsonValueObjArrayStr accts},
+        limit:100,
+        datumTokenizer: function(d) { return [d.value]; },
+        queryTokenizer: function(q) { return [q]; }
+/*
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+        datumTokenizer: Bloodhound.tokenizers.whitespace(d.value)
+        queryTokenizer: Bloodhound.tokenizers.whitespace
+*/
+    });
+    accountsSuggester.initialize();
+    jQuery('#account1,#account2').typeahead(
+        {
+         /* minLength: 3, */
+         highlight: true
+        },
+        {
+         source: accountsSuggester.ttAdapter()
+        }
+    );
+
+    descriptionsSuggester = new Bloodhound({
+        local:#{listToJsonValueObjArrayStr descriptions},
+        limit:100,
+        datumTokenizer: function(d) { return [d.value]; },
+        queryTokenizer: function(q) { return [q]; }
+    });
+    descriptionsSuggester.initialize();
+    jQuery('#description').typeahead(
+        {
+         highlight: true
+        },
+        {
+         source: descriptionsSuggester.ttAdapter()
+        }
+    );
+
+  });
+
+<form#addform method=POST .collapse style="position:relative;">
+  <a role=button .btn .btn-lg .close style="position:absolute; top:-1.2em; right:0; padding-right:.1em; padding-top:.1em; font-size:24px;" title="Cancel" onclick="addformCancel()">&times;
+  <table.form style="width:100%; white-space:nowrap;">
    <tr>
     <td colspan=4>
-     <table>
+     <table style="width:100%;">
       <tr#descriptionrow>
        <td>
-        Date:
+        <input #date        .form-control .input-lg type=text size=15 name=date placeholder="Date" value=#{date}>
        <td>
-        <input.textinput size=15 name=date value=#{date}>
-       <td style=padding-left:1em;>
-        Description:
-       <td>
-        <input type=hidden id=description name=description>
-      <tr.helprow>
-       <td>
-       <td>
-        <span.help>#{datehelp} #
-       <td>
-       <td>
-        <span.help>#{deschelp}
-   ^{postingfields vd 1}
-   ^{postingfields vd 2}
-   <tr#addbuttonrow>
-    <td colspan=4>
-     <input type=hidden name=action value=add>
-     <input type=submit name=submit value="add transaction">
-     $if manyfiles
-      \ to: ^{journalselect $ files j}
-     \ or #
-     <a href="#" onclick="return addformToggle(event)">cancel
+        <input #description .form-control .input-lg type=text size=40 name=description placeholder="Description">
+   $forall n <- postingnums
+    ^{postingfields vd n}
 |]
  where
-  title = "Add transaction" :: String
-  datehelp = "eg: 2010/7/20" :: String
-  deschelp = "eg: supermarket (optional)" :: String
   date = "today" :: String
+  dates = ["today","yesterday","tomorrow"] :: [String]
   descriptions = sort $ nub $ map tdescription $ jtxns j
-  acctnames = sort $ journalAccountNamesUsed j
-  -- Construct data for select2. Text must be quoted in a json string.
-  toSelectData as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("text", showJSON a)]) as
-  manyfiles = length (files j) > 1
+  accts = sort $ journalAccountNamesUsed j
+  listToJsonValueObjArrayStr as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
+  numpostings = 2
+  postingnums = [1..numpostings]
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
   postingfields _ n = [hamlet|
-<tr#postingrow>
- <td align=right>#{acctlabel}:
- <td>
-  <input type=hidden id=#{acctvar} name=#{acctvar}>
- ^{amtfield}
-<tr.helprow>
- <td>
- <td>
-  <span.help>#{accthelp}
- <td>
- <td>
-  <span.help>#{amthelp}
+<tr .posting .#{lastclass}>
+ <td style="padding-left:2em;">
+  <input ##{acctvar} .form-control .input-lg style="width:100%;" type=text name=#{acctvar} placeholder="#{acctph}">
+ ^{amtfieldorsubmitbtn}
 |]
    where
-    withnumber = (++ show n)
-    acctvar = withnumber "account"
-    amtvar = withnumber "amount"
-    (acctlabel, accthelp, amtfield, amthelp)
-       | n == 1     = ("To account"
-                     ,"eg: expenses:food"
-                     ,[hamlet|
-<td style=padding-left:1em;>
- Amount:
-<td>
- <input.textinput size=15 name=#{amtvar} value="">
-|]
-                     ,"eg: $6"
-                     )
-       | otherwise = ("From account" :: String
-                     ,"eg: assets:bank:checking" :: String
-                     ,nulltemplate
-                     ,"" :: String
-                     )
+    islast = n == numpostings
+    lastclass = if islast then "lastrow" else "" :: String
+    acctvar = "account" ++ show n
+    acctph = "Account " ++ show n
+    amtfieldorsubmitbtn
+       | not islast = [hamlet|
+          <td>
+           <input ##{amtvar} .form-control .input-lg type=text size=10 name=#{amtvar} placeholder="#{amtph}">
+         |]
+       | otherwise = [hamlet|
+          <td #addbtncell style="text-align:right;">
+           <input type=hidden name=action value=add>
+           <button type=submit .btn .btn-lg name=submit>add
+           $if length files' > 1
+            <br>to: ^{journalselect files'}
+         |]
+       where
+        amtvar = "amount" ++ show n
+        amtph = "Amount " ++ show n
+        files' = [(takeFileName f,s) | (f,s) <- files j]
 
 -- | Edit journal form.
 editform :: ViewData -> HtmlUrl AppRoute
@@ -305,14 +311,16 @@ balanceReportAsHtml :: WebOpts -> ViewData -> BalanceReport -> HtmlUrl AppRoute
 balanceReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
  <table.balancereport>
+  <tr>
+   <td>Account
+   <td align=right>Balance
   $forall i <- items
    ^{itemAsHtml vd i}
   <tr.totalrule>
-   <td colspan=3>
+   <td colspan=2>
   <tr>
    <td>
    <td.balance align=right>#{mixedAmountAsHtml total}
-   <td>
 |]
  where
    l = ledgerFromJournal Any j
@@ -323,11 +331,11 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
 <tr.item.#{inacctclass}>
  <td.account.#{depthclass}>
   \#{indent}
-  <a href="@?{acctquery}" title="Show transactions in this account, including subaccounts">#{adisplay}
-  <span.hoverlinks>
-   $if hassubs
-    &nbsp;
-    <a href="@?{acctonlyquery}" title="Show transactions in this account, excluding subaccounts">only
+   <a href="@?{acctquery}" title="Show transactions affecting this account and subaccounts">#{adisplay}
+   <span.hoverlinks>
+    $if hassubs
+     &nbsp;
+     <a href="@?{acctonlyquery}" title="Show transactions affecting this account but not subaccounts">only
 
  <td.balance align=right>#{mixedAmountAsHtml abal}
 |]
@@ -351,164 +359,6 @@ accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRe
 
 accountUrl :: AppRoute -> AccountName -> (AppRoute, [(Text, Text)])
 accountUrl r a = (r, [("q", pack $ accountQuery a)])
-
--- | Render an "EntriesReport" as html for the journal entries view.
-entriesReportAsHtml :: WebOpts -> ViewData -> EntriesReport -> HtmlUrl AppRoute
-entriesReportAsHtml _ vd items = [hamlet|
-<table.entriesreport>
- $forall i <- numbered items
-  ^{itemAsHtml vd i}
- |]
- where
-   itemAsHtml :: ViewData -> (Int, EntriesReportItem) -> HtmlUrl AppRoute
-   itemAsHtml _ (n, t) = [hamlet|
-<tr.item.#{evenodd}>
- <td.transaction>
-  <pre>#{txn}
- |]
-     where
-       evenodd = if even n then "even" else "odd" :: String
-       txn = trimnl $ showTransaction t where trimnl = reverse . dropWhile (=='\n') . reverse
-
--- | Render a "TransactionsReport" as html for the formatted journal view.
-journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
-<table.transactionsreport>
- <tr.headings>
-  <th.date style="text-align:left;">Date
-  <th.description style="text-align:left;">Description
-  <th.account style="text-align:left;">Accounts
-  <th.amount style="text-align:right;">Amount
- $forall i <- numberTransactionsReportItems items
-  ^{itemAsHtml vd i}
- |]
- where
--- .#{datetransition}
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [hamlet|
-<tr.item.#{evenodd}.#{firstposting}>
- <td.date>#{date}
- <td.description colspan=2>#{elideRight 60 desc}
- <td.amount style="text-align:right;">
-  $if showamt
-   \#{mixedAmountAsHtml amt}
-$forall p' <- tpostings t
-  <tr.item.#{evenodd}.posting>
-   <td.date>
-   <td.description>
-   <td.account>&nbsp;#{elideRight 40 $ paccount p'}
-   <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
-<tr>
- <td>&nbsp;
- <td>
- <td>
- <td>
-|]
-     where
-       evenodd = if even n then "even" else "odd" :: String
-       -- datetransition | newm = "newmonth"
-       --                | newd = "newday"
-       --                | otherwise = "" :: String
-       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
-       -- acctquery = (here, [("q", pack $ accountQuery acct)])
-       showamt = not split || not (isZeroMixedAmount amt)
-
--- Generate html for an account register, including a balance chart and transaction list.
-registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerReportHtml opts vd r = [hamlet|
- ^{registerChartHtml $ map snd $ transactionsReportByCommodity r}
- ^{registerItemsHtml opts vd r}
-|]
-
--- Generate html for a transaction list from an "TransactionsReport".
-registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerItemsHtml _ vd (balancelabel,items) = [hamlet|
-<table.registerreport>
- <tr.headings>
-  <th.date style="text-align:left;">Date
-  <th.description style="text-align:left;">Description
-  <th.account style="text-align:left;">To/From Account(s)
-    <!-- \ #
-    <a#all-postings-toggle-link.togglelink href="#" title="Toggle all split postings">[+] -->
-  $if inacct
-   <th.amount style="text-align:right;">Amount
-   <th.balance style="text-align:right;">#{balancelabel}
-
- $forall i <- numberTransactionsReportItems items
-  ^{itemAsHtml vd i}
-
- |]
- where
-   inacct = isJust $ inAccount $ qopts vd
-   -- filtering = m /= Any
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [hamlet|
-
-<tr.item.#{evenodd}.#{firstposting}.#{datetransition}>
- <td.date>#{date}
- <td.description title="#{show t}">#{elideRight 30 desc}
- <td.account title="#{show t}">
-  \#{elideRight 40 acct}
- $if inacct
-  <td.amount style="text-align:right; white-space:nowrap;">
-   $if showamt
-    \#{mixedAmountAsHtml amt}
-  <td.balance style="text-align:right;">#{mixedAmountAsHtml bal}
- $else
-  $forall p' <- tpostings t
-   <tr.item.#{evenodd}.posting>
-   <td.date>
-   <td.description>
-   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
-    <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
-    <td.balance style="text-align:right;">
-
-|]
-     where
-       evenodd = if even n then "even" else "odd" :: String
-       datetransition | newm = "newmonth"
-                      | newd = "newday"
-                      | otherwise = "" :: String
-       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
-       -- acctquery = (here, [("q", pack $ accountQuery acct)])
-       showamt = not split || not (isZeroMixedAmount amt)
-
--- | Generate javascript/html for a register balance line chart based on
--- the provided "TransactionsReportItem"s.
-               -- registerChartHtml :: forall t (t1 :: * -> *) t2 t3 t4 t5.
-               --                      Data.Foldable.Foldable t1 =>
-               --                      t1 (Transaction, t2, t3, t4, t5, MixedAmount)
-               --                      -> t -> Text.Blaze.Internal.HtmlM ()
-registerChartHtml :: [[TransactionsReportItem]] -> HtmlUrl AppRoute
-registerChartHtml itemss =
- -- have to make sure plot is not called when our container (maincontent)
- -- is hidden, eg with add form toggled
- [hamlet|
-<div#register-chart style="width:600px;height:100px; margin-bottom:1em;">
-<script type=text/javascript>
- \$(document).ready(function() {
-   /* render chart with flot, if visible */
-   var chartdiv = $('#register-chart');
-   if (chartdiv.is(':visible'))
-     \$.plot(chartdiv,
-             [
-              $forall items <- itemss
-               [
-                $forall i <- reverse items
-                 [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
-                []
-               ],
-              []
-             ],
-             {
-               xaxis: {
-                mode: "time",
-                timeformat: "%y/%m/%d"
-               }
-             }
-             );
-  });
-|]
 
 -- stringIfLongerThan :: Int -> String -> String
 -- stringIfLongerThan n s = if length s > n then s else ""

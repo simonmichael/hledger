@@ -104,13 +104,18 @@ instance Yesod App where
         pc <- widgetToPageContent $ do
             $(widgetFile "normalize")
             addStylesheet $ StaticR css_bootstrap_min_css
-            -- load jquery early:
-            toWidgetHead [hamlet| <script type="text/javascript" src="@{StaticR js_jquery_min_js}"></script> |]
+             -- load these things early, in HEAD:
+            toWidgetHead [hamlet|
+                          <script type="text/javascript" src="@{StaticR js_jquery_min_js}"></script>
+                          <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}"></script>
+                         |]
+            addScript $ StaticR js_bootstrap_min_js
+            -- addScript $ StaticR js_typeahead_bundle_min_js
             addScript $ StaticR js_jquery_url_js
+            addScript $ StaticR js_jquery_cookie_js
+            addScript $ StaticR js_jquery_hotkeys_js
             addScript $ StaticR js_jquery_flot_min_js
             toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR js_excanvas_min_js}"></script> <![endif]--> |]
-            addScript $ StaticR select2_min_js
-            addStylesheet $ StaticR select2_css
             addStylesheet $ StaticR hledger_css
             addScript $ StaticR hledger_js
             $(widgetFile "default-layout")

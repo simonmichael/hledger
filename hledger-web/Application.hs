@@ -31,9 +31,8 @@ import Network.HTTP.Conduit (def)
 -- Don't forget to add new modules to your cabal file!
 import Handler.RootR
 import Handler.JournalR
-import Handler.JournalEditR
-import Handler.JournalEntriesR
 import Handler.RegisterR
+import Handler.SidebarR
 
 import Hledger.Web.Options (WebOpts(..), defwebopts)
 import Hledger.Data (Journal, nulljournal)
