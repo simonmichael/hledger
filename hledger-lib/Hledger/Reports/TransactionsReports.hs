@@ -142,16 +142,16 @@ accountTransactionsReportItems query thisacctquery bal signfn (t:ts) =
                   b = bal + a
       is = accountTransactionsReportItems query thisacctquery bal' signfn ts
 
--- | Generate a short readable summary of some postings, like
--- "from (negatives) to (positives)".
-summarisePostings :: [Posting] -> String
-summarisePostings ps =
-    case (summarisePostingAccounts froms, summarisePostingAccounts tos) of
-       ("",t) -> "to "++t
-       (f,"") -> "from "++f
-       (f,t)  -> "from "++f++" to "++t
-    where
-      (froms,tos) = partition (fromMaybe False . isNegativeMixedAmount . pamount) ps
+-- -- | Generate a short readable summary of some postings, like
+-- -- "from (negatives) to (positives)".
+-- summarisePostings :: [Posting] -> String
+-- summarisePostings ps =
+--     case (summarisePostingAccounts froms, summarisePostingAccounts tos) of
+--        ("",t) -> "to "++t
+--        (f,"") -> "from "++f
+--        (f,t)  -> "from "++f++" to "++t
+--     where
+--       (froms,tos) = partition (fromMaybe False . isNegativeMixedAmount . pamount) ps
 
 -- | Generate a simplified summary of some postings' accounts.
 summarisePostingAccounts :: [Posting] -> String
