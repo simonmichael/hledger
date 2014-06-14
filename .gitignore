@@ -35,3 +35,5 @@ log
 .ghci*
 doc/[0-9]*
 tests/addons/hledger-*
+*.dyn_o
+*.dyn_hi
