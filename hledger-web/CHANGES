@@ -11,6 +11,7 @@ See also the hledger changelog.
 - upgrade jquery to 2.1.1, bootstrap to 3.1.1, drop select2, add typeahead, cookie, hotkeys
 - clarify debug helpers a little
 - refactoring
+- allow warp 3, wai-handler-launch 3
 
 0.23.2 (2014/5/8)
 
