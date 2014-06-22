@@ -83,7 +83,7 @@ library
                  ,safe >= 0.2
                  ,split >= 0.1 && < 0.3
                  ,time
-                 ,transformers >= 0.2 && < 0.4
+                 ,transformers >= 0.2 && < 0.5
                  ,utf8-string >= 0.3.5 && < 0.4
                  ,HUnit
   if impl(ghc >= 7.4)
