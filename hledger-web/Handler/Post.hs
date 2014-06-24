@@ -71,6 +71,7 @@ handleAdd = do
                            ]
                           })
   -- display errors or add transaction
+  -- XXX currently it's still possible to write an invalid entry, eg by adding space space ; after the first account name
   case tE of
    Left errs' -> do
     -- save current form values in session

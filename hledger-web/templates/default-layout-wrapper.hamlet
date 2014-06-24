@@ -88,7 +88,7 @@ $newline never
                         <li> <b><tt>tag:NAME</tt></b>, <b><tt>tag:NAME=REGEX</tt></b> - filter on tag name, or tag name and value
                         <!-- <li> <b><tt>depth:N</tt></b> - filter out accounts below this depth -->
                         <li> <b><tt>real:BOOL</tt></b> - filter on postings' real/virtual-ness
-                        <li> Search patterns containing spaces must be enclosed in single or double quotes
+                        <li> Enclose search patterns containing spaces in single or double quotes
                         <li> Prepend <b><tt>not:</tt></b> to negate a search term
                         <li> Multiple search terms on different fields are AND'ed, multiple search terms on the same field are OR'ed
                         <li> These search terms also work with command-line hledger
