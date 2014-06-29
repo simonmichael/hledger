@@ -274,7 +274,7 @@ tests_parseQueryTerm = [
  ]
 
 
-data OrdPlus = Lt | Gt | Eq | AbsLt | AbsGt | AbsEq
+data OrdPlus = Lt | LtEq | Gt | GtEq | Eq | AbsLt | AbsLtEq | AbsGt | AbsGtEq | AbsEq
  deriving (Show,Eq,Data,Typeable)
 
 -- can fail
@@ -282,21 +282,29 @@ parseAmountQueryTerm :: String -> (OrdPlus, Quantity)
 parseAmountQueryTerm s' =
   case s' of
     -- feel free to do this a smarter way
-    ""        -> err
-    '<':'+':s -> (Lt, readDef err s)
-    '>':'+':s -> (Gt, readDef err s)
-    '=':'+':s -> (Eq, readDef err s)
-    '+':s     -> (Eq, readDef err s)
-    '<':'-':s -> (Lt, negate $ readDef err s)
-    '>':'-':s -> (Gt, negate $ readDef err s)
-    '=':'-':s -> (Eq, negate $ readDef err s)
-    '-':s     -> (Eq, negate $ readDef err s)
-    '<':s     -> let n = readDef err s in case n of 0 -> (Lt, 0)
-                                                    _ -> (AbsLt, n)
-    '>':s     -> let n = readDef err s in case n of 0 -> (Gt, 0)
-                                                    _ -> (AbsGt, n)
-    '=':s     -> (AbsEq, readDef err s)
-    s         -> (AbsEq, readDef err s)
+    ""              -> err
+    '<':'+':s       -> (Lt, readDef err s)
+    '<':'=':'+':s   -> (LtEq, readDef err s)
+    '>':'+':s       -> (Gt, readDef err s)
+    '>':'=':'+':s   -> (GtEq, readDef err s)
+    '=':'+':s       -> (Eq, readDef err s)
+    '+':s           -> (Eq, readDef err s)
+    '<':'-':s       -> (Lt, negate $ readDef err s)
+    '<':'=':'-':s   -> (LtEq, negate $ readDef err s)
+    '>':'-':s       -> (Gt, negate $ readDef err s)
+    '>':'=':'-':s   -> (GtEq, negate $ readDef err s)
+    '=':'-':s       -> (Eq, negate $ readDef err s)
+    '-':s           -> (Eq, negate $ readDef err s)
+    '<':'=':s       -> let n = readDef err s in case n of 0 -> (LtEq, 0)
+                                                          _ -> (AbsLtEq, n)
+    '<':s           -> let n = readDef err s in case n of 0 -> (Lt, 0)
+                                                          _ -> (AbsLt, n)
+    '>':'=':s       -> let n = readDef err s in case n of 0 -> (GtEq, 0)
+                                                          _ -> (AbsGtEq, n)
+    '>':s           -> let n = readDef err s in case n of 0 -> (Gt, 0)
+                                                          _ -> (AbsGt, n)
+    '=':s           -> (AbsEq, readDef err s)
+    s               -> (AbsEq, readDef err s)
   where
     err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a (optionally signed) numeric quantity: " ++ s'
 
@@ -308,7 +316,7 @@ tests_parseAmountQueryTerm = [
     ">10000.10" `gives` (AbsGt,10000.1)
     "=0.23" `gives` (AbsEq,0.23)
     "0.23" `gives` (AbsEq,0.23)
-    "=+0.23" `gives` (Eq,0.23)
+    "<=+0.23" `gives` (LtEq,0.23)
     "-0.23" `gives` (Eq,(-0.23))
   ]
 
@@ -566,12 +574,16 @@ matchesAmount _ _ = True
 
 -- | Is this amount's quantity less than, greater than, equal to, or unsignedly equal to this number ?
 compareAmount :: OrdPlus -> Quantity -> Amount -> Bool
-compareAmount ord q Amount{aquantity=aq} = case ord of Lt    -> aq <  q
-                                                       Gt    -> aq >  q
-                                                       Eq    -> aq == q
-                                                       AbsLt -> abs aq <  abs q
-                                                       AbsGt -> abs aq >  abs q
-                                                       AbsEq -> abs aq == abs q
+compareAmount ord q Amount{aquantity=aq} = case ord of Lt      -> aq <  q
+                                                       LtEq    -> aq <= q
+                                                       Gt      -> aq >  q
+                                                       GtEq    -> aq >= q
+                                                       Eq      -> aq == q
+                                                       AbsLt   -> abs aq <  abs q
+                                                       AbsLtEq -> abs aq <= abs q
+                                                       AbsGt   -> abs aq >  abs q
+                                                       AbsGtEq -> abs aq >= abs q
+                                                       AbsEq   -> abs aq == abs q
 
 -- | Does the match expression match this posting ?
 matchesPosting :: Query -> Posting -> Bool
