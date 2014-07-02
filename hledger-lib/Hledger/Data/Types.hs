@@ -138,7 +138,7 @@ type Year = Integer
 -- is saved for later use by eg the add command.
 data JournalContext = Ctx {
       ctxYear      :: !(Maybe Year)      -- ^ the default year most recently specified with Y
-    , ctxCommodityAndStyle :: !(Maybe (Commodity,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
+    , ctxDefaultCommodityAndStyle :: !(Maybe (Commodity,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
     , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts/account name components
                                         --   specified with "account" directive(s). Concatenated, these
                                         --   are the account prefix prepended to parsed account names.

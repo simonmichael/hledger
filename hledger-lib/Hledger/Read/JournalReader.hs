@@ -115,11 +115,11 @@ setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
 getYear :: GenParser tok JournalContext (Maybe Integer)
 getYear = liftM ctxYear getState
 
-setCommodityAndStyle :: (Commodity,AmountStyle) -> GenParser tok JournalContext ()
-setCommodityAndStyle cs = updateState (\ctx -> ctx{ctxCommodityAndStyle=Just cs})
+setDefaultCommodityAndStyle :: (Commodity,AmountStyle) -> GenParser tok JournalContext ()
+setDefaultCommodityAndStyle cs = updateState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
 
-getCommodityAndStyle :: GenParser tok JournalContext (Maybe (Commodity,AmountStyle))
-getCommodityAndStyle = ctxCommodityAndStyle `fmap` getState
+getDefaultCommodityAndStyle :: GenParser tok JournalContext (Maybe (Commodity,AmountStyle))
+getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` getState
 
 pushParentAccount :: String -> GenParser tok JournalContext ()
 pushParentAccount parent = updateState addParentAccount
@@ -268,7 +268,7 @@ defaultcommoditydirective = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
   Amount{..} <- amountp
-  setCommodityAndStyle (acommodity, astyle)
+  setDefaultCommodityAndStyle (acommodity, astyle)
   restofline
   return $ return id
 
@@ -663,7 +663,7 @@ leftsymbolamount = do
   c <- commoditysymbol 
   sp <- many spacenonewline
   (q,prec,dec,sep,seppos) <- numberp
-  let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
+  let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=dec, asseparator=sep, asseparatorpositions=seppos}
   p <- priceamount
   let applysign = if sign=="-" then negate else id
   return $ applysign $ Amount c q p s
@@ -675,7 +675,7 @@ rightsymbolamount = do
   sp <- many spacenonewline
   c <- commoditysymbol
   p <- priceamount
-  let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos}
+  let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=dec, asseparator=sep, asseparatorpositions=seppos}
   return $ Amount c q p s
   <?> "right-symbol amount"
 
@@ -683,10 +683,11 @@ nosymbolamount :: GenParser Char JournalContext Amount
 nosymbolamount = do
   (q,prec,dec,sep,seppos) <- numberp
   p <- priceamount
-  defcs <- getCommodityAndStyle
+  -- apply the most recently seen default commodity and style to this commodityless amount
+  defcs <- getDefaultCommodityAndStyle
   let (c,s) = case defcs of
         Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
-        Nothing          -> ("", amountstyle{asdecimalpoint=dec, asprecision=prec, asseparator=sep, asseparatorpositions=seppos})
+        Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=dec, asseparator=sep, asseparatorpositions=seppos})
   return $ Amount c q p s
   <?> "no-symbol amount"
 
