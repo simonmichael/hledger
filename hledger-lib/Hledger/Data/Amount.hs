@@ -74,6 +74,7 @@ module Hledger.Data.Amount (
   missingmixedamt,
   mixed,
   amounts,
+  filterMixedAmount,
   normaliseMixedAmountPreservingFirstPrice,
   normaliseMixedAmountPreservingPrices,
   -- ** arithmetic
@@ -418,6 +419,10 @@ sumAmountsUsingFirstPrice as = (sum as){aprice=aprice $ head as}
 -- | Get a mixed amount's component amounts.
 amounts :: MixedAmount -> [Amount]
 amounts (Mixed as) = as
+
+-- | Filter a mixed amount's component amounts by a predicate.
+filterMixedAmount :: (Amount -> Bool) -> MixedAmount -> MixedAmount
+filterMixedAmount p (Mixed as) = Mixed $ filter p as
 
 -- | Convert a mixed amount's component amounts to the commodity of their
 -- assigned price, if any.

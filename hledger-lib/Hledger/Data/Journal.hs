@@ -59,6 +59,7 @@ import Data.List
 -- import Data.Map (findWithDefault)
 import Data.Maybe
 import Data.Ord
+import Safe (headMay)
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Tree
@@ -427,28 +428,29 @@ checkBalanceAssertionsForAccount ps
 -- If it does, return the new balance, otherwise add an error to the
 -- error list. Intended to be called from a fold.
 checkBalanceAssertion :: ([String],MixedAmount) -> [Posting] -> ([String],MixedAmount)
-checkBalanceAssertion (errs,bal) ps
-  | null ps = (errs,bal)
-  | isNothing assertion = (errs,bal)
+checkBalanceAssertion (errs,startbal) ps
+  | null ps = (errs,startbal)
+  | isNothing assertion = (errs,startbal)
   |
     -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
-    not $ isReallyZeroMixedAmount (bal' - assertedbal)
-    -- or, compare only the balance of that commodity, like Ledger
-    -- not $ isReallyZeroMixedAmount (filterCommodity () bal' - assertedbal)
-      = (errs++[err], bal')
-  | otherwise = (errs,bal')
+    not $ isReallyZeroMixedAmount (bal - assertedbal) = (errs++[err], bal)
+  | otherwise = (errs,bal)
   where
     p = last ps
     assertion = pbalanceassertion p
-    Just assertedbal = assertion
-    bal' = sum $ [bal] ++ map pamount ps
-    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected balance is %s, actual balance was %s."
+    Just assertedbal = dbg2 "assertedbal" assertion
+    fullbal = dbg2 "fullbal" $ sum $ [dbg2 "startbal" startbal] ++ map pamount ps
+    singlebal = dbg2 "singlebal" $
+                let c = maybe "" acommodity $ headMay $ amounts assertedbal
+                in filterMixedAmount (\a -> acommodity a == c) fullbal
+    bal = singlebal -- check single-commodity balance like Ledger; maybe add == FULLBAL later
+    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected commodity balance is %s, actual balance was %s."
                  (paccount p)
                  (show $ postingDate p)
                  (maybe "" (("In transaction:\n"++).show) $ ptransaction p)
                  (show p)
                  (showMixedAmount assertedbal)
-                 (showMixedAmount bal')
+                 (showMixedAmount singlebal)
 
 -- Given a sequence of postings to a single account, split it into
 -- sub-sequences consisting of ordinary postings followed by a single

@@ -89,7 +89,19 @@ hledgerdev -f - stats
 >>>2
 >>>=0
 
-# 6. what should happen here ? Currently,
+# 6. assertions currently check only a single commodity's balance, like Ledger
+hledgerdev -f - stats
+<<<
+1/2
+  (a)  A1
+  (a)  B1 = A1
+  (a)  0  = A1
+  (a)  C0 = D0
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 7. what should happen here ? Currently,
 # in a, 3.4 EUR @@ $5.6 and -3.4 EUR cancel out (wrong ?)
 # in b, 
 # 
