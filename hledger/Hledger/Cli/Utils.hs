@@ -65,7 +65,7 @@ withJournalDo opts cmd = do
   -- to let the add command work.
   rulespath <- rulesFilePathFromOpts opts
   journalpath <- journalFilePathFromOpts opts
-  ej <- readJournalFile Nothing rulespath journalpath
+  ej <- readJournalFile Nothing rulespath (not $ ignore_assertions_ opts) journalpath
   either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts)) ej
 
 -- -- | Get a journal from the given string and options, or throw an error.
@@ -74,7 +74,7 @@ withJournalDo opts cmd = do
 
 -- | Re-read a journal from its data file, or return an error string.
 journalReload :: Journal -> IO (Either String Journal)
-journalReload j = readJournalFile Nothing Nothing $ journalFilePath j
+journalReload j = readJournalFile Nothing Nothing True $ journalFilePath j
 
 -- | Re-read a journal from its data file mostly, only if the file has
 -- changed since last read (or if there is no file, ie data read from

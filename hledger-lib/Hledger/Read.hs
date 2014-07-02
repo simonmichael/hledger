@@ -91,11 +91,11 @@ defaultJournalPath = do
 
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
-defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing >>= either error' return
+defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing True >>= either error' return
 
 -- | Read a journal from the given string, trying all known formats, or simply throw an error.
 readJournal' :: String -> IO Journal
-readJournal' s = readJournal Nothing Nothing Nothing s >>= either error' return
+readJournal' s = readJournal Nothing Nothing True Nothing s >>= either error' return
 
 tests_readJournal' = [
   "readJournal' parses sample journal" ~: do
@@ -114,8 +114,9 @@ tests_readJournal' = [
 -- - otherwise, try them all.
 --
 -- A CSV conversion rules file may also be specified for use by the CSV reader.
-readJournal :: Maybe StorageFormat -> Maybe FilePath -> Maybe FilePath -> String -> IO (Either String Journal)
-readJournal format rulesfile path s =
+-- Also there is a flag specifying whether to check or ignore balance assertions in the journal.
+readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> String -> IO (Either String Journal)
+readJournal format rulesfile assrt path s =
   tryReaders $ readersFor (format, path, s)
   where
     -- try each reader in turn, returning the error of the first if all fail
@@ -126,7 +127,7 @@ readJournal format rulesfile path s =
         firstSuccessOrBestError [] []        = return $ Left "no readers found"
         firstSuccessOrBestError errs (r:rs) = do
           dbgAtM 1 "trying reader" (rFormat r)
-          result <- (runErrorT . (rParser r) rulesfile path') s
+          result <- (runErrorT . (rParser r) rulesfile assrt path') s
           dbgAtM 1 "reader result" $ either id show result
           case result of Right j -> return $ Right j                       -- success!
                          Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
@@ -158,16 +159,17 @@ readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
 -- | Read a Journal from this file (or stdin if the filename is -) or give
 -- an error message, using the specified data format or trying all known
 -- formats. A CSV conversion rules file may be specified for better
--- conversion of that format.
-readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> FilePath -> IO (Either String Journal)
-readJournalFile format rulesfile "-" = do
+-- conversion of that format. Also there is a flag specifying whether
+-- to check or ignore balance assertions in the journal.
+readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
+readJournalFile format rulesfile assrt "-" = do
   hSetNewlineMode stdin universalNewlineMode
-  getContents >>= readJournal format rulesfile (Just "-")
-readJournalFile format rulesfile f = do
+  getContents >>= readJournal format rulesfile assrt (Just "-")
+readJournalFile format rulesfile assrt f = do
   requireJournalFileExists f
   withFile f ReadMode $ \h -> do
     hSetNewlineMode h universalNewlineMode
-    hGetContents h >>= readJournal format rulesfile (Just f)
+    hGetContents h >>= readJournal format rulesfile assrt (Just f)
 
 -- | If the specified journal file does not exist, give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
@@ -229,7 +231,7 @@ tests_Hledger_Read = TestList $
 
    "journal" ~: do
     assertBool "journal should parse an empty file" (isRight $ parseWithCtx nullctx JournalReader.journal "")
-    jE <- readJournal Nothing Nothing Nothing "" -- don't know how to get it from journal
+    jE <- readJournal Nothing Nothing True Nothing "" -- don't know how to get it from journal
     either error' (assertBool "journal parsing an empty file should give an empty journal" . null . jtxns) jE
 
   ]

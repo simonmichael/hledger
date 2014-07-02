@@ -91,6 +91,7 @@ inputflags = [
   flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use -"
  ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
  ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "display accounts named OLD as NEW"
+ ,flagNone ["ignore-assertions"] (setboolopt "ignore-assertions") "ignore any balance assertions in the journal"
  ]
 
 -- | Common report-related flags: --period, --cost, etc.
@@ -230,6 +231,7 @@ data CliOpts = CliOpts {
     ,file_            :: Maybe FilePath
     ,rules_file_      :: Maybe FilePath
     ,alias_           :: [String]
+    ,ignore_assertions_ :: Bool
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
     ,no_new_accounts_ :: Bool           -- add
     ,width_           :: Maybe String   -- register
@@ -240,6 +242,7 @@ instance Default CliOpts where def = defcliopts
 
 defcliopts :: CliOpts
 defcliopts = CliOpts
+    def
     def
     def
     def
@@ -267,6 +270,7 @@ rawOptsToCliOpts rawopts = do
              ,rules_file_      = maybestringopt "rules-file" rawopts
              ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
              ,debug_           = intopt "debug" rawopts
+             ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
              ,width_           = maybestringopt "width" rawopts    -- register
              ,reportopts_      = ropts

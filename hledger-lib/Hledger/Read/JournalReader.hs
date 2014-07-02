@@ -85,7 +85,7 @@ detect f s
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
-parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
 parse _ = parseJournalWith journal
 
 -- parsing utils
@@ -96,15 +96,15 @@ combineJournalUpdates us = liftM (foldl' (.) id) $ sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseJournalWith :: (GenParser Char JournalContext (JournalUpdate,JournalContext)) -> FilePath -> String -> ErrorT String IO Journal
-parseJournalWith p f s = do
+parseJournalWith :: (GenParser Char JournalContext (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ErrorT String IO Journal
+parseJournalWith p assrt f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
   y <- liftIO getCurrentYear
   case runParser p nullctx{ctxYear=Just y} f s of
     Right (updates,ctx) -> do
                            j <- updates `ap` return nulljournal
-                           case journalFinalise tc tl f s ctx j of
+                           case journalFinalise tc tl f s ctx assrt j of
                              Right j'  -> return j'
                              Left estr -> throwError estr
     Left e -> throwError $ show e

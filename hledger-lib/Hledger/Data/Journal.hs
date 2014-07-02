@@ -391,14 +391,14 @@ journalApplyAliases aliases j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 
 -- | Do post-parse processing on a journal to make it ready for use: check
 -- all transactions balance, canonicalise amount formats, close any open
--- timelog entries and so on.
-journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Journal -> Either String Journal
-journalFinalise tclock tlocal path txt ctx j@Journal{files=fs} = do
+-- timelog entries, maybe check balance assertions and so on.
+journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Bool -> Journal -> Either String Journal
+journalFinalise tclock tlocal path txt ctx assrt j@Journal{files=fs} = do
   (journalBalanceTransactions $
     journalCanonicaliseAmounts $
     journalCloseTimeLogEntries tlocal
     j{files=(path,txt):fs, filereadtime=tclock, jContext=ctx})
-  >>= journalCheckBalanceAssertions
+  >>= if assrt then journalCheckBalanceAssertions else return
 
 -- | Check any balance assertions in the journal and return an error
 -- message if any of them fail.
@@ -433,6 +433,8 @@ checkBalanceAssertion (errs,bal) ps
   |
     -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
     not $ isReallyZeroMixedAmount (bal' - assertedbal)
+    -- or, compare only the balance of that commodity, like Ledger
+    -- not $ isReallyZeroMixedAmount (filterCommodity () bal' - assertedbal)
       = (errs++[err], bal')
   | otherwise = (errs,bal')
   where

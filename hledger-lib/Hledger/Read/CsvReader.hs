@@ -61,8 +61,8 @@ detect f s
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
-parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
-parse rulesfile f s = do
+parse :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
+parse rulesfile _ f s = do
   r <- liftIO $ readJournalFromCsv rulesfile f s
   case r of Left e -> throwError e
             Right j -> return j

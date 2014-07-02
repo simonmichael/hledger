@@ -78,7 +78,7 @@ detect f s
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an
 -- error.
-parse :: Maybe FilePath -> FilePath -> String -> ErrorT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
 parse _ = parseJournalWith timelogFile
 
 timelogFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
