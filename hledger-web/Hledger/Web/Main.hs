@@ -49,7 +49,7 @@ runWith opts
 
 withJournalDo' :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
-  journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing Nothing >>=
+  journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing Nothing True >>=
     either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
 -- | The web command.

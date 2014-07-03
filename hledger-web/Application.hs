@@ -77,7 +77,7 @@ makeFoundation conf = do
 getApplicationDev :: IO (Int, Application)
 getApplicationDev = do
   f <- journalFilePathFromOpts defcliopts
-  j <- either error' id `fmap` readJournalFile Nothing Nothing f
+  j <- either error' id `fmap` readJournalFile Nothing Nothing True f
   defaultDevelApp loader (makeApplication defwebopts j)
   where
     loader = Yesod.Default.Config.loadConfig (configSettings Development)
