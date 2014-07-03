@@ -68,7 +68,6 @@ module Hledger.Data.Amount (
   setAmountPrecision,
   withPrecision,
   canonicaliseAmount,
-  canonicalStyles,
   -- * MixedAmount
   nullmixedamt,
   missingmixedamt,
@@ -99,7 +98,7 @@ module Hledger.Data.Amount (
 import Data.Char (isDigit)
 import Data.List
 import Data.Map (findWithDefault)
-import Data.Ord (comparing)
+import Data.Maybe
 import Test.HUnit
 import Text.Printf
 import qualified Data.Map as M
@@ -111,7 +110,7 @@ import Hledger.Utils
 
 deriving instance Show HistoricalPrice
 
-amountstyle = AmountStyle L False 0 '.' ',' []
+amountstyle = AmountStyle L False 0 (Just '.') Nothing
 
 -------------------------------------------------------------------------------
 -- Amount
@@ -281,33 +280,38 @@ showAmount a@(Amount{acommodity=c, aprice=p, astyle=AmountStyle{..}}) =
 -- | Get the string representation of the number part of of an amount,
 -- using the display settings from its commodity.
 showamountquantity :: Amount -> String
-showamountquantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p, asdecimalpoint=d, asseparator=s, asseparatorpositions=spos}} =
-    punctuatenumber d s spos $ qstr
+showamountquantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p, asdecimalpoint=mdec, asdigitgroups=mgrps}} =
+    punctuatenumber (fromMaybe '.' mdec) mgrps $ qstr
     where
-    -- isint n = fromIntegral (round n) == n
-    qstr -- p == maxprecision && isint q = printf "%d" (round q::Integer)
-         | p == maxprecisionwithpoint    = printf "%f" q
-         | p == maxprecision             = chopdotzero $ printf "%f" q
-         | otherwise                    = printf ("%."++show p++"f") q
+      -- isint n = fromIntegral (round n) == n
+      qstr -- p == maxprecision && isint q = printf "%d" (round q::Integer)
+        | p == maxprecisionwithpoint    = printf "%f" q
+        | p == maxprecision             = chopdotzero $ printf "%f" q
+        | otherwise                    = printf ("%."++show p++"f") q
 
 -- | Replace a number string's decimal point with the specified character,
 -- and add the specified digit group separators. The last digit group will
 -- be repeated as needed.
-punctuatenumber :: Char -> Char -> [Int] -> String -> String
-punctuatenumber dec sep grps str = sign ++ reverse (addseps sep (extend grps) (reverse int)) ++ frac''
+punctuatenumber :: Char -> Maybe DigitGroupStyle -> String -> String
+punctuatenumber dec mgrps s = sign ++ reverse (applyDigitGroupStyle mgrps (reverse int)) ++ frac''
     where
-      (sign,num) = break isDigit str
+      (sign,num) = break isDigit s
       (int,frac) = break (=='.') num
       frac' = dropWhile (=='.') frac
       frac'' | null frac' = ""
              | otherwise  = dec:frac'
-      extend [] = []
-      extend gs = init gs ++ repeat (last gs)
-      addseps _ [] str = str
-      addseps sep (g:gs) str
-          | length str <= g = str
-          | otherwise = let (s,rest) = splitAt g str
-                        in s ++ [sep] ++ addseps sep gs rest
+
+applyDigitGroupStyle :: Maybe DigitGroupStyle -> String -> String
+applyDigitGroupStyle Nothing s = s
+applyDigitGroupStyle (Just (DigitGroups c gs)) s = addseps (repeatLast gs) s
+  where
+    addseps [] s = s
+    addseps (g:gs) s
+      | length s <= g = s
+      | otherwise     = let (part,rest) = splitAt g s
+                        in part ++ [c] ++ addseps gs rest
+    repeatLast [] = []
+    repeatLast gs = init gs ++ repeat (last gs)
 
 chopdotzero str = reverse $ case reverse str of
                               '0':'.':s -> s
@@ -500,23 +504,6 @@ showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth a
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map Commodity AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
-
--- | Given a list of amounts in parse order, build a map from commodities
--- to canonical display styles for amounts in that commodity.
-canonicalStyles :: [Amount] -> M.Map Commodity AmountStyle
-canonicalStyles amts = M.fromList commstyles
-  where
-    samecomm = \a1 a2 -> acommodity a1 == acommodity a2
-    commamts = [(acommodity $ head as, as) | as <- groupBy samecomm $ sortBy (comparing acommodity) amts]
-    commstyles = [(c, s)
-                 | (c,as) <- commamts
-                 , let styles = map astyle as
-                 , let maxprec = maximum $ map asprecision styles
-                 , let s = (head styles){asprecision=maxprec}
-                 ]
-
--- lookupStyle :: M.Map Commodity AmountStyle -> Commodity -> AmountStyle
--- lookupStyle 
 
 -------------------------------------------------------------------------------
 -- misc

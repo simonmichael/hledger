@@ -662,8 +662,8 @@ leftsymbolamount = do
   sign <- signp
   c <- commoditysymbol 
   sp <- many spacenonewline
-  (q,prec,dec,sep,seppos) <- numberp
-  let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=dec, asseparator=sep, asseparatorpositions=seppos}
+  (q,prec,mdec,mgrps) <- numberp
+  let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   p <- priceamount
   let applysign = if sign=="-" then negate else id
   return $ applysign $ Amount c q p s
@@ -671,23 +671,23 @@ leftsymbolamount = do
 
 rightsymbolamount :: GenParser Char JournalContext Amount
 rightsymbolamount = do
-  (q,prec,dec,sep,seppos) <- numberp
+  (q,prec,mdec,mgrps) <- numberp
   sp <- many spacenonewline
   c <- commoditysymbol
   p <- priceamount
-  let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=dec, asseparator=sep, asseparatorpositions=seppos}
+  let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s
   <?> "right-symbol amount"
 
 nosymbolamount :: GenParser Char JournalContext Amount
 nosymbolamount = do
-  (q,prec,dec,sep,seppos) <- numberp
+  (q,prec,mdec,mgrps) <- numberp
   p <- priceamount
   -- apply the most recently seen default commodity and style to this commodityless amount
   defcs <- getDefaultCommodityAndStyle
   let (c,s) = case defcs of
         Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
-        Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=dec, asseparator=sep, asseparatorpositions=seppos})
+        Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
   return $ Amount c q p s
   <?> "no-symbol amount"
 
@@ -745,55 +745,68 @@ fixedlotprice =
           return $ Just a)
          <|> return Nothing
 
--- | Parse a numeric quantity for its value and display attributes.  Some
--- international number formats (cf
--- http://en.wikipedia.org/wiki/Decimal_separator) are accepted: either
--- period or comma may be used for the decimal point, and the other of
--- these may be used for separating digit groups in the integer part (eg a
--- thousands separator).  This returns the numeric value, the precision
--- (number of digits to the right of the decimal point), the decimal point
--- and separator characters (defaulting to . and ,), and the positions of
--- separators (counting leftward from the decimal point, the last is
--- assumed to repeat).
-numberp :: GenParser Char JournalContext (Quantity, Int, Char, Char, [Int])
+-- | Parse a string representation of a number for its value and display
+-- attributes.
+-- 
+-- Some international number formats are accepted, eg either period or comma
+-- may be used for the decimal point, and the other of these may be used for
+-- separating digit groups in the integer part. See
+-- http://en.wikipedia.org/wiki/Decimal_separator for more examples.
+-- 
+-- This returns: the parsed numeric value, the precision (number of digits
+-- seen following the decimal point), the decimal point character used if any,
+-- and the digit group style if any.
+-- 
+numberp :: GenParser Char JournalContext (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
+  -- a number is an optional sign followed by a sequence of digits possibly
+  -- interspersed with periods, commas, or both
+  -- ptrace "numberp"
   sign <- signp
   parts <- many1 $ choice' [many1 digit, many1 $ char ',', many1 $ char '.']
-  let numeric = isNumber . headDef '_'
-      (numparts, puncparts) = partition numeric parts
-      (ok,decimalpoint',separator') =
-          case (numparts,puncparts) of
-            ([],_)     -> (False, Nothing, Nothing)  -- no digits
-            (_,[])     -> (True, Nothing, Nothing)  -- no punctuation chars
-            (_,[d:""]) -> (True, Just d, Nothing)   -- just one punctuation char, assume it's a decimal point
-            (_,[_])    -> (False, Nothing, Nothing) -- adjacent punctuation chars, not ok
-            (_,_:_:_)  -> let (s:ss, d) = (init puncparts, last puncparts) -- two or more punctuation chars
-                          in if (any ((/=1).length) puncparts  -- adjacent punctuation chars, not ok
-                                 || any (s/=) ss                -- separator chars differ, not ok
-                                 || head parts == s)            -- number begins with a separator char, not ok
-                              then (False, Nothing, Nothing)
-                              else if s == d
-                                    then (True, Nothing, Just $ head s) -- just one kind of punctuation, assume separator chars
-                                    else (True, Just $ head d, Just $ head s) -- separators and a decimal point
+  dbgAt 8 "numberp parsed" (sign,parts) `seq` return ()
+
+  -- check the number is well-formed and identify the decimal point and digit
+  -- group separator characters used, if any
+  let (numparts, puncparts) = partition numeric parts
+      (ok, mdecimalpoint, mseparator) =
+          case (numparts, puncparts) of
+            ([],_)     -> (False, Nothing, Nothing)  -- no digits, not ok
+            (_,[])     -> (True, Nothing, Nothing)   -- digits with no punctuation, ok
+            (_,[[d]])  -> (True, Just d, Nothing)    -- just a single punctuation of length 1, assume it's a decimal point
+            (_,[_])    -> (False, Nothing, Nothing)  -- a single punctuation of some other length, not ok
+            (_,_:_:_)  ->                                       -- two or more punctuations
+              let (s:ss, d) = (init puncparts, last puncparts)  -- the leftmost is a separator and the rightmost may be a decimal point
+              in if (any ((/=1).length) puncparts               -- adjacent punctuation chars, not ok
+                     || any (s/=) ss                            -- separator chars vary, not ok
+                     || head parts == s)                        -- number begins with a separator char, not ok
+                 then (False, Nothing, Nothing)
+                 else if s == d
+                      then (True, Nothing, Just $ head s)       -- just one kind of punctuation - must be separators
+                      else (True, Just $ head d, Just $ head s) -- separator(s) and a decimal point
   when (not ok) (fail $ "number seems ill-formed: "++concat parts)
-  let (intparts',fracparts') = span ((/= decimalpoint') . Just . head) parts
+
+  -- get the digit group sizes and digit group style if any
+  let (intparts',fracparts') = span ((/= mdecimalpoint) . Just . head) parts
       (intparts, fracpart) = (filter numeric intparts', filter numeric fracparts')
-      separatorpositions = reverse $ map length $ drop 1 intparts
-      int = concat $ "":intparts
+      groupsizes = reverse $ case map length intparts of
+                               (a:b:cs) | a < b -> b:cs
+                               gs               -> gs
+      mgrps = maybe Nothing (Just . (`DigitGroups` groupsizes)) $ mseparator
+
+  -- put the parts back together without digit group separators, get the precision and parse the value
+  let int = concat $ "":intparts
       frac = concat $ "":fracpart
       precision = length frac
       int' = if null int then "0" else int
       frac' = if null frac then "0" else frac
       quantity = read $ sign++int'++"."++frac' -- this read should never fail
-      (decimalpoint, separator) = case (decimalpoint', separator') of (Just d,  Just s)   -> (d,s)
-                                                                      (Just '.',Nothing)  -> ('.',',')
-                                                                      (Just ',',Nothing)  -> (',','.')
-                                                                      (Nothing, Just '.') -> (',','.')
-                                                                      (Nothing, Just ',') -> ('.',',')
-                                                                      _                   -> ('.',',')
-  return (quantity,precision,decimalpoint,separator,separatorpositions)
-  <?> "numberp"
 
+  return $ dbgAt 8 "numberp quantity,precision,mdecimalpoint,mgrps" (quantity,precision,mdecimalpoint,mgrps)
+  <?> "numberp"
+  where
+    numeric = isNumber . headDef '_'
+      
 #ifdef TESTS
 test_numberp = do
       let s `is` n = assertParseEqual' (parseWithCtx nullctx numberp s) n

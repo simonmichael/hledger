@@ -1,5 +1,7 @@
 # a default commodity defined with the D directive will be used for any
-# commodity-less amounts in subsequent transactions.
+# subsequent commodity-less posting amounts. The sample amount's display style
+# is also applied, and the resulting amount may end up setting the canonical
+# display style for the commodity.
 
 # 1. no default commodity
 hledgerdev -f- print
@@ -54,29 +56,15 @@ D $1,000.0
 
 >>>=0
 
-# 5. as above, sets the commodity of the commodityless amount, but an
-# earlier explicit dollar amount sets the display settings for dollar
+# 5. commodity and display style applied to the second posting amount..
+# which ends up setting the digit group style, since it's the first amount
+# with digit groups. The great precision is used.
 hledgerdev -f- print
 <<<
 D $1,000.0
 2010/1/1
   (a)  $1000000.00
   (b)   1000000
->>>
-2010/01/01
-    (a)   $1000000.00
-    (b)   $1000000.00
-
->>>=0
-
-# 6. as above, but the commodityless amount is earliest, so it sets the
-# display settings for dollar. The greatest precision is preserved though.
-hledgerdev -f- print
-<<<
-D $1,000.0
-2010/1/1
-  (a)   1000000
-  (b)  $1000000.00
 >>>
 2010/01/01
     (a)  $1,000,000.00

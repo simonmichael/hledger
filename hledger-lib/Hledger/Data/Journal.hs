@@ -46,6 +46,7 @@ module Hledger.Data.Journal (
   journalEquityAccountQuery,
   journalCashAccountQuery,
   -- * Misc
+  canonicalStyles,
   matchpats,
   nullctx,
   nulljournal,
@@ -481,11 +482,33 @@ journalCanonicaliseAmounts :: Journal -> Journal
 journalCanonicaliseAmounts j@Journal{jtxns=ts} = j''
     where
       j'' = j'{jtxns=map fixtransaction ts}
-      j' = j{jcommoditystyles = canonicalStyles $ journalAmounts j}
+      j' = j{jcommoditystyles = canonicalStyles $ dbgAt 8 "journalAmounts" $ journalAmounts j}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
+
+-- | Given a list of amounts in parse order, build a map from commodities
+-- to canonical display styles for amounts in that commodity.
+canonicalStyles :: [Amount] -> M.Map Commodity AmountStyle
+canonicalStyles amts = M.fromList commstyles
+  where
+    samecomm = \a1 a2 -> acommodity a1 == acommodity a2
+    commamts = [(acommodity $ head as, as) | as <- groupBy samecomm $ sortBy (comparing acommodity) amts]
+    commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
+
+-- Given an ordered list of amount styles for a commodity, build a canonical style.
+canonicalStyleFrom :: [AmountStyle] -> AmountStyle
+canonicalStyleFrom [] = amountstyle
+canonicalStyleFrom ss@(first:_) =
+  first{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+  where
+    -- precision is the maximum of all precisions seen
+    prec = maximum $ map asprecision ss
+    -- find the first decimal point and the first digit group style seen,
+    -- or use defaults.
+    mdec  = Just $ headDef '.' $ catMaybes $ map asdecimalpoint ss
+    mgrps = maybe Nothing Just $ headMay $ catMaybes $ map asdigitgroups ss
 
 -- | Get this journal's canonical amount style for the given commodity, or the null style.
 journalCommodityStyle :: Journal -> Commodity -> AmountStyle
