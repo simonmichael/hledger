@@ -31,7 +31,7 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
       flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "include prior postings in the running total"
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a running average instead of the running total"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
-     ,flagOpt (show defaultWidthWithFlag) ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "set output width to 120, or N (default: 80)"
+     ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "set output width (default: 80)"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]

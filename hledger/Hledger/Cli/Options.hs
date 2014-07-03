@@ -81,7 +81,7 @@ helpflags :: [Flag RawOpts]
 helpflags = [
   flagNone ["help","h"] (setboolopt "help") "show general help or (after command) command help"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
- ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "N" "show debug output (increase N for more)"
+ ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "N" "show debug output (increase N for more detail)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
  ]
 

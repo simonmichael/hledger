@@ -122,12 +122,12 @@ hledgerdev --daily register
 >>>=1
 
 # 12. help and input flags can go before command
-hledgerdev -f /dev/null --alias somealiases --rules-file -? -h --help --version --debug register --daily
+hledgerdev -f /dev/null --alias somealiases --rules-file -? -h --help --version --debug 1 register --daily
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
 # 13. or after it, and spaces in options are optional
-hledgerdev register -f/dev/null --alias=somealiases --rules-file -? -h --help --version --debug --daily
+hledgerdev register -f/dev/null --alias=somealiases --rules-file -? -h --help --version --debug 1 --daily
 >>> /^register \[OPTIONS\]/
 >>>=0
 
