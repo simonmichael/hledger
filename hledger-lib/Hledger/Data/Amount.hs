@@ -63,6 +63,7 @@ module Hledger.Data.Amount (
   showAmount,
   showAmountDebug,
   showAmountWithoutPrice,
+  showMixedAmountOneLineWithoutPrice,
   maxprecision,
   maxprecisionwithpoint,
   setAmountPrecision,
@@ -500,6 +501,14 @@ showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth a
       stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
       width = maximum $ map (length . showAmount) as
       showfixedwidth = printf (printf "%%%ds" width) . showAmountWithoutPrice
+
+-- | Get the one-line string representation of a mixed amount, but without
+-- any \@ prices.
+showMixedAmountOneLineWithoutPrice :: MixedAmount -> String
+showMixedAmountOneLineWithoutPrice m = concat $ intersperse ", " $ map showAmountWithoutPrice as
+    where
+      (Mixed as) = normaliseMixedAmountPreservingFirstPrice $ stripPrices m
+      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map Commodity AmountStyle -> MixedAmount -> MixedAmount

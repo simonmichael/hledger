@@ -374,7 +374,7 @@ periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals))
    render
     id
     ((" "++) . showDateSpan)
-    showMixedAmountWithoutPrice
+    showMixedAmountOneLineWithoutPrice
     $ Table
       (T.Group NoLine $ map (Header . padright acctswidth) accts)
       (T.Group NoLine $ map Header colspans)
@@ -398,7 +398,7 @@ cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
 cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
   (["Ending balance (cumulative):"] ++) $
   trimborder $ lines $
-   render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountWithoutPrice $
+   render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
     addtotalrow $ 
      Table
        (T.Group NoLine $ map (Header . padright acctswidth) accts)
@@ -419,7 +419,7 @@ historicalBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
 historicalBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
   (["Ending balance (historical):"] ++) $
   trimborder $ lines $
-   render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountWithoutPrice $
+   render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
     addtotalrow $ 
      Table
        (T.Group NoLine $ map (Header . padright acctswidth) accts)
