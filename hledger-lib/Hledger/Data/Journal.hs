@@ -133,7 +133,7 @@ nulljournal = Journal { jmodifiertxns = []
                       }
 
 nullctx :: JournalContext
-nullctx = Ctx { ctxYear = Nothing, ctxCommodityAndStyle = Nothing, ctxAccount = [], ctxAliases = [] }
+nullctx = Ctx { ctxYear = Nothing, ctxDefaultCommodityAndStyle = Nothing, ctxAccount = [], ctxAliases = [] }
 
 journalFilePath :: Journal -> FilePath
 journalFilePath = fst . mainfile
