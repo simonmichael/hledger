@@ -450,9 +450,19 @@ dbg2 = dbgAt 2
 dbgAt :: Show a => Int -> String -> a -> a
 dbgAt lvl = dbgppshow lvl
 
+    -- Could not deduce (a ~ ())
+    -- from the context (Show a)
+    --   bound by the type signature for
+    --              dbgM :: Show a => String -> a -> IO ()
+    --   at hledger/Hledger/Cli/Main.hs:200:13-42
+    --   ‘a’ is a rigid type variable bound by
+    --       the type signature for dbgM :: Show a => String -> a -> IO ()
+    --       at hledger/Hledger/Cli/Main.hs:200:13
+    -- Expected type: String -> a -> IO ()
+    --   Actual type: String -> a -> IO a
 -- dbgAtM :: (Monad m, Show a) => Int -> String -> a -> m a
 -- dbgAtM lvl lbl x = dbgAt lvl lbl x `seq` return x
--- XXX
+-- XXX temporary:
 dbgAtM :: Show a => Int -> String -> a -> IO ()
 dbgAtM = dbgAtIO
 
