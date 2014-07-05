@@ -4,11 +4,13 @@ module Handler.Post where
 
 import Import
 
+import Control.Applicative
 import Data.Either (lefts,rights)
 import Data.List (intercalate)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
 import Data.Text (unpack)
 import qualified Data.Text as T (null)
+import Text.Parsec (eof)
 import Text.Printf (printf)
 
 import Handler.Utils
@@ -42,11 +44,15 @@ handleAdd = do
   -- supply defaults and parse date and amounts, or get errors.
   let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . unpack) dateM
       descE = Right $ maybe "" unpack descM
-      maybeNonNull = maybe Nothing (\t -> if T.null t then Nothing else Just t)
-      acct1E = maybe (Left "to account required") (Right . unpack) $ maybeNonNull acct1M
-      acct2E = maybe (Left "from account required") (Right . unpack) $ maybeNonNull acct2M
-      amt1E = maybe (Left "amount required") (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amountp . unpack) amt1M
-      amt2E = maybe (Right missingamt)       (either (const $ Left "could not parse amount") Right . parseWithCtx nullctx amountp . unpack) amt2M
+      -- XXX simplify...
+      maybeNothing = maybe Nothing (\t -> if T.null t then Nothing else Just t)
+      acct1E = maybe (Left "To account required") (Right . strip . unpack) (maybeNothing acct1M)
+               >>= \a -> either (Left . ("could not parse To account: "++) . show) Right (parsewith (accountnamep <* eof) a)
+      acct2E = maybe (Left "From account required") (Right . strip . unpack) (maybeNothing acct2M)
+               >>= \a -> either (Left . ("could not parse From account: "++) . show) Right (parsewith (accountnamep <* eof) a)
+      amt1E = maybe (Left "Amount 1 required") (Right . strip . unpack) (maybeNothing amt1M)
+               >>= \a -> either (Left . ("could not parse To account: "++) . show) Right (parseWithCtx nullctx (amountp <* eof) a)
+      amt2E = maybe (Right missingamt) (either (Left . ("could not parse amount 2: "++) . show) Right . parseWithCtx nullctx amountp . strip . unpack) amt2M
       journalE = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
