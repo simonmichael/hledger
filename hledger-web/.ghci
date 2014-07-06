@@ -1,2 +1,68 @@
-:set -i.:config:dist/build/autogen
-:set -XCPP -XTemplateHaskell -XQuasiQuotes -XTypeFamilies -XFlexibleContexts -XGADTs -XOverloadedStrings -XMultiParamTypeClasses -XGeneralizedNewtypeDeriving -XEmptyDataDecls
+-- -*- haskell -*-
+-- .ghci for hledger-web
+
+-- yesod
+
+:set -i.:config:dist/build/autogen:app
+:set -XCPP -XTemplateHaskell -XQuasiQuotes -XTypeFamilies -XFlexibleContexts -XGADTs -XOverloadedStrings -XMultiParamTypeClasses -XGeneralizedNewtypeDeriving -XEmptyDataDecls -XDeriveDataTypeable
+import Prelude
+
+-- hledger-web
+
+:def serve const . return $ ":main --server --port 3000 -f t.j"
+
+-- misc
+
+import Control.Applicative
+import Data.Char
+import Data.List
+import qualified Data.Text as T
+import Data.Text (Text)
+
+:set prompt "λ "
+:def hlint  \s -> return $ ":! hlint \"" ++ s ++ "\""
+:def hoogle \s -> return $ ":! hoogle --count=15 \"" ++ s ++ "\""
+:def doc    \s -> return $ ":! hoogle --info \"" ++ s ++ "\""
+:def pl     \s -> return $ ":! pointfree \"" ++ s ++ "\""
+
+-- extra
+
+-- -- hayoo search (requires hsdev, mtl)
+-- -- λ :hayoo (a -> c) -> (b -> c)
+-- -- either :: (a -> c) -> (b -> c) -> Either a b -> c
+-- --     Case analysis for the Either type.
+-- --      If the value is Left a, apply the first function to a;
+-- --      if it is Right b, apply the second function to b.
+-- --     -- Defined in 'Prelude', base
+-- import Control.Monad.Error
+-- import HsDev.Tools.Hayoo
+-- :{
+-- let
+--     showHayooFunction f =
+--         (hayooName f ++ " :: " ++ hayooSignature f) :
+--         (map ('\t':) $
+--             lines (untagDescription (hayooDescription f)) ++
+--             ["-- Defined in '" ++ hayooModule f ++ "', " ++ hayooPackage f])
+--     showHayoo = concatMap showHayooFunction . hayooFunctions
+-- :}
+-- :def hayoo \s -> return $ "runErrorT (hayoo \"" ++ s ++ "\") >>= (mapM_ putStrLn) . either (return . (\"Error: \" ++)) showHayoo"
+
+-- -- watch for changes and restart, like yesod devel in interpreted mode (requires fsnotify)
+-- -- from https://gist.github.com/rehno-lindeque/10490026
+-- import System.FSNotify
+-- import Data.String
+-- import Control.Concurrent.MVar
+-- import Control.Concurrent
+-- :{
+-- :def serveAndReload const (withManager (\manager -> 
+--      do putStrLn "Listening to changes, press any key to stop..."
+--         lock <- newEmptyMVar
+--         watchTree manager (fromString ".") (const True) (const $ putMVar lock True)
+--         forkIO (getLine >> putMVar lock False)
+--         rerun <- readMVar lock
+--         return $ if rerun 
+--           then ":reload \n :main Development\n :serveAndReload"
+--           else ""
+--      ))
+-- :}
+

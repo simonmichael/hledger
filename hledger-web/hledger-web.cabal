@@ -165,6 +165,10 @@ library
                    , yesod-core
                    , yesod-static
                    , json
+                   -- required by extra ghci utilities:
+                   -- , fsnotify
+                   -- , hsdev
+                   -- , mtl
 
     if flag(blaze_html_0_4)
       cpp-options:   -DBLAZE_HTML_0_4
@@ -258,6 +262,10 @@ executable         hledger-web
                    , yesod-core
                    , yesod-static
                    , json
+                   -- required by extra ghci utilities:
+                   -- , fsnotify
+                   -- , hsdev
+                   -- , mtl
 
     if flag(blaze_html_0_4)
       cpp-options:   -DBLAZE_HTML_0_4
