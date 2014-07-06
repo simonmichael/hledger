@@ -13,10 +13,6 @@ These should
 - support unicode
 - be cross-platform, not requiring C libraries
 
-They currently can
-- die on malformed regexps
-- be slow (regexpr)
-
 -}
 
 module Hledger.Utils.Regex (
@@ -79,14 +75,16 @@ regexSplit = splitRegexPR
 
 -- regex-tdfa
 
+-- | Convert our string-based regexps to real ones. Can fail if the
+-- string regexp is malformed.
+toRegex :: Regexp -> Regex
+toRegex = makeRegexOpts compOpt execOpt
+
 compOpt :: CompOption
 compOpt = defaultCompOpt
 
 execOpt :: ExecOption
 execOpt = defaultExecOpt
-
-toRegex :: Regexp -> Regex
-toRegex = makeRegexOpts compOpt execOpt
 
 -- regexMatch' :: RegexContext Regexp String a => Regexp -> String -> a
 -- regexMatch' r s = s =~ (toRegex r)
