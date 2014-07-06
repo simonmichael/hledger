@@ -549,6 +549,15 @@ ghci:
 ghciweb:
 	$(GHCI) $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
+repllib:
+	(cd hledger-lib; cabal repl)
+
+repl:
+	(cd hledger; cabal repl exe:hledger)
+
+replweb:
+	(cd hledger-web; cabal repl exe:hledger-web)
+
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal
 
