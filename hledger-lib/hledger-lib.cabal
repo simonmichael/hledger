@@ -64,6 +64,7 @@ library
                   Hledger.Reports.PostingsReport
                   Hledger.Reports.TransactionsReports
                   Hledger.Utils
+                  Hledger.Utils.Regex
                   Hledger.Utils.UTF8IOCompat
   build-depends:
                   base >= 4.3 && < 5

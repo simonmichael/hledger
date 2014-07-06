@@ -20,6 +20,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- module Text.Printf,
                           ---- all of this one:
                           module Hledger.Utils,
+                          module Hledger.Utils.Regex,
                           Debug.Trace.trace,
                           -- module Data.PPrint,
                           -- module Hledger.Utils.UTF8IOCompat
@@ -36,7 +37,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Char
 import Data.List
 import qualified Data.Map as M
-import Data.Maybe
+-- import Data.Maybe
 -- import Data.PPrint
 import Data.Time.Clock
 import Data.Time.LocalTime
@@ -52,10 +53,9 @@ import System.IO.Unsafe (unsafePerformIO)
 import Test.HUnit
 import Text.ParserCombinators.Parsec
 import Text.Printf
-import Text.Regex.TDFA
-import Text.RegexPR
 -- import qualified Data.Map as Map
--- 
+
+import Hledger.Utils.Regex
 -- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
 -- import Hledger.Utils.UTF8IOCompat   (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
 import Hledger.Utils.UTF8IOCompat (SystemString,fromSystemString,toSystemString,error',userError')
@@ -247,45 +247,6 @@ fifth5  (_,_,_,_,x) = x
 
 difforzero :: (Num a, Ord a) => a -> a -> a
 difforzero a b = maximum [(a - b), 0]
-
--- regexps
--- Note many of these will die on malformed regexps.
-
--- regexMatch :: String -> String -> MatchFun Maybe
-regexMatch r s = matchRegexPR r s
-
--- regexMatchCI :: String -> String -> MatchFun Maybe
-regexMatchCI r s = regexMatch (regexToCaseInsensitive r) s
-
-regexMatches :: String -> String -> Bool
-regexMatches r s = isJust $ matchRegexPR r s
-
-regexMatchesCI :: String -> String -> Bool
-regexMatchesCI r s = regexMatches (regexToCaseInsensitive r) s
-
-containsRegex = regexMatchesCI
-
-regexReplace :: String -> String -> String -> String
-regexReplace r repl s = gsubRegexPR r repl s
-
-regexReplaceCI :: String -> String -> String -> String
-regexReplaceCI r s = regexReplace (regexToCaseInsensitive r) s
-
-regexReplaceBy :: String -> (String -> String) -> String -> String
-regexReplaceBy r replfn s = gsubRegexPRBy r replfn s
-
-regexToCaseInsensitive :: String -> String
-regexToCaseInsensitive r = "(?i)"++ r
-
-regexSplit :: String -> String -> [String]
-regexSplit = splitRegexPR
-
--- regex-compat (regex-posix) functions that perform better than regexpr.
-regexMatchesRegexCompat :: String -> String -> Bool
-regexMatchesRegexCompat = flip (=~)
-
-regexMatchesCIRegexCompat :: String -> String -> Bool
-regexMatchesCIRegexCompat r = match (makeRegexOpts defaultCompOpt { multiline = True, caseSensitive = False, newSyntax = True } defaultExecOpt r)
 
 -- lists
 
