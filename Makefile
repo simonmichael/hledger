@@ -4,8 +4,7 @@
 export LANG=en_US.UTF-8
 
 # command to run during "make prof" and "make heap"
-PROFCMD=bin/hledgerprof balance -f data/1000x1000x10.journal >/dev/null
-PROFCMD=bin/hledgerprof -f test-wf.csv print
+PROFCMD=bin/hledger-prof balance -f data/1000x1000x10.journal >/dev/null
 
 #PROFRTSFLAGS=-p
 PROFRTSFLAGS=-P
@@ -196,7 +195,7 @@ sp:
 	  (echo '"sp" is required for auto-compilation. darcs get http://joyful.com/darcsden/simon/searchpath, make it (cabal install-ing any needed packages) and add it to your PATH'; exit 1)
 
 # force a compile even if binary exists, since we don't specify dependencies for these
-.PHONY: bin/hledgerdev bin/hledgerprof bin/hledgeropt bin/hledger-webdev
+.PHONY: bin/hledgerdev bin/hledger-prof bin/hledgeropt bin/hledger-webdev
 
 # build hledger binary as quickly as possible
 bin/hledgerdev:
@@ -218,9 +217,15 @@ bin/hledgerdev.ghcall: \
 bin/hledgeropt:
 	$(GHC) $(MAIN) -o $@ $(BUILDFLAGS) -O2 # -fvia-C # -fexcess-precision -optc-O3 -optc-ffast-math
 
-# build the time profiling binary. cabal install --reinstall -p some libs may be required.
-bin/hledgerprof:
-	$(GHC) $(BUILDFLAGS) $(PROFBUILDFLAGS) $(MAIN) -o $@
+# build the production (cabal) build with profiling enabled.
+bin/hledger-prof:
+	cabal install -p --enable-executable-profiling --ghc-options=-fprof-auto ./hledger-lib ./hledger \
+		&& mv .cabal-sandbox/bin/hledger bin/hledger-prof
+
+# build the dev build with profiling enabled.
+# not working with cabal sandbox
+# bin/hledgerdev-prof:
+# 	$(GHC) $(BUILDFLAGS) $(PROFBUILDFLAGS) $(MAIN) -o $@
 
 # build the heap profiling binary for coverage reports and heap profiles.
 # Keep these .o files separate from the regular ones.
@@ -490,10 +495,10 @@ progressionbench: samplejournals tools/progressionbench
 	tools/progressionbench -- -t png -k png
 
 # generate and archive an execution profile
-prof: samplejournals bin/hledgerprof
+prof: samplejournals #bin/hledger-prof
 	@echo "Profiling: $(PROFCMD)"
 	-$(PROFCMD) +RTS $(PROFRTSFLAGS) -RTS
-	mv hledgerprof.prof profs/$(TIME).prof
+	mv hledger-prof.prof profs/$(TIME).prof
 	(cd profs; rm -f latest*.prof; ln -s $(TIME).prof latest.prof)
 
 # generate, archive, simplify and display an execution profile
@@ -501,16 +506,16 @@ viewprof: prof
 	tools/simplifyprof.hs profs/latest.prof
 
 # generate and display an execution profile, don't save or simplify
-quickprof: samplejournals bin/hledgerprof
+quickprof: samplejournals #bin/hledger-prof
 	@echo "Profiling: $(PROFCMD)"
 	-$(PROFCMD) +RTS $(PROFRTSFLAGS) -RTS
-	echo; cat hledgerprof.prof
+	echo; cat hledger-prof.prof
 
 # generate and archive a graphical heap profile
-heap: samplejournals bin/hledgerprof
+heap: samplejournals #bin/hledger-prof
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
-	mv hledgerprof.hp profs/$(TIME).hp
+	mv hledger-prof.hp profs/$(TIME).hp
 	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
 		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps; rm -f *.aux)
 
@@ -518,10 +523,10 @@ viewheap: heap
 	$(VIEWPS) profs/latest.ps
 
 # generate and display a graphical heap profile, don't save
-quickheap: samplejournals bin/hledgerprof
+quickheap: samplejournals #bin/hledger-prof
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
-	hp2ps hledgerprof.hp
+	hp2ps hledger-prof.hp
 	$(VIEWPS) hledger.ps
 
 # display a code coverage text report from running hledger COVCMD
