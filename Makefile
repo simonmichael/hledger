@@ -13,10 +13,8 @@ PROFRTSFLAGS=-P
 COVCMD=test
 COVCMD=-f test-wf.csv print
 
-# executables to run during "make simplebench". They should be on the path
-# or in the current directory. hledger executables for benchmarking should
-# generally be the standard optimised cabal build, constrained to parsec 2.
-BENCHEXES=hledger-0.18 hledger-0.19 hledger-0.20 ledger-3.0-20130215
+# executables to run during "make simplebench"
+BENCHEXES=hledger-0.19.3 hledger-0.22.2 hledger-0.23.2 hledger-0.23.98 ledger-20140507
 
 # misc. tools
 BROWSE=open -a Firefox
