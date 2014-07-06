@@ -80,6 +80,7 @@ library
                  ,old-time
                  ,parsec
                  ,process
+                 ,regex-tdfa
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
 -- http://www.yesodweb.com/blog/2014/04/consolidation-progress
@@ -149,6 +150,7 @@ executable hledger
                  ,old-time
                  ,parsec
                  ,process
+                 ,regex-tdfa
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,shakespeare-text >= 1.0 && < 1.2
@@ -183,6 +185,7 @@ test-suite tests
                , old-time
                , parsec
                , process
+               , regex-tdfa
                , regexpr
                , safe
                , shakespeare-text >= 1.0 && < 1.2

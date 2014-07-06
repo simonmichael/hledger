@@ -655,7 +655,7 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
                 matcherMatches pats = patternMatches $  "(" ++ intercalate "|" pats ++ ")"
                   where
                     patternMatches :: Regexp -> Bool
-                    patternMatches pat = regexMatchesCIRegexCompat pat csvline
+                    patternMatches pat = regexMatchesCI pat csvline
                       where
                         csvline = intercalate "," record
 

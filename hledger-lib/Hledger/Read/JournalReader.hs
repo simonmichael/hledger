@@ -81,7 +81,7 @@ detect :: FilePath -> String -> Bool
 detect f s
   | f /= "-"  = takeExtension f `elem` ['.':format, ".j"]  -- from a file: yes if the extension is .journal or .j
   -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
-  | otherwise = isJust $ regexMatch "^[0-9]+.*\n[ \t]+" s
+  | otherwise = regexMatches "^[0-9]+.*\n[ \t]+" s
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
