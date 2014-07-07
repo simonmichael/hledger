@@ -24,10 +24,10 @@ hledgerdev -f - register
     c           ; a euro and a dollar
 >>>
 2010/01/01                      a                            EUR 1         EUR 1
-                                                                           EUR 1
-                                b                            USD 1         USD 1
-                                                            EUR -1              
-                                c                           USD -1             0
+                                b                            USD 1         EUR 1
+                                                                           USD 1
+                                c                           EUR -1              
+                                                            USD -1             0
 >>>=0
 
 # 3. balance

@@ -70,7 +70,12 @@ tests_postingsReportAsText = [
 -- @
 postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
 postingsReportItemAsText opts (mdate, mdesc, p, b) =
-  concatTopPadded [date, " ", desc, "  ", acct, "  ", amt, "  ", bal]
+  intercalate "\n" $
+    [printf ("%-"++datew++"s %-"++descw++"s  %-"++acctw++"s  %"++amtw++"s  %"++balw++"s")
+            date desc acct amtfirstline balfirstline]
+    ++
+    [printf (spacer ++ "%"++amtw++"s  %"++balw++"s") a b | (a,b) <- zip amtrest balrest ]
+    
     where
       totalwidth = case widthFromOpts opts of
            Left _                       -> defaultWidth -- shouldn't happen
@@ -85,17 +90,24 @@ postingsReportItemAsText opts (mdate, mdesc, p, b) =
                              | otherwise = (r', r'+1)
         where r = remaining - 2
               r' = r `div` 2
-      date = maybe (replicate datewidth ' ') (printf ("%-"++show datewidth++"s") . showDate) mdate
-      desc = maybe (replicate descwidth ' ') (printf ("%-"++show descwidth++"s") . take descwidth . elideRight descwidth) mdesc
-      acct = printf ("%-"++(show acctwidth)++"s") a
-        where
-          a = bracket $ elideAccountName awidth $ paccount p
-          (bracket, awidth) = case ptype p of
+      [datew,descw,acctw,amtw,balw] = map show [datewidth,descwidth,acctwidth,amtwidth,balwidth]
+
+      date = maybe "" showDate mdate
+      desc = maybe "" (take descwidth . elideRight descwidth) mdesc
+      acct = parenthesise $ elideAccountName awidth $ paccount p
+         where
+          (parenthesise, awidth) = case ptype p of
                                BalancedVirtualPosting -> (\s -> "["++s++"]", acctwidth-2)
-                               VirtualPosting -> (\s -> "("++s++")", acctwidth-2)
-                               _ -> (id,acctwidth)
-      amt = padleft amtwidth $ showMixedAmountWithoutPrice $ pamount p
-      bal = padleft balwidth $ showMixedAmountWithoutPrice b
+                               VirtualPosting         -> (\s -> "("++s++")", acctwidth-2)
+                               _                      -> (id,acctwidth)
+      amt = showMixedAmountWithoutPrice $ pamount p
+      bal = showMixedAmountWithoutPrice b
+      (amtlines, ballines) = (lines amt, lines bal)
+      (amtlen, ballen) = (length amtlines, length ballines)
+      numlines = max amtlen ballen
+      (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat "" -- posting amount is top-aligned
+      (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
+      spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
 
 -- XXX
 -- showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText defreportopts $ mkpostingsReportItem showtxninfo p b
