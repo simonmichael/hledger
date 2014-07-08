@@ -224,10 +224,10 @@ bin/hledger:
 
 # build the "production" cabal build with profiling enabled.
 bin/hledger-prof:
+	rm -f bin/hledger-prof
 	cabal install -p --enable-executable-profiling --ghc-options=-fprof-auto ./hledger-lib ./hledger \
 		&& mv .cabal-sandbox/bin/hledger bin/hledger-prof
 
-	rm -f bin/hledger-prof
 # build the dev build with profiling enabled.
 # not working with cabal sandbox
 # bin/hledgerdev-prof:
