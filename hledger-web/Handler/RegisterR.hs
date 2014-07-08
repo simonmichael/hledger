@@ -79,14 +79,6 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    \#{mixedAmountAsHtml amt}
  <td.balance style="text-align:right;">#{mixedAmountAsHtml bal}
 |]
- -- $else
- --  $forall p' <- tpostings t
- --   <tr.item.#{evenodd}.posting>
- --   <td.date>
- --   <td.description>
- --   <td.account>&nbsp;<a href="@?{accountUrl here $ paccount p'}" title="Show transactions in #{paccount p'}">#{elideRight 40 $ paccount p'}
- --    <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
- --    <td.balance style="text-align:right;">
 
      where
        evenodd = if even n then "even" else "odd" :: String
