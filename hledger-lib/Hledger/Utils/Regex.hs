@@ -1,16 +1,22 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-
+{-|
 
-Easy regular expression helpers.
+Easy regular expression helpers, based on regex-tdfa and regexpr. These should
 
-These should
 - have mnemonic names
+
 - have simple monomorphic types
+
 - work with strings
+
 - support extended regular expressions
+
 - support replacement
+
 - support splitting
+
 - support unicode
+
 - be cross-platform, not requiring C libraries
 
 -}
