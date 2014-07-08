@@ -55,17 +55,21 @@ SOURCEFILES:= \
 	hledger-web/Hledger/*.hs \
 	hledger-web/Settings/*.hs
 
-# a more careful list suitable for for haddock
-HADDOCKSOURCEFILES:= \
-	hledger-lib/Hledger.hs \
-	hledger-lib/Hledger/*hs \
-	hledger-lib/Hledger/*/*hs \
-	hledger/Hledger/*hs \
-	hledger/Hledger/*/*hs \
-	# hledger-web/Hledger/*hs \
-	# hledger-web/Hledger/*/*hs \
-	# hledger-web/app/*.hs \
-	# hledger-web/Settings/*.hs
+# # a more careful list suitable for for haddock-all
+# HADDOCKSOURCEFILES:= \
+# 	hledger-lib/Hledger.hs \
+# 	hledger-lib/Hledger/*hs \
+# 	hledger-lib/Hledger/*/*hs \
+# 	hledger/Hledger/*hs \
+# 	hledger/Hledger/*/*hs \
+# 	hledger-web/Application.hs \
+# 	hledger-web/Foundation.hs \
+# 	hledger-web/Hledger/*hs \
+# 	hledger-web/Hledger/*/*hs \
+# 	hledger-web/Import.hs \
+# 	hledger-web/Settings.hs \
+# 	hledger-web/Settings/*hs \
+# 	hledger-web/app/*hs \
 
 CABALFILES:= \
 	hledger/hledger.cabal \
@@ -660,31 +664,63 @@ savehelp:
 # generate api & other code docs
 codedocs: haddock hscolour coverage #sourcegraph #hoogle
 
-#http://www.haskell.org/haddock/doc/html/invoking.html
+# cf http://www.haskell.org/haddock/doc/html/invoking.html
+# --ghc-options=-optP-P is a workaround for http://trac.haskell.org/haddock/ticket/284
+HADDOCKFLAGS= \
+	--haddock-options='--no-warnings' \
+	--ghc-options='-optP-P' \
+
+# build per-package haddocks using cabal
+haddock: haddock-lib haddock-cli haddock-web
+
+haddock-lib:
+	(cd hledger-lib; cabal haddock $(HADDOCKFLAGS))
+
+haddock-cli:
+	(cd hledger; cabal haddock $(HADDOCKFLAGS))
+
+haddock-web:
+	(cd hledger-web; cabal haddock $(HADDOCKFLAGS))
+
+# view-haddock-cli
+view-haddock-cli:
+	$(VIEWHTML) hledger/dist/doc/html/hledger/index.html
+
+# view-haddock-lib, view-haddock-web
+view-haddock-%:
+	$(VIEWHTML) hledger-$*/dist/doc/html/hledger-$*/index.html
+
+# HADDOCKALLFLAGS= \
+#		--no-warnings \
+# 	--prologue .haddockallprologue \
+# 	--optghc='-optP-include' \
+# 	--optghc='-optPhledger/dist/build/autogen/cabal_macros.h'
+# #	 --optghc='-XCPP'
+# #	--optghc="$(WEBLANGEXTS)"
+# #	--optghc='-hide-package monads-tf' 
 #$(subst -D,--optghc=-D,$(DEFINEFLAGS))
-HADDOCKFLAGS= --no-warnings --prologue .haddockprologue \
-	--optghc='-optP-include' --optghc='-optPhledger/dist/build/autogen/cabal_macros.h'
-	#--optghc='-hide-package monads-tf' 
-
-.haddocksynopsis: hledger/hledger.cabal
-	grep synopsis $< | sed -e 's/synopsis: *//' >$@
-
-.haddockprologue: hledger/hledger.cabal
-	cat $< | perl -ne 'print if (/^description:/../^$$/)' | sed -e 's/^description: *//' >$@
-	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
-
-# generate api docs for the whole project
-haddock: .haddockprologue
-	$(HADDOCK) $(HADDOCKFLAGS) --title "hledger-* API docs" \
-	 -o site/api \
-	 --html \
-	 --source-module=src/%{MODULE/./-}.html \
-	 --source-entity=src/%{MODULE/./-}.html#%N \
-	 $(HADDOCKSOURCEFILES)
-
-# browse the api docs
-viewhaddock:
-	$(VIEWHTML) site/api/frames.html
+#
+# # .haddockallsynopsis: hledger/hledger.cabal
+# # 	grep synopsis $< | sed -e 's/synopsis: *//' >$@
+#
+# .haddockallprologue: hledger/hledger.cabal
+# 	cat $< | perl -ne 'print if (/^description:/../^$$/)' | sed -e 's/^description: *//' >$@
+# 	printf "\nThis haddock covers all hledger-* packages, for individual package haddocks see hackage.\n" >>$@
+#
+# # build haddock docs for the whole project
+# haddock-all: .haddockallprologue
+# 	$(HADDOCK) \
+# 		$(HADDOCKALLFLAGS) \
+# 		--title "hledger-* API docs" \
+# 		-o site/api \
+# 		--html \
+# 		--source-module=src/%{MODULE/./-}.html \
+# 		--source-entity=src/%{MODULE/./-}.html#%N \
+# 		$(HADDOCKSOURCEFILES)
+#
+# # browse the whole-project haddock
+# view-haddock-all:
+# 	$(VIEWHTML) site/api/frames.html
 
 # http://www.cs.york.ac.uk/fp/darcs/hscolour/
 HSCOLOUR=HsColour -css
