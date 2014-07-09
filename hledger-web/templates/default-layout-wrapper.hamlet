@@ -92,3 +92,12 @@ $newline never
                         <li> Prepend <b><tt>not:</tt></b> to negate a search term
                         <li> Multiple search terms on different fields are AND'ed, multiple search terms on the same field are OR'ed
                         <li> These search terms also work with command-line hledger
+
+        <div .modal #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
+          <div .modal-dialog .modal-lg>
+            <div .modal-content>
+              <div .modal-header>
+                <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+                <h3 .modal-title #addLabel>Add a transaction
+              <div .modal-body>
+                ^{addform staticRootUrl vd}

@@ -8,6 +8,7 @@ See a default Yesod app's comments for more details of each part.
 module Foundation where
 
 import Prelude
+import Control.Applicative ((<$>))
 import Data.IORef
 import Yesod
 import Yesod.Static
@@ -30,6 +31,23 @@ import Hledger.Web.Options
 import Hledger.Data.Types
 -- import Hledger.Web.Settings
 -- import Hledger.Web.Settings.StaticFiles
+
+-- for addform
+import Data.List
+import Data.Maybe
+import Data.Text as Text (Text,pack,unpack)
+import Data.Time.Calendar
+import System.FilePath (takeFileName)
+#if BLAZE_HTML_0_4
+import Text.Blaze (preEscapedString)
+#else
+import Text.Blaze.Internal (preEscapedString)
+#endif
+import Text.JSON
+import Hledger.Data.Journal
+import Hledger.Query
+import Hledger hiding (is)
+import Hledger.Cli hiding (version)
 
 
 -- | The site argument for your application. This can be a good place to
@@ -120,6 +138,8 @@ instance Yesod App where
             addScript $ StaticR hledger_js
             $(widgetFile "default-layout")
 
+        staticRootUrl <- (staticRoot . settings) <$> getYesod
+        vd@VD{..} <- getViewData
         giveUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- This is done to provide an optimization for serving static files from
@@ -159,3 +179,224 @@ getExtra = fmap (appExtra . settings) getYesod
 -- wiki:
 --
 -- https://github.com/yesodweb/yesod/wiki/Sending-email
+
+
+----------------------------------------------------------------------
+-- template and handler utilities
+
+-- view data, used by the add form and handlers
+
+-- | A bundle of data useful for hledger-web request handlers and templates.
+data ViewData = VD {
+     opts         :: WebOpts    -- ^ the command-line options at startup
+    ,here         :: AppRoute   -- ^ the current route
+    ,msg          :: Maybe Html -- ^ the current UI message if any, possibly from the current request
+    ,today        :: Day        -- ^ today's date (for queries containing relative dates)
+    ,j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
+    ,q            :: String     -- ^ the current q parameter, the main query expression
+    ,m            :: Query    -- ^ a query parsed from the q parameter
+    ,qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
+    ,am           :: Query    -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
+    ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
+    ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
+    ,showsidebar  :: Bool       -- ^ current showsidebar cookie value
+    }
+
+-- | Make a default ViewData, using day 0 as today's date.
+nullviewdata :: ViewData
+nullviewdata = viewdataWithDateAndParams nulldate "" "" ""
+
+-- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
+viewdataWithDateAndParams :: Day -> String -> String -> String -> ViewData
+viewdataWithDateAndParams d q a p =
+    let (querymatcher,queryopts) = parseQuery d q
+        (acctsmatcher,acctsopts) = parseQuery d a
+    in VD {
+           opts         = defwebopts
+          ,j            = nulljournal
+          ,here         = RootR
+          ,msg          = Nothing
+          ,today        = d
+          ,q            = q
+          ,m            = querymatcher
+          ,qopts        = queryopts
+          ,am           = acctsmatcher
+          ,aopts        = acctsopts
+          ,showpostings = p == "1"
+          ,showsidebar  = False
+          }
+
+-- | Gather data used by handlers and templates in the current request.
+getViewData :: Handler ViewData
+getViewData = do
+  app        <- getYesod
+  let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
+  (j, err)   <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}}
+  msg        <- getMessageOr err
+  Just here  <- getCurrentRoute
+  today      <- liftIO getCurrentDay
+  q          <- getParameterOrNull "q"
+  a          <- getParameterOrNull "a"
+  p          <- getParameterOrNull "p"
+  cookies <- reqCookies <$> getRequest
+  let showsidebar = maybe False (=="1") $ lookup "showsidebar" cookies
+  return (viewdataWithDateAndParams today q a p){
+               opts=opts
+              ,msg=msg
+              ,here=here
+              ,today=today
+              ,j=j
+              ,showsidebar=showsidebar
+              }
+    where
+      -- | Update our copy of the journal if the file changed. If there is an
+      -- error while reloading, keep the old one and return the error, and set a
+      -- ui message.
+      getCurrentJournal :: App -> CliOpts -> Handler (Journal, Maybe String)
+      getCurrentJournal app opts = do
+        -- XXX put this inside atomicModifyIORef' for thread safety
+        j <- liftIO $ readIORef $ appJournal app
+        (jE, changed) <- liftIO $ journalReloadIfChanged opts j
+        if not changed
+         then return (j,Nothing)
+         else case jE of
+                Right j' -> do liftIO $ writeIORef (appJournal app) j'
+                               return (j',Nothing)
+                Left e   -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
+                               return (j, Just e)
+
+      -- | Get the named request parameter, or the empty string if not present.
+      getParameterOrNull :: String -> Handler String
+      getParameterOrNull p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
+
+-- | Get the message set by the last request, or the newer message provided, if any.
+getMessageOr :: Maybe String -> Handler (Maybe Html)
+getMessageOr mnewmsg = do
+  oldmsg <- getMessage
+  return $ maybe oldmsg (Just . toHtml) mnewmsg
+
+-- add form dialog, part of the default template
+
+-- | Add transaction form.
+addform :: Text -> ViewData -> HtmlUrl AppRoute
+addform _ vd@VD{..} = [hamlet|
+<script language="javascript">
+  jQuery(document).ready(function() {
+
+    /* set up type-ahead fields */
+
+    datesSuggester = new Bloodhound({
+        local:#{listToJsonValueObjArrayStr dates},
+        limit:100,
+        datumTokenizer: function(d) { return [d.value]; },
+        queryTokenizer: function(q) { return [q]; }
+    });
+    datesSuggester.initialize();
+    jQuery('#date').typeahead(
+        {
+         highlight: true
+        },
+        {
+         source: datesSuggester.ttAdapter()
+        }
+    );
+
+    accountsSuggester = new Bloodhound({
+        local:#{listToJsonValueObjArrayStr accts},
+        limit:100,
+        datumTokenizer: function(d) { return [d.value]; },
+        queryTokenizer: function(q) { return [q]; }
+/*
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+        datumTokenizer: Bloodhound.tokenizers.whitespace(d.value)
+        queryTokenizer: Bloodhound.tokenizers.whitespace
+*/
+    });
+    accountsSuggester.initialize();
+    jQuery('#account1,#account2').typeahead(
+        {
+         /* minLength: 3, */
+         highlight: true
+        },
+        {
+         source: accountsSuggester.ttAdapter()
+        }
+    );
+
+    descriptionsSuggester = new Bloodhound({
+        local:#{listToJsonValueObjArrayStr descriptions},
+        limit:100,
+        datumTokenizer: function(d) { return [d.value]; },
+        queryTokenizer: function(q) { return [q]; }
+    });
+    descriptionsSuggester.initialize();
+    jQuery('#description').typeahead(
+        {
+         highlight: true
+        },
+        {
+         source: descriptionsSuggester.ttAdapter()
+        }
+    );
+
+  });
+
+<form#addform method=POST style="position:relative;">
+  <table.form style="width:100%; white-space:nowrap;">
+   <tr>
+    <td colspan=4>
+     <table style="width:100%;">
+      <tr#descriptionrow>
+       <td>
+        <input #date        .form-control .input-lg type=text size=15 name=date placeholder="Date" value=#{date}>
+       <td>
+        <input #description .form-control .input-lg type=text size=40 name=description placeholder="Description">
+   $forall n <- postingnums
+    ^{postingfields vd n}
+|]
+ where
+  date = "today" :: String
+  dates = ["today","yesterday","tomorrow"] :: [String]
+  descriptions = sort $ nub $ map tdescription $ jtxns j
+  accts = sort $ journalAccountNamesUsed j
+  listToJsonValueObjArrayStr as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
+  numpostings = 2
+  postingnums = [1..numpostings]
+  postingfields :: ViewData -> Int -> HtmlUrl AppRoute
+  postingfields _ n = [hamlet|
+<tr .posting .#{lastclass}>
+ <td style="padding-left:2em;">
+  <input ##{acctvar} .form-control .input-lg style="width:100%;" type=text name=#{acctvar} placeholder="#{acctph}">
+ ^{amtfieldorsubmitbtn}
+|]
+   where
+    islast = n == numpostings
+    lastclass = if islast then "lastrow" else "" :: String
+    acctvar = "account" ++ show n
+    acctph = "Account " ++ show n
+    amtfieldorsubmitbtn
+       | not islast = [hamlet|
+          <td>
+           <input ##{amtvar} .form-control .input-lg type=text size=10 name=#{amtvar} placeholder="#{amtph}">
+         |]
+       | otherwise = [hamlet|
+          <td #addbtncell style="text-align:right;">
+           <input type=hidden name=action value=add>
+           <button type=submit .btn .btn-lg name=submit>add
+           $if length files' > 1
+            <br>to: ^{journalselect files'}
+         |]
+       where
+        amtvar = "amount" ++ show n
+        amtph = "Amount " ++ show n
+        files' = [(takeFileName f,s) | (f,s) <- files j]
+
+           -- <button .btn style="font-size:18px;" type=submit title="Add this transaction">Add
+
+journalselect :: [(FilePath,String)] -> HtmlUrl AppRoute
+journalselect journalfiles = [hamlet|
+<select id=journalselect name=journal onchange="editformJournalSelect(event)">
+ $forall f <- journalfiles
+  <option value=#{fst f}>#{fst f}
+|]
+

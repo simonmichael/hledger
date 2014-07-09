@@ -15,7 +15,6 @@ import Text.Blaze (preEscapedString)
 import Text.Blaze.Internal (preEscapedString)
 #endif
 import Text.Printf
-import Text.JSON
 
 import Hledger.Utils
 import Hledger.Data
@@ -23,8 +22,6 @@ import Hledger.Query
 import Hledger.Reports
 import Hledger.Cli.Options
 import Hledger.Web.Options
-
-import Handler.Utils
 
 -------------------------------------------------------------------------------
 -- Common page layout
@@ -124,121 +121,6 @@ searchform VD{..} = [hamlet|
  where
   filtering = not $ null q
 
--- | Add transaction form.
-addform :: Text -> ViewData -> HtmlUrl AppRoute
-addform _ vd@VD{..} = [hamlet|
-<script language="javascript">
-  jQuery(document).ready(function() {
-
-    /* set up type-ahead fields */
-
-    datesSuggester = new Bloodhound({
-        local:#{listToJsonValueObjArrayStr dates},
-        limit:100,
-        datumTokenizer: function(d) { return [d.value]; },
-        queryTokenizer: function(q) { return [q]; }
-    });
-    datesSuggester.initialize();
-    jQuery('#date').typeahead(
-        {
-         highlight: true
-        },
-        {
-         source: datesSuggester.ttAdapter()
-        }
-    );
-
-    accountsSuggester = new Bloodhound({
-        local:#{listToJsonValueObjArrayStr accts},
-        limit:100,
-        datumTokenizer: function(d) { return [d.value]; },
-        queryTokenizer: function(q) { return [q]; }
-/*
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        datumTokenizer: Bloodhound.tokenizers.whitespace(d.value)
-        queryTokenizer: Bloodhound.tokenizers.whitespace
-*/
-    });
-    accountsSuggester.initialize();
-    jQuery('#account1,#account2').typeahead(
-        {
-         /* minLength: 3, */
-         highlight: true
-        },
-        {
-         source: accountsSuggester.ttAdapter()
-        }
-    );
-
-    descriptionsSuggester = new Bloodhound({
-        local:#{listToJsonValueObjArrayStr descriptions},
-        limit:100,
-        datumTokenizer: function(d) { return [d.value]; },
-        queryTokenizer: function(q) { return [q]; }
-    });
-    descriptionsSuggester.initialize();
-    jQuery('#description').typeahead(
-        {
-         highlight: true
-        },
-        {
-         source: descriptionsSuggester.ttAdapter()
-        }
-    );
-
-  });
-
-<form#addform method=POST .collapse style="position:relative;">
-  <a role=button .btn .btn-lg .close style="position:absolute; top:-1.2em; right:0; padding-right:.1em; padding-top:.1em; font-size:24px;" title="Cancel" onclick="addformCancel()">&times;
-  <table.form style="width:100%; white-space:nowrap;">
-   <tr>
-    <td colspan=4>
-     <table style="width:100%;">
-      <tr#descriptionrow>
-       <td>
-        <input #date        .form-control .input-lg type=text size=15 name=date placeholder="Date" value=#{date}>
-       <td>
-        <input #description .form-control .input-lg type=text size=40 name=description placeholder="Description">
-   $forall n <- postingnums
-    ^{postingfields vd n}
-|]
- where
-  date = "today" :: String
-  dates = ["today","yesterday","tomorrow"] :: [String]
-  descriptions = sort $ nub $ map tdescription $ jtxns j
-  accts = sort $ journalAccountNamesUsed j
-  listToJsonValueObjArrayStr as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
-  numpostings = 2
-  postingnums = [1..numpostings]
-  postingfields :: ViewData -> Int -> HtmlUrl AppRoute
-  postingfields _ n = [hamlet|
-<tr .posting .#{lastclass}>
- <td style="padding-left:2em;">
-  <input ##{acctvar} .form-control .input-lg style="width:100%;" type=text name=#{acctvar} placeholder="#{acctph}">
- ^{amtfieldorsubmitbtn}
-|]
-   where
-    islast = n == numpostings
-    lastclass = if islast then "lastrow" else "" :: String
-    acctvar = "account" ++ show n
-    acctph = "Account " ++ show n
-    amtfieldorsubmitbtn
-       | not islast = [hamlet|
-          <td>
-           <input ##{amtvar} .form-control .input-lg type=text size=10 name=#{amtvar} placeholder="#{amtph}">
-         |]
-       | otherwise = [hamlet|
-          <td #addbtncell style="text-align:right;">
-           <input type=hidden name=action value=add>
-           <button type=submit .btn .btn-lg name=submit>add
-           $if length files' > 1
-            <br>to: ^{journalselect files'}
-         |]
-       where
-        amtvar = "amount" ++ show n
-        amtph = "Amount " ++ show n
-        files' = [(takeFileName f,s) | (f,s) <- files j]
-
 -- | Edit journal form.
 editform :: ViewData -> HtmlUrl AppRoute
 editform VD{..} = [hamlet|
@@ -283,13 +165,6 @@ importform = [hamlet|
     <input type=submit name=submit value="import from file">
     \ or #
     <a href="#" onclick="return importformToggle(event)">cancel
-|]
-
-journalselect :: [(FilePath,String)] -> HtmlUrl AppRoute
-journalselect journalfiles = [hamlet|
-<select id=journalselect name=journal onchange="editformJournalSelect(event)">
- $forall f <- journalfiles
-  <option value=#{fst f}>#{fst f}
 |]
 
 -- | Link to a topic in the manual.

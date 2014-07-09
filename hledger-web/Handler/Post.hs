@@ -13,7 +13,6 @@ import qualified Data.Text as T (null)
 import Text.Parsec (eof)
 import Text.Printf (printf)
 
-import Handler.Utils
 import Hledger.Utils
 import Hledger.Data
 import Hledger.Read

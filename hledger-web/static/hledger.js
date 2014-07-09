@@ -11,12 +11,10 @@
 // else if ($.url.param('sidebar')=='1')
 //   $('#sidebar').show();
 
-if ($.url.param('add')) {
-  $('#addform').collapse('show');
-  $('#addform input[name=description]').focus();
-}
-
 $(document).ready(function() {
+
+    /* show add form if ?add=1 */
+    if ($.url.param('add')) { addformShow(); }
 
     /* sidebar account hover handlers */
     $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
@@ -27,8 +25,7 @@ $(document).ready(function() {
     $(document).bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
     $(document).bind('keydown', 'j',       function(){ location.href = '/journal'; return false; });
     $(document).bind('keydown', 's',       function(){ sidebarToggle(); return false; });
-    $(document).bind('keydown', 'a',       function(){ addformFocus(); return false; });
-    $('#addform input,#addform button,#addformlink').bind('keydown', 'esc', addformCancel);
+    $(document).bind('keydown', 'a',       function(){ addformShow(); return false; });
     $(document).bind('keydown', '/',       function(){ $('#searchform input').focus(); return false; });
     $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+shift+=', addformAddPosting);
     $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+=', addformAddPosting);
@@ -67,33 +64,10 @@ function sidebarToggle() {
   $('#sidebar').animate({'width': visible ? 'hide' : 'show'});
 }
 
-function addformToggle() {
-  if (location.pathname != '/journal') {
-    location.href = '/journal?add=1';
-  }
-  else {
-    $('#addform').collapse('toggle');
-    $('#addform input[name=description]').focus();
-  }
-}
-
-function addformFocus() {
-  if (location.pathname != '/journal') {
-    location.href = '/journal?add=1';
-  }
-  else {
-    $('#addform').collapse('show');
-    $('#addform input[name=description]').focus();
-  }
-}
-
-function addformCancel() {
-  $('#addform input[type=text]').typeahead('val','');
-  $('#addform')
-    .each( function(){ this.reset();} )
-    .collapse('hide');
-  // try to keep keybindings working in safari
-  //$('#addformlink').focus();
+function addformShow() {
+  $('#addmodal').modal('show').on('shown.bs.modal', function (e) {
+    $('#addform input[name=date]').focus();
+  });
 }
 
 function addformAddPosting() {
