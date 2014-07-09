@@ -47,12 +47,12 @@ $newline never
                 window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})
         \<![endif]-->
 
-        <div .modal.fade #searchhelpmodal tabindex="-1" role="dialog" aria-labelledby="searchHelpLabel" aria-hidden="true">
+        <div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel" aria-hidden="true">
           <div .modal-dialog .modal-lg>
             <div .modal-content>
               <div .modal-header>
                 <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
-                <h3 .modal-title #searchHelpLabel>Help
+                <h3 .modal-title #helpLabel>Help
               <div .modal-body>
                 <div .row>
                   <div .col-xs-6>

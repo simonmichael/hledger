@@ -23,8 +23,8 @@ $(document).ready(function() {
     $('#sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
     /* keyboard shortcuts */
-    $(document).bind('keydown', 'shift+/', function(){ $('#searchhelpmodal').modal('toggle'); return false; });
-    $(document).bind('keydown', 'h',       function(){ $('#searchhelpmodal').modal('toggle'); return false; });
+    $(document).bind('keydown', 'shift+/', function(){ $('#helpmodal').modal('toggle'); return false; });
+    $(document).bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
     $(document).bind('keydown', 'j',       function(){ location.href = '/journal'; return false; });
     $(document).bind('keydown', 's',       function(){ sidebarToggle(); return false; });
     $(document).bind('keydown', 'a',       function(){ addformFocus(); return false; });
