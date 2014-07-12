@@ -90,10 +90,9 @@ handleAdd = do
     let t' = txnTieKnot t -- XXX move into balanceTransaction
     liftIO $ do ensureJournalFileExists journalpath
                 appendToJournalFileOrStdout journalpath $ showTransaction t'
-    -- setMessage $ toHtml $ (printf "Added transaction:\n%s" (show t') :: String)
-    setMessage [shamlet|<span>Added transaction:<small><pre>#{chomp $ show t'}</pre></small>|]
+    setMessage [shamlet|<span>Transaction added.|]
 
-  redirect (JournalR, [("add","1")])
+  redirect (JournalR) -- , [("add","1")])
 
 -- | Handle a post from the journal edit form.
 handleEdit :: Handler Html
