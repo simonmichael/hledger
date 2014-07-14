@@ -1,59 +1,200 @@
 /* hledger web ui javascript */
-/* depends on jquery etc. */
 
-// /* show/hide things based on locally-saved state */
-// happens too late with large main content in chrome, visible glitch
-// if (localStorage.getItem('sidebarVisible') == "false")
-// 	$('#sidebar').hide();
-// /* or request parameters */
-// if ($.url.param('sidebar')=='' || $.url.param('sidebar')=='0')
-//   $('#sidebar').hide();
-// else if ($.url.param('sidebar')=='1')
-//   $('#sidebar').show();
+//----------------------------------------------------------------------
+// STARTUP
 
 $(document).ready(function() {
 
-    /* show add form if ?add=1 */
-    if ($.url.param('add')) { addformShow(); }
+  // show add form if ?add=1
+  if ($.url.param('add')) { addformShow(); }
 
-    /* sidebar account hover handlers */
-    $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
-    $('#sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
+  // sidebar account hover handlers
+  $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
+  $('#sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
 
-    /* keyboard shortcuts */
-    $(document).bind('keydown', 'shift+/', function(){ $('#helpmodal').modal('toggle'); return false; });
-    $(document).bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
-    $(document).bind('keydown', 'j',       function(){ location.href = '/journal'; return false; });
-    $(document).bind('keydown', 's',       function(){ sidebarToggle(); return false; });
-    $(document).bind('keydown', 'a',       function(){ addformShow(); return false; });
-    $(document).bind('keydown', '/',       function(){ $('#searchform input').focus(); return false; });
-    $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+shift+=', addformAddPosting);
-    $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+=', addformAddPosting);
-    $('#addform input,#addform button,#addformlink').bind('keydown', 'ctrl+-', addformDeletePosting);
+  // keyboard shortcuts
+  // 'body' seems to hold focus better than document in FF
+  $('body').bind('keydown', 'shift+/', function(){ $('#helpmodal').modal('toggle'); return false; });
+  $('body').bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
+  $('body').bind('keydown', 'j',       function(){ location.href = '/journal'; return false; });
+  $('body').bind('keydown', 's',       function(){ sidebarToggle(); return false; });
+  $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
+  $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
+  $('body').bind('keydown', '/',       function(){ $('#searchform input').focus(); return false; });
+  $('body, #addform input').bind('keydown', 'ctrl+shift+=', addformAddPosting);
+  $('body, #addform input').bind('keydown', 'ctrl+=',       addformAddPosting);
+  $('body, #addform input').bind('keydown', 'ctrl+-',       addformDeletePosting);
+  $('#addform tr.posting:last > td:first input').bind('keydown', 'tab', addformAddPostingWithTab);
 
 });
 
+//----------------------------------------------------------------------
+// ADD FORM
+
+function addformShow() {
+  addformReset();
+  $('#addmodal')
+    .on('shown.bs.modal', function (e) {
+      addformFocus();
+    })
+    .modal('show');
+}
+
+// Make sure the add form is empty and clean for display.
+function addformReset() {
+  if ($('form#addform').length > 0) {
+    $('form#addform')[0].reset();
+    $('input#date').val('today');
+    // reset typehead state (though not fetched completions)
+    $('.typeahead').typeahead('val', '');
+    $('.tt-dropdown-menu').hide();
+  }
+}
+
+// Focus the first add form field.
+function addformFocus() {
+  focus($('#addform input#date'));
+}
+
+// Focus a jquery-wrapped element, working around http://stackoverflow.com/a/7046837.
+function focus($el) {
+  setTimeout(function (){
+    $el.focus();
+  }, 0);
+}
+
+// Insert another posting row in the add form.
+function addformAddPosting() {
+  // do nothing if it's not currently visible
+  if (!$('#addform').is(':visible')) return;
+  // save a copy of last row
+  var lastrow = $('#addform tr.posting:last').clone();
+
+  // replace the submit button with an amount field, clear and renumber it, add the keybindings
+  $('#addform tr.posting:last > td:last')
+    .html( $('#addform tr.posting:first > td:last').html() );
+  var num = $('#addform tr.posting').length;
+  $('#addform tr.posting:last > td:last input:last') // input:last here and elsewhere is to avoid autocomplete's extra input
+    .val('')
+    .prop('id','amount'+num)
+    .prop('name','amount'+num)
+    .prop('placeholder','Amount '+num)
+    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
+    .bind('keydown', 'ctrl+=', addformAddPosting)
+    .bind('keydown', 'ctrl+-', addformDeletePosting);
+
+  // set up the new last row's account field.
+  // First typehead, it's hard to enable on new DOM elements
+  var $acctinput = lastrow.find('.account-input:last');
+  // XXX nothing works
+  // $acctinput.typeahead('destroy'); //,'NoCached');
+  // lastrow.on("DOMNodeInserted", function () {
+  //   //$(this).find(".typeahead").typeahead();
+  //   console.log('DOMNodeInserted');
+  //  // infinite loop
+	// 	console.log($(this).find('.typeahead'));
+  //   //enableTypeahead($(this).find('.typeahead'), accountsSuggester);
+  // });
+  // setTimeout(function (){
+  //   $('#addform tr.posting:last input.account-input').typeahead('destroy');
+  //   enableTypeahead($('#addform tr.posting:last input.account-input:last'), accountsSuggester);
+  // }, 1000);
+
+  // insert the new last row
+  $('#addform > table > tbody').append(lastrow);
+
+  // clear and renumber the field, add keybindings
+  $acctinput
+    .val('')
+    .prop('id','account'+(num+1))
+    .prop('name','account'+(num+1))
+    .prop('placeholder','Account '+(num+1));
+  //lastrow.find('input') // not :last this time
+  $acctinput
+    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
+    .bind('keydown', 'ctrl+=', addformAddPosting)
+    .bind('keydown', 'ctrl+-', addformDeletePosting)
+    .bind('keydown', 'tab', addformAddPostingWithTab);
+}
+
+// Insert another posting row by tabbing within the last field, also advancing the focus.
+function addformAddPostingWithTab(ev) {
+  // do nothing if called from a non-last row (don't know how to remove keybindings)
+  if ($(ev.target).is('#addform input.account-input:last')) {
+    addformAddPosting();
+    focus($('#addform input.amount-input:last')); // help FF
+    return false;
+  }
+  else
+    return true;
+}
+
+// Remove the add form's last posting row, if empty, keeping at least two.
+function addformDeletePosting() {
+  var num = $('#addform tr.posting').length;
+  if (num <= 2
+      || $('#addform tr.posting:last > td:first input:last').val() != ''
+     ) return;
+  // copy submit button
+  var btn = $('#addform tr.posting:last > td:last').html();
+  // remember if the last row's field or button had focus
+  var focuslost =
+    $('#addform tr.posting:last > td:first input:last').is(':focus')
+    || $('#addform tr.posting:last button').is(':focus');
+  // delete last row
+  $('#addform tr.posting:last').remove();
+  // remember if the last amount field had focus
+  focuslost = focuslost || 
+    $('#addform tr.posting:last > td:last input:last').is(':focus');
+  // replace new last row's amount field with the button
+  $('#addform tr.posting:last > td:last').html(btn);
+  // if deleted row had focus, focus the new last row
+  if (focuslost) $('#addform tr.posting:last > td:first input:last').focus();
+}
+
+function journalSelect(ev) {
+  var textareas = $('textarea', $('form#editform'));
+  for (i=0; i<textareas.length; i++) {
+    textareas[i].style.display = 'none';
+    textareas[i].disabled = true;
+  }
+  var targ = getTarget(ev);
+  if (targ.value) {
+    var journalid = targ.value+'_textarea';
+    var textarea = document.getElementById(journalid);
+  }
+  else {
+    var textarea = textareas[0];
+  }
+  textarea.style.display = 'block';
+  textarea.disabled = false;
+  return true;
+}
+
+//----------------------------------------------------------------------
+// SIDEBAR
+
 function sidebarToggle() {
-  console.log('sidebarToggle');
+  //console.log('sidebarToggle');
   var visible = $('#sidebar').is(':visible');
-  console.log('sidebar visibility was',visible);
+  //console.log('sidebar visibility was',visible);
   // if opening sidebar, start an ajax fetch of its content
   if (!visible) {
     //console.log('getting sidebar content');
     $.get("sidebar"
          ,null
          ,function(data) {
-					  //console.log( "success" );
+            //console.log( "success" );
             $("#sidebar-body" ).html(data);
           })
-					.done(function() {
-					  //console.log( "success 2" );
-					})
-					.fail(function() {
-					  //console.log( "error" );
-					});
+          .done(function() {
+            //console.log( "success 2" );
+          })
+          .fail(function() {
+            //console.log( "error" );
+          });
   }
-	// localStorage.setItem('sidebarVisible', !visible);
+  // localStorage.setItem('sidebarVisible', !visible);
   // set a cookie to communicate the new sidebar state to the server
   $.cookie('showsidebar', visible ? '0' : '1');
   // horizontally slide the sidebar in or out
@@ -64,53 +205,18 @@ function sidebarToggle() {
   $('#sidebar').animate({'width': visible ? 'hide' : 'show'});
 }
 
-function addformShow() {
-  $('#addmodal').modal('show').on('shown.bs.modal', function (e) {
-    $('#addform input[name=date]').focus();
-  });
-}
+//----------------------------------------------------------------------
+// MISC
 
-function addformAddPosting() {
-  var rownum = $('#addform tr.posting').length + 1;
-  // XXX duplicates markup in Common.hs
-  // duplicate last row
-  $('#addform > table').append($('#addform > table tr:last').clone());
-  // fix up second-last row
-  $('#addform > table > tr.lastrow:first > td:last').html('');
-  $('#addform > table > tr.lastrow:first').removeClass('lastrow');
-
-  // fix up last row
-  $('#addform table').append($('#addform table tr:last').clone());
-  //     '<tr class="posting">' +
-  //     '<td style="padding-left:2em;">' +
-  //     '<input id="account'+rownum+'" class="form-control input-lg" style="width:100%;" type="text"' +
-  //     ' name=account'+rownum+'" placeholder="Account '+rownum+'">'
-  // );
-
-  // $('#addbtncell').appendTo($('#addform table tr:last'))
-  //                  );
-}
-
-function addformDeletePosting() {
-}
-
-function editformJournalSelect(ev) {
- var textareas = $('textarea', $('form#editform'));
- for (i=0; i<textareas.length; i++) {
-   textareas[i].style.display = 'none';
-   textareas[i].disabled = true;
- }
- var targ = getTarget(ev);
- if (targ.value) {
-   var journalid = targ.value+'_textarea';
-   var textarea = document.getElementById(journalid);
- }
- else {
-   var textarea = textareas[0];
- }
- textarea.style.display = 'block';
- textarea.disabled = false;
- return true;
+function enableTypeahead($el, suggester) {
+	return $el.typeahead(
+		{
+			highlight: true
+		},
+		{
+			source: suggester.ttAdapter()
+		}
+	);
 }
 
 /*

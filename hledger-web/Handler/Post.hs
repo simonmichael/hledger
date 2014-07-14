@@ -6,11 +6,12 @@ import Import
 
 import Control.Applicative
 import Data.Either (lefts,rights)
-import Data.List (intercalate)
+import Data.List (intercalate, sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
+import Data.Maybe
 import Data.Text (unpack)
-import qualified Data.Text as T (null)
-import Text.Parsec (eof)
+import qualified Data.Text as T
+import Text.Parsec (digit, eof, many1, string)
 import Text.Printf (printf)
 
 import Hledger.Utils
@@ -32,26 +33,13 @@ handlePost = do
 handleAdd :: Handler Html
 handleAdd = do
   VD{..} <- getViewData
+  -- XXX port to yesod-form later
   -- get form input values. M means a Maybe value.
+  journalM <- lookupPostParam  "journal"
   dateM <- lookupPostParam  "date"
   descM <- lookupPostParam  "description"
-  acct1M <- lookupPostParam  "account1"
-  amt1M <- lookupPostParam  "amount1"
-  acct2M <- lookupPostParam  "account2"
-  amt2M <- lookupPostParam  "amount2"
-  journalM <- lookupPostParam  "journal"
-  -- supply defaults and parse date and amounts, or get errors.
-  let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . unpack) dateM
+  let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . strip . unpack) dateM
       descE = Right $ maybe "" unpack descM
-      -- XXX simplify...
-      maybeNothing = maybe Nothing (\t -> if T.null t then Nothing else Just t)
-      acct1E = maybe (Left "To account required") (Right . strip . unpack) (maybeNothing acct1M)
-               >>= \a -> either (Left . ("could not parse To account: "++) . show) Right (parsewith (accountnamep <* eof) a)
-      acct2E = maybe (Left "From account required") (Right . strip . unpack) (maybeNothing acct2M)
-               >>= \a -> either (Left . ("could not parse From account: "++) . show) Right (parsewith (accountnamep <* eof) a)
-      amt1E = maybe (Left "Amount 1 required") (Right . strip . unpack) (maybeNothing amt1M)
-               >>= \a -> either (Left . ("could not parse To account: "++) . show) Right (parseWithCtx nullctx (amountp <* eof) a)
-      amt2E = maybe (Right missingamt) (either (Left . ("could not parse amount 2: "++) . show) Right . parseWithCtx nullctx amountp . strip . unpack) amt2M
       journalE = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
@@ -59,26 +47,51 @@ handleAdd = do
                               else Left $ "unrecognised journal file path: " ++ f'
                               )
                        journalM
-      strEs = [dateE, descE, acct1E, acct2E, journalE]
-      amtEs = [amt1E, amt2E]
-      errs = lefts strEs ++ lefts amtEs
-      [date,desc,acct1,acct2,journalpath] = rights strEs
-      [amt1,amt2] = rights amtEs
+      estrs = [dateE, descE, journalE]
+      (errs1, [date,desc,journalpath]) = (lefts estrs, rights estrs) -- XXX irrefutable
+
+  (params,_) <- runRequestBody
+  -- mtrace params
+  let paramnamep s = do {string s; n <- many1 digit; eof; return (read n :: Int)}
+      acctparams = sort
+                   [ (n,v) | (k,v) <- params
+                   , let en = parsewith (paramnamep "account") $ T.unpack k
+                   , isRight en
+                   , let Right n = en
+                   ]
+      amtparams =  sort
+                   [ (n,v) | (k,v) <- params
+                   , let en = parsewith (paramnamep "amount") $ T.unpack k
+                   , isRight en
+                   , let Right n = en
+                   ]
+      num = length acctparams
+      paramErrs | not $ length amtparams `elem` [num, num-1] = ["different number of account and amount parameters"]
+                | otherwise = catMaybes
+                              [if map fst acctparams == [1..num] then Nothing else Just "misnumbered account parameters"
+                              ,if map fst amtparams == [1..num] || map fst amtparams == [1..(num-1)] then Nothing else Just "misnumbered amount parameters"
+                              ]
+      eaccts = map (parsewith (accountnamep <* eof) . strip . T.unpack . snd) acctparams
+      eamts  = map (parseWithCtx nullctx (amountp <* eof) . strip . T.unpack . snd) amtparams
+      (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
+      (amts', amtErrs) = (rights eamts, map show $ lefts eamts)
+      amts | length amts' == num = amts'
+           | otherwise           = amts' ++ [missingamt]
+
       -- if no errors so far, generate a transaction and balance it or get the error.
-      tE | not $ null errs = Left errs
+      errs = errs1 ++ if null paramErrs then (acctErrs ++ amtErrs) else paramErrs
+      et | not $ null errs = Left errs
          | otherwise = either (\e -> Left ["unbalanced postings: " ++ (L.head $ lines e)]) Right
-                        (balanceTransaction Nothing $ nulltransaction { -- imprecise balancing
-                           tdate=parsedate date
-                          ,tdescription=desc
-                          ,tpostings=[
-                            nullposting{paccount=acct1, pamount=mixed amt1}
-                           ,nullposting{paccount=acct2, pamount=mixed amt2}
-                           ]
-                          })
+                        (balanceTransaction Nothing $ nulltransaction {
+                            tdate=parsedate date
+                           ,tdescription=desc
+                           ,tpostings=[nullposting{paccount=acct, pamount=mixed amt} | (acct,amt) <- zip accts amts]
+                           })
+
   -- display errors or add transaction
-  -- XXX currently it's still possible to write an invalid entry, eg by adding space space ; after the first account name
-  case tE of
+  case et of
    Left errs' -> do
+    error $ show errs' -- XXX
     -- save current form values in session
     -- setMessage $ toHtml $ intercalate "; " errs
     setMessage [shamlet|
@@ -93,6 +106,38 @@ handleAdd = do
     setMessage [shamlet|<span>Transaction added.|]
 
   redirect (JournalR) -- , [("add","1")])
+
+-- personForm :: Html -> MForm Handler (FormResult Person, Widget)
+-- personForm extra = do
+--     (nameRes, nameView) <- mreq textField "this is not used" Nothing
+--     (ageRes, ageView) <- mreq intField "neither is this" Nothing
+--     let personRes = Person <$> nameRes <*> ageRes
+--     let widget = do
+--             toWidget
+--                 [lucius|
+--                     ##{fvId ageView} {
+--                         width: 3em;
+--                     }
+--                 |]
+--             [whamlet|
+--                 #{extra}
+--                 <p>
+--                     Hello, my name is #
+--                     ^{fvInput nameView}
+--                     \ and I am #
+--                     ^{fvInput ageView}
+--                     \ years old. #
+--                     <input type=submit value="Introduce myself">
+--             |]
+--     return (personRes, widget)
+--
+--     ((res, widget), enctype) <- runFormGet personForm
+--     defaultLayout
+--         [whamlet|
+--             <p>Result: #{show res}
+--             <form enctype=#{enctype}>
+--                 ^{widget}
+--         |]
 
 -- | Handle a post from the journal edit form.
 handleEdit :: Handler Html
