@@ -65,17 +65,17 @@ handleAdd = do
                    , isRight en
                    , let Right n = en
                    ]
-      num = length acctparams
-      paramErrs | not $ length amtparams `elem` [num, num-1] = ["different number of account and amount parameters"]
+      num' = length acctparams
+      paramErrs | not $ length amtparams `elem` [num', num'-1] = ["different number of account and amount parameters"]
                 | otherwise = catMaybes
-                              [if map fst acctparams == [1..num] then Nothing else Just "misnumbered account parameters"
-                              ,if map fst amtparams == [1..num] || map fst amtparams == [1..(num-1)] then Nothing else Just "misnumbered amount parameters"
+                              [if map fst acctparams == [1..num'] then Nothing else Just "misnumbered account parameters"
+                              ,if map fst amtparams == [1..num'] || map fst amtparams == [1..(num'-1)] then Nothing else Just "misnumbered amount parameters"
                               ]
       eaccts = map (parsewith (accountnamep <* eof) . strip . T.unpack . snd) acctparams
       eamts  = map (parseWithCtx nullctx (amountp <* eof) . strip . T.unpack . snd) amtparams
       (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
       (amts', amtErrs) = (rights eamts, map show $ lefts eamts)
-      amts | length amts' == num = amts'
+      amts | length amts' == num' = amts'
            | otherwise           = amts' ++ [missingamt]
 
       -- if no errors so far, generate a transaction and balance it or get the error.

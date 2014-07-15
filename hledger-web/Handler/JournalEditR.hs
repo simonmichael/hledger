@@ -6,7 +6,6 @@ import Import
 
 import Handler.Common
 import Handler.Post
-import Handler.Utils
 
 
 -- | The journal editform, no sidebar.
