@@ -22,6 +22,7 @@ module Hledger.Query (
   queryIsStartDateOnly,
   queryIsSym,
   queryStartDate,
+  queryEndDate,
   queryDateSpan,
   queryDepth,
   queryEmpty,
@@ -447,6 +448,15 @@ queryStartDate False (Date (DateSpan (Just d) _)) = Just d
 queryStartDate True (Date2 (DateSpan (Just d) _)) = Just d
 queryStartDate _ _ = Nothing
 
+-- | What end date (or secondary date) does this query specify, if any ?
+-- For OR expressions, use the latest of the dates. NOT is ignored.
+queryEndDate :: Bool -> Query -> Maybe Day
+queryEndDate secondary (Or ms) = latestMaybeDate' $ map (queryEndDate secondary) ms
+queryEndDate secondary (And ms) = earliestMaybeDate' $ map (queryEndDate secondary) ms
+queryEndDate False (Date (DateSpan _ (Just d))) = Just d
+queryEndDate True (Date2 (DateSpan _ (Just d))) = Just d
+queryEndDate _ _ = Nothing
+
 queryTermDateSpan (Date span) = Just span
 queryTermDateSpan _ = Nothing
 
@@ -464,13 +474,21 @@ queryDateSpans False (Date span) = [span]
 queryDateSpans True (Date2 span) = [span]
 queryDateSpans _ _ = []
 
--- | What is the earliest of these dates, where Nothing is earliest ?
+-- | What is the earliest of these dates, where Nothing is latest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day
-earliestMaybeDate = headDef Nothing . sortBy compareMaybeDates
+earliestMaybeDate mds = head $ sortBy compareMaybeDates mds ++ [Nothing]
 
 -- | What is the latest of these dates, where Nothing is earliest ?
 latestMaybeDate :: [Maybe Day] -> Maybe Day
 latestMaybeDate = headDef Nothing . sortBy (flip compareMaybeDates)
+
+-- | What is the earliest of these dates, ignoring Nothings ?
+earliestMaybeDate' :: [Maybe Day] -> Maybe Day
+earliestMaybeDate' = headDef Nothing . sortBy compareMaybeDates . filter isJust
+
+-- | What is the latest of these dates, ignoring Nothings ?
+latestMaybeDate' :: [Maybe Day] -> Maybe Day
+latestMaybeDate' = headDef Nothing . sortBy (flip compareMaybeDates) . filter isJust
 
 -- | Compare two maybe dates, Nothing is earliest.
 compareMaybeDates :: Maybe Day -> Maybe Day -> Ordering
