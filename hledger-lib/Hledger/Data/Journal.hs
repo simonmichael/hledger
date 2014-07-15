@@ -445,7 +445,7 @@ checkBalanceAssertion (errs,startbal) ps
                 let c = maybe "" acommodity $ headMay $ amounts assertedbal
                 in filterMixedAmount (\a -> acommodity a == c) fullbal
     bal = singlebal -- check single-commodity balance like Ledger; maybe add == FULLBAL later
-    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected commodity balance is %s, actual balance was %s."
+    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected commodity balance is %s, calculated balance was %s."
                  (paccount p)
                  (show $ postingDate p)
                  (maybe "" (("In transaction:\n"++).show) $ ptransaction p)
