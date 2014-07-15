@@ -13,8 +13,8 @@ on either file, and when including both files at once.
 Usage: hledger-equity [ACCTPAT]
 -}
 
+import Data.Maybe (fromMaybe)
 import Hledger.Cli
-import System.Environment
 
 argsmode :: Mode RawOpts
 argsmode = (defCommandMode ["equity"])
@@ -36,11 +36,13 @@ main = do
   opts <- getCliOpts argsmode
   withJournalDo opts $
    \CliOpts{reportopts_=ropts} j -> do
-        d <- getCurrentDay
+        today <- getCurrentDay
         let ropts_ = ropts{flat_=True}
-        let (acctbals,_) = balanceReport ropts_ (queryFromOpts d ropts_) j
-        let balancingamt = negate $ sum $ map (\((_,_,_),b) -> b) acctbals
-        let ps = [posting{paccount=a, pamount=b} | ((a,_,_),b) <- acctbals]
+            q = queryFromOpts today ropts_
+            (acctbals,_) = balanceReport ropts_ q j
+            balancingamt = negate $ sum $ map (\((_,_,_),b) -> b) acctbals
+            ps = [posting{paccount=a, pamount=b} | ((a,_,_),b) <- acctbals]
                  ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
-        let txn = nulltransaction{tdate=d, tpostings=ps}
+            enddate = fromMaybe today $ queryEndDate (date2_ ropts_) q
+            txn = nulltransaction{tdate=enddate, tpostings=ps}
         putStr $ showTransactionUnelided txn
