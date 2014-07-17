@@ -9,7 +9,7 @@ import Prelude
 
 -- hledger-web
 
-:def serve const . return $ ":main --server --port 3000 -f t.j"
+:def serve const . return $ ":main --server --port 3000"
 
 -- misc
 
