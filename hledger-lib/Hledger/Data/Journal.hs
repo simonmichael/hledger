@@ -440,16 +440,16 @@ checkBalanceAssertion (errs,startbal) ps
     p = last ps
     assertion = pbalanceassertion p
     Just assertedbal = dbg2 "assertedbal" assertion
+    assertedcomm = dbg2 "assertedcomm" $ maybe "" acommodity $ headMay $ amounts assertedbal
     fullbal = dbg2 "fullbal" $ sum $ [dbg2 "startbal" startbal] ++ map pamount ps
-    singlebal = dbg2 "singlebal" $
-                let c = maybe "" acommodity $ headMay $ amounts assertedbal
-                in filterMixedAmount (\a -> acommodity a == c) fullbal
+    singlebal = dbg2 "singlebal" $ filterMixedAmount (\a -> acommodity a == assertedcomm) fullbal
     bal = singlebal -- check single-commodity balance like Ledger; maybe add == FULLBAL later
-    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected commodity balance is %s, calculated balance was %s."
+    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected balance in commodity \"%s\" is %s, calculated balance was %s."
                  (paccount p)
                  (show $ postingDate p)
                  (maybe "" (("In transaction:\n"++).show) $ ptransaction p)
                  (show p)
+                 assertedcomm
                  (showMixedAmount assertedbal)
                  (showMixedAmount singlebal)
 

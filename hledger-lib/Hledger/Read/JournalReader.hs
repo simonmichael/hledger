@@ -513,7 +513,7 @@ postingp = do
   account <- modifiedaccountname
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
-  massertion <- balanceassertion
+  massertion <- partialbalanceassertion
   _ <- fixedlotprice
   many spacenonewline
   ctx <- getState
@@ -720,8 +720,8 @@ priceamount =
             return $ UnitPrice a))
          <|> return NoPrice
 
-balanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
-balanceassertion =
+partialbalanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
+partialbalanceassertion =
     try (do
           many spacenonewline
           char '='
@@ -729,6 +729,16 @@ balanceassertion =
           a <- amountp -- XXX should restrict to a simple amount
           return $ Just $ Mixed [a])
          <|> return Nothing
+
+-- balanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
+-- balanceassertion =
+--     try (do
+--           many spacenonewline
+--           string "=="
+--           many spacenonewline
+--           a <- amountp -- XXX should restrict to a simple amount
+--           return $ Just $ Mixed [a])
+--          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 fixedlotprice :: GenParser Char JournalContext (Maybe Amount)
