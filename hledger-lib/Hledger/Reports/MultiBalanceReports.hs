@@ -114,14 +114,23 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
                       | tree_ opts = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
                       | otherwise  = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
 
-      postedAccts :: [AccountName] =
-          dbg "postedAccts" $
-          sort $ accountNamesFromPostings ps
+      postedAccts :: [AccountName] = dbg "postedAccts" $ sort $ accountNamesFromPostings ps
+
+      -- starting balances and accounts from transactions before the report start date
+      startacctbals = dbg "startacctbals" $ map (\((a,_,_),b) -> (a,b)) startbalanceitems
+          where
+            (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts' precedingq j
+                                    where
+                                      opts' | tree_ opts = opts{no_elide_=True}
+                                            | otherwise  = opts{flat_=True}
+      startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startacctbals
+      startAccts = dbg "startAccts" $ map fst startacctbals
 
       displayedAccts :: [ClippedAccountName] =
           dbg "displayedAccts" $
           (if tree_ opts then expandAccountNames else id) $
-          nub $ map (clipAccountName depth) postedAccts
+          nub $ map (clipAccountName depth) $
+          if empty_ opts then nub $ sort $ startAccts ++ postedAccts else postedAccts
 
       acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg "acctBalChangesPerSpan" $
@@ -132,15 +141,6 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
       acctBalChanges :: [(ClippedAccountName, [MixedAmount])] =
           dbg "acctBalChanges" $
           [(a, map snd abs) | abs@((a,_):_) <- transpose acctBalChangesPerSpan] -- never null, or used when null...
-
-      -- starting balances and accounts from transactions before the report start date
-      startacctbals = dbg "startacctbals" $ map (\((a,_,_),b) -> (a,b)) $ startbalanceitems
-          where
-            (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts' precedingq j
-                                    where
-                                      opts' | tree_ opts = opts{no_elide_=True}
-                                            | otherwise  = opts{flat_=True}
-      startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startacctbals
 
       items :: [MultiBalanceReportRow] =
           dbg "items" $
