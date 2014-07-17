@@ -166,13 +166,13 @@ accountTransactionsReportItems query thisacctquery bal signfn (torig:ts) =
     case i of Just i' -> i':is
               Nothing -> is
     where
+      -- XXX I've lost my grip on this, let's just hope for the best
+      origps = tpostings torig
       tacct@Transaction{tpostings=queryps} = filterTransactionPostings query torig
-      (thisacctps, otheracctps) = -- partition (matchesPosting thisacctquery) queryps
-                                  case thisacctquery of None -> ([],queryps)
-                                                        q    -> partition (matchesPosting q) queryps
+      (thisacctps, otheracctps) = partition (matchesPosting thisacctquery) origps
       amt = negate $ sum $ map pamount thisacctps
       numotheraccts = length $ nub $ map paccount otheracctps
-      otheracctstr | thisacctquery == None = summarisePostingAccounts queryps
+      otheracctstr | thisacctquery == None = summarisePostingAccounts origps
                    | numotheraccts == 0    = summarisePostingAccounts thisacctps
                    | otherwise             = summarisePostingAccounts otheracctps
       (i,bal') = case queryps of
