@@ -5,6 +5,7 @@ module Handler.RegisterR where
 import Import
 
 import Data.Maybe
+import Safe
 
 import Handler.Common
 import Handler.Post
@@ -43,7 +44,7 @@ postRegisterR = handlePost
 -- Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerReportHtml opts vd r = [hamlet|
- ^{registerChartHtml $ map snd $ transactionsReportByCommodity r}
+ ^{registerChartHtml $ transactionsReportByCommodity r}
  ^{registerItemsHtml opts vd r}
 |]
 
@@ -56,7 +57,7 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    Date
    <span .glyphicon .glyphicon-chevron-up>
   <th.description style="text-align:left;">Description
-  <th.account style="text-align:left;">To/From Account
+  <th.account style="text-align:left;">To/From Account(s)
   <th.amount style="text-align:right;">Amount Out/In
   <th.balance style="text-align:right;">#{balancelabel'}
  $forall i <- numberTransactionsReportItems items
@@ -68,11 +69,11 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
 
    -- filtering = m /= Any
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, newd, newm, _, (t, _, split, acct, amt, bal)) = [hamlet|
+   itemAsHtml VD{..} (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
 
-<tr ##{date} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show t}" style="vertical-align:top;">
+<tr ##{date} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
  <td.date><a href="/journal##{date}">#{date}
- <td.description title="#{show t}">#{elideRight 30 desc}
+ <td.description title="#{show torig}">#{elideRight 30 desc}
  <td.account>#{elideRight 40 acct}
  <td.amount style="text-align:right; white-space:nowrap;">
   $if showamt
@@ -85,7 +86,7 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
        datetransition | newm = "newmonth"
                       | newd = "newday"
                       | otherwise = "" :: String
-       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
+       (firstposting, date, desc) = (False, show $ tdate tacct, tdescription tacct)
        -- acctquery = (here, [("q", pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
 
@@ -95,20 +96,22 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
                --                      Data.Foldable.Foldable t1 =>
                --                      t1 (Transaction, t2, t3, t4, t5, MixedAmount)
                --                      -> t -> Text.Blaze.Internal.HtmlM ()
-registerChartHtml :: [[TransactionsReportItem]] -> HtmlUrl AppRoute
-registerChartHtml itemss =
+registerChartHtml :: [(String, [TransactionsReportItem])] -> HtmlUrl AppRoute
+registerChartHtml percommoditytxnreports =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  [hamlet|
-<div#register-chart style="width:600px;height:100px; margin-bottom:1em;">
+<label#register-chart-label style="float:left;margin-right:1em;">
+<div#register-chart style="width:600px;height:100px; margin-bottom:1em;float:left;">
 <script type=text/javascript>
  \$(document).ready(function() {
    /* render chart with flot, if visible */
    var chartdiv = $('#register-chart');
    if (chartdiv.is(':visible'))
+     \$('#register-chart-label').text('#{label}');
      \$.plot(chartdiv,
              [
-              $forall items <- itemss
+              $forall (_,items) <- percommoditytxnreports
                [
                 $forall i <- reverse items
                  [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
@@ -125,4 +128,8 @@ registerChartHtml itemss =
              );
   });
 |]
+ where
+   label = case maybe "" fst $ headMay percommoditytxnreports
+           of "" -> ""
+              s  -> s++":"
 
