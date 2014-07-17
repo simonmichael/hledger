@@ -397,6 +397,7 @@ debugLevel = case snd $ break (=="--debug") args of
 dbg :: Show a => String -> a -> a
 dbg = dbg1
 
+-- always prints
 dbg0 :: Show a => String -> a -> a
 dbg0 = dbgAt 0
 
