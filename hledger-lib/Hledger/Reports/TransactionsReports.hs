@@ -166,7 +166,7 @@ accountTransactionsReportItems query thisacctquery bal signfn (torig:ts) =
     case i of Just i' -> i':is
               Nothing -> is
     where
-      tacct@Transaction{tpostings=queryps} = dbg0 "tacct" $ filterTransactionPostings query torig
+      tacct@Transaction{tpostings=queryps} = filterTransactionPostings query torig
       (thisacctps, otheracctps) = -- partition (matchesPosting thisacctquery) queryps
                                   case thisacctquery of None -> ([],queryps)
                                                         q    -> partition (matchesPosting q) queryps
