@@ -557,13 +557,13 @@ ghci:
 ghciweb:
 	$(GHCI) $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
-repllib:
+repl-lib:
 	(cd hledger-lib; cabal repl)
 
-replcli:
+repl-cli repl:
 	(cd hledger; cabal repl exe:hledger)
 
-replweb:
+repl-web:
 	(cd hledger-web; cabal repl exe:hledger-web)
 
 # generate standard sample journals
