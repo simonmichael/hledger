@@ -4,6 +4,7 @@ module Handler.RegisterR where
 
 import Import
 
+import Data.List
 import Data.Maybe
 import Safe
 
@@ -105,31 +106,69 @@ registerChartHtml percommoditytxnreports =
 <div#register-chart style="width:85%; height:150px; margin-bottom:1em; display:block;">
 <script type=text/javascript>
  \$(document).ready(function() {
-   var chartdiv = $('#register-chart');
-   if (chartdiv.is(':visible')) {
+   var $chartdiv = $('#register-chart');
+   if ($chartdiv.is(':visible')) {
      \$('#register-chart-label').text('#{charttitle}');
-     registerChart(
-       chartdiv,
-       [
-         $forall (comm,(_,items)) <- percommoditytxnreports
-          {
-           data: [
-             $forall i <- reverse items
-              [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
-             /* [] */
+     var seriesData = [
+      $forall (c,(_,items)) <- percommoditytxnreports
+       /* we render each commodity using two series: 
+        * one with extra data points added to show a stepped balance line */
+       {
+        data: [
+          $forall i <- reverse items
+           [
+            #{dayToJsTimestamp $ triDate i},
+            #{simpleMixedAmountQuantity $ triCommodityBalance c i},
            ],
-           label: '#{comm}',
-           color: #{colorForCommodity comm},
-          },
-       ]
-     );
+          /* [] */
+        ],
+        label: '#{c}',
+        color: #{colorForCommodity c},
+        lines: {
+          show: true,
+          steps: true,
+        },
+        points: { 
+          show: false,
+        },
+        clickable: false,
+        hoverable: false,
+       },
+       /* and one with the original data, showing one clickable, hoverable point per transaction */
+       {
+        data: [
+          $forall i <- reverse items
+           [
+            #{dayToJsTimestamp $ triDate i},
+            #{simpleMixedAmountQuantity $ triCommodityBalance c i},
+            '#{show $ triCommodityAmount c i}',
+            '#{show $ triCommodityBalance c i}',
+            '#{concat $ intersperse "\\n" $ lines  $ show $ triOrigTransaction i}',
+           ],
+          /* [] */
+        ],
+        label: '',
+        color: '#{colorForCommodity c}',
+        lines: {
+          show: false,
+        },
+        points: { 
+          show: true,
+          color: '#{colorForCommodity c}',
+        },
+       },
+     ]
+     var plot = registerChart($chartdiv, seriesData);
+     \$chartdiv.bind("plotclick", registerChartClick);
    };
  });
 |]
+           -- [#{dayToJsTimestamp $ ltrace "\ndate" $ triDate i}, #{ltrace "balancequantity" $ simpleMixedAmountQuantity $ triCommodityBalance c i}, '#{ltrace "balance" $ show $ triCommodityBalance c i}, '#{ltrace "amount" $ show $ triCommodityAmount c i}''],
  where
    charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports
            of "" -> ""
               s  -> s++":"
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(Commodity,Int)]
+   simpleMixedAmountQuantity = maybe 0 aquantity . headMay . amounts
 

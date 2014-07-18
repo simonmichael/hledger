@@ -11,9 +11,12 @@ a some base account.  They are used by hledger-web.
 module Hledger.Reports.TransactionsReports (
   TransactionsReport,
   TransactionsReportItem,
+  triOrigTransaction,
   triDate,
+  triAmount,
   triBalance,
-  triSimpleBalance,
+  triCommodityAmount,
+  triCommodityBalance,
   journalTransactionsReport,
   accountTransactionsReport,
   transactionsReportByCommodity
@@ -51,11 +54,12 @@ type TransactionsReportItem = (Transaction -- the original journal transaction, 
                               ,MixedAmount -- the running balance for the current account(s) after this transaction
                               )
 
-triDate (t,_,_,_,_,_) = tdate t
+triOrigTransaction (torig,_,_,_,_,_) = torig
+triDate (_,tacct,_,_,_,_) = tdate tacct
 triAmount (_,_,_,_,a,_) = a
 triBalance (_,_,_,_,_,a) = a
-triSimpleBalance (_,_,_,_,_,Mixed a) = case a of [] -> "0"
-                                                 (Amount{aquantity=q}):_ -> show q
+triCommodityAmount c = filterMixedAmountByCommodity c  . triAmount
+triCommodityBalance c = filterMixedAmountByCommodity c  . triBalance
 
 -------------------------------------------------------------------------------
 
@@ -236,10 +240,6 @@ filterTransactionsReportByCommodity c (label,items) =
         go _ [] = []
         go bal ((t,t2,s,o,amt,_):is) = (t,t2,s,o,amt,bal'):go bal' is
           where bal' = bal + amt
-
--- | Filter out all but the specified commodity from this amount.
-filterMixedAmountByCommodity :: Commodity -> MixedAmount -> MixedAmount
-filterMixedAmountByCommodity c (Mixed as) = Mixed $ filter ((==c). acommodity) as
 
 -------------------------------------------------------------------------------
 

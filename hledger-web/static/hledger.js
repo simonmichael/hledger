@@ -32,63 +32,95 @@ $(document).ready(function() {
 // REGISTER CHART
 
 function registerChart($container, series) {
-	// https://github.com/flot/flot/blob/master/API.md
-	return $container.plot(
+  // https://github.com/flot/flot/blob/master/API.md
+  return $container.plot(
     series,
     { /* general chart options */
-      series: {
-        points: { 
-          show: true,
-        },
-        lines: {
-          show: true,
-          steps: true,
-        },
-        bars: {
-          // show: true,
-          // barWidth: 1000 * 60 * 60, // ms
-        },
-      },
-      yaxis: {
-        /* mode: "time", */
-        /* timeformat: "%y/%m/%d", */
-        /* ticks: 6, */
-      },
+      // series: {
+      // },
+      // yaxis: {
+      //   /* ticks: 6, */
+      // },
       xaxis: {
         mode: "time",
         timeformat: "%Y/%m/%d"
         /* ticks: 6, */
       },
       grid: {
-        // clickable: true,
-        // hoverable: true,
-        // autoHighlight: true,
         markings:
          function (axes) {
-          // console.log(axes);
-          // var markings = [];
-          // for (var x = Math.floor(axes.xaxis.min); x < axes.xaxis.max; x += 2)
-          //   markings.push({ xaxis: { from: x, to: x + 1 } });
-          // midx = Math.floor(axes.xaxis.min + (axes.xaxis.max - axes.xaxis.min) / 2);
-					var now = Date.now();
+          var now = Date.now();
           var markings = [
+            // {
+            //   xaxis: { to: now },        // past
+            //   yaxis: { from: 0, to: 0 }, // =0
+            //  color: '#d88',
+            //  lineWidth:1
+            // },
             {
-              xaxis: { from: now, to: now }, 
-							color: '#888',
-							lineWidth:1
+              xaxis: { to: now }, // past
+              yaxis: { to: 0 },   // <0
+              color: '#ffdddd',
+            },
+
+            // {
+            //   xaxis: { from: now, to: now }, // now
+            //  color: '#bbb',
+            // },
+
+            {
+              xaxis: { from: now }, // future
+              yaxis: { from: 0 },   // >0
+              // color: '#dddddd',
+              color: '#e0e0e0',
             },
             {
-              yaxis: { from: 0, to: 0 },
-							color: '#bb0000',
-							lineWidth:1
+              xaxis: { from: now }, // future
+              yaxis: { to: 0 },     // <0
+              // color: '#ddbbbb',
+              color: '#e8c8c8',
+            },
+            {
+              // xaxis: { from: now },      // future
+              yaxis: { from: 0, to: 0 }, // =0
+              color: '#bb0000',
+              lineWidth:1
             },
           ];
           // console.log(markings);
           return markings;
-        }
+        },
+        hoverable: true,
+        autoHighlight: true,
+        clickable: true,
+      },
+      /* https://github.com/krzysu/flot.tooltip */
+      tooltip: true,
+      tooltipOpts: {
+        xDateFormat: "%Y/%m/%d",
+        content:
+          function(label, x, y, flotitem) {
+            var data = flotitem.series.data[flotitem.dataIndex];
+            return data[3]+" balance on %x after "+data[2]+" posted by transaction:<pre>"+data[4]+"</pre>";
+          },
+        onHover: function(flotitem, $tooltipel) {
+          $tooltipel.css('border-color',flotitem.series.color);
+        },
       },
     }
   ).data("plot");
+}
+
+function registerChartClick(ev, pos, item) {
+  if (item) {
+    var date = $.plot.dateGenerator(item.datapoint[0], {});
+    var dateid = $.plot.formatDate(date, '%Y-%m-%d');
+    $target = $('#'+dateid);
+    if ($target.length)
+      $('html, body').animate({
+        scrollTop: $target.offset().top
+      }, 1000);
+  }
 }
 
 //----------------------------------------------------------------------

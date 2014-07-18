@@ -134,6 +134,7 @@ instance Yesod App where
             addScript $ StaticR js_jquery_hotkeys_js
             addScript $ StaticR js_jquery_flot_min_js
             addScript $ StaticR js_jquery_flot_time_min_js
+            addScript $ StaticR js_jquery_flot_tooltip_min_js
             toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR js_excanvas_min_js}"></script> <![endif]--> |]
             addStylesheet $ StaticR hledger_css
             addScript $ StaticR hledger_js
