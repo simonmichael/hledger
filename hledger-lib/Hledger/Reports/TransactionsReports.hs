@@ -205,9 +205,9 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -- | Split a transactions report whose items may involve several commodities,
 -- into one or more single-commodity transactions reports.
-transactionsReportByCommodity :: TransactionsReport -> [TransactionsReport]
+transactionsReportByCommodity :: TransactionsReport -> [(Commodity, TransactionsReport)]
 transactionsReportByCommodity tr =
-  [filterTransactionsReportByCommodity c tr | c <- transactionsReportCommodities tr]
+  [(c, filterTransactionsReportByCommodity c tr) | c <- transactionsReportCommodities tr]
   where
     transactionsReportCommodities (_,items) =
       nub $ sort $ map acommodity $ concatMap (amounts . triAmount) items

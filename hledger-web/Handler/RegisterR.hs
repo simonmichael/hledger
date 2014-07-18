@@ -58,8 +58,8 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    <span .glyphicon .glyphicon-chevron-up>
   <th.description style="text-align:left;">Description
   <th.account style="text-align:left;">To/From Account(s)
-  <th.amount style="text-align:right;">Amount Out/In
-  <th.balance style="text-align:right;">#{balancelabel'}
+  <th.amount style="text-align:right; white-space:normal;">Amount Out/In
+  <th.balance style="text-align:right; white-space:normal;">#{balancelabel'}
  $forall i <- numberTransactionsReportItems items
   ^{itemAsHtml vd i}
  |]
@@ -96,40 +96,69 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
                --                      Data.Foldable.Foldable t1 =>
                --                      t1 (Transaction, t2, t3, t4, t5, MixedAmount)
                --                      -> t -> Text.Blaze.Internal.HtmlM ()
-registerChartHtml :: [(String, [TransactionsReportItem])] -> HtmlUrl AppRoute
+registerChartHtml :: [(Commodity, (String, [TransactionsReportItem]))] -> HtmlUrl AppRoute
 registerChartHtml percommoditytxnreports =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  [hamlet|
-<label#register-chart-label style="float:left;margin-right:1em;">
-<div#register-chart style="width:600px;height:100px; margin-bottom:1em;float:left;">
+<label#register-chart-label style=""><br>
+<div#register-chart style="width:85%; height:150px; margin-bottom:1em; display:block;">
 <script type=text/javascript>
  \$(document).ready(function() {
    /* render chart with flot, if visible */
    var chartdiv = $('#register-chart');
-   if (chartdiv.is(':visible'))
-     \$('#register-chart-label').text('#{label}');
+   if (chartdiv.is(':visible')) {
+     \$('#register-chart-label').text('#{charttitle}');
+     /* https://github.com/flot/flot/blob/master/API.md */
      \$.plot(chartdiv,
              [
-              $forall (_,items) <- percommoditytxnreports
-               [
-                $forall i <- reverse items
-                 [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
-                []
-               ],
-              []
+              $forall (comm,(_,items)) <- percommoditytxnreports
+               {
+                label: '#{comm}',
+                color: #{colorForCommodity comm},
+                data: [
+                 $forall i <- reverse items
+                  [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
+                 [] ],
+               },
              ],
              {
-               xaxis: {
-                mode: "time",
-                timeformat: "%y/%m/%d"
-               }
+              series: {
+               points: { 
+                show: false,
+               },
+               lines: {
+                show: true,
+                steps: true,
+               },
+               bars: {
+                show: false,
+                barWidth: 10,
+               },
+              },
+              yaxis: {
+               /* mode: "time", */
+               /* timeformat: "%y/%m/%d", */
+               /* ticks: 6, */
+              },
+              xaxis: {
+               mode: "time",
+               timeformat: "%Y/%m/%d"
+               /* ticks: 6, */
+              },
              }
              );
+   }
   });
+               //clickable: true,
+               //hoverable: true,
+               //minTickSize: 3,
+  //var plot = $("#placeholder").plot(data, options).data("plot");
 |]
  where
-   label = case maybe "" fst $ headMay percommoditytxnreports
+   charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports
            of "" -> ""
               s  -> s++":"
+   colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
+   commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(Commodity,Int)]
 
