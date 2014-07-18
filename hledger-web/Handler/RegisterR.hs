@@ -105,55 +105,26 @@ registerChartHtml percommoditytxnreports =
 <div#register-chart style="width:85%; height:150px; margin-bottom:1em; display:block;">
 <script type=text/javascript>
  \$(document).ready(function() {
-   /* render chart with flot, if visible */
    var chartdiv = $('#register-chart');
    if (chartdiv.is(':visible')) {
      \$('#register-chart-label').text('#{charttitle}');
-     /* https://github.com/flot/flot/blob/master/API.md */
-     \$.plot(chartdiv,
-             [
-              $forall (comm,(_,items)) <- percommoditytxnreports
-               {
-                label: '#{comm}',
-                color: #{colorForCommodity comm},
-                data: [
-                 $forall i <- reverse items
-                  [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
-                 [] ],
-               },
-             ],
-             {
-              series: {
-               points: { 
-                show: false,
-               },
-               lines: {
-                show: true,
-                steps: true,
-               },
-               bars: {
-                show: false,
-                barWidth: 10,
-               },
-              },
-              yaxis: {
-               /* mode: "time", */
-               /* timeformat: "%y/%m/%d", */
-               /* ticks: 6, */
-              },
-              xaxis: {
-               mode: "time",
-               timeformat: "%Y/%m/%d"
-               /* ticks: 6, */
-              },
-             }
-             );
-   }
-  });
-               //clickable: true,
-               //hoverable: true,
-               //minTickSize: 3,
-  //var plot = $("#placeholder").plot(data, options).data("plot");
+     registerChart(
+       chartdiv,
+       [
+         $forall (comm,(_,items)) <- percommoditytxnreports
+          {
+           data: [
+             $forall i <- reverse items
+              [#{dayToJsTimestamp $ triDate i}, #{triSimpleBalance i}],
+             /* [] */
+           ],
+           label: '#{comm}',
+           color: #{colorForCommodity comm},
+          },
+       ]
+     );
+   };
+ });
 |]
  where
    charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports

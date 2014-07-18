@@ -29,6 +29,69 @@ $(document).ready(function() {
 });
 
 //----------------------------------------------------------------------
+// REGISTER CHART
+
+function registerChart($container, series) {
+	// https://github.com/flot/flot/blob/master/API.md
+	return $container.plot(
+    series,
+    { /* general chart options */
+      series: {
+        points: { 
+          show: true,
+        },
+        lines: {
+          show: true,
+          steps: true,
+        },
+        bars: {
+          // show: true,
+          // barWidth: 1000 * 60 * 60, // ms
+        },
+      },
+      yaxis: {
+        /* mode: "time", */
+        /* timeformat: "%y/%m/%d", */
+        /* ticks: 6, */
+      },
+      xaxis: {
+        mode: "time",
+        timeformat: "%Y/%m/%d"
+        /* ticks: 6, */
+      },
+      grid: {
+        // clickable: true,
+        // hoverable: true,
+        // autoHighlight: true,
+        markings:
+         function (axes) {
+          // console.log(axes);
+          // var markings = [];
+          // for (var x = Math.floor(axes.xaxis.min); x < axes.xaxis.max; x += 2)
+          //   markings.push({ xaxis: { from: x, to: x + 1 } });
+          // midx = Math.floor(axes.xaxis.min + (axes.xaxis.max - axes.xaxis.min) / 2);
+					var now = Date.now();
+          var markings = [
+            {
+              xaxis: { from: now, to: now }, 
+							color: '#888',
+							lineWidth:1
+            },
+            {
+              yaxis: { from: 0, to: 0 },
+							color: '#bb0000',
+							lineWidth:1
+            },
+          ];
+          // console.log(markings);
+          return markings;
+        }
+      },
+    }
+  ).data("plot");
+}
+
+//----------------------------------------------------------------------
 // ADD FORM
 
 function addformShow() {
@@ -92,7 +155,7 @@ function addformAddPosting() {
   //   //$(this).find(".typeahead").typeahead();
   //   console.log('DOMNodeInserted');
   //  // infinite loop
-	// 	console.log($(this).find('.typeahead'));
+  //  console.log($(this).find('.typeahead'));
   //   //enableTypeahead($(this).find('.typeahead'), accountsSuggester);
   // });
   // setTimeout(function (){
@@ -209,14 +272,14 @@ function sidebarToggle() {
 // MISC
 
 function enableTypeahead($el, suggester) {
-	return $el.typeahead(
-		{
-			highlight: true
-		},
-		{
-			source: suggester.ttAdapter()
-		}
-	);
+  return $el.typeahead(
+    {
+      highlight: true
+    },
+    {
+      source: suggester.ttAdapter()
+    }
+  );
 }
 
 /*
