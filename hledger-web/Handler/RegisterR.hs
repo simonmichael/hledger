@@ -148,13 +148,12 @@ registerChartHtml percommoditytxnreports =
           /* [] */
         ],
         label: '',
-        color: '#{colorForCommodity c}',
+        color: #{colorForCommodity c},
         lines: {
           show: false,
         },
         points: { 
           show: true,
-          color: '#{colorForCommodity c}',
         },
        },
      ]
