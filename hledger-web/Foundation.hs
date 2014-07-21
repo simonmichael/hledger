@@ -379,7 +379,7 @@ addform _ vd@VD{..} = [hamlet|
 
 journalselect :: [(FilePath,String)] -> HtmlUrl AppRoute
 journalselect journalfiles = [hamlet|
-<select id=journalselect name=journal onchange="journalSelect(event)">
+<select id=journalselect name=journal onchange="/*journalSelect(event)*/">
  $forall f <- journalfiles
   <option value=#{fst f}>#{fst f}
 |]

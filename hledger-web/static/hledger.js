@@ -247,25 +247,6 @@ function addformDeletePosting() {
   if (focuslost) $('#addform tr.posting:last > td:first input:last').focus();
 }
 
-function journalSelect(ev) {
-  var textareas = $('textarea', $('form#editform'));
-  for (i=0; i<textareas.length; i++) {
-    textareas[i].style.display = 'none';
-    textareas[i].disabled = true;
-  }
-  var targ = getTarget(ev);
-  if (targ.value) {
-    var journalid = targ.value+'_textarea';
-    var textarea = document.getElementById(journalid);
-  }
-  else {
-    var textarea = textareas[0];
-  }
-  textarea.style.display = 'block';
-  textarea.disabled = false;
-  return true;
-}
-
 //----------------------------------------------------------------------
 // SIDEBAR
 
@@ -314,15 +295,32 @@ function enableTypeahead($el, suggester) {
   );
 }
 
-/*
-// Get the current event's target in a robust way.
-// http://www.quirksmode.org/js/events_properties.html
-function getTarget(ev) {
-  var targ;
-  if (!ev) var ev = window.event;
-  if (ev.target) targ = ev.target;
-  else if (ev.srcElement) targ = ev.srcElement;
-  if (targ.nodeType == 3) targ = targ.parentNode;
-  return targ;
-}
-*/
+// function journalSelect(ev) {
+//   var textareas = $('textarea', $('form#editform'));
+//   for (i=0; i<textareas.length; i++) {
+//     textareas[i].style.display = 'none';
+//     textareas[i].disabled = true;
+//   }
+//   var targ = getTarget(ev);
+//   if (targ.value) {
+//     var journalid = targ.value+'_textarea';
+//     var textarea = document.getElementById(journalid);
+//   }
+//   else {
+//     var textarea = textareas[0];
+//   }
+//   textarea.style.display = 'block';
+//   textarea.disabled = false;
+//   return true;
+// }
+
+// // Get the current event's target in a robust way.
+// // http://www.quirksmode.org/js/events_properties.html
+// function getTarget(ev) {
+//   var targ;
+//   if (!ev) var ev = window.event;
+//   if (ev.target) targ = ev.target;
+//   else if (ev.srcElement) targ = ev.srcElement;
+//   if (targ.nodeType == 3) targ = targ.parentNode;
+//   return targ;
+// }
