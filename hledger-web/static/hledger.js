@@ -21,9 +21,9 @@ $(document).ready(function() {
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', '/',       function(){ $('#searchform input').focus(); return false; });
-  $('body, #addform input').bind('keydown', 'ctrl+shift+=', addformAddPosting);
-  $('body, #addform input').bind('keydown', 'ctrl+=',       addformAddPosting);
-  $('body, #addform input').bind('keydown', 'ctrl+-',       addformDeletePosting);
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
   $('#addform tr.posting:last > td:first input').bind('keydown', 'tab', addformAddPostingWithTab);
 
 });
