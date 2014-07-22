@@ -59,11 +59,11 @@ $newline never
                     <p>
                       <b>Keyboard shortcuts
                       <ul>
-                        <li> <b><tt>h</tt></b> or <b><tt>?</tt></b> - view this help (escape or click to exit)
+                        <li> <b><tt>h</tt></b> or maybe <b><tt>?</tt></b> - view this help (escape or click to exit)
                         <li> <b><tt>j</tt></b> - go to the Journal view (home)
                         <li> <b><tt>a</tt></b> - add a transaction (escape to cancel)
                         <li> <b><tt>s</tt></b> - toggle sidebar
-                        <li> <b><tt>/</tt></b> or <b><tt>ctrl-s</tt></b> - focus search form
+                        <li> <b><tt>f</tt></b> - focus search form ("find")
                     <p>
                       <b>General
                       <ul>
