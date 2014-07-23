@@ -188,7 +188,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
  <table.balancereport>
   <tr>
    <td>Account
-   <td align=right>Balance
+   <td style="padding-left:1em; text-align:right;">Balance
   $forall i <- items
    ^{itemAsHtml vd i}
   <tr.totalrule>
