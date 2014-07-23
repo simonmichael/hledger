@@ -65,10 +65,9 @@ topbar VD{..} = [hamlet|
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
- <a.btn .btn-default role=button href=@{JournalR} title="Go back to top">
+ <a href=@{JournalR} title="Go back to top">
   hledger-web
-  <br />
-  \#{version}
+
  <p>
  <!--
  <a#sidebartogglebtn role="button" style="cursor:pointer;" onclick="sidebarToggle()" title="Show/hide sidebar">
