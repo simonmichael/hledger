@@ -122,7 +122,7 @@ registerChartHtml percommoditytxnreports =
            ],
           /* [] */
         ],
-        label: '#{c}',
+        label: '#{shownull c}',
         color: #{colorForCommodity c},
         lines: {
           show: true,
@@ -170,4 +170,4 @@ registerChartHtml percommoditytxnreports =
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(Commodity,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . headMay . amounts
-
+   shownull c = if null c then " " else c
