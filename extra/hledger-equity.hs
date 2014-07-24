@@ -44,5 +44,7 @@ main = do
             ps = [posting{paccount=a, pamount=b} | ((a,_,_),b) <- acctbals]
                  ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
             enddate = fromMaybe today $ queryEndDate (date2_ ropts_) q
-            txn = nulltransaction{tdate=enddate, tpostings=ps}
-        putStr $ showTransactionUnelided txn
+            nps = [posting{paccount=a, pamount=negate b} | ((a,_,_),b) <- acctbals]
+                 ++ [posting{paccount="equity:closing balances", pamount=negate balancingamt}]
+        putStr $ showTransactionUnelided (nulltransaction{tdate=enddate, tpostings=nps})
+        putStr $ showTransactionUnelided (nulltransaction{tdate=enddate, tpostings=ps})
