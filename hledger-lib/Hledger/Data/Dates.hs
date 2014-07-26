@@ -66,6 +66,7 @@ import Data.Maybe
 import Data.Time.Format
 import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
+import Data.Time.Calendar.WeekDate
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Safe (headMay, lastMay, readMay)
@@ -85,7 +86,37 @@ instance Show DateSpan where
 showDate :: Day -> String
 showDate = formatTime defaultTimeLocale "%0C%y/%m/%d"
 
-showDateSpan (DateSpan from to) =
+-- | Render a datespan as a display string, abbreviating into a
+-- compact form if possible.
+showDateSpan ds@(DateSpan (Just from) (Just to)) =
+  case (toGregorian from, toGregorian to) of
+    -- special cases we can abbreviate:
+    -- a year, YYYY
+    ((fy,1,1), (ty,1,1))   | fy+1==ty           -> formatTime defaultTimeLocale "%0C%y" from
+    -- a month, YYYY/MM
+    ((fy,fm,1), (ty,tm,1)) | fy==ty && fm+1==tm -> formatTime defaultTimeLocale "%0C%y/%m" from
+    ((fy,12,1), (ty,1,1))  | fy+1==ty           -> formatTime defaultTimeLocale "%0C%y/%m" from
+    -- a quarter, YYYYqN
+    ((fy,1,1), (ty,4,1))  | fy==ty              -> formatTime defaultTimeLocale "%0C%yq1" from
+    ((fy,4,1), (ty,7,1))  | fy==ty              -> formatTime defaultTimeLocale "%0C%yq2" from
+    ((fy,7,1), (ty,10,1)) | fy==ty              -> formatTime defaultTimeLocale "%0C%yq3" from
+    ((fy,10,1), (ty,1,1)) | fy+1==ty            -> formatTime defaultTimeLocale "%0C%yq4" from
+    -- a half, YYYYhN
+    ((fy,1,1), (ty,7,1))  | fy==ty              -> formatTime defaultTimeLocale "%0C%yh1" from
+    ((fy,7,1), (ty,1,1))  | fy+1==ty            -> formatTime defaultTimeLocale "%0C%yh2" from
+    -- a week (two successive mondays),
+    -- YYYYwN ("week N of year YYYY")
+    -- _ | let ((fy,fw,fd), (ty,tw,td)) = (toWeekDate from, toWeekDate to) in fy==ty && fw+1==tw && fd==1 && td==1
+    --                                             -> formatTime defaultTimeLocale "%0f%gw%V" from
+    -- YYYY/MM/DDwN ("week N, starting on YYYY/MM/DD")
+    _ | let ((fy,fw,fd), (ty,tw,td)) = (toWeekDate from, toWeekDate to) in fy==ty && fw+1==tw && fd==1 && td==1
+                                                -> formatTime defaultTimeLocale "%0C%y/%m/%dw%V" from
+    -- otherwise, YYYY/MM/DD-YYYY/MM/DD
+    _                                           -> showDateSpan' ds
+showDateSpan ds = showDateSpan' ds
+
+-- | Render a datespan as a display string.
+showDateSpan' (DateSpan from to) =
   concat
     [maybe "" showDate from
     ,"-"
