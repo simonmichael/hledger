@@ -369,7 +369,7 @@ formatField opts accountName depth total ljust min max field = case field of
 -- | Render a multi-column period balance report as plain text suitable for console output.
 periodBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
 periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
-  (["Change of balance (flow):"] ++) $
+  (["Balance changes:"] ++) $
   trimborder $ lines $
    render
     id
@@ -396,7 +396,7 @@ periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals))
 -- | Render a multi-column cumulative balance report as plain text suitable for console output.
 cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
 cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
-  (["Ending balance (cumulative):"] ++) $
+  (["Ending balances (cumulative):"] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
     addtotalrow $ 
@@ -417,7 +417,7 @@ cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
 -- | Render a multi-column historical balance report as plain text suitable for console output.
 historicalBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
 historicalBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
-  (["Ending balance (historical):"] ++) $
+  (["Ending balances (historical):"] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
     addtotalrow $ 

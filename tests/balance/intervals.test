@@ -14,7 +14,7 @@ hledgerdev -f balance-multicol.journal register
 # 2. A period balance (flow) report. --no-total also works but isn't pretty.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --no-total
 >>>
-Change of balance (flow):
+Balance changes:
 
                  ||  2013/01  2013/02  2013/03 
 =================++============================
@@ -37,7 +37,7 @@ hledgerdev -f - balance -p 'quarterly in 2013' --empty
 2013/3/1
   (a)  1
 >>>
-Change of balance (flow):
+Balance changes:
 
    ||  2013q1  2013q2  2013q3  2013q4 
 ===++=================================
@@ -51,7 +51,7 @@ Change of balance (flow):
 # the highest-level displayed accounts (here, assets).
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --cumulative
 >>>
-Ending balance (cumulative):
+Ending balances (cumulative):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
@@ -68,7 +68,7 @@ Ending balance (cumulative):
 # includes the displayed subaccount and not the excluded one.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --cumulative not:cash
 >>>
-Ending balance (cumulative):
+Ending balances (cumulative):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
@@ -82,7 +82,7 @@ Ending balance (cumulative):
 # 6. A historical ending balance report.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --historical
 >>>
-Ending balance (historical):
+Ending balances (historical):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
@@ -98,7 +98,7 @@ Ending balance (historical):
 # the highest-level displayed accounts, now assets:cash and assets:checking.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' not:assets$
 >>>
-Change of balance (flow):
+Balance changes:
 
                  ||  2013/01  2013/02  2013/03 
 =================++============================
@@ -112,7 +112,7 @@ Change of balance (flow):
 # 8. cumulative:
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' not:assets$ --cumulative
 >>>
-Ending balance (cumulative):
+Ending balances (cumulative):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
@@ -126,7 +126,7 @@ Ending balance (cumulative):
 # 9. historical
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --historical
 >>>
-Ending balance (historical):
+Ending balances (historical):
 
                  ||  2013/01/31  2013/02/28  2013/03/31 
 =================++=====================================
@@ -143,7 +143,7 @@ Ending balance (historical):
 # 10. A flow report with depth limiting. The depth limit aggregates the three accounts as "assets".
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1
 >>>
-Change of balance (flow):
+Balance changes:
 
         ||  2013/01  2013/02  2013/03 
 ========++============================
@@ -156,7 +156,7 @@ Change of balance (flow):
 # 11. As above, but postings in the top-level assets account have been excluded.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1 assets:
 >>>
-Change of balance (flow):
+Balance changes:
 
         ||  2013/01  2013/02  2013/03 
 ========++============================
@@ -169,7 +169,7 @@ Change of balance (flow):
 # 12. A cumulative balance report with depth limiting.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --cumulative
 >>>
-Ending balance (cumulative):
+Ending balances (cumulative):
 
         ||  2013/01/31  2013/02/28  2013/03/31 
 ========++=====================================
@@ -182,7 +182,7 @@ Ending balance (cumulative):
 # 13. A historical balance report with depth limiting.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --depth 1 --historical
 >>>
-Ending balance (historical):
+Ending balances (historical):
 
         ||  2013/01/31  2013/02/28  2013/03/31 
 ========++=====================================
@@ -195,7 +195,7 @@ Ending balance (historical):
 # 14. The three multicol balance report types again, this time with --tree
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --tree
 >>>
-Change of balance (flow):
+Balance changes:
 
             ||  2013/01  2013/02  2013/03 
 ============++============================
@@ -210,7 +210,7 @@ Change of balance (flow):
 # 15.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --cumulative --tree
 >>>
-Ending balance (cumulative):
+Ending balances (cumulative):
 
             ||  2013/01/31  2013/02/28  2013/03/31 
 ============++=====================================
@@ -225,7 +225,7 @@ Ending balance (cumulative):
 # 16.
 hledgerdev -f balance-multicol.journal balance -p 'monthly in 2013' --historical --tree
 >>>
-Ending balance (historical):
+Ending balances (historical):
 
             ||  2013/01/31  2013/02/28  2013/03/31 
 ============++=====================================
@@ -247,7 +247,7 @@ hledgerdev -f- balance --monthly --date2
  (b)  1
 
 >>>
-Change of balance (flow):
+Balance changes:
 
    ||  2014/01 
 ===++==========
@@ -271,7 +271,7 @@ hledgerdev -f- balance -p 'monthly 2014/1/10-2014/2/20'
  (after)  1
 
 >>>
-Change of balance (flow):
+Balance changes:
 
         ||  2014/01  2014/02 
 ========++===================
