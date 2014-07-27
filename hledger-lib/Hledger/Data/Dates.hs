@@ -93,17 +93,17 @@ showDateSpan ds@(DateSpan (Just from) (Just to)) =
     -- special cases we can abbreviate:
     -- a year, YYYY
     ((fy,1,1), (ty,1,1))   | fy+1==ty           -> formatTime defaultTimeLocale "%0C%y" from
+    -- a half, YYYYhN
+    ((fy,1,1), (ty,7,1))   | fy==ty             -> formatTime defaultTimeLocale "%0C%yh1" from
+    ((fy,7,1), (ty,1,1))   | fy+1==ty           -> formatTime defaultTimeLocale "%0C%yh2" from
+    -- a quarter, YYYYqN
+    ((fy,1,1), (ty,4,1))   | fy==ty             -> formatTime defaultTimeLocale "%0C%yq1" from
+    ((fy,4,1), (ty,7,1))   | fy==ty             -> formatTime defaultTimeLocale "%0C%yq2" from
+    ((fy,7,1), (ty,10,1))  | fy==ty             -> formatTime defaultTimeLocale "%0C%yq3" from
+    ((fy,10,1), (ty,1,1))  | fy+1==ty           -> formatTime defaultTimeLocale "%0C%yq4" from
     -- a month, YYYY/MM
     ((fy,fm,1), (ty,tm,1)) | fy==ty && fm+1==tm -> formatTime defaultTimeLocale "%0C%y/%m" from
     ((fy,12,1), (ty,1,1))  | fy+1==ty           -> formatTime defaultTimeLocale "%0C%y/%m" from
-    -- a quarter, YYYYqN
-    ((fy,1,1), (ty,4,1))  | fy==ty              -> formatTime defaultTimeLocale "%0C%yq1" from
-    ((fy,4,1), (ty,7,1))  | fy==ty              -> formatTime defaultTimeLocale "%0C%yq2" from
-    ((fy,7,1), (ty,10,1)) | fy==ty              -> formatTime defaultTimeLocale "%0C%yq3" from
-    ((fy,10,1), (ty,1,1)) | fy+1==ty            -> formatTime defaultTimeLocale "%0C%yq4" from
-    -- a half, YYYYhN
-    ((fy,1,1), (ty,7,1))  | fy==ty              -> formatTime defaultTimeLocale "%0C%yh1" from
-    ((fy,7,1), (ty,1,1))  | fy+1==ty            -> formatTime defaultTimeLocale "%0C%yh2" from
     -- a week (two successive mondays),
     -- YYYYwN ("week N of year YYYY")
     -- _ | let ((fy,fw,fd), (ty,tw,td)) = (toWeekDate from, toWeekDate to) in fy==ty && fw+1==tw && fd==1 && td==1
