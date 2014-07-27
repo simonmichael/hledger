@@ -248,6 +248,7 @@ import Data.Maybe
 import System.Console.CmdArgs.Explicit as C
 -- import System.Console.CmdArgs.Text
 import Test.HUnit
+import Text.Printf (printf)
 import Text.Tabular as T
 import Text.Tabular.AsciiArt
 
@@ -366,10 +367,15 @@ formatField opts accountName depth total ljust min max field = case field of
         TotalField       -> formatValue ljust min max $ showAmountWithoutPrice total
         _                  -> ""
 
+-- | Figure out the overall date span of a multicolumn balance report.
+multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
+multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
+multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
+
 -- | Render a multi-column period balance report as plain text suitable for console output.
 periodBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
-periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
-  (["Balance changes:"] ++) $
+periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+  ([printf "Balance changes in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render
     id
@@ -395,8 +401,8 @@ periodBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals))
 
 -- | Render a multi-column cumulative balance report as plain text suitable for console output.
 cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
-cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
-  (["Ending balances (cumulative):"] ++) $
+cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+  ([printf "Ending balances (cumulative) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
     addtotalrow $ 
@@ -416,8 +422,8 @@ cumulativeBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltota
 
 -- | Render a multi-column historical balance report as plain text suitable for console output.
 historicalBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
-historicalBalanceReportAsText opts (MultiBalanceReport (colspans, items, coltotals)) =
-  (["Ending balances (historical):"] ++) $
+historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+  ([printf "Ending balances (historical) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
     addtotalrow $ 
