@@ -85,7 +85,7 @@ handleAdd = do
                         (balanceTransaction Nothing $ nulltransaction {
                             tdate=parsedate date
                            ,tdescription=desc
-                           ,tpostings=[nullposting{paccount=acct, pamount=mixed amt} | (acct,amt) <- zip accts amts]
+                           ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
                            })
 
   -- display errors or add transaction

@@ -116,13 +116,14 @@ balanceReportItem opts _ a@Account{aname=name}
 --     total = headDef 0 mbrtotals
 
 tests_balanceReport =
-  let (opts,journal) `gives` r = do
-         let (eitems, etotal) = r
-             (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
-         assertEqual "items" eitems aitems
-         -- assertEqual "" (length eitems) (length aitems)
-         -- mapM (\(e,a) -> assertEqual "" e a) $ zip eitems aitems
-         assertEqual "total" etotal atotal
+  let
+    (opts,journal) `gives` r = do
+      let (eitems, etotal) = r
+          (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
+          showw (acct,amt) = (acct, showMixedAmountDebug amt)
+      assertEqual "items" (map showw eitems) (map showw aitems)
+      assertEqual "total" (showMixedAmountDebug etotal) (showMixedAmountDebug atotal)
+    usd0 = nullamt{acommodity="$"}
   in [
 
    "balanceReport with no args on null journal" ~: do
@@ -142,7 +143,7 @@ tests_balanceReport =
      ,(("income:salary","salary",1), mamountp' "$-1.00")
      ,(("liabilities:debts","liabilities:debts",0), mamountp' "$1.00")
      ],
-     Mixed [nullamt])
+     Mixed [usd0])
 
   ,"balanceReport with --depth=N" ~: do
    (defreportopts{depth_=Just 1}, samplejournal) `gives`
@@ -152,7 +153,7 @@ tests_balanceReport =
      ,(("income",      "income",      0), mamountp' "$-2.00")
      ,(("liabilities", "liabilities", 0), mamountp'  "$1.00")
      ],
-     Mixed [nullamt])
+     Mixed [usd0])
 
   ,"balanceReport with depth:N" ~: do
    (defreportopts{query_="depth:1"}, samplejournal) `gives`
@@ -162,7 +163,7 @@ tests_balanceReport =
      ,(("income",      "income",      0), mamountp' "$-2.00")
      ,(("liabilities", "liabilities", 0), mamountp'  "$1.00")
      ],
-     Mixed [nullamt])
+     Mixed [usd0])
 
   ,"balanceReport with a date or secondary date span" ~: do
    (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
@@ -173,7 +174,7 @@ tests_balanceReport =
       (("assets:bank:checking","assets:bank:checking",0),mamountp' "$1.00")
      ,(("income:salary","income:salary",0),mamountp' "$-1.00")
      ],
-     Mixed [nullamt])
+     Mixed [usd0])
 
   ,"balanceReport with desc:" ~: do
    (defreportopts{query_="desc:income"}, samplejournal) `gives`
@@ -181,13 +182,13 @@ tests_balanceReport =
       (("assets:bank:checking","assets:bank:checking",0),mamountp' "$1.00")
      ,(("income:salary","income:salary",0), mamountp' "$-1.00")
      ],
-     Mixed [nullamt])
+     Mixed [usd0])
 
   ,"balanceReport with not:desc:" ~: do
    (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
     ([
       (("assets","assets",0), mamountp' "$-2.00")
-     ,(("assets:bank","bank",1), Mixed [nullamt])
+     ,(("assets:bank","bank",1), Mixed [usd0])
      ,(("assets:bank:checking","checking",2),mamountp' "$-1.00")
      ,(("assets:bank:saving","saving",2), mamountp' "$1.00")
      ,(("assets:cash","cash",1), mamountp' "$-2.00")
@@ -197,7 +198,7 @@ tests_balanceReport =
      ,(("income:gifts","income:gifts",0), mamountp' "$-1.00")
      ,(("liabilities:debts","liabilities:debts",0), mamountp' "$1.00")
      ],
-     Mixed [nullamt])
+     Mixed [usd0])
 
 
 {-

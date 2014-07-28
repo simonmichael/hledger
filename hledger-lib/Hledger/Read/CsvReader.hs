@@ -565,7 +565,7 @@ transactionFromCsvRecord rules record = t
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
     amountstr   = (currency++) $ negateIfParenthesised $ getAmountStr rules record
-    amount      = either amounterror mixed $ runParser (do {a <- amountp; eof; return a}) nullctx "" amountstr
+    amount      = either amounterror (Mixed . (:[])) $ runParser (do {a <- amountp; eof; return a}) nullctx "" amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
       ,showRecord record

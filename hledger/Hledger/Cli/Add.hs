@@ -213,7 +213,7 @@ postingWizard es@EntryState{..} = do
     let es1 = es{esArgs=drop 1 esArgs}
     (amt,comment)  <- amountAndCommentWizard es1
     return $ Just nullposting{paccount=stripbrackets acct
-                             ,pamount=mixed amt
+                             ,pamount=Mixed [amt]
                              ,pcomment=comment
                              ,ptype=accountNamePostingType acct
                              }

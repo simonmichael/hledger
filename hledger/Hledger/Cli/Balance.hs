@@ -338,7 +338,7 @@ balanceReportItemAsText opts format ((_, accountName, depth), Mixed amounts) =
     -- 'amounts' could contain several quantities of the same commodity with different price.
     -- In order to combine them into single value (which is expected) we take the first price and
     -- use it for the whole mixed amount. This could be suboptimal. XXX
-    let Mixed normAmounts = normaliseMixedAmountPreservingFirstPrice (Mixed amounts) in
+    let Mixed normAmounts = normaliseMixedAmountSquashPricesForDisplay (Mixed amounts) in
     case normAmounts of
       [] -> []
       [a] -> [formatBalanceReportItem opts (Just accountName) depth a format]

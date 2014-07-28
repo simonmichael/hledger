@@ -649,7 +649,7 @@ amountp' s = either (error' . show) id $ parseWithCtx nullctx amountp s
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
-mamountp' = mixed . amountp'
+mamountp' = Mixed . (:[]) . amountp'
 
 signp :: GenParser Char JournalContext String
 signp = do

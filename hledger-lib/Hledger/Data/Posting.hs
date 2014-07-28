@@ -79,7 +79,7 @@ nullposting = Posting
 posting = nullposting
 
 post :: AccountName -> Amount -> Posting
-post acct amt = posting {paccount=acct, pamount=mixed amt}
+post acct amt = posting {paccount=acct, pamount=Mixed [amt]}
 
 -- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
