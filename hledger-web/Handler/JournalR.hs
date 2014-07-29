@@ -70,7 +70,7 @@ $forall p' <- tpostings t
   <td.description>
   <td.account>
    &nbsp;
-   <a href="/register?q=inacct:'#{paccount p'}'##{date}">#{elideRight 40 $ paccount p'}
+   <a href="/register?q=inacct:'#{paccount p'}'##{date}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
   <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
 <tr.#{evenodd}>
  <td>&nbsp;
