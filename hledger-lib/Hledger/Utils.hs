@@ -407,6 +407,27 @@ dbg1 = dbgAt 1
 dbg2 :: Show a => String -> a -> a
 dbg2 = dbgAt 2
 
+dbg3 :: Show a => String -> a -> a
+dbg3 = dbgAt 3
+
+dbg4 :: Show a => String -> a -> a
+dbg4 = dbgAt 4
+
+dbg5 :: Show a => String -> a -> a
+dbg5 = dbgAt 5
+
+dbg6 :: Show a => String -> a -> a
+dbg6 = dbgAt 6
+
+dbg7 :: Show a => String -> a -> a
+dbg7 = dbgAt 7
+
+dbg8 :: Show a => String -> a -> a
+dbg8 = dbgAt 8
+
+dbg9 :: Show a => String -> a -> a
+dbg9 = dbgAt 9
+
 -- | Print a message and a showable value to the console if the global
 -- debug level is at or above the specified level.  Uses unsafePerformIO.
 dbgAt :: Show a => Int -> String -> a -> a
