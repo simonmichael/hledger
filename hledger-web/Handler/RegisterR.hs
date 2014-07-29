@@ -141,8 +141,8 @@ registerChartHtml percommoditytxnreports =
            [
             #{dayToJsTimestamp $ triDate i},
             #{simpleMixedAmountQuantity $ triCommodityBalance c i},
-            '#{show $ triCommodityAmount c i}',
-            '#{show $ triCommodityBalance c i}',
+            '#{showMixedAmountWithZeroCommodity $ triCommodityAmount c i}',
+            '#{showMixedAmountWithZeroCommodity $ triCommodityBalance c i}',
             '#{concat $ intersperse "\\n" $ lines  $ show $ triOrigTransaction i}',
            ],
           /* [] */
