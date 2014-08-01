@@ -658,6 +658,7 @@ Right samplejournal = journalBalanceTransactions $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2008/01/01",
              tdate2=Nothing,
              tstatus=False,
@@ -673,6 +674,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2008/06/01",
              tdate2=Nothing,
              tstatus=False,
@@ -688,6 +690,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2008/06/02",
              tdate2=Nothing,
              tstatus=False,
@@ -703,6 +706,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2008/06/03",
              tdate2=Nothing,
              tstatus=True,
@@ -718,6 +722,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2008/12/31",
              tdate2=Nothing,
              tstatus=False,

@@ -51,7 +51,7 @@ timeLogEntriesToTransactions now [i]
     | odate > idate = entryFromTimeLogInOut i o' : timeLogEntriesToTransactions now [i',o]
     | otherwise = [entryFromTimeLogInOut i o]
     where
-      o = TimeLogEntry Out end ""
+      o = TimeLogEntry (tlsourcepos i) Out end ""
       end = if itime > now then itime else now
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
@@ -76,14 +76,15 @@ entryFromTimeLogInOut i o
         error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
     where
       t = Transaction {
-            tdate         = idate,
-            tdate2 = Nothing,
-            tstatus       = True,
-            tcode         = "",
-            tdescription  = showtime itod ++ "-" ++ showtime otod,
-            tcomment      = "",
-            ttags     = [],
-            tpostings = ps,
+            tsourcepos   = tlsourcepos i,
+            tdate        = idate,
+            tdate2       = Nothing,
+            tstatus      = True,
+            tcode        = "",
+            tdescription = showtime itod ++ "-" ++ showtime otod,
+            tcomment     = "",
+            ttags        = [],
+            tpostings    = ps,
             tpreceding_comment_lines=""
           }
       showtime = take 5 . show
@@ -107,7 +108,7 @@ tests_Hledger_Data_TimeLog = TestList [
      let now = utcToLocalTime tz now'
          nowstr = showtime now
          yesterday = prevday today
-         clockin = TimeLogEntry In
+         clockin = TimeLogEntry nullsourcepos In
          mktime d = LocalTime d . fromMaybe midnight . parseTime defaultTimeLocale "%H:%M:%S"
          showtime = formatTime defaultTimeLocale "%H:%M"
          assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ timeLogEntriesToTransactions now es)

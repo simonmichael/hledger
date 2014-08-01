@@ -100,11 +100,12 @@ timelogFile = do items <- many timelogItem
 -- | Parse a timelog entry.
 timelogentry :: GenParser Char JournalContext TimeLogEntry
 timelogentry = do
+  sourcepos <- getPosition
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- datetimep
   comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
-  return $ TimeLogEntry (read [code]) datetime (maybe "" rstrip comment)
+  return $ TimeLogEntry sourcepos (read [code]) datetime (maybe "" rstrip comment)
 
 tests_Hledger_Read_TimelogReader = TestList [
  ]

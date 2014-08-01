@@ -25,6 +25,7 @@ import qualified Data.Map as M
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (ClockTime(..))
+import Text.Parsec.Pos
 
 
 type SmartDate = (String,String,String)
@@ -103,6 +104,7 @@ instance Eq Posting where
     (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
 
 data Transaction = Transaction {
+      tsourcepos :: SourcePos,
       tdate :: Day,
       tdate2 :: Maybe Day,
       tstatus :: Bool,  -- XXX tcleared ?
@@ -127,6 +129,7 @@ data PeriodicTransaction = PeriodicTransaction {
 data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Typeable,Data)
 
 data TimeLogEntry = TimeLogEntry {
+      tlsourcepos :: SourcePos,
       tlcode :: TimeLogCode,
       tldatetime :: LocalTime,
       tlcomment :: String

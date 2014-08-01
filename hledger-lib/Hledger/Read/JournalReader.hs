@@ -324,6 +324,7 @@ periodictransaction = do
 transaction :: GenParser Char JournalContext Transaction
 transaction = do
   -- ptrace "transaction"
+  sourcepos <- getPosition
   date <- date <?> "transaction"
   edate <- optionMaybe (secondarydate date) <?> "secondary date"
   status <- status <?> "cleared flag"
@@ -332,7 +333,7 @@ transaction = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   postings <- postings
-  return $ txnTieKnot $ Transaction date edate status code description comment tags postings ""
+  return $ txnTieKnot $ Transaction sourcepos date edate status code description comment tags postings ""
 
 descriptionp = many (noneOf ";\n")
 

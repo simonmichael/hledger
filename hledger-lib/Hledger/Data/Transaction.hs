@@ -9,6 +9,7 @@ tags.
 
 module Hledger.Data.Transaction (
   -- * Transaction
+  nullsourcepos,
   nulltransaction,
   txnTieKnot,
   -- settxn,
@@ -39,6 +40,7 @@ import Data.Time.Calendar
 import Test.HUnit
 import Text.Printf
 import qualified Data.Map as Map
+import Text.Parsec.Pos
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -54,8 +56,12 @@ instance Show ModifierTransaction where
 instance Show PeriodicTransaction where 
     show t = "~ " ++ ptperiodicexpr t ++ "\n" ++ unlines (map show (ptpostings t))
 
+nullsourcepos :: SourcePos
+nullsourcepos = initialPos ""
+
 nulltransaction :: Transaction
 nulltransaction = Transaction {
+                    tsourcepos=nullsourcepos,
                     tdate=nulldate,
                     tdate2=Nothing,
                     tstatus=False, 
@@ -376,7 +382,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ,"    assets:checking"
         ,""
         ])
-       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+       (let t = Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
                 [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18], ptransaction=Just t}
                 ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.18)], ptransaction=Just t}
                 ] ""
@@ -390,7 +396,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ,"    assets:checking               $-47.18"
         ,""
         ])
-       (let t = Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+       (let t = Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
                 [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18], ptransaction=Just t}
                 ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.18)], ptransaction=Just t}
                 ] ""
@@ -406,7 +412,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+        (txnTieKnot $ Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
          [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18]}
          ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.19)]}
          ] ""))
@@ -419,7 +425,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+        (txnTieKnot $ Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
          [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18]}
          ] ""))
 
@@ -431,7 +437,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
+        (txnTieKnot $ Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "coopportunity" "" []
          [posting{paccount="expenses:food:groceries", pamount=missingmixedamt}
          ] ""))
 
@@ -444,7 +450,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
         ,""
         ])
        (showTransaction
-        (txnTieKnot $ Transaction (parsedate "2010/01/01") Nothing False "" "x" "" []
+        (txnTieKnot $ Transaction nullsourcepos (parsedate "2010/01/01") Nothing False "" "x" "" []
          [posting{paccount="a", pamount=Mixed [num 1 `at` (usd 2 `withPrecision` 0)]}
          ,posting{paccount="b", pamount= missingmixedamt}
          ] ""))
@@ -452,19 +458,19 @@ tests_Hledger_Data_Transaction = TestList $ concat [
   ,"balanceTransaction" ~: do
      assertBool "detect unbalanced entry, sign error"
                     (isLeft $ balanceTransaction Nothing
-                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                           (Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "test" "" []
                             [posting{paccount="a", pamount=Mixed [usd 1]}
                             ,posting{paccount="b", pamount=Mixed [usd 1]}
                             ] ""))
 
      assertBool "detect unbalanced entry, multiple missing amounts"
                     (isLeft $ balanceTransaction Nothing
-                           (Transaction (parsedate "2007/01/28") Nothing False "" "test" "" []
+                           (Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "test" "" []
                             [posting{paccount="a", pamount=missingmixedamt}
                             ,posting{paccount="b", pamount=missingmixedamt}
                             ] ""))
 
-     let e = balanceTransaction Nothing (Transaction (parsedate "2007/01/28") Nothing False "" "" "" []
+     let e = balanceTransaction Nothing (Transaction nullsourcepos (parsedate "2007/01/28") Nothing False "" "" "" []
                            [posting{paccount="a", pamount=Mixed [usd 1]}
                            ,posting{paccount="b", pamount=missingmixedamt}
                            ] "")
@@ -475,7 +481,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
                         Right e' -> (pamount $ last $ tpostings e')
                         Left _ -> error' "should not happen")
 
-     let e = balanceTransaction Nothing (Transaction (parsedate "2011/01/01") Nothing False "" "" "" []
+     let e = balanceTransaction Nothing (Transaction nullsourcepos (parsedate "2011/01/01") Nothing False "" "" "" []
                            [posting{paccount="a", pamount=Mixed [usd 1.35]}
                            ,posting{paccount="b", pamount=Mixed [eur (-1)]}
                            ] "")
@@ -487,49 +493,49 @@ tests_Hledger_Data_Transaction = TestList $ concat [
                         Left _ -> error' "should not happen")
 
      assertBool "balanceTransaction balances based on cost if there are unit prices" (isRight $
-       balanceTransaction Nothing (Transaction (parsedate "2011/01/01") Nothing False "" "" "" []
+       balanceTransaction Nothing (Transaction nullsourcepos (parsedate "2011/01/01") Nothing False "" "" "" []
                            [posting{paccount="a", pamount=Mixed [usd 1 `at` eur 2]}
                            ,posting{paccount="a", pamount=Mixed [usd (-2) `at` eur 1]}
                            ] ""))
 
      assertBool "balanceTransaction balances based on cost if there are total prices" (isRight $
-       balanceTransaction Nothing (Transaction (parsedate "2011/01/01") Nothing False "" "" "" []
+       balanceTransaction Nothing (Transaction nullsourcepos (parsedate "2011/01/01") Nothing False "" "" "" []
                            [posting{paccount="a", pamount=Mixed [usd 1    @@ eur 1]}
                            ,posting{paccount="a", pamount=Mixed [usd (-2) @@ eur 1]}
                            ] ""))
 
   ,"isTransactionBalanced" ~: do
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+     let t = Transaction nullsourcepos (parsedate "2009/01/01") Nothing False "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00], ptransaction=Just t}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)], ptransaction=Just t}
              ] ""
      assertBool "detect balanced" (isTransactionBalanced Nothing t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+     let t = Transaction nullsourcepos (parsedate "2009/01/01") Nothing False "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00], ptransaction=Just t}
              ,posting{paccount="c", pamount=Mixed [usd (-1.01)], ptransaction=Just t}
              ] ""
      assertBool "detect unbalanced" (not $ isTransactionBalanced Nothing t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+     let t = Transaction nullsourcepos (parsedate "2009/01/01") Nothing False "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00], ptransaction=Just t}
              ] ""
      assertBool "detect unbalanced, one posting" (not $ isTransactionBalanced Nothing t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+     let t = Transaction nullsourcepos (parsedate "2009/01/01") Nothing False "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 0], ptransaction=Just t}
              ] ""
      assertBool "one zero posting is considered balanced for now" (isTransactionBalanced Nothing t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+     let t = Transaction nullsourcepos (parsedate "2009/01/01") Nothing False "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00], ptransaction=Just t}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)], ptransaction=Just t}
              ,posting{paccount="d", pamount=Mixed [usd 100], ptype=VirtualPosting, ptransaction=Just t}
              ] ""
      assertBool "virtual postings don't need to balance" (isTransactionBalanced Nothing t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+     let t = Transaction nullsourcepos (parsedate "2009/01/01") Nothing False "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00], ptransaction=Just t}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)], ptransaction=Just t}
              ,posting{paccount="d", pamount=Mixed [usd 100], ptype=BalancedVirtualPosting, ptransaction=Just t}
              ] ""
      assertBool "balanced virtual postings need to balance among themselves" (not $ isTransactionBalanced Nothing t)
-     let t = Transaction (parsedate "2009/01/01") Nothing False "" "a" "" []
+     let t = Transaction nullsourcepos (parsedate "2009/01/01") Nothing False "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00], ptransaction=Just t}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)], ptransaction=Just t}
              ,posting{paccount="d", pamount=Mixed [usd 100], ptype=BalancedVirtualPosting, ptransaction=Just t}

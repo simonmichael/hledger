@@ -113,7 +113,9 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   --     mfieldnames = lastMay headerlines
 
   -- convert to transactions and return as a journal
-  let txns = map (transactionFromCsvRecord rules) records
+  let txns = snd $ mapAccumL
+                     (\pos r -> (pos, transactionFromCsvRecord (incSourceLine pos 1) rules r))
+                     (initialPos parsecfilename) records
   return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns}
 
 parseCsv :: FilePath -> String -> IO (Either ParseError CSV)
@@ -530,8 +532,8 @@ type CsvRecord = [String]
 
 -- Convert a CSV record to a transaction using the rules, or raise an
 -- error if the data can not be parsed.
-transactionFromCsvRecord :: CsvRules -> CsvRecord -> Transaction
-transactionFromCsvRecord rules record = t
+transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
+transactionFromCsvRecord sourcepos rules record = t
   where
     mdirective       = (`getDirective` rules)
     mfieldtemplate   = getEffectiveAssignment rules record
@@ -591,6 +593,7 @@ transactionFromCsvRecord rules record = t
 
     -- build the transaction
     t = nulltransaction{
+      tsourcepos               = sourcepos,
       tdate                    = date',
       tdate2                   = mdate2',
       tstatus                  = status,

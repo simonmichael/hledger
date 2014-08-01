@@ -342,6 +342,7 @@ journal7 :: Journal
 journal7 = nulljournal {jtxns = 
           [
            txnTieKnot Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2007/01/01",
              tdate2=Nothing,
              tstatus=False,
@@ -357,6 +358,7 @@ journal7 = nulljournal {jtxns =
            }
           ,
            txnTieKnot Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2007/02/01",
              tdate2=Nothing,
              tstatus=False,
@@ -372,6 +374,7 @@ journal7 = nulljournal {jtxns =
            }
           ,
            txnTieKnot Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2007/01/02",
              tdate2=Nothing,
              tstatus=False,
@@ -387,6 +390,7 @@ journal7 = nulljournal {jtxns =
            }
           ,
            txnTieKnot Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2007/01/03",
              tdate2=Nothing,
              tstatus=False,
@@ -402,6 +406,7 @@ journal7 = nulljournal {jtxns =
            }
           ,
            txnTieKnot Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2007/01/03",
              tdate2=Nothing,
              tstatus=False,
@@ -417,6 +422,7 @@ journal7 = nulljournal {jtxns =
            }
           ,
            txnTieKnot Transaction {
+             tsourcepos=nullsourcepos,
              tdate=parsedate "2007/01/03",
              tdate2=Nothing,
              tstatus=False,
