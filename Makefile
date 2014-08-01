@@ -1,7 +1,8 @@
 # hledger project makefile
 
-# ghc 6.12 executables need a locale
-export LANG=en_US.UTF-8
+# GHC-compiled executables require a locale (and not just C) or they
+# will die on encountering non-ascii data
+export LANG?=en_US.UTF-8
 
 # command to run during "make prof" and "make heap"
 PROFCMD=bin/hledger-prof balance -f data/1000x1000x10.journal >/dev/null
