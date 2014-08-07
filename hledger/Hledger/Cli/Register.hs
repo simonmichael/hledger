@@ -69,7 +69,7 @@ tests_postingsReportAsText = [
 -- date and description are shown for the first posting of a transaction only.
 -- @
 postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
-postingsReportItemAsText opts (mdate, mdesc, p, b) =
+postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
   intercalate "\n" $
     [printf ("%-"++datew++"s %-"++descw++"s  %-"++acctw++"s  %"++amtw++"s  %"++balw++"s")
             date desc acct amtfirstline balfirstline]
@@ -82,17 +82,23 @@ postingsReportItemAsText opts (mdate, mdesc, p, b) =
            Right (TotalWidth (Width w)) -> w
            Right (TotalWidth Auto)      -> defaultWidth -- XXX
            Right (FieldWidths _)        -> defaultWidth -- XXX
-      datewidth = 10
       amtwidth = 12
       balwidth = 12
+      (datewidth, date) = case (mdate,menddate) of
+                            (Just _, Just _)   -> (21, showDateSpan (DateSpan mdate menddate))
+                            (Nothing, Just _)  -> (21, "")
+                            (Just d, Nothing)  -> (10, showDate d)
+                            _                  -> (10, "")
       remaining = totalwidth - (datewidth + 1 + 2 + amtwidth + 2 + balwidth)
-      (descwidth, acctwidth) | even r    = (r', r')
-                             | otherwise = (r', r'+1)
-        where r = remaining - 2
-              r' = r `div` 2
+      (descwidth, acctwidth) | isJust menddate = (0, remaining-2)
+                             | even remaining  = (r2, r2)
+                             | otherwise       = (r2, r2+1)
+        where
+          r2 = (remaining-2) `div` 2
       [datew,descw,acctw,amtw,balw] = map show [datewidth,descwidth,acctwidth,amtwidth,balwidth]
 
-      date = maybe "" showDate mdate
+
+
       desc = maybe "" (take descwidth . elideRight descwidth) mdesc
       acct = parenthesise $ elideAccountName awidth $ paccount p
          where

@@ -112,6 +112,8 @@ showDateSpan ds@(DateSpan (Just from) (Just to)) =
     -- YYYY/MM/DDwN ("week N, starting on YYYY/MM/DD")
     _ | let ((fy,fw,fd), (ty,tw,td)) = (toWeekDate from, toWeekDate to) in fy==ty && fw+1==tw && fd==1 && td==1
                                                 -> formatTime defaultTimeLocale "%0C%y/%m/%dw%V" from
+    -- a day, YYYY/MM/DDd (d suffix is to distinguish from a regular date in register)
+    ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm==tm && fd+1==td -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
     -- otherwise, YYYY/MM/DD-YYYY/MM/DD
     _                                           -> showDateSpan' ds
 showDateSpan ds = showDateSpan' ds

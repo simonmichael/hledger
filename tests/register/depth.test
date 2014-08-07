@@ -43,8 +43,8 @@ hledgerdev -f - register aa --depth 1 --daily
   a:aa      1
   b:bb:bbb
 >>>
-2010/01/01 - 2010/01/01         a                                2             2
-2010/01/02 - 2010/01/02         a                                1             3
+2010/01/01d             a                                        2             2
+2010/01/02d             a                                        1             3
 >>>=0
 
 # 4. with --cleared

@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances, TupleSections #-}
 {-|
 
 Postings report, used by the register command.
@@ -35,10 +35,17 @@ import Hledger.Reports.ReportOptions
 type PostingsReport = (String               -- label for the running balance column XXX remove
                       ,[PostingsReportItem] -- line items, one per posting
                       )
-type PostingsReportItem = (Maybe Day    -- posting date, if this is the first posting in a transaction or if it's different from the previous posting's date
-                          ,Maybe String -- transaction description, if this is the first posting in a transaction
-                          ,Posting      -- the posting, possibly with account name depth-clipped
-                          ,MixedAmount  -- the running total after this posting (or with --average, the running average)
+type PostingsReportItem = (Maybe Day    -- The posting date, if this is the first posting in a
+                                        -- transaction or if it's different from the previous
+                                        -- posting's date. Or if this a summary posting, the
+                                        -- report interval's start date if this is the first
+                                        -- summary posting in the interval.
+                          ,Maybe Day    -- If this is a summary posting, the report interval's
+                                        -- end date if this is the first summary posting in
+                                        -- the interval.
+                          ,Maybe String -- The posting's transaction's description, if this is the first posting in the transaction.
+                          ,Posting      -- The posting, possibly with the account name depth-clipped.
+                          ,MixedAmount  -- The running total after this posting (or with --average, the running average).
                           )
 
 -- | Select postings from the journal and add running balance and other
@@ -76,9 +83,9 @@ postingsReport opts q j = (totallabel, items)
       interval = intervalFromOpts opts -- XXX
 
       whichdate = whichDateFromOpts opts
-      itemps | interval == NoInterval = reportps
+      itemps | interval == NoInterval = map (,Nothing) reportps
              | otherwise              = summarisePostingsByInterval interval whichdate depth showempty reportspan reportps
-      items = postingsReportItems itemps nullposting whichdate depth startbal runningcalc 1
+      items = postingsReportItems itemps (nullposting,Nothing) whichdate depth startbal runningcalc 1
         where
           startbal = if balancetype_ opts == HistoricalBalance then sumPostings precedingps else 0
           runningcalc | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i) -- running average
@@ -89,14 +96,15 @@ postingsReport opts q j = (totallabel, items)
 
 totallabel = "Total"
 
--- | Generate postings report line items.
-postingsReportItems :: [Posting] -> Posting -> WhichDate -> Int -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
+-- | Generate postings report line items from a list of postings or (with
+-- non-Nothing dates attached) summary postings.
+postingsReportItems :: [(Posting,Maybe Day)] -> (Posting,Maybe Day) -> WhichDate -> Int -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
 postingsReportItems [] _ _ _ _ _ _ = []
-postingsReportItems (p:ps) pprev wd d b runningcalcfn itemnum = i:(postingsReportItems ps p wd d b' runningcalcfn (itemnum+1))
+postingsReportItems ((p,menddate):ps) (pprev,menddateprev) wd d b runningcalcfn itemnum = i:(postingsReportItems ps (p,menddate) wd d b' runningcalcfn (itemnum+1))
     where
-      i = mkpostingsReportItem showdate showdesc wd p' b'
-      showdate = isfirstintxn || isdifferentdate
-      showdesc = isfirstintxn
+      i = mkpostingsReportItem showdate showdesc wd menddate p' b'
+      (showdate, showdesc) | isJust menddate = (menddate /= menddateprev,        False)
+                           | otherwise       = (isfirstintxn || isdifferentdate, isfirstintxn)
       isfirstintxn = ptransaction p /= ptransaction pprev
       isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
                                    SecondaryDate -> postingDate2 p /= postingDate2 pprev
@@ -106,17 +114,22 @@ postingsReportItems (p:ps) pprev wd d b runningcalcfn itemnum = i:(postingsRepor
 -- | Generate one postings report line item, containing the posting,
 -- the current running balance, and optionally the posting date and/or
 -- the transaction description.
-mkpostingsReportItem :: Bool -> Bool -> WhichDate -> Posting -> MixedAmount -> PostingsReportItem
-mkpostingsReportItem showdate showdesc wd p b = (if showdate then Just date else Nothing, if showdesc then Just desc else Nothing, p, b)
-    where
-      date = case wd of PrimaryDate   -> postingDate p
-                        SecondaryDate -> postingDate2 p
-      desc = maybe "" tdescription $ ptransaction p
+mkpostingsReportItem :: Bool -> Bool -> WhichDate -> Maybe Day -> Posting -> MixedAmount -> PostingsReportItem
+mkpostingsReportItem showdate showdesc wd menddate p b =
+  (if showdate then Just date else Nothing
+  ,menddate
+  ,if showdesc then Just desc else Nothing
+  ,p
+  ,b
+  )
+  where
+    date = case wd of PrimaryDate   -> postingDate p
+                      SecondaryDate -> postingDate2 p
+    desc = maybe "" tdescription $ ptransaction p
 
--- | Convert a list of postings into summary postings. Summary postings
--- are one per account per interval and aggregated to the specified depth
--- if any.
-summarisePostingsByInterval :: Interval -> WhichDate -> Int -> Bool -> DateSpan -> [Posting] -> [Posting]
+-- | Convert a list of postings into summary postings, one per interval,
+-- aggregated to the specified depth if any.
+summarisePostingsByInterval :: Interval -> WhichDate -> Int -> Bool -> DateSpan -> [Posting] -> [SummaryPosting]
 summarisePostingsByInterval interval wd depth showempty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
     where
       summarisespan s = summarisePostingsInDateSpan s wd depth showempty (postingsinspan s)
@@ -127,33 +140,35 @@ tests_summarisePostingsByInterval = [
     summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] ~?= []
  ]
 
+-- | A summary posting summarises the activity in one account within a report
+-- interval. It is currently kludgily represented by a regular Posting with no
+-- description, the interval's start date stored as the posting date, and the
+-- interval's end date attached with a tuple.
+type SummaryPosting = (Posting, Maybe Day)
+
 -- | Given a date span (representing a reporting interval) and a list of
--- postings within it: aggregate the postings so there is only one per
--- account, and adjust their date/description so that they will render
--- as a summary for this interval.
+-- postings within it, aggregate the postings into one summary posting per
+-- account.
 --
--- As usual with date spans the end date is exclusive, but for display
--- purposes we show the previous day as end date, like ledger.
---
--- When a depth argument is present, postings to accounts of greater
--- depth are aggregated where possible.
+-- When a depth argument is present, postings to accounts of greater depth are
+-- also aggregated where possible.
 --
 -- The showempty flag includes spans with no postings and also postings
 -- with 0 amount.
-summarisePostingsInDateSpan :: DateSpan -> WhichDate -> Int -> Bool -> [Posting] -> [Posting]
+--
+summarisePostingsInDateSpan :: DateSpan -> WhichDate -> Int -> Bool -> [Posting] -> [SummaryPosting]
 summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
     | null ps && (isNothing b || isNothing e) = []
-    | null ps && showempty = [summaryp]
-    | otherwise = summaryps'
+    | null ps && showempty = [(summaryp, Just e')]
+    | otherwise = summarypes
     where
-      summaryp = summaryPosting b' ("- "++ showDate (addDays (-1) e'))
+      postingdate = if wd == PrimaryDate then postingDate else postingDate2
       b' = fromMaybe (maybe nulldate postingdate $ headMay ps) b
       e' = fromMaybe (maybe (addDays 1 nulldate) postingdate $ lastMay ps) e
-      postingdate = if wd == PrimaryDate then postingDate else postingDate2
-      summaryPosting date desc = nullposting{ptransaction=Just nulltransaction{tdate=date,tdescription=desc}}
-      summaryps' = (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
-      summaryps = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
+      summaryp = nullposting{pdate=Just b'}
       clippedanames = nub $ map (clipAccountName depth) anames
+      summaryps = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
+      summarypes = map (, Just e') $ (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
       anames = sort $ nub $ map paccount ps
       -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
       accts = accountsFromPostings ps
