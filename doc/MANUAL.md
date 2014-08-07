@@ -754,6 +754,7 @@ The `--depth` option limits the amount of sub-account detail displayed:
 The `--average`/`-A` flag shows the running average posting amount
 instead of the running total (so, the final number displayed is the
 average for the whole report period). This flag implies `--empty` (see below).
+It works best when showing just one account and one commodity.
 
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
