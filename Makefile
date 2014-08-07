@@ -36,11 +36,13 @@ PACKAGES=\
 	hledger-lib \
 	hledger \
 	hledger-web
+
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger \
 	-ihledger-web \
 	-ihledger-web/app
+
 MAIN=hledger/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
@@ -154,11 +156,25 @@ defaulttarget: bin/hledgerdev
 ######################################################################
 # BUILDING
 
-# cabal install all hledger PACKAGES and dependencies in the proper order
-# (or, as many as possible)
 EXTRAINSTALLARGS=
+
+# cabal install the main hledger packages and all their dependencies
 install:
-	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS)
+	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests
+
+# cabal install the main hledger packages and all their dependencies, more forcibly
+# (may break installed libs, requiring ghc-pkg-clean)
+install-force:
+	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests --allow-newer --force-reinstalls
+
+# install all cabal dependencies for the main hledger packages
+installdeps:
+	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests --only-dependencies
+
+# install all cabal dependencies for the main hledger packages, more forcibly
+# (may break installed libs, requiring ghc-pkg-clean)
+installdeps-force:
+	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests --only-dependencies --allow-newer --force-reinstalls
 
 # run a cabal command in all hledger package dirs
 allcabal%:
