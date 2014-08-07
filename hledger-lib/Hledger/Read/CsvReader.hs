@@ -181,7 +181,7 @@ ensureRulesFileExists f = do
 newRulesFileContent :: FilePath -> String
 newRulesFileContent f = unlines
   ["# hledger csv conversion rules for " ++ csvFileFor (takeFileName f)
-  ,"# cf http://hledger.org/MANUAL.html"
+  ,"# cf http://hledger.org/manual#csv-files"
   ,""
   ,"account1 assets:bank:checking"
   ,""
