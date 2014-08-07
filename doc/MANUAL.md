@@ -751,17 +751,9 @@ The `--depth` option limits the amount of sub-account detail displayed:
 
     $ hledger register assets:bank:checking --depth 2
 
-With a [reporting interval](#reporting-interval) it shows aggregated
-summary postings within each interval:
-
-    $ hledger register --monthly rent
-    $ hledger register --monthly -E food --depth 4
-
-Note that the report start/end dates will be "enlarged" in this case
-so that they encompass the displayed intervals. This is so that the
-first and last intervals will be "full" and comparable to the others.
-
-The `--average`/`-A` flag shows the running average posting amount instead of the running total.
+The `--average`/`-A` flag shows the running average posting amount
+instead of the running total (so, the final number displayed is the
+average for the whole report period). This flag implies `--empty` (see below).
 
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
@@ -771,6 +763,22 @@ this is 80 characters. To allow more space for descriptions and account
 names, use `-w` to increase the width to 120 characters, or `-wN` to set
 any desired width (at least 50 recommended).
 Note, currently -w/--width can not have a space between flag and value ([#149](https://github.com/simonmichael/hledger/issues/149)).
+
+With a [reporting interval](#reporting-interval) register shows
+aggregated summary postings, within each interval:
+
+    $ hledger register --monthly rent
+    $ hledger register --monthly -E food --depth 4
+
+One summary posting will be shown for each account in each interval.
+Summary postings with a zero amount are not shown; use the `--empty`/`-E` flag to show them.
+
+If necessary, use the `--depth` option to summarise the accounts.
+It's often most useful to see just one line per interval.
+
+When using report intervals, the report's normal start/end dates are
+"enlarged" to contain a whole number of intervals, so that the first
+and last intervals will be "full" and comparable to the others.
 
 #### balance
 

@@ -71,13 +71,13 @@ postingsReport opts q j = (totallabel, items)
                       journalPostings $ journalSelectingAmountFromOpts opts j
       (precedingps, reportps) = dbg "precedingps, reportps" $ span (beforestartq `matchesPosting`) pstoend
 
-      empty = queryEmpty q
+      showempty = queryEmpty q || average_ opts
       -- displayexpr = display_ opts  -- XXX
       interval = intervalFromOpts opts -- XXX
 
       whichdate = whichDateFromOpts opts
       itemps | interval == NoInterval = reportps
-             | otherwise              = summarisePostingsByInterval interval whichdate depth empty reportspan reportps
+             | otherwise              = summarisePostingsByInterval interval whichdate depth showempty reportspan reportps
       items = postingsReportItems itemps nullposting whichdate depth startbal runningcalc 1
         where
           startbal = if balancetype_ opts == HistoricalBalance then sumPostings precedingps else 0
@@ -117,9 +117,9 @@ mkpostingsReportItem showdate showdesc wd p b = (if showdate then Just date else
 -- are one per account per interval and aggregated to the specified depth
 -- if any.
 summarisePostingsByInterval :: Interval -> WhichDate -> Int -> Bool -> DateSpan -> [Posting] -> [Posting]
-summarisePostingsByInterval interval wd depth empty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
+summarisePostingsByInterval interval wd depth showempty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
     where
-      summarisespan s = summarisePostingsInDateSpan s wd depth empty (postingsinspan s)
+      summarisespan s = summarisePostingsInDateSpan s wd depth showempty (postingsinspan s)
       postingsinspan s = filter (isPostingInDateSpan' wd s) ps
 
 tests_summarisePostingsByInterval = [
