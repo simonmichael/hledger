@@ -60,6 +60,7 @@ module Hledger.Data.Dates (
 )
 where
 
+import Control.Applicative ((<*))
 import Control.Monad
 import Data.List
 import Data.Maybe
@@ -241,7 +242,7 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
 parsePeriodExpr :: Day -> String -> Either ParseError (Interval, DateSpan)
-parsePeriodExpr refdate = parsewith (periodexpr refdate)
+parsePeriodExpr refdate = parsewith (periodexpr refdate <* eof)
 
 maybePeriod :: Day -> String -> Maybe (Interval,DateSpan)
 maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
