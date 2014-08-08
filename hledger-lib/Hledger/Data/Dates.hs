@@ -474,10 +474,10 @@ ymd :: GenParser Char st SmartDate
 ymd = do
   y <- many1 digit
   failIfInvalidYear y
-  datesepchar
+  sep <- datesepchar
   m <- many1 digit
   failIfInvalidMonth m
-  datesepchar
+  char sep
   d <- many1 digit
   failIfInvalidDay d
   return $ (y,m,d)
