@@ -276,7 +276,7 @@ historicalpricedirective :: GenParser Char JournalContext HistoricalPrice
 historicalpricedirective = do
   char 'P' <?> "historical price"
   many spacenonewline
-  date <- try (do {LocalTime d _ <- datetimep; return d}) <|> date -- a time is ignored
+  date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
   many1 spacenonewline
   symbol <- commoditysymbol
   many spacenonewline
@@ -325,8 +325,8 @@ transaction :: GenParser Char JournalContext Transaction
 transaction = do
   -- ptrace "transaction"
   sourcepos <- getPosition
-  date <- date <?> "transaction"
-  edate <- optionMaybe (secondarydate date) <?> "secondary date"
+  date <- datep <?> "transaction"
+  edate <- optionMaybe (secondarydatep date) <?> "secondary date"
   status <- status <?> "cleared flag"
   code <- codep <?> "transaction code"
   description <- descriptionp >>= return . strip
@@ -425,8 +425,8 @@ test_transaction = do
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
 -- may be omitted if a default year has already been set.
-date :: GenParser Char JournalContext Day
-date = do
+datep :: GenParser Char JournalContext Day
+datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
   -- pos <- getPosition
@@ -450,7 +450,7 @@ date = do
 -- a default year has already been set.
 datetimep :: GenParser Char JournalContext LocalTime
 datetimep = do
-  day <- date
+  day <- datep
   many1 spacenonewline
   h <- many1 digit
   let h' = read h
@@ -476,8 +476,8 @@ datetimep = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-secondarydate :: Day -> GenParser Char JournalContext Day
-secondarydate primarydate = do
+secondarydatep :: Day -> GenParser Char JournalContext Day
+secondarydatep primarydate = do
   char '='
   -- kludgy way to use primary date for default year
   let withDefaultYear d p = do
@@ -486,7 +486,7 @@ secondarydate primarydate = do
         r <- p
         when (isJust y) $ setYear $ fromJust y
         return r
-  edate <- withDefaultYear primarydate date
+  edate <- withDefaultYear primarydate datep
   return edate
 
 status :: GenParser Char JournalContext Bool
@@ -521,8 +521,8 @@ postingp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   -- oh boy
-  d  <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx date `fmap` dateValueFromTags tags)
-  d2 <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx date `fmap` date2ValueFromTags tags)
+  d  <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx datep `fmap` dateValueFromTags tags)
+  d2 <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx datep `fmap` date2ValueFromTags tags)
   return posting{pdate=d, pdate2=d2, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags, pbalanceassertion=massertion}
 
 #ifdef TESTS
@@ -959,10 +959,10 @@ test_Hledger_Read_JournalReader = TestList $ concat [
      assertParse (parseWithCtx nullctx comment " \t; x\n")
      assertParse (parseWithCtx nullctx comment "#x")
 
-  ,"date" ~: do
-     assertParse (parseWithCtx nullctx date "2011/1/1")
-     assertParseFailure (parseWithCtx nullctx date "1/1")
-     assertParse (parseWithCtx nullctx{ctxYear=Just 2011} date "1/1")
+  ,"datep" ~: do
+     assertParse (parseWithCtx nullctx datep "2011/1/1")
+     assertParseFailure (parseWithCtx nullctx datep "1/1")
+     assertParse (parseWithCtx nullctx{ctxYear=Just 2011} datep "1/1")
 
   ,"datetimep" ~: do
       let p = do {t <- datetimep; eof; return t}
