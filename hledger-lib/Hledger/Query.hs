@@ -228,7 +228,8 @@ defaultprefix = "acct"
 -- query :: GenParser String () Query
 -- query = undefined
 
--- | Parse a single query term as either a query or a query option.
+-- | Parse a single query term as either a query or a query option,
+-- or raise an error if it has invalid syntax.
 parseQueryTerm :: Day -> String -> Either Query QueryOpt
 parseQueryTerm _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly s
 parseQueryTerm _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
@@ -239,10 +240,10 @@ parseQueryTerm _ ('c':'o':'d':'e':':':s) = Left $ Code s
 parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ Desc s
 parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ Acct s
 parseQueryTerm d ('d':'a':'t':'e':':':s) =
-        case parsePeriodExpr d s of Left _ -> Left None -- XXX should warn
+        case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++s++"\" gave a "++showDateParseError e
                                     Right (_,span) -> Left $ Date span
 parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
-        case parsePeriodExpr d s of Left _ -> Left None -- XXX should warn
+        case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++s++"\" gave a "++showDateParseError e
                                     Right (_,span) -> Left $ Date2 span
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
