@@ -431,6 +431,8 @@ datep = do
   -- XXX reported error position is not too good
   -- pos <- getPosition
   datestr <- many1 $ choice' [digit, datesepchar]
+  let sepchars = nub $ sort $ filter (`elem` datesepchars) datestr
+  when (length sepchars /= 1) $ fail $ "bad date, different separators used: " ++ datestr
   let dateparts = wordsBy (`elem` datesepchars) datestr
   currentyear <- getYear
   [y,m,d] <- case (dateparts,currentyear) of
