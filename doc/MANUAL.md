@@ -704,7 +704,7 @@ General flags:
   -E --empty             show empty/zero things which are normally omitted
   -B --cost              show amounts in their cost price's commodity
   -h --help              show general help or (after command) command help
-     --debug[=N]         show debug output (increase N for more)
+     --debug=N           show debug output if N is 1-9 (default: 0)
      --version           show version information
 ```
 
@@ -992,9 +992,7 @@ of the postings which would normally be shown.
 
 The `--width`/`-w` option adjusts the width of the output. By default,
 this is 80 characters. To allow more space for descriptions and account
-names, use `-w` to increase the width to 120 characters, or `-wN` to set
-any desired width (at least 50 recommended).
-Note, currently -w/--width can not have a space between flag and value ([#149](https://github.com/simonmichael/hledger/issues/149)).
+names, use `-w N` to increase the width to N characters (the argument is required).
 
 With a [reporting interval](#reporting-interval) register shows
 aggregated summary postings, within each interval:
@@ -1323,7 +1321,7 @@ Examples:
 
     $ hledger-web
     $ hledger-web -E -B --depth 2 -f some.journal
-    $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug
+    $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug=1
 
 \\
 \\
@@ -1435,8 +1433,8 @@ preceding them. Eg hledger-web's `--server` flag must be used like so:
 ### -w/--width and --debug options must be written without whitespace
 
 Up to hledger 0.23, these optional-value flags [[https://github.com/simonmichael/hledger/issues/149|did not work]] with whitespace between the flag and value.
-Good: `--debug=2`, `-w100`. Bad: `--debug 2`, `-w 100`.
-(From 0.24, the value is required.)
+IE these worked: `--debug`, `-w`, `--debug=2`, `-w100`, but these did not: `--debug 2`, `-w 100`.
+From 0.24, a value is required and the whitespace does not matter.
 
 ### Not all of Ledger's journal file syntax is supported
 
