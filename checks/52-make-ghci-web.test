@@ -1,0 +1,4 @@
+# hledger-web+hledger+hledger-lib GHCI prompt works
+echo :q | make ghciweb | tail
+>>> /Ok, modules loaded: Settings, Main, /
+>>>= 0

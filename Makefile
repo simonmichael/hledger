@@ -352,10 +352,20 @@ tools/generatejournal: tools/generatejournal.hs
 ######################################################################
 # TESTING
 
-
+# developer environment checks
 ######################################################################
 # DOCUMENTATION
 
+check:
+	@echo sanity-check developer environment:
+	@($(SHELLTEST) checks -- --threads=8 \
+		&& echo $@ PASSED) || echo $@ FAILED
+
+
+
+# run packdeps on each package to check for disallowed newer dependencies
+packdeps:
+	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
 
 ######################################################################
 # RELEASING
@@ -364,9 +374,6 @@ tools/generatejournal: tools/generatejournal.hs
 # ensure download links work
 # set-up-rc-repo:
 # 	cd site/_site; ln -s ../download
-
-checkdeps packdeps:
-	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
 
 ######################################################################
 # MISCELLANEOUS

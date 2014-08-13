@@ -1,0 +1,5 @@
+# cabal 1.20 or greater
+cabal --version
+>>> /cabal-install version (1\.(2[0-9]|[3-9])|[2-9])/
+>>>= 0
+

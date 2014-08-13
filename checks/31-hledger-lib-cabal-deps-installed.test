@@ -1,0 +1,5 @@
+# hledger-lib's cabal dependencies are installed
+cabal install ./hledger-lib --only-dep --dry || echo HINT: cabal install ./hledger-lib --only-dep
+>>> /All the requested packages are already installed/
+>>>2
+>>>= 0

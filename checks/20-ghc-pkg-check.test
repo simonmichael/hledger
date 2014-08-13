@@ -1,0 +1,4 @@
+# ghc-pkg check (or the sandbox equivalent) reports no errors
+[[ -e cabal.sandbox.config ]] && cabal sandbox hc-pkg check || ghc-pkg check
+>>>2 !/(There are problems|The following packages are broken)/
+>>>= 0
