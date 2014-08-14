@@ -319,7 +319,7 @@ addform _ vd@VD{..} = [hamlet|
 
     enableTypeahead(jQuery('input#date'), datesSuggester);
     enableTypeahead(jQuery('input#description'), descriptionsSuggester);
-    enableTypeahead(jQuery('input#account1, input#account2'), accountsSuggester);
+    enableTypeahead(jQuery('input#account1, input#account2, input#account3, input#account4'), accountsSuggester);
 
   });
 
@@ -345,7 +345,7 @@ addform _ vd@VD{..} = [hamlet|
   descriptions = sort $ nub $ map tdescription $ jtxns j
   accts = sort $ journalAccountNamesUsed j
   listToJsonValueObjArrayStr as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
-  numpostings = 2
+  numpostings = 4
   postingnums = [1..numpostings]
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
   postingfields _ n = [hamlet|
