@@ -33,21 +33,20 @@ handlePost = do
 handleAdd :: Handler Html
 handleAdd = do
   VD{..} <- getViewData
-  -- XXX port to yesod-form later
-  -- get form input values. M means a Maybe value.
-  journalM <- lookupPostParam  "journal"
-  dateM <- lookupPostParam  "date"
-  descM <- lookupPostParam  "description"
-  let dateE = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . strip . unpack) dateM
-      descE = Right $ maybe "" unpack descM
-      journalE = maybe (Right $ journalFilePath j)
+  -- gruesome adhoc form handling, port to yesod-form later
+  mjournal <- lookupPostParam  "journal"
+  mdate <- lookupPostParam  "date"
+  mdesc <- lookupPostParam  "description"
+  let edate = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . strip . unpack) mdate
+      edesc = Right $ maybe "" unpack mdesc
+      ejournal = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
                               then Right f'
                               else Left $ "unrecognised journal file path: " ++ f'
                               )
-                       journalM
-      estrs = [dateE, descE, journalE]
+                       mjournal
+      estrs = [edate, edesc, ejournal]
       (errs1, [date,desc,journalpath]) = (lefts estrs, rights estrs) -- XXX irrefutable
 
   (params,_) <- runRequestBody
@@ -65,17 +64,17 @@ handleAdd = do
                    , isRight en
                    , let Right n = en
                    ]
-      num' = length acctparams
-      paramErrs | not $ length amtparams `elem` [num', num'-1] = ["different number of account and amount parameters"]
+      num = length acctparams
+      paramErrs | not $ length amtparams `elem` [num, num-1] = ["different number of account and amount parameters"]
                 | otherwise = catMaybes
-                              [if map fst acctparams == [1..num'] then Nothing else Just "misnumbered account parameters"
-                              ,if map fst amtparams == [1..num'] || map fst amtparams == [1..(num'-1)] then Nothing else Just "misnumbered amount parameters"
+                              [if map fst acctparams == [1..num] then Nothing else Just "misnumbered account parameters"
+                              ,if map fst amtparams == [1..num] || map fst amtparams == [1..(num-1)] then Nothing else Just "misnumbered amount parameters"
                               ]
       eaccts = map (parsewith (accountnamep <* eof) . strip . T.unpack . snd) acctparams
       eamts  = map (parseWithCtx nullctx (amountp <* eof) . strip . T.unpack . snd) amtparams
       (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
       (amts', amtErrs) = (rights eamts, map show $ lefts eamts)
-      amts | length amts' == num' = amts'
+      amts | length amts' == num = amts'
            | otherwise           = amts' ++ [missingamt]
 
       -- if no errors so far, generate a transaction and balance it or get the error.
@@ -145,18 +144,18 @@ handleEdit = do
   VD{..} <- getViewData
   -- get form input values, or validation errors.
   -- getRequest >>= liftIO (reqRequestBody req) >>= mtrace
-  textM <- lookupPostParam "text"
-  journalM <- lookupPostParam "journal"
-  let textE = maybe (Left "No value provided") (Right . unpack) textM
-      journalE = maybe (Right $ journalFilePath j)
+  mtext <- lookupPostParam "text"
+  mjournal <- lookupPostParam "journal"
+  let etext = maybe (Left "No value provided") (Right . unpack) mtext
+      ejournal = maybe (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
                               then Right f'
                               else Left "unrecognised journal file path")
-                       journalM
-      strEs = [textE, journalE]
-      errs = lefts strEs
-      [text,journalpath] = rights strEs
+                       mjournal
+      estrs = [etext, ejournal]
+      errs = lefts estrs
+      [text,journalpath] = rights estrs
   -- display errors or perform edit
   if not $ null errs
    then do
