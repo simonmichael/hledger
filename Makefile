@@ -154,16 +154,31 @@ TIME:=$(shell date +"%Y%m%d%H%M")
 defaulttarget: bin/hledgerdev
 
 ######################################################################
-# BUILDING
+# SETUP
+# work in progress
+# Some rules use a sandbox, some don't, ideally we'll handle both cases.
+# Initial dev setup involves:
+#  initialising a sandbox, probably
+#  cabal update, perhaps
+#  cabal clean in hledger packages, perhaps
+#  cabal install dependencies for hledger packages
+#  cabal install hledger-lib and hledger, perhaps hledger-web
+#  at least start cabal build in hledger packages, to make cabal include files (dist/build/{Paths_PKG.hs,cabal_macros.h}) (not working with a sandbox)
+# When done we should be able to make install, repl-{lib,cli,web}, ghci[-web], check etc.
 
-EXTRAINSTALLARGS=
+sandbox: .cabal-sandbox
+
+.cabal-sandbox:
+	cabal sandbox init
+	cabal sandbox add-source ./hledger-lib ./hledger ./hledger-web
 
 # cabal install the main hledger packages and all their dependencies
+# in the sandbox if any, otherwise in the user's package db
 install:
 	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests
 
-# cabal install the main hledger packages and all their dependencies, more forcibly
-# (may break installed libs, requiring ghc-pkg-clean)
+# cabal install the main hledger packages and all their dependencies more forcibly
+# (can break installed libs, requiring ghc-pkg-clean)
 install-force:
 	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests --allow-newer --force-reinstalls
 
@@ -183,6 +198,14 @@ allcabal%:
 # # run a command in all hledger package dirs
 # all%:
 # 	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
+
+Reset:
+	cabal sandbox delete
+
+######################################################################
+# BUILDING
+
+EXTRAINSTALLARGS=
 
 # auto-recompile and run (something, eg --help or unit tests) whenever a module changes
 
@@ -353,12 +376,10 @@ tools/generatejournal: tools/generatejournal.hs
 # TESTING
 
 # developer environment checks
-######################################################################
-# DOCUMENTATION
 
 check:
 	@echo sanity-check developer environment:
-	@($(SHELLTEST) checks -- --threads=8 \
+	@($(SHELLTEST) checks -- \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 
@@ -366,6 +387,10 @@ check:
 # run packdeps on each package to check for disallowed newer dependencies
 packdeps:
 	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
+
+######################################################################
+# DOCUMENTATION
+
 
 ######################################################################
 # RELEASING
@@ -576,10 +601,10 @@ viewcoverage:
 
 # get a debug prompt
 ghci:
-	$(GHCI) $(WARNINGS) $(INCLUDEPATHS) $(MAIN)
+	cabal exec $(GHCI) -- $(WARNINGS) $(INCLUDEPATHS) $(MAIN)
 
-ghciweb:
-	$(GHCI) $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
+ghci-web:
+	cabal exec $(GHCI) -- $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
 repl-lib:
 	(cd hledger-lib; cabal repl)
