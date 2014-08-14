@@ -8,16 +8,15 @@ import Control.Applicative
 import Data.Either (lefts,rights)
 import Data.List (intercalate, sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
-import Data.Maybe
 import Data.Text (unpack)
 import qualified Data.Text as T
 import Text.Parsec (digit, eof, many1, string)
 import Text.Printf (printf)
 
 import Hledger.Utils
-import Hledger.Data
+import Hledger.Data hiding (num)
 import Hledger.Read
-import Hledger.Cli
+import Hledger.Cli hiding (num)
 
 
 -- | Handle a post from any of the edit forms.
@@ -48,37 +47,30 @@ handleAdd = do
                        mjournal
       estrs = [edate, edesc, ejournal]
       (errs1, [date,desc,journalpath]) = (lefts estrs, rights estrs) -- XXX irrefutable
-
   (params,_) <- runRequestBody
   -- mtrace params
   let paramnamep s = do {string s; n <- many1 digit; eof; return (read n :: Int)}
-      acctparams = sort
-                   [ (n,v) | (k,v) <- params
-                   , let en = parsewith (paramnamep "account") $ T.unpack k
-                   , isRight en
-                   , let Right n = en
-                   ]
-      amtparams =  sort
-                   [ (n,v) | (k,v) <- params
-                   , let en = parsewith (paramnamep "amount") $ T.unpack k
-                   , isRight en
-                   , let Right n = en
-                   ]
+      numberedParams s =
+        reverse $ dropWhile (T.null . snd) $ reverse $ sort
+        [ (n,v) | (k,v) <- params
+                , let en = parsewith (paramnamep s) $ T.unpack k
+                , isRight en
+                , let Right n = en
+                ]
+      acctparams = numberedParams "account"
+      amtparams  = numberedParams "amount"
       num = length acctparams
-      paramErrs | not $ length amtparams `elem` [num, num-1] = ["different number of account and amount parameters"]
-                | otherwise = catMaybes
-                              [if map fst acctparams == [1..num] then Nothing else Just "misnumbered account parameters"
-                              ,if map fst amtparams == [1..num] || map fst amtparams == [1..(num-1)] then Nothing else Just "misnumbered amount parameters"
-                              ]
+      paramErrs | map fst acctparams == [1..num] &&
+                  map fst amtparams `elem` [[1..num], [1..num-1]] = []
+                | otherwise = ["malformed account/amount parameters"]
       eaccts = map (parsewith (accountnamep <* eof) . strip . T.unpack . snd) acctparams
       eamts  = map (parseWithCtx nullctx (amountp <* eof) . strip . T.unpack . snd) amtparams
       (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
-      (amts', amtErrs) = (rights eamts, map show $ lefts eamts)
+      (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
       amts | length amts' == num = amts'
            | otherwise           = amts' ++ [missingamt]
-
       -- if no errors so far, generate a transaction and balance it or get the error.
-      errs = errs1 ++ if null paramErrs then (acctErrs ++ amtErrs) else paramErrs
+      errs = errs1 ++ if not (null paramErrs) then paramErrs else (acctErrs ++ amtErrs)
       et | not $ null errs = Left errs
          | otherwise = either (\e -> Left ["unbalanced postings: " ++ (L.head $ lines e)]) Right
                         (balanceTransaction Nothing $ nulltransaction {
@@ -86,7 +78,6 @@ handleAdd = do
                            ,tdescription=desc
                            ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
                            })
-
   -- display errors or add transaction
   case et of
    Left errs' -> do
