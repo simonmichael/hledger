@@ -35,3 +35,17 @@ hledgerdev -f- print
    b
 >>>2 /bad date/
 >>>= 1
+# 5. dates should be followed by whitespace or newline
+hledgerdev -f- print
+<<<
+2015/9/6:
+   a  0
+>>>2 /unexpected ":"/
+>>>= 1
+# 6.
+hledgerdev -f- print
+<<<
+2015/9/6=9/6* x
+   a  0
+>>>2 /unexpected "*"/
+>>>= 1

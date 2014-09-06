@@ -327,6 +327,7 @@ transaction = do
   sourcepos <- getPosition
   date <- datep <?> "transaction"
   edate <- optionMaybe (secondarydatep date) <?> "secondary date"
+  lookAhead (spacenonewline <|> newline) <?> "whitespace or newline"
   status <- status <?> "cleared flag"
   code <- codep <?> "transaction code"
   description <- descriptionp >>= return . strip
@@ -492,7 +493,7 @@ secondarydatep primarydate = do
   return edate
 
 status :: GenParser Char JournalContext Bool
-status = try (do { many spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
+status = try (do { many1 spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
 
 codep :: GenParser Char JournalContext String
 codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
