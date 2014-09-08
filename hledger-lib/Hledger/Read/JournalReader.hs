@@ -493,7 +493,7 @@ secondarydatep primarydate = do
   return edate
 
 status :: GenParser Char JournalContext Bool
-status = try (do { many1 spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
+status = try (do { many spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
 
 codep :: GenParser Char JournalContext String
 codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
