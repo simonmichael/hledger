@@ -46,7 +46,7 @@ hledgerdev -f- print --uncleared
 
 >>>=0
 
-# 2. can also have per-posting cleared status
+# 3. can also have per-posting cleared status
 hledgerdev -f- register --cleared
 <<<
 2012/1/1
@@ -60,7 +60,7 @@ hledgerdev -f- register --cleared
 >>>= 0
 
 
-# 3. also works with balance as shown, same as ledger. Hmm.
+# 4. also works with balance as shown, same as ledger. Hmm.
 hledgerdev -f- balance --uncleared
 <<<
 2012/1/1
