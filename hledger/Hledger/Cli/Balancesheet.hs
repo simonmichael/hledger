@@ -44,9 +44,11 @@ balancesheet d CliOpts{reportopts_=ropts} j = -- do
       assetreport@(_,assets)          = balanceReport ropts{end_=Just d} (And [q, journalAssetAccountQuery j]) j
       liabilityreport@(_,liabilities) = balanceReport ropts{end_=Just d} (And [q, journalLiabilityAccountQuery j]) j
       total = assets + liabilities
-     in (unlines $ balanceReportAsText ropts{no_total_=True} assetreport,
-         unlines $ balanceReportAsText ropts{no_total_=True} liabilityreport,
-         showMixedAmountWithoutPrice total)
+     in (  unlines $ balanceReportAsText ropts{no_total_=True} assetreport
+         , unlines $ balanceReportAsText ropts{no_total_=True} liabilityreport
+                                                            -- ([((AccountName, AccountName, Int), MixedAmount)], MixedAmount)
+         , unlines $ balanceReportAsText ropts{no_total_=True} ([(("",          "",          1),   total)]      , total)
+         )
 
 -- | Print a formatted version of a balancesheet
 balancesheetPrint :: Day -> CliOpts -> Journal -> IO ()
