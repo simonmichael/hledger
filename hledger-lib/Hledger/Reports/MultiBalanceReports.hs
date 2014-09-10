@@ -107,7 +107,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
             postingAcctBals :: [Posting] -> [(ClippedAccountName, MixedAmount)]
             postingAcctBals ps = [(aname a, (if tree_ opts then aibalance else aebalance) a) | a <- as]
                 where
-                  as = depthLimit $ 
+                  as = depthLimit $
                        (if tree_ opts then id else filter ((>0).anumpostings)) $
                        drop 1 $ accountsFromPostings ps
                   depthLimit

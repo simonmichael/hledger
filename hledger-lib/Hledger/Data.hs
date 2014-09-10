@@ -1,4 +1,4 @@
-{-| 
+{-|
 
 The Hledger.Data library allows parsing and querying of C++ ledger-style
 journal files.  It generally provides a compatible subset of C++ ledger's

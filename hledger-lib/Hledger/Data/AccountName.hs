@@ -63,7 +63,7 @@ isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
 isAccountNamePrefixOf = isPrefixOf . (++ [acctsepchar])
 
 isSubAccountNameOf :: AccountName -> AccountName -> Bool
-s `isSubAccountNameOf` p = 
+s `isSubAccountNameOf` p =
     (p `isAccountNamePrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
 
 -- | From a list of account names, select those which are direct
@@ -73,7 +73,7 @@ subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 
 -- | Convert a list of account names to a tree.
 accountNameTreeFrom :: [AccountName] -> Tree AccountName
-accountNameTreeFrom accts = 
+accountNameTreeFrom accts =
     Node "root" (accounttreesfrom (topAccountNames accts))
         where
           accounttreesfrom :: [AccountName] -> [Tree AccountName]
@@ -85,7 +85,7 @@ nullaccountnametree = Node "root" []
 
 -- | Elide an account name to fit in the specified width.
 -- From the ledger 2.6 news:
--- 
+--
 -- @
 --   What Ledger now does is that if an account name is too long, it will
 --   start abbreviating the first parts of the account name down to two
@@ -99,7 +99,7 @@ nullaccountnametree = Node "root" []
 --     ..:Af:Lu:Sn:Ca:Ch:Cash  ; Abbreviated and elided!
 -- @
 elideAccountName :: Int -> AccountName -> AccountName
-elideAccountName width s = 
+elideAccountName width s =
     elideLeft width $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
       where
         elideparts :: Int -> [String] -> [String] -> [String]

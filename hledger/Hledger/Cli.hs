@@ -1,4 +1,4 @@
-{-| 
+{-|
 
 Hledger.Cli re-exports the options, utilities and commands provided by
 the hledger command-line program. This module also aggregates the
@@ -69,19 +69,19 @@ tests_Hledger_Cli = TestList
                                 j1 `is` j2{filereadtime=filereadtime j1, files=files j1, jContext=jContext j1}
    in TestList
    [
-    "account directive 1" ~: sameParse 
+    "account directive 1" ~: sameParse
                           "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
                           "!account test\n2008/12/07 One\n  from  $-1\n  to  $1\n"
 
-   ,"account directive 2" ~: sameParse 
+   ,"account directive 2" ~: sameParse
                            "2008/12/07 One\n  test:foo:from  $-1\n  test:foo:to  $1\n"
                            "!account test\n!account foo\n2008/12/07 One\n  from  $-1\n  to  $1\n"
 
-   ,"account directive 3" ~: sameParse 
+   ,"account directive 3" ~: sameParse
                            "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
                            "!account test\n!account foo\n!end\n2008/12/07 One\n  from  $-1\n  to  $1\n"
 
-   ,"account directive 4" ~: sameParse 
+   ,"account directive 4" ~: sameParse
                            ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
                             "!account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" ++
                             "!account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" ++
@@ -136,7 +136,7 @@ tests_Hledger_Cli = TestList
 
  ]
 
-  
+
 -- fixtures/test data
 
 -- date1 = parsedate "2008/11/26"
@@ -340,7 +340,7 @@ defaultyear_journal_str = unlines
 --  ]
 
 journal7 :: Journal
-journal7 = nulljournal {jtxns = 
+journal7 = nulljournal {jtxns =
           [
            txnTieKnot Transaction {
              tsourcepos=nullsourcepos,

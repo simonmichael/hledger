@@ -154,7 +154,7 @@ journal = do
   eof
   finalctx <- getState
   return $ (combineJournalUpdates journalupdates, finalctx)
-    where 
+    where
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
@@ -354,7 +354,7 @@ test_transaction = do
                         assertEqual (ttags t) (ttags t2)
                         assertEqual (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
                         assertEqual (show $ tpostings t) (show $ tpostings t2)
-    -- "0000/01/01\n\n" `gives` nulltransaction 
+    -- "0000/01/01\n\n" `gives` nulltransaction
     unlines [
       "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
       "    ; tcomment2",
@@ -412,7 +412,7 @@ test_transaction = do
         ,"  b"
         ," "
         ]
-                    
+
     let p = parseWithCtx nullctx transaction $ unlines
              ["2009/1/1 x  ; transaction comment"
              ," a  1  ; posting 1 comment"
@@ -422,7 +422,7 @@ test_transaction = do
              ]
     assertRight p
     assertEqual 2 (let Right t = p in length $ tpostings t)
-#endif       
+#endif
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
 -- may be omitted if a default year has already been set.
@@ -501,7 +501,7 @@ codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `m
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
 postings :: GenParser Char JournalContext [Posting]
 postings = many1 (try postingp) <?> "postings"
-            
+
 -- linebeginningwithspaces :: GenParser Char JournalContext String
 -- linebeginningwithspaces = do
 --   sp <- many1 spacenonewline
@@ -532,7 +532,7 @@ postingp = do
 test_postingp = do
     let s `gives` ep = do
                          let parse = parseWithCtx nullctx postingp s
-                         assertBool -- "postingp parser" 
+                         assertBool -- "postingp parser"
                            $ isRight parse
                          let Right ap = parse
                              same f = assertEqual (f ep) (f ap)
@@ -547,21 +547,21 @@ test_postingp = do
     "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n" `gives`
       posting{paccount="expenses:food:dining", pamount=Mixed [usd 10], pcomment=" a: a a \n b: b b \n", ptags=[("a","a a"), ("b","b b")]}
 
-    " a  1 ; [2012/11/28]\n" `gives` 
+    " a  1 ; [2012/11/28]\n" `gives`
       ("a" `post` num 1){pcomment=" [2012/11/28]\n"
                         ,ptags=[("date","2012/11/28")]
                         ,pdate=parsedateM "2012/11/28"}
 
-    " a  1 ; a:a, [=2012/11/28]\n" `gives` 
+    " a  1 ; a:a, [=2012/11/28]\n" `gives`
       ("a" `post` num 1){pcomment=" a:a, [=2012/11/28]\n"
                         ,ptags=[("a","a"), ("date2","2012/11/28")]
                         ,pdate=Nothing}
 
-    " a  1 ; a:a\n  ; [2012/11/28=2012/11/29],b:b\n" `gives` 
+    " a  1 ; a:a\n  ; [2012/11/28=2012/11/29],b:b\n" `gives`
       ("a" `post` num 1){pcomment=" a:a\n [2012/11/28=2012/11/29],b:b\n"
                         ,ptags=[("a","a"), ("date","2012/11/28"), ("date2","2012/11/29"), ("b","b")]
                         ,pdate=parsedateM "2012/11/28"}
-     
+
     assertBool -- "postingp parses a quoted commodity with numbers"
       (isRight $ parseWithCtx nullctx postingp "  a  1 \"DE123\"\n")
 
@@ -573,7 +573,7 @@ test_postingp = do
     -- let Right p = parse
     -- assertEqual "next-line comment\n" (pcomment p)
     -- assertEqual (Just nullmixedamt) (pbalanceassertion p)
-#endif       
+#endif
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountname :: GenParser Char JournalContext AccountName
@@ -595,7 +595,7 @@ accountnamep = do
     when (accountNameFromComponents (accountNameComponents a') /= a')
          (fail $ "account name seems ill-formed: "++a')
     return a'
-    where 
+    where
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
       -- couldn't avoid consuming a final space sometimes, harmless
       striptrailingspace s = if last s == ' ' then init s else s
@@ -625,7 +625,7 @@ test_spaceandamountormissing = do
     assertParseEqual' (parseWithCtx nullctx spaceandamountormissing "$47.18") missingmixedamt
     assertParseEqual' (parseWithCtx nullctx spaceandamountormissing " ") missingmixedamt
     assertParseEqual' (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
-#endif       
+#endif
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
@@ -645,7 +645,7 @@ test_amountp = do
     assertParseEqual'
      (parseWithCtx nullctx amountp "$10 @@ €5")
      (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
-#endif       
+#endif
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
@@ -664,7 +664,7 @@ signp = do
 leftsymbolamount :: GenParser Char JournalContext Amount
 leftsymbolamount = do
   sign <- signp
-  c <- commoditysymbol 
+  c <- commoditysymbol
   sp <- many spacenonewline
   (q,prec,mdec,mgrps) <- numberp
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
@@ -761,16 +761,16 @@ fixedlotprice =
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.
--- 
+--
 -- Some international number formats are accepted, eg either period or comma
 -- may be used for the decimal point, and the other of these may be used for
 -- separating digit groups in the integer part. See
 -- http://en.wikipedia.org/wiki/Decimal_separator for more examples.
--- 
+--
 -- This returns: the parsed numeric value, the precision (number of digits
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
--- 
+--
 numberp :: GenParser Char JournalContext (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
   -- a number is an optional sign followed by a sequence of digits possibly
@@ -820,11 +820,11 @@ numberp = do
   <?> "numberp"
   where
     numeric = isNumber . headDef '_'
-      
+
 #ifdef TESTS
 test_numberp = do
       let s `is` n = assertParseEqual' (parseWithCtx nullctx numberp s) n
-          assertFails = assertBool . isLeft . parseWithCtx nullctx numberp 
+          assertFails = assertBool . isLeft . parseWithCtx nullctx numberp
       assertFails ""
       "0"          `is` (0, 0, '.', ',', [])
       "1"          `is` (1, 0, '.', ',', [])
@@ -843,7 +843,7 @@ test_numberp = do
       assertFails "1..1"
       assertFails ".1,"
       assertFails ",1."
-#endif       
+#endif
 
 -- comment parsers
 
@@ -878,7 +878,7 @@ tagsInComment :: String -> [Tag]
 tagsInComment c = concatMap tagsInCommentLine $ lines c'
   where
     c' = ledgerDateSyntaxToTags c
-    
+
 tagsInCommentLine :: String -> [Tag]
 tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
   where
@@ -913,7 +913,7 @@ ledgerDateSyntaxToTags = regexReplaceBy "\\[[-.\\/0-9=]+\\]" replace
     replace' ('=':s) | isdate s = date2tag s
     replace' s | last s =='=' && isdate (init s) = datetag (init s)
     replace' s | length ds == 2 && isdate d1 && isdate d1 = datetag d1 ++ date2tag d2
-      where 
+      where
         ds = splitAtElement '=' s
         d1 = headDef "" ds
         d2 = lastDef "" ds
@@ -922,17 +922,17 @@ ledgerDateSyntaxToTags = regexReplaceBy "\\[[-.\\/0-9=]+\\]" replace
     isdate = isJust . parsedateM
     datetag s = "date:"++s++", "
     date2tag s = "date2:"++s++", "
-    
+
 #ifdef TESTS
 test_ledgerDateSyntaxToTags = do
      assertEqual "date2:2012/11/28, " $ ledgerDateSyntaxToTags "[=2012/11/28]"
-#endif       
-  
+#endif
+
 dateValueFromTags, date2ValueFromTags :: [Tag] -> Maybe String
 dateValueFromTags  ts = maybe Nothing (Just . snd) $ find ((=="date") . fst) ts
 date2ValueFromTags ts = maybe Nothing (Just . snd) $ find ((=="date2") . fst) ts
 
-    
+
 {- old hunit tests
 
 test_Hledger_Read_JournalReader = TestList $ concat [

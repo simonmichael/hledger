@@ -45,7 +45,7 @@ type AccountName = String
 data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data)
 
 type Commodity = String
-      
+
 type Quantity = Double
 
 -- | An amount's price (none, per unit, or total) in another commodity.

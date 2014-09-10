@@ -9,7 +9,7 @@ import Hledger.Cli
 import Text.CSV
 
 
-argsmode = 
+argsmode =
   (defCommandMode ["balance-csv"]) {
      modeHelp = "show matched postings accounts and their balances as CSV"
     ,modeGroupFlags = Group {

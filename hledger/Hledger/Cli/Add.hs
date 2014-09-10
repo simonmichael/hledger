@@ -20,7 +20,7 @@ import Safe (headDef, headMay)
 import System.Console.CmdArgs.Explicit
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
 import System.Console.Haskeline.Completion
-import System.Console.Wizard  
+import System.Console.Wizard
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
 import Text.ParserCombinators.Parsec hiding (Line)
@@ -128,9 +128,9 @@ confirmedTransactionWizard es@EntryState{..} = do
   -- liftIO $ hPrintf stderr {- "Transaction entered:\n%s" -} (show t)
   output $ show t
   y <- let def = "y" in
-       retryMsg "Please enter y or n." $ 
-        parser ((fmap ('y' ==)) . headMay . map toLower . strip) $ 
-        defaultTo' def $ nonEmpty $ 
+       retryMsg "Please enter y or n." $
+        parser ((fmap ('y' ==)) . headMay . map toLower . strip) $
+        defaultTo' def $ nonEmpty $
         maybeRestartTransaction $
         line $ green $ printf "Save this transaction to the journal ?%s: " (showDefault def)
   if y then return t else throw RestartTransactionException
@@ -167,10 +167,10 @@ similarTransaction EntryState{..} desc =
 
 dateAndCodeWizard EntryState{..} = do
   let def = headDef (showDate esDefDate) esArgs
-  retryMsg "A valid hledger smart date is required. Eg: 2014/2/14, 14, yesterday." $ 
-   parser (parseSmartDateAndCode esToday) $ 
+  retryMsg "A valid hledger smart date is required. Eg: 2014/2/14, 14, yesterday." $
+   parser (parseSmartDateAndCode esToday) $
    withCompletion (dateCompleter def) $
-   defaultTo' def $ nonEmpty $ 
+   defaultTo' def $ nonEmpty $
    maybeExit $
    maybeRestartTransaction $
    -- maybeShowHelp $
@@ -191,7 +191,7 @@ dateAndCodeWizard EntryState{..} = do
 descriptionAndCommentWizard EntryState{..} = do
   let def = headDef "" esArgs
   s <- withCompletion (descriptionCompleter esJournal def) $
-       defaultTo' def $ nonEmpty $ 
+       defaultTo' def $ nonEmpty $
        maybeRestartTransaction $
        line $ green $ printf "Description%s: " (showDefault def)
   let (desc,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') s
@@ -233,7 +233,7 @@ accountWizard EntryState{..} = do
   retryMsg "A valid hledger account name is required. Eg: assets:cash, expenses:food:eating out." $
    parser (parseAccountOrDotOrNull def canfinish) $
    withCompletion (accountCompleter esJournal def) $
-   defaultTo' def $ -- nonEmpty $ 
+   defaultTo' def $ -- nonEmpty $
    maybeRestartTransaction $
    line $ green $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)
     where
@@ -259,12 +259,12 @@ amountAndCommentWizard EntryState{..} = do
               _  | pnum > 1 && not (isZeroMixedAmount balancingamt) -> showamt balancingamt
               _                                                     -> ""
   retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
-   parser parseAmountAndComment $ 
+   parser parseAmountAndComment $
    withCompletion (amountCompleter def) $
-   defaultTo' def $ nonEmpty $ 
+   defaultTo' def $ nonEmpty $
    maybeRestartTransaction $
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
-    where  
+    where
       parseAmountAndComment = either (const Nothing) Just . parseWithCtx nodefcommodityctx amountandcommentp
       nodefcommodityctx = (jContext esJournal){ctxDefaultCommodityAndStyle=Nothing}
       amountandcommentp = do
@@ -298,7 +298,7 @@ maybeExit = parser (\s -> if s=="." then throw UnexpectedEOF else Just s)
 maybeRestartTransaction = parser (\s -> if s=="<" then throw RestartTransactionException else Just s)
 
 -- maybeShowHelp :: Wizard Haskeline String -> Wizard Haskeline String
--- maybeShowHelp wizard = maybe (liftIO showHelp >> wizard) return $ 
+-- maybeShowHelp wizard = maybe (liftIO showHelp >> wizard) return $
 --                        parser (\s -> if s=="?" then Nothing else Just s) wizard
 
 -- Completion helpers

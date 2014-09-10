@@ -93,7 +93,7 @@ vty opts j = do
                  ,abuf=[]
                  ,alocs=[]
                  }
-  go a 
+  go a
 
 -- | Update the screen, wait for the next event, repeat.
 go :: AppState -> IO ()
@@ -101,7 +101,7 @@ go a@AppState{av=av,aopts=opts} = do
   when (not $ debug_vty_ opts) $ update av (renderScreen a)
   k <- next_event av
   d <- getCurrentDay
-  case k of 
+  case k of
     EvResize x y                -> go $ resize x y a
     EvKey (KASCII 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
     EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter d BalanceScreen a
@@ -151,7 +151,7 @@ setScrollY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)} where l' = setLocSc
 
 setPosY _ AppState{alocs=[]}    = error' "shouldn't happen" -- silence warnings
 setPosY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)}
-    where 
+    where
       l' = setLocScrollY sy $ setLocCursorY cy l
       ph = pageHeight a
       cy = y `mod` ph
@@ -186,7 +186,7 @@ moveDownAndPushEdge a
     | sy+cy >= bh = a
     | cy < ph-1 = updateCursorY (+1) a
     | otherwise = updateScrollY (+1) a
-    where 
+    where
       Loc{sy=sy,cy=cy} = head $ alocs a
       ph = pageHeight a
       bh = length $ abuf a
@@ -332,7 +332,7 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
                          renderStatus w msg
             ,pic_background = Background ' ' def_attr
             }
-    where 
+    where
       (cx, cy) = (0, cursorY a)
       sy = scrollY a
 --       mainimg = (renderString attr $ unlines $ above)
@@ -381,8 +381,8 @@ theme = Restrained
 
 data UITheme = Restrained | Colorful | Blood
 
-(defaultattr, 
- currentlineattr, 
+(defaultattr,
+ currentlineattr,
  statusattr
  ) = case theme of
        Restrained -> (def_attr

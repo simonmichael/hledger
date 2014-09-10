@@ -29,7 +29,7 @@ webflags = [
  ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "BASEURL" ("set the base url (default: "++defbaseurlexample++")")
  ,flagReq  ["file-url"] (\s opts -> Right $ setopt "file-url" s opts) "FILEURL" ("set the static files url (default: BASEURL/static)")
  ]
- 
+
 webmode :: Mode [([Char], [Char])]
 webmode =  (mode "hledger-web" [("command","web")]
             "start serving the hledger web interface"

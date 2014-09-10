@@ -1,5 +1,5 @@
 #!/usr/bin/env runhaskell
-{- 
+{-
 generateledger.hs NUMTXNS NUMACCTS ACCTDEPTH
 
 Outputs a dummy ledger file with the specified number of transactions,

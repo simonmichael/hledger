@@ -120,7 +120,7 @@ accountTransactionsReport opts j q thisacctquery = (label, items)
      ts3 = map (setTransactionDateToPostingDate q thisacctquery) ts2
      -- and sorted
      ts = sortBy (comparing tdate) ts3
-          
+
      -- starting balance: if we are filtering by a start date and nothing else,
      -- the sum of postings to this account before that date; otherwise zero.
      (startbal,label) | queryIsNull q                        = (nullmixedamt,        balancelabel)

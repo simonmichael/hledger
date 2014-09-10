@@ -115,7 +115,7 @@ sumAccounts a
 
 -- | Remove all subaccounts below a certain depth.
 clipAccounts :: Int -> Account -> Account
-clipAccounts 0 a = a{asubs=[]} 
+clipAccounts 0 a = a{asubs=[]}
 clipAccounts d a = a{asubs=subs}
     where
       subs = map (clipAccounts (d-1)) $ asubs a

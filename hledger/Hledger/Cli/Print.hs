@@ -1,4 +1,4 @@
-{-| 
+{-|
 
 A ledger-compatible @print@ command.
 
@@ -46,7 +46,7 @@ entriesReportAsText _ _ items = concatMap showTransactionUnelided items
 --   "showTransactions" ~: do
 
 --    -- "print expenses" ~:
---    do 
+--    do
 --     let opts = defreportopts{query_="expenses"}
 --     d <- getCurrentDay
 --     showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines
@@ -58,7 +58,7 @@ entriesReportAsText _ _ items = concatMap showTransactionUnelided items
 --      ]
 
 --   -- , "print report with depth arg" ~:
---    do 
+--    do
 --     let opts = defreportopts{depth_=Just 2}
 --     d <- getCurrentDay
 --     showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines

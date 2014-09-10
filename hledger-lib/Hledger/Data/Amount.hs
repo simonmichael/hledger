@@ -4,13 +4,13 @@ A simple 'Amount' is some quantity of money, shares, or anything else.
 It has a (possibly null) 'Commodity' and a numeric quantity:
 
 @
-  $1 
+  $1
   £-50
-  EUR 3.44 
+  EUR 3.44
   GOOG 500
   1.5h
   90 apples
-  0 
+  0
 @
 
 It may also have an assigned 'Price', representing this amount's per-unit
@@ -166,7 +166,7 @@ similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{aspre
                     Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
    -- trace ("a1:"++showAmountDebug a1) $ trace ("a2:"++showAmountDebug a2) $ traceWith (("= :"++).showAmountDebug)
    amount{acommodity=c2, aquantity=q1 `op` q2, astyle=s2{asprecision=max p1 p2}}
-  --  c1==c2 || q1==0 || q2==0 = 
+  --  c1==c2 || q1==0 || q2==0 =
   --  otherwise = error "tried to do simple arithmetic with amounts in different commodities"
 
 -- | Convert an amount to the specified commodity, ignoring and discarding
@@ -605,7 +605,7 @@ tests_Hledger_Data_Amount = TestList $
              ,usd (-0.25)
              ])
       `is` Mixed [usd 0 `withPrecision` 0]
-  
+
   ,"adding mixed amounts with total prices" ~: do
     (sum $ map (Mixed . (:[]))
      [usd 1 @@ eur 1

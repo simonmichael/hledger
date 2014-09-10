@@ -1,4 +1,4 @@
-{-| 
+{-|
 
 A ledger-compatible @register@ command.
 
@@ -75,7 +75,7 @@ postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
             date desc acct amtfirstline balfirstline]
     ++
     [printf (spacer ++ "%"++amtw++"s  %"++balw++"s") a b | (a,b) <- zip amtrest balrest ]
-    
+
     where
       totalwidth = case widthFromOpts opts of
            Left _                       -> defaultWidth -- shouldn't happen

@@ -153,7 +153,7 @@ spanStart (DateSpan d _) = d
 spanEnd :: DateSpan -> Maybe Day
 spanEnd (DateSpan _ d) = d
 
--- might be useful later: http://en.wikipedia.org/wiki/Allen%27s_interval_algebra 
+-- might be useful later: http://en.wikipedia.org/wiki/Allen%27s_interval_algebra
 
 -- | Get overall span enclosing multiple sequentially ordered spans.
 spansSpan :: [DateSpan] -> DateSpan
@@ -204,7 +204,7 @@ spanContainsDate (DateSpan Nothing Nothing)   _ = True
 spanContainsDate (DateSpan Nothing (Just e))  d = d < e
 spanContainsDate (DateSpan (Just b) Nothing)  d = d >= b
 spanContainsDate (DateSpan (Just b) (Just e)) d = d >= b && d < e
-    
+
 -- | Calculate the intersection of a number of datespans.
 spansIntersect [] = nulldatespan
 spansIntersect [d] = d
@@ -255,7 +255,7 @@ maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
 -- dateSpanAsText (DateSpan Nothing (Just e))  = printf "to %s" (show e)
 -- dateSpanAsText (DateSpan (Just b) Nothing)  = printf "from %s" (show b)
 -- dateSpanAsText (DateSpan (Just b) (Just e)) = printf "%s to %s" (show b) (show e)
-    
+
 -- | Convert a single smart date string to a date span using the provided
 -- reference date, or raise an error.
 -- spanFromSmartDateString :: Day -> String -> DateSpan
@@ -400,9 +400,9 @@ nthdayofweekcontaining n d | d1 >= d    = d1
 
 -- | Parse a couple of date string formats to a time type.
 parsedateM :: String -> Maybe Day
-parsedateM s = firstJust [ 
+parsedateM s = firstJust [
      parseTime defaultTimeLocale "%Y/%m/%d" s,
-     parseTime defaultTimeLocale "%Y-%m-%d" s 
+     parseTime defaultTimeLocale "%Y-%m-%d" s
      ]
 
 -- -- | Parse a date-time string to a time type, or raise an error.
@@ -420,7 +420,7 @@ parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
 parsetimewith :: ParseTime t => String -> String -> t -> t
 parsetimewith pat s def = fromMaybe def $ parseTime defaultTimeLocale pat s
 
-{-| 
+{-|
 Parse a date in any of the formats allowed in ledger's period expressions,
 and maybe some others:
 
@@ -557,7 +557,7 @@ lastthisnextthing = do
       ]
 -- XXX support these in fixSmartDate
 --       ++ (map string $ months ++ monthabbrevs ++ weekdays ++ weekdayabbrevs)
-            
+
   return ("",r,p)
 
 periodexpr :: Day -> GenParser Char st (Interval, DateSpan)
