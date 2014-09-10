@@ -16,7 +16,7 @@ main = do
   opts <- getCliOpts (defCommandMode ["hledger-print-unique"])
   withJournalDo opts $
     \opts j@Journal{jtxns=ts} -> print' opts j{jtxns=uniquify ts}
-    where 
+    where
       uniquify = nubBy (\t1 t2 -> thingToCompare t1 == thingToCompare t2) . sortBy (comparing thingToCompare)
       thingToCompare = tdescription
       -- thingToCompare = tdate

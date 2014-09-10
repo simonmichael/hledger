@@ -122,7 +122,7 @@ sumPostings = sum . map pamount
 -- there is no parent transaction.
 postingDate :: Posting -> Day
 postingDate p = fromMaybe txndate $ pdate p
-    where 
+    where
       txndate = maybe nulldate tdate $ ptransaction p
 
 -- | Get a posting's secondary (secondary) date, which is the first of:
@@ -251,4 +251,4 @@ tests_Hledger_Data_Posting = TestList [
     concatAccountNames ["a","(b)","[c:d]"] `is` "(a:b:c:d)"
 
  ]
- 
+

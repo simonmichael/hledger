@@ -50,10 +50,10 @@ import Hledger.Data.Amount
 
 instance Show Transaction where show = showTransactionUnelided
 
-instance Show ModifierTransaction where 
+instance Show ModifierTransaction where
     show t = "= " ++ mtvalueexpr t ++ "\n" ++ unlines (map show (mtpostings t))
 
-instance Show PeriodicTransaction where 
+instance Show PeriodicTransaction where
     show t = "~ " ++ ptperiodicexpr t ++ "\n" ++ unlines (map show (ptpostings t))
 
 nullsourcepos :: SourcePos
@@ -64,9 +64,9 @@ nulltransaction = Transaction {
                     tsourcepos=nullsourcepos,
                     tdate=nulldate,
                     tdate2=Nothing,
-                    tstatus=False, 
-                    tcode="", 
-                    tdescription="", 
+                    tstatus=False,
+                    tcode="",
+                    tdescription="",
                     tcomment="",
                     ttags=[],
                     tpostings=[],
@@ -286,7 +286,7 @@ balanceTransaction styles t@Transaction{tpostings=ps}
       ramounts  = map pamount rwithamounts
       bvamounts = map pamount bvwithamounts
       t' = t{tpostings=map inferamount ps}
-          where 
+          where
             inferamount p | not (hasAmount p) && isReal p            = p{pamount = costOfMixedAmount (- sum ramounts)}
                           | not (hasAmount p) && isBalancedVirtual p = p{pamount = costOfMixedAmount (- sum bvamounts)}
                           | otherwise                             = p

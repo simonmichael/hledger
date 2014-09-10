@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-| 
+{-|
 
 This is the entry point to hledger's reading system, which can read
 Journals from various data formats. Use this module if you want to parse
@@ -138,7 +138,7 @@ readJournal format rulesfile assrt path s =
 readersFor :: (Maybe StorageFormat, Maybe FilePath, String) -> [Reader]
 readersFor (format,path,s) =
     dbg ("possible readers for "++show (format,path,elideRight 30 s)) $
-    case format of 
+    case format of
      Just f  -> case readerForStorageFormat f of Just r  -> [r]
                                                  Nothing -> []
      Nothing -> case path of Nothing  -> readers
@@ -149,7 +149,7 @@ readersFor (format,path,s) =
 readerForStorageFormat :: StorageFormat -> Maybe Reader
 readerForStorageFormat s | null rs = Nothing
                   | otherwise = Just $ head rs
-    where 
+    where
       rs = filter ((s==).rFormat) readers :: [Reader]
 
 -- | Find the readers which think they can handle the given file path and data, if any.

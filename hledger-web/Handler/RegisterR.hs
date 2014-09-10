@@ -111,7 +111,7 @@ registerChartHtml percommoditytxnreports =
      \$('#register-chart-label').text('#{charttitle}');
      var seriesData = [
       $forall (c,(_,items)) <- percommoditytxnreports
-       /* we render each commodity using two series: 
+       /* we render each commodity using two series:
         * one with extra data points added to show a stepped balance line */
        {
         data: [
@@ -128,7 +128,7 @@ registerChartHtml percommoditytxnreports =
           show: true,
           steps: true,
         },
-        points: { 
+        points: {
           show: false,
         },
         clickable: false,
@@ -152,7 +152,7 @@ registerChartHtml percommoditytxnreports =
         lines: {
           show: false,
         },
-        points: { 
+        points: {
           show: true,
         },
        },

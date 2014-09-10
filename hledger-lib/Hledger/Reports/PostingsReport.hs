@@ -70,7 +70,7 @@ postingsReport opts q j = (totallabel, items)
       beforeendq     = dbg "beforeendq"     $ dateqcons $ DateSpan Nothing reportend
       reportq        = dbg "reportq"        $ depthless $ And [datelessq, beforeendq] -- user's query with no start date, end date on an interval boundary and no depth limit
 
-      pstoend = 
+      pstoend =
           dbg "ps4" $ sortBy (comparing pdate) $                                  -- sort postings by date (or date2)
           dbg "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
           dbg "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
@@ -172,7 +172,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
       anames = sort $ nub $ map paccount ps
       -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
       accts = accountsFromPostings ps
-      balance a = maybe nullmixedamt bal $ lookupAccount a accts 
+      balance a = maybe nullmixedamt bal $ lookupAccount a accts
         where
           bal = if isclipped a then aibalance else aebalance
           isclipped a = accountNameLevel a >= depth
@@ -262,7 +262,7 @@ tests_postingsReport = [
      ]
 
   ,"postings report with cleared option" ~:
-   do 
+   do
     let opts = defreportopts{cleared_=True}
     j <- readJournal' sample_journal_str
     (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
@@ -274,7 +274,7 @@ tests_postingsReport = [
      ]
 
   ,"postings report with uncleared option" ~:
-   do 
+   do
     let opts = defreportopts{uncleared_=True}
     j <- readJournal' sample_journal_str
     (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
@@ -287,7 +287,7 @@ tests_postingsReport = [
      ]
 
   ,"postings report sorts by date" ~:
-   do 
+   do
     j <- readJournal' $ unlines
         ["2008/02/02 a"
         ,"  b  1"
@@ -309,7 +309,7 @@ tests_postingsReport = [
      ]
 
   ,"postings report with account pattern, case insensitive" ~:
-   do 
+   do
     j <- samplejournal
     let opts = defreportopts{patterns_=["cAsH"]}
     (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
@@ -317,9 +317,9 @@ tests_postingsReport = [
      ]
 
   ,"postings report with display expression" ~:
-   do 
+   do
     j <- samplejournal
-    let gives displayexpr = 
+    let gives displayexpr =
             (registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is`)
                 where opts = defreportopts{display_=Just displayexpr}
     "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
@@ -329,7 +329,7 @@ tests_postingsReport = [
     "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
 
   ,"postings report with period expression" ~:
-   do 
+   do
     j <- samplejournal
     let periodexpr `gives` dates = do
           j' <- samplejournal
@@ -359,7 +359,7 @@ tests_postingsReport = [
   ]
 
   , "postings report with depth arg" ~:
-   do 
+   do
     j <- samplejournal
     let opts = defreportopts{depth_=Just 2}
     (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines

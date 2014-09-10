@@ -86,7 +86,7 @@ timelogFile = do items <- many timelogItem
                  eof
                  ctx <- getState
                  return (liftM (foldr (.) id) $ sequence items, ctx)
-    where 
+    where
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try

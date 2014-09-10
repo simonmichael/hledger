@@ -24,17 +24,17 @@ import Hledger.Data.Amount
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 
-instance Show TimeLogEntry where 
+instance Show TimeLogEntry where
     show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
 
-instance Show TimeLogCode where 
+instance Show TimeLogCode where
     show SetBalance = "b"
     show SetRequiredHours = "h"
     show In = "i"
     show Out = "o"
     show FinalOut = "O"
 
-instance Read TimeLogCode where 
+instance Read TimeLogCode where
     readsPrec _ ('b' : xs) = [(SetBalance, xs)]
     readsPrec _ ('h' : xs) = [(SetRequiredHours, xs)]
     readsPrec _ ('i' : xs) = [(In, xs)]
@@ -72,7 +72,7 @@ timeLogEntriesToTransactions now (i:o:rest)
 entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Transaction
 entryFromTimeLogInOut i o
     | otime >= itime = t
-    | otherwise = 
+    | otherwise =
         error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
     where
       t = Transaction {
@@ -119,8 +119,8 @@ tests_Hledger_Data_TimeLog = TestList [
      assertEntriesGiveStrings "split multi-day sessions at each midnight"
                                   [clockin (mktime (addDays (-2) today) "23:00:00") ""]
                                   ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
-     assertEntriesGiveStrings "auto-clock-out if needed" 
-                                  [clockin (mktime today "00:00:00") ""] 
+     assertEntriesGiveStrings "auto-clock-out if needed"
+                                  [clockin (mktime today "00:00:00") ""]
                                   ["00:00-"++nowstr]
      let future = utcToLocalTime tz $ addUTCTime 100 now'
          futurestr = showtime future

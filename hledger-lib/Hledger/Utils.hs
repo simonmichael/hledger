@@ -251,7 +251,7 @@ difforzero a b = maximum [(a - b), 0]
 -- lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
-splitAtElement e l = 
+splitAtElement e l =
     case dropWhile (e==) l of
       [] -> []
       l' -> first : splitAtElement e rest
@@ -285,7 +285,7 @@ subtreeinforest _ [] = Nothing
 subtreeinforest v (t:ts) = case (subtreeat v t) of
                              Just t' -> Just t'
                              Nothing -> subtreeinforest v ts
-          
+
 -- | remove all nodes past a certain depth
 treeprune :: Int -> Tree a -> Tree a
 treeprune 0 t = Node (root t) []
@@ -297,15 +297,15 @@ treemap f t = Node (f $ root t) (map (treemap f) $ branches t)
 
 -- | remove all subtrees whose nodes do not fulfill predicate
 treefilter :: (a -> Bool) -> Tree a -> Tree a
-treefilter f t = Node 
-                 (root t) 
+treefilter f t = Node
+                 (root t)
                  (map (treefilter f) $ filter (treeany f) $ branches t)
-    
+
 -- | is predicate true in any node of tree ?
 treeany :: (a -> Bool) -> Tree a -> Bool
 treeany f t = f (root t) || any (treeany f) (branches t)
-    
--- treedrop -- remove the leaves which do fulfill predicate. 
+
+-- treedrop -- remove the leaves which do fulfill predicate.
 -- treedropall -- do this repeatedly.
 
 -- | show a compact ascii representation of a tree
@@ -605,7 +605,7 @@ applyN :: Int -> (a -> a) -> a -> a
 applyN n f = (!! n) . iterate f
 
 -- | Convert a possibly relative, possibly tilde-containing file path to an absolute one,
--- given the current directory. ~username is not supported. Leave "-" unchanged. 
+-- given the current directory. ~username is not supported. Leave "-" unchanged.
 expandPath :: MonadIO m => FilePath -> FilePath -> m FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
 expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandPath' p

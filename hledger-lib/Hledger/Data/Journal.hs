@@ -463,7 +463,7 @@ splitAssertions ps
   | otherwise = (ps'++[head rest]):splitAssertions (tail rest)
   where
     (ps',rest) = break (isJust . pbalanceassertion) ps
-    
+
 -- | Fill in any missing amounts and check that all journal transactions
 -- balance, or return an error message. This is done after parsing all
 -- amounts and working out the canonical commodities, since balancing
@@ -654,7 +654,7 @@ abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 --     liabilities:debts  $1
 --     assets:bank:checking
 --
-Right samplejournal = journalBalanceTransactions $ 
+Right samplejournal = journalBalanceTransactions $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {

@@ -35,7 +35,7 @@ cmdmode = (defCommandMode ["hledger-rewrite"]) {
                   ,("Reporting", reportflags)
                   ,("Misc",      helpflags)
                  ]
-    ,groupUnnamed = [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'" 
+    ,groupUnnamed = [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
                      "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."]
     ,groupHidden = []
     }
@@ -66,7 +66,7 @@ amountexprp =
 
 amountExprRenderer :: Query -> AmountExpr -> (Transaction -> MixedAmount)
 amountExprRenderer q aex =
-  case aex of 
+  case aex of
     AmountLiteral s    -> either parseerror (const . mixed) $ parseWithCtx nullctx amountp s
     AmountMultiplier n -> (`divideMixedAmount` (1 / n)) . (`firstAmountMatching` q)
   where
@@ -93,4 +93,4 @@ main = do
     let j' = j{jtxns=map (\t -> if q `matchesTransaction` t then rewriteTransaction t addps else t) ts}
     -- run the print command, showing all transactions
     print' opts{reportopts_=ropts{query_=""}} j'
-      
+

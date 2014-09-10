@@ -1,4 +1,4 @@
-{-| 
+{-|
 
 Print a histogram report. (The "activity" command).
 

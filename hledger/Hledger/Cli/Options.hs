@@ -21,7 +21,7 @@ module Hledger.Cli.Options (
   argsFlag,
   showModeHelp,
   withAliases,
-  
+
   -- * CLI options
   CliOpts(..),
   defcliopts,
@@ -51,9 +51,9 @@ module Hledger.Cli.Options (
   -- * Tests
   tests_Hledger_Cli_Options
 
-) 
+)
 where
-  
+
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.List
@@ -199,7 +199,7 @@ standardAddonsHelp = [
 
 -- | Get a mode's help message as a nicely wrapped string.
 showModeHelp :: Mode a -> String
-showModeHelp = (showText defaultWrap :: [Text] -> String) . 
+showModeHelp = (showText defaultWrap :: [Text] -> String) .
                (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
 -- | Add command aliases to the command's help string.
@@ -275,7 +275,7 @@ rawOptsToCliOpts rawopts = do
              ,width_           = maybestringopt "width" rawopts    -- register
              ,reportopts_      = ropts
              }
-  
+
 -- | Do final validation of processed opts, raising an error if there is trouble.
 checkCliOpts :: CliOpts -> IO CliOpts -- or pure..
 checkCliOpts opts@CliOpts{reportopts_=ropts} = do
@@ -362,7 +362,7 @@ defaultBalanceFormat = [
 
 -- | Output width configuration (for register).
 data OutputWidth =
-    TotalWidth Width    -- ^ specify the overall width 
+    TotalWidth Width    -- ^ specify the overall width
   | FieldWidths [Width] -- ^ specify each field's width
   deriving Show
 

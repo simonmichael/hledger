@@ -43,7 +43,7 @@ allDeps base mod = allDeps' [mod] [mod] where
     allDeps' [] _        = return []
 
 {-
-    Usage: OrderByComplexity  
+    Usage: OrderByComplexity
 
         = directory where source code is found.  This MUST
                 end in '/'

@@ -129,7 +129,7 @@ There are three kinds of multi-column balance report, indicated by the heading:
   period. Here, checking's balance increased by 10 in Feb:
 
   > Change of balance (flow):
-  > 
+  >
   >                  Jan   Feb   Mar
   > assets:checking   20    10    -5
 
@@ -138,7 +138,7 @@ There are three kinds of multi-column balance report, indicated by the heading:
   Here, 30 is the sum of checking postings during Jan and Feb:
 
   > Ending balance (cumulative):
-  > 
+  >
   >                  Jan   Feb   Mar
   > assets:checking   20    30    25
 
@@ -148,7 +148,7 @@ There are three kinds of multi-column balance report, indicated by the heading:
   pre-Jan postings which created a starting balance of 100:
 
   > Ending balance (historical):
-  > 
+  >
   >                  Jan   Feb   Mar
   > assets:checking  120   130   125
 
@@ -161,7 +161,7 @@ Here's a (imperfect?) specification for the eliding/omitting behaviour:
 * An account less deep than the report's max depth, with just one
 interesting subaccount, and the same balance as the subaccount, is
 non-interesting, and prefixed to the subaccount's line, unless
-@--no-elide@ is in effect. 
+@--no-elide@ is in effect.
 
 * An account with a zero inclusive balance and less than two interesting
 subaccounts is not displayed at all, unless @--empty@ is in effect.
@@ -405,7 +405,7 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, colto
   ([printf "Ending balances (cumulative) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
-    addtotalrow $ 
+    addtotalrow $
      Table
        (T.Group NoLine $ map (Header . padright acctswidth) accts)
        (T.Group NoLine $ map Header colspans)
@@ -426,7 +426,7 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, colto
   ([printf "Ending balances (historical) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
-    addtotalrow $ 
+    addtotalrow $
      Table
        (T.Group NoLine $ map (Header . padright acctswidth) accts)
        (T.Group NoLine $ map Header colspans)

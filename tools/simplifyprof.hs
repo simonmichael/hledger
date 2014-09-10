@@ -9,7 +9,7 @@ import System.Environment
 import Text.Printf
 
 main = do
-  args <- getArgs 
+  args <- getArgs
   let f = head args
   s <- readFile f
   let ls = lines s

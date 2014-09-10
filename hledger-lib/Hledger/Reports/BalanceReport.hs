@@ -39,9 +39,9 @@ type BalanceReportItem = (RenderableAccountName, MixedAmount)
 -- It has:
 --
 -- * The full account name
--- 
+--
 -- * The ledger-style short elided account name (the leaf name, prefixed by any boring parents immediately above)
--- 
+--
 -- * The number of indentation steps to use when rendering a ledger-style account tree
 --   (normally the 0-based depth of this account excluding boring parents, or 0 with --flat).
 type RenderableAccountName = (AccountName, AccountName, Int)
@@ -67,14 +67,14 @@ balanceReport opts q j = (items, total)
 
       accts = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
       accts' :: [Account]
-          | flat_ opts = dbg "accts" $ 
+          | flat_ opts = dbg "accts" $
                          filterzeros $
                          filterempty $
                          drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
-          | otherwise  = dbg "accts" $ 
+          | otherwise  = dbg "accts" $
                          filter (not.aboring) $
                          drop 1 $ flattenAccounts $
-                         markboring $ 
+                         markboring $
                          prunezeros $ clipAccounts (queryDepth q) accts
           where
             balance     = if flat_ opts then aebalance else aibalance
@@ -247,7 +247,7 @@ tests_balanceReport =
      ,"                   0"
      ]
 
-    ,"accounts report with unmatched parent of two matched subaccounts" ~: 
+    ,"accounts report with unmatched parent of two matched subaccounts" ~:
      defreportopts{patterns_=["cash","saving"]} `gives`
      ["                 $-1  assets"
      ,"                  $1    bank:saving"
@@ -256,7 +256,7 @@ tests_balanceReport =
      ,"                 $-1"
      ]
 
-    ,"accounts report with multi-part account name" ~: 
+    ,"accounts report with multi-part account name" ~:
      defreportopts{patterns_=["expenses:food"]} `gives`
      ["                  $1  expenses:food"
      ,"--------------------"
@@ -276,13 +276,13 @@ tests_balanceReport =
      ,"                  $1"
      ]
 
-    ,"accounts report negative account pattern always matches full name" ~: 
+    ,"accounts report negative account pattern always matches full name" ~:
      defreportopts{patterns_=["not:e"]} `gives`
      ["--------------------"
      ,"                   0"
      ]
 
-    ,"accounts report negative patterns affect totals" ~: 
+    ,"accounts report negative patterns affect totals" ~:
      defreportopts{patterns_=["expenses","not:food"]} `gives`
      ["                  $1  expenses:supplies"
      ,"--------------------"
@@ -317,7 +317,7 @@ tests_balanceReport =
 -}
  ]
 
-Right samplejournal2 = journalBalanceTransactions $ 
+Right samplejournal2 = journalBalanceTransactions $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
@@ -337,12 +337,12 @@ Right samplejournal2 = journalBalanceTransactions $
            }
           ]
          }
-         
+
 -- tests_isInterestingIndented = [
---   "isInterestingIndented" ~: do 
+--   "isInterestingIndented" ~: do
 --    let (opts, journal, acctname) `gives` r = isInterestingIndented opts l acctname `is` r
 --           where l = ledgerFromJournal (queryFromOpts nulldate opts) journal
-     
+
 --    (defreportopts, samplejournal, "expenses") `gives` True
 --  ]
 
