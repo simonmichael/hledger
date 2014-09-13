@@ -1,3 +1,7 @@
+0.23.3 (2014/9/12)
+
+- allow text 1.2+ (fixes #207)
+
 0.23.2 (2014/5/8)
 
 - register: also fix date sorting of postings (#184)

@@ -12,7 +12,10 @@ See also the hledger changelog.
 - report filtering fixes
 - upgrade jquery to 2.1.1, bootstrap to 3.1.1, drop select2, add typeahead, cookie, hotkeys
 - refactoring
-- allow warp 3, wai-handler-launch 3
+
+0.23.3 (2014/9/12)
+
+- web: remove warp, wai-handler-launch upper bounds (fixes #205)
 
 0.23.2 (2014/5/8)
 

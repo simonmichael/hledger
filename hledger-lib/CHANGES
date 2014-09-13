@@ -2,8 +2,11 @@ API-ish changes in hledger-lib. For user-visible changes, see the hledger change
 
 0.24 (unreleased)
 
-- allow transformers 0.4*
 - clarify debug helpers a little
+
+0.23.3 (2014/9/12)
+
+- allow transformers 0.4*
 
 0.23.2 (2014/5/8)
 
