@@ -1,5 +1,9 @@
 See also the hledger changelog.
 
+0.23.3 (2014/9/12)
+
+- web: remove warp, wai-handler-launch upper bounds (fixes #205)
+
 0.23.2 (2014/5/8)
 
 - depend on latest hledger
