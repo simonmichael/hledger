@@ -929,7 +929,7 @@ doc/MANUAL.md: $(VERSIONFILE)
 	perl -p -e "s/(^Version:) +[0-9.]+/\1 $(VERSION)/" -i $@
 
 tagrelease:
-	git tag $(VERSION)
+	for p in $(PACKAGES); do git tag $$p-$(VERSION); done
 
 hackageupload-dry:
 	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2 --check; done
