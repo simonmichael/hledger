@@ -8,10 +8,12 @@ The @balancesheet@ command prints a simple balance sheet.
 module Hledger.Cli.Balancesheet (
   balancesheetmode
  ,balancesheet
+ ,balancesheetPrint
  ,tests_Hledger_Cli_Balancesheet
 ) where
 
-import qualified Data.Text.Lazy.IO as LT
+import qualified Data.Text.Lazy.IO (putStr)
+import Data.Time.Calendar (Day)
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
 import Text.Shakespeare.Text
@@ -35,24 +37,30 @@ balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
  }
   where aliases = ["bs"]
 
--- | Print a simple balance sheet.
-balancesheet :: CliOpts -> Journal -> IO ()
-balancesheet CliOpts{reportopts_=ropts} j = do
-  -- let lines = case formatFromOpts ropts of Left err, Right ...
-  d <- getCurrentDay
-  let q = queryFromOpts d (withoutBeginDate ropts)
-      assetreport@(_,assets)          = balanceReport ropts (And [q, journalAssetAccountQuery j]) j
-      liabilityreport@(_,liabilities) = balanceReport ropts (And [q, journalLiabilityAccountQuery j]) j
+-- | Calculate a simple balance sheet as of a particular day, returning a summary of the assets, liabilities, and net worth (assets - liabilities)
+balancesheet :: Day -> CliOpts -> Journal -> (String, String, String)
+balancesheet d CliOpts{reportopts_=ropts} j = -- do
+  let q = queryFromOpts d (withoutBeginDate ropts{end_=Just d})
+      assetreport@(_,assets)          = balanceReport ropts{end_=Just d} (And [q, journalAssetAccountQuery j]) j
+      liabilityreport@(_,liabilities) = balanceReport ropts{end_=Just d} (And [q, journalLiabilityAccountQuery j]) j
       total = assets + liabilities
-  LT.putStr $ [lt|Balance Sheet
+     in (  unlines $ balanceReportAsText ropts{no_total_=True} assetreport
+         , unlines $ balanceReportAsText ropts{no_total_=True} liabilityreport
+                                                            -- ([((AccountName, AccountName, Int), MixedAmount)], MixedAmount)
+         , unlines $ balanceReportAsText ropts{no_total_=True} ([(("",          "",          1),   total)]      , total)
+         )
 
+-- | Print a formatted version of a balancesheet
+balancesheetPrint :: Day -> CliOpts -> Journal -> IO ()
+balancesheetPrint d c j = do let (a,l,n) = balancesheet d c j
+                             Data.Text.Lazy.IO.putStr $ [lt|Balance Sheet
 Assets:
-#{unlines $ balanceReportAsText ropts assetreport}
+#{a}
 Liabilities:
-#{unlines $ balanceReportAsText ropts liabilityreport}
+#{l}
 Total:
 --------------------
-#{padleft 20 $ showMixedAmountWithoutPrice total}
+#{n}
 |]
 
 withoutBeginDate :: ReportOpts -> ReportOpts

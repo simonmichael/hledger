@@ -255,7 +255,7 @@ main = do
       | cmd == "add"             = (journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add) `orShowHelp` addmode
       | cmd == "accounts"        = withJournalDo opts accounts        `orShowHelp` accountsmode
       | cmd == "balance"         = withJournalDo opts balance         `orShowHelp` balancemode
-      | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowHelp` balancesheetmode
+      | cmd == "balancesheet"    = withJournalDo opts (balancesheetPrint d)  `orShowHelp` balancesheetmode
       | cmd == "cashflow"        = withJournalDo opts cashflow        `orShowHelp` cashflowmode
       | cmd == "incomestatement" = withJournalDo opts incomestatement `orShowHelp` incomestatementmode
       | cmd == "print"           = withJournalDo opts print'          `orShowHelp` printmode
@@ -288,5 +288,3 @@ main = do
 --   --   runHledgerCommand addons opts@CliOpts{command_=cmd} args
 
 --  ]
-
-
