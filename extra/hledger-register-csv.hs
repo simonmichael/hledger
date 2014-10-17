@@ -36,7 +36,7 @@ main = do
     
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =
-  ["date","description","account","amount","balance"]
+  ["date","description","account","amount","running total or balance"]
   :
   map postingsReportItemAsCsvRecord is
 
