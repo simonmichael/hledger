@@ -16,12 +16,16 @@ argsmode :: Mode RawOpts
 argsmode = (defCommandMode ["register-csv"]) {
   modeHelp = "show matched postings and running total as CSV"
  ,modeGroupFlags = Group {
-     groupNamed = [
+     groupUnnamed = [ -- copied from Register.hs:
+      flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "include prior postings in the running total"
+     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a running average instead of the running total (implies --empty)"
+     ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
+     ]
+    ,groupNamed = [
          ("Input",inputflags)
         ,("Reporting",reportflags)
         ,("Misc",helpflags)
         ]
-    ,groupUnnamed = []
     ,groupHidden = []
     }
  }
