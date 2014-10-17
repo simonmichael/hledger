@@ -41,7 +41,7 @@ postingsReportAsCsv (_,is) =
   map postingsReportItemAsCsvRecord is
 
 postingsReportItemAsCsvRecord :: PostingsReportItem -> Record
-postingsReportItemAsCsvRecord (_, _, p, b) = [date,desc,acct,amt,bal]
+postingsReportItemAsCsvRecord (_, _, _, p, b) = [date,desc,acct,amt,bal]
   where
     date = showDate $ postingDate p
     desc = maybe "" tdescription $ ptransaction p
