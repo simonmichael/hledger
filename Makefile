@@ -615,12 +615,7 @@ coverage: samplejournals hledgerhpc
 viewcoverage:
 	$(VIEWHTML) profs/coverage/index.html
 
-# get a debug prompt
-ghci:
-	cabal exec $(GHCI) -- $(WARNINGS) $(INCLUDEPATHS) $(MAIN)
-
-ghci-web:
-	cabal exec $(GHCI) -- $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
+# single-package debug prompts, using all cabal settings
 
 repl-lib:
 	(cd hledger-lib; cabal repl)
@@ -630,6 +625,14 @@ repl-cli repl:
 
 repl-web:
 	(cd hledger-web; cabal repl exe:hledger-web)
+
+# multi-package debug prompts, mimicking most cabal settings
+
+ghci:
+	cabal exec $(GHCI) -- $(WARNINGS) $(INCLUDEPATHS) $(MAIN)
+
+ghci-web:
+	cabal exec $(GHCI) -- $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
 # generate standard sample journals
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal
