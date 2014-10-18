@@ -33,7 +33,6 @@ import Data.Ord
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
-import Hledger.Utils
 
 
 -- | A transactions report includes a list of transactions
