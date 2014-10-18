@@ -208,7 +208,7 @@ uninstall:
 reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
 # run a cabal command in all hledger package dirs
-allcabal%:
+cabal%:
 	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
 
 # # run a command in all hledger package dirs
@@ -528,7 +528,7 @@ warningstest:
 
 # make sure cabal is reasonably happy
 quickcabaltest:
-	@(make --no-print-directory allcabalclean allcabalcheck allcabalconfigure \
+	@(make --no-print-directory cabalclean cabalcheck cabalconfigure \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # make sure cabal is happy in all possible ways
@@ -814,13 +814,13 @@ patchdeps:
 	darcs2dot > patchdeps.dot && dot -Tpng -O patchdeps.dot
 
 # # generate external api docs for each package
-# allhaddock: allcabalhaddock\ --hyperlink-source\ --executables
+# allhaddock: cabalhaddock\ --hyperlink-source\ --executables
 
 # # generate internal code docs for each package
-# allhaddockinternal: allcabalhaddock\ --hyperlink-source\ --executables\ --internal
+# allhaddockinternal: cabalhaddock\ --hyperlink-source\ --executables\ --internal
 
 # # generate hoogle indices for each package
-# allhoogle: allcabalhaddock\ --hoogle\ --executables
+# allhoogle: cabalhaddock\ --hoogle\ --executables
 
 #set up the hoogle web interface
 ## We munge haddock and hoogle into a rough but useful framed layout.
@@ -912,7 +912,7 @@ patchdeps:
 release: releasetest setandrecordversion tagrelease
 
 # Upload the latest cabal package and update hledger.org
-upload: allcabalsdist hackageupload pushdocs
+upload: cabalsdist hackageupload pushdocs
 
 releaseandupload: release upload
 
@@ -1089,7 +1089,7 @@ emacstags:
 cleanghc:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" | grep -vE '(virthualenv|cabal-sandbox)'`
 
-cleancabal: allcabalclean
+cleancabal: cabalclean
 
 cleanbin:
 	rm -f bin/hledgerdev bin/hledgerdev.ghc*
