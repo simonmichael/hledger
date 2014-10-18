@@ -55,5 +55,5 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [date,desc,acct,amt,bal]
                              BalancedVirtualPosting -> (\s -> "["++s++"]")
                              VirtualPosting -> (\s -> "("++s++")")
                              _ -> id
-    amt = showMixedAmountWithoutPrice $ pamount p
-    bal = showMixedAmountWithoutPrice b
+    amt = showMixedAmountOneLineWithoutPrice $ pamount p
+    bal = showMixedAmountOneLineWithoutPrice b
