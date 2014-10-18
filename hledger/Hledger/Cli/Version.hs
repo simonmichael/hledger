@@ -24,7 +24,7 @@ progname = "hledger"
 #ifdef VERSION
 version = VERSION
 #else
-version = ""
+version = "dev build"
 #endif
 prognameandversion = progname ++ " " ++ version
 prognameanddetailedversion = printf "%s %s, using %s" progname version numberRepresentation
