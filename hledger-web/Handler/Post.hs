@@ -46,7 +46,7 @@ handleAdd = do
                               )
                        mjournal
       estrs = [edate, edesc, ejournal]
-      (errs1, [date,desc,journalpath]) = (lefts estrs, rights estrs) -- XXX irrefutable
+      (errs1, [date,desc,journalpath]) = (lefts estrs, rights estrs)
   (params,_) <- runRequestBody
   -- mtrace params
   let paramnamep s = do {string s; n <- many1 digit; eof; return (read n :: Int)}
@@ -142,7 +142,7 @@ handleEdit = do
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
                               then Right f'
-                              else Left "unrecognised journal file path")
+                              else Left ("unrecognised journal file path"::String))
                        mjournal
       estrs = [etext, ejournal]
       errs = lefts estrs
