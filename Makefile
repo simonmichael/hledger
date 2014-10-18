@@ -1074,12 +1074,10 @@ tag: emacstags
 emacstags:
 	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(DOCFILES) Makefile
 
-clean:
+cleanghc:
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" | grep -vE '(virthualenv|cabal-sandbox)'`
-	for p in $(PACKAGES); do \
-		(cd $$p; cabal clean); \
-	done
-#		rm -f `find $$p -name '*.o' -o -name '*.hi'`; \
+
+cleancabal: allcabalclean
 
 cleanbin:
 	rm -f bin/hledgerdev bin/hledgerdev.ghc*
@@ -1087,6 +1085,8 @@ cleanbin:
 cleantags:
 	rm -f TAGS tags
 
-Clean: clean cleanbin cleantags
+clean: cleanghc cleancabal
+
+Clean: cleanghc cleancabal cleanbin cleantags
 
 -include Makefile.local
