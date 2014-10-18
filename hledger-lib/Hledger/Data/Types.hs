@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, StandaloneDeriving, TypeSynonymInstances, FlexibleInstances #-}
 {-|
 
 Most data types are defined here to avoid import cycles.
@@ -21,6 +21,10 @@ module Hledger.Data.Types
 where
 import Control.Monad.Error (ErrorT)
 import Data.Data
+#ifndef DOUBLE
+import Data.Decimal
+import Text.Blaze (ToMarkup(..))
+#endif
 import qualified Data.Map as M
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -46,7 +50,19 @@ data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data)
 
 type Commodity = String
 
+-- | The basic numeric type used in amounts. Different implementations
+-- can be selected via cabal flag for testing and benchmarking purposes.
+#ifdef DOUBLE
 type Quantity = Double
+#else
+type Quantity = Decimal
+deriving instance Data (Quantity)
+-- The following is for hledger-web, and requires blaze-markup.
+-- Doing it here avoids needing a matching flag on the hledger-web package.
+instance ToMarkup (Quantity) 
+ where
+   toMarkup = toMarkup . show
+#endif
 
 -- | An amount's price (none, per unit, or total) in another commodity.
 -- Note the price should be a positive number, although this is not enforced.

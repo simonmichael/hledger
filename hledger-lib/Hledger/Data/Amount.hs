@@ -1,4 +1,4 @@
-{-# LANGUAGE StandaloneDeriving, RecordWildCards  #-}
+{-# LANGUAGE CPP, StandaloneDeriving, RecordWildCards #-}
 {-|
 A simple 'Amount' is some quantity of money, shares, or anything else.
 It has a (possibly null) 'Commodity' and a numeric quantity:
@@ -99,6 +99,9 @@ module Hledger.Data.Amount (
 ) where
 
 import Data.Char (isDigit)
+#ifndef DOUBLE
+import Data.Decimal
+#endif
 import Data.Function (on)
 import Data.List
 import Data.Map (findWithDefault)
@@ -147,11 +150,14 @@ missingamt :: Amount
 missingamt = amount{acommodity="AUTO"}
 
 -- handy amount constructors for tests
+#ifdef DOUBLE
+roundTo = flip const
+#endif
 num n = amount{acommodity="",  aquantity=n}
-usd n = amount{acommodity="$", aquantity=n, astyle=amountstyle{asprecision=2}}
-eur n = amount{acommodity="€", aquantity=n, astyle=amountstyle{asprecision=2}}
-gbp n = amount{acommodity="£", aquantity=n, astyle=amountstyle{asprecision=2}}
-hrs n = amount{acommodity="h", aquantity=n, astyle=amountstyle{asprecision=1, ascommodityside=R}}
+usd n = amount{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
+eur n = amount{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
+gbp n = amount{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
+hrs n = amount{acommodity="h", aquantity=roundTo 1 n, astyle=amountstyle{asprecision=1, ascommodityside=R}}
 amt `at` priceamt = amt{aprice=UnitPrice priceamt}
 amt @@ priceamt = amt{aprice=TotalPrice priceamt}
 
@@ -161,8 +167,8 @@ amt @@ priceamt = amt{aprice=TotalPrice priceamt}
 -- The result's display style is that of the second amount, with
 -- precision set to the highest of either amount.
 -- Prices are ignored and discarded.
-similarAmountsOp :: (Quantity -> Quantity -> Quantity) -> Amount -> Amount -> Amount
 -- Remember: the caller is responsible for ensuring both amounts have the same commodity.
+similarAmountsOp :: (Quantity -> Quantity -> Quantity) -> Amount -> Amount -> Amount
 similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
                     Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
    -- trace ("a1:"++showAmountDebug a1) $ trace ("a2:"++showAmountDebug a2) $ traceWith (("= :"++).showAmountDebug)
@@ -188,7 +194,7 @@ costOfAmount a@Amount{aquantity=q, aprice=price} =
       TotalPrice p@Amount{aquantity=pq} -> p{aquantity=pq * signum q}
 
 -- | Divide an amount's quantity by a constant.
-divideAmount :: Amount -> Double -> Amount
+divideAmount :: Amount -> Quantity -> Amount
 divideAmount a@Amount{aquantity=q} d = a{aquantity=q/d}
 
 -- | Is this amount negative ? The price is ignored.
@@ -205,9 +211,14 @@ isZeroAmount a --  a==missingamt = False
 -- | Is this amount "really" zero, regardless of the display precision ?
 -- Since we are using floating point, for now just test to some high precision.
 isReallyZeroAmount :: Amount -> Bool
-isReallyZeroAmount a --  a==missingamt = False
-                     | otherwise     = (null . filter (`elem` digits) . printf ("%."++show zeroprecision++"f") . aquantity) a
-    where zeroprecision = 8
+isReallyZeroAmount Amount{aquantity=q} = iszero q
+  where
+   iszero =
+#ifdef DOUBLE
+    null . filter (`elem` digits) . printf ("%."++show zeroprecision++"f") where zeroprecision = 8
+#else
+    (==0)
+#endif
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings except using the specified precision.
@@ -279,9 +290,15 @@ showamountquantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p, asdecim
     where
       -- isint n = fromIntegral (round n) == n
       qstr -- p == maxprecision && isint q = printf "%d" (round q::Integer)
-        | p == maxprecisionwithpoint    = printf "%f" q
-        | p == maxprecision             = chopdotzero $ printf "%f" q
-        | otherwise                    = printf ("%."++show p++"f") q
+#ifdef DOUBLE
+        | p == maxprecisionwithpoint = printf "%f" q
+        | p == maxprecision          = chopdotzero $ printf "%f" q
+        | otherwise                  = printf ("%."++show p++"f") q
+#else
+        | p == maxprecisionwithpoint = show q
+        | p == maxprecision          = chopdotzero $ show q
+        | otherwise                  = show $ roundTo (fromIntegral p) q
+#endif
 
 -- | Replace a number string's decimal point with the specified character,
 -- and add the specified digit group separators. The last digit group will
@@ -460,7 +477,7 @@ costOfMixedAmount :: MixedAmount -> MixedAmount
 costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
 
 -- | Divide a mixed amount's quantities by a constant.
-divideMixedAmount :: MixedAmount -> Double -> MixedAmount
+divideMixedAmount :: MixedAmount -> Quantity -> MixedAmount
 divideMixedAmount (Mixed as) d = Mixed $ map (flip divideAmount d) as
 
 -- | Is this mixed amount negative, if it can be normalised to a single commodity ?

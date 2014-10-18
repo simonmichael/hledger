@@ -30,11 +30,17 @@ extra-source-files:
 --   sample.ledger
 --   sample.timelog
 
+flag double
+    Description:   Use old Double number representation (instead of Decimal), for testing/benchmarking.
+    Default:       False
+
 library
   -- should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
+  if flag(double)
+    cpp-options: -DDOUBLE
   default-language: Haskell2010
   exposed-modules:
                   Hledger
@@ -70,11 +76,13 @@ library
                   Hledger.Utils.UTF8IOCompat
   build-depends:
                   base >= 4.3 && < 5
+                 ,blaze-markup >= 0.5.1
                  ,bytestring
                  ,cmdargs >= 0.10 && < 0.11
                  ,containers
                  ,csv
                  -- ,data-pprint >= 0.2.3 && < 0.3
+                 ,Decimal
                  ,directory
                  ,filepath
                  ,mtl
@@ -104,10 +112,12 @@ test-suite tests
   default-language: Haskell2010
   build-depends: hledger-lib
                , base >= 4.3 && < 5
+               , blaze-markup >= 0.5.1
                , cmdargs
                , containers
                , csv
                -- , data-pprint >= 0.2.3 && < 0.3
+               , Decimal
                , directory
                , filepath
                , HUnit
