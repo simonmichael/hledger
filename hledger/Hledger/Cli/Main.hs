@@ -111,7 +111,9 @@ mainmode addons = defMode {
      -- flags in the unnamed group, shown last without a heading:
     ,groupUnnamed = []
      -- flags accepted but not shown in the help:
-    ,groupHidden = inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
+    ,groupHidden =
+        detailedversionflag :
+        inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
     }
  }
 
@@ -225,8 +227,8 @@ main = do
     isBadCommand         = not (null rawcmd) && null cmd
     hasHelp args         = any (`elem` args) ["--help","-h","-?"]
     hasVersion           = ("--version" `elem`)
+    hasDetailedVersion   = ("--version+" `elem`)
     generalHelp          = putStr $ showModeHelp $ mainmode addonDisplayNames
-    version              = putStrLn prognameandversion
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     f `orShowHelp` mode  = if hasHelp args then putStr (showModeHelp mode) else f
   dbgM "processed opts" opts
@@ -244,7 +246,9 @@ main = do
       -- high priority flags and situations. --help should be highest priority.
       | hasHelp argsbeforecmd    = dbgM "" "--help before command, showing general help" >> generalHelp
       | not (hasHelp argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
-                                 = version
+                                 = putStrLn prognameandversion
+      | not (hasHelp argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
+                                 = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
       | isNullCommand            = dbgM "" "no command, showing general help" >> generalHelp

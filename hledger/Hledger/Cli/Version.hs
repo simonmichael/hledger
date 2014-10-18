@@ -7,17 +7,19 @@ module Hledger.Cli.Version (
   progname,
   version,
   prognameandversion,
+  prognameanddetailedversion,
   binaryfilename
 )
 where
 import System.Info (os, arch)
 import Text.Printf
 
+import Hledger.Data.Types (numberRepresentation)
 import Hledger.Utils
 
 
 -- package name and version from the cabal file
-progname, version, prognameandversion :: String
+progname, version, prognameandversion, prognameanddetailedversion :: String
 progname = "hledger"
 #ifdef VERSION
 version = VERSION
@@ -25,6 +27,7 @@ version = VERSION
 version = ""
 #endif
 prognameandversion = progname ++ " " ++ version
+prognameanddetailedversion = printf "%s %s, using %s" progname version numberRepresentation
 
 -- developer build version strings include PATCHLEVEL (number of
 -- patches since the last tag). If defined, it must be a number.

@@ -52,8 +52,10 @@ type Commodity = String
 
 -- | The basic numeric type used in amounts. Different implementations
 -- can be selected via cabal flag for testing and benchmarking purposes.
+numberRepresentation :: String
 #ifdef DOUBLE
 type Quantity = Double
+numberRepresentation = "Double"
 #else
 type Quantity = Decimal
 deriving instance Data (Quantity)
@@ -62,6 +64,7 @@ deriving instance Data (Quantity)
 instance ToMarkup (Quantity) 
  where
    toMarkup = toMarkup . show
+numberRepresentation = "Decimal"
 #endif
 
 -- | An amount's price (none, per unit, or total) in another commodity.

@@ -10,6 +10,7 @@ module Hledger.Cli.Options (
 
   -- * cmdargs flags & modes
   helpflags,
+  detailedversionflag,
   inputflags,
   reportflags,
   generalflagsgroup1,
@@ -84,6 +85,10 @@ helpflags = [
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "N" "show debug output if N is 1-9 (default: 0)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
  ]
+
+-- | A hidden flag, just for the hledger executable.
+detailedversionflag :: Flag RawOpts
+detailedversionflag = flagNone ["version+"] (setboolopt "version+") "show version information with extra detail"
 
 -- | Common input-related flags: --file, --rules-file, --alias...
 inputflags :: [Flag RawOpts]
