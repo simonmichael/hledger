@@ -1068,12 +1068,18 @@ emacstags:
 	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(DOCFILES) Makefile
 
 clean:
-	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" -o -name "darcs-amend-record*" -o -name "*-darcs-backup*" | grep -v .virthualenv`
+	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" | grep -vE '(virthualenv|cabal-sandbox)'`
+	for p in $(PACKAGES); do \
+		(cd $$p; cabal clean); \
+	done
+#		rm -f `find $$p -name '*.o' -o -name '*.hi'`; \
 
 cleanbin:
 	rm -f bin/hledgerdev bin/hledgerdev.ghc*
 
-Clean: clean cleanbin cleandocs
+cleantags:
 	rm -f TAGS tags
+
+Clean: clean cleanbin cleantags
 
 -include Makefile.local
