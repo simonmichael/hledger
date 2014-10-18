@@ -33,6 +33,8 @@ extra-source-files:
 library
   -- should set patchlevel here as in Makefile
   cpp-options:    -DPATCHLEVEL=0
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
   exposed-modules:
                   Hledger
@@ -97,7 +99,8 @@ source-repository head
 test-suite tests
   type:     exitcode-stdio-1.0
   main-is:  tests/suite.hs
-  ghc-options: -Wall
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
   build-depends: hledger-lib
                , base >= 4.3 && < 5

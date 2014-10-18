@@ -42,8 +42,9 @@ flag threaded
     Default:       True
 
 library
-  cpp-options:    -DVERSION="0.23.98"
-  ghc-options:    -W
+  cpp-options: -DVERSION="0.23.98"
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
   -- should be the same as below
   exposed-modules:
@@ -129,8 +130,9 @@ executable hledger
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
-  cpp-options:    -DVERSION="0.23.98"
-  ghc-options:    -W
+  cpp-options: -DVERSION="0.23.98"
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   if flag(threaded)
        ghc-options:   -threaded
  -- should be the same as above
@@ -167,7 +169,8 @@ executable hledger
 test-suite tests
   type:     exitcode-stdio-1.0
   main-is:  tests/suite.hs
-  ghc-options: -Wall
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
   build-depends: hledger-lib
                , hledger

@@ -82,7 +82,8 @@ library
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
  
-    ghc-options:   -Wall -fno-warn-unused-do-bind
+    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+    ghc-options: -fno-warn-type-defaults -fno-warn-orphans
  
     extensions:
                 CPP
@@ -186,11 +187,12 @@ executable         hledger-web
 
     cpp-options:   -DVERSION="0.23.98"
     if flag(dev)
-        cpp-options:   -DDEVELOPMENT
+        cpp-options: -DDEVELOPMENT
 
-    ghc-options:   -Wall -fno-warn-unused-do-bind
+    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+    ghc-options: -fno-warn-type-defaults -fno-warn-orphans
     if flag(threaded)
-        ghc-options:   -threaded
+        ghc-options: -threaded
     if flag(dev)
         ghc-options:   -O0
 
@@ -278,7 +280,8 @@ executable         hledger-web
 
 test-suite test
     type:              exitcode-stdio-1.0
-    ghc-options:       -Wall
+    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+    ghc-options: -fno-warn-type-defaults -fno-warn-orphans
     hs-source-dirs:    tests
     main-is:           main.hs
     build-depends: 

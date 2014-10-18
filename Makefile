@@ -105,7 +105,14 @@ PATCHLEVEL:=$(shell git describe --long | awk -F - '{print $$2}')
 #PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
 
 # build flags
-WARNINGS:=-W -fwarn-tabs -fno-warn-unused-do-bind -fno-warn-name-shadowing #-fwarn-orphans -fwarn-simple-patterns -fwarn-monomorphism-restriction
+# comment the below to see more warnings
+WARNINGS:=\
+	-Wall \
+	-fno-warn-unused-do-bind \
+	-fno-warn-name-shadowing \
+	-fno-warn-missing-signatures \
+	-fno-warn-orphans \
+	-fno-warn-type-defaults \
 
 # For ghc-only dev builds of hledger-web: enable the language
 # extensions specified in hledger-web.cabal, except for some which are
