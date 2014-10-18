@@ -26,6 +26,7 @@ PRINT=lpr
 
 GHC=ghc
 GHCI=ghci
+GHCPKG=ghc-pkg
 HADDOCK=haddock
 CABAL=cabal
 CABALINSTALL=cabal install -w $(GHC)
@@ -197,6 +198,14 @@ installdeps:
 # (may break installed libs, requiring ghc-pkg-clean)
 installdeps-force:
 	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests --only-dependencies --allow-newer --force-reinstalls
+
+# unregister all packages, assuming they are defined lowest-dependency first
+# avoids some reinstall noise when repeatedly doing make install
+uninstall:
+	-for p in $(call reverse,$(PACKAGES)); do $(GHCPKG) unregister $$p; done
+
+# utility function
+reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
 # run a cabal command in all hledger package dirs
 allcabal%:
