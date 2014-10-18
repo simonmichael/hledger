@@ -162,6 +162,7 @@ amt @@ priceamt = amt{aprice=TotalPrice priceamt}
 -- precision set to the highest of either amount.
 -- Prices are ignored and discarded.
 similarAmountsOp :: (Quantity -> Quantity -> Quantity) -> Amount -> Amount -> Amount
+-- Remember: the caller is responsible for ensuring both amounts have the same commodity.
 similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
                     Amount{acommodity=c2, aquantity=q2, astyle=s2@AmountStyle{asprecision=p2}} =
    -- trace ("a1:"++showAmountDebug a1) $ trace ("a2:"++showAmountDebug a2) $ traceWith (("= :"++).showAmountDebug)
