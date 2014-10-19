@@ -30,13 +30,18 @@ extra-source-files:
 --   sample.ledger
 --   sample.timelog
 
+source-repository head
+  type:     git
+  location: https://github.com/simonmichael/hledger
+
 flag double
     Description:   Use old Double number representation (instead of Decimal), for testing/benchmarking.
     Default:       False
 
+
 library
   -- should set patchlevel here as in Makefile
-  cpp-options:    -DPATCHLEVEL=0
+  cpp-options: -DPATCHLEVEL=0
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   if flag(double)
@@ -100,13 +105,11 @@ library
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
 
-source-repository head
-  type:     git
-  location: https://github.com/simonmichael/hledger
 
 test-suite tests
   type:     exitcode-stdio-1.0
-  main-is:  tests/suite.hs
+  main-is:  suite.hs
+  hs-source-dirs: tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010

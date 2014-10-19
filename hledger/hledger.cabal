@@ -41,12 +41,12 @@ flag threaded
     Description:   Build with support for multithreaded execution
     Default:       True
 
+
 library
   cpp-options: -DVERSION="0.23.98"
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
-  -- should be the same as below
   exposed-modules:
                   Hledger.Cli
                   Hledger.Cli.Main
@@ -64,7 +64,6 @@ library
                   Hledger.Cli.Print
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
-  -- should be the same as below
   build-depends:
                   hledger-lib == 0.23.98
                  ,base >= 4.3 && < 5
@@ -103,42 +102,20 @@ library
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
 
--- should depend on the above to avoid double compilation but this is
--- still too complicated as of 2011/6/1 because:
--- - breaks haddock, http://hackage.haskell.org/trac/hackage/ticket/656
--- - library and executable must have different hs-source-dirs
--- - the exe may need to list all the lib's dependencies
--- - how it works seems ghc version dependent
--- leksah is reported to have this working, http://hackage.haskell.org/packages/archive/leksah/0.10.0.4/leksah.cabal
+
 executable hledger
   main-is:        hledger-cli.hs
-  -- should be the same as above
-  other-modules:
-                  Hledger.Cli
-                  Hledger.Cli.Main
-                  Hledger.Cli.Options
-                  Hledger.Cli.Tests
-                  Hledger.Cli.Utils
-                  Hledger.Cli.Version
-                  Hledger.Cli.Add
-                  Hledger.Cli.Accounts
-                  Hledger.Cli.Balance
-                  Hledger.Cli.Balancesheet
-                  Hledger.Cli.Cashflow
-                  Hledger.Cli.Histogram
-                  Hledger.Cli.Incomestatement
-                  Hledger.Cli.Print
-                  Hledger.Cli.Register
-                  Hledger.Cli.Stats
+  hs-source-dirs: app
+  default-language: Haskell2010
   cpp-options: -DVERSION="0.23.98"
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   if flag(threaded)
        ghc-options:   -threaded
- -- should be the same as above
-  default-language: Haskell2010
+  -- same as above:
   build-depends:
                   hledger-lib == 0.23.98
+                 ,hledger == 0.23.98
                  ,base >= 4.3 && < 5
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
@@ -166,12 +143,15 @@ executable hledger
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
 
+
 test-suite tests
   type:     exitcode-stdio-1.0
-  main-is:  tests/suite.hs
+  main-is:  suite.hs
+  hs-source-dirs: tests
+  default-language: Haskell2010
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
-  default-language: Haskell2010
+  -- same as above:
   build-depends: hledger-lib
                , hledger
                , base >= 4.3 && < 5
@@ -204,11 +184,14 @@ test-suite tests
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
 
+
+-- not a standard cabal bench test, I think
 benchmark bench
   type:             exitcode-stdio-1.0
---  hs-source-dirs:   src
+  -- hs-source-dirs:   
   main-is:          ../tools/simplebench.hs
-  ghc-options:      -Wall
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
+  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
   build-depends:    hledger-lib,
                     hledger,

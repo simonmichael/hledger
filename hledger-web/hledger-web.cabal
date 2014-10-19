@@ -77,6 +77,7 @@ flag library-only
     Description:   Build for use with "yesod devel"
     Default:       False
 
+
 library
     cpp-options:   -DVERSION="0.23.98"
     if flag(dev) || flag(library-only)
@@ -101,8 +102,7 @@ library
                 -- EmptyDataDecls
                 -- NoMonomorphismRestriction
 
-    hs-source-dirs:  . app
-    exposed-modules:  Application
+    exposed-modules: Application
                      Foundation
                      Import
                      Settings
@@ -117,7 +117,7 @@ library
                      Handler.RootR
                      Handler.SidebarR
                      Handler.Utils
-    other-modules:
+    -- other-modules:
                      Hledger.Web
                      Hledger.Web.Main
                      Hledger.Web.Options
@@ -206,31 +206,13 @@ executable         hledger-web
                 TemplateHaskell
                 TypeFamilies
 
-    hs-source-dirs:  . app
+    hs-source-dirs:  app
     main-is:         main.hs
-    other-modules:
-                     Application
-                     Foundation
-                     Import
-                     Settings
-                     Settings.StaticFiles
-                     Settings.Development
-                     Handler.Common
-                     Handler.JournalEditR
-                     Handler.JournalEntriesR
-                     Handler.JournalR
-                     Handler.Post
-                     Handler.RegisterR
-                     Handler.RootR
-                     Handler.SidebarR
-                     Handler.Utils
-                     Hledger.Web
-                     Hledger.Web.Main
-                     Hledger.Web.Options
 
     build-depends:
-                     hledger              == 0.23.98
-                   , hledger-lib          == 0.23.98
+                     hledger-lib          == 0.23.98
+                   , hledger              == 0.23.98
+                   , hledger-web          == 0.23.98
                    , base                 >= 4 && < 5
                    , bytestring
                    , clientsession
