@@ -1,5 +1,5 @@
 #!/usr/bin/env runhaskell
-{-
+{- 
 bench.hs - simple benchmarking of command-line programs.
 Requires html and tabular.
 Simon Michael 2008-2013
@@ -36,14 +36,10 @@ Summary (best iteration):
 
 -}
 
-import Data.Char
 import Data.List
-import Data.Maybe
-import Numeric
 import System.Environment
-import System.Directory
 import System.FilePath
-import System.Cmd
+import System.Process
 import System.IO
 import Text.Tabular
 import qualified Text.Tabular.AsciiArt as TA
@@ -52,10 +48,8 @@ import Text.Html ((+++), renderHtml, stringToHtml)
 import System.Exit
 import Text.Printf
 import Data.Time.Clock
-import Data.Time.Format
-import System.Locale
+import Data.Time.Format ()
 import Control.Monad
-import Debug.Trace
 import System.Console.GetOpt
 
 usagehdr = "bench [-f testsfile] [-n iterations] [-p precision] executable1 [executable2 ...]\n" ++
@@ -63,14 +57,14 @@ usagehdr = "bench [-f testsfile] [-n iterations] [-p precision] executable1 [exe
            "Run some functional tests with each of the specified executables,\n" ++
            "where a test is \"zero or more arguments supported by all executables\",\n" ++
            "and report the best execution times.\n"
-
+           
 options = [
   Option "f" ["testsfile"] (ReqArg File "testsfile") "file containing tests, one per line, default: bench.tests"
  ,Option "n" ["iterations"] (ReqArg Num "iterations") "number of test iterations to run, default: 2"
  ,Option "p" ["precision"] (ReqArg Prec "precision") "show times with this precision, default: 2"
  ,Option "v" ["verbose"] (NoArg Verbose) "show intermediate results"
  ,Option "h" ["help"] (NoArg Help) "show this help"
- ]
+ ]             
 
 usageftr = "\n" ++
            "Tips:\n" ++
@@ -81,10 +75,10 @@ usageftr = "\n" ++
 usage = usageInfo usagehdr options ++ usageftr
 
 -- an option value
-data Opt = File {value::String}
-         | Num  {value::String}
-         | Prec {value::String}
--- I don't know how optValuesForConstructor etc. can have that
+data Opt = File {value::String} 
+         | Num  {value::String} 
+         | Prec {value::String} 
+-- I don't know how optValuesForConstructor etc. can have that 
 -- type signature with these, but it works..
 --       | Some Int
          | Verbose
@@ -112,7 +106,7 @@ parseargs as =
     (_,_,errs)     -> error (concat errs ++ usage)
 
 optValueWithDefault :: (String -> Opt) -> String -> [Opt] -> String
-optValueWithDefault optcons def opts =
+optValueWithDefault optcons def opts = 
     last $ def : optValuesForConstructor optcons opts
 
 optValuesForConstructor :: (String -> Opt) -> [Opt] -> [String]
@@ -127,13 +121,13 @@ main = do
   tests <- liftM (filter istest . lines) (readFile file)
   now <- getCurrentTime
   putStrLn $ printf "Using %s" file
-  putStrLn $ printf "Running %d tests %d times with %d executables at %s:"
+  putStrLn $ printf "Running %d tests %d times with %d executables at %s:" 
                (length tests) num (length exes) (show now)
   let doexe t e = mapM (doiteration opts t e) [1..num]
   let dotest t = mapM (doexe t) exes
   hSetBuffering stdout NoBuffering
   results <- mapM dotest tests
-  summarise opts tests exes results
+  summarise opts tests exes results 
 
 istest s = not (null s' || ("#" `isPrefixOf` s')) where s' = clean s
 clean = unwords . words
@@ -177,5 +171,3 @@ maketable opts rownames colnames results = Table rowhdrs colhdrs rows
 
 showtime :: [Opt] -> (Float -> String)
 showtime opts = printf $ "%." ++ show (precisionopt opts) ++ "f"
-
-strace a = trace (show a) a
