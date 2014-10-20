@@ -125,7 +125,7 @@ clipAccounts d a = a{asubs=subs}
 clipAccountsAndAggregate :: Int -> [Account] -> [Account]
 clipAccountsAndAggregate d as = combined
     where
-      clipped  = [a{aname=clipAccountName d $ aname a} | a <- as]
+      clipped  = [a{aname=clipOrEllipsifyAccountName d $ aname a} | a <- as]
       combined = [a{aebalance=sum (map aebalance same)}
                   | same@(a:_) <- groupBy (\a1 a2 -> aname a1 == aname a2) clipped]
 {-

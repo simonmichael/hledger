@@ -1,9 +1,28 @@
-# 1
+# 1.
 hledgerdev -f sample.journal balance --no-total --depth 1
 >>>
                  $-1  assets
                   $2  expenses
                  $-2  income
                   $1  liabilities
+>>>=0
+
+# 2. Depth 0 aggregates everything into one line
+hledgerdev -f sample.journal balance --no-total --depth 0
+>>>
+                   0  ...
+>>>=0
+
+# 3. Ditto in a multi-column balance report.
+hledgerdev -f sample.journal balance -M -e 2008/4 --depth 0
+>>>
+Balance changes in 2008/01:
+
+     ||  2008/01 
+=====++==========
+ ... ||        0 
+-----++----------
+     ||        0 
+
 >>>=0
 

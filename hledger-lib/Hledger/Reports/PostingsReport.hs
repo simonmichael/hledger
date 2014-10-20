@@ -85,7 +85,7 @@ postingsReport opts q j = (totallabel, items)
       whichdate = whichDateFromOpts opts
       itemps | interval == NoInterval = map (,Nothing) reportps
              | otherwise              = summarisePostingsByInterval interval whichdate depth showempty reportspan reportps
-      items = postingsReportItems itemps (nullposting,Nothing) whichdate depth startbal runningcalc 1
+      items = dbg "items" $ postingsReportItems itemps (nullposting,Nothing) whichdate depth startbal runningcalc 1
         where
           startbal = if balancetype_ opts == HistoricalBalance then sumPostings precedingps else 0
           runningcalc | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i) -- running average
@@ -108,7 +108,7 @@ postingsReportItems ((p,menddate):ps) (pprev,menddateprev) wd d b runningcalcfn 
       isfirstintxn = ptransaction p /= ptransaction pprev
       isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
                                    SecondaryDate -> postingDate2 p /= postingDate2 pprev
-      p' = p{paccount=clipAccountName d $ paccount p}
+      p' = p{paccount= clipOrEllipsifyAccountName d $ paccount p}
       b' = runningcalcfn itemnum b (pamount p)
 
 -- | Generate one postings report line item, containing the posting,
@@ -150,8 +150,10 @@ type SummaryPosting = (Posting, Maybe Day)
 -- postings within it, aggregate the postings into one summary posting per
 -- account.
 --
--- When a depth argument is present, postings to accounts of greater depth are
--- also aggregated where possible.
+-- When a depth argument is present, postings to accounts of greater
+-- depth are also aggregated where possible. If the depth is 0, all
+-- postings in the span are aggregated into a single posting with
+-- account name "...".
 --
 -- The showempty flag includes spans with no postings and also postings
 -- with 0 amount.
@@ -166,8 +168,10 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
       b' = fromMaybe (maybe nulldate postingdate $ headMay ps) b
       e' = fromMaybe (maybe (addDays 1 nulldate) postingdate $ lastMay ps) e
       summaryp = nullposting{pdate=Just b'}
-      clippedanames = nub $ map (clipAccountName depth) anames
-      summaryps = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
+      clippedanames | depth > 0 = nub $ map (clipAccountName depth) anames
+                    | otherwise = ["..."]
+      summaryps | depth > 0 = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
+                | otherwise = [summaryp{paccount="...",pamount=sum $ map pamount ps}]
       summarypes = map (, Just e') $ (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
       anames = sort $ nub $ map paccount ps
       -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping

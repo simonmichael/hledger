@@ -108,8 +108,16 @@ elideAccountName width s =
           | length ss > 1 = elideparts width (done++[take 2 $ head ss]) (tail ss)
           | otherwise = done++ss
 
+-- | Keep only the first n components of an account name, where n
+-- is a positive integer. If n is 0, returns the empty string.
 clipAccountName :: Int -> AccountName -> AccountName
 clipAccountName n = accountNameFromComponents . take n . accountNameComponents
+
+-- | Keep only the first n components of an account name, where n
+-- is a positive integer. If n is 0, returns "...".
+clipOrEllipsifyAccountName :: Int -> AccountName -> AccountName
+clipOrEllipsifyAccountName 0 = const "..."
+clipOrEllipsifyAccountName n = accountNameFromComponents . take n . accountNameComponents
 
 -- | Convert an account name to a regular expression matching it and its subaccounts.
 accountNameToAccountRegex :: String -> String

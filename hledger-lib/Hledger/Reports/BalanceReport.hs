@@ -67,6 +67,9 @@ balanceReport opts q j = (items, total)
 
       accts = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
       accts' :: [Account]
+          | queryDepth q == 0 =
+                         dbg "accts" $
+                         take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
           | flat_ opts = dbg "accts" $
                          filterzeros $
                          filterempty $
@@ -75,7 +78,8 @@ balanceReport opts q j = (items, total)
                          filter (not.aboring) $
                          drop 1 $ flattenAccounts $
                          markboring $
-                         prunezeros $ clipAccounts (queryDepth q) accts
+                         prunezeros $
+                         clipAccounts (queryDepth q) accts
           where
             balance     = if flat_ opts then aebalance else aibalance
             filterzeros = if empty_ opts then id else filter (not . isZeroMixedAmount . balance)
@@ -99,14 +103,18 @@ markBoringParentAccounts = tieAccountParents . mapAccounts mark
            | otherwise = a
 
 balanceReportItem :: ReportOpts -> Query -> Account -> BalanceReportItem
-balanceReportItem opts _ a@Account{aname=name}
+balanceReportItem opts q a
   | flat_ opts = ((name, name,       0),      (if flatShowsExclusiveBalance then aebalance else aibalance) a)
   | otherwise  = ((name, elidedname, indent), aibalance a)
   where
+    name | queryDepth q > 0 = aname a
+         | otherwise        = "..."
     elidedname = accountNameFromComponents (adjacentboringparentnames ++ [accountLeafName name])
     adjacentboringparentnames = reverse $ map (accountLeafName.aname) $ takeWhile aboring $ parents
     indent = length $ filter (not.aboring) parents
-    parents = init $ parentAccounts a
+    -- parents exclude the tree's root node
+    parents = case parentAccounts a of [] -> []
+                                       as -> init as
 
 -- -- the above using the newer multi balance report code:
 -- balanceReport' opts q j = (items, total)

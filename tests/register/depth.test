@@ -8,7 +8,7 @@ hledgerdev -f - register aa --depth 1
 2010/01/01 x                    a                                1             1
 >>>=0
 
-# 2. similar to above, postings with same clipped account name are not aggregated
+# 2. separate postings remain separate
 hledgerdev -f - register aa --depth 2
 <<<
 2010/1/1 x
@@ -28,7 +28,7 @@ hledgerdev -f - register aa --depth 2
 2010/01/02 z                    a:aa                             1             3
 >>>=0
 
-# 3. as above, but with a reporting interval causing postings to be aggregated
+# 3. with a reporting interval, all postings are aggregated under each (clipped) account
 hledgerdev -f - register aa --depth 1 --daily
 <<<
 2010/1/1 x
@@ -56,3 +56,26 @@ hledgerdev -f - register a --depth 1 --cleared
 2012/01/01                      (a)                              1             1
 >>>2
 >>>=0
+
+# 5. depth 0 aggregates everything into a single line
+hledgerdev -f - register --depth 0 --daily a b
+<<<
+2010/1/1 x
+  a:aa      1
+  b:bb      2
+  c:cc
+
+2010/1/1 y
+  a:aa      1
+  b:bb      2
+  c:cc
+
+2010/1/2 z
+  a:aa      1
+  b:bb      2
+  c:cc
+>>>
+2010/01/01d             ...                                      6             6
+2010/01/02d             ...                                      3             9
+>>>=0
+

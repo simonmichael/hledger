@@ -129,7 +129,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
       displayedAccts :: [ClippedAccountName] =
           dbg "displayedAccts" $
           (if tree_ opts then expandAccountNames else id) $
-          nub $ map (clipAccountName depth) $
+          nub $ map (clipOrEllipsifyAccountName depth) $
           if empty_ opts then nub $ sort $ startAccts ++ postedAccts else postedAccts
 
       acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
@@ -150,7 +150,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
                                   HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
                                   CumulativeBalance -> drop 1 $ scanl (+) nullmixedamt changes
                                   _                 -> changes
-           , empty_ opts || any (not . isZeroMixedAmount) displayedBals
+           , empty_ opts || depth == 0 || any (not . isZeroMixedAmount) displayedBals
            ]
 
       totals :: [MixedAmount] =
@@ -162,6 +162,6 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
                 dbg "highestlevelaccts" $
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]
 
-      dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
-      -- dbg = const id  -- exclude from debug output
+      dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in this function's debug output
+      -- dbg = const id  -- exclude this function from debug output
 
