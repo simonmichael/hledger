@@ -37,6 +37,7 @@ module Hledger.Cli.Options (
   aliasesFromOpts,
   journalFilePathFromOpts,
   rulesFilePathFromOpts,
+  outputFilePathAndExtensionFromOpts,
   -- | For register:
   OutputWidth(..),
   Width(..),
@@ -55,6 +56,7 @@ module Hledger.Cli.Options (
 )
 where
 
+import Control.Applicative ((<$>))
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.List
@@ -235,6 +237,7 @@ data CliOpts = CliOpts {
     ,command_         :: String
     ,file_            :: Maybe FilePath
     ,rules_file_      :: Maybe FilePath
+    ,output_          :: Maybe FilePath
     ,alias_           :: [String]
     ,ignore_assertions_ :: Bool
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
@@ -247,6 +250,7 @@ instance Default CliOpts where def = defcliopts
 
 defcliopts :: CliOpts
 defcliopts = CliOpts
+    def
     def
     def
     def
@@ -273,6 +277,7 @@ rawOptsToCliOpts rawopts = do
              ,command_         = stringopt "command" rawopts
              ,file_            = maybestringopt "file" rawopts
              ,rules_file_      = maybestringopt "rules-file" rawopts
+             ,output_          = maybestringopt "output" rawopts
              ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
              ,debug_           = intopt "debug" rawopts
              ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
@@ -340,6 +345,17 @@ journalFilePathFromOpts opts = do
   f <- defaultJournalPath
   d <- getCurrentDirectory
   expandPath d $ fromMaybe f $ file_ opts
+
+
+-- | Get the (tilde-expanded, absolute) output file path and file
+-- extension (without the dot) from options, or the defaults ("-","").
+outputFilePathAndExtensionFromOpts :: CliOpts -> IO (String, String)
+outputFilePathAndExtensionFromOpts opts = do
+  d <- getCurrentDirectory
+  p <- expandPath d <$> fromMaybe "-" $ output_ opts
+  let (_,ext) = splitExtension p
+      ext' = dropWhile (=='.') ext
+  return (p,ext')
 
 -- | Get the (tilde-expanded) rules file path from options, if any.
 rulesFilePathFromOpts :: CliOpts -> IO (Maybe FilePath)

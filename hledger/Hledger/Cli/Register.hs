@@ -15,6 +15,8 @@ module Hledger.Cli.Register (
 import Data.List
 import Data.Maybe
 import System.Console.CmdArgs.Explicit
+import System.FilePath
+import Text.CSV
 import Test.HUnit
 import Text.Printf
 
@@ -32,6 +34,7 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a running average instead of the running total (implies --empty)"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
      ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "set output width (default: 80)"
+     ,flagReq  ["output","o"] (\s opts -> Right $ setopt "output" s opts) "[FILE][.FMT]" "write output to FILE (- or nothing means stdout). With a recognised FMT suffix, write that format (txt, csv)."
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -43,7 +46,35 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
 register :: CliOpts -> Journal -> IO ()
 register opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  putStr $ postingsReportAsText opts $ postingsReport ropts (queryFromOpts d ropts) j
+  let r = postingsReport ropts (queryFromOpts d ropts) j
+
+  (path, ext) <- outputFilePathAndExtensionFromOpts opts
+  let filename = fst $ splitExtension $ snd $ splitFileName path
+      write  | filename `elem` ["","-"] && ext `elem` ["","csv","txt"] = putStr
+             | otherwise                                               = writeFile path
+      render | ext=="csv" = \_ r -> (printCSV . postingsReportAsCsv) r
+             | otherwise  = postingsReportAsText
+  write $ render opts r
+
+postingsReportAsCsv :: PostingsReport -> CSV
+postingsReportAsCsv (_,is) =
+  ["date","description","account","amount","running total or balance"]
+  :
+  map postingsReportItemAsCsvRecord is
+
+postingsReportItemAsCsvRecord :: PostingsReportItem -> Record
+postingsReportItemAsCsvRecord (_, _, _, p, b) = [date,desc,acct,amt,bal]
+  where
+    date = showDate $ postingDate p
+    desc = maybe "" tdescription $ ptransaction p
+    acct = bracket $ paccount p
+      where
+        bracket = case ptype p of
+                             BalancedVirtualPosting -> (\s -> "["++s++"]")
+                             VirtualPosting -> (\s -> "("++s++")")
+                             _ -> id
+    amt = showMixedAmountOneLineWithoutPrice $ pamount p
+    bal = showMixedAmountOneLineWithoutPrice b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> String
