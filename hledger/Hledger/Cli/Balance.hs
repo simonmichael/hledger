@@ -284,7 +284,7 @@ balance :: CliOpts -> Journal -> IO ()
 balance CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let output =
-       case formatFromOpts ropts of
+       case lineFormatFromOpts ropts of
          Left err -> [err]
          Right _ ->
           case (intervalFromOpts ropts, balancetype_ ropts) of
@@ -298,7 +298,7 @@ balance CliOpts{reportopts_=ropts} j = do
 balanceReportAsText :: ReportOpts -> BalanceReport -> [String]
 balanceReportAsText opts ((items, total)) = concat lines ++ t
   where
-      lines = case formatFromOpts opts of
+      lines = case lineFormatFromOpts opts of
                 Right f -> map (balanceReportItemAsText opts f) items
                 Left err -> [[err]]
       t = if no_total_ opts

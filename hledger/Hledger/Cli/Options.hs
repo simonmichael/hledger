@@ -44,7 +44,7 @@ module Hledger.Cli.Options (
   defaultWidthWithFlag,
   widthFromOpts,
   -- | For balance:
-  formatFromOpts,
+  lineFormatFromOpts,
 
   -- * Other utils
   hledgerAddons,
@@ -284,7 +284,7 @@ rawOptsToCliOpts rawopts = do
 -- | Do final validation of processed opts, raising an error if there is trouble.
 checkCliOpts :: CliOpts -> IO CliOpts -- or pure..
 checkCliOpts opts@CliOpts{reportopts_=ropts} = do
-  case formatFromOpts ropts of
+  case lineFormatFromOpts ropts of
     Left err -> optserror $ "could not parse format option: "++err
     Right _ -> return ()
   case widthFromOpts opts of
@@ -351,12 +351,12 @@ rulesFilePathFromOpts opts = do
 
 -- | Parse the format option if provided, possibly returning an error,
 -- otherwise get the default value.
-formatFromOpts :: ReportOpts -> Either String [OutputFormat]
-formatFromOpts = maybe (Right defaultBalanceFormat) parseStringFormat . format_
+lineFormatFromOpts :: ReportOpts -> Either String [OutputFormat]
+lineFormatFromOpts = maybe (Right defaultBalanceLineFormat) parseStringFormat . format_
 
 -- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceFormat :: [OutputFormat]
-defaultBalanceFormat = [
+defaultBalanceLineFormat :: [OutputFormat]
+defaultBalanceLineFormat = [
       FormatField False (Just 20) Nothing TotalField
     , FormatLiteral "  "
     , FormatField True (Just 2) Nothing DepthSpacerField

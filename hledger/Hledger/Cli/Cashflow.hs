@@ -40,7 +40,7 @@ cashflowmode = (defCommandMode ["cashflow","cf"]) {
 -- | Print a simple cashflow statement.
 cashflow :: CliOpts -> Journal -> IO ()
 cashflow CliOpts{reportopts_=ropts} j = do
-  -- let lines = case formatFromOpts ropts of Left err, Right ...
+  -- let lines = case lineFormatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
   let q = queryFromOpts d ropts
       cashreport@(_,total) = balanceReport ropts (And [q, journalCashAccountQuery j]) j

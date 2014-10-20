@@ -38,7 +38,7 @@ balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
 -- | Print a simple balance sheet.
 balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet CliOpts{reportopts_=ropts} j = do
-  -- let lines = case formatFromOpts ropts of Left err, Right ...
+  -- let lines = case lineFormatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
   let q = queryFromOpts d (withoutBeginDate ropts)
       assetreport@(_,assets)          = balanceReport ropts (And [q, journalAssetAccountQuery j]) j
