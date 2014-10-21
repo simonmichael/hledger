@@ -46,15 +46,13 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
 register :: CliOpts -> Journal -> IO ()
 register opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  let r = postingsReport ropts (queryFromOpts d ropts) j
-
   (path, ext) <- outputFilePathAndExtensionFromOpts opts
   let filename = fst $ splitExtension $ snd $ splitFileName path
       write  | filename `elem` ["","-"] && ext `elem` ["","csv","txt"] = putStr
              | otherwise                                               = writeFile path
-      render | ext=="csv" = \_ r -> (printCSV . postingsReportAsCsv) r
+      render | ext=="csv" = const ((++"\n") . printCSV . postingsReportAsCsv)
              | otherwise  = postingsReportAsText
-  write $ render opts r
+  write $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =
