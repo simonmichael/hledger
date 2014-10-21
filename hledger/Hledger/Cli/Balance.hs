@@ -247,6 +247,8 @@ import Data.Maybe
 -- import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit as C
 -- import System.Console.CmdArgs.Text
+import System.FilePath
+import Text.CSV
 import Test.HUnit
 import Text.Printf (printf)
 import Text.Tabular as T
@@ -272,6 +274,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
      ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "multicolumn mode: show accumulated ending balances"
      ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "multicolumn mode: show historical ending balances"
+     ,flagReq  ["output","o"] (\s opts -> Right $ setopt "output" s opts) "[FILE][.FMT]" "write output to FILE (- or nothing means stdout). With a recognised FMT suffix, write that format (txt, csv)."
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -281,20 +284,41 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance CliOpts{reportopts_=ropts} j = do
+balance opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  let output =
-       case lineFormatFromOpts ropts of
-         Left err -> [err]
-         Right _ ->
-          case (intervalFromOpts ropts, balancetype_ ropts) of
-            (NoInterval,_)        -> balanceReportAsText           ropts  $ balanceReport ropts (queryFromOpts d ropts) j
-            (_,PeriodBalance)     -> periodBalanceReportAsText     ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
-            (_,CumulativeBalance) -> cumulativeBalanceReportAsText ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
-            (_,HistoricalBalance) -> historicalBalanceReportAsText ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
-  putStr $ unlines output
+  case lineFormatFromOpts ropts of
+    Left err -> putStr $ unlines [err]
+    Right _ -> do
+      (path, ext) <- outputFilePathAndExtensionFromOpts opts
+      let filename = fst $ splitExtension $ snd $ splitFileName path
+      case intervalFromOpts ropts of
 
--- | Render an old-style single-column balance report as plain text.
+        NoInterval -> do
+          let render | ext=="csv" = \_ r -> printCSV (balanceReportAsCsv ropts r) ++ "\n"
+                     | otherwise  = \ropts r -> unlines $ balanceReportAsText ropts r
+              write  | filename `elem` ["","-"] && ext `elem` ["","csv","txt"] = putStr
+                     | otherwise                                               = writeFile path
+          write $ render ropts $ balanceReport ropts (queryFromOpts d ropts) j
+
+        _ ->
+          if ext=="csv"
+          then error' "Sorry, CSV output with a report period is not supported yet"
+          else do
+            let render = case balancetype_ ropts of
+                  PeriodBalance     -> periodBalanceReportAsText
+                  CumulativeBalance -> cumulativeBalanceReportAsText
+                  HistoricalBalance -> historicalBalanceReportAsText
+                write | filename `elem` ["","-"] && ext `elem` ["","txt"] = putStr . unlines
+                      | otherwise                                         = writeFile path . unlines
+            write $ render ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
+
+-- | Render a single-column balance report as CSV.
+balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
+balanceReportAsCsv _ (items,_) =
+  ["account","balance"] :
+  [[a, showMixedAmountWithoutPrice b] | ((a, _, _), b) <- items]
+
+-- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> [String]
 balanceReportAsText opts ((items, total)) = concat lines ++ t
   where
@@ -367,11 +391,6 @@ formatField opts accountName depth total ljust min max field = case field of
         TotalField       -> formatValue ljust min max $ showAmountWithoutPrice total
         _                  -> ""
 
--- | Figure out the overall date span of a multicolumn balance report.
-multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
-multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
-multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
-
 -- | Render a multi-column period balance report as plain text suitable for console output.
 periodBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
 periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
@@ -440,6 +459,11 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, colto
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ row "" coltotals)
+
+-- | Figure out the overall date span of a multicolumn balance report.
+multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
+multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
+multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
 
 
 tests_Hledger_Cli_Balance = TestList

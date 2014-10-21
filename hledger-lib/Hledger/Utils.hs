@@ -73,9 +73,17 @@ ppShow = show
 lowercase = map toLower
 uppercase = map toUpper
 
+-- | Remove leading and trailing whitespace.
 strip = lstrip . rstrip
-lstrip = dropWhile (`elem` " \t") :: String -> String
+
+-- | Remove leading whitespace.
+lstrip = dropWhile (`elem` " \t") :: String -> String -- XXX isSpace ?
+
+-- | Remove trailing whitespace.
 rstrip = reverse . lstrip . reverse
+
+-- | Remove trailing newlines/carriage returns.
+chomp = reverse . dropWhile (`elem` "\r\n") . reverse
 
 stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String
 

@@ -16,7 +16,3 @@ numbered = zip [1..]
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d = read (formatTime defaultTimeLocale "%s" t) * 1000 -- XXX read
                      where t = UTCTime d (secondsToDiffTime 0)
-
-chomp :: String -> String
-chomp = reverse . dropWhile (`elem` "\r\n") . reverse
-
