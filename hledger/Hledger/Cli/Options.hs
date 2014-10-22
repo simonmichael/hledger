@@ -31,6 +31,8 @@ module Hledger.Cli.Options (
   decodeRawOpts,
   rawOptsToCliOpts,
   checkCliOpts,
+  outputFormats,
+  defaultOutputFormat,
 
   -- possibly these should move into argsToCliOpts
   -- * CLI option accessors
@@ -367,6 +369,13 @@ outputFileFromOpts opts = do
     Just p  -> expandPath d p
     Nothing -> return "-"
 
+defaultOutputFormat = "txt"
+
+outputFormats =
+  [defaultOutputFormat] ++
+  ["csv"
+  ]
+
 -- | Get the output format from the --output-format option,
 -- otherwise from a recognised file extension in the --output-file option,
 -- otherwise the default (txt).
@@ -375,16 +384,18 @@ outputFormatFromOpts opts =
   case output_format_ opts of
     Just f  -> f
     Nothing ->
-      let mext = (snd . splitExtension . snd . splitFileName) <$> output_file_ opts
-      in case mext of
-           Just ext | ext `elem` formats -> ext
-           _                             -> defaultformat
+      case filePathExtension <$> output_file_ opts of
+        Just ext | ext `elem` outputFormats -> ext
+        _                                   -> defaultOutputFormat
 
-defaultformat = "txt"
-formats =
-  [defaultformat] ++
-  ["csv"
-  ]
+-- -- | Get the file name without its last extension, from a file path.
+-- filePathBaseFileName :: FilePath -> String
+-- filePathBaseFileName = fst . splitExtension . snd . splitFileName
+
+-- | Get the last file extension, without the dot, from a file path.
+-- May return the null string.
+filePathExtension :: FilePath -> String
+filePathExtension = dropWhile (=='.') . snd . splitExtension . snd . splitFileName
 
 -- | Get the (tilde-expanded) rules file path from options, if any.
 rulesFilePathFromOpts :: CliOpts -> IO (Maybe FilePath)
