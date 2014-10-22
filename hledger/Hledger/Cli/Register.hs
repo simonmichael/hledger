@@ -15,15 +15,13 @@ module Hledger.Cli.Register (
 import Data.List
 import Data.Maybe
 import System.Console.CmdArgs.Explicit
-import System.FilePath
 import Text.CSV
 import Test.HUnit
 import Text.Printf
 
 import Hledger
-import Prelude hiding (putStr)
-import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Cli.Options
+import Hledger.Cli.Utils
 
 
 registermode = (defCommandMode $ ["register"] ++ aliases) {
@@ -34,8 +32,8 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a running average instead of the running total (implies --empty)"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
      ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "set output width (default: 80)"
-     ,flagReq  ["output","o"] (\s opts -> Right $ setopt "output" s opts) "[FILE][.FMT]" "write output to FILE (- or nothing means stdout). With a recognised FMT suffix, write that format (txt, csv)."
      ]
+     ++ outputflags
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
     }
@@ -46,13 +44,10 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
 register :: CliOpts -> Journal -> IO ()
 register opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
-  (path, ext) <- outputFilePathAndExtensionFromOpts opts
-  let filename = fst $ splitExtension $ snd $ splitFileName path
-      write  | filename `elem` ["","-"] && ext `elem` ["","csv","txt"] = putStr
-             | otherwise                                               = writeFile path
-      render | ext=="csv" = const ((++"\n") . printCSV . postingsReportAsCsv)
+  let fmt = outputFormatFromOpts opts
+      render | fmt=="csv" = const ((++"\n") . printCSV . postingsReportAsCsv)
              | otherwise  = postingsReportAsText
-  write $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
+  writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =

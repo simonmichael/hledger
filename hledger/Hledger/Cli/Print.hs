@@ -13,22 +13,18 @@ where
 
 import Data.List
 import System.Console.CmdArgs.Explicit
-import System.FilePath
 import Test.HUnit
 import Text.CSV
 
 import Hledger
-import Prelude hiding (putStr)
-import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Cli.Options
+import Hledger.Cli.Utils
 
 
 printmode = (defCommandMode $ ["print"] ++ aliases) {
   modeHelp = "show transaction entries" `withAliases` aliases
  ,modeGroupFlags = Group {
-     groupUnnamed = [
-         flagReq  ["output","o"] (\s opts -> Right $ setopt "output" s opts) "[FILE][.FMT]" "write output to FILE (- or nothing means stdout). With a recognised FMT suffix, write that format (txt, csv)."
-        ]
+     groupUnnamed = outputflags
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
     }
@@ -40,14 +36,11 @@ print' :: CliOpts -> Journal -> IO ()
 print' opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-  (path, ext) <- outputFilePathAndExtensionFromOpts opts
-  let filename = fst $ splitExtension $ snd $ splitFileName path
-      write  | filename `elem` ["","-"] && ext `elem` ["","csv","txt"] = putStr
-             | otherwise                                               = writeFile path
-      (render,ropts') | ext=="csv" = ((++"\n") . printCSV . entriesReportAsCsv, ropts{flat_=True})
-                      | otherwise  = (entriesReportAsText, ropts)
-
-  write $ render $ entriesReport ropts' q j
+      fmt = outputFormatFromOpts opts
+      (render, ropts') = case fmt of
+        "csv" -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{flat_=True})
+        _     -> (entriesReportAsText,                      ropts)
+  writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: EntriesReport -> String
 entriesReportAsText items = concatMap showTransactionUnelided items

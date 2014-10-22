@@ -13,6 +13,7 @@ module Hledger.Cli.Options (
   detailedversionflag,
   inputflags,
   reportflags,
+  outputflags,
   generalflagsgroup1,
   generalflagsgroup2,
   generalflagsgroup3,
@@ -37,7 +38,8 @@ module Hledger.Cli.Options (
   aliasesFromOpts,
   journalFilePathFromOpts,
   rulesFilePathFromOpts,
-  outputFilePathAndExtensionFromOpts,
+  outputFileFromOpts,
+  outputFormatFromOpts,
   -- | For register:
   OutputWidth(..),
   Width(..),
@@ -121,6 +123,12 @@ reportflags = [
  ,flagNone ["empty","E"]     (setboolopt "empty") "show empty/zero things which are normally omitted"
  ,flagNone ["cost","B"]      (setboolopt "cost") "show amounts in their cost price's commodity"
  ]
+
+-- | Common output-related flags: --output-file, --output-format...
+outputflags = [
+   flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE[.FMT]" "write output to FILE instead of stdout. A recognised FMT suffix influences the format."
+  ,flagReq  ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT" "select the output format. Supported formats: txt, csv."
+  ]
 
 argsFlag :: FlagHelp -> Arg RawOpts
 argsFlag desc = flagArg (\s opts -> Right $ setopt "args" s opts) desc
@@ -237,7 +245,8 @@ data CliOpts = CliOpts {
     ,command_         :: String
     ,file_            :: Maybe FilePath
     ,rules_file_      :: Maybe FilePath
-    ,output_          :: Maybe FilePath
+    ,output_file_     :: Maybe FilePath
+    ,output_format_   :: Maybe String
     ,alias_           :: [String]
     ,ignore_assertions_ :: Bool
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
@@ -250,6 +259,7 @@ instance Default CliOpts where def = defcliopts
 
 defcliopts :: CliOpts
 defcliopts = CliOpts
+    def
     def
     def
     def
@@ -277,7 +287,8 @@ rawOptsToCliOpts rawopts = do
              ,command_         = stringopt "command" rawopts
              ,file_            = maybestringopt "file" rawopts
              ,rules_file_      = maybestringopt "rules-file" rawopts
-             ,output_          = maybestringopt "output" rawopts
+             ,output_file_     = maybestringopt "output-file" rawopts
+             ,output_format_   = maybestringopt "output-format" rawopts
              ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
              ,debug_           = intopt "debug" rawopts
              ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
@@ -347,15 +358,33 @@ journalFilePathFromOpts opts = do
   expandPath d $ fromMaybe f $ file_ opts
 
 
--- | Get the (tilde-expanded, absolute) output file path and file
--- extension (without the dot) from options, or the defaults ("-","").
-outputFilePathAndExtensionFromOpts :: CliOpts -> IO (String, String)
-outputFilePathAndExtensionFromOpts opts = do
+-- | Get the expanded, absolute output file path from options,
+-- or the default (-, meaning stdout).
+outputFileFromOpts :: CliOpts -> IO FilePath
+outputFileFromOpts opts = do
   d <- getCurrentDirectory
-  p <- expandPath d <$> fromMaybe "-" $ output_ opts
-  let (_,ext) = splitExtension p
-      ext' = dropWhile (=='.') ext
-  return (p,ext')
+  case output_file_ opts of
+    Just p  -> expandPath d p
+    Nothing -> return "-"
+
+-- | Get the output format from the --output-format option,
+-- otherwise from a recognised file extension in the --output-file option,
+-- otherwise the default (txt).
+outputFormatFromOpts :: CliOpts -> String
+outputFormatFromOpts opts =
+  case output_format_ opts of
+    Just f  -> f
+    Nothing ->
+      let mext = (snd . splitExtension . snd . splitFileName) <$> output_file_ opts
+      in case mext of
+           Just ext | ext `elem` formats -> ext
+           _                             -> defaultformat
+
+defaultformat = "txt"
+formats =
+  [defaultformat] ++
+  ["csv"
+  ]
 
 -- | Get the (tilde-expanded) rules file path from options, if any.
 rulesFilePathFromOpts :: CliOpts -> IO (Maybe FilePath)

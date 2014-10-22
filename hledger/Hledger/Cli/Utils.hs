@@ -9,6 +9,7 @@ Hledger.Utils.
 module Hledger.Cli.Utils
     (
      withJournalDo,
+     writeOutput,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -70,6 +71,12 @@ withJournalDo opts cmd = do
   ej <- readJournalFile Nothing rulespath (not $ ignore_assertions_ opts) journalpath
   either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts)) ej
 
+-- | Write some output to stdout or to a file selected by --output-file.
+writeOutput :: CliOpts -> String -> IO ()
+writeOutput opts s = do
+  f <- outputFileFromOpts opts
+  (if f == "-" then putStr else writeFile f) s
+  
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournalWithOpts :: CliOpts -> String -> IO Journal
 -- readJournalWithOpts opts s = readJournal Nothing Nothing Nothing s >>= either error' return

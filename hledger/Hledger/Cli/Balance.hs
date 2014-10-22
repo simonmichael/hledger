@@ -247,7 +247,6 @@ import Data.Maybe
 -- import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit as C
 -- import System.Console.CmdArgs.Text
-import System.FilePath
 import Text.CSV
 import Test.HUnit
 import Text.Printf (printf)
@@ -259,6 +258,7 @@ import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Data.OutputFormat
 import Hledger.Cli.Options
+import Hledger.Cli.Utils
 
 
 -- | Command line options for this command.
@@ -274,8 +274,8 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
      ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "multicolumn mode: show accumulated ending balances"
      ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "multicolumn mode: show historical ending balances"
-     ,flagReq  ["output","o"] (\s opts -> Right $ setopt "output" s opts) "[FILE][.FMT]" "write output to FILE (- or nothing means stdout). With a recognised FMT suffix, write that format (txt, csv)."
      ]
+     ++ outputflags
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
     }
@@ -289,28 +289,22 @@ balance opts@CliOpts{reportopts_=ropts} j = do
   case lineFormatFromOpts ropts of
     Left err -> putStr $ unlines [err]
     Right _ -> do
-      (path, ext) <- outputFilePathAndExtensionFromOpts opts
-      let filename = fst $ splitExtension $ snd $ splitFileName path
+      let fmt = outputFormatFromOpts opts
       case intervalFromOpts ropts of
-
         NoInterval -> do
-          let render | ext=="csv" = \_ r -> printCSV (balanceReportAsCsv ropts r) ++ "\n"
+          let render | fmt=="csv" = \_ r -> printCSV (balanceReportAsCsv ropts r) ++ "\n"
                      | otherwise  = \ropts r -> unlines $ balanceReportAsText ropts r
-              write  | filename `elem` ["","-"] && ext `elem` ["","csv","txt"] = putStr
-                     | otherwise                                               = writeFile path
-          write $ render ropts $ balanceReport ropts (queryFromOpts d ropts) j
+          writeOutput opts $ render ropts $ balanceReport ropts (queryFromOpts d ropts) j
 
         _ ->
-          if ext=="csv"
+          if fmt=="csv"
           then error' "Sorry, CSV output with a report period is not supported yet"
           else do
             let render = case balancetype_ ropts of
                   PeriodBalance     -> periodBalanceReportAsText
                   CumulativeBalance -> cumulativeBalanceReportAsText
                   HistoricalBalance -> historicalBalanceReportAsText
-                write | filename `elem` ["","-"] && ext `elem` ["","txt"] = putStr . unlines
-                      | otherwise                                         = writeFile path . unlines
-            write $ render ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
+            writeOutput opts $ unlines $ render ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
 
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
