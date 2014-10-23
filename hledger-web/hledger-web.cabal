@@ -17,7 +17,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://hledger.org/bugs
-tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.2
+tested-with:    GHC==7.6.3, GHC==7.8.2
 cabal-version:  >= 1.8
 build-type:     Simple
 extra-tmp-files:
@@ -64,10 +64,6 @@ source-repository head
 flag threaded
     Description:   Build with support for multithreaded execution.
     Default:       True
-
-flag blaze_html_0_4
-    description:   Use the older 0.4 version of blaze-html. No longer well tested.
-    default:       False
 
 flag dev
     Description:   Turn on development settings, like auto-reload templates.
@@ -126,6 +122,8 @@ library
                      hledger              == 0.23.98
                    , hledger-lib          == 0.23.98
                    , base                 >= 4 && < 5
+                   , blaze-html
+                   , blaze-markup
                    , bytestring
                    , clientsession
                    , cmdargs              >= 0.10 && < 0.11
@@ -134,7 +132,7 @@ library
                    , filepath
                    , hjsmin
                    , http-conduit
-                   , http-client          >= 0.2 && < 0.4
+                   , http-client
                    , HUnit
                    , network-conduit
                    , conduit-extra
@@ -142,17 +140,7 @@ library
                    , parsec
                    , regexpr              >= 0.5.1
                    , safe                 >= 0.2
--- http://www.yesodweb.com/blog/2014/04/consolidation-progress
--- in order to support both the old and new versions of shakespeare,
--- you just need to ensure that you have both the shakespeare and
--- deprecated packages listed in your cabal file. In other words, if
--- previously you depended on hamlet, now you should depend on hamlet
--- and shakespeare. When you're ready to drop backwards compatibility,
--- simply put a lower bound of >= 2.0 on shakespeare and remove the
--- deprecated packages.
-                   , hamlet
-                   , shakespeare-text >= 1.0 && < 1.2
-                   , shakespeare      >= 1.0 && < 2.1
+                   , shakespeare          >= 2.0
                    , template-haskell
                    , text
                    , time
@@ -160,9 +148,9 @@ library
                    , wai
                    , wai-extra
                    , wai-handler-launch   >= 1.3
-                   , warp                 >= 1.3
+                   , warp
                    , yaml
-                   , yesod                >= 1.2 && < 1.3
+                   , yesod                >= 1.4 && < 1.5
                    , yesod-core
                    , yesod-static
                    , json
@@ -170,15 +158,6 @@ library
                    -- , fsnotify
                    -- , hsdev
                    -- , mtl
-
-    if flag(blaze_html_0_4)
-      cpp-options:   -DBLAZE_HTML_0_4
-      build-depends:
-                     blaze-html               >= 0.4     && < 0.5
-    else
-      build-depends:
-                     blaze-html               >= 0.5     && < 0.8
-                   , blaze-markup             >= 0.5.1   && < 0.7
 
 
 executable         hledger-web
@@ -214,6 +193,8 @@ executable         hledger-web
                    , hledger              == 0.23.98
                    , hledger-web          == 0.23.98
                    , base                 >= 4 && < 5
+                   , blaze-html
+                   , blaze-markup
                    , bytestring
                    , clientsession
                    , cmdargs              >= 0.10 && < 0.11
@@ -222,7 +203,7 @@ executable         hledger-web
                    , filepath
                    , hjsmin
                    , http-conduit
-                   , http-client          >= 0.2 && < 0.4
+                   , http-client
                    , HUnit
                    , network-conduit
                    , conduit-extra
@@ -230,9 +211,7 @@ executable         hledger-web
                    , parsec
                    , regexpr              >= 0.5.1
                    , safe                 >= 0.2
-                   , hamlet
-                   , shakespeare-text >= 1.0 && < 1.2
-                   , shakespeare      >= 1.0 && < 2.1
+                   , shakespeare          >= 2.0 && < 2.1
                    , template-haskell
                    , text
                    , time
@@ -240,9 +219,9 @@ executable         hledger-web
                    , wai
                    , wai-extra
                    , wai-handler-launch   >= 1.3
-                   , warp                 >= 1.3
+                   , warp
                    , yaml
-                   , yesod                >= 1.2 && < 1.3
+                   , yesod                >= 1.4 && < 1.5
                    , yesod-core
                    , yesod-static
                    , json
@@ -251,15 +230,6 @@ executable         hledger-web
                    -- , hsdev
                    -- , mtl
 
-    if flag(blaze_html_0_4)
-      cpp-options:   -DBLAZE_HTML_0_4
-      build-depends:
-                     blaze-html               >= 0.4     && < 0.5
-    else
-      build-depends:
-                     blaze-html               >= 0.5     && < 0.8
-                   , blaze-markup             >= 0.5.1   && < 0.7
-
 test-suite test
     type:              exitcode-stdio-1.0
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
@@ -267,8 +237,8 @@ test-suite test
     hs-source-dirs:    tests
     main-is:           main.hs
     build-depends: 
-                     hledger-web
+                     hledger-web          == 0.23.98
                    , base
                    , hspec
-                   , yesod                >= 1.2 && < 1.3
-                   , yesod-test           >= 1.2 && < 1.3
+                   , yesod
+                   , yesod-test
