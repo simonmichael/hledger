@@ -51,7 +51,7 @@ cashflow CliOpts{reportopts_=ropts} j = do
   LT.putStr $ [lt|Cashflow Statement
 
 Cash flows:
-#{unlines $ balanceReportAsText ropts cashreport}
+#{balanceReportAsText ropts cashreport}
 Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}

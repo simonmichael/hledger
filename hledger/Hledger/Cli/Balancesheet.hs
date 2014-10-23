@@ -47,9 +47,9 @@ balancesheet CliOpts{reportopts_=ropts} j = do
   LT.putStr $ [lt|Balance Sheet
 
 Assets:
-#{unlines $ balanceReportAsText ropts assetreport}
+#{balanceReportAsText ropts assetreport}
 Liabilities:
-#{unlines $ balanceReportAsText ropts liabilityreport}
+#{balanceReportAsText ropts liabilityreport}
 Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}

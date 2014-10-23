@@ -242,11 +242,7 @@ module Hledger.Cli.Balance (
  ,tests_Hledger_Cli_Balance
 ) where
 
-import Data.List
-import Data.Maybe
--- import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit as C
--- import System.Console.CmdArgs.Text
 import Text.CSV
 import Test.HUnit
 import Text.Printf (printf)
@@ -254,8 +250,6 @@ import Text.Tabular as T
 import Text.Tabular.AsciiArt
 
 import Hledger
-import Prelude hiding (putStr)
-import Hledger.Utils.UTF8IOCompat (putStr)
 import Hledger.Data.OutputFormat
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
@@ -287,34 +281,43 @@ balance :: CliOpts -> Journal -> IO ()
 balance opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   case lineFormatFromOpts ropts of
-    Left err -> putStr $ unlines [err]
+    Left err -> error' $ unlines [err]
     Right _ -> do
-      let fmt = outputFormatFromOpts opts
-      case intervalFromOpts ropts of
+      let format   = outputFormatFromOpts opts
+          interval = intervalFromOpts ropts
+          baltype  = balancetype_ ropts
+      case interval of
         NoInterval -> do
-          let render | fmt=="csv" = \_ r -> printCSV (balanceReportAsCsv ropts r) ++ "\n"
-                     | otherwise  = \ropts r -> unlines $ balanceReportAsText ropts r
-          writeOutput opts $ render ropts $ balanceReport ropts (queryFromOpts d ropts) j
-
-        _ ->
-          if fmt=="csv"
-          then error' "Sorry, CSV output with a report period is not supported yet"
-          else do
-            let render = case balancetype_ ropts of
+          let report = balanceReport ropts (queryFromOpts d ropts) j
+              render = case format of
+                "csv" -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
+                _     -> balanceReportAsText
+          writeOutput opts $ render ropts report
+        _ -> do
+          let report = multiBalanceReport ropts (queryFromOpts d ropts) j
+              render = case format of
+                "csv" -> \ropts r -> (++ "\n") $ printCSV $ multiBalanceReportAsCsv ropts r
+                _     -> case baltype of
                   PeriodBalance     -> periodBalanceReportAsText
                   CumulativeBalance -> cumulativeBalanceReportAsText
                   HistoricalBalance -> historicalBalanceReportAsText
-            writeOutput opts $ unlines $ render ropts $ multiBalanceReport ropts (queryFromOpts d ropts) j
+          writeOutput opts $ render ropts report
+
+-- single-column balance reports
 
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
-balanceReportAsCsv _ (items,_) =
+balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
   [[a, showMixedAmountWithoutPrice b] | ((a, _, _), b) <- items]
+  ++
+  if no_total_ opts
+  then []
+  else [["total", showMixedAmountOneLineWithoutPrice total]]
 
 -- | Render a single-column balance report as plain text.
-balanceReportAsText :: ReportOpts -> BalanceReport -> [String]
-balanceReportAsText opts ((items, total)) = concat lines ++ t
+balanceReportAsText :: ReportOpts -> BalanceReport -> String
+balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
   where
       lines = case lineFormatFromOpts opts of
                 Right f -> map (balanceReportItemAsText opts f) items
@@ -333,6 +336,7 @@ tests_balanceReportAsText = [
       "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
     let opts = defreportopts
     balanceReportAsText opts (balanceReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is`
+      unlines
       ["                -100  актив:наличные"
       ,"                 100  расходы:покупки"
       ,"--------------------"
@@ -385,9 +389,22 @@ formatField opts accountName depth total ljust min max field = case field of
         TotalField       -> formatValue ljust min max $ showAmountWithoutPrice total
         _                  -> ""
 
+-- multi-column balance reports
+
+-- | Render a multi-column balance report as CSV.
+multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
+multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, coltotals)) =
+  ("account" : "short account" : "indent" : map showDateSpan colspans) :
+  [a : a' : show i : map showMixedAmountOneLineWithoutPrice amts | ((a,a',i), amts) <- items]
+  ++
+  if no_total_ opts
+  then []
+  else [["totals", "", ""] ++ map showMixedAmountOneLineWithoutPrice coltotals]
+
 -- | Render a multi-column period balance report as plain text suitable for console output.
-periodBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
+periodBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+  unlines $
   ([printf "Balance changes in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render
@@ -413,8 +430,9 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals
              | otherwise      = row "" coltotals
 
 -- | Render a multi-column cumulative balance report as plain text suitable for console output.
-cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
+cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+  unlines $
   ([printf "Ending balances (cumulative) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
@@ -434,8 +452,9 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, colto
                 | otherwise      = (+----+ row "" coltotals)
 
 -- | Render a multi-column historical balance report as plain text suitable for console output.
-historicalBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> [String]
+historicalBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+  unlines $
   ([printf "Ending balances (historical) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $

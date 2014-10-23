@@ -46,9 +46,9 @@ incomestatement CliOpts{reportopts_=ropts} j = do
   LT.putStr $ [lt|Income Statement
 
 Revenues:
-#{unlines $ balanceReportAsText ropts incomereport}
+#{balanceReportAsText ropts incomereport}
 Expenses:
-#{unlines $ balanceReportAsText ropts expensereport}
+#{balanceReportAsText ropts expensereport}
 Total:
 --------------------
 #{padleft 20 $ showMixedAmountWithoutPrice total}
