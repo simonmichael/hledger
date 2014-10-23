@@ -142,7 +142,7 @@ instance Yesod App where
 
         staticRootUrl <- (staticRoot . settings) <$> getYesod
         vd@VD{..} <- getViewData
-        giveUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- This is done to provide an optimization for serving static files from
     -- a separate domain. Please see the staticRoot setting in Settings.hs

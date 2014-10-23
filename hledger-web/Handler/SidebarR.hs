@@ -10,5 +10,5 @@ import Handler.Common
 getSidebarR :: Handler Html
 getSidebarR = do
   vd <- getViewData
-  giveUrlRenderer [hamlet|^{sidebar vd}|]
+  withUrlRenderer [hamlet|^{sidebar vd}|]
 
