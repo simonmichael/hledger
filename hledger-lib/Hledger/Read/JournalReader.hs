@@ -134,10 +134,10 @@ popParentAccount = do ctx0 <- getState
 getParentAccount :: GenParser tok JournalContext String
 getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) getState
 
-addAccountAlias :: (AccountName,AccountName) -> GenParser tok JournalContext ()
+addAccountAlias :: AccountAlias -> GenParser tok JournalContext ()
 addAccountAlias a = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
 
-getAccountAliases :: GenParser tok JournalContext [(AccountName,AccountName)]
+getAccountAliases :: GenParser tok JournalContext [AccountAlias]
 getAccountAliases = liftM ctxAliases getState
 
 clearAccountAliases :: GenParser tok JournalContext ()

@@ -385,8 +385,14 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
 -}
 
 -- | Apply additional account aliases (eg from the command-line) to all postings in a journal.
-journalApplyAliases :: [(AccountName,AccountName)] -> Journal -> Journal
-journalApplyAliases aliases j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+journalApplyAliases :: [AccountAlias] -> Journal -> Journal
+journalApplyAliases aliases j@Journal{jtxns=ts} =
+  -- (if null aliases
+  --  then id
+  --  else (dbgtrace $
+  --        "applying additional command-line aliases:\n"
+  --        ++ chomp (unlines $ map (" "++) $ lines $ ppShow aliases))) $
+  j{jtxns=map fixtransaction ts}
     where
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{paccount=a} = p{paccount=accountNameApplyAliases aliases a}

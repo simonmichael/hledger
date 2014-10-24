@@ -31,6 +31,8 @@ import Data.Time.LocalTime
 import System.Time (ClockTime(..))
 import Text.Parsec.Pos
 
+import Hledger.Utils.Regex
+
 
 type SmartDate = (String,String,String)
 
@@ -45,6 +47,8 @@ data Interval = NoInterval
                 deriving (Eq,Show,Ord,Data,Typeable)
 
 type AccountName = String
+
+type AccountAlias = (Regexp,Replacement)
 
 data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data)
 
@@ -172,7 +176,7 @@ data JournalContext = Ctx {
     , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts/account name components
                                         --   specified with "account" directive(s). Concatenated, these
                                         --   are the account prefix prepended to parsed account names.
-    , ctxAliases   :: ![(AccountName,AccountName)] -- ^ the current list of account name aliases in effect
+    , ctxAliases   :: ![AccountAlias]   -- ^ the current list of account name aliases in effect
     } deriving (Read, Show, Eq, Data, Typeable)
 
 deriving instance Data (ClockTime)

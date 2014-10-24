@@ -1,40 +1,66 @@
 # alias-related tests
 
-# 1. command-line --alias option.  Note multiple applicable aliases, but
-# only one is applied per account name.  Spaces are allowed if quoted.
-hledgerdev -f- print --alias 'a a=A' --alias b=B
+# 1. alias directive. The pattern is a case-insensitive regular
+# expression matching anywhere in the account name. Only the most
+# recently declared matching alias is applied to an account name. The
+# replacement can replace multiple matches within the account name.
+# The replacement pattern does not yet support match references.
+#
+hledgerdev -f- print
 <<<
+alias a=b
+
 2011/01/01
-    a a  1
+    A a  1
+    a a  2
+    c
+
+alias A (.)=\1
+
+2011/01/01
+    A a  1
+    a a  2
     c
 
 >>>
 2011/01/01
-    A             1
-    c            -1
+    b b             1
+    b b             2
+    c              -3
+
+2011/01/01
+    \1             1
+    \1             2
+    c             -3
 
 >>>=0
 
-# 2. alias directive, and an account with unbalanced posting indicators.
-hledgerdev -f- print
+# 2. command-line --alias option. Only the first matching alias is
+# applied per account name. Spaces are allowed if quoted.
+# 
+hledgerdev -f- print --alias 'A (.)=a' --alias a=b
 <<<
-alias b=B
-
 2011/01/01
-    (b)  1
+    a a  1
+    A a  2
+    c
 
 >>>
 2011/01/01
-    (B)             1
+    a             1
+    a             2
+    c            -3
 
 >>>=0
 
-# 3. --alias options run after alias directives. Subaccounts are also
-# matched and rewritten. Accounts with an internal part matching the alias
-# are ignored.
-hledgerdev -f- print --alias a=A --alias B=C
+# 3. Alias options run after alias directives. At most one of each is
+# applied.
+#
+hledgerdev -f- print --alias a=A --alias B=C --alias B=D --alias C=D
 <<<
-alias a=B
+alias ^a=B
+alias ^a=E
+alias E=F
 
 2011/01/01
     [a:x]    1
@@ -42,8 +68,8 @@ alias a=B
 
 >>>
 2011/01/01
-    [C:x]             1
-    [x:a:x]            -1
+    [E:x]             1
+    [x:A:x]            -1
 
 >>>2
 >>>=0
