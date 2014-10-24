@@ -259,12 +259,14 @@ difforzero a b = maximum [(a - b), 0]
 -- lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
-splitAtElement e l =
-    case dropWhile (e==) l of
-      [] -> []
-      l' -> first : splitAtElement e rest
-        where
-          (first,rest) = break (e==) l'
+splitAtElement x l =
+  case l of
+    []          -> []
+    e:es | e==x -> split es
+    es          -> split es
+  where
+    split es = let (first,rest) = break (x==) es
+               in first : splitAtElement x rest
 
 -- trees
 
@@ -388,6 +390,8 @@ ptrace msg = do
 -- unsafePerformIO and can be accessed from anywhere and before normal
 -- command-line processing. After command-line processing, it is also
 -- available as the @debug_@ field of 'Hledger.Cli.Options.CliOpts'.
+-- {-# OPTIONS_GHC -fno-cse #-} 
+-- {-# NOINLINE debugLevel #-}
 debugLevel :: Int
 debugLevel = case snd $ break (=="--debug") args of
                "--debug":[]  -> 1
