@@ -286,10 +286,10 @@ type CsvFieldIndex    = Int
 type JournalFieldName = String
 type FieldTemplate    = String
 type ConditionalBlock = ([RecordMatcher], [(JournalFieldName, FieldTemplate)]) -- block matches if all RecordMatchers match
-type RecordMatcher    = [Regexp] -- match if any regexps match any of the csv fields
--- type FieldMatcher     = (CsvFieldName, [Regexp]) -- match if any regexps match this csv field
+type RecordMatcher    = [RegexpPattern] -- match if any regexps match any of the csv fields
+-- type FieldMatcher     = (CsvFieldName, [RegexpPattern]) -- match if any regexps match this csv field
 type DateFormat       = String
-type Regexp           = String
+type RegexpPattern           = String
 
 rules = CsvRules {
   rdirectives=[],
@@ -657,7 +657,7 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
                 -- matcherMatches pats = any patternMatches pats
                 matcherMatches pats = patternMatches $  "(" ++ intercalate "|" pats ++ ")"
                   where
-                    patternMatches :: Regexp -> Bool
+                    patternMatches :: RegexpPattern -> Bool
                     patternMatches pat = regexMatchesCI pat csvline
                       where
                         csvline = intercalate "," record

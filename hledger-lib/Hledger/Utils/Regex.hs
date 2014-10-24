@@ -22,9 +22,11 @@ Easy regular expression helpers, based on regex-tdfa and regexpr. These should
 -}
 
 module Hledger.Utils.Regex (
-  --  regexMatch
+   Regexp
+  ,Replacement
+  -- ,regexMatch
   -- ,regexMatchCI
-   regexMatches
+  ,regexMatches
   ,regexMatchesCI
   ,containsRegex
   ,regexReplace
