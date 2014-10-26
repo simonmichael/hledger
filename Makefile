@@ -30,6 +30,7 @@ GHCPKG=ghc-pkg
 HADDOCK=haddock
 CABAL=cabal
 CABALINSTALL=cabal install -w $(GHC)
+SHELLTEST=shelltest
 # used for make auto, http://joyful.com/repos/searchpath
 SP=sp
 
@@ -44,7 +45,7 @@ INCLUDEPATHS=\
 	-ihledger-web \
 	-ihledger-web/app
 
-MAIN=hledger/hledger-cli.hs
+MAIN=hledger/app/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
 SOURCEFILES:= \
@@ -308,9 +309,9 @@ linuxbinaries: 	linuxbinary-hledger \
 	@echo 'Please check the binaries look portable, then make compressbinaries:'
 	-file bin/*`arch`
 
-# work around for inconsistently-named (why ?) hledger/hledger-cli.hs
+# work around for inconsistently-named (why ?) hledger/app/hledger-cli.hs
 linuxbinary-hledger:
-	$(GHC) hledger/hledger-cli.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
+	$(GHC) hledger/app/hledger-cli.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
 
 linuxbinary-%:
 	$(GHC) $*/$*.hs -o bin/$*$(RELEASEBINARYSUFFIX) $(LINUXRELEASEBUILDFLAGS)
@@ -427,8 +428,6 @@ packdeps:
 
 ######################################################################
 # TESTING
-
-SHELLTEST=shelltest
 
 test: codetest
 
