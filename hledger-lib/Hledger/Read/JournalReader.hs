@@ -164,6 +164,7 @@ journal = do
                            , liftM (return . addPeriodicTransaction) periodictransaction
                            , liftM (return . addHistoricalPrice) historicalpricedirective
                            , emptyorcommentlinep >> return (return id)
+                           , multilinecommentp >> return (return id)
                            ] <?> "journal transaction or directive"
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
@@ -846,6 +847,15 @@ test_numberp = do
 #endif
 
 -- comment parsers
+
+multilinecommentp :: GenParser Char JournalContext ()
+multilinecommentp = do
+  string "comment" >> newline
+  go
+  where
+    go = try (string "end comment" >> newline >> return ())
+         <|> (anyLine >> go)
+    anyLine = anyChar `manyTill` newline
 
 emptyorcommentlinep :: GenParser Char JournalContext ()
 emptyorcommentlinep = do
