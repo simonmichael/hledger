@@ -381,6 +381,8 @@ starts a transaction comment.
 
 - A semicolon after a posting's amount and/or indented on the following lines starts a posting comment.
 
+- With the `comment` and `end comment` keywords it is possible to have multiline comments.
+
 Transaction and posting comments are displayed by [[#print]], can contain [[#tags]] and can be [[#queries|queried]].
 
 Some examples:
@@ -388,6 +390,14 @@ Some examples:
     # a journal comment
     
     ; also a journal comment
+    
+    comment
+    This is a multiline comment,
+    which continues until a line
+    where the "end comment" string
+    appears on its own.
+    end comment
+    
     2012/5/14 something  ; a transaction comment
         ; the transaction comment, continued
         posting1  1  ; a comment for posting 1
