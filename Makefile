@@ -15,10 +15,10 @@ COVCMD=test
 COVCMD=-f test-wf.csv print
 
 # executables to run during "make simplebench"
-BENCHEXES=hledger-0.19.3 hledger-0.22.2 hledger-0.23.2 hledger-0.23.98 ledger-20140507
+BENCHEXES=hledger-0.23.3 hledger
 
 # misc. tools
-BROWSE=open -a Firefox
+BROWSE=open
 VIEWHTML=$(BROWSE)
 VIEWPS=$(BROWSE)
 VIEWPDF=$(BROWSE)
@@ -81,6 +81,7 @@ CABALFILES:= \
 	hledger-*/*.cabal
 
 WEBFILES:= \
+	hledger-web/templates/* \
 	hledger-web/static/*.js \
 	hledger-web/static/*.css
 
