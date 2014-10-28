@@ -4,6 +4,14 @@ hledger project notes
 
 *This whole plain is gunpowder a mile deep.*
 
+Abstractions: precise, elegant, reusable.
+Implementations: correct, efficient, maintainable.
+Documentation: clear, simple, accurate.
+
+A concept is tolerated inside the microkernel only if moving it
+outside the kernel, i.e. permitting competing implementations, would
+prevent the implementation of the system’s required functionality.
+
 * about
 This emacs org-mode outline contains Simon's project backlog, activity
 log, and random developer notes.  Currently only I use this file, but
@@ -259,6 +267,7 @@ http://stackoverflow.com/questions/6398996/good-haskell-source-to-read-and-learn
 **** http://forum.bitcoin.org/index.php?topic=2609.0
 *** selinger article on currency & capital gains accounting
 http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
+*** parsec lexing/expression parsing tutorial: http://burz.github.io/2014/06/24/parsing.html
 ** other software
 *** http://easybooksapp.com/
 *** http://gnucash.org
@@ -2121,6 +2130,21 @@ move *FromOpts into toOpts
 *** 7/1 notes
 
 * old/dev/project backlog - see also trello
+** docs
+*** documentation advice
+As someone who is struggling to learn Snap (and I am trying to use it
+in one project), I would appreciate some nice explanations of the
+basic concepts, minimal and isolated from each other. For example,
+just a static template, just having a few constant splices of
+different types and showing them in a template.
+
+In general, examples are most useful when they explain some abstract
+rule. What are the rules these examples explain? Just phrase it in one
+sentence for people to remember. Like, "Templates can be composed of
+other templates using the apply tag", then show the example of how to
+do it. Also, adding "negative" examples, which show common errors, is
+a good approach.
+
 ** errors
 *** balance: --drop without --flat should only drop top-level account name parts (or be ignored)
 *** balance (flow): show today as end date instead of end of current period ?
