@@ -1,7 +1,18 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
-Easy regular expression helpers, based on regex-tdfa and regexpr. These should
+Easy regular expression helpers, based on regex-tdfa and (a little) on
+regexpr. These should:
+
+- be cross-platform, not requiring C libraries
+
+- support unicode
+
+- support extended regular expressions
+
+- support replacement, with backreferences etc.
+
+- support splitting
 
 - have mnemonic names
 
@@ -9,81 +20,54 @@ Easy regular expression helpers, based on regex-tdfa and regexpr. These should
 
 - work with strings
 
-- support extended regular expressions
+Current limitations:
 
-- support replacement
-
-- support splitting
-
-- support unicode
-
-- be cross-platform, not requiring C libraries
+- (?i) and similar are not supported
 
 -}
 
 module Hledger.Utils.Regex (
+   -- * type aliases
    Regexp
   ,Replacement
-  -- ,regexMatch
-  -- ,regexMatchCI
+   -- * based on regex-tdfa
   ,regexMatches
   ,regexMatchesCI
-  ,containsRegex
   ,regexReplace
   ,regexReplaceCI
   ,regexReplaceBy
-  -- ,regexpToCI
+  ,regexReplaceByCI
+   -- * based on regexpr
   ,regexSplit
-  ,toRegex
   )
 where
 
+import Data.Array
+import Data.Char
 import Data.List (foldl')
 import Text.RegexPR (splitRegexPR)
 import Text.Regex.TDFA (
   Regex, CompOption(..), ExecOption(..), defaultCompOpt, defaultExecOpt,
-  makeRegexOpts, AllMatches(getAllMatches), match, (=~)
+  makeRegexOpts, AllMatches(getAllMatches), match, (=~), MatchText
   )
 
+-- import Hledger.Utils.Debug
+import Hledger.Utils.UTF8IOCompat (error')
 
+
+-- | Regular expression. Extended regular expression-ish syntax ? But does not support eg (?i) syntax.
 type Regexp = String
+
+-- | A replacement pattern. May include backreferences (\N).
 type Replacement = String
-
-containsRegex :: Regexp -> String -> Bool
-containsRegex = regexMatchesCI
-
--- regexpr - may be slow
-
-regexSplit :: Regexp -> String -> [Regexp]
-regexSplit = splitRegexPR
-
--- regexMatch :: Regexp -> String -> MatchFun Maybe
--- regexMatch r s = matchRegexPR r s
-
--- regexMatchCI :: Regexp -> String -> MatchFun Maybe
--- regexMatchCI r s = regexMatch (regexpToCI r) s
-
--- regexMatches :: Regexp -> String -> Bool
--- regexMatches r s = isJust $ matchRegexPR r s
-
--- regexMatchesCI :: Regexp -> String -> Bool
--- regexMatchesCI r s = regexMatches (regexpToCI r) s
-
--- regexReplace :: Regexp -> Replacement -> String -> String
--- regexReplace r repl s = gsubRegexPR r repl s
-
--- regexReplaceCI :: Regexp -> Replacement -> String -> String
--- regexReplaceCI r s = regexReplace (regexpToCI r) s
-
--- regexReplaceBy :: Regexp -> (String -> Replacement) -> String -> String
--- regexReplaceBy r replfn s = gsubRegexPRBy r replfn s
-
--- regex-tdfa
 
 -- | Convert our string-based regexps to real ones. Can fail if the
 -- string regexp is malformed.
 toRegex :: Regexp -> Regex
 toRegex = makeRegexOpts compOpt execOpt
+
+toRegexCI :: Regexp -> Regex
+toRegexCI = makeRegexOpts compOpt{caseSensitive=False} execOpt
 
 compOpt :: CompOption
 compOpt = defaultCompOpt
@@ -100,35 +84,57 @@ regexMatches = flip (=~)
 regexMatchesCI :: Regexp -> String -> Bool
 regexMatchesCI r = match (toRegexCI r)
 
+-- | Replace all occurrences of the regexp, transforming each match with the given function.
+regexReplaceBy :: Regexp -> (String -> String) -> String -> String
+regexReplaceBy r = replaceAllBy (toRegex r)
+
+regexReplaceByCI :: Regexp -> (String -> String) -> String -> String
+regexReplaceByCI r = replaceAllBy (toRegexCI r)
+
+-- | Replace all occurrences of the regexp with the replacement pattern.
+-- The replacement pattern supports \N backreferences but no other RE syntax.
 regexReplace :: Regexp -> Replacement -> String -> String
-regexReplace r repl = regexReplaceBy r (const repl)
+regexReplace re = replaceRegex (toRegex re)
 
 regexReplaceCI :: Regexp -> Replacement -> String -> String
-regexReplaceCI r repl = regexReplaceByCI r (const repl)
+regexReplaceCI re = replaceRegex (toRegexCI re)
 
-regexReplaceBy :: Regexp -> (String -> Replacement) -> String -> String
-regexReplaceBy r = replaceAll (toRegex r)
+--
 
-regexReplaceByCI :: Regexp -> (String -> Replacement) -> String -> String
-regexReplaceByCI r = replaceAll (toRegexCI r)
+replaceRegex :: Regex -> Replacement -> String -> String
+replaceRegex re repl s = foldl (replaceMatch repl) s (reverse $ match re s :: [MatchText String])
 
-toRegexCI :: Regexp -> Regex
-toRegexCI = makeRegexOpts compOpt{caseSensitive=False} execOpt
+replaceMatch :: Replacement -> String -> MatchText String -> String
+replaceMatch replpat s matchgroups = pre ++ repl ++ post
+  where
+    ((_,(off,len)):_) = elems matchgroups  -- groups should have 0-based indexes, and there should always be at least one, since this is a match
+    (pre, post') = splitAt off s
+    post = drop len post'
+    repl = replaceAllBy (toRegex "\\\\[0-9]+") (replaceBackReference matchgroups) replpat
 
--- regexpToCI :: Regexp -> Regexp
--- regexpToCI r = "(?i)"++ r
+replaceBackReference :: MatchText String -> String -> String
+replaceBackReference grps ('\\':s@(_:_)) | all isDigit s =
+  case read s of n | n `elem` indices grps -> fst (grps ! n)
+                 _                         -> error' $ "no match group exists for backreference \"\\"++s++"\""
+replaceBackReference _ s = error' $ "replaceBackReference called on non-backreference \""++s++"\", shouldn't happen"
 
--- from
--- http://stackoverflow.com/questions/9071682/replacement-substition-with-haskell-regex-libraries
+--
+
+-- http://stackoverflow.com/questions/9071682/replacement-substition-with-haskell-regex-libraries :
 -- | Replace all occurrences of a regexp in a string using a replacer
 -- function, which receives the matched string as its argument.
--- Does not support standard RE syntax such as \1.
-replaceAll :: Regex -> (String -> Replacement) -> String -> String
-replaceAll re f s = start end
+-- Does not support backreferences or other RE syntax.
+replaceAllBy :: Regex -> (String -> String) -> String -> String
+replaceAllBy re f s = start end
   where
     (_, end, start) = foldl' go (0, s, id) $ getAllMatches $ match re s
     go (ind,read,write) (off,len) =
       let (skip, start) = splitAt (off - ind) read
           (matched, remaining) = splitAt len start
       in (off + len, remaining, write . (skip++) . (f matched ++))
+
+-- uses regexpr, may be slow:
+
+regexSplit :: Regexp -> String -> [Regexp]
+regexSplit = splitRegexPR
 

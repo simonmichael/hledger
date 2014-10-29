@@ -35,7 +35,7 @@ import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
 import Test.HUnit
 import Text.Printf
-import Text.Regex.TDFA (match)
+import Text.Regex.TDFA ((=~))
 
 
 -- kludge - adapt to whichever directory version is installed, or when
@@ -190,6 +190,6 @@ safeGetDirectoryContents fp = getDirectoryContents fp
 -- | Does the second file represent a backup of the first, and if so which version is it ?
 -- XXX nasty regex types intruding, add a simpler api to Hledger.Utils.Regex
 backupNumber :: FilePath -> FilePath -> Maybe Int
-backupNumber f g = case match (toRegex ("^" ++ f ++ "\\.([0-9]+)$")) g of
+backupNumber f g = case g =~ ("^" ++ f ++ "\\.([0-9]+)$") of
                         (_::FilePath, _::FilePath, _::FilePath, [ext::FilePath]) -> readMay ext
                         _ -> Nothing
