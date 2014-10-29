@@ -77,6 +77,7 @@ library
                   Hledger.Reports.PostingsReport
                   Hledger.Reports.TransactionsReports
                   Hledger.Utils
+                  Hledger.Utils.Debug
                   Hledger.Utils.Regex
                   Hledger.Utils.UTF8IOCompat
   build-depends:
