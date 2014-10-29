@@ -1,0 +1,59 @@
+# Account declarations mockups
+# not compatible with existing ledger/beancount syntax, just notes
+
+
+account   # settings inherited by all accounts
+ nosubs   # by default disallow undeclared subaccounts
+
+account assets
+ asset          # assets and its subaccounts are asset accounts, by default
+
+account liabilities
+ liability      # this and subs are liability accounts
+
+account expenses
+ expense        # these are expense accounts
+
+account revenues
+ revenue        # revenue (income) accounts
+
+account equity
+ equity         # equity accounts
+
+account other assets   # a special account, not one of the standard types
+
+# a shorter way to set the above account types. 
+# The first five account names are the A/L/R/E/Q roots.
+account-roots assets  liabilities  revenues  expenses  equity  other assets
+
+account assets:personal:bank:wells fargo:checking
+ real           # this is a real-world account
+ virtualsubs    # subs are allowed, and will be considered virtual accounts
+
+account assets:personal:bank:wells fargo:checking:  # any subs of checking
+ virtual                                            # will be considered virtual
+
+account assets:personal:bank:wells fargo:checking:* # using simple wild cards
+ virtual
+
+account assets:personal:bank:wells fargo:checking:.* # using regexps
+ virtual
+
+account assets:personal:bank:wells fargo:savings
+ real virtualsubs                             # multiple keywords on one line
+
+account assets:personal:bank:wells fargo:savings2
+ real, virtualsubs                            # comma separator ?
+
+account assets:business:bank:wells fargo:business checking
+ virtualsubs
+
+account assets:personal:bank:wells fargo:business savings
+ virtualsubs
+
+account liabilities:personal:tax:federal:2014
+
+account expenses:personal:food
+account expenses:personal:food:dining
+account expenses:personal:food:groceries
+account expenses:personal:food:snacks
