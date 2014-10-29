@@ -1,10 +1,11 @@
 # alias-related tests
 
 # 1. alias directive. The pattern is a case-insensitive regular
-# expression matching anywhere in the account name. Only the most
-# recently declared matching alias is applied to an account name. The
-# replacement can replace multiple matches within the account name.
-# The replacement pattern does not yet support match references.
+# expression matching anywhere in the account name. All matching
+# aliases will be applied to an account name in turn, most recently
+# declared first. The replacement can replace multiple matches within
+# the account name.  The replacement pattern supports numeric
+# backreferences.
 #
 hledgerdev -f- print
 <<<
@@ -29,14 +30,14 @@ alias A (.)=\1
     c              -3
 
 2011/01/01
-    a             1
-    a             2
+    b             1
+    b             2
     c            -3
 
 >>>=0
 
-# 2. command-line --alias option. Only the first matching alias is
-# applied per account name. Spaces are allowed if quoted.
+# 2. command-line --alias option. These are applied in the order
+# written. Spaces are allowed if quoted.
 # 
 hledgerdev -f- print --alias 'A (.)=a' --alias a=b
 <<<
@@ -47,14 +48,13 @@ hledgerdev -f- print --alias 'A (.)=a' --alias a=b
 
 >>>
 2011/01/01
-    a             1
-    a             2
+    b             1
+    b             2
     c            -3
 
 >>>=0
 
-# 3. Alias options run after alias directives. At most one of each is
-# applied.
+# 3. Alias options run after alias directives.
 #
 hledgerdev -f- print --alias a=A --alias B=C --alias B=D --alias C=D
 <<<

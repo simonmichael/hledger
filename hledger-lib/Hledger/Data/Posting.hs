@@ -37,6 +37,7 @@ module Hledger.Data.Posting (
   joinAccountNames,
   concatAccountNames,
   accountNameApplyAliases,
+  accountNameApplyOneAlias,
   -- * arithmetic
   sumPostings,
   -- * rendering
@@ -218,9 +219,17 @@ concatAccountNames :: [AccountName] -> AccountName
 concatAccountNames as = accountNameWithPostingType t $ intercalate ":" $ map accountNameWithoutPostingType as
     where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
 
--- | Rewrite an account name using the first applicable alias from the given list, if any.
+-- | Rewrite an account name using all applicable aliases from the given list, in sequence.
 accountNameApplyAliases :: [AccountAlias] -> AccountName -> AccountName
 accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
+  where
+    (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
+    matchingaliases = filter (\(re,_) -> regexMatchesCI re aname) aliases
+    aname' = foldl (flip (uncurry regexReplaceCI)) aname matchingaliases
+
+-- | Rewrite an account name using the first applicable alias from the given list, if any.
+accountNameApplyOneAlias :: [AccountAlias] -> AccountName -> AccountName
+accountNameApplyOneAlias aliases a = accountNameWithPostingType atype aname'
   where
     (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
     firstmatchingalias = headDef Nothing $ map Just $ filter (\(re,_) -> regexMatchesCI re aname) aliases

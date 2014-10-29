@@ -58,7 +58,7 @@ import Hledger.Utils.UTF8IOCompat (error')
 -- | Regular expression. Extended regular expression-ish syntax ? But does not support eg (?i) syntax.
 type Regexp = String
 
--- | A replacement pattern. May include backreferences (\N).
+-- | A replacement pattern. May include numeric backreferences (\N).
 type Replacement = String
 
 -- | Convert our string-based regexps to real ones. Can fail if the
@@ -91,8 +91,9 @@ regexReplaceBy r = replaceAllBy (toRegex r)
 regexReplaceByCI :: Regexp -> (String -> String) -> String -> String
 regexReplaceByCI r = replaceAllBy (toRegexCI r)
 
--- | Replace all occurrences of the regexp with the replacement pattern.
--- The replacement pattern supports \N backreferences but no other RE syntax.
+-- | Replace all occurrences of the regexp with the replacement
+-- pattern. The replacement pattern supports numeric backreferences
+-- (\N) but no other RE syntax.
 regexReplace :: Regexp -> Replacement -> String -> String
 regexReplace re = replaceRegex (toRegex re)
 
