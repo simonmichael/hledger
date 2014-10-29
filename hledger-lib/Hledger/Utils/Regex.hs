@@ -117,14 +117,12 @@ replaceBackReference :: MatchText String -> String -> String
 replaceBackReference grps ('\\':s@(_:_)) | all isDigit s =
   case read s of n | n `elem` indices grps -> fst (grps ! n)
                  _                         -> error' $ "no match group exists for backreference \"\\"++s++"\""
-replaceBackReference _ s = error' $ "replaceBackReference called on non-backreference \""++s++"\", shouldn't happen"
+replaceBackReference _ s = error' $ "replaceBackReference called on non-numeric-backreference \""++s++"\", shouldn't happen"
 
 --
 
 -- http://stackoverflow.com/questions/9071682/replacement-substition-with-haskell-regex-libraries :
--- | Replace all occurrences of a regexp in a string using a replacer
--- function, which receives the matched string as its argument.
--- Does not support backreferences or other RE syntax.
+-- | Replace all occurrences of a regexp in a string, transforming each match with the given function.
 replaceAllBy :: Regex -> (String -> String) -> String -> String
 replaceAllBy re f s = start end
   where
