@@ -1,55 +1,910 @@
-hledger project notes
-
-*We are all wandering the orderly halls of Castle Haskell.*
-
-*This whole plain is gunpowder a mile deep.*
-
-Abstractions: precise, elegant, reusable.
-Implementations: correct, efficient, maintainable.
-Documentation: clear, simple, accurate.
-
-A concept is tolerated inside the microkernel only if moving it
-outside the kernel, i.e. permitting competing implementations, would
-prevent the implementation of the system’s required functionality.
+hledger project dev notes
 
 * about
-This emacs org-mode outline contains Simon's project backlog, activity
-log, and random developer notes.  Currently only I use this file, but
-anyone can send a patch.
-** backlog
+An emacs org-mode outline containing old developer notes.
+No-one but Simon really uses it.
+* old backlog/wishlist
 Todos and wishlist items, roughly grouped by category and ordered by (my)
-priority. Used for planning, and often as a more lightweight bug
-tracker. Also contains..
-** estimates
-I keep effort-to-complete estimates on backlog tasks as N[dwm] at the end
-of the line following two spaces, meaning N hours, days, weeks or months,
-assuming 4 hours in day, 5 days in a week, and 4 weeks in a month.
-** burndown charts
-At some point there might be a process to aggregate estimates, log them
-(including deleted items as 0) on commit, and make burndown charts.
+priority. Used for planning, and often as a more lightweight bug tracker.
 
-* routines
-standard procedures/checklists for various activities
+There was an attempt to move this to trello, which didn't stick (but
+still exists).
 
+Estimates of the effort to complete backlog tasks may appear as
+N[dwm], following two spaces, at the end of the line, meaning N hours,
+days, weeks or months, assuming 4 hours in day, 5 days in a week, and
+4 weeks in a month.
+
+** errors
+*** balance: --drop without --flat should only drop top-level account name parts (or be ignored)
+*** balance (flow): show today as end date instead of end of current period ?
+*** cli: -p 'weekly in jan-feb' confusion, it should mean the same as 'weekly from jan to feb'
+*** cli: aliasing an account prefix to '' should work
+*** cli: don't list directories as addons (hledger-chart)
+*** csv: rule not setting comment
+if
+EDISON
+GAS COMPANY
+ account2 expenses:personal:home:utilities
+ comment household:
+*** add: default amount adds one decimal place when journal contains no decimals  2d
+*** add: excessive precision in default balancing amount  1d
+**** shelltest tests/add.test -- -t10
+**** find original justification or drop
+*** add: learn decimal point/thousands separator from the journal and/or add session ?  2d
+Eg: comma is already used as thousands separator in the journal, but add
+interprets it as decimal point giving a wrong default for amount 2 (though
+the correct journal transaction is written in this case)
+
+$ hledger -f t add
+Adding transactions to journal file "t".
+To complete a transaction, enter . (period) at an account prompt.
+To stop adding transactions, enter . at a date prompt, or control-d/control-c.
+date, or . to end [2011/09/30]: 
+description []: z
+account 1: a
+amount  1: 1,000
+account 2: b
+amount  2 [-1,0]: 
+account 3, or . to record: .
+date, or . to end [2011/09/30]: .
+$ cat t
+; journal created 2011-09-30 by hledger
+
+2011/09/30
+    a  $1,000,000.00
+    b
+
+2011/09/30 x
+    a          $1,2
+    b
+
+2011/09/30 y
+    a          $1.2
+    b
+
+2011/09/30 z
+    a         1,000
+    b
+
+*** web: unknown flag --port
+$ hledger web --port=5001 -f all.journal paypal
+hledger: Unknown flag: --port
+*** print: virtual posting parentheses throwing off layout
+*** bal: should --flat show inclusive or exclusive balances ??
+*** double quote matches everything ?  1
+*** web: stray bracket in journal edit form title  1
+*** web: enter doesn't work in add form completing fields  1d
+**** research this dhtmlxcombo issue
+*** parsing: assertion claiming wrong actual balance
+expected balance is $136.03, actual balance was $-1163.97.
+
+*** parsing: balance assertion doesn't work without a commodity symbol (takes = as one)
+*** parsing: is = B an assertion or an assignment ?
+*** parsing: decimal point/thousands separator confusion ?  1d
+<<<
+2011/09/30
+    a  $1,000,000.00
+    b
+
+2011/09/30 x
+    a          $1,2
+    b
+
+2011/09/30 y
+    a          $1.2
+    b
+>>> hledger -f t print
+2011/09/30
+    a  $1,000,000.00
+    b  $-1,000,000.00
+
+2011/09/30 x
+    a         $1.20
+    b        $-1.20
+
+2011/09/30 y
+    a         $1.20
+    b        $-1.20
+
+*** parsing: recursive file includes cause a hang  2
+echo "!include rec" > rec
+hledger -f rec print
+*** parsing: "could not balance" error does not show line number  1d
+*** parsing: extra noise with eg bad date parse errors  1d
+$ cat t.journal
+200/1/99 x
+  a  1
+  b
+$ ./hledger.hs -f t.journal print
+hledger.hs: could not parse journal data in t.journal
+"t.journal" (line 1, column 9):
+unexpected " "                      <- undesired
+expecting digit                     <- noise
+bad year number: 200
+
+*** parsing: confusing error when journal lacks a final newline  1d
+$ cat - >t.j
+2010/1/2
+  a  1
+  b<ctrl-d>
+$ hledger -f t.j bal
+hledger: could not parse journal data in t.j
+"t.j" (line 3, column 3):
+unexpected "b"
+expecting comment or new-line
+
+*** convert: 49 convert should report rules file parse errors better  1d
+*** not: does not work with date: etc.
+*** 25 hledger in windows console does not print non-ascii characters  3d
+http://stackoverflow.com/questions/10779149/unicode-console-i-o-in-haskell-on-windows
+http://hackage.haskell.org/trac/ghc/ticket/4471
+*** journalAddFile is called in reverse order of includes  2
+*** irr: flags require preceding --
+*** cli: not always possible to pass flags to subcommand
+** documentation
+*** hledger intro tutorial:
+**** what problem did ledger solve when I started ?
+***** I needed to track my time at work
+***** I needed a transparent, open, future-proof data format
+***** I needed simple, reliable, fixable software with no lock-in
+***** I wanted an accounting tool without distracting/frustrating unfixable usability/functionality bugs
+**** what problem did hledger solve when I started ?
+***** I neededed a better implementation of ledger (for me; that meant ie more installable, intuitive, documented, bug free, easy to hack on and extend)
+***** I needed to make consistent bookkeeping more fun and motivating
+***** I wanted a not-too-demanding learn haskell project
+***** I wanted reusable accounting libraries available in haskell for experiments
+***** I wanted to explore making an easy accounting app I could sell
+**** what problem is hledger solving now ?
+***** same as above ?
+*** doc: manual rewrites
+*** developer notes
+**** 2012/7 cleanup
+***** quick cleanup finance onwards  2
+***** add some estimates  1
+**** review/prune backlog  1
+**** estimate summing  1d
+***** research existing, ask in #orgmode
+***** org-sum
+**** burndown charts  2d
+***** research existing tools
+*** finalise/link 2012 survey  2
+*** document status flag better  1
+*** review/prune docs  1d
+*** announcements
+**** list
+***** release
+***** HCAR, twice yearly
+****** update entry & process
+*** short description
+**** collect/clarify
+hledger is a robust command-line accounting tool with a simple plain text data format.
+
+hledger is a reporting tool for accounting transactions stored in a simple human-editable text format.
+
+hledger is a computer program for easily tracking money, time, or other transactions, usually recorded in a general journal file with a simple human-editable markup format.
+
+hledger is primarily a reporting tool, but it can also help you add transactions to the journal, or convert from other data formats.
+
+hledger is a haskell port and friendly fork of John Wiegley's c++ ledger tool.
+
+hledger aims to be a reliable, practical, useful tool for (slightly geeky) users and a reusable library for haskell programmers interested in finance.
+
+hledger is quite simple in essence, aiming to be a reliable low-level parsing-and-reporting tool that doesn't get in your way.
+
+For some, it is a less complex, less expensive, more efficient alternative to Quicken or Quickbooks.
+
+hledger is available for free under the GNU General Public License.
+
+hledger reads plain text files (general journal, timelog, or CSV format) describing transactions (in money, time or other commodities) and prints the chart of accounts, account balances, or transactions you're interested in.
+
+hledger is a free program that helps you understand your finances, making calculations based on data stored a simple text file. If you prefer the command line and a text editor to a big gui application, hledger gives you the power of Quicken and Quickbooks without the complexity.
+
+Your financial data will outlive your financial software, so it should have longevity and accessibility. Its integrity is important to your peace of mind, so changes should be transparent and (if desired) version controlled. It may also be important to allow multiple authors to edit safely. A structured, easy-to-parse, human-friendly plain text format, as in the wiki world, provides a good balance of longevity, reliability, transparency and flexibility.
+
+hledger helps you track and understand your finances, making calculations based on data stored in a simple text file. If you prefer the command line and a text editor to a big gui application, hledger gives you the power of Quicken and Quickbooks without the complexity.
+
+Features: reads transactions in journal, timelog, or CSV format; handles multi-currency/multi-commodity transactions; prints the chart of accounts, account balances, or transactions you're interested in, quickly; scriptable.
+
+hledger is written in the Haskell programming language;
+it demonstrates a pure functional implementation of ledger.
+
+*** medium intro blurb
+**** collect/clarify
+***** README file
+***** hledger.hs module description
+***** hledger.cabal description field (exclude home page link)
+***** home page description (http://joyful.com/Hledger/editform)
+***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
+***** gmane description
+***** darcsweb description
+
+**** keep in sync
+***** refine process
+*** command-line docs
+**** keep usage info in sync
+***** Options.hs
+***** MANUAL.md
+**** browse/search manual content  2d
+*** feature list
+**** full  1
+**** short  1
+*** manual
+**** fix pre/toc overlap on manual  2
+**** clarify reference nature  1
+*** FAQ
+**** create/highlight  1d
+**** life cycle of top-level accounts
+For personal ledgers, when you're born, all accounts are at zero (one hopes) and as you live:
+
+1. Equity accounts accommodate your previous years of not maintaining accounts (fixed, probably negative) 
+
+2. Expense accounts become more and more positive (unavoidably) 
+
+3. Income accounts become more and more negative (on payday) 
+
+4. Assets Accounts become more and more positive (in good times) 
+
+5. Liability account become more positive (in good times, when you pay them off) and more negative (when you use them to buy things). 
+
+When you die, Equity: and Income: will stand at large negative balances,
+Expense: and Assets: will stand at large positive balances and Liabilities
+will have to be paid (out of Assets) before your heirs get what's left.
+
+adapted from Ben Alexander, ledger-cli
+
+*** website
+**** review stats  1h
+**** clean up stats  1d
+**** refresh
+*** progressive tutorial
+**** plan, begin  1d
+*** screencasts
+**** brainstorm
+***** intro
+****** intro to hledger
+******* place in the world
+******* basic installation
+******* quick demo
+******* where to go from here
+****** installing hledger on windows
+****** installing hledger on mac
+****** installing hledger on unix
+****** accessing hledger's support forums
+******* website
+******* mail list
+******* irc channel
+****** reporting a hledger bug
+***** using
+****** income/expense tracking
+****** time tracking
+****** downloading bank data
+****** reconciling with bank statement
+****** see time reports by day/week/month/project
+****** get accurate numbers for client billing and tax returns
+****** find unpaid invoices
+***** developing
+****** intro to hledger development
+****** testing hleder
+****** documenting hledger
+****** a hledger coding example
+****** a tour of hledger's code
+***** ledger cooperation
+*** blog posts
+*** examples/how-tos
+*** hledger/ledger comparison/feature matrix  1d
+*** improve aesthetics
+**** embed screenshots in web docs
+***** use highslide
+*** improve liveness
+**** show feeds on site ?
+***** commits
+**** cc/summarise repo activity to list ?
+*** developer guide
+**** clarify/merge developer guide  2h
+**** How to do anything that needs doing in the hledger project.
+***** website & documentation
+****** overview of hledger docs
+****** how the site is built
+****** convenience urls
+list.hledger.org - mail list
+bugs.hledger.org - issue tracker
+bugs.hledger.org/1 - go to specific issue
+bugs.hledger.org/new - create a new issue
+hledger.org/{list,bugs}/* also works
+
+***** issue tracking
+***** testing
+
+hledger's unit tests and a simple test runner are built in. They can
+be run several ways:
+
+$ hledger test [PAT]
+$ make unittest
+$ make autotest
+
+They can also be built as a separate executable, in case needed for
+cabal test. (?) This requires test-framework, which may not work on
+windows.
+
+$ make unittest-standalone
+
+hledger's functional tests are a set of @shelltestrunner@ tests defined
+by .test files in the tests\/ subdirectory.
+
+$ make functest
+
+Shell tests can also be defined as doctests, literal blocks embedded
+in modules' haddock docs, though this is hardly used. For example:
+
+@
+$ bin\/hledger -f data\/sample.journal balance o
+                  $1  expenses:food
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+--------------------
+                 $-1
+@
+
+$ make doctest
+
+***** coding
+***** funding process
+****** donation blurb
+If you like <a href="http://joyful.com/repos/project">project</a> or have
+benefited from it, you can give back by making one-time or periodic
+donations of any amount. This also allows me to offer further
+enhancements, maintenance and support for this project. Thanks!
+**** reference
+***** unsafe things which may fail at runtime include..
+****** incomplete pattern matching
+****** error
+****** printf
+****** read
+*** api docs
+*** darcs show authors
+**** clean up output  2
+***** trygve
+***** encoding
+eg in text-mode emacs 24
+*** roadmap
+**** review old
+***** 1.0
+culmination of 0.x releases - stable/usable/documented
+followup releases are 1.01, 1.02..
+GHC 6.12/HP 2010 primary platform
+GHC 6.10/HP 2009 also supported if possible
+GHC 6.8 might work for core features, but not officially supported
+separate ledger package ? license ?
+separate vty, web packages ?
+support plugins ?
+web: loli+hsp+hack+simpleserver/happstack, or yesod+hstringtemplate+wai+simpleserver/happstack ?
+add: completion ?
+chart: register charts ?
+histogram: cleaned up/removed
+complete user manual
+binaries for all platforms ?
+
+***** 2.0
+development releases are.. 1.60, 1.61.. or 1.98.01, 1.98.02..
+separate ledger lib
+plugins
+Decimal
+binaries for all platforms
+
+*** internal code docs
+*** live demos/talks
+** marketing
+*** reference
+http://www.geekwire.com/2013/marketing-advice-startups/
+** finance
+*** develop funding process
+**** donate button, see chimoo guy
+**** funding document 2009/01
+***** text
+=======
+funding
+=======
+
+vision
+======
+
+     How to grow the hledger project ?
+
+     I'm looking for ways to fund active and sustainable hledger
+     development by me and others.
+
+     A secondary goal is to develop new sustainable models and processes
+     for funding free software developers and other community projects.
+
+     This is sometimes the point in a free sw project's development where
+     the project leader seemingly loses the plot, alienates contributors
+     and destroys the community's good-will dynamic.  I've seen it many
+     times, but a few have succeeded and I want to be one of them - so
+     that I can eat, have a modicum of stability and do my best work in
+     service to the community.  At worst, I'll look bad but the project
+     will still be out there. At best I'll live more easily and joyfully
+     while serving the cause of Financial Solvency!
+
+     So I'm beginning by posting these notes and inviting your thoughts -
+     as much or as little as folks want to give. How could we do this 
+     so that all benefit ?
+     
+funding models
+==============
+     Brainstorming some possible funding models & processes.
+
+     * grants
+
+      How to find possible grant sources ?
+
+      * con
+
+       * getting grant funding is a whole new field to study
+       * slow and time intensive, I imagine
+
+     * donations
+
+      Solicit donations.
+
+      * pro
+
+       * simple
+
+      * con
+
+       * often difficult
+       * donators do not feel a direct benefit
+
+     * shareware
+
+      Release the project under a non-free license, requiring commercial
+      users to pay the fee on an honour basis (eg).
+
+      * pro
+
+       * flexible, low administration, encourages trust
+
+      * con
+
+       * effectively closed-source ? would inhibit collaboration
+       * benefit is still indirect, only a proportion will pay
+       * enforcement/guilt may come into play
+
+     * limited-time premium branch
+
+      The funded version of hledger gets some desirable premium features
+      before the free version and is closed-source.  Funders/customers pay
+      a fixed price for immediate access to the funded version.  Yearly, a
+      new funded version is released and the old funded version is merged
+      into the free version.  (To gain experience it could be done on a
+      smaller scale, eg monthly/quarterly.)
+
+      * pro
+
+       * all features reach community, predictably
+       * customers are also community funders
+       * customers receive direct benefit from paying
+
+      * con
+
+       * free sw developers compete/outshine the premium branch
+
+     * bounties
+
+      Some (or all) feature, bugfix, project management or other tasks are
+      published with a bounty attached.  When the bounty is paid by one or
+      more funders, the task is performed and delivered. Or, bounty is paid
+      on completion of task (honour system).
+
+      * pro
+
+       * funders receive direct benefit
+
+     * bounties using fundable.org (eg)
+
+      A more organised form of the above, perhaps facilitating trust,
+      co-funding and larger bounties.
+
+      * pro
+
+       * proven process developed by others
+
+      * con
+
+       * fundable takes a cut
+
+     * hosted service
+
+      Offer hosted and managed ledgers, perhaps with premium features, for
+      a monthly fee
+
+      * pro
+
+       * proven model
+       * clear benefit to customers, especially non-technies
+
+      * con
+ 
+       * success of free/self-installed version competes with hosting service
+       * some will avoid web-hosting their financial data
+
+     * customisation
+
+      Offer per-user customisations, possibly to be merged in the trunk,
+      for a fee
+
+     * support
+
+      Offer user/developer support for a fee
+
+     * training
+
+      Offer application and/or financial training for a fee
+
+     * profit sharing/tithing
+
+      Each period (quarter, half-year, year), donate 10% (eg) to project
+      contributors and/or supporting projects
+
+     * transparent funding
+
+      Funding and usage of funds is published on the web as a ledger
+
+     * opaque funding
+
+      All funding and spending need not be made public
+
+strengths
+=========
+     hledger has some aptitudes in this area:
+
+    * hledger deals with money => hledger users will tend to have some money
+    * hledger's purpose is to increase financial success => users will feel its value to their bottom line
+    * hledger is a tool that can support project funding, eg by publishing community funding data
+
+weaknesses
+==========
+    * hledger doesn't have a nice ui yet
+    * hledger has a limited featureset
+    * hledger requires work, eg data entry and chart of accounts maintenance
+    * hledger is geeky
+    * there is competition
+    * hledger has no compelling market niche (aside from payment-averse free software users)
+
+competitors/fellow niche inhabitants
+====================================
+
+    * web apps
+
+     * netsuite
+     * sql-ledger, ledgersmb
+     * wesabe
+     * ...
+
+    * desktop apps
+
+     * quickbooks
+     * quicken
+     * ms money
+     * grisbi
+     * gnucash
+     * excel
+     * ledger!
+     * ...
+
+***** responses
+****** albino
+       have you considered talking to business who hate their financial sw and going from there
+****** gwern
+       most haskellers have never heard of hledger, sounds arrogant or hubristic to talk of charging for it
+
+**** license change ?
+**** home edition
+**** real-time project ledger
+**** in-place transaction editing fund drive
+
+Fund drive: hledger-web in-place transaction editing
+
+Goal: I would like to raise $X or more to fund basic in-place
+transaction editing for hledger-web. hledger-web is a web-based GUI for
+hledger (and ledger), which are free/open-source accounting programs
+providing a lean and efficient alternative to quicken, gnucash, mint.com
+etc.
+
+Current hledger-web[1] has simple web forms for adding transactions and
+for editing the whole journal, but there is no easy ui for editing a
+single existing transaction. Such a ui is an important step towards making
+hledger (and ledger) usable by non techies, which would greatly expand
+these tools' applicability and potential user/contributor base.
+
+Plan: do the front-end javascript and backend haskell work required to
+support:
+
+- click date, description, account or amount cells in a register view to make that cell editable
+- tab moves to the next cell
+- enter or click on save button updates the transaction in the journal, overwriting/rewriting the whole file
+- tested in firefox/chrome/safari
+
+The proposed amount will fund about 10 hours of work, so the above
+features must be implemented very expeditiously. Other improvements will
+be tackled in a followup fund drive if this one succeeds (or in this one
+if the funding goal is exceeded.) Those future items include:
+
+- history/content awareness, smart defaults and auto-completion wherever useful
+- date picker widget
+- ability to add/remove postings
+- ability to edit metadata/tags
+- ability to edit other transaction/posting fields
+- ledger compatibility
+- compatibility testing/fixes for all the major browsers
+- edit conflict checking - don't overwrite concurrent external edits
+- try harder to preserve existing file layout/co-exist better with external edits
+- a similar ui for adding new transactions
+- pleasant visual style
+
+Also, 10% of the amount raised will be tithed to three contributing
+projects or developers (ledger and two others of my choice.)
+
+This project will go forward if
+
+[1] http://demo.hledger.org:5001
+** testing
+*** test running improvements
+**** test: duplicate runs
+$ hledger test 'showTransaction$'
+Cases: 6  Tried: 0  Errors: 0  Failures: 0([],"")
+### Failure in: 0:showTransaction
+show a balanced transaction, eliding last amount
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking        \n\n\n"
+Cases: 6  Tried: 1  Errors: 0  Failures: 1([],"")
+### Failure in: 1:showTransaction
+show a balanced transaction, no eliding
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking               $-47.18\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking               $-47.18\n([],"")
+\n\n"
+Cases: 6  Tried: 2  Errors: 0  Failures: 2([],"")
+### Failure in: 2:showTransaction
+show an unbalanced transaction, should not elide
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking               $-47.19\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking               $-47.19\n([],"")
+\n\n"
+Cases: 6  Tried: 3  Errors: 0  Failures: 3([],"")
+### Failure in: 3:showTransaction
+show an unbalanced transaction with one posting, should not elide
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n\n"
+Cases: 6  Tried: 4  Errors: 0  Failures: 4([],"")
+### Failure in: 4:showTransaction
+show a transaction with one posting and a missing amount
+expected: "2007/01/28 coopportunity\n    expenses:food:groceries              \n\n"
+ but got: "2007/01/28 coopportunity\n    expenses:food:groceries              \n\n\n"
+Cases: 6  Tried: 5  Errors: 0  Failures: 5([],"")
+### Failure in: 5:showTransaction
+show a transaction with a priced commodityless amount
+expected: "2010/01/01 x\n    a        1 @ $2\n    b              \n\n"
+ but got: "2010/01/01 x\n    a        1 @ $2\n\n    b              \n([],"")
+\n\n"
+Cases: 6  Tried: 6  Errors: 0  Failures: 6
+  1
+**** stop on first failure
+**** run tests in bottom up order
+*** envision better test setup
+**** every parser has a test and is easy to test
+**** easy to run any single test or module's tests
+**** tests run bottom up by default
+**** test runner can select tests precisely eg by regexp
+**** test runner stops at first failure by default
+
+*** documentation
+**** site up, current ?
+**** demo up, current ?
+**** haddock building, current ?
+**** doctests ?
+*** unit
+**** hunit
+**** quickcheck
+**** easier unit test development
+*** functional
+**** ledger file parsing tests
+***** test all ledger file format features
+***** clarify hledgerisms in file format - that hledger can read but ledger can't
+**** ledger 3 baseline tests
+**** MaybeSo subtotal rounding issue
+I had a question about balance totals. Given this test data: 
+
+$ cat test.dat 
+D $1,000.00 
+P 2011-01-01 22:00:00-0800 TESTA $78.35 
+P 2011-01-01 22:00:00-0800 TESTB $15.86 
+P 2011-01-01 22:00:09-0800 TESTC $13.01 
+
+2011/01/01 Example 
+  Assets:Brokerage:TESTA         188.424 TESTA @      $76.61 
+  Assets:Brokerage:TESTB       1,809.282 TESTB @      $15.60 
+  Assets:Brokerage:TESTC         384.320 TESTC @@  $5,000.00 
+  Assets:Brokerage:TESTC           5.306 TESTC @@     $68.18 
+  Equity:Opening Balances 
+
+I'm a little bit surprised that the sub-accounts 
+reflect a difference from the top level account 
+w/re to rounding the last cent: 
+
+$ ledger -V -f test.dat  bal 
+          $48,527.27  Assets:Brokerage 
+          $14,763.02    TESTA 
+          $28,695.21    TESTB 
+           $5,069.03    TESTC 
+         $-47,728.14  Equity:Opening Balances 
+-------------------- 
+             $799.13 
+
+Even if --no-rounding is passed in: 
+
+$ ledger -V -f test.dat --no-rounding bal 
+          $48,527.27  Assets:Brokerage 
+          $14,763.02    TESTA 
+          $28,695.21    TESTB 
+           $5,069.03    TESTC 
+         $-47,728.14  Equity:Opening Balances 
+-------------------- 
+             $799.13 
+
+Is there something off with how the data aboce is set up?  Should I be 
+using be more place holders? 
+*** performance
+**** reference
+http://stackoverflow.com/questions/3276240/tools-for-analyzing-performance-of-a-haskell-program/3276557#3276557
+**** speed, benchmark tests
+**** memory usage
+*** build & packaging
+**** use -Wall and anything else useful
+**** build with multiple ghc versions
+**** cabal test
+**** hackage upload
+**** cabal install with:
+***** ghc 6.8
+***** ghc 6.10.x
+***** windows
+***** linux
+***** macos
+***** no flags
+***** happs flag
+***** vty flag
+*** field
+**** talkback, auto bug reports
+**** usability
+**** download & usage stats
+** packaging, installability
+*** linux
+*** mac
+***** easy installer
+***** easy startup
+*** windows
+***** easy installer
+***** easy startup
+** refactoring
+*** clarify need for & usage of primary/secondary/transaction/posting dates
+*** makefile cleanups
+*** make shell tests version independent
+tests/no-such-file.test: rm -f $$; bin/hledger register -f $$; rm -f $$
+tests/no-such-file.test: rm -f $$; bin/hledger balance --no-total -f $$; rm -f $$
+tests/add.test: rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
+tests/add.test: rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
+tests/add.test: rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
+tests/add.test: printf 'D $1000.00\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+tests/add.test: printf 'D $1000.0\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+tests/add.test: printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+tests/add.test: printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+tests/add.test: printf 'D $1000.0\nD £1,000.00\n' >t$$.j; bin/hledger -f t$$.j add; cat t$$.j; rm -f t$$.j
+tests/add.test:rm -f nosuch.journal; bin/hledger -f nosuch.journal add; rm -f nosuch.journal
+tests/add.test:## printf '\n\na\n1\nb\n' | bin/hledger -f /dev/null add
+tests/add.test:# bin/hledger -f /dev/null add
+tests/amount-layout-vertical.test:# bin/hledger -f - print
+tests/amount-layout-vertical.test:# bin/hledger -f - register
+tests/amount-layout-vertical.test:# bin/hledger -f - balance
+tests/parse-posting-error-pos.test:# bin/hledger -f- stat
+tests/null-accountname-component.test:# bin/hledger -f - balance -E
+tests/include.test: mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010/1/1\n (C)  1\n!include d/d.journal\n' >b/c/c.journal ; printf '2010/1/1\n (B)  1\n!include c/c.journal\n' >b/b.journal ; printf '2010/1/1\n (A)  1\n!include b/b.journal\n' >a.journal ; bin/hledger -f a.journal print; rm -rf a.journal b
+tests/timelog-stack-overflow.test:#bin/hledger -f - balance
+tests/precision.test:# bin/hledger -f - print --cost
+tests/precision.test: bin/hledger -f - balance --cost
+tests/timezone.test:# bin/hledger -f - balance --no-total --cost
+tests/read-csv.test:rm -rf t.rules$$; printf 'date-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+tests/read-csv.test: printf 'base-account Assets:MyAccount\ndate-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\nin-field 2\nout-field 3\ncurrency $\n' >$$.rules ; bin/hledger -f- print --rules-file $$.rules; rm -rf $$.rules
+tests/read-csv.test:# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger convert --rules-file t.rules$$; rm -rf t.rules$$
+tests/prices.test:# bin/hledger -f - print
+
+*** abstract DataSource
+*** review/simplify apis
+**** simplify option types
+*** more modularity
+**** packages/namespace
+***** hledger-datasource?
+**** plugin strategy
+**** export lists
+**** graph and reduce dependencies
+*** switch to http-conduit
+*** include latest jquery, jquery-url, minified and non
+http://ajaxcssblog.com/jquery/url-read-request-variables/
+*** clarify levels of abstraction
+**** web ui balance sheet view - data model, view layout
+**** hledger web framework - define routes, handlers/views/actions/controllers/presenters, skins/styles..
+**** happstack - ? happstack api..
+**** hledger app platform - hledger.hs, Options, Utils, withLedgerDo..
+**** hledger lib - Ledger, TimeLog, Account, Transaction, Commodity..
+**** hledger dev platform - make build, ci, test, bench, prof, check, release..
+**** general libs - directory, parsec, regex-*, HUnit, time..
+**** cabal - hledger.cabal, hackage..
+**** ghc - ghc 6.8, 6.10..
+**** haskell 98
+**** unix/windows/mac platform
+*** inspiration
+http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
+*** perf tuning experiments
+**** string -> text
+**** strict data fields
+**** more profiling
+**** faster parsec alternative
+*** web: code/ui review/refactor
+**** convert all to HTF ?
+*** plugin architecture/modular packaging
+**** goals
+***** allow separately-packaged functionality to be discovered at run-time and integrated within the hledger ui.
+Example: user installs hledger-ofx package from hackage, or adds Ofx.hs to their ~/.hledger/plugins/;
+then "ofx" is among the commands listed by hledger --help, and/or is a new command available in
+the web and vty interfaces, and/or is a new file format understood by the convert command.
+**** issues to consider
+***** what is the api for plugins ?
+they'll want to import Ledger lib, to work with ledger data structures
+
+***** there are different kinds of "plugin". What could plugins provide ?
+****** commands - for all uis, or for one or more of them (cli, web, vty..). A command may itself be a new ui.
+****** import/export formats
+****** skins/styles/templates for uis, eg the web ui ?
+**** techniques to consider
+***** running executables provided by plugins
+a cli command plugin: cli execs the executable with same arguments
+a web command plugin: web ui runs the executable as a subprocess and captures the output
+***** linking plugins into main app with direct-plugins
+simplification of plugins lib
+main app needs to know the types used in plugin's interface
+weakens type safety, avoiding runtime errors requires extra care
+requires whole-program linking at plugin load time
+plugins can be discovered by querying ghc for installed packages or modules in a known part of the hierarchy
+maintained and keen to help
+***** linking plugins into main app with plugins (original)
+more complex than above
+more type-safe/featureful ?
+***** doing whatever xmonad does with dyre
+***** interpreting plugins under control of main app with hint
+ghci in an IO-like monad
+types need converting, etc.
+plugins may run more slowly
+plugins can be discovered/loaded by module path or by loading files directly
 * misc
 ** inspiration
-"...simplicity of design was the most essential, guiding principle.
-Clarity of concepts, economy of features, efficiency and reliability of
-implementations were its consequences." --Niklaus Wirth
-
-"The competent programmer is fully aware of the limited size of his own
-skull. He therefore approaches his task with full humility, and avoids
-clever tricks like the plague." --Edsger Dijkstra
-
-"I was hesitating to cross the street in Edinburgh one day, and these two
-little old Scottish ladies cried out to me 'LIVE DANGEROUSLY, SON! LIVE
-DANGEROUSLY'" --kowey
-
-ALL THAT'S NEEDED IS THE DESIRE TO BE HEARD. THE WILL TO LEARN. AND THE
-ABILITY TO SEE.  --Scott McCloud, Understanding Comics
-
-"I kept account of every farthing I spent..." --Gandhi, Autobiography
-http://books.google.com/books?id=OXoRs7Kxs_YC&lpg=PA47&ots=Q-JUe-6Rq5&dq=%22I%20kept%20account%20of%20every%20farthing%20I%20spent%22&pg=PA47#v=onepage&q=%22I%20kept%20account%20of%20every%20farthing%20I%20spent%22&f=false
+*** We are all wandering the orderly halls of Castle Haskell.
+*** This whole plain is gunpowder a mile deep.
+*** Abstractions: precise, elegant, reusable.
+    Implementations: correct, efficient, maintainable.
+    Documentation: clear, simple, accurate.
+*** A concept is tolerated inside the microkernel only if moving it
+   outside the kernel, i.e. permitting competing implementations, would
+   prevent the implementation of the system’s required functionality.
+*** "...simplicity of design was the most essential, guiding principle.
+    Clarity of concepts, economy of features, efficiency and reliability of
+    implementations were its consequences." --Niklaus Wirth
+*** "The competent programmer is fully aware of the limited size of his own
+    skull. He therefore approaches his task with full humility, and avoids
+    clever tricks like the plague." --Edsger Dijkstra
+*** "I was hesitating to cross the street in Edinburgh one day, and these two
+    little old Scottish ladies cried out to me 'LIVE DANGEROUSLY, SON! LIVE
+    DANGEROUSLY'" --kowey
+*** "I kept account of every farthing I spent..." --Gandhi, Autobiography
+    http://books.google.com/books?id=OXoRs7Kxs_YC&lpg=PA47&ots=Q-JUe-6Rq5&dq=%22I%20kept%20account%20of%20every%20farthing%20I%20spent%22&pg=PA47#v=onepage&q=%22I%20kept%20account%20of%20every%20farthing%20I%20spent%22&f=false
 
 ** principles
 *** we aim to make reliable, maintainable, usable, useful software, sustainably.
@@ -60,6 +915,9 @@ http://books.google.com/books?id=OXoRs7Kxs_YC&lpg=PA47&ots=Q-JUe-6Rq5&dq=%22I%20
 *** test continuously, test everything
 *** less is more
 *** code review/pair programming
+
+** routines
+standard procedures/checklists for various activities
 
 ** things I want to know about money and time
 *** time
@@ -872,8 +1730,6 @@ ExitFailure (-1073741819)
 ** performance tuning
 http://stackoverflow.com/questions/3276240/tools-for-analyzing-performance-of-a-haskell-program/3276557#3276557
 
-** good list of cost of ownership questions
-http://felixge.de/2013/03/07/open-source-and-responsibility.html
 ** writing tips
 *** tekmo
 **** orig
@@ -962,1176 +1818,7 @@ eyes after every full night's rest.
 ***** Spend lots of time rewriting for articles that you care a lot about
 ***** You always view your own writing with fresh eyes after every full night's rest.
 
-** good list of cost of ownership questions
-http://felixge.de/2013/03/07/open-source-and-responsibility.html
-* log
-partial activity log
-** 2010
-*** 5/4
-**** balance sheet pomodoro 1
-started balance sheet script
-began refactoring for importable Hledger.Cli.*
-set up missing tools on netbook: haskell-mode
-adapt to distro & ghc 6.12 upgrade
- install missing cabal packages
- tighten dependency to avoid testpack 2.0 api change
- ghc-pkg dump error
-**** balance sheet pomodoro 2
-set up work log
-adapt to distro & ghc 6.12 upgrade: ghc-pkg dump error (cabal clean)
-tools setup: hasktags
-move Options to Hledger.Cli
-got trivial balancesheet script working
-deal with darcs mv screwup
-*** 5/6
-**** review/cleanup pomodoro
-review/record pending changes
-develop work log/backlog
-website hakyll conversion
-*** 5/19
-researched current web libs
-finished move to Hledger module space
-cleaned up notes
-*** 5/20
-converted manual to markdown
-more detailed installation docs
-*** 5/21
-upgraded hakyll
-fixed hakyll/pandoc quotes issue
-*** 5/22
-refactored journal/ledger construction
-updated benchmarks
-resolved register memory leak
-*** 5/23
-clarified Journal & Ledger roles
-various 6.12, utf8 and other fixes
-released 0.10
-
-*** 5/24
-implemented --flat, --drop
-*** 5/25
-support, investigated rounding issue
-** 2011
-*** optionsgeddon oh my god
-**** old help
-Usage: hledger [OPTIONS] COMMAND [PATTERNS]
-       hledger [OPTIONS] convert CSVFILE
-
-Reads your ~/.journal file, or another specified by $LEDGER or -f, and
-runs the specified command (may be abbreviated):
-
-  add       - prompt for new transactions and add them to the journal
-  balance   - show accounts, with balances
-  convert   - show the specified CSV file as a hledger journal
-  histogram - show a barchart of transactions per day or other interval
-  print     - show transactions in journal format
-  register  - show transactions as a register with running balance
-  stats     - show various statistics for a journal
-  test      - run self-tests
-
-hledger options:
-  -f FILE  --file=FILE        use a different journal/timelog file; - means stdin
-           --no-new-accounts  don't allow to create new accounts
-  -b DATE  --begin=DATE       report on transactions on or after this date
-  -e DATE  --end=DATE         report on transactions before this date
-  -p EXPR  --period=EXPR      report on transactions during the specified period
-                              and/or with the specified reporting interval
-  -C       --cleared          report only on cleared transactions
-  -U       --uncleared        report only on uncleared transactions
-  -B       --cost, --basis    report cost of commodities
-           --depth=N          hide accounts/transactions deeper than this
-  -d EXPR  --display=EXPR     show only transactions matching EXPR (where
-                              EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)
-           --effective        use transactions' effective dates, if any
-  -E       --empty            show empty/zero things which are normally elided
-  -R       --real             report only on real (non-virtual) transactions
-           --flat             balance: show full account names, unindented
-           --drop=N           balance: with --flat, elide first N account name components
-           --no-total         balance: hide the final total
-  -D       --daily            register, stats: report by day
-  -W       --weekly           register, stats: report by week
-  -M       --monthly          register, stats: report by month
-  -Q       --quarterly        register, stats: report by quarter
-  -Y       --yearly           register, stats: report by year
-  -v       --verbose          show more verbose output
-           --debug            show extra debug output; implies verbose
-           --binary-filename  show the download filename for this hledger build
-  -V       --version          show version information
-  -h       --help             show command-line usage
-
-DATES can be y/m/d or smart dates like "last month".  PATTERNS are regular
-expressions which filter by account name.  Prefix a pattern with desc: to
-filter by transaction description instead, prefix with not: to negate it.
-When using both, not: comes last.
-
-**** attempts
-***** original getopts
-progname_cli = "hledger"
-
--- | The program name which, if we are invoked as (via symlink or
--- renaming), causes us to default to reading the user's time log instead
--- of their journal.
-progname_cli_time  = "hours"
-
-usage_preamble_cli =
-  "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
-  "       hledger [OPTIONS] convert CSVFILE\n" ++
-  "\n" ++
-  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
-  "runs the specified command (may be abbreviated):\n" ++
-  "\n" ++
-  "  add       - prompt for new transactions and add them to the journal\n" ++
-  "  balance   - show accounts, with balances\n" ++
-  "  convert   - show the specified CSV file as a hledger journal\n" ++
-  "  histogram - show a barchart of transactions per day or other interval\n" ++
-  "  print     - show transactions in journal format\n" ++
-  "  register  - show transactions as a register with running balance\n" ++
-  "  stats     - show various statistics for a journal\n" ++
-  "  test      - run self-tests\n" ++
-  "\n"
-
-usage_options_cli = usageInfo "hledger options:" options_cli
-
-usage_postscript_cli =
- "\n" ++
- "DATES can be y/m/d or smart dates like \"last month\".  PATTERNS are regular\n" ++
- "expressions which filter by account name.  Prefix a pattern with desc: to\n" ++
- "filter by transaction description instead, prefix with not: to negate it.\n" ++
- "When using both, not: comes last.\n"
-
-usage_cli = concat [
-             usage_preamble_cli
-            ,usage_options_cli
-            ,usage_postscript_cli
-            ]
-
--- | Command-line options we accept.
-options_cli :: [OptDescr Opt]
-options_cli = [
-  Option "f" ["file"]         (ReqArg File "FILE")   "use a different journal/timelog file; - means stdin"
- ,Option "b" ["begin"]        (ReqArg Begin "DATE")  "report on transactions on or after this date"
- ,Option "e" ["end"]          (ReqArg End "DATE")    "report on transactions before this date"
- ,Option "p" ["period"]       (ReqArg Period "EXPR") ("report on transactions during the specified period\n" ++
-                                                      "and/or with the specified reporting interval\n")
- ,Option "C" ["cleared"]      (NoArg  Cleared)       "report only on cleared transactions"
- ,Option "U" ["uncleared"]    (NoArg  UnCleared)     "report only on uncleared transactions"
- ,Option "B" ["cost","basis"] (NoArg  CostBasis)     "report cost of commodities"
- ,Option ""  ["alias"]        (ReqArg Alias "ACCT=ALIAS")  "display ACCT's name as ALIAS in reports"
- ,Option ""  ["depth"]        (ReqArg Depth "N")     "hide accounts/transactions deeper than this"
- ,Option "d" ["display"]      (ReqArg Display "EXPR") ("show only transactions matching EXPR (where\n" ++
-                                                       "EXPR is 'dOP[DATE]' and OP is <, <=, =, >=, >)")
- ,Option ""  ["effective"]    (NoArg  Effective)     "use transactions' effective dates, if any"
- ,Option "E" ["empty"]        (NoArg  Empty)         "show empty/zero things which are normally elided"
- ,Option ""  ["no-elide"]     (NoArg  NoElide)       "no eliding at all, stronger than -E (eg for balance report)"
- ,Option "R" ["real"]         (NoArg  Real)          "report only on real (non-virtual) transactions"
- ,Option ""  ["flat"]         (NoArg  Flat)          "balance: show full account names, unindented"
- ,Option ""  ["drop"]         (ReqArg Drop "N")      "balance: with --flat, elide first N account name components"
- ,Option ""  ["no-total"]     (NoArg  NoTotal)       "balance: hide the final total"
- ,Option "D" ["daily"]        (NoArg  DailyOpt)      "register, stats: report by day"
- ,Option "W" ["weekly"]       (NoArg  WeeklyOpt)     "register, stats: report by week"
- ,Option "M" ["monthly"]      (NoArg  MonthlyOpt)    "register, stats: report by month"
- ,Option "Q" ["quarterly"]    (NoArg  QuarterlyOpt)  "register, stats: report by quarter"
- ,Option "Y" ["yearly"]       (NoArg  YearlyOpt)     "register, stats: report by year"
- ,Option ""  ["no-new-accounts"] (NoArg NoNewAccts)  "add: don't allow creating new accounts"
- ,Option "r" ["rules"]        (ReqArg RulesFile "FILE") "convert: rules file to use (default:JOURNAL.rules)"
- ,Option "F" ["format"]       (ReqArg ReportFormat "STR") "use STR as the format"
- ,Option "v" ["verbose"]      (NoArg  Verbose)       "show more verbose output"
- ,Option ""  ["debug"]        (NoArg  Debug)         "show extra debug output; implies verbose"
- ,Option ""  ["binary-filename"] (NoArg BinaryFilename) "show the download filename for this hledger build"
- ,Option "V" ["version"]      (NoArg  Version)       "show version information"
- ,Option "h" ["help"]         (NoArg  Help)          "show command-line usage"
- ]
-
--- | An option value from a command-line flag.
-data Opt = 
-    File          {value::String}
-    | NoNewAccts
-    | Begin       {value::String}
-    | End         {value::String}
-    | Period      {value::String}
-    | Cleared
-    | UnCleared
-    | CostBasis
-    | Alias       {value::String}
-    | Depth       {value::String}
-    | Display     {value::String}
-    | Effective
-    | Empty
-    | NoElide
-    | Real
-    | Flat
-    | Drop        {value::String}
-    | NoTotal
-    | DailyOpt
-    | WeeklyOpt
-    | MonthlyOpt
-    | QuarterlyOpt
-    | YearlyOpt
-    | RulesFile   {value::String}
-    | ReportFormat {value::String}
-    | Help
-    | Verbose
-    | Version
-    | BinaryFilename
-    | Debug
-    -- XXX add-on options, must be defined here for now
-    -- vty
-    | DebugVty
-    -- web
-    | BaseUrl     {value::String}
-    | Port        {value::String}
-    -- chart
-    | ChartOutput {value::String}
-    | ChartItems  {value::String}
-    | ChartSize   {value::String}
-    deriving (Show,Eq)
-
--- these make me nervous
-optsWithConstructor f opts = concatMap get opts
-    where get o = [o | f v == o] where v = value o
-
-optsWithConstructors fs opts = concatMap get opts
-    where get o = [o | any (== o) fs]
-
-optValuesForConstructor f opts = concatMap get opts
-    where get o = [v | f v == o] where v = value o
-
-optValuesForConstructors fs opts = concatMap get opts
-    where get o = [v | any (\f -> f v == o) fs] where v = value o
-
--- | Parse the command-line arguments into options and arguments using the
--- specified option descriptors. Any smart dates in the options are
--- converted to explicit YYYY/MM/DD format based on the current time. If
--- parsing fails, raise an error, displaying the problem along with the
--- provided usage string.
-parseArgumentsWith :: [OptDescr Opt] -> IO ([Opt], [String])
-parseArgumentsWith options = do
-  rawargs <- map fromPlatformString `fmap` getArgs
-  parseArgumentsWith' options rawargs
-
-parseArgumentsWith' options rawargs = do
-  let (opts,args,errs) = getOpt Permute options rawargs
-  opts' <- fixOptDates opts
-  let opts'' = if Debug `elem` opts' then Verbose:opts' else opts'
-  if null errs
-   then return (opts'',args)
-   else argsError (concat errs) >> return ([],[])
-
-argsError :: String -> IO ()
-argsError = ioError . userError' . (++ " Run with --help to see usage.")
-
--- | Convert any fuzzy dates within these option values to explicit ones,
--- based on today's date.
-fixOptDates :: [Opt] -> IO [Opt]
-fixOptDates opts = do
-  d <- getCurrentDay
-  return $ map (fixopt d) opts
-  where
-    fixopt d (Begin s)   = Begin $ fixSmartDateStr d s
-    fixopt d (End s)     = End $ fixSmartDateStr d s
-    fixopt d (Display s) = -- hacky
-        Display $ regexReplaceBy "\\[.+?\\]" fixbracketeddatestr s
-        where fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
-    fixopt _ o            = o
-
--- | Figure out the overall date span we should report on, based on any
--- begin/end/period options provided. If there is a period option, the
--- others are ignored.
-dateSpanFromOpts :: Day -> [Opt] -> DateSpan
-dateSpanFromOpts refdate opts
-    | not (null popts) = case parsePeriodExpr refdate $ last popts of
-                         Right (_, s) -> s
-                         Left e       -> parseerror e
-    | otherwise = DateSpan lastb laste
-    where
-      popts = optValuesForConstructor Period opts
-      bopts = optValuesForConstructor Begin opts
-      eopts = optValuesForConstructor End opts
-      lastb = listtomaybeday bopts
-      laste = listtomaybeday eopts
-      listtomaybeday vs = if null vs then Nothing else Just $ parse $ last vs
-          where parse = parsedate . fixSmartDateStr refdate
-
--- | Figure out the reporting interval, if any, specified by the options.
--- If there is a period option, the others are ignored.
-intervalFromOpts :: [Opt] -> Interval
-intervalFromOpts opts =
-    case (periodopts, intervalopts) of
-      ((p:_), _)            -> case parsePeriodExpr (parsedate "0001/01/01") p of
-                                Right (i, _) -> i
-                                Left e       -> parseerror e
-      (_, (DailyOpt:_))     -> Days 1
-      (_, (WeeklyOpt:_))    -> Weeks 1
-      (_, (MonthlyOpt:_))   -> Months 1
-      (_, (QuarterlyOpt:_)) -> Quarters 1
-      (_, (YearlyOpt:_))    -> Years 1
-      (_, _)                -> NoInterval
-    where
-      periodopts   = reverse $ optValuesForConstructor Period opts
-      intervalopts = reverse $ filter (`elem` [DailyOpt,WeeklyOpt,MonthlyOpt,QuarterlyOpt,YearlyOpt]) opts
-
-rulesFileFromOpts :: [Opt] -> Maybe FilePath
-rulesFileFromOpts opts = listtomaybe $ optValuesForConstructor RulesFile opts
-    where
-      listtomaybe [] = Nothing
-      listtomaybe vs = Just $ head vs
-
--- | Default balance format string: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceFormatString :: [FormatString]
-defaultBalanceFormatString = [
-      FormatField False (Just 20) Nothing Total
-    , FormatLiteral "  "
-    , FormatField True (Just 2) Nothing DepthSpacer
-    , FormatField True Nothing Nothing Format.Account
-    ]
-
--- | Parses the --format string to either an error message or a format string.
-parseFormatFromOpts :: [Opt] -> Either String [FormatString]
-parseFormatFromOpts opts = listtomaybe $ optValuesForConstructor ReportFormat opts
-    where
-      listtomaybe :: [String] -> Either String [FormatString]
-      listtomaybe [] = Right defaultBalanceFormatString
-      listtomaybe vs = parseFormatString $ head vs
-
--- | Returns the format string. If the string can't be parsed it fails with error'.
-formatFromOpts :: [Opt] -> [FormatString]
-formatFromOpts opts = case parseFormatFromOpts opts of
-    Left err -> error' err
-    Right format -> format
-
--- | Get the value of the (last) depth option, if any.
-depthFromOpts :: [Opt] -> Maybe Int
-depthFromOpts opts = listtomaybeint $ optValuesForConstructor Depth opts
-    where
-      listtomaybeint [] = Nothing
-      listtomaybeint vs = Just $ read $ last vs
-
--- | Get the value of the (last) drop option, if any, otherwise 0.
-dropFromOpts :: [Opt] -> Int
-dropFromOpts opts = fromMaybe 0 $ listtomaybeint $ optValuesForConstructor Drop opts
-    where
-      listtomaybeint [] = Nothing
-      listtomaybeint vs = Just $ read $ last vs
-
--- | Get the value of the (last) display option, if any.
-displayExprFromOpts :: [Opt] -> Maybe String
-displayExprFromOpts opts = listtomaybe $ optValuesForConstructor Display opts
-    where
-      listtomaybe [] = Nothing
-      listtomaybe vs = Just $ last vs
-
--- | Get the value of the (last) baseurl option, if any.
-baseUrlFromOpts :: [Opt] -> Maybe String
-baseUrlFromOpts opts = listtomaybe $ optValuesForConstructor BaseUrl opts
-    where
-      listtomaybe [] = Nothing
-      listtomaybe vs = Just $ last vs
-
--- | Get the value of the (last) port option, if any.
-portFromOpts :: [Opt] -> Maybe Int
-portFromOpts opts = listtomaybeint $ optValuesForConstructor Port opts
-    where
-      listtomaybeint [] = Nothing
-      listtomaybeint vs = Just $ read $ last vs
-
-
--- | Get a maybe boolean representing the last cleared/uncleared option if any.
-clearedValueFromOpts opts | null os = Nothing
-                          | last os == Cleared = Just True
-                          | otherwise = Just False
-    where os = optsWithConstructors [Cleared,UnCleared] opts
-
--- | Detect which date we will report on, based on --effective.
-whichDateFromOpts :: [Opt] -> WhichDate
-whichDateFromOpts opts = if Effective `elem` opts then EffectiveDate else ActualDate
-
--- | Were we invoked as \"hours\" ?
-usingTimeProgramName :: IO Bool
-usingTimeProgramName = do
-  progname <- getProgName
-  return $ map toLower progname == progname_cli_time
-
--- | Get the journal file path from options, an environment variable, or a default
-journalFilePathFromOpts :: [Opt] -> IO String
-journalFilePathFromOpts opts = do
-  istimequery <- usingTimeProgramName
-  f <- if istimequery then myTimelogPath else myJournalPath
-  return $ last $ f : optValuesForConstructor File opts
-
-aliasesFromOpts :: [Opt] -> [(AccountName,AccountName)]
-aliasesFromOpts opts = map parseAlias $ optValuesForConstructor Alias opts
-    where
-      -- similar to ledgerAlias
-      parseAlias :: String -> (AccountName,AccountName)
-      parseAlias s = (accountNameWithoutPostingType $ strip orig
-                     ,accountNameWithoutPostingType $ strip alias')
-          where
-            (orig, alias) = break (=='=') s
-            alias' = case alias of ('=':rest) -> rest
-                                   _ -> orig
-
--- | Gather filter pattern arguments into a list of account patterns and a
--- list of description patterns. We interpret pattern arguments as
--- follows: those prefixed with "desc:" are description patterns, all
--- others are account patterns; also patterns prefixed with "not:" are
--- negated. not: should come after desc: if both are used.
-parsePatternArgs :: [String] -> ([String],[String])
-parsePatternArgs args = (as, ds')
-    where
-      descprefix = "desc:"
-      (ds, as) = partition (descprefix `isPrefixOf`) args
-      ds' = map (drop (length descprefix)) ds
-
--- | Convert application options to the library's generic filter specification.
-optsToFilterSpec :: [Opt] -> [String] -> Day -> FilterSpec
-optsToFilterSpec opts args d = FilterSpec {
-                                datespan=dateSpanFromOpts d opts
-                               ,cleared=clearedValueFromOpts opts
-                               ,real=Real `elem` opts
-                               ,empty=Empty `elem` opts
-                               ,acctpats=apats
-                               ,descpats=dpats
-                               ,depth = depthFromOpts opts
-                               }
-    where (apats,dpats) = parsePatternArgs args
-
--- currentLocalTimeFromOpts opts = listtomaybe $ optValuesForConstructor CurrentLocalTime opts
---     where
---       listtomaybe [] = Nothing
---       listtomaybe vs = Just $ last vs
-
-tests_Hledger_Cli_Options = TestList
- [
-  "dateSpanFromOpts" ~: do
-    let todaysdate = parsedate "2008/11/26"
-    let gives = is . show . dateSpanFromOpts todaysdate
-    [] `gives` "DateSpan Nothing Nothing"
-    [Begin "2008", End "2009"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    [Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    [Begin "2005", End "2007",Period "in 2008"] `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-
-  ,"intervalFromOpts" ~: do
-    let gives = is . intervalFromOpts
-    [] `gives` NoInterval
-    [DailyOpt] `gives` Days 1
-    [WeeklyOpt] `gives` Weeks 1
-    [MonthlyOpt] `gives` Months 1
-    [QuarterlyOpt] `gives` Quarters 1
-    [YearlyOpt] `gives` Years 1
-    [Period "weekly"] `gives` Weeks 1
-    [Period "monthly"] `gives` Months 1
-    [Period "quarterly"] `gives` Quarters 1
-    [WeeklyOpt, Period "yearly"] `gives` Years 1
-
- ]
-
-***** cmdargs implicit ADT with ifdefs
-progname = "hledger"
-progversion = progversionstr progname
-
-progname_cli = progname
-
--- | The program name which, if we are invoked as (via symlink or
--- renaming), causes us to default to reading the user's time log instead
--- of their journal.
-progname_cli_time  = "hours"
-
-usage_preamble =
-  "Usage: hledger [OPTIONS] COMMAND [PATTERNS]\n" ++
-  "       hledger [OPTIONS] convert CSVFILE\n" ++
-  "\n" ++
-  "Reads your ~/.journal file, or another specified by $LEDGER or -f, and\n" ++
-  "runs the specified command (may be abbreviated):\n" ++
-  "\n" ++
-  "  add       - prompt for new transactions and add them to the journal\n" ++
-  "  balance   - show accounts, with balances\n" ++
-  "  convert   - show the specified CSV file as a hledger journal\n" ++
-  "  histogram - show a barchart of transactions per day or other interval\n" ++
-  "  print     - show transactions in journal format\n" ++
-  "  register  - show transactions as a register with running balance\n" ++
-  "  stats     - show various statistics for a journal\n" ++
-  "  test      - run self-tests\n" ++
-  "\n"
-
-usage_postscript = [
-  "DATES can be y/m/d or smart dates like \"last month\".  PATTERNS are regular"
- ,"expressions which filter by account name.  Prefix a pattern with desc: to"
- ,"filter by transaction description instead, prefix with not: to negate it."
- ,"When using both, not: comes last."
- ]
-
--- | Command-line options & arguments we accept.
--- data Opts =
---  Add {
---  } |
---  Balance {
---  }
---  Convert {
---  }
---  Histogram {
---  }
---  Print {
---  }
---  Register {
---  }
---  Stats {
---  }
---  Test {
---  }
-data Opts = Opts {
-    -- :: -- hledger options
-     file            :: Maybe FilePath
-    -- :: -- hledger-lib options
-    ,begin           :: Maybe String
-    ,end             :: Maybe String
-    ,period          :: Maybe String
-    ,cleared_        :: Bool
-    ,uncleared       :: Bool
-    ,cost            :: Bool
-    ,depth_          :: Maybe Int
-    ,display         :: Maybe String
-    ,effective       :: Bool
-    ,empty_          :: Bool
-    ,no_elide        :: Bool
-    ,real_           :: Bool
-    ,flat            :: Bool
-    ,drop_           :: Int
-    ,no_total        :: Bool
-    ,daily           :: Bool
-    ,weekly          :: Bool
-    ,monthly         :: Bool
-    ,quarterly       :: Bool
-    ,yearly          :: Bool
-    ,format          :: Maybe String
-    -- :: -- hledger options
-    ,alias           :: [String]
-    ,no_new_accounts :: Bool
-    ,rules_file      :: Maybe String
-    ,binary_filename :: Bool
-    ,debug           :: Bool
-
-    -- :: -- add-ons' options, must be defined here for now
-#ifdef HLEDGERVTY
-    ,debug_vty       :: Bool
-#endif
-#ifdef HLEDGERWEB
-    ,base_url        :: Maybe String
-    ,port            :: Maybe Int
-#endif
-#ifdef HLEDGERCHART
-    ,chart_output    :: Maybe String
-    ,chart_items     :: Maybe Int
-    ,chart_size      :: Maybe String
-#endif
-
-    ,args_           :: [String]
-
-    } deriving (Show, Data, Typeable)
-
--- deriving instance Default Day
--- instance Default DateSpan where def = nulldatespan
--- instance Default Interval where def = NoInterval
-
-defopts = Opts {
-  -- = -- hledger options
-  file            = def &= name "f" &= typFile &= help "use a different journal file; - means stdin"
-  -- = -- hledger-lib options
- ,begin           = def &= name "b" &= typ "DATE" &= help "report on transactions on or after this date"
- ,end             = def &= name "e" &= typ "DATE" &= help "report on transactions before this date"
- ,period          = def &= typ "PERIODEXPR" &= help "report on transactions during the specified period and/or with the specified reporting interval"
- ,cleared_        = def &= name "c" &= help "report only on cleared transactions"
- ,uncleared       = def &= name "u" &= help "report only on uncleared transactions"
- ,cost            = def &= name "B" &= help "report cost of commodities"
- ,depth_          = def &= typ "N" &= help "hide accounts/transactions deeper than this"
- ,display         = def &= typ "DISPLAYEXPR" &= name "d" &= help "show only transactions matching expr (where expr is 'dop[date]' and op is <, <=, =, >=, >)"
- ,effective       = def &= help "use transactions' effective dates, if any"
- ,empty_          = def &= name "E" &= help "show empty/zero things which are normally elided"
- ,no_elide        = def &= help "no eliding at all, stronger than -e (eg for balance report)"
- ,real_           = def &= name "r" &= help "report only on real (non-virtual) transactions"
- ,flat            = def &= help "balance: show full account names, unindented"
- ,drop_           = def &= typ "N" &= help "balance: with --flat, omit this many leading account name components"
- ,no_total        = def &= help "balance: hide the final total"
- ,daily           = def &= name "D" &= help "register, stats: report by day"
- ,weekly          = def &= name "W" &= help "register, stats: report by week"
- ,monthly         = def &= name "M" &= help "register, stats: report by month"
- ,quarterly       = def &= name "Q" &= help "register, stats: report by quarter"
- ,yearly          = def &= name "Y" &= help "register, stats: report by year"
- ,format          = def &= typ "FORMATSTR" &= name "F" &= help "use this custom line format in reports"
-  -- = -- hledger options
- ,alias           = def &= typ "ACCT=ALIAS" &= help "display ACCT's name as ALIAS in reports"
- ,no_new_accounts = def &= help "add: don't allow creating new accounts"
- ,rules_file      = def &= typFile &= help "convert: rules file to use (default: CSVFILE.rules)"
- ,binary_filename = def &= help "show the download filename for this hledger build, and exit"
- ,debug           = def &= help "show extra debug output; implies verbose"
- ,args_           = def &= args &= typ "COMMAND [PATTERNS]"
-  -- = -- add-ons' options, must be defined here for now
-#ifdef HLEDGERVTY
- ,debug_vty       = def
-#endif
-#ifdef HLEDGERWEB
- ,base_url        = def
- ,port            = def
-#endif
-#ifdef HLEDGERCHART
- ,chart_output    = def
- ,chart_items     = def
- ,chart_size      = def
-#endif
- }
- &= verbosity
- &= program progname
- &= summary progversion
- &= details usage_postscript
-
--- pre-decoding would be easier but doesn't work at least with ghc 6.12/cmdargs 0.7/unix:
--- getArgsDecoded = map fromPlatformString `fmap` getArgs
--- getHledgerOpts = getArgsDecoded >>= flip withArgs (cmdArgs defopts) >>= processOpts >>= checkOpts
-getHledgerOpts :: IO Opts
-getHledgerOpts = cmdArgs defopts >>= processOpts >>= checkOpts
-
-processOpts :: Opts -> IO Opts
-processOpts opts = do
-  let opts' = decodeOpts opts
-  fixMostOptDates opts'
-
--- | Convert possibly encoded option values to regular unicode strings.
-decodeOpts :: Opts -> Opts
-decodeOpts opts@Opts{..} = opts {
-                             file       = maybe Nothing (Just . fromPlatformString) file
-                            ,begin      = maybe Nothing (Just . fromPlatformString) begin
-                            ,end        = maybe Nothing (Just . fromPlatformString) end
-                            ,period     = maybe Nothing (Just . fromPlatformString) period
-                            ,display    = maybe Nothing (Just . fromPlatformString) display
-                            ,format     = maybe Nothing (Just . fromPlatformString) format
-                            ,alias      = map fromPlatformString alias
-                            ,rules_file = maybe Nothing (Just . fromPlatformString) rules_file
-                            ,args_      = map fromPlatformString args_
-                           }
-
--- | Convert any relative dates within these options, except for the
--- period option, to fixed dates, based on today's date. Note this means
--- the dates specified by a period expression can change if the date
--- changes during a program run, whereas begin, end, display option dates
--- are fixed at startup.
-fixMostOptDates :: Opts -> IO Opts
-fixMostOptDates opts@Opts{..} = do
-  d <- getCurrentDay
-  let fixbracketeddatestr "" = ""
-      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
-  return $ opts {
-               begin = maybe Nothing (Just . fixSmartDateStr d) begin
-              ,end = maybe Nothing (Just . fixSmartDateStr d) end
-              ,display = maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) display
-              }
-
-checkOpts :: Opts -> IO Opts
-checkOpts opts = do
-  case formatFromOpts opts of
-    Left err -> optsError err
-    Right _ -> return ()
-  d <- getCurrentDay
-  case maybe Nothing (Just . parsePeriodExpr d) $ period opts of
-    Just (Left perr) -> optsError $ show perr
-    _ -> return ()
-  when (null $ args_ opts) $ optsError "a command is required."
-  return opts
-
-optsError :: String -> IO ()
--- optsError s = putStrLn s >> exitWith (ExitFailure 1)
-optsError = ioError . userError' . (++ " Run with --help to see usage.")
-
--- | Figure out the overall date span we should report on, based on any
--- begin/end/period options provided and a reference date. If there is a
--- period option, the others are ignored.
-dateSpanFromOpts :: Day -> Opts -> DateSpan
-dateSpanFromOpts d Opts{period=Just p} =
-    case parsePeriodExpr d p of
-      Right (_, span) -> span
-      Left e       -> error' $ "could not parse period option: "++show e
-dateSpanFromOpts d Opts{..} = DateSpan (maybeday begin) (maybeday end)
-    where
-      maybeday  = maybe Nothing (Just . parsedate . fixSmartDateStr d)
-
--- | Figure out the reporting interval, if any, specified by the options.
--- --period overrides --daily overrides --weekly overrides --monthly etc.
-intervalFromOpts :: Opts -> Interval
-intervalFromOpts Opts{period=Just p} =
-    case parsePeriodExpr (parsedate "0001/01/01") p of
-      Right (interval, _) -> interval
-      Left e       -> error' $ "could not parse period option: "++show e
-intervalFromOpts Opts{..} =
-    if daily then Days 1
-    else if weekly then Weeks 1
-    else if monthly then Months 1
-    else if quarterly then Quarters 1
-    else if yearly then Years 1
-    else NoInterval
-
--- | Parse the format option if any, or raise an error if parsing fails.
-formatFromOpts :: Opts -> Either String [FormatString]
-formatFromOpts opts = maybe (Right defaultBalanceFormatString) parseFormatString $ format opts
-
--- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceFormatString :: [FormatString]
-defaultBalanceFormatString = [
-      FormatField False (Just 20) Nothing Total
-    , FormatLiteral "  "
-    , FormatField True (Just 2) Nothing DepthSpacer
-    , FormatField True Nothing Nothing Format.Account
-    ]
-
--- | Get the value of the baseurl option, if any.
-baseUrlFromOpts :: Opts -> Maybe String
-baseUrlFromOpts = const Nothing  -- base_url
-
--- | Get the value of the (last) port option, if any.
-portFromOpts :: Opts -> Maybe Int
-portFromOpts = const Nothing -- port
-
--- | Get a maybe boolean representing the last cleared/uncleared option if any.
-clearedValueFromOpts :: Opts -> Maybe Bool
-clearedValueFromOpts Opts{..} | cleared_  = Just True
-                              | uncleared = Just False
-                              | otherwise = Nothing
-
--- | Detect which date we will report on, based on --effective.
-whichDateFromOpts :: Opts -> WhichDate
-whichDateFromOpts opts = if effective opts then EffectiveDate else ActualDate
-
--- | Get the journal file path from options, an environment variable, or a default
-journalFilePathFromOpts :: Opts -> IO String
-journalFilePathFromOpts opts = do
-  istimequery <- usingTimeProgramName
-  f <- if istimequery then myTimelogPath else myJournalPath
-  return $ fromMaybe f $ file opts
-
--- | Were we invoked as \"hours\" ?
-usingTimeProgramName :: IO Bool
-usingTimeProgramName = do
-  progname <- getProgName
-  return $ map toLower progname == progname_cli_time
-
-aliasesFromOpts :: Opts -> [(AccountName,AccountName)]
-aliasesFromOpts = map parseAlias . alias
-    where
-      -- similar to ledgerAlias
-      parseAlias :: String -> (AccountName,AccountName)
-      parseAlias s = (accountNameWithoutPostingType $ strip orig
-                     ,accountNameWithoutPostingType $ strip alias')
-          where
-            (orig, alias) = break (=='=') s
-            alias' = case alias of ('=':rest) -> rest
-                                   _ -> orig
-
-command :: Opts -> String
-command = headDef "" . args_
-
-patterns :: Opts -> [String]
-patterns = tailDef [] . args_
-
--- | Gather filter pattern arguments into a list of account patterns and a
--- list of description patterns. We interpret pattern arguments as
--- follows: those prefixed with "desc:" are description patterns, all
--- others are account patterns; also patterns prefixed with "not:" are
--- negated. not: should come after desc: if both are used.
-parsePatternArgs :: [String] -> ([String],[String])
-parsePatternArgs args = (as, ds')
-    where
-      descprefix = "desc:"
-      (ds, as) = partition (descprefix `isPrefixOf`) args
-      ds' = map (drop (length descprefix)) ds
-
--- | Convert application options to the library's generic filter specification.
-optsToFilterSpec :: Opts -> Day -> FilterSpec
-optsToFilterSpec opts d = FilterSpec {
-                                datespan=dateSpanFromOpts d opts
-                               ,cleared=clearedValueFromOpts opts
-                               ,real=real_ opts
-                               ,empty=empty_ opts
-                               ,acctpats=apats
-                               ,descpats=dpats
-                               ,depth = depth_ opts
-                               }
-    where (apats,dpats) = parsePatternArgs $ patterns opts
-
-tests_Hledger_Cli_Options = TestList
- [
-  "dateSpanFromOpts" ~: do
-    let todaysdate = parsedate "2008/11/26"
-        gives = is . show . dateSpanFromOpts todaysdate
-    defopts `gives` "DateSpan Nothing Nothing"
-    defopts{begin=Just "2008",end=Just "2009"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    defopts{period=Just "in 2008"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-    defopts{begin=Just "2005",end=Just "2007",period=Just "in 2008"} `gives` "DateSpan (Just 2008-01-01) (Just 2009-01-01)"
-
-  ,"intervalFromOpts" ~: do
-    let gives = is . intervalFromOpts
-    defopts `gives` NoInterval
-    defopts{daily=True} `gives` Days 1
-    defopts{weekly=True} `gives` Weeks 1
-    defopts{monthly=True} `gives` Months 1
-    defopts{quarterly=True} `gives` Quarters 1
-    defopts{yearly=True} `gives` Years 1
-    defopts{period=Just "weekly"} `gives` Weeks 1
-    defopts{period=Just "monthly"} `gives` Months 1
-    defopts{period=Just "quarterly"} `gives` Quarters 1
-    defopts{weekly=True,period=Just "yearly"} `gives` Years 1
-
- ]
-***** cmdargs implicit ADT with extra options map
-data Opts = Opts {
-    -- :: -- hledger options
-     file            :: Maybe FilePath
-    -- :: -- hledger-lib options
-    ,begin           :: Maybe String
-    ,end             :: Maybe String
-    ,period          :: Maybe String
-    ,cleared_        :: Bool
-    ,uncleared       :: Bool
-    ,cost            :: Bool
-    ,depth_          :: Maybe Int
-    ,display         :: Maybe String
-    ,effective       :: Bool
-    ,empty_          :: Bool
-    ,no_elide        :: Bool
-    ,real_           :: Bool
-    ,flat            :: Bool
-    ,drop_           :: Int
-    ,no_total        :: Bool
-    ,daily           :: Bool
-    ,weekly          :: Bool
-    ,monthly         :: Bool
-    ,quarterly       :: Bool
-    ,yearly          :: Bool
-    ,format          :: Maybe String
-    -- :: -- hledger options
-    ,alias           :: [String]
-    ,no_new_accounts :: Bool
-    ,rules_file      :: Maybe String
-    ,binary_filename :: Bool
-    ,debug           :: Bool
-
-    -- :: -- add-ons' extra options
-    ,extra_opts      :: M.Map String String
--- #ifdef HLEDGERVTY
---     ,debug_vty       :: Bool
--- #endif
--- #ifdef HLEDGERWEB
---     ,base_url        :: Maybe String
---     ,port            :: Maybe Int
--- #endif
--- #ifdef HLEDGERCHART
---     ,chart_output    :: Maybe String
---     ,chart_items     :: Maybe Int
---     ,chart_size      :: Maybe String
--- #endif
-
-    ,args_           :: [String]
-
-    } deriving (Show, Data, Typeable)
-
-***** cmdargs explicit string map
-progname = Hledger.Cli.progname ++ "-vty"
-progversion = progversionstr progname
-
--- usage_preamble =
---   "Usage: hledger-vty [OPTIONS] [PATTERNS]\n" ++
---   "\n" ++
---   "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and\n" ++
---   "starts the full-window curses ui.\n" ++
---   "\n"
-
-type Opts = Map String String
-
-vtymode :: Mode Opts
-vtymode =  mode "hledger-vty options" M.empty "general and hledger-vty-specific options" vtyargs vtyflags
-vtyargs = flagArg (\v opts -> Right $ M.insert "dummy args flag" v opts) "DUMMY"
-vtyflags = [
-   flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
-  ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
-  ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
-  ,flagHelpSimple id
-  ]
-
--- defopts = Hledger.Cli.defopts {
---   debug_vty       = def &= help "run with no terminal output, showing console"
---  ,args_           = def &= args &= typ "PATTERNS"
---  }
---  &= program progname
---  &= summary progversion
-
-getHledgerVtyOpts :: IO Opts
-getHledgerVtyOpts = processArgs vtymode -- >>= processOpts >>= checkOpts
-
--- processOpts :: Opts -> IO Opts
--- processOpts = Hledger.Cli.processOpts
-
--- checkOpts :: Opts -> IO Opts
--- checkOpts = Hledger.Cli.checkOpts
-
-main :: IO ()
-main = do
-  opts <- getHledgerVtyOpts
-  when ("debug" `M.member` opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
-  return () -- runWith opts
-
-runWith :: Opts -> IO ()
-runWith opts
-    | "binary_filename" `M.member` opts = putStrLn (binaryfilename progname_cli)
-    | otherwise            = withJournalDo opts vty
- 
-***** cmdargs very explicit string map
-import Control.Monad
-import Data.Map as M
-import Data.Time.Calendar
-import System.Console.CmdArgs
-import System.Console.CmdArgs.Explicit
-import System.Console.CmdArgs.Text
-
-in_ = M.member
-
-type Opts = Map String String
-
-vtyargs = flagArg (\v opts -> Right $ M.insert "PATTERNS" v opts) "query patterns"
-
-vtyflags = [
-  flagNone ["debug-vty"]  (\opts -> M.insert "debug-vty" "" opts) "run with no terminal output, showing console"
- ]
-
-commonflags = [
-   flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
-  ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
-  ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
-  ,flagHelpSimple (M.insert "help" "")
-  ,flagVersion (M.insert "version" "")
-  ]
-
-vtymode :: Mode Opts
-vtymode =   Mode {
-  modeGroupModes = toGroup []
- ,modeNames = ["vty"]
- ,modeValue = M.empty
- ,modeCheck = Right
- ,modeReform = const Nothing
- ,modeHelp = ""
- ,modeHelpSuffix = []
- ,modeArgs = ([], Nothing)
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [
-       ("vty options", vtyflags)
-      ,("general options", commonflags)
-      ]
-    }
- }
-
-main = do
-  opts <- processArgs vtymode
-  print opts
-  when ("help" `in_` opts) $ putStr $ showText defaultWrap $ helpText HelpFormatDefault vtymode
-
-optsToFilterSpec :: Opts -> Day -> FilterSpec
-optsToFilterSpec opts d = FilterSpec {
-                                datespan=nulldatespan -- dateSpanFromOpts d opts
-                               ,cleared=clearedValueFromOpts opts
-                               ,real="real" `in_` opts
-                               ,empty="empty" `in_` opts
-                               ,acctpats=[] --apats
-                               ,descpats=[] -- dpats
-                               ,depth = maybe Nothing (Just . read) $ M.lookup "depth" opts
-                               }
-    where (apats,dpats) = parsePatternArgs $ patterns opts
-
-clearedValueFromOpts opts | "cleared" `in_` opts = Just True
-                          | "uncleared" `in_` opts = Just False
-                          | otherwise = Nothing
-
--- dateSpanFromOpts :: Day -> Opts -> DateSpan
--- dateSpanFromOpts d Opts{period=Just p} =
---     case parsePeriodExpr d p of
---       Right (_, span) -> span
---       Left e       -> error' $ "could not parse period option: "++show e
--- dateSpanFromOpts d Opts{..} = DateSpan (maybeday begin) (maybeday end)
---     where
---       maybeday  = maybe Nothing (Just . parsedate . fixSmartDateStr d)
-
-***** cmdargs explicit string map -> separate ADTs
--- 1. option values for use in this and maybe other packages. These are the data we want to collect.
-
--- report options, used in hledger-lib and above
-data ReportOpts = ReportOpts {
-     begin_          :: Maybe Day
-    ,end_            :: Maybe Day
-    ,period_         :: Maybe (DateSpan,Interval)
-    ,cleared_        :: Bool
-    ,uncleared_      :: Bool
-    ,cost_           :: Bool
-    ,depth_          :: Maybe Int
-    ,display_        :: Maybe String
-    ,effective_      :: Bool
-    ,empty_          :: Bool
-    ,no_elide_       :: Bool
-    ,real_           :: Bool
-    ,flat_           :: Bool
-    ,drop_           :: Int
-    ,no_total_       :: Bool
-    ,daily_          :: Bool
-    ,weekly_         :: Bool
-    ,monthly_        :: Bool
-    ,quarterly_      :: Bool
-    ,yearly_         :: Bool
-    ,format_         :: Maybe String
- } deriving (Show) --, Data, Typeable)
-
-defreportopts = ReportOpts
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-
-instance Default ReportOpts where def = defreportopts
-
--- cli options, used in hledger and above
-data CliOpts = CliOpts {
-     file_           :: Maybe FilePath
-    ,alias_          :: [String]
-    ,binary_filename :: Bool
-    ,debug_          :: Bool
-    ,command_        :: String
-    ,patterns_       :: [String]
-     -- add
-    ,no_new_accounts_ :: Bool
-     -- convert
-    ,rules_file_     :: Maybe FilePath
-
-    ,reportopts_     :: ReportOpts
- } deriving (Show) --, Data, Typeable)
-
-defcliopts = CliOpts
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-
-instance Default CliOpts where def = defcliopts
-
--- 2. reusable/extensible command-line flags, help and initial parsing for the above.
-
-generalflags = [
-  flagReq ["file","f"]  (\v opts -> Right $ M.insert "file" "" opts) "FILE" "use a different journal file; - means stdin"
- ,flagHelpSimple (M.insert "help" "")
- ,flagVersion (M.insert "version" "")
- ,flagReq ["begin","b"]  (\v opts -> Right $ M.insert "begin" v opts)  "DATE"       "report on transactions on or after this date"
- ,flagReq ["end","e"]    (\v opts -> Right $ M.insert "end" v opts)    "DATE"       "report on transactions before this date"
- ,flagReq ["period","p"] (\v opts -> Right $ M.insert "period" v opts) "PERIODEXPR" "report on transactions during the specified period and/or with the specified reporting interval"
- ]
-
-addflags = [
-  flagNone ["no-new-accounts"]  (\opts -> M.insert "no-new-accounts" "" opts) ""
- ]
-
-convertflags = [
-  flagReq ["rules-file"]  (\v opts -> Right $ M.insert "rules-file" v opts) "FILE" ""
- ]
-
-cliargs = flagArg (\v opts -> Right $ M.insert "args" v opts) "COMMAND [PATTERNS]"
-
-type RawOpts = Map String String
-
-progmode :: Mode RawOpts
-progmode =   Mode {
-  modeGroupModes = toGroup []
- ,modeNames = ["hledger"]
- ,modeValue = M.empty
- ,modeCheck = Right
- ,modeReform = const Nothing
- ,modeHelp = "hledger options test"
- ,modeHelpSuffix = []
- ,modeArgs = ([], Just cliargs)
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [("general options", generalflags)
-                  ,("add options",     addflags)
-                  ,("convert options", convertflags)
-                  ]
-    }
- }
-
--- 3. post-processing, additional checking and conversion of raw options
--- data Opts = Opts { cliopts :: CliOpts, reportopts :: ReportOpts } deriving (Show)
--- defopts = Opts defcliopts defreportopts
-
-processOpts :: RawOpts -> CliOpts
-processOpts rawopts = defcliopts {
-                        file_  = stringopt "file" rawopts
-                       ,debug_ = boolopt "debug" rawopts
-                       ,reportopts_ = defreportopts {
-                         begin_ = maybedateopt "begin" rawopts
-                        ,end_   = maybedateopt "end" rawopts
-                       }
-                      }
-  where
-    optserror = error'
-    boolopt = M.member
-    stringopt = M.lookup
-    maybedateopt name rawopts = 
-        case M.lookup name rawopts of
-          Nothing -> Nothing
-          Just s -> Just $ fromMaybe (optserror $ "could not parse "++name++" date: "++s) $ parsedateM s
-
-
-
-testmain = do
-  rawopts <- processArgs progmode
-  print rawopts
-  print $ processOpts rawopts
-  when ("help" `in_` rawopts) $ putStr $ showText defaultWrap $ helpText HelpFormatDefault progmode
-
-***** other things to try:
-http://www.haskell.org/haskellwiki/Heterogenous_collections
-make cmdargs generate flat help from nested ADTs
-make cmdargs pass through extra opts without --
-**** still to do
-move *FromOpts into toOpts
-
-** 2012
-*** 2012/5/5 release prep
-*** 5/14 finish parsing, tests changes
-*** 5/15 matcher -> query, cleanup
-*** 5/16 tests, using query consistently
-*** 5/17 tests, porting entriesReport to query
-*** 5/29 release
-*** 6/29 release
-*** 6/30 announce, notes
-*** 7/1 notes
-
-* old/dev/project backlog - see also trello
-** docs
-*** documentation advice
+*** snap student
 As someone who is struggling to learn Snap (and I am trying to use it
 in one project), I would appreciate some nice explanations of the
 basic concepts, minimal and isolated from each other. For example,
@@ -2145,1181 +1832,5 @@ other templates using the apply tag", then show the example of how to
 do it. Also, adding "negative" examples, which show common errors, is
 a good approach.
 
-** errors
-*** balance: --drop without --flat should only drop top-level account name parts (or be ignored)
-*** balance (flow): show today as end date instead of end of current period ?
-*** cli: -p 'weekly in jan-feb' confusion, it should mean the same as 'weekly from jan to feb'
-*** cli: aliasing an account prefix to '' should work
-*** cli: don't list directories as addons (hledger-chart)
-*** csv: rule not setting comment
-if
-EDISON
-GAS COMPANY
- account2 expenses:personal:home:utilities
- comment household:
-*** add: default amount adds one decimal place when journal contains no decimals  2d
-*** add: excessive precision in default balancing amount  1d
-**** shelltest tests/add.test -- -t10
-**** find original justification or drop
-*** add: learn decimal point/thousands separator from the journal and/or add session ?  2d
-Eg: comma is already used as thousands separator in the journal, but add
-interprets it as decimal point giving a wrong default for amount 2 (though
-the correct journal transaction is written in this case)
-
-$ hledger -f t add
-Adding transactions to journal file "t".
-To complete a transaction, enter . (period) at an account prompt.
-To stop adding transactions, enter . at a date prompt, or control-d/control-c.
-date, or . to end [2011/09/30]: 
-description []: z
-account 1: a
-amount  1: 1,000
-account 2: b
-amount  2 [-1,0]: 
-account 3, or . to record: .
-date, or . to end [2011/09/30]: .
-$ cat t
-; journal created 2011-09-30 by hledger
-
-2011/09/30
-    a  $1,000,000.00
-    b
-
-2011/09/30 x
-    a          $1,2
-    b
-
-2011/09/30 y
-    a          $1.2
-    b
-
-2011/09/30 z
-    a         1,000
-    b
-
-*** web: unknown flag --port
-$ hledger web --port=5001 -f all.journal paypal
-hledger: Unknown flag: --port
-*** print: virtual posting parentheses throwing off layout
-*** bal: should --flat show inclusive or exclusive balances ??
-*** double quote matches everything ?  1
-*** web: stray bracket in journal edit form title  1
-*** web: enter doesn't work in add form completing fields  1d
-**** research this dhtmlxcombo issue
-*** parsing: assertion claiming wrong actual balance
-expected balance is $136.03, actual balance was $-1163.97.
-
-*** parsing: balance assertion doesn't work without a commodity symbol (takes = as one)
-*** parsing: is = B an assertion or an assignment ?
-*** parsing: decimal point/thousands separator confusion ?  1d
-<<<
-2011/09/30
-    a  $1,000,000.00
-    b
-
-2011/09/30 x
-    a          $1,2
-    b
-
-2011/09/30 y
-    a          $1.2
-    b
->>> hledger -f t print
-2011/09/30
-    a  $1,000,000.00
-    b  $-1,000,000.00
-
-2011/09/30 x
-    a         $1.20
-    b        $-1.20
-
-2011/09/30 y
-    a         $1.20
-    b        $-1.20
-
-*** parsing: recursive file includes cause a hang  2
-echo "!include rec" > rec
-hledger -f rec print
-*** parsing: "could not balance" error does not show line number  1d
-*** parsing: extra noise with eg bad date parse errors  1d
-$ cat t.journal
-200/1/99 x
-  a  1
-  b
-$ ./hledger.hs -f t.journal print
-hledger.hs: could not parse journal data in t.journal
-"t.journal" (line 1, column 9):
-unexpected " "                      <- undesired
-expecting digit                     <- noise
-bad year number: 200
-
-*** parsing: confusing error when journal lacks a final newline  1d
-$ cat - >t.j
-2010/1/2
-  a  1
-  b<ctrl-d>
-$ hledger -f t.j bal
-hledger: could not parse journal data in t.j
-"t.j" (line 3, column 3):
-unexpected "b"
-expecting comment or new-line
-
-*** convert: 49 convert should report rules file parse errors better  1d
-*** not: does not work with date: etc.
-*** 25 hledger in windows console does not print non-ascii characters  3d
-http://stackoverflow.com/questions/10779149/unicode-console-i-o-in-haskell-on-windows
-http://hackage.haskell.org/trac/ghc/ticket/4471
-*** journalAddFile is called in reverse order of includes  2
-*** irr: flags require preceding --
-*** cli: not always possible to pass flags to subcommand
-** documentation
-*** hledger intro tutorial:
-**** what problem did ledger solve when I started ?
-***** I needed to track my time at work
-***** I needed a transparent, open, future-proof data format
-***** I needed simple, reliable, fixable software with no lock-in
-***** I wanted an accounting tool without distracting/frustrating unfixable usability/functionality bugs
-**** what problem did hledger solve when I started ?
-***** I neededed a better implementation of ledger (for me; that meant ie more installable, intuitive, documented, bug free, easy to hack on and extend)
-***** I needed to make consistent bookkeeping more fun and motivating
-***** I wanted a not-too-demanding learn haskell project
-***** I wanted reusable accounting libraries available in haskell for experiments
-***** I wanted to explore making an easy accounting app I could sell
-**** what problem is hledger solving now ?
-***** same as above ?
-*** doc: manual rewrites
-*** developer notes
-**** 2012/7 cleanup
-***** quick cleanup finance onwards  2
-***** add some estimates  1
-**** review/prune backlog  1
-**** estimate summing  1d
-***** research existing, ask in #orgmode
-***** org-sum
-**** burndown charts  2d
-***** research existing tools
-*** finalise/link 2012 survey  2
-*** document status flag better  1
-*** review/prune docs  1d
-*** announcements
-**** list
-***** release
-***** HCAR, twice yearly
-****** update entry & process
-*** short description
-**** collect/clarify
-hledger is a robust command-line accounting tool with a simple plain text data format.
-
-hledger is a reporting tool for accounting transactions stored in a simple human-editable text format.
-
-hledger is a computer program for easily tracking money, time, or other transactions, usually recorded in a general journal file with a simple human-editable markup format.
-
-hledger is primarily a reporting tool, but it can also help you add transactions to the journal, or convert from other data formats.
-
-hledger is a haskell port and friendly fork of John Wiegley's c++ ledger tool.
-
-hledger aims to be a reliable, practical, useful tool for (slightly geeky) users and a reusable library for haskell programmers interested in finance.
-
-hledger is quite simple in essence, aiming to be a reliable low-level parsing-and-reporting tool that doesn't get in your way.
-
-For some, it is a less complex, less expensive, more efficient alternative to Quicken or Quickbooks.
-
-hledger is available for free under the GNU General Public License.
-
-hledger reads plain text files (general journal, timelog, or CSV format) describing transactions (in money, time or other commodities) and prints the chart of accounts, account balances, or transactions you're interested in.
-
-hledger is a free program that helps you understand your finances, making calculations based on data stored a simple text file. If you prefer the command line and a text editor to a big gui application, hledger gives you the power of Quicken and Quickbooks without the complexity.
-
-Your financial data will outlive your financial software, so it should have longevity and accessibility. Its integrity is important to your peace of mind, so changes should be transparent and (if desired) version controlled. It may also be important to allow multiple authors to edit safely. A structured, easy-to-parse, human-friendly plain text format, as in the wiki world, provides a good balance of longevity, reliability, transparency and flexibility.
-
-hledger helps you track and understand your finances, making calculations based on data stored in a simple text file. If you prefer the command line and a text editor to a big gui application, hledger gives you the power of Quicken and Quickbooks without the complexity.
-
-Features: reads transactions in journal, timelog, or CSV format; handles multi-currency/multi-commodity transactions; prints the chart of accounts, account balances, or transactions you're interested in, quickly; scriptable.
-
-hledger is written in the Haskell programming language;
-it demonstrates a pure functional implementation of ledger.
-
-*** medium intro blurb
-**** collect/clarify
-***** README file
-***** hledger.hs module description
-***** hledger.cabal description field (exclude home page link)
-***** home page description (http://joyful.com/Hledger/editform)
-***** mail list description (http://groups.google.com/groups/hledger -> edit welcome msg)
-***** gmane description
-***** darcsweb description
-
-**** keep in sync
-***** refine process
-*** command-line docs
-**** keep usage info in sync
-***** Options.hs
-***** MANUAL.md
-**** browse/search manual content  2d
-*** feature list
-**** full  1
-**** short  1
-*** manual
-**** fix pre/toc overlap on manual  2
-**** clarify reference nature  1
-*** FAQ
-**** create/highlight  1d
-**** life cycle of top-level accounts
-For personal ledgers, when you're born, all accounts are at zero (one hopes) and as you live:
-
-1. Equity accounts accommodate your previous years of not maintaining accounts (fixed, probably negative) 
-
-2. Expense accounts become more and more positive (unavoidably) 
-
-3. Income accounts become more and more negative (on payday) 
-
-4. Assets Accounts become more and more positive (in good times) 
-
-5. Liability account become more positive (in good times, when you pay them off) and more negative (when you use them to buy things). 
-
-When you die, Equity: and Income: will stand at large negative balances,
-Expense: and Assets: will stand at large positive balances and Liabilities
-will have to be paid (out of Assets) before your heirs get what's left.
-
-adapted from Ben Alexander, ledger-cli
-
-*** website
-**** review stats  1h
-**** clean up stats  1d
-**** refresh
-*** progressive tutorial
-**** plan, begin  1d
-*** screencasts
-**** brainstorm
-***** intro
-****** intro to hledger
-******* place in the world
-******* basic installation
-******* quick demo
-******* where to go from here
-****** installing hledger on windows
-****** installing hledger on mac
-****** installing hledger on unix
-****** accessing hledger's support forums
-******* website
-******* mail list
-******* irc channel
-****** reporting a hledger bug
-***** using
-****** income/expense tracking
-****** time tracking
-****** downloading bank data
-****** reconciling with bank statement
-****** see time reports by day/week/month/project
-****** get accurate numbers for client billing and tax returns
-****** find unpaid invoices
-***** developing
-****** intro to hledger development
-****** testing hleder
-****** documenting hledger
-****** a hledger coding example
-****** a tour of hledger's code
-***** ledger cooperation
-*** blog posts
-*** examples/how-tos
-*** hledger/ledger comparison/feature matrix  1d
-*** improve aesthetics
-**** embed screenshots in web docs
-***** use highslide
-*** improve liveness
-**** show feeds on site ?
-***** commits
-**** cc/summarise repo activity to list ?
-*** developer guide
-**** clarify/merge developer guide  2h
-**** How to do anything that needs doing in the hledger project.
-***** website & documentation
-****** overview of hledger docs
-****** how the site is built
-****** convenience urls
-list.hledger.org - mail list
-bugs.hledger.org - issue tracker
-bugs.hledger.org/1 - go to specific issue
-bugs.hledger.org/new - create a new issue
-hledger.org/{list,bugs}/* also works
-
-***** issue tracking
-***** testing
-
-hledger's unit tests and a simple test runner are built in. They can
-be run several ways:
-
-$ hledger test [PAT]
-$ make unittest
-$ make autotest
-
-They can also be built as a separate executable, in case needed for
-cabal test. (?) This requires test-framework, which may not work on
-windows.
-
-$ make unittest-standalone
-
-hledger's functional tests are a set of @shelltestrunner@ tests defined
-by .test files in the tests\/ subdirectory.
-
-$ make functest
-
-Shell tests can also be defined as doctests, literal blocks embedded
-in modules' haddock docs, though this is hardly used. For example:
-
-@
-$ bin\/hledger -f data\/sample.journal balance o
-                  $1  expenses:food
-                 $-2  income
-                 $-1    gifts
-                 $-1    salary
---------------------
-                 $-1
-@
-
-$ make doctest
-
-***** coding
-***** funding process
-****** donation blurb
-If you like <a href="http://joyful.com/repos/project">project</a> or have
-benefited from it, you can give back by making one-time or periodic
-donations of any amount. This also allows me to offer further
-enhancements, maintenance and support for this project. Thanks!
-**** reference
-***** unsafe things which may fail at runtime include..
-****** incomplete pattern matching
-****** error
-****** printf
-****** read
-*** api docs
-*** darcs show authors
-**** clean up output  2
-***** trygve
-***** encoding
-eg in text-mode emacs 24
-*** roadmap
-**** review old
-***** 1.0
-culmination of 0.x releases - stable/usable/documented
-followup releases are 1.01, 1.02..
-GHC 6.12/HP 2010 primary platform
-GHC 6.10/HP 2009 also supported if possible
-GHC 6.8 might work for core features, but not officially supported
-separate ledger package ? license ?
-separate vty, web packages ?
-support plugins ?
-web: loli+hsp+hack+simpleserver/happstack, or yesod+hstringtemplate+wai+simpleserver/happstack ?
-add: completion ?
-chart: register charts ?
-histogram: cleaned up/removed
-complete user manual
-binaries for all platforms ?
-
-***** 2.0
-development releases are.. 1.60, 1.61.. or 1.98.01, 1.98.02..
-separate ledger lib
-plugins
-Decimal
-binaries for all platforms
-
-*** internal code docs
-*** live demos/talks
-** marketing
-*** reference
-http://www.geekwire.com/2013/marketing-advice-startups/
-** finance
-*** develop funding process
-**** donate button, see chimoo guy
-**** funding document 2009/01
-***** text
-=======
-funding
-=======
-
-vision
-======
-
-     How to grow the hledger project ?
-
-     I'm looking for ways to fund active and sustainable hledger
-     development by me and others.
-
-     A secondary goal is to develop new sustainable models and processes
-     for funding free software developers and other community projects.
-
-     This is sometimes the point in a free sw project's development where
-     the project leader seemingly loses the plot, alienates contributors
-     and destroys the community's good-will dynamic.  I've seen it many
-     times, but a few have succeeded and I want to be one of them - so
-     that I can eat, have a modicum of stability and do my best work in
-     service to the community.  At worst, I'll look bad but the project
-     will still be out there. At best I'll live more easily and joyfully
-     while serving the cause of Financial Solvency!
-
-     So I'm beginning by posting these notes and inviting your thoughts -
-     as much or as little as folks want to give. How could we do this 
-     so that all benefit ?
-     
-funding models
-==============
-     Brainstorming some possible funding models & processes.
-
-     * grants
-
-      How to find possible grant sources ?
-
-      * con
-
-       * getting grant funding is a whole new field to study
-       * slow and time intensive, I imagine
-
-     * donations
-
-      Solicit donations.
-
-      * pro
-
-       * simple
-
-      * con
-
-       * often difficult
-       * donators do not feel a direct benefit
-
-     * shareware
-
-      Release the project under a non-free license, requiring commercial
-      users to pay the fee on an honour basis (eg).
-
-      * pro
-
-       * flexible, low administration, encourages trust
-
-      * con
-
-       * effectively closed-source ? would inhibit collaboration
-       * benefit is still indirect, only a proportion will pay
-       * enforcement/guilt may come into play
-
-     * limited-time premium branch
-
-      The funded version of hledger gets some desirable premium features
-      before the free version and is closed-source.  Funders/customers pay
-      a fixed price for immediate access to the funded version.  Yearly, a
-      new funded version is released and the old funded version is merged
-      into the free version.  (To gain experience it could be done on a
-      smaller scale, eg monthly/quarterly.)
-
-      * pro
-
-       * all features reach community, predictably
-       * customers are also community funders
-       * customers receive direct benefit from paying
-
-      * con
-
-       * free sw developers compete/outshine the premium branch
-
-     * bounties
-
-      Some (or all) feature, bugfix, project management or other tasks are
-      published with a bounty attached.  When the bounty is paid by one or
-      more funders, the task is performed and delivered. Or, bounty is paid
-      on completion of task (honour system).
-
-      * pro
-
-       * funders receive direct benefit
-
-     * bounties using fundable.org (eg)
-
-      A more organised form of the above, perhaps facilitating trust,
-      co-funding and larger bounties.
-
-      * pro
-
-       * proven process developed by others
-
-      * con
-
-       * fundable takes a cut
-
-     * hosted service
-
-      Offer hosted and managed ledgers, perhaps with premium features, for
-      a monthly fee
-
-      * pro
-
-       * proven model
-       * clear benefit to customers, especially non-technies
-
-      * con
- 
-       * success of free/self-installed version competes with hosting service
-       * some will avoid web-hosting their financial data
-
-     * customisation
-
-      Offer per-user customisations, possibly to be merged in the trunk,
-      for a fee
-
-     * support
-
-      Offer user/developer support for a fee
-
-     * training
-
-      Offer application and/or financial training for a fee
-
-     * profit sharing/tithing
-
-      Each period (quarter, half-year, year), donate 10% (eg) to project
-      contributors and/or supporting projects
-
-     * transparent funding
-
-      Funding and usage of funds is published on the web as a ledger
-
-     * opaque funding
-
-      All funding and spending need not be made public
-
-strengths
-=========
-     hledger has some aptitudes in this area:
-
-    * hledger deals with money => hledger users will tend to have some money
-    * hledger's purpose is to increase financial success => users will feel its value to their bottom line
-    * hledger is a tool that can support project funding, eg by publishing community funding data
-
-weaknesses
-==========
-    * hledger doesn't have a nice ui yet
-    * hledger has a limited featureset
-    * hledger requires work, eg data entry and chart of accounts maintenance
-    * hledger is geeky
-    * there is competition
-    * hledger has no compelling market niche (aside from payment-averse free software users)
-
-competitors/fellow niche inhabitants
-====================================
-
-    * web apps
-
-     * netsuite
-     * sql-ledger, ledgersmb
-     * wesabe
-     * ...
-
-    * desktop apps
-
-     * quickbooks
-     * quicken
-     * ms money
-     * grisbi
-     * gnucash
-     * excel
-     * ledger!
-     * ...
-
-***** responses
-****** albino
-       have you considered talking to business who hate their financial sw and going from there
-****** gwern
-       most haskellers have never heard of hledger, sounds arrogant or hubristic to talk of charging for it
-
-**** license change ?
-**** home edition
-**** real-time project ledger
-**** in-place transaction editing fund drive
-
-Fund drive: hledger-web in-place transaction editing
-
-Goal: I would like to raise $X or more to fund basic in-place
-transaction editing for hledger-web. hledger-web is a web-based GUI for
-hledger (and ledger), which are free/open-source accounting programs
-providing a lean and efficient alternative to quicken, gnucash, mint.com
-etc.
-
-Current hledger-web[1] has simple web forms for adding transactions and
-for editing the whole journal, but there is no easy ui for editing a
-single existing transaction. Such a ui is an important step towards making
-hledger (and ledger) usable by non techies, which would greatly expand
-these tools' applicability and potential user/contributor base.
-
-Plan: do the front-end javascript and backend haskell work required to
-support:
-
-- click date, description, account or amount cells in a register view to make that cell editable
-- tab moves to the next cell
-- enter or click on save button updates the transaction in the journal, overwriting/rewriting the whole file
-- tested in firefox/chrome/safari
-
-The proposed amount will fund about 10 hours of work, so the above
-features must be implemented very expeditiously. Other improvements will
-be tackled in a followup fund drive if this one succeeds (or in this one
-if the funding goal is exceeded.) Those future items include:
-
-- history/content awareness, smart defaults and auto-completion wherever useful
-- date picker widget
-- ability to add/remove postings
-- ability to edit metadata/tags
-- ability to edit other transaction/posting fields
-- ledger compatibility
-- compatibility testing/fixes for all the major browsers
-- edit conflict checking - don't overwrite concurrent external edits
-- try harder to preserve existing file layout/co-exist better with external edits
-- a similar ui for adding new transactions
-- pleasant visual style
-
-Also, 10% of the amount raised will be tithed to three contributing
-projects or developers (ledger and two others of my choice.)
-
-This project will go forward if
-
-[1] http://demo.hledger.org:5001
-** testing
-*** test running improvements
-**** test: duplicate runs
-$ hledger test 'showTransaction$'
-Cases: 6  Tried: 0  Errors: 0  Failures: 0([],"")
-### Failure in: 0:showTransaction
-show a balanced transaction, eliding last amount
-expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking\n\n"
- but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking        \n\n\n"
-Cases: 6  Tried: 1  Errors: 0  Failures: 1([],"")
-### Failure in: 1:showTransaction
-show a balanced transaction, no eliding
-expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking               $-47.18\n\n"
- but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking               $-47.18\n([],"")
-\n\n"
-Cases: 6  Tried: 2  Errors: 0  Failures: 2([],"")
-### Failure in: 2:showTransaction
-show an unbalanced transaction, should not elide
-expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n    assets:checking               $-47.19\n\n"
- but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n    assets:checking               $-47.19\n([],"")
-\n\n"
-Cases: 6  Tried: 3  Errors: 0  Failures: 3([],"")
-### Failure in: 3:showTransaction
-show an unbalanced transaction with one posting, should not elide
-expected: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n"
- but got: "2007/01/28 coopportunity\n    expenses:food:groceries        $47.18\n\n\n"
-Cases: 6  Tried: 4  Errors: 0  Failures: 4([],"")
-### Failure in: 4:showTransaction
-show a transaction with one posting and a missing amount
-expected: "2007/01/28 coopportunity\n    expenses:food:groceries              \n\n"
- but got: "2007/01/28 coopportunity\n    expenses:food:groceries              \n\n\n"
-Cases: 6  Tried: 5  Errors: 0  Failures: 5([],"")
-### Failure in: 5:showTransaction
-show a transaction with a priced commodityless amount
-expected: "2010/01/01 x\n    a        1 @ $2\n    b              \n\n"
- but got: "2010/01/01 x\n    a        1 @ $2\n\n    b              \n([],"")
-\n\n"
-Cases: 6  Tried: 6  Errors: 0  Failures: 6
-  1
-**** stop on first failure
-**** run tests in bottom up order
-*** envision better test setup
-**** every parser has a test and is easy to test
-**** easy to run any single test or module's tests
-**** tests run bottom up by default
-**** test runner can select tests precisely eg by regexp
-**** test runner stops at first failure by default
-
-*** documentation
-**** site up, current ?
-**** demo up, current ?
-**** haddock building, current ?
-**** doctests ?
-*** unit
-**** hunit
-**** quickcheck
-**** easier unit test development
-*** functional
-**** ledger file parsing tests
-***** test all ledger file format features
-***** clarify hledgerisms in file format - that hledger can read but ledger can't
-**** ledger 3 baseline tests
-**** MaybeSo subtotal rounding issue
-I had a question about balance totals. Given this test data: 
-
-$ cat test.dat 
-D $1,000.00 
-P 2011-01-01 22:00:00-0800 TESTA $78.35 
-P 2011-01-01 22:00:00-0800 TESTB $15.86 
-P 2011-01-01 22:00:09-0800 TESTC $13.01 
-
-2011/01/01 Example 
-  Assets:Brokerage:TESTA         188.424 TESTA @      $76.61 
-  Assets:Brokerage:TESTB       1,809.282 TESTB @      $15.60 
-  Assets:Brokerage:TESTC         384.320 TESTC @@  $5,000.00 
-  Assets:Brokerage:TESTC           5.306 TESTC @@     $68.18 
-  Equity:Opening Balances 
-
-I'm a little bit surprised that the sub-accounts 
-reflect a difference from the top level account 
-w/re to rounding the last cent: 
-
-$ ledger -V -f test.dat  bal 
-          $48,527.27  Assets:Brokerage 
-          $14,763.02    TESTA 
-          $28,695.21    TESTB 
-           $5,069.03    TESTC 
-         $-47,728.14  Equity:Opening Balances 
--------------------- 
-             $799.13 
-
-Even if --no-rounding is passed in: 
-
-$ ledger -V -f test.dat --no-rounding bal 
-          $48,527.27  Assets:Brokerage 
-          $14,763.02    TESTA 
-          $28,695.21    TESTB 
-           $5,069.03    TESTC 
-         $-47,728.14  Equity:Opening Balances 
--------------------- 
-             $799.13 
-
-Is there something off with how the data aboce is set up?  Should I be 
-using be more place holders? 
-*** performance
-**** reference
-http://stackoverflow.com/questions/3276240/tools-for-analyzing-performance-of-a-haskell-program/3276557#3276557
-**** speed, benchmark tests
-**** memory usage
-*** build & packaging
-**** use -Wall and anything else useful
-**** build with multiple ghc versions
-**** cabal test
-**** hackage upload
-**** cabal install with:
-***** ghc 6.8
-***** ghc 6.10.x
-***** windows
-***** linux
-***** macos
-***** no flags
-***** happs flag
-***** vty flag
-*** field
-**** talkback, auto bug reports
-**** usability
-**** download & usage stats
-** packaging, installability
-*** linux
-***** debian/ubuntu packaging
-*** mac
-***** easy installer
-***** easy startup
-*** windows
-***** easy installer
-***** easy startup
-** refactoring
-*** clarify need for & usage of primary/secondary/transaction/posting dates
-*** makefile cleanups
-*** make shell tests version independent
-tests/no-such-file.test: rm -f $$; bin/hledger register -f $$; rm -f $$
-tests/no-such-file.test: rm -f $$; bin/hledger balance --no-total -f $$; rm -f $$
-tests/add.test: rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
-tests/add.test: rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
-tests/add.test: rm -f t$$.j; bin/hledger -f t$$.j add; rm -f t$$.j
-tests/add.test: printf 'D $1000.00\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
-tests/add.test: printf 'D $1000.0\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
-tests/add.test: printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
-tests/add.test: printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; bin/hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
-tests/add.test: printf 'D $1000.0\nD £1,000.00\n' >t$$.j; bin/hledger -f t$$.j add; cat t$$.j; rm -f t$$.j
-tests/add.test:rm -f nosuch.journal; bin/hledger -f nosuch.journal add; rm -f nosuch.journal
-tests/add.test:## printf '\n\na\n1\nb\n' | bin/hledger -f /dev/null add
-tests/add.test:# bin/hledger -f /dev/null add
-tests/amount-layout-vertical.test:# bin/hledger -f - print
-tests/amount-layout-vertical.test:# bin/hledger -f - register
-tests/amount-layout-vertical.test:# bin/hledger -f - balance
-tests/parse-posting-error-pos.test:# bin/hledger -f- stat
-tests/null-accountname-component.test:# bin/hledger -f - balance -E
-tests/include.test: mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010/1/1\n (C)  1\n!include d/d.journal\n' >b/c/c.journal ; printf '2010/1/1\n (B)  1\n!include c/c.journal\n' >b/b.journal ; printf '2010/1/1\n (A)  1\n!include b/b.journal\n' >a.journal ; bin/hledger -f a.journal print; rm -rf a.journal b
-tests/timelog-stack-overflow.test:#bin/hledger -f - balance
-tests/precision.test:# bin/hledger -f - print --cost
-tests/precision.test: bin/hledger -f - balance --cost
-tests/timezone.test:# bin/hledger -f - balance --no-total --cost
-tests/read-csv.test:rm -rf t.rules$$; printf 'date-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
-tests/read-csv.test: printf 'base-account Assets:MyAccount\ndate-field 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\nin-field 2\nout-field 3\ncurrency $\n' >$$.rules ; bin/hledger -f- print --rules-file $$.rules; rm -rf $$.rules
-tests/read-csv.test:# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | bin/hledger convert --rules-file t.rules$$; rm -rf t.rules$$
-tests/prices.test:# bin/hledger -f - print
-
-*** abstract DataSource
-*** review/simplify apis
-**** simplify option types
-*** more modularity
-**** packages/namespace
-***** hledger-datasource?
-**** plugin strategy
-**** export lists
-**** graph and reduce dependencies
-*** switch to http-conduit
-*** include latest jquery, jquery-url, minified and non
-http://ajaxcssblog.com/jquery/url-read-request-variables/
-*** clarify levels of abstraction
-**** web ui balance sheet view - data model, view layout
-**** hledger web framework - define routes, handlers/views/actions/controllers/presenters, skins/styles..
-**** happstack - ? happstack api..
-**** hledger app platform - hledger.hs, Options, Utils, withLedgerDo..
-**** hledger lib - Ledger, TimeLog, Account, Transaction, Commodity..
-**** hledger dev platform - make build, ci, test, bench, prof, check, release..
-**** general libs - directory, parsec, regex-*, HUnit, time..
-**** cabal - hledger.cabal, hackage..
-**** ghc - ghc 6.8, 6.10..
-**** haskell 98
-**** unix/windows/mac platform
-*** inspiration
-http://community.haskell.org/~ndm/downloads/paper-hoogle_overview-19_nov_2008.pdf -> Design Guidelines
-*** perf tuning experiments
-**** string -> text
-**** strict data fields
-**** more profiling
-**** faster parsec alternative
-*** web: code/ui review/refactor
-**** convert all to HTF ?
-*** plugin architecture/modular packaging
-**** goals
-***** allow separately-packaged functionality to be discovered at run-time and integrated within the hledger ui.
-Example: user installs hledger-ofx package from hackage, or adds Ofx.hs to their ~/.hledger/plugins/;
-then "ofx" is among the commands listed by hledger --help, and/or is a new command available in
-the web and vty interfaces, and/or is a new file format understood by the convert command.
-**** issues to consider
-***** what is the api for plugins ?
-they'll want to import Ledger lib, to work with ledger data structures
-
-***** there are different kinds of "plugin". What could plugins provide ?
-****** commands - for all uis, or for one or more of them (cli, web, vty..). A command may itself be a new ui.
-****** import/export formats
-****** skins/styles/templates for uis, eg the web ui ?
-**** techniques to consider
-***** running executables provided by plugins
-a cli command plugin: cli execs the executable with same arguments
-a web command plugin: web ui runs the executable as a subprocess and captures the output
-***** linking plugins into main app with direct-plugins
-simplification of plugins lib
-main app needs to know the types used in plugin's interface
-weakens type safety, avoiding runtime errors requires extra care
-requires whole-program linking at plugin load time
-plugins can be discovered by querying ghc for installed packages or modules in a known part of the hierarchy
-maintained and keen to help
-***** linking plugins into main app with plugins (original)
-more complex than above
-more type-safe/featureful ?
-***** doing whatever xmonad does with dyre
-***** interpreting plugins under control of main app with hint
-ghci in an IO-like monad
-types need converting, etc.
-plugins may run more slowly
-plugins can be discovered/loaded by module path or by loading files directly
-
-
-** Archive                                                          :ARCHIVE:
-*** DONE 98: build issue due to missing template files
-    CLOSED: [2013-01-24 Thu 09:30]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-01-24 Thu 09:30
-    :END:
-**** test fix
-**** publish patch
-**** close issue
-**** improve clean build testing, possibly with cabal-dev
-*** DONE fix/explain build errors
-    CLOSED: [2013-02-08 Fri 09:05]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-02-11 Mon 12:44
-    :END:
-*** DONE add: djp/sm enhancements
-    CLOSED: [2013-03-15 Fri 18:35]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-03-15 Fri 18:35
-    :END:
-**** DONE cleanups
-     CLOSED: [2013-02-25 Mon 16:38]
-**** DONE 52 show added txn
-     CLOSED: [2013-02-25 Mon 16:38]
-**** DONE 47 do-over
-     CLOSED: [2013-02-25 Mon 16:38]
-**** DONE 96 command-line defaults
-     CLOSED: [2013-02-25 Mon 16:38]
-**** DONE 45 allow comment/tag entry
-     CLOSED: [2013-02-25 Mon 16:38]
-***** allow DESC ;COMMENT
-***** allow AMOUNT ;COMMENT
-**** DONE allow DATE CODE
-     CLOSED: [2013-02-25 Mon 16:38]
-**** DONE confirm before adding txn
-     CLOSED: [2013-02-25 Mon 16:39]
-**** DONE don't die after data entry if a partial date was provided on command line
-      CLOSED: [2013-03-04 Mon 18:09]
-
-**** DONE decide how to wind this up, complete/announce bounty
-     CLOSED: [2013-03-09 Sat 07:57]
-**** DONE add to release notes
-     CLOSED: [2013-03-09 Sat 07:57]
-
-*** DONE update release notes
-    CLOSED: [2013-03-30 Sat 11:00]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-03-30 Sat 11:02
-    :END:
-*** DONE fix site tocs
-    CLOSED: [2013-03-30 Sat 11:11]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-03-30 Sat 11:11
-    :END:
-*** DONE split up docs
-    CLOSED: [2013-04-02 Tue 11:17]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-04-02 Tue 11:17
-    :END:
-*** DONE publish multiple doc versions
-    CLOSED: [2013-04-02 Tue 11:17]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-04-02 Tue 11:17
-    :END:
-
-*** DONE issue tracking/project hosting spring cleaning
-    CLOSED: [2013-04-10 Wed 15:04]
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-04-10 Wed 15:05
-    :END:
-**** DONE clarify wish tracking
-     CLOSED: [2013-04-10 Wed 15:04]
-**** DONE try trello boards
-     CLOSED: [2013-04-09 Tue 06:17]
-**** DONE clarify code hosting - github ?
-     CLOSED: [2013-04-09 Tue 06:17]
-*** DONE more powerful csv reading
-    :PROPERTIES:
-    :ARCHIVE_TIME: 2013-04-10 Wed 15:16
-    :END:
-**** DONE v2 rules file mockup showing new syntax
-     CLOSED: [2013-01-11 Fri 20:27]
-**** DONE write down pseudo grammar
-     CLOSED: [2013-01-11 Fri 20:27]
-**** DONE review status
-     CLOSED: [2013-01-11 Fri 20:47]
-**** DONE parse basic directives & assignments
-     CLOSED: [2013-01-12 Sat 09:12]
-**** DONE apply basic directives & assignments
-     CLOSED: [2013-01-13 Sun 11:01]
-***** DONE directives
-      CLOSED: [2013-01-13 Sun 10:58]
-***** DONE field assignments
-      CLOSED: [2013-01-13 Sun 10:58]
-****** DONE code review
-       CLOSED: [2013-01-12 Sat 09:41]
-****** DONE code cleanup
-       CLOSED: [2013-01-12 Sat 11:40]
-******* DONE conform to new naming
-        CLOSED: [2013-01-12 Sat 11:40]
-******* DONE clarify rules type
-        CLOSED: [2013-01-12 Sat 10:57]
-******* DONE simplify
-        CLOSED: [2013-01-12 Sat 11:40]
-******** DONE get it parsing test rules again
-         CLOSED: [2013-01-12 Sat 11:05]
-******** DONE get it printing correct parsed value
-         CLOSED: [2013-01-12 Sat 11:05]
-******** DONE cleanup
-         CLOSED: [2013-01-12 Sat 11:40]
-****** DONE generate field values from templates
-       CLOSED: [2013-01-13 Sun 10:58]
-******* DONE date-format & date
-        CLOSED: [2013-01-13 Sun 01:00]
-******* DONE other fields
-        CLOSED: [2013-01-13 Sun 10:58]
-**** DONE 1-based field numbering
-     CLOSED: [2013-01-13 Sun 11:01]
-**** DONE conditional assignments
-     CLOSED: [2013-01-26 Sat 05:47]
-***** DONE parsing
-      CLOSED: [2013-01-14 Mon 07:27]
-****** DONE review doc
-       CLOSED: [2013-01-13 Sun 11:37]
-****** DONE update grammar
-       CLOSED: [2013-01-13 Sun 11:39]
-****** DONE multiple assignments
-       CLOSED: [2013-01-13 Sun 12:55]
-****** DONE multiple patterns
-       CLOSED: [2013-01-13 Sun 13:36]
-****** DONE clarify syntax
-       CLOSED: [2013-01-13 Sun 14:20]
-****** DONE update grammar
-       CLOSED: [2013-01-14 Mon 07:13]
-****** DONE clarify backwards compatibility
-       CLOSED: [2013-01-14 Mon 07:13]
-****** DONE lighter conditional syntax (omit field name)
-       CLOSED: [2013-01-14 Mon 07:27]
-
-***** DONE functionality
-      CLOSED: [2013-01-26 Sat 05:47]
-****** DONE clarify spec
-       CLOSED: [2013-01-14 Mon 09:33]
-****** DONE implement
-       CLOSED: [2013-01-14 Mon 09:33]
-
-****** DONE test
-       CLOSED: [2013-01-26 Sat 05:47]
-******* DONE fix speed
-        CLOSED: [2013-01-26 Sat 05:46]
-******** DONE review/try regex libs
-         CLOSED: [2013-01-26 Sat 05:29]
-******** DONE profile different variants
-         CLOSED: [2013-01-26 Sat 05:29]
-******** DONE handle malformed regexps as well as before
-         CLOSED: [2013-01-26 Sat 05:46]
-**** DONE fix warnings
-     CLOSED: [2013-01-26 Sat 15:03]
-**** DONE field name list
-     CLOSED: [2013-01-26 Sat 15:03]
-***** DONE implement assignment by field name list
-      CLOSED: [2013-01-26 Sat 14:58]
-****** DONE add a date field assignment per its position
-       CLOSED: [2013-01-26 Sat 14:39]
-
-****** DONE refactor
-       CLOSED: [2013-01-26 Sat 14:51]
-****** DONE add multiple fields without hard coding
-       CLOSED: [2013-01-26 Sat 14:58]
-****** DONE add all the right fields
-       CLOSED: [2013-01-26 Sat 14:58]
-**** DONE skip
-     CLOSED: [2013-01-26 Sat 15:38]
-**** DONE set currency from csv
-     CLOSED: [2013-03-19 Tue 06:17]
-**** DONE set amount sign based on another field's content (type=debit|credit)
-     CLOSED: [2013-01-26 Sat 16:57]
-**** DONE set amount based on two fields (amount in, amount out)
-     CLOSED: [2013-03-19 Tue 06:17]
-
-**** DONE parse parenthesised amounts as negative
-     CLOSED: [2013-01-27 Sun 17:32]
-**** DONE user friendliness
-     CLOSED: [2013-02-11 Mon 12:43]
-***** DONE robust parsing
-      CLOSED: [2013-01-27 Sun 07:32]
-***** DONE clear-ish errors
-      CLOSED: [2013-02-11 Mon 10:16]
-****** DONE catalog errors
-       CLOSED: [2013-02-09 Sat 15:18]
-****** DONE missing date/amount rule error
-       CLOSED: [2013-02-09 Sat 09:32]
-****** DONE better amount parse errors
-       CLOSED: [2013-02-09 Sat 10:12]
-******* DONE clean up csv parsing/validation
-        CLOSED: [2013-01-28 Mon 08:50]
-******* DONE clean up rules parsing/validation
-        CLOSED: [2013-01-28 Mon 08:50]
-
-******* DONE no amount assignment
-        CLOSED: [2013-01-29 Tue 06:50]
-******* DONE amount field unparseable
-        CLOSED: [2013-02-09 Sat 10:12]
-******* DONE confusing amount parse error for header line
-       CLOSED: [2013-02-09 Sat 11:47]
-hledgerdev: 
-Error, could not parse amount "" ((line 1, column 1):
-unexpected end of input
-expecting left-symbol amount, right-symbol amount or no-symbol amount)
-in ["Date","Details","Debit","Credit","Balance"]
-
-rules:
-#
-
-******* DONE could not parse amount in (data line)
-       CLOSED: [2013-02-09 Sat 11:48]
-hledgerdev: Error, could not parse amount "" ((line 1, column 1):
-unexpected end of input expecting left-symbol amount, right-symbol
-amount or no-symbol amount) in ["07/12/2012","LODGMENT
-529898","","10.0","131.21"]
-
-rules:
-******* DONE poor error on empty amount csv field
-        CLOSED: [2013-02-09 Sat 14:03]
-****** DONE better date parse errors
-       CLOSED: [2013-02-09 Sat 11:26]
-******* DONE don't silently misparse d/m/y
-        CLOSED: [2013-02-09 Sat 13:34]
-****** DONE why x rule triggering ?
-       CLOSED: [2013-02-09 Sat 17:28]
-****** DONE unclear error when conditional block assignment has no field name
-       CLOSED: [2013-02-09 Sat 17:40]
-
-***** show what's happening
-**** DONE fix parsing of %10 and fields: ...amount... as %1 in .wepay-in.csv.rules
-     CLOSED: [2013-03-14 Thu 16:19]
-**** DONE interpolate by name
-     CLOSED: [2013-03-14 Thu 17:33]
-**** DONE skip-lines -> skip
-      CLOSED: [2013-03-14 Thu 17:36]
-**** DONE amount-in/out
-     CLOSED: [2013-03-15 Fri 17:45]
-**** DONE value-less skip
-     CLOSED: [2013-03-15 Fri 17:45]
-**** DONE make if operator optional
-     CLOSED: [2013-03-19 Tue 06:47]
-**** DONE docs
-     CLOSED: [2013-03-29 Fri 15:20]
-***** DONE reorganize file format docs
-      CLOSED: [2013-02-11 Mon 12:45]
-***** DONE review/record writing tips
-      CLOSED: [2013-03-14 Thu 16:28]
-***** DONE csv introduction
-      CLOSED: [2013-03-14 Thu 17:54]
-***** DONE convert to hakyll 4
-      CLOSED: [2013-03-14 Thu 17:54]
-***** DONE serve manual from hub
-      CLOSED: [2013-03-13 Wed 11:03]
-***** DONE rewrite intro
-      CLOSED: [2013-03-17 Sun 16:15]
-***** DONE rewrite rules reference
-      CLOSED: [2013-03-19 Tue 06:15]
-***** DONE update manual
-      CLOSED: [2013-03-29 Fri 14:06]
-***** DONE update grammar
-      CLOSED: [2013-03-29 Fri 14:37]
-***** DONE clarify csv / journal entry / transaction terminology
-      CLOSED: [2013-03-19 Tue 06:15]
-***** DONE clarify directives / assignments / rules terminology
-      CLOSED: [2013-03-29 Fri 15:16]
-***** DONE clarify account directives
-      CLOSED: [2013-03-29 Fri 15:16]
-***** DONE clarify optional syntax (:, if, fields)
-      CLOSED: [2013-03-29 Fri 15:16]
-***** DONE clarify upgrade process
-      CLOSED: [2013-03-30 Sat 10:35]
-***** TODO update/add examples
-      https://gist.github.com/simonmichael/5153401 bofi example
-
-****** no rules file example
-****** rules file example
-****** how to archive/import the journal data more permanently
-**** DONE update default rules
-     CLOSED: [2013-03-29 Fri 15:19]
-**** DONE testing
-     CLOSED: [2013-03-29 Fri 15:51]
-***** DONE wells fargo checking
-      CLOSED: [2013-01-27 Sun 17:25]
-***** DONE western federal
-      CLOSED: [2013-01-27 Sun 18:51]
-***** DONE b of i
-      CLOSED: [2013-03-19 Tue 06:17]
-***** DONE wepay
-      CLOSED: [2013-03-19 Tue 06:17]
-***** DONE paypal
-      CLOSED: [2013-03-29 Fri 15:24]
-***** DONE mint
-      CLOSED: [2013-03-29 Fri 15:39]
-***** DONE ynab
-      CLOSED: [2013-03-29 Fri 15:46]
-***** wescom
-**** DONE commits
-     CLOSED: [2013-03-29 Fri 16:10]
-
-
-
+** good list of cost of ownership questions
+http://felixge.de/2013/03/07/open-source-and-responsibility.html
