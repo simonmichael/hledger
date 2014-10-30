@@ -38,6 +38,8 @@ module Hledger.Data.Dates (
   nulldatespan,
   tests_Hledger_Data_Dates,
   failIfInvalidYear,
+  failIfInvalidMonth,
+  failIfInvalidDay,
   datesepchar,
   datesepchars,
   spanStart,
