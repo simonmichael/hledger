@@ -1,0 +1,4 @@
+Static bits of the hledger.org website.
+
+In some cases these are rendered to _site/* by hakyll (or hakyll-std),
+in others they are served directly from the git working copy.
