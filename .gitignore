@@ -19,7 +19,6 @@ Makefile.local
 /messages
 *.o
 old
-profs/profs
 /static
 t.*
 tags

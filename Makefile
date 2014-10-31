@@ -553,9 +553,9 @@ quickbench: samplejournals tests/bench.tests tools/simplebench
 # run simple performance benchmarks and archive results
 # Requires some commands defined in tests/bench.tests and some BENCHEXES defined above.
 bench: samplejournals tests/bench.tests tools/simplebench
-	tools/simplebench -v -ftests/bench.tests $(BENCHEXES) | tee profs/$(TIME).bench
+	tools/simplebench -v -ftests/bench.tests $(BENCHEXES) | tee doc/profs/$(TIME).bench
 	@rm -f benchresults.*
-	@(cd profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
+	@(cd doc/profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
 
 # run criterion benchmark tests and save graphical results
 criterionbench: samplejournals tools/criterionbench
@@ -569,12 +569,12 @@ progressionbench: samplejournals tools/progressionbench
 prof: samplejournals #bin/hledger-prof
 	@echo "Profiling: $(PROFCMD)"
 	-$(PROFCMD) +RTS $(PROFRTSFLAGS) -RTS
-	mv hledger-prof.prof profs/$(TIME).prof
-	(cd profs; rm -f latest*.prof; ln -s $(TIME).prof latest.prof)
+	mv hledger-prof.prof doc/profs/$(TIME).prof
+	(cd doc/profs; rm -f latest*.prof; ln -s $(TIME).prof latest.prof)
 
 # generate, archive, simplify and display an execution profile
 viewprof: prof
-	tools/simplifyprof.hs profs/latest.prof
+	tools/simplifyprof.hs doc/profs/latest.prof
 
 # generate and display an execution profile, don't save or simplify
 quickprof: samplejournals #bin/hledger-prof
@@ -586,12 +586,12 @@ quickprof: samplejournals #bin/hledger-prof
 heap: samplejournals #bin/hledger-prof
 	@echo "Profiling heap with: $(PROFCMD)"
 	$(PROFCMD) +RTS -hc -RTS
-	mv hledger-prof.hp profs/$(TIME).hp
-	(cd profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
+	mv hledger-prof.hp doc/profs/$(TIME).hp
+	(cd doc/profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
 		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps; rm -f *.aux)
 
 viewheap: heap
-	$(VIEWPS) profs/latest.ps
+	$(VIEWPS) doc/profs/latest.ps
 
 # generate and display a graphical heap profile, don't save
 quickheap: samplejournals #bin/hledger-prof
@@ -608,12 +608,12 @@ quickcoverage: hledgerhpc
 # generate a code coverage html report from running hledger COVCMD
 coverage: samplejournals hledgerhpc
 	@echo "Generating code coverage html report for hledger command: $(COVCMD)"
-	tools/runhledgerhpc "markup --destdir=profs/coverage" $(COVCMD)
-	cd profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
+	tools/runhledgerhpc "markup --destdir=doc/profs/coverage" $(COVCMD)
+	cd doc/profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
 
 # view the last html code coverage report
 viewcoverage:
-	$(VIEWHTML) profs/coverage/index.html
+	$(VIEWHTML) doc/profs/coverage/index.html
 
 # single-package debug prompts, using all cabal settings
 
@@ -973,11 +973,11 @@ RSYNC=rsync
 # push any new profiles and benchmark results to the public site
 # beware, results will vary depending on which machine generated them
 pushprofs:
-	$(RSYNC) -azP profs/ simon@joyful.com:/repos/hledger/profs/
+	$(RSYNC) -azP doc/profs/ simon@joyful.com:/repos/hledger/doc/profs/
 
 # fetch any new profiles and benchmark results from the public site
 pullprofs:
-	$(RSYNC) -azP simon@joyful.com:/repos/hledger/profs/ profs/
+	$(RSYNC) -azP simon@joyful.com:/repos/hledger/doc/profs/ doc/profs/
 
 # compress the just-built platform binary. make hledgerPLATFORM first. Use
 # the win variant on windows.
