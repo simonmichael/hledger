@@ -668,8 +668,7 @@ cleandocs: site-clean
 
 # build some additional static bits of the hledger.org website
 # Requires hakyll-std, a generic hakyll site builder
-.PHONY: site
-site: olddocs
+site-build site: olddocs
 	-cd doc/site; hakyll build
 
 site-clean: cleanolddocs
