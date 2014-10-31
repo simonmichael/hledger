@@ -664,25 +664,26 @@ data/100000x1000x10.journal: tools/generatejournal
 # rebuild all docs
 docs: site codedocs
 
-cleandocs: cleansite
+cleandocs: site-clean
 
-# build the hledger.org website
-# Requires yst (cabal install yst)
+# build some additional static bits of the hledger.org website
+# Requires hakyll-std, a generic hakyll site builder
 .PHONY: site
 site: olddocs
-	-cd site; yst
+	-cd doc/site; hakyll build
 
-cleansite: cleanolddocs
-	rm -rf site/site/*
+site-clean: cleanolddocs
+	-cd doc/site; hakyll clean
+#	rm -rf doc/site/_site/*
 
-sitepreview: site/site
-	cd site; ./site preview
+site-preview: #doc/site/site
+	cd doc/site; hakyll preview
 
-siteview: site
-	$(VIEWHTML) site/_site/index.html
+site-view: site
+	$(VIEWHTML) doc/site/_site/index.html
 
-autosite:
-	cd site; $(AUTOBUILD) site.hs -o site $(PREFERMACUSRLIBFLAGS) --run preview
+# site-auto:
+# 	cd doc/site; $(AUTOBUILD) site.hs -o site $(PREFERMACUSRLIBFLAGS) --run preview
 
 # ensure some old doc versions are in place:
 
@@ -796,16 +797,16 @@ view-haddock-%:
 
 # http://www.cs.york.ac.uk/fp/darcs/hscolour/
 HSCOLOUR=HsColour -css
-hscolour: site/api/src site/api/src/hscolour.css
+hscolour: doc/site/api/src doc/site/api/src/hscolour.css
 	for f in $(HADDOCKSOURCEFILES); do \
-		$(HSCOLOUR) -anchor $$f -osite/api/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+		$(HSCOLOUR) -anchor $$f -odoc/site/api/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 	done
 
-site/api/src/hscolour.css: site/api/src
-	$(HSCOLOUR) -print-css >site/api/src/hscolour.css
+doc/site/api/src/hscolour.css: doc/site/api/src
+	$(HSCOLOUR) -print-css >doc/site/api/src/hscolour.css
 
-site/api/src:
-	mkdir -p site/api/src
+doc/site/api/src:
+	mkdir -p doc/site/api/src
 
 sourcegraph:
 	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
