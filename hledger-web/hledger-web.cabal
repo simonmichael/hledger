@@ -137,7 +137,7 @@ library
                    , network-conduit
                    , conduit-extra
                    , old-locale
-                   , parsec
+                   , parsec               >= 3
                    , regexpr              >= 0.5.1
                    , safe                 >= 0.2
                    , shakespeare          >= 2.0
@@ -208,7 +208,7 @@ executable         hledger-web
                    , network-conduit
                    , conduit-extra
                    , old-locale
-                   , parsec
+                   , parsec               >= 3
                    , regexpr              >= 0.5.1
                    , safe                 >= 0.2
                    , shakespeare          >= 2.0 && < 2.1

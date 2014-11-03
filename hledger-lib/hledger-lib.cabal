@@ -95,7 +95,7 @@ library
                  ,mtl
                  ,old-locale
                  ,old-time
-                 ,parsec
+                 ,parsec >= 3
                  ,regex-tdfa
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
@@ -130,7 +130,7 @@ test-suite tests
                , mtl
                , old-locale
                , old-time
-               , parsec
+               , parsec >= 3
                , regex-tdfa
                , regexpr
                , safe

@@ -23,7 +23,7 @@ import System.Console.Haskeline.Completion
 import System.Console.Wizard
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
-import Text.ParserCombinators.Parsec hiding (Line)
+import Text.Parsec
 import Text.Printf
 
 import Hledger
@@ -178,7 +178,8 @@ dateAndCodeWizard EntryState{..} = do
     where
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
-            edc = parseWithCtx nullctx dateandcodep $ lowercase s
+            edc = runParser dateandcodep nullctx "" $ lowercase s
+            dateandcodep :: Stream [Char] m t => ParsecT [Char] JournalContext m (SmartDate, String)
             dateandcodep = do
                 d <- smartdate
                 c <- optionMaybe codep
@@ -241,7 +242,7 @@ accountWizard EntryState{..} = do
       parseAccountOrDotOrNull _  _ "."       = dbg $ Just "." -- . always signals end of txn
       parseAccountOrDotOrNull "" True ""     = dbg $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
       parseAccountOrDotOrNull def@(_:_) _ "" = dbg $ Just def -- when there's a default, "" means use that
-      parseAccountOrDotOrNull _ _ s          = dbg $ either (const Nothing) validateAccount $ parseWithCtx (jContext esJournal) accountnamep s -- otherwise, try to parse the input as an accountname
+      parseAccountOrDotOrNull _ _ s          = dbg $ either (const Nothing) validateAccount $ runParser accountnamep (jContext esJournal) "" s -- otherwise, try to parse the input as an accountname
       dbg = id -- strace
       validateAccount s | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
                         | otherwise = Just s
@@ -265,8 +266,9 @@ amountAndCommentWizard EntryState{..} = do
    maybeRestartTransaction $
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where
-      parseAmountAndComment = either (const Nothing) Just . parseWithCtx nodefcommodityctx amountandcommentp
+      parseAmountAndComment = either (const Nothing) Just . runParser amountandcommentp nodefcommodityctx ""
       nodefcommodityctx = (jContext esJournal){ctxDefaultCommodityAndStyle=Nothing}
+      amountandcommentp :: Stream [Char] m t => ParsecT [Char] JournalContext m (Amount, String)
       amountandcommentp = do
         a <- amountp
         many spacenonewline

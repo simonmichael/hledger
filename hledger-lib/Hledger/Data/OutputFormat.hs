@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Hledger.Data.OutputFormat (
           parseStringFormat
         , formatsp
@@ -11,7 +12,7 @@ import Numeric
 import Data.Char (isPrint)
 import Data.Maybe
 import Test.HUnit
-import Text.ParserCombinators.Parsec
+import Text.Parsec
 import Text.Printf
 
 import Hledger.Data.Types
@@ -34,7 +35,7 @@ parseStringFormat input = case (runParser formatsp () "(unknown)") input of
 Parsers
 -}
 
-field :: GenParser Char st HledgerFormatField
+field :: Stream [Char] m Char => ParsecT [Char] st m HledgerFormatField
 field = do
         try (string "account" >> return AccountField)
     <|> try (string "depth_spacer" >> return DepthSpacerField)
@@ -43,7 +44,7 @@ field = do
     <|> try (string "total" >> return TotalField)
     <|> try (many1 digit >>= (\s -> return $ FieldNo $ read s))
 
-formatField :: GenParser Char st OutputFormat
+formatField :: Stream [Char] m Char => ParsecT [Char] st m OutputFormat
 formatField = do
     char '%'
     leftJustified <- optionMaybe (char '-')
@@ -58,7 +59,7 @@ formatField = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-formatLiteral :: GenParser Char st OutputFormat
+formatLiteral :: Stream [Char] m Char => ParsecT [Char] st m OutputFormat
 formatLiteral = do
     s <- many1 c
     return $ FormatLiteral s
@@ -67,12 +68,12 @@ formatLiteral = do
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatp :: GenParser Char st OutputFormat
+formatp :: Stream [Char] m Char => ParsecT [Char] st m OutputFormat
 formatp =
         formatField
     <|> formatLiteral
 
-formatsp :: GenParser Char st [OutputFormat]
+formatsp :: Stream [Char] m Char => ParsecT [Char] st m [OutputFormat]
 formatsp = many formatp
 
 testFormat :: OutputFormat -> String -> String -> Assertion

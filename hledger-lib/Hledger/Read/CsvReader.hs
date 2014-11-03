@@ -3,6 +3,8 @@
 A reader for CSV data, using an extra rules file to help interpret the data.
 
 -}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Hledger.Read.CsvReader (
   -- * Reader
@@ -35,9 +37,9 @@ import System.IO (stderr)
 import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Text.CSV (parseCSV, CSV)
-import Text.ParserCombinators.Parsec  hiding (parse)
-import Text.ParserCombinators.Parsec.Error
-import Text.ParserCombinators.Parsec.Pos
+import Text.Parsec hiding (parse)
+import Text.Parsec.Pos
+import Text.Parsec.Error
 import Text.Printf (hPrintf,printf)
 
 import Hledger.Data
@@ -90,7 +92,10 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   if created
    then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
    else hPrintf stderr "using conversion rules file %s\n" rulesfile
-  rules <- either (throwerr.show) id `fmap` parseRulesFile rulesfile
+  rules_ <- liftIO $ runErrorT $ parseRulesFile rulesfile
+  let rules = case rules_ of
+              Right (t::CsvRules) -> t
+              Left err -> throwerr $ show err
   dbgAtM 2 "rules" rules
 
   -- apply skip directive
@@ -324,15 +329,17 @@ getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
 getDirective directivename = lookup directivename . rdirectives
 
 
-parseRulesFile :: FilePath -> IO (Either ParseError CsvRules)
+parseRulesFile :: FilePath -> ErrorT String IO CsvRules
 parseRulesFile f = do
-  s <- readFile' f >>= expandIncludes
+  s <- liftIO $ (readFile' f >>= expandIncludes)
   let rules = parseCsvRules f s
-  return $ case rules of
-             Left e -> Left e
-             Right r -> case validateRules r of
-                          Left e -> Left $ toParseError e
-                          Right r -> Right r
+  case rules of
+    Left e -> ErrorT $ return $ Left $ show e
+    Right r -> do
+               r_ <- liftIO $ runErrorT $ validateRules r
+               ErrorT $ case r_ of
+                 Left e -> return $ Left $ show $ toParseError e
+                 Right r -> return $ Right r
   where
     toParseError s = newErrorMessage (Message s) (initialPos "")
 
@@ -355,13 +362,13 @@ parseCsvRules rulesfile s =
   runParser rulesp rules rulesfile s
 
 -- | Return the validated rules, or an error.
-validateRules :: CsvRules -> Either String CsvRules
+validateRules :: CsvRules -> ErrorT String IO CsvRules
 validateRules rules = do
-  unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1\n"
+  unless (isAssigned "date")   $ ErrorT $ return $ Left "Please specify (at top level) the date field. Eg: date %1\n"
   unless ((amount && not (amountin || amountout)) ||
           (not amount && (amountin && amountout)))
-    $ Left "Please specify (at top level) either the amount field, or both the amount-in and amount-out fields. Eg: amount %2\n"
-  Right rules
+    $ ErrorT $ return $ Left "Please specify (at top level) either the amount field, or both the amount-in and amount-out fields. Eg: amount %2\n"
+  ErrorT $ return $ Right rules
   where
     amount = isAssigned "amount"
     amountin = isAssigned "amount-in"
@@ -370,14 +377,14 @@ validateRules rules = do
 
 -- parsers
 
-rulesp :: GenParser Char CsvRules CsvRules
+rulesp :: Stream [Char] m t => ParsecT [Char] CsvRules m CsvRules
 rulesp = do
   many $ choice'
     [blankorcommentline                                                    <?> "blank or comment line"
-    ,(directive        >>= updateState . addDirective)                     <?> "directive"
-    ,(fieldnamelist    >>= updateState . setIndexesAndAssignmentsFromList) <?> "field name list"
-    ,(fieldassignment  >>= updateState . addAssignment)                    <?> "field assignment"
-    ,(conditionalblock >>= updateState . addConditionalBlock)              <?> "conditional block"
+    ,(directive        >>= modifyState . addDirective)                     <?> "directive"
+    ,(fieldnamelist    >>= modifyState . setIndexesAndAssignmentsFromList) <?> "field name list"
+    ,(fieldassignment  >>= modifyState . addAssignment)                    <?> "field assignment"
+    ,(conditionalblock >>= modifyState . addConditionalBlock)              <?> "conditional block"
     ]
   eof
   r <- getState
@@ -386,11 +393,19 @@ rulesp = do
           ,rconditionalblocks=reverse $ rconditionalblocks r
           }
 
+blankorcommentline :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
 blankorcommentline = pdbg 3 "trying blankorcommentline" >> choice' [blankline, commentline]
+
+blankline :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
 blankline = many spacenonewline >> newline >> return () <?> "blank line"
+
+commentline :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
 commentline = many spacenonewline >> commentchar >> restofline >> return () <?> "comment line"
+
+commentchar :: Stream [Char] m t => ParsecT [Char] CsvRules m Char
 commentchar = oneOf ";#"
 
+directive :: Stream [Char] m t => ParsecT [Char] CsvRules m (DirectiveName, String)
 directive = do
   pdbg 3 "trying directive"
   d <- choice' $ map string directives
@@ -409,8 +424,10 @@ directives =
    -- ,"base-currency"
   ]
 
+directiveval :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 directiveval = anyChar `manyTill` eolof
 
+fieldnamelist :: Stream [Char] m t => ParsecT [Char] CsvRules m [CsvFieldName]
 fieldnamelist = (do
   pdbg 3 "trying fieldnamelist"
   string "fields"
@@ -423,16 +440,20 @@ fieldnamelist = (do
   return $ map (map toLower) $ f:fs
   ) <?> "field name list"
 
+fieldname :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 fieldname = quotedfieldname <|> barefieldname
 
+quotedfieldname :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 quotedfieldname = do
   char '"'
   f <- many1 $ noneOf "\"\n:;#~"
   char '"'
   return f
 
+barefieldname :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 barefieldname = many1 $ noneOf " \t\n,;#~"
 
+fieldassignment :: Stream [Char] m t => ParsecT [Char] CsvRules m (JournalFieldName, FieldTemplate)
 fieldassignment = do
   pdbg 3 "trying fieldassignment"
   f <- journalfieldname
@@ -441,6 +462,7 @@ fieldassignment = do
   return (f,v)
   <?> "field assignment"
 
+journalfieldname :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 journalfieldname = pdbg 2 "trying journalfieldname" >> choice' (map string journalfieldnames)
 
 journalfieldnames =
@@ -460,6 +482,7 @@ journalfieldnames =
   ,"comment"
   ]
 
+assignmentseparator :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
 assignmentseparator = do
   pdbg 3 "trying assignmentseparator"
   choice [
@@ -467,12 +490,15 @@ assignmentseparator = do
     try (many spacenonewline >> char ':'),
     space
     ]
-  many spacenonewline
+  _ <- many spacenonewline
+  return ()
 
+fieldval :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 fieldval = do
   pdbg 2 "trying fieldval"
   anyChar `manyTill` eolof
 
+conditionalblock :: Stream [Char] m t => ParsecT [Char] CsvRules m ConditionalBlock
 conditionalblock = do
   pdbg 3 "trying conditionalblock"
   string "if" >> many spacenonewline >> optional newline
@@ -483,6 +509,7 @@ conditionalblock = do
   return (ms, as)
   <?> "conditional block"
 
+recordmatcher :: Stream [Char] m t => ParsecT [Char] CsvRules m [[Char]]
 recordmatcher = do
   pdbg 2 "trying recordmatcher"
   -- pos <- currentPos
@@ -493,6 +520,7 @@ recordmatcher = do
   return ps
   <?> "record matcher"
 
+matchoperator :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 matchoperator = choice' $ map string
   ["~"
   -- ,"!~"
@@ -500,11 +528,13 @@ matchoperator = choice' $ map string
   -- ,"!="
   ]
 
+patterns :: Stream [Char] m t => ParsecT [Char] CsvRules m [[Char]]
 patterns = do
   pdbg 3 "trying patterns"
   ps <- many regexp
   return ps
 
+regexp :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
 regexp = do
   pdbg 3 "trying regexp"
   notFollowedBy matchoperator

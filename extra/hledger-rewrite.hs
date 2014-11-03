@@ -23,7 +23,7 @@ Tested-with: hledger HEAD ~ 2014/2/4
 import Hledger.Cli
 -- more utils for parsing
 import Control.Applicative hiding (many)
-import Text.ParserCombinators.Parsec
+import Text.Parsec
 
 
 cmdmode :: Mode RawOpts
@@ -46,7 +46,7 @@ type PostingExpr = (AccountName, AmountExpr)
 data AmountExpr = AmountLiteral String | AmountMultiplier Quantity deriving (Show)
 
 addPostingExprsFromOpts :: RawOpts -> [PostingExpr]
-addPostingExprsFromOpts = map (either parseerror id . parseWithCtx nullctx postingexprp) . map stripquotes . listofstringopt "add-posting"
+addPostingExprsFromOpts = map (either parseerror id . runParser postingexprp nullctx "") . map stripquotes . listofstringopt "add-posting"
 
 postingexprp = do
   a <- accountnamep
@@ -67,7 +67,7 @@ amountexprp =
 amountExprRenderer :: Query -> AmountExpr -> (Transaction -> MixedAmount)
 amountExprRenderer q aex =
   case aex of
-    AmountLiteral s    -> either parseerror (const . mixed) $ parseWithCtx nullctx amountp s
+    AmountLiteral s    -> either parseerror (const . mixed) $ runParser amountp nullctx "" s
     AmountMultiplier n -> (`divideMixedAmount` (1 / n)) . (`firstAmountMatching` q)
   where
     firstAmountMatching :: Transaction -> Query -> MixedAmount

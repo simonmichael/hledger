@@ -79,7 +79,7 @@ library
                  ,mtl
                  ,old-locale
                  ,old-time
-                 ,parsec
+                 ,parsec >= 3
                  ,process
                  ,regex-tdfa
                  ,regexpr >= 0.5.1
@@ -129,7 +129,7 @@ executable hledger
                  ,mtl
                  ,old-locale
                  ,old-time
-                 ,parsec
+                 ,parsec >= 3
                  ,process
                  ,regex-tdfa
                  ,regexpr >= 0.5.1
@@ -168,7 +168,7 @@ test-suite tests
                , mtl
                , old-locale
                , old-time
-               , parsec
+               , parsec >= 3
                , process
                , regex-tdfa
                , regexpr

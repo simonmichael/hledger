@@ -46,7 +46,8 @@ import Data.Maybe
 import Data.Time.Calendar
 import Safe (readDef, headDef, headMay)
 import Test.HUnit
-import Text.ParserCombinators.Parsec
+-- import Text.ParserCombinators.Parsec
+import Text.Parsec hiding (Empty)
 
 import Hledger.Utils
 import Hledger.Data.Types

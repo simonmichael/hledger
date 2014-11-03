@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, FlexibleContexts #-}
 -- | Debugging helpers
 
 -- more:
@@ -23,7 +23,7 @@ import Safe (readDef)
 import System.Environment (getArgs)
 import System.Exit
 import System.IO.Unsafe (unsafePerformIO)
-import Text.ParserCombinators.Parsec
+import Text.Parsec
 import Text.Printf
 
 #if __GLASGOW_HASKELL__ >= 704
@@ -54,7 +54,7 @@ traceWith f e = trace (f e) e
 
 -- | Parsec trace - show the current parsec position and next input,
 -- and the provided label if it's non-null.
-ptrace :: String -> GenParser Char st ()
+ptrace :: Stream [Char] m t => String -> ParsecT [Char] st m ()
 ptrace msg = do
   pos <- getPosition
   next <- take peeklength `fmap` getInput
@@ -199,6 +199,7 @@ dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
 -- input) to the console when the debug level is at or above
 -- this level. Uses unsafePerformIO.
 -- pdbgAt :: GenParser m => Float -> String -> m ()
+pdbg :: Stream [Char] m t => Int -> String -> ParsecT [Char] st m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
 

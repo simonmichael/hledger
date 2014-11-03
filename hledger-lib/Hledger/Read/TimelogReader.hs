@@ -51,7 +51,7 @@ import Control.Monad
 import Control.Monad.Error
 import Data.List (isPrefixOf)
 import Test.HUnit
-import Text.ParserCombinators.Parsec hiding (parse)
+import Text.Parsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
@@ -81,7 +81,7 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
 parse _ = parseJournalWith timelogFile
 
-timelogFile :: GenParser Char JournalContext (JournalUpdate,JournalContext)
+timelogFile :: ParsecT [Char] JournalContext (ErrorT String IO) (JournalUpdate, JournalContext)
 timelogFile = do items <- many timelogItem
                  eof
                  ctx <- getState
@@ -98,7 +98,7 @@ timelogFile = do items <- many timelogItem
                           ] <?> "timelog entry, or default year or historical price directive"
 
 -- | Parse a timelog entry.
-timelogentry :: GenParser Char JournalContext TimeLogEntry
+timelogentry :: ParsecT [Char] JournalContext (ErrorT String IO) TimeLogEntry
 timelogentry = do
   sourcepos <- getPosition
   code <- oneOf "bhioO"

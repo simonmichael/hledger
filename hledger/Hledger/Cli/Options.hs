@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 
 Common cmdargs modes and flags, a command-line options type, and
@@ -74,7 +75,7 @@ import System.Environment
 import System.Exit (exitSuccess)
 import System.FilePath
 import Test.HUnit
-import Text.ParserCombinators.Parsec as P
+import Text.Parsec
 
 import Hledger
 import Hledger.Data.OutputFormat as OutputFormat
@@ -453,14 +454,14 @@ parseWidth s = case (runParser outputwidthp () "(unknown)") s of
     Left  e -> Left $ show e
     Right x -> Right x
 
-outputwidthp :: GenParser Char st OutputWidth
+outputwidthp :: Stream [Char] m t => ParsecT [Char] st m OutputWidth
 outputwidthp =
   try (do w <- widthp
           ws <- many1 (char ',' >> widthp)
           return $ FieldWidths $ w:ws)
   <|> TotalWidth `fmap` widthp
 
-widthp :: GenParser Char st Width
+widthp :: Stream [Char] m t => ParsecT [Char] st m Width
 widthp = (string "auto" >> return Auto)
     <|> (Width . read) `fmap` many1 digit
 

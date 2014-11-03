@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 
 Standard imports and utilities which are useful everywhere, or needed low
@@ -42,7 +43,7 @@ import System.Directory (getHomeDirectory)
 import System.FilePath((</>), isRelative)
 import System.IO
 import Test.HUnit
-import Text.ParserCombinators.Parsec
+import Text.Parsec
 import Text.Printf
 -- import qualified Data.Map as Map
 
@@ -333,14 +334,14 @@ treeFromPaths = foldl' mergeTrees emptyTree . map treeFromPath
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
-choice' :: [GenParser tok st a] -> GenParser tok st a
-choice' = choice . map Text.ParserCombinators.Parsec.try
+choice' :: Stream s m t => [ParsecT s u m a] -> ParsecT s u m a
+choice' = choice . map Text.Parsec.try
 
-parsewith :: Parser a -> String -> Either ParseError a
-parsewith p = parse p ""
+parsewith :: Parsec [Char] () a -> String -> Either ParseError a
+parsewith p = runParser p () ""
 
-parseWithCtx :: b -> GenParser Char b a -> String -> Either ParseError a
-parseWithCtx ctx p = runParser p ctx ""
+parseWithCtx :: Stream s m t => u -> ParsecT s u m a -> s -> m (Either ParseError a)
+parseWithCtx ctx p = runParserT p ctx ""
 
 fromparse :: Either ParseError a -> a
 fromparse = either parseerror id
@@ -354,16 +355,16 @@ showParseError e = "parse error at " ++ show e
 showDateParseError :: ParseError -> String
 showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
 
-nonspace :: GenParser Char st Char
+nonspace :: (Stream [Char] m Char) => ParsecT [Char] st m Char
 nonspace = satisfy (not . isSpace)
 
-spacenonewline :: GenParser Char st Char
+spacenonewline :: (Stream [Char] m Char) => ParsecT [Char] st m Char
 spacenonewline = satisfy (`elem` " \v\f\t")
 
-restofline :: GenParser Char st String
+restofline :: (Stream [Char] m Char) => ParsecT [Char] st m String
 restofline = anyChar `manyTill` newline
 
-eolof :: GenParser Char st ()
+eolof :: (Stream [Char] m Char) => ParsecT [Char] st m ()
 eolof = (newline >> return ()) <|> eof
 
 -- time

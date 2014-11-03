@@ -1,5 +1,6 @@
 -- {-# OPTIONS_GHC -F -pgmF htfpp #-}
-{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds #-}
+{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 
 A reader for hledger's journal file format
@@ -58,7 +59,7 @@ import Safe (headDef, lastDef)
 import Test.Framework
 import Text.Parsec.Error
 #endif
-import Text.ParserCombinators.Parsec hiding (parse)
+import Text.Parsec hiding (parse)
 import Text.Printf
 import System.FilePath
 import System.Time (getClockTime)
@@ -96,12 +97,13 @@ combineJournalUpdates us = liftM (foldl' (.) id) $ sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseJournalWith :: (GenParser Char JournalContext (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ErrorT String IO Journal
+parseJournalWith :: (ParsecT [Char] JournalContext (ErrorT String IO) (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ErrorT String IO Journal
 parseJournalWith p assrt f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
   y <- liftIO getCurrentYear
-  case runParser p nullctx{ctxYear=Just y} f s of
+  r <- runParserT p nullctx{ctxYear=Just y} f s
+  case r of
     Right (updates,ctx) -> do
                            j <- updates `ap` return nulljournal
                            case journalFinalise tc tl f s ctx assrt j of
@@ -109,46 +111,46 @@ parseJournalWith p assrt f s = do
                              Left estr -> throwError estr
     Left e -> throwError $ show e
 
-setYear :: Integer -> GenParser tok JournalContext ()
-setYear y = updateState (\ctx -> ctx{ctxYear=Just y})
+setYear :: Stream [Char] m Char => Integer -> ParsecT [Char] JournalContext m ()
+setYear y = modifyState (\ctx -> ctx{ctxYear=Just y})
 
-getYear :: GenParser tok JournalContext (Maybe Integer)
+getYear :: Stream [Char] m Char => ParsecT s JournalContext m (Maybe Integer)
 getYear = liftM ctxYear getState
 
-setDefaultCommodityAndStyle :: (Commodity,AmountStyle) -> GenParser tok JournalContext ()
-setDefaultCommodityAndStyle cs = updateState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
+setDefaultCommodityAndStyle :: Stream [Char] m Char => (Commodity,AmountStyle) -> ParsecT [Char] JournalContext m ()
+setDefaultCommodityAndStyle cs = modifyState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
 
-getDefaultCommodityAndStyle :: GenParser tok JournalContext (Maybe (Commodity,AmountStyle))
+getDefaultCommodityAndStyle :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe (Commodity,AmountStyle))
 getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` getState
 
-pushParentAccount :: String -> GenParser tok JournalContext ()
-pushParentAccount parent = updateState addParentAccount
+pushParentAccount :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m ()
+pushParentAccount parent = modifyState addParentAccount
     where addParentAccount ctx0 = ctx0 { ctxAccount = parent : ctxAccount ctx0 }
 
-popParentAccount :: GenParser tok JournalContext ()
+popParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 popParentAccount = do ctx0 <- getState
                       case ctxAccount ctx0 of
                         [] -> unexpected "End of account block with no beginning"
                         (_:rest) -> setState $ ctx0 { ctxAccount = rest }
 
-getParentAccount :: GenParser tok JournalContext String
+getParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) getState
 
-addAccountAlias :: AccountAlias -> GenParser tok JournalContext ()
-addAccountAlias a = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
+addAccountAlias :: Stream [Char] m Char => AccountAlias -> ParsecT [Char] JournalContext m ()
+addAccountAlias a = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
 
-getAccountAliases :: GenParser tok JournalContext [AccountAlias]
+getAccountAliases :: Stream [Char] m Char => ParsecT [Char] JournalContext m [AccountAlias]
 getAccountAliases = liftM ctxAliases getState
 
-clearAccountAliases :: GenParser tok JournalContext ()
-clearAccountAliases = updateState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
+clearAccountAliases :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
+clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
 -- parsers
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
 -- applied to an empty journal to get the final result.
-journal :: GenParser Char JournalContext (JournalUpdate,JournalContext)
+journal :: ParsecT [Char] JournalContext (ErrorT String IO) (JournalUpdate,JournalContext)
 journal = do
   journalupdates <- many journalItem
   eof
@@ -168,7 +170,7 @@ journal = do
                            ] <?> "journal transaction or directive"
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directive :: GenParser Char JournalContext JournalUpdate
+directive :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 directive = do
   optional $ char '!'
   choice' [
@@ -186,7 +188,7 @@ directive = do
    ]
   <?> "directive"
 
-includedirective :: GenParser Char JournalContext JournalUpdate
+includedirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 includedirective = do
   string "include"
   many1 spacenonewline
@@ -194,36 +196,48 @@ includedirective = do
   outerState <- getState
   outerPos <- getPosition
   let curdir = takeDirectory (sourceName outerPos)
-  return $ do filepath <- expandPath curdir filename
-              txt <- readFileOrError outerPos filepath
-              let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-              case runParser journal outerState filepath txt of
-                Right (ju,_) -> combineJournalUpdates [return $ journalAddFile (filepath,txt), ju] `catchError` (throwError . (inIncluded ++))
-                Left err     -> throwError $ inIncluded ++ show err
-      where readFileOrError pos fp =
+  let (u::ErrorT String IO (Journal -> Journal, JournalContext)) = do
+       filepath <- expandPath curdir filename
+       txt <- readFileOrError outerPos filepath
+       let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
+       r <- runParserT journal outerState filepath txt
+       case r of
+         Right (ju, ctx) -> do
+                            u <- combineJournalUpdates [ return $ journalAddFile (filepath,txt)
+                                                       , ju
+                                                       ] `catchError` (throwError . (inIncluded ++))
+                            return (u, ctx)
+         Left err -> throwError $ inIncluded ++ show err
+       where readFileOrError pos fp =
                 ErrorT $ liftM Right (readFile' fp) `C.catch`
                   \e -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show (e::C.IOException))
+  r <- liftIO $ runErrorT u
+  case r of
+    Left err -> return $ throwError err
+    Right (ju, ctx) -> return $ ErrorT $ return $ Right ju
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
   -- XXX currently called in reverse order of includes, I can't see why
 
-accountdirective :: GenParser Char JournalContext JournalUpdate
+accountdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 accountdirective = do
   string "account"
   many1 spacenonewline
   parent <- accountnamep
   newline
   pushParentAccount parent
-  return $ return id
+  -- return $ return id
+  return $ ErrorT $ return $ Right id
 
-enddirective :: GenParser Char JournalContext JournalUpdate
+enddirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 enddirective = do
   string "end"
   popParentAccount
-  return (return id)
+  -- return (return id)
+  return $ ErrorT $ return $ Right id
 
-aliasdirective :: GenParser Char JournalContext JournalUpdate
+aliasdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 aliasdirective = do
   string "alias"
   many1 spacenonewline
@@ -234,13 +248,13 @@ aliasdirective = do
                   ,accountNameWithoutPostingType $ strip alias)
   return $ return id
 
-endaliasesdirective :: GenParser Char JournalContext JournalUpdate
+endaliasesdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 endaliasesdirective = do
   string "end aliases"
   clearAccountAliases
   return (return id)
 
-tagdirective :: GenParser Char JournalContext JournalUpdate
+tagdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 tagdirective = do
   string "tag" <?> "tag directive"
   many1 spacenonewline
@@ -248,13 +262,13 @@ tagdirective = do
   restofline
   return $ return id
 
-endtagdirective :: GenParser Char JournalContext JournalUpdate
+endtagdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 endtagdirective = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
   return $ return id
 
-defaultyeardirective :: GenParser Char JournalContext JournalUpdate
+defaultyeardirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 defaultyeardirective = do
   char 'Y' <?> "default year"
   many spacenonewline
@@ -264,7 +278,7 @@ defaultyeardirective = do
   setYear y'
   return $ return id
 
-defaultcommoditydirective :: GenParser Char JournalContext JournalUpdate
+defaultcommoditydirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 defaultcommoditydirective = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
@@ -273,7 +287,7 @@ defaultcommoditydirective = do
   restofline
   return $ return id
 
-historicalpricedirective :: GenParser Char JournalContext HistoricalPrice
+historicalpricedirective :: ParsecT [Char] JournalContext (ErrorT String IO) HistoricalPrice
 historicalpricedirective = do
   char 'P' <?> "historical price"
   many spacenonewline
@@ -285,7 +299,7 @@ historicalpricedirective = do
   restofline
   return $ HistoricalPrice date symbol price
 
-ignoredpricecommoditydirective :: GenParser Char JournalContext JournalUpdate
+ignoredpricecommoditydirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 ignoredpricecommoditydirective = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
@@ -293,7 +307,7 @@ ignoredpricecommoditydirective = do
   restofline
   return $ return id
 
-commodityconversiondirective :: GenParser Char JournalContext JournalUpdate
+commodityconversiondirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 commodityconversiondirective = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
@@ -305,7 +319,7 @@ commodityconversiondirective = do
   restofline
   return $ return id
 
-modifiertransaction :: GenParser Char JournalContext ModifierTransaction
+modifiertransaction :: ParsecT [Char] JournalContext (ErrorT String IO) ModifierTransaction
 modifiertransaction = do
   char '=' <?> "modifier transaction"
   many spacenonewline
@@ -313,7 +327,7 @@ modifiertransaction = do
   postings <- postings
   return $ ModifierTransaction valueexpr postings
 
-periodictransaction :: GenParser Char JournalContext PeriodicTransaction
+periodictransaction :: ParsecT [Char] JournalContext (ErrorT String IO) PeriodicTransaction
 periodictransaction = do
   char '~' <?> "periodic transaction"
   many spacenonewline
@@ -322,7 +336,7 @@ periodictransaction = do
   return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) transaction.
-transaction :: GenParser Char JournalContext Transaction
+transaction :: ParsecT [Char] JournalContext (ErrorT String IO) Transaction
 transaction = do
   -- ptrace "transaction"
   sourcepos <- getPosition
@@ -427,7 +441,7 @@ test_transaction = do
 
 -- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
 -- may be omitted if a default year has already been set.
-datep :: GenParser Char JournalContext Day
+datep :: Stream [Char] m t => ParsecT [Char] JournalContext m Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
@@ -452,7 +466,7 @@ datep = do
 -- timezone will be ignored; the time is treated as local time.  Fewer
 -- digits are allowed, except in the timezone. The year may be omitted if
 -- a default year has already been set.
-datetimep :: GenParser Char JournalContext LocalTime
+datetimep :: Stream [Char] m Char => ParsecT [Char] JournalContext m LocalTime
 datetimep = do
   day <- datep
   many1 spacenonewline
@@ -480,7 +494,7 @@ datetimep = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-secondarydatep :: Day -> GenParser Char JournalContext Day
+secondarydatep :: Stream [Char] m Char => Day -> ParsecT [Char] JournalContext m Day
 secondarydatep primarydate = do
   char '='
   -- kludgy way to use primary date for default year
@@ -493,24 +507,24 @@ secondarydatep primarydate = do
   edate <- withDefaultYear primarydate datep
   return edate
 
-status :: GenParser Char JournalContext Bool
+status :: Stream [Char] m Char => ParsecT [Char] JournalContext m Bool
 status = try (do { many spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
 
-codep :: GenParser Char JournalContext String
+codep :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
-postings :: GenParser Char JournalContext [Posting]
+postings :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
 postings = many1 (try postingp) <?> "postings"
 
--- linebeginningwithspaces :: GenParser Char JournalContext String
+-- linebeginningwithspaces :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 -- linebeginningwithspaces = do
 --   sp <- many1 spacenonewline
 --   c <- nonspace
 --   cs <- restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-postingp :: GenParser Char JournalContext Posting
+postingp :: Stream [Char] m Char => ParsecT [Char] JournalContext m Posting
 postingp = do
   many1 spacenonewline
   status <- status
@@ -525,9 +539,27 @@ postingp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   -- oh boy
-  d  <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx datep `fmap` dateValueFromTags tags)
-  d2 <- maybe (return Nothing) (either (fail.show) (return.Just)) (parseWithCtx ctx datep `fmap` date2ValueFromTags tags)
-  return posting{pdate=d, pdate2=d2, pstatus=status, paccount=account', pamount=amount, pcomment=comment, ptype=ptype, ptags=tags, pbalanceassertion=massertion}
+  date <- case dateValueFromTags tags of
+        Nothing -> return Nothing
+        Just v -> case runParser datep ctx "" v of
+                    Right d -> return $ Just d
+                    Left err -> parserFail $ show err
+  date2 <- case date2ValueFromTags tags of
+        Nothing -> return Nothing
+        Just v -> case runParser datep ctx "" v of
+                    Right d -> return $ Just d
+                    Left err -> parserFail $ show err
+  return posting
+   { pdate=date
+   , pdate2=date2
+   , pstatus=status
+   , paccount=account'
+   , pamount=amount
+   , pcomment=comment
+   , ptype=ptype
+   , ptags=tags
+   , pbalanceassertion=massertion
+   }
 
 #ifdef TESTS
 test_postingp = do
@@ -577,7 +609,7 @@ test_postingp = do
 #endif
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
-modifiedaccountname :: GenParser Char JournalContext AccountName
+modifiedaccountname :: Stream [Char] m Char => ParsecT [Char] JournalContext m AccountName
 modifiedaccountname = do
   a <- accountnamep
   prefix <- getParentAccount
@@ -589,7 +621,7 @@ modifiedaccountname = do
 -- them, and are terminated by two or more spaces. They should have one or
 -- more components of at least one character, separated by the account
 -- separator char.
-accountnamep :: GenParser Char st AccountName
+accountnamep :: Stream [Char] m Char => ParsecT [Char] st m AccountName
 accountnamep = do
     a <- many1 (nonspace <|> singlespace)
     let a' = striptrailingspace a
@@ -607,7 +639,7 @@ accountnamep = do
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissing :: GenParser Char JournalContext MixedAmount
+spaceandamountormissing :: Stream [Char] m Char => ParsecT [Char] JournalContext m MixedAmount
 spaceandamountormissing =
   try (do
         many1 spacenonewline
@@ -631,7 +663,7 @@ test_spaceandamountormissing = do
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
-amountp :: GenParser Char JournalContext Amount
+amountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
 amountp = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 
 #ifdef TESTS
@@ -650,19 +682,22 @@ test_amountp = do
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
-amountp' s = either (error' . show) id $ parseWithCtx nullctx amountp s
+amountp' s =
+  case runParser amountp nullctx "" s of
+    Right t -> t
+    Left err -> error' $ show err
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
-signp :: GenParser Char JournalContext String
+signp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
 signp = do
   sign <- optionMaybe $ oneOf "+-"
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
-leftsymbolamount :: GenParser Char JournalContext Amount
+leftsymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
 leftsymbolamount = do
   sign <- signp
   c <- commoditysymbol
@@ -674,7 +709,7 @@ leftsymbolamount = do
   return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
-rightsymbolamount :: GenParser Char JournalContext Amount
+rightsymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
 rightsymbolamount = do
   (q,prec,mdec,mgrps) <- numberp
   sp <- many spacenonewline
@@ -684,7 +719,7 @@ rightsymbolamount = do
   return $ Amount c q p s
   <?> "right-symbol amount"
 
-nosymbolamount :: GenParser Char JournalContext Amount
+nosymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
 nosymbolamount = do
   (q,prec,mdec,mgrps) <- numberp
   p <- priceamount
@@ -696,20 +731,20 @@ nosymbolamount = do
   return $ Amount c q p s
   <?> "no-symbol amount"
 
-commoditysymbol :: GenParser Char JournalContext String
+commoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
 commoditysymbol = (quotedcommoditysymbol <|> simplecommoditysymbol) <?> "commodity symbol"
 
-quotedcommoditysymbol :: GenParser Char JournalContext String
+quotedcommoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
 quotedcommoditysymbol = do
   char '"'
   s <- many1 $ noneOf ";\n\""
   char '"'
   return s
 
-simplecommoditysymbol :: GenParser Char JournalContext String
+simplecommoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
 simplecommoditysymbol = many1 (noneOf nonsimplecommoditychars)
 
-priceamount :: GenParser Char JournalContext Price
+priceamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Price
 priceamount =
     try (do
           many spacenonewline
@@ -725,7 +760,7 @@ priceamount =
             return $ UnitPrice a))
          <|> return NoPrice
 
-partialbalanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
+partialbalanceassertion :: Stream [Char] m t => ParsecT [Char] JournalContext m (Maybe MixedAmount)
 partialbalanceassertion =
     try (do
           many spacenonewline
@@ -735,7 +770,7 @@ partialbalanceassertion =
           return $ Just $ Mixed [a])
          <|> return Nothing
 
--- balanceassertion :: GenParser Char JournalContext (Maybe MixedAmount)
+-- balanceassertion :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe MixedAmount)
 -- balanceassertion =
 --     try (do
 --           many spacenonewline
@@ -746,7 +781,7 @@ partialbalanceassertion =
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotprice :: GenParser Char JournalContext (Maybe Amount)
+fixedlotprice :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe Amount)
 fixedlotprice =
     try (do
           many spacenonewline
@@ -772,7 +807,7 @@ fixedlotprice =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
-numberp :: GenParser Char JournalContext (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp :: Stream [Char] m t => ParsecT [Char] JournalContext m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
   -- a number is an optional sign followed by a sequence of digits possibly
   -- interspersed with periods, commas, or both
@@ -848,7 +883,7 @@ test_numberp = do
 
 -- comment parsers
 
-multilinecommentp :: GenParser Char JournalContext ()
+multilinecommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 multilinecommentp = do
   string "comment" >> newline
   go
@@ -857,25 +892,25 @@ multilinecommentp = do
          <|> (anyLine >> go)
     anyLine = anyChar `manyTill` newline
 
-emptyorcommentlinep :: GenParser Char JournalContext ()
+emptyorcommentlinep :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 emptyorcommentlinep = do
   many spacenonewline >> (comment <|> (many spacenonewline >> newline >> return ""))
   return ()
 
-followingcommentp :: GenParser Char JournalContext String
+followingcommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 followingcommentp =
   -- ptrace "followingcommentp"
   do samelinecomment <- many spacenonewline >> (try semicoloncomment <|> (newline >> return ""))
      newlinecomments <- many (try (many1 spacenonewline >> semicoloncomment))
      return $ unlines $ samelinecomment:newlinecomments
 
-comment :: GenParser Char JournalContext String
+comment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 comment = commentStartingWith "#;"
 
-semicoloncomment :: GenParser Char JournalContext String
+semicoloncomment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 semicoloncomment = commentStartingWith ";"
 
-commentStartingWith :: String -> GenParser Char JournalContext String
+commentStartingWith :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m String
 commentStartingWith cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
@@ -892,7 +927,7 @@ tagsInComment c = concatMap tagsInCommentLine $ lines c'
 tagsInCommentLine :: String -> [Tag]
 tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
   where
-    maybetag s = case parseWithCtx nullctx tag s of
+    maybetag s = case runParser tag nullctx "" s of
                   Right t -> Just t
                   Left _ -> Nothing
 

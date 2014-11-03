@@ -10,7 +10,7 @@ import Data.List (intercalate, sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
 import Data.Text (unpack)
 import qualified Data.Text as T
-import Text.Parsec (digit, eof, many1, string)
+import Text.Parsec (digit, eof, many1, string, runParser)
 import Text.Printf (printf)
 
 import Hledger.Utils
@@ -64,7 +64,7 @@ handleAdd = do
                   map fst amtparams `elem` [[1..num], [1..num-1]] = []
                 | otherwise = ["malformed account/amount parameters"]
       eaccts = map (parsewith (accountnamep <* eof) . strip . T.unpack . snd) acctparams
-      eamts  = map (parseWithCtx nullctx (amountp <* eof) . strip . T.unpack . snd) amtparams
+      eamts  = map (runParser (amountp <* eof) nullctx "" . strip . T.unpack . snd) amtparams
       (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
       (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
       amts | length amts' == num = amts'
