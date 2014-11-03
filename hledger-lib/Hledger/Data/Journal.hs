@@ -146,19 +146,19 @@ mainfile :: Journal -> (FilePath, String)
 mainfile = headDef ("", "") . files
 
 addTransaction :: Transaction -> Journal -> Journal
-addTransaction t l0 = l0 { jtxns = t : jtxns l0 }
+addTransaction t j = j { jtxns = t : jtxns j }
 
 addModifierTransaction :: ModifierTransaction -> Journal -> Journal
-addModifierTransaction mt l0 = l0 { jmodifiertxns = mt : jmodifiertxns l0 }
+addModifierTransaction mt j = j { jmodifiertxns = mt : jmodifiertxns j }
 
 addPeriodicTransaction :: PeriodicTransaction -> Journal -> Journal
-addPeriodicTransaction pt l0 = l0 { jperiodictxns = pt : jperiodictxns l0 }
+addPeriodicTransaction pt j = j { jperiodictxns = pt : jperiodictxns j }
 
 addHistoricalPrice :: HistoricalPrice -> Journal -> Journal
-addHistoricalPrice h l0 = l0 { historical_prices = h : historical_prices l0 }
+addHistoricalPrice h j = j { historical_prices = h : historical_prices j }
 
 addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
-addTimeLogEntry tle l0 = l0 { open_timelog_entries = tle : open_timelog_entries l0 }
+addTimeLogEntry tle j = j { open_timelog_entries = tle : open_timelog_entries j }
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [String]
@@ -404,8 +404,16 @@ journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContex
 journalFinalise tclock tlocal path txt ctx assrt j@Journal{files=fs} = do
   (journalBalanceTransactions $
     journalCanonicaliseAmounts $
-    journalCloseTimeLogEntries tlocal
-    j{files=(path,txt):fs, filereadtime=tclock, jContext=ctx})
+    journalCloseTimeLogEntries tlocal $
+    j{ files=(path,txt):fs
+     , filereadtime=tclock
+     , jContext=ctx
+     , jtxns=reverse $ jtxns j -- NOTE: see addTransaction
+     , jmodifiertxns=reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
+     , jperiodictxns=reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
+     , historical_prices=reverse $ historical_prices j -- NOTE: see addHistoricalPrice
+     , open_timelog_entries=reverse $ open_timelog_entries j -- NOTE: see addTimeLogEntry
+     })
   >>= if assrt then journalCheckBalanceAssertions else return
 
 -- | Check any balance assertions in the journal and return an error

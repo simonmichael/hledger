@@ -93,7 +93,7 @@ parse _ = parseJournalWith journal
 
 -- | Flatten a list of JournalUpdate's into a single equivalent one.
 combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
-combineJournalUpdates us = liftM (foldl' (.) id) $ sequence us
+combineJournalUpdates us = liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
@@ -218,7 +218,7 @@ includedirective = do
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
-  -- XXX currently called in reverse order of includes, I can't see why
+ -- NOTE: first encountered file to left, to avoid a reverse
 
 accountdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
 accountdirective = do

@@ -193,7 +193,7 @@ data Journal = Journal {
       files :: [(FilePath, String)],        -- ^ the file path and raw text of the main and
                                             -- any included journal files. The main file is
                                             -- first followed by any included files in the
-                                            -- order encountered (XXX reversed, cf journalAddFile).
+                                            -- order encountered.
       filereadtime :: ClockTime,            -- ^ when this journal was last read from its file(s)
       jcommoditystyles :: M.Map Commodity AmountStyle  -- ^ how to display amounts in each commodity
     } deriving (Eq, Typeable, Data)

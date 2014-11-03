@@ -49,7 +49,7 @@ module Hledger.Read.TimelogReader (
 where
 import Control.Monad
 import Control.Monad.Error
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, foldl')
 import Test.HUnit
 import Text.Parsec hiding (parse)
 import System.FilePath
@@ -85,7 +85,7 @@ timelogFile :: ParsecT [Char] JournalContext (ErrorT String IO) (JournalUpdate, 
 timelogFile = do items <- many timelogItem
                  eof
                  ctx <- getState
-                 return (liftM (foldr (.) id) $ sequence items, ctx)
+                 return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, ctx)
     where
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
