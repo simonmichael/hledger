@@ -59,7 +59,7 @@ amountexprp =
   choice [
      AmountMultiplier <$> (do char '*'
                               many spacenonewline
-                              (q,_,_,_,_) <- numberp
+                              (q,_,_,_) <- numberp
                               return q)
     ,AmountLiteral <$> many anyChar
     ]
