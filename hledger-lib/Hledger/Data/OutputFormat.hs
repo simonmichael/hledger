@@ -8,6 +8,7 @@ module Hledger.Data.OutputFormat (
         , tests
         ) where
 
+import Control.Applicative ((<*))
 import Numeric
 import Data.Char (isPrint)
 import Data.Maybe
@@ -27,7 +28,7 @@ formatValue leftJustified min max value = printf formatS value
       formatS = "%" ++ l ++ min' ++ max' ++ "s"
 
 parseStringFormat :: String -> Either String [OutputFormat]
-parseStringFormat input = case (runParser formatsp () "(unknown)") input of
+parseStringFormat input = case (runParser (formatsp <* eof) () "(unknown)") input of
     Left y -> Left $ show y
     Right x -> Right x
 

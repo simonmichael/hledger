@@ -19,7 +19,7 @@ module Hledger.Read.CsvReader (
   tests_Hledger_Read_CsvReader
 )
 where
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*))
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Error
@@ -604,7 +604,7 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
     amountstr   = (currency++) $ negateIfParenthesised $ getAmountStr rules record
-    amount      = either amounterror (Mixed . (:[])) $ runParser (do {a <- amountp; eof; return a}) nullctx "" amountstr
+    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) nullctx "" amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
       ,showRecord record
