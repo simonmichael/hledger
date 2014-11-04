@@ -62,7 +62,7 @@ module Hledger.Cli.Options (
 )
 where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*))
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.List
@@ -451,7 +451,7 @@ widthFromOpts CliOpts{width_=Just ""} = Right $ TotalWidth $ Width defaultWidthW
 widthFromOpts CliOpts{width_=Just s}  = parseWidth s
 
 parseWidth :: String -> Either String OutputWidth
-parseWidth s = case (runParser outputwidthp () "(unknown)") s of
+parseWidth s = case (runParser (outputwidthp <* eof) () "(unknown)") s of
     Left  e -> Left $ show e
     Right x -> Right x
 

@@ -45,6 +45,7 @@ module Hledger.Read.JournalReader (
 #endif
 )
 where
+import Control.Applicative ((<*))
 import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Error
@@ -541,12 +542,12 @@ postingp = do
   -- oh boy
   date <- case dateValueFromTags tags of
         Nothing -> return Nothing
-        Just v -> case runParser datep ctx "" v of
+        Just v -> case runParser (datep <* eof) ctx "" v of
                     Right d -> return $ Just d
                     Left err -> parserFail $ show err
   date2 <- case date2ValueFromTags tags of
         Nothing -> return Nothing
-        Just v -> case runParser datep ctx "" v of
+        Just v -> case runParser (datep <* eof) ctx "" v of
                     Right d -> return $ Just d
                     Left err -> parserFail $ show err
   return posting
@@ -683,7 +684,7 @@ test_amountp = do
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
 amountp' s =
-  case runParser amountp nullctx "" s of
+  case runParser (amountp <* eof) nullctx "" s of
     Right t -> t
     Left err -> error' $ show err
 
@@ -930,7 +931,7 @@ tagsInComment c = concatMap tagsInCommentLine $ lines c'
 tagsInCommentLine :: String -> [Tag]
 tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
   where
-    maybetag s = case runParser tag nullctx "" s of
+    maybetag s = case runParser (tag <* eof) nullctx "" s of
                   Right t -> Just t
                   Left _ -> Nothing
 
