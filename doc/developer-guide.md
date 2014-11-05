@@ -4,23 +4,43 @@
 
 ## Quick links
 
-**Released version:**\\
-[[Release notes]],
-[[download|Downloads]]\\
-Hackage:
-[hledger-lib](http://hackage.haskell.org/package/hledger-lib),
-[hledger](http://hackage.haskell.org/package/hledger),
-[hledger-web](http://hackage.haskell.org/package/hledger-web),
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest),
-[hledger-irr](http://hackage.haskell.org/package/hledger-irr),
-[hledger-vty](http://hackage.haskell.org/package/hledger-vty),
-[hledger-chart](http://hackage.haskell.org/package/hledger-chart)\\
-Debian: [haskell-hledger](http://packages.qa.debian.org/h/haskell-hledger.html)\\
-Ubuntu: [haskell-hledger](https://launchpad.net/ubuntu/+source/haskell-hledger)\\
-RedHat/Fedora: [hledger](http://fr2.rpmfind.net/linux/rpm2html/search.php?query=hledger&submit=Search+...)\\
-Gentoo: [hledger](http://gpo.zugaina.org/Search?search=hledger)\\
+^ hledger.org: ^ [[release notes|combined release notes]], [[download|pre-compiled binaries]] ^
+^ Github: ^ [code](http://github.com/simonmichael/hledger), [commits](http://github.com/simonmichael/hledger/commits), [COMMITS](http://starlogs.net/#simonmichael/hledger) (turn up your volume) \\ [commits only in master](https://github.com/simonmichael/hledger/compare/0.23...master), [commits only in release branch](https://github.com/simonmichael/hledger/compare/master...0.23) \\ [build status (hydra)](http://hydra.cryp.to/jobset/hledger/master#tabs-jobs) \\ [open bugs](https://github.com/simonmichael/hledger/issues?direction=desc&labels=BUG&page=1&sort=created&state=open), [all bugs](https://github.com/simonmichael/hledger/issues?direction=desc&labels=BUG&page=1&sort=created), [open issues](https://github.com/simonmichael/hledger/issues?direction=desc&labels=&page=1&sort=created&state=open), [all issues](https://github.com/simonmichael/hledger/issues?direction=desc&labels=&page=1&sort=created) ^
+^ Hackage: ^ [hledger-lib](http://hackage.haskell.org/package/hledger-lib), [hledger](http://hackage.haskell.org/package/hledger), [hledger-web](http://hackage.haskell.org/package/hledger-web), [hledger-interest](http://hackage.haskell.org/package/hledger-interest), [hledger-irr](http://hackage.haskell.org/package/hledger-irr), [hledger-vty](http://hackage.haskell.org/package/hledger-vty), [hledger-chart](http://hackage.haskell.org/package/hledger-chart), [*hledger*](http://hackage.haskell.org/packages/search?terms=hledger) \\ reverse dependencies: [hledger-lib](http://packdeps.haskellers.com/reverse/hledger-lib), [hledger](http://packdeps.haskellers.com/reverse/hledger), [outdated dependencies](http://packdeps.haskellers.com/feed/?needle=hledger) \\ [download activity](http://best-haskell.herokuapp.com/#/category/Finance) ^
+^ Stackage: ^ [hledger entry](https://github.com/fpco/stackage/blob/master/Stackage/Config.hs#L449-450), [issues](https://github.com/fpco/stackage/search?q=hledger&ref=cmdform&type=Issues) \\ [build status (jenkins)](http://jenkins.stackage.org/job/Stackage/), last build output: [7.4](http://jenkins.stackage.org/job/Stackage/ghcversion=7.4.2/lastBuild/console), [7.6](http://jenkins.stackage.org/job/Stackage/ghcversion=7.6.3/lastBuild/console), [7.8](http://jenkins.stackage.org/job/Stackage/ghcversion=7.8.2/lastBuild/console) ^
+^ Debian: ^ source packages \\ [haskell-hledger-lib](http://packages.qa.debian.org/h/haskell-hledger-lib.html), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-lib), [haskell-hledger](http://packages.qa.debian.org/h/haskell-hledger.html), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger), [haskell-hledger-web](http://packages.qa.debian.org/h/haskell-hledger-web.html), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-web) \\ binary packages \\ testing: [hledger](https://packages.debian.org/testing/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=testing), [hledger-web](https://packages.debian.org/testing/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=testing) \\ unstable: [hledger](https://packages.debian.org/unstable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=unstable), [hledger-web](https://packages.debian.org/unstable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=unstable) \\ all: [*hledger*](https://packages.debian.org/search?searchon=names&keywords=hledger) \\ popularity stats: [hledger](https://qa.debian.org/popcon.php?package=haskell-hledger), [hledger-web](https://qa.debian.org/popcon.php?package=haskell-hledger-web) \\ [PTS help](https://www.debian.org/doc/manuals/developers-reference/resources.html#pkg-tracking-system) ^
+^ Ubuntu: ^ source packages \\ [haskell-hledger-lib](https://launchpad.net/ubuntu/+source/haskell-hledger-lib), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-lib), [haskell-hledger](https://launchpad.net/ubuntu/+source/haskell-hledger), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger), [haskell-hledger-web](https://launchpad.net/ubuntu/+source/haskell-hledger-web), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-web) \\ binary packages \\ [*hledger*](http://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger) ^
+^ Gentoo: ^ [hledger](http://gpo.zugaina.org/dev-haskell/hledger), [hledger-web](http://gpo.zugaina.org/dev-haskell/hledger-web), [*hledger*](http://gpo.zugaina.org/Search?search=hledger) ^
+^ Fedora: ^ [hledger](https://apps.fedoraproject.org/packages/hledger), [*hledger*](https://apps.fedoraproject.org/packages/s/hledger) ^
 
-<!--
+<!-- list the debian packages for clarity:
+3 source:
+haskell-hledger-lib
+haskell-hledger
+haskell-hledger-web
+8 binary:
+hledger
+hledger-web
+libghc-hledger-dev
+libghc-hledger-doc
+libghc-hledger-prof
+libghc-hledger-lib-dev
+libghc-hledger-lib-doc
+libghc-hledger-lib-prof
+-->
+
+<!-- old/future links -->
+<!-- [haddock coverage](http://hledger.org/profs/haddock-coverage), -->
+<!-- [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html), -->
+<!-- [benchmark](http://hledger.org/profs/latest.bench) -->
+<!-- [profile](http://hledger.org/profs/latest.prof), -->
+<!-- [heap](http://hledger.org/profs/latest.ps) -->
+<!-- [developer notes](http://github.com/simonmichael/hledger/NOTES.org)\ -->
+<!-- [browse dev API docs](http://hledger.org/api/frames.html) -->
+<!-- [[developer-guide#set-up-for-development|How to clone it]] -->
+<!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
+
+<!-- hoogle search form
 <script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
 <script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
 <form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
@@ -32,27 +52,8 @@ Gentoo: [hledger](http://gpo.zugaina.org/Search?search=hledger)\\
 </form>
 -->
 
-**Development version:**\\
-[Commits](http://github.com/simonmichael/hledger/commits),
-[COMMITS!](http://starlogs.net/#simonmichael/hledger) (turn up your volume),
-[Code](http://github.com/simonmichael/hledger),
-[[developer-guide#set-up-for-development|How to clone it]]
-<!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
-\\
-Reports:
-[build](http://hydra.cryp.to:8080/project/hledger),
-[dependencies](http://packdeps.haskellers.com/feed/?needle=hledger)
-<!-- [haddock coverage](http://hledger.org/profs/haddock-coverage), -->
-<!-- [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html), -->
-<!-- [benchmark](http://hledger.org/profs/latest.bench) -->
-<!-- [profile](http://hledger.org/profs/latest.prof), -->
-<!-- [heap](http://hledger.org/profs/latest.ps) -->
-<!-- [developer notes](http://github.com/simonmichael/hledger/NOTES.org)\ -->
-<!-- [browse dev API docs](http://hledger.org/api/frames.html) -->
 
 ---
-
-*2014: needs an update*
 
 ## Project overview
 
@@ -99,6 +100,11 @@ As of 2014/2, hledger.org is a wiki, and most docs are maintained as wiki pages.
 Some, particularly the user manual and release notes, still exist in the main source repo as well.
 These should probably not be updated directly, instead they are copied from the wiki before each release.
 
+### Code
+
+The hledger repo is hosted on github.com: http://github.com/simonmichael/hledger.
+(You can also jump there via [hledger.org/code[/commits]](http://hledger.org/code), or code.hledger.org[/commits]).
+
 ### Quality control
 
 Relevant tools include:
@@ -109,11 +115,17 @@ Relevant tools include:
 - documentation tests (make haddocktest + manual)
 - ui tests (manual)
 - installation tests (manual)
+- code reviews
 
-### Code
+### Code reviews
 
-- the hledger repo is hosted on github.com: http://github.com/simonmichael/hledger.
-  (You can also jump there via [hledger.org/code](http://hledger.org/code) or code.hledger.org).
+We held a code review party, hopefully the first of many, in July 2014 on the mail list and IRC channel.
+Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledger.hledger/1070) giving some motivation, and the discussion logs, note these are a good source of hledger development tips:
+
+- 2014/7/21-25 **hledger-web code & UI**
+  [mail thread](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1070),
+  [IRC log](http://hledger.org/static/irc-20140725-code-review.html)
+
 
 <!-- ### release process -->
 
@@ -129,7 +141,23 @@ Relevant tools include:
 
 <!-- ### contributors and credits -->
 
-### Data model
+---
+
+## Implementation notes
+
+### hledger
+
+There are two core cabal packages:
+
+**[hledger-lib](http://hackage.haskell.org/package/hledger-lib)** - data model, parsing, manipulation, standard reports
+([github](https://github.com/simonmichael/hledger/tree/master/hledger-lib))\\
+**[hledger](http://hackage.haskell.org/package/hledger)** - command line interface, reusable cli options & helpers
+([github](https://github.com/simonmichael/hledger/tree/master/hledger))
+
+Most data types are defined in hledger-lib:Hledger.Data.Types,
+while functions that operate on them are defined in
+hledger-lib:Hledger.Data.TYPENAME.
+Here's a diagram of the main data model:
 
 <uml>
 hide empty members
@@ -164,7 +192,101 @@ Amount -- Price
 Amount -- AmountStyle
 </uml>
 
+hledger parses the journal file into a
+[Journal](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Journal),
+which contains a list of
+[Transactions](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Transaction),
+each containing multiple
+[Postings](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Posting)
+of some
+[MixedAmount](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:MixedAmount)
+(multiple
+single-[Commodity](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Commodity)
+[Amounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Amount))
+to some
+[AccountName](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:AccountName).
+Commands get and render 
+[Reports](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Reports.html)
+from the Journal, or sometimes from a
+[Ledger](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Ledger),
+which contains
+[Accounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Account)
+representing the summed balances and other details of each account.
 
+After surveying the packages, modules, and data types, try tracing the execution of a hledger command:
+
+1. CLI stuff is in [hledger:Hledger.Cli](https://github.com/simonmichael/hledger/tree/master/hledger/Hledger/Cli).
+2. [hledger:Hledger.Cli.Main:main](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Main.hs#L179)
+parses the command line to select a command, then
+3. gives it to
+[hledger:Hledger.Cli.Utils:withJournalDo](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Utils.hs#L61),
+which runs it after doing all the initial parsing.
+4. Parsing code is under
+[hledger-lib:Hledger.Read](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read.hs),
+eg the
+[hledger-lib:Hledger.Read.JournalReader](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read/JournalReader.hs).
+5. Commands extract useful information from the parsed data model using
+[hledger-lib:Hledger.Reports](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Reports),
+and
+6. render it to the console.
+7. Everything uses the types and data
+utilities under
+[hledger-lib:Hledger.Data](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Data),
+and the general helpers from
+[hledger-lib:Hledger.Utils](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils.hs)
+and below.
+
+### hledger-web
+
+hledger-web is in a third cabal package:
+
+**[hledger-web](http://hackage.haskell.org/package/hledger-web)** - web interface
+([github](https://github.com/simonmichael/hledger/tree/master/hledger-web))
+
+It is a single-executable web application using the
+[yesod](http://yesodweb.com) framework.  It runs a built-in web server
+serving some views of the journal file, reading it at startup and
+again whenever it changes. It can also append new transactions to the journal file.
+There are two main views, which can be filtered with [[manual#query-arguments|query arguments]]:
+
+- [/journal](http://demo.hledger.org/journal), showing general journal entries (like `hledger print`)
+
+- [/register](http://demo.hledger.org/register?q=inacct:Assets:Bank:Checking),
+  showing transactions affecting an account (slightly different from
+  `hledger register`, which shows postings).
+
+There is also:
+
+- a sidebar (toggled by pressing `s`) showing the chart of accounts (like `hledger balance`)
+- an [add form](http://demo.hledger.org/journal?add=1) for adding new transactions (press `a`)
+- a help dialog showing quick help and keybindings (press `h` or click ?)
+
+Most of the action is in
+
+- [config/routes](https://github.com/simonmichael/hledger/tree/master/hledger-web/config/routes)
+- [templates/default-layout-wrapper.hamlet](https://github.com/simonmichael/hledger/tree/master/hledger-web/templates/default-layout-wrapper.hamlet)
+- [Foundation](https://github.com/simonmichael/hledger/tree/master/hledger-web/Foundation.hs)
+- [Handler.*](https://github.com/simonmichael/hledger/tree/master/hledger-web/Handler)
+- [static/hledger.js](https://github.com/simonmichael/hledger/tree/master/hledger-web/static/hledger.js)
+- [static/hledger.css](https://github.com/simonmichael/hledger/tree/master/hledger-web/static/hledger.css)
+
+Handler module and function names end with R, like the Yesod-generated route type they deal with.
+
+Dynamically generated page content is mostly inline hamlet.
+Lucius/Julius files and widgets generally are not used, except for the default layout.
+
+The quickest way to test changes is `make ghciweb`, `:main --serve`, control-C, `:r`, repeat.
+No linking is required, and changes to static files like hledger.js are visible after reloading a page.
+
+Another way is `yesod devel`, which rebuilds automatically when files
+change, including config files, templates and static files (but only in the hledger-web package).
+
+A third way is `make autoweb`, if you can get it working (see the
+makefile for instructions). This rebuilds automatically when haskell
+files change in any of the hledger{-lib,,-web} packages.
+
+
+---
 
 ## How to..
 

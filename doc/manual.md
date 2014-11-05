@@ -249,8 +249,11 @@ commodity. Amount styles include:
 - the decimal point character (period or comma)
 - the display precision (number of decimal places displayed)
 
-The canonical style is generally the style of the first posting amount seen in a commodity
-The precision is the highest precision seen among all posting amounts in the commmodity.
+The canonical style is generally the style of the first posting amount seen in a commodity.
+However the display precision will be the highest precision seen in all posting amounts in that commmodity.
+
+The precisions used in a price amount, or a D directive, don't affect the canonical display precision directly, but they can affect it indirectly, eg when D's default commodity is applied to a commodity-less amount or when an amountless posting is balanced using a price's commodity (actually this last case does not influence the canonical display precision but probably should).
+
 
 ##### Balance Assertions
 
@@ -410,14 +413,14 @@ Some examples:
 #### Tags
 
 You can include *tags* (labels), optionally with values,
-in transaction and posting comments, and then [query by tag](#queries).
+in transaction and posting comments, and then [[manual#query-arguments|query by tag]].
 This is like Ledger's [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
 feature, except hledger's tag values are simple strings.
 
 A tag is any unspaced word immediately followed by a full colon, eg: `sometag:` .
-A tag's *value* is the text following the colon, if any, until the next newline or comma,
-with leading and trailing whitespace removed. Comma may be used to write multiple
-tags on one line.
+A tag's *value* is the characters following the colon, if any, until the next comma or newline,
+with any leading and trailing whitespace removed. 
+Comma may be used to write multiple tags on one line.
 
 For example, here is a transaction with three tags, the posting has
 one, and all tags have values except TAG1:
@@ -426,6 +429,11 @@ one, and all tags have values except TAG1:
         ; TAG3: a third transaction tag
         a  $1  ; TAG4: a posting tag
 
+**Things to note:**
+
+In the journal file, a hledger tag value can contain: text, internal whitespace, or punctuation, but not: commas, newlines, or leading/trailing whitespace (putting quotes around it doesn't work, but probably should).
+
+In [[manual#query-arguments|tag queries]], remember the tag name must match exactly, while the value part is the usual case-insensitive infix regular expression match.
 #### Directives
 
 ##### Account aliases
@@ -988,6 +996,9 @@ More typically, use it to see a specific account's activity:
 
     $ hledger register assets:bank:checking
 
+The `--historical`/`-H` flag adds the balance from any prior postings
+to the running total, to show the actual running account balance.
+
 The `--depth` option limits the amount of sub-account detail displayed:
 
     $ hledger register assets:bank:checking --depth 2
@@ -1427,6 +1438,31 @@ Examples:
     $ hledger vty -BE food
 
 -->
+
+
+## Editor support
+
+Add-on modes exist for various text editors, to make working with journal
+files easier. They add colour, navigation aids and helpful commands.
+For hledger users who edit the journal file directly (the majority),
+using one of these modes is quite recommended.
+
+These were written with Ledger in mind, but also work with hledger files:
+
+| Emacs          | http://www.ledger-cli.org/3.0/doc/ledger-mode.html |
+| Vim            | https://github.com/ledger/ledger/wiki/Getting-started-with-Vim |
+| Sublime Text   | https://github.com/ledger/ledger/wiki/Using-Sublime-Text |
+| Textmate       | https://github.com/ledger/ledger/wiki/Using-TextMate-2 |
+| Text Wrangler  | https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler |
+
+<!-- Some related LedgerTips:
+https://twitter.com/LedgerTips/status/504061626233159681
+https://twitter.com/LedgerTips/status/502820400276193280
+https://twitter.com/LedgerTips/status/502503912084361216
+https://twitter.com/LedgerTips/status/501767602067472384
+-->
+
+
 
 
 ## Known limitations
