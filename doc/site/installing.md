@@ -1,3 +1,5 @@
+* toc
+
 # Installation Guide
 
 - [[#How to install]]

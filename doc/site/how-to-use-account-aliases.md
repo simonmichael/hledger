@@ -1,6 +1,6 @@
 # How to use account aliases
 
-Here's an example of using [[manual#account-aliases|account aliases]].
+Here's an example of using [account aliases](manual.html#account-aliases).
 
 Say a sole proprietor has a `personal.journal`:
 

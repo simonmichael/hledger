@@ -1,25 +1,18 @@
 <!-- hledger.org and hledger repo versions last synced: 2014/5/1 -->
 
+* toc
+
 # hledger User Manual
 
 This reference manual is for
  hledger 0.23.98 (the latest pre-0.24 HEAD).
  <!-- [hledger 0.23](http://hackage.haskell.org/package/hledger-0.23) -->
  and [hledger-web 0.23](http://hackage.haskell.org/package/hledger-web-0.23).
- <!-- Other versions: [[0.22/manual|0.22 Manual]]. -->
-
-- [[#Introduction]]
-- [[#Usage]]
-- [[#Data format]]
-- [[#Options]]
-- [[#Query arguments]]
-- [[#Commands]]
-- [[#Known limitations]]
-- [[#Troubleshooting]]
+ <!-- Other versions: [0.22 Manual](0.22/manual). -->
 
 ## Introduction
 
-[[home|hledger]] is a program for tracking money, time,
+[hledger](/) is a program for tracking money, time,
 or any other commodity, using a simple, editable file format and
 double-entry accounting, inspired by and largely compatible with
 [ledger](http://ledger-cli.org).  hledger is Free Software released
@@ -38,16 +31,8 @@ You can use it to, eg:
 - track time and report by day/week/month/project
 - get accurate numbers for client billing and tax filing
 
-hledger works on linux, mac and windows. People most often build the
-latest release with cabal-install, like so:
-
-    $ cabal update
-    $ cabal install hledger [hledger-web]
-    ...
-    $ hledger --version
-    hledger 0.22.1
-    
-For more help with this, and other install options, see the [[installing|Installation Guide]].
+hledger works on unix, mac and windows.
+See [Download](download.html) for installation help.
 
 ## Usage
 
@@ -56,7 +41,7 @@ Basic usage is:
     $ hledger COMMAND [OPTIONS] [ARGS]
 
 Most [commands](#commands) query or operate on a
-[journal file](#the-journal-file), which by default is `.hledger.journal`
+[journal file](#journal-files), which by default is `.hledger.journal`
 in your home directory. You can specify a different file with the `-f`
 option or `LEDGER_FILE` environment variable, or standard input with `-f-`.
 
@@ -97,9 +82,9 @@ The journal file contains a number of transaction entries,
 each describing a transfer of money (or any commodity) between two or more named accounts,
 in a simple format readable by both hledger and humans.
 
-hledger's journal format is a compatible subset, [mostly](http://hledger.org/faq#file-format-differences),
+hledger's journal format is a compatible subset, [mostly](faq.html#file-format-differences),
 of [ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with [compatible](FAQ.html#what-are-the-file-format-differences) ledger journal files as well.
+so hledger can work with [compatible](faq.html#file-format-differences) ledger journal files as well.
 It's safe, and encouraged, to run both hledger and ledger on the same journal file,
 eg to validate the results you're getting.
 
@@ -294,7 +279,7 @@ updating. This order dependence does bring an advantage: precise
 control over the order of postings and assertions within a day, so you
 can assert intra-day balances.
 
-With [[#including-other-files|included files]], things are a little
+With [included files](#including-other-files), things are a little
 more complicated. Including preserves the ordering of postings and
 assertions. If you have multiple postings to an account on the same
 day, split across different files, and you also want to assert the
@@ -386,7 +371,7 @@ starts a transaction comment.
 
 - With the `comment` and `end comment` keywords it is possible to have multiline comments.
 
-Transaction and posting comments are displayed by [[#print]], can contain [[#tags]] and can be [[#queries|queried]].
+Transaction and posting comments are displayed by [print](#print), can contain [tags](#tags) and can be [queried](#queries).
 
 Some examples:
 
@@ -413,7 +398,7 @@ Some examples:
 #### Tags
 
 You can include *tags* (labels), optionally with values,
-in transaction and posting comments, and then [[manual#query-arguments|query by tag]].
+in transaction and posting comments, and then [query by tag](manual#queries).
 This is like Ledger's [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
 feature, except hledger's tag values are simple strings.
 
@@ -433,7 +418,7 @@ one, and all tags have values except TAG1:
 
 In the journal file, a hledger tag value can contain: text, internal whitespace, or punctuation, but not: commas, newlines, or leading/trailing whitespace (putting quotes around it doesn't work, but probably should).
 
-In [[manual#query-arguments|tag queries]], remember the tag name must match exactly, while the value part is the usual case-insensitive infix regular expression match.
+In [tag queries](manual#queries), remember the tag name must match exactly, while the value part is the usual case-insensitive infix regular expression match.
 #### Directives
 
 ##### Account aliases
@@ -456,7 +441,7 @@ You can also specify aliases on the command line:
 Journal directive aliases are applied first, then command-line aliases,
 and at most one of each will be applied to each account name.
 
-See also [[How to use account aliases]].
+See also [How to use account aliases](how-to-use-account-aliases.html).
 
 ##### Default commodity
 
@@ -466,7 +451,7 @@ The commodity (and the sample amount's display style) will be applied to all sub
 (Note this is different from Ledger's default commodity directive.)
 
 Also note the directive itself does not influence the commodity's default
-[[#amount-display-styles|display style]], but the amount it is
+[display style](#amount-display-styles), but the amount it is
 applied to might. Here's an example:
 
     ; set £ as the default commodity
@@ -749,7 +734,7 @@ Examples:
 ### Reporting interval
 
 A reporting interval can be specified so that commands like
-[[#register]], [[#balance]] and [[#activity]] will divide their
+[register](#register), [balance](#balance) and [activity](#activity) will divide their
 reports into multiple report periods.  The basic intervals can be
 selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
 `-Q/--quarterly`, or `-Y/--yearly`.  More complex intervals may be
@@ -813,16 +798,16 @@ Examples:
 
 ### Depth limiting
 
-With the `--depth N` option, commands like [[#account]], [[#balance]]
-and [[#register]] will show only the uppermost accounts in the account
+With the `--depth N` option, commands like [account](#account), [balance](#balance)
+and [register](#register) will show only the uppermost accounts in the account
 tree, down to level N. Use this when you want a summary with less detail.
 
-## Query arguments
+## Queries
 
 Part of hledger's usefulness is being able to report on just a precise subset of your data.  
 Most commands accept an optional query expression, written as arguments after the command name,
 to filter the data by date, account name or other criteria. Query expressions are also used
-in the [[#web|web ui]]'s search form.
+in the [web ui](#web)'s search form.
 
 The query syntax is similar to a Google search expression: one or
 more space-separated search terms, optional prefixes to match specific
@@ -833,10 +818,10 @@ A query term can be any of the following:
 - `acct:REGEX` - same as above
 - `code:REGEX` - match by transaction code (eg check number)
 - `desc:REGEX` - match transaction descriptions
-- `date:PERIODEXPR` - match dates within the specified [[#period-expressions|period]]. *Actually, full period syntax is [[https://github.com/simonmichael/hledger/issues/141|not yet supported]].*
+- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions). *Actually, full period syntax is [not yet supported](https://github.com/simonmichael/hledger/issues/141).*
 - `date2:PERIODEXPR` - as above, but match secondary dates
-- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [[#tags|tag]] name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match posting if it or its parent transaction has the tag.
-- `depth:N` - match (or display, depending on command) accounts at or above this [[#depth-limiting|depth]]
+- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match posting if it or its parent transaction has the tag.
+- `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 - `status:1` or `status:0` - match cleared/uncleared transactions
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
@@ -860,7 +845,7 @@ A query term can be any of the following:
 hledger query expressions don't support full boolean logic. Instead, multiple query terms
 are combined as follows:
 
-- The [[#print]] command selects transactions which:
+- The [print](#print) command selects transactions which:
   - match any of the description terms AND
   - have any postings matching any of the positive account terms AND
   - have no postings matching any of the negative account terms AND
@@ -868,7 +853,7 @@ are combined as follows:
 
 <!-- -->
 
-- Other reporting commands (eg [[#register]] and [[#balance]]) select transactions/postings/accounts which match (or negatively match):
+- Other reporting commands (eg [register](#register) and [balance](#balance)) select transactions/postings/accounts which match (or negatively match):
   - any of the description terms AND
   - any of the account terms AND
   - all the other terms.
@@ -877,7 +862,7 @@ are combined as follows:
 
 On the command line, some of the query terms above can also be expressed as command-line flags. 
 Generally you can mix and match query arguments and flags, and the resulting query will be their intersection.
-Remember that a `-p` [[#period-expressions|period]] flag will cause any other `-b`, `-e` or `-p` flags on the command line to be ignored.
+Remember that a `-p` [period](#period-expressions) flag will cause any other `-b`, `-e` or `-p` flags on the command line to be ignored.
 
 
 ## Commands
@@ -917,18 +902,18 @@ Additional convenience features:
   descriptions, dates (`yesterday`, `today`, `tomorrow`). If the input
   area is empty, it will insert the default value.
 
-- If the journal defines a [[#default-commodity|default commodity]],
+- If the journal defines a [default commodity](#default-commodity),
   it will be added to any bare numbers entered.
 
-- A parenthesised transaction [[#entries|code]] may be entered following a date.
+- A parenthesised transaction [code](#entries) may be entered following a date.
 
-- [[#comments|Comments]] and tags may be entered following a description or amount.
+- [Comments](#comments) and tags may be entered following a description or amount.
 
 - If you make a mistake, enter `<` at any prompt to restart the transaction.
 
 - Input prompts are displayed in a different colour when the terminal supports it.
 
-Here's [[step-by-step#record-a-transaction-with-hledger-add|an example]].
+Here's [an example](step-by-step#record-a-transaction-with-hledger-add).
 <!--
     $ hledger add
     (...)
@@ -1037,7 +1022,7 @@ The balance command displays accounts and their balances.
 
 ##### Simple balance reports
 
-Simple balance reports have no [[#reporting-interval|reporting interval]].
+Simple balance reports have no [reporting interval](#reporting-interval).
 They show the sum of matched postings in each account.
 (If postings are not date-restricted, this is usually the same as the ending balance).
 
@@ -1075,7 +1060,7 @@ This is very useful to summarise complex charts of accounts.
 
 ##### Multi balance reports
 
-With a [[#reporting-interval|reporting interval]], multiple balance
+With a [reporting interval](#reporting-interval), multiple balance
 columns will be shown, one for each report period.
 There are three types of multi-column balance report, showing different information:
 
@@ -1261,7 +1246,7 @@ There are some tricks when specifying options:
 
 Add-ons which are written in haskell can take advantage of hledger's library API
 for journal parsing, reports, consistent command-line options etc.
-One notable add-on is [[#web|hledger-web]], which is maintained along with
+One notable add-on is [hledger-web](#web), which is maintained along with
 hledger and supported on the same major platforms. Other add-ons may
 have different release schedules and platform support.
 
@@ -1478,13 +1463,13 @@ preceding them. Eg hledger-web's `--server` flag must be used like so:
 
 ### -w/--width and --debug options must be written without whitespace
 
-Up to hledger 0.23, these optional-value flags [[https://github.com/simonmichael/hledger/issues/149|did not work]] with whitespace between the flag and value.
+Up to hledger 0.23, these optional-value flags [did not work](https://github.com/simonmichael/hledger/issues/149) with whitespace between the flag and value.
 IE these worked: `--debug`, `-w`, `--debug=2`, `-w100`, but these did not: `--debug 2`, `-w 100`.
 From 0.24, a value is required and the whitespace does not matter.
 
 ### Not all of Ledger's journal file syntax is supported
 
-See [[faq#file-format-differences|file format differences]].
+See [file format differences](faq#file-format-differences).
 
 ### balance is less speedy than Ledger's on large data files
 

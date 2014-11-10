@@ -1,3 +1,5 @@
+* toc
+
 # Release notes
 
 Based on the 
@@ -189,7 +191,7 @@ Improved:
 **New:**
 
 - balance: with a reporting interval (monthly, yearly etc.), the
-  [balance command](MANUAL.html#balance) will now show a multi-column report, showing either
+  [balance command](manual.html#balance) will now show a multi-column report, showing either
   the per-period changes in balance (by default),
   the period ending balances starting from zero (`--cumulative`),
   or the actual period ending balances (`--historical`).
@@ -314,7 +316,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 **CSV reading:**
 
-  - CSV conversion rules have a simpler, more flexible [syntax](MANUAL.html#csv-files).
+  - CSV conversion rules have a simpler, more flexible [syntax](manual.html#csv-files).
     Existing rules files will need to be updated manually:
     - the filename is now `FILE.csv.rules` instead of `FILE.rules`
     - `FIELD-field N` is now `FIELD %N+1` (or set them all at once with a `fields` rule)
@@ -452,11 +454,11 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 ## 2012/5/29 hledger 0.18
 
   * web: hledger-web is now based on yesod 1.0
-  * web: fix js error breaking second use of add form ([#72](http://code.google.com/p/hledger/issues/detail?id=72))
+  * web: fix js error breaking second use of add form ([#72](http://bugs.hledger.org/72))
   * web: make `yesod devel` work
-  * the command-line now supports a more powerful [query language](MANUAL.html#queries), consistent with the web UI
-  * hledger now fully supports [tags](MANUAL.html#tags) (aka metadata) on both transactions and postings, and querying by tag or tag value
-  * new commands `incomestatement`, `balancesheet`, and `cashflow` provide basic financial statements under certain [conditions](http://hledger.org/MANUAL.html#incomestatement)
+  * the command-line now supports a more powerful [query language](manual.html#queries), consistent with the web UI
+  * hledger now fully supports [tags](manual.html#tags) (aka metadata) on both transactions and postings, and querying by tag or tag value
+  * new [commands](manual.html#incomestatement) `incomestatement`, `balancesheet`, and `cashflow` provide basic financial statements under certain conditions
   * format conversion is now done on demand, and the convert command has been dropped. So instead of
     `hledger convert FILE.csv` just do `hledger -f FILE.csv print` or any other command.
     You can also pipe any supported format into `hledger -f- CMD` and hledger will try to do the right thing.

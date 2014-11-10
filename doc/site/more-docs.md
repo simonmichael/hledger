@@ -1,11 +1,13 @@
+* toc
+
 # More docs...
 
-[[old screenshots|Screenshots]] (old)
+[Screenshots](old-screenshots.html) (old)
 
 ## How-tos
 
-- [[How to read CSV files]]
-- [[How to use account aliases]]
+- [How to read CSV files](how-to-read-csv-files.html)
+- [How to use account aliases](how-to-use-account-aliases.html)
 
 ## Blog posts & articles
 
@@ -41,16 +43,16 @@ Here are some good intros, which also serve as a good orientation for hledger:
 
 See also the two Twitter feeds:
 
-- [@LedgerTips](https://twitter.com/LedgerTips) Tips and tricks for Ledger, hledger, beancount, etc.
+- <a href="https://twitter.com/LedgerTips">@LedgerTips</a> Tips and tricks for Ledger, hledger, beancount, etc.
 - [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime) Search for latest mentions of the `#ledgercli` hash tag
 
 ## Accounting
 
 - 
- [[wp>Accountancy]],
- [[wp>Bookkeeping]],
- [[wp>Double-entry bookkeeping system]],
- [[wp>General journal]]
+ [Accounting](http://en.wikipedia.org/wiki/Accounting),
+ [Bookkeeping](http://en.wikipedia.org/wiki/Bookkeeping),
+ [Double-entry bookkeeping system](http://en.wikipedia.org/wiki/Double_entry_bookkeeping_system),
+ [General journal](http://en.wikipedia.org/wiki/General_journal)
  etc. at Wikipedia
 - [Accounting For Dragons](http://podcastle.org/2009/10/09/pc-miniature-38-accounting-for-dragons) why you should know accounting
 - [Bean Counter](http://www.dwmbeancounter.com/) - tutorials, such as
@@ -77,20 +79,20 @@ See also the two Twitter feeds:
 
 - [hledger-interest](http://hackage.haskell.org/package/hledger-interest) generates various kinds of interest transaction
 - [hledger-irr](http://hackage.haskell.org/package/hledger-irr) reports internal rate of return (effective interest rate)
-- [[h]ledger-autosync](https://bitbucket.org/egh/ledger-autosync) downloads/converts/deduplicates OFX data
+- [ledger-autosync](https://bitbucket.org/egh/ledger-autosync) downloads/converts/deduplicates OFX data
 - [hledger-chart](http://hackage.haskell.org/package/hledger-chart) generates simple pie charts (unmaintained)
 - [hledger-vty](http://hackage.haskell.org/package/hledger-vty) a simple curses-style UI (unmaintained)
-- More in [[code>extra/]]
+- More in [extra/](https://github.com/simonmichael/hledger/tree/master/extra/)
 
 ## Scripting examples
 
-- https://gist.github.com/4172604 printing average expenses by month
-- https://gist.github.com/4210558 calculating historical account balances
-- More in [[code>extra/]]
+- <https://gist.github.com/4172604> printing average expenses by month
+- <https://gist.github.com/4210558> calculating historical account balances
+- More in [extra/](https://github.com/simonmichael/hledger/tree/master/extra/)
 
 ## Similar projects
 
-In addition to hledger and Ledger, there are other [[ledgerwiki>Ports|Ledger ports]] and Ledger-likes, incompatible but similar in concept:
+In addition to hledger and Ledger, there are other [Ledger ports](ledgerwiki>Ports) and Ledger-likes, incompatible but similar in concept:
 
 - Martin Blais' [beancount](https://furius.ca/beancount/) (python)
 - Harshad RJ's [Abandon](https://github.com/hrj/abandon) (scala)
@@ -104,5 +106,5 @@ Other things of interest:
 - [debts](http://darcsden.com/ozamosi/debts) - small debt tracking web app
 - [housetab-multi](http://darcsden.com/dbp/housetab-multi), [housetab.org](http://housetab.org) - a web app to manage expenses between a group of friends
 - [You Need A Budget](http://www.youneedabudget.com/)
-- Software Freedom Conservancy's [[http://npoacct.sfconservancy.org|npo-acct]] project
+- Software Freedom Conservancy's [npo-acct](http://npoacct.sfconservancy.org) project
 

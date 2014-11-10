@@ -1,51 +1,41 @@
-# hledger Step by Step (draft)
+* toc
 
-*(c) Simon Michael, 2014*
+# hledger step by step
 
-Welcome! Here you can learn hledger (and a little double-entry
-accounting) by practicing, one hands-on exercise at a time, in the
-style of the "Learn X the Hard Way" books. Exercises are grouped into
-these chapters:
-
-- [[#0. SETUP]]
-- [[#1. BASIC DATA ENTRY & REPORTING]]
-- [[#2. USEFUL ACCOUNTING CONCEPTS]]
+Here you can learn hledger (and a little double-entry accounting) by
+practicing, one hands-on exercise at a time (similar to the
+"Learn X the Hard Way" books.)
 
 You'll learn the most if you work through each small step in order.
 If a step specifies no particular task, your task is to run the examples and understand it.
 
-If you get stuck, or have any other feedback, report it on IRC or the mail list (see the sidebar),
-or right on this page (click the pencil on the right).
+If you get stuck, or have any other feedback, report it on IRC or the mail list, or send a pull request for this page.
 
 You'll need:
 
-1. hledger, installed using the [[installing|Installation Guide]]. These exercises were last tested with: hledger 0.23dev-20140212.
+1. A basic understanding of the command line, text file editing, and regular expressions. Or, the ability to ask for help on the IRC channel.
 
-2. A basic understanding of the command line, text file editing, and regular expressions. Or, the ability to ask for help on the IRC channel.
+2. hledger (see [Download](download.html)). These exercises were last tested with: hledger 0.23dev-20140212.
 
 
 
----
-## 0. SETUP
+## SETUP
 
----
 ### Check your hledger
 
-Get a command prompt, and run hledger to check the version. It should be reasonably [[release-notes|up to date]].:
+Get a command prompt, and run hledger to check the version. It should be reasonably [up to date](release-notes.html):
 
 ```
 $ hledger --version
 hledger 0.23
 ```
 
----
-## 1. BASIC DATA ENTRY & REPORTING
+## BASIC DATA ENTRY & REPORTING
 
----
 ### Locate your journal file with "hledger stats"
 
-hledger reads financial transactions from a "journal file" (so named because it represents a [[wp>General Journal]]).
-The default journal file is in your home directory; check its path using the [[manual#stats|stats]] command.
+hledger reads financial transactions from a "journal file" (so named because it represents a [General Journal](http://en.wikipedia.org/wiki/General_Journal)).
+The default journal file is in your home directory; check its path using the [stats](manual.html#stats) command.
 You should see something like:
 ```
 $ hledger stats
@@ -58,10 +48,9 @@ Most hledger commands read this file but can not change it; the `add` and `web` 
 
 (If `stats` reports that the file exists, eg because you previously created it, move it out of the way temporarily for these exercises.)
 
----
 ### Record a transaction with "hledger add"
 
-Follow the help and use the [[manual#add|add]] command to record your first transaction,
+Follow the help and use the [add](manual.html#add) command to record your first transaction,
 an imaginary purchase at the supermarket.
 We'll go through this in detail. Later you'll learn other ways to enter data.
 
@@ -176,10 +165,9 @@ Accounts                 : 2 (depth 1)
 Commodities              : 1 ($)
 ```
 
----
 ### Show transactions with "hledger print"
 
-The [[manual#print|print]] command shows a tidied-up view of the transaction entries in your journal.
+The [print](manual.html#print) command shows a tidied-up view of the transaction entries in your journal.
 Since there's just one so far, you should see:
 
 ```
@@ -189,7 +177,6 @@ $ hledger print
     assets            $-10
 ```
 
----
 ### Examine your journal file
 
 List and print the journal file (on Windows, use `dir` and `type` and the file path from `hledger stats`):
@@ -204,7 +191,6 @@ $ cat ~/.hledger.journal
     assets
 ```
 
----
 ### A convenience: inferred amounts
 
 Why is the amount missing from the assets posting above ?
@@ -214,7 +200,6 @@ For consistency, `add` uses the same convention when it writes an entry.
 (But `print` shows the inferred amount, for clarity.)
 Only one missing amount is allowed in each transaction.
 
----
 ### Edit the journal file
 
 Since the journal file is plain text, you can edit it directly with any text editor.
@@ -245,7 +230,6 @@ hledger: could not balance this transaction (can't have more than one missing am
 
 All hledger commands expect the journal to be well-formed, and will report an error and exit otherwise.
 
----
 ### Two spaces
 
 Notice the last part of that error message: "`... remember to put 2 or more spaces before amounts)`".
@@ -262,7 +246,6 @@ Since account names may contain spaces, hledger thinks the first
 posting is to an account named "`expenses $10`", with a missing
 amount.  So remember: two or more spaces.
 
----
 ### Unbalanced transactions
 
 Edit the file to look like this:
@@ -289,7 +272,6 @@ That makes sense. (It calls them "real" postings because there are some other ki
 Correct the mistake by adding the minus sign, or just removing the assets amount entirely, and verify
 that `print` works again.
 
----
 ### Record a transaction by editing
 
 Edit the file again and manually add a second purchase transaction.
@@ -321,10 +303,9 @@ $ hledger print
 
 ```
 
----
 ### Show postings and a running total with "hledger register"
 
-The [[manual#register|register]] command shows transactions in a different format. More precisely, it shows postings.
+The [register](manual.html#register) command shows transactions in a different format. More precisely, it shows postings.
 Remember, a posting is an increase or decrease of some account by some amount, and a transaction contains two or more of them.
 Run `register` and compare with the output of `print` above. You should see:
 
@@ -341,7 +322,6 @@ The transaction's date and description is displayed only for the first posting i
 Next we see the posted account's name and the amount posted.
 The final column is a running total of the posted amounts.
 
----
 ### Show a per-account register report
 
 Notice how the running total above keeps resetting to 0.
@@ -368,11 +348,10 @@ $ hledger register assets
 2014/02/13 forgot the bread     assets                         $-5          $-15
 ```
 
----
 ### Query expressions
 
 The account name argument above is an example of a
-[[manual#queries|query expression]], a search pattern which restricts a report to a subset of the data.
+[query expression](manual.html#queries), a search pattern which restricts a report to a subset of the data.
 In this way  you can make very precise queries.
 
 Note that it is a case-insensitive regular expression which matches anywhere inside the account name.
@@ -406,10 +385,9 @@ $ hledger register date:2014/2/13- 'es$'
 Note how the account-matching pattern `es$` needs to be quoted here,
 because it contains the regular expression metacharacter `$` which would otherwise be interpreted by the unix shell.
 
----
 ### Show accounts and their balances with "hledger balance"
 
-The third of hledger's three core reporting commands is [[manual#balance|balance]].
+The third of hledger's three core reporting commands is [balance](manual.html#balance).
 Use it to list all the accounts posted to, and their ending balance.
 You should see account balances agreeing with the final running total in the register reports above:
 
@@ -430,7 +408,6 @@ $ hledger balance assets
                 $-15
 ```
 
----
 ### balance shows the sum of matched posting amounts
 
 Here's a balance report based only on the postings dated 2013/2/13:
@@ -452,8 +429,6 @@ $ hledger register date:2014/2/13
 2014/02/13 forgot the bread     expenses                        $5            $5
                                 assets                         $-5             0
 ```
-
----
 
 ### Review
 
@@ -479,8 +454,6 @@ You have learned:
 
 - how to list accounts and their current balance, or the sum of their postings in some period, with `hledger balance`
 
----
-
 <!--
 
 ### Test yourself
@@ -502,14 +475,11 @@ You don't need to categorise, you don't need to track anything other than the am
 Can you complete this challenge ? Keep at it! :)
 I couldn't do this when I started using hledger, but I can now. Build that muscle.
 
----
-
 -->
 
 
-## 2. USEFUL ACCOUNTING CONCEPTS
+## USEFUL ACCOUNTING CONCEPTS
 
----
 ### Assets, Liabilities and Equity
 
 Accounting describes the status of a business, person or other entity at any point in time in terms of three amounts:
@@ -518,7 +488,7 @@ Accounting describes the status of a business, person or other entity at any poi
 - **Liabilities** - Things owed
 - **Equity**      - The amount invested by owners/shareholders
 
-The foundation of double-entry accounting is the [[wp>accounting equation]], which says
+The foundation of double-entry accounting is the [accounting equation](http://en.wikipedia.org/wiki/accounting_equation), which says
 that Equity is always equal to Assets minus Liabilities (or, Net Assets).
 
 This is also written as: Assets = Liabilities + Equity.
@@ -526,7 +496,6 @@ Another way to say it: what the entity owns is funded either by debt or by the c
 
 These three are called the Balance Sheet accounts. Their balances summarise the overall financial status at some point in time.
 
----
 
 ### Revenue and Expenses
 
@@ -544,7 +513,6 @@ accumulate during some period of time indicate the inflows and
 outflows during that period (which will affect the Assets and
 Liabilities balances).
 
----
 
 ### Chart of Accounts
 
@@ -584,14 +552,17 @@ In some organisations and accounting systems (eg, QuickBooks), the
 tree structure is de-emphasised, so the above is represented more
 like:
 
-^ Account name ^ Account type ^
-| checking     | ASSET        |
-| cash         | ASSET        |
-| business income     | REVENUE        |
-| gifts received     | REVENUE        |
-| food         | EXPENSE        |
-| rent         | EXPENSE        |
-| supplies     | EXPENSE        |
+```
+ Account name      Account type
+ ------------------------------- 
+ checking          ASSET
+ cash              ASSET
+ business income   REVENUE
+ gifts received    REVENUE
+ food              EXPENSE
+ rent              EXPENSE
+ supplies          EXPENSE
+```
 
 In others, the tree structure is encoded as decimal account numbers, something like this:
 
@@ -610,7 +581,6 @@ In others, the tree structure is encoded as decimal account numbers, something l
 5300   supplies
 ```
 
----
 ### Subaccounts in hledger
 
 With hledger, tree structure is implied by writing account names like `ACCOUNT:SUBACCOUNT`.
@@ -679,7 +649,6 @@ $ hledger balance --depth 1
 ```
 
 
----
 
 
 

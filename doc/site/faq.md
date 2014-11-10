@@ -1,3 +1,5 @@
+* toc
+
 # Frequently asked questions
 
 ## hledger and ledger
@@ -35,11 +37,11 @@ can often use both tools on the same data file.
 Summary: hledger is a friendly, co-evolving, compatible rewrite of Ledger
 in Haskell, lacking some of ledger's power features and raw performance,
 and focussing on robustness, usability, ease of development, and
-experimental add-ons such as the [web interface](MANUAL.html#web).
+experimental add-ons such as the [web interface](manual.html#web).
 
 ### And ledger 4 ?
 
-There is also a [[https://github.com/ledger/ledger4|ledger4]] on github; this is 
+There is also a [ledger4](https://github.com/ledger/ledger4) on github; this is 
 John's own rewrite of the core of
 ledger 3 in haskell. It's an early library prototype, not a usable tool.
 Perhaps some day hledger or something like it would use this as its foundation. 
@@ -51,10 +53,10 @@ Generally, it's easy to keep a journal file that works with both hledger
 and ledger if you avoid ledger's most specialised syntax.
 Some ledger syntax is parsed but ignored (such as
 [automated transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions), [periodic transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Periodic-Transactions), and
-[[manual#historical-prices|historical prices]]).
+[historical prices](manual.html#historical-prices)).
 Some features are not currently parsed and will cause an error, eg
 ledger's more recent top-level directives. There can also be subtle
-differences in parser behaviour, eg [[manual#comments|hledger comments]] vs [[http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal|ledger comments]].
+differences in parser behaviour, eg [hledger comments](manual.html#comments) vs [ledger comments](http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal).
 
 ### Feature differences ?
 
@@ -191,16 +193,16 @@ entry DATE PAYEE AMT   output a derived entry, based on the arguments
 - hledger generates a description for timelog sessions, instead of
   taking it from the clock-out entry
 
-- hledger's [include directive](MANUAL.html#including-other-files) does not support
+- hledger's [include directive](manual.html#including-other-files) does not support
   shell glob patterns (eg `include *.journal` ), which ledger does.
 
-- when checking [balance assertions](MANUAL.html#balance-assertions)
+- when checking [balance assertions](manual.html#balance-assertions)
   hledger sorts the account's postings first by date and then (for
   postings with the same date) by parse order. ledger goes strictly by
   parse order.
 
 - ledger allows amounts to have a
-  [fixed lot price](MANUAL.html#prices) and a regular price in any
+  [fixed lot price](manual.html#fixed-lot-prices) and a regular price in any
   order (and uses whichever appears first). hledger requires the fixed
   lot price to come last (and ignores it).
 
