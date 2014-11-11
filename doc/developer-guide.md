@@ -435,7 +435,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 ### Become a contributor
 
-- after getting one or more patches committed, read and sign the [contributor list & agreement](CONTRIBUTORS.html)
+- after getting one or more patches committed, read and sign the [contributor list & agreement](contributors.html)
 - or, [ask](#how-to-get-help) to be added
 
 ### Do code review

@@ -10,7 +10,7 @@ and a [Haskell library](http://hackage.haskell.org/package/hledger-lib) for
 building your own programs and [scripts](more-docs.html#scripting-examples)
 (hledger is written in Haskell).
 hledger is free software, available under the GNU GPLv3+,
-created by [Simon Michael](http://joyful.com) and [contributors](CONTRIBUTORS.html).
+created by [Simon Michael](http://joyful.com) and [contributors](contributors.html).
 
 Though limited in features, hledger is lightweight, usable and reliable.
 For some, it is a simple, flexible, future-proof alternative to Quicken or GnuCash.
