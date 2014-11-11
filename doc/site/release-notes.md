@@ -7,6 +7,7 @@ Based on the
 [hledger-web](http://hackage.haskell.org/package/hledger-web/changelog) &
 [hledger-lib](http://hackage.haskell.org/package/hledger-lib/changelog)
 change logs.
+
 ## hledger-web 0.23.3 (2014/9/12)
 
 - remove warp, wai-handler-launch upper bounds (fixes #205)

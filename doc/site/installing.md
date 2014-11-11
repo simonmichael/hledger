@@ -2,9 +2,6 @@
 
 # Installation Guide
 
-- [[#How to install]]
-- [[#Troubleshooting]]
-
 ## How to install
 
 hledger works on GNU/linux, mac and windows.
@@ -15,21 +12,15 @@ Here are several ways to install it:
 If you have a system package manager that includes hledger,
 this will be the quickest and easiest way to install,
 if you don't need the very latest version.
-
-^ On distro/packaging system: ^ Run: ^
-| Debian & Ubuntu: | `apt-get install hledger [hledger-web]` |
-| Red Hat, Fedora & CentOS (?): | `yum install hledger` |
-| NixOS: | `nix-env -iA nixpkgs.haskellPackages.hledger` |
+These are listed on [Download](download.html).
 
 ### b. Download binaries from hledger.org
 
-Ready-to-run [[download|downloads]] for GNU/Linux, Mac OSX, and
-Microsoft Windows are provided on a donation basis. These have not
-been updated recently, but you can fix that by making a donation of
-any size (see the page for more).
-
-These are simple compressed executables (not installers), so after downloading
-you may need to decompress, adjust permissions, and rename the file. Eg:
+Ready-to-run binaries for GNU/Linux, Mac OSX, and Microsoft Windows
+are provided on a donation basis ([Download](download.html)).  These
+are simple compressed executables (not installers), so after
+downloading you may need to decompress, adjust permissions, and rename
+the file. Eg:
 
     $ gunzip hledger-web-0.18.2-mac-x86_64.gz
     $ chmod +x hledger-web-0.18.2-mac-x86_64
@@ -45,13 +36,14 @@ use the troubleshooting tips below if needed.
 
 Ensure you have [GHC](http://haskell.org/ghc) or
 the [Haskell Platform](http://haskell.org/platform) installed.
-hledger requires GHC 7.2 or greater, and hledger-web requires GHC 7.4 or greater.
+Last time we checked, hledger requires GHC 7.2 or greater, and hledger-web requires GHC 7.4 or greater.
+But using the current or previous major GHC version will very likely be easiest.
 
 Also note that some Haskell packages depend on C packages, and cabal
 currently isn't able to install or identify those for you. A common
 issue is not having all the ncurses C libraries installed. A quick way
 to ensure you have all required C libs is to
-[install hledger once with your system package manager](#install-with-your-system-package-manager)
+install hledger [with your system package manager](#a.-with-your-system-package-manager)
 before installing the latest version with cabal.
 
 Then install the hledger command-line tool:

@@ -63,7 +63,7 @@ it's demand-driven - you can indicate demand by making a project
 donation of any size. Binaries funded in this way will be linked here.
 This is a quick way to help the project and your fellow users!
 
-## I want to build the [latest release](http://hackage.haskell.org/package/hledger-web) with [GHC](http://haskell.org/haskell) and [cabal](http://haskell.org/cabal/download.html)
+## I want to build the [latest release](http://hackage.haskell.org/package/hledger-web) with [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
 
 `cabal sandbox init; cabal update; cabal install hledger[-web]`\
 <!-- [cabal install guide](cabal-install.html) -->

@@ -21,7 +21,7 @@ You'll need:
 
 ## SETUP
 
-### Check your hledger
+### Check your hledger installation
 
 Get a command prompt, and run hledger to check the version. It should be reasonably [up to date](release-notes.html):
 

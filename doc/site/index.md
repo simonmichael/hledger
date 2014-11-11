@@ -5,19 +5,24 @@
 hledger is a computer program for easily tracking money, time, or other commodities,
 on unix, mac and windows.
 It was inspired by and maintains substantial compatibility with [Ledger](faq.html#hledger-and-ledger).
-hledger is first a command-line tool, but there is also a [web interface](manual.html#web),
-and a [Haskell library](http://hackage.haskell.org/package/hledger-lib) for
-building your own programs and [scripts](more-docs.html#scripting-examples)
+hledger is first a command-line tool, but there is also a
+web interface,
+<!-- [web interface](manual.html#web), -->
+and a
+Haskell library
+<!-- [Haskell library](http://hackage.haskell.org/package/hledger-lib) -->
+for building your own programs and
+scripts
+<!-- [scripts](more-docs.html#scripting-examples) -->
 (hledger is written in Haskell).
 hledger is free software, available under the GNU GPLv3+,
 created by [Simon Michael](http://joyful.com) and [contributors](contributors.html).
 
-Though limited in features, hledger is lightweight, usable and reliable.
-For some, it is a simple, flexible, future-proof alternative to Quicken or GnuCash.
-It aims to help both computer experts and regular folks
-to gain clarity and control in their finances and time management,
-but currently it is a bit more suited to techies.
-I've been using (and improving) it since 2007 to:
+hledger aims to help both computer experts and regular folks gain more clarity and control over their time and money
+(but currently it is a bit more suited to techies).
+Despite its limited GUI, hledger is usable, capable and reliable.
+For some of us, it is a simple, flexible, future-proof alternative to Quicken or GnuCash.
+I've been using and improving it continuously since 2007, using it to:
 
 - track spending and income
 - see time reports by day/week/month/project
