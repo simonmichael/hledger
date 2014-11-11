@@ -1,8 +1,9 @@
 # Download
 
-hledger is shipped as two executables: `hledger` (the command-line
-tool) and `hledger-web` (the web interface).  If you install
-`hledger-web`, `hledger` is also installed automatically (except on Windows).
+hledger is shipped as two executables: `hledger` (the command-line tool) and `hledger-web` (the web interface).
+Generally (except on Windows), installing `hledger-web` automatically installs `hledger` as well.
+
+[Release Notes](release-notes.html)
 
 ## I want to download and run
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->

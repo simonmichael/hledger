@@ -2,7 +2,8 @@
 
 # More docs...
 
-[Screenshots](old-screenshots.html) (old)
+- [Release Notes](release-notes.html)
+- [Screenshots](old-screenshots.html) (old)
 
 ## How-tos
 
