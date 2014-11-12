@@ -41,7 +41,7 @@ Basic usage is:
     $ hledger COMMAND [OPTIONS] [ARGS]
 
 Most [commands](#commands) query or operate on a
-[journal file](#journal-files), which by default is `.hledger.journal`
+[journal file](#journal), which by default is `.hledger.journal`
 in your home directory. You can specify a different file with the `-f`
 option or `LEDGER_FILE` environment variable, or standard input with `-f-`.
 
@@ -71,9 +71,9 @@ enter some transactions.  Or, save this
     $ hledger reg desc:shop                 # show postings with shop in the description
     $ hledger activity                      # show transactions per day as a bar chart
 
-## Data format
+## Data formats
 
-### Journal files
+### Journal
 
 hledger's usual data source is a plain text file containing journal entries in hledger journal format.
 This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).
@@ -514,7 +514,7 @@ The `include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not CSV or timelog files.)
 
 
-### CSV files
+### CSV
 
 hledger can also read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,
@@ -637,7 +637,7 @@ If the CSV has debit/credit amounts in separate fields, assign the `amount-in` a
 
 Generating entries with three or more postings is not supported at present.
 
-### Timelog files
+### Timelog
 
 hledger can also read time log files. These are (a subset of) timeclock.el's
 format, containing clock-in and clock-out entries like so:
@@ -945,7 +945,7 @@ Here's [an example](step-by-step#record-a-transaction-with-hledger-add).
     $
 -->
     
-### Reporting
+### Reports
 
 These are the commands for actually querying your ledger.
 
@@ -1213,8 +1213,6 @@ Examples:
     $ hledger stats
     $ hledger stats -p 'monthly in 2009'
 
-### Misc.
-
 #### test
 
 This command runs hledger's built-in unit tests and displays a quick
@@ -1227,7 +1225,7 @@ Examples:
     $ hledger test
     $ hledger test -v balance
 
-### Add-on
+### Add-ons
 
 Add-on commands are executables in your PATH whose name starts with
 `hledger-` and ends with no file extension or one of these common
@@ -1319,7 +1317,7 @@ authenticating proxy, any visitor to your server will be able to see and
 overwrite the journal file (and included files.)
 
 hledger-web disallows edits which would leave the journal file not in
-valid [journal format](#the-journal-file). If the file becomes unparseable
+valid [journal format](#journal). If the file becomes unparseable
 by other means, hledger-web will show an error until the file has been
 fixed.
 
@@ -1329,19 +1327,14 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug=1
 
-\\
-\\
-\\
+### Experimental
+
 The following add-ons are examples and experiments provided in the
 [extra](https://github.com/simonmichael/hledger/tree/master/extra)
 directory in the hledger source.  Add this directory to your PATH to
 make them available. The scripts are designed to run interpreted on
 unix systems (for tweaking), or you can compile them (for speed and
 robustness).
-
-#### balance-csv
-
-Like the balance command, but with CSV output.
 
 #### equity
 
@@ -1359,10 +1352,6 @@ of files as input to hledger.
 #### print-unique
 
 Prints only journal entries which are unique (by description).
-
-#### register-csv
-
-Like the register command, but with CSV output.
 
 #### rewrite
 
@@ -1450,55 +1439,22 @@ https://twitter.com/LedgerTips/status/501767602067472384
 
 
 
-## Known limitations
-
-Here are some things to be aware of.
-
-### Add-on-specific options must follow --
-
-When invoking an add-on via hledger, add-on flags which are not also
-understood by the main hledger executable must have a `--` argument
-preceding them. Eg hledger-web's `--server` flag must be used like so:
-`hledger web -- --server`.
-
-### -w/--width and --debug options must be written without whitespace
-
-Up to hledger 0.23, these optional-value flags [did not work](https://github.com/simonmichael/hledger/issues/149) with whitespace between the flag and value.
-IE these worked: `--debug`, `-w`, `--debug=2`, `-w100`, but these did not: `--debug 2`, `-w 100`.
-From 0.24, a value is required and the whitespace does not matter.
-
-### Not all of Ledger's journal file syntax is supported
-
-See [file format differences](faq#file-format-differences).
-
-### balance is less speedy than Ledger's on large data files
-
-hledger's balance command (in particular) takes more time, and uses more memory, than Ledger's.
-This becomes more noticeable with large data files.
-
-### Windows CMD.EXE
-
-Non-ascii characters and colours are not supported.
-
-### Windows cygwin/msys/mintty
-
-The tab key is not supported in hledger add.
-
-
 ## Troubleshooting
+
+### Run-time problems
 
 Here are some issues you might encounter when you run hledger
 (and remember you can also seek help from the
-[IRC channel](https://github.com/ledger/ledger/wiki/%23ledger-IRC-channel),
-[mail list](http://hledger.org/list) or
-[bug tracker](http://hledger.org/bugs)):
+[IRC channel](http://irc.hledger.org),
+[mail list](http://list.hledger.org) or
+[bug tracker](http://bugs.hledger.org)):
 
-### Successfully installed, but "No command 'hledger' found"
+#### Successfully installed, but "No command 'hledger' found"
 cabal installs binaries into a special directory, which should be added
 to your PATH environment variable.  On unix-like systems, it is
 ~/.cabal/bin.
 
-### "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors
+#### "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors
 In order to handle non-ascii letters and symbols (like £), hledger needs
 an appropriate locale. This is usually configured system-wide; you can
 also configure it temporarily.  The locale may need to be one that
@@ -1538,4 +1494,37 @@ Note some platforms allow variant locale spellings, but not all (ubuntu
 accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 
+### Known limitations
+
+Here are some things to be aware of.
+
+#### Add-on-specific options must follow --
+
+When invoking an add-on via hledger, add-on flags which are not also
+understood by the main hledger executable must have a `--` argument
+preceding them. Eg hledger-web's `--server` flag must be used like so:
+`hledger web -- --server`.
+
+#### -w/--width and --debug options must be written without whitespace
+
+Up to hledger 0.23, these optional-value flags [did not work](https://github.com/simonmichael/hledger/issues/149) with whitespace between the flag and value.
+IE these worked: `--debug`, `-w`, `--debug=2`, `-w100`, but these did not: `--debug 2`, `-w 100`.
+From 0.24, a value is required and the whitespace does not matter.
+
+#### Not all of Ledger's journal file syntax is supported
+
+See [file format differences](faq#file-format-differences).
+
+#### balance is less speedy than Ledger's on large data files
+
+hledger's balance command (in particular) takes more time, and uses more memory, than Ledger's.
+This becomes more noticeable with large data files.
+
+#### Windows CMD.EXE
+
+Non-ascii characters and colours are not supported.
+
+#### Windows cygwin/msys/mintty
+
+The tab key is not supported in hledger add.
 

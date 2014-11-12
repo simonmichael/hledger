@@ -317,7 +317,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 **CSV reading:**
 
-  - CSV conversion rules have a simpler, more flexible [syntax](manual.html#csv-files).
+  - CSV conversion rules have a simpler, more flexible [syntax](manual.html#csv).
     Existing rules files will need to be updated manually:
     - the filename is now `FILE.csv.rules` instead of `FILE.rules`
     - `FIELD-field N` is now `FIELD %N+1` (or set them all at once with a `fields` rule)

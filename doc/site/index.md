@@ -61,7 +61,7 @@ performance and long-term maintainability.  Most functionality is
 exposed as reusable Haskell
 [libraries](http://hackage.haskell.org/package/hledger-lib), making it
 easy to write your own hledger-compatible
-[scripts](more-docs.html#scripting-examples), [add-ons](manual.html#add-on) and
+[scripts](more-docs.html#scripting-examples), [add-ons](manual.html#add-ons) and
 applications.
 </div>
 
