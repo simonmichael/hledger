@@ -1,3 +1,4 @@
+.navbar-brand {font-weight:bold;}
 /* from https://github.com/blaenk/blaenk.github.io/blob/source/provider/scss/_article.scss */
 #toc {
 		max-width:40%;
