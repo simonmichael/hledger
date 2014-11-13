@@ -47,10 +47,10 @@ transactions, but does not change existing ones.)
 ### ...with a web UI
 
 hledger comes with a built-in web server providing an alternate
-[browser-based interface](manual.html#web), for assisted data entry
-and point and click reporting. The web and command-line clients can be
-used simultaneously.
-</div>
+[browser-based interface](manual.html#web)
+([demo](http://demo.hledger.org)), for assisted data entry and point
+and click reporting. The web and command-line clients can be used
+simultaneously.  </div>
 
 <div style="margin:0 5em 0 10em;">
 ### a Haskell application and library

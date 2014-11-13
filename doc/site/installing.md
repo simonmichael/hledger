@@ -116,7 +116,7 @@ $ source ~/.bashrc
 ```
 Test your PATH-variable with:
 ```
-$ $PATH
+$ echo $PATH
 ```
 ### hledger --version shows wrong version ?
 Perhaps you have multiple versions of hledger in your PATH. Eg you installed with the system package manager 
