@@ -1,3 +1,12 @@
+code {
+		color: inherit;
+}
+pre {
+		margin-left:1em;
+		margin-right:2em;
+		background-color:#e0e0e0;
+		/* width:fit-content; */
+}
 .navbar-brand {font-weight:bold;}
 /* from https://github.com/blaenk/blaenk.github.io/blob/source/provider/scss/_article.scss */
 #toc {
