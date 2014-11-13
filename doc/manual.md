@@ -518,124 +518,131 @@ it may only include other journal files (eg, not CSV or timelog files.)
 
 hledger can also read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,
-translating the CSV records into journal entries on the fly.
-We must provide some some conversion hints in a "rules file", named
-like the CSV file with an extra `.rules` suffix (you can choose another name with `--rules-file`).  
+converting each CSV record into a journal entry (transaction),
+if you provide some conversion hints in a "rules file".
+This file should be named like the CSV file with an additional `.rules` suffix (eg: `mybank.csv.rules`);
+or, you can specify the file with `--rules-file PATH`.
+hledger will create it if necessary, with some default rules which you'll need to adjust.
+At minimum, the rules file must specify the `date` and `amount` fields.
+For an example, see [How to read CSV files](how-to-read-csv-files.html).
 
-If the rules file does not exist, it will be created with default rules, which you'll need to tweak.
-Here's a minimal rules file. It says that the first and second CSV fields
-are the journal entry's date and amount:
+#### CSV rules
 
-    fields date, amount
+The following six kinds of rule can appear in the rules file, in any order.
+Blank lines and lines beginning with `#` or `;` are ignored.
 
-Lines beginning with `#` or `;` and blank lines are ignored.
-The following kinds of rule can appear in any order:
-
-**fields** *CSVFIELDNAME1*, *CSVFIELDNAME1*, ...\\
-(Field list) This names the CSV fields (names may not contain whitespace or `;` or `#`),
-and also assigns them to journal entry fields when you use any of these names:
-
-        date
-        date2
-        status
-        code
-        description
-        comment
-        account1
-        account2
-        currency
-        amount
-        amount-in
-        amount-out
-   
-*JOURNALFIELDNAME* *FIELDVALUE*\\
-(Field assignment) This assigns the given text value
-to a journal entry field (one of the field names above).
-CSV fields can be referenced with `%CSVFIELDNAME` or `%N` (N starts at 1) and will be interpolated.
-
-You can use a field list, field assignments, or both.
-At least the `date` and `amount` fields must be assigned.
-
-**if** *PATTERNS*\\ (*INDENT*)*FIELDASSIGNMENTS*\\
-(Conditional block) This applies the field assignments only to CSV records matched by one of the PATTERNS.
-
-PATTERNS is one or more regular expressions, each on its own line.
-The first pattern can optionally be written on the same line as
-the `if`; patterns on the following lines must start in column 0
-(no indenting).  The regular expressions are case insensitive, and
-can match anywhere within the whole CSV record.  (It's not yet
-possible to match within a specific field.)
-
-FIELDASSIGNMENTS is one or more field assignments (described
-above), each on its own line and indented by at least one
-space. (The indent is required for successful parsing.)
-
-Example 1. The simplest conditional block has a single pattern and
-a single field assignment. Here, any CSV record containing the
-pattern `groceries` will have its account2 field set to
-`expenses:groceries`.
-
-    if groceries
-     account2 expenses:groceries
-
-Example 2. Here, CSV records containing any of these patterns will
-have their account2 and comment fields set as shown. The
-capitalisation is not required, that's just how I copied them from
-my bank's CSV.
-
-    if
-    MONTHLY SERVICE FEE
-    ATM TRANSACTION FEE
-    FOREIGN CURR CONV
-    OVERDRAFT TRANSFER FEE
-    BANKING THRU SOFTWARE:FEE
-    INTERNATIONAL PURCHASE TRANSACTION FEE
-    WIRE TRANS SVC CHARGE
-    FEE FOR TRANSFER
-    VISA ISA FEE
-     account2 expenses:business:banking
-     comment  XXX probably deductible, check
-
-**skip** [*N*]\\
-Skip this number of CSV records (1 by default).
-Use this to skip CSV header lines.
+**`skip` *N***\
+Skip this number of CSV records at the beginning.
+You'll need this when your CSV contains header lines. Eg:
+<!-- XXX -->
 <!-- hledger tries to skip initial CSV header lines automatically. -->
 <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
 <!-- This can also be used in a conditional block to ignore certain CSV records. -->
+```
+# ignore the first CSV line
+skip 1
+```
 
-**date-format** *DATEFMT*\\
-This is required if the values for `date` or `date2` fields are not in YYYY/MM/DD format (or close to it).
-DATEFMT specifies a strptime-style date parsing pattern containing [year/month/date format codes](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime).
-Note the pattern must parse the CSV date value completely. Some examples:
+**`date-format` *DATEFMT***\
+When your CSV date fields are not formatted like `YYYY/MM/DD` (or `YYYY-MM-DD` or `YYYY.MM.DD`),
+you'll need to specify the format.
+DATEFMT is a [strptime-style date parsing pattern](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime),
+which must parse the date field values completely. Examples:
+```
+# parses "6/11/2013":
+date-format %-d/%-m/%Y
+```
+```
+# parses "11/06/2013":
+date-format %m/%d/%Y
+```
+```
+# parses "2013-Nov-06":
+date-format %Y-%h-%d
+```
+```
+# parses "11/6/2013 11:32 PM":
+date-format %-m/%-d/%Y %l:%M %p
+```
 
-    # "6/11/2013"
-    date-format %-d/%-m/%Y
+**`fields` *CSVFIELDNAME1*, *CSVFIELDNAME2*...**\
+(Field list)\
+This (a) names the CSV fields (names may not contain whitespace),
+and (b) assigns them to journal entry fields if you use any of these standard field names:\
+\
+`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`.\
+\
+Eg:
+```
+# use the 1st, 2nd and 4th CSV fields as the entry date, description and amount
+# give the 7th and 8th fields custom names for later reference
+fields date, description, , amount, , , somefield, anotherfield
+```
 
-    # "11/06/2013"
-    date-format %m/%d/%Y
+***ENTRYFIELDNAME* *FIELDVALUE***\
+(Field assignment)\
+This sets a journal entry field (one of the standard names above) to the given text value,
+which can include CSV field values interpolated by name (`%CSVFIELDNAME`) or 1-based position (`%N`).
+<!-- Whitespace before or after the value is ignored. -->
+Field assignments can be used instead of or in addition to a field list.
+Eg:
+```
+# set the amount to the 4th CSV field with "USD " prepended
+amount USD %4
+```
+```
+# combine three fields to make a comment (containing two tags)
+comment note: %somefield - %anotherfield, date: %1
+```
 
-    # "2013-Nov-06"
-    date-format %Y-%h-%d
+**`if` *PATTERN*\
+&nbsp;&nbsp;&nbsp;&nbsp;*FIELDASSIGNMENTS*...**\
+or\
+**`if`\
+*PATTERN*\
+*PATTERN*...\
+&nbsp;&nbsp;&nbsp;&nbsp;*FIELDASSIGNMENTS*...**\
+(Conditional block)\
+This applies one or more field assignments, only to those CSV records matched by one of the PATTERNs.
+The patterns are case-insensitive regular expressions which match anywhere
+within the whole CSV record (it's not yet possible to match within a
+specific field).  When there are multiple patterns they should be written
+on separate lines, unindented.
+The field assignments are on separate lines indented by at least one space.
+Examples:
+```
+# if the CSV record contains "groceries", set account2 to "expenses:groceries"
+if groceries
+ account2 expenses:groceries
+```
+```
+# if the CSV record contains any of these patterns, set account2 and comment as shown
+if
+monthly service fee
+atm transaction fee
+banking thru software
+ account2 expenses:business:banking
+ comment  XXX deductible ? check
+```
 
-    # "11/6/2013 11:32 PM"
-    date-format %-m/%-d/%Y %l:%M %p
+**`include` *RULESFILE***\
+Include another rules file at this point. Eg:
+```
+# rules reused with several CSV files
+include common.rules
+```
 
-**include** *RULESFILE*\\
-Include another rules file at this point. Useful for common rules shared across multiple CSV files.
+#### Other CSV tips
 
-Typically you'll keep one rules file for each account which you
-download as CSV. For an example, see [How to read CSV
-files](CSV.html).
+Each generated journal entry will have two postings, to `account1` and `account2` respectively.
+Currently it's not possible to generate entries with more than two postings.
 
-Other notes:
+If the CSV has debit/credit amounts in separate fields, assign to the `amount-in` and `amount-out` pseudo fields instead of `amount`.
 
-An amount value that is parenthesised will have the parentheses stripped and its sign flipped.
+If the CSV has the currency in a separate field, assign that to the `currency` pseudo field which will be automatically prepended to the amount.
+(Or you can do the same thing with a field assignment.)
 
-If the `currency` pseudo field is assigned, its value will be prepended to every amount.
-
-If the CSV has debit/credit amounts in separate fields, assign the `amount-in` and `amount-out` pseudo fields instead of `amount`.
-
-Generating entries with three or more postings is not supported at present.
+If an amount value is parenthesised, it will be de-parenthesised and sign-flipped automatically.
 
 ### Timelog
 
