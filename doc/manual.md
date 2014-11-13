@@ -60,16 +60,26 @@ enter some transactions.  Or, save this
 [sample file](https://raw.github.com/simonmichael/hledger/master/data/sample.journal) as
 `.hledger.journal` in your home directory. Now try commands like these:
 
-    $ hledger                               # show available commands
-    $ hledger add                           # add more transactions to the journal file
-    $ hledger balance                       # all accounts with aggregated balances
-    $ hledger balance --help                # show help for balance command
-    $ hledger balance --depth 1             # only top-level accounts
-    $ hledger register                      # show a register of postings from all transactions
-    $ hledger reg income                    # show postings to/from income accounts
-    $ hledger reg checking                  # show postings to/from checking account
-    $ hledger reg desc:shop                 # show postings with shop in the description
-    $ hledger activity                      # show transactions per day as a bar chart
+    $ hledger
+        # show available commands
+    $ hledger add
+        # add more transactions to the journal file
+    $ hledger balance
+        # all accounts with aggregated balances
+    $ hledger balance --help
+        # show help for balance command
+    $ hledger balance --depth 1
+        # only top-level accounts
+    $ hledger register
+        # show account postings, with running total
+    $ hledger reg income
+        # show postings to/from income accounts
+    $ hledger reg 'assets:some bank:checking'
+        # show postings to/from this checking account
+    $ hledger print desc:shop
+        # show transactions with shop in the description
+    $ hledger activity -W
+        # show transaction counts per week as a bar chart
 
 ## Data formats
 
@@ -357,7 +367,7 @@ hledger will parse and ignore ledger-style historical price directives:
         ; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
         ; These say the euro's exchange rate is $1.35 during 2009 and
         ; $1.40 from 2010/1/1 on.
-        P 2009/1/1 € $1.35  
+        P 2009/1/1 € $1.35
         P 2010/1/1 € $1.40
 
 #### Comments
@@ -693,29 +703,29 @@ though not every one is applicable in all cases:
 
 ```
 General flags:
-  -f --file=FILE         use a different input file. For stdin, use -
-     --rules-file=RFILE  CSV conversion rules file (default: FILE.rules)
-     --alias=OLD=NEW     display accounts named OLD as NEW
-     --ignore-assertions ignore any balance assertions in the journal
-  -b --begin=DATE        include postings/txns on or after this date
-  -e --end=DATE          include postings/txns before this date
-  -D --daily             multiperiod/multicolumn report by day
-  -W --weekly            multiperiod/multicolumn report by week
-  -M --monthly           multiperiod/multicolumn report by month
-  -Q --quarterly         multiperiod/multicolumn report by quarter
-  -Y --yearly            multiperiod/multicolumn report by year
-  -p --period=PERIODEXP  set start date, end date, and/or reporting interval
-                         all at once (overrides the flags above)
-     --date2 --aux-date  use postings/txns' secondary dates instead
-  -C --cleared           include only cleared postings/txns
-  -U --uncleared         include only uncleared postings/txns
-  -R --real              include only non-virtual postings
-     --depth=N           hide accounts/postings deeper than N
-  -E --empty             show empty/zero things which are normally omitted
-  -B --cost              show amounts in their cost price's commodity
-  -h --help              show general help or (after command) command help
-     --debug=N           show debug output if N is 1-9 (default: 0)
-     --version           show version information
+  -f --file=FILE          use a different input file. For stdin, use -
+     --rules-file=RFILE   CSV conversion rules file (default: FILE.rules)
+     --alias=OLD=NEW      display accounts named OLD as NEW
+     --ignore-assertions  ignore any balance assertions in the journal
+  -b --begin=DATE         include postings/txns on or after this date
+  -e --end=DATE           include postings/txns before this date
+  -D --daily              multiperiod/multicolumn report by day
+  -W --weekly             multiperiod/multicolumn report by week
+  -M --monthly            multiperiod/multicolumn report by month
+  -Q --quarterly          multiperiod/multicolumn report by quarter
+  -Y --yearly             multiperiod/multicolumn report by year
+  -p --period=PERIODEXP   set start date, end date, and/or reporting interval
+                          all at once (overrides the flags above)
+     --date2 --aux-date   use postings/txns' secondary dates instead
+  -C --cleared            include only cleared postings/txns
+  -U --uncleared          include only uncleared postings/txns
+  -R --real               include only non-virtual postings
+     --depth=N            hide accounts/postings deeper than N
+  -E --empty              show empty/zero things which are normally omitted
+  -B --cost               show amounts in their cost price's commodity
+  -h --help               show general help or (after command) command help
+     --debug=N            show debug output if N is 1-9 (default: 0)
+     --version            show version information
 ```
 
 Read on for some additional notes.
@@ -728,15 +738,16 @@ words, can be relative to today's date, and assume 1 when less-significant date 
 
 Examples:
 
-| `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1` | simple dates, several separators allowed             |
+|--------------------------------------------------|------------------------------------------------------|
+| `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1` &nbsp; | simple dates, several separators allowed             |
 | `2009/1`, `2009`                                 | same as above - a missing day or month defaults to 1 |
 | `1/1`, `january`, `jan`, `this year`             | relative dates, meaning january 1 of the current year|
 | `next year`                                      | january 1 of next year                               |
 | `this month`                                     | the 1st of the current month                         |
 | `this week`                                      | the most recent monday                               |
 | `last week`                                      | the monday of the week before this one               |
+| `lastweek`                                       | spaces are optional                              |
 | `today`, `yesterday`, `tomorrow`                 |                                                      |
-| `-pmonthlyfrom2/1tonextmonth`                    | the spaces are optional                              |
 
 ### Reporting interval
 
@@ -811,7 +822,7 @@ tree, down to level N. Use this when you want a summary with less detail.
 
 ## Queries
 
-Part of hledger's usefulness is being able to report on just a precise subset of your data.  
+One of hledger's strengths is being able to quickly report on precise subsets of your data.\
 Most commands accept an optional query expression, written as arguments after the command name,
 to filter the data by date, account name or other criteria. Query expressions are also used
 in the [web ui](#web)'s search form.
@@ -865,7 +876,7 @@ are combined as follows:
   - any of the account terms AND
   - all the other terms.
 
-### Query arguments vs options
+### Query arguments or options ?
 
 On the command line, some of the query terms above can also be expressed as command-line flags. 
 Generally you can mix and match query arguments and flags, and the resulting query will be their intersection.
@@ -875,11 +886,17 @@ Remember that a `-p` [period](#period-expressions) flag will cause any other `-b
 ## Commands
 
 hledger provides a number of subcommands out of the box; run `hledger` with no arguments to see a list.
+The most-used commands are probably
+[balance](#balance),
+[register](#register),
+[print](#print)
+and [accounts](#accounts).
+
 More [add-on commands](#add-ons) will appear if you install additional `hledger-*` packages,
 or if you put programs or scripts named `hledger-NAME` in your PATH.
 
-To select which command to run, write it as the first command-line
-argument.  You can write its full name (eg `balance`), or one of the
+To choose a command, write it as the first command-line argument.
+You can write its full name (eg `balance`), or one of the
 standard short aliases displayed in parentheses in the command list
 (eg `bs`), or any unambiguous prefix of a command (eg `inc`).
 
@@ -951,77 +968,27 @@ Here's [an example](step-by-step#record-a-transaction-with-hledger-add).
     date ? [2013/04/09]: <CTRL-D>
     $
 -->
-    
+
 ### Reports
 
-These are the commands for actually querying your ledger.
+Here are the built-in commands for reporting useful information from your journal,
+which hledger's main purpose. (The original commands inherited from Ledger were, simplest first:
+[print](#print), [register](#register) and [balance](#balance).)
 
 #### accounts
 
 This command lists matched account names, in a flat list by default, or in hierarchy
 with the `--tree` flag. With no query arguments, all account names are listed.
 
-#### print
+#### activity
 
-The print command displays full transactions from the journal file,
-tidily formatted and showing all amounts explicitly. The output of
-print is always a valid hledger journal, but it does always not
-preserve all original content exactly (eg directives).
-
-hledger's print command also shows all unit prices in effect, or (with
--B/--cost) shows cost amounts.
+The activity command displays an ascii bar chart showing
+transaction counts by day, week, month or other reporting interval
+(by day is the default).
 
 Examples:
 
-    $ hledger print
-    $ hledger print employees:bob | hledger -f- register expenses
-
-#### register
-
-The register command displays postings, one per line, and their running
-total.  With no [query terms](#queries), this is not all that different
-from [print](#print):
-
-    $ hledger register
-
-More typically, use it to see a specific account's activity:
-
-    $ hledger register assets:bank:checking
-
-The `--historical`/`-H` flag adds the balance from any prior postings
-to the running total, to show the actual running account balance.
-
-The `--depth` option limits the amount of sub-account detail displayed:
-
-    $ hledger register assets:bank:checking --depth 2
-
-The `--average`/`-A` flag shows the running average posting amount
-instead of the running total (so, the final number displayed is the
-average for the whole report period). This flag implies `--empty` (see below).
-It works best when showing just one account and one commodity.
-
-The `--related`/`-r` flag shows the *other* postings in the transactions
-of the postings which would normally be shown.
-
-The `--width`/`-w` option adjusts the width of the output. By default,
-this is 80 characters. To allow more space for descriptions and account
-names, use `-w N` to increase the width to N characters (the argument is required).
-
-With a [reporting interval](#reporting-interval) register shows
-aggregated summary postings, within each interval:
-
-    $ hledger register --monthly rent
-    $ hledger register --monthly -E food --depth 4
-
-One summary posting will be shown for each account in each interval.
-Summary postings with a zero amount are not shown; use the `--empty`/`-E` flag to show them.
-
-If necessary, use the `--depth` option to summarise the accounts.
-It's often most useful to see just one line per interval.
-
-When using report intervals, the report's normal start/end dates are
-"enlarged" to contain a whole number of intervals, so that the first
-and last intervals will be "full" and comparable to the others.
+    $ hledger activity -p weekly dining
 
 #### balance
 
@@ -1177,13 +1144,6 @@ Or, if you'd like to export the balance sheet:
 The default output format is `%20(total)  %2(depth_spacer)%-(account)`.
 
 
-#### incomestatement
-
-This command displays a simple
-[income statement](http://en.wikipedia.org/wiki/Income_statement).  It
-currently assumes that you have top-level accounts named `income` (or
-`revenue`) and `expense` (plural forms also allowed.)
-
 #### balancesheet
 
 This command displays a simple
@@ -1201,14 +1161,74 @@ period. It currently assumes that cash accounts are under a top-level
 account named `asset` and do not contain `receivable` or `A/R` (plural
 forms also allowed.)
 
-#### activity
+#### incomestatement
 
-The activity command displays a simplistic textual bar chart showing
-transaction counts by day, week, month or other reporting interval.
+This command displays a simple
+[income statement](http://en.wikipedia.org/wiki/Income_statement).  It
+currently assumes that you have top-level accounts named `income` (or
+`revenue`) and `expense` (plural forms also allowed.)
+
+#### print
+
+The print command displays full transactions from the journal file,
+tidily formatted and showing all amounts explicitly. The output of
+print is always a valid hledger journal, but it does always not
+preserve all original content exactly (eg directives).
+
+hledger's print command also shows all unit prices in effect, or (with
+-B/--cost) shows cost amounts.
 
 Examples:
 
-    $ hledger activity -p weekly dining
+    $ hledger print
+    $ hledger print employees:bob | hledger -f- register expenses
+
+#### register
+
+The register command displays postings, one per line, and their running
+total.  With no [query terms](#queries), this is not all that different
+from [print](#print):
+
+    $ hledger register
+
+More typically, use it to see a specific account's activity:
+
+    $ hledger register assets:bank:checking
+
+The `--historical`/`-H` flag adds the balance from any prior postings
+to the running total, to show the actual running account balance.
+
+The `--depth` option limits the amount of sub-account detail displayed:
+
+    $ hledger register assets:bank:checking --depth 2
+
+The `--average`/`-A` flag shows the running average posting amount
+instead of the running total (so, the final number displayed is the
+average for the whole report period). This flag implies `--empty` (see below).
+It works best when showing just one account and one commodity.
+
+The `--related`/`-r` flag shows the *other* postings in the transactions
+of the postings which would normally be shown.
+
+The `--width`/`-w` option adjusts the width of the output. By default,
+this is 80 characters. To allow more space for descriptions and account
+names, use `-w N` to increase the width to N characters (the argument is required).
+
+With a [reporting interval](#reporting-interval) register shows
+aggregated summary postings, within each interval:
+
+    $ hledger register --monthly rent
+    $ hledger register --monthly -E food --depth 4
+
+One summary posting will be shown for each account in each interval.
+Summary postings with a zero amount are not shown; use the `--empty`/`-E` flag to show them.
+
+If necessary, use the `--depth` option to summarise the accounts.
+It's often most useful to see just one line per interval.
+
+When using report intervals, the report's normal start/end dates are
+"enlarged" to contain a whole number of intervals, so that the first
+and last intervals will be "full" and comparable to the others.
 
 #### stats
 
@@ -1290,7 +1310,7 @@ See the package page for more.
 [hledger-web](http://hackage.haskell.org/package/hledger-web)
 provides a web-based user interface for viewing and modifying your ledger.
 It includes an account register view that is more useful than the command-line register, and basic data entry and editing.
-Try it out at http://demo.hledger.org.
+You can see it running at [demo.hledger.org](http://demo.hledger.org).
 
 web-specific options:
 
@@ -1430,11 +1450,12 @@ using one of these modes is quite recommended.
 
 These were written with Ledger in mind, but also work with hledger files:
 
-| Emacs          | http://www.ledger-cli.org/3.0/doc/ledger-mode.html |
-| Vim            | https://github.com/ledger/ledger/wiki/Getting-started-with-Vim |
-| Sublime Text   | https://github.com/ledger/ledger/wiki/Using-Sublime-Text |
-| Textmate       | https://github.com/ledger/ledger/wiki/Using-TextMate-2 |
-| Text Wrangler  | https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler |
+|----------------|----------------------------------------------------|
+| Emacs          | <http://www.ledger-cli.org/3.0/doc/ledger-mode.html> |
+| Vim            | <https://github.com/ledger/ledger/wiki/Getting-started-with-Vim> |
+| Sublime Text   | <https://github.com/ledger/ledger/wiki/Using-Sublime-Text> |
+| Textmate       | <https://github.com/ledger/ledger/wiki/Using-TextMate-2> |
+| Text Wrangler &nbsp;  | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler> |
 
 <!-- Some related LedgerTips:
 https://twitter.com/LedgerTips/status/504061626233159681
