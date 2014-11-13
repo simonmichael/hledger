@@ -16,10 +16,6 @@ change logs.
 
 - allow text 1.2+ (fixes #207)
 
-## hledger-lib 0.23.3 (2014/9/12)
-
-- allow transformers 0.4* (fixes #204)
-
 ## hledger 0.23.2 (2014/5/8)
 
 - register: also fix date sorting of postings (#184)

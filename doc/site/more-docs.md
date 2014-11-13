@@ -12,7 +12,7 @@
 
 ## Blog posts & articles
 
-- Simon's hledger-tagged blog posts:  
+- Simon Michael:
   [Introducing hledger!](http://joyful.com/blog/2013-10-18-introducing-hledger.html),
   [More on ledger](http://joyful.com/blog/2013-10-19-more-on-ledger.html),
   [What is hledger ?](http://joyful.com/blog/2013-10-20-what-is-hledger.html),
