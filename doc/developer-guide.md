@@ -14,8 +14,8 @@ tr {
 <!-- | hledger.org&nbsp;&nbsp; | [combined release notes](release notes), [pre-compiled binaries](download) | -->
 <!-- [web ui demo](http://demo.hledger.org/register?q=inacct%3Aassets%3Abank%3Achecking+sym%3A\%24) -->
 |-------------------------|----------------------------------------------------------------------------|
-| IRC                     | Join [#hledger](http://hledger.org/irc) (see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) |
-| Mail list               | [list.hledger.org](http://hledger.org/list) ([Gmane](http://dir.gmane.org/gmane.comp.finance.ledger.hledger)) |
+| IRC                     | Join [#hledger](http://hledger.org/irc) ([chat log](http://ircbrowse.net/browse/hledger); see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) |
+| Mail list               | [list.hledger.org](http://list.hledger.org) ([Gmane](http://dir.gmane.org/gmane.comp.finance.ledger.hledger)) |
 | Twitter                 | [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime), <a href="https://twitter.com/ledgertips">@LedgerTips</a> |
 | hledger-web demo&nbsp;&nbsp;        | [demo.hledger.org](http://demo.hledger.org) |
 | Trello                  | [planning board](http://hledger.org/trello) |
@@ -96,26 +96,18 @@ The hledger project aims to produce:
 
 ### Documentation
 
-Project documentation appears in many places:
+Project documentation lives in a number of places:
 
-- website
-- user manual
-- developer guide
-- code documentation: haddock
-- various developer reports
-- developer notes outline
-- blurbs: in cabal files, module headers, google project, repo message of the day..
-
-For most of hledger's history, documentation was primarily (all capitals) markdown files in the source code repository. This was processed by pandoc, hakyll or yst to generate a static website.
-
-As of 2014/2, hledger.org is a wiki, and most docs are maintained as wiki pages.
-Some, particularly the user manual and release notes, still exist in the main source repo as well.
-These should probably not be updated directly, instead they are copied from the wiki before each release.
+- `doc/*.md` and `doc/site/*.md` form the hledger.org website, which is generated with hakyll[-std] and pandoc
+- haddock documentation in the code appears on Hackage
+- short blurbs: cabal files, module headers, HCAR, GSOC project, ..
+- `doc/notes.org` has some old developer notes
+- developer reports (profiles, benchmarks, coverage..) in doc/profs, sometimes published at hledger.org/profs
 
 ### Code
 
-The hledger repo is hosted on Github, at http://github.com/simonmichael/hledger.
-You can also jump there via hledger.org/code[/commits] or code.hledger.org[/commits].
+The hledger repo is hosted on Github, at <http://github.com/simonmichael/hledger>.
+You can also jump there via `code.hledger.org[/commits]`.
 
 ### Quality control
 
@@ -162,7 +154,7 @@ Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledge
 There are two core cabal packages:
 
 **[hledger-lib](http://hackage.haskell.org/package/hledger-lib)** - data model, parsing, manipulation, standard reports
-([github](https://github.com/simonmichael/hledger/tree/master/hledger-lib))\\
+([github](https://github.com/simonmichael/hledger/tree/master/hledger-lib))\
 **[hledger](http://hackage.haskell.org/package/hledger)** - command line interface, reusable cli options & helpers
 ([github](https://github.com/simonmichael/hledger/tree/master/hledger))
 
@@ -307,26 +299,26 @@ Here are some tips to help you get productive on the hledger project.
 
 ### Suggest enhancements
 
-Suggestions and feature requests are easy to make. They are welcome feedback, 
-but we don't want them to pile up and
-obscure bugs and other developer priorities, so we try manage them a. with discussion
-and b. optionally as cards on a trello board.
-The current recommendation is
+Suggestions and feature requests (aka wishes) are easy to make, and can be valuable,
+but we don't want them to pile up ad infinitum and obscure bugs and
+other developer priorities. Before opening a github issue, consider:
 
-1. **discuss/research first**\\
-   Is your wish already on the [trello wishlist/planning board](http://hledger.org/trello)
-   or [bug tracker](http://hledger.org/bugs) ?\\
-   In any case, perhaps discuss it on [irc](irc://irc.freenode.net/#ledger) or the [mail list](http://hledger.org/list) first ?
+1. Perhaps discussion is most appropriate at this stage ?
+   [#hledger](irc://irc.freenode.net/#ledger) or the
+   [mail list](http://list.hledger.org) are excellent places for this.
+   Both are archived, so the idea won't be lost.
+2. We have a collection of enhancement ideas on the
+   [trello planning board](http://hledger.org/trello).
+   Perhaps your idea is already there, or you can add it ?
+3. We have bug reports and more wishes in the [bug tracker](http:///bugs.hledger.org).
+   Is your idea already there ?
 
-2. **wishes are best stored on trello**\\
-   Is it a problem with the current released product ? report in the [bug tracker](http://hledger.org/bugs)\\
-   Is it a feature idea or wish ? add a card on the [trello board](http://hledger.org/trello), if needed
-
-But do what you think best. When a wish does land in the bug tracker, it gets the WISH label.
+When a wish does land in the bug tracker, it gets the WISH label,
+and the default view given by [bugs.hledger.org](http://bugs.hledger.org) excludes these.
 
 ### Report problems
 
-- check for related issues in the [bug tracker](http://hledger.org/bugs) or in the [mail list archive](http://hledger.org/list)
+- check for related issues in the [bug tracker](http:///bugs.hledger.org) or in the [mail list archive](http://list.hledger.org)
 - discuss/confirm the issue on irc or list
 - report new issues in the bug tracker
 <!-- - test and share problem journal snippets at paste . hledger.org -->
@@ -343,12 +335,12 @@ But do what you think best. When a wish does land in the bug tracker, it gets th
 
 ### Help with bug tracking
 
-- get to know the [bug tracker](http://hledger.org/bugs) and its contents
+- get to know the [bug tracker](http://bugs.hledger.org) and its contents
 - research and update issues
-- some convenient url shortcuts:\\
-  [`hledger.org/bugs`](http://hledger.org/bugs)\\
-  [`hledger.org/bugs/new`](http://hledger.org/bugs/new)\\
-  `hledger.org/bugs/N`
+- some convenient url shortcuts:\
+  [`bugs.hledger.org`](http://bugs.hledger.org)\
+  [`bugs.hledger.org/new`](http://bugs.hledger.org/new)\
+  `bugs.hledger.org/N`
 
 ### Set up for development
 
@@ -379,12 +371,12 @@ But do what you think best. When a wish does land in the bug tracker, it gets th
     Note this executable will not be as optimised as the normal cabal build, and has the "dev" suffix
     as a reminder of this.
 
-9. try auto-building with sp:
+<!-- 9. try auto-building with sp: -->
 
-        make auto   # or autoweb
+<!--         make auto   # or autoweb -->
 
-    You'll need to follow the instructions to install `sp`.
-    This is how I do most hledger development. It will recompile whenever you save changes to source files.
+<!--     You'll need to follow the instructions to install `sp`. -->
+<!--     This is how I do most hledger development. It will recompile whenever you save changes to source files. -->
 
 ### Get your changes accepted
 
