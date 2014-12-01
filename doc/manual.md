@@ -347,7 +347,7 @@ examples we get:
     $ hledger print --cost
     2009/01/01
         assets:foreign currency       $135.00
-        assets                       $-135.00
+        assets:cash                  $-135.00
 
 ##### Fixed Lot Prices
 
