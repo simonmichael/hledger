@@ -50,13 +50,17 @@ Perhaps some day hledger or something like it would use this as its foundation.
 
 hledger's file format is mostly identical with ledger's, by design.
 Generally, it's easy to keep a journal file that works with both hledger
-and ledger if you avoid ledger's most specialised syntax.
+and ledger if you avoid ledger's and hledger's more specialised syntax
+(or keep it in separate files which you include only when appropriate).
+
 Some ledger syntax is parsed but ignored (such as
 [automated transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions), [periodic transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Periodic-Transactions), and
 [historical prices](manual.html#historical-prices)).
 Some features are not currently parsed and will cause an error, eg
 ledger's more recent top-level directives. There can also be subtle
-differences in parser behaviour, eg [hledger comments](manual.html#comments) vs [ledger comments](http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal).
+differences in parser behaviour, such as with
+[hledger comments](manual.html#comments) vs [ledger comments](http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal),
+or [balance assertions](manual.html#assertions-and-ordering).
 
 ### Feature differences ?
 
