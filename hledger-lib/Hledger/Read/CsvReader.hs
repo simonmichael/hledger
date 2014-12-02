@@ -121,7 +121,13 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   let txns = snd $ mapAccumL
                      (\pos r -> (pos, transactionFromCsvRecord (incSourceLine pos 1) rules r))
                      (initialPos parsecfilename) records
-  return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns}
+
+  -- heuristic: if the records appear to have been in reverse date order,
+  -- reverse them all as well as doing a txn date sort,
+  -- so that same-day txns' original order is preserved
+      txns' | length txns > 1 && tdate (head txns) > tdate (last txns) = reverse txns
+            | otherwise = txns
+  return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns'}
 
 parseCsv :: FilePath -> String -> IO (Either ParseError CSV)
 parseCsv path csvdata =
