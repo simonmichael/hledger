@@ -658,9 +658,9 @@ If the CSV has the currency in a separate field, assign that to the `currency` p
 
 If an amount value is parenthesised, it will be de-parenthesised and sign-flipped automatically.
 
-The generated journal entries will be sorted by date (after reversing
-them if the first's date is later than the last's, to preserve the
-order of same-day entries).
+The generated journal entries will be sorted by date.
+The original order of same-day entries will be preserved, usually.
+<!-- (by reversing the CSV entries if they seem to be in reverse date order). -->
 
 ### Timelog
 
