@@ -331,7 +331,7 @@ getDirective directivename = lookup directivename . rdirectives
 
 parseRulesFile :: FilePath -> ErrorT String IO CsvRules
 parseRulesFile f = do
-  s <- liftIO $ (readFile' f >>= expandIncludes)
+  s <- liftIO $ (readFile' f >>= expandIncludes (takeDirectory f))
   let rules = parseCsvRules f s
   case rules of
     Left e -> ErrorT $ return $ Left $ show e
@@ -345,14 +345,15 @@ parseRulesFile f = do
 
 -- | Pre-parse csv rules to interpolate included files, recursively.
 -- This is a cheap hack to avoid rewriting the existing parser.
-expandIncludes :: String -> IO String
-expandIncludes s = do
-  let (ls,rest) = break (isPrefixOf "include") $ lines s
+expandIncludes :: FilePath -> String -> IO String
+expandIncludes basedir content = do
+  let (ls,rest) = break (isPrefixOf "include") $ lines content
   case rest of
     [] -> return $ unlines ls
     (('i':'n':'c':'l':'u':'d':'e':f):ls') -> do
-      let f' = dropWhile isSpace f
-      included <- readFile f' >>= expandIncludes
+      let f'       = basedir </> dropWhile isSpace f
+          basedir' = takeDirectory f'
+      included <- readFile f' >>= expandIncludes basedir'
       return $ unlines [unlines ls, included, unlines ls']
     ls' -> return $ unlines $ ls ++ ls'   -- should never get here
 
