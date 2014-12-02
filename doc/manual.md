@@ -940,37 +940,7 @@ Additional convenience features:
 
 - Input prompts are displayed in a different colour when the terminal supports it.
 
-Here's [an example](step-by-step#record-a-transaction-with-hledger-add).
-<!--
-    $ hledger add
-    (...)
-    Starting a new transaction.
-    date ? [2013/04/09]: 
-    description ? : starbucks
-
-    Using this existing transaction for defaults:
-    2012/04/19 * starbucks
-        expenses:personal:food:snacks         $3.70
-        assets:cash:wallet                   $-3.70
-
-    account 1 ? [expenses:personal:food:snacks]: 
-    amount  1 ? [$3.7]: 
-    account 2 ? [assets:cash:wallet]: 
-    amount  2 ? [$-3.7]: 
-    account 3 (or . to complete this transaction) ? : .
-
-    Transaction entered:
-    2013/04/09 starbucks
-        expenses:personal:food:snacks          $7.7
-        assets:cash:wallet                    $-7.7
-
-    Accept this transaction ? [y]: 
-    Added to the journal.
-
-    Starting a new transaction.
-    date ? [2013/04/09]: <CTRL-D>
-    $
--->
+Here's [an example](step-by-step.html#record-a-transaction-with-hledger-add).
 
 ### Reports
 
