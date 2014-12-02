@@ -559,7 +559,7 @@ skip 1
 **`date-format` *DATEFMT***\
 When your CSV date fields are not formatted like `YYYY/MM/DD` (or `YYYY-MM-DD` or `YYYY.MM.DD`),
 you'll need to specify the format.
-DATEFMT is a [strptime-style date parsing pattern](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime),
+DATEFMT is a [strptime-like date parsing pattern](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime),
 which must parse the date field values completely. Examples:
 ```
 # parses "6/11/2013":
@@ -639,7 +639,8 @@ banking thru software
 ```
 
 **`include` *RULESFILE***\
-Include another rules file at this point. Eg:
+Include another rules file at this point. `RULESFILE` is either an absolute file path or
+a path relative to the current file's directory. Eg:
 ```
 # rules reused with several CSV files
 include common.rules
@@ -656,6 +657,10 @@ If the CSV has the currency in a separate field, assign that to the `currency` p
 (Or you can do the same thing with a field assignment.)
 
 If an amount value is parenthesised, it will be de-parenthesised and sign-flipped automatically.
+
+The generated journal entries will be sorted by date (after reversing
+them if the first's date is later than the last's, to preserve the
+order of same-day entries).
 
 ### Timelog
 
