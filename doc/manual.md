@@ -313,7 +313,7 @@ account does not contain some unexpected commodity. (We'll add support
 for this kind of total balance assertion if there's demand.)
 
 
-#### Prices
+##### Prices
 
 <!-- ##### Transaction prices -->
 
@@ -349,26 +349,29 @@ examples we get:
         assets:foreign currency       $135.00
         assets:cash                  $-135.00
 
-##### Fixed Lot Prices
+###### Prices are fixed
 
-ledger has another syntax for
-[fixed lot prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices).
-(`{=PRICE}`). In ledger, this is equivalent to `@ PRICE`, except you
-can provide both and then ledger generates an automatic Capital Losses
-posting covering the difference.
+In hledger, the price used in a given posting is fixed.
+This is what you want for eg recording purchases made while travelling abroad,
+but you can't (yet) track the value of stocks whose price fluctuates.
 
-hledger will parse this syntax, but ignore it.
+This is different from Ledger, where prices fluctuate by default.
+Ledger has a different syntax for specifying
+[fixed prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices): `{=PRICE}`.
+hledger parses that syntax, and (currently) ignores it.
+<!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
 
-##### Historical prices
+###### Historical prices
 
-hledger will parse and ignore ledger-style historical price directives:
+hledger also parses, and currently ignores, ledger-style historical price directives:
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
-
-        ; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
-        ; These say the euro's exchange rate is $1.35 during 2009 and
-        ; $1.40 from 2010/1/1 on.
-        P 2009/1/1 € $1.35
-        P 2010/1/1 € $1.40
+```
+; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
+; These say the euro's exchange rate is $1.35 during 2009 and
+; $1.40 from 2010/1/1 on.
+P 2009/1/1 € $1.35
+P 2010/1/1 € $1.40
+```
 
 #### Comments
 
