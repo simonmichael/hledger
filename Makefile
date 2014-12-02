@@ -668,10 +668,10 @@ cleandocs: site-clean
 
 # build some additional static bits of the hledger.org website
 # Requires hakyll-std, a generic hakyll site builder
-site-build site: olddocs
+site-build site: #olddocs
 	-cd doc/site; hakyll build
 
-site-clean: cleanolddocs
+site-clean: #cleanolddocs
 	-cd doc/site; hakyll clean
 #	rm -rf doc/site/_site/*
 
@@ -686,19 +686,19 @@ site-view: site
 
 # ensure some old doc versions are in place:
 
-olddocs: doc/0.22 doc/0.21
+#olddocs: doc/0.22 doc/0.21
 
 #doc/0.23:
 #	(cd doc; git archive --prefix doc/0.23/ tags/0.23 'doc/MANUAL.md') | tar xf -
 
-doc/0.22:
-	git archive --prefix doc/0.22/ tags/0.22 'MANUAL.md' | tar xf -
+# doc/0.22:
+# 	git archive --prefix doc/0.22/ tags/0.22 'MANUAL.md' | tar xf -
 
-doc/0.21:
-	git archive --prefix doc/0.21/ tags/0.21.3 'MANUAL.md' | tar xf -
+# doc/0.21:
+# 	git archive --prefix doc/0.21/ tags/0.21.3 'MANUAL.md' | tar xf -
 
-cleanolddocs:
-	cd doc; rm -rf 0.22 0.21
+# cleanolddocs:
+# 	cd doc; rm -rf 0.22 0.21
 
 
 pdf: codepdf #docspdf
