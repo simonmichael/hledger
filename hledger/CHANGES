@@ -1,3 +1,8 @@
+0.24 (unreleased)
+
+- register: faster with large output
+- register: postings with multi-commodity amounts are now top-aligned, like Ledger
+
 0.23.3 (2014/9/12)
 
 - allow text 1.2+ (fixes #207)
