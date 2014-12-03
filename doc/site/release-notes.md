@@ -1,4 +1,33 @@
-* toc
+<!-- A manual TOC showing less detail than the automatic one. -->
+<!-- Putting the dates last is preferred for readability, but they are first in the headings below since that nicely keeps them out of the anchor urls. -->
+<nav id="toc" class="right-toc">
+<p>Major releases:</p>
+<ul>
+<li><a href="#hledger-0.23">hledger 0.23 (2014/5/1)</a>
+<li><a href="#hledger-0.22">hledger 0.22 (2013/12/13)</a>
+<li><a href="#hledger-0.21">hledger 0.21 (2013/6/1)</a>
+<li><a href="#hledger-0.20">hledger 0.20 (2013/5/1)</a>
+<li><a href="#hledger-0.19">hledger 0.19 (2012/10/21)</a>
+<li><a href="#hledger-0.18">hledger 0.18 (2012/5/29)</a>
+<li><a href="#hledger-0.17">hledger 0.17 (2012/2/1)</a>
+<li><a href="#hledger-0.16">hledger 0.16 (2011/10/1)</a>
+<li><a href="#hledger-0.15">hledger 0.15 (2011/9/1)</a>
+<li><a href="#hledger-0.14">hledger 0.14 (2011/4/22)</a>
+<li><a href="#hledger-0.13">hledger 0.13 (2010/12/6)</a>
+<li><a href="#hledger-0.12">hledger 0.12 (2010/9/5)</a>
+<li><a href="#hledger-0.11">hledger 0.11 (2010/07/17)</a>
+<li><a href="#hledger-0.10">hledger 0.10 (2010/05/23)</a>
+<li><a href="#hledger-0.9">hledger 0.9 (2010/04/10)</a>
+<li><a href="#hledger-0.8">hledger 0.8 (2010/02/11)</a>
+<li><a href="#hledger-0.7">hledger 0.7 (2009/12/11)</a>
+<li><a href="#hledger-0.6">hledger 0.6 (2009/06/13)</a>
+<li><a href="#hledger-0.5">hledger 0.5 (2009/05/23)</a>
+<li><a href="#hledger-0.4">hledger 0.4 (2009/04/03)</a>
+<li><a href="#hledger-0.3">hledger 0.3 (2009/01/17)</a>
+<li><a href="#hledger-0.2">hledger 0.2 (2008/11/23)</a>
+<li><a href="#hledger-0.1">hledger 0.1 (2008/10/15)</a>
+</ul>
+</nav>
 
 # Release notes
 
@@ -8,19 +37,19 @@ Based on the
 [hledger-lib](http://hackage.haskell.org/package/hledger-lib/changelog)
 change logs.
 
-## hledger-web 0.23.3 (2014/9/12)
+## 2014/9/12 hledger-web 0.23.3
 
 - remove warp, wai-handler-launch upper bounds (fixes #205)
 
-## hledger 0.23.3 (2014/9/12)
+## 2014/9/12 hledger 0.23.3
 
 - allow text 1.2+ (fixes #207)
 
-## hledger 0.23.2 (2014/5/8)
+## 2014/5/8 hledger 0.23.2
 
 - register: also fix date sorting of postings (#184)
 
-## hledger 0.23.1 (2014/5/7)
+## 2014/5/7 hledger 0.23.1
 
 - register: fix a refactoring-related regression that the tests
   missed: if transactions were not ordered by date in the journal,
@@ -32,7 +61,7 @@ change logs.
 - csv: don't validate fields count in skipped lines (#177)
 
 
-## hledger 0.23 (2014/5/1)
+## 2014/5/1 hledger 0.23
 
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1028)
 
@@ -121,7 +150,7 @@ Changes since 0.22.2:
 - Compatible with GHC 7.2 (#155) - GHC 7.8, shakespeare 2
 
 
-## hledger-web 0.23 (2014/5/1)
+## 2014/5/1 hledger-web 0.23
 
 Changes since 0.22.8:
 
@@ -130,25 +159,25 @@ Changes since 0.22.8:
   so may be a little quicker/less memory-hungry to install.
 
 
-## hledger-web 0.22.8 (2014/4/29)
+## 2014/4/29 hledger-web 0.22.8
 
 - allow shakespeare 2.* (#179)
 
-## hledger-web 0.22.7 (2014/4/17)
+## 2014/4/17 hledger-web 0.22.7
 
 - add Peter Simons' patch fixing Data.Conduit.Network HostIPv4 error (#171)
 
-## hledger-web 0.22.6 (2014/4/16)
+## 2014/4/16 hledger-web 0.22.6
 
 - depend on hledger[-lib] 0.22.2
 
-## hledger 0.22.2 (2014/4/16)
+## 2014/4/16 hledger 0.22.2
 
 - display years before 1000 with four digits, not three
 - avoid pretty-show to build with GHC < 7.4
 - allow text 1.1, drop data-pprint to build with GHC 7.8.x
 
-## hledger-web 0.22.5 (2014/4/15)
+## 2014/4/15 hledger-web 0.22.5
 
 - allow http-client 0.3.*, fixing cabal install again with GHC <= 7.6 (not yet 7.8)
 - use pretty-show only with GHC 7.4+, fixing GHC 7.2 (fixes #155)
