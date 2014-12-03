@@ -75,7 +75,7 @@ more useful.***
 
 Changes since 0.22.2:
 
-**Journal format:**
+Journal format:
 
 - A # (hash) in column 0 is now also supported for starting a top-level journal comment, like Ledger.
 - The "too many missing amounts" error now reminds about the 2-space rule.
@@ -83,7 +83,7 @@ Changes since 0.22.2:
 - Fix: default commodity directives no longer limit the maximum display precision (#169).
 - Fix: + before an amount is no longer parsed as part of the commodity (#181).
 
-**CLI:**
+CLI:
 
 - Command-line help cleanups, layout improvements.
 - Descriptions are shown for known add-ons in the command list.
@@ -98,19 +98,19 @@ Changes since 0.22.2:
 - Fix: when -- is used to hide add-on options from the main program,
   it is no longer passed through as an add-on argument.
 
-**accounts:**
+accounts:
 
 - An accounts command has been added, similar to Ledger's, for listing account names
   in flat or hierarchical mode.
 
-**add:**
+add:
 
 - Tab completion now works at all prompts, and will insert the default if the input area is empty.
 - Account and amount defaults are more robust and useful.
 - Transactions may also be completed by the enter key, when there are no more default postings.
 - Input prompts are displayed in a different colour when supported.
 
-**balance:**
+balance:
 
 - Balance reports in flat mode now always show exclusive (subaccount-excluding) balances.
 - Balance reports in flat mode with --depth now aggregate deeper accounts at the depth limit instead of excluding them.
@@ -121,15 +121,15 @@ Changes since 0.22.2:
 - Fix: zero-balance leaf accounts below a non-zero-balance parent are no longer always shown (#170).
 - Fix: multicolumn reports now support --date2 (cf #174).
 
-**balancesheet, cashflow, incomestatement:**
+balancesheet, cashflow, incomestatement:
 
 - These commands now support --flat and --drop.
 
-**print:**
+print:
 
 - Tag queries (tag:) will now match a transaction if any of its postings match.
 
-**register:**
+register:
 
 - The --display option has been dropped. To see an accurate running total which
   includes the prior starting balance, use --historical/-H (like balance). 
@@ -137,7 +137,7 @@ Changes since 0.22.2:
   periods, so the first and last periods are "full" and comparable to the others.
 - Fix: --date2 now works with report intervals (fixes #174).
 
-**Queries:**
+Queries:
 
 - The currency/commodity query prefix (sym:) has been renamed to cur:.
 - Currency/commodity queries are applied more strongly in register and
@@ -149,7 +149,7 @@ Changes since 0.22.2:
   To do a signed comparison instead, write N with its sign (eg amt:+N, amt:<+N, amt:>-N).
 - Fix: amount queries no longer give false positives on multi-commodity amounts.
 
-**Miscellaneous:**
+Miscellaneous:
 
 - Default report dates now derive from the secondary dates when --date2 is in effect.
 - Default report dates now notice any posting dates outside the transaction dates' span.
@@ -224,7 +224,7 @@ Improved:
 
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/5333)
 
-**New:**
+New:
 
 - balance: with a reporting interval (monthly, yearly etc.), the
   [balance command](manual.html#balance) will now show a multi-column report, showing either
@@ -253,7 +253,7 @@ Improved:
   - `hledger-print-unique.hs` - print only journal entries unique descriptions
   - `hledger-register-csv.hs` - print a register report as CSV
 
-**Improved:**
+Improved:
 
 - balancesheet: now shows just assets and liabilities, not equity
 
@@ -271,13 +271,13 @@ Improved:
 - `--debug` now takes an optional numeric argument to set the debug level
   higher than 1, for more verbose debug output in a few cases.
 
-**Fixed:**
+Fixed:
 
 - csv: CSV data containing non-ascii characters is now supported
 
 - build with latest versions of dependencies (text, warp, http-conduit etc.)
 
-**Release contributors:**
+Release contributors:
 
 Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wiegley! :)
 
@@ -302,24 +302,24 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 ## 2013/6/1 hledger 0.21
 
-**Bugs fixed:**
+Bugs fixed:
 
   - parsing: don't fail when a csv amount has trailing whitespace (fixes #113)
   - web: don't show prices in the accounts sidebar (fixes #114)
   - web: show one line per commodity in charts. Needs more polish, but fixes #109.
   - web: bump yesod-platform dependency to avoid a cabal install failure
 
-**Journal reading:**
+Journal reading:
 
   - balance assertions are now checked after reading a journal
 
-**web command:**
+web command:
 
   - web: support/require yesod 1.2
   - web: show zero-balance accounts in the sidebar (fixes #106)
   - web: use nicer select2 autocomplete widgets in the add form
 
-**Documentation and infrastructure:**
+Documentation and infrastructure:
 
   - add basic cabal test suites for hledger-lib and hledger
 
@@ -330,7 +330,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 ## 2013/5/1 hledger 0.20
 
-**Bugs fixed:**
+Bugs fixed:
 
   * balance: a 0.19 regression which showed wrong total balance with `--flat` has been fixed (#94)
   * register: when `--date2` is used, the register is now sorted by the secondary date
@@ -340,7 +340,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
     libraries and GHC versions.  For now, hledger requires GHC 7.2+
     and hledger-web requires GHC 7.4+.
 
-**Journal reading:**
+Journal reading:
 
   - DOS-style line-endings are now also supported in journal and rules files.
   - `!` is now accepted in the status field as well as `*`, like ledger
@@ -350,7 +350,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
   - Per-posting dates are supported, using hledger tags or ledger's posting date syntax
   - Comment and tag handling has been improved
 
-**CSV reading:**
+CSV reading:
 
   - CSV conversion rules have a simpler, more flexible [syntax](manual.html#csv).
     Existing rules files will need to be updated manually:
@@ -363,7 +363,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
       add indented `account2 ` before the account name
   - parenthesised amounts are parsed as negative
 
-**Querying:**
+Querying:
 
   - Use `code:` to match the transaction code (check number) field
   - Use `amt:` followed by `<`, `=` or `>` and a number N to match
@@ -372,7 +372,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
     always matched).
   - `tag:` can now match (exact, case sensitive) tag values. Eg `tag:TAG=REGEXP`.
 
-**add comand:**
+add comand:
 
   - Transaction codes and comments (which may contain tags) can now be entered, following a date or amount respectively. (#45)
   - The current entry may be restarted by entering `<` at any prompt. (#47)
@@ -380,12 +380,12 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
   - Default values may be specified for the first entry by providing them as command line arguments.
   - Miscellaneous UI cleanups
 
-**register command:**
+register command:
 
   - The `--related`/`-r` flag shows the other postings in each transaction, like ledger.
   - The `--width`/`-w` option increases or sets the output width.
 
-**web command:**
+web command:
 
   - The web command now also starts a browser, and auto-exits when unused, by default ("local ui mode").
     With `--server`, it keeps running and logs requests to the console ("server mode").
@@ -395,12 +395,12 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
   - yesod devel is now supported; it uses `$LEDGER_FILE` or `~/.hledger.journal`
   - the `blaze_html_0_5` build flag has been reversed and renamed to `blaze_html_0_4`
 
-**Add-ons:**
+Add-ons:
 
   - The hledger-interest and hledger-irr commands have been released/updated.
   - hledger-chart and hledger-vty remain unmaintained and deprecated.
 
-**Documentation and infrastructure:**
+Documentation and infrastructure:
 
   - The hledger docs and website have been reorganised and updated
   - Manuals for past releases are provided as well as the latest dev version
@@ -409,7 +409,7 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
   - Feature requests and project planning are now managed on trello
   - A build bot builds against multiple GHC versions on each commit
 
-**Release contributors:**
+Release contributors:
 
 - Sascha Welter commissioned register enhancements (--related and --width)
 - David Patrick contributed a bounty for add enhancements
