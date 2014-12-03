@@ -63,6 +63,10 @@ change logs.
 
 ## 2014/5/1 hledger 0.23
 
+*This release includes command-line fixes and polish, a new accounts
+command, and a number of changes to the balance command relating
+to --depth, --flat, and multicolumn mode, which I find has made it much
+more useful. --*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1028)
 
 Changes since 0.22.2:
@@ -213,6 +217,8 @@ Improved:
   simplifying Debian packaging
 
 ## 2013/12/13 hledger 0.22
+
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/5333)
 
 **New:**
 
@@ -434,6 +440,9 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 ## 2012/10/21 hledger 0.19
 
+*This release has just two visible changes: a much faster balance command, and support for the latest GHC and libs. --*
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/4190)
+
   * hledger, hledger-lib: support GHC 7.6 and latest cmdargs, haskeline, split
   * balance report no longer has an O(n^2) slowdown with large numbers of accounts,
     and is generally more speedy. Benchmark on a 2010 macbook:
@@ -470,6 +479,8 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 ## 2012/5/29 hledger 0.18
 
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/3736)
+
   * web: hledger-web is now based on yesod 1.0
   * web: fix js error breaking second use of add form ([#72](http://bugs.hledger.org/72))
   * web: make `yesod devel` work
@@ -488,6 +499,9 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
   * set more upper bounds to fix cabal install issues with latest packages
 
 ## 2012/2/1 hledger 0.17
+
+*This release mainly fixes bugs and updates dependencies --*
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/3149)
 
   * support HP 2011.4.0.0
   * support and require cmdargs 0.9
@@ -527,6 +541,8 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 ## 2011/10/1 hledger 0.16
 
+*This is a stability/bugfix/polish release (which may become the pattern for
+even-numbered releases in future.) --*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/521)
 
   * cli: strip the -- when calling add-on commands, so their options work (#64)
@@ -564,15 +580,13 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 ## 2011/9/2 hledger 0.15.1, hledger-web 0.15.2
 
-[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/479)
-
   * fix a parsec 2 incompatibility
   * web: add missing Hledger.Web.Options to cabal file
   * web: tighten up dependencies to reduce build problems
 
 ## 2011/9/1 hledger 0.15
 
-[announcement](https://groups.google.com/forum/#!topic/hledger/-WCfnRFVaf0/discussion)
+[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/2748)
 
   * hledger's options are now modal, providing better help (using cmdargs)
   * hledger now lists and runs any hledger-* add-ons found in the user's path
@@ -645,6 +659,9 @@ Stats:
 
 ## 2010/12/6 hledger 0.13
 
+*readline editing and tab completion
+from Judah Jacobson, more ledger compatibility, a more robust and
+installable web interface, bugfixes, and a much-deliberated package split. --*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/296)
 
   * move web, vty, chart commands into separate hledger-web, hledger-vty,
@@ -756,6 +773,7 @@ lines of code with 132 tests and 54% unit test coverage.
 
 ## 2010/05/23 hledger 0.10
 
+*installation and bug fixes and api improvements --*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/242)
 
   * fix too-loose testpack dependency, missing safe dependency
@@ -788,6 +806,8 @@ code including tests, 144 tests, 53% coverage.
 
 ## 2010/04/10 hledger 0.9
 
+*many bugfixes and small improvements, GHC 6.12 support, and a separate library package
+to make building (h)ledger-compatible tools easier. --*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/239)
 
   * ghc 6.12 support
@@ -840,6 +860,7 @@ at 3983 lines of non-test code, 139 tests, 53% coverage.
 
 ## 2010/02/11 hledger 0.8
 
+*Bug fixes, refactoring and Hi-Res Graphical Charts. --*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/210)
 
   * parsing: in date=date2, use first date's year as a default for
@@ -914,13 +935,12 @@ at 3377 lines of non-test code, 97 tests, 53% test coverage.
 
 ## 2009/06/22 hledger 0.6.1
 
-[announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/156)
-
   * avoid use of exitSuccess which was breaking ghc 6.8/base 3
     compatibility (issue \#2)
 
 ## 2009/06/13 hledger 0.6
 
+*Some pre-built binaries are now available. cabal install ... works on gnu/linux, mac and windows. Hurrah! --*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/1215)
 
   * now cabal-installable on unix, mac, and windows, with Haskell
@@ -1007,6 +1027,13 @@ Release stats:
 
 ## 2009/04/03 hledger 0.4
 
+*There is also a new website at http://hledger.org, with screenshots (textual!),
+a demo (will it survive!?), and docs (not too many!)
+...
+I wrote it because I did not want to hack on c++ and because haskell seemed a good fit.
+...
+Install with the "-f happs" flag to enable the new happstack-based web interface.
+--*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/1097)
 
   * new "web" command serves reports in a web browser (install with
@@ -1141,6 +1168,18 @@ Release stats:
 
 ## 2008/10/15 hledger 0.1
 
+*I'm pleased to announce the first release of hledger, a command-line
+accounting tool similar to John Wiegley's c++ ledger. hledger generates
+simple ledger-compatible transaction & account balance reports from a
+plain text ledger file. It's simple to use, at least for techies.
+
+This has been my "learning Haskell" project, but I think it's also
+useful. It is much less featureful than ledger, and not quite as fast,
+but it has the virtue of being fun for haskellers to hack on. I am
+documenting the code, the app is simple, and I'm not too far up the
+haskell learning curve, so I think other people learning haskell might
+enjoy a look. It is currently ~1100 lines of haskell excluding tests.
+--*
 [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.general/775)
 
 Release stats:
