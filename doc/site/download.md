@@ -73,6 +73,7 @@ Use cabal
 
 ## I want to build the [latest release](release-notes.html) with [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
 
+`cabal install alex happy`    (if you don't already have these in your path)\
 `cabal sandbox init; cabal update; cabal install hledger-web`\
 <!-- [cabal install guide](cabal-install.html) -->
 
@@ -82,5 +83,6 @@ The [Installation Guide](installing.html) describes how to install using cabal i
 
 ## I want to build the [latest development code](http://hledger.org/code)
 
+`cabal install alex happy`    (if you don't already have these in your path)\
 `git clone https://github.com/simonmichael/hledger; cd hledger; make sandbox install`
 
