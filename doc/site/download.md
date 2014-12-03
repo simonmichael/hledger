@@ -26,7 +26,6 @@
 [hledger-web.linux-64.zip]()
 Use cabal
 -->
-[Release Notes](release-notes.html)
 
 </td>
 <td width="50%">
@@ -72,13 +71,14 @@ Use cabal
 </tr>
 </table>
 
-## I want to build the [latest release](http://hackage.haskell.org/package/hledger-web) with [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
+## I want to build the [latest release](release-notes.html) with [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
 
 `cabal sandbox init; cabal update; cabal install hledger-web`\
 <!-- [cabal install guide](cabal-install.html) -->
 
 Or just cabal install `hledger` if you don't need the web interface.
 The [Installation Guide](installing.html) describes how to install using cabal in more detail.
+[Release Notes](release-notes.html) shows what's new in the hledger packages.
 
 ## I want to build the [latest development code](http://hledger.org/code)
 
