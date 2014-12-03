@@ -438,7 +438,6 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
   * balance report no longer has an O(n^2) slowdown with large numbers of accounts,
     and is generally more speedy. Benchmark on a 2010 macbook:
 
-    <!--
     ```
     +-------------------------------------------++--------------+--------------+--------+
     |                                           || hledger-0.18 | hledger-0.19 | ledger |
@@ -450,14 +449,6 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
     | -f data/10000x1000x10.journal  balance aa ||         4.77 |         4.40 |   2.33 |
     +-------------------------------------------++--------------+--------------+--------+
     ```
-    -->
-
-^                                           ^ hledger-0.18 ^ hledger-0.19 ^ ledger ^
-| -f data/100x100x10.journal     balance    |         0.21 |         0.07 |   0.09 |
-| -f data/1000x1000x10.journal   balance    |        10.13 |         0.47 |   0.62 |
-| -f data/1000x10000x10.journal  balance    |        40.67 |         0.67 |   1.01 |
-| -f data/10000x1000x10.journal  balance    |        15.01 |         3.22 |   2.36 |
-| -f data/10000x1000x10.journal  balance aa |         4.77 |         4.40 |   2.33 |
 
   * build version is set with CPP instead of cabal-file-th
 
