@@ -46,10 +46,14 @@ in your home directory. You can specify a different file with the `-f`
 option or `LEDGER_FILE` environment variable, or standard input with `-f-`.
 
 Options are similar across most commands, with some variations; use
-`hledger COMMAND --help` for details. Most options must appear
-somewhere after COMMAND, not before it. These input and help-related
-options can appear anywhere: `-f`, `--rules-file`, `--alias`,
-`--ignore-assertions`, `--help`, `--debug`, `--version`.
+`hledger COMMAND --help` for details.
+
+Most options must appear after COMMAND, not before it; but the
+following general options can appear anywhere: `-f`, `--rules-file`,
+`--alias`, `--ignore-assertions`, `--help`, `--debug`, `--version`.
+
+If an option is repeated, the last one takes precedence. Eg `-p jan -p
+feb` is equivalent to `-p feb`.
 
 Arguments are also command-specific, but usually they form a
 [query](#queries) which selects a subset of the journal, eg transactions
