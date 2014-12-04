@@ -90,6 +90,7 @@ instance Show DateSpan where
 showDate :: Day -> String
 showDate = formatTime defaultTimeLocale "%0C%y/%m/%d"
 
+-- XXX review for more boundary crossing issues
 -- | Render a datespan as a display string, abbreviating into a
 -- compact form if possible.
 showDateSpan ds@(DateSpan (Just from) (Just to)) =
@@ -117,8 +118,26 @@ showDateSpan ds@(DateSpan (Just from) (Just to)) =
                                                 -> formatTime defaultTimeLocale "%0C%y/%m/%dw%V" from
     -- a day, YYYY/MM/DDd (d suffix is to distinguish from a regular date in register)
     ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm==tm && fd+1==td -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
+    -- crossing a year boundary
+    ((fy,fm,fd), (ty,tm,td)) | fy+1==ty && fm==12 && tm==1 && fd==31 && td==1 -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
+    -- crossing a month boundary XXX wrongly shows LEAPYEAR/2/28-LEAPYEAR/3/1 as LEAPYEAR/2/28
+    ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm+1==tm && fd `elem` fromMaybe [] (lookup fm lastdayofmonth) && td==1 -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
     -- otherwise, YYYY/MM/DD-YYYY/MM/DD
     _                                           -> showDateSpan' ds
+  where lastdayofmonth = [(1,[31])
+                         ,(2,[28,29])
+                         ,(3,[31])
+                         ,(4,[30])
+                         ,(5,[30])
+                         ,(6,[31])
+                         ,(7,[31])
+                         ,(8,[31])
+                         ,(9,[30])
+                         ,(10,[31])
+                         ,(11,[30])
+                         ,(12,[31])
+                         ]
+
 showDateSpan ds = showDateSpan' ds
 
 -- | Render a datespan as a display string.
