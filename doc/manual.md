@@ -959,8 +959,8 @@ which hledger's main purpose. (The original commands inherited from Ledger were,
 
 #### accounts
 
-This command lists matched account names, in a flat list by default, or in hierarchy
-with the `--tree` flag. With no query arguments, all account names are listed.
+This command lists matched account names, as a flat list by default, or (with the `--tree` flag) as a hierarchy.
+With no query arguments, all account names are listed.
 
 #### activity
 
@@ -1001,10 +1001,11 @@ A final total is displayed by default; use `--no-total` to suppress it.
 
 ##### Flat mode
 
-To see a flat list of full account names instead of the hierarchy, use `--flat`.
-In this mode, each account's balance is the "exclusive" balance - it excludes subaccount balances
-(except when aggregating deeper accounts at the depth limit, see below).
-Also, you can use `--drop N` to omit the first few account name components.
+To see a flat list of full account names instead of the default hierarchical display, use `--flat`.
+In this mode, each account's balance is the "exclusive" balance - it excludes subaccount balances -
+except for any depth-limited accounts (see below), which do include the balance from any hidden subaccounts.
+
+In this mode, you can also use `--drop N` to omit the first few account name components.
 
 ##### Depth limiting
 
