@@ -122,7 +122,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
             (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts' precedingq j
                                     where
                                       opts' | tree_ opts = opts{no_elide_=True}
-                                            | otherwise  = opts{flat_=True}
+                                            | otherwise  = opts{accountlistmode_=ALFlat}
       startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startacctbals
       startAccts = dbg "startAccts" $ map fst startacctbals
 

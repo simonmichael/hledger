@@ -38,7 +38,7 @@ print' opts@CliOpts{reportopts_=ropts} j = do
   let q = queryFromOpts d ropts
       fmt = outputFormatFromOpts opts
       (render, ropts') = case fmt of
-        "csv" -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{flat_=True})
+        "csv" -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
         _     -> (entriesReportAsText,                      ropts)
   writeOutput opts $ render $ entriesReport ropts' q j
 

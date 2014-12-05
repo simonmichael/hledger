@@ -8,9 +8,12 @@ Options common to most hledger reports.
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
   BalanceType(..),
+  AccountListMode(..),
   FormatStr,
   defreportopts,
   rawOptsToReportOpts,
+  flat_,
+  tree_,
   dateSpanFromOpts,
   intervalFromOpts,
   clearedValueFromOpts,
@@ -47,6 +50,11 @@ data BalanceType = PeriodBalance     -- ^ The change of balance in each period.
 
 instance Default BalanceType where def = PeriodBalance
 
+-- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
+data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typeable)
+
+instance Default AccountListMode where def = ALDefault
+
 -- | Standard options for customising report filtering and output,
 -- corresponding to hledger's command-line options and query language
 -- arguments. Used in hledger-lib and above.
@@ -75,8 +83,7 @@ data ReportOpts = ReportOpts {
     ,related_        :: Bool
     -- balance
     ,balancetype_    :: BalanceType
-    ,flat_           :: Bool -- mutually
-    ,tree_           :: Bool -- exclusive
+    ,accountlistmode_  :: AccountListMode
     ,drop_           :: Int
     ,no_total_       :: Bool
  } deriving (Show, Data, Typeable)
@@ -85,7 +92,6 @@ instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
-    def
     def
     def
     def
@@ -138,11 +144,17 @@ rawOptsToReportOpts rawopts = do
     ,average_     = boolopt "average" rawopts
     ,related_     = boolopt "related" rawopts
     ,balancetype_ = balancetypeopt rawopts
-    ,flat_        = boolopt "flat" rawopts
-    ,tree_        = boolopt "tree" rawopts
+    ,accountlistmode_ = accountlistmodeopt rawopts
     ,drop_        = intopt "drop" rawopts
     ,no_total_    = boolopt "no-total" rawopts
     }
+
+accountlistmodeopt :: RawOpts -> AccountListMode
+accountlistmodeopt rawopts =
+  case reverse $ filter (`elem` ["tree","flat"]) $ map fst rawopts of
+    ("tree":_) -> ALTree
+    ("flat":_) -> ALFlat
+    _          -> ALDefault
 
 balancetypeopt :: RawOpts -> BalanceType
 balancetypeopt rawopts
@@ -180,6 +192,13 @@ maybeperiodopt d rawopts =
                 (\e -> optserror $ "could not parse period option: "++show e)
                 Just
                 $ parsePeriodExpr d s
+
+-- | Legacy-compatible convenience aliases for accountlistmode_.
+tree_ :: ReportOpts -> Bool
+tree_ = (==ALTree) . accountlistmode_
+
+flat_ :: ReportOpts -> Bool
+flat_ = (==ALFlat) . accountlistmode_
 
 -- | Figure out the date span we should report on, based on any
 -- begin/end/period options provided. A period option will cause begin and
