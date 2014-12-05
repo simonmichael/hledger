@@ -1002,16 +1002,14 @@ A final total is displayed by default; use `--no-total` to suppress it.
 ##### Flat mode
 
 To see a flat list of full account names instead of the default hierarchical display, use `--flat`.
-In this mode, each account's balance is the "exclusive" balance - it excludes subaccount balances -
-except for any depth-limited accounts (see below), which do include the balance from any hidden subaccounts.
-
+In this mode, accounts (unless depth-clipped) show their "exclusive" balance, excluding any subaccount balances.
 In this mode, you can also use `--drop N` to omit the first few account name components.
 
 ##### Depth limiting
 
 With `--depth N`, balance shows accounts only to the specified depth.
-In flat mode, it also aggregates and summarises deeper accounts at the depth limit.
-This is very useful to summarise complex charts of accounts.
+This is very useful to show a complex charts of accounts in less detail.
+In flat mode, balances from accounts below the depth limit will be shown as part of a parent account at the depth limit.
 
 <!-- $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done -->
 
