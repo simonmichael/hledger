@@ -3,24 +3,32 @@
 
 -f data/100x100x10.journal     balance
 -f data/1000x1000x10.journal   balance
--f data/1000x10000x10.journal  balance
-#-f data/10000x1000x10.journal  balance
-#-f data/10000x1000x10.journal  balance aa
-#-f data/10000x10000x10.journal balance
-#-f data/100000x1000x10.journal balance
+# -f data/1000x10000x10.journal  balance
+-f data/10000x1000x10.journal  balance
+-f data/10000x1000x10.journal  balance aa
+# -f data/10000x10000x10.journal balance
+# -f data/100000x1000x10.journal balance
 
 -f data/100x100x10.journal     register
 -f data/1000x1000x10.journal   register
--f data/1000x10000x10.journal  register
-#-f data/10000x1000x10.journal  register
-#-f data/10000x10000x10.journal register
-#-f data/10000x1000x10.journal  register aa
-#-f data/100000x1000x10.journal register
+# -f data/1000x10000x10.journal  register
+-f data/10000x1000x10.journal  register
+-f data/10000x1000x10.journal  register aa
+# -f data/10000x10000x10.journal register
+# -f data/100000x1000x10.journal register
 
 -f data/100x100x10.journal     print
 -f data/1000x1000x10.journal   print
--f data/1000x10000x10.journal  print
-#-f data/10000x1000x10.journal  print
-#-f data/10000x10000x10.journal print
-#-f data/10000x1000x10.journal  print aa
-#-f data/100000x1000x10.journal print
+# -f data/1000x10000x10.journal  print
+-f data/10000x1000x10.journal  print
+-f data/10000x1000x10.journal  print aa
+# -f data/10000x10000x10.journal print
+# -f data/100000x1000x10.journal print
+
+-f data/100x100x10.journal     stat
+-f data/1000x1000x10.journal   stat
+# -f data/1000x10000x10.journal  stat
+-f data/10000x1000x10.journal  stat
+-f data/10000x1000x10.journal  stat aa
+# -f data/10000x10000x10.journal stat
+# -f data/100000x1000x10.journal stat
