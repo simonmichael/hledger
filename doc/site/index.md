@@ -1,5 +1,8 @@
 % home
 
+<div class="row">
+<div class="col-md-9">
+
 # hledger is...
 
 ### a lightweight, dependable, cross-platform accounting program
@@ -125,4 +128,13 @@ or the **[mail list](http://hledger.org/list)**.
 **[Gittip](https://www.gittip.com/simonmichael/)** &nbsp;
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> &nbsp;
 <!-- Also testimonials, examples, blogging, packaging, and patches. -->
+</div>
+
+</div>
+<div class="col-md-3">
+
+<a class="twitter-timeline" width="" height="" data-dnt="true" href="https://twitter.com/hashtag/ledgercli" data-widget-id="539507319734677504"></a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+</div>
 </div>
