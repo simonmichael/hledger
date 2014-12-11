@@ -7,7 +7,7 @@
 hledger is a computer program for easily tracking money, time, or
 other commodities, on unix, mac and windows. With simple yet powerful
 functionality accessed from command line or web browser, it is a
-reliable, flexible, future-proof alternative to Quicken or GnuCash. I
+reliable, lightweight alternative to Quicken or GnuCash. I
 use it for:
 
 - tracking spending and income
