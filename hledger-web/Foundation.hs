@@ -240,8 +240,13 @@ getViewData = do
   q          <- getParameterOrNull "q"
   a          <- getParameterOrNull "a"
   p          <- getParameterOrNull "p"
+
+  -- a "sidebar" query parameter overrides the "showsidebar" cookie
+  sidebarparam <- lookupGetParam (pack "sidebar")
   cookies <- reqCookies <$> getRequest
-  let showsidebar = maybe False (=="1") $ lookup "showsidebar" cookies
+  let sidebarcookie = lookup "showsidebar" cookies
+  let showsidebar = maybe (sidebarcookie == Just "1") (=="1") sidebarparam
+
   return (viewdataWithDateAndParams today q a p){
                opts=opts
               ,msg=msg
