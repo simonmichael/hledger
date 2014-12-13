@@ -49,8 +49,15 @@ use it for:
 - tracking invoices
 - building financial and time clarity and serenity
 
-<div style="margin:0 10em 0 5em;">
-### Free software
+<style>
+.indent0 { margin:0 15em 0  0em; }
+.indent1 { margin:0 10em 0  5em; }
+.indent2 { margin:0  5em 0 10em; }
+</style>
+
+<div class="indent1">
+
+### Free&nbsp;software
 
 hledger is available under the GNU GPLv3+, which helps ensure that it
 will remain free and available for as long as you need it.  It has
@@ -59,15 +66,15 @@ been developed as a community project by
 [contributors](contributors.html) since 2007.
 </div>
 
-<div style="margin:0 10em 0 10em;">
+<div class="indent2">
 ### inspired by Ledger
 
 hledger was inspired by and maintains substantial compatibility with [Ledger](faq.html#hledger-and-ledger),
 and is part of the enthusiastic and supportive "*ledger" community.
 </div>
 
-<div style="margin:0 20em 0 0em;">
-### a command-line tool, that preserves your data
+<div class="indent0">
+### a command-line tool, that respects your data
 
 hledger is first a command-line tool. It follows Ledger's philosophy:
 your data lives in a simple, safe, plain text file which you can edit
@@ -76,7 +83,7 @@ various kinds, without changing your data. (It can help you add new
 transactions, but does not change existing ones.)
 </div>
 
-<div style="margin:0 10em 0 5em;">
+<div class="indent1">
 ### ...with a web UI
 
 hledger comes with a built-in web server providing an alternate
@@ -85,7 +92,7 @@ hledger comes with a built-in web server providing an alternate
 and click reporting. The web and command-line clients can be used
 simultaneously.  </div>
 
-<div style="margin:0 5em 0 10em;">
+<div class="indent2">
 ### a Haskell application and library
 
 hledger is written in Haskell, a modern and highly-regarded
@@ -98,13 +105,13 @@ easy to write your own hledger-compatible
 applications.
 </div>
 
-<div style="margin:0 20em 0 0em;">
+<div class="indent0">
 ### documented
 
 Complete, accurate documentation is always a top priority.
 </div>
 
-<div style="margin:0 15em 0 5em;">
+<div class="indent1">
 ### comfortable for techies, usable by all
 
 hledger aims to be useful to both computer experts and regular folks.
@@ -114,24 +121,24 @@ accounting. The web interface helps make it accessible to GUI-only
 folk as well.
 </div>
 
-<div style="margin:0 10em 0 10em;">
+<div class="indent2">
 ### focussed on serving the user
 
-hledger strives to be accessible, practical and to provide real-world value.
-I've been depending on and improving it continuously since 2007.
+hledger strives to be usable, practical and to provide real-world value.
+I've been depending on it and improving it since 2007.
 I needed a tool like this badly, and I want to keep it growing and helping others who can also benefit.
-(You can help!)
+You can help!
 </div>
 
 
-<div style="margin-top:2em; text-align:right; float:right;">
+<div style="margin-top:3em; text-align:center; ">
 <!-- Has hledger saved you or your employer money, time or peace of mind ? -->
 <!-- Donations: -->
-<script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script> &nbsp;
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt="bountysource"></a> &nbsp;
 <a href="https://flattr.com/submit/auto?user_id=simonmichael&url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> &nbsp;
 **[Gittip](https://www.gittip.com/simonmichael/)** &nbsp;
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> &nbsp;
+<div style="display:inline; position:relative; top:6px;"><script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script></div> &nbsp;
 <!-- Also testimonials, examples, blogging, packaging, and patches. -->
 </div>
 
