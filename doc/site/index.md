@@ -56,6 +56,7 @@ use it for:
 </style>
 
 <div class="indent1">
+<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 0 1em 1em;" />
 
 ### Free&nbsp;software
 
