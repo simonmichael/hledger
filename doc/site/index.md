@@ -3,7 +3,7 @@
 <div class="row">
 <div class="col-md-9">
 
-<div class="panel panel-primary" style="float:right; max-width:250px; margin-left:1em;">
+<div class="panel panel-primary" style="float:right; max-width:200px; margin-left:1em;">
 <div class="panel-heading">
 <h2 class="panel-title">Get started</h2>
 </div>
@@ -14,12 +14,12 @@ or **[manual](manual.html)**
 or **[blog posts](more-docs.html#blog-posts-articles)**,
 or join us on IRC or the mail list.
 
-<!-- <style> -->
-<!-- tr { -->
-<!--     /*vertical-align:top;*/ -->
-<!--     border-top:thin solid #bbb; -->
-<!-- } -->
-<!-- </style> -->
+<style>
+tr {
+    /*vertical-align:top;*/
+    border-top:thin solid #bbb;
+}
+</style>
 |---------------------------|-------------------------------------------------------------------------
 | IRC                       | [#hledger](http://irc.hledger.org) (see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1))
 | Mail list&nbsp;&nbsp;     | via [google](http://list.hledger.org) or [gmane](http://news.gmane.org/gmane.comp.finance.ledger.hledger)
@@ -33,10 +33,17 @@ or join us on IRC or the mail list.
 </div>
 </div>
 
+<style>
+.indent0 { margin:0 15em 0  0em; }
+.indent1 { margin:0 10em 0  5em; }
+.indent2 { margin:0  5em 0 10em; }
+</style>
+
 # hledger is...
 
 ### a lightweight, dependable, cross-platform accounting program
 
+<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 0 1em 1em;" />
 hledger is a computer program for easily tracking money, time, or
 other commodities, on unix, mac and windows. With simple yet powerful
 functionality accessed from command line or web browser, it is a
@@ -49,14 +56,7 @@ use it for:
 - tracking invoices
 - building financial and time clarity and serenity
 
-<style>
-.indent0 { margin:0 15em 0  0em; }
-.indent1 { margin:0 10em 0  5em; }
-.indent2 { margin:0  5em 0 10em; }
-</style>
-
 <div class="indent1">
-<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 0 1em 1em;" />
 
 ### Free&nbsp;software
 
