@@ -1,8 +1,21 @@
-API-ish changes in hledger-lib. For user-visible changes, see the hledger changelog.
+API-ish changes in hledger-lib. For user-visible changes, see hledger.
 
 0.24 (unreleased)
 
-- clarify debug helpers a little
+- fix combineJournalUpdates folding order
+- fix a regexReplaceCI bug
+- fix a splitAtElement bug with adjacent separators
+- mostly replace slow regexpr with regex-tdfa (fixes #189)
+- use the modern Text.Parsec API
+- allow transformers 0.4*
+- regexReplace now supports backreferences
+- Transactions now remember their parse location in the journal file
+- export Regexp types, disambiguate CsvReader's similarly-named type
+- export failIfInvalidMonth/Day (fixes #216)
+- track the commodity of zero amounts when possible
+  (useful eg for hledger-web's multi-commodity charts)
+- show posting dates in debug output
+- more debug helpers
 
 0.23.3 (2014/9/12)
 

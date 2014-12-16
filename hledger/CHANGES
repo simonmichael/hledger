@@ -1,11 +1,91 @@
+User-visible changes in hledger (see also hledger-lib):
+
 0.24 (unreleased)
 
-- register: faster with large output
-- register: postings with multi-commodity amounts are now top-aligned, like Ledger
+General:
+- fix redundant compilation when cabal installing the hledger packages
+- switch to Decimal for representing amounts (#118)
+- report interval headings (eg in balance, register reports) are shown
+  compactly when possible
+- general speedups
+
+Journal format:
+- detect decimal point and digit groups more robustly (#196)
+- check that transaction dates are followed by whitespace or newline
+- check that dates use a consistent separator character
+- balance assertions now are specific to a single commodity, like
+  Ledger (#195)
+- support multi-line comments using "comment", "end comment"
+  directives, like Ledger
+
+CSV format:
+- reading CSV data from stdin now works better
+- the rules file include directive is now relative to the current
+  file's directory (#198)
+- the original order of same-day transactions is now usually preserved
+  (if the records appear to be in reverse date order, we reverse them
+  before finally sorting by transaction date)
+- CSV output is now built in to the balance, print, and register
+  commands, controlled by -O/--output-format (and -o/--output-file,
+  see below)
+
+CLI:
+- the --width and --debug options now require their argument (#149)
+- when an option is repeated, the last value takes precedence (#219).
+  This is helpful eg for customising your reporting command aliases on
+  the fly.
+- smart dates (used in -p/-b/-e/date:/date2:) now must use a
+  consistent separator character, and must be parseable to the end
+- output destination and format selection is now built in to the
+  balance, print and register commands, controlled by -o/--output-file
+  and -O/--output-format options. Notes:
+  - -o - means stdout
+  - an output file name suffix matching a supported format will also
+    set the output format, unless overridden by --output-format
+  - commands' supported output formats are listed in their
+    command-line help. Two formats are currently available:
+    txt (the default) and csv.
+- balance assertions can be disabled with --ignore-assertions
+
+Account aliases:
+- all matching account aliases are now applied, not just one directive
+  and one option
+- account aliases now match by case insensitive regular expressions
+  matching anywhere in the account name
+- account aliases can replace multiple occurrences of the pattern
+  within an account name
+- an account alias replacement pattern can reference matched groups
+  with \N
+
+Queries:
+- date:/date2: with a malformed date now reports an error instead of
+  being ignored
+- amt: now supports >= or <=
+
+balance:
+- a depth limit of 0 now shows summary items with account name "...",
+  instead of an empty report (#206)
+- in multicolumn balance reports, -E now also shows posting-less
+  accounts with a non-zero balance during the period (in addition to
+  showing leading & trailing empty columns)
+- in multicolumn reports, multi-commodity amounts are rendered on one
+  line for better layout (#186)
+- multicolumn reports' title now includes the report span
+
+register:
+- runs faster with large output
+- a depth limit of 0 now shows summary items (see balance)
+- -A/--average now implies -E/--empty
+- postings with multi-commodity amounts are now top-aligned, like
+  Ledger
+
+Extra commands:
+- hledger-equity: fix end date in title; print closing entry too
+- hledger-check-dates: added
 
 0.23.3 (2014/9/12)
 
-- allow text 1.2+ (fixes #207)
+- allow text 1.2+ (#207)
 
 0.23.2 (2014/5/8)
 

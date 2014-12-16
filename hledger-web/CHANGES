@@ -1,21 +1,39 @@
-See also the hledger changelog.
+User-visible changes in hledger-web (see also hledger):
 
 0.24 (unreleased)
 
-- the web UI has been streamlined; edit form, raw & entries views have been dropped
-- we now remember the sidebar's open/closed state
+General:
+- fix: add missing hs/js files to package
+- the web UI has been streamlined, dropping the raw and entries views and
+  the edit form
+- the help dialog has been improved
 - keyboard shortcuts are now available
-- better help dialog
-- better add form
-- more bootstrap styling
-- static file cleanups
-- report filtering fixes
-- upgrade jquery to 2.1.1, bootstrap to 3.1.1, drop select2, add typeahead, cookie, hotkeys
-- refactoring
+- the sidebar can be toggled open or closed (press s)
 
+Journal view:
+- layout tweaks for less truncation of descriptions and account names
+
+Register view:
+- fix: don't show all zero amounts when searching by account within an
+  account register view
+- chart improvements: show zero balances with correct commodity; show
+  accurate balance at all dates; show transaction events & tooltips;
+  show zero/today lines & background colors
+
+Add form:
+- parses data more strictly and gives better errors (eg #194)
+- allows any number of postings, not just two
+- after adding a transaction, goes back to the journal
+- keyboard shortcut (a) allows quick access
+
+Dependencies:
+- allow warp 3*, wai-handler-launch 3*
+- require yesod 1.4* (fixes #212)
+- js updated (jquery, bootstrap, flot), added (typeahead, cookie, hotkeys),
+  removed (select2)
 0.23.3 (2014/9/12)
 
-- web: remove warp, wai-handler-launch upper bounds (fixes #205)
+- remove warp, wai-handler-launch upper bounds (fixes #205)
 
 0.23.2 (2014/5/8)
 
